@@ -14,6 +14,7 @@ import { ConfigService } from '../../../service/config.service';
 import { ModService } from '../../../service/mod.service';
 import { QueryStore } from '../../../store/query';
 import { Store } from '../../../store/store';
+import { getTitle } from '../../../util/format';
 import { getArgs } from '../../../util/query';
 import { hasTag, updateMetadata } from '../../../util/tag';
 
@@ -68,9 +69,8 @@ export class RefErrorsComponent implements HasChanges {
       args.responses = this.store.view.url;
       defer(() => this.query.setArgs(args));
     }));
-    this.disposers.push(autorun(() => {
-      this.mod.setTitle($localize`Errors: ` + (this.store.view.ref?.title || this.store.view.url));
-    }));
+    // TODO: set title for bare reposts
+    this.disposers.push(autorun(() => this.mod.setTitle($localize`Errors: ` + getTitle(this.store.view.ref))));
     this.disposers.push(autorun(() => {
       if (this.store.view.url && this.config.websockets) {
         this.watch?.unsubscribe();

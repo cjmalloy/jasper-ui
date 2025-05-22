@@ -15,6 +15,7 @@ import { ConfigService } from '../../../service/config.service';
 import { ModService } from '../../../service/mod.service';
 import { QueryStore } from '../../../store/query';
 import { Store } from '../../../store/store';
+import { getTitle } from '../../../util/format';
 import { memo, MemoCache } from '../../../util/memo';
 import { getArgs } from '../../../util/query';
 import { hasTag, removeTag, top, updateMetadata } from '../../../util/tag';
@@ -74,9 +75,8 @@ export class RefThreadComponent implements HasChanges {
       args.responses = this.store.view.url;
       defer(() => this.query.setArgs(args));
     }));
-    this.disposers.push(autorun(() => {
-      this.mod.setTitle($localize`Thread: ` + (this.store.view.ref?.title || this.store.view.url));
-    }));
+    // TODO: set title for bare reposts
+    this.disposers.push(autorun(() => this.mod.setTitle($localize`Thread: ` + getTitle(this.store.view.ref))));
     this.disposers.push(autorun(() => {
       MemoCache.clear(this);
       if (this.store.view.ref && this.config.websockets) {

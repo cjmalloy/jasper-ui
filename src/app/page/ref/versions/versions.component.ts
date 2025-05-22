@@ -7,6 +7,7 @@ import { AdminService } from '../../../service/admin.service';
 import { ModService } from '../../../service/mod.service';
 import { QueryStore } from '../../../store/query';
 import { Store } from '../../../store/store';
+import { getTitle } from '../../../util/format';
 import { getArgs } from '../../../util/query';
 
 @Component({
@@ -50,9 +51,8 @@ export class RefVersionsComponent implements OnInit, OnDestroy, HasChanges {
       args.obsolete = true;
       defer(() => this.query.setArgs(args));
     }));
-    this.disposers.push(autorun(() => {
-      this.mod.setTitle($localize`Remotes: ` + (this.store.view.ref?.title || this.store.view.url));
-    }));
+    // TODO: set title for bare reposts
+    this.disposers.push(autorun(() => this.mod.setTitle($localize`Remotes: ` + getTitle(this.store.view.ref))));
   }
 
   ngOnDestroy() {

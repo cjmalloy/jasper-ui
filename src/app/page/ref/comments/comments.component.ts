@@ -10,6 +10,7 @@ import { AdminService } from '../../../service/admin.service';
 import { ModService } from '../../../service/mod.service';
 import { Store } from '../../../store/store';
 import { ThreadStore } from '../../../store/thread';
+import { getTitle } from '../../../util/format';
 import { memo, MemoCache } from '../../../util/memo';
 import { hasTag, removeTag, updateMetadata } from '../../../util/tag';
 
@@ -41,7 +42,8 @@ export class RefCommentsComponent implements OnInit, OnDestroy, HasChanges {
   }
 
   ngOnInit(): void {
-    this.disposers.push(autorun(() => this.mod.setTitle($localize`Comments: ` + (this.store.view.ref?.title || this.store.view.url))));
+    // TODO: set title for bare reposts
+    this.disposers.push(autorun(() => this.mod.setTitle($localize`Comments: ` + getTitle(this.store.view.ref))));
     this.disposers.push(autorun(() => {
       MemoCache.clear(this);
       const top = this.store.view.url;
