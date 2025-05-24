@@ -18,7 +18,7 @@ export const aiQueryPlugin: Plugin = {
     language: 'javascript',
     // language=JavaScript
     script: `
-      const DEFAULT_PROVIDER = 'openai';
+      const DEFAULT_PROVIDER = 'anthropic';
       const { Buffer } = require('buffer');
       const uuid = require('uuid');
       const axios = require('axios');
@@ -224,7 +224,7 @@ export const aiQueryPlugin: Plugin = {
         },
         anthropic: {
           init(config) {
-            config.model ||= 'claude-3-5-sonnet-latest';
+            config.model ||= 'claude-opus-4-0';
             config.maxTokens ||= 4096;
             config.thinkingTokens ||= 4096
             config.pdf = true;
