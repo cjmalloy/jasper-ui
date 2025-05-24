@@ -14,7 +14,7 @@ export const readMod: Mod = {
       advancedActions: [{ response: 'plugin/user/read', labelOff: $localize`read`, labelOn: $localize`unread`, global: true }],
       // language=CSS
       css: `
-        .ref.response-plugin_read .link {
+        .ref.response-plugin_user_read .link {
           a, .fake-link {
             color: var(--visited) !important;
           }
