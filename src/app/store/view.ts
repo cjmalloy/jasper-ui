@@ -254,7 +254,7 @@ export class ViewStore {
   }
 
   get showRemotesCheckbox() {
-    return this.inbox || ['tags', 'settings/user', 'settings/plugin', 'settings/template', 'settings/ref'].includes(this.current!);
+    return ['tags', 'settings/user', 'settings/plugin', 'settings/template', 'settings/ref', 'inbox/ref'].includes(this.current!);
   }
 
   get type(): Type | undefined {
