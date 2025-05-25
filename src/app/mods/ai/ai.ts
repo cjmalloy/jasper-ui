@@ -272,7 +272,7 @@ export const aiQueryPlugin: Plugin = {
                 budget_tokens: config.thinkingTokens,
               }
             } : {};
-            const toolUse = !config.json && !config.thinking ? {
+            const toolUse = config.json && !config.thinking ? {
               tools: [{
                 name: 'bundle',
                 description: 'JSON responses in bundle format',
