@@ -115,7 +115,7 @@ export function getMailbox(tag: string, local: string): string {
   if (hasPrefix(tag, 'plugin/inbox') || hasPrefix(tag, 'plugin/outbox')) return tag;
   const origin = tagOrigin(tag);
   if (!origin || origin === local) {
-    return setPublic(prefix('plugin/inbox', localTag(tag)));
+    return setPublic(prefix('plugin/inbox', localTag(tag))) + (local || '@');
   } else {
     return setPublic(prefix(`plugin/outbox/${removeParentOrigin(origin, local).substring(1)}`, localTag(tag)));
   }
