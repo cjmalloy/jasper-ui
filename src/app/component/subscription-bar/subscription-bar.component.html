@@ -6,7 +6,9 @@
     @if (admin.getTemplate('user') && store.account.signedIn) {
       &bullet; <a routerLink="/home" [queryParams]="{ forYou : true }" routerLinkActive="current-page" i18n>for you</a>
     }
-    &bullet; <a [routerLink]="'/tag/' + (store.account.origin || '*')" routerLinkActive="current-page" i18n>local</a>
+    @if (admin.getPlugin('+plugin/origin') && store.account.signedIn) {
+      &bullet; <a [routerLink]="'/tag/' + (store.account.origin || '*')" routerLinkActive="current-page" i18n>local</a>
+    }
     &bullet; <a routerLink="/tag/@*" routerLinkActive="current-page" i18n>all</a>
     @if (bookmarks.length) {
       @for (b of bookmarks; track i; let i = $index) {
