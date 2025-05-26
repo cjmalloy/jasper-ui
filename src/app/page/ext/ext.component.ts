@@ -86,7 +86,7 @@ export class ExtPage implements OnInit, OnDestroy, HasChanges {
     if (ext) {
       this.editForm = extForm(this.fb, ext, this.admin, true);
       this.editForm.patchValue(ext);
-      defer(() => this.form!.setValue(ext));
+      this.setValue(ext);
     } else {
       for (const t of this.templates) {
         if (hasPrefix(tag, t.tag)) {
@@ -246,5 +246,13 @@ export class ExtPage implements OnInit, OnDestroy, HasChanges {
 
   clear() {
     this.router.navigateByUrl('/ext');
+  }
+
+  private setValue(ext: Ext) {
+    if (!this.form) {
+      defer(() => this.setValue(ext));
+    } else {
+      this.form.setValue(ext);
+    }
   }
 }
