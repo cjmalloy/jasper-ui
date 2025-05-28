@@ -47,7 +47,7 @@ export const aiQueryPlugin: Plugin = {
         ...ref.plugins?.['plugin/llm'] || {},
         ...response.plugins?.['plugin/llm'] || {},
       }
-      const bundleSchema = {
+      const fullBundleSchema = {
         type: 'object',
         properties: {
           ref: {
@@ -77,6 +77,23 @@ export const aiQueryPlugin: Plugin = {
                 config: { type: 'object' },
               },
               required: ['tag']
+            }
+          }
+        }
+      };
+      const bundleSchema = {
+        type: 'object',
+        properties: {
+          ref: {
+            type: 'array',
+            minItems: 1,
+            maxItems: 1,
+            items: {
+              type: 'object',
+              properties: {
+                title: { type: 'string' },
+                comment: { type: 'string' },
+              }
             }
           }
         }
@@ -276,7 +293,7 @@ export const aiQueryPlugin: Plugin = {
               tools: [{
                 name: 'bundle',
                 description: 'JSON responses in bundle format',
-                input_schema: bundleSchema,
+                input_schema: config.bundle ? fullBundleSchema : bundleSchema,
               }],
               tool_choice: { type: 'tool', name: 'bundle' },
             } : {};
@@ -748,6 +765,23 @@ export const llmPlugin: Plugin = {
       props: {
         label: $localize`Max Sources:`,
       },
+    }, {
+      key: 'json',
+      type: 'hidden',
+      props: {
+        label: $localize`JSON`,
+      },
+    }, {
+      key: 'bundle',
+      type: 'boolean',
+      defaultValue: false,
+      expressions: {
+        hide: '!model.json',
+      },
+      props: {
+        label: $localize`Any Response:`,
+        title: $localize`If checked, the AI may return multiple responses including Exts.`,
+      },
     }],
   },
   schema: {
@@ -756,6 +790,7 @@ export const llmPlugin: Plugin = {
       apiKeyTag: { type: 'string' },
       model: { type: 'string' },
       json: { type: 'boolean' },
+      bundle: { type: 'boolean' },
       audio: { type: 'boolean' },
       vision: { type: 'boolean' },
       maxTokens: { type: 'uint32' },
