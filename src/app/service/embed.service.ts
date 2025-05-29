@@ -67,7 +67,7 @@ export class EmbedService {
               if (t.tokens?.length) walk(t.tokens);
               else if (t.items?.length) walk(t.items);
               else if (t.rows?.length) walk(t.rows);
-              pos = t.sourceMap + t.raw?.length ?? 0;
+              pos = t.sourceMap + (t.raw?.length ?? 0);
             }
           };
           walk(tokens);
