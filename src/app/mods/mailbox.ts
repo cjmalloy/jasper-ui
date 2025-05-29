@@ -112,17 +112,17 @@ export function reverseOrigin(tag: string, rootOrigin: string): string {
 }
 
 export function getMailbox(tag: string, local: string): string {
-  if (hasPrefix(tag, 'plugin/inbox') || hasPrefix(tag, 'plugin/outbox')) return tag;
+  if (hasPrefix(tag, 'plugin/inbox') || hasPrefix(tag, 'plugin/outbox')) return localTag(tag);
   const origin = tagOrigin(tag);
   if (!origin || origin === local) {
-    return setPublic(prefix('plugin/inbox', localTag(tag))) + (local || '@');
+    return setPublic(prefix('plugin/inbox', localTag(tag)));
   } else {
     return setPublic(prefix(`plugin/outbox/${removeParentOrigin(origin, local).substring(1)}`, localTag(tag)));
   }
 }
 
 export function getLocalMailbox(mailbox: string, local: string, origin: string, lookup?: Map<string, Map<string, string>>) {
-  if (!origin || origin === local) return mailbox;
+  if (!origin || origin === local) return localTag(mailbox);
   if (hasPrefix(mailbox, 'plugin/outbox')) {
     if (!lookup?.has(origin)) {
       console.warn('Cannot lookup mailbox translation for', origin);
@@ -135,7 +135,7 @@ export function getLocalMailbox(mailbox: string, local: string, origin: string, 
     }
     const mapped = lookup.get(origin)!.get(remote);
     if (!mapped || mapped === local) {
-      return 'plugin/inbox/' + removePrefix(mailbox, 3);
+      return `plugin/inbox/${removePrefix(mailbox, 3)}`;
     }
     return `plugin/outbox/${mapped.substring(1)}/${removePrefix(mailbox, 3)}`;
   }

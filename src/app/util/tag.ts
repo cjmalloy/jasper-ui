@@ -154,7 +154,7 @@ export function defaultOrigin(tag: string, origin?: string) {
   if (!origin) return tag;
   if (tag.includes('*')) return tag;
   if (tag.includes('@')) return tag;
-  return localTag(tag) + origin;
+  return tag + origin;
 }
 
 export function isSubOrigin(local?: string, origin?: string) {
