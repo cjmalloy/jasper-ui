@@ -9,6 +9,7 @@ export function qualifyTags(tags: string[] | undefined, origin: string | undefin
 }
 
 export function decompose(tag: string): [string, string] {
+  if (!tag) return ['', ''];
   const index = tag.indexOf('@');
   if (index === -1) return [tag, ''];
   return [tag.substring(0, index), tag.substring(index)];
