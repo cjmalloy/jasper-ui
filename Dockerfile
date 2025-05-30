@@ -2,6 +2,7 @@ FROM node:22.16.0 AS builder
 WORKDIR /app
 RUN npm i -g @angular/cli
 COPY package.json package-lock.json ./
+COPY patches ./patches/
 RUN npm ci
 COPY . ./
 RUN npm run build
