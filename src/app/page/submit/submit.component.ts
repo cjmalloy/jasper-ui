@@ -74,13 +74,13 @@ export class SubmitPage implements OnInit, OnDestroy {
     this.disposers.push(autorun(() => {
       this.validations.length = 0;
       if (!this.admin.isWikiExternal() && this.store.submit.wiki) {
-        this.validations.push({ name: 'Valid title', passed: false, test: url => of(this.linkType(this.fixed(url))) });
-        this.validations.push({ name: 'Not created yet', passed: true, test: url => this.exists(this.fixed(url)).pipe(map(exists => !exists)) });
+        this.validations.push({ name: $localize`Valid title`, passed: false, test: url => of(this.linkType(this.fixed(url))) });
+        this.validations.push({ name: $localize`Not created yet`, passed: true, test: url => this.exists(this.fixed(url)).pipe(map(exists => !exists)) });
       } else {
         this.url.setValue(this.store.submit.url);
-        this.validations.push({ name: 'Valid link', passed: false, test: url => of(this.linkType(this.fixed(url))) });
-        this.validations.push({ name: 'Not submitted yet', passed: true, test: url => this.exists(this.fixed(url)).pipe(map(exists => !exists)) });
-        this.validations.push({ name: 'No link shorteners', passed: true, test: url => of(!this.isShortener(this.fixed(url))) });
+        this.validations.push({ name: $localize`Valid link`, passed: false, test: url => of(this.linkType(this.fixed(url))) });
+        this.validations.push({ name: $localize`Not submitted yet`, passed: true, test: url => this.exists(this.fixed(url)).pipe(map(exists => !exists)) });
+        this.validations.push({ name: $localize`No link shorteners`, passed: true, test: url => of(!this.isShortener(this.fixed(url))) });
       }
       this.url.updateValueAndValidity();
       if (this.url.value) {

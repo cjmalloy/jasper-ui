@@ -61,12 +61,12 @@
             <span i18n>not found</span>
           } @else {
             @if (publishedIsSubmitted) {
-              <span [title]="ref.created.toISO()">
-                {{ config.mobile ? '' : submittedLabel }}
+              <span [title]="ref.created.toISO()" i18n>
+                @if (!config.mobile) { submitted }
                 {{ ref.created.toRelative() }}</span>
             } @else {
               <span [title]="ref.published!.toISO()" i18n>
-                {{ config.mobile ? '' : publishedLabel }}
+                @if (!config.mobile) { published }
                 {{ ref.published!.toRelative() }}</span>
             }
             @if (!modifiedIsSubmitted) {
@@ -74,53 +74,56 @@
             }
           }
           @if (authors.length) {
-            <span i18n> by</span>
-            @if (authorExts$ | async; as authorExts) {
-              @for (user of authorExts; track user.tag + user.origin) {
-                <a class="user tag"
-                   [title]="formatAuthor(user.tag + user.origin)"
-                   [routerLink]="['/tag', user.tag + user.origin]"
-                   [appTitle]="user">{{ user.name || formatAuthor(user.tag) }}</a>
+            <span i18n> by
+              @if (authorExts$ | async; as authorExts) {
+                @for (user of authorExts; track user.tag + user.origin) {
+                  <a class="user tag"
+                     [title]="formatAuthor(user.tag + user.origin)"
+                     [routerLink]="['/tag', user.tag + user.origin]"
+                     [appTitle]="user">{{ user.name || formatAuthor(user.tag) }}</a>
+                }
+              } @else {
+                @for (t of authors; track t) {
+                  <a class="user tag"
+                     [title]="formatAuthor(t)"
+                     [routerLink]="['/tag', t]">{{ formatAuthor(t) }}</a>
+                }
               }
-            } @else {
-              @for (t of authors; track t) {
-                <a class="user tag"
-                   [title]="formatAuthor(t)"
-                   [routerLink]="['/tag', t]">{{ formatAuthor(t) }}</a>
-              }
-            }
+            </span>
           }
           @if (tags.length) {
-            <span i18n> tagged</span>
-            @if (tagExts$ | async; as tagExts) {
-              @for (e of tagExts; track e.tag) {
-                <a class="tag"
-                   [routerLink]="['/tag', e.tag]"
-                   [appTitle]="e.tag">{{ e.name || '#' + e.tag }}</a>
+            <span i18n> tagged
+              @if (tagExts$ | async; as tagExts) {
+                @for (e of tagExts; track e.tag) {
+                  <a class="tag"
+                     [routerLink]="['/tag', e.tag]"
+                     [appTitle]="e.tag">{{ e.name || '#' + e.tag }}</a>
+                }
+              } @else {
+                @for (t of tags; track t) {
+                  <a class="tag"
+                     [routerLink]="['/tag', t]">{{ t }}</a>
+                }
               }
-            } @else {
-              @for (t of tags; track t) {
-                <a class="tag"
-                   [routerLink]="['/tag', t]">{{ t }}</a>
-              }
-            }
+            </span>
           }
           @if (recipients.length) {
-            <span i18n> to</span>
-            @if (recipientExts$ | async; as recipientExts) {
-              @for (user of recipientExts; track user.tag + user.origin) {
-                <a class="user tag"
-                   [title]="formatAuthor(user.tag + user.origin)"
-                   [routerLink]="['/tag', user.tag + user.origin]"
-                   [appTitle]="user">{{ user.name || formatAuthor(user.tag + user.origin) }}</a>
+            <span i18n> to
+              @if (recipientExts$ | async; as recipientExts) {
+                @for (user of recipientExts; track user.tag + user.origin) {
+                  <a class="user tag"
+                     [title]="formatAuthor(user.tag + user.origin)"
+                     [routerLink]="['/tag', user.tag + user.origin]"
+                     [appTitle]="user">{{ user.name || formatAuthor(user.tag + user.origin) }}</a>
+                }
+              } @else {
+                @for (t of recipients; track t) {
+                  <a class="user tag"
+                     [title]="formatAuthor(t)"
+                     [routerLink]="['/tag', t]">{{ formatAuthor(t) }}</a>
+                }
               }
-            } @else {
-              @for (t of recipients; track t) {
-                <a class="user tag"
-                   [title]="formatAuthor(t)"
-                   [routerLink]="['/tag', t]">{{ formatAuthor(t) }}</a>
-              }
-            }
+            </span>
           }
           @if (showAlarm && alarm) {
             <span class="icon" [routerLink]="['/tag', alarm]" i18n-title title="Alarm ({{ alarm }})">🔔</span>
@@ -141,26 +144,23 @@
                     [text]="uiMarkdown(ui.tag)"></app-md>
           }
           @if (ref.created && !local) {
-            <span i18n> on</span>
-            <a class="origin tag" [routerLink]="['/tag', ref.origin || '*']">{{ ref.origin || 'default' }}</a>
+            <span i18n> on <a class="origin tag" [routerLink]="['/tag', ref.origin || '*']">{{ ref.origin || 'default' }}</a></span>
           }
           @if (local) {
             @if (originPull) {
               @if (remoteOrigin) {
-                from {{ remoteOrigin }}
+                <span i18n> from {{ remoteOrigin }}</span>
               }
               @if (localOrigin) {
-                to
-                <a class="origin tag" [routerLink]="['/tag', localOrigin]">{{ localOrigin }}</a>
+                <span i18n> to <a class="origin tag" [routerLink]="['/tag', localOrigin]">{{ localOrigin }}</a></span>
               }
             }
             @if (originPush) {
               @if (localOrigin) {
-                from
-                <a class="origin tag" [routerLink]="['/tag', localOrigin]">{{ localOrigin }}</a>
+                <span i18n> from <a class="origin tag" [routerLink]="['/tag', localOrigin]">{{ localOrigin }}</a></span>
               }
               @if (remoteOrigin) {
-                to {{ remoteOrigin }}
+                <span i18n> to {{ remoteOrigin }}</span>
               }
             }
           }
@@ -346,8 +346,9 @@
   @for (e of serverError; track e) {
     <div class="error">{{ e }}</div>
   }
-  <div *ngIf="publishChanged"
-       class="warning" i18n>
-    * Published date was changed to be after source published date.
-  </div>
+  @if (publishChanged) {
+    <div class="warning" i18n>
+      * Published date was changed to be after source published date.
+    </div>
+  }
 }

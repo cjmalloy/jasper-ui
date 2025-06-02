@@ -16,6 +16,12 @@
       "root": "",
       "sourceRoot": "src",
       "prefix": "app",
+      "i18n": {
+        "sourceLocale": "en",
+        "locales": {
+          "ja": "src/locale/messages.ja.xlf"
+        }
+      },
       "architect": {
         "build": {
           "builder": "@angular-devkit/build-angular:browser",
@@ -125,6 +131,14 @@
               "extractLicenses": false,
               "sourceMap": true,
               "namedChunks": true
+            },
+            "ja": {
+              "aot": true,
+              "outputPath": "dist/ja",
+              "i18nFile": "src/locale/messages.ja.xlf",
+              "i18nFormat": "xlf",
+              "i18nLocale": "ja",
+              "i18nMissingTranslation": "warning"
             }
           },
           "defaultConfiguration": "production"

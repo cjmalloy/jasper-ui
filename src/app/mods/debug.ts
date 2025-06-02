@@ -160,7 +160,7 @@ export const debugPlugin: Plugin = {
     ],
     filters: [
       { query: 'plugin/debug', label: $localize`🐞️ debug`, title: $localize`Debug`, group: $localize`Plugins 🧰️` },
-      { response: 'plugin/user/breakpoint', label: $localize`🔴️ breakpoint`, title: $localize`Breakpoing`, group: $localize`Plugins 🧰️` },
+      { response: 'plugin/user/breakpoint', label: $localize`🔴️ breakpoint`, title: $localize`Breakpoint`, group: $localize`Plugins 🧰️` },
     ],
     form: [{
       key: 'show',

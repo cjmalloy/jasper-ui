@@ -16,6 +16,7 @@ import { aiMod } from '../mods/ai/ai';
 import { dalleMod } from '../mods/ai/dalle';
 import { naviMod } from '../mods/ai/navi';
 import { summaryMod } from '../mods/ai/summary';
+import { translateMod } from '../mods/ai/translate';
 import { archiveMod } from '../mods/archive';
 import { audioMod } from '../mods/audio';
 import { backgammonMod } from '../mods/backgammon';
@@ -159,6 +160,7 @@ export class AdminService {
     naviMod,
     dalleMod,
     summaryMod,
+    translateMod,
     pdfMod,
     archiveMod,
     latexMod,
@@ -577,10 +579,6 @@ export class AdminService {
     return this.configProperty('advancedActions');
   }
 
-  get published() {
-    return this.pluginConfigProperty('published');
-  }
-
   get themes() {
     return this.configProperty('themes');
   }
@@ -693,12 +691,6 @@ export class AdminService {
   getTemplateView(tag: string) {
     return this.view
       .filter(t => hasPrefix(tag, t.tag));
-  }
-
-  getPublished(tags?: string[]) {
-    const match = ['plugin', ...(tags || [])];
-    return this.published.filter(p => hasTag(p.tag, match))
-      .flatMap(p => p.config!.published as string);
   }
 
   @memo

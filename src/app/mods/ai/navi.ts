@@ -119,7 +119,7 @@ export const naviQueryPlugin: Plugin = {
       const response = {
         origin,
         url: 'ai:' + uuid.v4(),
-        comment: '+plugin/delta/ai/navi is thinking...',
+        comment: '${$localize`+plugin/delta/ai/navi is thinking...`}',
         tags: ['+plugin/placeholder', 'plugin/llm'],
         plugins: {
           'plugin/llm': {
@@ -189,7 +189,7 @@ export const systemPrompt: Ref = {
   title: $localize`System Prompt`,
   tags: ['public', 'internal', '+system/prompt'],
   // language=Markdown
-  comment: $localize`
+  comment: `
 Your name is Navi. You are a helpful assistant for a knowledge management database codenamed Jasper.
 Here is the GitHub Readme:
 # Jasper
@@ -1020,7 +1020,7 @@ export const appPrompt: Ref = {
   title: $localize`Application Prompt`,
   tags: ['public', 'internal', '+system/prompt'],
   // language=Markdown
-  comment: $localize`
+  comment: `
 Your inbox is tag plugin/delta/ai/navi.
 You are a helpful research assistant in a private database codenamed Jasper.
 Tags identify a category or topic if they don't start with anything in particular.

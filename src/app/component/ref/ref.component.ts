@@ -127,8 +127,6 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   advancedActions: Action[] = [];
   groupedAdvancedActions: { [key: string]: Action[] } = {};
   infoUis: Plugin[] = [];
-  submittedLabel = $localize`submitted`;
-  publishedLabel = $localize`published`;
   @HostBinding('class.deleted')
   deleted = false;
   @HostBinding('class.mobile-unlock')
@@ -265,7 +263,6 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     this.advancedActions = ref.created ? sortOrder(this.admin.getAdvancedActions(ref.tags, ref.plugins)) : [];
     this.groupedAdvancedActions = groupBy(this.advancedActions.filter(a => this.showAction(a)), a => (a as any)[this.label(a)]);
     this.infoUis = this.admin.getPluginInfoUis(ref.tags);
-    this.publishedLabel = this.admin.getPublished(ref.tags).join($localize`/`) || $localize`published`;
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -788,7 +785,6 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
 
   @memo
   get publishedIsSubmitted() {
-    if (this.admin.getPublished(this.ref.tags).length) return false;
     return !this.ref.published || Math.abs(this.ref.published.diff(this.ref.created!, 'seconds').seconds) <= 5;
   }
 
