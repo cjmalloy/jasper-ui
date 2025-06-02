@@ -17,7 +17,7 @@ describe('Wiki Plugin', {
     cy.get('.tabs').contains('wiki').click();
     cy.get('#url').type('WIKI TEST');
     cy.get('button').contains('Next').click();
-    cy.get('#comment textarea').type('Link to [[Other WIKI]].');
+    cy.get('.editor textarea').type('Link to [[Other WIKI]].');
     cy.intercept({pathname: '/api/v1/ref'}).as('submit');
     cy.get('button').contains('Submit').click();
     cy.wait('@submit');

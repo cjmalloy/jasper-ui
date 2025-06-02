@@ -7,6 +7,7 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { BrowserModule, HAMMER_GESTURE_CONFIG, HammerModule } from '@angular/platform-browser';
 import { ServiceWorkerModule } from '@angular/service-worker';
 import { FormlyModule } from '@ngx-formly/core';
+import { Settings } from 'luxon';
 import { MobxAngularModule } from 'mobx-angular';
 import { MarkdownModule } from 'ngx-markdown';
 import { MonacoEditorModule } from 'ngx-monaco-editor';
@@ -160,6 +161,7 @@ import { OriginMapService } from './service/origin-map.service';
 const loadFactory = (config: ConfigService, debug: DebugService, admin: AdminService, account: AccountService, origins: OriginMapService, mods: ModService, exts: ExtService) => () =>
   config.load$.pipe(
     tap(() => console.log('-{1}- Loading Jasper')),
+    tap(() => Settings.defaultLocale = document.documentElement.lang),
     switchMap(() => debug.init$),
     tap(() => console.log('-{2}- Authorizing')),
     switchMap(() => account.whoAmI$.pipe(

@@ -33,7 +33,7 @@ export class RefListComponent implements OnInit, OnDestroy, HasChanges {
   @Input()
   pageControls = true;
   @Input()
-  emptyMessage = 'No results found';
+  emptyMessage = $localize`No results found`;
   @Input()
   showToggle = true;
   @Input()

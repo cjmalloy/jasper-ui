@@ -84,6 +84,7 @@ export class SearchComponent implements OnDestroy {
       case 'ref/responses': return $localize`responses`;
       case 'ref/sources': return $localize`sources`;
       case 'ref/versions': return $localize`versions`;
+      case 'ref/errors': return $localize`errors`;
       case 'settings/user': return $localize`permissions`;
       case 'settings/plugin': return $localize`plugins`;
       case 'settings/template': return $localize`templates`;

@@ -17,7 +17,7 @@
         </datalist>
         <input #toInput
                id="to"
-               placeholder="Myself"
+               i18n-placeholder placeholder="Myself"
                [formControl]="to"
                type="text"
                inputmode="email"
@@ -57,9 +57,10 @@
                   [commentControl]="comment"
                   (comment)="comment.setValue($event)"></app-viewer>
     } @else {
-      <span i18n>Mesage:</span>
+      <label [for]="ed.id" i18n>Message:</label>
       <div #fill class="fill-editor">
-        <app-editor class="bubble"
+        <app-editor #ed
+                    class="bubble"
                     [control]="comment"
                     [fillWidth]="fill"
                     (syncEditor)="syncEditor()"
