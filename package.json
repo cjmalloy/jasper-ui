@@ -5,7 +5,7 @@
     "postinstall": "patch-package",
     "ng": "ng",
     "start": "ng serve",
-    "build": "ng build --configuration production --source-map",
+    "build": "ng build --configuration production --source-map --localize",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "e2e": "ng e2e",
