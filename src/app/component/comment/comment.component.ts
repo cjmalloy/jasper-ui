@@ -241,7 +241,7 @@ export class CommentComponent implements OnInit, AfterViewInit, OnChanges, OnDes
   @memo
   get replyTags(): string[] {
     const tags = [
-      ...this.admin.reply.filter(p => hasTag(p.tag, this.store.view.ref)).flatMap(p => p.config!.reply as string[]),
+      ...this.admin.reply.filter(p => hasTag(p.tag, this.ref)).flatMap(p => p.config!.reply as string[]),
       ...this.mailboxes,
     ];
     return removeTag(getMailbox(this.store.account.tag, this.store.account.origin), uniq(tags));
