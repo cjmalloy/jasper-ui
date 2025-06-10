@@ -1,5 +1,8 @@
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { UntypedFormGroup } from '@angular/forms';
+import { ReactiveFormsModule, UntypedFormGroup } from '@angular/forms';
+import { RouterModule } from '@angular/router';
 
 import { GenFormComponent } from './gen.component';
 
@@ -9,7 +12,15 @@ describe('GenComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ GenFormComponent ]
+      declarations: [ GenFormComponent ],
+      imports: [
+        RouterModule.forRoot([]),
+        ReactiveFormsModule
+      ],
+      providers: [
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting()
+      ],
     })
     .compileComponents();
 
