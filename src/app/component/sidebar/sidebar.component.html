@@ -7,10 +7,12 @@
       <div class="wide">
         @if (expanded && store.view.showRemotesCheckbox) {
           <app-search></app-search>
-          <div class="show-remotes">
-            <input id="show-remotes" #sr type="checkbox" [checked]="store.view.showRemotes" (input)="showRemotes = sr.checked">
-            <label for="show-remotes" i18n>show remotes</label>
-          </div>
+          @if (admin.getPlugin('+plugin/origin')) {
+            <div class="show-remotes">
+              <input id="show-remotes" #sr type="checkbox" [checked]="store.view.showRemotes" (input)="showRemotes = sr.checked">
+              <label for="show-remotes" i18n>show remotes</label>
+            </div>
+          }
         } @else {
           <app-search class="centered"></app-search>
         }
