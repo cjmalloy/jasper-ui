@@ -23,7 +23,6 @@ export class TagsPage implements OnInit, OnDestroy, HasChanges {
   private disposers: IReactionDisposer[] = [];
 
   title = '';
-  defaultTitle = $localize`Tags`;
   templates = this.admin.tmplSubmit.filter(t => t.config?.view);
 
   @ViewChild(ExtListComponent)
@@ -31,7 +30,7 @@ export class TagsPage implements OnInit, OnDestroy, HasChanges {
 
   constructor(
     private mod: ModService,
-    private admin: AdminService,
+    public admin: AdminService,
     public store: Store,
     public query: ExtStore,
     private auth: AuthzService,
@@ -48,7 +47,7 @@ export class TagsPage implements OnInit, OnDestroy, HasChanges {
 
   ngOnInit(): void {
     this.disposers.push(autorun(() => {
-      this.title = this.store.view.template && this.admin.getTemplate(this.store.view.template)?.name || this.store.view.ext?.name || this.store.view.template || this.defaultTitle;
+      this.title = this.store.view.template && this.admin.getTemplate(this.store.view.template)?.name || this.store.view.ext?.name || this.store.view.template || '';
       this.exts.getCachedExt(this.store.view.template)
         .subscribe(ext => this.title = ext.name || this.title);
       const query

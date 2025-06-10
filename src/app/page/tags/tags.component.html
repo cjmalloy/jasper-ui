@@ -1,13 +1,23 @@
 <ng-container *mobxAutorun>
   <app-tabs>
     <a class="logo" routerLink="/"></a>
-    <h5 class="fake-link" routerLink=".">{{ title }}</h5>
-    <a routerLink="/tags"
-       [queryParams]="{ noTemplate: null, home: true }"
-       [class.current-tab]="store.view.home"
-       queryParamsHandling="merge"
-       i18n-title title="🏡️️ Subscribed Tags"
-       i18n>home</a>
+    @if (!title || title === '@*') {
+      @if (store.view.noTemplate) {
+        <h5 class="fake-link" routerLink=".">🔖️ Simple Tags</h5>
+      } @else {
+        <h5 class="fake-link" routerLink=".">🏷️ All Tags</h5>
+      }
+    } @else {
+      <h5 class="fake-link" routerLink=".">{{ title }}</h5>
+    }
+    @if (admin.getTemplate('home')) {
+      <a routerLink="/tags"
+         [queryParams]="{ noTemplate: null, home: true }"
+         [class.current-tab]="store.view.home"
+         queryParamsHandling="merge"
+         i18n-title title="🏡️️ Subscribed Tags"
+         i18n>home</a>
+    }
     <a routerLink="/tags"
        [queryParams]="{ noTemplate: null, home: null }"
        [class.current-tab]="!store.view.noTemplate && !store.view.home && !templateExists"
@@ -18,7 +28,7 @@
        [queryParams]="{ noTemplate: true, home: null }"
        [class.current-tab]="store.view.noTemplate"
        queryParamsHandling="merge"
-       i18n-title title="🔖 Simple Tags"
+       i18n-title title="🔖️ Simple Tags"
        i18n>🏷️</a>
     @for (tmpl of templates; track tmpl.tag) {
       <a [routerLink]="['/tags', tmpl.tag]"
