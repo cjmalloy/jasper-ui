@@ -145,7 +145,7 @@
       @if (store.view.current === 'tag') {
         <h3>{{ ext?.name || tag }}</h3>
       }
-      @if (store.account.signedIn && tag && admin.getTemplate('user')) {
+      @if (store.account.signedIn && tag && tag !== '@*' && tag != '*' && admin.getTemplate('user')) {
         <div class="row center">
           @if (inBookmarks) {
             <button type="button"
