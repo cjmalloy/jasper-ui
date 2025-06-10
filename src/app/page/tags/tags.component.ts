@@ -83,6 +83,7 @@ export class TagsPage implements OnInit, OnDestroy, HasChanges {
   }
 
   get templateExists(): boolean {
+    if (this.store.view.localTemplate === 'user') return true;
     return !!this.templates.find(t => hasPrefix(this.store.view.localTemplate, t.tag));
   }
 }
