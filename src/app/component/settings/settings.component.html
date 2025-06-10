@@ -15,7 +15,7 @@
     @if (store.account.localTag) {
       <a class="author"
          [title]="fullUserTagAndRole"
-         [routerLink]="['/tag', store.account.tag]">{{ shortUserTag }}</a>
+         [routerLink]="['/tag', store.account.tag]">{{ store.account.ext?.name || shortUserTag }}</a>
       @if (admin.getTemplate('dm') || admin.inbox.length || (admin.getTemplate('user') && store.account.userTag)) {
         @if (admin.getTemplate('user') && store.account.userTag && store.account.notifications) {
           | {{ (store.account.notifications - store.account.alarmCount) || '' }}
