@@ -21,13 +21,15 @@
         &bullet; <a [routerLink]="['/tag', t]" routerLinkActive="current-page">{{ t }}</a>
       }
     }
-    @if (subs.length) {
-      @for (sub of subs; track i; let i = $index) {
-        &bullet; <a [routerLink]="['/tag', store.account.subs[i]]" [appTitle]="sub" routerLinkActive="current-page">{{ sub.name || store.account.subs[i] }}</a>
-      }
-    } @else {
-      @for (t of store.account.subs; track t) {
-        &bullet; <a [routerLink]="['/tag', t]" routerLinkActive="current-page">{{ t }}</a>
+    @if (admin.getTemplate('home')) {
+      @if (subs.length) {
+        @for (sub of subs; track i; let i = $index) {
+          &bullet; <a [routerLink]="['/tag', store.account.subs[i]]" [appTitle]="sub" routerLinkActive="current-page">{{ sub.name || store.account.subs[i] }}</a>
+        }
+      } @else {
+        @for (t of store.account.subs; track t) {
+          &bullet; <a [routerLink]="['/tag', t]" routerLinkActive="current-page">{{ t }}</a>
+        }
       }
     }
   </div>
