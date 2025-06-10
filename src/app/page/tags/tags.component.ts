@@ -31,7 +31,7 @@ export class TagsPage implements OnInit, OnDestroy, HasChanges {
 
   constructor(
     private mod: ModService,
-    private admin: AdminService,
+    public admin: AdminService,
     public store: Store,
     public query: ExtStore,
     private auth: AuthzService,
