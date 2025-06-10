@@ -43,6 +43,9 @@ export const userTemplate: Template = {
     }, {
       key: 'subscriptions',
       type: 'queries',
+      expressions: {
+        hide: '!formState.admin.getTemplate("home")',
+      },
       props: {
         label: $localize`Subscriptions:`,
         addText: $localize`+ Add another subscription`,

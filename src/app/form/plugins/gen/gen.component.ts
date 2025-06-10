@@ -2,6 +2,7 @@ import { Component, EventEmitter, Input, OnInit, Output, ViewChild } from '@angu
 import { UntypedFormGroup } from '@angular/forms';
 import { FormlyForm, FormlyFormOptions } from '@ngx-formly/core';
 import { Plugin } from '../../../model/plugin';
+import { AdminService } from '../../../service/admin.service';
 
 @Component({
   standalone: false,
@@ -26,9 +27,14 @@ export class GenFormComponent implements OnInit {
   model: any;
   options: FormlyFormOptions = {
     formState: {
+      admin: this.admin,
       config: {},
     },
   };
+
+  constructor(
+    private admin: AdminService,
+  ) { }
 
   get group() {
     return this.plugins.get(this.plugin.tag) as UntypedFormGroup | undefined;

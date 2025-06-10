@@ -52,7 +52,8 @@ export class ExtFormComponent {
 
   options: FormlyFormOptions = {
     formState: {
-      config: {}
+      admin: this.admin,
+      config: { }
     }
   };
 

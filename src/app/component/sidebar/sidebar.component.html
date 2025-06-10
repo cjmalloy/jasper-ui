@@ -156,29 +156,31 @@
                     i18n-title title="Add to top bar"
                     class="bookmark" i18n>+ bookmark</button>
           }
-          @if (user) {
-            @if (inSubs) {
-              <button type="button"
-                      class="subscribe"
-                      i18n-title title="Remove from home screen"
-                      (click)="unsubscribe()" i18n>&ndash; unfollow</button>
+          @if (admin.getTemplate('home')) {
+            @if (user) {
+              @if (inSubs) {
+                <button type="button"
+                        class="subscribe"
+                        i18n-title title="Remove from home screen"
+                        (click)="unsubscribe()" i18n>&ndash; unfollow</button>
+              } @else {
+                <button type="button"
+                        (click)="subscribe()"
+                        i18n-title title="Add to home screen"
+                        class="subscribe" i18n>+ follow</button>
+              }
             } @else {
-              <button type="button"
-                      (click)="subscribe()"
-                      i18n-title title="Add to home screen"
-                      class="subscribe" i18n>+ follow</button>
-            }
-          } @else {
-            @if (inSubs) {
-              <button type="button"
-                      class="subscribe"
-                      i18n-title title="Remove from home screen"
-                      (click)="unsubscribe()" i18n>&ndash; unsubscribe</button>
-            } @else {
-              <button type="button"
-                      (click)="subscribe()"
-                      i18n-title title="Add to home screen"
-                      class="subscribe" i18n>+ subscribe</button>
+              @if (inSubs) {
+                <button type="button"
+                        class="subscribe"
+                        i18n-title title="Remove from home screen"
+                        (click)="unsubscribe()" i18n>&ndash; unsubscribe</button>
+              } @else {
+                <button type="button"
+                        (click)="subscribe()"
+                        i18n-title title="Add to home screen"
+                        class="subscribe" i18n>+ subscribe</button>
+              }
             }
           }
           @if (inAlarms) {
