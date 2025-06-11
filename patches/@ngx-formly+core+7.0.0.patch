@@ -1,8 +1,8 @@
-diff --git a/node_modules/@ngx-formly/core/fesm2020/ngx-formly-core.mjs b/node_modules/@ngx-formly/core/fesm2020/ngx-formly-core.mjs
-index 1d86475..474c47b 100644
---- a/node_modules/@ngx-formly/core/fesm2020/ngx-formly-core.mjs
-+++ b/node_modules/@ngx-formly/core/fesm2020/ngx-formly-core.mjs
-@@ -694,7 +694,7 @@ function registerControl(field, control, emitEvent = false) {
+diff --git a/node_modules/@ngx-formly/core/fesm2022/ngx-formly-core.mjs b/node_modules/@ngx-formly/core/fesm2022/ngx-formly-core.mjs
+index a64aeb3..5313972 100644
+--- a/node_modules/@ngx-formly/core/fesm2022/ngx-formly-core.mjs
++++ b/node_modules/@ngx-formly/core/fesm2022/ngx-formly-core.mjs
+@@ -398,7 +398,7 @@ function registerControl(field, control, emitEvent = false) {
      const paths = getKeyPath(field);
      const value = getFieldValue(field);
      if (!(isNil(control.value) && isNil(value)) && control.value !== value && control instanceof FormControl) {
@@ -11,7 +11,7 @@ index 1d86475..474c47b 100644
      }
      for (let i = 0; i < paths.length - 1; i++) {
          const path = paths[i];
-@@ -1517,6 +1517,7 @@ class FieldArrayType extends FieldType {
+@@ -2308,6 +2308,7 @@ class FieldArrayType extends FieldType {
          this.model.splice(i, 0, initialModel ? clone(initialModel) : undefined);
          this.markFieldForCheck(this.field.fieldGroup[i]);
          this._build();
