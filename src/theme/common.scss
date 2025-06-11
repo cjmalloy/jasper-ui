@@ -2169,13 +2169,8 @@ footer {
 
   hr {
     border: none;
-    height: 2px;
-    background: var(--info);
-    border-top: 1px groove var(--border);
-    hr {
-      border: none;
-      border-top: 1px groove var(--border-accent);
-    }
+    height: 0;
+    border-top: 0.5px dotted var(--border);
   }
 
   td, th {
