@@ -5,7 +5,7 @@ describe('Smoke Tests', {
 }, () => {
   it('loads the page', () => {
     cy.visit('/?debug=USER');
-    cy.contains('Home', { timeout: 1000 * 60 * 20 }); // 20 minutes
+    cy.contains('Powered by Jasper', { timeout: 1000 * 60 * 20 }); // 20 minutes
   });
   it('@main: clear mods', () => {
     clearMods();

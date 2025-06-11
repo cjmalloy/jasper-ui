@@ -10,7 +10,7 @@ describe('Outbox Plugin: Remote Notifications', {
   const replApiProxy = Cypress.env('CYPRESS_replApiProxy') || 'http://repl-web';
   it('@main: loads the page', () => {
     cy.visit('/?debug=ADMIN');
-    cy.contains('Home', { timeout: 1000 * 60 });
+    cy.contains('Powered by Jasper', { timeout: 1000 * 60 });
   });
   it('@main: clear mods', () => {
     clearMods();
