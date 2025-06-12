@@ -160,7 +160,7 @@ export class SettingsSetupPage {
       Object.values(this.admin.status.disabledTemplates).find(t => t && mod === modId(t));
   }
 
-  modLabel(name: string) {
-    return name.replace(/\W/g, '').toLowerCase();
+  modLabel([tag, e]: [string, Config]) {
+    return (e.config?.mod?.replace(/\W/g, '') || tag).toLowerCase();
   }
 }

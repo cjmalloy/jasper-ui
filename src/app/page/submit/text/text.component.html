@@ -30,12 +30,12 @@
                     (comment)="comment.setValue($event)"></app-viewer>
       } @else {
         @if (store.submit.wiki) {
-          <label for="comment" class="editor-label" i18n>Entry:</label>
+          <label [for]="ed.id" class="editor-label" i18n>Entry:</label>
         } @else {
-          <label for="comment" class="editor-label" i18n>Comment:</label>
+          <label [for]="ed.id" class="editor-label" i18n>Comment:</label>
         }
         <div #fill class="fill-editor">
-          <app-editor id="comment"
+          <app-editor #ed
                       class="bubble"
                       [control]="comment"
                       (syncEditor)="syncEditor()"

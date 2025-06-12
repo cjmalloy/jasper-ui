@@ -74,9 +74,9 @@
                 [commentControl]="comment"
                 (comment)="comment.setValue($event)"></app-viewer>
   } @else {
-    <label for="comment" class="editor-label">{{ editorLabel }}:</label><!-- TODO: Let plugins change comment label -->
+    <label [for]="ed.id" class="editor-label">{{ editorLabel }}:</label><!-- TODO: Let plugins change comment label -->
     <div #fill class="fill-editor">
-      <app-editor id="comment"
+      <app-editor #ed
                   class="bubble"
                   [addButton]="true"
                   [addCommentTitle]="addEditorTitle"
