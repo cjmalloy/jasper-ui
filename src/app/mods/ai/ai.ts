@@ -205,6 +205,11 @@ export const aiQueryPlugin: Plugin = {
             const openai = new OpenAi({ apiKey, baseURL: 'https://api.x.ai/v1' });
             const res = await openai.chat.completions.create({
               model: config.model,
+              modalities: config.audio ? ['text', 'audio'] : ['text'],
+              audio: config.audio ? {
+                format: 'mp3',
+                voice: 'coral',
+              } : undefined,
               max_completion_tokens: config.maxTokens,
               response_format: { 'type': config.json ? 'json_object' : 'text' },
               search_parameters: { mode: config.search ? 'on' : 'off' },
@@ -213,6 +218,10 @@ export const aiQueryPlugin: Plugin = {
             return {
               res,
               completion: res.choices[0]?.message?.content,
+              files: res.choices[0]?.message?.audio ? {
+                type: 'audio/mpeg',
+                content: res.choices[0]?.message?.audio.data
+              } : [],
               usage: res.usage,
             };
           }
@@ -243,6 +252,10 @@ export const aiQueryPlugin: Plugin = {
             return {
               res,
               completion: res.choices[0]?.message?.content,
+              files: res.choices[0]?.message?.audio ? {
+                type: 'audio/mpeg',
+                content: res.choices[0]?.message?.audio.data
+              } : [],
               usage: res.usage,
             };
           }
@@ -272,6 +285,10 @@ export const aiQueryPlugin: Plugin = {
             return {
               res,
               completion: res.choices[0]?.message?.content,
+              files: res.choices[0]?.message?.audio ? {
+                type: 'audio/mpeg',
+                content: res.choices[0]?.message?.audio.data
+              } : [],
               usage: res.usage,
             };
           }
@@ -372,7 +389,7 @@ export const aiQueryPlugin: Plugin = {
         },
         gemini: {
           init(config) {
-            config.model ||= (config.pdf || config.search || config.url) ? 'gemini-2.5-pro' : 'gemini-2.5-flash-lite';
+            config.model ||= 'gemini-2.5-pro';
             config.pdf = config.model === 'gemini-2.5-pro';
             config.image = true;
             config.audio = true;
@@ -456,6 +473,10 @@ export const aiQueryPlugin: Plugin = {
             return {
               res,
               completion: text,
+              files: res.response.candidates[0].content.parts.filter(p => !p.text).map(p => ({
+                type: p.text ? 'text' : p.inlineData.mimeType,
+                content: p.text || p.inlineData.data
+              })),
               usage: {
                 prompt_tokens: res.response.usageMetadata.promptTokenCount,
                 completion_tokens: res.response.usageMetadata.candidatesTokenCount,
@@ -624,7 +645,7 @@ export const aiQueryPlugin: Plugin = {
           ...provider.loadMessage(c, plugins),
         });
       }
-      let { completion, usage, res } = await provider.generate(messages, config);
+      let { completion, files, usage, res } = await provider.generate(messages, config);
       const debugLogs = () => {
         return '\`\`\`json\\n' + JSON.stringify([...messages.map(m => {
           if (m.content && config.json) {
@@ -730,9 +751,27 @@ export const aiQueryPlugin: Plugin = {
           .filter(t => publicTagRegex.test(t) || t === '+plugin/delta/ai' || t.startsWith('+plugin/delta/ai'))
           .filter(uniq);
         delete r.metadata;
+        if (files?.[i]) {
+          const cache = (await axios.post(process.env.JASPER_API + '/pub/api/v1/repl/cache', Buffer.from(files[i].content, 'base64'), {
+            headers: {
+              'Local-Origin': origin || 'default',
+              'User-Tag': authors[0] || '',
+              'Content-Type': files[i].type,
+            },
+            params: { origin, mime: files[i].type },
+          })).data;
+          delete cache.metadata;
+          switch (files[i].type) {
+            case 'audio/mpeg':
+              if (!hasTag('plugin/audio', r)) r.tags.push('plugin/audio');
+              break;
+            case 'image/png':
+              if (!hasTag('plugin/image', r)) r.tags.push('plugin/image');
+              break;
+          }
+        }
         const oldUrl = i === 0 ? completionRef.url : r.url;
-        // TODO: only replace comment: urls
-        if (oldUrl && (oldUrl.startsWith('http:') || oldUrl.startsWith('https:'))) continue;
+        if (oldUrl && !oldUrl.startsWith('add:')) continue;
         const newUrl = i === 0 ? r.url : r.url = 'ai:' + uuid.v4();
         if (!oldUrl) continue;
         for (const rewrite of bundle.ref) {
