@@ -146,12 +146,21 @@ export const aiQueryPlugin: Plugin = {
             const openai = new OpenAi({ apiKey });
             const res = await openai.chat.completions.create({
               model: config.model,
+              modalities: config.audio ? ['text', audio] : ['text'],
+              audio: config.audio ? {
+                format: 'mp3',
+                voice: 'coral',
+              } : undefined,
               max_completion_tokens: config.maxTokens,
               response_format: { 'type': config.audio || !config.json ? 'text' : 'json_object' },
               messages,
             });
             return {
               completion: res.choices[0]?.message?.content,
+              files: res.choices[0]?.message?.audio ? {
+                type: 'audio/mpeg',
+                content: res.choices[0]?.message?.audio.data
+              } : [],
               usage: res.usage,
             };
           }
@@ -358,7 +367,14 @@ export const aiQueryPlugin: Plugin = {
             const { GoogleGenerativeAI } = require('@google/generative-ai');
             const genAI = new GoogleGenerativeAI(apiKey);
             const system = messages.filter(m => m.role === 'system').map(m => m.parts[0].text).join("\\n\\n");
-            const model = genAI.getGenerativeModel({ model: config.model });
+            const model = genAI.getGenerativeModel({
+              model: config.model,
+              generationConfig: {
+                // responseModalities: [Modality.TEXT, Modality.IMAGE],
+                responseMimeType: config.json ? 'application/json' : undefined,
+                // TODO: pull full schema
+              }
+            });
             const result = await model.generateContent({
               contents: messages.filter(m => m.role !== 'system').map(m => {
                 if (m.role === 'assistant') m.role = 'model';
@@ -373,6 +389,10 @@ export const aiQueryPlugin: Plugin = {
             }
             return {
               completion: text,
+              files: result.response.candidates[0].content.parts.filter(p => !p.text).map(p => ({
+                type: p.text ? 'text' : p.inlineData.mimeType,
+                content: p.text || p.inlineData.data
+              })),
               usage: {
                 prompt_tokens: result.response.usageMetadata.promptTokenCount,
                 completion_tokens: result.response.usageMetadata.candidatesTokenCount,
@@ -537,7 +557,7 @@ export const aiQueryPlugin: Plugin = {
           ...provider.loadMessage(c, plugins),
         });
       }
-      let { completion, usage } = await provider.generate(messages, config);
+      let { completion, files, usage } = await provider.generate(messages, config);
       let bundle;
       if (!completion) {
         throw 'Error: No completion in response'
@@ -617,10 +637,28 @@ export const aiQueryPlugin: Plugin = {
           .filter(t => publicTagRegex.test(t) || t === '+plugin/delta/ai' || t.startsWith('+plugin/delta/ai'))
           .filter(uniq);
         delete r.metadata;
+        if (files?.[i]) {
+          const cache = (await axios.post(process.env.JASPER_API + '/pub/api/v1/repl/cache', Buffer.from(files[i].content, 'base64'), {
+            headers: {
+              'Local-Origin': origin || 'default',
+              'User-Tag': authors[0] || '',
+              'Content-Type': files[i].type,
+            },
+            params: { origin, mime: files[i].type },
+          })).data;
+          delete cache.metadata;
+          switch (files[i].type) {
+            case 'audio/mpeg':
+              if (!hasTag('plugin/audio', r)) r.tags.push('plugin/audio');
+              break;
+            case 'image/png':
+              if (!hasTag('plugin/image', r)) r.tags.push('plugin/image');
+              break;
+          }
+        }
         const oldUrl = i === 0 ? completionRef.url : r.url;
-        // TODO: only replace comment: urls
-        if (oldUrl && (oldUrl.startsWith('http:') || oldUrl.startsWith('https:'))) continue;
-        const newUrl = i === 0 ? r.url : r.url = 'ai:' + uuid.v4();
+        if (oldUrl && !oldUrl.startsWith('add:')) continue;
+        if (i) r.url = 'ai:' + uuid.v4();
         if (!oldUrl) continue;
         for (const rewrite of bundle.ref) {
           for (let i = 0; i < rewrite.sources?.length; i++) {
@@ -639,18 +677,20 @@ export const aiQueryPlugin: Plugin = {
         }
       }
       if (hasTag('+plugin/debug', ref)) {
-        const debugJson = JSON.stringify(messages.map(m => {
-          if (m.content && config.json) {
-            m.content = m.content.map(c => {
-              if (c.type === 'text') {
-                c.text = JSON.parse(c.text);
-              }
-              return c;
-            });
-          }
-          return m;
-        }), null, 2);
-        // console.error('\`\`\`json\\n' + debugJson + '\\n\`\`\`');
+        const debugJson = JSON.stringify([
+          ...messages.map(m => {
+            if (m.content && config.json) {
+              m.content = m.content.map(c => {
+                if (c.type === 'text') {
+                  c.text = JSON.parse(c.text);
+                }
+                return c;
+              });
+            }
+            return m;
+          }),
+          completionRef,
+        ], null, 2);
         bundle.ref.push({
           url: 'log:' + uuid.v4(),
           sources: [response.url],
