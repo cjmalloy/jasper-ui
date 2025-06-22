@@ -16,7 +16,7 @@ export const readMod: Mod = {
       css: `
         .ref.response-plugin_user_read .link {
           a, .fake-link {
-            color: var(--visited) !important;
+            color: var(--visited);
           }
         }
       `
