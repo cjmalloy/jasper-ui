@@ -1088,10 +1088,9 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
         : this.refs.delete(this.ref.url, this.ref.origin).pipe(map(() => ''))
     ).pipe(
       tap((cursor: string) => {
-        if (cursor) {
-          return this.store.eventBus.reload(this.ref);
-        } else {
-          this.deleted = true;
+        this.deleted = true;
+        if (this.store.account.mod && cursor) {
+          this.store.eventBus.reload(this.ref);
         }
       }),
       catchError((err: HttpErrorResponse) => {
