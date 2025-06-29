@@ -123,7 +123,7 @@
           <a class="fake-link"
              (click)="replying = !replying"
              i18n>reply</a>
-          @if(responses) {
+          @if (responses) {
             <a [routerLink]="['/ref', ref.url, 'responses']"
                [queryParams]="{ origin: nonLocalOrigin }"
                (click)="store.view.preloadRef(ref)"

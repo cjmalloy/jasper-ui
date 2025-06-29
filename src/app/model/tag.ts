@@ -15,7 +15,6 @@ import { Ref, refSchema } from './ref';
 import { Template, templateSchema } from './template';
 import { Role, User, userSchema } from './user';
 
-
 export interface Cursor {
   origin?: string;
   modified?: DateTime;
