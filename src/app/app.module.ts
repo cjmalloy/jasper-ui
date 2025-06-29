@@ -44,6 +44,7 @@ import { FileComponent } from './component/folder/file/file.component';
 import { FolderComponent } from './component/folder/folder.component';
 import { SubfolderComponent } from './component/folder/subfolder/subfolder.component';
 import { ForceDirectedComponent } from './component/graph/force-directed/force-directed.component';
+import { HelpPopupComponent } from './component/help-popup/help-popup.component';
 import { KanbanCardComponent } from './component/kanban/kanban-card/kanban-card.component';
 import { KanbanColumnComponent } from './component/kanban/kanban-column/kanban-column.component';
 import { KanbanComponent } from './component/kanban/kanban.component';
@@ -317,6 +318,7 @@ const loadFactory = (config: ConfigService, debug: DebugService, admin: AdminSer
     InlineSelectComponent,
     InlineButtonComponent,
     TabsComponent,
+    HelpPopupComponent,
   ],
   imports: [
     BrowserModule,
