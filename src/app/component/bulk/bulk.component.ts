@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, Input, OnChanges, OnDestroy, SimpleChanges } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, Input, OnChanges, OnDestroy, SimpleChanges } from '@angular/core';
 import { groupBy, intersection, map, pick, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import { catchError, concat, last, Observable, of, switchMap } from 'rxjs';
@@ -20,6 +20,7 @@ import { TaggingService } from '../../service/api/tagging.service';
 import { TemplateService } from '../../service/api/template.service';
 import { UserService } from '../../service/api/user.service';
 import { AuthzService } from '../../service/authz.service';
+import { HelpService } from '../../service/help.service';
 import { ExtStore } from '../../store/ext';
 import { PluginStore } from '../../store/plugin';
 import { QueryStore } from '../../store/query';
@@ -39,7 +40,7 @@ import { addAllHierarchicalTags, expandedTagsInclude, hasTag, isAuthorTag, subOr
   styleUrls: ['./bulk.component.scss'],
   host: {'class': 'bulk actions'}
 })
-export class BulkComponent implements OnChanges, OnDestroy {
+export class BulkComponent implements AfterViewInit, OnChanges, OnDestroy {
 
   private disposers: IReactionDisposer[] = [];
 
@@ -72,6 +73,8 @@ export class BulkComponent implements OnChanges, OnDestroy {
     private templates: TemplateService,
     private acts: ActionService,
     private ts: TaggingService,
+    private el: ElementRef,
+    private help: HelpService,
   ) {
     this.disposers.push(autorun(() => {
       MemoCache.clear(this);
@@ -81,6 +84,10 @@ export class BulkComponent implements OnChanges, OnDestroy {
         ...sortOrder(this.admin.getAdvancedActions(commonTags))]);
       this.groupedActions = groupBy(this.actions, a => this.label(a));
     }));
+  }
+
+  ngAfterViewInit() {
+    this.help.pushStep(this.el, $localize`Bulk actions will only affect all Refs in the current page.`);
   }
 
   ngOnChanges(changes: SimpleChanges) {
