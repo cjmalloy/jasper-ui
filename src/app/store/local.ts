@@ -206,4 +206,12 @@ export class LocalStore {
       this._extPrefetch = undefined;
     }
   }
+
+  shownHelpPopup(id: string) {
+    return localStorage.getItem('help:' + id);
+  }
+
+  dismissHelpPopup(id: string) {
+    localStorage.setItem('help:' + id, 'true');
+  }
 }
