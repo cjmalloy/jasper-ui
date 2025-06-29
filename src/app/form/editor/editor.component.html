@@ -63,6 +63,7 @@
       }
     </div>
     <textarea #editor
+              [id]="id"
               [formControl]="control"
               (focusin)="editing = true"
               (pointerup)="onSelect($event)"

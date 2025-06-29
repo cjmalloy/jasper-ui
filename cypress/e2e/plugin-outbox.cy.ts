@@ -106,7 +106,7 @@ describe('Outbox Plugin: Remote Notifications', {
     cy.contains('Submit').click();
     cy.get('.tabs').contains('text').click();
     cy.get('#title').type('Ref from other');
-    cy.get('#comment textarea').type('Hi +user/alice@repl.main! How\'s it going? You should also see this +user/charlie.').blur();
+    cy.get('.editor textarea').type('Hi +user/alice@repl.main! How\'s it going? You should also see this +user/charlie.').blur();
     cy.get('button').contains('Submit').click({ force: true });
     cy.get('.full-page.ref .link a').should('have.text', 'Ref from other');
     cy.wait(1000);
