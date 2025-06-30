@@ -49,7 +49,6 @@ export class FileComponent implements OnChanges, OnDestroy {
   expandPlugins: string[] = [];
   icons: Icon[] = [];
   actions: Action[] = [];
-  publishedLabel = $localize`published`;
   editing = false;
   viewSource = false;
   writeAccess = false;
@@ -72,7 +71,6 @@ export class FileComponent implements OnChanges, OnDestroy {
       this.taggingAccess = this.auth.taggingAccess(this.ref);
       this.icons = uniqueConfigs(sortOrder(this.admin.getIcons(this.ref.tags, this.ref.plugins, getScheme(this.ref.url))));
       this.actions = uniqueConfigs(sortOrder(this.admin.getActions(this.ref.tags, this.ref.plugins)));
-      this.publishedLabel = this.admin.getPublished(this.ref.tags).join($localize`/`) || this.publishedLabel;
 
       this.expandPlugins = this.admin.getEmbeds(this.ref);
       if (this.repost && this.ref && this.fetchRepost && this.repostRef?.url != repost(this.ref)) {

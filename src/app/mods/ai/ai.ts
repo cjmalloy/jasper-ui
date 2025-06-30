@@ -18,7 +18,7 @@ export const aiQueryPlugin: Plugin = {
     language: 'javascript',
     // language=JavaScript
     script: `
-      const DEFAULT_PROVIDER = 'anthropic';
+      const DEFAULT_PROVIDER = 'gemini';
       const { Buffer } = require('buffer');
       const uuid = require('uuid');
       const axios = require('axios');
@@ -487,6 +487,7 @@ export const aiQueryPlugin: Plugin = {
         },
       })).data.content;
       for (const c of sources) {
+        if (config.ignoreThread && ref.sources && c.url === ref.sources[1] && ref.sources[0] !== ref.sources[1]) continue;
         const plugins = {};
         if (config.pdf && hasTag('plugin/pdf', c)) {
           const url = c.plugins?.['plugin/pdf']?.url || c.url;
@@ -766,10 +767,16 @@ export const llmPlugin: Plugin = {
         label: $localize`Max Sources:`,
       },
     }, {
+      key: 'ignoreThread',
+      type: 'hidden',
+      props: {
+        label: $localize`Ignore thread top:`,
+      },
+    }, {
       key: 'json',
       type: 'hidden',
       props: {
-        label: $localize`JSON`,
+        label: $localize`JSON:`,
       },
     }, {
       key: 'bundle',
@@ -789,6 +796,7 @@ export const llmPlugin: Plugin = {
       provider: { type: 'string' },
       apiKeyTag: { type: 'string' },
       model: { type: 'string' },
+      ignoreThread: { type: 'boolean' },
       json: { type: 'boolean' },
       bundle: { type: 'boolean' },
       audio: { type: 'boolean' },
