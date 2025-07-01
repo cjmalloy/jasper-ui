@@ -3,4 +3,10 @@
 LOCALE=${JASPER_LOCALE:-en}
 echo "Deploying locale: $LOCALE"
 
-mv /usr/share/nginx/html/$LOCALE/* /usr/share/nginx/html/
+cd /usr/share/nginx/html/
+for dir in */; do
+    [ -d "$dir" ] && [ "$dir" != "$LOCALE/" ] && rm -rf "$dir"
+done
+mv ./$LOCALE/* .
+rmdir ./$LOCALE
+nginx -s reload
