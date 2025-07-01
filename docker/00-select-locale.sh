@@ -3,4 +3,5 @@
 LOCALE=${JASPER_LOCALE:-en}
 echo "Deploying locale: $LOCALE"
 
-mv /usr/share/nginx/html/$LOCALE/* /usr/share/nginx/html/
+rm -rf /usr/share/nginx/html
+ln -s /var/lib/jasper/$LOCALE /usr/share/nginx/html
