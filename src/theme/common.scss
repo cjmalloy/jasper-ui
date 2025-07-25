@@ -253,7 +253,6 @@ button {
   cursor: text;
   pointer-events: all;
   text-decoration: none;
-  margin: 0 !important;
 }
 
 .hotkey .preview {
@@ -1379,7 +1378,7 @@ formly-list-section .form-array > formly-field > formly-group {
   }
   & > * {
     margin-right: 4px;
-    &:last-child, input[file] {
+    &:last-child, input[file], .preview {
       margin-right: 0 !important;
     }
   }
