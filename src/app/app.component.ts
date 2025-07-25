@@ -119,8 +119,18 @@ export class AppComponent implements AfterViewInit {
 
   @HostListener('window:paste', ['$event'])
   paste(event: ClipboardEvent) {
-    this.upload(event, event.clipboardData?.items);
-    this.removeHotkey();
+    const items = event.clipboardData?.items;
+    if (!items) return;
+    if ((event.target as HTMLElement)?.tagName === 'INPUT') return;
+    if ((event.target as HTMLElement)?.tagName === 'TEXTAREA') return;
+    for (let i = 0; i < items.length; i++) {
+      const d = items[i];
+      if (d?.kind === 'file') {
+        this.upload(event, items);
+        this.removeHotkey();
+        return;
+      }
+    }
   }
 
   dragOver(event: DragEvent) {
