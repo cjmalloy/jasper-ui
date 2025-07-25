@@ -7,6 +7,7 @@ import { Ref } from '../model/ref';
 import { DEFAULT_WIKI_PREFIX } from '../mods/wiki';
 import { EventBus } from './bus';
 
+export type Saving = { url?: string, name: string, progress?: number };
 export class SubmitStore {
 
   wikiPrefix = DEFAULT_WIKI_PREFIX;

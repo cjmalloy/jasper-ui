@@ -110,7 +110,6 @@ export class AppComponent implements AfterViewInit {
     }
   }
 
-
   @HostListener('window:online')
   online() {
     if (this.store.offline) {
@@ -118,12 +117,17 @@ export class AppComponent implements AfterViewInit {
     }
   }
 
+  @HostListener('window:paste', ['$event'])
+  paste(event: ClipboardEvent) {
+    this.upload(event, event.clipboardData?.items);
+    this.removeHotkey();
+  }
+
   dragOver(event: DragEvent) {
     event.preventDefault();
   }
 
-  drop(event: DragEvent) {
-    const items = event.dataTransfer?.items;
+  upload(event: Event, items?: DataTransferItemList) {
     if (!items) return;
     event.preventDefault();
     const files = [] as any;
