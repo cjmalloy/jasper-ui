@@ -3,7 +3,7 @@
      [class.debug]="debug"
      [class.offline]="store.offline"
      (dragover)="dragOver($event)"
-     (drop)="drop($event)">
+     (drop)="upload($event, $event.dataTransfer?.items)">
   @if (store.offline) {
     <div class="offline-banner">📴️ Offline</div>
   } @else {

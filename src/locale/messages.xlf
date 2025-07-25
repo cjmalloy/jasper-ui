@@ -112,7 +112,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/page/submit/upload/upload.component.ts</context>
-          <context context-type="linenumber">366,371</context>
+          <context context-type="linenumber">372,377</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6681780065446926308" datatype="html">
@@ -3863,7 +3863,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/formly/input.type.ts</context>
-          <context context-type="linenumber">30</context>
+          <context context-type="linenumber">31</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7658402240953727096" datatype="html">
@@ -4938,7 +4938,7 @@ Private tags start with an underscore.
         <source>Clear</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/formly/input.type.ts</context>
-          <context context-type="linenumber">30</context>
+          <context context-type="linenumber">31</context>
         </context-group>
       </trans-unit>
       <trans-unit id="8531478208997019445" datatype="html">
@@ -12905,49 +12905,49 @@ Enter the origin to confirm:</source>
         <source>Submit: Link</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/page/submit/submit.component.ts</context>
-          <context context-type="linenumber">61</context>
+          <context context-type="linenumber">62</context>
         </context-group>
       </trans-unit>
       <trans-unit id="5842351041761658563" datatype="html">
         <source>Valid title</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/page/submit/submit.component.ts</context>
-          <context context-type="linenumber">77</context>
+          <context context-type="linenumber">78</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3538750812684690914" datatype="html">
         <source>Not created yet</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/page/submit/submit.component.ts</context>
-          <context context-type="linenumber">78</context>
+          <context context-type="linenumber">79</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3111370639734829195" datatype="html">
         <source>Valid link</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/page/submit/submit.component.ts</context>
-          <context context-type="linenumber">81</context>
+          <context context-type="linenumber">82</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2858468830838676224" datatype="html">
         <source>Not submitted yet</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/page/submit/submit.component.ts</context>
-          <context context-type="linenumber">82</context>
+          <context context-type="linenumber">83</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3968292487461321657" datatype="html">
         <source>No link shorteners</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/page/submit/submit.component.ts</context>
-          <context context-type="linenumber">83</context>
+          <context context-type="linenumber">84</context>
         </context-group>
       </trans-unit>
       <trans-unit id="5646227552817300514" datatype="html">
         <source>URL...</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/page/submit/submit.component.ts</context>
-          <context context-type="linenumber">120</context>
+          <context context-type="linenumber">121</context>
         </context-group>
       </trans-unit>
       <trans-unit id="5767320896121351674" datatype="html">
