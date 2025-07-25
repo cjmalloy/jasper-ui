@@ -329,24 +329,30 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
   get audioUrl() {
     if (!hasTag('plugin/audio', this.currentTags)) return '';
     const url = this.ref?.plugins?.['plugin/audio']?.url || this.ref?.url;
-    if (!this.admin.getPlugin('plugin/audio')?.config?.proxy) return url;
-    return this.proxy.getFetch(url, this.currentOrigin);
+    if (url.startsWith('cache:') || this.admin.getPlugin('plugin/audio')?.config?.proxy) {
+      return this.proxy.getFetch(url, this.currentOrigin);
+    }
+    return url;
   }
 
   @memo
   get videoUrl() {
     if (!hasTag('plugin/video', this.currentTags)) return '';
     const url = this.ref?.plugins?.['plugin/video']?.url || this.ref?.url;
-    if (!this.admin.getPlugin('plugin/video')?.config?.proxy) return url;
-    return this.proxy.getFetch(url, this.currentOrigin);
+    if (url.startsWith('cache:') || this.admin.getPlugin('plugin/video')?.config?.proxy) {
+      return this.proxy.getFetch(url, this.currentOrigin);
+    }
+    return url;
   }
 
   @memo
   get imageUrl() {
     if (!this.image && !hasTag('plugin/image', this.currentTags)) return '';
     const url = this.image || this.ref?.plugins?.['plugin/image']?.url || this.ref?.url;
-    if (!this.admin.getPlugin('plugin/image')?.config?.proxy) return url;
-    return this.proxy.getFetch(url, this.currentOrigin);
+    if (url.startsWith('cache:') || this.admin.getPlugin('plugin/image')?.config?.proxy) {
+      return this.proxy.getFetch(url, this.currentOrigin);
+    }
+    return url;
   }
 
   @memo

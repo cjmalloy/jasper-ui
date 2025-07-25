@@ -61,7 +61,7 @@ export class AppComponent implements AfterViewInit {
         if (this.store.eventBus.event === 'pdf') {
           let pdf = pdfUrl(this.pdfPlugin, this.store.eventBus.ref, this.store.eventBus.repost);
           if (!pdf) return;
-          if (this.pdfPlugin!.config?.proxy) pdf.url = this.proxy.getFetch(pdf.url, pdf.origin);
+          if (pdf.url.startsWith('cache:') || this.pdfPlugin!.config?.proxy) pdf.url = this.proxy.getFetch(pdf.url, pdf.origin);
           open(pdf.url, '_blank');
         }
       });

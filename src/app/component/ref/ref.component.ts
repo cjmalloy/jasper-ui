@@ -531,19 +531,22 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   @memo
   get audio() {
     return this.admin.getPlugin('plugin/audio') &&
-      hasTag('plugin/audio', this.currentRef);
+      hasTag('plugin/audio', this.currentRef) &&
+      (this.ref?.plugins?.['plugin/audio']?.url || this.url);
   }
 
   @memo
   get video() {
     return this.admin.getPlugin('plugin/video') &&
-      hasTag('plugin/video', this.currentRef);
+      hasTag('plugin/video', this.currentRef) &&
+      (this.ref?.plugins?.['plugin/video']?.url || this.url);
   }
 
   @memo
   get image() {
     return this.admin.getPlugin('plugin/image') &&
-      hasTag('plugin/image', this.currentRef);
+      hasTag('plugin/image', this.currentRef) &&
+      (this.ref?.plugins?.['plugin/image']?.url || this.url);
   }
 
   @memo
@@ -551,14 +554,14 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     if (this.file) {
       return this.proxy.getFetch(this.url, this.origin);
     }
-    if (this.audio && this.admin.getPlugin('plugin/audio')?.config?.proxy) {
-      return this.proxy.getFetch(this.ref?.plugins?.['plugin/audio']?.url || this.url, this.origin);
+    if (this.audio && (this.audio.startsWith('cache:') || this.admin.getPlugin('plugin/audio')?.config?.proxy)) {
+      return this.proxy.getFetch(this.audio, this.origin);
     }
-    if (this.video && this.admin.getPlugin('plugin/video')?.config?.proxy) {
-      return this.proxy.getFetch(this.ref?.plugins?.['plugin/video']?.url || this.url, this.origin);
+    if (this.video && (this.video.startsWith('cache:') || this.admin.getPlugin('plugin/video')?.config?.proxy)) {
+      return this.proxy.getFetch(this.video, this.origin);
     }
-    if (this.image && this.admin.getPlugin('plugin/image')?.config?.proxy) {
-      return this.proxy.getFetch(this.ref?.plugins?.['plugin/image']?.url || this.url, this.origin);
+    if (this.image && (this.image.startsWith('cache:') || this.admin.getPlugin('plugin/image')?.config?.proxy)) {
+      return this.proxy.getFetch(this.image, this.origin);
     }
     return '';
   }
@@ -666,7 +669,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
 
   @memo
   get link() {
-    if (this.file) return this.proxy.getFetch(this.url, this.origin);
+    if (this.file || this.url.startsWith('cache:')) return this.proxy.getFetch(this.url, this.origin);
     return this.url;
   }
 
