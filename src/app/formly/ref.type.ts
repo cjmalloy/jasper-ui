@@ -1,14 +1,18 @@
+import { HttpEventType } from '@angular/common/http';
 import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy } from '@angular/core';
 import { FieldType, FieldTypeConfig, FormlyConfig } from '@ngx-formly/core';
 import { debounce, defer, isString, uniqBy } from 'lodash-es';
-import { catchError, of, Subscription, throwError } from 'rxjs';
+import { catchError, last, map, of, Subscription, throwError } from 'rxjs';
 import { v4 as uuid } from 'uuid';
+import { Ref } from '../model/ref';
 import { AdminService } from '../service/admin.service';
+import { ProxyService } from '../service/api/proxy.service';
 import { RefService } from '../service/api/ref.service';
 import { ConfigService } from '../service/config.service';
 import { EditorService } from '../service/editor.service';
 import { Store } from '../store/store';
 import { Saving } from '../store/submit';
+import { readFileAsDataURL } from '../util/async';
 import { getPageTitle } from '../util/format';
 import { getErrorMessage } from './errors';
 
@@ -26,7 +30,9 @@ import { getErrorMessage } from './errors';
                [value]="preview"
                [title]="input.value"
                [style.display]="preview ? 'block' : 'none'"
-               (focus)="clickPreview(input)">
+               (focus)="clickPreview(input)"
+               (drop)="upload($event, $event.dataTransfer?.items)"
+               (paste)="upload($event, $event.clipboardData?.items)">
         <datalist [id]="listId">
           @for (o of autocomplete; track o.value) {
             <option [value]="o.value">{{ o.label }}</option>
@@ -42,6 +48,8 @@ import { getErrorMessage } from './errors';
                (focusin)="edit(input)"
                (focus)="edit(input)"
                (focusout)="getPreview(input.value)"
+               (drop)="upload($event, $event.dataTransfer?.items)"
+               (paste)="upload($event, $event.clipboardData?.items)"
                [formControl]="formControl"
                [formlyAttributes]="field"
                [class.is-invalid]="showError">
@@ -63,7 +71,7 @@ export class FormlyFieldRefInput extends FieldType<FieldTypeConfig> implements A
   previewUrl = '';
   preview = '';
   editing = false;
-  progress?: number;
+  progress = 0;
   uploading = false;
   files = !!this.admin.getPlugin('plugin/file');
   autocomplete: { value: string, label: string }[] = [];
@@ -79,6 +87,7 @@ export class FormlyFieldRefInput extends FieldType<FieldTypeConfig> implements A
     private config: FormlyConfig,
     private refs: RefService,
     private editor: EditorService,
+    private proxy: ProxyService,
     private admin: AdminService,
     private cd: ChangeDetectorRef,
   ) {
@@ -179,8 +188,43 @@ export class FormlyFieldRefInput extends FieldType<FieldTypeConfig> implements A
       this.field.formControl!.setValue(event.url);
     } else {
       this.uploading = true;
-      this.progress = event.progress || undefined;
+      this.progress = event.progress || 0;
     }
     this.cd.detectChanges();
+  }
+
+  upload(event: Event, items?: DataTransferItemList) {
+    this.onUpload();
+    if (!items) return;
+    const files = [] as any;
+    for (let i = 0; i < items.length; i++) {
+      const d = items[i];
+      if (d?.kind == 'file') {
+        files.push(d.getAsFile());
+        break;
+      }
+    }
+    if (!files.length) return;
+    event.preventDefault();
+    event.stopPropagation();
+    const file = files[0]!;
+    this.onUpload({ name: file.name });
+    this.proxy.save(file, this.store.account.origin).pipe(
+      map(event => {
+        switch (event.type) {
+          case HttpEventType.Response:
+            return event.body;
+          case HttpEventType.UploadProgress:
+            const percentDone = event.total ? Math.round(100 * event.loaded / event.total) : 0;
+            console.log(percentDone);
+            this.onUpload({ name: file.name, progress: percentDone });
+            return null;
+        }
+        return null;
+      }),
+      last(),
+      map((ref: Ref | null) => ref?.url),
+      catchError(err => readFileAsDataURL(file)) // base64
+    ).subscribe(url => this.onUpload({ url, name: file.name }));
   }
 }

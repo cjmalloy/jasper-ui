@@ -121,8 +121,6 @@ export class AppComponent implements AfterViewInit {
   paste(event: ClipboardEvent) {
     const items = event.clipboardData?.items;
     if (!items) return;
-    if ((event.target as HTMLElement)?.tagName === 'INPUT') return;
-    if ((event.target as HTMLElement)?.tagName === 'TEXTAREA') return;
     for (let i = 0; i < items.length; i++) {
       const d = items[i];
       if (d?.kind === 'file') {
@@ -139,12 +137,15 @@ export class AppComponent implements AfterViewInit {
 
   upload(event: Event, items?: DataTransferItemList) {
     if (!items) return;
+    if ((event.target as HTMLElement)?.tagName === 'INPUT') return;
+    if ((event.target as HTMLElement)?.tagName === 'TEXTAREA') return;
     event.preventDefault();
     const files = [] as any;
     for (let i = 0; i < items.length; i++) {
       const d = items[i];
-      if (d?.kind !== 'file') return;
-      files.push(d.getAsFile());
+      if (d?.kind === 'file') {
+        files.push(d.getAsFile());
+      }
     }
     this.store.submit.addFiles(files);
     if (!this.store.submit.upload) {
