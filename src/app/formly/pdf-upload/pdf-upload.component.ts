@@ -4,6 +4,7 @@ import { catchError, last, map, of } from 'rxjs';
 import { Ref } from '../../model/ref';
 import { ProxyService } from '../../service/api/proxy.service';
 import { Store } from '../../store/store';
+import { Saving } from '../../store/submit';
 
 @Component({
   standalone: false,
@@ -15,7 +16,7 @@ import { Store } from '../../store/store';
 export class PdfUploadComponent {
 
   @Output()
-  data = new EventEmitter<{ url?: string, name: string, progress?: number } | undefined | string>();
+  data = new EventEmitter<Saving | undefined | string>();
 
   constructor(
     private store: Store,
@@ -30,8 +31,7 @@ export class PdfUploadComponent {
     const reader = new FileReader();
     reader.onload = () => {
       this.proxy.save(file, this.store.account.origin).pipe(
-        map((event: HttpEvent<Ref> | Ref): Ref | null => {
-          if (!('type' in event)) return event as Ref;
+        map(event => {
           switch (event.type) {
             case HttpEventType.Response:
               return event.body;

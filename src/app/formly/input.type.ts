@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, ChangeDetectorRef, Component } from '@angular/
 import { FieldType, FieldTypeConfig, FormlyConfig } from '@ngx-formly/core';
 import { isString } from 'lodash-es';
 import { AdminService } from '../service/admin.service';
+import { Saving } from '../store/submit';
 import { getErrorMessage } from './errors';
 
 @Component({
@@ -80,7 +81,7 @@ export class FormlyFieldInput extends FieldType<FieldTypeConfig> {
     }
   }
 
-  onUpload(event?: { url?: string, name: string, progress?: number } | string) {
+  onUpload(event?: Saving | string) {
     if (!event) {
       this.uploading = false;
     } else if (isString(event)) {

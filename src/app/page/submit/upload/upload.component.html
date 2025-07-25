@@ -89,7 +89,7 @@
         * Preview disabled for huge archives
         <button type="button" (click)="store.submit.overrideHuge()" i18n>show anyway</button>
       </span>
-      @if (store.submit.exts.length && !store.submit.huge) {
+      @if (store.submit.exts.length) {
         <span>Exts: </span>
         <span>{{ store.submit.exts.length }}</span>
       }

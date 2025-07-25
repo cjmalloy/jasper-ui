@@ -8,6 +8,7 @@ import { RefService } from '../service/api/ref.service';
 import { ConfigService } from '../service/config.service';
 import { EditorService } from '../service/editor.service';
 import { Store } from '../store/store';
+import { Saving } from '../store/submit';
 import { getPageTitle } from '../util/format';
 import { getErrorMessage } from './errors';
 
@@ -167,7 +168,7 @@ export class FormlyFieldRefInput extends FieldType<FieldTypeConfig> implements A
     })
   }, 400);
 
-  onUpload(event?: { url?: string, name: string, progress?: number } | string) {
+  onUpload(event?: Saving | string) {
     if (!event) {
       this.uploading = false;
     } else if (isString(event)) {

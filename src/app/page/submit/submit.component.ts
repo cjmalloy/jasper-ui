@@ -22,6 +22,7 @@ import { RefService } from '../../service/api/ref.service';
 import { AuthzService } from '../../service/authz.service';
 import { ModService } from '../../service/mod.service';
 import { Store } from '../../store/store';
+import { Saving } from '../../store/submit';
 import { URI_REGEX } from '../../util/format';
 import { fixUrl } from '../../util/http';
 import { hasPrefix } from '../../util/tag';
@@ -190,7 +191,7 @@ export class SubmitPage implements OnInit, OnDestroy {
     });
   }
 
-  onUpload(event?: { url?: string, name: string, progress?: number } | string) {
+  onUpload(event?: Saving | string) {
     if (!event) {
       this.uploading = false;
     } else if (isString(event)) {

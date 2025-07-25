@@ -72,13 +72,18 @@ export class ProxyService {
     );
   }
 
-  save(file: File, origin = ''): Observable<HttpEvent<Ref> | Ref> {
+  save(file: File, origin = ''): Observable<HttpEvent<Ref>> {
     return this.http.post(`${this.base}`, file, {
       params: params({ title: file.name, mime: file.type, origin }),
       reportProgress: true,
       observe: 'events',
     }).pipe(
-      map(res => 'type' in res ? res as HttpEvent<Ref> : mapRef(res)),
+      map(res => res as HttpEvent<Ref>),
+      map(res => {
+        // @ts-ignore
+        if ('body' in res && res.body) res.body = mapRef(res.body);
+        return res;
+      }),
       catchError(err => this.login.handleHttpError(err)),
     );
   }
