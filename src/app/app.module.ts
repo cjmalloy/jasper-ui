@@ -343,7 +343,7 @@ const loadFactory = (config: ConfigService, debug: DebugService, admin: AdminSer
     })
   ],
   providers: [
-    provideHttpClient(withInterceptorsFromDi(), withFetch()),
+    provideHttpClient(withInterceptorsFromDi()),
     { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },
     { provide: HTTP_INTERCEPTORS, useClass: CsrfInterceptor, multi: true },
     { provide: OverlayContainer, useClass: FullscreenOverlayContainer },
