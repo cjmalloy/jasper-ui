@@ -12,6 +12,7 @@ import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
 import { AuthzService } from '../../service/authz.service';
 import { BookmarkService } from '../../service/bookmark.service';
+import { EditorService } from '../../service/editor.service';
 import { Store } from '../../store/store';
 import { Type } from '../../store/view';
 import { emoji } from '../../util/emoji';
@@ -58,6 +59,7 @@ export class FilterComponent implements OnChanges, OnDestroy {
     private exts: ExtService,
     private auth: AuthzService,
     private bookmarks: BookmarkService,
+    private editor: EditorService,
   ) {
     this.disposers.push(autorun(() => {
       this.filters = toJS(this.store.view.filter);
@@ -116,12 +118,12 @@ export class FilterComponent implements OnChanges, OnDestroy {
               ...k.swimLanes || [],
               ...k.badges || []
             ]);
-            this.exts.getCachedExts(kanbanTags, e.origin || '').subscribe(exts => {
-              for (const e of exts) {
+            this.editor.getTagsPreview(kanbanTags, e.origin || '').subscribe(ps => {
+              for (const p of ps) {
                 this.loadFilter({
                   group,
-                  label: e.name || '#' + e.tag,
-                  query: e.tag,
+                  label: p.name || '#' + p.tag,
+                  query: p.tag,
                 });
               }
               if (k.columns?.length && k.showColumnBacklog) {
