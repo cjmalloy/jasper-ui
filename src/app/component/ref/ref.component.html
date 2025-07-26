@@ -335,8 +335,8 @@
         <app-loading [inline]="true"></app-loading>
       }
       <button type="submit" [disabled]="submitting || submitted && !editForm.valid" i18n>save</button>
-    <button type="button" [disabled]="submitting" (click)="editing = false" i18n>cancel</button>
-  </span>
+      <button type="button" [disabled]="submitting" (click)="editing = false" i18n>cancel</button>
+    </span>
   </form>
 } @else if (viewSource) {
   <form class="form" [formGroup]="editForm">
