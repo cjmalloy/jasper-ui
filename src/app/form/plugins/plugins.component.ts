@@ -148,7 +148,7 @@ export function pluginsForm(fb: UntypedFormBuilder, admin: AdminService, tags: s
     if (form) {
       plugins[tag] = form;
     }
-    return plugins
+    return plugins;
   }, {}));
 }
 

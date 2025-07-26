@@ -1,7 +1,8 @@
-import { AfterViewInit, Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output, ViewChild } from '@angular/core';
 import { FormBuilder, UntypedFormGroup } from '@angular/forms';
+import { defer } from 'lodash-es';
 import { catchError, Observable, of } from 'rxjs';
-import { pluginsForm } from '../../../form/plugins/plugins.component';
+import { GenFormComponent } from '../../../form/plugins/gen/gen.component';
 import { Plugin } from '../../../model/plugin';
 import { Ref } from '../../../model/ref';
 import { AdminService } from '../../../service/admin.service';
@@ -14,7 +15,7 @@ import { ActionComponent } from '../action.component';
   styleUrls: ['./inline-plugin.component.scss'],
   host: {'class': 'action'}
 })
-export class InlinePluginComponent extends ActionComponent implements AfterViewInit {
+export class InlinePluginComponent extends ActionComponent {
 
   @Input()
   action: (plugins: any) => Observable<any|never> = () => of(null);
@@ -37,9 +38,15 @@ export class InlinePluginComponent extends ActionComponent implements AfterViewI
     super();
   }
 
-  ngAfterViewInit() {
-    this.group = pluginsForm(this.fb, this.admin, [this.plugin.tag]);
-    this.group.patchValue(this.value?.plugins || {});
+  @ViewChild(GenFormComponent)
+  set gen(c: GenFormComponent) {
+    if (!c) return;
+    this.group = this.fb.group({
+      [this.plugin.tag]: this.fb.group({}),
+    });
+    if (this.value?.plugins) {
+      defer(() => c.setValue(this.value!.plugins));
+    }
   }
 
   override reset() {
