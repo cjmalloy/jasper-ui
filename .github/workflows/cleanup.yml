@@ -6,6 +6,9 @@ on:
 
 jobs:
   cleanup:
+    permissions:
+      contents: read
+      actions: write
     runs-on: ubuntu-latest
     steps:
       - name: Cleanup
