@@ -63,6 +63,7 @@ export function writeTemplate(template: Template): Template {
   delete result.type;
   delete result.upload;
   delete result.exists;
+  delete result.outdated;
   delete result.modifiedString;
   delete result.config?._cache;
   return result;

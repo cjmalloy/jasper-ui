@@ -24,6 +24,7 @@ export interface Cursor {
   // Client-only
   upload?: boolean;
   exists?: boolean;
+  outdated?: boolean;
 }
 
 export interface Tag extends Cursor {

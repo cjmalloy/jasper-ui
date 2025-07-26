@@ -1672,7 +1672,12 @@ formly-field-radio, formly-field-multicheckbox {
   }
   &.exists {
     &:before {
-      border-left: var(--upload-border) solid var(--error);
+      border-left: var(--upload-border) solid var(--tag);
+    }
+    &.outdated {
+      &:before {
+        border-left: var(--upload-border) solid var(--error);
+      }
     }
   }
 }

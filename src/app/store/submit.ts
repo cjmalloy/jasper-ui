@@ -175,9 +175,9 @@ export class SubmitStore {
     this.exts = this.exts.filter(x => x.tag !== ext.tag || x.modifiedString !== ext.modifiedString);
   }
 
-  clearUpload() {
-    this.exts = [];
-    this.refs = [];
+  clearUpload(refs: Ref[] = [], exts: Ext[] = []) {
+    this.exts = exts;
+    this.refs = refs;
   }
 
   addFiles(files?: File[]) {

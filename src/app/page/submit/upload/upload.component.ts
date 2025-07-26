@@ -33,6 +33,8 @@ export class UploadPage implements OnDestroy {
   private disposers: IReactionDisposer[] = [];
   tagRegex = TAGS_REGEX.source;
 
+  erroredExts: Ext[] = [];
+  erroredRefs: Ref[] = [];
   serverErrors: string[] = [];
   processing = false;
   fileCache = this.admin.getPlugin('plugin/file');
@@ -177,7 +179,9 @@ export class UploadPage implements OnDestroy {
           ref!.tags = uniq([...ref!.tags || [], tag, ...extraTags.filter(t => !!t)]);
           return ref!;
         }),
-      ).subscribe(ref => runInAction(() => this.store.submit.addRefs({ ...ref, upload: true })));
+      ).subscribe(ref => runInAction(() => {
+        this.store.submit.addRefs({ ...ref, upload: true, exists: true });
+      }));
     }
   }
 
@@ -303,10 +307,13 @@ export class UploadPage implements OnDestroy {
       ...this.store.submit.refs.map(ref => this.uploadRef$(ref)),
     ];
     return lastValueFrom(concat(...uploads))
-      .then(() => delay(() => this.postNavigate(), 1000))
-      .catch(() => null)
       .then(() => {
-        this.store.submit.clearUpload();
+        if (!this.erroredExts.length && !this.erroredRefs.length) {
+          delay(() => this.postNavigate(), 1000);
+        }
+        this.store.submit.clearUpload(this.erroredRefs, this.erroredExts);
+        this.erroredRefs = [];
+        this.erroredExts = [];
         this.processing = false;
       });
   }
@@ -316,7 +323,7 @@ export class UploadPage implements OnDestroy {
     ref.origin = this.store.account.origin;
     ref.tags = ref.tags?.filter(t => this.auth.canAddTag(t));
     ref.plugins = pick(ref.plugins, ref.tags || []);
-    return (this.store.submit.overwrite
+    return (ref.exists
       ? this.refs.update(ref, true).pipe(
           catchError((err: HttpErrorResponse) => {
             if (err.status === 404) {
@@ -328,16 +335,21 @@ export class UploadPage implements OnDestroy {
       : this.refs.create(ref)
     ).pipe(
       catchError((err: HttpErrorResponse) => {
-        if (err.status === 409 && this.store.submit.overwrite) {
-          return this.refs.get(ref.url, this.store.account.origin).pipe(
-            switchMap(existing => {
-              return this.refs.update({ ...ref, modifiedString: existing.modifiedString }, true);
-            }),
-          );
+        if (err.status === 409) {
+          if (this.store.submit.overwrite) {
+            return this.refs.get(ref.url, this.store.account.origin).pipe(
+              switchMap(existing => {
+                return this.refs.update({ ...ref, modifiedString: existing.modifiedString }, true);
+              }),
+            );
+          } else {
+            ref.outdated = true;
+          }
         }
         return throwError(() => err);
       }),
       catchError((res: HttpErrorResponse) => {
+        this.erroredRefs.push(ref);
         this.serverErrors.push(...printError(res));
         return of(null);
       }),
@@ -347,20 +359,25 @@ export class UploadPage implements OnDestroy {
   uploadExt$(ext: Ext) {
     ext = toJS(ext);
     ext.origin = this.store.account.origin;
-    return (this.store.submit.overwrite
-      ? this.exts.update(ext, true)
+    return (ext.exists
+      ? this.exts.update(ext)
       : this.exts.create(ext)).pipe(
       catchError((err: HttpErrorResponse) => {
-        if (err.status === 409 && this.store.submit.overwrite) {
-          return this.exts.get(ext.tag + this.store.account.origin).pipe(
-            switchMap(existing => {
-              return this.exts.update({ ...ext, modifiedString: existing.modifiedString }, true);
-            })
-          );
+        if (err.status === 409) {
+          if (this.store.submit.overwrite) {
+            return this.exts.get(ext.tag + this.store.account.origin).pipe(
+              switchMap(existing => {
+                return this.exts.update({ ...ext, modifiedString: existing.modifiedString }, true);
+              })
+            );
+          } else {
+            ext.outdated = true;
+          }
         }
         return throwError(() => err);
       }),
       catchError((res: HttpErrorResponse) => {
+        this.erroredExts.push(ext);
         this.serverErrors.push(...printError(res));
         return of(null);
       }),

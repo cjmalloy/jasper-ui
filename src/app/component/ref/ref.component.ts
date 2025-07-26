@@ -318,6 +318,11 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     return this.ref.exists;
   }
 
+  @HostBinding('class.outdated')
+  get modifiedFile() {
+    return this.ref.outdated;
+  }
+
   get obsoleteOrigin() {
     if (this.ref.metadata?.obsolete) return this.ref.origin;
     return undefined;
