@@ -244,9 +244,8 @@ export class RefFormComponent {
     }
   }
 
-  setRef(ref: Ref) {
-    this.ref = ref;
-    this.group.setControl('plugins', pluginsForm(this.fb, this.admin, ref.tags || []));
+  setRef(ref: Partial<Ref>) {
+    this.ref = ref as Ref;
     this.group.patchValue({
       ...ref,
       published: ref.published ? ref.published.toFormat("yyyy-MM-dd'T'TT") : undefined,

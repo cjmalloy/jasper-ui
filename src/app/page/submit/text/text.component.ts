@@ -53,7 +53,7 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
   addAnother = false;
   private oldSubmit: string[] = [];
   private savedRef?: Ref;
-  private defaults?: Ref;
+  private defaults?: Partial<Ref>;
 
   constructor(
     private mod: ModService,
@@ -77,51 +77,54 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
   }
 
   ngAfterViewInit() {
-    if (this.store.account.localTag) this.addTag(this.store.account.localTag);
-    this.disposers.push(autorun(() => {
-      let url = this.store.submit.url || 'comment:' + uuid();
-      if (!this.admin.isWikiExternal() && this.store.submit.wiki) {
-        url = wikiUriFormat(url, this.admin.getWikiPrefix());
-        this.mod.setTitle($localize`Submit: Wiki`);
-        this.title.setValue(wikiTitleFormat(url, this.admin.getWikiPrefix()));
-        this.title.disable();
-      } else if (this.store.submit.title) {
-        this.title.setValue(this.store.submit.title);
-      }
-      this.url.setValue(url);
-      this.url.disable();
-      const tags = [...this.store.submit.tags, ...(this.store.account.localTag ? [this.store.account.localTag] : [])];
-      const added = without(tags, ...this.oldSubmit);
-      const removed = without(this.oldSubmit, ...tags);
-      if (added.length || removed.length) {
-        const newTags = uniq([...without(this.tagsFormComponent!.tags!.value, ...removed), ...added]);
-        this.tagsFormComponent!.setTags(newTags);
-        this.oldSubmit = tags;
-      }
-      let plugins = {};
-      if (this.store.submit.pluginUpload) {
-        this.addTag(this.store.submit.plugin);
-        this.plugins.setValue(plugins = {
-          [this.store.submit.plugin]: { url: this.store.submit.pluginUpload },
+    const allTags = [...this.store.submit.tags, ...(this.store.account.localTag ? [this.store.account.localTag] : [])];
+    this.refs.getDefaults(...allTags).subscribe(ref => {
+      this.defaults = ref;
+      if (ref) {
+        this.oldSubmit = uniq([...allTags, ...Object.keys(ref.plugins || {})]);
+        this.addTag(...this.oldSubmit);
+        this.plugins.setValue(ref.plugins);
+        this.textForm.patchValue({
+          ...ref,
+          tags: this.oldSubmit,
+          published: ref.published ? ref.published.toFormat("yyyy-MM-dd'T'TT") : undefined,
         });
-        if (this.store.submit.plugin === 'plugin/image' || this.store.submit.plugin === 'plugin/video') {
-          this.addTag('plugin/thumbnail');
-        }
       }
-      this.refs.getDefaults(...tags).subscribe(ref => {
-        this.defaults = ref;
-        if (ref) {
-          this.addTag(...Object.keys(ref.plugins || {}));
+      if (this.store.account.localTag) this.addTag(this.store.account.localTag);
+      this.disposers.push(autorun(() => {
+        let url = this.store.submit.url || 'comment:' + uuid();
+        if (!this.admin.isWikiExternal() && this.store.submit.wiki) {
+          url = wikiUriFormat(url, this.admin.getWikiPrefix());
+          this.mod.setTitle($localize`Submit: Wiki`);
+          this.title.setValue(wikiTitleFormat(url, this.admin.getWikiPrefix()));
+          this.title.disable();
+        } else if (this.store.submit.title) {
+          this.title.setValue(this.store.submit.title);
+        }
+        this.url.setValue(url);
+        this.url.disable();
+        const tags = [...this.store.submit.tags, ...(this.store.account.localTag ? [this.store.account.localTag] : [])];
+        const added = without(tags, ...this.oldSubmit);
+        const removed = without(this.oldSubmit, ...tags);
+        if (added.length || removed.length) {
+          this.oldSubmit = uniq([...without(this.oldSubmit, ...removed), ...added]);
+          this.tagsFormComponent!.setTags(this.oldSubmit);
+        }
+        if (this.store.submit.pluginUpload) {
+          this.addTag(this.store.submit.plugin);
           this.plugins.setValue({
-            ...ref.plugins || {},
-            ...plugins,
+            ...this.textForm.value.plugins || {},
+            [this.store.submit.plugin]: { url: this.store.submit.pluginUpload },
           });
+          if (this.store.submit.plugin === 'plugin/image' || this.store.submit.plugin === 'plugin/video') {
+            this.addTag('plugin/thumbnail');
+          }
         }
-      });
-      for (const s of this.store.submit.sources) {
-        this.addSource(s)
-      }
-    }));
+        for (const s of this.store.submit.sources) {
+          this.addSource(s)
+        }
+      }));
+    });
   }
 
   ngOnDestroy() {

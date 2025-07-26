@@ -1,4 +1,5 @@
 import { HttpClient } from '@angular/common/http';
+import { ReturnStatement } from '@angular/compiler';
 import { Injectable } from '@angular/core';
 import { autorun } from 'mobx';
 import { catchError, concat, first, map, Observable, of } from 'rxjs';
@@ -59,7 +60,7 @@ export class RefService {
     );
   }
 
-  getDefaults(...tags: string[]): Observable<Ref | undefined> {
+  getDefaults(...tags: string[]): Observable<Partial<Ref> | undefined> {
     return concat(...[
       ...tags.map(t => this.getCurrent('tag:/' + t).pipe(
         catchError(err => of()),
@@ -67,6 +68,16 @@ export class RefService {
       of(undefined),
     ]).pipe(
       first(),
+      map(ref => {
+        if (!ref) return ref;
+        const partial: Partial<Ref> = ref;
+        delete partial.url;
+        delete partial.origin;
+        delete partial.modified;
+        delete partial.modifiedString;
+        delete partial.created;
+        return partial;
+      })
     );
   }
 

@@ -2,7 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { AfterViewInit, Component, OnDestroy, ViewChild } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
-import { defer, uniq } from 'lodash-es';
+import { defer, uniq, without } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { autorun, IReactionDisposer } from 'mobx';
 import { catchError, Subscription, throwError } from 'rxjs';
@@ -46,7 +46,8 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
 
   submitting?: Subscription;
 
-  private defaults?: Ref;
+  private defaults?: Partial<Ref>;
+  private oldSubmit: string[] = [];
 
   constructor(
     private mod: ModService,
@@ -71,93 +72,104 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
   }
 
   ngAfterViewInit(): void {
-    if (this.store.account.localTag) this.addTag(this.store.account.localTag);
-    this.disposers.push(autorun(() => {
-      this.addTag(...this.store.submit.tags);
-      if (this.store.submit.pluginUpload) {
-        this.addPlugin(this.store.submit.plugin, { url: this.store.submit.pluginUpload })
-        if (this.store.submit.plugin === 'plugin/image' || this.store.submit.plugin === 'plugin/video') {
-          this.addTag('plugin/thumbnail');
-        }
-      }
-      const tags = [...this.store.submit.tags, ...(this.store.account.localTag ? [this.store.account.localTag] : [])];
-      this.refs.getDefaults(...tags).subscribe(ref => {
-        this.defaults = ref;
-        for (const k in ref?.plugins) {
+    const allTags = [...this.store.submit.tags, ...(this.store.account.localTag ? [this.store.account.localTag] : [])];
+    this.refs.getDefaults(...allTags).subscribe(ref => {
+      this.defaults = ref;
+      if (ref) {
+        this.oldSubmit = uniq([...allTags, ...Object.keys(ref.plugins || {})]);
+        for (const k in ref.plugins) {
           if (k === this.store.submit.plugin) continue;
           this.addPlugin(k, ref.plugins[k]);
         }
-      });
-      if (this.admin.getPlugin('plugin/thumbnail') && (
+        this.refForm!.setRef({
+          ...ref,
+          tags: this.oldSubmit,
+        });
+      }
+      if (this.store.account.localTag) this.addTag(this.store.account.localTag);
+      this.disposers.push(autorun(() => {
+        const tags = [...this.store.submit.tags, ...(this.store.account.localTag ? [this.store.account.localTag] : [])];
+        const added = without(tags, ...this.oldSubmit);
+        const removed = without(this.oldSubmit, ...tags);
+        if (added.length || removed.length) {
+          this.oldSubmit = uniq([...without(this.oldSubmit, ...removed), ...added]);
+          this.addTag(...this.oldSubmit);
+        }
+        if (this.store.submit.pluginUpload) {
+          this.addPlugin(this.store.submit.plugin, { url: this.store.submit.pluginUpload })
+          if (this.store.submit.plugin === 'plugin/image' || this.store.submit.plugin === 'plugin/video') {
+            this.addTag('plugin/thumbnail');
+          }
+        }
+        if (this.admin.getPlugin('plugin/thumbnail') && (
           this.store.submit.tags.includes('plugin/video') ||
           this.store.submit.tags.includes('plugin/image'))) {
-        this.addTag('plugin/thumbnail')
-      }
-      if (this.origin) {
-        this.addTag('internal');
-        this.setTitle($localize`Replicate Remote Origin`);
-      } else if (this.feed) {
-        this.addTag('internal');
-        this.setTitle($localize`Submit: Feed`);
-      }
-      if (this.store.submit.title) {
-        this.webForm.get('title')!.setValue(this.store.submit.title);
-      }
-      let url = this.store.submit.url?.trim();
-      if (this.store.submit.repost) {
-        this.url = 'internal:' + uuid();
-        this.addTag('plugin/repost');
-        this.addSource(url);
-      } else if (this.feed) {
-        if (this.store.submit.tags.includes('public')) this.addFeedTags('public');
-        this.addFeedTags(...interestingTags(this.store.submit.tags));
-        this.scrape.rss(url).subscribe(value => {
-          if (value) {
-            this.url = value;
-            this.addTag('plugin/repost');
-            this.addSource(url);
-            this.refForm!.scrapePlugins();
-            if (url.startsWith('https://www.youtube.com/@') || url.startsWith('https://youtube.com/@')) {
-              const username = url.substring(url.indexOf('@'));
-              if (!this.store.submit.title) this.webForm.get('title')!.setValue(username);
-              const tag = username.toLowerCase().replace(/[^a-z0-9]+/, '');
-              this.addFeedTags(tag);
-            } else if (!this.store.submit.title) {
-              this.refForm!.scrapeTitle();
+          this.addTag('plugin/thumbnail')
+        }
+        if (this.origin) {
+          this.addTag('internal');
+          this.setTitle($localize`Replicate Remote Origin`);
+        } else if (this.feed) {
+          this.addTag('internal');
+          this.setTitle($localize`Submit: Feed`);
+        }
+        if (this.store.submit.title) {
+          this.webForm.get('title')!.setValue(this.store.submit.title);
+        }
+        let url = this.store.submit.url?.trim();
+        if (this.store.submit.repost) {
+          this.url = 'internal:' + uuid();
+          this.addTag('plugin/repost');
+          this.addSource(url);
+        } else if (this.feed) {
+          if (this.store.submit.tags.includes('public')) this.addFeedTags('public');
+          this.addFeedTags(...interestingTags(this.store.submit.tags));
+          this.scrape.rss(url).subscribe(value => {
+            if (value) {
+              this.url = value;
+              this.addTag('plugin/repost');
+              this.addSource(url);
+              this.refForm!.scrapePlugins();
+              if (url.startsWith('https://www.youtube.com/@') || url.startsWith('https://youtube.com/@')) {
+                const username = url.substring(url.indexOf('@'));
+                if (!this.store.submit.title) this.webForm.get('title')!.setValue(username);
+                const tag = username.toLowerCase().replace(/[^a-z0-9]+/, '');
+                this.addFeedTags(tag);
+              } else if (!this.store.submit.title) {
+                this.refForm!.scrapeTitle();
+              }
+            } else {
+              this.url = url;
             }
-          } else {
-            this.url = url;
-          }
-        });
-      } else {
-        this.oembeds.get(url).subscribe(oembed => {
-          if (!oembed) {
+          });
+        } else {
+          this.oembeds.get(url).subscribe(oembed => {
             if (!this.store.submit.title) this.refForm!.scrapeTitle();
-            return;
-          }
-          if (oembed?.thumbnail_url) {
-            this.addPlugin('plugin/thumbnail', { url: oembed.thumbnail_url });
-          }
-          if (oembed?.author_url) {
-            this.addSource(oembed?.author_url);
-          }
-          if (oembed.url && oembed.type === 'photo') {
-            this.addPlugin('plugin/image', { url: oembed.url });
-          } else {
-            this.addTag('plugin/embed');
-          }
-          if (oembed?.provider_name === 'Twitter') {
-            let comment = oembed.html!.replace(/(<([^>]+)>)/gi, "").trim().replace(/\s+/gi, ' ');
-            if (comment.length > 140) comment = comment.substring(0, 139) + '…';
-            this.webForm.get('comment')!.setValue(comment);
-          }
-        });
-        this.url = url;
-      }
-      if (this.store.submit.source) {
-        this.store.submit.sources.map(s => this.addSource(s));
-      }
-    }));
+            if (!oembed) return;
+            if (oembed?.thumbnail_url) {
+              this.addPlugin('plugin/thumbnail', { url: oembed.thumbnail_url });
+            }
+            if (oembed?.author_url) {
+              this.addSource(oembed?.author_url);
+            }
+            if (oembed.url && oembed.type === 'photo') {
+              this.addPlugin('plugin/image', { url: oembed.url });
+            } else {
+              this.addTag('plugin/embed');
+            }
+            if (oembed?.provider_name === 'Twitter') {
+              let comment = oembed.html!.replace(/(<([^>]+)>)/gi, "").trim().replace(/\s+/gi, ' ');
+              if (comment.length > 140) comment = comment.substring(0, 139) + '…';
+              this.webForm.get('comment')!.setValue(comment);
+            }
+          });
+          this.url = url;
+        }
+        if (this.store.submit.source) {
+          this.store.submit.sources.map(s => this.addSource(s));
+        }
+      }));
+    });
   }
 
   ngOnDestroy() {
@@ -204,7 +216,7 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
   addPlugin(tag: string, plugin: any) {
     this.refForm!.tagsFormComponent.addTag(tag);
     this.refForm!.pluginsFormComponent.setValue({
-      ...this.webForm.value.plugins,
+      ...this.webForm.value.plugins || {},
       [tag]: plugin,
     });
     this.submitted = false;

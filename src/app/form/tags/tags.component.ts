@@ -1,6 +1,6 @@
 import { Component, HostBinding, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { FormBuilder, UntypedFormArray, UntypedFormGroup, Validators } from '@angular/forms';
-import { some } from 'lodash-es';
+import { some, uniq } from 'lodash-es';
 import { AdminService } from '../../service/admin.service';
 import { TAG_REGEX } from '../../util/format';
 import { hasPrefix, hasTag } from '../../util/tag';
@@ -92,10 +92,15 @@ export class TagsFormComponent implements OnChanges {
     if (!values.length) return;
     this.field.fieldArray.focus = true;
     for (const value of values) {
-      if (value) this.field.fieldArray.focus = false;
-      if (value && value !== 'placeholder' && this.tags.value.includes(value)) return;
+      if (value) {
+        this.field.fieldArray.focus = false;
+        break;
+      }
     }
-    this.setTags([...this.tags.value, ...values]);
+    values = values.filter(t => t === 'placeholder' || !hasTag(t, this.tags.value));
+    if (values.length) {
+      this.setTags([...this.tags.value, ...values]);
+    }
   }
 
   get editingViewer() {

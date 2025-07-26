@@ -51,7 +51,7 @@ export class BulkComponent implements OnChanges, OnDestroy {
   @Input()
   activeExts: Ext[] = [];
 
-  defaults?: Ref;
+  defaults?: Partial<Ref>;
   forms: Plugin[] = [];
   actions: Action[] = [];
   groupedActions: { [key: string]: Action[] } = {};

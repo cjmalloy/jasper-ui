@@ -127,6 +127,11 @@
         <span i18n-title title="Edit Tag" i18n>🎨️</span> <label i18n>Copy Tag</label>
       </div>
     }
+    @if (!home && writeAccess) {
+      <div class="submit-button" routerLink="/submit/text" [queryParams]="{ tag: 'internal', url: 'tag:/' + tag }" tabindex="0">
+        <span i18n-title title="Edit Defaults" i18n>✨️</span> <label i18n>Edit Defaults</label>
+      </div>
+    }
   </span>
   @if (home) {
     <div class="hide tag-header">

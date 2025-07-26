@@ -21,7 +21,7 @@ export class InlinePluginComponent extends ActionComponent implements AfterViewI
   @Input()
   plugin!: Plugin;
   @Input()
-  value?: Ref;
+  value?: Partial<Ref>;
   @Output()
   error = new EventEmitter<string>();
 
