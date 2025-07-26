@@ -1,4 +1,6 @@
 name: Draft GitHub Release
+permissions:
+  contents: write
 
 on:
   push:
