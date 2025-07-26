@@ -53,6 +53,7 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
   addAnother = false;
   private oldSubmit: string[] = [];
   private savedRef?: Ref;
+  private defaults?: Ref;
 
   constructor(
     private mod: ModService,
@@ -98,23 +99,25 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
         this.oldSubmit = tags;
       }
       let plugins = {};
-      if (this.store.submit.thumbnail) {
-        this.addTag('plugin/thumbnail');
-        this.plugins.setValue(plugins = {
-          ...plugins,
-          'plugin/thumbnail': { url: this.store.submit.thumbnail },
-        });
-      }
       if (this.store.submit.pluginUpload) {
         this.addTag(this.store.submit.plugin);
         this.plugins.setValue(plugins = {
-          ...plugins,
           [this.store.submit.plugin]: { url: this.store.submit.pluginUpload },
         });
         if (this.store.submit.plugin === 'plugin/image' || this.store.submit.plugin === 'plugin/video') {
           this.addTag('plugin/thumbnail');
         }
       }
+      this.refs.getDefaults(...tags).subscribe(ref => {
+        this.defaults = ref;
+        if (ref) {
+          this.addTag(...Object.keys(ref.plugins || {}));
+          this.plugins.setValue({
+            ...ref.plugins || {},
+            ...plugins,
+          });
+        }
+      });
       for (const s of this.store.submit.sources) {
         this.addSource(s)
       }

@@ -93,10 +93,6 @@ export class SubmitStore {
       .filter(t => t && !t.includes('*'));
   }
 
-  get thumbnail() {
-    return this.route.routeSnapshot?.queryParams['thumbnail'] as string;
-  }
-
   get plugin() {
     return this.route.routeSnapshot?.queryParams['plugin'] || '' as string;
   }

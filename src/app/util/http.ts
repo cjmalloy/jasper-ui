@@ -32,6 +32,27 @@ export function writeObj(obj?: Record<string, any>): Record<string, any> | undef
   return result;
 }
 
+/**
+ * Jsonify object and set missing fields to null to remove during merge.
+ */
+export function patchObj(obj?: Record<string, any>): Record<string, any> | null {
+  if (!obj) return {};
+  if (!isObject(obj)) return obj;
+  const result: Record<string, any> = {};
+  for (const k in obj) {
+    // @ts-ignore
+    let v = obj[k];
+    if (DateTime.isDateTime(v)) v = v.toUTC().toISO();
+    if ((v || v === false) && !emptyObject(v)) {
+      result[k] = v;
+    } else {
+      result[k] = null;
+    }
+  }
+  if (emptyObject(result)) return null;
+  return result;
+}
+
 export function emptyObject(obj: any) {
   return obj &&
     Object.keys(obj).length === 0 &&

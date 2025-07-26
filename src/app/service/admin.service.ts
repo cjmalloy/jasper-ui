@@ -571,6 +571,10 @@ export class AdminService {
     return this.configProperty('icons');
   }
 
+  get bulkForm() {
+    return this.pluginConfigProperty('bulkForm');
+  }
+
   get actions() {
     return this.configProperty('actions');
   }

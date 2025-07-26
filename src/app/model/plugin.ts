@@ -1,3 +1,4 @@
+import { FormlyFieldConfig } from '@ngx-formly/core';
 import { Schema } from 'jtd';
 import { DateTime } from 'luxon';
 import { toJS } from 'mobx';
@@ -107,6 +108,12 @@ export interface Plugin extends Config {
      * Require user to confirm clearing the cache with this message.
      */
     clearCacheConfirm?: string;
+    /**
+     * Optional formly config for editing a form defined by the schema in bulk tools.
+     *
+     * Set to true to reuse the existing form.
+     */
+    bulkForm?: FormlyFieldConfig[] | true,
   };
   // Client-only
   type?: 'plugin';

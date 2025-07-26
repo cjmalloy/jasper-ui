@@ -50,7 +50,6 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
 
   localTag?: string;
   addTags: string[] = this.rootConfig?.addTags || ['public'];
-  defaultThumbnail = this.rootConfig?.defaultThumbnail;
   plugin?: Plugin;
   mailPlugin?: Plugin;
   tagTemplate?: Template;
@@ -136,7 +135,6 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
         } else {
           this.addTags = uniq([...this.rootConfig?.addTags || ['public'], ...topAnds(this.tag).map(localTag)]);
         }
-        this.defaultThumbnail = this.rootConfig?.defaultThumbnail;
         this.mailPlugin = this.admin.getPlugin(getMailbox(this.tag, this.store.account.origin));
         this.tagTemplate = this.admin.getTemplate(this.tag);
         this.writeAccess = this.auth.tagWriteAccess(this.tag);

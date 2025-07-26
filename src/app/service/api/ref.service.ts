@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { autorun } from 'mobx';
-import { catchError, map, Observable, of } from 'rxjs';
+import { catchError, concat, first, map, Observable, of } from 'rxjs';
 import { mapPage, Page } from '../../model/page';
 import { mapRef, Ref, RefFilter, RefPageArgs, writeRef } from '../../model/ref';
 import { Store } from '../../store/store';
@@ -56,6 +56,17 @@ export class RefService {
         if (!page.content.length) throw { status: 404 };
         return page.content[0];
       }),
+    );
+  }
+
+  getDefaults(...tags: string[]): Observable<Ref | undefined> {
+    return concat(...[
+      ...tags.map(t => this.getCurrent('tag:/' + t).pipe(
+        catchError(err => of()),
+      )),
+      of(undefined),
+    ]).pipe(
+      first(),
     );
   }
 

@@ -22,7 +22,7 @@ import { InlineButtonComponent } from './component/action/inline-button/inline-b
 import { InlinePasswordComponent } from './component/action/inline-password/inline-password.component';
 import { InlineSelectComponent } from './component/action/inline-select/inline-select.component';
 import { InlineTagComponent } from './component/action/inline-tag/inline-tag.component';
-import { InlineUrlComponent } from './component/action/inline-url/inline-url.component';
+import { InlinePluginComponent } from './component/action/inline-plugin/inline-plugin.component';
 import { BackgammonComponent } from './component/backgammon/backgammon.component';
 import { BackupListComponent } from './component/backup/backup-list/backup-list.component';
 import { BackupComponent } from './component/backup/backup.component';
@@ -314,7 +314,7 @@ const loadFactory = (config: ConfigService, debug: DebugService, admin: AdminSer
     ConfirmActionComponent,
     ActionListComponent,
     InlineTagComponent,
-    InlineUrlComponent,
+    InlinePluginComponent,
     InlinePasswordComponent,
     InlineSelectComponent,
     InlineButtonComponent,

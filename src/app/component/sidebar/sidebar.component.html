@@ -40,7 +40,7 @@
     @if (!dm && !user && canAddTag && !plugin?.config?.reply && store.account.user && (store.view.type === 'ref' || store.view.current === 'ref/summary')) {
       @if (plugin?.config?.submitText || rootConfig?.submitText) {
         <div class="submit-button" routerLink="/submit/text" tabindex="0"
-             [queryParams]="{ tag: addTags, thumbnail: defaultThumbnail }">
+             [queryParams]="{ tag: addTags }">
         <span i18n-title title="Submit" i18n>📝️</span> <label i18n>Submit
         &nbsp;
         &nbsp;
@@ -48,7 +48,7 @@
       </div>
       } @else if (plugin?.config?.submit && plugin?.config?.genId) {
         <div class="submit-button" routerLink="/submit/web" tabindex="0"
-             [queryParams]="{ tag: addTags, url: genUrl, thumbnail: defaultThumbnail }">
+             [queryParams]="{ tag: addTags, url: genUrl }">
           <span i18n-title title="Submit" i18n>📝️</span> <label i18n>Submit
           &nbsp;
           &nbsp;
@@ -56,7 +56,7 @@
         </div>
       } @else {
         <div class="submit-button" routerLink="/submit" tabindex="0"
-             [queryParams]="{ tag: addTags, thumbnail: defaultThumbnail }">
+             [queryParams]="{ tag: addTags }">
           <span i18n-title title="Submit" i18n>📝️</span> <label i18n>Submit
           &nbsp;
           &nbsp;

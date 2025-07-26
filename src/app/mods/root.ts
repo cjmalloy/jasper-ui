@@ -37,7 +37,6 @@ export const rootTemplate: Template = {
       defaultSort?: string;
       submitText?: boolean;
       addTags?: string[];
-      defaultThumbnail?: boolean;
       defaultExpanded?: boolean;
       hideEdit?: boolean;
       disableResize?: boolean;
@@ -138,12 +137,6 @@ export const rootTemplate: Template = {
         }]
       }
     }, {
-      key: 'defaultThumbnail',
-      type: 'ref',
-      props: {
-        label: $localize`Default Thumbnail:`
-      }
-    }, {
       key: 'defaultCols',
       type: 'select',
       props: {
@@ -205,7 +198,6 @@ export const rootTemplate: Template = {
       defaultFilter: { elements: { type: 'string' } },
       submitText: { type: 'boolean'},
       addTags: { elements: { type: 'string' } },
-      defaultThumbnail: { type: 'string' },
       defaultExpanded: { type: 'boolean'},
       hideEdit: { type: 'boolean'},
       disableResize: { type: 'boolean'},
@@ -230,7 +222,6 @@ export interface RootConfig {
   defaultFilter?: string[];
   submitText?: boolean;
   addTags?: string[];
-  defaultThumbnail?: boolean;
   defaultExpanded?: boolean;
   hideEdit?: boolean;
   disableResize?: boolean;

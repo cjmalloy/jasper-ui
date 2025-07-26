@@ -16,7 +16,7 @@ import { Subject, takeUntil } from 'rxjs';
 import { Plugin } from '../../model/plugin';
 import { active, Icon, ResponseAction, sortOrder, TagAction, Visibility, visible } from '../../model/tag';
 import { AdminService } from '../../service/admin.service';
-import { emptyObject, getScheme, writeObj } from '../../util/http';
+import { emptyObject, getScheme, patchObj, writeObj } from '../../util/http';
 import { addAllHierarchicalTags, hasTag } from '../../util/tag';
 import { GenFormComponent } from './gen/gen.component';
 
@@ -159,11 +159,20 @@ function pluginForm(fb: UntypedFormBuilder, admin: AdminService, tag: string) {
   return null;
 }
 
-export function writePlugins(tags: string[], plugins: any): Record<string, any> | undefined {
+export function writePlugins(tags: string[], plugins: Record<string, any>): Record<string, any> | undefined {
   const result: Record<string, any> = {};
   for (const p in plugins) {
     if (hasTag(p, tags)) result[p] = writeObj(plugins[p]);
   }
   if (emptyObject(result)) return undefined;
+  return result;
+}
+
+export function patchPlugins(plugins: Record<string, any>): Record<string, any> | undefined {
+  const result: Record<string, any> = {};
+  for (const p in plugins) {
+    result[p] = patchObj(plugins[p]);
+  }
+  if (emptyObject(result)) return {};
   return result;
 }

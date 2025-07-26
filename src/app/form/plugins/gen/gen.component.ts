@@ -13,6 +13,8 @@ import { AdminService } from '../../../service/admin.service';
 export class GenFormComponent implements OnInit {
 
   @Input()
+  bulk = false;
+  @Input()
   plugins!: UntypedFormGroup;
   @Input()
   plugin!: Plugin;
@@ -38,6 +40,21 @@ export class GenFormComponent implements OnInit {
 
   get group() {
     return this.plugins.get(this.plugin.tag) as UntypedFormGroup | undefined;
+  }
+
+  get form() {
+    if (this.bulk) {
+      if (this.plugin.config?.bulkForm === true) {
+        return this.plugin.config?.form || this.plugin.config?.advancedForm;
+      }
+      return this.plugin.config?.bulkForm;
+    }
+    return this.plugin.config?.form;
+  }
+
+  get advancedForm() {
+    if (this.bulk) return undefined;
+    return this.plugin.config?.advancedForm;
   }
 
   get childrenOn() {

@@ -11,6 +11,7 @@ import { v4 as uuid } from 'uuid';
 import { writePlugins } from '../../../form/plugins/plugins.component';
 import { refForm, RefFormComponent } from '../../../form/ref/ref.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
+import { Ref } from '../../../model/ref';
 import { AdminService } from '../../../service/admin.service';
 import { RefService } from '../../../service/api/ref.service';
 import { ScrapeService } from '../../../service/api/scrape.service';
@@ -45,6 +46,8 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
 
   submitting?: Subscription;
 
+  private defaults?: Ref;
+
   constructor(
     private mod: ModService,
     private admin: AdminService,
@@ -71,9 +74,20 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
     if (this.store.account.localTag) this.addTag(this.store.account.localTag);
     this.disposers.push(autorun(() => {
       this.addTag(...this.store.submit.tags);
-      if (this.store.submit.thumbnail) {
-        this.addPlugin('plugin/thumbnail', { url: this.store.submit.thumbnail });
+      if (this.store.submit.pluginUpload) {
+        this.addPlugin(this.store.submit.plugin, { url: this.store.submit.pluginUpload })
+        if (this.store.submit.plugin === 'plugin/image' || this.store.submit.plugin === 'plugin/video') {
+          this.addTag('plugin/thumbnail');
+        }
       }
+      const tags = [...this.store.submit.tags, ...(this.store.account.localTag ? [this.store.account.localTag] : [])];
+      this.refs.getDefaults(...tags).subscribe(ref => {
+        this.defaults = ref;
+        for (const k in ref?.plugins) {
+          if (k === this.store.submit.plugin) continue;
+          this.addPlugin(k, ref.plugins[k]);
+        }
+      });
       if (this.admin.getPlugin('plugin/thumbnail') && (
           this.store.submit.tags.includes('plugin/video') ||
           this.store.submit.tags.includes('plugin/image'))) {
