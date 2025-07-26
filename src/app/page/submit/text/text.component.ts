@@ -77,6 +77,9 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
   }
 
   ngAfterViewInit() {
+    this.refs.exists(this.store.submit.url, this.store.account.origin || '*').subscribe(exists => {
+      if (exists) this.router.navigate(['/ref', this.store.submit.url], { replaceUrl: true });
+    })
     const allTags = [...this.store.submit.tags, ...(this.store.account.localTag ? [this.store.account.localTag] : [])];
     this.refs.getDefaults(...allTags).subscribe(ref => {
       this.defaults = ref;

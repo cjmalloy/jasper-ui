@@ -81,8 +81,8 @@ export class RefService {
     );
   }
 
-  exists(url: string): Observable<boolean> {
-    return this.count({ url }).pipe(
+  exists(url: string, origin?: string): Observable<boolean> {
+    return this.count({ url, query: origin }).pipe(
       map(n => !!n),
     );
   }

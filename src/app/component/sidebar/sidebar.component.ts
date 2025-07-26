@@ -6,6 +6,7 @@ import { catchError, filter, forkJoin, map, Observable, of, Subject } from 'rxjs
 import { v4 as uuid } from 'uuid';
 import { Ext } from '../../model/ext';
 import { Plugin } from '../../model/plugin';
+import { Ref } from '../../model/ref';
 import { hydrate } from '../../model/tag';
 import { getTemplateScope, Template } from '../../model/template';
 import { getMailbox } from '../../mods/mailbox';
@@ -14,6 +15,7 @@ import { UserConfig } from '../../mods/user';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
+import { RefService } from '../../service/api/ref.service';
 import { TaggingService } from '../../service/api/tagging.service';
 import { TemplateService } from '../../service/api/template.service';
 import { AuthzService } from '../../service/authz.service';
@@ -21,7 +23,7 @@ import { ConfigService } from '../../service/config.service';
 import { QueryStore } from '../../store/query';
 import { Store } from '../../store/store';
 import { memo, MemoCache } from '../../util/memo';
-import { hasPrefix, hasTag, localTag, tagOrigin, topAnds } from '../../util/tag';
+import { hasPrefix, hasTag, localTag, topAnds } from '../../util/tag';
 
 type Exts = { ext: Ext, children: Ext[], more: boolean };
 
