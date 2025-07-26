@@ -147,6 +147,7 @@ export class AppComponent implements AfterViewInit {
         files.push(d.getAsFile());
       }
     }
+    if (!files.length) return;
     this.store.submit.addFiles(files);
     if (!this.store.submit.upload) {
       this.router.navigate(['/submit/upload'], { queryParams: { tag: this.store.view.queryTags }});
