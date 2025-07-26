@@ -46,7 +46,10 @@ export const aiQueryPlugin: Plugin = {
       const config = {
         ...ref.plugins?.['plugin/llm'] || {},
         ...response.plugins?.['plugin/llm'] || {},
-      }
+      };
+      config.vision ||= hasTag('plugin/image', ref) || hasTag('plugin/video', ref);
+      config.audio ||= hasTag('plugin/audio', ref);
+      config.pdf ||= hasTag('plugin/pdf', ref);
       const fullBundleSchema = {
         type: 'object',
         properties: {
@@ -319,8 +322,8 @@ export const aiQueryPlugin: Plugin = {
         },
         gemini: {
           init(config) {
-            config.model ||= 'gemini-2.5-pro';
-            config.pdf = false;
+            config.model ||= config.pdf ? 'gemini-2.5-pro' : 'gemini-2.5-flash-lite';
+            config.pdf = config.model === 'gemini-2.5-pro';
             config.image = true;
             config.audio = true;
             config.video = true;
@@ -328,6 +331,14 @@ export const aiQueryPlugin: Plugin = {
           loadMessage(source, plugins = {}) {
             const message = {};
             message.parts = [{ text: formatMessage(source) }];
+            if (plugins['plugin/pdf']) {
+              message.parts.push({
+                inlineData: {
+                  mimeType: plugins['plugin/pdf'].headers['content-type'] || 'application/pdf',
+                  data: Buffer.from(plugins['plugin/pdf'].data, 'binary').toString('base64'),
+                }
+              });
+            }
             if (plugins['plugin/audio']) {
               message.parts.push({
                 inlineData: {
