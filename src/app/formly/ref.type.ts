@@ -216,7 +216,6 @@ export class FormlyFieldRefInput extends FieldType<FieldTypeConfig> implements A
             return event.body;
           case HttpEventType.UploadProgress:
             const percentDone = event.total ? Math.round(100 * event.loaded / event.total) : 0;
-            console.log(percentDone);
             this.onUpload({ name: file.name, progress: percentDone });
             return null;
         }
