@@ -158,11 +158,11 @@ export const aiQueryPlugin: Plugin = {
         },
         x: {
           init(config) {
-            config.model ||= config.vision ? 'grok-2-vision-latest' : 'grok-3-fast-latest';
+            config.model ||= 'grok-4';
             config.maxTokens ||= 4096;
             config.thinking = false;
             config.pdf = false;
-            config.image = config.model === 'grok-2-vision-latest';
+            config.image = ['grok-4', 'grok-2-vision-latest'].includes(config.model);
             config.audio = false;
             config.video = false;
           },
@@ -319,7 +319,7 @@ export const aiQueryPlugin: Plugin = {
         },
         gemini: {
           init(config) {
-            config.model ||= 'gemini-2.5-flash-preview-04-17';
+            config.model ||= 'gemini-2.5-pro';
             config.pdf = false;
             config.image = true;
             config.audio = true;
