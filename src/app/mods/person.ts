@@ -4,7 +4,7 @@ import { Mod } from '../model/tag';
 
 export const personPlugin: Plugin = {
   tag: 'plugin/person',
-  name: $localize`📇️‍ Person`,
+  name: $localize`📇️ Person`,
   config: {
     type: 'semantic',
     add: true,
