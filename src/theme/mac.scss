@@ -10,14 +10,14 @@ body.darwin, body.ios {
   }
 }
 body.safari {
-  input, textarea {
-    background-color: var(--form-bg);
-  }
   .toggle {
     line-height: 22px;
   }
   .actions-toggle {
     line-height: 25px;
+  }
+  select {
+    height: unset;
   }
 }
 
@@ -98,6 +98,9 @@ body.darwin.safari {
 }
 
 body.ios {
+  input, textarea {
+    background-color: var(--form-bg);
+  }
   input:not([type=checkbox]):not([type=radio]) {
     height: 28px;
   }
