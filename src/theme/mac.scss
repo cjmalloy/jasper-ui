@@ -102,6 +102,9 @@ body.ios {
   button[type=submit] {
     color: revert;
   }
+  input[type=color] {
+    border-radius: 5px;
+  }
   button {
     min-width: 30px !important;
     min-height: 30px !important;

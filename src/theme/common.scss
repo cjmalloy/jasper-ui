@@ -47,6 +47,26 @@ body.fullscreen {
   }
 }
 
+input[type=color].cleared::-moz-color-swatch {
+  opacity: 0;
+}
+
+input[type=color]::-moz-color-swatch {
+  border-radius: 3px;
+}
+
+input[type=color].cleared::-webkit-color-swatch-wrapper {
+  opacity: 0;
+}
+
+input[type=color]::-webkit-color-swatch-wrapper {
+  border-radius: 3px;
+}
+
+input[type=color]::-webkit-color-swatch {
+  border-radius: 3px;
+}
+
 input[type="color"],
 input[type="date"],
 input[type="datetime"],
