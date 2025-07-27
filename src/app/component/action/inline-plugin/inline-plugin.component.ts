@@ -44,9 +44,7 @@ export class InlinePluginComponent extends ActionComponent {
     this.group = this.fb.group({
       [this.plugin.tag]: this.fb.group({}),
     });
-    if (this.value?.plugins) {
-      defer(() => c.setValue(this.value!.plugins));
-    }
+    defer(() => c.setValue(this.value?.plugins || {}));
   }
 
   override reset() {
