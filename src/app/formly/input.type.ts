@@ -19,7 +19,8 @@ import { getErrorMessage } from './errors';
                [type]="type"
                [formControl]="formControl"
                [formlyAttributes]="field"
-               [class.is-invalid]="showError">
+               [class.is-invalid]="showError"
+               [class.cleared]="props.clear && !field.formControl.value">
       } @else {
         <input type="number"
                class="grow"
