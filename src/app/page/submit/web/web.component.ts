@@ -5,14 +5,16 @@ import { Router } from '@angular/router';
 import { defer, uniq, without } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { autorun, IReactionDisposer } from 'mobx';
-import { catchError, Subscription, throwError } from 'rxjs';
+import { catchError, map, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
 import { writePlugins } from '../../../form/plugins/plugins.component';
 import { refForm, RefFormComponent } from '../../../form/ref/ref.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
+import { Ext } from '../../../model/ext';
 import { Ref } from '../../../model/ref';
 import { AdminService } from '../../../service/admin.service';
+import { ExtService } from '../../../service/api/ext.service';
 import { RefService } from '../../../service/api/ref.service';
 import { ScrapeService } from '../../../service/api/scrape.service';
 import { TaggingService } from '../../../service/api/tagging.service';
@@ -45,8 +47,9 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
   refForm?: RefFormComponent;
 
   submitting?: Subscription;
+  defaults?: Partial<Ref>;
+  loadingDefaults: Ext[] = [];
 
-  private defaults?: Partial<Ref>;
   private oldSubmit: string[] = [];
 
   constructor(
@@ -56,6 +59,7 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
     private store: Store,
     private editor: EditorService,
     private refs: RefService,
+    private exts: ExtService,
     private ts: TaggingService,
     private oembeds: OembedStore,
     private scrape: ScrapeService,
@@ -73,8 +77,15 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
 
   ngAfterViewInit(): void {
     const allTags = [...this.store.submit.tags, ...(this.store.account.localTag ? [this.store.account.localTag] : [])];
-    this.refs.getDefaults(...allTags).subscribe(ref => {
-      this.defaults = ref;
+    this.exts.getCachedExts(allTags).pipe(
+      map(xs => xs.filter(x => x.config?.defaults) as Ext[]),
+      switchMap(xs => {
+        this.loadingDefaults = xs;
+        return this.refs.getDefaults(...xs.map(x => x.tag))
+      }),
+    ).subscribe(ref => {
+      this.defaults = ref || {};
+      this.loadingDefaults = [];
       if (ref) {
         this.oldSubmit = uniq([...allTags, ...Object.keys(ref.plugins || {})]);
         for (const k in ref.plugins) {

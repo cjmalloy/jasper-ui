@@ -49,10 +49,10 @@
         </select>
         @switch (sortDir) {
           @case ("DESC") {
-            <button type="button" (click)="setSortDir('ASC')" i18n>🔽️</button>
+            <button type="button" (click)="setSortDir('ASC')" i18n-title title="Descending" i18n>🔽️</button>
           }
           @case ("ASC") {
-            <button type="button" (click)="setSortDir('DESC')" i18n>🔼️</button>
+            <button type="button" (click)="setSortDir('DESC')" i18n-title title="Ascending" i18n>🔼️</button>
           }
         }
       </span>
@@ -135,10 +135,10 @@
             </select>
             @switch (sortDir) {
               @case ("DESC") {
-                <button type="button" (click)="setSortDir('ASC')">🔽️</button>
+                <button type="button" (click)="setSortDir('ASC')" i18n-title title="Descending" i18n>🔽️</button>
               }
               @case ("ASC") {
-                <button type="button" (click)="setSortDir('DESC')">🔼️</button>
+                <button type="button" (click)="setSortDir('DESC')" i18n-title title="Ascending" i18n>🔼️</button>
               }
             }
           </span>
@@ -149,6 +149,11 @@
                      [fields]="advancedForm!"
                      [options]="options"></formly-form>
       </div>
+      @if (defaults) {
+        <app-ref class="bubble" [ref]="defaults"></app-ref>
+      } @else if (loadingDefaults) {
+        <app-loading></app-loading>
+      }
     </details>
   }
 </ng-container>

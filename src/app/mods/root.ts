@@ -163,6 +163,12 @@ export const rootTemplate: Template = {
       props: {
         label: $localize`No Floating Sidebar:`,
       },
+    }, {
+      key: 'defaults',
+      type: 'boolean',
+      props: {
+        label: $localize`Defaults:`,
+      },
     }],
   },
   defaults: <RootConfig> {
@@ -204,6 +210,7 @@ export const rootTemplate: Template = {
       defaultCols: { type: 'int8'},
       childTags: { type: 'int8'},
       noFloatingSidebar: { type: 'boolean'},
+      defaults: { type: 'boolean'},
     },
   },
 };
@@ -228,6 +235,7 @@ export interface RootConfig {
   defaultCols?: number;
   childTags?: number;
   noFloatingSidebar?: boolean;
+  defaults?: boolean;
 }
 
 export const internalTemplate: Template = {

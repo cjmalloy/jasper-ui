@@ -5,7 +5,7 @@ import { Router } from '@angular/router';
 import { defer, uniq, without } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
-import { catchError, Subscription, throwError } from 'rxjs';
+import { catchError, map, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
 import { LinksFormComponent } from '../../../form/links/links.component';
@@ -13,9 +13,11 @@ import { PluginsFormComponent, writePlugins } from '../../../form/plugins/plugin
 import { refForm, RefFormComponent } from '../../../form/ref/ref.component';
 import { TagsFormComponent } from '../../../form/tags/tags.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
+import { Ext } from '../../../model/ext';
 import { Ref } from '../../../model/ref';
 import { wikiTitleFormat, wikiUriFormat } from '../../../mods/wiki';
 import { AdminService } from '../../../service/admin.service';
+import { ExtService } from '../../../service/api/ext.service';
 import { RefService } from '../../../service/api/ref.service';
 import { TaggingService } from '../../../service/api/tagging.service';
 import { BookmarkService } from '../../../service/bookmark.service';
@@ -51,9 +53,10 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
 
   submitting?: Subscription;
   addAnother = false;
+  defaults?: Partial<Ref>;
+  loadingDefaults: Ext[] = [];
   private oldSubmit: string[] = [];
   private savedRef?: Ref;
-  private defaults?: Partial<Ref>;
 
   constructor(
     private mod: ModService,
@@ -63,6 +66,7 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
     public bookmarks: BookmarkService,
     private editor: EditorService,
     private refs: RefService,
+    private exts: ExtService,
     private ts: TaggingService,
     private fb: UntypedFormBuilder,
   ) {
@@ -77,12 +81,16 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
   }
 
   ngAfterViewInit() {
-    this.refs.exists(this.store.submit.url, this.store.account.origin || '*').subscribe(exists => {
-      if (exists) this.router.navigate(['/ref', this.store.submit.url], { replaceUrl: true });
-    })
     const allTags = [...this.store.submit.tags, ...(this.store.account.localTag ? [this.store.account.localTag] : [])];
-    this.refs.getDefaults(...allTags).subscribe(ref => {
-      this.defaults = ref;
+    this.exts.getCachedExts(allTags).pipe(
+      map(xs => xs.filter(x => x.config?.defaults) as Ext[]),
+      switchMap(xs => {
+        this.loadingDefaults = xs;
+        return this.refs.getDefaults(...xs.map(x => x.tag))
+      }),
+    ).subscribe(ref => {
+      this.loadingDefaults = [];
+      this.defaults = ref || {};
       if (ref) {
         this.oldSubmit = uniq([...allTags, ...Object.keys(ref.plugins || {})]);
         this.addTag(...this.oldSubmit);

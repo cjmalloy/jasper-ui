@@ -2,6 +2,13 @@
   <form class="form" [formGroup]="webForm" (ngSubmit)="submit()"
         [appLimitWidth]="refForm?.fill?.nativeElement" [limitSibling]="true">
 
+    @if (!defaults) {
+      <span></span>
+      <span i18n>Loading defaults for @for (x of loadingDefaults; track x.tag) { <app-nav [url]="'tag:/' + x.tag"></app-nav> } ...</span>
+      <span></span>
+      <app-loading></app-loading>
+    }
+
     <app-ref-form [group]="webForm"
                   (toggleTag)="bookmarks.toggleTag($event)"></app-ref-form>
 

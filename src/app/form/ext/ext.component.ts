@@ -1,4 +1,4 @@
-import { Component, ElementRef, EventEmitter, Input, Output, ViewChild } from '@angular/core';
+import { Component, ElementRef, EventEmitter, Input, OnDestroy, Output, ViewChild } from '@angular/core';
 import {
   FormArray,
   FormControl,
@@ -9,10 +9,14 @@ import {
 } from '@angular/forms';
 import { FormlyFieldConfig, FormlyForm, FormlyFormOptions } from '@ngx-formly/core';
 import { defer, uniq } from 'lodash-es';
+import { DateTime } from 'luxon';
+import { catchError, of, Subject, takeUntil } from 'rxjs';
 import { allRefSorts } from '../../component/sort/sort.component';
 import { Ext } from '../../model/ext';
+import { Ref } from '../../model/ref';
 import { getMailbox } from '../../mods/mailbox';
 import { AdminService } from '../../service/admin.service';
+import { RefService } from '../../service/api/ref.service';
 import { Store } from '../../store/store';
 import { TAG_REGEX } from '../../util/format';
 import { convertFilter, defaultDesc, negatable, toggle, UrlFilter } from '../../util/query';
@@ -27,7 +31,8 @@ import { themesForm } from '../themes/themes.component';
   styleUrls: ['./ext.component.scss'],
   host: {'class': 'nested-form'}
 })
-export class ExtFormComponent {
+export class ExtFormComponent implements OnDestroy {
+  private destroy$ = new Subject<void>();
   allSorts = allRefSorts;
   allFilters = this.admin.filters.map(convertFilter);
 
@@ -49,6 +54,8 @@ export class ExtFormComponent {
 
   form?: FormlyFieldConfig[];
   advancedForm?: FormlyFieldConfig[];
+  loadingDefaults = false;
+  defaults?: Ref;
 
   options: FormlyFormOptions = {
     formState: {
@@ -57,10 +64,18 @@ export class ExtFormComponent {
     }
   };
 
+  private tag?: string;
+
   constructor(
     public admin: AdminService,
     public store: Store,
+    private refs: RefService,
   ) { }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
 
   get user() {
     if (!this.admin.getTemplate('user')) return false;
@@ -158,6 +173,15 @@ export class ExtFormComponent {
   }
 
   setValue(ext: Ext) {
+    this.tag = ext.tag;
+    if (ext.config?.defaults) {
+      this.loadingDefaults = true;
+      this.refs.getCurrent('tag:/' + ext.tag)
+        .subscribe(ref => {
+          this.defaults = ref;
+          this.loadingDefaults = false;
+        });
+    }
     if (!this.form) {
       this.form = this.admin.getTemplateForm(ext.tag);
     }
@@ -177,7 +201,39 @@ export class ExtFormComponent {
         // @ts-ignore
         this.advancedFormlyForm.builder.build(this.advancedFormlyForm.field);
       }
+      this.config.valueChanges.pipe(
+        takeUntil(this.destroy$),
+      ).subscribe(value => {
+        if (value.defaults) {
+          if (!this.defaults) this.createDefaults();
+        } else {
+          delete this.defaults;
+          this.loadingDefaults = false;
+        }
+      });
     });
+  }
+
+  createDefaults() {
+    this.loadingDefaults = true;
+    this.refs.getCurrent('tag:/' + this.tag).pipe(
+        catchError(err => {
+          this.defaults = {
+            origin: this.store.account.origin,
+            url: 'tag:/' + this.tag,
+            tags: ['internal', this.store.account.localTag],
+            created: DateTime.now(),
+            published: DateTime.now(),
+            modified: DateTime.now(),
+          };
+          this.refs.create(this.defaults).subscribe(cursor => this.defaults!.modifiedString = cursor);
+          return of(this.defaults);
+        })
+      ).subscribe(ref => {
+        if (!this.loadingDefaults) return;
+        this.defaults = ref;
+        this.loadingDefaults = false;
+      });
   }
 }
 

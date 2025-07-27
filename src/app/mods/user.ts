@@ -161,6 +161,12 @@ export const userTemplate: Template = {
       props: {
         label: $localize`Kanban Load Size:`,
       }
+    }, {
+      key: 'defaults',
+      type: 'boolean',
+      props: {
+        label: $localize`Defaults:`,
+      },
     }],
   },
   defaults: <UserConfig> {
@@ -176,9 +182,9 @@ export const userTemplate: Template = {
       bookmarks: { elements: { type: 'string' } },
       alarms: { elements: { type: 'string' } },
       editors: { elements: { type: 'string' } },
-      userTheme: { type: "string" },
+      userTheme: { type: 'string' },
       consent: { values: { type: 'boolean' }},
-      kanbanLoadSize: { type: "uint8" },
+      kanbanLoadSize: { type: 'uint8' },
     }
   },
 };
