@@ -34,11 +34,13 @@ body.darwin.safari {
     height: 28px;
   }
   .actions, .advanced-actions {
-    input, button {
-      position: relative;
-      top: 1px;
-      height: 16px !important;
-      font-size: 100%;
+    .action > span {
+      & > input, & > button {
+        position: relative;
+        top: 1px;
+        height: 16px !important;
+        font-size: 100%;
+      }
     }
   }
   .form-array, .buttons {
@@ -128,7 +130,7 @@ body.ios {
     margin-top: 4px;
   }
   .actions, .advanced-actions {
-    input {
+    .action > span > input {
       height: 20px !important;
     }
   }
