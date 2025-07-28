@@ -43,6 +43,7 @@ jobs:
         if: github.event_name == 'pull_request' && always()
         uses: actions/github-script@v7
         with:
+          # language=JavaScript
           script: |
             const emoji = '${{ steps.cypress.outcome }}' === 'success' ? '✅' : '❌';
             const url = `https://${context.repo.owner}.github.io/${context.repo.repo}/reports/cypress-reports-pr-${context.issue.number}/`
@@ -64,6 +65,7 @@ jobs:
         if: github.event_name != 'pull_request'
         uses: actions/github-script@v7
         with:
+          # language=JavaScript
           script: |
             const maxVersions = 5;
             const response = await github.rest.actions.listArtifactsForRepo({
