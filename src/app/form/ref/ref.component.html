@@ -1,8 +1,8 @@
 <ng-container [formGroup]="group"
               cdkDropListGroup>
-  <label for="url" i18n>URL:</label>
+  <label [for]="id + '-url'" i18n>URL:</label>
   <div class="form-array">
-    <input id="url" type="text" formControlName="url">
+    <input [id]="id + '-url'" type="text" formControlName="url">
     <button type="button" (click)="alts.addLink('')" i18n-title title="+ Add another alternate URL" i18n>📎️</button>
   </div>
   <app-links #alts
@@ -14,9 +14,9 @@
              [group]="group"
              [class.no-margin]="!dropping && !alts.links?.length"></app-links>
 
-  <label for="title" i18n>Title:</label>
+  <label [for]="id + '-title'" i18n>Title:</label>
   <div class="form-array">
-    <input id="title"
+    <input [id]="id + '-title'"
            type="text"
            [formControl]="title"
            (blur)="validate($any($event.target))">
@@ -25,9 +25,9 @@
     }
   </div>
 
-  <label for="published" i18n>Published:</label>
+  <label [for]="id + '-published'" i18n>Published:</label>
   <div class="form-array">
-    <input id="published"
+    <input [id]="id + '-published'"
            type="datetime-local"
            step="1"
            [formControl]="published"
@@ -46,7 +46,7 @@
     }
   </div>
   <app-links #sources
-             id="sources"
+             [id]=""
              fieldName="sources"
              i18n-label label="Sources:"
              [showLabel]="dropping || !!sources.links?.length"
@@ -56,8 +56,9 @@
              [class.no-margin]="!dropping && !sources.links?.length"></app-links>
 
   <div class="add-plugins-label">
-    <label for="plugins" class="mobile-inline" i18n>Add Plugin:</label>
+    <label [for]="id + '-plugins'" class="mobile-inline" i18n>Add Plugin:</label>
     <app-select-plugin #pluginSelect
+                       [id]="id + '-plugins'"
                        class="shrink"
                        [add]="true"
                        i18n-title title="Add Plugin"

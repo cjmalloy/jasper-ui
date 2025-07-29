@@ -42,6 +42,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   private destroy$ = new Subject<void>();
   private disposers: IReactionDisposer[] = [];
 
+  @Input()
   id = uuid();
 
   @HostBinding('class.stacked')

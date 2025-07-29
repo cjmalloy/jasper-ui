@@ -8,9 +8,10 @@ import {
   Validators
 } from '@angular/forms';
 import { FormlyFieldConfig, FormlyForm, FormlyFormOptions } from '@ngx-formly/core';
-import { defer, uniq } from 'lodash-es';
+import { cloneDeep, defer, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { catchError, of, Subject, takeUntil } from 'rxjs';
+import { v4 as uuid } from 'uuid';
 import { allRefSorts } from '../../component/sort/sort.component';
 import { Ext } from '../../model/ext';
 import { Ref } from '../../model/ref';
@@ -52,6 +53,7 @@ export class ExtFormComponent implements OnDestroy {
   @ViewChild('advancedFormlyForm')
   advancedFormlyForm?: FormlyForm;
 
+  id = uuid();
   form?: FormlyFieldConfig[];
   advancedForm?: FormlyFieldConfig[];
   loadingDefaults = false;
@@ -183,10 +185,10 @@ export class ExtFormComponent implements OnDestroy {
         });
     }
     if (!this.form) {
-      this.form = this.admin.getTemplateForm(ext.tag);
+      this.form = cloneDeep(this.admin.getTemplateForm(ext.tag));
     }
     if (!this.advancedForm) {
-      this.advancedForm = this.admin.getTemplateAdvancedForm(ext.tag);
+      this.advancedForm = cloneDeep(this.admin.getTemplateAdvancedForm(ext.tag));
     }
     defer(() => {
       this.group!.patchValue(ext);

@@ -1,6 +1,7 @@
 import { Component, ElementRef, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { defer } from 'lodash-es';
+import { v4 as uuid } from 'uuid';
 import { User } from '../../model/user';
 import { isMailbox } from '../../mods/mailbox';
 import { Store } from '../../store/store';
@@ -45,6 +46,7 @@ export class UserFormComponent implements OnInit {
   @ViewChild('tagWriteAccess')
   tagWriteAccess!: TagsFormComponent;
 
+  id = uuid();
   editingExternal = false;
 
   private showedError = false;
