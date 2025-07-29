@@ -3,8 +3,9 @@ import { OverlayModule } from '@angular/cdk/overlay';
 import { NgModule } from '@angular/core';
 import { AbstractControl, ReactiveFormsModule } from '@angular/forms';
 import { BrowserModule } from '@angular/platform-browser';
-import { FormlyModule } from '@ngx-formly/core';
+import { FormlyExtension, FormlyFieldConfig, FormlyModule } from '@ngx-formly/core';
 import { FormlySelectModule } from '@ngx-formly/core/select';
+import { v4 as uuid } from 'uuid';
 import { AppRoutingModule } from '../app-routing.module';
 import {
   ORIGIN_REGEX,
@@ -36,6 +37,19 @@ import { FormlyFieldSelect } from './select.type';
 import { FormlyFieldTagInput } from './tag.type';
 import { FormlyFieldTextArea } from './textarea.type';
 import { VideoUploadComponent } from './video-upload/video-upload.component';
+
+export class IdPrefixExtension implements FormlyExtension {
+  prePopulate(field: FormlyFieldConfig) {
+    if (field.key && !field.id) {
+      field.id = `${uuid()}-${field.key}`;
+    }
+    // Recurse for nested fields
+    field.fieldGroup?.forEach(f => this.prePopulate(f));
+    if (field.fieldArray) {
+      this.prePopulate(field.fieldArray as FormlyFieldConfig);
+    }
+  }
+}
 
 @NgModule({
   declarations: [
@@ -74,6 +88,7 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
     OverlayModule,
     FormlySelectModule,
     FormlyModule.forRoot({
+      extensions: [{ name: 'id-prefix', extension: new IdPrefixExtension() }],
       validationMessages: [
         { name: 'required', message: 'This field is required' },
       ],

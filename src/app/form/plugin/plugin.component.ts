@@ -1,5 +1,6 @@
 import { Component, Input } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { v4 as uuid } from 'uuid';
 
 @Component({
   standalone: false,
@@ -19,6 +20,7 @@ export class PluginFormComponent {
   @Input()
   schemaErrors: string[] = [];
 
+  id = uuid();
   editingConfig = false;
   editingDefaults = false;
   editingSchema = false;

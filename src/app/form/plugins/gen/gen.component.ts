@@ -1,8 +1,10 @@
-import { Component, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { UntypedFormGroup } from '@angular/forms';
 import { FormlyForm, FormlyFormOptions } from '@ngx-formly/core';
+import { cloneDeep } from 'lodash-es';
 import { Plugin } from '../../../model/plugin';
 import { AdminService } from '../../../service/admin.service';
+import { memo, MemoCache } from '../../../util/memo';
 
 @Component({
   standalone: false,
@@ -10,7 +12,7 @@ import { AdminService } from '../../../service/admin.service';
   templateUrl: './gen.component.html',
   styleUrls: ['./gen.component.scss']
 })
-export class GenFormComponent implements OnInit {
+export class GenFormComponent implements OnInit, OnChanges {
 
   @Input()
   bulk = false;
@@ -38,23 +40,29 @@ export class GenFormComponent implements OnInit {
     private admin: AdminService,
   ) { }
 
+  ngOnChanges(changes: SimpleChanges) {
+    MemoCache.clear(this);
+  }
+
   get group() {
     return this.plugins.get(this.plugin.tag) as UntypedFormGroup | undefined;
   }
 
+  @memo
   get form() {
     if (this.bulk) {
       if (this.plugin.config?.bulkForm === true) {
-        return this.plugin.config?.form || this.plugin.config?.advancedForm;
+        return cloneDeep(this.plugin.config?.form || this.plugin.config?.advancedForm);
       }
-      return this.plugin.config?.bulkForm;
+      return cloneDeep(this.plugin.config?.bulkForm);
     }
-    return this.plugin.config?.form;
+    return cloneDeep(this.plugin.config?.form);
   }
 
+  @memo
   get advancedForm() {
     if (this.bulk) return undefined;
-    return this.plugin.config?.advancedForm;
+    return cloneDeep(this.plugin.config?.advancedForm);
   }
 
   get childrenOn() {

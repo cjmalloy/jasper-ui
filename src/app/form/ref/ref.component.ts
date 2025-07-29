@@ -12,6 +12,7 @@ import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl, UntypedFormGr
 import { defer } from 'lodash-es';
 import { catchError, map, of, switchMap } from 'rxjs';
 import { tap } from 'rxjs/operators';
+import { v4 as uuid } from 'uuid';
 import { Oembed } from '../../model/oembed';
 import { Ref } from '../../model/ref';
 import { AdminService } from '../../service/admin.service';
@@ -21,7 +22,7 @@ import { OembedStore } from '../../store/oembed';
 import { getScheme } from '../../util/http';
 import { hasMedia, hasTag } from '../../util/tag';
 import { LinksFormComponent } from '../links/links.component';
-import { pluginsForm, PluginsFormComponent } from '../plugins/plugins.component';
+import { PluginsFormComponent } from '../plugins/plugins.component';
 import { TagsFormComponent } from '../tags/tags.component';
 
 @Component({
@@ -54,6 +55,7 @@ export class RefFormComponent {
   @HostBinding('class.show-drops')
   dropping = false;
 
+  id = uuid();
   oembed?: Oembed;
   scraped?: Ref;
   ref?: Ref;
