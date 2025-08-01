@@ -76,6 +76,7 @@ export class RefService {
         delete partial.modified;
         delete partial.modifiedString;
         delete partial.created;
+        delete partial.published;
         return partial;
       })
     );
