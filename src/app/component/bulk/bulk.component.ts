@@ -86,7 +86,7 @@ export class BulkComponent implements OnChanges, OnDestroy {
       this.groupedActions = groupBy(this.actions, a => this.label(a));
       delete this.defaults;
       const xs = [...(this.viewExt ? [this.viewExt] : []), ...this.activeExts, this.admin.getTemplate('')] as Tag[];
-      this.refs.getDefaults(...xs.map(x => x.tag)).subscribe(ref => this.defaults = ref)
+      this.refs.getDefaults(...xs.map(x => x.tag)).subscribe(d => this.defaults = d?.ref)
     }));
   }
 

@@ -47,7 +47,7 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
   refForm?: RefFormComponent;
 
   submitting?: Subscription;
-  defaults?: Partial<Ref>;
+  defaults?: { url: string, ref: Partial<Ref> };
   loadingDefaults: Ext[] = [];
 
   private oldSubmit: string[] = [];
@@ -83,17 +83,17 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
         this.loadingDefaults = xs;
         return this.refs.getDefaults(...xs.map(x => x.tag))
       }),
-    ).subscribe(ref => {
-      this.defaults = ref || {};
+    ).subscribe(d => {
+      this.defaults = d;
       this.loadingDefaults = [];
-      if (ref) {
-        this.oldSubmit = uniq([...allTags, ...Object.keys(ref.plugins || {})]);
-        for (const k in ref.plugins) {
+      if (d) {
+        this.oldSubmit = uniq([...allTags, ...Object.keys(d.ref.plugins || {})]);
+        for (const k in d.ref.plugins) {
           if (k === this.store.submit.plugin) continue;
-          this.addPlugin(k, ref.plugins[k]);
+          this.addPlugin(k, d.ref.plugins[k]);
         }
         this.refForm!.setRef({
-          ...ref,
+          ...d.ref,
           tags: this.oldSubmit,
         });
       }

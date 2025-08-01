@@ -5,11 +5,14 @@
         [appLimitWidth]="advancedForm?.fill?.nativeElement || fill?.nativeElement"
         [limitSibling]="true">
 
-    @if (!defaults) {
+    @if (defaults?.url || loadingDefaults?.length) {
       <span></span>
-      <span i18n>Loading defaults for @for (x of loadingDefaults; track x.tag) { <app-nav [url]="'tag:/' + x.tag"></app-nav> } ...</span>
-      <span></span>
-      <app-loading></app-loading>
+      <div>
+        <span i18n>Loading defaults for <app-nav [url]="defaults?.url || ('tag:/' + loadingDefaults[0].tag)"></app-nav></span>
+        @if (!defaults) {
+          <app-loading [inline]="true"></app-loading>
+        }
+      </div>
     }
     @if (!advanced) {
       @if (store.submit.wiki) {

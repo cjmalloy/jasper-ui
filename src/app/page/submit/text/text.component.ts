@@ -53,7 +53,7 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
 
   submitting?: Subscription;
   addAnother = false;
-  defaults?: Partial<Ref>;
+  defaults?: { url: string, ref: Partial<Ref> };
   loadingDefaults: Ext[] = [];
   private oldSubmit: string[] = [];
   private savedRef?: Ref;
@@ -88,17 +88,16 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
         this.loadingDefaults = xs;
         return this.refs.getDefaults(...xs.map(x => x.tag))
       }),
-    ).subscribe(ref => {
+    ).subscribe(d => {
       this.loadingDefaults = [];
-      this.defaults = ref || {};
-      if (ref) {
-        this.oldSubmit = uniq([...allTags, ...Object.keys(ref.plugins || {})]);
+      this.defaults = d;
+      if (d) {
+        this.oldSubmit = uniq([...allTags, ...Object.keys(d.ref.plugins || {})]);
         this.addTag(...this.oldSubmit);
-        this.plugins.setValue(ref.plugins);
+        this.plugins.setValue(d.ref.plugins);
         this.textForm.patchValue({
-          ...ref,
+          ...d.ref,
           tags: this.oldSubmit,
-          published: ref.published ? ref.published.toFormat("yyyy-MM-dd'T'TT") : undefined,
         });
       }
       if (this.store.account.localTag) this.addTag(this.store.account.localTag);

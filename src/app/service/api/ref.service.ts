@@ -60,7 +60,7 @@ export class RefService {
     );
   }
 
-  getDefaults(...tags: string[]): Observable<Partial<Ref> | undefined> {
+  getDefaults(...tags: string[]): Observable<{ url: string, ref: Partial<Ref> } | undefined> {
     return concat(...[
       ...tags.map(t => this.getCurrent('tag:/' + t).pipe(
         catchError(err => of()),
@@ -70,6 +70,7 @@ export class RefService {
       first(),
       map(ref => {
         if (!ref) return ref;
+        const url = ref.url;
         const partial: Partial<Ref> = ref;
         delete partial.url;
         delete partial.origin;
@@ -77,7 +78,7 @@ export class RefService {
         delete partial.modifiedString;
         delete partial.created;
         delete partial.published;
-        return partial;
+        return { url, ref: partial };
       })
     );
   }
