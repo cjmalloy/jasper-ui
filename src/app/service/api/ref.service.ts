@@ -1,8 +1,9 @@
 import { HttpClient } from '@angular/common/http';
-import { ReturnStatement } from '@angular/compiler';
 import { Injectable } from '@angular/core';
+import { delay } from 'lodash-es';
 import { autorun } from 'mobx';
 import { catchError, concat, first, map, Observable, of } from 'rxjs';
+import { tap } from 'rxjs/operators';
 import { mapPage, Page } from '../../model/page';
 import { mapRef, Ref, RefFilter, RefPageArgs, writeRef } from '../../model/ref';
 import { Store } from '../../store/store';
@@ -11,10 +12,14 @@ import { OpPatch } from '../../util/json-patch';
 import { ConfigService } from '../config.service';
 import { LoginService } from '../login.service';
 
+export const REF_CACHE_MS = 15 * 60 * 1000;
+
 @Injectable({
   providedIn: 'root',
 })
 export class RefService {
+
+  private _cache = new Map<string, boolean>();
 
   constructor(
     private http: HttpClient,
@@ -84,8 +89,12 @@ export class RefService {
   }
 
   exists(url: string, origin?: string): Observable<boolean> {
+    const key = (origin || '') + ':' + url;
+    if (this._cache.has(key)) return of(this._cache.get(key)!);
+    delay(() => this._cache.delete(key), REF_CACHE_MS);
     return this.count({ url, query: origin }).pipe(
       map(n => !!n),
+      tap(e => this._cache.set(key, e)),
     );
   }
 
