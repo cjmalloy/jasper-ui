@@ -1127,8 +1127,16 @@
         <source>🔼️ sort</source>
         <target>🔼️ 並べ替え</target>
       </trans-unit>
+      <trans-unit id="2382330284069784226" datatype="html">
+        <source>Descending</source>
+        <target>降順</target>
+      </trans-unit>
       <trans-unit id="2660073642071139129" datatype="html">
         <source>🔽️</source>
+      </trans-unit>
+      <trans-unit id="6093210751404423786" datatype="html">
+        <source>Ascending</source>
+        <target>昇順</target>
       </trans-unit>
       <trans-unit id="4367935250977662629" datatype="html">
         <source>🔼️</source>
@@ -2006,6 +2014,10 @@ Private tags start with an underscore.
       <trans-unit id="3726077662820449864" datatype="html">
         <source>✨️ LLM Config</source>
         <target>✨️ LLM設定</target>
+      </trans-unit>
+      <trans-unit id="5319118734822942433" datatype="html">
+        <source>Responding...</source>
+        <target>応答中...</target>
       </trans-unit>
       <trans-unit id="6039700868792261715" datatype="html">
         <source>Provider:</source>
@@ -5454,6 +5466,10 @@ Enter the origin to confirm:</source>
         <source>Settings: User Profiles</source>
         <target>設定: ユーザープロファイル</target>
       </trans-unit>
+      <trans-unit id="5752829569732845992" datatype="html">
+        <source>To:</source>
+        <target>宛先:</target>
+      </trans-unit>
       <trans-unit id="4163361808439880896" datatype="html">
         <source>Myself</source>
         <target>自分</target>
@@ -5599,6 +5615,10 @@ Enter the origin to confirm:</source>
       </trans-unit>
       <trans-unit id="5646227552817300514" datatype="html">
         <source>URL...</source>
+      </trans-unit>
+      <trans-unit id="4300700333865753394" datatype="html">
+        <source>Loading defaults for <x id="START_TAG_APP_NAV" ctype="x-app_nav" equiv-text="&lt;app-nav [url]=&quot;defaults?.url || ('tag:/' + loadingDefaults[0].tag)&quot;&gt;"/><x id="CLOSE_TAG_APP_NAV" ctype="x-app_nav" equiv-text="&lt;/app-nav&gt;"/></source>
+        <target>デフォルト値の読み込み<x id="START_TAG_APP_NAV" ctype="x-app_nav" equiv-text="&lt;app-nav [url]=&quot;defaults?.url || ('tag:/' + loadingDefaults[0].tag)&quot;&gt;"/><x id="CLOSE_TAG_APP_NAV" ctype="x-app_nav" equiv-text="&lt;/app-nav&gt;"/></target>
       </trans-unit>
       <trans-unit id="5767320896121351674" datatype="html">
         <source>Wiki:</source>
