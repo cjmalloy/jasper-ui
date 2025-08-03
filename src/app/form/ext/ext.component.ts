@@ -53,7 +53,7 @@ export class ExtFormComponent implements OnDestroy {
   @ViewChild('advancedFormlyForm')
   advancedFormlyForm?: FormlyForm;
 
-  id = uuid();
+  id = 'ext-' + uuid();
   form?: FormlyFieldConfig[];
   advancedForm?: FormlyFieldConfig[];
   loadingDefaults = false;

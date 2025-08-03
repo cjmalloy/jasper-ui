@@ -43,7 +43,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   private disposers: IReactionDisposer[] = [];
 
   @Input()
-  id = uuid();
+  id = 'editor-' + uuid();
 
   @HostBinding('class.stacked')
   stacked = true;

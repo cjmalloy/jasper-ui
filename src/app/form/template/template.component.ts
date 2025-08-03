@@ -20,7 +20,7 @@ export class TemplateFormComponent {
   @Input()
   schemaErrors: string[] = [];
 
-  id = uuid();
+  id = 'template-' + uuid();
   editingConfig = false;
   editingDefaults = false;
   editingSchema = false;

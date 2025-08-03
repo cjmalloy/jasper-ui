@@ -67,7 +67,7 @@ import { getErrorMessage } from './errors';
 })
 export class FormlyFieldRefInput extends FieldType<FieldTypeConfig> implements AfterViewInit, OnDestroy {
 
-  listId = uuid();
+  listId = 'list-' + uuid();
   previewUrl = '';
   preview = '';
   editing = false;

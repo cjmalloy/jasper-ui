@@ -46,7 +46,7 @@ export class UserFormComponent implements OnInit {
   @ViewChild('tagWriteAccess')
   tagWriteAccess!: TagsFormComponent;
 
-  id = uuid();
+  id = 'user-' + uuid();
   editingExternal = false;
 
   private showedError = false;

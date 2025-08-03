@@ -92,7 +92,7 @@ import { getErrorMessage } from './errors';
 })
 export class FormlyFieldQueryInput extends FieldType<FieldTypeConfig> implements AfterViewInit, OnDestroy {
 
-  listId = uuid();
+  listId = 'list-' + uuid();
   breadcrumbs: Crumb[] = [];
   editing = false;
   autocomplete: { value: string, label: string }[] = [];

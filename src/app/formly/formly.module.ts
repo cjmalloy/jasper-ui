@@ -41,7 +41,7 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
 export class IdPrefixExtension implements FormlyExtension {
   prePopulate(field: FormlyFieldConfig) {
     if (field.key && !field.id) {
-      field.id = `${uuid()}-${field.key}`;
+      field.id = `formly-${uuid()}-${field.key}`;
     }
     // Recurse for nested fields
     field.fieldGroup?.forEach(f => this.prePopulate(f));

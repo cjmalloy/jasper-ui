@@ -20,7 +20,7 @@ export class PluginFormComponent {
   @Input()
   schemaErrors: string[] = [];
 
-  id = uuid();
+  id = 'plugin-' + uuid();
   editingConfig = false;
   editingDefaults = false;
   editingSchema = false;

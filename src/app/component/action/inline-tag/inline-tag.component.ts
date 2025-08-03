@@ -25,7 +25,7 @@ export class InlineTagComponent extends ActionComponent {
 
   editing = false;
   acting = false;
-  id = uuid();
+  id = 'tag-' + uuid();
   autocomplete: { value: string; label: string }[] = [];
 
   private searching?: Subscription;

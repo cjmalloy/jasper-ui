@@ -15,7 +15,7 @@ import { AuthzService } from '../../service/authz.service';
 export class SelectPluginComponent implements OnChanges {
 
   @Input()
-  id = uuid();
+  id = 'plugin-' + uuid();
   @Input()
   add = false;
   @Input()

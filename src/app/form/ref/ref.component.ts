@@ -55,7 +55,7 @@ export class RefFormComponent {
   @HostBinding('class.show-drops')
   dropping = false;
 
-  id = uuid();
+  id = 'ref-' + uuid();
   oembed?: Oembed;
   scraped?: Ref;
   ref?: Ref;
