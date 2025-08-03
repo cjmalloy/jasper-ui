@@ -2,7 +2,7 @@
   <form class="form" [formGroup]="webForm" (ngSubmit)="submit()"
         [appLimitWidth]="refForm?.fill?.nativeElement" [limitSibling]="true">
 
-    @if (defaults?.url || loadingDefaults?.length) {
+    @if (defaults?.url || loadingDefaults.length) {
       <span></span>
       <div>
         <span i18n>Loading defaults for <app-nav [url]="defaults?.url || ('tag:/' + loadingDefaults[0].tag)"></app-nav></span>

@@ -5,7 +5,7 @@
         [appLimitWidth]="advancedForm?.fill?.nativeElement || fill?.nativeElement"
         [limitSibling]="true">
 
-    @if (defaults?.url || loadingDefaults?.length) {
+    @if (defaults?.url || loadingDefaults.length) {
       <span></span>
       <div>
         <span i18n>Loading defaults for <app-nav [url]="defaults?.url || ('tag:/' + loadingDefaults[0].tag)"></app-nav></span>
