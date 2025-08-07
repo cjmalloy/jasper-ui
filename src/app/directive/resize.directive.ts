@@ -16,12 +16,14 @@ export class ResizeDirective {
 
   @HostBinding('style.width')
   get width() {
-    return this.dim ? this.dim.x + 'px' : null;
+    if (!this.enabled || !this.dim) return this.el.nativeElement.style.width;
+    return this.dim.x + 'px'
   }
 
   @HostBinding('style.height')
   get height() {
-    return this.dim ? this.dim.y + 'px' : null;
+    if (!this.enabled || !this.dim) return this.el.nativeElement.style.height;
+    return this.dim.y + 'px';
   }
 
   minPx = 2;

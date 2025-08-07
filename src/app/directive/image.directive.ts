@@ -47,8 +47,8 @@ export class ImageDirective implements OnInit, OnDestroy {
 
   ngOnInit() {
     if (this.config.mobile) {
-      this.el.style.width = this.defaultWidthPx || 'calc(100vw - 32px)';
-      this.el.style.height = this.defaultHeightPx || 'calc(100vw - 32px)';
+      this.el.style.width = this.defaultWidthPx || null;
+      this.el.style.height = this.defaultHeightPx || this.el.clientWidth + 'px';
     } else {
       this.el.style.width = this.defaultWidthPx || '600px';
       this.el.style.height = this.defaultHeightPx || '600px';
