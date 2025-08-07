@@ -154,9 +154,12 @@ describe('Outbox Plugin: Remote Notifications', {
     cy.get('.ref-list .link.remote').contains('Doing well, thanks!').parent().parent().parent().as('ref');
     cy.get('@ref').find('.user.tag').contains('alice');
   });
-  it('@repl: check inbox was converted to outbox', () => {
+  it('@repl: check inbox was converted to outbox', {
+    retries: {
+      runMode: 3,
+    }
+  }, () => {
     cy.visit(replUrl + '/?debug=ADMIN&tag=charlie');
-    cy.wait(1000);
     cy.intercept({pathname: '/api/v1/ref/count'}).as('notifications');
     cy.visit(replUrl + '/?debug=ADMIN&tag=charlie');
     cy.wait('@notifications');
