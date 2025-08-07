@@ -4,6 +4,7 @@
 
   <label [for]="id + '-title'" i18n>Name:</label>
   <input [id]="id + '-title'"
+         name="title"
          type="text"
          [formControl]="name"
          (blur)="validate($any($event.target))">
@@ -15,6 +16,7 @@
     </div>
   } @else {
     <app-json [id]="id + '-config'"
+              name="config"
               fieldName="config"
               [group]="group"></app-json>
     @if (configErrors.length) {

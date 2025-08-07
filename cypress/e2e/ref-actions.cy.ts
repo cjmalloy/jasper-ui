@@ -15,9 +15,9 @@ describe('Ref Actions', {
     openSidebar();
     cy.contains('Submit').click();
     cy.get('.tabs').contains('text').click();
-    cy.get('#title').type('Title');
+    cy.get('[name=title]').type('Title');
     cy.contains('show advanced').click();
-    cy.get('#published').type('2020-01-01T00:00').blur();
+    cy.get('[name=published]').type('2020-01-01T00:00').blur();
     cy.get('button').contains('Submit').click({ force: true });
     cy.get('.full-page.ref .link a').should('have.text', 'Title');
   });

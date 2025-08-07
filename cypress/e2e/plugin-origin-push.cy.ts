@@ -37,8 +37,8 @@ describe('Origin Push Plugin', {
     cy.get('@next').click();
     cy.wait(400);
     cy.get('.floating-ribbons .plugin_origin_push').click();
-    cy.get('#remote').type('@repl');
-    cy.get('#title').type('Testing Remote @repl');
+    cy.get('[name=remote]').type('@repl');
+    cy.get('[name=title]').type('Testing Remote @repl');
     cy.intercept({pathname: '/api/v1/ref'}).as('submit');
     cy.get('button').contains('Submit').click();
     cy.wait('@submit');
@@ -51,7 +51,7 @@ describe('Origin Push Plugin', {
     cy.contains('Submit').click();
     cy.get('.tabs').contains('text').click();
     cy.wait(1000);
-    cy.get('#title').type('Push Test');
+    cy.get('[name=title]').type('Push Test');
     cy.get('button').contains('Submit').click({ force: true });
     cy.wait(1000);
     cy.get('.full-page.ref .link a').should('have.text', 'Push Test');

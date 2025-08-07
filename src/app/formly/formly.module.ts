@@ -43,6 +43,9 @@ export class IdPrefixExtension implements FormlyExtension {
     if (field.key && !field.id) {
       field.id = `formly-${uuid()}-${field.key}`;
     }
+    if (field.key && !field.name) {
+      field.name = field.key as string;
+    }
     // Recurse for nested fields
     field.fieldGroup?.forEach(f => this.prePopulate(f));
     if (field.fieldArray) {

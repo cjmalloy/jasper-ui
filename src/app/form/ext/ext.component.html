@@ -3,20 +3,21 @@
 
   <label [for]="id + '-tag'" i18n>Tag:</label>
   <div class="form-array">
-    <input [id]="id + '-tag'" type="text" formControlName="tag">
+    <input [id]="id + '-tag'" name="tag" type="text" formControlName="tag">
     @if (showClear) {
       <button type="button" (click)="clear.next()" i18n-title title="New Ext" i18n>🆑️</button>
     }
   </div>
 
-  <label for="name" i18n>Name:</label>
-  <input id="name" type="text" formControlName="name">
+  <label [for]="id + '-name'" i18n>Name:</label>
+  <input [id]="id + '-name'" name="name" type="text" formControlName="name">
 
   <ng-container [formGroup]="config">
     @if (popover) {
       <label [for]="id + '-popover'" class="editor-label" i18n>Popover:</label>
       <div #fillPopover class="fill-editor">
         <app-editor [id]="id + '-popover'"
+                    name="popover"
                     [hasTags]="false"
                     [addButton]="true"
                     i18n-addCommentTitle addCommentTitle="Add popover"

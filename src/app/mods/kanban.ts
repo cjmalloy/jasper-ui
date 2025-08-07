@@ -41,14 +41,12 @@ export const kanbanTemplate: Template = {
       }
     }, {
       key: 'showColumnBacklog',
-      id: 'showColumnBacklog',
       type: 'boolean',
       props: {
         label: $localize`Show Columns Backlog:`
       }
     }, {
       key: 'columnBacklogTitle',
-      id: 'columnBacklogTitle',
       type: 'string',
       props: {
         label: $localize`Column Backlog Title:`
@@ -66,7 +64,6 @@ export const kanbanTemplate: Template = {
       }
     }, {
       key: 'showSwimLaneBacklog',
-      id: 'showSwimLaneBacklog',
       type: 'boolean',
       props: {
         label: $localize`Show Swim Lane Backlog:`
@@ -76,7 +73,6 @@ export const kanbanTemplate: Template = {
       },
     }, {
       key: 'swimLaneBacklogTitle',
-      id: 'swimLaneBacklogTitle',
       type: 'string',
       props: {
         label: $localize`Swim Lane Backlog Title:`
@@ -86,7 +82,6 @@ export const kanbanTemplate: Template = {
       },
     }, {
       key: 'hideSwimLanes',
-      id: 'hideSwimLanes',
       type: 'boolean',
       props: {
         label: $localize`Hide Swim Lanes by Default:`

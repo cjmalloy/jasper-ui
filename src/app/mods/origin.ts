@@ -21,14 +21,12 @@ export const originPlugin: Plugin = {
      You may configure if metadata is generated or plugins are validated. `,
     form: [{
       key: 'local',
-      id: 'local',
       type: 'origin',
       props: {
         label: $localize`Local:`
       }
     }, {
       key: 'remote',
-      id: 'remote',
       type: 'origin',
       props: {
         label: $localize`Remote:`
@@ -36,7 +34,6 @@ export const originPlugin: Plugin = {
     }],
     advancedForm: [{
       key: 'proxy',
-      id: 'proxy',
       type: 'url',
       props: {
         label: $localize`Proxy:`

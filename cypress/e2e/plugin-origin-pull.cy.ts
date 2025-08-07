@@ -34,9 +34,9 @@ describe('Origin Pull Plugin', {
     cy.contains('Next').click();
     cy.wait(400);
     cy.get('.floating-ribbons .plugin_origin_pull').click();
-    cy.get('#local').type('@repl');
-    cy.get('#remote').type('@repl');
-    cy.get('#title').type('Testing Remote @repl');
+    cy.get('[name=local]').type('@repl');
+    cy.get('[name=remote]').type('@repl');
+    cy.get('[name=title]').type('Testing Remote @repl');
     cy.intercept({pathname: '/api/v1/ref'}).as('submit');
     cy.get('button').contains('Submit').click();
     cy.wait('@submit');
@@ -52,7 +52,7 @@ describe('Origin Pull Plugin', {
     cy.contains('Submit').click();
     cy.get('.tabs').contains('text').click();
     cy.wait(400);
-    cy.get('#title').type('Pull Test');
+    cy.get('[name=title]').type('Pull Test');
     cy.intercept({pathname: '/api/v1/ref'}).as('submit');
     cy.get('button').contains('Submit').click();
     cy.wait('@submit');

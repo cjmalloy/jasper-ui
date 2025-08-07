@@ -28,9 +28,9 @@ describe('Graph Plugin', {
     openSidebar();
     cy.contains('Submit').click();
     cy.get('.tabs').contains('text').click();
-    cy.get('#title').type('Title');
+    cy.get('[name=title]').type('Title');
     cy.contains('show advanced').click();
-    cy.get('#published').type('2020-01-01T00:00');
+    cy.get('[name=published]').type('2020-01-01T00:00');
     cy.intercept({pathname: '/api/v1/ref'}).as('submit');
     cy.get('button').contains('Submit').click();
     cy.wait('@submit');
@@ -38,7 +38,7 @@ describe('Graph Plugin', {
   });
   it('shows graph', () => {
     cy.get('.full-page .actions *').contains('edit').click();
-    cy.get('#url').then($url => {
+    cy.get('[name=url]').then($url => {
       cy.visit('/tag/@*?search=' + $url.val() + '&debug=USER');
     });
     cy.get('.tabs').contains('graph').click();
@@ -58,7 +58,7 @@ describe('Graph Plugin', {
   });
   it('graphs reply', () => {
     cy.get('.full-page .actions *').contains('edit').click();
-    cy.get('#url').then($url => {
+    cy.get('[name=url]').then($url => {
       cy.visit('/tag/@*?search=' + $url.val() + '&debug=USER');
     });
     cy.get('.tabs').contains('graph').click();

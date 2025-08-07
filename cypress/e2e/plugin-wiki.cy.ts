@@ -37,7 +37,7 @@ describe('Wiki Plugin', {
     cy.get('.error-404').contains('Not Found');
     cy.get('.submit-button').contains('Submit Wiki').click();
     cy.get('h5').should('contain.text', 'Submit');
-    cy.get('#title').should('have.value', 'Other wiki');
+    cy.get('[name=title]').should('have.value', 'Other wiki');
   });
   it('turn on wiki config', () => {
     cy.visit('/?debug=ADMIN');
@@ -59,11 +59,11 @@ describe('Wiki Plugin', {
     });
     cy.wait(1000); // Warm up monaco editor
     if (Cypress.platform == 'darwin') {
-      cy.get('#config').click().focused().type('{cmd}a{backspace}');
+      cy.get('[name=config]').click().focused().type('{cmd}a{backspace}');
     } else {
-      cy.get('#config').click().focused().type('{ctrl}a{backspace}');
+      cy.get('[name=config]').click().focused().type('{ctrl}a{backspace}');
     }
-    cy.get('#config').type(JSON.stringify({ prefix: 'https://externalwiki/', external: true }), { parseSpecialCharSequences: false });
+    cy.get('[name=config]').type(JSON.stringify({ prefix: 'https://externalwiki/', external: true }), { parseSpecialCharSequences: false });
     cy.get('button').contains('save').click();
   });
   it('submit wiki button removed', () => {
