@@ -24,7 +24,7 @@ export class ImageDirective implements OnInit, OnDestroy {
   @HostBinding('class.loading')
   loading = true;
 
-  private dim: Dim = { width: 0, height: 0};
+  private dim: Dim = { width: 0, height: 0 };
   private resizeObserver?: ResizeObserver;
   private loadingUrl = '';
 
@@ -48,7 +48,7 @@ export class ImageDirective implements OnInit, OnDestroy {
   ngOnInit() {
     if (this.config.mobile) {
       this.el.style.width = this.defaultWidthPx || 'calc(100vw - 32px)';
-      this.el.style.height = this.defaultHeightPx || '80vh';
+      this.el.style.height = this.defaultHeightPx || 'calc(100vw - 32px)';
     } else {
       this.el.style.width = this.defaultWidthPx || '600px';
       this.el.style.height = this.defaultHeightPx || '600px';
