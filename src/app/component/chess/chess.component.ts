@@ -16,7 +16,7 @@ import { Chess, Move, Square } from 'chess.js';
 import { defer, delay, flatten, without } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { autorun, IReactionDisposer } from 'mobx';
-import { catchError, Observable, Subscription, throwError } from 'rxjs';
+import { catchError, Observable, of, Subscription, throwError } from 'rxjs';
 import { Ref, RefUpdates } from '../../model/ref';
 import { RefService } from '../../service/api/ref.service';
 import { AuthzService } from '../../service/authz.service';
@@ -62,6 +62,7 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
   bounce: string[] = [];
   @HostBinding('class.flip')
   flip = false;
+  queue: Move[] = [];
 
   private cursor?: string;
   private resizeObserver = window.ResizeObserver && new ResizeObserver(() => this.onResize()) || undefined;
@@ -76,6 +77,7 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
    */
   private incoming?: Square;
   private board?: string;
+  private saving?: Subscription;
 
   constructor(
     public config: ConfigService,
@@ -105,8 +107,11 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
     this.prevComment = this.ref?.comment || '';
     if (!this.watch && this.updates$) {
       this.watch = this.updates$.subscribe(u => {
-        if (u.origin === this.store.account.origin) this.cursor = u.modifiedString;
-        else this.ref!.modifiedString = u.modifiedString;
+        if (u.origin === this.store.account.origin) {
+          if (this.cursor && this.cursor >= u.modifiedString!) return;
+          this.cursor = u.modifiedString;
+        }
+        this.ref!.modifiedString = u.modifiedString;
         const prev = this.prevComment
           .trim()
           .split(/\s+/g)
@@ -125,12 +130,26 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
             break;
           }
         }
+        this.prevComment = u.comment || '';
         if (prev.length) {
-          alert($localize`Game history was rewritten!`);
+          if (u.origin !== this.store.account.origin) {
+            alert($localize`Game history was rewritten!`);
+            this.ref = u;
+            this.store.eventBus.refresh(u);
+          }
+          return;
         }
         this.prevComment = u.comment || '';
-        if (prev.length || !current.length) return;
-        for (const m of current) this.chess.move(m);
+        this.ref!.title = u.title;
+        if (!current.length) return;
+        for (const m of current) {
+          try {
+            this.chess.move(m);
+          } catch (e) {
+            // Skip illegal move
+            console.log(e);
+          }
+        }
         this.check();
         // TODO: queue all moves and animate one by one
         const move = current.shift()!;
@@ -195,6 +214,7 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
           try {
             this.chess.move(l);
           } catch (e) {
+            // invalid move
             console.log(e);
           }
         }
@@ -282,11 +302,18 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
 
   move(from: Square, to: Square) {
     if (from === to) return;
+    const validMove = !!this.chess.moves({ verbose: true }).find((move) => move.from === from && move.to === to);
+    if (!validMove) return;
     const isPromotion = !!this.chess.moves({ verbose: true }).find((move) => move.from === from && move.to === to && move.flags.includes('p'));
-    const move = this.chess.move({from, to, promotion: isPromotion ? confirm($localize`Promote to Queen:`) ? 'q' : prompt($localize`Promotion:`) as Exclude<PieceType, 'p' | 'k'> : undefined});
-    if (move) {
-      this.check();
-      this.save(move!);
+    try {
+        const move = this.chess.move({from, to, promotion: isPromotion ? confirm($localize`Promote to Queen:`) ? 'q' : prompt($localize`Promotion:`) as Exclude<PieceType, 'p' | 'k'> : undefined});
+        if (move) {
+          this.chess.undo();
+          this.save(move);
+        }
+    } catch (e) {
+      // invalid move
+      console.log(e);
     }
   }
 
@@ -316,35 +343,64 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
     this.moves = this.chess.moves({ verbose: true }).map(m => m.to);
   }
 
-  save(move?: Move) {
+  save(...moves: Move[]) {
+    for (const m of moves) {
+      try {
+        this.chess.move(m);
+      } catch (e) {
+        // Skip illegal move
+        console.log(e);
+      }
+    }
+    this.check();
     const comment = this.prevComment = (this.fen ? this.fen + '\n\n' : '') + this.chess.history().join('  \n');
-    this.comment.emit(comment)
-    if (!this.ref) return;
-    const title = move && this.ref.title ? (this.ref.title || '').replace(/\s*\|.*/, '')  + ' | ' + move.san : '';
-    (this.cursor ? this.refs.merge(this.ref.url, this.store.account.origin, this.cursor,
+    this.comment.emit(comment);
+    if (!this.ref) return; // Editing viewer
+    if (this.saving) {
+      this.queue.push(...moves);
+      return;
+    }
+    const lastMove = moves[moves.length - 1];
+    const title = this.ref.title ? (this.ref.title || '').replace(/\s*\|.*/, '')  + ' | ' + lastMove.san : '';
+    this.saving = (this.cursor ? this.refs.merge(this.ref.url, this.store.account.origin, this.cursor,
       { title, comment }
     ).pipe(
       catchError(err => {
-        window.alert('Error syncing game. Please reload.');
+        if (err.status === 409) return of(null);
+        alert('Error ' + err.status + ' syncing game. Please reload.');
         return throwError(() => err);
-      })
+      }),
     ) : this.refs.create({
       ...this.ref,
       origin: this.store.account.origin,
       title,
       comment,
     })).subscribe(cursor => {
-      this.writeAccess = true;
-      if (this.prevComment !== comment) return;
-      this.ref!.title = title;
-      this.ref!.comment = comment;
-      this.ref!.modified = DateTime.fromISO(cursor);
-      this.ref!.modifiedString = cursor;
-      if (!this.local) {
-        this.ref!.origin = this.store.account.origin;
-        this.copied.emit(this.store.account.origin)
+      try {
+        if (this.cursor && cursor && this.cursor >= cursor) return;
+        if (this.prevComment !== comment) return;
+        if (!cursor) {
+          this.queue = [];
+          return;
+        }
+        this.writeAccess = true;
+        this.ref!.title = title;
+        this.ref!.comment = comment;
+        this.ref!.modified = DateTime.fromISO(cursor);
+        this.cursor = this.ref!.modifiedString = cursor;
+        if (!this.local) {
+          this.ref!.origin = this.store.account.origin;
+          this.copied.emit(this.store.account.origin)
+        }
+        this.store.eventBus.refresh(this.ref);
+      } finally {
+        delete this.saving;
+        if (this.queue.length) {
+          const moves = [...this.queue];
+          this.queue = [];
+          this.save(...moves);
+        }
       }
-      this.store.eventBus.refresh(this.ref);
     });
   }
 
