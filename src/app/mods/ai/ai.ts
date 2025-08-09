@@ -244,7 +244,7 @@ export const aiQueryPlugin: Plugin = {
         },
         anthropic: {
           init(config) {
-            config.model ||= 'claude-opus-4-0';
+            config.model ||= 'claude-opus-4-1';
             config.maxTokens ||= 4096;
             config.thinkingTokens ||= 4096
             config.pdf = true;
