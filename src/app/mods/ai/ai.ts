@@ -111,11 +111,11 @@ export const aiQueryPlugin: Plugin = {
       const providers = {
         openai: {
           init(config) {
-            config.model ||= config.vision ? 'o3' : config.audio ? 'gpt-4o-audio-preview' : 'o3';
+            config.model ||= config.vision ? 'gpt-5' : config.audio ? 'gpt-4o-audio-preview' : 'gpt-5';
             config.maxTokens ||= 4096;
             config.thinking = false;
             config.pdf = false;
-            config.image = ['o4-mini', 'o3', 'o1', 'o1-pro', 'gpt-4.1', 'gpt-4o', 'gpt-4o-mini', 'gpt-4-turbo'].includes(config.model);
+            config.image = ['gpt-5', 'gpt-5-mini', 'gpt-5-nano'].includes(config.model);
             config.audio = ['gpt-4o-audio-preview', 'gpt-4o-mini-audio-preview'].includes(config.model);
             config.video = false;
           },
