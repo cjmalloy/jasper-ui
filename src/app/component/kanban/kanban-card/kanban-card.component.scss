@@ -50,6 +50,9 @@ app-loading {
   position: relative;;
   z-index: 1;
   .badge {
+    max-width: 22px;
+    overflow: hidden;
+    white-space: nowrap;
     cursor: pointer;
     text-decoration: none;
     margin: 4px;
