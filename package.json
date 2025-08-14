@@ -63,7 +63,7 @@
     "@angular-devkit/build-angular": "^20.1.6",
     "@angular/cli": "^20.1.6",
     "@angular/compiler-cli": "^20.0.0",
-    "@cypress/schematic": "^4.0.0",
+    "@cypress/schematic": "^4.1.0",
     "@ngx-formly/schematics": "^7.0.0",
     "@types/chess.js": "^0.13.7",
     "@types/d3": "^7.4.3",
