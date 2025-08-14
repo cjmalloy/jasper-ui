@@ -181,12 +181,11 @@ export class EmbedService {
         const match = rule.exec(src);
         if (match) {
           const text = match[0];
-          const title = 'Hashtag ' + text;
           return {
             type: 'hashTag',
             href: '/tag/' + match[1],
             text,
-            title,
+            title: text,
             raw: text,
             tokens: [],
           };

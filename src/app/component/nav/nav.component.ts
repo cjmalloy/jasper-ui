@@ -47,7 +47,10 @@ export class NavComponent implements OnInit, OnDestroy {
       if (this.nav[0] === '/tag' && !this.external && !this.hasText) {
         this.editor.getTagPreview(this.nav[1] as string)
           .pipe(takeUntil(this.destroy$))
-          .subscribe(x => this.text = x?.name || this.text || x?.tag || '');
+          .subscribe(x => {
+            this.text = x?.name || this.text || x?.tag || '';
+            this.title ||= x?.tag || '';
+          });
       }
     } else if (!this.external) {
       this.vis.notifyVisible(this.el, () => {
