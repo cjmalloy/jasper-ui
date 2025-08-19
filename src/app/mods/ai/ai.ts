@@ -327,10 +327,20 @@ export const aiQueryPlugin: Plugin = {
             config.image = true;
             config.audio = true;
             config.video = true;
+            config.embed = config.url && ['gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.5-flash-lite', 'gemini-live-2.5-flash-preview'].includes(config.model);
           },
           loadMessage(source, plugins = {}) {
             const message = {};
             message.parts = [{ text: formatMessage(source) }];
+            if (plugins['plugin/embed']) {
+              if (plugins['plugin/embed'].startsWith('https://www.youtube.com/')) {
+                message.parts.push({
+                  fileData: {
+                    fileUri: plugins['plugin/embed'],
+                  },
+                });
+              }
+            }
             if (plugins['plugin/pdf']) {
               message.parts.push({
                 inlineData: {
@@ -500,6 +510,9 @@ export const aiQueryPlugin: Plugin = {
       for (const c of sources) {
         if (config.ignoreThread && ref.sources && c.url === ref.sources[1] && ref.sources[0] !== ref.sources[1]) continue;
         const plugins = {};
+        if (config.embed && hasTag('plugin/embed', c)) {
+          plugins['plugin/embed'] = c.plugins?.['plugin/embed']?.url || c.url;
+        }
         if (config.pdf && hasTag('plugin/pdf', c)) {
           const url = c.plugins?.['plugin/pdf']?.url || c.url;
           plugins['plugin/pdf'] = await axios.get(process.env.JASPER_API + '/pub/api/v1/repl/cache', {
