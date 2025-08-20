@@ -1035,7 +1035,7 @@ So [[double bracket]] would change to [double bracket](wiki:Double_bracket)
 If you link to a query you can embed the query results while applying a template view, filter, search, or sort.
  - Allow embedding wikis with ![[bang double brackets]]. Same as ![], just for wiki-style links.
  - Allow embedding inline Refs with [ref](ai:url)
- - Allow embedding toggle buttons (with plus or x faces) to show / hide Ref embed with [toggle](ai:url)
+ - Allow embedding toggle buttons (with plus or x faces) to show / hide Ref embed with ![+](ai:url)
  - Link to tags using hashtags like #science, which get replaced with the Ext name if present.
 When editing this will also add the tag by default, but may be removed.
  - Notify users using +user/ or _user/ prefix which will replace with the user Ext name if present.

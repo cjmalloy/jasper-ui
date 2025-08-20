@@ -132,12 +132,8 @@ export class EmbedService {
             out += ' title="' + (escape(title)) + '"';
           }
           out += '>' + text + '</a>';
-          if (text.toLowerCase().trim() === 'toggle' || admin.getPluginsForUrl(href).length) {
+          if (admin.getPluginsForUrl(href).length || ['ref', 'tag'].includes(editor.getUrlType(href))) {
             return out + `<span class="toggle embed" title="${href}"><span class="toggle-plus">＋</span></span>`;
-          }
-          const type = editor.getUrlType(href);
-          if (type === 'ref' || type === 'tag') {
-            return out + `<span class="toggle inline" title="${href}"><span class="toggle-plus">＋</span></span>`;
           }
           return out;
         }
@@ -257,23 +253,23 @@ export class EmbedService {
       level: 'inline',
       start: (src: string) => src.match(/!\[]\(/)?.index,
       tokenizer(src: string, tokens: any): any {
-        const rule = /^!\[]\(([^\]]+)\)/;
-        const match = rule.exec(src);
+        // @ts-ignore
+        const match = src.startsWith('!') && this.lexer.tokenizer.rules.inline.link.exec(src);
         if (match) {
-          const text = match[0];
-          const href = match[1];
           return {
+            // @ts-ignore
+            ...this.lexer.tokenizer.link(src),
             type: 'bang-embed',
-            href,
-            text,
-            raw: match[0],
-            tokens: [],
           };
         }
         return undefined;
       },
       renderer(token: any): string {
-        return `<div class="loading inline-embed">${token.href}</div>`;
+        if (token.text?.trim() === '+') {
+          return `<span class="toggle embed" title="${token.href}"><span class="toggle-plus">＋</span></span>`;
+        } else {
+          return `<div class="loading inline-embed" title="${token.title}">${token.href}</div>`;
+        }
       }
     }, {
       name: 'embed',
@@ -552,7 +548,7 @@ export class EmbedService {
       t.postProcessed = true;
       t.innerHTML = toggleFaces;
       // @ts-ignore
-      if (t.previousSibling.innerText === 'toggle') {
+      if (t.previousSibling?.innerText === 'toggle') {
         t.previousSibling?.remove();
       }
       // @ts-ignore

@@ -17,25 +17,24 @@ docker compose file.
 
 ### Text Editor
 Markdown editor with support for rendering both markdown and HTML.
-* Use `#tag` to create a tag link `[tag](/tag/politics)` (add a space for the usual markdown
-  H1 "# Title").
+* Use `#tag` to create a tag link. Add a space for the usual markdown H1 "# Title".
 * Any links in markdown will automatically be added to either sources or alternate URLs
 * Use `[1]` or `[[1]]` to reference existing sources. The number will be the 1-based index of the source.
 * Use `[alt1]` or `[[alt1]]` to reference alternate URLs. Use `[alt1](url)` to add an alternate URL. The
   number will be the 1-based index of the alternate URLs.
-* Using `#+user/charlie` with the inbox plugin installed will add `plugin/inbox/user/charlie`
-  to the tags. Will remove `#+user/` prefix when displaying.
+* Using `+user/charlie` with the inbox plugin installed will add `plugin/inbox/user/charlie`
+  to the tags. Use `#+user/charlie` instead to simply link to the user without notifying them.
 * Use `^` to create superscripts. Use in combination with source references for standard reference style such
   as `^[1]` or `^[[1]]`.
 * Any links to a ref or tag will render a toggle button to expand inline (any link that starts
   with `/ref/` or `/tag/`, with or without the server host and base path).
 * Links of the form `[ref](www.example.com)` will add a ref entry inline.
-* Links of the form `[query](tag|query)` will add results of a tag query inline.
-* Links of the form `[toggle](www.example.com)` will add a toggle button that will expand to show the contents
-  of the Ref if it exists, or attempt to show the content directly if it is an image, audio, video, and embeddable
-  sites.
 * Links of the form `![](www.example.com)` will embed the contents of the Ref if it exists, or attempt to embed
   the url directly if it is an image, audio, video, or embeddable sites.
+* Links of the form `![+](www.example.com)` will add a toggle button that will expand to show the contents
+  of the Ref if it exists, or attempt to show the content directly if it is an image, audio, video, and embeddable
+  sites.
+* Links of the form `![](/tag/query)` will add results of a tag query inline.
 ### Tag Query Page
 * Perform any tag query while performing a full text search and multi-column sort
 * Displays title from tag Ext if present
