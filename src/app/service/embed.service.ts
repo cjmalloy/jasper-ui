@@ -178,7 +178,8 @@ export class EmbedService {
       start: (src: string) => src.match(/#/)?.index,
       tokenizer(src: string, tokens: any): any {
         const rule = /^#([+_]?[a-z0-9]+([./][a-z0-9]+)*)/;
-        const match = rule.exec(src);
+        const notNumber = /[a-z]/;
+        const match = notNumber.exec(src) && rule.exec(src);
         if (match) {
           const text = match[0];
           return {
