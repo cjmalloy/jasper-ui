@@ -505,7 +505,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
     if (button.scheme && button.scheme !== this.scheme) return false;
     if (button.toggle && !this.auth.canAddTag(button.toggle)) return false;
     if (button.global) return true;
-    return hasTag(button._parent!.tag, this.allTags);
+    return hasTag(button.tag || button._parent!.tag, this.allTags);
   }
 
   fireEvent(event: string) {

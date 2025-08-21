@@ -684,7 +684,7 @@ export class AdminService {
       .flatMap(config => config.config!.editorButtons!.filter(b => {
         if (b.global) return true;
         if (b.scheme && b.scheme === scheme) return true;
-        return hasTag(config.tag, match);
+        return hasTag(b.tag || config.tag, match);
       }).map(addParent(config))
         .map(b => {
           if (b.ribbon || !b.event) b.toggle ||= config.tag;
