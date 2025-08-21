@@ -30,6 +30,7 @@ import { AdminService } from '../../service/admin.service';
 import { AuthzService } from '../../service/authz.service';
 import { Store } from '../../store/store';
 import { memo, MemoCache } from '../../util/memo';
+import { hasTag } from '../../util/tag';
 
 @Component({
   standalone: false,
@@ -135,7 +136,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
       this.toggleIndex = 0;
       const tags = this.tags?.value || this.createdTags;
       for (const p of this.responseButtons) {
-        if (tags.includes(p.tag)) {
+        if (hasTag(p.tag, tags)) {
           this.toggleIndex = this.responseButtons.indexOf(p);
         }
       }
@@ -335,7 +336,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   toggleTag(button: EditorButton) {
     if (button.event) this.fireEvent(button.event);
     const tag = button.toggle!;
-    if (this.allTags.includes(tag)) {
+    if (hasTag(tag, this.allTags)) {
       this.updateTags(without(this.allTags, tag));
       if (button.remember && this.admin.getTemplate('user')) {
         this.accounts.removeConfigArray$('editors', tag).subscribe();
@@ -352,7 +353,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
 
   setResponse(tag: string) {
     const tags = this.tags?.value || this.createdTags;
-    if (!tags.includes(tag)) {
+    if (!hasTag(tag, tags)) {
       const responses = this.responseButtons.map(p => p.tag);
       this.toggleIndex = responses.indexOf(tag);
       this.updateTags([...without(tags, ...responses), tag]);
@@ -504,7 +505,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
     if (button.scheme && button.scheme !== this.scheme) return false;
     if (button.toggle && !this.auth.canAddTag(button.toggle)) return false;
     if (button.global) return true;
-    return this.allTags.includes(button._parent!.tag);
+    return hasTag(button._parent!.tag, this.allTags);
   }
 
   fireEvent(event: string) {
@@ -531,7 +532,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   }
 
   private setButtonOn(b: EditorButton) {
-    b._on = !!b.toggle && this.allTags.includes(b.toggle);
+    b._on = !!b.toggle && hasTag(b.toggle, this.allTags);
     return b;
   }
 }

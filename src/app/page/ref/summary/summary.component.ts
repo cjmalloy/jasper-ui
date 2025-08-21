@@ -101,7 +101,7 @@ export class RefSummaryComponent implements OnInit, OnDestroy, HasChanges {
 
   @memo
   get responseSet() {
-    return this.comments || this.threads || this.admin.responseButton.find(p => this.replyTags.includes(p.tag));
+    return this.comments || this.threads || this.admin.responseButton.find(p => hasTag(p.tag, this.replyTags));
   }
 
   @memo

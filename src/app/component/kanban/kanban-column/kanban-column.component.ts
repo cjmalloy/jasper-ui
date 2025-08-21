@@ -27,6 +27,7 @@ import { Store } from '../../../store/store';
 import { URI_REGEX } from '../../../util/format';
 import { fixUrl } from '../../../util/http';
 import { getArgs, UrlFilter } from '../../../util/query';
+import { hasTag } from '../../../util/tag';
 import { KanbanDrag } from '../kanban.component';
 
 @Component({
@@ -223,7 +224,7 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
     const text = this.addText;
     this.addText = '';
     this.adding.push(text);
-    const tagsWithAuthor = !this.addTags.includes(this.store.account.localTag) ? [...this.addTags, this.store.account.localTag] : this.addTags;
+    const tagsWithAuthor = !hasTag(this.store.account.localTag, this.addTags) ? [...this.addTags, this.store.account.localTag] : this.addTags;
     const isUrl = URI_REGEX.test(text) && this.config.allowedSchemes.filter(s => text.startsWith(s)).length;
     // TODO: support local urls
     const ref: Ref = isUrl ? {

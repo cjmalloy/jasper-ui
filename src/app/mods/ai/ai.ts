@@ -14,6 +14,7 @@ export const aiQueryPlugin: Plugin = {
     advancedActions: [
       { tag: 'plugin/llm', labelOff: $localize`configure`, title: $localize`Configure LLM settings` },
     ],
+    editorButtons: [{ label: $localize`✨️ AI`, toggle: 'plugin/llm', remember: true, ribbon: true }],
     timeoutMs: 300_000,
     language: 'javascript',
     // language=JavaScript
@@ -757,6 +758,20 @@ export const llmPlugin: Plugin = {
           { value: 'nous', label: $localize`Nous` },
         ],
       },
+    }, {
+      key: 'url',
+      type: 'boolean',
+      defaultValue: false,
+      props: {
+        label: $localize`URL Loading`,
+      },
+    }, {
+      key: 'search',
+      type: 'boolean',
+      defaultValue: false,
+      props: {
+        label: $localize`Web Search`,
+      },
     }],
     advancedForm: [{
       key: 'audio',
@@ -771,20 +786,6 @@ export const llmPlugin: Plugin = {
       defaultValue: false,
       props: {
         label: $localize`Vision`,
-      },
-    }, {
-      key: 'url',
-      type: 'boolean',
-      defaultValue: false,
-      props: {
-        label: $localize`URL Loading`,
-      },
-    }, {
-      key: 'search',
-      type: 'boolean',
-      defaultValue: false,
-      props: {
-        label: $localize`Web Search`,
       },
     }, {
       key: 'apiKeyTag',
