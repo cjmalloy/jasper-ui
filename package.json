@@ -77,7 +77,7 @@
     "@types/qrcode": "^1.5.5",
     "@types/uuid": "^10.0.0",
     "cypress": "^15.0.0",
-    "cypress-mochawesome-reporter": "^4.0.1",
+    "cypress-mochawesome-reporter": "^4.0.2",
     "cypress-real-events": "^1.14.0",
     "jasmine-core": "~5.9.0",
     "karma": "~6.4.4",
