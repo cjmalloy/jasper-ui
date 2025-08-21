@@ -325,6 +325,10 @@ export interface FilterConfig {
 
 export interface EditorButton {
   /**
+   * Tag required to show this button (default to the parent tag).
+   */
+  tag?: string;
+  /**
    * Label for editor button.
    */
   label?: string;
