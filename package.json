@@ -89,7 +89,7 @@
     "karma-junit-reporter": "^2.0.1",
     "patch-package": "^8.0.0",
     "raw-loader": "^4.0.2",
-    "typescript": "~5.8.2"
+    "typescript": "~5.9.2"
   },
   "overrides": {
     "marked": "$marked",
