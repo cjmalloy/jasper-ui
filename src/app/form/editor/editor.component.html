@@ -29,11 +29,11 @@
         @if (button.event) {
           <button type="button"
                   (click)="fireEvent(button.event)"
-                  [title]="button.title" i18n>{{ button.label }}</button>
+                  [title]="button.title || ''" i18n>{{ button.label }}</button>
         } @else if (hasTags) {
           <button type="button"
                   (click)="toggleTag(button)"
-                  [title]="button.title" i18n>{{(button._on ? button.labelOn : button.labelOff) || button.label }}</button>
+                  [title]="button.title || ''" i18n>{{(button._on ? button.labelOn : button.labelOff) || button.label }}</button>
         }
       }
       @if (hasTags) {
@@ -46,7 +46,7 @@
                    (click)="toggleTag(button)">
             <label [for]="'ribbon-' + id + i"
                    [class.on]="button._on"
-                   [title]="button.title">{{(button._on ? button.labelOn : button.labelOff) || button.label }}</label>
+                   [title]="button.title || ''">{{ (button._on ? button.labelOn : button.labelOff) || button.label }}</label>
           </div>
         }
         @if (selectResponseType && responseButtons.length > 1) {
@@ -56,7 +56,7 @@
                       class="response-button"
                       (click)="setResponse(plugin.tag)"
                       [class.selected]="toggleIndex === i"
-                      [title]="plugin.name" i18n>{{ plugin.config?.responseButton }}</button>
+                      [title]="plugin.name || ''" i18n>{{ plugin.config?.responseButton }}</button>
             }
           </div>
         }
