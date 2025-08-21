@@ -154,6 +154,7 @@ export const aiQueryPlugin: Plugin = {
               messages,
             });
             return {
+              res,
               completion: res.choices[0]?.message?.content,
               usage: res.usage,
             };
@@ -182,6 +183,7 @@ export const aiQueryPlugin: Plugin = {
               messages,
             });
             return {
+              res,
               completion: res.choices[0]?.message?.content,
               usage: res.usage,
             };
@@ -210,6 +212,7 @@ export const aiQueryPlugin: Plugin = {
               messages,
             });
             return {
+              res,
               completion: res.choices[0]?.message?.content,
               usage: res.usage,
             };
@@ -237,6 +240,7 @@ export const aiQueryPlugin: Plugin = {
               messages,
             });
             return {
+              res,
               completion: res.choices[0]?.message?.content,
               usage: res.usage,
             };
@@ -311,6 +315,7 @@ export const aiQueryPlugin: Plugin = {
             const text = res.content.filter(t => t.type === 'text');
             const tools = res.content.filter(t => t.type === 'tool_use');
             return {
+              res,
               completion: config.json ? JSON.stringify(tools[0]?.input || { comment: text[0]?.text || '' }) : text[0]?.text,
               usage: {
                 'prompt_tokens': res.usage.input_tokens,
@@ -322,7 +327,7 @@ export const aiQueryPlugin: Plugin = {
         },
         gemini: {
           init(config) {
-            config.model ||= config.pdf ? 'gemini-2.5-pro' : 'gemini-2.5-flash-lite';
+            config.model ||= (config.pdf || config.search || config.url) ? 'gemini-2.5-pro' : 'gemini-2.5-flash-lite';
             config.pdf = config.model === 'gemini-2.5-pro';
             config.image = true;
             config.audio = true;
@@ -339,6 +344,8 @@ export const aiQueryPlugin: Plugin = {
                     fileUri: plugins['plugin/embed'],
                   },
                 });
+              } else {
+                // Let gemini detect urls
               }
             }
             if (plugins['plugin/pdf']) {
@@ -380,24 +387,33 @@ export const aiQueryPlugin: Plugin = {
             const genAI = new GoogleGenerativeAI(apiKey);
             const system = messages.filter(m => m.role === 'system').map(m => m.parts[0].text).join("\\n\\n");
             const model = genAI.getGenerativeModel({ model: config.model });
-            const result = await model.generateContent({
+            const res = await model.generateContent({
               contents: messages.filter(m => m.role !== 'system').map(m => {
                 if (m.role === 'assistant') m.role = 'model';
                 return m;
               }),
               systemInstruction: system,
+              tools: [
+                ...config.search ? [{ googleSearch: {} }] : [],
+                ...config.embed ? [{ urlContext: {} }] : [],
+              ],
             });
-            let text = result.response.text().trim();
+            let text = res.response.text().trim();
             if (config.json) {
               while (text && !text.startsWith('{')) text = text.substring(1).trim();
               while (text && !text.endsWith('}')) text = text.substring(0, text.length - 1).trim();
+              if (!text) {
+                config.json = false;
+                text = res.response.text().trim();
+              }
             }
             return {
+              res,
               completion: text,
               usage: {
-                prompt_tokens: result.response.usageMetadata.promptTokenCount,
-                completion_tokens: result.response.usageMetadata.candidatesTokenCount,
-                total_tokens: result.response.usageMetadata.totalTokenCount,
+                prompt_tokens: res.response.usageMetadata.promptTokenCount,
+                completion_tokens: res.response.usageMetadata.candidatesTokenCount,
+                total_tokens: res.response.usageMetadata.totalTokenCount,
               },
             };
           }
@@ -562,9 +578,25 @@ export const aiQueryPlugin: Plugin = {
           ...provider.loadMessage(c, plugins),
         });
       }
-      let { completion, usage } = await provider.generate(messages, config);
+      let { completion, usage, res } = await provider.generate(messages, config);
+      const debugLogs = () => {
+        return '\`\`\`json\\n' + JSON.stringify([...messages.map(m => {
+          if (m.content && config.json) {
+            m.content = m.content.map(c => {
+              if (c.type === 'text') {
+                c.text = JSON.parse(c.text);
+              }
+              return c;
+            });
+          }
+          return m;
+        }), res], null, 2) + '\\n\`\`\`';
+      };
       let bundle;
       if (!completion) {
+        if (hasTag('+plugin/debug', ref)) {
+          throw 'Error: No completion in response:\\n' + debugLogs();
+        }
         throw 'Error: No completion in response'
       }
       if (config.json) {
@@ -579,6 +611,9 @@ export const aiQueryPlugin: Plugin = {
         } catch (e) {
           console.error('Error parsing completion:', e);
           console.error(completion);
+          if (hasTag('+plugin/debug', ref)) {
+            console.error(debugLogs());
+          }
           process.exit(1);
         }
       } else {
@@ -593,6 +628,9 @@ export const aiQueryPlugin: Plugin = {
       if (!completionRef) {
         console.error('No ref');
         console.error(completion);
+        if (hasTag('+plugin/debug', ref)) {
+          console.error(debugLogs());
+        }
         process.exit(1);
       }
       bundle.ref[0] = response;
@@ -610,6 +648,8 @@ export const aiQueryPlugin: Plugin = {
         thinkingTokens: config.thinkingTokens,
         vision: config.vision,
         audio: config.audio,
+        url: config.url,
+        search: config.search,
         usage: {
           promptTokens: usage.prompt_tokens,
           completionTokens: usage.completion_tokens,
@@ -664,23 +704,12 @@ export const aiQueryPlugin: Plugin = {
         }
       }
       if (hasTag('+plugin/debug', ref)) {
-        const debugJson = JSON.stringify(messages.map(m => {
-          if (m.content && config.json) {
-            m.content = m.content.map(c => {
-              if (c.type === 'text') {
-                c.text = JSON.parse(c.text);
-              }
-              return c;
-            });
-          }
-          return m;
-        }), null, 2);
         // console.error('\`\`\`json\\n' + debugJson + '\\n\`\`\`');
         bundle.ref.push({
           url: 'log:' + uuid.v4(),
           sources: [response.url],
           title: 'Debugging sources',
-          comment: '\`\`\`json\\n' + debugJson + '\\n\`\`\`',
+          comment: debugLogs(),
           tags: ['internal', '+plugin/log'],
         });
       }
@@ -742,6 +771,20 @@ export const llmPlugin: Plugin = {
       defaultValue: false,
       props: {
         label: $localize`Vision`,
+      },
+    }, {
+      key: 'url',
+      type: 'boolean',
+      defaultValue: false,
+      props: {
+        label: $localize`URL Loading`,
+      },
+    }, {
+      key: 'search',
+      type: 'boolean',
+      defaultValue: false,
+      props: {
+        label: $localize`Web Search`,
       },
     }, {
       key: 'apiKeyTag',
@@ -828,6 +871,8 @@ export const llmPlugin: Plugin = {
       bundle: { type: 'boolean' },
       audio: { type: 'boolean' },
       vision: { type: 'boolean' },
+      url: { type: 'boolean' },
+      search: { type: 'boolean' },
       maxTokens: { type: 'uint32' },
       thinking: { type: 'boolean' },
       thinkingTokens: { type: 'uint32' },
