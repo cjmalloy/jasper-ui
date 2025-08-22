@@ -24,7 +24,7 @@ export const aiQueryPlugin: Plugin = {
       const uuid = require('uuid');
       const axios = require('axios');
       const ref = JSON.parse(require('fs').readFileSync(0, 'utf-8'));
-      const origin = ref.origin || ''
+      const origin = ref.origin || '';
       const matchesTag = (prefix, tag) => prefix === tag || tag.startsWith(prefix + '/');
       const hasTag = (tag, ref) => ref.tags?.find(t => matchesTag(tag, t));
       const followup = hasTag('+plugin/delta/ai', ref);
@@ -665,11 +665,11 @@ export const aiQueryPlugin: Plugin = {
       response.tags.push(...ref.tags.filter(t => matchesTag('plugin/delta/ai', t)).map(t => '+' + t));
       const uniq = (v, i, a) => a.indexOf(v) === i;
       response.tags = [...response.tags, ...completionRef.tags || [], '+plugin/delta/ai'].filter(uniq).filter(t => t !== '+plugin/placeholder');
-      if (followup && response.tags.find(t => t.startWith('plugin/delta/ai'))) {
+      if (followup && response.tags.find(t => t.startsWith('plugin/delta/ai'))) {
         // Only allow one cycle of follow-ups
-        response.tags = response.tags.filter(t => !t.startWith('plugin/delta/ai'));
+        response.tags = response.tags.filter(t => !t.startsWith('plugin/delta/ai'));
       }
-      response.sources = [...response.sources, ...(completionRef.sources || []).filter(uniq).filter(s => !sources.includes(s))];
+      response.sources = [...response.sources, ...(completionRef.sources || []).filter(uniq).filter(s => !response.sources.includes(s))];
       // TODO: Allow AI to add some protected tags
       const publicTagRegex = /^[a-z0-9]+(?:[./][a-z0-9]+)*$/;
       for (let i = 0; i < bundle.ref.length; i++) {
