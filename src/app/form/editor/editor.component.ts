@@ -55,6 +55,8 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   @HostBinding('class.md-preview')
   preview = this.store.local.showPreview;
 
+  @ViewChild('helpButton')
+  helpButton?: ElementRef<HTMLButtonElement>;
   @ViewChild('editor')
   editor?: ElementRef<HTMLTextAreaElement>;
   @ViewChild(MdComponent)
@@ -486,12 +488,19 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   toggleHelp(override?: boolean) {
     this.help = override !== undefined ? override : !this.help;
     if (this.help) {
+      const positionStrategy = this.overlay.position()
+        .flexibleConnectedTo(this.helpButton!)
+        .withPositions([{
+          originX: 'start',
+          originY: 'bottom',
+          overlayX: 'start',
+          overlayY: 'top',
+        }]);
       this.helpRef = this.overlay.create({
-        height: '100vh',
-        width: '100vw',
-        positionStrategy: this.overlay.position().global().centerHorizontally().centerVertically(),
         hasBackdrop: true,
-        scrollStrategy: this.overlay.scrollStrategies.block(),
+        backdropClass: 'hide',
+        positionStrategy,
+        scrollStrategy: this.overlay.scrollStrategies.close()
       });
       this.helpRef.attach(new TemplatePortal(this.helpTemplate, this.vc));
       this.helpRef.backdropClick().subscribe(() => this.toggleHelp(false));

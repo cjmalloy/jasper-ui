@@ -4,31 +4,31 @@
         (contextmenu)="contextMenu(null, $event)"></figure>
 <ng-template #nodeMenu let-ref>
   <div class="context-menu" (click)="$event.stopPropagation()">
-    <ng-container *ngIf="ref">
+    @if (ref) {
       <div (click)="pin(ref)">
         <input id="pinned"
                type="checkbox"
                [checked]="ref.pinned">
         <label for="pinned" i18n>Pinned</label>
       </div>
-      <ng-container *ngIf="countRefUnloaded(ref) as uc">
+      @if (countRefUnloaded(ref); as uc) {
         <hr>
-        <div (click)="load(ref)" i18n>Load <span *ngIf="uc > 1">{{ max(uc) }}</span></div>
-      </ng-container>
-      <ng-container *ngIf="countUnloadedSource(ref) as sc">
+        <div (click)="load(ref)" i18n>Load @if (uc > 1) {<span>{{ max(uc) }}</span>}</div>
+      }
+      @if (countUnloadedSource(ref); as sc) {
         <hr>
-        <div (click)="loadSources(ref)" i18n>Load sources <span *ngIf="sc > 1">{{ max(sc) }}</span></div>
-      </ng-container>
-      <ng-container *ngIf="countUnloadedResponse(ref) as rc">
+        <div (click)="loadSources(ref)" i18n>Load sources @if (sc > 1) {<span>{{ max(sc) }}</span>}</div>
+      }
+      @if (countUnloadedResponse(ref); as rc) {
         <hr>
-        <div (click)="loadResponses(ref)" i18n>Load responses <span *ngIf="rc > 1">{{ max(rc) }}</span></div>
-      </ng-container>
+        <div (click)="loadResponses(ref)" i18n>Load responses @if (rc > 1) {<span>{{ max(rc) }}</span>}</div>
+      }
       <hr>
       <div (click)="remove(ref)" i18n>Remove</div>
       <hr>
       <div (click)="restart(ref)" i18n>Restart from here</div>
       <hr>
-    </ng-container>
+    }
     <div (click)="selectAll()" i18n>Select all</div>
     <hr>
     <div (click)="toggleUnloaded()">
@@ -56,11 +56,13 @@
   </div>
 </ng-template>
 <ng-container *mobxAutorun>
-  <a *ngIf="store.graph.unloaded.length"
-     class="load-more fake-link no-select"
-     (click)="drawMore()" i18n>load more</a>
+  @if (store.graph.unloaded.length) {
+    <a class="load-more fake-link no-select" (click)="drawMore()" i18n>load more</a>
+  }
   <div class="loading-container">
-    <app-loading *ngIf="store.graph.loading.length"></app-loading>
+    @if (store.graph.loading.length) {
+      <app-loading></app-loading>
+    }
   </div>
   <label class="graph-selected no-select" i18n>Selected:</label>
   <app-ref-list [page]="store.graph.selectedPage"

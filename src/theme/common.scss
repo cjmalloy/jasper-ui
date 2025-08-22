@@ -47,6 +47,10 @@ body.fullscreen {
   }
 }
 
+.cdk-overlay-backdrop.hide {
+  opacity: 0;
+}
+
 input[type=color].cleared::-moz-color-swatch {
   opacity: 0;
 }
