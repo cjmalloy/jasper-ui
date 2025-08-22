@@ -84,6 +84,8 @@ export class RefCommentsComponent implements OnInit, OnDestroy, HasChanges {
   @memo
   get replyTags(): string[] {
     const tags = [
+      'plugin/comment',
+      'internal',
       ...this.admin.reply.filter(p => hasTag(p.tag, this.store.view.ref)).flatMap(p => p.config!.reply as string[]),
       ...this.mailboxes,
     ];

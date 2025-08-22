@@ -3,6 +3,7 @@
             (syncTags)="editorTags = $event"
             [addPlugins]="true"
             (addPlugin)="plugins.push($event)"
+            (addSource)="sources.push($event)"
             [autoFocus]="true"></app-editor>
 @for (e of serverError; track e) {
   <span><!-- Unexpected Error --></span>

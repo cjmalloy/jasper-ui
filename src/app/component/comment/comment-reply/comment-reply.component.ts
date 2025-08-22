@@ -46,6 +46,7 @@ export class CommentReplyComponent implements HasChanges {
   editor?: EditorComponent
 
   editorTags: string[] = [];
+  editorSources: string[] = [];
 
   replying?: Subscription;
   commentForm: UntypedFormGroup;
@@ -86,6 +87,10 @@ export class CommentReplyComponent implements HasChanges {
     this.plugins.push(add)
   }
 
+  addSource(add: any) {
+    this.editorSources.push(add);
+  }
+
   syncTags(tags: string[]) {
     this.editorTags = tags;
     this.plugins = this.plugins.filter(p => tags.includes(Object.keys(p)[0]));
@@ -117,7 +122,7 @@ export class CommentReplyComponent implements HasChanges {
       origin: this.store.account.origin,
       title: (hasTag('plugin/email', this.to) || hasTag('plugin/thread', this.to)) ? getRe(this.to.title) : '',
       comment: value,
-      sources,
+      sources: [...sources, ...this.editorSources],
       tags,
       plugins: Object.assign(inheritedPlugins, ...this.plugins),
       published: DateTime.now(),

@@ -3,8 +3,9 @@
               [createdTags]="tags || []"
               [selectResponseType]="selectResponseType"
               [addPlugins]="true"
-              (addPlugin)="addPlugin($event)"
               (syncTags)="syncTags($event)"
+              (addPlugin)="addPlugin($event)"
+              (addSource)="addSource($event)"
               [autoFocus]="autofocus"></app-editor>
 </form>
 @for (e of serverError; track e) {

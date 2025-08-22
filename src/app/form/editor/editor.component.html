@@ -73,6 +73,11 @@
               (input)="setText($any($event).target.value)"
               (blur)="blurText($any($event).target.value)"
               (focus)="focusText()"
+              [class.dropping]="dropping"
+              (dragenter)="dropping = true"
+              (dragleave)="dragLeave(editor, $any($event.target))"
+              (drop)="upload($event, $event.dataTransfer?.items)"
+              (paste)="upload($event, $event.clipboardData?.items)"
               [appFillWidth]="fillWidth"
               [padding]="padding"
               [appAutofocus]="autoFocus"></textarea>

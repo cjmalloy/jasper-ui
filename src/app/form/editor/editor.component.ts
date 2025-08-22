@@ -1,5 +1,6 @@
 import { Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { DomPortal, TemplatePortal } from '@angular/cdk/portal';
+import { HttpEventType } from '@angular/common/http';
 import {
   AfterViewInit,
   Component,
@@ -16,20 +17,23 @@ import {
   ViewChild,
   ViewContainerRef
 } from '@angular/core';
-import { FormBuilder, UntypedFormArray, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
+import { FormBuilder, UntypedFormArray, UntypedFormControl } from '@angular/forms';
 import { NavigationEnd, Router } from '@angular/router';
 import Europa from 'europa';
 import { debounce, defer, delay, sortedLastIndex, throttle, uniq, without } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
-import { filter, Subject, takeUntil } from 'rxjs';
+import { catchError, filter, last, map, Subject, takeUntil } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { MdComponent } from '../../component/md/md.component';
 import { Plugin } from '../../model/plugin';
+import { Ref } from '../../model/ref';
 import { EditorButton, sortOrder } from '../../model/tag';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
+import { ProxyService } from '../../service/api/proxy.service';
 import { AuthzService } from '../../service/authz.service';
 import { Store } from '../../store/store';
+import { readFileAsDataURL } from '../../util/async';
 import { memo, MemoCache } from '../../util/memo';
 import { hasTag } from '../../util/tag';
 
@@ -100,10 +104,13 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   @Output()
   syncTags = new EventEmitter<string[]>();
   @Output()
+  addSource = new EventEmitter<string>();
+  @Output()
   addPlugin = new EventEmitter<any>();
   @Output()
   scrape = new EventEmitter<void>();
 
+  dropping = false;
   overlayRef?: OverlayRef;
   helpRef?: OverlayRef;
   refRef?: OverlayRef;
@@ -112,6 +119,9 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   toggleIndex = 0;
   initialFullscreen = false;
   focused?: boolean = false;
+  progress = 0;
+  uploading = false;
+  files = !!this.admin.getPlugin('plugin/file');
 
   private _text? = '';
   private _editing = false;
@@ -131,6 +141,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
     public admin: AdminService,
     private accounts: AccountService,
     private auth: AuthzService,
+    private proxy: ProxyService,
     public store: Store,
     private overlay: Overlay,
     private router: Router,
@@ -575,5 +586,71 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   private setButtonOn(b: EditorButton) {
     b._on = !!b.toggle && hasTag(b.toggle, this.allTags);
     return b;
+  }
+
+  upload(event: Event, items?: DataTransferItemList) {
+    this.dropping = false;
+    this.uploading = false;
+    if (!this.addPlugins && !this.admin.getPlugin('plugin/file')) return;
+    if (!items) return;
+    const files = [] as any;
+    for (let i = 0; i < items.length; i++) {
+      const d = items[i];
+      if (d?.kind == 'file') {
+        files.push(d.getAsFile());
+        break;
+      }
+    }
+    if (!files.length) return;
+    event.preventDefault();
+    event.stopPropagation();
+    const file = files[0]!;
+    const tags: string[] = [];
+    let plugin = this.admin.getPlugin('plugin/file')!;
+    if (file.type.startsWith('audio/') && this.admin.getPlugin('plugin/audio')) {
+      plugin = this.admin.getPlugin('plugin/audio')!;
+    } else if (file.type.startsWith('video/') && this.admin.getPlugin('plugin/video')) {
+      plugin = this.admin.getPlugin('plugin/video')!;
+      tags.push('plugin/thumbnail')
+    } else if (file.type.startsWith('image/') && this.admin.getPlugin('plugin/image')) {
+      plugin = this.admin.getPlugin('plugin/image')!;
+      tags.push('plugin/thumbnail')
+    } else if (file.type.startsWith('application/pdf') && this.admin.getPlugin('plugin/pdf')) {
+      plugin = this.admin.getPlugin('plugin/pdf')!;
+    }
+    tags.push(plugin.tag);
+    this.uploading = true;
+    this.proxy.save(file, this.store.account.origin).pipe(
+      map(event => {
+        switch (event.type) {
+          case HttpEventType.Response:
+            return event.body;
+          case HttpEventType.UploadProgress:
+            const percentDone = event.total ? Math.round(100 * event.loaded / event.total) : 0;
+            this.progress = percentDone;
+            return null;
+        }
+        return null;
+      }),
+      last(),
+      map((ref: Ref | null) => ref?.url),
+      catchError(err => readFileAsDataURL(file)) // base64
+    ).subscribe(url => {
+      if (!url) return;
+      if (plugin!.tag === 'plugin/file') {
+        this.addSource.next(url);
+      } else {
+        this.addPlugin.next({
+          [plugin!.tag]: { url },
+        });
+      }
+      this.updateTags([...this.allTags, ...tags]);
+    });
+  }
+
+  dragLeave(parent: HTMLElement, target: HTMLElement) {
+    if (this.dropping && parent === target || !parent.contains(target)) {
+      this.dropping = false;
+    }
   }
 }
