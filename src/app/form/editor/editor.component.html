@@ -102,4 +102,13 @@
       </div>
     </div>
   </ng-template>
+  <ng-template #ref>
+    <div class="bubble popup row">
+      <app-form-gen class="stretch"
+                    [promoteAdvanced]="true"
+                    (keydown)="$event.key === 'Enter' && savePlugin() || true"
+                    [plugins]="pluginGroup"
+                    [plugin]="addingPlugin!"></app-form-gen>
+    </div>
+  </ng-template>
 }

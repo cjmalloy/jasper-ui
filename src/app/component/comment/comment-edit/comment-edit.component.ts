@@ -31,6 +31,7 @@ export class CommentEditComponent implements AfterViewInit, HasChanges, OnDestro
   editing?: Subscription;
   commentForm: UntypedFormGroup;
   editorTags: string[] = [];
+  plugins: any[] = [];
 
   constructor(
     private store: Store,
@@ -83,6 +84,14 @@ export class CommentEditComponent implements AfterViewInit, HasChanges, OnDestro
       patches.push({
         op: 'remove',
         path: '/tags/' + this.ref.tags!.indexOf(t),
+      });
+    }
+    for (const p of this.plugins) {
+      const tag = Object.keys(p)[0];
+      patches.push({
+        op: 'add',
+        path: '/plugins/' + tag.replace('/', '~1'),
+        value: p[tag],
       });
     }
     this.editing = this.refs.patch(this.ref.url, this.ref.origin!, this.ref!.modifiedString!, patches).pipe(

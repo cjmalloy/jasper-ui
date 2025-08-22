@@ -134,6 +134,7 @@ export class RefSummaryComponent implements OnInit, OnDestroy, HasChanges {
   @memo
   get replyTags(): string[] {
     const tags = [
+      ...this.comments ? ['plugin/comment'] : this.threads ? ['plugin/thread'] : [],
       ...this.admin.reply.filter(p => hasTag(p.tag, this.store.view.ref)).flatMap(p => p.config!.reply as string[]),
       ...this.mailboxes,
     ];

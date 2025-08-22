@@ -17,6 +17,8 @@ export class GenFormComponent implements OnInit, OnChanges {
   @Input()
   bulk = false;
   @Input()
+  promoteAdvanced = false;
+  @Input()
   plugins!: UntypedFormGroup;
   @Input()
   plugin!: Plugin;

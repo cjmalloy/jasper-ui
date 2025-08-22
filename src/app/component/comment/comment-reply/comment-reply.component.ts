@@ -51,6 +51,7 @@ export class CommentReplyComponent implements HasChanges {
   commentForm: UntypedFormGroup;
   serverError: string[] = [];
   config = this.admin.getPlugin('plugin/comment')?.config || commentPlugin.config!;
+  plugins: any[] = [];
 
   constructor(
     public admin: AdminService,
@@ -107,7 +108,7 @@ export class CommentReplyComponent implements HasChanges {
       comment: value,
       sources,
       tags,
-      plugins: inheritedPlugins,
+      plugins: Object.assign(inheritedPlugins, ...this.plugins),
       published: DateTime.now(),
     };
     this.comment.disable();
@@ -130,6 +131,9 @@ export class CommentReplyComponent implements HasChanges {
       this.serverError = [];
       this.comment.enable();
       this.commentForm.reset();
+      this.plugins = [];
+      this.editorTags = [];
+      this.tags = [...this.tags];
       this.editor?.syncText('');
       const update = {
         ...ref,

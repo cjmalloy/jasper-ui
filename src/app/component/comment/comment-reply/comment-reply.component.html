@@ -2,6 +2,8 @@
   <app-editor [control]="comment"
               [createdTags]="tags || []"
               [selectResponseType]="selectResponseType"
+              [addPlugins]="true"
+              (addPlugin)="plugins.push($event)"
               (syncTags)="editorTags = $event"
               [autoFocus]="autofocus"></app-editor>
 </form>

@@ -16,7 +16,7 @@ import {
   ViewChild,
   ViewContainerRef
 } from '@angular/core';
-import { UntypedFormArray, UntypedFormControl } from '@angular/forms';
+import { FormBuilder, UntypedFormArray, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { NavigationEnd, Router } from '@angular/router';
 import Europa from 'europa';
 import { debounce, defer, delay, sortedLastIndex, throttle, uniq, without } from 'lodash-es';
@@ -24,6 +24,7 @@ import { autorun, IReactionDisposer } from 'mobx';
 import { filter, Subject, takeUntil } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { MdComponent } from '../../component/md/md.component';
+import { Plugin } from '../../model/plugin';
 import { EditorButton, sortOrder } from '../../model/tag';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
@@ -66,6 +67,8 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
 
   @ViewChild('help')
   helpTemplate!: TemplateRef<any>;
+  @ViewChild('ref')
+  refTemplate!: TemplateRef<any>;
 
   @Input()
   hasTags = true;
@@ -89,16 +92,23 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   addCommentLabel = $localize`+ Add comment`;
   @Input()
   fillWidth?: HTMLElement;
+  @Input()
+  addPlugins = false;
 
   @Output()
   syncEditor = new EventEmitter<string>();
   @Output()
   syncTags = new EventEmitter<string[]>();
   @Output()
+  addPlugin = new EventEmitter<any>();
+  @Output()
   scrape = new EventEmitter<void>();
 
   overlayRef?: OverlayRef;
   helpRef?: OverlayRef;
+  refRef?: OverlayRef;
+  addingPlugin?: Plugin;
+  pluginGroup = this.fb.group({});
   toggleIndex = 0;
   initialFullscreen = false;
   focused?: boolean = false;
@@ -126,6 +136,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
     private router: Router,
     private el: ElementRef,
     private vc: ViewContainerRef,
+    private fb: FormBuilder,
   ) {
     this.router.events.pipe(
       filter(event => event instanceof NavigationEnd)
@@ -167,7 +178,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    if (changes.tags || changes.url) {
+    if (changes.tags || changes.createdTags || changes.url) {
       this.init();
     }
   }
@@ -344,13 +355,34 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
         this.accounts.removeConfigArray$('editors', tag).subscribe();
       }
     } else if (tag !== 'locked' || confirm($localize`Locking is permanent once saved. Are you sure you want to lock?`)) {
-      this.updateTags([...this.allTags, tag]);
+      this.addingPlugin = this.admin.getPlugin(tag);
+      if (this.addPlugins && (this.addingPlugin?.config?.form || this.addingPlugin?.config?.advancedForm)) {
+        this.pluginGroup = this.fb.group({
+          [tag]: this.fb.group({}),
+        });
+        this.refRef = this.overlay.create({
+          hasBackdrop: true,
+          positionStrategy: this.overlay.position().global().centerHorizontally().centerVertically(),
+          scrollStrategy: this.overlay.scrollStrategies.close()
+        });
+        this.refRef.attach(new TemplatePortal(this.refTemplate, this.vc));
+        this.refRef.backdropClick().subscribe(() => this.savePlugin());
+      } else {
+        this.updateTags([...this.allTags, tag]);
+      }
       if (button.remember && this.admin.getTemplate('user')) {
         this.accounts.addConfigArray$('editors', tag).subscribe();
       }
     }
     if ('vibrate' in navigator) navigator.vibrate([2, 8, 8]);
     if (this.focused !== false) this.editor?.nativeElement.focus();
+  }
+
+  savePlugin() {
+    this.updateTags([...this.allTags, this.addingPlugin!.tag]);
+    this.addPlugin.next(this.pluginGroup.value);
+    this.refRef?.detach();
+    this.refRef?.dispose();
   }
 
   setResponse(tag: string) {
