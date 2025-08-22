@@ -80,10 +80,21 @@ export class CommentReplyComponent implements HasChanges {
     return pickBy(this.to.plugins, (data, tag) => hasTag(tag, plugins));
   }
 
+  addPlugin(add: any) {
+    const key = Object.keys(add)[0];
+    this.plugins = this.plugins.filter(p => key !== Object.keys(p)[0]);
+    this.plugins.push(add)
+  }
+
+  syncTags(tags: string[]) {
+    this.editorTags = tags;
+    this.plugins = this.plugins.filter(p => tags.includes(Object.keys(p)[0]));
+  }
+
   reply() {
-    if (!this.comment.value) return;
+    if (!this.comment.value && !this.plugins.length) return;
     const url = 'comment:' + uuid();
-    const value = this.comment.value;
+    const value = this.comment.value || '';
     const inheritedPlugins = this.inheritedPlugins;
     const tags = removeTag(getMailbox(this.store.account.tag, this.store.account.origin), uniq([
       ...(this.store.account.localTag ? [this.store.account.localTag] : []),

@@ -68,11 +68,14 @@ export class CommentEditComponent implements AfterViewInit, HasChanges, OnDestro
   }
 
   save() {
-    const patches: OpPatch[] = [{
-      op: 'add',
-      path: '/comment',
-      value: this.comment.value,
-    }];
+    const patches: OpPatch[] = [];
+    if (this.comment.dirty) {
+      patches.push({
+        op: 'add',
+        path: '/comment',
+        value: this.comment.value,
+      });
+    }
     for (const t of without(this.newTags, ...this.ref.tags || [])) {
       patches.push({
         op: 'add',
