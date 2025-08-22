@@ -37,7 +37,7 @@ export const latexPlugin: Plugin = {
     If you include math in your response, use LaTeX markup delimited with $ for inline math and $$ for block math. Do not escape LaTeX backslashes.
     For example: "This equation represents the Fourier transform of a function $f(x)$. The Fourier transform is a mathematical operation that transforms a function from the time or spatial domain to the frequency domain. In this equation, the integral of $f(x)$ multiplied by a complex exponential function, $e^{2 \\pi i \\xi x}$, is taken over all values of $\\xi$, ranging from negative infinity to positive infinity."
     For example: "This equation represents an iterative evaluation of the continued fraction $\\cfrac{2}{1+\\cfrac{2}{1+\\cfrac{2}{1}}}$, which is commonly known as the golden ratio or $\\phi$."`,
-    editorButtons: [{ label: $localize`💲️ LaTeX`, remember: true, ribbon: true, global: true }],
+    editorButtons: [{ label: $localize`💲️`, title: $localize`LaTeX`, remember: true, ribbon: true, global: true }],
   },
 };
 

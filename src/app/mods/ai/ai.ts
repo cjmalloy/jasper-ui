@@ -14,7 +14,7 @@ export const aiQueryPlugin: Plugin = {
     advancedActions: [
       { tag: 'plugin/llm', labelOff: $localize`configure`, title: $localize`Configure LLM settings` },
     ],
-    editorButtons: [{ label: $localize`✨️ AI`, toggle: 'plugin/llm', remember: true, ribbon: true }],
+    editorButtons: [{ label: $localize`✨️`, title: $localize`Configure AI`, toggle: 'plugin/llm', remember: true, ribbon: true }],
     timeoutMs: 300_000,
     language: 'javascript',
     // language=JavaScript
@@ -933,7 +933,7 @@ export const llmSearchPlugin: Plugin = {
     icons: [
       { label: $localize`🌐️`, title: $localize`AI Web Context` },
     ],
-    editorButtons: [{ tag: 'plugin/llm', label: $localize`🔎️ Search`, ribbon: true }],
+    editorButtons: [{ tag: 'plugin/llm', label: $localize`🔎️🌐️`, title: $localize`Web Context`, ribbon: true }],
   }
 };
 
