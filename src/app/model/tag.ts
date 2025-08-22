@@ -240,8 +240,9 @@ export function visible(v: Visibility, isAuthor: boolean, isRecipient: boolean) 
   return false;
 }
 
-export function sortOrder<T extends { order?: number }>(vs: T[]) {
-  return vs.sort((a, b) => (b.order || 0) - (a.order || 0));
+export function sortOrder<T extends { order?: number, toggle?: string, _parent?: Config; }>(vs: T[]) {
+  const getTag = (o: T) => o.toggle || o._parent?.tag || '';
+  return vs.sort((a, b) => a.order === b.order ? getTag(b).localeCompare(getTag(a)) : (b.order || 0) - (a.order || 0));
 }
 
 export function uniqueConfigs<T extends Visibility>(vs: T[]) {
