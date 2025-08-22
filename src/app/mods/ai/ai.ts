@@ -177,7 +177,28 @@ export const aiQueryPlugin: Plugin = {
             config.video = false;
           },
           loadMessage(source, plugins = {}) {
-            return providers['openai'].loadMessage(source, plugins);
+            const message = {};
+            message.content = [{ type: 'text', text: formatMessage(source) }];
+            if (plugins['plugin/audio']) {
+              message.content.push({
+                type: 'input_audio',
+                input_audio: {
+                  data: Buffer.from(plugins['plugin/audio'].data, 'binary').toString('base64'),
+                  format: plugins['plugin/audio'].headers['content-type'] === 'audio/mpeg' ? 'mp3' :
+                    plugins['plugin/audio'].headers['content-type'] === 'audio/wav'  ? 'wav' : 'mp3',
+                }
+              });
+            }
+            if (plugins['plugin/image']) {
+              message.content.push({
+                type: 'image_url',
+                image_url: {
+                  url: 'data:' + plugins['plugin/image'].headers['content-type'] + ';base64,' + Buffer.from(plugins['plugin/image'].data, 'binary').toString('base64'),
+                  detail: 'auto',
+                }
+              });
+            }
+            return message;
           },
           async generate(messages, config) {
             const OpenAi = require('openai');
@@ -186,6 +207,7 @@ export const aiQueryPlugin: Plugin = {
               model: config.model,
               max_completion_tokens: config.maxTokens,
               response_format: !config.json ? undefined : { 'type': 'json_object' },
+              search_parameters: { mode: config.search ? 'on' : 'off' },
               messages,
             });
             return {
@@ -204,9 +226,10 @@ export const aiQueryPlugin: Plugin = {
             config.image = false;
             config.audio = false;
             config.video = false;
+            config.search = false;
           },
           loadMessage(source, plugins = {}) {
-            return providers['openai'].loadMessage(source, plugins);
+            return providers['x'].loadMessage(source, plugins);
           },
           async generate(messages, config) {
             const OpenAi = require('openai');
@@ -232,9 +255,10 @@ export const aiQueryPlugin: Plugin = {
             config.image = false;
             config.audio = false;
             config.video = false;
+            config.search = false;
           },
           loadMessage(source, plugins = {}) {
-            return providers['openai'].loadMessage(source, plugins);
+            return providers['x'].loadMessage(source, plugins);
           },
           async generate(messages, config) {
             const OpenAi = require('openai');
@@ -261,6 +285,7 @@ export const aiQueryPlugin: Plugin = {
             config.image = true;
             config.audio = false;
             config.video = false;
+            if (config.thinking) config.json = false;
           },
           loadMessage(source, plugins = {}) {
             const message = {};
@@ -302,14 +327,28 @@ export const aiQueryPlugin: Plugin = {
                 budget_tokens: config.thinkingTokens,
               }
             } : {};
-            const toolUse = config.json && !config.thinking ? {
-              tools: [{
+            const toolUse = {
+              tools: [],
+            };
+            if (config.search) {
+              toolUse.tools.push({
+                type: 'web_search_20250305',
+                name: 'web_search',
+                max_uses: 10,
+              });
+            }
+            if (config.json) {
+              toolUse.tools.push({
                 name: 'bundle',
                 description: 'JSON responses in bundle format',
-                input_schema: fullBundleSchema,
-              }],
-              tool_choice: { type: 'tool', name: 'bundle' },
-            } : {};
+                input_schema: config.bundle ? fullBundleSchema : bundleSchema,
+              });
+              if (config.search) {
+                toolUse.tool_choice = { type: 'any' };
+              } else {
+                toolUse.tool_choice = { type: 'tool', name: 'bundle' };
+              }
+            }
             const res = await anthropic.messages.create({
               model: config.model,
               max_tokens: config.maxTokens + (config.thinking ? config.thinkingTokens : 0),
@@ -318,11 +357,11 @@ export const aiQueryPlugin: Plugin = {
               ...toolUse,
               messages: messages.filter(m => m.role !== 'system'),
             });
-            const text = res.content.filter(t => t.type === 'text');
-            const tools = res.content.filter(t => t.type === 'tool_use');
+            const text = res.content.filter(t => t.type === 'text').map(t => t.text).join('');
+            const tools = res.content.filter(t => t.type === 'tool_use' && t.name === 'bundle');
             return {
               res,
-              completion: config.json ? JSON.stringify(tools[0]?.input || { comment: text[0]?.text || '' }) : text[0]?.text,
+              completion: config.json ? JSON.stringify(tools[0]?.input || { comment: text|| '' }) : text,
               usage: {
                 'prompt_tokens': res.usage.input_tokens,
                 'completion_tokens': res.usage.output_tokens,
@@ -641,6 +680,7 @@ export const aiQueryPlugin: Plugin = {
       }
       bundle.ref[0] = response;
       delete response.metadata;
+      if (!completionRef.url?.startsWith('ai:')) completionRef.url = 'ai:' + uuid.v4();
       response.title = completionRef.title || '';
       response.comment = completionRef.comment || '';
       response.tags.push('plugin/llm');
@@ -671,9 +711,9 @@ export const aiQueryPlugin: Plugin = {
       response.tags.push(...ref.tags.filter(t => matchesTag('plugin/delta/ai', t)).map(t => '+' + t));
       const uniq = (v, i, a) => a.indexOf(v) === i;
       response.tags = [...response.tags, ...completionRef.tags || [], '+plugin/delta/ai'].filter(uniq).filter(t => t !== '+plugin/placeholder');
-      if (followup && response.tags.find(t => t.startsWith('plugin/delta/ai'))) {
+      if (followup && hasTag('plugin/delta/ai', response)) {
         // Only allow one cycle of follow-ups
-        response.tags = response.tags.filter(t => !t.startsWith('plugin/delta/ai'));
+        response.tags = response.tags.filter(t => !matchesTag('plugin/delta/ai', t));
       }
       response.sources = [...response.sources, ...(completionRef.sources || []).filter(uniq).filter(s => !response.sources.includes(s))];
       // TODO: Allow AI to add some protected tags
