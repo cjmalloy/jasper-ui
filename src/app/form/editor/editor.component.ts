@@ -293,12 +293,12 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
 
   @memo
   get editorRibbons() {
-    return this.editorButtons.filter(b => b.ribbon && this.visible(b)).map(b => this.setButtonOn(b));
+    return sortOrder(this.editorButtons.filter(b => b.ribbon && this.visible(b)).map(b => this.setButtonOn(b)));
   }
 
   @memo
   get editorPushButtons() {
-    return this.editorButtons.filter(b => !b.ribbon && this.visible(b)).map(b => this.setButtonOn(b));
+    return sortOrder(this.editorButtons.filter(b => !b.ribbon && this.visible(b)).map(b => this.setButtonOn(b)));
   }
 
   @memo
