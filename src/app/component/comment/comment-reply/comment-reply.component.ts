@@ -148,7 +148,7 @@ export class CommentReplyComponent implements HasChanges {
       this.comment.enable();
       this.commentForm.reset();
       this.plugins = [];
-      this.editorTags = [];
+      this.editorTags = [...this.tags];
       this.tags = [...this.tags];
       this.editor?.syncText('');
       const update = {
