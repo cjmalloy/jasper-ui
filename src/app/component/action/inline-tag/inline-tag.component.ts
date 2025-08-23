@@ -86,7 +86,7 @@ export class InlineTagComponent extends ActionComponent {
       sort: ['nesting', 'levels'],
       size: 1,
     }).pipe(
-      switchMap(page => forkJoin(page.content.map(x => this.preview$(x.tag + x.origin)))),
+      switchMap(page => page.page.totalElements ? forkJoin(page.content.map(x => this.preview$(x.tag + x.origin))) : of([])),
       map(xs => xs.filter(x => !!x) as { name?: string, tag: string }[]),
     ).subscribe(xs => {
       this.autocomplete = xs.map(x => ({ value: prefix + x.tag, label: x.name || '#' + x.tag }));

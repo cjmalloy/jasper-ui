@@ -5,7 +5,7 @@ import { Router } from '@angular/router';
 import { debounce, defer, some, uniq, without } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { autorun, IReactionDisposer } from 'mobx';
-import { catchError, forkJoin, map, Observable, Subscription, switchMap, throwError } from 'rxjs';
+import { catchError, forkJoin, map, Observable, of, Subscription, switchMap, throwError } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { LinksFormComponent } from '../../../form/links/links.component';
 import { PluginsFormComponent, writePlugins } from '../../../form/plugins/plugins.component';
@@ -209,7 +209,7 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
       search: tag,
       size: 1,
     }).pipe(
-      switchMap(page => forkJoin(page.content.map(x => this.preview$(x.tag + x.origin)))),
+      switchMap(page => page.page.totalElements ? forkJoin(page.content.map(x => this.preview$(x.tag + x.origin))) : of([])),
       map(xs => xs.filter(x => !!x) as { name?: string, tag: string }[]),
     ).subscribe(xs => {
       this.autocomplete = xs.map(x => ({ value: prefix + x.tag, label: x.name || x.tag }));

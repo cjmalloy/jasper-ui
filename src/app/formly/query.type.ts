@@ -2,7 +2,7 @@ import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, O
 import { Router } from '@angular/router';
 import { FieldType, FieldTypeConfig, FormlyConfig } from '@ngx-formly/core';
 import { debounce, defer, delay, uniqBy } from 'lodash-es';
-import { forkJoin, map, Observable, Subscription, switchMap } from 'rxjs';
+import { forkJoin, map, Observable, of, Subscription, switchMap } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { Crumb } from '../component/query/query.component';
 import { Config } from '../model/tag';
@@ -335,7 +335,7 @@ export class FormlyFieldQueryInput extends FieldType<FieldTypeConfig> implements
       sort: ['nesting', 'levels'],
       size: 5,
     }).pipe(
-      switchMap(page => forkJoin(page.content.map(x => this.preview$(x.tag + x.origin)))),
+      switchMap(page => page.page.totalElements ? forkJoin(page.content.map(x => this.preview$(x.tag + x.origin))) : of([])),
       map(xs => xs.filter(x => !!x) as { name?: string, tag: string }[]),
     ).subscribe(xs => {
       this.autocomplete = xs.map(x => ({ value: prefix + x.tag, label: x.name || x.tag }));
