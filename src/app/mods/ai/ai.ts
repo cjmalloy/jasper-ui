@@ -206,7 +206,7 @@ export const aiQueryPlugin: Plugin = {
             const res = await openai.chat.completions.create({
               model: config.model,
               max_completion_tokens: config.maxTokens,
-              response_format: !config.json ? undefined : { 'type': 'json_object' },
+              response_format: { 'type': config.json ? 'json_object' : 'text' },
               search_parameters: { mode: config.search ? 'on' : 'off' },
               messages,
             });
@@ -237,7 +237,7 @@ export const aiQueryPlugin: Plugin = {
             const res = await openai.chat.completions.create({
               model: config.model,
               max_completion_tokens: config.maxTokens,
-              response_format: !config.json ? undefined : { 'type': 'json_object' },
+              response_format: { 'type': config.json ? 'json_object' : 'text' },
               messages,
             });
             return {
@@ -378,6 +378,7 @@ export const aiQueryPlugin: Plugin = {
             config.audio = true;
             config.video = true;
             config.embed = config.url && ['gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.5-flash-lite', 'gemini-live-2.5-flash-preview'].includes(config.model);
+            if (config.search) config.json = false;
           },
           loadMessage(source, plugins = {}) {
             const message = {};
