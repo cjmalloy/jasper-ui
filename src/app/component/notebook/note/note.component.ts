@@ -346,14 +346,14 @@ export class NoteComponent implements OnChanges, AfterViewInit, OnDestroy {
       origin: this.store.account.origin,
       tags,
     };
-    this.refs.create(copied, true).pipe(
+    this.refs.create(copied).pipe(
       catchError((err: HttpErrorResponse) => {
         if (err.status === 409) {
           return this.refs.get(this.ref.url, this.store.account.origin).pipe(
             switchMap(existing => {
               if (equalsRef(existing, copied) || confirm('An old version already exists. Overwrite it?')) {
                 // TODO: Show diff and merge or split
-                return this.refs.update({ ...copied, modifiedString: existing.modifiedString }, true);
+                return this.refs.update({ ...copied, modifiedString: existing.modifiedString });
               } else {
                 return throwError(() => 'Cancelled')
               }

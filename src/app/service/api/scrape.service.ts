@@ -58,9 +58,9 @@ export class ScrapeService {
   }
 
   defaults(): Observable<any> {
-    return this.refs.update({ ...catchAll, origin: this.store.account.origin }, true).pipe(
+    return this.refs.update({ ...catchAll, origin: this.store.account.origin }).pipe(
       catchError(err => {
-        if (err.status === 404) return this.refs.create({ ...catchAll, origin: this.store.account.origin }, true);
+        if (err.status === 404) return this.refs.create({ ...catchAll, origin: this.store.account.origin });
         return throwError(() => err);
       })
     );
