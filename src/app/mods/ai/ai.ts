@@ -872,16 +872,8 @@ export const llmPlugin: Plugin = {
       },
     }, {
       key: 'ignoreThread',
-      type: 'hidden',
-      props: {
-        label: $localize`Ignore thread top:`,
-      },
     }, {
       key: 'json',
-      type: 'hidden',
-      props: {
-        label: $localize`JSON:`,
-      },
     }, {
       key: 'bundle',
       type: 'boolean',
