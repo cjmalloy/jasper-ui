@@ -50,7 +50,7 @@
     "mermaid": "^11.10.1",
     "mobx": "^6.13.7",
     "mobx-angular": "^4.8.0",
-    "monaco-editor": "^0.50.0",
+    "monaco-editor": "^0.52.2",
     "ngx-markdown": "^20.0.0",
     "ngx-monaco-editor": "^12.0.0",
     "qrcode": "^1.5.4",

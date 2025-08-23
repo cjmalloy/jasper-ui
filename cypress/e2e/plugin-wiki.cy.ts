@@ -54,6 +54,11 @@ describe('Wiki Plugin', {
     cy.get('.settings a').contains('settings').click();
     cy.get('.tabs').contains('template').click();
     cy.get('.template.wiki .actions').contains('edit').click();
+    cy.wait(1000); // Warm up monaco editor
+    cy.visit('/?debug=ADMIN');
+    cy.get('.settings a').contains('settings').click();
+    cy.get('.tabs').contains('template').click();
+    cy.get('.template.wiki .actions').contains('edit').click();
     cy.get('button').then($b => {
       if ($b.text().includes('+ Add Config')) $b.click();
     });
