@@ -17,6 +17,7 @@ import {
   ViewChildren
 } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
+import { Router } from '@angular/router';
 import { cloneDeep, defer, delay, groupBy, pick, throttle, uniq, without } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
@@ -156,6 +157,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     private bookmarks: BookmarkService,
     private proxy: ProxyService,
     private ts: TaggingService,
+    private router: Router,
     private fb: UntypedFormBuilder,
     private el: ElementRef<HTMLDivElement>,
     private cd: ChangeDetectorRef,
@@ -1068,6 +1070,9 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
           }),
           tap(() => {
             this.store.submit.removeRef(ref);
+            if (!this.store.submit.refs.length && !this.store.submit.exts.length) {
+              this.router.navigate(['/ref', ref.url]);
+            }
           }),
         )), ref);
   }
