@@ -98,6 +98,8 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   fillWidth?: HTMLElement;
   @Input()
   addPlugins = false;
+  @Input()
+  uploadFiles = false;
 
   @Output()
   syncEditor = new EventEmitter<string>();
@@ -390,7 +392,9 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   }
 
   savePlugin() {
-    this.updateTags([...this.allTags, this.addingPlugin!.tag]);
+    const tags = [this.addingPlugin!.tag];
+    if (['plugin/image', 'plugin/video'].includes(this.addingPlugin!.tag)) tags.push('plugin/thumbnail');
+    this.updateTags(uniq([...this.allTags, ...tags]));
     this.addPlugin.next(this.pluginGroup.value);
     this.refRef?.detach();
     this.refRef?.dispose();
@@ -591,7 +595,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   upload(event: Event, items?: DataTransferItemList) {
     this.dropping = false;
     this.uploading = false;
-    if (!this.addPlugins && !this.admin.getPlugin('plugin/file')) return;
+    if (!this.uploadFiles || !this.admin.getPlugin('plugin/file')) return;
     if (!items) return;
     const files = [] as any;
     for (let i = 0; i < items.length; i++) {
@@ -644,7 +648,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
           [plugin!.tag]: { url },
         });
       }
-      this.updateTags([...this.allTags, ...tags]);
+      this.updateTags(uniq([...this.allTags, ...tags]));
     });
   }
 

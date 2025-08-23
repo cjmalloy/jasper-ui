@@ -216,8 +216,12 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
   }
 
   addSource(value = '') {
-    this.sources.push(this.fb.control(value, LinksFormComponent.validators))
+    this.sources.push(this.fb.control(value, LinksFormComponent.validators));
     this.submitted = false;
+  }
+
+  addPlugin(add: any) {
+    this.plugins.setValue(Object.assign(this.plugins.plugins.value, add));
   }
 
   syncEditor() {

@@ -7,7 +7,8 @@ import { DateTime } from 'luxon';
 import { autorun, IReactionDisposer } from 'mobx';
 import { catchError, forkJoin, map, Observable, Subscription, switchMap, throwError } from 'rxjs';
 import { v4 as uuid } from 'uuid';
-import { writePlugins } from '../../../form/plugins/plugins.component';
+import { LinksFormComponent } from '../../../form/links/links.component';
+import { PluginsFormComponent, writePlugins } from '../../../form/plugins/plugins.component';
 import { TagsFormComponent } from '../../../form/tags/tags.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Plugin } from '../../../model/plugin';
@@ -44,6 +45,8 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
 
   @ViewChild(TagsFormComponent)
   tagsFormComponent?: TagsFormComponent;
+  @ViewChild(PluginsFormComponent)
+  plugins!: PluginsFormComponent;
 
   preview = '';
   editing = false;
@@ -239,6 +242,15 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
 
   get editingViewer() {
     return some(this.admin.editingViewer, (t: Plugin) => hasTag(t.tag, this.tags.value));
+  }
+
+  addSource(value = '') {
+    this.sources.push(this.fb.control(value, LinksFormComponent.validators));
+    this.submitted = false;
+  }
+
+  addPlugin(add: any) {
+    this.plugins.setValue(Object.assign(this.plugins.plugins.value, add));
   }
 
   syncEditor() {

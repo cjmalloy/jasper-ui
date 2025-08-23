@@ -91,7 +91,10 @@
                   [url]="web && url.value"
                   (scrape)="scrapeAll()"
                   (syncEditor)="syncEditor()"
-                  (syncTags)="setTags($event)"></app-editor>
+                  [uploadFiles]="true"
+                  (syncTags)="setTags($event)"
+                  (addPlugin)="addPlugin($event)"
+                  (addSource)="addSource($event)"></app-editor>
     </div>
   }
 
