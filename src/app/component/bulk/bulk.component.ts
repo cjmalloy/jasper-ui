@@ -301,7 +301,7 @@ export class BulkComponent implements OnChanges, OnDestroy {
         copied.plugins['+plugin/origin/tunnel'] = this.store.origins.tunnelLookup.get(ref.origin || '');
       }
       copied.plugins = pick(copied.plugins, tags || []);
-      return this.refs.create(copied, true);
+      return this.refs.create(copied);
     });
   }
 }

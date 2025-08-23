@@ -53,17 +53,10 @@
       <span><!-- Buttons --></span>
       <span class="buttons right">
         @if (invalid) {
-          @if (!force) {
-            <div class="overwrite warning" i18n-title title="Will drop all unknown configs.">
-              <input id="overwrite" type="checkbox" [(ngModel)]="overwrite" [ngModelOptions]="{standalone: true}">
-              <label for="overwrite" i18n>Overwrite</label>
-            </div>
-          } @else {
-            <div class="force error" i18n-title title="Will reset config to defaults.">
-              <input id="force" type="checkbox" [(ngModel)]="force" [ngModelOptions]="{standalone: true}">
-              <label for="force" i18n>Force</label>
-            </div>
-          }
+          <div class="overwrite warning" i18n-title title="Will drop all unknown configs.">
+            <input id="overwrite" type="checkbox" [(ngModel)]="overwrite" [ngModelOptions]="{standalone: true}">
+            <label for="overwrite" i18n>Overwrite</label>
+          </div>
         }
         @if (editing || deleting) {
           <app-loading [inline]="true"></app-loading>

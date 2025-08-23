@@ -57,7 +57,6 @@ export class ExtComponent implements OnChanges, HasChanges {
   submitted = false;
   invalid = false;
   overwrite = true;
-  force = false;
   icons: Template[] = [];
   template?: Template;
   plugin?: Plugin;
@@ -87,7 +86,6 @@ export class ExtComponent implements OnChanges, HasChanges {
     this.submitted = false;
     this.invalid = false;
     this.overwrite = false;
-    this.force = false;
     this.template = this.admin.getTemplate(this.ext.tag);
     this.plugin = this.admin.getPlugin(this.ext.tag);
     this.editing = false;
@@ -186,15 +184,11 @@ export class ExtComponent implements OnChanges, HasChanges {
       this.ext = ext;
       this.store.submit.setExt(this.ext);
     } else {
-      this.exts.update(ext, this.force).pipe(
+      this.exts.update(ext).pipe(
         switchMap(() => this.exts.get(this.qualifiedTag)),
         catchError((res: HttpErrorResponse) => {
           if (res.status === 400) {
-            if (this.invalid) {
-              this.force = true;
-            } else {
-              this.invalid = true;
-            }
+            this.invalid = true;
           }
           this.serverError = printError(res);
           return throwError(() => res);
@@ -208,7 +202,7 @@ export class ExtComponent implements OnChanges, HasChanges {
 
   upload() {
     (this.store.submit.overwrite
-      ? this.exts.update({ ...this.ext, origin: this.store.account.origin }, true)
+      ? this.exts.update({ ...this.ext, origin: this.store.account.origin })
       : this.exts.create({ ...this.ext, origin: this.store.account.origin })).pipe(
       catchError((err: HttpErrorResponse) => {
         this.serverError = printError(err);
@@ -235,7 +229,7 @@ export class ExtComponent implements OnChanges, HasChanges {
             switchMap(ext => {
               if (equalsExt(ext, copied) || confirm('An old version already exists. Overwrite it?')) {
                 // TODO: Show diff and merge or split
-                return this.exts.update(copied, true);
+                return this.exts.update(copied);
               } else {
                 return throwError(() => 'Cancelled')
               }

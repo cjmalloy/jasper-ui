@@ -326,7 +326,7 @@ export class UploadPage implements OnDestroy {
     ref.tags = ref.tags?.filter(t => this.auth.canAddTag(t));
     ref.plugins = pick(ref.plugins, ref.tags || []);
     return (ref.exists
-      ? this.refs.update(ref, true).pipe(
+      ? this.refs.update(ref).pipe(
           catchError((err: HttpErrorResponse) => {
             if (err.status === 404) {
               return this.refs.create(ref);
@@ -341,7 +341,7 @@ export class UploadPage implements OnDestroy {
           if (this.store.submit.overwrite) {
             return this.refs.get(ref.url, this.store.account.origin).pipe(
               switchMap(existing => {
-                return this.refs.update({ ...ref, modifiedString: existing.modifiedString }, true);
+                return this.refs.update({ ...ref, modifiedString: existing.modifiedString });
               }),
             );
           } else {
@@ -369,7 +369,7 @@ export class UploadPage implements OnDestroy {
           if (this.store.submit.overwrite) {
             return this.exts.get(ext.tag + this.store.account.origin).pipe(
               switchMap(existing => {
-                return this.exts.update({ ...ext, modifiedString: existing.modifiedString }, true);
+                return this.exts.update({ ...ext, modifiedString: existing.modifiedString });
               })
             );
           } else {

@@ -83,10 +83,8 @@ export class ExtService {
     );
   }
 
-  create(ext: Ext, force = false): Observable<string> {
-    return this.http.post<string>(this.base, writeExt(ext), {
-      params: !force ? undefined : { force: true },
-    }).pipe(
+  create(ext: Ext): Observable<string> {
+    return this.http.post<string>(this.base, writeExt(ext)).pipe(
       tap(() => this._cache.delete(ext.tag)),
       catchError(err => this.login.handleHttpError(err)),
     );
@@ -176,10 +174,8 @@ export class ExtService {
     );
   }
 
-  update(ext: Ext, force = false): Observable<string> {
-    return this.http.put<string>(this.base, writeExt(ext), {
-      params: !force ? undefined : { force: true },
-    }).pipe(
+  update(ext: Ext): Observable<string> {
+    return this.http.put<string>(this.base, writeExt(ext)).pipe(
       tap(() => this.clearCache(ext.tag, ext.origin)),
       catchError(err => this.login.handleHttpError(err)),
     );

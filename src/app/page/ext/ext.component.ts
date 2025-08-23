@@ -36,7 +36,6 @@ export class ExtPage implements OnInit, OnDestroy, HasChanges {
   submitted = false;
   invalid = false;
   overwrite = false;
-  force = false;
   extForm: UntypedFormGroup;
   editForm!: UntypedFormGroup;
   serverError: string[] = [];
@@ -199,15 +198,11 @@ export class ExtPage implements OnInit, OnDestroy, HasChanges {
         },
       };
     }
-    this.editing = this.exts.update(ext, this.force).pipe(
+    this.editing = this.exts.update(ext).pipe(
       catchError((res: HttpErrorResponse) => {
         delete this.editing;
         if (res.status === 400) {
-          if (this.invalid && this.overwrite) {
-            this.force = true;
-          } else {
-            this.invalid = true;
-          }
+          this.invalid = true;
         }
         this.serverError = printError(res);
         return throwError(() => res);
