@@ -174,6 +174,8 @@ export class UploadPage implements OnDestroy {
           return null;
         }),
         last(),
+        // TODO: Why is initial cursor wrong???
+        switchMap((ref: Ref | null) => this.refs.get(ref!.url, ref!.origin)),
         map((ref: Ref | null) => {
           ref!.title = file.name;
           ref!.tags = uniq([...ref!.tags || [], tag, ...extraTags.filter(t => !!t)]);
