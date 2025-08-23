@@ -5,10 +5,9 @@
     <span><!-- Description --></span>
     <p i18n>
       Upload Refs, Exts, images, audio, video, spreadsheets, bookmarks (XML or HTML), and PDFs.
+      <span>View your <a [routerLink]="['/tag', store.account.tag]" [queryParams]="{ filter: 'query/plugin/file' }">files here</a>.</span>
       @if (store.account.admin) {
-        <span>
-          Visit the <a routerLink="/settings/setup">setup</a> settings page to manage mods.
-        </span>
+        <span>Visit the <a routerLink="/settings/setup">setup</a> settings page to manage mods.</span>
       }
     </p>
 
