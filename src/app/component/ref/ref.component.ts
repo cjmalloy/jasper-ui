@@ -118,8 +118,8 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   editForm: UntypedFormGroup;
   submitted = false;
   invalid = false;
+  overwritten = false;
   overwrite = true;
-  force = false;
   expandPlugins: string[] = [];
   icons: Icon[] = [];
   alarm?: string;
@@ -144,6 +144,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   private refreshTap?: () => void;
   private _editing = false;
   private _viewSource = false;
+  private overwrittenModified? = '';
 
   constructor(
     public config: ConfigService,
@@ -223,8 +224,8 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     this.serverError.length = 0;
     this.submitted = false;
     this.invalid = false;
+    this.overwritten = false;
     this.overwrite = false;
-    this.force = false;
     this.deleted = false;
     this.editing = false;
     this.viewSource = false;
@@ -958,24 +959,23 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
       ...this.editForm.value,
       published,
       plugins: writePlugins(this.editForm.value.tags, this.editForm.value.plugins),
+      modifiedString: this.overwrite ? this.overwrittenModified : this.ref.modifiedString,
     };
-    if (this.ref.upload || !this.invalid || !this.overwrite) {
-      ref = {
-        ...this.ref,
-        ...ref,
-        plugins: writePlugins(this.editForm.value.tags, {
-          ...this.ref.plugins,
-          ...ref.plugins,
-        }),
-      }
-    }
+    ref = {
+      ...this.ref,
+      ...ref,
+      plugins: writePlugins(this.editForm.value.tags, {
+        ...this.ref.plugins,
+        ...ref.plugins,
+      }),
+    };
     if (this.ref.upload) {
       ref.upload = true;
       this.init();
       this.store.submit.setRef(ref);
     } else {
       this.refreshTap = () => this.publishChanged = +published !== +this.ref.published!;
-      this.submitting = this.store.eventBus.runAndReload(this.refs.update(ref, this.force).pipe(
+      this.submitting = this.store.eventBus.runAndReload(this.refs.update(ref).pipe(
         tap(cursor => {
           this.accounts.clearNotificationsIfNone(DateTime.fromISO(cursor));
           delete this.submitting;
@@ -984,11 +984,13 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
         catchError((res: HttpErrorResponse) => {
           delete this.submitting;
           if (res.status === 400) {
-            if (this.invalid) {
-              this.force = true;
-            } else {
-              this.invalid = true;
-            }
+            this.invalid = true;
+            console.log(res.message);
+            // TODO: read res.message to find which fields to delete
+          }
+          if (res.status === 409) {
+            this.overwritten = true;
+            this.refs.get(this.ref.url, this.ref.origin).subscribe(x => this.overwrittenModified = x.modifiedString);
           }
           return throwError(() => res);
         }),
@@ -1017,14 +1019,14 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     if (hasTag('+plugin/origin/tunnel', copied)) {
       copied.plugins['+plugin/origin/tunnel'] = this.store.origins.tunnelLookup.get(this.ref.origin || '');
     }
-    return this.refs.create(copied, true).pipe(
+    return this.refs.create(copied).pipe(
       catchError((err: HttpErrorResponse) => {
         if (err.status === 409) {
           return this.refs.get(this.ref.url, this.store.account.origin).pipe(
             switchMap(existing => {
               if (equalsRef(existing, copied) || confirm('An old version already exists. Overwrite it?')) {
                 // TODO: Show diff and merge or split
-                return this.refs.update({ ...copied, modifiedString: existing.modifiedString }, true);
+                return this.refs.update({ ...copied, modifiedString: existing.modifiedString });
               } else {
                 return throwError(() => 'Cancelled')
               }
@@ -1051,15 +1053,15 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     ref.plugins = pick(ref.plugins, ref.tags || []);
     return this.store.eventBus.runAndReload$(
       (this.store.submit.overwrite
-        ? this.refs.update(ref, true)
-        : this.refs.create(ref, true).pipe(
+        ? this.refs.update(ref)
+        : this.refs.create(ref).pipe(
           catchError((err: HttpErrorResponse) => {
             if (err.status === 409) {
               return this.refs.get(this.ref.url, this.store.account.origin).pipe(
                 switchMap(existing => {
                   if (+existing.modified! === +ref.modified! || equalsRef(existing, ref) || confirm('An old version already exists. Overwrite it?')) {
                     // TODO: Show diff and merge or split
-                    return this.refs.update({ ...ref, modifiedString: existing.modifiedString }, true);
+                    return this.refs.update({ ...ref, modifiedString: existing.modifiedString });
                   } else {
                     return throwError(() => 'Cancelled');
                   }

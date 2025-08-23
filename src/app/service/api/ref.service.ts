@@ -39,10 +39,8 @@ export class RefService {
     return this.config.api + '/api/v1/ref';
   }
 
-  create(ref: Ref, force = false): Observable<string> {
-    return this.http.post<string>(this.base, writeRef(ref), {
-      params: !force ? undefined : { force: true },
-    }).pipe(
+  create(ref: Ref): Observable<string> {
+    return this.http.post<string>(this.base, writeRef(ref)).pipe(
       catchError(err => this.login.handleHttpError(err)),
     );
   }
@@ -124,10 +122,8 @@ export class RefService {
     );
   }
 
-  update(ref: Ref, force = false): Observable<string> {
-    return this.http.put<string>(this.base, writeRef(ref), {
-      params: !force ? undefined : { force: true },
-    }).pipe(
+  update(ref: Ref): Observable<string> {
+    return this.http.put<string>(this.base, writeRef(ref)).pipe(
       catchError(err => this.login.handleHttpError(err)),
     );
   }

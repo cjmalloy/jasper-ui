@@ -101,7 +101,7 @@ export class ProxyService {
   }
 
   defaults(): Observable<any> {
-    return this.refs.update(catchAll, true);
+    return this.refs.update(catchAll);
   }
 
   clearDeleted(origin: string) {
