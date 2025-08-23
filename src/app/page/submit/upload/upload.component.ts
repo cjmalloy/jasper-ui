@@ -309,7 +309,7 @@ export class UploadPage implements OnDestroy {
     return lastValueFrom(concat(...uploads))
       .then(() => {
         if (!this.erroredExts.length && !this.erroredRefs.length) {
-          delay(() => this.postNavigate(), 1000);
+          this.postNavigate();
         }
         this.store.submit.clearUpload(this.erroredRefs, this.erroredExts);
         this.erroredRefs = [];
@@ -427,7 +427,7 @@ export class UploadPage implements OnDestroy {
       return this.router.navigate(['/ref', this.store.submit.refs[0].url]);
     }
     if (this.store.submit.refs.length) {
-      return this.router.navigate(['/tag', '*'], { queryParams: { sort: 'modified,DESC' } });
+      return this.router.navigate(['/tag', this.store.account.tag], { queryParams: { filter: 'query/plugin/file' } });
     }
     return null;
   }
