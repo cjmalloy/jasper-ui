@@ -2589,6 +2589,7 @@ ngx-monaco-editor {
   transition: transform 250ms cubic-bezier(0, 0, 0.2, 1), scale 250ms cubic-bezier(0, 0, 0.2, 1);
 
   &.cdk-drag-preview {
+    overflow: visible;
     font-size: var(--drag-piece-size) !important;
     transform: scale(1.2);
   }
