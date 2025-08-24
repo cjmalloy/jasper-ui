@@ -52,9 +52,6 @@ export class RefFormComponent {
   @ViewChild('fill')
   fill?: ElementRef;
 
-  @ViewChild(PluginsFormComponent)
-  plugins!: PluginsFormComponent;
-
   @HostBinding('class.show-drops')
   dropping = false;
 
@@ -102,10 +99,6 @@ export class RefFormComponent {
 
   addSource(value = '') {
     this.sources.push(this.fb.control(value, LinksFormComponent.validators));
-  }
-
-  addPlugin(add: any) {
-    this.plugins.setValue(Object.assign(this.plugins.plugins.value, add));
   }
 
   setTags(value: string[]) {

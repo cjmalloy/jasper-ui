@@ -220,10 +220,6 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
     this.submitted = false;
   }
 
-  addPlugin(add: any) {
-    this.plugins.setValue(Object.assign(this.plugins.plugins.value, add));
-  }
-
   syncEditor() {
     this.editor.syncEditor(this.fb, this.textForm);
   }

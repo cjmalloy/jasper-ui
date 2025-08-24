@@ -8,7 +8,7 @@ import { autorun, IReactionDisposer } from 'mobx';
 import { catchError, forkJoin, map, Observable, of, Subscription, switchMap, throwError } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { LinksFormComponent } from '../../../form/links/links.component';
-import { PluginsFormComponent, writePlugins } from '../../../form/plugins/plugins.component';
+import { writePlugins } from '../../../form/plugins/plugins.component';
 import { TagsFormComponent } from '../../../form/tags/tags.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Plugin } from '../../../model/plugin';
@@ -45,8 +45,6 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
 
   @ViewChild(TagsFormComponent)
   tagsFormComponent?: TagsFormComponent;
-  @ViewChild(PluginsFormComponent)
-  plugins!: PluginsFormComponent;
 
   preview = '';
   editing = false;
@@ -247,10 +245,6 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
   addSource(value = '') {
     this.sources.push(this.fb.control(value, LinksFormComponent.validators));
     this.submitted = false;
-  }
-
-  addPlugin(add: any) {
-    this.plugins.setValue(Object.assign(this.plugins.plugins.value, add));
   }
 
   syncEditor() {

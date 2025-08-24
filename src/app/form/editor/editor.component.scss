@@ -79,3 +79,13 @@
   visibility: hidden;
   padding-bottom: 0 !important;
 }
+
+input[type=file] {
+  display: none;
+}
+
+app-loading {
+  position: absolute;
+  left: 50%;
+  z-index: 20;
+}

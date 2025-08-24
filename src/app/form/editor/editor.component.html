@@ -26,7 +26,7 @@
                 i18n-title title="Show preview"
                 i18n>📝️</button>
       }
-      @for (button of editorPushButtons; track button; let i = $index) {
+      @for (button of editorPushButtons; track button) {
         @if (button.event) {
           <button type="button"
                   (click)="fireEvent(button.event)"
@@ -63,7 +63,11 @@
         }
       }
     </div>
+    @if (uploading) {
+      <app-loading [batch]="true"></app-loading>
+    }
     <textarea #editor
+              [disabled]="uploading"
               [id]="id"
               [formControl]="control"
               (focusin)="editing = true"
@@ -76,8 +80,8 @@
               [class.dropping]="dropping"
               (dragenter)="dropping = true"
               (dragleave)="dragLeave(editor, $any($event.target))"
-              (drop)="upload($event, $event.dataTransfer?.items)"
-              (paste)="upload($event, $event.clipboardData?.items)"
+              (drop)="drop($event, $event.dataTransfer?.items)"
+              (paste)="drop($event, $event.clipboardData?.items)"
               [appFillWidth]="fillWidth"
               [padding]="padding"
               [appAutofocus]="autoFocus"></textarea>
@@ -96,6 +100,11 @@
     <textarea #hiddenMeasure
               class="measurer"></textarea>
   }
+  <input #fileUpload
+         type="file"
+         accept="*"
+         (change)="upload(fileUpload.files)"
+         multiple/>
 
   <ng-template #help>
     <div class="context-menu" (click)="$event.stopPropagation()">
@@ -105,15 +114,6 @@
       <div (click)="toggleHelp()">
         <a target="_blank" href="https://katex.org/docs/supported.html">LaTeX plugin</a>
       </div>
-    </div>
-  </ng-template>
-  <ng-template #ref>
-    <div class="bubble popup row">
-      <app-form-gen class="stretch"
-                    [promoteAdvanced]="true"
-                    (keydown)="$event.key === 'Enter' && savePlugin() || true"
-                    [plugins]="pluginGroup"
-                    [plugin]="addingPlugin!"></app-form-gen>
     </div>
   </ng-template>
 }

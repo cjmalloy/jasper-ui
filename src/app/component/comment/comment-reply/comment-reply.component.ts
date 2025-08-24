@@ -52,7 +52,6 @@ export class CommentReplyComponent implements HasChanges {
   commentForm: UntypedFormGroup;
   serverError: string[] = [];
   config = this.admin.getPlugin('plugin/comment')?.config || commentPlugin.config!;
-  plugins: any[] = [];
 
   constructor(
     public admin: AdminService,
@@ -81,23 +80,16 @@ export class CommentReplyComponent implements HasChanges {
     return pickBy(this.to.plugins, (data, tag) => hasTag(tag, plugins));
   }
 
-  addPlugin(add: any) {
-    const key = Object.keys(add)[0];
-    this.plugins = this.plugins.filter(p => key !== Object.keys(p)[0]);
-    this.plugins.push(add)
-  }
-
   addSource(add: any) {
     this.editorSources.push(add);
   }
 
   syncTags(tags: string[]) {
     this.editorTags = tags;
-    this.plugins = this.plugins.filter(p => tags.includes(Object.keys(p)[0]));
   }
 
   reply() {
-    if (!this.comment.value && !this.plugins.length) return;
+    if (!this.comment.value) return;
     const url = 'comment:' + uuid();
     const value = this.comment.value || '';
     const inheritedPlugins = this.inheritedPlugins;
@@ -124,7 +116,7 @@ export class CommentReplyComponent implements HasChanges {
       comment: value,
       sources: [...sources, ...this.editorSources],
       tags,
-      plugins: Object.assign(inheritedPlugins, ...this.plugins),
+      plugins: inheritedPlugins,
       published: DateTime.now(),
     };
     this.comment.disable();
@@ -147,7 +139,6 @@ export class CommentReplyComponent implements HasChanges {
       this.serverError = [];
       this.comment.enable();
       this.commentForm.reset();
-      this.plugins = [];
       this.editorTags = [...this.tags];
       this.tags = [...this.tags];
       this.editor?.syncText('');

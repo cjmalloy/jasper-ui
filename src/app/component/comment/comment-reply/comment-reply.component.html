@@ -2,10 +2,7 @@
   <app-editor [control]="comment"
               [createdTags]="tags || []"
               [selectResponseType]="selectResponseType"
-              [addPlugins]="true"
-              [uploadFiles]="true"
               (syncTags)="syncTags($event)"
-              (addPlugin)="addPlugin($event)"
               (addSource)="addSource($event)"
               [autoFocus]="autofocus"></app-editor>
 </form>

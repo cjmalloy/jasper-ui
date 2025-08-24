@@ -1,9 +1,6 @@
 <app-editor [control]="comment"
             [createdTags]="ref.tags || []"
-            [addPlugins]="true"
-            [uploadFiles]="true"
             (syncTags)="editorTags = $event"
-            (addPlugin)="plugins.push($event)"
             (addSource)="sources.push($event)"
             [autoFocus]="true"></app-editor>
 @for (e of serverError; track e) {

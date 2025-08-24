@@ -65,10 +65,8 @@
                     [fillWidth]="fill"
                     (syncEditor)="syncEditor()"
                     [tags]="tags"
-                    [uploadFiles]="true"
                     (syncTags)="setTags($event)"
                     (addSource)="addSource($event)"
-                    (addPlugin)="addPlugin($event)"
                     [autoFocus]="!!store.submit.dmPlugin || !!store.submit.to.length"></app-editor>
       </div>
     }

@@ -14,6 +14,9 @@ export const filePlugin: Plugin = {
     filters: [
       { query: 'plugin/file', label: $localize`💾️️ file`, title: $localize`Uploaded Files`, group: $localize`Plugins 🧰️` },
     ],
+    editorButtons: [
+      { event: 'attach', label: $localize`📎️`, title: $localize`Attach File`, global: true },
+    ],
   },
 };
 
