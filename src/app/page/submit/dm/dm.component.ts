@@ -261,12 +261,14 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
     }
     const url = 'comment:' + uuid();
     const published = this.dmForm.value.published ? DateTime.fromISO(this.dmForm.value.published) : DateTime.now();
+    let sources = [url, ...uniq([url, ...this.store.submit.sources, ...this.dmForm.value.sources])];
+    if (sources.length === 2) sources = [];
     this.submitting = this.refs.create({
       url,
       origin: this.store.account.origin,
       title: this.dmForm.value.title,
       comment: this.dmForm.value.comment,
-      sources: this.store.submit.sources,
+      sources,
       published,
       tags: this.dmForm.value.tags,
       plugins: writePlugins(this.dmForm.value.tags, this.dmForm.value.plugins),
