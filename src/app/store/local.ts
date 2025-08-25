@@ -70,4 +70,12 @@ export class LocalStore {
         ?.filter(k => !!k && !k.startsWith(':') && !k.startsWith('@'))
       || [];
   }
+
+  shownHelpPopup(id: string) {
+    return localStorage.getItem('help:' + id);
+  }
+
+  dismissHelpPopup(id: string) {
+    localStorage.setItem('help:' + id, 'true');
+  }
 }
