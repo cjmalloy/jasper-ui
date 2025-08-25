@@ -188,7 +188,7 @@ export class FilterComponent implements OnChanges, OnDestroy {
       }
       this.pushFilter({
         label: $localize`Origins 🏛️`,
-        filters: this.store.origins.list.map(o => ({ filter: 'query/' + o as UrlFilter,
+        filters: this.store.origins.list.map(o => ({ filter: 'query/' + (o || '*') as UrlFilter,
           label:
             !o ? $localize`✴️ local`
             : o === this.store.account.origin ? $localize`🏛️ ${o}`
