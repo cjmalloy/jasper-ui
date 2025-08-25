@@ -143,7 +143,7 @@ textarea {
   color: var(--tag) !important;
 }
 
-.pinned .link {
+.pinned > .row > .stack > .link {
   :link, :visited, :active {
     color: var(--mod) !important;
   }
@@ -1608,10 +1608,11 @@ formly-field-radio, formly-field-multicheckbox {
 }
 
 .email {
-  .thumbnail, .link {
+  & > .row .thumbnail,
+  & > .row > .stack > .link {
     display: none;
   }
-  .list-item .expand {
+  &.list-item > .embed > .expand {
     border: none;
   }
 }
@@ -1837,7 +1838,7 @@ formly-field-radio, formly-field-multicheckbox {
 .comment {
   margin-left: 10px;
 
-  .voting {
+  & > .row > .voting {
     margin-top: 4px;
     margin-right: 2px;
     font-size: 80%;
@@ -1848,11 +1849,12 @@ formly-field-radio, formly-field-multicheckbox {
     }
   }
 
-  .comment-children {
+  & > .comment-children {
     margin-left: 18px;
   }
 
-  .comment-container {
+  & > .comment-container,
+  & > .row .comment-container {
     padding: 2px;
     border: 1px solid transparent;
     &:focus-visible {
@@ -1860,12 +1862,13 @@ formly-field-radio, formly-field-multicheckbox {
     }
   }
 
-  .comment-body, .row > .comment-container > .actions {
+  & > .row .comment-container > .comment-body,
+  & > .row > .comment-container > .actions {
     padding: 4px;
     margin-left: 20px;
   }
 
-  .collapsed {
+  & > .collapsed {
     font-style: italic;
 
     .comment-expand {
@@ -1873,7 +1876,7 @@ formly-field-radio, formly-field-multicheckbox {
     }
   }
 
-  .info {
+  & > .row > .comment-container > .info {
     .author {
       font-weight: bold;
     }
@@ -1978,12 +1981,12 @@ formly-field-radio, formly-field-multicheckbox {
   color: var(--active) !important;
 }
 
-.ref.parent-ref {
+.ref.parent-ref > .row {
   margin-left: 20px;
-  .thumbnail {
+  & > .thumbnail {
     display: none;
   }
-  .link {
+  & > .stack > .link {
     &:before {
       content: '⤴️';
       font-size: 80%;
@@ -1997,11 +2000,13 @@ formly-field-radio, formly-field-multicheckbox {
       font-size: 70%;
     }
   }
-  .info {
-    font-size: 70%;
-  }
-  .actions {
-    display: none;
+  & > .stack > .link-below > .stack {
+    & > .info {
+      font-size: 70%;
+    }
+    & > .actions {
+      display: none;
+    }
   }
 }
 
