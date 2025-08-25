@@ -1,4 +1,5 @@
 import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Router } from '@angular/router';
 import { defer } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
@@ -28,6 +29,7 @@ export class InboxAllPage implements OnInit, OnDestroy, HasChanges {
     public admin: AdminService,
     public store: Store,
     public query: QueryStore,
+    private router: Router,
   ) {
     mod.setTitle($localize`Inbox: All`);
     store.view.clear(['modified']);
@@ -39,9 +41,12 @@ export class InboxAllPage implements OnInit, OnDestroy, HasChanges {
   }
 
   ngOnInit(): void {
+    if (!this.store.view.filter.length) {
+      this.router.navigate([], { queryParams: { filter: ['query/!(dm)'] }, replaceUrl: true });
+    }
     this.disposers.push(autorun(() => {
       const args = getArgs(
-        '!dm:(' + this.store.account.inboxQuery + ')',
+        this.store.account.inboxQuery,
         this.store.view.sort,
         ['query/!plugin/delete', 'user/!plugin/user/hide', ...this.store.view.filter],
         this.store.view.search,
