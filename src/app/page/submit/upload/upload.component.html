@@ -79,6 +79,11 @@
         <button type="button" (click)="tagAll(tagInput)" i18n>+</button>
       </div>
 
+      @for (c of store.submit.uploads; track c) {
+        <span>Uploading <!-- Uploading --></span>
+        <span>{{ c.name }} <progress class="grow" max="100" [value]="c.progress"></progress></span>
+      }
+
       <span></span>
       <div>
         @if (processing) {

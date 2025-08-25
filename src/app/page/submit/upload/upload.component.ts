@@ -1,7 +1,7 @@
 import { HttpErrorResponse, HttpEventType } from '@angular/common/http';
 import { Component, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
-import { delay, pick, uniq } from 'lodash-es';
+import { pick, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { autorun, IReactionDisposer, runInAction, toJS } from 'mobx';
 import { catchError, concat, last, lastValueFrom, map, of, switchMap, throwError } from 'rxjs';
@@ -20,6 +20,7 @@ import { Store } from '../../../store/store';
 import { downloadSet } from '../../../util/download';
 import { TAGS_REGEX } from '../../../util/format';
 import { printError } from '../../../util/http';
+import { decodeTorrentFile } from '../../../util/torrent';
 import { FilteredModels, filterModels, getModels, getTextFile, unzip, zippedFile } from '../../../util/zip';
 
 @Component({
@@ -79,6 +80,7 @@ export class UploadPage implements OnDestroy {
     const images: File[] = [];
     const pdfs: File[] = [];
     const bookmarks: File[] = [];
+    const torrents: File[] = [];
     const sitemap: File[] = [];
     const texts: File[] = [];
     const cache: File[] = [];
@@ -97,6 +99,8 @@ export class UploadPage implements OnDestroy {
         tables.push(file);
       } else if (!forceCache && file.type.startsWith('text/html')) {
         bookmarks.push(file);
+      } else if (!forceCache && file.type === 'application/x-bittorrent') {
+        torrents.push(file);
       } else if (!forceCache && file.type.startsWith('text/xml') || file.type.startsWith('application/xml')) {
         sitemap.push(file);
       } else {
@@ -116,6 +120,7 @@ export class UploadPage implements OnDestroy {
     }
     // Refs and Exts
     this.read(files);
+    this.readTorrent(torrents, this.store.account.localTag, ...this.store.submit.tags);
     this.readData(texts, this.store.account.localTag, ...this.store.submit.tags);
     this.readSheet(tables, 'plugin/table', this.store.account.localTag, ...this.store.submit.tags);
     this.readBookmarks(bookmarks, this.store.account.localTag, ...this.store.submit.tags);
@@ -231,6 +236,40 @@ export class UploadPage implements OnDestroy {
         published: DateTime.now(),
       }));
       reader.readAsText(file);
+    }
+  }
+
+  readTorrent(files: File[], ...extraTags: string[]) {
+    if (!files) return;
+    for (let i = 0; i < files?.length; i++) {
+      const file = files[i];
+      decodeTorrentFile(file).then(value => {
+        this.proxy.save(file, this.store.account.origin).pipe(
+          map(event => {
+            switch (event.type) {
+              case HttpEventType.Response:
+                return event.body;
+              case HttpEventType.UploadProgress:
+                const percentDone = event.total ? Math.round(100 * event.loaded / event.total) : 0;
+                runInAction(() => {
+                  this.store.submit.caching.set(file, { name: file.name, progress: percentDone });
+                });
+                return null;
+            }
+            return null;
+          }),
+          last(),
+          map((ref: Ref | null): Ref => ({
+            url: 'torrent:' + value.hash,
+            title: file.name,
+            tags: uniq(['plugin/torrent', ...extraTags.filter(t => !!t)]),
+            plugins: { 'plugin/torrent': { url: ref!.url }}
+          })),
+        ).subscribe(ref => runInAction(() => {
+          this.store.submit.caching.delete(file);
+          this.store.submit.addRefs({ ...ref, upload: true });
+        }));
+      });
     }
   }
 
