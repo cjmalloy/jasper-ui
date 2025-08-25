@@ -49,7 +49,7 @@ export class RefErrorsComponent implements HasChanges {
   ) {
     query.clear();
     runInAction(() => store.view.defaultSort = ['published']);
-    if (!this.store.view.filter.length) bookmarks.filters = ['query/' + store.account.origin];
+    if (!this.store.view.filter.length) bookmarks.filters = ['query/' + (store.account.origin || '*')];
   }
 
   saveChanges() {
