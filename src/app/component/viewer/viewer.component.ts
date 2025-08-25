@@ -211,7 +211,7 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
         this.tags = without(this.currentTags, 'plugin/embed');
         this.image = oembed.url;
         this.init();
-      } else {
+      } else if (oembed.width) {
         this.embeds.writeIframe(oembed, i, this.embedWidth)
           .then(() => {
             if (oembed.width! > this.width) {
