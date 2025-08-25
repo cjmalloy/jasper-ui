@@ -287,7 +287,7 @@ export const lockedTemplate: Template = {
       { query: '!locked', label: $localize`🔓️ unlocked`, title: $localize`Unlocked`, group: $localize`Filters 🕵️️` },
     ],
     editorButtons: [
-      { labelOff: $localize`🔓️`, labelOn: $localize`🔒️`, title: $localize`Lock this post to prevent editing`, ribbon: true, order: -1, global: true },
+      { labelOff: $localize`🔓️`, labelOn: $localize`🔒️`, title: $localize`Lock this post to prevent editing`, ribbon: true, order: 100, global: true },
     ],
   },
 };

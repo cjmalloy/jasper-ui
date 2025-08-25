@@ -85,7 +85,7 @@ import { Store } from '../store/store';
 import { modId } from '../util/format';
 import { getExtension, getHost } from '../util/http';
 import { memo, MemoCache } from '../util/memo';
-import { addHierarchicalTags, hasPrefix, hasTag, tagIntersection } from '../util/tag';
+import { addHierarchicalTags, hasPrefix, hasTag, tagIntersection, test } from '../util/tag';
 import { ExtService } from './api/ext.service';
 import { PluginService } from './api/plugin.service';
 import { RefService } from './api/ref.service';
@@ -684,7 +684,7 @@ export class AdminService {
       .flatMap(config => config.config!.editorButtons!.filter(b => {
         if (b.global) return true;
         if (b.scheme && b.scheme === scheme) return true;
-        return hasTag(b.tag || config.tag, match);
+        return test(b.query || config.tag, match);
       }).map(addParent(config))
         .map(b => {
           if (b.ribbon || !b.event) b.toggle ||= config.tag;

@@ -22,11 +22,9 @@ import { NavigationEnd, Router } from '@angular/router';
 import Europa from 'europa';
 import { debounce, defer, delay, sortedLastIndex, throttle, uniq, without } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
-import { catchError, concat, filter, forkJoin, last, map, of, Subject, switchMap, takeUntil } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { catchError, filter, forkJoin, last, map, of, Subject, switchMap, takeUntil } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { MdComponent } from '../../component/md/md.component';
-import { Plugin } from '../../model/plugin';
 import { Ref } from '../../model/ref';
 import { EditorButton, sortOrder } from '../../model/tag';
 import { AccountService } from '../../service/account.service';
@@ -37,7 +35,7 @@ import { AuthzService } from '../../service/authz.service';
 import { Store } from '../../store/store';
 import { readFileAsDataURL } from '../../util/async';
 import { memo, MemoCache } from '../../util/memo';
-import { hasTag } from '../../util/tag';
+import { expandedTagsInclude, hasTag, test } from '../../util/tag';
 
 @Component({
   standalone: false,
@@ -357,16 +355,16 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
 
   toggleTag(button: EditorButton) {
     if (button.event) this.fireEvent(button.event);
-    const tag = button.toggle!;
-    if (hasTag(tag, this.allTags)) {
-      this.updateTags(without(this.allTags, tag));
+    const toggle = button.toggle!;
+    if (hasTag(toggle, this.allTags)) {
+      this.updateTags(this.allTags.filter(t => !expandedTagsInclude(t, toggle)));
       if (button.remember && this.admin.getTemplate('user')) {
-        this.accounts.removeConfigArray$('editors', tag).subscribe();
+        this.accounts.removeConfigArray$('editors', toggle).subscribe();
       }
-    } else if (tag !== 'locked' || confirm($localize`Locking is permanent once saved. Are you sure you want to lock?`)) {
-      this.updateTags([...this.allTags, tag]);
+    } else if (toggle !== 'locked' || confirm($localize`Locking is permanent once saved. Are you sure you want to lock?`)) {
+      this.updateTags([...this.allTags, toggle]);
       if (button.remember && this.admin.getTemplate('user')) {
-        this.accounts.addConfigArray$('editors', tag).subscribe();
+        this.accounts.addConfigArray$('editors', toggle).subscribe();
       }
     }
     if ('vibrate' in navigator) navigator.vibrate([2, 8, 8]);
@@ -535,7 +533,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
     if (button.scheme && button.scheme !== this.scheme) return false;
     if (button.toggle && !this.auth.canAddTag(button.toggle)) return false;
     if (button.global) return true;
-    return hasTag(button.tag || button._parent!.tag, this.allTags);
+    return test(button.query || button._parent!.tag, this.allTags);
   }
 
   fireEvent(event: string) {

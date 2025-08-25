@@ -22,7 +22,7 @@ export function level(tag: string) {
 export function captures(selector: string, target: string): boolean {
   const [sTag, sOrigin] = decompose(selector);
   const [tTag, tOrigin] = decompose(target);
-  if (sTag && !hasPrefix(target, selector)) return false;
+  if (sTag && !expandedTagsInclude(sTag, tTag)) return false;
   return sOrigin === '@*' || sOrigin === tOrigin;
 }
 
@@ -77,6 +77,24 @@ export function hasTag(tag: string | undefined, ref: Ref | string[] | undefined)
   const not = tag.startsWith('!');
   if (not) tag = tag.substring(1);
   return !!find(tags, t => expandedTagsInclude(t, tag)) !== not;
+}
+
+export function test(query: string, ref: Ref | string[] | undefined) {
+  if (!query) return false;
+  const tags = isArray(ref) ? ref : ref?.tags;
+  if (!tags) return false;
+  if (query.includes('(') || query.includes(':') && query.includes('|')) {
+    // TODO: Parse query
+    console.error('Query parsing not implemented.');
+    return false;
+  }
+  if (query.includes('|')) {
+    return query.split('|').find(s => tags.find(t => expandedTagsInclude(s, t)));
+  }
+  if (query.includes(':')) {
+    return !query.split(':').find(s => !tags.find(t => captures(s, t)));
+  }
+  return tags.find(t => captures(query, t));
 }
 
 export function hasAnyResponse(plugin: string | undefined, ref: Ref | undefined): boolean {

@@ -17,7 +17,13 @@ export const naviQueryPlugin: Plugin = {
     description: $localize`Send this Ref to the ai for response.`,
     icons: [{ thumbnail: $localize`💭️`, order: -1 }],
     advancedActions: [
-      { tag: 'plugin/delta/ai/navi', labelOff: $localize`ask navi`, global: true }
+      { tag: 'plugin/delta/ai/navi', labelOff: $localize`ask navi`, global: true },
+      { tag: 'plugin/llm', labelOff: $localize`configure`, title: $localize`Configure AI` },
+    ],
+    editorButtons: [
+      { ribbon: true, order: -3, label: $localize`👻️💭️`, title: $localize`Ask Navi`, query: 'plugin/delta/ai/navi|plugin/thread|plugin/comment' },
+      { ribbon: true, order: -2, label: $localize`✨️`,   title: $localize`Configure AI`, toggle: 'plugin/llm', remember: true },
+      { ribbon: true, order: -1, label: $localize`🔎️🌐️`, title: $localize`Web Context`, toggle: 'plugin/llm/search', query: 'plugin/delta/ai/navi:plugin/llm' },
     ],
     timeoutMs: 30_000,
     language: 'javascript',
