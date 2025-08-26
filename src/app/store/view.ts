@@ -85,14 +85,14 @@ export class ViewStore {
     this.defaultSearchSort = defaultSearchSort;
   }
 
-  clearRef() {
-    if (this.ref) this.lastSelected = this.ref;
+  clearRef(ref?: Ref) {
+    if (this.ref && (!ref || ref.url !== this.ref?.url)) this.lastSelected = this.ref;
     this.ref = undefined;
     this.top = undefined;
   }
 
   setRef(ref?: Ref, top?: Ref) {
-    this.clearRef();
+    this.clearRef(ref);
     this.ref = ref;
     this.top = top;
     this.versions = 0;
@@ -102,6 +102,7 @@ export class ViewStore {
   }
 
   preloadRef(ref: Ref, topRef?: Ref) {
+    this.clearRef(ref);
     if (ref?.created) this.ref = ref;
     if (topRef || top(ref) !== this.top?.url) this.top = topRef;
   }
