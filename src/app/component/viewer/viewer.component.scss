@@ -15,6 +15,9 @@ iframe {
 }
 
 .embed-container {
+  iframe {
+    display: block !important;
+  }
   &.twitter {
     overflow: hidden;
     iframe {

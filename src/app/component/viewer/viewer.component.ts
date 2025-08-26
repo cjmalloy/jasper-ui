@@ -197,21 +197,16 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
   }
 
   set oembed(oembed: Oembed | null) {
-    if (!this.iframe) {
-      defer(() => this.oembed = oembed);
-      return;
-    }
     if (isEqual(this._oembed, oembed)) return;
-    this._oembed = oembed!;
-    MemoCache.clear(this);
-    const i = this.iframe.nativeElement;
-    if (oembed) {
-      if (oembed.url && oembed.type === 'photo') {
-        // Image embed
-        this.tags = without(this.currentTags, 'plugin/embed');
-        this.image = oembed.url;
-        this.init();
-      } else if (oembed.width) {
+    this._oembed = oembed || undefined;
+    if (oembed?.url && oembed?.type === 'photo') {
+      // Image embed
+      this.tags = without(this.currentTags, 'plugin/embed');
+      this.image = oembed.url;
+      MemoCache.clear(this);
+    } else if (this.iframe) {
+      const i = this.iframe.nativeElement;
+      if (oembed) {
         this.embeds.writeIframe(oembed, i, this.embedWidth)
           .then(() => {
             if (oembed.width! > this.width) {
@@ -225,12 +220,15 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
             }
             this.embedReady = true;
           });
+      } else {
+        i.src = this.embed?.url || this.ref?.url;
+        i.style.width = this.embedWidth;
+        i.style.height = this.embedHeight;
+        this.embedReady = true;
       }
     } else {
-      this.embedReady = true;
-      i.src = this.embed?.url || this.ref?.url;
-      i.style.width = this.embedWidth;
-      i.style.height = this.embedHeight;
+      delete this._oembed;
+      defer(() => this.oembed = oembed);
     }
   }
 
@@ -323,6 +321,11 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
       return '100vh';
     }
     return '67vh';
+  }
+
+  @memo
+  get embedIframe() {
+    return hasTag('plugin/embed', this.currentTags);
   }
 
   @memo

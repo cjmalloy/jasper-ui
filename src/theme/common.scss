@@ -2060,7 +2060,7 @@ formly-field-radio, formly-field-multicheckbox {
     display: none;
   }
 
-  &.inline-embed {
+  &.inline-embed, &.embed-container {
     height: 600px;
   }
 }
