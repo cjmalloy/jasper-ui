@@ -215,7 +215,7 @@ export const aiQueryPlugin: Plugin = {
         },
         nous: {
           init(config) {
-            config.model ||= 'DeepHermes-3-Llama-3-8B-Preview';
+            config.model ||= 'Hermes-4-405B';
             config.maxTokens ||= 4096;
             config.thinking = false;
             config.pdf = false;
