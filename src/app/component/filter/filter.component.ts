@@ -1,6 +1,15 @@
-import { Component, ElementRef, Input, OnChanges, OnDestroy, SimpleChanges, ViewChild } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  HostListener,
+  Input,
+  OnChanges,
+  OnDestroy,
+  SimpleChanges,
+  ViewChild
+} from '@angular/core';
 import { Router } from '@angular/router';
-import { filter, find, pullAll, uniq } from 'lodash-es';
+import { delay, filter, find, pullAll, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { autorun, IReactionDisposer, toJS } from 'mobx';
 import { Ext } from '../../model/ext';
@@ -349,26 +358,24 @@ export class FilterComponent implements OnChanges, OnDestroy {
     this.setFilters();
   }
 
-  setModified(index: number, before: boolean, isoDate: string) {
-    this.filters[index] = `modified/${before ? 'before' : 'after'}/${isoDate}`;
-    this.sync();
-    this.setFilters();
+  lastFocused = false;
+  hasFocus() {
+    return this.lastFocused;
+  }
+  focus() {
+    this.lastFocused = true;
+    return true;
+  }
+  clearFocus() {
+    this.lastFocused = false;
+    return true;
   }
 
-  setResponse(index: number, before: boolean, isoDate: string) {
-    this.filters[index] = `response/${before ? 'before' : 'after'}/${isoDate}`;
-    this.sync();
-    this.setFilters();
-  }
-
-  setPublished(index: number, before: boolean, isoDate: string) {
-    this.filters[index] = `published/${before ? 'before' : 'after'}/${isoDate}`;
-    this.sync();
-    this.setFilters();
-  }
-
-  setCreated(index: number, before: boolean, isoDate: string) {
-    this.filters[index] = `created/${before ? 'before' : 'after'}/${isoDate}`;
+  set(index: number, filter: UrlFilter, isoDate: string) {
+    this.clearFocus();
+    if (!isoDate) return;
+    // @ts-ignore
+    this.filters[index] = filter.substring(0, filter.lastIndexOf('/') + 1) + isoDate;
     this.sync();
     this.setFilters();
   }
@@ -388,7 +395,7 @@ export class FilterComponent implements OnChanges, OnDestroy {
 
   toDate(filter: string) {
     if (filter.includes('/')) filter = filter.substring(filter.lastIndexOf('/') + 1);
-    return DateTime.fromISO(filter).toFormat("YYYY-MM-DD'T'TT");
+    return DateTime.fromISO(filter).toFormat("yyyy-MM-dd'T'T");
   }
 
 }
