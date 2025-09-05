@@ -174,10 +174,11 @@ export class EmbedService {
       start: (src: string) => src.match(/#/)?.index,
       tokenizer(src: string, tokens: any): any {
         const rule = /^#([+_]?[a-z0-9]+([./][a-z0-9]+)*)/;
-        const notNumber = /[a-z]/;
-        const match = notNumber.exec(src) && rule.exec(src);
+        const match = rule.exec(src);
         if (match) {
           const text = match[0];
+          // Don't link simple numbers
+          if (/^#[0-9]+$/.exec(text)) return undefined;
           return {
             type: 'hashTag',
             href: '/tag/' + match[1],
