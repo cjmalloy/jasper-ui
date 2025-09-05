@@ -78,7 +78,7 @@
     "@types/uuid": "^10.0.0",
     "cypress": "^15.1.0",
     "cypress-mochawesome-reporter": "^4.0.2",
-    "cypress-real-events": "^1.14.0",
+    "cypress-real-events": "^1.15.0",
     "jasmine-core": "~5.10.0",
     "karma": "~6.4.4",
     "karma-chrome-launcher": "~3.2.0",
