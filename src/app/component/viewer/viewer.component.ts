@@ -37,6 +37,8 @@ import { memo, MemoCache } from '../../util/memo';
 import { UrlFilter } from '../../util/query';
 import { hasPrefix, hasTag } from '../../util/tag';
 
+export const IFRAME_SANDBOX = 'allow-scripts allow-forms allow-modals allow-orientation-lock allow-pointer-lock allow-popups allow-presentation allow-top-navigation-by-user-activation';
+
 @Component({
   standalone: false,
   selector: 'app-viewer',
@@ -221,7 +223,13 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
             this.embedReady = true;
           });
       } else {
-        i.src = this.embed?.url || this.ref?.url;
+        // @ts-ignore
+        const l = new URL(window.location);
+        const url = new URL(this.embed?.url || this.ref?.url);
+        if (url.protocol === l.protocol && url.host === l.host && url.port === l.port) {
+          i.sandbox = IFRAME_SANDBOX;
+        }
+        i.src = url.toString();
         i.style.width = this.embedWidth;
         i.style.height = this.embedHeight;
         this.embedReady = true;
