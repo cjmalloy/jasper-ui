@@ -20,7 +20,7 @@ import {
 import { FormBuilder, UntypedFormArray, UntypedFormControl } from '@angular/forms';
 import { NavigationEnd, Router } from '@angular/router';
 import Europa from 'europa';
-import { debounce, defer, delay, sortedLastIndex, throttle, uniq, without } from 'lodash-es';
+import { debounce, defer, delay, intersection, sortedLastIndex, throttle, uniq, without } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import { catchError, filter, forkJoin, last, map, of, Subject, switchMap, takeUntil } from 'rxjs';
 import { v4 as uuid } from 'uuid';
@@ -291,7 +291,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   @memo
   get initTags() {
     return [
-      ...without(this.store.account.defaultEditors(this.editors), ...this.allTags),
+      ...without(intersection(this.store.account.defaultEditors(this.editors), this.editorButtons.filter(b => this.visible(b)).map(b => b.toggle!)), ...this.allTags),
       ...this.allTags,
     ];
   }
