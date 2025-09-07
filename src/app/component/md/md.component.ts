@@ -1,5 +1,6 @@
 import { Component, ElementRef, Input, Output } from '@angular/core';
-import { defer } from 'lodash-es';
+import { MermaidConfig } from 'mermaid';
+import { MermaidAPI } from 'ngx-markdown';
 import { Subject } from 'rxjs';
 import * as XLSX from 'xlsx';
 import { AdminService } from '../../service/admin.service';
@@ -28,6 +29,9 @@ export class MdComponent {
       {left: "$$", right: "$$", display: true},
       {left: "$", right: "$", display: false},
     ],
+  };
+  mermaidOptions: MermaidConfig & MermaidAPI.MermaidConfig = {
+    theme: this.store.darkTheme ? 'dark' : 'default',
   };
 
   private _text = '';
@@ -60,10 +64,6 @@ export class MdComponent {
       }
     }
     return this._value = this._text;
-  }
-
-  onReady() {
-    defer(() => this.postProcessMarkdown.next());
   }
 
 }

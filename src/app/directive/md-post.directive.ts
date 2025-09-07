@@ -52,11 +52,11 @@ export class MdPostDirective implements OnInit, OnDestroy, Embed {
   }
 
   postProcess() {
-    defer(() => this.embeds.postProcess(
+    this.embeds.postProcess(
       <HTMLDivElement>this.viewContainerRef.element.nativeElement,
       this,
       (type, el, fn) => this.event(type, el, fn),
-      this.origin));
+      this.origin);
   }
 
   createLink(url: string, text: string, title = '', css = ''): ComponentRef<NavComponent> {
