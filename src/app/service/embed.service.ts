@@ -3,7 +3,7 @@ import { escape, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { marked, Token, Tokens, TokensList } from 'marked';
 import { MarkdownService, MarkedRenderer } from 'ngx-markdown';
-import { catchError, forkJoin, map, Observable, of } from 'rxjs';
+import { catchError, forkJoin, map, Observable, of, Subscription, switchMap } from 'rxjs';
 import { Ext } from '../model/ext';
 import { Oembed } from '../model/oembed';
 import { Page } from '../model/page';
@@ -348,6 +348,7 @@ export class EmbedService {
    * @param origin origin to append to user links without existing origins
    */
   postProcess(el: HTMLDivElement, embed: Embed, event: (type: string, el: Element, fn: () => void) => void, origin = '') {
+    const subscriptions: Subscription[] = [];
     const lookup = this.store.origins.originMap.get(origin || '');
     const userTags = el.querySelectorAll<HTMLAnchorElement>('.user.tag');
     userTags.forEach(t => {
@@ -426,7 +427,7 @@ export class EmbedService {
     const inlineRefs = el.querySelectorAll<HTMLAnchorElement>('.inline-ref');
     inlineRefs.forEach(t => {
       const url = t.innerText;
-      this.refs.getCurrent(this.editor.getRefUrl(url)).pipe(
+      subscriptions.push(this.refs.getCurrent(this.editor.getRefUrl(url)).pipe(
         catchError(() => of(null)),
       ).subscribe(ref => {
         if (ref) {
@@ -438,7 +439,7 @@ export class EmbedService {
           t.parentNode?.insertBefore(el, t);
         }
         t.remove();
-      });
+      }));
     });
     const embedRefs = el.querySelectorAll<HTMLAnchorElement>('.inline-embed');
     embedRefs.forEach(t => {
@@ -446,47 +447,50 @@ export class EmbedService {
       const title = t.title;
       const type = this.editor.getUrlType(url);
       if (type === 'tag') {
-        this.loadQuery$(t.innerText).subscribe(({params, page, ext}) => {
+        subscriptions.push(this.loadQuery$(t.innerText).subscribe(({params, page, ext}) => {
           const c = embed.createLens(params, page, this.editor.getQuery(t.innerText), ext);
           if (title) c.location.nativeElement.title = title;
           t.parentNode?.insertBefore(c.location.nativeElement, t);
           t.remove();
-        });
+        }));
       } else {
-        this.refs.getCurrent(this.editor.getRefUrl(url)).pipe(
+        subscriptions.push(this.refs.getCurrent(this.editor.getRefUrl(url)).pipe(
           catchError(() => of(null)),
-        ).subscribe(ref => {
-          const expandPlugins = this.admin.getEmbeds(ref);
-          if (ref?.comment || expandPlugins.length) {
-            const c = embed.createEmbed(ref!, expandPlugins);
-            if (title) c.location.nativeElement.title = title;
-            t.parentNode?.insertBefore(c.location.nativeElement, t);
-            t.remove();
-          } else {
-            const embeds = this.admin.getPluginsForUrl(url);
-            if (embeds.length) {
-              const c = embed.createEmbed(url, embeds.map(p => p.tag));
+          switchMap(ref => {
+            const expandPlugins = this.admin.getEmbeds(ref);
+            if (ref?.comment || expandPlugins.length) {
+              const c = embed.createEmbed(ref!, expandPlugins);
               if (title) c.location.nativeElement.title = title;
               t.parentNode?.insertBefore(c.location.nativeElement, t);
               t.remove();
-            } else if (url.startsWith('/ref/')) {
-              el = document.createElement('div');
-              el.innerHTML = `<span class="error">Ref ${escape(url)} not found and could not embed directly.</span>`;
-              t.parentNode?.insertBefore(el, t);
-              t.remove();
             } else {
-              this.oembeds.get(url, this.store.darkTheme ? 'dark' : undefined)
-                .pipe(catchError(() => of(null)))
-                .subscribe(oembed => {
-                  const expandPlugins = oembed ? ['plugin/embed'] : ['plugin/image'];
-                  const c = embed.createEmbed(url, expandPlugins);
-                  c.location.nativeElement.title = t.title;
-                  t.parentNode?.insertBefore(c.location.nativeElement, t);
-                  t.remove();
-                });
+              const embeds = this.admin.getPluginsForUrl(url);
+              if (embeds.length) {
+                const c = embed.createEmbed(url, embeds.map(p => p.tag));
+                if (title) c.location.nativeElement.title = title;
+                t.parentNode?.insertBefore(c.location.nativeElement, t);
+                t.remove();
+              } else if (url.startsWith('/ref/')) {
+                el = document.createElement('div');
+                el.innerHTML = `<span class="error">Ref ${escape(url)} not found and could not embed directly.</span>`;
+                t.parentNode?.insertBefore(el, t);
+                t.remove();
+              } else {
+                return this.oembeds.get(url, this.store.darkTheme ? 'dark' : undefined).pipe(
+                  catchError(() => of(null)),
+                  map(oembed => {
+                    const expandPlugins = oembed ? ['plugin/embed'] : ['plugin/image'];
+                    const c = embed.createEmbed(url, expandPlugins);
+                    c.location.nativeElement.title = t.title;
+                    t.parentNode?.insertBefore(c.location.nativeElement, t);
+                    t.remove();
+                  }),
+                );
+              }
             }
-          }
-        });
+            return of(null);
+          }),
+        ).subscribe());
       }
     });
     const toggleFaces = '<span class="toggle-plus">＋</span><span class="toggle-x" style="display: none">✕</span>';
@@ -516,7 +520,7 @@ export class EmbedService {
           const url = t.title!;
           const type = this.editor.getUrlType(url);
           if (type === 'ref') {
-            this.refs.getCurrent(this.editor.getRefUrl(url)).pipe(
+            subscriptions.push(this.refs.getCurrent(this.editor.getRefUrl(url)).pipe(
               catchError(() => of(null)),
             ).subscribe(ref => {
               if (ref) {
@@ -529,14 +533,14 @@ export class EmbedService {
               }
               // @ts-ignore
               t.expanded = !t.expanded;
-            });
+            }));
           } else if (type === 'tag') {
-            this.loadQuery$(url).subscribe(({params, page, ext}) => {
+            subscriptions.push(this.loadQuery$(url).subscribe(({params, page, ext}) => {
               const c = embed.createLens(params, page, this.editor.getQuery(url), ext);
               t.parentNode?.insertBefore(c.location.nativeElement, t.nextSibling);
               // @ts-ignore
               t.expanded = !t.expanded;
-            });
+            }));
           }
         }
       });
@@ -578,14 +582,14 @@ export class EmbedService {
           } else {
             const type = this.editor.getUrlType(url);
             if (type === 'tag') {
-              this.loadQuery$(url).subscribe(({params, page, ext}) => {
+              subscriptions.push(this.loadQuery$(url).subscribe(({params, page, ext}) => {
                 const c = embed.createLens(params, page, this.editor.getQuery(url), ext);
                 t.parentNode?.insertBefore(c.location.nativeElement, t.nextSibling);
                 // @ts-ignore
                 t.expanded = !t.expanded;
-              });
+              }));
             } else {
-              this.refs.getCurrent(this.editor.getRefUrl(url)).pipe(
+              subscriptions.push(this.refs.getCurrent(this.editor.getRefUrl(url)).pipe(
                 catchError(() => of(null)),
               ).subscribe(ref => {
                 if (ref) {
@@ -605,7 +609,7 @@ export class EmbedService {
                 }
                 // @ts-ignore
                 t.expanded = !t.expanded;
-              });
+              }));
             }
           }
         }
@@ -623,6 +627,7 @@ export class EmbedService {
       t.parentNode?.insertBefore(c.location.nativeElement, t);
       t.remove();
     });
+    return () => subscriptions.forEach(s => s.unsubscribe());
   }
 
   private get iframeBg() {

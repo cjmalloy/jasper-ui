@@ -1,5 +1,5 @@
 import { ComponentRef, Directive, Inject, Input, OnDestroy, OnInit, ViewContainerRef } from '@angular/core';
-import { defer, flatten, isString, uniq } from 'lodash-es';
+import { flatten, isString, uniq } from 'lodash-es';
 import { Subject } from 'rxjs';
 import { CommentComponent } from '../component/comment/comment.component';
 import { LensComponent } from '../component/lens/lens.component';
@@ -23,9 +23,12 @@ export class MdPostDirective implements OnInit, OnDestroy, Embed {
   @Input('appMdPost')
   load?: Subject<void> | string;
   @Input()
+  data? = '';
+  @Input()
   origin? = '';
 
   private subscriptions: (() => void)[] = [];
+  private lastData = '';
 
   constructor(
     private admin: AdminService,
@@ -52,11 +55,13 @@ export class MdPostDirective implements OnInit, OnDestroy, Embed {
   }
 
   postProcess() {
-    this.embeds.postProcess(
+    if (this.data === this.lastData) return;
+    this.ngOnDestroy();
+    this.subscriptions.push(this.embeds.postProcess(
       <HTMLDivElement>this.viewContainerRef.element.nativeElement,
       this,
       (type, el, fn) => this.event(type, el, fn),
-      this.origin);
+      this.origin));
   }
 
   createLink(url: string, text: string, title = '', css = ''): ComponentRef<NavComponent> {
