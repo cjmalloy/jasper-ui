@@ -208,16 +208,21 @@ export class EditorService {
   getTagPreview(tag: string, defaultOrigin = '', returnDefault = true, loadTemplates = true, loadPlugins = true): Observable<{ name?: string, tag: string } | undefined> {
     return this.exts.getCachedExt(tag, defaultOrigin).pipe(
       switchMap(x => {
+        const localExists = x.modified && x.origin === (defaultOrigin || this.store.account.origin);
         if (loadTemplates) {
           const templates = this.admin.getTemplates(x.tag).filter(t => t.tag);
           if (templates.length) {
             const longestMatch = templates[templates.length - 1];
+            if (!localExists) {
+              if (x.tag === '+user') return of({ ...x, name: (longestMatch.config?.view || longestMatch.name || longestMatch.tag) + ' / ' + $localize`⚓️ Root` });
+              if (x.tag === '_user') return of({ ...x, name: (longestMatch.config?.view || longestMatch.name || longestMatch.tag) + ' / ' + $localize`🥷 Root` });
+            }
             if (x.tag === longestMatch.tag) return of(longestMatch);
             const childTag = removePrefix(x.tag, longestMatch.tag.split('/').length);
             return of({ tag: x.tag, name: (longestMatch.config?.view || longestMatch.name || longestMatch.tag) + ' / ' + (x.name || childTag) });
           }
         }
-        if (x.modified && x.origin === (defaultOrigin || this.store.account.origin)) return of(x);
+        if (localExists) return of(x);
         const plugin = this.admin.getPlugin(x.tag);
         if (loadPlugins) {
           if (plugin) return of(plugin);
