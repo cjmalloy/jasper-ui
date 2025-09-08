@@ -3,11 +3,19 @@
           (click)="addComment()"
           [title]="addCommentTitle">{{ addCommentLabel }}</button>
 } @else {
+  @if (tags && plugins) {
+    <app-form-plugins id="plugins"
+                      (togglePlugin)="togglePlugin($event)"
+                      [tags]="tags"
+                      [plugins]="plugins"
+                      [hideIfEmpty]="true"
+                      [hideIcons]="true"></app-form-plugins>
+  }
   <div class="text-wrapper">
     <div class="toolbar">
       <button type="button"
               (click)="toggleFullscreen()"
-              i18n-title title="Fullscreen editor"
+              i18n-title title="Fullscreen"
               i18n>⛶</button>
       <button #helpButton
               type="button"

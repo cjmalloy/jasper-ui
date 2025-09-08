@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { AfterViewInit, Component, Input, OnDestroy } from '@angular/core';
-import { FormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
+import { FormBuilder, UntypedFormArray, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { uniq, without } from 'lodash-es';
 import { catchError, Subject, Subscription, switchMap, takeUntil, throwError } from 'rxjs';
 import { HasChanges } from '../../../guard/pending-changes.guard';
@@ -29,7 +29,11 @@ export class CommentEditComponent implements AfterViewInit, HasChanges, OnDestro
   commentEdited$!: Subject<Ref>;
 
   editing?: Subscription;
-  commentForm: UntypedFormGroup;
+  commentForm = this.fb.group({
+    comment: [''],
+    tags: this.fb.array([]),
+    plugins: this.fb.group({}),
+  });
   editorTags: string[] = [];
   sources: string[] = [];
 
@@ -37,11 +41,7 @@ export class CommentEditComponent implements AfterViewInit, HasChanges, OnDestro
     private store: Store,
     private refs: RefService,
     private fb: FormBuilder,
-  ) {
-    this.commentForm = fb.group({
-      comment: [''],
-    });
-  }
+  ) { }
 
   saveChanges() {
     return !this.commentForm.dirty;
@@ -49,6 +49,8 @@ export class CommentEditComponent implements AfterViewInit, HasChanges, OnDestro
 
   ngAfterViewInit() {
     this.comment.setValue(this.ref.comment);
+    (this.ref.tags || []).forEach(t => this.tags.push(this.fb.control([t])));
+    this.plugins.setValue(this.ref.plugins || {});
   }
 
   ngOnDestroy() {
@@ -58,6 +60,14 @@ export class CommentEditComponent implements AfterViewInit, HasChanges, OnDestro
 
   get comment() {
     return this.commentForm.get('comment') as UntypedFormControl;
+  }
+
+  get tags() {
+    return this.commentForm.get('tags') as UntypedFormArray;
+  }
+
+  get plugins() {
+    return this.commentForm.get('plugins') as UntypedFormGroup;
   }
 
   get newTags() {

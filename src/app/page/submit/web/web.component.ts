@@ -40,7 +40,7 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
 
   submitted = false;
   title = '';
-  webForm: UntypedFormGroup;
+  webForm = refForm(this.fb);
   serverError: string[] = [];
 
   @ViewChild(RefFormComponent)
@@ -67,7 +67,6 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
     private fb: UntypedFormBuilder,
   ) {
     this.setTitle($localize`Submit: Web Link`);
-    this.webForm = refForm(fb);
   }
 
   saveChanges() {

@@ -37,7 +37,14 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
   private disposers: IReactionDisposer[] = [];
 
   submitted = false;
-  dmForm: UntypedFormGroup;
+  dmForm = this.fb.group({
+    to: ['', [Validators.pattern(QUALIFIED_TAGS_REGEX)]],
+    title: [''],
+    sources: this.fb.array([]),
+    comment: [''],
+    tags: this.fb.array([]),
+    plugins: this.fb.group({}),
+  });
   serverError: string[] = [];
 
   @ViewChild('fill')
@@ -67,13 +74,6 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
     private fb: UntypedFormBuilder,
   ) {
     mod.setTitle($localize`Submit: Direct Message`);
-    this.dmForm = fb.group({
-      to: ['', [Validators.pattern(QUALIFIED_TAGS_REGEX)]],
-      title: [''],
-      sources: fb.array([]),
-      comment: [''],
-      tags: fb.array([]),
-    });
   }
 
   saveChanges() {
@@ -117,6 +117,10 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
 
   get tags() {
     return this.dmForm.get('tags') as UntypedFormArray;
+  }
+
+  get plugins() {
+    return this.dmForm.get('plugins') as UntypedFormGroup;
   }
 
   get notes() {

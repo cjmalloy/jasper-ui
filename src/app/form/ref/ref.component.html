@@ -69,7 +69,8 @@
   </div>
   <app-form-plugins id="plugins"
                     (togglePlugin)="togglePlugin($event)"
-                    [group]="group"></app-form-plugins>
+                    [tags]="tags"
+                    [plugins]="plugins"></app-form-plugins>
 
   @if (tagsFormComponent.editingViewer) {
     <span><!-- Viewer --></span>

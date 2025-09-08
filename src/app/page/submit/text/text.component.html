@@ -31,7 +31,9 @@
                          [text]="true"
                          i18n-title title="Add Plugin"
                          (pluginChange)="bookmarks.toggleTag($event); pluginSelect.plugin = ''"></app-select-plugin>
-      <app-form-plugins id="plugins" [group]="textForm"></app-form-plugins>
+      <app-form-plugins id="plugins"
+                        [tags]="tags"
+                        [plugins]="plugins"></app-form-plugins>
 
       @if (tagsFormComponent.editingViewer) {
         <span><!-- Viewer --></span>
