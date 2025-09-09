@@ -17,10 +17,17 @@ import {
   ViewChild,
   ViewContainerRef
 } from '@angular/core';
-import { FormBuilder, UntypedFormArray, UntypedFormControl } from '@angular/forms';
+import {
+  FormArray,
+  FormBuilder,
+  FormControl,
+  UntypedFormArray,
+  UntypedFormControl,
+  UntypedFormGroup
+} from '@angular/forms';
 import { NavigationEnd, Router } from '@angular/router';
 import Europa from 'europa';
-import { debounce, defer, delay, intersection, sortedLastIndex, throttle, uniq, without } from 'lodash-es';
+import { debounce, defer, delay, intersection, sortedLastIndex, uniq, without } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import { catchError, filter, forkJoin, last, map, of, Subject, switchMap, takeUntil } from 'rxjs';
 import { v4 as uuid } from 'uuid';
@@ -81,9 +88,9 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   @Input()
   selectResponseType = false;
   @Input()
-  tags?: UntypedFormArray;
+  tags = this.fb.array<FormControl<string>>([]);
   @Input()
-  createdTags: string[] = [];
+  plugins?: UntypedFormGroup;
   @Input()
   control!: UntypedFormControl;
   @Input()
@@ -154,7 +161,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
     MemoCache.clear(this);
     if (this.selectResponseType && this.responseButtons.length) {
       this.toggleIndex = 0;
-      const tags = this.tags?.value || this.createdTags;
+      const tags = this.tags.value;
       for (const p of this.responseButtons) {
         if (hasTag(p.tag, tags)) {
           this.toggleIndex = this.responseButtons.indexOf(p);
@@ -283,7 +290,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   @memo
   get allTags() {
     return uniq([
-      ...without(this.tags ? this.tags.value : this.createdTags, ...this.allResponseTags),
+      ...without(this.tags.value, ...this.allResponseTags),
       ...this.responseTags,
     ]);
   }
@@ -347,10 +354,23 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
 
   updateTags(tags: string[]) {
     if (!this.tags) {
-      this.createdTags = tags;
       MemoCache.clear(this);
+    } else if (this.plugins) {
+      while (this.tags.length > tags.length) this.tags.removeAt(this.tags.length - 1, { emitEvent: false });
+      while (this.tags.length < tags.length) this.tags.push(this.fb.control('') as FormControl<string>, { emitEvent: false });
+      this.tags.setValue(tags);
     }
     this.syncTags.next(tags);
+  }
+
+  togglePlugin(tag: string) {
+    if (tag) {
+      if (hasTag(tag, this.allTags)) {
+        this.updateTags(this.allTags.filter(t => !expandedTagsInclude(t, tag)));
+      } else {
+        this.updateTags([...this.allTags, tag]);
+      }
+    }
   }
 
   toggleTag(button: EditorButton) {
@@ -372,7 +392,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   }
 
   setResponse(tag: string) {
-    const tags = this.tags?.value || this.createdTags;
+    const tags = this.tags.value;
     if (!hasTag(tag, tags)) {
       const responses = this.responseButtons.map(p => p.tag);
       this.toggleIndex = responses.indexOf(tag);

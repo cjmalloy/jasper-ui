@@ -3,7 +3,7 @@
     @for(icon of icons; track icon) {
       <span class="icon"
             [appTitle]="icon"
-            [ref]="group.value">{{ icon.label || icon.thumbnail }}</span>
+            [ref]="$any({ tags: tags.value })">{{ icon.label || icon.thumbnail }}</span>
     }
   </div>
 }
@@ -16,7 +16,7 @@
                   [children]="admin.getPluginSubForms(plugin.tag)"></app-form-gen>
   }
 }
-@if (empty) {
+@if (empty && !hideIfEmpty) {
   <div class="empty-plugins">
     no plugins
   </div>

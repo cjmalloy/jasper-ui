@@ -93,6 +93,10 @@ export class RefFormComponent {
     return this.group.get('tags') as UntypedFormArray;
   }
 
+  get plugins() {
+    return this.group.get('plugins') as UntypedFormGroup;
+  }
+
   get sources() {
     return this.group.get('sources') as UntypedFormArray;
   }
