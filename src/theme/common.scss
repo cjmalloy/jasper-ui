@@ -301,6 +301,7 @@ input:not([type=checkbox]):not([type=radio]) {
 }
 
 input:not([type=checkbox]):not([type=radio]),
+select,
 textarea {
   box-sizing: border-box;
   padding-block: 2px;
