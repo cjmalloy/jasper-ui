@@ -126,7 +126,7 @@ export function hasUserUrlResponse(tag?: string, ref?: Ref)  {
 
 export function tagIntersection(expand: string[] | undefined, targets: string[] | undefined) {
   if (!expand || !targets) return [];
-  return filter(targets, target => hasTag(target, expand));
+  return filter(expand, target => targets.find(t => expandedTagsInclude(target, t)));
 }
 
 export function expandedTagsInclude(tag?: string, target?: string) {
