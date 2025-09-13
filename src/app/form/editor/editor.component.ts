@@ -20,20 +20,22 @@ import {
 import { FormBuilder, UntypedFormArray, UntypedFormControl } from '@angular/forms';
 import { NavigationEnd, Router } from '@angular/router';
 import Europa from 'europa';
-import { debounce, defer, delay, intersection, sortedLastIndex, throttle, uniq, without } from 'lodash-es';
+import { debounce, defer, delay, intersection, sortedLastIndex, uniq, without } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import { catchError, filter, forkJoin, last, map, of, Subject, switchMap, takeUntil } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { MdComponent } from '../../component/md/md.component';
 import { Ref } from '../../model/ref';
 import { EditorButton, sortOrder } from '../../model/tag';
+import { mimeToCode } from '../../mods/code';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { ProxyService } from '../../service/api/proxy.service';
+import { RefService } from '../../service/api/ref.service';
 import { TaggingService } from '../../service/api/tagging.service';
 import { AuthzService } from '../../service/authz.service';
 import { Store } from '../../store/store';
-import { readFileAsDataURL } from '../../util/async';
+import { readFileAsDataURL, readFileAsString } from '../../util/async';
 import { memo, MemoCache } from '../../util/memo';
 import { expandedTagsInclude, hasTag, test } from '../../util/tag';
 
@@ -137,6 +139,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
     private accounts: AccountService,
     private auth: AuthzService,
     private proxy: ProxyService,
+    private refs: RefService,
     private ts: TaggingService,
     public store: Store,
     private overlay: Overlay,
@@ -587,10 +590,25 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
     this.uploading = false;
     if (!files) return;
     // @ts-ignore
-    forkJoin([...files].map(f => this.upload$(f))).subscribe(urls => this.attachUrls(...urls));
+    forkJoin([...files].map(f => this.upload$(f))).subscribe(refs => this.attachUrls(...refs));
   }
 
   upload$(file: File) {
+    const codeType = mimeToCode(file.type);
+    if (codeType.length) {
+      const ref = {
+        url: 'internal:' + uuid(),
+        title: file.name,
+        tags: [this.store.account.localTag, 'internal', ...file.type === 'text/markdown' ? [] : codeType]
+      };
+      return readFileAsString(file).pipe(
+        switchMap(contents => this.refs.create({
+          ...ref,
+          comment: contents,
+        })),
+        map(cursor => ref),
+      );
+    }
     this.uploading = true;
     this.control.disable();
     const tags: string[] = ['plugin/file'];
@@ -617,28 +635,30 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
       }),
       last(),
       switchMap(ref => !ref ? of(ref) : this.ts.patch(tags, ref.url, ref.origin).pipe(map(cursor => ref))),
-      map((ref: Ref | null) => ref?.url),
-      catchError(err => readFileAsDataURL(file)), // base64
+      catchError(err => readFileAsDataURL(file).pipe(map(url => ({ url })))), // base64
     );
   }
 
-  attachUrls(...urls: (string | undefined)[]) {
+  attachUrls(...refs: (Ref | null)[]) {
     this.uploading = false;
     this.control.enable();
-    urls = urls.filter(u => !!u);
-    if (!urls.length) return;
-    for (const url of urls) this.addSource.next(url!);
+    refs = refs.filter(u => !!u);
+    if (!refs.length) return;
+    for (const ref of refs) this.addSource.next(ref!.url);
     const text = this.currentText;
-    if (urls.length === 1) {
-      if (!urls[0]) return;
-      const encodedUrl = (this.selectionStart !== this.selectionEnd ? '[' + text.substring(this.selectionStart, this.selectionEnd) + ']' : '![]') + '(' + urls[0].replace(')', '\\)') + ')\n';
+    if (refs.length === 1) {
+      if (!refs[0]) return;
+      const encodedUrl = (this.selectionStart !== this.selectionEnd ? '[' + text.substring(this.selectionStart, this.selectionEnd) + ']'
+          : hasTag('plugin/file', refs[0]) ? '![]'
+          : '[ref]'
+      ) + '(' + refs[0].url.replace(')', '\\)') + ')\n';
       if (this.selectionStart || this.selectionStart !== this.selectionEnd) {
         this.syncText(text.substring(0, this.selectionStart) + encodedUrl + text.substring(this.selectionEnd));
       } else {
         this.syncText(text + encodedUrl + '\n');
       }
     } else {
-      const encodedUrls = urls.map(u => '![](' + u!.replace(')', '\\)') + ')\n').join('');
+      const encodedUrls = refs.map(ref => '![](' + ref!.url.replace(')', '\\)') + ')\n').join('');
       this.syncText(text.substring(0, this.selectionStart) + encodedUrls + text.substring(this.selectionStart));
       if (!text) this.preview = true;
     }
