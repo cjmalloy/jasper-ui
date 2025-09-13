@@ -266,34 +266,13 @@ export class EmbedService {
         return undefined;
       },
       renderer(token: any): string {
-        if (token.text?.trim() === '+') {
+        if (token.text?.trim() === '=') {
+          return `<div class="loading inline-ref" title="${token.title}">${token.href}</div>`;
+        } else if (token.text?.trim() === '+') {
           return `<span class="toggle embed" title="${token.href}"><span class="toggle-plus">＋</span></span>`;
         } else {
           return `<div class="loading inline-embed" title="${token.title}">${token.href}</div>`;
         }
-      }
-    }, {
-      name: 'embed',
-      level: 'inline',
-      start: (src: string) => src.match(/\[(ref|embed)]/)?.index,
-      tokenizer(src: string, tokens: any): any {
-        const rule = /^\[(ref|embed)]\(([^\]]+)\)/;
-        const match = rule.exec(src);
-        if (match) {
-          const css = match[1];
-          const text = match[2];
-          return {
-            type: 'embed',
-            css,
-            text,
-            raw: match[0],
-            tokens: [],
-          };
-        }
-        return undefined;
-      },
-      renderer(token: any): string {
-        return `<div class="inline-${token.css}">${token.text}</div>`;
       }
     }, {
       name: 'preserveMath',

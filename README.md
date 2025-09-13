@@ -48,7 +48,7 @@ Markdown editor with support for rendering both markdown and HTML.
   as `^[1]` or `^[[1]]`.
 * Any links to a ref or tag will render a toggle button to expand inline (any link that starts
   with `/ref/` or `/tag/`, with or without the server host and base path).
-* Links of the form `[ref](www.example.com)` will add a ref entry inline.
+* Links of the form `![=](www.example.com)` will add a ref entry inline.
 * Links of the form `![](www.example.com)` will embed the contents of the Ref if it exists, or attempt to embed
   the url directly if it is an image, audio, video, or embeddable sites.
 * Links of the form `![+](www.example.com)` will add a toggle button that will expand to show the contents

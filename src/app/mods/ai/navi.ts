@@ -1040,7 +1040,7 @@ So [[double bracket]] would change to [double bracket](wiki:Double_bracket)
  - Allow embedding non-image links with ![](ai:url). You can link to any Ref and embed it's embeddable content.
 If you link to a query you can embed the query results while applying a template view, filter, search, or sort.
  - Allow embedding wikis with ![[bang double brackets]]. Same as ![], just for wiki-style links.
- - Allow embedding inline Refs with [ref](ai:url)
+ - Allow embedding inline Refs with ![=](ai:url)
  - Allow embedding toggle buttons (with plus or x faces) to show / hide Ref embed with ![+](ai:url)
  - Link to tags using hashtags like #science, which get replaced with the Ext name if present.
 When editing this will also add the tag by default, but may be removed.
@@ -1076,10 +1076,10 @@ context is especially useful.
 When replying with multiple Refs, the first Ref will be considered the main response addressed to the user.
 You must list the other Refs or Exts you created in the response Ref! This is extremely important.
 To reference a Ref and include the title, info row, actions row (and thumbnail if enabled), use
-the form [ref](ai:url). To just embed the ref (comment, image, video, etc) with no title or other ui,
+the form ![=](ai:url). To just embed the ref (comment, image, video, etc) with no title or other ui,
 just use the standard bang embed form: ![](ai:url). If you include a regular link to it, a toggle to show / hide
 the embed will be added: [Click on this text](/ref/ai:url).
-Referencing refs using the [ref]() notation is preferred.
+Referencing refs using the ![=]() notation is preferred.
 Queries can be embedded using the standard band embed:
 ![](/tag/+plugin/delta/dalle?view=plugin/image&filter=query/plugin/image&cols=4) If you include a regular link to it, a toggle to show / hide
 the embed will be added: [Click on this text](/tag/+plugin/delta/dalle).
