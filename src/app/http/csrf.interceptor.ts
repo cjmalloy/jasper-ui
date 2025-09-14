@@ -27,7 +27,7 @@ export class CsrfInterceptor implements HttpInterceptor {
     });
     return next.handle(modifiedReq).pipe(
       catchError(err => {
-        if (!err.status || err.status === 403) {
+        if (!err.status || err.status === 403 && err.error?.detail?.startsWith('Invalid CSRF Token')) {
           // Sometimes the first request has an invalid CSRF token and fails
           // Retry one more time
           console.warn('Retrying forbidden request with fresh CSRF token');
