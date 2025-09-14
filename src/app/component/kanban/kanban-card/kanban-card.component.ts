@@ -380,4 +380,9 @@ export class KanbanCardComponent implements OnChanges, AfterViewInit, OnDestroy 
       this.copied.emit(ref);
     });
   }
+
+  firstWord(name?: string) {
+    if (!name) return name;
+    return name.trim().split(' ')[0];
+  }
 }

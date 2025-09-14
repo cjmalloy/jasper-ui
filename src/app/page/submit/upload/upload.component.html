@@ -44,6 +44,11 @@
       }
     </div>
 
+    @for (c of store.submit.uploads; track c) {
+      <span><!-- Uploading --></span>
+      <div>Uploading {{ c.name }} <progress max="100" [value]="c.progress"></progress></div>
+    }
+
     @if (!store.submit.empty) {
       <span></span>
       <div>

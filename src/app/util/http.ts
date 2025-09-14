@@ -187,6 +187,11 @@ export function getScheme(url: string) {
   return parsed.protocol;
 }
 
+export function parts(url: string) {
+  const parts = new URL('http://test.com/' + url);
+  return [parts.pathname, parts.search, parts.hash];
+}
+
 export function getPath(url: string): string | null {
   if (url.startsWith('/')) {
     if (url.includes('#')) url = url.substring(0, url.indexOf('#'));

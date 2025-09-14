@@ -55,6 +55,9 @@ export class UploadPage implements OnDestroy {
       this.readUploads(this.store.submit.files);
       runInAction(() => this.store.submit.clearFiles());
     }));
+    this.disposers.push(autorun(() => {
+      console.log(this.store.submit.uploads.length);
+    }));
     this.store.submit.clearOverride();
   }
 
@@ -165,11 +168,20 @@ export class UploadPage implements OnDestroy {
     if (!files) return;
     for (let i = 0; i < files?.length; i++) {
       const file = files[i];
+      runInAction(() => {
+        this.store.submit.caching.set(file, { name: file.name, progress: 0 });
+      });
       this.proxy.save(file, this.store.account.origin).pipe(
         map(event => {
           switch (event.type) {
             case HttpEventType.Response:
               return event.body;
+            case HttpEventType.UploadProgress:
+              const percentDone = event.total ? Math.round(100 * event.loaded / event.total) : 0;
+              runInAction(() => {
+                this.store.submit.caching.set(file, { name: file.name, progress: percentDone });
+              });
+              return null;
           }
           return null;
         }),
@@ -182,6 +194,7 @@ export class UploadPage implements OnDestroy {
           return ref!;
         }),
       ).subscribe(ref => runInAction(() => {
+        this.store.submit.caching.delete(file);
         this.store.submit.addRefs({ ...ref, upload: true, exists: true });
       }));
     }

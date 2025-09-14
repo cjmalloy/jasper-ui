@@ -45,28 +45,35 @@ import { SubmitWebPage } from './page/submit/web/web.component';
 import { TagPage } from './page/tag/tag.component';
 import { TagsPage } from './page/tags/tags.component';
 import { UserPage } from './page/user/user.component';
+import { parts } from './util/http';
 
 const dus = new DefaultUrlSerializer();
 export class CustomUrlSerializer implements UrlSerializer {
 
   encodeTagParam(url: string) {
-    const parts = new URL('http://test.com/' + url);
-    let path = parts.pathname.substring(1);
+    let [path, search, hash] = parts(url);
+    path = path.substring(1);
     path = path.replace(/%7C/g, '|');
     path = encodeURIComponent(path)
         .replace(/\(/g, '%28')
         .replace(/\)/g, '%29');
-    return path + parts.search + parts.hash;
+    return path + this.getSearch(search) + hash;
   }
 
   stripParam(url: string) {
-    const parts = new URL('http://test.com/' + url);
-    return parts.pathname.substring(1);
+    return parts(url)[0].substring(1);
   }
 
   getExtras(url: string) {
-    const parts = new URL('http://test.com/' + url);
-    return parts.search + parts.hash;
+    let [_, search, hash] = parts(url);
+    return this.getSearch(search) + hash;
+  }
+
+  getSearch(search: string) {
+    return search
+      .replace(/%2F/g, '/')
+      .replace(/%20/g, '+')
+      .replace(/%7C/g, '|');
   }
 
   parse(url: string) {
@@ -85,7 +92,7 @@ export class CustomUrlSerializer implements UrlSerializer {
         return dus.parse('/ref/' + this.stripParam(url.substring('/ref/e/'.length + refChildren[1].length + 1)) + '/' + refChildren[1] + this.getExtras(url));
       }
     }
-    for (const page of ['/tag/', '/tags/', '/ext/', '/user/', '/settings/ref/']) {
+    for (const page of ['/tag/', '/tags/', '/ext/', '/user/', '/inbox/ref/', '/settings/ref/']) {
       if (url.startsWith(page)) {
         return dus.parse(page + this.encodeTagParam(url.substring(page.length)));
       }
@@ -109,7 +116,7 @@ export class CustomUrlSerializer implements UrlSerializer {
         return '/ref/' + tree.root.children.primary.segments[2].path + '/e/' + encodeURIComponent(tree.root.children.primary.segments[1].path) + this.getExtras(url);
       }
     }
-    for (let page of ['tag', 'tags', 'ext', 'user', 'settings/ref']) {
+    for (let page of ['tag', 'tags', 'ext', 'user', 'inbox/ref', 'settings/ref']) {
       const parts = (page.match(/\//g)?.length || 0) + 1;
       if ((tree.root.children.primary?.segments?.length || 0) <= parts) continue;
       const path = tree.root.children.primary.segments.slice(0, parts).map(s => s.path).join('/');
@@ -117,7 +124,8 @@ export class CustomUrlSerializer implements UrlSerializer {
         return `/${page}/` + tree.root.children.primary.segments[parts].path + this.getExtras(url);
       }
     }
-    return url;
+    let [path, search, hash] = parts(url);
+    return path.substring(1) + this.getSearch(search) + hash;
   }
 }
 
