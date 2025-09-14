@@ -43,11 +43,12 @@ COPY --from=builder /app/dist/jasper-ui ./
 ARG BASE_HREF="/"
 ENV BASE_HREF=$BASE_HREF
 RUN date -R -u > /build-timestamp
-COPY docker/security-headers.conf /etc/nginx/conf.d
+COPY docker/security-headers.conf /etc/nginx
 COPY docker/default.conf /etc/nginx/conf.d
 COPY docker/nginx.conf /etc/nginx
 COPY docker/00-select-locale.sh /docker-entrypoint.d
 COPY docker/40-create-jasper-config.sh /docker-entrypoint.d
+COPY docker/41-proxy.sh /docker-entrypoint.d
 COPY docker/50-set-base-href.sh /docker-entrypoint.d
 COPY docker/60-set-title.sh /docker-entrypoint.d
 COPY docker/70-csp.sh /docker-entrypoint.d
