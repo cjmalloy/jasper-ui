@@ -7,7 +7,7 @@ import { autorun, IReactionDisposer, runInAction, toJS } from 'mobx';
 import { catchError, concat, last, lastValueFrom, map, of, switchMap, throwError } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import * as XLSX from 'xlsx';
-import { Ext, mapTag } from '../../../model/ext';
+import { Ext, mapExt } from '../../../model/ext';
 import { mapRef, Ref } from '../../../model/ref';
 import { AdminService } from '../../../service/admin.service';
 import { ExtService } from '../../../service/api/ext.service';
@@ -421,7 +421,7 @@ export class UploadPage implements OnDestroy {
       return unzip(file).then(zip => Promise.all([
         zippedFile(zip, 'ext.json')
           .then(json => getModels<Ext>(json))
-          .then(exts => exts.map(mapTag)),
+          .then(exts => exts.map(mapExt)),
         zippedFile(zip, 'ref.json')
           .then(json => getModels<Ref>(json))
           .then(refs => refs.map(mapRef)),
