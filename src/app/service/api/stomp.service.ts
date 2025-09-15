@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { RxStomp } from '@stomp/rx-stomp';
 import { map, Observable } from 'rxjs';
+import { Ext, mapExt } from '../../model/ext';
 import { mapRef, RefUpdates } from '../../model/ref';
 import { Store } from '../../store/store';
 import { isSubOrigin, localTag, tagOrigin } from '../../util/tag';
@@ -64,6 +65,12 @@ export class StompService extends RxStomp {
   watchResponse(url: string): Observable<string> {
     return this.watch('/topic/response/' + (this.store.account.origin || 'default') + '/' + encodeURIComponent(url), this.headers).pipe(
       map(m => m.body as string),
+    );
+  }
+
+  watchExt(tag: string): Observable<Ext> {
+    return this.watch('/topic/ext/' + (tagOrigin(tag) || this.store.account.origin || 'default') + '/' + encodeURIComponent(localTag(tag)), this.headers).pipe(
+      map(m => mapExt(JSON.parse(m.body))),
     );
   }
 }
