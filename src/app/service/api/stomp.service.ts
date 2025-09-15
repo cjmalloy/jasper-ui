@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, isDevMode } from '@angular/core';
 import { RxStomp } from '@stomp/rx-stomp';
 import { map, Observable } from 'rxjs';
 import { Ext, mapExt } from '../../model/ext';
@@ -22,6 +22,7 @@ export class StompService extends RxStomp {
       heartbeatIncoming: 20000,
       heartbeatOutgoing: 0,
       reconnectDelay: 2000,
+      debug: isDevMode() ? msg => console.debug('📶️  '+ msg) : undefined,
     });
     if (this.config.websockets) this.activate();
   }
@@ -37,10 +38,19 @@ export class StompService extends RxStomp {
   }
 
   get hostUrl() {
-    if (this.config.api.startsWith('//')) return 'ws://' + this.config.api.substring('//'.length);
-    if (this.config.api.startsWith('https://')) return 'wss://' + this.config.api.substring('https://'.length);
-    if (this.config.api.startsWith('http://')) return 'ws://' + this.config.api.substring('http://'.length);
-    return 'ws://' + this.config.api;
+    var proto = this.getWsProtocol(this.config.api);
+    if (this.config.api === '.' || this.config.api === '/' || this.config.api === './') return proto + location.host + location.port
+    if (this.config.api.startsWith('//')) return proto + this.config.api.substring('//'.length);
+    if (this.config.api.startsWith('https://')) return proto + this.config.api.substring('https://'.length);
+    if (this.config.api.startsWith('http://')) return proto + this.config.api.substring('http://'.length);
+    return proto + this.config.api;
+  }
+
+  getWsProtocol(url = '') {
+    return url.startsWith('https:') ? 'wss://' :
+           url.startsWith('http:') ? 'ws://' :
+           location.protocol === 'https:' ? 'wss://' :
+           'ws://';
   }
 
   watchOrigin(origin: string): Observable<string> {
