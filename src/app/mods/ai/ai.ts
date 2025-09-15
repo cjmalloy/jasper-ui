@@ -368,7 +368,7 @@ export const aiQueryPlugin: Plugin = {
         },
         gemini: {
           init(config) {
-            config.model ||= (config.pdf || config.search || config.url) ? 'gemini-2.5-pro' : 'gemini-2.5-flash';
+            config.model ||= 'gemini-2.5-pro';
             config.pdf = config.model === 'gemini-2.5-pro';
             config.image = true;
             config.audio = true;
