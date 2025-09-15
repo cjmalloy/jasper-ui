@@ -4,7 +4,7 @@ if [ -n "$JASPER_API_PROXY" ]; then
     location ^~ /api/ {
       port_in_redirect off;
 
-      client_max_body_size                    1m;
+      client_max_body_size                    2g;
 
       proxy_set_header Host                   \$http_host;
 
@@ -41,7 +41,7 @@ if [ -n "$JASPER_API_PROXY" ]; then
       #proxy_read_timeout                      60s;
 
       proxy_buffering                         off;
-      proxy_buffer_size                       4k;
+      proxy_buffer_size                       8k;
       proxy_buffers                           4 4k;
 
       proxy_busy_buffers_size                 8k;
@@ -64,7 +64,7 @@ if [ -n "$JASPER_API_PROXY" ]; then
       proxy_redirect                          off;
     }
     "
-  echo "$config"
-  echo "$config" > /etc/nginx/proxy.conf
-  echo "Wrote to /etc/nginx/proxy.conf"
 fi
+echo "$config"
+echo "$config" > /etc/nginx/proxy.conf
+echo "Wrote to /etc/nginx/proxy.conf"
