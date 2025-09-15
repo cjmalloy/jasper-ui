@@ -1,5 +1,5 @@
 import { Injectable, isDevMode } from '@angular/core';
-import { RxStomp } from '@stomp/rx-stomp';
+import { RxStomp, RxStompConfig } from '@stomp/rx-stomp';
 import { map, Observable } from 'rxjs';
 import { Ext, mapExt } from '../../model/ext';
 import { mapRef, RefUpdates } from '../../model/ref';
@@ -12,18 +12,21 @@ import { ConfigService } from '../config.service';
 })
 export class StompService extends RxStomp {
 
+  private stompConfig: RxStompConfig = {
+    brokerURL: this.brokerURL,
+    heartbeatIncoming: 20000,
+    heartbeatOutgoing: 0,
+    reconnectDelay: 2000,
+  };
   constructor(
     private config: ConfigService,
     private store: Store,
   ) {
     super();
-    this.configure({
-      brokerURL: this.brokerURL,
-      heartbeatIncoming: 20000,
-      heartbeatOutgoing: 0,
-      reconnectDelay: 2000,
-      debug: isDevMode() ? msg => console.debug('📶️  '+ msg) : undefined,
-    });
+    if (isDevMode()) {
+      this.stompConfig.debug = msg => console.debug('📶️  '+ msg);
+    }
+    this.configure(this.stompConfig);
     if (this.config.websockets) this.activate();
   }
 
