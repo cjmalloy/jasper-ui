@@ -635,8 +635,10 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
           return null;
         }),
         last(),
-        switchMap(ref => !ref ? of(ref) : this.ts.patch(tags, ref.url, ref.origin).pipe(map(cursor => ref))),
-        catchError(err => readFileAsDataURL(file).pipe(map(url => ({ url })))), // base64
+        switchMap(ref => !ref ? of(ref) : this.ts.patch(tags, ref.url, ref.origin).pipe(
+          map(cursor => ({ ...ref, tags: uniq([...ref?.tags || [], ...tags]) })),
+        )),
+        catchError(err => readFileAsDataURL(file).pipe(map(url => ({ url, tags })))), // base64
       );
     }
   }
