@@ -101,7 +101,7 @@ Always reference these instructions first and fallback to search or bash command
 
 - `angular.json` - Angular CLI configuration with build and serve settings
 - `package.json` - Dependencies and npm scripts (enhanced with development commands)
-- `src/assets/config.json` - Runtime configuration (API endpoints, features)
+- `src/assets/config.json` - Runtime configuration (title, features) - DO NOT edit API URL here
 - `karma.conf.js` / `karma-ci.conf.js` - Unit test configuration
 - `cypress.config.ts` - E2E test configuration
 - `set-debug-ip.sh` - Development utility for IP configuration
@@ -110,7 +110,8 @@ Always reference these instructions first and fallback to search or bash command
 
 ### Configuration Points
 
-- API backend URL configured in `src/assets/config.json` (default: localhost:8081 for development)
+- API backend URL configured via Docker environment `JASPER_API` (default: localhost:8081 for development)
+- Frontend connects to backend via CSP settings in `angular.json` serve configuration  
 - Content Security Policy configured in `angular.json` serve options
 - Localization files in `src/locale/` (English and Japanese)
 - Themes and styling in `src/theme/` and `src/styles.scss`
@@ -135,6 +136,7 @@ Always reference these instructions first and fallback to search or bash command
 - Update localization files if adding user-facing text
 - Add unit tests following existing `.spec.ts` patterns
 - Test with backend running to validate API interactions
+- **DO NOT** edit `src/assets/config.json` for API configuration - use Docker environment variables
 
 ### Troubleshooting
 
