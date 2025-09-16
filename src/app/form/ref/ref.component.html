@@ -23,7 +23,13 @@
            [formControl]="title"
            (blur)="validate($any($event.target))">
     @if (web) {
-      <button type="button" (click)="scrapeTitle()" i18n-title title="Scrape Title" i18n>🪝</button>
+      <button type="button" (click)="scrapeTitle()" [disabled]="scrapingTitle" i18n-title title="Scrape Title" i18n>
+        @if (scrapingTitle) {
+          <app-loading [inline]="true"></app-loading>
+        } @else {
+          🪝
+        }
+      </button>
     }
   </div>
 
@@ -89,6 +95,7 @@
                   [tags]="tags"
                   [fillWidth]="fill"
                   [url]="web && url.value"
+                  [scraping]="scrapingComment"
                   (scrape)="scrapeAll()"
                   (syncEditor)="syncEditor()"
                   (syncTags)="setTags($event)"

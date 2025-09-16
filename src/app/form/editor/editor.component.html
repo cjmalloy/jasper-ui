@@ -30,7 +30,14 @@
         @if (button.event) {
           <button type="button"
                   (click)="fireEvent(button.event)"
-                  [title]="button.title || ''" i18n>{{ button.label }}</button>
+                  [disabled]="button.event === 'scrape' && scraping"
+                  [title]="button.title || ''" i18n>
+            @if (button.event === 'scrape' && scraping) {
+              <app-loading [inline]="true"></app-loading>
+            } @else {
+              {{ button.label }}
+            }
+          </button>
         } @else if (hasTags) {
           <button type="button"
                   (click)="toggleTag(button)"

@@ -110,6 +110,8 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   addCommentLabel = $localize`+ Add comment`;
   @Input()
   fillWidth?: HTMLElement;
+  @Input()
+  scraping = false;
 
   @Output()
   syncEditor = new EventEmitter<string>();

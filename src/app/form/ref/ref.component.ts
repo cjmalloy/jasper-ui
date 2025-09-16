@@ -59,6 +59,8 @@ export class RefFormComponent {
   oembed?: Oembed;
   scraped?: Ref;
   ref?: Ref;
+  scrapingTitle = false;
+  scrapingComment = false;
 
   constructor(
     private fb: UntypedFormBuilder,
@@ -176,11 +178,15 @@ export class RefFormComponent {
   }
 
   scrapeTitle() {
+    this.scrapingTitle = true;
     this.scrape$.pipe(
-      catchError(err => of({
-        url: this.url.value,
-        title: undefined,
-      })),
+      catchError(err => {
+        this.scrapingTitle = false;
+        return of({
+          url: this.url.value,
+          title: undefined,
+        });
+      }),
       switchMap(s => this.oembeds.get(s.url).pipe(
         map(oembed => {
           this.oembed = oembed!;
@@ -189,8 +195,14 @@ export class RefFormComponent {
         }),
         catchError(err => of(s)),
       )),
-    ).subscribe((s: Ref) => {
-      if (s.title) this.group.patchValue({ title: s.title });
+    ).subscribe({
+      next: (s: Ref) => {
+        if (s.title) this.group.patchValue({ title: s.title });
+        this.scrapingTitle = false;
+      },
+      error: err => {
+        this.scrapingTitle = false;
+      }
     });
   }
 
@@ -204,11 +216,18 @@ export class RefFormComponent {
     if (this.oembed) {
       // TODO: oEmbed
     } else {
-      this.scrape$.subscribe(s => {
-        if (!hasMedia(s) || hasMedia(this.group.value)) {
-          this.scrapeComment();
+      this.scrapingComment = true;
+      this.scrape$.subscribe({
+        next: s => {
+          if (!hasMedia(s) || hasMedia(this.group.value)) {
+            this.scrapeComment();
+          }
+          this.scrapePlugins();
+          this.scrapingComment = false;
+        },
+        error: err => {
+          this.scrapingComment = false;
         }
-        this.scrapePlugins();
       });
     }
   }
