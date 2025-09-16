@@ -44,4 +44,15 @@ describe('ExtService', () => {
     // Should return the same observable instance (cached)
     expect(result1).toBe(result2);
   });
+
+  it('should handle empty tag and origin correctly', () => {
+    const result = service.getCachedExt('', '');
+    
+    result.subscribe(ext => {
+      expect(ext).toBeTruthy();
+      expect(ext.tag).toBe('');
+      expect(ext.origin).toBe('');
+      expect(ext.name).toBe('');
+    });
+  });
 });
