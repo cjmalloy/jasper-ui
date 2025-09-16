@@ -62,98 +62,75 @@ Markdown editor with support for rendering both markdown and HTML.
 * Displays pinned Refs from tag Ext if present
 * Adds Modmail button that sends a DM to `plugin/inbox/tag`
 ### Mods
-Jasper-UI includes a comprehensive set of mods that extend functionality through plugins and templates:
-
-#### Core Framework
-1. **Root Mod** (`rootMod`): Foundational features for tag pages including pinned links, sidebar markdown, themes, privacy controls, and basic scheme filters.
-2. **User Mod** (`userMod`): User data management including subscriptions, bookmarks, alarms, and personal preferences.
-3. **Home Mod** (`homeMod`): Customizable home page for subscribed tags and queries.
-
-#### Communication & Messaging
-4. **Mailbox Mod** (`mailboxMod`): Complete messaging system with inbox, outbox plugins, and DM template for private messages.
-5. **Comment Mod** (`commentMod`): Threaded comment system with built-in support for discussions.
-6. **Thread Mod** (`threadMod`): Advanced threaded discussion organization.
-7. **Chat Mod** (`chatMod`): Real-time chat room functionality.
-8. **Modlist Mod** (`modlistMod`): Moderation tools with reporting, approval, and content management.
-9. **Thanks Mod** (`thanksMod`): Quick thanks responses to posts.
-
-#### Media & Embeds
-10. **Image Mod** (`imageMod`): Image display and embedding with multiple format support.
-11. **Video Mod** (`videoMod`): Video player for multiple formats.
-12. **Audio Mod** (`audioMod`): Audio player for various audio formats.
-13. **PDF Mod** (`pdfMod`): PDF viewing and processing.
-14. **Thumbnail Mod** (`thumbnailMod`): Thumbnail generation and display.
-15. **Embed Mod** (`embedMod`): IFrame embedding for external content.
-16. **QR Mod** (`qrMod`): QR code generation and scanning.
-17. **OEmbed Mod** (`oembedMod`): Rich embed support for various platforms.
-
-#### Content Creation & Editing
-18. **Wiki Mod** (`wikiMod`): Full wiki functionality with bracket syntax linking.
-19. **Code Mod** (`codeMod`): Monaco code editor with syntax highlighting.
-20. **HTML Mod** (`htmlMod`): Rich HTML editing capabilities.
-21. **LaTeX Mod** (`latexMod`): KaTeX mathematical notation processing.
-22. **Table Mod** (`tableMod`): Spreadsheet functionality with CSV support.
-23. **Editor Extensions**: HTML to Markdown conversion (`htmlToMarkdownMod`).
-
-#### Organization & Workflow
-24. **Kanban Mod** (`kanbanMod`): Kanban board implementation with customizable columns and swim lanes.
-25. **Graph Mod** (`graphMod`): Knowledge graph visualization.
-26. **Queue Mod** (`queueMod`): Work queue task management with bounties.
-27. **Folder Mod** (`folderMod`): Hierarchical content organization.
-28. **Archive Mod** (`archiveMod`): Content archiving and organization.
-29. **Notes Mod** (`notesMod`): Advanced note-taking system.
-30. **Blog Mod** (`blogMod`): Blog-style content presentation.
-31. **Todo Mod** (`todoMod`): Task management functionality.
-
-#### User Experience & Interaction
-32. **Vote Mod** (`voteMod`): Voting system with upvote/downvote functionality.
-33. **Poll Mod** (`pollMod`): Multiple-choice polls with results visualization.
-34. **Save Mod** (`saveMod`): Save refs to personal lists.
-35. **Hide Mod** (`hideMod`): Hide unwanted content.
-36. **Read Mod** (`readMod`): Mark content as read across sessions.
-37. **Repost Mod** (`repostMod`): Re-submit URLs with fresh comment sections.
-38. **Delete Mod** (`deleteMod`): Soft delete with recycle bin functionality.
-
-#### AI & Automation
-39. **AI Mod** (`aiMod`): Core AI query functionality for sending refs to AI.
-40. **DALL-E Mod** (`dalleMod`): AI image generation integration.
-41. **Summary Mod** (`summaryMod`): Automatic content summarization.
-42. **Translate Mod** (`translateMod`): Multi-language translation.
-43. **Navi Mod** (`naviMod`): AI navigation and content discovery.
-44. **Script Mod** (`scriptMod`): Server-side script execution and scheduling.
-
-#### Data & Integration
-45. **Feed Mod** (`feedMod`): RSS and Atom feed processing.
-46. **Scrape Mod** (`scrapeMod`): Web scraping with CSS selectors.
-47. **Cache Mod** (`cacheMod`): Intelligent caching for performance.
-48. **File Mod** (`fileMod`): File upload and management.
-49. **Email Mod** (`emailMod`): Email processing and integration.
-
-#### System & Administration
-50. **System Mod** (`systemMod`): System information and administrative functions.
-51. **Mod Mod** (`modMod`): Dynamic mod installation and management.
-52. **Secret Mod** (`secretMod`): Secure storage with opaque tags.
-53. **GDPR Mod** (`gdprMod`): Privacy controls and cookie consent.
-54. **Remote Origin Mod** (`remoteOriginMod`): Multi-server federation.
-55. **Debug Mod** (`debugMod`): Development and troubleshooting tools.
-56. **Error Mod** (`errorMod`): Error handling and reporting.
-
-#### User Interface & Experience
-57. **Theme Mod** (`themesMod`): Dynamic theming and customization.
-58. **Fullscreen Mod** (`fullscreenMod`): Distraction-free viewing mode.
-59. **PiP Mod** (`pipMod`): Picture-in-picture floating windows.
-60. **Seamless Mod** (`seamlessMod`): Enhanced mobile and tablet experience.
-61. **Lens Mod** (`lensMod`): Custom viewing modes and lenses.
-
-#### Specialized Applications
-62. **Chess Mod** (`chessMod`): Chess game implementation.
-63. **Backgammon Mod** (`backgammonMod`): Backgammon game implementation.
-64. **Playlist Mod** (`playlistMod`): Audio/video playlist organization.
-65. **Person Mod** (`personMod`): Contact and identity management.
-66. **Snippet Mod** (`snippetMod`): Code snippet management.
-67. **Experiments Mod** (`experimentsMod`): Experimental features and testing.
-68. **Banlist Mod** (`banlistMod`): Content filtering and blocking.
-69. **Ninja Triangle Mod** (`ninjaTriangleMod`): Specialized triangle game implementation.
+1. **⚓️ Root Mod** (`rootMod`): Foundational features for tag pages including pinned links, sidebar markdown, themes, privacy controls, and basic scheme filters.
+2. **🧑️ User Mod** (`userMod`): User data management including subscriptions, bookmarks, alarms, and personal preferences.
+3. **🏡️ Home Mod** (`homeMod`): Customizable home page for subscribed tags and queries.
+4. **📮️ Mailbox Mod** (`mailboxMod`): Complete messaging system with inbox, outbox plugins, and DM template for private messages.
+5. **💬️ Comment Mod** (`commentMod`): Threaded comment system with built-in support for discussions.
+6. **🧵️ Thread Mod** (`threadMod`): Advanced threaded discussion organization.
+7. **🗨️ Chat Mod** (`chatMod`): Real-time chat room functionality.
+8. **🛡️ Modlist Mod** (`modlistMod`): Moderation tools with reporting, approval, and content management.
+9. **🙂️ Thanks Mod** (`thanksMod`): Quick thanks responses to posts.
+10. **🖼️ Image Mod** (`imageMod`): Image display and embedding with multiple format support.
+11. **🎞️ Video Mod** (`videoMod`): Video player for multiple formats.
+12. **📻️ Audio Mod** (`audioMod`): Audio player for various audio formats.
+13. **📄️ PDF Mod** (`pdfMod`): PDF viewing and processing.
+14. **⭕️ Thumbnail Mod** (`thumbnailMod`): Thumbnail generation and display.
+15. **🔭️ Embed Mod** (`embedMod`): IFrame embedding for external content.
+16. **🔲 QR Mod** (`qrMod`): QR code generation and scanning.
+17. **📡️ OEmbed Mod** (`oembedMod`): Rich embed support for various platforms.
+18. **📔️ Wiki Mod** (`wikiMod`): Full wiki functionality with bracket syntax linking.
+19. **🗒️ Code Mod** (`codeMod`): Monaco code editor with syntax highlighting.
+20. **📐️ HTML Mod** (`htmlMod`): Rich HTML editing capabilities.
+21. **💲️ LaTeX Mod** (`latexMod`): KaTeX mathematical notation processing.
+22. **📏️ Table Mod** (`tableMod`): Spreadsheet functionality with CSV support.
+23. **⬇️ HTML to Markdown Mod** (`htmlToMarkdownMod`): Convert HTML content to Markdown format.
+24. **📋️ Kanban Mod** (`kanbanMod`): Kanban board implementation with customizable columns and swim lanes.
+25. **🎇️ Graph Mod** (`graphMod`): Knowledge graph visualization.
+26. **🚧️ Queue Mod** (`queueMod`): Work queue task management with bounties.
+27. **📁 Folder Mod** (`folderMod`): Hierarchical content organization.
+28. **📦 Archive Mod** (`archiveMod`): Content archiving and organization.
+29. **📝 Notes Mod** (`notesMod`): Advanced note-taking system.
+30. **📰 Blog Mod** (`blogMod`): Blog-style content presentation.
+31. **✅ Todo Mod** (`todoMod`): Task management functionality.
+32. **⬆️ Vote Mod** (`voteMod`): Voting system with upvote/downvote functionality.
+33. **🗳️ Poll Mod** (`pollMod`): Multiple-choice polls with results visualization.
+34. **⭕️ Save Mod** (`saveMod`): Save refs to personal lists.
+35. **🙈️ Hide Mod** (`hideMod`): Hide unwanted content.
+36. **☑️ Read Mod** (`readMod`): Mark content as read across sessions.
+37. **↪️ Repost Mod** (`repostMod`): Re-submit URLs with fresh comment sections.
+38. **🗑️ Delete Mod** (`deleteMod`): Soft delete with recycle bin functionality.
+39. **✨️ AI Mod** (`aiMod`): Core AI query functionality for sending refs to AI.
+40. **👨️‍🎨️ DALL-E Mod** (`dalleMod`): AI image generation integration.
+41. **✂️ Summary Mod** (`summaryMod`): Automatic content summarization.
+42. **🌐 Translate Mod** (`translateMod`): Multi-language translation.
+43. **🧭 Navi Mod** (`naviMod`): AI navigation and content discovery.
+44. **➰️ Script Mod** (`scriptMod`): Server-side script execution and scheduling.
+45. **🗞️ Feed Mod** (`feedMod`): RSS and Atom feed processing.
+46. **🪝 Scrape Mod** (`scrapeMod`): Web scraping with CSS selectors.
+47. **💾 Cache Mod** (`cacheMod`): Intelligent caching for performance.
+48. **📎 File Mod** (`fileMod`): File upload and management.
+49. **📧️ Email Mod** (`emailMod`): Email processing and integration.
+50. **📟️ System Mod** (`systemMod`): System information and administrative functions.
+51. **🎁️ Mod Mod** (`modMod`): Dynamic mod installation and management.
+52. **🔑️ Secret Mod** (`secretMod`): Secure storage with opaque tags.
+53. **⚠️ GDPR Mod** (`gdprMod`): Privacy controls and cookie consent.
+54. **🌍 Remote Origin Mod** (`remoteOriginMod`): Multi-server federation.
+55. **🐛 Debug Mod** (`debugMod`): Development and troubleshooting tools.
+56. **❌ Error Mod** (`errorMod`): Error handling and reporting.
+57. **🎨 Theme Mod** (`themesMod`): Dynamic theming and customization.
+58. **🖥️ Fullscreen Mod** (`fullscreenMod`): Distraction-free viewing mode.
+59. **🪟 PiP Mod** (`pipMod`): Picture-in-picture floating windows.
+60. **📱 Seamless Mod** (`seamlessMod`): Enhanced mobile and tablet experience.
+61. **🔍 Lens Mod** (`lensMod`): Custom viewing modes and lenses.
+62. **♟️ Chess Mod** (`chessMod`): Chess game implementation.
+63. **🎲 Backgammon Mod** (`backgammonMod`): Backgammon game implementation.
+64. **🎵 Playlist Mod** (`playlistMod`): Audio/video playlist organization.
+65. **👤 Person Mod** (`personMod`): Contact and identity management.
+66. **📄 Snippet Mod** (`snippetMod`): Code snippet management.
+67. **🔬 Experiments Mod** (`experimentsMod`): Experimental features and testing.
+68. **🚫 Banlist Mod** (`banlistMod`): Content filtering and blocking.
+69. **🔺 Ninja Triangle Mod** (`ninjaTriangleMod`): Specialized triangle game implementation.
 
 ## Advanced Features & Experimental Mods
 Several mods are marked as experimental or provide advanced functionality:
