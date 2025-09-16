@@ -3,7 +3,7 @@
   <select id="user-tag-select" 
           [value]="selectedTag || ''" 
           (change)="onTagChange($event)">
-    <option value="" i18n>Default ({{ store.account.tag }})</option>
+    <option value="" i18n>Default ({{ store.account.originalRoles?.tag || store.account.tag }})</option>
     <option *ngFor="let tag of possibleTags" 
             [value]="tag" 
             [selected]="tag === selectedTag">
@@ -15,7 +15,7 @@
   <div class="custom-input" *ngIf="showCustomInput">
     <label for="custom-suffix" i18n>Custom sub tag suffix:</label>
     <div class="input-group">
-      <span class="prefix">{{ store.account.tag }}/</span>
+      <span class="prefix">{{ store.account.originalRoles?.tag || store.account.tag }}/</span>
       <input id="custom-suffix" 
              type="text" 
              [(ngModel)]="customSuffix" 
@@ -24,6 +24,14 @@
              (keyup.escape)="cancelCustom()">
       <button type="button" (click)="onCustomSubmit()" [disabled]="!customSuffix.trim()" i18n>Add</button>
       <button type="button" (click)="cancelCustom()" i18n>Cancel</button>
+    </div>
+    <div class="autocomplete-suggestions" *ngIf="customSuffix && filterAutocomplete(customSuffix).length > 0">
+      <div class="suggestion" 
+           *ngFor="let suggestion of filterAutocomplete(customSuffix)" 
+           (click)="customSuffix = suggestion.split('/').pop() || ''"
+           [title]="suggestion">
+        {{ suggestion.split('/').pop() }}
+      </div>
     </div>
   </div>
   

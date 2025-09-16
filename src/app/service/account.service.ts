@@ -53,6 +53,9 @@ export class AccountService {
 
   get init$() {
     runInAction(() => this.store.account.defaultConfig = this.admin.defaultConfig('user'));
+    // Initialize selected user tag from localStorage
+    this.initSelectedUserTag();
+    
     if (!this.store.account.signedIn) return this.subscriptions$.pipe(
       switchMap(() => this.bookmarks$),
       switchMap(() => this.theme$),
@@ -355,5 +358,35 @@ export class AccountService {
           modifiedString: cursor,
         };
       })));
+  }
+
+  /**
+   * Set the selected user tag and save to localStorage
+   */
+  setSelectedUserTag(tag: string) {
+    try {
+      this.store.account.setSelectedUserTag(tag);
+      this.store.local.selectedUserTag = tag;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  /**
+   * Clear the selected user tag
+   */
+  clearSelectedUserTag() {
+    this.store.account.clearSelectedUserTag();
+    this.store.local.selectedUserTag = '';
+  }
+
+  /**
+   * Initialize selected user tag from localStorage
+   */
+  initSelectedUserTag() {
+    const savedTag = this.store.local.selectedUserTag;
+    if (savedTag && this.store.account.isValidSubTag(savedTag)) {
+      this.store.account.selectedUserTag = savedTag;
+    }
   }
 }

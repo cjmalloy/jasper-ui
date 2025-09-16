@@ -2,14 +2,14 @@ import { HttpEvent, HttpHandler, HttpInterceptor, HttpRequest } from '@angular/c
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { ConfigService } from '../service/config.service';
-import { UserTagService } from '../service/user-tag.service';
+import { Store } from '../store/store';
 
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
 
   constructor(
     private config: ConfigService,
-    private userTagService: UserTagService,
+    private store: Store,
   ) {}
 
   intercept(request: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
@@ -21,7 +21,7 @@ export class AuthInterceptor implements HttpInterceptor {
     }
     
     // Add User-Tag header if we have a selected user tag and this is a request to the API
-    const userTag = this.userTagService.currentUserTag;
+    const userTag = this.store.account.currentUserTag;
     if (userTag && request.url.includes('/api/')) {
       headers = headers.set('User-Tag', userTag);
     }

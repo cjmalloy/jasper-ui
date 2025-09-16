@@ -55,6 +55,24 @@ Markdown editor with support for rendering both markdown and HTML.
   of the Ref if it exists, or attempt to show the content directly if it is an image, audio, video, and embeddable
   sites.
 * Links of the form `![](/tag/query)` will add results of a tag query inline.
+
+### User Tag Selector
+The User Tag Selector allows authenticated users to change their active user tag to any valid sub tag. This enables users to operate under different sub-identities without requiring separate authentication.
+
+**Features:**
+* Switch between user sub tags (e.g., `+user/chris@` → `+user/chris@/admin`)
+* Autocomplete for faster input of existing sub tags  
+* Local storage persistence of selected tag
+* Automatic User-Tag header injection in API requests
+* Sub tag validation to ensure security
+* Located in Settings → Me page
+
+**Usage:**
+1. Navigate to **Settings → Me**
+2. Use the "Active User Tag" dropdown to select from predefined sub tags
+3. Or create custom sub tags with validation
+4. Selected tag is automatically used for all API requests
+
 ### Tag Query Page
 * Perform any tag query while performing a full text search and multi-column sort
 * Displays title from tag Ext if present

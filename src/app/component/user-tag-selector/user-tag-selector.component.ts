@@ -1,6 +1,5 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { Subject, takeUntil } from 'rxjs';
-import { UserTagService } from '../../service/user-tag.service';
+import { AccountService } from '../../service/account.service';
 import { Store } from '../../store/store';
 
 @Component({
@@ -10,37 +9,41 @@ import { Store } from '../../store/store';
   styleUrls: ['./user-tag-selector.component.scss']
 })
 export class UserTagSelectorComponent implements OnInit, OnDestroy {
-  private destroy$ = new Subject<void>();
   
   selectedTag = '';
   possibleTags: string[] = [];
   customSuffix = '';
   showCustomInput = false;
+  autocompleteOptions: string[] = [];
 
   constructor(
     public store: Store,
-    private userTagService: UserTagService,
+    private accountService: AccountService,
   ) {}
 
   ngOnInit() {
-    // Subscribe to the selected tag
-    this.userTagService.selectedTag$.pipe(
-      takeUntil(this.destroy$)
-    ).subscribe(tag => {
-      this.selectedTag = tag;
-    });
-
+    // Initialize selected tag
+    this.selectedTag = this.store.account.selectedUserTag;
+    
     // Get possible sub tags
     this.updatePossibleTags();
+    
+    // Setup autocomplete options (this would ideally come from backend)
+    this.setupAutocomplete();
   }
 
   ngOnDestroy() {
-    this.destroy$.next();
-    this.destroy$.complete();
+    // Nothing to clean up since we're not using observables
+  }
+
+  setupAutocomplete() {
+    // This would ideally fetch existing sub tags from backend
+    // For now, just include the predefined ones
+    this.autocompleteOptions = this.store.account.getPossibleSubTags();
   }
 
   updatePossibleTags() {
-    this.possibleTags = this.userTagService.getPossibleSubTags();
+    this.possibleTags = this.store.account.getPossibleSubTags();
   }
 
   onTagChange(event: any) {
@@ -48,25 +51,33 @@ export class UserTagSelectorComponent implements OnInit, OnDestroy {
     if (selectedValue === 'custom') {
       this.showCustomInput = true;
     } else if (selectedValue) {
-      this.userTagService.setSelectedTag(selectedValue);
-      this.showCustomInput = false;
+      try {
+        this.accountService.setSelectedUserTag(selectedValue);
+        this.selectedTag = selectedValue;
+        this.showCustomInput = false;
+      } catch (error: any) {
+        alert('Invalid sub tag: ' + error.message);
+      }
     } else {
-      this.userTagService.clearSelectedTag();
+      this.accountService.clearSelectedUserTag();
+      this.selectedTag = '';
       this.showCustomInput = false;
     }
   }
 
   onCustomSubmit() {
     if (this.customSuffix.trim()) {
-      const customTag = this.userTagService.createCustomSubTag(this.customSuffix.trim());
+      const customTag = this.store.account.createCustomSubTag(this.customSuffix.trim());
       if (customTag) {
         try {
-          this.userTagService.setSelectedTag(customTag);
+          this.accountService.setSelectedUserTag(customTag);
+          this.selectedTag = customTag;
           this.customSuffix = '';
           this.showCustomInput = false;
           this.updatePossibleTags();
-        } catch (error) {
-          alert('Invalid sub tag: ' + error);
+          this.setupAutocomplete();
+        } catch (error: any) {
+          alert('Invalid sub tag: ' + error.message);
         }
       }
     }
@@ -78,6 +89,13 @@ export class UserTagSelectorComponent implements OnInit, OnDestroy {
   }
 
   get currentUserTag(): string {
-    return this.userTagService.currentUserTag;
+    return this.store.account.currentUserTag;
+  }
+
+  filterAutocomplete(value: string): string[] {
+    if (!value) return this.autocompleteOptions;
+    return this.autocompleteOptions.filter(option => 
+      option.toLowerCase().includes(value.toLowerCase())
+    );
   }
 }
