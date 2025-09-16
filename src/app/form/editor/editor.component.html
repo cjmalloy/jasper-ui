@@ -73,7 +73,7 @@
                 @if (upload.error) {
                   <span class="upload-error">{{ upload.error }}</span>
                 } @else if (upload.completed) {
-                  <span class="upload-complete">✓ Complete</span>
+                  <span class="upload-complete">✅️ Complete</span>
                 } @else {
                   <progress class="upload-progress-bar" max="100" [value]="upload.progress"></progress>
                   <span class="upload-percentage">{{ upload.progress }}%</span>
@@ -87,17 +87,17 @@
               </div>
             </div>
           }
-          @if (uploads.length > 1 && hasActiveUploads()) {
-            <div class="upload-actions">
-              <button type="button"
-                      class="upload-cancel-all"
-                      (click)="cancelAllUploads()"
-                      i18n>&ndash; remove all</button>
-            </div>
-          }
         </div>
-        <app-loading [batch]="true"></app-loading>
+        @if (uploads.length > 1) {
+          <div class="upload-actions">
+            <button type="button"
+                    class="upload-cancel-all"
+                    (click)="cancelAllUploads()"
+                    i18n>&ndash; remove all</button>
+          </div>
+        }
       </div>
+      <app-loading [batch]="true"></app-loading>
     }
     <textarea #editor
               [disabled]="!!uploads.length"
