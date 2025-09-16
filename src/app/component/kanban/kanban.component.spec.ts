@@ -40,11 +40,11 @@ describe('KanbanComponent', () => {
       // Mock column components that all allow navigation
       const mockColumn1 = { saveChanges: () => true } as any;
       const mockColumn2 = { saveChanges: () => true } as any;
-      
+
       component.list = {
         find: jasmine.createSpy('find').and.returnValue(undefined) // No column returns false
       } as any;
-      
+
       expect(component.saveChanges()).toBe(true);
     });
 
@@ -52,11 +52,11 @@ describe('KanbanComponent', () => {
       // Mock column components where one prevents navigation
       const mockColumnAllowing = { saveChanges: () => true } as any;
       const mockColumnPreventing = { saveChanges: () => false } as any;
-      
+
       component.list = {
         find: jasmine.createSpy('find').and.returnValue(mockColumnPreventing) // One column returns false
       } as any;
-      
+
       expect(component.saveChanges()).toBe(false);
     });
   });

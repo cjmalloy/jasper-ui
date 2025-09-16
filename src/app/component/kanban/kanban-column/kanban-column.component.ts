@@ -14,6 +14,7 @@ import { DateTime } from 'luxon';
 import { catchError, Observable, Subject, Subscription, switchMap, takeUntil, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
+import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Ext } from '../../../model/ext';
 import { Page } from '../../../model/page';
 import { Ref, RefSort } from '../../../model/ref';
@@ -28,7 +29,6 @@ import { URI_REGEX } from '../../../util/format';
 import { fixUrl, printError } from '../../../util/http';
 import { getArgs, UrlFilter } from '../../../util/query';
 import { hasTag } from '../../../util/tag';
-import { HasChanges } from '../../../guard/pending-changes.guard';
 import { KanbanDrag } from '../kanban.component';
 
 @Component({
@@ -289,7 +289,6 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
             }),
           );
         }
-        // Move from adding to failed
         this.adding.splice(this.adding.indexOf(text), 1);
         this.failed.push({ text, error: printError(err).join('\n') });
         return throwError(err);
@@ -309,7 +308,6 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
   }
 
   retry(failedItem: { text: string; error: string }) {
-    // Remove from failed and retry
     this.failed.splice(this.failed.indexOf(failedItem), 1);
     this.addText = failedItem.text;
     this.add();
@@ -359,8 +357,6 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
   }
 
   saveChanges(): boolean {
-    // Return false if there are pending or failed items (prevents navigation)
-    // Return true if no pending changes (allows navigation)
     return this.adding.length === 0 && this.failed.length === 0;
   }
 }
