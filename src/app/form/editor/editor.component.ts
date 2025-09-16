@@ -22,7 +22,7 @@ import { NavigationEnd, Router } from '@angular/router';
 import Europa from 'europa';
 import { debounce, defer, delay, intersection, sortedLastIndex, uniq, without } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
-import { catchError, filter, forkJoin, last, map, of, Subject, switchMap, takeUntil } from 'rxjs';
+import { catchError, filter, forkJoin, last, map, of, Subject, switchMap, takeUntil, Subscription } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { MdComponent } from '../../component/md/md.component';
 import { Ref } from '../../model/ref';
@@ -38,6 +38,15 @@ import { Store } from '../../store/store';
 import { readFileAsDataURL, readFileAsString } from '../../util/async';
 import { memo, MemoCache } from '../../util/memo';
 import { expandedTagsInclude, hasTag, test } from '../../util/tag';
+
+export interface EditorUpload {
+  id: string;
+  name: string;
+  progress: number;
+  subscription?: Subscription;
+  completed?: boolean;
+  error?: string;
+}
 
 @Component({
   standalone: false,
@@ -118,6 +127,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   focused?: boolean = false;
   progress = 0;
   uploading = false;
+  uploads: EditorUpload[] = [];
   files = !!this.admin.getPlugin('plugin/file');
 
   private _text? = '';
@@ -589,13 +599,47 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   upload(files?: FileList | null) {
     this.uploading = false;
     if (!files) return;
-    // @ts-ignore
-    forkJoin([...files].map(f => this.upload$(f))).subscribe(refs => this.attachUrls(...refs));
-  }
-
-  upload$(file: File) {
+    
+    this.uploads = [];
     this.uploading = true;
     this.control.disable();
+    
+    // Create upload tracking entries for each file
+    const fileArray = Array.from(files);
+    const fileUploads: EditorUpload[] = fileArray.map(file => ({
+      id: uuid(),
+      name: file.name,
+      progress: 0
+    }));
+    
+    this.uploads = fileUploads;
+    
+    // Process uploads individually and track progress
+    const uploadObservables = fileArray.map((file, index) => {
+      const upload = fileUploads[index];
+      const subscription = this.upload$(file, upload).subscribe({
+        next: (ref) => {
+          if (ref) {
+            upload.completed = true;
+            upload.progress = 100;
+            this.attachUrls(ref);
+          }
+        },
+        error: (error) => {
+          upload.error = error.message || 'Upload failed';
+          upload.progress = 0;
+        },
+        complete: () => {
+          this.checkAllUploadsComplete();
+        }
+      });
+      
+      upload.subscription = subscription;
+      return subscription;
+    });
+  }
+
+  upload$(file: File, upload?: EditorUpload) {
     const codeType = mimeToCode(file.type);
     if (codeType.length) {
       const ref = {
@@ -604,12 +648,20 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
         title: file.name,
         tags: [this.store.account.localTag, 'internal', ...file.type === 'text/markdown' ? [] : codeType]
       };
+      if (upload) {
+        upload.progress = 50; // Simulate progress for text files
+      }
       return readFileAsString(file).pipe(
         switchMap(contents => this.refs.create({
           ...ref,
           comment: contents,
         })),
-        map(cursor => ref),
+        map(cursor => {
+          if (upload) {
+            upload.progress = 100;
+          }
+          return ref;
+        }),
       );
     } else {
       const tags: string[] = ['plugin/file'];
@@ -630,6 +682,9 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
             case HttpEventType.UploadProgress:
               const percentDone = event.total ? Math.round(100 * event.loaded / event.total) : 0;
               this.progress = percentDone;
+              if (upload) {
+                upload.progress = percentDone;
+              }
               return null;
           }
           return null;
@@ -644,8 +699,6 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   }
 
   attachUrls(...refs: (Ref | null)[]) {
-    this.uploading = false;
-    this.control.enable();
     refs = refs.filter(u => !!u);
     if (!refs.length) return;
     for (const ref of refs) this.addSource.next(ref!.url);
@@ -670,9 +723,45 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
     if (this.focused !== false) this.editor?.nativeElement.focus();
   }
 
+  checkAllUploadsComplete() {
+    const allComplete = this.uploads.every(upload => upload.completed || upload.error);
+    if (allComplete) {
+      this.uploading = false;
+      this.control.enable();
+      
+      // Clear uploads after a short delay to show completion
+      setTimeout(() => {
+        this.uploads = [];
+      }, 2000);
+    }
+  }
+
+  cancelUpload(upload: EditorUpload) {
+    if (upload.subscription) {
+      upload.subscription.unsubscribe();
+    }
+    this.uploads = this.uploads.filter(u => u.id !== upload.id);
+    this.checkAllUploadsComplete();
+  }
+
+  cancelAllUploads() {
+    this.uploads.forEach(upload => {
+      if (upload.subscription) {
+        upload.subscription.unsubscribe();
+      }
+    });
+    this.uploads = [];
+    this.uploading = false;
+    this.control.enable();
+  }
+
   dragLeave(parent: HTMLElement, target: HTMLElement) {
     if (this.dropping && parent === target || !parent.contains(target)) {
       this.dropping = false;
     }
+  }
+
+  hasActiveUploads(): boolean {
+    return this.uploads.some(upload => !upload.completed && !upload.error);
   }
 }
