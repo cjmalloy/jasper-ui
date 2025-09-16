@@ -255,7 +255,16 @@ export class ViewStore {
   }
 
   get showRemotesCheckbox() {
-    return ['tags', 'settings/user', 'settings/plugin', 'settings/template', 'settings/ref', 'inbox/ref'].includes(this.current!);
+    const eligiblePages = ['tags', 'settings/user', 'settings/plugin', 'settings/template', 'settings/ref', 'inbox/ref'];
+    if (!eligiblePages.includes(this.current!)) return false;
+    
+    // Hide show remotes checkbox on tags page when there are origin filters
+    if (this.current === 'tags') {
+      const hasOriginFilter = this.filter?.some(f => f.startsWith('query/@') || f.startsWith('query/*'));
+      if (hasOriginFilter) return false;
+    }
+    
+    return true;
   }
 
   get type(): Type | undefined {
