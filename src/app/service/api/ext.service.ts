@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { delay } from 'lodash-es';
-import { catchError, concat, map, Observable, of, shareReplay, switchMap, throwError, toArray } from 'rxjs';
+import { catchError, concat, map, Observable, of, switchMap, toArray } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Ext, mapExt, writeExt } from '../../model/ext';
 import { mapPage, Page } from '../../model/page';
@@ -9,7 +9,7 @@ import { latest, TagPageArgs, TagQueryArgs } from '../../model/tag';
 import { Store } from '../../store/store';
 import { params } from '../../util/http';
 import { OpPatch } from '../../util/json-patch';
-import { defaultOrigin, hasPrefix, isQuery, localTag, protectedTag, removePrefix, tagOrigin } from '../../util/tag';
+import { defaultOrigin, hasPrefix, localTag, protectedTag, removePrefix, tagOrigin } from '../../util/tag';
 import { ConfigService } from '../config.service';
 import { LoginService } from '../login.service';
 
@@ -124,32 +124,10 @@ export class ExtService {
     const key = tag + ':' + (origin || '');
     if (!this._cache.has(key)) {
       let value: Observable<Ext>;
-      if (!tag || isQuery(tag)) {
-        this._cache.set(key, value = of(this.defaultExt(tag, origin)));
-      } else {
-        this._cache.set(key, value = this.get(defaultOrigin(tag, this.store.account.origin)).pipe(
-          catchError(err => {
-            if (origin === undefined) throw throwError(() => err);
-            return this.get(defaultOrigin(tag, origin));
-          }),
-          catchError(err => {
-            if (tag.includes('@')) throw throwError(() => err);
-            return this.page({ query: localTag(tag), sort: ['levels,ASC', 'modified,DESC'] }).pipe(
-              map(p => p.content.filter(x => x.tag === localTag(tag))[0])
-            );
-          }),
-          catchError(err => of(null)),
-          map(x => x ? x : this.defaultExt(tag, origin)),
-          tap(x => {
-            this._cache.set(x.tag + x.origin + ':', of(x));
-            this.store.local.loadExt([...this._cache.keys()]);
-          }),
-          shareReplay(1),
-        ));
-        delay(() => {
-          if (this._cache.get(key) === value) this._cache.delete(key);
-        }, EXT_CACHE_MS);
-      }
+      this._cache.set(key, value = of(this.defaultExt(tag, origin)));
+      delay(() => {
+        if (this._cache.get(key) === value) this._cache.delete(key);
+      }, EXT_CACHE_MS);
       this.store.local.loadExt([...this._cache.keys()]);
     }
     return this._cache.get(key)!;
