@@ -39,7 +39,8 @@ describe('CommentEditComponent', () => {
       tags: ['tag1', 'tag2', 'existing-tag'],
       comment: 'Original comment'
     };
-    component.editorTags = []; // No new tags added through editor
+    // When editing only comment, editor doesn't change tags so editorTags should remain the same
+    component.editorTags = ['tag1', 'tag2', 'existing-tag']; // Editor preserves existing tags
     
     // Spy on the save method to examine patches
     const patches: any[] = [];
@@ -55,9 +56,9 @@ describe('CommentEditComponent', () => {
     // Call save
     component.save();
     
-    // Verify that no tag removal patches were generated
-    const removePatches = patches.filter(p => p.op === 'remove' && p.path.startsWith('/tags/'));
-    expect(removePatches.length).toBe(0);
+    // Verify that no tag patches were generated (since editor tags match existing tags)
+    const tagPatches = patches.filter(p => p.path.startsWith('/tags/'));
+    expect(tagPatches.length).toBe(0);
     
     // Verify that comment update patch was generated
     const commentPatches = patches.filter(p => p.op === 'add' && p.path === '/comment');
@@ -72,7 +73,8 @@ describe('CommentEditComponent', () => {
       tags: ['existing-tag'],
       comment: 'Original comment'
     };
-    component.editorTags = ['new-tag']; // New tag added through editor
+    // Editor adds a new tag while keeping existing ones
+    component.editorTags = ['existing-tag', 'new-tag']; // Editor now includes both existing and new
     
     // Spy on the save method to examine patches
     const patches: any[] = [];
@@ -92,5 +94,35 @@ describe('CommentEditComponent', () => {
     // Verify that no existing tags were removed
     const removePatches = patches.filter(p => p.op === 'remove' && p.path.startsWith('/tags/'));
     expect(removePatches.length).toBe(0);
+  });
+
+  it('should remove tags when they are removed through editor', () => {
+    // Setup component with existing tags including 'public'
+    component.ref = {
+      url: 'test-url',
+      tags: ['public', 'important', 'project'],
+      comment: 'Original comment'
+    };
+    // Editor removes 'public' tag (like public/private toggle)
+    component.editorTags = ['important', 'project']; // 'public' removed by editor
+    
+    // Spy on the save method to examine patches
+    const patches: any[] = [];
+    spyOn(component['refs'], 'patch').and.callFake((url, origin, modified, patchList) => {
+      patches.push(...patchList);
+      return { pipe: () => ({ subscribe: () => {} }) } as any;
+    });
+    
+    // Call save
+    component.save();
+    
+    // Verify that 'public' tag remove patch was generated
+    const removePatches = patches.filter(p => p.op === 'remove' && p.path.startsWith('/tags/'));
+    expect(removePatches.length).toBe(1);
+    expect(removePatches[0].path).toBe('/tags/0'); // 'public' is at index 0
+    
+    // Verify that no tag additions occurred
+    const addPatches = patches.filter(p => p.op === 'add' && p.path === '/tags/-');
+    expect(addPatches.length).toBe(0);
   });
 });

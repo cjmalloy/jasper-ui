@@ -69,7 +69,6 @@ export class CommentEditComponent implements AfterViewInit, HasChanges, OnDestro
 
   get allTags() {
     return uniq([
-      ...this.ref.tags || [],
       ...this.editorTags,
       ...getMailboxes(this.comment.value, this.store.account.origin),
     ]);
@@ -84,15 +83,27 @@ export class CommentEditComponent implements AfterViewInit, HasChanges, OnDestro
         value: this.comment.value,
       });
     }
-    for (const t of without(this.newTags, ...this.ref.tags || [])) {
+    
+    // Calculate the final set of tags that should exist
+    const finalTags = this.allTags;
+    
+    // Add tags that are new (in final but not in current)
+    for (const t of without(finalTags, ...this.ref.tags || [])) {
       patches.push({
         op: 'add',
         path: '/tags/-',
         value: t,
       });
     }
-    // Note: For comment editing, we don't remove existing tags unless they were explicitly removed in the editor
-    // This prevents the bug where editing a comment would remove all tags
+    
+    // Remove tags that should no longer exist (in current but not in final)
+    for (const t of without(this.ref.tags || [], ...finalTags)) {
+      patches.push({
+        op: 'remove',
+        path: '/tags/' + this.ref.tags!.indexOf(t),
+      });
+    }
+    
     for (const s of this.sources) {
       patches.push({
         op: 'add',
