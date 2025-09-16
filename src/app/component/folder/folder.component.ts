@@ -64,7 +64,7 @@ export class FolderComponent implements OnChanges, HasChanges {
       delete this.folderExts;
       delete this.parent;
       if (this.tag?.includes('/')) {
-        this.exts.getCachedExt(this.tag.substring(0, this.tag.lastIndexOf('/')), tagOrigin(this.tag) || '@')
+        this.exts.get(this.tag.substring(0, this.tag.lastIndexOf('/')), tagOrigin(this.tag) || '@')
           .subscribe(ext => this.parent = ext);
       }
       this.folderSubscription?.unsubscribe();

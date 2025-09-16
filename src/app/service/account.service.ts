@@ -112,7 +112,7 @@ export class AccountService {
 
   get forYouQuery$(): Observable<string> {
     const followers = this.store.account.userSubs
-      .map(u => this.exts.getCachedExt(u));
+      .map(u => this.exts.get(u));
     return (followers.length ? forkJoin(followers) : of([])).pipe(
       map(es => [
           ...this.store.account.tagSubs,

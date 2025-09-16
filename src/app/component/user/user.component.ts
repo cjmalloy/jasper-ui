@@ -86,7 +86,7 @@ export class UserComponent implements OnChanges, HasChanges {
     this.actionComponents?.forEach(c => c.reset());
     this.writeAccess = this.auth.tagWriteAccess(this.qualifiedTag) && this.auth.hasRole(this.role);
     if (this.created && !this.profile) {
-      this.exts.getCachedExt(this.user!.tag, this.user!.origin)
+      this.exts.get(this.user!.tag, this.user!.origin)
       .subscribe(x => this.ext = x);
       this.profiles.getProfile(this.qualifiedTag)
       .subscribe(profile => this.profile = profile);
