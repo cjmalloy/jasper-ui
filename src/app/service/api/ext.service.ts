@@ -1,7 +1,18 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { delay } from 'lodash-es';
-import { catchError, concat, map, Observable, of, shareReplay, switchMap, throwError, toArray } from 'rxjs';
+import {
+  catchError,
+  concat,
+  map,
+  Observable,
+  of,
+  shareReplay,
+  Subscription,
+  switchMap,
+  throwError,
+  toArray
+} from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Ext, mapExt, writeExt } from '../../model/ext';
 import { mapPage, Page } from '../../model/page';
@@ -12,6 +23,7 @@ import { OpPatch } from '../../util/json-patch';
 import { defaultOrigin, hasPrefix, isQuery, localTag, protectedTag, removePrefix, tagOrigin } from '../../util/tag';
 import { ConfigService } from '../config.service';
 import { LoginService } from '../login.service';
+import { StompService } from './stomp.service';
 
 export const EXT_CACHE_MS = 15 * 60 * 1000;
 
@@ -27,6 +39,7 @@ export class ExtService {
     private config: ConfigService,
     private login: LoginService,
     private store: Store,
+    private stomp: StompService,
   ) { }
 
   private get base() {
@@ -104,15 +117,30 @@ export class ExtService {
   }
 
   prefillCache(ext: Ext) {
-    const key1 = ext.tag + ext.origin + ':';
-    const key2 = ext.tag + ':' + ext.origin;
-    const value = of(ext);
-    this._cache.set(key1, value);
-    this._cache.set(key2, value);
-    delay(() => {
-      if (this._cache.get(key1) === value) this._cache.delete(key1);
-      if (this._cache.get(key2) === value) this._cache.delete(key2);
-    }, EXT_CACHE_MS);
+    let value = of(ext);
+    const keys: string[] = [];
+    keys.push(ext.tag + ext.origin + ':');
+    if (ext.origin !== this.store.account.origin) {
+      keys.push(ext.tag + ':' + ext.origin);
+    }
+    for (const key of keys) {
+      this._cache.set(key, value);
+    }
+    let timerId = 0;
+    const sub = this.stomp.watchExt(ext.tag + ext.origin).subscribe(x => {
+      value = of(x);
+      for (const key of keys) {
+        this._cache.set(key, value);
+      }
+    });
+    const clear = () => {
+      for (const key of keys) {
+        if (this._cache.get(key) === value) this._cache.delete(key);
+      }
+      sub.unsubscribe();
+      clearTimeout(timerId);
+    };
+    timerId = delay(clear, EXT_CACHE_MS);
   }
 
   getCachedExts(tags: string[], origin?: string): Observable<Ext[]> {
@@ -127,7 +155,9 @@ export class ExtService {
       if (!tag || isQuery(tag)) {
         this._cache.set(key, value = of(this.defaultExt(tag, origin)));
       } else {
-        this._cache.set(key, value = this.getHttp(defaultOrigin(tag, this.store.account.origin)).pipe(
+        let sub: Subscription;
+        let update: Ext;
+        this._cache.set(key, value = this.get(defaultOrigin(tag, this.store.account.origin)).pipe(
           catchError(err => {
             if (origin === undefined) throw throwError(() => err);
             return this.getHttp(defaultOrigin(tag, origin));
@@ -141,14 +171,30 @@ export class ExtService {
           catchError(err => of(null)),
           map(x => x ? x : this.defaultExt(tag, origin)),
           tap(x => {
-            this._cache.set(x.tag + x.origin + ':', of(x));
+            update = x;
+            value = of(x);
+            const key2 = x.tag + x.origin + ':';
+            sub = this.stomp.watchExt(x.tag + x.origin).subscribe(u => {
+              update = u;
+              value = of(u);
+              this._cache.set(key, value);
+              if (key2 !== key) this._cache.set(key2, value);
+            });
+            this._cache.set(key, value);
+            if (key2 !== key) this._cache.set(key2, value);
             this.store.local.loadExt([...this._cache.keys()]);
           }),
           shareReplay(1),
         ));
-        delay(() => {
+        let timerId = 0;
+        const clear = () => {
+          const key2 = update?.tag + update?.origin + ':';
           if (this._cache.get(key) === value) this._cache.delete(key);
-        }, EXT_CACHE_MS);
+          if (update && key !== key2 && this._cache.get(key2) === value) this._cache.delete(key2);
+          sub?.unsubscribe();
+          clearTimeout(timerId);
+        };
+        timerId = delay(clear, EXT_CACHE_MS);
       }
       this.store.local.loadExt([...this._cache.keys()]);
     }
