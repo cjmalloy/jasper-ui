@@ -95,10 +95,6 @@ npm run start:full
   ```bash
   ng generate component component-name
   ```
-- Debug IP configuration (requires `jq` and `sponge`):
-  ```bash
-  ./set-debug-ip.sh
-  ```
 
 ## Validation
 
@@ -157,7 +153,6 @@ npm run start:full
 - `src/assets/config.json` - Runtime configuration (title, features) - DO NOT edit API URL here
 - `karma.conf.js` / `karma-ci.conf.js` - Unit test configuration
 - `cypress.config.ts` - E2E test configuration
-- `set-debug-ip.sh` - Development utility for IP configuration
 
 ### Configuration Points
 
