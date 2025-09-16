@@ -48,7 +48,7 @@ export class TagsPage implements OnInit, OnDestroy, HasChanges {
   ngOnInit(): void {
     this.disposers.push(autorun(() => {
       this.title = this.store.view.template && this.admin.getTemplate(this.store.view.template)?.name || this.store.view.ext?.name || this.store.view.template || '';
-      this.exts.get(this.store.view.template)
+      this.exts.getCachedExt(this.store.view.template)
         .subscribe(ext => this.title = ext.name || this.title);
       const query
         = this.store.view.home

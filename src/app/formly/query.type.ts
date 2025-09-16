@@ -293,7 +293,7 @@ export class FormlyFieldQueryInput extends FieldType<FieldTypeConfig> implements
     for (const t of crumbs) {
       const tag = t.tag?.startsWith('!') ? t.tag.substring(1) : t.tag;
       if (tag && !tag.startsWith('@')) {
-        this.exts.get(tag).subscribe(ext => {
+        this.exts.getCachedExt(tag).subscribe(ext => {
           // TODO: possible delayed write
           if (ext.modifiedString && ext.name) {
             t.text = ext.name;

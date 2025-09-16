@@ -75,7 +75,7 @@ export class ExtPage implements OnInit, OnDestroy, HasChanges {
         runInAction(() => this.store.view.exts = []);
       } else {
         const tag = this.store.view.localTag + this.store.account.origin;
-        this.exts.get(tag).pipe(
+        this.exts.getCachedExt(tag).pipe(
           catchError(() => of(undefined)),
         ).subscribe(ext => this.setExt(tag, ext));
       }
@@ -163,7 +163,7 @@ export class ExtPage implements OnInit, OnDestroy, HasChanges {
         }
         return throwError(() => res);
       }),
-      switchMap(() => this.exts.get(tag)),
+      switchMap(() => this.exts.getCachedExt(tag)),
       catchError((res: HttpErrorResponse) => {
         delete this.creating;
         this.serverError = printError(res);
@@ -209,7 +209,7 @@ export class ExtPage implements OnInit, OnDestroy, HasChanges {
         }
         if (res.status === 409) {
           this.overwritten = true;
-          this.exts.get(ext.tag + ext.origin).subscribe(x => this.overwrittenModified = x.modifiedString);
+          this.exts.getCachedExt(ext.tag + ext.origin).subscribe(x => this.overwrittenModified = x.modifiedString);
         }
         this.serverError = printError(res);
         return throwError(() => res);

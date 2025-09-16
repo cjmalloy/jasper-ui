@@ -187,7 +187,7 @@ export class ExtComponent implements OnChanges, HasChanges {
       this.store.submit.setExt(this.ext);
     } else {
       this.exts.update(ext).pipe(
-        switchMap(() => this.exts.get(this.qualifiedTag)),
+        switchMap(() => this.exts.getCachedExt(this.qualifiedTag)),
         catchError((res: HttpErrorResponse) => {
           if (res.status === 400) {
             this.invalid = true;
@@ -196,7 +196,7 @@ export class ExtComponent implements OnChanges, HasChanges {
           }
           if (res.status === 409) {
             this.overwritten = true;
-            this.exts.get(this.qualifiedTag).subscribe(x => this.overwrittenModified = x.modifiedString);
+            this.exts.getCachedExt(this.qualifiedTag).subscribe(x => this.overwrittenModified = x.modifiedString);
           }
           this.serverError = printError(res);
           return throwError(() => res);
@@ -233,7 +233,7 @@ export class ExtComponent implements OnChanges, HasChanges {
     this.exts.create(copied).pipe(
       catchError((err: HttpErrorResponse) => {
         if (err.status === 409) {
-          return this.exts.get(this.qualifiedTag).pipe(
+          return this.exts.getCachedExt(this.qualifiedTag).pipe(
             switchMap(ext => {
               if (equalsExt(ext, copied) || confirm('An old version already exists. Overwrite it?')) {
                 // TODO: Show diff and merge or split
@@ -247,7 +247,7 @@ export class ExtComponent implements OnChanges, HasChanges {
         this.serverError = printError(err);
         return throwError(() => err);
       }),
-      switchMap(() => this.exts.get(this.ext.tag + this.store.account.origin)),
+      switchMap(() => this.exts.getCachedExt(this.ext.tag + this.store.account.origin)),
     ).subscribe(ext => {
       this.ext = ext;
       this.init();

@@ -380,7 +380,7 @@ export class UploadPage implements OnDestroy {
       catchError((err: HttpErrorResponse) => {
         if (err.status === 409) {
           if (this.store.submit.overwrite) {
-            return this.exts.get(ext.tag + this.store.account.origin).pipe(
+            return this.exts.getCachedExt(ext.tag + this.store.account.origin).pipe(
               switchMap(existing => {
                 return this.exts.update({ ...ext, modifiedString: existing.modifiedString });
               })

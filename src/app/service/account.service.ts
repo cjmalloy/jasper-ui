@@ -101,7 +101,7 @@ export class AccountService {
   private get userExt$(): Observable<Ext> {
     if (!this.store.account.signedIn) return throwError(() => 'Not signed in');
     if (!this._userExt$) {
-      this._userExt$ = this.exts.get(this.store.account.tag).pipe(
+      this._userExt$ = this.exts.getCachedExt(this.store.account.tag).pipe(
         tap(ext => runInAction(() => this.store.account.ext = ext)),
         shareReplay(1),
       );
@@ -112,7 +112,7 @@ export class AccountService {
 
   get forYouQuery$(): Observable<string> {
     const followers = this.store.account.userSubs
-      .map(u => this.exts.get(u));
+      .map(u => this.exts.getCachedExt(u));
     return (followers.length ? forkJoin(followers) : of([])).pipe(
       map(es => [
           ...this.store.account.tagSubs,

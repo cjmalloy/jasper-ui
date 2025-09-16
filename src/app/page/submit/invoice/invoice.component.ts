@@ -149,7 +149,7 @@ export class SubmitInvoicePage implements HasChanges {
       return;
     }
     const published = this.invoiceForm.value.published ? DateTime.fromISO(this.invoiceForm.value.published) : DateTime.now();
-    this.submitting = this.exts.get(this.queue!).pipe(
+    this.submitting = this.exts.getCachedExt(this.queue!).pipe(
       switchMap(queueExt => this.refs.create({
         ...this.invoiceForm.value,
         origin: this.store.account.origin,

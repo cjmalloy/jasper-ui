@@ -206,7 +206,7 @@ export class EditorService {
   }
 
   getTagPreview(tag: string, defaultOrigin = '', returnDefault = true, loadTemplates = true, loadPlugins = true): Observable<{ name?: string, tag: string } | undefined> {
-    return this.exts.get(tag, defaultOrigin).pipe(
+    return this.exts.getCachedExt(tag, defaultOrigin).pipe(
       switchMap(x => {
         const localExists = x.modified && x.origin === (defaultOrigin || this.store.account.origin);
         if (loadTemplates) {
@@ -235,12 +235,12 @@ export class EditorService {
               const origin = childTag.substring(0, childTag.indexOf('/'));
               const remoteTag = childTag.substring(origin.length + 1);
               const originFormat = origin ? ' @' + origin : '';
-              return this.exts.get(remoteTag, origin).pipe(
+              return this.exts.getCachedExt(remoteTag, origin).pipe(
                 map(c => ({ tag: x.tag, name: (longestMatch.name || longestMatch.tag) + ' / ' + (c.name || c.tag) + originFormat })),
               );
             }
             let a = access(x.tag) || '+';
-            return this.exts.get(a + setPublic(childTag), defaultOrigin).pipe(
+            return this.exts.getCachedExt(a + setPublic(childTag), defaultOrigin).pipe(
               map(c => ({ tag: x.tag, name: (longestMatch.config?.view || longestMatch.name || longestMatch.tag) + ' / ' + (c.name || setPublic(childTag)) })),
             );
           }
