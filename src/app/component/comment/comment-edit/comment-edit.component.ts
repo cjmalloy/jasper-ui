@@ -67,6 +67,14 @@ export class CommentEditComponent implements AfterViewInit, HasChanges, OnDestro
     ]), this.ref.tags);
   }
 
+  get allTags() {
+    return uniq([
+      ...this.ref.tags || [],
+      ...this.editorTags,
+      ...getMailboxes(this.comment.value, this.store.account.origin),
+    ]);
+  }
+
   save() {
     const patches: OpPatch[] = [];
     if (this.comment.dirty) {
@@ -83,12 +91,8 @@ export class CommentEditComponent implements AfterViewInit, HasChanges, OnDestro
         value: t,
       });
     }
-    for (const t of without(this.ref.tags, ...this.newTags)) {
-      patches.push({
-        op: 'remove',
-        path: '/tags/' + this.ref.tags!.indexOf(t),
-      });
-    }
+    // Note: For comment editing, we don't remove existing tags unless they were explicitly removed in the editor
+    // This prevents the bug where editing a comment would remove all tags
     for (const s of this.sources) {
       patches.push({
         op: 'add',
