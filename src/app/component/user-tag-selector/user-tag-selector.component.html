@@ -1,0 +1,36 @@
+<div class="user-tag-selector" *ngIf="store.account.signedIn">
+  <label for="user-tag-select" i18n>Active User Tag:</label>
+  <select id="user-tag-select" 
+          [value]="selectedTag || ''" 
+          (change)="onTagChange($event)">
+    <option value="" i18n>Default ({{ store.account.tag }})</option>
+    <option *ngFor="let tag of possibleTags" 
+            [value]="tag" 
+            [selected]="tag === selectedTag">
+      {{ tag }}
+    </option>
+    <option value="custom" i18n>Create custom sub tag...</option>
+  </select>
+  
+  <div class="custom-input" *ngIf="showCustomInput">
+    <label for="custom-suffix" i18n>Custom sub tag suffix:</label>
+    <div class="input-group">
+      <span class="prefix">{{ store.account.tag }}/</span>
+      <input id="custom-suffix" 
+             type="text" 
+             [(ngModel)]="customSuffix" 
+             placeholder="e.g., admin, work, bot"
+             (keyup.enter)="onCustomSubmit()"
+             (keyup.escape)="cancelCustom()">
+      <button type="button" (click)="onCustomSubmit()" [disabled]="!customSuffix.trim()" i18n>Add</button>
+      <button type="button" (click)="cancelCustom()" i18n>Cancel</button>
+    </div>
+  </div>
+  
+  <div class="help-text" i18n>
+    Select a user sub-tag to use for API requests. This will be sent as the User-Tag header.
+  </div>
+  <div class="current-tag" *ngIf="currentUserTag" i18n>
+    Currently using: <strong>{{ currentUserTag }}</strong>
+  </div>
+</div>

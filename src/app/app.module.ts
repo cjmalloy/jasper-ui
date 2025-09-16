@@ -79,6 +79,7 @@ import { TodoItemComponent } from './component/todo/item/item.component';
 import { TodoComponent } from './component/todo/todo.component';
 import { UserListComponent } from './component/user/user-list/user-list.component';
 import { UserComponent } from './component/user/user.component';
+import { UserTagSelectorComponent } from './component/user-tag-selector/user-tag-selector.component';
 import { ViewerComponent } from './component/viewer/viewer.component';
 import { AutofocusDirective } from './directive/autofocus.directive';
 import { FillWidthDirective } from './directive/fill-width.directive';
@@ -319,6 +320,7 @@ const loadFactory = (config: ConfigService, debug: DebugService, admin: AdminSer
     InlineSelectComponent,
     InlineButtonComponent,
     TabsComponent,
+    UserTagSelectorComponent,
   ],
   imports: [
     BrowserModule,
