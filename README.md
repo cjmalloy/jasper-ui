@@ -212,19 +212,6 @@ file will be generated from environment variables:
 ## Developing
 This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 13.3.0.
 
-### Quick Start
-
-For complete development with backend (recommended):
-```bash
-./setup-dev.sh          # Set up environment
-make start-backend       # Start backend services
-make start              # Start frontend (in new terminal)
-```
-
-Open http://localhost:4200/ for frontend, http://localhost:8081/ for backend API.
-
-Available commands: `make help` or see [.github/copilot-instructions.md](.github/copilot-instructions.md)
-
 ### Development server
 
 Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The

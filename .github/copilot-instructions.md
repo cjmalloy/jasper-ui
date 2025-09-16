@@ -54,7 +54,7 @@ npm start
 **Option 2: Full Stack Development (Recommended)**
 ```bash
 # Terminal 1: Start backend services
-npm run start:backend
+docker compose --profile server up --build
 
 # Terminal 2: Start frontend (wait for backend to be healthy first)
 npm start
@@ -65,7 +65,7 @@ npm start
 
 **Option 3: Complete Dockerized Stack**
 ```bash
-npm run start:full
+docker compose up --build
 ```
 - Everything in Docker on http://localhost:8082/
 
@@ -73,16 +73,16 @@ npm run start:full
 
 - Run tests like GitHub Actions:
   ```bash
-  npm run test:docker          # Unit tests in Docker (matches CI exactly)
+  docker build . --target test -t jasper-ui-test && docker run --rm jasper-ui-test  # Unit tests in Docker (matches CI exactly)
   npm run cy:ci                # E2E tests with backend (10-20 min, NEVER CANCEL)
   ```
 - Build Docker image:
   ```bash
-  npm run build:docker
+  docker build . -t jasper-ui:local
   ```
 - Stop all services:
   ```bash
-  npm run stop
+  docker compose down
   ```
 
 ### Additional Development Commands
@@ -102,7 +102,7 @@ npm run start:full
 - Recommended validation workflow:
   ```bash
   # Terminal 1: Start backend services
-  npm run start:backend
+  docker compose --profile server up --build
   
   # Wait for backend health check, then in Terminal 2:
   npm start
@@ -175,7 +175,7 @@ npm run start:full
 
 2. Start backend:
    ```bash
-   npm run start:backend
+   docker compose --profile server up --build
    # Wait for health check to complete
    ```
 
@@ -212,8 +212,8 @@ npm run start:full
 - Build errors: Check Node.js version (22 recommended), clean `node_modules` and reinstall
 - Test failures: Ensure Chrome/Chromium available for headless testing
 - Network issues: Use `CYPRESS_INSTALL_BINARY=0` flag for npm install
-- Backend connection issues: Ensure `npm run start:backend` is running and healthy
-- Docker issues: `npm run stop` to reset Docker state
+- Backend connection issues: Ensure `docker compose --profile server up --build` is running and healthy
+- Docker issues: `docker compose down` to reset Docker state
 
 ## Architecture Notes
 
