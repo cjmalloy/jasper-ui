@@ -90,17 +90,17 @@ export class ExtService {
     );
   }
 
-  get(tag: string): Observable<Ext> {
-    return this.http.get(this.base, {
-      params: params({ tag }),
-    }).pipe(
-      map(mapExt),
-      tap(ext => {
-        this.prefillCache(ext);
-        this.store.local.loadExt([...this._cache.keys()]);
-      }),
-      catchError(err => this.login.handleHttpError(err)),
-    );
+  get(tag: string, origin?: string): Observable<Ext> {
+    const key = tag + ':' + (origin || '');
+    if (!this._cache.has(key)) {
+      let value: Observable<Ext>;
+      this._cache.set(key, value = of(this.defaultExt(tag, origin)));
+      delay(() => {
+        if (this._cache.get(key) === value) this._cache.delete(key);
+      }, EXT_CACHE_MS);
+      this.store.local.loadExt([...this._cache.keys()]);
+    }
+    return this._cache.get(key)!;
   }
 
   prefillCache(ext: Ext) {
@@ -117,20 +117,7 @@ export class ExtService {
 
   getCachedExts(tags: string[], origin?: string): Observable<Ext[]> {
     if (!tags) return of([]);
-    return concat(...tags.map(t => this.getCachedExt(t, origin))).pipe(toArray());
-  }
-
-  getCachedExt(tag: string, origin?: string) {
-    const key = tag + ':' + (origin || '');
-    if (!this._cache.has(key)) {
-      let value: Observable<Ext>;
-      this._cache.set(key, value = of(this.defaultExt(tag, origin)));
-      delay(() => {
-        if (this._cache.get(key) === value) this._cache.delete(key);
-      }, EXT_CACHE_MS);
-      this.store.local.loadExt([...this._cache.keys()]);
-    }
-    return this._cache.get(key)!;
+    return concat(...tags.map(t => this.get(t, origin))).pipe(toArray());
   }
 
   defaultExt(tag: string, defaultOrigin = '', name = ''): Ext {

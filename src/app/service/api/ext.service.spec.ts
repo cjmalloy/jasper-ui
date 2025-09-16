@@ -24,7 +24,7 @@ describe('ExtService', () => {
     const tag = 'test-tag';
     const origin = 'test-origin';
     
-    const result = service.getCachedExt(tag, origin);
+    const result = service.get(tag, origin);
     
     result.subscribe(ext => {
       expect(ext).toBeTruthy();
@@ -38,15 +38,15 @@ describe('ExtService', () => {
     const tag = 'test-tag';
     const origin = 'test-origin';
     
-    const result1 = service.getCachedExt(tag, origin);
-    const result2 = service.getCachedExt(tag, origin);
+    const result1 = service.get(tag, origin);
+    const result2 = service.get(tag, origin);
     
     // Should return the same observable instance (cached)
     expect(result1).toBe(result2);
   });
 
   it('should handle empty tag and origin correctly', () => {
-    const result = service.getCachedExt('', '');
+    const result = service.get('', '');
     
     result.subscribe(ext => {
       expect(ext).toBeTruthy();
