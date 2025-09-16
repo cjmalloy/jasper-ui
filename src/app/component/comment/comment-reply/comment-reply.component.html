@@ -1,6 +1,7 @@
 <form>
   <app-editor [control]="comment"
-              [createdTags]="tags || []"
+              [tags]="tagsForm"
+              [plugins]="plugins"
               [selectResponseType]="selectResponseType"
               (syncTags)="syncTags($event)"
               (addSource)="addSource($event)"

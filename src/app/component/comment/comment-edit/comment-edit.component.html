@@ -1,5 +1,6 @@
 <app-editor [control]="comment"
-            [createdTags]="ref.tags || []"
+            [tags]="tags"
+            [plugins]="plugins"
             (syncTags)="editorTags = $event"
             (addSource)="sources.push($event)"
             [autoFocus]="true"></app-editor>
