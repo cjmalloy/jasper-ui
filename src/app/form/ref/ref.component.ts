@@ -5,11 +5,14 @@ import {
   HostBinding,
   HostListener,
   Input,
+  OnDestroy,
+  OnInit,
   Output,
   ViewChild
 } from '@angular/core';
 import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { defer } from 'lodash-es';
+import { autorun } from 'mobx';
 import { catchError, map, of, switchMap } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
@@ -33,7 +36,7 @@ import { TagsFormComponent } from '../tags/tags.component';
   styleUrls: ['./ref.component.scss'],
   host: {'class': 'nested-form'}
 })
-export class RefFormComponent {
+export class RefFormComponent implements OnInit, OnDestroy {
 
   @Input()
   origin? = '';
@@ -60,6 +63,9 @@ export class RefFormComponent {
   oembed?: Oembed;
   scraped?: Ref;
   ref?: Ref;
+  loadingEvents = new Set<string>();
+  
+  private disposers: Array<() => void> = [];
 
   constructor(
     private fb: UntypedFormBuilder,
@@ -69,6 +75,24 @@ export class RefFormComponent {
     private oembeds: OembedStore,
     private store: Store,
   ) { }
+
+  ngOnInit() {
+    // Listen for events to manage loading states  
+    this.disposers.push(autorun(() => {
+      const currentEvent = this.store.eventBus.event;
+      if (currentEvent === 'scrape-title-done') {
+        this.loadingEvents.delete('scrape-title');
+      } else if (currentEvent === 'scrape-published-done') {
+        this.loadingEvents.delete('scrape-published');
+      } else if (currentEvent === 'scrape-done') {
+        this.loadingEvents.delete('scrape');
+      }
+    }));
+  }
+
+  ngOnDestroy() {
+    for (const dispose of this.disposers) dispose();
+  }
 
   get web() {
     const scheme = getScheme(this.url.value);
@@ -177,7 +201,12 @@ export class RefFormComponent {
     );
   }
 
+  isLoading(event: string): boolean {
+    return this.loadingEvents.has(event);
+  }
+
   scrapeTitle() {
+    this.loadingEvents.add('scrape-title');
     this.scrape$.pipe(
       catchError(err => of({
         url: this.url.value,
@@ -194,22 +223,23 @@ export class RefFormComponent {
     ).subscribe({
       next: (s: Ref) => {
         if (s.title) this.group.patchValue({ title: s.title });
-        this.store.eventBus.fire('scrape-done');
+        this.store.eventBus.fire('scrape-title-done');
       },
       error: err => {
-        this.store.eventBus.fire('scrape-done');
+        this.store.eventBus.fire('scrape-title-done');
       }
     });
   }
 
   scrapePublished() {
+    this.loadingEvents.add('scrape-published');
     this.scrape$.subscribe({
       next: ref => {
         this.published.setValue(ref.published?.toFormat("YYYY-MM-DD'T'TT"));
-        this.store.eventBus.fire('scrape-done');
+        this.store.eventBus.fire('scrape-published-done');
       },
       error: err => {
-        this.store.eventBus.fire('scrape-done');
+        this.store.eventBus.fire('scrape-published-done');
       }
     });
   }
@@ -218,6 +248,7 @@ export class RefFormComponent {
     if (this.oembed) {
       // TODO: oEmbed
     } else {
+      this.loadingEvents.add('scrape');
       this.scrape$.subscribe({
         next: s => {
           if (!hasMedia(s) || hasMedia(this.group.value)) {
