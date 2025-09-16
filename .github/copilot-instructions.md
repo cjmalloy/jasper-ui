@@ -2,6 +2,24 @@
 
 Always reference these instructions first and fallback to search or bash commands only when you encounter unexpected information that does not match the info here.
 
+## What is Jasper?
+
+Jasper is an open source knowledge management (KM) system. Unlike a CMS, Jasper stores links to content rather than content itself, creating a fast overlay database that indexes content sources. The system uses a hierarchical tagging model with five core entities:
+
+1. **Ref** - References to external resources (URLs with metadata, tags, comments)
+2. **Ext** - Tag extensions that customize tag pages
+3. **User** - User entities with Tag-Based Access Control (TBAC)
+4. **Plugin** - Extends Ref functionality with JSON schemas and custom behavior
+5. **Template** - Extends Ext functionality with JSON schemas
+
+**Key Concepts:**
+- **Tags**: Hierarchical strings (`public`, `+protected`, `_private`) for categorization and access control
+- **Origins**: Enable replication and multi-tenant operation (`@origin`)
+- **Modding**: Extensive customization via plugins/templates without server changes
+- **Querying**: Set-like operators (`:` and, `|` or, `!` not, `()` groups) to find content
+
+This Angular client (jasper-ui) provides the reference implementation for interacting with the Jasper knowledge management server.
+
 ## Quick Start
 
 - **CRITICAL**: Debugging requires the Jasper server backend running
