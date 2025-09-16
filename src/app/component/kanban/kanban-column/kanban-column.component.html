@@ -20,16 +20,16 @@
         <div class="failed-error">{{ failedItem.error }}</div>
       </div>
       <div class="failed-actions">
-        <button type="button" 
-                class="retry-btn" 
-                (click)="retry(failedItem)" 
-                title="Retry creating this item"
-                i18n-title>↻</button>
-        <button type="button" 
-                class="dismiss-btn" 
-                (click)="dismissFailed(failedItem)" 
-                title="Dismiss this failed item"
-                i18n-title>×</button>
+        <button type="button"
+                class="retry-btn"
+                (click)="retry(failedItem)"
+                i18n-title title="Retry creating this item"
+                i18n>↻</button>
+        <button type="button"
+                class="dismiss-btn"
+                (click)="dismissFailed(failedItem)"
+                i18n-title title="Dismiss this failed item"
+                i18n>&ndash;</button>
       </div>
     </div>
   }

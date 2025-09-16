@@ -25,7 +25,7 @@ import { ConfigService } from '../../../service/config.service';
 import { OembedStore } from '../../../store/oembed';
 import { Store } from '../../../store/store';
 import { URI_REGEX } from '../../../util/format';
-import { fixUrl } from '../../../util/http';
+import { fixUrl, printError } from '../../../util/http';
 import { getArgs, UrlFilter } from '../../../util/query';
 import { hasTag } from '../../../util/tag';
 import { KanbanDrag } from '../kanban.component';
@@ -290,15 +290,7 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
         }
         // Move from adding to failed
         this.adding.splice(this.adding.indexOf(text), 1);
-        let errorMessage = 'Failed to create ticket';
-        if (err.status === 403) {
-          errorMessage = 'Permission denied';
-        } else if (err.status === 500) {
-          errorMessage = 'Server error';
-        } else if (err.message) {
-          errorMessage = err.message;
-        }
-        this.failed.push({ text, error: errorMessage });
+        this.failed.push({ text, error: printError(err).join('\n') });
         return throwError(err);
       }),
       tap(cursor => this.accounts.clearNotificationsIfNone(DateTime.fromISO(cursor))),

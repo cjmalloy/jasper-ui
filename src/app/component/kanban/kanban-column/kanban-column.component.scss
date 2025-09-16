@@ -60,12 +60,11 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background-color: #fee;
-    border: 1px solid #fcc;
+    background-color: var(--error-bg);
+    border: 0.5px dashed var(--border);
     border-radius: 4px;
     margin: 4px 8px;
     padding: 8px;
-    font-size: 12px;
 
     .failed-content {
       flex: 1;
@@ -80,8 +79,8 @@
       }
 
       .failed-error {
-        color: #c33;
-        font-size: 11px;
+        color: var(--error);
+        font-size: 80%;
         opacity: 0.8;
       }
     }
@@ -90,40 +89,6 @@
       display: flex;
       gap: 4px;
       margin-left: 8px;
-
-      button {
-        background: none;
-        border: 1px solid #ccc;
-        border-radius: 2px;
-        cursor: pointer;
-        font-size: 14px;
-        height: 24px;
-        width: 24px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: all 0.2s ease;
-
-        &:hover {
-          background-color: #f9f9f9;
-        }
-
-        &.retry-btn {
-          color: #06c;
-          &:hover {
-            border-color: #06c;
-            background-color: #e6f3ff;
-          }
-        }
-
-        &.dismiss-btn {
-          color: #c33;
-          &:hover {
-            border-color: #c33;
-            background-color: #ffe6e6;
-          }
-        }
-      }
     }
   }
 }
