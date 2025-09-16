@@ -13,6 +13,26 @@
     <app-kanban-card [ref]="{ url: '', title: text }"
                      [ext]="ext"></app-kanban-card>
   }
+  @for (failedItem of failed; track failedItem.text) {
+    <div class="failed-item">
+      <div class="failed-content">
+        <div class="failed-text">{{ failedItem.text }}</div>
+        <div class="failed-error">{{ failedItem.error }}</div>
+      </div>
+      <div class="failed-actions">
+        <button type="button" 
+                class="retry-btn" 
+                (click)="retry(failedItem)" 
+                title="Retry creating this item"
+                i18n-title>↻</button>
+        <button type="button" 
+                class="dismiss-btn" 
+                (click)="dismissFailed(failedItem)" 
+                title="Dismiss this failed item"
+                i18n-title>×</button>
+      </div>
+    </div>
+  }
 } @else {
   <app-loading></app-loading>
 }

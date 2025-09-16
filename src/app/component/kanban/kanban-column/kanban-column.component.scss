@@ -55,6 +55,77 @@
       opacity: 1;
     }
   }
+
+  .failed-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: #fee;
+    border: 1px solid #fcc;
+    border-radius: 4px;
+    margin: 4px 8px;
+    padding: 8px;
+    font-size: 12px;
+
+    .failed-content {
+      flex: 1;
+      min-width: 0;
+
+      .failed-text {
+        font-weight: 500;
+        margin-bottom: 2px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .failed-error {
+        color: #c33;
+        font-size: 11px;
+        opacity: 0.8;
+      }
+    }
+
+    .failed-actions {
+      display: flex;
+      gap: 4px;
+      margin-left: 8px;
+
+      button {
+        background: none;
+        border: 1px solid #ccc;
+        border-radius: 2px;
+        cursor: pointer;
+        font-size: 14px;
+        height: 24px;
+        width: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+
+        &:hover {
+          background-color: #f9f9f9;
+        }
+
+        &.retry-btn {
+          color: #06c;
+          &:hover {
+            border-color: #06c;
+            background-color: #e6f3ff;
+          }
+        }
+
+        &.dismiss-btn {
+          color: #c33;
+          &:hover {
+            border-color: #c33;
+            background-color: #ffe6e6;
+          }
+        }
+      }
+    }
+  }
 }
 
 .cdk-drag-animating {
