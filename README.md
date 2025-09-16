@@ -62,114 +62,102 @@ Markdown editor with support for rendering both markdown and HTML.
 * Displays pinned Refs from tag Ext if present
 * Adds Modmail button that sends a DM to `plugin/inbox/tag`
 ### Mods
-1. **Root Mod:**
-   1. **Pinned links:** Display these links at the top of this tag's page.
-   2. **Sidebar:** (optional) Custom markdown content for the sidebar. LaTeX and emojis are
-   supported if plugins are installed.
-   3. **Themes:** (optional) Set a custom theme for a tag page. Will remain active until a
-   different tag page is visited.
-2. **User:** (matches `user/`) Store user generated data:
-   1. Inbox: last notified time (for use with the inbox plugin)
-   2. Subscriptions: List of tags to show on your home page
-   3. Themes: (optional) Override the theme for the entire site. Will cause custom tag themes
-   to be ignored.
-3. **Home Page:** Enables a home page where you can subscribe to various tags or queries and
-see them there. Adds a for **Requires user mod**
-4. **Inbox:** Enables notifications when installed. You receive a notification when someone posts a
-response to yours. Activates the envelope icon button in the settings area of the client.
-Requires the inbox field in the user template. When posting a response the client will add (for
-example with `+user/charlie`) `plugin/inbox/user/charlie` to the tags. This will cause it to show up
-in `+user/charlie`'s notifications. Users also receive notifications for all tags they have write
-access to (tag modmail). This tag is also the convention by which you may address a Ref "To:"
-another user. Does not add data to a Ref.
-5. **Comment:** Enables comments and comment threads when installed. Allows sorting Refs by number
-of comments. Comments are created with `plugin/comment` and `internal` tags. (the `internal` tag
-prevents the comment from showing up on `@*`). Adds a deleted field to the ref to mark the
-comment as deleted. This is used to prevent breaking a comment thread by actually removing a
-node when a comment is deleted.
-6. **Thumbnail:** Enables the Ref thumbnail when installed. When a Ref is tagged `plugin/thumbnail`,
-the Ref has an image that can be used as a thumbnail. Adds optional url, width, height, and time
-fields to the Ref. If the url field is not specified, the url of the Ref will be the image
-thumbnail.
-7. **Latex:** Enables KaTeX processing on the Ref comment markdown. Does not add data to a Ref.
-KaTeX support for sidebar content is always enabled if this plugin
-is installed.
-8. **Graph:** Enable the knowledge graph tab in the client UI when this is installed. Adds data
-to refs to override how they are graphed.
-9. **QR:** Enables the QR embed when installed. When the `plugin/qr` is applied to a Ref, the Ref has
-a URL to be converted into a QR code. The QR code is shown when the embed toggle is pressed. Adds
-optional URL field to the Ref to use for the QR code, if this is unspecified the URL of the Ref
-will be used.
-10. **Embed:** Enables the iframe embed when installed. When the plugin/embed is applied to a Ref,
-the Ref has a URL that can be used in an iframe. The iframe is shown when the embed toggle is
-pressed. Adds optional URL field to the Ref to use for the iframe, if this is unspecified the
-URL of the Ref will be used. Currently implemented for:
-    1. YouTube
-    2. X/Twitter
-    3. BitChute
-11. **Audio:** Enables the audio embed when installed. When the `plugin/audio` is applied to a Ref,
-the Ref has a URL that points to an audio file. The audio player is shown when the embed toggle
-is pressed. Adds optional URL field to the Ref to use for the audio file, if this is unspecified
-the URL of the Ref will be used. This plugin will be suggested when
-you submit a link ending in an audio file extension.
-12. **Video:** Enables the video embed when installed. When the `plugin/video` is applied to a Ref,
-the Ref has a URL that points to a video file. The video player is shown when the embed toggle
-is pressed. Adds optional URL field to the Ref to use for the video file, if this is unspecified
-the URL of the Ref will be used. This plugin will be suggested when
-you submit a link ending in a video file extension.
-13. **Image:** Enables the image embed when installed. When the `plugin/image` is applied to a Ref,
-the Ref has a URL that points to an image file. The image is shown when the embed toggle is
-pressed. Adds optional URL field to the Ref to use for the image file, if this is unspecified
-the URL of the Ref will be used. This plugin will be suggested when
-you submit a link ending in an image file extension.
-14. **Wiki:** Enables adding Wiki Refs when installed. When creating a wiki the URL will be
-`wiki://Page_name`. You can link to a Wiki page using the double `[[bracket syntax]]` in all
-markdown fields. Does not add data to the Ref.
-15. **Poll:** Enables polls in the embeds when installed. When a Ref is tagged `plugin/poll` data is
-added to specify the options and their description text. Voting is done by adding a Ref response
-tagged with `plugin/poll/response/tag` and the response field, with tag being the response to the
-poll.
+Jasper-UI includes a comprehensive set of mods that extend functionality. Mods are organized into several categories:
 
-## Coming Soon
-1. **Delta:** (matches `delta/`) Apply a server side script to transform this Ref into a new Ref.
-Adds data to the tag Ext to contain the code or service reference and config.
-2. Queue: (matches `queue/`) Work Queue for assigning or tracking work and paying workers. Requires
-the invoice plugin to pay workers. Adds data:
-   1. Approvers: list of user tags to send invoices to
-   2. Bounty: (optional) payment for responses to items in the queue.
-   3. Max Age: (optional) max age Refs in the queue to be considered active. Refs in the queue
-   older than this will have an expired icon when viewed from the queue tag page.
-3. **Table:** Enabled the table embed when installed. When the `plugin/table` is applied to a Ref,
-the Ref contains tabular data. The tabular data is shown when the embed toggle is pressed. Adds
-an optional field to the Ref to use for the tabular data, if this is unspecified the URL of the
-Ref will be used to point to a TSV file.
-4. **Chart:** Enabled the graph embed when installed. When the `plugin/chart` is applied to a Ref, the
-Ref contains tabular data. The tabular data rendered in a graph is shown when the embed toggle is
-pressed. Adds fields to the ref for defining the chart type, labels, and location of the data in
-the table. Adds an optional field to the Ref to use for the tabular data, if this is unspecified
-the URL of the Ref will be used to point to a TSV file.
-5. **Voting:** Enables voting and sorting by vote when installed. Requires additions to the user
-template to hold votes. This adds two new sort fields to the UI: Top and Hot. Top sorts by vote
-total, and Hot applies an exponential time decay when sorting. If the inbox plugin is enabled
-there is a tab on the index page to view the refs you voted on. Can be configured to allow
-positive or both positive and negative votes. Voting on a Ref adds it to a list in your user
-extension. Does not add data to a Ref.
-6. **Analytics:** Enables engagement tracking when installed. Reports links clicked, Refs expanded,
-Ref action taken, Refs viewed, and queries searched. Adds data to the Ref to override analytic
-tracking for that ref.
-7. **Geo:** Enables a map in the embeds that displays GeoJson when installed. When a Ref is tagged
-`plugin/geo`, the Ref includes some GeoJson. The map is shown when the embed toggle is pressed.
-Adds an optional field to the Ref to use for the GeoJson, if this is unspecified the URL of the
-Ref will be used to point to a GeoJson file.
-8. **GeoPackage:** Enables a map in the embeds that displays GeoPackage when installed. When a
-Ref is tagged `plugin/geopackage`, the Ref includes some GeoPackage. The map is shown when the
-embed toggle is pressed. Adds an optional field to the Ref to use for the GeoPackage, if this
-is unspecified the URL of the Ref will be used to point to a GeoPackage file.
-9. **Invoice:** Enables invoice support in the client when installed. When invoices are created they
-will be tagged `plugin/invoice`. When the inbox plugin is installed there is a tab on the inbox
-page to show invoices addressed to you. Requires the QR plugin to send QR invoices. If the Work
-Queue template is installed, any invoices can include a Work Queue to address the invoice to all
-work queue approvers. Does not add data to a Ref.
+#### Core Framework Templates
+1. **Root Template** (⚓️): Provides foundational features for all tag pages including pinned links, custom sidebar markdown, custom themes, and basic filters for schemes and privacy.
+2. **User Template** (🧑️): Manages user data including subscriptions, bookmarks, alarms, inbox settings, and personal preferences.
+3. **Home Page** (🏡️): Enables a customizable home page where users can subscribe to tags and queries.
+4. **Internal Template** (⚙️): Handles internal refs that should be hidden by default.
+
+#### Communication & Collaboration
+5. **Mailbox/Inbox System** (📮️): Comprehensive messaging system with inbox (`plugin/inbox`) and outbox (`plugin/outbox`) plugins plus DM template for private direct messages.
+6. **Comment System** (💬️): Enables threaded comments with `plugin/comment` and `internal` tags for rich discussion.
+7. **Threads** (🧵️): Advanced threaded discussion system with `plugin/thread` for organizing conversations.
+8. **Chat** (🗨️): Real-time chat rooms with live messaging capabilities.
+9. **Moderation Tools** (🛡️): Comprehensive moderation system with reporting (`plugin/user/report`), approval (`plugin/user/approve`), and moderated tag (`_moderated`) for content management.
+10. **Thanks Template** (🙂️): Quick thanks responses to posts.
+
+#### Media & Content
+11. **Image** (🖼️): Display and embed images with support for PNG, JPG, GIF, SVG, WebP formats.
+12. **Video** (🎞️): Video player with support for MP4, WebM, OGV, M3U8 and other formats.
+13. **Audio** (📻️): Audio player supporting MP3, AAC, FLAC, OGG, WAV formats.
+14. **PDF** (📄️): PDF viewer and processor with action buttons.
+15. **Thumbnail** (⭕️): Thumbnail generation and display for refs.
+16. **Embed** (🔭️): IFrame embedding for external content with configurable dimensions.
+17. **QR Code** (🔲): Generate and scan QR codes from URLs.
+
+#### Content Creation & Editing
+18. **Wiki System** (📔️): Full wiki functionality with `wiki:` scheme and `[[bracket syntax]]` for linking.
+19. **Code Editor** (🗒️): Monaco editor (VS Code-like) for syntax-highlighted code editing.
+20. **HTML Editor** (📐️): Rich HTML editing capabilities.
+21. **LaTeX** (💲️): KaTeX processing for mathematical notation in markdown.
+22. **Table** (📏️): Spreadsheet functionality with CSV data support.
+23. **Editor Extensions**: Various editing tools and formatters.
+
+#### Organization & Workflow
+24. **Kanban Boards** (📋️): Full kanban board implementation with customizable columns, swim lanes, and badges.
+25. **Graph View** (🎇️): Knowledge graph visualization for exploring connections.
+26. **Work Queues** (🚧️): Task management with bounties and workflow automation.
+27. **Folder System** (📁): Hierarchical organization of content.
+28. **Archive** (📦): Content archiving and organization.
+
+#### User Experience & Interaction
+29. **Voting System** (⬆️): Upvote/downvote functionality with Top and Hot sorting algorithms.
+30. **Polls** (🗳️): Create multiple-choice polls with voting and results visualization.
+31. **Save/Hide/Read** (⭕️/🙈️/☑️): Personal content management - save refs to lists, hide unwanted content, mark as read.
+32. **Repost** (↪️): Re-submit URLs with fresh comment sections.
+33. **Delete System** (🗑️): Soft delete with recycle bin functionality.
+
+#### AI & Automation
+34. **AI Generation** (✨️): Comprehensive AI integration including:
+    - AI Query (`plugin/delta/ai`): Send refs to AI for responses
+    - DALL-E Integration: AI image generation
+    - Summary Generation: Automatic content summarization  
+    - Translation: Multi-language translation
+    - AI Navigation: Smart content discovery
+35. **Scripting** (➰️): Server-side script execution with scheduling (`+plugin/cron`, `+plugin/user/run`).
+
+#### Data & Integration
+36. **RSS/Feed Reader** (🗞️): RSS and Atom feed processing and display.
+37. **Web Scraping** (🪝): Configurable web scraping with CSS selectors.
+38. **oEmbed** (📡️): Rich embed support for various platforms.
+39. **Cache System** (💾): Intelligent caching for performance.
+
+#### System & Administration  
+40. **System Tools** (📟️): System information, statistics, and administrative functions.
+41. **Mod Management** (🎁️): Install and manage mods dynamically.
+42. **Secret Management** (🔑️): Secure storage of sensitive data with opaque tags.
+43. **GDPR Compliance** (⚠️): Privacy controls and cookie consent.
+44. **Origin Management**: Multi-server federation and origin handling.
+45. **Debug Tools**: Development and troubleshooting utilities.
+
+#### Specialized Applications
+46. **Games**: Chess (♟️) and Backgammon implementations.
+47. **Playlist Management** (🎵): Audio/video playlist organization.
+48. **Notes System** (📝): Advanced note-taking with organization.
+49. **Blog Template** (📰): Blog-style content presentation.
+50. **Email Integration** (📧): Email processing and handling.
+51. **Fullscreen Mode**: Distraction-free viewing.
+52. **Picture-in-Picture** (📺): Floating video/media windows.
+53. **Theme System** (🎨): Dynamic theming and customization.
+
+Many of these mods work together synergistically. For example, the AI system can work with images, PDFs, and code, while the kanban system integrates with user management and notification systems.
+
+## Advanced Features & Experimental Mods
+Several mods are marked as experimental or provide advanced functionality:
+
+1. **Analytics:** Engagement tracking for links clicked, Refs expanded, actions taken, and search queries.
+2. **Geo/GeoPackage:** Map embeds for displaying GeoJSON and GeoPackage geographic data.
+3. **Chart:** Graph rendering from tabular data with customizable chart types and labels.
+4. **Invoice System:** Invoice creation and management, integrates with QR codes and work queues.
+5. **Delta Scripts:** Server-side transformations to process Refs through custom scripts.
+6. **File Management:** Advanced file upload, processing, and organization capabilities.
+7. **Person Templates:** Contact and identity management for individuals.
+8. **Lens System:** Custom viewing modes beyond kanban and chat.
+9. **Seamless Mode:** Enhanced UX for mobile and tablet experiences.
+
+Note: Some experimental features may require additional server-side configuration or may have limited functionality in certain deployments.
 
 ## Deployment
 Jasper-UI is available in the following distributions:
