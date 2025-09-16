@@ -67,13 +67,51 @@ describe('EditorComponent', () => {
       { id: '1', name: 'test.pdf', progress: 50, subscription: mockSubscription1 },
       { id: '2', name: 'test2.jpg', progress: 75, subscription: mockSubscription2 }
     ];
-    component.uploading = true;
 
     component.cancelAllUploads();
 
     expect(mockSubscription1.unsubscribe).toHaveBeenCalled();
     expect(mockSubscription2.unsubscribe).toHaveBeenCalled();
     expect(component.uploads.length).toBe(0);
-    expect(component.uploading).toBeFalsy();
+  });
+
+  it('should append new uploads when there are active uploads', () => {
+    // Setup existing uploads with one active
+    component.uploads = [
+      { id: '1', name: 'existing.pdf', progress: 50, completed: false },
+      { id: '2', name: 'completed.jpg', progress: 100, completed: true }
+    ];
+
+    // Mock file list for new upload
+    const file1 = new File(['test'], 'new1.txt', { type: 'text/plain' });
+    const file2 = new File(['test'], 'new2.txt', { type: 'text/plain' });
+    const fileList = [file1, file2] as any as FileList;
+
+    component.upload(fileList);
+
+    // Should have 4 uploads total (2 existing + 2 new)
+    expect(component.uploads.length).toBe(4);
+    expect(component.uploads[0].name).toBe('existing.pdf');
+    expect(component.uploads[1].name).toBe('completed.jpg');
+    expect(component.uploads[2].name).toBe('new1.txt');
+    expect(component.uploads[3].name).toBe('new2.txt');
+  });
+
+  it('should clear uploads when no active uploads exist', () => {
+    // Setup existing uploads with all completed
+    component.uploads = [
+      { id: '1', name: 'completed1.pdf', progress: 100, completed: true },
+      { id: '2', name: 'completed2.jpg', progress: 100, completed: true }
+    ];
+
+    // Mock file list for new upload
+    const file = new File(['test'], 'new.txt', { type: 'text/plain' });
+    const fileList = [file] as any as FileList;
+
+    component.upload(fileList);
+
+    // Should have only 1 upload (the new one, previous completed ones cleared)
+    expect(component.uploads.length).toBe(1);
+    expect(component.uploads[0].name).toBe('new.txt');
   });
 });

@@ -597,9 +597,15 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
 
   upload(files?: FileList | null) {
     if (!files) return;
-    this.uploads = [];
+    
+    // Only clear uploads if no active uploads exist
+    const hasActiveUploads = this.uploads.some(upload => !upload.completed && !upload.error);
+    if (!hasActiveUploads) {
+      this.uploads = [];
+    }
+    
     this.control.disable();
-
+    
     // Create upload tracking entries for each file
     const fileArray = Array.from(files);
     const fileUploads: EditorUpload[] = fileArray.map(file => ({
@@ -607,21 +613,30 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
       name: file.name,
       progress: 0
     }));
-
-    this.uploads = fileUploads;
-
+    
+    // Append new uploads to existing ones
+    this.uploads = [...this.uploads, ...fileUploads];
+    
     // Process uploads individually and track progress
     const uploadObservables = fileArray.map((file, index) => {
       const upload = fileUploads[index];
-      const subscription = this.upload$(file, upload).subscribe(ref => {
-        if (ref) {
-          upload.completed = true;
-          upload.progress = 100;
-          this.attachUrls(ref);
+      const subscription = this.upload$(file, upload).subscribe({
+        next: (ref) => {
+          if (ref) {
+            upload.completed = true;
+            upload.progress = 100;
+            this.attachUrls(ref);
+          }
+        },
+        error: (error) => {
+          upload.error = error.message || 'Upload failed';
+          upload.progress = 0;
+        },
+        complete: () => {
+          this.checkAllUploadsComplete();
         }
-        this.checkAllUploadsComplete();
       });
-
+      
       upload.subscription = subscription;
       return subscription;
     });
@@ -709,9 +724,9 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
 
   checkAllUploadsComplete() {
     const allComplete = this.uploads.every(upload => upload.completed || upload.error);
-    if (allComplete) {
+    if (allComplete && this.uploads.length > 0) {
       this.control.enable();
-
+      
       // Clear uploads after a short delay to show completion
       setTimeout(() => {
         this.uploads = [];
