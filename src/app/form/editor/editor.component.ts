@@ -22,7 +22,8 @@ import { NavigationEnd, Router } from '@angular/router';
 import Europa from 'europa';
 import { debounce, defer, delay, intersection, sortedLastIndex, uniq, without } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
-import { catchError, filter, forkJoin, last, map, of, Subject, switchMap, takeUntil, Subscription } from 'rxjs';
+import { catchError, filter, last, map, Observable, of, Subject, Subscription, switchMap, takeUntil } from 'rxjs';
+import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
 import { MdComponent } from '../../component/md/md.component';
 import { Ref } from '../../model/ref';
@@ -126,7 +127,6 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   initialFullscreen = false;
   focused?: boolean = false;
   progress = 0;
-  uploading = false;
   uploads: EditorUpload[] = [];
   files = !!this.admin.getPlugin('plugin/file');
 
@@ -580,7 +580,6 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
 
   drop(event: Event, items?: DataTransferItemList) {
     this.dropping = false;
-    this.uploading = false;
     if (!this.admin.getPlugin('plugin/file')) return;
     if (!items) return;
     const files = [] as any;
@@ -597,13 +596,10 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   }
 
   upload(files?: FileList | null) {
-    this.uploading = false;
     if (!files) return;
-    
     this.uploads = [];
-    this.uploading = true;
     this.control.disable();
-    
+
     // Create upload tracking entries for each file
     const fileArray = Array.from(files);
     const fileUploads: EditorUpload[] = fileArray.map(file => ({
@@ -611,35 +607,27 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
       name: file.name,
       progress: 0
     }));
-    
+
     this.uploads = fileUploads;
-    
+
     // Process uploads individually and track progress
     const uploadObservables = fileArray.map((file, index) => {
       const upload = fileUploads[index];
-      const subscription = this.upload$(file, upload).subscribe({
-        next: (ref) => {
-          if (ref) {
-            upload.completed = true;
-            upload.progress = 100;
-            this.attachUrls(ref);
-          }
-        },
-        error: (error) => {
-          upload.error = error.message || 'Upload failed';
-          upload.progress = 0;
-        },
-        complete: () => {
-          this.checkAllUploadsComplete();
+      const subscription = this.upload$(file, upload).subscribe(ref => {
+        if (ref) {
+          upload.completed = true;
+          upload.progress = 100;
+          this.attachUrls(ref);
         }
+        this.checkAllUploadsComplete();
       });
-      
+
       upload.subscription = subscription;
       return subscription;
     });
   }
 
-  upload$(file: File, upload?: EditorUpload) {
+  upload$(file: File, upload: EditorUpload): Observable<Ref | null> {
     const codeType = mimeToCode(file.type);
     if (codeType.length) {
       const ref = {
@@ -648,20 +636,14 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
         title: file.name,
         tags: [this.store.account.localTag, 'internal', ...file.type === 'text/markdown' ? [] : codeType]
       };
-      if (upload) {
-        upload.progress = 50; // Simulate progress for text files
-      }
+      upload.progress = 50; // Simulate progress for text files
       return readFileAsString(file).pipe(
         switchMap(contents => this.refs.create({
           ...ref,
           comment: contents,
         })),
-        map(cursor => {
-          if (upload) {
-            upload.progress = 100;
-          }
-          return ref;
-        }),
+        map(cursor => ref),
+        tap(() => upload.progress = 100),
       );
     } else {
       const tags: string[] = ['plugin/file'];
@@ -682,9 +664,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
             case HttpEventType.UploadProgress:
               const percentDone = event.total ? Math.round(100 * event.loaded / event.total) : 0;
               this.progress = percentDone;
-              if (upload) {
-                upload.progress = percentDone;
-              }
+              upload.progress = percentDone;
               return null;
           }
           return null;
@@ -693,7 +673,11 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
         switchMap(ref => !ref ? of(ref) : this.ts.patch(tags, ref.url, ref.origin).pipe(
           map(cursor => ({ ...ref, tags: uniq([...ref?.tags || [], ...tags]) })),
         )),
-        catchError(err => readFileAsDataURL(file).pipe(map(url => ({ url, tags })))), // base64
+        catchError(err => {
+          upload.error = err.message || 'Upload failed';
+          upload.progress = 0;
+          return readFileAsDataURL(file).pipe(map(url => ({url, tags}))); // base64
+        }),
       );
     }
   }
@@ -726,9 +710,8 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   checkAllUploadsComplete() {
     const allComplete = this.uploads.every(upload => upload.completed || upload.error);
     if (allComplete) {
-      this.uploading = false;
       this.control.enable();
-      
+
       // Clear uploads after a short delay to show completion
       setTimeout(() => {
         this.uploads = [];
@@ -751,7 +734,6 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
       }
     });
     this.uploads = [];
-    this.uploading = false;
     this.control.enable();
   }
 

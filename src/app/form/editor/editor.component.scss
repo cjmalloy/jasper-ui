@@ -91,15 +91,12 @@ app-loading {
 }
 
 .upload-progress {
-  position: relative;
-  background: rgba(255, 255, 255, 0.95);
-  border: 1px solid #ddd;
+  border: 0.5px dashed var(--border);
   border-radius: 4px;
   margin: 8px 0;
   padding: 8px;
   max-height: 200px;
   overflow-y: auto;
-  z-index: 10;
 
   .upload-list {
     margin-top: 8px;
@@ -110,7 +107,7 @@ app-loading {
     align-items: center;
     justify-content: space-between;
     padding: 4px 0;
-    border-bottom: 1px solid #eee;
+    border-bottom: 0.5px dotted var(--border);
 
     &:last-child {
       border-bottom: none;
@@ -118,8 +115,6 @@ app-loading {
   }
 
   .upload-filename {
-    font-size: 12px;
-    color: #666;
     flex-grow: 1;
     margin-right: 8px;
     word-break: break-all;
@@ -133,61 +128,21 @@ app-loading {
     justify-content: flex-end;
   }
 
-  .upload-progress-bar {
-    width: 80px;
-    height: 16px;
-    border-radius: 2px;
-  }
-
   .upload-percentage {
-    font-size: 11px;
-    color: #666;
     min-width: 30px;
     text-align: right;
   }
 
   .upload-complete {
-    font-size: 11px;
-    color: #28a745;
     font-weight: bold;
   }
 
   .upload-error {
-    font-size: 11px;
-    color: #dc3545;
     font-weight: bold;
-  }
-
-  .upload-cancel {
-    background: none;
-    border: none;
-    color: #dc3545;
-    cursor: pointer;
-    font-size: 14px;
-    padding: 2px 4px;
-    border-radius: 2px;
-
-    &:hover {
-      background: #f8d7da;
-    }
   }
 
   .upload-actions {
     margin-top: 8px;
     text-align: center;
-  }
-
-  .upload-cancel-all {
-    background: #dc3545;
-    color: white;
-    border: none;
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 12px;
-    cursor: pointer;
-
-    &:hover {
-      background: #c82333;
-    }
   }
 }

@@ -63,46 +63,44 @@
         }
       }
     </div>
-    @if (uploading) {
+    @if (uploads.length) {
       <div class="upload-progress">
+        <div class="upload-list">
+          @for (upload of uploads; track upload.id) {
+            <div class="upload-item">
+              <div class="upload-filename">{{ upload.name }}</div>
+              <div class="upload-controls">
+                @if (upload.error) {
+                  <span class="upload-error">{{ upload.error }}</span>
+                } @else if (upload.completed) {
+                  <span class="upload-complete">✓ Complete</span>
+                } @else {
+                  <progress class="upload-progress-bar" max="100" [value]="upload.progress"></progress>
+                  <span class="upload-percentage">{{ upload.progress }}%</span>
+                }
+                @if (!upload.completed && !upload.error) {
+                  <button type="button"
+                          class="upload-cancel"
+                          (click)="cancelUpload(upload)"
+                          i18n-title title="Cancel upload" i18n>&ndash;</button>
+                }
+              </div>
+            </div>
+          }
+          @if (uploads.length > 1 && hasActiveUploads()) {
+            <div class="upload-actions">
+              <button type="button"
+                      class="upload-cancel-all"
+                      (click)="cancelAllUploads()"
+                      i18n>&ndash; remove all</button>
+            </div>
+          }
+        </div>
         <app-loading [batch]="true"></app-loading>
-        @if (uploads.length > 0) {
-          <div class="upload-list">
-            @for (upload of uploads; track upload.id) {
-              <div class="upload-item">
-                <div class="upload-filename">{{ upload.name }}</div>
-                <div class="upload-controls">
-                  @if (upload.error) {
-                    <span class="upload-error">{{ upload.error }}</span>
-                  } @else if (upload.completed) {
-                    <span class="upload-complete">✓ Complete</span>
-                  } @else {
-                    <progress class="upload-progress-bar" max="100" [value]="upload.progress"></progress>
-                    <span class="upload-percentage">{{ upload.progress }}%</span>
-                  }
-                  @if (!upload.completed && !upload.error) {
-                    <button type="button" 
-                            class="upload-cancel" 
-                            (click)="cancelUpload(upload)"
-                            i18n-title title="Cancel upload">✕</button>
-                  }
-                </div>
-              </div>
-            }
-            @if (uploads.length > 1 && hasActiveUploads()) {
-              <div class="upload-actions">
-                <button type="button" 
-                        class="upload-cancel-all" 
-                        (click)="cancelAllUploads()"
-                        i18n>Cancel All</button>
-              </div>
-            }
-          </div>
-        }
       </div>
     }
     <textarea #editor
-              [disabled]="uploading"
+              [disabled]="!!uploads.length"
               [id]="id"
               [formControl]="control"
               (focusin)="editing = true"
