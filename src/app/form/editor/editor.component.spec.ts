@@ -3,6 +3,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { RouterModule } from '@angular/router';
 import { UntypedFormControl } from '@angular/forms';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
+import { of } from 'rxjs';
 
 import { EditorComponent } from './editor.component';
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
@@ -82,6 +83,9 @@ describe('EditorComponent', () => {
       { id: '2', name: 'completed.jpg', progress: 100, completed: true }
     ];
 
+    // Mock the upload$ method to avoid real HTTP requests
+    spyOn(component, 'upload$').and.returnValue(of(null));
+
     // Mock file list for new upload
     const file1 = new File(['test'], 'new1.txt', { type: 'text/plain' });
     const file2 = new File(['test'], 'new2.txt', { type: 'text/plain' });
@@ -103,6 +107,9 @@ describe('EditorComponent', () => {
       { id: '1', name: 'completed1.pdf', progress: 100, completed: true },
       { id: '2', name: 'completed2.jpg', progress: 100, completed: true }
     ];
+
+    // Mock the upload$ method to avoid real HTTP requests
+    spyOn(component, 'upload$').and.returnValue(of(null));
 
     // Mock file list for new upload
     const file = new File(['test'], 'new.txt', { type: 'text/plain' });

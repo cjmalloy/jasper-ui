@@ -620,21 +620,13 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
     // Process uploads individually and track progress
     const uploadObservables = fileArray.map((file, index) => {
       const upload = fileUploads[index];
-      const subscription = this.upload$(file, upload).subscribe({
-        next: (ref) => {
-          if (ref) {
-            upload.completed = true;
-            upload.progress = 100;
-            this.attachUrls(ref);
-          }
-        },
-        error: (error) => {
-          upload.error = error.message || 'Upload failed';
-          upload.progress = 0;
-        },
-        complete: () => {
-          this.checkAllUploadsComplete();
+      const subscription = this.upload$(file, upload).subscribe(ref => {
+        if (ref) {
+          upload.completed = true;
+          upload.progress = 100;
+          this.attachUrls(ref);
         }
+        this.checkAllUploadsComplete();
       });
       
       upload.subscription = subscription;
