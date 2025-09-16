@@ -110,8 +110,6 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   addCommentLabel = $localize`+ Add comment`;
   @Input()
   fillWidth?: HTMLElement;
-  @Input()
-  scraping = false;
 
   @Output()
   syncEditor = new EventEmitter<string>();
@@ -131,6 +129,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   progress = 0;
   uploads: EditorUpload[] = [];
   files = !!this.admin.getPlugin('plugin/file');
+  loadingEvents = new Set<string>();
 
   private _text? = '';
   private _editing = false;
@@ -187,6 +186,20 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
         this.el.nativeElement.style.setProperty('--viewport-height', height + 'px');
       }
     }));
+    
+    // Listen for events to manage loading states
+    this.disposers.push(autorun(() => {
+      const currentEvent = this.store.eventBus.event;
+      if (currentEvent) {
+        // Check if this event completes any loading button
+        for (const button of this.editorPushButtons) {
+          if (button.eventDone && currentEvent === button.eventDone) {
+            this.loadingEvents.delete(button.event || '');
+          }
+        }
+      }
+    }));
+    
     if (this.tags) {
       this.tags.valueChanges.pipe(
         takeUntil(this.destroy$),
@@ -552,6 +565,12 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   }
 
   fireEvent(event: string) {
+    // Check if this event has eventDone defined for loading state tracking
+    const button = this.editorPushButtons.find(b => b.event === event);
+    if (button?.eventDone) {
+      this.loadingEvents.add(event);
+    }
+    
     if (event === 'html-to-markdown') {
       this.europa ||= new Europa({
         absolute: !!this.url,
@@ -573,6 +592,10 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   addComment() {
     this.editing = true;
     defer(() => this.editor?.nativeElement?.focus());
+  }
+
+  isEventLoading(event?: string): boolean {
+    return !!event && this.loadingEvents.has(event);
   }
 
   private setButtonOn(b: EditorButton) {

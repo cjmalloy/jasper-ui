@@ -19,6 +19,7 @@ import { AdminService } from '../../service/admin.service';
 import { ScrapeService } from '../../service/api/scrape.service';
 import { EditorService } from '../../service/editor.service';
 import { OembedStore } from '../../store/oembed';
+import { Store } from '../../store/store';
 import { getScheme } from '../../util/http';
 import { hasMedia, hasTag } from '../../util/tag';
 import { LinksFormComponent } from '../links/links.component';
@@ -59,9 +60,6 @@ export class RefFormComponent {
   oembed?: Oembed;
   scraped?: Ref;
   ref?: Ref;
-  scrapingTitle = false;
-  scrapingComment = false;
-  scrapingPublished = false;
 
   constructor(
     private fb: UntypedFormBuilder,
@@ -69,6 +67,7 @@ export class RefFormComponent {
     private editor: EditorService,
     private scrape: ScrapeService,
     private oembeds: OembedStore,
+    private store: Store,
   ) { }
 
   get web() {
@@ -179,15 +178,11 @@ export class RefFormComponent {
   }
 
   scrapeTitle() {
-    this.scrapingTitle = true;
     this.scrape$.pipe(
-      catchError(err => {
-        this.scrapingTitle = false;
-        return of({
-          url: this.url.value,
-          title: undefined,
-        });
-      }),
+      catchError(err => of({
+        url: this.url.value,
+        title: undefined,
+      })),
       switchMap(s => this.oembeds.get(s.url).pipe(
         map(oembed => {
           this.oembed = oembed!;
@@ -199,23 +194,22 @@ export class RefFormComponent {
     ).subscribe({
       next: (s: Ref) => {
         if (s.title) this.group.patchValue({ title: s.title });
-        this.scrapingTitle = false;
+        this.store.eventBus.fire('scrape-done');
       },
       error: err => {
-        this.scrapingTitle = false;
+        this.store.eventBus.fire('scrape-done');
       }
     });
   }
 
   scrapePublished() {
-    this.scrapingPublished = true;
     this.scrape$.subscribe({
       next: ref => {
         this.published.setValue(ref.published?.toFormat("YYYY-MM-DD'T'TT"));
-        this.scrapingPublished = false;
+        this.store.eventBus.fire('scrape-done');
       },
       error: err => {
-        this.scrapingPublished = false;
+        this.store.eventBus.fire('scrape-done');
       }
     });
   }
@@ -224,17 +218,16 @@ export class RefFormComponent {
     if (this.oembed) {
       // TODO: oEmbed
     } else {
-      this.scrapingComment = true;
       this.scrape$.subscribe({
         next: s => {
           if (!hasMedia(s) || hasMedia(this.group.value)) {
             this.scrapeComment();
           }
           this.scrapePlugins();
-          this.scrapingComment = false;
+          this.store.eventBus.fire('scrape-done');
         },
         error: err => {
-          this.scrapingComment = false;
+          this.store.eventBus.fire('scrape-done');
         }
       });
     }

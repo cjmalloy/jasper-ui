@@ -30,9 +30,9 @@
         @if (button.event) {
           <button type="button"
                   (click)="fireEvent(button.event)"
-                  [disabled]="button.event === 'scrape' && scraping"
+                  [disabled]="button.eventDone && isEventLoading(button.event)"
                   [title]="button.title || ''" i18n>
-            @if (button.event === 'scrape' && scraping) {
+            @if (button.eventDone && isEventLoading(button.event)) {
               <app-loading [inline]="true"></app-loading>
             } @else {
               {{ button.label }}
