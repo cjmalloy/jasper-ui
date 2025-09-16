@@ -61,6 +61,7 @@ export class RefFormComponent {
   ref?: Ref;
   scrapingTitle = false;
   scrapingComment = false;
+  scrapingPublished = false;
 
   constructor(
     private fb: UntypedFormBuilder,
@@ -207,8 +208,15 @@ export class RefFormComponent {
   }
 
   scrapePublished() {
-    this.scrape$.subscribe(ref => {
-      this.published.setValue(ref.published?.toFormat("YYYY-MM-DD'T'TT"));
+    this.scrapingPublished = true;
+    this.scrape$.subscribe({
+      next: ref => {
+        this.published.setValue(ref.published?.toFormat("YYYY-MM-DD'T'TT"));
+        this.scrapingPublished = false;
+      },
+      error: err => {
+        this.scrapingPublished = false;
+      }
     });
   }
 

@@ -42,7 +42,13 @@
            [formControl]="published"
            (blur)="validate($any($event.target))">
     @if (web) {
-      <button type="button" (click)="scrapePublished()" i18n-title title="Scrape Published" i18n>🪝</button>
+      <button type="button" (click)="scrapePublished()" [disabled]="scrapingPublished" i18n-title title="Scrape Published" i18n>
+        @if (scrapingPublished) {
+          <app-loading [inline]="true"></app-loading>
+        } @else {
+          🪝
+        }
+      </button>
     }
     <button type="button" (click)="sources.addLink('')" i18n-title title="+ Add another source" i18n>📜️</button>
   </div>
