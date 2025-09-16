@@ -133,19 +133,15 @@ Markdown editor with support for rendering both markdown and HTML.
 69. **🔺 Ninja Triangle Mod** (`ninjaTriangleMod`): Specialized triangle game implementation.
 
 ## Advanced Features & Experimental Mods
-Several mods are marked as experimental or provide advanced functionality:
+Some mods provide experimental functionality that may require additional server-side configuration:
 
-1. **Analytics:** Engagement tracking for links clicked, Refs expanded, actions taken, and search queries.
-2. **Geo/GeoPackage:** Map embeds for displaying GeoJSON and GeoPackage geographic data.
-3. **Chart:** Graph rendering from tabular data with customizable chart types and labels.
-4. **Invoice System:** Invoice creation and management, integrates with QR codes and work queues.
-5. **Delta Scripts:** Server-side transformations to process Refs through custom scripts.
-6. **File Management:** Advanced file upload, processing, and organization capabilities.
-7. **Person Templates:** Contact and identity management for individuals.
-8. **Lens System:** Custom viewing modes beyond kanban and chat.
-9. **Seamless Mode:** Enhanced UX for mobile and tablet experiences.
+* **Chess Mod** and **Backgammon Mod**: Game implementations that may require game server components
+* **Script Mod**: Server-side execution capabilities that require backend scripting support  
+* **AI-related Mods**: AI, DALL-E, Summary, Translate, and Navi mods may require AI service API keys and configuration
+* **Remote Origin Mod**: Federation features for multi-server deployments
+* **GDPR Mod**: Cookie consent and privacy compliance features
 
-Note: Some experimental features may require additional server-side configuration or may have limited functionality in certain deployments.
+Note: Experimental features may have limited functionality in certain deployments or require additional configuration.
 
 ## Deployment
 Jasper-UI is available in the following distributions:
