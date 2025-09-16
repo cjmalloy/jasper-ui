@@ -49,7 +49,7 @@ describe('KanbanComponent', () => {
       } as any;
 
       // Test with adding items
-      component.columnComponents = {
+      component.list = {
         [Symbol.iterator]: function* () {
           yield mockColumnWithAdding;
         }
@@ -58,7 +58,7 @@ describe('KanbanComponent', () => {
       expect(component.saveChanges()).toBe(false);
 
       // Test with failed items
-      component.columnComponents = {
+      component.list = {
         [Symbol.iterator]: function* () {
           yield mockColumnWithFailed;
         }
@@ -67,7 +67,7 @@ describe('KanbanComponent', () => {
       expect(component.saveChanges()).toBe(false);
 
       // Test with both
-      component.columnComponents = {
+      component.list = {
         [Symbol.iterator]: function* () {
           yield mockColumnWithAdding;
           yield mockColumnWithFailed;

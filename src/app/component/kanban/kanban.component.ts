@@ -34,7 +34,8 @@ export interface KanbanDrag {
 })
 export class KanbanComponent implements OnChanges, OnDestroy, HasChanges {
 
-  @ViewChildren(KanbanColumnComponent) columnComponents!: QueryList<KanbanColumnComponent>;
+  @ViewChildren(KanbanColumnComponent)
+  list?: QueryList<KanbanColumnComponent>;
 
   @Input()
   query?: string;
@@ -72,8 +73,8 @@ export class KanbanComponent implements OnChanges, OnDestroy, HasChanges {
 
   saveChanges() {
     // Check if any kanban columns have pending or failed items
-    if (this.columnComponents) {
-      for (const column of this.columnComponents) {
+    if (this.list) {
+      for (const column of this.list) {
         if (column.adding?.length > 0 || column.failed?.length > 0) {
           return false; // Prevent navigation due to pending changes
         }
