@@ -741,7 +741,13 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
       upload.subscription.unsubscribe();
     }
     this.uploads = this.uploads.filter(u => u.id !== upload.id);
-    this.checkAllUploadsComplete();
+    
+    // If no uploads remain, enable the control
+    if (this.uploads.length === 0) {
+      this.control.enable();
+    } else {
+      this.checkAllUploadsComplete();
+    }
   }
 
   cancelAllUploads() {

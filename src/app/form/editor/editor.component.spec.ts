@@ -143,4 +143,35 @@ describe('EditorComponent', () => {
     expect(component.attachUrls).toHaveBeenCalledWith(ref1, ref2);
     expect(component.attachUrls).toHaveBeenCalledTimes(1);
   });
+
+  it('should enable textarea when canceling the last upload', () => {
+    // Setup with one upload
+    component.uploads = [
+      { id: '1', name: 'file1.txt', progress: 50, completed: false }
+    ];
+    component.control.disable();
+
+    // Cancel the upload
+    component.cancelUpload(component.uploads[0]);
+
+    // Should enable the control since no uploads remain
+    expect(component.control.enabled).toBeTruthy();
+    expect(component.uploads.length).toBe(0);
+  });
+
+  it('should not enable textarea when canceling one of multiple uploads', () => {
+    // Setup with multiple uploads
+    component.uploads = [
+      { id: '1', name: 'file1.txt', progress: 50, completed: false },
+      { id: '2', name: 'file2.txt', progress: 75, completed: false }
+    ];
+    component.control.disable();
+
+    // Cancel one upload
+    component.cancelUpload(component.uploads[0]);
+
+    // Should remain disabled since there's still an active upload
+    expect(component.control.disabled).toBeTruthy();
+    expect(component.uploads.length).toBe(1);
+  });
 });
