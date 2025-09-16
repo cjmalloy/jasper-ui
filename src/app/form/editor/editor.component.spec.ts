@@ -121,4 +121,26 @@ describe('EditorComponent', () => {
     expect(component.uploads.length).toBe(1);
     expect(component.uploads[0].name).toBe('new.txt');
   });
+
+  it('should attach all URLs at once when all uploads complete', () => {
+    // Mock the attachUrls method to spy on its calls
+    spyOn(component, 'attachUrls');
+    
+    // Mock refs to return from upload$
+    const ref1 = { url: 'url1', tags: [] } as any;
+    const ref2 = { url: 'url2', tags: [] } as any;
+    
+    // Setup uploads
+    component.uploads = [
+      { id: '1', name: 'file1.txt', progress: 100, completed: true, ref: ref1 },
+      { id: '2', name: 'file2.txt', progress: 100, completed: true, ref: ref2 }
+    ];
+
+    // Trigger completion check
+    component.checkAllUploadsComplete();
+
+    // Should call attachUrls once with both refs
+    expect(component.attachUrls).toHaveBeenCalledWith(ref1, ref2);
+    expect(component.attachUrls).toHaveBeenCalledTimes(1);
+  });
 });

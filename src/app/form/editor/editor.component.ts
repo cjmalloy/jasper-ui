@@ -47,6 +47,7 @@ export interface EditorUpload {
   subscription?: Subscription;
   completed?: boolean;
   error?: string;
+  ref?: Ref | null;
 }
 
 @Component({
@@ -624,7 +625,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
         if (ref) {
           upload.completed = true;
           upload.progress = 100;
-          this.attachUrls(ref);
+          upload.ref = ref;
         }
         this.checkAllUploadsComplete();
       });
@@ -718,6 +719,15 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
     const allComplete = this.uploads.every(upload => upload.completed || upload.error);
     if (allComplete && this.uploads.length > 0) {
       this.control.enable();
+      
+      // Collect all completed refs and attach them at once
+      const completedRefs = this.uploads
+        .filter(upload => upload.completed && upload.ref)
+        .map(upload => upload.ref!);
+      
+      if (completedRefs.length > 0) {
+        this.attachUrls(...completedRefs);
+      }
       
       // Clear uploads after a short delay to show completion
       setTimeout(() => {
