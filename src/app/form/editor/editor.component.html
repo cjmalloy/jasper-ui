@@ -28,16 +28,13 @@
       }
       @for (button of editorPushButtons; track button) {
         @if (button.event) {
-          <button type="button"
-                  (click)="fireEvent(button.event)"
-                  [disabled]="button.eventDone && isEventLoading(button.event)"
-                  [title]="button.title || ''" i18n>
-            @if (button.eventDone && isEventLoading(button.event)) {
-              <app-loading [inline]="true"></app-loading>
-            } @else {
-              {{ button.label }}
-            }
-          </button>
+          @if (button.eventDone && isEventLoading(button.event)) {
+            <app-loading [inline]="true"></app-loading>
+          } @else {
+            <button type="button"
+                    (click)="fireEvent(button.event)"
+                    [title]="button.title || ''" i18n>{{ button.label }}</button>
+          }
         } @else if (hasTags) {
           <button type="button"
                   (click)="toggleTag(button)"

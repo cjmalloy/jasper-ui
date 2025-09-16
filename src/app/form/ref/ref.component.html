@@ -23,13 +23,11 @@
            [formControl]="title"
            (blur)="validate($any($event.target))">
     @if (web) {
-      <button type="button" (click)="scrapeTitle()" [disabled]="isLoading('scrape-title')" i18n-title title="Scrape Title" i18n>
-        @if (isLoading('scrape-title')) {
-          <app-loading [inline]="true"></app-loading>
-        } @else {
-          🪝
-        }
-      </button>
+      @if (isLoading('scrape-title')) {
+        <app-loading [inline]="true"></app-loading>
+      } @else {
+        <button type="button" (click)="scrapeTitle()" i18n-title title="Scrape Title" i18n>🪝</button>
+      }
     }
   </div>
 
@@ -42,13 +40,11 @@
            [formControl]="published"
            (blur)="validate($any($event.target))">
     @if (web) {
-      <button type="button" (click)="scrapePublished()" [disabled]="isLoading('scrape-published')" i18n-title title="Scrape Published" i18n>
-        @if (isLoading('scrape-published')) {
-          <app-loading [inline]="true"></app-loading>
-        } @else {
-          🪝
-        }
-      </button>
+      @if (isLoading('scrape-published')) {
+        <app-loading [inline]="true"></app-loading>
+      } @else {
+        <button type="button" (click)="scrapePublished()" i18n-title title="Scrape Published" i18n>🪝</button>
+      }
     }
     <button type="button" (click)="sources.addLink('')" i18n-title title="+ Add another source" i18n>📜️</button>
   </div>
