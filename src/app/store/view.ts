@@ -255,7 +255,7 @@ export class ViewStore {
   }
 
   get showRemotesCheckbox() {
-    if (this.filter?.some(f => f.startsWith('query/@') || f.startsWith('query/*'))) return false;
+    if (this.filter?.some(f => f.startsWith('query/@') || f === 'query/*')) return false;
     return ['tags', 'settings/user', 'settings/plugin', 'settings/template', 'settings/ref', 'inbox/ref'].includes(this.current!);
   }
 

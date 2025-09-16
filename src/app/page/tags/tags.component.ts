@@ -61,7 +61,7 @@ export class TagsPage implements OnInit, OnDestroy, HasChanges {
             : this.store.view.template)
         : '@*';
       // Check if there are any origin filters in the filter list
-      const hasOriginFilter = this.store.view.filter?.some(f => f.startsWith('query/@') || f.startsWith('query/*'));
+      const hasOriginFilter = this.store.view.filter?.some(f => f.startsWith('query/@') || f === 'query/*');
       const baseQuery = getTagQueryFilter(braces(query), this.store.view.filter);
       const originSuffix = (hasOriginFilter || this.store.view.showRemotes) ? '' : (':' + (this.store.account.origin || '*'));
       
