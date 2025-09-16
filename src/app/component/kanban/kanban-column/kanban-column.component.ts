@@ -288,36 +288,30 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
             }),
           );
         }
-        return throwError(err);
-      }),
-      tap(cursor => this.accounts.clearNotificationsIfNone(DateTime.fromISO(cursor))),
-    ).subscribe({
-      next: cursor => {
-        this.mutated = true;
-        this.adding.splice(this.adding.indexOf(text), 1);
-        if (!this.page) {
-          console.error('Should not happen, will probably get cleared.');
-          this.page = {content: []} as any;
-        }
-        ref.modified = DateTime.fromISO(cursor);
-        ref.modifiedString = cursor;
-        this.page!.content.push(ref)
-      },
-      error: err => {
         // Move from adding to failed
         this.adding.splice(this.adding.indexOf(text), 1);
         let errorMessage = 'Failed to create ticket';
         if (err.status === 403) {
           errorMessage = 'Permission denied';
-        } else if (err.status === 409) {
-          errorMessage = 'Item already exists';
         } else if (err.status === 500) {
           errorMessage = 'Server error';
         } else if (err.message) {
           errorMessage = err.message;
         }
         this.failed.push({ text, error: errorMessage });
+        return throwError(err);
+      }),
+      tap(cursor => this.accounts.clearNotificationsIfNone(DateTime.fromISO(cursor))),
+    ).subscribe(cursor => {
+      this.mutated = true;
+      this.adding.splice(this.adding.indexOf(text), 1);
+      if (!this.page) {
+        console.error('Should not happen, will probably get cleared.');
+        this.page = {content: []} as any;
       }
+      ref.modified = DateTime.fromISO(cursor);
+      ref.modifiedString = cursor;
+      this.page!.content.push(ref)
     });
   }
 
