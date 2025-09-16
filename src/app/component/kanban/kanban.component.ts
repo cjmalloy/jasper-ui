@@ -1,5 +1,5 @@
 import { CdkDragDrop } from '@angular/cdk/drag-drop';
-import { Component, HostListener, Input, OnChanges, OnDestroy, SimpleChanges, ViewChildren, QueryList } from '@angular/core';
+import { Component, HostListener, Input, OnChanges, OnDestroy, SimpleChanges } from '@angular/core';
 import { uniq, without } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { runInAction } from 'mobx';
@@ -16,7 +16,6 @@ import { BookmarkService } from '../../service/bookmark.service';
 import { Store } from '../../store/store';
 import { negate, UrlFilter } from '../../util/query';
 import { isQuery, isSelector, localTag, topAnds } from '../../util/tag';
-import { KanbanColumnComponent } from './kanban-column/kanban-column.component';
 
 export interface KanbanDrag {
   from: string;
@@ -33,9 +32,6 @@ export interface KanbanDrag {
   host: {'class': 'kanban ext'}
 })
 export class KanbanComponent implements OnChanges, OnDestroy, HasChanges {
-
-  @ViewChildren(KanbanColumnComponent)
-  list?: QueryList<KanbanColumnComponent>;
 
   @Input()
   query?: string;
@@ -72,15 +68,8 @@ export class KanbanComponent implements OnChanges, OnDestroy, HasChanges {
   ) { }
 
   saveChanges() {
-    // Check if any kanban columns have pending or failed items
-    if (this.list) {
-      for (const column of this.list) {
-        if (column.adding?.length > 0 || column.failed?.length > 0) {
-          return false; // Prevent navigation due to pending changes
-        }
-      }
-    }
-    return true; // Allow navigation
+    //TODO:
+    return true;
   }
 
   ngOnChanges(changes: SimpleChanges) {

@@ -80,4 +80,34 @@ describe('KanbanColumnComponent', () => {
       expect(component.addText).toBe('Test item 2');
     });
   });
+
+  describe('saveChanges navigation guard', () => {
+    it('should allow navigation when no pending or failed items exist', () => {
+      component.adding = [];
+      component.failed = [];
+      
+      expect(component.saveChanges()).toBe(true);
+    });
+
+    it('should prevent navigation when items are being added', () => {
+      component.adding = ['test item'];
+      component.failed = [];
+      
+      expect(component.saveChanges()).toBe(false);
+    });
+
+    it('should prevent navigation when items have failed', () => {
+      component.adding = [];
+      component.failed = [{ text: 'failed item', error: 'error' }];
+      
+      expect(component.saveChanges()).toBe(false);
+    });
+
+    it('should prevent navigation when both adding and failed items exist', () => {
+      component.adding = ['adding item'];
+      component.failed = [{ text: 'failed item', error: 'error' }];
+      
+      expect(component.saveChanges()).toBe(false);
+    });
+  });
 });

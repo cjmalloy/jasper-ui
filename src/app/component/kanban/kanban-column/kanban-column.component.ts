@@ -28,6 +28,7 @@ import { URI_REGEX } from '../../../util/format';
 import { fixUrl, printError } from '../../../util/http';
 import { getArgs, UrlFilter } from '../../../util/query';
 import { hasTag } from '../../../util/tag';
+import { HasChanges } from '../../../guard/pending-changes.guard';
 import { KanbanDrag } from '../kanban.component';
 
 @Component({
@@ -37,7 +38,7 @@ import { KanbanDrag } from '../kanban.component';
   styleUrls: ['./kanban-column.component.scss'],
   host: {'class': 'kanban-column'}
 })
-export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestroy {
+export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestroy, HasChanges {
   private destroy$ = new Subject<void>();
 
   @Input()
@@ -355,5 +356,11 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
         return throwError(err);
       }),
     );
+  }
+
+  saveChanges(): boolean {
+    // Return false if there are pending or failed items (prevents navigation)
+    // Return true if no pending changes (allows navigation)
+    return this.adding.length === 0 && this.failed.length === 0;
   }
 }
