@@ -11,6 +11,7 @@ import { HasChanges } from '../../../guard/pending-changes.guard';
 import { AccountService } from '../../../service/account.service';
 import { AdminService } from '../../../service/admin.service';
 import { ExtService } from '../../../service/api/ext.service';
+import { ConfigService } from '../../../service/config.service';
 import { Store } from '../../../store/store';
 import { scrollToFirstInvalid } from '../../../util/form';
 import { printError } from '../../../util/http';
@@ -34,6 +35,7 @@ export class SettingsMePage implements HasChanges {
   editing?: Subscription;
 
   constructor(
+    public config: ConfigService,
     public store: Store,
     private exts: ExtService,
     private accounts: AccountService,
