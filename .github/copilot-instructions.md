@@ -14,10 +14,18 @@ Jasper is an open source knowledge management (KM) system. Unlike a CMS, Jasper 
 
 **Key Concepts:**
 - **Tags**: Hierarchical strings (`public`, `+protected`, `_private`) for categorization and access control
+  - Regex: `[_+]?[a-z0-9]+([./][a-z0-9]+)*`
 - **Origins**: Enable replication and multi-tenant operation (`@origin`). Allow read-only pull-based collaboration without write access to remote servers
+  - Regex: `@[a-z0-9]+([.][a-z0-9])*`
+- **URLs**: Follow RFC specification for Ref composite keys
 - **Modding**: Extensive customization via plugins/templates without server changes
 - **Querying**: Set-like operators (`:` and, `|` or, `!` not, `()` groups) to find content
-- **Regexes**: Tags support regex patterns for flexible matching and validation
+  - `science`: All Refs with `science` tag
+  - `science|funny`: Refs with either tag
+  - `science:funny`: Refs with both tags
+  - `science:!funny`: Refs with `science` but not `funny`
+  - `(science|math):funny`: Refs with (`science` OR `math`) AND `funny`
+  - `music:people/murray`: Matches hierarchical tags like `people/murray/anne`
 
 This Angular client (jasper-ui) provides the reference implementation for interacting with the Jasper knowledge management server.
 
@@ -53,7 +61,7 @@ docker compose up --build  # Everything on http://localhost:8082/
 ## Build & Test
 
 - Build: `npm run build` (~100s, NEVER CANCEL, timeout 180+s)
-- Unit tests: `npm test` (~55s, NEVER CANCEL, timeout 120+s) - runs Angular test suite
+- Unit tests: `npm test -- --watch=false --browsers=ChromeHeadless` (~55s, NEVER CANCEL, timeout 120+s) - runs Angular test suite
 - Docker tests: `docker build . --target test -t jasper-ui-test && docker run --rm jasper-ui-test`
 - E2E tests: `npm run cy:ci` (10-20 min, NEVER CANCEL, timeout 30+ min)
 - Stop services: `docker compose down`
