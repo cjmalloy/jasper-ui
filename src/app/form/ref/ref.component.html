@@ -23,8 +23,10 @@
            [formControl]="title"
            (blur)="validate($any($event.target))">
     @if (web) {
-      @if (isLoading('scrape-title')) {
-        <app-loading [inline]="true"></app-loading>
+      @if (scrapingTitle) {
+        <app-loading class="event-loading"
+                     [inline]="true"
+                     i18n-title title="Scrape Title"></app-loading>
       } @else {
         <button type="button" (click)="scrapeTitle()" i18n-title title="Scrape Title" i18n>🪝</button>
       }
@@ -40,8 +42,10 @@
            [formControl]="published"
            (blur)="validate($any($event.target))">
     @if (web) {
-      @if (isLoading('scrape-published')) {
-        <app-loading [inline]="true"></app-loading>
+      @if (scrapingPublished) {
+        <app-loading class="event-loading"
+                     [inline]="true"
+                     i18n-title title="Scrape Published"></app-loading>
       } @else {
         <button type="button" (click)="scrapePublished()" i18n-title title="Scrape Published" i18n>🪝</button>
       }
@@ -98,6 +102,7 @@
                   [fillWidth]="fill"
                   [url]="web && url.value"
                   (scrape)="scrapeAll()"
+                  [scraping]="scrapingAll"
                   (syncEditor)="syncEditor()"
                   (syncTags)="setTags($event)"
                   (addSource)="addSource($event)"></app-editor>
