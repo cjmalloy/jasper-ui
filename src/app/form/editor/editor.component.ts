@@ -129,6 +129,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   progress = 0;
   uploads: EditorUpload[] = [];
   files = !!this.admin.getPlugin('plugin/file');
+  loadingEvents: any = {};
 
   private _text? = '';
   private _editing = false;
@@ -161,6 +162,9 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
     this.router.events.pipe(
       filter(event => event instanceof NavigationEnd)
     ).subscribe(() => this.toggleFullscreen(false));
+    this.disposers.push(autorun(() => {
+      this.loadingEvents[this.store.eventBus.event] = false;
+    }));
   }
 
   init() {
@@ -211,6 +215,11 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
     document.body.style.height = '';
     document.body.classList.remove('fullscreen');
     this.el.nativeElement.style.setProperty('--viewport-height', this.store.viewportHeight + 'px');
+  }
+
+  @Input()
+  set scraping(value: boolean) {
+    this.loadingEvents['scrape-done'] = value;
   }
 
   @HostListener('window:scroll')
@@ -367,7 +376,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   }
 
   toggleTag(button: EditorButton) {
-    if (button.event) this.fireEvent(button.event);
+    if (button.event) this.fireEvent(button);
     const toggle = button.toggle!;
     if (hasTag(toggle, this.allTags)) {
       this.updateTags(this.allTags.filter(t => !expandedTagsInclude(t, toggle)));
@@ -549,7 +558,9 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
     return test(button.query || button._parent!.tag, this.allTags);
   }
 
-  fireEvent(event: string) {
+  fireEvent(button: EditorButton) {
+    const event = button.event!;
+    if (button.eventDone) this.loadingEvents[button.eventDone] = true;
     if (event === 'html-to-markdown') {
       this.europa ||= new Europa({
         absolute: !!this.url,

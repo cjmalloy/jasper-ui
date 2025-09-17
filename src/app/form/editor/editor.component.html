@@ -28,9 +28,15 @@
       }
       @for (button of editorPushButtons; track button) {
         @if (button.event) {
-          <button type="button"
-                  (click)="fireEvent(button.event)"
-                  [title]="button.title || ''" i18n>{{ button.label }}</button>
+          @if (button.eventDone && loadingEvents[button.eventDone]) {
+            <app-loading class="event-loading"
+                         [inline]="true"
+                         [title]="button.title || button.label || ''"></app-loading>
+          } @else {
+            <button type="button"
+                    (click)="fireEvent(button)"
+                    [title]="button.title || ''" i18n>{{ button.label }}</button>
+          }
         } @else if (hasTags) {
           <button type="button"
                   (click)="toggleTag(button)"
@@ -97,7 +103,7 @@
           </div>
         }
       </div>
-      <app-loading [batch]="true"></app-loading>
+      <app-loading class="upload-loading" [batch]="true"></app-loading>
     }
     <textarea #editor
               [disabled]="!!uploads.length"

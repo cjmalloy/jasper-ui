@@ -84,7 +84,12 @@ input[type=file] {
   display: none;
 }
 
-app-loading {
+app-loading.event-loading  {
+  top: 3px;
+  margin: 6px 5px 6px 4px;
+}
+
+app-loading.upload-loading  {
   position: absolute;
   left: 50%;
   z-index: 20;

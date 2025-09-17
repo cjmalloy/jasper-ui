@@ -362,6 +362,11 @@ export interface EditorButton {
    */
   event?: string;
   /**
+   * Event to listen for to stop showing loading indicator.
+   * If set, button will show loading indicator after click until this event fires.
+   */
+  eventDone?: string;
+  /**
    * Only show button if URL is of scheme.
    */
   scheme?: `${string}:`;
