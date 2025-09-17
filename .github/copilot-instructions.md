@@ -52,7 +52,7 @@ docker compose up --build  # Everything on http://localhost:8082/
 ## Build & Test
 
 - Build: `npm run build` (~100s, NEVER CANCEL, timeout 180+s)
-- Unit tests: `npm test` (~55s, NEVER CANCEL, timeout 120+s)
+- Unit tests: `npm test` (~55s, NEVER CANCEL, timeout 120+s) - runs Angular test suite
 - Docker tests: `docker build . --target test -t jasper-ui-test && docker run --rm jasper-ui-test`
 - E2E tests: `npm run cy:ci` (10-20 min, NEVER CANCEL, timeout 30+ min)
 - Stop services: `docker compose down`
