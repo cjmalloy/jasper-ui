@@ -86,7 +86,7 @@ export class UserTagSelectorComponent implements OnDestroy {
       map(xs => xs.filter(x => !!x) as { name?: string, tag: string }[]),
     ).subscribe(xs => {
       this.autocomplete = xs.map(x => ({ value: x.tag, label: x.name || x.tag }));
-      this.autocomplete = uniqBy(this.autocomplete, 'value')
+      this.autocomplete = uniqBy(this.autocomplete, 'value');
       this.cd.detectChanges();
     });
   }, 400);
