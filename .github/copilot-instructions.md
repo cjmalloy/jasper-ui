@@ -6,19 +6,22 @@ Always reference these instructions first and fallback to search or bash command
 
 Jasper is an open source knowledge management (KM) system. Unlike a CMS, Jasper stores links to content rather than content itself, creating a fast overlay database that indexes content sources. The system uses composite keys with five core entities:
 
-1. **Ref** - References to external resources (composite key: url + origin)
+1. **Ref** - References to external resources (composite key: url + origin, URLs must be valid RFC 3986 URIs)
 2. **Ext** - Tag extensions that customize tag pages (composite key: tag + origin)
 3. **User** - User entities with Tag-Based Access Control (composite key: tag + origin)
-4. **Plugin** - Extends Ref functionality with JSON schemas (composite key: tag + origin)
-5. **Template** - Extends Ext functionality with JSON schemas (composite key: tag + origin)
+4. **Plugin** - Extends Ref functionality with JTD schemas (composite key: tag + origin)
+5. **Template** - Extends Ext functionality with JTD schemas (composite key: tag + origin)
 
 **Key Concepts:**
 - **Tags**: Hierarchical strings (`public`, `+protected`, `_private`) for categorization and access control
   - Regex: `[_+]?[a-z0-9]+([./][a-z0-9]+)*`
 - **Origins**: Enable replication and multi-tenant operation (`@origin`). Allow read-only pull-based collaboration without write access to remote servers
   - Regex: `@[a-z0-9]+([.][a-z0-9])*`
-- **URLs**: Follow RFC specification for Ref composite keys
-- **Modding**: Extensive customization via plugins/templates without server changes
+- **URLs**: Must be valid URIs per RFC 3986 for Ref composite keys
+- **Modding**: Extensive customization via plugins/templates without server restarts. Client-only changes using Plugin/Template entities with JTD schema validation
+- **Access Control**: Hierarchical roles (Anonymous, Viewer, User, Editor, Mod, Admin) plus Tag-Based Access Control (TBAC)
+- **Layers**: Identity layer (URL/Tag + Origin + Modified), Business layer, Application layer
+- **Special URLs**: `cache:` scheme for file cache, `tag:` scheme for tag references
 - **Querying**: Set-like operators (`:` and, `|` or, `!` not, `()` groups) to find content
   - `science`: All Refs with `science` tag
   - `science|funny`: Refs with either tag
