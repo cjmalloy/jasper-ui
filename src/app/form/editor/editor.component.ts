@@ -22,7 +22,7 @@ import { NavigationEnd, Router } from '@angular/router';
 import Europa from 'europa';
 import { debounce, defer, delay, intersection, sortedLastIndex, uniq, without } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
-import { catchError, filter, forkJoin, last, map, of, Subject, switchMap, takeUntil } from 'rxjs';
+import { catchError, filter, last, map, Observable, of, Subject, Subscription, switchMap, takeUntil, tap } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { MdComponent } from '../../component/md/md.component';
 import { Ref } from '../../model/ref';
@@ -38,6 +38,16 @@ import { Store } from '../../store/store';
 import { readFileAsDataURL, readFileAsString } from '../../util/async';
 import { memo, MemoCache } from '../../util/memo';
 import { expandedTagsInclude, hasTag, test } from '../../util/tag';
+
+export interface EditorUpload {
+  id: string;
+  name: string;
+  progress: number;
+  subscription?: Subscription;
+  completed?: boolean;
+  error?: string;
+  ref?: Ref | null;
+}
 
 @Component({
   standalone: false,
@@ -117,7 +127,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   initialFullscreen = false;
   focused?: boolean = false;
   progress = 0;
-  uploading = false;
+  uploads: EditorUpload[] = [];
   files = !!this.admin.getPlugin('plugin/file');
 
   private _text? = '';
@@ -570,7 +580,6 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
 
   drop(event: Event, items?: DataTransferItemList) {
     this.dropping = false;
-    this.uploading = false;
     if (!this.admin.getPlugin('plugin/file')) return;
     if (!items) return;
     const files = [] as any;
@@ -587,15 +596,36 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   }
 
   upload(files?: FileList | null) {
-    this.uploading = false;
     if (!files) return;
-    // @ts-ignore
-    forkJoin([...files].map(f => this.upload$(f))).subscribe(refs => this.attachUrls(...refs));
+    const hasActiveUploads = this.uploads.some(upload => !upload.completed && !upload.error);
+    if (!hasActiveUploads) {
+      // Only clear uploads if no active uploads exist
+      this.uploads = [];
+    }
+    this.control.disable();
+    const fileArray = Array.from(files);
+    const fileUploads: EditorUpload[] = fileArray.map(file => ({
+      id: uuid(),
+      name: file.name,
+      progress: 0
+    }));
+    this.uploads = [...this.uploads, ...fileUploads];
+    fileArray.map((file, index) => {
+      const upload = fileUploads[index];
+      const subscription = this.upload$(file, upload).subscribe(ref => {
+        if (ref) {
+          upload.completed = true;
+          upload.progress = 100;
+          upload.ref = ref;
+        }
+        this.checkAllUploadsComplete();
+      });
+      upload.subscription = subscription;
+      return subscription;
+    });
   }
 
-  upload$(file: File) {
-    this.uploading = true;
-    this.control.disable();
+  upload$(file: File, upload: EditorUpload): Observable<Ref | null> {
     const codeType = mimeToCode(file.type);
     if (codeType.length) {
       const ref = {
@@ -604,12 +634,14 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
         title: file.name,
         tags: [this.store.account.localTag, 'internal', ...file.type === 'text/markdown' ? [] : codeType]
       };
+      upload.progress = 50; // Simulate progress for text files
       return readFileAsString(file).pipe(
         switchMap(contents => this.refs.create({
           ...ref,
           comment: contents,
         })),
         map(cursor => ref),
+        tap(() => upload.progress = 100),
       );
     } else {
       const tags: string[] = ['plugin/file'];
@@ -630,6 +662,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
             case HttpEventType.UploadProgress:
               const percentDone = event.total ? Math.round(100 * event.loaded / event.total) : 0;
               this.progress = percentDone;
+              upload.progress = percentDone;
               return null;
           }
           return null;
@@ -638,14 +671,16 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
         switchMap(ref => !ref ? of(ref) : this.ts.patch(tags, ref.url, ref.origin).pipe(
           map(cursor => ({ ...ref, tags: uniq([...ref?.tags || [], ...tags]) })),
         )),
-        catchError(err => readFileAsDataURL(file).pipe(map(url => ({ url, tags })))), // base64
+        catchError(err => {
+          upload.error = err.message || 'Upload failed';
+          upload.progress = 0;
+          return readFileAsDataURL(file).pipe(map(url => ({url, tags}))); // base64
+        }),
       );
     }
   }
 
   attachUrls(...refs: (Ref | null)[]) {
-    this.uploading = false;
-    this.control.enable();
     refs = refs.filter(u => !!u);
     if (!refs.length) return;
     for (const ref of refs) this.addSource.next(ref!.url);
@@ -670,9 +705,51 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
     if (this.focused !== false) this.editor?.nativeElement.focus();
   }
 
+  checkAllUploadsComplete() {
+    const allComplete = this.uploads.every(upload => upload.completed || upload.error);
+    if (allComplete && this.uploads.length > 0) {
+      this.control.enable();
+      const completedRefs = this.uploads
+        .filter(upload => upload.completed && upload.ref)
+        .map(upload => upload.ref!);
+      if (completedRefs.length > 0) {
+        this.attachUrls(...completedRefs);
+      }
+      setTimeout(() => {
+        this.uploads = [];
+      }, 2000);
+    }
+  }
+
+  cancelUpload(upload: EditorUpload) {
+    if (upload.subscription) {
+      upload.subscription.unsubscribe();
+    }
+    this.uploads = this.uploads.filter(u => u.id !== upload.id);
+    if (this.uploads.length === 0) {
+      this.control.enable();
+    } else {
+      this.checkAllUploadsComplete();
+    }
+  }
+
+  cancelAllUploads() {
+    this.uploads.forEach(upload => {
+      if (upload.subscription) {
+        upload.subscription.unsubscribe();
+      }
+    });
+    this.uploads = [];
+    this.control.enable();
+  }
+
   dragLeave(parent: HTMLElement, target: HTMLElement) {
     if (this.dropping && parent === target || !parent.contains(target)) {
       this.dropping = false;
     }
+  }
+
+  hasActiveUploads(): boolean {
+    return this.uploads.some(upload => !upload.completed && !upload.error);
   }
 }
