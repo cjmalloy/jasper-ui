@@ -598,28 +598,20 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
 
   upload(files?: FileList | null) {
     if (!files) return;
-    
-    // Only clear uploads if no active uploads exist
     const hasActiveUploads = this.uploads.some(upload => !upload.completed && !upload.error);
     if (!hasActiveUploads) {
+      // Only clear uploads if no active uploads exist
       this.uploads = [];
     }
-    
     this.control.disable();
-    
-    // Create upload tracking entries for each file
     const fileArray = Array.from(files);
     const fileUploads: EditorUpload[] = fileArray.map(file => ({
       id: uuid(),
       name: file.name,
       progress: 0
     }));
-    
-    // Append new uploads to existing ones
     this.uploads = [...this.uploads, ...fileUploads];
-    
-    // Process uploads individually and track progress
-    const uploadObservables = fileArray.map((file, index) => {
+    fileArray.map((file, index) => {
       const upload = fileUploads[index];
       const subscription = this.upload$(file, upload).subscribe(ref => {
         if (ref) {
@@ -629,7 +621,6 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
         }
         this.checkAllUploadsComplete();
       });
-      
       upload.subscription = subscription;
       return subscription;
     });
@@ -719,17 +710,12 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
     const allComplete = this.uploads.every(upload => upload.completed || upload.error);
     if (allComplete && this.uploads.length > 0) {
       this.control.enable();
-      
-      // Collect all completed refs and attach them at once
       const completedRefs = this.uploads
         .filter(upload => upload.completed && upload.ref)
         .map(upload => upload.ref!);
-      
       if (completedRefs.length > 0) {
         this.attachUrls(...completedRefs);
       }
-      
-      // Clear uploads after a short delay to show completion
       setTimeout(() => {
         this.uploads = [];
       }, 2000);
@@ -741,8 +727,6 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
       upload.subscription.unsubscribe();
     }
     this.uploads = this.uploads.filter(u => u.id !== upload.id);
-    
-    // If no uploads remain, enable the control
     if (this.uploads.length === 0) {
       this.control.enable();
     } else {
