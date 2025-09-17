@@ -60,13 +60,8 @@ export class TagsPage implements OnInit, OnDestroy, HasChanges {
             ? getPrefixes(this.store.view.template).filter(t => this.auth.tagReadAccess(t)).join('|')
             : this.store.view.template)
         : '@*';
-      // Check if there are any origin filters in the filter list
-      const hasOriginFilter = this.store.view.filter?.some(f => f.startsWith('query/@') || f === 'query/*');
-      const baseQuery = getTagQueryFilter(braces(query), this.store.view.filter);
-      const originSuffix = (hasOriginFilter || this.store.view.showRemotes) ? '' : (':' + (this.store.account.origin || '*'));
-      
       const args = {
-        query: baseQuery + originSuffix,
+        query: getTagQueryFilter(braces(query), this.store.view.filter) + (!this.store.view.showRemotes ? ':' + (this.store.account.origin || '*') : ''),
         search: this.store.view.search,
         sort: [...this.store.view.sort],
         page: this.store.view.pageNumber,
