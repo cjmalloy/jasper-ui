@@ -254,7 +254,12 @@ export class ViewStore {
     return undefined;
   }
 
+  get originFilter() {
+    return this.filter?.some(f => f.startsWith('query/@') || f === 'query/*');
+  }
+
   get showRemotesCheckbox() {
+    if (this.originFilter) return false;
     return ['tags', 'settings/user', 'settings/plugin', 'settings/template', 'settings/ref', 'inbox/ref'].includes(this.current!);
   }
 
@@ -454,6 +459,7 @@ export class ViewStore {
   }
 
   get showRemotes() {
+    if (!this.showRemotesCheckbox) return true;
     return this.route.routeSnapshot?.queryParams['showRemotes'] !== undefined && this.route.routeSnapshot?.queryParams['showRemotes'] !== 'false';
   }
 
