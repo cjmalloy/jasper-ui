@@ -14,11 +14,12 @@ describe('QueryComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    declarations: [QueryComponent],
-    imports: [RouterModule.forRoot([]), FormsModule],
-    providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
-})
-    .compileComponents();
+      declarations: [QueryComponent],
+      imports: [RouterModule.forRoot([]), FormsModule],
+      providers: [
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting(),
+      ]}).compileComponents();
 
     fixture = TestBed.createComponent(QueryComponent);
     component = fixture.componentInstance;
@@ -33,7 +34,7 @@ describe('QueryComponent', () => {
 
   it('should clean and format query string correctly', () => {
     component.search('Test Query! with#Special@Characters');
-    
+
     // Just check that navigation was called with a cleaned query
     expect(router.navigate).toHaveBeenCalled();
     const navigateCall = (router.navigate as jasmine.Spy).calls.mostRecent();

@@ -78,13 +78,10 @@ export class QueryComponent {
       .replace(/[\s|]*:[\s|]*/g, ':')
       .replace(/\s+/g, '+')
       .replace(/[^_+/a-z-0-9.:|!@*()]+/g, '');
-    
-    // If we're on a tags page, stay on tags page with the query as template
     if (this.store.view.current === 'tags') {
-      this.router.navigate(['/tags', query], { queryParams: { pageNumber: null },  queryParamsHandling: 'merge'});
+      this.router.navigate(['/tags', query], { queryParams: { pageNumber: null }, queryParamsHandling: 'merge' });
     } else {
-      // Default behavior: navigate to tag page
-      this.router.navigate(['/tag', query], { queryParams: { pageNumber: null },  queryParamsHandling: 'merge'});
+      this.router.navigate(['/tag', query], { queryParams: { pageNumber: null }, queryParamsHandling: 'merge' });
     }
   }
 
