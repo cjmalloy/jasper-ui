@@ -1,40 +1,32 @@
-<div class="user-tag-selector" *ngIf="store.account.signedIn">
-  <label for="user-tag-input" i18n>Active User Tag:</label>
-  <div class="form-array skip-margin">
-    <input class="preview grow"
-           type="text"
-           [value]="preview"
-           [title]="currentValue"
-           [style.display]="preview ? 'block' : 'none'"
-           (focus)="clickPreview(userTagInput)">
-    <datalist [id]="listId">
-      @for (o of autocomplete; track o.value) {
-        <option [value]="o.value">{{ o.label }}</option>
-      }
-    </datalist>
-    <input #userTagInput
-           id="user-tag-input"
-           class="grow"
-           type="text"
-           inputmode="email"
-           enterkeyhint="enter"
-           autocorrect="off"
-           autocapitalize="none"
-           [attr.list]="listId"
-           [value]="currentValue"
-           [class.hidden-without-removing]="preview"
-           placeholder="Enter user tag or sub tag"
-           (input)="search(userTagInput.value)"
-           (blur)="blur(userTagInput)"
-           (focusin)="edit(userTagInput)"
-           (focus)="edit(userTagInput)"
-           (focusout)="blur(userTagInput)">
-  </div>
-  
-  <div class="help-text" i18n>
-    Enter a user sub-tag to use for API requests. This will be sent as the User-Tag header.
-  </div>
-  <div class="current-tag" *ngIf="currentUserTag" i18n>
-    Currently using: <strong>{{ currentUserTag }}</strong>
-  </div>
+<div class="form-array skip-margin">
+  <input class="preview grow"
+         type="text"
+         [value]="preview"
+         [title]="userTagInput.value"
+         [style.display]="preview ? 'block' : 'none'"
+         (focus)="clickPreview(userTagInput)">
+  <datalist id="user-tag">
+    @for (o of autocomplete; track o.value) {
+      <option [value]="o.value">{{ o.label }}</option>
+    }
+  </datalist>
+  <input #userTagInput
+         id="user-tag-input"
+         class="grow"
+         type="text"
+         inputmode="email"
+         enterkeyhint="enter"
+         autocorrect="off"
+         autocapitalize="none"
+         list="user-tag"
+         i18n-placeholder
+         placeholder="Override Tag..."
+         [value]="store.local.selectedUserTag"
+         [class.hidden-without-removing]="preview"
+         (input)="search(userTagInput.value)"
+         (keydown)="$event.key === 'Enter' && blur(userTagInput) || true"
+         (blur)="blur(userTagInput)"
+         (focusin)="edit(userTagInput)"
+         (focus)="edit(userTagInput)"
+         (focusout)="blur(userTagInput)">
 </div>

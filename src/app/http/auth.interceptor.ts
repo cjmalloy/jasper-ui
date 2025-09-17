@@ -13,19 +13,15 @@ export class AuthInterceptor implements HttpInterceptor {
   ) {}
 
   intercept(request: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
+    const userTag = this.store.local.selectedUserTag;
+    if (!this.config.token && !userTag) return next.handle(request);
     let headers = request.headers;
-    
-    // Add Authorization header if token is available
     if (this.config.token) {
       headers = headers.set('Authorization', 'Bearer ' + this.config.token);
     }
-    
-    // Add User-Tag header if we have a selected user tag and this is a request to the API
-    const userTag = this.store.account.currentUserTag;
-    if (userTag && request.url.includes('/api/')) {
+    if (userTag) {
       headers = headers.set('User-Tag', userTag);
     }
-    
     return next.handle(request.clone({ headers }));
   }
 }

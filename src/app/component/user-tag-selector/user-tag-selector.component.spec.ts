@@ -9,8 +9,7 @@ describe('UserTagSelectorComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       declarations: [ UserTagSelectorComponent ]
-    })
-    .compileComponents();
+    }).compileComponents();
 
     fixture = TestBed.createComponent(UserTagSelectorComponent);
     component = fixture.componentInstance;

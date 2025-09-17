@@ -16,16 +16,6 @@ export class AccountStore {
   ext?: Ext = {} as Ext;
   defaultConfig: UserConfig = {};
   ignoreNotifications: number[] = [];
-  
-  /**
-   * Original roles from whoAmI call before any User-Tag header changes
-   */
-  originalRoles?: Roles;
-  
-  /**
-   * Selected user sub tag for the User-Tag header
-   */
-  selectedUserTag = '';
 
   /**
    * Is admin.
@@ -268,11 +258,6 @@ export class AccountStore {
   }
 
   setRoles(roles: Roles) {
-    // Save original roles on first call
-    if (!this.originalRoles) {
-      this.originalRoles = roles;
-    }
-    
     this.debug = roles.debug;
     this.origin = tagOrigin(roles.tag);
     this.tag = roles.tag || '';
@@ -286,86 +271,6 @@ export class AccountStore {
     this.user = roles.user;
     this.viewer = roles.viewer;
     this.banned = roles.banned;
-  }
-
-  /**
-   * Get the current user tag to use in the User-Tag header
-   */
-  get currentUserTag(): string {
-    if (this.selectedUserTag && this.isValidSubTag(this.selectedUserTag)) {
-      return this.selectedUserTag;
-    }
-    // Fall back to the original authenticated user tag
-    return this.originalRoles?.tag || this.tag || '';
-  }
-
-  /**
-   * Set the selected user tag
-   */
-  setSelectedUserTag(tag: string) {
-    if (this.isValidSubTag(tag)) {
-      this.selectedUserTag = tag;
-    } else {
-      throw new Error('Invalid sub tag: ' + tag);
-    }
-  }
-
-  /**
-   * Clear the selected tag (fall back to original authenticated user tag)
-   */
-  clearSelectedUserTag() {
-    this.selectedUserTag = '';
-  }
-
-  /**
-   * Check if a tag is a valid sub tag of the original authenticated user
-   */
-  isValidSubTag(tag: string): boolean {
-    if (!tag) return false;
-    if (!this.signedIn) return false;
-    
-    const originalUserTag = this.originalRoles?.tag || this.tag;
-    if (!originalUserTag) return false;
-
-    // The tag must be the same as original user tag or a sub tag of it
-    return tag === originalUserTag || hasPrefix(tag, originalUserTag);
-  }
-
-  /**
-   * Get all possible sub tags for the current user
-   */
-  getPossibleSubTags(): string[] {
-    if (!this.signedIn) return [];
-    
-    const baseTag = this.originalRoles?.tag || this.tag;
-    if (!baseTag) return [];
-
-    // Start with the base tag itself
-    const subTags = [baseTag];
-    
-    // Add some common sub tag patterns that users might want to use
-    const commonSuffixes = ['admin', 'work', 'personal', 'bot', 'test', 'backup', 'support'];
-    for (const suffix of commonSuffixes) {
-      subTags.push(`${baseTag}/${suffix}`);
-    }
-
-    return subTags;
-  }
-
-  /**
-   * Create a custom sub tag
-   */
-  createCustomSubTag(suffix: string): string {
-    if (!this.signedIn) return '';
-    
-    const baseTag = this.originalRoles?.tag || this.tag;
-    if (!baseTag) return '';
-    
-    // Clean the suffix - remove any invalid characters
-    const cleanSuffix = suffix.replace(/[^a-z0-9.-]/gi, '').toLowerCase();
-    if (!cleanSuffix) return '';
-    
-    return `${baseTag}/${cleanSuffix}`;
   }
 
   defaultEditors(plugins: string[]) {
