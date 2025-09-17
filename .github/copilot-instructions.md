@@ -4,19 +4,20 @@ Always reference these instructions first and fallback to search or bash command
 
 ## What is Jasper?
 
-Jasper is an open source knowledge management (KM) system. Unlike a CMS, Jasper stores links to content rather than content itself, creating a fast overlay database that indexes content sources. The system uses a hierarchical tagging model with five core entities:
+Jasper is an open source knowledge management (KM) system. Unlike a CMS, Jasper stores links to content rather than content itself, creating a fast overlay database that indexes content sources. The system uses composite keys with five core entities:
 
-1. **Ref** - References to external resources (URLs with metadata, tags, comments)
-2. **Ext** - Tag extensions that customize tag pages
-3. **User** - User entities with Tag-Based Access Control (TBAC)
-4. **Plugin** - Extends Ref functionality with JSON schemas and custom behavior
-5. **Template** - Extends Ext functionality with JSON schemas
+1. **Ref** - References to external resources (composite key: url + origin)
+2. **Ext** - Tag extensions that customize tag pages (composite key: tag + origin)
+3. **User** - User entities with Tag-Based Access Control (composite key: tag + origin)
+4. **Plugin** - Extends Ref functionality with JSON schemas (composite key: tag + origin)
+5. **Template** - Extends Ext functionality with JSON schemas (composite key: tag + origin)
 
 **Key Concepts:**
 - **Tags**: Hierarchical strings (`public`, `+protected`, `_private`) for categorization and access control
-- **Origins**: Enable replication and multi-tenant operation (`@origin`)
+- **Origins**: Enable replication and multi-tenant operation (`@origin`). Allow read-only pull-based collaboration without write access to remote servers
 - **Modding**: Extensive customization via plugins/templates without server changes
 - **Querying**: Set-like operators (`:` and, `|` or, `!` not, `()` groups) to find content
+- **Regexes**: Tags support regex patterns for flexible matching and validation
 
 This Angular client (jasper-ui) provides the reference implementation for interacting with the Jasper knowledge management server.
 
