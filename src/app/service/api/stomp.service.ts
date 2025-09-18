@@ -42,7 +42,7 @@ export class StompService extends RxStomp {
 
   get hostUrl() {
     var proto = this.getWsProtocol(this.config.api);
-    if (this.config.api === '.' || this.config.api === '/' || this.config.api === './') return proto + location.host + location.port
+    if (this.config.api === '.' || this.config.api === '/' || this.config.api === './') return proto + location.host
     if (this.config.api.startsWith('//')) return proto + this.config.api.substring('//'.length);
     if (this.config.api.startsWith('https://')) return proto + this.config.api.substring('https://'.length);
     if (this.config.api.startsWith('http://')) return proto + this.config.api.substring('http://'.length);
