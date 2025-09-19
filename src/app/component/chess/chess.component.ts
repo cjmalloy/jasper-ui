@@ -105,8 +105,11 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
     this.writeAccess = true; // ActionService will handle the complexity
     
     if (this.ref) {
-      this.watch = this.actions.watch$(this.ref).subscribe(update => {
-        const currentComment = this.ref!.comment || '';
+      this.watch = this.actions.watch$(this.ref).subscribe(updatedRef => {
+        // Update our ref reference
+        this.ref = updatedRef;
+        
+        const currentComment = this.ref.comment || '';
         
         // Simple version comparison - no need to know about origins
         const hasConflict = this.detectGameConflict(this.lastSeenComment, this.lastEditedComment, currentComment);
@@ -119,7 +122,7 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
         
         this.lastSeenComment = currentComment;
         // Track our own edits vs remote updates
-        if (update.origin === this.store.account.origin) {
+        if (updatedRef.origin === this.store.account.origin) {
           this.lastEditedComment = currentComment;
         }
       });
