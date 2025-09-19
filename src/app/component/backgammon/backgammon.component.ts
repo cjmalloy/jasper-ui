@@ -14,12 +14,10 @@ import {
   SimpleChanges
 } from '@angular/core';
 import { defer, delay, filter, range, uniq } from 'lodash-es';
-import { DateTime } from 'luxon';
 import { autorun, IReactionDisposer } from 'mobx';
-import { catchError, Observable, Subscription, throwError } from 'rxjs';
+import { Observable } from 'rxjs';
 import { Ref, RefUpdates } from '../../model/ref';
-import { RefService } from '../../service/api/ref.service';
-import { AuthzService } from '../../service/authz.service';
+import { ActionService, RefActionHandler } from '../../service/action.service';
 import { Store } from '../../store/store';
 
 export type Piece = 'r' | 'b';
@@ -84,9 +82,8 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   @HostBinding('class.resizing')
   resizing = 0;
 
-  private cursor?: string;
+  private actionHandler?: RefActionHandler;
   private resizeObserver = window.ResizeObserver && new ResizeObserver(() => this.onResize()) || undefined;
-  private watch?: Subscription;
   /**
    * Flag to prevent animations for own moves.
    */
@@ -110,8 +107,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
 
   constructor(
     private store: Store,
-    private auth: AuthzService,
-    private refs: RefService,
+    private actions: ActionService,
     private el: ElementRef<HTMLDivElement>,
   ) {
     this.disposers.push(autorun(() => {
@@ -130,88 +126,95 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   init() {
     this.el.nativeElement.style.setProperty('--red-name', '"🔴️ ' + (this.bgConf?.redName || $localize`Red`) + '"');
     this.el.nativeElement.style.setProperty('--black-name', '"⚫️ ' + (this.bgConf?.blackName || $localize`Black`) + '"');
-    if (!this.watch && this.updates$) {
-      this.watch = this.updates$.subscribe(u => {
-        if (u.origin === this.store.account.origin) this.cursor = u.modifiedString;
-        else this.ref!.modifiedString = u.modifiedString;
-        const prev = [...this.board];
-        const current = (u.comment || '')
-          .trim()
-          .split('\n')
-          .map(m => m.trim())
-          .filter(m => !!m);
-        const minLen = Math.min(prev.length, current.length);
-        for (let i = 0; i < minLen; i++) {
-          if (prev[i] !== current[i]) {
-            prev.splice(0, i);
-            current.splice(0, i);
-            break;
-          }
-          if (i === minLen - 1) {
-            prev.splice(0, minLen);
-            current.splice(0, minLen);
-          }
+    
+    // Create action handler for origin management and updates
+    this.actionHandler = this.actions.createRefHandler(this.ref, this.updates$);
+    this.actionHandler.subscribe();
+    this.writeAccess = this.actionHandler.writeAccess;
+    
+    // Set up update handling with game-specific logic
+    if (this.updates$) {
+      this.updates$.subscribe(u => {
+        if (u.origin === this.store.account.origin) {
+          // Own update - no animation needed
+          return;
         }
-        const multiple = current[0]?.replace(/\(\d\)/, '');
-        if (prev.length === 1 && current.length && prev[0].replace(/\(\d\)/, '') === multiple) {
-          prev.length = 0;
-          current[0] = multiple;
-        }
-        if (prev.length) {
-          alert($localize`Game history was rewritten!`);
-          this.ref = u;
-          this.store.eventBus.refresh(u);
-        }
-        if (prev.length || !current.length) return;
-        this.ref!.comment = u.comment;
-        this.store.eventBus.refresh(this.ref);
-        this.load(current);
-        const roll = current.find(m => m.includes('-'));
-        if (roll) {
-          const lastRoll = this.incomingRolling = roll.split(' ')[0] as Piece;
-          requestAnimationFrame(() => {
-            if (lastRoll != this.incomingRolling) return;
-            this.rolling = this.incomingRolling;
-            delay(() => this.rolling = undefined, 3400);
-          });
-        }
-        if (current.find(m => m.includes('/'))) {
-          const lastMove = this.incoming = current.filter(m => m.includes('/')).map(m => parseInt(m.split(/\D+/g).filter(m => !!m).pop()!) - 1);
-          this.incomingRedBar = current.filter(m => m.includes('*') && m.startsWith('b')).length;
-          this.incomingBlackBar = current.filter(m => m.includes('*') && m.startsWith('r')).length;
-          requestAnimationFrame(() => {
-            if (lastMove != this.incoming) return;
-            this.setBounce(this.incoming);
-            this.redBarBounce ||= this.incomingRedBar;
-            this.blackBarBounce ||= this.incomingBlackBar;
-            clearTimeout(this.bounce);
-            this.bounce = delay(() => {
-              this.clearBounce();
-              delete this.bounce;
-              this.incomingRedBar = this.incomingBlackBar = 0;
-            }, 3400);
-          });
-        }
+        
+        // Handle opponent moves with conflict detection
+        this.handleOpponentUpdate(u);
       });
     }
-    if (this.local) {
-      this.writeAccess = !this.ref?.created || this.ref?.upload || this.auth.writeAccess(this.ref);
-      this.cursor = this.ref?.modifiedString;
-    } else {
-      this.writeAccess = true;
-      this.refs.get(this.ref!.url, this.store.account.origin).pipe(
-        catchError(err => {
-          if (err.status === 404) {
-            delete this.cursor;
-          }
-          return throwError(() => err);
-        })
-      ).subscribe(ref => {
-        this.cursor = ref.modifiedString;
-        this.writeAccess = this.auth.writeAccess(ref);
-      });
-    }
+    
     this.reset(this.ref?.comment || this.text);
+  }
+  
+  private handleOpponentUpdate(u: RefUpdates) {
+    const prev = [...this.board];
+    const current = (u.comment || '')
+      .trim()
+      .split('\n')
+      .map(m => m.trim())
+      .filter(m => !!m);
+    const minLen = Math.min(prev.length, current.length);
+    
+    for (let i = 0; i < minLen; i++) {
+      if (prev[i] !== current[i]) {
+        prev.splice(0, i);
+        current.splice(0, i);
+        break;
+      }
+      if (i === minLen - 1) {
+        prev.splice(0, minLen);
+        current.splice(0, minLen);
+      }
+    }
+    
+    const multiple = current[0]?.replace(/\(\d\)/, '');
+    if (prev.length === 1 && current.length && prev[0].replace(/\(\d\)/, '') === multiple) {
+      prev.length = 0;
+      current[0] = multiple;
+    }
+    
+    if (prev.length) {
+      alert($localize`Game history was rewritten!`);
+      this.ref = u;
+      this.store.eventBus.refresh(u);
+    }
+    
+    if (prev.length || !current.length) return;
+    
+    this.ref!.comment = u.comment;
+    this.store.eventBus.refresh(this.ref);
+    this.load(current);
+    
+    // Handle animations
+    const roll = current.find(m => m.includes('-'));
+    if (roll) {
+      const lastRoll = this.incomingRolling = roll.split(' ')[0] as Piece;
+      requestAnimationFrame(() => {
+        if (lastRoll != this.incomingRolling) return;
+        this.rolling = this.incomingRolling;
+        delay(() => this.rolling = undefined, 3400);
+      });
+    }
+    
+    if (current.find(m => m.includes('/'))) {
+      const lastMove = this.incoming = current.filter(m => m.includes('/')).map(m => parseInt(m.split(/\D+/g).filter(m => !!m).pop()!) - 1);
+      this.incomingRedBar = current.filter(m => m.includes('*') && m.startsWith('b')).length;
+      this.incomingBlackBar = current.filter(m => m.includes('*') && m.startsWith('r')).length;
+      requestAnimationFrame(() => {
+        if (lastMove != this.incoming) return;
+        this.setBounce(this.incoming);
+        this.redBarBounce ||= this.incomingRedBar;
+        this.blackBarBounce ||= this.incomingBlackBar;
+        clearTimeout(this.bounce);
+        this.bounce = delay(() => {
+          this.clearBounce();
+          delete this.bounce;
+          this.incomingRedBar = this.incomingBlackBar = 0;
+        }, 3400);
+      });
+    }
   }
 
   ngAfterViewInit() {
@@ -222,7 +225,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
     if (changes.ref || changes.text) {
       const newRef = changes.ref?.firstChange || changes.ref?.previousValue?.url != changes.ref?.currentValue?.url;
       if (!this.ref || newRef) {
-        this.watch?.unsubscribe();
+        this.actionHandler?.unsubscribe();
         if (this.ref || this.text != null) this.init();
       }
     }
@@ -231,6 +234,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   ngOnDestroy() {
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
+    this.actionHandler?.unsubscribe();
     this.resizeObserver?.disconnect();
   }
 
@@ -239,7 +243,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   }
 
   get local() {
-    return !this.ref?.created || this.ref.upload || this.ref?.origin === this.store.account.origin;
+    return this.actionHandler?.isLocal() ?? false;
   }
 
   get redBar() {
@@ -542,22 +546,12 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   save() {
     const comment = this.patchingComment = this.board.join('  \n');
     this.comment.emit(comment)
-    if (!this.ref) return;
-    (this.cursor ? this.refs.merge(this.ref.url, this.store.account.origin, this.cursor,
-      { comment }
-    ) : this.refs.create({
-      ...this.ref,
-      origin: this.store.account.origin,
-      comment,
-    })).subscribe(cursor => {
-      this.writeAccess = true;
+    if (!this.ref || !this.actionHandler) return;
+    
+    this.actionHandler.updateComment(comment).subscribe(cursor => {
       if (this.patchingComment !== comment) return;
-      this.ref!.comment = comment;
-      this.ref!.modified = DateTime.fromISO(cursor);
-      this.cursor = this.ref!.modifiedString = cursor;
       this.patchingComment = '';
       if (!this.local) {
-        this.ref!.origin = this.store.account.origin;
         this.copied.emit(this.store.account.origin)
       }
       this.store.eventBus.refresh(this.ref);

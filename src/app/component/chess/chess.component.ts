@@ -14,12 +14,10 @@ import {
 } from '@angular/core';
 import { Chess, Move, Square } from 'chess.js';
 import { defer, delay, flatten, without } from 'lodash-es';
-import { DateTime } from 'luxon';
 import { autorun, IReactionDisposer } from 'mobx';
-import { catchError, Observable, Subscription, throwError } from 'rxjs';
+import { catchError, Observable, throwError } from 'rxjs';
 import { Ref, RefUpdates } from '../../model/ref';
-import { RefService } from '../../service/api/ref.service';
-import { AuthzService } from '../../service/authz.service';
+import { ActionService, RefActionHandler } from '../../service/action.service';
 import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
 
@@ -63,10 +61,9 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
   @HostBinding('class.flip')
   flip = false;
 
-  private cursor?: string;
+  private actionHandler?: RefActionHandler;
   private resizeObserver = window.ResizeObserver && new ResizeObserver(() => this.onResize()) || undefined;
   private fen = '';
-  private watch?: Subscription;
   /**
    * Flag to prevent animations for own moves.
    */
@@ -79,8 +76,7 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
 
   constructor(
     public config: ConfigService,
-    private auth: AuthzService,
-    private refs: RefService,
+    private actions: ActionService,
     private store: Store,
     private el: ElementRef<HTMLDivElement>,
   ) {
@@ -103,71 +99,76 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
 
   init() {
     this.prevComment = this.ref?.comment || '';
-    if (!this.watch && this.updates$) {
-      this.watch = this.updates$.subscribe(u => {
-        if (u.origin === this.store.account.origin) this.cursor = u.modifiedString;
-        else this.ref!.modifiedString = u.modifiedString;
-        const prev = this.prevComment
-          .trim()
-          .split(/\s+/g)
-          .map(m => m.trim() as Square)
-          .filter(m => !!m);
-        const current = (u.comment || '')
-          .trim()
-          .split(/\s+/g)
-          .map(m => m.trim() as Square)
-          .filter(m => !!m);
-        const minLen = Math.min(prev.length, current.length);
-        for (let i = 0; i < minLen; i++) {
-          if (prev[i] !== current[i] || i === minLen - 1) {
-            prev.splice(0, i + 1);
-            current.splice(0, i + 1);
-            break;
-          }
+    
+    // Create action handler for origin management and updates
+    this.actionHandler = this.actions.createRefHandler(this.ref, this.updates$);
+    this.actionHandler.subscribe();
+    this.writeAccess = this.actionHandler.writeAccess;
+    
+    // Set up update handling with game-specific logic
+    if (this.updates$) {
+      this.updates$.subscribe(u => {
+        if (u.origin === this.store.account.origin) {
+          // Own update - no animation needed
+          return;
         }
-        if (prev.length) {
-          alert($localize`Game history was rewritten!`);
-        }
-        this.prevComment = u.comment || '';
-        if (prev.length || !current.length) return;
-        for (const m of current) this.chess.move(m);
-        this.check();
-        // TODO: queue all moves and animate one by one
-        const move = current.shift()!;
-        let lastMove = this.incoming = this.getMoveCoord(move, this.turn === 'w' ? 'b' : 'w');
-        requestAnimationFrame(() => {
-          if (lastMove != this.incoming) return;
-          if (lastMove.length > 2) lastMove = lastMove.substring(lastMove.length - 2, lastMove.length) as Square;
-          this.bounce.push(lastMove);
-          delay(() => this.bounce = without(this.bounce, lastMove), 3400);
-        });
+        
+        // Handle opponent moves with conflict detection
+        this.handleOpponentUpdate(u);
       });
     }
-    if (this.local) {
-      this.writeAccess = !this.ref?.created || this.ref?.upload || this.auth.writeAccess(this.ref);
-      this.cursor = this.ref?.modifiedString;
-    } else {
-      this.writeAccess = true;
-      this.refs.get(this.ref!.url, this.store.account.origin).pipe(
-        catchError(err => {
-          if (err.status === 404) {
-            delete this.cursor;
-          }
-          return throwError(() => err);
-        })
-      ).subscribe(ref => {
-        this.cursor = ref.modifiedString;
-        this.writeAccess = this.auth.writeAccess(ref)
-      });
-    }
+    
     this.reset(this.ref?.comment || this.text);
+  }
+  
+  private handleOpponentUpdate(u: RefUpdates) {
+    const prev = this.prevComment
+      .trim()
+      .split(/\s+/g)
+      .map(m => m.trim() as Square)
+      .filter(m => !!m);
+    const current = (u.comment || '')
+      .trim()
+      .split(/\s+/g)
+      .map(m => m.trim() as Square)
+      .filter(m => !!m);
+    const minLen = Math.min(prev.length, current.length);
+    
+    for (let i = 0; i < minLen; i++) {
+      if (prev[i] !== current[i] || i === minLen - 1) {
+        prev.splice(0, i + 1);
+        current.splice(0, i + 1);
+        break;
+      }
+    }
+    
+    if (prev.length) {
+      alert($localize`Game history was rewritten!`);
+    }
+    
+    this.prevComment = u.comment || '';
+    if (prev.length || !current.length) return;
+    
+    // Apply moves and animate
+    for (const m of current) this.chess.move(m);
+    this.check();
+    
+    // Animate the last move
+    const move = current.shift()!;
+    let lastMove = this.incoming = this.getMoveCoord(move, this.turn === 'w' ? 'b' : 'w');
+    requestAnimationFrame(() => {
+      if (lastMove != this.incoming) return;
+      if (lastMove.length > 2) lastMove = lastMove.substring(lastMove.length - 2, lastMove.length) as Square;
+      this.bounce.push(lastMove);
+      delay(() => this.bounce = without(this.bounce, lastMove), 3400);
+    });
   }
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes.ref || changes.text) {
       const newRef = changes.ref?.firstChange || changes.ref?.previousValue?.url !== changes.ref?.currentValue?.url;
       if (!this.ref || newRef) {
-        this.watch?.unsubscribe();
+        this.actionHandler?.unsubscribe();
         if (this.ref || this.text != null) this.init();
       }
     }
@@ -176,6 +177,7 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
   ngOnDestroy() {
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
+    this.actionHandler?.unsubscribe();
     this.resizeObserver?.disconnect();
   }
 
@@ -215,7 +217,7 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   get local() {
-    return !this.ref?.created || this.ref.upload || this.ref?.origin === this.store.account.origin;
+    return this.actionHandler?.isLocal() ?? false;
   }
 
   @HostListener('window:resize')
@@ -319,29 +321,18 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
   save(move?: Move) {
     const comment = this.prevComment = (this.fen ? this.fen + '\n\n' : '') + this.chess.history().join('  \n');
     this.comment.emit(comment)
-    if (!this.ref) return;
+    if (!this.ref || !this.actionHandler) return;
+    
     const title = move && this.ref.title ? (this.ref.title || '').replace(/\s*\|.*/, '')  + ' | ' + move.san : '';
-    (this.cursor ? this.refs.merge(this.ref.url, this.store.account.origin, this.cursor,
-      { title, comment }
-    ).pipe(
+    
+    this.actionHandler.updateRef({ title, comment }).pipe(
       catchError(err => {
         window.alert('Error syncing game. Please reload.');
         return throwError(() => err);
       })
-    ) : this.refs.create({
-      ...this.ref,
-      origin: this.store.account.origin,
-      title,
-      comment,
-    })).subscribe(cursor => {
-      this.writeAccess = true;
+    ).subscribe(cursor => {
       if (this.prevComment !== comment) return;
-      this.ref!.title = title;
-      this.ref!.comment = comment;
-      this.ref!.modified = DateTime.fromISO(cursor);
-      this.ref!.modifiedString = cursor;
       if (!this.local) {
-        this.ref!.origin = this.store.account.origin;
         this.copied.emit(this.store.account.origin)
       }
       this.store.eventBus.refresh(this.ref);

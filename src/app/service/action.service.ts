@@ -5,13 +5,153 @@ import { runInAction } from 'mobx';
 import { catchError, concat, last, Observable, of, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { PluginApi } from '../model/plugin';
-import { Ref } from '../model/ref';
+import { Ref, RefUpdates } from '../model/ref';
 import { Action, EmitAction, emitModels } from '../model/tag';
 import { Store } from '../store/store';
 import { hasTag } from '../util/tag';
 import { ExtService } from './api/ext.service';
 import { RefService } from './api/ref.service';
 import { TaggingService } from './api/tagging.service';
+import { AuthzService } from './authz.service';
+
+export interface RefActionHandler {
+  ref?: Ref;
+  updates$?: Observable<RefUpdates>;
+  writeAccess: boolean;
+  cursor?: string;
+  
+  // Subscription management
+  subscribe(): void;
+  unsubscribe(): void;
+  
+  // Ref management
+  isLocal(): boolean;
+  
+  // Update operations
+  updateComment(comment: string): Observable<string>;
+  updateRef(data: Partial<Ref>): Observable<string>;
+}
+
+class RefActionHandlerImpl implements RefActionHandler {
+  ref?: Ref;
+  updates$?: Observable<RefUpdates>;
+  writeAccess = false;
+  cursor?: string;
+  
+  private watch?: Subscription;
+  
+  constructor(
+    private refs: RefService,
+    private auth: AuthzService,
+    private store: Store,
+    ref?: Ref,
+    updates$?: Observable<RefUpdates>
+  ) {
+    this.ref = ref;
+    this.updates$ = updates$;
+    this.initializeAccess();
+  }
+  
+  private initializeAccess(): void {
+    if (this.isLocal()) {
+      this.writeAccess = !this.ref?.created || this.ref?.upload || this.auth.writeAccess(this.ref);
+      this.cursor = this.ref?.modifiedString;
+    } else if (this.ref) {
+      this.writeAccess = true;
+      this.refs.get(this.ref.url, this.store.account.origin).pipe(
+        catchError(err => {
+          if (err.status === 404) {
+            delete this.cursor;
+          }
+          return throwError(() => err);
+        })
+      ).subscribe(ref => {
+        this.cursor = ref.modifiedString;
+        this.writeAccess = this.auth.writeAccess(ref);
+      });
+    }
+  }
+  
+  subscribe(): void {
+    if (!this.watch && this.updates$) {
+      this.watch = this.updates$.subscribe(u => {
+        if (u.origin === this.store.account.origin) {
+          this.cursor = u.modifiedString;
+        } else if (this.ref) {
+          this.ref.modifiedString = u.modifiedString;
+        }
+        // Let components handle specific update logic via callback
+      });
+    }
+  }
+  
+  unsubscribe(): void {
+    this.watch?.unsubscribe();
+    this.watch = undefined;
+  }
+  
+  isLocal(): boolean {
+    return !this.ref?.created || this.ref.upload || this.ref?.origin === this.store.account.origin;
+  }
+  
+  updateComment(comment: string): Observable<string> {
+    if (!this.ref) {
+      return throwError(() => new Error('No ref to update'));
+    }
+    
+    return this.refs.patch(this.ref.url, this.ref.origin!, this.ref.modifiedString!, [{
+      op: 'add',
+      path: '/comment',
+      value: comment,
+    }]).pipe(
+      catchError(err => {
+        if (err.status === 409) {
+          return this.refs.get(this.ref!.url, this.ref!.origin).pipe(
+            switchMap(ref => this.refs.patch(ref.url, ref.origin!, ref.modifiedString!, [{
+              op: 'add',
+              path: '/comment',
+              value: comment,
+            }])),
+          );
+        }
+        return throwError(() => err);
+      }),
+      tap(cursor => runInAction(() => {
+        this.ref!.comment = comment;
+        this.ref!.modifiedString = cursor;
+        this.ref!.modified = DateTime.fromISO(cursor);
+        this.cursor = cursor;
+      })),
+    );
+  }
+  
+  updateRef(data: Partial<Ref>): Observable<string> {
+    if (!this.ref) {
+      return throwError(() => new Error('No ref to update'));
+    }
+    
+    const updateObs = this.cursor 
+      ? this.refs.merge(this.ref.url, this.store.account.origin, this.cursor, data)
+      : this.refs.create({
+          ...this.ref,
+          origin: this.store.account.origin,
+          ...data,
+        });
+        
+    return updateObs.pipe(
+      tap(cursor => runInAction(() => {
+        this.writeAccess = true;
+        Object.assign(this.ref!, data);
+        this.ref!.modified = DateTime.fromISO(cursor);
+        this.ref!.modifiedString = cursor;
+        this.cursor = cursor;
+        if (!this.isLocal()) {
+          this.ref!.origin = this.store.account.origin;
+        }
+      })),
+    );
+  }
+}
 
 @Injectable({
   providedIn: 'root'
@@ -22,8 +162,13 @@ export class ActionService {
     private refs: RefService,
     private exts: ExtService,
     private tags: TaggingService,
+    private auth: AuthzService,
     private store: Store,
   ) { }
+
+  createRefHandler(ref?: Ref, updates$?: Observable<RefUpdates>): RefActionHandler {
+    return new RefActionHandlerImpl(this.refs, this.auth, this.store, ref, updates$);
+  }
 
   wrap(ref?: Ref): PluginApi {
     let o: Subscription | undefined = undefined;

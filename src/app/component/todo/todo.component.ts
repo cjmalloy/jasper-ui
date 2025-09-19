@@ -7,13 +7,13 @@ import {
   Input,
   NgZone,
   OnChanges,
+  OnDestroy,
   Output,
   SimpleChanges
 } from '@angular/core';
-import { DateTime } from 'luxon';
-import { catchError, Observable, Subscription, throwError } from 'rxjs';
+import { catchError, Observable, throwError } from 'rxjs';
 import { Ref, RefUpdates } from '../../model/ref';
-import { RefService } from '../../service/api/ref.service';
+import { ActionService, RefActionHandler } from '../../service/action.service';
 import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
 import { printError } from '../../util/http';
@@ -25,7 +25,7 @@ import { printError } from '../../util/http';
   styleUrls: ['./todo.component.scss'],
   host: {'class': 'todo-list'}
 })
-export class TodoComponent implements OnChanges {
+export class TodoComponent implements OnChanges, OnDestroy {
 
   @Input()
   ref?: Ref;
@@ -47,13 +47,12 @@ export class TodoComponent implements OnChanges {
   pressToUnlock = false;
   serverErrors: string[] = [];
 
-  private watch?: Subscription;
-  private cursor?: string;
+  private actionHandler?: RefActionHandler;
 
   constructor(
     public config: ConfigService,
     private store: Store,
-    private refs: RefService,
+    private actions: ActionService,
     private zone: NgZone,
   ) {
     if (config.mobile) {
@@ -63,16 +62,17 @@ export class TodoComponent implements OnChanges {
 
   init() {
     this.lines = (this.ref?.comment || this.text || '').split('\n')?.filter(l => !!l) || [];
-    if (this.local) {
-      this.cursor ||= this.ref?.modifiedString;
-    }
-    if (!this.watch && this.updates$) {
-      this.watch = this.updates$.subscribe(u => {
-        this.ref!.comment = u.comment;
+    
+    // Create action handler for origin management and updates
+    this.actionHandler = this.actions.createRefHandler(this.ref, this.updates$);
+    this.actionHandler.subscribe();
+    
+    // Set up update handling
+    if (this.updates$) {
+      this.updates$.subscribe(u => {
         if (u.origin === this.store.account.origin) {
-          this.ref!.modified = u.modified;
-          this.ref!.modifiedString = this.cursor = u.modifiedString;
-          this.init();
+          // Own update - refresh lines from comment
+          this.lines = (u.comment || '').split('\n')?.filter(l => !!l) || [];
         }
       });
     }
@@ -80,8 +80,13 @@ export class TodoComponent implements OnChanges {
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes.ref || changes.text) {
+      this.actionHandler?.unsubscribe();
       this.init();
     }
+  }
+
+  ngOnDestroy() {
+    this.actionHandler?.unsubscribe();
   }
 
   @HostListener('touchstart', ['$event'])
@@ -95,7 +100,7 @@ export class TodoComponent implements OnChanges {
   }
 
   get local() {
-    return this.ref?.origin === this.store.account.origin;
+    return this.actionHandler?.isLocal() ?? (this.ref?.origin === this.store.account.origin);
   }
 
   drop(event: CdkDragDrop<string, string, string>) {
@@ -119,22 +124,17 @@ export class TodoComponent implements OnChanges {
 
   save(comment: string) {
     this.comment.emit(comment);
-    if (!this.ref) return;
-    this.refs.merge(this.ref.url, this.store.account.origin, this.ref.modifiedString!,
-      { comment }
-    ).pipe(
+    if (!this.ref || !this.actionHandler) return;
+    
+    this.actionHandler.updateComment(comment).pipe(
       catchError(err => {
         this.serverErrors = printError(err);
         return throwError(() => err);
       })
     ).subscribe(cursor => {
-      if (!this.cursor) {
-        this.ref!.origin = this.store.account.origin;
+      if (!this.local) {
         this.copied.emit(this.store.account.origin);
       }
-      this.ref!.comment = comment;
-      this.ref!.modified = DateTime.fromISO(cursor);
-      this.ref!.modifiedString = this.cursor = cursor;
       this.store.eventBus.refresh(this.ref);
     });
   }
