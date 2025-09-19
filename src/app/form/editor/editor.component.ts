@@ -653,6 +653,11 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
         })),
         map(cursor => ref),
         tap(() => upload.progress = 100),
+        catchError(err => {
+          upload.error = err.message || 'Upload failed';
+          upload.progress = 0;
+          return readFileAsDataURL(file).pipe(map(url => ({ ...ref, url }))); // base64
+        }),
       );
     } else {
       const tags: string[] = ['plugin/file'];
