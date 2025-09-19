@@ -15,9 +15,9 @@ import {
 } from '@angular/core';
 import { defer, delay, filter, range, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
-import { Observable } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
 import { Ref, RefUpdates } from '../../model/ref';
-import { ActionService, RefActionHandler } from '../../service/action.service';
+import { ActionService } from '../../service/action.service';
 import { Store } from '../../store/store';
 
 export type Piece = 'r' | 'b';
@@ -82,8 +82,8 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   @HostBinding('class.resizing')
   resizing = 0;
 
-  private actionHandler?: RefActionHandler;
   private resizeObserver = window.ResizeObserver && new ResizeObserver(() => this.onResize()) || undefined;
+  private watch?: Subscription;
   /**
    * Flag to prevent animations for own moves.
    */
@@ -126,95 +126,76 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   init() {
     this.el.nativeElement.style.setProperty('--red-name', '"🔴️ ' + (this.bgConf?.redName || $localize`Red`) + '"');
     this.el.nativeElement.style.setProperty('--black-name', '"⚫️ ' + (this.bgConf?.blackName || $localize`Black`) + '"');
-    
-    // Create action handler for origin management and updates
-    this.actionHandler = this.actions.createRefHandler(this.ref, this.updates$);
-    this.actionHandler.subscribe();
-    this.writeAccess = this.actionHandler.writeAccess;
-    
-    // Set up update handling with game-specific logic
-    if (this.updates$) {
-      this.updates$.subscribe(u => {
-        if (u.origin === this.store.account.origin) {
-          // Own update - no animation needed
-          return;
+    if (!this.watch && this.updates$) {
+      this.watch = this.updates$.subscribe(u => {
+        // Update ref with latest data
+        this.ref!.modifiedString = u.modifiedString;
+        const prev = [...this.board];
+        const current = (u.comment || '')
+          .trim()
+          .split('\n')
+          .map(m => m.trim())
+          .filter(m => !!m);
+        const minLen = Math.min(prev.length, current.length);
+        for (let i = 0; i < minLen; i++) {
+          if (prev[i] !== current[i]) {
+            prev.splice(0, i);
+            current.splice(0, i);
+            break;
+          }
+          if (i === minLen - 1) {
+            prev.splice(0, minLen);
+            current.splice(0, minLen);
+          }
         }
-        
-        // Handle opponent moves with conflict detection
-        this.handleOpponentUpdate(u);
+        const multiple = current[0]?.replace(/\(\d\)/, '');
+        if (prev.length === 1 && current.length && prev[0].replace(/\(\d\)/, '') === multiple) {
+          prev.length = 0;
+          current[0] = multiple;
+        }
+        if (prev.length) {
+          alert($localize`Game history was rewritten!`);
+          this.ref = u;
+          this.store.eventBus.refresh(u);
+        }
+        if (prev.length || !current.length) return;
+        this.ref!.comment = u.comment;
+        this.store.eventBus.refresh(this.ref);
+        this.load(current);
+        const roll = current.find(m => m.includes('-'));
+        if (roll) {
+          const lastRoll = this.incomingRolling = roll.split(' ')[0] as Piece;
+          requestAnimationFrame(() => {
+            if (lastRoll != this.incomingRolling) return;
+            this.rolling = this.incomingRolling;
+            delay(() => this.rolling = undefined, 3400);
+          });
+        }
+        if (current.find(m => m.includes('/'))) {
+          const lastMove = this.incoming = current.filter(m => m.includes('/')).map(m => parseInt(m.split(/\D+/g).filter(m => !!m).pop()!) - 1);
+          this.incomingRedBar = current.filter(m => m.includes('*') && m.startsWith('b')).length;
+          this.incomingBlackBar = current.filter(m => m.includes('*') && m.startsWith('r')).length;
+          requestAnimationFrame(() => {
+            if (lastMove != this.incoming) return;
+            this.setBounce(this.incoming);
+            this.redBarBounce ||= this.incomingRedBar;
+            this.blackBarBounce ||= this.incomingBlackBar;
+            clearTimeout(this.bounce);
+            this.bounce = delay(() => {
+              this.clearBounce();
+              delete this.bounce;
+              this.incomingRedBar = this.incomingBlackBar = 0;
+            }, 3400);
+          });
+        }
       });
     }
-    
+    if (this.local) {
+      this.writeAccess = true; // ActionService will handle the complexity
+    } else {
+      this.writeAccess = true;
+    }
     this.reset(this.ref?.comment || this.text);
-  }
-  
-  private handleOpponentUpdate(u: RefUpdates) {
-    const prev = [...this.board];
-    const current = (u.comment || '')
-      .trim()
-      .split('\n')
-      .map(m => m.trim())
-      .filter(m => !!m);
-    const minLen = Math.min(prev.length, current.length);
-    
-    for (let i = 0; i < minLen; i++) {
-      if (prev[i] !== current[i]) {
-        prev.splice(0, i);
-        current.splice(0, i);
-        break;
-      }
-      if (i === minLen - 1) {
-        prev.splice(0, minLen);
-        current.splice(0, minLen);
-      }
-    }
-    
-    const multiple = current[0]?.replace(/\(\d\)/, '');
-    if (prev.length === 1 && current.length && prev[0].replace(/\(\d\)/, '') === multiple) {
-      prev.length = 0;
-      current[0] = multiple;
-    }
-    
-    if (prev.length) {
-      alert($localize`Game history was rewritten!`);
-      this.ref = u;
-      this.store.eventBus.refresh(u);
-    }
-    
-    if (prev.length || !current.length) return;
-    
-    this.ref!.comment = u.comment;
-    this.store.eventBus.refresh(this.ref);
-    this.load(current);
-    
-    // Handle animations
-    const roll = current.find(m => m.includes('-'));
-    if (roll) {
-      const lastRoll = this.incomingRolling = roll.split(' ')[0] as Piece;
-      requestAnimationFrame(() => {
-        if (lastRoll != this.incomingRolling) return;
-        this.rolling = this.incomingRolling;
-        delay(() => this.rolling = undefined, 3400);
-      });
-    }
-    
-    if (current.find(m => m.includes('/'))) {
-      const lastMove = this.incoming = current.filter(m => m.includes('/')).map(m => parseInt(m.split(/\D+/g).filter(m => !!m).pop()!) - 1);
-      this.incomingRedBar = current.filter(m => m.includes('*') && m.startsWith('b')).length;
-      this.incomingBlackBar = current.filter(m => m.includes('*') && m.startsWith('r')).length;
-      requestAnimationFrame(() => {
-        if (lastMove != this.incoming) return;
-        this.setBounce(this.incoming);
-        this.redBarBounce ||= this.incomingRedBar;
-        this.blackBarBounce ||= this.incomingBlackBar;
-        clearTimeout(this.bounce);
-        this.bounce = delay(() => {
-          this.clearBounce();
-          delete this.bounce;
-          this.incomingRedBar = this.incomingBlackBar = 0;
-        }, 3400);
-      });
-    }
   }
 
   ngAfterViewInit() {
@@ -225,7 +206,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
     if (changes.ref || changes.text) {
       const newRef = changes.ref?.firstChange || changes.ref?.previousValue?.url != changes.ref?.currentValue?.url;
       if (!this.ref || newRef) {
-        this.actionHandler?.unsubscribe();
+        this.watch?.unsubscribe();
         if (this.ref || this.text != null) this.init();
       }
     }
@@ -234,7 +215,6 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   ngOnDestroy() {
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
-    this.actionHandler?.unsubscribe();
     this.resizeObserver?.disconnect();
   }
 
@@ -243,7 +223,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   }
 
   get local() {
-    return this.actionHandler?.isLocal() ?? false;
+    return !this.ref?.created || this.ref.upload || this.ref?.origin === this.store.account.origin;
   }
 
   get redBar() {
@@ -545,16 +525,22 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
 
   save() {
     const comment = this.patchingComment = this.board.join('  \n');
-    this.comment.emit(comment)
-    if (!this.ref || !this.actionHandler) return;
+    this.comment.emit(comment);
+    if (!this.ref) return;
     
-    this.actionHandler.updateComment(comment).subscribe(cursor => {
-      if (this.patchingComment !== comment) return;
-      this.patchingComment = '';
-      if (!this.local) {
-        this.copied.emit(this.store.account.origin)
+    this.actions.$comment(comment, this.ref).subscribe({
+      next: (cursor) => {
+        this.writeAccess = true;
+        if (this.patchingComment !== comment) return;
+        this.patchingComment = '';
+        if (!this.local) {
+          this.copied.emit(this.store.account.origin);
+        }
+        this.store.eventBus.refresh(this.ref);
+      },
+      error: (err) => {
+        console.error('Error saving backgammon game:', err);
       }
-      this.store.eventBus.refresh(this.ref);
     });
   }
 
