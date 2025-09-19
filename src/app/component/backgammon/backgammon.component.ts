@@ -51,8 +51,6 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   ref?: Ref;
   @Input()
   text? = '';
-  @Input()
-  updates$?: Observable<RefUpdates>;
   @Output()
   comment = new EventEmitter<string>();
   @Output()
@@ -126,10 +124,9 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   init() {
     this.el.nativeElement.style.setProperty('--red-name', '"🔴️ ' + (this.bgConf?.redName || $localize`Red`) + '"');
     this.el.nativeElement.style.setProperty('--black-name', '"⚫️ ' + (this.bgConf?.blackName || $localize`Black`) + '"');
-    if (!this.watch && this.updates$) {
-      this.watch = this.updates$.subscribe(u => {
-        // Update ref with latest data
-        this.ref!.modifiedString = u.modifiedString;
+    if (!this.watch && this.ref) {
+      this.watch = this.actions.watch$(this.ref).subscribe(u => {
+        // Update ref with latest data (handled by action service)
         const prev = [...this.board];
         const current = (u.comment || '')
           .trim()
@@ -159,7 +156,6 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
           this.store.eventBus.refresh(u);
         }
         if (prev.length || !current.length) return;
-        this.ref!.comment = u.comment;
         this.store.eventBus.refresh(this.ref);
         this.load(current);
         const roll = current.find(m => m.includes('-'));

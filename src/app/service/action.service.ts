@@ -13,6 +13,8 @@ import { ExtService } from './api/ext.service';
 import { RefService } from './api/ref.service';
 import { TaggingService } from './api/tagging.service';
 import { AuthzService } from './authz.service';
+import { StompService } from './api/stomp.service';
+import { ConfigService } from './config.service';
 
 @Injectable({
   providedIn: 'root'
@@ -24,6 +26,8 @@ export class ActionService {
     private exts: ExtService,
     private tags: TaggingService,
     private auth: AuthzService,
+    private stomp: StompService,
+    private config: ConfigService,
     private store: Store,
   ) { }
 
@@ -99,14 +103,14 @@ export class ActionService {
 
   /**
    * Watch for updates to a ref, providing version information for conflict resolution.
-   * Returns the original updates stream but with ref state updated.
+   * Calls stomp service directly to get ref updates.
    */
-  watch$(ref: Ref, updates$?: Observable<RefUpdates>) {
-    if (!updates$) {
+  watch$(ref: Ref) {
+    if (!ref.url || !this.config.websockets) {
       return of(ref);
     }
     
-    return updates$.pipe(
+    return this.stomp.watchRef(ref.url).pipe(
       tap(update => runInAction(() => {
         // Update the ref with latest data
         Object.assign(ref, update);

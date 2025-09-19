@@ -43,8 +43,6 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
   text? = '';
   @Input()
   white = true; // TODO: Save in local storage
-  @Input()
-  updates$?: Observable<RefUpdates>;
   @Output()
   comment = new EventEmitter<string>();
   @Output()
@@ -106,8 +104,8 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
     this.lastEditedComment = this.ref?.comment || '';
     this.writeAccess = true; // ActionService will handle the complexity
     
-    if (this.updates$ && this.ref) {
-      this.watch = this.actions.watch$(this.ref, this.updates$).subscribe(update => {
+    if (this.ref) {
+      this.watch = this.actions.watch$(this.ref).subscribe(update => {
         const currentComment = this.ref!.comment || '';
         
         // Simple version comparison - no need to know about origins

@@ -34,8 +34,6 @@ export class TodoComponent implements OnChanges {
   origin = '';
   @Input()
   tags?: string[];
-  @Input()
-  updates$?: Observable<RefUpdates>;
   @Output()
   comment = new EventEmitter<string>();
   @Output()
@@ -61,12 +59,10 @@ export class TodoComponent implements OnChanges {
 
   init() {
     this.lines = (this.ref?.comment || this.text || '').split('\n')?.filter(l => !!l) || [];
-    if (!this.watch && this.updates$) {
-      this.watch = this.updates$.subscribe(u => {
-        this.ref!.comment = u.comment;
+    if (!this.watch && this.ref) {
+      this.watch = this.actions.watch$(this.ref).subscribe(u => {
+        // ref is updated by action service
         if (u.origin === this.store.account.origin) {
-          this.ref!.modified = u.modified;
-          this.ref!.modifiedString = u.modifiedString;
           this.init();
         }
       });
