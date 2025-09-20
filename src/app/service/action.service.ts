@@ -2,8 +2,8 @@ import { Injectable } from '@angular/core';
 import { debounce, isArray, without } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { runInAction } from 'mobx';
-import { catchError, concat, last, merge, Observable, of, Subscription, switchMap, throwError } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { catchError, concat, last, merge, Observable, of, Subscription, switchMap, throwError, BehaviorSubject } from 'rxjs';
+import { tap, map } from 'rxjs/operators';
 import { PluginApi } from '../model/plugin';
 import { Ref, RefUpdates } from '../model/ref';
 import { Action, EmitAction, emitModels } from '../model/tag';
@@ -16,6 +16,11 @@ import { AuthzService } from './authz.service';
 import { StompService } from './api/stomp.service';
 import { ConfigService } from './config.service';
 import { OriginMapService } from './origin-map.service';
+
+export interface Watch {
+  ref$: Observable<Ref>;
+  comment$: (comment: string) => Observable<string>;
+}
 
 @Injectable({
   providedIn: 'root'
@@ -104,13 +109,15 @@ export class ActionService {
   }
 
   /**
-   * Watch for updates to a ref, providing version information for conflict resolution.
-   * Uses origin-map service to watch for url on all origins.
-   * Returns observable ref updates without patching input.
+   * Watch for ref updates across all origins and provide a comment function
+   * Returns Observable<Watch> with ref$ and comment$ function
    */
-  watch$(ref: Ref) {
+  watch$(ref: Ref): Observable<Watch> {
     if (!ref.url || !this.config.websockets) {
-      return of({ ...ref } as RefUpdates);
+      return of({
+        ref$: of(ref),
+        comment$: (comment: string) => this.comment$(comment, ref.url)
+      });
     }
     
     // Get all origins from the origin map to watch across all of them
@@ -121,8 +128,58 @@ export class ActionService {
       this.stomp.watchRefOnOrigin(ref.url, origin)
     );
     
-    // Merge all streams to watch for updates from any origin
-    return merge(...watchStreams);
+    // Create a BehaviorSubject to track the current ref state
+    const refSubject = new BehaviorSubject<Ref>(ref);
+    
+    // Merge all streams and apply updates to the ref
+    const ref$ = merge(...watchStreams).pipe(
+      map(update => {
+        // Apply the update to create a new ref object
+        const currentRef = refSubject.value;
+        const updatedRef = { ...currentRef, ...update };
+        refSubject.next(updatedRef);
+        return updatedRef;
+      })
+    );
+    
+    // Create the comment$ function that uses the current ref state
+    const comment$ = (comment: string) => {
+      const currentRef = refSubject.value;
+      return this.refs.patch(currentRef.url, this.store.account.origin, currentRef.modifiedString!, [{
+        op: 'add',
+        path: '/comment',
+        value: comment,
+      }]).pipe(
+        catchError(err => {
+          if (err.status === 409) {
+            // Get fresh ref and retry
+            return this.refs.get(currentRef.url, this.store.account.origin).pipe(
+              switchMap(freshRef => {
+                refSubject.next(freshRef); // Update our tracked ref
+                return this.refs.patch(freshRef.url, freshRef.origin!, freshRef.modifiedString!, [{
+                  op: 'add',
+                  path: '/comment',
+                  value: comment,
+                }]);
+              })
+            );
+          }
+          return throwError(() => err);
+        }),
+        tap(cursor => {
+          // Update the ref with the new comment and cursor
+          const updatedRef = {
+            ...refSubject.value,
+            comment,
+            modifiedString: cursor,
+            modified: DateTime.fromISO(cursor)
+          };
+          refSubject.next(updatedRef);
+        })
+      );
+    };
+    
+    return of({ ref$, comment$ });
   }
 
   comment(comment: string, ref: Ref) {

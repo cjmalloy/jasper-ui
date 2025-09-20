@@ -17,7 +17,7 @@ import { defer, delay, filter, range, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import { Observable, Subscription } from 'rxjs';
 import { Ref, RefUpdates } from '../../model/ref';
-import { ActionService } from '../../service/action.service';
+import { ActionService, Watch } from '../../service/action.service';
 import { Store } from '../../store/store';
 
 export type Piece = 'r' | 'b';
@@ -87,6 +87,10 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
    */
   private patchingComment = '';
   /**
+   * Comment function from Watch API for submitting comments
+   */
+  private commentFunction?: (comment: string) => Observable<string>;
+  /**
    * Queued animation.
    */
   private incoming: number[] = [];
@@ -125,33 +129,34 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
     this.el.nativeElement.style.setProperty('--red-name', '"🔴️ ' + (this.bgConf?.redName || $localize`Red`) + '"');
     this.el.nativeElement.style.setProperty('--black-name', '"⚫️ ' + (this.bgConf?.blackName || $localize`Black`) + '"');
     if (!this.watch && this.ref) {
-      this.watch = this.actions.watch$(this.ref).subscribe(update => {
-        // Merge the update into our ref
-        Object.assign(this.ref!, update);
-        
-        const prev = [...this.board];
-        const current = (update.comment || '')
-          .trim()
-          .split('\n')
-          .map(m => m.trim())
-          .filter(m => !!m);
-        const minLen = Math.min(prev.length, current.length);
-        for (let i = 0; i < minLen; i++) {
-          if (prev[i] !== current[i]) {
-            prev.splice(0, i);
-            current.splice(0, i);
-            break;
+      this.watch = this.actions.watch$(this.ref).subscribe(watch => {
+        // Subscribe to ref$ to get updated refs
+        watch.ref$.subscribe(updatedRef => {
+          this.ref = updatedRef;
+          
+          const prev = [...this.board];
+          const current = (this.ref.comment || '')
+            .trim()
+            .split('\n')
+            .map(m => m.trim())
+            .filter(m => !!m);
+          const minLen = Math.min(prev.length, current.length);
+          for (let i = 0; i < minLen; i++) {
+            if (prev[i] !== current[i]) {
+              prev.splice(0, i);
+              current.splice(0, i);
+              break;
+            }
+            if (i === minLen - 1) {
+              prev.splice(0, minLen);
+              current.splice(0, minLen);
+            }
           }
-          if (i === minLen - 1) {
-            prev.splice(0, minLen);
-            current.splice(0, minLen);
+          const multiple = current[0]?.replace(/\(\d\)/, '');
+          if (prev.length === 1 && current.length && prev[0].replace(/\(\d\)/, '') === multiple) {
+            prev.length = 0;
+            current[0] = multiple;
           }
-        }
-        const multiple = current[0]?.replace(/\(\d\)/, '');
-        if (prev.length === 1 && current.length && prev[0].replace(/\(\d\)/, '') === multiple) {
-          prev.length = 0;
-          current[0] = multiple;
-        }
         if (prev.length) {
           alert($localize`Game history was rewritten!`);
           this.store.eventBus.refresh(this.ref);
@@ -185,6 +190,10 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
             }, 3400);
           });
         }
+      });
+        
+        // Store the comment function for later use
+        this.commentFunction = watch.comment$;
       });
     }
     if (this.local) {
@@ -525,7 +534,13 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
     this.comment.emit(comment);
     if (!this.ref) return;
     
-    this.actions.comment$(comment, this.ref.url).subscribe({
+    // Use the comment function from Watch API
+    if (!this.commentFunction) {
+      console.error('Error: No comment function available. Please reload.');
+      return;
+    }
+    
+    this.commentFunction(comment).subscribe({
       next: (cursor) => {
         this.writeAccess = true;
         if (this.patchingComment !== comment) return;

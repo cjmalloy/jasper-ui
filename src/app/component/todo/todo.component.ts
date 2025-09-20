@@ -12,7 +12,7 @@ import {
 } from '@angular/core';
 import { catchError, Observable, Subscription, throwError } from 'rxjs';
 import { Ref, RefUpdates } from '../../model/ref';
-import { ActionService } from '../../service/action.service';
+import { ActionService, Watch } from '../../service/action.service';
 import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
 import { printError } from '../../util/http';
@@ -45,6 +45,10 @@ export class TodoComponent implements OnChanges {
   serverErrors: string[] = [];
 
   private watch?: Subscription;
+  /**
+   * Comment function from Watch API for submitting comments
+   */
+  private commentFunction?: (comment: string) => Observable<string>;
 
   constructor(
     public config: ConfigService,
@@ -60,13 +64,18 @@ export class TodoComponent implements OnChanges {
   init() {
     this.lines = (this.ref?.comment || this.text || '').split('\n')?.filter(l => !!l) || [];
     if (!this.watch && this.ref) {
-      this.watch = this.actions.watch$(this.ref).subscribe(update => {
-        // Merge the update into our ref
-        Object.assign(this.ref!, update);
+      this.watch = this.actions.watch$(this.ref).subscribe(watch => {
+        // Subscribe to ref$ to get updated refs
+        watch.ref$.subscribe(updatedRef => {
+          this.ref = updatedRef;
+          
+          if (updatedRef.origin === this.store.account.origin) {
+            this.init();
+          }
+        });
         
-        if (update.origin === this.store.account.origin) {
-          this.init();
-        }
+        // Store the comment function for later use
+        this.commentFunction = watch.comment$;
       });
     }
   }
@@ -114,7 +123,13 @@ export class TodoComponent implements OnChanges {
     this.comment.emit(comment);
     if (!this.ref) return;
     
-    this.actions.comment$(comment, this.ref.url).pipe(
+    // Use the comment function from Watch API
+    if (!this.commentFunction) {
+      this.serverErrors = ['Error: No comment function available. Please reload.'];
+      return;
+    }
+    
+    this.commentFunction(comment).pipe(
       catchError(err => {
         this.serverErrors = printError(err);
         return throwError(() => err);

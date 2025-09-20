@@ -17,7 +17,7 @@ import { defer, delay, flatten, without } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import { Observable, Subscription } from 'rxjs';
 import { Ref, RefUpdates } from '../../model/ref';
-import { ActionService } from '../../service/action.service';
+import { ActionService, Watch } from '../../service/action.service';
 import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
 
@@ -71,6 +71,10 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
    */
   private lastEditedComment = '';
   /**
+   * Comment function from Watch API for submitting comments
+   */
+  private commentFunction?: (comment: string) => Observable<string>;
+  /**
    * Queued animation.
    */
   private incoming?: Square;
@@ -105,26 +109,31 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
     this.writeAccess = true; // ActionService will handle the complexity
     
     if (this.ref) {
-      this.watch = this.actions.watch$(this.ref).subscribe(update => {
-        // Merge the update into our ref
-        Object.assign(this.ref!, update);
+      this.watch = this.actions.watch$(this.ref).subscribe(watch => {
+        // Subscribe to ref$ to get updated refs
+        watch.ref$.subscribe(updatedRef => {
+          this.ref = updatedRef;
+          
+          const currentComment = this.ref.comment || '';
+          
+          // Simple version comparison - no need to know about origins
+          const hasConflict = this.detectGameConflict(this.lastSeenComment, this.lastEditedComment, currentComment);
+          
+          if (hasConflict) {
+            alert($localize`Game history was rewritten!`);
+          } else {
+            this.animateNewMoves(this.lastSeenComment, currentComment);
+          }
+          
+          this.lastSeenComment = currentComment;
+          // Track our own edits vs remote updates
+          if (updatedRef.origin === this.store.account.origin) {
+            this.lastEditedComment = currentComment;
+          }
+        });
         
-        const currentComment = this.ref!.comment || '';
-        
-        // Simple version comparison - no need to know about origins
-        const hasConflict = this.detectGameConflict(this.lastSeenComment, this.lastEditedComment, currentComment);
-        
-        if (hasConflict) {
-          alert($localize`Game history was rewritten!`);
-        } else {
-          this.animateNewMoves(this.lastSeenComment, currentComment);
-        }
-        
-        this.lastSeenComment = currentComment;
-        // Track our own edits vs remote updates
-        if (update.origin === this.store.account.origin) {
-          this.lastEditedComment = currentComment;
-        }
+        // Store the comment function for later use
+        this.commentFunction = watch.comment$;
       });
     }
     
@@ -346,8 +355,13 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
     
     const title = move && this.ref.title ? (this.ref.title || '').replace(/\s*\|.*/, '')  + ' | ' + move.san : '';
     
-    // Use the updated comment$ method
-    this.actions.comment$(comment, this.ref.url).subscribe({
+    // Use the comment function from Watch API
+    if (!this.commentFunction) {
+      window.alert('Error: No comment function available. Please reload.');
+      return;
+    }
+    
+    this.commentFunction(comment).subscribe({
       next: (cursor) => {
         if (title && this.ref!.title !== title) {
           this.ref!.title = title;
