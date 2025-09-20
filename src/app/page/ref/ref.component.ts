@@ -166,7 +166,7 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
     if (this.config.websockets && this.watchUrl !== url) {
       this.watchUrl = url;
       this.watchSelf?.unsubscribe();
-      this.watchSelf = this.stomp.watchRef(url).pipe(
+      this.watchSelf = this.stomp.ref$(url).pipe(
         takeUntil(this.destroy$),
       ).subscribe(ud => {
         MemoCache.clear(this);
@@ -198,7 +198,7 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
         this.store.eventBus.reset();
       });
       this.watchResponses?.unsubscribe();
-      this.watchResponses = this.stomp.watchResponse(url).pipe(
+      this.watchResponses = this.stomp.response$(url).pipe(
         filter(url => url != this.store.view.url),
         filter(url => !url.startsWith('tag:')),
         filter(url => !this.seen.has(url)),

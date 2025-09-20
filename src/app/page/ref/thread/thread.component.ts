@@ -84,7 +84,7 @@ export class RefThreadComponent implements HasChanges {
         if (this.watchUrl !== topUrl) {
           this.watchUrl = topUrl;
           this.watch?.unsubscribe();
-          this.watch = this.stomp.watchResponse(topUrl).pipe(
+          this.watch = this.stomp.response$(topUrl).pipe(
             switchMap(url => this.refs.getCurrent(url)), // TODO: fix race conditions
             tap(ref => runInAction(() => updateMetadata(this.store.view.ref!, ref))),
             filter(ref => hasTag('plugin/thread', ref)),

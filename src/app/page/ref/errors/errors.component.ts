@@ -74,7 +74,7 @@ export class RefErrorsComponent implements HasChanges {
     this.disposers.push(autorun(() => {
       if (this.store.view.url && this.config.websockets) {
         this.watch?.unsubscribe();
-        this.watch = this.stomp.watchResponse(this.store.view.url).pipe(
+        this.watch = this.stomp.response$(this.store.view.url).pipe(
           switchMap(url => this.refs.getCurrent(url)),
           tap(ref => runInAction(() => updateMetadata(this.store.view.ref!, ref))),
           filter(ref => hasTag('+plugin/log', ref)),

@@ -183,7 +183,7 @@ export class ActionService {
     
     // Create observables for each origin and merge them
     const streams = origins.map(origin => 
-      this.stomp.watchRefOnOrigin(ref.url, origin)
+      this.stomp.refOnOrigin$(ref.url, origin)
     );
     
     // Merge all origin streams to get ref updates
