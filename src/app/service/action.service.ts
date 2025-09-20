@@ -74,34 +74,44 @@ export class ActionService {
     return { ref$, comment$ };
   }
 
-  append$(ref: Ref, move: string): Observable<string> {
-    // Append move to existing comment with space separator
-    const currentComment = ref.comment || '';
-    const newComment = currentComment ? `${currentComment} ${move}` : move;
-    
-    return this.refs.patch(ref.url, this.store.account.origin, ref.modifiedString!, [{
-      op: 'add',
-      path: '/comment',
-      value: newComment,
-    }]).pipe(
-      catchError(err => {
-        if (err.status === 409) {
-          // Get fresh ref and retry with updated comment
-          return this.refs.get(ref.url, this.store.account.origin).pipe(
-            switchMap(freshRef => {
-              const freshComment = freshRef.comment || '';
-              const freshNewComment = freshComment ? `${freshComment} ${move}` : move;
-              return this.refs.patch(freshRef.url, this.store.account.origin, freshRef.modifiedString!, [{
-                op: 'add',
-                path: '/comment',
-                value: freshNewComment,
-              }]);
-            })
-          );
-        }
-        return throwError(() => err);
-      })
-    );
+  append$(ref: Ref) {
+    // Get observable for ref updates across all origins
+    const origins = this.store.origins.list.length ? this.store.origins.list : [this.store.account.origin];
+    const ref$ = merge(...origins.map(origin => 
+      this.stomp.watchRefOnOrigin(ref.url, origin)
+    ));
+
+    // Function to append a value to the ref comment with markdown line breaks
+    const append$ = (value: string): void => {
+      const currentComment = ref.comment || '';
+      const newComment = currentComment ? `${currentComment}  \n${value}` : value;
+      
+      this.refs.patch(ref.url, this.store.account.origin, ref.modifiedString!, [{
+        op: 'add',
+        path: '/comment',
+        value: newComment,
+      }]).pipe(
+        catchError(err => {
+          if (err.status === 409) {
+            // Get fresh ref and retry with updated comment
+            return this.refs.get(ref.url, this.store.account.origin).pipe(
+              switchMap(freshRef => {
+                const freshComment = freshRef.comment || '';
+                const freshNewComment = freshComment ? `${freshComment}  \n${value}` : value;
+                return this.refs.patch(freshRef.url, this.store.account.origin, freshRef.modifiedString!, [{
+                  op: 'add',
+                  path: '/comment',
+                  value: freshNewComment,
+                }]);
+              })
+            );
+          }
+          return throwError(() => err);
+        })
+      ).subscribe();
+    };
+
+    return { ref$, append$ };
   }
 
   wrap(ref?: Ref): PluginApi {

@@ -154,7 +154,7 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
   private parseMovesFromComment(comment: string): Square[] {
     return comment
       .trim()
-      .split(/\s+/g)
+      .split(/\s*\n\s*|\s+/g)  // Split on line breaks or spaces
       .map(m => m.trim() as Square)
       .filter(m => !!m);
   }
@@ -348,30 +348,22 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
     const moveNotation = move?.san || '';
     if (!moveNotation) return;
     
-    this.lastEditedComment = (this.ref.comment || '') + (this.ref.comment ? ' ' : '') + moveNotation;
+    this.lastEditedComment = (this.ref.comment || '') + (this.ref.comment ? '  \n' : '') + moveNotation;
     
     const title = this.ref.title ? (this.ref.title || '').replace(/\s*\|.*/, '')  + ' | ' + moveNotation : '';
     
     // Use append$ method to add move to comment
-    this.actions.append$(this.ref, moveNotation).subscribe({
-      next: (cursor) => {
-        // Update ref with new cursor
-        this.ref!.modifiedString = cursor;
-        this.ref!.modified = DateTime.fromISO(cursor);
-        
-        if (title && this.ref!.title !== title) {
-          this.ref!.title = title;
-        }
-        if (!this.local) {
-          this.copied.emit(this.store.account.origin);
-        }
-        this.store.eventBus.refresh(this.ref);
-      },
-      error: (err) => {
-        window.alert('Error syncing game. Please reload.');
-        console.error(err);
-      }
-    });
+    const appendHandler = this.actions.append$(this.ref);
+    appendHandler.append$(moveNotation);
+    
+    // Update title if needed
+    if (title && this.ref.title !== title) {
+      this.ref.title = title;
+    }
+    if (!this.local) {
+      this.copied.emit(this.store.account.origin);
+    }
+    this.store.eventBus.refresh(this.ref);
   }
 
   clickSquare(index: number) {
