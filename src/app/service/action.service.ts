@@ -20,145 +20,6 @@ export interface Watch {
   comment$: (comment: string) => Observable<string>;
 }
 
-export interface RefActionHandler {
-  ref?: Ref;
-  updates$?: Observable<RefUpdates>;
-  writeAccess: boolean;
-  cursor?: string;
-  
-  // Subscription management
-  subscribe(): void;
-  unsubscribe(): void;
-  
-  // Ref management
-  isLocal(): boolean;
-  
-  // Update operations
-  updateComment(comment: string): Observable<string>;
-  updateRef(data: Partial<Ref>): Observable<string>;
-}
-
-class RefActionHandlerImpl implements RefActionHandler {
-  ref?: Ref;
-  updates$?: Observable<RefUpdates>;
-  writeAccess = false;
-  cursor?: string;
-  
-  private watch?: Subscription;
-  
-  constructor(
-    private refs: RefService,
-    private auth: AuthzService,
-    private store: Store,
-    ref?: Ref,
-    updates$?: Observable<RefUpdates>
-  ) {
-    this.ref = ref;
-    this.updates$ = updates$;
-    this.initializeAccess();
-  }
-  
-  private initializeAccess(): void {
-    if (this.isLocal()) {
-      this.writeAccess = !this.ref?.created || this.ref?.upload || this.auth.writeAccess(this.ref);
-      this.cursor = this.ref?.modifiedString;
-    } else if (this.ref) {
-      this.writeAccess = true;
-      this.refs.get(this.ref.url, this.store.account.origin).pipe(
-        catchError(err => {
-          if (err.status === 404) {
-            delete this.cursor;
-          }
-          return throwError(() => err);
-        })
-      ).subscribe(ref => {
-        this.cursor = ref.modifiedString;
-        this.writeAccess = this.auth.writeAccess(ref);
-      });
-    }
-  }
-  
-  subscribe(): void {
-    if (!this.watch && this.updates$) {
-      this.watch = this.updates$.subscribe(u => {
-        if (u.origin === this.store.account.origin) {
-          this.cursor = u.modifiedString;
-        } else if (this.ref) {
-          this.ref.modifiedString = u.modifiedString;
-        }
-        // Let components handle specific update logic via callback
-      });
-    }
-  }
-  
-  unsubscribe(): void {
-    this.watch?.unsubscribe();
-    this.watch = undefined;
-  }
-  
-  isLocal(): boolean {
-    return !this.ref?.created || this.ref.upload || this.ref?.origin === this.store.account.origin;
-  }
-  
-  updateComment(comment: string): Observable<string> {
-    if (!this.ref) {
-      return throwError(() => new Error('No ref to update'));
-    }
-    
-    return this.refs.patch(this.ref.url, this.ref.origin!, this.ref.modifiedString!, [{
-      op: 'add',
-      path: '/comment',
-      value: comment,
-    }]).pipe(
-      catchError(err => {
-        if (err.status === 409) {
-          return this.refs.get(this.ref!.url, this.ref!.origin).pipe(
-            switchMap(ref => this.refs.patch(ref.url, ref.origin!, ref.modifiedString!, [{
-              op: 'add',
-              path: '/comment',
-              value: comment,
-            }])),
-          );
-        }
-        return throwError(() => err);
-      }),
-      tap(cursor => runInAction(() => {
-        this.ref!.comment = comment;
-        this.ref!.modifiedString = cursor;
-        this.ref!.modified = DateTime.fromISO(cursor);
-        this.cursor = cursor;
-      })),
-    );
-  }
-  
-  updateRef(data: Partial<Ref>): Observable<string> {
-    if (!this.ref) {
-      return throwError(() => new Error('No ref to update'));
-    }
-    
-    const updateObs = this.cursor 
-      ? this.refs.merge(this.ref.url, this.store.account.origin, this.cursor, data)
-      : this.refs.create({
-          ...this.ref,
-          origin: this.store.account.origin,
-          ...data,
-        });
-        
-    return updateObs.pipe(
-      tap(cursor => runInAction(() => {
-        this.writeAccess = true;
-        Object.assign(this.ref!, data);
-        this.ref!.modified = DateTime.fromISO(cursor);
-        this.ref!.modifiedString = cursor;
-        this.cursor = cursor;
-        if (!this.isLocal()) {
-          this.ref!.origin = this.store.account.origin;
-        }
-      })),
-    );
-  }
-}
-
 @Injectable({
   providedIn: 'root'
 })
@@ -173,17 +34,13 @@ export class ActionService {
     private stomp: StompService,
   ) { }
 
-  createRefHandler(ref?: Ref, updates$?: Observable<RefUpdates>): RefActionHandler {
-    return new RefActionHandlerImpl(this.refs, this.auth, this.store, ref, updates$);
-  }
-
   watch$(ref: Ref): Watch {
     // Get all origins to watch
     const origins = this.store.origins?.list || [this.store.account.origin];
     
     // Create observables for each origin and merge them
     const streams = origins.map(origin => 
-      this.stomp.refOnOrigin$(ref.url, origin)
+      this.stomp.watchRefOnOrigin(ref.url, origin)
     );
     
     // Merge all origin streams to get ref updates

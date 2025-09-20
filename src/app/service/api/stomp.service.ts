@@ -56,38 +56,38 @@ export class StompService extends RxStomp {
            'ws://';
   }
 
-  origin$(origin: string): Observable<string> {
+  watchOrigin(origin: string): Observable<string> {
     return this.watch('/topic/cursor/' + (origin || 'default'), this.headers).pipe(
       map(m => m.body),
     );
   }
 
-  ref$(url: string): Observable<RefUpdates> {
+  watchRef(url: string): Observable<RefUpdates> {
     return this.watch('/topic/ref/' + (this.store.account.origin || 'default') + '/' + encodeURIComponent(url), this.headers).pipe(
       map(m => mapRef(JSON.parse(m.body))),
     );
   }
 
-  refOnOrigin$(url: string, origin: string): Observable<RefUpdates> {
+  watchRefOnOrigin(url: string, origin: string): Observable<RefUpdates> {
     return this.watch('/topic/ref/' + (origin || 'default') + '/' + encodeURIComponent(url), this.headers).pipe(
       map(m => mapRef(JSON.parse(m.body))),
     );
   }
 
-  tag$(tag: string): Observable<string> {
+  watchTag(tag: string): Observable<string> {
     const origin = isSubOrigin(this.store.account.origin, tagOrigin(tag)) ? tagOrigin(tag) : this.store.account.origin;
     return this.watch('/topic/tag/' + (origin || 'default') + '/' + encodeURIComponent(localTag(tag)), this.headers).pipe(
       map(m => m.body as string),
     );
   }
 
-  response$(url: string): Observable<string> {
+  watchResponse(url: string): Observable<string> {
     return this.watch('/topic/response/' + (this.store.account.origin || 'default') + '/' + encodeURIComponent(url), this.headers).pipe(
       map(m => m.body as string),
     );
   }
 
-  ext$(tag: string): Observable<Ext> {
+  watchExt(tag: string): Observable<Ext> {
     return this.watch('/topic/ext/' + (tagOrigin(tag) || this.store.account.origin || 'default') + '/' + encodeURIComponent(localTag(tag)), this.headers).pipe(
       map(m => mapExt(JSON.parse(m.body))),
     );

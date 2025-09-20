@@ -92,7 +92,7 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
     this.loadPrev(true);
     if (this.config.websockets) {
       this.watch?.unsubscribe();
-      this.watch = this.stomp.tag$(this.query).pipe(
+      this.watch = this.stomp.watchTag(this.query).pipe(
         takeUntil(this.destroy$),
       ).subscribe(tag =>  this.refresh(tagOrigin(tag)));
     }

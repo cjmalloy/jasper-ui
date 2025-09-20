@@ -420,7 +420,7 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
   @memo
   get updates$() {
     if (!this.ref || !this.config.websockets) return of();
-    return this.stomp.ref$(this.ref!.url).pipe(takeUntil(this.destroy$));
+    return this.stomp.watchRef(this.ref!.url).pipe(takeUntil(this.destroy$));
   }
 
   @memo
