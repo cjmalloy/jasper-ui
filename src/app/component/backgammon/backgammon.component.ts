@@ -136,15 +136,15 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
       
       // Subscribe to ref$ to get ref updates
       this.watch = watch.ref$.subscribe(update => {
-        // Merge the update into our ref
-        Object.assign(this.ref!, update);
-        
+        // Don't mutate ref, just parse individual moves
+        const currentComment = update.comment || this.ref?.comment || '';
         const prev = [...this.board];
-        const current = (this.ref!.comment || '')
+        const current = currentComment
           .trim()
           .split('\n')
           .map(m => m.trim())
           .filter(m => !!m);
+        
         const minLen = Math.min(prev.length, current.length);
         for (let i = 0; i < minLen; i++) {
           if (prev[i] !== current[i]) {
