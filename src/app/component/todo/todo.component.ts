@@ -10,10 +10,9 @@ import {
   Output,
   SimpleChanges
 } from '@angular/core';
-import { DateTime } from 'luxon';
 import { catchError, Observable, Subscription, throwError } from 'rxjs';
 import { Ref, RefUpdates } from '../../model/ref';
-import { RefService } from '../../service/api/ref.service';
+import { ActionService, Watch } from '../../service/action.service';
 import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
 import { printError } from '../../util/http';
@@ -35,8 +34,6 @@ export class TodoComponent implements OnChanges {
   origin = '';
   @Input()
   tags?: string[];
-  @Input()
-  updates$?: Observable<RefUpdates>;
   @Output()
   comment = new EventEmitter<string>();
   @Output()
@@ -48,12 +45,15 @@ export class TodoComponent implements OnChanges {
   serverErrors: string[] = [];
 
   private watch?: Subscription;
-  private cursor?: string;
+  /**
+   * Comment function from Watch API for submitting comments
+   */
+  private commentFunction?: (comment: string) => Observable<string>;
 
   constructor(
     public config: ConfigService,
     private store: Store,
-    private refs: RefService,
+    private actions: ActionService,
     private zone: NgZone,
   ) {
     if (config.mobile) {
@@ -63,15 +63,18 @@ export class TodoComponent implements OnChanges {
 
   init() {
     this.lines = (this.ref?.comment || this.text || '').split('\n')?.filter(l => !!l) || [];
-    if (this.local) {
-      this.cursor ||= this.ref?.modifiedString;
-    }
-    if (!this.watch && this.updates$) {
-      this.watch = this.updates$.subscribe(u => {
-        this.ref!.comment = u.comment;
-        if (u.origin === this.store.account.origin) {
-          this.ref!.modified = u.modified;
-          this.ref!.modifiedString = this.cursor = u.modifiedString;
+    if (!this.watch && this.ref) {
+      const watch = this.actions.watch$(this.ref);
+      
+      // Store the comment function for saves
+      this.commentFunction = watch.comment$;
+      
+      // Subscribe to ref$ to get ref updates
+      this.watch = watch.ref$.subscribe(update => {
+        // Merge the update into our ref
+        Object.assign(this.ref!, update);
+        
+        if (update.origin === this.store.account.origin) {
           this.init();
         }
       });
@@ -120,22 +123,28 @@ export class TodoComponent implements OnChanges {
   save(comment: string) {
     this.comment.emit(comment);
     if (!this.ref) return;
-    this.refs.merge(this.ref.url, this.store.account.origin, this.ref.modifiedString!,
-      { comment }
-    ).pipe(
+    
+    // Use the comment function from Watch API
+    if (!this.commentFunction) {
+      this.serverErrors = ['Error: No comment function available. Please reload.'];
+      return;
+    }
+    
+    this.commentFunction(comment).pipe(
       catchError(err => {
         this.serverErrors = printError(err);
         return throwError(() => err);
       })
-    ).subscribe(cursor => {
-      if (!this.cursor) {
-        this.ref!.origin = this.store.account.origin;
-        this.copied.emit(this.store.account.origin);
+    ).subscribe({
+      next: (cursor) => {
+        if (!this.local) {
+          this.copied.emit(this.store.account.origin);
+        }
+        this.store.eventBus.refresh(this.ref);
+      },
+      error: (err) => {
+        console.error('Error saving todo:', err);
       }
-      this.ref!.comment = comment;
-      this.ref!.modified = DateTime.fromISO(cursor);
-      this.ref!.modifiedString = this.cursor = cursor;
-      this.store.eventBus.refresh(this.ref);
     });
   }
 

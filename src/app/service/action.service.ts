@@ -2,16 +2,20 @@ import { Injectable } from '@angular/core';
 import { debounce, isArray, without } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { runInAction } from 'mobx';
-import { catchError, concat, last, Observable, of, Subscription, switchMap, throwError } from 'rxjs';
+import { catchError, concat, last, merge, Observable, of, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { PluginApi } from '../model/plugin';
-import { Ref } from '../model/ref';
+import { Ref, RefUpdates } from '../model/ref';
 import { Action, EmitAction, emitModels } from '../model/tag';
 import { Store } from '../store/store';
 import { hasTag } from '../util/tag';
 import { ExtService } from './api/ext.service';
 import { RefService } from './api/ref.service';
+import { StompService } from './api/stomp.service';
 import { TaggingService } from './api/tagging.service';
+import { AuthzService } from './authz.service';
+
+
 
 @Injectable({
   providedIn: 'root'
@@ -22,8 +26,90 @@ export class ActionService {
     private refs: RefService,
     private exts: ExtService,
     private tags: TaggingService,
+    private auth: AuthzService,
     private store: Store,
+    private stomp: StompService,
   ) { }
+
+  watch$(ref: Ref): Watch {
+    // Get all origins to watch
+    const origins = this.store.origins?.list || [this.store.account.origin];
+    
+    // Create observables for each origin and merge them
+    const streams = origins.map(origin => 
+      this.stomp.watchRefOnOrigin(ref.url, origin)
+    );
+    
+    // Merge all origin streams to get ref updates
+    const ref$ = merge(...streams);
+    
+    // Create the comment$ function that handles cursor management and conflicts
+    const comment$ = (comment: string): Observable<string> => {
+      return this.refs.patch(ref.url, this.store.account.origin, ref.modifiedString!, [{
+        op: 'add',
+        path: '/comment',
+        value: comment,
+      }]).pipe(
+        catchError(err => {
+          if (err.status === 409) {
+            // Get fresh ref and retry
+            return this.refs.get(ref.url, this.store.account.origin).pipe(
+              switchMap(freshRef => {
+                return this.refs.patch(freshRef.url, this.store.account.origin, freshRef.modifiedString!, [{
+                  op: 'add',
+                  path: '/comment',
+                  value: comment,
+                }]);
+              })
+            );
+          }
+          return throwError(() => err);
+        })
+      );
+    };
+    
+    return { ref$, comment$ };
+  }
+
+  append$(ref: Ref) {
+    // Get observable for ref updates across all origins
+    const origins = this.store.origins.list.length ? this.store.origins.list : [this.store.account.origin];
+    const ref$ = merge(...origins.map(origin => 
+      this.stomp.watchRefOnOrigin(ref.url, origin)
+    ));
+
+    // Function to append a value to the ref comment with markdown line breaks
+    const append$ = (value: string): void => {
+      const currentComment = ref.comment || '';
+      const newComment = currentComment ? `${currentComment}  \n${value}` : value;
+      
+      this.refs.patch(ref.url, this.store.account.origin, ref.modifiedString!, [{
+        op: 'add',
+        path: '/comment',
+        value: newComment,
+      }]).pipe(
+        catchError(err => {
+          if (err.status === 409) {
+            // Get fresh ref and retry with updated comment
+            return this.refs.get(ref.url, this.store.account.origin).pipe(
+              switchMap(freshRef => {
+                const freshComment = freshRef.comment || '';
+                const freshNewComment = freshComment ? `${freshComment}  \n${value}` : value;
+                return this.refs.patch(freshRef.url, this.store.account.origin, freshRef.modifiedString!, [{
+                  op: 'add',
+                  path: '/comment',
+                  value: freshNewComment,
+                }]);
+              })
+            );
+          }
+          return throwError(() => err);
+        })
+      ).subscribe();
+    };
+
+    return { ref$, append$ };
+  }
 
   wrap(ref?: Ref): PluginApi {
     let o: Subscription | undefined = undefined;

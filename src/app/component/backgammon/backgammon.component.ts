@@ -14,12 +14,10 @@ import {
   SimpleChanges
 } from '@angular/core';
 import { defer, delay, filter, range, uniq } from 'lodash-es';
-import { DateTime } from 'luxon';
 import { autorun, IReactionDisposer } from 'mobx';
-import { catchError, Observable, Subscription, throwError } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
 import { Ref, RefUpdates } from '../../model/ref';
-import { RefService } from '../../service/api/ref.service';
-import { AuthzService } from '../../service/authz.service';
+import { ActionService, Watch } from '../../service/action.service';
 import { Store } from '../../store/store';
 
 export type Piece = 'r' | 'b';
@@ -53,8 +51,6 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   ref?: Ref;
   @Input()
   text? = '';
-  @Input()
-  updates$?: Observable<RefUpdates>;
   @Output()
   comment = new EventEmitter<string>();
   @Output()
@@ -84,13 +80,16 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   @HostBinding('class.resizing')
   resizing = 0;
 
-  private cursor?: string;
   private resizeObserver = window.ResizeObserver && new ResizeObserver(() => this.onResize()) || undefined;
   private watch?: Subscription;
   /**
    * Flag to prevent animations for own moves.
    */
   private patchingComment = '';
+  /**
+   * Comment function from Watch API for submitting comments
+   */
+  private commentFunction?: (comment: string) => Observable<string>;
   /**
    * Queued animation.
    */
@@ -110,8 +109,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
 
   constructor(
     private store: Store,
-    private auth: AuthzService,
-    private refs: RefService,
+    private actions: ActionService,
     private el: ElementRef<HTMLDivElement>,
   ) {
     this.disposers.push(autorun(() => {
@@ -130,16 +128,23 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   init() {
     this.el.nativeElement.style.setProperty('--red-name', '"🔴️ ' + (this.bgConf?.redName || $localize`Red`) + '"');
     this.el.nativeElement.style.setProperty('--black-name', '"⚫️ ' + (this.bgConf?.blackName || $localize`Black`) + '"');
-    if (!this.watch && this.updates$) {
-      this.watch = this.updates$.subscribe(u => {
-        if (u.origin === this.store.account.origin) this.cursor = u.modifiedString;
-        else this.ref!.modifiedString = u.modifiedString;
+    if (!this.watch && this.ref) {
+      const watch = this.actions.watch$(this.ref);
+      
+      // Store the comment function for saves
+      this.commentFunction = watch.comment$;
+      
+      // Subscribe to ref$ to get ref updates
+      this.watch = watch.ref$.subscribe(update => {
+        // Don't mutate ref, just parse individual moves
+        const currentComment = update.comment || this.ref?.comment || '';
         const prev = [...this.board];
-        const current = (u.comment || '')
+        const current = currentComment
           .trim()
           .split('\n')
           .map(m => m.trim())
           .filter(m => !!m);
+        
         const minLen = Math.min(prev.length, current.length);
         for (let i = 0; i < minLen; i++) {
           if (prev[i] !== current[i]) {
@@ -159,11 +164,9 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
         }
         if (prev.length) {
           alert($localize`Game history was rewritten!`);
-          this.ref = u;
-          this.store.eventBus.refresh(u);
+          this.store.eventBus.refresh(this.ref);
         }
         if (prev.length || !current.length) return;
-        this.ref!.comment = u.comment;
         this.store.eventBus.refresh(this.ref);
         this.load(current);
         const roll = current.find(m => m.includes('-'));
@@ -195,21 +198,9 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
       });
     }
     if (this.local) {
-      this.writeAccess = !this.ref?.created || this.ref?.upload || this.auth.writeAccess(this.ref);
-      this.cursor = this.ref?.modifiedString;
+      this.writeAccess = true; // ActionService will handle the complexity
     } else {
       this.writeAccess = true;
-      this.refs.get(this.ref!.url, this.store.account.origin).pipe(
-        catchError(err => {
-          if (err.status === 404) {
-            delete this.cursor;
-          }
-          return throwError(() => err);
-        })
-      ).subscribe(ref => {
-        this.cursor = ref.modifiedString;
-        this.writeAccess = this.auth.writeAccess(ref);
-      });
     }
     this.reset(this.ref?.comment || this.text);
   }
@@ -541,26 +532,28 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
 
   save() {
     const comment = this.patchingComment = this.board.join('  \n');
-    this.comment.emit(comment)
+    this.comment.emit(comment);
     if (!this.ref) return;
-    (this.cursor ? this.refs.merge(this.ref.url, this.store.account.origin, this.cursor,
-      { comment }
-    ) : this.refs.create({
-      ...this.ref,
-      origin: this.store.account.origin,
-      comment,
-    })).subscribe(cursor => {
-      this.writeAccess = true;
-      if (this.patchingComment !== comment) return;
-      this.ref!.comment = comment;
-      this.ref!.modified = DateTime.fromISO(cursor);
-      this.cursor = this.ref!.modifiedString = cursor;
-      this.patchingComment = '';
-      if (!this.local) {
-        this.ref!.origin = this.store.account.origin;
-        this.copied.emit(this.store.account.origin)
+    
+    // Use the comment function from Watch API
+    if (!this.commentFunction) {
+      console.error('Error: No comment function available. Please reload.');
+      return;
+    }
+    
+    this.commentFunction(comment).subscribe({
+      next: (cursor) => {
+        this.writeAccess = true;
+        if (this.patchingComment !== comment) return;
+        this.patchingComment = '';
+        if (!this.local) {
+          this.copied.emit(this.store.account.origin);
+        }
+        this.store.eventBus.refresh(this.ref);
+      },
+      error: (err) => {
+        console.error('Error saving backgammon game:', err);
       }
-      this.store.eventBus.refresh(this.ref);
     });
   }
 

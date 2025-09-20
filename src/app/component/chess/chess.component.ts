@@ -16,10 +16,9 @@ import { Chess, Move, Square } from 'chess.js';
 import { defer, delay, flatten, without } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { autorun, IReactionDisposer } from 'mobx';
-import { catchError, Observable, Subscription, throwError } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
 import { Ref, RefUpdates } from '../../model/ref';
-import { RefService } from '../../service/api/ref.service';
-import { AuthzService } from '../../service/authz.service';
+import { ActionService, Watch } from '../../service/action.service';
 import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
 
@@ -45,8 +44,6 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
   text? = '';
   @Input()
   white = true; // TODO: Save in local storage
-  @Input()
-  updates$?: Observable<RefUpdates>;
   @Output()
   comment = new EventEmitter<string>();
   @Output()
@@ -63,14 +60,17 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
   @HostBinding('class.flip')
   flip = false;
 
-  private cursor?: string;
   private resizeObserver = window.ResizeObserver && new ResizeObserver(() => this.onResize()) || undefined;
   private fen = '';
   private watch?: Subscription;
   /**
-   * Flag to prevent animations for own moves.
+   * Last seen comment for conflict detection
    */
-  private prevComment = '';
+  private lastSeenComment = '';
+  /**
+   * Last edited comment for conflict detection  
+   */
+  private lastEditedComment = '';
   /**
    * Queued animation.
    */
@@ -79,8 +79,7 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
 
   constructor(
     public config: ConfigService,
-    private auth: AuthzService,
-    private refs: RefService,
+    private actions: ActionService,
     private store: Store,
     private el: ElementRef<HTMLDivElement>,
   ) {
@@ -102,65 +101,90 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   init() {
-    this.prevComment = this.ref?.comment || '';
-    if (!this.watch && this.updates$) {
-      this.watch = this.updates$.subscribe(u => {
-        if (u.origin === this.store.account.origin) this.cursor = u.modifiedString;
-        else this.ref!.modifiedString = u.modifiedString;
-        const prev = this.prevComment
-          .trim()
-          .split(/\s+/g)
-          .map(m => m.trim() as Square)
-          .filter(m => !!m);
-        const current = (u.comment || '')
-          .trim()
-          .split(/\s+/g)
-          .map(m => m.trim() as Square)
-          .filter(m => !!m);
-        const minLen = Math.min(prev.length, current.length);
-        for (let i = 0; i < minLen; i++) {
-          if (prev[i] !== current[i] || i === minLen - 1) {
-            prev.splice(0, i + 1);
-            current.splice(0, i + 1);
-            break;
-          }
-        }
-        if (prev.length) {
+    this.lastSeenComment = this.ref?.comment || '';
+    this.lastEditedComment = this.ref?.comment || '';
+    this.writeAccess = true; // ActionService will handle the complexity
+    
+    if (this.ref) {
+      const watch = this.actions.watch$(this.ref);
+      
+      // Subscribe to ref$ to get ref updates
+      this.watch = watch.ref$.subscribe(update => {
+        // Merge the update into our ref
+        Object.assign(this.ref!, update);
+        
+        const currentComment = this.ref!.comment || '';
+        
+        // Simple version comparison - no need to know about origins
+        const hasConflict = this.detectGameConflict(this.lastSeenComment, this.lastEditedComment, currentComment);
+        
+        if (hasConflict) {
           alert($localize`Game history was rewritten!`);
+        } else {
+          this.animateNewMoves(this.lastSeenComment, currentComment);
         }
-        this.prevComment = u.comment || '';
-        if (prev.length || !current.length) return;
-        for (const m of current) this.chess.move(m);
-        this.check();
-        // TODO: queue all moves and animate one by one
-        const move = current.shift()!;
-        let lastMove = this.incoming = this.getMoveCoord(move, this.turn === 'w' ? 'b' : 'w');
-        requestAnimationFrame(() => {
-          if (lastMove != this.incoming) return;
-          if (lastMove.length > 2) lastMove = lastMove.substring(lastMove.length - 2, lastMove.length) as Square;
-          this.bounce.push(lastMove);
-          delay(() => this.bounce = without(this.bounce, lastMove), 3400);
-        });
+        
+        this.lastSeenComment = currentComment;
+        // Track our own edits vs remote updates  
+        if (update.origin === this.store.account.origin) {
+          this.lastEditedComment = currentComment;
+        }
       });
     }
-    if (this.local) {
-      this.writeAccess = !this.ref?.created || this.ref?.upload || this.auth.writeAccess(this.ref);
-      this.cursor = this.ref?.modifiedString;
-    } else {
-      this.writeAccess = true;
-      this.refs.get(this.ref!.url, this.store.account.origin).pipe(
-        catchError(err => {
-          if (err.status === 404) {
-            delete this.cursor;
-          }
-          return throwError(() => err);
-        })
-      ).subscribe(ref => {
-        this.cursor = ref.modifiedString;
-        this.writeAccess = this.auth.writeAccess(ref)
-      });
-    }
+    
     this.reset(this.ref?.comment || this.text);
+  }
+  
+  private detectGameConflict(lastSeen: string, lastEdited: string, current: string): boolean {
+    const lastSeenMoves = this.parseMovesFromComment(lastSeen);
+    const lastEditedMoves = this.parseMovesFromComment(lastEdited);
+    const currentMoves = this.parseMovesFromComment(current);
+    
+    // Check if game history was rewritten
+    const minLen = Math.min(lastSeenMoves.length, currentMoves.length);
+    for (let i = 0; i < minLen; i++) {
+      if (lastSeenMoves[i] !== currentMoves[i]) {
+        return true; // History was rewritten
+      }
+    }
+    
+    return false;
+  }
+  
+  private parseMovesFromComment(comment: string): Square[] {
+    return comment
+      .trim()
+      .split(/\s*\n\s*|\s+/g)  // Split on line breaks or spaces
+      .map(m => m.trim() as Square)
+      .filter(m => !!m);
+  }
+  
+  private animateNewMoves(prevComment: string, currentComment: string) {
+    const prevMoves = this.parseMovesFromComment(prevComment);
+    const currentMoves = this.parseMovesFromComment(currentComment);
+    
+    if (currentMoves.length <= prevMoves.length) return;
+    
+    // Get new moves
+    const newMoves = currentMoves.slice(prevMoves.length);
+    
+    // Apply moves to chess engine
+    for (const move of newMoves) {
+      this.chess.move(move);
+    }
+    this.check();
+    
+    // Animate the last move
+    if (newMoves.length > 0) {
+      const lastMove = newMoves[newMoves.length - 1];
+      let moveCoord = this.incoming = this.getMoveCoord(lastMove, this.turn === 'w' ? 'b' : 'w');
+      requestAnimationFrame(() => {
+        if (moveCoord != this.incoming) return;
+        if (moveCoord.length > 2) moveCoord = moveCoord.substring(moveCoord.length - 2, moveCoord.length) as Square;
+        this.bounce.push(moveCoord);
+        delay(() => this.bounce = without(this.bounce, moveCoord), 3400);
+      });
+    }
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -215,7 +239,8 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   get local() {
-    return !this.ref?.created || this.ref.upload || this.ref?.origin === this.store.account.origin;
+    // Not needed anymore since ActionService handles this
+    return true;
   }
 
   @HostListener('window:resize')
@@ -317,35 +342,28 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   save(move?: Move) {
-    const comment = this.prevComment = (this.fen ? this.fen + '\n\n' : '') + this.chess.history().join('  \n');
-    this.comment.emit(comment)
     if (!this.ref) return;
-    const title = move && this.ref.title ? (this.ref.title || '').replace(/\s*\|.*/, '')  + ' | ' + move.san : '';
-    (this.cursor ? this.refs.merge(this.ref.url, this.store.account.origin, this.cursor,
-      { title, comment }
-    ).pipe(
-      catchError(err => {
-        window.alert('Error syncing game. Please reload.');
-        return throwError(() => err);
-      })
-    ) : this.refs.create({
-      ...this.ref,
-      origin: this.store.account.origin,
-      title,
-      comment,
-    })).subscribe(cursor => {
-      this.writeAccess = true;
-      if (this.prevComment !== comment) return;
-      this.ref!.title = title;
-      this.ref!.comment = comment;
-      this.ref!.modified = DateTime.fromISO(cursor);
-      this.ref!.modifiedString = cursor;
-      if (!this.local) {
-        this.ref!.origin = this.store.account.origin;
-        this.copied.emit(this.store.account.origin)
-      }
-      this.store.eventBus.refresh(this.ref);
-    });
+    
+    // Get the move notation to append
+    const moveNotation = move?.san || '';
+    if (!moveNotation) return;
+    
+    this.lastEditedComment = (this.ref.comment || '') + (this.ref.comment ? '  \n' : '') + moveNotation;
+    
+    const title = this.ref.title ? (this.ref.title || '').replace(/\s*\|.*/, '')  + ' | ' + moveNotation : '';
+    
+    // Use append$ method to add move to comment
+    const appendHandler = this.actions.append$(this.ref);
+    appendHandler.append$(moveNotation);
+    
+    // Update title if needed
+    if (title && this.ref.title !== title) {
+      this.ref.title = title;
+    }
+    if (!this.local) {
+      this.copied.emit(this.store.account.origin);
+    }
+    this.store.eventBus.refresh(this.ref);
   }
 
   clickSquare(index: number) {
