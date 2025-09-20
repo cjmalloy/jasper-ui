@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { debounce, isArray, without } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { runInAction } from 'mobx';
-import { catchError, concat, last, map, Observable, of, Subscription, switchMap, throwError } from 'rxjs';
+import { catchError, concat, last, Observable, of, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { PluginApi } from '../model/plugin';
 import { Ref, RefUpdates } from '../model/ref';
@@ -104,19 +104,14 @@ export class ActionService {
   /**
    * Watch for updates to a ref, providing version information for conflict resolution.
    * Calls stomp service directly to get ref updates.
-   * Returns observable of updated ref objects instead of patching input.
+   * Returns observable ref updates without patching input.
    */
   watch$(ref: Ref) {
     if (!ref.url || !this.config.websockets) {
-      return of(ref);
+      return of({ ...ref } as RefUpdates);
     }
     
-    return this.stomp.watchRef(ref.url).pipe(
-      map(update => ({
-        ...ref,
-        ...update
-      } as Ref))
-    );
+    return this.stomp.watchRef(ref.url);
   }
 
   comment(comment: string, ref: Ref) {

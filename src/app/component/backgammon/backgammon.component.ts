@@ -125,12 +125,12 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
     this.el.nativeElement.style.setProperty('--red-name', '"🔴️ ' + (this.bgConf?.redName || $localize`Red`) + '"');
     this.el.nativeElement.style.setProperty('--black-name', '"⚫️ ' + (this.bgConf?.blackName || $localize`Black`) + '"');
     if (!this.watch && this.ref) {
-      this.watch = this.actions.watch$(this.ref).subscribe(updatedRef => {
-        // Update our ref reference
-        this.ref = updatedRef;
+      this.watch = this.actions.watch$(this.ref).subscribe(update => {
+        // Merge the update into our ref
+        Object.assign(this.ref!, update);
         
         const prev = [...this.board];
-        const current = (updatedRef.comment || '')
+        const current = (update.comment || '')
           .trim()
           .split('\n')
           .map(m => m.trim())
@@ -154,7 +154,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
         }
         if (prev.length) {
           alert($localize`Game history was rewritten!`);
-          this.store.eventBus.refresh(updatedRef);
+          this.store.eventBus.refresh(this.ref);
         }
         if (prev.length || !current.length) return;
         this.store.eventBus.refresh(this.ref);

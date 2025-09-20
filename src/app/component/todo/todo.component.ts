@@ -60,11 +60,11 @@ export class TodoComponent implements OnChanges {
   init() {
     this.lines = (this.ref?.comment || this.text || '').split('\n')?.filter(l => !!l) || [];
     if (!this.watch && this.ref) {
-      this.watch = this.actions.watch$(this.ref).subscribe(updatedRef => {
-        // Update our ref reference
-        this.ref = updatedRef;
+      this.watch = this.actions.watch$(this.ref).subscribe(update => {
+        // Merge the update into our ref
+        Object.assign(this.ref!, update);
         
-        if (updatedRef.origin === this.store.account.origin) {
+        if (update.origin === this.store.account.origin) {
           this.init();
         }
       });
