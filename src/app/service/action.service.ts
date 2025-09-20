@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { debounce, isArray, without } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { runInAction } from 'mobx';
-import { BehaviorSubject, catchError, concat, last, merge, Observable, of, Subscription, switchMap, throwError } from 'rxjs';
+import { catchError, concat, last, merge, Observable, of, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { PluginApi } from '../model/plugin';
 import { Ref, RefUpdates } from '../model/ref';
@@ -16,7 +16,7 @@ import { TaggingService } from './api/tagging.service';
 import { AuthzService } from './authz.service';
 
 export interface Watch {
-  ref$: Observable<Ref>;
+  ref$: Observable<RefUpdates>;
   comment$: (comment: string) => Observable<string>;
 }
 
@@ -177,32 +177,21 @@ export class ActionService {
     return new RefActionHandlerImpl(this.refs, this.auth, this.store, ref, updates$);
   }
 
-  watch$(ref: Ref): Observable<Watch> {
-    // Create BehaviorSubject to track current ref state
-    const refSubject = new BehaviorSubject<Ref>(ref);
-    
+  watch$(ref: Ref): Watch {
     // Get all origins to watch
     const origins = this.store.origins?.list || [this.store.account.origin];
     
-    // Create observables for each origin
+    // Create observables for each origin and merge them
     const streams = origins.map(origin => 
-      this.stomp.watchRefOnOrigin(ref.url, origin).pipe(
-        // Update the ref in the BehaviorSubject when we get updates
-        tap(update => {
-          const currentRef = refSubject.value;
-          const updatedRef = { ...currentRef, ...update };
-          refSubject.next(updatedRef);
-        })
-      )
+      this.stomp.watchRefOnOrigin(ref.url, origin)
     );
     
-    // Merge all origin streams
-    merge(...streams).subscribe();
+    // Merge all origin streams to get ref updates
+    const ref$ = merge(...streams);
     
-    // Create the comment$ function that uses the current ref state
+    // Create the comment$ function that handles cursor management and conflicts
     const comment$ = (comment: string): Observable<string> => {
-      const currentRef = refSubject.value;
-      return this.refs.patch(currentRef.url, this.store.account.origin, currentRef.modifiedString!, [{
+      return this.refs.patch(ref.url, this.store.account.origin, ref.modifiedString!, [{
         op: 'add',
         path: '/comment',
         value: comment,
@@ -210,10 +199,8 @@ export class ActionService {
         catchError(err => {
           if (err.status === 409) {
             // Get fresh ref and retry
-            return this.refs.get(currentRef.url, this.store.account.origin).pipe(
+            return this.refs.get(ref.url, this.store.account.origin).pipe(
               switchMap(freshRef => {
-                // Update our tracked ref with fresh data
-                refSubject.next(freshRef);
                 return this.refs.patch(freshRef.url, this.store.account.origin, freshRef.modifiedString!, [{
                   op: 'add',
                   path: '/comment',
@@ -223,22 +210,41 @@ export class ActionService {
             );
           }
           return throwError(() => err);
-        }),
-        tap(cursor => {
-          // Update the tracked ref with the new comment and cursor
-          const currentRef = refSubject.value;
-          const updatedRef = {
-            ...currentRef,
-            comment,
-            modifiedString: cursor,
-            modified: DateTime.fromISO(cursor)
-          };
-          refSubject.next(updatedRef);
         })
       );
     };
     
-    return of({ ref$: refSubject.asObservable(), comment$ });
+    return { ref$, comment$ };
+  }
+
+  append$(ref: Ref, move: string): Observable<string> {
+    // Append move to existing comment with space separator
+    const currentComment = ref.comment || '';
+    const newComment = currentComment ? `${currentComment} ${move}` : move;
+    
+    return this.refs.patch(ref.url, this.store.account.origin, ref.modifiedString!, [{
+      op: 'add',
+      path: '/comment',
+      value: newComment,
+    }]).pipe(
+      catchError(err => {
+        if (err.status === 409) {
+          // Get fresh ref and retry with updated comment
+          return this.refs.get(ref.url, this.store.account.origin).pipe(
+            switchMap(freshRef => {
+              const freshComment = freshRef.comment || '';
+              const freshNewComment = freshComment ? `${freshComment} ${move}` : move;
+              return this.refs.patch(freshRef.url, this.store.account.origin, freshRef.modifiedString!, [{
+                op: 'add',
+                path: '/comment',
+                value: freshNewComment,
+              }]);
+            })
+          );
+        }
+        return throwError(() => err);
+      })
+    );
   }
 
   wrap(ref?: Ref): PluginApi {

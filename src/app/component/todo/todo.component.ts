@@ -64,18 +64,19 @@ export class TodoComponent implements OnChanges {
   init() {
     this.lines = (this.ref?.comment || this.text || '').split('\n')?.filter(l => !!l) || [];
     if (!this.watch && this.ref) {
-      this.watch = this.actions.watch$(this.ref).subscribe(watch => {
-        // Subscribe to ref$ to get updated refs
-        watch.ref$.subscribe(updatedRef => {
-          this.ref = updatedRef;
-          
-          if (updatedRef.origin === this.store.account.origin) {
-            this.init();
-          }
-        });
+      const watch = this.actions.watch$(this.ref);
+      
+      // Store the comment function for saves
+      this.commentFunction = watch.comment$;
+      
+      // Subscribe to ref$ to get ref updates
+      this.watch = watch.ref$.subscribe(update => {
+        // Merge the update into our ref
+        Object.assign(this.ref!, update);
         
-        // Store the comment function for later use
-        this.commentFunction = watch.comment$;
+        if (update.origin === this.store.account.origin) {
+          this.init();
+        }
       });
     }
   }
