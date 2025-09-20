@@ -15,10 +15,7 @@ import { StompService } from './api/stomp.service';
 import { TaggingService } from './api/tagging.service';
 import { AuthzService } from './authz.service';
 
-export interface Watch {
-  ref$: Observable<RefUpdates>;
-  comment$: (comment: string) => Observable<string>;
-}
+
 
 @Injectable({
   providedIn: 'root'
