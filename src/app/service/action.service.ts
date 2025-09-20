@@ -2,8 +2,8 @@ import { Injectable } from '@angular/core';
 import { debounce, isArray, without } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { runInAction } from 'mobx';
-import { catchError, concat, last, merge, Observable, of, Subscription, switchMap, throwError, BehaviorSubject } from 'rxjs';
-import { tap, map } from 'rxjs/operators';
+import { BehaviorSubject, catchError, concat, last, merge, Observable, of, Subscription, switchMap, throwError } from 'rxjs';
+import { tap } from 'rxjs/operators';
 import { PluginApi } from '../model/plugin';
 import { Ref, RefUpdates } from '../model/ref';
 import { Action, EmitAction, emitModels } from '../model/tag';
@@ -11,15 +11,152 @@ import { Store } from '../store/store';
 import { hasTag } from '../util/tag';
 import { ExtService } from './api/ext.service';
 import { RefService } from './api/ref.service';
+import { StompService } from './api/stomp.service';
 import { TaggingService } from './api/tagging.service';
 import { AuthzService } from './authz.service';
-import { StompService } from './api/stomp.service';
-import { ConfigService } from './config.service';
-import { OriginMapService } from './origin-map.service';
 
 export interface Watch {
   ref$: Observable<Ref>;
   comment$: (comment: string) => Observable<string>;
+}
+
+export interface RefActionHandler {
+  ref?: Ref;
+  updates$?: Observable<RefUpdates>;
+  writeAccess: boolean;
+  cursor?: string;
+  
+  // Subscription management
+  subscribe(): void;
+  unsubscribe(): void;
+  
+  // Ref management
+  isLocal(): boolean;
+  
+  // Update operations
+  updateComment(comment: string): Observable<string>;
+  updateRef(data: Partial<Ref>): Observable<string>;
+}
+
+class RefActionHandlerImpl implements RefActionHandler {
+  ref?: Ref;
+  updates$?: Observable<RefUpdates>;
+  writeAccess = false;
+  cursor?: string;
+  
+  private watch?: Subscription;
+  
+  constructor(
+    private refs: RefService,
+    private auth: AuthzService,
+    private store: Store,
+    ref?: Ref,
+    updates$?: Observable<RefUpdates>
+  ) {
+    this.ref = ref;
+    this.updates$ = updates$;
+    this.initializeAccess();
+  }
+  
+  private initializeAccess(): void {
+    if (this.isLocal()) {
+      this.writeAccess = !this.ref?.created || this.ref?.upload || this.auth.writeAccess(this.ref);
+      this.cursor = this.ref?.modifiedString;
+    } else if (this.ref) {
+      this.writeAccess = true;
+      this.refs.get(this.ref.url, this.store.account.origin).pipe(
+        catchError(err => {
+          if (err.status === 404) {
+            delete this.cursor;
+          }
+          return throwError(() => err);
+        })
+      ).subscribe(ref => {
+        this.cursor = ref.modifiedString;
+        this.writeAccess = this.auth.writeAccess(ref);
+      });
+    }
+  }
+  
+  subscribe(): void {
+    if (!this.watch && this.updates$) {
+      this.watch = this.updates$.subscribe(u => {
+        if (u.origin === this.store.account.origin) {
+          this.cursor = u.modifiedString;
+        } else if (this.ref) {
+          this.ref.modifiedString = u.modifiedString;
+        }
+        // Let components handle specific update logic via callback
+      });
+    }
+  }
+  
+  unsubscribe(): void {
+    this.watch?.unsubscribe();
+    this.watch = undefined;
+  }
+  
+  isLocal(): boolean {
+    return !this.ref?.created || this.ref.upload || this.ref?.origin === this.store.account.origin;
+  }
+  
+  updateComment(comment: string): Observable<string> {
+    if (!this.ref) {
+      return throwError(() => new Error('No ref to update'));
+    }
+    
+    return this.refs.patch(this.ref.url, this.ref.origin!, this.ref.modifiedString!, [{
+      op: 'add',
+      path: '/comment',
+      value: comment,
+    }]).pipe(
+      catchError(err => {
+        if (err.status === 409) {
+          return this.refs.get(this.ref!.url, this.ref!.origin).pipe(
+            switchMap(ref => this.refs.patch(ref.url, ref.origin!, ref.modifiedString!, [{
+              op: 'add',
+              path: '/comment',
+              value: comment,
+            }])),
+          );
+        }
+        return throwError(() => err);
+      }),
+      tap(cursor => runInAction(() => {
+        this.ref!.comment = comment;
+        this.ref!.modifiedString = cursor;
+        this.ref!.modified = DateTime.fromISO(cursor);
+        this.cursor = cursor;
+      })),
+    );
+  }
+  
+  updateRef(data: Partial<Ref>): Observable<string> {
+    if (!this.ref) {
+      return throwError(() => new Error('No ref to update'));
+    }
+    
+    const updateObs = this.cursor 
+      ? this.refs.merge(this.ref.url, this.store.account.origin, this.cursor, data)
+      : this.refs.create({
+          ...this.ref,
+          origin: this.store.account.origin,
+          ...data,
+        });
+        
+    return updateObs.pipe(
+      tap(cursor => runInAction(() => {
+        this.writeAccess = true;
+        Object.assign(this.ref!, data);
+        this.ref!.modified = DateTime.fromISO(cursor);
+        this.ref!.modifiedString = cursor;
+        this.cursor = cursor;
+        if (!this.isLocal()) {
+          this.ref!.origin = this.store.account.origin;
+        }
+      })),
+    );
+  }
 }
 
 @Injectable({
@@ -32,11 +169,77 @@ export class ActionService {
     private exts: ExtService,
     private tags: TaggingService,
     private auth: AuthzService,
-    private stomp: StompService,
-    private config: ConfigService,
     private store: Store,
-    private originMap: OriginMapService,
+    private stomp: StompService,
   ) { }
+
+  createRefHandler(ref?: Ref, updates$?: Observable<RefUpdates>): RefActionHandler {
+    return new RefActionHandlerImpl(this.refs, this.auth, this.store, ref, updates$);
+  }
+
+  watch$(ref: Ref): Observable<Watch> {
+    // Create BehaviorSubject to track current ref state
+    const refSubject = new BehaviorSubject<Ref>(ref);
+    
+    // Get all origins to watch
+    const origins = this.store.origins?.list || [this.store.account.origin];
+    
+    // Create observables for each origin
+    const streams = origins.map(origin => 
+      this.stomp.watchRefOnOrigin(ref.url, origin).pipe(
+        // Update the ref in the BehaviorSubject when we get updates
+        tap(update => {
+          const currentRef = refSubject.value;
+          const updatedRef = { ...currentRef, ...update };
+          refSubject.next(updatedRef);
+        })
+      )
+    );
+    
+    // Merge all origin streams
+    merge(...streams).subscribe();
+    
+    // Create the comment$ function that uses the current ref state
+    const comment$ = (comment: string): Observable<string> => {
+      const currentRef = refSubject.value;
+      return this.refs.patch(currentRef.url, this.store.account.origin, currentRef.modifiedString!, [{
+        op: 'add',
+        path: '/comment',
+        value: comment,
+      }]).pipe(
+        catchError(err => {
+          if (err.status === 409) {
+            // Get fresh ref and retry
+            return this.refs.get(currentRef.url, this.store.account.origin).pipe(
+              switchMap(freshRef => {
+                // Update our tracked ref with fresh data
+                refSubject.next(freshRef);
+                return this.refs.patch(freshRef.url, this.store.account.origin, freshRef.modifiedString!, [{
+                  op: 'add',
+                  path: '/comment',
+                  value: comment,
+                }]);
+              })
+            );
+          }
+          return throwError(() => err);
+        }),
+        tap(cursor => {
+          // Update the tracked ref with the new comment and cursor
+          const currentRef = refSubject.value;
+          const updatedRef = {
+            ...currentRef,
+            comment,
+            modifiedString: cursor,
+            modified: DateTime.fromISO(cursor)
+          };
+          refSubject.next(updatedRef);
+        })
+      );
+    };
+    
+    return of({ ref$: refSubject.asObservable(), comment$ });
+  }
 
   wrap(ref?: Ref): PluginApi {
     let o: Subscription | undefined = undefined;
@@ -44,7 +247,7 @@ export class ActionService {
       comment: debounce((comment: string) => {
         if (!ref) throw 'Error: No ref to save';
         o?.unsubscribe();
-        o = this.comment$(comment, ref.url).subscribe();
+        o = this.$comment(comment, ref).subscribe();
       }, 500),
       event: (event: string) => {
         this.event(event, ref);
@@ -108,95 +311,19 @@ export class ActionService {
     return concat(...uploads).pipe(last());
   }
 
-  /**
-   * Watch for ref updates across all origins and provide a comment function
-   * Returns Observable<Watch> with ref$ and comment$ function
-   */
-  watch$(ref: Ref): Observable<Watch> {
-    if (!ref.url || !this.config.websockets) {
-      return of({
-        ref$: of(ref),
-        comment$: (comment: string) => this.comment$(comment, ref.url)
-      });
-    }
-    
-    // Get all origins from the origin map to watch across all of them
-    const origins = this.store.origins.list || [this.store.account.origin];
-    
-    // Create observables for each origin
-    const watchStreams = origins.map(origin => 
-      this.stomp.watchRefOnOrigin(ref.url, origin)
-    );
-    
-    // Create a BehaviorSubject to track the current ref state
-    const refSubject = new BehaviorSubject<Ref>(ref);
-    
-    // Merge all streams and apply updates to the ref
-    const ref$ = merge(...watchStreams).pipe(
-      map(update => {
-        // Apply the update to create a new ref object
-        const currentRef = refSubject.value;
-        const updatedRef = { ...currentRef, ...update };
-        refSubject.next(updatedRef);
-        return updatedRef;
-      })
-    );
-    
-    // Create the comment$ function that uses the current ref state
-    const comment$ = (comment: string) => {
-      const currentRef = refSubject.value;
-      return this.refs.patch(currentRef.url, this.store.account.origin, currentRef.modifiedString!, [{
-        op: 'add',
-        path: '/comment',
-        value: comment,
-      }]).pipe(
-        catchError(err => {
-          if (err.status === 409) {
-            // Get fresh ref and retry
-            return this.refs.get(currentRef.url, this.store.account.origin).pipe(
-              switchMap(freshRef => {
-                refSubject.next(freshRef); // Update our tracked ref
-                return this.refs.patch(freshRef.url, freshRef.origin!, freshRef.modifiedString!, [{
-                  op: 'add',
-                  path: '/comment',
-                  value: comment,
-                }]);
-              })
-            );
-          }
-          return throwError(() => err);
-        }),
-        tap(cursor => {
-          // Update the ref with the new comment and cursor
-          const updatedRef = {
-            ...refSubject.value,
-            comment,
-            modifiedString: cursor,
-            modified: DateTime.fromISO(cursor)
-          };
-          refSubject.next(updatedRef);
-        })
-      );
-    };
-    
-    return of({ ref$, comment$ });
-  }
-
   comment(comment: string, ref: Ref) {
-    this.store.eventBus.runAndRefresh(this.comment$(comment, ref.url), ref);
+    this.store.eventBus.runAndRefresh(this.$comment(comment, ref), ref);
   }
 
-  comment$(comment: string, url: string) {
-    // First get the ref to get the current modifiedString
-    return this.refs.get(url, this.store.account.origin).pipe(
-      switchMap(ref => this.refs.patch(url, this.store.account.origin, ref.modifiedString!, [{
-        op: 'add',
-        path: '/comment',
-        value: comment,
-      }])),
+  $comment(comment: string, ref: Ref) {
+    return this.refs.patch(ref.url, ref.origin!, ref.modifiedString!, [{
+      op: 'add',
+      path: '/comment',
+      value: comment,
+    }]).pipe(
       catchError(err => {
         if (err.status === 409) {
-          return this.refs.get(url, this.store.account.origin).pipe(
+          return this.refs.get(ref.url, ref.origin).pipe(
             switchMap(ref => this.refs.patch(ref.url, ref.origin!, ref.modifiedString!, [{
               op: 'add',
               path: '/comment',
@@ -206,6 +333,11 @@ export class ActionService {
         }
         return throwError(() => err);
       }),
+      tap(cursor => runInAction(() => {
+        ref.comment = comment;
+        ref.modifiedString = cursor;
+        ref.modified = DateTime.fromISO(cursor);
+      })),
     );
   }
 
