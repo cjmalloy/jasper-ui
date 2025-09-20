@@ -68,6 +68,12 @@ export class StompService extends RxStomp {
     );
   }
 
+  watchRefOnOrigin(url: string, origin: string): Observable<RefUpdates> {
+    return this.watch('/topic/ref/' + (origin || 'default') + '/' + encodeURIComponent(url), this.headers).pipe(
+      map(m => mapRef(JSON.parse(m.body))),
+    );
+  }
+
   watchTag(tag: string): Observable<string> {
     const origin = isSubOrigin(this.store.account.origin, tagOrigin(tag)) ? tagOrigin(tag) : this.store.account.origin;
     return this.watch('/topic/tag/' + (origin || 'default') + '/' + encodeURIComponent(localTag(tag)), this.headers).pipe(

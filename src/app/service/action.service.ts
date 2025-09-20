@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { debounce, isArray, without } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { runInAction } from 'mobx';
-import { catchError, concat, last, Observable, of, Subscription, switchMap, throwError } from 'rxjs';
+import { catchError, concat, last, merge, Observable, of, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { PluginApi } from '../model/plugin';
 import { Ref, RefUpdates } from '../model/ref';
@@ -15,6 +15,7 @@ import { TaggingService } from './api/tagging.service';
 import { AuthzService } from './authz.service';
 import { StompService } from './api/stomp.service';
 import { ConfigService } from './config.service';
+import { OriginMapService } from './origin-map.service';
 
 @Injectable({
   providedIn: 'root'
@@ -29,6 +30,7 @@ export class ActionService {
     private stomp: StompService,
     private config: ConfigService,
     private store: Store,
+    private originMap: OriginMapService,
   ) { }
 
   wrap(ref?: Ref): PluginApi {
@@ -103,7 +105,7 @@ export class ActionService {
 
   /**
    * Watch for updates to a ref, providing version information for conflict resolution.
-   * Calls stomp service directly to get ref updates.
+   * Uses origin-map service to watch for url on all origins.
    * Returns observable ref updates without patching input.
    */
   watch$(ref: Ref) {
@@ -111,7 +113,16 @@ export class ActionService {
       return of({ ...ref } as RefUpdates);
     }
     
-    return this.stomp.watchRef(ref.url);
+    // Get all origins from the origin map to watch across all of them
+    const origins = this.store.origins.list || [this.store.account.origin];
+    
+    // Create observables for each origin
+    const watchStreams = origins.map(origin => 
+      this.stomp.watchRefOnOrigin(ref.url, origin)
+    );
+    
+    // Merge all streams to watch for updates from any origin
+    return merge(...watchStreams);
   }
 
   comment(comment: string, ref: Ref) {
