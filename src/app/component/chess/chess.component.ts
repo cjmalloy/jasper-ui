@@ -346,8 +346,8 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
     
     const title = move && this.ref.title ? (this.ref.title || '').replace(/\s*\|.*/, '')  + ' | ' + move.san : '';
     
-    // Use the updated $comment method which handles origin management
-    this.actions.$comment(comment, this.ref).subscribe({
+    // Use the updated comment$ method
+    this.actions.comment$(comment, this.ref.url).subscribe({
       next: (cursor) => {
         if (title && this.ref!.title !== title) {
           this.ref!.title = title;

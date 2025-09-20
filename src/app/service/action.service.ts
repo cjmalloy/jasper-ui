@@ -39,7 +39,7 @@ export class ActionService {
       comment: debounce((comment: string) => {
         if (!ref) throw 'Error: No ref to save';
         o?.unsubscribe();
-        o = this.$comment(comment, ref).subscribe();
+        o = this.comment$(comment, ref.url).subscribe();
       }, 500),
       event: (event: string) => {
         this.event(event, ref);
@@ -126,40 +126,21 @@ export class ActionService {
   }
 
   comment(comment: string, ref: Ref) {
-    this.store.eventBus.runAndRefresh(this.$comment(comment, ref), ref);
+    this.store.eventBus.runAndRefresh(this.comment$(comment, ref.url), ref);
   }
 
-  $comment(comment: string, ref: Ref) {
-    const isLocal = !ref.created || ref.upload || ref.origin === this.store.account.origin;
-    const targetOrigin = isLocal ? ref.origin! : this.store.account.origin;
-    const modifiedString = isLocal ? ref.modifiedString! : undefined;
-    
-    // For remote refs without a local copy, create a new ref
-    if (!isLocal && !modifiedString) {
-      return this.refs.create({
-        ...ref,
-        origin: this.store.account.origin,
-        comment,
-      }).pipe(
-        tap(cursor => runInAction(() => {
-          ref.comment = comment;
-          ref.modifiedString = cursor;
-          ref.modified = DateTime.fromISO(cursor);
-          ref.origin = this.store.account.origin;
-        })),
-      );
-    }
-    
-    // For local refs or remote refs with local copies, use patch
-    return this.refs.patch(ref.url, targetOrigin, modifiedString!, [{
-      op: 'add',
-      path: '/comment',
-      value: comment,
-    }]).pipe(
+  comment$(comment: string, url: string) {
+    // First get the ref to get the current modifiedString
+    return this.refs.get(url, this.store.account.origin).pipe(
+      switchMap(ref => this.refs.patch(url, this.store.account.origin, ref.modifiedString!, [{
+        op: 'add',
+        path: '/comment',
+        value: comment,
+      }])),
       catchError(err => {
         if (err.status === 409) {
-          return this.refs.get(ref.url, targetOrigin).pipe(
-            switchMap(latestRef => this.refs.patch(latestRef.url, latestRef.origin!, latestRef.modifiedString!, [{
+          return this.refs.get(url, this.store.account.origin).pipe(
+            switchMap(ref => this.refs.patch(ref.url, ref.origin!, ref.modifiedString!, [{
               op: 'add',
               path: '/comment',
               value: comment,
@@ -168,14 +149,6 @@ export class ActionService {
         }
         return throwError(() => err);
       }),
-      tap(cursor => runInAction(() => {
-        ref.comment = comment;
-        ref.modifiedString = cursor;
-        ref.modified = DateTime.fromISO(cursor);
-        if (!isLocal) {
-          ref.origin = this.store.account.origin;
-        }
-      })),
     );
   }
 

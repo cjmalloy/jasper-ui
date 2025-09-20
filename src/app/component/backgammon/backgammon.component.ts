@@ -525,7 +525,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
     this.comment.emit(comment);
     if (!this.ref) return;
     
-    this.actions.$comment(comment, this.ref).subscribe({
+    this.actions.comment$(comment, this.ref.url).subscribe({
       next: (cursor) => {
         this.writeAccess = true;
         if (this.patchingComment !== comment) return;

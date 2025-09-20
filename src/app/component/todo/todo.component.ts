@@ -114,7 +114,7 @@ export class TodoComponent implements OnChanges {
     this.comment.emit(comment);
     if (!this.ref) return;
     
-    this.actions.$comment(comment, this.ref).pipe(
+    this.actions.comment$(comment, this.ref.url).pipe(
       catchError(err => {
         this.serverErrors = printError(err);
         return throwError(() => err);
