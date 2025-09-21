@@ -188,7 +188,6 @@ export class ActionService {
   }
 
   append(ref: Ref) {
-    const id = Math.random() * 10;
     let cursor = ref.modifiedString!;
     let comment = ref.comment || '';
     return {
