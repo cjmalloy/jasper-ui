@@ -58,12 +58,23 @@ describe('Wiki Plugin', {
       if ($b.text().includes('+ Add Config')) $b.click();
     });
     cy.wait(1000); // Warm up monaco editor
+    
+    // Use more robust selector for Monaco Editor
+    const configEditor = '[data-name="config"]';
+    
     if (Cypress.platform == 'darwin') {
-      cy.get('[name=config]').click().focused().type('{cmd}a{backspace}');
+      cy.get(configEditor).within(() => {
+        // Find the actual Monaco Editor textarea within the container
+        cy.get('textarea.inputarea').click().focused().type('{cmd}a{backspace}');
+      });
     } else {
-      cy.get('[name=config]').click().focused().type('{ctrl}a{backspace}');
+      cy.get(configEditor).within(() => {
+        cy.get('textarea.inputarea').click().focused().type('{ctrl}a{backspace}');
+      });
     }
-    cy.get('[name=config]').type(JSON.stringify({ prefix: 'https://externalwiki/', external: true }), { parseSpecialCharSequences: false });
+    cy.get(configEditor).within(() => {
+      cy.get('textarea.inputarea').type(JSON.stringify({ prefix: 'https://externalwiki/', external: true }), { parseSpecialCharSequences: false });
+    });
     cy.get('button').contains('save').click();
   });
   it('submit wiki button removed', () => {

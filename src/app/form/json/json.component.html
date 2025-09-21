@@ -3,6 +3,9 @@
                      [options]="options"
                      [style.width]="'min(900px, 50vw)'"
                      [style.height]="'min(200px, 90vh)'"
+                     [attr.data-name]="name"
+                     [attr.id]="id"
+                     [class]="name ? 'monaco-editor-' + name : ''"
                      appResizeHandle
                      [hitArea]="config.mobile ? 48 : 20"></ngx-monaco-editor>
 </ng-container>

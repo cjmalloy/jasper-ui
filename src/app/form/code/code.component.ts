@@ -18,6 +18,10 @@ export class CodeComponent implements OnDestroy {
   group!: UntypedFormGroup;
   @Input()
   fieldName = 'source';
+  @Input()
+  id?: string;
+  @Input()
+  name?: string;
 
   options: any = {
     language: 'css',

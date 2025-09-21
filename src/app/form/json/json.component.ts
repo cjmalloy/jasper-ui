@@ -19,6 +19,10 @@ export class JsonComponent implements OnDestroy {
   group!: UntypedFormGroup;
   @Input()
   fieldName = 'source';
+  @Input()
+  id?: string;
+  @Input()
+  name?: string;
 
   options: any = {
     language: 'json',

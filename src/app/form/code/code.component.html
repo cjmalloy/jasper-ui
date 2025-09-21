@@ -1,6 +1,9 @@
 <ng-container [formGroup]="group">
   <ngx-monaco-editor [formControlName]="fieldName"
                      [options]="options"
+                     [attr.data-name]="name"
+                     [attr.id]="id"
+                     [class]="name ? 'monaco-editor-' + name : ''"
                      appResizeHandle
                      [hitArea]="config.mobile ? 48 : 20"></ngx-monaco-editor>
 </ng-container>
