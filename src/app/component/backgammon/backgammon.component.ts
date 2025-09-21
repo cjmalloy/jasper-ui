@@ -64,9 +64,9 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   moveBlackOff = false;
   moves: number[][] = [];
 
-  bounce = -1;
-  redBarBounce = -1;
-  blackBarBounce = -1;
+  bounce = 0;
+  redBarBounce = 0;
+  blackBarBounce = 0;
   start?: number;
   winner?: Piece;
   rolling?: Piece;
