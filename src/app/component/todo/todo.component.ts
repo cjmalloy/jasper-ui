@@ -10,10 +10,9 @@ import {
   Output,
   SimpleChanges
 } from '@angular/core';
-import { DateTime } from 'luxon';
 import { catchError, Observable, Subscription, throwError } from 'rxjs';
-import { Ref, RefUpdates } from '../../model/ref';
-import { RefService } from '../../service/api/ref.service';
+import { Ref } from '../../model/ref';
+import { ActionService } from '../../service/action.service';
 import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
 import { printError } from '../../util/http';
@@ -35,8 +34,6 @@ export class TodoComponent implements OnChanges {
   origin = '';
   @Input()
   tags?: string[];
-  @Input()
-  updates$?: Observable<RefUpdates>;
   @Output()
   comment = new EventEmitter<string>();
   @Output()
@@ -48,12 +45,12 @@ export class TodoComponent implements OnChanges {
   serverErrors: string[] = [];
 
   private watch?: Subscription;
-  private cursor?: string;
+  private comment$!: (comment: string) => Observable<string>;
 
   constructor(
     public config: ConfigService,
     private store: Store,
-    private refs: RefService,
+    private actions: ActionService,
     private zone: NgZone,
   ) {
     if (config.mobile) {
@@ -63,17 +60,12 @@ export class TodoComponent implements OnChanges {
 
   init() {
     this.lines = (this.ref?.comment || this.text || '').split('\n')?.filter(l => !!l) || [];
-    if (this.local) {
-      this.cursor ||= this.ref?.modifiedString;
-    }
-    if (!this.watch && this.updates$) {
-      this.watch = this.updates$.subscribe(u => {
-        this.ref!.comment = u.comment;
-        if (u.origin === this.store.account.origin) {
-          this.ref!.modified = u.modified;
-          this.ref!.modifiedString = this.cursor = u.modifiedString;
-          this.init();
-        }
+    if (!this.watch && this.ref) {
+      const watch = this.actions.watch(this.ref);
+      this.comment$ = watch.comment$;
+      this.watch = watch.ref$.subscribe(update => {
+        this.ref!.comment = update.comment;
+        this.init();
       });
     }
   }
@@ -120,21 +112,15 @@ export class TodoComponent implements OnChanges {
   save(comment: string) {
     this.comment.emit(comment);
     if (!this.ref) return;
-    this.refs.merge(this.ref.url, this.store.account.origin, this.ref.modifiedString!,
-      { comment }
-    ).pipe(
+    this.comment$(comment).pipe(
       catchError(err => {
         this.serverErrors = printError(err);
         return throwError(() => err);
       })
     ).subscribe(cursor => {
-      if (!this.cursor) {
-        this.ref!.origin = this.store.account.origin;
+      if (!this.local) {
         this.copied.emit(this.store.account.origin);
       }
-      this.ref!.comment = comment;
-      this.ref!.modified = DateTime.fromISO(cursor);
-      this.ref!.modifiedString = this.cursor = cursor;
       this.store.eventBus.refresh(this.ref);
     });
   }

@@ -14,12 +14,10 @@ import {
   SimpleChanges
 } from '@angular/core';
 import { defer, delay, filter, range, uniq } from 'lodash-es';
-import { DateTime } from 'luxon';
 import { autorun, IReactionDisposer } from 'mobx';
-import { catchError, Observable, Subscription, throwError } from 'rxjs';
-import { Ref, RefUpdates } from '../../model/ref';
-import { RefService } from '../../service/api/ref.service';
-import { AuthzService } from '../../service/authz.service';
+import { catchError, Observable, of, Subscription } from 'rxjs';
+import { Ref } from '../../model/ref';
+import { ActionService } from '../../service/action.service';
 import { Store } from '../../store/store';
 
 export type Piece = 'r' | 'b';
@@ -53,8 +51,6 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   ref?: Ref;
   @Input()
   text? = '';
-  @Input()
-  updates$?: Observable<RefUpdates>;
   @Output()
   comment = new EventEmitter<string>();
   @Output()
@@ -68,14 +64,13 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   moveBlackOff = false;
   moves: number[][] = [];
 
-  bounce? = 0;
+  bounce = 0;
   redBarBounce = 0;
   blackBarBounce = 0;
   start?: number;
   winner?: Piece;
   rolling?: Piece;
   dragSource = -1;
-  writeAccess = false;
   redDice: number[] = [];
   blackDice: number[] = [];
   diceUsed: number[] = [];
@@ -84,34 +79,29 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   @HostBinding('class.resizing')
   resizing = 0;
 
-  private cursor?: string;
   private resizeObserver = window.ResizeObserver && new ResizeObserver(() => this.onResize()) || undefined;
   private watch?: Subscription;
   /**
-   * Flag to prevent animations for own moves.
-   */
-  private patchingComment = '';
-  /**
    * Queued animation.
    */
-  private incoming: number[] = [];
+  private incoming = -1;
   /**
    * Queued red bar animation.
    */
-  private incomingRedBar = 0;
+  private incomingRedBar = -1;
   /**
    * Queued black bar animation.
    */
-  private incomingBlackBar = 0;
+  private incomingBlackBar = -1;
   /**
    * Queued animation.
    */
   private incomingRolling?: Piece;
+  private append$!: (value: string) => Observable<string>;
 
   constructor(
     private store: Store,
-    private auth: AuthzService,
-    private refs: RefService,
+    private actions: ActionService,
     private el: ElementRef<HTMLDivElement>,
   ) {
     this.disposers.push(autorun(() => {
@@ -130,55 +120,31 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   init() {
     this.el.nativeElement.style.setProperty('--red-name', '"🔴️ ' + (this.bgConf?.redName || $localize`Red`) + '"');
     this.el.nativeElement.style.setProperty('--black-name', '"⚫️ ' + (this.bgConf?.blackName || $localize`Black`) + '"');
-    if (!this.watch && this.updates$) {
-      this.watch = this.updates$.subscribe(u => {
-        if (u.origin === this.store.account.origin) this.cursor = u.modifiedString;
-        else this.ref!.modifiedString = u.modifiedString;
-        const prev = [...this.board];
-        const current = (u.comment || '')
-          .trim()
-          .split('\n')
-          .map(m => m.trim())
-          .filter(m => !!m);
-        const minLen = Math.min(prev.length, current.length);
-        for (let i = 0; i < minLen; i++) {
-          if (prev[i] !== current[i]) {
-            prev.splice(0, i);
-            current.splice(0, i);
-            break;
+    if (!this.watch) {
+      const watch = this.actions.append(this.ref!);
+      this.append$ = watch.append$;
+      this.watch = watch.updates$.pipe(
+        catchError(err => {
+          if (err.url) {
+            // Game history rewritten
+            alert($localize`Game History Rewritten!\n\nPlease Reload.`);
           }
-          if (i === minLen - 1) {
-            prev.splice(0, minLen);
-            current.splice(0, minLen);
-          }
-        }
-        const multiple = current[0]?.replace(/\(\d\)/, '');
-        if (prev.length === 1 && current.length && prev[0].replace(/\(\d\)/, '') === multiple) {
-          prev.length = 0;
-          current[0] = multiple;
-        }
-        if (prev.length) {
-          alert($localize`Game history was rewritten!`);
-          this.ref = u;
-          this.store.eventBus.refresh(u);
-        }
-        if (prev.length || !current.length) return;
-        this.ref!.comment = u.comment;
-        this.store.eventBus.refresh(this.ref);
-        this.load(current);
-        const roll = current.find(m => m.includes('-'));
-        if (roll) {
-          const lastRoll = this.incomingRolling = roll.split(' ')[0] as Piece;
+          return of();
+        }),
+      ).subscribe(update => {
+        this.load([update]);
+        if (update.includes('-')) {
+          const lastRoll = this.incomingRolling = update.split(' ')[0] as Piece;
           requestAnimationFrame(() => {
             if (lastRoll != this.incomingRolling) return;
             this.rolling = this.incomingRolling;
             delay(() => this.rolling = undefined, 3400);
           });
         }
-        if (current.find(m => m.includes('/'))) {
-          const lastMove = this.incoming = current.filter(m => m.includes('/')).map(m => parseInt(m.split(/\D+/g).filter(m => !!m).pop()!) - 1);
-          this.incomingRedBar = current.filter(m => m.includes('*') && m.startsWith('b')).length;
-          this.incomingBlackBar = current.filter(m => m.includes('*') && m.startsWith('r')).length;
+        if (update.includes('/')) {
+          const lastMove = this.incoming = parseInt(update.split(/\D+/g).filter(m => !!m).pop()!);
+          this.incomingRedBar = update.includes('*') && update.startsWith('b') ? 1 : 0;
+          this.incomingBlackBar = update.includes('*') && update.startsWith('r') ? 1 : 0;
           requestAnimationFrame(() => {
             if (lastMove != this.incoming) return;
             this.setBounce(this.incoming);
@@ -187,28 +153,11 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
             clearTimeout(this.bounce);
             this.bounce = delay(() => {
               this.clearBounce();
-              delete this.bounce;
+              this.bounce = 0;
               this.incomingRedBar = this.incomingBlackBar = 0;
             }, 3400);
           });
         }
-      });
-    }
-    if (this.local) {
-      this.writeAccess = !this.ref?.created || this.ref?.upload || this.auth.writeAccess(this.ref);
-      this.cursor = this.ref?.modifiedString;
-    } else {
-      this.writeAccess = true;
-      this.refs.get(this.ref!.url, this.store.account.origin).pipe(
-        catchError(err => {
-          if (err.status === 404) {
-            delete this.cursor;
-          }
-          return throwError(() => err);
-        })
-      ).subscribe(ref => {
-        this.cursor = ref.modifiedString;
-        this.writeAccess = this.auth.writeAccess(ref);
       });
     }
     this.reset(this.ref?.comment || this.text);
@@ -384,11 +333,15 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   drop(event: CdkDragDrop<number, number, Piece>) {
     this.move(event.item.data, event.previousContainer.data, event.container.data);
     this.check();
+    this.save(event.item.data, event.previousContainer.data, event.container.data);
   }
 
   move(p: Piece, from: number, to: number) {
     if (from === to) return;
-    if (!this.moves[from]?.includes(to)) throw $localize`Illegal Move`;
+    if (!this.moves[from]?.includes(to)) {
+      alert($localize`Illegal Move`);
+      return;
+    }
     const dice = this.getDiceUsed(p, from, to, this.dice);
     this.diceUsed.push(...dice);
     const previous = from < 0 ? this.bar : this.spots[from].pieces;
@@ -421,15 +374,21 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   }
 
   pushMove(p: Piece, from: number, to: number, hit?: boolean) {
-    const last = this.board[this.board.length-1] || undefined;
+    // TODO: compress history
+    // const last = this.board[this.board.length-1] || undefined;
     const move = p + ' ' + (from < 0 ? 'bar' : from + 1) + '/' + (to < 0 ? 'off' : to + 1) + (hit ? '*' : '');
-    const base = last?.replace(/\(\d+\)/g, '');
-    if (last && !hit && !last.includes('*') && base === move.replace(/\(\d+\)/g, '')) {
-      const multiple = parseInt(last.match(/\((\d+)\)/)?.[1] || '1') + 1;
-      this.board[this.board.length-1] = base + (hit ? '*' : '') + '(' + multiple + ')';
-    } else {
+    // const base = last?.replace(/\(\d+\)/g, '');
+    // if (last && !hit && !last.includes('*') && base === move.replace(/\(\d+\)/g, '')) {
+    //   const multiple = parseInt(last.match(/\((\d+)\)/)?.[1] || '1') + 1;
+    //   this.board[this.board.length-1] = base + (hit ? '*' : '') + '(' + multiple + ')';
+    // } else {
       this.board.push(move);
-    }
+    // }
+  }
+
+  save(p: Piece, from: number, to: number, hit?: boolean) {
+    const move = p + ' ' + (from < 0 ? 'bar' : from + 1) + '/' + (to < 0 ? 'off' : to + 1) + (hit ? '*' : '');
+    this.append$(move).subscribe();
   }
 
   getMoves(p: Piece, index: number, ds: number[]) {
@@ -527,7 +486,6 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   }
 
   check() {
-    this.save();
     this.moves = [];
     if (!this.redPips) {
       this.winner = 'r';
@@ -537,31 +495,6 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
       this.moves = this.getAllMoves();
     }
     this.clearMoves();
-  }
-
-  save() {
-    const comment = this.patchingComment = this.board.join('  \n');
-    this.comment.emit(comment)
-    if (!this.ref) return;
-    (this.cursor ? this.refs.merge(this.ref.url, this.store.account.origin, this.cursor,
-      { comment }
-    ) : this.refs.create({
-      ...this.ref,
-      origin: this.store.account.origin,
-      comment,
-    })).subscribe(cursor => {
-      this.writeAccess = true;
-      if (this.patchingComment !== comment) return;
-      this.ref!.comment = comment;
-      this.ref!.modified = DateTime.fromISO(cursor);
-      this.cursor = this.ref!.modifiedString = cursor;
-      this.patchingComment = '';
-      if (!this.local) {
-        this.ref!.origin = this.store.account.origin;
-        this.copied.emit(this.store.account.origin)
-      }
-      this.store.eventBus.refresh(this.ref);
-    });
   }
 
   clearMoves() {
@@ -575,11 +508,9 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
     }
   }
 
-  setBounce(bs: number[]) {
+  setBounce(b: number) {
     for (const s of this.spots) {
-      for (const b of bs) {
-        if (b === s.index) s.bounce!++;
-      }
+      if (b === s.index) s.bounce!++;
     }
   }
 
@@ -588,6 +519,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
     if (this.turn && this.start !== undefined && this.moves[this.start]?.includes(index)) {
       this.move(this.turn, this.start, index);
       this.check();
+      this.save(this.turn, this.start, index);
     }
     if (index === this.start) {
       delete this.start;
@@ -619,6 +551,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
     if (this.start !== undefined && this.moves[this.start]?.includes(-2)) {
       this.move(this.turn!, this.start, -2);
       this.check();
+      this.save(this.turn!, this.start, -2);
     }
   }
 
@@ -637,6 +570,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
     }
     this.move(this.turn, index, to);
     this.check();
+    this.save(this.turn, index, to);
   }
 
   moveBarHighest(event: Event) {
@@ -652,6 +586,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
     }
     this.move(this.turn, -1, to);
     this.check();
+    this.save(this.turn, -1, to);
   }
 
   get dice() {
@@ -709,16 +644,17 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
     const ds = p === 'r' ? this.redDice : this.blackDice;
     if (this.winner) throw $localize`Game Over`;
     if ((!this.first || this.turn !== p) && this.moves.length) throw $localize`Must move`;
+    let move = '';
     if (!this.turn) {
       if (ds[0]) return;
       ds[0] = this.r();
-      this.board.push(`${p} ${ds[0]}-0`);
+      this.board.push(move = `${p} ${ds[0]}-0`);
     } else {
       if (!this.first && this.turn === p) throw $localize`Not your turn`;
       this.turn = p;
       ds[0] = this.r();
       ds[1] = this.r();
-      this.board.push(`${p} ${ds[0]}-${ds[1]}`)
+      this.board.push(move = `${p} ${ds[0]}-${ds[1]}`)
     }
     if (!this.turn && this.redDice[0] && this.blackDice[0]) {
       if (this.redDice[0] === this.blackDice[0]) {
@@ -732,7 +668,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
     delay(() => this.rolling = undefined, 750);
     this.diceUsed = [];
     this.moves = this.getAllMoves();
-    this.save();
+    this.append$(move).subscribe();
   }
 
   r() {
