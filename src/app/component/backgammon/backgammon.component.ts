@@ -153,8 +153,8 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
             clearTimeout(this.bounce);
             this.bounce = delay(() => {
               this.clearBounce();
-              this.bounce = -1;
-              this.incomingRedBar = this.incomingBlackBar = -1;
+              this.bounce = 0;
+              this.incomingRedBar = this.incomingBlackBar = 0;
             }, 3400);
           });
         }
