@@ -490,6 +490,7 @@ Handlebars.registerHelper('response', (ref: Ref, value: string) => ref.metadata?
 Handlebars.registerHelper('includes', (array: string[], value: string) => array?.includes(value));
 Handlebars.registerHelper('interestingTags', (tags: string[]) => interestingTags(tags));
 Handlebars.registerHelper('hasTag', (tag: string | undefined, ref: Ref | string[] | undefined) => hasTag(tag, ref));
+Handlebars.registerHelper('tail', (text: string) => text.split('\n').pop()!.trim());
 Handlebars.registerHelper('eq', (v1, v2) => v1 === v2);
 Handlebars.registerHelper('ne', (v1, v2) => v1 !== v2);
 Handlebars.registerHelper('lt', (v1, v2) => v1 < v2);

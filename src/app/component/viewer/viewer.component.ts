@@ -14,12 +14,12 @@ import { FormControl } from '@angular/forms';
 import Hls from 'hls.js';
 import { defer, isEqual, some, without } from 'lodash-es';
 import { runInAction } from 'mobx';
-import { catchError, of, Subject, takeUntil, throwError } from 'rxjs';
+import { BehaviorSubject, catchError, of, Subject, takeUntil, throwError } from 'rxjs';
 import { Ext } from '../../model/ext';
 import { Oembed } from '../../model/oembed';
 import { Page } from '../../model/page';
 import { getPluginScope, PluginApi } from '../../model/plugin';
-import { findCache, findExtension, Ref, RefSort } from '../../model/ref';
+import { findCache, findExtension, Ref, RefSort, RefUpdates } from '../../model/ref';
 import { EmitAction, hydrate } from '../../model/tag';
 import { ActionService } from '../../service/action.service';
 import { AdminService } from '../../service/admin.service';
@@ -418,12 +418,6 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
   }
 
   @memo
-  get updates$() {
-    if (!this.ref || !this.config.websockets) return of();
-    return this.stomp.watchRef(this.ref!.url).pipe(takeUntil(this.destroy$));
-  }
-
-  @memo
   get uiActions(): PluginApi {
     const actions = this.actions.wrap(this.ref);
     return {
@@ -447,14 +441,38 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
       },
       respond: (response: string, clear?: string[]) => {
         if (this.ref?.modified) actions.respond(response, clear);
-      }
+      },
+      watch: () => {
+        if (this.ref?.modified) return actions.watch();
+        const subject$ = new BehaviorSubject<RefUpdates>({ comment: this.text } as RefUpdates);
+        return {
+          ref$: subject$,
+          comment$: (comment: string) => {
+            this.text = comment;
+            subject$.next({ comment: this.text } as RefUpdates)
+            return of();
+          },
+        };
+      },
+      append: () => {
+        if (this.ref?.modified) return actions.append();
+        const subject$ = new Subject<string>();
+        return {
+          updates$: subject$,
+          append$: (value: string) => {
+            this.text += value;
+            subject$.next(value);
+            return of();
+          },
+        };
+      },
     };
   }
 
   @memo
   uiMarkdown(tag: string) {
     const plugin = this.admin.getPlugin(tag)!;
-    return hydrate(plugin.config, 'ui', getPluginScope(plugin, this.ref || { url: '', comment: this.text, tags: this.tags }, this.el.nativeElement, this.uiActions, this.updates$));
+    return hydrate(plugin.config, 'ui', getPluginScope(plugin, this.ref || { url: '', comment: this.text, tags: this.tags }, this.el.nativeElement, this.uiActions));
   }
 
   @memo

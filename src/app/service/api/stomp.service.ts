@@ -62,14 +62,9 @@ export class StompService extends RxStomp {
     );
   }
 
-  watchRef(url: string): Observable<RefUpdates> {
-    return this.watch('/topic/ref/' + (this.store.account.origin || 'default') + '/' + encodeURIComponent(url), this.headers).pipe(
-      map(m => mapRef(JSON.parse(m.body))),
-    );
-  }
-
-  watchRefOnOrigin(url: string, origin: string): Observable<RefUpdates> {
-    return this.watch('/topic/ref/' + (origin || 'default') + '/' + encodeURIComponent(url), this.headers).pipe(
+  watchRef(url: string, origin?: string): Observable<RefUpdates> {
+    origin = (origin === undefined ? this.store.account.origin : origin) || 'default';
+    return this.watch('/topic/ref/' + origin + '/' + encodeURIComponent(url), this.headers).pipe(
       map(m => mapRef(JSON.parse(m.body))),
     );
   }

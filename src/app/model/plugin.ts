@@ -135,6 +135,8 @@ export interface PluginApi {
   emit: (a: EmitAction) => void;
   tag: (tag: string) => void;
   respond: (response: string, clear?: string[]) => void;
+  watch: () => { ref$: Observable<RefUpdates>, comment$: (comment: string) => Observable<string> },
+  append: () => { updates$: Observable<string>, append$: (value: string) => Observable<string> },
 }
 
 export function mapPlugin(obj: any): Plugin {
@@ -168,11 +170,10 @@ export interface PluginScope {
   plugin: Plugin;
 }
 
-export function getPluginScope(plugin?: Config, ref: Ref = { url: '' }, el?: Element, actions?: PluginApi, updates$?: Observable<RefUpdates>): PluginScope {
+export function getPluginScope(plugin?: Config, ref: Ref = { url: '' }, el?: Element, actions?: PluginApi): PluginScope {
   return {
     el,
     actions,
-    updates$,
     ref: toJS(ref),
     plugin: toJS(plugin),
     ...toJS(plugin && ref.plugins?.[plugin.tag || ''] || {}),

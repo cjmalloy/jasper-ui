@@ -11,8 +11,8 @@ import {
   SimpleChanges
 } from '@angular/core';
 import { catchError, Observable, Subscription, throwError } from 'rxjs';
-import { Ref, RefUpdates } from '../../model/ref';
-import { ActionService, Watch } from '../../service/action.service';
+import { Ref } from '../../model/ref';
+import { ActionService } from '../../service/action.service';
 import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
 import { printError } from '../../util/http';
@@ -45,10 +45,7 @@ export class TodoComponent implements OnChanges {
   serverErrors: string[] = [];
 
   private watch?: Subscription;
-  /**
-   * Comment function from Watch API for submitting comments
-   */
-  private commentFunction?: (comment: string) => Observable<string>;
+  private comment$!: (comment: string) => Observable<string>;
 
   constructor(
     public config: ConfigService,
@@ -64,19 +61,11 @@ export class TodoComponent implements OnChanges {
   init() {
     this.lines = (this.ref?.comment || this.text || '').split('\n')?.filter(l => !!l) || [];
     if (!this.watch && this.ref) {
-      const watch = this.actions.watch$(this.ref);
-      
-      // Store the comment function for saves
-      this.commentFunction = watch.comment$;
-      
-      // Subscribe to ref$ to get ref updates
+      const watch = this.actions.watch(this.ref);
+      this.comment$ = watch.comment$;
       this.watch = watch.ref$.subscribe(update => {
-        // Merge the update into our ref
-        Object.assign(this.ref!, update);
-        
-        if (update.origin === this.store.account.origin) {
-          this.init();
-        }
+        this.ref!.comment = update.comment;
+        this.init();
       });
     }
   }
@@ -123,28 +112,16 @@ export class TodoComponent implements OnChanges {
   save(comment: string) {
     this.comment.emit(comment);
     if (!this.ref) return;
-    
-    // Use the comment function from Watch API
-    if (!this.commentFunction) {
-      this.serverErrors = ['Error: No comment function available. Please reload.'];
-      return;
-    }
-    
-    this.commentFunction(comment).pipe(
+    this.comment$(comment).pipe(
       catchError(err => {
         this.serverErrors = printError(err);
         return throwError(() => err);
       })
-    ).subscribe({
-      next: (cursor) => {
-        if (!this.local) {
-          this.copied.emit(this.store.account.origin);
-        }
-        this.store.eventBus.refresh(this.ref);
-      },
-      error: (err) => {
-        console.error('Error saving todo:', err);
+    ).subscribe(cursor => {
+      if (!this.local) {
+        this.copied.emit(this.store.account.origin);
       }
+      this.store.eventBus.refresh(this.ref);
     });
   }
 

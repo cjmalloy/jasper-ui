@@ -2,10 +2,10 @@ import { Injectable } from '@angular/core';
 import { debounce, isArray, without } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { runInAction } from 'mobx';
-import { catchError, concat, last, merge, Observable, of, Subscription, switchMap, throwError } from 'rxjs';
+import { catchError, concat, last, merge, mergeMap, Observable, of, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { PluginApi } from '../model/plugin';
-import { Ref, RefUpdates } from '../model/ref';
+import { Ref } from '../model/ref';
 import { Action, EmitAction, emitModels } from '../model/tag';
 import { Store } from '../store/store';
 import { hasTag } from '../util/tag';
@@ -13,9 +13,6 @@ import { ExtService } from './api/ext.service';
 import { RefService } from './api/ref.service';
 import { StompService } from './api/stomp.service';
 import { TaggingService } from './api/tagging.service';
-import { AuthzService } from './authz.service';
-
-
 
 @Injectable({
   providedIn: 'root'
@@ -26,90 +23,9 @@ export class ActionService {
     private refs: RefService,
     private exts: ExtService,
     private tags: TaggingService,
-    private auth: AuthzService,
     private store: Store,
     private stomp: StompService,
   ) { }
-
-  watch$(ref: Ref): Watch {
-    // Get all origins to watch
-    const origins = this.store.origins?.list || [this.store.account.origin];
-    
-    // Create observables for each origin and merge them
-    const streams = origins.map(origin => 
-      this.stomp.watchRefOnOrigin(ref.url, origin)
-    );
-    
-    // Merge all origin streams to get ref updates
-    const ref$ = merge(...streams);
-    
-    // Create the comment$ function that handles cursor management and conflicts
-    const comment$ = (comment: string): Observable<string> => {
-      return this.refs.patch(ref.url, this.store.account.origin, ref.modifiedString!, [{
-        op: 'add',
-        path: '/comment',
-        value: comment,
-      }]).pipe(
-        catchError(err => {
-          if (err.status === 409) {
-            // Get fresh ref and retry
-            return this.refs.get(ref.url, this.store.account.origin).pipe(
-              switchMap(freshRef => {
-                return this.refs.patch(freshRef.url, this.store.account.origin, freshRef.modifiedString!, [{
-                  op: 'add',
-                  path: '/comment',
-                  value: comment,
-                }]);
-              })
-            );
-          }
-          return throwError(() => err);
-        })
-      );
-    };
-    
-    return { ref$, comment$ };
-  }
-
-  append$(ref: Ref) {
-    // Get observable for ref updates across all origins
-    const origins = this.store.origins.list.length ? this.store.origins.list : [this.store.account.origin];
-    const ref$ = merge(...origins.map(origin => 
-      this.stomp.watchRefOnOrigin(ref.url, origin)
-    ));
-
-    // Function to append a value to the ref comment with markdown line breaks
-    const append$ = (value: string): void => {
-      const currentComment = ref.comment || '';
-      const newComment = currentComment ? `${currentComment}  \n${value}` : value;
-      
-      this.refs.patch(ref.url, this.store.account.origin, ref.modifiedString!, [{
-        op: 'add',
-        path: '/comment',
-        value: newComment,
-      }]).pipe(
-        catchError(err => {
-          if (err.status === 409) {
-            // Get fresh ref and retry with updated comment
-            return this.refs.get(ref.url, this.store.account.origin).pipe(
-              switchMap(freshRef => {
-                const freshComment = freshRef.comment || '';
-                const freshNewComment = freshComment ? `${freshComment}  \n${value}` : value;
-                return this.refs.patch(freshRef.url, this.store.account.origin, freshRef.modifiedString!, [{
-                  op: 'add',
-                  path: '/comment',
-                  value: freshNewComment,
-                }]);
-              })
-            );
-          }
-          return throwError(() => err);
-        })
-      ).subscribe();
-    };
-
-    return { ref$, append$ };
-  }
 
   wrap(ref?: Ref): PluginApi {
     let o: Subscription | undefined = undefined;
@@ -117,7 +33,7 @@ export class ActionService {
       comment: debounce((comment: string) => {
         if (!ref) throw 'Error: No ref to save';
         o?.unsubscribe();
-        o = this.$comment(comment, ref).subscribe();
+        o = this.comment$(comment, ref).subscribe();
       }, 500),
       event: (event: string) => {
         this.event(event, ref);
@@ -132,6 +48,14 @@ export class ActionService {
       respond: (response: string, clear?: string[]) => {
         if (!ref) throw 'Error: No ref to respond to';
         this.respond(response, clear || [], ref);
+      },
+      watch: () => {
+        if (!ref) throw 'Error: No ref to respond to';
+        return this.watch(ref);
+      },
+      append: () => {
+        if (!ref) throw 'Error: No ref to respond to';
+        return this.append(ref);
       }
     }
   }
@@ -141,16 +65,16 @@ export class ActionService {
     const updates: Observable<any>[] = [];
     for (const a of actions) {
       if ('tag' in a) {
-        updates.push(this.$tag(a.tag, ref));
+        updates.push(this.tag$(a.tag, ref));
       }
       if ('response' in a) {
-        updates.push(this.$respond(a.response, a.clear || [], ref));
+        updates.push(this.respond$(a.response, a.clear || [], ref));
       }
       if ('event' in a) {
-        updates.push(this.$event(a.event, ref, repost));
+        updates.push(this.event$(a.event, ref, repost));
       }
       if ('emit' in a) {
-        updates.push(this.$emit(a, ref));
+        updates.push(this.emit$(a, ref));
       }
     }
     if (!updates.length) return of(null);
@@ -162,17 +86,17 @@ export class ActionService {
     this.store.eventBus.reset();
   }
 
-  $event(event: string, ref?: Ref, repost?: Ref) {
+  event$(event: string, ref?: Ref, repost?: Ref) {
     this.store.eventBus.fire(event, ref, repost);
     this.store.eventBus.reset();
     return of(null);
   }
 
   emit(a: EmitAction, ref?: Ref) {
-    this.$emit(a, ref).subscribe();
+    this.emit$(a, ref).subscribe();
   }
 
-  $emit(a: EmitAction, ref?: Ref) {
+  emit$(a: EmitAction, ref?: Ref) {
     const models = emitModels(a, ref, this.store.account.localTag);
     const uploads = [
       ...models.ref.map(ref => this.refs.create(ref)),
@@ -182,10 +106,10 @@ export class ActionService {
   }
 
   comment(comment: string, ref: Ref) {
-    this.store.eventBus.runAndRefresh(this.$comment(comment, ref), ref);
+    this.store.eventBus.runAndRefresh(this.comment$(comment, ref), ref);
   }
 
-  $comment(comment: string, ref: Ref) {
+  comment$(comment: string, ref: Ref) {
     return this.refs.patch(ref.url, ref.origin!, ref.modifiedString!, [{
       op: 'add',
       path: '/comment',
@@ -212,19 +136,19 @@ export class ActionService {
   }
 
   tag(tag: string, ref: Ref) {
-    this.store.eventBus.runAndReload(this.$tag(tag, ref), ref);
+    this.store.eventBus.runAndReload(this.tag$(tag, ref), ref);
   }
 
-  $tag(tag: string, ref: Ref) {
+  tag$(tag: string, ref: Ref) {
     const patch = (hasTag(tag, ref) ? '-' : '') + tag;
     return this.tags.create(patch, ref.url, ref.origin);
   }
 
   respond(response: string, clear: string[], ref: Ref) {
-    this.store.eventBus.runAndRefresh(this.$respond(response, clear, ref), ref);
+    this.store.eventBus.runAndRefresh(this.respond$(response, clear, ref), ref);
   }
 
-  $respond(response: string, clear: string[], ref: Ref) {
+  respond$(response: string, clear: string[], ref: Ref) {
     if (ref.metadata?.userUrls?.includes(response)) {
       ref.metadata ||= {};
       ref.metadata.userUrls ||= [];
@@ -241,5 +165,60 @@ export class ActionService {
       ref.metadata.userUrls = without(ref.metadata.userUrls, ...clear);
       return this.tags.respond(tags, ref.url);
     }
+  }
+
+  watch(ref: Ref) {
+    let cursor = ref.modifiedString!;
+    return {
+      ref$: merge(...this.store.origins.list.map(origin => this.stomp.watchRef(ref.url, origin).pipe(
+        tap(u => {
+          if (u.origin === this.store.account.origin) cursor = u.modifiedString!;
+        }),
+      ))),
+      comment$: (comment: string): Observable<string> => {
+        return this.refs.patch(ref.url, this.store.account.origin, cursor, [{
+          op: 'add',
+          path: '/comment',
+          value: comment,
+        }]).pipe(
+          tap(c => cursor = c),
+        );
+      },
+    };
+  }
+
+  append(ref: Ref) {
+    const id = Math.random() * 10;
+    let cursor = ref.modifiedString!;
+    let comment = ref.comment || '';
+    return {
+      updates$: merge(...this.store.origins.list.map(origin => this.stomp.watchRef(ref.url, origin).pipe(
+        tap(u => {
+          if (u.origin === this.store.account.origin) cursor = u.modifiedString!;
+        }),
+        mergeMap(u => {
+          if (comment.startsWith(u?.comment || '')) {
+            return of();
+          }
+          if (!u.comment?.startsWith(comment)) {
+            comment = u.comment || '';
+            throw u;
+          }
+          const moves = u.comment.substring(comment.length).split('\n').map(m => m.trim()).filter(m => !!m);
+          comment = comment ? `${comment}  \n${moves.join('  \n')}` : moves.join('  \n');
+          return moves;
+        })
+      ))),
+      append$: (value: string) => {
+        comment = comment ? `${comment}  \n${value}` : value;
+        return this.refs.patch(ref.url, this.store.account.origin, cursor, [{
+          op: 'add',
+          path: '/comment',
+          value: comment,
+        }]).pipe(
+          tap(c => cursor = c),
+        );
+      },
+    };
   }
 }
