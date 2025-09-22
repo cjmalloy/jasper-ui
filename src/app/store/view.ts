@@ -95,7 +95,6 @@ export class ViewStore {
     this.clearRef(ref);
     this.ref = ref;
     this.top = top;
-    this.versions = 0;
     this.exts = [];
     this.extTemplates = [];
     this.selectedUser = undefined;
