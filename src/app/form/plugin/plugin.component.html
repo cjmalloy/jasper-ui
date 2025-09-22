@@ -15,6 +15,7 @@
     </div>
   } @else {
     <app-json [id]="id + '-config'"
+              name="config"
               fieldName="config"
               [group]="group"></app-json>
     @if (configErrors.length) {
