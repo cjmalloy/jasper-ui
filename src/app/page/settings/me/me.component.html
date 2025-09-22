@@ -1,16 +1,15 @@
 <ng-container *mobxAutorun>
-  @if (store.local.selectedUserTag || config.electron) {
-    <div class="form">
-      <span><!-- Override Tag --></span>
-      <app-user-tag-selector></app-user-tag-selector>
-    </div>
-  }
   <form class="form"
         [formGroup]="editForm"
         (ngSubmit)="save()"
         [appLimitWidth]="form?.fillPopover?.nativeElement || form?.fillSidebar?.nativeElement"
         [limitSibling]="true">
 
+    @if (store.local.selectedUserTag || config.electron || isDevMode()) {
+      <label for="change-user" i18n>Change User:</label>
+      <app-user-tag-selector id="change-user"></app-user-tag-selector>
+      <hr><hr>
+    }
     <app-ext-form #form [group]="editForm"></app-ext-form>
 
     @for (e of serverError; track e) {
