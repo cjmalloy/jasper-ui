@@ -168,14 +168,20 @@ export class ActionService {
   }
 
   watch(ref: Ref) {
-    let cursor = ref.modifiedString!;
-    return {
+    let cursor = ref.origin === this.store.account.origin ? ref.modifiedString! : '';
+    const inner = {
       ref$: merge(...this.store.origins.list.map(origin => this.stomp.watchRef(ref.url, origin).pipe(
         tap(u => {
           if (u.origin === this.store.account.origin) cursor = u.modifiedString!;
         }),
       ))),
       comment$: (comment: string): Observable<string> => {
+        if (!cursor) {
+          return this.refs.get(ref.url, this.store.account.origin).pipe(
+            tap(ref => cursor = ref.modifiedString!),
+            switchMap(ref => inner.comment$(comment)),
+          );
+        }
         return this.refs.patch(ref.url, this.store.account.origin, cursor, [{
           op: 'add',
           path: '/comment',
@@ -185,12 +191,13 @@ export class ActionService {
         );
       },
     };
+    return inner;
   }
 
   append(ref: Ref) {
-    let cursor = ref.modifiedString!;
+    let cursor = ref.origin === this.store.account.origin ? ref.modifiedString! : '';
     let comment = ref.comment || '';
-    return {
+    const inner = {
       updates$: merge(...this.store.origins.list.map(origin => this.stomp.watchRef(ref.url, origin).pipe(
         tap(u => {
           if (u.origin === this.store.account.origin) cursor = u.modifiedString!;
@@ -208,7 +215,13 @@ export class ActionService {
           return moves;
         })
       ))),
-      append$: (value: string) => {
+      append$: (value: string): Observable<string> => {
+        if (!cursor) {
+          return this.refs.get(ref.url, this.store.account.origin).pipe(
+            tap(ref => cursor = ref.modifiedString!),
+            switchMap(ref => inner.append$(value)),
+          );
+        }
         comment = comment ? `${comment}  \n${value}` : value;
         return this.refs.patch(ref.url, this.store.account.origin, cursor, [{
           op: 'add',
@@ -219,5 +232,6 @@ export class ActionService {
         );
       },
     };
+    return inner;
   }
 }
