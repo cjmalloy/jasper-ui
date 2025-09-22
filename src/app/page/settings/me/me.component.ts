@@ -1,6 +1,6 @@
 import { Location } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, ViewChild } from '@angular/core';
+import { Component, isDevMode, ViewChild } from '@angular/core';
 import { FormBuilder, UntypedFormGroup } from '@angular/forms';
 import { cloneDeep, defer } from 'lodash-es';
 import { runInAction } from 'mobx';
@@ -85,4 +85,5 @@ export class SettingsMePage implements HasChanges {
     });
   }
 
+  protected readonly isDevMode = isDevMode;
 }
