@@ -181,6 +181,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
     this.resizeObserver?.disconnect();
+    this.watch?.unsubscribe();
   }
 
   get bgConf() {

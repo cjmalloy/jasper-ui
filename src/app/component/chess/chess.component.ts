@@ -144,6 +144,7 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
     this.resizeObserver?.disconnect();
+    this.watch?.unsubscribe();
   }
 
   clearErrors() {
