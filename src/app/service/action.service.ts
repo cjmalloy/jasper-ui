@@ -110,15 +110,15 @@ export class ActionService {
   }
 
   comment$(comment: string, ref: Ref) {
-    return this.refs.patch(ref.url, ref.origin!, ref.modifiedString!, [{
+    return this.refs.patch(ref.url, this.store.account.origin, ref.modifiedString!, [{
       op: 'add',
       path: '/comment',
       value: comment,
     }]).pipe(
       catchError(err => {
         if (err.status === 409) {
-          return this.refs.get(ref.url, ref.origin).pipe(
-            switchMap(ref => this.refs.patch(ref.url, ref.origin!, ref.modifiedString!, [{
+          return this.refs.get(ref.url, this.store.account.origin).pipe(
+            switchMap(ref => this.refs.patch(ref.url, this.store.account.origin, ref.modifiedString!, [{
               op: 'add',
               path: '/comment',
               value: comment,
@@ -141,7 +141,7 @@ export class ActionService {
 
   tag$(tag: string, ref: Ref) {
     const patch = (hasTag(tag, ref) ? '-' : '') + tag;
-    return this.tags.create(patch, ref.url, ref.origin);
+    return this.tags.create(patch, ref.url, this.store.account.origin);
   }
 
   respond(response: string, clear: string[], ref: Ref) {
