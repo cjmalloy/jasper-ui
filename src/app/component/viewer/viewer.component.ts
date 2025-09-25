@@ -138,7 +138,7 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
         });
     }
     if (this.ref?.url && hasTag('plugin/embed', this.currentTags)) {
-      this.width = this.embed?.width || (this.config.mobile ? (window.innerWidth - (this.thread ? 32 : 12)) : this.el.nativeElement.parentElement.offsetWidth - 400);
+      this.width = this.embed?.width || (this.el.nativeElement.parentElement.offsetWidth - ((this.thread || !this.config.mobile) ? 32 : 12));
       this.height = this.embed?.height || window.innerHeight;
       if (hasTag('plugin/fullscreen', this.ref)) {
         this.width = screen.width;
@@ -316,7 +316,7 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
   }
 
   get embedWidth() {
-    if (this.embed?.width) return Math.min(this.embed.width, this.config.mobile ? (window.innerWidth - (this.thread ? 32 : 12)) : this.el.nativeElement.parentElement.offsetWidth - 32) + 'px';
+    if (this.embed?.width) return Math.min(this.embed.width, this.el.nativeElement.parentElement.offsetWidth - ((this.thread || !this.config.mobile) ? 32 : 12)) + 'px';
     if (this.config.mobile && window.matchMedia("(orientation: landscape)").matches) {
       return this.thread ? 'calc(100vw - 32px)' : 'calc(100vw - 12px)';
     }
