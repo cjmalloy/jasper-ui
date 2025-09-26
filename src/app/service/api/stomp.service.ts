@@ -42,7 +42,7 @@ export class StompService extends RxStomp {
 
   get hostUrl() {
     var proto = this.getWsProtocol(this.config.api);
-    if (this.config.api === '.' || this.config.api === '/' || this.config.api === './') return proto + location.host + location.port
+    if (this.config.api === '.' || this.config.api === '/' || this.config.api === './') return proto + location.host;
     if (this.config.api.startsWith('//')) return proto + this.config.api.substring('//'.length);
     if (this.config.api.startsWith('https://')) return proto + this.config.api.substring('https://'.length);
     if (this.config.api.startsWith('http://')) return proto + this.config.api.substring('http://'.length);
@@ -62,8 +62,9 @@ export class StompService extends RxStomp {
     );
   }
 
-  watchRef(url: string): Observable<RefUpdates> {
-    return this.watch('/topic/ref/' + (this.store.account.origin || 'default') + '/' + encodeURIComponent(url), this.headers).pipe(
+  watchRef(url: string, origin?: string): Observable<RefUpdates> {
+    origin = (origin === undefined ? this.store.account.origin : origin) || 'default';
+    return this.watch('/topic/ref/' + origin + '/' + encodeURIComponent(url), this.headers).pipe(
       map(m => mapRef(JSON.parse(m.body))),
     );
   }

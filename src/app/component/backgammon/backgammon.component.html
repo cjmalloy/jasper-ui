@@ -20,8 +20,7 @@
            cdkDragBoundary=".backgammon-board"
            (cdkDragStarted)="onDragStarted(s.index)"
            (cdkDragExited)="dragSource = -1"
-           [cdkDragData]="p"
-           [cdkDragDisabled]="!writeAccess">{{ drawPiece(p) }}</div>
+           [cdkDragData]="p">{{ drawPiece(p) }}</div>
     }
   </div>
 }
@@ -56,8 +55,7 @@
          cdkDrag
          cdkDragBoundary=".backgammon-board"
          (cdkDragStarted)="onDragStarted(-1)"
-         [cdkDragData]="p"
-         [cdkDragDisabled]="!writeAccess">{{ drawPiece(p) }}</div>
+         [cdkDragData]="p">{{ drawPiece(p) }}</div>
   }
 </div>
 <div class="backgammon-bar red"
@@ -74,8 +72,7 @@
          cdkDrag
          cdkDragBoundary=".backgammon-board"
          (cdkDragStarted)="onDragStarted(-1)"
-         [cdkDragData]="p"
-         [cdkDragDisabled]="!writeAccess">{{ drawPiece(p) }}</div>
+         [cdkDragData]="p">{{ drawPiece(p) }}</div>
   }
 </div>
 
@@ -86,7 +83,7 @@
      [class.clickme]="!winner && (first && turn === 'r' || !moves.length && turn === 'b')"
      [class.play]="moves.length && turn === 'r'"
      [class.rolling]="rolling === 'r'"
-     [class.disabled]="!writeAccess || winner || moves.length || redDice[0] && turn !== 'b'"
+     [class.disabled]="winner || moves.length || redDice[0] && turn !== 'b'"
      (click)="roll('r')"
      i18n-title title="Red">
   @if (winner === 'r') {
@@ -122,7 +119,7 @@
      [class.clickme]="!winner && (first && turn === 'b' || !moves.length && turn === 'r')"
      [class.play]="moves.length && turn === 'b'"
      [class.rolling]="rolling === 'b'"
-     [class.disabled]="!writeAccess || winner || moves.length || blackDice[0] && turn !== 'r'"
+     [class.disabled]="winner || moves.length || blackDice[0] && turn !== 'r'"
      (click)="roll('b')"
      i18n-title title="Black">
   @if (winner === 'b') {
