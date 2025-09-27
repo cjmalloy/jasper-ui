@@ -126,7 +126,11 @@ export class RefListComponent implements OnInit, OnDestroy, HasChanges {
   set page(value: Page<Ref> | undefined) {
     this._page = value;
     if (this._page) {
-      if (this._page.page.number > 0 && this._page.page.number >= this._page.page.totalPages) {
+      // Only navigate if we're definitely beyond the last page and have meaningful content
+      // This prevents scroll jumps when content is being updated (e.g., adding responses to a thread)
+      if (this._page.page.number > 0 && 
+          this._page.page.number >= this._page.page.totalPages && 
+          this._page.page.totalPages > 1) {
         this.router.navigate([], {
           queryParams: {
             pageNumber: this._page.page.totalPages - 1,
