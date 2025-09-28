@@ -136,7 +136,7 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
   }
 
   reload(url?: string) {
-    url ||= this.store.view.url || '';
+    url ||= this.url || '';
     if (!url) {
       this.store.view.clear();
       return;
