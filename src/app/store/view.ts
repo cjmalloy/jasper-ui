@@ -36,6 +36,7 @@ export class ViewStore {
   defaultBlogPageSize = 5;
   defaultSort: RefSort[] | TagSort[] = ['published'];
   defaultSearchSort: RefSort[] | TagSort[] = ['rank'];
+  defaultPageNumber = 0;
   ref?: Ref = {} as any;
   top?: Ref = {} as any;
   lastSelected?: Ref = {} as any;
@@ -74,7 +75,7 @@ export class ViewStore {
     }
   }
 
-  clear(defaultSort: RefSort[] | TagSort[] = ['published'], defaultSearchSort: RefSort[] | TagSort[] = ['rank']) {
+  clear(defaultSort: RefSort[] | TagSort[] = ['published'], defaultSearchSort: RefSort[] | TagSort[] = ['rank'], defaultPageNumber = 0) {
     this.ref = undefined;
     this.top = undefined;
     this.versions = 0;
@@ -83,6 +84,7 @@ export class ViewStore {
     this.selectedUser = undefined;
     this.defaultSort = defaultSort;
     this.defaultSearchSort = defaultSearchSort;
+    this.defaultPageNumber = defaultPageNumber;
   }
 
   clearRef(ref?: Ref) {
@@ -419,10 +421,6 @@ export class ViewStore {
 
   get search() {
     return this.route.routeSnapshot?.queryParams['search'];
-  }
-
-  get defaultPageNumber() {
-    return this.current === 'ref/thread' ? Math.floor((this.ref?.metadata?.plugins?.['plugin/thread'] || 0) / this.pageSize) : 0;
   }
 
   get pageNumber() {
