@@ -110,11 +110,11 @@ export const aiQueryPlugin: Plugin = {
       const providers = {
         openai: {
           init(config) {
-            config.model ||= config.vision ? 'gpt-5' : config.audio ? 'gpt-4o-audio-preview' : 'gpt-5';
+            config.model ||= config.vision ? 'gpt-5-codex' : config.audio ? 'gpt-4o-audio-preview' : 'gpt-5-codex';
             config.maxTokens ||= 4096;
             config.thinking = false;
             config.pdf = false;
-            config.image = ['gpt-5', 'gpt-5-mini', 'gpt-5-nano'].includes(config.model);
+            config.image = ['gpt-5', 'gpt-5-mini', 'gpt-5-nano', 'gpt-5-codex'].includes(config.model);
             config.audio = ['gpt-4o-audio-preview', 'gpt-4o-mini-audio-preview'].includes(config.model);
             config.video = false;
           },
@@ -164,11 +164,11 @@ export const aiQueryPlugin: Plugin = {
         },
         x: {
           init(config) {
-            config.model ||= 'grok-4';
+            config.model ||= 'grok-4-fast';
             config.maxTokens ||= 4096;
             config.thinking = false;
             config.pdf = false;
-            config.image = ['grok-4', 'grok-2-vision-latest'].includes(config.model);
+            config.image = ['grok-4-fast', 'grok-4', 'grok-2-vision-latest'].includes(config.model);
             config.audio = false;
             config.video = false;
           },
@@ -274,7 +274,7 @@ export const aiQueryPlugin: Plugin = {
         },
         anthropic: {
           init(config) {
-            config.model ||= 'claude-opus-4-1';
+            config.model ||= 'claude-sonnet-4-5';
             config.maxTokens ||= 4096;
             config.thinkingTokens ||= 4096
             config.pdf = true;
