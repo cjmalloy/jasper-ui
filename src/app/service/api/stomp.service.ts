@@ -12,17 +12,19 @@ import { ConfigService } from '../config.service';
 })
 export class StompService extends RxStomp {
 
-  private stompConfig: RxStompConfig = {
-    brokerURL: this.brokerURL,
-    heartbeatIncoming: 20000,
-    heartbeatOutgoing: 0,
-    reconnectDelay: 2000,
-  };
+  private stompConfig: RxStompConfig;
+
   constructor(
     private config: ConfigService,
     private store: Store,
   ) {
     super();
+    this.stompConfig = {
+      brokerURL: this.brokerURL,
+      heartbeatIncoming: 20000,
+      heartbeatOutgoing: 0,
+      reconnectDelay: 2000,
+    };
     if (isDevMode()) {
       this.stompConfig.debug = msg => console.debug('📶️  '+ msg);
     }
