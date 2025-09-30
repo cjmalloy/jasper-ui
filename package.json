@@ -79,7 +79,7 @@
     "cypress": "^15.3.0",
     "cypress-mochawesome-reporter": "^4.0.2",
     "cypress-real-events": "^1.15.0",
-    "jasmine-core": "~5.10.0",
+    "jasmine-core": "~5.11.0",
     "karma": "~6.4.4",
     "karma-chrome-launcher": "~3.2.0",
     "karma-coverage": "~2.2.0",
@@ -87,7 +87,7 @@
     "karma-jasmine": "^5.1.0",
     "karma-jasmine-html-reporter": "^2.1.0",
     "karma-junit-reporter": "^2.0.1",
-    "patch-package": "^8.0.0",
+    "patch-package": "^8.0.1",
     "raw-loader": "^4.0.2",
     "typescript": "~5.9.2"
   },
