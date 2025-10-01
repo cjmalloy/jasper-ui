@@ -217,4 +217,35 @@ describe('RateLimitInterceptor', () => {
 
     expect(completed).toBe(true);
   }));
+
+  it('should handle decimal retry values in X-RateLimit-Retry-After header', fakeAsync(() => {
+    const testData = { message: 'success' };
+    let attemptCount = 0;
+    let completed = false;
+
+    httpClient.get('/test').subscribe(data => {
+      expect(data).toEqual(testData);
+      expect(attemptCount).toBe(2); // Initial request + 1 retry
+      completed = true;
+    });
+
+    // First request - returns 429 with decimal retry value
+    const req1 = httpTestingController.expectOne('/test');
+    attemptCount++;
+    req1.flush(null, { 
+      status: 429, 
+      statusText: 'Too Many Requests',
+      headers: { 'X-RateLimit-Retry-After': '2.5' }
+    });
+
+    // Wait for retry delay (2.5 seconds = 2500ms)
+    tick(2500);
+
+    // Retry request - succeeds
+    const req2 = httpTestingController.expectOne('/test');
+    attemptCount++;
+    req2.flush(testData);
+
+    expect(completed).toBe(true);
+  }));
 });

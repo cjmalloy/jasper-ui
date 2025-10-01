@@ -16,8 +16,8 @@ export class RateLimitInterceptor implements HttpInterceptor {
             const retryAfterHeader = error.headers?.get('X-RateLimit-Retry-After');
             
             if (retryAfterHeader) {
-              // Parse the header value - it should be in seconds
-              const retryAfterSeconds = parseInt(retryAfterHeader, 10);
+              // Parse the header value - it should be in seconds (can be decimal like 3.5)
+              const retryAfterSeconds = parseFloat(retryAfterHeader);
               
               if (!isNaN(retryAfterSeconds) && retryAfterSeconds > 0) {
                 console.warn(`Rate limit hit. Retrying after ${retryAfterSeconds} seconds`);
