@@ -441,7 +441,7 @@ export const aiQueryPlugin: Plugin = {
               ],
             });
             let text = res.response.text().trim();
-            if (config.json || test.startsWith('\`\`\`json')) {
+            if (config.json || text.startsWith('\`\`\`json')) {
               config.json = true;
               while (text && !text.startsWith('{')) text = text.substring(1).trim();
               while (text && !text.endsWith('}')) text = text.substring(0, text.length - 1).trim();
