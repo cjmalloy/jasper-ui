@@ -35,8 +35,7 @@ export class RateLimitInterceptor implements HttpInterceptor {
           // For other errors, don't retry
           throw error;
         },
-      }),
-      catchError(err => throwError(() => err)),
+      })
     );
   }
 }
