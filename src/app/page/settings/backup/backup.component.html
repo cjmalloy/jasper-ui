@@ -98,10 +98,14 @@
 
     <div class="form-group">
       <label for="newerThan" i18n>Newer than:</label>
-      <input type="datetime-local" 
-             id="newerThan" 
-             step="1" 
-             formControlName="newerThan">
+      <div class="form-array">
+        <input type="datetime-local" 
+               id="newerThan" 
+               step="1" 
+               formControlName="newerThan"
+               class="grow">
+        <button type="button" (click)="backupOptionsForm.get('newerThan')!.setValue('')" i18n-title title="Clear" i18n>🆑️</button>
+      </div>
     </div>
 
     <div class="buttons">
