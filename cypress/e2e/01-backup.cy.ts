@@ -18,6 +18,10 @@ describe('Backup / Restore', () => {
   it('creates backup', () => {
     cy.visit('/settings/backup?debug=ADMIN');
     cy.get('button').contains('+ backup').click();
+    // Wait for overlay to appear
+    cy.contains('Backup Options').should('be.visible');
+    // Click OK to create backup with default options
+    cy.get('button').contains('OK').click();
   });
   it('deletes ref', () => {
     cy.visit(`/ref/e/${encodeURIComponent('test:backup')}?debug=ADMIN`);
