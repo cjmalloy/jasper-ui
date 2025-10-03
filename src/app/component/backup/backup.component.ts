@@ -1,7 +1,8 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, HostBinding, Input } from '@angular/core';
+import { Component, EventEmitter, HostBinding, Input, Output } from '@angular/core';
 import { catchError, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
+import { BackupOptions } from '../../model/backup';
 import { AdminService } from '../../service/admin.service';
 import { BackupService } from '../../service/api/backup.service';
 import { Store } from '../../store/store';
@@ -22,6 +23,9 @@ export class BackupComponent {
   size? = 0;
   @Input()
   origin = '';
+
+  @Output()
+  restoreRequested = new EventEmitter<void>();
 
   @HostBinding('class.deleted')
   deleted = false;
@@ -59,8 +63,12 @@ export class BackupComponent {
     return this.downloadLink + (this.origin ? '&' : '?') + 'p=' + encodeURIComponent(this.backupKey);
   }
 
-  restore$ = () => {
-    return this.backups.restore(this.origin, this.id).pipe(
+  requestRestore() {
+    this.restoreRequested.emit();
+  }
+
+  performRestore(options: BackupOptions) {
+    return this.backups.restore(this.origin, this.id, options).pipe(
       catchError((err: HttpErrorResponse) => {
         this.serverError = printError(err);
         return throwError(() => err);
@@ -68,7 +76,7 @@ export class BackupComponent {
       tap(() => {
         this.serverError = [];
       }),
-    );
+    ).subscribe();
   }
 
   delete$ = () => {

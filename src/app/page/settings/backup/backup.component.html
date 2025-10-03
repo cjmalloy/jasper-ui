@@ -65,11 +65,12 @@
 }
 
 <app-backup-list [list]="list"
-                 [origin]="origin"></app-backup-list>
+                 [origin]="origin"
+                 (restoreRequested)="onRestoreRequested($event)"></app-backup-list>
 
 <ng-template #backupOptions>
   <div class="context-menu" (click)="$event.stopPropagation()" [formGroup]="backupOptionsForm">
-    <h3 i18n>Backup Options</h3>
+    <h3 i18n>{{ isRestoreMode ? 'Restore Options' : 'Backup Options' }}</h3>
     
     <label i18n>Include:</label>
     <div class="checkbox-group">
