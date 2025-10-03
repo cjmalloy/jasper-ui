@@ -89,6 +89,7 @@ export class BackupComponent {
         originY: 'bottom',
         overlayX: 'start',
         overlayY: 'top',
+        offsetY: 4,
       }]);
     this.restoreOptionsRef = this.overlay.create({
       hasBackdrop: true,

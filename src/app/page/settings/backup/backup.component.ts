@@ -93,6 +93,7 @@ export class SettingsBackupPage {
         originY: 'bottom',
         overlayX: 'start',
         overlayY: 'top',
+        offsetY: 4,
       }]);
     this.backupOptionsRef = this.overlay.create({
       hasBackdrop: true,
