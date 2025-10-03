@@ -103,7 +103,7 @@ export class BackupComponent {
 
   restore$ = () => {
     // Show options popup - need to get the element reference
-    // Since this is called from confirm-action, we need to find the restore button
+    // Since this is called from inline-button, we need to find the restore button
     const restoreElement = document.querySelector('.backup .action .fake-link');
     if (restoreElement) {
       this.showRestoreOptions(restoreElement as HTMLElement);

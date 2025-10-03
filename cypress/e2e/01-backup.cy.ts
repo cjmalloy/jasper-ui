@@ -33,7 +33,6 @@ describe('Backup / Restore', () => {
   it('restores backup', () => {
     cy.visit('/settings/backup?debug=ADMIN');
     cy.get('.backup .action .fake-link').contains('restore').click();
-    cy.get('.backup .action .fake-link').contains('yes').click();
     // Wait for options overlay to appear
     cy.get('button').contains('OK').should('be.visible');
     // Click OK to restore with default options

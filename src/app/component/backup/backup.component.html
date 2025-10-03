@@ -17,7 +17,7 @@
     <a [routerLink]="['/ref', downloadLink]" i18n>ref</a>
     @if (store.account.admin) {
       @if (!inProgress) {
-        <app-confirm-action [action]="restore$">restore</app-confirm-action>
+        <app-inline-button [action]="restore$">restore</app-inline-button>
       }
       <app-confirm-action [action]="delete$">delete</app-confirm-action>
     }
