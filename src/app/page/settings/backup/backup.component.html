@@ -65,8 +65,7 @@
 }
 
 <app-backup-list [list]="list"
-                 [origin]="origin"
-                 (restoreRequested)="onRestoreRequested($event)"></app-backup-list>
+                 [origin]="origin"></app-backup-list>
 
 <ng-template #backupOptions>
   <div class="context-menu bubble" (click)="$event.stopPropagation()" [formGroup]="backupOptionsForm">

@@ -17,7 +17,7 @@
     <a [routerLink]="['/ref', downloadLink]" i18n>ref</a>
     @if (store.account.admin) {
       @if (!inProgress) {
-        <span class="fake-link" (click)="requestRestore()" i18n>restore</span>
+        <span #restoreButton class="fake-link" (click)="showRestoreOptions()" i18n>restore</span>
       }
       <app-confirm-action [action]="delete$">delete</app-confirm-action>
     }
@@ -28,3 +28,47 @@
 @for (e of serverError; track e) {
   <div class="error">{{ e }}</div>
 }
+
+<ng-template #restoreOptions>
+  <div class="context-menu bubble" (click)="$event.stopPropagation()" [formGroup]="restoreOptionsForm">
+    <div class="checkbox-group">
+      <label>
+        <input type="checkbox" formControlName="cache">
+        <span i18n>Cache</span>
+      </label>
+      <label>
+        <input type="checkbox" formControlName="ref">
+        <span i18n>Refs</span>
+      </label>
+      <label>
+        <input type="checkbox" formControlName="ext">
+        <span i18n>Exts</span>
+      </label>
+      <label>
+        <input type="checkbox" formControlName="user">
+        <span i18n>Users</span>
+      </label>
+      <label>
+        <input type="checkbox" formControlName="plugin">
+        <span i18n>Plugins</span>
+      </label>
+      <label>
+        <input type="checkbox" formControlName="template">
+        <span i18n>Templates</span>
+      </label>
+    </div>
+
+    <div class="form-group">
+      <label for="newerThan" i18n>Newer than:</label>
+      <input type="datetime-local" 
+             id="newerThan" 
+             step="1" 
+             formControlName="newerThan">
+    </div>
+
+    <div class="buttons">
+      <button type="button" (click)="confirmRestore()" i18n>OK</button>
+      <button type="button" (click)="cancelRestore()" i18n>Cancel</button>
+    </div>
+  </div>
+</ng-template>

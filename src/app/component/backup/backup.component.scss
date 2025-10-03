@@ -2,3 +2,55 @@
   margin: 2px;
   padding: 2px;
 }
+
+.context-menu {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  min-width: 300px;
+
+  .checkbox-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+
+    label {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+
+      input[type="checkbox"] {
+        margin-right: 0.5rem;
+      }
+    }
+  }
+
+  .form-group {
+    margin-top: 0.5rem;
+
+    label {
+      display: block;
+      margin-bottom: 0.25rem;
+    }
+
+    input[type="datetime-local"] {
+      width: 100%;
+      padding: 0.25rem;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--fg);
+    }
+  }
+
+  .buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+
+    button {
+      padding: 0.25rem 0.5rem;
+      cursor: pointer;
+    }
+  }
+}
+

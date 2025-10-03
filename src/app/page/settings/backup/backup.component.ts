@@ -38,8 +38,6 @@ export class SettingsBackupPage {
   serverError: string[] = [];
   backupOrigins: string[] = this.store.origins.list;
   backupOptionsRef?: OverlayRef;
-  isRestoreMode = false;
-  pendingRestoreBackup?: BackupRef;
 
   constructor(
     private mod: ModService,
@@ -87,8 +85,6 @@ export class SettingsBackupPage {
   }
 
   showBackupOptions() {
-    this.isRestoreMode = false;
-    this.pendingRestoreBackup = undefined;
     if (this.backupOptionsRef) return;
     const positionStrategy = this.overlay.position()
       .flexibleConnectedTo(this.backupButton!)
@@ -98,47 +94,6 @@ export class SettingsBackupPage {
         overlayX: 'start',
         overlayY: 'top',
       }]);
-    this.backupOptionsRef = this.overlay.create({
-      hasBackdrop: true,
-      backdropClass: 'hide',
-      positionStrategy,
-      scrollStrategy: this.overlay.scrollStrategies.close()
-    });
-    this.backupOptionsRef.attach(new TemplatePortal(this.backupOptionsTemplate, this.viewContainerRef));
-    // No backdrop click handler - user must explicitly click OK or Cancel
-  }
-
-  showRestoreOptions(event: MouseEvent, backup: BackupRef) {
-    this.isRestoreMode = true;
-    this.pendingRestoreBackup = backup;
-    if (this.backupOptionsRef) return;
-    const positionStrategy = this.overlay.position()
-      .flexibleConnectedTo(new ElementRef(event.target as HTMLElement))
-      .withPositions([{
-        originX: 'start',
-        originY: 'bottom',
-        overlayX: 'start',
-        overlayY: 'top',
-      }]);
-    this.backupOptionsRef = this.overlay.create({
-      hasBackdrop: true,
-      backdropClass: 'hide',
-      positionStrategy,
-      scrollStrategy: this.overlay.scrollStrategies.close()
-    });
-    this.backupOptionsRef.attach(new TemplatePortal(this.backupOptionsTemplate, this.viewContainerRef));
-    // No backdrop click handler - user must explicitly click OK or Cancel
-  }
-
-  onRestoreRequested(backup: BackupRef) {
-    this.isRestoreMode = true;
-    this.pendingRestoreBackup = backup;
-    if (this.backupOptionsRef) return;
-    // Use global positioning since we don't have a specific button reference
-    const positionStrategy = this.overlay.position()
-      .global()
-      .centerHorizontally()
-      .centerVertically();
     this.backupOptionsRef = this.overlay.create({
       hasBackdrop: true,
       backdropClass: 'hide',
@@ -160,17 +115,11 @@ export class SettingsBackupPage {
       newerThan: this.backupOptionsForm.value.newerThan || undefined,
     };
     this.closeBackupOptions();
-    if (this.isRestoreMode && this.pendingRestoreBackup) {
-      this.restore(this.pendingRestoreBackup, options);
-    } else {
-      this.backup(options);
-    }
+    this.backup(options);
   }
 
   cancelBackup() {
     this.closeBackupOptions();
-    this.isRestoreMode = false;
-    this.pendingRestoreBackup = undefined;
   }
 
   closeBackupOptions() {
@@ -189,18 +138,6 @@ export class SettingsBackupPage {
     ).subscribe(id => {
       this.list ||= [];
       this.list.unshift({ id: '_' + id });
-    });
-  }
-
-  restore(backup: BackupRef, options: BackupOptions) {
-    this.serverError = [];
-    this.backups.restore(this.origin, backup.id, options).pipe(
-      catchError((res: HttpErrorResponse) => {
-        this.serverError = printError(res);
-        return throwError(() => res);
-      }),
-    ).subscribe(() => {
-      this.serverError = [];
     });
   }
 

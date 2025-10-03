@@ -1,5 +1,8 @@
+import { Overlay, OverlayRef } from '@angular/cdk/overlay';
+import { TemplatePortal } from '@angular/cdk/portal';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, EventEmitter, HostBinding, Input, Output } from '@angular/core';
+import { Component, ElementRef, HostBinding, Input, TemplateRef, ViewChild, ViewContainerRef } from '@angular/core';
+import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { catchError, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { BackupOptions } from '../../model/backup';
@@ -24,12 +27,16 @@ export class BackupComponent {
   @Input()
   origin = '';
 
-  @Output()
-  restoreRequested = new EventEmitter<void>();
+  @ViewChild('restoreButton')
+  restoreButton!: ElementRef<HTMLSpanElement>;
+  @ViewChild('restoreOptions')
+  restoreOptionsTemplate!: TemplateRef<any>;
 
   @HostBinding('class.deleted')
   deleted = false;
   serverError: string[] = [];
+  restoreOptionsForm: UntypedFormGroup;
+  restoreOptionsRef?: OverlayRef;
 
   private backupKey = '';
 
@@ -37,9 +44,21 @@ export class BackupComponent {
     public admin: AdminService,
     public backups: BackupService,
     public store: Store,
+    private fb: UntypedFormBuilder,
+    private overlay: Overlay,
+    private viewContainerRef: ViewContainerRef,
   ) {
     backups.getDownloadKey()
       .subscribe(key => this.backupKey = key);
+    this.restoreOptionsForm = fb.group({
+      cache: [false],
+      ref: [true],
+      ext: [true],
+      user: [true],
+      plugin: [false],
+      template: [false],
+      newerThan: [''],
+    });
   }
 
   get inProgress() {
@@ -63,8 +82,48 @@ export class BackupComponent {
     return this.downloadLink + (this.origin ? '&' : '?') + 'p=' + encodeURIComponent(this.backupKey);
   }
 
-  requestRestore() {
-    this.restoreRequested.emit();
+  showRestoreOptions() {
+    if (this.restoreOptionsRef) return;
+    const positionStrategy = this.overlay.position()
+      .flexibleConnectedTo(this.restoreButton!)
+      .withPositions([{
+        originX: 'start',
+        originY: 'bottom',
+        overlayX: 'start',
+        overlayY: 'top',
+      }]);
+    this.restoreOptionsRef = this.overlay.create({
+      hasBackdrop: true,
+      backdropClass: 'hide',
+      positionStrategy,
+      scrollStrategy: this.overlay.scrollStrategies.close()
+    });
+    this.restoreOptionsRef.attach(new TemplatePortal(this.restoreOptionsTemplate, this.viewContainerRef));
+    // No backdrop click handler - user must explicitly click OK or Cancel
+  }
+
+  confirmRestore() {
+    const options: BackupOptions = {
+      cache: this.restoreOptionsForm.value.cache,
+      ref: this.restoreOptionsForm.value.ref,
+      ext: this.restoreOptionsForm.value.ext,
+      user: this.restoreOptionsForm.value.user,
+      plugin: this.restoreOptionsForm.value.plugin,
+      template: this.restoreOptionsForm.value.template,
+      newerThan: this.restoreOptionsForm.value.newerThan || undefined,
+    };
+    this.closeRestoreOptions();
+    this.performRestore(options);
+  }
+
+  cancelRestore() {
+    this.closeRestoreOptions();
+  }
+
+  closeRestoreOptions() {
+    this.restoreOptionsRef?.detach();
+    this.restoreOptionsRef?.dispose();
+    this.restoreOptionsRef = undefined;
   }
 
   performRestore(options: BackupOptions) {

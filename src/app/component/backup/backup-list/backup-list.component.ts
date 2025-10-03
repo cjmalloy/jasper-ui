@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { BackupRef } from '../../../service/api/backup.service';
 
 @Component({
@@ -13,12 +13,5 @@ export class BackupListComponent {
   list?: BackupRef[];
   @Input()
   origin = '';
-
-  @Output()
-  restoreRequested = new EventEmitter<BackupRef>();
-
-  onRestoreRequested(backup: BackupRef) {
-    this.restoreRequested.emit(backup);
-  }
 
 }
