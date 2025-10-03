@@ -101,7 +101,7 @@ export class SettingsBackupPage {
       scrollStrategy: this.overlay.scrollStrategies.close()
     });
     this.backupOptionsRef.attach(new TemplatePortal(this.backupOptionsTemplate, this.viewContainerRef));
-    // No backdrop click handler - user must explicitly click OK or Cancel
+    this.backupOptionsRef.backdropClick().subscribe(() => this.cancelBackup());
   }
 
   confirmBackup() {

@@ -99,7 +99,7 @@ export class BackupComponent {
       scrollStrategy: this.overlay.scrollStrategies.close()
     });
     this.restoreOptionsRef.attach(new TemplatePortal(this.restoreOptionsTemplate, this.viewContainerRef));
-    // No backdrop click handler - user must explicitly click OK or Cancel
+    this.restoreOptionsRef.backdropClick().subscribe(() => this.cancelRestore());
   }
 
   confirmRestore() {
