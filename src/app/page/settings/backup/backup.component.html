@@ -69,10 +69,7 @@
                  (restoreRequested)="onRestoreRequested($event)"></app-backup-list>
 
 <ng-template #backupOptions>
-  <div class="context-menu" (click)="$event.stopPropagation()" [formGroup]="backupOptionsForm">
-    <h3 i18n>{{ isRestoreMode ? 'Restore Options' : 'Backup Options' }}</h3>
-    
-    <label i18n>Include:</label>
+  <div class="context-menu bubble" (click)="$event.stopPropagation()" [formGroup]="backupOptionsForm">
     <div class="checkbox-group">
       <label>
         <input type="checkbox" formControlName="cache">

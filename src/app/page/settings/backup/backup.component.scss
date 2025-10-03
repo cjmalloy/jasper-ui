@@ -11,20 +11,12 @@ app-loading {
 .context-menu {
   background: var(--bg);
   border: 1px solid var(--border);
-  padding: 1rem;
   min-width: 300px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-
-  h3 {
-    margin-top: 0;
-    margin-bottom: 1rem;
-  }
 
   .checkbox-group {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
-    margin-bottom: 1rem;
+    gap: 0.25rem;
 
     label {
       display: flex;
@@ -38,11 +30,11 @@ app-loading {
   }
 
   .form-group {
-    margin-bottom: 1rem;
+    margin-top: 0.5rem;
 
     label {
       display: block;
-      margin-bottom: 0.5rem;
+      margin-bottom: 0.25rem;
     }
 
     input[type="datetime-local"] {
@@ -58,10 +50,10 @@ app-loading {
     display: flex;
     justify-content: flex-end;
     gap: 0.5rem;
-    margin-top: 1rem;
+    margin-top: 0.5rem;
 
     button {
-      padding: 0.5rem 1rem;
+      padding: 0.25rem 0.5rem;
       cursor: pointer;
     }
   }
