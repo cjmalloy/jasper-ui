@@ -17,11 +17,11 @@ describe('Backup / Restore', () => {
   });
   it('creates backup', () => {
     cy.visit('/settings/backup?debug=ADMIN');
-    cy.get('button').contains('+ backup').click();
+    cy.get('.backup.buttons button').contains('+ backup').click();
     // Wait for overlay to appear
-    cy.get('button').contains('OK').should('be.visible');
-    // Click OK to create backup with default options
-    cy.get('button').contains('OK').click();
+    cy.get('.popup button').contains('+ backup').should('be.visible');
+    // Click backup button to create backup with default options
+    cy.get('.popup button').contains('+ backup').click();
   });
   it('deletes ref', () => {
     cy.visit(`/ref/e/${encodeURIComponent('test:backup')}?debug=ADMIN`);
