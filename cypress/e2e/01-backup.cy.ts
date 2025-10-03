@@ -19,7 +19,7 @@ describe('Backup / Restore', () => {
     cy.visit('/settings/backup?debug=ADMIN');
     cy.get('button').contains('+ backup').click();
     // Wait for overlay to appear
-    cy.contains('Backup Options').should('be.visible');
+    cy.get('button').contains('OK').should('be.visible');
     // Click OK to create backup with default options
     cy.get('button').contains('OK').click();
   });
