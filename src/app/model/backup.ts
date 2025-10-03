@@ -6,7 +6,6 @@ export interface BackupOptions {
   template?: boolean;
   cache?: boolean;
   newerThan?: string;
-  olderThan?: string;
 }
 
 export const all: BackupOptions = {

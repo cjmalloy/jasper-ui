@@ -63,7 +63,6 @@ export class SettingsBackupPage {
       plugin: [false],
       template: [false],
       newerThan: [''],
-      olderThan: [''],
     });
     this.origins.list()
       .subscribe(origins => this.backupOrigins = uniq([...this.store.origins.list, ...origins]));
@@ -114,7 +113,6 @@ export class SettingsBackupPage {
       plugin: this.backupOptionsForm.value.plugin,
       template: this.backupOptionsForm.value.template,
       newerThan: this.backupOptionsForm.value.newerThan || undefined,
-      olderThan: this.backupOptionsForm.value.olderThan || undefined,
     };
     this.closeBackupOptions();
     this.backup(options);
