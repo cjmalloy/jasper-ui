@@ -1,9 +1,11 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component } from '@angular/core';
+import { Component, ViewChild } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { sortBy, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { catchError, throwError } from 'rxjs';
+import { BackupOptionsPopupComponent } from '../../../component/backup-options-popup/backup-options-popup.component';
+import { BackupOptions } from '../../../model/backup';
 import { BackupRef, BackupService } from '../../../service/api/backup.service';
 import { OriginService } from '../../../service/api/origin.service';
 import { BookmarkService } from '../../../service/bookmark.service';
@@ -21,6 +23,9 @@ import { printError } from '../../../util/http';
   host: {'class': 'backup'}
 })
 export class SettingsBackupPage {
+
+  @ViewChild(BackupOptionsPopupComponent)
+  backupOptionsPopup!: BackupOptionsPopupComponent;
 
   originForm: UntypedFormGroup;
 
@@ -63,9 +68,13 @@ export class SettingsBackupPage {
       .subscribe(list => this.list = sortBy(list, 'id').reverse());
   }
 
-  backup() {
+  showBackupOptions() {
+    this.backupOptionsPopup.show();
+  }
+
+  backup(options: BackupOptions) {
     this.serverError = [];
-    this.backups.create(this.origin).pipe(
+    this.backups.create(this.origin, options).pipe(
       catchError((res: HttpErrorResponse) => {
         this.serverError = printError(res);
         return throwError(() => res);
@@ -74,6 +83,10 @@ export class SettingsBackupPage {
       this.list ||= [];
       this.list.unshift({ id: '_' + id });
     });
+  }
+
+  onBackupCancelled() {
+    // Nothing to do when cancelled
   }
 
   upload(files?: FileList) {

@@ -1,0 +1,58 @@
+@if (visible) {
+  <div class="overlay" (click)="cancel()"></div>
+  <div class="popup">
+    <h3 i18n>Backup Options</h3>
+    <form [formGroup]="optionsForm" (ngSubmit)="confirm()">
+      <div class="form-group">
+        <label i18n>Include:</label>
+        <div class="checkbox-group">
+          <label>
+            <input type="checkbox" formControlName="cache">
+            <span i18n>Cache</span>
+          </label>
+          <label>
+            <input type="checkbox" formControlName="ref">
+            <span i18n>Refs</span>
+          </label>
+          <label>
+            <input type="checkbox" formControlName="ext">
+            <span i18n>Exts</span>
+          </label>
+          <label>
+            <input type="checkbox" formControlName="user">
+            <span i18n>Users</span>
+          </label>
+          <label>
+            <input type="checkbox" formControlName="plugin">
+            <span i18n>Plugins</span>
+          </label>
+          <label>
+            <input type="checkbox" formControlName="template">
+            <span i18n>Templates</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="newerThan" i18n>Newer than:</label>
+        <input type="datetime-local" 
+               id="newerThan" 
+               step="1" 
+               formControlName="newerThan">
+      </div>
+
+      <div class="form-group">
+        <label for="olderThan" i18n>Older than:</label>
+        <input type="datetime-local" 
+               id="olderThan" 
+               step="1" 
+               formControlName="olderThan">
+      </div>
+
+      <div class="buttons">
+        <button type="submit" i18n>Create Backup</button>
+        <button type="button" (click)="cancel()" i18n>Cancel</button>
+      </div>
+    </form>
+  </div>
+}

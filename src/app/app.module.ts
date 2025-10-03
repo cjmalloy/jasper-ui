@@ -26,6 +26,7 @@ import { InlinePluginComponent } from './component/action/inline-plugin/inline-p
 import { BackgammonComponent } from './component/backgammon/backgammon.component';
 import { BackupListComponent } from './component/backup/backup-list/backup-list.component';
 import { BackupComponent } from './component/backup/backup.component';
+import { BackupOptionsPopupComponent } from './component/backup-options-popup/backup-options-popup.component';
 import { BlogEntryComponent } from './component/blog/blog-entry/blog-entry.component';
 import { BlogComponent } from './component/blog/blog.component';
 import { BulkComponent } from './component/bulk/bulk.component';
@@ -256,6 +257,7 @@ const loadFactory = (config: ConfigService, debug: DebugService, admin: AdminSer
     SettingsBackupPage,
     BackupComponent,
     BackupListComponent,
+    BackupOptionsPopupComponent,
     UserFormComponent,
     KanbanComponent,
     KanbanColumnComponent,

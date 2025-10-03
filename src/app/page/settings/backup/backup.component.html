@@ -27,7 +27,7 @@
   @if (store.account.admin) {
     <button type="button"
             [disabled]="!originForm.valid"
-            (click)="backup()"
+            (click)="showBackupOptions()"
             i18n-title title="Create Backup" i18n>+ backup</button>
     <button type="button"
             [disabled]="!originForm.valid"
@@ -65,3 +65,7 @@
 
 <app-backup-list [list]="list"
                  [origin]="origin"></app-backup-list>
+
+<app-backup-options-popup 
+  (confirmed)="backup($event)"
+  (cancelled)="onBackupCancelled()"></app-backup-options-popup>
