@@ -34,6 +34,10 @@ describe('Backup / Restore', () => {
     cy.visit('/settings/backup?debug=ADMIN');
     cy.get('.backup .action .fake-link').contains('restore').click();
     cy.get('.backup .action .fake-link').contains('yes').click();
+    // Wait for options overlay to appear
+    cy.get('button').contains('OK').should('be.visible');
+    // Click OK to restore with default options
+    cy.get('button').contains('OK').click();
     cy.wait(1000);
     cy.visit(`/ref/e/${encodeURIComponent('test:backup')}?debug=ADMIN`);
     cy.get('.full-page.ref .link a').should('have.text', 'Backup Test');
