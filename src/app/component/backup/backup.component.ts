@@ -27,6 +27,8 @@ export class BackupComponent {
   @Input()
   origin = '';
 
+  @ViewChild('restoreButton', { read: ElementRef })
+  restoreButton?: ElementRef<HTMLElement>;
   @ViewChild('restoreOptions')
   restoreOptionsTemplate!: TemplateRef<any>;
 
@@ -80,10 +82,10 @@ export class BackupComponent {
     return this.downloadLink + (this.origin ? '&' : '?') + 'p=' + encodeURIComponent(this.backupKey);
   }
 
-  showRestoreOptions(targetElement: HTMLElement) {
-    if (this.restoreOptionsRef) return;
+  showRestoreOptions() {
+    if (this.restoreOptionsRef || !this.restoreButton) return;
     const positionStrategy = this.overlay.position()
-      .flexibleConnectedTo(targetElement)
+      .flexibleConnectedTo(this.restoreButton)
       .withPositions([{
         originX: 'start',
         originY: 'bottom',
@@ -102,12 +104,8 @@ export class BackupComponent {
   }
 
   restore$ = () => {
-    // Show options popup - need to get the element reference
-    // Since this is called from inline-button, we need to find the restore button
-    const restoreElement = document.querySelector('.backup .action .fake-link');
-    if (restoreElement) {
-      this.showRestoreOptions(restoreElement as HTMLElement);
-    }
+    // Show options popup
+    this.showRestoreOptions();
     // Return an observable that will be resolved when user clicks OK
     return new Observable(observer => {
       // Store the observer so we can complete it later
