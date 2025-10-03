@@ -17,7 +17,11 @@ describe('Backup / Restore', () => {
   });
   it('creates backup', () => {
     cy.visit('/settings/backup?debug=ADMIN');
-    cy.get('button').contains('+ backup').click();
+    cy.get('.backup.buttons button').contains('+ backup').click();
+    // Wait for overlay to appear
+    cy.get('.popup button').contains('+ backup').should('be.visible');
+    // Click backup button to create backup with default options
+    cy.get('.popup button').contains('+ backup').click();
   });
   it('deletes ref', () => {
     cy.visit(`/ref/e/${encodeURIComponent('test:backup')}?debug=ADMIN`);
@@ -28,8 +32,13 @@ describe('Backup / Restore', () => {
   });
   it('restores backup', () => {
     cy.visit('/settings/backup?debug=ADMIN');
-    cy.get('.backup .action .fake-link').contains('restore').click();
-    cy.get('.backup .action .fake-link').contains('yes').click();
+    cy.get('.backup .actions').contains('restore').click();
+    // Wait for confirmation dialog and click yes
+    cy.get('.fake-link').contains('yes').click();
+    // Wait for options overlay to appear
+    cy.get('.popup button').contains('restore').should('be.visible');
+    // Click restore to restore with default options
+    cy.get('.popup button').contains('restore').click();
     cy.wait(1000);
     cy.visit(`/ref/e/${encodeURIComponent('test:backup')}?debug=ADMIN`);
     cy.get('.full-page.ref .link a').should('have.text', 'Backup Test');

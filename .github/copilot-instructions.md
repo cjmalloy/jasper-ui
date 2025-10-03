@@ -69,6 +69,8 @@ docker compose up --build  # Everything on http://localhost:8082/
 - E2E tests: `npm run cy:ci` (10-20 min, NEVER CANCEL, timeout 30+ min)
 - Stop services: `docker compose down`
 
+**IMPORTANT**: When making UI changes that affect user interactions (buttons, overlays, dialogs, etc.), **ALWAYS** update the corresponding Cypress E2E tests in `cypress/e2e/`. This is a critical step that should not be forgotten.
+
 ## Project Structure
 
 - `src/app/mods/` - Plugin features (80+ files)
