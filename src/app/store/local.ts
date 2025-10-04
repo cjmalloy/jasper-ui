@@ -71,6 +71,14 @@ export class LocalStore {
       || [];
   }
 
+  shownHelpPopup(id: string) {
+    return localStorage.getItem('help:' + id);
+  }
+
+  dismissHelpPopup(id: string) {
+    localStorage.setItem('help:' + id, 'true');
+  }
+
   /**
    * Save the selected user sub tag for the User-Tag header
    */

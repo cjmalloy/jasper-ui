@@ -1,0 +1,16 @@
+<div class="help-popup" *mobxAutorun>
+  <div class="help-text">{{ text }}</div>
+  <hr>
+  <div class="stepper-controls">
+    @if (store.helpStepIndex > 0) {
+      <button type="button" (click)="previousClick.emit()" i18n>Previous</button>
+    }
+    <span>{{ store.helpStepIndex + 1 }} / {{ store.helpSteps }}</span>
+    @if (store.helpStepIndex + 1 < store.helpSteps) {
+      <button type="button" (click)="nextClick.emit()" i18n>Next</button>
+    }
+    @if (store.helpStepIndex + 1 === store.helpSteps) {
+      <button type="button" (click)="doneClick.emit()" i18n>Done</button>
+    }
+  </div>
+</div>
