@@ -16,12 +16,14 @@
                   [children]="admin.getPluginSubForms(plugin.tag)"></app-form-gen>
   }
 }
-@for (tagForm of tagForms; track tagForm.tag + '-' + tagForm.formIndex) {
-  <app-form-tag-gen [plugin]="tagForm.plugin"
-                    [formIndex]="tagForm.formIndex"
-                    [subTag]="tagForm.subTag"
-                    [fullTag]="tagForm.tag"
-                    (updateTag)="onTagUpdate($event)"></app-form-tag-gen>
+@for (tagFormPlugin of tagForms; track tagFormPlugin.tag) {
+  @for (instance of getTagFormInstances(tagFormPlugin); track instance.tag + '-' + instance.formIndex) {
+    <app-form-tag-gen [plugin]="instance.plugin"
+                      [formIndex]="instance.formIndex"
+                      [subTag]="instance.subTag"
+                      [fullTag]="instance.tag"
+                      (updateTag)="onTagUpdate($event)"></app-form-tag-gen>
+  }
 }
 @if (empty) {
   <div class="empty-plugins">
