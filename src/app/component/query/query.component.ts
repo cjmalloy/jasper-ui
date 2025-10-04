@@ -1,4 +1,4 @@
-import { Component, ElementRef, Input, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, Input, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { defer } from 'lodash-es';
 import { AdminService } from '../../service/admin.service';
@@ -13,6 +13,8 @@ export type Crumb = { text: string, tag?: string, pos: number, len: number };
   selector: 'app-query',
   templateUrl: './query.component.html',
   styleUrls: ['./query.component.scss']
+,
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class QueryComponent {
 
