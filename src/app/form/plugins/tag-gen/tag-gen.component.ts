@@ -44,6 +44,7 @@ export class TagGenFormComponent implements OnChanges {
     const pluginTag = this.plugin.tag.replace(/^[_+]/, '');
     const tags = this.tags.value as string[];
 
+    // Support multiple tags - find first matching tag
     for (let i = 0; i < tags.length; i++) {
       const tag = tags[i].replace(/^[_+]/, '');
       
@@ -82,14 +83,14 @@ export class TagGenFormComponent implements OnChanges {
     if (this.updating || this.tagIndex === undefined || !this.form?.length) return;
 
     const modelCopy = [...this.model];
-    const tagParts = this.form.map(f => {
-      if (typeof f === 'string') return f;
+    const tagParts = this.form.flatMap(f => {
+      if (typeof f === 'string') return [f];
       const value = modelCopy.shift();
-      if (!value) return null;
-      return f.type === 'duration' ? value.toLowerCase() : value;
+      if (!value) return [];
+      return [f.type === 'duration' ? value.toLowerCase() : value];
     });
 
-    if (tagParts.some(p => p === null)) return;
+    if (tagParts.length === 0) return;
 
     const currentTag = this.tags.at(this.tagIndex).value;
     const newTag = access(currentTag) + this.plugin.tag.replace(/^[_+]/, '') + '/' + tagParts.join('/');
