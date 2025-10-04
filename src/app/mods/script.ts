@@ -27,7 +27,7 @@ export const cronPlugin: Plugin = {
     description: $localize`Schedule scripts to be run on the server at specific intervals.`,
     // language=Handlebars
     infoUi: `every {{formatInterval interval}}`,
-    form: [{
+    tagForm: [[{
       key: 'interval',
       type: 'duration',
       defaultValue: 'PT15M',
@@ -46,7 +46,7 @@ export const cronPlugin: Plugin = {
           { value: 'PT24H', label: $localize`1 day`},
         ],
       }
-    }],
+    }]],
   },
   defaults: {
     interval: 'PT15M',

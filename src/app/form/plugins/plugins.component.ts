@@ -42,6 +42,7 @@ export class PluginsFormComponent implements OnChanges, AfterViewInit {
 
   icons: Icon[] = [];
   forms: Plugin[] = [];
+  tagForms: Plugin[] = [];
 
   constructor(
     public admin: AdminService,
@@ -74,6 +75,7 @@ export class PluginsFormComponent implements OnChanges, AfterViewInit {
       }
     }
     this.forms = this.admin.getPluginForms(this.allTags);
+    this.tagForms = this.admin.getTagForms(this.allTags);
     this.icons = sortOrder(this.admin.getIcons(this.allTags, this.plugins.value, getScheme(this.group.value.url))
       .filter(i => !this.forms.find(p => p.tag === i.tag)))
       .filter(i => this.showIcon(i));
@@ -109,7 +111,7 @@ export class PluginsFormComponent implements OnChanges, AfterViewInit {
   }
 
   get empty() {
-    return !this.icons.length && !Object.keys(this.plugins.controls).length;
+    return !this.icons.length && !Object.keys(this.plugins.controls).length && !this.tagForms.length;
   }
 
   setValue(value: any) {
