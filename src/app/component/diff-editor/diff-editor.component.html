@@ -3,7 +3,8 @@
     [options]="diffOptions"
     [originalModel]="originalModel"
     [modifiedModel]="modifiedModel"
+    [style.width]="config.mobile ? '100%' : 'min(1200px, 100%)'"
     appResizeHandle
-    [hitArea]="48">
+    [hitArea]="config.mobile ? 48 : 20">
   </ngx-monaco-diff-editor>
 </div>

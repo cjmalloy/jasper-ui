@@ -3,6 +3,7 @@ import { autorun, IReactionDisposer } from 'mobx';
 import { Ref, writeRef } from '../../model/ref';
 import { Store } from '../../store/store';
 import { DiffEditorModel } from 'ngx-monaco-editor';
+import { ConfigService } from '../../service/config.service';
 
 @Component({
   standalone: false,
@@ -33,6 +34,7 @@ export class DiffEditorComponent implements OnInit, OnDestroy {
   };
 
   constructor(
+    public config: ConfigService,
     private store: Store,
   ) {}
 
