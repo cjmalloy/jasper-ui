@@ -1,7 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { defer } from 'lodash-es';
-import { autorun, IReactionDisposer } from 'mobx';
 import { catchError, switchMap, throwError } from 'rxjs';
 import { PluginListComponent } from '../../../component/plugin/plugin-list/plugin-list.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
@@ -19,6 +18,7 @@ import { getModels, getZipOrTextFile } from '../../../util/zip';
   selector: 'app-settings-plugin-page',
   templateUrl: './plugin.component.html',
   styleUrls: ['./plugin.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SettingsPluginPage implements OnInit, OnDestroy, HasChanges {
 
@@ -26,8 +26,6 @@ export class SettingsPluginPage implements OnInit, OnDestroy, HasChanges {
 
   @ViewChild(PluginListComponent)
   list?: PluginListComponent;
-
-  private disposers: IReactionDisposer[] = [];
 
   constructor(
     private mod: ModService,
@@ -38,14 +36,9 @@ export class SettingsPluginPage implements OnInit, OnDestroy, HasChanges {
     mod.setTitle($localize`Settings: Plugins`);
     store.view.clear(['levels', 'tag'], ['levels', 'tag']);
     query.clear();
-  }
-
-  saveChanges() {
-    return !this.list || this.list.saveChanges();
-  }
-
-  ngOnInit(): void {
-    this.disposers.push(autorun(() => {
+    
+    // Convert MobX autorun to Angular effect
+    effect(() => {
       const args = {
         query: this.store.view.showRemotes ? '@*' : (this.store.account.origin || '*'),
         search: this.store.view.search,
@@ -55,13 +48,18 @@ export class SettingsPluginPage implements OnInit, OnDestroy, HasChanges {
         ...getTagFilter(this.store.view.filter),
       };
       defer(() => this.query.setArgs(args));
-    }));
+    });
+  }
+
+  saveChanges() {
+    return !this.list || this.list.saveChanges();
+  }
+
+  ngOnInit(): void {
   }
 
   ngOnDestroy() {
     this.query.close();
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
   }
 
   upload(files?: FileList) {
