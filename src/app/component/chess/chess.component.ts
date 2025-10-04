@@ -56,7 +56,6 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
   pieces: (Piece | null)[] = flatten(this.chess.board());
   writeAccess = false;
   bounce: string[] = [];
-  lastMoveFrom?: Square;
   lastMoveTo?: Square;
   animating = false;
   animationQueue: { from: Square; to: Square; capture?: Square; piece?: Piece }[] = [];
@@ -369,8 +368,7 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
     this.animating = true;
     const animation = this.animationQueue.shift()!;
     
-    // Set last move highlights - these stay visible
-    this.lastMoveFrom = animation.from;
+    // Set last move highlight - only highlight destination square
     this.lastMoveTo = animation.to;
 
     // Set up moving piece animation if we have piece data

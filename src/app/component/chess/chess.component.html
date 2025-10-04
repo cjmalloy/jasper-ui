@@ -2,7 +2,7 @@
   <div class="tile {{ color(i) }}"
        [class.from]="getCoord(white ? i : 63 - i) === from"
        [class.move]="moves.includes(getCoord(white ? i : 63 - i))"
-       [class.last-move]="getCoord(white ? i : 63 - i) === lastMoveFrom || getCoord(white ? i : 63 - i) === lastMoveTo"
+       [class.last-move]="getCoord(white ? i : 63 - i) === lastMoveTo"
        (click)="clickSquare(white ? i : 63 - i)"
        cdkDropList
        [cdkDropListData]="white ? i : 63 - i"
@@ -10,7 +10,6 @@
     @if (white ? p : pieces[63-i]; as rp) {
       <div class="chess-piece {{ rp?.color }}"
            [class.bounce]="bounce.includes(rp.square)"
-           [class.hide-for-move]="movingPiece && rp.square === movingPiece.to"
            [class.disabled]="!writeAccess || turn !== rp.color"
            cdkDrag
            cdkDragBoundary=".chess-board"
