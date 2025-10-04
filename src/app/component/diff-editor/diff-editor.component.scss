@@ -1,13 +1,10 @@
 .diff-editor-container {
   display: block;
-  min-height: 500px;
-  height: 100%;
   width: 100%;
   
   ngx-monaco-diff-editor {
     display: block;
-    min-height: 500px;
-    height: 100%;
     width: 100%;
+    height: min(400px, 70vh);
   }
 }
