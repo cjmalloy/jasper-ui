@@ -1,21 +1,13 @@
 @if (plugins && plugin) {
   <label [title]="plugin.config?.description">{{ plugin.config?.submitChild || plugin.name || plugin.tag }}</label>
-  @if (isTagForm) {
-    @if (form && tagFormGroup) {
-      <formly-form class="form plugin-content"
-                   [model]="model"
-                   [form]="tagFormGroup"
-                   [fields]="form"
-                   [options]="options"></formly-form>
-    }
-  } @else if (pluginGroup) {
+  @if (group) {
     @if (children.length) {
       <div class="ribbon-margin" [style.margin-bottom.px]="childrenOn * 20"></div>
     }
     @if (form || promoteAdvanced && advancedForm) {
       <formly-form class="form plugin-content"
                    [model]="model"
-                   [form]="pluginGroup"
+                   [form]="group"
                    [fields]="form || advancedForm!"
                    [options]="options"></formly-form>
     }
@@ -29,30 +21,26 @@
         }
         <formly-form class="form plugin-content"
                      [model]="model"
-                     [form]="pluginGroup"
+                     [form]="group"
                      [fields]="advancedForm"
                      [options]="options"></formly-form>
       </details>
     }
   }
-  @if (!isTagForm) {
-    @for (child of children; track child.tag) {
-      @if (plugins.contains(child.tag)) {
-        <hr>
-        <div>
-          <app-form-gen [plugins]="plugins" [plugin]="child"></app-form-gen>
-        </div>
-      }
+  @for (child of children; track child.tag) {
+    @if (plugins.contains(child.tag)) {
+      <hr>
+      <div>
+        <app-form-gen [plugins]="plugins" [plugin]="child"></app-form-gen>
+      </div>
     }
   }
 }
 
-@if (!isTagForm) {
-  <div class="floating-ribbons">
-    @for (child of children; track child.tag) {
-      <div class="icon {{ cssClass(child.tag) }}"
-           [class.on]="plugins.contains(child.tag)"
-           (click)="toggleChild(child.tag)"><span>{{ child.config?.submitChild }}</span></div>
-    }
-  </div>
-}
+<div class="floating-ribbons">
+  @for (child of children; track child.tag) {
+    <div class="icon {{ cssClass(child.tag) }}"
+         [class.on]="plugins.contains(child.tag)"
+         (click)="toggleChild(child.tag)"><span>{{ child.config?.submitChild }}</span></div>
+  }
+</div>

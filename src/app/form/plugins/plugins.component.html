@@ -17,14 +17,11 @@
   }
 }
 @for (tagForm of tagForms; track tagForm.tag + '-' + tagForm.formIndex) {
-  <app-form-gen #gen
-                [plugins]="plugins"
-                [plugin]="tagForm.plugin"
-                [tagFormIndex]="tagForm.formIndex"
-                [tagFormSubTag]="tagForm.subTag"
-                [tagFormFullTag]="tagForm.tag"
-                [group]="group"
-                (togglePlugin)="togglePlugin.next($event)"></app-form-gen>
+  <app-form-tag-gen [plugin]="tagForm.plugin"
+                    [formIndex]="tagForm.formIndex"
+                    [subTag]="tagForm.subTag"
+                    [fullTag]="tagForm.tag"
+                    (updateTag)="onTagUpdate($event)"></app-form-tag-gen>
 }
 @if (empty) {
   <div class="empty-plugins">
