@@ -1,6 +1,6 @@
 import {
   AfterViewInit,
-  Component,
+  ChangeDetectionStrategy, Component,
   HostBinding,
   HostListener,
   Input,
@@ -36,7 +36,8 @@ import { KanbanDrag } from '../kanban.component';
   selector: 'app-kanban-column',
   templateUrl: './kanban-column.component.html',
   styleUrls: ['./kanban-column.component.scss'],
-  host: {'class': 'kanban-column'}
+  host: {'class': 'kanban-column'},
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestroy, HasChanges {
   private destroy$ = new Subject<void>();

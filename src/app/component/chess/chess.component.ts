@@ -1,6 +1,6 @@
 import { CdkDragDrop, CdkDropListGroup } from '@angular/cdk/drag-drop';
 import {
-  Component,
+  ChangeDetectionStrategy, Component,
   ElementRef,
   EventEmitter,
   HostBinding,

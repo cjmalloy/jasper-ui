@@ -1,7 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { computed, Injectable, signal } from '@angular/core';
 import { isEqual, omit } from 'lodash-es';
-import { makeAutoObservable, observable, runInAction } from 'mobx';
 import { catchError, Subscription, throwError } from 'rxjs';
 import { Page } from '../model/page';
 import { TagPageArgs } from '../model/tag';
@@ -13,19 +12,31 @@ import { UserService } from '../service/api/user.service';
 })
 export class UserStore {
 
-  args?: TagPageArgs = {} as any;
-  page?: Page<User> = {} as any;
-  error?: HttpErrorResponse = {} as any;
+  private _args = signal<TagPageArgs | undefined>(undefined);
+  private _page = signal<Page<User> | undefined>(undefined);
+  private _error = signal<HttpErrorResponse | undefined>(undefined);
 
   private running?: Subscription;
+
+  // Backwards compatible getters/setters
+  get args() { return this._args(); }
+  set args(value: TagPageArgs | undefined) { this._args.set(value); }
+
+  get page() { return this._page(); }
+  set page(value: Page<User> | undefined) { this._page.set(value); }
+
+  get error() { return this._error(); }
+  set error(value: HttpErrorResponse | undefined) { this._error.set(value); }
+
+  // New signal-based API
+  args$ = computed(() => this._args());
+  page$ = computed(() => this._page());
+  error$ = computed(() => this._error());
 
   constructor(
     private users: UserService,
   ) {
-    makeAutoObservable(this, {
-      args: observable.struct,
-    });
-    this.clear(); // Initial observables may not be null for MobX
+    this.clear(); // Initial values may not be null for signals
   }
 
   clear() {
@@ -50,10 +61,10 @@ export class UserStore {
     this.running?.unsubscribe();
     this.running = this.users.page(this.args).pipe(
       catchError((err: HttpErrorResponse) => {
-        runInAction(() => this.error = err);
+        this.error = err;
         return throwError(() => err);
       }),
-    ).subscribe(p => runInAction(() => this.page = p));;
+    ).subscribe(p => this.page = p);
   }
 
 }

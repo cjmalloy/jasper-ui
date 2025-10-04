@@ -1,4 +1,4 @@
-import { Component, ElementRef, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { defer } from 'lodash-es';
 import { v4 as uuid } from 'uuid';
@@ -13,7 +13,8 @@ import { TagsFormComponent } from '../tags/tags.component';
   selector: 'app-user-form',
   templateUrl: './user.component.html',
   styleUrls: ['./user.component.scss'],
-  host: {'class': 'nested-form'}
+  host: {'class': 'nested-form'},
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class UserFormComponent implements OnInit {
 

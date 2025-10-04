@@ -1,6 +1,6 @@
 import {
   AfterViewInit,
-  Component,
+  ChangeDetectionStrategy, Component,
   ContentChildren,
   ElementRef,
   HostBinding,
@@ -17,7 +17,8 @@ import { memo, MemoCache } from '../../util/memo';
   selector: 'app-tabs',
   templateUrl: './tabs.component.html',
   styleUrl: './tabs.component.scss',
-  host: {'class': 'tabs'}
+  host: {'class': 'tabs'},
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class TabsComponent implements AfterViewInit {
 

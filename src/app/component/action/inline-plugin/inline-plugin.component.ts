@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output, ViewChild } from '@angular/core';
 import { FormBuilder, UntypedFormGroup } from '@angular/forms';
 import { defer } from 'lodash-es';
 import { catchError, Observable, of } from 'rxjs';
@@ -13,7 +13,8 @@ import { ActionComponent } from '../action.component';
   selector: 'app-inline-plugin',
   templateUrl: './inline-plugin.component.html',
   styleUrls: ['./inline-plugin.component.scss'],
-  host: {'class': 'action'}
+  host: {'class': 'action'},
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class InlinePluginComponent extends ActionComponent {
 

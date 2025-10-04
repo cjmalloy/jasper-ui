@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import {
-  Component,
+  ChangeDetectionStrategy, Component,
   HostBinding,
   Input,
   OnChanges,
@@ -32,7 +32,8 @@ import { ActionComponent } from '../../action/action.component';
   selector: 'app-chat-entry',
   templateUrl: './chat-entry.component.html',
   styleUrls: ['./chat-entry.component.scss'],
-  host: {'class': 'chat-entry'}
+  host: {'class': 'chat-entry'},
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ChatEntryComponent implements OnChanges, OnDestroy {
   @HostBinding('attr.tabindex') tabIndex = 0;

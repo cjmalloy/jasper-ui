@@ -1,4 +1,4 @@
-import { Component, ElementRef, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { Router } from '@angular/router';
 import { mapValues } from 'lodash-es';
 import { toJS } from 'mobx';
@@ -18,7 +18,8 @@ import { defaultOrigin, level, tagOrigin } from '../../util/tag';
   selector: 'app-folder',
   templateUrl: './folder.component.html',
   styleUrls: ['./folder.component.scss'],
-  host: {'class': 'folder ext'}
+  host: {'class': 'folder ext'},
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class FolderComponent implements OnChanges, HasChanges {
 

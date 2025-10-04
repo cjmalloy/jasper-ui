@@ -2,7 +2,7 @@ import { Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { TemplatePortal } from '@angular/cdk/portal';
 import {
   AfterViewInit,
-  Component,
+  ChangeDetectionStrategy, Component,
   ElementRef,
   HostListener,
   Input,
@@ -27,6 +27,8 @@ import { memo, MemoCache } from '../../../util/memo';
   selector: 'app-action-list',
   templateUrl: './action-list.component.html',
   styleUrl: './action-list.component.scss'
+,
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ActionListComponent implements AfterViewInit, OnChanges {
 

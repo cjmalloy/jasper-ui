@@ -1,4 +1,4 @@
-import { Component, ElementRef, EventEmitter, Input, Output, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, EventEmitter, Input, Output, ViewChild } from '@angular/core';
 import { defer } from 'lodash-es';
 import { Template } from '../../model/template';
 import { AdminService } from '../../service/admin.service';
@@ -10,7 +10,8 @@ import { access } from '../../util/tag';
   selector: 'app-select-template',
   templateUrl: './select-template.component.html',
   styleUrls: ['./select-template.component.scss'],
-  host: {'class': 'select-template'}
+  host: {'class': 'select-template'},
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class SelectTemplateComponent {
 

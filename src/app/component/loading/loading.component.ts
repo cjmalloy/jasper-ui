@@ -1,11 +1,12 @@
-import { Component, HostBinding, Input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, HostBinding, Input } from '@angular/core';
 
 @Component({
   standalone: false,
   selector: 'app-loading',
   templateUrl: './loading.component.html',
   styleUrls: ['./loading.component.scss'],
-  host: {'class': 'loading-dots'}
+  host: {'class': 'loading-dots'},
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class LoadingComponent {
 

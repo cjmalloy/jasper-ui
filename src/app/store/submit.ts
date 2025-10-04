@@ -1,5 +1,5 @@
+import { computed, effect, Injectable, signal } from '@angular/core';
 import { flatten, isArray, without } from 'lodash-es';
-import { action, autorun, makeAutoObservable, observable } from 'mobx';
 import { RouterStore } from 'mobx-angular';
 import { Ext } from '../model/ext';
 import { Plugin } from '../model/plugin';
@@ -8,33 +8,72 @@ import { DEFAULT_WIKI_PREFIX } from '../mods/wiki';
 import { EventBus } from './bus';
 
 export type Saving = { url?: string, name: string, progress?: number };
+
+@Injectable({
+  providedIn: 'root'
+})
 export class SubmitStore {
 
-  wikiPrefix = DEFAULT_WIKI_PREFIX;
-  maxPreview = 300;
-  submitGenId: Plugin[] = [];
-  submitDm: Plugin[] = [];
-  files: File[] = [] as any;
-  caching: Map<File, Saving> = new Map<File, Saving>();
-  exts: Ext[] = [];
-  refs: Ref[] = [];
-  overwrite = false;
-  refLimitOverride = false;
+  private _wikiPrefix = signal(DEFAULT_WIKI_PREFIX);
+  private _maxPreview = signal(300);
+  private _submitGenId = signal<Plugin[]>([]);
+  private _submitDm = signal<Plugin[]>([]);
+  private _files = signal<File[]>([] as any);
+  private _caching = signal(new Map<File, Saving>());
+  private _exts = signal<Ext[]>([]);
+  private _refs = signal<Ref[]>([]);
+  private _overwrite = signal(false);
+  private _refLimitOverride = signal(false);
+
+  // Backwards compatible getters/setters
+  get wikiPrefix() { return this._wikiPrefix(); }
+  set wikiPrefix(value: string) { this._wikiPrefix.set(value); }
+
+  get maxPreview() { return this._maxPreview(); }
+  set maxPreview(value: number) { this._maxPreview.set(value); }
+
+  get submitGenId() { return this._submitGenId(); }
+  set submitGenId(value: Plugin[]) { this._submitGenId.set(value); }
+
+  get submitDm() { return this._submitDm(); }
+  set submitDm(value: Plugin[]) { this._submitDm.set(value); }
+
+  get files() { return this._files(); }
+  set files(value: File[]) { this._files.set(value); }
+
+  get caching() { return this._caching(); }
+  set caching(value: Map<File, Saving>) { this._caching.set(value); }
+
+  get exts() { return this._exts(); }
+  set exts(value: Ext[]) { this._exts.set(value); }
+
+  get refs() { return this._refs(); }
+  set refs(value: Ref[]) { this._refs.set(value); }
+
+  get overwrite() { return this._overwrite(); }
+  set overwrite(value: boolean) { this._overwrite.set(value); }
+
+  get refLimitOverride() { return this._refLimitOverride(); }
+  set refLimitOverride(value: boolean) { this._refLimitOverride.set(value); }
+
+  // New signal-based API
+  wikiPrefix$ = computed(() => this._wikiPrefix());
+  maxPreview$ = computed(() => this._maxPreview());
+  submitGenId$ = computed(() => this._submitGenId());
+  submitDm$ = computed(() => this._submitDm());
+  files$ = computed(() => this._files());
+  caching$ = computed(() => this._caching());
+  exts$ = computed(() => this._exts());
+  refs$ = computed(() => this._refs());
+  overwrite$ = computed(() => this._overwrite());
+  refLimitOverride$ = computed(() => this._refLimitOverride());
 
   constructor(
     public route: RouterStore,
     private eventBus: EventBus,
   ) {
-    makeAutoObservable(this, {
-      submitGenId: observable.shallow,
-      submitDm: observable.shallow,
-      files: observable.shallow,
-      caching: observable.shallow,
-      setRef: action,
-      setExt: action,
-    });
-
-    autorun(() => {
+    // Replace MobX autorun with Angular effect
+    effect(() => {
       if (this.eventBus.event === 'refresh') {
         if (this.eventBus.ref) {
           this.setRef(this.eventBus.ref)

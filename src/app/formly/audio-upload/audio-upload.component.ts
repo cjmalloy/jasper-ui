@@ -1,5 +1,5 @@
 import { HttpEvent, HttpEventType } from '@angular/common/http';
-import { Component, EventEmitter, Output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Output } from '@angular/core';
 import { catchError, last, map, of } from 'rxjs';
 import { Ref } from '../../model/ref';
 import { ProxyService } from '../../service/api/proxy.service';
@@ -12,7 +12,8 @@ import { readFileAsDataURL } from '../../util/async';
   selector: 'app-audio-upload',
   templateUrl: './audio-upload.component.html',
   styleUrls: ['./audio-upload.component.scss'],
-  host: {'class': 'form-array'}
+  host: {'class': 'form-array'},
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AudioUploadComponent {
 

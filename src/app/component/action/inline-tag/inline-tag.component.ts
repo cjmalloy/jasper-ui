@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 import { debounce } from 'lodash-es';
 import { catchError, forkJoin, map, Observable, of, Subscription, switchMap } from 'rxjs';
 import { v4 as uuid } from 'uuid';
@@ -15,7 +15,8 @@ import { ActionComponent } from '../action.component';
   selector: 'app-inline-tag',
   templateUrl: './inline-tag.component.html',
   styleUrls: ['./inline-tag.component.scss'],
-  host: {'class': 'action'}
+  host: {'class': 'action'},
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class InlineTagComponent extends ActionComponent {
   tagsRegex = TAGS_REGEX.source;

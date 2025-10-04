@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { flatten, uniq, without } from 'lodash-es';
@@ -25,7 +25,8 @@ import { prefix } from '../../../util/tag';
   selector: 'app-submit-invoice',
   templateUrl: './invoice.component.html',
   styleUrls: ['./invoice.component.scss'],
-  host: {'class': 'full-page-form'}
+  host: {'class': 'full-page-form'},
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class SubmitInvoicePage implements HasChanges {
 

@@ -1,4 +1,4 @@
-import { Component, Input, QueryList, ViewChildren } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, QueryList, ViewChildren } from '@angular/core';
 import { Router } from '@angular/router';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Ext } from '../../../model/ext';
@@ -10,7 +10,8 @@ import { ExtComponent } from '../ext.component';
   selector: 'app-ext-list',
   templateUrl: './ext-list.component.html',
   styleUrls: ['./ext-list.component.scss'],
-  host: {'class': 'ext-list'}
+  host: {'class': 'ext-list'},
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ExtListComponent implements HasChanges {
 

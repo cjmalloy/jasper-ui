@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, EventEmitter, Input, Output, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output, ViewChild } from '@angular/core';
 import { FormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { pickBy, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
@@ -25,7 +25,8 @@ import { hasTag, removeTag } from '../../../util/tag';
   selector: 'app-comment-reply',
   templateUrl: './comment-reply.component.html',
   styleUrls: ['./comment-reply.component.scss'],
-  host: {'class': 'comment-reply'}
+  host: {'class': 'comment-reply'},
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class CommentReplyComponent implements HasChanges {
 

@@ -1,4 +1,4 @@
-import { Component, Input, OnDestroy, QueryList, ViewChildren } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, OnDestroy, QueryList, ViewChildren } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, forkJoin, of, Subject, takeUntil } from 'rxjs';
 import { HasChanges } from '../../guard/pending-changes.guard';
@@ -15,7 +15,8 @@ import { BlogEntryComponent } from './blog-entry/blog-entry.component';
   selector: 'app-blog',
   templateUrl: './blog.component.html',
   styleUrls: ['./blog.component.scss'],
-  host: {'class': 'blog ext'}
+  host: {'class': 'blog ext'},
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class BlogComponent implements HasChanges, OnDestroy {
   private destroy$ = new Subject<void>();

@@ -1,4 +1,4 @@
-import { Component, ElementRef, Input, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, Input, OnDestroy, OnInit } from '@angular/core';
 import { Subject, takeUntil } from 'rxjs';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
@@ -14,6 +14,8 @@ import { hasPrefix } from '../../util/tag';
   selector: 'app-nav',
   templateUrl: './nav.component.html',
   styleUrls: ['./nav.component.scss']
+,
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class NavComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();

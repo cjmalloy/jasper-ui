@@ -1,6 +1,30 @@
+import { Injectable, signal, computed } from '@angular/core';
 
+@Injectable({
+  providedIn: 'root'
+})
 export class LocalStore {
   private _extPrefetch?: string[];
+  private _editorStacked = signal<boolean | null>(null);
+  private _showFullscreenPreview = signal<boolean | null>(null);
+  private _showPreview = signal<boolean>(false);
+  private _selectedUserTag = signal<string>('');
+
+  constructor() {
+    // Initialize signals from localStorage
+    const editorStackedValue = localStorage.getItem('editorStacked');
+    if (editorStackedValue !== null) {
+      this._editorStacked.set(editorStackedValue !== 'false');
+    }
+
+    const showFullscreenPreviewValue = localStorage.getItem('showFullscreenPreview');
+    if (showFullscreenPreviewValue !== null) {
+      this._showFullscreenPreview.set(showFullscreenPreviewValue !== 'false');
+    }
+
+    this._showPreview.set(localStorage.getItem('showPreview') === 'true');
+    this._selectedUserTag.set(localStorage.getItem('selectedUserTag') || '');
+  }
 
   isRefToggled(url: string, defaultValue = false) {
     const value = localStorage.getItem(`toggled:${url}`);
@@ -18,13 +42,20 @@ export class LocalStore {
 
   set editorStacked(value: boolean) {
     localStorage.setItem('editorStacked', ''+value);
+    this._editorStacked.set(value);
   }
 
   get editorStacked() {
-    const result = localStorage.getItem('editorStacked');
-    if (result === null) return this.defaultEditorStacked;
-    return result !== 'false';
+    const value = this._editorStacked();
+    if (value !== null) return value;
+    return this.defaultEditorStacked;
   }
+
+  editorStacked$ = computed(() => {
+    const value = this._editorStacked();
+    if (value !== null) return value;
+    return this.defaultEditorStacked;
+  });
 
   get defaultEditorStacked() {
     // Show preview on side for tablets and below for desktop
@@ -33,13 +64,20 @@ export class LocalStore {
 
   set showFullscreenPreview(value: boolean) {
     localStorage.setItem('showFullscreenPreview', ''+value);
+    this._showFullscreenPreview.set(value);
   }
 
   get showFullscreenPreview() {
-    const result = localStorage.getItem('showFullscreenPreview');
-    if (result === null) return this.defaultShowFullscreenPreview;
-    return result !== 'false';
+    const value = this._showFullscreenPreview();
+    if (value !== null) return value;
+    return this.defaultShowFullscreenPreview;
   }
+
+  showFullscreenPreview$ = computed(() => {
+    const value = this._showFullscreenPreview();
+    if (value !== null) return value;
+    return this.defaultShowFullscreenPreview;
+  });
 
   get defaultShowFullscreenPreview() {
     // Default to fullscreen editor for mobile
@@ -48,11 +86,14 @@ export class LocalStore {
 
   set showPreview(value: boolean) {
     localStorage.setItem('showPreview', ''+value);
+    this._showPreview.set(value);
   }
 
   get showPreview() {
-    return localStorage.getItem('showPreview') === 'true';
+    return this._showPreview();
   }
+
+  showPreview$ = computed(() => this._showPreview());
 
   /**
    * Save loaded ext cache keys for preload.
@@ -74,14 +115,14 @@ export class LocalStore {
   /**
    * Save the selected user sub tag for the User-Tag header
    */
-  _selectedUserTag?: string;
   set selectedUserTag(value: string) {
-    this._selectedUserTag = value
+    this._selectedUserTag.set(value);
     localStorage.setItem('selectedUserTag', value);
   }
 
   get selectedUserTag() {
-    if (this._selectedUserTag !== undefined) return this._selectedUserTag;
-    return this._selectedUserTag = localStorage.getItem('selectedUserTag') || '';
+    return this._selectedUserTag();
   }
+
+  selectedUserTag$ = computed(() => this._selectedUserTag());
 }

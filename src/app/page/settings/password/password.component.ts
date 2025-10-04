@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
 import { catchError, throwError } from 'rxjs';
@@ -13,7 +13,8 @@ import { printError } from '../../../util/http';
   standalone: false,
   selector: 'app-settings-password-page',
   templateUrl: './password.component.html',
-  styleUrls: ['./password.component.scss']
+  styleUrls: ['./password.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class SettingsPasswordPage {
 

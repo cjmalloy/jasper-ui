@@ -1,11 +1,12 @@
-import { Component, Input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 import { BackupRef } from '../../../service/api/backup.service';
 
 @Component({
   standalone: false,
   selector: 'app-backup-list',
   templateUrl: './backup-list.component.html',
-  styleUrls: ['./backup-list.component.scss']
+  styleUrls: ['./backup-list.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class BackupListComponent {
 

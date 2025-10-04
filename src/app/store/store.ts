@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { makeAutoObservable, observable } from 'mobx';
 import { RouterStore } from 'mobx-angular';
 import { AccountStore } from './account';
@@ -14,13 +14,13 @@ import { ViewStore } from './view';
 })
 export class Store {
 
-  local = new LocalStore();
-  eventBus = new EventBus();
-  origins = new OriginStore();
+  local = inject(LocalStore);
+  eventBus = inject(EventBus);
+  origins = inject(OriginStore);
+  submit = inject(SubmitStore);
+  graph = inject(GraphStore);
   account = new AccountStore(this.origins);
   view = new ViewStore(this.route, this.account);
-  submit = new SubmitStore(this.route, this.eventBus);
-  graph = new GraphStore(this.route);
   theme = 'init-theme';
   hotkey = false;
   offline = false;

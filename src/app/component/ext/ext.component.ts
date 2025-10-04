@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import {
-  Component,
+  ChangeDetectionStrategy, Component,
   HostBinding,
   Input,
   OnChanges,
@@ -40,7 +40,8 @@ import { ActionComponent } from '../action/action.component';
   selector: 'app-ext',
   templateUrl: './ext.component.html',
   styleUrls: ['./ext.component.scss'],
-  host: {'class': 'ext list-item'}
+  host: {'class': 'ext list-item'},
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ExtComponent implements OnChanges, HasChanges {
   @HostBinding('attr.tabindex') tabIndex = 0;

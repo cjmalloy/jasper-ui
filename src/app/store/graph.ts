@@ -1,29 +1,59 @@
+import { computed, Injectable, signal } from '@angular/core';
 import { assign, difference, max, min, pull, pullAll, remove } from 'lodash-es';
 import { DateTime } from 'luxon';
-import { makeAutoObservable, observable } from 'mobx';
 import { RouterStore } from 'mobx-angular';
 import { Page } from '../model/page';
 import { RefNode } from '../model/ref';
 import { findNode, graphable, GraphLink, GraphNode, links, linkSources, unloadedReferences } from '../util/graph';
 
+@Injectable({
+  providedIn: 'root'
+})
 export class GraphStore {
 
-  selected: GraphNode[] = [];
-  nodes: GraphNode[] = [];
-  links: GraphLink[] = [];
-  loading: string[] = [];
-  timeline = true;
-  arrows = false;
-  showUnloaded = true;
+  private _selected = signal<GraphNode[]>([]);
+  private _nodes = signal<GraphNode[]>([]);
+  private _links = signal<GraphLink[]>([]);
+  private _loading = signal<string[]>([]);
+  private _timeline = signal(true);
+  private _arrows = signal(false);
+  private _showUnloaded = signal(true);
+
+  // Backwards compatible getters/setters
+  get selected() { return this._selected(); }
+  set selected(value: GraphNode[]) { this._selected.set(value); }
+
+  get nodes() { return this._nodes(); }
+  set nodes(value: GraphNode[]) { this._nodes.set(value); }
+
+  get links() { return this._links(); }
+  set links(value: GraphLink[]) { this._links.set(value); }
+
+  get loading() { return this._loading(); }
+  set loading(value: string[]) { this._loading.set(value); }
+
+  get timeline() { return this._timeline(); }
+  set timeline(value: boolean) { this._timeline.set(value); }
+
+  get arrows() { return this._arrows(); }
+  set arrows(value: boolean) { this._arrows.set(value); }
+
+  get showUnloaded() { return this._showUnloaded(); }
+  set showUnloaded(value: boolean) { this._showUnloaded.set(value); }
+
+  // New signal-based API
+  selected$ = computed(() => this._selected());
+  nodes$ = computed(() => this._nodes());
+  links$ = computed(() => this._links());
+  loading$ = computed(() => this._loading());
+  timeline$ = computed(() => this._timeline());
+  arrows$ = computed(() => this._arrows());
+  showUnloaded$ = computed(() => this._showUnloaded());
 
   constructor(
     public route: RouterStore,
   ) {
-    makeAutoObservable(this, {
-      selected: observable.shallow,
-      nodes: observable.shallow,
-      links: observable.shallow,
-    });
+    // No initialization needed with signals
   }
 
   get unloaded(): string[] {

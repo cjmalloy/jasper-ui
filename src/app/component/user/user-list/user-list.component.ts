@@ -1,4 +1,4 @@
-import { Component, Input, QueryList, ViewChildren } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, QueryList, ViewChildren } from '@angular/core';
 import { Router } from '@angular/router';
 import { find } from 'lodash-es';
 import { catchError, of } from 'rxjs';
@@ -14,7 +14,8 @@ import { UserComponent } from '../user.component';
   selector: 'app-user-list',
   templateUrl: './user-list.component.html',
   styleUrls: ['./user-list.component.scss'],
-  host: {'class': 'user-list'}
+  host: {'class': 'user-list'},
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class UserListComponent implements HasChanges {
 

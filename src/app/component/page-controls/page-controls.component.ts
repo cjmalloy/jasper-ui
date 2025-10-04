@@ -1,4 +1,4 @@
-import { Component, HostBinding, Input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, HostBinding, Input } from '@angular/core';
 import { delay } from 'lodash-es';
 import { Page } from '../../model/page';
 import { BookmarkService } from '../../service/bookmark.service';
@@ -9,7 +9,8 @@ import { Store } from '../../store/store';
   selector: 'app-page-controls',
   templateUrl: './page-controls.component.html',
   styleUrls: ['./page-controls.component.scss'],
-  host: {'class': 'page-controls'}
+  host: {'class': 'page-controls'},
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class PageControlsComponent {
 

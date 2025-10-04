@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, QueryList, SimpleChanges, ViewChildren } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, OnChanges, QueryList, SimpleChanges, ViewChildren } from '@angular/core';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ext } from '../../model/ext';
 import { Page } from '../../model/page';
@@ -14,6 +14,8 @@ import { hasPrefix } from '../../util/tag';
   selector: 'app-lens',
   templateUrl: './lens.component.html',
   styleUrls: ['./lens.component.scss']
+,
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class LensComponent implements OnChanges, HasChanges {
 

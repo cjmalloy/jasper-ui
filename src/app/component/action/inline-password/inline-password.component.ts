@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
 import { catchError, Observable, of } from 'rxjs';
 import { ActionComponent } from '../action.component';
 
@@ -7,7 +7,8 @@ import { ActionComponent } from '../action.component';
   selector: 'app-inline-password',
   templateUrl: './inline-password.component.html',
   styleUrls: ['./inline-password.component.scss'],
-  host: {'class': 'action'}
+  host: {'class': 'action'},
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class InlinePasswordComponent extends ActionComponent {
 

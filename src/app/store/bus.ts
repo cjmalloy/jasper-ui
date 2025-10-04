@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { makeAutoObservable, observable, reaction, toJS } from 'mobx';
+import { computed, effect, Injectable, signal } from '@angular/core';
 import { catchError, Observable, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Ref } from '../model/ref';
@@ -7,26 +7,58 @@ import { printError } from '../util/http';
 
 export type progress = (msg?: string, p?: number) => void;
 
+@Injectable({
+  providedIn: 'root'
+})
 export class EventBus {
 
-  event = '';
-  ref?: Ref = {} as any;
-  repost?: Ref = {} as any;
-  errors: string[] = [];
-  progressMessages: string[] = [];
-  progressNum = 0;
-  progressDen = 0;
+  private _event = signal('');
+  private _ref = signal<Ref | undefined>({} as any);
+  private _repost = signal<Ref | undefined>({} as any);
+  private _errors = signal<string[]>([]);
+  private _progressMessages = signal<string[]>([]);
+  private _progressNum = signal(0);
+  private _progressDen = signal(0);
+
+  // Backwards compatible getters/setters
+  get event() { return this._event(); }
+  set event(value: string) { this._event.set(value); }
+
+  get ref() { return this._ref(); }
+  set ref(value: Ref | undefined) { this._ref.set(value); }
+
+  get repost() { return this._repost(); }
+  set repost(value: Ref | undefined) { this._repost.set(value); }
+
+  get errors() { return this._errors(); }
+  set errors(value: string[]) { this._errors.set(value); }
+
+  get progressMessages() { return this._progressMessages(); }
+  set progressMessages(value: string[]) { this._progressMessages.set(value); }
+
+  get progressNum() { return this._progressNum(); }
+  set progressNum(value: number) { this._progressNum.set(value); }
+
+  get progressDen() { return this._progressDen(); }
+  set progressDen(value: number) { this._progressDen.set(value); }
+
+  // New signal-based API
+  event$ = computed(() => this._event());
+  ref$ = computed(() => this._ref());
+  repost$ = computed(() => this._repost());
+  errors$ = computed(() => this._errors());
+  progressMessages$ = computed(() => this._progressMessages());
+  progressNum$ = computed(() => this._progressNum());
+  progressDen$ = computed(() => this._progressDen());
 
   constructor() {
-    makeAutoObservable(this, {
-      ref: observable.ref,
-      errors: observable.shallow,
-      runAndReload: false,
-      runAndRefresh: false,
-      catchError$: false,
-      isRef: false,
+    // Replace MobX reaction with Angular effect
+    effect(() => {
+      const event = this._event();
+      const ref = this._ref();
+      const errors = this._errors();
+      console.log('🚌️ Event Bus:', event, event === 'error' ? errors : '', ref);
     });
-    reaction(() => this.event, () => console.log('🚌️ Event Bus:', this.event, this.event === 'error' ? toJS(this.errors) : '', toJS(this.ref)));
   }
 
   fire(event: string, ref?: Ref, repost?: Ref) {

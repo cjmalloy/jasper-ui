@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { mapValues } from 'lodash-es';
 
@@ -7,7 +7,8 @@ import { mapValues } from 'lodash-es';
   selector: 'app-themes',
   templateUrl: './themes.component.html',
   styleUrls: ['./themes.component.scss'],
-  host: {'class': 'form-group'}
+  host: {'class': 'form-group'},
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ThemesFormComponent implements OnChanges {
 

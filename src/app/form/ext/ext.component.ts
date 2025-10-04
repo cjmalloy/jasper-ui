@@ -1,4 +1,4 @@
-import { Component, ElementRef, EventEmitter, Input, OnDestroy, Output, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, EventEmitter, Input, OnDestroy, Output, ViewChild } from '@angular/core';
 import {
   FormArray,
   FormControl,
@@ -30,7 +30,8 @@ import { themesForm } from '../themes/themes.component';
   selector: 'app-ext-form',
   templateUrl: './ext.component.html',
   styleUrls: ['./ext.component.scss'],
-  host: {'class': 'nested-form'}
+  host: {'class': 'nested-form'},
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ExtFormComponent implements OnDestroy {
   private destroy$ = new Subject<void>();

@@ -1,5 +1,5 @@
 import { CdkVirtualScrollViewport } from '@angular/cdk/scrolling';
-import { Component, Input, OnChanges, OnDestroy, SimpleChanges, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, OnChanges, OnDestroy, SimpleChanges, ViewChild } from '@angular/core';
 import { debounce, defer, delay, pull, pullAllWith, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { catchError, map, Subject, Subscription, takeUntil, throwError } from 'rxjs';
@@ -24,7 +24,8 @@ import { braces, tagOrigin } from '../../util/tag';
   selector: 'app-chat',
   templateUrl: './chat.component.html',
   styleUrls: ['./chat.component.scss'],
-  host: {'class': 'chat ext'}
+  host: {'class': 'chat ext'},
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
   private destroy$ = new Subject<void>();

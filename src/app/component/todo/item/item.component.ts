@@ -1,4 +1,4 @@
-import { Component, ElementRef, EventEmitter, HostBinding, HostListener, Input, NgZone, Output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, EventEmitter, HostBinding, HostListener, Input, NgZone, Output } from '@angular/core';
 import { ConfigService } from '../../../service/config.service';
 import { Store } from '../../../store/store';
 
@@ -7,7 +7,8 @@ import { Store } from '../../../store/store';
   selector: 'app-todo-item',
   templateUrl: './item.component.html',
   styleUrls: ['./item.component.scss'],
-  host: {'class': 'todo-item'}
+  host: {'class': 'todo-item'},
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class TodoItemComponent {
 

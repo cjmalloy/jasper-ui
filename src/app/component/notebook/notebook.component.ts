@@ -1,4 +1,4 @@
-import { Component, Input, OnDestroy, OnInit, QueryList, ViewChildren } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, OnDestroy, OnInit, QueryList, ViewChildren } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, forkJoin, Observable, of, Subject, takeUntil } from 'rxjs';
 import { HasChanges } from '../../guard/pending-changes.guard';
@@ -15,7 +15,8 @@ import { RefComponent } from '../ref/ref.component';
   selector: 'app-notebook',
   templateUrl: './notebook.component.html',
   styleUrl: './notebook.component.scss',
-  host: {'class': 'notebook ext'}
+  host: {'class': 'notebook ext'},
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class NotebookComponent implements OnInit, OnDestroy, HasChanges {
   private destroy$ = new Subject<void>();

@@ -1,4 +1,4 @@
-import { Component, Input, QueryList, ViewChildren } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, QueryList, ViewChildren } from '@angular/core';
 import { Router } from '@angular/router';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Page } from '../../../model/page';
@@ -10,7 +10,8 @@ import { PluginComponent } from '../plugin.component';
   selector: 'app-plugin-list',
   templateUrl: './plugin-list.component.html',
   styleUrls: ['./plugin-list.component.scss'],
-  host: {'class': 'plugin-list'}
+  host: {'class': 'plugin-list'},
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class PluginListComponent implements HasChanges {
 

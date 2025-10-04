@@ -1,7 +1,7 @@
 import { Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { TemplatePortal } from '@angular/cdk/portal';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, ElementRef, TemplateRef, ViewChild, ViewContainerRef } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, TemplateRef, ViewChild, ViewContainerRef } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { sortBy, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
@@ -21,7 +21,8 @@ import { printError } from '../../../util/http';
   selector: 'app-settings-backup-page',
   templateUrl: './backup.component.html',
   styleUrls: ['./backup.component.scss'],
-  host: {'class': 'backup'}
+  host: {'class': 'backup'},
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class SettingsBackupPage {
 
