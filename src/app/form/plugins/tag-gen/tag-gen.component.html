@@ -1,12 +1,10 @@
-@for (instance of instances; track instance.tag + '-' + instance.formIndex) {
-  @if (getForm(instance.formIndex); as form) {
-    <div>
-      <label [title]="plugin.config?.description">{{ plugin.name || plugin.tag }}</label>
-      <formly-form class="form plugin-content"
-                   [model]="instance.model"
-                   [form]="instance.formGroup"
-                   [fields]="form"
-                   [options]="options"></formly-form>
-    </div>
-  }
+@if (formGroup && form) {
+  <div>
+    <label [title]="plugin.config?.description">{{ plugin.name || plugin.tag }}</label>
+    <formly-form class="form plugin-content"
+                 [model]="model"
+                 [form]="formGroup"
+                 [fields]="form"
+                 [options]="options"></formly-form>
+  </div>
 }

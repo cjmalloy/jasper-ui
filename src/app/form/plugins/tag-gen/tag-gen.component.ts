@@ -7,15 +7,6 @@ import { AdminService } from '../../../service/admin.service';
 import { memo, MemoCache } from '../../../util/memo';
 import { access } from '../../../util/tag';
 
-interface TagFormInstance {
-  plugin: Plugin;
-  tag: string;
-  formIndex: number;
-  subTag: string;
-  formGroup: UntypedFormGroup;
-  model: any;
-}
-
 @Component({
   standalone: false,
   selector: 'app-form-tag-gen',
@@ -31,7 +22,10 @@ export class TagGenFormComponent implements OnInit, OnChanges {
   @Output()
   updateTag = new EventEmitter<string>();
 
-  instances: TagFormInstance[] = [];
+  formGroup?: UntypedFormGroup;
+  model: any = {};
+  currentTag?: string;
+  subTag?: string;
   options: FormlyFormOptions = {
     formState: {
       admin: this.admin,
@@ -47,23 +41,22 @@ export class TagGenFormComponent implements OnInit, OnChanges {
   ngOnChanges(changes: SimpleChanges) {
     MemoCache.clear(this);
     if (changes.tags || changes.plugin) {
-      this.updateInstances();
+      this.updateInstance();
     }
   }
 
   ngOnInit(): void {
-    this.updateInstances();
+    this.updateInstance();
     this.options.formState.config = this.plugin.defaults;
   }
 
-  private updateInstances() {
+  private updateInstance() {
     if (!this.tags || !this.plugin) return;
 
-    this.instances = [];
     const allTags = this.tags.value as string[];
 
+    // Find the first tag that matches this plugin
     for (const tag of allTags) {
-      // Check if this tag starts with the plugin tag
       const cleanTag = tag.replace(/^[_+]/, '');
       const cleanPluginTag = this.plugin.tag.replace(/^[_+]/, '');
       
@@ -76,51 +69,50 @@ export class TagGenFormComponent implements OnInit, OnChanges {
       const pluginParts = cleanPluginTag.split('/');
       const subTags = tagParts.slice(pluginParts.length);
       
-      // Match sub-tags to tagForm indices
-      for (let i = 0; i < subTags.length && this.plugin.config?.tagForm && i < this.plugin.config.tagForm.length; i++) {
-        if (this.plugin.config.tagForm[i]) {
-          const instance = this.createInstance(tag, i, subTags[i]);
-          this.instances.push(instance);
-        }
+      // Use the first sub-tag if it exists
+      if (subTags.length > 0 && this.plugin.config?.tagForm?.[0]) {
+        this.currentTag = tag;
+        this.subTag = subTags[0];
+        this.createFormInstance();
+        return;
       }
     }
+    
+    // No matching tag found - clear the form
+    this.currentTag = undefined;
+    this.subTag = undefined;
+    this.formGroup = undefined;
+    this.model = {};
   }
 
-  private createInstance(tag: string, formIndex: number, subTag: string): TagFormInstance {
-    const formGroup = this.fb.group({});
-    const model = this.createModel(formIndex, subTag);
-
-    // Watch for model changes and emit tag updates
-    formGroup.valueChanges.subscribe(() => {
-      this.emitTagUpdate(tag, formIndex, model);
-    });
-
-    return {
-      plugin: this.plugin,
-      tag,
-      formIndex,
-      subTag,
-      formGroup,
-      model
-    };
+  private createFormInstance() {
+    if (!this.formGroup) {
+      this.formGroup = this.fb.group({});
+      // Watch for model changes and emit tag updates
+      this.formGroup.valueChanges.subscribe(() => {
+        this.emitTagUpdate();
+      });
+    }
+    
+    this.model = this.createModel();
   }
 
-  private createModel(formIndex: number, subTag: string): any {
+  private createModel(): any {
     const model: any = {};
-    const form = this.getForm(formIndex);
+    const form = this.form;
 
-    if (form && form.length > 0) {
-      // For each field in the form, extract/parse the value from the sub-tag
-      for (const field of form) {
-        if (field.key) {
-          const key = field.key as string;
-          // Convert sub-tag to appropriate format for the field
-          // For duration fields, convert lowercase to uppercase (pt15m -> PT15M)
-          if (field.type === 'duration') {
-            model[key] = subTag.toUpperCase();
-          } else {
-            model[key] = subTag;
-          }
+    if (!form || form.length === 0 || !this.subTag) return model;
+
+    // For each field in the form, extract/parse the value from the sub-tag
+    for (const field of form) {
+      if (field.key) {
+        const key = field.key as string;
+        // Convert sub-tag to appropriate format for the field
+        // For duration fields, convert lowercase to uppercase (pt15m -> PT15M)
+        if (field.type === 'duration') {
+          model[key] = this.subTag.toUpperCase();
+        } else {
+          model[key] = this.subTag;
         }
       }
     }
@@ -128,8 +120,10 @@ export class TagGenFormComponent implements OnInit, OnChanges {
     return model;
   }
 
-  private emitTagUpdate(fullTag: string, formIndex: number, model: any) {
-    const form = this.getForm(formIndex);
+  private emitTagUpdate() {
+    if (!this.currentTag) return;
+    
+    const form = this.form;
     if (!form || form.length === 0) return;
     
     // Serialize the model back to a tag string
@@ -138,7 +132,7 @@ export class TagGenFormComponent implements OnInit, OnChanges {
     for (const field of form) {
       if (field.key) {
         const key = field.key as string;
-        const value = model[key];
+        const value = this.model[key];
         if (value) {
           // Convert value to string format for tag
           // For duration fields, convert uppercase to lowercase (PT15M -> pt15m)
@@ -154,19 +148,21 @@ export class TagGenFormComponent implements OnInit, OnChanges {
     if (!newSubTag) return;
     
     // Build the new tag
-    const accessPrefix = access(fullTag);
+    const accessPrefix = access(this.currentTag);
     const pluginTag = this.plugin.tag.replace(/^[_+]/, '');
     const newTag = accessPrefix + pluginTag + '/' + newSubTag;
     
     // Emit tag removal then addition if changed
-    if (newTag !== fullTag) {
-      this.updateTag.emit(fullTag);  // Remove old tag
-      this.updateTag.emit(newTag);    // Add new tag
+    if (newTag !== this.currentTag) {
+      this.updateTag.emit(this.currentTag);  // Remove old tag
+      this.updateTag.emit(newTag);            // Add new tag
+      this.currentTag = newTag;               // Update current tag reference
     }
   }
 
-  getForm(formIndex: number): FormlyFieldConfig[] | undefined {
-    return cloneDeep(this.plugin.config?.tagForm?.[formIndex]);
+  @memo
+  get form(): FormlyFieldConfig[] | undefined {
+    return cloneDeep(this.plugin.config?.tagForm?.[0]);
   }
 
   cssClass(tag: string) {
