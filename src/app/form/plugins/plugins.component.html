@@ -16,6 +16,16 @@
                   [children]="admin.getPluginSubForms(plugin.tag)"></app-form-gen>
   }
 }
+@for (tagForm of tagForms; track tagForm.tag + '-' + tagForm.formIndex) {
+  <app-form-gen #gen
+                [plugins]="plugins"
+                [plugin]="tagForm.plugin"
+                [tagFormIndex]="tagForm.formIndex"
+                [tagFormSubTag]="tagForm.subTag"
+                [tagFormFullTag]="tagForm.tag"
+                [group]="group"
+                (togglePlugin)="togglePlugin.next($event)"></app-form-gen>
+}
 @if (empty) {
   <div class="empty-plugins">
     no plugins
