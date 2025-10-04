@@ -146,6 +146,8 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
 
   private scrollMap = new Map<number, number>();
   private sourceMap: number[] = [];
+  private imageLoadCleanup: (() => void)[] = [];
+
 
   constructor(
     public admin: AdminService,
@@ -214,6 +216,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
     this.destroy$.complete();
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
+    this.cleanupImageListeners();
     document.body.style.height = '';
     document.body.classList.remove('fullscreen');
     this.el.nativeElement.style.setProperty('--viewport-height', this.store.viewportHeight + 'px');
@@ -251,8 +254,55 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
       this.sourceMap.push(start);
     });
     this.sourceMap.sort((a, b) => a - b);
-    // Preview has settled, make it visible
-    this.previewSettling = false;
+    // Wait for images to load before revealing preview
+    this.waitForImagesToLoad();
+  }
+
+  private cleanupImageListeners() {
+    this.imageLoadCleanup.forEach(cleanup => cleanup());
+    this.imageLoadCleanup.length = 0;
+  }
+
+  private waitForImagesToLoad() {
+    // Clean up any existing listeners first
+    this.cleanupImageListeners();
+    
+    if (!this.md?.el?.nativeElement) {
+      this.previewSettling = false;
+      return;
+    }
+    const images = Array.from(this.md.el.nativeElement.querySelectorAll('img')) as HTMLImageElement[];
+    if (images.length === 0) {
+      // No images, reveal immediately
+      this.previewSettling = false;
+      return;
+    }
+    let loadedCount = 0;
+    const totalImages = images.length;
+    const checkAllLoaded = () => {
+      loadedCount++;
+      if (loadedCount >= totalImages) {
+        this.previewSettling = false;
+        this.cleanupImageListeners();
+      }
+    };
+    images.forEach(img => {
+      if (img.complete) {
+        // Image already loaded
+        checkAllLoaded();
+      } else {
+        // Wait for image to load or error
+        const loadHandler = () => checkAllLoaded();
+        const errorHandler = () => checkAllLoaded();
+        img.addEventListener('load', loadHandler, { once: true });
+        img.addEventListener('error', errorHandler, { once: true });
+        // Store cleanup functions
+        this.imageLoadCleanup.push(() => {
+          img.removeEventListener('load', loadHandler);
+          img.removeEventListener('error', errorHandler);
+        });
+      }
+    });
   }
 
   onSelectEditor() {
