@@ -737,9 +737,15 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
     } else {
       const encodedUrls = refs.map(ref => (embed(ref!) ? '![]' : '![=]') + '(' + ref!.url.replace(')', '\\)') + ')\n').join('');
       this.syncText(text.substring(0, this.selectionStart) + encodedUrls + text.substring(this.selectionStart));
-      if (!text) this.preview = true;
+      if (!text) {
+        this.preview = true;
+        this.previewSettling = true;
+      }
     }
-    if (!text) this.preview = true;
+    if (!text) {
+      this.preview = true;
+      this.previewSettling = true;
+    }
     if (this.focused !== false) this.editor?.nativeElement.focus();
   }
 
