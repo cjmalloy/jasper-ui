@@ -3,7 +3,7 @@ import { TemplatePortal } from '@angular/cdk/portal';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
   AfterViewInit,
-  Component,
+  ChangeDetectionStrategy, Component,
   ElementRef,
   EventEmitter,
   HostBinding,

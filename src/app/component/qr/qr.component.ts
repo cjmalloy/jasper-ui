@@ -1,4 +1,4 @@
-import { Component, HostBinding, Input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, HostBinding, Input } from '@angular/core';
 import { toDataURL, } from 'qrcode'
 
 @Component({
@@ -6,6 +6,8 @@ import { toDataURL, } from 'qrcode'
   selector: 'app-qr',
   template: '',
   styleUrls: ['./qr.component.scss']
+,
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class QrComponent {
 

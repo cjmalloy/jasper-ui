@@ -1,6 +1,6 @@
 import {
   AfterViewInit,
-  Component,
+  ChangeDetectionStrategy, Component,
   ElementRef,
   EventEmitter,
   HostBinding,
@@ -44,6 +44,8 @@ export const IFRAME_SANDBOX = 'allow-scripts allow-forms allow-modals allow-orie
   selector: 'app-viewer',
   templateUrl: './viewer.component.html',
   styleUrls: ['./viewer.component.scss']
+,
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ViewerComponent implements OnChanges, AfterViewInit {
   @HostBinding('class') css = 'embed print-images';
