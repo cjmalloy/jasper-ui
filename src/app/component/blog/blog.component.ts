@@ -1,6 +1,4 @@
-import { 
-  ChangeDetectionStrategy,
-  Component, Input, OnDestroy, QueryList, ViewChildren } from '@angular/core';
+import { Component, Input, OnDestroy, QueryList, ViewChildren } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, forkJoin, of, Subject, takeUntil } from 'rxjs';
 import { HasChanges } from '../../guard/pending-changes.guard';
@@ -13,7 +11,6 @@ import { Store } from '../../store/store';
 import { BlogEntryComponent } from './blog-entry/blog-entry.component';
 
 @Component({
-  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false,
   selector: 'app-blog',
   templateUrl: './blog.component.html',

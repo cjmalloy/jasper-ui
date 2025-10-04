@@ -1,6 +1,4 @@
-import { 
-  ChangeDetectionStrategy,
-  Component, Input, OnChanges, OnDestroy, OnInit, QueryList, SimpleChanges, ViewChildren } from '@angular/core';
+import { Component, Input, OnChanges, OnDestroy, OnInit, QueryList, SimpleChanges, ViewChildren } from '@angular/core';
 import { autorun, IReactionDisposer } from 'mobx';
 import { Observable, Subject, takeUntil } from 'rxjs';
 import { HasChanges } from '../../../guard/pending-changes.guard';
@@ -10,7 +8,6 @@ import { ThreadStore } from '../../../store/thread';
 import { CommentComponent } from '../comment.component';
 
 @Component({
-  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false,
   selector: 'app-comment-thread',
   templateUrl: './comment-thread.component.html',

@@ -1,7 +1,5 @@
 import { CdkDragDrop, CdkDropListGroup } from '@angular/cdk/drag-drop';
 import {
-  
-  ChangeDetectionStrategy,
   Component,
   ElementRef,
   EventEmitter,
@@ -29,7 +27,6 @@ export type PieceColor = 'b' | 'w';
 type Piece = { type: PieceType, color: PieceColor, square: Square, };
 
 @Component({
-  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false,
   selector: 'app-chess',
   templateUrl: './chess.component.html',

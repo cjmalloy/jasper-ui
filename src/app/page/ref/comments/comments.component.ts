@@ -1,6 +1,4 @@
-import { 
-  ChangeDetectionStrategy,
-  Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { uniq } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { Subject } from 'rxjs';
@@ -17,7 +15,6 @@ import { memo, MemoCache } from '../../../util/memo';
 import { hasTag, removeTag, updateMetadata } from '../../../util/tag';
 
 @Component({
-  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false,
   selector: 'app-ref-comments',
   templateUrl: './comments.component.html',

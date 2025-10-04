@@ -1,7 +1,5 @@
 import {
   AfterViewInit,
-  
-  ChangeDetectionStrategy,
   Component,
   ElementRef,
   HostBinding,
@@ -52,7 +50,6 @@ import { CommentReplyComponent } from './comment-reply/comment-reply.component';
 import { CommentThreadComponent } from './comment-thread/comment-thread.component';
 
 @Component({
-  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false,
   selector: 'app-comment',
   templateUrl: './comment.component.html',

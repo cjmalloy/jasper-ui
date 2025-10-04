@@ -1,7 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { 
-  ChangeDetectionStrategy,
-  Component } from '@angular/core';
+import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, concat, concatMap, generate, last, Observable, of } from 'rxjs';
 import { tap } from 'rxjs/operators';
@@ -18,7 +16,6 @@ import { UserStore } from '../../store/user';
 import { printError } from '../../util/http';
 
 @Component({
-  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false,
   selector: 'app-debug',
   templateUrl: './debug.component.html',

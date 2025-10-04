@@ -1,6 +1,4 @@
-import { 
-  ChangeDetectionStrategy,
-  Component, Input, OnDestroy, OnInit, QueryList, ViewChildren } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit, QueryList, ViewChildren } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, forkJoin, Observable, of, Subject, takeUntil } from 'rxjs';
 import { HasChanges } from '../../guard/pending-changes.guard';
@@ -13,7 +11,6 @@ import { Store } from '../../store/store';
 import { RefComponent } from '../ref/ref.component';
 
 @Component({
-  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false,
   selector: 'app-notebook',
   templateUrl: './notebook.component.html',

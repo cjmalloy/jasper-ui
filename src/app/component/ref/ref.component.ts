@@ -2,8 +2,6 @@ import { HttpErrorResponse } from '@angular/common/http';
 import {
   AfterViewInit,
   ChangeDetectorRef,
-  
-  ChangeDetectionStrategy,
   Component,
   ElementRef,
   EventEmitter,
@@ -76,7 +74,6 @@ import { CommentReplyComponent } from '../comment/comment-reply/comment-reply.co
 import { ViewerComponent } from '../viewer/viewer.component';
 
 @Component({
-  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false,
   selector: 'app-ref',
   templateUrl: './ref.component.html',

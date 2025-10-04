@@ -1,7 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { 
-  ChangeDetectionStrategy,
-  Component, EventEmitter, Input, Output, ViewChild } from '@angular/core';
+import { Component, EventEmitter, Input, Output, ViewChild } from '@angular/core';
 import { FormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { pickBy, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
@@ -23,7 +21,6 @@ import { printError } from '../../../util/http';
 import { hasTag, removeTag } from '../../../util/tag';
 
 @Component({
-  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false,
   selector: 'app-comment-reply',
   templateUrl: './comment-reply.component.html',

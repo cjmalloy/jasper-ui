@@ -1,6 +1,4 @@
-import { 
-  ChangeDetectionStrategy,
-  Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { defer } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { LensComponent } from '../../component/lens/lens.component';
@@ -14,7 +12,6 @@ import { Store } from '../../store/store';
 import { getArgs } from '../../util/query';
 
 @Component({
-  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false,
   selector: 'app-home-page',
   templateUrl: './home.component.html',

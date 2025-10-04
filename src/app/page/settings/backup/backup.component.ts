@@ -1,9 +1,7 @@
 import { Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { TemplatePortal } from '@angular/cdk/portal';
 import { HttpErrorResponse } from '@angular/common/http';
-import { 
-  ChangeDetectionStrategy,
-  Component, ElementRef, TemplateRef, ViewChild, ViewContainerRef } from '@angular/core';
+import { Component, ElementRef, TemplateRef, ViewChild, ViewContainerRef } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { sortBy, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
@@ -19,7 +17,6 @@ import { ORIGIN_REGEX } from '../../../util/format';
 import { printError } from '../../../util/http';
 
 @Component({
-  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false,
   selector: 'app-settings-backup-page',
   templateUrl: './backup.component.html',

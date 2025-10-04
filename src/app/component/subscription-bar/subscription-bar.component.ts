@@ -1,7 +1,5 @@
 import { Location } from '@angular/common';
-import { 
-  ChangeDetectionStrategy,
-  Component, OnDestroy } from '@angular/core';
+import { Component, OnDestroy } from '@angular/core';
 import { autorun, IReactionDisposer } from 'mobx';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
@@ -11,7 +9,6 @@ import { ModService } from '../../service/mod.service';
 import { Store } from '../../store/store';
 
 @Component({
-  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false,
   selector: 'app-subscription-bar',
   templateUrl: './subscription-bar.component.html',

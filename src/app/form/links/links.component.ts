@@ -1,12 +1,9 @@
-import { 
-  ChangeDetectionStrategy,
-  Component, HostBinding, Input } from '@angular/core';
+import { Component, HostBinding, Input } from '@angular/core';
 import { FormBuilder, UntypedFormArray, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { map } from 'lodash-es';
 import { URI_REGEX } from '../../util/format';
 
 @Component({
-  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false,
   selector: 'app-links',
   templateUrl: './links.component.html',

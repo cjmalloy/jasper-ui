@@ -1,13 +1,10 @@
-import { 
-  ChangeDetectionStrategy,
-  Component } from '@angular/core';
+import { Component } from '@angular/core';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
 
 @Component({
-  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false,
   selector: 'app-settings',
   templateUrl: './settings.component.html',

@@ -3,8 +3,6 @@ import { DomPortal, TemplatePortal } from '@angular/cdk/portal';
 import { HttpEventType } from '@angular/common/http';
 import {
   AfterViewInit,
-  
-  ChangeDetectionStrategy,
   Component,
   ElementRef,
   EventEmitter,
@@ -52,7 +50,6 @@ export interface EditorUpload {
 }
 
 @Component({
-  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false,
   selector: 'app-editor',
   templateUrl: './editor.component.html',

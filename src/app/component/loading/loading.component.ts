@@ -1,9 +1,6 @@
-import { 
-  ChangeDetectionStrategy,
-  Component, HostBinding, Input } from '@angular/core';
+import { Component, HostBinding, Input } from '@angular/core';
 
 @Component({
-  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false,
   selector: 'app-loading',
   templateUrl: './loading.component.html',

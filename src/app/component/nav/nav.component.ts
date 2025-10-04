@@ -1,6 +1,4 @@
-import { 
-  ChangeDetectionStrategy,
-  Component, ElementRef, Input, OnDestroy, OnInit } from '@angular/core';
+import { Component, ElementRef, Input, OnDestroy, OnInit } from '@angular/core';
 import { Subject, takeUntil } from 'rxjs';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
@@ -12,7 +10,6 @@ import { getPath, parseParams } from '../../util/http';
 import { hasPrefix } from '../../util/tag';
 
 @Component({
-  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false,
   selector: 'app-nav',
   templateUrl: './nav.component.html',

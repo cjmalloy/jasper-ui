@@ -1,7 +1,5 @@
 import { HttpEvent, HttpEventType } from '@angular/common/http';
-import { 
-  ChangeDetectionStrategy,
-  Component, EventEmitter, Output } from '@angular/core';
+import { Component, EventEmitter, Output } from '@angular/core';
 import { catchError, last, map, of } from 'rxjs';
 import { Ref } from '../../model/ref';
 import { ProxyService } from '../../service/api/proxy.service';
@@ -10,7 +8,6 @@ import { Saving } from '../../store/submit';
 import { readFileAsDataURL } from '../../util/async';
 
 @Component({
-  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false,
   selector: 'app-image-upload',
   templateUrl: './image-upload.component.html',

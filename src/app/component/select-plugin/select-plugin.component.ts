@@ -1,6 +1,4 @@
-import { 
-  ChangeDetectionStrategy,
-  Component, ElementRef, EventEmitter, Input, OnChanges, Output, SimpleChanges, ViewChild } from '@angular/core';
+import { Component, ElementRef, EventEmitter, Input, OnChanges, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { defer, uniqBy } from 'lodash-es';
 import { v4 as uuid } from 'uuid';
 import { Plugin } from '../../model/plugin';
@@ -8,7 +6,6 @@ import { AdminService } from '../../service/admin.service';
 import { AuthzService } from '../../service/authz.service';
 
 @Component({
-  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false,
   selector: 'app-select-plugin',
   templateUrl: './select-plugin.component.html',

@@ -1,6 +1,4 @@
-import { 
-  ChangeDetectionStrategy,
-  Component, Input, OnDestroy, OnInit, QueryList, ViewChildren } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit, QueryList, ViewChildren } from '@angular/core';
 import { Router } from '@angular/router';
 import { DateTime } from 'luxon';
 import { catchError, forkJoin, Observable, of, Subject, takeUntil } from 'rxjs';
@@ -15,7 +13,6 @@ import { Store } from '../../../store/store';
 import { RefComponent } from '../ref.component';
 
 @Component({
-  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false,
   selector: 'app-ref-list',
   templateUrl: './ref-list.component.html',

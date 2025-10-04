@@ -1,6 +1,4 @@
-import { 
-  ChangeDetectionStrategy,
-  Component, ElementRef, Input, OnChanges, OnDestroy, SimpleChanges, ViewChild } from '@angular/core';
+import { Component, ElementRef, Input, OnChanges, OnDestroy, SimpleChanges, ViewChild } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import { autorun, IReactionDisposer, toJS } from 'mobx';
 import { filter } from 'rxjs';
@@ -27,7 +25,6 @@ export const allRefSorts: {value: RefSort, label: string, title?: string }[] = [
 ];
 
 @Component({
-  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false,
   selector: 'app-sort',
   templateUrl: './sort.component.html',

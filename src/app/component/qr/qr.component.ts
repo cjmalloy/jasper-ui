@@ -1,10 +1,7 @@
-import { 
-  ChangeDetectionStrategy,
-  Component, HostBinding, Input } from '@angular/core';
+import { Component, HostBinding, Input } from '@angular/core';
 import { toDataURL, } from 'qrcode'
 
 @Component({
-  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false,
   selector: 'app-qr',
   template: '',

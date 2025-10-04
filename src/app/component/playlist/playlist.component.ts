@@ -1,11 +1,8 @@
-import { 
-  ChangeDetectionStrategy,
-  Component, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { Ref } from '../../model/ref';
 import { RefService } from '../../service/api/ref.service';
 
 @Component({
-  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false,
   selector: 'app-playlist',
   templateUrl: './playlist.component.html',

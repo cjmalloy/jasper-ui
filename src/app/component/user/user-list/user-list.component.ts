@@ -1,6 +1,4 @@
-import { 
-  ChangeDetectionStrategy,
-  Component, Input, QueryList, ViewChildren } from '@angular/core';
+import { Component, Input, QueryList, ViewChildren } from '@angular/core';
 import { Router } from '@angular/router';
 import { find } from 'lodash-es';
 import { catchError, of } from 'rxjs';
@@ -12,7 +10,6 @@ import { ProfileService } from '../../../service/api/profile.service';
 import { UserComponent } from '../user.component';
 
 @Component({
-  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false,
   selector: 'app-user-list',
   templateUrl: './user-list.component.html',

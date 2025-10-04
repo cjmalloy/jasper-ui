@@ -1,6 +1,4 @@
-import { 
-  ChangeDetectionStrategy,
-  Component, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { runInAction } from 'mobx';
 import { AdminService } from '../../service/admin.service';
 import { AuthzService } from '../../service/authz.service';
@@ -8,7 +6,6 @@ import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
 
 @Component({
-  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false,
   selector: 'app-settings-page',
   templateUrl: './settings.component.html',

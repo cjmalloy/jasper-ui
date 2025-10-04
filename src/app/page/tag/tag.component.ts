@@ -1,6 +1,4 @@
-import { 
-  ChangeDetectionStrategy,
-  Component, HostBinding, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, HostBinding, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { isEqual, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { LensComponent } from '../../component/lens/lens.component';
@@ -15,7 +13,6 @@ import { Store } from '../../store/store';
 import { getArgs, UrlFilter } from '../../util/query';
 
 @Component({
-  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false,
   selector: 'app-tag-page',
   templateUrl: './tag.component.html',

@@ -1,7 +1,5 @@
 import {
   AfterViewInit,
-  
-  ChangeDetectionStrategy,
   Component,
   EventEmitter,
   Input,
@@ -23,7 +21,6 @@ import { addAllHierarchicalTags, hasTag } from '../../util/tag';
 import { GenFormComponent } from './gen/gen.component';
 
 @Component({
-  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false,
   selector: 'app-form-plugins',
   templateUrl: './plugins.component.html',

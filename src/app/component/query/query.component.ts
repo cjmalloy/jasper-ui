@@ -1,6 +1,4 @@
-import { 
-  ChangeDetectionStrategy,
-  Component, ElementRef, Input, ViewChild } from '@angular/core';
+import { Component, ElementRef, Input, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { defer } from 'lodash-es';
 import { AdminService } from '../../service/admin.service';
@@ -11,7 +9,6 @@ import { access, fixClientQuery, getStrictPrefix, localTag, tagOrigin } from '..
 export type Crumb = { text: string, tag?: string, pos: number, len: number };
 
 @Component({
-  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false,
   selector: 'app-query',
   templateUrl: './query.component.html',

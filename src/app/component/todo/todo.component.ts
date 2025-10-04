@@ -1,7 +1,5 @@
 import { CdkDragDrop } from '@angular/cdk/drag-drop';
 import {
-  
-  ChangeDetectionStrategy,
   Component,
   EventEmitter,
   HostBinding,
@@ -20,7 +18,6 @@ import { Store } from '../../store/store';
 import { printError } from '../../util/http';
 
 @Component({
-  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false,
   selector: 'app-todo',
   templateUrl: './todo.component.html',

@@ -1,9 +1,7 @@
 import { Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { TemplatePortal } from '@angular/cdk/portal';
 import { HttpErrorResponse } from '@angular/common/http';
-import { 
-  ChangeDetectionStrategy,
-  Component, ElementRef, HostBinding, Input, TemplateRef, ViewChild, ViewContainerRef } from '@angular/core';
+import { Component, ElementRef, HostBinding, Input, TemplateRef, ViewChild, ViewContainerRef } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { catchError, Observable, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
@@ -15,7 +13,6 @@ import { readableBytes } from '../../util/format';
 import { printError } from '../../util/http';
 
 @Component({
-  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false,
   selector: 'app-backup',
   templateUrl: './backup.component.html',

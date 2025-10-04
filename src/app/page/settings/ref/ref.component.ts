@@ -1,6 +1,4 @@
-import { 
-  ChangeDetectionStrategy,
-  Component, inject, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { defer, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
@@ -14,7 +12,6 @@ import { Store } from '../../../store/store';
 import { getArgs } from '../../../util/query';
 
 @Component({
-  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false,
   selector: 'app-settings-ref-page',
   templateUrl: './ref.component.html',

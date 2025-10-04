@@ -1,6 +1,4 @@
-import { 
-  ChangeDetectionStrategy,
-  Component, ViewChild } from '@angular/core';
+import { Component, ViewChild } from '@angular/core';
 import { defer, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { catchError, filter, of, Subject, Subscription, switchMap, takeUntil } from 'rxjs';
@@ -23,7 +21,6 @@ import { getArgs } from '../../../util/query';
 import { hasTag, removeTag, top, updateMetadata } from '../../../util/tag';
 
 @Component({
-  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false,
   selector: 'app-ref-thread',
   templateUrl: './thread.component.html',

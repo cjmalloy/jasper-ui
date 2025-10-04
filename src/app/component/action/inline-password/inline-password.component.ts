@@ -1,11 +1,8 @@
-import { 
-  ChangeDetectionStrategy,
-  Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { catchError, Observable, of } from 'rxjs';
 import { ActionComponent } from '../action.component';
 
 @Component({
-  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false,
   selector: 'app-inline-password',
   templateUrl: './inline-password.component.html',

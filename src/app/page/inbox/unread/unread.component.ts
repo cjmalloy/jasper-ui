@@ -1,6 +1,4 @@
-import { 
-  ChangeDetectionStrategy,
-  Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { defer } from 'lodash-es';
 import { DateTime } from 'luxon';
@@ -13,7 +11,6 @@ import { QueryStore } from '../../../store/query';
 import { Store } from '../../../store/store';
 
 @Component({
-  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false,
   selector: 'app-unread',
   templateUrl: './unread.component.html',

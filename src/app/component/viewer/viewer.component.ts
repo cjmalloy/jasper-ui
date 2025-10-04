@@ -1,7 +1,5 @@
 import {
   AfterViewInit,
-  
-  ChangeDetectionStrategy,
   Component,
   ElementRef,
   EventEmitter,
@@ -42,7 +40,6 @@ import { hasPrefix, hasTag } from '../../util/tag';
 export const IFRAME_SANDBOX = 'allow-scripts allow-forms allow-modals allow-orientation-lock allow-pointer-lock allow-popups allow-presentation allow-top-navigation-by-user-activation';
 
 @Component({
-  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false,
   selector: 'app-viewer',
   templateUrl: './viewer.component.html',

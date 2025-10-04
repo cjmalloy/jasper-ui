@@ -1,7 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { 
-  ChangeDetectionStrategy,
-  Component, HostBinding, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, HostBinding, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
 import { defer, uniq } from 'lodash-es';
@@ -22,7 +20,6 @@ import { printError } from '../../util/http';
 import { prefix, setPublic } from '../../util/tag';
 
 @Component({
-  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false,
   selector: 'app-user-page',
   templateUrl: './user.component.html',

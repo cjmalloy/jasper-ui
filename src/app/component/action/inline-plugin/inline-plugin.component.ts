@@ -1,6 +1,4 @@
-import { 
-  ChangeDetectionStrategy,
-  Component, EventEmitter, Input, Output, ViewChild } from '@angular/core';
+import { Component, EventEmitter, Input, Output, ViewChild } from '@angular/core';
 import { FormBuilder, UntypedFormGroup } from '@angular/forms';
 import { defer } from 'lodash-es';
 import { catchError, Observable, of } from 'rxjs';
@@ -11,7 +9,6 @@ import { AdminService } from '../../../service/admin.service';
 import { ActionComponent } from '../action.component';
 
 @Component({
-  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false,
   selector: 'app-inline-plugin',
   templateUrl: './inline-plugin.component.html',

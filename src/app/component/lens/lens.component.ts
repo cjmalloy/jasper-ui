@@ -1,6 +1,4 @@
-import { 
-  ChangeDetectionStrategy,
-  Component, Input, OnChanges, QueryList, SimpleChanges, ViewChildren } from '@angular/core';
+import { Component, Input, OnChanges, QueryList, SimpleChanges, ViewChildren } from '@angular/core';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ext } from '../../model/ext';
 import { Page } from '../../model/page';
@@ -12,7 +10,6 @@ import { UrlFilter } from '../../util/query';
 import { hasPrefix } from '../../util/tag';
 
 @Component({
-  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false,
   selector: 'app-lens',
   templateUrl: './lens.component.html',
