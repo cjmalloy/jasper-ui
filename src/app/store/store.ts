@@ -16,7 +16,7 @@ export class Store {
 
   local = inject(LocalStore);
   eventBus = inject(EventBus);
-  origins = new OriginStore();
+  origins = inject(OriginStore);
   account = new AccountStore(this.origins);
   view = new ViewStore(this.route, this.account);
   submit = new SubmitStore(this.route, this.eventBus);
