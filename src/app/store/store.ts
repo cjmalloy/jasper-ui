@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { makeAutoObservable, observable } from 'mobx';
 import { RouterStore } from 'mobx-angular';
 import { AccountStore } from './account';
@@ -14,8 +14,8 @@ import { ViewStore } from './view';
 })
 export class Store {
 
-  local = new LocalStore();
-  eventBus = new EventBus();
+  local = inject(LocalStore);
+  eventBus = inject(EventBus);
   origins = new OriginStore();
   account = new AccountStore(this.origins);
   view = new ViewStore(this.route, this.account);
