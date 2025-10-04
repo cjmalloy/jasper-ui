@@ -14,7 +14,8 @@ import { UserComponent } from '../user.component';
   selector: 'app-user-list',
   templateUrl: './user-list.component.html',
   styleUrls: ['./user-list.component.scss'],
-  host: {'class': 'user-list'}
+  host: {'class': 'user-list'},
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class UserListComponent implements HasChanges {
 

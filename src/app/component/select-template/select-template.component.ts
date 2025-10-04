@@ -10,7 +10,8 @@ import { access } from '../../util/tag';
   selector: 'app-select-template',
   templateUrl: './select-template.component.html',
   styleUrls: ['./select-template.component.scss'],
-  host: {'class': 'select-template'}
+  host: {'class': 'select-template'},
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class SelectTemplateComponent {
 

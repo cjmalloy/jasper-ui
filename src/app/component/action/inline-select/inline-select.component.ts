@@ -7,7 +7,8 @@ import { ActionComponent } from '../action.component';
   selector: 'app-inline-select',
   templateUrl: './inline-select.component.html',
   styleUrls: ['./inline-select.component.scss'],
-  host: {'class': 'action'}
+  host: {'class': 'action'},
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class InlineSelectComponent extends ActionComponent {
 

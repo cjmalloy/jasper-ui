@@ -10,7 +10,8 @@ import { AuthzService } from '../../service/authz.service';
   selector: 'app-select-plugin',
   templateUrl: './select-plugin.component.html',
   styleUrls: ['./select-plugin.component.scss'],
-  host: {'class': 'select-plugin'}
+  host: {'class': 'select-plugin'},
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class SelectPluginComponent implements OnChanges {
 

@@ -19,7 +19,8 @@ import { Camera, hasCamera, listCameras } from '../../util/webcam';
   selector: 'app-qr-scanner',
   templateUrl: './qr-scanner.component.html',
   styleUrls: ['./qr-scanner.component.scss'],
-  host: {'class': 'form-array'}
+  host: {'class': 'form-array'},
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class QrScannerComponent implements OnDestroy {
 

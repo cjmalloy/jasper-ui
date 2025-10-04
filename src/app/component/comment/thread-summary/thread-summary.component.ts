@@ -10,7 +10,8 @@ import { getArgs } from '../../../util/query';
   selector: 'app-thread-summary',
   templateUrl: './thread-summary.component.html',
   styleUrls: ['./thread-summary.component.scss'],
-  host: {'class': 'thread-summary'}
+  host: {'class': 'thread-summary'},
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ThreadSummaryComponent implements OnInit, OnChanges, OnDestroy {
   private destroy$ = new Subject<void>();

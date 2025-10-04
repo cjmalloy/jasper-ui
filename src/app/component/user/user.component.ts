@@ -39,7 +39,8 @@ import { ActionComponent } from '../action/action.component';
   selector: 'app-user',
   templateUrl: './user.component.html',
   styleUrls: ['./user.component.scss'],
-  host: {'class': 'profile list-item'}
+  host: {'class': 'profile list-item'},
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class UserComponent implements OnChanges, HasChanges {
   @HostBinding('attr.tabindex') tabIndex = 0;

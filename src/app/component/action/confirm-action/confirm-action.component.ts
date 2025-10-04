@@ -7,7 +7,8 @@ import { ActionComponent } from '../action.component';
   selector: 'app-confirm-action',
   templateUrl: './confirm-action.component.html',
   styleUrls: ['./confirm-action.component.scss'],
-  host: {'class': 'action'}
+  host: {'class': 'action'},
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ConfirmActionComponent extends ActionComponent {
 

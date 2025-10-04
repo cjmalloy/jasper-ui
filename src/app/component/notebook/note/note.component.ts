@@ -40,7 +40,8 @@ import { expandedTagsInclude, hasTag, repost } from '../../../util/tag';
   selector: 'app-note',
   templateUrl: './note.component.html',
   styleUrls: ['./note.component.scss'],
-  host: {'class': 'note'}
+  host: {'class': 'note'},
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class NoteComponent implements OnChanges, AfterViewInit, OnDestroy {
   private destroy$ = new Subject<void>();

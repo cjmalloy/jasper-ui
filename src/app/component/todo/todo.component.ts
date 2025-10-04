@@ -22,7 +22,8 @@ import { printError } from '../../util/http';
   selector: 'app-todo',
   templateUrl: './todo.component.html',
   styleUrls: ['./todo.component.scss'],
-  host: {'class': 'todo-list'}
+  host: {'class': 'todo-list'},
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class TodoComponent implements OnChanges {
 

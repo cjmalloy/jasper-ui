@@ -7,7 +7,8 @@ import { ActionComponent } from '../action.component';
   selector: 'app-inline-button',
   templateUrl: './inline-button.component.html',
   styleUrls: ['./inline-button.component.scss'],
-  host: {'class': 'action'}
+  host: {'class': 'action'},
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class InlineButtonComponent extends ActionComponent {
 
