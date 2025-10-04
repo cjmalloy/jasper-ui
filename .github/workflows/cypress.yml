@@ -38,7 +38,7 @@ jobs:
         with:
           name: cypress-reports-${{ github.ref_name }}-${{ github.run_number }}
           path: cypress/reports/html
-          retention-days: 90
+          retention-days: 30
       - name: Comment on PR
         if: github.event_name == 'pull_request' && always()
         uses: actions/github-script@v8
@@ -67,7 +67,7 @@ jobs:
         with:
           # language=JavaScript
           script: |
-            const maxVersions = 5;
+            const maxVersions = 3;
             const response = await github.rest.actions.listArtifactsForRepo({
               owner: context.repo.owner,
               repo: context.repo.repo,

@@ -53,7 +53,7 @@ jobs:
         with:
           name: karma-reports-${{ github.ref_name }}-${{ github.run_number }}
           path: report
-          retention-days: 90
+          retention-days: 30
 
   clean:
     needs: test
@@ -68,7 +68,7 @@ jobs:
         with:
           # language=JavaScript
           script: |
-            const maxVersions = 5;
+            const maxVersions = 3;
             const response = await github.rest.actions.listArtifactsForRepo({
               owner: context.repo.owner,
               repo: context.repo.repo,
