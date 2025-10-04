@@ -1,5 +1,5 @@
 import {
-  Component,
+  ChangeDetectionStrategy, Component,
   ElementRef,
   EventEmitter,
   HostBinding,

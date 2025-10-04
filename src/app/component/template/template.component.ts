@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, HostBinding, Input, OnChanges, QueryList, SimpleChanges, ViewChildren } from '@angular/core';
+import { ChangeDetectionStrategy, Component, HostBinding, Input, OnChanges, QueryList, SimpleChanges, ViewChildren } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { catchError, of, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
@@ -20,6 +20,8 @@ import { ActionComponent } from '../action/action.component';
   selector: 'app-template',
   templateUrl: './template.component.html',
   styleUrls: ['./template.component.scss']
+,
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class TemplateComponent implements OnChanges, HasChanges {
   css = 'template list-item';

@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import {
-  Component,
+  ChangeDetectionStrategy, Component,
   HostBinding,
   Input,
   OnChanges,
