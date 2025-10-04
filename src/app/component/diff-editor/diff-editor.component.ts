@@ -1,4 +1,4 @@
-import { Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { autorun, IReactionDisposer } from 'mobx';
 import { Ref, writeRef } from '../../model/ref';
 import { Store } from '../../store/store';
@@ -17,6 +17,10 @@ export class DiffEditorComponent implements OnInit, OnDestroy {
   original!: Ref;
   @Input()
   modified!: Ref;
+  @Input()
+  readOnly = false;
+  @Output()
+  modifiedChange = new EventEmitter<Ref>();
 
   originalModel: DiffEditorModel = { code: '', language: 'json' };
   modifiedModel: DiffEditorModel = { code: '', language: 'json' };
@@ -46,6 +50,7 @@ export class DiffEditorComponent implements OnInit, OnDestroy {
       this.diffOptions = {
         ...this.diffOptions,
         theme: this.store.darkTheme ? 'vs-dark' : 'vs',
+        readOnly: this.readOnly,
       };
     }));
   }
@@ -53,5 +58,9 @@ export class DiffEditorComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
+  }
+
+  getModifiedContent(): string {
+    return this.modifiedModel.code;
   }
 }

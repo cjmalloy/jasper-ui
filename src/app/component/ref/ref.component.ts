@@ -90,6 +90,8 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   refForm?: RefFormComponent;
   @ViewChild(CommentReplyComponent)
   reply?: CommentReplyComponent;
+  @ViewChild('diffEditor')
+  diffEditor?: any;
 
   @Input()
   ref!: Ref;
@@ -1096,6 +1098,40 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     }
     // Fetch and display diff
     this.diff$().subscribe();
+  }
+
+  saveDiff() {
+    if (!this.diffEditor) return;
+    
+    try {
+      // Get modified content from diff editor
+      const modifiedJson = this.diffEditor.getModifiedContent();
+      const modifiedRef = JSON.parse(modifiedJson);
+      
+      // Update the current ref with the modified version from diff
+      this.submitting = this.store.eventBus.runAndReload(this.refs.update(modifiedRef).pipe(
+        tap(cursor => {
+          this.accounts.clearNotificationsIfNone(DateTime.fromISO(cursor));
+          delete this.submitting;
+          this.viewDiff = false;
+        }),
+        catchError((res: HttpErrorResponse) => {
+          delete this.submitting;
+          if (res.status === 400) {
+            this.invalid = true;
+            console.error('Invalid ref data:', res.message);
+          }
+          if (res.status === 409) {
+            this.overwritten = true;
+            this.refs.get(this.ref.url, this.ref.origin).subscribe(x => this.overwrittenModified = x.modifiedString);
+          }
+          return throwError(() => res);
+        }),
+      ), modifiedRef);
+    } catch (error) {
+      console.error('Error parsing modified JSON:', error);
+      alert('Invalid JSON in modified editor');
+    }
   }
 
   @memo

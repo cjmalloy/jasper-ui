@@ -339,12 +339,16 @@
   </form>
 } @else if (viewDiff && diffOriginal && diffModified) {
   <div class="diff-view">
-    <app-diff-editor
+    <app-diff-editor #diffEditor
       [original]="diffOriginal"
-      [modified]="diffModified">
+      [modified]="diffModified"
+      [readOnly]="!local || !!ref.metadata?.obsolete">
     </app-diff-editor>
     <span class="buttons right">
-      <button type="button" (click)="viewDiff = false" i18n>close</button>
+      @if (local && !ref.metadata?.obsolete) {
+        <button type="button" (click)="saveDiff()" i18n>save</button>
+      }
+      <button type="button" (click)="viewDiff = false" i18n>cancel</button>
     </span>
   </div>
 } @else {
