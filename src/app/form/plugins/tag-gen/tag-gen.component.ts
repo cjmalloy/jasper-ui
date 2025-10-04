@@ -52,9 +52,9 @@ export class TagGenFormComponent implements OnChanges {
         this.form = this.plugin.config?.tagForm?.[0];
         this.options.formState.config = this.plugin.defaults;
         
-        const subTag = tag === pluginTag ? '' : tag.split('/').slice(pluginTag.split('/').length)[0];
+        const subTags = tag === pluginTag ? [] : tag.split('/').slice(pluginTag.split('/').length);
         this.updating = true;
-        this.model = this.createModel(subTag);
+        this.model = this.createModel(subTags);
         this.updating = false;
         return;
       }
@@ -65,16 +65,21 @@ export class TagGenFormComponent implements OnChanges {
     this.model = {};
   }
 
-  private createModel(subTag: string): any {
+  private createModel(subTags: string[]): any {
     if (!this.form?.length) return {};
 
     const model: any = {};
+    
     for (const field of this.form) {
       if (!field.key) continue;
       
       const key = field.key as string;
-      if (subTag) {
-        model[key] = field.type === 'duration' ? subTag.toUpperCase() : subTag;
+      // Find the value for this key in the subTags (key/value pairs)
+      const keyIndex = subTags.indexOf(key);
+      
+      if (keyIndex !== -1 && keyIndex + 1 < subTags.length) {
+        const value = subTags[keyIndex + 1];
+        model[key] = field.type === 'duration' ? value.toUpperCase() : value;
       } else {
         model[key] = field.defaultValue ?? this.plugin.defaults?.[key];
       }
@@ -85,16 +90,20 @@ export class TagGenFormComponent implements OnChanges {
   private onFormChange() {
     if (this.updating || this.tagIndex === undefined || !this.form?.length) return;
 
-    const field = this.form.find(f => f.key);
-    if (!field?.key) return;
+    const tagParts: string[] = [];
+    for (const field of this.form) {
+      if (!field.key) continue;
+      
+      const key = field.key as string;
+      const value = this.model[key];
+      if (!value) return;
+      
+      tagParts.push(key);
+      tagParts.push(field.type === 'duration' ? value.toLowerCase() : value);
+    }
 
-    const key = field.key as string;
-    const value = this.model[key];
-    if (!value) return;
-
-    const subTag = field.type === 'duration' ? value.toLowerCase() : value;
     const currentTag = this.tags.at(this.tagIndex).value;
-    const newTag = access(currentTag) + this.plugin.tag.replace(/^[_+]/, '') + '/' + subTag;
+    const newTag = access(currentTag) + this.plugin.tag.replace(/^[_+]/, '') + '/' + tagParts.join('/');
 
     if (newTag !== currentTag) {
       this.tags.at(this.tagIndex).setValue(newTag);
