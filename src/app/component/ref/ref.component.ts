@@ -1037,12 +1037,20 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
         if (err.status === 409) {
           return this.refs.get(this.ref.url, this.store.account.origin).pipe(
             switchMap(existing => {
-              if (equalsRef(existing, copied) || confirm('An old version already exists. Overwrite it?')) {
-                // TODO: Show diff and merge or split
+              if (equalsRef(existing, copied)) {
                 return this.refs.update({ ...copied, modifiedString: existing.modifiedString });
-              } else {
-                return throwError(() => 'Cancelled')
               }
+              if (confirm('An old version already exists. Overwrite it?')) {
+                if (this.hasDiff && confirm('Would you like to view the differences first?')) {
+                  // Switch to diff view
+                  this.diffOriginal = existing;
+                  this.diffModified = copied;
+                  this.viewDiff = true;
+                  return throwError(() => 'Showing diff');
+                }
+                return this.refs.update({ ...copied, modifiedString: existing.modifiedString });
+              }
+              return throwError(() => 'Cancelled');
             })
           );
         }
@@ -1136,8 +1144,8 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
 
   @memo
   get hasDiff() {
-    // Show diff when there are remote versions to compare
-    return this.store.view.versions > 0;
+    // Show diff when there are remote versions to compare and diff mod is enabled
+    return this.store.view.versions > 0 && !!this.admin.getPlugin('plugin/diff');
   }
 
   upload$ = () => {
@@ -1155,12 +1163,20 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
             if (err.status === 409) {
               return this.refs.get(this.ref.url, this.store.account.origin).pipe(
                 switchMap(existing => {
-                  if (+existing.modified! === +ref.modified! || equalsRef(existing, ref) || confirm('An old version already exists. Overwrite it?')) {
-                    // TODO: Show diff and merge or split
+                  if (+existing.modified! === +ref.modified! || equalsRef(existing, ref)) {
                     return this.refs.update({ ...ref, modifiedString: existing.modifiedString });
-                  } else {
-                    return throwError(() => 'Cancelled');
                   }
+                  if (confirm('An old version already exists. Overwrite it?')) {
+                    if (this.hasDiff && confirm('Would you like to view the differences first?')) {
+                      // Switch to diff view
+                      this.diffOriginal = existing;
+                      this.diffModified = ref;
+                      this.viewDiff = true;
+                      return throwError(() => 'Showing diff');
+                    }
+                    return this.refs.update({ ...ref, modifiedString: existing.modifiedString });
+                  }
+                  return throwError(() => 'Cancelled');
                 })
               );
             }

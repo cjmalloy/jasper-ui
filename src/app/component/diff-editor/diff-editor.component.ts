@@ -38,11 +38,11 @@ export class DiffEditorComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.originalModel = {
-      code: JSON.stringify(writeRef(this.original), null, 2),
+      code: this.formatRefForDiff(this.original),
       language: 'json'
     };
     this.modifiedModel = {
-      code: JSON.stringify(writeRef(this.modified), null, 2),
+      code: this.formatRefForDiff(this.modified),
       language: 'json'
     };
 
@@ -58,6 +58,46 @@ export class DiffEditorComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
+  }
+
+  /**
+   * Format ref for diff display:
+   * - Exclude modified and created fields
+   * - Fixed order for top-level fields
+   * - Alphabetically sorted plugin keys
+   */
+  private formatRefForDiff(ref: Ref): string {
+    const written = writeRef(ref);
+    const { modified, created, ...rest } = written as any;
+    
+    // Define fixed order for top-level fields
+    const ordered: any = {};
+    const fieldOrder = ['url', 'origin', 'title', 'comment', 'tags', 'sources', 'alternateUrls', 'published', 'plugins'];
+    
+    // Add fields in fixed order
+    for (const field of fieldOrder) {
+      if (rest[field] !== undefined) {
+        if (field === 'plugins' && rest.plugins) {
+          // Sort plugin keys alphabetically
+          const sortedPlugins: any = {};
+          Object.keys(rest.plugins).sort().forEach(key => {
+            sortedPlugins[key] = rest.plugins[key];
+          });
+          ordered.plugins = sortedPlugins;
+        } else {
+          ordered[field] = rest[field];
+        }
+      }
+    }
+    
+    // Add any remaining fields not in the fixed order
+    for (const key in rest) {
+      if (!fieldOrder.includes(key)) {
+        ordered[key] = rest[key];
+      }
+    }
+    
+    return JSON.stringify(ordered, null, 2);
   }
 
   getModifiedContent(): string {
