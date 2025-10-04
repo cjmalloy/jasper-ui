@@ -18,9 +18,9 @@ export class Store {
   eventBus = inject(EventBus);
   origins = inject(OriginStore);
   submit = inject(SubmitStore);
+  graph = inject(GraphStore);
   account = new AccountStore(this.origins);
   view = new ViewStore(this.route, this.account);
-  graph = new GraphStore(this.route);
   theme = 'init-theme';
   hotkey = false;
   offline = false;

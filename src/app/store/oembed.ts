@@ -1,5 +1,4 @@
-import { Injectable } from '@angular/core';
-import { makeAutoObservable, observable, runInAction } from 'mobx';
+import { computed, Injectable, signal } from '@angular/core';
 import { catchError, Observable, of, shareReplay, Subject, throwError } from 'rxjs';
 import { Oembed } from '../model/oembed';
 import { OEmbedService } from '../service/api/oembed.service';
@@ -9,16 +8,24 @@ import { OEmbedService } from '../service/api/oembed.service';
 })
 export class OembedStore {
 
-  cache = new Map<string, Observable<Oembed | null>>();
+  private _cache = signal(new Map<string, Observable<Oembed | null>>());
+  private _loading = signal<(() => void)[]>([]);
 
-  private loading: (() => void)[] = [];
+  // Backwards compatible getters/setters
+  get cache() { return this._cache(); }
+  set cache(value: Map<string, Observable<Oembed | null>>) { this._cache.set(value); }
+
+  get loading() { return this._loading(); }
+  private set loading(value: (() => void)[]) { this._loading.set(value); }
+
+  // New signal-based API
+  cache$ = computed(() => this._cache());
+  loading$ = computed(() => this._loading());
 
   constructor(
     private oembeds: OEmbedService,
   ) {
-    makeAutoObservable(this, {
-      cache: observable.ref,
-    });
+    // No initialization needed with signals
   }
 
   get(url: string, theme?: string, maxwidth?: number, maxheight?: number) {
@@ -26,14 +33,19 @@ export class OembedStore {
     if (!this.cache.has(key)) {
       const sub = new Subject<Oembed | null>();
       this.cache.set(key, sub.pipe(shareReplay(1)));
-      this.loading.push(() => this.oembeds.get(url, theme, maxwidth, maxheight).pipe(
+      const currentLoading = this.loading;
+      currentLoading.push(() => this.oembeds.get(url, theme, maxwidth, maxheight).pipe(
         catchError(() => of(null)),
       ).subscribe(o => {
         sub.next(o);
-        runInAction(() => this.loading.shift());
-        if (this.loading.length) this.loading[0]!();
+        // Update loading signal
+        const newLoading = this.loading;
+        newLoading.shift();
+        this.loading = newLoading;
+        if (newLoading.length) newLoading[0]!();
       }));
-      if (this.loading.length === 1) this.loading[0]!();
+      this.loading = currentLoading;
+      if (currentLoading.length === 1) currentLoading[0]!();
     }
     return this.cache.get(key)!.pipe(
       catchError(err => {
