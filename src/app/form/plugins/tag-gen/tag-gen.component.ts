@@ -29,7 +29,7 @@ export class TagGenFormComponent implements OnInit, OnChanges {
   @Input()
   tags!: UntypedFormArray;
   @Output()
-  updateTag = new EventEmitter<{ oldTag: string, newTag: string }>();
+  updateTag = new EventEmitter<string>();
 
   instances: TagFormInstance[] = [];
   options: FormlyFormOptions = {
@@ -158,9 +158,10 @@ export class TagGenFormComponent implements OnInit, OnChanges {
     const pluginTag = this.plugin.tag.replace(/^[_+]/, '');
     const newTag = accessPrefix + pluginTag + '/' + newSubTag;
     
-    // Emit the tag update if it changed
+    // Emit tag removal then addition if changed
     if (newTag !== fullTag) {
-      this.updateTag.emit({ oldTag: fullTag, newTag });
+      this.updateTag.emit(fullTag);  // Remove old tag
+      this.updateTag.emit(newTag);    // Add new tag
     }
   }
 

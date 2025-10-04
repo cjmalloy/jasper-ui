@@ -19,7 +19,7 @@
 @for (p of tagForms; track p.tag) {
   <app-form-tag-gen [plugin]="p"
                     [tags]="tags"
-                    (updateTag)="onTagUpdate($event)"></app-form-tag-gen>
+                    (updateTag)="togglePlugin.next($event)"></app-form-tag-gen>
 }
 @if (empty) {
   <div class="empty-plugins">

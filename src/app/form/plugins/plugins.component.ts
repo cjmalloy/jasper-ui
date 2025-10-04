@@ -114,14 +114,6 @@ export class PluginsFormComponent implements OnChanges, AfterViewInit {
     return !this.icons.length && !Object.keys(this.plugins.controls).length && !this.tagForms.length;
   }
 
-  onTagUpdate(event: { oldTag: string, newTag: string }) {
-    const tags = this.tags;
-    const index = tags.value.indexOf(event.oldTag);
-    if (index !== -1) {
-      tags.at(index).setValue(event.newTag);
-    }
-  }
-
   setValue(value: any) {
     value = toJS(value);
     defer(() => {
