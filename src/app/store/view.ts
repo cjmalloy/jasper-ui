@@ -1,5 +1,5 @@
+import { computed, Injectable, signal } from '@angular/core';
 import { delay, isEqual, uniq } from 'lodash-es';
-import { action, makeAutoObservable, observable, runInAction } from 'mobx';
 import { RouterStore } from 'mobx-angular';
 import { Ext } from '../model/ext';
 import { Plugin } from '../model/plugin';
@@ -27,85 +27,151 @@ export type View =
 
 export type Type = 'ref' | 'ext' | 'user' | 'plugin' | 'template';
 
+@Injectable({ providedIn: 'root' })
 export class ViewStore {
 
-  floatingSidebar = true;
-  sidebarExpanded = true;
-  defaultPageSize = 24;
-  defaultKanbanLoadSize = 8;
-  defaultBlogPageSize = 5;
-  defaultSort: RefSort[] | TagSort[] = ['published'];
-  defaultSearchSort: RefSort[] | TagSort[] = ['rank'];
-  defaultPageNumber = 0;
-  ref?: Ref = {} as any;
-  top?: Ref = {} as any;
-  lastSelected?: Ref = {} as any;
-  versions = 0;
-  exts: Ext[] = [];
-  extTemplates: Template[] = [];
-  selectedUser?: User = {} as any;
-  updates = false;
-  inboxTabs: Plugin[] = [];
-  settingsTabs: Plugin[] = [];
+  private _floatingSidebar = signal(true);
+  private _sidebarExpanded = signal(true);
+  private _defaultPageSize = signal(24);
+  private _defaultKanbanLoadSize = signal(8);
+  private _defaultBlogPageSize = signal(5);
+  private _defaultSort = signal<RefSort[] | TagSort[]>(['published']);
+  private _defaultSearchSort = signal<RefSort[] | TagSort[]>(['rank']);
+  private _defaultPageNumber = signal(0);
+  private _ref = signal<Ref | undefined>(undefined);
+  private _top = signal<Ref | undefined>(undefined);
+  private _lastSelected = signal<Ref | undefined>(undefined);
+  private _versions = signal(0);
+  private _exts = signal<Ext[]>([]);
+  private _extTemplates = signal<Template[]>([]);
+  private _selectedUser = signal<User | undefined>(undefined);
+  private _updates = signal(false);
+  private _inboxTabs = signal<Plugin[]>([]);
+  private _settingsTabs = signal<Plugin[]>([]);
+
+  // Backwards compatible getters/setters
+  get floatingSidebar() { return this._floatingSidebar(); }
+  set floatingSidebar(value: boolean) { this._floatingSidebar.set(value); }
+  
+  get sidebarExpanded() { return this._sidebarExpanded(); }
+  set sidebarExpanded(value: boolean) { this._sidebarExpanded.set(value); }
+  
+  get defaultPageSize() { return this._defaultPageSize(); }
+  set defaultPageSize(value: number) { this._defaultPageSize.set(value); }
+  
+  get defaultKanbanLoadSize() { return this._defaultKanbanLoadSize(); }
+  set defaultKanbanLoadSize(value: number) { this._defaultKanbanLoadSize.set(value); }
+  
+  get defaultBlogPageSize() { return this._defaultBlogPageSize(); }
+  set defaultBlogPageSize(value: number) { this._defaultBlogPageSize.set(value); }
+  
+  get defaultSort() { return this._defaultSort(); }
+  set defaultSort(value: RefSort[] | TagSort[]) { this._defaultSort.set(value); }
+  
+  get defaultSearchSort() { return this._defaultSearchSort(); }
+  set defaultSearchSort(value: RefSort[] | TagSort[]) { this._defaultSearchSort.set(value); }
+  
+  get defaultPageNumber() { return this._defaultPageNumber(); }
+  set defaultPageNumber(value: number) { this._defaultPageNumber.set(value); }
+  
+  get ref() { return this._ref(); }
+  set ref(value: Ref | undefined) { this._ref.set(value); }
+  
+  get top() { return this._top(); }
+  set top(value: Ref | undefined) { this._top.set(value); }
+  
+  get lastSelected() { return this._lastSelected(); }
+  set lastSelected(value: Ref | undefined) { this._lastSelected.set(value); }
+  
+  get versions() { return this._versions(); }
+  set versions(value: number) { this._versions.set(value); }
+  
+  get exts() { return this._exts(); }
+  set exts(value: Ext[]) { this._exts.set(value); }
+  
+  get extTemplates() { return this._extTemplates(); }
+  set extTemplates(value: Template[]) { this._extTemplates.set(value); }
+  
+  get selectedUser() { return this._selectedUser(); }
+  set selectedUser(value: User | undefined) { this._selectedUser.set(value); }
+  
+  get updates() { return this._updates(); }
+  set updates(value: boolean) { this._updates.set(value); }
+  
+  get inboxTabs() { return this._inboxTabs(); }
+  set inboxTabs(value: Plugin[]) { this._inboxTabs.set(value); }
+  
+  get settingsTabs() { return this._settingsTabs(); }
+  set settingsTabs(value: Plugin[]) { this._settingsTabs.set(value); }
+
+  // Signal-based API
+  floatingSidebar$ = computed(() => this._floatingSidebar());
+  sidebarExpanded$ = computed(() => this._sidebarExpanded());
+  defaultPageSize$ = computed(() => this._defaultPageSize());
+  defaultKanbanLoadSize$ = computed(() => this._defaultKanbanLoadSize());
+  defaultBlogPageSize$ = computed(() => this._defaultBlogPageSize());
+  defaultSort$ = computed(() => this._defaultSort());
+  defaultSearchSort$ = computed(() => this._defaultSearchSort());
+  defaultPageNumber$ = computed(() => this._defaultPageNumber());
+  ref$ = computed(() => this._ref());
+  top$ = computed(() => this._top());
+  lastSelected$ = computed(() => this._lastSelected());
+  versions$ = computed(() => this._versions());
+  exts$ = computed(() => this._exts());
+  extTemplates$ = computed(() => this._extTemplates());
+  selectedUser$ = computed(() => this._selectedUser());
+  updates$ = computed(() => this._updates());
+  inboxTabs$ = computed(() => this._inboxTabs());
+  settingsTabs$ = computed(() => this._settingsTabs());
 
   constructor(
     public route: RouterStore,
     private account: AccountStore,
   ) {
-    makeAutoObservable(this, {
-      clear: action,
-      setRef: action,
-      preloadRef: action,
-      setLastSelected: action,
-      exts: observable.shallow,
-      extTemplates: observable.shallow,
-      inboxTabs: observable.shallow,
-      settingsTabs: observable.shallow,
-    });
-    this.clear(); // Initial observables may not be null for MobX
+    this.clear(); // Initial values
   }
 
   setLastSelected(ref?: Ref) {
-    this.lastSelected = ref;
+    this._lastSelected.set(ref);
   }
 
   clearLastSelected(url?: string) {
     if (!url || url === this.lastSelected?.url) {
-      this.lastSelected = undefined;
+      this._lastSelected.set(undefined);
     }
   }
 
   clear(defaultSort: RefSort[] | TagSort[] = ['published'], defaultSearchSort: RefSort[] | TagSort[] = ['rank'], defaultPageNumber = 0) {
-    this.ref = undefined;
-    this.top = undefined;
-    this.versions = 0;
-    this.exts = [];
-    this.extTemplates = [];
-    this.selectedUser = undefined;
-    this.defaultSort = defaultSort;
-    this.defaultSearchSort = defaultSearchSort;
-    this.defaultPageNumber = defaultPageNumber;
+    this._ref.set(undefined);
+    this._top.set(undefined);
+    this._versions.set(0);
+    this._exts.set([]);
+    this._extTemplates.set([]);
+    this._selectedUser.set(undefined);
+    this._defaultSort.set(defaultSort);
+    this._defaultSearchSort.set(defaultSearchSort);
+    this._defaultPageNumber.set(defaultPageNumber);
   }
 
   clearRef(ref?: Ref) {
-    if (this.ref && (!ref || ref.url !== this.ref?.url)) this.lastSelected = this.ref;
-    this.ref = undefined;
-    this.top = undefined;
+    if (this.ref && (!ref || ref.url !== this.ref?.url)) this._lastSelected.set(this.ref);
+    this._ref.set(undefined);
+    this._top.set(undefined);
   }
 
   setRef(ref?: Ref, top?: Ref) {
     this.clearRef(ref);
-    this.ref = ref;
-    this.top = top;
-    this.exts = [];
-    this.extTemplates = [];
-    this.selectedUser = undefined;
+    this._ref.set(ref);
+    this._top.set(top);
+    this._exts.set([]);
+    this._extTemplates.set([]);
+    this._selectedUser.set(undefined);
   }
 
   preloadRef(ref: Ref, topRef?: Ref) {
     this.clearRef(ref);
-    if (ref?.created) this.ref = ref;
-    if (topRef || top(ref) !== this.top?.url) this.top = topRef;
+    if (ref?.created) this._ref.set(ref);
+    if (topRef || top(ref) !== this.top?.url) this._top.set(topRef);
   }
 
   get pageTitle() {
@@ -465,6 +531,6 @@ export class ViewStore {
   }
 
   updateNotify() {
-    return this.updates = true;
+    return this._updates.set(true);
   }
 }

@@ -1,5 +1,4 @@
-import { inject, Injectable } from '@angular/core';
-import { makeAutoObservable, observable } from 'mobx';
+import { computed, inject, Injectable, signal } from '@angular/core';
 import { RouterStore } from 'mobx-angular';
 import { AccountStore } from './account';
 import { EventBus } from './bus';
@@ -19,19 +18,36 @@ export class Store {
   origins = inject(OriginStore);
   submit = inject(SubmitStore);
   graph = inject(GraphStore);
-  account = new AccountStore(this.origins);
-  view = new ViewStore(this.route, this.account);
-  theme = 'init-theme';
-  hotkey = false;
-  offline = false;
-  viewportHeight = screen.height;
+  account = inject(AccountStore);
+  view = inject(ViewStore);
+  
+  private _theme = signal('init-theme');
+  private _hotkey = signal(false);
+  private _offline = signal(false);
+  private _viewportHeight = signal(screen.height);
+
+  // Backwards compatible getters/setters
+  get theme() { return this._theme(); }
+  set theme(value: string) { this._theme.set(value); }
+  
+  get hotkey() { return this._hotkey(); }
+  set hotkey(value: boolean) { this._hotkey.set(value); }
+  
+  get offline() { return this._offline(); }
+  set offline(value: boolean) { this._offline.set(value); }
+  
+  get viewportHeight() { return this._viewportHeight(); }
+  set viewportHeight(value: number) { this._viewportHeight.set(value); }
+
+  // Signal-based API
+  theme$ = computed(() => this._theme());
+  hotkey$ = computed(() => this._hotkey());
+  offline$ = computed(() => this._offline());
+  viewportHeight$ = computed(() => this._viewportHeight());
 
   constructor(
     private route: RouterStore,
   ) {
-    makeAutoObservable(this, {
-      local: observable.ref,
-    });
   }
 
   get darkTheme() {

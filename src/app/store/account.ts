@@ -1,5 +1,5 @@
+import { computed, Injectable, signal } from '@angular/core';
 import { intersection, uniq } from 'lodash-es';
-import { makeAutoObservable } from 'mobx';
 import { Ext } from '../model/ext';
 import { Roles, User } from '../model/user';
 import { getMailbox } from '../mods/mailbox';
@@ -7,80 +7,102 @@ import { defaultSubs, UserConfig } from '../mods/user';
 import { braces, defaultOrigin, hasPrefix, localTag, prefix, setPublic, tagOrigin } from '../util/tag';
 import { OriginStore } from './origin';
 
+@Injectable({ providedIn: 'root' })
 export class AccountStore {
 
-  debug = false;
-  tag = '';
-  origin = '';
-  access?: User = {} as User;
-  ext?: Ext = {} as Ext;
-  defaultConfig: UserConfig = {};
-  ignoreNotifications: number[] = [];
+  private _debug = signal(false);
+  private _tag = signal('');
+  private _origin = signal('');
+  private _access = signal<User | undefined>(undefined);
+  private _ext = signal<Ext | undefined>(undefined);
+  private _defaultConfig = signal<UserConfig>({});
+  private _ignoreNotifications = signal<number[]>([]);
+  private _admin = signal(false);
+  private _mod = signal(false);
+  private _editor = signal(false);
+  private _user = signal(false);
+  private _viewer = signal(false);
+  private _banned = signal(false);
+  private _notifications = signal(0);
+  private _alarmCount = signal(0);
+  private _authError = signal(false);
+  private _unrecoverable = signal(false);
 
-  /**
-   * Is admin.
-   * Owns everything.
-   * Limited to origin and sub origins.
-   */
-  admin = false;
-  /**
-   * Is mod.
-   * Owns everything except plugins and templates.
-   * Limited to origin and sub origins.
-   */
-  mod = false;
-  /**
-   * Is editor.
-   * Allowed to toggle any public tag (except public and locked) to any Ref in view.
-   * Limited to origin and sub origins.
-   */
-  editor = false;
-  /**
-   * Is user.
-   * Allowed to post Refs.
-   * May be given access to other tags.
-   * Limited to origin and sub origins.
-   */
-  user = false;
-  /**
-   * Is viewer.
-   * Allowed to edit user ext.
-   * May be given read access to other tags.
-   * May not be given write access to other tags.
-   * Limited to origin and sub origins.
-   */
-  viewer = false;
-  /**
-   * Is banned.
-   * No access, ban message shown instead.
-   * Limited to origin and sub origins.
-   */
-  banned = false;
-  /**
-   * Unread inbox and alarms total count.
-   */
-  notifications = 0;
-  /**
-   * Unread alarms count.
-   */
-  alarmCount = 0;
-  /**
-   * Flag indicating the interceptor detected an unauthorized request.
-   */
-  authError = false;
-  /**
-   * Flag indicating an unrecoverable error loading app from PWA cache.
-   */
-  unrecoverable = false;
+  // Backwards compatible getters/setters
+  get debug() { return this._debug(); }
+  set debug(value: boolean) { this._debug.set(value); }
+  
+  get tag() { return this._tag(); }
+  set tag(value: string) { this._tag.set(value); }
+  
+  get origin() { return this._origin(); }
+  set origin(value: string) { this._origin.set(value); }
+  
+  get access() { return this._access(); }
+  set access(value: User | undefined) { this._access.set(value); }
+  
+  get ext() { return this._ext(); }
+  set ext(value: Ext | undefined) { this._ext.set(value); }
+  
+  get defaultConfig() { return this._defaultConfig(); }
+  set defaultConfig(value: UserConfig) { this._defaultConfig.set(value); }
+  
+  get ignoreNotifications() { return this._ignoreNotifications(); }
+  set ignoreNotifications(value: number[]) { this._ignoreNotifications.set(value); }
+  
+  get admin() { return this._admin(); }
+  set admin(value: boolean) { this._admin.set(value); }
+  
+  get mod() { return this._mod(); }
+  set mod(value: boolean) { this._mod.set(value); }
+  
+  get editor() { return this._editor(); }
+  set editor(value: boolean) { this._editor.set(value); }
+  
+  get user() { return this._user(); }
+  set user(value: boolean) { this._user.set(value); }
+  
+  get viewer() { return this._viewer(); }
+  set viewer(value: boolean) { this._viewer.set(value); }
+  
+  get banned() { return this._banned(); }
+  set banned(value: boolean) { this._banned.set(value); }
+  
+  get notifications() { return this._notifications(); }
+  set notifications(value: number) { this._notifications.set(value); }
+  
+  get alarmCount() { return this._alarmCount(); }
+  set alarmCount(value: number) { this._alarmCount.set(value); }
+  
+  get authError() { return this._authError(); }
+  set authError(value: boolean) { this._authError.set(value); }
+  
+  get unrecoverable() { return this._unrecoverable(); }
+  set unrecoverable(value: boolean) { this._unrecoverable.set(value); }
+
+  // Signal-based API
+  debug$ = computed(() => this._debug());
+  tag$ = computed(() => this._tag());
+  origin$ = computed(() => this._origin());
+  access$ = computed(() => this._access());
+  ext$ = computed(() => this._ext());
+  defaultConfig$ = computed(() => this._defaultConfig());
+  ignoreNotifications$ = computed(() => this._ignoreNotifications());
+  admin$ = computed(() => this._admin());
+  mod$ = computed(() => this._mod());
+  editor$ = computed(() => this._editor());
+  user$ = computed(() => this._user());
+  viewer$ = computed(() => this._viewer());
+  banned$ = computed(() => this._banned());
+  notifications$ = computed(() => this._notifications());
+  alarmCount$ = computed(() => this._alarmCount());
+  authError$ = computed(() => this._authError());
+  unrecoverable$ = computed(() => this._unrecoverable());
 
   constructor(
     private origins: OriginStore,
   ) {
-    makeAutoObservable(this);
-    // Initial observables may not be null for MobX
-    this.access = undefined;
-    this.ext = undefined;
-    this.defaultConfig = {};
+    // Initial values already set via signals
   }
 
   get signedIn() {
@@ -258,19 +280,19 @@ export class AccountStore {
   }
 
   setRoles(roles: Roles) {
-    this.debug = roles.debug;
-    this.origin = tagOrigin(roles.tag);
-    this.tag = roles.tag || '';
+    this._debug.set(roles.debug);
+    this._origin.set(tagOrigin(roles.tag));
+    this._tag.set(roles.tag || '');
     if (this.tag.startsWith('@')) {
       // Not logged in, only local origin is set
-      this.tag = '';
+      this._tag.set('');
     }
-    this.admin = roles.admin;
-    this.mod = roles.mod;
-    this.editor = roles.editor;
-    this.user = roles.user;
-    this.viewer = roles.viewer;
-    this.banned = roles.banned;
+    this._admin.set(roles.admin);
+    this._mod.set(roles.mod);
+    this._editor.set(roles.editor);
+    this._user.set(roles.user);
+    this._viewer.set(roles.viewer);
+    this._banned.set(roles.banned);
   }
 
   defaultEditors(plugins: string[]) {
