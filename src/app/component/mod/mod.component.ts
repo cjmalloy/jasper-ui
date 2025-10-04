@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 import { Mod } from '../../model/tag';
 
 @Component({
@@ -6,6 +6,7 @@ import { Mod } from '../../model/tag';
   templateUrl: './mod.component.html',
   styleUrl: './mod.component.scss',
   standalone: false,
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ModComponent {
   @Input() mod?: Mod;
