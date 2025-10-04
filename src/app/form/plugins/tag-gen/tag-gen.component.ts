@@ -54,27 +54,35 @@ export class TagGenFormComponent implements OnInit, OnChanges {
     if (!this.tags || !this.plugin) return;
 
     const allTags = this.tags.value as string[];
+    const cleanPluginTag = this.plugin.tag.replace(/^[_+]/, '');
 
     // Find the first tag that matches this plugin
     for (const tag of allTags) {
       const cleanTag = tag.replace(/^[_+]/, '');
-      const cleanPluginTag = this.plugin.tag.replace(/^[_+]/, '');
       
-      if (cleanTag === cleanPluginTag || !cleanTag.startsWith(cleanPluginTag + '/')) {
-        continue;
-      }
-      
-      // Extract sub-tags after the plugin tag
-      const tagParts = cleanTag.split('/');
-      const pluginParts = cleanPluginTag.split('/');
-      const subTags = tagParts.slice(pluginParts.length);
-      
-      // Use the first sub-tag if it exists
-      if (subTags.length > 0 && this.plugin.config?.tagForm?.[0]) {
+      // Check if this is the base plugin tag
+      if (cleanTag === cleanPluginTag) {
+        // Show form for adding a sub-tag
         this.currentTag = tag;
-        this.subTag = subTags[0];
+        this.subTag = undefined;
         this.createFormInstance();
         return;
+      }
+      
+      // Check if this tag starts with the plugin tag
+      if (cleanTag.startsWith(cleanPluginTag + '/')) {
+        // Extract sub-tags after the plugin tag
+        const tagParts = cleanTag.split('/');
+        const pluginParts = cleanPluginTag.split('/');
+        const subTags = tagParts.slice(pluginParts.length);
+        
+        // Use the first sub-tag if it exists
+        if (subTags.length > 0 && this.plugin.config?.tagForm?.[0]) {
+          this.currentTag = tag;
+          this.subTag = subTags[0];
+          this.createFormInstance();
+          return;
+        }
       }
     }
     
@@ -101,18 +109,27 @@ export class TagGenFormComponent implements OnInit, OnChanges {
     const model: any = {};
     const form = this.form;
 
-    if (!form || form.length === 0 || !this.subTag) return model;
+    if (!form || form.length === 0) return model;
 
-    // For each field in the form, extract/parse the value from the sub-tag
+    // For each field in the form, extract/parse the value from the sub-tag or use defaults
     for (const field of form) {
       if (field.key) {
         const key = field.key as string;
-        // Convert sub-tag to appropriate format for the field
-        // For duration fields, convert lowercase to uppercase (pt15m -> PT15M)
-        if (field.type === 'duration') {
-          model[key] = this.subTag.toUpperCase();
+        if (this.subTag) {
+          // Convert sub-tag to appropriate format for the field
+          // For duration fields, convert lowercase to uppercase (pt15m -> PT15M)
+          if (field.type === 'duration') {
+            model[key] = this.subTag.toUpperCase();
+          } else {
+            model[key] = this.subTag;
+          }
         } else {
-          model[key] = this.subTag;
+          // Use default value if no sub-tag exists
+          if (field.defaultValue !== undefined) {
+            model[key] = field.defaultValue;
+          } else if (this.plugin.defaults?.[key] !== undefined) {
+            model[key] = this.plugin.defaults[key];
+          }
         }
       }
     }
@@ -152,11 +169,25 @@ export class TagGenFormComponent implements OnInit, OnChanges {
     const pluginTag = this.plugin.tag.replace(/^[_+]/, '');
     const newTag = accessPrefix + pluginTag + '/' + newSubTag;
     
-    // Emit tag removal then addition if changed
+    // Check if we're adding a sub-tag to the base tag
+    const cleanCurrentTag = this.currentTag.replace(/^[_+]/, '');
+    const cleanPluginTag = this.plugin.tag.replace(/^[_+]/, '');
+    const isBaseTag = cleanCurrentTag === cleanPluginTag;
+    
+    // Emit tag updates
     if (newTag !== this.currentTag) {
-      this.updateTag.emit(this.currentTag);  // Remove old tag
-      this.updateTag.emit(newTag);            // Add new tag
-      this.currentTag = newTag;               // Update current tag reference
+      if (!isBaseTag) {
+        // Editing existing tag with sub-tag: remove old, add new
+        this.updateTag.emit(this.currentTag);  // Remove old tag
+      }
+      this.updateTag.emit(newTag);              // Add new tag
+      this.currentTag = newTag;                 // Update current tag reference
+      this.subTag = newSubTag;                  // Update sub-tag reference
+      
+      // If we were on the base tag, also remove it after adding the new tag
+      if (isBaseTag) {
+        this.updateTag.emit(accessPrefix + pluginTag);  // Remove base tag
+      }
     }
   }
 
