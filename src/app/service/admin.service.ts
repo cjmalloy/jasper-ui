@@ -3,7 +3,7 @@ import { FormlyFieldConfig } from '@ngx-formly/core';
 import { Schema, validate } from 'jtd';
 import { identity, isEqual, reduce, uniq } from 'lodash-es';
 import { autorun, runInAction } from 'mobx';
-import { catchError, concat, forkJoin, map, Observable, of, switchMap, throwError, toArray } from 'rxjs';
+import { catchError, concat, forkJoin, map, Observable, of, retry, switchMap, throwError, toArray } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
 import { Ext } from '../model/ext';
@@ -292,6 +292,7 @@ export class AdminService {
       return of(null);
     }
     return this.plugins.page({query: this.localOriginQuery, page, size: this.config.fetchBatch}).pipe(
+      retry(10),
       tap(batch => this.pluginToStatus(batch.content)),
       switchMap(batch => page + 1 < batch.page.totalPages ? this.loadPlugins$(page + 1) : of(null)),
     );
@@ -304,6 +305,7 @@ export class AdminService {
       return of(null);
     }
     return this.templates.page({query: this.localOriginQuery + ':!_config', page, size: this.config.fetchBatch}).pipe(
+      retry(10),
       tap(batch => this.templateToStatus(batch.content)),
       switchMap(batch => page + 1 < batch.page.totalPages ? this.loadTemplates$(page + 1) : of(null)),
     );

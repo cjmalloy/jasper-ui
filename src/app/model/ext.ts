@@ -16,7 +16,7 @@ export const extSchema: Schema = {
   }
 };
 
-export function mapTag(obj: any): Ext {
+export function mapExt(obj: any): Ext {
   obj.type = 'ext';
   obj.origin ||= '';
   obj.modifiedString = obj.modified;

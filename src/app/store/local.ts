@@ -78,4 +78,18 @@ export class LocalStore {
   dismissHelpPopup(id: string) {
     localStorage.setItem('help:' + id, 'true');
   }
+
+  /**
+   * Save the selected user sub tag for the User-Tag header
+   */
+  _selectedUserTag?: string;
+  set selectedUserTag(value: string) {
+    this._selectedUserTag = value
+    localStorage.setItem('selectedUserTag', value);
+  }
+
+  get selectedUserTag() {
+    if (this._selectedUserTag !== undefined) return this._selectedUserTag;
+    return this._selectedUserTag = localStorage.getItem('selectedUserTag') || '';
+  }
 }

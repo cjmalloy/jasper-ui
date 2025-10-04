@@ -64,6 +64,23 @@ export class RefThreadComponent implements HasChanges {
 
   ngOnInit(): void {
     this.disposers.push(autorun(() => {
+      if (this.store.view.pageSize) {
+        runInAction(() => this.store.view.defaultPageNumber = Math.floor(((this.to.metadata?.plugins?.['plugin/thread'] || 1) - 1) / this.store.view.pageSize));
+      }
+    }));
+    this.disposers.push(autorun(() => {
+      const args = getArgs(
+        'plugin/thread:!plugin/delete',
+        this.store.view.sort,
+        this.store.view.filter,
+        this.store.view.search,
+        this.store.view.pageNumber,
+        this.store.view.pageSize,
+      );
+      args.responses = this.store.view.url;
+      defer(() => this.query.setArgs(args));
+    }));
+    this.disposers.push(autorun(() => {
       const args = getArgs(
         'plugin/thread:!plugin/delete',
         this.store.view.sort,

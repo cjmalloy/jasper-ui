@@ -84,14 +84,14 @@ export class InlineTagComponent extends ActionComponent {
     this.searching = this.exts.page({
       search: tag,
       sort: ['nesting', 'levels'],
-      size: 1,
+      size: 3,
     }).pipe(
       switchMap(page => page.page.totalElements ? forkJoin(page.content.map(x => this.preview$(x.tag + x.origin))) : of([])),
       map(xs => xs.filter(x => !!x) as { name?: string, tag: string }[]),
     ).subscribe(xs => {
       this.autocomplete = xs.map(x => ({ value: prefix + x.tag, label: x.name || '#' + x.tag }));
-      if (this.autocomplete.length < 1) this.autocomplete.push(...getPlugins(tag));
-      if (this.autocomplete.length < 1) this.autocomplete.push(...getTemplates(tag));
+      if (this.autocomplete.length < 3) this.autocomplete.push(...getPlugins(tag));
+      if (this.autocomplete.length < 3) this.autocomplete.push(...getTemplates(tag));
     });
   }, 400);
 

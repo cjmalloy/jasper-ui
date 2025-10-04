@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { delay } from 'lodash-es';
 import { catchError, concat, map, Observable, of, shareReplay, switchMap, throwError, toArray } from 'rxjs';
 import { tap } from 'rxjs/operators';
-import { Ext, mapTag, writeExt } from '../../model/ext';
+import { Ext, mapExt, writeExt } from '../../model/ext';
 import { mapPage, Page } from '../../model/page';
 import { latest, TagPageArgs, TagQueryArgs } from '../../model/tag';
 import { Store } from '../../store/store';
@@ -94,7 +94,7 @@ export class ExtService {
     return this.http.get(this.base, {
       params: params({ tag }),
     }).pipe(
-      map(mapTag),
+      map(mapExt),
       tap(ext => {
         this.prefillCache(ext);
         this.store.local.loadExt([...this._cache.keys()]);
@@ -173,7 +173,7 @@ export class ExtService {
     return this.http.get(`${this.base}/page`, {
       params: params(args),
     }).pipe(
-      map(mapPage(mapTag)),
+      map(mapPage(mapExt)),
       catchError(err => this.login.handleHttpError(err)),
     );
   }

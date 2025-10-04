@@ -1,6 +1,6 @@
 import * as JSZip from 'jszip';
 import { isArray } from 'lodash-es';
-import { Ext, mapTag } from '../model/ext';
+import { Ext, mapExt } from '../model/ext';
 import { mapRef, Ref } from '../model/ref';
 import { Cursor } from '../model/tag';
 
@@ -41,7 +41,7 @@ export type FilteredModels = {ref: Ref[], ext: Ext[]};
 export function filterModels<T extends Cursor>(models: T[]): FilteredModels {
   return {
     ref: models.filter(m => 'url' in m).map(mapRef),
-    ext: models.filter(m => 'tag' in m).map(mapTag),
+    ext: models.filter(m => 'tag' in m).map(mapExt),
   };
 }
 
@@ -60,7 +60,7 @@ export function parseModels(file: File): Promise<FilteredModels> {
     return unzip(file).then(zip => Promise.all([
       zippedFile(zip, 'ext.json')
         .then(json => getModels<Ext>(json))
-        .then(exts => exts.map(mapTag)),
+        .then(exts => exts.map(mapExt)),
       zippedFile(zip, 'ref.json')
         .then(json => getModels<Ref>(json))
         .then(refs => refs.map(mapRef)),

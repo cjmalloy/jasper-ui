@@ -25,9 +25,10 @@
 
 <div class="backup buttons">
   @if (store.account.admin) {
-    <button type="button"
+    <button #backupButton
+            type="button"
             [disabled]="!originForm.valid"
-            (click)="backup()"
+            (click)="showBackupOptions()"
             i18n-title title="Create Backup" i18n>+ backup</button>
     <button type="button"
             [disabled]="!originForm.valid"
@@ -65,3 +66,52 @@
 
 <app-backup-list [list]="list"
                  [origin]="origin"></app-backup-list>
+
+<ng-template #backupOptions>
+  <div class="popup bubble" (click)="$event.stopPropagation()" [formGroup]="backupOptionsForm">
+    <div class="form">
+      <label for="backupCache" i18n>Cache</label>
+      <div>
+        <input id="backupCache" type="checkbox" formControlName="cache">
+      </div>
+      <label for="backupRefs" i18n>Refs</label>
+      <div>
+        <input id="backupRefs" type="checkbox" formControlName="ref">
+      </div>
+      <label for="backupExts" i18n>Exts</label>
+      <div>
+        <input id="backupExts" type="checkbox" formControlName="ext">
+      </div>
+      <label for="backupUsers" i18n>Users</label>
+      <div>
+        <input id="backupUsers" type="checkbox" formControlName="user">
+      </div>
+      <label for="backupPlugins" i18n>Plugins</label>
+      <div>
+        <input id="backupPlugins" type="checkbox" formControlName="plugin">
+      </div>
+      <label for="backupTemplates" i18n>Templates</label>
+      <div>
+        <input id="backupTemplates" type="checkbox" formControlName="template">
+      </div>
+    </div>
+    <hr>
+    <div class="form">
+      <div>
+        <label for="newerThan" i18n>Newer than:</label>
+        <div class="form-array">
+          <input type="datetime-local"
+                 id="newerThan"
+                 step="1"
+                 formControlName="newerThan"
+                 class="grow">
+          <button type="button" (click)="backupOptionsForm.get('newerThan')!.setValue('')" i18n-title title="Clear" i18n>🆑️</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="buttons right">
+      <button type="button" (click)="confirmBackup()" i18n>+ backup</button>
+    </div>
+  </div>
+</ng-template>

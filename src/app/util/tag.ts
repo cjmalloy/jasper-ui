@@ -185,10 +185,10 @@ export function isSubOrigin(local?: string, origin?: string) {
 export function subOrigin(local?: string, origin?: string) {
   if (!local) local = '';
   if (!origin) origin = '';
+  if (origin && !origin.startsWith('@')) origin = '@' + origin;
   if (!local) return origin;
   if (!origin) return local;
-  if (origin.startsWith('@')) origin = origin.substring(1);
-  return local + '.' + origin;
+  return local + '.' + origin.substring(1);
 }
 
 export function removeParentOrigin(local?: string, parent?: string) {

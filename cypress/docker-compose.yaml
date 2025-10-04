@@ -5,7 +5,7 @@ services:
       - ci
     depends_on:
       client:
-          condition: service_started
+        condition: service_started
       repl-client:
         condition: service_started
       web:

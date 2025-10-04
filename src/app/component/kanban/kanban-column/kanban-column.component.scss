@@ -55,6 +55,42 @@
       opacity: 1;
     }
   }
+
+  .failed-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: var(--error-bg);
+    border: 0.5px dashed var(--border);
+    border-radius: 4px;
+    margin: 4px 8px;
+    padding: 8px;
+
+    .failed-content {
+      flex: 1;
+      min-width: 0;
+
+      .failed-text {
+        font-weight: 500;
+        margin-bottom: 2px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .failed-error {
+        color: var(--error);
+        font-size: 80%;
+        opacity: 0.8;
+      }
+    }
+
+    .failed-actions {
+      display: flex;
+      gap: 4px;
+      margin-left: 8px;
+    }
+  }
 }
 
 .cdk-drag-animating {

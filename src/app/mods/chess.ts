@@ -30,6 +30,8 @@ export const chessPlugin: Plugin = {
     advancedActions: [
       { tag: 'plugin/delta/chess', labelOff: $localize`play ai`, labelOn: $localize`cancel ai`, title: $localize`Play against an AI opponent.` },
     ],
+    // language=Handlebars
+    infoUi: `{{#if ref.comment}}{{tail ref.comment}}{{/if}}`,
     // language=CSS
     css: `
       body.dark-theme {

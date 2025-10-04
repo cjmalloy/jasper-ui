@@ -2,15 +2,16 @@
      cdkDropList
      [cdkDropListData]="ref?.url"
      (cdkDropListDropped)="drop($any($event))">
-  <app-todo-item *ngFor="let line of lines; let i = index"
-                 cdkDrag
-                 [cdkDragData]="line"
-                 [cdkDragStartDelay]="pressToUnlock ? 251 : 0"
-                 [pressToUnlock]="pressToUnlock"
-                 [line]="line"
-                 [origin]="origin"
-                 [plugins]="tags || ref?.tags || []"
-                 (update)="update({ index: i, text: $event.text, checked: $event.checked })"></app-todo-item>
+  @for (line of lines; let i = $index; track line) {
+    <app-todo-item cdkDrag
+                   [cdkDragData]="line"
+                   [cdkDragStartDelay]="pressToUnlock ? 251 : 0"
+                   [pressToUnlock]="pressToUnlock"
+                   [line]="line"
+                   [origin]="origin"
+                   [plugins]="tags || ref?.tags || []"
+                   (update)="update({ index: i, text: $event.text, checked: $event.checked })"></app-todo-item>
+  }
 </div>
 <div class="spacer"></div>
 <input type="text"
@@ -21,4 +22,6 @@
        [style.display]="addText ? 'block' : 'none'"
        (keydown)="$event.key === 'Enter' && add($event) || true"
        (blur)="add()">
-<div *ngFor="let e of serverErrors" class="error">{{ e }}</div>
+@for (e of serverErrors; track e) {
+  <div class="error">{{ e }}</div>
+}

@@ -166,7 +166,7 @@ export class FormlyFieldTagInput extends FieldType<FieldTypeConfig> implements A
         this.autocomplete = xs.map(x => ({ value: x.tag, label: x.name || x.tag }));
         if (this.autocomplete.length < 5) this.autocomplete.push(...getPlugins(value, 5 - this.autocomplete.length));
         if (this.autocomplete.length < 5) this.autocomplete.push(...getTemplates(value, 5 - this.autocomplete.length));
-        this.autocomplete = uniqBy(this.autocomplete, 'value')
+        this.autocomplete = uniqBy(this.autocomplete, 'value');
         this.cd.detectChanges();
       });
     }

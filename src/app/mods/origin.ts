@@ -165,7 +165,7 @@ export const originPullPlugin: Plugin = {
     }],
   },
   defaults: {
-    cache: true,
+    cachePrefetch: true,
     websocket: true,
   },
   schema: {
