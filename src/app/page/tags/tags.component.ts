@@ -1,6 +1,5 @@
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild, ChangeDetectionStrategy, effect } from '@angular/core';
 import { defer } from 'lodash-es';
-import { autorun, IReactionDisposer } from 'mobx';
 import { ExtListComponent } from '../../component/ext/ext-list/ext-list.component';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { AdminService } from '../../service/admin.service';
@@ -16,11 +15,10 @@ import { braces, getPrefixes, hasPrefix, publicTag } from '../../util/tag';
   standalone: false,
   selector: 'app-tags-page',
   templateUrl: './tags.component.html',
-  styleUrls: ['./tags.component.scss']
+  styleUrls: ['./tags.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class TagsPage implements OnInit, OnDestroy, HasChanges {
-
-  private disposers: IReactionDisposer[] = [];
+export class TagsPage implements OnInit, HasChanges {
 
   title = '';
   templates = this.admin.tmplSubmit.filter(t => t.config?.view);
@@ -46,7 +44,7 @@ export class TagsPage implements OnInit, OnDestroy, HasChanges {
   }
 
   ngOnInit(): void {
-    this.disposers.push(autorun(() => {
+    effect(() => {
       this.title = this.store.view.template && this.admin.getTemplate(this.store.view.template)?.name || this.store.view.ext?.name || this.store.view.template || '';
       this.exts.getCachedExt(this.store.view.template)
         .subscribe(ext => this.title = ext.name || this.title);
@@ -69,13 +67,7 @@ export class TagsPage implements OnInit, OnDestroy, HasChanges {
         ...getTagFilter(this.store.view.filter),
       };
       defer(() => this.query.setArgs(args));
-    }));
-  }
-
-  ngOnDestroy() {
-    this.query.close();
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
+    });
   }
 
   templateIs(tag: string): boolean {

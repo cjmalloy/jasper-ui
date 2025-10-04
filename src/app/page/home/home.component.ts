@@ -1,6 +1,6 @@
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, ViewChild, effect } from '@angular/core';
 import { defer } from 'lodash-es';
-import { autorun, IReactionDisposer, runInAction } from 'mobx';
+import { runInAction } from 'mobx';
 import { LensComponent } from '../../component/lens/lens.component';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { AccountService } from '../../service/account.service';
@@ -16,9 +16,9 @@ import { getArgs } from '../../util/query';
   selector: 'app-home-page',
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HomePage implements OnInit, OnDestroy, HasChanges {
-  private disposers: IReactionDisposer[] = [];
 
   @ViewChild(LensComponent)
   lens?: LensComponent;
@@ -43,15 +43,7 @@ export class HomePage implements OnInit, OnDestroy, HasChanges {
         }
       }));
     }
-  }
-
-  saveChanges() {
-    return !this.lens || this.lens.saveChanges();
-  }
-
-  ngOnInit(): void {
-    runInAction(() => this.store.view.extTemplates = this.admin.view);
-    this.disposers.push(autorun(() => {
+    effect(() => {
       if (this.store.view.forYou) {
         this.account.forYouQuery$.subscribe(q => {
           const args = getArgs(
@@ -75,13 +67,20 @@ export class HomePage implements OnInit, OnDestroy, HasChanges {
         );
         defer(() => this.query.setArgs(args));
       }
-    }));
+    });
+  }
+
+  saveChanges() {
+    return !this.lens || this.lens.saveChanges();
+  }
+
+  ngOnInit(): void {
+    runInAction(() => this.store.view.extTemplates = this.admin.view);
   }
 
   ngOnDestroy() {
     this.query.close();
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
   }
+}
 
 }

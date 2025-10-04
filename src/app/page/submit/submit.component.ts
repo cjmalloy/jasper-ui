@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, effect } from '@angular/core';
 import {
   AbstractControl,
   AsyncValidatorFn,
@@ -10,7 +10,7 @@ import {
 } from '@angular/forms';
 import { Router } from '@angular/router';
 import { defer, isString, uniq, without } from 'lodash-es';
-import { autorun, IReactionDisposer, runInAction } from 'mobx';
+import { runInAction } from 'mobx';
 import { catchError, forkJoin, map, mergeMap, Observable, of, switchMap, timer } from 'rxjs';
 import { scan, tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
@@ -34,9 +34,9 @@ type Validation = { test: (url: string) => Observable<any>; name: string; passed
   selector: 'app-submit-page',
   templateUrl: './submit.component.html',
   styleUrls: ['./submit.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SubmitPage implements OnInit, OnDestroy {
-  private disposers: IReactionDisposer[] = [];
 
   submitForm: UntypedFormGroup;
 
@@ -69,10 +69,7 @@ export class SubmitPage implements OnInit, OnDestroy {
       store.submit.submitGenId = this.admin.submitGenId.filter(p => p.config?.submitDm || this.auth.canAddTag(p.tag));
       store.submit.submitDm = this.admin.submitDm;
     });
-  }
-
-  ngOnInit(): void {
-    this.disposers.push(autorun(() => {
+    effect(() => {
       this.validations.length = 0;
       if (!this.admin.isWikiExternal() && this.store.submit.wiki) {
         this.validations.push({ name: $localize`Valid title`, passed: false, test: url => of(this.linkType(this.fixed(url))) });
@@ -96,12 +93,20 @@ export class SubmitPage implements OnInit, OnDestroy {
           }
         }
       }
-    }));
+    });
+  }
+
+  ngOnInit(): void {
+          }
+        }
+      }
+    });
+  }
+
+  ngOnInit(): void {
   }
 
   ngOnDestroy() {
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
   }
 
   get selectedPlugin() {
