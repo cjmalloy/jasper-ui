@@ -17,7 +17,7 @@ export class TagGenFormComponent implements OnChanges {
   @Input() tags!: UntypedFormArray;
 
   formGroup = this.fb.group({});
-  model: any = {};
+  model: any[] = [];
   form?: FormlyFieldConfig[];
   options: FormlyFormOptions;
 
@@ -62,15 +62,16 @@ export class TagGenFormComponent implements OnChanges {
 
     this.tagIndex = undefined;
     this.form = undefined;
-    this.model = {};
+    this.model = [];
   }
 
-  private createModel(subTags: string[]): any {
-    if (!this.form?.length) return {};
+  private createModel(subTags: string[]): any[] {
+    if (!this.form?.length) return [];
 
-    const model: any = {};
+    const model: any[] = [];
     
-    for (const field of this.form) {
+    for (let i = 0; i < this.form.length; i++) {
+      const field = this.form[i];
       if (!field.key) continue;
       
       const key = field.key as string;
@@ -79,9 +80,9 @@ export class TagGenFormComponent implements OnChanges {
       
       if (keyIndex !== -1 && keyIndex + 1 < subTags.length) {
         const value = subTags[keyIndex + 1];
-        model[key] = field.type === 'duration' ? value.toUpperCase() : value;
+        model[i] = field.type === 'duration' ? value.toUpperCase() : value;
       } else {
-        model[key] = field.defaultValue ?? this.plugin.defaults?.[key];
+        model[i] = field.defaultValue ?? this.plugin.defaults?.[key];
       }
     }
     return model;
@@ -91,11 +92,12 @@ export class TagGenFormComponent implements OnChanges {
     if (this.updating || this.tagIndex === undefined || !this.form?.length) return;
 
     const tagParts: string[] = [];
-    for (const field of this.form) {
+    for (let i = 0; i < this.form.length; i++) {
+      const field = this.form[i];
       if (!field.key) continue;
       
       const key = field.key as string;
-      const value = this.model[key];
+      const value = this.model[i];
       if (!value) return;
       
       tagParts.push(key);
