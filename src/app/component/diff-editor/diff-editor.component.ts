@@ -7,8 +7,8 @@ import { DiffEditorModel } from 'ngx-monaco-editor';
 @Component({
   standalone: false,
   selector: 'app-diff-editor',
-  templateUrl: './diff-editor.html',
-  styleUrl: './diff-editor.scss'
+  templateUrl: './diff-editor.component.html',
+  styleUrl: './diff-editor.component.scss'
 })
 export class DiffEditorComponent implements OnInit, OnDestroy {
   private disposers: IReactionDisposer[] = [];
