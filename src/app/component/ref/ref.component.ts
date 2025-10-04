@@ -1104,6 +1104,8 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
       this.viewDiff = false;
       return;
     }
+    // Close viewSource if open
+    this.viewSource = false;
     // Fetch and display diff
     this.diff$().subscribe();
   }

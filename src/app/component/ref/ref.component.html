@@ -349,8 +349,10 @@
     <span class="buttons right">
       @if (local && !ref.metadata?.obsolete) {
         <button type="button" (click)="saveDiff()" i18n>save</button>
+        <button type="button" (click)="viewDiff = false" i18n>cancel</button>
+      } @else {
+        <button type="button" (click)="viewDiff = false" i18n>close</button>
       }
-      <button type="button" (click)="viewDiff = false" i18n>cancel</button>
     </span>
   </div>
 } @else {
