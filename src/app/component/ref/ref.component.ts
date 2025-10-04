@@ -13,15 +13,11 @@ import {
   Output,
   QueryList,
   SimpleChanges,
-  TemplateRef,
   ViewChild,
-  ViewChildren,
-  ViewContainerRef
+  ViewChildren
 } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
-import { Overlay, OverlayRef } from '@angular/cdk/overlay';
-import { TemplatePortal } from '@angular/cdk/portal';
 import { cloneDeep, defer, delay, groupBy, pick, throttle, uniq, without } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
@@ -94,8 +90,6 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   refForm?: RefFormComponent;
   @ViewChild(CommentReplyComponent)
   reply?: CommentReplyComponent;
-  @ViewChild('diffOverlay')
-  diffOverlay?: TemplateRef<any>;
 
   @Input()
   ref!: Ref;
@@ -145,7 +139,6 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   deleteAccess = false;
   serverError: string[] = [];
   publishChanged = false;
-  diffOverlayRef?: OverlayRef;
   diffOriginal?: Ref;
   diffModified?: Ref;
 
@@ -153,6 +146,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   private refreshTap?: () => void;
   private _editing = false;
   private _viewSource = false;
+  private _viewDiff = false;
   private overwrittenModified? = '';
 
   constructor(
@@ -171,8 +165,6 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     private fb: UntypedFormBuilder,
     private el: ElementRef<HTMLDivElement>,
     private cd: ChangeDetectorRef,
-    private overlay: Overlay,
-    private viewContainerRef: ViewContainerRef,
   ) {
     this.editForm = refForm(fb);
     this.editForm.valueChanges.pipe(
@@ -376,6 +368,14 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     if (value) {
       this.syncEditor();
     }
+  }
+
+  get viewDiff(): boolean {
+    return this._viewDiff;
+  }
+
+  set viewDiff(value: boolean) {
+    this._viewDiff = value;
   }
 
   get editing(): boolean {
@@ -1079,7 +1079,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
       tap(({ local, remote }) => {
         this.diffOriginal = remote;
         this.diffModified = local;
-        this.showDiffOverlay();
+        this.viewDiff = true;
       }),
       catchError(err => {
         console.error('Error fetching versions for diff:', err);
@@ -1089,35 +1089,13 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     );
   }
 
-  showDiffOverlay() {
-    if (!this.diffOverlay) return;
-    
-    const positionStrategy = this.overlay.position()
-      .global()
-      .centerHorizontally()
-      .centerVertically();
-    
-    this.diffOverlayRef = this.overlay.create({
-      positionStrategy,
-      hasBackdrop: true,
-      backdropClass: 'cdk-overlay-dark-backdrop',
-      panelClass: 'diff-overlay-panel',
-      scrollStrategy: this.overlay.scrollStrategies.block(),
-      width: '90vw',
-      height: '90vh',
-    });
-
-    const portal = new TemplatePortal(this.diffOverlay, this.viewContainerRef);
-    this.diffOverlayRef.attach(portal);
-
-    this.diffOverlayRef.backdropClick().subscribe(() => this.closeDiffOverlay());
-  }
-
-  closeDiffOverlay() {
-    this.diffOverlayRef?.dispose();
-    this.diffOverlayRef = undefined;
-    this.diffOriginal = undefined;
-    this.diffModified = undefined;
+  toggleDiff() {
+    if (this.viewDiff) {
+      this.viewDiff = false;
+      return;
+    }
+    // Fetch and display diff
+    this.diff$().subscribe();
   }
 
   @memo

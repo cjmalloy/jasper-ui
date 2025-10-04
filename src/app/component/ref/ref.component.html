@@ -45,7 +45,7 @@
     <div class="link-below">
       @if (showToggle && (thread || commentNoTitle || expandPlugins.length)) {
         <button type="button" class="toggle" (click)="toggle()">
-          @if (editing || viewSource || expanded) {
+          @if (editing || viewSource || viewDiff || expanded) {
             <span class="toggle-x">✕</span>
           } @else {
             <span class="toggle-plus" *ngIf="!fullscreen">＋</span>
@@ -217,7 +217,7 @@
               }
             }
             <app-inline-tag #action *ngIf="taggingAccess" [action]="tag$" i18n>tag</app-inline-tag>
-            <app-inline-button #action *ngIf="hasDiff" [action]="diff$" i18n>diff</app-inline-button>
+            <a class="fake-link" *ngIf="hasDiff" (click)="toggleDiff()" i18n>diff</a>
             <app-inline-button #action *ngIf="store.account.user && !local && !hasDiff" [action]="copy$" i18n>copy</app-inline-button>
             @if (store.account.user && local) {
               <a routerLink="/submit/web" [queryParams]="{ url, tag: 'plugin/repost' }" i18n>repost</a>
@@ -337,6 +337,16 @@
   <form class="form" [formGroup]="editForm">
     <app-ref-form [group]="editForm" [origin]="origin"></app-ref-form>
   </form>
+} @else if (viewDiff && diffOriginal && diffModified) {
+  <div class="diff-view">
+    <app-diff-editor
+      [original]="diffOriginal"
+      [modified]="diffModified">
+    </app-diff-editor>
+    <span class="buttons right">
+      <button type="button" (click)="viewDiff = false" i18n>close</button>
+    </span>
+  </div>
 } @else {
   @for (e of serverError; track e) {
     <div class="error">{{ e }}</div>
@@ -347,13 +357,3 @@
     </div>
   }
 }
-
-<ng-template #diffOverlay>
-  @if (diffOriginal && diffModified) {
-    <app-diff-editor
-      [original]="diffOriginal"
-      [modified]="diffModified"
-      (close)="closeDiffOverlay()">
-    </app-diff-editor>
-  }
-</ng-template>

@@ -1,13 +1,7 @@
 <div class="diff-editor-container">
-  <div class="header">
-    <h3 i18n>Version Comparison</h3>
-    <button type="button" class="close-button" (click)="onClose()" i18n-title title="Close">✕</button>
-  </div>
-  <div class="editor-wrapper">
-    <ngx-monaco-diff-editor
-      [options]="diffOptions"
-      [originalModel]="originalModel"
-      [modifiedModel]="modifiedModel">
-    </ngx-monaco-diff-editor>
-  </div>
+  <ngx-monaco-diff-editor
+    [options]="diffOptions"
+    [originalModel]="originalModel"
+    [modifiedModel]="modifiedModel">
+  </ngx-monaco-diff-editor>
 </div>

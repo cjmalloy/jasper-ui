@@ -2622,10 +2622,3 @@ ngx-monaco-editor {
     transition: transform 0.1s ease-in-out;
   }
 }
-
-.diff-overlay-panel {
-  .cdk-overlay-pane {
-    max-width: 90vw !important;
-    max-height: 90vh !important;
-  }
-}
