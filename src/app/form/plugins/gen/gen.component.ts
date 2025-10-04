@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
-import { UntypedFormArray, UntypedFormGroup } from '@angular/forms';
+import { UntypedFormArray, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { FormlyForm, FormlyFormOptions } from '@ngx-formly/core';
 import { cloneDeep } from 'lodash-es';
 import { Plugin } from '../../../model/plugin';
@@ -40,6 +40,7 @@ export class GenFormComponent implements OnInit, OnChanges {
   formlyForm?: FormlyForm;
 
   model: any;
+  tagFormGroup?: UntypedFormGroup;
   options: FormlyFormOptions = {
     formState: {
       admin: this.admin,
@@ -49,6 +50,7 @@ export class GenFormComponent implements OnInit, OnChanges {
 
   constructor(
     private admin: AdminService,
+    private fb: UntypedFormBuilder,
   ) { }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -97,13 +99,12 @@ export class GenFormComponent implements OnInit, OnChanges {
 
   ngOnInit(): void {
     if (this.isTagForm) {
+      this.tagFormGroup = this.fb.group({});
       this.updateTagFormModel();
       // Watch for model changes and update the tag
-      if (this.formlyForm) {
-        this.formlyForm.form.valueChanges.subscribe(() => {
-          this.updateTagFromModel();
-        });
-      }
+      this.tagFormGroup.valueChanges.subscribe(() => {
+        this.updateTagFromModel();
+      });
     } else {
       this.pluginGroup?.patchValue(this.plugin.defaults);
       this.options.formState.config = this.plugin.defaults;
