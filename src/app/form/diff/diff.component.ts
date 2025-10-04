@@ -7,11 +7,11 @@ import { ConfigService } from '../../service/config.service';
 
 @Component({
   standalone: false,
-  selector: 'app-diff-editor',
-  templateUrl: './diff-editor.component.html',
-  styleUrl: './diff-editor.component.scss'
+  selector: 'app-diff',
+  templateUrl: './diff.component.html',
+  styleUrl: './diff.component.scss'
 })
-export class DiffEditorComponent implements OnInit, OnDestroy {
+export class DiffComponent implements OnInit, OnDestroy {
   private disposers: IReactionDisposer[] = [];
 
   @Input()

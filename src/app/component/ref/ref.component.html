@@ -339,11 +339,11 @@
   </form>
 } @else if (viewDiff && diffOriginal && diffModified) {
   <div class="diff-view form">
-    <app-diff-editor #diffEditor
+    <app-diff #diffEditor
       [original]="diffOriginal"
       [modified]="diffModified"
       [readOnly]="!local || !!ref.metadata?.obsolete">
-    </app-diff-editor>
+    </app-diff>
     
     <span><!-- Buttons --></span>
     <span class="buttons right">
