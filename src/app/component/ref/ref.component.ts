@@ -1100,8 +1100,8 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
 
   @memo
   get hasDiff() {
-    // Show diff when there are versions and ref is not local
-    return this.store.view.versions > 0 && !this.local;
+    // Show diff when there are remote versions and ref is local
+    return this.store.view.versions > 0 && this.local;
   }
 
   upload$ = () => {
