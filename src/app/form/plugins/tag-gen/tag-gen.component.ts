@@ -16,21 +16,19 @@ export class TagGenFormComponent implements OnChanges {
   @Input() plugin!: Plugin;
   @Input() tags!: UntypedFormArray;
 
-  formGroup = this.fb.group({});
-  model: any[] = [];
-  form?: FormlyFieldConfig[];
-  options: FormlyFormOptions;
-
-  private tagIndex?: number;
-  private updating = false;
+  instances: {
+    tagIndex: number;
+    formGroup: UntypedFormGroup;
+    model: any[];
+    form: FormlyFieldConfig[];
+    options: FormlyFormOptions;
+    updating: boolean;
+  }[] = [];
 
   constructor(
     private admin: AdminService,
     private fb: UntypedFormBuilder,
-  ) {
-    this.options = { formState: { admin, config: {} } };
-    this.formGroup.valueChanges.subscribe(() => this.onFormChange());
-  }
+  ) {}
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes.tags || changes.plugin) {
@@ -44,46 +42,51 @@ export class TagGenFormComponent implements OnChanges {
     const pluginTag = this.plugin.tag.replace(/^[_+]/, '');
     const tags = this.tags.value as string[];
 
-    // Support multiple tags - find first matching tag
+    // Support multiple tags - create instance for each matching tag
+    this.instances = [];
+    
     for (let i = 0; i < tags.length; i++) {
       const tag = tags[i].replace(/^[_+]/, '');
       
       if (tag === pluginTag || tag.startsWith(pluginTag + '/')) {
-        this.tagIndex = i;
-        this.form = this.plugin.config?.tagForm?.[0];
-        this.options.formState.config = this.plugin.defaults;
+        const form = this.plugin.config?.tagForm?.[0];
+        if (!form?.length) continue;
         
         const subTags = tag === pluginTag ? [] : tag.split('/').slice(pluginTag.split('/').length);
-        this.updating = true;
         
-        // Inline createModel logic
-        if (!this.form?.length) {
-          this.model = [];
-        } else {
-          const parts = subTags.slice();
-          this.model = this.form.flatMap(f => {
-            const t = parts.shift();
-            if (typeof f === 'string') return [];
-            const value = t ?? (f.defaultValue ?? this.plugin.defaults?.[f.key as string]);
-            return [f.type === 'duration' ? value?.toUpperCase() : value];
-          });
-        }
+        // Create model for this instance
+        const parts = subTags.slice();
+        const model = form.flatMap(f => {
+          const t = parts.shift();
+          if (typeof f === 'string') return [];
+          const value = t ?? (f.defaultValue ?? this.plugin.defaults?.[f.key as string]);
+          return [f.type === 'duration' ? value?.toUpperCase() : value];
+        });
         
-        this.updating = false;
-        return;
+        const formGroup = this.fb.group({});
+        const options = { formState: { admin: this.admin, config: this.plugin.defaults } };
+        
+        // Subscribe to changes for this instance
+        formGroup.valueChanges.subscribe(() => this.onFormChange(i));
+        
+        this.instances.push({
+          tagIndex: i,
+          formGroup,
+          model,
+          form,
+          options,
+          updating: false
+        });
       }
     }
-
-    this.tagIndex = undefined;
-    this.form = undefined;
-    this.model = [];
   }
 
-  private onFormChange() {
-    if (this.updating || this.tagIndex === undefined || !this.form?.length) return;
+  private onFormChange(instanceIndex: number) {
+    const instance = this.instances[instanceIndex];
+    if (instance.updating || !instance.form?.length) return;
 
-    const modelCopy = [...this.model];
-    const tagParts = this.form.flatMap(f => {
+    const modelCopy = [...instance.model];
+    const tagParts = instance.form.flatMap(f => {
       if (typeof f === 'string') return [f];
       const value = modelCopy.shift();
       if (!value) return [];
@@ -92,11 +95,11 @@ export class TagGenFormComponent implements OnChanges {
 
     if (tagParts.length === 0) return;
 
-    const currentTag = this.tags.at(this.tagIndex).value;
+    const currentTag = this.tags.at(instance.tagIndex).value;
     const newTag = access(currentTag) + this.plugin.tag.replace(/^[_+]/, '') + '/' + tagParts.join('/');
 
     if (newTag !== currentTag) {
-      this.tags.at(this.tagIndex).setValue(newTag);
+      this.tags.at(instance.tagIndex).setValue(newTag);
     }
   }
 }
