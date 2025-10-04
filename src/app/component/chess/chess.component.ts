@@ -56,6 +56,10 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
   pieces: (Piece | null)[] = flatten(this.chess.board());
   writeAccess = false;
   bounce: string[] = [];
+  lastMoveFrom?: Square;
+  lastMoveTo?: Square;
+  animating = false;
+  animationQueue: { from: Square; to: Square; capture?: Square }[] = [];
   @HostBinding('class.flip')
   flip = false;
 
@@ -116,13 +120,11 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
               this.retrySave();
             }
           }
-          let lastMove = this.incoming = this.getMoveCoord(move, this.turn === 'w' ? 'b' : 'w');
-          requestAnimationFrame(() => {
-            if (lastMove != this.incoming) return;
-            if (lastMove.length > 2) lastMove = lastMove.substring(lastMove.length - 2, lastMove.length) as Square;
-            this.bounce.push(lastMove);
-            delay(() => this.bounce = without(this.bounce, lastMove), 3400);
-          });
+          // Parse the move to get from and to coordinates
+          const moveObj = this.chess.history({ verbose: true }).pop();
+          if (moveObj) {
+            this.queueAnimation(moveObj.from, moveObj.to, moveObj.captured ? moveObj.to : undefined);
+          }
         } catch (e) {
           this.clearErrors();
         }
@@ -259,6 +261,7 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
     const isPromotion = !!this.chess.moves({ verbose: true }).find((move) => move.from === from && move.to === to && move.flags.includes('p'));
     const move = this.chess.move({from, to, promotion: isPromotion ? confirm($localize`Promote to Queen:`) ? 'q' : prompt($localize`Promotion:`) as Exclude<PieceType, 'p' | 'k'> : undefined});
     if (move) {
+      this.queueAnimation(from, to, move.captured ? to : undefined);
       this.check();
       this.save(move.san);
     }
@@ -342,5 +345,37 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
     } else {
       return move.replace(/[^a-h1-8]/g, '') as Square;
     }
+  }
+
+  queueAnimation(from: Square, to: Square, capture?: Square) {
+    this.animationQueue.push({ from, to, capture });
+    if (!this.animating) {
+      this.processAnimationQueue();
+    }
+  }
+
+  processAnimationQueue() {
+    if (this.animationQueue.length === 0) {
+      this.animating = false;
+      return;
+    }
+
+    this.animating = true;
+    const animation = this.animationQueue.shift()!;
+    
+    // Set last move highlights - these stay visible
+    this.lastMoveFrom = animation.from;
+    this.lastMoveTo = animation.to;
+
+    // Animate the piece moving to its destination
+    const movingPiece = animation.to;
+    this.bounce.push(movingPiece);
+    
+    // Remove animation after completion
+    delay(() => {
+      this.bounce = without(this.bounce, movingPiece);
+      // Process next animation after current one completes
+      this.processAnimationQueue();
+    }, 1600);
   }
 }

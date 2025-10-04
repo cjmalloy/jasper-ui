@@ -2,6 +2,7 @@
   <div class="tile {{ color(i) }}"
        [class.from]="getCoord(white ? i : 63 - i) === from"
        [class.move]="moves.includes(getCoord(white ? i : 63 - i))"
+       [class.last-move]="getCoord(white ? i : 63 - i) === lastMoveFrom || getCoord(white ? i : 63 - i) === lastMoveTo"
        (click)="clickSquare(white ? i : 63 - i)"
        cdkDropList
        [cdkDropListData]="white ? i : 63 - i"
