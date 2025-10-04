@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, concat, concatMap, generate, last, Observable, of } from 'rxjs';
 import { tap } from 'rxjs/operators';
@@ -20,7 +20,8 @@ import { printError } from '../../util/http';
   selector: 'app-debug',
   templateUrl: './debug.component.html',
   styleUrls: ['./debug.component.scss'],
-  host: {'class': 'debug actions'}
+  host: {'class': 'debug actions'},
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class DebugComponent {
 
