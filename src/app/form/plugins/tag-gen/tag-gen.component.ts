@@ -26,6 +26,7 @@ export class TagGenFormComponent implements OnInit, OnChanges {
   model: any = {};
   currentTag?: string;
   subTag?: string;
+  private updatingFromTag = false;  // Flag to prevent emission during tag-to-model updates
   options: FormlyFormOptions = {
     formState: {
       admin: this.admin,
@@ -102,7 +103,10 @@ export class TagGenFormComponent implements OnInit, OnChanges {
       });
     }
     
+    // Set flag to prevent emission during model update
+    this.updatingFromTag = true;
     this.model = this.createModel();
+    this.updatingFromTag = false;
   }
 
   private createModel(): any {
@@ -138,7 +142,8 @@ export class TagGenFormComponent implements OnInit, OnChanges {
   }
 
   private emitTagUpdate() {
-    if (!this.currentTag) return;
+    // Don't emit if we're updating from tag changes
+    if (this.updatingFromTag || !this.currentTag) return;
     
     const form = this.form;
     if (!form || form.length === 0) return;
