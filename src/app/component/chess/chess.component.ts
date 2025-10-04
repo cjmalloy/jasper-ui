@@ -59,7 +59,9 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
   lastMoveFrom?: Square;
   lastMoveTo?: Square;
   animating = false;
-  animationQueue: { from: Square; to: Square; capture?: Square }[] = [];
+  animationQueue: { from: Square; to: Square; capture?: Square; piece?: Piece }[] = [];
+  movingPiece?: { piece: Piece; from: Square; to: Square };
+  capturedPiece?: { piece: Piece; square: Square };
   @HostBinding('class.flip')
   flip = false;
 
@@ -123,7 +125,8 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
           // Parse the move to get from and to coordinates
           const moveObj = this.chess.history({ verbose: true }).pop();
           if (moveObj) {
-            this.queueAnimation(moveObj.from, moveObj.to, moveObj.captured ? moveObj.to : undefined);
+            const capturedPiece = moveObj.captured ? { type: moveObj.captured, color: moveObj.color === 'w' ? 'b' : 'w' } as Piece : undefined;
+            this.queueAnimation(moveObj.from, moveObj.to, capturedPiece ? moveObj.to : undefined, { type: moveObj.piece, color: moveObj.color, square: moveObj.to });
           }
         } catch (e) {
           this.clearErrors();
@@ -261,7 +264,8 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
     const isPromotion = !!this.chess.moves({ verbose: true }).find((move) => move.from === from && move.to === to && move.flags.includes('p'));
     const move = this.chess.move({from, to, promotion: isPromotion ? confirm($localize`Promote to Queen:`) ? 'q' : prompt($localize`Promotion:`) as Exclude<PieceType, 'p' | 'k'> : undefined});
     if (move) {
-      this.queueAnimation(from, to, move.captured ? to : undefined);
+      const capturedPiece = move.captured ? { type: move.captured, color: move.color === 'w' ? 'b' : 'w' } as Piece : undefined;
+      this.queueAnimation(from, to, capturedPiece ? to : undefined, { type: move.piece, color: move.color, square: to });
       this.check();
       this.save(move.san);
     }
@@ -347,8 +351,8 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
     }
   }
 
-  queueAnimation(from: Square, to: Square, capture?: Square) {
-    this.animationQueue.push({ from, to, capture });
+  queueAnimation(from: Square, to: Square, capture?: Square, piece?: Piece) {
+    this.animationQueue.push({ from, to, capture, piece });
     if (!this.animating) {
       this.processAnimationQueue();
     }
@@ -357,6 +361,8 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
   processAnimationQueue() {
     if (this.animationQueue.length === 0) {
       this.animating = false;
+      delete this.movingPiece;
+      delete this.capturedPiece;
       return;
     }
 
@@ -367,6 +373,20 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
     this.lastMoveFrom = animation.from;
     this.lastMoveTo = animation.to;
 
+    // Set up moving piece animation if we have piece data
+    if (animation.piece) {
+      this.movingPiece = { piece: animation.piece, from: animation.from, to: animation.to };
+    }
+
+    // If there's a capture, get the captured piece info
+    if (animation.capture && animation.piece) {
+      // The captured piece was at the destination square before the move
+      const capturedPieceType = this.pieces[this.getIndex(animation.capture)];
+      if (capturedPieceType) {
+        this.capturedPiece = { piece: capturedPieceType, square: animation.capture };
+      }
+    }
+
     // Animate the piece moving to its destination
     const movingPiece = animation.to;
     this.bounce.push(movingPiece);
@@ -374,6 +394,8 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
     // Remove animation after completion
     delay(() => {
       this.bounce = without(this.bounce, movingPiece);
+      delete this.movingPiece;
+      delete this.capturedPiece;
       // Process next animation after current one completes
       this.processAnimationQueue();
     }, 1600);
