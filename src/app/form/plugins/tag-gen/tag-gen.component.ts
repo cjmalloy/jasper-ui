@@ -54,7 +54,20 @@ export class TagGenFormComponent implements OnChanges {
         
         const subTags = tag === pluginTag ? [] : tag.split('/').slice(pluginTag.split('/').length);
         this.updating = true;
-        this.model = this.createModel(subTags);
+        
+        // Inline createModel logic
+        if (!this.form?.length) {
+          this.model = [];
+        } else {
+          const parts = subTags.slice();
+          this.model = this.form.flatMap(f => {
+            const t = parts.shift();
+            if (typeof f === 'string') return [];
+            const value = t ?? (f.defaultValue ?? this.plugin.defaults?.[f.key as string]);
+            return [f.type === 'duration' ? value?.toUpperCase() : value];
+          });
+        }
+        
         this.updating = false;
         return;
       }
@@ -63,18 +76,6 @@ export class TagGenFormComponent implements OnChanges {
     this.tagIndex = undefined;
     this.form = undefined;
     this.model = [];
-  }
-
-  private createModel(subTags: string[]): any[] {
-    if (!this.form?.length) return [];
-
-    const parts = subTags.slice();
-    return this.form.flatMap(f => {
-      const t = parts.shift();
-      if (typeof f === 'string') return [];
-      const value = t ?? (f.defaultValue ?? this.plugin.defaults?.[f.key as string]);
-      return [f.type === 'duration' ? value?.toUpperCase() : value];
-    });
   }
 
   private onFormChange() {
