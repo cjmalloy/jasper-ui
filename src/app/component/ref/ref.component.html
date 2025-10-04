@@ -217,7 +217,8 @@
               }
             }
             <app-inline-tag #action *ngIf="taggingAccess" [action]="tag$" i18n>tag</app-inline-tag>
-            <app-inline-button #action *ngIf="store.account.user && !local" [action]="copy$" i18n>copy</app-inline-button>
+            <app-inline-button #action *ngIf="hasDiff" [action]="diff$" i18n>diff</app-inline-button>
+            <app-inline-button #action *ngIf="store.account.user && !local && !hasDiff" [action]="copy$" i18n>copy</app-inline-button>
             @if (store.account.user && local) {
               <a routerLink="/submit/web" [queryParams]="{ url, tag: 'plugin/repost' }" i18n>repost</a>
             }
@@ -346,3 +347,13 @@
     </div>
   }
 }
+
+<ng-template #diffOverlay>
+  @if (diffOriginal && diffModified) {
+    <app-diff-editor
+      [original]="diffOriginal"
+      [modified]="diffModified"
+      (close)="closeDiffOverlay()">
+    </app-diff-editor>
+  }
+</ng-template>

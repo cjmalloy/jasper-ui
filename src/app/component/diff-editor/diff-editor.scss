@@ -1,0 +1,50 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+}
+
+.diff-editor-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  background: var(--background);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  border-bottom: 1px solid var(--border);
+
+  h3 {
+    margin: 0;
+    font-size: 1.25rem;
+  }
+
+  .close-button {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0.25rem 0.5rem;
+    color: var(--text);
+    
+    &:hover {
+      opacity: 0.7;
+    }
+  }
+}
+
+.editor-wrapper {
+  flex: 1;
+  overflow: hidden;
+  
+  ngx-monaco-diff-editor {
+    height: 100%;
+    width: 100%;
+  }
+}

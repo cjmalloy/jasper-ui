@@ -13,11 +13,15 @@ import {
   Output,
   QueryList,
   SimpleChanges,
+  TemplateRef,
   ViewChild,
-  ViewChildren
+  ViewChildren,
+  ViewContainerRef
 } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
+import { Overlay, OverlayRef } from '@angular/cdk/overlay';
+import { TemplatePortal } from '@angular/cdk/portal';
 import { cloneDeep, defer, delay, groupBy, pick, throttle, uniq, without } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
@@ -90,6 +94,8 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   refForm?: RefFormComponent;
   @ViewChild(CommentReplyComponent)
   reply?: CommentReplyComponent;
+  @ViewChild('diffOverlay')
+  diffOverlay?: TemplateRef<any>;
 
   @Input()
   ref!: Ref;
@@ -139,6 +145,9 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   deleteAccess = false;
   serverError: string[] = [];
   publishChanged = false;
+  diffOverlayRef?: OverlayRef;
+  diffOriginal?: Ref;
+  diffModified?: Ref;
 
   submitting?: Subscription;
   private refreshTap?: () => void;
@@ -162,6 +171,8 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     private fb: UntypedFormBuilder,
     private el: ElementRef<HTMLDivElement>,
     private cd: ChangeDetectorRef,
+    private overlay: Overlay,
+    private viewContainerRef: ViewContainerRef,
   ) {
     this.editForm = refForm(fb);
     this.editForm.valueChanges.pipe(
@@ -1042,6 +1053,77 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
         this.init();
       })
     );
+  }
+
+  diff$ = () => {
+    // Fetch obsolete versions and show diff with most recent remote version
+    return this.refs.page({
+      url: this.ref.url,
+      obsolete: true,
+      size: 100,
+      sort: ['modified,DESC']
+    }).pipe(
+      map(page => {
+        // Find the most recent remote version (not from local origin)
+        const remoteVersion = page.content.find(r => r.origin !== this.store.account.origin);
+        if (!remoteVersion) {
+          throw new Error('No remote version found');
+        }
+        return remoteVersion;
+      }),
+      switchMap(remoteVersion => 
+        this.refs.get(this.ref.url, this.store.account.origin).pipe(
+          map(localVersion => ({ local: localVersion, remote: remoteVersion }))
+        )
+      ),
+      tap(({ local, remote }) => {
+        this.diffOriginal = remote;
+        this.diffModified = local;
+        this.showDiffOverlay();
+      }),
+      catchError(err => {
+        console.error('Error fetching versions for diff:', err);
+        alert('Could not load versions for comparison');
+        return throwError(() => err);
+      })
+    );
+  }
+
+  showDiffOverlay() {
+    if (!this.diffOverlay) return;
+    
+    const positionStrategy = this.overlay.position()
+      .global()
+      .centerHorizontally()
+      .centerVertically();
+    
+    this.diffOverlayRef = this.overlay.create({
+      positionStrategy,
+      hasBackdrop: true,
+      backdropClass: 'cdk-overlay-dark-backdrop',
+      panelClass: 'diff-overlay-panel',
+      scrollStrategy: this.overlay.scrollStrategies.block(),
+      width: '90vw',
+      height: '90vh',
+    });
+
+    const portal = new TemplatePortal(this.diffOverlay, this.viewContainerRef);
+    this.diffOverlayRef.attach(portal);
+
+    this.diffOverlayRef.backdropClick().subscribe(() => this.closeDiffOverlay());
+  }
+
+  closeDiffOverlay() {
+    this.diffOverlayRef?.dispose();
+    this.diffOverlayRef = undefined;
+    this.diffOriginal = undefined;
+    this.diffModified = undefined;
+  }
+
+  @memo
+  get hasDiff() {
+    // Show diff when there are versions and ref is not local
+    return this.store.view.versions > 0 && !this.local;
   }
 
   upload$ = () => {
