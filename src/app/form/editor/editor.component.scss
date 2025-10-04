@@ -65,6 +65,12 @@
   }
 }
 
+:host.preview-settling {
+  app-md {
+    visibility: hidden;
+  }
+}
+
 .response-button {
   width: 26px;
   height: 28px;

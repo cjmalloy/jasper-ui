@@ -71,6 +71,8 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   help = false;
   @HostBinding('class.md-preview')
   preview = this.store.local.showPreview;
+  @HostBinding('class.preview-settling')
+  previewSettling = false;
 
   @ViewChild('helpButton')
   helpButton?: ElementRef<HTMLButtonElement>;
@@ -249,6 +251,8 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
       this.sourceMap.push(start);
     });
     this.sourceMap.sort((a, b) => a - b);
+    // Preview has settled, make it visible
+    this.previewSettling = false;
   }
 
   onSelectEditor() {
@@ -445,6 +449,10 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
     if (this._text === value) return;
     this._text = value;
     this.syncEditor.next(this._text);
+    // Mark preview as settling when text changes
+    if (this.preview) {
+      this.previewSettling = true;
+    }
   }, 400);
 
   togglePreview() {
@@ -452,6 +460,10 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
       this.store.local.showFullscreenPreview = this.preview = !this.preview;
     } else {
       this.store.local.showPreview = this.preview = !this.preview;
+    }
+    // When enabling preview, mark as settling
+    if (this.preview) {
+      this.previewSettling = true;
     }
     if (this.focused !== false) this.editor?.nativeElement.focus();
   }
@@ -463,6 +475,8 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
       } else {
         this.store.local.showFullscreenPreview = this.preview = true;
         this.store.local.editorStacked = this.stacked = false;
+        // When enabling preview, mark as settling
+        this.previewSettling = true;
       }
     } else {
       this.store.local.editorStacked = this.stacked = true;
@@ -481,6 +495,10 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
       this._text = this.currentText;
       this.stacked = this.store.local.editorStacked;
       this.preview = this.store.local.showFullscreenPreview;
+      // When enabling preview in fullscreen, mark as settling
+      if (this.preview) {
+        this.previewSettling = true;
+      }
       this.scrollTop = this.editor.nativeElement.scrollTop;
       let height = 'calc(100vh - 4px)';
       if (window.visualViewport?.height) {
@@ -510,6 +528,10 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
       document.documentElement.style.overflowY = 'scroll';
       this.stacked = true;
       this.preview = this.store.local.showPreview;
+      // When enabling preview after exiting fullscreen, mark as settling
+      if (this.preview) {
+        this.previewSettling = true;
+      }
       this.scrollTopFullscreen = this.editor.nativeElement.scrollTop;
       this.overlayRef?.detach();
       this.overlayRef?.dispose();
