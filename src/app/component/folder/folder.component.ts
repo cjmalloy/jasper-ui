@@ -18,7 +18,8 @@ import { defaultOrigin, level, tagOrigin } from '../../util/tag';
   selector: 'app-folder',
   templateUrl: './folder.component.html',
   styleUrls: ['./folder.component.scss'],
-  host: {'class': 'folder ext'}
+  host: {'class': 'folder ext'},
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class FolderComponent implements OnChanges, HasChanges {
 

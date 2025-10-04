@@ -21,7 +21,8 @@ import { printError } from '../../../util/http';
   selector: 'app-settings-backup-page',
   templateUrl: './backup.component.html',
   styleUrls: ['./backup.component.scss'],
-  host: {'class': 'backup'}
+  host: {'class': 'backup'},
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class SettingsBackupPage {
 

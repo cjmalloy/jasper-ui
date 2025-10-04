@@ -13,7 +13,8 @@ import { TagsFormComponent } from '../tags/tags.component';
   selector: 'app-user-form',
   templateUrl: './user.component.html',
   styleUrls: ['./user.component.scss'],
-  host: {'class': 'nested-form'}
+  host: {'class': 'nested-form'},
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class UserFormComponent implements OnInit {
 

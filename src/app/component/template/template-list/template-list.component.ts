@@ -10,7 +10,8 @@ import { TemplateComponent } from '../template.component';
   selector: 'app-template-list',
   templateUrl: './template-list.component.html',
   styleUrls: ['./template-list.component.scss'],
-  host: {'class': 'template-list'}
+  host: {'class': 'template-list'},
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class TemplateListComponent implements HasChanges {
 

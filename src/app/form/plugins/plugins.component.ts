@@ -25,7 +25,8 @@ import { GenFormComponent } from './gen/gen.component';
   selector: 'app-form-plugins',
   templateUrl: './plugins.component.html',
   styleUrls: ['./plugins.component.scss'],
-  host: {'class': 'plugins-form'}
+  host: {'class': 'plugins-form'},
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class PluginsFormComponent implements OnChanges, AfterViewInit {
   private destroy$ = new Subject<void>();

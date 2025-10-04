@@ -31,7 +31,8 @@ import { TagsFormComponent } from '../tags/tags.component';
   selector: 'app-ref-form',
   templateUrl: './ref.component.html',
   styleUrls: ['./ref.component.scss'],
-  host: {'class': 'nested-form'}
+  host: {'class': 'nested-form'},
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class RefFormComponent {
 

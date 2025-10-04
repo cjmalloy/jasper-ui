@@ -1,7 +1,7 @@
 import { Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { TemplatePortal } from '@angular/cdk/portal';
 import {
-  Component,
+  ChangeDetectionStrategy, Component,
   EventEmitter,
   Input,
   OnDestroy,

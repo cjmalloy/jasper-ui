@@ -7,7 +7,8 @@ import { v4 as uuid } from 'uuid';
   selector: 'app-plugin-form',
   templateUrl: './plugin.component.html',
   styleUrls: ['./plugin.component.scss'],
-  host: {'class': 'nested-form'}
+  host: {'class': 'nested-form'},
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class PluginFormComponent {
 

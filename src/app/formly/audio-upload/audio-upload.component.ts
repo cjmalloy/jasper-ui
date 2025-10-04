@@ -12,7 +12,8 @@ import { readFileAsDataURL } from '../../util/async';
   selector: 'app-audio-upload',
   templateUrl: './audio-upload.component.html',
   styleUrls: ['./audio-upload.component.scss'],
-  host: {'class': 'form-array'}
+  host: {'class': 'form-array'},
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AudioUploadComponent {
 

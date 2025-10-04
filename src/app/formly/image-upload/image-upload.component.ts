@@ -12,7 +12,8 @@ import { readFileAsDataURL } from '../../util/async';
   selector: 'app-image-upload',
   templateUrl: './image-upload.component.html',
   styleUrls: ['./image-upload.component.scss'],
-  host: {'class': 'form-array'}
+  host: {'class': 'form-array'},
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ImageUploadComponent {
 

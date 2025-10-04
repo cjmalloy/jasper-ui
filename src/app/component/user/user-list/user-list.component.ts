@@ -1,4 +1,4 @@
-import { Component, Input, QueryList, ViewChildren } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, QueryList, ViewChildren } from '@angular/core';
 import { Router } from '@angular/router';
 import { find } from 'lodash-es';
 import { catchError, of } from 'rxjs';

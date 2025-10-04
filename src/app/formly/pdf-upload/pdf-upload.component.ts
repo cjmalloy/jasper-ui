@@ -12,7 +12,8 @@ import { readFileAsDataURL } from '../../util/async';
   selector: 'app-pdf-upload',
   templateUrl: './pdf-upload.component.html',
   styleUrls: ['./pdf-upload.component.scss'],
-  host: {'class': 'form-array'}
+  host: {'class': 'form-array'},
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class PdfUploadComponent {
 

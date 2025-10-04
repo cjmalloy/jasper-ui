@@ -9,7 +9,8 @@ import { Store } from '../../store/store';
   selector: 'app-page-controls',
   templateUrl: './page-controls.component.html',
   styleUrls: ['./page-controls.component.scss'],
-  host: {'class': 'page-controls'}
+  host: {'class': 'page-controls'},
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class PageControlsComponent {
 

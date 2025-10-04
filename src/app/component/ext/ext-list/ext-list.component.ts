@@ -10,7 +10,8 @@ import { ExtComponent } from '../ext.component';
   selector: 'app-ext-list',
   templateUrl: './ext-list.component.html',
   styleUrls: ['./ext-list.component.scss'],
-  host: {'class': 'ext-list'}
+  host: {'class': 'ext-list'},
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ExtListComponent implements HasChanges {
 

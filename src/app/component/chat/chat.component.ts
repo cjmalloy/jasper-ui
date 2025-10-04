@@ -24,7 +24,8 @@ import { braces, tagOrigin } from '../../util/tag';
   selector: 'app-chat',
   templateUrl: './chat.component.html',
   styleUrls: ['./chat.component.scss'],
-  host: {'class': 'chat ext'}
+  host: {'class': 'chat ext'},
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
   private destroy$ = new Subject<void>();

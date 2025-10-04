@@ -9,7 +9,8 @@ import { Store } from '../../store/store';
   selector: 'app-settings',
   templateUrl: './settings.component.html',
   styleUrls: ['./settings.component.scss'],
-  host: {'class': 'settings'}
+  host: {'class': 'settings'},
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class SettingsComponent {
 

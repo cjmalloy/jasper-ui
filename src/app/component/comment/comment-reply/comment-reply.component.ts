@@ -25,7 +25,8 @@ import { hasTag, removeTag } from '../../../util/tag';
   selector: 'app-comment-reply',
   templateUrl: './comment-reply.component.html',
   styleUrls: ['./comment-reply.component.scss'],
-  host: {'class': 'comment-reply'}
+  host: {'class': 'comment-reply'},
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class CommentReplyComponent implements HasChanges {
 

@@ -15,7 +15,8 @@ import { RefComponent } from '../ref/ref.component';
   selector: 'app-notebook',
   templateUrl: './notebook.component.html',
   styleUrl: './notebook.component.scss',
-  host: {'class': 'notebook ext'}
+  host: {'class': 'notebook ext'},
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class NotebookComponent implements OnInit, OnDestroy, HasChanges {
   private destroy$ = new Subject<void>();

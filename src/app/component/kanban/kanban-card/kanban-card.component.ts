@@ -43,7 +43,8 @@ import { expandedTagsInclude, hasTag, repost } from '../../../util/tag';
   selector: 'app-kanban-card',
   templateUrl: './kanban-card.component.html',
   styleUrls: ['./kanban-card.component.scss'],
-  host: {'class': 'kanban-card'}
+  host: {'class': 'kanban-card'},
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class KanbanCardComponent implements OnChanges, AfterViewInit, OnDestroy {
   private destroy$ = new Subject<void>();
