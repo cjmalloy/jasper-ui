@@ -34,10 +34,10 @@ describe('TagGenFormComponent', () => {
     component.plugin = {
       tag: '+plugin/cron',
       config: {
-        tagForm: [[{
+        tagForm: ['interval', {
           key: 'interval',
           type: 'duration'
-        }]]
+        }]
       }
     };
     component.tags = fb.array(['+plugin/cron/pt15m']);

@@ -119,7 +119,7 @@ export interface Plugin extends Config {
      * Each element in the array is an editor for all appearances of tags starting with this plugin.
      * tagForm[0] will be the first sub-tag (split on '/') after the plugin tag itself.
      */
-    tagForm?: FormlyFieldConfig[][],
+    tagForm?: (FormlyFieldConfig|string)[],
   };
   // Client-only
   type?: 'plugin';

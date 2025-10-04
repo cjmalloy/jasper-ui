@@ -27,10 +27,10 @@ describe('AdminService', () => {
       tag: '+plugin/cron',
       name: 'Scheduler',
       config: {
-        tagForm: [[{
+        tagForm: ['interval', {
           key: 'interval',
           type: 'duration'
-        }]]
+        }]
       }
     };
 

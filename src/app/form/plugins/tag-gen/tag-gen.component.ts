@@ -20,7 +20,7 @@ export class TagGenFormComponent implements OnChanges {
     tagIndex: number;
     formGroup: UntypedFormGroup;
     model: any[];
-    form: FormlyFieldConfig[];
+    form: (FormlyFieldConfig | string)[];
     options: FormlyFormOptions;
     updating: boolean;
   }[] = [];
@@ -49,14 +49,14 @@ export class TagGenFormComponent implements OnChanges {
       const tag = tags[i].replace(/^[_+]/, '');
       
       if (tag === pluginTag || tag.startsWith(pluginTag + '/')) {
-        const form = this.plugin.config?.tagForm?.[0];
+        const form = this.plugin.config?.tagForm;
         if (!form?.length) continue;
         
         const subTags = tag === pluginTag ? [] : tag.split('/').slice(pluginTag.split('/').length);
         
         // Create model for this instance
         const parts = subTags.slice();
-        const model = form.flatMap(f => {
+        const model = form.flatMap((f: FormlyFieldConfig | string) => {
           const t = parts.shift();
           if (typeof f === 'string') return [];
           const value = t ?? (f.defaultValue ?? this.plugin.defaults?.[f.key as string]);
