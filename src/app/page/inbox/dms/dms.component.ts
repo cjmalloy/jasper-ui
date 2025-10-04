@@ -1,6 +1,5 @@
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { defer } from 'lodash-es';
-import { autorun, IReactionDisposer } from 'mobx';
 import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { AdminService } from '../../../service/admin.service';
@@ -14,11 +13,10 @@ import { getArgs } from '../../../util/query';
   selector: 'app-inbox-dms',
   templateUrl: './dms.component.html',
   styleUrls: ['./dms.component.scss'],
-  host: {'class': 'dms'}
+  host: {'class': 'dms'},
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class InboxDmsPage implements OnInit, OnDestroy, HasChanges {
-
-  private disposers: IReactionDisposer[] = [];
 
   @ViewChild(RefListComponent)
   list?: RefListComponent;
@@ -32,14 +30,8 @@ export class InboxDmsPage implements OnInit, OnDestroy, HasChanges {
     mod.setTitle($localize`Inbox: DMs`);
     store.view.clear(['metadataModified']);
     query.clear();
-  }
-
-  saveChanges() {
-    return !this.list || this.list.saveChanges();
-  }
-
-  ngOnInit(): void {
-    this.disposers.push(autorun(() => {
+    // Convert MobX autorun to Angular effect
+    effect(() => {
       const args = getArgs(
         (this.store.view.search ? 'dm:' : 'dm:!internal:') + `(${this.store.account.tagWithOrigin}|${this.store.account.inboxQuery})`,
         this.store.view.sort,
@@ -49,12 +41,17 @@ export class InboxDmsPage implements OnInit, OnDestroy, HasChanges {
         this.store.view.pageSize,
       );
       defer(() => this.query.setArgs(args));
-    }));
+    });
+  }
+
+  saveChanges() {
+    return !this.list || this.list.saveChanges();
+  }
+
+  ngOnInit(): void {
   }
 
   ngOnDestroy() {
     this.query.close();
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
   }
 }
