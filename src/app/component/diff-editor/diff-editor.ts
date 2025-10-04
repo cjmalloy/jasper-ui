@@ -2,6 +2,7 @@ import { Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angu
 import { autorun, IReactionDisposer } from 'mobx';
 import { Ref, writeRef } from '../../model/ref';
 import { Store } from '../../store/store';
+import { DiffEditorModel } from 'ngx-monaco-editor';
 
 @Component({
   standalone: false,
@@ -19,12 +20,11 @@ export class DiffEditorComponent implements OnInit, OnDestroy {
   @Output()
   close = new EventEmitter<void>();
 
-  originalText = '';
-  modifiedText = '';
+  originalModel: DiffEditorModel = { code: '', language: 'json' };
+  modifiedModel: DiffEditorModel = { code: '', language: 'json' };
 
   diffOptions: any = {
     theme: 'vs',
-    language: 'json',
     readOnly: true,
     automaticLayout: true,
     renderSideBySide: true,
@@ -35,8 +35,14 @@ export class DiffEditorComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit() {
-    this.originalText = JSON.stringify(writeRef(this.original), null, 2);
-    this.modifiedText = JSON.stringify(writeRef(this.modified), null, 2);
+    this.originalModel = {
+      code: JSON.stringify(writeRef(this.original), null, 2),
+      language: 'json'
+    };
+    this.modifiedModel = {
+      code: JSON.stringify(writeRef(this.modified), null, 2),
+      language: 'json'
+    };
 
     this.disposers.push(autorun(() => {
       this.diffOptions = {
