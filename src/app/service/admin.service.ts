@@ -749,7 +749,6 @@ export class AdminService {
     return this.tagForms.filter(p => hasTag(p.tag, match));
   }
 
-
   getTemplate(tag: string) {
     if (this.status.templates[tag]) return this.status.templates[tag];
     return Object.values(this.status.templates).find(t => {
