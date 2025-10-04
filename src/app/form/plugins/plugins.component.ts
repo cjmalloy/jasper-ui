@@ -81,39 +81,6 @@ export class PluginsFormComponent implements OnChanges, AfterViewInit {
       .filter(i => this.showIcon(i));
   }
 
-  getTagFormInstances(plugin: Plugin): Array<{ plugin: Plugin, tag: string, formIndex: number, subTag: string }> {
-    const result: Array<{ plugin: Plugin, tag: string, formIndex: number, subTag: string }> = [];
-    
-    for (const tag of this.allTags) {
-      // Check if this tag starts with the plugin tag
-      const cleanTag = tag.replace(/^[_+]/, '');
-      const cleanPluginTag = plugin.tag.replace(/^[_+]/, '');
-      
-      if (cleanTag === cleanPluginTag || !cleanTag.startsWith(cleanPluginTag + '/')) {
-        continue;
-      }
-      
-      // Extract sub-tags after the plugin tag
-      const tagParts = cleanTag.split('/');
-      const pluginParts = cleanPluginTag.split('/');
-      const subTags = tagParts.slice(pluginParts.length);
-      
-      // Match sub-tags to tagForm indices
-      for (let i = 0; i < subTags.length && plugin.config?.tagForm && i < plugin.config.tagForm.length; i++) {
-        if (plugin.config.tagForm[i]) {
-          result.push({
-            plugin,
-            tag,
-            formIndex: i,
-            subTag: subTags[i]
-          });
-        }
-      }
-    }
-    
-    return result;
-  }
-
   ngAfterViewInit() {
     this.tags.valueChanges.pipe(
       takeUntil(this.destroy$),

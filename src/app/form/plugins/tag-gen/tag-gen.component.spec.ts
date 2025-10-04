@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ReactiveFormsModule } from '@angular/forms';
+import { ReactiveFormsModule, UntypedFormArray, UntypedFormBuilder } from '@angular/forms';
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { RouterModule } from '@angular/router';
@@ -9,6 +9,7 @@ import { TagGenFormComponent } from './tag-gen.component';
 describe('TagGenFormComponent', () => {
   let component: TagGenFormComponent;
   let fixture: ComponentFixture<TagGenFormComponent>;
+  let fb: UntypedFormBuilder;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -19,7 +20,8 @@ describe('TagGenFormComponent', () => {
       ],
       providers: [
         provideHttpClient(withInterceptorsFromDi()),
-        provideHttpClientTesting()
+        provideHttpClientTesting(),
+        UntypedFormBuilder
       ],
     }).compileComponents();
   });
@@ -27,6 +29,8 @@ describe('TagGenFormComponent', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(TagGenFormComponent);
     component = fixture.componentInstance;
+    fb = TestBed.inject(UntypedFormBuilder);
+    
     component.plugin = {
       tag: '+plugin/cron',
       config: {
@@ -36,9 +40,7 @@ describe('TagGenFormComponent', () => {
         }]]
       }
     };
-    component.formIndex = 0;
-    component.subTag = 'pt15m';
-    component.fullTag = '+plugin/cron/pt15m';
+    component.tags = fb.array(['+plugin/cron/pt15m']);
     fixture.detectChanges();
   });
 
