@@ -1,6 +1,6 @@
 import {
   AfterViewInit,
-  Component,
+  ChangeDetectionStrategy, Component,
   HostBinding,
   HostListener,
   Input,
