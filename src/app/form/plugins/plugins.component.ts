@@ -75,10 +75,71 @@ export class PluginsFormComponent implements OnChanges, AfterViewInit {
       }
     }
     this.forms = this.admin.getPluginForms(this.allTags);
-    this.tagForms = this.admin.getPluginTagForms(this.allTags);
+    this.tagForms = this.extractTagForms(this.allTags);
     this.icons = sortOrder(this.admin.getIcons(this.allTags, this.plugins.value, getScheme(this.group.value.url))
       .filter(i => !this.forms.find(p => p.tag === i.tag)))
       .filter(i => this.showIcon(i));
+  }
+
+  private extractTagForms(tags: string[]): Array<{ plugin: Plugin, tag: string, formIndex: number, subTag: string }> {
+    const result: Array<{ plugin: Plugin, tag: string, formIndex: number, subTag: string }> = [];
+    const tagFormPlugins = this.admin.getTagForms(tags);
+    
+    for (const tag of tags) {
+      // Find plugins that this tag extends
+      const pluginTag = this.findPluginForTag(tag, tagFormPlugins);
+      if (!pluginTag) continue;
+      
+      const plugin = this.admin.getPlugin(pluginTag);
+      if (!plugin?.config?.tagForm) continue;
+      
+      // Extract sub-tags after the plugin tag
+      const subTags = this.getSubTags(tag, pluginTag);
+      
+      // Match sub-tags to tagForm indices
+      for (let i = 0; i < subTags.length && i < plugin.config.tagForm.length; i++) {
+        if (plugin.config.tagForm[i]) {
+          result.push({
+            plugin,
+            tag,
+            formIndex: i,
+            subTag: subTags[i]
+          });
+        }
+      }
+    }
+    return result;
+  }
+
+  private findPluginForTag(tag: string, tagFormPlugins: Plugin[]): string | undefined {
+    // Remove access prefix
+    const cleanTag = tag.replace(/^[_+]/, '');
+    const parts = cleanTag.split('/');
+    
+    // Try to find a plugin that matches this tag or its parents
+    for (let i = parts.length; i > 0; i--) {
+      const potentialPlugin = parts.slice(0, i).join('/');
+      // Check with original access prefix
+      const access = tag.startsWith('_') ? '_' : tag.startsWith('+') ? '+' : '';
+      const pluginTag = access + potentialPlugin;
+      
+      if (tagFormPlugins.find(p => p.tag === pluginTag)) {
+        return pluginTag;
+      }
+    }
+    return undefined;
+  }
+
+  private getSubTags(tag: string, pluginTag: string): string[] {
+    // Remove access prefix from both
+    const cleanTag = tag.replace(/^[_+]/, '');
+    const cleanPluginTag = pluginTag.replace(/^[_+]/, '');
+    
+    const tagParts = cleanTag.split('/');
+    const pluginParts = cleanPluginTag.split('/');
+    
+    // Return the parts after the plugin tag
+    return tagParts.slice(pluginParts.length);
   }
 
   ngAfterViewInit() {

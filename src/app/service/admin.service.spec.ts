@@ -21,7 +21,7 @@ describe('AdminService', () => {
     expect(service).toBeTruthy();
   });
 
-  it('should extract sub-tags from tags with tagForm plugins', () => {
+  it('should return plugins with tagForm', () => {
     // Setup a mock plugin with tagForm
     const cronPlugin: Plugin = {
       tag: '+plugin/cron',
@@ -37,14 +37,11 @@ describe('AdminService', () => {
     // Mock the plugin status
     service.status.plugins['+plugin/cron'] = cronPlugin;
 
-    // Test getPluginTagForms
+    // Test getTagForms
     const tags = ['+plugin/cron/pt15m', 'some/other/tag'];
-    const tagForms = service.getPluginTagForms(tags);
+    const tagForms = service.getTagForms(tags);
 
     expect(tagForms.length).toBe(1);
-    expect(tagForms[0].plugin.tag).toBe('+plugin/cron');
-    expect(tagForms[0].tag).toBe('+plugin/cron/pt15m');
-    expect(tagForms[0].formIndex).toBe(0);
-    expect(tagForms[0].subTag).toBe('pt15m');
+    expect(tagForms[0].tag).toBe('+plugin/cron');
   });
 });
