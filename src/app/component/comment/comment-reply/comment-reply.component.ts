@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, EventEmitter, Input, Output, ViewChild } from '@angular/core';
-import { FormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
+import { AfterViewInit, Component, EventEmitter, Input, Output, ViewChild } from '@angular/core';
+import { FormBuilder, UntypedFormArray, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { pickBy, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { catchError, Subscription, throwError } from 'rxjs';
@@ -27,7 +27,7 @@ import { hasTag, removeTag } from '../../../util/tag';
   styleUrls: ['./comment-reply.component.scss'],
   host: {'class': 'comment-reply'}
 })
-export class CommentReplyComponent implements HasChanges {
+export class CommentReplyComponent implements HasChanges, AfterViewInit {
 
   @Input()
   to!: Ref;
@@ -49,7 +49,11 @@ export class CommentReplyComponent implements HasChanges {
   editorSources: string[] = [];
 
   replying?: Subscription;
-  commentForm: UntypedFormGroup;
+  commentForm = this.fb.group({
+    comment: [''],
+    tags: this.fb.array([]),
+    plugins: this.fb.group({}),
+  });
   serverError: string[] = [];
   config = this.admin.getPlugin('plugin/comment')?.config || commentPlugin.config!;
 
@@ -59,18 +63,31 @@ export class CommentReplyComponent implements HasChanges {
     private refs: RefService,
     private ts: TaggingService,
     private fb: FormBuilder,
-  ) {
-    this.commentForm = fb.group({
-      comment: [''],
-    });
-  }
+  ) { }
 
   saveChanges(): boolean {
     return !this.commentForm.dirty;
   }
 
+  ngAfterViewInit() {
+    this.tags.forEach(t => this.tagsForm.push(this.fb.control(t)));
+    const plugins = this.inheritedPlugins;
+    this.plugins.patchValue(plugins);
+    Object.keys(plugins).forEach(k => {
+      this.plugins.get(k)?.setValue(plugins[k]);
+    })
+  }
+
   get comment() {
     return this.commentForm.get('comment') as UntypedFormControl;
+  }
+
+  get tagsForm() {
+    return this.commentForm.get('tags') as UntypedFormArray;
+  }
+
+  get plugins() {
+    return this.commentForm.get('plugins') as UntypedFormGroup;
   }
 
   get inheritedPlugins() {

@@ -39,7 +39,7 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
   private disposers: IReactionDisposer[] = [];
 
   submitted = false;
-  textForm: UntypedFormGroup;
+  textForm = refForm(this.fb);
   advanced = false;
   serverError: string[] = [];
 
@@ -49,7 +49,7 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
   @ViewChild(TagsFormComponent)
   tagsFormComponent!: TagsFormComponent;
   @ViewChild(PluginsFormComponent)
-  plugins!: PluginsFormComponent;
+  pluginsFormComponent!: PluginsFormComponent;
 
   submitting?: Subscription;
   addAnother = false;
@@ -71,7 +71,6 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
     private fb: UntypedFormBuilder,
   ) {
     mod.setTitle($localize`Submit: Text Post`);
-    this.textForm = refForm(fb);
     runInAction(() => store.submit.wikiPrefix = admin.getWikiPrefix());
   }
 
@@ -94,7 +93,7 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
       if (d) {
         this.oldSubmit = uniq([...allTags, ...Object.keys(d.ref.plugins || {})]);
         this.addTag(...this.oldSubmit);
-        this.plugins.setValue(d.ref.plugins);
+        this.pluginsFormComponent.setValue(d.ref.plugins);
         this.textForm.patchValue({
           ...d.ref,
           tags: this.oldSubmit,
@@ -122,7 +121,7 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
         }
         if (this.store.submit.pluginUpload) {
           this.addTag(this.store.submit.plugin);
-          this.plugins.setValue({
+          this.pluginsFormComponent.setValue({
             ...this.textForm.value.plugins || {},
             [this.store.submit.plugin]: { url: this.store.submit.pluginUpload },
           });
@@ -187,6 +186,10 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
 
   get tags() {
     return this.textForm.get('tags') as UntypedFormArray;
+  }
+
+  get plugins() {
+    return this.textForm.get('plugins') as UntypedFormGroup;
   }
 
   setTags(value: string[]) {

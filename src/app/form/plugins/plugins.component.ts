@@ -14,6 +14,7 @@ import { defer } from 'lodash-es';
 import { toJS } from 'mobx';
 import { Subject, takeUntil } from 'rxjs';
 import { Plugin } from '../../model/plugin';
+import { Ref } from '../../model/ref';
 import { active, Icon, ResponseAction, sortOrder, TagAction, Visibility, visible } from '../../model/tag';
 import { AdminService } from '../../service/admin.service';
 import { emptyObject, getScheme, patchObj, writeObj } from '../../util/http';
@@ -34,9 +35,15 @@ export class PluginsFormComponent implements OnChanges, AfterViewInit {
   gens?: QueryList<GenFormComponent>;
 
   @Input()
-  fieldName = 'plugins';
+  scheme = '';
   @Input()
-  group: UntypedFormGroup;
+  hideIfEmpty = false;
+  @Input()
+  hideIcons = true;
+  @Input()
+  tags = this.fb.array([]);
+  @Input()
+  plugins = this.fb.group({});
   @Output()
   togglePlugin = new EventEmitter<string>();
 
@@ -46,12 +53,7 @@ export class PluginsFormComponent implements OnChanges, AfterViewInit {
   constructor(
     public admin: AdminService,
     private fb: UntypedFormBuilder,
-  ) {
-    this.group = fb.group({
-      tags: fb.array([]),
-      [this.fieldName]: pluginsForm(fb, admin, []),
-    });
-  }
+  ) { }
 
   init() {
     if (this.plugins) {
@@ -61,9 +63,7 @@ export class PluginsFormComponent implements OnChanges, AfterViewInit {
         }
       }
     }
-    if (!this.plugins) {
-      this.group.addControl(this.fieldName, pluginsForm(this.fb, this.admin, this.allTags));
-    } else if (this.allTags) {
+    if (this.allTags) {
       for (const t of this.allTags) {
         if (!this.plugins.contains(t)) {
           const form = pluginForm(this.fb, this.admin, t);
@@ -74,9 +74,11 @@ export class PluginsFormComponent implements OnChanges, AfterViewInit {
       }
     }
     this.forms = this.admin.getPluginForms(this.allTags);
-    this.icons = sortOrder(this.admin.getIcons(this.allTags, this.plugins.value, getScheme(this.group.value.url))
-      .filter(i => !this.forms.find(p => p.tag === i.tag)))
-      .filter(i => this.showIcon(i));
+    if (!this.hideIcons) {
+      this.icons = sortOrder(this.admin.getIcons(this.allTags, this.plugins.value, this.scheme)
+        .filter(i => !this.forms.find(p => p.tag === i.tag)))
+        .filter(i => this.showIcon(i));
+    }
   }
 
   ngAfterViewInit() {
@@ -86,7 +88,7 @@ export class PluginsFormComponent implements OnChanges, AfterViewInit {
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    if (changes.group) {
+    if (changes.tags || changes.plugins) {
       this.init();
     }
   }
@@ -96,20 +98,12 @@ export class PluginsFormComponent implements OnChanges, AfterViewInit {
     this.destroy$.complete();
   }
 
-  get tags() {
-    return this.group.get('tags') as UntypedFormArray;
-  }
-
   get allTags() {
     return addAllHierarchicalTags(this.tags.value);
   }
 
-  get plugins() {
-    return this.group.get(this.fieldName) as UntypedFormGroup;
-  }
-
   get empty() {
-    return !this.icons.length && !Object.keys(this.plugins.controls).length;
+    return !this.icons.length && (!this.plugins?.controls || !Object.keys(this.plugins.controls).length);
   }
 
   setValue(value: any) {
@@ -125,7 +119,7 @@ export class PluginsFormComponent implements OnChanges, AfterViewInit {
   }
 
   active(a: TagAction | ResponseAction | Icon) {
-    return active(this.group.value, a);
+    return active({ tags: this.tags.value } as Ref, a);
   }
 
   showIcon(i: Icon) {
