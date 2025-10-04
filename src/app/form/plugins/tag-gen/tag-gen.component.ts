@@ -68,32 +68,27 @@ export class TagGenFormComponent implements OnChanges {
   private createModel(subTags: string[]): any[] {
     if (!this.form?.length) return [];
 
-    const model: any[] = [];
-    
-    for (let i = 0; i < this.form.length; i++) {
-      const field = this.form[i];
-      
-      if (i < subTags.length) {
-        const value = subTags[i];
-        model[i] = field.type === 'duration' ? value.toUpperCase() : value;
-      } else {
-        model[i] = field.defaultValue ?? this.plugin.defaults?.[field.key as string];
-      }
-    }
-    return model;
+    const parts = subTags.slice();
+    return this.form.flatMap(f => {
+      const t = parts.shift();
+      if (typeof f === 'string') return [];
+      const value = t ?? (f.defaultValue ?? this.plugin.defaults?.[f.key as string]);
+      return [f.type === 'duration' ? value?.toUpperCase() : value];
+    });
   }
 
   private onFormChange() {
     if (this.updating || this.tagIndex === undefined || !this.form?.length) return;
 
-    const tagParts: string[] = [];
-    for (let i = 0; i < this.form.length; i++) {
-      const field = this.form[i];
-      const value = this.model[i];
-      if (!value) return;
-      
-      tagParts.push(field.type === 'duration' ? value.toLowerCase() : value);
-    }
+    const modelCopy = [...this.model];
+    const tagParts = this.form.map(f => {
+      if (typeof f === 'string') return f;
+      const value = modelCopy.shift();
+      if (!value) return null;
+      return f.type === 'duration' ? value.toLowerCase() : value;
+    });
+
+    if (tagParts.some(p => p === null)) return;
 
     const currentTag = this.tags.at(this.tagIndex).value;
     const newTag = access(currentTag) + this.plugin.tag.replace(/^[_+]/, '') + '/' + tagParts.join('/');
