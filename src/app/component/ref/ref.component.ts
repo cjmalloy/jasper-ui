@@ -1144,8 +1144,8 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
 
   @memo
   get hasDiff() {
-    // Show diff when there are remote versions to compare and user is a mod
-    return this.store.view.versions > 0 && this.store.account.mod;
+    // Show diff when there are remote versions to compare and diff template is enabled
+    return this.store.view.versions > 0 && !!this.admin.getTemplate('diff');
   }
 
   upload$ = () => {
