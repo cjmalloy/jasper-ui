@@ -1,6 +1,8 @@
 import { CdkDragDrop, CdkDropListGroup } from '@angular/cdk/drag-drop';
 import {
   AfterViewInit,
+  
+  ChangeDetectionStrategy,
   Component,
   ElementRef,
   EventEmitter,
@@ -34,6 +36,7 @@ export type Spot = {
 const MAX_PLAYERS = 2;
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false,
   selector: 'app-backgammon',
   templateUrl: './backgammon.component.html',

@@ -1,8 +1,11 @@
-import { Component, ElementRef, EventEmitter, HostBinding, HostListener, Input, NgZone, Output } from '@angular/core';
+import { 
+  ChangeDetectionStrategy,
+  Component, ElementRef, EventEmitter, HostBinding, HostListener, Input, NgZone, Output } from '@angular/core';
 import { ConfigService } from '../../../service/config.service';
 import { Store } from '../../../store/store';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false,
   selector: 'app-todo-item',
   templateUrl: './item.component.html',

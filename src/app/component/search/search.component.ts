@@ -1,4 +1,6 @@
-import { Component, OnDestroy } from '@angular/core';
+import { 
+  ChangeDetectionStrategy,
+  Component, OnDestroy } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import { debounce } from 'lodash-es';
 import { autorun, IReactionDisposer, toJS } from 'mobx';
@@ -8,6 +10,7 @@ import { Store } from '../../store/store';
 import { View } from '../../store/view';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false,
   selector: 'app-search',
   templateUrl: './search.component.html',

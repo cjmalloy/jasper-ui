@@ -1,4 +1,6 @@
-import { Component, ElementRef, HostBinding, Input, OnChanges, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
+import { 
+  ChangeDetectionStrategy,
+  Component, ElementRef, HostBinding, Input, OnChanges, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import { uniq, uniqBy } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
@@ -26,6 +28,7 @@ import { hasPrefix, hasTag, localTag, topAnds } from '../../util/tag';
 type Exts = { ext: Ext, children: Ext[], more: boolean };
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false,
   selector: 'app-sidebar',
   templateUrl: './sidebar.component.html',

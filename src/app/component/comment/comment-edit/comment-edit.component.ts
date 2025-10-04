@@ -1,5 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { AfterViewInit, Component, Input, OnDestroy } from '@angular/core';
+import { AfterViewInit, 
+  ChangeDetectionStrategy,
+  Component, Input, OnDestroy } from '@angular/core';
 import { FormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { uniq, without } from 'lodash-es';
 import { catchError, Subject, Subscription, switchMap, takeUntil, throwError } from 'rxjs';
@@ -12,6 +14,7 @@ import { printError } from '../../../util/http';
 import { OpPatch } from '../../../util/json-patch';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false,
   selector: 'app-comment-edit',
   templateUrl: './comment-edit.component.html',

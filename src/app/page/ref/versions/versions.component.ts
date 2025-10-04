@@ -1,4 +1,6 @@
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { 
+  ChangeDetectionStrategy,
+  Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { defer } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
@@ -11,6 +13,7 @@ import { getTitle } from '../../../util/format';
 import { getArgs } from '../../../util/query';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false,
   selector: 'app-ref-versions',
   templateUrl: './versions.component.html',

@@ -1,4 +1,6 @@
-import { Component, ViewChild } from '@angular/core';
+import { 
+  ChangeDetectionStrategy,
+  Component, ViewChild } from '@angular/core';
 import { defer } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { catchError, filter, of, Subject, Subscription, switchMap, takeUntil } from 'rxjs';
@@ -19,6 +21,7 @@ import { getArgs } from '../../../util/query';
 import { hasTag, updateMetadata } from '../../../util/tag';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false,
   selector: 'app-ref-errors',
   templateUrl: './errors.component.html',

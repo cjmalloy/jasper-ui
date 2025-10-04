@@ -1,4 +1,6 @@
-import { ChangeDetectorRef, Component, OnDestroy } from '@angular/core';
+import { ChangeDetectorRef, 
+  ChangeDetectionStrategy,
+  Component, OnDestroy } from '@angular/core';
 import { debounce, uniqBy } from 'lodash-es';
 import { forkJoin, map, Observable, of, Subscription, switchMap } from 'rxjs';
 import { AdminService } from '../../service/admin.service';
@@ -8,6 +10,7 @@ import { EditorService } from '../../service/editor.service';
 import { Store } from '../../store/store';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false,
   selector: 'app-user-tag-selector',
   templateUrl: './user-tag-selector.component.html',

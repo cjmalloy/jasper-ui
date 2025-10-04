@@ -1,6 +1,8 @@
 import { Location } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, isDevMode, ViewChild } from '@angular/core';
+import { 
+  ChangeDetectionStrategy,
+  Component, isDevMode, ViewChild } from '@angular/core';
 import { FormBuilder, UntypedFormGroup } from '@angular/forms';
 import { cloneDeep, defer } from 'lodash-es';
 import { runInAction } from 'mobx';
@@ -17,6 +19,7 @@ import { scrollToFirstInvalid } from '../../../util/form';
 import { printError } from '../../../util/http';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false,
   selector: 'app-settings-me-page',
   templateUrl: './me.component.html',

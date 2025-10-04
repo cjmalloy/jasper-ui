@@ -1,5 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { AfterViewInit, Component, OnDestroy, ViewChild } from '@angular/core';
+import { AfterViewInit, 
+  ChangeDetectionStrategy,
+  Component, OnDestroy, ViewChild } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
 import { defer, uniq, without } from 'lodash-es';
@@ -28,6 +30,7 @@ import { interestingTags } from '../../../util/format';
 import { printError } from '../../../util/http';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false,
   selector: 'app-submit-web-page',
   templateUrl: './web.component.html',

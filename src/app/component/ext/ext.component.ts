@@ -1,5 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import {
+  
+  ChangeDetectionStrategy,
   Component,
   HostBinding,
   Input,
@@ -36,6 +38,7 @@ import { hasPrefix, parentTag } from '../../util/tag';
 import { ActionComponent } from '../action/action.component';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false,
   selector: 'app-ext',
   templateUrl: './ext.component.html',

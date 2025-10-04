@@ -1,4 +1,6 @@
-import { Component, ElementRef, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
+import { 
+  ChangeDetectionStrategy,
+  Component, ElementRef, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { defer } from 'lodash-es';
 import { v4 as uuid } from 'uuid';
@@ -9,6 +11,7 @@ import { USER_REGEX } from '../../util/format';
 import { TagsFormComponent } from '../tags/tags.component';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false,
   selector: 'app-user-form',
   templateUrl: './user.component.html',

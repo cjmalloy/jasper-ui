@@ -1,4 +1,6 @@
-import { Component, ElementRef, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { 
+  ChangeDetectionStrategy,
+  Component, ElementRef, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { Router } from '@angular/router';
 import { mapValues } from 'lodash-es';
 import { toJS } from 'mobx';
@@ -14,6 +16,7 @@ import { escapePath } from '../../util/json-patch';
 import { defaultOrigin, level, tagOrigin } from '../../util/tag';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false,
   selector: 'app-folder',
   templateUrl: './folder.component.html',

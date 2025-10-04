@@ -1,5 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { AfterViewInit, Component, ElementRef, OnDestroy, ViewChild } from '@angular/core';
+import { AfterViewInit, 
+  ChangeDetectionStrategy,
+  Component, ElementRef, OnDestroy, ViewChild } from '@angular/core';
 import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { debounce, defer, some, uniq, without } from 'lodash-es';
@@ -27,6 +29,7 @@ import { printError } from '../../../util/http';
 import { hasTag } from '../../../util/tag';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false,
   selector: 'app-submit-dm',
   templateUrl: './dm.component.html',

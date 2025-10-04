@@ -1,4 +1,6 @@
-import { Component, Input, QueryList, ViewChildren } from '@angular/core';
+import { 
+  ChangeDetectionStrategy,
+  Component, Input, QueryList, ViewChildren } from '@angular/core';
 import { Router } from '@angular/router';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Ext } from '../../../model/ext';
@@ -6,6 +8,7 @@ import { Page } from '../../../model/page';
 import { ExtComponent } from '../ext.component';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false,
   selector: 'app-ext-list',
   templateUrl: './ext-list.component.html',

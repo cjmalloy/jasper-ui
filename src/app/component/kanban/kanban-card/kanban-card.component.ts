@@ -3,6 +3,8 @@ import { TemplatePortal } from '@angular/cdk/portal';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
   AfterViewInit,
+  
+  ChangeDetectionStrategy,
   Component,
   ElementRef,
   EventEmitter,
@@ -39,6 +41,7 @@ import { memo, MemoCache } from '../../../util/memo';
 import { expandedTagsInclude, hasTag, repost } from '../../../util/tag';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false,
   selector: 'app-kanban-card',
   templateUrl: './kanban-card.component.html',

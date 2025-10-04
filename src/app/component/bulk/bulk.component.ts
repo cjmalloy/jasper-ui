@@ -1,5 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, Input, OnChanges, OnDestroy, SimpleChanges } from '@angular/core';
+import { 
+  ChangeDetectionStrategy,
+  Component, Input, OnChanges, OnDestroy, SimpleChanges } from '@angular/core';
 import { groupBy, intersection, isEqual, map, pick, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import { catchError, concat, last, Observable, of, switchMap } from 'rxjs';
@@ -34,6 +36,7 @@ import { memo, MemoCache } from '../../util/memo';
 import { addAllHierarchicalTags, expandedTagsInclude, hasTag, isAuthorTag, subOrigin } from '../../util/tag';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false,
   selector: 'app-bulk',
   templateUrl: './bulk.component.html',

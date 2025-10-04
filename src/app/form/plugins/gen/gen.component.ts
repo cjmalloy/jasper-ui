@@ -1,4 +1,6 @@
-import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
+import { 
+  ChangeDetectionStrategy,
+  Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { UntypedFormGroup } from '@angular/forms';
 import { FormlyForm, FormlyFormOptions } from '@ngx-formly/core';
 import { cloneDeep } from 'lodash-es';
@@ -7,6 +9,7 @@ import { AdminService } from '../../../service/admin.service';
 import { memo, MemoCache } from '../../../util/memo';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false,
   selector: 'app-form-gen',
   templateUrl: './gen.component.html',

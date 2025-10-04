@@ -1,4 +1,6 @@
 import {
+  
+  ChangeDetectionStrategy,
   Component,
   ElementRef,
   HostListener,
@@ -29,6 +31,7 @@ import { convertFilter, FilterGroup, FilterItem, negatable, toggle, UrlFilter } 
 import { hasPrefix } from '../../util/tag';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false,
   selector: 'app-filter',
   templateUrl: './filter.component.html',

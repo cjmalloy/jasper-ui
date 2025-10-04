@@ -1,5 +1,7 @@
 import { CdkDragDrop } from '@angular/cdk/drag-drop';
 import {
+  
+  ChangeDetectionStrategy,
   Component,
   HostListener,
   Input,
@@ -35,6 +37,7 @@ export interface KanbanDrag {
 }
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false,
   selector: 'app-kanban',
   templateUrl: './kanban.component.html',

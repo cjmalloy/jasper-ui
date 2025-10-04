@@ -1,5 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import {
+  
+  ChangeDetectionStrategy,
   Component,
   HostBinding,
   Input,
@@ -35,6 +37,7 @@ import { localTag, tagOrigin } from '../../util/tag';
 import { ActionComponent } from '../action/action.component';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false,
   selector: 'app-user',
   templateUrl: './user.component.html',

@@ -1,4 +1,6 @@
-import { Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
+import { 
+  ChangeDetectionStrategy,
+  Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
 import { Observable, Subject, takeUntil } from 'rxjs';
 import { Ref } from '../../../model/ref';
 import { RefService } from '../../../service/api/ref.service';
@@ -6,6 +8,7 @@ import { Store } from '../../../store/store';
 import { getArgs } from '../../../util/query';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false,
   selector: 'app-thread-summary',
   templateUrl: './thread-summary.component.html',

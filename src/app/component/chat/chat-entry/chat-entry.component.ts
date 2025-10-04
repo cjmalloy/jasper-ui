@@ -1,5 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import {
+  
+  ChangeDetectionStrategy,
   Component,
   HostBinding,
   Input,
@@ -28,6 +30,7 @@ import { hasTag, localTag, repost, tagOrigin } from '../../../util/tag';
 import { ActionComponent } from '../../action/action.component';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false,
   selector: 'app-chat-entry',
   templateUrl: './chat-entry.component.html',

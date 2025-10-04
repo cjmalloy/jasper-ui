@@ -1,5 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { AfterViewInit, Component, ElementRef, OnDestroy, ViewChild } from '@angular/core';
+import { AfterViewInit, 
+  ChangeDetectionStrategy,
+  Component, ElementRef, OnDestroy, ViewChild } from '@angular/core';
 import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
 import { defer, uniq, without } from 'lodash-es';
@@ -29,6 +31,7 @@ import { printError } from '../../../util/http';
 import { hasTag } from '../../../util/tag';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false,
   selector: 'app-submit-text',
   templateUrl: './text.component.html',

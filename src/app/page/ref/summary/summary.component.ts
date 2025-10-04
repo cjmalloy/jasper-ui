@@ -1,4 +1,6 @@
-import { Component, OnDestroy, OnInit, QueryList, ViewChild, ViewChildren } from '@angular/core';
+import { 
+  ChangeDetectionStrategy,
+  Component, OnDestroy, OnInit, QueryList, ViewChild, ViewChildren } from '@angular/core';
 import { defer, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { Subject } from 'rxjs';
@@ -21,6 +23,7 @@ import { getArgs } from '../../../util/query';
 import { hasTag, removeTag, top, updateMetadata } from '../../../util/tag';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false,
   selector: 'app-ref-summary',
   templateUrl: './summary.component.html',

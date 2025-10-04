@@ -1,8 +1,11 @@
-import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { 
+  ChangeDetectionStrategy,
+  Component, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { mapValues } from 'lodash-es';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false,
   selector: 'app-themes',
   templateUrl: './themes.component.html',

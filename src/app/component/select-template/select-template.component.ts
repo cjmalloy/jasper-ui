@@ -1,4 +1,6 @@
-import { Component, ElementRef, EventEmitter, Input, Output, ViewChild } from '@angular/core';
+import { 
+  ChangeDetectionStrategy,
+  Component, ElementRef, EventEmitter, Input, Output, ViewChild } from '@angular/core';
 import { defer } from 'lodash-es';
 import { Template } from '../../model/template';
 import { AdminService } from '../../service/admin.service';
@@ -6,6 +8,7 @@ import { AuthzService } from '../../service/authz.service';
 import { access } from '../../util/tag';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false,
   selector: 'app-select-template',
   templateUrl: './select-template.component.html',

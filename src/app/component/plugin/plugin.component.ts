@@ -1,5 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, HostBinding, Input, OnChanges, QueryList, SimpleChanges, ViewChildren } from '@angular/core';
+import { 
+  ChangeDetectionStrategy,
+  Component, HostBinding, Input, OnChanges, QueryList, SimpleChanges, ViewChildren } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { catchError, of, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
@@ -17,6 +19,7 @@ import { printError } from '../../util/http';
 import { ActionComponent } from '../action/action.component';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false,
   selector: 'app-plugin',
   templateUrl: './plugin.component.html',

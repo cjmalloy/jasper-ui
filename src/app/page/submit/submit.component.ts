@@ -1,4 +1,6 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { 
+  ChangeDetectionStrategy,
+  Component, OnDestroy, OnInit } from '@angular/core';
 import {
   AbstractControl,
   AsyncValidatorFn,
@@ -30,6 +32,7 @@ import { hasPrefix } from '../../util/tag';
 type Validation = { test: (url: string) => Observable<any>; name: string; passed: boolean };
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false,
   selector: 'app-submit-page',
   templateUrl: './submit.component.html',

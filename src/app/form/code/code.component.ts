@@ -1,10 +1,13 @@
-import { Component, Input, OnDestroy } from '@angular/core';
+import { 
+  ChangeDetectionStrategy,
+  Component, Input, OnDestroy } from '@angular/core';
 import { UntypedFormGroup } from '@angular/forms';
 import { autorun, IReactionDisposer } from 'mobx';
 import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false,
   selector: 'app-code',
   templateUrl: './code.component.html',

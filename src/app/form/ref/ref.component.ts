@@ -1,4 +1,6 @@
 import {
+  
+  ChangeDetectionStrategy,
   Component,
   ElementRef,
   EventEmitter,
@@ -27,6 +29,7 @@ import { PluginsFormComponent } from '../plugins/plugins.component';
 import { TagsFormComponent } from '../tags/tags.component';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false,
   selector: 'app-ref-form',
   templateUrl: './ref.component.html',

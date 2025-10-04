@@ -1,4 +1,6 @@
-import { Component, HostBinding, Input, OnChanges, OnDestroy, SimpleChanges } from '@angular/core';
+import { 
+  ChangeDetectionStrategy,
+  Component, HostBinding, Input, OnChanges, OnDestroy, SimpleChanges } from '@angular/core';
 import { catchError, of, Subject, takeUntil, throwError } from 'rxjs';
 import { Ref } from '../../../model/ref';
 import {
@@ -22,6 +24,7 @@ import { memo, MemoCache } from '../../../util/memo';
 import { hasTag, isAuthorTag, repost } from '../../../util/tag';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false,
   selector: 'app-file',
   templateUrl: './file.component.html',

@@ -1,5 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component } from '@angular/core';
+import { 
+  ChangeDetectionStrategy,
+  Component } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { forOwn, mapValues, uniq } from 'lodash-es';
 import { catchError, concat, last, throwError } from 'rxjs';
@@ -12,6 +14,7 @@ import { configGroups, modId } from '../../../util/format';
 import { printError } from '../../../util/http';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false,
   selector: 'app-settings-setup-page',
   templateUrl: './setup.component.html',

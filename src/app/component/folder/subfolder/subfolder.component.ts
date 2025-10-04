@@ -1,4 +1,6 @@
-import { Component, HostBinding, Input } from '@angular/core';
+import { 
+  ChangeDetectionStrategy,
+  Component, HostBinding, Input } from '@angular/core';
 import { runInAction } from 'mobx';
 import { Ext } from '../../../model/ext';
 import { Action, Icon } from '../../../model/tag';
@@ -7,6 +9,7 @@ import { QueryStore } from '../../../store/query';
 import { Store } from '../../../store/store';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false,
   selector: 'app-subfolder',
   templateUrl: './subfolder.component.html',

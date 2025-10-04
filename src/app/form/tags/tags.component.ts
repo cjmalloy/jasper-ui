@@ -1,4 +1,6 @@
-import { Component, HostBinding, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { 
+  ChangeDetectionStrategy,
+  Component, HostBinding, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { FormBuilder, UntypedFormArray, UntypedFormGroup, Validators } from '@angular/forms';
 import { some, uniq } from 'lodash-es';
 import { AdminService } from '../../service/admin.service';
@@ -6,6 +8,7 @@ import { TAG_REGEX } from '../../util/format';
 import { hasPrefix, hasTag } from '../../util/tag';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false,
   selector: 'app-tags',
   templateUrl: './tags.component.html',

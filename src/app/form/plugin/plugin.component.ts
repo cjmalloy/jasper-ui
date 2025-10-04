@@ -1,8 +1,11 @@
-import { Component, Input } from '@angular/core';
+import { 
+  ChangeDetectionStrategy,
+  Component, Input } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { v4 as uuid } from 'uuid';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false,
   selector: 'app-plugin-form',
   templateUrl: './plugin.component.html',

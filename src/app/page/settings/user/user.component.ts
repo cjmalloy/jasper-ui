@@ -1,4 +1,6 @@
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { 
+  ChangeDetectionStrategy,
+  Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { defer } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import { UserListComponent } from '../../../component/user/user-list/user-list.component';
@@ -12,6 +14,7 @@ import { UserStore } from '../../../store/user';
 import { getTagFilter } from '../../../util/query';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false,
   selector: 'app-settings-user-page',
   templateUrl: './user.component.html',

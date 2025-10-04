@@ -1,5 +1,7 @@
 import { CdkVirtualScrollViewport } from '@angular/cdk/scrolling';
-import { Component, Input, OnChanges, OnDestroy, SimpleChanges, ViewChild } from '@angular/core';
+import { 
+  ChangeDetectionStrategy,
+  Component, Input, OnChanges, OnDestroy, SimpleChanges, ViewChild } from '@angular/core';
 import { debounce, defer, delay, pull, pullAllWith, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { catchError, map, Subject, Subscription, takeUntil, throwError } from 'rxjs';
@@ -20,6 +22,7 @@ import { getArgs } from '../../util/query';
 import { braces, tagOrigin } from '../../util/tag';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false,
   selector: 'app-chat',
   templateUrl: './chat.component.html',

@@ -2,6 +2,8 @@ import { Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { TemplatePortal } from '@angular/cdk/portal';
 import {
   AfterViewInit,
+  
+  ChangeDetectionStrategy,
   Component,
   ElementRef,
   HostListener,
@@ -23,6 +25,7 @@ import { downloadRef } from '../../../util/download';
 import { memo, MemoCache } from '../../../util/memo';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false,
   selector: 'app-action-list',
   templateUrl: './action-list.component.html',

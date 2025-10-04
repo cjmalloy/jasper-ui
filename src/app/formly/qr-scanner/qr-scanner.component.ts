@@ -1,6 +1,8 @@
 import { Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { TemplatePortal } from '@angular/cdk/portal';
 import {
+  
+  ChangeDetectionStrategy,
   Component,
   EventEmitter,
   Input,
@@ -15,6 +17,7 @@ import { QrScanner, scanImage } from '../../util/qr-scanner';
 import { Camera, hasCamera, listCameras } from '../../util/webcam';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false,
   selector: 'app-qr-scanner',
   templateUrl: './qr-scanner.component.html',

@@ -1,5 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { 
+  ChangeDetectionStrategy,
+  Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { defer } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import { catchError, switchMap, throwError } from 'rxjs';
@@ -15,6 +17,7 @@ import { getTagFilter } from '../../../util/query';
 import { getModels, getZipOrTextFile } from '../../../util/zip';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false,
   selector: 'app-settings-plugin-page',
   templateUrl: './plugin.component.html',

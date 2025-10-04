@@ -1,5 +1,7 @@
 import { HttpErrorResponse, HttpEventType } from '@angular/common/http';
-import { Component, OnDestroy } from '@angular/core';
+import { 
+  ChangeDetectionStrategy,
+  Component, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { delay, pick, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
@@ -23,6 +25,7 @@ import { printError } from '../../../util/http';
 import { FilteredModels, filterModels, getModels, getTextFile, unzip, zippedFile } from '../../../util/zip';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false,
   selector: 'app-upload',
   templateUrl: './upload.component.html',

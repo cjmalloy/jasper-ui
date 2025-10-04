@@ -1,9 +1,12 @@
-import { Component } from '@angular/core';
+import { 
+  ChangeDetectionStrategy,
+  Component } from '@angular/core';
 import { runInAction } from 'mobx';
 import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false,
   selector: 'app-login-popup',
   templateUrl: './login-popup.component.html',

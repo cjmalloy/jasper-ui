@@ -1,4 +1,6 @@
-import { Component, ElementRef, EventEmitter, Input, OnDestroy, Output, ViewChild } from '@angular/core';
+import { 
+  ChangeDetectionStrategy,
+  Component, ElementRef, EventEmitter, Input, OnDestroy, Output, ViewChild } from '@angular/core';
 import {
   FormArray,
   FormControl,
@@ -26,6 +28,7 @@ import { linksForm } from '../links/links.component';
 import { themesForm } from '../themes/themes.component';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false,
   selector: 'app-ext-form',
   templateUrl: './ext.component.html',

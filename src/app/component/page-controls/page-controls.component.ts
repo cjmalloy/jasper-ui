@@ -1,10 +1,13 @@
-import { Component, HostBinding, Input } from '@angular/core';
+import { 
+  ChangeDetectionStrategy,
+  Component, HostBinding, Input } from '@angular/core';
 import { delay } from 'lodash-es';
 import { Page } from '../../model/page';
 import { BookmarkService } from '../../service/bookmark.service';
 import { Store } from '../../store/store';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false,
   selector: 'app-page-controls',
   templateUrl: './page-controls.component.html',

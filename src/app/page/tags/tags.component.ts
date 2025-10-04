@@ -1,4 +1,6 @@
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { 
+  ChangeDetectionStrategy,
+  Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { defer } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import { ExtListComponent } from '../../component/ext/ext-list/ext-list.component';
@@ -13,6 +15,7 @@ import { getTagFilter, getTagQueryFilter } from '../../util/query';
 import { braces, getPrefixes, hasPrefix, publicTag } from '../../util/tag';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false,
   selector: 'app-tags-page',
   templateUrl: './tags.component.html',

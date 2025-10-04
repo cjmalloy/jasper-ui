@@ -1,4 +1,6 @@
-import { AfterViewInit, Component, HostBinding, HostListener, isDevMode } from '@angular/core';
+import { AfterViewInit, 
+  ChangeDetectionStrategy,
+  Component, HostBinding, HostListener, isDevMode } from '@angular/core';
 import { Router } from '@angular/router';
 import { autorun, runInAction } from 'mobx';
 import { archivePlugin, archiveUrl } from './mods/archive';
@@ -12,6 +14,7 @@ import { Store } from './store/store';
 import { memo } from './util/memo';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false,
   selector: 'app-root',
   templateUrl: './app.component.html',

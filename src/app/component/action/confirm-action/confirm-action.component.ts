@@ -1,8 +1,11 @@
-import { Component, Input } from '@angular/core';
+import { 
+  ChangeDetectionStrategy,
+  Component, Input } from '@angular/core';
 import { catchError, Observable, of } from 'rxjs';
 import { ActionComponent } from '../action.component';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false,
   selector: 'app-confirm-action',
   templateUrl: './confirm-action.component.html',

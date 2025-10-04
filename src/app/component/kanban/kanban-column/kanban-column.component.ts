@@ -1,5 +1,7 @@
 import {
   AfterViewInit,
+  
+  ChangeDetectionStrategy,
   Component,
   HostBinding,
   HostListener,
@@ -32,6 +34,7 @@ import { hasTag } from '../../../util/tag';
 import { KanbanDrag } from '../kanban.component';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   standalone: false,
   selector: 'app-kanban-column',
   templateUrl: './kanban-column.component.html',
