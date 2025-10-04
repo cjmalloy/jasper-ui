@@ -72,17 +72,12 @@ export class TagGenFormComponent implements OnChanges {
     
     for (let i = 0; i < this.form.length; i++) {
       const field = this.form[i];
-      if (!field.key) continue;
       
-      const key = field.key as string;
-      // Find the value for this key in the subTags (key/value pairs)
-      const keyIndex = subTags.indexOf(key);
-      
-      if (keyIndex !== -1 && keyIndex + 1 < subTags.length) {
-        const value = subTags[keyIndex + 1];
+      if (i < subTags.length) {
+        const value = subTags[i];
         model[i] = field.type === 'duration' ? value.toUpperCase() : value;
       } else {
-        model[i] = field.defaultValue ?? this.plugin.defaults?.[key];
+        model[i] = field.defaultValue ?? this.plugin.defaults?.[field.key as string];
       }
     }
     return model;
@@ -94,13 +89,9 @@ export class TagGenFormComponent implements OnChanges {
     const tagParts: string[] = [];
     for (let i = 0; i < this.form.length; i++) {
       const field = this.form[i];
-      if (!field.key) continue;
-      
-      const key = field.key as string;
       const value = this.model[i];
       if (!value) return;
       
-      tagParts.push(key);
       tagParts.push(field.type === 'duration' ? value.toLowerCase() : value);
     }
 
