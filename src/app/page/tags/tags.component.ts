@@ -61,7 +61,7 @@ export class TagsPage implements OnInit, OnDestroy, HasChanges {
             : this.store.view.template)
         : '@*';
       const args = {
-        query:  getTagQueryFilter(braces(query), this.store.view.filter) + ':' + (this.store.view.showRemotes ? '@*' : (this.store.account.origin || '*')),
+        query: getTagQueryFilter(braces(query), this.store.view.filter) + (!this.store.view.showRemotes ? ':' + (this.store.account.origin || '*') : ''),
         search: this.store.view.search,
         sort: [...this.store.view.sort],
         page: this.store.view.pageNumber,

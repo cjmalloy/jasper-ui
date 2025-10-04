@@ -110,11 +110,11 @@ export const aiQueryPlugin: Plugin = {
       const providers = {
         openai: {
           init(config) {
-            config.model ||= config.vision ? 'gpt-5' : config.audio ? 'gpt-4o-audio-preview' : 'gpt-5';
+            config.model ||= config.vision ? 'gpt-5-codex' : config.audio ? 'gpt-4o-audio-preview' : 'gpt-5-codex';
             config.maxTokens ||= 4096;
             config.thinking = false;
             config.pdf = false;
-            config.image = ['gpt-5', 'gpt-5-mini', 'gpt-5-nano'].includes(config.model);
+            config.image = ['gpt-5', 'gpt-5-mini', 'gpt-5-nano', 'gpt-5-codex'].includes(config.model);
             config.audio = ['gpt-4o-audio-preview', 'gpt-4o-mini-audio-preview'].includes(config.model);
             config.video = false;
           },
@@ -164,11 +164,11 @@ export const aiQueryPlugin: Plugin = {
         },
         x: {
           init(config) {
-            config.model ||= 'grok-4';
+            config.model ||= 'grok-4-fast';
             config.maxTokens ||= 4096;
             config.thinking = false;
             config.pdf = false;
-            config.image = ['grok-4', 'grok-2-vision-latest'].includes(config.model);
+            config.image = ['grok-4-fast', 'grok-4', 'grok-2-vision-latest'].includes(config.model);
             config.audio = false;
             config.video = false;
           },
@@ -274,7 +274,7 @@ export const aiQueryPlugin: Plugin = {
         },
         anthropic: {
           init(config) {
-            config.model ||= 'claude-opus-4-1';
+            config.model ||= 'claude-sonnet-4-5';
             config.maxTokens ||= 4096;
             config.thinkingTokens ||= 4096
             config.pdf = true;
@@ -357,7 +357,7 @@ export const aiQueryPlugin: Plugin = {
             const tools = res.content.filter(t => t.type === 'tool_use' && t.name === 'bundle');
             return {
               res,
-              completion: config.json ? JSON.stringify(tools[0]?.input || { comment: text|| '' }) : text,
+              completion: tools[0]?.input ? JSON.stringify(tools[0]?.input) : text,
               usage: {
                 'prompt_tokens': res.usage.input_tokens,
                 'completion_tokens': res.usage.output_tokens,
@@ -368,7 +368,7 @@ export const aiQueryPlugin: Plugin = {
         },
         gemini: {
           init(config) {
-            config.model ||= (config.pdf || config.search || config.url) ? 'gemini-2.5-pro' : 'gemini-2.5-flash';
+            config.model ||= 'gemini-2.5-pro';
             config.pdf = config.model === 'gemini-2.5-pro';
             config.image = true;
             config.audio = true;
@@ -441,7 +441,8 @@ export const aiQueryPlugin: Plugin = {
               ],
             });
             let text = res.response.text().trim();
-            if (config.json) {
+            if (config.json || text.startsWith('\`\`\`json')) {
+              config.json = true;
               while (text && !text.startsWith('{')) text = text.substring(1).trim();
               while (text && !text.endsWith('}')) text = text.substring(0, text.length - 1).trim();
               if (!text) {

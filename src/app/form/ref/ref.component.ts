@@ -10,7 +10,7 @@ import {
 } from '@angular/core';
 import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { defer } from 'lodash-es';
-import { catchError, map, of, switchMap } from 'rxjs';
+import { catchError, map, of, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
 import { Oembed } from '../../model/oembed';
@@ -19,6 +19,7 @@ import { AdminService } from '../../service/admin.service';
 import { ScrapeService } from '../../service/api/scrape.service';
 import { EditorService } from '../../service/editor.service';
 import { OembedStore } from '../../store/oembed';
+import { Store } from '../../store/store';
 import { getScheme } from '../../util/http';
 import { hasMedia, hasTag } from '../../util/tag';
 import { LinksFormComponent } from '../links/links.component';
@@ -59,6 +60,9 @@ export class RefFormComponent {
   oembed?: Oembed;
   scraped?: Ref;
   ref?: Ref;
+  scrapingTitle = false;
+  scrapingPublished = false;
+  scrapingAll = false;
 
   constructor(
     private fb: UntypedFormBuilder,
@@ -66,6 +70,7 @@ export class RefFormComponent {
     private editor: EditorService,
     private scrape: ScrapeService,
     private oembeds: OembedStore,
+    private store: Store,
   ) { }
 
   get web() {
@@ -180,11 +185,15 @@ export class RefFormComponent {
   }
 
   scrapeTitle() {
+    this.scrapingTitle = true;
     this.scrape$.pipe(
-      catchError(err => of({
-        url: this.url.value,
-        title: undefined,
-      })),
+      catchError(err => {
+        this.scrapingTitle = false;
+        return of({
+          url: this.url.value,
+          title: undefined,
+        })
+      }),
       switchMap(s => this.oembeds.get(s.url).pipe(
         map(oembed => {
           this.oembed = oembed!;
@@ -194,12 +203,21 @@ export class RefFormComponent {
         catchError(err => of(s)),
       )),
     ).subscribe((s: Ref) => {
+      this.scrapingTitle = false;
       if (s.title) this.group.patchValue({ title: s.title });
     });
   }
 
   scrapePublished() {
-    this.scrape$.subscribe(ref => {
+    this.scrapingPublished = true;
+    this.scrape$.pipe(
+      catchError(err => {
+        this.scrapingPublished = false;
+        // TODO: Write error
+        return throwError(() => err);
+      })
+    ).subscribe(ref => {
+      this.scrapingPublished = false;
       this.published.setValue(ref.published?.toFormat("YYYY-MM-DD'T'TT"));
     });
   }
@@ -208,11 +226,18 @@ export class RefFormComponent {
     if (this.oembed) {
       // TODO: oEmbed
     } else {
-      this.scrape$.subscribe(s => {
+      this.scrapingAll = true;
+      this.scrape$.pipe(
+        catchError(err => {
+          this.scrapingAll = false;
+          return throwError(() => err);
+        })
+      ).subscribe(s => {
         if (!hasMedia(s) || hasMedia(this.group.value)) {
           this.scrapeComment();
         }
         this.scrapePlugins();
+        this.scrapingAll = false;
       });
     }
   }

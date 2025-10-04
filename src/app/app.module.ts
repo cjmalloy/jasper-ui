@@ -79,6 +79,7 @@ import { TodoItemComponent } from './component/todo/item/item.component';
 import { TodoComponent } from './component/todo/todo.component';
 import { UserListComponent } from './component/user/user-list/user-list.component';
 import { UserComponent } from './component/user/user.component';
+import { UserTagSelectorComponent } from './component/user-tag-selector/user-tag-selector.component';
 import { ViewerComponent } from './component/viewer/viewer.component';
 import { AutofocusDirective } from './directive/autofocus.directive';
 import { FillWidthDirective } from './directive/fill-width.directive';
@@ -107,6 +108,7 @@ import { JasperFormlyModule } from './formly/formly.module';
 import { HammerConfig } from './hammer.config';
 import { AuthInterceptor } from './http/auth.interceptor';
 import { CsrfInterceptor } from './http/csrf.interceptor';
+import { RateLimitInterceptor } from './http/rate-limit.interceptor';
 import { ExtPage } from './page/ext/ext.component';
 import { HomePage } from './page/home/home.component';
 import { InboxAlarmsPage } from './page/inbox/alarms/alarms.component';
@@ -319,6 +321,7 @@ const loadFactory = (config: ConfigService, debug: DebugService, admin: AdminSer
     InlineSelectComponent,
     InlineButtonComponent,
     TabsComponent,
+    UserTagSelectorComponent,
   ],
   imports: [
     BrowserModule,
@@ -346,6 +349,7 @@ const loadFactory = (config: ConfigService, debug: DebugService, admin: AdminSer
     provideHttpClient(withInterceptorsFromDi()),
     { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },
     { provide: HTTP_INTERCEPTORS, useClass: CsrfInterceptor, multi: true },
+    { provide: HTTP_INTERCEPTORS, useClass: RateLimitInterceptor, multi: true },
     { provide: OverlayContainer, useClass: FullscreenOverlayContainer },
     { provide: HAMMER_GESTURE_CONFIG, useClass: HammerConfig },
     {

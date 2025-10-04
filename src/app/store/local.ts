@@ -70,4 +70,18 @@ export class LocalStore {
         ?.filter(k => !!k && !k.startsWith(':') && !k.startsWith('@'))
       || [];
   }
+
+  /**
+   * Save the selected user sub tag for the User-Tag header
+   */
+  _selectedUserTag?: string;
+  set selectedUserTag(value: string) {
+    this._selectedUserTag = value
+    localStorage.setItem('selectedUserTag', value);
+  }
+
+  get selectedUserTag() {
+    if (this._selectedUserTag !== undefined) return this._selectedUserTag;
+    return this._selectedUserTag = localStorage.getItem('selectedUserTag') || '';
+  }
 }

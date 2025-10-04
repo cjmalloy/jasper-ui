@@ -77,6 +77,13 @@ export class CommentEditComponent implements AfterViewInit, HasChanges, OnDestro
     ]), this.ref.tags);
   }
 
+  get allTags() {
+    return uniq([
+      ...this.editorTags,
+      ...getMailboxes(this.comment.value, this.store.account.origin),
+    ]);
+  }
+
   save() {
     const patches: OpPatch[] = [];
     if (this.comment.dirty) {
@@ -86,14 +93,15 @@ export class CommentEditComponent implements AfterViewInit, HasChanges, OnDestro
         value: this.comment.value,
       });
     }
-    for (const t of without(this.newTags, ...this.ref.tags || [])) {
+    const finalTags = this.allTags;
+    for (const t of without(finalTags, ...this.ref.tags || [])) {
       patches.push({
         op: 'add',
         path: '/tags/-',
         value: t,
       });
     }
-    for (const t of without(this.ref.tags, ...this.newTags)) {
+    for (const t of without(this.ref.tags || [], ...finalTags)) {
       patches.push({
         op: 'remove',
         path: '/tags/' + this.ref.tags!.indexOf(t),

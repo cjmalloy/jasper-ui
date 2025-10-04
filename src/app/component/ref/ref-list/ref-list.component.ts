@@ -132,6 +132,7 @@ export class RefListComponent implements OnInit, OnDestroy, HasChanges {
             pageNumber: this._page.page.totalPages - 1,
           },
           queryParamsHandling: 'merge',
+          replaceUrl: true,
         });
       }
     }

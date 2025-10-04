@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { delay } from 'lodash-es';
 import { catchError, concat, map, Observable, of, shareReplay, switchMap, throwError, toArray } from 'rxjs';
 import { tap } from 'rxjs/operators';
-import { Ext, mapTag, writeExt } from '../../model/ext';
+import { Ext, mapExt, writeExt } from '../../model/ext';
 import { mapPage, Page } from '../../model/page';
 import { latest, TagPageArgs, TagQueryArgs } from '../../model/tag';
 import { Store } from '../../store/store';
@@ -85,7 +85,7 @@ export class ExtService {
 
   create(ext: Ext): Observable<string> {
     return this.http.post<string>(this.base, writeExt(ext)).pipe(
-      tap(() => this._cache.delete(ext.tag)),
+      tap(() => this.clearCache(ext.tag, ext)),
       catchError(err => this.login.handleHttpError(err)),
     );
   }
@@ -94,14 +94,25 @@ export class ExtService {
     return this.http.get(this.base, {
       params: params({ tag }),
     }).pipe(
-      map(mapTag),
+      map(mapExt),
       tap(ext => {
-        this.clearCache(tag, ext.origin);
-        this._cache.set(tag + ext.origin + ':', of(ext));
+        this.prefillCache(ext);
         this.store.local.loadExt([...this._cache.keys()]);
       }),
       catchError(err => this.login.handleHttpError(err)),
     );
+  }
+
+  prefillCache(ext: Ext) {
+    const key1 = ext.tag + ext.origin + ':';
+    const key2 = ext.tag + ':' + ext.origin;
+    const value = of(ext);
+    this._cache.set(key1, value);
+    this._cache.set(key2, value);
+    delay(() => {
+      if (this._cache.get(key1) === value) this._cache.delete(key1);
+      if (this._cache.get(key2) === value) this._cache.delete(key2);
+    }, EXT_CACHE_MS);
   }
 
   getCachedExts(tags: string[], origin?: string): Observable<Ext[]> {
@@ -112,10 +123,11 @@ export class ExtService {
   getCachedExt(tag: string, origin?: string) {
     const key = tag + ':' + (origin || '');
     if (!this._cache.has(key)) {
-      if (!tag || tag.startsWith('@') || isQuery(tag)) {
-        this._cache.set(key, of(this.defaultExt(tag, origin)));
+      let value: Observable<Ext>;
+      if (!tag || isQuery(tag)) {
+        this._cache.set(key, value = of(this.defaultExt(tag, origin)));
       } else {
-        this._cache.set(key, this.get(defaultOrigin(tag, this.store.account.origin)).pipe(
+        this._cache.set(key, value = this.get(defaultOrigin(tag, this.store.account.origin)).pipe(
           catchError(err => {
             if (origin === undefined) throw throwError(() => err);
             return this.get(defaultOrigin(tag, origin));
@@ -134,7 +146,9 @@ export class ExtService {
           }),
           shareReplay(1),
         ));
-        delay(() => this._cache.delete(key), EXT_CACHE_MS);
+        delay(() => {
+          if (this._cache.get(key) === value) this._cache.delete(key);
+        }, EXT_CACHE_MS);
       }
       this.store.local.loadExt([...this._cache.keys()]);
     }
@@ -148,18 +162,18 @@ export class ExtService {
     return { name, tag, origin };
   }
 
-  clearCache(tag: string, origin = '') {
-    if (origin) {
-      this._cache.delete(tag + origin + ':');
+  clearCache(tag: string, ext?: Ext) {
+    for (const key of this._cache.keys()) {
+      if (key.startsWith(tag + ':') || key.startsWith(tag + '@')) this._cache.delete(key);
     }
-    this._cache.delete(tag + ':');
+    if (ext) this.prefillCache(ext);
   }
 
   page(args?: TagPageArgs): Observable<Page<Ext>> {
     return this.http.get(`${this.base}/page`, {
       params: params(args),
     }).pipe(
-      map(mapPage(mapTag)),
+      map(mapPage(mapExt)),
       catchError(err => this.login.handleHttpError(err)),
     );
   }
@@ -176,7 +190,7 @@ export class ExtService {
 
   update(ext: Ext): Observable<string> {
     return this.http.put<string>(this.base, writeExt(ext)).pipe(
-      tap(() => this.clearCache(ext.tag, ext.origin)),
+      tap(() => this.clearCache(ext.tag, ext)),
       catchError(err => this.login.handleHttpError(err)),
     );
   }
@@ -186,7 +200,7 @@ export class ExtService {
       headers: { 'Content-Type': 'application/json-patch+json' },
       params: params({ tag, cursor }),
     }).pipe(
-      tap(() => this.clearCache(localTag(tag), tagOrigin(tag))),
+      tap(() => this.clearCache(localTag(tag))),
       catchError(err => this.login.handleHttpError(err)),
     );
   }
@@ -196,7 +210,7 @@ export class ExtService {
       headers: { 'Content-Type': 'application/merge-patch+json' },
       params: params({ tag, cursor }),
     }).pipe(
-      tap(() => this.clearCache(localTag(tag), tagOrigin(tag))),
+      tap(() => this.clearCache(localTag(tag))),
       catchError(err => this.login.handleHttpError(err)),
     );
   }
@@ -205,7 +219,7 @@ export class ExtService {
     return this.http.delete<void>(this.base, {
       params: params({ tag }),
     }).pipe(
-      tap(() => this.clearCache(localTag(tag), tagOrigin(tag))),
+      tap(() => this.clearCache(localTag(tag))),
       catchError(err => this.login.handleHttpError(err)),
     );
   }

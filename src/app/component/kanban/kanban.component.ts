@@ -1,5 +1,14 @@
 import { CdkDragDrop } from '@angular/cdk/drag-drop';
-import { Component, HostListener, Input, OnChanges, OnDestroy, SimpleChanges } from '@angular/core';
+import {
+  Component,
+  HostListener,
+  Input,
+  OnChanges,
+  OnDestroy,
+  QueryList,
+  SimpleChanges,
+  ViewChildren
+} from '@angular/core';
 import { uniq, without } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { runInAction } from 'mobx';
@@ -16,6 +25,7 @@ import { BookmarkService } from '../../service/bookmark.service';
 import { Store } from '../../store/store';
 import { negate, UrlFilter } from '../../util/query';
 import { isQuery, isSelector, localTag, topAnds } from '../../util/tag';
+import { KanbanColumnComponent } from './kanban-column/kanban-column.component';
 
 export interface KanbanDrag {
   from: string;
@@ -32,6 +42,9 @@ export interface KanbanDrag {
   host: {'class': 'kanban ext'}
 })
 export class KanbanComponent implements OnChanges, OnDestroy, HasChanges {
+
+  @ViewChildren(KanbanColumnComponent)
+  list?: QueryList<KanbanColumnComponent>;
 
   @Input()
   query?: string;
@@ -68,8 +81,7 @@ export class KanbanComponent implements OnChanges, OnDestroy, HasChanges {
   ) { }
 
   saveChanges() {
-    //TODO:
-    return true;
+    return !this.list?.find(r => !r.saveChanges());
   }
 
   ngOnChanges(changes: SimpleChanges) {

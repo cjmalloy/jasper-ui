@@ -108,7 +108,7 @@ export function reverseOrigin(tag: string, rootOrigin: string): string {
   let prefix = access(tag);
   if (prefix) tag = tag.substring(1);
   const len = tag.indexOf('/');
-  return prefix + tag.substring(len + 1) + '@' + subOrigin(rootOrigin, tag.substring(0, len));
+  return prefix + tag.substring(len + 1) + subOrigin(rootOrigin, tag.substring(0, len));
 }
 
 export function getMailbox(tag: string, local: string): string {
