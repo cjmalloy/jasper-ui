@@ -58,7 +58,7 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
   bounce: string[] = [];
   lastMoveTo?: Square;
   animating = false;
-  animationQueue: { from: Square; to: Square; capture?: Square; piece?: Piece }[] = [];
+  animationQueue: { from: Square; to: Square; capture?: { square: Square; piece: Piece }; piece?: Piece }[] = [];
   movingPiece?: { piece: Piece; from: Square; to: Square };
   capturedPiece?: { piece: Piece; square: Square };
   @HostBinding('class.flip')
@@ -124,8 +124,11 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
           // Parse the move to get from and to coordinates
           const moveObj = this.chess.history({ verbose: true }).pop();
           if (moveObj) {
-            const capturedPiece = moveObj.captured ? { type: moveObj.captured, color: moveObj.color === 'w' ? 'b' : 'w' } as Piece : undefined;
-            this.queueAnimation(moveObj.from, moveObj.to, capturedPiece ? moveObj.to : undefined, { type: moveObj.piece, color: moveObj.color, square: moveObj.to });
+            const capturedPieceInfo = moveObj.captured ? {
+              square: moveObj.to,
+              piece: { type: moveObj.captured, color: moveObj.color === 'w' ? 'b' : 'w', square: moveObj.to } as Piece
+            } : undefined;
+            this.queueAnimation(moveObj.from, moveObj.to, capturedPieceInfo, { type: moveObj.piece, color: moveObj.color, square: moveObj.to });
           }
         } catch (e) {
           this.clearErrors();
@@ -190,6 +193,12 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
     this.pieces = flatten(this.chess.board());
     this.turn = this.chess.turn();
     this.moves = this.chess.moves({ verbose: true }).map(m => m.to);
+
+    // Highlight the last move on load
+    const lastMove = this.chess.history({ verbose: true }).pop();
+    if (lastMove) {
+      this.lastMoveTo = lastMove.to;
+    }
 
     if (!this.ref || (this.ref.comment || '') !== this.history) {
       this.clearErrors();
@@ -263,8 +272,11 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
     const isPromotion = !!this.chess.moves({ verbose: true }).find((move) => move.from === from && move.to === to && move.flags.includes('p'));
     const move = this.chess.move({from, to, promotion: isPromotion ? confirm($localize`Promote to Queen:`) ? 'q' : prompt($localize`Promotion:`) as Exclude<PieceType, 'p' | 'k'> : undefined});
     if (move) {
-      const capturedPiece = move.captured ? { type: move.captured, color: move.color === 'w' ? 'b' : 'w' } as Piece : undefined;
-      this.queueAnimation(from, to, capturedPiece ? to : undefined, { type: move.piece, color: move.color, square: to });
+      const capturedPieceInfo = move.captured ? {
+        square: to,
+        piece: { type: move.captured, color: move.color === 'w' ? 'b' : 'w', square: to } as Piece
+      } : undefined;
+      this.queueAnimation(from, to, capturedPieceInfo, { type: move.piece, color: move.color, square: to });
       this.check();
       this.save(move.san);
     }
@@ -350,7 +362,7 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
     }
   }
 
-  queueAnimation(from: Square, to: Square, capture?: Square, piece?: Piece) {
+  queueAnimation(from: Square, to: Square, capture?: { square: Square; piece: Piece }, piece?: Piece) {
     this.animationQueue.push({ from, to, capture, piece });
     if (!this.animating) {
       this.processAnimationQueue();
@@ -376,13 +388,9 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
       this.movingPiece = { piece: animation.piece, from: animation.from, to: animation.to };
     }
 
-    // If there's a capture, get the captured piece info
-    if (animation.capture && animation.piece) {
-      // The captured piece was at the destination square before the move
-      const capturedPieceType = this.pieces[this.getIndex(animation.capture)];
-      if (capturedPieceType) {
-        this.capturedPiece = { piece: capturedPieceType, square: animation.capture };
-      }
+    // If there's a capture, show the captured piece animation
+    if (animation.capture) {
+      this.capturedPiece = animation.capture;
     }
 
     // Animate the piece moving to its destination
