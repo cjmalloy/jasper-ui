@@ -419,11 +419,22 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
     const movingPiece = animation.to;
     this.translate.push(movingPiece);
     
+    // Remove captured piece animation slightly before main animation completes
+    // to prevent flash at the end
+    if (animation.capture) {
+      delay(() => {
+        delete this.capturedPiece;
+      }, 1500);
+    }
+    
     // Remove animation after completion
     delay(() => {
       this.translate = without(this.translate, movingPiece);
       delete this.movingPiece;
-      delete this.capturedPiece;
+      // capturedPiece already deleted above if it existed
+      if (!animation.capture) {
+        delete this.capturedPiece;
+      }
       // Process next animation after current one completes
       this.processAnimationQueue();
     }, 1600);
