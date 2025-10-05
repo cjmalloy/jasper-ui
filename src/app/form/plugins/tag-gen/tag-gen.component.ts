@@ -45,7 +45,7 @@ export class TagGenFormComponent implements OnChanges {
       if (!expandedTagsInclude(tags[i], this.plugin.tag)) continue;
       const form = this.plugin.config!.tagForm!.flatMap(f => (typeof f === 'string') ? [] :f);
       const parts = tags[i].substring(this.plugin.tag.length).split('/').filter(p => p);
-      const model = form.map(f => (parts.shift() ?? f.defaultValue).toUpperCase());
+      const model = form.map(f => ((parts.shift() ?? f.defaultValue ?? '')).toUpperCase());
       const options = { formState: { admin: this.admin, config: this.plugin.defaults } };
       const formGroup = this.fb.group({});
       formGroup.valueChanges.subscribe(() => this.onFormChange(i));
