@@ -45,7 +45,7 @@
     <div class="link-below">
       @if (showToggle && (thread || commentNoTitle || expandPlugins.length)) {
         <button type="button" class="toggle" (click)="toggle()">
-          @if (editing || viewSource || viewDiff || expanded) {
+          @if (editing || viewSource || diffing || expanded) {
             <span class="toggle-x">✕</span>
           } @else if (fullscreen) {
             <span class="toggle-fullscreen">⛶</span>
@@ -220,10 +220,7 @@
             @if (taggingAccess) {
               <app-inline-tag [action]="tag$" i18n>tag</app-inline-tag>
             }
-            @if (hasDiff) {
-              <a class="fake-link" (click)="toggleDiff()" i18n>diff</a>
-            }
-            @if (store.account.user && !local && !hasDiff) {
+            @if (store.account.user && !local) {
               <app-inline-button #action [action]="copy$" i18n>copy</app-inline-button>
             }
             @if (store.account.user && local) {
@@ -235,6 +232,9 @@
               <a class="fake-link" (click)="editing = !editing" i18n>edit</a>
             } @else {
               <a class="fake-link" (click)="viewSource = !viewSource" i18n>source</a>
+            }
+            @if (store.view.versions) {
+              <a class="fake-link" (click)="diffing = !diffing" i18n>diff</a>
             }
           }
           @if (ref.created && !ref.upload && (store.account.mod || taggingAccess)) {
@@ -344,12 +344,12 @@
   <form class="form" [formGroup]="editForm">
     <app-ref-form [group]="editForm" [origin]="origin"></app-ref-form>
   </form>
-} @else if (viewDiff && diffOriginal && diffModified) {
+} @else if (diffing && diffOriginal && diffModified) {
   <div class="diff-view form">
     <app-diff #diffEditor
               [original]="diffOriginal"
               [modified]="diffModified"
-              [readOnly]="!local || !!ref.metadata?.obsolete">
+              [readOnly]="!local && !!ref.metadata?.obsolete">
     </app-diff>
 
     @if (local || !ref.metadata?.obsolete) {
@@ -365,7 +365,7 @@
           <app-loading [inline]="true"></app-loading>
         }
         <button type="button" [disabled]="submitting" (click)="saveDiff()" i18n>save</button>
-        <button type="button" [disabled]="submitting" (click)="viewDiff = false" i18n>cancel</button>
+        <button type="button" [disabled]="submitting" (click)="diffing = false" i18n>cancel</button>
       </span>
     }
   </div>
