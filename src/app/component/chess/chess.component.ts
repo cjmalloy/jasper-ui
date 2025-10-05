@@ -402,9 +402,10 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
     const toCol = toIndex % 8;
     const toRow = Math.floor(toIndex / 8);
     
-    // Calculate deltas (accounting for board orientation)
-    const xFrom = this.white ? (toCol - fromCol) : (fromCol - toCol);
-    const yFrom = this.white ? (toRow - fromRow) : (fromRow - toRow);
+    // Calculate deltas - the piece at destination needs to animate FROM source position
+    // So we need the negative offset from destination back to source
+    const xFrom = this.white ? -(toCol - fromCol) : -(fromCol - toCol);
+    const yFrom = this.white ? -(toRow - fromRow) : -(fromRow - toRow);
     const xTo = 0;
     const yTo = 0;
 
