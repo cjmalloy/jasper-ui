@@ -56,6 +56,7 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
   pieces: (Piece | null)[] = flatten(this.chess.board());
   writeAccess = false;
   bounce: string[] = [];
+  translate: string[] = [];
   lastMoveTo?: Square;
   animating = false;
   animationQueue: { from: Square; to: Square; capture?: { square: Square; piece: Piece }; piece?: Piece }[] = [];
@@ -393,13 +394,33 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
       this.capturedPiece = animation.capture;
     }
 
-    // Animate the piece moving to its destination
+    // Calculate coordinates for CSS animation
+    const fromIndex = this.getIndex(animation.from);
+    const toIndex = this.getIndex(animation.to);
+    const fromCol = fromIndex % 8;
+    const fromRow = Math.floor(fromIndex / 8);
+    const toCol = toIndex % 8;
+    const toRow = Math.floor(toIndex / 8);
+    
+    // Calculate deltas (accounting for board orientation)
+    const xFrom = this.white ? (toCol - fromCol) : (fromCol - toCol);
+    const yFrom = this.white ? (toRow - fromRow) : (fromRow - toRow);
+    const xTo = 0;
+    const yTo = 0;
+
+    // Set CSS variables on the host element
+    this.el.nativeElement.style.setProperty('--xFrom', xFrom.toString());
+    this.el.nativeElement.style.setProperty('--yFrom', yFrom.toString());
+    this.el.nativeElement.style.setProperty('--xTo', xTo.toString());
+    this.el.nativeElement.style.setProperty('--yTo', yTo.toString());
+
+    // Animate the piece moving to its destination with translation
     const movingPiece = animation.to;
-    this.bounce.push(movingPiece);
+    this.translate.push(movingPiece);
     
     // Remove animation after completion
     delay(() => {
-      this.bounce = without(this.bounce, movingPiece);
+      this.translate = without(this.translate, movingPiece);
       delete this.movingPiece;
       delete this.capturedPiece;
       // Process next animation after current one completes

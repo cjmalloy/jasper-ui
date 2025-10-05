@@ -63,6 +63,15 @@
       animation-timing-function: ease-in-out;
     }
 
+    &.translate {
+      animation-duration: 1.5s;
+      animation-name: translate;
+      animation-iteration-count: 1;
+      animation-timing-function: ease-in-out;
+      position: relative;
+      z-index: 10;
+    }
+
     &.capture-animation {
       position: absolute;
       animation-duration: 1.5s;
@@ -88,6 +97,20 @@
   to {
     transform: scale(100%);
     z-index: 10;
+  }
+}
+
+@keyframes translate {
+  from {
+    transform: translate(calc(var(--xFrom) * var(--dim)), calc(var(--yFrom) * var(--dim))) scale(100%);
+  }
+
+  50% {
+    transform: translate(calc((var(--xFrom) + var(--xTo)) / 2 * var(--dim)), calc((var(--yFrom) + var(--yTo)) / 2 * var(--dim))) scale(200%);
+  }
+
+  to {
+    transform: translate(calc(var(--xTo) * var(--dim)), calc(var(--yTo) * var(--dim))) scale(100%);
   }
 }
 

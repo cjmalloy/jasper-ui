@@ -10,6 +10,7 @@
     @if (white ? p : pieces[63-i]; as rp) {
       <div class="chess-piece {{ rp?.color }}"
            [class.bounce]="bounce.includes(rp.square)"
+           [class.translate]="translate.includes(rp.square)"
            [class.disabled]="!writeAccess || turn !== rp.color"
            cdkDrag
            cdkDragBoundary=".chess-board"
