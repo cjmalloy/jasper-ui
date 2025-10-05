@@ -74,10 +74,12 @@
 
     &.capture-animation {
       position: absolute;
-      animation-duration: 1.5s;
+      animation-duration: 0.8s;
       animation-name: capture;
       animation-iteration-count: 1;
       animation-timing-function: ease-out;
+      animation-delay: 1.5s;
+      animation-fill-mode: backwards;
       pointer-events: none;
     }
   }
