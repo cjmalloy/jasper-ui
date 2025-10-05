@@ -150,6 +150,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   private _viewSource = false;
   private _diffing = false;
   private overwrittenModified? = '';
+  private diffSubscription?: Subscription;
 
   constructor(
     public config: ConfigService,
@@ -380,7 +381,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     if (this._diffing === value) return;
     this._diffing = value;
     if (value) {
-      this.diff$().subscribe();
+      this.diff()
     }
   }
 
@@ -1060,14 +1061,16 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     );
   }
 
-  diff$ = () => {
+  diff() {
     // Fetch obsolete versions and show diff with most recent remote version
-    return this.refs.page({
+    this.diffSubscription?.unsubscribe();
+    this.diffSubscription = this.refs.page({
       url: this.ref.url,
       obsolete: true,
       size: 100,
       sort: ['modified,DESC']
     }).pipe(
+      takeUntil(this.destroy$),
       map(page => {
         // Find the most recent remote version (not from local origin)
         const remoteVersion = page.content.find(r => r.origin !== this.store.account.origin);
@@ -1081,17 +1084,16 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
           map(localVersion => ({ local: localVersion, remote: remoteVersion }))
         )
       ),
-      tap(({ local, remote }) => {
-        this.diffOriginal = remote;
-        this.diffModified = local;
-        this.diffing = true;
-      }),
       catchError(err => {
         console.error('Error fetching versions for diff:', err);
         alert('Could not load versions for comparison');
         return throwError(() => err);
       })
-    );
+    ).subscribe(({ local, remote }) => {
+      this.diffOriginal = remote;
+      this.diffModified = local;
+      this.diffing = true;
+    });
   }
 
   saveDiff() {
