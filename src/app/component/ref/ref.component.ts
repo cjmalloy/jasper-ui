@@ -1081,7 +1081,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
         }
         return remoteVersion;
       }),
-      switchMap(remoteVersion => 
+      switchMap(remoteVersion =>
         this.refs.get(this.ref.url, this.store.account.origin).pipe(
           map(localVersion => ({ local: localVersion, remote: remoteVersion }))
         )
@@ -1111,37 +1111,29 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   }
 
   saveDiff() {
-    if (!this.diffEditor) return;
-    
-    try {
-      // Get modified content from diff editor
-      const modifiedJson = this.diffEditor.getModifiedContent();
-      const modifiedRef = JSON.parse(modifiedJson);
-      
-      // Update the current ref with the modified version from diff
-      this.submitting = this.store.eventBus.runAndReload(this.refs.update(modifiedRef).pipe(
-        tap(cursor => {
-          this.accounts.clearNotificationsIfNone(DateTime.fromISO(cursor));
-          delete this.submitting;
-          this.viewDiff = false;
-        }),
-        catchError((res: HttpErrorResponse) => {
-          delete this.submitting;
-          if (res.status === 400) {
-            this.invalid = true;
-            console.error('Invalid ref data:', res.message);
-          }
-          if (res.status === 409) {
-            this.overwritten = true;
-            this.refs.get(this.ref.url, this.ref.origin).subscribe(x => this.overwrittenModified = x.modifiedString);
-          }
-          return throwError(() => res);
-        }),
-      ), modifiedRef);
-    } catch (error) {
-      console.error('Error parsing modified JSON:', error);
-      alert('Invalid JSON in modified editor');
-    }
+    const ref = this.diffEditor?.getModifiedContent();
+    if (!ref) return;
+    ref.modifiedString = this.overwrite ? this.overwrittenModified : this.ref.modifiedString;
+    this.submitting = this.store.eventBus.runAndReload(this.refs.update(ref).pipe(
+      tap(cursor => {
+        this.accounts.clearNotificationsIfNone(DateTime.fromISO(cursor));
+        delete this.submitting;
+        this.viewDiff = false;
+      }),
+      catchError((res: HttpErrorResponse) => {
+        delete this.submitting;
+        if (res.status === 400) {
+          this.invalid = true;
+          console.error('Invalid ref data:', res.message);
+          // TODO: read res.message to find which fields to delete
+        }
+        if (res.status === 409) {
+          this.overwritten = true;
+          this.refs.get(this.ref.url, this.ref.origin).subscribe(x => this.overwrittenModified = x.modifiedString);
+        }
+        return throwError(() => res);
+      }),
+    ), ref);
   }
 
   @memo

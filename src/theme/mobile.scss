@@ -296,13 +296,15 @@ $tablet-width: 948px;
     }
   }
 
-  .json-editor ngx-monaco-editor {
+  .json-editor ngx-monaco-editor,
+  .diff-editor ngx-monaco-diff-editor {
     margin: 0 0 0 -10px;
     width: 100vw !important;
   }
 
   .plugins-form {
     .json-editor ngx-monaco-editor,
+    .diff-editor ngx-monaco-diff-editor,
     textarea {
       width: calc(100vw - 40px) !important;
     }
@@ -312,12 +314,13 @@ $tablet-width: 948px;
     right: calc(23px - 100%);
   }
 
-  ngx-monaco-editor {
+  ngx-monaco-editor,
+  ngx-monaco-diff-editor {
     width: 100vw !important;
     max-height: 50vh;
   }
 
-  .resize-handle:after {
+  .resize-handle:before {
     content: '⬍';
     font-size: 175%;
     width: 24px;
