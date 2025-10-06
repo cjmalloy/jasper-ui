@@ -219,6 +219,16 @@
       box-shadow: inset 3px 3px var(--dim) var(--move),
                   inset -3px -3px var(--dim) var(--move);
     }
+    
+    .backgammon-piece {
+      transform: translate(calc(-1 * var(--dim)), 0) !important;
+      &.stacked {
+        transform: translate(calc(-1 * var(--dim)), 0) translate3d(calc(0.1 * var(--dim)), calc(-1 * var(--dim)), 1px) !important;
+        &.double-stacked {
+          transform: translate(calc(-1 * var(--dim)), 0) translate3d(calc(0.2 * var(--dim)), calc(-2 * var(--dim)), 2px) !important;
+        }
+      }
+    }
   }
 
   .backgammon-spot, .backgammon-bar, .backgammon-off {
@@ -235,6 +245,38 @@
 
         to {
           margin: 0;
+        }
+      }
+      
+      &.glow {
+        animation-duration: 40s;
+        animation-name: glow;
+        animation-iteration-count: infinite;
+        animation-timing-function: linear;
+      }
+      @keyframes glow {
+        from {
+          filter: drop-shadow(0 0 0 var(--play));
+        }
+
+        5% {
+          filter: drop-shadow(6px 4px 30px var(--play));
+        }
+
+        25% {
+          filter: drop-shadow(-8px 4px 20px var(--play));
+        }
+
+        50% {
+          filter: drop-shadow(-8px -8px 15px var(--play));
+        }
+
+        75% {
+          filter: drop-shadow(6px -8px 10px var(--play));
+        }
+
+        to {
+          filter: drop-shadow(6px 4px 30px var(--play));
         }
       }
     }

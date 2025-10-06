@@ -74,6 +74,10 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   moveRedOff = false;
   moveBlackOff = false;
   moves: number[][] = [];
+  redOff: Piece[] = [];
+  blackOff: Piece[] = [];
+  lastMovedSpots: number[] = []; // Track spots with pieces that were moved last
+  lastMovedOff: Piece | undefined; // Track if last move was to off
 
   bounce = 0;
   redBarBounce = 0;
@@ -192,6 +196,25 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
           
           // Execute the move
           this.load([update]);
+          
+          // Track last moved positions for glow effect
+          // Clear previous glow when a new move is made
+          this.lastMovedSpots = [];
+          delete this.lastMovedOff;
+          
+          // Set destination as last moved (unless it's off or bar)
+          if (to >= 0 && to < 24) {
+            this.lastMovedSpots = [to];
+          } else if (to === -2) {
+            // Track piece moved off
+            this.lastMovedOff = p;
+            // Add piece to off collection
+            if (p === 'r') {
+              this.redOff.push(p);
+            } else {
+              this.blackOff.push(p);
+            }
+          }
           
           // Queue animation for bumped piece first (so it happens before the moving piece)
           if (bumpedPiece !== undefined && to >= 0) {
@@ -374,6 +397,10 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
     this.diceUsed = [];
     this.redDice = [];
     this.blackDice = [];
+    this.redOff = [];
+    this.blackOff = [];
+    this.lastMovedSpots = [];
+    delete this.lastMovedOff;
     this.spots = range(24).map(index => (<Spot>{ index, col: index < 12 ? index + 1 : 24 - index, red: !(index % 2), top: index < 12, pieces: [] as string[] }));
     this.spots[ 0].pieces = [...'rr'] as Piece[];
     this.spots[ 5].pieces = [...'bbbbb'] as Piece[];

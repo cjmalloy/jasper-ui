@@ -17,6 +17,7 @@
            [class.double-stacked]="pi > 9"
            [class.bounce]="s.bounce && pi >= s.pieces.length - s.bounce"
            [class.translate]="translate.includes(s.index) && pi === s.pieces.length - 1"
+           [class.glow]="lastMovedSpots.includes(s.index) && pi === s.pieces.length - 1"
            cdkDrag
            cdkDragBoundary=".backgammon-board"
            (cdkDragStarted)="onDragStarted(s.index)"
@@ -32,7 +33,14 @@
      cdkDropList
      [cdkDropListData]="-2"
      (cdkDropListDropped)="drop($any($event))"
-     (click)="onClickOff()"></div>
+     (click)="onClickOff()">
+  @for (p of blackOff; track pi; let pi = $index) {
+    <div class="backgammon-piece"
+         [class.stacked]="pi > 4"
+         [class.double-stacked]="pi > 9"
+         [class.glow]="lastMovedOff === 'b' && pi === blackOff.length - 1">{{ drawPiece(p) }}</div>
+  }
+</div>
 <div class="backgammon-off red"
      [style.grid-column]="1"
      [style.grid-row]="2"
@@ -40,7 +48,14 @@
      cdkDropList
      [cdkDropListData]="-2"
      (cdkDropListDropped)="drop($any($event))"
-     (click)="onClickOff()"></div>
+     (click)="onClickOff()">
+  @for (p of redOff; track pi; let pi = $index) {
+    <div class="backgammon-piece"
+         [class.stacked]="pi > 4"
+         [class.double-stacked]="pi > 9"
+         [class.glow]="lastMovedOff === 'r' && pi === redOff.length - 1">{{ drawPiece(p) }}</div>
+  }
+</div>
 <div class="backgammon-bar black"
      [style.grid-column]="8"
      [style.grid-row]="1"
