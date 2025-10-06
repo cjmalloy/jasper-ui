@@ -1066,8 +1066,9 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     this.diffSubscription?.unsubscribe();
     this.diffSubscription = this.refs.page({
       url: this.ref.url,
-      obsolete: true,
-      size: 100,
+      query: `!${this.store.account.origin || '*'}`,
+      obsolete: null,
+      size: 1,
       sort: ['modified,DESC']
     }).pipe(
       takeUntil(this.destroy$),
