@@ -38,12 +38,12 @@
                   inset -3px -3px 16px rgba(0, 128, 0, 0.9);
     }
     &.last-move {
-      box-shadow: inset 3px 3px 16px rgba(255, 140, 0, 0.9),
-                  inset -3px -3px 16px rgba(255, 140, 0, 0.9);
+      box-shadow: inset 3px 3px 16px color-mix(in srgb, var(--tag) 90%, transparent),
+                  inset -3px -3px 16px color-mix(in srgb, var(--tag) 90%, transparent);
       &.move {
         box-shadow: inset 3px 3px 16px rgba(0, 128, 0, 0.9),
                     inset -3px -3px 16px rgba(0, 128, 0, 0.9);
-        background-color: rgba(255, 140, 0, 0.4) !important;
+        background: color-mix(in srgb, var(--tag) 40%, transparent) !important;
       }
     }
     &.light {
