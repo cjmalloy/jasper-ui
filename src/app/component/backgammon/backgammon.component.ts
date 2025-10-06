@@ -214,16 +214,15 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
           
           // Queue animation for bumped piece first (so it happens before the moving piece)
           if (bumpedPiece !== undefined && to >= 0) {
-            const spotsStateAfterBump = this.spots.map(s => ({ ...s, pieces: [...s.pieces] }));
-            const barStateAfterBump = [...this.bar];
+            // Use PRE-move state for animation so piece starts at source
             const bumpedToStackIndex = (bumpedPiece === 'r' ? this.redBar.length : this.blackBar.length) - 1;
             
             this.queueAnimation({
               from: to,
               to: -1, // To bar
               piece: bumpedPiece,
-              spotsState: spotsStateAfterBump,
-              barState: barStateAfterBump,
+              spotsState: spotsStateBefore, // Use PRE-move state
+              barState: barStateBefore, // Use PRE-move state
               turnState: this.turn,
               movesState: this.getAllMoves(),
               fromStackIndex: bumpedFromStackIndex,
@@ -233,18 +232,16 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
           
           // Queue animation for main move only if not moving to off
           if (to !== -2) {
-            const spotsStateAfter = this.spots.map(s => ({ ...s, pieces: [...s.pieces] }));
-            const barStateAfter = [...this.bar];
             const turnState = this.turn;
             const movesState = this.getAllMoves();
             
-            // Track the destination stack position
+            // Track the destination stack position (from current state)
             let toStackIndex = -1;
             if (to >= 0 && to < 24) {
-              const destSpot = spotsStateAfter[to];
+              const destSpot = this.spots[to];
               toStackIndex = destSpot.pieces.filter(piece => piece === p).length - 1;
             } else if (to === -1) {
-              const destBar = p === 'r' ? barStateAfter.filter(b => b === 'r') : barStateAfter.filter(b => b === 'b');
+              const destBar = p === 'r' ? this.bar.filter((b: Piece) => b === 'r') : this.bar.filter((b: Piece) => b === 'b');
               toStackIndex = destBar.length - 1;
             }
             
@@ -252,8 +249,8 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
               from,
               to,
               piece: p,
-              spotsState: spotsStateAfter,
-              barState: barStateAfter,
+              spotsState: spotsStateBefore, // Use PRE-move state
+              barState: barStateBefore, // Use PRE-move state
               turnState,
               movesState,
               fromStackIndex,
@@ -498,11 +495,22 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
         } else {
           this.blackOff.push(p);
         }
+        // Track off piece for glow
+        this.lastMovedOff = p;
+      } else {
+        // Track moved spot for glow
+        if (!this.lastMovedSpots.includes(to)) {
+          this.lastMovedSpots.push(to);
+        }
       }
       this.pushMove(p, from, to, hit);
     } else if (current.length === 1) {
       this.bar.push(current[0]);
       current[0] = p;
+      // Track moved spot for glow
+      if (!this.lastMovedSpots.includes(to)) {
+        this.lastMovedSpots.push(to);
+      }
       this.pushMove(p, from, to, hit);
     }
   }
@@ -778,6 +786,11 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
     const ds = p === 'r' ? this.redDice : this.blackDice;
     if (this.winner) throw $localize`Game Over`;
     if ((!this.first || this.turn !== p) && this.moves.length) throw $localize`Must move`;
+    
+    // Clear glow when rolling (new turn)
+    this.lastMovedSpots = [];
+    delete this.lastMovedOff;
+    
     let move = '';
     if (!this.turn) {
       if (ds[0]) return;
