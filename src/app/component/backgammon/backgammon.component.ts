@@ -152,6 +152,10 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
         }),
       ).subscribe(update => {
         if (update.includes('-')) {
+          // New roll - clear previous turn's glow
+          this.lastMovedSpots = [];
+          delete this.lastMovedOff;
+          
           const lastRoll = this.incomingRolling = update.split(' ')[0] as Piece;
           requestAnimationFrame(() => {
             if (lastRoll != this.incomingRolling) return;
@@ -198,13 +202,11 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
           this.load([update]);
           
           // Track last moved positions for glow effect
-          // Clear previous glow when a new move is made
-          this.lastMovedSpots = [];
-          delete this.lastMovedOff;
-          
-          // Set destination as last moved (unless it's bar)
+          // Add to the list of moved spots (don't clear, accumulate for the turn)
           if (to >= 0 && to < 24) {
-            this.lastMovedSpots = [to];
+            if (!this.lastMovedSpots.includes(to)) {
+              this.lastMovedSpots.push(to);
+            }
           } else if (to < 0) {
             // Piece was moved off
             this.lastMovedOff = p;
