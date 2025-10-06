@@ -53,6 +53,7 @@
   @for (p of blackBar; track pi; let pi = $index) {
     <div class="backgammon-piece"
          [class.bounce]="pi >= blackBar.length - redBarBounce"
+         [class.translate]="translate.includes(-1) && pi === blackBar.length - 1"
          cdkDrag
          cdkDragBoundary=".backgammon-board"
          (cdkDragStarted)="onDragStarted(-1)"
@@ -70,6 +71,7 @@
   @for (p of redBar; track p; let pi = $index) {
     <div class="backgammon-piece"
          [class.bounce]="pi >= redBar.length - redBarBounce"
+         [class.translate]="translate.includes(-1) && pi === redBar.length - 1"
          cdkDrag
          cdkDragBoundary=".backgammon-board"
          (cdkDragStarted)="onDragStarted(-1)"

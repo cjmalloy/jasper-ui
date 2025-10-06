@@ -169,21 +169,23 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
           // Execute the move
           this.load([update]);
           
-          // Queue animation
-          const spotsStateAfter = this.spots.map(s => ({ ...s, pieces: [...s.pieces] }));
-          const barStateAfter = [...this.bar];
-          const turnState = this.turn;
-          const movesState = this.getAllMoves();
-          
-          this.queueAnimation({
-            from,
-            to,
-            piece: p,
-            spotsState: spotsStateAfter,
-            barState: barStateAfter,
-            turnState,
-            movesState
-          });
+          // Queue animation only if not moving to off
+          if (to !== -2) {
+            const spotsStateAfter = this.spots.map(s => ({ ...s, pieces: [...s.pieces] }));
+            const barStateAfter = [...this.bar];
+            const turnState = this.turn;
+            const movesState = this.getAllMoves();
+            
+            this.queueAnimation({
+              from,
+              to,
+              piece: p,
+              spotsState: spotsStateAfter,
+              barState: barStateAfter,
+              turnState,
+              movesState
+            });
+          }
           
           const lastMove = this.incoming = to;
           this.incomingRedBar = update.includes('*') && update.startsWith('b') ? 1 : 0;
@@ -765,9 +767,9 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
     let toCol = 0;
     let toRow = 0;
     if (animation.to === -2) {
-      // To off
-      toCol = animation.piece === 'r' ? 15 : 0; // Red off at right, black off at left
-      toRow = animation.piece === 'r' ? 2 : 1;
+      // To off (both at column 1)
+      toCol = 1;
+      toRow = animation.piece === 'r' ? 2 : 1; // Red off at bottom row, black off at top row
     } else if (toSpot) {
       toCol = toSpot.col > 6 ? toSpot.col + 2 : toSpot.col + 1; // Account for bar gap
       toRow = toSpot.top ? 1 : 2;
