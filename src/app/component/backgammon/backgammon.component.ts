@@ -19,6 +19,7 @@ import { catchError, Observable, of, Subscription } from 'rxjs';
 import { Ref } from '../../model/ref';
 import { ActionService } from '../../service/action.service';
 import { Store } from '../../store/store';
+import { hasTag } from '../../util/tag';
 
 export type Piece = 'r' | 'b';
 export type Spot = {
@@ -358,11 +359,14 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
 
   @HostListener('window:resize')
   onResize() {
-    const dim = Math.floor(Math.min(
-      innerWidth - 4,
-      innerHeight - 20,
-      this.el.nativeElement.parentElement?.offsetWidth || screen.width,
-    ) / 28);
+    const dim = Math.floor(hasTag('plugin/fullscreen', this.ref) ? Math.min(
+      screen.width / 28,
+      screen.height / 26.5
+    ) : Math.min(
+      (innerWidth - 4) / 28,
+      (this.el.nativeElement.parentElement?.offsetWidth || screen.width) / 28,
+      (innerHeight - 20) / 26,
+    ));
     const fontSize = Math.floor(1.5 * dim);
     this.el.nativeElement.style.setProperty('--dim', dim + 'px')
     this.el.nativeElement.style.setProperty('--piece-size', fontSize + 'px');
