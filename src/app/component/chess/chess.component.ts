@@ -12,7 +12,7 @@ import {
   Output,
   SimpleChanges
 } from '@angular/core';
-import { Chess, Move, Square } from 'chess.js';
+import { Chess, Square } from 'chess.js';
 import { defer, delay, flatten, without } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import { catchError, Observable, of, Subscription, throwError } from 'rxjs';
@@ -25,6 +25,7 @@ export type PieceType = 'p' | 'n' | 'b' | 'r' | 'q' | 'k';
 export type PieceColor = 'b' | 'w';
 
 type Piece = { type: PieceType, color: PieceColor, square: Square, };
+type AnimationState = { from: Square; to: Square; capture?: { square: Square; piece: Piece }; piece: Piece; boardState: (Piece | null)[], turnState: PieceColor, movesState: Square[] };
 
 @Component({
   standalone: false,
@@ -55,11 +56,10 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
   chess = new Chess();
   pieces: (Piece | null)[] = flatten(this.chess.board());
   writeAccess = false;
-  bounce: string[] = [];
   translate: string[] = [];
   lastMoveTo?: Square;
   animating = false;
-  animationQueue: { from: Square; to: Square; capture?: { square: Square; piece: Piece }; piece?: Piece; boardState?: (Piece | null)[] }[] = [];
+  animationQueue: AnimationState[] = [];
   movingPiece?: { piece: Piece; from: Square; to: Square };
   capturedPiece?: { piece: Piece; square: Square };
   @HostBinding('class.flip')
@@ -70,7 +70,6 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
   private watch?: Subscription;
   private append$!: (value: string) => Observable<string>;
   private board?: string;
-  private incoming?: Square;
   private retry: string[] = [];
 
   constructor(
@@ -122,16 +121,24 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
               this.retrySave();
             }
           }
-          // Store the board state after this move
           const boardState = flatten(this.chess.board());
-          // Parse the move to get from and to coordinates
+          const turnState = this.chess.turn();
+          const movesState = this.chess.moves({ verbose: true }).map(m => m.to);
           const moveObj = this.chess.history({ verbose: true }).pop();
           if (moveObj) {
             const capturedPieceInfo = moveObj.captured ? {
               square: moveObj.to,
               piece: { type: moveObj.captured, color: moveObj.color === 'w' ? 'b' : 'w', square: moveObj.to } as Piece
             } : undefined;
-            this.queueAnimation(moveObj.from, moveObj.to, capturedPieceInfo, { type: moveObj.piece, color: moveObj.color, square: moveObj.to }, boardState);
+            this.queueAnimation({
+              from: moveObj.from,
+              to: moveObj.to,
+              capture: capturedPieceInfo,
+              piece: { type: moveObj.piece, color: moveObj.color, square: moveObj.to },
+              boardState,
+              turnState,
+              movesState
+            });
           }
         } catch (e) {
           this.clearErrors();
@@ -174,49 +181,26 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
         const lines = board.trim().split('\n');
         this.chess.load(lines[0]);
         this.fen = this.chess.fen();
-        // Set initial board state BEFORE processing moves
-        this.pieces = flatten(this.chess.board());
         lines.shift();
         for (const l of lines) {
           if (!l.trim()) continue;
           try {
             this.chess.move(l);
-            // Store the board state after this move for the animation queue
-            const boardState = flatten(this.chess.board());
-            // Parse the move to get from and to coordinates
-            const moveObj = this.chess.history({ verbose: true }).pop();
-            if (moveObj) {
-              const capturedPieceInfo = moveObj.captured ? {
-                square: moveObj.to,
-                piece: { type: moveObj.captured, color: moveObj.color === 'w' ? 'b' : 'w', square: moveObj.to } as Piece
-              } : undefined;
-              this.queueAnimation(moveObj.from, moveObj.to, capturedPieceInfo, { type: moveObj.piece, color: moveObj.color, square: moveObj.to }, boardState);
-            }
           } catch (e) {
             console.log(e);
           }
         }
       } else {
         this.chess.loadPgn('');
-        this.pieces = flatten(this.chess.board());
       }
     } catch (e) {
       try {
         this.chess.loadPgn(board || '');
-        this.pieces = flatten(this.chess.board());
       } catch (e) {
         console.error(e);
       }
     }
-    this.turn = this.chess.turn();
-    this.moves = this.chess.moves({ verbose: true }).map(m => m.to);
-
-    // Highlight the last move on load
-    const lastMove = this.chess.history({ verbose: true }).pop();
-    if (lastMove) {
-      this.lastMoveTo = lastMove.to;
-    }
-
+    this.render();
     if (!this.ref || (this.ref.comment || '') !== this.history) {
       this.clearErrors();
     }
@@ -289,37 +273,20 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
     const isPromotion = !!this.chess.moves({ verbose: true }).find((move) => move.from === from && move.to === to && move.flags.includes('p'));
     const move = this.chess.move({from, to, promotion: isPromotion ? confirm($localize`Promote to Queen:`) ? 'q' : prompt($localize`Promotion:`) as Exclude<PieceType, 'p' | 'k'> : undefined});
     if (move) {
-      // Store the board state after this move
-      const boardState = flatten(this.chess.board());
-      const capturedPieceInfo = move.captured ? {
-        square: to,
-        piece: { type: move.captured, color: move.color === 'w' ? 'b' : 'w', square: to } as Piece
-      } : undefined;
-      this.queueAnimation(from, to, capturedPieceInfo, { type: move.piece, color: move.color, square: to }, boardState);
-      // Update turn and check game over state, but don't update pieces (animation will do that)
-      this.turn = this.chess.turn();
-      if (this.chess.isGameOver()) {
-        defer(() => {
-          if (this.chess.isCheckmate()) {
-            alert($localize`Checkmate!`);
-          } else if (this.chess.isStalemate()) {
-            alert($localize`Stalemate!`);
-          } else if (this.chess.isThreefoldRepetition()) {
-            alert($localize`Draw by threefold repetition!`);
-          } else if (this.chess.isInsufficientMaterial()) {
-            alert($localize`Draw by insufficient material!`);
-          } else {
-            alert($localize`Draw!`);
-          }
-        });
-      }
+      this.render();
       this.save(move.san);
     }
   }
 
-  check() {
+  render() {
     this.pieces = flatten(this.chess.board());
+    this.lastMoveTo = this.chess.history({ verbose: true }).pop()?.to;
     this.turn = this.chess.turn();
+    this.moves = this.chess.moves({ verbose: true }).map(m => m.to);
+    this.check();
+  }
+
+  check() {
     if (this.chess.isGameOver()) {
       defer(() => {
         if (this.chess.isCheckmate()) {
@@ -339,7 +306,6 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
     }
     delete this.from;
     delete this.to;
-    this.moves = this.chess.moves({ verbose: true }).map(m => m.to);
   }
 
   get history() {
@@ -397,8 +363,8 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
     }
   }
 
-  queueAnimation(from: Square, to: Square, capture?: { square: Square; piece: Piece }, piece?: Piece, boardState?: (Piece | null)[]) {
-    this.animationQueue.push({ from, to, capture, piece, boardState });
+  queueAnimation(state: AnimationState) {
+    this.animationQueue.push(state);
     if (!this.animating) {
       this.processAnimationQueue();
     }
@@ -409,26 +375,17 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
       this.animating = false;
       delete this.movingPiece;
       delete this.capturedPiece;
+      this.render();
       return;
     }
 
     this.animating = true;
     const animation = this.animationQueue.shift()!;
-    
-    // Update board state if provided (for historical move playback)
-    if (animation.boardState) {
-      this.pieces = animation.boardState;
-    }
-    
-    // Set last move highlight - only highlight destination square
+    this.pieces = animation.boardState;
+    this.turn = animation.turnState;
+    this.moves = animation.movesState;
     this.lastMoveTo = animation.to;
-
-    // Set up moving piece animation if we have piece data
-    if (animation.piece) {
-      this.movingPiece = { piece: animation.piece, from: animation.from, to: animation.to };
-    }
-
-    // If there's a capture, show the captured piece animation
+    this.movingPiece = { piece: animation.piece, from: animation.from, to: animation.to };
     if (animation.capture) {
       this.capturedPiece = animation.capture;
     }
@@ -440,7 +397,7 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
     const fromRow = Math.floor(fromIndex / 8);
     const toCol = toIndex % 8;
     const toRow = Math.floor(toIndex / 8);
-    
+
     // Calculate deltas - the piece at destination needs to animate FROM source position
     // So we need the negative offset from destination back to source
     const xFrom = this.white ? -(toCol - fromCol) : -(fromCol - toCol);
@@ -457,7 +414,7 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
     // Animate the piece moving to its destination with translation
     const movingPiece = animation.to;
     this.translate.push(movingPiece);
-    
+
     // Remove captured piece animation after it completes (delay + duration)
     // Capture animation: 1.0s delay + 0.8s animation = 1.8s total
     if (animation.capture) {
@@ -465,7 +422,7 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
         delete this.capturedPiece;
       }, 1800);
     }
-    
+
     // Remove animation after completion (wait for capture to finish if present)
     const totalDuration = animation.capture ? 1900 : 1600;
     delay(() => {

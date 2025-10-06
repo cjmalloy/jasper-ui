@@ -56,25 +56,18 @@
     line-height: var(--dim);
     font-size: var(--piece-size);
 
-    &.bounce {
-      animation-duration: 1.5s;
-      animation-name: bounce;
-      animation-iteration-count: 1;
-      animation-timing-function: ease-in-out;
-    }
-
     &.translate {
+      position: relative;
+      z-index: 10;
       animation-duration: 1.5s;
       animation-name: translate;
       animation-iteration-count: 1;
-      animation-timing-function: ease;
-      position: relative;
-      z-index: 10;
+      animation-timing-function: linear;
     }
 
     &.captured {
       position: relative;
-      margin-top: calc(-1 * var(--dim));
+      margin-top: -100%;
       animation-duration: 0.8s;
       animation-name: capture;
       animation-iteration-count: 1;
@@ -83,23 +76,6 @@
       animation-fill-mode: backwards;
       pointer-events: none;
     }
-  }
-}
-
-@keyframes bounce {
-  from {
-    transform: scale(100%);
-    z-index: 10;
-  }
-
-  50% {
-    transform: scale(200%);
-    z-index: 10;
-  }
-
-  to {
-    transform: scale(100%);
-    z-index: 10;
   }
 }
 
