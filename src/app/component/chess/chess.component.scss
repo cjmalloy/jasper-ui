@@ -72,8 +72,9 @@
       z-index: 10;
     }
 
-    &.capture-animation {
-      position: absolute;
+    &.captured {
+      position: relative;
+      margin-top: calc(-1 * var(--dim));
       animation-duration: 0.8s;
       animation-name: capture;
       animation-iteration-count: 1;
