@@ -866,11 +866,11 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
     // Calculate deltas - the piece at destination needs to animate FROM source position to destination
     // The piece is rendered at the destination, so we calculate offsets relative to there
     
-    // Grid cell deltas
+    // Grid cell deltas (in grid units: columns and rows)
     const gridXDelta = this.red ? -(toCol - fromCol) : -(fromCol - toCol);
     const gridYDelta = this.red ? -(toRow - fromRow) : -(fromRow - toRow);
     
-    // Calculate base position offsets for source and destination
+    // Calculate base position offsets for source and destination (in units of var(--dim))
     // These are the transforms that non-animating pieces have based on their location
     let fromBaseX = -1; // All pieces have horizontal centering
     let fromBaseY = 0;
@@ -895,14 +895,17 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
       }
     }
     
-    // The animation FROM position includes: grid delta + (source base - dest base)
-    // This gives us the offset from the destination to the source
-    const xFrom = gridXDelta + (fromBaseX - toBaseX);
-    const yFrom = gridYDelta + (fromBaseY - toBaseY);
+    // Grid movement (will be multiplied by cell size in CSS)
+    const xFromGrid = gridXDelta;
+    const yFromGrid = gridYDelta;
+    const xToGrid = 0;
+    const yToGrid = 0;
     
-    // The animation TO position is just the destination base offset
-    const xTo = toBaseX;
-    const yTo = toBaseY;
+    // Base offset movement (will be multiplied by var(--dim) in CSS)
+    const xFromBase = fromBaseX - toBaseX;
+    const yFromBase = fromBaseY - toBaseY;
+    const xToBase = toBaseX;
+    const yToBase = toBaseY;
     
     // Calculate stack offset adjustments
     // Pieces stack vertically, with stacked pieces having additional y offsets
@@ -947,10 +950,14 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
     }
 
     // Set CSS variables on the host element
-    this.el.nativeElement.style.setProperty('--xFrom', xFrom.toString());
-    this.el.nativeElement.style.setProperty('--yFrom', yFrom.toString());
-    this.el.nativeElement.style.setProperty('--xTo', xTo.toString());
-    this.el.nativeElement.style.setProperty('--yTo', yTo.toString());
+    this.el.nativeElement.style.setProperty('--xFromGrid', xFromGrid.toString());
+    this.el.nativeElement.style.setProperty('--yFromGrid', yFromGrid.toString());
+    this.el.nativeElement.style.setProperty('--xToGrid', xToGrid.toString());
+    this.el.nativeElement.style.setProperty('--yToGrid', yToGrid.toString());
+    this.el.nativeElement.style.setProperty('--xFromBase', xFromBase.toString());
+    this.el.nativeElement.style.setProperty('--yFromBase', yFromBase.toString());
+    this.el.nativeElement.style.setProperty('--xToBase', xToBase.toString());
+    this.el.nativeElement.style.setProperty('--yToBase', yToBase.toString());
     this.el.nativeElement.style.setProperty('--xFromStack', fromStackOffsetX.toString());
     this.el.nativeElement.style.setProperty('--yFromStack', fromStackOffsetY.toString());
     this.el.nativeElement.style.setProperty('--xToStack', toStackOffsetX.toString());

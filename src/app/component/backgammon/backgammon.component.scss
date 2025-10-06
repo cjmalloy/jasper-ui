@@ -183,22 +183,22 @@
   @keyframes translate {
     from {
       transform: translate(
-        calc(var(--xFrom) * 2 * var(--dim) + var(--xFromStack) * var(--dim)), 
-        calc(var(--yFrom) * 13 * var(--dim) + var(--yFromStack) * var(--dim))
+        calc(var(--xFromGrid) * 2 * var(--dim) + var(--xFromBase) * var(--dim) + var(--xFromStack) * var(--dim)), 
+        calc(var(--yFromGrid) * 13 * var(--dim) + var(--yFromBase) * var(--dim) + var(--yFromStack) * var(--dim))
       ) scale(100%);
     }
 
     50% {
       transform: translate(
-        calc((var(--xFrom) + var(--xTo)) / 2 * 2 * var(--dim) + (var(--xFromStack) + var(--xToStack)) / 2 * var(--dim)), 
-        calc((var(--yFrom) + var(--yTo)) / 2 * 13 * var(--dim) + (var(--yFromStack) + var(--yToStack)) / 2 * var(--dim))
+        calc((var(--xFromGrid) + var(--xToGrid)) / 2 * 2 * var(--dim) + (var(--xFromBase) + var(--xToBase)) / 2 * var(--dim) + (var(--xFromStack) + var(--xToStack)) / 2 * var(--dim)), 
+        calc((var(--yFromGrid) + var(--yToGrid)) / 2 * 13 * var(--dim) + (var(--yFromBase) + var(--yToBase)) / 2 * var(--dim) + (var(--yFromStack) + var(--yToStack)) / 2 * var(--dim))
       ) scale(150%);
     }
 
     to {
       transform: translate(
-        calc(var(--xTo) * 2 * var(--dim) + var(--xToStack) * var(--dim)), 
-        calc(var(--yTo) * 13 * var(--dim) + var(--yToStack) * var(--dim))
+        calc(var(--xToGrid) * 2 * var(--dim) + var(--xToBase) * var(--dim) + var(--xToStack) * var(--dim)), 
+        calc(var(--yToGrid) * 13 * var(--dim) + var(--yToBase) * var(--dim) + var(--yToStack) * var(--dim))
       ) scale(100%);
     }
   }
