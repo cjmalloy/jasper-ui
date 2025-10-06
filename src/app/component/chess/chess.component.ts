@@ -59,7 +59,7 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
   translate: string[] = [];
   lastMoveTo?: Square;
   animating = false;
-  animationQueue: { from: Square; to: Square; capture?: { square: Square; piece: Piece }; piece?: Piece }[] = [];
+  animationQueue: { from: Square; to: Square; capture?: { square: Square; piece: Piece }; piece?: Piece; boardState?: (Piece | null)[] }[] = [];
   movingPiece?: { piece: Piece; from: Square; to: Square };
   capturedPiece?: { piece: Piece; square: Square };
   @HostBinding('class.flip')
@@ -173,10 +173,26 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
         this.chess.load(lines[0]);
         this.fen = this.chess.fen();
         lines.shift();
+        // If there are moves to animate, don't update pieces immediately
+        const hasMovesToAnimate = lines.some(l => l.trim());
+        if (!hasMovesToAnimate) {
+          this.pieces = flatten(this.chess.board());
+        }
         for (const l of lines) {
           if (!l.trim()) continue;
           try {
             this.chess.move(l);
+            // Store the board state after this move for the animation queue
+            const boardState = flatten(this.chess.board());
+            // Parse the move to get from and to coordinates
+            const moveObj = this.chess.history({ verbose: true }).pop();
+            if (moveObj) {
+              const capturedPieceInfo = moveObj.captured ? {
+                square: moveObj.to,
+                piece: { type: moveObj.captured, color: moveObj.color === 'w' ? 'b' : 'w', square: moveObj.to } as Piece
+              } : undefined;
+              this.queueAnimation(moveObj.from, moveObj.to, capturedPieceInfo, { type: moveObj.piece, color: moveObj.color, square: moveObj.to }, boardState);
+            }
           } catch (e) {
             console.log(e);
           }
@@ -191,7 +207,10 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
         console.error(e);
       }
     }
-    this.pieces = flatten(this.chess.board());
+    // Only update pieces if there are no animations queued
+    if (this.animationQueue.length === 0) {
+      this.pieces = flatten(this.chess.board());
+    }
     this.turn = this.chess.turn();
     this.moves = this.chess.moves({ verbose: true }).map(m => m.to);
 
@@ -363,8 +382,8 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
     }
   }
 
-  queueAnimation(from: Square, to: Square, capture?: { square: Square; piece: Piece }, piece?: Piece) {
-    this.animationQueue.push({ from, to, capture, piece });
+  queueAnimation(from: Square, to: Square, capture?: { square: Square; piece: Piece }, piece?: Piece, boardState?: (Piece | null)[]) {
+    this.animationQueue.push({ from, to, capture, piece, boardState });
     if (!this.animating) {
       this.processAnimationQueue();
     }
@@ -380,6 +399,11 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
 
     this.animating = true;
     const animation = this.animationQueue.shift()!;
+    
+    // Update board state if provided (for historical move playback)
+    if (animation.boardState) {
+      this.pieces = animation.boardState;
+    }
     
     // Set last move highlight - only highlight destination square
     this.lastMoveTo = animation.to;
