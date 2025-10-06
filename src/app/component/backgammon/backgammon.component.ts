@@ -43,7 +43,9 @@ type AnimationState = {
   toStackIndex?: number;
 };
 
-const MAX_PLAYERS = 2;
+function renderMove(p: Piece, from: number, to: number, hit?: boolean) {
+  return p + ' ' + (from < 0 ? 'bar' : from + 1) + '/' + (to < 0 ? 'off' : to + 1) + (hit ? '*' : '');
+}
 
 @Component({
   standalone: false,
@@ -77,12 +79,9 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   moves: number[][] = [];
   redOff: Piece[] = [];
   blackOff: Piece[] = [];
-  lastMovedSpots: number[] = []; // Track spots with pieces that were moved last
-  lastMovedOff: Piece | undefined; // Track if last move was to off
+  lastMovedSpots: Record<number, number> = {};
+  lastMovedOff: Record<Piece, number> = { 'r': 0, 'b': 0 };
 
-  bounce = 0;
-  redBarBounce = 0;
-  blackBarBounce = 0;
   start?: number;
   winner?: Piece;
   rolling?: Piece;
@@ -94,25 +93,12 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   loaded = false;
   @HostBinding('class.resizing')
   resizing = 0;
-  translate: number[] = [];
+  translate?: number;
   animating = false;
   animationQueue: AnimationState[] = [];
-  movingPiece?: { piece: Piece; from: number; to: number };
 
   private resizeObserver = window.ResizeObserver && new ResizeObserver(() => this.onResize()) || undefined;
   private watch?: Subscription;
-  /**
-   * Queued animation.
-   */
-  private incoming = -1;
-  /**
-   * Queued red bar animation.
-   */
-  private incomingRedBar = -1;
-  /**
-   * Queued black bar animation.
-   */
-  private incomingBlackBar = -1;
   /**
    * Queued animation.
    */
@@ -154,11 +140,11 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
       ).subscribe(update => {
         if (update.includes('-')) {
           // New roll - clear previous turn's glow
-          this.lastMovedSpots = [];
-          delete this.lastMovedOff;
-          
+          this.lastMovedSpots = {};
+          this.lastMovedOff = { 'r': 0, 'b': 0 };
           const lastRoll = this.incomingRolling = update.split(' ')[0] as Piece;
           requestAnimationFrame(() => {
+            // TODO: combine animations
             if (lastRoll != this.incomingRolling) return;
             this.rolling = this.incomingRolling;
             delay(() => this.rolling = undefined, 3400);
@@ -173,11 +159,11 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
           const hit = update.includes('*');
           const from = bar ? -1 : parseInt(parts[1]) - 1;
           const to = off ? -2 : parseInt(parts[2]) - 1;
-          
+
           // Capture state before move including stack positions
           const spotsStateBefore = this.spots.map(s => ({ ...s, pieces: [...s.pieces] }));
           const barStateBefore = [...this.bar];
-          
+
           // Track the source stack position of the moving piece
           let fromStackIndex = -1;
           if (from >= 0 && from < 24) {
@@ -187,7 +173,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
             const sourceBar = p === 'r' ? this.redBar : this.blackBar;
             fromStackIndex = sourceBar.length - 1;
           }
-          
+
           // If there's a hit, capture which piece is being bumped and its stack position
           let bumpedPiece: Piece | undefined;
           let bumpedFromStackIndex = -1;
@@ -198,26 +184,24 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
               bumpedFromStackIndex = 0; // It's the only piece at this position
             }
           }
-          
+
           // Execute the move
           this.load([update]);
-          
+
           // Track last moved positions for glow effect
           // Add to the list of moved spots (don't clear, accumulate for the turn)
           if (to >= 0 && to < 24) {
-            if (!this.lastMovedSpots.includes(to)) {
-              this.lastMovedSpots.push(to);
-            }
+            this.lastMovedSpots[to] = (this.lastMovedSpots[to] || 0) + 1;
           } else if (to < 0) {
             // Piece was moved off
-            this.lastMovedOff = p;
+            this.lastMovedOff[this.turn!]++;
           }
-          
+
           // Queue animation for bumped piece first (so it happens before the moving piece)
           if (bumpedPiece !== undefined && to >= 0) {
             // Use PRE-move state for animation so piece starts at source
             const bumpedToStackIndex = (bumpedPiece === 'r' ? this.redBar.length : this.blackBar.length) - 1;
-            
+
             this.queueAnimation({
               from: to,
               to: -1, // To bar
@@ -230,12 +214,12 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
               toStackIndex: bumpedToStackIndex
             });
           }
-          
+
           // Queue animation for main move only if not moving to off
           if (to !== -2) {
             const turnState = this.turn;
             const movesState = this.getAllMoves();
-            
+
             // Track the destination stack position (from current state)
             let toStackIndex = -1;
             if (to >= 0 && to < 24) {
@@ -245,7 +229,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
               const destBar = p === 'r' ? this.bar.filter((b: Piece) => b === 'r') : this.bar.filter((b: Piece) => b === 'b');
               toStackIndex = destBar.length - 1;
             }
-            
+
             this.queueAnimation({
               from,
               to,
@@ -258,22 +242,6 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
               toStackIndex
             });
           }
-          
-          const lastMove = this.incoming = to;
-          this.incomingRedBar = update.includes('*') && update.startsWith('b') ? 1 : 0;
-          this.incomingBlackBar = update.includes('*') && update.startsWith('r') ? 1 : 0;
-          requestAnimationFrame(() => {
-            if (lastMove != this.incoming) return;
-            this.setBounce(this.incoming);
-            this.redBarBounce ||= this.incomingRedBar;
-            this.blackBarBounce ||= this.incomingBlackBar;
-            clearTimeout(this.bounce);
-            this.bounce = delay(() => {
-              this.clearBounce();
-              this.bounce = 0;
-              this.incomingRedBar = this.incomingBlackBar = 0;
-            }, 3400);
-          });
         } else {
           this.load([update]);
         }
@@ -396,8 +364,8 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
     this.blackDice = [];
     this.redOff = [];
     this.blackOff = [];
-    this.lastMovedSpots = [];
-    delete this.lastMovedOff;
+    this.lastMovedSpots = {};
+    this.lastMovedOff = { 'r': 0, 'b': 0 };
     this.spots = range(24).map(index => (<Spot>{ index, col: index < 12 ? index + 1 : 24 - index, red: !(index % 2), top: index < 12, pieces: [] as string[] }));
     this.spots[ 0].pieces = [...'rr'] as Piece[];
     this.spots[ 5].pieces = [...'bbbbb'] as Piece[];
@@ -466,8 +434,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   move(p: Piece, from: number, to: number) {
     if (from === to) return;
     if (!this.moves[from]?.includes(to)) {
-      alert($localize`Illegal Move`);
-      return;
+      throw $localize`Illegal move ${renderMove(p, from, to)}`;
     }
     const dice = this.getDiceUsed(p, from, to, this.dice);
     this.diceUsed.push(...dice);
@@ -481,7 +448,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
       const hop = this.spots[path].pieces;
       if (hop.length === 1 && hop[0] !== p) {
         if (hit) {
-          this.pushMove(p, from, path, hit);
+          this.board.push(renderMove(p, from, path, hit));
           from = path;
         }
         hit = true;
@@ -500,36 +467,17 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
           this.blackOff.push(p);
         }
         // Track off piece for glow
-        this.lastMovedOff = p;
+        this.lastMovedOff[this.turn!]++;
       } else {
-        // Track moved spot for glow
-        if (!this.lastMovedSpots.includes(to)) {
-          this.lastMovedSpots.push(to);
-        }
+        this.lastMovedSpots[to] = (this.lastMovedSpots[to] || 0) + 1;
       }
-      this.pushMove(p, from, to, hit);
+      this.board.push(renderMove(p, from, to, hit));
     } else if (current.length === 1) {
       this.bar.push(current[0]);
       current[0] = p;
-      // Track moved spot for glow
-      if (!this.lastMovedSpots.includes(to)) {
-        this.lastMovedSpots.push(to);
-      }
-      this.pushMove(p, from, to, hit);
+      this.lastMovedSpots[to] = (this.lastMovedSpots[to] || 0) + 1;
+      this.board.push(renderMove(p, from, to, hit));
     }
-  }
-
-  pushMove(p: Piece, from: number, to: number, hit?: boolean) {
-    // TODO: compress history
-    // const last = this.board[this.board.length-1] || undefined;
-    const move = p + ' ' + (from < 0 ? 'bar' : from + 1) + '/' + (to < 0 ? 'off' : to + 1) + (hit ? '*' : '');
-    // const base = last?.replace(/\(\d+\)/g, '');
-    // if (last && !hit && !last.includes('*') && base === move.replace(/\(\d+\)/g, '')) {
-    //   const multiple = parseInt(last.match(/\((\d+)\)/)?.[1] || '1') + 1;
-    //   this.board[this.board.length-1] = base + (hit ? '*' : '') + '(' + multiple + ')';
-    // } else {
-      this.board.push(move);
-    // }
   }
 
   save(p: Piece, from: number, to: number, hit?: boolean) {
@@ -600,7 +548,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
         u.push(i);
         if (v >= d) return u;
       }
-      throw $localize`Illegal move`;
+      throw $localize`Illegal move ${renderMove(p, from, to)}`;
     }
     if (this.doubles) {
       const result: number[] = [];
@@ -790,11 +738,11 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
     const ds = p === 'r' ? this.redDice : this.blackDice;
     if (this.winner) throw $localize`Game Over`;
     if ((!this.first || this.turn !== p) && this.moves.length) throw $localize`Must move`;
-    
+
     // Clear glow when rolling (new turn)
-    this.lastMovedSpots = [];
-    delete this.lastMovedOff;
-    
+    this.lastMovedSpots = {};
+    this.lastMovedOff = { 'r': 0, 'b': 0 };
+
     let move = '';
     if (!this.turn) {
       if (ds[0]) return;
@@ -837,7 +785,6 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   processAnimationQueue() {
     if (this.animationQueue.length === 0) {
       this.animating = false;
-      delete this.movingPiece;
       return;
     }
 
@@ -847,7 +794,6 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
     this.bar = animation.barState;
     this.turn = animation.turnState;
     this.moves = animation.movesState;
-    this.movingPiece = { piece: animation.piece, from: animation.from, to: animation.to };
 
     // Calculate coordinates for CSS animation
     const fromSpot = animation.from === -1 ? null : this.spots.find(s => s.index === animation.from);
@@ -882,50 +828,6 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
       toRow = toSpot.top ? 1 : 2;
     }
 
-    // Calculate deltas - the piece at destination needs to animate FROM source position to destination
-    // The piece is rendered at the destination, so we calculate offsets relative to there
-    
-    // Grid cell deltas (in grid units: columns and rows)
-    const gridXDelta = this.red ? -(toCol - fromCol) : -(fromCol - toCol);
-    const gridYDelta = this.red ? -(toRow - fromRow) : -(fromRow - toRow);
-    
-    // Calculate base position offsets for source and destination (in units of var(--dim))
-    // These are the transforms that non-animating pieces have based on their location
-    let fromBaseX = -1; // All pieces have horizontal centering
-    let fromBaseY = 0;
-    let toBaseX = -1;
-    let toBaseY = 0;
-    
-    // Source base offset
-    if (animation.from >= 0 && animation.from < 24) {
-      if (fromSpot && fromSpot.top) {
-        fromBaseY = -10;
-      } else {
-        fromBaseY = 10;
-      }
-    }
-    
-    // Destination base offset
-    if (animation.to >= 0 && animation.to < 24) {
-      if (toSpot && toSpot.top) {
-        toBaseY = -10;
-      } else {
-        toBaseY = 10;
-      }
-    }
-    
-    // Grid movement (will be multiplied by cell size in CSS)
-    const xFromGrid = gridXDelta;
-    const yFromGrid = gridYDelta;
-    const xToGrid = 0;
-    const yToGrid = 0;
-    
-    // Base offset movement (will be multiplied by var(--dim) in CSS)
-    const xFromBase = fromBaseX - toBaseX;
-    const yFromBase = fromBaseY - toBaseY;
-    const xToBase = toBaseX;
-    const yToBase = toBaseY;
-    
     // Calculate stack offset adjustments
     // Pieces stack vertically, with stacked pieces having additional y offsets
     // For top spots, pieces stack downward; for bottom spots, upward
@@ -933,15 +835,15 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
     let fromStackOffsetY = 0;
     let toStackOffsetX = 0;
     let toStackOffsetY = 0;
-    
+
     // Calculate source stack offset (in units of var(--dim))
     if (animation.fromStackIndex !== undefined && animation.fromStackIndex >= 0) {
       if (animation.fromStackIndex > 4) {
         fromStackOffsetX = 0.1;
-        fromStackOffsetY = 9;
+        fromStackOffsetY = 0.1;
         if (animation.fromStackIndex > 9) {
           fromStackOffsetX = 0.2;
-          fromStackOffsetY = 18;
+          fromStackOffsetY = 0.2;
         }
       }
       // Adjust sign based on whether it's a top or bottom spot
@@ -950,15 +852,15 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
         fromStackOffsetX = -fromStackOffsetX;
       }
     }
-    
+
     // Calculate destination stack offset (in units of var(--dim))
     if (animation.toStackIndex !== undefined && animation.toStackIndex >= 0) {
       if (animation.toStackIndex > 4) {
         toStackOffsetX = 0.1;
-        toStackOffsetY = 9;
+        toStackOffsetY = 0.1;
         if (animation.toStackIndex > 9) {
           toStackOffsetX = 0.2;
-          toStackOffsetY = 18;
+          toStackOffsetY = 0.2;
         }
       }
       // Adjust sign based on whether it's a top or bottom spot
@@ -968,39 +870,24 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
       }
     }
 
-    // Get current --dim value in pixels
-    const dimValue = parseFloat(getComputedStyle(this.el.nativeElement).getPropertyValue('--dim'));
-    
-    // Pre-compute animation positions in pixels (x1, y1 = from; x2, y2 = midpoint; x3, y3 = to)
-    const x1 = xFromGrid * 2 * dimValue + xFromBase * dimValue + fromStackOffsetX * dimValue;
-    const y1 = yFromGrid * 13 * dimValue + yFromBase * dimValue + fromStackOffsetY * dimValue;
-    
-    const x2 = (xFromGrid + xToGrid) / 2 * 2 * dimValue + (xFromBase + xToBase) / 2 * dimValue + (fromStackOffsetX + toStackOffsetX) / 2 * dimValue;
-    const y2 = (yFromGrid + yToGrid) / 2 * 13 * dimValue + (yFromBase + yToBase) / 2 * dimValue + (fromStackOffsetY + toStackOffsetY) / 2 * dimValue;
-    
-    const x3 = xToGrid * 2 * dimValue + xToBase * dimValue + toStackOffsetX * dimValue;
-    const y3 = yToGrid * 13 * dimValue + yToBase * dimValue + toStackOffsetY * dimValue;
-    
+    const x1 = (toCol - fromCol) + toStackOffsetX - fromStackOffsetX;
+    const y1 = (toRow - fromRow) * 20 + toStackOffsetY - fromStackOffsetY;
+    const x2 = -1;
+    const y2 = toRow === 2 ? 10 : -10;
+
     // Set pre-computed CSS variables on the host element
     this.el.nativeElement.style.setProperty('--x1', x1 + 'px');
     this.el.nativeElement.style.setProperty('--y1', y1 + 'px');
     this.el.nativeElement.style.setProperty('--x2', x2 + 'px');
     this.el.nativeElement.style.setProperty('--y2', y2 + 'px');
-    this.el.nativeElement.style.setProperty('--x3', x3 + 'px');
-    this.el.nativeElement.style.setProperty('--y3', y3 + 'px');
 
     // Animate the piece moving to its destination with translation
-    // Use requestAnimationFrame to ensure DOM is updated before adding animation class
-    const movingSpot = animation.to;
-    requestAnimationFrame(() => {
-      this.translate.push(movingSpot);
-    });
+    requestAnimationFrame(() => this.translate = animation.to);
 
     // Remove animation after completion
     const totalDuration = 1600;
     delay(() => {
-      this.translate = this.translate.filter(t => t !== movingSpot);
-      delete this.movingPiece;
+      delete this.translate;
       // Process next animation after current one completes
       this.processAnimationQueue();
     }, totalDuration);

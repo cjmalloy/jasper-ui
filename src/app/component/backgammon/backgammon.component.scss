@@ -182,15 +182,15 @@
 
   @keyframes translate {
     from {
-      transform: translate(var(--x1), var(--y1)) scale(100%);
+      transform: translate(calc(var(--x1) * var(--dim)), calc(var(--y1) * var(--dim))) scale(100%) !important;
     }
 
     50% {
-      transform: translate(var(--x2), var(--y2)) scale(150%);
+      transform: translate(calc((var(--x1) + var(--x2)) / 2 * var(--dim)), calc(13 * var(--dim))) scale(150%) !important;
     }
 
     to {
-      transform: translate(var(--x3), var(--y3)) scale(100%);
+      transform: translate(calc(var(--x2) * var(--dim)), calc(var(--y2) * var(--dim))) scale(100%) !important;
     }
   }
 
@@ -210,12 +210,10 @@
       box-shadow: inset 3px 3px var(--dim) var(--move),
                   inset -3px -3px var(--dim) var(--move);
     }
-    
+
     .backgammon-piece {
-      &:not(.translate) {
-        transform: translate(calc(-1 * var(--dim)), 0);
-      }
-      &.stacked:not(.translate) {
+      transform: translate(calc(-1 * var(--dim)), 0);
+      &.stacked {
         transform: translate(calc(-1 * var(--dim)), 0) translate3d(0, calc(-0.3 * var(--dim)), 1px);
         &.double-stacked {
           transform: translate(calc(-1 * var(--dim)), 0) translate3d(0, calc(-0.6 * var(--dim)), 2px);
@@ -240,7 +238,7 @@
           margin: 0;
         }
       }
-      
+
       &.glow {
         filter: drop-shadow(0 0 8px gold);
       }
@@ -284,10 +282,8 @@
       &:hover {
         filter: drop-shadow(0 0 3px var(--glow));
       }
-      &:not(.translate) {
-        transform: translate(calc(-1 * var(--dim)), calc(10 * var(--dim)));
-      }
-      &.stacked:not(.translate) {
+      transform: translate(calc(-1 * var(--dim)), calc(10 * var(--dim)));
+      &.stacked {
         transform: translate(calc(-1 * var(--dim)), calc(10 * var(--dim))) translate3d(calc(0.1 * var(--dim)), calc(9 * var(--dim)), 1px);
         &.double-stacked {
           transform: translate(calc(-1 * var(--dim)), calc(10 * var(--dim))) translate3d(calc(0.2 * var(--dim)), calc(18 * var(--dim)), 2px);
@@ -307,10 +303,8 @@
       }
 
       .backgammon-piece {
-        &:not(.translate) {
-          transform: translate(calc(-1 * var(--dim)), calc(-10 * var(--dim)));
-        }
-        &.stacked:not(.translate) {
+        transform: translate(calc(-1 * var(--dim)), calc(-10 * var(--dim)));
+        &.stacked {
           transform: translate(calc(-1 * var(--dim)), calc(-10 * var(--dim))) translate3d(calc(-0.1 * var(--dim)), calc(-9 * var(--dim)), 0);
           &.double-stacked {
             transform: translate(calc(-1 * var(--dim)), calc(-10 * var(--dim))) translate3d(calc(-0.2 * var(--dim)), calc(-18 * var(--dim)), 0);
