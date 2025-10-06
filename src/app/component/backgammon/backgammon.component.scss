@@ -225,9 +225,9 @@
         transform: translate(calc(-1 * var(--dim)), 0);
       }
       &.stacked:not(.translate) {
-        transform: translate(calc(-1 * var(--dim)), 0) translate3d(calc(0.1 * var(--dim)), calc(-1 * var(--dim)), 1px);
+        transform: translate(calc(-1 * var(--dim)), 0) translate3d(0, calc(-0.3 * var(--dim)), 1px);
         &.double-stacked {
-          transform: translate(calc(-1 * var(--dim)), 0) translate3d(calc(0.2 * var(--dim)), calc(-2 * var(--dim)), 2px);
+          transform: translate(calc(-1 * var(--dim)), 0) translate3d(0, calc(-0.6 * var(--dim)), 2px);
         }
       }
     }
@@ -251,35 +251,7 @@
       }
       
       &.glow {
-        animation-duration: 40s;
-        animation-name: glow;
-        animation-iteration-count: infinite;
-        animation-timing-function: linear;
-      }
-      @keyframes glow {
-        from {
-          filter: drop-shadow(0 0 0 var(--play));
-        }
-
-        5% {
-          filter: drop-shadow(6px 4px 30px var(--play));
-        }
-
-        25% {
-          filter: drop-shadow(-8px 4px 20px var(--play));
-        }
-
-        50% {
-          filter: drop-shadow(-8px -8px 15px var(--play));
-        }
-
-        75% {
-          filter: drop-shadow(6px -8px 10px var(--play));
-        }
-
-        to {
-          filter: drop-shadow(6px 4px 30px var(--play));
-        }
+        filter: drop-shadow(0 0 8px gold);
       }
     }
   }

@@ -957,8 +957,11 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
     this.el.nativeElement.style.setProperty('--yToStack', toStackOffsetY.toString());
 
     // Animate the piece moving to its destination with translation
+    // Use requestAnimationFrame to ensure DOM is updated before adding animation class
     const movingSpot = animation.to;
-    this.translate.push(movingSpot);
+    requestAnimationFrame(() => {
+      this.translate.push(movingSpot);
+    });
 
     // Remove animation after completion
     const totalDuration = 1600;
