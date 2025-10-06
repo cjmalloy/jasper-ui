@@ -37,6 +37,10 @@
       box-shadow: inset 3px 3px 16px rgba(0, 128, 0, 0.9),
                   inset -3px -3px 16px rgba(0, 128, 0, 0.9);
     }
+    &.last-move {
+      box-shadow: inset 3px 3px 16px rgba(255, 140, 0, 0.9),
+                  inset -3px -3px 16px rgba(255, 140, 0, 0.9);
+    }
     &.light {
       background-color: rgba(255, 255, 255, 0.1);
     }
@@ -52,24 +56,56 @@
     line-height: var(--dim);
     font-size: var(--piece-size);
 
-    &.bounce {
-      animation-duration: 3s;
-      animation-name: bounce;
+    &.translate {
+      position: relative;
+      z-index: 10;
+      animation-duration: 1.5s;
+      animation-name: translate;
       animation-iteration-count: 1;
+      animation-timing-function: linear;
+    }
+
+    &.captured {
+      position: relative;
+      margin-top: -100%;
+      animation-duration: 0.8s;
+      animation-name: capture;
+      animation-iteration-count: 1;
+      animation-timing-function: ease-out;
+      animation-delay: 1.0s;
+      animation-fill-mode: backwards;
+      pointer-events: none;
     }
   }
 }
 
-@keyframes bounce {
+@keyframes translate {
   from {
-    transform: scale(100%);
+    transform: translate(calc(var(--xFrom) * var(--dim)), calc(var(--yFrom) * var(--dim))) scale(100%);
   }
 
   50% {
-    transform: scale(200%);
+    transform: translate(calc((var(--xFrom) + var(--xTo)) / 2 * var(--dim)), calc((var(--yFrom) + var(--yTo)) / 2 * var(--dim))) scale(200%);
   }
 
   to {
-    transform: scale(100%);
+    transform: translate(calc(var(--xTo) * var(--dim)), calc(var(--yTo) * var(--dim))) scale(100%);
+  }
+}
+
+@keyframes capture {
+  0% {
+    transform: scale(100%) translate(0, 0);
+    opacity: 1;
+  }
+
+  50% {
+    transform: scale(150%) translate(30px, -30px);
+    opacity: 0.7;
+  }
+
+  100% {
+    transform: scale(50%) translate(60px, -60px);
+    opacity: 0;
   }
 }
