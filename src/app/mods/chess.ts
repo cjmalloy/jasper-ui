@@ -44,9 +44,9 @@ export const chessPlugin: Plugin = {
             filter: drop-shadow(0 0 1px white) drop-shadow(1px 1px 2px black) !important;
           }
           &.last-move-piece {
-            filter: drop-shadow(0 0 8px rgba(255, 140, 0, 0.4)) !important;
+            filter: drop-shadow(0px -4px 10px rgba(255, 140, 0, 1)) !important;
             &.b {
-              filter: drop-shadow(0 0 1px white) drop-shadow(1px 1px 2px black) drop-shadow(0 0 8px rgba(255, 140, 0, 0.4)) !important;
+              filter: drop-shadow(0 0 1px white) drop-shadow(1px 1px 2px black) drop-shadow(0px -4px 10px rgba(255, 140, 0, 1)) !important;
             }
           }
         }
