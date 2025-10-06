@@ -159,6 +159,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
           const p = parts[0] as Piece;
           const bar = update.includes('bar');
           const off = update.includes('off');
+          const hit = update.includes('*');
           const from = bar ? -1 : parseInt(parts[1]) - 1;
           const to = off ? -2 : parseInt(parts[2]) - 1;
           
@@ -166,10 +167,35 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
           const spotsStateBefore = this.spots.map(s => ({ ...s, pieces: [...s.pieces] }));
           const barStateBefore = [...this.bar];
           
+          // If there's a hit, capture which piece is being bumped
+          let bumpedPiece: Piece | undefined;
+          if (hit && to >= 0 && to < 24) {
+            const targetSpot = this.spots[to];
+            if (targetSpot.pieces.length === 1 && targetSpot.pieces[0] !== p) {
+              bumpedPiece = targetSpot.pieces[0];
+            }
+          }
+          
           // Execute the move
           this.load([update]);
           
-          // Queue animation only if not moving to off
+          // Queue animation for bumped piece first (so it happens before the moving piece)
+          if (bumpedPiece !== undefined && to >= 0) {
+            const spotsStateAfterBump = this.spots.map(s => ({ ...s, pieces: [...s.pieces] }));
+            const barStateAfterBump = [...this.bar];
+            
+            this.queueAnimation({
+              from: to,
+              to: -1, // To bar
+              piece: bumpedPiece,
+              spotsState: spotsStateAfterBump,
+              barState: barStateAfterBump,
+              turnState: this.turn,
+              movesState: this.getAllMoves()
+            });
+          }
+          
+          // Queue animation for main move only if not moving to off
           if (to !== -2) {
             const spotsStateAfter = this.spots.map(s => ({ ...s, pieces: [...s.pieces] }));
             const barStateAfter = [...this.bar];
@@ -748,7 +774,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
 
     // Calculate coordinates for CSS animation
     const fromSpot = animation.from === -1 ? null : this.spots.find(s => s.index === animation.from);
-    const toSpot = animation.to === -2 ? null : this.spots.find(s => s.index === animation.to);
+    const toSpot = animation.to === -2 || animation.to === -1 ? null : this.spots.find(s => s.index === animation.to);
 
     // Calculate grid positions
     // From position
@@ -766,7 +792,11 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
     // To position
     let toCol = 0;
     let toRow = 0;
-    if (animation.to === -2) {
+    if (animation.to === -1) {
+      // To bar (piece being bumped)
+      toCol = 8;
+      toRow = animation.piece === 'r' ? 2 : 1; // Red bar at bottom, black bar at top
+    } else if (animation.to === -2) {
       // To off (both at column 1)
       toCol = 1;
       toRow = animation.piece === 'r' ? 2 : 1; // Red off at bottom row, black off at top row
