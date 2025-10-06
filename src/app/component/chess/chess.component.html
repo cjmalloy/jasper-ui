@@ -10,7 +10,6 @@
     @if (white ? p : pieces[63-i]; as rp) {
       <div class="chess-piece {{ rp?.color }}"
            [class.translate]="translate.includes(rp.square)"
-           [class.last-move-piece]="getCoord(white ? i : 63 - i) === lastMoveTo"
            [class.disabled]="!writeAccess || turn !== rp.color"
            cdkDrag
            cdkDragBoundary=".chess-board"
