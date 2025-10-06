@@ -968,19 +968,26 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
       }
     }
 
-    // Set CSS variables on the host element
-    this.el.nativeElement.style.setProperty('--xFromGrid', xFromGrid.toString());
-    this.el.nativeElement.style.setProperty('--yFromGrid', yFromGrid.toString());
-    this.el.nativeElement.style.setProperty('--xToGrid', xToGrid.toString());
-    this.el.nativeElement.style.setProperty('--yToGrid', yToGrid.toString());
-    this.el.nativeElement.style.setProperty('--xFromBase', xFromBase.toString());
-    this.el.nativeElement.style.setProperty('--yFromBase', yFromBase.toString());
-    this.el.nativeElement.style.setProperty('--xToBase', xToBase.toString());
-    this.el.nativeElement.style.setProperty('--yToBase', yToBase.toString());
-    this.el.nativeElement.style.setProperty('--xFromStack', fromStackOffsetX.toString());
-    this.el.nativeElement.style.setProperty('--yFromStack', fromStackOffsetY.toString());
-    this.el.nativeElement.style.setProperty('--xToStack', toStackOffsetX.toString());
-    this.el.nativeElement.style.setProperty('--yToStack', toStackOffsetY.toString());
+    // Get current --dim value in pixels
+    const dimValue = parseFloat(getComputedStyle(this.el.nativeElement).getPropertyValue('--dim'));
+    
+    // Pre-compute animation positions in pixels (x1, y1 = from; x2, y2 = midpoint; x3, y3 = to)
+    const x1 = xFromGrid * 2 * dimValue + xFromBase * dimValue + fromStackOffsetX * dimValue;
+    const y1 = yFromGrid * 13 * dimValue + yFromBase * dimValue + fromStackOffsetY * dimValue;
+    
+    const x2 = (xFromGrid + xToGrid) / 2 * 2 * dimValue + (xFromBase + xToBase) / 2 * dimValue + (fromStackOffsetX + toStackOffsetX) / 2 * dimValue;
+    const y2 = (yFromGrid + yToGrid) / 2 * 13 * dimValue + (yFromBase + yToBase) / 2 * dimValue + (fromStackOffsetY + toStackOffsetY) / 2 * dimValue;
+    
+    const x3 = xToGrid * 2 * dimValue + xToBase * dimValue + toStackOffsetX * dimValue;
+    const y3 = yToGrid * 13 * dimValue + yToBase * dimValue + toStackOffsetY * dimValue;
+    
+    // Set pre-computed CSS variables on the host element
+    this.el.nativeElement.style.setProperty('--x1', x1 + 'px');
+    this.el.nativeElement.style.setProperty('--y1', y1 + 'px');
+    this.el.nativeElement.style.setProperty('--x2', x2 + 'px');
+    this.el.nativeElement.style.setProperty('--y2', y2 + 'px');
+    this.el.nativeElement.style.setProperty('--x3', x3 + 'px');
+    this.el.nativeElement.style.setProperty('--y3', y3 + 'px');
 
     // Animate the piece moving to its destination with translation
     // Use requestAnimationFrame to ensure DOM is updated before adding animation class

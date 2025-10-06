@@ -182,24 +182,15 @@
 
   @keyframes translate {
     from {
-      transform: translate(
-        calc(var(--xFromGrid) * 2 * var(--dim) + var(--xFromBase) * var(--dim) + var(--xFromStack) * var(--dim)), 
-        calc(var(--yFromGrid) * 13 * var(--dim) + var(--yFromBase) * var(--dim) + var(--yFromStack) * var(--dim))
-      ) scale(100%);
+      transform: translate(var(--x1), var(--y1)) scale(100%);
     }
 
     50% {
-      transform: translate(
-        calc((var(--xFromGrid) + var(--xToGrid)) / 2 * 2 * var(--dim) + (var(--xFromBase) + var(--xToBase)) / 2 * var(--dim) + (var(--xFromStack) + var(--xToStack)) / 2 * var(--dim)), 
-        calc((var(--yFromGrid) + var(--yToGrid)) / 2 * 13 * var(--dim) + (var(--yFromBase) + var(--yToBase)) / 2 * var(--dim) + (var(--yFromStack) + var(--yToStack)) / 2 * var(--dim))
-      ) scale(150%);
+      transform: translate(var(--x2), var(--y2)) scale(150%);
     }
 
     to {
-      transform: translate(
-        calc(var(--xToGrid) * 2 * var(--dim) + var(--xToBase) * var(--dim) + var(--xToStack) * var(--dim)), 
-        calc(var(--yToGrid) * 13 * var(--dim) + var(--yToBase) * var(--dim) + var(--yToStack) * var(--dim))
-      ) scale(100%);
+      transform: translate(var(--x3), var(--y3)) scale(100%);
     }
   }
 
