@@ -38,6 +38,8 @@ type AnimationState = {
   barState: Piece[];
   turnState?: Piece;
   movesState: number[][];
+  fromStackIndex?: number;
+  toStackIndex?: number;
 };
 
 const MAX_PLAYERS = 2;
@@ -163,16 +165,28 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
           const from = bar ? -1 : parseInt(parts[1]) - 1;
           const to = off ? -2 : parseInt(parts[2]) - 1;
           
-          // Capture state before move
+          // Capture state before move including stack positions
           const spotsStateBefore = this.spots.map(s => ({ ...s, pieces: [...s.pieces] }));
           const barStateBefore = [...this.bar];
           
-          // If there's a hit, capture which piece is being bumped
+          // Track the source stack position of the moving piece
+          let fromStackIndex = -1;
+          if (from >= 0 && from < 24) {
+            const sourceSpot = this.spots[from];
+            fromStackIndex = sourceSpot.pieces.filter(piece => piece === p).length - 1;
+          } else if (from === -1) {
+            const sourceBar = p === 'r' ? this.redBar : this.blackBar;
+            fromStackIndex = sourceBar.length - 1;
+          }
+          
+          // If there's a hit, capture which piece is being bumped and its stack position
           let bumpedPiece: Piece | undefined;
+          let bumpedFromStackIndex = -1;
           if (hit && to >= 0 && to < 24) {
             const targetSpot = this.spots[to];
             if (targetSpot.pieces.length === 1 && targetSpot.pieces[0] !== p) {
               bumpedPiece = targetSpot.pieces[0];
+              bumpedFromStackIndex = 0; // It's the only piece at this position
             }
           }
           
@@ -183,6 +197,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
           if (bumpedPiece !== undefined && to >= 0) {
             const spotsStateAfterBump = this.spots.map(s => ({ ...s, pieces: [...s.pieces] }));
             const barStateAfterBump = [...this.bar];
+            const bumpedToStackIndex = (bumpedPiece === 'r' ? this.redBar.length : this.blackBar.length) - 1;
             
             this.queueAnimation({
               from: to,
@@ -191,7 +206,9 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
               spotsState: spotsStateAfterBump,
               barState: barStateAfterBump,
               turnState: this.turn,
-              movesState: this.getAllMoves()
+              movesState: this.getAllMoves(),
+              fromStackIndex: bumpedFromStackIndex,
+              toStackIndex: bumpedToStackIndex
             });
           }
           
@@ -202,6 +219,16 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
             const turnState = this.turn;
             const movesState = this.getAllMoves();
             
+            // Track the destination stack position
+            let toStackIndex = -1;
+            if (to >= 0 && to < 24) {
+              const destSpot = spotsStateAfter[to];
+              toStackIndex = destSpot.pieces.filter(piece => piece === p).length - 1;
+            } else if (to === -1) {
+              const destBar = p === 'r' ? barStateAfter.filter(b => b === 'r') : barStateAfter.filter(b => b === 'b');
+              toStackIndex = destBar.length - 1;
+            }
+            
             this.queueAnimation({
               from,
               to,
@@ -209,7 +236,9 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
               spotsState: spotsStateAfter,
               barState: barStateAfter,
               turnState,
-              movesState
+              movesState,
+              fromStackIndex,
+              toStackIndex
             });
           }
           
@@ -811,12 +840,58 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
     const yFrom = this.red ? -(toRow - fromRow) : -(fromRow - toRow);
     const xTo = 0;
     const yTo = 0;
+    
+    // Calculate stack offset adjustments
+    // Pieces stack vertically, with stacked pieces having additional y offsets
+    // For top spots, pieces stack downward; for bottom spots, upward
+    let fromStackOffsetX = 0;
+    let fromStackOffsetY = 0;
+    let toStackOffsetX = 0;
+    let toStackOffsetY = 0;
+    
+    // Calculate source stack offset (in units of var(--dim))
+    if (animation.fromStackIndex !== undefined && animation.fromStackIndex >= 0) {
+      if (animation.fromStackIndex > 4) {
+        fromStackOffsetX = 0.1;
+        fromStackOffsetY = 9;
+        if (animation.fromStackIndex > 9) {
+          fromStackOffsetX = 0.2;
+          fromStackOffsetY = 18;
+        }
+      }
+      // Adjust sign based on whether it's a top or bottom spot
+      if (fromSpot && fromSpot.top) {
+        fromStackOffsetY = -fromStackOffsetY;
+        fromStackOffsetX = -fromStackOffsetX;
+      }
+    }
+    
+    // Calculate destination stack offset (in units of var(--dim))
+    if (animation.toStackIndex !== undefined && animation.toStackIndex >= 0) {
+      if (animation.toStackIndex > 4) {
+        toStackOffsetX = 0.1;
+        toStackOffsetY = 9;
+        if (animation.toStackIndex > 9) {
+          toStackOffsetX = 0.2;
+          toStackOffsetY = 18;
+        }
+      }
+      // Adjust sign based on whether it's a top or bottom spot
+      if (toSpot && toSpot.top) {
+        toStackOffsetY = -toStackOffsetY;
+        toStackOffsetX = -toStackOffsetX;
+      }
+    }
 
     // Set CSS variables on the host element
     this.el.nativeElement.style.setProperty('--xFrom', xFrom.toString());
     this.el.nativeElement.style.setProperty('--yFrom', yFrom.toString());
     this.el.nativeElement.style.setProperty('--xTo', xTo.toString());
     this.el.nativeElement.style.setProperty('--yTo', yTo.toString());
+    this.el.nativeElement.style.setProperty('--xFromStack', fromStackOffsetX.toString());
+    this.el.nativeElement.style.setProperty('--yFromStack', fromStackOffsetY.toString());
+    this.el.nativeElement.style.setProperty('--xToStack', toStackOffsetX.toString());
+    this.el.nativeElement.style.setProperty('--yToStack', toStackOffsetY.toString());
 
     // Animate the piece moving to its destination with translation
     const movingSpot = animation.to;
