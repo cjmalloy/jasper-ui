@@ -253,7 +253,9 @@
               } @else if (store.account.user && dm) {
                 <a routerLink="/submit/dm" [queryParams]="{source: replySources, sourceTitle: ref.title, tag: replyTags, to: replyTo}" i18n>reply</a>
               }
-              <app-inline-tag #action *ngIf="taggingAccess" [action]="tag$" i18n>tag</app-inline-tag>
+              @if (taggingAccess) {
+                <app-inline-tag #action [action]="tag$" i18n>tag</app-inline-tag>
+              }
               <a class="fake-link" (click)="editing = !editing" i18n>edit</a>
             }
             <app-confirm-action #action [action]="remove$" i18n>remove</app-confirm-action>
