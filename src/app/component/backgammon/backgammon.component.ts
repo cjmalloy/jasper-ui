@@ -202,18 +202,12 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
           this.lastMovedSpots = [];
           delete this.lastMovedOff;
           
-          // Set destination as last moved (unless it's off or bar)
+          // Set destination as last moved (unless it's bar)
           if (to >= 0 && to < 24) {
             this.lastMovedSpots = [to];
-          } else if (to === -2) {
-            // Track piece moved off
+          } else if (to < 0) {
+            // Piece was moved off
             this.lastMovedOff = p;
-            // Add piece to off collection
-            if (p === 'r') {
-              this.redOff.push(p);
-            } else {
-              this.blackOff.push(p);
-            }
           }
           
           // Queue animation for bumped piece first (so it happens before the moving piece)
@@ -495,6 +489,14 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
     const current = to < 0 ? undefined : this.spots[to].pieces;
     if (!current?.length || current[0] === p) {
       current?.push(p);
+      // If piece is going off, add to off collection
+      if (to < 0) {
+        if (p === 'r') {
+          this.redOff.push(p);
+        } else {
+          this.blackOff.push(p);
+        }
+      }
       this.pushMove(p, from, to, hit);
     } else if (current.length === 1) {
       this.bar.push(current[0]);
