@@ -30,6 +30,15 @@ export type Spot = {
   top: boolean
   pieces: Piece[],
 };
+type AnimationState = {
+  from: number;
+  to: number;
+  piece: Piece;
+  spotsState: Spot[];
+  barState: Piece[];
+  turnState?: Piece;
+  movesState: number[][];
+};
 
 const MAX_PLAYERS = 2;
 
@@ -78,6 +87,10 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   loaded = false;
   @HostBinding('class.resizing')
   resizing = 0;
+  translate: number[] = [];
+  animating = false;
+  animationQueue: AnimationState[] = [];
+  movingPiece?: { piece: Piece; from: number; to: number };
 
   private resizeObserver = window.ResizeObserver && new ResizeObserver(() => this.onResize()) || undefined;
   private watch?: Subscription;
@@ -132,7 +145,6 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
           return of();
         }),
       ).subscribe(update => {
-        this.load([update]);
         if (update.includes('-')) {
           const lastRoll = this.incomingRolling = update.split(' ')[0] as Piece;
           requestAnimationFrame(() => {
@@ -140,9 +152,40 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
             this.rolling = this.incomingRolling;
             delay(() => this.rolling = undefined, 3400);
           });
-        }
-        if (update.includes('/')) {
-          const lastMove = this.incoming = parseInt(update.split(/\D+/g).filter(m => !!m).pop()!);
+          this.load([update]);
+        } else if (update.includes('/')) {
+          // Parse the move
+          const parts = update.split(/[\s/*()]+/g).filter(p => !!p);
+          const p = parts[0] as Piece;
+          const bar = update.includes('bar');
+          const off = update.includes('off');
+          const from = bar ? -1 : parseInt(parts[1]) - 1;
+          const to = off ? -2 : parseInt(parts[2]) - 1;
+          
+          // Capture state before move
+          const spotsStateBefore = this.spots.map(s => ({ ...s, pieces: [...s.pieces] }));
+          const barStateBefore = [...this.bar];
+          
+          // Execute the move
+          this.load([update]);
+          
+          // Queue animation
+          const spotsStateAfter = this.spots.map(s => ({ ...s, pieces: [...s.pieces] }));
+          const barStateAfter = [...this.bar];
+          const turnState = this.turn;
+          const movesState = this.getAllMoves();
+          
+          this.queueAnimation({
+            from,
+            to,
+            piece: p,
+            spotsState: spotsStateAfter,
+            barState: barStateAfter,
+            turnState,
+            movesState
+          });
+          
+          const lastMove = this.incoming = to;
           this.incomingRedBar = update.includes('*') && update.startsWith('b') ? 1 : 0;
           this.incomingBlackBar = update.includes('*') && update.startsWith('r') ? 1 : 0;
           requestAnimationFrame(() => {
@@ -157,6 +200,8 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
               this.incomingRedBar = this.incomingBlackBar = 0;
             }, 3400);
           });
+        } else {
+          this.load([update]);
         }
       });
     }
@@ -675,5 +720,83 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   r() {
     // TODO: Hash cursor
     return Math.floor(Math.random() * 6) + 1;
+  }
+
+  queueAnimation(state: AnimationState) {
+    this.animationQueue.push(state);
+    if (!this.animating) {
+      this.processAnimationQueue();
+    }
+  }
+
+  processAnimationQueue() {
+    if (this.animationQueue.length === 0) {
+      this.animating = false;
+      delete this.movingPiece;
+      return;
+    }
+
+    this.animating = true;
+    const animation = this.animationQueue.shift()!;
+    this.spots = animation.spotsState;
+    this.bar = animation.barState;
+    this.turn = animation.turnState;
+    this.moves = animation.movesState;
+    this.movingPiece = { piece: animation.piece, from: animation.from, to: animation.to };
+
+    // Calculate coordinates for CSS animation
+    const fromSpot = animation.from === -1 ? null : this.spots.find(s => s.index === animation.from);
+    const toSpot = animation.to === -2 ? null : this.spots.find(s => s.index === animation.to);
+
+    // Calculate grid positions
+    // From position
+    let fromCol = 0;
+    let fromRow = 0;
+    if (animation.from === -1) {
+      // From bar
+      fromCol = 8; // Bar is at column 8
+      fromRow = animation.piece === 'r' ? 2 : 1; // Red bar at bottom, black bar at top
+    } else if (fromSpot) {
+      fromCol = fromSpot.col > 6 ? fromSpot.col + 2 : fromSpot.col + 1; // Account for bar gap
+      fromRow = fromSpot.top ? 1 : 2;
+    }
+
+    // To position
+    let toCol = 0;
+    let toRow = 0;
+    if (animation.to === -2) {
+      // To off
+      toCol = animation.piece === 'r' ? 15 : 0; // Red off at right, black off at left
+      toRow = animation.piece === 'r' ? 2 : 1;
+    } else if (toSpot) {
+      toCol = toSpot.col > 6 ? toSpot.col + 2 : toSpot.col + 1; // Account for bar gap
+      toRow = toSpot.top ? 1 : 2;
+    }
+
+    // Calculate deltas - the piece at destination needs to animate FROM source position
+    // So we need the negative offset from destination back to source
+    const xFrom = this.red ? -(toCol - fromCol) : -(fromCol - toCol);
+    const yFrom = this.red ? -(toRow - fromRow) : -(fromRow - toRow);
+    const xTo = 0;
+    const yTo = 0;
+
+    // Set CSS variables on the host element
+    this.el.nativeElement.style.setProperty('--xFrom', xFrom.toString());
+    this.el.nativeElement.style.setProperty('--yFrom', yFrom.toString());
+    this.el.nativeElement.style.setProperty('--xTo', xTo.toString());
+    this.el.nativeElement.style.setProperty('--yTo', yTo.toString());
+
+    // Animate the piece moving to its destination with translation
+    const movingSpot = animation.to;
+    this.translate.push(movingSpot);
+
+    // Remove animation after completion
+    const totalDuration = 1600;
+    delay(() => {
+      this.translate = this.translate.filter(t => t !== movingSpot);
+      delete this.movingPiece;
+      // Process next animation after current one completes
+      this.processAnimationQueue();
+    }, totalDuration);
   }
 }

@@ -16,6 +16,7 @@
            [class.stacked]="pi > 4"
            [class.double-stacked]="pi > 9"
            [class.bounce]="s.bounce && pi >= s.pieces.length - s.bounce"
+           [class.translate]="translate.includes(s.index) && pi === s.pieces.length - 1"
            cdkDrag
            cdkDragBoundary=".backgammon-board"
            (cdkDragStarted)="onDragStarted(s.index)"
