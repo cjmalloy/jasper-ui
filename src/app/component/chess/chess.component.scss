@@ -37,9 +37,6 @@
       box-shadow: inset 3px 3px 16px rgba(0, 128, 0, 0.9),
                   inset -3px -3px 16px rgba(0, 128, 0, 0.9);
     }
-    &.last-move {
-      background-color: rgba(255, 140, 0, 0.5) !important;
-    }
     &.light {
       background-color: rgba(255, 255, 255, 0.1);
     }
@@ -74,6 +71,10 @@
       animation-delay: 1.0s;
       animation-fill-mode: backwards;
       pointer-events: none;
+    }
+
+    &.last-move-piece {
+      filter: drop-shadow(0 0 8px rgba(255, 140, 0, 0.4));
     }
   }
 }

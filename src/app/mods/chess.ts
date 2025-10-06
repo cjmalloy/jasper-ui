@@ -43,6 +43,12 @@ export const chessPlugin: Plugin = {
           &.b {
             filter: drop-shadow(0 0 1px white) drop-shadow(1px 1px 2px black) !important;
           }
+          &.last-move-piece {
+            filter: drop-shadow(0 0 8px rgba(255, 140, 0, 0.4)) !important;
+            &.b {
+              filter: drop-shadow(0 0 1px white) drop-shadow(1px 1px 2px black) drop-shadow(0 0 8px rgba(255, 140, 0, 0.4)) !important;
+            }
+          }
         }
       }
 
@@ -71,6 +77,16 @@ export const chessPlugin: Plugin = {
             opacity: 0.90;
             color: #123 !important;
             filter: drop-shadow(0 0 1px white) drop-shadow(1px 1px 2px black) !important;
+          }
+          
+          &.last-move-piece {
+            filter: drop-shadow(0 0 10px rgba(255, 100, 0, 0.9)) !important;
+            &.w {
+              filter: drop-shadow(0 0 10px rgba(255, 100, 0, 0.9)) !important;
+            }
+            &.b {
+              filter: drop-shadow(0 0 1px white) drop-shadow(1px 1px 2px black) drop-shadow(0 0 10px rgba(255, 100, 0, 0.9)) !important;
+            }
           }
         }
       }
