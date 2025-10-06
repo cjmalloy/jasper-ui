@@ -38,6 +38,7 @@ import { CommentThreadComponent } from './component/comment/comment-thread/comme
 import { CommentComponent } from './component/comment/comment.component';
 import { ThreadSummaryComponent } from './component/comment/thread-summary/thread-summary.component';
 import { DebugComponent } from './component/debug/debug.component';
+import { DiffComponent } from './form/diff/diff.component';
 import { ExtListComponent } from './component/ext/ext-list/ext-list.component';
 import { ExtComponent } from './component/ext/ext.component';
 import { FilterComponent } from './component/filter/filter.component';
@@ -315,6 +316,7 @@ const loadFactory = (config: ConfigService, debug: DebugService, admin: AdminSer
     BackgammonComponent,
     ConfirmActionComponent,
     ActionListComponent,
+    DiffComponent,
     InlineTagComponent,
     InlinePluginComponent,
     InlinePasswordComponent,

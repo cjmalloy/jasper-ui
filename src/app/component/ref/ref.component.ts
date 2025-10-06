@@ -90,6 +90,8 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   refForm?: RefFormComponent;
   @ViewChild(CommentReplyComponent)
   reply?: CommentReplyComponent;
+  @ViewChild('diffEditor')
+  diffEditor?: any;
 
   @Input()
   ref!: Ref;
@@ -139,12 +141,16 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   deleteAccess = false;
   serverError: string[] = [];
   publishChanged = false;
+  diffOriginal?: Ref;
+  diffModified?: Ref;
 
   submitting?: Subscription;
   private refreshTap?: () => void;
   private _editing = false;
   private _viewSource = false;
+  private _diffing = false;
   private overwrittenModified? = '';
+  private diffSubscription?: Subscription;
 
   constructor(
     public config: ConfigService,
@@ -364,6 +370,18 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     this._viewSource = value;
     if (value) {
       this.syncEditor();
+    }
+  }
+
+  get diffing(): boolean {
+    return this._diffing;
+  }
+
+  set diffing(value: boolean) {
+    if (this._diffing === value) return;
+    this._diffing = value;
+    if (value) {
+      this.diff()
     }
   }
 
@@ -1025,10 +1043,9 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
           return this.refs.get(this.ref.url, this.store.account.origin).pipe(
             switchMap(existing => {
               if (equalsRef(existing, copied) || confirm('An old version already exists. Overwrite it?')) {
-                // TODO: Show diff and merge or split
                 return this.refs.update({ ...copied, modifiedString: existing.modifiedString });
               } else {
-                return throwError(() => 'Cancelled')
+                return throwError(() => 'Cancelled');
               }
             })
           );
@@ -1042,6 +1059,67 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
         this.init();
       })
     );
+  }
+
+  diff() {
+    // Fetch obsolete versions and show diff with most recent remote version
+    this.diffSubscription?.unsubscribe();
+    this.diffSubscription = this.refs.page({
+      url: this.ref.url,
+      obsolete: true,
+      size: 100,
+      sort: ['modified,DESC']
+    }).pipe(
+      takeUntil(this.destroy$),
+      map(page => {
+        // Find the most recent remote version (not from local origin)
+        const remoteVersion = page.content.find(r => r.origin !== this.store.account.origin);
+        if (!remoteVersion) {
+          throw new Error('No remote version found');
+        }
+        return remoteVersion;
+      }),
+      switchMap(remoteVersion =>
+        this.refs.get(this.ref.url, this.store.account.origin).pipe(
+          map(localVersion => ({ local: localVersion, remote: remoteVersion }))
+        )
+      ),
+      catchError(err => {
+        console.error('Error fetching versions for diff:', err);
+        alert('Could not load versions for comparison');
+        return throwError(() => err);
+      })
+    ).subscribe(({ local, remote }) => {
+      this.diffOriginal = remote;
+      this.diffModified = local;
+      this.diffing = true;
+    });
+  }
+
+  saveDiff() {
+    const ref = this.diffEditor?.getModifiedContent();
+    if (!ref) return;
+    ref.modifiedString = this.overwrite ? this.overwrittenModified : this.ref.modifiedString;
+    this.submitting = this.store.eventBus.runAndReload(this.refs.update(ref).pipe(
+      tap(cursor => {
+        this.accounts.clearNotificationsIfNone(DateTime.fromISO(cursor));
+        delete this.submitting;
+        this.diffing = false;
+      }),
+      catchError((res: HttpErrorResponse) => {
+        delete this.submitting;
+        if (res.status === 400) {
+          this.invalid = true;
+          console.error('Invalid ref data:', res.message);
+          // TODO: read res.message to find which fields to delete
+        }
+        if (res.status === 409) {
+          this.overwritten = true;
+          this.refs.get(this.ref.url, this.ref.origin).subscribe(x => this.overwrittenModified = x.modifiedString);
+        }
+        return throwError(() => res);
+      }),
+    ), ref);
   }
 
   upload$ = () => {

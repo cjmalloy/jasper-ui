@@ -2244,11 +2244,15 @@ footer {
   }
 }
 
-ngx-monaco-editor {
+ngx-monaco-editor,
+ngx-monaco-diff-editor {
   position: relative;
   border: 1px solid var(--border);
   .editor-container {
     height: 100% !important;
+  }
+  .monaco-diff-editor {
+    background: var(--vscode-editor-background);
   }
 }
 
