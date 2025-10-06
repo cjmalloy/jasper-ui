@@ -27,7 +27,7 @@ import { writePlugins } from '../../form/plugins/plugins.component';
 import { refForm, RefFormComponent } from '../../form/ref/ref.component';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { getPluginScope, Plugin } from '../../model/plugin';
-import { equalsRef, Ref } from '../../model/ref';
+import { equalsRef, isRef, Ref } from '../../model/ref';
 import { Action, active, hydrate, Icon, sortOrder, uniqueConfigs, visible } from '../../model/tag';
 import { deleteNotice } from '../../mods/delete';
 import { addressedTo, getMailbox, mailboxes } from '../../mods/mailbox';
@@ -836,6 +836,11 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   get fullscreen() {
     if (this.plugins) return hasTag('plugin/fullscreen', this.plugins);
     return hasTag('plugin/fullscreen', this.ref);
+  }
+
+  @memo
+  get isView() {
+    return isRef(this.ref, this.store.view.ref);
   }
 
   toggle() {
