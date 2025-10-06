@@ -233,7 +233,7 @@
             } @else {
               <a class="fake-link" (click)="viewSource = !viewSource" i18n>source</a>
             }
-            @if (store.view.versions) {
+            @if (isView && store.view.versions) {
               <a class="fake-link" (click)="diffing = !diffing" i18n>diff</a>
             }
           }
