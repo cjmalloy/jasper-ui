@@ -168,7 +168,7 @@
     position: relative;
     width: calc(2 * var(--dim));
     height: calc(2 * var(--dim));
-    transform: translate(0, 0) translate3d(0, 0, 0) !important;
+    transform: translate(0, 0) translate3d(0, 0, 0);
 
     &.translate {
       position: relative;
@@ -221,11 +221,13 @@
     }
     
     .backgammon-piece {
-      transform: translate(calc(-1 * var(--dim)), 0) !important;
-      &.stacked {
-        transform: translate(calc(-1 * var(--dim)), 0) translate3d(calc(0.1 * var(--dim)), calc(-1 * var(--dim)), 1px) !important;
+      &:not(.translate) {
+        transform: translate(calc(-1 * var(--dim)), 0);
+      }
+      &.stacked:not(.translate) {
+        transform: translate(calc(-1 * var(--dim)), 0) translate3d(calc(0.1 * var(--dim)), calc(-1 * var(--dim)), 1px);
         &.double-stacked {
-          transform: translate(calc(-1 * var(--dim)), 0) translate3d(calc(0.2 * var(--dim)), calc(-2 * var(--dim)), 2px) !important;
+          transform: translate(calc(-1 * var(--dim)), 0) translate3d(calc(0.2 * var(--dim)), calc(-2 * var(--dim)), 2px);
         }
       }
     }
@@ -319,11 +321,13 @@
       &:hover {
         filter: drop-shadow(0 0 3px var(--glow));
       }
-      transform: translate(calc(-1 * var(--dim)), calc(10 * var(--dim))) !important;
-      &.stacked {
-        transform: translate(calc(-1 * var(--dim)), calc(10 * var(--dim))) translate3d(calc(0.1 * var(--dim)), calc(9 * var(--dim)), 1px) !important;
+      &:not(.translate) {
+        transform: translate(calc(-1 * var(--dim)), calc(10 * var(--dim)));
+      }
+      &.stacked:not(.translate) {
+        transform: translate(calc(-1 * var(--dim)), calc(10 * var(--dim))) translate3d(calc(0.1 * var(--dim)), calc(9 * var(--dim)), 1px);
         &.double-stacked {
-          transform: translate(calc(-1 * var(--dim)), calc(10 * var(--dim))) translate3d(calc(0.2 * var(--dim)), calc(18 * var(--dim)), 2px) !important;
+          transform: translate(calc(-1 * var(--dim)), calc(10 * var(--dim))) translate3d(calc(0.2 * var(--dim)), calc(18 * var(--dim)), 2px);
         }
       }
     }
@@ -340,11 +344,13 @@
       }
 
       .backgammon-piece {
-        transform: translate(calc(-1 * var(--dim)), calc(-10 * var(--dim))) !important;
-        &.stacked {
-          transform: translate(calc(-1 * var(--dim)), calc(-10 * var(--dim))) translate3d(calc(-0.1 * var(--dim)), calc(-9 * var(--dim)), 0) !important;
+        &:not(.translate) {
+          transform: translate(calc(-1 * var(--dim)), calc(-10 * var(--dim)));
+        }
+        &.stacked:not(.translate) {
+          transform: translate(calc(-1 * var(--dim)), calc(-10 * var(--dim))) translate3d(calc(-0.1 * var(--dim)), calc(-9 * var(--dim)), 0);
           &.double-stacked {
-            transform: translate(calc(-1 * var(--dim)), calc(-10 * var(--dim))) translate3d(calc(-0.2 * var(--dim)), calc(-18 * var(--dim)), 0) !important;
+            transform: translate(calc(-1 * var(--dim)), calc(-10 * var(--dim))) translate3d(calc(-0.2 * var(--dim)), calc(-18 * var(--dim)), 0);
           }
         }
       }

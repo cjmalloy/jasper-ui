@@ -861,12 +861,46 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
       toRow = toSpot.top ? 1 : 2;
     }
 
-    // Calculate deltas - the piece at destination needs to animate FROM source position
-    // So we need the negative offset from destination back to source
-    const xFrom = this.red ? -(toCol - fromCol) : -(fromCol - toCol);
-    const yFrom = this.red ? -(toRow - fromRow) : -(fromRow - toRow);
-    const xTo = 0;
-    const yTo = 0;
+    // Calculate deltas - the piece at destination needs to animate FROM source position to destination
+    // The piece is rendered at the destination, so we calculate offsets relative to there
+    
+    // Grid cell deltas
+    const gridXDelta = this.red ? -(toCol - fromCol) : -(fromCol - toCol);
+    const gridYDelta = this.red ? -(toRow - fromRow) : -(fromRow - toRow);
+    
+    // Calculate base position offsets for source and destination
+    // These are the transforms that non-animating pieces have based on their location
+    let fromBaseX = -1; // All pieces have horizontal centering
+    let fromBaseY = 0;
+    let toBaseX = -1;
+    let toBaseY = 0;
+    
+    // Source base offset
+    if (animation.from >= 0 && animation.from < 24) {
+      if (fromSpot && fromSpot.top) {
+        fromBaseY = -10;
+      } else {
+        fromBaseY = 10;
+      }
+    }
+    
+    // Destination base offset
+    if (animation.to >= 0 && animation.to < 24) {
+      if (toSpot && toSpot.top) {
+        toBaseY = -10;
+      } else {
+        toBaseY = 10;
+      }
+    }
+    
+    // The animation FROM position includes: grid delta + (source base - dest base)
+    // This gives us the offset from the destination to the source
+    const xFrom = gridXDelta + (fromBaseX - toBaseX);
+    const yFrom = gridYDelta + (fromBaseY - toBaseY);
+    
+    // The animation TO position is just the destination base offset
+    const xTo = toBaseX;
+    const yTo = toBaseY;
     
     // Calculate stack offset adjustments
     // Pieces stack vertically, with stacked pieces having additional y offsets
