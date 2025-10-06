@@ -122,6 +122,8 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
               this.retrySave();
             }
           }
+          // Store the board state after this move
+          const boardState = flatten(this.chess.board());
           // Parse the move to get from and to coordinates
           const moveObj = this.chess.history({ verbose: true }).pop();
           if (moveObj) {
@@ -129,7 +131,7 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
               square: moveObj.to,
               piece: { type: moveObj.captured, color: moveObj.color === 'w' ? 'b' : 'w', square: moveObj.to } as Piece
             } : undefined;
-            this.queueAnimation(moveObj.from, moveObj.to, capturedPieceInfo, { type: moveObj.piece, color: moveObj.color, square: moveObj.to });
+            this.queueAnimation(moveObj.from, moveObj.to, capturedPieceInfo, { type: moveObj.piece, color: moveObj.color, square: moveObj.to }, boardState);
           }
         } catch (e) {
           this.clearErrors();
@@ -172,12 +174,9 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
         const lines = board.trim().split('\n');
         this.chess.load(lines[0]);
         this.fen = this.chess.fen();
+        // Set initial board state BEFORE processing moves
+        this.pieces = flatten(this.chess.board());
         lines.shift();
-        // If there are moves to animate, don't update pieces immediately
-        const hasMovesToAnimate = lines.some(l => l.trim());
-        if (!hasMovesToAnimate) {
-          this.pieces = flatten(this.chess.board());
-        }
         for (const l of lines) {
           if (!l.trim()) continue;
           try {
@@ -199,17 +198,15 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
         }
       } else {
         this.chess.loadPgn('');
+        this.pieces = flatten(this.chess.board());
       }
     } catch (e) {
       try {
         this.chess.loadPgn(board || '');
+        this.pieces = flatten(this.chess.board());
       } catch (e) {
         console.error(e);
       }
-    }
-    // Only update pieces if there are no animations queued
-    if (this.animationQueue.length === 0) {
-      this.pieces = flatten(this.chess.board());
     }
     this.turn = this.chess.turn();
     this.moves = this.chess.moves({ verbose: true }).map(m => m.to);
@@ -292,12 +289,30 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
     const isPromotion = !!this.chess.moves({ verbose: true }).find((move) => move.from === from && move.to === to && move.flags.includes('p'));
     const move = this.chess.move({from, to, promotion: isPromotion ? confirm($localize`Promote to Queen:`) ? 'q' : prompt($localize`Promotion:`) as Exclude<PieceType, 'p' | 'k'> : undefined});
     if (move) {
+      // Store the board state after this move
+      const boardState = flatten(this.chess.board());
       const capturedPieceInfo = move.captured ? {
         square: to,
         piece: { type: move.captured, color: move.color === 'w' ? 'b' : 'w', square: to } as Piece
       } : undefined;
-      this.queueAnimation(from, to, capturedPieceInfo, { type: move.piece, color: move.color, square: to });
-      this.check();
+      this.queueAnimation(from, to, capturedPieceInfo, { type: move.piece, color: move.color, square: to }, boardState);
+      // Update turn and check game over state, but don't update pieces (animation will do that)
+      this.turn = this.chess.turn();
+      if (this.chess.isGameOver()) {
+        defer(() => {
+          if (this.chess.isCheckmate()) {
+            alert($localize`Checkmate!`);
+          } else if (this.chess.isStalemate()) {
+            alert($localize`Stalemate!`);
+          } else if (this.chess.isThreefoldRepetition()) {
+            alert($localize`Draw by threefold repetition!`);
+          } else if (this.chess.isInsufficientMaterial()) {
+            alert($localize`Draw by insufficient material!`);
+          } else {
+            alert($localize`Draw!`);
+          }
+        });
+      }
       this.save(move.san);
     }
   }
