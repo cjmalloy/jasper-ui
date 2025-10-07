@@ -155,42 +155,18 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
           this.lastMovedOff = { 'r': 0, 'b': 0 };
           const lastRoll = update.split(' ')[0] as Piece;
           
-          // Capture state before updating
-          const redDiceBefore = [...this.redDice];
-          const blackDiceBefore = [...this.blackDice];
-          const turnBefore = this.turn;
-          const boardBefore = [...this.board];
-          const diceUsedBefore = [...this.diceUsed];
-          const movesBefore = this.moves.map(m => m ? [...m] : m);
-          
-          // Apply the roll update to get the new state
-          this.load([update]);
-          
-          // Capture state after updating
-          const redDiceAfter = [...this.redDice];
-          const blackDiceAfter = [...this.blackDice];
-          const turnAfter = this.turn;
-          const boardAfter = [...this.board];
-          const diceUsedAfter = [...this.diceUsed];
-          const movesAfter = this.moves.map(m => m ? [...m] : m);
-          
-          // Restore state before animation
-          this.redDice = redDiceBefore;
-          this.blackDice = blackDiceBefore;
-          this.turn = turnBefore;
-          this.board = boardBefore;
-          this.diceUsed = diceUsedBefore;
-          this.moves = movesBefore;
+          // Compute the state after the roll without modifying current state
+          const newState = this.computeRollState(update);
           
           // Queue the rolling animation with post-animation state
           this.queueAnimation({
             rollingPiece: lastRoll,
-            postRedDice: redDiceAfter,
-            postBlackDice: blackDiceAfter,
-            postTurn: turnAfter,
-            postBoard: boardAfter,
-            postDiceUsed: diceUsedAfter,
-            postMoves: movesAfter
+            postRedDice: newState.redDice,
+            postBlackDice: newState.blackDice,
+            postTurn: newState.turn,
+            postBoard: newState.board,
+            postDiceUsed: newState.diceUsed,
+            postMoves: newState.moves
           });
         } else if (update.includes('/')) {
           // Parse the move
@@ -439,6 +415,76 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
     this.spots[18].pieces = [...'rrrrr'] as Piece[];
     this.spots[23].pieces = [...'bb'] as Piece[];
     this.load(board.split('\n').map(m => m.trim()).filter(m => !!m));
+  }
+
+  /**
+   * Compute the state after applying a roll without modifying current state
+   */
+  computeRollState(rollUpdate: string): {
+    redDice: number[];
+    blackDice: number[];
+    turn?: Piece;
+    board: string[];
+    diceUsed: number[];
+    moves: number[][];
+  } {
+    const parts = rollUpdate.split(/[\s/*()]+/g).filter(p => !!p);
+    const p = parts[0] as Piece;
+    
+    const redDice = [...this.redDice];
+    const blackDice = [...this.blackDice];
+    let turn = this.turn;
+    const board = [...this.board];
+    const diceUsed: number[] = [];
+    
+    const ds = p === 'r' ? redDice : blackDice;
+    ds[0] = parseInt(rollUpdate[2]);
+    ds[1] = parseInt(rollUpdate[4]);
+    board.push(`${p} ${ds[0]}-${ds[1]}`);
+    
+    if (!turn && redDice[0] && blackDice[0]) {
+      if (redDice[0] === blackDice[0]) {
+        redDice.length = 0;
+        blackDice.length = 0;
+      } else {
+        turn = redDice[0] > blackDice[0] ? 'r' : 'b';
+      }
+    } else if (turn) {
+      turn = p;
+    }
+    
+    // Compute moves based on new state
+    const moves = this.getAllMovesForState(turn, redDice, blackDice, diceUsed);
+    
+    return { redDice, blackDice, turn, board, diceUsed, moves };
+  }
+
+  /**
+   * Helper to compute moves for a given state without modifying component state
+   */
+  getAllMovesForState(turn: Piece | undefined, redDice: number[], blackDice: number[], diceUsed: number[]): number[][] {
+    if (!turn) return [];
+    
+    // Temporarily set state to compute moves
+    const oldTurn = this.turn;
+    const oldRedDice = this.redDice;
+    const oldBlackDice = this.blackDice;
+    const oldDiceUsed = this.diceUsed;
+    
+    this.turn = turn;
+    this.redDice = redDice;
+    this.blackDice = blackDice;
+    this.diceUsed = diceUsed;
+    
+    const moves = this.getAllMoves();
+    
+    // Restore original state
+    this.turn = oldTurn;
+    this.redDice = oldRedDice;
+    this.blackDice = oldBlackDice;
+    this.diceUsed = oldDiceUsed;
+    
+    return moves;
   }
 
   load(moves?: string[]) {
