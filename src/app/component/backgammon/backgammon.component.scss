@@ -202,7 +202,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    
+
     .backgammon-piece.animated-piece {
       position: relative;
       z-index: 10;
@@ -213,7 +213,23 @@
     }
   }
 
+  .backgammon-off, .backgammon-bar {
+    display: flex;
+    align-self: flex-end;
+    width: calc(2 * var(--dim));
+    height: calc(13 * var(--dim));
+    background: linear-gradient(to right, var(--brown) 10%, var(--brown-alt) 12%, var(--brown) 15%, var(--brown) 85%, var(--brown-alt) 88%, var(--brown) 90%);
+    &.move {
+      box-shadow: inset 3px 3px var(--dim) var(--move),
+      inset -3px -3px var(--dim) var(--move);
+    }
+  }
+
   .backgammon-bar {
+    &.red {
+      flex-direction: column;
+      align-self: flex-start;
+    }
     .backgammon-piece {
       transform: translate(calc(-1 * var(--dim)), 0);
       &.stacked {
@@ -222,22 +238,6 @@
           transform: translate(calc(-1 * var(--dim)), 0) translate3d(0, calc(-0.6 * var(--dim)), 2px);
         }
       }
-    }
-  }
-
-  .backgammon-off, .backgammon-bar {
-    display: flex;
-    align-self: flex-end;
-    width: calc(2 * var(--dim));
-    height: calc(13 * var(--dim));
-    background: linear-gradient(to right, var(--brown) 10%, var(--brown-alt) 12%, var(--brown) 15%, var(--brown) 85%, var(--brown-alt) 88%, var(--brown) 90%);
-    &.red {
-      flex-direction: column;
-      align-self: flex-start;
-    }
-    &.move {
-      box-shadow: inset 3px 3px var(--dim) var(--move),
-                  inset -3px -3px var(--dim) var(--move);
     }
   }
 
