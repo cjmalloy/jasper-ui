@@ -34,6 +34,12 @@ export type Spot = {
 type AnimationState = {
   // For rolling animations
   rollingPiece?: Piece;
+  postRedDice?: number[];
+  postBlackDice?: number[];
+  postTurn?: Piece;
+  postBoard?: string[];
+  postDiceUsed?: number[];
+  postMoves?: number[][];
   // For move animations
   from?: number;
   to?: number;
@@ -148,9 +154,44 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
           this.lastMovedSpots = {};
           this.lastMovedOff = { 'r': 0, 'b': 0 };
           const lastRoll = update.split(' ')[0] as Piece;
-          // Queue the rolling animation
-          this.queueAnimation({ rollingPiece: lastRoll });
+          
+          // Capture state before updating
+          const redDiceBefore = [...this.redDice];
+          const blackDiceBefore = [...this.blackDice];
+          const turnBefore = this.turn;
+          const boardBefore = [...this.board];
+          const diceUsedBefore = [...this.diceUsed];
+          const movesBefore = this.moves.map(m => m ? [...m] : m);
+          
+          // Apply the roll update to get the new state
           this.load([update]);
+          
+          // Capture state after updating
+          const redDiceAfter = [...this.redDice];
+          const blackDiceAfter = [...this.blackDice];
+          const turnAfter = this.turn;
+          const boardAfter = [...this.board];
+          const diceUsedAfter = [...this.diceUsed];
+          const movesAfter = this.moves.map(m => m ? [...m] : m);
+          
+          // Restore state before animation
+          this.redDice = redDiceBefore;
+          this.blackDice = blackDiceBefore;
+          this.turn = turnBefore;
+          this.board = boardBefore;
+          this.diceUsed = diceUsedBefore;
+          this.moves = movesBefore;
+          
+          // Queue the rolling animation with post-animation state
+          this.queueAnimation({
+            rollingPiece: lastRoll,
+            postRedDice: redDiceAfter,
+            postBlackDice: blackDiceAfter,
+            postTurn: turnAfter,
+            postBoard: boardAfter,
+            postDiceUsed: diceUsedAfter,
+            postMoves: movesAfter
+          });
         } else if (update.includes('/')) {
           // Parse the move
           const parts = update.split(/[\s/*()]+/g).filter(p => !!p);
@@ -817,9 +858,16 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
     // Handle rolling animation
     if (animation.rollingPiece) {
       this.rolling = animation.rollingPiece;
-      // After rolling animation completes, continue with next animation
+      // After rolling animation completes, update dice and continue with next animation
       delay(() => {
         this.rolling = undefined;
+        // Apply the post-animation state
+        if (animation.postRedDice) this.redDice = animation.postRedDice;
+        if (animation.postBlackDice) this.blackDice = animation.postBlackDice;
+        if (animation.postTurn !== undefined) this.turn = animation.postTurn;
+        if (animation.postBoard) this.board = animation.postBoard;
+        if (animation.postDiceUsed) this.diceUsed = animation.postDiceUsed;
+        if (animation.postMoves) this.moves = animation.postMoves;
         this.processAnimationQueue();
       }, 3400);
       return;
