@@ -32,20 +32,23 @@ export type Spot = {
   pieces: Piece[],
 };
 type AnimationState = {
-  from: number;
-  to: number;
-  piece: Piece;
-  spotsState: Spot[];
-  barState: Piece[];
+  // For rolling animations
+  rollingPiece?: Piece;
+  // For move animations
+  from?: number;
+  to?: number;
+  piece?: Piece;
+  spotsState?: Spot[];
+  barState?: Piece[];
   turnState?: Piece;
-  movesState: number[][];
+  movesState?: number[][];
   fromStackIndex?: number;
   toStackIndex?: number;
   // Post-move states for updating after animation
-  postSpotsState: Spot[];
-  postBarState: Piece[];
-  postRedOff: Piece[];
-  postBlackOff: Piece[];
+  postSpotsState?: Spot[];
+  postBarState?: Piece[];
+  postRedOff?: Piece[];
+  postBlackOff?: Piece[];
 };
 
 function renderMove(p: Piece, from: number, to: number, hit?: boolean) {
@@ -101,15 +104,10 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   translate?: number;
   animating = false;
   animationQueue: AnimationState[] = [];
-  rollingQueue: Piece[] = [];
   animatedPiece?: { piece: Piece; from: number; to: number; fromStackIndex?: number; toStackIndex?: number };
 
   private resizeObserver = window.ResizeObserver && new ResizeObserver(() => this.onResize()) || undefined;
   private watch?: Subscription;
-  /**
-   * Queued animation.
-   */
-  private incomingRolling?: Piece;
   private append$!: (value: string) => Observable<string>;
 
   constructor(
@@ -150,8 +148,8 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
           this.lastMovedSpots = {};
           this.lastMovedOff = { 'r': 0, 'b': 0 };
           const lastRoll = update.split(' ')[0] as Piece;
-          // Queue the rolling animation instead of showing it immediately
-          this.rollingQueue.push(lastRoll);
+          // Queue the rolling animation
+          this.queueAnimation({ rollingPiece: lastRoll });
           this.load([update]);
         } else if (update.includes('/')) {
           // Parse the move
@@ -806,20 +804,6 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   }
 
   processAnimationQueue() {
-    // Check if there's a rolling animation to show first
-    if (this.rollingQueue.length > 0 && !this.rolling) {
-      this.animating = true;
-      const rollingPiece = this.rollingQueue.shift()!;
-      this.rolling = rollingPiece;
-
-      // After rolling animation completes, continue with move animations
-      delay(() => {
-        this.rolling = undefined;
-        this.processAnimationQueue();
-      }, 3400);
-      return;
-    }
-
     delete this.animatedPiece;
 
     if (this.animationQueue.length === 0) {
@@ -830,15 +814,27 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
     this.animating = true;
     const animation = this.animationQueue.shift()!;
 
+    // Handle rolling animation
+    if (animation.rollingPiece) {
+      this.rolling = animation.rollingPiece;
+      // After rolling animation completes, continue with next animation
+      delay(() => {
+        this.rolling = undefined;
+        this.processAnimationQueue();
+      }, 3400);
+      return;
+    }
+
+    // Handle move animation
     // Keep the PRE-move state during animation so piece is still at source
-    this.spots = animation.spotsState;
-    this.bar = animation.barState;
+    this.spots = animation.spotsState!;
+    this.bar = animation.barState!;
     this.turn = animation.turnState;
-    this.moves = animation.movesState;
+    this.moves = animation.movesState!;
 
     // Calculate coordinates for CSS animation
-    const fromSpot = animation.from === -1 ? null : this.spots.find(s => s.index === animation.from);
-    const toSpot = animation.to === -2 || animation.to === -1 ? null : this.spots.find(s => s.index === animation.to);
+    const fromSpot = animation.from === -1 ? null : this.spots.find(s => s.index === animation.from!);
+    const toSpot = animation.to === -2 || animation.to === -1 ? null : this.spots.find(s => s.index === animation.to!);
 
     // Calculate grid positions
     // From position
@@ -926,18 +922,18 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
 
     requestAnimationFrame(() => {
       this.animatedPiece = {
-        piece: animation.piece,
-        from: animation.from,
-        to: animation.to,
+        piece: animation.piece!,
+        from: animation.from!,
+        to: animation.to!,
         fromStackIndex: animation.fromStackIndex,
         toStackIndex: animation.toStackIndex
       };
       const totalDuration = 1500;
       delay(() => {
-        this.spots = animation.postSpotsState;
-        this.bar = animation.postBarState;
-        this.redOff = animation.postRedOff;
-        this.blackOff = animation.postBlackOff;
+        this.spots = animation.postSpotsState!;
+        this.bar = animation.postBarState!;
+        this.redOff = animation.postRedOff!;
+        this.blackOff = animation.postBlackOff!;
         this.processAnimationQueue();
       }, totalDuration);
     });
