@@ -96,6 +96,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   translate?: number;
   animating = false;
   animationQueue: AnimationState[] = [];
+  rollingQueue: Piece[] = [];
 
   private resizeObserver = window.ResizeObserver && new ResizeObserver(() => this.onResize()) || undefined;
   private watch?: Subscription;
@@ -142,13 +143,9 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
           // New roll - clear previous turn's glow
           this.lastMovedSpots = {};
           this.lastMovedOff = { 'r': 0, 'b': 0 };
-          const lastRoll = this.incomingRolling = update.split(' ')[0] as Piece;
-          requestAnimationFrame(() => {
-            // TODO: combine animations
-            if (lastRoll != this.incomingRolling) return;
-            this.rolling = this.incomingRolling;
-            delay(() => this.rolling = undefined, 3400);
-          });
+          const lastRoll = update.split(' ')[0] as Piece;
+          // Queue the rolling animation instead of showing it immediately
+          this.rollingQueue.push(lastRoll);
           this.load([update]);
         } else if (update.includes('/')) {
           // Parse the move
@@ -244,6 +241,11 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
           }
         } else {
           this.load([update]);
+        }
+        
+        // Start processing animations and rolling queue if not already animating
+        if (!this.animating) {
+          this.processAnimationQueue();
         }
       });
     }
@@ -777,12 +779,24 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
 
   queueAnimation(state: AnimationState) {
     this.animationQueue.push(state);
-    if (!this.animating) {
-      this.processAnimationQueue();
-    }
+    // Don't start processing here - it will be started after all updates are processed
   }
 
   processAnimationQueue() {
+    // Check if there's a rolling animation to show first
+    if (this.rollingQueue.length > 0 && !this.rolling) {
+      this.animating = true;
+      const rollingPiece = this.rollingQueue.shift()!;
+      this.rolling = rollingPiece;
+      
+      // After rolling animation completes, continue with move animations
+      delay(() => {
+        this.rolling = undefined;
+        this.processAnimationQueue();
+      }, 3400);
+      return;
+    }
+    
     if (this.animationQueue.length === 0) {
       this.animating = false;
       return;
