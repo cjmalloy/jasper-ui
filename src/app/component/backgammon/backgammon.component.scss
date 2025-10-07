@@ -168,19 +168,22 @@
     width: calc(2 * var(--dim));
     height: calc(2 * var(--dim));
     transform: translate(0, 0) translate3d(0, 0, 0);
-
     &.hidden {
       visibility: hidden;
     }
+  }
 
-    &.translate {
-      position: relative;
-      z-index: 10;
-      animation-duration: 1.5s;
-      animation-name: translate;
-      animation-iteration-count: 1;
-      animation-timing-function: linear;
-    }
+  .backgammon-piece.animated-piece {
+    position: absolute;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    z-index: 10;
+    transform: translate(0, 0) scale(100%);
+    animation-duration: 1.5s;
+    animation-name: translate;
+    animation-iteration-count: 1;
+    animation-timing-function: linear;
   }
 
   @keyframes translate {
@@ -197,22 +200,6 @@
     }
   }
 
-  .backgammon-animated-piece {
-    pointer-events: none;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    .backgammon-piece.animated-piece {
-      position: relative;
-      z-index: 10;
-      animation-duration: 1.5s;
-      animation-name: translate;
-      animation-iteration-count: 1;
-      animation-timing-function: linear;
-    }
-  }
-
   .backgammon-off, .backgammon-bar {
     display: flex;
     align-self: flex-end;
@@ -226,6 +213,7 @@
   }
 
   .backgammon-bar {
+    flex-direction: column-reverse;
     &.red {
       flex-direction: column;
       align-self: flex-start;

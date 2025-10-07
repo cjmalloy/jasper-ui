@@ -192,7 +192,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
 
           // Execute the move
           this.load([update]);
-          
+
           // Capture POST-move state
           const spotsStateAfter = this.spots.map(s => ({ ...s, pieces: [...s.pieces] }));
           const barStateAfter = [...this.bar];
@@ -264,7 +264,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
         } else {
           this.load([update]);
         }
-        
+
         // Start processing animations and rolling queue if not already animating
         if (!this.animating) {
           this.processAnimationQueue();
@@ -445,7 +445,8 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
     }
   }
 
-  drawPiece(p: string) {
+  drawPiece(p?: string) {
+    if (!p) return '';
     return p === 'r' ? '🔴️' : '⚫️';
   }
 
@@ -801,7 +802,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
 
   queueAnimation(state: AnimationState) {
     this.animationQueue.push(state);
-    // Don't start processing here - it will be started after all updates are processed
+    if (!this.animating) this.processAnimationQueue();
   }
 
   processAnimationQueue() {
@@ -810,7 +811,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
       this.animating = true;
       const rollingPiece = this.rollingQueue.shift()!;
       this.rolling = rollingPiece;
-      
+
       // After rolling animation completes, continue with move animations
       delay(() => {
         this.rolling = undefined;
@@ -818,30 +819,22 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
       }, 3400);
       return;
     }
-    
+
+    delete this.animatedPiece;
+
     if (this.animationQueue.length === 0) {
       this.animating = false;
-      delete this.animatedPiece;
       return;
     }
 
     this.animating = true;
     const animation = this.animationQueue.shift()!;
-    
+
     // Keep the PRE-move state during animation so piece is still at source
     this.spots = animation.spotsState;
     this.bar = animation.barState;
     this.turn = animation.turnState;
     this.moves = animation.movesState;
-    
-    // Set up the animated piece overlay
-    this.animatedPiece = {
-      piece: animation.piece,
-      from: animation.from,
-      to: animation.to,
-      fromStackIndex: animation.fromStackIndex,
-      toStackIndex: animation.toStackIndex
-    };
 
     // Calculate coordinates for CSS animation
     const fromSpot = animation.from === -1 ? null : this.spots.find(s => s.index === animation.from);
@@ -853,11 +846,11 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
     let fromRow = 0;
     if (animation.from === -1) {
       // From bar
-      fromCol = 8; // Bar is at column 8
-      fromRow = animation.piece === 'r' ? 2 : 1; // Red bar at bottom, black bar at top
+      fromCol = 7; // Bar is at column 8
+      fromRow = animation.piece === 'r' ? 1 : 0; // Red bar at bottom, black bar at top
     } else if (fromSpot) {
-      fromCol = fromSpot.col > 6 ? fromSpot.col + 2 : fromSpot.col + 1; // Account for bar gap
-      fromRow = fromSpot.top ? 1 : 2;
+      fromCol = fromSpot.col > 6 ? fromSpot.col + 1 : fromSpot.col; // Account for bar gap
+      fromRow = fromSpot.top ? 0 : 1;
     }
 
     // To position
@@ -865,37 +858,38 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
     let toRow = 0;
     if (animation.to === -1) {
       // To bar (piece being bumped)
-      toCol = 8;
-      toRow = animation.piece === 'r' ? 2 : 1; // Red bar at bottom, black bar at top
+      toCol = 7;
+      toRow = animation.piece === 'r' ? 1 : 0; // Red bar at bottom, black bar at top
     } else if (animation.to === -2) {
       // To off (both at column 1)
-      toCol = 1;
-      toRow = animation.piece === 'r' ? 2 : 1; // Red off at bottom row, black off at top row
+      toCol = 0;
+      toRow = animation.piece === 'r' ? 1 : 0; // Red off at bottom row, black off at top row
     } else if (toSpot) {
-      toCol = toSpot.col > 6 ? toSpot.col + 2 : toSpot.col + 1; // Account for bar gap
-      toRow = toSpot.top ? 1 : 2;
+      toCol = toSpot.col > 6 ? toSpot.col + 1 : toSpot.col; // Account for bar gap
+      toRow = toSpot.top ? 0 : 1;
     }
+    console.log(fromCol, fromRow, toCol, toRow);
 
     // Calculate stack offset adjustments
     // Pieces stack vertically, with stacked pieces having additional y offsets
     // For top spots, pieces stack downward; for bottom spots, upward
     let fromStackOffsetX = 0;
-    let fromStackOffsetY = 0;
+    let fromStackOffsetY = animation.fromStackIndex || 0;
     let toStackOffsetX = 0;
-    let toStackOffsetY = 0;
+    let toStackOffsetY = animation.toStackIndex || 0;
 
     // Calculate source stack offset (in units of var(--dim))
     if (animation.fromStackIndex !== undefined && animation.fromStackIndex >= 0) {
       if (animation.fromStackIndex > 4) {
         fromStackOffsetX = 0.1;
-        fromStackOffsetY = 9;
+        fromStackOffsetY -= 5;
         if (animation.fromStackIndex > 9) {
           fromStackOffsetX = 0.2;
-          fromStackOffsetY = 18;
+          fromStackOffsetY -= 5;
         }
       }
       // Adjust sign based on whether it's a top or bottom spot
-      if (fromSpot && fromSpot.top) {
+      if (fromSpot && !fromSpot.top) {
         fromStackOffsetY = -fromStackOffsetY;
         fromStackOffsetX = -fromStackOffsetX;
       }
@@ -905,63 +899,47 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
     if (animation.toStackIndex !== undefined && animation.toStackIndex >= 0) {
       if (animation.toStackIndex > 4) {
         toStackOffsetX = 0.1;
-        toStackOffsetY = 9;
+        toStackOffsetY -= 5;
         if (animation.toStackIndex > 9) {
           toStackOffsetX = 0.2;
-          toStackOffsetY = 18;
+          toStackOffsetY -= 5;
         }
       }
       // Adjust sign based on whether it's a top or bottom spot
-      if (toSpot && toSpot.top) {
+      if (toSpot && !toSpot.top) {
         toStackOffsetY = -toStackOffsetY;
         toStackOffsetX = -toStackOffsetX;
       }
     }
 
-    // Calculate animation transforms
-    // The animated piece container is positioned at the source grid cell
-    // So we need to calculate:
-    // 1. Starting position: base transform + stack offset for source
-    // 2. Ending position: grid movement delta + base transform + stack offset for destination
-    
-    // Base transforms for pieces (from SCSS)
-    const baseFromX = -1;
-    const baseFromY = fromRow === 2 ? 10 : -10;
-    const baseToX = -1;
-    const baseToY = toRow === 2 ? 10 : -10;
-    
-    // Starting position (relative to source grid cell)
-    const xFrom = baseFromX + fromStackOffsetX;
-    const yFrom = baseFromY + fromStackOffsetY;
-    
-    // Calculate grid cell movement (how many cells to move)
-    const gridDeltaX = (toCol - fromCol) * 2; // Each cell is 2 * dim wide
-    const gridDeltaY = (toRow - fromRow) * 13; // Each row is 13 * dim tall
-    
-    // Ending position (relative to source grid cell)
-    // = grid movement + destination base transform + destination stack offset
-    const xTo = gridDeltaX + baseToX + toStackOffsetX;
-    const yTo = gridDeltaY + baseToY + toStackOffsetY;
 
-    // Set CSS variables for animation
+    const xFrom = fromCol * 2 + fromStackOffsetX;
+    const yFrom = fromRow * 24 + fromStackOffsetY;
+    const xTo = toCol * 2 + toStackOffsetX;
+    const yTo = toRow * 24 + toStackOffsetY;
+
+    console.log(xFrom, yFrom, xTo, yTo);
     this.el.nativeElement.style.setProperty('--xFrom', '' + xFrom);
     this.el.nativeElement.style.setProperty('--yFrom', '' + yFrom);
     this.el.nativeElement.style.setProperty('--xTo', '' + xTo);
     this.el.nativeElement.style.setProperty('--yTo', '' + yTo);
 
-    // Remove animation after completion, then update board state
-    const totalDuration = 1600;
-    delay(() => {
-      delete this.animatedPiece;
-      
-      // Now update to the POST-move state
-      this.spots = animation.postSpotsState;
-      this.bar = animation.postBarState;
-      this.redOff = animation.postRedOff;
-      this.blackOff = animation.postBlackOff;
-      
-      // Process next animation after current one completes
-      this.processAnimationQueue();
-    }, totalDuration);
+    requestAnimationFrame(() => {
+      this.animatedPiece = {
+        piece: animation.piece,
+        from: animation.from,
+        to: animation.to,
+        fromStackIndex: animation.fromStackIndex,
+        toStackIndex: animation.toStackIndex
+      };
+      const totalDuration = 1500;
+      delay(() => {
+        this.spots = animation.postSpotsState;
+        this.bar = animation.postBarState;
+        this.redOff = animation.postRedOff;
+        this.blackOff = animation.postBlackOff;
+        this.processAnimationQueue();
+      }, totalDuration);
+    });
   }
 }

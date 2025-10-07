@@ -93,15 +93,9 @@
          [cdkDragData]="p">{{ drawPiece(p) }}</div>
   }
 </div>
-
 @if (animatedPiece) {
-  <div class="backgammon-animated-piece"
-       [style.grid-column]="animatedPiece.from === -1 ? 8 : (spots[animatedPiece.from].col > 6 ? spots[animatedPiece.from].col + 2 : spots[animatedPiece.from].col + 1)"
-       [style.grid-row]="animatedPiece.from === -1 ? (animatedPiece.piece === 'r' ? 2 : 1) : (spots[animatedPiece.from].top ? 1 : 2)">
-    <div class="backgammon-piece animated-piece">{{ drawPiece(animatedPiece.piece) }}</div>
-  </div>
+  <div class="backgammon-piece animated-piece">{{ drawPiece(animatedPiece.piece) }}</div>
 }
-
 <div class="red dice bubble"
      [class.winner]="winner === 'r'"
      [class.backgammon]="winner === 'r' && backgammon"
