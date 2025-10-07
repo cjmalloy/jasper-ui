@@ -918,18 +918,30 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
       }
     }
 
-    // Calculate movement deltas
-    // Base position differences
+    // Calculate animation transforms
+    // The animated piece container is positioned at the source grid cell
+    // So we need to calculate:
+    // 1. Starting position: base transform + stack offset for source
+    // 2. Ending position: grid movement delta + base transform + stack offset for destination
+    
+    // Base transforms for pieces (from SCSS)
     const baseFromX = -1;
     const baseFromY = fromRow === 2 ? 10 : -10;
     const baseToX = -1;
     const baseToY = toRow === 2 ? 10 : -10;
     
-    // Full deltas including grid position changes and stack offsets
+    // Starting position (relative to source grid cell)
     const xFrom = baseFromX + fromStackOffsetX;
     const yFrom = baseFromY + fromStackOffsetY;
-    const xTo = -(toCol - fromCol) * 2 + baseToX + toStackOffsetX;
-    const yTo = -(toRow - fromRow) * 13 + baseToY + toStackOffsetY;
+    
+    // Calculate grid cell movement (how many cells to move)
+    const gridDeltaX = (toCol - fromCol) * 2; // Each cell is 2 * dim wide
+    const gridDeltaY = (toRow - fromRow) * 13; // Each row is 13 * dim tall
+    
+    // Ending position (relative to source grid cell)
+    // = grid movement + destination base transform + destination stack offset
+    const xTo = gridDeltaX + baseToX + toStackOffsetX;
+    const yTo = gridDeltaY + baseToY + toStackOffsetY;
 
     // Set CSS variables for animation
     this.el.nativeElement.style.setProperty('--xFrom', '' + xFrom);
