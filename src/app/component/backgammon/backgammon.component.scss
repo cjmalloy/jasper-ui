@@ -193,9 +193,20 @@
     }
   }
 
+  .backgammon-bar {
+    .backgammon-piece {
+      transform: translate(calc(-1 * var(--dim)), 0);
+      &.stacked {
+        transform: translate(calc(-1 * var(--dim)), 0) translate3d(0, calc(-0.3 * var(--dim)), 1px);
+        &.double-stacked {
+          transform: translate(calc(-1 * var(--dim)), 0) translate3d(0, calc(-0.6 * var(--dim)), 2px);
+        }
+      }
+    }
+  }
+
   .backgammon-off, .backgammon-bar {
     display: flex;
-    flex-direction: column-reverse;
     align-self: flex-end;
     width: calc(2 * var(--dim));
     height: calc(13 * var(--dim));
@@ -204,19 +215,26 @@
       flex-direction: column;
       align-self: flex-start;
     }
-
     &.move {
       box-shadow: inset 3px 3px var(--dim) var(--move),
                   inset -3px -3px var(--dim) var(--move);
     }
+  }
 
+  .backgammon-off {
     .backgammon-piece {
-      transform: translate(calc(-1 * var(--dim)), 0);
-      &.stacked {
-        transform: translate(calc(-1 * var(--dim)), 0) translate3d(0, calc(-0.3 * var(--dim)), 1px);
-        &.double-stacked {
-          transform: translate(calc(-1 * var(--dim)), 0) translate3d(0, calc(-0.6 * var(--dim)), 2px);
-        }
+      cursor: pointer;
+    }
+    &.black {
+      flex-direction: column;
+      .backgammon-piece {
+        margin-bottom: calc(-1.5 * var(--dim));
+      }
+    }
+    &.red {
+      flex-direction: column-reverse;
+      .backgammon-piece {
+        margin-top: calc(-1.5 * var(--dim));
       }
     }
   }
