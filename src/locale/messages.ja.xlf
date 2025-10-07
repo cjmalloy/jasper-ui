@@ -3948,6 +3948,10 @@ Refのみが削除されたファイルはまだ回復できますが、この�
         <source>📄️ PDF Resize handle</source>
         <target>📄️ PDFサイズ変更ハンドル</target>
       </trans-unit>
+      <trans-unit id="6433514297428832297" datatype="html">
+        <source>📇️ Person</source>
+        <target>📇️ 人物</target>
+      </trans-unit>
       <trans-unit id="3739058896399553701" datatype="html">
         <source>📇️‍ Person</source>
         <target>📇️‍ 人物</target>
