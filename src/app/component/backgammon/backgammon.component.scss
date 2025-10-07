@@ -169,6 +169,10 @@
     height: calc(2 * var(--dim));
     transform: translate(0, 0) translate3d(0, 0, 0);
 
+    &.hidden {
+      visibility: hidden;
+    }
+
     &.translate {
       position: relative;
       z-index: 10;
@@ -181,15 +185,31 @@
 
   @keyframes translate {
     from {
-      transform: translate(calc(var(--x1) * var(--dim)), calc(var(--y1) * var(--dim))) scale(100%);
+      transform: translate(calc(var(--xFrom) * var(--dim)), calc(var(--yFrom) * var(--dim))) scale(100%);
     }
 
     50% {
-      transform: translate(calc((var(--x2) + var(--x1)) / 2 * var(--dim)), calc((var(--y2) + var(--y1)) / 2 * var(--dim))) scale(150%);
+      transform: translate(calc((var(--xTo) + var(--xFrom)) / 2 * var(--dim)), calc((var(--yTo) + var(--yFrom)) / 2 * var(--dim))) scale(150%);
     }
 
     to {
-      transform: translate(calc(var(--x2) * var(--dim)), calc(var(--y2) * var(--dim))) scale(100%);
+      transform: translate(calc(var(--xTo) * var(--dim)), calc(var(--yTo) * var(--dim))) scale(100%);
+    }
+  }
+
+  .backgammon-animated-piece {
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    .backgammon-piece.animated-piece {
+      position: relative;
+      z-index: 10;
+      animation-duration: 1.5s;
+      animation-name: translate;
+      animation-iteration-count: 1;
+      animation-timing-function: linear;
     }
   }
 
