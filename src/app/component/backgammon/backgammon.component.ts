@@ -872,16 +872,16 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
 
     // x1, y1: movement delta (how far to move from source to destination)
     // x2, y2: destination base offset (the normal transform applied to the piece at rest)
-    const x1 = (toCol - fromCol) * 2 + toStackOffsetX - fromStackOffsetX;
-    const y1 = (toRow - fromRow) * 13 + toStackOffsetY - fromStackOffsetY;
-    const x2 = -1;
-    const y2 = toRow === 2 ? 10 : -10;
+    const x1 = -(toCol - fromCol) * 2 + toStackOffsetX - fromStackOffsetX;
+    const y1 = -(toRow - fromRow) * 13 + toStackOffsetY - fromStackOffsetY;
+    const baseX = -1;
+    const baseY = toRow === 2 ? 10 : -10;
 
     // Set variables as unitless numbers (CSS will multiply by var(--dim))
-    this.el.nativeElement.style.setProperty('--x1', x1.toString());
-    this.el.nativeElement.style.setProperty('--y1', y1.toString());
-    this.el.nativeElement.style.setProperty('--x2', x2.toString());
-    this.el.nativeElement.style.setProperty('--y2', y2.toString());
+    this.el.nativeElement.style.setProperty('--x1', ''+ (baseX + x1));
+    this.el.nativeElement.style.setProperty('--y1', ''+(baseY + y1));
+    this.el.nativeElement.style.setProperty('--x2', ''+baseX);
+    this.el.nativeElement.style.setProperty('--y2', ''+baseY);
 
     // Animate the piece moving to its destination with translation
     requestAnimationFrame(() => this.translate = animation.to);

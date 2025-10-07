@@ -182,11 +182,11 @@
 
   @keyframes translate {
     from {
-      transform: translate(calc((var(--x2) - var(--x1)) * var(--dim)), calc((var(--y2) - var(--y1)) * var(--dim))) scale(100%);
+      transform: translate(calc(var(--x1) * var(--dim)), calc(var(--y1) * var(--dim))) scale(100%);
     }
 
     50% {
-      transform: translate(calc((var(--x2) - var(--x1) / 2) * var(--dim)), calc((var(--y2) - var(--y1) / 2) * var(--dim))) scale(150%);
+      transform: translate(calc((var(--x2) + var(--x1)) / 2 * var(--dim)), calc((var(--y2) + var(--y1)) / 2 * var(--dim))) scale(150%);
     }
 
     to {
