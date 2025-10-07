@@ -92,7 +92,9 @@
         <source>Game History Rewritten!
 
 Please Reload.</source>
-        <target>ゲーム履歴が書き換えられました！\n\n再読み込みしてください。</target>
+        <target>ゲーム履歴が書き換えられました！
+
+再読み込みしてください。</target>
       </trans-unit>
       <trans-unit id="7627075302015812535" datatype="html">
         <source>Game history was rewritten!</source>
@@ -661,7 +663,6 @@ Please Reload.</source>
       </trans-unit>
       <trans-unit id="2931404412008216542" datatype="html">
         <source>↻</source>
-        <target>↻</target>
       </trans-unit>
       <trans-unit id="749800792036691371" datatype="html">
         <source>Dismiss this failed item</source>
@@ -2164,7 +2165,6 @@ Private tags start with an underscore.
       </trans-unit>
       <trans-unit id="5833023658250803462" datatype="html">
         <source>🔎️🌐️</source>
-        <target>🔎️🌐️</target>
       </trans-unit>
       <trans-unit id="4044740211559960759" datatype="html">
         <source>🎭️ Alias</source>
@@ -2302,7 +2302,6 @@ Private tags start with an underscore.
       </trans-unit>
       <trans-unit id="1752075388451550172" datatype="html">
         <source>✨️</source>
-        <target>✨️</target>
       </trans-unit>
       <trans-unit id="8162946528531123706" datatype="html">
         <source>Web Context</source>
@@ -3020,11 +3019,9 @@ Refのみが削除されたファイルはまだ回復できますが、この�
       </trans-unit>
       <trans-unit id="250994100339430078" datatype="html">
         <source>💲️</source>
-        <target>💲️</target>
       </trans-unit>
       <trans-unit id="7736392907940185086" datatype="html">
         <source>LaTeX</source>
-        <target>LaTeX</target>
       </trans-unit>
       <trans-unit id="6817971173758446472" datatype="html">
         <source>📧️ Email</source>
