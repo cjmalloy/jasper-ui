@@ -890,9 +890,28 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   }
 
   drop(event: CdkDragDrop<number, number, Piece>) {
-    this.move(event.item.data, event.previousContainer.data, event.container.data);
-    this.check();
-    this.save(event.item.data, event.previousContainer.data, event.container.data);
+    const p = event.item.data;
+    const from = event.previousContainer.data;
+    const to = event.container.data;
+    
+    if (from === to) return;
+    
+    // Get current state and check if move is valid
+    const currentState = getGameState(this);
+    const validMoves = getAllMoves(currentState);
+    if (!validMoves[from]?.includes(to)) {
+      throw $localize`Illegal move ${renderMove(p, from, to)}`;
+    }
+    
+    // Compute new state using pure function
+    const newState = applyMove(currentState, p, from, to);
+    
+    // Apply the new state immediately (user moves have no animation)
+    applyGameState(this, newState);
+    
+    // Save the move to the server
+    this.save(p, from, to);
+  }
   }
 
   move(p: Piece, from: number, to: number) {
@@ -1065,12 +1084,18 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   }
 
   onClick(index: number) {
-    this.moves = this.getAllMoves();
+    const currentState = getGameState(this);
+    this.moves = getAllMoves(currentState);
     const p = this.spots[index].pieces[0];
+    
     if (this.turn && this.start !== undefined && this.moves[this.start]?.includes(index)) {
-      this.move(this.turn, this.start, index);
-      this.check();
+      // Execute move using pure function
+      const newState = applyMove(currentState, this.turn, this.start, index);
+      applyGameState(this, newState);
+      this.clearMoves();
       this.save(this.turn, this.start, index);
+      delete this.start;
+      return;
     }
     if (index === this.start) {
       delete this.start;
@@ -1089,7 +1114,8 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   }
 
   onClickBar() {
-    this.moves = this.getAllMoves();
+    const currentState = getGameState(this);
+    this.moves = getAllMoves(currentState);
     this.start = -1;
     const move = this.moves[-1];
     if (!move) return this.clearMoves();
@@ -1100,19 +1126,23 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   }
 
   onClickOff() {
-    this.moves = this.getAllMoves();
+    const currentState = getGameState(this);
+    this.moves = getAllMoves(currentState);
     if (this.start !== undefined && this.moves[this.start]?.includes(-2)) {
-      this.move(this.turn!, this.start, -2);
-      this.check();
+      const newState = applyMove(currentState, this.turn!, this.start, -2);
+      applyGameState(this, newState);
+      this.clearMoves();
       this.save(this.turn!, this.start, -2);
+      delete this.start;
     }
   }
 
   moveHighest(event: Event, index: number) {
-    this.moves = this.getAllMoves();
+    const currentState = getGameState(this);
+    this.moves = getAllMoves(currentState);
     event.preventDefault();
     if (!this.turn || !this.moves[index]) return;
-    const ds = this.dice;
+    const ds = getDice(currentState, this.turn);
     let d = Math.max(ds[0], (ds[1] || 0));
     let to = this.turn === 'r' ? index + d : index - d;
     if (to < 0 || to > 23) to = -2;
@@ -1122,16 +1152,18 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
       if (to < 0 || to > 23) to = -2;
       if (!this.moves[index].includes(to)) return;
     }
-    this.move(this.turn, index, to);
-    this.check();
+    const newState = applyMove(currentState, this.turn, index, to);
+    applyGameState(this, newState);
+    this.clearMoves();
     this.save(this.turn, index, to);
   }
 
   moveBarHighest(event: Event) {
-    this.moves = this.getAllMoves();
+    const currentState = getGameState(this);
+    this.moves = getAllMoves(currentState);
     event.preventDefault();
     if (!this.turn || !this.moves[-1]) return;
-    const ds = this.dice;
+    const ds = getDice(currentState, this.turn);
     let d = Math.max(ds[0], (ds[1] || 0));
     let to = this.turn === 'r' ? d - 1 : 24 - d;
     if (!this.moves[-1].includes(to)) {
@@ -1139,8 +1171,9 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
       to = this.turn === 'r' ? d - 1 : 24 - d;
       if (!this.moves[-1].includes(to)) return;
     }
-    this.move(this.turn, -1, to);
-    this.check();
+    const newState = applyMove(currentState, this.turn, -1, to);
+    applyGameState(this, newState);
+    this.clearMoves();
     this.save(this.turn, -1, to);
   }
 
@@ -1176,24 +1209,9 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   }
 
   getAllMoves() {
-    // TODO: Moves that result in not all dice used are illegal if possible to use all dice
-    // TODO: If you can play one number but not both, you must play the higher one
-    if (!this.turn) return [];
-    const result: number[][] = [];
-    const bar = this.getMoves(this.turn, -1, this.dice);
-    if (bar.length) {
-      result.length = 1;
-      result[-1] = bar;
-      return result;
-    }
-    for (let i = 0; i < 24; i++) {
-      const p = this.spots[i].pieces[0];
-      if (p !== this.turn) continue;
-      const ms = this.getMoves(p, i, this.dice);
-      if (ms.length) result[i] = ms;
-    }
-    return result;
+    return getAllMoves(getGameState(this));
   }
+
 
   roll(p: Piece) {
     const ds = p === 'r' ? this.redDice : this.blackDice;
@@ -1370,14 +1388,23 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
       };
       const totalDuration = 1500;
       delay(() => {
+        // @ts-ignore - TypeScript incorrectly thinks 'this' is undefined in nested callbacks
         if (animation.postSpotsState) this.spots = animation.postSpotsState;
+        // @ts-ignore
         if (animation.postBarState) this.bar = animation.postBarState;
+        // @ts-ignore
         if (animation.postRedOff) this.redOff = animation.postRedOff;
+        // @ts-ignore
         if (animation.postBlackOff) this.blackOff = animation.postBlackOff;
+        // @ts-ignore
         if (animation.postTurn) this.turn = animation.postTurn;
+        // @ts-ignore
         if (animation.postLastMovedSpots !== undefined) this.lastMovedSpots = animation.postLastMovedSpots;
+        // @ts-ignore
         if (animation.postLastMovedOff !== undefined) this.lastMovedOff = animation.postLastMovedOff;
-        this.moves = this.getAllMoves();
+        // @ts-ignore
+        this.moves = getAllMoves(getGameState(this));
+        // @ts-ignore
         this.processAnimationQueue();
       }, totalDuration);
     });
