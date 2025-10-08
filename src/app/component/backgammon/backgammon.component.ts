@@ -949,7 +949,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
       return;
     }
 
-    if (!animation.from) {
+    if (animation.from === undefined) {
       this.state = { ...animation.post };
       if (!this.state.diceUsed.length) {
         this.rolling = this.state.turn;
