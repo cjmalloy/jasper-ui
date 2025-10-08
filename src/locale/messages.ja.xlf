@@ -579,7 +579,7 @@ Please Reload.</source>
       </trans-unit>
       <trans-unit id="6741405788491536837" datatype="html">
         <source>Load responses <x id="START_BLOCK_IF" equiv-text="@if (rc &gt; 1) {"/><x id="START_TAG_SPAN" ctype="x-span" equiv-text="&lt;span&gt;"/><x id="INTERPOLATION" equiv-text="{{ max(rc) }}"/><x id="CLOSE_TAG_SPAN" ctype="x-span" equiv-text="&lt;/span&gt;"/><x id="CLOSE_BLOCK_IF" equiv-text="}"/></source>
-        <target>レスポンスを読み込む</target>
+        <target><x id="START_BLOCK_IF" equiv-text="@if (rc &gt; 1) {"/><x id="START_TAG_SPAN" ctype="x-span" equiv-text="&lt;span&gt;"/><x id="INTERPOLATION" equiv-text="{{ max(rc) }}"/><x id="CLOSE_TAG_SPAN" ctype="x-span" equiv-text="&lt;/span&gt;"/><x id="CLOSE_BLOCK_IF" equiv-text="}"/> レスポンスを読み込む</target>
       </trans-unit>
       <trans-unit id="957326900371911604" datatype="html">
         <source>Load <x id="START_TAG_SPAN" ctype="x-span" equiv-text="&lt;span *ngIf=&quot;uc &gt; 1&quot;&gt;"/><x id="INTERPOLATION" equiv-text="{{ max(uc) }}"/><x id="CLOSE_TAG_SPAN" ctype="x-span" equiv-text="&lt;/span&gt;"/></source>
