@@ -81,7 +81,7 @@ function getAnimation(state: GameState, update: string): AnimationState | null {
     const off = update.includes('off');
     const hit = update.includes('*');
     const from = bar ? -1 : parseInt(parts[1]) - 1;
-    const to = off ? -2 : parseInt(parts[2]) - 1
+    const to = off ? -2 : parseInt(parts[2]) - 1;
 
     // Track the source stack position of the moving piece
     let fromStackIndex = -1;
