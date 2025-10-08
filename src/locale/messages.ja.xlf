@@ -661,9 +661,6 @@ Please Reload.</source>
         <source>Retry creating this item</source>
         <target>このアイテムの作成を再試行</target>
       </trans-unit>
-      <trans-unit id="2931404412008216542" datatype="html">
-        <source>↻</source>
-      </trans-unit>
       <trans-unit id="749800792036691371" datatype="html">
         <source>Dismiss this failed item</source>
         <target>この失敗したアイテムを削除</target>
@@ -2163,9 +2160,6 @@ Private tags start with an underscore.
         <source>🔎️🌐️ AI Web Context</source>
         <target>🔎️🌐️ AIウェブコンテキスト</target>
       </trans-unit>
-      <trans-unit id="5833023658250803462" datatype="html">
-        <source>🔎️🌐️</source>
-      </trans-unit>
       <trans-unit id="4044740211559960759" datatype="html">
         <source>🎭️ Alias</source>
         <target>🎭️ エイリアス</target>
@@ -2299,9 +2293,6 @@ Private tags start with an underscore.
       <trans-unit id="7725752819714650921" datatype="html">
         <source>Ask Navi</source>
         <target>Naviに質問</target>
-      </trans-unit>
-      <trans-unit id="1752075388451550172" datatype="html">
-        <source>✨️</source>
       </trans-unit>
       <trans-unit id="8162946528531123706" datatype="html">
         <source>Web Context</source>
@@ -3016,12 +3007,6 @@ Refのみが削除されたファイルはまだ回復できますが、この�
       <trans-unit id="7893595669897912836" datatype="html">
         <source>Adds LaTeX support to the markdown editor. Use $ to mark inline math, $$ to mark block math.</source>
         <target>MarkdownエディターにLaTeXサポートを追加します。$でインライン数式、$$でブロック数式をマークします。</target>
-      </trans-unit>
-      <trans-unit id="250994100339430078" datatype="html">
-        <source>💲️</source>
-      </trans-unit>
-      <trans-unit id="7736392907940185086" datatype="html">
-        <source>LaTeX</source>
       </trans-unit>
       <trans-unit id="6817971173758446472" datatype="html">
         <source>📧️ Email</source>
