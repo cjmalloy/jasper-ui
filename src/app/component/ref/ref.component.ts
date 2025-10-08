@@ -143,6 +143,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   publishChanged = false;
   diffOriginal?: Ref;
   diffModified?: Ref;
+  fullscreen = this.admin.getPlugin('plugin/fullscreen') && hasTag('plugin/fullscreen', this.plugins);
 
   submitting?: Subscription;
   private refreshTap?: () => void;
@@ -240,6 +241,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     this.writeAccess = this.auth.writeAccess(this.ref);
     this.taggingAccess = this.auth.taggingAccess(this.ref);
     this.deleteAccess = this.auth.deleteAccess(this.ref);
+    this.fullscreen = this.admin.getPlugin('plugin/fullscreen') && hasTag('plugin/fullscreen', this.plugins);
     this.initFields(this.ref);
 
     this.expandPlugins = this.admin.getEmbeds(this.ref);
@@ -833,17 +835,12 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   }
 
   @memo
-  get fullscreen() {
-    if (this.plugins) return hasTag('plugin/fullscreen', this.plugins);
-    return hasTag('plugin/fullscreen', this.ref);
-  }
-
-  @memo
   get isView() {
     return isRef(this.ref, this.store.view.ref);
   }
 
-  toggle() {
+  toggle(fullscreen = false) {
+    this.fullscreen ||= fullscreen;
     if (this.editing) {
       this.editing = false;
     } else if (this.viewSource) {

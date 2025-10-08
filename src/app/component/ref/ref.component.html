@@ -44,10 +44,10 @@
     </div>
     <div class="link-below">
       @if (showToggle && (thread || commentNoTitle || expandPlugins.length)) {
-        <button type="button" class="toggle" (click)="toggle()">
+        <button type="button" class="toggle" (click)="toggle(store.hotkey)">
           @if (editing || viewSource || diffing || expanded) {
             <span class="toggle-x">✕</span>
-          } @else if (fullscreen) {
+          } @else if (fullscreen || store.hotkey && admin.getPlugin('plugin/fullscreen')) {
             <span class="toggle-fullscreen">⛶</span>
           } @else {
             <span class="toggle-plus">＋</span>

@@ -44,7 +44,6 @@
   }
 
   .dice {
-    cursor: grabbing;
     position: absolute;
     text-align: center;
     font-size: calc(var(--piece-size) / 2);
@@ -95,7 +94,7 @@
       }
     }
     &.clickme {
-      cursor: grabbing !important;
+      cursor: pointer;
       &:before {
         content: '🎲️ ';
       }
@@ -168,24 +167,83 @@
     position: relative;
     width: calc(2 * var(--dim));
     height: calc(2 * var(--dim));
-    transform: translate(0, 0) translate3d(0, 0, 0) !important;
+    transform: translate(0, 0) translate3d(0, 0, 0);
+    &.hidden {
+      visibility: hidden;
+    }
+  }
+
+  .backgammon-piece.animated-piece {
+    position: absolute;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    z-index: 10;
+    transform: translate(0, 0) scale(100%);
+    animation-duration: 1.5s;
+    animation-name: translate;
+    animation-iteration-count: 1;
+    animation-timing-function: linear;
+  }
+
+  @keyframes translate {
+    from {
+      transform: translate(calc(var(--xFrom) * var(--dim)), calc(var(--yFrom) * var(--dim))) scale(100%);
+    }
+
+    50% {
+      transform: translate(calc((var(--xTo) + var(--xFrom)) / 2 * var(--dim)), calc((var(--yTo) + var(--yFrom)) / 2 * var(--dim))) scale(150%);
+    }
+
+    to {
+      transform: translate(calc(var(--xTo) * var(--dim)), calc(var(--yTo) * var(--dim))) scale(100%);
+    }
   }
 
   .backgammon-off, .backgammon-bar {
     display: flex;
-    flex-direction: column-reverse;
     align-self: flex-end;
     width: calc(2 * var(--dim));
     height: calc(13 * var(--dim));
     background: linear-gradient(to right, var(--brown) 10%, var(--brown-alt) 12%, var(--brown) 15%, var(--brown) 85%, var(--brown-alt) 88%, var(--brown) 90%);
+    &.move {
+      box-shadow: inset 3px 3px var(--dim) var(--move),
+      inset -3px -3px var(--dim) var(--move);
+    }
+  }
+
+  .backgammon-bar {
+    flex-direction: column-reverse;
     &.red {
       flex-direction: column;
       align-self: flex-start;
     }
+    .backgammon-piece {
+      transform: translate(calc(-1 * var(--dim)), 0);
+      &.stacked {
+        transform: translate(calc(-1 * var(--dim)), 0) translate3d(0, calc(-0.3 * var(--dim)), 1px);
+        &.double-stacked {
+          transform: translate(calc(-1 * var(--dim)), 0) translate3d(0, calc(-0.6 * var(--dim)), 2px);
+        }
+      }
+    }
+  }
 
-    &.move {
-      box-shadow: inset 3px 3px var(--dim) var(--move),
-                  inset -3px -3px var(--dim) var(--move);
+  .backgammon-off {
+    .backgammon-piece {
+      cursor: pointer;
+    }
+    &.black {
+      flex-direction: column;
+      .backgammon-piece {
+        margin-bottom: calc(-1.5 * var(--dim));
+      }
+    }
+    &.red {
+      flex-direction: column-reverse;
+      .backgammon-piece {
+        margin-top: calc(-1.5 * var(--dim));
+      }
     }
   }
 
@@ -204,6 +262,10 @@
         to {
           margin: 0;
         }
+      }
+
+      &.glow {
+        filter: drop-shadow(0 0 8px gold);
       }
     }
   }
@@ -245,11 +307,11 @@
       &:hover {
         filter: drop-shadow(0 0 3px var(--glow));
       }
-      transform: translate(calc(-1 * var(--dim)), calc(10 * var(--dim))) !important;
+      transform: translate(calc(-1 * var(--dim)), calc(10 * var(--dim)));
       &.stacked {
-        transform: translate(calc(-1 * var(--dim)), calc(10 * var(--dim))) translate3d(calc(0.1 * var(--dim)), calc(9 * var(--dim)), 1px) !important;
+        transform: translate(calc(-1 * var(--dim)), calc(10 * var(--dim))) translate3d(calc(0.1 * var(--dim)), calc(9 * var(--dim)), 1px);
         &.double-stacked {
-          transform: translate(calc(-1 * var(--dim)), calc(10 * var(--dim))) translate3d(calc(0.2 * var(--dim)), calc(18 * var(--dim)), 2px) !important;
+          transform: translate(calc(-1 * var(--dim)), calc(10 * var(--dim))) translate3d(calc(0.2 * var(--dim)), calc(18 * var(--dim)), 2px);
         }
       }
     }
@@ -266,11 +328,11 @@
       }
 
       .backgammon-piece {
-        transform: translate(calc(-1 * var(--dim)), calc(-10 * var(--dim))) !important;
+        transform: translate(calc(-1 * var(--dim)), calc(-10 * var(--dim)));
         &.stacked {
-          transform: translate(calc(-1 * var(--dim)), calc(-10 * var(--dim))) translate3d(calc(-0.1 * var(--dim)), calc(-9 * var(--dim)), 0) !important;
+          transform: translate(calc(-1 * var(--dim)), calc(-10 * var(--dim))) translate3d(calc(-0.1 * var(--dim)), calc(-9 * var(--dim)), 0);
           &.double-stacked {
-            transform: translate(calc(-1 * var(--dim)), calc(-10 * var(--dim))) translate3d(calc(-0.2 * var(--dim)), calc(-18 * var(--dim)), 0) !important;
+            transform: translate(calc(-1 * var(--dim)), calc(-10 * var(--dim))) translate3d(calc(-0.2 * var(--dim)), calc(-18 * var(--dim)), 0);
           }
         }
       }

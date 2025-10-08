@@ -15,7 +15,8 @@
       <div class="backgammon-piece"
            [class.stacked]="pi > 4"
            [class.double-stacked]="pi > 9"
-           [class.bounce]="s.bounce && pi >= s.pieces.length - s.bounce"
+           [class.hidden]="animatedPiece && animatedPiece.from === s.index && pi === s.pieces.length - 1"
+           [class.glow]="pi >= s.pieces.length - (lastMovedSpots[s.index] || 0)"
            cdkDrag
            cdkDragBoundary=".backgammon-board"
            (cdkDragStarted)="onDragStarted(s.index)"
@@ -31,7 +32,15 @@
      cdkDropList
      [cdkDropListData]="-2"
      (cdkDropListDropped)="drop($any($event))"
-     (click)="onClickOff()"></div>
+     (click)="onClickOff()">
+  @for (p of blackOff; track pi; let pi = $index) {
+    <div class="backgammon-piece"
+         [class.stacked]="pi > 4"
+         [class.double-stacked]="pi > 9"
+         [class.glow]="pi >= blackOff.length - (lastMovedOff['b'] || 0)"
+         [class.translate]="turn === 'b' && translate === -2 && pi === blackOff.length - 1">{{ drawPiece(p) }}</div>
+  }
+</div>
 <div class="backgammon-off red"
      [style.grid-column]="1"
      [style.grid-row]="2"
@@ -39,7 +48,15 @@
      cdkDropList
      [cdkDropListData]="-2"
      (cdkDropListDropped)="drop($any($event))"
-     (click)="onClickOff()"></div>
+     (click)="onClickOff()">
+  @for (p of redOff; track pi; let pi = $index) {
+    <div class="backgammon-piece"
+         [class.stacked]="pi > 4"
+         [class.double-stacked]="pi > 9"
+         [class.glow]="pi >= redOff.length - (lastMovedOff['r'] || 0)"
+         [class.translate]="turn === 'r' && translate === -2 && pi === redOff.length - 1">{{ drawPiece(p) }}</div>
+  }
+</div>
 <div class="backgammon-bar black"
      [style.grid-column]="8"
      [style.grid-row]="1"
@@ -51,7 +68,7 @@
      (contextmenu)="moveBarHighest($event)">
   @for (p of blackBar; track pi; let pi = $index) {
     <div class="backgammon-piece"
-         [class.bounce]="pi >= blackBar.length - redBarBounce"
+         [class.hidden]="animatedPiece && animatedPiece.from === -1 && animatedPiece.piece === 'b' && pi === blackBar.length - 1"
          cdkDrag
          cdkDragBoundary=".backgammon-board"
          (cdkDragStarted)="onDragStarted(-1)"
@@ -68,14 +85,16 @@
      (contextmenu)="moveBarHighest($event)">
   @for (p of redBar; track p; let pi = $index) {
     <div class="backgammon-piece"
-         [class.bounce]="pi >= redBar.length - redBarBounce"
+         [class.hidden]="animatedPiece && animatedPiece.from === -1 && animatedPiece.piece === 'r' && pi === redBar.length - 1"
          cdkDrag
          cdkDragBoundary=".backgammon-board"
          (cdkDragStarted)="onDragStarted(-1)"
          [cdkDragData]="p">{{ drawPiece(p) }}</div>
   }
 </div>
-
+@if (animatedPiece) {
+  <div class="backgammon-piece animated-piece">{{ drawPiece(animatedPiece.piece) }}</div>
+}
 <div class="red dice bubble"
      [class.winner]="winner === 'r'"
      [class.backgammon]="winner === 'r' && backgammon"
