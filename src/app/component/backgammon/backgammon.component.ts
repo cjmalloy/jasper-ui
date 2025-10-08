@@ -494,6 +494,9 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
       const parts = m.split(/[\s/*()]+/g).filter(p => !!p);
       const p = parts[0] as Piece;
       if (m.includes('-')) {
+        // Clear glow on new roll
+        this.lastMovedSpots = {};
+        this.lastMovedOff = { 'r': 0, 'b': 0 };
         const ds = p === 'r' ? this.redDice : this.blackDice;
         ds[0] = parseInt(m[2]);
         ds[1] = parseInt(m[4]);
