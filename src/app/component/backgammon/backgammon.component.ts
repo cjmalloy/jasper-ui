@@ -489,7 +489,7 @@ function loadMove(state: GameState, p: Piece, from: number, to: number) {
   previous.splice(previous.findIndex(c => c === p), 1);
   let hit = false;
   let path = from < 0 ? (p === 'r' ? -1 : 24) : from;
-  for (const d of dice.map(d => p=== 'r' ? d : -d)) {
+  for (const d of dice.map(d => p === 'r' ? d : -d)) {
     path += d;
     if (path < 0 || path > 23) break;
     const hop = state.spots[path].pieces;
