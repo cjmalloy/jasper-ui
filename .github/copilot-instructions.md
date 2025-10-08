@@ -80,6 +80,86 @@ docker compose up --build  # Everything on http://localhost:8082/
 - `docker-compose.yaml` - Development Docker setup
 - `src/assets/config.json` - **DO NOT** edit API URL, use Docker env vars
 
+## Localization & Translation
+
+### Overview
+Jasper-UI uses Angular's i18n system with XLIFF format for translations. The base file is `src/locale/messages.xlf` and language-specific files are named `messages.<locale>.xlf` (e.g., `messages.ja.xlf` for Japanese).
+
+### Updating Translations
+
+#### Step 1: Extract Latest Strings
+Always start by extracting the latest translatable strings from the codebase:
+```bash
+npm run ng extract-i18n -- --output-path src/locale
+```
+This updates `src/locale/messages.xlf` with any new `$localize` strings from the code.
+
+#### Step 2: Identify Missing Translations
+Compare the base file with the target language file to find missing translations:
+```bash
+# Example for Japanese
+comm -23 \
+  <(grep -oP 'id="\K[^"]+' src/locale/messages.xlf | sort) \
+  <(grep -oP 'id="\K[^"]+' src/locale/messages.ja.xlf | sort)
+```
+
+#### Step 3: Add Translations
+For each missing translation ID:
+1. Find the `<trans-unit>` entry in `messages.xlf`
+2. Copy it to the appropriate location in `messages.<locale>.xlf`
+3. Add a `<target>` element with the translated text
+
+**Example:**
+```xml
+<trans-unit id="1234567890" datatype="html">
+  <source>Configure AI</source>
+  <target>AIを設定</target>
+</trans-unit>
+```
+
+#### Step 4: Format Guidelines
+
+**Newlines:** Use the same format as the source. If the source has actual newlines (blank lines), use them in the target too - do NOT use `\n` escape sequences.
+```xml
+<!-- CORRECT -->
+<source>Line 1
+
+Line 2</source>
+<target>行1
+
+行2</target>
+
+<!-- WRONG -->
+<target>行1\n\n行2</target>
+```
+
+**Redundant Translations:** Skip entries where the translation would be identical to the source (emojis, symbols, technical terms). Omit these `<trans-unit>` entries entirely from the translation file - the system will automatically fall back to the source text.
+```xml
+<!-- SKIP these in translation files -->
+<trans-unit id="xxx">
+  <source>🔎️🌐️</source>  <!-- Emoji - same in all languages -->
+</trans-unit>
+<trans-unit id="yyy">
+  <source>LaTeX</source>  <!-- Technical term - unchanged -->
+</trans-unit>
+```
+
+#### Step 5: Verify
+Build the project to verify translations work correctly:
+```bash
+npm run build
+```
+- Check for "No translation found" warnings - expected for intentionally skipped entries
+- Verify there are no errors for entries that should have translations
+
+### Configuration
+Translation locales are configured in `angular.json` under `projects.jasper-ui.i18n.locales`. The format is:
+```json
+"locales": {
+  "ja": "src/locale/messages.ja.xlf"
+}
+```
+
 ## Key Info
 
 - Angular 20 + TypeScript + MobX

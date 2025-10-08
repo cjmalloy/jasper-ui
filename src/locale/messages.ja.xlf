@@ -88,6 +88,14 @@
         <source> Black Wins <x id="START_BLOCK_IF" equiv-text="@if (backgammon) {"/><x id="START_TAG_SPAN" ctype="x-span" equiv-text="&lt;span i18n-title title=&quot;Backgammon&quot;&gt;"/>🎲️🎲️🎲️<x id="CLOSE_TAG_SPAN" ctype="x-span" equiv-text="&lt;/span&gt;"/><x id="CLOSE_BLOCK_IF" equiv-text="}"/><x id="START_BLOCK_IF_1" equiv-text="@if (gammon &amp;&amp; !backgammon) {"/><x id="START_TAG_SPAN_1" ctype="x-span_1" equiv-text="&lt;span i18n-title title=&quot;Gammon&quot;&gt;"/>🎲️🎲️<x id="CLOSE_TAG_SPAN" ctype="x-span" equiv-text="&lt;/span&gt;"/><x id="CLOSE_BLOCK_IF" equiv-text="}"/><x id="START_BLOCK_IF_2" equiv-text="@if (!gammon) {"/><x id="START_TAG_SPAN_2" ctype="x-span_2" equiv-text="&lt;span&gt;"/>🎲️<x id="CLOSE_TAG_SPAN" ctype="x-span" equiv-text="&lt;/span&gt;"/><x id="CLOSE_BLOCK_IF" equiv-text="}"/></source>
         <target> 黒の勝ち <x id="START_BLOCK_IF" equiv-text="@if (backgammon) {"/><x id="START_TAG_SPAN" ctype="x-span" equiv-text="&lt;span i18n-title title=&quot;Backgammon&quot;&gt;"/>🎲️🎲️🎲️<x id="CLOSE_TAG_SPAN" ctype="x-span" equiv-text="&lt;/span&gt;"/><x id="CLOSE_BLOCK_IF" equiv-text="}"/><x id="START_BLOCK_IF_1" equiv-text="@if (gammon &amp;&amp; !backgammon) {"/><x id="START_TAG_SPAN_1" ctype="x-span_1" equiv-text="&lt;span i18n-title title=&quot;Gammon&quot;&gt;"/>🎲️🎲️<x id="CLOSE_TAG_SPAN" ctype="x-span" equiv-text="&lt;/span&gt;"/><x id="CLOSE_BLOCK_IF" equiv-text="}"/><x id="START_BLOCK_IF_2" equiv-text="@if (!gammon) {"/><x id="START_TAG_SPAN_2" ctype="x-span_2" equiv-text="&lt;span&gt;"/>🎲️<x id="CLOSE_TAG_SPAN" ctype="x-span" equiv-text="&lt;/span&gt;"/><x id="CLOSE_BLOCK_IF" equiv-text="}"/></target>
       </trans-unit>
+      <trans-unit id="8031128496622857527" datatype="html">
+        <source>Game History Rewritten!
+
+Please Reload.</source>
+        <target>ゲーム履歴が書き換えられました！
+
+再読み込みしてください。</target>
+      </trans-unit>
       <trans-unit id="7627075302015812535" datatype="html">
         <source>Game history was rewritten!</source>
         <target>ゲーム履歴が書き換えられました！</target>
@@ -119,6 +127,10 @@
       <trans-unit id="7232845035663392178" datatype="html">
         <source>ref</source>
         <target>参照</target>
+      </trans-unit>
+      <trans-unit id="6385104003676355545" datatype="html">
+        <source>Cache</source>
+        <target>キャッシュ</target>
       </trans-unit>
       <trans-unit id="72253831937845080" datatype="html">
         <source> by <x id="START_TAG_NG_CONTAINER_1" ctype="x-ng_container_1" equiv-text="&lt;ng-container *ngIf=&quot;authorExts$ | async as authorExts; else authorNoExts&quot;&gt;"/><x id="START_TAG_NG_CONTAINER" ctype="x-ng_container" equiv-text="&lt;ng-container *ngFor=&quot;let user of authorExts&quot;&gt;"/><x id="START_LINK" ctype="x-a" equiv-text="&lt;a class=&quot;user tag&quot;                    [title]=&quot;formatAuthor(user.tag + user.origin)&quot;                    [routerLink]=&quot;['/tag', user.tag + user.origin]&quot;                    [appTitle]=&quot;user&quot;&gt;"/><x id="INTERPOLATION" equiv-text="formatAuthor(user.tag) }}"/><x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;"/><x id="CLOSE_TAG_NG_CONTAINER" ctype="x-ng_container" equiv-text="&lt;/ng-container&gt;"/><x id="CLOSE_TAG_NG_CONTAINER" ctype="x-ng_container" equiv-text="&lt;/ng-container&gt;"/><x id="START_TAG_NG_TEMPLATE" ctype="x-ng_template" equiv-text="&lt;ng-template #authorNoExts&gt;"/><x id="START_TAG_NG_CONTAINER_2" ctype="x-ng_container_2" equiv-text="&lt;ng-container *ngFor=&quot;let t of authors&quot;&gt;"/><x id="START_LINK_1" equiv-text="&lt;a class=&quot;user tag&quot;                    [title]=&quot;formatAuthor(t)&quot;                    [routerLink]=&quot;['/tag', t]&quot;&gt;"/><x id="INTERPOLATION_1" equiv-text=") }}"/><x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;"/><x id="CLOSE_TAG_NG_CONTAINER" ctype="x-ng_container" equiv-text="&lt;/ng-container&gt;"/><x id="CLOSE_TAG_NG_TEMPLATE" ctype="x-ng_template" equiv-text="&lt;/ng-template&gt;"/></source>
@@ -557,6 +569,18 @@
         <source>Pinned</source>
         <target>ピン留め済み</target>
       </trans-unit>
+      <trans-unit id="2432914601893106030" datatype="html">
+        <source>Load <x id="START_BLOCK_IF" equiv-text="@if (uc &gt; 1) {"/><x id="START_TAG_SPAN" ctype="x-span" equiv-text="&lt;span&gt;"/><x id="INTERPOLATION" equiv-text="{{ max(uc) }}"/><x id="CLOSE_TAG_SPAN" ctype="x-span" equiv-text="&lt;/span&gt;"/><x id="CLOSE_BLOCK_IF" equiv-text="}"/></source>
+        <target>読み込む <x id="START_BLOCK_IF" equiv-text="@if (uc &gt; 1) {"/><x id="START_TAG_SPAN" ctype="x-span" equiv-text="&lt;span&gt;"/><x id="INTERPOLATION" equiv-text="{{ max(uc) }}"/><x id="CLOSE_TAG_SPAN" ctype="x-span" equiv-text="&lt;/span&gt;"/><x id="CLOSE_BLOCK_IF" equiv-text="}"/></target>
+      </trans-unit>
+      <trans-unit id="1339790056087287185" datatype="html">
+        <source>Load sources <x id="START_BLOCK_IF" equiv-text="@if (sc &gt; 1) {"/><x id="START_TAG_SPAN" ctype="x-span" equiv-text="&lt;span&gt;"/><x id="INTERPOLATION" equiv-text="{{ max(sc) }}"/><x id="CLOSE_TAG_SPAN" ctype="x-span" equiv-text="&lt;/span&gt;"/><x id="CLOSE_BLOCK_IF" equiv-text="}"/></source>
+        <target><x id="START_BLOCK_IF" equiv-text="@if (sc &gt; 1) {"/><x id="START_TAG_SPAN" ctype="x-span" equiv-text="&lt;span&gt;"/><x id="INTERPOLATION" equiv-text="{{ max(sc) }}"/><x id="CLOSE_TAG_SPAN" ctype="x-span" equiv-text="&lt;/span&gt;"/><x id="CLOSE_BLOCK_IF" equiv-text="}"/> ソースを読み込む</target>
+      </trans-unit>
+      <trans-unit id="6741405788491536837" datatype="html">
+        <source>Load responses <x id="START_BLOCK_IF" equiv-text="@if (rc &gt; 1) {"/><x id="START_TAG_SPAN" ctype="x-span" equiv-text="&lt;span&gt;"/><x id="INTERPOLATION" equiv-text="{{ max(rc) }}"/><x id="CLOSE_TAG_SPAN" ctype="x-span" equiv-text="&lt;/span&gt;"/><x id="CLOSE_BLOCK_IF" equiv-text="}"/></source>
+        <target><x id="START_BLOCK_IF" equiv-text="@if (rc &gt; 1) {"/><x id="START_TAG_SPAN" ctype="x-span" equiv-text="&lt;span&gt;"/><x id="INTERPOLATION" equiv-text="{{ max(rc) }}"/><x id="CLOSE_TAG_SPAN" ctype="x-span" equiv-text="&lt;/span&gt;"/><x id="CLOSE_BLOCK_IF" equiv-text="}"/> レスポンスを読み込む</target>
+      </trans-unit>
       <trans-unit id="957326900371911604" datatype="html">
         <source>Load <x id="START_TAG_SPAN" ctype="x-span" equiv-text="&lt;span *ngIf=&quot;uc &gt; 1&quot;&gt;"/><x id="INTERPOLATION" equiv-text="{{ max(uc) }}"/><x id="CLOSE_TAG_SPAN" ctype="x-span" equiv-text="&lt;/span&gt;"/></source>
         <target><x id="START_TAG_SPAN" ctype="x-span" equiv-text="&lt;span *ngIf=&quot;uc &gt; 1&quot;&gt;"/><x id="INTERPOLATION" equiv-text="{{ max(uc) }}"/><x id="CLOSE_TAG_SPAN" ctype="x-span" equiv-text="&lt;/span&gt;"/> を読み込む</target>
@@ -633,6 +657,14 @@
         <source>Toggle Badges</source>
         <target>バッジを切り替え</target>
       </trans-unit>
+      <trans-unit id="4391990329573710305" datatype="html">
+        <source>Retry creating this item</source>
+        <target>このアイテムの作成を再試行</target>
+      </trans-unit>
+      <trans-unit id="749800792036691371" datatype="html">
+        <source>Dismiss this failed item</source>
+        <target>この失敗したアイテムを削除</target>
+      </trans-unit>
       <trans-unit id="3137485157763906331" datatype="html">
         <source>load more <x id="START_BLOCK_IF" equiv-text="@if (more) {"/><x id="START_TAG_SPAN" ctype="x-span" equiv-text="&lt;span class=&quot;more&quot;&gt;"/>(<x id="INTERPOLATION" equiv-text="{{ more }}"/>)<x id="CLOSE_TAG_SPAN" ctype="x-span" equiv-text="&lt;/span&gt;"/><x id="CLOSE_BLOCK_IF" equiv-text="}"/></source>
         <target>もっと読み込む <x id="START_BLOCK_IF" equiv-text="@if (more) {"/><x id="START_TAG_SPAN" ctype="x-span" equiv-text="&lt;span class=&quot;more&quot;&gt;"/>(<x id="INTERPOLATION" equiv-text="{{ more }}"/>)<x id="CLOSE_TAG_SPAN" ctype="x-span" equiv-text="&lt;/span&gt;"/><x id="CLOSE_BLOCK_IF" equiv-text="}"/></target>
@@ -682,6 +714,10 @@
       <trans-unit id="5433675495457939071" datatype="html">
         <source>Templates</source>
         <target>テンプレート</target>
+      </trans-unit>
+      <trans-unit id="2258332150307719183" datatype="html">
+        <source>Newer than:</source>
+        <target>より新しい:</target>
       </trans-unit>
       <trans-unit id="4217733100334209102" datatype="html">
         <source>pages: <x id="INTERPOLATION" equiv-text="{{ page.page.totalPages }}"/>, results: <x id="INTERPOLATION_1" equiv-text="{{ page.page.totalElements }}"/></source>
@@ -808,6 +844,10 @@
       <trans-unit id="7220610783179816820" datatype="html">
         <source>repost</source>
         <target>再投稿</target>
+      </trans-unit>
+      <trans-unit id="136747920425865284" datatype="html">
+        <source>diff</source>
+        <target>差分</target>
       </trans-unit>
       <trans-unit id="2123171795960509943" datatype="html">
         <source>remove</source>
@@ -1281,6 +1321,10 @@
         <source>(root: <x id="INTERPOLATION" equiv-text="{{ template.origin }}"/>)</source>
         <target>(ルート: <x id="INTERPOLATION" equiv-text="{{ template.origin }}"/>)</target>
       </trans-unit>
+      <trans-unit id="8879565425060985712" datatype="html">
+        <source>Override Tag...</source>
+        <target>タグをオーバーライド...</target>
+      </trans-unit>
       <trans-unit id="8837693192568283306" datatype="html">
         <source> No results found
 </source>
@@ -1371,6 +1415,14 @@
         <source>Show preview</source>
         <target>プレビューを表示</target>
       </trans-unit>
+      <trans-unit id="5568209569960932511" datatype="html">
+        <source>Cancel upload</source>
+        <target>アップロードをキャンセル</target>
+      </trans-unit>
+      <trans-unit id="5998157822012034707" datatype="html">
+        <source>– remove all</source>
+        <target>– すべて削除</target>
+      </trans-unit>
       <trans-unit id="2337485514607640701" datatype="html">
         <source>Add comment</source>
         <target>コメントを追加</target>
@@ -1393,6 +1445,10 @@
       </trans-unit>
       <trans-unit id="5971949012006735861" datatype="html">
         <source>🆑️</source>
+      </trans-unit>
+      <trans-unit id="3347932678307141902" datatype="html">
+        <source>restore</source>
+        <target>復元</target>
       </trans-unit>
       <trans-unit id="7658402240953727096" datatype="html">
         <source>Name:</source>
@@ -2003,6 +2059,10 @@ Private tags start with an underscore.
         <source>configure</source>
         <target>設定</target>
       </trans-unit>
+      <trans-unit id="1196677943728239216" datatype="html">
+        <source>Configure AI</source>
+        <target>AIを設定</target>
+      </trans-unit>
       <trans-unit id="5578341680066291318" datatype="html">
         <source>Configure LLM settings</source>
         <target>LLM設定を構成</target>
@@ -2095,6 +2155,10 @@ Private tags start with an underscore.
       <trans-unit id="4479514634093077659" datatype="html">
         <source>If checked, the AI may return multiple responses including Exts.</source>
         <target>チェックすると、AIはExtを含む複数の応答を返すことがあります。</target>
+      </trans-unit>
+      <trans-unit id="7298464772828563221" datatype="html">
+        <source>🔎️🌐️ AI Web Context</source>
+        <target>🔎️🌐️ AIウェブコンテキスト</target>
       </trans-unit>
       <trans-unit id="4044740211559960759" datatype="html">
         <source>🎭️ Alias</source>
@@ -2225,6 +2289,14 @@ Private tags start with an underscore.
       </trans-unit>
       <trans-unit id="6894945807805404316" datatype="html">
         <source>👻️💭️</source>
+      </trans-unit>
+      <trans-unit id="7725752819714650921" datatype="html">
+        <source>Ask Navi</source>
+        <target>Naviに質問</target>
+      </trans-unit>
+      <trans-unit id="8162946528531123706" datatype="html">
+        <source>Web Context</source>
+        <target>ウェブコンテキスト</target>
       </trans-unit>
       <trans-unit id="5738626649832833456" datatype="html">
         <source>👻️</source>
@@ -3172,6 +3244,10 @@ Refのみが削除されたファイルはまだ回復できますが、この�
         <source>Uploaded Files</source>
         <target>アップロードされたファイル</target>
       </trans-unit>
+      <trans-unit id="3683539867139171206" datatype="html">
+        <source>Attach File</source>
+        <target>ファイルを添付</target>
+      </trans-unit>
       <trans-unit id="613621548074427506" datatype="html">
         <source>📂️ Folder</source>
         <target>📂️ フォルダ</target>
@@ -3948,6 +4024,10 @@ Refのみが削除されたファイルはまだ回復できますが、この�
         <source>📄️ PDF Resize handle</source>
         <target>📄️ PDFサイズ変更ハンドル</target>
       </trans-unit>
+      <trans-unit id="6433514297428832297" datatype="html">
+        <source>📇️ Person</source>
+        <target>📇️ 人物</target>
+      </trans-unit>
       <trans-unit id="3739058896399553701" datatype="html">
         <source>📇️‍ Person</source>
         <target>📇️‍ 人物</target>
@@ -4499,6 +4579,14 @@ Refのみが削除されたファイルはまだ回復できますが、この�
       <trans-unit id="2653920503457223941" datatype="html">
         <source>Toggle 🌐️ Public or 👁️ Private</source>
         <target>🌐️ 公開 または 👁️ プライベートを切り替え</target>
+      </trans-unit>
+      <trans-unit id="660429532886163577" datatype="html">
+        <source>🔀 Diff</source>
+        <target>🔀 差分</target>
+      </trans-unit>
+      <trans-unit id="5137357606028175607" datatype="html">
+        <source>Enable diff action for comparing reference versions using Monaco editor</source>
+        <target>Monacoエディタを使用してリファレンスバージョンを比較する差分アクションを有効にする</target>
       </trans-unit>
       <trans-unit id="1182987200918139908" datatype="html">
         <source>⭕️️ Save to list</source>
@@ -5334,6 +5422,10 @@ Enter the origin to confirm:</source>
         <source>Origin did not match <x id="PH" equiv-text="this.origin || 'default'"/>, aborting.</source>
         <target>オリジンが<x id="PH" equiv-text="this.origin || 'default'"/>と一致しませんでした、中止します。</target>
       </trans-unit>
+      <trans-unit id="3688912811854720535" datatype="html">
+        <source>Change User:</source>
+        <target>ユーザーを変更:</target>
+      </trans-unit>
       <trans-unit id="6865009229971482891" datatype="html">
         <source>Password:</source>
         <target>パスワード:</target>
@@ -5655,6 +5747,10 @@ Enter the origin to confirm:</source>
         <source>Upload</source>
         <target>アップロード</target>
       </trans-unit>
+      <trans-unit id="878726568452052561" datatype="html">
+        <source> Upload Refs, Exts, images, audio, video, spreadsheets, bookmarks (XML or HTML), and PDFs. <x id="START_TAG_SPAN" ctype="x-span" equiv-text="&lt;span&gt;"/>View your <x id="START_LINK" ctype="x-a" equiv-text="&lt;a [routerLink]=&quot;[&apos;/tag&apos;, store.account.tag]&quot; [queryParams]=&quot;{ filter: &apos;query/plugin/file&apos; }&quot;&gt;"/>files here<x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/>.<x id="CLOSE_TAG_SPAN" ctype="x-span" equiv-text="&lt;/span&gt;"/><x id="START_BLOCK_IF" equiv-text="@if (store.account.admin) {"/><x id="START_TAG_SPAN" ctype="x-span" equiv-text="&lt;span&gt;"/>Visit the <x id="START_LINK_1" equiv-text="&lt;a routerLink=&quot;/settings/setup&quot;&gt;"/>setup<x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/> settings page to manage mods.<x id="CLOSE_TAG_SPAN" ctype="x-span" equiv-text="&lt;/span&gt;"/><x id="CLOSE_BLOCK_IF" equiv-text="}"/></source>
+        <target> Refs、Exts、画像、音声、動画、スプレッドシート、ブックマーク（XMLまたはHTML）、PDFをアップロードします。<x id="START_TAG_SPAN" ctype="x-span" equiv-text="&lt;span&gt;"/>あなたの<x id="START_LINK" ctype="x-a" equiv-text="&lt;a [routerLink]=&quot;[&apos;/tag&apos;, store.account.tag]&quot; [queryParams]=&quot;{ filter: &apos;query/plugin/file&apos; }&quot;&gt;"/>ファイルはこちら<x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/>で確認できます。<x id="CLOSE_TAG_SPAN" ctype="x-span" equiv-text="&lt;/span&gt;"/><x id="START_BLOCK_IF" equiv-text="@if (store.account.admin) {"/><x id="START_TAG_SPAN" ctype="x-span" equiv-text="&lt;span&gt;"/>modを管理するには<x id="START_LINK_1" equiv-text="&lt;a routerLink=&quot;/settings/setup&quot;&gt;"/>セットアップ<x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/>設定ページにアクセスしてください。<x id="CLOSE_TAG_SPAN" ctype="x-span" equiv-text="&lt;/span&gt;"/><x id="CLOSE_BLOCK_IF" equiv-text="}"/></target>
+      </trans-unit>
       <trans-unit id="132025905372207083" datatype="html">
         <source> Upload Refs, Exts, images, audio, video, spreadsheets, bookmarks (XML or HTML), and PDFs. <x id="START_BLOCK_IF" equiv-text="@if (store.account.admin) {"/><x id="START_TAG_SPAN" ctype="x-span" equiv-text="&lt;span&gt;"/> Visit the <x id="START_LINK" ctype="x-a" equiv-text="&lt;a routerLink=&quot;/settings/setup&quot;&gt;"/>setup<x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/> settings page to manage mods. <x id="CLOSE_TAG_SPAN" ctype="x-span" equiv-text="&lt;/span&gt;"/><x id="CLOSE_BLOCK_IF" equiv-text="}"/></source>
         <target> Ref、Ext、画像、音声、ビデオ、スプレッドシート、ブックマーク (XMLまたはHTML)、PDFをアップロードします。<x id="START_BLOCK_IF" equiv-text="@if (store.account.admin) {"/><x id="START_TAG_SPAN" ctype="x-span" equiv-text="&lt;span&gt;"/> modを管理するには<x id="START_LINK" ctype="x-a" equiv-text="&lt;a routerLink=&quot;/settings/setup&quot;&gt;"/>セットアップ<x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/>設定ページにアクセスしてください。<x id="CLOSE_TAG_SPAN" ctype="x-span" equiv-text="&lt;/span&gt;"/><x id="CLOSE_BLOCK_IF" equiv-text="}"/></target>
@@ -5819,6 +5915,10 @@ Enter the origin to confirm:</source>
         <source>Updating <x id="PH" equiv-text="def.name || def.tag"/> template...</source>
         <target><x id="PH" equiv-text="def.name || def.tag"/> テンプレートを更新中...</target>
       </trans-unit>
+      <trans-unit id="9116115446897812158" datatype="html">
+        <source>🥷 Root</source>
+        <target>🥷 ルート</target>
+      </trans-unit>
       <trans-unit id="4272296016036632982" datatype="html">
         <source>User </source>
         <target>ユーザー</target>
@@ -5884,6 +5984,14 @@ Enter the origin to confirm:</source>
         <source>Re: </source>
         <target>件名:</target>
       </trans-unit>
-    </body>
+      <trans-unit id="950338657895578107" datatype="html">
+        <source> Image </source>
+        <target> 画像 </target>
+      </trans-unit>
+      <trans-unit id="1408060915920557981" datatype="html">
+        <source>AI Web Context</source>
+        <target>AIウェブコンテキスト</target>
+      </trans-unit>
+</body>
   </file>
 </xliff>
