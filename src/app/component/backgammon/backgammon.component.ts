@@ -27,7 +27,6 @@ export type Spot = {
   col: number,
   red: boolean,
   move?: boolean,
-  bounce?: 0,
   top: boolean
   pieces: Piece[],
 };
@@ -213,15 +212,6 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
           const barStateAfter = [...this.bar];
           const redOffAfter = [...this.redOff];
           const blackOffAfter = [...this.blackOff];
-
-          // Track last moved positions for glow effect
-          // Add to the list of moved spots (don't clear, accumulate for the turn)
-          if (to >= 0 && to < 24) {
-            this.lastMovedSpots[to] = (this.lastMovedSpots[to] || 0) + 1;
-          } else if (to < 0) {
-            // Piece was moved off
-            this.lastMovedOff[this.turn!]++;
-          }
 
           // Queue animation for bumped piece first (so it happens before the moving piece)
           if (bumpedPiece !== undefined && to >= 0) {
@@ -423,7 +413,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   computeRollState(rollUpdate: string): {
     redDice: number[];
     blackDice: number[];
-    turn?: Piece;
+    turn: Piece;
     board: string[];
     diceUsed: number[];
     moves: number[][];
@@ -433,7 +423,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
 
     const redDice = [...this.redDice];
     const blackDice = [...this.blackDice];
-    let turn = this.turn;
+    let turn = this.turn!;
     const board = [...this.board];
     const diceUsed: number[] = [];
 
@@ -488,7 +478,6 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   }
 
   load(moves?: string[]) {
-    this.moves = this.getAllMoves();
     if (!moves) return;
     for (const m of moves) {
       const parts = m.split(/[\s/*()]+/g).filter(p => !!p);
@@ -522,15 +511,13 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
           this.move(p, from - 1, to - 1);
         }
       }
-      this.moves = this.getAllMoves();
     }
     if (!this.redPips) {
-      this.moves = [];
       this.winner = 'r';
     } else if (!this.blackPips) {
-      this.moves = [];
       this.winner = 'b';
     }
+    this.moves = this.getAllMoves();
   }
 
   drawPiece(p?: string) {
@@ -546,7 +533,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
 
   move(p: Piece, from: number, to: number) {
     if (from === to) return;
-    if (!this.moves[from]?.includes(to)) {
+    if (!this.getAllMoves()[from]?.includes(to)) {
       throw $localize`Illegal move ${renderMove(p, from, to)}`;
     }
     const dice = this.getDiceUsed(p, from, to, this.dice);
@@ -579,21 +566,28 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
         } else {
           this.blackOff.push(p);
         }
-        // Track off piece for glow
-        this.lastMovedOff[this.turn!]++;
-      } else {
-        this.lastMovedSpots[to] = (this.lastMovedSpots[to] || 0) + 1;
       }
       this.board.push(renderMove(p, from, to, hit));
     } else if (current.length === 1) {
       this.bar.push(current[0]);
       current[0] = p;
-      this.lastMovedSpots[to] = (this.lastMovedSpots[to] || 0) + 1;
       this.board.push(renderMove(p, from, to, hit));
+    }
+    this.moves = this.getAllMoves();
+    if (to >= 0 && to < 24) {
+      this.lastMovedSpots[to] = (this.lastMovedSpots[to] || 0) + 1;
+    } else if (to < 0) {
+      this.lastMovedOff[this.turn!]++;
+    }
+    if (from >= 0 && from < 24) {
+      this.lastMovedSpots[from] = (this.lastMovedSpots[from] || 1) - 1;
+    } else if (from < 0) {
+      this.lastMovedOff[this.turn!]++;
     }
   }
 
   save(p: Piece, from: number, to: number, hit?: boolean) {
+    if (from === to) return;
     const move = p + ' ' + (from < 0 ? 'bar' : from + 1) + '/' + (to < 0 ? 'off' : to + 1) + (hit ? '*' : '');
     this.append$(move).subscribe();
   }
@@ -693,13 +687,10 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   }
 
   check() {
-    this.moves = [];
     if (!this.redPips) {
       this.winner = 'r';
     } else if (!this.blackPips) {
       this.winner = 'b';
-    } else {
-      this.moves = this.getAllMoves();
     }
     this.clearMoves();
   }
@@ -709,19 +700,8 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
     this.moveRedOff = this.moveBlackOff = false;
   }
 
-  clearBounce() {
-    for (const s of this.spots) {
-      s.bounce = 0;
-    }
-  }
-
-  setBounce(b: number) {
-    for (const s of this.spots) {
-      if (b === s.index) s.bounce!++;
-    }
-  }
-
   onClick(index: number) {
+    this.moves = this.getAllMoves();
     const p = this.spots[index].pieces[0];
     if (this.turn && this.start !== undefined && this.moves[this.start]?.includes(index)) {
       this.move(this.turn, this.start, index);
@@ -734,27 +714,29 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
     }
     delete this.start;
     if (p !== this.turn) return this.clearMoves();
-    const moves = this.moves[index];
-    if (!moves) return this.clearMoves();
+    const move = this.moves[index];
+    if (!move) return this.clearMoves();
     this.start = index;
     for (const s of this.spots) {
-      s.move = moves.find(m => m === s.index) !== undefined;
+      s.move = move.find(m => m === s.index) !== undefined;
     }
-    this.moveRedOff = this.turn === 'r' && moves.includes(-2);
-    this.moveBlackOff = this.turn === 'b' && moves.includes(-2);
+    this.moveRedOff = this.turn === 'r' && move.includes(-2);
+    this.moveBlackOff = this.turn === 'b' && move.includes(-2);
   }
 
   onClickBar() {
+    this.moves = this.getAllMoves();
     this.start = -1;
-    const moves = this.moves[-1];
-    if (!moves) return this.clearMoves();
+    const move = this.moves[-1];
+    if (!move) return this.clearMoves();
     for (const s of this.spots) {
-      s.move = moves.find(m => m === s.index) !== undefined;
+      s.move = move.find(m => m === s.index) !== undefined;
     }
     this.moveRedOff = this.moveBlackOff = false;
   }
 
   onClickOff() {
+    this.moves = this.getAllMoves();
     if (this.start !== undefined && this.moves[this.start]?.includes(-2)) {
       this.move(this.turn!, this.start, -2);
       this.check();
@@ -763,6 +745,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   }
 
   moveHighest(event: Event, index: number) {
+    this.moves = this.getAllMoves();
     event.preventDefault();
     if (!this.turn || !this.moves[index]) return;
     const ds = this.dice;
@@ -781,6 +764,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   }
 
   moveBarHighest(event: Event) {
+    this.moves = this.getAllMoves();
     event.preventDefault();
     if (!this.turn || !this.moves[-1]) return;
     const ds = this.dice;
@@ -850,6 +834,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   roll(p: Piece) {
     const ds = p === 'r' ? this.redDice : this.blackDice;
     if (this.winner) throw $localize`Game Over`;
+    this.moves = this.getAllMoves();
     if ((!this.first || this.turn !== p) && this.moves.length) throw $localize`Must move`;
 
     // Clear glow when rolling (new turn)
@@ -904,13 +889,15 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
 
     // Handle rolling animation
     if (animation.rollingPiece) {
+      this.lastMovedSpots = {};
+      this.lastMovedOff = { 'r': 0, 'b': 0 };
       this.rolling = animation.rollingPiece;
       if (animation.postRedDice) this.redDice = animation.postRedDice;
       if (animation.postBlackDice) this.blackDice = animation.postBlackDice;
-      if (animation.postTurn !== undefined) this.turn = animation.postTurn;
+      if (animation.postTurn) this.turn = animation.postTurn;
       if (animation.postBoard) this.board = animation.postBoard;
       if (animation.postDiceUsed) this.diceUsed = animation.postDiceUsed;
-      if (animation.postMoves) this.moves = animation.postMoves;
+      this.moves = this.getAllMoves();
       delay(() => {
         this.processAnimationQueue();
       }, 750);
@@ -922,7 +909,6 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
     this.spots = animation.spotsState!;
     this.bar = animation.barState!;
     this.turn = animation.turnState;
-    this.moves = animation.movesState!;
 
     // Calculate coordinates for CSS animation
     const fromSpot = animation.from === -1 ? null : this.spots.find(s => s.index === animation.from!);
@@ -1020,10 +1006,24 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
       };
       const totalDuration = 1500;
       delay(() => {
-        this.spots = animation.postSpotsState!;
-        this.bar = animation.postBarState!;
-        this.redOff = animation.postRedOff!;
-        this.blackOff = animation.postBlackOff!;
+        if (animation.postSpotsState) this.spots = animation.postSpotsState;
+        if (animation.postBarState) this.bar = animation.postBarState;
+        if (animation.postRedOff) this.redOff = animation.postRedOff;
+        if (animation.postBlackOff) this.blackOff = animation.postBlackOff;
+        if (animation.postTurn) this.turn = animation.postTurn;
+        this.moves = this.getAllMoves();
+        const to = animation.to!;
+        const from = animation.from!;
+        if (to >= 0 && to < 24) {
+          this.lastMovedSpots[to] = (this.lastMovedSpots[to] || 0) + 1;
+        } else if (to < 0) {
+          this.lastMovedOff[this.turn!]++;
+        }
+        if (from >= 0 && from < 24) {
+          this.lastMovedSpots[from] = (this.lastMovedSpots[from] || 1) - 1;
+        } else if (from < 0) {
+          this.lastMovedOff[this.turn!]++;
+        }
         this.processAnimationQueue();
       }, totalDuration);
     });
