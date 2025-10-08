@@ -30,6 +30,23 @@ export type Spot = {
   top: boolean
   pieces: Piece[],
 };
+
+// Game state type - represents the complete backgammon game state
+type GameState = {
+  board: string[];
+  turn?: Piece;
+  bar: Piece[];
+  spots: Spot[];
+  redOff: Piece[];
+  blackOff: Piece[];
+  redDice: number[];
+  blackDice: number[];
+  diceUsed: number[];
+  winner?: Piece;
+  lastMovedSpots: Record<number, number>;
+  lastMovedOff: Record<Piece, number>;
+};
+
 type AnimationState = {
   // For rolling animations
   rollingPiece?: Piece;
@@ -60,6 +77,311 @@ type AnimationState = {
 function renderMove(p: Piece, from: number, to: number, hit?: boolean) {
   return p + ' ' + (from < 0 ? 'bar' : from + 1) + '/' + (to < 0 ? 'off' : to + 1) + (hit ? '*' : '');
 }
+
+// Pure functions for game logic - these don't modify state
+
+function getRedPips(state: GameState): number {
+  return state.spots.flatMap(s => s.pieces.filter(p => p === 'r')).length;
+}
+
+function getBlackPips(state: GameState): number {
+  return state.spots.flatMap(s => s.pieces.filter(p => p === 'b')).length;
+}
+
+function getRedBar(state: GameState): Piece[] {
+  return state.bar.filter(b => b === 'r');
+}
+
+function getBlackBar(state: GameState): Piece[] {
+  return state.bar.filter(b => b === 'b');
+}
+
+function isClosed(state: GameState): boolean {
+  if (state.turn === 'r') {
+    for (let i = 0; i < 18; i++) if (state.spots[i].pieces[0] === 'r') return false;
+    return true;
+  } else if (state.turn === 'b') {
+    for (let i = 6; i < 24; i++) if (state.spots[i].pieces[0] === 'b') return false;
+    return true;
+  }
+  return false;
+}
+
+function isInRedHome(state: GameState): boolean {
+  for (let i = 18; i < 24; i++) if (state.spots[i].pieces[0] === 'b') return true;
+  return false;
+}
+
+function isInBlackHome(state: GameState): boolean {
+  for (let i = 0; i < 7; i++) if (state.spots[i].pieces[0] === 'r') return true;
+  return false;
+}
+
+function getDice(state: GameState, p: Piece): number[] {
+  let result = filter([...state.redDice, ...state.blackDice], d => !!d);
+  if (result.length !== 2) {
+    // You can use dice shown if you win the initial roll
+    result = [...(p === 'r' ? state.redDice : state.blackDice)];
+  }
+  if (result[0] === result[1]) {
+    // Doubles
+    result.push(...result);
+  }
+  for (const u of state.diceUsed) {
+    result.splice(result.indexOf(u), 1);
+  }
+  return result;
+}
+
+function areDoubles(state: GameState): boolean {
+  const ds = state.turn === 'r' ? state.redDice : state.blackDice;
+  return ds[0] === ds[1];
+}
+
+function isFirstRoll(state: GameState): boolean {
+  if (state.diceUsed.length) return false;
+  return !state.redDice[1] && !state.blackDice[1];
+}
+
+// Get valid moves for a piece at a given index
+function getPieceMoves(state: GameState, p: Piece, index: number, ds: number[]): number[] {
+  if (!ds?.length) return [];
+  const bar = state.bar;
+  const spots = state.spots;
+  
+  if (index != -1 && bar.find(o => o === p)) return [];
+  if (index === -1) {
+    const off = bar.filter(o => o === p);
+    if (!off.length) return [];
+  }
+  if (index === -1 && p === 'b') {
+    index = 24;
+  }
+  const result: number[] = [];
+  const np = p === 'r' ? 'b' : 'r';
+  for (const d of ds) {
+    const i = p === 'r' ? index + d : index - d;
+    if (i < 0 || i > 23) continue;
+    if (spots[i].pieces.length > 1 && spots[i].pieces[0] === np) continue;
+    const rest = [...ds];
+    rest.splice(ds.indexOf(d), 1);
+    result.push(i, ...getPieceMoves(state, p, i, rest));
+  }
+  if (isClosed(state)) {
+    const needDice = p === 'r' ? 24 - index : index + 1;
+    if (ds.find(d => d === needDice)) {
+      result.push(-2);
+    } else {
+      for (let i = 6; i > needDice; i--) {
+        const spot = spots[p === 'r' ? 24 - i : i - 1];
+        for (const piece of spot.pieces) {
+          if (piece !== state.turn) break;
+          if (!ds.find(d => d >= i)) return uniq(result);
+        }
+      }
+      if (ds.find(d => d >= needDice)) {
+        result.push(-2);
+      }
+    }
+  }
+  return uniq(result);
+}
+
+// Get all valid moves for the current player
+function getAllMoves(state: GameState): number[][] {
+  if (!state.turn) return [];
+  const result: number[][] = [];
+  const ds = getDice(state, state.turn);
+  const bar = getPieceMoves(state, state.turn, -1, ds);
+  if (bar.length) {
+    result.length = 1;
+    result[-1] = bar;
+    return result;
+  }
+  for (let i = 0; i < 24; i++) {
+    const p = state.spots[i].pieces[0];
+    if (p !== state.turn) continue;
+    const ms = getPieceMoves(state, p, i, ds);
+    if (ms.length) result[i] = ms;
+  }
+  return result;
+}
+
+// Get which dice are used for a specific move
+function getDiceUsed(state: GameState, p: Piece, from: number, to: number, ds: number[]): number[] {
+  if (from === -1 && p === 'b') {
+    from = 24;
+  }
+  if (to === -2) {
+    const d = p === 'r' ? 24 - from : from + 1;
+    if (ds.includes(d)) return [d];
+    const u: number[] = [];
+    let v = 0;
+    for (const i of ds) {
+      if (i > d) continue;
+      v += i;
+      u.push(i);
+      if (v >= d) return u;
+    }
+    u.length = 0;
+    v = 0;
+    for (const i of ds) {
+      v += i;
+      u.push(i);
+      if (v >= d) return u;
+    }
+    throw $localize`Illegal move ${renderMove(p, from, to)}`;
+  }
+  if (areDoubles(state)) {
+    const result: number[] = [];
+    if (to < 0) {
+      to = p === 'r' ? 24 : -1;
+    }
+    result.length = Math.abs(from - to) / ds[0];
+    result.fill(ds[0]);
+    return result;
+  }
+  const np = p === 'r' ? 'b' : 'r';
+  const spots = state.spots;
+  for (const d of ds) {
+    const i = p === 'r' ? from + d : from - d;
+    if (i < 0) continue;
+    if (i > 23) continue;
+    if (p === 'r' && i > to) continue;
+    if (p === 'b' && i < to) continue;
+    if (spots[i].pieces.length > 1 && spots[i].pieces[0] === np) continue;
+    if (i === to) {
+      return [d];
+    } else {
+      const rest = [...ds];
+      rest.splice(ds.indexOf(d), 1);
+      const used = getDiceUsed(state, p, i, to, rest);
+      if (used.length) return [d, ...used];
+    }
+  }
+  return [];
+}
+
+// Apply a move to the game state, returning a new state
+function applyMove(state: GameState, p: Piece, from: number, to: number): GameState {
+  // Deep copy the state
+  const newState: GameState = {
+    ...state,
+    board: [...state.board],
+    bar: [...state.bar],
+    spots: state.spots.map(s => ({ ...s, pieces: [...s.pieces] })),
+    redOff: [...state.redOff],
+    blackOff: [...state.blackOff],
+    redDice: [...state.redDice],
+    blackDice: [...state.blackDice],
+    diceUsed: [...state.diceUsed],
+    lastMovedSpots: { ...state.lastMovedSpots },
+    lastMovedOff: { ...state.lastMovedOff },
+  };
+
+  if (from === to) return newState;
+  
+  const dice = getDiceUsed(newState, p, from, to, getDice(newState, p));
+  newState.diceUsed.push(...dice);
+  
+  const previous = from < 0 ? newState.bar : newState.spots[from].pieces;
+  previous.splice(previous.findIndex(c => c === p), 1);
+  
+  let hit = false;
+  let path = from < 0 ? (p === 'r' ? -1 : 24) : from;
+  for (const d of dice.map(d => p === 'r' ? d : -d)) {
+    path += d;
+    if (path < 0 || path > 23) break;
+    const hop = newState.spots[path].pieces;
+    if (hop.length === 1 && hop[0] !== p) {
+      if (hit) {
+        newState.board.push(renderMove(p, from, path, hit));
+        from = path;
+      }
+      hit = true;
+      newState.bar.push(p === 'r' ? 'b' : 'r');
+      hop.length = 0;
+    }
+  }
+  
+  const current = to < 0 ? undefined : newState.spots[to].pieces;
+  if (!current?.length || current[0] === p) {
+    current?.push(p);
+    // If piece is going off, add to off collection
+    if (to < 0) {
+      if (p === 'r') {
+        newState.redOff.push(p);
+      } else {
+        newState.blackOff.push(p);
+      }
+    }
+    newState.board.push(renderMove(p, from, to, hit));
+  } else if (current.length === 1) {
+    newState.bar.push(current[0]);
+    current[0] = p;
+    newState.board.push(renderMove(p, from, to, hit));
+  }
+  
+  // Update glow tracking
+  if (to >= 0 && to < 24) {
+    newState.lastMovedSpots[to] = (newState.lastMovedSpots[to] || 0) + 1;
+  } else if (to < 0) {
+    newState.lastMovedOff[newState.turn!]++;
+  }
+  if (from >= 0 && from < 24) {
+    newState.lastMovedSpots[from] = (newState.lastMovedSpots[from] || 1) - 1;
+  } else if (from < 0) {
+    newState.lastMovedOff[newState.turn!]++;
+  }
+  
+  // Check for winner
+  if (!getRedPips(newState)) {
+    newState.winner = 'r';
+  } else if (!getBlackPips(newState)) {
+    newState.winner = 'b';
+  }
+  
+  return newState;
+}
+
+// Apply a dice roll to the game state
+function applyRoll(state: GameState, p: Piece, d1: number, d2: number): GameState {
+  const newState: GameState = {
+    ...state,
+    board: [...state.board],
+    bar: [...state.bar],
+    spots: state.spots.map(s => ({ ...s, pieces: [...s.pieces] })),
+    redOff: [...state.redOff],
+    blackOff: [...state.blackOff],
+    redDice: [...state.redDice],
+    blackDice: [...state.blackDice],
+    diceUsed: [],
+    lastMovedSpots: {},
+    lastMovedOff: { 'r': 0, 'b': 0 },
+  };
+
+  const ds = p === 'r' ? newState.redDice : newState.blackDice;
+  ds[0] = d1;
+  ds[1] = d2;
+  newState.board.push(`${p} ${d1}-${d2}`);
+
+  if (!newState.turn && newState.redDice[0] && newState.blackDice[0]) {
+    if (newState.redDice[0] === newState.blackDice[0]) {
+      newState.redDice = [];
+      newState.blackDice = [];
+    } else {
+      newState.turn = newState.redDice[0] > newState.blackDice[0] ? 'r' : 'b';
+    }
+  } else if (newState.turn) {
+    newState.turn = p;
+  }
+
+  return newState;
+}
+
+
+
+
 
 @Component({
   standalone: false,
