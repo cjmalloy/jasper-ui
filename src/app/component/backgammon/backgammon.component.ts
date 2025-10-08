@@ -32,20 +32,29 @@ export type Spot = {
   pieces: Piece[],
 };
 type AnimationState = {
-  from: number;
-  to: number;
-  piece: Piece;
-  spotsState: Spot[];
-  barState: Piece[];
+  // For rolling animations
+  rollingPiece?: Piece;
+  postRedDice?: number[];
+  postBlackDice?: number[];
+  postTurn?: Piece;
+  postBoard?: string[];
+  postDiceUsed?: number[];
+  postMoves?: number[][];
+  // For move animations
+  from?: number;
+  to?: number;
+  piece?: Piece;
+  spotsState?: Spot[];
+  barState?: Piece[];
   turnState?: Piece;
-  movesState: number[][];
+  movesState?: number[][];
   fromStackIndex?: number;
   toStackIndex?: number;
   // Post-move states for updating after animation
-  postSpotsState: Spot[];
-  postBarState: Piece[];
-  postRedOff: Piece[];
-  postBlackOff: Piece[];
+  postSpotsState?: Spot[];
+  postBarState?: Piece[];
+  postRedOff?: Piece[];
+  postBlackOff?: Piece[];
 };
 
 function renderMove(p: Piece, from: number, to: number, hit?: boolean) {
@@ -101,15 +110,10 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   translate?: number;
   animating = false;
   animationQueue: AnimationState[] = [];
-  rollingQueue: Piece[] = [];
   animatedPiece?: { piece: Piece; from: number; to: number; fromStackIndex?: number; toStackIndex?: number };
 
   private resizeObserver = window.ResizeObserver && new ResizeObserver(() => this.onResize()) || undefined;
   private watch?: Subscription;
-  /**
-   * Queued animation.
-   */
-  private incomingRolling?: Piece;
   private append$!: (value: string) => Observable<string>;
 
   constructor(
@@ -150,9 +154,20 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
           this.lastMovedSpots = {};
           this.lastMovedOff = { 'r': 0, 'b': 0 };
           const lastRoll = update.split(' ')[0] as Piece;
-          // Queue the rolling animation instead of showing it immediately
-          this.rollingQueue.push(lastRoll);
-          this.load([update]);
+
+          // Compute the state after the roll without modifying current state
+          const newState = this.computeRollState(update);
+
+          // Queue the rolling animation with post-animation state
+          this.queueAnimation({
+            rollingPiece: lastRoll,
+            postRedDice: newState.redDice,
+            postBlackDice: newState.blackDice,
+            postTurn: newState.turn,
+            postBoard: newState.board,
+            postDiceUsed: newState.diceUsed,
+            postMoves: newState.moves
+          });
         } else if (update.includes('/')) {
           // Parse the move
           const parts = update.split(/[\s/*()]+/g).filter(p => !!p);
@@ -400,6 +415,76 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
     this.spots[18].pieces = [...'rrrrr'] as Piece[];
     this.spots[23].pieces = [...'bb'] as Piece[];
     this.load(board.split('\n').map(m => m.trim()).filter(m => !!m));
+  }
+
+  /**
+   * Compute the state after applying a roll without modifying current state
+   */
+  computeRollState(rollUpdate: string): {
+    redDice: number[];
+    blackDice: number[];
+    turn?: Piece;
+    board: string[];
+    diceUsed: number[];
+    moves: number[][];
+  } {
+    const parts = rollUpdate.split(/[\s/*()]+/g).filter(p => !!p);
+    const p = parts[0] as Piece;
+
+    const redDice = [...this.redDice];
+    const blackDice = [...this.blackDice];
+    let turn = this.turn;
+    const board = [...this.board];
+    const diceUsed: number[] = [];
+
+    const ds = p === 'r' ? redDice : blackDice;
+    ds[0] = parseInt(rollUpdate[2]);
+    ds[1] = parseInt(rollUpdate[4]);
+    board.push(`${p} ${ds[0]}-${ds[1]}`);
+
+    if (!turn && redDice[0] && blackDice[0]) {
+      if (redDice[0] === blackDice[0]) {
+        redDice.length = 0;
+        blackDice.length = 0;
+      } else {
+        turn = redDice[0] > blackDice[0] ? 'r' : 'b';
+      }
+    } else if (turn) {
+      turn = p;
+    }
+
+    // Compute moves based on new state
+    const moves = this.getAllMovesForState(turn, redDice, blackDice, diceUsed);
+
+    return { redDice, blackDice, turn, board, diceUsed, moves };
+  }
+
+  /**
+   * Helper to compute moves for a given state without modifying component state
+   */
+  getAllMovesForState(turn: Piece | undefined, redDice: number[], blackDice: number[], diceUsed: number[]): number[][] {
+    if (!turn) return [];
+
+    // Temporarily set state to compute moves
+    const oldTurn = this.turn;
+    const oldRedDice = this.redDice;
+    const oldBlackDice = this.blackDice;
+    const oldDiceUsed = this.diceUsed;
+
+    this.turn = turn;
+    this.redDice = redDice;
+    this.blackDice = blackDice;
+    this.diceUsed = diceUsed;
+
+    const moves = this.getAllMoves();
+
+    // Restore original state
+    this.turn = oldTurn;
+    this.redDice = oldRedDice;
+    this.blackDice = oldBlackDice;
+    this.diceUsed = oldDiceUsed;
+
+    return moves;
   }
 
   load(moves?: string[]) {
@@ -806,39 +891,39 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   }
 
   processAnimationQueue() {
-    // Check if there's a rolling animation to show first
-    if (this.rollingQueue.length > 0 && !this.rolling) {
-      this.animating = true;
-      const rollingPiece = this.rollingQueue.shift()!;
-      this.rolling = rollingPiece;
-
-      // After rolling animation completes, continue with move animations
-      delay(() => {
-        this.rolling = undefined;
-        this.processAnimationQueue();
-      }, 3400);
-      return;
-    }
-
+    this.animating = false;
     delete this.animatedPiece;
-
-    if (this.animationQueue.length === 0) {
-      this.animating = false;
-      return;
-    }
+    delete this.rolling;
+    if (this.animationQueue.length === 0) return;
 
     this.animating = true;
     const animation = this.animationQueue.shift()!;
 
+    // Handle rolling animation
+    if (animation.rollingPiece) {
+      this.rolling = animation.rollingPiece;
+      if (animation.postRedDice) this.redDice = animation.postRedDice;
+      if (animation.postBlackDice) this.blackDice = animation.postBlackDice;
+      if (animation.postTurn !== undefined) this.turn = animation.postTurn;
+      if (animation.postBoard) this.board = animation.postBoard;
+      if (animation.postDiceUsed) this.diceUsed = animation.postDiceUsed;
+      if (animation.postMoves) this.moves = animation.postMoves;
+      delay(() => {
+        this.processAnimationQueue();
+      }, 750);
+      return;
+    }
+
+    // Handle move animation
     // Keep the PRE-move state during animation so piece is still at source
-    this.spots = animation.spotsState;
-    this.bar = animation.barState;
+    this.spots = animation.spotsState!;
+    this.bar = animation.barState!;
     this.turn = animation.turnState;
-    this.moves = animation.movesState;
+    this.moves = animation.movesState!;
 
     // Calculate coordinates for CSS animation
-    const fromSpot = animation.from === -1 ? null : this.spots.find(s => s.index === animation.from);
-    const toSpot = animation.to === -2 || animation.to === -1 ? null : this.spots.find(s => s.index === animation.to);
+    const fromSpot = animation.from === -1 ? null : this.spots.find(s => s.index === animation.from!);
+    const toSpot = animation.to === -2 || animation.to === -1 ? null : this.spots.find(s => s.index === animation.to!);
 
     // Calculate grid positions
     // From position
@@ -874,70 +959,68 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
     // Pieces stack vertically, with stacked pieces having additional y offsets
     // For top spots, pieces stack downward; for bottom spots, upward
     let fromStackOffsetX = 0;
-    let fromStackOffsetY = animation.fromStackIndex || 0;
+    let fromStackOffsetY = (animation.fromStackIndex || 0);
     let toStackOffsetX = 0;
-    let toStackOffsetY = animation.toStackIndex || 0;
+    let toStackOffsetY = (animation.toStackIndex || 0);
 
-    // Calculate source stack offset (in units of var(--dim))
-    if (animation.fromStackIndex !== undefined && animation.fromStackIndex >= 0) {
+    if (animation.fromStackIndex) {
       if (animation.fromStackIndex > 4) {
-        fromStackOffsetX = 0.1;
-        fromStackOffsetY -= 5;
+        fromStackOffsetX -= 0.05;
+        fromStackOffsetY -= 5.2;
         if (animation.fromStackIndex > 9) {
-          fromStackOffsetX = 0.2;
-          fromStackOffsetY -= 5;
+          fromStackOffsetX -= 0.05;
+          fromStackOffsetY -= 5.2;
         }
       }
-      // Adjust sign based on whether it's a top or bottom spot
-      if (fromSpot && !fromSpot.top) {
-        fromStackOffsetY = -fromStackOffsetY;
-        fromStackOffsetX = -fromStackOffsetX;
-      }
+    }
+    // Adjust sign based on whether it's a top or bottom spot
+    if (fromSpot && !fromSpot.top) {
+      fromStackOffsetY = -fromStackOffsetY + 0.1;
+      fromStackOffsetX = -fromStackOffsetX;
     }
 
-    // Calculate destination stack offset (in units of var(--dim))
-    if (animation.toStackIndex !== undefined && animation.toStackIndex >= 0) {
+    if (animation.toStackIndex) {
       if (animation.toStackIndex > 4) {
-        toStackOffsetX = 0.1;
-        toStackOffsetY -= 5;
+        toStackOffsetX -= 0.05;
+        toStackOffsetY -= 5.2;
         if (animation.toStackIndex > 9) {
-          toStackOffsetX = 0.2;
-          toStackOffsetY -= 5;
+          toStackOffsetX -= 0.05;
+          toStackOffsetY -= 5.2;
         }
       }
-      // Adjust sign based on whether it's a top or bottom spot
-      if (toSpot && !toSpot.top) {
-        toStackOffsetY = -toStackOffsetY;
-        toStackOffsetX = -toStackOffsetX;
-      }
+    }
+    // Adjust sign based on whether it's a top or bottom spot
+    if (toSpot && !toSpot.top) {
+      toStackOffsetY = -toStackOffsetY + 0.1;
+      toStackOffsetX = -toStackOffsetX;
     }
 
 
-    const xFrom = fromCol * 2 + fromStackOffsetX;
-    const yFrom = fromRow * 24 + fromStackOffsetY;
-    const xTo = toCol * 2 + toStackOffsetX;
-    const yTo = toRow * 24 + toStackOffsetY;
+    const xFrom = fromCol + fromStackOffsetX;
+    const yFrom = fromRow * 12 + fromStackOffsetY * 0.86;
+    const xTo = toCol + toStackOffsetX;
+    const yTo = toRow * 12 + toStackOffsetY * 0.86;
 
     console.log(xFrom, yFrom, xTo, yTo);
-    this.el.nativeElement.style.setProperty('--xFrom', '' + xFrom);
-    this.el.nativeElement.style.setProperty('--yFrom', '' + yFrom);
-    this.el.nativeElement.style.setProperty('--xTo', '' + xTo);
-    this.el.nativeElement.style.setProperty('--yTo', '' + yTo);
+    this.el.nativeElement.style.setProperty('--xFrom', '' + xFrom * 2);
+    this.el.nativeElement.style.setProperty('--yFrom', '' + yFrom * 2);
+    this.el.nativeElement.style.setProperty('--xTo', '' + xTo * 2);
+    this.el.nativeElement.style.setProperty('--yTo', '' + yTo * 2);
 
     requestAnimationFrame(() => {
       this.animatedPiece = {
-        piece: animation.piece,
-        from: animation.from,
-        to: animation.to,
+        piece: animation.piece!,
+        from: animation.from!,
+        to: animation.to!,
         fromStackIndex: animation.fromStackIndex,
         toStackIndex: animation.toStackIndex
       };
       const totalDuration = 1500;
       delay(() => {
-        this.spots = animation.postSpotsState;
-        this.bar = animation.postBarState;
-        this.redOff = animation.postRedOff;
-        this.blackOff = animation.postBlackOff;
+        this.spots = animation.postSpotsState!;
+        this.bar = animation.postBarState!;
+        this.redOff = animation.postRedOff!;
+        this.blackOff = animation.postBlackOff!;
         this.processAnimationQueue();
       }, totalDuration);
     });
