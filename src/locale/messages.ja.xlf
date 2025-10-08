@@ -5988,7 +5988,7 @@ Enter the origin to confirm:</source>
         <source> Image </source>
         <target> 画像 </target>
       </trans-unit>
-          <trans-unit id="1408060915920557981" datatype="html">
+      <trans-unit id="1408060915920557981" datatype="html">
         <source>AI Web Context</source>
         <target>AIウェブコンテキスト</target>
       </trans-unit>
