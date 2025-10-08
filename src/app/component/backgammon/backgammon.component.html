@@ -37,7 +37,7 @@
     <div class="backgammon-piece"
          [class.stacked]="pi > 4"
          [class.double-stacked]="pi > 9"
-         [class.glow]="pi >= blackOff.length - (lastMovedOff['b'] ||0)"
+         [class.glow]="pi >= blackOff.length - (lastMovedOff['b'] || 0)"
          [class.translate]="turn === 'b' && translate === -2 && pi === blackOff.length - 1">{{ drawPiece(p) }}</div>
   }
 </div>
