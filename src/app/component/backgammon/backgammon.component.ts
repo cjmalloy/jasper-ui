@@ -578,6 +578,10 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   loaded = false;
   @HostBinding('class.resizing')
   resizing = 0;
+  @HostBinding('class.replay-mode')
+  get isReplayMode() {
+    return this.replayMode;
+  }
   translate?: number;
   animating = false;
   animationQueue: AnimationState[] = [];
@@ -745,6 +749,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   }
 
   drop(event: CdkDragDrop<number, number, Piece>) {
+    if (this.replayMode) return; // Don't allow moves in replay mode
     const p = event.item.data;
     const from = event.previousContainer.data;
     const to = event.container.data;
@@ -926,6 +931,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   }
 
   roll(p: Piece) {
+    if (this.replayMode) return; // Don't allow rolling in replay mode
     if (this.state.winner) throw $localize`Game Over`;
     if (this.state.turn && !isFirstRoll(this.state) && this.state.turn === p) throw $localize`Not your turn`;
     if (!isFirstRoll(this.state) && this.state.moves.length) throw $localize`Must move`;
