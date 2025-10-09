@@ -591,7 +591,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   replayMode = false;
   replayPosition = 0;
   replayPlaying = false;
-  replayInterval?: any;
+  replaySpeed = 1; // 1x, 2x, 3x, 4x
   gameHistory: string[] = [];
   replayAnimations: AnimationState[] = [];
   importantEvents: number[] = [];
@@ -1214,14 +1214,18 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   }
 
   replayToPosition(position: number | string) {
-    const pos = typeof position === 'string' ? parseInt(position, 10) : position;
-    if (pos < 0 || isNaN(pos)) return;
+    const pos = typeof position === 'string' ? parseFloat(position) : position;
+    if (isNaN(pos) || pos < 0) return;
     if (pos > this.replayAnimations.length) return;
     
     this.replayPosition = pos;
     
+    // Integer part is the animation index, fractional part is progress
+    const animationIndex = Math.floor(pos);
+    const progress = pos - animationIndex;
+    
     // Set state directly from the animation at this position
-    if (pos === 0) {
+    if (animationIndex === 0) {
       // Initial state
       this.state = {
         bar: [],
@@ -1244,9 +1248,95 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
       this.state.spots[16].pieces = [...'rrr'] as Piece[];
       this.state.spots[18].pieces = [...'rrrrr'] as Piece[];
       this.state.spots[23].pieces = [...'bb'] as Piece[];
-    } else {
+      
+      // If there's progress into the first animation, show it
+      if (progress > 0 && this.replayAnimations.length > 0) {
+        this.showAnimationProgress(this.replayAnimations[0], progress);
+      }
+    } else if (animationIndex <= this.replayAnimations.length) {
       // Use the post state from the animation at position - 1
-      this.state = cloneDeep(this.replayAnimations[pos - 1].post);
+      this.state = cloneDeep(this.replayAnimations[animationIndex - 1].post);
+      
+      // If there's progress into the next animation, show it
+      if (progress > 0 && animationIndex < this.replayAnimations.length) {
+        this.showAnimationProgress(this.replayAnimations[animationIndex], progress);
+      }
+    }
+  }
+  
+  showAnimationProgress(animation: AnimationState, progress: number) {
+    // Set the pre-state for the animation
+    this.state = cloneDeep(animation.pre);
+    
+    // For progress > 0, show the animated piece in transit
+    if (animation.rollingPiece) {
+      // Rolling animation - just show the dice
+      this.rolling = animation.rollingPiece;
+    } else if (animation.from !== undefined && animation.to !== undefined && animation.to !== -2) {
+      // Show the piece in transit using CSS animation progress
+      this.animatedPiece = animation;
+      
+      // Calculate positions for CSS
+      const fromSpot = animation.from === -1 ? null : animation.pre.spots.find(s => s.index === animation.from!);
+      const toSpot = animation.to === -1 ? null : animation.pre.spots.find(s => s.index === animation.to!);
+      
+      let fromCol = 0, fromRow = 0;
+      if (animation.from === -1) {
+        fromCol = 7;
+        fromRow = animation.piece === 'r' ? 1 : 0;
+      } else if (fromSpot) {
+        fromCol = fromSpot.col > 6 ? fromSpot.col + 1 : fromSpot.col;
+        fromRow = fromSpot.top ? 0 : 1;
+      }
+      
+      let toCol = 0, toRow = 0;
+      if (animation.to === -1) {
+        toCol = 7;
+        toRow = animation.piece === 'r' ? 1 : 0;
+      } else if (toSpot) {
+        toCol = toSpot.col > 6 ? toSpot.col + 1 : toSpot.col;
+        toRow = toSpot.top ? 0 : 1;
+      }
+      
+      // Calculate stack offsets
+      let fromStackOffsetX = 0, fromStackOffsetY = (animation.fromStackIndex || 0);
+      let toStackOffsetX = 0, toStackOffsetY = (animation.toStackIndex || 0);
+      
+      if (animation.fromStackIndex && animation.fromStackIndex > 4) {
+        fromStackOffsetX -= 0.05;
+        fromStackOffsetY -= 5.2;
+        if (animation.fromStackIndex > 9) {
+          fromStackOffsetX -= 0.05;
+          fromStackOffsetY -= 5.2;
+        }
+      }
+      if (fromSpot && !fromSpot.top) {
+        fromStackOffsetY = -fromStackOffsetY + 0.1;
+        fromStackOffsetX = -fromStackOffsetX;
+      }
+      
+      if (animation.toStackIndex && animation.toStackIndex > 4) {
+        toStackOffsetX -= 0.05;
+        toStackOffsetY -= 5.2;
+        if (animation.toStackIndex > 9) {
+          toStackOffsetX -= 0.05;
+          toStackOffsetY -= 5.2;
+        }
+      }
+      if (toSpot && !toSpot.top) {
+        toStackOffsetY = -toStackOffsetY + 0.1;
+        toStackOffsetX = -toStackOffsetX;
+      }
+      
+      const xFrom = fromCol + fromStackOffsetX;
+      const yFrom = fromRow * 12 + fromStackOffsetY * 0.86;
+      const xTo = toCol + toStackOffsetX;
+      const yTo = toRow * 12 + toStackOffsetY * 0.86;
+      
+      this.el.nativeElement.style.setProperty('--xFrom', '' + xFrom * 2);
+      this.el.nativeElement.style.setProperty('--yFrom', '' + yFrom * 2);
+      this.el.nativeElement.style.setProperty('--xTo', '' + xTo * 2);
+      this.el.nativeElement.style.setProperty('--yTo', '' + yTo * 2);
     }
   }
 
@@ -1254,21 +1344,171 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
     if (this.replayPlaying) return;
     
     this.replayPlaying = true;
-    this.replayInterval = setInterval(() => {
-      if (this.replayPosition >= this.replayAnimations.length) {
-        this.stopReplay();
-        return;
+    
+    // Clear any existing animation queue
+    this.animationQueue = [];
+    
+    // Build animation queue from current position to end
+    const startIndex = Math.floor(this.replayPosition);
+    for (let i = startIndex; i < this.replayAnimations.length; i++) {
+      this.animationQueue.push(this.replayAnimations[i]);
+    }
+    
+    // Start processing the queue
+    if (this.animationQueue.length > 0 && !this.animating) {
+      this.processReplayAnimationQueue();
+    }
+  }
+  
+  processReplayAnimationQueue() {
+    this.animating = false;
+    delete this.animatedPiece;
+    delete this.rolling;
+    
+    if (this.animationQueue.length === 0) {
+      this.replayPlaying = false;
+      this.replayPosition = this.replayAnimations.length;
+      return;
+    }
+    
+    if (!this.replayPlaying) {
+      // User paused, stop processing
+      return;
+    }
+
+    this.animating = true;
+    const animation = this.animationQueue.shift()!;
+    const animationIndex = this.replayAnimations.indexOf(animation);
+    
+    // Update replay position to the start of this animation
+    this.replayPosition = animationIndex;
+
+    // Handle rolling animation
+    if (animation.rollingPiece) {
+      this.state = { ...animation.post };
+      this.rolling = animation.rollingPiece;
+      const duration = 750 / this.replaySpeed;
+      delay(() => {
+        this.replayPosition = animationIndex + 1;
+        this.processReplayAnimationQueue();
+      }, duration);
+      return;
+    }
+
+    if (animation.from === undefined) {
+      this.state = { ...animation.post };
+      if (!this.state.diceUsed.length) {
+        this.rolling = this.state.turn;
       }
-      this.replayToPosition(this.replayPosition + 1);
-    }, 1000);
+      const duration = 750 / this.replaySpeed;
+      delay(() => {
+        this.replayPosition = animationIndex + 1;
+        this.processReplayAnimationQueue();
+      }, duration);
+      return;
+    }
+
+    // Calculate coordinates for CSS animation
+    const fromSpot = animation.from === -1 ? null : animation.pre.spots.find(s => s.index === animation.from!);
+    const toSpot = animation.to === -2 || animation.to === -1 ? null : animation.pre.spots.find(s => s.index === animation.to!);
+
+    // Calculate grid positions
+    let fromCol = 0;
+    let fromRow = 0;
+    if (animation.from === -1) {
+      fromCol = 7;
+      fromRow = animation.piece === 'r' ? 1 : 0;
+    } else if (fromSpot) {
+      fromCol = fromSpot.col > 6 ? fromSpot.col + 1 : fromSpot.col;
+      fromRow = fromSpot.top ? 0 : 1;
+    }
+
+    let toCol = 0;
+    let toRow = 0;
+    if (animation.to === -1) {
+      toCol = 7;
+      toRow = animation.piece === 'r' ? 1 : 0;
+    } else if (animation.to === -2) {
+      toCol = 0;
+      toRow = animation.piece === 'r' ? 1 : 0;
+    } else if (toSpot) {
+      toCol = toSpot.col > 6 ? toSpot.col + 1 : toSpot.col;
+      toRow = toSpot.top ? 0 : 1;
+    }
+
+    // Calculate stack offset adjustments
+    let fromStackOffsetX = 0;
+    let fromStackOffsetY = (animation.fromStackIndex || 0);
+    let toStackOffsetX = 0;
+    let toStackOffsetY = (animation.toStackIndex || 0);
+
+    if (animation.fromStackIndex) {
+      if (animation.fromStackIndex > 4) {
+        fromStackOffsetX -= 0.05;
+        fromStackOffsetY -= 5.2;
+        if (animation.fromStackIndex > 9) {
+          fromStackOffsetX -= 0.05;
+          fromStackOffsetY -= 5.2;
+        }
+      }
+    }
+    if (fromSpot && !fromSpot.top) {
+      fromStackOffsetY = -fromStackOffsetY + 0.1;
+      fromStackOffsetX = -fromStackOffsetX;
+    }
+
+    if (animation.toStackIndex) {
+      if (animation.toStackIndex > 4) {
+        toStackOffsetX -= 0.05;
+        toStackOffsetY -= 5.2;
+        if (animation.toStackIndex > 9) {
+          toStackOffsetX -= 0.05;
+          toStackOffsetY -= 5.2;
+        }
+      }
+    }
+    if (toSpot && !toSpot.top) {
+      toStackOffsetY = -toStackOffsetY + 0.1;
+      toStackOffsetX = -toStackOffsetX;
+    }
+
+    const xFrom = fromCol + fromStackOffsetX;
+    const yFrom = fromRow * 12 + fromStackOffsetY * 0.86;
+    const xTo = toCol + toStackOffsetX;
+    const yTo = toRow * 12 + toStackOffsetY * 0.86;
+
+    this.el.nativeElement.style.setProperty('--xFrom', '' + xFrom * 2);
+    this.el.nativeElement.style.setProperty('--yFrom', '' + yFrom * 2);
+    this.el.nativeElement.style.setProperty('--xTo', '' + xTo * 2);
+    this.el.nativeElement.style.setProperty('--yTo', '' + yTo * 2);
+
+    requestAnimationFrame(() => {
+      this.animatedPiece = animation;
+      const totalDuration = 1500 / this.replaySpeed;
+      
+      // Update position progressively during animation
+      const steps = 10;
+      const stepDuration = totalDuration / steps;
+      for (let i = 1; i <= steps; i++) {
+        delay(() => {
+          if (this.replayPlaying) {
+            this.replayPosition = animationIndex + (i / steps);
+          }
+        }, stepDuration * i);
+      }
+      
+      delay(() => {
+        this.state = { ...animation.post };
+        this.replayPosition = animationIndex + 1;
+        this.processReplayAnimationQueue();
+      }, totalDuration);
+    });
   }
 
   pauseReplay() {
     this.replayPlaying = false;
-    if (this.replayInterval) {
-      clearInterval(this.replayInterval);
-      this.replayInterval = undefined;
-    }
+    // Clear animation queue but keep current position
+    this.animationQueue = [];
   }
 
   stopReplay() {
@@ -1287,13 +1527,13 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   }
 
   replayFastForward() {
-    this.pauseReplay();
-    // Jump to next important event or end
-    const nextEvent = this.importantEvents.find(e => e > this.replayPosition);
-    if (nextEvent !== undefined) {
-      this.replayToPosition(nextEvent);
-    } else {
-      this.replayToPosition(this.replayAnimations.length);
+    // Cycle through speeds: 1x -> 2x -> 3x -> 4x -> 1x
+    this.replaySpeed = this.replaySpeed >= 4 ? 1 : this.replaySpeed + 1;
+    
+    // If currently playing, restart with new speed
+    if (this.replayPlaying) {
+      this.pauseReplay();
+      this.playReplay();
     }
   }
 }

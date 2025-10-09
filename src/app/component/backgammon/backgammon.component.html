@@ -212,15 +212,14 @@
       <button type="button"
               class="replay-btn"
               (click)="replayFastForward()"
-              [disabled]="replayPosition >= replayAnimations.length"
-              i18n-title title="Fast forward to next important event">⏩️</button>
+              i18n-title title="Change playback speed">⏩️ {{ replaySpeed }}x</button>
       <button type="button"
               class="replay-btn exit-btn"
               (click)="exitReplayMode()"
               i18n-title title="Exit replay mode">✖️</button>
     </div>
     <div class="replay-info">
-      <span i18n>Move {{ replayPosition }} / {{ replayAnimations.length }}</span>
+      <span i18n>Move {{ replayPosition | number:'1.0-2' }} / {{ replayAnimations.length }}</span>
     </div>
   </div>
 }
