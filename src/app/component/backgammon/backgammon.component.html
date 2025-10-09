@@ -167,3 +167,60 @@
     }
   }
 </div>
+@if (replayMode) {
+  <div class="replay-controls">
+    <div class="scrubber-container">
+      <input type="range"
+             class="scrubber-bar"
+             [min]="0"
+             [max]="gameHistory.length"
+             [(ngModel)]="replayPosition"
+             (input)="replayToPosition(replayPosition)"
+             (mousedown)="pauseReplay()"
+             i18n-title title="Seek through game">
+      <div class="scrubber-ticks">
+        @for (eventPos of importantEvents; track eventPos) {
+          <div class="scrubber-tick"
+               [style.left.%]="(eventPos / gameHistory.length) * 100"
+               i18n-title title="Important event"></div>
+        }
+      </div>
+    </div>
+    <div class="control-buttons">
+      <button type="button"
+              class="replay-btn"
+              (click)="replayStepBackward()"
+              [disabled]="replayPosition === 0"
+              i18n-title title="Step backward">◀️</button>
+      @if (!replayPlaying) {
+        <button type="button"
+                class="replay-btn play-btn"
+                (click)="playReplay()"
+                [disabled]="replayPosition >= gameHistory.length"
+                i18n-title title="Play">▶️</button>
+      } @else {
+        <button type="button"
+                class="replay-btn pause-btn"
+                (click)="pauseReplay()"
+                i18n-title title="Pause">⏸️</button>
+      }
+      <button type="button"
+              class="replay-btn"
+              (click)="replayStepForward()"
+              [disabled]="replayPosition >= gameHistory.length"
+              i18n-title title="Step forward">▶️</button>
+      <button type="button"
+              class="replay-btn"
+              (click)="replayFastForward()"
+              [disabled]="replayPosition >= gameHistory.length"
+              i18n-title title="Fast forward to next important event">⏩️</button>
+      <button type="button"
+              class="replay-btn exit-btn"
+              (click)="exitReplayMode()"
+              i18n-title title="Exit replay mode">✖️</button>
+    </div>
+    <div class="replay-info">
+      <span i18n>Move {{ replayPosition }} / {{ gameHistory.length }}</span>
+    </div>
+  </div>
+}

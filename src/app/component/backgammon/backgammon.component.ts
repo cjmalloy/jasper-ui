@@ -583,6 +583,14 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   animationQueue: AnimationState[] = [];
   animatedPiece?: AnimationState;
 
+  // Replay mode state
+  replayMode = false;
+  replayPosition = 0;
+  replayPlaying = false;
+  replayInterval?: any;
+  gameHistory: string[] = [];
+  importantEvents: number[] = [];
+
   private resizeObserver = window.ResizeObserver && new ResizeObserver(() => this.onResize()) || undefined;
   private watch?: Subscription;
   private append$!: (value: string) => Observable<string>;
@@ -648,6 +656,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
     this.disposers.length = 0;
     this.resizeObserver?.disconnect();
     this.watch?.unsubscribe();
+    this.pauseReplay();
   }
 
   get bgConf() {
@@ -710,7 +719,16 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
     this.state.spots[16].pieces = [...'rrr'] as Piece[];
     this.state.spots[18].pieces = [...'rrrrr'] as Piece[];
     this.state.spots[23].pieces = [...'bb'] as Piece[];
-    load(this.state, board.split('\n').map(m => m.trim()).filter(m => !!m));
+    
+    // Store game history
+    this.gameHistory = board.split('\n').map(m => m.trim()).filter(m => !!m);
+    
+    load(this.state, this.gameHistory);
+    
+    // Auto-enter replay mode if game has ended
+    if (!this.replayMode && this.isGameEnded && this.gameHistory.length > 0) {
+      defer(() => this.enterReplayMode());
+    }
   }
 
   get lastState(): GameState {
@@ -1052,5 +1070,216 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
         this.processAnimationQueue();
       }, totalDuration);
     });
+  }
+
+  // Replay mode controls
+  get isGameEnded() {
+    return !!this.state.winner || hasTag('plugin/backgammon/draw', this.ref) || 
+           hasTag('plugin/backgammon/winner/r', this.ref) || 
+           hasTag('plugin/backgammon/winner/b', this.ref);
+  }
+
+  detectImportantEvents() {
+    const events: number[] = [];
+    
+    // We need to replay the game to detect all home and >1 off in a turn
+    const tempState: GameState = {
+      bar: [],
+      blackDice: [],
+      blackOff: [],
+      board: [],
+      diceUsed: [],
+      lastMovedOff: { 'r': 0, 'b': 0 },
+      lastMovedSpots: {},
+      moves: [],
+      redDice: [],
+      redOff: [],
+      spots: range(24).map(index => (<Spot>{ index, col: index < 12 ? index + 1 : 24 - index, red: !(index % 2), top: index < 12, pieces: [] as string[] })),
+    };
+    tempState.spots[ 0].pieces = [...'rr'] as Piece[];
+    tempState.spots[ 5].pieces = [...'bbbbb'] as Piece[];
+    tempState.spots[ 7].pieces = [...'bbb'] as Piece[];
+    tempState.spots[11].pieces = [...'rrrrr'] as Piece[];
+    tempState.spots[12].pieces = [...'bbbbb'] as Piece[];
+    tempState.spots[16].pieces = [...'rrr'] as Piece[];
+    tempState.spots[18].pieces = [...'rrrrr'] as Piece[];
+    tempState.spots[23].pieces = [...'bb'] as Piece[];
+    
+    let currentTurnStart = 0;
+    let currentTurnPiece: Piece | undefined;
+    let piecesOffThisTurn = 0;
+    let redAllHome = false;
+    let blackAllHome = false;
+    
+    for (let i = 0; i < this.gameHistory.length; i++) {
+      const move = this.gameHistory[i];
+      const parts = move.split(/[\s/*()]+/g).filter(p => !!p);
+      const p = parts[0] as Piece;
+      
+      // Check for double 6s
+      if (move.includes('6-6')) {
+        events.push(i);
+      }
+      
+      // Track turn changes
+      if (move.includes('-')) {
+        // New roll - check if we had >1 off in previous turn
+        if (piecesOffThisTurn > 1) {
+          events.push(currentTurnStart);
+        }
+        currentTurnStart = i;
+        currentTurnPiece = p;
+        piecesOffThisTurn = 0;
+      } else if (move.includes('off')) {
+        piecesOffThisTurn++;
+      }
+      
+      // Apply move to temp state to check for all home
+      if (move.includes('-')) {
+        const ds = p === 'r' ? tempState.redDice : tempState.blackDice;
+        ds[0] = parseInt(move[2]);
+        ds[1] = parseInt(move[4]);
+        tempState.board.push(`${p} ${ds[0]}-${ds[1]}`);
+        tempState.diceUsed = [];
+        if (!tempState.turn && tempState.redDice[0] && tempState.blackDice[0]) {
+          tempState.turn = tempState.redDice[0] > tempState.blackDice[0] ? 'r' : 'b';
+        } else if (tempState.turn) {
+          tempState.turn = p;
+        }
+      } else {
+        const bar = move.includes('bar');
+        const off = move.includes('off');
+        const from = bar ? -1 : parseInt(parts[1]) - 1;
+        const to = off ? -2 : parseInt(parts[2]) - 1;
+        
+        // Simple move application for detection
+        if (from >= 0 && from < 24) {
+          const idx = tempState.spots[from].pieces.findIndex(c => c === p);
+          if (idx >= 0) tempState.spots[from].pieces.splice(idx, 1);
+        } else if (from === -1) {
+          const idx = tempState.bar.findIndex(b => b === p);
+          if (idx >= 0) tempState.bar.splice(idx, 1);
+        }
+        
+        if (to >= 0 && to < 24) {
+          tempState.spots[to].pieces.push(p);
+        } else if (to === -2) {
+          if (p === 'r') {
+            tempState.redOff.push(p);
+          } else {
+            tempState.blackOff.push(p);
+          }
+        }
+      }
+      
+      // Check if red or black all pieces are in home
+      if (!redAllHome && p === 'r') {
+        let inHome = true;
+        for (let j = 0; j < 18; j++) {
+          if (tempState.spots[j].pieces.find(piece => piece === 'r')) {
+            inHome = false;
+            break;
+          }
+        }
+        if (tempState.bar.find(b => b === 'r')) inHome = false;
+        if (inHome && tempState.redOff.length < 15) {
+          redAllHome = true;
+          events.push(i);
+        }
+      }
+      
+      if (!blackAllHome && p === 'b') {
+        let inHome = true;
+        for (let j = 6; j < 24; j++) {
+          if (tempState.spots[j].pieces.find(piece => piece === 'b')) {
+            inHome = false;
+            break;
+          }
+        }
+        if (tempState.bar.find(b => b === 'b')) inHome = false;
+        if (inHome && tempState.blackOff.length < 15) {
+          blackAllHome = true;
+          events.push(i);
+        }
+      }
+    }
+    
+    // Check last turn
+    if (piecesOffThisTurn > 1) {
+      events.push(currentTurnStart);
+    }
+    
+    return [...new Set(events)].sort((a, b) => a - b);
+  }
+
+  enterReplayMode() {
+    if (!this.isGameEnded || this.gameHistory.length === 0) return;
+    
+    this.replayMode = true;
+    this.replayPosition = 0;
+    this.importantEvents = this.detectImportantEvents();
+    this.replayToPosition(0);
+  }
+
+  exitReplayMode() {
+    this.replayMode = false;
+    this.stopReplay();
+    this.reset(this.gameHistory.join('\n'));
+  }
+
+  replayToPosition(position: number) {
+    if (position < 0) position = 0;
+    if (position > this.gameHistory.length) position = this.gameHistory.length;
+    
+    this.replayPosition = position;
+    const moves = this.gameHistory.slice(0, position);
+    this.reset(moves.join('\n'));
+  }
+
+  playReplay() {
+    if (this.replayPlaying) return;
+    
+    this.replayPlaying = true;
+    this.replayInterval = setInterval(() => {
+      if (this.replayPosition >= this.gameHistory.length) {
+        this.stopReplay();
+        return;
+      }
+      this.replayToPosition(this.replayPosition + 1);
+    }, 1000);
+  }
+
+  pauseReplay() {
+    this.replayPlaying = false;
+    if (this.replayInterval) {
+      clearInterval(this.replayInterval);
+      this.replayInterval = undefined;
+    }
+  }
+
+  stopReplay() {
+    this.pauseReplay();
+    this.replayToPosition(0);
+  }
+
+  replayStepForward() {
+    this.pauseReplay();
+    this.replayToPosition(this.replayPosition + 1);
+  }
+
+  replayStepBackward() {
+    this.pauseReplay();
+    this.replayToPosition(this.replayPosition - 1);
+  }
+
+  replayFastForward() {
+    this.pauseReplay();
+    // Jump to next important event or end
+    const nextEvent = this.importantEvents.find(e => e > this.replayPosition);
+    if (nextEvent !== undefined) {
+      this.replayToPosition(nextEvent);
+    } else {
+      this.replayToPosition(this.gameHistory.length);
+    }
   }
 }

@@ -339,3 +339,136 @@
     }
   }
 }
+
+.replay-controls {
+  position: absolute;
+  bottom: calc(-5 * var(--dim));
+  left: 0;
+  width: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  padding: calc(var(--dim) / 2);
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--dim) / 4);
+  border-radius: calc(var(--dim) / 4);
+  z-index: 100;
+
+  .scrubber-container {
+    position: relative;
+    width: 100%;
+    height: calc(var(--dim) * 1.5);
+    display: flex;
+    align-items: center;
+  }
+
+  .scrubber-bar {
+    width: 100%;
+    height: calc(var(--dim) / 3);
+    -webkit-appearance: none;
+    appearance: none;
+    background: rgba(255, 255, 255, 0.2);
+    outline: none;
+    border-radius: calc(var(--dim) / 6);
+    cursor: pointer;
+
+    &::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: var(--dim);
+      height: var(--dim);
+      background: var(--red);
+      cursor: pointer;
+      border-radius: 50%;
+      box-shadow: 0 0 4px rgba(0, 0, 0, 0.5);
+    }
+
+    &::-moz-range-thumb {
+      width: var(--dim);
+      height: var(--dim);
+      background: var(--red);
+      cursor: pointer;
+      border-radius: 50%;
+      border: none;
+      box-shadow: 0 0 4px rgba(0, 0, 0, 0.5);
+    }
+  }
+
+  .scrubber-ticks {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: 100%;
+    height: calc(var(--dim) / 3);
+    transform: translateY(-50%);
+    pointer-events: none;
+
+    .scrubber-tick {
+      position: absolute;
+      top: 0;
+      width: 2px;
+      height: 100%;
+      background: gold;
+      box-shadow: 0 0 4px gold;
+    }
+  }
+
+  .control-buttons {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: calc(var(--dim) / 2);
+
+    .replay-btn {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      color: white;
+      font-size: calc(var(--piece-size) / 2);
+      padding: calc(var(--dim) / 4) calc(var(--dim) / 2);
+      border-radius: calc(var(--dim) / 4);
+      cursor: pointer;
+      transition: background 0.2s;
+
+      &:hover:not(:disabled) {
+        background: rgba(255, 255, 255, 0.2);
+      }
+
+      &:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+      }
+
+      &.play-btn {
+        background: rgba(0, 200, 0, 0.3);
+        border-color: rgba(0, 200, 0, 0.5);
+
+        &:hover:not(:disabled) {
+          background: rgba(0, 200, 0, 0.5);
+        }
+      }
+
+      &.pause-btn {
+        background: rgba(200, 200, 0, 0.3);
+        border-color: rgba(200, 200, 0, 0.5);
+
+        &:hover:not(:disabled) {
+          background: rgba(200, 200, 0, 0.5);
+        }
+      }
+
+      &.exit-btn {
+        background: rgba(200, 0, 0, 0.3);
+        border-color: rgba(200, 0, 0, 0.5);
+
+        &:hover:not(:disabled) {
+          background: rgba(200, 0, 0, 0.5);
+        }
+      }
+    }
+  }
+
+  .replay-info {
+    text-align: center;
+    color: white;
+    font-size: calc(var(--piece-size) / 3);
+  }
+}
