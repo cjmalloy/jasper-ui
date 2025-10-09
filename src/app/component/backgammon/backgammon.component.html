@@ -174,8 +174,8 @@
              class="scrubber-bar"
              [min]="0"
              [max]="gameHistory.length"
-             [(ngModel)]="replayPosition"
-             (input)="replayToPosition(replayPosition)"
+             [value]="replayPosition"
+             (input)="replayToPosition($any($event.target).value)"
              (mousedown)="pauseReplay()"
              i18n-title title="Seek through game">
       <div class="scrubber-ticks">

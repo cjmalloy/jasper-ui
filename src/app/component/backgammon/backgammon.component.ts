@@ -724,12 +724,14 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
     this.state.spots[18].pieces = [...'rrrrr'] as Piece[];
     this.state.spots[23].pieces = [...'bb'] as Piece[];
     
-    // Store game history
-    this.gameHistory = board.split('\n').map(m => m.trim()).filter(m => !!m);
+    // Store game history (only update if not already in replay mode to avoid infinite loop)
+    if (!this.replayMode) {
+      this.gameHistory = board.split('\n').map(m => m.trim()).filter(m => !!m);
+    }
     
-    load(this.state, this.gameHistory);
+    load(this.state, board.split('\n').map(m => m.trim()).filter(m => !!m));
     
-    // Auto-enter replay mode if game has ended
+    // Auto-enter replay mode if game has ended (but not already in replay mode)
     if (!this.replayMode && this.isGameEnded && this.gameHistory.length > 0) {
       defer(() => this.enterReplayMode());
     }
@@ -1233,12 +1235,13 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
     this.reset(this.gameHistory.join('\n'));
   }
 
-  replayToPosition(position: number) {
-    if (position < 0) position = 0;
-    if (position > this.gameHistory.length) position = this.gameHistory.length;
+  replayToPosition(position: number | string) {
+    const pos = typeof position === 'string' ? parseInt(position, 10) : position;
+    if (pos < 0 || isNaN(pos)) return;
+    if (pos > this.gameHistory.length) return;
     
-    this.replayPosition = position;
-    const moves = this.gameHistory.slice(0, position);
+    this.replayPosition = pos;
+    const moves = this.gameHistory.slice(0, pos);
     this.reset(moves.join('\n'));
   }
 
