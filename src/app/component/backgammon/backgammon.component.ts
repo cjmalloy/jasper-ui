@@ -593,6 +593,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   replayPlaying = false;
   replayInterval?: any;
   gameHistory: string[] = [];
+  replayAnimations: AnimationState[] = [];
   importantEvents: number[] = [];
 
   private resizeObserver = window.ResizeObserver && new ResizeObserver(() => this.onResize()) || undefined;
@@ -1087,11 +1088,11 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
            hasTag('plugin/backgammon/winner/b', this.ref);
   }
 
-  detectImportantEvents() {
-    const events: number[] = [];
+  precomputeReplayAnimations() {
+    this.replayAnimations = [];
     
-    // We need to replay the game to detect all home and >1 off in a turn
-    const tempState: GameState = {
+    // Start with initial state
+    let currentState: GameState = {
       bar: [],
       blackDice: [],
       blackOff: [],
@@ -1104,93 +1105,69 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
       redOff: [],
       spots: range(24).map(index => (<Spot>{ index, col: index < 12 ? index + 1 : 24 - index, red: !(index % 2), top: index < 12, pieces: [] as string[] })),
     };
-    tempState.spots[ 0].pieces = [...'rr'] as Piece[];
-    tempState.spots[ 5].pieces = [...'bbbbb'] as Piece[];
-    tempState.spots[ 7].pieces = [...'bbb'] as Piece[];
-    tempState.spots[11].pieces = [...'rrrrr'] as Piece[];
-    tempState.spots[12].pieces = [...'bbbbb'] as Piece[];
-    tempState.spots[16].pieces = [...'rrr'] as Piece[];
-    tempState.spots[18].pieces = [...'rrrrr'] as Piece[];
-    tempState.spots[23].pieces = [...'bb'] as Piece[];
+    currentState.spots[ 0].pieces = [...'rr'] as Piece[];
+    currentState.spots[ 5].pieces = [...'bbbbb'] as Piece[];
+    currentState.spots[ 7].pieces = [...'bbb'] as Piece[];
+    currentState.spots[11].pieces = [...'rrrrr'] as Piece[];
+    currentState.spots[12].pieces = [...'bbbbb'] as Piece[];
+    currentState.spots[16].pieces = [...'rrr'] as Piece[];
+    currentState.spots[18].pieces = [...'rrrrr'] as Piece[];
+    currentState.spots[23].pieces = [...'bb'] as Piece[];
+    
+    // Build animation for each move
+    for (const move of this.gameHistory) {
+      const animation = getAnimation(currentState, move);
+      if (animation) {
+        this.replayAnimations.push(animation);
+        currentState = animation.post;
+      }
+    }
+  }
+
+  detectImportantEvents() {
+    const events: number[] = [];
     
     let currentTurnStart = 0;
-    let currentTurnPiece: Piece | undefined;
     let piecesOffThisTurn = 0;
     let redAllHome = false;
     let blackAllHome = false;
     
-    for (let i = 0; i < this.gameHistory.length; i++) {
+    for (let i = 0; i < this.replayAnimations.length; i++) {
+      const animation = this.replayAnimations[i];
       const move = this.gameHistory[i];
       const parts = move.split(/[\s/*()]+/g).filter(p => !!p);
       const p = parts[0] as Piece;
       
-      // Check for double 6s
-      if (move.includes('6-6')) {
+      // Check for double 6s (rolls)
+      if (animation.rollingPiece && move.includes('6-6')) {
         events.push(i);
       }
       
       // Track turn changes
-      if (move.includes('-')) {
+      if (animation.rollingPiece) {
         // New roll - check if we had >1 off in previous turn
         if (piecesOffThisTurn > 1) {
           events.push(currentTurnStart);
         }
         currentTurnStart = i;
-        currentTurnPiece = p;
         piecesOffThisTurn = 0;
-      } else if (move.includes('off')) {
+      } else if (animation.to === -2) {
+        // Piece going off
         piecesOffThisTurn++;
       }
       
-      // Apply move to temp state to check for all home
-      if (move.includes('-')) {
-        const ds = p === 'r' ? tempState.redDice : tempState.blackDice;
-        ds[0] = parseInt(move[2]);
-        ds[1] = parseInt(move[4]);
-        tempState.board.push(`${p} ${ds[0]}-${ds[1]}`);
-        tempState.diceUsed = [];
-        if (!tempState.turn && tempState.redDice[0] && tempState.blackDice[0]) {
-          tempState.turn = tempState.redDice[0] > tempState.blackDice[0] ? 'r' : 'b';
-        } else if (tempState.turn) {
-          tempState.turn = p;
-        }
-      } else {
-        const bar = move.includes('bar');
-        const off = move.includes('off');
-        const from = bar ? -1 : parseInt(parts[1]) - 1;
-        const to = off ? -2 : parseInt(parts[2]) - 1;
-        
-        // Simple move application for detection
-        if (from >= 0 && from < 24) {
-          const idx = tempState.spots[from].pieces.findIndex(c => c === p);
-          if (idx >= 0) tempState.spots[from].pieces.splice(idx, 1);
-        } else if (from === -1) {
-          const idx = tempState.bar.findIndex(b => b === p);
-          if (idx >= 0) tempState.bar.splice(idx, 1);
-        }
-        
-        if (to >= 0 && to < 24) {
-          tempState.spots[to].pieces.push(p);
-        } else if (to === -2) {
-          if (p === 'r') {
-            tempState.redOff.push(p);
-          } else {
-            tempState.blackOff.push(p);
-          }
-        }
-      }
-      
-      // Check if red or black all pieces are in home
+      // Check if red or black all pieces are in home (using post state)
+      const state = animation.post;
       if (!redAllHome && p === 'r') {
         let inHome = true;
         for (let j = 0; j < 18; j++) {
-          if (tempState.spots[j].pieces.find(piece => piece === 'r')) {
+          if (state.spots[j].pieces.find(piece => piece === 'r')) {
             inHome = false;
             break;
           }
         }
-        if (tempState.bar.find(b => b === 'r')) inHome = false;
-        if (inHome && tempState.redOff.length < 15) {
+        if (state.bar.find(b => b === 'r')) inHome = false;
+        if (inHome && state.redOff.length < 15) {
           redAllHome = true;
           events.push(i);
         }
@@ -1199,13 +1176,13 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
       if (!blackAllHome && p === 'b') {
         let inHome = true;
         for (let j = 6; j < 24; j++) {
-          if (tempState.spots[j].pieces.find(piece => piece === 'b')) {
+          if (state.spots[j].pieces.find(piece => piece === 'b')) {
             inHome = false;
             break;
           }
         }
-        if (tempState.bar.find(b => b === 'b')) inHome = false;
-        if (inHome && tempState.blackOff.length < 15) {
+        if (state.bar.find(b => b === 'b')) inHome = false;
+        if (inHome && state.blackOff.length < 15) {
           blackAllHome = true;
           events.push(i);
         }
@@ -1225,6 +1202,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
     
     this.replayMode = true;
     this.replayPosition = 0;
+    this.precomputeReplayAnimations();
     this.importantEvents = this.detectImportantEvents();
     this.replayToPosition(0);
   }
@@ -1238,11 +1216,38 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   replayToPosition(position: number | string) {
     const pos = typeof position === 'string' ? parseInt(position, 10) : position;
     if (pos < 0 || isNaN(pos)) return;
-    if (pos > this.gameHistory.length) return;
+    if (pos > this.replayAnimations.length) return;
     
     this.replayPosition = pos;
-    const moves = this.gameHistory.slice(0, pos);
-    this.reset(moves.join('\n'));
+    
+    // Set state directly from the animation at this position
+    if (pos === 0) {
+      // Initial state
+      this.state = {
+        bar: [],
+        blackDice: [],
+        blackOff: [],
+        board: [],
+        diceUsed: [],
+        lastMovedOff: { 'r': 0, 'b': 0 },
+        lastMovedSpots: {},
+        moves: [],
+        redDice: [],
+        redOff: [],
+        spots: range(24).map(index => (<Spot>{ index, col: index < 12 ? index + 1 : 24 - index, red: !(index % 2), top: index < 12, pieces: [] as string[] })),
+      };
+      this.state.spots[ 0].pieces = [...'rr'] as Piece[];
+      this.state.spots[ 5].pieces = [...'bbbbb'] as Piece[];
+      this.state.spots[ 7].pieces = [...'bbb'] as Piece[];
+      this.state.spots[11].pieces = [...'rrrrr'] as Piece[];
+      this.state.spots[12].pieces = [...'bbbbb'] as Piece[];
+      this.state.spots[16].pieces = [...'rrr'] as Piece[];
+      this.state.spots[18].pieces = [...'rrrrr'] as Piece[];
+      this.state.spots[23].pieces = [...'bb'] as Piece[];
+    } else {
+      // Use the post state from the animation at position - 1
+      this.state = cloneDeep(this.replayAnimations[pos - 1].post);
+    }
   }
 
   playReplay() {
@@ -1250,7 +1255,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
     
     this.replayPlaying = true;
     this.replayInterval = setInterval(() => {
-      if (this.replayPosition >= this.gameHistory.length) {
+      if (this.replayPosition >= this.replayAnimations.length) {
         this.stopReplay();
         return;
       }
@@ -1288,7 +1293,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
     if (nextEvent !== undefined) {
       this.replayToPosition(nextEvent);
     } else {
-      this.replayToPosition(this.gameHistory.length);
+      this.replayToPosition(this.replayAnimations.length);
     }
   }
 }
