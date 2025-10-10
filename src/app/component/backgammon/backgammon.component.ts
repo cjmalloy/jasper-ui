@@ -588,7 +588,6 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   replayPosition = 0;
   replayPlaying = false;
   replaySpeed = 1; // 1x, 2x, 3x, 4x
-  gameHistory: string[] = [];
   replayAnimations: AnimationState[] = [];
   importantEvents: number[] = [];
 
@@ -721,18 +720,8 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
     this.state.spots[16].pieces = [...'rrr'] as Piece[];
     this.state.spots[18].pieces = [...'rrrrr'] as Piece[];
     this.state.spots[23].pieces = [...'bb'] as Piece[];
-
-    // Store game history (only update if not already in replay mode to avoid infinite loop)
-    if (!this.replayMode) {
-      this.gameHistory = board.split('\n').map(m => m.trim()).filter(m => !!m);
-    }
-
     load(this.state, board.split('\n').map(m => m.trim()).filter(m => !!m));
-
-    // Auto-enter replay mode if game has ended (but not already in replay mode)
-    if (!this.replayMode && this.isGameEnded && this.gameHistory.length > 0) {
-      defer(() => this.enterReplayMode());
-    }
+    if (this.isGameEnded) defer(() => this.enterReplayMode());
   }
 
   get lastState(): GameState {
@@ -1112,7 +1101,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
     currentState.spots[23].pieces = [...'bb'] as Piece[];
 
     // Build animation for each move
-    for (const move of this.gameHistory) {
+    for (const move of this.state.board) {
       const animation = getAnimation(currentState, move);
       if (animation) {
         this.replayAnimations.push(animation);
@@ -1131,7 +1120,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
 
     for (let i = 0; i < this.replayAnimations.length; i++) {
       const animation = this.replayAnimations[i];
-      const move = this.gameHistory[i];
+      const move = this.state.board[i];
       const parts = move.split(/[\s/*()]+/g).filter(p => !!p);
       const p = parts[0] as Piece;
 
@@ -1195,7 +1184,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   }
 
   enterReplayMode() {
-    if (!this.isGameEnded || this.gameHistory.length === 0) return;
+    if (!this.isGameEnded) return;
 
     this.replayMode = true;
     this.replayPosition = 0;
@@ -1231,14 +1220,9 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
     delete this.rolling;
     if (!this.replayPlaying) return;
 
-    if (this.animationQueue.length === 0) {
-      for (let i = 0; i < this.replayAnimations.length; i++) {
-        this.animationQueue.push(this.replayAnimations[i]);
-      }
-    }
-    if (this.animationQueue.length === 0) {
+    if (this.replayAnimations.length === 0) {
       this.replayPlaying = false;
-      this.replayPosition = this.replayAnimations.length;
+      this.replayPosition = 0;
       return;
     }
 

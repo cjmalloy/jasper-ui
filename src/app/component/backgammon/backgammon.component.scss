@@ -45,7 +45,6 @@
   }
 
   &.replay-mode {
-    padding-bottom: 156px;
     .backgammon-piece {
       pointer-events: none;
     }
@@ -55,19 +54,22 @@
     }
     .replay-controls {
       position: absolute;
-      bottom: 0;
       left: 50%;
-      transform: translateX(-50%);
+      transform: translate(-50%, 0);
       width: 100%;
       z-index: 100;
     }
+    &.red {
+      padding-bottom: 156px;
+      .replay-controls {
+        bottom: 0;
+      }
+    }
     &:not(.red) {
       margin-top: 156px;
-      padding-bottom: 0;
-      transform: rotate(180deg) translate(0, 156px) ;
+      transform: rotate(180deg) translateY(156px);
       .replay-controls {
         top: 0;
-        bottom: unset;
         transform: translate(-50%, -156px) rotate(-180deg);
       }
     }
