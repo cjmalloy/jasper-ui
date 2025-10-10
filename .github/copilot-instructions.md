@@ -192,20 +192,41 @@ When styling components that need to adapt to themes:
    }
    ```
 
-2. **Add theme-specific overrides** using body classes:
-   ```scss
-   .my-component {
-     background: rgba(0, 0, 0, 0.9);  // Default
-   }
-
-   body.dark-theme .my-component {
-     background: rgba(20, 20, 20, 0.95);  // Dark theme
-   }
-
-   body.light-theme .my-component {
-     background: rgba(240, 240, 240, 0.95);  // Light theme
-   }
+2. **Add theme-specific overrides in mod files** (NOT in component SCSS):
+   
+   Due to how Angular's view encapsulation works, theme-related CSS using `body.dark-theme` or `body.light-theme` selectors must be placed in the mod file's `css` property, not in component SCSS files.
+   
+   **Example (in `src/app/mods/mymod.ts`):**
+   ```typescript
+   export const myPlugin: Plugin = {
+     tag: 'plugin/myplugin',
+     name: $localize`My Plugin`,
+     config: {
+       // language=CSS
+       css: `
+         body.dark-theme {
+           .my-component {
+             background: rgba(20, 20, 20, 0.95);
+             color: #c9c9c9;
+           }
+         }
+         
+         body.light-theme {
+           .my-component {
+             background: rgba(240, 240, 240, 0.95);
+             color: #333;
+           }
+         }
+       `,
+       // ... other config
+     }
+   };
    ```
+   
+   **Component SCSS should only contain:**
+   - Base styles (without theme selectors)
+   - CSS variable usage
+   - Component-scoped styles
 
 3. **Test both themes** when adding new UI components to ensure good contrast and visibility in both modes.
 
