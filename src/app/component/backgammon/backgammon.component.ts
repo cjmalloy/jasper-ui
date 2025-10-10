@@ -79,7 +79,6 @@ function getAnimation(state: GameState, update: string): AnimationState | null {
     const p = parts[0] as Piece;
     const bar = update.includes('bar');
     const off = update.includes('off');
-    const hit = update.includes('*');
     const from = bar ? -1 : parseInt(parts[1]) - 1;
     const to = off ? -2 : parseInt(parts[2]) - 1;
 
@@ -91,17 +90,6 @@ function getAnimation(state: GameState, update: string): AnimationState | null {
     } else if (from === -1) {
       const sourceBar = p === 'r' ? getRedBar(state) : getBlackBar(state);
       fromStackIndex = sourceBar.length - 1;
-    }
-
-    // If there's a hit, capture which piece is being bumped and its stack position
-    let bumpedPiece: Piece | undefined;
-    let bumpedFromStackIndex = -1;
-    if (hit && to >= 0 && to < 24) {
-      const targetSpot = state.spots[to];
-      if (targetSpot.pieces.length === 1 && targetSpot.pieces[0] !== p) {
-        bumpedPiece = targetSpot.pieces[0];
-        bumpedFromStackIndex = 0; // It's the only piece at this position
-      }
     }
 
     // Use pure function to compute new state
@@ -119,36 +107,15 @@ function getAnimation(state: GameState, update: string): AnimationState | null {
       const destOff = p === 'r' ? newState.redOff : newState.blackOff;
       toStackIndex = destOff.length - 1;
     }
-
-    // Queue animation for bumped piece first (so it happens before the moving piece)
-    if (bumpedPiece !== undefined && to >= 0) {
-      // Compute bumped piece destination stack index from post-move state
-      const bumpedDestBar = bumpedPiece === 'r' ? getRedBar(newState) : getBlackBar(newState);
-      const bumpedToStackIndex = bumpedDestBar.length - 1;
-
-      return {
-        pre: state,
-        post: newState,
-        from: to,
-        to: -1, // To bar
-        piece: bumpedPiece,
-        fromStackIndex: bumpedFromStackIndex,
-        toStackIndex: bumpedToStackIndex,
-      };
-    }
-
-    // Queue animation for main move only if not moving to off
-    if (to !== -2) {
-      return {
-        pre: state,
-        post: newState,
-        from,
-        to,
-        piece: p,
-        fromStackIndex,
-        toStackIndex,
-      };
-    }
+    return {
+      pre: state,
+      post: newState,
+      from,
+      to,
+      piece: p,
+      fromStackIndex,
+      toStackIndex,
+    };
   }
   console.log('unknown update:', update);
   return null;
@@ -578,14 +545,25 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   loaded = false;
   @HostBinding('class.resizing')
   resizing = 0;
+  @HostBinding('class.replay-mode')
+  replayMode = false;
   translate?: number;
   animating = false;
   animationQueue: AnimationState[] = [];
   animatedPiece?: AnimationState;
 
+  replayPosition = 0;
+  replayPlaying = false;
+  replaySpeed = 1; // 1x, 2x, 3x, 4x
+  replayAnimations: AnimationState[] = [];
+  importantEvents: number[] = [];
+  importantEventTypes: Map<number, string> = new Map();
+
   private resizeObserver = window.ResizeObserver && new ResizeObserver(() => this.onResize()) || undefined;
   private watch?: Subscription;
   private append$!: (value: string) => Observable<string>;
+  private seeking = false;
+  private animationHandler = 0;
 
   constructor(
     private store: Store,
@@ -622,7 +600,11 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
       ).subscribe(update => {
         const state = getAnimation(this.lastState, update);
         if (state) {
-          this.queueAnimation(state)
+          this.queueAnimation(state);
+          // Check if game ended via update (e.g., tags added remotely)
+          if (this.isGameEnded && !this.replayMode) {
+            defer(() => this.enterReplayMode());
+          }
         }
       });
     }
@@ -639,6 +621,19 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
       if (!this.ref || newRef) {
         this.watch?.unsubscribe();
         if (this.ref || this.text != null) this.init();
+      } else if (changes.ref && !changes.ref.firstChange) {
+        // Check if end game tags were added
+        const prevEnded = !!(changes.ref.previousValue && (
+          hasTag('plugin/backgammon/draw', changes.ref.previousValue) ||
+          hasTag('plugin/backgammon/winner/r', changes.ref.previousValue) ||
+          hasTag('plugin/backgammon/winner/b', changes.ref.previousValue)
+        ));
+        const nowEnded = this.isGameEnded;
+
+        if (!prevEnded && nowEnded && !this.replayMode) {
+          // Tags were added to end the game, enter replay mode
+          defer(() => this.enterReplayMode());
+        }
       }
     }
   }
@@ -648,6 +643,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
     this.disposers.length = 0;
     this.resizeObserver?.disconnect();
     this.watch?.unsubscribe();
+    this.pauseReplay();
   }
 
   get bgConf() {
@@ -711,6 +707,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
     this.state.spots[18].pieces = [...'rrrrr'] as Piece[];
     this.state.spots[23].pieces = [...'bb'] as Piece[];
     load(this.state, board.split('\n').map(m => m.trim()).filter(m => !!m));
+    if (this.isGameEnded) defer(() => this.enterReplayMode());
   }
 
   get lastState(): GameState {
@@ -727,6 +724,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   }
 
   drop(event: CdkDragDrop<number, number, Piece>) {
+    if (this.replayMode) return; // Don't allow moves in replay mode
     const p = event.item.data;
     const from = event.previousContainer.data;
     const to = event.container.data;
@@ -748,8 +746,16 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   check() {
     if (!getRedPips(this.state)) {
       this.state.winner = 'r';
+      // Enter replay mode when game ends during play
+      if (!this.replayMode) {
+        defer(() => this.enterReplayMode());
+      }
     } else if (!getBlackPips(this.state)) {
       this.state.winner = 'b';
+      // Enter replay mode when game ends during play
+      if (!this.replayMode) {
+        defer(() => this.enterReplayMode());
+      }
     }
     this.clearMoves();
   }
@@ -908,6 +914,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   }
 
   roll(p: Piece) {
+    if (this.replayMode) return; // Don't allow rolling in replay mode
     if (this.state.winner) throw $localize`Game Over`;
     if (this.state.turn && !isFirstRoll(this.state) && this.state.turn === p) throw $localize`Not your turn`;
     if (!isFirstRoll(this.state) && this.state.moves.length) throw $localize`Must move`;
@@ -944,6 +951,10 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
       this.state = { ...animation.post };
       this.rolling = animation.rollingPiece;
       delay(() => {
+        // Check if game ended via tags after rolling animation
+        if (this.isGameEnded && !this.replayMode) {
+          defer(() => this.enterReplayMode());
+        }
         this.processAnimationQueue();
       }, 750);
       return;
@@ -955,6 +966,10 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
         this.rolling = this.state.turn;
       }
       delay(() => {
+        // Check if game ended via tags after state update
+        if (this.isGameEnded && !this.replayMode) {
+          defer(() => this.enterReplayMode());
+        }
         this.processAnimationQueue();
       }, 750);
       return;
@@ -1049,8 +1064,352 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
       delay(() => {
         this.state = { ...animation.post };
         this.check();
+        // Check if game ended via tags after animation completes
+        if (this.isGameEnded && !this.replayMode) {
+          defer(() => this.enterReplayMode());
+        }
         this.processAnimationQueue();
       }, totalDuration);
     });
+  }
+
+  // Replay mode controls
+  get isGameEnded() {
+    return !!this.state.winner || hasTag('plugin/backgammon/draw', this.ref) ||
+           hasTag('plugin/backgammon/winner/r', this.ref) ||
+           hasTag('plugin/backgammon/winner/b', this.ref);
+  }
+
+  precomputeReplayAnimations() {
+    this.replayAnimations = [];
+
+    // Start with initial state
+    let currentState: GameState = {
+      bar: [],
+      blackDice: [],
+      blackOff: [],
+      board: [],
+      diceUsed: [],
+      lastMovedOff: { 'r': 0, 'b': 0 },
+      lastMovedSpots: {},
+      moves: [],
+      redDice: [],
+      redOff: [],
+      spots: range(24).map(index => (<Spot>{ index, col: index < 12 ? index + 1 : 24 - index, red: !(index % 2), top: index < 12, pieces: [] as string[] })),
+    };
+    currentState.spots[ 0].pieces = [...'rr'] as Piece[];
+    currentState.spots[ 5].pieces = [...'bbbbb'] as Piece[];
+    currentState.spots[ 7].pieces = [...'bbb'] as Piece[];
+    currentState.spots[11].pieces = [...'rrrrr'] as Piece[];
+    currentState.spots[12].pieces = [...'bbbbb'] as Piece[];
+    currentState.spots[16].pieces = [...'rrr'] as Piece[];
+    currentState.spots[18].pieces = [...'rrrrr'] as Piece[];
+    currentState.spots[23].pieces = [...'bb'] as Piece[];
+
+    // Build animation for each move
+    for (const move of this.state.board) {
+      const animation = getAnimation(currentState, move);
+      if (animation) {
+        this.replayAnimations.push(animation);
+        currentState = animation.post;
+      }
+    }
+  }
+
+  detectImportantEvents() {
+    const events: number[] = [];
+    this.importantEventTypes.clear();
+
+    let currentTurnStart = 0;
+    let piecesHitThisTurn = 0;
+    let redAllHome = false;
+    let blackAllHome = false;
+
+    for (let i = 0; i < this.replayAnimations.length; i++) {
+      const animation = this.replayAnimations[i];
+      const move = this.state.board[i];
+      const parts = move.split(/[\s/*()]+/g).filter(p => !!p);
+      const p = parts[0] as Piece;
+
+      // Check for double 6s (rolls)
+      if (animation.rollingPiece && move.includes('6-6')) {
+        events.push(i);
+        this.importantEventTypes.set(i, $localize`Double 6s`);
+      }
+
+      // Track turn changes
+      if (animation.rollingPiece) {
+        // New roll - check if we had >1 hit in previous turn
+        if (piecesHitThisTurn > 1) {
+          if (!this.importantEventTypes.has(currentTurnStart)) {
+            events.push(currentTurnStart);
+            this.importantEventTypes.set(currentTurnStart, $localize`${piecesHitThisTurn} pieces hit`);
+          }
+        }
+        currentTurnStart = i;
+        piecesHitThisTurn = 0;
+      } else if (move.includes('*')) {
+        // Piece was hit (bumped to bar) - indicated by asterisk
+        piecesHitThisTurn++;
+      }
+
+      // Check if red or black all pieces are in home (using post state)
+      const state = animation.post;
+      if (!redAllHome && p === 'r') {
+        let inHome = true;
+        for (let j = 0; j < 18; j++) {
+          if (state.spots[j].pieces.find(piece => piece === 'r')) {
+            inHome = false;
+            break;
+          }
+        }
+        if (state.bar.find(b => b === 'r')) inHome = false;
+        if (inHome && state.redOff.length < 15) {
+          redAllHome = true;
+          events.push(i);
+          this.importantEventTypes.set(i, $localize`Red all home`);
+        }
+      }
+
+      if (!blackAllHome && p === 'b') {
+        let inHome = true;
+        for (let j = 6; j < 24; j++) {
+          if (state.spots[j].pieces.find(piece => piece === 'b')) {
+            inHome = false;
+            break;
+          }
+        }
+        if (state.bar.find(b => b === 'b')) inHome = false;
+        if (inHome && state.blackOff.length < 15) {
+          blackAllHome = true;
+          events.push(i);
+          this.importantEventTypes.set(i, $localize`Black all home`);
+        }
+      }
+    }
+
+    // Check last turn
+    if (piecesHitThisTurn > 1) {
+      if (!this.importantEventTypes.has(currentTurnStart)) {
+        events.push(currentTurnStart);
+        this.importantEventTypes.set(currentTurnStart, $localize`${piecesHitThisTurn} pieces hit`);
+      }
+    }
+
+    return [...new Set(events)].sort((a, b) => a - b);
+  }
+
+  enterReplayMode() {
+    if (!this.isGameEnded) return;
+
+    this.replayMode = true;
+    this.replayPosition = 0;
+    this.precomputeReplayAnimations();
+    this.importantEvents = this.detectImportantEvents();
+    this.replayToPosition(this.replayAnimations.length + 1);
+  }
+
+  replayToPosition(position: number | string) {
+    if (this.replayPlaying) throw 'must pause before seeking';
+    const pos = typeof position === 'string' ? parseFloat(position) : position;
+    if (isNaN(pos) || pos < 0) return;
+    delete this.animatedPiece;
+    delete this.rolling;
+
+    if (pos >= this.replayAnimations.length) {
+      this.replayPosition = this.replayAnimations.length + 1;
+      this.state = cloneDeep(this.replayAnimations[this.replayAnimations.length - 1].post);
+    } else {
+      this.replayPosition = pos;
+      this.state = cloneDeep(this.replayAnimations[pos].pre);
+    }
+  }
+
+  playReplay() {
+    if (this.replayPlaying) return;
+    this.replayPlaying = true;
+    if (this.replayPosition >= this.replayAnimations.length - 1) this.replayPosition = 0;
+    this.processReplayAnimationQueue();
+  }
+
+  processReplayAnimationQueue() {
+    delete this.animatedPiece;
+    delete this.rolling;
+    if (!this.replayPlaying) return;
+
+    if (this.replayAnimations.length === 0) {
+      this.replayPlaying = false;
+      this.replayPosition = 0;
+      return;
+    }
+
+    if (this.replayPosition > this.replayAnimations.length) this.replayPosition = 0;
+    const animation = this.replayAnimations[this.replayPosition];
+
+    // Handle rolling animation
+    if (animation.rollingPiece) {
+      this.state = { ...animation.post };
+      this.rolling = animation.rollingPiece;
+      const duration = 750 / this.replaySpeed;
+      delay(() => {
+        this.replayPosition++;
+        this.processReplayAnimationQueue();
+      }, duration);
+      return;
+    }
+
+    // Calculate coordinates for CSS animation
+    const fromSpot = animation.from === -1 ? null : animation.pre.spots.find(s => s.index === animation.from!);
+    const toSpot = animation.to === -2 || animation.to === -1 ? null : animation.pre.spots.find(s => s.index === animation.to!);
+
+    // Calculate grid positions
+    let fromCol = 0;
+    let fromRow = 0;
+    if (animation.from === -1) {
+      fromCol = 7;
+      fromRow = animation.piece === 'r' ? 1 : 0;
+    } else if (fromSpot) {
+      fromCol = fromSpot.col > 6 ? fromSpot.col + 1 : fromSpot.col;
+      fromRow = fromSpot.top ? 0 : 1;
+    }
+
+    let toCol = 0;
+    let toRow = 0;
+    if (animation.to === -1) {
+      toCol = 7;
+      toRow = animation.piece === 'r' ? 1 : 0;
+    } else if (animation.to === -2) {
+      toCol = 0;
+      toRow = animation.piece === 'r' ? 1 : 0;
+    } else if (toSpot) {
+      toCol = toSpot.col > 6 ? toSpot.col + 1 : toSpot.col;
+      toRow = toSpot.top ? 0 : 1;
+    }
+
+    // Calculate stack offset adjustments
+    let fromStackOffsetX = 0;
+    let fromStackOffsetY = (animation.fromStackIndex || 0);
+    let toStackOffsetX = 0;
+    let toStackOffsetY = (animation.toStackIndex || 0);
+
+    if (animation.fromStackIndex) {
+      if (animation.fromStackIndex > 4) {
+        fromStackOffsetX -= 0.05;
+        fromStackOffsetY -= 5.2;
+        if (animation.fromStackIndex > 9) {
+          fromStackOffsetX -= 0.05;
+          fromStackOffsetY -= 5.2;
+        }
+      }
+    }
+    if (fromSpot && !fromSpot.top) {
+      fromStackOffsetY = -fromStackOffsetY + 0.1;
+      fromStackOffsetX = -fromStackOffsetX;
+    }
+
+    if (animation.toStackIndex) {
+      if (animation.toStackIndex > 4) {
+        toStackOffsetX -= 0.05;
+        toStackOffsetY -= 5.2;
+        if (animation.toStackIndex > 9) {
+          toStackOffsetX -= 0.05;
+          toStackOffsetY -= 5.2;
+        }
+      }
+    }
+    if (toSpot && !toSpot.top) {
+      toStackOffsetY = -toStackOffsetY + 0.1;
+      toStackOffsetX = -toStackOffsetX;
+    }
+
+    const xFrom = fromCol + fromStackOffsetX;
+    const yFrom = fromRow * 12 + fromStackOffsetY * 0.86;
+    const xTo = toCol + toStackOffsetX;
+    const yTo = toRow * 12 + toStackOffsetY * 0.86;
+
+    const totalDuration = 1500 / this.replaySpeed;
+    this.el.nativeElement.style.setProperty('--xFrom', '' + xFrom * 2);
+    this.el.nativeElement.style.setProperty('--yFrom', '' + yFrom * 2);
+    this.el.nativeElement.style.setProperty('--xTo', '' + xTo * 2);
+    this.el.nativeElement.style.setProperty('--yTo', '' + yTo * 2);
+    this.el.nativeElement.style.setProperty('--move-duration', totalDuration + 'ms');
+
+    requestAnimationFrame(() => {
+      this.animatedPiece = animation;
+      this.animationHandler = delay(() => {
+        if (this.replayPlaying) {
+          this.state = { ...animation.post };
+          if (this.replayPosition === this.replayAnimations.length - 1) {
+            // Don't loop
+            this.pauseReplay();
+          }
+          this.replayPosition++;
+          this.processReplayAnimationQueue();
+        }
+      }, totalDuration);
+    });
+  }
+
+  pauseReplay() {
+    if (this.animationHandler) {
+      clearTimeout(this.animationHandler);
+      this.animationHandler = 0;
+    }
+    this.replayPlaying = false;
+    delete this.animatedPiece;
+    delete this.rolling;
+  }
+
+  startSeeking() {
+    if (this.replayPlaying) {
+      this.seeking = true;
+      this.pauseReplay();
+    }
+  }
+
+  seek(position: number | string) {
+    this.pauseReplay();
+    this.replayToPosition(position);
+  }
+
+  endSeeking() {
+    if (this.seeking) {
+      this.seeking = false;
+      this.playReplay();
+    }
+  }
+
+  snapToEvent(eventPos: number) {
+    if (this.replayPlaying) {
+      this.pauseReplay();
+      this.replayToPosition(eventPos);
+      this.playReplay();
+    } else {
+      this.replayToPosition(eventPos);
+    }
+  }
+
+  getEventEmoji(eventPos: number): string {
+    const eventType = this.importantEventTypes.get(eventPos);
+    if (!eventType) return '';
+
+    if (eventType.includes('Double 6s')) return '🎲️ 🎲️';
+    if (eventType.includes('Red all home')) return '🔴️ 🏠️';
+    if (eventType.includes('Black all home')) return '⚫️ 🏠️';
+    if (eventType.includes('hit')) return ['2️⃣️', '3️⃣️', '4️⃣️'][parseInt(eventType.split(' ')[0]) - 2] + ' ❌️';
+    return '';
+  }
+
+  replayFastForward() {
+    // Cycle through speeds: 1x -> 2x -> 3x -> 4x -> 1x
+    this.replaySpeed = this.replaySpeed >= 4 ? 1 : this.replaySpeed + 1;
+    if (this.replayPlaying) {
+      this.pauseReplay();
+      this.playReplay();
+    }
+  }
+
+  floor(n: number) {
+    return Math.floor(n);
   }
 }
