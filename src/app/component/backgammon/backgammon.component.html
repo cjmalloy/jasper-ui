@@ -182,7 +182,7 @@
         @for (eventPos of importantEvents; track eventPos) {
           <div class="scrubber-tick"
                [style.left.%]="(eventPos / replayAnimations.length) * 100"
-               i18n-title title="Important event"></div>
+               [title]="importantEventTypes.get(eventPos) || 'Important event'"></div>
         }
       </div>
     </div>

@@ -590,6 +590,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   replaySpeed = 1; // 1x, 2x, 3x, 4x
   replayAnimations: AnimationState[] = [];
   importantEvents: number[] = [];
+  importantEventTypes: Map<number, string> = new Map();
 
   private resizeObserver = window.ResizeObserver && new ResizeObserver(() => this.onResize()) || undefined;
   private watch?: Subscription;
@@ -648,6 +649,19 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
       if (!this.ref || newRef) {
         this.watch?.unsubscribe();
         if (this.ref || this.text != null) this.init();
+      } else if (changes.ref && !changes.ref.firstChange) {
+        // Check if end game tags were added
+        const prevEnded = !!(changes.ref.previousValue && (
+          hasTag('plugin/backgammon/draw', changes.ref.previousValue) ||
+          hasTag('plugin/backgammon/winner/r', changes.ref.previousValue) ||
+          hasTag('plugin/backgammon/winner/b', changes.ref.previousValue)
+        ));
+        const nowEnded = this.isGameEnded;
+        
+        if (!prevEnded && nowEnded && !this.replayMode) {
+          // Tags were added to end the game, enter replay mode
+          defer(() => this.enterReplayMode());
+        }
       }
     }
   }
@@ -760,8 +774,16 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   check() {
     if (!getRedPips(this.state)) {
       this.state.winner = 'r';
+      // Enter replay mode when game ends during play
+      if (!this.replayMode) {
+        defer(() => this.enterReplayMode());
+      }
     } else if (!getBlackPips(this.state)) {
       this.state.winner = 'b';
+      // Enter replay mode when game ends during play
+      if (!this.replayMode) {
+        defer(() => this.enterReplayMode());
+      }
     }
     this.clearMoves();
   }
@@ -1112,6 +1134,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
 
   detectImportantEvents() {
     const events: number[] = [];
+    this.importantEventTypes.clear();
 
     let currentTurnStart = 0;
     let piecesOffThisTurn = 0;
@@ -1127,13 +1150,17 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
       // Check for double 6s (rolls)
       if (animation.rollingPiece && move.includes('6-6')) {
         events.push(i);
+        this.importantEventTypes.set(i, $localize`Double 6s`);
       }
 
       // Track turn changes
       if (animation.rollingPiece) {
         // New roll - check if we had >1 off in previous turn
         if (piecesOffThisTurn > 1) {
-          events.push(currentTurnStart);
+          if (!this.importantEventTypes.has(currentTurnStart)) {
+            events.push(currentTurnStart);
+            this.importantEventTypes.set(currentTurnStart, $localize`${piecesOffThisTurn} pieces off`);
+          }
         }
         currentTurnStart = i;
         piecesOffThisTurn = 0;
@@ -1156,6 +1183,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
         if (inHome && state.redOff.length < 15) {
           redAllHome = true;
           events.push(i);
+          this.importantEventTypes.set(i, $localize`Red all home`);
         }
       }
 
@@ -1171,13 +1199,17 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
         if (inHome && state.blackOff.length < 15) {
           blackAllHome = true;
           events.push(i);
+          this.importantEventTypes.set(i, $localize`Black all home`);
         }
       }
     }
 
     // Check last turn
     if (piecesOffThisTurn > 1) {
-      events.push(currentTurnStart);
+      if (!this.importantEventTypes.has(currentTurnStart)) {
+        events.push(currentTurnStart);
+        this.importantEventTypes.set(currentTurnStart, $localize`${piecesOffThisTurn} pieces off`);
+      }
     }
 
     return [...new Set(events)].sort((a, b) => a - b);
