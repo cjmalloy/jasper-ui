@@ -167,3 +167,55 @@ Translation locales are configured in `angular.json` under `projects.jasper-ui.i
 - Use `ng generate component|service|pipe|directive name` for new features
 - Network issues: Use `CYPRESS_INSTALL_BINARY=0` flag
 - Backend connection issues: Ensure `docker compose --profile server up --build` is healthy
+
+## Theming
+
+Jasper-UI supports both light and dark themes. The `body` element has either `light-theme` or `dark-theme` class applied based on user preference.
+
+### Theme Variables
+
+Theme-specific CSS variables are defined in:
+- `src/theme/common.scss` - Default/base theme variables
+- `src/theme/light.scss` - Light theme overrides (body.light-theme)
+- `src/theme/dark.scss` - Dark theme overrides (body.dark-theme)
+
+### Using Themes in Components
+
+When styling components that need to adapt to themes:
+
+1. **Use CSS variables** defined in theme files when possible:
+   ```scss
+   .my-element {
+     background: var(--bg);
+     color: var(--text);
+     border: 1px solid var(--border);
+   }
+   ```
+
+2. **Add theme-specific overrides** using body classes:
+   ```scss
+   .my-component {
+     background: rgba(0, 0, 0, 0.9);  // Default
+   }
+
+   body.dark-theme .my-component {
+     background: rgba(20, 20, 20, 0.95);  // Dark theme
+   }
+
+   body.light-theme .my-component {
+     background: rgba(240, 240, 240, 0.95);  // Light theme
+   }
+   ```
+
+3. **Test both themes** when adding new UI components to ensure good contrast and visibility in both modes.
+
+### Common Theme Variables
+
+- `--bg` - Main background color
+- `--text` - Primary text color
+- `--border` - Border colors
+- `--active` - Active/selected states
+- `--error` - Error states
+- `--card` - Card backgrounds
+
+See `src/theme/common.scss`, `src/theme/light.scss`, and `src/theme/dark.scss` for complete variable lists.

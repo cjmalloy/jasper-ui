@@ -182,7 +182,8 @@
         @for (eventPos of importantEvents; track eventPos) {
           <div class="scrubber-tick"
                [style.left.%]="(eventPos / replayAnimations.length) * 100"
-               [title]="importantEventTypes.get(eventPos) || 'Important event'"></div>
+               [title]="importantEventTypes.get(eventPos) || 'Important event'"
+               (click)="snapToEvent(eventPos)"></div>
         }
       </div>
     </div>

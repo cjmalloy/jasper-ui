@@ -1359,6 +1359,11 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
     }
   }
 
+  snapToEvent(eventPos: number) {
+    this.pauseReplay();
+    this.replayToPosition(eventPos);
+  }
+
   replayFastForward() {
     // Cycle through speeds: 1x -> 2x -> 3x -> 4x -> 1x
     this.replaySpeed = this.replaySpeed >= 4 ? 1 : this.replaySpeed + 1;
