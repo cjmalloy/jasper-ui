@@ -1393,10 +1393,10 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
     const eventType = this.importantEventTypes.get(eventPos);
     if (!eventType) return '';
 
-    if (eventType.includes('Double 6s')) return '🎲️🎲️';
-    if (eventType.includes('Red all home')) return '🔴️🏠️';
-    if (eventType.includes('Black all home')) return '⚫️🏠️';
-    if (eventType.includes('hit')) return eventType.split(' ')[0] + '❌️';
+    if (eventType.includes('Double 6s')) return '🎲️ 🎲️';
+    if (eventType.includes('Red all home')) return '🔴️ 🏠️';
+    if (eventType.includes('Black all home')) return '⚫️ 🏠️';
+    if (eventType.includes('hit')) return ['2️⃣️', '3️⃣️', '4️⃣️'][parseInt(eventType.split(' ')[0]) - 2] + ' ❌️';
     return '';
   }
 
