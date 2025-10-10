@@ -175,9 +175,9 @@
              [min]="0"
              [max]="replayAnimations.length"
              [value]="replayPosition"
-             (input)="replayToPosition($any($event.target).value)"
-             (mousedown)="pauseReplay()"
-             i18n-title title="Seek through game">
+             (pointerdown)="startSeeking()"
+             (input)="seek($any($event.target).value)"
+             (pointerup)="endSeeking()">
       <div class="scrubber-ticks">
         @for (eventPos of importantEvents; track eventPos) {
           <div class="scrubber-tick"
@@ -187,11 +187,6 @@
       </div>
     </div>
     <div class="control-buttons">
-      <button type="button"
-              class="replay-btn"
-              (click)="replayStepBackward()"
-              [disabled]="replayPosition === 0"
-              i18n-title title="Step backward">◀️</button>
       @if (!replayPlaying) {
         <button type="button"
                 class="replay-btn play-btn"
@@ -206,20 +201,11 @@
       }
       <button type="button"
               class="replay-btn"
-              (click)="replayStepForward()"
-              [disabled]="replayPosition >= replayAnimations.length"
-              i18n-title title="Step forward">▶️</button>
-      <button type="button"
-              class="replay-btn"
               (click)="replayFastForward()"
               i18n-title title="Change playback speed">⏩️ {{ replaySpeed }}x</button>
-      <button type="button"
-              class="replay-btn exit-btn"
-              (click)="exitReplayMode()"
-              i18n-title title="Exit replay mode">✖️</button>
     </div>
     <div class="replay-info">
-      <span i18n>Move {{ replayPosition | number:'1.0-2' }} / {{ replayAnimations.length }}</span>
+      <span i18n>Move {{ floor(replayPosition) }} / {{ replayAnimations.length }}</span>
     </div>
   </div>
 }

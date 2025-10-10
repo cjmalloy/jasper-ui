@@ -579,16 +579,12 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   @HostBinding('class.resizing')
   resizing = 0;
   @HostBinding('class.replay-mode')
-  get isReplayMode() {
-    return this.replayMode;
-  }
+  replayMode = false;
   translate?: number;
   animating = false;
   animationQueue: AnimationState[] = [];
   animatedPiece?: AnimationState;
 
-  // Replay mode state
-  replayMode = false;
   replayPosition = 0;
   replayPlaying = false;
   replaySpeed = 1; // 1x, 2x, 3x, 4x
@@ -599,6 +595,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   private resizeObserver = window.ResizeObserver && new ResizeObserver(() => this.onResize()) || undefined;
   private watch?: Subscription;
   private append$!: (value: string) => Observable<string>;
+  private seeking = false;
 
   constructor(
     private store: Store,
@@ -724,14 +721,14 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
     this.state.spots[16].pieces = [...'rrr'] as Piece[];
     this.state.spots[18].pieces = [...'rrrrr'] as Piece[];
     this.state.spots[23].pieces = [...'bb'] as Piece[];
-    
+
     // Store game history (only update if not already in replay mode to avoid infinite loop)
     if (!this.replayMode) {
       this.gameHistory = board.split('\n').map(m => m.trim()).filter(m => !!m);
     }
-    
+
     load(this.state, board.split('\n').map(m => m.trim()).filter(m => !!m));
-    
+
     // Auto-enter replay mode if game has ended (but not already in replay mode)
     if (!this.replayMode && this.isGameEnded && this.gameHistory.length > 0) {
       defer(() => this.enterReplayMode());
@@ -1083,14 +1080,14 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
 
   // Replay mode controls
   get isGameEnded() {
-    return !!this.state.winner || hasTag('plugin/backgammon/draw', this.ref) || 
-           hasTag('plugin/backgammon/winner/r', this.ref) || 
+    return !!this.state.winner || hasTag('plugin/backgammon/draw', this.ref) ||
+           hasTag('plugin/backgammon/winner/r', this.ref) ||
            hasTag('plugin/backgammon/winner/b', this.ref);
   }
 
   precomputeReplayAnimations() {
     this.replayAnimations = [];
-    
+
     // Start with initial state
     let currentState: GameState = {
       bar: [],
@@ -1113,7 +1110,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
     currentState.spots[16].pieces = [...'rrr'] as Piece[];
     currentState.spots[18].pieces = [...'rrrrr'] as Piece[];
     currentState.spots[23].pieces = [...'bb'] as Piece[];
-    
+
     // Build animation for each move
     for (const move of this.gameHistory) {
       const animation = getAnimation(currentState, move);
@@ -1126,23 +1123,23 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
 
   detectImportantEvents() {
     const events: number[] = [];
-    
+
     let currentTurnStart = 0;
     let piecesOffThisTurn = 0;
     let redAllHome = false;
     let blackAllHome = false;
-    
+
     for (let i = 0; i < this.replayAnimations.length; i++) {
       const animation = this.replayAnimations[i];
       const move = this.gameHistory[i];
       const parts = move.split(/[\s/*()]+/g).filter(p => !!p);
       const p = parts[0] as Piece;
-      
+
       // Check for double 6s (rolls)
       if (animation.rollingPiece && move.includes('6-6')) {
         events.push(i);
       }
-      
+
       // Track turn changes
       if (animation.rollingPiece) {
         // New roll - check if we had >1 off in previous turn
@@ -1155,7 +1152,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
         // Piece going off
         piecesOffThisTurn++;
       }
-      
+
       // Check if red or black all pieces are in home (using post state)
       const state = animation.post;
       if (!redAllHome && p === 'r') {
@@ -1172,7 +1169,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
           events.push(i);
         }
       }
-      
+
       if (!blackAllHome && p === 'b') {
         let inHome = true;
         for (let j = 6; j < 24; j++) {
@@ -1188,18 +1185,18 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
         }
       }
     }
-    
+
     // Check last turn
     if (piecesOffThisTurn > 1) {
       events.push(currentTurnStart);
     }
-    
+
     return [...new Set(events)].sort((a, b) => a - b);
   }
 
   enterReplayMode() {
     if (!this.isGameEnded || this.gameHistory.length === 0) return;
-    
+
     this.replayMode = true;
     this.replayPosition = 0;
     this.precomputeReplayAnimations();
@@ -1207,181 +1204,45 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
     this.replayToPosition(0);
   }
 
-  exitReplayMode() {
-    this.replayMode = false;
-    this.stopReplay();
-    this.reset(this.gameHistory.join('\n'));
-  }
-
   replayToPosition(position: number | string) {
     const pos = typeof position === 'string' ? parseFloat(position) : position;
     if (isNaN(pos) || pos < 0) return;
     if (pos > this.replayAnimations.length) return;
-    
+
     this.replayPosition = pos;
-    
-    // Integer part is the animation index, fractional part is progress
-    const animationIndex = Math.floor(pos);
-    const progress = pos - animationIndex;
-    
-    // Set state directly from the animation at this position
-    if (animationIndex === 0) {
-      // Initial state
-      this.state = {
-        bar: [],
-        blackDice: [],
-        blackOff: [],
-        board: [],
-        diceUsed: [],
-        lastMovedOff: { 'r': 0, 'b': 0 },
-        lastMovedSpots: {},
-        moves: [],
-        redDice: [],
-        redOff: [],
-        spots: range(24).map(index => (<Spot>{ index, col: index < 12 ? index + 1 : 24 - index, red: !(index % 2), top: index < 12, pieces: [] as string[] })),
-      };
-      this.state.spots[ 0].pieces = [...'rr'] as Piece[];
-      this.state.spots[ 5].pieces = [...'bbbbb'] as Piece[];
-      this.state.spots[ 7].pieces = [...'bbb'] as Piece[];
-      this.state.spots[11].pieces = [...'rrrrr'] as Piece[];
-      this.state.spots[12].pieces = [...'bbbbb'] as Piece[];
-      this.state.spots[16].pieces = [...'rrr'] as Piece[];
-      this.state.spots[18].pieces = [...'rrrrr'] as Piece[];
-      this.state.spots[23].pieces = [...'bb'] as Piece[];
-      
-      // If there's progress into the first animation, show it
-      if (progress > 0 && this.replayAnimations.length > 0) {
-        this.showAnimationProgress(this.replayAnimations[0], progress);
-      }
-    } else if (animationIndex <= this.replayAnimations.length) {
-      // Use the post state from the animation at position - 1
-      this.state = cloneDeep(this.replayAnimations[animationIndex - 1].post);
-      
-      // If there's progress into the next animation, show it
-      if (progress > 0 && animationIndex < this.replayAnimations.length) {
-        this.showAnimationProgress(this.replayAnimations[animationIndex], progress);
-      }
-    }
-  }
-  
-  showAnimationProgress(animation: AnimationState, progress: number) {
-    // Set the pre-state for the animation
-    this.state = cloneDeep(animation.pre);
-    
-    // For progress > 0, show the animated piece in transit
-    if (animation.rollingPiece) {
-      // Rolling animation - just show the dice
-      this.rolling = animation.rollingPiece;
-    } else if (animation.from !== undefined && animation.to !== undefined && animation.to !== -2) {
-      // Show the piece in transit using CSS animation progress
-      this.animatedPiece = animation;
-      
-      // Calculate positions for CSS
-      const fromSpot = animation.from === -1 ? null : animation.pre.spots.find(s => s.index === animation.from!);
-      const toSpot = animation.to === -1 ? null : animation.pre.spots.find(s => s.index === animation.to!);
-      
-      let fromCol = 0, fromRow = 0;
-      if (animation.from === -1) {
-        fromCol = 7;
-        fromRow = animation.piece === 'r' ? 1 : 0;
-      } else if (fromSpot) {
-        fromCol = fromSpot.col > 6 ? fromSpot.col + 1 : fromSpot.col;
-        fromRow = fromSpot.top ? 0 : 1;
-      }
-      
-      let toCol = 0, toRow = 0;
-      if (animation.to === -1) {
-        toCol = 7;
-        toRow = animation.piece === 'r' ? 1 : 0;
-      } else if (toSpot) {
-        toCol = toSpot.col > 6 ? toSpot.col + 1 : toSpot.col;
-        toRow = toSpot.top ? 0 : 1;
-      }
-      
-      // Calculate stack offsets
-      let fromStackOffsetX = 0, fromStackOffsetY = (animation.fromStackIndex || 0);
-      let toStackOffsetX = 0, toStackOffsetY = (animation.toStackIndex || 0);
-      
-      if (animation.fromStackIndex && animation.fromStackIndex > 4) {
-        fromStackOffsetX -= 0.05;
-        fromStackOffsetY -= 5.2;
-        if (animation.fromStackIndex > 9) {
-          fromStackOffsetX -= 0.05;
-          fromStackOffsetY -= 5.2;
-        }
-      }
-      if (fromSpot && !fromSpot.top) {
-        fromStackOffsetY = -fromStackOffsetY + 0.1;
-        fromStackOffsetX = -fromStackOffsetX;
-      }
-      
-      if (animation.toStackIndex && animation.toStackIndex > 4) {
-        toStackOffsetX -= 0.05;
-        toStackOffsetY -= 5.2;
-        if (animation.toStackIndex > 9) {
-          toStackOffsetX -= 0.05;
-          toStackOffsetY -= 5.2;
-        }
-      }
-      if (toSpot && !toSpot.top) {
-        toStackOffsetY = -toStackOffsetY + 0.1;
-        toStackOffsetX = -toStackOffsetX;
-      }
-      
-      const xFrom = fromCol + fromStackOffsetX;
-      const yFrom = fromRow * 12 + fromStackOffsetY * 0.86;
-      const xTo = toCol + toStackOffsetX;
-      const yTo = toRow * 12 + toStackOffsetY * 0.86;
-      
-      this.el.nativeElement.style.setProperty('--xFrom', '' + xFrom * 2);
-      this.el.nativeElement.style.setProperty('--yFrom', '' + yFrom * 2);
-      this.el.nativeElement.style.setProperty('--xTo', '' + xTo * 2);
-      this.el.nativeElement.style.setProperty('--yTo', '' + yTo * 2);
+
+    if (pos < 0) {
+      this.state = cloneDeep(this.replayAnimations[0].pre);
+    } else if (pos > this.replayAnimations.length) {
+      this.state = cloneDeep(this.replayAnimations[this.replayAnimations.length - 1].post);
+    } else  {
+      this.state = cloneDeep(this.replayAnimations[pos].pre);
     }
   }
 
   playReplay() {
     if (this.replayPlaying) return;
-    
     this.replayPlaying = true;
-    
-    // Clear any existing animation queue
-    this.animationQueue = [];
-    
-    // Build animation queue from current position to end
-    const startIndex = Math.floor(this.replayPosition);
-    for (let i = startIndex; i < this.replayAnimations.length; i++) {
-      this.animationQueue.push(this.replayAnimations[i]);
-    }
-    
-    // Start processing the queue
-    if (this.animationQueue.length > 0 && !this.animating) {
-      this.processReplayAnimationQueue();
-    }
+    this.processReplayAnimationQueue();
   }
-  
+
   processReplayAnimationQueue() {
-    this.animating = false;
     delete this.animatedPiece;
     delete this.rolling;
-    
+    if (!this.replayPlaying) return;
+
+    if (this.animationQueue.length === 0) {
+      for (let i = 0; i < this.replayAnimations.length; i++) {
+        this.animationQueue.push(this.replayAnimations[i]);
+      }
+    }
     if (this.animationQueue.length === 0) {
       this.replayPlaying = false;
       this.replayPosition = this.replayAnimations.length;
       return;
     }
-    
-    if (!this.replayPlaying) {
-      // User paused, stop processing
-      return;
-    }
 
-    this.animating = true;
-    const animation = this.animationQueue.shift()!;
-    const animationIndex = this.replayAnimations.indexOf(animation);
-    
-    // Update replay position to the start of this animation
-    this.replayPosition = animationIndex;
+    const animation = this.replayAnimations[this.replayPosition];
 
     // Handle rolling animation
     if (animation.rollingPiece) {
@@ -1389,20 +1250,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
       this.rolling = animation.rollingPiece;
       const duration = 750 / this.replaySpeed;
       delay(() => {
-        this.replayPosition = animationIndex + 1;
-        this.processReplayAnimationQueue();
-      }, duration);
-      return;
-    }
-
-    if (animation.from === undefined) {
-      this.state = { ...animation.post };
-      if (!this.state.diceUsed.length) {
-        this.rolling = this.state.turn;
-      }
-      const duration = 750 / this.replaySpeed;
-      delay(() => {
-        this.replayPosition = animationIndex + 1;
+        this.replayPosition++;
         this.processReplayAnimationQueue();
       }, duration);
       return;
@@ -1477,29 +1325,18 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
     const xTo = toCol + toStackOffsetX;
     const yTo = toRow * 12 + toStackOffsetY * 0.86;
 
+    const totalDuration = 1500 / this.replaySpeed;
     this.el.nativeElement.style.setProperty('--xFrom', '' + xFrom * 2);
     this.el.nativeElement.style.setProperty('--yFrom', '' + yFrom * 2);
     this.el.nativeElement.style.setProperty('--xTo', '' + xTo * 2);
     this.el.nativeElement.style.setProperty('--yTo', '' + yTo * 2);
+    this.el.nativeElement.style.setProperty('--move-duration', totalDuration + 'ms');
 
     requestAnimationFrame(() => {
       this.animatedPiece = animation;
-      const totalDuration = 1500 / this.replaySpeed;
-      
-      // Update position progressively during animation
-      const steps = 10;
-      const stepDuration = totalDuration / steps;
-      for (let i = 1; i <= steps; i++) {
-        delay(() => {
-          if (this.replayPlaying) {
-            this.replayPosition = animationIndex + (i / steps);
-          }
-        }, stepDuration * i);
-      }
-      
       delay(() => {
         this.state = { ...animation.post };
-        this.replayPosition = animationIndex + 1;
+        this.replayPosition++;
         this.processReplayAnimationQueue();
       }, totalDuration);
     });
@@ -1507,33 +1344,40 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
 
   pauseReplay() {
     this.replayPlaying = false;
-    // Clear animation queue but keep current position
-    this.animationQueue = [];
+    delete this.animatedPiece;
   }
 
-  stopReplay() {
-    this.pauseReplay();
-    this.replayToPosition(0);
+  startSeeking() {
+    if (this.replayPlaying) {
+      this.seeking = true;
+      this.pauseReplay();
+    }
   }
 
-  replayStepForward() {
+  seek(position: number | string) {
     this.pauseReplay();
-    this.replayToPosition(this.replayPosition + 1);
+    this.replayToPosition(position);
   }
 
-  replayStepBackward() {
-    this.pauseReplay();
-    this.replayToPosition(this.replayPosition - 1);
+  endSeeking() {
+    if (this.seeking) {
+      this.seeking = false;
+      this.playReplay();
+    }
   }
 
   replayFastForward() {
     // Cycle through speeds: 1x -> 2x -> 3x -> 4x -> 1x
     this.replaySpeed = this.replaySpeed >= 4 ? 1 : this.replaySpeed + 1;
-    
+
     // If currently playing, restart with new speed
     if (this.replayPlaying) {
       this.pauseReplay();
       this.playReplay();
     }
+  }
+
+  floor(n: number) {
+    return Math.floor(n);
   }
 }
