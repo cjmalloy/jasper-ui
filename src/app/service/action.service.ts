@@ -240,10 +240,14 @@ export class ActionService {
   append(ref: Ref) {
     let cursor = ref.origin === this.store.account.origin ? ref.modifiedString! : '';
     let comment = ref.comment || '';
+    let baseRef: Ref | null = ref.origin === this.store.account.origin ? { ...ref } : null;
     const inner = {
       updates$: merge(...this.store.origins.list.map(origin => this.stomp.watchRef(ref.url, origin).pipe(
         tap(u => {
-          if (u.origin === this.store.account.origin) cursor = u.modifiedString!;
+          if (u.origin === this.store.account.origin) {
+            cursor = u.modifiedString!;
+            baseRef = { ...u };
+          }
         }),
         mergeMap(u => {
           if (comment.startsWith(u?.comment || '')) {
@@ -261,7 +265,10 @@ export class ActionService {
       append$: (value: string): Observable<string> => {
         if (!cursor) {
           return this.refs.get(ref.url, this.store.account.origin).pipe(
-            tap(ref => cursor = ref.modifiedString!),
+            tap(ref => {
+              cursor = ref.modifiedString!;
+              baseRef = { ...ref };
+            }),
             switchMap(ref => inner.append$(value)),
           );
         }
@@ -271,7 +278,43 @@ export class ActionService {
           path: '/comment',
           value: comment,
         }]).pipe(
-          tap(c => cursor = c),
+          tap(c => {
+            cursor = c;
+            if (baseRef) baseRef.comment = comment;
+          }),
+          catchError(err => {
+            if (err.status === 409) {
+              // Fetch the current version from server
+              return this.refs.get(ref.url, this.store.account.origin).pipe(
+                switchMap(serverRef => {
+                  // Attempt 3-way merge
+                  const mergedComment = tryMergeRefComment(baseRef, serverRef, { comment });
+                  
+                  if (mergedComment !== null) {
+                    // Auto-merge succeeded, retry with merged content
+                    comment = mergedComment;
+                    cursor = serverRef.modifiedString!;
+                    baseRef = { ...serverRef };
+                    return this.refs.patch(ref.url, this.store.account.origin, cursor, [{
+                      op: 'add',
+                      path: '/comment',
+                      value: mergedComment,
+                    }]).pipe(
+                      tap(c => {
+                        cursor = c;
+                        if (baseRef) baseRef.comment = mergedComment;
+                      }),
+                    );
+                  } else {
+                    // Auto-merge failed, throw formatted conflict
+                    const conflictMessage = formatMergeConflict(baseRef, serverRef, { comment });
+                    return throwError(() => ({ mergeConflict: true, message: conflictMessage }));
+                  }
+                }),
+              );
+            }
+            return throwError(() => err);
+          }),
         );
       },
     };
