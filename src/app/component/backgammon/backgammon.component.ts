@@ -1105,7 +1105,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
     this.importantEventTypes.clear();
 
     let currentTurnStart = 0;
-    let piecesOffThisTurn = 0;
+    let piecesHitThisTurn = 0;
     let redAllHome = false;
     let blackAllHome = false;
 
@@ -1123,18 +1123,18 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
 
       // Track turn changes
       if (animation.rollingPiece) {
-        // New roll - check if we had >1 off in previous turn
-        if (piecesOffThisTurn > 1) {
+        // New roll - check if we had >1 hit in previous turn
+        if (piecesHitThisTurn > 1) {
           if (!this.importantEventTypes.has(currentTurnStart)) {
             events.push(currentTurnStart);
-            this.importantEventTypes.set(currentTurnStart, $localize`${piecesOffThisTurn} pieces off`);
+            this.importantEventTypes.set(currentTurnStart, $localize`${piecesHitThisTurn} pieces hit`);
           }
         }
         currentTurnStart = i;
-        piecesOffThisTurn = 0;
-      } else if (animation.to === -2) {
-        // Piece going off
-        piecesOffThisTurn++;
+        piecesHitThisTurn = 0;
+      } else if (move.includes('*')) {
+        // Piece was hit (bumped to bar) - indicated by asterisk
+        piecesHitThisTurn++;
       }
 
       // Check if red or black all pieces are in home (using post state)
@@ -1173,10 +1173,10 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
     }
 
     // Check last turn
-    if (piecesOffThisTurn > 1) {
+    if (piecesHitThisTurn > 1) {
       if (!this.importantEventTypes.has(currentTurnStart)) {
         events.push(currentTurnStart);
-        this.importantEventTypes.set(currentTurnStart, $localize`${piecesOffThisTurn} pieces off`);
+        this.importantEventTypes.set(currentTurnStart, $localize`${piecesHitThisTurn} pieces hit`);
       }
     }
 
