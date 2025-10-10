@@ -742,7 +742,14 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   save(p: Piece, from: number, to: number, hit?: boolean) {
     if (from === to) return;
     const move = p + ' ' + (from < 0 ? 'bar' : from + 1) + '/' + (to < 0 ? 'off' : to + 1) + (hit ? '*' : '');
-    this.append$(move).subscribe();
+    this.append$(move).pipe(
+      catchError(err => {
+        if (err?.mergeConflict) {
+          alert($localize`Move conflict: Both players made moves at the same time.\n\nPlease reload to see the current game state.`);
+        }
+        return of();
+      })
+    ).subscribe();
   }
 
   check() {
@@ -916,7 +923,14 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
     this.rolling = p;
     delay(() => this.rolling = undefined, 750);
     const state = applyRoll(this.lastState, p, this.r(), this.state.turn ? this.r() : 0);
-    this.append$(state.board[state.board.length - 1]).subscribe();
+    this.append$(state.board[state.board.length - 1]).pipe(
+      catchError(err => {
+        if (err?.mergeConflict) {
+          alert($localize`Dice roll conflict: Both players rolled at the same time.\n\nPlease reload to see the current game state.`);
+        }
+        return of();
+      })
+    ).subscribe();
     this.lastState = state;
   }
 
