@@ -600,7 +600,11 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
       ).subscribe(update => {
         const state = getAnimation(this.lastState, update);
         if (state) {
-          this.queueAnimation(state)
+          this.queueAnimation(state);
+          // Check if game ended via update (e.g., tags added remotely)
+          if (this.isGameEnded && !this.replayMode) {
+            defer(() => this.enterReplayMode());
+          }
         }
       });
     }
@@ -947,6 +951,10 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
       this.state = { ...animation.post };
       this.rolling = animation.rollingPiece;
       delay(() => {
+        // Check if game ended via tags after rolling animation
+        if (this.isGameEnded && !this.replayMode) {
+          defer(() => this.enterReplayMode());
+        }
         this.processAnimationQueue();
       }, 750);
       return;
@@ -958,6 +966,10 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
         this.rolling = this.state.turn;
       }
       delay(() => {
+        // Check if game ended via tags after state update
+        if (this.isGameEnded && !this.replayMode) {
+          defer(() => this.enterReplayMode());
+        }
         this.processAnimationQueue();
       }, 750);
       return;
@@ -1052,6 +1064,10 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
       delay(() => {
         this.state = { ...animation.post };
         this.check();
+        // Check if game ended via tags after animation completes
+        if (this.isGameEnded && !this.replayMode) {
+          defer(() => this.enterReplayMode());
+        }
         this.processAnimationQueue();
       }, totalDuration);
     });
