@@ -1194,8 +1194,11 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   }
 
   replayToPosition(position: number | string) {
+    if (this.replayPlaying) throw 'must pause before seeking';
     const pos = typeof position === 'string' ? parseFloat(position) : position;
     if (isNaN(pos) || pos < 0) return;
+    delete this.animatedPiece;
+    delete this.rolling;
 
     if (pos >= this.replayAnimations.length) {
       this.replayPosition = this.replayAnimations.length + 1;
@@ -1338,6 +1341,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
     }
     this.replayPlaying = false;
     delete this.animatedPiece;
+    delete this.rolling;
   }
 
   startSeeking() {
@@ -1360,17 +1364,23 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   }
 
   snapToEvent(eventPos: number) {
-    this.pauseReplay();
-    this.replayToPosition(eventPos);
+    if (this.replayPlaying) {
+      this.pauseReplay();
+      this.replayToPosition(eventPos);
+      this.playReplay();
+    } else {
+      this.replayToPosition(eventPos);
+    }
   }
 
   getEventEmoji(eventPos: number): string {
     const eventType = this.importantEventTypes.get(eventPos);
     if (!eventType) return '';
-    
+
     if (eventType.includes('Double 6s')) return '🎲️🎲️';
-    if (eventType.includes('all home')) return '🏠';
-    if (eventType.includes('hit')) return '❌';
+    if (eventType.includes('Red all home')) return '🔴️🏠️';
+    if (eventType.includes('Black all home')) return '⚫️🏠️';
+    if (eventType.includes('hit')) return eventType.split(' ')[0] + '❌️';
     return '';
   }
 
