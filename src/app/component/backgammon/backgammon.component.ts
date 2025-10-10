@@ -1197,10 +1197,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
     const pos = typeof position === 'string' ? parseFloat(position) : position;
     if (isNaN(pos) || pos < 0) return;
 
-    if (pos < 0) {
-      this.replayPosition = 0;
-      this.state = cloneDeep(this.replayAnimations[0].pre);
-    } else if (pos >= this.replayAnimations.length) {
+    if (pos >= this.replayAnimations.length) {
       this.replayPosition = this.replayAnimations.length + 1;
       this.state = cloneDeep(this.replayAnimations[this.replayAnimations.length - 1].post);
     } else {
