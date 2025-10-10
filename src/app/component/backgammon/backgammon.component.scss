@@ -441,6 +441,8 @@
       height: 100%;
       background: gold;
       box-shadow: 0 0 4px gold;
+      pointer-events: auto;
+      cursor: help;
     }
   }
 
