@@ -79,7 +79,6 @@ function getAnimation(state: GameState, update: string): AnimationState | null {
     const p = parts[0] as Piece;
     const bar = update.includes('bar');
     const off = update.includes('off');
-    const hit = update.includes('*');
     const from = bar ? -1 : parseInt(parts[1]) - 1;
     const to = off ? -2 : parseInt(parts[2]) - 1;
 
@@ -91,17 +90,6 @@ function getAnimation(state: GameState, update: string): AnimationState | null {
     } else if (from === -1) {
       const sourceBar = p === 'r' ? getRedBar(state) : getBlackBar(state);
       fromStackIndex = sourceBar.length - 1;
-    }
-
-    // If there's a hit, capture which piece is being bumped and its stack position
-    let bumpedPiece: Piece | undefined;
-    let bumpedFromStackIndex = -1;
-    if (hit && to >= 0 && to < 24) {
-      const targetSpot = state.spots[to];
-      if (targetSpot.pieces.length === 1 && targetSpot.pieces[0] !== p) {
-        bumpedPiece = targetSpot.pieces[0];
-        bumpedFromStackIndex = 0; // It's the only piece at this position
-      }
     }
 
     // Use pure function to compute new state
@@ -119,36 +107,15 @@ function getAnimation(state: GameState, update: string): AnimationState | null {
       const destOff = p === 'r' ? newState.redOff : newState.blackOff;
       toStackIndex = destOff.length - 1;
     }
-
-    // Queue animation for bumped piece first (so it happens before the moving piece)
-    if (bumpedPiece !== undefined && to >= 0) {
-      // Compute bumped piece destination stack index from post-move state
-      const bumpedDestBar = bumpedPiece === 'r' ? getRedBar(newState) : getBlackBar(newState);
-      const bumpedToStackIndex = bumpedDestBar.length - 1;
-
-      return {
-        pre: state,
-        post: newState,
-        from: to,
-        to: -1, // To bar
-        piece: bumpedPiece,
-        fromStackIndex: bumpedFromStackIndex,
-        toStackIndex: bumpedToStackIndex,
-      };
-    }
-
-    // Queue animation for main move only if not moving to off
-    if (to !== -2) {
-      return {
-        pre: state,
-        post: newState,
-        from,
-        to,
-        piece: p,
-        fromStackIndex,
-        toStackIndex,
-      };
-    }
+    return {
+      pre: state,
+      post: newState,
+      from,
+      to,
+      piece: p,
+      fromStackIndex,
+      toStackIndex,
+    };
   }
   console.log('unknown update:', update);
   return null;
@@ -657,7 +624,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
           hasTag('plugin/backgammon/winner/b', changes.ref.previousValue)
         ));
         const nowEnded = this.isGameEnded;
-        
+
         if (!prevEnded && nowEnded && !this.replayMode) {
           // Tags were added to end the game, enter replay mode
           defer(() => this.enterReplayMode());
