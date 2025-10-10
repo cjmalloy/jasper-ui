@@ -443,6 +443,18 @@
       box-shadow: 0 0 4px gold;
       pointer-events: auto;
       cursor: pointer;
+
+      .tick-emoji {
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: calc(var(--dim) / 2);
+        line-height: 1;
+        margin-bottom: 2px;
+        pointer-events: none;
+        text-shadow: 0 0 2px rgba(0, 0, 0, 0.5);
+      }
     }
   }
 
@@ -528,6 +540,10 @@ body.dark-theme {
     .scrubber-ticks .scrubber-tick {
       background: #ffd700;
       box-shadow: 0 0 6px #ffd700;
+
+      .tick-emoji {
+        text-shadow: 0 0 3px rgba(0, 0, 0, 0.8);
+      }
     }
 
     .control-buttons .replay-btn {
@@ -567,6 +583,10 @@ body.light-theme {
     .scrubber-ticks .scrubber-tick {
       background: #daa520;
       box-shadow: 0 0 4px #daa520;
+
+      .tick-emoji {
+        text-shadow: 0 0 2px rgba(255, 255, 255, 0.6);
+      }
     }
 
     .control-buttons .replay-btn {

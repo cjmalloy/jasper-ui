@@ -1364,6 +1364,16 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
     this.replayToPosition(eventPos);
   }
 
+  getEventEmoji(eventPos: number): string {
+    const eventType = this.importantEventTypes.get(eventPos);
+    if (!eventType) return '';
+    
+    if (eventType.includes('Double 6s')) return '🎲️🎲️';
+    if (eventType.includes('all home')) return '🏠';
+    if (eventType.includes('hit')) return '❌';
+    return '';
+  }
+
   replayFastForward() {
     // Cycle through speeds: 1x -> 2x -> 3x -> 4x -> 1x
     this.replaySpeed = this.replaySpeed >= 4 ? 1 : this.replaySpeed + 1;

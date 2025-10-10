@@ -183,7 +183,9 @@
           <div class="scrubber-tick"
                [style.left.%]="(eventPos / replayAnimations.length) * 100"
                [title]="importantEventTypes.get(eventPos) || 'Important event'"
-               (click)="snapToEvent(eventPos)"></div>
+               (click)="snapToEvent(eventPos)">
+            <span class="tick-emoji">{{ getEventEmoji(eventPos) }}</span>
+          </div>
         }
       </div>
     </div>
