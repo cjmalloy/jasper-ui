@@ -173,7 +173,7 @@
       <input type="range"
              class="scrubber-bar"
              [min]="0"
-             [max]="replayAnimations.length"
+             [max]="replayAnimations.length + 1"
              [value]="replayPosition"
              (pointerdown)="startSeeking()"
              (input)="seek($any($event.target).value)"
@@ -191,7 +191,6 @@
         <button type="button"
                 class="replay-btn play-btn"
                 (click)="playReplay()"
-                [disabled]="replayPosition >= replayAnimations.length"
                 i18n-title title="Play">▶️</button>
       } @else {
         <button type="button"

@@ -563,6 +563,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   private watch?: Subscription;
   private append$!: (value: string) => Observable<string>;
   private seeking = false;
+  private animationHandler = 0;
 
   constructor(
     private store: Store,
@@ -1189,21 +1190,21 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
     this.replayPosition = 0;
     this.precomputeReplayAnimations();
     this.importantEvents = this.detectImportantEvents();
-    this.replayToPosition(0);
+    this.replayToPosition(this.replayAnimations.length + 1);
   }
 
   replayToPosition(position: number | string) {
     const pos = typeof position === 'string' ? parseFloat(position) : position;
     if (isNaN(pos) || pos < 0) return;
-    if (pos > this.replayAnimations.length) return;
-
-    this.replayPosition = pos;
 
     if (pos < 0) {
+      this.replayPosition = 0;
       this.state = cloneDeep(this.replayAnimations[0].pre);
-    } else if (pos > this.replayAnimations.length) {
+    } else if (pos >= this.replayAnimations.length) {
+      this.replayPosition = this.replayAnimations.length + 1;
       this.state = cloneDeep(this.replayAnimations[this.replayAnimations.length - 1].post);
-    } else  {
+    } else {
+      this.replayPosition = pos;
       this.state = cloneDeep(this.replayAnimations[pos].pre);
     }
   }
@@ -1211,6 +1212,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   playReplay() {
     if (this.replayPlaying) return;
     this.replayPlaying = true;
+    if (this.replayPosition >= this.replayAnimations.length - 1) this.replayPosition = 0;
     this.processReplayAnimationQueue();
   }
 
@@ -1225,6 +1227,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
       return;
     }
 
+    if (this.replayPosition > this.replayAnimations.length) this.replayPosition = 0;
     const animation = this.replayAnimations[this.replayPosition];
 
     // Handle rolling animation
@@ -1317,15 +1320,25 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
 
     requestAnimationFrame(() => {
       this.animatedPiece = animation;
-      delay(() => {
-        this.state = { ...animation.post };
-        this.replayPosition++;
-        this.processReplayAnimationQueue();
+      this.animationHandler = delay(() => {
+        if (this.replayPlaying) {
+          this.state = { ...animation.post };
+          if (this.replayPosition === this.replayAnimations.length - 1) {
+            // Don't loop
+            this.pauseReplay();
+          }
+          this.replayPosition++;
+          this.processReplayAnimationQueue();
+        }
       }, totalDuration);
     });
   }
 
   pauseReplay() {
+    if (this.animationHandler) {
+      clearTimeout(this.animationHandler);
+      this.animationHandler = 0;
+    }
     this.replayPlaying = false;
     delete this.animatedPiece;
   }
@@ -1352,8 +1365,6 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   replayFastForward() {
     // Cycle through speeds: 1x -> 2x -> 3x -> 4x -> 1x
     this.replaySpeed = this.replaySpeed >= 4 ? 1 : this.replaySpeed + 1;
-
-    // If currently playing, restart with new speed
     if (this.replayPlaying) {
       this.pauseReplay();
       this.playReplay();
