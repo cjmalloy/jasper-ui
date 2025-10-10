@@ -97,7 +97,13 @@ least $k$ red circles.
             text = write(t);
             comment = text;
             renderSvg();
-            comment$(text).subscribe();
+            comment$(text).subscribe({
+              error: (err) => {
+                if (err?.mergeConflict) {
+                  alert('Conflict: Another user modified this triangle at the same time.\\n\\nPlease reload.');
+                }
+              }
+            });
           }
           function tagRed(text, i, j) {
             const t = read(text);
@@ -108,7 +114,13 @@ least $k$ red circles.
             text = write(t);
             comment = text;
             renderSvg();
-            comment$(text).subscribe();
+            comment$(text).subscribe({
+              error: (err) => {
+                if (err?.mergeConflict) {
+                  alert('Conflict: Another user modified this triangle at the same time.\\n\\nPlease reload.');
+                }
+              }
+            });
           }
           const triangle = read(comment);
           const n = geometricSumInv(triangle.length);
