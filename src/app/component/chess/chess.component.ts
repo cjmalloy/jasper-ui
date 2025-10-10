@@ -316,12 +316,16 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
     this.comment.emit(this.history);
     this.append$(move).pipe(
       catchError(err => {
-        this.retry.push(move);
-        delay(() => {
-          if (this.retry.length) {
-            this.clearErrors();
-          }
-        }, 1000);
+        if (err?.mergeConflict) {
+          alert($localize`Move conflict: Both players made moves at the same time.\n\nPlease reload to see the current game state.`);
+        } else {
+          this.retry.push(move);
+          delay(() => {
+            if (this.retry.length) {
+              this.clearErrors();
+            }
+          }, 1000);
+        }
         return throwError(() => err);
       }),
     ).subscribe();
@@ -332,7 +336,11 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
     const move = this.retry.shift()!;
     this.append$(move).pipe(
       catchError(err => {
-        this.retry.unshift(move);
+        if (err?.mergeConflict) {
+          alert($localize`Move conflict: Both players made moves at the same time.\n\nPlease reload to see the current game state.`);
+        } else {
+          this.retry.unshift(move);
+        }
         return throwError(() => err);
       }),
     ).subscribe();
