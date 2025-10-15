@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { Ref } from '../model/ref';
 import { Role } from '../model/user';
 import { Store } from '../store/store';
-import { capturesAny, hasTag, isOwner, isOwnerTag, localTag, privateTag, publicTag, qualifyTags } from '../util/tag';
+import { addHierarchicalTags, capturesAny, hasTag, isOwner, isOwnerTag, localTag, privateTag, publicTag, qualifyTags } from '../util/tag';
 import { ConfigService } from './config.service';
 
 @Injectable({
@@ -87,20 +87,8 @@ export class AuthzService {
     if (this.store.account.editor && publicTag(tag)) return true;
     if (this.store.account.localTag === tag) return true;
     if (!this.store.account.access) return false;
-    // Check if user has write access to this tag or any parent tag
-    // We need to check if any access tag is a parent of (or equal to) the target tag
-    const hasParentAccess = (accessTags: string[] | undefined): boolean => {
-      if (!accessTags) return false;
-      for (const accessTag of accessTags) {
-        // Check if accessTag grants permission for tag
-        // Permission is granted if accessTag equals tag or is a parent of tag
-        if (accessTag === tag || tag.startsWith(accessTag + '/')) {
-          return true;
-        }
-      }
-      return false;
-    };
-    return hasParentAccess(this.store.account.access.tagWriteAccess) || hasParentAccess(this.store.account.access.writeAccess);
+    if (capturesAny(addHierarchicalTags(tag), this.store.account.access.tagWriteAccess)) return true;
+    return !!capturesAny(addHierarchicalTags(tag), this.store.account.access.writeAccess);
   }
 
   hasRole(role: Role) {
