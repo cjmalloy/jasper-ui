@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { Ref } from '../model/ref';
 import { Role } from '../model/user';
 import { Store } from '../store/store';
-import { addHierarchicalTags, capturesAny, hasTag, isOwner, isOwnerTag, localTag, privateTag, publicTag, qualifyTags } from '../util/tag';
+import { capturesAny, hasTag, isOwner, isOwnerTag, localTag, privateTag, publicTag, qualifyTags } from '../util/tag';
 import { ConfigService } from './config.service';
 
 @Injectable({
@@ -87,8 +87,8 @@ export class AuthzService {
     if (this.store.account.editor && publicTag(tag)) return true;
     if (this.store.account.localTag === tag) return true;
     if (!this.store.account.access) return false;
-    if (capturesAny(addHierarchicalTags(tag), this.store.account.access.tagWriteAccess)) return true;
-    return !!capturesAny(addHierarchicalTags(tag), this.store.account.access.writeAccess);
+    if (capturesAny(this.store.account.access.tagWriteAccess, [tag])) return true;
+    return !!capturesAny(this.store.account.access.writeAccess, [tag]);
   }
 
   hasRole(role: Role) {
