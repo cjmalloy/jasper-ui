@@ -87,8 +87,20 @@ export class AuthzService {
     if (this.store.account.editor && publicTag(tag)) return true;
     if (this.store.account.localTag === tag) return true;
     if (!this.store.account.access) return false;
-    if (capturesAny(this.store.account.access.tagWriteAccess, [tag])) return true;
-    return !!capturesAny(this.store.account.access.writeAccess, [tag]);
+    // Check if user has write access to this tag or any parent tag
+    // We need to check if any access tag is a parent of (or equal to) the target tag
+    const hasParentAccess = (accessTags: string[] | undefined): boolean => {
+      if (!accessTags) return false;
+      for (const accessTag of accessTags) {
+        // Check if accessTag grants permission for tag
+        // Permission is granted if accessTag equals tag or is a parent of tag
+        if (accessTag === tag || tag.startsWith(accessTag + '/')) {
+          return true;
+        }
+      }
+      return false;
+    };
+    return hasParentAccess(this.store.account.access.tagWriteAccess) || hasParentAccess(this.store.account.access.writeAccess);
   }
 
   hasRole(role: Role) {
