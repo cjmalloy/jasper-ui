@@ -47,12 +47,37 @@ jobs:
           script: |
             const emoji = '${{ steps.cypress.outcome }}' === 'success' ? '✅' : '❌';
             const url = `https://${context.repo.owner}.github.io/${context.repo.repo}/reports/cypress-reports-pr-${context.issue.number}/`
-            github.rest.issues.createComment({
+            const body = `${emoji} Cypress report available at: ${url}`;
+            
+            // Find existing comment
+            const comments = await github.rest.issues.listComments({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: `${emoji} Cypress report available at: ${url}`
-            })
+            });
+            
+            const botComment = comments.data.find(comment => 
+              comment.user.type === 'Bot' && 
+              comment.body.includes('Cypress report available at')
+            );
+            
+            if (botComment) {
+              // Update existing comment
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: body
+              });
+            } else {
+              // Create new comment
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: body
+              });
+            }
 
   clean:
     needs: cypress-run
