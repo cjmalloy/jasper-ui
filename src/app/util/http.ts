@@ -93,7 +93,19 @@ export function printError(res: HttpErrorResponse): string[] {
     }
     return result;
   }
-  return [problem?.detail || res.message];
+  const errorMessage = problem?.detail || problem?.message || res.message;
+  // Parse plugin validation errors
+  // Format: "Invalid plugin/name: [ValidationError [instancePath=[field], schemaPath=[...]]] plugin."
+  const pluginErrorMatch = errorMessage.match(/Invalid (plugin\/[^:]+):\s*\[ValidationError\s*\[instancePath=\[([^\]]*)\]/);
+  if (pluginErrorMatch) {
+    const pluginTag = pluginErrorMatch[1];
+    const instancePath = pluginErrorMatch[2];
+    if (instancePath) {
+      return [`Error in ${pluginTag}: Invalid field '${instancePath}'`];
+    }
+    return [`Error in ${pluginTag}: Validation failed`];
+  }
+  return [errorMessage];
 }
 
 export function fixUrl(url: string, banlist: typeof banlistConfig) {
