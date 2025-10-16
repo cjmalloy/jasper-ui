@@ -189,14 +189,14 @@ jobs:
             // Add HTML comment marker for identification
             const body = `<!-- test-results-comment -->\n${summary}`;
             
-            // Find existing comment
-            const comments = await github.rest.issues.listComments({
+            // Find existing comment (with pagination)
+            const comments = await github.paginate(github.rest.issues.listComments, {
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
             });
             
-            const botComment = comments.data.find(comment => 
+            const botComment = comments.find(comment => 
               comment.body.includes('<!-- test-results-comment -->')
             );
             
