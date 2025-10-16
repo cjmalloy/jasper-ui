@@ -47,7 +47,9 @@ jobs:
           script: |
             const emoji = '${{ steps.cypress.outcome }}' === 'success' ? '✅' : '❌';
             const url = `https://${context.repo.owner}.github.io/${context.repo.repo}/reports/cypress-reports-pr-${context.issue.number}/`
-            const body = `${emoji} Cypress report available at: ${url}`;
+            
+            // Add HTML comment marker for identification
+            const body = `<!-- cypress-results-comment -->\n${emoji} Cypress report available at: ${url}`;
             
             // Find existing comment
             const comments = await github.rest.issues.listComments({
@@ -57,8 +59,7 @@ jobs:
             });
             
             const botComment = comments.data.find(comment => 
-              comment.user.type === 'Bot' && 
-              comment.body.includes('Cypress report available at')
+              comment.body.includes('<!-- cypress-results-comment -->')
             );
             
             if (botComment) {
