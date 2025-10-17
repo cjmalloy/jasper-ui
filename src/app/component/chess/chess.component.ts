@@ -15,6 +15,7 @@ import {
 import { Chess, Square } from 'chess.js';
 import { defer, delay, flatten, without } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
+import { MergeRegion } from 'node-diff3';
 import { catchError, Observable, of, Subscription, throwError } from 'rxjs';
 import { Ref } from '../../model/ref';
 import { ActionService } from '../../service/action.service';
@@ -317,7 +318,14 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
     this.append$(move).pipe(
       catchError(err => {
         if (err?.conflict) {
-          // TODO: see if conflict can be auto resolved
+          // Check if conflict can be auto-resolved (alternating moves by different players)
+          if (this.canAutoResolveMoveConflict(err.conflict)) {
+            // Silently reload to show server state
+            this.init();
+            return of();
+          }
+          // Cannot auto-resolve - add to retry queue
+          this.retry.push(move);
         } else {
           this.retry.push(move);
           delay(() => {
@@ -337,7 +345,14 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
     this.append$(move).pipe(
       catchError(err => {
         if (err?.conflict) {
-          // TODO: see if conflict can be auto resolved
+          // Check if conflict can be auto-resolved (alternating moves by different players)
+          if (this.canAutoResolveMoveConflict(err.conflict)) {
+            // Silently reload to show server state
+            this.init();
+            return of();
+          }
+          // Cannot auto-resolve - put back in retry queue
+          this.retry.unshift(move);
         } else {
           this.retry.unshift(move);
         }
@@ -443,5 +458,36 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
       // Process next animation after current one completes
       this.processAnimationQueue();
     }, totalDuration);
+  }
+
+  /**
+   * Check if a move conflict can be auto-resolved
+   * Chess moves can be auto-resolved if both players made alternating moves
+   */
+  private canAutoResolveMoveConflict(conflict: MergeRegion<string>[]): boolean {
+    // Extract the conflicting moves
+    let theirsLines: string[] = [];
+    let oursLines: string[] = [];
+
+    for (const chunk of conflict) {
+      if (chunk.conflict) {
+        if (chunk.conflict.b && chunk.conflict.b.length > 0) {
+          theirsLines.push(...chunk.conflict.b);
+        }
+        if (chunk.conflict.a && chunk.conflict.a.length > 0) {
+          oursLines.push(...chunk.conflict.a);
+        }
+      }
+    }
+
+    // Get the last move from each side
+    const theirMoves = theirsLines.filter(l => l.trim());
+    const ourMoves = oursLines.filter(l => l.trim());
+
+    if (theirMoves.length === 0 || ourMoves.length === 0) return false;
+
+    // If both sides added exactly one move, it's likely alternating play
+    // We can auto-resolve by accepting the server state
+    return theirMoves.length === 1 && ourMoves.length === 1;
   }
 }
