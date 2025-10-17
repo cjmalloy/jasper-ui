@@ -88,7 +88,7 @@ export function formatMergeConflict(base: string | null, theirs: string, ours: s
 
   return `Merge conflict:\n\n` +
     `<<<<<<< BASE\n${baseComment}\n` +
-    `||||||| THEIRS (server)\n${theirComment}\n` +
+    `||||||| THEIRS (remote)\n${theirComment}\n` +
     `======= OURS (local)\n${ourComment}\n` +
     `>>>>>>>`;
 }

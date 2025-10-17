@@ -132,7 +132,7 @@ describe('Diff Utils', () => {
       expect(result).toContain('Merge conflict:');
       expect(result).toContain('<<<<<<< BASE');
       expect(result).toContain('Original');
-      expect(result).toContain('||||||| THEIRS (server)');
+      expect(result).toContain('||||||| THEIRS (remote)');
       expect(result).toContain('Their change');
       expect(result).toContain('======= OURS (local)');
       expect(result).toContain('Our change');
@@ -147,7 +147,7 @@ describe('Diff Utils', () => {
       
       expect(result).toContain('Merge conflict:');
       expect(result).toContain('<<<<<<< BASE');
-      expect(result).toContain('||||||| THEIRS (server)');
+      expect(result).toContain('||||||| THEIRS (remote)');
       expect(result).toContain('Their change');
       expect(result).toContain('======= OURS (local)');
       expect(result).toContain('Our change');
