@@ -35,10 +35,10 @@ export function formatRefForDiff(ref: Ref): string {
 
 export type Merge = { mergedComment?: string, conflict?: MergeRegion<string>[] };
 
-export function merge3(base: string, theirs: string, ours: string): Merge {
-  const baseLines = base.split('\n');
-  const theirLines = theirs.split('\n');
-  const ourLines = ours.split('\n');
+export function merge3(base: string, theirs: string, ours: string, delimiter: string = '\n'): Merge {
+  const baseLines = base.split(delimiter);
+  const theirLines = theirs.split(delimiter);
+  const ourLines = ours.split(delimiter);
   const result = diff3Merge(ourLines, baseLines, theirLines);
   const hasConflict = result.some(chunk => chunk.conflict);
   if (hasConflict) return { conflict: result };
@@ -48,5 +48,5 @@ export function merge3(base: string, theirs: string, ours: string): Merge {
       mergedLines.push(...chunk.ok);
     }
   }
-  return { mergedComment: mergedLines.join('\n') };
+  return { mergedComment: mergedLines.join(delimiter) };
 }

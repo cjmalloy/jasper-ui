@@ -94,13 +94,13 @@ describe('Diff Utils', () => {
       expect(mergedComment).toBe('Same change');
     });
 
-    it('should return null on conflict', () => {
+    it('should return undefined mergedComment on conflict', () => {
       const base = 'Original';
       const theirs = 'Their change';
       const ours = 'Our change';
 
       const { mergedComment, conflict } = merge3(base, theirs, ours);
-      expect(mergedComment).toBeNull();
+      expect(mergedComment).toBeUndefined();
       expect(conflict).toBeTruthy();
       expect(conflict).toEqual(jasmine.any(Array));
     });
@@ -111,7 +111,7 @@ describe('Diff Utils', () => {
       const ours = 'Our change';
 
       const { mergedComment, conflict } = merge3(base, theirs, ours);
-      expect(mergedComment).toBeNull();
+      expect(mergedComment).toBeUndefined();
       expect(conflict).toBeTruthy();
       expect(conflict).toEqual(jasmine.any(Array));
     });
@@ -140,7 +140,7 @@ describe('Diff Utils', () => {
       const ours = 'Line 1 our change\nLine 2\nLine 3';
 
       const { mergedComment, conflict } = merge3(base, theirs, ours);
-      expect(mergedComment).toBeNull();
+      expect(mergedComment).toBeUndefined();
       expect(conflict).toBeTruthy();
       expect(conflict).toEqual(jasmine.any(Array));
     });
@@ -152,6 +152,36 @@ describe('Diff Utils', () => {
 
       const { mergedComment } = merge3(base, theirs, ours);
       expect(mergedComment).toBe('Line 0\nLine 1\nLine 2\nLine 3');
+    });
+
+    it('should merge with space delimiter', () => {
+      const base = 'r o';
+      const theirs = 'r r o';
+      const ours = 'r o o';
+
+      const { mergedComment } = merge3(base, theirs, ours, ' ');
+      expect(mergedComment).toBe('r r o o');
+    });
+
+    it('should merge with space delimiter when changes at different positions', () => {
+      const base = 'r o';
+      const theirs = 'r r o';
+      const ours = 'r o r';
+
+      const { mergedComment, conflict } = merge3(base, theirs, ours, ' ');
+      expect(mergedComment).toBe('r r o r');
+      expect(conflict).toBeUndefined();
+    });
+
+    it('should handle ninja triangle merges with space delimiter for non-conflicting additions', () => {
+      // Simulating a simplified ninja triangle row: r = red, o = empty
+      // Both users add at different ends
+      const base = 'r o';
+      const theirs = 'r r o'; // User A adds at position 1
+      const ours = 'r o o'; // User B adds at position 2
+
+      const { mergedComment } = merge3(base, theirs, ours, ' ');
+      expect(mergedComment).toBe('r r o o');
     });
   });
 });

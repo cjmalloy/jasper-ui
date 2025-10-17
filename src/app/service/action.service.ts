@@ -50,13 +50,13 @@ export class ActionService {
         if (!ref) throw 'Error: No ref to respond to';
         this.respond(response, clear || [], ref);
       },
-      watch: () => {
+      watch: (delimiter?: string) => {
         if (!ref) throw 'Error: No ref to respond to';
-        return this.watch(ref);
+        return this.watch(ref, delimiter);
       },
-      append: () => {
+      append: (delimiter?: string) => {
         if (!ref) throw 'Error: No ref to respond to';
-        return this.append(ref);
+        return this.append(ref, delimiter);
       }
     }
   }
@@ -168,7 +168,7 @@ export class ActionService {
     }
   }
 
-  watch(ref: Ref) {
+  watch(ref: Ref, delimiter: string = '\n') {
     let cursor = ref.origin === this.store.account.origin ? ref.modifiedString! : '';
     let baseComment = ref.comment || '';
     const inner = {
@@ -202,7 +202,7 @@ export class ActionService {
               // Fetch the current version from server
               return this.refs.get(ref.url, this.store.account.origin).pipe(
                 switchMap(remote => {
-                  const { mergedComment, conflict } = merge3(baseComment, remote.comment || '', comment);
+                  const { mergedComment, conflict } = merge3(baseComment, remote.comment || '', comment, delimiter);
                   if (conflict) return throwError(() => ({ conflict }));
                   cursor = remote.modifiedString!;
                   baseComment = remote.comment || '';
@@ -227,7 +227,7 @@ export class ActionService {
     return inner;
   }
 
-  append(ref: Ref) {
+  append(ref: Ref, delimiter: string = '\n') {
     let cursor = ref.origin === this.store.account.origin ? ref.modifiedString! : '';
     let comment = ref.comment || '';
     let baseComment = ref.comment || '';
@@ -274,7 +274,7 @@ export class ActionService {
             if (err.status === 409) {
               return this.refs.get(ref.url, this.store.account.origin).pipe(
                 switchMap(remote => {
-                  const { mergedComment, conflict } = merge3(baseComment, remote.comment || '', comment);
+                  const { mergedComment, conflict } = merge3(baseComment, remote.comment || '', comment, delimiter);
                   if (conflict) return throwError(() => ({ conflict }));
                   comment = mergedComment || '';
                   cursor = remote.modifiedString!;
