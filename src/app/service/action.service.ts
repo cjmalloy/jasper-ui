@@ -170,7 +170,7 @@ export class ActionService {
 
   watch(ref: Ref) {
     let cursor = ref.origin === this.store.account.origin ? ref.modifiedString! : '';
-    let baseComment: string | null = ref.origin === this.store.account.origin ? (ref.comment || '') : null;
+    let baseComment = ref.comment || '';
     const inner = {
       ref$: merge(...this.store.origins.list.map(origin => this.stomp.watchRef(ref.url, origin).pipe(
         tap(u => {
@@ -240,7 +240,7 @@ export class ActionService {
   append(ref: Ref) {
     let cursor = ref.origin === this.store.account.origin ? ref.modifiedString! : '';
     let comment = ref.comment || '';
-    let baseComment: string | null = ref.origin === this.store.account.origin ? (ref.comment || '') : null;
+    let baseComment = ref.comment || '';
     const inner = {
       updates$: merge(...this.store.origins.list.map(origin => this.stomp.watchRef(ref.url, origin).pipe(
         tap(u => {
