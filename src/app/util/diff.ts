@@ -101,7 +101,7 @@ export function tryMergeRefComment(base: string, theirs: string, ours: string): 
  * @param diff3Result - The result from diff3Merge containing conflict information
  * @returns A formatted string showing the conflict
  */
-export function formatMergeConflict(diff3Result: any): string {
+function formatMergeConflict(diff3Result: any): string {
   if (!diff3Result || !Array.isArray(diff3Result)) {
     return 'Merge conflict: Unable to format conflict';
   }
