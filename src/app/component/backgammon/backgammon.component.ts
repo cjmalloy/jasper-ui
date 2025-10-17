@@ -743,7 +743,14 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
     this.append$(move).pipe(
       catchError(err => {
         if (err?.mergeConflict) {
-          alert($localize`Move conflict: Both players made moves at the same time.\n\nPlease reload to see the current game state.`);
+          // Parse merge conflict and check if moves are compatible
+          if (this.canAutoResolveMoveConflict(err.message)) {
+            // Silently ignore - reload will show server state
+            this.init();
+            return of();
+          }
+          // Incompatible moves - silently ignore, opposite player should resolve
+          this.init();
         }
         return of();
       })
@@ -933,12 +940,105 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
     this.append$(state.board[state.board.length - 1]).pipe(
       catchError(err => {
         if (err?.mergeConflict) {
-          alert($localize`Dice roll conflict: Both players rolled at the same time.\n\nPlease reload to see the current game state.`);
+          // Parse merge conflict and check if rolls are compatible
+          if (this.canAutoResolveRollConflict(err.message)) {
+            // Silently ignore - reload will show server state
+            this.init();
+            return of();
+          }
+          // Incompatible rolls - silently ignore, opposite player should resolve
+          this.init();
         }
         return of();
       })
     ).subscribe();
     this.lastState = state;
+  }
+
+  /**
+   * Parse a merge conflict message to extract THEIRS and OURS comments
+   */
+  private parseMergeConflict(message: string): { theirs: string, ours: string } | null {
+    const theirsMatch = message.match(/\|\|\|\|\|\|\| THEIRS \(server\)\n([\s\S]*?)\n=======/);
+    const oursMatch = message.match(/======= OURS \(local\)\n([\s\S]*?)\n>>>>>>>/);
+    
+    if (!theirsMatch || !oursMatch) return null;
+    
+    return {
+      theirs: theirsMatch[1],
+      ours: oursMatch[1]
+    };
+  }
+
+  /**
+   * Extract the last move from a game comment
+   */
+  private getLastMove(comment: string): string | null {
+    const moves = comment.split('\n').map(m => m.trim()).filter(m => !!m);
+    return moves.length > 0 ? moves[moves.length - 1] : null;
+  }
+
+  /**
+   * Check if a move is a dice roll
+   */
+  private isRoll(move: string): boolean {
+    return move.includes('-');
+  }
+
+  /**
+   * Get the player from a move
+   */
+  private getPlayer(move: string): Piece | null {
+    const parts = move.split(/[\s/*()]+/g).filter(p => !!p);
+    return parts[0] === 'r' || parts[0] === 'b' ? parts[0] as Piece : null;
+  }
+
+  /**
+   * Check if we can auto-resolve a move conflict
+   * Returns true if moves are compatible (both same type, different players or same player)
+   */
+  canAutoResolveMoveConflict(conflictMessage: string): boolean {
+    const parsed = this.parseMergeConflict(conflictMessage);
+    if (!parsed) return false;
+
+    const theirLastMove = this.getLastMove(parsed.theirs);
+    const ourLastMove = this.getLastMove(parsed.ours);
+    
+    if (!theirLastMove || !ourLastMove) return false;
+
+    // Both are regular moves (not rolls)
+    const theirIsRoll = this.isRoll(theirLastMove);
+    const ourIsRoll = this.isRoll(ourLastMove);
+    
+    // If both are the same type, they're compatible (order doesn't matter for rolls)
+    // If different types, incompatible
+    return theirIsRoll === ourIsRoll;
+  }
+
+  /**
+   * Check if we can auto-resolve a roll conflict
+   * Returns true if rolls are compatible
+   */
+  canAutoResolveRollConflict(conflictMessage: string): boolean {
+    const parsed = this.parseMergeConflict(conflictMessage);
+    if (!parsed) return false;
+
+    const theirLastMove = this.getLastMove(parsed.theirs);
+    const ourLastMove = this.getLastMove(parsed.ours);
+    
+    if (!theirLastMove || !ourLastMove) return false;
+
+    const theirIsRoll = this.isRoll(theirLastMove);
+    const ourIsRoll = this.isRoll(ourLastMove);
+    
+    // Both should be rolls for this to be auto-resolvable
+    if (!theirIsRoll || !ourIsRoll) return false;
+
+    const theirPlayer = this.getPlayer(theirLastMove);
+    const ourPlayer = this.getPlayer(ourLastMove);
+    
+    // Compatible if both players rolling (different players) or same player rolling twice
+    return true;
   }
 
   r() {
