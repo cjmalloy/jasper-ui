@@ -1,6 +1,6 @@
 import { DateTime } from 'luxon';
 import { Ref } from '../model/ref';
-import { formatMergeConflict, formatRefForDiff, tryMergeRefComment } from './diff';
+import { formatRefForDiff, tryMergeRefComment } from './diff';
 
 describe('Diff Utils', () => {
   describe('formatRefForDiff', () => {
