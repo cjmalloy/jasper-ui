@@ -205,7 +205,7 @@ export class ActionService {
               return this.refs.get(ref.url, this.store.account.origin).pipe(
                 switchMap(serverRef => {
                   // Attempt 3-way merge
-                  const mergedComment = tryMergeRefComment(baseRef, serverRef, { comment });
+                  const mergedComment = tryMergeRefComment(baseRef?.comment || null, serverRef.comment || '', comment);
                   
                   if (mergedComment !== null) {
                     // Auto-merge succeeded, retry with merged content
@@ -223,7 +223,7 @@ export class ActionService {
                     );
                   } else {
                     // Auto-merge failed, throw formatted conflict
-                    const conflictMessage = formatMergeConflict(baseRef, serverRef, { comment });
+                    const conflictMessage = formatMergeConflict(baseRef?.comment || null, serverRef.comment || '', comment);
                     return throwError(() => ({ mergeConflict: true, message: conflictMessage }));
                   }
                 }),
@@ -288,7 +288,7 @@ export class ActionService {
               return this.refs.get(ref.url, this.store.account.origin).pipe(
                 switchMap(serverRef => {
                   // Attempt 3-way merge
-                  const mergedComment = tryMergeRefComment(baseRef, serverRef, { comment });
+                  const mergedComment = tryMergeRefComment(baseRef?.comment || null, serverRef.comment || '', comment);
                   
                   if (mergedComment !== null) {
                     // Auto-merge succeeded, retry with merged content
@@ -307,7 +307,7 @@ export class ActionService {
                     );
                   } else {
                     // Auto-merge failed, throw formatted conflict
-                    const conflictMessage = formatMergeConflict(baseRef, serverRef, { comment });
+                    const conflictMessage = formatMergeConflict(baseRef?.comment || null, serverRef.comment || '', comment);
                     return throwError(() => ({ mergeConflict: true, message: conflictMessage }));
                   }
                 }),

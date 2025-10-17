@@ -41,18 +41,18 @@ export function formatRefForDiff(ref: Ref): string {
 }
 
 /**
- * Attempt a simple 3-way merge for ref comment fields.
+ * Attempt a simple 3-way merge for comment strings.
  * Returns the merged comment or null if there's a conflict.
  * 
- * @param base - The original ref (common ancestor)
+ * @param base - The original comment (common ancestor)
  * @param theirs - The server's current version
  * @param ours - Our attempted update
  * @returns The merged comment, or null if there's a conflict
  */
-export function tryMergeRefComment(base: Ref | null, theirs: Ref, ours: { comment: string }): string | null {
-  const baseComment = base?.comment || '';
-  const theirComment = theirs.comment || '';
-  const ourComment = ours.comment || '';
+export function tryMergeRefComment(base: string | null, theirs: string, ours: string): string | null {
+  const baseComment = base || '';
+  const theirComment = theirs || '';
+  const ourComment = ours || '';
 
   // If their comment is the same as base, use ours
   if (theirComment === baseComment) {
@@ -76,15 +76,15 @@ export function tryMergeRefComment(base: Ref | null, theirs: Ref, ours: { commen
 /**
  * Format a merge conflict as a string that can be thrown and displayed to the user.
  * 
- * @param base - The original ref
+ * @param base - The original comment
  * @param theirs - The server's current version
  * @param ours - Our attempted update
  * @returns A formatted string showing the conflict
  */
-export function formatMergeConflict(base: Ref | null, theirs: Ref, ours: { comment: string }): string {
-  const baseComment = base?.comment || '';
-  const theirComment = theirs.comment || '';
-  const ourComment = ours.comment;
+export function formatMergeConflict(base: string | null, theirs: string, ours: string): string {
+  const baseComment = base || '';
+  const theirComment = theirs || '';
+  const ourComment = ours;
 
   return `Merge conflict:\n\n` +
     `<<<<<<< BASE\n${baseComment}\n` +

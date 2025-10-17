@@ -68,106 +68,53 @@ describe('Diff Utils', () => {
 
   describe('tryMergeRefComment', () => {
     it('should accept theirs if ours is unchanged', () => {
-      const base: Ref = {
-        url: 'https://example.com',
-        origin: '@local',
-        comment: 'Original',
-        modifiedString: '2025-01-01T00:00:00Z',
-      };
-      const theirs: Ref = {
-        url: 'https://example.com',
-        origin: '@local',
-        comment: 'Their change',
-        modifiedString: '2025-01-01T00:00:01Z',
-      };
-      const ours = { comment: 'Original' };
+      const base = 'Original';
+      const theirs = 'Their change';
+      const ours = 'Original';
 
       const result = tryMergeRefComment(base, theirs, ours);
       expect(result).toBe('Their change');
     });
 
     it('should accept ours if theirs is unchanged', () => {
-      const base: Ref = {
-        url: 'https://example.com',
-        origin: '@local',
-        comment: 'Original',
-        modifiedString: '2025-01-01T00:00:00Z',
-      };
-      const theirs: Ref = {
-        url: 'https://example.com',
-        origin: '@local',
-        comment: 'Original',
-        modifiedString: '2025-01-01T00:00:01Z',
-      };
-      const ours = { comment: 'Our change' };
+      const base = 'Original';
+      const theirs = 'Original';
+      const ours = 'Our change';
 
       const result = tryMergeRefComment(base, theirs, ours);
       expect(result).toBe('Our change');
     });
 
     it('should accept if both made the same change', () => {
-      const base: Ref = {
-        url: 'https://example.com',
-        origin: '@local',
-        comment: 'Original',
-        modifiedString: '2025-01-01T00:00:00Z',
-      };
-      const theirs: Ref = {
-        url: 'https://example.com',
-        origin: '@local',
-        comment: 'Same change',
-        modifiedString: '2025-01-01T00:00:01Z',
-      };
-      const ours = { comment: 'Same change' };
+      const base = 'Original';
+      const theirs = 'Same change';
+      const ours = 'Same change';
 
       const result = tryMergeRefComment(base, theirs, ours);
       expect(result).toBe('Same change');
     });
 
     it('should return null on conflict', () => {
-      const base: Ref = {
-        url: 'https://example.com',
-        origin: '@local',
-        comment: 'Original',
-        modifiedString: '2025-01-01T00:00:00Z',
-      };
-      const theirs: Ref = {
-        url: 'https://example.com',
-        origin: '@local',
-        comment: 'Their change',
-        modifiedString: '2025-01-01T00:00:01Z',
-      };
-      const ours = { comment: 'Our change' };
+      const base = 'Original';
+      const theirs = 'Their change';
+      const ours = 'Our change';
 
       const result = tryMergeRefComment(base, theirs, ours);
       expect(result).toBeNull();
     });
 
     it('should handle null base ref', () => {
-      const theirs: Ref = {
-        url: 'https://example.com',
-        origin: '@local',
-        comment: 'Their change',
-        modifiedString: '2025-01-01T00:00:01Z',
-      };
-      const ours = { comment: 'Our change' };
+      const theirs = 'Their change';
+      const ours = 'Our change';
 
       const result = tryMergeRefComment(null, theirs, ours);
       expect(result).toBeNull();
     });
 
     it('should handle empty comments', () => {
-      const base: Ref = {
-        url: 'https://example.com',
-        origin: '@local',
-        modifiedString: '2025-01-01T00:00:00Z',
-      };
-      const theirs: Ref = {
-        url: 'https://example.com',
-        origin: '@local',
-        modifiedString: '2025-01-01T00:00:01Z',
-      };
-      const ours = { comment: 'New comment' };
+      const base = '';
+      const theirs = '';
+      const ours = 'New comment';
 
       const result = tryMergeRefComment(base, theirs, ours);
       expect(result).toBe('New comment');
@@ -176,19 +123,9 @@ describe('Diff Utils', () => {
 
   describe('formatMergeConflict', () => {
     it('should format a merge conflict message', () => {
-      const base: Ref = {
-        url: 'https://example.com',
-        origin: '@local',
-        comment: 'Original',
-        modifiedString: '2025-01-01T00:00:00Z',
-      };
-      const theirs: Ref = {
-        url: 'https://example.com',
-        origin: '@local',
-        comment: 'Their change',
-        modifiedString: '2025-01-01T00:00:01Z',
-      };
-      const ours = { comment: 'Our change' };
+      const base = 'Original';
+      const theirs = 'Their change';
+      const ours = 'Our change';
 
       const result = formatMergeConflict(base, theirs, ours);
       
@@ -203,13 +140,8 @@ describe('Diff Utils', () => {
     });
 
     it('should handle null base', () => {
-      const theirs: Ref = {
-        url: 'https://example.com',
-        origin: '@local',
-        comment: 'Their change',
-        modifiedString: '2025-01-01T00:00:01Z',
-      };
-      const ours = { comment: 'Our change' };
+      const theirs = 'Their change';
+      const ours = 'Our change';
 
       const result = formatMergeConflict(null, theirs, ours);
       
