@@ -1,9 +1,8 @@
 FROM oven/bun:1.3.0 AS builder
 WORKDIR /app
-RUN bun add -g @angular/cli
 COPY package.json bun.lock ./
 COPY patches ./patches/
-RUN bun install --frozen-lockfile
+RUN bun install
 COPY . ./
 RUN bun run build
 
@@ -30,9 +29,8 @@ RUN apt-get update && apt-get install -y \
 	&& apt-get purge --auto-remove -y curl gnupg \
 	&& rm -rf /var/lib/apt/lists/*
 WORKDIR /app
-RUN bun add -g @angular/cli
 COPY --from=builder /app ./
-CMD ng test --karma-config karma-ci.conf.js && \
+CMD bun run ng test --karma-config karma-ci.conf.js && \
     mkdir -p /report && \
     cp -r /reports/*/* /report/
 
