@@ -43,31 +43,31 @@ export function formatRefForDiff(ref: Ref): string {
 
 /**
  * Attempt a simple 3-way merge for comment strings using diff3 algorithm.
- * Returns the merged comment or null if there's a conflict.
+ * Returns an object with the merged comment (or null if conflict) and the diff3 result for conflict formatting.
  * 
  * @param base - The original comment (common ancestor)
  * @param theirs - The remote version
  * @param ours - Our attempted update
- * @returns The merged comment, or null if there's a conflict
+ * @returns Object with mergedComment (string | null) and diff3Result for formatting conflicts
  */
-export function tryMergeRefComment(base: string, theirs: string, ours: string): string | null {
+export function tryMergeRefComment(base: string, theirs: string, ours: string): { mergedComment: string | null, diff3Result: any } {
   const baseComment = base || '';
   const theirComment = theirs || '';
   const ourComment = ours || '';
 
   // If their comment is the same as base, use ours
   if (theirComment === baseComment) {
-    return ourComment;
+    return { mergedComment: ourComment, diff3Result: null };
   }
 
   // If our comment is the same as base, use theirs
   if (ourComment === baseComment) {
-    return theirComment;
+    return { mergedComment: theirComment, diff3Result: null };
   }
 
   // If both made the same change, accept it
   if (theirComment === ourComment) {
-    return ourComment;
+    return { mergedComment: ourComment, diff3Result: null };
   }
 
   // Use diff3 for line-based 3-way merge
@@ -81,7 +81,7 @@ export function tryMergeRefComment(base: string, theirs: string, ours: string): 
   const hasConflict = result.some(chunk => chunk.conflict);
   
   if (hasConflict) {
-    return null;
+    return { mergedComment: null, diff3Result: result };
   }
   
   // Merge successful - combine all ok chunks
@@ -92,25 +92,44 @@ export function tryMergeRefComment(base: string, theirs: string, ours: string): 
     }
   }
   
-  return mergedLines.join('\n');
+  return { mergedComment: mergedLines.join('\n'), diff3Result: null };
 }
 
 /**
- * Format a merge conflict as a string that can be thrown and displayed to the user.
+ * Format a merge conflict using the diff3 result.
  * 
- * @param base - The original comment
- * @param theirs - The remote version
- * @param ours - Our attempted update
+ * @param diff3Result - The result from diff3Merge containing conflict information
  * @returns A formatted string showing the conflict
  */
-export function formatMergeConflict(base: string, theirs: string, ours: string): string {
-  const baseComment = base || '';
-  const theirComment = theirs || '';
-  const ourComment = ours;
+export function formatMergeConflict(diff3Result: any): string {
+  if (!diff3Result || !Array.isArray(diff3Result)) {
+    return 'Merge conflict: Unable to format conflict';
+  }
 
-  return `Merge conflict:\n\n` +
-    `<<<<<<< BASE\n${baseComment}\n` +
-    `||||||| THEIRS (remote)\n${theirComment}\n` +
-    `======= OURS (local)\n${ourComment}\n` +
-    `>>>>>>>`;
+  const lines: string[] = ['Merge conflict:\n'];
+  
+  for (const chunk of diff3Result) {
+    if (chunk.conflict) {
+      // Format conflict chunk with diff3 markers
+      const conflict = chunk.conflict;
+      lines.push('<<<<<<< OURS (local)');
+      if (conflict.a && conflict.a.length > 0) {
+        lines.push(...conflict.a);
+      }
+      lines.push('||||||| BASE');
+      if (conflict.o && conflict.o.length > 0) {
+        lines.push(...conflict.o);
+      }
+      lines.push('======= THEIRS (remote)');
+      if (conflict.b && conflict.b.length > 0) {
+        lines.push(...conflict.b);
+      }
+      lines.push('>>>>>>>');
+    } else if (chunk.ok) {
+      // Non-conflict chunks
+      lines.push(...chunk.ok);
+    }
+  }
+  
+  return lines.join('\n');
 }
