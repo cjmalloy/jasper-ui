@@ -1,4 +1,5 @@
 import { Ref, writeRef } from '../model/ref';
+import { diff3Merge } from 'node-diff3';
 
 /**
  * Format ref for diff display:
@@ -41,15 +42,15 @@ export function formatRefForDiff(ref: Ref): string {
 }
 
 /**
- * Attempt a simple 3-way merge for comment strings.
+ * Attempt a simple 3-way merge for comment strings using diff3 algorithm.
  * Returns the merged comment or null if there's a conflict.
  * 
  * @param base - The original comment (common ancestor)
- * @param theirs - The server's current version
+ * @param theirs - The remote version
  * @param ours - Our attempted update
  * @returns The merged comment, or null if there's a conflict
  */
-export function tryMergeRefComment(base: string | null, theirs: string, ours: string): string | null {
+export function tryMergeRefComment(base: string, theirs: string, ours: string): string | null {
   const baseComment = base || '';
   const theirComment = theirs || '';
   const ourComment = ours || '';
@@ -69,19 +70,40 @@ export function tryMergeRefComment(base: string | null, theirs: string, ours: st
     return ourComment;
   }
 
-  // Simple conflict - both changed
-  return null;
+  // Use diff3 for line-based 3-way merge
+  const baseLines = baseComment.split('\n');
+  const theirLines = theirComment.split('\n');
+  const ourLines = ourComment.split('\n');
+
+  const result = diff3Merge(ourLines, baseLines, theirLines);
+  
+  // Check if there are any conflicts
+  const hasConflict = result.some(chunk => chunk.conflict);
+  
+  if (hasConflict) {
+    return null;
+  }
+  
+  // Merge successful - combine all ok chunks
+  const mergedLines: string[] = [];
+  for (const chunk of result) {
+    if (chunk.ok) {
+      mergedLines.push(...chunk.ok);
+    }
+  }
+  
+  return mergedLines.join('\n');
 }
 
 /**
  * Format a merge conflict as a string that can be thrown and displayed to the user.
  * 
  * @param base - The original comment
- * @param theirs - The server's current version
+ * @param theirs - The remote version
  * @param ours - Our attempted update
  * @returns A formatted string showing the conflict
  */
-export function formatMergeConflict(base: string | null, theirs: string, ours: string): string {
+export function formatMergeConflict(base: string, theirs: string, ours: string): string {
   const baseComment = base || '';
   const theirComment = theirs || '';
   const ourComment = ours;

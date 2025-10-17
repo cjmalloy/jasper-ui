@@ -53,6 +53,7 @@
     "monaco-editor": "^0.50.0",
     "ngx-markdown": "^20.1.0",
     "ngx-monaco-editor": "^12.0.0",
+    "node-diff3": "^3.1.2",
     "qrcode": "^1.5.4",
     "rxjs": "~7.8.2",
     "tslib": "^2.8.1",

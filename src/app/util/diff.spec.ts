@@ -103,11 +103,12 @@ describe('Diff Utils', () => {
       expect(result).toBeNull();
     });
 
-    it('should handle null base ref', () => {
+    it('should handle empty base', () => {
+      const base = '';
       const theirs = 'Their change';
       const ours = 'Our change';
 
-      const result = tryMergeRefComment(null, theirs, ours);
+      const result = tryMergeRefComment(base, theirs, ours);
       expect(result).toBeNull();
     });
 
@@ -118,6 +119,33 @@ describe('Diff Utils', () => {
 
       const result = tryMergeRefComment(base, theirs, ours);
       expect(result).toBe('New comment');
+    });
+
+    it('should merge non-conflicting multi-line changes', () => {
+      const base = 'Line 1\nLine 2\nLine 3';
+      const theirs = 'Line 1 modified\nLine 2\nLine 3';
+      const ours = 'Line 1\nLine 2\nLine 3 modified';
+
+      const result = tryMergeRefComment(base, theirs, ours);
+      expect(result).toBe('Line 1 modified\nLine 2\nLine 3 modified');
+    });
+
+    it('should detect conflicting multi-line changes', () => {
+      const base = 'Line 1\nLine 2\nLine 3';
+      const theirs = 'Line 1 their change\nLine 2\nLine 3';
+      const ours = 'Line 1 our change\nLine 2\nLine 3';
+
+      const result = tryMergeRefComment(base, theirs, ours);
+      expect(result).toBeNull();
+    });
+
+    it('should merge additions at different positions', () => {
+      const base = 'Line 1\nLine 2';
+      const theirs = 'Line 0\nLine 1\nLine 2';
+      const ours = 'Line 1\nLine 2\nLine 3';
+
+      const result = tryMergeRefComment(base, theirs, ours);
+      expect(result).toBe('Line 0\nLine 1\nLine 2\nLine 3');
     });
   });
 
@@ -139,11 +167,12 @@ describe('Diff Utils', () => {
       expect(result).toContain('>>>>>>>');
     });
 
-    it('should handle null base', () => {
+    it('should handle empty base', () => {
+      const base = '';
       const theirs = 'Their change';
       const ours = 'Our change';
 
-      const result = formatMergeConflict(null, theirs, ours);
+      const result = formatMergeConflict(base, theirs, ours);
       
       expect(result).toContain('Merge conflict:');
       expect(result).toContain('<<<<<<< BASE');
