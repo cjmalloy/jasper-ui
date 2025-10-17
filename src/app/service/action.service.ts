@@ -170,13 +170,13 @@ export class ActionService {
 
   watch(ref: Ref) {
     let cursor = ref.origin === this.store.account.origin ? ref.modifiedString! : '';
-    let baseRef: Ref | null = ref.origin === this.store.account.origin ? { ...ref } : null;
+    let baseComment: string | null = ref.origin === this.store.account.origin ? (ref.comment || '') : null;
     const inner = {
       ref$: merge(...this.store.origins.list.map(origin => this.stomp.watchRef(ref.url, origin).pipe(
         tap(u => {
           if (u.origin === this.store.account.origin) {
             cursor = u.modifiedString!;
-            baseRef = { ...u };
+            baseComment = u.comment || '';
           }
         }),
       ))),
@@ -185,7 +185,7 @@ export class ActionService {
           return this.refs.get(ref.url, this.store.account.origin).pipe(
             tap(ref => {
               cursor = ref.modifiedString!;
-              baseRef = { ...ref };
+              baseComment = ref.comment || '';
             }),
             switchMap(ref => inner.comment$(comment)),
           );
@@ -197,7 +197,7 @@ export class ActionService {
         }]).pipe(
           tap(c => {
             cursor = c;
-            if (baseRef) baseRef.comment = comment;
+            baseComment = comment;
           }),
           catchError(err => {
             if (err.status === 409) {
@@ -205,12 +205,12 @@ export class ActionService {
               return this.refs.get(ref.url, this.store.account.origin).pipe(
                 switchMap(serverRef => {
                   // Attempt 3-way merge
-                  const mergedComment = tryMergeRefComment(baseRef?.comment || null, serverRef.comment || '', comment);
+                  const mergedComment = tryMergeRefComment(baseComment, serverRef.comment || '', comment);
                   
                   if (mergedComment !== null) {
                     // Auto-merge succeeded, retry with merged content
                     cursor = serverRef.modifiedString!;
-                    baseRef = { ...serverRef };
+                    baseComment = serverRef.comment || '';
                     return this.refs.patch(ref.url, this.store.account.origin, cursor, [{
                       op: 'add',
                       path: '/comment',
@@ -218,12 +218,12 @@ export class ActionService {
                     }]).pipe(
                       tap(c => {
                         cursor = c;
-                        if (baseRef) baseRef.comment = mergedComment;
+                        baseComment = mergedComment;
                       }),
                     );
                   } else {
                     // Auto-merge failed, throw formatted conflict
-                    const conflictMessage = formatMergeConflict(baseRef?.comment || null, serverRef.comment || '', comment);
+                    const conflictMessage = formatMergeConflict(baseComment, serverRef.comment || '', comment);
                     return throwError(() => ({ mergeConflict: true, message: conflictMessage }));
                   }
                 }),
@@ -240,13 +240,13 @@ export class ActionService {
   append(ref: Ref) {
     let cursor = ref.origin === this.store.account.origin ? ref.modifiedString! : '';
     let comment = ref.comment || '';
-    let baseRef: Ref | null = ref.origin === this.store.account.origin ? { ...ref } : null;
+    let baseComment: string | null = ref.origin === this.store.account.origin ? (ref.comment || '') : null;
     const inner = {
       updates$: merge(...this.store.origins.list.map(origin => this.stomp.watchRef(ref.url, origin).pipe(
         tap(u => {
           if (u.origin === this.store.account.origin) {
             cursor = u.modifiedString!;
-            baseRef = { ...u };
+            baseComment = u.comment || '';
           }
         }),
         mergeMap(u => {
@@ -267,7 +267,7 @@ export class ActionService {
           return this.refs.get(ref.url, this.store.account.origin).pipe(
             tap(ref => {
               cursor = ref.modifiedString!;
-              baseRef = { ...ref };
+              baseComment = ref.comment || '';
             }),
             switchMap(ref => inner.append$(value)),
           );
@@ -280,7 +280,7 @@ export class ActionService {
         }]).pipe(
           tap(c => {
             cursor = c;
-            if (baseRef) baseRef.comment = comment;
+            baseComment = comment;
           }),
           catchError(err => {
             if (err.status === 409) {
@@ -288,13 +288,13 @@ export class ActionService {
               return this.refs.get(ref.url, this.store.account.origin).pipe(
                 switchMap(serverRef => {
                   // Attempt 3-way merge
-                  const mergedComment = tryMergeRefComment(baseRef?.comment || null, serverRef.comment || '', comment);
+                  const mergedComment = tryMergeRefComment(baseComment, serverRef.comment || '', comment);
                   
                   if (mergedComment !== null) {
                     // Auto-merge succeeded, retry with merged content
                     comment = mergedComment;
                     cursor = serverRef.modifiedString!;
-                    baseRef = { ...serverRef };
+                    baseComment = serverRef.comment || '';
                     return this.refs.patch(ref.url, this.store.account.origin, cursor, [{
                       op: 'add',
                       path: '/comment',
@@ -302,12 +302,12 @@ export class ActionService {
                     }]).pipe(
                       tap(c => {
                         cursor = c;
-                        if (baseRef) baseRef.comment = mergedComment;
+                        baseComment = mergedComment;
                       }),
                     );
                   } else {
                     // Auto-merge failed, throw formatted conflict
-                    const conflictMessage = formatMergeConflict(baseRef?.comment || null, serverRef.comment || '', comment);
+                    const conflictMessage = formatMergeConflict(baseComment, serverRef.comment || '', comment);
                     return throwError(() => ({ mergeConflict: true, message: conflictMessage }));
                   }
                 }),
