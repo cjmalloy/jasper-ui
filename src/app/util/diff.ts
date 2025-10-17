@@ -1,5 +1,5 @@
 import { Ref, writeRef } from '../model/ref';
-import { diff3Merge } from 'node-diff3';
+import { diff3Merge, MergeRegion } from 'node-diff3';
 
 /**
  * Format ref for diff display:
@@ -42,32 +42,37 @@ export function formatRefForDiff(ref: Ref): string {
 }
 
 /**
+ * Type definition for diff3 merge result chunks
+ */
+export type Diff3Result = MergeRegion<string>[];
+
+/**
  * Attempt a simple 3-way merge for comment strings using diff3 algorithm.
- * Returns an object with the merged comment (or null if conflict) and the formatted conflict message.
+ * Returns an object with the merged comment (or null if conflict) and the diff3 result.
  * 
  * @param base - The original comment (common ancestor)
  * @param theirs - The remote version
  * @param ours - Our attempted update
- * @returns Object with mergedComment (string | null) and conflict (string | null) for formatting conflicts
+ * @returns Object with mergedComment (string | null) and diff3Result (Diff3Result | null)
  */
-export function tryMergeRefComment(base: string, theirs: string, ours: string): { mergedComment: string | null, conflict: string | null } {
+export function tryMergeRefComment(base: string, theirs: string, ours: string): { mergedComment: string | null, diff3Result: Diff3Result | null } {
   const baseComment = base || '';
   const theirComment = theirs || '';
   const ourComment = ours || '';
 
   // If their comment is the same as base, use ours
   if (theirComment === baseComment) {
-    return { mergedComment: ourComment, conflict: null };
+    return { mergedComment: ourComment, diff3Result: null };
   }
 
   // If our comment is the same as base, use theirs
   if (ourComment === baseComment) {
-    return { mergedComment: theirComment, conflict: null };
+    return { mergedComment: theirComment, diff3Result: null };
   }
 
   // If both made the same change, accept it
   if (theirComment === ourComment) {
-    return { mergedComment: ourComment, conflict: null };
+    return { mergedComment: ourComment, diff3Result: null };
   }
 
   // Use diff3 for line-based 3-way merge
@@ -81,7 +86,7 @@ export function tryMergeRefComment(base: string, theirs: string, ours: string): 
   const hasConflict = result.some(chunk => chunk.conflict);
   
   if (hasConflict) {
-    return { mergedComment: null, conflict: formatMergeConflict(result) };
+    return { mergedComment: null, diff3Result: result };
   }
   
   // Merge successful - combine all ok chunks
@@ -92,16 +97,17 @@ export function tryMergeRefComment(base: string, theirs: string, ours: string): 
     }
   }
   
-  return { mergedComment: mergedLines.join('\n'), conflict: null };
+  return { mergedComment: mergedLines.join('\n'), diff3Result: null };
 }
 
 /**
- * Format a merge conflict using the diff3 result.
+ * Format a merge conflict using the diff3 result for display.
+ * This can be used to show conflicts in a text editor or for debugging.
  * 
  * @param diff3Result - The result from diff3Merge containing conflict information
  * @returns A formatted string showing the conflict
  */
-function formatMergeConflict(diff3Result: any): string {
+export function formatMergeConflict(diff3Result: Diff3Result): string {
   if (!diff3Result || !Array.isArray(diff3Result)) {
     return 'Merge conflict: Unable to format conflict';
   }

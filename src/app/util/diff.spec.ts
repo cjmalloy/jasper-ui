@@ -1,6 +1,6 @@
 import { DateTime } from 'luxon';
 import { Ref } from '../model/ref';
-import { formatRefForDiff, tryMergeRefComment } from './diff';
+import { formatMergeConflict, formatRefForDiff, tryMergeRefComment } from './diff';
 
 describe('Diff Utils', () => {
   describe('formatRefForDiff', () => {
@@ -99,10 +99,10 @@ describe('Diff Utils', () => {
       const theirs = 'Their change';
       const ours = 'Our change';
 
-      const { mergedComment, conflict } = tryMergeRefComment(base, theirs, ours);
+      const { mergedComment, diff3Result } = tryMergeRefComment(base, theirs, ours);
       expect(mergedComment).toBeNull();
-      expect(conflict).toBeTruthy();
-      expect(conflict).toContain('Merge conflict');
+      expect(diff3Result).toBeTruthy();
+      expect(diff3Result).toEqual(jasmine.any(Array));
     });
 
     it('should handle empty base', () => {
@@ -110,10 +110,10 @@ describe('Diff Utils', () => {
       const theirs = 'Their change';
       const ours = 'Our change';
 
-      const { mergedComment, conflict } = tryMergeRefComment(base, theirs, ours);
+      const { mergedComment, diff3Result } = tryMergeRefComment(base, theirs, ours);
       expect(mergedComment).toBeNull();
-      expect(conflict).toBeTruthy();
-      expect(conflict).toContain('Merge conflict');
+      expect(diff3Result).toBeTruthy();
+      expect(diff3Result).toEqual(jasmine.any(Array));
     });
 
     it('should handle empty comments', () => {
@@ -139,10 +139,10 @@ describe('Diff Utils', () => {
       const theirs = 'Line 1 their change\nLine 2\nLine 3';
       const ours = 'Line 1 our change\nLine 2\nLine 3';
 
-      const { mergedComment, conflict } = tryMergeRefComment(base, theirs, ours);
+      const { mergedComment, diff3Result } = tryMergeRefComment(base, theirs, ours);
       expect(mergedComment).toBeNull();
-      expect(conflict).toBeTruthy();
-      expect(conflict).toContain('Merge conflict');
+      expect(diff3Result).toBeTruthy();
+      expect(diff3Result).toEqual(jasmine.any(Array));
     });
 
     it('should merge additions at different positions', () => {
@@ -161,16 +161,18 @@ describe('Diff Utils', () => {
       const theirs = 'Their change';
       const ours = 'Our change';
 
-      const { conflict } = tryMergeRefComment(base, theirs, ours);
+      const { diff3Result } = tryMergeRefComment(base, theirs, ours);
+      expect(diff3Result).toBeTruthy();
       
-      expect(conflict).toContain('Merge conflict:');
-      expect(conflict).toContain('<<<<<<< OURS (local)');
-      expect(conflict).toContain('Our change');
-      expect(conflict).toContain('||||||| BASE');
-      expect(conflict).toContain('Original');
-      expect(conflict).toContain('======= THEIRS (remote)');
-      expect(conflict).toContain('Their change');
-      expect(conflict).toContain('>>>>>>>');
+      const formatted = formatMergeConflict(diff3Result!);
+      expect(formatted).toContain('Merge conflict:');
+      expect(formatted).toContain('<<<<<<< OURS (local)');
+      expect(formatted).toContain('Our change');
+      expect(formatted).toContain('||||||| BASE');
+      expect(formatted).toContain('Original');
+      expect(formatted).toContain('======= THEIRS (remote)');
+      expect(formatted).toContain('Their change');
+      expect(formatted).toContain('>>>>>>>');
     });
 
     it('should handle empty base', () => {
@@ -178,14 +180,16 @@ describe('Diff Utils', () => {
       const theirs = 'Their change';
       const ours = 'Our change';
 
-      const { conflict } = tryMergeRefComment(base, theirs, ours);
+      const { diff3Result } = tryMergeRefComment(base, theirs, ours);
+      expect(diff3Result).toBeTruthy();
       
-      expect(conflict).toContain('Merge conflict:');
-      expect(conflict).toContain('<<<<<<< OURS (local)');
-      expect(conflict).toContain('||||||| BASE');
-      expect(conflict).toContain('======= THEIRS (remote)');
-      expect(conflict).toContain('Their change');
-      expect(conflict).toContain('Our change');
+      const formatted = formatMergeConflict(diff3Result!);
+      expect(formatted).toContain('Merge conflict:');
+      expect(formatted).toContain('<<<<<<< OURS (local)');
+      expect(formatted).toContain('||||||| BASE');
+      expect(formatted).toContain('======= THEIRS (remote)');
+      expect(formatted).toContain('Their change');
+      expect(formatted).toContain('Our change');
     });
   });
 });

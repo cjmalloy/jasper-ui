@@ -18,6 +18,7 @@ import { autorun, IReactionDisposer } from 'mobx';
 import { catchError, Observable, of, Subscription } from 'rxjs';
 import { Ref } from '../../model/ref';
 import { ActionService } from '../../service/action.service';
+import { Diff3Result } from '../../util/diff';
 import { Store } from '../../store/store';
 import { hasTag } from '../../util/tag';
 
@@ -742,9 +743,9 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
     const move = p + ' ' + (from < 0 ? 'bar' : from + 1) + '/' + (to < 0 ? 'off' : to + 1) + (hit ? '*' : '');
     this.append$(move).pipe(
       catchError(err => {
-        if (err?.mergeConflict) {
+        if (err?.mergeConflict && err?.diff3Result) {
           // Parse merge conflict and check if moves are compatible
-          if (this.canAutoResolveMoveConflict(err.message)) {
+          if (this.canAutoResolveMoveConflict(err.diff3Result)) {
             // Silently ignore - reload will show server state
             this.init();
             return of();
@@ -939,9 +940,9 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
     const state = applyRoll(this.lastState, p, this.r(), this.state.turn ? this.r() : 0);
     this.append$(state.board[state.board.length - 1]).pipe(
       catchError(err => {
-        if (err?.mergeConflict) {
+        if (err?.mergeConflict && err?.diff3Result) {
           // Parse merge conflict and check if rolls are compatible
-          if (this.canAutoResolveRollConflict(err.message)) {
+          if (this.canAutoResolveRollConflict(err.diff3Result)) {
             // Silently ignore - reload will show server state
             this.init();
             return of();
@@ -953,21 +954,6 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
       })
     ).subscribe();
     this.lastState = state;
-  }
-
-  /**
-   * Parse a merge conflict message to extract THEIRS and OURS comments
-   */
-  private parseMergeConflict(message: string): { theirs: string, ours: string } | null {
-    const theirsMatch = message.match(/\|\|\|\|\|\|\| THEIRS \(server\)\n([\s\S]*?)\n=======/);
-    const oursMatch = message.match(/======= OURS \(local\)\n([\s\S]*?)\n>>>>>>>/);
-    
-    if (!theirsMatch || !oursMatch) return null;
-    
-    return {
-      theirs: theirsMatch[1],
-      ours: oursMatch[1]
-    };
   }
 
   /**
@@ -994,15 +980,31 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   }
 
   /**
-   * Check if we can auto-resolve a move conflict
+   * Check if we can auto-resolve a move conflict using diff3Result
    * Returns true if moves are compatible (both same type, different players or same player)
    */
-  canAutoResolveMoveConflict(conflictMessage: string): boolean {
-    const parsed = this.parseMergeConflict(conflictMessage);
-    if (!parsed) return false;
-
-    const theirLastMove = this.getLastMove(parsed.theirs);
-    const ourLastMove = this.getLastMove(parsed.ours);
+  canAutoResolveMoveConflict(diff3Result: Diff3Result): boolean {
+    // Extract theirs and ours from the diff3 result
+    let theirsLines: string[] = [];
+    let oursLines: string[] = [];
+    
+    for (const chunk of diff3Result) {
+      if (chunk.conflict) {
+        // Get theirs (b) and ours (a) from conflict
+        if (chunk.conflict.b && chunk.conflict.b.length > 0) {
+          theirsLines.push(...chunk.conflict.b);
+        }
+        if (chunk.conflict.a && chunk.conflict.a.length > 0) {
+          oursLines.push(...chunk.conflict.a);
+        }
+      }
+    }
+    
+    const theirs = theirsLines.join('\n');
+    const ours = oursLines.join('\n');
+    
+    const theirLastMove = this.getLastMove(theirs);
+    const ourLastMove = this.getLastMove(ours);
     
     if (!theirLastMove || !ourLastMove) return false;
 
@@ -1016,15 +1018,31 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   }
 
   /**
-   * Check if we can auto-resolve a roll conflict
+   * Check if we can auto-resolve a roll conflict using diff3Result
    * Returns true if rolls are compatible
    */
-  canAutoResolveRollConflict(conflictMessage: string): boolean {
-    const parsed = this.parseMergeConflict(conflictMessage);
-    if (!parsed) return false;
-
-    const theirLastMove = this.getLastMove(parsed.theirs);
-    const ourLastMove = this.getLastMove(parsed.ours);
+  canAutoResolveRollConflict(diff3Result: Diff3Result): boolean {
+    // Extract theirs and ours from the diff3 result
+    let theirsLines: string[] = [];
+    let oursLines: string[] = [];
+    
+    for (const chunk of diff3Result) {
+      if (chunk.conflict) {
+        // Get theirs (b) and ours (a) from conflict
+        if (chunk.conflict.b && chunk.conflict.b.length > 0) {
+          theirsLines.push(...chunk.conflict.b);
+        }
+        if (chunk.conflict.a && chunk.conflict.a.length > 0) {
+          oursLines.push(...chunk.conflict.a);
+        }
+      }
+    }
+    
+    const theirs = theirsLines.join('\n');
+    const ours = oursLines.join('\n');
+    
+    const theirLastMove = this.getLastMove(theirs);
+    const ourLastMove = this.getLastMove(ours);
     
     if (!theirLastMove || !ourLastMove) return false;
 
