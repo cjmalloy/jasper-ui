@@ -19,13 +19,13 @@ jobs:
       - name: Check out Git repository
         uses: actions/checkout@v5
 
-      - name: Install Node.js, NPM and Yarn
-        uses: actions/setup-node@v6
+      - name: Install Bun
+        uses: oven-sh/setup-bun@v2
         with:
-          node-version: 22
+          bun-version: '1.3.0'
 
       - name: Build
-        run: npm ci && npm run build
+        run: bun install --frozen-lockfile && bun run build
 
       - name: Zip
         run: cd dist/jasper-ui/; zip -r ../../${{ env.RELEASE_FILE }} .

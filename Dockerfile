@@ -1,13 +1,13 @@
-FROM node:22.20.0 AS builder
+FROM oven/bun:1.3.0 AS builder
 WORKDIR /app
-RUN npm i -g @angular/cli
-COPY package.json package-lock.json ./
+RUN bun add -g @angular/cli
+COPY package.json bun.lock ./
 COPY patches ./patches/
-RUN npm ci
+RUN bun install --frozen-lockfile
 COPY . ./
-RUN npm run build
+RUN bun run build
 
-FROM node:22.20.0 AS test
+FROM oven/bun:1.3.0 AS test
 RUN apt-get update && apt-get install -y \
 	apt-transport-https \
 	ca-certificates \
@@ -30,7 +30,7 @@ RUN apt-get update && apt-get install -y \
 	&& apt-get purge --auto-remove -y curl gnupg \
 	&& rm -rf /var/lib/apt/lists/*
 WORKDIR /app
-RUN npm i -g @angular/cli
+RUN bun add -g @angular/cli
 COPY --from=builder /app ./
 CMD ng test --karma-config karma-ci.conf.js && \
     mkdir -p /report && \
