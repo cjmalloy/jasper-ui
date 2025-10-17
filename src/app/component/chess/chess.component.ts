@@ -316,8 +316,8 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
     this.comment.emit(this.history);
     this.append$(move).pipe(
       catchError(err => {
-        if (err?.mergeConflict) {
-          alert($localize`Move conflict: Both players made moves at the same time.\n\nPlease reload to see the current game state.`);
+        if (err?.conflict) {
+          // TODO: see if conflict can be auto resolved
         } else {
           this.retry.push(move);
           delay(() => {
@@ -336,8 +336,8 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
     const move = this.retry.shift()!;
     this.append$(move).pipe(
       catchError(err => {
-        if (err?.mergeConflict) {
-          alert($localize`Move conflict: Both players made moves at the same time.\n\nPlease reload to see the current game state.`);
+        if (err?.conflict) {
+          // TODO: see if conflict can be auto resolved
         } else {
           this.retry.unshift(move);
         }

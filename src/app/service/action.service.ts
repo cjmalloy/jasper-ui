@@ -8,7 +8,7 @@ import { PluginApi } from '../model/plugin';
 import { Ref } from '../model/ref';
 import { Action, EmitAction, emitModels } from '../model/tag';
 import { Store } from '../store/store';
-import { formatMergeConflict, tryMergeRefComment } from '../util/diff';
+import { merge3 } from '../util/diff';
 import { hasTag } from '../util/tag';
 import { ExtService } from './api/ext.service';
 import { RefService } from './api/ref.service';
@@ -201,32 +201,21 @@ export class ActionService {
             if (err.status === 409) {
               // Fetch the current version from server
               return this.refs.get(ref.url, this.store.account.origin).pipe(
-                switchMap(serverRef => {
-                  // Attempt 3-way merge
-                  const { mergedComment, diff3Result } = tryMergeRefComment(baseComment, serverRef.comment || '', comment);
-                  
-                  if (mergedComment !== null) {
-                    // Auto-merge succeeded, retry with merged content
-                    cursor = serverRef.modifiedString!;
-                    baseComment = serverRef.comment || '';
-                    return this.refs.patch(ref.url, this.store.account.origin, cursor, [{
-                      op: 'add',
-                      path: '/comment',
-                      value: mergedComment,
-                    }]).pipe(
-                      tap(c => {
-                        cursor = c;
-                        baseComment = mergedComment;
-                      }),
-                    );
-                  } else {
-                    // Auto-merge failed, throw diff3Result with formatted message
-                    return throwError(() => ({ 
-                      mergeConflict: true, 
-                      diff3Result,
-                      message: formatMergeConflict(diff3Result!) 
-                    }));
-                  }
+                switchMap(remote => {
+                  const { mergedComment, conflict } = merge3(baseComment, remote.comment || '', comment);
+                  if (conflict) return throwError(() => ({ conflict }));
+                  cursor = remote.modifiedString!;
+                  baseComment = remote.comment || '';
+                  return this.refs.patch(ref.url, this.store.account.origin, cursor, [{
+                    op: 'add',
+                    path: '/comment',
+                    value: mergedComment,
+                  }]).pipe(
+                    tap(c => {
+                      cursor = c;
+                      baseComment = mergedComment || '';
+                    }),
+                  );
                 }),
               );
             }
@@ -283,35 +272,23 @@ export class ActionService {
           }),
           catchError(err => {
             if (err.status === 409) {
-              // Fetch the current version from server
               return this.refs.get(ref.url, this.store.account.origin).pipe(
-                switchMap(serverRef => {
-                  // Attempt 3-way merge
-                  const { mergedComment, diff3Result } = tryMergeRefComment(baseComment, serverRef.comment || '', comment);
-                  
-                  if (mergedComment !== null) {
-                    // Auto-merge succeeded, retry with merged content
-                    comment = mergedComment;
-                    cursor = serverRef.modifiedString!;
-                    baseComment = serverRef.comment || '';
-                    return this.refs.patch(ref.url, this.store.account.origin, cursor, [{
-                      op: 'add',
-                      path: '/comment',
-                      value: mergedComment,
-                    }]).pipe(
-                      tap(c => {
-                        cursor = c;
-                        baseComment = mergedComment;
-                      }),
-                    );
-                  } else {
-                    // Auto-merge failed, throw diff3Result with formatted message
-                    return throwError(() => ({ 
-                      mergeConflict: true, 
-                      diff3Result,
-                      message: formatMergeConflict(diff3Result!) 
-                    }));
-                  }
+                switchMap(remote => {
+                  const { mergedComment, conflict } = merge3(baseComment, remote.comment || '', comment);
+                  if (conflict) return throwError(() => ({ conflict }));
+                  comment = mergedComment || '';
+                  cursor = remote.modifiedString!;
+                  baseComment = remote.comment || '';
+                  return this.refs.patch(ref.url, this.store.account.origin, cursor, [{
+                    op: 'add',
+                    path: '/comment',
+                    value: mergedComment,
+                  }]).pipe(
+                    tap(c => {
+                      cursor = c;
+                      baseComment = mergedComment || '';
+                    }),
+                  );
                 }),
               );
             }

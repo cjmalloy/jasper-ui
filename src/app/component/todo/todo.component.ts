@@ -114,9 +114,8 @@ export class TodoComponent implements OnChanges {
     if (!this.ref) return;
     this.comment$(comment).pipe(
       catchError(err => {
-        // Check if it's a merge conflict error
-        if (err?.mergeConflict) {
-          this.serverErrors = [err.message];
+        if (err?.conflict) {
+          // TODO: see if conflict can be auto resolved
         } else {
           this.serverErrors = printError(err);
         }

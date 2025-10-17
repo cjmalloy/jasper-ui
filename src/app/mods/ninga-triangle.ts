@@ -99,8 +99,8 @@ least $k$ red circles.
             renderSvg();
             comment$(text).subscribe({
               error: (err) => {
-                if (err?.mergeConflict) {
-                  alert('Conflict: Another user modified this triangle at the same time.\\n\\nPlease reload.');
+                if (err?.conflict) {
+                  // TODO: see if conflict can be auto resolved
                 }
               }
             });
@@ -116,8 +116,8 @@ least $k$ red circles.
             renderSvg();
             comment$(text).subscribe({
               error: (err) => {
-                if (err?.mergeConflict) {
-                  alert('Conflict: Another user modified this triangle at the same time.\\n\\nPlease reload.');
+                if (err?.conflict) {
+                  // TODO: see if conflict can be auto resolved
                 }
               }
             });
