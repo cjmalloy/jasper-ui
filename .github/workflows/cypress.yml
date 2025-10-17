@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-node@v5
+      - uses: actions/setup-node@v6
         with:
           node-version: 22
           cache: 'npm'
@@ -47,12 +47,38 @@ jobs:
           script: |
             const emoji = '${{ steps.cypress.outcome }}' === 'success' ? '✅' : '❌';
             const url = `https://${context.repo.owner}.github.io/${context.repo.repo}/reports/cypress-reports-pr-${context.issue.number}/`
-            github.rest.issues.createComment({
+            
+            // Add HTML comment marker for identification
+            const body = `<!-- cypress-results-comment -->\n${emoji} Cypress report available at: ${url}`;
+            
+            // Find existing comment (with pagination)
+            const comments = await github.paginate(github.rest.issues.listComments, {
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: `${emoji} Cypress report available at: ${url}`
-            })
+            });
+            
+            const botComment = comments.find(comment => 
+              comment.body.includes('<!-- cypress-results-comment -->')
+            );
+            
+            if (botComment) {
+              // Update existing comment
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: body
+              });
+            } else {
+              // Create new comment
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: body
+              });
+            }
 
   clean:
     needs: cypress-run
