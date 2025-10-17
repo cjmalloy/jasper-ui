@@ -176,8 +176,8 @@ export class ActionService {
         tap(u => {
           if (u.origin === this.store.account.origin) {
             cursor = u.modifiedString!;
-            baseComment = u.comment || '';
           }
+          baseComment = u.comment || '';
         }),
       ))),
       comment$: (comment: string): Observable<string> => {
@@ -246,8 +246,8 @@ export class ActionService {
         tap(u => {
           if (u.origin === this.store.account.origin) {
             cursor = u.modifiedString!;
-            baseComment = u.comment || '';
           }
+          baseComment = u.comment || '';
         }),
         mergeMap(u => {
           if (comment.startsWith(u?.comment || '')) {
