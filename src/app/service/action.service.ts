@@ -174,9 +174,7 @@ export class ActionService {
     const inner = {
       ref$: merge(...this.store.origins.list.map(origin => this.stomp.watchRef(ref.url, origin).pipe(
         tap(u => {
-          if (u.origin === this.store.account.origin) {
-            cursor = u.modifiedString!;
-          }
+          if (u.origin === this.store.account.origin) cursor = u.modifiedString!;
           baseComment = u.comment || '';
         }),
       ))),
@@ -243,9 +241,7 @@ export class ActionService {
     const inner = {
       updates$: merge(...this.store.origins.list.map(origin => this.stomp.watchRef(ref.url, origin).pipe(
         tap(u => {
-          if (u.origin === this.store.account.origin) {
-            cursor = u.modifiedString!;
-          }
+          if (u.origin === this.store.account.origin) cursor = u.modifiedString!;
           baseComment = u.comment || '';
         }),
         mergeMap(u => {
