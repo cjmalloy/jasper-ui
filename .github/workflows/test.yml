@@ -186,12 +186,37 @@ jobs:
             const reportUrl = `https://${context.repo.owner}.github.io/${context.repo.repo}/reports/karma-reports-pr-${context.issue.number}/`;
             summary += `\n\n📊 [View detailed HTML report](${reportUrl})`;
             
-            github.rest.issues.createComment({
+            // Add HTML comment marker for identification
+            const body = `<!-- test-results-comment -->\n${summary}`;
+            
+            // Find existing comment (with pagination)
+            const comments = await github.paginate(github.rest.issues.listComments, {
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: summary
-            })
+            });
+            
+            const botComment = comments.find(comment => 
+              comment.body.includes('<!-- test-results-comment -->')
+            );
+            
+            if (botComment) {
+              // Update existing comment
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: body
+              });
+            } else {
+              // Create new comment
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: body
+              });
+            }
 
   clean:
     needs: test
