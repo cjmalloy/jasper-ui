@@ -84,8 +84,7 @@ describe('BackgammonComponent', () => {
       component.state.redDice = [3, 2];
       component.state.turn = 'r';
       component.state.diceUsed = [];
-      component.state.moves = (component as any).constructor.prototype.constructor.getAllMoves
-        ? [] : [];
+      component.state.moves = [];
       
       // Calculate moves manually since getAllMoves is a standalone function
       // When a piece is on the bar, only bar moves should be allowed
