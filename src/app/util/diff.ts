@@ -43,31 +43,31 @@ export function formatRefForDiff(ref: Ref): string {
 
 /**
  * Attempt a simple 3-way merge for comment strings using diff3 algorithm.
- * Returns an object with the merged comment (or null if conflict) and the diff3 result for conflict formatting.
+ * Returns an object with the merged comment (or null if conflict) and the formatted conflict message.
  * 
  * @param base - The original comment (common ancestor)
  * @param theirs - The remote version
  * @param ours - Our attempted update
- * @returns Object with mergedComment (string | null) and diff3Result for formatting conflicts
+ * @returns Object with mergedComment (string | null) and conflict (string | null) for formatting conflicts
  */
-export function tryMergeRefComment(base: string, theirs: string, ours: string): { mergedComment: string | null, diff3Result: any } {
+export function tryMergeRefComment(base: string, theirs: string, ours: string): { mergedComment: string | null, conflict: string | null } {
   const baseComment = base || '';
   const theirComment = theirs || '';
   const ourComment = ours || '';
 
   // If their comment is the same as base, use ours
   if (theirComment === baseComment) {
-    return { mergedComment: ourComment, diff3Result: null };
+    return { mergedComment: ourComment, conflict: null };
   }
 
   // If our comment is the same as base, use theirs
   if (ourComment === baseComment) {
-    return { mergedComment: theirComment, diff3Result: null };
+    return { mergedComment: theirComment, conflict: null };
   }
 
   // If both made the same change, accept it
   if (theirComment === ourComment) {
-    return { mergedComment: ourComment, diff3Result: null };
+    return { mergedComment: ourComment, conflict: null };
   }
 
   // Use diff3 for line-based 3-way merge
@@ -81,7 +81,7 @@ export function tryMergeRefComment(base: string, theirs: string, ours: string): 
   const hasConflict = result.some(chunk => chunk.conflict);
   
   if (hasConflict) {
-    return { mergedComment: null, diff3Result: result };
+    return { mergedComment: null, conflict: formatMergeConflict(result) };
   }
   
   // Merge successful - combine all ok chunks
@@ -92,7 +92,7 @@ export function tryMergeRefComment(base: string, theirs: string, ours: string): 
     }
   }
   
-  return { mergedComment: mergedLines.join('\n'), diff3Result: null };
+  return { mergedComment: mergedLines.join('\n'), conflict: null };
 }
 
 /**

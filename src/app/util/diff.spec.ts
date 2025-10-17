@@ -99,9 +99,10 @@ describe('Diff Utils', () => {
       const theirs = 'Their change';
       const ours = 'Our change';
 
-      const { mergedComment, diff3Result } = tryMergeRefComment(base, theirs, ours);
+      const { mergedComment, conflict } = tryMergeRefComment(base, theirs, ours);
       expect(mergedComment).toBeNull();
-      expect(diff3Result).toBeTruthy();
+      expect(conflict).toBeTruthy();
+      expect(conflict).toContain('Merge conflict');
     });
 
     it('should handle empty base', () => {
@@ -109,9 +110,10 @@ describe('Diff Utils', () => {
       const theirs = 'Their change';
       const ours = 'Our change';
 
-      const { mergedComment, diff3Result } = tryMergeRefComment(base, theirs, ours);
+      const { mergedComment, conflict } = tryMergeRefComment(base, theirs, ours);
       expect(mergedComment).toBeNull();
-      expect(diff3Result).toBeTruthy();
+      expect(conflict).toBeTruthy();
+      expect(conflict).toContain('Merge conflict');
     });
 
     it('should handle empty comments', () => {
@@ -137,9 +139,10 @@ describe('Diff Utils', () => {
       const theirs = 'Line 1 their change\nLine 2\nLine 3';
       const ours = 'Line 1 our change\nLine 2\nLine 3';
 
-      const { mergedComment, diff3Result } = tryMergeRefComment(base, theirs, ours);
+      const { mergedComment, conflict } = tryMergeRefComment(base, theirs, ours);
       expect(mergedComment).toBeNull();
-      expect(diff3Result).toBeTruthy();
+      expect(conflict).toBeTruthy();
+      expect(conflict).toContain('Merge conflict');
     });
 
     it('should merge additions at different positions', () => {
@@ -158,17 +161,16 @@ describe('Diff Utils', () => {
       const theirs = 'Their change';
       const ours = 'Our change';
 
-      const { diff3Result } = tryMergeRefComment(base, theirs, ours);
-      const result = formatMergeConflict(diff3Result);
+      const { conflict } = tryMergeRefComment(base, theirs, ours);
       
-      expect(result).toContain('Merge conflict:');
-      expect(result).toContain('<<<<<<< OURS (local)');
-      expect(result).toContain('Our change');
-      expect(result).toContain('||||||| BASE');
-      expect(result).toContain('Original');
-      expect(result).toContain('======= THEIRS (remote)');
-      expect(result).toContain('Their change');
-      expect(result).toContain('>>>>>>>');
+      expect(conflict).toContain('Merge conflict:');
+      expect(conflict).toContain('<<<<<<< OURS (local)');
+      expect(conflict).toContain('Our change');
+      expect(conflict).toContain('||||||| BASE');
+      expect(conflict).toContain('Original');
+      expect(conflict).toContain('======= THEIRS (remote)');
+      expect(conflict).toContain('Their change');
+      expect(conflict).toContain('>>>>>>>');
     });
 
     it('should handle empty base', () => {
@@ -176,15 +178,14 @@ describe('Diff Utils', () => {
       const theirs = 'Their change';
       const ours = 'Our change';
 
-      const { diff3Result } = tryMergeRefComment(base, theirs, ours);
-      const result = formatMergeConflict(diff3Result);
+      const { conflict } = tryMergeRefComment(base, theirs, ours);
       
-      expect(result).toContain('Merge conflict:');
-      expect(result).toContain('<<<<<<< OURS (local)');
-      expect(result).toContain('||||||| BASE');
-      expect(result).toContain('======= THEIRS (remote)');
-      expect(result).toContain('Their change');
-      expect(result).toContain('Our change');
+      expect(conflict).toContain('Merge conflict:');
+      expect(conflict).toContain('<<<<<<< OURS (local)');
+      expect(conflict).toContain('||||||| BASE');
+      expect(conflict).toContain('======= THEIRS (remote)');
+      expect(conflict).toContain('Their change');
+      expect(conflict).toContain('Our change');
     });
   });
 });

@@ -8,7 +8,7 @@ import { PluginApi } from '../model/plugin';
 import { Ref } from '../model/ref';
 import { Action, EmitAction, emitModels } from '../model/tag';
 import { Store } from '../store/store';
-import { formatMergeConflict, tryMergeRefComment } from '../util/diff';
+import { tryMergeRefComment } from '../util/diff';
 import { hasTag } from '../util/tag';
 import { ExtService } from './api/ext.service';
 import { RefService } from './api/ref.service';
@@ -205,7 +205,7 @@ export class ActionService {
               return this.refs.get(ref.url, this.store.account.origin).pipe(
                 switchMap(serverRef => {
                   // Attempt 3-way merge
-                  const { mergedComment, diff3Result } = tryMergeRefComment(baseComment, serverRef.comment || '', comment);
+                  const { mergedComment, conflict } = tryMergeRefComment(baseComment, serverRef.comment || '', comment);
                   
                   if (mergedComment !== null) {
                     // Auto-merge succeeded, retry with merged content
@@ -223,8 +223,7 @@ export class ActionService {
                     );
                   } else {
                     // Auto-merge failed, throw formatted conflict
-                    const conflictMessage = formatMergeConflict(diff3Result);
-                    return throwError(() => ({ mergeConflict: true, message: conflictMessage }));
+                    return throwError(() => ({ mergeConflict: true, message: conflict }));
                   }
                 }),
               );
@@ -288,7 +287,7 @@ export class ActionService {
               return this.refs.get(ref.url, this.store.account.origin).pipe(
                 switchMap(serverRef => {
                   // Attempt 3-way merge
-                  const { mergedComment, diff3Result } = tryMergeRefComment(baseComment, serverRef.comment || '', comment);
+                  const { mergedComment, conflict } = tryMergeRefComment(baseComment, serverRef.comment || '', comment);
                   
                   if (mergedComment !== null) {
                     // Auto-merge succeeded, retry with merged content
@@ -307,8 +306,7 @@ export class ActionService {
                     );
                   } else {
                     // Auto-merge failed, throw formatted conflict
-                    const conflictMessage = formatMergeConflict(diff3Result);
-                    return throwError(() => ({ mergeConflict: true, message: conflictMessage }));
+                    return throwError(() => ({ mergeConflict: true, message: conflict }));
                   }
                 }),
               );
