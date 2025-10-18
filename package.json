@@ -95,28 +95,18 @@
     "marked": "$marked",
     "mermaid": "$mermaid",
     "uuid": "$uuid",
-    "ngx-markdown": {
-      "@angular/common": "$@angular/common",
-      "@angular/core": "$@angular/core",
-      "@angular/platform-browser": "$@angular/platform-browser",
-      "zone.js": "$zone.js"
-    },
-    "ngx-monaco-editor": {
-      "@angular/common": "$@angular/common",
-      "@angular/core": "$@angular/core",
-      "monaco-editor": "$monaco-editor"
-    },
-    "mobx-angular": {
-      "@angular/common": "$@angular/common",
-      "@angular/core": "$@angular/core",
-      "@angular/cdk": "$@angular/cdk"
-    },
-    "dagre-d3": {
-      "d3": "$d3"
-    },
-    "cypress-real-events": {
-      "cypress": "$cypress"
-    }
+    "ngx-markdown>@angular/common": "$@angular/common",
+    "ngx-markdown>@angular/core": "$@angular/core",
+    "ngx-markdown>@angular/platform-browser": "$@angular/platform-browser",
+    "ngx-markdown>zone.js": "$zone.js",
+    "ngx-monaco-editor>@angular/common": "$@angular/common",
+    "ngx-monaco-editor>@angular/core": "$@angular/core",
+    "ngx-monaco-editor>monaco-editor": "$monaco-editor",
+    "mobx-angular>@angular/common": "$@angular/common",
+    "mobx-angular>@angular/core": "$@angular/core",
+    "mobx-angular>@angular/cdk": "$@angular/cdk",
+    "dagre-d3>d3": "$d3",
+    "cypress-real-events>cypress": "$cypress"
   },
   "browser": {
     "fs": false,
