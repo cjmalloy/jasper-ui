@@ -202,7 +202,7 @@ export class ActionService {
               // Fetch the current version from server
               return this.refs.get(ref.url, this.store.account.origin).pipe(
                 switchMap(remote => {
-                  const { mergedComment, conflict } = merge3(baseComment, remote.comment || '', comment, delimiter);
+                  const { mergedComment, conflict } = merge3(comment, baseComment, remote.comment || '', delimiter);
                   if (conflict) return throwError(() => ({ conflict }));
                   cursor = remote.modifiedString!;
                   baseComment = remote.comment || '';
@@ -274,7 +274,7 @@ export class ActionService {
             if (err.status === 409) {
               return this.refs.get(ref.url, this.store.account.origin).pipe(
                 switchMap(remote => {
-                  const { mergedComment, conflict } = merge3(baseComment, remote.comment || '', comment, delimiter);
+                  const { mergedComment, conflict } = merge3(comment, baseComment, remote.comment || '', delimiter);
                   if (conflict) return throwError(() => ({ conflict }));
                   comment = mergedComment || '';
                   cursor = remote.modifiedString!;
