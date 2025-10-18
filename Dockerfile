@@ -1,5 +1,6 @@
 FROM oven/bun:1.3.0 AS builder
 WORKDIR /app
+RUN bun add -g @angular/cli
 COPY package.json bun.lock ./
 COPY patches ./patches/
 RUN bun install --frozen-lockfile
