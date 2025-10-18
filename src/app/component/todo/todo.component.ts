@@ -117,8 +117,8 @@ export class TodoComponent implements OnChanges {
       catchError(err => {
         if (err?.conflict) {
           // Check if conflict can be auto-resolved (non-overlapping edits to different tasks)
-          const { mergedComment, stillHasConflict } = this.tryAutoResolveTodoConflict(err.conflict, comment);
-          if (!stillHasConflict && mergedComment) {
+          const mergedComment = this.tryAutoResolveTodoConflict(err.conflict);
+          if (mergedComment !== false) {
             // Successfully auto-resolved - retry with merged content
             this.lines = mergedComment.split('\n').filter(l => !!l);
             this.comment.emit(mergedComment);
@@ -152,10 +152,9 @@ export class TodoComponent implements OnChanges {
    * Try to auto-resolve TODO list conflicts
    * Can merge if edits are to different tasks or non-overlapping additions
    */
-  private tryAutoResolveTodoConflict(conflict: MergeRegion<string>[], ourComment: string): { mergedComment: string | null, stillHasConflict: boolean } {
+  tryAutoResolveTodoConflict(conflict: MergeRegion<string>[]) {
     // Try to merge non-conflicting chunks
     const mergedLines: string[] = [];
-    let hasUnresolvableConflict = false;
 
     for (const chunk of conflict) {
       if (chunk.ok) {
@@ -165,27 +164,20 @@ export class TodoComponent implements OnChanges {
         // Check if this is a simple addition conflict (one side added, other side also added different content)
         const theirLines = chunk.conflict.b || [];
         const ourLines = chunk.conflict.a || [];
-        
+
         // If both sides added tasks (all lines start with "- "), we can merge them
         const theirAreTasks = theirLines.every(l => l.trim().startsWith('- '));
         const ourAreTasks = ourLines.every(l => l.trim().startsWith('- '));
-        
+
         if (theirAreTasks && ourAreTasks) {
           // Both sides added tasks - merge by including both
           mergedLines.push(...theirLines);
           mergedLines.push(...ourLines);
         } else {
-          // Cannot auto-resolve this conflict
-          hasUnresolvableConflict = true;
-          break;
+          return false;
         }
       }
     }
-
-    if (hasUnresolvableConflict) {
-      return { mergedComment: null, stillHasConflict: true };
-    }
-
-    return { mergedComment: mergedLines.join('\n'), stillHasConflict: false };
+    return mergedLines.join('\n');
   }
 }

@@ -79,47 +79,12 @@ least $k$ red circles.
         }
         return traverse(0, 0, 0)
       }
-      function tryAutoResolveTriangleConflict(regions) {
-        // Check if conflicts are in different rows - if so, we can merge
-        let mergedLines = [];
-        for (const region of regions) {
-          if (region.ok) {
-            // Non-conflict regions - just use the content as-is
-            mergedLines.push(...(region.ok || []));
-          } else if (region.conflict) {
-            // Conflict region - check if changes are in different positions
-            const oLines = region.o || [];
-            const aLines = region.a || [];
-            const bLines = region.b || [];
-            // For triangle data, if both sides modified different rows, we can merge
-            // by taking the "theirs" version and applying our changes if they don't overlap
-            if (oLines.length === aLines.length && aLines.length === bLines.length) {
-              // Same number of rows - check if changes are to different rows
-              for (let i = 0; i < oLines.length; i++) {
-                const oLine = oLines[i];
-                const aLine = aLines[i];
-                const bLine = bLines[i];
-                if (aLine !== oLine && bLine !== oLine && aLine !== bLine) {
-                  // Both changed the same row differently - real conflict
-                  return false;
-                }
-              }
-              // Take theirs (remote) version for non-conflicting changes
-              mergedLines.push(...bLines);
-            } else {
-              // Different number of rows - cannot auto-merge safely
-              return false;
-            }
-          }
-        }
-        return mergedLines.join('\\n');
-      }
       Handlebars.registerHelper('ninjaTriangle', (ref, actions, el, d3) => {
         let comment$ = null;
         let comment = ref.comment || '';
         function renderSvg() {
           if (!comment$) {
-            const watch = actions.watch(ref);
+            const watch = actions.watch(ref, ' ');
             comment$ = watch.comment$;
             watch.ref$.subscribe(u => {
               comment = u.comment;
@@ -132,16 +97,7 @@ least $k$ red circles.
             text = write(t);
             comment = text;
             renderSvg();
-            comment$(text).subscribe({
-              error: (err) => {
-                if (err?.conflict) {
-                  text = tryAutoResolveTriangleConflict(err.conflict);
-                  // Try to auto-resolve: if both sides made changes to different rows, merge them
-                  if (text !== false) return comment$(text);
-                  alert('Someone else modified the triangle. Please reload.');
-                }
-              }
-            });
+            comment$(text).subscribe();
           }
           function tagRed(text, i, j) {
             const t = read(text);
@@ -152,16 +108,7 @@ least $k$ red circles.
             text = write(t);
             comment = text;
             renderSvg();
-            comment$(text).subscribe({
-              error: (err) => {
-                if (err?.conflict) {
-                  text = tryAutoResolveTriangleConflict(err.conflict);
-                  // Try to auto-resolve: if both sides tagged different rows, merge them
-                  if (text !== false) return comment$(text);
-                  alert('Someone else modified the triangle. Please reload.');
-                }
-              }
-            });
+            comment$(text).subscribe();
           }
           const triangle = read(comment);
           const n = geometricSumInv(triangle.length);
