@@ -85,9 +85,9 @@ least $k$ red circles.
         let mergedLines = [];
         
         for (const region of regions) {
-          if (region.stable) {
-            // Stable regions - just use the content as-is
-            mergedLines.push(...(region.stable || []));
+          if (region.ok) {
+            // Non-conflict regions - just use the content as-is
+            mergedLines.push(...(region.ok || []));
           } else if (region.conflict) {
             // Conflict region - check if changes are in different positions
             const oLines = region.o || [];
