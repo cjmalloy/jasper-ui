@@ -4,6 +4,7 @@ import { RouterModule } from '@angular/router';
 
 import { BackgammonComponent } from './backgammon.component';
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { MergeRegion } from 'node-diff3';
 
 describe('BackgammonComponent', () => {
   let component: BackgammonComponent;
@@ -252,6 +253,232 @@ describe('BackgammonComponent', () => {
       // Verify the piece can move and hit appropriately
       const canMoveFrom0 = component.state.moves[0]?.length > 0;
       expect(canMoveFrom0).toBeDefined();
+    });
+  });
+
+  describe('Merge Conflict Auto-Resolution', () => {
+    describe('canAutoResolveMoveConflict', () => {
+      it('should auto-resolve when both sides made same type of move (both regular)', () => {
+        const conflict: MergeRegion<string>[] = [
+          { ok: ['r 3-2', 'r 0-3'] },
+          { 
+            conflict: { 
+              b: ['r 3-5'], 
+              bIndex: 2,
+              a: ['r 5-7'],
+              aIndex: 2,
+              o: ['r 0-3'],
+              oIndex: 2
+            } 
+          }
+        ];
+
+        const result = component.canAutoResolveMoveConflict(conflict);
+
+        expect(result).toBe(true);
+      });
+
+      it('should auto-resolve when both sides rolled dice', () => {
+        const conflict: MergeRegion<string>[] = [
+          { ok: [] },
+          { 
+            conflict: { 
+              b: ['r 4-3'], 
+              bIndex: 0,
+              a: ['r 5-2'],
+              aIndex: 0,
+              o: [],
+              oIndex: 0
+            } 
+          }
+        ];
+
+        const result = component.canAutoResolveMoveConflict(conflict);
+
+        expect(result).toBe(true);
+      });
+
+      it('should not auto-resolve when one is roll and other is move', () => {
+        const conflict: MergeRegion<string>[] = [
+          { ok: ['r 3-2'] },
+          { 
+            conflict: { 
+              b: ['r 4-5'], 
+              bIndex: 1,
+              a: ['r 0-3'],
+              aIndex: 1,
+              o: ['r 3-2'],
+              oIndex: 1
+            } 
+          }
+        ];
+
+        const result = component.canAutoResolveMoveConflict(conflict);
+
+        expect(result).toBe(false);
+      });
+
+      it('should handle empty conflict regions', () => {
+        const conflict: MergeRegion<string>[] = [
+          { ok: ['r 3-2'] },
+          { 
+            conflict: { 
+              b: [], 
+              bIndex: 1,
+              a: ['r 0-3'],
+              aIndex: 1,
+              o: [],
+              oIndex: 1
+            } 
+          }
+        ];
+
+        const result = component.canAutoResolveMoveConflict(conflict);
+
+        expect(result).toBe(false);
+      });
+
+      it('should handle multiple conflict chunks and extract last moves', () => {
+        const conflict: MergeRegion<string>[] = [
+          { ok: ['r 3-2', 'r 0-3'] },
+          { 
+            conflict: { 
+              b: ['r 5-8', 'r 8-10'], 
+              bIndex: 2,
+              a: ['r 0-2', 'r 2-5'],
+              aIndex: 2,
+              o: [],
+              oIndex: 2
+            } 
+          }
+        ];
+
+        const result = component.canAutoResolveMoveConflict(conflict);
+
+        expect(result).toBe(true);
+      });
+    });
+
+    describe('canAutoResolveRollConflict', () => {
+      it('should auto-resolve when both players rolled dice', () => {
+        const conflict: MergeRegion<string>[] = [
+          { ok: [] },
+          { 
+            conflict: { 
+              b: ['r 4-3'], 
+              bIndex: 0,
+              a: ['b 5-2'],
+              aIndex: 0,
+              o: [],
+              oIndex: 0
+            } 
+          }
+        ];
+
+        const result = component.canAutoResolveRollConflict(conflict);
+
+        expect(result).toBe(true);
+      });
+
+      it('should auto-resolve when same player rolled twice (using two clients)', () => {
+        const conflict: MergeRegion<string>[] = [
+          { ok: [] },
+          { 
+            conflict: { 
+              b: ['r 4-3'], 
+              bIndex: 0,
+              a: ['r 5-2'],
+              aIndex: 0,
+              o: [],
+              oIndex: 0
+            } 
+          }
+        ];
+
+        const result = component.canAutoResolveRollConflict(conflict);
+
+        expect(result).toBe(true);
+      });
+
+      it('should not auto-resolve when one side is a move instead of roll', () => {
+        const conflict: MergeRegion<string>[] = [
+          { ok: ['r 3-2'] },
+          { 
+            conflict: { 
+              b: ['r 4-3'], 
+              bIndex: 1,
+              a: ['r 0-3'],
+              aIndex: 1,
+              o: [],
+              oIndex: 1
+            } 
+          }
+        ];
+
+        const result = component.canAutoResolveRollConflict(conflict);
+
+        expect(result).toBe(false);
+      });
+
+      it('should not auto-resolve when both sides are moves instead of rolls', () => {
+        const conflict: MergeRegion<string>[] = [
+          { ok: ['r 3-2'] },
+          { 
+            conflict: { 
+              b: ['r 0-3'], 
+              bIndex: 1,
+              a: ['r 5-7'],
+              aIndex: 1,
+              o: [],
+              oIndex: 1
+            } 
+          }
+        ];
+
+        const result = component.canAutoResolveRollConflict(conflict);
+
+        expect(result).toBe(false);
+      });
+
+      it('should handle empty conflict regions', () => {
+        const conflict: MergeRegion<string>[] = [
+          { ok: [] },
+          { 
+            conflict: { 
+              b: [], 
+              bIndex: 0,
+              a: ['r 4-3'],
+              aIndex: 0,
+              o: [],
+              oIndex: 0
+            } 
+          }
+        ];
+
+        const result = component.canAutoResolveRollConflict(conflict);
+
+        expect(result).toBe(false);
+      });
+
+      it('should correctly identify rolls vs moves from complex history', () => {
+        const conflict: MergeRegion<string>[] = [
+          { ok: ['r 3-2', 'r 0-3', 'r 3-5'] },
+          { 
+            conflict: { 
+              b: ['b 4-6'], 
+              bIndex: 3,
+              a: ['r 6-1'],
+              aIndex: 3,
+              o: [],
+              oIndex: 3
+            } 
+          }
+        ];
+
+        const result = component.canAutoResolveRollConflict(conflict);
+
+        expect(result).toBe(true);
+      });
     });
   });
 });
