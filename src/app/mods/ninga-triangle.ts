@@ -84,7 +84,7 @@ least $k$ red circles.
         let comment = ref.comment || '';
         function renderSvg() {
           if (!comment$) {
-            const watch = actions.watch(ref);
+            const watch = actions.watch(ref, ' ');
             comment$ = watch.comment$;
             watch.ref$.subscribe(u => {
               comment = u.comment;

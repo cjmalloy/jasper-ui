@@ -8,6 +8,7 @@ import { PluginApi } from '../model/plugin';
 import { Ref } from '../model/ref';
 import { Action, EmitAction, emitModels } from '../model/tag';
 import { Store } from '../store/store';
+import { merge3 } from '../util/diff';
 import { hasTag } from '../util/tag';
 import { ExtService } from './api/ext.service';
 import { RefService } from './api/ref.service';
@@ -49,13 +50,13 @@ export class ActionService {
         if (!ref) throw 'Error: No ref to respond to';
         this.respond(response, clear || [], ref);
       },
-      watch: () => {
+      watch: (delimiter?: string) => {
         if (!ref) throw 'Error: No ref to respond to';
-        return this.watch(ref);
+        return this.watch(ref, delimiter);
       },
-      append: () => {
+      append: (delimiter?: string) => {
         if (!ref) throw 'Error: No ref to respond to';
-        return this.append(ref);
+        return this.append(ref, delimiter);
       }
     }
   }
@@ -167,18 +168,23 @@ export class ActionService {
     }
   }
 
-  watch(ref: Ref) {
+  watch(ref: Ref, delimiter = '\n') {
     let cursor = ref.origin === this.store.account.origin ? ref.modifiedString! : '';
+    let baseComment = ref.comment || '';
     const inner = {
       ref$: merge(...this.store.origins.list.map(origin => this.stomp.watchRef(ref.url, origin).pipe(
         tap(u => {
           if (u.origin === this.store.account.origin) cursor = u.modifiedString!;
+          baseComment = u.comment || '';
         }),
       ))),
       comment$: (comment: string): Observable<string> => {
         if (!cursor) {
           return this.refs.get(ref.url, this.store.account.origin).pipe(
-            tap(ref => cursor = ref.modifiedString!),
+            tap(ref => {
+              cursor = ref.modifiedString!;
+              baseComment = ref.comment || '';
+            }),
             switchMap(ref => inner.comment$(comment)),
           );
         }
@@ -187,20 +193,49 @@ export class ActionService {
           path: '/comment',
           value: comment,
         }]).pipe(
-          tap(c => cursor = c),
+          tap(c => {
+            cursor = c;
+            baseComment = comment;
+          }),
+          catchError(err => {
+            if (err.status === 409) {
+              // Fetch the current version from server
+              return this.refs.get(ref.url, this.store.account.origin).pipe(
+                switchMap(remote => {
+                  const { mergedComment, conflict } = merge3(comment, baseComment, remote.comment || '', delimiter);
+                  if (conflict) return throwError(() => ({ conflict }));
+                  cursor = remote.modifiedString!;
+                  baseComment = remote.comment || '';
+                  return this.refs.patch(ref.url, this.store.account.origin, cursor, [{
+                    op: 'add',
+                    path: '/comment',
+                    value: mergedComment,
+                  }]).pipe(
+                    tap(c => {
+                      cursor = c;
+                      baseComment = mergedComment || '';
+                    }),
+                  );
+                }),
+              );
+            }
+            return throwError(() => err);
+          }),
         );
       },
     };
     return inner;
   }
 
-  append(ref: Ref) {
+  append(ref: Ref, delimiter = '\n') {
     let cursor = ref.origin === this.store.account.origin ? ref.modifiedString! : '';
     let comment = ref.comment || '';
+    let baseComment = ref.comment || '';
     const inner = {
       updates$: merge(...this.store.origins.list.map(origin => this.stomp.watchRef(ref.url, origin).pipe(
         tap(u => {
           if (u.origin === this.store.account.origin) cursor = u.modifiedString!;
+          baseComment = u.comment || '';
         }),
         mergeMap(u => {
           if (comment.startsWith(u?.comment || '')) {
@@ -218,7 +253,10 @@ export class ActionService {
       append$: (value: string): Observable<string> => {
         if (!cursor) {
           return this.refs.get(ref.url, this.store.account.origin).pipe(
-            tap(ref => cursor = ref.modifiedString!),
+            tap(ref => {
+              cursor = ref.modifiedString!;
+              baseComment = ref.comment || '';
+            }),
             switchMap(ref => inner.append$(value)),
           );
         }
@@ -228,7 +266,34 @@ export class ActionService {
           path: '/comment',
           value: comment,
         }]).pipe(
-          tap(c => cursor = c),
+          tap(c => {
+            cursor = c;
+            baseComment = comment;
+          }),
+          catchError(err => {
+            if (err.status === 409) {
+              return this.refs.get(ref.url, this.store.account.origin).pipe(
+                switchMap(remote => {
+                  const { mergedComment, conflict } = merge3(comment, baseComment, remote.comment || '', delimiter);
+                  if (conflict) return throwError(() => ({ conflict }));
+                  comment = mergedComment || '';
+                  cursor = remote.modifiedString!;
+                  baseComment = remote.comment || '';
+                  return this.refs.patch(ref.url, this.store.account.origin, cursor, [{
+                    op: 'add',
+                    path: '/comment',
+                    value: mergedComment,
+                  }]).pipe(
+                    tap(c => {
+                      cursor = c;
+                      baseComment = mergedComment || '';
+                    }),
+                  );
+                }),
+              );
+            }
+            return throwError(() => err);
+          }),
         );
       },
     };

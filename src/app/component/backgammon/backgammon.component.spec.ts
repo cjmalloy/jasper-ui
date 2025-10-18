@@ -4,6 +4,7 @@ import { RouterModule } from '@angular/router';
 
 import { BackgammonComponent } from './backgammon.component';
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { MergeRegion } from 'node-diff3';
 
 describe('BackgammonComponent', () => {
   let component: BackgammonComponent;
@@ -11,10 +12,13 @@ describe('BackgammonComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-    declarations: [BackgammonComponent],
-    imports: [RouterModule.forRoot([])],
-    providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
-});
+      declarations: [BackgammonComponent],
+      imports: [RouterModule.forRoot([])],
+      providers: [
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting(),
+      ],
+    });
     fixture = TestBed.createComponent(BackgammonComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
@@ -32,13 +36,13 @@ describe('BackgammonComponent', () => {
     it('should reject moving to a spot blocked by opponent', () => {
       // Setup: Red rolls, tries to move to a spot with 2+ black pieces
       component.reset('r 3-2');
-      
+
       // Black has 5 pieces on spot 6 (index 5)
       // Red has 2 pieces on spot 1 (index 0)
       // Red tries to move from spot 1 to spot 6 (5 spaces) but spot 6 has black pieces
       const from = 0;
       const to = 5; // This spot has 5 black pieces, so it's blocked
-      
+
       // Moves should either not exist for this position or not include the blocked spot
       const movesForSpot = component.state.moves[from];
       if (movesForSpot) {
@@ -52,7 +56,7 @@ describe('BackgammonComponent', () => {
     it('should reject moving opponent pieces', () => {
       // Setup: Red's turn
       component.reset('r 3-2');
-      
+
       // Spot 6 has black pieces (component.state.spots[5].pieces = 'bbbbb')
       // Red shouldn't have any valid moves from spot 5 (0-indexed)
       expect(component.state.moves[5]).toBeUndefined();
@@ -64,7 +68,7 @@ describe('BackgammonComponent', () => {
       component.state.redDice = [3, 2];
       component.state.turn = 'r';
       component.state.diceUsed = [3, 2]; // Both dice already used
-      
+
       // Try to make a move via drop - should throw because no moves are valid
       expect(() => {
         const event = {
@@ -85,7 +89,7 @@ describe('BackgammonComponent', () => {
       component.state.turn = 'r';
       component.state.diceUsed = [];
       component.state.moves = [];
-      
+
       // Calculate moves manually since getAllMoves is a standalone function
       // When a piece is on the bar, only bar moves should be allowed
       // Regular board spots should have no valid moves
@@ -104,7 +108,7 @@ describe('BackgammonComponent', () => {
       component.state.turn = 'r';
       component.state.diceUsed = [];
       component.state.moves = [];
-      
+
       // Bearing off (moving to -2) should not be available
       // when pieces are still outside home board
       const hasOffMove = component.state.moves.some(moves => moves?.includes(-2));
@@ -114,11 +118,11 @@ describe('BackgammonComponent', () => {
     it('should throw error when attempting illegal move via drop', () => {
       // Setup: Create a scenario with specific dice
       component.reset('r 3-2');
-      
+
       // Try to move to an illegal position
       const from = 0;
       const invalidTo = 10; // Not a valid move with dice 3 and 2 from spot 0
-      
+
       expect(() => {
         const event = {
           item: { data: 'r' },
@@ -138,47 +142,47 @@ describe('BackgammonComponent', () => {
     it('should allow combined move that hits opponent on intermediate spot', () => {
       // Setup: Create a scenario where red can hit black using both dice
       component.reset();
-      
+
       // Clear default setup and create custom scenario
       for (let i = 0; i < 24; i++) {
         component.state.spots[i].pieces = [];
       }
-      
+
       // Put a red piece at spot 0
       component.state.spots[0].pieces = ['r'];
-      
+
       // Put a single black piece at spot 3 (can be hit)
       component.state.spots[3].pieces = ['b'];
-      
+
       // Put another black piece at spot 5 to verify the move completes
       component.state.spots[5].pieces = ['b'];
-      
+
       // Red rolls 3-2
       component.state.redDice = [3, 2];
       component.state.turn = 'r';
       component.state.diceUsed = [];
       component.state.moves = [];
-      
+
       // Re-calculate moves for this custom board
       const board = component.state.board.join('\n');
       component.reset(board + '\nr 3-2');
-      
+
       // Red should be able to move from 0 to 5 (using 3 then 2)
       // This would hit the black piece at spot 3
       const canMove = component.state.moves[0]?.includes(5);
-      
+
       if (canMove) {
         // Perform the move
         const initialBarLength = component.state.bar.length;
-        
+
         const event = {
           item: { data: 'r' },
           previousContainer: { data: 0 },
           container: { data: 5 }
         } as any;
-        
+
         component.drop(event);
-        
+
         // Check that a piece was sent to the bar
         expect(component.state.bar.length).toBeGreaterThan(initialBarLength);
         expect(component.state.bar).toContain('b');
@@ -188,40 +192,40 @@ describe('BackgammonComponent', () => {
     it('should handle combined move hitting piece at final destination', () => {
       // Setup: Combined move where the hit happens at the final spot
       component.reset();
-      
+
       // Clear default setup
       for (let i = 0; i < 24; i++) {
         component.state.spots[i].pieces = [];
       }
-      
+
       // Put a red piece at spot 0
       component.state.spots[0].pieces = ['r'];
-      
+
       // Put a single black piece at the destination (spot 5)
       component.state.spots[5].pieces = ['b'];
-      
+
       // Red rolls 3-2 (can move to spot 5 using both dice)
       const board = component.state.board.join('\n');
       component.reset(board + '\nr 3-2');
-      
+
       // Check if the move is valid
       const canMove = component.state.moves[0]?.includes(5);
-      
+
       if (canMove) {
         const initialBarLength = component.state.bar.length;
-        
+
         const event = {
           item: { data: 'r' },
           previousContainer: { data: 0 },
           container: { data: 5 }
         } as any;
-        
+
         component.drop(event);
-        
+
         // The black piece should be on the bar
         expect(component.state.bar.length).toBeGreaterThan(initialBarLength);
         expect(component.state.bar).toContain('b');
-        
+
         // Red piece should be at spot 5
         expect(component.state.spots[5].pieces).toContain('r');
       }
@@ -230,24 +234,24 @@ describe('BackgammonComponent', () => {
     it('should correctly process combined move that hits multiple pieces', () => {
       // Setup: A combined move that could hit at intermediate positions
       component.reset();
-      
+
       // Clear default setup
       for (let i = 0; i < 24; i++) {
         component.state.spots[i].pieces = [];
       }
-      
+
       // Red piece at spot 0
       component.state.spots[0].pieces = ['r'];
-      
+
       // Single black pieces at spots 2 and 4 (vulnerable to hits)
       component.state.spots[2].pieces = ['b'];
       component.state.spots[4].pieces = ['b'];
-      
+
       // This tests whether the game properly handles the logic
       // Red rolls 2-2 (doubles, can use four 2's)
       const board = component.state.board.join('\n');
       component.reset(board + '\nr 2-2');
-      
+
       // With doubles, red can make multiple moves
       // Verify the piece can move and hit appropriately
       const canMoveFrom0 = component.state.moves[0]?.length > 0;

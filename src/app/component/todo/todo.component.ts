@@ -10,6 +10,7 @@ import {
   Output,
   SimpleChanges
 } from '@angular/core';
+import { MergeRegion } from 'node-diff3';
 import { catchError, Observable, Subscription, throwError } from 'rxjs';
 import { Ref } from '../../model/ref';
 import { ActionService } from '../../service/action.service';
@@ -114,7 +115,20 @@ export class TodoComponent implements OnChanges {
     if (!this.ref) return;
     this.comment$(comment).pipe(
       catchError(err => {
-        this.serverErrors = printError(err);
+        if (err?.conflict) {
+          // Check if conflict can be auto-resolved (non-overlapping edits to different tasks)
+          const mergedComment = this.tryAutoResolveTodoConflict(err.conflict);
+          if (mergedComment !== false) {
+            // Successfully auto-resolved - retry with merged content
+            this.lines = mergedComment.split('\n').filter(l => !!l);
+            this.comment.emit(mergedComment);
+            return this.comment$(mergedComment);
+          }
+          // Cannot auto-resolve - show formatted error
+          this.serverErrors = printError(err);
+        } else {
+          this.serverErrors = printError(err);
+        }
         return throwError(() => err);
       })
     ).subscribe(cursor => {
@@ -132,5 +146,38 @@ export class TodoComponent implements OnChanges {
     this.lines.push(`- [ ] ${this.addText}`);
     this.save(this.lines.join('\n'));
     this.addText = '';
+  }
+
+  /**
+   * Try to auto-resolve TODO list conflicts
+   * Can merge if edits are to different tasks or non-overlapping additions
+   */
+  tryAutoResolveTodoConflict(conflict: MergeRegion<string>[]) {
+    // Try to merge non-conflicting chunks
+    const mergedLines: string[] = [];
+
+    for (const chunk of conflict) {
+      if (chunk.ok) {
+        // Non-conflicting content - add it
+        mergedLines.push(...chunk.ok);
+      } else if (chunk.conflict) {
+        // Check if this is a simple addition conflict (one side added, other side also added different content)
+        const theirLines = chunk.conflict.b || [];
+        const ourLines = chunk.conflict.a || [];
+
+        // If both sides added tasks (all lines start with "- "), we can merge them
+        const theirAreTasks = theirLines.every(l => l.trim().startsWith('- '));
+        const ourAreTasks = ourLines.every(l => l.trim().startsWith('- '));
+
+        if (theirAreTasks && ourAreTasks) {
+          // Both sides added tasks - merge by including both
+          mergedLines.push(...theirLines);
+          mergedLines.push(...ourLines);
+        } else {
+          return false;
+        }
+      }
+    }
+    return mergedLines.join('\n');
   }
 }
