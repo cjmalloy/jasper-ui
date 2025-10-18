@@ -111,7 +111,7 @@ least $k$ red circles.
               }
               if (!conflicts) {
                 // Take theirs (remote) version for non-conflicting changes
-                mergedLines.push(...aLines);
+                mergedLines.push(...bLines);
               } else {
                 canMerge = false;
                 break;
