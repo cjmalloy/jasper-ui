@@ -79,7 +79,7 @@ least $k$ red circles.
         }
         return traverse(0, 0, 0)
       }
-      function tryAutoResolveTriangleConflict(regions, ourText) {
+      function tryAutoResolveTriangleConflict(regions) {
         // Check if conflicts are in different rows - if so, we can merge
         let canMerge = true;
         let mergedLines = [];
