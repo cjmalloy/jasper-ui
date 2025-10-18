@@ -15,6 +15,7 @@ import {
 } from '@angular/core';
 import { cloneDeep, defer, delay, filter, range, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
+import { MergeRegion } from 'node-diff3';
 import { catchError, Observable, of, Subscription } from 'rxjs';
 import { Ref } from '../../model/ref';
 import { ActionService } from '../../service/action.service';
@@ -500,6 +501,11 @@ function loadMove(state: GameState, p: Piece, from: number, to: number) {
   }
 }
 
+function getLastMove(comment: string): string | null {
+  const moves = comment.split('\n').map(m => m.trim()).filter(m => !!m);
+  return moves.length > 0 ? moves[moves.length - 1] : null;
+}
+
 @Component({
   standalone: false,
   selector: 'app-backgammon',
@@ -740,7 +746,21 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   save(p: Piece, from: number, to: number, hit?: boolean) {
     if (from === to) return;
     const move = p + ' ' + (from < 0 ? 'bar' : from + 1) + '/' + (to < 0 ? 'off' : to + 1) + (hit ? '*' : '');
-    this.append$(move).subscribe();
+    this.append$(move).pipe(
+      catchError(err => {
+        if (err?.conflict) {
+          // Parse merge conflict and check if moves are compatible
+          if (this.canAutoResolveMoveConflict(err.conflict)) {
+            // Silently ignore - reload will show server state
+            this.init();
+            return of();
+          }
+          // Incompatible moves - silently ignore, opposite player should resolve
+          this.init();
+        }
+        return of();
+      })
+    ).subscribe();
   }
 
   check() {
@@ -923,8 +943,84 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
     this.rolling = p;
     delay(() => this.rolling = undefined, 750);
     const state = applyRoll(this.lastState, p, this.r(), this.state.turn ? this.r() : 0);
-    this.append$(state.board[state.board.length - 1]).subscribe();
+    this.append$(state.board[state.board.length - 1]).pipe(
+      catchError(err => {
+        if (err?.conflict) {
+          // Parse merge conflict and check if rolls are compatible
+          if (this.canAutoResolveRollConflict(err.conflict)) {
+            // Silently ignore - reload will show server state
+            this.init();
+            return of();
+          }
+          // Incompatible rolls - silently ignore, opposite player should resolve
+          this.init();
+        }
+        return of();
+      })
+    ).subscribe();
     this.lastState = state;
+  }
+
+  /**
+   * Check if we can auto-resolve a move conflict using diff
+   * Returns true if moves are compatible (both same type, different players or same player)
+   */
+  canAutoResolveMoveConflict(diff: MergeRegion<string>[]): boolean {
+    // Extract theirs and ours from the diff3 result
+    let theirsLines: string[] = [];
+    let oursLines: string[] = [];
+    for (const chunk of diff) {
+      if (chunk.conflict) {
+        // Get theirs (b) and ours (a) from conflict
+        if (chunk.conflict.b && chunk.conflict.b.length > 0) {
+          theirsLines.push(...chunk.conflict.b);
+        }
+        if (chunk.conflict.a && chunk.conflict.a.length > 0) {
+          oursLines.push(...chunk.conflict.a);
+        }
+      }
+    }
+    const theirs = theirsLines.join('\n');
+    const ours = oursLines.join('\n');
+    const theirLastMove = getLastMove(theirs);
+    const ourLastMove = getLastMove(ours);
+    if (!theirLastMove || !ourLastMove) return false;
+    // Both are regular moves (not rolls)
+    const theirIsRoll = theirLastMove.includes('-');
+    const ourIsRoll = ourLastMove.includes('-');
+    // If both are the same type, they're compatible (order doesn't matter for rolls)
+    // If different types (one roll, one move), incompatible
+    return theirIsRoll === ourIsRoll;
+  }
+
+  /**
+   * Check if we can auto-resolve a roll conflict using diff
+   * Returns true if rolls are compatible
+   */
+  canAutoResolveRollConflict(diff: MergeRegion<string>[]): boolean {
+    // Extract theirs and ours from the diff3 result
+    let theirsLines: string[] = [];
+    let oursLines: string[] = [];
+    for (const chunk of diff) {
+      if (chunk.conflict) {
+        // Get theirs (b) and ours (a) from conflict
+        if (chunk.conflict.b && chunk.conflict.b.length > 0) {
+          theirsLines.push(...chunk.conflict.b);
+        }
+        if (chunk.conflict.a && chunk.conflict.a.length > 0) {
+          oursLines.push(...chunk.conflict.a);
+        }
+      }
+    }
+    const theirs = theirsLines.join('\n');
+    const ours = oursLines.join('\n');
+    const theirLastMove = getLastMove(theirs);
+    const ourLastMove = getLastMove(ours);
+    if (!theirLastMove || !ourLastMove) return false;
+    const theirIsRoll = theirLastMove.includes('-');
+    const ourIsRoll = ourLastMove.includes('-');
+    // Both should be rolls for this to be auto-resolvable
+    return theirIsRoll && ourIsRoll;
   }
 
   r() {
