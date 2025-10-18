@@ -80,6 +80,86 @@ docker compose up --build  # Everything on http://localhost:8082/
 - `docker-compose.yaml` - Development Docker setup
 - `src/assets/config.json` - **DO NOT** edit API URL, use Docker env vars
 
+## Localization & Translation
+
+### Overview
+Jasper-UI uses Angular's i18n system with XLIFF format for translations. The base file is `src/locale/messages.xlf` and language-specific files are named `messages.<locale>.xlf` (e.g., `messages.ja.xlf` for Japanese).
+
+### Updating Translations
+
+#### Step 1: Extract Latest Strings
+Always start by extracting the latest translatable strings from the codebase:
+```bash
+npm run ng extract-i18n -- --output-path src/locale
+```
+This updates `src/locale/messages.xlf` with any new `$localize` strings from the code.
+
+#### Step 2: Identify Missing Translations
+Compare the base file with the target language file to find missing translations:
+```bash
+# Example for Japanese
+comm -23 \
+  <(grep -oP 'id="\K[^"]+' src/locale/messages.xlf | sort) \
+  <(grep -oP 'id="\K[^"]+' src/locale/messages.ja.xlf | sort)
+```
+
+#### Step 3: Add Translations
+For each missing translation ID:
+1. Find the `<trans-unit>` entry in `messages.xlf`
+2. Copy it to the appropriate location in `messages.<locale>.xlf`
+3. Add a `<target>` element with the translated text
+
+**Example:**
+```xml
+<trans-unit id="1234567890" datatype="html">
+  <source>Configure AI</source>
+  <target>AIを設定</target>
+</trans-unit>
+```
+
+#### Step 4: Format Guidelines
+
+**Newlines:** Use the same format as the source. If the source has actual newlines (blank lines), use them in the target too - do NOT use `\n` escape sequences.
+```xml
+<!-- CORRECT -->
+<source>Line 1
+
+Line 2</source>
+<target>行1
+
+行2</target>
+
+<!-- WRONG -->
+<target>行1\n\n行2</target>
+```
+
+**Redundant Translations:** Skip entries where the translation would be identical to the source (emojis, symbols, technical terms). Omit these `<trans-unit>` entries entirely from the translation file - the system will automatically fall back to the source text.
+```xml
+<!-- SKIP these in translation files -->
+<trans-unit id="xxx">
+  <source>🔎️🌐️</source>  <!-- Emoji - same in all languages -->
+</trans-unit>
+<trans-unit id="yyy">
+  <source>LaTeX</source>  <!-- Technical term - unchanged -->
+</trans-unit>
+```
+
+#### Step 5: Verify
+Build the project to verify translations work correctly:
+```bash
+npm run build
+```
+- Check for "No translation found" warnings - expected for intentionally skipped entries
+- Verify there are no errors for entries that should have translations
+
+### Configuration
+Translation locales are configured in `angular.json` under `projects.jasper-ui.i18n.locales`. The format is:
+```json
+"locales": {
+  "ja": "src/locale/messages.ja.xlf"
+}
+```
+
 ## Key Info
 
 - Angular 20 + TypeScript + MobX
@@ -87,3 +167,76 @@ docker compose up --build  # Everything on http://localhost:8082/
 - Use `ng generate component|service|pipe|directive name` for new features
 - Network issues: Use `CYPRESS_INSTALL_BINARY=0` flag
 - Backend connection issues: Ensure `docker compose --profile server up --build` is healthy
+
+## Theming
+
+Jasper-UI supports both light and dark themes. The `body` element has either `light-theme` or `dark-theme` class applied based on user preference.
+
+### Theme Variables
+
+Theme-specific CSS variables are defined in:
+- `src/theme/common.scss` - Default/base theme variables
+- `src/theme/light.scss` - Light theme overrides (body.light-theme)
+- `src/theme/dark.scss` - Dark theme overrides (body.dark-theme)
+
+### Using Themes in Components
+
+When styling components that need to adapt to themes:
+
+1. **Use CSS variables** defined in theme files when possible:
+   ```scss
+   .my-element {
+     background: var(--bg);
+     color: var(--text);
+     border: 1px solid var(--border);
+   }
+   ```
+
+2. **Add theme-specific overrides in mod files** (NOT in component SCSS):
+   
+   Due to how Angular's view encapsulation works, theme-related CSS using `body.dark-theme` or `body.light-theme` selectors must be placed in the mod file's `css` property, not in component SCSS files.
+   
+   **Example (in `src/app/mods/mymod.ts`):**
+   ```typescript
+   export const myPlugin: Plugin = {
+     tag: 'plugin/myplugin',
+     name: $localize`My Plugin`,
+     config: {
+       // language=CSS
+       css: `
+         body.dark-theme {
+           .my-component {
+             background: rgba(20, 20, 20, 0.95);
+             color: #c9c9c9;
+           }
+         }
+         
+         body.light-theme {
+           .my-component {
+             background: rgba(240, 240, 240, 0.95);
+             color: #333;
+           }
+         }
+       `,
+       // ... other config
+     }
+   };
+   ```
+   
+   **Component SCSS should only contain:**
+   - Base styles (without theme selectors)
+   - CSS variable usage
+   - Component-scoped styles
+
+3. **Test both themes** when adding new UI components to ensure good contrast and visibility in both modes.
+
+### Common Theme Variables
+
+- `--bg` - Main background color
+- `--text` - Primary text color
+- `--border` - Border colors
+- `--active` - Active/selected states
+- `--error` - Error states
+- `--card` - Card backgrounds
+
+See `src/theme/common.scss`, `src/theme/light.scss`, and `src/theme/dark.scss` for complete variable lists.

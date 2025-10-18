@@ -9,6 +9,7 @@ on:
 permissions:
   checks: write
   contents: read
+  pull-requests: write
 
 jobs:
   build:
@@ -54,6 +55,168 @@ jobs:
           name: karma-reports-${{ github.ref_name }}-${{ github.run_number }}
           path: report
           retention-days: 30
+      - name: Generate Test Summary
+        if: always()
+        uses: actions/github-script@v8
+        with:
+          # language=JavaScript
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            
+            // Parse JUnit XML files
+            function parseJUnitXML(xmlContent) {
+              const testsuites = [];
+              const testsuitesMatch = xmlContent.matchAll(/<testsuite[^>]*>/g);
+              
+              for (const match of testsuitesMatch) {
+                const suiteStr = match[0];
+                const nameMatch = suiteStr.match(/name="([^"]*)"/);
+                const testsMatch = suiteStr.match(/tests="(\d+)"/);
+                const failuresMatch = suiteStr.match(/failures="(\d+)"/);
+                const errorsMatch = suiteStr.match(/errors="(\d+)"/);
+                const timeMatch = suiteStr.match(/time="([^"]*)"/);
+                
+                testsuites.push({
+                  name: nameMatch ? nameMatch[1] : 'Unknown',
+                  tests: testsMatch ? parseInt(testsMatch[1]) : 0,
+                  failures: failuresMatch ? parseInt(failuresMatch[1]) : 0,
+                  errors: errorsMatch ? parseInt(errorsMatch[1]) : 0,
+                  time: timeMatch ? parseFloat(timeMatch[1]) : 0
+                });
+              }
+              
+              // Parse individual test cases that failed
+              const failures = [];
+              const testcaseRegex = /<testcase[^>]*>[\s\S]*?<\/testcase>/g;
+              const testcases = xmlContent.matchAll(testcaseRegex);
+              
+              for (const tcMatch of testcases) {
+                const tcStr = tcMatch[0];
+                if (tcStr.includes('<failure') || tcStr.includes('<error')) {
+                  const nameMatch = tcStr.match(/name="([^"]*)"/);
+                  const classnameMatch = tcStr.match(/classname="([^"]*)"/);
+                  const failureMatch = tcStr.match(/<failure[^>]*>([\s\S]*?)<\/failure>/);
+                  const errorMatch = tcStr.match(/<error[^>]*>([\s\S]*?)<\/error>/);
+                  
+                  const message = failureMatch ? failureMatch[1] : (errorMatch ? errorMatch[1] : 'Unknown error');
+                  
+                  failures.push({
+                    name: nameMatch ? nameMatch[1] : 'Unknown',
+                    classname: classnameMatch ? classnameMatch[1] : 'Unknown',
+                    message: message.trim().substring(0, 500) // Limit message length
+                  });
+                }
+              }
+              
+              return { testsuites, failures };
+            }
+            
+            let summary = '## 🧪 Test Results\n\n';
+            let totalTests = 0;
+            let totalFailures = 0;
+            let totalErrors = 0;
+            let allFailures = [];
+            
+            try {
+              const testsDir = 'tests';
+              if (fs.existsSync(testsDir)) {
+                const files = fs.readdirSync(testsDir).filter(f => f.endsWith('.xml'));
+                
+                for (const file of files) {
+                  const content = fs.readFileSync(path.join(testsDir, file), 'utf8');
+                  const { testsuites, failures } = parseJUnitXML(content);
+                  
+                  for (const suite of testsuites) {
+                    totalTests += suite.tests;
+                    totalFailures += suite.failures;
+                    totalErrors += suite.errors;
+                  }
+                  
+                  allFailures.push(...failures);
+                }
+                
+                const totalFailed = totalFailures + totalErrors;
+                const emoji = totalFailed === 0 ? '✅' : '❌';
+                
+                summary += `${emoji} **Total:** ${totalTests} tests, ${totalFailed} failed\n\n`;
+                
+                if (totalFailed > 0) {
+                  summary += '### Failed Tests\n\n';
+                  for (const failure of allFailures.slice(0, 20)) { // Limit to first 20 failures
+                    summary += `- **${failure.classname}** › ${failure.name}\n`;
+                    summary += `  \`\`\`\n  ${failure.message}\n  \`\`\`\n\n`;
+                  }
+                  
+                  if (allFailures.length > 20) {
+                    summary += `\n_... and ${allFailures.length - 20} more failures_\n\n`;
+                  }
+                } else {
+                  summary += '🎉 All tests passed!\n\n';
+                }
+              } else {
+                summary += '⚠️ No test results found.\n';
+              }
+            } catch (error) {
+              summary += `⚠️ Error parsing test results: ${error.message}\n`;
+            }
+            
+            // Write summary to GitHub Step Summary
+            await core.summary
+              .addRaw(summary)
+              .write();
+            
+            // Store summary for use in PR comment
+            fs.writeFileSync('test-summary.md', summary);
+      - name: Comment on PR
+        if: github.event_name == 'pull_request' && always()
+        uses: actions/github-script@v8
+        with:
+          # language=JavaScript
+          script: |
+            const fs = require('fs');
+            
+            let summary = '';
+            try {
+              summary = fs.readFileSync('test-summary.md', 'utf8');
+            } catch (error) {
+              summary = '⚠️ Could not read test summary.';
+            }
+            
+            const reportUrl = `https://${context.repo.owner}.github.io/${context.repo.repo}/reports/karma-reports-pr-${context.issue.number}/`;
+            summary += `\n\n📊 [View detailed HTML report](${reportUrl})`;
+            
+            // Add HTML comment marker for identification
+            const body = `<!-- test-results-comment -->\n${summary}`;
+            
+            // Find existing comment (with pagination)
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+            });
+            
+            const botComment = comments.find(comment => 
+              comment.body.includes('<!-- test-results-comment -->')
+            );
+            
+            if (botComment) {
+              // Update existing comment
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: body
+              });
+            } else {
+              // Create new comment
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: body
+              });
+            }
 
   clean:
     needs: test

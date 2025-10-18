@@ -81,7 +81,7 @@ export type Filter =
   'obsolete';
 
 type FilterObj = {
-  [name in Filter]?: boolean;
+  [name in Filter]?: boolean | null;
 };
 
 export type RefFilter = FilterObj & {

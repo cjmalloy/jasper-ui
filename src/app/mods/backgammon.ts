@@ -29,11 +29,81 @@ export const backgammonPlugin: Plugin = {
         .backgammon-board {
           border: 0.5px solid rgba(255, 255, 255, 0.2);
         }
+
+        .replay-controls {
+          background: rgba(20, 20, 20, 0.95);
+          box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.7);
+
+          .scrubber-bar {
+            background: rgba(200, 200, 200, 0.2);
+
+            &::-webkit-slider-thumb {
+              box-shadow: 0 0 4px rgba(255, 255, 255, 0.3);
+            }
+
+            &::-moz-range-thumb {
+              box-shadow: 0 0 4px rgba(255, 255, 255, 0.3);
+            }
+          }
+
+          .scrubber-ticks .scrubber-tick {
+            background: #ffd700;
+            box-shadow: 0 0 6px #ffd700;
+
+            .tick-emoji {
+              text-shadow: 0 0 3px rgba(0, 0, 0, 0.8);
+            }
+          }
+
+          .control-buttons .replay-btn {
+            background: rgba(200, 200, 200, 0.1);
+            border-color: rgba(200, 200, 200, 0.3);
+
+            &:hover:not(:disabled) {
+              background: rgba(200, 200, 200, 0.2);
+            }
+          }
+        }
       }
 
       body.light-theme {
         .backgammon-board {
           border: 0.5px solid transparent;
+        }
+
+        .replay-controls {
+          background: var(--card);
+          box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3);
+
+          .scrubber-bar {
+            background: rgba(50, 50, 50, 0.5);
+
+            &::-webkit-slider-thumb {
+              box-shadow: 0 0 4px rgba(0, 0, 0, 0.4);
+            }
+
+            &::-moz-range-thumb {
+              box-shadow: 0 0 4px rgba(0, 0, 0, 0.4);
+            }
+          }
+
+          .scrubber-ticks .scrubber-tick {
+            background: #daa520;
+            box-shadow: 0 0 4px #daa520;
+
+            .tick-emoji {
+              text-shadow: 0 0 2px rgba(255, 255, 255, 0.6);
+            }
+          }
+
+          .control-buttons .replay-btn {
+            background: rgba(60, 60, 60, 0.1);
+            border-color: rgba(60, 60, 60, 0.3);
+
+            &:hover:not(:disabled) {
+              background: rgba(60, 60, 60, 0.2);
+            }
+          }
         }
       }
     `,

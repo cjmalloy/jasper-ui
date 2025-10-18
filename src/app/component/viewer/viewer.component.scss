@@ -29,10 +29,12 @@ iframe {
 
 :host:fullscreen {
   &,
-  & .embed-container iframe,
-  & > * {
+  & .embed-container iframe {
     margin: 0 !important;
     width: 100vw !important;
     height: 100vw !important;
+  }
+  & > * {
+    margin: auto;
   }
 }
