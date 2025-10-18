@@ -745,7 +745,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
       catchError(err => {
         if (err?.conflict) {
           // Parse merge conflict and check if moves are compatible
-          if (this.canAutoResolveMoveConflict(err)) {
+          if (this.canAutoResolveMoveConflict(err.conflict)) {
             // Silently ignore - reload will show server state
             this.init();
             return of();
