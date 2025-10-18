@@ -407,7 +407,7 @@ describe('BackgammonComponent', () => {
             conflict: { 
               b: ['r 4-3'], 
               bIndex: 1,
-              a: ['r 0-3'],
+              a: ['r 24/21'],
               aIndex: 1,
               o: [],
               oIndex: 1
@@ -425,9 +425,9 @@ describe('BackgammonComponent', () => {
           { ok: ['r 3-2'] },
           { 
             conflict: { 
-              b: ['r 0-3'], 
+              b: ['r 24/21'], 
               bIndex: 1,
-              a: ['r 5-7'],
+              a: ['r 13/10'],
               aIndex: 1,
               o: [],
               oIndex: 1
