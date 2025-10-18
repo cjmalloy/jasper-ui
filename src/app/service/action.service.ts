@@ -168,7 +168,7 @@ export class ActionService {
     }
   }
 
-  watch(ref: Ref, delimiter: string = '\n') {
+  watch(ref: Ref, delimiter = '\n') {
     let cursor = ref.origin === this.store.account.origin ? ref.modifiedString! : '';
     let baseComment = ref.comment || '';
     const inner = {
@@ -227,7 +227,7 @@ export class ActionService {
     return inner;
   }
 
-  append(ref: Ref, delimiter: string = '\n') {
+  append(ref: Ref, delimiter = '\n') {
     let cursor = ref.origin === this.store.account.origin ? ref.modifiedString! : '';
     let comment = ref.comment || '';
     let baseComment = ref.comment || '';

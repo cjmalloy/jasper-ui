@@ -501,6 +501,11 @@ function loadMove(state: GameState, p: Piece, from: number, to: number) {
   }
 }
 
+function getLastMove(comment: string): string | null {
+  const moves = comment.split('\n').map(m => m.trim()).filter(m => !!m);
+  return moves.length > 0 ? moves[moves.length - 1] : null;
+}
+
 @Component({
   standalone: false,
   selector: 'app-backgammon',
@@ -957,29 +962,6 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   }
 
   /**
-   * Extract the last move from a game comment
-   */
-  private getLastMove(comment: string): string | null {
-    const moves = comment.split('\n').map(m => m.trim()).filter(m => !!m);
-    return moves.length > 0 ? moves[moves.length - 1] : null;
-  }
-
-  /**
-   * Check if a move is a dice roll
-   */
-  private isRoll(move: string): boolean {
-    return move.includes('-');
-  }
-
-  /**
-   * Get the player from a move
-   */
-  private getPlayer(move: string): Piece | null {
-    const parts = move.split(/[\s/*()]+/g).filter(p => !!p);
-    return parts[0] === 'r' || parts[0] === 'b' ? parts[0] as Piece : null;
-  }
-
-  /**
    * Check if we can auto-resolve a move conflict using diff
    * Returns true if moves are compatible (both same type, different players or same player)
    */
@@ -987,7 +969,6 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
     // Extract theirs and ours from the diff3 result
     let theirsLines: string[] = [];
     let oursLines: string[] = [];
-
     for (const chunk of diff) {
       if (chunk.conflict) {
         // Get theirs (b) and ours (a) from conflict
@@ -999,24 +980,17 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
         }
       }
     }
-
     const theirs = theirsLines.join('\n');
     const ours = oursLines.join('\n');
-
-    const theirLastMove = this.getLastMove(theirs);
-    const ourLastMove = this.getLastMove(ours);
-
+    const theirLastMove = getLastMove(theirs);
+    const ourLastMove = getLastMove(ours);
     if (!theirLastMove || !ourLastMove) return false;
-
     // Both are regular moves (not rolls)
-    const theirIsRoll = this.isRoll(theirLastMove);
-    const ourIsRoll = this.isRoll(ourLastMove);
-
+    const theirIsRoll = theirLastMove.includes('-');
+    const ourIsRoll = ourLastMove.includes('-');
     // If both are the same type, they're compatible (order doesn't matter for rolls)
     // If different types (one roll, one move), incompatible
-    if (theirIsRoll !== ourIsRoll) return false;
-    
-    return true;
+    return theirIsRoll === ourIsRoll;
   }
 
   /**
@@ -1027,7 +1001,6 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
     // Extract theirs and ours from the diff3 result
     let theirsLines: string[] = [];
     let oursLines: string[] = [];
-
     for (const chunk of diff) {
       if (chunk.conflict) {
         // Get theirs (b) and ours (a) from conflict
@@ -1039,26 +1012,15 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
         }
       }
     }
-
     const theirs = theirsLines.join('\n');
     const ours = oursLines.join('\n');
-
-    const theirLastMove = this.getLastMove(theirs);
-    const ourLastMove = this.getLastMove(ours);
-
+    const theirLastMove = getLastMove(theirs);
+    const ourLastMove = getLastMove(ours);
     if (!theirLastMove || !ourLastMove) return false;
-
-    const theirIsRoll = this.isRoll(theirLastMove);
-    const ourIsRoll = this.isRoll(ourLastMove);
-
+    const theirIsRoll = theirLastMove.includes('-');
+    const ourIsRoll = ourLastMove.includes('-');
     // Both should be rolls for this to be auto-resolvable
-    if (!theirIsRoll || !ourIsRoll) return false;
-
-    const theirPlayer = this.getPlayer(theirLastMove);
-    const ourPlayer = this.getPlayer(ourLastMove);
-
-    // Compatible if both players rolling (different players) or same player rolling twice
-    return true;
+    return theirIsRoll && ourIsRoll;
   }
 
   r() {

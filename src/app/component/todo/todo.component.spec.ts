@@ -29,21 +29,21 @@ describe('TodoComponent', () => {
     it('should auto-resolve when both users add different tasks', () => {
       const conflict: MergeRegion<string>[] = [
         { ok: ['- [ ] Task 1', '- [ ] Task 2'] },
-        { 
-          conflict: { 
-            b: ['- [ ] Task from user A'], 
+        {
+          conflict: {
+            b: ['- [ ] Task from user A'],
             bIndex: 2,
             a: ['- [ ] Task from user B'],
             aIndex: 2,
             o: [],
             oIndex: 2
-          } 
+          }
         }
       ];
 
       const result = (component as any).tryAutoResolveTodoConflict(conflict, '- [ ] Task 1\n- [ ] Task 2\n- [ ] Task from user B');
 
-      expect(result.stillHasConflict).toBe(false);
+      expect(result.stillHasConflict).toBeFalse();
       expect(result.mergedComment).toContain('Task from user A');
       expect(result.mergedComment).toContain('Task from user B');
       expect(result.mergedComment).toContain('Task 1');
@@ -53,47 +53,47 @@ describe('TodoComponent', () => {
     it('should not auto-resolve when conflict has non-task content', () => {
       const conflict: MergeRegion<string>[] = [
         { ok: ['- [ ] Task 1'] },
-        { 
-          conflict: { 
-            b: ['Some random text'], 
+        {
+          conflict: {
+            b: ['Some random text'],
             bIndex: 1,
             a: ['- [ ] Task from user B'],
             aIndex: 1,
             o: [],
             oIndex: 1
-          } 
+          }
         }
       ];
 
       const result = (component as any).tryAutoResolveTodoConflict(conflict, '- [ ] Task 1\n- [ ] Task from user B');
 
       expect(result.stillHasConflict).toBe(true);
-      expect(result.mergedComment).toBeNull();
+      expect(result.mergedComment).toBeUndefined();
     });
 
     it('should handle multiple conflict regions with all tasks', () => {
       const conflict: MergeRegion<string>[] = [
         { ok: ['- [ ] Task 1'] },
-        { 
-          conflict: { 
-            b: ['- [ ] Task A1', '- [ ] Task A2'], 
+        {
+          conflict: {
+            b: ['- [ ] Task A1', '- [ ] Task A2'],
             bIndex: 1,
             a: ['- [ ] Task B1'],
             aIndex: 1,
             o: [],
             oIndex: 1
-          } 
+          }
         },
         { ok: ['- [ ] Task 2'] },
-        { 
-          conflict: { 
-            b: ['- [ ] Task A3'], 
+        {
+          conflict: {
+            b: ['- [ ] Task A3'],
             bIndex: 2,
             a: ['- [ ] Task B2', '- [ ] Task B3'],
             aIndex: 2,
             o: [],
             oIndex: 2
-          } 
+          }
         }
       ];
 
@@ -111,21 +111,21 @@ describe('TodoComponent', () => {
     it('should handle empty conflict arrays', () => {
       const conflict: MergeRegion<string>[] = [
         { ok: ['- [ ] Task 1'] },
-        { 
-          conflict: { 
-            b: [], 
+        {
+          conflict: {
+            b: [],
             bIndex: 1,
             a: ['- [ ] Task B'],
             aIndex: 1,
             o: [],
             oIndex: 1
-          } 
+          }
         }
       ];
 
       const result = (component as any).tryAutoResolveTodoConflict(conflict, '- [ ] Task 1\n- [ ] Task B');
 
-      expect(result.stillHasConflict).toBe(false);
+      expect(result.stillHasConflict).toBeFalsy();
       expect(result.mergedComment).toContain('Task 1');
       expect(result.mergedComment).toContain('Task B');
     });
@@ -133,25 +133,25 @@ describe('TodoComponent', () => {
     it('should stop processing at first unresolvable conflict', () => {
       const conflict: MergeRegion<string>[] = [
         { ok: ['- [ ] Task 1'] },
-        { 
-          conflict: { 
-            b: ['- [ ] Task A'], 
+        {
+          conflict: {
+            b: ['- [ ] Task A'],
             bIndex: 1,
             a: ['- [ ] Task B'],
             aIndex: 1,
             o: [],
             oIndex: 1
-          } 
+          }
         },
-        { 
-          conflict: { 
-            b: ['Not a task'], 
+        {
+          conflict: {
+            b: ['Not a task'],
             bIndex: 2,
             a: ['- [ ] Task C'],
             aIndex: 2,
             o: [],
             oIndex: 2
-          } 
+          }
         },
         { ok: ['- [ ] Task 4'] }
       ];
@@ -159,7 +159,7 @@ describe('TodoComponent', () => {
       const result = (component as any).tryAutoResolveTodoConflict(conflict, 'irrelevant');
 
       expect(result.stillHasConflict).toBe(true);
-      expect(result.mergedComment).toBeNull();
+      expect(result.mergedComment).toBeUndefined();
     });
   });
 });
