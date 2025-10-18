@@ -30,6 +30,7 @@ RUN apt-get update && apt-get install -y \
 	&& apt-get purge --auto-remove -y curl gnupg \
 	&& rm -rf /var/lib/apt/lists/*
 WORKDIR /app
+RUN npm i -g @angular/cli
 COPY --from=builder /app ./
 CMD ng test --karma-config karma-ci.conf.js && \
     mkdir -p /report && \
