@@ -10,12 +10,12 @@ import {
   Output,
   SimpleChanges
 } from '@angular/core';
-import { catchError, Observable, Subscription, throwError } from 'rxjs';
+import { catchError, Observable, of, Subscription, switchMap, throwError, timer } from 'rxjs';
+import { tap } from 'rxjs/operators';
 import { Ref } from '../../model/ref';
 import { ActionService } from '../../service/action.service';
 import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
-import { printError } from '../../util/http';
 
 @Component({
   standalone: false,
@@ -40,11 +40,13 @@ export class TodoComponent implements OnChanges {
   copied = new EventEmitter<string>();
 
   lines: string[] = [];
-  addText = ``;
+  addText = '';
+  pushText: string[] = [];
   pressToUnlock = false;
   serverErrors: string[] = [];
 
   private watch?: Subscription;
+  private pushing?: Subscription;
   private comment$!: (comment: string) => Observable<string>;
 
   constructor(
@@ -97,7 +99,7 @@ export class TodoComponent implements OnChanges {
       // TODO: Delete from prev
     }
     this.lines.splice(event.currentIndex, 0, event.item.data);
-    this.save(this.lines.join('\n'));
+    this.save$(this.lines.join('\n'))?.subscribe();
   }
 
   update(line: {index: number, text: string, checked: boolean}) {
@@ -106,31 +108,45 @@ export class TodoComponent implements OnChanges {
     } else {
       this.lines[line.index] = `- [${line.checked ? 'X' : ' '}] ${line.text}`;
     }
-    this.save(this.lines.join('\n'));
+    this.save$(this.lines.join('\n'))?.subscribe();
   }
 
-  save(comment: string) {
+  save$(comment: string) {
     this.comment.emit(comment);
-    if (!this.ref) return;
-    this.comment$(comment).pipe(
-      catchError(err => {
-        this.serverErrors = printError(err);
-        return throwError(() => err);
-      })
-    ).subscribe(cursor => {
-      if (!this.local) {
-        this.copied.emit(this.store.account.origin);
-      }
-      this.store.eventBus.refresh(this.ref);
-    });
+    if (!this.ref) return of();
+    return this.comment$(comment).pipe(
+      tap(() => {
+        if (!this.local) {
+          this.copied.emit(this.store.account.origin);
+          this.store.eventBus.refresh(this.ref);
+        }
+      }),
+    );
   }
 
   add(cancel?: Event) {
     cancel?.preventDefault();
     this.addText = this.addText.trim();
     if (!this.addText) return;
-    this.lines.push(`- [ ] ${this.addText}`);
-    this.save(this.lines.join('\n'));
+    this.pushText.push(`- [ ] ${this.addText}`);
     this.addText = '';
+    if (!this.pushing) this.pushing = this.push$().subscribe();
+  }
+
+  push$(): Observable<string> {
+    const lines = [...this.pushText];
+    return this.save$([...this.lines, ...lines].join('\n')).pipe(
+      catchError((err: any) => {
+        if (err.conflict) {
+          return timer(100).pipe(switchMap(() => this.push$()));
+        }
+        return throwError(() => err);
+      }),
+      tap(() => {
+        this.pushText = this.pushText.slice(lines.length);
+        delete this.pushing;
+        if (this.pushText.length) this.pushing = this.push$().subscribe();
+      }),
+    );
   }
 }

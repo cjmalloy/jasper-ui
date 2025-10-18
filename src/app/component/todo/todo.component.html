@@ -12,6 +12,11 @@
                    [plugins]="tags || ref?.tags || []"
                    (update)="update({ index: i, text: $event.text, checked: $event.checked })"></app-todo-item>
   }
+  @for (line of pushText; let i = $index; track line) {
+    <app-todo-item [line]="line"
+                   [origin]="origin"
+                   [plugins]="tags || ref?.tags || []"></app-todo-item>
+  }
 </div>
 <div class="spacer"></div>
 <input type="text"

@@ -305,8 +305,8 @@ export const originTunnelPlugin: Plugin = {
 export function isReplicating(local: string, remote: Ref, apis: Map<string, string>) {
   if (!hasTag('+plugin/origin/pull', remote)) return false;
   const plugin = remote.plugins?.['+plugin/origin'];
-  if (plugin.proxy && apis.has(plugin.proxy)) return apis.get(plugin.proxy) === (plugin.remote || '');
-  if (apis.has(remote.url)) return apis.get(remote.url) === (plugin.remote || '');
+  if (plugin?.proxy && apis.has(plugin.proxy)) return apis.get(plugin.proxy) === (plugin.remote || '');
+  if (apis.has(remote.url)) return apis.get(remote.url) === (plugin?.remote || '');
   return false;
 }
 

@@ -44,12 +44,13 @@
     </div>
     <div class="link-below">
       @if (showToggle && (thread || commentNoTitle || expandPlugins.length)) {
-        <button type="button" class="toggle" (click)="toggle()">
-          @if (editing || viewSource || expanded) {
+        <button type="button" class="toggle" (click)="toggle(store.hotkey)">
+          @if (editing || viewSource || diffing || expanded) {
             <span class="toggle-x">✕</span>
+          } @else if (fullscreen || store.hotkey && admin.getPlugin('plugin/fullscreen')) {
+            <span class="toggle-fullscreen">⛶</span>
           } @else {
-            <span class="toggle-plus" *ngIf="!fullscreen">＋</span>
-            <span class="toggle-fullscreen" *ngIf="fullscreen">⛶</span>
+            <span class="toggle-plus">＋</span>
           }
         </button>
       }
@@ -216,8 +217,12 @@
                 <a [routerLink]="['/ref', ref.url, 'sources']" [queryParams]="{ origin: obsoleteOrigin }" (click)="saveRef()" i18n>{{ sources }}&thinsp;sources</a>
               }
             }
-            <app-inline-tag #action *ngIf="taggingAccess" [action]="tag$" i18n>tag</app-inline-tag>
-            <app-inline-button #action *ngIf="store.account.user && !local" [action]="copy$" i18n>copy</app-inline-button>
+            @if (taggingAccess) {
+              <app-inline-tag [action]="tag$" i18n>tag</app-inline-tag>
+            }
+            @if (store.account.user && !local) {
+              <app-inline-button #action [action]="copy$" i18n>copy</app-inline-button>
+            }
             @if (store.account.user && local) {
               <a routerLink="/submit/web" [queryParams]="{ url, tag: 'plugin/repost' }" i18n>repost</a>
             }
@@ -227,6 +232,9 @@
               <a class="fake-link" (click)="editing = !editing" i18n>edit</a>
             } @else {
               <a class="fake-link" (click)="viewSource = !viewSource" i18n>source</a>
+            }
+            @if (isView && store.view.versions) {
+              <a class="fake-link" (click)="diffing = !diffing" i18n>diff</a>
             }
           }
           @if (ref.created && !ref.upload && (store.account.mod || taggingAccess)) {
@@ -245,7 +253,9 @@
               } @else if (store.account.user && dm) {
                 <a routerLink="/submit/dm" [queryParams]="{source: replySources, sourceTitle: ref.title, tag: replyTags, to: replyTo}" i18n>reply</a>
               }
-              <app-inline-tag #action *ngIf="taggingAccess" [action]="tag$" i18n>tag</app-inline-tag>
+              @if (taggingAccess) {
+                <app-inline-tag #action [action]="tag$" i18n>tag</app-inline-tag>
+              }
               <a class="fake-link" (click)="editing = !editing" i18n>edit</a>
             }
             <app-confirm-action #action [action]="remove$" i18n>remove</app-confirm-action>
@@ -320,7 +330,7 @@
     <span><!-- Buttons --></span>
     <span class="buttons right">
       @if (overwritten) {
-        <div class="overwrite warning" i18n-title title="Will drop all unknown plugins.">
+        <div class="overwrite warning">
           <input id="overwrite" type="checkbox" [(ngModel)]="overwrite" [ngModelOptions]="{standalone: true}">
           <label for="overwrite" i18n>Overwrite</label>
         </div>
@@ -336,6 +346,31 @@
   <form class="form" [formGroup]="editForm">
     <app-ref-form [group]="editForm" [origin]="origin"></app-ref-form>
   </form>
+} @else if (diffing && diffOriginal && diffModified) {
+  <div class="diff-view form">
+    <app-diff #diffEditor
+              [original]="diffOriginal"
+              [modified]="diffModified"
+              [readOnly]="!local && !!ref.metadata?.obsolete">
+    </app-diff>
+
+    @if (local || !ref.metadata?.obsolete) {
+      <span><!-- Buttons --></span>
+      <span class="buttons right">
+        @if (overwritten) {
+          <div class="overwrite warning">
+            <input id="overwriteDiff" type="checkbox" [(ngModel)]="overwrite" [ngModelOptions]="{standalone: true}">
+            <label for="overwriteDiff" i18n>Overwrite</label>
+          </div>
+        }
+        @if (submitting) {
+          <app-loading [inline]="true"></app-loading>
+        }
+        <button type="button" [disabled]="submitting" (click)="saveDiff()" i18n>save</button>
+        <button type="button" [disabled]="submitting" (click)="diffing = false" i18n>cancel</button>
+      </span>
+    }
+  </div>
 } @else {
   @for (e of serverError; track e) {
     <div class="error">{{ e }}</div>

@@ -1,0 +1,9 @@
+<ngx-monaco-diff-editor [options]="options"
+                        [originalModel]="originalModel"
+                        [modifiedModel]="modifiedModel"
+                        (onInit)="initEditor($event)"
+                        [style.width]="'min(1200px, 90vw)'"
+                        [style.height]="'min(400px, 70vh)'"
+                        appResizeHandle
+                        [hitArea]="config.mobile ? 48 : 20">
+</ngx-monaco-diff-editor>

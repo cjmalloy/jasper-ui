@@ -22,7 +22,7 @@ export function level(tag: string) {
 export function captures(selector: string, target: string): boolean {
   const [sTag, sOrigin] = decompose(selector);
   const [tTag, tOrigin] = decompose(target);
-  if (sTag && !expandedTagsInclude(sTag, tTag)) return false;
+  if (sTag && !expandedTagsInclude(tTag, sTag)) return false;
   return sOrigin === '@*' || sOrigin === tOrigin;
 }
 

@@ -4,6 +4,7 @@ import { RouterModule } from '@angular/router';
 
 import { ChessComponent } from './chess.component';
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { MergeRegion } from 'node-diff3';
 
 describe('ChessComponent', () => {
   let component: ChessComponent;
@@ -11,11 +12,13 @@ describe('ChessComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    declarations: [ChessComponent],
-    imports: [RouterModule.forRoot([])],
-    providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
-})
-    .compileComponents();
+      declarations: [ChessComponent],
+      imports: [RouterModule.forRoot([])],
+      providers: [
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting(),
+      ],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(ChessComponent);
     component = fixture.componentInstance;
