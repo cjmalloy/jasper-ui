@@ -303,10 +303,10 @@ describe('BackgammonComponent', () => {
           { ok: ['r 3-2'] },
           { 
             conflict: { 
-              b: ['r 4-5'], 
-              bIndex: 1,
-              a: ['r 0-3'],
+              a: ['r 4-5'], 
               aIndex: 1,
+              b: ['r 1/3'],
+              bIndex: 1,
               o: ['r 3-2'],
               oIndex: 1
             } 

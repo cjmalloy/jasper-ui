@@ -1013,8 +1013,10 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
     const ourIsRoll = this.isRoll(ourLastMove);
 
     // If both are the same type, they're compatible (order doesn't matter for rolls)
-    // If different types, incompatible
-    return theirIsRoll === ourIsRoll;
+    // If different types (one roll, one move), incompatible
+    if (theirIsRoll !== ourIsRoll) return false;
+    
+    return true;
   }
 
   /**
