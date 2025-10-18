@@ -81,9 +81,7 @@ least $k$ red circles.
       }
       function tryAutoResolveTriangleConflict(regions) {
         // Check if conflicts are in different rows - if so, we can merge
-        let canMerge = true;
         let mergedLines = [];
-        
         for (const region of regions) {
           if (region.ok) {
             // Non-conflict regions - just use the content as-is
@@ -93,51 +91,28 @@ least $k$ red circles.
             const oLines = region.o || [];
             const aLines = region.a || [];
             const bLines = region.b || [];
-            
             // For triangle data, if both sides modified different rows, we can merge
             // by taking the "theirs" version and applying our changes if they don't overlap
             if (oLines.length === aLines.length && aLines.length === bLines.length) {
               // Same number of rows - check if changes are to different rows
-              let conflicts = false;
               for (let i = 0; i < oLines.length; i++) {
                 const oLine = oLines[i];
                 const aLine = aLines[i];
                 const bLine = bLines[i];
                 if (aLine !== oLine && bLine !== oLine && aLine !== bLine) {
                   // Both changed the same row differently - real conflict
-                  conflicts = true;
-                  break;
+                  return false;
                 }
               }
-              if (!conflicts) {
-                // Take theirs (remote) version for non-conflicting changes
-                mergedLines.push(...bLines);
-              } else {
-                canMerge = false;
-                break;
-              }
+              // Take theirs (remote) version for non-conflicting changes
+              mergedLines.push(...bLines);
             } else {
               // Different number of rows - cannot auto-merge safely
-              canMerge = false;
-              break;
+              return false;
             }
           }
         }
-        
-        if (canMerge) {
-          const mergedText = mergedLines.join('\\n');
-          comment = mergedText;
-          renderSvg();
-          comment$(mergedText).subscribe({
-            error: (err) => {
-              if (err?.conflict) {
-                alert('Could not auto-resolve triangle conflict. Please reload.');
-              }
-            }
-          });
-          return true;
-        }
-        return false;
+        return mergedLines.join('\\n');
       }
       Handlebars.registerHelper('ninjaTriangle', (ref, actions, el, d3) => {
         let comment$ = null;
@@ -160,11 +135,9 @@ least $k$ red circles.
             comment$(text).subscribe({
               error: (err) => {
                 if (err?.conflict) {
+                  text = tryAutoResolveTriangleConflict(err.conflict);
                   // Try to auto-resolve: if both sides made changes to different rows, merge them
-                  const regions = err.conflict;
-                  if (tryAutoResolveTriangleConflict(regions, text)) {
-                    return; // Auto-resolved and retried
-                  }
+                  if (text !== false) return comment$(text);
                   alert('Someone else modified the triangle. Please reload.');
                 }
               }
@@ -182,11 +155,9 @@ least $k$ red circles.
             comment$(text).subscribe({
               error: (err) => {
                 if (err?.conflict) {
+                  text = tryAutoResolveTriangleConflict(err.conflict);
                   // Try to auto-resolve: if both sides tagged different rows, merge them
-                  const regions = err.conflict;
-                  if (tryAutoResolveTriangleConflict(regions, text)) {
-                    return; // Auto-resolved and retried
-                  }
+                  if (text !== false) return comment$(text);
                   alert('Someone else modified the triangle. Please reload.');
                 }
               }
