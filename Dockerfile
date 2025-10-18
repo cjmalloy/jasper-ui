@@ -32,7 +32,7 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /app
 RUN bun add -g @angular/cli
 COPY --from=builder /app ./
-CMD bun run ng test --karma-config karma-ci.conf.js && \
+CMD ng test --karma-config karma-ci.conf.js && \
     mkdir -p /report && \
     cp -r /reports/*/* /report/
 
