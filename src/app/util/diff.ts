@@ -36,10 +36,7 @@ export function formatRefForDiff(ref: Ref): string {
 export type Merge = { mergedComment?: string, conflict?: MergeRegion<string>[] };
 
 export function merge3(ours: string, base: string, theirs: string, delimiter: string = '\n'): Merge {
-  const ourLines = ours.split(delimiter);
-  const baseLines = base.split(delimiter);
-  const theirLines = theirs.split(delimiter);
-  const result = diff3Merge(ourLines, baseLines, theirLines, { label: { a: 'ours', o: 'base', b: 'theirs' } });
+  const result = diff3Merge<string>(ours, base, theirs, { stringSeparator: delimiter});
   const hasConflict = result.some(chunk => chunk.conflict);
   if (hasConflict) return { conflict: result };
   const mergedLines: string[] = [];
