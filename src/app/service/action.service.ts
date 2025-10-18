@@ -54,9 +54,9 @@ export class ActionService {
         if (!ref) throw 'Error: No ref to respond to';
         return this.watch(ref, delimiter);
       },
-      append: (delimiter?: string) => {
+      append: () => {
         if (!ref) throw 'Error: No ref to respond to';
-        return this.append(ref, delimiter);
+        return this.append(ref);
       }
     }
   }
@@ -206,16 +206,7 @@ export class ActionService {
                   if (conflict) return throwError(() => ({ conflict }));
                   cursor = remote.modifiedString!;
                   baseComment = remote.comment || '';
-                  return this.refs.patch(ref.url, this.store.account.origin, cursor, [{
-                    op: 'add',
-                    path: '/comment',
-                    value: mergedComment,
-                  }]).pipe(
-                    tap(c => {
-                      cursor = c;
-                      baseComment = mergedComment || '';
-                    }),
-                  );
+                  return inner.comment$(mergedComment || '');
                 }),
               );
             }
@@ -227,7 +218,7 @@ export class ActionService {
     return inner;
   }
 
-  append(ref: Ref, delimiter = '\n') {
+  append(ref: Ref) {
     let cursor = ref.origin === this.store.account.origin ? ref.modifiedString! : '';
     let comment = ref.comment || '';
     let baseComment = ref.comment || '';
@@ -269,30 +260,6 @@ export class ActionService {
           tap(c => {
             cursor = c;
             baseComment = comment;
-          }),
-          catchError(err => {
-            if (err.status === 409) {
-              return this.refs.get(ref.url, this.store.account.origin).pipe(
-                switchMap(remote => {
-                  const { mergedComment, conflict } = merge3(comment, baseComment, remote.comment || '', delimiter);
-                  if (conflict) return throwError(() => ({ conflict }));
-                  comment = mergedComment || '';
-                  cursor = remote.modifiedString!;
-                  baseComment = remote.comment || '';
-                  return this.refs.patch(ref.url, this.store.account.origin, cursor, [{
-                    op: 'add',
-                    path: '/comment',
-                    value: mergedComment,
-                  }]).pipe(
-                    tap(c => {
-                      cursor = c;
-                      baseComment = mergedComment || '';
-                    }),
-                  );
-                }),
-              );
-            }
-            return throwError(() => err);
           }),
         );
       },
