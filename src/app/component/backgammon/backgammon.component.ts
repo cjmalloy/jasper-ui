@@ -739,8 +739,16 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
 
   save(p: Piece, from: number, to: number, hit?: boolean) {
     if (from === to) return;
+    if (!this.state.moves[from]?.includes(to)) {
+      throw $localize`Illegal move ${renderMove(p, from, to)}`;
+    }
     const move = p + ' ' + (from < 0 ? 'bar' : from + 1) + '/' + (to < 0 ? 'off' : to + 1) + (hit ? '*' : '');
-    this.append$(move).subscribe();
+    this.append$(move).pipe(
+      catchError(err => {
+        if (err.status === 409) this.save(p, from, to, hit);
+        return of();
+      }),
+    ).subscribe();
   }
 
   check() {

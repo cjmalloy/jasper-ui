@@ -1,5 +1,5 @@
-import { Ref, writeRef } from '../model/ref';
 import { diff3Merge, MergeRegion } from 'node-diff3';
+import { Ref, writeRef } from '../model/ref';
 
 /**
  * Format ref for diff display:
@@ -35,7 +35,7 @@ export function formatRefForDiff(ref: Ref): string {
 
 export type Merge = { mergedComment?: string, conflict?: MergeRegion<string>[] };
 
-export function merge3(ours: string, base: string, theirs: string, delimiter: string = '\n'): Merge {
+export function merge3(ours: string, base: string, theirs: string, delimiter = '\n'): Merge {
   const result = diff3Merge<string>(ours, base, theirs, { stringSeparator: delimiter});
   const hasConflict = result.some(chunk => chunk.conflict);
   if (hasConflict) return { conflict: result };

@@ -330,12 +330,16 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
   retrySave() {
     if (!this.retry.length) return;
     const move = this.retry.shift()!;
-    this.append$(move).pipe(
-      catchError(err => {
-        this.retry.unshift(move);
-        return throwError(() => err);
-      }),
-    ).subscribe();
+    if (this.chess.moves().includes(move)) {
+      this.append$(move).pipe(
+        catchError(err => {
+          this.retry.unshift(move);
+          return throwError(() => err);
+        }),
+      ).subscribe();
+    } else {
+      this.retry.length = 0;
+    }
   }
 
   clickSquare(index: number) {
