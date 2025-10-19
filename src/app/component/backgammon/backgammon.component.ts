@@ -404,7 +404,11 @@ function load(state: GameState, moves?: string[]) {
       // Clear glow on new roll
       state.lastMovedSpots = {};
       state.lastMovedOff = { 'r': 0, 'b': 0 };
+      if (state.winner) throw $localize`Game Over`;
+      if (state.turn && !isFirstRoll(state) && state.turn === p) throw $localize`Not your turn`;
+      if (!isFirstRoll(state) && state.moves.length) throw $localize`Must move`;
       const ds = p === 'r' ? state.redDice : state.blackDice;
+      if (!state.turn && ds[0]) throw $localize`Not your turn`;
       ds[0] = parseInt(m[2]);
       ds[1] = parseInt(m[4]);
       state.board.push(`${p} ${ds[0]}-${ds[1]}`);
@@ -562,8 +566,10 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   private resizeObserver = window.ResizeObserver && new ResizeObserver(() => this.onResize()) || undefined;
   private watch?: Subscription;
   private append$!: (value: string) => Observable<string>;
+  private reset$!: (value: string[]) => Observable<string>;
   private seeking = false;
   private animationHandler = 0;
+  errored = false;
 
   constructor(
     private store: Store,
@@ -589,6 +595,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
     if (!this.watch) {
       const watch = this.actions.append(this.ref!);
       this.append$ = watch.append$;
+      this.reset$ = watch.reset$;
       this.watch = watch.updates$.pipe(
         catchError(err => {
           if (err.url) {
@@ -706,12 +713,22 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
     this.state.spots[16].pieces = [...'rrr'] as Piece[];
     this.state.spots[18].pieces = [...'rrrrr'] as Piece[];
     this.state.spots[23].pieces = [...'bb'] as Piece[];
-    load(this.state, board.split('\n').map(m => m.trim()).filter(m => !!m));
+    try {
+      load(this.state, board.split('\n').map(m => m.trim()).filter(m => !!m));
+    } catch (e) {
+      console.error(e);
+      this.errored = true;
+    }
     if (this.isGameEnded) defer(() => this.enterReplayMode());
   }
 
   get lastState(): GameState {
-    return cloneDeep(this.animationQueue[0] ? this.animationQueue[this.animationQueue.length - 1].post : this.state);
+    // TODO: does not copy moves[] with negative indices
+    return cloneDeep(this.getLastState());
+  }
+
+  getLastState(): GameState {
+    return this.animationQueue[0] ? this.animationQueue[this.animationQueue.length - 1].post : this.state;
   }
 
   set lastState(state: GameState) {
@@ -729,26 +746,28 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
     const from = event.previousContainer.data;
     const to = event.container.data;
     if (from === to) return;
-    if (!this.state.moves[from]?.includes(to)) {
+    const state = this.getLastState();
+    if (!state.moves[from]?.includes(to)) {
       throw $localize`Illegal move ${renderMove(p, from, to)}`;
     }
-    this.lastState = applyMove(this.lastState, p, from, to);
+    this.lastState = applyMove(state, p, from, to);
     this.check();
     this.save(p, from, to);
   }
 
   save(p: Piece, from: number, to: number, hit?: boolean) {
-    if (from === to) return;
-    if (!this.state.moves[from]?.includes(to)) {
-      throw $localize`Illegal move ${renderMove(p, from, to)}`;
-    }
     const move = p + ' ' + (from < 0 ? 'bar' : from + 1) + '/' + (to < 0 ? 'off' : to + 1) + (hit ? '*' : '');
-    this.append$(move).pipe(
-      catchError(err => {
-        if (err.status === 409) this.save(p, from, to, hit);
-        return of();
-      }),
-    ).subscribe();
+    if (this.errored) {
+      this.errored = false;
+      this.reset$(this.state.board).subscribe();
+    } else {
+      this.append$(move).pipe(
+        catchError(err => {
+          if (err.status === 409) this.save(p, from, to, hit);
+          return of();
+        }),
+      ).subscribe();
+    }
   }
 
   check() {
@@ -774,11 +793,12 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   }
 
   onClick(index: number) {
-    const p = this.state.spots[index].pieces[0];
-    if (this.state.turn && this.start !== undefined && this.state.moves[this.start]?.includes(index)) {
-      this.lastState = applyMove(this.lastState, this.state.turn, this.start, index);
+    const state = this.getLastState();
+    const p = state.spots[index].pieces[0];
+    if (state.turn && this.start !== undefined && state.moves[this.start]?.includes(index)) {
+      this.lastState = applyMove(state, state.turn, this.start, index);
       this.clearMoves();
-      this.save(this.state.turn!, this.start, index);
+      this.save(state.turn!, this.start, index);
       delete this.start;
       return;
     }
@@ -787,68 +807,72 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
       return this.clearMoves();
     }
     delete this.start;
-    if (p !== this.state.turn) return this.clearMoves();
-    const move = this.state.moves[index];
+    if (p !== state.turn) return this.clearMoves();
+    const move = state.moves[index];
     if (!move) return this.clearMoves();
     this.start = index;
-    for (const s of this.state.spots) {
+    for (const s of state.spots) {
       s.move = move.find(m => m === s.index) !== undefined;
     }
-    this.moveRedOff = this.state.turn === 'r' && move.includes(-2);
-    this.moveBlackOff = this.state.turn === 'b' && move.includes(-2);
+    this.moveRedOff = state.turn === 'r' && move.includes(-2);
+    this.moveBlackOff = state.turn === 'b' && move.includes(-2);
   }
 
   onClickBar() {
     this.start = -1;
-    const move = this.state.moves[-1];
+    const state = this.getLastState();
+    const move = state.moves[-1];
     if (!move) return this.clearMoves();
-    for (const s of this.state.spots) {
+    for (const s of state.spots) {
       s.move = move.find(m => m === s.index) !== undefined;
     }
     this.moveRedOff = this.moveBlackOff = false;
   }
 
   onClickOff() {
-    if (this.start !== undefined && this.state.moves[this.start]?.includes(-2)) {
-      this.lastState = applyMove(this.lastState, this.state.turn!, this.start, -2);
+    const state = this.getLastState();
+    if (this.start !== undefined && state.moves[this.start]?.includes(-2)) {
+      this.lastState = applyMove(state, state.turn!, this.start, -2);
       this.clearMoves();
-      this.save(this.state.turn!, this.start, -2);
+      this.save(state.turn!, this.start, -2);
       delete this.start;
     }
   }
 
   moveHighest(event: Event, index: number) {
     event.preventDefault();
-    if (!this.state.turn || !this.state.moves[index]) return;
-    const ds = getDice(this.state, this.state.turn);
+    const state = this.getLastState();
+    if (!state.turn || !state.moves[index]) return;
+    const ds = getDice(state, state.turn);
     let d = Math.max(ds[0], (ds[1] || 0));
-    let to = this.state.turn === 'r' ? index + d : index - d;
+    let to = state.turn === 'r' ? index + d : index - d;
     if (to < 0 || to > 23) to = -2;
-    if (!this.state.moves[index].includes(to)) {
+    if (!state.moves[index].includes(to)) {
       d = Math.min(ds[0], (ds[1] || 7));
-      to = this.state.turn === 'r' ? index + d : index - d;
+      to = state.turn === 'r' ? index + d : index - d;
       if (to < 0 || to > 23) to = -2;
-      if (!this.state.moves[index].includes(to)) return;
+      if (!state.moves[index].includes(to)) return;
     }
-    this.lastState = applyMove(this.lastState, this.state.turn, index, to);
+    this.lastState = applyMove(state, state.turn, index, to);
     this.clearMoves();
-    this.save(this.state.turn!, index, to);
+    this.save(state.turn, index, to);
   }
 
   moveBarHighest(event: Event) {
+    const state = this.getLastState();
     event.preventDefault();
-    if (!this.state.turn || !this.state.moves[-1]) return;
-    const ds = getDice(this.state, this.state.turn);
+    if (!state.turn || !state.moves[-1]) return;
+    const ds = getDice(state, state.turn);
     let d = Math.max(ds[0], (ds[1] || 0));
-    let to = this.state.turn === 'r' ? d - 1 : 24 - d;
-    if (!this.state.moves[-1].includes(to)) {
+    let to = state.turn === 'r' ? d - 1 : 24 - d;
+    if (!state.moves[-1].includes(to)) {
       d = Math.min(ds[0], (ds[1] || 7));
-      to = this.state.turn === 'r' ? d - 1 : 24 - d;
-      if (!this.state.moves[-1].includes(to)) return;
+      to = state.turn === 'r' ? d - 1 : 24 - d;
+      if (!state.moves[-1].includes(to)) return;
     }
-    this.lastState = applyMove(this.lastState, this.state.turn, -1, to);
+    this.lastState = applyMove(state, state.turn, -1, to);
     this.clearMoves();
-    this.save(this.state.turn!, -1, to);
+    this.save(state.turn, -1, to);
   }
 
   get first() {
@@ -923,15 +947,21 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
 
   roll(p: Piece) {
     if (this.replayMode) return; // Don't allow rolling in replay mode
-    if (this.state.winner) throw $localize`Game Over`;
-    if (this.state.turn && !isFirstRoll(this.state) && this.state.turn === p) throw $localize`Not your turn`;
-    if (!isFirstRoll(this.state) && this.state.moves.length) throw $localize`Must move`;
-    const ds = p === 'r' ? this.state.redDice : this.state.blackDice;
-    if (!this.state.turn && ds[0]) return;
+    let state = this.getLastState();
+    if (state.winner) throw $localize`Game Over`;
+    if (state.turn && !isFirstRoll(state) && state.turn === p) throw $localize`Not your turn`;
+    if (!isFirstRoll(state) && state.moves.length) throw $localize`Must move`;
+    const ds = p === 'r' ? state.redDice : state.blackDice;
+    if (!state.turn && ds[0]) throw $localize`Not your turn`;
     this.rolling = p;
     delay(() => this.rolling = undefined, 750);
-    const state = applyRoll(this.lastState, p, this.r(), this.state.turn ? this.r() : 0);
-    this.append$(state.board[state.board.length - 1]).subscribe();
+    state = applyRoll(this.lastState, p, this.r(), state.turn ? this.r() : 0);
+    if (this.errored) {
+      this.errored = false;
+      this.reset$(this.state.board).subscribe();
+    } else {
+      this.append$(state.board[state.board.length - 1]).subscribe();
+    }
     this.lastState = state;
   }
 
