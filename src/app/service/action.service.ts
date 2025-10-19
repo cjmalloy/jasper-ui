@@ -221,17 +221,13 @@ export class ActionService {
   append(ref: Ref) {
     let cursor = ref.origin === this.store.account.origin ? ref.modifiedString! : '';
     let comment = ref.comment || '';
-    let baseComment = ref.comment || '';
     const inner = {
       updates$: merge(...this.store.origins.list.map(origin => this.stomp.watchRef(ref.url, origin).pipe(
         tap(u => {
           if (u.origin === this.store.account.origin) cursor = u.modifiedString!;
-          baseComment = u.comment || '';
         }),
         mergeMap(u => {
-          if (comment.startsWith(u?.comment || '')) {
-            return of();
-          }
+          if (comment.startsWith(u?.comment || '')) return of()
           if (!u.comment?.startsWith(comment)) {
             comment = u.comment || '';
             throw u;
@@ -244,10 +240,7 @@ export class ActionService {
       append$: (value: string): Observable<string> => {
         if (!cursor) {
           return this.refs.get(ref.url, this.store.account.origin).pipe(
-            tap(ref => {
-              cursor = ref.modifiedString!;
-              baseComment = ref.comment || '';
-            }),
+            tap(ref => cursor = ref.modifiedString!),
             switchMap(ref => inner.append$(value)),
           );
         }
@@ -257,10 +250,23 @@ export class ActionService {
           path: '/comment',
           value: comment,
         }]).pipe(
-          tap(c => {
-            cursor = c;
-            baseComment = comment;
-          }),
+          tap(c => cursor = c),
+        );
+      },
+      reset$: (value: string[]): Observable<string> => {
+        if (!cursor) {
+          return this.refs.get(ref.url, this.store.account.origin).pipe(
+            tap(ref => cursor = ref.modifiedString!),
+            switchMap(ref => inner.reset$(value)),
+          );
+        }
+        comment = value.join('  \n');
+        return this.refs.patch(ref.url, this.store.account.origin, cursor, [{
+          op: 'add',
+          path: '/comment',
+          value: comment,
+        }]).pipe(
+          tap(c => cursor = c),
         );
       },
     };
