@@ -367,15 +367,6 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
   }
 
   @memo
-  get codeOptions() {
-    return {
-      language: this.codeLang,
-      theme: this.store.darkTheme ? 'vs-dark' : 'vs',
-      automaticLayout: true,
-    };
-  }
-
-  @memo
   get code() {
     return this.admin.getPlugin('plugin/code') && hasTag('plugin/code', this.currentTags);
   }

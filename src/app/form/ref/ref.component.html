@@ -83,12 +83,18 @@
                     (togglePlugin)="togglePlugin($event)"
                     [group]="group"></app-form-plugins>
 
-  @if (tagsFormComponent.editingViewer) {
-    <span><!-- Viewer --></span>
-    <app-viewer [text]="ref?.comment"
-                [tags]="tags.value"
-                [commentControl]="comment"
-                (comment)="comment.setValue($event)"></app-viewer>
+  @if (customEditor) {
+    <span><!-- Editor --></span>
+    <div #fill class="fill-editor">
+      <ngx-monaco-editor #ed
+                         [formControl]="comment"
+                         [options]="codeOptions"
+                         [style.width]="'min(900px, 50vw)'"
+                         [style.height]="'min(200px, 90vh)'"
+                         appResizeHandle
+                         [appFillWidth]="fill"
+                         [hitArea]="config.mobile ? 48 : 20"></ngx-monaco-editor>
+    </div>
   } @else {
     <label [for]="ed.id" class="editor-label">{{ editorLabel }}:</label><!-- TODO: Let plugins change comment label -->
     <div #fill class="fill-editor">

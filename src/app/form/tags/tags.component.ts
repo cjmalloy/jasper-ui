@@ -1,7 +1,5 @@
 import { Component, HostBinding, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { FormBuilder, UntypedFormArray, UntypedFormGroup, Validators } from '@angular/forms';
-import { some, uniq } from 'lodash-es';
-import { AdminService } from '../../service/admin.service';
 import { TAG_REGEX } from '../../util/format';
 import { hasPrefix, hasTag } from '../../util/tag';
 
@@ -39,7 +37,6 @@ export class TagsFormComponent implements OnChanges {
   };
 
   constructor(
-    private admin: AdminService,
     private fb: FormBuilder,
   ) {  }
 
@@ -101,11 +98,6 @@ export class TagsFormComponent implements OnChanges {
     if (values.length) {
       this.setTags([...this.tags.value, ...values]);
     }
-  }
-
-  get editingViewer() {
-    if (!this.tags?.value) return false;
-    return some(this.admin.editingViewer, t => hasTag(t.tag, this.tags!.value));
   }
 
   removeTagAndChildren(tag: string) {

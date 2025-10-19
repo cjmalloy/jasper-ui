@@ -33,12 +33,18 @@
                          (pluginChange)="bookmarks.toggleTag($event); pluginSelect.plugin = ''"></app-select-plugin>
       <app-form-plugins id="plugins" [group]="textForm"></app-form-plugins>
 
-      @if (tagsFormComponent.editingViewer) {
-        <span><!-- Viewer --></span>
-        <app-viewer [text]="textForm.value.comment"
-                    [tags]="tags.value"
-                    [commentControl]="comment"
-                    (comment)="comment.setValue($event)"></app-viewer>
+      @if (customEditor) {
+        <span><!-- Editor --></span>
+        <div #fill class="fill-editor">
+          <ngx-monaco-editor #ed
+                             [formControl]="comment"
+                             [options]="codeOptions"
+                             [style.width]="'min(900px, 50vw)'"
+                             [style.height]="'min(200px, 90vh)'"
+                             [appFillWidth]="fill"
+                             appResizeHandle
+                             [hitArea]="config.mobile ? 48 : 20"></ngx-monaco-editor>
+        </div>
       } @else {
         @if (store.submit.wiki) {
           <label [for]="ed.id" class="editor-label" i18n>Entry:</label>
