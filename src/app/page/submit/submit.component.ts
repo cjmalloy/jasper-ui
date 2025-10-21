@@ -169,6 +169,7 @@ export class SubmitPage implements OnInit, OnDestroy {
           }),
         );
       }),
+      catchError(err => of(false)),
     );
   }
 
