@@ -1,5 +1,6 @@
 import { Component, HostBinding, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { FormBuilder, UntypedFormArray, UntypedFormGroup, Validators } from '@angular/forms';
+import { defer } from 'lodash-es';
 import { TAG_REGEX } from '../../util/format';
 import { hasPrefix, hasTag } from '../../util/tag';
 
@@ -100,6 +101,20 @@ export class TagsFormComponent implements OnChanges {
     }
   }
 
+  update() {
+    defer(() => this.tags.controls.forEach(control => control.updateValueAndValidity()));
+  }
+
+  removeTag(tag: string) {
+    if (!this.tags) throw 'Not ready yet!';
+    for (let i = this.tags.value.length - 1; i >= 0; i--) {
+      if (hasPrefix(this.tags.value[i], tag)) {
+        this.tags.removeAt(i);
+      }
+    }
+    this.update();
+  }
+
   removeTagAndChildren(tag: string) {
     if (!this.tags) throw 'Not ready yet!';
     let removed = false;
@@ -113,5 +128,6 @@ export class TagsFormComponent implements OnChanges {
       const parent = tag.substring(0, tag.lastIndexOf('/'));
       if (!hasTag(parent, this.tags.value)) this.addTag(parent);
     }
+    if (removed) this.update();
   }
 }
