@@ -140,14 +140,14 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
               if (!value) return of();
               // Check if the swapped URL already exists
               return this.refs.page({ url: value, size: 1, query: this.store.account.origin, obsolete: null }).pipe(
-                map(page => ({ swappedUrl: value, exists: page.content.length > 0 })),
-                catchError(() => of({ swappedUrl: value, exists: false }))
+                map(page => page.content.length > 0 ? undefined : value),
+                catchError(() => of(value))
               );
             })
-          ).subscribe(result => {
-            if (result.swappedUrl && !result.exists) {
+          ).subscribe(swappedUrl => {
+            if (swappedUrl) {
               // Swapped URL doesn't exist, safe to swap
-              this.url = result.swappedUrl;
+              this.url = swappedUrl;
               this.addTag('plugin/repost');
               this.addSource(url);
               this.refForm!.scrapePlugins();
@@ -159,9 +159,6 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
               } else if (!this.store.submit.title) {
                 this.refForm!.scrapeTitle();
               }
-            } else {
-              // Swapped URL already exists, use original URL
-              this.url = url;
             }
           });
           this.url = url;
