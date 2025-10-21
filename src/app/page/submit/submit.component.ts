@@ -156,6 +156,7 @@ export class SubmitPage implements OnInit, OnDestroy {
         this.existingRef = page.content[0];
         return !!this.existingRef;
       }),
+      catchError(err => of(false)),
       switchMap(exists => {
         if (exists) {
           this.responsesToUrl = [];
@@ -167,9 +168,9 @@ export class SubmitPage implements OnInit, OnDestroy {
             this.responsesToUrlFor = url;
             return false;
           }),
+          catchError(err => of(false)),
         );
       }),
-      catchError(err => of(false)),
     );
   }
 
