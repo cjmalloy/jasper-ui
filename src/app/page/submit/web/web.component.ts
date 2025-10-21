@@ -5,7 +5,7 @@ import { Router } from '@angular/router';
 import { defer, uniq, without } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { autorun, IReactionDisposer } from 'mobx';
-import { catchError, map, Subscription, switchMap, throwError } from 'rxjs';
+import { catchError, map, of, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
 import { writePlugins } from '../../../form/plugins/plugins.component';
@@ -135,9 +135,19 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
         } else if (this.feed) {
           if (this.store.submit.tags.includes('public')) this.addFeedTags('public');
           this.addFeedTags(...interestingTags(this.store.submit.tags));
-          this.scrape.rss(url).subscribe(value => {
-            if (value) {
-              this.url = value;
+          this.scrape.rss(url).pipe(
+            switchMap(value => {
+              if (!value) return of({ swappedUrl: null, exists: false });
+              // Check if the swapped URL already exists
+              return this.refs.getCurrent(value).pipe(
+                map(ref => ({ swappedUrl: value, exists: ref.url === value && ref.origin === this.store.account.origin })),
+                catchError(() => of({ swappedUrl: value, exists: false }))
+              );
+            })
+          ).subscribe(result => {
+            if (result.swappedUrl && !result.exists) {
+              // Swapped URL doesn't exist, safe to swap
+              this.url = result.swappedUrl;
               this.addTag('plugin/repost');
               this.addSource(url);
               this.refForm!.scrapePlugins();
@@ -150,6 +160,7 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
                 this.refForm!.scrapeTitle();
               }
             } else {
+              // Either no swap or swapped URL already exists, use original URL
               this.url = url;
             }
           });
