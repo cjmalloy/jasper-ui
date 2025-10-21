@@ -153,12 +153,12 @@ export class SubmitPage implements OnInit, OnDestroy {
       }
       return timer(400).pipe(
         switchMap(() => this.refs.page({ url, size: 1, query: this.store.account.origin, obsolete: null })),
-        tap(page => {
-          this.existingRef = page.content[0];
-          this.responsesToUrl = []; // Clear responses when ref exists
-        }),
-        map(page => page.content.length > 0 && page.content[0].url === url && page.content[0].origin === this.store.account.origin),
-        catchError(err => {
+        switchMap(page => {
+          if (page.content.length > 0 && page.content[0].url === url && page.content[0].origin === this.store.account.origin) {
+            this.existingRef = page.content[0];
+            this.responsesToUrl = []; // Clear responses when ref exists
+            return of(true);
+          }
           // If ref doesn't exist, check for responses (reposts)
           this.existingRef = undefined;
           return this.refs.page({ responses: url, size: 10, query: this.store.account.origin, obsolete: null }).pipe(
