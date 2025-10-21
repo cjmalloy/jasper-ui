@@ -185,7 +185,7 @@ export class SubmitPage implements OnInit, OnDestroy {
   }
 
   get repost() {
-    return !this.submitForm.valid && (this.existingRef || this.responsesToUrl.length > 0);
+    return !this.submitForm.valid && this.existingRef;
   }
 
   submit() {
