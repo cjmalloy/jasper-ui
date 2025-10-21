@@ -14,6 +14,7 @@ import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { catchError, forkJoin, map, mergeMap, Observable, of, switchMap, timer } from 'rxjs';
 import { scan, tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
+import { Page } from '../../model/page';
 import { Plugin } from '../../model/plugin';
 import { Ref } from '../../model/ref';
 import { isWiki, wikiUriFormat } from '../../mods/wiki';
@@ -49,7 +50,7 @@ export class SubmitPage implements OnInit, OnDestroy {
   private _selectedPlugin?: Plugin;
   serverErrors: string[] = [];
   existingRef?: Ref;
-  responsesToUrl: Ref[] = [];
+  responsesToUrl: Page<Ref> = Page.of([]);
   responsesToUrlFor?: string;
 
   constructor(
@@ -157,9 +158,9 @@ export class SubmitPage implements OnInit, OnDestroy {
         return !!this.existingRef;
       }),
       catchError(err => of(false)),
-      switchMap(exists => this.refs.page({ responses: url, size: 10, query: query: (exists ? 'plugin/repost' : '') + (this.store.account.origin || '@'), obsolete: null }).pipe(
+      switchMap(exists => this.refs.page({ responses: url, size: 10, query: exists ? 'plugin/repost' : '', obsolete: null }).pipe(
         map(page => {
-          this.responsesToUrl = page.content;
+          this.responsesToUrl = page;
           this.responsesToUrlFor = url;
           return false;
         }),
