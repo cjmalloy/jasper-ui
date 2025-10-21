@@ -147,37 +147,29 @@ export class SubmitPage implements OnInit, OnDestroy {
   }
 
   exists(url: string) {
-    if (this.linkType(url)) {
-      if (this.existingRef?.url === url && this.existingRef.origin === this.store.account.origin) return of(true);
-      if (this.responsesToUrlFor === url) return of(false);
-      return timer(400).pipe(
-        switchMap(() => this.refs.page({ url, size: 1, query: this.store.account.origin, obsolete: null })),
-        switchMap(page => {
-          if (page.content.length > 0 && page.content[0].url === url && page.content[0].origin === this.store.account.origin) {
-            this.existingRef = page.content[0];
-            this.responsesToUrl = []; // Clear responses when ref exists
-            return of(true);
-          }
-          // If ref doesn't exist, check for responses (reposts)
-          this.existingRef = undefined;
-          return this.refs.page({ responses: url, size: 10, query: this.store.account.origin, obsolete: null }).pipe(
-            tap(page => {
-              this.responsesToUrl = page.content;
-              this.responsesToUrlFor = url;
-            }),
-            map(() => false),
-            catchError(() => {
-              if (this.responsesToUrlFor !== url) {
-                this.responsesToUrl = [];
-                this.responsesToUrlFor = url;
-              }
-              return of(false);
-            }),
-          );
-        }),
-      );
-    }
-    return of(false);
+    if (!this.linkType(url)) return of(false);
+    if (this.existingRef?.url === url && this.existingRef.origin === this.store.account.origin) return of(true);
+    if (this.responsesToUrlFor === url) return of(false);
+    return timer(400).pipe(
+      switchMap(() => this.refs.page({ url, size: 1, query: this.store.account.origin, obsolete: null })),
+      map(page => {
+        this.existingRef = page.content[0];
+        return !!this.existingRef;
+      }),
+      switchMap(exists => {
+        if (exists) {
+          this.responsesToUrl = [];
+          return of(true);
+        }
+        return this.refs.page({ responses: url, size: 10, query: this.store.account.origin, obsolete: null }).pipe(
+          map(page => {
+            this.responsesToUrl = page.content;
+            this.responsesToUrlFor = url;
+            return false;
+          }),
+        );
+      }),
+    );
   }
 
   isShortener(url: string) {
