@@ -138,16 +138,14 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
           this.scrape.rss(url).pipe(
             switchMap(value => {
               if (!value) return of();
-              // Check if the swapped URL already exists
               return this.refs.page({ url: value, size: 1, query: this.store.account.origin, obsolete: null }).pipe(
                 map(page => page.content.length > 0 ? undefined : value),
                 catchError(() => of(value))
               );
             })
-          ).subscribe(swappedUrl => {
-            if (swappedUrl) {
-              // Swapped URL doesn't exist, safe to swap
-              this.url = swappedUrl;
+          ).subscribe(value => {
+            if (value) {
+              this.url = value;
               this.addTag('plugin/repost');
               this.addSource(url);
               this.refForm!.scrapePlugins();
@@ -159,9 +157,10 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
               } else if (!this.store.submit.title) {
                 this.refForm!.scrapeTitle();
               }
+            } else {
+              this.url = url;
             }
           });
-          this.url = url;
         } else {
           this.oembeds.get(url).subscribe(oembed => {
             if (!this.store.submit.title) this.refForm!.scrapeTitle();
