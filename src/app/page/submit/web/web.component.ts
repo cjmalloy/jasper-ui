@@ -137,7 +137,7 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
           this.addFeedTags(...interestingTags(this.store.submit.tags));
           this.scrape.rss(url).pipe(
             switchMap(value => {
-              if (!value) return of({ swappedUrl: null, exists: false });
+              if (!value) return of();
               // Check if the swapped URL already exists
               return this.refs.page({ url: value, size: 1, query: this.store.account.origin, obsolete: null }).pipe(
                 map(page => ({ swappedUrl: value, exists: page.content.length > 0 })),
@@ -160,10 +160,11 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
                 this.refForm!.scrapeTitle();
               }
             } else {
-              // Either no swap or swapped URL already exists, use original URL
+              // Swapped URL already exists, use original URL
               this.url = url;
             }
           });
+          this.url = url;
         } else {
           this.oembeds.get(url).subscribe(oembed => {
             if (!this.store.submit.title) this.refForm!.scrapeTitle();
