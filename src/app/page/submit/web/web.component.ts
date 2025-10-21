@@ -139,8 +139,8 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
             switchMap(value => {
               if (!value) return of({ swappedUrl: null, exists: false });
               // Check if the swapped URL already exists
-              return this.refs.getCurrent(value).pipe(
-                map(ref => ({ swappedUrl: value, exists: ref.url === value && ref.origin === this.store.account.origin })),
+              return this.refs.page({ url: value, size: 1, query: this.store.account.origin, obsolete: null }).pipe(
+                map(page => ({ swappedUrl: value, exists: page.content.length > 0 })),
                 catchError(() => of({ swappedUrl: value, exists: false }))
               );
             })
