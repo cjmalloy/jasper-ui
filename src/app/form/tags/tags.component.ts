@@ -107,6 +107,8 @@ export class TagsFormComponent implements OnChanges {
         this.tags.removeAt(i);
       }
     }
+    // Trigger value updates on remaining controls to refresh previews
+    this.tags.controls.forEach(control => control.updateValueAndValidity());
   }
 
   removeTagAndChildren(tag: string) {
@@ -121,6 +123,10 @@ export class TagsFormComponent implements OnChanges {
     if (removed && tag.includes('/')) {
       const parent = tag.substring(0, tag.lastIndexOf('/'));
       if (!hasTag(parent, this.tags.value)) this.addTag(parent);
+    }
+    // Trigger value updates on remaining controls to refresh previews
+    if (removed) {
+      this.tags.controls.forEach(control => control.updateValueAndValidity());
     }
   }
 }
