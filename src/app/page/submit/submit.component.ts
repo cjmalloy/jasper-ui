@@ -147,10 +147,16 @@ export class SubmitPage implements OnInit, OnDestroy {
 
   exists(url: string) {
     if (this.linkType(url)) {
-      if (this.existingRef?.url === url && this.existingRef.origin === this.store.account.origin) return of(true);
+      if (this.existingRef?.url === url && this.existingRef.origin === this.store.account.origin) {
+        this.responsesToUrl = []; // Clear responses when using cached ref
+        return of(true);
+      }
       return timer(400).pipe(
         switchMap(() => this.refs.getCurrent(url)),
-        tap(ref => this.existingRef = ref),
+        tap(ref => {
+          this.existingRef = ref;
+          this.responsesToUrl = []; // Clear responses when ref exists
+        }),
         map(ref => ref.url === url && ref.origin === this.store.account.origin),
         catchError(err => {
           // If ref doesn't exist, check for responses (reposts)
@@ -166,6 +172,7 @@ export class SubmitPage implements OnInit, OnDestroy {
         }),
       );
     }
+    this.responsesToUrl = []; // Clear responses for invalid links
     return of(false);
   }
 
