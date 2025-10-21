@@ -157,7 +157,7 @@ export class SubmitPage implements OnInit, OnDestroy {
         return !!this.existingRef;
       }),
       catchError(err => of(false)),
-      switchMap(exists => this.refs.page({ query: exists ? 'plugin/repost' : '@*', responses: url, size: 10, query: this.store.account.origin, obsolete: null }).pipe(
+      switchMap(exists => this.refs.page({ responses: url, size: 10, query: query: (exists ? 'plugin/repost' : '') + (this.store.account.origin || '@'), obsolete: null }).pipe(
         map(page => {
           this.responsesToUrl = page.content;
           this.responsesToUrlFor = url;
