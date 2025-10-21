@@ -1,4 +1,4 @@
-FROM node:22.20.0 AS builder
+FROM node:22.21.0 AS builder
 WORKDIR /app
 RUN npm i -g @angular/cli
 COPY package.json package-lock.json ./
@@ -7,7 +7,7 @@ RUN npm ci
 COPY . ./
 RUN npm run build
 
-FROM node:22.20.0 AS test
+FROM node:22.21.0 AS test
 RUN apt-get update && apt-get install -y \
 	apt-transport-https \
 	ca-certificates \
