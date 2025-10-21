@@ -100,6 +100,15 @@ export class TagsFormComponent implements OnChanges {
     }
   }
 
+  removeTag(tag: string) {
+    if (!this.tags) throw 'Not ready yet!';
+    for (let i = this.tags.value.length - 1; i >= 0; i--) {
+      if (hasPrefix(this.tags.value[i], tag)) {
+        this.tags.removeAt(i);
+      }
+    }
+  }
+
   removeTagAndChildren(tag: string) {
     if (!this.tags) throw 'Not ready yet!';
     let removed = false;
