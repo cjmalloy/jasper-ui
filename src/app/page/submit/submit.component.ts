@@ -49,6 +49,7 @@ export class SubmitPage implements OnInit, OnDestroy {
   private _selectedPlugin?: Plugin;
   serverErrors: string[] = [];
   existingRef?: Ref;
+  responsesToUrl: Ref[] = [];
 
   constructor(
     public admin: AdminService,
@@ -151,7 +152,18 @@ export class SubmitPage implements OnInit, OnDestroy {
         switchMap(() => this.refs.getCurrent(url)),
         tap(ref => this.existingRef = ref),
         map(ref => ref.url === url && ref.origin === this.store.account.origin),
-        catchError(err => of(false)),
+        catchError(err => {
+          // If ref doesn't exist, check for responses (reposts)
+          this.existingRef = undefined;
+          return this.refs.page({ responses: url, size: 10 }).pipe(
+            tap(page => this.responsesToUrl = page.content),
+            map(() => false),
+            catchError(() => {
+              this.responsesToUrl = [];
+              return of(false);
+            }),
+          );
+        }),
       );
     }
     return of(false);
@@ -166,7 +178,7 @@ export class SubmitPage implements OnInit, OnDestroy {
   }
 
   get repost() {
-    return !this.submitForm.valid && this.existingRef;
+    return !this.submitForm.valid && (this.existingRef || this.responsesToUrl.length > 0);
   }
 
   submit() {

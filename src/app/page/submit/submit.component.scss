@@ -8,3 +8,10 @@ input[type=file] {
 .summary-box {
   margin: auto;
 }
+
+.info-message {
+  padding: 8px 12px;
+  margin: 8px 0;
+  border-left: 3px solid var(--border);
+  background: var(--bg);
+}

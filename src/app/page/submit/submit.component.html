@@ -143,6 +143,14 @@
           @if (existingRef) {
             <br>
             <app-ref [ref]="existingRef" [showToggle]="true"></app-ref>
+          } @else if (responsesToUrl.length > 0) {
+            <br>
+            <div class="info-message" i18n>
+              This link has not been submitted yet, but has {{ responsesToUrl.length }} response(s):
+            </div>
+            @for (response of responsesToUrl; track response.url) {
+              <app-ref [ref]="response" [showToggle]="true"></app-ref>
+            }
           }
 
           <br>
@@ -158,7 +166,7 @@
 
           <span><!-- Buttons --></span>
           <span class="buttons right">
-          <button type="submit" [disabled]="!submitForm.valid && !existingRef"
+          <button type="submit" [disabled]="!submitForm.valid && !existingRef && responsesToUrl.length === 0"
                   i18n-title title="Submit link"
                   i18n>@if (repost) { Repost } @else { Next }</button>
         </span>
