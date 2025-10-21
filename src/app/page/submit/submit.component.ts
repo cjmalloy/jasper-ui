@@ -148,7 +148,6 @@ export class SubmitPage implements OnInit, OnDestroy {
   exists(url: string) {
     if (this.linkType(url)) {
       if (this.existingRef?.url === url && this.existingRef.origin === this.store.account.origin) {
-        this.responsesToUrl = []; // Clear responses when using cached ref
         return of(true);
       }
       return timer(400).pipe(
