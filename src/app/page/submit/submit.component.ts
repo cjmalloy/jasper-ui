@@ -50,6 +50,7 @@ export class SubmitPage implements OnInit, OnDestroy {
   serverErrors: string[] = [];
   existingRef?: Ref;
   responsesToUrl: Ref[] = [];
+  responsesToUrlFor?: string;
 
   constructor(
     public admin: AdminService,
@@ -161,17 +162,22 @@ export class SubmitPage implements OnInit, OnDestroy {
           // If ref doesn't exist, check for responses (reposts)
           this.existingRef = undefined;
           return this.refs.page({ responses: url, size: 10, query: this.store.account.origin, obsolete: null }).pipe(
-            tap(page => this.responsesToUrl = page.content),
+            tap(page => {
+              this.responsesToUrl = page.content;
+              this.responsesToUrlFor = url;
+            }),
             map(() => false),
             catchError(() => {
-              this.responsesToUrl = [];
+              if (this.responsesToUrlFor !== url) {
+                this.responsesToUrl = [];
+                this.responsesToUrlFor = url;
+              }
               return of(false);
             }),
           );
         }),
       );
     }
-    this.responsesToUrl = []; // Clear responses for invalid links
     return of(false);
   }
 
