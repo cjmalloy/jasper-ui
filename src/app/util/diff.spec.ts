@@ -1,3 +1,4 @@
+/// <reference types="vitest/globals" />
 import { DateTime } from 'luxon';
 import { Ref } from '../model/ref';
 import { formatRefForDiff, merge3 } from './diff';

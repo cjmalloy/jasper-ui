@@ -1,3 +1,4 @@
+/// <reference types="vitest/globals" />
 import { OverlayModule } from '@angular/cdk/overlay';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';

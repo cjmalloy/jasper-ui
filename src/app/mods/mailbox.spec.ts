@@ -1,3 +1,4 @@
+/// <reference types="vitest/globals" />
 import { Ref } from '../model/ref';
 import { getMailbox, isMailbox, mailboxes, notifications } from './mailbox';
 
