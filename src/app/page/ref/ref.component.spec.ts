@@ -1,5 +1,5 @@
 import { provideHttpClientTesting } from '@angular/common/http/testing';
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, forwardRef } from '@angular/core/testing';
 import { RouterModule } from '@angular/router';
 
 import { RefPage } from './ref.component';
@@ -11,7 +11,7 @@ describe('RefPage', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    imports: [RouterModule.forRoot([]), RefPage],
+    imports: [RouterModule.forRoot([]), forwardRef(() => RefPage)],
     providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
 })
     .compileComponents();
