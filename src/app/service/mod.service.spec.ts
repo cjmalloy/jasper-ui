@@ -9,6 +9,15 @@ describe('ModService', () => {
   let service: ModService;
 
   beforeEach(() => {
+    // Mock CSS.supports for jsdom environment
+    if (typeof CSS === 'undefined') {
+      (globalThis as any).CSS = {
+        supports: vi.fn().mockReturnValue(true)
+      };
+    } else if (!CSS.supports) {
+      CSS.supports = vi.fn().mockReturnValue(true) as any;
+    }
+    
     TestBed.configureTestingModule({
     imports: [RouterModule.forRoot([])],
     providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
