@@ -14,7 +14,10 @@ describe('CommentReplyComponent', () => {
     await TestBed.configureTestingModule({
     imports: [RouterModule.forRoot([]), CommentReplyComponent],
     providers: [
-        { provide: AdminService, useValue: { getPlugin: () => null } },
+        { provide: AdminService, useValue: { 
+          getPlugin: () => null,
+          getEditorButtons: () => []
+        } },
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),
     ]
