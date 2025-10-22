@@ -29,9 +29,10 @@ describe('CodeComponent', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(CodeComponent);
     component = fixture.componentInstance;
-    // Create a FormGroup for the component
+    // Create a FormGroup for the component with all required controls
     component.group = new UntypedFormGroup({
-      code: new UntypedFormControl('')
+      code: new UntypedFormControl(''),
+      source: new UntypedFormControl('')
     });
     fixture.detectChanges();
   });

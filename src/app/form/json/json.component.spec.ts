@@ -27,9 +27,10 @@ describe('JsonComponent', () => {
 
     fixture = TestBed.createComponent(JsonComponent);
     component = fixture.componentInstance;
-    // Create a FormGroup for the component
+    // Create a FormGroup for the component with all required controls
     component.group = new UntypedFormGroup({
-      json: new UntypedFormControl('')
+      json: new UntypedFormControl(''),
+      source: new UntypedFormControl('')
     });
     fixture.detectChanges();
   });
