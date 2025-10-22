@@ -174,7 +174,8 @@ describe('RateLimitInterceptor', () => {
           expect(error.status).toBe(404);
           expect(attemptCount).toBe(1); // Only initial request, no retries
           resolve();
-      }
+        }
+      });
     });
 
     const req = httpTestingController.expectOne('/test');
