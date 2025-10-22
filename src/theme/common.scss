@@ -2109,10 +2109,11 @@ formly-field-radio, formly-field-multicheckbox {
 
 .load-more {
   display: inline-block;
+  margin: auto;
   font-size: 80%;
   font-weight: bold;
   padding: 10px;
-  color: var(--info);
+  color: var(--info) !important;
 }
 
 .empty-plugins {

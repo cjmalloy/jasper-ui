@@ -14,6 +14,7 @@ import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { catchError, forkJoin, map, mergeMap, Observable, of, switchMap, timer } from 'rxjs';
 import { scan, tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
+import { Page } from '../../model/page';
 import { Plugin } from '../../model/plugin';
 import { Ref } from '../../model/ref';
 import { isWiki, wikiUriFormat } from '../../mods/wiki';
@@ -49,6 +50,8 @@ export class SubmitPage implements OnInit, OnDestroy {
   private _selectedPlugin?: Plugin;
   serverErrors: string[] = [];
   existingRef?: Ref;
+  responsesToUrl: Page<Ref> = Page.of([]);
+  responsesToUrlFor?: string;
 
   constructor(
     public admin: AdminService,
@@ -145,16 +148,25 @@ export class SubmitPage implements OnInit, OnDestroy {
   }
 
   exists(url: string) {
-    if (this.linkType(url)) {
-      if (this.existingRef?.url === url && this.existingRef.origin === this.store.account.origin) return of(true);
-      return timer(400).pipe(
-        switchMap(() => this.refs.getCurrent(url)),
-        tap(ref => this.existingRef = ref),
-        map(ref => ref.url === url && ref.origin === this.store.account.origin),
+    if (!this.linkType(url)) return of(false);
+    if (this.existingRef?.url === url && this.existingRef.origin === this.store.account.origin) return of(true);
+    if (this.responsesToUrlFor === url) return of(false);
+    return timer(400).pipe(
+      switchMap(() => this.refs.page({ url, size: 1, query: this.store.account.origin, obsolete: null })),
+      map(page => {
+        this.existingRef = page.content[0];
+        return !!this.existingRef;
+      }),
+      catchError(err => of(false)),
+      switchMap(exists => this.refs.page({ responses: url, size: 10, query: exists ? 'plugin/repost' : '', obsolete: null }).pipe(
+        map(page => {
+          this.responsesToUrl = page;
+          this.responsesToUrlFor = url;
+          return false;
+        }),
         catchError(err => of(false)),
-      );
-    }
-    return of(false);
+      )),
+    );
   }
 
   isShortener(url: string) {

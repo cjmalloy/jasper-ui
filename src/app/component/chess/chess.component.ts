@@ -274,6 +274,7 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
     const move = this.chess.move({from, to, promotion: isPromotion ? confirm($localize`Promote to Queen:`) ? 'q' : prompt($localize`Promotion:`) as Exclude<PieceType, 'p' | 'k'> : undefined});
     if (move) {
       this.render();
+      this.check();
       this.save(move.san);
     }
   }
@@ -283,7 +284,6 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
     this.lastMoveTo = this.chess.history({ verbose: true }).pop()?.to;
     this.turn = this.chess.turn();
     this.moves = this.chess.moves({ verbose: true }).map(m => m.to);
-    this.check();
   }
 
   check() {
@@ -380,6 +380,7 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
       delete this.movingPiece;
       delete this.capturedPiece;
       this.render();
+      this.check();
       return;
     }
 

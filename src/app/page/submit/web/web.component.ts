@@ -5,7 +5,7 @@ import { Router } from '@angular/router';
 import { defer, uniq, without } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { autorun, IReactionDisposer } from 'mobx';
-import { catchError, map, Subscription, switchMap, throwError } from 'rxjs';
+import { catchError, map, of, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
 import { writePlugins } from '../../../form/plugins/plugins.component';
@@ -76,6 +76,7 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
   }
 
   ngAfterViewInit(): void {
+    this.url = this.store.submit.url?.trim();
     const allTags = [...this.store.submit.tags, ...(this.store.account.localTag ? [this.store.account.localTag] : [])];
     this.exts.getCachedExts(allTags).pipe(
       map(xs => xs.filter(x => x.config?.defaults) as Ext[]),
@@ -135,7 +136,15 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
         } else if (this.feed) {
           if (this.store.submit.tags.includes('public')) this.addFeedTags('public');
           this.addFeedTags(...interestingTags(this.store.submit.tags));
-          this.scrape.rss(url).subscribe(value => {
+          this.scrape.rss(url).pipe(
+            switchMap(value => {
+              if (!value) return of(value);
+              return this.refs.page({ url: value, size: 1, query: this.store.account.origin, obsolete: null }).pipe(
+                map(page => page.content.length > 0 ? undefined : value),
+                catchError(() => of(value))
+              );
+            })
+          ).subscribe(value => {
             if (value) {
               this.url = value;
               this.addTag('plugin/repost');
@@ -150,7 +159,16 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
                 this.refForm!.scrapeTitle();
               }
             } else {
-              this.url = url;
+              // Feed url already exists, just post the page and drop the feed plugin
+              this.setTitle($localize`Submit: Web Link`);
+              this.removeTag('plugin/feed', 'internal');
+              this.bookmarks.tags = without(this.bookmarks.tags, 'plugin/feed', 'internal');
+              if (url.startsWith('https://www.youtube.com/@') || url.startsWith('https://youtube.com/@')) {
+                const username = url.substring(url.indexOf('@'));
+                if (!this.store.submit.title) this.webForm.get('title')!.setValue(username);
+              } else if (!this.store.submit.title) {
+                this.refForm!.scrapeTitle();
+              }
             }
           });
         } else {
@@ -174,7 +192,6 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
               this.webForm.get('comment')!.setValue(comment);
             }
           });
-          this.url = url;
         }
         if (this.store.submit.source) {
           this.store.submit.sources.map(s => this.addSource(s));
@@ -220,6 +237,13 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
   addTag(...values: string[]) {
     for (const value of values) {
       this.refForm!.tagsFormComponent.addTag(value);
+    }
+    this.submitted = false;
+  }
+
+  removeTag(...values: string[]) {
+    for (const value of values) {
+      this.refForm!.tagsFormComponent.removeTag(value);
     }
     this.submitted = false;
   }

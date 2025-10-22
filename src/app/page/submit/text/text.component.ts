@@ -1,8 +1,8 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { AfterViewInit, Component, ElementRef, OnDestroy, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, OnChanges, OnDestroy, SimpleChanges, ViewChild } from '@angular/core';
 import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
-import { defer, uniq, without } from 'lodash-es';
+import { defer, some, uniq, without } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { catchError, map, Subscription, switchMap, throwError } from 'rxjs';
@@ -21,12 +21,14 @@ import { ExtService } from '../../../service/api/ext.service';
 import { RefService } from '../../../service/api/ref.service';
 import { TaggingService } from '../../../service/api/tagging.service';
 import { BookmarkService } from '../../../service/bookmark.service';
+import { ConfigService } from '../../../service/config.service';
 import { EditorService } from '../../../service/editor.service';
 import { ModService } from '../../../service/mod.service';
 import { Store } from '../../../store/store';
 import { scrollToFirstInvalid } from '../../../util/form';
 import { printError } from '../../../util/http';
-import { hasTag } from '../../../util/tag';
+import { memo, MemoCache } from '../../../util/memo';
+import { hasPrefix, hasTag } from '../../../util/tag';
 
 @Component({
   standalone: false,
@@ -35,7 +37,7 @@ import { hasTag } from '../../../util/tag';
   styleUrls: ['./text.component.scss'],
   host: {'class': 'full-page-form'}
 })
-export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
+export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasChanges {
   private disposers: IReactionDisposer[] = [];
 
   submitted = false;
@@ -59,6 +61,7 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
   private savedRef?: Ref;
 
   constructor(
+    public config: ConfigService,
     private mod: ModService,
     public admin: AdminService,
     private router: Router,
@@ -102,6 +105,7 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
       }
       if (this.store.account.localTag) this.addTag(this.store.account.localTag);
       this.disposers.push(autorun(() => {
+        MemoCache.clear(this);
         let url = this.store.submit.url || 'comment:' + uuid();
         if (!this.admin.isWikiExternal() && this.store.submit.wiki) {
           url = wikiUriFormat(url, this.admin.getWikiPrefix());
@@ -135,6 +139,10 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
         }
       }));
     });
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    MemoCache.clear(this);
   }
 
   ngOnDestroy() {
@@ -189,6 +197,31 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
     return this.textForm.get('tags') as UntypedFormArray;
   }
 
+  @memo
+  get codeLang() {
+    for (const t of this.tags.value) {
+      if (hasPrefix(t, 'plugin/code')) {
+        return t.split('/')[2];
+      }
+    }
+    return '';
+  }
+
+  @memo
+  get codeOptions() {
+    return {
+      language: this.codeLang,
+      theme: this.store.darkTheme ? 'vs-dark' : 'vs',
+      automaticLayout: true,
+    };
+  }
+
+  @memo
+  get customEditor() {
+    if (!this.tags?.value) return false;
+    return some(this.admin.editor, t => hasTag(t.tag, this.tags!.value));
+  }
+
   setTags(value: string[]) {
     if (!this.tagsFormComponent?.tags) {
       defer(() => this.setTags(value));
@@ -213,6 +246,7 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
     }
     this.tagsFormComponent.addTag(...values);
     this.submitted = false;
+    MemoCache.clear(this);
   }
 
   addSource(value = '') {

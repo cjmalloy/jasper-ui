@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { AfterViewInit, Component, ElementRef, OnDestroy, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, OnChanges, OnDestroy, SimpleChanges, ViewChild } from '@angular/core';
 import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { debounce, defer, some, uniq, without } from 'lodash-es';
@@ -24,7 +24,8 @@ import { Store } from '../../../store/store';
 import { scrollToFirstInvalid } from '../../../util/form';
 import { QUALIFIED_TAGS_REGEX } from '../../../util/format';
 import { printError } from '../../../util/http';
-import { hasTag } from '../../../util/tag';
+import { memo, MemoCache } from '../../../util/memo';
+import { hasPrefix, hasTag } from '../../../util/tag';
 
 @Component({
   standalone: false,
@@ -33,7 +34,7 @@ import { hasTag } from '../../../util/tag';
   styleUrls: ['./dm.component.scss'],
   host: {'class': 'full-page-form'}
 })
-export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
+export class SubmitDmPage implements AfterViewInit, OnChanges, OnDestroy, HasChanges {
   private disposers: IReactionDisposer[] = [];
 
   submitted = false;
@@ -55,7 +56,7 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
   private searching?: Subscription;
 
   constructor(
-    private config: ConfigService,
+    public config: ConfigService,
     private mod: ModService,
     public admin: AdminService,
     private router: Router,
@@ -94,6 +95,10 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
     }));
   }
 
+  ngOnChanges(changes: SimpleChanges) {
+    MemoCache.clear(this);
+  }
+
   ngOnDestroy() {
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
@@ -129,6 +134,7 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
       return;
     }
     this.tagsFormComponent.setTags(uniq([...this.tags.value, ...value]));
+    MemoCache.clear(this);
   }
 
   setTags(value: string[]) {
@@ -137,6 +143,7 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
       return;
     }
     this.tagsFormComponent.setTags(value);
+    MemoCache.clear(this);
   }
 
   get showError() {
@@ -238,8 +245,29 @@ export class SubmitDmPage implements AfterViewInit, OnDestroy, HasChanges {
     return this.admin.getPlugin(tag)?.config?.reply || [ getMailbox(tag, this.store.account.origin) ];
   }
 
-  get editingViewer() {
-    return some(this.admin.editingViewer, (t: Plugin) => hasTag(t.tag, this.tags.value));
+  @memo
+  get codeLang() {
+    for (const t of this.tags.value) {
+      if (hasPrefix(t, 'plugin/code')) {
+        return t.split('/')[2];
+      }
+    }
+    return '';
+  }
+
+  @memo
+  get codeOptions() {
+    return {
+      language: this.codeLang,
+      theme: this.store.darkTheme ? 'vs-dark' : 'vs',
+      automaticLayout: true,
+    };
+  }
+
+  @memo
+  get customEditor() {
+    if (!this.tags?.value) return false;
+    return some(this.admin.editor, t => hasTag(t.tag, this.tags!.value));
   }
 
   addSource(value = '') {

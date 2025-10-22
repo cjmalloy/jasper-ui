@@ -60,6 +60,10 @@ export interface Plugin extends Config {
      */
     editingViewer?: boolean;
     /**
+     * Provides custom editor.
+     */
+    editor?: boolean;
+    /**
      * This plugin can be exported to a self-contained html file.
      */
     export?: boolean,
