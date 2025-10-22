@@ -1,5 +1,6 @@
 import { provideHttpClientTesting } from '@angular/common/http/testing';
-import { ComponentFixture, TestBed, forwardRef } from '@angular/core/testing';
+import { forwardRef } from '@angular/core';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { RouterModule } from '@angular/router';
 
 import { RefAltsComponent } from './alts.component';
