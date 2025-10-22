@@ -19,13 +19,15 @@ import { getTitle } from '../../../util/format';
 import { memo, MemoCache } from '../../../util/memo';
 import { getArgs } from '../../../util/query';
 import { hasTag, removeTag, top, updateMetadata } from '../../../util/tag';
+import { MobxAngularModule } from 'mobx-angular';
+import { LoadingComponent } from '../../../component/loading/loading.component';
 
 @Component({
-  standalone: false,
-  selector: 'app-ref-thread',
-  templateUrl: './thread.component.html',
-  styleUrls: ['./thread.component.scss'],
-  host: {'class': 'thread'}
+    selector: 'app-ref-thread',
+    templateUrl: './thread.component.html',
+    styleUrls: ['./thread.component.scss'],
+    host: { 'class': 'thread' },
+    imports: [MobxAngularModule, RefListComponent, LoadingComponent, CommentReplyComponent]
 })
 export class RefThreadComponent implements HasChanges {
 

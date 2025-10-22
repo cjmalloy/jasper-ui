@@ -11,8 +11,7 @@ describe('MdComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    declarations: [MdComponent],
-    imports: [RouterModule.forRoot([])],
+    imports: [RouterModule.forRoot([]), MdComponent],
     providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
 })
     .compileComponents();

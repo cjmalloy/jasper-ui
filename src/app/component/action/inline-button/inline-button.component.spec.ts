@@ -8,8 +8,8 @@ describe('InlineButtonComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      declarations: [InlineButtonComponent]
-    });
+    imports: [InlineButtonComponent]
+});
     fixture = TestBed.createComponent(InlineButtonComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();

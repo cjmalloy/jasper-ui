@@ -13,9 +13,8 @@ describe('SubmitTextPage', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    declarations: [SubmitTextPage, TagsFormComponent],
     imports: [ReactiveFormsModule,
-        RouterModule.forRoot([])],
+        RouterModule.forRoot([]), SubmitTextPage, TagsFormComponent],
     providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
 })
     .compileComponents();

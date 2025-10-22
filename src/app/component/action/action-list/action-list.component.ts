@@ -21,12 +21,16 @@ import { ActionService } from '../../../service/action.service';
 import { ConfigService } from '../../../service/config.service';
 import { downloadRef } from '../../../util/download';
 import { memo, MemoCache } from '../../../util/memo';
+import { ConfirmActionComponent } from '../confirm-action/confirm-action.component';
+import { TitleDirective } from '../../../directive/title.directive';
+import { InlineButtonComponent } from '../inline-button/inline-button.component';
+import { KeyValuePipe } from '@angular/common';
 
 @Component({
-  standalone: false,
-  selector: 'app-action-list',
-  templateUrl: './action-list.component.html',
-  styleUrl: './action-list.component.scss'
+    selector: 'app-action-list',
+    templateUrl: './action-list.component.html',
+    styleUrl: './action-list.component.scss',
+    imports: [ConfirmActionComponent, TitleDirective, InlineButtonComponent, KeyValuePipe]
 })
 export class ActionListComponent implements AfterViewInit, OnChanges {
 

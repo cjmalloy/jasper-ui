@@ -11,8 +11,7 @@ describe('FilterComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    declarations: [FilterComponent],
-    imports: [RouterModule.forRoot([])],
+    imports: [RouterModule.forRoot([]), FilterComponent],
     providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
 })
     .compileComponents();

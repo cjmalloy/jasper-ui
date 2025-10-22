@@ -27,13 +27,14 @@ import { Type } from '../../store/view';
 import { emoji } from '../../util/emoji';
 import { convertFilter, FilterGroup, FilterItem, negatable, toggle, UrlFilter } from '../../util/query';
 import { hasPrefix } from '../../util/tag';
+import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 
 @Component({
-  standalone: false,
-  selector: 'app-filter',
-  templateUrl: './filter.component.html',
-  styleUrls: ['./filter.component.scss'],
-  host: {'class': 'filter form-group'}
+    selector: 'app-filter',
+    templateUrl: './filter.component.html',
+    styleUrls: ['./filter.component.scss'],
+    host: { 'class': 'filter form-group' },
+    imports: [ReactiveFormsModule, FormsModule]
 })
 export class FilterComponent implements OnChanges, OnDestroy {
 

@@ -9,8 +9,8 @@ describe('PluginFormComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ PluginFormComponent ]
-    })
+    imports: [PluginFormComponent]
+})
     .compileComponents();
 
     fixture = TestBed.createComponent(PluginFormComponent);

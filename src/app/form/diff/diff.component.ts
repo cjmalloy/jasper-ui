@@ -1,17 +1,18 @@
 import { Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { autorun, IReactionDisposer } from 'mobx';
-import { DiffEditorModel } from 'ngx-monaco-editor';
+import { DiffEditorModel, MonacoEditorModule } from 'ngx-monaco-editor';
 import { Ref } from '../../model/ref';
 import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
 import { formatRefForDiff } from '../../util/diff';
+import { ResizeHandleDirective } from '../../directive/resize-handle.directive';
 
 @Component({
-  standalone: false,
-  selector: 'app-diff',
-  templateUrl: './diff.component.html',
-  styleUrl: './diff.component.scss',
-  host: {'class': 'diff-editor'}
+    selector: 'app-diff',
+    templateUrl: './diff.component.html',
+    styleUrl: './diff.component.scss',
+    host: { 'class': 'diff-editor' },
+    imports: [MonacoEditorModule, ResizeHandleDirective]
 })
 export class DiffComponent implements OnInit, OnDestroy {
   private disposers: IReactionDisposer[] = [];

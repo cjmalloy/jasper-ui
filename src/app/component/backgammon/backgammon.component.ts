@@ -1,4 +1,4 @@
-import { CdkDragDrop, CdkDropListGroup } from '@angular/cdk/drag-drop';
+import { CdkDragDrop, CdkDropListGroup, CdkDropList, CdkDrag } from '@angular/cdk/drag-drop';
 import {
   AfterViewInit,
   Component,
@@ -505,12 +505,12 @@ function loadMove(state: GameState, p: Piece, from: number, to: number) {
 }
 
 @Component({
-  standalone: false,
-  selector: 'app-backgammon',
-  templateUrl: './backgammon.component.html',
-  styleUrls: ['./backgammon.component.scss'],
-  hostDirectives: [CdkDropListGroup],
-  host: {'class': 'backgammon-board'}
+    selector: 'app-backgammon',
+    templateUrl: './backgammon.component.html',
+    styleUrls: ['./backgammon.component.scss'],
+    hostDirectives: [CdkDropListGroup],
+    host: { 'class': 'backgammon-board' },
+    imports: [CdkDropList, CdkDrag]
 })
 export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, OnDestroy {
   private disposers: IReactionDisposer[] = [];

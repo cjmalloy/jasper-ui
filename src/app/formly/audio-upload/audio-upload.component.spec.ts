@@ -11,8 +11,7 @@ describe('AudioUploadComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    declarations: [AudioUploadComponent],
-    imports: [RouterModule.forRoot([])],
+    imports: [RouterModule.forRoot([]), AudioUploadComponent],
     providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
 })
     .compileComponents();

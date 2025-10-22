@@ -17,13 +17,14 @@ import { Store } from '../../../store/store';
 import { getTitle } from '../../../util/format';
 import { getArgs } from '../../../util/query';
 import { hasTag, updateMetadata } from '../../../util/tag';
+import { MobxAngularModule } from 'mobx-angular';
 
 @Component({
-  standalone: false,
-  selector: 'app-ref-errors',
-  templateUrl: './errors.component.html',
-  styleUrl: './errors.component.scss',
-  host: {'class': 'errors'}
+    selector: 'app-ref-errors',
+    templateUrl: './errors.component.html',
+    styleUrl: './errors.component.scss',
+    host: { 'class': 'errors' },
+    imports: [MobxAngularModule, RefListComponent]
 })
 export class RefErrorsComponent implements HasChanges {
 

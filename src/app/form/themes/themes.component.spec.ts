@@ -9,11 +9,11 @@ describe('ThemesFormComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ ThemesFormComponent ],
-      imports: [
+    imports: [
         ReactiveFormsModule,
-      ],
-    })
+        ThemesFormComponent,
+    ],
+})
     .compileComponents();
   });
 

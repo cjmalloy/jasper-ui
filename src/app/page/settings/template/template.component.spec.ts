@@ -11,8 +11,7 @@ describe('SettingsTemplatePage', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    declarations: [SettingsTemplatePage],
-    imports: [RouterModule.forRoot([])],
+    imports: [RouterModule.forRoot([]), SettingsTemplatePage],
     providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
 })
     .compileComponents();

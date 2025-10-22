@@ -11,8 +11,7 @@ describe('RefListComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    declarations: [RefListComponent],
-    imports: [RouterModule.forRoot([])],
+    imports: [RouterModule.forRoot([]), RefListComponent],
     providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
 })
     .compileComponents();

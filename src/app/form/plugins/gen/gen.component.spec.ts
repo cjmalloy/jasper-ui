@@ -12,16 +12,16 @@ describe('GenComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ GenFormComponent ],
-      imports: [
+    imports: [
         RouterModule.forRoot([]),
-        ReactiveFormsModule
-      ],
-      providers: [
+        ReactiveFormsModule,
+        GenFormComponent
+    ],
+    providers: [
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting()
-      ],
-    })
+    ],
+})
     .compileComponents();
 
     fixture = TestBed.createComponent(GenFormComponent);

@@ -8,13 +8,14 @@ import { ModService } from '../../../service/mod.service';
 import { QueryStore } from '../../../store/query';
 import { Store } from '../../../store/store';
 import { getArgs } from '../../../util/query';
+import { MobxAngularModule } from 'mobx-angular';
 
 @Component({
-  standalone: false,
-  selector: 'app-inbox-alarms',
-  templateUrl: './alarms.component.html',
-  styleUrls: ['./alarms.component.scss'],
-  host: {'class': 'alarms'}
+    selector: 'app-inbox-alarms',
+    templateUrl: './alarms.component.html',
+    styleUrls: ['./alarms.component.scss'],
+    host: { 'class': 'alarms' },
+    imports: [MobxAngularModule, RefListComponent]
 })
 export class InboxAlarmsPage implements OnInit, OnDestroy, HasChanges {
 

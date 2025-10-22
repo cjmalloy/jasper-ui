@@ -17,7 +17,7 @@ import {
   ViewChild,
   ViewContainerRef
 } from '@angular/core';
-import { FormBuilder, UntypedFormArray, UntypedFormControl } from '@angular/forms';
+import { FormBuilder, UntypedFormArray, UntypedFormControl, ReactiveFormsModule } from '@angular/forms';
 import { NavigationEnd, Router } from '@angular/router';
 import Europa from 'europa';
 import { debounce, defer, delay, intersection, sortedLastIndex, uniq, without } from 'lodash-es';
@@ -38,6 +38,10 @@ import { Store } from '../../store/store';
 import { readFileAsDataURL, readFileAsString } from '../../util/async';
 import { memo, MemoCache } from '../../util/memo';
 import { expandedTagsInclude, hasTag, test } from '../../util/tag';
+import { LoadingComponent } from '../../component/loading/loading.component';
+import { FillWidthDirective } from '../../directive/fill-width.directive';
+import { AutofocusDirective } from '../../directive/autofocus.directive';
+import { LimitWidthDirective } from '../../directive/limit-width.directive';
 
 export interface EditorUpload {
   id: string;
@@ -50,11 +54,11 @@ export interface EditorUpload {
 }
 
 @Component({
-  standalone: false,
-  selector: 'app-editor',
-  templateUrl: './editor.component.html',
-  styleUrls: ['./editor.component.scss'],
-  host: {'class': 'editor'}
+    selector: 'app-editor',
+    templateUrl: './editor.component.html',
+    styleUrls: ['./editor.component.scss'],
+    host: { 'class': 'editor' },
+    imports: [LoadingComponent, ReactiveFormsModule, FillWidthDirective, AutofocusDirective, MdComponent, LimitWidthDirective]
 })
 export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   private destroy$ = new Subject<void>();

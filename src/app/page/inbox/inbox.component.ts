@@ -3,13 +3,17 @@ import { runInAction } from 'mobx';
 import { AdminService } from '../../service/admin.service';
 import { AuthzService } from '../../service/authz.service';
 import { Store } from '../../store/store';
+import { MobxAngularModule } from 'mobx-angular';
+import { TabsComponent } from '../../component/tabs/tabs.component';
+import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { SidebarComponent } from '../../component/sidebar/sidebar.component';
 
 @Component({
-  standalone: false,
-  selector: 'app-inbox-page',
-  templateUrl: './inbox.component.html',
-  styleUrls: ['./inbox.component.scss'],
-  host: {'class': 'inbox'}
+    selector: 'app-inbox-page',
+    templateUrl: './inbox.component.html',
+    styleUrls: ['./inbox.component.scss'],
+    host: { 'class': 'inbox' },
+    imports: [MobxAngularModule, TabsComponent, RouterLink, RouterLinkActive, SidebarComponent, RouterOutlet]
 })
 export class InboxPage implements OnInit {
 

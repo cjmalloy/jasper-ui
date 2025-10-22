@@ -11,8 +11,7 @@ describe('SubfolderComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    declarations: [SubfolderComponent],
-    imports: [RouterModule.forRoot([])],
+    imports: [RouterModule.forRoot([]), SubfolderComponent],
     providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
 })
     .compileComponents();

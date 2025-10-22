@@ -4,13 +4,14 @@ import { v4 as uuid } from 'uuid';
 import { Plugin } from '../../model/plugin';
 import { AdminService } from '../../service/admin.service';
 import { AuthzService } from '../../service/authz.service';
+import { ReactiveFormsModule } from '@angular/forms';
 
 @Component({
-  standalone: false,
-  selector: 'app-select-plugin',
-  templateUrl: './select-plugin.component.html',
-  styleUrls: ['./select-plugin.component.scss'],
-  host: {'class': 'select-plugin'}
+    selector: 'app-select-plugin',
+    templateUrl: './select-plugin.component.html',
+    styleUrls: ['./select-plugin.component.scss'],
+    host: { 'class': 'select-plugin' },
+    imports: [ReactiveFormsModule]
 })
 export class SelectPluginComponent implements OnChanges {
 

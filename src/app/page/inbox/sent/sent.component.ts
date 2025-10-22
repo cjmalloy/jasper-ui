@@ -8,13 +8,14 @@ import { ModService } from '../../../service/mod.service';
 import { QueryStore } from '../../../store/query';
 import { Store } from '../../../store/store';
 import { getArgs } from '../../../util/query';
+import { MobxAngularModule } from 'mobx-angular';
 
 @Component({
-  standalone: false,
-  selector: 'app-inbox-sent',
-  templateUrl: './sent.component.html',
-  styleUrls: ['./sent.component.scss'],
-  host: {'class': 'inbox-sent'}
+    selector: 'app-inbox-sent',
+    templateUrl: './sent.component.html',
+    styleUrls: ['./sent.component.scss'],
+    host: { 'class': 'inbox-sent' },
+    imports: [MobxAngularModule, RefListComponent]
 })
 export class InboxSentPage implements OnInit, OnDestroy, HasChanges {
 

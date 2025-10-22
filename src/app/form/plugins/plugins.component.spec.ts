@@ -12,16 +12,16 @@ describe('PluginsFormComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [PluginsFormComponent],
-      imports: [
+    imports: [
         RouterModule.forRoot([]),
-        ReactiveFormsModule
-      ],
-      providers: [
+        ReactiveFormsModule,
+        PluginsFormComponent
+    ],
+    providers: [
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting()
-      ],
-    }).compileComponents();
+    ],
+}).compileComponents();
   });
 
   beforeEach(() => {

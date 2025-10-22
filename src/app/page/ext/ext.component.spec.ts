@@ -12,9 +12,8 @@ describe('CreateExtPage', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    declarations: [ExtPage],
     imports: [ReactiveFormsModule,
-        RouterModule.forRoot([])],
+        RouterModule.forRoot([]), ExtPage],
     providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
 })
     .compileComponents();

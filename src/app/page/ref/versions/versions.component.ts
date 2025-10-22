@@ -9,12 +9,13 @@ import { QueryStore } from '../../../store/query';
 import { Store } from '../../../store/store';
 import { getTitle } from '../../../util/format';
 import { getArgs } from '../../../util/query';
+import { MobxAngularModule } from 'mobx-angular';
 
 @Component({
-  standalone: false,
-  selector: 'app-ref-versions',
-  templateUrl: './versions.component.html',
-  styleUrls: ['./versions.component.scss']
+    selector: 'app-ref-versions',
+    templateUrl: './versions.component.html',
+    styleUrls: ['./versions.component.scss'],
+    imports: [MobxAngularModule, RefListComponent]
 })
 export class RefVersionsComponent implements OnInit, OnDestroy, HasChanges {
 

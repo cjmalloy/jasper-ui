@@ -11,12 +11,16 @@ import { ExtStore } from '../../store/ext';
 import { Store } from '../../store/store';
 import { getTagFilter, getTagQueryFilter } from '../../util/query';
 import { braces, getPrefixes, hasPrefix, publicTag } from '../../util/tag';
+import { MobxAngularModule } from 'mobx-angular';
+import { TabsComponent } from '../../component/tabs/tabs.component';
+import { RouterLink } from '@angular/router';
+import { SidebarComponent } from '../../component/sidebar/sidebar.component';
 
 @Component({
-  standalone: false,
-  selector: 'app-tags-page',
-  templateUrl: './tags.component.html',
-  styleUrls: ['./tags.component.scss']
+    selector: 'app-tags-page',
+    templateUrl: './tags.component.html',
+    styleUrls: ['./tags.component.scss'],
+    imports: [MobxAngularModule, TabsComponent, RouterLink, SidebarComponent, ExtListComponent]
 })
 export class TagsPage implements OnInit, OnDestroy, HasChanges {
 

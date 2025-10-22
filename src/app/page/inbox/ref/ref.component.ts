@@ -9,12 +9,13 @@ import { ModService } from '../../../service/mod.service';
 import { QueryStore } from '../../../store/query';
 import { Store } from '../../../store/store';
 import { getArgs } from '../../../util/query';
+import { MobxAngularModule } from 'mobx-angular';
 
 @Component({
-  standalone: false,
-  selector: 'app-inbox-ref-page',
-  templateUrl: './ref.component.html',
-  styleUrls: ['./ref.component.scss'],
+    selector: 'app-inbox-ref-page',
+    templateUrl: './ref.component.html',
+    styleUrls: ['./ref.component.scss'],
+    imports: [MobxAngularModule, RefListComponent],
 })
 export class InboxRefPage implements OnInit, OnDestroy, HasChanges {
   private disposers: IReactionDisposer[] = [];

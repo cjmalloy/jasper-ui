@@ -8,13 +8,16 @@ import { Profile } from '../../../model/profile';
 import { User } from '../../../model/user';
 import { ProfileService } from '../../../service/api/profile.service';
 import { UserComponent } from '../user.component';
+import { NgFor, NgIf } from '@angular/common';
+import { LoadingComponent } from '../../loading/loading.component';
+import { PageControlsComponent } from '../../page-controls/page-controls.component';
 
 @Component({
-  standalone: false,
-  selector: 'app-user-list',
-  templateUrl: './user-list.component.html',
-  styleUrls: ['./user-list.component.scss'],
-  host: {'class': 'user-list'}
+    selector: 'app-user-list',
+    templateUrl: './user-list.component.html',
+    styleUrls: ['./user-list.component.scss'],
+    host: { 'class': 'user-list' },
+    imports: [NgFor, UserComponent, NgIf, LoadingComponent, PageControlsComponent]
 })
 export class UserListComponent implements HasChanges {
 

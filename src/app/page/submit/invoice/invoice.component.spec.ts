@@ -12,9 +12,8 @@ describe('SubmitInvoicePage', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    declarations: [SubmitInvoicePage],
     imports: [ReactiveFormsModule,
-        RouterModule.forRoot([])],
+        RouterModule.forRoot([]), SubmitInvoicePage],
     providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
 })
     .compileComponents();

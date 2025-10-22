@@ -11,8 +11,7 @@ describe('SettingsMePage', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-    declarations: [SettingsMePage],
-    imports: [RouterModule.forRoot([])],
+    imports: [RouterModule.forRoot([]), SettingsMePage],
     providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
 });
     fixture = TestBed.createComponent(SettingsMePage);

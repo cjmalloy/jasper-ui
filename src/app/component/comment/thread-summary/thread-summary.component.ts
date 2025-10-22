@@ -4,13 +4,16 @@ import { Ref } from '../../../model/ref';
 import { RefService } from '../../../service/api/ref.service';
 import { Store } from '../../../store/store';
 import { getArgs } from '../../../util/query';
+import { MobxAngularModule } from 'mobx-angular';
+import { CommentComponent } from '../comment.component';
+import { RefComponent } from '../../ref/ref.component';
 
 @Component({
-  standalone: false,
-  selector: 'app-thread-summary',
-  templateUrl: './thread-summary.component.html',
-  styleUrls: ['./thread-summary.component.scss'],
-  host: {'class': 'thread-summary'}
+    selector: 'app-thread-summary',
+    templateUrl: './thread-summary.component.html',
+    styleUrls: ['./thread-summary.component.scss'],
+    host: { 'class': 'thread-summary' },
+    imports: [MobxAngularModule, CommentComponent, RefComponent]
 })
 export class ThreadSummaryComponent implements OnInit, OnChanges, OnDestroy {
   private destroy$ = new Subject<void>();

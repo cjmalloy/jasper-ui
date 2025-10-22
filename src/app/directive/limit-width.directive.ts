@@ -2,10 +2,7 @@ import { AfterViewInit, Directive, ElementRef, HostListener, Input, OnDestroy } 
 import { throttle } from 'lodash-es';
 import { ConfigService } from '../service/config.service';
 
-@Directive({
-  standalone: false,
-  selector: '[appLimitWidth]'
-})
+@Directive({ selector: '[appLimitWidth]' })
 export class LimitWidthDirective implements OnDestroy, AfterViewInit {
 
   resizeObserver = window.ResizeObserver && new ResizeObserver(() => this.fill()) || undefined;

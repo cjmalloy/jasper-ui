@@ -11,8 +11,7 @@ describe('BackupComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    declarations: [BackupComponent],
-    imports: [RouterModule.forRoot([])],
+    imports: [RouterModule.forRoot([]), BackupComponent],
     providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
 })
     .compileComponents();

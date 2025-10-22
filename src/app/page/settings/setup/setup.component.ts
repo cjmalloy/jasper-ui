@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component } from '@angular/core';
-import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { forOwn, mapValues, uniq } from 'lodash-es';
 import { catchError, concat, last, throwError } from 'rxjs';
 import { Config } from '../../../model/tag';
@@ -10,12 +10,19 @@ import { Store } from '../../../store/store';
 import { scrollToFirstInvalid } from '../../../util/form';
 import { configGroups, modId } from '../../../util/format';
 import { printError } from '../../../util/http';
+import { RouterLink } from '@angular/router';
+import { KeyValuePipe } from '@angular/common';
 
 @Component({
-  standalone: false,
-  selector: 'app-settings-setup-page',
-  templateUrl: './setup.component.html',
-  styleUrls: ['./setup.component.scss'],
+    selector: 'app-settings-setup-page',
+    templateUrl: './setup.component.html',
+    styleUrls: ['./setup.component.scss'],
+    imports: [
+        ReactiveFormsModule,
+        FormsModule,
+        RouterLink,
+        KeyValuePipe,
+    ],
 })
 export class SettingsSetupPage {
 

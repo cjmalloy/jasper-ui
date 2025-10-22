@@ -11,8 +11,7 @@ describe('TagsComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    declarations: [TagsPage],
-    imports: [RouterModule.forRoot([])],
+    imports: [RouterModule.forRoot([]), TagsPage],
     providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
 })
     .compileComponents();

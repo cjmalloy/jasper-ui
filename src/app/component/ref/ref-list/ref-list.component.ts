@@ -11,13 +11,16 @@ import { AccountService } from '../../../service/account.service';
 import { RefService } from '../../../service/api/ref.service';
 import { Store } from '../../../store/store';
 import { RefComponent } from '../ref.component';
+import { NgIf } from '@angular/common';
+import { PageControlsComponent } from '../../page-controls/page-controls.component';
+import { LoadingComponent } from '../../loading/loading.component';
 
 @Component({
-  standalone: false,
-  selector: 'app-ref-list',
-  templateUrl: './ref-list.component.html',
-  styleUrls: ['./ref-list.component.scss'],
-  host: {'class': 'ref-list'}
+    selector: 'app-ref-list',
+    templateUrl: './ref-list.component.html',
+    styleUrls: ['./ref-list.component.scss'],
+    host: { 'class': 'ref-list' },
+    imports: [RefComponent, NgIf, PageControlsComponent, LoadingComponent]
 })
 export class RefListComponent implements OnInit, OnDestroy, HasChanges {
   private destroy$ = new Subject<void>();

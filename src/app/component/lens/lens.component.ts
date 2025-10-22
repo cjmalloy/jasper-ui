@@ -8,12 +8,20 @@ import { AdminService } from '../../service/admin.service';
 import { QueryStore } from '../../store/query';
 import { UrlFilter } from '../../util/query';
 import { hasPrefix } from '../../util/tag';
+import { RefComponent } from '../ref/ref.component';
+import { ForceDirectedComponent } from '../graph/force-directed/force-directed.component';
+import { NotebookComponent } from '../notebook/notebook.component';
+import { KanbanComponent } from '../kanban/kanban.component';
+import { BlogComponent } from '../blog/blog.component';
+import { ChatComponent } from '../chat/chat.component';
+import { FolderComponent } from '../folder/folder.component';
+import { RefListComponent } from '../ref/ref-list/ref-list.component';
 
 @Component({
-  standalone: false,
-  selector: 'app-lens',
-  templateUrl: './lens.component.html',
-  styleUrls: ['./lens.component.scss']
+    selector: 'app-lens',
+    templateUrl: './lens.component.html',
+    styleUrls: ['./lens.component.scss'],
+    imports: [RefComponent, ForceDirectedComponent, NotebookComponent, KanbanComponent, BlogComponent, ChatComponent, FolderComponent, RefListComponent]
 })
 export class LensComponent implements OnChanges, HasChanges {
 

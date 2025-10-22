@@ -11,8 +11,7 @@ describe('VideoUploadComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    declarations: [VideoUploadComponent],
-    imports: [RouterModule.forRoot([])],
+    imports: [RouterModule.forRoot([]), VideoUploadComponent],
     providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
 })
     .compileComponents();

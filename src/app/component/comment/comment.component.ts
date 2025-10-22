@@ -48,13 +48,21 @@ import { ActionComponent } from '../action/action.component';
 import { CommentEditComponent } from './comment-edit/comment-edit.component';
 import { CommentReplyComponent } from './comment-reply/comment-reply.component';
 import { CommentThreadComponent } from './comment-thread/comment-thread.component';
+import { MobxAngularModule } from 'mobx-angular';
+import { RouterLink } from '@angular/router';
+import { TitleDirective } from '../../directive/title.directive';
+import { ViewerComponent } from '../viewer/viewer.component';
+import { ConfirmActionComponent } from '../action/confirm-action/confirm-action.component';
+import { InlineTagComponent } from '../action/inline-tag/inline-tag.component';
+import { ActionListComponent } from '../action/action-list/action-list.component';
+import { AsyncPipe } from '@angular/common';
 
 @Component({
-  standalone: false,
-  selector: 'app-comment',
-  templateUrl: './comment.component.html',
-  styleUrls: ['./comment.component.scss'],
-  host: {'class': 'comment'}
+    selector: 'app-comment',
+    templateUrl: './comment.component.html',
+    styleUrls: ['./comment.component.scss'],
+    host: { 'class': 'comment' },
+    imports: [MobxAngularModule, RouterLink, TitleDirective, CommentEditComponent, ViewerComponent, ConfirmActionComponent, InlineTagComponent, ActionListComponent, CommentReplyComponent, CommentThreadComponent, AsyncPipe]
 })
 export class CommentComponent implements OnInit, AfterViewInit, OnChanges, OnDestroy, HasChanges {
   @HostBinding('attr.tabindex') tabIndex = 0;

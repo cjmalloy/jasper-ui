@@ -11,12 +11,24 @@ import { ModService } from '../../service/mod.service';
 import { QueryStore } from '../../store/query';
 import { Store } from '../../store/store';
 import { getArgs, UrlFilter } from '../../util/query';
+import { MobxAngularModule } from 'mobx-angular';
+import { TabsComponent } from '../../component/tabs/tabs.component';
+import { RouterLink } from '@angular/router';
+import { SidebarComponent } from '../../component/sidebar/sidebar.component';
+import { LoadingComponent } from '../../component/loading/loading.component';
 
 @Component({
-  standalone: false,
-  selector: 'app-tag-page',
-  templateUrl: './tag.component.html',
-  styleUrls: ['./tag.component.scss'],
+    selector: 'app-tag-page',
+    templateUrl: './tag.component.html',
+    styleUrls: ['./tag.component.scss'],
+    imports: [
+        MobxAngularModule,
+        TabsComponent,
+        RouterLink,
+        SidebarComponent,
+        LensComponent,
+        LoadingComponent,
+    ],
 })
 export class TagPage implements OnInit, OnDestroy, HasChanges {
   private disposers: IReactionDisposer[] = [];

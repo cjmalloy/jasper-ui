@@ -13,12 +13,12 @@ describe('CommentEditComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [CommentEditComponent],
-      imports: [RouterModule.forRoot([])],
-      providers: [
+    imports: [RouterModule.forRoot([]), CommentEditComponent],
+    providers: [
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),
-      ]}).compileComponents();
+    ]
+}).compileComponents();
   });
 
   beforeEach(() => {
@@ -45,7 +45,7 @@ describe('CommentEditComponent', () => {
 
     // Spy on the save method to examine patches
     const patches: any[] = [];
-    spyOn(component['refs'], 'patch').and.callFake((url, origin, modified, patchList) => {
+    vi.spyOn(component['refs'], 'patch').mockImplementation((url, origin, modified, patchList) => {
       patches.push(...patchList);
       return { pipe: () => ({ subscribe: () => {} }) } as any;
     });
@@ -79,7 +79,7 @@ describe('CommentEditComponent', () => {
 
     // Spy on the save method to examine patches
     const patches: any[] = [];
-    spyOn(component['refs'], 'patch').and.callFake((url, origin, modified, patchList) => {
+    vi.spyOn(component['refs'], 'patch').mockImplementation((url, origin, modified, patchList) => {
       patches.push(...patchList);
       return { pipe: () => ({ subscribe: () => {} }) } as any;
     });
@@ -109,7 +109,7 @@ describe('CommentEditComponent', () => {
 
     // Spy on the save method to examine patches
     const patches: any[] = [];
-    spyOn(component['refs'], 'patch').and.callFake((url, origin, modified, patchList) => {
+    vi.spyOn(component['refs'], 'patch').mockImplementation((url, origin, modified, patchList) => {
       patches.push(...patchList);
       return { pipe: () => ({ subscribe: () => {} }) } as any;
     });

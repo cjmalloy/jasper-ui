@@ -2,7 +2,7 @@ import { Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { TemplatePortal } from '@angular/cdk/portal';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, ElementRef, TemplateRef, ViewChild, ViewContainerRef } from '@angular/core';
-import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { sortBy, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { catchError, throwError } from 'rxjs';
@@ -15,13 +15,15 @@ import { Store } from '../../../store/store';
 import { scrollToFirstInvalid } from '../../../util/form';
 import { ORIGIN_REGEX } from '../../../util/format';
 import { printError } from '../../../util/http';
+import { LoadingComponent } from '../../../component/loading/loading.component';
+import { BackupListComponent } from '../../../component/backup/backup-list/backup-list.component';
 
 @Component({
-  standalone: false,
-  selector: 'app-settings-backup-page',
-  templateUrl: './backup.component.html',
-  styleUrls: ['./backup.component.scss'],
-  host: {'class': 'backup'}
+    selector: 'app-settings-backup-page',
+    templateUrl: './backup.component.html',
+    styleUrls: ['./backup.component.scss'],
+    host: { 'class': 'backup' },
+    imports: [ReactiveFormsModule, LoadingComponent, BackupListComponent]
 })
 export class SettingsBackupPage {
 

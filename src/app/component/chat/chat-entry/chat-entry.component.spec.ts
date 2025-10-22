@@ -11,8 +11,7 @@ describe('ChatEntryComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    declarations: [ChatEntryComponent],
-    imports: [RouterModule.forRoot([])],
+    imports: [RouterModule.forRoot([]), ChatEntryComponent],
     providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
 })
     .compileComponents();

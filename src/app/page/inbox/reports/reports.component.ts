@@ -9,13 +9,14 @@ import { ModService } from '../../../service/mod.service';
 import { QueryStore } from '../../../store/query';
 import { Store } from '../../../store/store';
 import { getArgs } from '../../../util/query';
+import { MobxAngularModule } from 'mobx-angular';
 
 @Component({
-  standalone: false,
-  selector: 'app-inbox-reports',
-  templateUrl: './reports.component.html',
-  styleUrl: './reports.component.scss',
-  host: {'class': 'modlist'}
+    selector: 'app-inbox-reports',
+    templateUrl: './reports.component.html',
+    styleUrl: './reports.component.scss',
+    host: { 'class': 'modlist' },
+    imports: [MobxAngularModule, RefListComponent]
 })
 export class InboxReportsPage  implements OnInit, OnDestroy, HasChanges {
 

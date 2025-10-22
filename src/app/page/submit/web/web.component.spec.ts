@@ -15,20 +15,16 @@ describe('SubmitWebPage', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [
-        SubmitWebPage,
+    imports: [ReactiveFormsModule,
+        RouterModule.forRoot([]), SubmitWebPage,
         RefFormComponent,
         TagsFormComponent,
-        LinksFormComponent,
-      ],
-      imports: [ReactiveFormsModule,
-        RouterModule.forRoot([]),
-      ],
-      providers: [
+        LinksFormComponent,],
+    providers: [
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),
-      ],
-    }).compileComponents();
+    ],
+}).compileComponents();
   });
 
   beforeEach(() => {

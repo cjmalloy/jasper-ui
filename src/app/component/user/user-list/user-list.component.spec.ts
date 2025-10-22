@@ -11,8 +11,7 @@ describe('UserListComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    declarations: [UserListComponent],
-    imports: [RouterModule.forRoot([])],
+    imports: [RouterModule.forRoot([]), UserListComponent],
     providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
 })
     .compileComponents();

@@ -12,14 +12,13 @@ describe('UserTagSelectorComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ UserTagSelectorComponent ],
-      imports: [RouterModule.forRoot([])],
-      providers: [
+    imports: [RouterModule.forRoot([]), UserTagSelectorComponent],
+    providers: [
         AuthInterceptor,
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting()
-      ],
-    }).compileComponents();
+    ],
+}).compileComponents();
 
     fixture = TestBed.createComponent(UserTagSelectorComponent);
     component = fixture.componentInstance;

@@ -11,8 +11,7 @@ describe('BulkComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    declarations: [BulkComponent],
-    imports: [RouterModule.forRoot([])],
+    imports: [RouterModule.forRoot([]), BulkComponent],
     providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
 })
     .compileComponents();

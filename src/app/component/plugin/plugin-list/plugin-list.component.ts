@@ -4,13 +4,15 @@ import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Page } from '../../../model/page';
 import { Plugin } from '../../../model/plugin';
 import { PluginComponent } from '../plugin.component';
+import { PageControlsComponent } from '../../page-controls/page-controls.component';
+import { LoadingComponent } from '../../loading/loading.component';
 
 @Component({
-  standalone: false,
-  selector: 'app-plugin-list',
-  templateUrl: './plugin-list.component.html',
-  styleUrls: ['./plugin-list.component.scss'],
-  host: {'class': 'plugin-list'}
+    selector: 'app-plugin-list',
+    templateUrl: './plugin-list.component.html',
+    styleUrls: ['./plugin-list.component.scss'],
+    host: { 'class': 'plugin-list' },
+    imports: [PluginComponent, PageControlsComponent, LoadingComponent]
 })
 export class PluginListComponent implements HasChanges {
 

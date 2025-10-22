@@ -1,6 +1,6 @@
 import { HttpEventType } from '@angular/common/http';
 import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy } from '@angular/core';
-import { FieldType, FieldTypeConfig, FormlyConfig } from '@ngx-formly/core';
+import { FieldType, FieldTypeConfig, FormlyConfig, FormlyModule } from '@ngx-formly/core';
 import { debounce, defer, isString, uniqBy } from 'lodash-es';
 import { catchError, last, map, of, Subscription, throwError } from 'rxjs';
 import { v4 as uuid } from 'uuid';
@@ -15,12 +15,17 @@ import { Saving } from '../store/submit';
 import { readFileAsDataURL } from '../util/async';
 import { getPageTitle } from '../util/format';
 import { getErrorMessage } from './errors';
+import { ReactiveFormsModule } from '@angular/forms';
+import { QrScannerComponent } from './qr-scanner/qr-scanner.component';
+import { PdfUploadComponent } from './pdf-upload/pdf-upload.component';
+import { AudioUploadComponent } from './audio-upload/audio-upload.component';
+import { VideoUploadComponent } from './video-upload/video-upload.component';
+import { ImageUploadComponent } from './image-upload/image-upload.component';
 
 @Component({
-  standalone: false,
-  selector: 'formly-field-ref-input',
-  host: {'class': 'field'},
-  template: `
+    selector: 'formly-field-ref-input',
+    host: { 'class': 'field' },
+    template: `
     <div class="form-array">
       @if (uploading) {
         <progress class="grow" max="100" [value]="progress"></progress>
@@ -63,7 +68,16 @@ import { getErrorMessage } from './errors';
       }
     </div>
   `,
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [
+        ReactiveFormsModule,
+        FormlyModule,
+        QrScannerComponent,
+        PdfUploadComponent,
+        AudioUploadComponent,
+        VideoUploadComponent,
+        ImageUploadComponent,
+    ],
 })
 export class FormlyFieldRefInput extends FieldType<FieldTypeConfig> implements AfterViewInit, OnDestroy {
 
