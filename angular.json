@@ -172,7 +172,7 @@
           "options": {
             "tsConfig": "tsconfig.spec.json",
             "runner": "vitest",
-            "buildTarget": "::development"
+            "buildTarget": "jasper-ui:build:development"
           }
         },
         "cypress-run": {
