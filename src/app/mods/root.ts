@@ -14,15 +14,11 @@ export const rootTemplate: Template = {
     a custom theme and a set of non-global custom themes to choose from in addition to global themes.`,
     aiInstructions: ` # Root Template
     The root template uses the empty string as a tag. Since templates are matched to Exts by prefix matching,
-    the root template matches every tag. Here are the models in use:
-    \`\`\`typescript
-    ` + require('!!raw-loader!../model/tag.ts').default + `
-    ` + require('!!raw-loader!../model/ref.ts').default + `
-    ` + require('!!raw-loader!../model/ext.ts').default + `
-    ` + require('!!raw-loader!../model/user.ts').default + `
-    ` + require('!!raw-loader!../model/plugin.ts').default + `
-    ` + require('!!raw-loader!../model/template.ts').default + `
-    \`\`\`
+    the root template matches every tag. 
+    
+    TODO: Model definitions removed during migration to application builder. 
+    These were previously loaded using webpack's raw-loader which is not supported by esbuild.
+    
     The root template sets up basic functionality such as deleted icons and filters, and basic Ext config:
     \`\`\`typescript
     export interface RootConfig {
