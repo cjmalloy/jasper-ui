@@ -1,3 +1,4 @@
+/// <reference types="vitest/globals" />
 import { InputDoneDirective } from './input-done.directive';
 
 describe('InputDoneDirective', () => {

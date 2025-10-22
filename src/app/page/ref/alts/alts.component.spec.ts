@@ -1,3 +1,4 @@
+/// <reference types="vitest/globals" />
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { forwardRef } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
