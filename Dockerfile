@@ -32,9 +32,11 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /app
 RUN npm i -g @angular/cli
 COPY --from=builder /app ./
-CMD ng test --karma-config karma-ci.conf.js && \
+CMD mkdir -p /tests && \
+    ng test --watch=false --reporters=junit > /tests/junit-report.xml 2>&1 && \
+    echo "Tests completed. JUnit report saved to /tests/junit-report.xml" && \
     mkdir -p /report && \
-    cp -r /reports/*/* /report/
+    echo "<h1>Vitest Test Report</h1><p>Tests completed. See JUnit XML for details.</p>" > /report/index.html
 
 FROM nginx:1.27-alpine3.19-slim AS deploy
 RUN apk add jq moreutils

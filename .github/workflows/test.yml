@@ -35,7 +35,7 @@ jobs:
         if: always()
         continue-on-error: true
         with:
-          name: Test Results
+          name: Vitest Test Results
           path: "tests/*.xml"
           reporter: java-junit
       - name: Copy the reports from the container
@@ -45,14 +45,14 @@ jobs:
         if: github.event_name == 'pull_request' && always()
         uses: actions/upload-artifact@v5
         with:
-          name: karma-reports-pr-${{ github.event.pull_request.number }}
+          name: vitest-reports-pr-${{ github.event.pull_request.number }}
           path: report
           retention-days: 7
       - name: Upload Reports
         if: github.event_name != 'pull_request' && always()
         uses: actions/upload-artifact@v5
         with:
-          name: karma-reports-${{ github.ref_name }}-${{ github.run_number }}
+          name: vitest-reports-${{ github.ref_name }}-${{ github.run_number }}
           path: report
           retention-days: 30
       - name: Generate Test Summary
@@ -183,7 +183,7 @@ jobs:
               summary = '⚠️ Could not read test summary.';
             }
             
-            const reportUrl = `https://${context.repo.owner}.github.io/${context.repo.repo}/reports/karma-reports-pr-${context.issue.number}/`;
+            const reportUrl = `https://${context.repo.owner}.github.io/${context.repo.repo}/reports/vitest-reports-pr-${context.issue.number}/`;
             summary += `\n\n📊 [View detailed HTML report](${reportUrl})`;
             
             // Add HTML comment marker for identification
@@ -238,7 +238,7 @@ jobs:
               per_page: 100
             });
             const artifacts = response.data.artifacts
-              .filter(artifact => artifact.name.startsWith('karma-reports-' + '${{ github.ref_name }}'));
+              .filter(artifact => artifact.name.startsWith('vitest-reports-' + '${{ github.ref_name }}'));
             if (artifacts.length > maxVersions) {
               // Sort by created_at descending
               artifacts.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
