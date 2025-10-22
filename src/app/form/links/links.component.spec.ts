@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
+import { FormlyModule } from '@ngx-formly/core';
 import { LinksFormComponent } from './links.component';
 
 
@@ -11,6 +12,7 @@ describe('LinksFormComponent', () => {
     await TestBed.configureTestingModule({
     imports: [
         ReactiveFormsModule,
+        FormlyModule.forRoot(),
         LinksFormComponent,
     ],
 })

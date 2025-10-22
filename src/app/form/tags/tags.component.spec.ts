@@ -2,6 +2,7 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { RouterModule } from '@angular/router';
+import { FormlyModule } from '@ngx-formly/core';
 
 import { TagsFormComponent } from './tags.component';
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
@@ -12,8 +13,12 @@ describe('TagsFormComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    imports: [ReactiveFormsModule,
-        RouterModule.forRoot([]), TagsFormComponent],
+    imports: [
+        ReactiveFormsModule,
+        RouterModule.forRoot([]),
+        FormlyModule.forRoot(),
+        TagsFormComponent
+    ],
     providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
 })
     .compileComponents();
