@@ -32,11 +32,9 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /app
 RUN npm i -g @angular/cli
 COPY --from=builder /app ./
-CMD mkdir -p /tests && \
-    ng test --watch=false --reporters=junit > /tests/junit-report.xml 2>&1 && \
-    echo "Tests completed. JUnit report saved to /tests/junit-report.xml" && \
-    mkdir -p /report && \
-    echo "<h1>Vitest Test Report</h1><p>Tests completed. See JUnit XML for details.</p>" > /report/index.html
+COPY run-tests.sh /app/run-tests.sh
+RUN chmod +x /app/run-tests.sh && mkdir -p /tests /report
+CMD ["/app/run-tests.sh"]
 
 FROM nginx:1.27-alpine3.19-slim AS deploy
 RUN apk add jq moreutils
