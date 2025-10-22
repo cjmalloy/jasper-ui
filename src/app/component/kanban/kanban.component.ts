@@ -1,4 +1,4 @@
-import { CdkDragDrop } from '@angular/cdk/drag-drop';
+import { CdkDragDrop, CdkDropListGroup, ɵɵCdkScrollable, CdkDropList } from '@angular/cdk/drag-drop';
 import {
   Component,
   HostListener,
@@ -26,6 +26,13 @@ import { Store } from '../../store/store';
 import { negate, UrlFilter } from '../../util/query';
 import { isQuery, isSelector, localTag, topAnds } from '../../util/tag';
 import { KanbanColumnComponent } from './kanban-column/kanban-column.component';
+import { MobxAngularModule } from 'mobx-angular';
+import { LoadingComponent } from '../loading/loading.component';
+import { RouterLink } from '@angular/router';
+import { TitleDirective } from '../../directive/title.directive';
+import { ReactiveFormsModule, FormsModule } from '@angular/forms';
+import { PageControlsComponent } from '../page-controls/page-controls.component';
+import { AsyncPipe } from '@angular/common';
 
 export interface KanbanDrag {
   from: string;
@@ -35,11 +42,11 @@ export interface KanbanDrag {
 }
 
 @Component({
-  standalone: false,
-  selector: 'app-kanban',
-  templateUrl: './kanban.component.html',
-  styleUrls: ['./kanban.component.scss'],
-  host: {'class': 'kanban ext'}
+    selector: 'app-kanban',
+    templateUrl: './kanban.component.html',
+    styleUrls: ['./kanban.component.scss'],
+    host: { 'class': 'kanban ext' },
+    imports: [MobxAngularModule, LoadingComponent, CdkDropListGroup, ɵɵCdkScrollable, CdkDropList, RouterLink, TitleDirective, ReactiveFormsModule, FormsModule, PageControlsComponent, KanbanColumnComponent, AsyncPipe]
 })
 export class KanbanComponent implements OnChanges, OnDestroy, HasChanges {
 

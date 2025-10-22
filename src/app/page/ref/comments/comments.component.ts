@@ -13,12 +13,20 @@ import { ThreadStore } from '../../../store/thread';
 import { getTitle } from '../../../util/format';
 import { memo, MemoCache } from '../../../util/memo';
 import { hasTag, removeTag, updateMetadata } from '../../../util/tag';
+import { MobxAngularModule } from 'mobx-angular';
+import { CommentThreadComponent } from '../../../component/comment/comment-thread/comment-thread.component';
+import { LoadingComponent } from '../../../component/loading/loading.component';
 
 @Component({
-  standalone: false,
-  selector: 'app-ref-comments',
-  templateUrl: './comments.component.html',
-  styleUrls: ['./comments.component.scss'],
+    selector: 'app-ref-comments',
+    templateUrl: './comments.component.html',
+    styleUrls: ['./comments.component.scss'],
+    imports: [
+        MobxAngularModule,
+        CommentReplyComponent,
+        CommentThreadComponent,
+        LoadingComponent,
+    ],
 })
 export class RefCommentsComponent implements OnInit, OnDestroy, HasChanges {
   private disposers: IReactionDisposer[] = [];

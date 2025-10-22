@@ -11,8 +11,7 @@ describe('HomePage', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    declarations: [HomePage],
-    imports: [RouterModule.forRoot([])],
+    imports: [RouterModule.forRoot([]), HomePage],
     providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
 })
     .compileComponents();

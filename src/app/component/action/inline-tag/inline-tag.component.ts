@@ -9,13 +9,16 @@ import { EditorService } from '../../../service/editor.service';
 import { Store } from '../../../store/store';
 import { TAGS_REGEX } from '../../../util/format';
 import { ActionComponent } from '../action.component';
+import { ReactiveFormsModule } from '@angular/forms';
+import { AutofocusDirective } from '../../../directive/autofocus.directive';
+import { LoadingComponent } from '../../loading/loading.component';
 
 @Component({
-  standalone: false,
-  selector: 'app-inline-tag',
-  templateUrl: './inline-tag.component.html',
-  styleUrls: ['./inline-tag.component.scss'],
-  host: {'class': 'action'}
+    selector: 'app-inline-tag',
+    templateUrl: './inline-tag.component.html',
+    styleUrls: ['./inline-tag.component.scss'],
+    host: { 'class': 'action' },
+    imports: [ReactiveFormsModule, AutofocusDirective, LoadingComponent]
 })
 export class InlineTagComponent extends ActionComponent {
   tagsRegex = TAGS_REGEX.source;

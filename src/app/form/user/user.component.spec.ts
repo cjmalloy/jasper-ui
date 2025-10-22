@@ -10,12 +10,12 @@ describe('UserFormComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ UserFormComponent ],
-      imports: [
+    imports: [
         RouterModule.forRoot([]),
         ReactiveFormsModule,
-      ],
-    }).compileComponents();
+        UserFormComponent,
+    ],
+}).compileComponents();
   });
 
   beforeEach(() => {

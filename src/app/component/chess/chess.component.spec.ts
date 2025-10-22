@@ -12,13 +12,12 @@ describe('ChessComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ChessComponent],
-      imports: [RouterModule.forRoot([])],
-      providers: [
+    imports: [RouterModule.forRoot([]), ChessComponent],
+    providers: [
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),
-      ],
-    }).compileComponents();
+    ],
+}).compileComponents();
 
     fixture = TestBed.createComponent(ChessComponent);
     component = fixture.componentInstance;

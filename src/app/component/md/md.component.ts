@@ -1,16 +1,17 @@
 import { Component, ElementRef, Input, Output } from '@angular/core';
 import { MermaidConfig } from 'mermaid';
-import { MermaidAPI } from 'ngx-markdown';
+import { MermaidAPI, MarkdownComponent } from 'ngx-markdown';
 import { Subject } from 'rxjs';
 import * as XLSX from 'xlsx';
 import { AdminService } from '../../service/admin.service';
 import { Store } from '../../store/store';
+import { MdPostDirective } from '../../directive/md-post.directive';
 
 @Component({
-  standalone: false,
-  selector: 'app-md',
-  templateUrl: './md.component.html',
-  styleUrls: ['./md.component.scss']
+    selector: 'app-md',
+    templateUrl: './md.component.html',
+    styleUrls: ['./md.component.scss'],
+    imports: [MarkdownComponent, MdPostDirective]
 })
 export class MdComponent {
 

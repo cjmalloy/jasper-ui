@@ -10,15 +10,15 @@ describe('ActionListComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      declarations: [ActionListComponent],
-      imports: [
+    imports: [
         RouterModule.forRoot([]),
-      ],
-      providers: [
+        ActionListComponent,
+    ],
+    providers: [
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting()
-      ],
-    });
+    ],
+});
     fixture = TestBed.createComponent(ActionListComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();

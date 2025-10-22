@@ -8,8 +8,8 @@ describe('LoginPage', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ LoginPage ]
-    })
+    imports: [LoginPage]
+})
     .compileComponents();
   });
 

@@ -11,12 +11,13 @@ import { QueryStore } from '../../../store/query';
 import { Store } from '../../../store/store';
 import { getTitle } from '../../../util/format';
 import { getArgs } from '../../../util/query';
+import { MobxAngularModule } from 'mobx-angular';
 
 @Component({
-  standalone: false,
-  selector: 'app-ref-alts',
-  templateUrl: './alts.component.html',
-  styleUrls: ['./alts.component.scss']
+    selector: 'app-ref-alts',
+    templateUrl: './alts.component.html',
+    styleUrls: ['./alts.component.scss'],
+    imports: [MobxAngularModule, RefListComponent]
 })
 export class RefAltsComponent implements OnInit, OnDestroy, HasChanges {
 

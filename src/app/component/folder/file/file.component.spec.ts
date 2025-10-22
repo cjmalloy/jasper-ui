@@ -11,8 +11,7 @@ describe('FileComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    declarations: [FileComponent],
-    imports: [RouterModule.forRoot([])],
+    imports: [RouterModule.forRoot([]), FileComponent],
     providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
 })
     .compileComponents();

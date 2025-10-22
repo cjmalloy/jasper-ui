@@ -12,13 +12,12 @@ describe('CommentThreadComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [CommentThreadComponent],
-      imports: [RouterModule.forRoot([])],
-      providers: [
+    imports: [RouterModule.forRoot([]), CommentThreadComponent],
+    providers: [
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting()
-      ]
-    }).compileComponents();
+    ]
+}).compileComponents();
 
     fixture = TestBed.createComponent(CommentThreadComponent);
     component = fixture.componentInstance;

@@ -1,5 +1,5 @@
 import { Component, ElementRef, HostBinding, Input, OnChanges, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
-import { NavigationEnd, Router } from '@angular/router';
+import { NavigationEnd, Router, RouterLink } from '@angular/router';
 import { uniq, uniqBy } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { catchError, filter, forkJoin, map, Observable, of, Subject } from 'rxjs';
@@ -22,15 +22,26 @@ import { QueryStore } from '../../store/query';
 import { Store } from '../../store/store';
 import { memo, MemoCache } from '../../util/memo';
 import { hasPrefix, hasTag, localTag, topAnds } from '../../util/tag';
+import { MobxAngularModule } from 'mobx-angular';
+import { SearchComponent } from '../search/search.component';
+import { QueryComponent } from '../query/query.component';
+import { FilterComponent } from '../filter/filter.component';
+import { SortComponent } from '../sort/sort.component';
+import { DebugComponent } from '../debug/debug.component';
+import { BulkComponent } from '../bulk/bulk.component';
+import { MdComponent } from '../md/md.component';
+import { ExtComponent } from '../ext/ext.component';
+import { ChatComponent } from '../chat/chat.component';
+import { AsyncPipe } from '@angular/common';
 
 type Exts = { ext: Ext, children: Ext[], more: boolean };
 
 @Component({
-  standalone: false,
-  selector: 'app-sidebar',
-  templateUrl: './sidebar.component.html',
-  styleUrls: ['./sidebar.component.scss'],
-  host: {'class': 'sidebar'}
+    selector: 'app-sidebar',
+    templateUrl: './sidebar.component.html',
+    styleUrls: ['./sidebar.component.scss'],
+    host: { 'class': 'sidebar' },
+    imports: [MobxAngularModule, SearchComponent, QueryComponent, FilterComponent, SortComponent, DebugComponent, BulkComponent, RouterLink, MdComponent, ExtComponent, ChatComponent, AsyncPipe]
 })
 export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
   private disposers: IReactionDisposer[] = [];

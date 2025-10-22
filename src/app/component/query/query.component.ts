@@ -1,18 +1,19 @@
 import { Component, ElementRef, Input, ViewChild } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { defer } from 'lodash-es';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
 import { Store } from '../../store/store';
 import { access, fixClientQuery, getStrictPrefix, localTag, tagOrigin } from '../../util/tag';
+import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 
 export type Crumb = { text: string, tag?: string, pos: number, len: number };
 
 @Component({
-  standalone: false,
-  selector: 'app-query',
-  templateUrl: './query.component.html',
-  styleUrls: ['./query.component.scss']
+    selector: 'app-query',
+    templateUrl: './query.component.html',
+    styleUrls: ['./query.component.scss'],
+    imports: [ReactiveFormsModule, FormsModule, RouterLink]
 })
 export class QueryComponent {
 

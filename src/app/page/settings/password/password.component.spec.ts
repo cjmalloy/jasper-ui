@@ -12,9 +12,8 @@ describe('SettingsPasswordPage', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    declarations: [SettingsPasswordPage],
     imports: [RouterModule.forRoot([]),
-        ReactiveFormsModule],
+        ReactiveFormsModule, SettingsPasswordPage],
     providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
 })
     .compileComponents();

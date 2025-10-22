@@ -11,13 +11,12 @@ describe('InlineTagComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      declarations: [InlineTagComponent],
-      imports: [RouterModule.forRoot([])],
-      providers: [
+    imports: [RouterModule.forRoot([]), InlineTagComponent],
+    providers: [
         provideHttpClient(withInterceptorsFromDi()),
-        provideHttpClientTesting()
-      ,]
-    });
+        provideHttpClientTesting(),
+    ]
+});
     fixture = TestBed.createComponent(InlineTagComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();

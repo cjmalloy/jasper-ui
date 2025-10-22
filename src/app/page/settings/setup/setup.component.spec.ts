@@ -14,9 +14,8 @@ describe('SettingsSetupPage', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    declarations: [SettingsSetupPage],
     imports: [RouterModule.forRoot([]),
-        ReactiveFormsModule],
+        ReactiveFormsModule, SettingsSetupPage],
     providers: [
         { provide: AdminService, useValue: {
                 init$: of(null),

@@ -11,12 +11,13 @@ import { QueryStore } from '../../../store/query';
 import { Store } from '../../../store/store';
 import { getTitle } from '../../../util/format';
 import { getArgs } from '../../../util/query';
+import { MobxAngularModule } from 'mobx-angular';
 
 @Component({
-  standalone: false,
-  selector: 'app-ref-sources',
-  templateUrl: './sources.component.html',
-  styleUrls: ['./sources.component.scss'],
+    selector: 'app-ref-sources',
+    templateUrl: './sources.component.html',
+    styleUrls: ['./sources.component.scss'],
+    imports: [MobxAngularModule, RefListComponent],
 })
 export class RefSourcesComponent implements OnInit, OnDestroy, HasChanges {
 

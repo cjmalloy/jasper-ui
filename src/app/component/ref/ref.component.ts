@@ -16,8 +16,8 @@ import {
   ViewChild,
   ViewChildren
 } from '@angular/core';
-import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
-import { Router } from '@angular/router';
+import { UntypedFormBuilder, UntypedFormGroup, ReactiveFormsModule, FormsModule } from '@angular/forms';
+import { Router, RouterLink } from '@angular/router';
 import { cloneDeep, defer, delay, groupBy, pick, throttle, uniq, without } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
@@ -72,12 +72,44 @@ import {
 import { ActionComponent } from '../action/action.component';
 import { CommentReplyComponent } from '../comment/comment-reply/comment-reply.component';
 import { ViewerComponent } from '../viewer/viewer.component';
+import { NgIf, AsyncPipe } from '@angular/common';
+import { NavComponent } from '../nav/nav.component';
+import { TitleDirective } from '../../directive/title.directive';
+import { MdComponent } from '../md/md.component';
+import { InlineTagComponent } from '../action/inline-tag/inline-tag.component';
+import { InlineButtonComponent } from '../action/inline-button/inline-button.component';
+import { ConfirmActionComponent } from '../action/confirm-action/confirm-action.component';
+import { ActionListComponent } from '../action/action-list/action-list.component';
+import { LoadingComponent } from '../loading/loading.component';
+import { DiffComponent } from '../../form/diff/diff.component';
+import { ThumbnailPipe } from '../../pipe/thumbnail.pipe';
+import { CssUrlPipe } from '../../pipe/css-url.pipe';
 
 @Component({
-  standalone: false,
-  selector: 'app-ref',
-  templateUrl: './ref.component.html',
-  styleUrls: ['./ref.component.scss'],
+    selector: 'app-ref',
+    templateUrl: './ref.component.html',
+    styleUrls: ['./ref.component.scss'],
+    imports: [
+        NgIf,
+        NavComponent,
+        RouterLink,
+        TitleDirective,
+        MdComponent,
+        ViewerComponent,
+        InlineTagComponent,
+        InlineButtonComponent,
+        ConfirmActionComponent,
+        ActionListComponent,
+        CommentReplyComponent,
+        ReactiveFormsModule,
+        RefFormComponent,
+        FormsModule,
+        LoadingComponent,
+        DiffComponent,
+        AsyncPipe,
+        ThumbnailPipe,
+        CssUrlPipe,
+    ],
 })
 export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasChanges {
   css = 'ref list-item';

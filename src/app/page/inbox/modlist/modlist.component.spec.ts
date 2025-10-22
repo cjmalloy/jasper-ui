@@ -11,12 +11,12 @@ describe('InboxModlistPage', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [InboxModlistPage],
-      imports: [RouterModule.forRoot([])],
-      providers: [
+    imports: [RouterModule.forRoot([]), InboxModlistPage],
+    providers: [
         provideHttpClient(withInterceptorsFromDi()),
-        provideHttpClientTesting()]
-    }).compileComponents();
+        provideHttpClientTesting()
+    ]
+}).compileComponents();
 
     fixture = TestBed.createComponent(InboxModlistPage);
     component = fixture.componentInstance;

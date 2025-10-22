@@ -11,8 +11,7 @@ describe('RefPage', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    declarations: [RefPage],
-    imports: [RouterModule.forRoot([])],
+    imports: [RouterModule.forRoot([]), RefPage],
     providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
 })
     .compileComponents();

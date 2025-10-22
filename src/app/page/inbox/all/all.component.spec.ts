@@ -11,8 +11,7 @@ describe('InboxAllPage', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    declarations: [InboxAllPage],
-    imports: [RouterModule.forRoot([])],
+    imports: [RouterModule.forRoot([]), InboxAllPage],
     providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
 })
     .compileComponents();

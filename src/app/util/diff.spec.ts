@@ -102,7 +102,7 @@ describe('Diff Utils', () => {
       const { mergedComment, conflict } = merge3(ours, base, theirs);
       expect(mergedComment).toBeUndefined();
       expect(conflict).toBeTruthy();
-      expect(conflict).toEqual(jasmine.any(Array));
+      expect(conflict).toEqual(expect.any(Array));
     });
 
     it('should handle empty base', () => {
@@ -113,7 +113,7 @@ describe('Diff Utils', () => {
       const { mergedComment, conflict } = merge3(ours, base, theirs);
       expect(mergedComment).toBeUndefined();
       expect(conflict).toBeTruthy();
-      expect(conflict).toEqual(jasmine.any(Array));
+      expect(conflict).toEqual(expect.any(Array));
     });
 
     it('should handle empty comments', () => {
@@ -142,7 +142,7 @@ describe('Diff Utils', () => {
       const { mergedComment, conflict } = merge3(ours, base, theirs);
       expect(mergedComment).toBeUndefined();
       expect(conflict).toBeTruthy();
-      expect(conflict).toEqual(jasmine.any(Array));
+      expect(conflict).toEqual(expect.any(Array));
     });
 
     it('should merge additions at different positions', () => {

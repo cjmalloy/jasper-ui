@@ -11,8 +11,7 @@ describe('AltsComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    declarations: [RefAltsComponent],
-    imports: [RouterModule.forRoot([])],
+    imports: [RouterModule.forRoot([]), RefAltsComponent],
     providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
 })
     .compileComponents();

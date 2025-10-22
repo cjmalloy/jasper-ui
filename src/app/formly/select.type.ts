@@ -1,6 +1,8 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { FieldType, FieldTypeConfig, FormlyFieldProps } from '@ngx-formly/core';
-import { FormlyFieldSelectProps } from '@ngx-formly/core/select';
+import { FieldType, FieldTypeConfig, FormlyFieldProps, FormlyModule } from '@ngx-formly/core';
+import { FormlyFieldSelectProps, FormlySelectModule } from '@ngx-formly/core/select';
+import { NgIf, NgFor, AsyncPipe } from '@angular/common';
+import { ReactiveFormsModule } from '@angular/forms';
 
 interface SelectProps extends FormlyFieldProps, FormlyFieldSelectProps {
   multiple?: boolean;
@@ -8,10 +10,9 @@ interface SelectProps extends FormlyFieldProps, FormlyFieldSelectProps {
 }
 
 @Component({
-  standalone: false,
-  selector: 'formly-field-select',
-  host: {'class': 'field'},
-  template: `
+    selector: 'formly-field-select',
+    host: { 'class': 'field' },
+    template: `
     <select *ngIf="props.multiple; else singleSelect"
             multiple
             [formControl]="formControl"
@@ -56,7 +57,15 @@ interface SelectProps extends FormlyFieldProps, FormlyFieldSelectProps {
       </select>
     </ng-template>
   `,
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [
+        NgIf,
+        ReactiveFormsModule,
+        FormlyModule,
+        NgFor,
+        AsyncPipe,
+        FormlySelectModule,
+    ],
 })
 export class FormlyFieldSelect extends FieldType<FieldTypeConfig<SelectProps>> {
   override defaultOptions = {

@@ -9,11 +9,11 @@ describe('TemplateListComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ TemplateListComponent ],
-      imports: [
+    imports: [
         RouterModule.forRoot([]),
-      ],
-    })
+        TemplateListComponent,
+    ],
+})
     .compileComponents();
 
     fixture = TestBed.createComponent(TemplateListComponent);

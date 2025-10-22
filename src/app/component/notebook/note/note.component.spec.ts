@@ -11,13 +11,12 @@ describe('NoteComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [NoteComponent],
-      imports: [RouterModule.forRoot([])],
-      providers: [
+    imports: [RouterModule.forRoot([]), NoteComponent],
+    providers: [
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting()
-      ],
-    }).compileComponents();
+    ],
+}).compileComponents();
   });
 
   beforeEach(() => {

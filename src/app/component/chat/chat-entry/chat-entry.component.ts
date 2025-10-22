@@ -26,13 +26,22 @@ import { printError } from '../../../util/http';
 import { memo, MemoCache } from '../../../util/memo';
 import { hasTag, localTag, repost, tagOrigin } from '../../../util/tag';
 import { ActionComponent } from '../../action/action.component';
+import { RouterLink } from '@angular/router';
+import { TitleDirective } from '../../../directive/title.directive';
+import { LoadingComponent } from '../../loading/loading.component';
+import { NavComponent } from '../../nav/nav.component';
+import { MdComponent } from '../../md/md.component';
+import { ViewerComponent } from '../../viewer/viewer.component';
+import { ConfirmActionComponent } from '../../action/confirm-action/confirm-action.component';
+import { InlineTagComponent } from '../../action/inline-tag/inline-tag.component';
+import { AsyncPipe } from '@angular/common';
 
 @Component({
-  standalone: false,
-  selector: 'app-chat-entry',
-  templateUrl: './chat-entry.component.html',
-  styleUrls: ['./chat-entry.component.scss'],
-  host: {'class': 'chat-entry'}
+    selector: 'app-chat-entry',
+    templateUrl: './chat-entry.component.html',
+    styleUrls: ['./chat-entry.component.scss'],
+    host: { 'class': 'chat-entry' },
+    imports: [RouterLink, TitleDirective, LoadingComponent, NavComponent, MdComponent, ViewerComponent, ConfirmActionComponent, InlineTagComponent, AsyncPipe]
 })
 export class ChatEntryComponent implements OnChanges, OnDestroy {
   @HostBinding('attr.tabindex') tabIndex = 0;

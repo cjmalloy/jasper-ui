@@ -11,8 +11,7 @@ describe('LensComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-    declarations: [LensComponent],
-    imports: [RouterModule.forRoot([])],
+    imports: [RouterModule.forRoot([]), LensComponent],
     providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
 });
     fixture = TestBed.createComponent(LensComponent);

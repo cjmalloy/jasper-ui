@@ -1,14 +1,6 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import {
-  AbstractControl,
-  AsyncValidatorFn,
-  UntypedFormBuilder,
-  UntypedFormControl,
-  UntypedFormGroup,
-  ValidationErrors,
-  Validators
-} from '@angular/forms';
-import { Router } from '@angular/router';
+import { AbstractControl, AsyncValidatorFn, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, ValidationErrors, Validators, ReactiveFormsModule } from '@angular/forms';
+import { Router, RouterLink, RouterOutlet } from '@angular/router';
 import { defer, isString, uniq, without } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { catchError, forkJoin, map, mergeMap, Observable, of, switchMap, timer } from 'rxjs';
@@ -27,14 +19,42 @@ import { Saving } from '../../store/submit';
 import { URI_REGEX } from '../../util/format';
 import { fixUrl } from '../../util/http';
 import { hasPrefix } from '../../util/tag';
+import { MobxAngularModule } from 'mobx-angular';
+import { TabsComponent } from '../../component/tabs/tabs.component';
+import { SelectPluginComponent } from '../../component/select-plugin/select-plugin.component';
+import { AutofocusDirective } from '../../directive/autofocus.directive';
+import { QrScannerComponent } from '../../formly/qr-scanner/qr-scanner.component';
+import { PdfUploadComponent } from '../../formly/pdf-upload/pdf-upload.component';
+import { AudioUploadComponent } from '../../formly/audio-upload/audio-upload.component';
+import { VideoUploadComponent } from '../../formly/video-upload/video-upload.component';
+import { ImageUploadComponent } from '../../formly/image-upload/image-upload.component';
+import { RefComponent } from '../../component/ref/ref.component';
+import { AsyncPipe } from '@angular/common';
+import { TagPreviewPipe } from '../../pipe/tag-preview.pipe';
 
 type Validation = { test: (url: string) => Observable<any>; name: string; passed: boolean };
 
 @Component({
-  standalone: false,
-  selector: 'app-submit-page',
-  templateUrl: './submit.component.html',
-  styleUrls: ['./submit.component.scss'],
+    selector: 'app-submit-page',
+    templateUrl: './submit.component.html',
+    styleUrls: ['./submit.component.scss'],
+    imports: [
+        MobxAngularModule,
+        TabsComponent,
+        RouterLink,
+        RouterOutlet,
+        ReactiveFormsModule,
+        SelectPluginComponent,
+        AutofocusDirective,
+        QrScannerComponent,
+        PdfUploadComponent,
+        AudioUploadComponent,
+        VideoUploadComponent,
+        ImageUploadComponent,
+        RefComponent,
+        AsyncPipe,
+        TagPreviewPipe,
+    ],
 })
 export class SubmitPage implements OnInit, OnDestroy {
   private disposers: IReactionDisposer[] = [];

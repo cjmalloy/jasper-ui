@@ -3,13 +3,15 @@ import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
+import { MobxAngularModule } from 'mobx-angular';
+import { RouterLink } from '@angular/router';
 
 @Component({
-  standalone: false,
-  selector: 'app-settings',
-  templateUrl: './settings.component.html',
-  styleUrls: ['./settings.component.scss'],
-  host: {'class': 'settings'}
+    selector: 'app-settings',
+    templateUrl: './settings.component.html',
+    styleUrls: ['./settings.component.scss'],
+    host: { 'class': 'settings' },
+    imports: [MobxAngularModule, RouterLink]
 })
 export class SettingsComponent {
 

@@ -11,8 +11,7 @@ describe('InboxAlarmsPage', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-    declarations: [InboxAlarmsPage],
-    imports: [RouterModule.forRoot([])],
+    imports: [RouterModule.forRoot([]), InboxAlarmsPage],
     providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
 });
     fixture = TestBed.createComponent(InboxAlarmsPage);

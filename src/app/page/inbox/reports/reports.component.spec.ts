@@ -12,12 +12,12 @@ describe('InboxReportsPage', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [InboxReportsPage],
-      imports: [RouterModule.forRoot([])],
-      providers: [
+    imports: [RouterModule.forRoot([]), InboxReportsPage],
+    providers: [
         provideHttpClient(withInterceptorsFromDi()),
-        provideHttpClientTesting()]
-    }).compileComponents();
+        provideHttpClientTesting()
+    ]
+}).compileComponents();
 
     fixture = TestBed.createComponent(InboxReportsPage);
     component = fixture.componentInstance;

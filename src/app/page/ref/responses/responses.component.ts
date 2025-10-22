@@ -9,12 +9,13 @@ import { QueryStore } from '../../../store/query';
 import { Store } from '../../../store/store';
 import { getTitle } from '../../../util/format';
 import { getArgs, UrlFilter } from '../../../util/query';
+import { MobxAngularModule } from 'mobx-angular';
 
 @Component({
-  standalone: false,
-  selector: 'app-ref-responses',
-  templateUrl: './responses.component.html',
-  styleUrls: ['./responses.component.scss'],
+    selector: 'app-ref-responses',
+    templateUrl: './responses.component.html',
+    styleUrls: ['./responses.component.scss'],
+    imports: [MobxAngularModule, RefListComponent],
 })
 export class RefResponsesComponent implements OnInit, OnDestroy, HasChanges {
 

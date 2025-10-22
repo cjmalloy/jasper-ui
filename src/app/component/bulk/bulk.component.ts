@@ -32,13 +32,21 @@ import { downloadPage } from '../../util/download';
 import { getScheme, printError } from '../../util/http';
 import { memo, MemoCache } from '../../util/memo';
 import { addAllHierarchicalTags, expandedTagsInclude, hasTag, isAuthorTag, subOrigin } from '../../util/tag';
+import { LoadingComponent } from '../loading/loading.component';
+import { RouterLink } from '@angular/router';
+import { InlineTagComponent } from '../action/inline-tag/inline-tag.component';
+import { ConfirmActionComponent } from '../action/confirm-action/confirm-action.component';
+import { InlinePluginComponent } from '../action/inline-plugin/inline-plugin.component';
+import { TitleDirective } from '../../directive/title.directive';
+import { InlineButtonComponent } from '../action/inline-button/inline-button.component';
+import { KeyValuePipe } from '@angular/common';
 
 @Component({
-  standalone: false,
-  selector: 'app-bulk',
-  templateUrl: './bulk.component.html',
-  styleUrls: ['./bulk.component.scss'],
-  host: {'class': 'bulk actions'}
+    selector: 'app-bulk',
+    templateUrl: './bulk.component.html',
+    styleUrls: ['./bulk.component.scss'],
+    host: { 'class': 'bulk actions' },
+    imports: [LoadingComponent, RouterLink, InlineTagComponent, ConfirmActionComponent, InlinePluginComponent, TitleDirective, InlineButtonComponent, KeyValuePipe]
 })
 export class BulkComponent implements OnChanges, OnDestroy {
 

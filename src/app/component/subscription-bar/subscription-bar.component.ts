@@ -7,13 +7,16 @@ import { ConfigService } from '../../service/config.service';
 import { EditorService, TagPreview } from '../../service/editor.service';
 import { ModService } from '../../service/mod.service';
 import { Store } from '../../store/store';
+import { MobxAngularModule } from 'mobx-angular';
+import { RouterLink, RouterLinkActive } from '@angular/router';
+import { TitleDirective } from '../../directive/title.directive';
 
 @Component({
-  standalone: false,
-  selector: 'app-subscription-bar',
-  templateUrl: './subscription-bar.component.html',
-  styleUrls: ['./subscription-bar.component.scss'],
-  host: {'class': 'subscription-bar'}
+    selector: 'app-subscription-bar',
+    templateUrl: './subscription-bar.component.html',
+    styleUrls: ['./subscription-bar.component.scss'],
+    host: { 'class': 'subscription-bar' },
+    imports: [MobxAngularModule, RouterLink, RouterLinkActive, TitleDirective]
 })
 export class SubscriptionBarComponent implements OnDestroy {
   private disposers: IReactionDisposer[] = [];

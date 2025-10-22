@@ -11,8 +11,7 @@ describe('JsonComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    declarations: [JsonComponent],
-    imports: [RouterModule.forRoot([])],
+    imports: [RouterModule.forRoot([]), JsonComponent],
     providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
 })
     .compileComponents();

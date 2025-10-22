@@ -6,9 +6,8 @@ import { EditorService, TagPreview } from '../service/editor.service';
 import { Store } from '../store/store';
 
 @Pipe({
-  standalone: false,
-  name: 'tagPreview',
-  pure: true,
+    name: 'tagPreview',
+    pure: true,
 })
 export class TagPreviewPipe implements PipeTransform {
 

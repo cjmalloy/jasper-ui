@@ -9,11 +9,11 @@ describe('LinksFormComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ LinksFormComponent ],
-      imports: [
+    imports: [
         ReactiveFormsModule,
-      ],
-    })
+        LinksFormComponent,
+    ],
+})
     .compileComponents();
   });
 

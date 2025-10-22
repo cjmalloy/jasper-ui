@@ -1,6 +1,6 @@
 import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy } from '@angular/core';
-import { Router } from '@angular/router';
-import { FieldType, FieldTypeConfig, FormlyConfig } from '@ngx-formly/core';
+import { Router, RouterLink } from '@angular/router';
+import { FieldType, FieldTypeConfig, FormlyConfig, FormlyModule } from '@ngx-formly/core';
 import { debounce, defer, delay, uniqBy } from 'lodash-es';
 import { forkJoin, map, Observable, of, Subscription, switchMap } from 'rxjs';
 import { v4 as uuid } from 'uuid';
@@ -13,12 +13,12 @@ import { EditorService } from '../service/editor.service';
 import { Store } from '../store/store';
 import { access, fixClientQuery, getStrictPrefix, localTag, tagOrigin } from '../util/tag';
 import { getErrorMessage } from './errors';
+import { ReactiveFormsModule } from '@angular/forms';
 
 @Component({
-  standalone: false,
-  selector: 'formly-field-query-input',
-  host: {'class': 'field'},
-  styles: `
+    selector: 'formly-field-query-input',
+    host: { 'class': 'field' },
+    styles: `
     .form-array {
       position: relative;
     }
@@ -45,7 +45,7 @@ import { getErrorMessage } from './errors';
       }
     }
   `,
-  template: `
+    template: `
     <div class="form-array skip-margin">
       <input class="preview grow"
              type="text"
@@ -88,7 +88,12 @@ import { getErrorMessage } from './errors';
              [class.is-invalid]="showError">
     </div>
   `,
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [
+        RouterLink,
+        ReactiveFormsModule,
+        FormlyModule,
+    ],
 })
 export class FormlyFieldQueryInput extends FieldType<FieldTypeConfig> implements AfterViewInit, OnDestroy {
 

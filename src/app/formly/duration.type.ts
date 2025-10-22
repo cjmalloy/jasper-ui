@@ -1,14 +1,13 @@
 import { ChangeDetectionStrategy, Component, Directive, ElementRef, forwardRef, Input } from '@angular/core';
-import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
-import { FieldType, FieldTypeConfig, FormlyConfig } from '@ngx-formly/core';
+import { ControlValueAccessor, NG_VALUE_ACCESSOR, ReactiveFormsModule } from '@angular/forms';
+import { FieldType, FieldTypeConfig, FormlyConfig, FormlyModule } from '@ngx-formly/core';
 import { Duration } from 'luxon';
 import { getErrorMessage } from './errors';
 
 @Component({
-  standalone: false,
-  selector: 'formly-field-duration',
-  host: {'class': 'field'},
-  template: `
+    selector: 'formly-field-duration',
+    host: { 'class': 'field' },
+    template: `
     <div class="col">
       <div class="center">{{ formatInterval(model[$any(key)]) }}</div>
       <input [duration]="props.datalist"
@@ -23,7 +22,12 @@ import { getErrorMessage } from './errors';
              [class.is-invalid]="showError">
     </div>
   `,
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [
+        ReactiveFormsModule,
+        forwardRef(() => DurationInputAccessor),
+        FormlyModule,
+    ],
 })
 export class FormlyFieldDuration extends FieldType<FieldTypeConfig> {
 
@@ -46,20 +50,19 @@ export class FormlyFieldDuration extends FieldType<FieldTypeConfig> {
 }
 
 @Directive({
-  standalone: false,
-  selector: '[duration]',
-  providers: [
-    {
-      provide: NG_VALUE_ACCESSOR,
-      useExisting: forwardRef(() => DurationInputAccessor),
-      multi: true
+    selector: '[duration]',
+    providers: [
+        {
+            provide: NG_VALUE_ACCESSOR,
+            useExisting: forwardRef(() => DurationInputAccessor),
+            multi: true
+        },
+    ],
+    host: {
+        '(change)': 'onChange($event.target.value)',
+        '(input)': 'onChange($event.target.value)',
+        '(blur)': 'onTouched()'
     },
-  ],
-  host: {
-    '(change)': 'onChange($event.target.value)',
-    '(input)': 'onChange($event.target.value)',
-    '(blur)': 'onTouched()'
-  },
 })
 export class DurationInputAccessor implements ControlValueAccessor {
   onChange: any;

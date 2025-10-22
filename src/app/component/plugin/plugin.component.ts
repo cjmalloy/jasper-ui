@@ -1,9 +1,9 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostBinding, Input, OnChanges, QueryList, SimpleChanges, ViewChildren } from '@angular/core';
-import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup, ReactiveFormsModule } from '@angular/forms';
 import { catchError, of, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
-import { pluginForm } from '../../form/plugin/plugin.component';
+import { pluginForm, PluginFormComponent } from '../../form/plugin/plugin.component';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Plugin, writePlugin } from '../../model/plugin';
 import { isDeletorTag, tagDeleteNotice } from "../../mods/delete";
@@ -15,12 +15,15 @@ import { downloadPluginExport, downloadTag } from '../../util/download';
 import { scrollToFirstInvalid } from '../../util/form';
 import { printError } from '../../util/http';
 import { ActionComponent } from '../action/action.component';
+import { RouterLink } from '@angular/router';
+import { ConfirmActionComponent } from '../action/confirm-action/confirm-action.component';
+import { InlineButtonComponent } from '../action/inline-button/inline-button.component';
 
 @Component({
-  standalone: false,
-  selector: 'app-plugin',
-  templateUrl: './plugin.component.html',
-  styleUrls: ['./plugin.component.scss']
+    selector: 'app-plugin',
+    templateUrl: './plugin.component.html',
+    styleUrls: ['./plugin.component.scss'],
+    imports: [RouterLink, ConfirmActionComponent, InlineButtonComponent, ReactiveFormsModule, PluginFormComponent]
 })
 export class PluginComponent implements OnChanges, HasChanges {
   css = 'plugin list-item';

@@ -11,8 +11,7 @@ describe('SidebarComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    declarations: [SidebarComponent],
-    imports: [RouterModule.forRoot([])],
+    imports: [RouterModule.forRoot([]), SidebarComponent],
     providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
 })
     .compileComponents();

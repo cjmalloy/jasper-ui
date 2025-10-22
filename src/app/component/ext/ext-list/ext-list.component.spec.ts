@@ -8,8 +8,8 @@ describe('ExtListComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ ExtListComponent ]
-    })
+    imports: [ExtListComponent]
+})
     .compileComponents();
 
     fixture = TestBed.createComponent(ExtListComponent);
