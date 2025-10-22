@@ -1,3 +1,4 @@
+/// <reference types="vitest/globals" />
 import { TagPreviewPipe } from './tag-preview.pipe';
 
 describe('TagPreviewPipe', () => {

@@ -1,3 +1,4 @@
+/// <reference types="vitest/globals" />
 import { TitleDirective } from './title.directive';
 
 describe('TitleDirective', () => {
