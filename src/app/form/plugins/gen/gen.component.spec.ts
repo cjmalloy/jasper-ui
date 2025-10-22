@@ -3,6 +3,7 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule, UntypedFormGroup } from '@angular/forms';
 import { RouterModule } from '@angular/router';
+import { FormlyModule } from '@ngx-formly/core';
 
 import { GenFormComponent } from './gen.component';
 
@@ -15,6 +16,7 @@ describe('GenComponent', () => {
     imports: [
         RouterModule.forRoot([]),
         ReactiveFormsModule,
+        FormlyModule.forRoot(),
         GenFormComponent
     ],
     providers: [
