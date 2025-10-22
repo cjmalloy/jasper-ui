@@ -2,6 +2,7 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
+import { FormlyModule } from '@ngx-formly/core';
 
 import { UserPage } from './user.component';
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
@@ -12,8 +13,12 @@ describe('CreateUserPage', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    imports: [RouterModule.forRoot([]),
-        ReactiveFormsModule, UserPage],
+    imports: [
+        RouterModule.forRoot([]),
+        ReactiveFormsModule,
+        FormlyModule.forRoot(),
+        UserPage
+    ],
     providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
 })
     .compileComponents();
