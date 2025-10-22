@@ -12,9 +12,8 @@ describe('ExtFormComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    declarations: [ExtFormComponent],
     imports: [RouterModule.forRoot([]),
-        ReactiveFormsModule],
+        ReactiveFormsModule, ExtFormComponent],
     providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
 })
     .compileComponents();

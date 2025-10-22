@@ -11,8 +11,7 @@ describe('CommentComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    declarations: [CommentComponent],
-    imports: [RouterModule.forRoot([])],
+    imports: [RouterModule.forRoot([]), CommentComponent],
     providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
 })
     .compileComponents();

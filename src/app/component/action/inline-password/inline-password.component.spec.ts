@@ -8,8 +8,8 @@ describe('InlinePasswordComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      declarations: [InlinePasswordComponent]
-    });
+    imports: [InlinePasswordComponent]
+});
     fixture = TestBed.createComponent(InlinePasswordComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();

@@ -12,9 +12,8 @@ describe('PluginComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    declarations: [PluginComponent],
     imports: [RouterModule.forRoot([]),
-        ReactiveFormsModule],
+        ReactiveFormsModule, PluginComponent],
     providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
 })
     .compileComponents();

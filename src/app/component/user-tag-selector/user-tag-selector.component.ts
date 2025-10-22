@@ -6,12 +6,13 @@ import { ExtService } from '../../service/api/ext.service';
 import { ConfigService } from '../../service/config.service';
 import { EditorService } from '../../service/editor.service';
 import { Store } from '../../store/store';
+import { ReactiveFormsModule } from '@angular/forms';
 
 @Component({
-  standalone: false,
-  selector: 'app-user-tag-selector',
-  templateUrl: './user-tag-selector.component.html',
-  styleUrls: ['./user-tag-selector.component.scss']
+    selector: 'app-user-tag-selector',
+    templateUrl: './user-tag-selector.component.html',
+    styleUrls: ['./user-tag-selector.component.scss'],
+    imports: [ReactiveFormsModule]
 })
 export class UserTagSelectorComponent implements OnDestroy {
 

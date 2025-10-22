@@ -31,13 +31,19 @@ import { getScheme } from '../../../util/http';
 import { Point, Rect } from '../../../util/math';
 import { capturesAny, hasTag } from '../../../util/tag';
 import { RefListComponent } from '../../ref/ref-list/ref-list.component';
+import { MobxAngularModule } from 'mobx-angular';
+import { LoadingComponent } from '../../loading/loading.component';
 
 @Component({
-  standalone: false,
-  selector: 'app-force-directed',
-  templateUrl: './force-directed.component.html',
-  styleUrls: ['./force-directed.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: 'app-force-directed',
+    templateUrl: './force-directed.component.html',
+    styleUrls: ['./force-directed.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [
+        MobxAngularModule,
+        LoadingComponent,
+        RefListComponent,
+    ],
 })
 export class ForceDirectedComponent implements AfterViewInit, OnDestroy, HasChanges {
   private disposers: IReactionDisposer[] = [];

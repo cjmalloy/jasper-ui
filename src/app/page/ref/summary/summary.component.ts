@@ -19,12 +19,16 @@ import { getTitle } from '../../../util/format';
 import { memo, MemoCache } from '../../../util/memo';
 import { getArgs } from '../../../util/query';
 import { hasTag, removeTag, top, updateMetadata } from '../../../util/tag';
+import { MobxAngularModule } from 'mobx-angular';
+import { RouterLink } from '@angular/router';
+import { ThreadSummaryComponent } from '../../../component/comment/thread-summary/thread-summary.component';
+import { LoadingComponent } from '../../../component/loading/loading.component';
 
 @Component({
-  standalone: false,
-  selector: 'app-ref-summary',
-  templateUrl: './summary.component.html',
-  styleUrls: ['./summary.component.scss']
+    selector: 'app-ref-summary',
+    templateUrl: './summary.component.html',
+    styleUrls: ['./summary.component.scss'],
+    imports: [MobxAngularModule, CommentReplyComponent, RouterLink, ThreadSummaryComponent, RefListComponent, LoadingComponent]
 })
 export class RefSummaryComponent implements OnInit, OnDestroy, HasChanges {
   private disposers: IReactionDisposer[] = [];

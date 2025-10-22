@@ -12,9 +12,8 @@ describe('UserComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    declarations: [UserComponent],
     imports: [RouterModule.forRoot([]),
-        ReactiveFormsModule],
+        ReactiveFormsModule, UserComponent],
     providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
 })
     .compileComponents();

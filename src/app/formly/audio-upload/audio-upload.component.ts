@@ -8,11 +8,10 @@ import { Saving } from '../../store/submit';
 import { readFileAsDataURL } from '../../util/async';
 
 @Component({
-  standalone: false,
-  selector: 'app-audio-upload',
-  templateUrl: './audio-upload.component.html',
-  styleUrls: ['./audio-upload.component.scss'],
-  host: {'class': 'form-array'}
+    selector: 'app-audio-upload',
+    templateUrl: './audio-upload.component.html',
+    styleUrls: ['./audio-upload.component.scss'],
+    host: { 'class': 'form-array' }
 })
 export class AudioUploadComponent {
 

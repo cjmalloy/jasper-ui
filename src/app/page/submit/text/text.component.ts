@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { AfterViewInit, Component, ElementRef, OnChanges, OnDestroy, SimpleChanges, ViewChild } from '@angular/core';
-import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
+import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { defer, some, uniq, without } from 'lodash-es';
 import { DateTime } from 'luxon';
@@ -29,13 +29,22 @@ import { scrollToFirstInvalid } from '../../../util/form';
 import { printError } from '../../../util/http';
 import { memo, MemoCache } from '../../../util/memo';
 import { hasPrefix, hasTag } from '../../../util/tag';
+import { MobxAngularModule } from 'mobx-angular';
+import { LimitWidthDirective } from '../../../directive/limit-width.directive';
+import { NavComponent } from '../../../component/nav/nav.component';
+import { LoadingComponent } from '../../../component/loading/loading.component';
+import { SelectPluginComponent } from '../../../component/select-plugin/select-plugin.component';
+import { MonacoEditorModule } from 'ngx-monaco-editor';
+import { ResizeHandleDirective } from '../../../directive/resize-handle.directive';
+import { FillWidthDirective } from '../../../directive/fill-width.directive';
+import { EditorComponent } from '../../../form/editor/editor.component';
 
 @Component({
-  standalone: false,
-  selector: 'app-submit-text',
-  templateUrl: './text.component.html',
-  styleUrls: ['./text.component.scss'],
-  host: {'class': 'full-page-form'}
+    selector: 'app-submit-text',
+    templateUrl: './text.component.html',
+    styleUrls: ['./text.component.scss'],
+    host: { 'class': 'full-page-form' },
+    imports: [MobxAngularModule, ReactiveFormsModule, LimitWidthDirective, NavComponent, LoadingComponent, SelectPluginComponent, PluginsFormComponent, MonacoEditorModule, ResizeHandleDirective, FillWidthDirective, EditorComponent, TagsFormComponent, RefFormComponent, FormsModule]
 })
 export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasChanges {
   private disposers: IReactionDisposer[] = [];

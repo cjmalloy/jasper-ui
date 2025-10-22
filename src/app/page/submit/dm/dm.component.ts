@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { AfterViewInit, Component, ElementRef, OnChanges, OnDestroy, SimpleChanges, ViewChild } from '@angular/core';
-import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { debounce, defer, some, uniq, without } from 'lodash-es';
 import { DateTime } from 'luxon';
@@ -8,7 +8,7 @@ import { autorun, IReactionDisposer } from 'mobx';
 import { catchError, forkJoin, map, Observable, of, Subscription, switchMap, throwError } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { LinksFormComponent } from '../../../form/links/links.component';
-import { writePlugins } from '../../../form/plugins/plugins.component';
+import { writePlugins, PluginsFormComponent } from '../../../form/plugins/plugins.component';
 import { TagsFormComponent } from '../../../form/tags/tags.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Plugin } from '../../../model/plugin';
@@ -26,13 +26,22 @@ import { QUALIFIED_TAGS_REGEX } from '../../../util/format';
 import { printError } from '../../../util/http';
 import { memo, MemoCache } from '../../../util/memo';
 import { hasPrefix, hasTag } from '../../../util/tag';
+import { MobxAngularModule } from 'mobx-angular';
+import { LimitWidthDirective } from '../../../directive/limit-width.directive';
+import { AutofocusDirective } from '../../../directive/autofocus.directive';
+import { SelectPluginComponent } from '../../../component/select-plugin/select-plugin.component';
+import { MonacoEditorModule } from 'ngx-monaco-editor';
+import { ResizeHandleDirective } from '../../../directive/resize-handle.directive';
+import { FillWidthDirective } from '../../../directive/fill-width.directive';
+import { EditorComponent } from '../../../form/editor/editor.component';
+import { LoadingComponent } from '../../../component/loading/loading.component';
 
 @Component({
-  standalone: false,
-  selector: 'app-submit-dm',
-  templateUrl: './dm.component.html',
-  styleUrls: ['./dm.component.scss'],
-  host: {'class': 'full-page-form'}
+    selector: 'app-submit-dm',
+    templateUrl: './dm.component.html',
+    styleUrls: ['./dm.component.scss'],
+    host: { 'class': 'full-page-form' },
+    imports: [MobxAngularModule, ReactiveFormsModule, LimitWidthDirective, AutofocusDirective, SelectPluginComponent, PluginsFormComponent, MonacoEditorModule, ResizeHandleDirective, FillWidthDirective, EditorComponent, TagsFormComponent, LoadingComponent]
 })
 export class SubmitDmPage implements AfterViewInit, OnChanges, OnDestroy, HasChanges {
   private disposers: IReactionDisposer[] = [];

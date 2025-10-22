@@ -12,9 +12,8 @@ describe('ViewerComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    declarations: [ViewerComponent],
     imports: [RouterModule.forRoot([]),
-        MarkdownModule.forRoot()],
+        MarkdownModule.forRoot(), ViewerComponent],
     providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
 })
     .compileComponents();

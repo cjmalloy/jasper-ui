@@ -1,13 +1,14 @@
 import { Component, Input } from '@angular/core';
 import { catchError, Observable, of } from 'rxjs';
 import { ActionComponent } from '../action.component';
+import { LoadingComponent } from '../../loading/loading.component';
 
 @Component({
-  standalone: false,
-  selector: 'app-confirm-action',
-  templateUrl: './confirm-action.component.html',
-  styleUrls: ['./confirm-action.component.scss'],
-  host: {'class': 'action'}
+    selector: 'app-confirm-action',
+    templateUrl: './confirm-action.component.html',
+    styleUrls: ['./confirm-action.component.scss'],
+    host: { 'class': 'action' },
+    imports: [LoadingComponent]
 })
 export class ConfirmActionComponent extends ActionComponent {
 

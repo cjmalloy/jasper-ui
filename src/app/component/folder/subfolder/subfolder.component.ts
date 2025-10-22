@@ -5,13 +5,14 @@ import { Action, Icon } from '../../../model/tag';
 import { AdminService } from '../../../service/admin.service';
 import { QueryStore } from '../../../store/query';
 import { Store } from '../../../store/store';
+import { RouterLink } from '@angular/router';
 
 @Component({
-  standalone: false,
-  selector: 'app-subfolder',
-  templateUrl: './subfolder.component.html',
-  styleUrls: ['./subfolder.component.scss'],
-  host: {'class': 'subfolder'}
+    selector: 'app-subfolder',
+    templateUrl: './subfolder.component.html',
+    styleUrls: ['./subfolder.component.scss'],
+    host: { 'class': 'subfolder' },
+    imports: [RouterLink]
 })
 export class SubfolderComponent {
   @HostBinding('attr.tabindex') tabIndex = 0;

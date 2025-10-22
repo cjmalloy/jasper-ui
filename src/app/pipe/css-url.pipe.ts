@@ -1,9 +1,8 @@
 import { Pipe, PipeTransform } from '@angular/core';
 
 @Pipe({
-  standalone: false,
-  name: 'cssUrl',
-  pure: true
+    name: 'cssUrl',
+    pure: true
 })
 export class CssUrlPipe implements PipeTransform {
 

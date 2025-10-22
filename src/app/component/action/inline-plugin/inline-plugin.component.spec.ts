@@ -11,15 +11,15 @@ describe('InlinePluginComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      declarations: [InlinePluginComponent],
-      imports: [
+    imports: [
         RouterModule.forRoot([]),
-      ],
-      providers: [
+        InlinePluginComponent,
+    ],
+    providers: [
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting()
-      ],
-    });
+    ],
+});
     fixture = TestBed.createComponent(InlinePluginComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();

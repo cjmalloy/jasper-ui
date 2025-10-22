@@ -12,8 +12,7 @@ describe('CommentReplyComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    declarations: [CommentReplyComponent],
-    imports: [RouterModule.forRoot([])],
+    imports: [RouterModule.forRoot([]), CommentReplyComponent],
     providers: [
         { provide: AdminService, useValue: { getPlugin: () => null } },
         provideHttpClient(withInterceptorsFromDi()),

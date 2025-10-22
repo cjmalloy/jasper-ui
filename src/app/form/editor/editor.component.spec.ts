@@ -14,8 +14,7 @@ describe('EditorComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    declarations: [EditorComponent],
-    imports: [RouterModule.forRoot([])],
+    imports: [RouterModule.forRoot([]), EditorComponent],
     providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()],
     schemas: [NO_ERRORS_SCHEMA]
 })
@@ -48,9 +47,9 @@ describe('EditorComponent', () => {
   });
 
   it('should cancel individual upload correctly', () => {
-    const mockSubscription = jasmine.createSpyObj('Subscription', ['unsubscribe']);
+    const mockSubscription = { unsubscribe: vi.fn() };
     component.uploads = [
-      { id: '1', name: 'test.pdf', progress: 50, subscription: mockSubscription },
+      { id: '1', name: 'test.pdf', progress: 50, subscription: mockSubscription as any },
       { id: '2', name: 'test2.jpg', progress: 75 }
     ];
 
@@ -62,11 +61,11 @@ describe('EditorComponent', () => {
   });
 
   it('should cancel all uploads correctly', () => {
-    const mockSubscription1 = jasmine.createSpyObj('Subscription', ['unsubscribe']);
-    const mockSubscription2 = jasmine.createSpyObj('Subscription', ['unsubscribe']);
+    const mockSubscription1 = { unsubscribe: vi.fn() };
+    const mockSubscription2 = { unsubscribe: vi.fn() };
     component.uploads = [
-      { id: '1', name: 'test.pdf', progress: 50, subscription: mockSubscription1 },
-      { id: '2', name: 'test2.jpg', progress: 75, subscription: mockSubscription2 }
+      { id: '1', name: 'test.pdf', progress: 50, subscription: mockSubscription1 as any },
+      { id: '2', name: 'test2.jpg', progress: 75, subscription: mockSubscription2 as any }
     ];
 
     component.cancelAllUploads();
@@ -84,7 +83,7 @@ describe('EditorComponent', () => {
     ];
 
     // Mock the upload$ method to avoid real HTTP requests
-    spyOn(component, 'upload$').and.returnValue(of(null));
+    vi.spyOn(component, 'upload$').mockReturnValue(of(null));
 
     // Mock file list for new upload
     const file1 = new File(['test'], 'new1.txt', { type: 'text/plain' });
@@ -109,7 +108,7 @@ describe('EditorComponent', () => {
     ];
 
     // Mock the upload$ method to avoid real HTTP requests
-    spyOn(component, 'upload$').and.returnValue(of(null));
+    vi.spyOn(component, 'upload$').mockReturnValue(of(null));
 
     // Mock file list for new upload
     const file = new File(['test'], 'new.txt', { type: 'text/plain' });
@@ -124,7 +123,7 @@ describe('EditorComponent', () => {
 
   it('should attach all URLs at once when all uploads complete', () => {
     // Mock the attachUrls method to spy on its calls
-    spyOn(component, 'attachUrls');
+    vi.spyOn(component, 'attachUrls');
     
     // Mock refs to return from upload$
     const ref1 = { url: 'url1', tags: [] } as any;

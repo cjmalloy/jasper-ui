@@ -11,8 +11,7 @@ describe('LoginPopupComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    declarations: [LoginPopupComponent],
-    imports: [RouterModule.forRoot([])],
+    imports: [RouterModule.forRoot([]), LoginPopupComponent],
     providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
 })
     .compileComponents();

@@ -11,8 +11,7 @@ describe('InboxPage', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    declarations: [InboxPage],
-    imports: [RouterModule.forRoot([])],
+    imports: [RouterModule.forRoot([]), InboxPage],
     providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
 })
     .compileComponents();

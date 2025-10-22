@@ -10,13 +10,15 @@ import { Store } from '../../../store/store';
 import { getIfNew, getMailboxes } from '../../../util/editor';
 import { printError } from '../../../util/http';
 import { OpPatch } from '../../../util/json-patch';
+import { EditorComponent } from '../../../form/editor/editor.component';
+import { LoadingComponent } from '../../loading/loading.component';
 
 @Component({
-  standalone: false,
-  selector: 'app-comment-edit',
-  templateUrl: './comment-edit.component.html',
-  styleUrls: ['./comment-edit.component.scss'],
-  host: {'class': 'comment-edit'}
+    selector: 'app-comment-edit',
+    templateUrl: './comment-edit.component.html',
+    styleUrls: ['./comment-edit.component.scss'],
+    host: { 'class': 'comment-edit' },
+    imports: [EditorComponent, LoadingComponent]
 })
 export class CommentEditComponent implements AfterViewInit, HasChanges, OnDestroy {
   private destroy$ = new Subject<void>();

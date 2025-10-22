@@ -11,8 +11,7 @@ describe('SelectTemplateComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    declarations: [SelectTemplateComponent],
-    imports: [RouterModule.forRoot([])],
+    imports: [RouterModule.forRoot([]), SelectTemplateComponent],
     providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
 })
     .compileComponents();

@@ -11,8 +11,7 @@ describe('PlaylistComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-    declarations: [PlaylistComponent],
-    imports: [RouterModule.forRoot([])],
+    imports: [RouterModule.forRoot([]), PlaylistComponent],
     providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
 });
     fixture = TestBed.createComponent(PlaylistComponent);

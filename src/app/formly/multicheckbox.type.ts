@@ -1,10 +1,11 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { FieldType, FieldTypeConfig } from '@ngx-formly/core';
+import { FieldType, FieldTypeConfig, FormlyModule } from '@ngx-formly/core';
+import { NgFor, AsyncPipe } from '@angular/common';
+import { FormlySelectModule } from '@ngx-formly/core/select';
 
 @Component({
-  standalone: false,
-  selector: 'formly-field-multicheckbox',
-  template: `
+    selector: 'formly-field-multicheckbox',
+    template: `
     <ng-container *ngFor="let option of props.options | formlySelectOptions: field | async; let i = index">
       <input type="checkbox"
              [id]="id + '_' + i"
@@ -16,7 +17,13 @@ import { FieldType, FieldTypeConfig } from '@ngx-formly/core';
       <label [for]="id + '_' + i">{{ option.label }}</label>
     </ng-container>
   `,
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [
+        NgFor,
+        FormlyModule,
+        AsyncPipe,
+        FormlySelectModule,
+    ],
 })
 export class FormlyFieldMultiCheckbox extends FieldType<FieldTypeConfig> {
   override defaultOptions = {

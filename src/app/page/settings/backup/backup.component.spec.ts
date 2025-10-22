@@ -11,8 +11,7 @@ describe('SettingsBackupPage', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    declarations: [SettingsBackupPage],
-    imports: [RouterModule.forRoot([])],
+    imports: [RouterModule.forRoot([]), SettingsBackupPage],
     providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
 })
     .compileComponents();

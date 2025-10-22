@@ -6,13 +6,15 @@ import { filter } from 'rxjs';
 import { AdminService } from '../../service/admin.service';
 import { Store } from '../../store/store';
 import { View } from '../../store/view';
+import { MobxAngularModule } from 'mobx-angular';
+import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 
 @Component({
-  standalone: false,
-  selector: 'app-search',
-  templateUrl: './search.component.html',
-  styleUrls: ['./search.component.scss'],
-  host: {'class': 'search form-group'}
+    selector: 'app-search',
+    templateUrl: './search.component.html',
+    styleUrls: ['./search.component.scss'],
+    host: { 'class': 'search form-group' },
+    imports: [MobxAngularModule, ReactiveFormsModule, FormsModule]
 })
 export class SearchComponent implements OnDestroy {
 

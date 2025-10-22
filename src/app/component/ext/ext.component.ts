@@ -9,7 +9,7 @@ import {
   ViewChild,
   ViewChildren
 } from '@angular/core';
-import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { isObject } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { toJS } from 'mobx';
@@ -34,13 +34,17 @@ import { printError } from '../../util/http';
 import { memo, MemoCache } from '../../util/memo';
 import { hasPrefix, parentTag } from '../../util/tag';
 import { ActionComponent } from '../action/action.component';
+import { RouterLink } from '@angular/router';
+import { TitleDirective } from '../../directive/title.directive';
+import { NgIf, AsyncPipe } from '@angular/common';
+import { ConfirmActionComponent } from '../action/confirm-action/confirm-action.component';
 
 @Component({
-  standalone: false,
-  selector: 'app-ext',
-  templateUrl: './ext.component.html',
-  styleUrls: ['./ext.component.scss'],
-  host: {'class': 'ext list-item'}
+    selector: 'app-ext',
+    templateUrl: './ext.component.html',
+    styleUrls: ['./ext.component.scss'],
+    host: { 'class': 'ext list-item' },
+    imports: [RouterLink, TitleDirective, NgIf, ConfirmActionComponent, ReactiveFormsModule, ExtFormComponent, FormsModule, AsyncPipe]
 })
 export class ExtComponent implements OnChanges, HasChanges {
   @HostBinding('attr.tabindex') tabIndex = 0;

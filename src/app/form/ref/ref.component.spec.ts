@@ -13,11 +13,8 @@ describe('RefFormComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    declarations: [
-        RefFormComponent,
-    ],
     imports: [RouterModule.forRoot([]),
-        ReactiveFormsModule],
+        ReactiveFormsModule, RefFormComponent],
     providers: [
         PluginsFormComponent,
         provideHttpClient(withInterceptorsFromDi()),

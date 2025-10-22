@@ -11,13 +11,12 @@ describe('KanbanComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [KanbanComponent],
-      imports: [RouterModule.forRoot([])],
-      providers: [
+    imports: [RouterModule.forRoot([]), KanbanComponent],
+    providers: [
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting()
-      ],
-    }).compileComponents();
+    ],
+}).compileComponents();
   });
 
   beforeEach(() => {
@@ -42,7 +41,7 @@ describe('KanbanComponent', () => {
       const mockColumn2 = { saveChanges: () => true } as any;
 
       component.list = {
-        find: jasmine.createSpy('find').and.returnValue(undefined) // No column returns false
+        find: vi.fn().mockReturnValue(undefined) // No column returns false
       } as any;
 
       expect(component.saveChanges()).toBe(true);
@@ -54,7 +53,7 @@ describe('KanbanComponent', () => {
       const mockColumnPreventing = { saveChanges: () => false } as any;
 
       component.list = {
-        find: jasmine.createSpy('find').and.returnValue(mockColumnPreventing) // One column returns false
+        find: vi.fn().mockReturnValue(mockColumnPreventing) // One column returns false
       } as any;
 
       expect(component.saveChanges()).toBe(false);

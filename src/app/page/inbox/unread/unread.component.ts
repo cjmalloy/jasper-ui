@@ -9,13 +9,15 @@ import { AccountService } from '../../../service/account.service';
 import { ModService } from '../../../service/mod.service';
 import { QueryStore } from '../../../store/query';
 import { Store } from '../../../store/store';
+import { MobxAngularModule } from 'mobx-angular';
+import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
 
 @Component({
-  standalone: false,
-  selector: 'app-unread',
-  templateUrl: './unread.component.html',
-  styleUrls: ['./unread.component.scss'],
-  host: {'class': 'unread'}
+    selector: 'app-unread',
+    templateUrl: './unread.component.html',
+    styleUrls: ['./unread.component.scss'],
+    host: { 'class': 'unread' },
+    imports: [MobxAngularModule, RefListComponent]
 })
 export class InboxUnreadPage implements OnInit, OnDestroy {
 

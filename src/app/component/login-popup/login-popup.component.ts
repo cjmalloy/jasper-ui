@@ -2,13 +2,14 @@ import { Component } from '@angular/core';
 import { runInAction } from 'mobx';
 import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
+import { MobxAngularModule } from 'mobx-angular';
 
 @Component({
-  standalone: false,
-  selector: 'app-login-popup',
-  templateUrl: './login-popup.component.html',
-  styleUrls: ['./login-popup.component.scss'],
-  host: {'class': 'login-popup'}
+    selector: 'app-login-popup',
+    templateUrl: './login-popup.component.html',
+    styleUrls: ['./login-popup.component.scss'],
+    host: { 'class': 'login-popup' },
+    imports: [MobxAngularModule]
 })
 export class LoginPopupComponent {
 

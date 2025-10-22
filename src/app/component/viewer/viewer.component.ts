@@ -36,14 +36,27 @@ import { getExtension } from '../../util/http';
 import { memo, MemoCache } from '../../util/memo';
 import { UrlFilter } from '../../util/query';
 import { hasPrefix, hasTag } from '../../util/tag';
+import { RefComponent } from '../ref/ref.component';
+import { PlaylistComponent } from '../playlist/playlist.component';
+import { LensComponent } from '../lens/lens.component';
+import { ImageDirective } from '../../directive/image.directive';
+import { ResizeDirective } from '../../directive/resize.directive';
+import { QrComponent } from '../qr/qr.component';
+import { TodoComponent } from '../todo/todo.component';
+import { CdkDropListGroup } from '@angular/cdk/drag-drop';
+import { BackgammonComponent } from '../backgammon/backgammon.component';
+import { ChessComponent } from '../chess/chess.component';
+import { MdComponent } from '../md/md.component';
+import { ModComponent } from '../mod/mod.component';
+import { SafePipe } from '../../pipe/safe.pipe';
 
 export const IFRAME_SANDBOX = 'allow-scripts allow-forms allow-modals allow-orientation-lock allow-pointer-lock allow-popups allow-presentation allow-top-navigation-by-user-activation';
 
 @Component({
-  standalone: false,
-  selector: 'app-viewer',
-  templateUrl: './viewer.component.html',
-  styleUrls: ['./viewer.component.scss']
+    selector: 'app-viewer',
+    templateUrl: './viewer.component.html',
+    styleUrls: ['./viewer.component.scss'],
+    imports: [RefComponent, PlaylistComponent, LensComponent, ImageDirective, ResizeDirective, QrComponent, TodoComponent, CdkDropListGroup, BackgammonComponent, ChessComponent, MdComponent, ModComponent, SafePipe]
 })
 export class ViewerComponent implements OnChanges, AfterViewInit {
   @HostBinding('class') css = 'embed print-images';

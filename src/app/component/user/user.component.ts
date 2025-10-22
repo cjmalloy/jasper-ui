@@ -9,7 +9,7 @@ import {
   ViewChild,
   ViewChildren
 } from '@angular/core';
-import { FormBuilder, UntypedFormGroup } from '@angular/forms';
+import { FormBuilder, UntypedFormGroup, ReactiveFormsModule } from '@angular/forms';
 import { defer, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { catchError, forkJoin, of, switchMap, throwError } from 'rxjs';
@@ -33,13 +33,19 @@ import { printError } from '../../util/http';
 import { memo, MemoCache } from '../../util/memo';
 import { localTag, tagOrigin } from '../../util/tag';
 import { ActionComponent } from '../action/action.component';
+import { RouterLink } from '@angular/router';
+import { TitleDirective } from '../../directive/title.directive';
+import { ConfirmActionComponent } from '../action/confirm-action/confirm-action.component';
+import { InlineButtonComponent } from '../action/inline-button/inline-button.component';
+import { InlinePasswordComponent } from '../action/inline-password/inline-password.component';
+import { InlineSelectComponent } from '../action/inline-select/inline-select.component';
 
 @Component({
-  standalone: false,
-  selector: 'app-user',
-  templateUrl: './user.component.html',
-  styleUrls: ['./user.component.scss'],
-  host: {'class': 'profile list-item'}
+    selector: 'app-user',
+    templateUrl: './user.component.html',
+    styleUrls: ['./user.component.scss'],
+    host: { 'class': 'profile list-item' },
+    imports: [RouterLink, TitleDirective, ConfirmActionComponent, InlineButtonComponent, InlinePasswordComponent, InlineSelectComponent, ReactiveFormsModule, UserFormComponent]
 })
 export class UserComponent implements OnChanges, HasChanges {
   @HostBinding('attr.tabindex') tabIndex = 0;

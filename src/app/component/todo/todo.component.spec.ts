@@ -12,8 +12,7 @@ describe('TodoComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-    declarations: [TodoComponent],
-    imports: [RouterModule.forRoot([])],
+    imports: [RouterModule.forRoot([]), TodoComponent],
     providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
 });
     fixture = TestBed.createComponent(TodoComponent);

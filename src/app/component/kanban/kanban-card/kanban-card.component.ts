@@ -37,13 +37,22 @@ import { getTitle, hasComment } from '../../../util/format';
 import { printError } from '../../../util/http';
 import { memo, MemoCache } from '../../../util/memo';
 import { expandedTagsInclude, hasTag, repost } from '../../../util/tag';
+import { LoadingComponent } from '../../loading/loading.component';
+import { RouterLink } from '@angular/router';
+import { CdkDropListGroup } from '@angular/cdk/drag-drop';
+import { ChessComponent } from '../../chess/chess.component';
+import { TodoComponent } from '../../todo/todo.component';
+import { MdComponent } from '../../md/md.component';
+import { AsyncPipe } from '@angular/common';
+import { ThumbnailPipe } from '../../../pipe/thumbnail.pipe';
+import { CssUrlPipe } from '../../../pipe/css-url.pipe';
 
 @Component({
-  standalone: false,
-  selector: 'app-kanban-card',
-  templateUrl: './kanban-card.component.html',
-  styleUrls: ['./kanban-card.component.scss'],
-  host: {'class': 'kanban-card'}
+    selector: 'app-kanban-card',
+    templateUrl: './kanban-card.component.html',
+    styleUrls: ['./kanban-card.component.scss'],
+    host: { 'class': 'kanban-card' },
+    imports: [LoadingComponent, RouterLink, CdkDropListGroup, ChessComponent, TodoComponent, MdComponent, AsyncPipe, ThumbnailPipe, CssUrlPipe]
 })
 export class KanbanCardComponent implements OnChanges, AfterViewInit, OnDestroy {
   private destroy$ = new Subject<void>();

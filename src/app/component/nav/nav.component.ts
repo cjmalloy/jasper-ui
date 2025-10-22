@@ -8,12 +8,13 @@ import { EditorService } from '../../service/editor.service';
 import { VisibilityService } from '../../service/visibility.service';
 import { getPath, parseParams } from '../../util/http';
 import { hasPrefix } from '../../util/tag';
+import { RouterLink } from '@angular/router';
 
 @Component({
-  standalone: false,
-  selector: 'app-nav',
-  templateUrl: './nav.component.html',
-  styleUrls: ['./nav.component.scss']
+    selector: 'app-nav',
+    templateUrl: './nav.component.html',
+    styleUrls: ['./nav.component.scss'],
+    imports: [RouterLink]
 })
 export class NavComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();

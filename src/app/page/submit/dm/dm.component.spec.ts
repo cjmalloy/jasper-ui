@@ -12,9 +12,8 @@ describe('SubmitDmPage', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    declarations: [SubmitDmPage],
     imports: [ReactiveFormsModule,
-        RouterModule.forRoot([])],
+        RouterModule.forRoot([]), SubmitDmPage],
     providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
 })
     .compileComponents();

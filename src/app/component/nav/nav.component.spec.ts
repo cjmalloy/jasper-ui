@@ -11,8 +11,7 @@ describe('NavComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-    declarations: [NavComponent],
-    imports: [RouterModule.forRoot([])],
+    imports: [RouterModule.forRoot([]), NavComponent],
     providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
 });
     fixture = TestBed.createComponent(NavComponent);

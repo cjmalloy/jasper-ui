@@ -8,8 +8,8 @@ describe('QrComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ QrComponent ]
-    })
+    imports: [QrComponent]
+})
     .compileComponents();
 
     fixture = TestBed.createComponent(QrComponent);

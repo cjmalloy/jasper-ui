@@ -12,9 +12,8 @@ describe('ForceDirectedComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    declarations: [ForceDirectedComponent],
     imports: [RouterModule.forRoot([]),
-        OverlayModule],
+        OverlayModule, ForceDirectedComponent],
     providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
 })
     .compileComponents();

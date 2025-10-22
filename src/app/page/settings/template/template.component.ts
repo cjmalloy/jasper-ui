@@ -15,10 +15,10 @@ import { getTagFilter } from '../../../util/query';
 import { getModels, getZipOrTextFile } from '../../../util/zip';
 
 @Component({
-  standalone: false,
-  selector: 'app-settings-template-page',
-  templateUrl: './template.component.html',
-  styleUrls: ['./template.component.scss'],
+    selector: 'app-settings-template-page',
+    templateUrl: './template.component.html',
+    styleUrls: ['./template.component.scss'],
+    imports: [TemplateListComponent],
 })
 export class SettingsTemplatePage implements OnInit, OnDestroy, HasChanges {
 

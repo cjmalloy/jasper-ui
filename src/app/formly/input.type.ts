@@ -1,15 +1,20 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component } from '@angular/core';
-import { FieldType, FieldTypeConfig, FormlyConfig } from '@ngx-formly/core';
+import { FieldType, FieldTypeConfig, FormlyConfig, FormlyModule } from '@ngx-formly/core';
 import { isString } from 'lodash-es';
 import { AdminService } from '../service/admin.service';
 import { Saving } from '../store/submit';
 import { getErrorMessage } from './errors';
+import { ReactiveFormsModule } from '@angular/forms';
+import { QrScannerComponent } from './qr-scanner/qr-scanner.component';
+import { PdfUploadComponent } from './pdf-upload/pdf-upload.component';
+import { AudioUploadComponent } from './audio-upload/audio-upload.component';
+import { VideoUploadComponent } from './video-upload/video-upload.component';
+import { ImageUploadComponent } from './image-upload/image-upload.component';
 
 @Component({
-  standalone: false,
-  selector: 'formly-field-input',
-  host: {'class': 'field'},
-  template: `
+    selector: 'formly-field-input',
+    host: { 'class': 'field' },
+    template: `
     <div class="form-array">
       @if (uploading) {
         <progress class="grow" max="100" [value]="progress"></progress>
@@ -39,7 +44,16 @@ import { getErrorMessage } from './errors';
       }
     </div>
   `,
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    imports: [
+        ReactiveFormsModule,
+        FormlyModule,
+        QrScannerComponent,
+        PdfUploadComponent,
+        AudioUploadComponent,
+        VideoUploadComponent,
+        ImageUploadComponent,
+    ],
 })
 export class FormlyFieldInput extends FieldType<FieldTypeConfig> {
 

@@ -12,9 +12,8 @@ describe('CreateUserPage', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    declarations: [UserPage],
     imports: [RouterModule.forRoot([]),
-        ReactiveFormsModule],
+        ReactiveFormsModule, UserPage],
     providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
 })
     .compileComponents();

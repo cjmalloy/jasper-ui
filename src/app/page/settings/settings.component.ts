@@ -4,13 +4,17 @@ import { AdminService } from '../../service/admin.service';
 import { AuthzService } from '../../service/authz.service';
 import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
+import { MobxAngularModule } from 'mobx-angular';
+import { TabsComponent } from '../../component/tabs/tabs.component';
+import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { SidebarComponent } from '../../component/sidebar/sidebar.component';
 
 @Component({
-  standalone: false,
-  selector: 'app-settings-page',
-  templateUrl: './settings.component.html',
-  styleUrls: ['./settings.component.scss'],
-  host: {'class': 'settings'}
+    selector: 'app-settings-page',
+    templateUrl: './settings.component.html',
+    styleUrls: ['./settings.component.scss'],
+    host: { 'class': 'settings' },
+    imports: [MobxAngularModule, TabsComponent, RouterLink, RouterLinkActive, SidebarComponent, RouterOutlet]
 })
 export class SettingsPage implements OnInit {
 

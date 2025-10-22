@@ -3,13 +3,16 @@ import { delay } from 'lodash-es';
 import { Page } from '../../model/page';
 import { BookmarkService } from '../../service/bookmark.service';
 import { Store } from '../../store/store';
+import { RouterLink, RouterLinkActive } from '@angular/router';
+import { NgIf, NgFor } from '@angular/common';
+import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 
 @Component({
-  standalone: false,
-  selector: 'app-page-controls',
-  templateUrl: './page-controls.component.html',
-  styleUrls: ['./page-controls.component.scss'],
-  host: {'class': 'page-controls'}
+    selector: 'app-page-controls',
+    templateUrl: './page-controls.component.html',
+    styleUrls: ['./page-controls.component.scss'],
+    host: { 'class': 'page-controls' },
+    imports: [RouterLink, RouterLinkActive, NgIf, ReactiveFormsModule, FormsModule, NgFor]
 })
 export class PageControlsComponent {
 

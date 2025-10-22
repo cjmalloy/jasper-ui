@@ -11,13 +11,12 @@ describe('KanbanColumnComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [KanbanColumnComponent],
-      imports: [RouterModule.forRoot([])],
-      providers: [
+    imports: [RouterModule.forRoot([]), KanbanColumnComponent],
+    providers: [
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),
-      ]
-    }).compileComponents();
+    ]
+}).compileComponents();
   });
 
   beforeEach(() => {
@@ -35,7 +34,7 @@ describe('KanbanColumnComponent', () => {
       component.failed = [];
       component.adding = [];
       component.addText = '';
-      spyOn(component, 'add');
+      vi.spyOn(component, 'add');
     });
 
     it('should track failed items', () => {

@@ -7,13 +7,14 @@ import { Plugin } from '../../../model/plugin';
 import { Ref } from '../../../model/ref';
 import { AdminService } from '../../../service/admin.service';
 import { ActionComponent } from '../action.component';
+import { LoadingComponent } from '../../loading/loading.component';
 
 @Component({
-  standalone: false,
-  selector: 'app-inline-plugin',
-  templateUrl: './inline-plugin.component.html',
-  styleUrls: ['./inline-plugin.component.scss'],
-  host: {'class': 'action'}
+    selector: 'app-inline-plugin',
+    templateUrl: './inline-plugin.component.html',
+    styleUrls: ['./inline-plugin.component.scss'],
+    host: { 'class': 'action' },
+    imports: [GenFormComponent, LoadingComponent]
 })
 export class InlinePluginComponent extends ActionComponent {
 

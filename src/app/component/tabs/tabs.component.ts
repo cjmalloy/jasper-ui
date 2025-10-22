@@ -11,13 +11,15 @@ import { RouterLink } from '@angular/router';
 import { defer } from 'lodash-es';
 import { ConfigService } from '../../service/config.service';
 import { memo, MemoCache } from '../../util/memo';
+import { ReactiveFormsModule } from '@angular/forms';
+import { SettingsComponent } from '../settings/settings.component';
 
 @Component({
-  standalone: false,
-  selector: 'app-tabs',
-  templateUrl: './tabs.component.html',
-  styleUrl: './tabs.component.scss',
-  host: {'class': 'tabs'}
+    selector: 'app-tabs',
+    templateUrl: './tabs.component.html',
+    styleUrl: './tabs.component.scss',
+    host: { 'class': 'tabs' },
+    imports: [ReactiveFormsModule, SettingsComponent]
 })
 export class TabsComponent implements AfterViewInit {
 

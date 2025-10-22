@@ -11,15 +11,15 @@ describe('BlogComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [BlogComponent],
-      imports: [
+    imports: [
         RouterModule.forRoot([]),
-      ],
-      providers: [
+        BlogComponent,
+    ],
+    providers: [
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting()
-      ],
-    }).compileComponents();
+    ],
+}).compileComponents();
 
     fixture = TestBed.createComponent(BlogComponent);
     component = fixture.componentInstance;

@@ -12,16 +12,16 @@ describe('BlogEntryComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [BlogEntryComponent],
-      imports: [
+    imports: [
         RouterModule.forRoot([]),
         ReactiveFormsModule,
-      ],
-      providers: [
+        BlogEntryComponent,
+    ],
+    providers: [
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),
-      ],
-    }).compileComponents();
+    ],
+}).compileComponents();
 
     fixture = TestBed.createComponent(BlogEntryComponent);
     component = fixture.componentInstance;

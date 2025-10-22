@@ -7,9 +7,8 @@ import { OembedStore } from '../store/oembed';
 import { hasTag } from '../util/tag';
 
 @Pipe({
-  standalone: false,
-  name: 'thumbnail',
-  pure: true
+    name: 'thumbnail',
+    pure: true
 })
 export class ThumbnailPipe implements PipeTransform {
 

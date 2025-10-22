@@ -8,13 +8,14 @@ import { ModService } from '../../../service/mod.service';
 import { QueryStore } from '../../../store/query';
 import { Store } from '../../../store/store';
 import { getArgs } from '../../../util/query';
+import { MobxAngularModule } from 'mobx-angular';
 
 @Component({
-  standalone: false,
-  selector: 'app-inbox-dms',
-  templateUrl: './dms.component.html',
-  styleUrls: ['./dms.component.scss'],
-  host: {'class': 'dms'}
+    selector: 'app-inbox-dms',
+    templateUrl: './dms.component.html',
+    styleUrls: ['./dms.component.scss'],
+    host: { 'class': 'dms' },
+    imports: [MobxAngularModule, RefListComponent]
 })
 export class InboxDmsPage implements OnInit, OnDestroy, HasChanges {
 

@@ -11,10 +11,9 @@ describe('InboxRefPage', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [InboxRefPage],
-      imports: [RouterModule.forRoot([])],
-      providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
-    })
+    imports: [RouterModule.forRoot([]), InboxRefPage],
+    providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
+})
       .compileComponents();
   });
 

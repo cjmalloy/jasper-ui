@@ -1,13 +1,15 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { catchError, Observable, of } from 'rxjs';
 import { ActionComponent } from '../action.component';
+import { AutofocusDirective } from '../../../directive/autofocus.directive';
+import { LoadingComponent } from '../../loading/loading.component';
 
 @Component({
-  standalone: false,
-  selector: 'app-inline-password',
-  templateUrl: './inline-password.component.html',
-  styleUrls: ['./inline-password.component.scss'],
-  host: {'class': 'action'}
+    selector: 'app-inline-password',
+    templateUrl: './inline-password.component.html',
+    styleUrls: ['./inline-password.component.scss'],
+    host: { 'class': 'action' },
+    imports: [AutofocusDirective, LoadingComponent]
 })
 export class InlinePasswordComponent extends ActionComponent {
 

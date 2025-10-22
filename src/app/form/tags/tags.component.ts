@@ -3,12 +3,13 @@ import { FormBuilder, UntypedFormArray, UntypedFormGroup, Validators } from '@an
 import { defer } from 'lodash-es';
 import { TAG_REGEX } from '../../util/format';
 import { hasPrefix, hasTag } from '../../util/tag';
+import { FormlyModule } from '@ngx-formly/core';
 
 @Component({
-  standalone: false,
-  selector: 'app-tags',
-  templateUrl: './tags.component.html',
-  styleUrls: ['./tags.component.scss']
+    selector: 'app-tags',
+    templateUrl: './tags.component.html',
+    styleUrls: ['./tags.component.scss'],
+    imports: [FormlyModule]
 })
 export class TagsFormComponent implements OnChanges {
   static validators = [Validators.pattern(TAG_REGEX)];

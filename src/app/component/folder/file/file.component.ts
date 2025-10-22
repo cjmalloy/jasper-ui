@@ -20,12 +20,17 @@ import { getTitle, templates } from '../../../util/format';
 import { getScheme } from '../../../util/http';
 import { memo, MemoCache } from '../../../util/memo';
 import { hasTag, isAuthorTag, repost } from '../../../util/tag';
+import { NgIf, AsyncPipe } from '@angular/common';
+import { RouterLink } from '@angular/router';
+import { ViewerComponent } from '../../viewer/viewer.component';
+import { ThumbnailPipe } from '../../../pipe/thumbnail.pipe';
+import { CssUrlPipe } from '../../../pipe/css-url.pipe';
 
 @Component({
-  standalone: false,
-  selector: 'app-file',
-  templateUrl: './file.component.html',
-  styleUrls: ['./file.component.scss']
+    selector: 'app-file',
+    templateUrl: './file.component.html',
+    styleUrls: ['./file.component.scss'],
+    imports: [NgIf, RouterLink, ViewerComponent, AsyncPipe, ThumbnailPipe, CssUrlPipe]
 })
 export class FileComponent implements OnChanges, OnDestroy {
   css = 'file ';

@@ -11,8 +11,7 @@ describe('KanbanCardComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    declarations: [KanbanCardComponent],
-    imports: [RouterModule.forRoot([])],
+    imports: [RouterModule.forRoot([]), KanbanCardComponent],
     providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
 })
     .compileComponents();

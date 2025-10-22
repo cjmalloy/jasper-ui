@@ -12,8 +12,7 @@ describe('ThreadSummaryComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    declarations: [ThreadSummaryComponent],
-    imports: [RouterModule.forRoot([])],
+    imports: [RouterModule.forRoot([]), ThreadSummaryComponent],
     providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
 })
     .compileComponents();

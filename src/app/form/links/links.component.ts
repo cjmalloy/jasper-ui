@@ -2,12 +2,13 @@ import { Component, HostBinding, Input } from '@angular/core';
 import { FormBuilder, UntypedFormArray, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { map } from 'lodash-es';
 import { URI_REGEX } from '../../util/format';
+import { FormlyModule } from '@ngx-formly/core';
 
 @Component({
-  standalone: false,
-  selector: 'app-links',
-  templateUrl: './links.component.html',
-  styleUrls: ['./links.component.scss']
+    selector: 'app-links',
+    templateUrl: './links.component.html',
+    styleUrls: ['./links.component.scss'],
+    imports: [FormlyModule]
 })
 export class LinksFormComponent {
   static validators = [Validators.pattern(URI_REGEX)];

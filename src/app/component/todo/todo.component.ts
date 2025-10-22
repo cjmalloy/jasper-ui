@@ -1,4 +1,4 @@
-import { CdkDragDrop } from '@angular/cdk/drag-drop';
+import { CdkDragDrop, CdkDropList, CdkDrag } from '@angular/cdk/drag-drop';
 import {
   Component,
   EventEmitter,
@@ -16,13 +16,15 @@ import { Ref } from '../../model/ref';
 import { ActionService } from '../../service/action.service';
 import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
+import { TodoItemComponent } from './item/item.component';
+import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 
 @Component({
-  standalone: false,
-  selector: 'app-todo',
-  templateUrl: './todo.component.html',
-  styleUrls: ['./todo.component.scss'],
-  host: {'class': 'todo-list'}
+    selector: 'app-todo',
+    templateUrl: './todo.component.html',
+    styleUrls: ['./todo.component.scss'],
+    host: { 'class': 'todo-list' },
+    imports: [CdkDropList, TodoItemComponent, CdkDrag, ReactiveFormsModule, FormsModule]
 })
 export class TodoComponent implements OnChanges {
 

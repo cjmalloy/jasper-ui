@@ -4,13 +4,15 @@ import { Template } from '../../model/template';
 import { AdminService } from '../../service/admin.service';
 import { AuthzService } from '../../service/authz.service';
 import { access } from '../../util/tag';
+import { NgIf, NgFor } from '@angular/common';
+import { ReactiveFormsModule } from '@angular/forms';
 
 @Component({
-  standalone: false,
-  selector: 'app-select-template',
-  templateUrl: './select-template.component.html',
-  styleUrls: ['./select-template.component.scss'],
-  host: {'class': 'select-template'}
+    selector: 'app-select-template',
+    templateUrl: './select-template.component.html',
+    styleUrls: ['./select-template.component.scss'],
+    host: { 'class': 'select-template' },
+    imports: [NgIf, ReactiveFormsModule, NgFor]
 })
 export class SelectTemplateComponent {
 

@@ -17,8 +17,7 @@ describe('InboxUnreadPage', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    declarations: [InboxUnreadPage],
-    imports: [RouterModule.forRoot([])],
+    imports: [RouterModule.forRoot([]), InboxUnreadPage],
     providers: [
         { provide: RefService, useValue: { page: () => new BehaviorSubject<Page<Ref>>(Page.of([])) } },
         { provide: AccountService, useValue: { userExt$: new BehaviorSubject<Ext>({ tag: 'user/test' }) } },

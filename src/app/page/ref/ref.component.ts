@@ -1,5 +1,5 @@
 import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { pickBy, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
@@ -17,12 +17,25 @@ import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
 import { memo, MemoCache } from '../../util/memo';
 import { hasTag, privateTag, top } from '../../util/tag';
+import { MobxAngularModule } from 'mobx-angular';
+import { TabsComponent } from '../../component/tabs/tabs.component';
+import { SidebarComponent } from '../../component/sidebar/sidebar.component';
+import { LoadingComponent } from '../../component/loading/loading.component';
 
 @Component({
-  standalone: false,
-  selector: 'app-ref-page',
-  templateUrl: './ref.component.html',
-  styleUrls: ['./ref.component.scss'],
+    selector: 'app-ref-page',
+    templateUrl: './ref.component.html',
+    styleUrls: ['./ref.component.scss'],
+    imports: [
+        MobxAngularModule,
+        TabsComponent,
+        RouterLink,
+        RouterLinkActive,
+        SidebarComponent,
+        RefComponent,
+        RouterOutlet,
+        LoadingComponent,
+    ],
 })
 export class RefPage implements OnInit, OnDestroy, HasChanges {
   private disposers: IReactionDisposer[] = [];

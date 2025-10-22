@@ -1,10 +1,11 @@
 import { Component, OnInit } from '@angular/core';
+import { LoadingComponent } from '../../component/loading/loading.component';
 
 @Component({
-  standalone: false,
-  selector: 'app-login',
-  templateUrl: './login.component.html',
-  styleUrls: ['./login.component.scss']
+    selector: 'app-login',
+    templateUrl: './login.component.html',
+    styleUrls: ['./login.component.scss'],
+    imports: [LoadingComponent]
 })
 export class LoginPage implements OnInit {
 

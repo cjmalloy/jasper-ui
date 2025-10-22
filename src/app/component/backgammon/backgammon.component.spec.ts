@@ -12,13 +12,12 @@ describe('BackgammonComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      declarations: [BackgammonComponent],
-      imports: [RouterModule.forRoot([])],
-      providers: [
+    imports: [RouterModule.forRoot([]), BackgammonComponent],
+    providers: [
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),
-      ],
-    });
+    ],
+});
     fixture = TestBed.createComponent(BackgammonComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();

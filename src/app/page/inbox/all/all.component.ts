@@ -9,13 +9,14 @@ import { ModService } from '../../../service/mod.service';
 import { QueryStore } from '../../../store/query';
 import { Store } from '../../../store/store';
 import { getArgs } from '../../../util/query';
+import { MobxAngularModule } from 'mobx-angular';
 
 @Component({
-  standalone: false,
-  selector: 'app-inbox-all',
-  templateUrl: './all.component.html',
-  styleUrls: ['./all.component.scss'],
-  host: {'class': 'inbox-all'}
+    selector: 'app-inbox-all',
+    templateUrl: './all.component.html',
+    styleUrls: ['./all.component.scss'],
+    host: { 'class': 'inbox-all' },
+    imports: [MobxAngularModule, RefListComponent]
 })
 export class InboxAllPage implements OnInit, OnDestroy, HasChanges {
 

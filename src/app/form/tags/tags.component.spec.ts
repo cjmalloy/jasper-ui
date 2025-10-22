@@ -12,9 +12,8 @@ describe('TagsFormComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    declarations: [TagsFormComponent],
     imports: [ReactiveFormsModule,
-        RouterModule.forRoot([])],
+        RouterModule.forRoot([]), TagsFormComponent],
     providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
 })
     .compileComponents();

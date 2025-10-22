@@ -14,17 +14,17 @@ describe('QueryComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [QueryComponent],
-      imports: [RouterModule.forRoot([]), FormsModule],
-      providers: [
+    imports: [RouterModule.forRoot([]), FormsModule, QueryComponent],
+    providers: [
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),
-      ]}).compileComponents();
+    ]
+}).compileComponents();
 
     fixture = TestBed.createComponent(QueryComponent);
     component = fixture.componentInstance;
     router = TestBed.inject(Router);
-    spyOn(router, 'navigate');
+    vi.spyOn(router, 'navigate');
     fixture.detectChanges();
   });
 
@@ -37,8 +37,8 @@ describe('QueryComponent', () => {
 
     // Just check that navigation was called with a cleaned query
     expect(router.navigate).toHaveBeenCalled();
-    const navigateCall = (router.navigate as jasmine.Spy).calls.mostRecent();
+    const navigateCall = vi.mocked(router.navigate).mock.calls[vi.mocked(router.navigate).mock.calls.length - 1];
     // The actual cleaning keeps ! and @ characters based on the regex, so check the actual result
-    expect(navigateCall.args[0][1]).toBe('test+query!+withspecial@characters');
+    expect(navigateCall[1]).toBe('test+query!+withspecial@characters');
   });
 });

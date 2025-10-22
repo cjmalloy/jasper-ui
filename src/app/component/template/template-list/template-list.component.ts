@@ -4,13 +4,15 @@ import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Page } from '../../../model/page';
 import { Template } from '../../../model/template';
 import { TemplateComponent } from '../template.component';
+import { PageControlsComponent } from '../../page-controls/page-controls.component';
+import { LoadingComponent } from '../../loading/loading.component';
 
 @Component({
-  standalone: false,
-  selector: 'app-template-list',
-  templateUrl: './template-list.component.html',
-  styleUrls: ['./template-list.component.scss'],
-  host: {'class': 'template-list'}
+    selector: 'app-template-list',
+    templateUrl: './template-list.component.html',
+    styleUrls: ['./template-list.component.scss'],
+    host: { 'class': 'template-list' },
+    imports: [TemplateComponent, PageControlsComponent, LoadingComponent]
 })
 export class TemplateListComponent implements HasChanges {
 

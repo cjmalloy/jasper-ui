@@ -19,13 +19,14 @@ import { AdminService } from '../../service/admin.service';
 import { emptyObject, getScheme, patchObj, writeObj } from '../../util/http';
 import { addAllHierarchicalTags, hasTag } from '../../util/tag';
 import { GenFormComponent } from './gen/gen.component';
+import { TitleDirective } from '../../directive/title.directive';
 
 @Component({
-  standalone: false,
-  selector: 'app-form-plugins',
-  templateUrl: './plugins.component.html',
-  styleUrls: ['./plugins.component.scss'],
-  host: {'class': 'plugins-form'}
+    selector: 'app-form-plugins',
+    templateUrl: './plugins.component.html',
+    styleUrls: ['./plugins.component.scss'],
+    host: { 'class': 'plugins-form' },
+    imports: [TitleDirective, GenFormComponent]
 })
 export class PluginsFormComponent implements OnChanges, AfterViewInit {
   private destroy$ = new Subject<void>();

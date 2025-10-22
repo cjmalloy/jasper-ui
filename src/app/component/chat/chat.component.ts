@@ -18,13 +18,19 @@ import { Store } from '../../store/store';
 import { URI_REGEX } from '../../util/format';
 import { getArgs } from '../../util/query';
 import { braces, tagOrigin } from '../../util/tag';
+import { NgIf, NgFor } from '@angular/common';
+import { LoadingComponent } from '../loading/loading.component';
+import { ɵɵCdkVirtualScrollViewport, ɵɵCdkFixedSizeVirtualScroll, ɵɵCdkVirtualForOf } from '@angular/cdk/overlay';
+import { ChatEntryComponent } from './chat-entry/chat-entry.component';
+import { ReactiveFormsModule, FormsModule } from '@angular/forms';
+import { AutofocusDirective } from '../../directive/autofocus.directive';
 
 @Component({
-  standalone: false,
-  selector: 'app-chat',
-  templateUrl: './chat.component.html',
-  styleUrls: ['./chat.component.scss'],
-  host: {'class': 'chat ext'}
+    selector: 'app-chat',
+    templateUrl: './chat.component.html',
+    styleUrls: ['./chat.component.scss'],
+    host: { 'class': 'chat ext' },
+    imports: [NgIf, LoadingComponent, ɵɵCdkVirtualScrollViewport, ɵɵCdkFixedSizeVirtualScroll, ɵɵCdkVirtualForOf, ChatEntryComponent, ReactiveFormsModule, AutofocusDirective, FormsModule, NgFor]
 })
 export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
   private destroy$ = new Subject<void>();

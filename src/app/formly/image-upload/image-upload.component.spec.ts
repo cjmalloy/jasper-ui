@@ -11,8 +11,7 @@ describe('ImageUploadComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    declarations: [ImageUploadComponent],
-    imports: [RouterModule.forRoot([])],
+    imports: [RouterModule.forRoot([]), ImageUploadComponent],
     providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
 })
     .compileComponents();

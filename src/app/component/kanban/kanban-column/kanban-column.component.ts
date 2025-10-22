@@ -30,13 +30,17 @@ import { fixUrl, printError } from '../../../util/http';
 import { getArgs, UrlFilter } from '../../../util/query';
 import { hasTag } from '../../../util/tag';
 import { KanbanDrag } from '../kanban.component';
+import { KanbanCardComponent } from '../kanban-card/kanban-card.component';
+import { CdkDrag } from '@angular/cdk/drag-drop';
+import { LoadingComponent } from '../../loading/loading.component';
+import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 
 @Component({
-  standalone: false,
-  selector: 'app-kanban-column',
-  templateUrl: './kanban-column.component.html',
-  styleUrls: ['./kanban-column.component.scss'],
-  host: {'class': 'kanban-column'}
+    selector: 'app-kanban-column',
+    templateUrl: './kanban-column.component.html',
+    styleUrls: ['./kanban-column.component.scss'],
+    host: { 'class': 'kanban-column' },
+    imports: [KanbanCardComponent, CdkDrag, LoadingComponent, ReactiveFormsModule, FormsModule]
 })
 export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestroy, HasChanges {
   private destroy$ = new Subject<void>();

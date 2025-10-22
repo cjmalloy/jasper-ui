@@ -3,9 +3,8 @@ import { ConfigService } from '../service/config.service';
 import { relativeX, relativeY } from '../util/math';
 
 @Directive({
-  standalone: false,
-  selector: '[appResizeHandle]',
-  host: {'class': 'resize-handle'}
+    selector: '[appResizeHandle]',
+    host: { 'class': 'resize-handle' }
 })
 export class ResizeHandleDirective {
   @HostBinding('style.cursor') cursor = 'auto';

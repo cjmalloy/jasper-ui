@@ -10,7 +10,7 @@ import {
   ViewChild,
   ViewChildren
 } from '@angular/core';
-import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
+import { UntypedFormBuilder, UntypedFormGroup, ReactiveFormsModule } from '@angular/forms';
 import { defer, groupBy, intersection, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { autorun, IReactionDisposer } from 'mobx';
@@ -50,13 +50,22 @@ import { getScheme, printError } from '../../../util/http';
 import { memo, MemoCache } from '../../../util/memo';
 import { hasTag, isAuthorTag, localTag, repost, tagOrigin } from '../../../util/tag';
 import { ActionComponent } from '../../action/action.component';
+import { NavComponent } from '../../nav/nav.component';
+import { NgIf, NgFor, AsyncPipe } from '@angular/common';
+import { RouterLink } from '@angular/router';
+import { TitleDirective } from '../../../directive/title.directive';
+import { ConfirmActionComponent } from '../../action/confirm-action/confirm-action.component';
+import { InlineTagComponent } from '../../action/inline-tag/inline-tag.component';
+import { ActionListComponent } from '../../action/action-list/action-list.component';
+import { LoadingComponent } from '../../loading/loading.component';
+import { ViewerComponent } from '../../viewer/viewer.component';
 
 @Component({
-  standalone: false,
-  selector: 'app-blog-entry',
-  templateUrl: './blog-entry.component.html',
-  styleUrls: ['./blog-entry.component.scss'],
-  host: {'class': 'blog-entry'}
+    selector: 'app-blog-entry',
+    templateUrl: './blog-entry.component.html',
+    styleUrls: ['./blog-entry.component.scss'],
+    host: { 'class': 'blog-entry' },
+    imports: [NavComponent, NgIf, NgFor, RouterLink, TitleDirective, ConfirmActionComponent, InlineTagComponent, ActionListComponent, ReactiveFormsModule, RefFormComponent, LoadingComponent, ViewerComponent, AsyncPipe]
 })
 export class BlogEntryComponent implements OnChanges, OnDestroy, HasChanges {
   @HostBinding('attr.tabindex') tabIndex = 0;

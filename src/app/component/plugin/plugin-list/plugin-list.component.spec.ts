@@ -9,11 +9,11 @@ describe('PluginListComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ PluginListComponent ],
-      imports: [
+    imports: [
         RouterModule.forRoot([]),
-      ],
-    })
+        PluginListComponent,
+    ],
+})
     .compileComponents();
 
     fixture = TestBed.createComponent(PluginListComponent);

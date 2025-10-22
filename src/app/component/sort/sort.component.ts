@@ -8,6 +8,8 @@ import { AdminService } from '../../service/admin.service';
 import { Store } from '../../store/store';
 import { Type } from '../../store/view';
 import { defaultDesc } from '../../util/query';
+import { ReactiveFormsModule, FormsModule } from '@angular/forms';
+import { NgFor, NgIf } from '@angular/common';
 
 export const allRefSorts: {value: RefSort, label: string, title?: string }[] = [
   { value: 'created', label: $localize`✨️ new` },
@@ -25,11 +27,11 @@ export const allRefSorts: {value: RefSort, label: string, title?: string }[] = [
 ];
 
 @Component({
-  standalone: false,
-  selector: 'app-sort',
-  templateUrl: './sort.component.html',
-  styleUrls: ['./sort.component.scss'],
-  host: {'class': 'sort form-group'}
+    selector: 'app-sort',
+    templateUrl: './sort.component.html',
+    styleUrls: ['./sort.component.scss'],
+    host: { 'class': 'sort form-group' },
+    imports: [ReactiveFormsModule, NgFor, FormsModule, NgIf]
 })
 export class SortComponent implements OnChanges, OnDestroy {
   private disposers: IReactionDisposer[] = [];

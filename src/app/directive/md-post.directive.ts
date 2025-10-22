@@ -14,10 +14,7 @@ import { EmbedService } from '../service/embed.service';
 import { Embed } from '../util/embed';
 import { hasTag } from '../util/tag';
 
-@Directive({
-  standalone: false,
-  selector: '[appMdPost]'
-})
+@Directive({ selector: '[appMdPost]' })
 export class MdPostDirective implements OnInit, OnDestroy, Embed {
 
   @Input('appMdPost')

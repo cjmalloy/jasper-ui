@@ -10,11 +10,11 @@ describe('PageControlsComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ PageControlsComponent ],
-      imports: [
+    imports: [
         RouterModule.forRoot([]),
-      ],
-    })
+        PageControlsComponent,
+    ],
+})
     .compileComponents();
   });
 

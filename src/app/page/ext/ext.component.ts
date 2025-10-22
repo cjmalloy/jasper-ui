@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostBinding, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
+import { Router, RouterLink } from '@angular/router';
 import { defer, isObject } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { catchError, of, Subscription, switchMap, throwError } from 'rxjs';
@@ -17,12 +17,27 @@ import { scrollToFirstInvalid } from '../../util/form';
 import { TAG_SUFFIX_REGEX } from '../../util/format';
 import { printError } from '../../util/http';
 import { access, hasPrefix, localTag, prefix } from '../../util/tag';
+import { MobxAngularModule } from 'mobx-angular';
+import { SettingsComponent } from '../../component/settings/settings.component';
+import { SelectTemplateComponent } from '../../component/select-template/select-template.component';
+import { LoadingComponent } from '../../component/loading/loading.component';
+import { LimitWidthDirective } from '../../directive/limit-width.directive';
 
 @Component({
-  standalone: false,
-  selector: 'app-ext-page',
-  templateUrl: './ext.component.html',
-  styleUrls: ['./ext.component.scss'],
+    selector: 'app-ext-page',
+    templateUrl: './ext.component.html',
+    styleUrls: ['./ext.component.scss'],
+    imports: [
+        MobxAngularModule,
+        RouterLink,
+        SettingsComponent,
+        ReactiveFormsModule,
+        SelectTemplateComponent,
+        LoadingComponent,
+        LimitWidthDirective,
+        ExtFormComponent,
+        FormsModule,
+    ],
 })
 export class ExtPage implements OnInit, OnDestroy, HasChanges {
   private disposers: IReactionDisposer[] = [];

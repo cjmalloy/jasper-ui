@@ -11,8 +11,7 @@ describe('UploadPage', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    declarations: [UploadPage],
-    imports: [RouterModule.forRoot([])],
+    imports: [RouterModule.forRoot([]), UploadPage],
     providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
 })
     .compileComponents();
