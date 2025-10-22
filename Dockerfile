@@ -33,8 +33,8 @@ WORKDIR /app
 RUN npm i -g @angular/cli
 COPY --from=builder /app ./
 CMD mkdir -p /tests && \
-    ng test --watch=false --reporters=junit > /tests/test-output.log 2>&1 && \
-    grep -A 99999 '<?xml version' /tests/test-output.log | grep -B 99999 '</testsuites>' > /tests/junit-report.xml || true
+    ng test --watch=false --reporters=junit 2>&1 | tee /tests/test-output.log || true && \
+    if [ -f junit-report.xml ]; then mv junit-report.xml /tests/; fi
 
 FROM nginx:1.27-alpine3.19-slim AS deploy
 RUN apk add jq moreutils
