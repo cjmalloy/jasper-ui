@@ -569,6 +569,10 @@ export class AdminService {
     return this._cache.get('embeddable')!;
   }
 
+  get editor() {
+    return this.pluginConfigProperty('editor');
+  }
+
   get editingViewer() {
     return this.pluginConfigProperty('editingViewer');
   }

@@ -105,7 +105,7 @@
         * Published date was changed to be after source published date.
       </div>
     }
-    @if (!store.view.ref.created && !store.view.versions) {
+    @if (!store.view.ref.created) {
       <div class="stack">
         <div class="error-404" i18n>Not Found</div>
         @if (store.account.signedIn) {
@@ -124,7 +124,8 @@
           }
         }
       </div>
-    } @else {
+    }
+    @if (store.view.ref.created || store.view.versions || store.view.current !== 'ref/summary') {
       <hr>
       <router-outlet></router-outlet>
     }
