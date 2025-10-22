@@ -1,5 +1,5 @@
 import { provideHttpClientTesting } from '@angular/common/http/testing';
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, forwardRef } from '@angular/core/testing';
 import { RouterModule } from '@angular/router';
 
 import { RefAltsComponent } from './alts.component';
@@ -11,7 +11,7 @@ describe('AltsComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    imports: [RouterModule.forRoot([]), RefAltsComponent],
+    imports: [RouterModule.forRoot([]), forwardRef(() => RefAltsComponent)],
     providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
 })
     .compileComponents();

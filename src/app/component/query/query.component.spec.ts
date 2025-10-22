@@ -35,10 +35,10 @@ describe('QueryComponent', () => {
   it('should clean and format query string correctly', () => {
     component.search('Test Query! with#Special@Characters');
 
-    // Just check that navigation was called with a cleaned query
+    // Check that navigation was called with a cleaned query
     expect(router.navigate).toHaveBeenCalled();
-    const navigateCall = vi.mocked(router.navigate).mock.calls[vi.mocked(router.navigate).mock.calls.length - 1];
-    // The actual cleaning keeps ! and @ characters based on the regex, so check the actual result
-    expect(navigateCall[1]).toBe('test+query!+withspecial@characters');
+    const navigateCall = vi.mocked(router.navigate).mock.calls[0];
+    // The actual cleaning keeps ! and @ characters, removes # and spaces become +
+    expect(navigateCall[0]).toEqual(['/tag', 'test+query!+withspecial@characters']);
   });
 });
