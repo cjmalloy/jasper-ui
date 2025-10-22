@@ -12,7 +12,10 @@ describe('MdComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
     imports: [RouterModule.forRoot([]), MdComponent],
-    providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
+    providers: [
+      provideHttpClient(withInterceptorsFromDi()), 
+      provideHttpClientTesting()
+    ]
 })
     .compileComponents();
   });
