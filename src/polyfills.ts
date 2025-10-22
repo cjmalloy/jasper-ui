@@ -73,3 +73,20 @@ if (typeof IntersectionObserver === 'undefined') {
     disconnect() {}
   };
 }
+
+// Mock HTMLCanvasElement.getContext for jsdom test environment
+if (typeof HTMLCanvasElement !== 'undefined') {
+  const originalGetContext = HTMLCanvasElement.prototype.getContext;
+  (HTMLCanvasElement.prototype.getContext as any) = function(this: HTMLCanvasElement, contextType: string, ...args: any[]) {
+    const ctx = originalGetContext.call(this, contextType, ...args);
+    if (contextType === '2d' && !ctx) {
+      // Return a minimal mock for 2d context when jsdom doesn't provide one
+      return {
+        canvas: this,
+        fillText: () => {},
+        getImageData: () => ({ data: new Uint8ClampedArray([0, 0, 0, 0]) })
+      };
+    }
+    return ctx;
+  };
+}
