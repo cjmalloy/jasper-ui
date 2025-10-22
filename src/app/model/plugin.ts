@@ -118,6 +118,12 @@ export interface Plugin extends Config {
      * Set to true to reuse the existing form.
      */
     bulkForm?: FormlyFieldConfig[] | true,
+    /**
+     * Optional list of formly configs for editing sub-tags.
+     * Each element in the array is an editor for all appearances of tags starting with this plugin.
+     * tagForm[0] will be the first sub-tag (split on '/') after the plugin tag itself.
+     */
+    tagForm?: (FormlyFieldConfig|string)[],
   };
   // Client-only
   type?: 'plugin';

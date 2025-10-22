@@ -552,6 +552,10 @@ export class AdminService {
     ]));
   }
 
+  get tagForms() {
+    return this.pluginConfigProperty('tagForm');
+  }
+
   get embeddable(): string[] {
     if (!this._cache.has('embeddable')) {
       this._cache.set('embeddable', Object.values(this.status.plugins).filter(p => {
@@ -742,6 +746,11 @@ export class AdminService {
   @memo
   getPluginSubForms(parent: string) {
     return this.forms.filter(p => p.config?.submitChild && hasPrefix(p.tag, parent));
+  }
+
+  getTagForms(tags?: string[]) {
+    const match = ['plugin', ...(tags || [])];
+    return this.tagForms.filter(p => hasTag(p.tag, match));
   }
 
   getTemplate(tag: string) {

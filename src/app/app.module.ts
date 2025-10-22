@@ -99,6 +99,7 @@ import { JsonComponent } from './form/json/json.component';
 import { LinksFormComponent } from './form/links/links.component';
 import { PluginFormComponent } from './form/plugin/plugin.component';
 import { GenFormComponent } from './form/plugins/gen/gen.component';
+import { TagGenFormComponent } from './form/plugins/tag-gen/tag-gen.component';
 import { PluginsFormComponent } from './form/plugins/plugins.component';
 import { RefFormComponent } from './form/ref/ref.component';
 import { TagsFormComponent } from './form/tags/tags.component';
@@ -278,6 +279,7 @@ const loadFactory = (config: ConfigService, debug: DebugService, admin: AdminSer
     ChatComponent,
     ChatEntryComponent,
     GenFormComponent,
+    TagGenFormComponent,
     SortComponent,
     FilterComponent,
     QueryComponent,

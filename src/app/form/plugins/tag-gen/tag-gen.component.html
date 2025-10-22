@@ -1,0 +1,10 @@
+@for (instance of instances; track instance.tagIndex) {
+  <div>
+    <label [title]="plugin.config?.description">{{ plugin.name || plugin.tag }}</label>
+    <formly-form class="form plugin-content"
+                 [model]="instance.model"
+                 [form]="instance.formGroup"
+                 [fields]="instance.form"
+                 [options]="instance.options"></formly-form>
+  </div>
+}
