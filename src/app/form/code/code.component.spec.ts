@@ -1,5 +1,6 @@
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { NGX_MONACO_EDITOR_CONFIG } from 'ngx-monaco-editor';
 
@@ -28,6 +29,10 @@ describe('CodeComponent', () => {
   beforeEach(() => {
     fixture = TestBed.createComponent(CodeComponent);
     component = fixture.componentInstance;
+    // Create a FormGroup for the component
+    component.group = new UntypedFormGroup({
+      code: new UntypedFormControl('')
+    });
     fixture.detectChanges();
   });
 
