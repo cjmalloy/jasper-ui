@@ -2,6 +2,7 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { RouterModule } from '@angular/router';
+import { FormlyModule } from '@ngx-formly/core';
 import { PluginsFormComponent } from '../plugins/plugins.component';
 
 import { RefFormComponent } from './ref.component';
@@ -13,8 +14,12 @@ describe('RefFormComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    imports: [RouterModule.forRoot([]),
-        ReactiveFormsModule, RefFormComponent],
+    imports: [
+        RouterModule.forRoot([]),
+        ReactiveFormsModule,
+        FormlyModule.forRoot(),
+        RefFormComponent
+    ],
     providers: [
         PluginsFormComponent,
         provideHttpClient(withInterceptorsFromDi()),
