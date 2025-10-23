@@ -10,9 +10,8 @@ describe('TemplateFormComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    imports: [TemplateFormComponent]
-})
-    .compileComponents();
+      imports: [TemplateFormComponent]
+    }).compileComponents();
 
     fixture = TestBed.createComponent(TemplateFormComponent);
     component = fixture.componentInstance;

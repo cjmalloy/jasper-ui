@@ -22,11 +22,11 @@ import { addAllHierarchicalTags, hasTag } from '../../util/tag';
 import { GenFormComponent } from './gen/gen.component';
 
 @Component({
-    selector: 'app-form-plugins',
-    templateUrl: './plugins.component.html',
-    styleUrls: ['./plugins.component.scss'],
-    host: { 'class': 'plugins-form' },
-    imports: [TitleDirective, GenFormComponent]
+  selector: 'app-form-plugins',
+  templateUrl: './plugins.component.html',
+  styleUrls: ['./plugins.component.scss'],
+  host: { 'class': 'plugins-form' },
+  imports: [TitleDirective, GenFormComponent]
 })
 export class PluginsFormComponent implements OnChanges, AfterViewInit {
   private destroy$ = new Subject<void>();

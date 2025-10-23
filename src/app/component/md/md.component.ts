@@ -8,10 +8,10 @@ import { AdminService } from '../../service/admin.service';
 import { Store } from '../../store/store';
 
 @Component({
-    selector: 'app-md',
-    templateUrl: './md.component.html',
-    styleUrls: ['./md.component.scss'],
-    imports: [MarkdownComponent, MdPostDirective]
+  selector: 'app-md',
+  templateUrl: './md.component.html',
+  styleUrls: ['./md.component.scss'],
+  imports: [MarkdownComponent, MdPostDirective]
 })
 export class MdComponent {
 

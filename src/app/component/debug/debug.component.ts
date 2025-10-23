@@ -17,11 +17,11 @@ import { printError } from '../../util/http';
 import { LoadingComponent } from '../loading/loading.component';
 
 @Component({
-    selector: 'app-debug',
-    templateUrl: './debug.component.html',
-    styleUrls: ['./debug.component.scss'],
-    host: { 'class': 'debug actions' },
-    imports: [LoadingComponent]
+  selector: 'app-debug',
+  templateUrl: './debug.component.html',
+  styleUrls: ['./debug.component.scss'],
+  host: { 'class': 'debug actions' },
+  imports: [LoadingComponent]
 })
 export class DebugComponent {
 

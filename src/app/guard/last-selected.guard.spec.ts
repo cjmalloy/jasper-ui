@@ -8,8 +8,8 @@ describe('lastSelectedGuard', () => {
   const executeGuard: CanMatchFn = (...guardParameters) =>
       TestBed.runInInjectionContext(() => clearLastSelected(...guardParameters));
 
-  beforeEach(() => {
-    TestBed.configureTestingModule({});
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({});
   });
 
   it('should be created', () => {

@@ -27,9 +27,7 @@ describe('RefFormComponent', () => {
         provideRouter([]),
       ],
     }).compileComponents();
-  });
 
-  beforeEach(() => {
     fixture = TestBed.createComponent(RefFormComponent);
     component = fixture.componentInstance;
     component.group = new UntypedFormGroup({

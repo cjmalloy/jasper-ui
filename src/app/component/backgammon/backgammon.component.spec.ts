@@ -10,15 +10,15 @@ describe('BackgammonComponent', () => {
   let component: BackgammonComponent;
   let fixture: ComponentFixture<BackgammonComponent>;
 
-  beforeEach(() => {
-    TestBed.configureTestingModule({
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
       imports: [BackgammonComponent],
       providers: [
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),
         provideRouter([]),
       ],
-    });
+    }).compileComponents();
     fixture = TestBed.createComponent(BackgammonComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();

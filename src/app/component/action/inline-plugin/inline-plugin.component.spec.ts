@@ -10,15 +10,15 @@ describe('InlinePluginComponent', () => {
   let component: InlinePluginComponent;
   let fixture: ComponentFixture<InlinePluginComponent>;
 
-  beforeEach(() => {
-    TestBed.configureTestingModule({
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
       imports: [InlinePluginComponent,],
       providers: [
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),
         provideRouter([]),
       ],
-    });
+    }).compileComponents();
     fixture = TestBed.createComponent(InlinePluginComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();

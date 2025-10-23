@@ -7,12 +7,13 @@ import { BookmarkService } from './bookmark.service';
 describe('BookmarkService', () => {
   let service: BookmarkService;
 
-  beforeEach(() => {
-    TestBed.configureTestingModule({
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
       providers: [
         provideRouter([]),
       ],
-    });
+    }).compileComponents();
+
     service = TestBed.inject(BookmarkService);
   });
 

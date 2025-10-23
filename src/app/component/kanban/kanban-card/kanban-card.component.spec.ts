@@ -19,9 +19,7 @@ describe('KanbanCardComponent', () => {
         provideRouter([]),
       ]
     }).compileComponents();
-  });
 
-  beforeEach(() => {
     fixture = TestBed.createComponent(KanbanCardComponent);
     component = fixture.componentInstance;
     component.ref = {url: ''};

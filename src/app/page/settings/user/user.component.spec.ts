@@ -19,9 +19,7 @@ describe('SettingsUserPage', () => {
         provideRouter([]),
       ],
     }).compileComponents();
-  });
 
-  beforeEach(() => {
     fixture = TestBed.createComponent(SettingsUserPage);
     component = fixture.componentInstance;
     fixture.detectChanges();

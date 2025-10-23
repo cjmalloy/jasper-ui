@@ -54,14 +54,13 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
   webForm: UntypedFormGroup;
   serverError: string[] = [];
 
-  @ViewChild(RefFormComponent)
-  refForm?: RefFormComponent;
-
+  limitWidth?: HTMLElement;
   submitting?: Subscription;
   defaults?: { url: string, ref: Partial<Ref> };
   loadingDefaults: Ext[] = [];
 
   private oldSubmit: string[] = [];
+  private _refForm?: RefFormComponent;
 
   constructor(
     private mod: ModService,
@@ -104,7 +103,7 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
           if (k === this.store.submit.plugin) continue;
           this.addPlugin(k, d.ref.plugins[k]);
         }
-        this.refForm!.setRef({
+        this.refForm.setRef({
           ...d.ref,
           tags: this.oldSubmit,
         });
@@ -160,14 +159,14 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
               this.url = value;
               this.addTag('plugin/repost');
               this.addSource(url);
-              this.refForm!.scrapePlugins();
+              this.refForm.scrapePlugins();
               if (url.startsWith('https://www.youtube.com/@') || url.startsWith('https://youtube.com/@')) {
                 const username = url.substring(url.indexOf('@'));
                 if (!this.store.submit.title) this.webForm.get('title')!.setValue(username);
                 const tag = username.toLowerCase().replace(/[^a-z0-9]+/, '');
                 this.addFeedTags(tag);
               } else if (!this.store.submit.title) {
-                this.refForm!.scrapeTitle();
+                this.refForm.scrapeTitle();
               }
             } else {
               // Feed url already exists, just post the page and drop the feed plugin
@@ -178,13 +177,13 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
                 const username = url.substring(url.indexOf('@'));
                 if (!this.store.submit.title) this.webForm.get('title')!.setValue(username);
               } else if (!this.store.submit.title) {
-                this.refForm!.scrapeTitle();
+                this.refForm.scrapeTitle();
               }
             }
           });
         } else {
           this.oembeds.get(url).subscribe(oembed => {
-            if (!this.store.submit.title) this.refForm!.scrapeTitle();
+            if (!this.store.submit.title) this.refForm.scrapeTitle();
             if (!oembed) return;
             if (oembed?.thumbnail_url) {
               this.addPlugin('plugin/thumbnail', { url: oembed.thumbnail_url });
@@ -214,6 +213,16 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
   ngOnDestroy() {
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
+  }
+
+  get refForm(): RefFormComponent {
+    return this._refForm!;
+  }
+
+  @ViewChild(RefFormComponent)
+  set refForm(value: RefFormComponent) {
+    this._refForm = value;
+    defer(() => this.limitWidth = value?.fill?.nativeElement);
   }
 
   get feed() {
@@ -247,21 +256,21 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
 
   addTag(...values: string[]) {
     for (const value of values) {
-      this.refForm!.tagsFormComponent.addTag(value);
+      this.refForm.tagsFormComponent.addTag(value);
     }
     this.submitted = false;
   }
 
   removeTag(...values: string[]) {
     for (const value of values) {
-      this.refForm!.tagsFormComponent.removeTag(value);
+      this.refForm.tagsFormComponent.removeTag(value);
     }
     this.submitted = false;
   }
 
   addPlugin(tag: string, plugin: any) {
-    this.refForm!.tagsFormComponent.addTag(tag);
-    this.refForm!.pluginsFormComponent.setValue({
+    this.refForm.tagsFormComponent.addTag(tag);
+    this.refForm.pluginsFormComponent.setValue({
       ...this.webForm.value.plugins || {},
       [tag]: plugin,
     });
@@ -269,12 +278,12 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
   }
 
   addSource(value = '') {
-    this.refForm!.sourcesFormComponent.addLink(value);
+    this.refForm.sourcesFormComponent.addLink(value);
     this.submitted = false;
   }
 
   addAlt(value = '') {
-    this.refForm!.altsFormComponent.addLink(value);
+    this.refForm.altsFormComponent.addLink(value);
     this.submitted = false;
   }
 
@@ -323,6 +332,6 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
     ref.plugins ||= {};
     ref.plugins['plugin/feed'] ||= {};
     ref.plugins['plugin/feed'].addTags = uniq([...ref.plugins['plugin/feed'].addTags || [], ...tags]);
-    this.refForm!.pluginsFormComponent.setValue(ref.plugins);
+    this.refForm.pluginsFormComponent.setValue(ref.plugins);
   }
 }

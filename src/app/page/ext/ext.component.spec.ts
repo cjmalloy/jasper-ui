@@ -23,9 +23,7 @@ describe('CreateExtPage', () => {
         provideRouter([]),
       ],
     }).compileComponents();
-  });
 
-  beforeEach(() => {
     fixture = TestBed.createComponent(ExtPage);
     component = fixture.componentInstance;
     fixture.detectChanges();

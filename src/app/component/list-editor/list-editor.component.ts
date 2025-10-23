@@ -2,10 +2,10 @@ import { Component, EventEmitter, HostBinding, Input, Output } from '@angular/co
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 @Component({
-    selector: 'app-list-editor',
-    templateUrl: './list-editor.component.html',
-    styleUrls: ['./list-editor.component.scss'],
-    imports: [ReactiveFormsModule, FormsModule]
+  selector: 'app-list-editor',
+  templateUrl: './list-editor.component.html',
+  styleUrls: ['./list-editor.component.scss'],
+  imports: [ReactiveFormsModule, FormsModule]
 })
 export class ListEditorComponent{
   @HostBinding('class') css = 'listbox form-group';

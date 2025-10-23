@@ -14,18 +14,17 @@ describe('JsonComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    imports: [JsonComponent],
-    providers: [
+      imports: [JsonComponent],
+      providers: [
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),
-      provideRouter([]),
+        provideRouter([]),
         {
           provide: NGX_MONACO_EDITOR_CONFIG,
           useValue: {}
         }
-    ]
-})
-    .compileComponents();
+      ]
+    }).compileComponents();
 
     fixture = TestBed.createComponent(JsonComponent);
     component = fixture.componentInstance;

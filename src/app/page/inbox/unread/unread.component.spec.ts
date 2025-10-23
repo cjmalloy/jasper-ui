@@ -27,9 +27,7 @@ describe('InboxUnreadPage', () => {
         provideRouter([]),
       ],
     }).compileComponents();
-  });
 
-  beforeEach(() => {
     fixture = TestBed.createComponent(InboxUnreadPage);
     component = fixture.componentInstance;
     fixture.detectChanges();

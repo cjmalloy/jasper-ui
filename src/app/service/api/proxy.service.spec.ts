@@ -2,21 +2,22 @@
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-import { RouterModule } from '@angular/router';
+import { provideRouter, RouterModule } from '@angular/router';
 
 import { ProxyService } from './proxy.service';
 
 describe('ProxyService', () => {
   let service: ProxyService;
 
-  beforeEach(() => {
-    TestBed.configureTestingModule({
-      imports: [RouterModule.forRoot([])],
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
       providers: [
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),
+        provideRouter([]),
       ]
-    });
+    }).compileComponents();
+
     service = TestBed.inject(ProxyService);
   });
 

@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
-import { FieldType, FieldTypeConfig, FormlyConfig, FormlyFieldProps, FormlyModule } from '@ngx-formly/core';
+import { FieldType, FieldTypeConfig, FormlyAttributes, FormlyConfig, FormlyFieldProps } from '@ngx-formly/core';
 import { getErrorMessage } from './errors';
 
 interface TextAreaProps extends FormlyFieldProps {
@@ -9,9 +9,9 @@ interface TextAreaProps extends FormlyFieldProps {
 }
 
 @Component({
-    selector: 'formly-field-textarea',
-    host: { 'class': 'field' },
-    template: `
+  selector: 'formly-field-textarea',
+  host: { 'class': 'field' },
+  template: `
     <textarea (blur)="validate($any($event.target))"
               [formControl]="formControl"
               [cols]="props.cols"
@@ -19,8 +19,11 @@ interface TextAreaProps extends FormlyFieldProps {
               [class.is-invalid]="showError"
               [formlyAttributes]="field"></textarea>
   `,
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    imports: [ReactiveFormsModule, FormlyModule],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [
+    ReactiveFormsModule,
+    FormlyAttributes,
+  ],
 })
 export class FormlyFieldTextArea extends FieldType<FieldTypeConfig<TextAreaProps>> {
   override defaultOptions = {

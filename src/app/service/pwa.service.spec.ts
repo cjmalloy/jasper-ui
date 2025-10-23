@@ -2,7 +2,7 @@
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-import { RouterModule } from '@angular/router';
+import { provideRouter, RouterModule } from '@angular/router';
 import { SwUpdate } from '@angular/service-worker';
 
 import { PwaService } from './pwa.service';
@@ -10,17 +10,21 @@ import { PwaService } from './pwa.service';
 describe('PwaService', () => {
   let service: PwaService;
 
-  beforeEach(() => {
-    TestBed.configureTestingModule({
-    imports: [RouterModule.forRoot([])],
-    providers: [{
-            provide: SwUpdate,
-            useValue: {
-                versionUpdates: { subscribe() { } },
-                unrecoverable: { subscribe() { } },
-            },
-        }, provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
-});
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      providers: [
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting(),
+        provideRouter([]),
+        {
+          provide: SwUpdate,
+          useValue: {
+            versionUpdates: { subscribe() { } },
+            unrecoverable: { subscribe() { } },
+          },
+        },
+      ],
+    }).compileComponents();
     service = TestBed.inject(PwaService);
   });
 

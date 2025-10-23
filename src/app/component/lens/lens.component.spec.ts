@@ -10,15 +10,16 @@ describe('LensComponent', () => {
   let component: LensComponent;
   let fixture: ComponentFixture<LensComponent>;
 
-  beforeEach(() => {
-    TestBed.configureTestingModule({
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
       imports: [LensComponent],
       providers: [
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),
         provideRouter([]),
       ],
-    });
+    }).compileComponents()
+
     fixture = TestBed.createComponent(LensComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();

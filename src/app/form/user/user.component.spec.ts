@@ -4,6 +4,7 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule, UntypedFormArray, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { provideRouter } from '@angular/router';
+import { JasperFormlyModule } from '../../formly/formly.module';
 
 import { UserFormComponent } from './user.component';
 
@@ -15,6 +16,7 @@ describe('UserFormComponent', () => {
     await TestBed.configureTestingModule({
       imports: [
         ReactiveFormsModule,
+        JasperFormlyModule,
         UserFormComponent,
       ],
       providers: [
@@ -23,9 +25,7 @@ describe('UserFormComponent', () => {
         provideRouter([]),
       ],
     }).compileComponents();
-  });
 
-  beforeEach(() => {
     fixture = TestBed.createComponent(UserFormComponent);
     component = fixture.componentInstance;
     component.group = new UntypedFormGroup({

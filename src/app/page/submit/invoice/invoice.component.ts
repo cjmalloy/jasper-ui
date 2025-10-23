@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component } from '@angular/core';
+import { Component, forwardRef } from '@angular/core';
 import {
   ReactiveFormsModule,
   UntypedFormBuilder,
@@ -31,11 +31,17 @@ import { printError } from '../../../util/http';
 import { prefix } from '../../../util/tag';
 
 @Component({
-    selector: 'app-submit-invoice',
-    templateUrl: './invoice.component.html',
-    styleUrls: ['./invoice.component.scss'],
-    host: { 'class': 'full-page-form' },
-    imports: [ReactiveFormsModule, LimitWidthDirective, QrScannerComponent, EditorComponent, LoadingComponent]
+  selector: 'app-submit-invoice',
+  templateUrl: './invoice.component.html',
+  styleUrls: ['./invoice.component.scss'],
+  host: { 'class': 'full-page-form' },
+  imports: [
+    forwardRef(() => EditorComponent),
+    ReactiveFormsModule,
+    LimitWidthDirective,
+    QrScannerComponent,
+    LoadingComponent,
+  ]
 })
 export class SubmitInvoicePage implements HasChanges {
 

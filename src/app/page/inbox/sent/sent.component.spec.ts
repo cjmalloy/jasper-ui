@@ -19,9 +19,7 @@ describe('InboxSentPage', () => {
         provideRouter([]),
       ],
     }).compileComponents();
-  });
 
-  beforeEach(() => {
     fixture = TestBed.createComponent(InboxSentPage);
     component = fixture.componentInstance;
     fixture.detectChanges();

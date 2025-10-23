@@ -12,10 +12,10 @@ import { UserStore } from '../../../store/user';
 import { getTagFilter } from '../../../util/query';
 
 @Component({
-    selector: 'app-settings-user-page',
-    templateUrl: './user.component.html',
-    styleUrls: ['./user.component.scss'],
-    imports: [UserListComponent],
+  selector: 'app-settings-user-page',
+  templateUrl: './user.component.html',
+  styleUrls: ['./user.component.scss'],
+  imports: [UserListComponent],
 })
 export class SettingsUserPage implements OnInit, OnDestroy, HasChanges {
 

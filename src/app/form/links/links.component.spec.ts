@@ -20,10 +20,8 @@ describe('LinksFormComponent', () => {
       providers: [
         provideRouter([]),
       ],
-   }).compileComponents();
-  });
+    }).compileComponents();
 
-  beforeEach(() => {
     fixture = TestBed.createComponent(LinksFormComponent);
     component = fixture.componentInstance;
     component.group = new UntypedFormGroup({ links: new UntypedFormControl({}) });

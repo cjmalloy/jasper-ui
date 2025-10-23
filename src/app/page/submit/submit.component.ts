@@ -1,5 +1,5 @@
 import { AsyncPipe } from '@angular/common';
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, forwardRef, OnDestroy, OnInit } from '@angular/core';
 import {
   AbstractControl,
   AsyncValidatorFn,
@@ -44,26 +44,26 @@ import { hasPrefix } from '../../util/tag';
 type Validation = { test: (url: string) => Observable<any>; name: string; passed: boolean };
 
 @Component({
-    selector: 'app-submit-page',
-    templateUrl: './submit.component.html',
-    styleUrls: ['./submit.component.scss'],
-    imports: [
-        MobxAngularModule,
-        TabsComponent,
-        RouterLink,
-        RouterOutlet,
-        ReactiveFormsModule,
-        SelectPluginComponent,
-        AutofocusDirective,
-        QrScannerComponent,
-        PdfUploadComponent,
-        AudioUploadComponent,
-        VideoUploadComponent,
-        ImageUploadComponent,
-        RefComponent,
-        AsyncPipe,
-        TagPreviewPipe,
-    ],
+  selector: 'app-submit-page',
+  templateUrl: './submit.component.html',
+  styleUrls: ['./submit.component.scss'],
+  imports: [
+    forwardRef(() => RefComponent),
+    MobxAngularModule,
+    TabsComponent,
+    RouterLink,
+    RouterOutlet,
+    ReactiveFormsModule,
+    SelectPluginComponent,
+    AutofocusDirective,
+    QrScannerComponent,
+    PdfUploadComponent,
+    AudioUploadComponent,
+    VideoUploadComponent,
+    ImageUploadComponent,
+    AsyncPipe,
+    TagPreviewPipe,
+  ],
 })
 export class SubmitPage implements OnInit, OnDestroy {
   private disposers: IReactionDisposer[] = [];

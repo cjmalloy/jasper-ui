@@ -28,12 +28,12 @@ type Piece = { type: PieceType, color: PieceColor, square: Square, };
 type AnimationState = { from: Square; to: Square; capture?: { square: Square; piece: Piece }; piece: Piece; boardState: (Piece | null)[], turnState: PieceColor, movesState: Square[] };
 
 @Component({
-    selector: 'app-chess',
-    templateUrl: './chess.component.html',
-    styleUrls: ['./chess.component.scss'],
-    hostDirectives: [CdkDropListGroup],
-    host: { 'class': 'chess-board' },
-    imports: [CdkDropList, CdkDrag]
+  selector: 'app-chess',
+  templateUrl: './chess.component.html',
+  styleUrls: ['./chess.component.scss'],
+  hostDirectives: [CdkDropListGroup],
+  host: { 'class': 'chess-board' },
+  imports: [CdkDropList, CdkDrag]
 })
 export class ChessComponent implements OnInit, OnChanges, OnDestroy {
   private disposers: IReactionDisposer[] = [];

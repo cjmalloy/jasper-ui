@@ -9,11 +9,11 @@ import { AuthzService } from '../../service/authz.service';
 import { Store } from '../../store/store';
 
 @Component({
-    selector: 'app-inbox-page',
-    templateUrl: './inbox.component.html',
-    styleUrls: ['./inbox.component.scss'],
-    host: { 'class': 'inbox' },
-    imports: [MobxAngularModule, TabsComponent, RouterLink, RouterLinkActive, SidebarComponent, RouterOutlet]
+  selector: 'app-inbox-page',
+  templateUrl: './inbox.component.html',
+  styleUrls: ['./inbox.component.scss'],
+  host: { 'class': 'inbox' },
+  imports: [MobxAngularModule, TabsComponent, RouterLink, RouterLinkActive, SidebarComponent, RouterOutlet]
 })
 export class InboxPage implements OnInit {
 

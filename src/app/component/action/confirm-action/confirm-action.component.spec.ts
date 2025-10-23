@@ -7,10 +7,10 @@ describe('ConfirmActionComponent', () => {
   let component: ConfirmActionComponent;
   let fixture: ComponentFixture<ConfirmActionComponent>;
 
-  beforeEach(() => {
-    TestBed.configureTestingModule({
-    imports: [ConfirmActionComponent]
-});
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [ConfirmActionComponent]
+    }).compileComponents();
     fixture = TestBed.createComponent(ConfirmActionComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();

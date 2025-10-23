@@ -22,9 +22,7 @@ describe('AltsComponent', () => {
         provideRouter([]),
       ],
     }).compileComponents();
-  });
 
-  beforeEach(() => {
     fixture = TestBed.createComponent(RefAltsComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();

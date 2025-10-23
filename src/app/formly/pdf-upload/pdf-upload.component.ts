@@ -8,10 +8,10 @@ import { Saving } from '../../store/submit';
 import { readFileAsDataURL } from '../../util/async';
 
 @Component({
-    selector: 'app-pdf-upload',
-    templateUrl: './pdf-upload.component.html',
-    styleUrls: ['./pdf-upload.component.scss'],
-    host: { 'class': 'form-array' }
+  selector: 'app-pdf-upload',
+  templateUrl: './pdf-upload.component.html',
+  styleUrls: ['./pdf-upload.component.scss'],
+  host: { 'class': 'form-array' }
 })
 export class PdfUploadComponent {
 

@@ -8,11 +8,11 @@ import { Store } from '../../store/store';
 import { formatRefForDiff } from '../../util/diff';
 
 @Component({
-    selector: 'app-diff',
-    templateUrl: './diff.component.html',
-    styleUrl: './diff.component.scss',
-    host: { 'class': 'diff-editor' },
-    imports: [MonacoEditorModule, ResizeHandleDirective]
+  selector: 'app-diff',
+  templateUrl: './diff.component.html',
+  styleUrl: './diff.component.scss',
+  host: { 'class': 'diff-editor' },
+  imports: [MonacoEditorModule, ResizeHandleDirective]
 })
 export class DiffComponent implements OnInit, OnDestroy {
   private disposers: IReactionDisposer[] = [];

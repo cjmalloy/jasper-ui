@@ -12,11 +12,11 @@ import { Store } from '../../../store/store';
 import { getArgs } from '../../../util/query';
 
 @Component({
-    selector: 'app-inbox-all',
-    templateUrl: './all.component.html',
-    styleUrls: ['./all.component.scss'],
-    host: { 'class': 'inbox-all' },
-    imports: [MobxAngularModule, RefListComponent]
+  selector: 'app-inbox-all',
+  templateUrl: './all.component.html',
+  styleUrls: ['./all.component.scss'],
+  host: { 'class': 'inbox-all' },
+  imports: [MobxAngularModule, RefListComponent]
 })
 export class InboxAllPage implements OnInit, OnDestroy, HasChanges {
 

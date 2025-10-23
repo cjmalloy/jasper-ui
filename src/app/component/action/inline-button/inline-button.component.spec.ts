@@ -7,10 +7,10 @@ describe('InlineButtonComponent', () => {
   let component: InlineButtonComponent;
   let fixture: ComponentFixture<InlineButtonComponent>;
 
-  beforeEach(() => {
-    TestBed.configureTestingModule({
-    imports: [InlineButtonComponent]
-});
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [InlineButtonComponent]
+    }).compileComponents();
     fixture = TestBed.createComponent(InlineButtonComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();

@@ -26,11 +26,11 @@ export const allRefSorts: {value: RefSort, label: string, title?: string }[] = [
 ];
 
 @Component({
-    selector: 'app-sort',
-    templateUrl: './sort.component.html',
-    styleUrls: ['./sort.component.scss'],
-    host: { 'class': 'sort form-group' },
-    imports: [ReactiveFormsModule, FormsModule]
+  selector: 'app-sort',
+  templateUrl: './sort.component.html',
+  styleUrls: ['./sort.component.scss'],
+  host: { 'class': 'sort form-group' },
+  imports: [ReactiveFormsModule, FormsModule]
 })
 export class SortComponent implements OnChanges, OnDestroy {
   private disposers: IReactionDisposer[] = [];

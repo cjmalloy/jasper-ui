@@ -7,11 +7,11 @@ import { AuthzService } from '../../service/authz.service';
 import { access } from '../../util/tag';
 
 @Component({
-    selector: 'app-select-template',
-    templateUrl: './select-template.component.html',
-    styleUrls: ['./select-template.component.scss'],
-    host: { 'class': 'select-template' },
-    imports: [ReactiveFormsModule]
+  selector: 'app-select-template',
+  templateUrl: './select-template.component.html',
+  styleUrls: ['./select-template.component.scss'],
+  host: { 'class': 'select-template' },
+  imports: [ReactiveFormsModule]
 })
 export class SelectTemplateComponent {
 

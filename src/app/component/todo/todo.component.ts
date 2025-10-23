@@ -20,11 +20,11 @@ import { Store } from '../../store/store';
 import { TodoItemComponent } from './item/item.component';
 
 @Component({
-    selector: 'app-todo',
-    templateUrl: './todo.component.html',
-    styleUrls: ['./todo.component.scss'],
-    host: { 'class': 'todo-list' },
-    imports: [CdkDropList, TodoItemComponent, CdkDrag, ReactiveFormsModule, FormsModule]
+  selector: 'app-todo',
+  templateUrl: './todo.component.html',
+  styleUrls: ['./todo.component.scss'],
+  host: { 'class': 'todo-list' },
+  imports: [CdkDropList, TodoItemComponent, CdkDrag, ReactiveFormsModule, FormsModule]
 })
 export class TodoComponent implements OnChanges {
 

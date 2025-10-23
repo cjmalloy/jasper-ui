@@ -13,8 +13,8 @@ describe('TabsComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    imports: [TabsComponent],
-    providers: [
+      imports: [TabsComponent],
+      providers: [
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),
         {
@@ -25,8 +25,8 @@ describe('TabsComponent', () => {
             snapshot: { params: {}, queryParams: {} }
           }
         }
-    ],
-}).compileComponents();
+      ],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(TabsComponent);
     component = fixture.componentInstance;

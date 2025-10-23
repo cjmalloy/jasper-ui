@@ -19,11 +19,11 @@ import { ORIGIN_REGEX } from '../../../util/format';
 import { printError } from '../../../util/http';
 
 @Component({
-    selector: 'app-settings-backup-page',
-    templateUrl: './backup.component.html',
-    styleUrls: ['./backup.component.scss'],
-    host: { 'class': 'backup' },
-    imports: [ReactiveFormsModule, LoadingComponent, BackupListComponent]
+  selector: 'app-settings-backup-page',
+  templateUrl: './backup.component.html',
+  styleUrls: ['./backup.component.scss'],
+  host: { 'class': 'backup' },
+  imports: [ReactiveFormsModule, LoadingComponent, BackupListComponent]
 })
 export class SettingsBackupPage {
 

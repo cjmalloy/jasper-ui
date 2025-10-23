@@ -6,8 +6,8 @@ import { VisibilityService } from './visibility.service';
 describe('VisibilityService', () => {
   let service: VisibilityService;
 
-  beforeEach(() => {
-    TestBed.configureTestingModule({});
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({});
     service = TestBed.inject(VisibilityService);
   });
 

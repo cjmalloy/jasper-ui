@@ -26,9 +26,7 @@ describe('SubmitDmPage', () => {
         { provide: ComponentFixtureAutoDetect, useValue: true }
       ],
     }).compileComponents();
-  });
 
-  beforeEach(() => {
     fixture = TestBed.createComponent(SubmitDmPage);
     component = fixture.componentInstance;
     fixture.detectChanges();

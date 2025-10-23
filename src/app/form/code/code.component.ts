@@ -7,10 +7,10 @@ import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
 
 @Component({
-    selector: 'app-code',
-    templateUrl: './code.component.html',
-    styleUrls: ['./code.component.scss'],
-    imports: [ReactiveFormsModule, MonacoEditorModule, ResizeHandleDirective]
+  selector: 'app-code',
+  templateUrl: './code.component.html',
+  styleUrls: ['./code.component.scss'],
+  imports: [ReactiveFormsModule, MonacoEditorModule, ResizeHandleDirective]
 })
 export class CodeComponent implements OnDestroy {
 

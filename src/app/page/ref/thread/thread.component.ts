@@ -23,11 +23,11 @@ import { getArgs } from '../../../util/query';
 import { hasTag, removeTag, top, updateMetadata } from '../../../util/tag';
 
 @Component({
-    selector: 'app-ref-thread',
-    templateUrl: './thread.component.html',
-    styleUrls: ['./thread.component.scss'],
-    host: { 'class': 'thread' },
-    imports: [MobxAngularModule, RefListComponent, LoadingComponent, CommentReplyComponent]
+  selector: 'app-ref-thread',
+  templateUrl: './thread.component.html',
+  styleUrls: ['./thread.component.scss'],
+  host: { 'class': 'thread' },
+  imports: [MobxAngularModule, RefListComponent, LoadingComponent, CommentReplyComponent]
 })
 export class RefThreadComponent implements HasChanges {
 

@@ -9,10 +9,10 @@ import { EditorService } from '../../service/editor.service';
 import { Store } from '../../store/store';
 
 @Component({
-    selector: 'app-user-tag-selector',
-    templateUrl: './user-tag-selector.component.html',
-    styleUrls: ['./user-tag-selector.component.scss'],
-    imports: [ReactiveFormsModule]
+  selector: 'app-user-tag-selector',
+  templateUrl: './user-tag-selector.component.html',
+  styleUrls: ['./user-tag-selector.component.scss'],
+  imports: [ReactiveFormsModule]
 })
 export class UserTagSelectorComponent implements OnDestroy {
 

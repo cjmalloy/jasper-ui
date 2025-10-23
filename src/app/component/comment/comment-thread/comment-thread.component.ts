@@ -19,14 +19,14 @@ import { ThreadStore } from '../../../store/thread';
 import { CommentComponent } from '../comment.component';
 
 @Component({
-    selector: 'app-comment-thread',
-    templateUrl: './comment-thread.component.html',
-    styleUrls: ['./comment-thread.component.scss'],
-    host: { 'class': 'comment-thread' },
-    imports: [
-      forwardRef(() => CommentComponent),
-      MobxAngularModule,
-    ],
+  selector: 'app-comment-thread',
+  templateUrl: './comment-thread.component.html',
+  styleUrls: ['./comment-thread.component.scss'],
+  host: { 'class': 'comment-thread' },
+  imports: [
+    forwardRef(() => CommentComponent),
+    MobxAngularModule,
+  ],
 })
 export class CommentThreadComponent implements OnInit, OnChanges, OnDestroy, HasChanges {
   private destroy$ = new Subject<void>();

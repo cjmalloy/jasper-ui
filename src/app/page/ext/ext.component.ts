@@ -31,20 +31,20 @@ import { printError } from '../../util/http';
 import { access, hasPrefix, localTag, prefix } from '../../util/tag';
 
 @Component({
-    selector: 'app-ext-page',
-    templateUrl: './ext.component.html',
-    styleUrls: ['./ext.component.scss'],
-    imports: [
-        MobxAngularModule,
-        RouterLink,
-        SettingsComponent,
-        ReactiveFormsModule,
-        SelectTemplateComponent,
-        LoadingComponent,
-        LimitWidthDirective,
-        ExtFormComponent,
-        FormsModule,
-    ],
+  selector: 'app-ext-page',
+  templateUrl: './ext.component.html',
+  styleUrls: ['./ext.component.scss'],
+  imports: [
+    MobxAngularModule,
+    RouterLink,
+    SettingsComponent,
+    ReactiveFormsModule,
+    SelectTemplateComponent,
+    LoadingComponent,
+    LimitWidthDirective,
+    ExtFormComponent,
+    FormsModule,
+  ],
 })
 export class ExtPage implements OnInit, OnDestroy, HasChanges {
   private disposers: IReactionDisposer[] = [];

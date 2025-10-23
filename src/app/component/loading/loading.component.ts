@@ -1,10 +1,10 @@
 import { Component, HostBinding, Input } from '@angular/core';
 
 @Component({
-    selector: 'app-loading',
-    templateUrl: './loading.component.html',
-    styleUrls: ['./loading.component.scss'],
-    host: { 'class': 'loading-dots' }
+  selector: 'app-loading',
+  templateUrl: './loading.component.html',
+  styleUrls: ['./loading.component.scss'],
+  host: { 'class': 'loading-dots' }
 })
 export class LoadingComponent {
 

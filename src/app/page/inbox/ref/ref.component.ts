@@ -12,10 +12,10 @@ import { Store } from '../../../store/store';
 import { getArgs } from '../../../util/query';
 
 @Component({
-    selector: 'app-inbox-ref-page',
-    templateUrl: './ref.component.html',
-    styleUrls: ['./ref.component.scss'],
-    imports: [MobxAngularModule, RefListComponent],
+  selector: 'app-inbox-ref-page',
+  templateUrl: './ref.component.html',
+  styleUrls: ['./ref.component.scss'],
+  imports: [MobxAngularModule, RefListComponent],
 })
 export class InboxRefPage implements OnInit, OnDestroy, HasChanges {
   private disposers: IReactionDisposer[] = [];

@@ -5,11 +5,11 @@ import { ListEditorComponent } from '../../component/list-editor/list-editor.com
 import { CodeComponent } from '../code/code.component';
 
 @Component({
-    selector: 'app-themes',
-    templateUrl: './themes.component.html',
-    styleUrls: ['./themes.component.scss'],
-    host: { 'class': 'form-group' },
-    imports: [ListEditorComponent, CodeComponent]
+  selector: 'app-themes',
+  templateUrl: './themes.component.html',
+  styleUrls: ['./themes.component.scss'],
+  host: { 'class': 'form-group' },
+  imports: [ListEditorComponent, CodeComponent]
 })
 export class ThemesFormComponent implements OnChanges {
 
