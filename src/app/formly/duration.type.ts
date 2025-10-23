@@ -5,9 +5,9 @@ import { Duration } from 'luxon';
 import { getErrorMessage } from './errors';
 
 @Component({
-    selector: 'formly-field-duration',
-    host: { 'class': 'field' },
-    template: `
+  selector: 'formly-field-duration',
+  host: { 'class': 'field' },
+  template: `
     <div class="col">
       <div class="center">{{ formatInterval(model[$any(key)]) }}</div>
       <input [duration]="props.datalist"
@@ -22,12 +22,12 @@ import { getErrorMessage } from './errors';
              [class.is-invalid]="showError">
     </div>
   `,
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    imports: [
-        ReactiveFormsModule,
-        forwardRef(() => DurationInputAccessor),
-        FormlyModule,
-    ],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [
+    ReactiveFormsModule,
+    forwardRef(() => DurationInputAccessor),
+    FormlyModule,
+  ],
 })
 export class FormlyFieldDuration extends FieldType<FieldTypeConfig> {
 
@@ -50,19 +50,19 @@ export class FormlyFieldDuration extends FieldType<FieldTypeConfig> {
 }
 
 @Directive({
-    selector: '[duration]',
-    providers: [
-        {
-            provide: NG_VALUE_ACCESSOR,
-            useExisting: forwardRef(() => DurationInputAccessor),
-            multi: true
-        },
-    ],
-    host: {
-        '(change)': 'onChange($event.target.value)',
-        '(input)': 'onChange($event.target.value)',
-        '(blur)': 'onTouched()'
+  selector: '[duration]',
+  providers: [
+    {
+      provide: NG_VALUE_ACCESSOR,
+      useExisting: forwardRef(() => DurationInputAccessor),
+      multi: true
     },
+  ],
+  host: {
+    '(change)': 'onChange($event.target.value)',
+    '(input)': 'onChange($event.target.value)',
+    '(blur)': 'onTouched()'
+  },
 })
 export class DurationInputAccessor implements ControlValueAccessor {
   onChange: any;

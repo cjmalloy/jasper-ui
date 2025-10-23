@@ -1,4 +1,4 @@
-import { Component, HostBinding, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, forwardRef, HostBinding, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { isEqual, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
@@ -18,17 +18,17 @@ import { Store } from '../../store/store';
 import { getArgs, UrlFilter } from '../../util/query';
 
 @Component({
-    selector: 'app-tag-page',
-    templateUrl: './tag.component.html',
-    styleUrls: ['./tag.component.scss'],
-    imports: [
-        MobxAngularModule,
-        TabsComponent,
-        RouterLink,
-        SidebarComponent,
-        LensComponent,
-        LoadingComponent,
-    ],
+  selector: 'app-tag-page',
+  templateUrl: './tag.component.html',
+  styleUrls: ['./tag.component.scss'],
+  imports: [
+    forwardRef(() => LensComponent),
+    MobxAngularModule,
+    TabsComponent,
+    RouterLink,
+    SidebarComponent,
+    LoadingComponent,
+  ],
 })
 export class TagPage implements OnInit, OnDestroy, HasChanges {
   private disposers: IReactionDisposer[] = [];
@@ -51,10 +51,10 @@ export class TagPage implements OnInit, OnDestroy, HasChanges {
     runInAction(() => {
       this.store.view.clear([
         !!this.admin.getPlugin('plugin/user/vote/up')
-        ? 'voteScoreDecay'
-        : this.store.view.tag.includes('*')
-        ? 'published'
-        : 'created'
+          ? 'voteScoreDecay'
+          : this.store.view.tag.includes('*')
+            ? 'published'
+            : 'created'
       ]);
       this.store.view.extTemplates = this.admin.view;
     });
@@ -71,7 +71,7 @@ export class TagPage implements OnInit, OnDestroy, HasChanges {
               runInAction(() => this.store.view.exts = exts);
             }
             this.loading = false;
-        });
+          });
       }
     }));
     this.query.clear();

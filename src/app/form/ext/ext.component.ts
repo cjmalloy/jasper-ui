@@ -39,8 +39,8 @@ import { themesForm, ThemesFormComponent } from '../themes/themes.component';
   imports: [
     ReactiveFormsModule,
     FormlyModule,
-    forwardRef(() => RefComponent),
     CdkDropListGroup,
+    forwardRef(() => RefComponent),
     EditorComponent,
     RouterLink,
     ThemesFormComponent,
