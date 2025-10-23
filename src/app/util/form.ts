@@ -1,5 +1,9 @@
-import { AbstractControl, ValidationErrors, ValidatorFn } from '@angular/forms';
+import { AbstractControl, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { Duration } from 'luxon';
+import { TAG_REGEX, URI_REGEX } from './format';
+
+export const tagValidators = [Validators.pattern(TAG_REGEX)];
+export const linkValidators = [Validators.pattern(URI_REGEX)];
 
 export function intervalValidator(): ValidatorFn {
   return (control: AbstractControl): ValidationErrors | null => {

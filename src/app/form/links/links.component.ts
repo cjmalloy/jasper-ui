@@ -1,8 +1,8 @@
 import { Component, HostBinding, Input } from '@angular/core';
-import { FormBuilder, UntypedFormArray, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
+import { FormBuilder, UntypedFormArray, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { FormlyModule } from '@ngx-formly/core';
 import { map } from 'lodash-es';
-import { URI_REGEX } from '../../util/format';
+import { linkValidators } from '../../util/form';
 
 @Component({
     selector: 'app-links',
@@ -11,7 +11,7 @@ import { URI_REGEX } from '../../util/format';
     imports: [FormlyModule]
 })
 export class LinksFormComponent {
-  static validators = [Validators.pattern(URI_REGEX)];
+  static validators = linkValidators;
   @HostBinding('class') css = 'form-group';
 
   @Input()
@@ -95,5 +95,5 @@ export class LinksFormComponent {
 }
 
 export function linksForm(fb: UntypedFormBuilder, urls: string[]) {
-  return fb.array(map(urls, v => fb.control(v, LinksFormComponent.validators)));
+  return fb.array(map(urls, v => fb.control(v, linkValidators)));
 }

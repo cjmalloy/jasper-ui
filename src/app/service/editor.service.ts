@@ -4,10 +4,10 @@ import Europa from 'europa';
 import { Plugin, PluginApi, PluginConverter } from 'europa-core';
 import { difference, uniq } from 'lodash-es';
 import { forkJoin, map, Observable, of, switchMap } from 'rxjs';
-import { TagsFormComponent } from '../form/tags/tags.component';
 import { Ext } from '../model/ext';
 import { Store } from '../store/store';
 import { getMailboxes } from '../util/editor';
+import { tagValidators } from '../util/form';
 import { getPath } from '../util/http';
 import { access, removePrefix, setPublic } from '../util/tag';
 import { AdminService } from './admin.service';
@@ -201,7 +201,7 @@ export class EditorService {
     const mailboxes = uniq(difference([
       ...getMailboxes(group.value.comment, this.store.account.origin)], existingTags));
     for (const t of mailboxes) {
-      (group.get('tags') as UntypedFormArray).push(fb.control(t, TagsFormComponent.validators));
+      (group.get('tags') as UntypedFormArray).push(fb.control(t, tagValidators));
     }
   }
 

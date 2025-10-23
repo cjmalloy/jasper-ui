@@ -35,6 +35,7 @@ import { ConfigService } from '../../service/config.service';
 import { EditorService } from '../../service/editor.service';
 import { OembedStore } from '../../store/oembed';
 import { Store } from '../../store/store';
+import { linkValidators } from '../../util/form';
 import { getScheme } from '../../util/http';
 import { memo, MemoCache } from '../../util/memo';
 import { hasMedia, hasPrefix, hasTag } from '../../util/tag';
@@ -137,7 +138,7 @@ export class RefFormComponent implements OnChanges {
   }
 
   addSource(value = '') {
-    this.sources.push(this.fb.control(value, LinksFormComponent.validators));
+    this.sources.push(this.fb.control(value, linkValidators));
   }
 
   setTags(value: string[]) {

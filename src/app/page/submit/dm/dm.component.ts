@@ -36,7 +36,7 @@ import { ConfigService } from '../../../service/config.service';
 import { EditorService } from '../../../service/editor.service';
 import { ModService } from '../../../service/mod.service';
 import { Store } from '../../../store/store';
-import { scrollToFirstInvalid } from '../../../util/form';
+import { linkValidators, scrollToFirstInvalid } from '../../../util/form';
 import { QUALIFIED_TAGS_REGEX } from '../../../util/format';
 import { printError } from '../../../util/http';
 import { memo, MemoCache } from '../../../util/memo';
@@ -286,7 +286,7 @@ export class SubmitDmPage implements AfterViewInit, OnChanges, OnDestroy, HasCha
   }
 
   addSource(value = '') {
-    this.sources.push(this.fb.control(value, LinksFormComponent.validators));
+    this.sources.push(this.fb.control(value, linkValidators));
     this.submitted = false;
   }
 

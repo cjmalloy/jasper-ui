@@ -1,8 +1,8 @@
 import { Component, HostBinding, Input, OnChanges, SimpleChanges } from '@angular/core';
-import { FormBuilder, UntypedFormArray, UntypedFormGroup, Validators } from '@angular/forms';
+import { FormBuilder, UntypedFormArray, UntypedFormGroup } from '@angular/forms';
 import { FormlyModule } from '@ngx-formly/core';
 import { defer } from 'lodash-es';
-import { TAG_REGEX } from '../../util/format';
+import { tagValidators } from '../../util/form';
 import { hasPrefix, hasTag } from '../../util/tag';
 
 @Component({
@@ -12,7 +12,7 @@ import { hasPrefix, hasTag } from '../../util/tag';
     imports: [FormlyModule]
 })
 export class TagsFormComponent implements OnChanges {
-  static validators = [Validators.pattern(TAG_REGEX)];
+  static validators = tagValidators;
   @HostBinding('class') css = 'form-group';
 
   @Input()
