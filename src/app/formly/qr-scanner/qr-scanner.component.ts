@@ -13,14 +13,12 @@ import {
 import { loadImage } from '../../util/image';
 import { QrScanner, scanImage } from '../../util/qr-scanner';
 import { Camera, hasCamera, listCameras } from '../../util/webcam';
-import { NgIf } from '@angular/common';
 
 @Component({
     selector: 'app-qr-scanner',
     templateUrl: './qr-scanner.component.html',
     styleUrls: ['./qr-scanner.component.scss'],
-    host: { 'class': 'form-array' },
-    imports: [NgIf]
+    host: { 'class': 'form-array' }
 })
 export class QrScannerComponent implements OnDestroy {
 

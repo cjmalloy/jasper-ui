@@ -1,4 +1,4 @@
-import { Component, Input, OnDestroy, OnInit, QueryList, ViewChildren } from '@angular/core';
+import { Component, forwardRef, Input, OnDestroy, OnInit, QueryList, ViewChildren } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, forkJoin, Observable, of, Subject, takeUntil } from 'rxjs';
 import { HasChanges } from '../../guard/pending-changes.guard';
@@ -8,18 +8,21 @@ import { Ref } from '../../model/ref';
 import { AccountService } from '../../service/account.service';
 import { RefService } from '../../service/api/ref.service';
 import { Store } from '../../store/store';
+import { LoadingComponent } from '../loading/loading.component';
+import { PageControlsComponent } from '../page-controls/page-controls.component';
 import { RefComponent } from '../ref/ref.component';
 import { NoteComponent } from './note/note.component';
-import { NgIf } from '@angular/common';
-import { PageControlsComponent } from '../page-controls/page-controls.component';
-import { LoadingComponent } from '../loading/loading.component';
 
 @Component({
-    selector: 'app-notebook',
-    templateUrl: './notebook.component.html',
-    styleUrl: './notebook.component.scss',
-    host: { 'class': 'notebook ext' },
-    imports: [NoteComponent, NgIf, PageControlsComponent, LoadingComponent]
+  selector: 'app-notebook',
+  templateUrl: './notebook.component.html',
+  styleUrl: './notebook.component.scss',
+  host: { 'class': 'notebook ext' },
+  imports: [
+    forwardRef(() => NoteComponent),
+    PageControlsComponent,
+    LoadingComponent,
+  ],
 })
 export class NotebookComponent implements OnInit, OnDestroy, HasChanges {
   private destroy$ = new Subject<void>();

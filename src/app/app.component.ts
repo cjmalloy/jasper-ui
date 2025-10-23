@@ -1,6 +1,9 @@
 import { AfterViewInit, Component, HostBinding, HostListener, isDevMode } from '@angular/core';
 import { Router, RouterOutlet } from '@angular/router';
 import { autorun, runInAction } from 'mobx';
+import { MobxAngularModule } from 'mobx-angular';
+import { LoginPopupComponent } from './component/login-popup/login-popup.component';
+import { SubscriptionBarComponent } from './component/subscription-bar/subscription-bar.component';
 import { archivePlugin, archiveUrl } from './mods/archive';
 import { pdfPlugin, pdfUrl } from './mods/pdf';
 import { AdminService } from './service/admin.service';
@@ -10,9 +13,6 @@ import { ScrapeService } from './service/api/scrape.service';
 import { ConfigService } from './service/config.service';
 import { Store } from './store/store';
 import { memo } from './util/memo';
-import { MobxAngularModule } from 'mobx-angular';
-import { LoginPopupComponent } from './component/login-popup/login-popup.component';
-import { SubscriptionBarComponent } from './component/subscription-bar/subscription-bar.component';
 
 @Component({
     selector: 'app-root',

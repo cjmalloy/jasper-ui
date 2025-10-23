@@ -1,10 +1,10 @@
 /// <reference types="vitest/globals" />
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { RouterModule } from '@angular/router';
+import { provideRouter } from '@angular/router';
 
 import { InboxAlarmsPage } from './alarms.component';
-import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 describe('InboxAlarmsPage', () => {
   let component: InboxAlarmsPage;
@@ -12,9 +12,13 @@ describe('InboxAlarmsPage', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-    imports: [RouterModule.forRoot([]), InboxAlarmsPage],
-    providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
-});
+      imports: [InboxAlarmsPage],
+      providers: [
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting(),
+        provideRouter([]),
+      ],
+    });
     fixture = TestBed.createComponent(InboxAlarmsPage);
     component = fixture.componentInstance;
     fixture.detectChanges();

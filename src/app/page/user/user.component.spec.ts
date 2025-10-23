@@ -1,12 +1,12 @@
 /// <reference types="vitest/globals" />
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
-import { FormlyModule } from '@ngx-formly/core';
+import { provideRouter } from '@angular/router';
+import { JasperFormlyModule } from '../../formly/formly.module';
 
 import { UserPage } from './user.component';
-import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 describe('CreateUserPage', () => {
   let component: UserPage;
@@ -14,15 +14,17 @@ describe('CreateUserPage', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    imports: [
-        RouterModule.forRoot([]),
+      imports: [
         ReactiveFormsModule,
-        FormlyModule.forRoot(),
+        JasperFormlyModule,
         UserPage
-    ],
-    providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
-})
-    .compileComponents();
+      ],
+      providers: [
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting(),
+        provideRouter([]),
+      ],
+    }).compileComponents();
   });
 
   beforeEach(() => {

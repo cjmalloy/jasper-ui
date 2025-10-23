@@ -1,10 +1,10 @@
 import { Component, Input, OnDestroy } from '@angular/core';
-import { UntypedFormGroup, ReactiveFormsModule } from '@angular/forms';
+import { ReactiveFormsModule, UntypedFormGroup } from '@angular/forms';
 import { autorun, IReactionDisposer } from 'mobx';
-import { ConfigService } from '../../service/config.service';
-import { Store } from '../../store/store';
 import { MonacoEditorModule } from 'ngx-monaco-editor';
 import { ResizeHandleDirective } from '../../directive/resize-handle.directive';
+import { ConfigService } from '../../service/config.service';
+import { Store } from '../../store/store';
 
 @Component({
     selector: 'app-json',

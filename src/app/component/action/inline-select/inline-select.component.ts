@@ -1,7 +1,7 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { catchError, Observable, of } from 'rxjs';
-import { ActionComponent } from '../action.component';
 import { LoadingComponent } from '../../loading/loading.component';
+import { ActionComponent } from '../action.component';
 
 @Component({
     selector: 'app-inline-select',

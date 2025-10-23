@@ -14,7 +14,6 @@ import { Store } from '../../store/store';
 import { TemplateStore } from '../../store/template';
 import { UserStore } from '../../store/user';
 import { printError } from '../../util/http';
-import { NgIf } from '@angular/common';
 import { LoadingComponent } from '../loading/loading.component';
 
 @Component({
@@ -22,7 +21,7 @@ import { LoadingComponent } from '../loading/loading.component';
     templateUrl: './debug.component.html',
     styleUrls: ['./debug.component.scss'],
     host: { 'class': 'debug actions' },
-    imports: [NgIf, LoadingComponent]
+    imports: [LoadingComponent]
 })
 export class DebugComponent {
 

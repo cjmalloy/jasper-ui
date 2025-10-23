@@ -1,10 +1,10 @@
 import { Component } from '@angular/core';
+import { RouterLink } from '@angular/router';
+import { MobxAngularModule } from 'mobx-angular';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
-import { MobxAngularModule } from 'mobx-angular';
-import { RouterLink } from '@angular/router';
 
 @Component({
     selector: 'app-settings',

@@ -1,4 +1,5 @@
-import { CdkDragDrop, CdkDropList, ɵɵCdkScrollable, CdkDrag, CdkDragHandle } from '@angular/cdk/drag-drop';
+import { CdkDrag, CdkDragDrop, CdkDragHandle, CdkDropList } from '@angular/cdk/drag-drop';
+import { CdkScrollable } from '@angular/cdk/scrolling';
 import { Component, HostBinding } from '@angular/core';
 import { FieldArrayType, FormlyModule } from '@ngx-formly/core';
 import { defer } from 'lodash-es';
@@ -41,7 +42,7 @@ import { getPath } from '../util/http';
   `,
     imports: [
         CdkDropList,
-        ɵɵCdkScrollable,
+        CdkScrollable,
         CdkDrag,
         CdkDragHandle,
         FormlyModule,

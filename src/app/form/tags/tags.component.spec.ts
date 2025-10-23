@@ -1,12 +1,12 @@
 /// <reference types="vitest/globals" />
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
-import { RouterModule } from '@angular/router';
-import { FormlyModule } from '@ngx-formly/core';
+import { provideRouter } from '@angular/router';
+import { JasperFormlyModule } from '../../formly/formly.module';
 
 import { TagsFormComponent } from './tags.component';
-import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 describe('TagsFormComponent', () => {
   let component: TagsFormComponent;
@@ -14,15 +14,17 @@ describe('TagsFormComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    imports: [
+      imports: [
         ReactiveFormsModule,
-        RouterModule.forRoot([]),
-        FormlyModule.forRoot(),
+        JasperFormlyModule,
         TagsFormComponent
-    ],
-    providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
-})
-    .compileComponents();
+      ],
+      providers: [
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting(),
+        provideRouter([]),
+      ],
+    }).compileComponents();
   });
 
   beforeEach(() => {

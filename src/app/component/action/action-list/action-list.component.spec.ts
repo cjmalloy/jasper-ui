@@ -2,7 +2,7 @@
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { RouterModule } from '@angular/router';
+import { provideRouter } from '@angular/router';
 import { ActionListComponent } from './action-list.component';
 
 describe('ActionListComponent', () => {
@@ -11,15 +11,13 @@ describe('ActionListComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-    imports: [
-        RouterModule.forRoot([]),
-        ActionListComponent,
-    ],
-    providers: [
+      imports: [ActionListComponent,],
+      providers: [
         provideHttpClient(withInterceptorsFromDi()),
-        provideHttpClientTesting()
-    ],
-});
+        provideHttpClientTesting(),
+        provideRouter([]),
+      ],
+    });
     fixture = TestBed.createComponent(ActionListComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();

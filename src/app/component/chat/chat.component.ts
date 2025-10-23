@@ -1,9 +1,11 @@
-import { CdkVirtualScrollViewport } from '@angular/cdk/scrolling';
-import { Component, Input, OnChanges, OnDestroy, SimpleChanges, ViewChild } from '@angular/core';
+import { CdkFixedSizeVirtualScroll, CdkVirtualForOf, CdkVirtualScrollViewport } from '@angular/cdk/scrolling';
+import { Component, forwardRef, Input, OnChanges, OnDestroy, SimpleChanges, ViewChild } from '@angular/core';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { debounce, defer, delay, pull, pullAllWith, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { catchError, map, Subject, Subscription, takeUntil, throwError } from 'rxjs';
 import { v4 as uuid } from 'uuid';
+import { AutofocusDirective } from '../../directive/autofocus.directive';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ref } from '../../model/ref';
 import { EditorButton, sortOrder } from '../../model/tag';
@@ -18,19 +20,24 @@ import { Store } from '../../store/store';
 import { URI_REGEX } from '../../util/format';
 import { getArgs } from '../../util/query';
 import { braces, tagOrigin } from '../../util/tag';
-import { NgIf, NgFor } from '@angular/common';
 import { LoadingComponent } from '../loading/loading.component';
-import { ɵɵCdkVirtualScrollViewport, ɵɵCdkFixedSizeVirtualScroll, ɵɵCdkVirtualForOf } from '@angular/cdk/overlay';
 import { ChatEntryComponent } from './chat-entry/chat-entry.component';
-import { ReactiveFormsModule, FormsModule } from '@angular/forms';
-import { AutofocusDirective } from '../../directive/autofocus.directive';
 
 @Component({
-    selector: 'app-chat',
-    templateUrl: './chat.component.html',
-    styleUrls: ['./chat.component.scss'],
-    host: { 'class': 'chat ext' },
-    imports: [NgIf, LoadingComponent, ɵɵCdkVirtualScrollViewport, ɵɵCdkFixedSizeVirtualScroll, ɵɵCdkVirtualForOf, ChatEntryComponent, ReactiveFormsModule, AutofocusDirective, FormsModule, NgFor]
+  selector: 'app-chat',
+  templateUrl: './chat.component.html',
+  styleUrls: ['./chat.component.scss'],
+  host: { 'class': 'chat ext' },
+  imports: [
+    forwardRef(() => ChatEntryComponent),
+    LoadingComponent,
+    CdkVirtualScrollViewport,
+    CdkFixedSizeVirtualScroll,
+    CdkVirtualForOf,
+    ReactiveFormsModule,
+    AutofocusDirective,
+    FormsModule,
+  ],
 })
 export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
   private destroy$ = new Subject<void>();

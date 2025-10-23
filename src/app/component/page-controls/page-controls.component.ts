@@ -1,18 +1,17 @@
 import { Component, HostBinding, Input } from '@angular/core';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { RouterLink, RouterLinkActive } from '@angular/router';
 import { delay } from 'lodash-es';
 import { Page } from '../../model/page';
 import { BookmarkService } from '../../service/bookmark.service';
 import { Store } from '../../store/store';
-import { RouterLink, RouterLinkActive } from '@angular/router';
-import { NgIf, NgFor } from '@angular/common';
-import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 
 @Component({
     selector: 'app-page-controls',
     templateUrl: './page-controls.component.html',
     styleUrls: ['./page-controls.component.scss'],
     host: { 'class': 'page-controls' },
-    imports: [RouterLink, RouterLinkActive, NgIf, ReactiveFormsModule, FormsModule, NgFor]
+    imports: [RouterLink, RouterLinkActive, ReactiveFormsModule, FormsModule]
 })
 export class PageControlsComponent {
 

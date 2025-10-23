@@ -1,4 +1,4 @@
-import { Component, Input, OnDestroy, QueryList, ViewChildren } from '@angular/core';
+import { Component, forwardRef, Input, OnDestroy, QueryList, ViewChildren } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, forkJoin, of, Subject, takeUntil } from 'rxjs';
 import { HasChanges } from '../../guard/pending-changes.guard';
@@ -8,16 +8,20 @@ import { Ref } from '../../model/ref';
 import { RootConfig } from '../../mods/root';
 import { RefService } from '../../service/api/ref.service';
 import { Store } from '../../store/store';
-import { BlogEntryComponent } from './blog-entry/blog-entry.component';
-import { PageControlsComponent } from '../page-controls/page-controls.component';
 import { LoadingComponent } from '../loading/loading.component';
+import { PageControlsComponent } from '../page-controls/page-controls.component';
+import { BlogEntryComponent } from './blog-entry/blog-entry.component';
 
 @Component({
     selector: 'app-blog',
     templateUrl: './blog.component.html',
     styleUrls: ['./blog.component.scss'],
     host: { 'class': 'blog ext' },
-    imports: [BlogEntryComponent, PageControlsComponent, LoadingComponent]
+    imports: [
+      forwardRef(() => BlogEntryComponent),
+      PageControlsComponent,
+      LoadingComponent,
+    ],
 })
 export class BlogComponent implements HasChanges, OnDestroy {
   private destroy$ = new Subject<void>();

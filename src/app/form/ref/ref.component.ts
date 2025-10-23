@@ -1,19 +1,32 @@
+import { CdkDropListGroup } from '@angular/cdk/drag-drop';
 import {
-  AfterViewInit,
   Component,
   ElementRef,
   EventEmitter,
   HostBinding,
   HostListener,
-  Input, OnChanges, OnInit,
-  Output, SimpleChanges,
+  Input,
+  OnChanges,
+  Output,
+  SimpleChanges,
   ViewChild
 } from '@angular/core';
-import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, ReactiveFormsModule } from '@angular/forms';
+import {
+  ReactiveFormsModule,
+  UntypedFormArray,
+  UntypedFormBuilder,
+  UntypedFormControl,
+  UntypedFormGroup
+} from '@angular/forms';
 import { defer, some } from 'lodash-es';
+import { MonacoEditorModule } from 'ngx-monaco-editor';
 import { catchError, map, of, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
+import { LoadingComponent } from '../../component/loading/loading.component';
+import { SelectPluginComponent } from '../../component/select-plugin/select-plugin.component';
+import { FillWidthDirective } from '../../directive/fill-width.directive';
+import { ResizeHandleDirective } from '../../directive/resize-handle.directive';
 import { Oembed } from '../../model/oembed';
 import { Ref } from '../../model/ref';
 import { AdminService } from '../../service/admin.service';
@@ -25,23 +38,29 @@ import { Store } from '../../store/store';
 import { getScheme } from '../../util/http';
 import { memo, MemoCache } from '../../util/memo';
 import { hasMedia, hasPrefix, hasTag } from '../../util/tag';
+import { EditorComponent } from '../editor/editor.component';
 import { LinksFormComponent } from '../links/links.component';
 import { PluginsFormComponent } from '../plugins/plugins.component';
 import { TagsFormComponent } from '../tags/tags.component';
-import { CdkDropListGroup } from '@angular/cdk/drag-drop';
-import { LoadingComponent } from '../../component/loading/loading.component';
-import { SelectPluginComponent } from '../../component/select-plugin/select-plugin.component';
-import { MonacoEditorModule } from 'ngx-monaco-editor';
-import { ResizeHandleDirective } from '../../directive/resize-handle.directive';
-import { FillWidthDirective } from '../../directive/fill-width.directive';
-import { EditorComponent } from '../editor/editor.component';
 
 @Component({
-    selector: 'app-ref-form',
-    templateUrl: './ref.component.html',
-    styleUrls: ['./ref.component.scss'],
-    host: { 'class': 'nested-form' },
-    imports: [CdkDropListGroup, ReactiveFormsModule, LinksFormComponent, LoadingComponent, SelectPluginComponent, PluginsFormComponent, MonacoEditorModule, ResizeHandleDirective, FillWidthDirective, EditorComponent, TagsFormComponent]
+  selector: 'app-ref-form',
+  templateUrl: './ref.component.html',
+  styleUrls: ['./ref.component.scss'],
+  host: { 'class': 'nested-form' },
+  imports: [
+    CdkDropListGroup,
+    ReactiveFormsModule,
+    LinksFormComponent,
+    LoadingComponent,
+    SelectPluginComponent,
+    PluginsFormComponent,
+    MonacoEditorModule,
+    ResizeHandleDirective,
+    FillWidthDirective,
+    EditorComponent,
+    TagsFormComponent,
+  ],
 })
 export class RefFormComponent implements OnChanges {
 

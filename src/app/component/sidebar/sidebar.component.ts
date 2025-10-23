@@ -1,8 +1,10 @@
+import { AsyncPipe } from '@angular/common';
 import { Component, ElementRef, HostBinding, Input, OnChanges, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
 import { NavigationEnd, Router, RouterLink } from '@angular/router';
 import { uniq, uniqBy } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
-import { catchError, filter, forkJoin, map, Observable, of, Subject } from 'rxjs';
+import { MobxAngularModule } from 'mobx-angular';
+import { catchError, filter, forkJoin, map, of, Subject } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { Ext } from '../../model/ext';
 import { Plugin } from '../../model/plugin';
@@ -22,26 +24,35 @@ import { QueryStore } from '../../store/query';
 import { Store } from '../../store/store';
 import { memo, MemoCache } from '../../util/memo';
 import { hasPrefix, hasTag, localTag, topAnds } from '../../util/tag';
-import { MobxAngularModule } from 'mobx-angular';
-import { SearchComponent } from '../search/search.component';
-import { QueryComponent } from '../query/query.component';
-import { FilterComponent } from '../filter/filter.component';
-import { SortComponent } from '../sort/sort.component';
-import { DebugComponent } from '../debug/debug.component';
 import { BulkComponent } from '../bulk/bulk.component';
-import { MdComponent } from '../md/md.component';
-import { ExtComponent } from '../ext/ext.component';
 import { ChatComponent } from '../chat/chat.component';
-import { AsyncPipe } from '@angular/common';
-
-type Exts = { ext: Ext, children: Ext[], more: boolean };
+import { DebugComponent } from '../debug/debug.component';
+import { ExtComponent } from '../ext/ext.component';
+import { FilterComponent } from '../filter/filter.component';
+import { MdComponent } from '../md/md.component';
+import { QueryComponent } from '../query/query.component';
+import { SearchComponent } from '../search/search.component';
+import { SortComponent } from '../sort/sort.component';
 
 @Component({
     selector: 'app-sidebar',
     templateUrl: './sidebar.component.html',
     styleUrls: ['./sidebar.component.scss'],
     host: { 'class': 'sidebar' },
-    imports: [MobxAngularModule, SearchComponent, QueryComponent, FilterComponent, SortComponent, DebugComponent, BulkComponent, RouterLink, MdComponent, ExtComponent, ChatComponent, AsyncPipe]
+    imports: [
+      MobxAngularModule,
+      SearchComponent,
+      QueryComponent,
+      FilterComponent,
+      SortComponent,
+      DebugComponent,
+      BulkComponent,
+      RouterLink,
+      MdComponent,
+      ExtComponent,
+      ChatComponent,
+      AsyncPipe,
+    ]
 })
 export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
   private disposers: IReactionDisposer[] = [];
@@ -93,7 +104,7 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
     if (localStorage.getItem('sidebar-expanded') !== null) {
       this.expanded = localStorage.getItem('sidebar-expanded') !== 'false';
     } else {
-      this.expanded = !!window.matchMedia('(min-width: 1024px)').matches;
+      this.expanded = window.matchMedia && !!window.matchMedia('(min-width: 1024px)').matches;
     }
 
     router.events.pipe(
@@ -277,21 +288,21 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
   @memo
   get queryExts$() {
     if (!this.store.view.exts.length) return of([]);
-    return forkJoin(this.store.view.exts.map(ext => this.exts.page({
-      query: ext.tag,
+    return forkJoin(this.store.view.exts.map(x => this.exts.page({
+      query: x.tag,
       sort: ['origin', 'levels', 'tag', 'modified,DESC'],
-      size: ext.config?.childTags || 5,
+      size: x.config?.childTags || 5,
     }).pipe(
       map(page => ({
-        ext: ext,
-        children: uniqBy(page.content, c => c.tag).filter(c => c.tag !== ext.tag),
+        x: x,
+        children: uniqBy(page.content, c => c.tag).filter(c => c.tag !== x.tag),
         more: page.page.totalPages > 1,
       })),
-      map(ext => ext.children.length ? ext : null),
+      map(res => res.children.length ? res : null),
       catchError(() => of(null))
     ))).pipe(
-      map(exts => exts.filter(ext => !!ext)),
-    ) as Observable<Exts[]>;
+      map(ress => ress.filter(res => !!res)),
+    );
   }
 
   @memo

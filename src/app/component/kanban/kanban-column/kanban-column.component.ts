@@ -1,6 +1,7 @@
+import { CdkDrag } from '@angular/cdk/drag-drop';
 import {
   AfterViewInit,
-  Component,
+  Component, forwardRef,
   HostBinding,
   HostListener,
   Input,
@@ -9,6 +10,7 @@ import {
   OnDestroy,
   SimpleChanges
 } from '@angular/core';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { isEqual, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { catchError, Observable, Subject, Subscription, switchMap, takeUntil, throwError } from 'rxjs';
@@ -29,18 +31,22 @@ import { URI_REGEX } from '../../../util/format';
 import { fixUrl, printError } from '../../../util/http';
 import { getArgs, UrlFilter } from '../../../util/query';
 import { hasTag } from '../../../util/tag';
-import { KanbanDrag } from '../kanban.component';
-import { KanbanCardComponent } from '../kanban-card/kanban-card.component';
-import { CdkDrag } from '@angular/cdk/drag-drop';
 import { LoadingComponent } from '../../loading/loading.component';
-import { ReactiveFormsModule, FormsModule } from '@angular/forms';
+import { KanbanCardComponent } from '../kanban-card/kanban-card.component';
+import { KanbanDrag } from '../kanban.component';
 
 @Component({
-    selector: 'app-kanban-column',
-    templateUrl: './kanban-column.component.html',
-    styleUrls: ['./kanban-column.component.scss'],
-    host: { 'class': 'kanban-column' },
-    imports: [KanbanCardComponent, CdkDrag, LoadingComponent, ReactiveFormsModule, FormsModule]
+  selector: 'app-kanban-column',
+  templateUrl: './kanban-column.component.html',
+  styleUrls: ['./kanban-column.component.scss'],
+  host: { 'class': 'kanban-column' },
+  imports: [
+    forwardRef(() => KanbanCardComponent),
+    CdkDrag,
+    LoadingComponent,
+    ReactiveFormsModule,
+    FormsModule,
+  ],
 })
 export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestroy, HasChanges {
   private destroy$ = new Subject<void>();
@@ -162,26 +168,26 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
         this.runningSources = this.refs.page({ ...args, url: args.sources, size: 1, sources: undefined, responses: undefined }).pipe(
           takeUntil(this.destroy$)
         ).subscribe(res => {
-            if (res.content[0]) {
-              this.mutated = true;
-              // @ts-ignore
-              res.content[0]['pinned'] = true
-              page.content.unshift(res.content[0]);
-            }
-          });
+          if (res.content[0]) {
+            this.mutated = true;
+            // @ts-ignore
+            res.content[0]['pinned'] = true
+            page.content.unshift(res.content[0]);
+          }
+        });
       }
       this.runningResponses?.unsubscribe();
       if (args.responses) {
         this.runningResponses = this.refs.page({ ...args, url: args.responses, size: 1, sources: undefined, responses: undefined }).pipe(
           takeUntil(this.destroy$)
         ).subscribe(res => {
-            if (res.content[0]) {
-              this.mutated = true;
-              // @ts-ignore
-              res.content[0]['pinned'] = true
-              page.content.unshift(res.content[0]);
-            }
-          });
+          if (res.content[0]) {
+            this.mutated = true;
+            // @ts-ignore
+            res.content[0]['pinned'] = true
+            page.content.unshift(res.content[0]);
+          }
+        });
       }
     });
   }

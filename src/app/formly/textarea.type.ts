@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ReactiveFormsModule } from '@angular/forms';
 import { FieldType, FieldTypeConfig, FormlyConfig, FormlyFieldProps, FormlyModule } from '@ngx-formly/core';
 import { getErrorMessage } from './errors';
-import { ReactiveFormsModule } from '@angular/forms';
 
 interface TextAreaProps extends FormlyFieldProps {
   cols?: number;

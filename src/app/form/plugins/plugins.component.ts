@@ -13,13 +13,13 @@ import { UntypedFormArray, UntypedFormBuilder, UntypedFormGroup } from '@angular
 import { defer } from 'lodash-es';
 import { toJS } from 'mobx';
 import { Subject, takeUntil } from 'rxjs';
+import { TitleDirective } from '../../directive/title.directive';
 import { Plugin } from '../../model/plugin';
 import { active, Icon, ResponseAction, sortOrder, TagAction, Visibility, visible } from '../../model/tag';
 import { AdminService } from '../../service/admin.service';
 import { emptyObject, getScheme, patchObj, writeObj } from '../../util/http';
 import { addAllHierarchicalTags, hasTag } from '../../util/tag';
 import { GenFormComponent } from './gen/gen.component';
-import { TitleDirective } from '../../directive/title.directive';
 
 @Component({
     selector: 'app-form-plugins',

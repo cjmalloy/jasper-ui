@@ -3,12 +3,12 @@
     <div class="comment-container info collapsed" tabindex="0">
       <span class="comment-expand fake-link" (click)="store.local.setRefToggled('comment:' + ref.url, !(collapsed = false))" i18n>[+]</span>&nbsp;
       @if (authors.length) {
-        @if (authorExts$ | async; as authorExts) {
-          @for (user of authorExts; track user.tag + user.origin) {
+        @if (authorExts$ | async; as xs) {
+          @for (x of xs; track x.tag + x.origin) {
             <a class="user tag"
-               [title]="formatAuthor(user.tag + user.origin)"
-               [routerLink]="['/tag', user.tag + user.origin]"
-               [appTitle]="user">{{ user.name || formatAuthor(user.tag + user.origin) }}</a>
+               [title]="formatAuthor(x.tag + x.origin)"
+               [routerLink]="['/tag', x.tag + x.origin]"
+               [appTitle]="x">{{ x.name || formatAuthor(x.tag + x.origin) }}</a>
           }
         } @else {
           @for (t of authors; track t) {
@@ -61,12 +61,12 @@
         <div class="info">
           <span class="comment-collapse fake-link" (click)="store.local.setRefToggled('comment:' + ref.url, !(collapsed = true))">[&ndash;]</span>&nbsp;
           @if (authors.length) {
-            @if (authorExts$ | async; as authorExts) {
-              @for (user of authorExts; track user.tag + user.origin) {
+            @if (authorExts$ | async; as xs) {
+              @for (x of xs; track x.tag + x.origin) {
                 <a class="user tag"
-                   [title]="formatAuthor(user.tag + user.origin)"
-                   [routerLink]="['/tag', user.tag + user.origin]"
-                   [appTitle]="user">{{ user.name || formatAuthor(user.tag + user.origin) }}</a>
+                   [title]="formatAuthor(x.tag + x.origin)"
+                   [routerLink]="['/tag', x.tag + x.origin]"
+                   [appTitle]="x">{{ x.name || formatAuthor(x.tag + x.origin) }}</a>
               }
             } @else {
               @for (t of authors; track t) {
@@ -85,11 +85,11 @@
           }
           @if (tagged.length) {
             <span i18n> tagged
-              @if (tagExts$ | async; as tagExts) {
-                @for (e of tagExts; track e.tag) {
+              @if (tagExts$ | async; as xs) {
+                @for (x of xs; track x.tag) {
                   <a class="tag"
-                     [routerLink]="['/tag', e.tag]"
-                     [appTitle]="e.tag">{{ e.name || '#' + e.tag }}</a>
+                     [routerLink]="['/tag', x.tag]"
+                     [appTitle]="x.tag">{{ x.name || '#' + x.tag }}</a>
                 }
               } @else {
                 @for (t of tagged; track t) {

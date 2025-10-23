@@ -1,19 +1,18 @@
 import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy } from '@angular/core';
+import { ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { FieldType, FieldTypeConfig, FormlyConfig, FormlyModule } from '@ngx-formly/core';
-import { debounce, defer, delay, uniqBy } from 'lodash-es';
+import { debounce, defer, uniqBy } from 'lodash-es';
 import { forkJoin, map, Observable, of, Subscription, switchMap } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { Crumb } from '../component/query/query.component';
 import { Config } from '../model/tag';
 import { AdminService } from '../service/admin.service';
 import { ExtService } from '../service/api/ext.service';
-import { ConfigService } from '../service/config.service';
 import { EditorService } from '../service/editor.service';
 import { Store } from '../store/store';
 import { access, fixClientQuery, getStrictPrefix, localTag, tagOrigin } from '../util/tag';
 import { getErrorMessage } from './errors';
-import { ReactiveFormsModule } from '@angular/forms';
 
 @Component({
     selector: 'formly-field-query-input',

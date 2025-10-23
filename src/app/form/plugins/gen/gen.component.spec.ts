@@ -3,8 +3,8 @@ import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http'
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule, UntypedFormGroup } from '@angular/forms';
-import { RouterModule } from '@angular/router';
-import { FormlyModule } from '@ngx-formly/core';
+import { provideRouter } from '@angular/router';
+import { JasperFormlyModule } from '../../../formly/formly.module';
 
 import { GenFormComponent } from './gen.component';
 
@@ -14,18 +14,17 @@ describe('GenComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    imports: [
-        RouterModule.forRoot([]),
+      imports: [
         ReactiveFormsModule,
-        FormlyModule.forRoot(),
-        GenFormComponent
-    ],
-    providers: [
+        JasperFormlyModule,
+        GenFormComponent,
+      ],
+      providers: [
         provideHttpClient(withInterceptorsFromDi()),
-        provideHttpClientTesting()
-    ],
-})
-    .compileComponents();
+        provideHttpClientTesting(),
+        provideRouter([]),
+      ],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(GenFormComponent);
     component = fixture.componentInstance;
