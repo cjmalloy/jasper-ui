@@ -22,10 +22,10 @@ import { printError } from '../../util/http';
 import { prefix, setPublic } from '../../util/tag';
 
 @Component({
-    selector: 'app-user-page',
-    templateUrl: './user.component.html',
-    styleUrls: ['./user.component.scss'],
-    imports: [MobxAngularModule, RouterLink, SettingsComponent, ReactiveFormsModule, LimitWidthDirective, UserFormComponent]
+  selector: 'app-user-page',
+  templateUrl: './user.component.html',
+  styleUrls: ['./user.component.scss'],
+  imports: [MobxAngularModule, RouterLink, SettingsComponent, ReactiveFormsModule, LimitWidthDirective, UserFormComponent]
 })
 export class UserPage implements OnInit, OnDestroy, HasChanges {
   private disposers: IReactionDisposer[] = [];

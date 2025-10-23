@@ -4,8 +4,8 @@ import { provideRouter, Router } from '@angular/router';
 import { AutofocusDirective } from './autofocus.directive';
 
 describe('AutofocusDirective', () => {
-  beforeEach(() => {
-    TestBed.configureTestingModule({
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
       providers: [
         provideRouter([]),
       ]

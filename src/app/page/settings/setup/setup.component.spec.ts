@@ -35,9 +35,7 @@ describe('SettingsSetupPage', () => {
         provideRouter([]),
       ],
     }).compileComponents();
-  });
 
-  beforeEach(() => {
     fixture = TestBed.createComponent(SettingsSetupPage);
     component = fixture.componentInstance;
     component.adminForm = new UntypedFormGroup({

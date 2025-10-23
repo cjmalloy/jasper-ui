@@ -8,7 +8,6 @@ import { APP_INITIALIZER, enableProdMode, importProvidersFrom, isDevMode } from 
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { bootstrapApplication, BrowserModule, HAMMER_GESTURE_CONFIG, HammerModule } from '@angular/platform-browser';
 import { ServiceWorkerModule } from '@angular/service-worker';
-import { FormlyModule } from '@ngx-formly/core';
 import { Settings } from 'luxon';
 import { MobxAngularModule } from 'mobx-angular';
 import { MarkdownModule } from 'ngx-markdown';
@@ -83,7 +82,6 @@ bootstrapApplication(AppComponent, {
           DragDropModule,
           OverlayModule,
           ScrollingModule,
-          FormlyModule,
           JasperFormlyModule,
           ServiceWorkerModule.register('ngsw-worker.js', {
             scope: '.',

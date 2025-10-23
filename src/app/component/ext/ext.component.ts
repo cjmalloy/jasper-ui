@@ -41,19 +41,19 @@ import { ActionComponent } from '../action/action.component';
 import { ConfirmActionComponent } from '../action/confirm-action/confirm-action.component';
 
 @Component({
-    selector: 'app-ext',
-    templateUrl: './ext.component.html',
-    styleUrls: ['./ext.component.scss'],
-    host: { 'class': 'ext list-item' },
-    imports: [
-      forwardRef(() => ExtFormComponent),
-      RouterLink,
-      TitleDirective,
-      ConfirmActionComponent,
-      ReactiveFormsModule,
-      FormsModule,
-      AsyncPipe,
-    ],
+  selector: 'app-ext',
+  templateUrl: './ext.component.html',
+  styleUrls: ['./ext.component.scss'],
+  host: { 'class': 'ext list-item' },
+  imports: [
+    forwardRef(() => ExtFormComponent),
+    RouterLink,
+    TitleDirective,
+    ConfirmActionComponent,
+    ReactiveFormsModule,
+    FormsModule,
+    AsyncPipe,
+  ],
 })
 export class ExtComponent implements OnChanges, HasChanges {
   @HostBinding('attr.tabindex') tabIndex = 0;

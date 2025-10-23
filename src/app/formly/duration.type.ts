@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, Directive, ElementRef, forwardRef, Input } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR, ReactiveFormsModule } from '@angular/forms';
-import { FieldType, FieldTypeConfig, FormlyConfig, FormlyModule } from '@ngx-formly/core';
+import { FieldType, FieldTypeConfig, FormlyAttributes, FormlyConfig } from '@ngx-formly/core';
 import { Duration } from 'luxon';
 import { getErrorMessage } from './errors';
 
@@ -26,7 +26,7 @@ import { getErrorMessage } from './errors';
   imports: [
     ReactiveFormsModule,
     forwardRef(() => DurationInputAccessor),
-    FormlyModule,
+    FormlyAttributes,
   ],
 })
 export class FormlyFieldDuration extends FieldType<FieldTypeConfig> {

@@ -9,9 +9,8 @@ describe('QrComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    imports: [QrComponent]
-})
-    .compileComponents();
+      imports: [QrComponent]
+    }).compileComponents();
 
     fixture = TestBed.createComponent(QrComponent);
     component = fixture.componentInstance;

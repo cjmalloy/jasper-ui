@@ -4,11 +4,11 @@ import { LoadingComponent } from '../../loading/loading.component';
 import { ActionComponent } from '../action.component';
 
 @Component({
-    selector: 'app-inline-select',
-    templateUrl: './inline-select.component.html',
-    styleUrls: ['./inline-select.component.scss'],
-    host: { 'class': 'action' },
-    imports: [LoadingComponent]
+  selector: 'app-inline-select',
+  templateUrl: './inline-select.component.html',
+  styleUrls: ['./inline-select.component.scss'],
+  host: { 'class': 'action' },
+  imports: [LoadingComponent]
 })
 export class InlineSelectComponent extends ActionComponent {
 

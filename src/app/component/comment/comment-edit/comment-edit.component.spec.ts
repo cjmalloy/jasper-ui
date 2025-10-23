@@ -21,9 +21,7 @@ describe('CommentEditComponent', () => {
         provideRouter([]),
       ]
     }).compileComponents();
-  });
 
-  beforeEach(() => {
     fixture = TestBed.createComponent(CommentEditComponent);
     component = fixture.componentInstance;
     component.ref = { url: '' };

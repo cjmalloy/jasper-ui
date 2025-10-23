@@ -10,15 +10,12 @@ describe('ThemesFormComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    imports: [
+      imports: [
         ReactiveFormsModule,
         ThemesFormComponent,
-    ],
-})
-    .compileComponents();
-  });
+      ],
+    }).compileComponents();
 
-  beforeEach(() => {
     fixture = TestBed.createComponent(ThemesFormComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();

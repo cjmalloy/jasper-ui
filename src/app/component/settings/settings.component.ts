@@ -7,11 +7,11 @@ import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
 
 @Component({
-    selector: 'app-settings',
-    templateUrl: './settings.component.html',
-    styleUrls: ['./settings.component.scss'],
-    host: { 'class': 'settings' },
-    imports: [MobxAngularModule, RouterLink]
+  selector: 'app-settings',
+  templateUrl: './settings.component.html',
+  styleUrls: ['./settings.component.scss'],
+  host: { 'class': 'settings' },
+  imports: [MobxAngularModule, RouterLink]
 })
 export class SettingsComponent {
 

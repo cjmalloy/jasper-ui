@@ -10,15 +10,15 @@ describe('InboxAlarmsPage', () => {
   let component: InboxAlarmsPage;
   let fixture: ComponentFixture<InboxAlarmsPage>;
 
-  beforeEach(() => {
-    TestBed.configureTestingModule({
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
       imports: [InboxAlarmsPage],
       providers: [
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),
         provideRouter([]),
       ],
-    });
+    }).compileComponents();
     fixture = TestBed.createComponent(InboxAlarmsPage);
     component = fixture.componentInstance;
     fixture.detectChanges();

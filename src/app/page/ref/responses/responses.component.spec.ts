@@ -20,9 +20,7 @@ describe('RefResponsesComponent', () => {
       ],
     })
     .compileComponents();
-  });
 
-  beforeEach(() => {
     fixture = TestBed.createComponent(RefResponsesComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();

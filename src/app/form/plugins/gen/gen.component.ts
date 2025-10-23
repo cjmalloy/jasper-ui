@@ -1,16 +1,16 @@
 import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { UntypedFormGroup } from '@angular/forms';
-import { FormlyForm, FormlyFormOptions, FormlyModule } from '@ngx-formly/core';
+import { FormlyForm, FormlyFormOptions } from '@ngx-formly/core';
 import { cloneDeep } from 'lodash-es';
 import { Plugin } from '../../../model/plugin';
 import { AdminService } from '../../../service/admin.service';
 import { memo, MemoCache } from '../../../util/memo';
 
 @Component({
-    selector: 'app-form-gen',
-    templateUrl: './gen.component.html',
-    styleUrls: ['./gen.component.scss'],
-    imports: [FormlyModule]
+  selector: 'app-form-gen',
+  templateUrl: './gen.component.html',
+  styleUrls: ['./gen.component.scss'],
+  imports: [FormlyForm]
 })
 export class GenFormComponent implements OnInit, OnChanges {
 

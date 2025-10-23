@@ -19,9 +19,7 @@ describe('CommentComponent', () => {
         provideRouter([]),
       ]
     }).compileComponents();
-  });
 
-  beforeEach(() => {
     fixture = TestBed.createComponent(CommentComponent);
     component = fixture.componentInstance;
     component.ref = { url: '' };

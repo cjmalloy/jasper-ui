@@ -19,9 +19,7 @@ describe('NoteComponent', () => {
         provideRouter([]),
       ],
     }).compileComponents();
-  });
 
-  beforeEach(() => {
     fixture = TestBed.createComponent(NoteComponent);
     component = fixture.componentInstance;
     component.ref = {url: ''};

@@ -10,15 +10,15 @@ describe('InlineTagComponent', () => {
   let component: InlineTagComponent;
   let fixture: ComponentFixture<InlineTagComponent>;
 
-  beforeEach(() => {
-    TestBed.configureTestingModule({
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
       imports: [InlineTagComponent],
       providers: [
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),
         provideRouter([]),
       ]
-    });
+    }).compileComponents();
     fixture = TestBed.createComponent(InlineTagComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();

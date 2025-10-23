@@ -14,15 +14,15 @@ import { configGroups, modId } from '../../../util/format';
 import { printError } from '../../../util/http';
 
 @Component({
-    selector: 'app-settings-setup-page',
-    templateUrl: './setup.component.html',
-    styleUrls: ['./setup.component.scss'],
-    imports: [
-      ReactiveFormsModule,
-      FormsModule,
-      RouterLink,
-      KeyValuePipe,
-    ],
+  selector: 'app-settings-setup-page',
+  templateUrl: './setup.component.html',
+  styleUrls: ['./setup.component.scss'],
+  imports: [
+    ReactiveFormsModule,
+    FormsModule,
+    RouterLink,
+    KeyValuePipe,
+  ],
 })
 export class SettingsSetupPage {
 
@@ -83,8 +83,8 @@ export class SettingsSetupPage {
     }
     const _ = (msg?: string) => this.installMessages.push(msg!);
     concat(
-        ...uniq(deletes).map(m => this.admin.deleteMod$(m, _)),
-        ...uniq(installs).map(m => this.admin.installMod$(m, _))
+      ...uniq(deletes).map(m => this.admin.deleteMod$(m, _)),
+      ...uniq(installs).map(m => this.admin.installMod$(m, _))
     ).pipe(
       catchError((res: HttpErrorResponse) => {
         this.serverError = printError(res);
@@ -104,11 +104,11 @@ export class SettingsSetupPage {
 
   clear() {
     this.adminForm.reset({ mods: {
-      ...this.admin.status.plugins,
-      ...this.admin.status.disabledPlugins,
-      ...this.admin.status.templates,
-      ...this.admin.status.disabledTemplates,
-    }});
+        ...this.admin.status.plugins,
+        ...this.admin.status.disabledPlugins,
+        ...this.admin.status.templates,
+        ...this.admin.status.disabledTemplates,
+      }});
   }
 
   updateAll() {

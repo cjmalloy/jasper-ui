@@ -1,12 +1,12 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
-import { FieldType, FieldTypeConfig, FormlyConfig, FormlyModule } from '@ngx-formly/core';
+import { FieldType, FieldTypeConfig, FormlyAttributes, FormlyConfig } from '@ngx-formly/core';
 import { getErrorMessage } from './errors';
 
 @Component({
-    selector: 'formly-field-range',
-    host: { 'class': 'field' },
-    template: `
+  selector: 'formly-field-range',
+  host: { 'class': 'field' },
+  template: `
     <input class="grow"
            type="range"
            [min]="props.min"
@@ -17,8 +17,11 @@ import { getErrorMessage } from './errors';
            [formlyAttributes]="field"
            [class.is-invalid]="showError">
   `,
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    imports: [ReactiveFormsModule, FormlyModule],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [
+    ReactiveFormsModule,
+    FormlyAttributes,
+  ],
 })
 export class FormlyFieldRange extends FieldType<FieldTypeConfig> {
 

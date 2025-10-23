@@ -42,11 +42,11 @@ import { InlineTagComponent } from '../action/inline-tag/inline-tag.component';
 import { LoadingComponent } from '../loading/loading.component';
 
 @Component({
-    selector: 'app-bulk',
-    templateUrl: './bulk.component.html',
-    styleUrls: ['./bulk.component.scss'],
-    host: { 'class': 'bulk actions' },
-    imports: [LoadingComponent, RouterLink, InlineTagComponent, ConfirmActionComponent, InlinePluginComponent, TitleDirective, InlineButtonComponent, KeyValuePipe]
+  selector: 'app-bulk',
+  templateUrl: './bulk.component.html',
+  styleUrls: ['./bulk.component.scss'],
+  host: { 'class': 'bulk actions' },
+  imports: [LoadingComponent, RouterLink, InlineTagComponent, ConfirmActionComponent, InlinePluginComponent, TitleDirective, InlineButtonComponent, KeyValuePipe]
 })
 export class BulkComponent implements OnChanges, OnDestroy {
 

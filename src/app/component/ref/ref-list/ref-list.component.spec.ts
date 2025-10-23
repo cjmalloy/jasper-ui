@@ -17,9 +17,7 @@ describe('RefListComponent', () => {
         provideHttpClientTesting(),
       ],
     }).compileComponents();
-  });
 
-  beforeEach(() => {
     fixture = TestBed.createComponent(RefListComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();

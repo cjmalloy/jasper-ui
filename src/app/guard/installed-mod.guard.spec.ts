@@ -8,8 +8,8 @@ describe('installedModGuard', () => {
   const executeGuard: CanActivateFn = (...guardParameters) =>
       TestBed.runInInjectionContext(() => installedModGuard('mod', ['../other'])(...guardParameters));
 
-  beforeEach(() => {
-    TestBed.configureTestingModule({});
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({});
   });
 
   it('should be created', () => {

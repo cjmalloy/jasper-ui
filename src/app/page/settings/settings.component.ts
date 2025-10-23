@@ -10,18 +10,18 @@ import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
 
 @Component({
-    selector: 'app-settings-page',
-    templateUrl: './settings.component.html',
-    styleUrls: ['./settings.component.scss'],
-    host: { 'class': 'settings' },
-    imports: [
-      MobxAngularModule,
-      TabsComponent,
-      RouterLink,
-      RouterLinkActive,
-      SidebarComponent,
-      RouterOutlet,
-    ],
+  selector: 'app-settings-page',
+  templateUrl: './settings.component.html',
+  styleUrls: ['./settings.component.scss'],
+  host: { 'class': 'settings' },
+  imports: [
+    MobxAngularModule,
+    TabsComponent,
+    RouterLink,
+    RouterLinkActive,
+    SidebarComponent,
+    RouterOutlet,
+  ],
 })
 export class SettingsPage implements OnInit {
 

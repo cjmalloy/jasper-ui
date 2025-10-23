@@ -10,11 +10,11 @@ import { v4 as uuid } from 'uuid';
 import { JsonComponent } from '../json/json.component';
 
 @Component({
-    selector: 'app-plugin-form',
-    templateUrl: './plugin.component.html',
-    styleUrls: ['./plugin.component.scss'],
-    host: { 'class': 'nested-form' },
-    imports: [ReactiveFormsModule, JsonComponent]
+  selector: 'app-plugin-form',
+  templateUrl: './plugin.component.html',
+  styleUrls: ['./plugin.component.scss'],
+  host: { 'class': 'nested-form' },
+  imports: [ReactiveFormsModule, JsonComponent]
 })
 export class PluginFormComponent {
 

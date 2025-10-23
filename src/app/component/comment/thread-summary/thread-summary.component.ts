@@ -1,6 +1,7 @@
-import { Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
+import { Component, forwardRef, Input, OnChanges, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
 import { MobxAngularModule } from 'mobx-angular';
 import { Observable, Subject, takeUntil } from 'rxjs';
+import { EditorComponent } from '../../../form/editor/editor.component';
 import { Ref } from '../../../model/ref';
 import { RefService } from '../../../service/api/ref.service';
 import { Store } from '../../../store/store';
@@ -9,11 +10,15 @@ import { RefComponent } from '../../ref/ref.component';
 import { CommentComponent } from '../comment.component';
 
 @Component({
-    selector: 'app-thread-summary',
-    templateUrl: './thread-summary.component.html',
-    styleUrls: ['./thread-summary.component.scss'],
-    host: { 'class': 'thread-summary' },
-    imports: [MobxAngularModule, CommentComponent, RefComponent]
+  selector: 'app-thread-summary',
+  templateUrl: './thread-summary.component.html',
+  styleUrls: ['./thread-summary.component.scss'],
+  host: { 'class': 'thread-summary' },
+  imports: [
+    forwardRef(() => CommentComponent),
+    forwardRef(() => RefComponent),
+    MobxAngularModule,
+  ]
 })
 export class ThreadSummaryComponent implements OnInit, OnChanges, OnDestroy {
   private destroy$ = new Subject<void>();

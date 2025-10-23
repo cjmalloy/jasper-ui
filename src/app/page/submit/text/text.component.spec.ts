@@ -28,9 +28,7 @@ describe('SubmitTextPage', () => {
         { provide: ComponentFixtureAutoDetect, useValue: true },
       ],
     }).compileComponents();
-  });
 
-  beforeEach(() => {
     fixture = TestBed.createComponent(SubmitTextPage);
     component = fixture.componentInstance;
     fixture.detectChanges();

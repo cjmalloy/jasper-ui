@@ -3,8 +3,8 @@ import { Component, HostBinding } from '@angular/core';
 import { FieldWrapper, FormlyFieldConfig } from '@ngx-formly/core';
 
 @Component({
-    selector: 'formly-wrapper-form-field',
-    template: `
+  selector: 'formly-wrapper-form-field',
+  template: `
     <label cdkDragHandle [attr.for]="id" class="form-label" [class.required]="props.required">
       {{ props.label || '' }}
     </label>
@@ -16,7 +16,7 @@ import { FieldWrapper, FormlyFieldConfig } from '@ngx-formly/core';
       </div>
     }
   `,
-    imports: [CdkDragHandle],
+  imports: [CdkDragHandle],
 })
 export class FormlyWrapperFormField extends FieldWrapper<FormlyFieldConfig> {
   @HostBinding('title')

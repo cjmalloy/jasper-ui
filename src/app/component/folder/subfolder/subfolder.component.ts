@@ -7,11 +7,11 @@ import { QueryStore } from '../../../store/query';
 import { Store } from '../../../store/store';
 
 @Component({
-    selector: 'app-subfolder',
-    templateUrl: './subfolder.component.html',
-    styleUrls: ['./subfolder.component.scss'],
-    host: { 'class': 'subfolder' },
-    imports: [RouterLink]
+  selector: 'app-subfolder',
+  templateUrl: './subfolder.component.html',
+  styleUrls: ['./subfolder.component.scss'],
+  host: { 'class': 'subfolder' },
+  imports: [RouterLink]
 })
 export class SubfolderComponent {
   @HostBinding('attr.tabindex') tabIndex = 0;

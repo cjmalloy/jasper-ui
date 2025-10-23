@@ -10,11 +10,11 @@ import { LoadingComponent } from '../../loading/loading.component';
 import { ActionComponent } from '../action.component';
 
 @Component({
-    selector: 'app-inline-plugin',
-    templateUrl: './inline-plugin.component.html',
-    styleUrls: ['./inline-plugin.component.scss'],
-    host: { 'class': 'action' },
-    imports: [GenFormComponent, LoadingComponent]
+  selector: 'app-inline-plugin',
+  templateUrl: './inline-plugin.component.html',
+  styleUrls: ['./inline-plugin.component.scss'],
+  host: { 'class': 'action' },
+  imports: [GenFormComponent, LoadingComponent]
 })
 export class InlinePluginComponent extends ActionComponent {
 

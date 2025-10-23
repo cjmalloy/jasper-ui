@@ -1,5 +1,4 @@
 /// <reference types="vitest/globals" />
-import 'zone.js/testing';
 import { HTTP_INTERCEPTORS, HttpClient, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { fakeAsync, TestBed, tick } from '@angular/core/testing';
@@ -9,8 +8,8 @@ describe('RateLimitInterceptor', () => {
   let httpClient: HttpClient;
   let httpTestingController: HttpTestingController;
 
-  beforeEach(() => {
-    TestBed.configureTestingModule({
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
       imports: [],
       providers: [
         RateLimitInterceptor,
@@ -18,7 +17,7 @@ describe('RateLimitInterceptor', () => {
         provideHttpClientTesting(),
         { provide: HTTP_INTERCEPTORS, useClass: RateLimitInterceptor, multi: true },
       ]
-    });
+    }).compileComponents();
 
     httpClient = TestBed.inject(HttpClient);
     httpTestingController = TestBed.inject(HttpTestingController);

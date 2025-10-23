@@ -2,7 +2,7 @@
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-import { RouterModule } from '@angular/router';
+import { provideRouter, RouterModule } from '@angular/router';
 import { Ref } from '../model/ref';
 
 import { OriginMapService } from './origin-map.service';
@@ -10,11 +10,15 @@ import { OriginMapService } from './origin-map.service';
 describe('OriginMapService', () => {
   let service: OriginMapService;
 
-  beforeEach(() => {
-    TestBed.configureTestingModule({
-    imports: [RouterModule.forRoot([])],
-    providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
-});
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      providers: [
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting(),
+        provideRouter([]),
+      ],
+    }).compileComponents();
+
     service = TestBed.inject(OriginMapService);
   });
 

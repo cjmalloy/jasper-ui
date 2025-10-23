@@ -9,12 +9,9 @@ describe('LoginPage', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    imports: [LoginPage]
-})
-    .compileComponents();
-  });
+      imports: [LoginPage]
+    }).compileComponents();
 
-  beforeEach(() => {
     fixture = TestBed.createComponent(LoginPage);
     component = fixture.componentInstance;
     fixture.detectChanges();

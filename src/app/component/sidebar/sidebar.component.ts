@@ -45,24 +45,24 @@ import { SearchComponent } from '../search/search.component';
 import { SortComponent } from '../sort/sort.component';
 
 @Component({
-    selector: 'app-sidebar',
-    templateUrl: './sidebar.component.html',
-    styleUrls: ['./sidebar.component.scss'],
-    host: { 'class': 'sidebar' },
-    imports: [
-      forwardRef(() => ExtComponent),
-      MobxAngularModule,
-      SearchComponent,
-      QueryComponent,
-      FilterComponent,
-      SortComponent,
-      DebugComponent,
-      BulkComponent,
-      RouterLink,
-      MdComponent,
-      ChatComponent,
-      AsyncPipe,
-    ]
+  selector: 'app-sidebar',
+  templateUrl: './sidebar.component.html',
+  styleUrls: ['./sidebar.component.scss'],
+  host: { 'class': 'sidebar' },
+  imports: [
+    forwardRef(() => ExtComponent),
+    forwardRef(() => MdComponent),
+    MobxAngularModule,
+    SearchComponent,
+    QueryComponent,
+    FilterComponent,
+    SortComponent,
+    DebugComponent,
+    BulkComponent,
+    RouterLink,
+    ChatComponent,
+    AsyncPipe,
+  ]
 })
 export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
   private disposers: IReactionDisposer[] = [];
@@ -122,7 +122,7 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
     ).subscribe(() => {
       if (hasTag('plugin/chat', this.store.view.ref)) return;
       if (this.config.tablet && this.lastView != this.store.view.current ||
-          !this.config.huge  && this.store.view.current === 'ref/summary') {
+        !this.config.huge  && this.store.view.current === 'ref/summary') {
         this.lastView = this.store.view.current;
         this.expanded = false;
       }

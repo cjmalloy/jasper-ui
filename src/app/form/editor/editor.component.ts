@@ -5,7 +5,7 @@ import {
   AfterViewInit,
   Component,
   ElementRef,
-  EventEmitter,
+  EventEmitter, forwardRef,
   HostBinding,
   HostListener,
   Input,
@@ -54,11 +54,18 @@ export interface EditorUpload {
 }
 
 @Component({
-    selector: 'app-editor',
-    templateUrl: './editor.component.html',
-    styleUrls: ['./editor.component.scss'],
-    host: { 'class': 'editor' },
-    imports: [LoadingComponent, ReactiveFormsModule, FillWidthDirective, AutofocusDirective, MdComponent, LimitWidthDirective]
+  selector: 'app-editor',
+  templateUrl: './editor.component.html',
+  styleUrls: ['./editor.component.scss'],
+  host: { 'class': 'editor' },
+  imports: [
+    forwardRef(() => MdComponent),
+    LoadingComponent,
+    ReactiveFormsModule,
+    FillWidthDirective,
+    AutofocusDirective,
+    LimitWidthDirective,
+  ],
 })
 export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   private destroy$ = new Subject<void>();

@@ -19,9 +19,7 @@ describe('RefVersionsComponent', () => {
         provideRouter([]),
       ],
     }).compileComponents();
-  });
 
-  beforeEach(() => {
     fixture = TestBed.createComponent(RefVersionsComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();

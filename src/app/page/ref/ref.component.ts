@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, forwardRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { pickBy, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
@@ -23,19 +23,19 @@ import { memo, MemoCache } from '../../util/memo';
 import { hasTag, privateTag, top } from '../../util/tag';
 
 @Component({
-    selector: 'app-ref-page',
-    templateUrl: './ref.component.html',
-    styleUrls: ['./ref.component.scss'],
-    imports: [
-        MobxAngularModule,
-        TabsComponent,
-        RouterLink,
-        RouterLinkActive,
-        SidebarComponent,
-        RefComponent,
-        RouterOutlet,
-        LoadingComponent,
-    ],
+  selector: 'app-ref-page',
+  templateUrl: './ref.component.html',
+  styleUrls: ['./ref.component.scss'],
+  imports: [
+    forwardRef(() => RefComponent),
+    MobxAngularModule,
+    TabsComponent,
+    RouterLink,
+    RouterLinkActive,
+    SidebarComponent,
+    RouterOutlet,
+    LoadingComponent,
+  ],
 })
 export class RefPage implements OnInit, OnDestroy, HasChanges {
   private disposers: IReactionDisposer[] = [];
@@ -159,8 +159,8 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
       this.store.view.versions = count));
     const fetchTop = (ref: Ref) => hasTag('plugin/thread', ref) || hasTag('plugin/comment', ref);
     (url === this.store.view.ref?.url
-      ? of(this.store.view.ref)
-      : this.refs.getCurrent(url)
+        ? of(this.store.view.ref)
+        : this.refs.getCurrent(url)
     ).pipe(
       catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
       map(ref => ref || { url }),
@@ -168,11 +168,11 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
       switchMap(ref => !fetchTop(ref)
         ? of([ref, undefined])
         : top(ref) === url ? of([ref, ref])
-        : top(ref) === this.store.view.top?.url ? of([ref, this.store.view.top])
-        : this.refs.getCurrent(top(ref)).pipe(
-          catchError(err => err.status === 404 ? of([ref, undefined]) : throwError(() => err)),
-          map(top => [ref, top] as [Ref, Ref]),
-        )),
+          : top(ref) === this.store.view.top?.url ? of([ref, this.store.view.top])
+            : this.refs.getCurrent(top(ref)).pipe(
+              catchError(err => err.status === 404 ? of([ref, undefined]) : throwError(() => err)),
+              map(top => [ref, top] as [Ref, Ref]),
+            )),
       tap(([ref, top]) => runInAction(() => this.store.view.setRef(ref, top))),
       takeUntil(this.destroy$),
     ).subscribe(() => MemoCache.clear(this));

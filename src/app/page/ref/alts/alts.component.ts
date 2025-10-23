@@ -14,10 +14,10 @@ import { getTitle } from '../../../util/format';
 import { getArgs } from '../../../util/query';
 
 @Component({
-    selector: 'app-ref-alts',
-    templateUrl: './alts.component.html',
-    styleUrls: ['./alts.component.scss'],
-    imports: [MobxAngularModule, RefListComponent]
+  selector: 'app-ref-alts',
+  templateUrl: './alts.component.html',
+  styleUrls: ['./alts.component.scss'],
+  imports: [MobxAngularModule, RefListComponent]
 })
 export class RefAltsComponent implements OnInit, OnDestroy, HasChanges {
 

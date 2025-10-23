@@ -7,11 +7,11 @@ import { BookmarkService } from '../../service/bookmark.service';
 import { Store } from '../../store/store';
 
 @Component({
-    selector: 'app-page-controls',
-    templateUrl: './page-controls.component.html',
-    styleUrls: ['./page-controls.component.scss'],
-    host: { 'class': 'page-controls' },
-    imports: [RouterLink, RouterLinkActive, ReactiveFormsModule, FormsModule]
+  selector: 'app-page-controls',
+  templateUrl: './page-controls.component.html',
+  styleUrls: ['./page-controls.component.scss'],
+  host: { 'class': 'page-controls' },
+  imports: [RouterLink, RouterLinkActive, ReactiveFormsModule, FormsModule]
 })
 export class PageControlsComponent {
 

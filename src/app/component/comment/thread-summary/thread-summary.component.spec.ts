@@ -20,9 +20,7 @@ describe('ThreadSummaryComponent', () => {
         provideRouter([]),
       ],
     }).compileComponents();
-  });
 
-  beforeEach(() => {
     fixture = TestBed.createComponent(ThreadSummaryComponent);
     component = fixture.componentInstance;
     component.newRefs$ = new Subject();

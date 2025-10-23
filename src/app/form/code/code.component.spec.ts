@@ -25,9 +25,7 @@ describe('CodeComponent', () => {
         }
       ],
     }).compileComponents();
-  });
 
-  beforeEach(() => {
     fixture = TestBed.createComponent(CodeComponent);
     component = fixture.componentInstance;
     // Create a FormGroup for the component with all required controls

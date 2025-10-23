@@ -25,9 +25,7 @@ describe('CommentReplyComponent', () => {
         provideRouter([]),
       ],
     }).compileComponents();
-  });
 
-  beforeEach(() => {
     fixture = TestBed.createComponent(CommentReplyComponent);
     component = fixture.componentInstance;
     component.to = { url: '' };

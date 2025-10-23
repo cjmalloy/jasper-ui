@@ -18,15 +18,15 @@ import { memo, MemoCache } from '../../../util/memo';
 import { hasTag, removeTag, updateMetadata } from '../../../util/tag';
 
 @Component({
-    selector: 'app-ref-comments',
-    templateUrl: './comments.component.html',
-    styleUrls: ['./comments.component.scss'],
-    imports: [
-        MobxAngularModule,
-        CommentReplyComponent,
-        CommentThreadComponent,
-        LoadingComponent,
-    ],
+  selector: 'app-ref-comments',
+  templateUrl: './comments.component.html',
+  styleUrls: ['./comments.component.scss'],
+  imports: [
+    MobxAngularModule,
+    CommentReplyComponent,
+    CommentThreadComponent,
+    LoadingComponent,
+  ],
 })
 export class RefCommentsComponent implements OnInit, OnDestroy, HasChanges {
   private disposers: IReactionDisposer[] = [];

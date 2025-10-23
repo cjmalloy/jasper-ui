@@ -1,7 +1,7 @@
 import { AsyncPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
-import { FieldType, FieldTypeConfig, FormlyFieldProps, FormlyModule } from '@ngx-formly/core';
+import { FieldType, FieldTypeConfig, FormlyAttributes, FormlyFieldProps } from '@ngx-formly/core';
 import { FormlyFieldSelectProps, FormlySelectModule } from '@ngx-formly/core/select';
 
 interface SelectProps extends FormlyFieldProps, FormlyFieldSelectProps {
@@ -10,9 +10,9 @@ interface SelectProps extends FormlyFieldProps, FormlyFieldSelectProps {
 }
 
 @Component({
-    selector: 'formly-field-select',
-    host: { 'class': 'field' },
-    template: `
+  selector: 'formly-field-select',
+  host: { 'class': 'field' },
+  template: `
     @if (props.multiple) {
       <select multiple
               [formControl]="formControl"
@@ -57,13 +57,13 @@ interface SelectProps extends FormlyFieldProps, FormlyFieldSelectProps {
       </select>
     }
   `,
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    imports: [
-        ReactiveFormsModule,
-        FormlyModule,
-        AsyncPipe,
-        FormlySelectModule,
-    ],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [
+    ReactiveFormsModule,
+    AsyncPipe,
+    FormlySelectModule,
+    FormlyAttributes,
+  ],
 })
 export class FormlyFieldSelect extends FieldType<FieldTypeConfig<SelectProps>> {
   override defaultOptions = {

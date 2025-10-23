@@ -20,11 +20,11 @@ import { getArgs } from '../../../util/query';
 import { hasTag, updateMetadata } from '../../../util/tag';
 
 @Component({
-    selector: 'app-ref-errors',
-    templateUrl: './errors.component.html',
-    styleUrl: './errors.component.scss',
-    host: { 'class': 'errors' },
-    imports: [MobxAngularModule, RefListComponent]
+  selector: 'app-ref-errors',
+  templateUrl: './errors.component.html',
+  styleUrl: './errors.component.scss',
+  host: { 'class': 'errors' },
+  imports: [MobxAngularModule, RefListComponent]
 })
 export class RefErrorsComponent implements HasChanges {
 

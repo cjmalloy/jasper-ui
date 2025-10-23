@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { AfterViewInit, Component, Input, OnDestroy } from '@angular/core';
+import { AfterViewInit, Component, forwardRef, Input, OnDestroy } from '@angular/core';
 import { FormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { uniq, without } from 'lodash-es';
 import { catchError, Subject, Subscription, switchMap, takeUntil, throwError } from 'rxjs';
@@ -14,11 +14,14 @@ import { OpPatch } from '../../../util/json-patch';
 import { LoadingComponent } from '../../loading/loading.component';
 
 @Component({
-    selector: 'app-comment-edit',
-    templateUrl: './comment-edit.component.html',
-    styleUrls: ['./comment-edit.component.scss'],
-    host: { 'class': 'comment-edit' },
-    imports: [EditorComponent, LoadingComponent]
+  selector: 'app-comment-edit',
+  templateUrl: './comment-edit.component.html',
+  styleUrls: ['./comment-edit.component.scss'],
+  host: { 'class': 'comment-edit' },
+  imports: [
+    forwardRef(() => EditorComponent),
+    LoadingComponent,
+  ]
 })
 export class CommentEditComponent implements AfterViewInit, HasChanges, OnDestroy {
   private destroy$ = new Subject<void>();

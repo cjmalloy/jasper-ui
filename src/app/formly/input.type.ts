@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
-import { FieldType, FieldTypeConfig, FormlyConfig, FormlyModule } from '@ngx-formly/core';
+import { FieldType, FieldTypeConfig, FormlyAttributes, FormlyConfig } from '@ngx-formly/core';
 import { isString } from 'lodash-es';
 import { AdminService } from '../service/admin.service';
 import { Saving } from '../store/submit';
@@ -47,12 +47,12 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     ReactiveFormsModule,
-    FormlyModule,
     QrScannerComponent,
     PdfUploadComponent,
     AudioUploadComponent,
     VideoUploadComponent,
     ImageUploadComponent,
+    FormlyAttributes,
   ],
 })
 export class FormlyFieldInput extends FieldType<FieldTypeConfig> {

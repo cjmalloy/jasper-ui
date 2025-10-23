@@ -8,11 +8,11 @@ import { PageControlsComponent } from '../../page-controls/page-controls.compone
 import { TemplateComponent } from '../template.component';
 
 @Component({
-    selector: 'app-template-list',
-    templateUrl: './template-list.component.html',
-    styleUrls: ['./template-list.component.scss'],
-    host: { 'class': 'template-list' },
-    imports: [TemplateComponent, PageControlsComponent, LoadingComponent]
+  selector: 'app-template-list',
+  templateUrl: './template-list.component.html',
+  styleUrls: ['./template-list.component.scss'],
+  host: { 'class': 'template-list' },
+  imports: [TemplateComponent, PageControlsComponent, LoadingComponent]
 })
 export class TemplateListComponent implements HasChanges {
 

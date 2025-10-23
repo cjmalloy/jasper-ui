@@ -19,9 +19,7 @@ describe('ModComponent', () => {
         provideRouter([]),
       ],
     }).compileComponents();
-  });
 
-  beforeEach(() => {
     fixture = TestBed.createComponent(ModComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();

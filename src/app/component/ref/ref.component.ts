@@ -93,10 +93,10 @@ import { ViewerComponent } from '../viewer/viewer.component';
   imports: [
     forwardRef(() => ViewerComponent),
     forwardRef(() => RefFormComponent),
+    forwardRef(() => MdComponent),
     NavComponent,
     RouterLink,
     TitleDirective,
-    MdComponent,
     InlineTagComponent,
     InlineButtonComponent,
     ConfirmActionComponent,

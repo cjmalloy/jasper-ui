@@ -9,14 +9,15 @@ import { ImageService } from './image.service';
 describe('ImageService', () => {
   let service: ImageService;
 
-  beforeEach(() => {
-    TestBed.configureTestingModule({
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
       providers: [
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),
         provideRouter([]),
       ],
-    });
+    }).compileComponents();
+
     service = TestBed.inject(ImageService);
   });
 

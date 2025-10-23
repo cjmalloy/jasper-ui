@@ -19,9 +19,7 @@ describe('KanbanColumnComponent', () => {
         provideRouter([]),
       ]
     }).compileComponents();
-  });
 
-  beforeEach(() => {
     fixture = TestBed.createComponent(KanbanColumnComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();

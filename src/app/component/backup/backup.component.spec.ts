@@ -19,9 +19,7 @@ describe('BackupComponent', () => {
         provideRouter([]),
       ],
     }).compileComponents();
-  });
 
-  beforeEach(() => {
     fixture = TestBed.createComponent(BackupComponent);
     component = fixture.componentInstance;
     component.id = 'test';

@@ -17,15 +17,15 @@ import { FileComponent } from './file/file.component';
 import { SubfolderComponent } from './subfolder/subfolder.component';
 
 @Component({
-    selector: 'app-folder',
-    templateUrl: './folder.component.html',
-    styleUrls: ['./folder.component.scss'],
-    host: { 'class': 'folder ext' },
-    imports: [
-      forwardRef(() => FileComponent),
-      forwardRef(() => SubfolderComponent),
-      CdkDrag,
-    ],
+  selector: 'app-folder',
+  templateUrl: './folder.component.html',
+  styleUrls: ['./folder.component.scss'],
+  host: { 'class': 'folder ext' },
+  imports: [
+    forwardRef(() => FileComponent),
+    forwardRef(() => SubfolderComponent),
+    CdkDrag,
+  ],
 })
 export class FolderComponent implements OnChanges, HasChanges {
 

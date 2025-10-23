@@ -15,10 +15,10 @@ import { printError } from '../../util/http';
 import { ConfirmActionComponent } from '../action/confirm-action/confirm-action.component';
 
 @Component({
-    selector: 'app-backup',
-    templateUrl: './backup.component.html',
-    styleUrls: ['./backup.component.scss'],
-    imports: [RouterLink, ConfirmActionComponent, ReactiveFormsModule]
+  selector: 'app-backup',
+  templateUrl: './backup.component.html',
+  styleUrls: ['./backup.component.scss'],
+  imports: [RouterLink, ConfirmActionComponent, ReactiveFormsModule]
 })
 export class BackupComponent {
 

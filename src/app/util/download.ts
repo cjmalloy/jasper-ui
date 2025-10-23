@@ -36,7 +36,7 @@ export async function downloadPage(type: Type, page: Page<any>, exts: Ext[], que
   zip.file(type + '.json', file(page.content!.map(write(type))));
   if (exts.length) zip.file('ext.json', file(exts.map(writeExt)));
   return zip.generateAsync({ type: 'blob' })
-    .then((content: Blob) => FileSaver.saveAs(content, `${query.replace('/', '_')}` + (page.page.totalPages > 1 ? ` (page ${page.page.number + 1} of ${page.page.totalPages})` : '') + '.zip'));
+    .then(content => FileSaver.saveAs(content, `${query.replace('/', '_')}` + (page.page.totalPages > 1 ? ` (page ${page.page.number + 1} of ${page.page.totalPages})` : '') + '.zip'));
 }
 
 export async function downloadSet(ref: Ref[], ext: Ext[], title: string) {
@@ -44,7 +44,7 @@ export async function downloadSet(ref: Ref[], ext: Ext[], title: string) {
   zip.file('ref.json', file(ref.map(writeRef)));
   zip.file('ext.json', file(ext.map(writeExt)));
   return zip.generateAsync({ type: 'blob' })
-    .then((content: Blob) => FileSaver.saveAs(content, title + '.zip'));
+    .then(content => FileSaver.saveAs(content, title + '.zip'));
 }
 
 export function downloadPluginExport(plugin: Plugin, html: string) {
@@ -52,5 +52,5 @@ export function downloadPluginExport(plugin: Plugin, html: string) {
   const zip = new JSZip();
   zip.file(title + '.html', html);
   return zip.generateAsync({ type: 'blob' })
-    .then((content: Blob) => FileSaver.saveAs(content, title + '.zip'));
+    .then(content => FileSaver.saveAs(content, title + '.zip'));
 }

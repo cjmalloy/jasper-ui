@@ -7,11 +7,11 @@ import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
 
 @Component({
-    selector: 'app-json',
-    templateUrl: './json.component.html',
-    styleUrls: ['./json.component.scss'],
-    host: { 'class': 'json-editor' },
-    imports: [ReactiveFormsModule, MonacoEditorModule, ResizeHandleDirective]
+  selector: 'app-json',
+  templateUrl: './json.component.html',
+  styleUrls: ['./json.component.scss'],
+  host: { 'class': 'json-editor' },
+  imports: [ReactiveFormsModule, MonacoEditorModule, ResizeHandleDirective]
 })
 export class JsonComponent implements OnDestroy {
 

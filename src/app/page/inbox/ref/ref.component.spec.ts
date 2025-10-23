@@ -17,9 +17,7 @@ describe('InboxRefPage', () => {
         provideHttpClientTesting(),
       ],
     }).compileComponents();
-  });
 
-  beforeEach(() => {
     fixture = TestBed.createComponent(InboxRefPage);
     component = fixture.componentInstance;
     fixture.detectChanges();

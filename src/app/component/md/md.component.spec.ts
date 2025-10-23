@@ -20,9 +20,7 @@ describe('MdComponent', () => {
         provideRouter([]),
       ]
     }).compileComponents();
-  });
 
-  beforeEach(() => {
     fixture = TestBed.createComponent(MdComponent);
     component = fixture.componentInstance;
     component.mermaid = false;

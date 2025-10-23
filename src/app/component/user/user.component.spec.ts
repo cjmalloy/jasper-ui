@@ -23,9 +23,7 @@ describe('UserComponent', () => {
         provideRouter([]),
       ],
     }).compileComponents();
-  });
 
-  beforeEach(() => {
     fixture = TestBed.createComponent(UserComponent);
     component = fixture.componentInstance;
     component.user = { tag: 'user/test' };

@@ -21,9 +21,7 @@ describe('RefCommentsComponent', () => {
         provideRouter([]),
       ]
     }).compileComponents();
-  });
 
-  beforeEach(() => {
     fixture = TestBed.createComponent(RefCommentsComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();

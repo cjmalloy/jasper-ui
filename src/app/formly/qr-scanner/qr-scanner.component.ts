@@ -15,10 +15,10 @@ import { QrScanner, scanImage } from '../../util/qr-scanner';
 import { Camera, hasCamera, listCameras } from '../../util/webcam';
 
 @Component({
-    selector: 'app-qr-scanner',
-    templateUrl: './qr-scanner.component.html',
-    styleUrls: ['./qr-scanner.component.scss'],
-    host: { 'class': 'form-array' }
+  selector: 'app-qr-scanner',
+  templateUrl: './qr-scanner.component.html',
+  styleUrls: ['./qr-scanner.component.scss'],
+  host: { 'class': 'form-array' }
 })
 export class QrScannerComponent implements OnDestroy {
 

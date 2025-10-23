@@ -5,11 +5,11 @@ import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
 
 @Component({
-    selector: 'app-login-popup',
-    templateUrl: './login-popup.component.html',
-    styleUrls: ['./login-popup.component.scss'],
-    host: { 'class': 'login-popup' },
-    imports: [MobxAngularModule]
+  selector: 'app-login-popup',
+  templateUrl: './login-popup.component.html',
+  styleUrls: ['./login-popup.component.scss'],
+  host: { 'class': 'login-popup' },
+  imports: [MobxAngularModule]
 })
 export class LoginPopupComponent {
 

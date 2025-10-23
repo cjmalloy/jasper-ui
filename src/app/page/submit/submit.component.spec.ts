@@ -32,9 +32,7 @@ describe('SubmitPage', () => {
         },
       ],
     }).compileComponents();
-  });
 
-  beforeEach(() => {
     fixture = TestBed.createComponent(SubmitPage);
     component = fixture.componentInstance;
     fixture.detectChanges();

@@ -41,11 +41,11 @@ import { InlinePasswordComponent } from '../action/inline-password/inline-passwo
 import { InlineSelectComponent } from '../action/inline-select/inline-select.component';
 
 @Component({
-    selector: 'app-user',
-    templateUrl: './user.component.html',
-    styleUrls: ['./user.component.scss'],
-    host: { 'class': 'profile list-item' },
-    imports: [RouterLink, TitleDirective, ConfirmActionComponent, InlineButtonComponent, InlinePasswordComponent, InlineSelectComponent, ReactiveFormsModule, UserFormComponent]
+  selector: 'app-user',
+  templateUrl: './user.component.html',
+  styleUrls: ['./user.component.scss'],
+  host: { 'class': 'profile list-item' },
+  imports: [RouterLink, TitleDirective, ConfirmActionComponent, InlineButtonComponent, InlinePasswordComponent, InlineSelectComponent, ReactiveFormsModule, UserFormComponent]
 })
 export class UserComponent implements OnChanges, HasChanges {
   @HostBinding('attr.tabindex') tabIndex = 0;
@@ -93,9 +93,9 @@ export class UserComponent implements OnChanges, HasChanges {
     this.writeAccess = this.auth.tagWriteAccess(this.qualifiedTag) && this.auth.hasRole(this.role);
     if (this.created && !this.profile) {
       this.exts.getCachedExt(this.user!.tag, this.user!.origin)
-      .subscribe(x => this.ext = x);
+        .subscribe(x => this.ext = x);
       this.profiles.getProfile(this.qualifiedTag)
-      .subscribe(profile => this.profile = profile);
+        .subscribe(profile => this.profile = profile);
     }
   }
 

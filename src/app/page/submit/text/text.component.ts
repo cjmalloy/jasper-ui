@@ -1,5 +1,14 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { AfterViewInit, Component, ElementRef, OnChanges, OnDestroy, SimpleChanges, ViewChild } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  ElementRef,
+  forwardRef,
+  OnChanges,
+  OnDestroy,
+  SimpleChanges,
+  ViewChild
+} from '@angular/core';
 import {
   FormsModule,
   ReactiveFormsModule,
@@ -47,11 +56,26 @@ import { memo, MemoCache } from '../../../util/memo';
 import { hasPrefix, hasTag } from '../../../util/tag';
 
 @Component({
-    selector: 'app-submit-text',
-    templateUrl: './text.component.html',
-    styleUrls: ['./text.component.scss'],
-    host: { 'class': 'full-page-form' },
-    imports: [MobxAngularModule, ReactiveFormsModule, LimitWidthDirective, NavComponent, LoadingComponent, SelectPluginComponent, PluginsFormComponent, MonacoEditorModule, ResizeHandleDirective, FillWidthDirective, EditorComponent, TagsFormComponent, RefFormComponent, FormsModule]
+  selector: 'app-submit-text',
+  templateUrl: './text.component.html',
+  styleUrls: ['./text.component.scss'],
+  host: { 'class': 'full-page-form' },
+  imports: [
+    forwardRef(() => EditorComponent),
+    MobxAngularModule,
+    ReactiveFormsModule,
+    LimitWidthDirective,
+    NavComponent,
+    LoadingComponent,
+    SelectPluginComponent,
+    PluginsFormComponent,
+    MonacoEditorModule,
+    ResizeHandleDirective,
+    FillWidthDirective,
+    TagsFormComponent,
+    RefFormComponent,
+    FormsModule,
+  ],
 })
 export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasChanges {
   private disposers: IReactionDisposer[] = [];

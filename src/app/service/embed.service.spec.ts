@@ -10,15 +10,16 @@ import { EmbedService } from './embed.service';
 describe('EmbedService', () => {
   let service: EmbedService;
 
-  beforeEach(() => {
-    TestBed.configureTestingModule({
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
       imports: [MarkdownModule.forRoot()],
       providers: [
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),
         provideRouter([]),
       ],
-    });
+    }).compileComponents();
+
     service = TestBed.inject(EmbedService);
   });
 

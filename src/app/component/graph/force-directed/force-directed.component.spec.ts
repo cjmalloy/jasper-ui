@@ -22,9 +22,7 @@ describe('ForceDirectedComponent', () => {
         provideHttpClientTesting(),
         provideRouter([]),]
     }).compileComponents();
-  });
 
-  beforeEach(() => {
     fixture = TestBed.createComponent(ForceDirectedComponent);
     component = fixture.componentInstance;
     component.content = [{ url: '' }];

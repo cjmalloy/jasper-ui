@@ -31,9 +31,7 @@ describe('SubmitWebPage', () => {
         provideRouter([]),
       ],
     }).compileComponents();
-  });
 
-  beforeEach(() => {
     fixture = TestBed.createComponent(SubmitWebPage);
     component = fixture.componentInstance;
     fixture.detectChanges();

@@ -19,10 +19,10 @@ import { ConfirmActionComponent } from '../action/confirm-action/confirm-action.
 import { InlineButtonComponent } from '../action/inline-button/inline-button.component';
 
 @Component({
-    selector: 'app-template',
-    templateUrl: './template.component.html',
-    styleUrls: ['./template.component.scss'],
-    imports: [RouterLink, ConfirmActionComponent, InlineButtonComponent, ReactiveFormsModule, TemplateFormComponent]
+  selector: 'app-template',
+  templateUrl: './template.component.html',
+  styleUrls: ['./template.component.scss'],
+  imports: [RouterLink, ConfirmActionComponent, InlineButtonComponent, ReactiveFormsModule, TemplateFormComponent]
 })
 export class TemplateComponent implements OnChanges, HasChanges {
   css = 'template list-item';

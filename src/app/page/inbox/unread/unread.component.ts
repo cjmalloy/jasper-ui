@@ -13,11 +13,11 @@ import { QueryStore } from '../../../store/query';
 import { Store } from '../../../store/store';
 
 @Component({
-    selector: 'app-unread',
-    templateUrl: './unread.component.html',
-    styleUrls: ['./unread.component.scss'],
-    host: { 'class': 'unread' },
-    imports: [MobxAngularModule, RefListComponent]
+  selector: 'app-unread',
+  templateUrl: './unread.component.html',
+  styleUrls: ['./unread.component.scss'],
+  host: { 'class': 'unread' },
+  imports: [MobxAngularModule, RefListComponent]
 })
 export class InboxUnreadPage implements OnInit, OnDestroy {
 

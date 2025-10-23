@@ -12,11 +12,11 @@ import { ModService } from '../../service/mod.service';
 import { Store } from '../../store/store';
 
 @Component({
-    selector: 'app-subscription-bar',
-    templateUrl: './subscription-bar.component.html',
-    styleUrls: ['./subscription-bar.component.scss'],
-    host: { 'class': 'subscription-bar' },
-    imports: [MobxAngularModule, RouterLink, RouterLinkActive, TitleDirective]
+  selector: 'app-subscription-bar',
+  templateUrl: './subscription-bar.component.html',
+  styleUrls: ['./subscription-bar.component.scss'],
+  host: { 'class': 'subscription-bar' },
+  imports: [MobxAngularModule, RouterLink, RouterLinkActive, TitleDirective]
 })
 export class SubscriptionBarComponent implements OnDestroy {
   private disposers: IReactionDisposer[] = [];

@@ -15,15 +15,15 @@ import { PageControlsComponent } from '../../page-controls/page-controls.compone
 import { RefComponent } from '../ref.component';
 
 @Component({
-    selector: 'app-ref-list',
-    templateUrl: './ref-list.component.html',
-    styleUrls: ['./ref-list.component.scss'],
-    host: { 'class': 'ref-list' },
-    imports: [
-      forwardRef(() => RefComponent),
-      PageControlsComponent,
-      LoadingComponent,
-    ],
+  selector: 'app-ref-list',
+  templateUrl: './ref-list.component.html',
+  styleUrls: ['./ref-list.component.scss'],
+  host: { 'class': 'ref-list' },
+  imports: [
+    forwardRef(() => RefComponent),
+    PageControlsComponent,
+    LoadingComponent,
+  ],
 })
 export class RefListComponent implements OnInit, OnDestroy, HasChanges {
   private destroy$ = new Subject<void>();

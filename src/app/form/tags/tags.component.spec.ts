@@ -25,9 +25,7 @@ describe('TagsFormComponent', () => {
         provideRouter([]),
       ],
     }).compileComponents();
-  });
 
-  beforeEach(() => {
     fixture = TestBed.createComponent(TagsFormComponent);
     component = fixture.componentInstance;
     component.group = new UntypedFormGroup({ tags: new UntypedFormControl({}) });

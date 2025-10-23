@@ -25,10 +25,10 @@ import { getArgs } from '../../../util/query';
 import { hasTag, removeTag, top, updateMetadata } from '../../../util/tag';
 
 @Component({
-    selector: 'app-ref-summary',
-    templateUrl: './summary.component.html',
-    styleUrls: ['./summary.component.scss'],
-    imports: [MobxAngularModule, CommentReplyComponent, RouterLink, ThreadSummaryComponent, RefListComponent, LoadingComponent]
+  selector: 'app-ref-summary',
+  templateUrl: './summary.component.html',
+  styleUrls: ['./summary.component.scss'],
+  imports: [MobxAngularModule, CommentReplyComponent, RouterLink, ThreadSummaryComponent, RefListComponent, LoadingComponent]
 })
 export class RefSummaryComponent implements OnInit, OnDestroy, HasChanges {
   private disposers: IReactionDisposer[] = [];

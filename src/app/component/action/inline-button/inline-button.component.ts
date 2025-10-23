@@ -4,11 +4,11 @@ import { LoadingComponent } from '../../loading/loading.component';
 import { ActionComponent } from '../action.component';
 
 @Component({
-    selector: 'app-inline-button',
-    templateUrl: './inline-button.component.html',
-    styleUrls: ['./inline-button.component.scss'],
-    host: { 'class': 'action' },
-    imports: [LoadingComponent]
+  selector: 'app-inline-button',
+  templateUrl: './inline-button.component.html',
+  styleUrls: ['./inline-button.component.scss'],
+  host: { 'class': 'action' },
+  imports: [LoadingComponent]
 })
 export class InlineButtonComponent extends ActionComponent {
 

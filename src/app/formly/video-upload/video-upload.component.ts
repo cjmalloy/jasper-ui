@@ -8,10 +8,10 @@ import { Saving } from '../../store/submit';
 import { readFileAsDataURL } from '../../util/async';
 
 @Component({
-    selector: 'app-video-upload',
-    templateUrl: './video-upload.component.html',
-    styleUrls: ['./video-upload.component.scss'],
-    host: { 'class': 'form-array' }
+  selector: 'app-video-upload',
+  templateUrl: './video-upload.component.html',
+  styleUrls: ['./video-upload.component.scss'],
+  host: { 'class': 'form-array' }
 })
 export class VideoUploadComponent {
 

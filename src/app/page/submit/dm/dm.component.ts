@@ -1,5 +1,14 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { AfterViewInit, Component, ElementRef, OnChanges, OnDestroy, SimpleChanges, ViewChild } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  ElementRef,
+  forwardRef,
+  OnChanges,
+  OnDestroy,
+  SimpleChanges,
+  ViewChild
+} from '@angular/core';
 import {
   ReactiveFormsModule,
   UntypedFormArray,
@@ -43,11 +52,24 @@ import { memo, MemoCache } from '../../../util/memo';
 import { hasPrefix, hasTag } from '../../../util/tag';
 
 @Component({
-    selector: 'app-submit-dm',
-    templateUrl: './dm.component.html',
-    styleUrls: ['./dm.component.scss'],
-    host: { 'class': 'full-page-form' },
-    imports: [MobxAngularModule, ReactiveFormsModule, LimitWidthDirective, AutofocusDirective, SelectPluginComponent, PluginsFormComponent, MonacoEditorModule, ResizeHandleDirective, FillWidthDirective, EditorComponent, TagsFormComponent, LoadingComponent]
+  selector: 'app-submit-dm',
+  templateUrl: './dm.component.html',
+  styleUrls: ['./dm.component.scss'],
+  host: { 'class': 'full-page-form' },
+  imports: [
+    forwardRef(() => EditorComponent),
+    MobxAngularModule,
+    ReactiveFormsModule,
+    LimitWidthDirective,
+    AutofocusDirective,
+    SelectPluginComponent,
+    PluginsFormComponent,
+    MonacoEditorModule,
+    ResizeHandleDirective,
+    FillWidthDirective,
+    TagsFormComponent,
+    LoadingComponent,
+  ]
 })
 export class SubmitDmPage implements AfterViewInit, OnChanges, OnDestroy, HasChanges {
   private disposers: IReactionDisposer[] = [];

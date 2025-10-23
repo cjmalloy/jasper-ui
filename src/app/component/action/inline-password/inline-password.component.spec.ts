@@ -7,10 +7,10 @@ describe('InlinePasswordComponent', () => {
   let component: InlinePasswordComponent;
   let fixture: ComponentFixture<InlinePasswordComponent>;
 
-  beforeEach(() => {
-    TestBed.configureTestingModule({
-    imports: [InlinePasswordComponent]
-});
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [InlinePasswordComponent]
+    }).compileComponents();
     fixture = TestBed.createComponent(InlinePasswordComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();

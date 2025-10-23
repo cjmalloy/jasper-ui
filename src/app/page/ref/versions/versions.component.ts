@@ -12,10 +12,10 @@ import { getTitle } from '../../../util/format';
 import { getArgs } from '../../../util/query';
 
 @Component({
-    selector: 'app-ref-versions',
-    templateUrl: './versions.component.html',
-    styleUrls: ['./versions.component.scss'],
-    imports: [MobxAngularModule, RefListComponent]
+  selector: 'app-ref-versions',
+  templateUrl: './versions.component.html',
+  styleUrls: ['./versions.component.scss'],
+  imports: [MobxAngularModule, RefListComponent]
 })
 export class RefVersionsComponent implements OnInit, OnDestroy, HasChanges {
 

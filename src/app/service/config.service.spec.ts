@@ -8,11 +8,15 @@ import { ConfigService } from './config.service';
 describe('ConfigService', () => {
   let service: ConfigService;
 
-  beforeEach(() => {
-    TestBed.configureTestingModule({
-    imports: [],
-    providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
-});
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [],
+      providers: [
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting(),
+      ],
+    }).compileComponents();
+
     service = TestBed.inject(ConfigService);
   });
 

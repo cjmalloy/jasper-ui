@@ -10,15 +10,15 @@ describe('PlaylistComponent', () => {
   let component: PlaylistComponent;
   let fixture: ComponentFixture<PlaylistComponent>;
 
-  beforeEach(() => {
-    TestBed.configureTestingModule({
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
       imports: [PlaylistComponent],
       providers: [
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),
         provideRouter([]),
       ],
-    });
+    }).compileComponents();
     fixture = TestBed.createComponent(PlaylistComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();

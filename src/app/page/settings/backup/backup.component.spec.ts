@@ -19,9 +19,7 @@ describe('SettingsBackupPage', () => {
         provideRouter([]),
       ],
     }).compileComponents();
-  });
 
-  beforeEach(() => {
     fixture = TestBed.createComponent(SettingsBackupPage);
     component = fixture.componentInstance;
     fixture.detectChanges();

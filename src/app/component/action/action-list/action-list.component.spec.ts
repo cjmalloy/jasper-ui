@@ -9,15 +9,15 @@ describe('ActionListComponent', () => {
   let component: ActionListComponent;
   let fixture: ComponentFixture<ActionListComponent>;
 
-  beforeEach(() => {
-    TestBed.configureTestingModule({
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
       imports: [ActionListComponent,],
       providers: [
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),
         provideRouter([]),
       ],
-    });
+    }).compileComponents();
     fixture = TestBed.createComponent(ActionListComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();

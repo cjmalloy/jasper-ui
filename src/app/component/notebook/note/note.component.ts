@@ -49,11 +49,11 @@ import { TodoComponent } from '../../todo/todo.component';
   styleUrls: ['./note.component.scss'],
   host: { 'class': 'note' },
   imports: [
+    forwardRef(() => MdComponent),
     LoadingComponent,
     RouterLink,
     ChessComponent,
     TodoComponent,
-    MdComponent,
     AsyncPipe,
     ThumbnailPipe,
     CssUrlPipe,

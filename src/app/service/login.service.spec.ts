@@ -9,14 +9,15 @@ import { LoginService } from './login.service';
 describe('LoginService', () => {
   let service: LoginService;
 
-  beforeEach(() => {
-    TestBed.configureTestingModule({
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
       providers: [
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),
         provideRouter([]),
       ],
-    });
+    }).compileComponents();
+
     service = TestBed.inject(LoginService);
   });
 

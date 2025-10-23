@@ -21,11 +21,11 @@ import { scrollToFirstInvalid } from '../../../util/form';
 import { printError } from '../../../util/http';
 
 @Component({
-    selector: 'app-settings-me-page',
-    templateUrl: './me.component.html',
-    styleUrls: ['./me.component.scss'],
-    host: { 'class': 'full-page-form' },
-    imports: [MobxAngularModule, ReactiveFormsModule, LimitWidthDirective, UserTagSelectorComponent, ExtFormComponent, LoadingComponent]
+  selector: 'app-settings-me-page',
+  templateUrl: './me.component.html',
+  styleUrls: ['./me.component.scss'],
+  host: { 'class': 'full-page-form' },
+  imports: [MobxAngularModule, ReactiveFormsModule, LimitWidthDirective, UserTagSelectorComponent, ExtFormComponent, LoadingComponent]
 })
 export class SettingsMePage implements HasChanges {
 

@@ -1,7 +1,8 @@
 import { CdkDrag } from '@angular/cdk/drag-drop';
 import {
   AfterViewInit,
-  Component, forwardRef,
+  Component,
+  forwardRef,
   HostBinding,
   HostListener,
   Input,

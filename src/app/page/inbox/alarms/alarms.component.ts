@@ -11,11 +11,11 @@ import { Store } from '../../../store/store';
 import { getArgs } from '../../../util/query';
 
 @Component({
-    selector: 'app-inbox-alarms',
-    templateUrl: './alarms.component.html',
-    styleUrls: ['./alarms.component.scss'],
-    host: { 'class': 'alarms' },
-    imports: [MobxAngularModule, RefListComponent]
+  selector: 'app-inbox-alarms',
+  templateUrl: './alarms.component.html',
+  styleUrls: ['./alarms.component.scss'],
+  host: { 'class': 'alarms' },
+  imports: [MobxAngularModule, RefListComponent]
 })
 export class InboxAlarmsPage implements OnInit, OnDestroy, HasChanges {
 
