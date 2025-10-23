@@ -60,20 +60,32 @@ jobs:
               let testsTotal = 0;
               let testsFailed = 0;
               
-              // Look for the summary line: "Test Files  X failed | Y passed (Z)"
-              const testFilesMatch = logContent.match(/Test Files\s+(\d+)\s+failed\s+\|\s+(\d+)\s+passed\s+\((\d+)\)/);
-              if (testFilesMatch) {
-                testFilesFailed = parseInt(testFilesMatch[1]);
-                const testFilesPassed = parseInt(testFilesMatch[2]);
-                testFiles = parseInt(testFilesMatch[3]);
+              // Look for the summary line: "Test Files  X failed | Y passed (Z)" or "Test Files  X passed (X)"
+              const testFilesFailMatch = logContent.match(/Test Files\s+(\d+)\s+failed\s+\|\s+(\d+)\s+passed\s+\((\d+)\)/);
+              const testFilesPassMatch = logContent.match(/Test Files\s+(\d+)\s+passed\s+\((\d+)\)/);
+              
+              if (testFilesFailMatch) {
+                testFilesFailed = parseInt(testFilesFailMatch[1]);
+                const testFilesPassed = parseInt(testFilesFailMatch[2]);
+                testFiles = parseInt(testFilesFailMatch[3]);
+              } else if (testFilesPassMatch) {
+                testFilesFailed = 0;
+                const testFilesPassed = parseInt(testFilesPassMatch[1]);
+                testFiles = parseInt(testFilesPassMatch[2]);
               }
               
-              // Look for the tests summary line: "Tests  X failed | Y passed (Z)"
-              const testsMatch = logContent.match(/Tests\s+(\d+)\s+failed\s+\|\s+(\d+)\s+passed\s+\((\d+)\)/);
-              if (testsMatch) {
-                testsFailed = parseInt(testsMatch[1]);
-                const testsPassed = parseInt(testsMatch[2]);
-                testsTotal = parseInt(testsMatch[3]);
+              // Look for the tests summary line: "Tests  X failed | Y passed (Z)" or "Tests  X passed (X)"
+              const testsFailMatch = logContent.match(/Tests\s+(\d+)\s+failed\s+\|\s+(\d+)\s+passed\s+\((\d+)\)/);
+              const testsPassMatch = logContent.match(/Tests\s+(\d+)\s+passed\s+\((\d+)\)/);
+              
+              if (testsFailMatch) {
+                testsFailed = parseInt(testsFailMatch[1]);
+                const testsPassed = parseInt(testsFailMatch[2]);
+                testsTotal = parseInt(testsFailMatch[3]);
+              } else if (testsPassMatch) {
+                testsFailed = 0;
+                const testsPassed = parseInt(testsPassMatch[1]);
+                testsTotal = parseInt(testsPassMatch[2]);
               }
               
               return {
