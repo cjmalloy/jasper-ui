@@ -1,5 +1,5 @@
 import { HttpErrorResponse, HttpEventType } from '@angular/common/http';
-import { Component, OnDestroy } from '@angular/core';
+import { Component, forwardRef, OnDestroy } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { FormlyModule } from '@ngx-formly/core';
@@ -35,6 +35,8 @@ import { FilteredModels, filterModels, getModels, getTextFile, unzip, zippedFile
     styleUrls: ['./upload.component.scss'],
     host: { 'class': 'full-page-upload' },
     imports: [
+      forwardRef(() => ExtComponent),
+      forwardRef(() => RefComponent),
       MobxAngularModule,
       RouterLink,
       FormlyModule,
@@ -42,8 +44,6 @@ import { FilteredModels, filterModels, getModels, getTextFile, unzip, zippedFile
       FormsModule,
       AutofocusDirective,
       LoadingComponent,
-      ExtComponent,
-      RefComponent,
     ]
 })
 export class UploadPage implements OnDestroy {

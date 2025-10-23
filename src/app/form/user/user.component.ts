@@ -17,11 +17,16 @@ import { JsonComponent } from '../json/json.component';
 import { TagsFormComponent } from '../tags/tags.component';
 
 @Component({
-    selector: 'app-user-form',
-    templateUrl: './user.component.html',
-    styleUrls: ['./user.component.scss'],
-    host: { 'class': 'nested-form' },
-    imports: [ReactiveFormsModule, TagsFormComponent, FillWidthDirective, JsonComponent]
+  selector: 'app-user-form',
+  templateUrl: './user.component.html',
+  styleUrls: ['./user.component.scss'],
+  host: { 'class': 'nested-form' },
+  imports: [
+    ReactiveFormsModule,
+    TagsFormComponent,
+    FillWidthDirective,
+    JsonComponent,
+  ]
 })
 export class UserFormComponent implements OnInit {
 

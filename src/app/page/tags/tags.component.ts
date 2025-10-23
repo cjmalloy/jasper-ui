@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, forwardRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { defer } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
@@ -17,10 +17,16 @@ import { getTagFilter, getTagQueryFilter } from '../../util/query';
 import { braces, getPrefixes, hasPrefix, publicTag } from '../../util/tag';
 
 @Component({
-    selector: 'app-tags-page',
-    templateUrl: './tags.component.html',
-    styleUrls: ['./tags.component.scss'],
-    imports: [MobxAngularModule, TabsComponent, RouterLink, SidebarComponent, ExtListComponent]
+  selector: 'app-tags-page',
+  templateUrl: './tags.component.html',
+  styleUrls: ['./tags.component.scss'],
+  imports: [
+    forwardRef(() => ExtListComponent),
+    MobxAngularModule,
+    TabsComponent,
+    RouterLink,
+    SidebarComponent,
+  ]
 })
 export class TagsPage implements OnInit, OnDestroy, HasChanges {
 
@@ -59,11 +65,11 @@ export class TagsPage implements OnInit, OnDestroy, HasChanges {
         ? [...getPrefixes('home'), ...this.store.account.subs, ...this.store.account.bookmarks].filter(t => this.auth.tagReadAccess(t)).join('|')
         : this.store.view.noTemplate
           ? [braces(this.store.view.template), '!+user', '!_user', ...this.templates.map(t => '!' + t.tag).flatMap(getPrefixes)].filter(t => this.auth.tagReadAccess(t)).join(':')
-        : this.store.view.template
-        ? (publicTag(this.store.view.template)
-            ? getPrefixes(this.store.view.template).filter(t => this.auth.tagReadAccess(t)).join('|')
-            : this.store.view.template)
-        : '@*';
+          : this.store.view.template
+            ? (publicTag(this.store.view.template)
+              ? getPrefixes(this.store.view.template).filter(t => this.auth.tagReadAccess(t)).join('|')
+              : this.store.view.template)
+            : '@*';
       const args = {
         query: getTagQueryFilter(braces(query), this.store.view.filter) + (!this.store.view.showRemotes ? ':' + (this.store.account.origin || '*') : ''),
         search: this.store.view.search,
