@@ -19,9 +19,7 @@ describe('SettingsPluginPage', () => {
         provideRouter([]),
       ],
     }).compileComponents();
-  });
 
-  beforeEach(() => {
     fixture = TestBed.createComponent(SettingsPluginPage);
     component = fixture.componentInstance;
     fixture.detectChanges();

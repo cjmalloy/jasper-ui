@@ -7,10 +7,10 @@ describe('InlineSelectComponent', () => {
   let component: InlineSelectComponent;
   let fixture: ComponentFixture<InlineSelectComponent>;
 
-  beforeEach(() => {
-    TestBed.configureTestingModule({
-    imports: [InlineSelectComponent]
-});
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [InlineSelectComponent]
+    }).compileComponents();
     fixture = TestBed.createComponent(InlineSelectComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();

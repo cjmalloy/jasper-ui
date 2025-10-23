@@ -19,9 +19,7 @@ describe('NotebookComponent', () => {
         provideRouter([]),
       ],
     }).compileComponents();
-  });
 
-  beforeEach(() => {
     fixture = TestBed.createComponent(NotebookComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();

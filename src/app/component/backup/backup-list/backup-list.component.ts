@@ -4,10 +4,10 @@ import { LoadingComponent } from '../../loading/loading.component';
 import { BackupComponent } from '../backup.component';
 
 @Component({
-    selector: 'app-backup-list',
-    templateUrl: './backup-list.component.html',
-    styleUrls: ['./backup-list.component.scss'],
-    imports: [LoadingComponent, BackupComponent]
+  selector: 'app-backup-list',
+  templateUrl: './backup-list.component.html',
+  styleUrls: ['./backup-list.component.scss'],
+  imports: [LoadingComponent, BackupComponent]
 })
 export class BackupListComponent {
 

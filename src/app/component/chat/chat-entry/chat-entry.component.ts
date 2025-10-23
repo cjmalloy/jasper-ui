@@ -38,21 +38,21 @@ import { NavComponent } from '../../nav/nav.component';
 import { ViewerComponent } from '../../viewer/viewer.component';
 
 @Component({
-    selector: 'app-chat-entry',
-    templateUrl: './chat-entry.component.html',
-    styleUrls: ['./chat-entry.component.scss'],
-    host: { 'class': 'chat-entry' },
-    imports: [
-      forwardRef(() => ViewerComponent),
-      RouterLink,
-      TitleDirective,
-      LoadingComponent,
-      NavComponent,
-      MdComponent,
-      ConfirmActionComponent,
-      InlineTagComponent,
-      AsyncPipe,
-    ],
+  selector: 'app-chat-entry',
+  templateUrl: './chat-entry.component.html',
+  styleUrls: ['./chat-entry.component.scss'],
+  host: { 'class': 'chat-entry' },
+  imports: [
+    forwardRef(() => ViewerComponent),
+    forwardRef(() => MdComponent),
+    RouterLink,
+    TitleDirective,
+    LoadingComponent,
+    NavComponent,
+    ConfirmActionComponent,
+    InlineTagComponent,
+    AsyncPipe,
+  ],
 })
 export class ChatEntryComponent implements OnChanges, OnDestroy {
   @HostBinding('attr.tabindex') tabIndex = 0;

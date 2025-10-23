@@ -10,7 +10,7 @@ import {
   Validators
 } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { FormlyFieldConfig, FormlyForm, FormlyFormOptions, FormlyModule } from '@ngx-formly/core';
+import { FormlyFieldConfig, FormlyForm, FormlyFormOptions } from '@ngx-formly/core';
 import { cloneDeep, defer, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { catchError, of, Subject, takeUntil } from 'rxjs';
@@ -32,16 +32,16 @@ import { linksForm } from '../links/links.component';
 import { themesForm, ThemesFormComponent } from '../themes/themes.component';
 
 @Component({
-    selector: 'app-ext-form',
-    templateUrl: './ext.component.html',
-    styleUrls: ['./ext.component.scss'],
-    host: { 'class': 'nested-form' },
+  selector: 'app-ext-form',
+  templateUrl: './ext.component.html',
+  styleUrls: ['./ext.component.scss'],
+  host: { 'class': 'nested-form' },
   imports: [
-    ReactiveFormsModule,
-    FormlyModule,
-    CdkDropListGroup,
     forwardRef(() => RefComponent),
-    EditorComponent,
+    forwardRef(() => EditorComponent),
+    ReactiveFormsModule,
+    FormlyForm,
+    CdkDropListGroup,
     RouterLink,
     ThemesFormComponent,
     LoadingComponent,
@@ -234,23 +234,23 @@ export class ExtFormComponent implements OnDestroy {
   createDefaults() {
     this.loadingDefaults = true;
     this.refs.getCurrent('tag:/' + this.tag).pipe(
-        catchError(err => {
-          this.defaults = {
-            origin: this.store.account.origin,
-            url: 'tag:/' + this.tag,
-            tags: ['internal', this.store.account.localTag],
-            created: DateTime.now(),
-            published: DateTime.now(),
-            modified: DateTime.now(),
-          };
-          this.refs.create(this.defaults).subscribe(cursor => this.defaults!.modifiedString = cursor);
-          return of(this.defaults);
-        })
-      ).subscribe(ref => {
-        if (!this.loadingDefaults) return;
-        this.defaults = ref;
-        this.loadingDefaults = false;
-      });
+      catchError(err => {
+        this.defaults = {
+          origin: this.store.account.origin,
+          url: 'tag:/' + this.tag,
+          tags: ['internal', this.store.account.localTag],
+          created: DateTime.now(),
+          published: DateTime.now(),
+          modified: DateTime.now(),
+        };
+        this.refs.create(this.defaults).subscribe(cursor => this.defaults!.modifiedString = cursor);
+        return of(this.defaults);
+      })
+    ).subscribe(ref => {
+      if (!this.loadingDefaults) return;
+      this.defaults = ref;
+      this.loadingDefaults = false;
+    });
   }
 }
 

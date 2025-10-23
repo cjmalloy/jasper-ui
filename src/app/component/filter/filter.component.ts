@@ -21,11 +21,11 @@ import { convertFilter, FilterGroup, FilterItem, negatable, toggle, UrlFilter } 
 import { hasPrefix } from '../../util/tag';
 
 @Component({
-    selector: 'app-filter',
-    templateUrl: './filter.component.html',
-    styleUrls: ['./filter.component.scss'],
-    host: { 'class': 'filter form-group' },
-    imports: [ReactiveFormsModule, FormsModule]
+  selector: 'app-filter',
+  templateUrl: './filter.component.html',
+  styleUrls: ['./filter.component.scss'],
+  host: { 'class': 'filter form-group' },
+  imports: [ReactiveFormsModule, FormsModule]
 })
 export class FilterComponent implements OnChanges, OnDestroy {
 
@@ -192,9 +192,9 @@ export class FilterComponent implements OnChanges, OnDestroy {
         filters: this.store.origins.list.map(o => ({ filter: 'query/' + (o || '*') as UrlFilter,
           label:
             !o ? $localize`✴️ local`
-            : o === this.store.account.origin ? $localize`🏛️ ${o}`
-            : !this.store.account.origin ? $localize`🏛️ ${o}`
-            : $localize`🪆 ${o}` })),
+              : o === this.store.account.origin ? $localize`🏛️ ${o}`
+                : !this.store.account.origin ? $localize`🏛️ ${o}`
+                  : $localize`🪆 ${o}` })),
       });
       this.sync();
     }
@@ -213,15 +213,15 @@ export class FilterComponent implements OnChanges, OnDestroy {
   get userConfigs() {
     if (!this.admin.getTemplate('user')) return [];
     return this.activeExts
-        .filter(x => hasPrefix(x.tag, 'user'))
-        .map(x => x.config).filter(c => !!c) as UserConfig[];
+      .filter(x => hasPrefix(x.tag, 'user'))
+      .map(x => x.config).filter(c => !!c) as UserConfig[];
   }
 
   get kanbanExts() {
     if (!this.admin.getTemplate('kanban')) return [];
     return this.activeExts
-        .filter(x => hasPrefix(x.tag, 'kanban'))
-        .filter(x => x.config);
+      .filter(x => hasPrefix(x.tag, 'kanban'))
+      .filter(x => x.config);
   }
 
   /**

@@ -15,15 +15,15 @@ import { Store } from './store/store';
 import { memo } from './util/memo';
 
 @Component({
-    selector: 'app-root',
-    templateUrl: './app.component.html',
-    styleUrls: ['./app.component.scss'],
-    imports: [
-        MobxAngularModule,
-        LoginPopupComponent,
-        SubscriptionBarComponent,
-        RouterOutlet,
-    ],
+  selector: 'app-root',
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.scss'],
+  imports: [
+    MobxAngularModule,
+    LoginPopupComponent,
+    SubscriptionBarComponent,
+    RouterOutlet,
+  ],
 })
 export class AppComponent implements AfterViewInit {
 

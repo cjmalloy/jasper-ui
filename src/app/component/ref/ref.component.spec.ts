@@ -23,9 +23,7 @@ describe('RefComponent', () => {
         provideHttpClientTesting(),
       ],
     }).compileComponents();
-  });
 
-  beforeEach(() => {
     fixture = TestBed.createComponent(RefComponent);
     component = fixture.componentInstance;
     component.ref = { url: '' };

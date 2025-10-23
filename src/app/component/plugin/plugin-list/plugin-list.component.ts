@@ -8,11 +8,11 @@ import { PageControlsComponent } from '../../page-controls/page-controls.compone
 import { PluginComponent } from '../plugin.component';
 
 @Component({
-    selector: 'app-plugin-list',
-    templateUrl: './plugin-list.component.html',
-    styleUrls: ['./plugin-list.component.scss'],
-    host: { 'class': 'plugin-list' },
-    imports: [PluginComponent, PageControlsComponent, LoadingComponent]
+  selector: 'app-plugin-list',
+  templateUrl: './plugin-list.component.html',
+  styleUrls: ['./plugin-list.component.scss'],
+  host: { 'class': 'plugin-list' },
+  imports: [PluginComponent, PageControlsComponent, LoadingComponent]
 })
 export class PluginListComponent implements HasChanges {
 

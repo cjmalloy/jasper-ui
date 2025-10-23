@@ -11,11 +11,11 @@ import { Store } from '../../../store/store';
 import { getArgs } from '../../../util/query';
 
 @Component({
-    selector: 'app-inbox-sent',
-    templateUrl: './sent.component.html',
-    styleUrls: ['./sent.component.scss'],
-    host: { 'class': 'inbox-sent' },
-    imports: [MobxAngularModule, RefListComponent]
+  selector: 'app-inbox-sent',
+  templateUrl: './sent.component.html',
+  styleUrls: ['./sent.component.scss'],
+  host: { 'class': 'inbox-sent' },
+  imports: [MobxAngularModule, RefListComponent]
 })
 export class InboxSentPage implements OnInit, OnDestroy, HasChanges {
 

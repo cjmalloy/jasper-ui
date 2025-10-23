@@ -12,11 +12,11 @@ import { PageControlsComponent } from '../../page-controls/page-controls.compone
 import { UserComponent } from '../user.component';
 
 @Component({
-    selector: 'app-user-list',
-    templateUrl: './user-list.component.html',
-    styleUrls: ['./user-list.component.scss'],
-    host: { 'class': 'user-list' },
-    imports: [UserComponent, LoadingComponent, PageControlsComponent]
+  selector: 'app-user-list',
+  templateUrl: './user-list.component.html',
+  styleUrls: ['./user-list.component.scss'],
+  host: { 'class': 'user-list' },
+  imports: [UserComponent, LoadingComponent, PageControlsComponent]
 })
 export class UserListComponent implements HasChanges {
 

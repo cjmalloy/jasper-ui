@@ -1,7 +1,7 @@
 import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { FieldType, FieldTypeConfig, FormlyConfig, FormlyModule } from '@ngx-formly/core';
+import { FieldType, FieldTypeConfig, FormlyAttributes, FormlyConfig } from '@ngx-formly/core';
 import { debounce, defer, uniqBy } from 'lodash-es';
 import { forkJoin, map, Observable, of, Subscription, switchMap } from 'rxjs';
 import { v4 as uuid } from 'uuid';
@@ -15,9 +15,9 @@ import { access, fixClientQuery, getStrictPrefix, localTag, tagOrigin } from '..
 import { getErrorMessage } from './errors';
 
 @Component({
-    selector: 'formly-field-query-input',
-    host: { 'class': 'field' },
-    styles: `
+  selector: 'formly-field-query-input',
+  host: { 'class': 'field' },
+  styles: `
     .form-array {
       position: relative;
     }
@@ -44,7 +44,7 @@ import { getErrorMessage } from './errors';
       }
     }
   `,
-    template: `
+  template: `
     <div class="form-array skip-margin">
       <input class="preview grow"
              type="text"
@@ -87,12 +87,12 @@ import { getErrorMessage } from './errors';
              [class.is-invalid]="showError">
     </div>
   `,
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    imports: [
-        RouterLink,
-        ReactiveFormsModule,
-        FormlyModule,
-    ],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [
+    RouterLink,
+    ReactiveFormsModule,
+    FormlyAttributes,
+  ],
 })
 export class FormlyFieldQueryInput extends FieldType<FieldTypeConfig> implements AfterViewInit, OnDestroy {
 

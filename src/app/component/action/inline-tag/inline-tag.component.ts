@@ -14,11 +14,11 @@ import { LoadingComponent } from '../../loading/loading.component';
 import { ActionComponent } from '../action.component';
 
 @Component({
-    selector: 'app-inline-tag',
-    templateUrl: './inline-tag.component.html',
-    styleUrls: ['./inline-tag.component.scss'],
-    host: { 'class': 'action' },
-    imports: [ReactiveFormsModule, AutofocusDirective, LoadingComponent]
+  selector: 'app-inline-tag',
+  templateUrl: './inline-tag.component.html',
+  styleUrls: ['./inline-tag.component.scss'],
+  host: { 'class': 'action' },
+  imports: [ReactiveFormsModule, AutofocusDirective, LoadingComponent]
 })
 export class InlineTagComponent extends ActionComponent {
   tagsRegex = TAGS_REGEX.source;

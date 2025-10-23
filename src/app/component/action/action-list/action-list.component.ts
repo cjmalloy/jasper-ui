@@ -27,10 +27,10 @@ import { ConfirmActionComponent } from '../confirm-action/confirm-action.compone
 import { InlineButtonComponent } from '../inline-button/inline-button.component';
 
 @Component({
-    selector: 'app-action-list',
-    templateUrl: './action-list.component.html',
-    styleUrl: './action-list.component.scss',
-    imports: [ConfirmActionComponent, TitleDirective, InlineButtonComponent, KeyValuePipe]
+  selector: 'app-action-list',
+  templateUrl: './action-list.component.html',
+  styleUrl: './action-list.component.scss',
+  imports: [ConfirmActionComponent, TitleDirective, InlineButtonComponent, KeyValuePipe]
 })
 export class ActionListComponent implements AfterViewInit, OnChanges {
 

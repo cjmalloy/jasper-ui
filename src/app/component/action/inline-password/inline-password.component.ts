@@ -5,11 +5,11 @@ import { LoadingComponent } from '../../loading/loading.component';
 import { ActionComponent } from '../action.component';
 
 @Component({
-    selector: 'app-inline-password',
-    templateUrl: './inline-password.component.html',
-    styleUrls: ['./inline-password.component.scss'],
-    host: { 'class': 'action' },
-    imports: [AutofocusDirective, LoadingComponent]
+  selector: 'app-inline-password',
+  templateUrl: './inline-password.component.html',
+  styleUrls: ['./inline-password.component.scss'],
+  host: { 'class': 'action' },
+  imports: [AutofocusDirective, LoadingComponent]
 })
 export class InlinePasswordComponent extends ActionComponent {
 

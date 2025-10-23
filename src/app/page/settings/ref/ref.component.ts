@@ -13,10 +13,10 @@ import { Store } from '../../../store/store';
 import { getArgs } from '../../../util/query';
 
 @Component({
-    selector: 'app-settings-ref-page',
-    templateUrl: './ref.component.html',
-    styleUrls: ['./ref.component.scss'],
-    imports: [MobxAngularModule, RefListComponent],
+  selector: 'app-settings-ref-page',
+  templateUrl: './ref.component.html',
+  styleUrls: ['./ref.component.scss'],
+  imports: [MobxAngularModule, RefListComponent],
 })
 export class SettingsRefPage implements OnInit, OnDestroy, HasChanges {
   private disposers: IReactionDisposer[] = [];

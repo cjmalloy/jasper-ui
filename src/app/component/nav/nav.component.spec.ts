@@ -11,8 +11,8 @@ describe('NavComponent', () => {
   let component: NavComponent;
   let fixture: ComponentFixture<NavComponent>;
 
-  beforeEach(() => {
-    TestBed.configureTestingModule({
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
       imports: [NavComponent],
       providers: [
         provideHttpClient(withInterceptorsFromDi()),
@@ -25,7 +25,7 @@ describe('NavComponent', () => {
           }
         }
       ],
-    });
+    }).compileComponents();
     fixture = TestBed.createComponent(NavComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();

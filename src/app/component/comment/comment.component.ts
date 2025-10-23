@@ -2,7 +2,8 @@ import { AsyncPipe } from '@angular/common';
 import {
   AfterViewInit,
   Component,
-  ElementRef, forwardRef,
+  ElementRef,
+  forwardRef,
   HostBinding,
   Input,
   OnChanges,
@@ -64,11 +65,11 @@ import { CommentThreadComponent } from './comment-thread/comment-thread.componen
   host: { 'class': 'comment' },
   imports: [
     forwardRef(() => CommentThreadComponent),
+    forwardRef(() => ViewerComponent),
     MobxAngularModule,
     RouterLink,
     TitleDirective,
     CommentEditComponent,
-    ViewerComponent,
     ConfirmActionComponent,
     InlineTagComponent,
     ActionListComponent,

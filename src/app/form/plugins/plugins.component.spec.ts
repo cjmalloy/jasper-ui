@@ -23,9 +23,7 @@ describe('PluginsFormComponent', () => {
         provideRouter([]),
       ],
     }).compileComponents();
-  });
 
-  beforeEach(() => {
     fixture = TestBed.createComponent(PluginsFormComponent);
     component = fixture.componentInstance;
     component.group = new UntypedFormGroup({

@@ -5,11 +5,11 @@ import { Store } from '../../../store/store';
 import { MdComponent } from '../../md/md.component';
 
 @Component({
-    selector: 'app-todo-item',
-    templateUrl: './item.component.html',
-    styleUrls: ['./item.component.scss'],
-    host: { 'class': 'todo-item' },
-    imports: [AutofocusDirective, MdComponent]
+  selector: 'app-todo-item',
+  templateUrl: './item.component.html',
+  styleUrls: ['./item.component.scss'],
+  host: { 'class': 'todo-item' },
+  imports: [AutofocusDirective, MdComponent]
 })
 export class TodoItemComponent {
 

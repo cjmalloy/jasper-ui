@@ -10,15 +10,15 @@ describe('SettingsMePage', () => {
   let component: SettingsMePage;
   let fixture: ComponentFixture<SettingsMePage>;
 
-  beforeEach(() => {
-    TestBed.configureTestingModule({
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
       imports: [SettingsMePage],
       providers: [
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),
         provideRouter([]),
       ],
-    });
+    }).compileComponents();
     fixture = TestBed.createComponent(SettingsMePage);
     component = fixture.componentInstance;
     fixture.detectChanges();

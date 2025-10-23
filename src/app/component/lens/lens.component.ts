@@ -18,19 +18,19 @@ import { RefListComponent } from '../ref/ref-list/ref-list.component';
 import { RefComponent } from '../ref/ref.component';
 
 @Component({
-    selector: 'app-lens',
-    templateUrl: './lens.component.html',
-    styleUrls: ['./lens.component.scss'],
-    imports: [
-      forwardRef(() => RefComponent),
-      forwardRef(() => ForceDirectedComponent),
-      forwardRef(() => BlogComponent),
-      forwardRef(() => ChatComponent),
-      forwardRef(() => FolderComponent),
-      forwardRef(() => RefListComponent),
-      NotebookComponent,
-      KanbanComponent,
-    ],
+  selector: 'app-lens',
+  templateUrl: './lens.component.html',
+  styleUrls: ['./lens.component.scss'],
+  imports: [
+    forwardRef(() => RefComponent),
+    forwardRef(() => ForceDirectedComponent),
+    forwardRef(() => BlogComponent),
+    forwardRef(() => ChatComponent),
+    forwardRef(() => FolderComponent),
+    forwardRef(() => RefListComponent),
+    forwardRef(() => KanbanComponent),
+    NotebookComponent,
+  ],
 })
 export class LensComponent implements OnChanges, HasChanges {
 

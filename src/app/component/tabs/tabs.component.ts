@@ -15,11 +15,11 @@ import { memo, MemoCache } from '../../util/memo';
 import { SettingsComponent } from '../settings/settings.component';
 
 @Component({
-    selector: 'app-tabs',
-    templateUrl: './tabs.component.html',
-    styleUrl: './tabs.component.scss',
-    host: { 'class': 'tabs' },
-    imports: [ReactiveFormsModule, SettingsComponent]
+  selector: 'app-tabs',
+  templateUrl: './tabs.component.html',
+  styleUrl: './tabs.component.scss',
+  host: { 'class': 'tabs' },
+  imports: [ReactiveFormsModule, SettingsComponent]
 })
 export class TabsComponent implements AfterViewInit {
 

@@ -12,11 +12,11 @@ import { Store } from '../../../store/store';
 import { getArgs } from '../../../util/query';
 
 @Component({
-    selector: 'app-inbox-modlist',
-    templateUrl: './modlist.component.html',
-    styleUrls: ['./modlist.component.scss'],
-    host: { 'class': 'modlist' },
-    imports: [MobxAngularModule, RefListComponent]
+  selector: 'app-inbox-modlist',
+  templateUrl: './modlist.component.html',
+  styleUrls: ['./modlist.component.scss'],
+  host: { 'class': 'modlist' },
+  imports: [MobxAngularModule, RefListComponent]
 })
 export class InboxModlistPage implements OnInit, OnDestroy, HasChanges {
 

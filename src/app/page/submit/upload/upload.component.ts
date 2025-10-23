@@ -2,7 +2,7 @@ import { HttpErrorResponse, HttpEventType } from '@angular/common/http';
 import { Component, forwardRef, OnDestroy } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { FormlyModule } from '@ngx-formly/core';
+import { FormlyForm } from '@ngx-formly/core';
 import { pick, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { autorun, IReactionDisposer, runInAction, toJS } from 'mobx';
@@ -30,21 +30,21 @@ import { printError } from '../../../util/http';
 import { FilteredModels, filterModels, getModels, getTextFile, unzip, zippedFile } from '../../../util/zip';
 
 @Component({
-    selector: 'app-upload',
-    templateUrl: './upload.component.html',
-    styleUrls: ['./upload.component.scss'],
-    host: { 'class': 'full-page-upload' },
-    imports: [
-      forwardRef(() => ExtComponent),
-      forwardRef(() => RefComponent),
-      MobxAngularModule,
-      RouterLink,
-      FormlyModule,
-      ReactiveFormsModule,
-      FormsModule,
-      AutofocusDirective,
-      LoadingComponent,
-    ]
+  selector: 'app-upload',
+  templateUrl: './upload.component.html',
+  styleUrls: ['./upload.component.scss'],
+  host: { 'class': 'full-page-upload' },
+  imports: [
+    forwardRef(() => ExtComponent),
+    forwardRef(() => RefComponent),
+    MobxAngularModule,
+    RouterLink,
+    ReactiveFormsModule,
+    FormsModule,
+    AutofocusDirective,
+    LoadingComponent,
+    FormlyForm,
+  ]
 })
 export class UploadPage implements OnDestroy {
   private disposers: IReactionDisposer[] = [];
@@ -356,7 +356,7 @@ export class UploadPage implements OnDestroy {
     ref.tags = ref.tags?.filter(t => this.auth.canAddTag(t));
     ref.plugins = pick(ref.plugins, ref.tags || []);
     return (ref.exists
-      ? this.refs.update(ref).pipe(
+        ? this.refs.update(ref).pipe(
           catchError((err: HttpErrorResponse) => {
             if (err.status === 404) {
               return this.refs.create(ref);
@@ -364,7 +364,7 @@ export class UploadPage implements OnDestroy {
             return throwError(() => err);
           }),
         )
-      : this.refs.create(ref)
+        : this.refs.create(ref)
     ).pipe(
       catchError((err: HttpErrorResponse) => {
         if (err.status === 409) {

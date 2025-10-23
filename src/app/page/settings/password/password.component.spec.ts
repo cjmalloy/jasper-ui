@@ -23,9 +23,7 @@ describe('SettingsPasswordPage', () => {
         provideRouter([]),
       ],
     }).compileComponents();
-  });
 
-  beforeEach(() => {
     fixture = TestBed.createComponent(SettingsPasswordPage);
     component = fixture.componentInstance;
     fixture.detectChanges();

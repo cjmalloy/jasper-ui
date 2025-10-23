@@ -23,9 +23,7 @@ describe('SubmitInvoicePage', () => {
         provideRouter([]),
       ],
     }).compileComponents();
-  });
 
-  beforeEach(() => {
     fixture = TestBed.createComponent(SubmitInvoicePage);
     component = fixture.componentInstance;
     fixture.detectChanges();

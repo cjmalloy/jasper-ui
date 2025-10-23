@@ -11,11 +11,11 @@ import { Store } from '../../../store/store';
 import { getArgs } from '../../../util/query';
 
 @Component({
-    selector: 'app-inbox-dms',
-    templateUrl: './dms.component.html',
-    styleUrls: ['./dms.component.scss'],
-    host: { 'class': 'dms' },
-    imports: [MobxAngularModule, RefListComponent]
+  selector: 'app-inbox-dms',
+  templateUrl: './dms.component.html',
+  styleUrls: ['./dms.component.scss'],
+  host: { 'class': 'dms' },
+  imports: [MobxAngularModule, RefListComponent]
 })
 export class InboxDmsPage implements OnInit, OnDestroy, HasChanges {
 

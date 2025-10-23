@@ -19,9 +19,7 @@ describe('TagPage', () => {
         provideRouter([]),
       ],
     }).compileComponents();
-  });
 
-  beforeEach(() => {
     fixture = TestBed.createComponent(TagPage);
     component = fixture.componentInstance;
     fixture.detectChanges();
