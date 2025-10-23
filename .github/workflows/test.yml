@@ -53,101 +53,67 @@ jobs:
             const fs = require('fs');
             const path = require('path');
             
-            // Parse JUnit XML files
-            function parseJUnitXML(xmlContent) {
-              const testsuites = [];
-              const testsuitesMatch = xmlContent.matchAll(/<testsuite[^>]*>/g);
+            // Parse Vitest console output
+            function parseVitestOutput(logContent) {
+              let testFiles = 0;
+              let testFilesFailed = 0;
+              let testsTotal = 0;
+              let testsFailed = 0;
               
-              for (const match of testsuitesMatch) {
-                const suiteStr = match[0];
-                const nameMatch = suiteStr.match(/name="([^"]*)"/);
-                const testsMatch = suiteStr.match(/tests="(\d+)"/);
-                const failuresMatch = suiteStr.match(/failures="(\d+)"/);
-                const errorsMatch = suiteStr.match(/errors="(\d+)"/);
-                const timeMatch = suiteStr.match(/time="([^"]*)"/);
-                
-                testsuites.push({
-                  name: nameMatch ? nameMatch[1] : 'Unknown',
-                  tests: testsMatch ? parseInt(testsMatch[1]) : 0,
-                  failures: failuresMatch ? parseInt(failuresMatch[1]) : 0,
-                  errors: errorsMatch ? parseInt(errorsMatch[1]) : 0,
-                  time: timeMatch ? parseFloat(timeMatch[1]) : 0
-                });
+              // Look for the summary line: "Test Files  X failed | Y passed (Z)"
+              const testFilesMatch = logContent.match(/Test Files\s+(\d+)\s+failed\s+\|\s+(\d+)\s+passed\s+\((\d+)\)/);
+              if (testFilesMatch) {
+                testFilesFailed = parseInt(testFilesMatch[1]);
+                const testFilesPassed = parseInt(testFilesMatch[2]);
+                testFiles = parseInt(testFilesMatch[3]);
               }
               
-              // Parse individual test cases that failed
-              const failures = [];
-              const testcaseRegex = /<testcase[^>]*>[\s\S]*?<\/testcase>/g;
-              const testcases = xmlContent.matchAll(testcaseRegex);
-              
-              for (const tcMatch of testcases) {
-                const tcStr = tcMatch[0];
-                if (tcStr.includes('<failure') || tcStr.includes('<error')) {
-                  const nameMatch = tcStr.match(/name="([^"]*)"/);
-                  const classnameMatch = tcStr.match(/classname="([^"]*)"/);
-                  const failureMatch = tcStr.match(/<failure[^>]*>([\s\S]*?)<\/failure>/);
-                  const errorMatch = tcStr.match(/<error[^>]*>([\s\S]*?)<\/error>/);
-                  
-                  const message = failureMatch ? failureMatch[1] : (errorMatch ? errorMatch[1] : 'Unknown error');
-                  
-                  failures.push({
-                    name: nameMatch ? nameMatch[1] : 'Unknown',
-                    classname: classnameMatch ? classnameMatch[1] : 'Unknown',
-                    message: message.trim().substring(0, 500) // Limit message length
-                  });
-                }
+              // Look for the tests summary line: "Tests  X failed | Y passed (Z)"
+              const testsMatch = logContent.match(/Tests\s+(\d+)\s+failed\s+\|\s+(\d+)\s+passed\s+\((\d+)\)/);
+              if (testsMatch) {
+                testsFailed = parseInt(testsMatch[1]);
+                const testsPassed = parseInt(testsMatch[2]);
+                testsTotal = parseInt(testsMatch[3]);
               }
               
-              return { testsuites, failures };
+              return {
+                testFiles,
+                testFilesFailed,
+                testsTotal,
+                testsFailed
+              };
             }
             
             let summary = '## 🧪 Test Results\n\n';
-            let totalTests = 0;
-            let totalFailures = 0;
-            let totalErrors = 0;
-            let allFailures = [];
             
             try {
-              const testsDir = 'tests';
-              if (fs.existsSync(testsDir)) {
-                const files = fs.readdirSync(testsDir).filter(f => f.endsWith('.xml'));
+              const logPath = 'report/test-output.log';
+              if (fs.existsSync(logPath)) {
+                const logContent = fs.readFileSync(logPath, 'utf8');
+                const results = parseVitestOutput(logContent);
                 
-                for (const file of files) {
-                  const content = fs.readFileSync(path.join(testsDir, file), 'utf8');
-                  const { testsuites, failures } = parseJUnitXML(content);
+                if (results.testsTotal > 0) {
+                  const testFilesPassed = results.testFiles - results.testFilesFailed;
+                  const testsPassed = results.testsTotal - results.testsFailed;
+                  const emoji = results.testsFailed === 0 ? '✅' : '⚠️';
                   
-                  for (const suite of testsuites) {
-                    totalTests += suite.tests;
-                    totalFailures += suite.failures;
-                    totalErrors += suite.errors;
-                  }
+                  summary += `${emoji} **Test Files:** ${results.testFilesFailed} failed | ${testFilesPassed} passed (${results.testFiles})\n\n`;
+                  summary += `${emoji} **Tests:** ${results.testsFailed} failed | ${testsPassed} passed (${results.testsTotal})\n\n`;
                   
-                  allFailures.push(...failures);
-                }
-                
-                const totalFailed = totalFailures + totalErrors;
-                const emoji = totalFailed === 0 ? '✅' : '❌';
-                
-                summary += `${emoji} **Total:** ${totalTests} tests, ${totalFailed} failed\n\n`;
-                
-                if (totalFailed > 0) {
-                  summary += '### Failed Tests\n\n';
-                  for (const failure of allFailures.slice(0, 20)) { // Limit to first 20 failures
-                    summary += `- **${failure.classname}** › ${failure.name}\n`;
-                    summary += `  \`\`\`\n  ${failure.message}\n  \`\`\`\n\n`;
-                  }
-                  
-                  if (allFailures.length > 20) {
-                    summary += `\n_... and ${allFailures.length - 20} more failures_\n\n`;
+                  if (results.testsFailed === 0) {
+                    summary += '🎉 All tests passed!\n\n';
+                  } else {
+                    const passRate = ((testsPassed / results.testsTotal) * 100).toFixed(1);
+                    summary += `📊 **Pass Rate:** ${passRate}%\n\n`;
                   }
                 } else {
-                  summary += '🎉 All tests passed!\n\n';
+                  summary += '⚠️ No test results found in log output.\n\n';
                 }
               } else {
-                summary += '⚠️ No test results found.\n';
+                summary += '⚠️ Test output log not found.\n\n';
               }
             } catch (error) {
-              summary += `⚠️ Error parsing test results: ${error.message}\n`;
+              summary += `⚠️ Error parsing test results: ${error.message}\n\n`;
             }
             
             // Write summary to GitHub Step Summary
