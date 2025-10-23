@@ -35,10 +35,13 @@ import { isQuery, isSelector, localTag, topAnds } from '../../util/tag';
 import { LoadingComponent } from '../loading/loading.component';
 import { PageControlsComponent } from '../page-controls/page-controls.component';
 import { KanbanColumnComponent } from './kanban-column/kanban-column.component';
-import { KanbanDrag } from './kanban.types';
 
-// Re-export for backward compatibility
-export type { KanbanDrag };
+export interface KanbanDrag {
+  from: string;
+  to: string;
+  ref: Ref;
+  index: number;
+}
 
 @Component({
   selector: 'app-kanban',

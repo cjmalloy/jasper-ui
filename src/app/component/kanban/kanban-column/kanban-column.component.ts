@@ -33,7 +33,7 @@ import { getArgs, UrlFilter } from '../../../util/query';
 import { hasTag } from '../../../util/tag';
 import { LoadingComponent } from '../../loading/loading.component';
 import { KanbanCardComponent } from '../kanban-card/kanban-card.component';
-import { KanbanDrag } from '../kanban.types';
+import { KanbanDrag } from '../kanban.component';
 
 @Component({
   selector: 'app-kanban-column',
