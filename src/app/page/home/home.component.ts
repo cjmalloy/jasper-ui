@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, forwardRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { defer } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
@@ -16,16 +16,16 @@ import { Store } from '../../store/store';
 import { getArgs } from '../../util/query';
 
 @Component({
-    selector: 'app-home-page',
-    templateUrl: './home.component.html',
-    styleUrls: ['./home.component.scss'],
-    imports: [
-        MobxAngularModule,
-        TabsComponent,
-        RouterLink,
-        SidebarComponent,
-        LensComponent,
-    ],
+  selector: 'app-home-page',
+  templateUrl: './home.component.html',
+  styleUrls: ['./home.component.scss'],
+  imports: [
+    forwardRef(() => LensComponent),
+    MobxAngularModule,
+    TabsComponent,
+    RouterLink,
+    SidebarComponent,
+  ],
 })
 export class HomePage implements OnInit, OnDestroy, HasChanges {
   private disposers: IReactionDisposer[] = [];

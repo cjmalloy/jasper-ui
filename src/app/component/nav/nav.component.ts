@@ -11,10 +11,10 @@ import { getPath, parseParams } from '../../util/http';
 import { hasPrefix } from '../../util/tag';
 
 @Component({
-    selector: 'app-nav',
-    templateUrl: './nav.component.html',
-    styleUrls: ['./nav.component.scss'],
-    imports: [RouterLink]
+  selector: 'app-nav',
+  templateUrl: './nav.component.html',
+  styleUrls: ['./nav.component.scss'],
+  imports: [RouterLink]
 })
 export class NavComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();

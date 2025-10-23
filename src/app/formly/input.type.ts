@@ -12,9 +12,9 @@ import { QrScannerComponent } from './qr-scanner/qr-scanner.component';
 import { VideoUploadComponent } from './video-upload/video-upload.component';
 
 @Component({
-    selector: 'formly-field-input',
-    host: { 'class': 'field' },
-    template: `
+  selector: 'formly-field-input',
+  host: { 'class': 'field' },
+  template: `
     <div class="form-array">
       @if (uploading) {
         <progress class="grow" max="100" [value]="progress"></progress>
@@ -44,16 +44,16 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
       }
     </div>
   `,
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    imports: [
-        ReactiveFormsModule,
-        FormlyModule,
-        QrScannerComponent,
-        PdfUploadComponent,
-        AudioUploadComponent,
-        VideoUploadComponent,
-        ImageUploadComponent,
-    ],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [
+    ReactiveFormsModule,
+    FormlyModule,
+    QrScannerComponent,
+    PdfUploadComponent,
+    AudioUploadComponent,
+    VideoUploadComponent,
+    ImageUploadComponent,
+  ],
 })
 export class FormlyFieldInput extends FieldType<FieldTypeConfig> {
 

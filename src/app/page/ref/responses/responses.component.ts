@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, forwardRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { defer, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { MobxAngularModule } from 'mobx-angular';
@@ -12,10 +12,13 @@ import { getTitle } from '../../../util/format';
 import { getArgs, UrlFilter } from '../../../util/query';
 
 @Component({
-    selector: 'app-ref-responses',
-    templateUrl: './responses.component.html',
-    styleUrls: ['./responses.component.scss'],
-    imports: [MobxAngularModule, RefListComponent],
+  selector: 'app-ref-responses',
+  templateUrl: './responses.component.html',
+  styleUrls: ['./responses.component.scss'],
+  imports: [
+    MobxAngularModule,
+    forwardRef(() => RefListComponent),
+  ],
 })
 export class RefResponsesComponent implements OnInit, OnDestroy, HasChanges {
 

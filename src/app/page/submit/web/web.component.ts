@@ -32,18 +32,18 @@ import { interestingTags } from '../../../util/format';
 import { printError } from '../../../util/http';
 
 @Component({
-    selector: 'app-submit-web-page',
-    templateUrl: './web.component.html',
-    styleUrls: ['./web.component.scss'],
-    host: { 'class': 'full-page-form' },
-    imports: [
-      MobxAngularModule,
-      ReactiveFormsModule,
-      LimitWidthDirective,
-      NavComponent,
-      LoadingComponent,
-      RefFormComponent,
-    ],
+  selector: 'app-submit-web-page',
+  templateUrl: './web.component.html',
+  styleUrls: ['./web.component.scss'],
+  host: { 'class': 'full-page-form' },
+  imports: [
+    MobxAngularModule,
+    ReactiveFormsModule,
+    LimitWidthDirective,
+    NavComponent,
+    LoadingComponent,
+    RefFormComponent,
+  ],
 })
 export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
 

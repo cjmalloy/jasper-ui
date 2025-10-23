@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, forwardRef, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { defer } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
@@ -18,7 +18,7 @@ import { getArgs } from '../../../util/query';
   host: { 'class': 'modlist' },
   imports: [
     MobxAngularModule,
-    RefListComponent,
+    forwardRef(() => RefListComponent),
   ],
 })
 export class InboxReportsPage  implements OnInit, OnDestroy, HasChanges {
