@@ -3,9 +3,9 @@ import { Router } from '@angular/router';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Page } from '../../../model/page';
 import { Template } from '../../../model/template';
-import { TemplateComponent } from '../template.component';
-import { PageControlsComponent } from '../../page-controls/page-controls.component';
 import { LoadingComponent } from '../../loading/loading.component';
+import { PageControlsComponent } from '../../page-controls/page-controls.component';
+import { TemplateComponent } from '../template.component';
 
 @Component({
     selector: 'app-template-list',

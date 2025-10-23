@@ -1,13 +1,13 @@
 /// <reference types="vitest/globals" />
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { RouterModule } from '@angular/router';
-import { UntypedFormControl } from '@angular/forms';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { UntypedFormControl } from '@angular/forms';
+import { provideRouter } from '@angular/router';
 import { of } from 'rxjs';
 
 import { EditorComponent } from './editor.component';
-import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 describe('EditorComponent', () => {
   let component: EditorComponent;
@@ -15,11 +15,14 @@ describe('EditorComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    imports: [RouterModule.forRoot([]), EditorComponent],
-    providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()],
-    schemas: [NO_ERRORS_SCHEMA]
-})
-    .compileComponents();
+      imports: [EditorComponent],
+      providers: [
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting(),
+        provideRouter([]),
+      ],
+      schemas: [NO_ERRORS_SCHEMA]
+    }).compileComponents();
 
     fixture = TestBed.createComponent(EditorComponent);
     component = fixture.componentInstance;
@@ -125,11 +128,11 @@ describe('EditorComponent', () => {
   it('should attach all URLs at once when all uploads complete', () => {
     // Mock the attachUrls method to spy on its calls
     vi.spyOn(component, 'attachUrls');
-    
+
     // Mock refs to return from upload$
     const ref1 = { url: 'url1', tags: [] } as any;
     const ref2 = { url: 'url2', tags: [] } as any;
-    
+
     // Setup uploads
     component.uploads = [
       { id: '1', name: 'file1.txt', progress: 100, completed: true, ref: ref1 },

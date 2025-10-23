@@ -1,12 +1,12 @@
 /// <reference types="vitest/globals" />
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import { provideRouter } from '@angular/router';
 import { NGX_MONACO_EDITOR_CONFIG } from 'ngx-monaco-editor';
 
 import { JsonComponent } from './json.component';
-import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 describe('JsonComponent', () => {
   let component: JsonComponent;
@@ -14,10 +14,11 @@ describe('JsonComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    imports: [RouterModule.forRoot([]), JsonComponent],
+    imports: [JsonComponent],
     providers: [
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),
+      provideRouter([]),
         {
           provide: NGX_MONACO_EDITOR_CONFIG,
           useValue: {}

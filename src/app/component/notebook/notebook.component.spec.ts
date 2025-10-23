@@ -2,7 +2,7 @@
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { RouterModule } from '@angular/router';
+import { provideRouter } from '@angular/router';
 
 import { NotebookComponent } from './notebook.component';
 
@@ -12,12 +12,13 @@ describe('NotebookComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    imports: [RouterModule.forRoot([]), NotebookComponent],
-    providers: [
+      imports: [NotebookComponent],
+      providers: [
         provideHttpClient(withInterceptorsFromDi()),
-        provideHttpClientTesting()
-    ],
-}).compileComponents();
+        provideHttpClientTesting(),
+        provideRouter([]),
+      ],
+    }).compileComponents();
   });
 
   beforeEach(() => {

@@ -1,7 +1,7 @@
 import { Component, ElementRef, EventEmitter, HostBinding, HostListener, Input, NgZone, Output } from '@angular/core';
+import { AutofocusDirective } from '../../../directive/autofocus.directive';
 import { ConfigService } from '../../../service/config.service';
 import { Store } from '../../../store/store';
-import { AutofocusDirective } from '../../../directive/autofocus.directive';
 import { MdComponent } from '../../md/md.component';
 
 @Component({

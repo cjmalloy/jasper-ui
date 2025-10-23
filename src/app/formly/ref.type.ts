@@ -1,5 +1,6 @@
 import { HttpEventType } from '@angular/common/http';
 import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy } from '@angular/core';
+import { ReactiveFormsModule } from '@angular/forms';
 import { FieldType, FieldTypeConfig, FormlyConfig, FormlyModule } from '@ngx-formly/core';
 import { debounce, defer, isString, uniqBy } from 'lodash-es';
 import { catchError, last, map, of, Subscription, throwError } from 'rxjs';
@@ -14,13 +15,12 @@ import { Store } from '../store/store';
 import { Saving } from '../store/submit';
 import { readFileAsDataURL } from '../util/async';
 import { getPageTitle } from '../util/format';
-import { getErrorMessage } from './errors';
-import { ReactiveFormsModule } from '@angular/forms';
-import { QrScannerComponent } from './qr-scanner/qr-scanner.component';
-import { PdfUploadComponent } from './pdf-upload/pdf-upload.component';
 import { AudioUploadComponent } from './audio-upload/audio-upload.component';
-import { VideoUploadComponent } from './video-upload/video-upload.component';
+import { getErrorMessage } from './errors';
 import { ImageUploadComponent } from './image-upload/image-upload.component';
+import { PdfUploadComponent } from './pdf-upload/pdf-upload.component';
+import { QrScannerComponent } from './qr-scanner/qr-scanner.component';
+import { VideoUploadComponent } from './video-upload/video-upload.component';
 
 @Component({
     selector: 'formly-field-ref-input',

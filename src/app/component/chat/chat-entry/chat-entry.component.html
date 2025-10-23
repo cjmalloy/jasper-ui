@@ -4,12 +4,12 @@
     @if (ref.origin && !authors.length) {
       <a class="origin tag" [routerLink]="['/tag', ref.origin]">{{ ref.origin }}</a>
     }
-    @if (authorExts$ | async; as authorExts) {
-      @for (user of authorExts; track user.tag + user.origin) {
+    @if (authorExts$ | async; as xs) {
+      @for (x of xs; track x.tag + x.origin) {
         <a class="user tag"
-           [title]="formatAuthor(user.tag + user.origin)"
-           [routerLink]="['/tag', user.tag + user.origin]"
-           [appTitle]="user">{{ user.name || formatAuthor(user.tag) }}</a>
+           [title]="formatAuthor(x.tag + x.origin)"
+           [routerLink]="['/tag', x.tag + x.origin]"
+           [appTitle]="x">{{ x.name || formatAuthor(x.tag) }}</a>
       }
     } @else {
       @for (t of authors; track t) {

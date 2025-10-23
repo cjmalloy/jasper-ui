@@ -9,11 +9,13 @@ import {
   ViewChild,
   ViewChildren
 } from '@angular/core';
-import { FormBuilder, UntypedFormGroup, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule, UntypedFormGroup } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { defer, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { catchError, forkJoin, of, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
+import { TitleDirective } from '../../directive/title.directive';
 import { userForm, UserFormComponent } from '../../form/user/user.component';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ext } from '../../model/ext';
@@ -33,8 +35,6 @@ import { printError } from '../../util/http';
 import { memo, MemoCache } from '../../util/memo';
 import { localTag, tagOrigin } from '../../util/tag';
 import { ActionComponent } from '../action/action.component';
-import { RouterLink } from '@angular/router';
-import { TitleDirective } from '../../directive/title.directive';
 import { ConfirmActionComponent } from '../action/confirm-action/confirm-action.component';
 import { InlineButtonComponent } from '../action/inline-button/inline-button.component';
 import { InlinePasswordComponent } from '../action/inline-password/inline-password.component';

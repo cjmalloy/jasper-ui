@@ -6,8 +6,8 @@ import { GenFormComponent } from '../../../form/plugins/gen/gen.component';
 import { Plugin } from '../../../model/plugin';
 import { Ref } from '../../../model/ref';
 import { AdminService } from '../../../service/admin.service';
-import { ActionComponent } from '../action.component';
 import { LoadingComponent } from '../../loading/loading.component';
+import { ActionComponent } from '../action.component';
 
 @Component({
     selector: 'app-inline-plugin',

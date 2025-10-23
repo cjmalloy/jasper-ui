@@ -1,6 +1,6 @@
 /// <reference types="vitest/globals" />
 import { TestBed } from '@angular/core/testing';
-import { RouterModule } from '@angular/router';
+import { provideRouter } from '@angular/router';
 
 import { BookmarkService } from './bookmark.service';
 
@@ -9,8 +9,8 @@ describe('BookmarkService', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [
-        RouterModule.forRoot([]),
+      providers: [
+        provideRouter([]),
       ],
     });
     service = TestBed.inject(BookmarkService);

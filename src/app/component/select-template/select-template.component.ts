@@ -1,18 +1,17 @@
 import { Component, ElementRef, EventEmitter, Input, Output, ViewChild } from '@angular/core';
+import { ReactiveFormsModule } from '@angular/forms';
 import { defer } from 'lodash-es';
 import { Template } from '../../model/template';
 import { AdminService } from '../../service/admin.service';
 import { AuthzService } from '../../service/authz.service';
 import { access } from '../../util/tag';
-import { NgIf, NgFor } from '@angular/common';
-import { ReactiveFormsModule } from '@angular/forms';
 
 @Component({
     selector: 'app-select-template',
     templateUrl: './select-template.component.html',
     styleUrls: ['./select-template.component.scss'],
     host: { 'class': 'select-template' },
-    imports: [NgIf, ReactiveFormsModule, NgFor]
+    imports: [ReactiveFormsModule]
 })
 export class SelectTemplateComponent {
 

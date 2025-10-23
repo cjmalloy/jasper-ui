@@ -1,6 +1,6 @@
-import { HttpEvent, HttpEventType } from '@angular/common/http';
+import { HttpEventType } from '@angular/common/http';
 import { Component, EventEmitter, Output } from '@angular/core';
-import { catchError, last, map, of } from 'rxjs';
+import { catchError, last, map } from 'rxjs';
 import { Ref } from '../../model/ref';
 import { ProxyService } from '../../service/api/proxy.service';
 import { Store } from '../../store/store';

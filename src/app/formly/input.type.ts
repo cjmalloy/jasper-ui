@@ -1,15 +1,15 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component } from '@angular/core';
+import { ReactiveFormsModule } from '@angular/forms';
 import { FieldType, FieldTypeConfig, FormlyConfig, FormlyModule } from '@ngx-formly/core';
 import { isString } from 'lodash-es';
 import { AdminService } from '../service/admin.service';
 import { Saving } from '../store/submit';
-import { getErrorMessage } from './errors';
-import { ReactiveFormsModule } from '@angular/forms';
-import { QrScannerComponent } from './qr-scanner/qr-scanner.component';
-import { PdfUploadComponent } from './pdf-upload/pdf-upload.component';
 import { AudioUploadComponent } from './audio-upload/audio-upload.component';
-import { VideoUploadComponent } from './video-upload/video-upload.component';
+import { getErrorMessage } from './errors';
 import { ImageUploadComponent } from './image-upload/image-upload.component';
+import { PdfUploadComponent } from './pdf-upload/pdf-upload.component';
+import { QrScannerComponent } from './qr-scanner/qr-scanner.component';
+import { VideoUploadComponent } from './video-upload/video-upload.component';
 
 @Component({
     selector: 'formly-field-input',

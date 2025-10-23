@@ -1,14 +1,16 @@
 <div class="row">
-  <div *ngIf="store.view.isVoteSorted && store.account.user && admin.getPlugin('plugin/user/vote/up')"
-       class="voting">
-    <div class="vote-up"
-         [class.on]="upvote"
-         (click)="voteUp()"></div>
-    <div class="vote-down"
-         *ngIf="admin.getPlugin('plugin/user/vote/down')"
-         [class.on]="downvote"
-         (click)="voteDown()"></div>
-  </div>
+  @if (store.view.isVoteSorted && store.account.user && admin.getPlugin('plugin/user/vote/up')) {
+    <div class="voting">
+      <div class="vote-up"
+           [class.on]="upvote"
+           (click)="voteUp()"></div>
+      @if (admin.getPlugin('plugin/user/vote/down')) {
+        <div class="vote-down"
+             [class.on]="downvote"
+             (click)="voteDown()"></div>
+      }
+    </div>
+  }
   @if (admin.getPlugin('plugin/thumbnail')) {
     @if (thumbnailEmoji || thumbnailColor) {
       <div class="thumbnail"
@@ -76,12 +78,12 @@
           }
           @if (authors.length) {
             <span i18n> by
-              @if (authorExts$ | async; as authorExts) {
-                @for (user of authorExts; track user.tag + user.origin) {
+              @if (authorExts$ | async; as xs) {
+                @for (x of xs; track x.tag + x.origin) {
                   <a class="user tag"
-                     [title]="formatAuthor(user.tag + user.origin)"
-                     [routerLink]="['/tag', user.tag + user.origin]"
-                     [appTitle]="user">{{ user.name || formatAuthor(user.tag) }}</a>
+                     [title]="formatAuthor(x.tag + x.origin)"
+                     [routerLink]="['/tag', x.tag + x.origin]"
+                     [appTitle]="x">{{ x.name || formatAuthor(x.tag) }}</a>
                 }
               } @else {
                 @for (t of authors; track t) {
@@ -94,11 +96,11 @@
           }
           @if (tags.length) {
             <span i18n> tagged
-              @if (tagExts$ | async; as tagExts) {
-                @for (e of tagExts; track e.tag) {
+              @if (tagExts$ | async; as xs) {
+                @for (x of xs; track x.tag) {
                   <a class="tag"
-                     [routerLink]="['/tag', e.tag]"
-                     [appTitle]="'#' + e.tag">{{ e.name || '#' + e.tag }}</a>
+                     [routerLink]="['/tag', x.tag]"
+                     [appTitle]="'#' + x.tag">{{ x.name || '#' + x.tag }}</a>
                 }
               } @else {
                 @for (t of tags; track t) {
@@ -110,12 +112,12 @@
           }
           @if (recipients.length) {
             <span i18n> to
-              @if (recipientExts$ | async; as recipientExts) {
-                @for (user of recipientExts; track user.tag + user.origin) {
+              @if (recipientExts$ | async; as xs) {
+                @for (x of xs; track x.tag + x.origin) {
                   <a class="user tag"
-                     [title]="formatAuthor(user.tag + user.origin)"
-                     [routerLink]="['/tag', user.tag + user.origin]"
-                     [appTitle]="user">{{ user.name || formatAuthor(user.tag + user.origin) }}</a>
+                     [title]="formatAuthor(x.tag + x.origin)"
+                     [routerLink]="['/tag', x.tag + x.origin]"
+                     [appTitle]="x">{{ x.name || formatAuthor(x.tag + x.origin) }}</a>
                 }
               } @else {
                 @for (t of recipients; track t) {

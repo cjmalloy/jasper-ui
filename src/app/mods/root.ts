@@ -1,19 +1,19 @@
 import { DateTime } from 'luxon';
-import { Plugin } from '../model/plugin';
-import { Mod } from '../model/tag';
-import { Template } from '../model/template';
-// @ts-ignore
-import tagModelText from '../model/tag.ts' with { loader: 'text' };
-// @ts-ignore
-import refModelText from '../model/ref.ts' with { loader: 'text' };
 // @ts-ignore
 import extModelText from '../model/ext.ts' with { loader: 'text' };
-// @ts-ignore
-import userModelText from '../model/user.ts' with { loader: 'text' };
+import { Plugin } from '../model/plugin';
 // @ts-ignore
 import pluginModelText from '../model/plugin.ts' with { loader: 'text' };
 // @ts-ignore
+import refModelText from '../model/ref.ts' with { loader: 'text' };
+import { Mod } from '../model/tag';
+// @ts-ignore
+import tagModelText from '../model/tag.ts' with { loader: 'text' };
+import { Template } from '../model/template';
+// @ts-ignore
 import templateModelText from '../model/template.ts' with { loader: 'text' };
+// @ts-ignore
+import userModelText from '../model/user.ts' with { loader: 'text' };
 
 export const rootTemplate: Template = {
   tag: '',

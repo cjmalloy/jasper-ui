@@ -1,10 +1,10 @@
 /// <reference types="vitest/globals" />
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { RouterModule } from '@angular/router';
 
 import { ScrapeService } from './scrape.service';
-import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 describe('ScrapeService', () => {
   let service: ScrapeService;

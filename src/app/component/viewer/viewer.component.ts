@@ -3,6 +3,7 @@ import {
   Component,
   ElementRef,
   EventEmitter,
+  forwardRef,
   HostBinding,
   Input,
   OnChanges,
@@ -15,12 +16,15 @@ import Hls from 'hls.js';
 import { defer, isEqual, some, without } from 'lodash-es';
 import { runInAction } from 'mobx';
 import { BehaviorSubject, catchError, of, Subject, takeUntil, throwError } from 'rxjs';
+import { ImageDirective } from '../../directive/image.directive';
+import { ResizeDirective } from '../../directive/resize.directive';
 import { Ext } from '../../model/ext';
 import { Oembed } from '../../model/oembed';
 import { Page } from '../../model/page';
 import { getPluginScope, PluginApi } from '../../model/plugin';
 import { findCache, findExtension, Ref, RefSort, RefUpdates } from '../../model/ref';
 import { EmitAction, hydrate } from '../../model/tag';
+import { SafePipe } from '../../pipe/safe.pipe';
 import { ActionService } from '../../service/action.service';
 import { AdminService } from '../../service/admin.service';
 import { ProxyService } from '../../service/api/proxy.service';
@@ -36,27 +40,36 @@ import { getExtension } from '../../util/http';
 import { memo, MemoCache } from '../../util/memo';
 import { UrlFilter } from '../../util/query';
 import { hasPrefix, hasTag } from '../../util/tag';
-import { RefComponent } from '../ref/ref.component';
-import { PlaylistComponent } from '../playlist/playlist.component';
-import { LensComponent } from '../lens/lens.component';
-import { ImageDirective } from '../../directive/image.directive';
-import { ResizeDirective } from '../../directive/resize.directive';
-import { QrComponent } from '../qr/qr.component';
-import { TodoComponent } from '../todo/todo.component';
-import { CdkDropListGroup } from '@angular/cdk/drag-drop';
 import { BackgammonComponent } from '../backgammon/backgammon.component';
 import { ChessComponent } from '../chess/chess.component';
+import { LensComponent } from '../lens/lens.component';
 import { MdComponent } from '../md/md.component';
 import { ModComponent } from '../mod/mod.component';
-import { SafePipe } from '../../pipe/safe.pipe';
+import { PlaylistComponent } from '../playlist/playlist.component';
+import { QrComponent } from '../qr/qr.component';
+import { RefComponent } from '../ref/ref.component';
+import { TodoComponent } from '../todo/todo.component';
 
 export const IFRAME_SANDBOX = 'allow-scripts allow-forms allow-modals allow-orientation-lock allow-pointer-lock allow-popups allow-presentation allow-top-navigation-by-user-activation';
 
 @Component({
-    selector: 'app-viewer',
-    templateUrl: './viewer.component.html',
-    styleUrls: ['./viewer.component.scss'],
-    imports: [RefComponent, PlaylistComponent, LensComponent, ImageDirective, ResizeDirective, QrComponent, TodoComponent, CdkDropListGroup, BackgammonComponent, ChessComponent, MdComponent, ModComponent, SafePipe]
+  selector: 'app-viewer',
+  templateUrl: './viewer.component.html',
+  styleUrls: ['./viewer.component.scss'],
+  imports: [
+    forwardRef(() => RefComponent),
+    forwardRef(() => PlaylistComponent),
+    forwardRef(() => LensComponent),
+    forwardRef(() => ModComponent),
+    ImageDirective,
+    ResizeDirective,
+    QrComponent,
+    TodoComponent,
+    BackgammonComponent,
+    ChessComponent,
+    MdComponent,
+    SafePipe,
+  ],
 })
 export class ViewerComponent implements OnChanges, AfterViewInit {
   @HostBinding('class') css = 'embed print-images';

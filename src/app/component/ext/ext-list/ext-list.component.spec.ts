@@ -9,9 +9,8 @@ describe('ExtListComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    imports: [ExtListComponent]
-})
-    .compileComponents();
+      imports: [ExtListComponent],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(ExtListComponent);
     component = fixture.componentInstance;

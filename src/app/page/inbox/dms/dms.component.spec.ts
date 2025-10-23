@@ -1,10 +1,10 @@
 /// <reference types="vitest/globals" />
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { RouterModule } from '@angular/router';
+import { provideRouter } from '@angular/router';
 
 import { InboxDmsPage } from './dms.component';
-import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 describe('InboxDmsPage', () => {
   let component: InboxDmsPage;
@@ -12,10 +12,13 @@ describe('InboxDmsPage', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    imports: [RouterModule.forRoot([]), InboxDmsPage],
-    providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
-})
-    .compileComponents();
+      imports: [InboxDmsPage],
+      providers: [
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting(),
+        provideRouter([]),
+      ],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(InboxDmsPage);
     component = fixture.componentInstance;

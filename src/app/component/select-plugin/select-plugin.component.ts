@@ -1,10 +1,10 @@
 import { Component, ElementRef, EventEmitter, Input, OnChanges, Output, SimpleChanges, ViewChild } from '@angular/core';
+import { ReactiveFormsModule } from '@angular/forms';
 import { defer, uniqBy } from 'lodash-es';
 import { v4 as uuid } from 'uuid';
 import { Plugin } from '../../model/plugin';
 import { AdminService } from '../../service/admin.service';
 import { AuthzService } from '../../service/authz.service';
-import { ReactiveFormsModule } from '@angular/forms';
 
 @Component({
     selector: 'app-select-plugin',

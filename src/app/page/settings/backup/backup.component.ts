@@ -2,10 +2,12 @@ import { Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { TemplatePortal } from '@angular/cdk/portal';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, ElementRef, TemplateRef, ViewChild, ViewContainerRef } from '@angular/core';
-import { UntypedFormBuilder, UntypedFormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { sortBy, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { catchError, throwError } from 'rxjs';
+import { BackupListComponent } from '../../../component/backup/backup-list/backup-list.component';
+import { LoadingComponent } from '../../../component/loading/loading.component';
 import { BackupOptions } from '../../../model/backup';
 import { BackupRef, BackupService } from '../../../service/api/backup.service';
 import { OriginService } from '../../../service/api/origin.service';
@@ -15,8 +17,6 @@ import { Store } from '../../../store/store';
 import { scrollToFirstInvalid } from '../../../util/form';
 import { ORIGIN_REGEX } from '../../../util/format';
 import { printError } from '../../../util/http';
-import { LoadingComponent } from '../../../component/loading/loading.component';
-import { BackupListComponent } from '../../../component/backup/backup-list/backup-list.component';
 
 @Component({
     selector: 'app-settings-backup-page',

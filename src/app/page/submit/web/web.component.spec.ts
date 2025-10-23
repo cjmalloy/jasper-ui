@@ -3,11 +3,11 @@ import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http'
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
-import { FormlyModule } from '@ngx-formly/core';
+import { provideRouter } from '@angular/router';
 import { LinksFormComponent } from '../../../form/links/links.component';
 import { RefFormComponent } from '../../../form/ref/ref.component';
 import { TagsFormComponent } from '../../../form/tags/tags.component';
+import { JasperFormlyModule } from '../../../formly/formly.module';
 
 import { SubmitWebPage } from './web.component';
 
@@ -17,20 +17,20 @@ describe('SubmitWebPage', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    imports: [
+      imports: [
         ReactiveFormsModule,
-        RouterModule.forRoot([]),
-        FormlyModule.forRoot(),
+        JasperFormlyModule,
         SubmitWebPage,
         RefFormComponent,
         TagsFormComponent,
         LinksFormComponent,
-    ],
-    providers: [
+      ],
+      providers: [
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),
-    ],
-}).compileComponents();
+        provideRouter([]),
+      ],
+    }).compileComponents();
   });
 
   beforeEach(() => {

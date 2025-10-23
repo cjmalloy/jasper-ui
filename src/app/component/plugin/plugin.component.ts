@@ -1,6 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostBinding, Input, OnChanges, QueryList, SimpleChanges, ViewChildren } from '@angular/core';
-import { UntypedFormBuilder, UntypedFormGroup, ReactiveFormsModule } from '@angular/forms';
+import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { catchError, of, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { pluginForm, PluginFormComponent } from '../../form/plugin/plugin.component';
@@ -15,7 +16,6 @@ import { downloadPluginExport, downloadTag } from '../../util/download';
 import { scrollToFirstInvalid } from '../../util/form';
 import { printError } from '../../util/http';
 import { ActionComponent } from '../action/action.component';
-import { RouterLink } from '@angular/router';
 import { ConfirmActionComponent } from '../action/confirm-action/confirm-action.component';
 import { InlineButtonComponent } from '../action/inline-button/inline-button.component';
 
