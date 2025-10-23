@@ -1,7 +1,12 @@
 import { Component, HostBinding, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { isEqual, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
+import { MobxAngularModule } from 'mobx-angular';
 import { LensComponent } from '../../component/lens/lens.component';
+import { LoadingComponent } from '../../component/loading/loading.component';
+import { SidebarComponent } from '../../component/sidebar/sidebar.component';
+import { TabsComponent } from '../../component/tabs/tabs.component';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
@@ -11,11 +16,6 @@ import { ModService } from '../../service/mod.service';
 import { QueryStore } from '../../store/query';
 import { Store } from '../../store/store';
 import { getArgs, UrlFilter } from '../../util/query';
-import { MobxAngularModule } from 'mobx-angular';
-import { TabsComponent } from '../../component/tabs/tabs.component';
-import { RouterLink } from '@angular/router';
-import { SidebarComponent } from '../../component/sidebar/sidebar.component';
-import { LoadingComponent } from '../../component/loading/loading.component';
 
 @Component({
     selector: 'app-tag-page',

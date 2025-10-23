@@ -1,6 +1,9 @@
-import { CdkDragDrop, CdkDropListGroup, ɵɵCdkScrollable, CdkDropList } from '@angular/cdk/drag-drop';
+import { CdkDragDrop, CdkDropList, CdkDropListGroup } from '@angular/cdk/drag-drop';
+import { CdkScrollable } from '@angular/cdk/scrolling';
+import { AsyncPipe } from '@angular/common';
 import {
   Component,
+  forwardRef,
   HostListener,
   Input,
   OnChanges,
@@ -9,11 +12,15 @@ import {
   SimpleChanges,
   ViewChildren
 } from '@angular/core';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { uniq, without } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { runInAction } from 'mobx';
+import { MobxAngularModule } from 'mobx-angular';
 import { catchError, of, Subject } from 'rxjs';
 import { tap } from 'rxjs/operators';
+import { TitleDirective } from '../../directive/title.directive';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ext } from '../../model/ext';
 import { Ref, RefSort } from '../../model/ref';
@@ -25,14 +32,9 @@ import { BookmarkService } from '../../service/bookmark.service';
 import { Store } from '../../store/store';
 import { negate, UrlFilter } from '../../util/query';
 import { isQuery, isSelector, localTag, topAnds } from '../../util/tag';
-import { KanbanColumnComponent } from './kanban-column/kanban-column.component';
-import { MobxAngularModule } from 'mobx-angular';
 import { LoadingComponent } from '../loading/loading.component';
-import { RouterLink } from '@angular/router';
-import { TitleDirective } from '../../directive/title.directive';
-import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { PageControlsComponent } from '../page-controls/page-controls.component';
-import { AsyncPipe } from '@angular/common';
+import { KanbanColumnComponent } from './kanban-column/kanban-column.component';
 
 export interface KanbanDrag {
   from: string;
@@ -42,11 +44,24 @@ export interface KanbanDrag {
 }
 
 @Component({
-    selector: 'app-kanban',
-    templateUrl: './kanban.component.html',
-    styleUrls: ['./kanban.component.scss'],
-    host: { 'class': 'kanban ext' },
-    imports: [MobxAngularModule, LoadingComponent, CdkDropListGroup, ɵɵCdkScrollable, CdkDropList, RouterLink, TitleDirective, ReactiveFormsModule, FormsModule, PageControlsComponent, KanbanColumnComponent, AsyncPipe]
+  selector: 'app-kanban',
+  templateUrl: './kanban.component.html',
+  styleUrls: ['./kanban.component.scss'],
+  host: { 'class': 'kanban ext' },
+  imports: [
+    forwardRef(() => KanbanColumnComponent),
+    MobxAngularModule,
+    LoadingComponent,
+    CdkDropListGroup,
+    CdkScrollable,
+    CdkDropList,
+    RouterLink,
+    TitleDirective,
+    ReactiveFormsModule,
+    FormsModule,
+    PageControlsComponent,
+    AsyncPipe,
+  ],
 })
 export class KanbanComponent implements OnChanges, OnDestroy, HasChanges {
 
@@ -243,8 +258,8 @@ export class KanbanComponent implements OnChanges, OnDestroy, HasChanges {
    */
   addingTags(tags: { col?: string, sl?: string }) {
     const result = [
-        ...this.kanbanConfig.addTags || [],
-        ...this.store.view.queryTags.map(localTag),
+      ...this.kanbanConfig.addTags || [],
+      ...this.store.view.queryTags.map(localTag),
     ];
     result.push(this.ext!.tag);
     if (tags.col) result.push(tags.col);

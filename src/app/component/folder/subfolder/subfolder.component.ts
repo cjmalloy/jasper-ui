@@ -1,11 +1,10 @@
 import { Component, HostBinding, Input } from '@angular/core';
-import { runInAction } from 'mobx';
+import { RouterLink } from '@angular/router';
 import { Ext } from '../../../model/ext';
 import { Action, Icon } from '../../../model/tag';
 import { AdminService } from '../../../service/admin.service';
 import { QueryStore } from '../../../store/query';
 import { Store } from '../../../store/store';
-import { RouterLink } from '@angular/router';
 
 @Component({
     selector: 'app-subfolder',

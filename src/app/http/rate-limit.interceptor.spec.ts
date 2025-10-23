@@ -1,5 +1,5 @@
 /// <reference types="vitest/globals" />
-import { HttpClient, HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { HTTP_INTERCEPTORS, HttpClient, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { fakeAsync, TestBed, tick } from '@angular/core/testing';
 import { RateLimitInterceptor } from './rate-limit.interceptor';
@@ -62,8 +62,8 @@ describe('RateLimitInterceptor', () => {
     // First request - returns 429
     const req1 = httpTestingController.expectOne('/test');
     attemptCount++;
-    req1.flush(null, { 
-      status: 429, 
+    req1.flush(null, {
+      status: 429,
       statusText: 'Too Many Requests',
       headers: { 'X-RateLimit-Retry-After': '1' }
     });
@@ -93,8 +93,8 @@ describe('RateLimitInterceptor', () => {
     // First request - returns 503
     const req1 = httpTestingController.expectOne('/test');
     attemptCount++;
-    req1.flush(null, { 
-      status: 503, 
+    req1.flush(null, {
+      status: 503,
       statusText: 'Service Unavailable',
       headers: { 'X-RateLimit-Retry-After': '1' }
     });
@@ -126,8 +126,8 @@ describe('RateLimitInterceptor', () => {
     // Initial request
     const req1 = httpTestingController.expectOne('/test');
     attemptCount++;
-    req1.flush(null, { 
-      status: 429, 
+    req1.flush(null, {
+      status: 429,
       statusText: 'Too Many Requests',
       headers: { 'X-RateLimit-Retry-After': '1' }
     });
@@ -136,8 +136,8 @@ describe('RateLimitInterceptor', () => {
     tick(1000);
     const req2 = httpTestingController.expectOne('/test');
     attemptCount++;
-    req2.flush(null, { 
-      status: 429, 
+    req2.flush(null, {
+      status: 429,
       statusText: 'Too Many Requests',
       headers: { 'X-RateLimit-Retry-After': '1' }
     });
@@ -146,8 +146,8 @@ describe('RateLimitInterceptor', () => {
     tick(1000);
     const req3 = httpTestingController.expectOne('/test');
     attemptCount++;
-    req3.flush(null, { 
-      status: 429, 
+    req3.flush(null, {
+      status: 429,
       statusText: 'Too Many Requests',
       headers: { 'X-RateLimit-Retry-After': '1' }
     });
@@ -156,8 +156,8 @@ describe('RateLimitInterceptor', () => {
     tick(1000);
     const req4 = httpTestingController.expectOne('/test');
     attemptCount++;
-    req4.flush(null, { 
-      status: 429, 
+    req4.flush(null, {
+      status: 429,
       statusText: 'Too Many Requests',
       headers: { 'X-RateLimit-Retry-After': '1' }
     });
@@ -200,8 +200,8 @@ describe('RateLimitInterceptor', () => {
     // First request - returns 429 without header
     const req1 = httpTestingController.expectOne('/test');
     attemptCount++;
-    req1.flush(null, { 
-      status: 429, 
+    req1.flush(null, {
+      status: 429,
       statusText: 'Too Many Requests'
     });
 
@@ -211,8 +211,8 @@ describe('RateLimitInterceptor', () => {
     // Retry 1 - returns 429
     const req2 = httpTestingController.expectOne('/test');
     attemptCount++;
-    req2.flush(null, { 
-      status: 429, 
+    req2.flush(null, {
+      status: 429,
       statusText: 'Too Many Requests'
     });
 
@@ -241,8 +241,8 @@ describe('RateLimitInterceptor', () => {
     // First request - returns 429 with decimal retry value
     const req1 = httpTestingController.expectOne('/test');
     attemptCount++;
-    req1.flush(null, { 
-      status: 429, 
+    req1.flush(null, {
+      status: 429,
       statusText: 'Too Many Requests',
       headers: { 'X-RateLimit-Retry-After': '2.5' }
     });

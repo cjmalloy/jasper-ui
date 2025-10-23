@@ -1,39 +1,39 @@
 /// <reference types="@angular/localize" />
 
-import { enableProdMode, APP_INITIALIZER, isDevMode, importProvidersFrom } from '@angular/core';
-import { platformBrowser, HAMMER_GESTURE_CONFIG, BrowserModule, HammerModule, bootstrapApplication } from '@angular/platform-browser';
+import { DragDropModule } from '@angular/cdk/drag-drop';
+import { FullscreenOverlayContainer, OverlayContainer, OverlayModule } from '@angular/cdk/overlay';
+import { ScrollingModule } from '@angular/cdk/scrolling';
+import { HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { APP_INITIALIZER, enableProdMode, importProvidersFrom, isDevMode } from '@angular/core';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { bootstrapApplication, BrowserModule, HAMMER_GESTURE_CONFIG, HammerModule } from '@angular/platform-browser';
+import { ServiceWorkerModule } from '@angular/service-worker';
+import { FormlyModule } from '@ngx-formly/core';
+import { Settings } from 'luxon';
+import { MobxAngularModule } from 'mobx-angular';
+import { MarkdownModule } from 'ngx-markdown';
+import { MonacoEditorModule } from 'ngx-monaco-editor';
+import { retry, switchMap, timer } from 'rxjs';
+import { tap } from 'rxjs/operators';
+import { AppRoutingModule } from './app/app-routing.module';
+import { AppComponent } from './app/app.component';
+import { JasperFormlyModule } from './app/formly/formly.module';
+import { HammerConfig } from './app/hammer.config';
+import { AuthInterceptor } from './app/http/auth.interceptor';
+import { CsrfInterceptor } from './app/http/csrf.interceptor';
+import { RateLimitInterceptor } from './app/http/rate-limit.interceptor';
+import { AccountService } from './app/service/account.service';
+import { AdminService } from './app/service/admin.service';
+import { ExtService } from './app/service/api/ext.service';
+import { ConfigService } from './app/service/config.service';
+import { DebugService } from './app/service/debug.service';
+import { ModService } from './app/service/mod.service';
+import { OriginMapService } from './app/service/origin-map.service';
 
 
 import { environment } from './environments/environment';
 
 import 'hammerjs';
-import { provideHttpClient, withInterceptorsFromDi, HTTP_INTERCEPTORS } from '@angular/common/http';
-import { AuthInterceptor } from './app/http/auth.interceptor';
-import { CsrfInterceptor } from './app/http/csrf.interceptor';
-import { RateLimitInterceptor } from './app/http/rate-limit.interceptor';
-import { OverlayContainer, FullscreenOverlayContainer, OverlayModule } from '@angular/cdk/overlay';
-import { HammerConfig } from './app/hammer.config';
-import { ConfigService } from './app/service/config.service';
-import { DebugService } from './app/service/debug.service';
-import { AdminService } from './app/service/admin.service';
-import { AccountService } from './app/service/account.service';
-import { OriginMapService } from './app/service/origin-map.service';
-import { ModService } from './app/service/mod.service';
-import { ExtService } from './app/service/api/ext.service';
-import { tap } from 'rxjs/operators';
-import { Settings } from 'luxon';
-import { switchMap, retry, timer } from 'rxjs';
-import { AppRoutingModule } from './app/app-routing.module';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { MobxAngularModule } from 'mobx-angular';
-import { MarkdownModule } from 'ngx-markdown';
-import { MonacoEditorModule } from 'ngx-monaco-editor';
-import { DragDropModule } from '@angular/cdk/drag-drop';
-import { ScrollingModule } from '@angular/cdk/scrolling';
-import { FormlyModule } from '@ngx-formly/core';
-import { JasperFormlyModule } from './app/formly/formly.module';
-import { ServiceWorkerModule } from '@angular/service-worker';
-import { AppComponent } from './app/app.component';
 
 const loadFactory = (config: ConfigService, debug: DebugService, admin: AdminService, account: AccountService, origins: OriginMapService, mods: ModService, exts: ExtService) => () =>
   config.load$.pipe(
@@ -71,7 +71,21 @@ if (environment.production) {
 
 bootstrapApplication(AppComponent, {
     providers: [
-        importProvidersFrom(BrowserModule, HammerModule, AppRoutingModule, FormsModule, ReactiveFormsModule, MobxAngularModule, MarkdownModule.forRoot(), MonacoEditorModule.forRoot(), DragDropModule, OverlayModule, ScrollingModule, FormlyModule, JasperFormlyModule, ServiceWorkerModule.register('ngsw-worker.js', {
+        importProvidersFrom(
+          BrowserModule,
+          HammerModule,
+          AppRoutingModule,
+          FormsModule,
+          ReactiveFormsModule,
+          MobxAngularModule,
+          MarkdownModule.forRoot(),
+          MonacoEditorModule.forRoot(),
+          DragDropModule,
+          OverlayModule,
+          ScrollingModule,
+          FormlyModule,
+          JasperFormlyModule,
+          ServiceWorkerModule.register('ngsw-worker.js', {
             scope: '.',
             enabled: !isDevMode() && location.hostname != 'localhost',
             // Register the ServiceWorker as soon as the application is stable

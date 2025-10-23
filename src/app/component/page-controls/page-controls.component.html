@@ -24,29 +24,40 @@
        (click)="scrollUp()"
        queryParamsHandling="merge" i18n>next</a>
     <span> | </span>
-    <a class="last-page"
-       *ngIf="showPageLast"
-       routerLink="./"
-       [class.disabled]="page.page.number === page.page.totalPages - 1"
-       [queryParams]="{ pageNumber: last }"
-       queryParamsHandling="merge" i18n>last</a>
+    @if (showPageLast) {
+      <a class="last-page"
+         routerLink="./"
+         [class.disabled]="page.page.number === page.page.totalPages - 1"
+         [queryParams]="{ pageNumber: last }"
+         queryParamsHandling="merge" i18n>last</a>
+    }
   }
 
   <label for="pageSize" i18n> size: </label>
   <select id="pageSize" [(ngModel)]="pageSize">
-    <option *ngIf="outOfPageSizeRange(store.view.pageSize)" [value]="store.view.pageSize">{{ store.view.pageSize }}</option>
-    <option *ngFor="let size of pageSizes" [value]="size">{{ size }}</option>
+    @if (outOfPageSizeRange(store.view.pageSize)) {
+      <option [value]="store.view.pageSize">{{ store.view.pageSize }}</option>
+    }
+    @for (size of pageSizes; track size) {
+      <option [value]="size">{{ size }}</option>
+    }
   </select>
 
-  <ng-container *ngIf="!hideCols && (cols || colsChanged)">
+  @if (!hideCols && (cols || colsChanged)) {
     <label for="cols" i18n> cols: </label>
     <select id="cols" [(ngModel)]="cols">
       <option [value]="0" i18n>default</option>
-      <option *ngIf="outOfColSizeRange(store.view.cols || 1)" [value]="store.view.cols">{{ store.view.cols }}</option>
-      <option *ngFor="let size of colSizes" [value]="size">{{ size }}</option>
+      @if (outOfColSizeRange(store.view.cols || 1)) {
+        <option [value]="store.view.cols">{{ store.view.cols }}</option>
+      }
+      @for (size of colSizes; track size) {
+        <option [value]="size">{{ size }}</option>
+      }
     </select>
-  </ng-container>
+  }
 </div>
-<div *ngIf="page" class="print-view" i18n>
-  Page {{ page.page.number + 1 }} of {{ page.page.totalPages }} (size: {{ page.page.size }})
-</div>
+@if (page) {
+  <div class="print-view" i18n>
+    Page {{ page.page.number + 1 }} of {{ page.page.totalPages }} (size: {{ page.page.size }})
+  </div>
+}

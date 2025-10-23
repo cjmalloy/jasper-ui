@@ -3,9 +3,9 @@ import { Router } from '@angular/router';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Page } from '../../../model/page';
 import { Plugin } from '../../../model/plugin';
-import { PluginComponent } from '../plugin.component';
-import { PageControlsComponent } from '../../page-controls/page-controls.component';
 import { LoadingComponent } from '../../loading/loading.component';
+import { PageControlsComponent } from '../../page-controls/page-controls.component';
+import { PluginComponent } from '../plugin.component';
 
 @Component({
     selector: 'app-plugin-list',

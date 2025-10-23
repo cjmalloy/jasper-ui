@@ -1,4 +1,5 @@
 import { ChangeDetectorRef, Component, OnDestroy } from '@angular/core';
+import { ReactiveFormsModule } from '@angular/forms';
 import { debounce, uniqBy } from 'lodash-es';
 import { forkJoin, map, Observable, of, Subscription, switchMap } from 'rxjs';
 import { AdminService } from '../../service/admin.service';
@@ -6,7 +7,6 @@ import { ExtService } from '../../service/api/ext.service';
 import { ConfigService } from '../../service/config.service';
 import { EditorService } from '../../service/editor.service';
 import { Store } from '../../store/store';
-import { ReactiveFormsModule } from '@angular/forms';
 
 @Component({
     selector: 'app-user-tag-selector',

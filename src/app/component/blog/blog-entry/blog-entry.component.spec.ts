@@ -1,11 +1,11 @@
 /// <reference types="vitest/globals" />
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import { provideRouter } from '@angular/router';
 
 import { BlogEntryComponent } from './blog-entry.component';
-import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 describe('BlogEntryComponent', () => {
   let component: BlogEntryComponent;
@@ -13,16 +13,16 @@ describe('BlogEntryComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    imports: [
-        RouterModule.forRoot([]),
-        ReactiveFormsModule,
-        BlogEntryComponent,
-    ],
-    providers: [
+      imports: [
+          ReactiveFormsModule,
+          BlogEntryComponent,
+      ],
+      providers: [
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),
-    ],
-}).compileComponents();
+        provideRouter([]),
+      ],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(BlogEntryComponent);
     component = fixture.componentInstance;

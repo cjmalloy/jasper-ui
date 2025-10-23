@@ -7,11 +7,11 @@ import {
   HostListener,
   QueryList
 } from '@angular/core';
+import { ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { defer } from 'lodash-es';
 import { ConfigService } from '../../service/config.service';
 import { memo, MemoCache } from '../../util/memo';
-import { ReactiveFormsModule } from '@angular/forms';
 import { SettingsComponent } from '../settings/settings.component';
 
 @Component({

@@ -1,12 +1,19 @@
 import { HttpErrorResponse, HttpEventType } from '@angular/common/http';
 import { Component, OnDestroy } from '@angular/core';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { delay, pick, uniq } from 'lodash-es';
+import { FormlyModule } from '@ngx-formly/core';
+import { pick, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { autorun, IReactionDisposer, runInAction, toJS } from 'mobx';
+import { MobxAngularModule } from 'mobx-angular';
 import { catchError, concat, last, lastValueFrom, map, of, switchMap, throwError } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import * as XLSX from 'xlsx';
+import { ExtComponent } from '../../../component/ext/ext.component';
+import { LoadingComponent } from '../../../component/loading/loading.component';
+import { RefComponent } from '../../../component/ref/ref.component';
+import { AutofocusDirective } from '../../../directive/autofocus.directive';
 import { Ext, mapExt } from '../../../model/ext';
 import { mapRef, Ref } from '../../../model/ref';
 import { AdminService } from '../../../service/admin.service';
@@ -21,20 +28,23 @@ import { downloadSet } from '../../../util/download';
 import { TAGS_REGEX } from '../../../util/format';
 import { printError } from '../../../util/http';
 import { FilteredModels, filterModels, getModels, getTextFile, unzip, zippedFile } from '../../../util/zip';
-import { MobxAngularModule } from 'mobx-angular';
-import { FormlyModule } from '@ngx-formly/core';
-import { ReactiveFormsModule, FormsModule } from '@angular/forms';
-import { AutofocusDirective } from '../../../directive/autofocus.directive';
-import { LoadingComponent } from '../../../component/loading/loading.component';
-import { ExtComponent } from '../../../component/ext/ext.component';
-import { RefComponent } from '../../../component/ref/ref.component';
 
 @Component({
     selector: 'app-upload',
     templateUrl: './upload.component.html',
     styleUrls: ['./upload.component.scss'],
     host: { 'class': 'full-page-upload' },
-    imports: [MobxAngularModule, RouterLink, FormlyModule, ReactiveFormsModule, FormsModule, AutofocusDirective, LoadingComponent, ExtComponent, RefComponent]
+    imports: [
+      MobxAngularModule,
+      RouterLink,
+      FormlyModule,
+      ReactiveFormsModule,
+      FormsModule,
+      AutofocusDirective,
+      LoadingComponent,
+      ExtComponent,
+      RefComponent,
+    ]
 })
 export class UploadPage implements OnDestroy {
   private disposers: IReactionDisposer[] = [];

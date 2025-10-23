@@ -1,13 +1,13 @@
 /// <reference types="vitest/globals" />
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
-import { RouterModule } from '@angular/router';
-import { FormlyModule } from '@ngx-formly/core';
+import { provideRouter } from '@angular/router';
+import { JasperFormlyModule } from '../../formly/formly.module';
 import { PluginsFormComponent } from '../plugins/plugins.component';
 
 import { RefFormComponent } from './ref.component';
-import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 describe('RefFormComponent', () => {
   let component: RefFormComponent;
@@ -15,19 +15,18 @@ describe('RefFormComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    imports: [
-        RouterModule.forRoot([]),
+      imports: [
         ReactiveFormsModule,
-        FormlyModule.forRoot(),
+        JasperFormlyModule,
         RefFormComponent
-    ],
-    providers: [
+      ],
+      providers: [
         PluginsFormComponent,
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),
-    ]
-})
-    .compileComponents();
+        provideRouter([]),
+      ],
+    }).compileComponents();
   });
 
   beforeEach(() => {
@@ -41,7 +40,7 @@ describe('RefFormComponent', () => {
       sources: new UntypedFormControl(),
       alternateUrls: new UntypedFormControl(),
       tags: new UntypedFormControl(),
-      plugins: new UntypedFormControl(),
+      plugins: new UntypedFormGroup({}),
     });
     fixture.detectChanges();
   });

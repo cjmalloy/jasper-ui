@@ -1,13 +1,15 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostBinding, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, ReactiveFormsModule } from '@angular/forms';
+import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { defer, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
+import { MobxAngularModule } from 'mobx-angular';
 import { catchError, forkJoin, Observable, of, switchMap, throwError } from 'rxjs';
+import { SettingsComponent } from '../../component/settings/settings.component';
+import { LimitWidthDirective } from '../../directive/limit-width.directive';
 import { userForm, UserFormComponent } from '../../form/user/user.component';
 import { HasChanges } from '../../guard/pending-changes.guard';
-import { User } from '../../model/user';
 import { isDeletorTag, tagDeleteNotice } from '../../mods/delete';
 import { AdminService } from '../../service/admin.service';
 import { ProfileService } from '../../service/api/profile.service';
@@ -18,9 +20,6 @@ import { Store } from '../../store/store';
 import { scrollToFirstInvalid } from '../../util/form';
 import { printError } from '../../util/http';
 import { prefix, setPublic } from '../../util/tag';
-import { MobxAngularModule } from 'mobx-angular';
-import { SettingsComponent } from '../../component/settings/settings.component';
-import { LimitWidthDirective } from '../../directive/limit-width.directive';
 
 @Component({
     selector: 'app-user-page',

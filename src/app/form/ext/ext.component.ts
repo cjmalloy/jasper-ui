@@ -1,10 +1,22 @@
-import { Component, ElementRef, EventEmitter, Input, OnDestroy, Output, ViewChild } from '@angular/core';
-import { FormArray, FormControl, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { CdkDropListGroup } from '@angular/cdk/drag-drop';
+import { Component, ElementRef, EventEmitter, forwardRef, Input, OnDestroy, Output, ViewChild } from '@angular/core';
+import {
+  FormArray,
+  FormControl,
+  ReactiveFormsModule,
+  UntypedFormBuilder,
+  UntypedFormControl,
+  UntypedFormGroup,
+  Validators
+} from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { FormlyFieldConfig, FormlyForm, FormlyFormOptions, FormlyModule } from '@ngx-formly/core';
 import { cloneDeep, defer, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { catchError, of, Subject, takeUntil } from 'rxjs';
 import { v4 as uuid } from 'uuid';
+import { LoadingComponent } from '../../component/loading/loading.component';
+import { RefComponent } from '../../component/ref/ref.component';
 import { allRefSorts } from '../../component/sort/sort.component';
 import { Ext } from '../../model/ext';
 import { Ref } from '../../model/ref';
@@ -15,21 +27,25 @@ import { Store } from '../../store/store';
 import { TAG_REGEX } from '../../util/format';
 import { convertFilter, defaultDesc, negatable, toggle, UrlFilter } from '../../util/query';
 import { hasPrefix } from '../../util/tag';
+import { EditorComponent } from '../editor/editor.component';
 import { linksForm } from '../links/links.component';
 import { themesForm, ThemesFormComponent } from '../themes/themes.component';
-import { CdkDropListGroup } from '@angular/cdk/drag-drop';
-import { EditorComponent } from '../editor/editor.component';
-import { NgIf } from '@angular/common';
-import { RouterLink } from '@angular/router';
-import { RefComponent } from '../../component/ref/ref.component';
-import { LoadingComponent } from '../../component/loading/loading.component';
 
 @Component({
     selector: 'app-ext-form',
     templateUrl: './ext.component.html',
     styleUrls: ['./ext.component.scss'],
     host: { 'class': 'nested-form' },
-    imports: [CdkDropListGroup, ReactiveFormsModule, EditorComponent, NgIf, FormlyModule, RouterLink, ThemesFormComponent, RefComponent, LoadingComponent]
+  imports: [
+    ReactiveFormsModule,
+    FormlyModule,
+    forwardRef(() => RefComponent),
+    CdkDropListGroup,
+    EditorComponent,
+    RouterLink,
+    ThemesFormComponent,
+    LoadingComponent,
+  ],
 })
 export class ExtFormComponent implements OnDestroy {
   private destroy$ = new Subject<void>();

@@ -1,17 +1,17 @@
 import { Component, Input } from '@angular/core';
+import { ReactiveFormsModule } from '@angular/forms';
 import { debounce } from 'lodash-es';
 import { catchError, forkJoin, map, Observable, of, Subscription, switchMap } from 'rxjs';
 import { v4 as uuid } from 'uuid';
+import { AutofocusDirective } from '../../../directive/autofocus.directive';
 import { Config } from '../../../model/tag';
 import { AdminService } from '../../../service/admin.service';
 import { ExtService } from '../../../service/api/ext.service';
 import { EditorService } from '../../../service/editor.service';
 import { Store } from '../../../store/store';
 import { TAGS_REGEX } from '../../../util/format';
-import { ActionComponent } from '../action.component';
-import { ReactiveFormsModule } from '@angular/forms';
-import { AutofocusDirective } from '../../../directive/autofocus.directive';
 import { LoadingComponent } from '../../loading/loading.component';
+import { ActionComponent } from '../action.component';
 
 @Component({
     selector: 'app-inline-tag',

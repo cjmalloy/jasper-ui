@@ -1,7 +1,8 @@
 /// <reference types="vitest/globals" />
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
-import { FormlyModule } from '@ngx-formly/core';
+import { provideRouter } from '@angular/router';
+import { JasperFormlyModule } from '../../formly/formly.module';
 import { LinksFormComponent } from './links.component';
 
 
@@ -11,13 +12,15 @@ describe('LinksFormComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    imports: [
+      imports: [
         ReactiveFormsModule,
-        FormlyModule.forRoot(),
+        JasperFormlyModule,
         LinksFormComponent,
-    ],
-})
-    .compileComponents();
+      ],
+      providers: [
+        provideRouter([]),
+      ],
+   }).compileComponents();
   });
 
   beforeEach(() => {

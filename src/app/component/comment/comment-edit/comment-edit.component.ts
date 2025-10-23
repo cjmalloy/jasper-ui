@@ -3,6 +3,7 @@ import { AfterViewInit, Component, Input, OnDestroy } from '@angular/core';
 import { FormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { uniq, without } from 'lodash-es';
 import { catchError, Subject, Subscription, switchMap, takeUntil, throwError } from 'rxjs';
+import { EditorComponent } from '../../../form/editor/editor.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Ref } from '../../../model/ref';
 import { RefService } from '../../../service/api/ref.service';
@@ -10,7 +11,6 @@ import { Store } from '../../../store/store';
 import { getIfNew, getMailboxes } from '../../../util/editor';
 import { printError } from '../../../util/http';
 import { OpPatch } from '../../../util/json-patch';
-import { EditorComponent } from '../../../form/editor/editor.component';
 import { LoadingComponent } from '../../loading/loading.component';
 
 @Component({

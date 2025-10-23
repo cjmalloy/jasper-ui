@@ -1,10 +1,11 @@
 /// <reference types="vitest/globals" />
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { RouterModule } from '@angular/router';
+import { provideRouter } from '@angular/router';
+import { MarkdownModule } from 'ngx-markdown';
 
 import { MdComponent } from './md.component';
-import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 describe('MdComponent', () => {
   let component: MdComponent;
@@ -12,18 +13,20 @@ describe('MdComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    imports: [RouterModule.forRoot([]), MdComponent],
-    providers: [
-      provideHttpClient(withInterceptorsFromDi()), 
-      provideHttpClientTesting()
-    ]
-})
-    .compileComponents();
+      imports: [MarkdownModule.forRoot()],
+      providers: [
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting(),
+        provideRouter([]),
+      ]
+    }).compileComponents();
   });
 
   beforeEach(() => {
     fixture = TestBed.createComponent(MdComponent);
     component = fixture.componentInstance;
+    component.mermaid = false;
+    component.clipboard = false;
     fixture.detectChanges();
   });
 

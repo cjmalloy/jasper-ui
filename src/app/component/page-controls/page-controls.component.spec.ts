@@ -1,6 +1,6 @@
 /// <reference types="vitest/globals" />
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { RouterModule } from '@angular/router';
+import { provideRouter } from '@angular/router';
 import { Page } from '../../model/page';
 
 import { PageControlsComponent } from './page-controls.component';
@@ -11,12 +11,11 @@ describe('PageControlsComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    imports: [
-        RouterModule.forRoot([]),
-        PageControlsComponent,
-    ],
-})
-    .compileComponents();
+      imports: [PageControlsComponent],
+        providers: [
+          provideRouter([]),
+        ],
+    }).compileComponents();
   });
 
   beforeEach(() => {

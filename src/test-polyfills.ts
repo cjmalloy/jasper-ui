@@ -6,14 +6,6 @@
 // Zone.js testing utilities (fakeAsync, tick, etc.)
 import 'zone.js/testing';
 
-// Mock CSS.supports for jsdom test environment
-if (typeof CSS === 'undefined' || !CSS.supports) {
-  (globalThis as any).CSS = {
-    supports: () => true,
-    ...(typeof CSS !== 'undefined' ? CSS : {})
-  };
-}
-
 // Mock IntersectionObserver for jsdom test environment
 if (typeof IntersectionObserver === 'undefined') {
   (globalThis as any).IntersectionObserver = class IntersectionObserver {

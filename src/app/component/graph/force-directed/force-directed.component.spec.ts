@@ -1,11 +1,11 @@
 /// <reference types="vitest/globals" />
 import { OverlayModule } from '@angular/cdk/overlay';
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { RouterModule } from '@angular/router';
+import { provideRouter } from '@angular/router';
 
 import { ForceDirectedComponent } from './force-directed.component';
-import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 describe('ForceDirectedComponent', () => {
   let component: ForceDirectedComponent;
@@ -13,11 +13,15 @@ describe('ForceDirectedComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    imports: [RouterModule.forRoot([]),
-        OverlayModule, ForceDirectedComponent],
-    providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
-})
-    .compileComponents();
+      imports: [
+        OverlayModule,
+        ForceDirectedComponent,
+      ],
+      providers: [
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting(),
+        provideRouter([]),]
+    }).compileComponents();
   });
 
   beforeEach(() => {

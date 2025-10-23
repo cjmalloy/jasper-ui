@@ -1,13 +1,29 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { AfterViewInit, Component, ElementRef, OnChanges, OnDestroy, SimpleChanges, ViewChild } from '@angular/core';
-import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, ReactiveFormsModule, FormsModule } from '@angular/forms';
+import {
+  FormsModule,
+  ReactiveFormsModule,
+  UntypedFormArray,
+  UntypedFormBuilder,
+  UntypedFormControl,
+  UntypedFormGroup
+} from '@angular/forms';
 import { Router } from '@angular/router';
 import { defer, some, uniq, without } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
+import { MobxAngularModule } from 'mobx-angular';
+import { MonacoEditorModule } from 'ngx-monaco-editor';
 import { catchError, map, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
+import { LoadingComponent } from '../../../component/loading/loading.component';
+import { NavComponent } from '../../../component/nav/nav.component';
+import { SelectPluginComponent } from '../../../component/select-plugin/select-plugin.component';
+import { FillWidthDirective } from '../../../directive/fill-width.directive';
+import { LimitWidthDirective } from '../../../directive/limit-width.directive';
+import { ResizeHandleDirective } from '../../../directive/resize-handle.directive';
+import { EditorComponent } from '../../../form/editor/editor.component';
 import { LinksFormComponent } from '../../../form/links/links.component';
 import { PluginsFormComponent, writePlugins } from '../../../form/plugins/plugins.component';
 import { refForm, RefFormComponent } from '../../../form/ref/ref.component';
@@ -29,15 +45,6 @@ import { scrollToFirstInvalid } from '../../../util/form';
 import { printError } from '../../../util/http';
 import { memo, MemoCache } from '../../../util/memo';
 import { hasPrefix, hasTag } from '../../../util/tag';
-import { MobxAngularModule } from 'mobx-angular';
-import { LimitWidthDirective } from '../../../directive/limit-width.directive';
-import { NavComponent } from '../../../component/nav/nav.component';
-import { LoadingComponent } from '../../../component/loading/loading.component';
-import { SelectPluginComponent } from '../../../component/select-plugin/select-plugin.component';
-import { MonacoEditorModule } from 'ngx-monaco-editor';
-import { ResizeHandleDirective } from '../../../directive/resize-handle.directive';
-import { FillWidthDirective } from '../../../directive/fill-width.directive';
-import { EditorComponent } from '../../../form/editor/editor.component';
 
 @Component({
     selector: 'app-submit-text',

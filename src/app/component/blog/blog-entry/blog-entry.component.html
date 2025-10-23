@@ -12,63 +12,79 @@
     <div class="link-below">
       <div class="stack">
         <div class="info">
-          <ng-container *ngIf="authors.length" i18n>
-            by
-            <ng-container *ngIf="authorExts$ | async as authorExts; else authorNoExts">
-              <ng-container *ngFor="let user of authorExts">
-                <a class="user tag"
-                   [title]="formatAuthor(user.tag + user.origin)"
-                   [routerLink]="['/tag', user.tag + user.origin]"
-                   [appTitle]="user">{{ user.name || formatAuthor(user.tag) }}</a>
-              </ng-container>
+          @if (authors.length) {
+            <ng-container i18n>
+              by
+              @if (authorExts$ | async; as xs) {
+                @for (x of xs; track x.tag) {
+                  <a class="user tag"
+                     [title]="formatAuthor(x.tag + x.origin)"
+                     [routerLink]="['/tag', x.tag + x.origin]"
+                     [appTitle]="x">{{ x.name || formatAuthor(x.tag) }}</a>
+                }
+              } @else {
+                @for (t of authors; track t) {
+                  <a class="user tag"
+                     [title]="formatAuthor(t)"
+                     [routerLink]="['/tag', t]">{{ formatAuthor(t) }}</a>
+                }
+              }
             </ng-container>
-            <ng-template #authorNoExts>
-              <ng-container *ngFor="let t of authors">
-                <a class="user tag"
-                   [title]="formatAuthor(t)"
-                   [routerLink]="['/tag', t]">{{ formatAuthor(t) }}</a>
-              </ng-container>
-            </ng-template>
-          </ng-container>
-          <ng-container *ngIf="tags.length" i18n>
-            tagged
-            <ng-container *ngIf="tagExts$ | async as tagExts; else tagNoExts">
-              <ng-container *ngFor="let e of tagExts">
-                <a class="tag" [routerLink]="['/tag', e.tag]" [appTitle]="e.tag">{{ e.name || '#' + e.tag }}</a>
-              </ng-container>
+          }
+          @if (tags.length) {
+            <ng-container i18n>
+              tagged
+              @if (tagExts$ | async; as xs) {
+                @for (x of xs; track x.tag) {
+                  <a class="tag" [routerLink]="['/tag', x.tag]" [appTitle]="x.tag">{{ x.name || '#' + x.tag }}</a>
+                }
+              } @else {
+                @for (t of tags; track t) {
+                  <a class="tag" [routerLink]="['/tag', t]">{{ t }}</a>
+                }
+              }
             </ng-container>
-            <ng-template #tagNoExts>
-              <ng-container *ngFor="let t of tags">
-                <a class="tag" [routerLink]="['/tag', t]">{{ t }}</a>
-              </ng-container>
-            </ng-template>
-          </ng-container>
-          <ng-container *ngFor="let icon of icons">
-            <span *ngIf="showIcon(icon)"
-                  class="icon"
-                  [class.filter-toggle]="icon.tag"
-                  (click)="clickIcon(icon, store.hotkey)"
-                  [appTitle]="icon"
-                  [ref]="ref">{{ icon.label }}</span>
-          </ng-container>
+          }
+          @for (icon of icons; track icon.tag) {
+            @if (showIcon(icon)) {
+              <span class="icon"
+                    [class.filter-toggle]="icon.tag"
+                    (click)="clickIcon(icon, store.hotkey)"
+                    [appTitle]="icon"
+                    [ref]="ref">{{ icon.label }}</span>
+            }
+          }
           <span [title]="ref.published?.toISO()">{{ ref.published?.toRelative() }}</span>
-          <ng-container *ngIf="!authors.length && ref.created && !local">
-            on <a class="origin tag" [routerLink]="['/tag', ref.origin]">{{ ref.origin }}</a>
-          </ng-container>
+          @if (!authors.length && ref.created && !local) {
+            <ng-container i18n>
+              on <a class="origin tag" [routerLink]="['/tag', ref.origin]">{{ ref.origin }}</a>
+            </ng-container>
+          }
         </div>
         <div class="actions">
           <a [routerLink]="['/ref', ref.url]" [queryParams]="{ origin: nonLocalOrigin }" (click)="saveRef()" i18n>permalink</a>
-          <a *ngIf="store.account.user" routerLink="/submit" [queryParams]="{source: ref.url}" i18n>reply</a>
-          <a *ngIf="comments" [routerLink]="['/ref', ref.url, 'comments']" [queryParams]="{ origin: nonLocalOrigin }" (click)="saveRef()" i18n>{comments, plural, =1 {1&thinsp;comment} other {{{ comments }}&thinsp;comments}}</a>
-          <a *ngIf="responses" [routerLink]="['/ref', ref.url, 'responses']" [queryParams]="{ origin: nonLocalOrigin }" (click)="saveRef()" i18n>{responses, plural, =1 {1&thinsp;citation} other {{{ responses }}&thinsp;citations}}</a>
-          <a *ngIf="sources === 1" [routerLink]="['/ref', ref.sources![0]]" [queryParams]="{ origin: nonLocalOrigin }" i18n>parent</a>
-          <a *ngIf="sources > 1" [routerLink]="['/ref', ref.url, 'sources']" [queryParams]="{ origin: nonLocalOrigin }" (click)="saveRef()" i18n>{{ sources }}&thinsp;sources</a>
+          @if (store.account.user) {
+            <a routerLink="/submit" [queryParams]="{source: ref.url}" i18n>reply</a>
+          }
+          @if (comments) {
+            <a [routerLink]="['/ref', ref.url, 'comments']" [queryParams]="{ origin: nonLocalOrigin }" (click)="saveRef()" i18n>{comments, plural, =1 {1&thinsp;comment} other {{{ comments }}&thinsp;comments}}</a>
+          }
+          @if (responses) {
+            <a [routerLink]="['/ref', ref.url, 'responses']" [queryParams]="{ origin: nonLocalOrigin }" (click)="saveRef()" i18n>{responses, plural, =1 {1&thinsp;citation} other {{{ responses }}&thinsp;citations}}</a>
+          }
+          @if (sources === 1) {
+            <a [routerLink]="['/ref', ref.sources![0]]" [queryParams]="{ origin: nonLocalOrigin }" i18n>parent</a>
+          } @else if (sources > 1) {
+            <a [routerLink]="['/ref', ref.url, 'sources']" [queryParams]="{ origin: nonLocalOrigin }" (click)="saveRef()" i18n>{{ sources }}&thinsp;sources</a>
+          }
           @if (store.account.mod || taggingAccess) {
             <app-confirm-action #action
                                 [class.force-delete]="deleteAccess"
                                 [action]="store.hotkey ? forceDelete$ : delete$" i18n>delete</app-confirm-action>
           }
-          <app-inline-tag #action *ngIf="taggingAccess" [action]="tag$" i18n>tag</app-inline-tag>
+          @if (taggingAccess) {
+            <app-inline-tag #action [action]="tag$" i18n>tag</app-inline-tag>
+          }
           @if (writeAccess) {
             <a class="fake-link" (click)="editing = !editing" i18n>edit</a>
           } @else {

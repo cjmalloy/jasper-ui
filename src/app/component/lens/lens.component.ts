@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, QueryList, SimpleChanges, ViewChildren } from '@angular/core';
+import { Component, forwardRef, Input, OnChanges, QueryList, SimpleChanges, ViewChildren } from '@angular/core';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ext } from '../../model/ext';
 import { Page } from '../../model/page';
@@ -8,20 +8,29 @@ import { AdminService } from '../../service/admin.service';
 import { QueryStore } from '../../store/query';
 import { UrlFilter } from '../../util/query';
 import { hasPrefix } from '../../util/tag';
-import { RefComponent } from '../ref/ref.component';
-import { ForceDirectedComponent } from '../graph/force-directed/force-directed.component';
-import { NotebookComponent } from '../notebook/notebook.component';
-import { KanbanComponent } from '../kanban/kanban.component';
 import { BlogComponent } from '../blog/blog.component';
 import { ChatComponent } from '../chat/chat.component';
 import { FolderComponent } from '../folder/folder.component';
+import { ForceDirectedComponent } from '../graph/force-directed/force-directed.component';
+import { KanbanComponent } from '../kanban/kanban.component';
+import { NotebookComponent } from '../notebook/notebook.component';
 import { RefListComponent } from '../ref/ref-list/ref-list.component';
+import { RefComponent } from '../ref/ref.component';
 
 @Component({
     selector: 'app-lens',
     templateUrl: './lens.component.html',
     styleUrls: ['./lens.component.scss'],
-    imports: [RefComponent, ForceDirectedComponent, NotebookComponent, KanbanComponent, BlogComponent, ChatComponent, FolderComponent, RefListComponent]
+    imports: [
+      forwardRef(() => RefComponent),
+      forwardRef(() => ForceDirectedComponent),
+      forwardRef(() => BlogComponent),
+      forwardRef(() => ChatComponent),
+      forwardRef(() => FolderComponent),
+      forwardRef(() => RefListComponent),
+      NotebookComponent,
+      KanbanComponent,
+    ],
 })
 export class LensComponent implements OnChanges, HasChanges {
 

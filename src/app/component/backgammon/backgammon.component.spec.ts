@@ -1,11 +1,10 @@
 /// <reference types="vitest/globals" />
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { RouterModule } from '@angular/router';
+import { provideRouter } from '@angular/router';
 
 import { BackgammonComponent } from './backgammon.component';
-import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
-import { MergeRegion } from 'node-diff3';
 
 describe('BackgammonComponent', () => {
   let component: BackgammonComponent;
@@ -13,12 +12,13 @@ describe('BackgammonComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-    imports: [RouterModule.forRoot([]), BackgammonComponent],
-    providers: [
+      imports: [BackgammonComponent],
+      providers: [
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),
-    ],
-});
+        provideRouter([]),
+      ],
+    });
     fixture = TestBed.createComponent(BackgammonComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();

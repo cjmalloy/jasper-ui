@@ -1,12 +1,12 @@
 import { Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
+import { MobxAngularModule } from 'mobx-angular';
 import { Observable, Subject, takeUntil } from 'rxjs';
 import { Ref } from '../../../model/ref';
 import { RefService } from '../../../service/api/ref.service';
 import { Store } from '../../../store/store';
 import { getArgs } from '../../../util/query';
-import { MobxAngularModule } from 'mobx-angular';
-import { CommentComponent } from '../comment.component';
 import { RefComponent } from '../../ref/ref.component';
+import { CommentComponent } from '../comment.component';
 
 @Component({
     selector: 'app-thread-summary',

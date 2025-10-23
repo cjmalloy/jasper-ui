@@ -1,15 +1,36 @@
+import { AsyncPipe } from '@angular/common';
 import { Component, OnDestroy, OnInit } from '@angular/core';
-import { AbstractControl, AsyncValidatorFn, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, ValidationErrors, Validators, ReactiveFormsModule } from '@angular/forms';
+import {
+  AbstractControl,
+  AsyncValidatorFn,
+  ReactiveFormsModule,
+  UntypedFormBuilder,
+  UntypedFormControl,
+  UntypedFormGroup,
+  ValidationErrors,
+  Validators
+} from '@angular/forms';
 import { Router, RouterLink, RouterOutlet } from '@angular/router';
 import { defer, isString, uniq, without } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
+import { MobxAngularModule } from 'mobx-angular';
 import { catchError, forkJoin, map, mergeMap, Observable, of, switchMap, timer } from 'rxjs';
 import { scan, tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
+import { RefComponent } from '../../component/ref/ref.component';
+import { SelectPluginComponent } from '../../component/select-plugin/select-plugin.component';
+import { TabsComponent } from '../../component/tabs/tabs.component';
+import { AutofocusDirective } from '../../directive/autofocus.directive';
+import { AudioUploadComponent } from '../../formly/audio-upload/audio-upload.component';
+import { ImageUploadComponent } from '../../formly/image-upload/image-upload.component';
+import { PdfUploadComponent } from '../../formly/pdf-upload/pdf-upload.component';
+import { QrScannerComponent } from '../../formly/qr-scanner/qr-scanner.component';
+import { VideoUploadComponent } from '../../formly/video-upload/video-upload.component';
 import { Page } from '../../model/page';
 import { Plugin } from '../../model/plugin';
 import { Ref } from '../../model/ref';
 import { isWiki, wikiUriFormat } from '../../mods/wiki';
+import { TagPreviewPipe } from '../../pipe/tag-preview.pipe';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
 import { AuthzService } from '../../service/authz.service';
@@ -19,18 +40,6 @@ import { Saving } from '../../store/submit';
 import { URI_REGEX } from '../../util/format';
 import { fixUrl } from '../../util/http';
 import { hasPrefix } from '../../util/tag';
-import { MobxAngularModule } from 'mobx-angular';
-import { TabsComponent } from '../../component/tabs/tabs.component';
-import { SelectPluginComponent } from '../../component/select-plugin/select-plugin.component';
-import { AutofocusDirective } from '../../directive/autofocus.directive';
-import { QrScannerComponent } from '../../formly/qr-scanner/qr-scanner.component';
-import { PdfUploadComponent } from '../../formly/pdf-upload/pdf-upload.component';
-import { AudioUploadComponent } from '../../formly/audio-upload/audio-upload.component';
-import { VideoUploadComponent } from '../../formly/video-upload/video-upload.component';
-import { ImageUploadComponent } from '../../formly/image-upload/image-upload.component';
-import { RefComponent } from '../../component/ref/ref.component';
-import { AsyncPipe } from '@angular/common';
-import { TagPreviewPipe } from '../../pipe/tag-preview.pipe';
 
 type Validation = { test: (url: string) => Observable<any>; name: string; passed: boolean };
 

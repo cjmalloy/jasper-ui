@@ -1,7 +1,11 @@
 import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { defer } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
+import { MobxAngularModule } from 'mobx-angular';
 import { ExtListComponent } from '../../component/ext/ext-list/ext-list.component';
+import { SidebarComponent } from '../../component/sidebar/sidebar.component';
+import { TabsComponent } from '../../component/tabs/tabs.component';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
@@ -11,10 +15,6 @@ import { ExtStore } from '../../store/ext';
 import { Store } from '../../store/store';
 import { getTagFilter, getTagQueryFilter } from '../../util/query';
 import { braces, getPrefixes, hasPrefix, publicTag } from '../../util/tag';
-import { MobxAngularModule } from 'mobx-angular';
-import { TabsComponent } from '../../component/tabs/tabs.component';
-import { RouterLink } from '@angular/router';
-import { SidebarComponent } from '../../component/sidebar/sidebar.component';
 
 @Component({
     selector: 'app-tags-page',

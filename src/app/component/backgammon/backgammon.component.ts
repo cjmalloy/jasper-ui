@@ -1,4 +1,4 @@
-import { CdkDragDrop, CdkDropListGroup, CdkDropList, CdkDrag } from '@angular/cdk/drag-drop';
+import { CdkDrag, CdkDragDrop, CdkDropList, CdkDropListGroup } from '@angular/cdk/drag-drop';
 import {
   AfterViewInit,
   Component,

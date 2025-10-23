@@ -3,9 +3,13 @@ import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/rou
 import { pickBy, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
+import { MobxAngularModule } from 'mobx-angular';
 import { catchError, filter, map, of, Subject, Subscription, switchMap, takeUntil, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
+import { LoadingComponent } from '../../component/loading/loading.component';
 import { RefComponent } from '../../component/ref/ref.component';
+import { SidebarComponent } from '../../component/sidebar/sidebar.component';
+import { TabsComponent } from '../../component/tabs/tabs.component';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ref } from '../../model/ref';
 import { isWiki } from '../../mods/wiki';
@@ -17,10 +21,6 @@ import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
 import { memo, MemoCache } from '../../util/memo';
 import { hasTag, privateTag, top } from '../../util/tag';
-import { MobxAngularModule } from 'mobx-angular';
-import { TabsComponent } from '../../component/tabs/tabs.component';
-import { SidebarComponent } from '../../component/sidebar/sidebar.component';
-import { LoadingComponent } from '../../component/loading/loading.component';
 
 @Component({
     selector: 'app-ref-page',

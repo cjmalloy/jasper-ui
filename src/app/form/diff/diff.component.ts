@@ -1,11 +1,11 @@
 import { Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
 import { autorun, IReactionDisposer } from 'mobx';
 import { DiffEditorModel, MonacoEditorModule } from 'ngx-monaco-editor';
+import { ResizeHandleDirective } from '../../directive/resize-handle.directive';
 import { Ref } from '../../model/ref';
 import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
 import { formatRefForDiff } from '../../util/diff';
-import { ResizeHandleDirective } from '../../directive/resize-handle.directive';
 
 @Component({
     selector: 'app-diff',

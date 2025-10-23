@@ -2,8 +2,7 @@
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { RouterModule } from '@angular/router';
-import { InboxDmsPage } from '../dms/dms.component';
+import { provideRouter } from '@angular/router';
 
 import { InboxReportsPage } from './reports.component';
 
@@ -13,12 +12,13 @@ describe('InboxReportsPage', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    imports: [RouterModule.forRoot([]), InboxReportsPage],
-    providers: [
+      imports: [InboxReportsPage],
+      providers: [
         provideHttpClient(withInterceptorsFromDi()),
-        provideHttpClientTesting()
-    ]
-}).compileComponents();
+        provideHttpClientTesting(),
+        provideRouter([]),
+      ]
+    }).compileComponents();
 
     fixture = TestBed.createComponent(InboxReportsPage);
     component = fixture.componentInstance;

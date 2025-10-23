@@ -1,8 +1,8 @@
 import { Component } from '@angular/core';
 import { runInAction } from 'mobx';
+import { MobxAngularModule } from 'mobx-angular';
 import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
-import { MobxAngularModule } from 'mobx-angular';
 
 @Component({
     selector: 'app-login-popup',

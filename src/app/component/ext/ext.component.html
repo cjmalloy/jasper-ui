@@ -4,8 +4,11 @@
   } @else {
     <a [routerLink]="['/tag', extLink]" [appTitle]="ext">{{ ext.name || template?.name || plugin?.name || '#' + ext.tag }}</a>
   }
-  <span *ngIf="ext.name" class="host">({{ qualifiedTag }})</span>
-  <span *ngIf="!ext.name && ext.origin" class="host">({{ ext.origin }})</span>
+  @if (ext.name) {
+    <span class="host">({{ qualifiedTag }})</span>
+  } @else if (ext.origin) {
+    <span class="host">({{ ext.origin }})</span>
+  }
 </div>
 <div class="stack">
   <div class="info">

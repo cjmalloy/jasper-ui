@@ -1,7 +1,11 @@
 import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { defer } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
+import { MobxAngularModule } from 'mobx-angular';
 import { LensComponent } from '../../component/lens/lens.component';
+import { SidebarComponent } from '../../component/sidebar/sidebar.component';
+import { TabsComponent } from '../../component/tabs/tabs.component';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
@@ -10,10 +14,6 @@ import { ModService } from '../../service/mod.service';
 import { QueryStore } from '../../store/query';
 import { Store } from '../../store/store';
 import { getArgs } from '../../util/query';
-import { MobxAngularModule } from 'mobx-angular';
-import { TabsComponent } from '../../component/tabs/tabs.component';
-import { RouterLink } from '@angular/router';
-import { SidebarComponent } from '../../component/sidebar/sidebar.component';
 
 @Component({
     selector: 'app-home-page',

@@ -199,7 +199,7 @@ export function getPath(url: string): string | null {
     return url;
   }
   const parsed = getUrl(url);
-  if (!parsed) return null;
+  if (!parsed) return '';
   return parsed.pathname;
 }
 

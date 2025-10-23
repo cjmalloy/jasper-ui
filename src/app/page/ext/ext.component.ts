@@ -1,10 +1,22 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostBinding, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
+import {
+  FormsModule,
+  ReactiveFormsModule,
+  UntypedFormBuilder,
+  UntypedFormControl,
+  UntypedFormGroup,
+  Validators
+} from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { defer, isObject } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
+import { MobxAngularModule } from 'mobx-angular';
 import { catchError, of, Subscription, switchMap, throwError } from 'rxjs';
+import { LoadingComponent } from '../../component/loading/loading.component';
+import { SelectTemplateComponent } from '../../component/select-template/select-template.component';
+import { SettingsComponent } from '../../component/settings/settings.component';
+import { LimitWidthDirective } from '../../directive/limit-width.directive';
 import { extForm, ExtFormComponent } from '../../form/ext/ext.component';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ext } from '../../model/ext';
@@ -17,11 +29,6 @@ import { scrollToFirstInvalid } from '../../util/form';
 import { TAG_SUFFIX_REGEX } from '../../util/format';
 import { printError } from '../../util/http';
 import { access, hasPrefix, localTag, prefix } from '../../util/tag';
-import { MobxAngularModule } from 'mobx-angular';
-import { SettingsComponent } from '../../component/settings/settings.component';
-import { SelectTemplateComponent } from '../../component/select-template/select-template.component';
-import { LoadingComponent } from '../../component/loading/loading.component';
-import { LimitWidthDirective } from '../../directive/limit-width.directive';
 
 @Component({
     selector: 'app-ext-page',

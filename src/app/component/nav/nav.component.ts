@@ -1,4 +1,5 @@
 import { Component, ElementRef, Input, OnDestroy, OnInit } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
@@ -8,7 +9,6 @@ import { EditorService } from '../../service/editor.service';
 import { VisibilityService } from '../../service/visibility.service';
 import { getPath, parseParams } from '../../util/http';
 import { hasPrefix } from '../../util/tag';
-import { RouterLink } from '@angular/router';
 
 @Component({
     selector: 'app-nav',

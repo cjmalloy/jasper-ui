@@ -1,8 +1,11 @@
 import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { uniq } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
+import { MobxAngularModule } from 'mobx-angular';
 import { Subject } from 'rxjs';
 import { CommentReplyComponent } from '../../../component/comment/comment-reply/comment-reply.component';
+import { CommentThreadComponent } from '../../../component/comment/comment-thread/comment-thread.component';
+import { LoadingComponent } from '../../../component/loading/loading.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Ref } from '../../../model/ref';
 import { getMailbox, mailboxes } from '../../../mods/mailbox';
@@ -13,9 +16,6 @@ import { ThreadStore } from '../../../store/thread';
 import { getTitle } from '../../../util/format';
 import { memo, MemoCache } from '../../../util/memo';
 import { hasTag, removeTag, updateMetadata } from '../../../util/tag';
-import { MobxAngularModule } from 'mobx-angular';
-import { CommentThreadComponent } from '../../../component/comment/comment-thread/comment-thread.component';
-import { LoadingComponent } from '../../../component/loading/loading.component';
 
 @Component({
     selector: 'app-ref-comments',

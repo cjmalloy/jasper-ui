@@ -1,11 +1,12 @@
 import { Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { TemplatePortal } from '@angular/cdk/portal';
+import { AsyncPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
   AfterViewInit,
   Component,
   ElementRef,
-  EventEmitter,
+  EventEmitter, forwardRef,
   HostBinding,
   HostListener,
   Input,
@@ -18,10 +19,13 @@ import {
   ViewChild,
   ViewContainerRef
 } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { defer, delay, difference, intersection, uniq } from 'lodash-es';
 import { catchError, of, Subject, Subscription, switchMap, takeUntil, throwError } from 'rxjs';
 import { Ext } from '../../../model/ext';
 import { equalsRef, Ref } from '../../../model/ref';
+import { CssUrlPipe } from '../../../pipe/css-url.pipe';
+import { ThumbnailPipe } from '../../../pipe/thumbnail.pipe';
 import { AdminService } from '../../../service/admin.service';
 import { ExtService } from '../../../service/api/ext.service';
 import { RefService } from '../../../service/api/ref.service';
@@ -34,22 +38,26 @@ import { getTitle, hasComment } from '../../../util/format';
 import { printError } from '../../../util/http';
 import { memo, MemoCache } from '../../../util/memo';
 import { expandedTagsInclude, hasTag, repost } from '../../../util/tag';
-import { LoadingComponent } from '../../loading/loading.component';
-import { RouterLink } from '@angular/router';
-import { CdkDropListGroup } from '@angular/cdk/drag-drop';
 import { ChessComponent } from '../../chess/chess.component';
-import { TodoComponent } from '../../todo/todo.component';
+import { LoadingComponent } from '../../loading/loading.component';
 import { MdComponent } from '../../md/md.component';
-import { AsyncPipe } from '@angular/common';
-import { ThumbnailPipe } from '../../../pipe/thumbnail.pipe';
-import { CssUrlPipe } from '../../../pipe/css-url.pipe';
+import { TodoComponent } from '../../todo/todo.component';
 
 @Component({
-    selector: 'app-note',
-    templateUrl: './note.component.html',
-    styleUrls: ['./note.component.scss'],
-    host: { 'class': 'note' },
-    imports: [LoadingComponent, RouterLink, CdkDropListGroup, ChessComponent, TodoComponent, MdComponent, AsyncPipe, ThumbnailPipe, CssUrlPipe]
+  selector: 'app-note',
+  templateUrl: './note.component.html',
+  styleUrls: ['./note.component.scss'],
+  host: { 'class': 'note' },
+  imports: [
+    LoadingComponent,
+    RouterLink,
+    ChessComponent,
+    TodoComponent,
+    MdComponent,
+    AsyncPipe,
+    ThumbnailPipe,
+    CssUrlPipe,
+  ],
 })
 export class NoteComponent implements OnChanges, AfterViewInit, OnDestroy {
   private destroy$ = new Subject<void>();

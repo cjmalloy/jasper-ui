@@ -1,13 +1,17 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { AfterViewInit, Component, OnDestroy, ViewChild } from '@angular/core';
-import { UntypedFormBuilder, UntypedFormGroup, ReactiveFormsModule } from '@angular/forms';
+import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
 import { defer, uniq, without } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { autorun, IReactionDisposer } from 'mobx';
+import { MobxAngularModule } from 'mobx-angular';
 import { catchError, map, of, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
+import { LoadingComponent } from '../../../component/loading/loading.component';
+import { NavComponent } from '../../../component/nav/nav.component';
+import { LimitWidthDirective } from '../../../directive/limit-width.directive';
 import { writePlugins } from '../../../form/plugins/plugins.component';
 import { refForm, RefFormComponent } from '../../../form/ref/ref.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
@@ -26,17 +30,20 @@ import { Store } from '../../../store/store';
 import { scrollToFirstInvalid } from '../../../util/form';
 import { interestingTags } from '../../../util/format';
 import { printError } from '../../../util/http';
-import { MobxAngularModule } from 'mobx-angular';
-import { LimitWidthDirective } from '../../../directive/limit-width.directive';
-import { NavComponent } from '../../../component/nav/nav.component';
-import { LoadingComponent } from '../../../component/loading/loading.component';
 
 @Component({
     selector: 'app-submit-web-page',
     templateUrl: './web.component.html',
     styleUrls: ['./web.component.scss'],
     host: { 'class': 'full-page-form' },
-    imports: [MobxAngularModule, ReactiveFormsModule, LimitWidthDirective, NavComponent, LoadingComponent, RefFormComponent]
+    imports: [
+      MobxAngularModule,
+      ReactiveFormsModule,
+      LimitWidthDirective,
+      NavComponent,
+      LoadingComponent,
+      RefFormComponent,
+    ],
 })
 export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
 

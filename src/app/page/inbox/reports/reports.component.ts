@@ -2,6 +2,7 @@ import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { defer } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
+import { MobxAngularModule } from 'mobx-angular';
 import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { AdminService } from '../../../service/admin.service';
@@ -9,14 +10,16 @@ import { ModService } from '../../../service/mod.service';
 import { QueryStore } from '../../../store/query';
 import { Store } from '../../../store/store';
 import { getArgs } from '../../../util/query';
-import { MobxAngularModule } from 'mobx-angular';
 
 @Component({
-    selector: 'app-inbox-reports',
-    templateUrl: './reports.component.html',
-    styleUrl: './reports.component.scss',
-    host: { 'class': 'modlist' },
-    imports: [MobxAngularModule, RefListComponent]
+  selector: 'app-inbox-reports',
+  templateUrl: './reports.component.html',
+  styleUrl: './reports.component.scss',
+  host: { 'class': 'modlist' },
+  imports: [
+    MobxAngularModule,
+    RefListComponent,
+  ],
 })
 export class InboxReportsPage  implements OnInit, OnDestroy, HasChanges {
 

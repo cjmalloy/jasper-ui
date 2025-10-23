@@ -1,9 +1,9 @@
 import { Component, HostBinding, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { FormBuilder, UntypedFormArray, UntypedFormGroup, Validators } from '@angular/forms';
+import { FormlyModule } from '@ngx-formly/core';
 import { defer } from 'lodash-es';
 import { TAG_REGEX } from '../../util/format';
 import { hasPrefix, hasTag } from '../../util/tag';
-import { FormlyModule } from '@ngx-formly/core';
 
 @Component({
     selector: 'app-tags',

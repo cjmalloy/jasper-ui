@@ -1,11 +1,11 @@
 /// <reference types="vitest/globals" />
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { RouterModule } from '@angular/router';
+import { provideRouter } from '@angular/router';
 import { Subject } from 'rxjs';
 
 import { CommentThreadComponent } from './comment-thread.component';
-import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 describe('CommentThreadComponent', () => {
   let component: CommentThreadComponent;
@@ -13,12 +13,13 @@ describe('CommentThreadComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    imports: [RouterModule.forRoot([]), CommentThreadComponent],
-    providers: [
+      imports: [CommentThreadComponent],
+      providers: [
         provideHttpClient(withInterceptorsFromDi()),
-        provideHttpClientTesting()
-    ]
-}).compileComponents();
+        provideHttpClientTesting(),
+        provideRouter([]),
+      ],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(CommentThreadComponent);
     component = fixture.componentInstance;

@@ -3,13 +3,24 @@
         (input)="addSort($any(create.value))"
         i18n-title title="Sort">
   <option class="unselected" i18n>🔼️ sort</option>
-  <option *ngFor="let s of allSorts" [value]="s.value" [title]="s.title || ''">{{ s.label || s.value }}</option>
+  @for (s of allSorts; track s) {
+    <option [value]="s.value" [title]="s.title || ''">{{ s.label || s.value }}</option>
+  }
 </select>
-<span class="controls" *ngFor="let sort of sorts; let i=index">
-  <select id="sort-{{ i }}" [ngModel]="sortCol(sort)" (ngModelChange)="setSortCol(i, $event)" [title]="title(sortCol(sort))">
-    <option *ngFor="let s of allSorts" [value]="s.value" [title]="s.title || ''">{{ s.label || s.value }}</option>
-  </select>
-  <button type="button" *ngIf="sortDir(sort) === 'DESC'"(click)="setSortDir(i, 'ASC')" i18n-title title="Descending" i18n>🔽️</button>
-  <button type="button" *ngIf="sortDir(sort) === 'ASC'" (click)="setSortDir(i, 'DESC')" i18n-title title="Ascending" i18n>🔼️</button>
-  <button type="button" *ngIf="sorts.length > 1" (click)="removeSort(i)" i18n>&ndash;</button>
-</span>
+@for (sort of sorts; track sort; let i = $index) {
+  <span class="controls">
+    <select id="sort-{{ i }}" [ngModel]="sortCol(sort)" (ngModelChange)="setSortCol(i, $event)" [title]="title(sortCol(sort))">
+      @for (s of allSorts; track s) {
+        <option [value]="s.value" [title]="s.title || ''">{{ s.label || s.value }}</option>
+      }
+    </select>
+    @if (sortDir(sort) === 'DESC') {
+      <button type="button" (click)="setSortDir(i, 'ASC')" i18n-title title="Descending" i18n>🔽️</button>
+    } @else {
+      <button type="button" (click)="setSortDir(i, 'DESC')" i18n-title title="Ascending" i18n>🔼️</button>
+    }
+    @if (sorts.length > 1) {
+      <button type="button" (click)="removeSort(i)" i18n>&ndash;</button>
+    }
+  </span>
+}

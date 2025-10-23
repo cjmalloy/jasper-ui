@@ -1,8 +1,8 @@
 import { Component, HostBinding, Input } from '@angular/core';
 import { FormBuilder, UntypedFormArray, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
+import { FormlyModule } from '@ngx-formly/core';
 import { map } from 'lodash-es';
 import { URI_REGEX } from '../../util/format';
-import { FormlyModule } from '@ngx-formly/core';
 
 @Component({
     selector: 'app-links',

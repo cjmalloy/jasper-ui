@@ -1,10 +1,18 @@
 <div class="link" [class.remote]="!local" [title]="template.config?.description || ''">
-  <a *ngIf="template.tag" [routerLink]="['/tags', template.tag]">{{ template.name || template.tag }}</a>
-  <a *ngIf="!template.tag" routerLink="/tags">{{ template.name || 'root' }}</a>
-  <span *ngIf="!qualifiedTag" class="host" i18n>(root: "")</span>
-  <span *ngIf="!template.tag && template.origin" class="host" i18n>(root: {{ template.origin }})</span>
-  <span *ngIf="template.name && template.tag" class="host">({{ qualifiedTag }})</span>
-  <span *ngIf="!template.tag && !template.name && template.origin" class="host">({{ template.origin }})</span>
+  @if (template.tag) {
+    <a [routerLink]="['/tags', template.tag]">{{ template.name || template.tag }}</a>
+  } @else {
+    <a routerLink="/tags">{{ template.name || 'root' }}</a>
+  }
+  @if (!qualifiedTag) {
+    <span class="host" i18n>(root: "")</span>
+  } @else if (!template.tag && template.origin) {
+    <span class="host" i18n>(root: {{ template.origin }})</span>
+  } @else if (template.name && template.tag) {
+    <span class="host">({{ qualifiedTag }})</span>
+  } @else if (template.origin) {
+    <span class="host">({{ template.origin }})</span>
+  }
 </div>
 <div class="stack">
   <div class="info">

@@ -1,9 +1,13 @@
 import { Component, OnDestroy, OnInit, QueryList, ViewChild, ViewChildren } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { defer, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
+import { MobxAngularModule } from 'mobx-angular';
 import { Subject } from 'rxjs';
 import { CommentReplyComponent } from '../../../component/comment/comment-reply/comment-reply.component';
 import { CommentThreadComponent } from '../../../component/comment/comment-thread/comment-thread.component';
+import { ThreadSummaryComponent } from '../../../component/comment/thread-summary/thread-summary.component';
+import { LoadingComponent } from '../../../component/loading/loading.component';
 import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 
@@ -19,10 +23,6 @@ import { getTitle } from '../../../util/format';
 import { memo, MemoCache } from '../../../util/memo';
 import { getArgs } from '../../../util/query';
 import { hasTag, removeTag, top, updateMetadata } from '../../../util/tag';
-import { MobxAngularModule } from 'mobx-angular';
-import { RouterLink } from '@angular/router';
-import { ThreadSummaryComponent } from '../../../component/comment/thread-summary/thread-summary.component';
-import { LoadingComponent } from '../../../component/loading/loading.component';
 
 @Component({
     selector: 'app-ref-summary',

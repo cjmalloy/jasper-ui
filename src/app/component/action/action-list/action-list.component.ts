@@ -1,5 +1,6 @@
 import { Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { TemplatePortal } from '@angular/cdk/portal';
+import { KeyValuePipe } from '@angular/common';
 import {
   AfterViewInit,
   Component,
@@ -15,6 +16,7 @@ import {
 } from '@angular/core';
 import { defer } from 'lodash-es';
 import { Subscription } from 'rxjs';
+import { TitleDirective } from '../../../directive/title.directive';
 import { Ref, writeRef } from '../../../model/ref';
 import { Action } from '../../../model/tag';
 import { ActionService } from '../../../service/action.service';
@@ -22,9 +24,7 @@ import { ConfigService } from '../../../service/config.service';
 import { downloadRef } from '../../../util/download';
 import { memo, MemoCache } from '../../../util/memo';
 import { ConfirmActionComponent } from '../confirm-action/confirm-action.component';
-import { TitleDirective } from '../../../directive/title.directive';
 import { InlineButtonComponent } from '../inline-button/inline-button.component';
-import { KeyValuePipe } from '@angular/common';
 
 @Component({
     selector: 'app-action-list',
