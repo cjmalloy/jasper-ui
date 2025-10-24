@@ -1,8 +1,10 @@
 /// <reference types="vitest/globals" />
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { forwardRef } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
+import { provideRouter } from '@angular/router';
 
 import { ExtComponent } from './ext.component';
 
@@ -14,11 +16,12 @@ describe('ExtComponent', () => {
     await TestBed.configureTestingModule({
       imports: [
         ReactiveFormsModule,
-        ExtComponent,
+        forwardRef(() => ExtComponent),
       ],
       providers: [
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),
+        provideRouter([]),
       ]
     }).compileComponents();
 

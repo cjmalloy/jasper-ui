@@ -1,4 +1,5 @@
 /// <reference types="vitest/globals" />
+import { forwardRef } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { ExtListComponent } from './ext-list.component';
@@ -9,7 +10,7 @@ describe('ExtListComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ExtListComponent],
+      imports: [forwardRef(() => ExtListComponent)],
     }).compileComponents();
 
     fixture = TestBed.createComponent(ExtListComponent);

@@ -42,7 +42,7 @@ import { KanbanDrag } from '../kanban.component';
   styleUrls: ['./kanban-column.component.scss'],
   host: { 'class': 'kanban-column' },
   imports: [
-    forwardRef(() => KanbanCardComponent),
+    KanbanCardComponent,
     CdkDrag,
     LoadingComponent,
     ReactiveFormsModule,

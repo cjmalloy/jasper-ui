@@ -19,7 +19,7 @@ import { NoteComponent } from './note/note.component';
   styleUrl: './notebook.component.scss',
   host: { 'class': 'notebook ext' },
   imports: [
-    forwardRef(() => NoteComponent),
+    NoteComponent,
     PageControlsComponent,
     LoadingComponent,
   ],

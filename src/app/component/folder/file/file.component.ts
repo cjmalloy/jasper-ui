@@ -31,7 +31,7 @@ import { ViewerComponent } from '../../viewer/viewer.component';
   templateUrl: './file.component.html',
   styleUrls: ['./file.component.scss'],
   imports: [
-    forwardRef(() => ViewerComponent),
+    ViewerComponent,
     RouterLink,
     AsyncPipe,
     ThumbnailPipe,

@@ -43,8 +43,8 @@ import { ViewerComponent } from '../../viewer/viewer.component';
   styleUrls: ['./chat-entry.component.scss'],
   host: { 'class': 'chat-entry' },
   imports: [
-    forwardRef(() => ViewerComponent),
-    forwardRef(() => MdComponent),
+    ViewerComponent,
+    MdComponent,
     RouterLink,
     TitleDirective,
     LoadingComponent,

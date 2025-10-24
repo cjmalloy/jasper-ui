@@ -35,8 +35,8 @@ import { FilteredModels, filterModels, getModels, getTextFile, unzip, zippedFile
   styleUrls: ['./upload.component.scss'],
   host: { 'class': 'full-page-upload' },
   imports: [
-    forwardRef(() => ExtComponent),
-    forwardRef(() => RefComponent),
+    ExtComponent,
+    RefComponent,
     MobxAngularModule,
     RouterLink,
     ReactiveFormsModule,

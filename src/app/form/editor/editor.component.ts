@@ -59,7 +59,7 @@ export interface EditorUpload {
   styleUrls: ['./editor.component.scss'],
   host: { 'class': 'editor' },
   imports: [
-    forwardRef(() => MdComponent),
+    MdComponent,
     LoadingComponent,
     ReactiveFormsModule,
     FillWidthDirective,

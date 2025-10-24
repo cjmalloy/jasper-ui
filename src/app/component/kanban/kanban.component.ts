@@ -49,7 +49,7 @@ export interface KanbanDrag {
   styleUrls: ['./kanban.component.scss'],
   host: { 'class': 'kanban ext' },
   imports: [
-    forwardRef(() => KanbanColumnComponent),
+    KanbanColumnComponent,
     MobxAngularModule,
     LoadingComponent,
     CdkDropListGroup,

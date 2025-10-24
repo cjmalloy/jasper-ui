@@ -19,7 +19,7 @@ import { getArgs } from '../../../util/query';
   styleUrls: ['./sources.component.scss'],
   imports: [
     MobxAngularModule,
-    forwardRef(() => RefListComponent),
+    RefListComponent,
   ],
 })
 export class RefSourcesComponent implements OnInit, OnDestroy, HasChanges {

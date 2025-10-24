@@ -11,7 +11,10 @@ import { Store } from '../../store/store';
   selector: 'app-md',
   templateUrl: './md.component.html',
   styleUrls: ['./md.component.scss'],
-  imports: [MarkdownComponent, MdPostDirective]
+  imports: [
+    MarkdownComponent,
+    MdPostDirective,
+  ]
 })
 export class MdComponent {
 

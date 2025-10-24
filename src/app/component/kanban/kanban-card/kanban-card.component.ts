@@ -52,7 +52,7 @@ import { TodoComponent } from '../../todo/todo.component';
   styleUrls: ['./kanban-card.component.scss'],
   host: { 'class': 'kanban-card' },
   imports: [
-    forwardRef(() => MdComponent),
+    MdComponent,
     LoadingComponent,
     RouterLink,
     ChessComponent,

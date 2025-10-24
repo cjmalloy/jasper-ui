@@ -57,7 +57,7 @@ import { hasPrefix, hasTag } from '../../../util/tag';
   styleUrls: ['./dm.component.scss'],
   host: { 'class': 'full-page-form' },
   imports: [
-    forwardRef(() => EditorComponent),
+    EditorComponent,
     MobxAngularModule,
     ReactiveFormsModule,
     LimitWidthDirective,

@@ -15,8 +15,8 @@ import { CommentComponent } from '../comment.component';
   styleUrls: ['./thread-summary.component.scss'],
   host: { 'class': 'thread-summary' },
   imports: [
-    forwardRef(() => CommentComponent),
-    forwardRef(() => RefComponent),
+    CommentComponent,
+    RefComponent,
     MobxAngularModule,
   ]
 })

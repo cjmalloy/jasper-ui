@@ -36,7 +36,7 @@ import { prefix } from '../../../util/tag';
   styleUrls: ['./invoice.component.scss'],
   host: { 'class': 'full-page-form' },
   imports: [
-    forwardRef(() => EditorComponent),
+    EditorComponent,
     ReactiveFormsModule,
     LimitWidthDirective,
     QrScannerComponent,

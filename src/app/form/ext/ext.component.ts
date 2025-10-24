@@ -37,8 +37,8 @@ import { themesForm, ThemesFormComponent } from '../themes/themes.component';
   styleUrls: ['./ext.component.scss'],
   host: { 'class': 'nested-form' },
   imports: [
-    forwardRef(() => RefComponent),
-    forwardRef(() => EditorComponent),
+    RefComponent,
+    EditorComponent,
     ReactiveFormsModule,
     FormlyForm,
     CdkDropListGroup,
