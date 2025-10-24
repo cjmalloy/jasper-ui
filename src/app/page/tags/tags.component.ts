@@ -21,7 +21,7 @@ import { braces, getPrefixes, hasPrefix, publicTag } from '../../util/tag';
   templateUrl: './tags.component.html',
   styleUrls: ['./tags.component.scss'],
   imports: [
-    forwardRef(() => ExtListComponent),
+    ExtListComponent,
     MobxAngularModule,
     TabsComponent,
     RouterLink,

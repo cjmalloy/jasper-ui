@@ -61,7 +61,7 @@ export const IFRAME_SANDBOX = 'allow-scripts allow-forms allow-modals allow-orie
     forwardRef(() => PlaylistComponent),
     forwardRef(() => LensComponent),
     forwardRef(() => ModComponent),
-    forwardRef(() => MdComponent),
+    MdComponent,
     ImageDirective,
     ResizeDirective,
     QrComponent,

@@ -1,5 +1,5 @@
 import { CdkFixedSizeVirtualScroll, CdkVirtualForOf, CdkVirtualScrollViewport } from '@angular/cdk/scrolling';
-import { Component, forwardRef, Input, OnChanges, OnDestroy, SimpleChanges, ViewChild } from '@angular/core';
+import { Component, Input, OnChanges, OnDestroy, SimpleChanges, ViewChild } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { debounce, defer, delay, pull, pullAllWith, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
@@ -29,7 +29,7 @@ import { ChatEntryComponent } from './chat-entry/chat-entry.component';
   styleUrls: ['./chat.component.scss'],
   host: { 'class': 'chat ext' },
   imports: [
-    forwardRef(() => ChatEntryComponent),
+    ChatEntryComponent,
     LoadingComponent,
     CdkVirtualScrollViewport,
     CdkFixedSizeVirtualScroll,

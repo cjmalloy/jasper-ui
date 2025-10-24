@@ -1,4 +1,4 @@
-import { Component, forwardRef, HostBinding, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, HostBinding, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { isEqual, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
@@ -22,7 +22,7 @@ import { getArgs, UrlFilter } from '../../util/query';
   templateUrl: './tag.component.html',
   styleUrls: ['./tag.component.scss'],
   imports: [
-    forwardRef(() => LensComponent),
+    LensComponent,
     MobxAngularModule,
     TabsComponent,
     RouterLink,

@@ -27,7 +27,7 @@ import { hasTag, privateTag, top } from '../../util/tag';
   templateUrl: './ref.component.html',
   styleUrls: ['./ref.component.scss'],
   imports: [
-    forwardRef(() => RefComponent),
+    RefComponent,
     MobxAngularModule,
     TabsComponent,
     RouterLink,

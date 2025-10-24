@@ -22,8 +22,8 @@ import { SubfolderComponent } from './subfolder/subfolder.component';
   styleUrls: ['./folder.component.scss'],
   host: { 'class': 'folder ext' },
   imports: [
-    forwardRef(() => FileComponent),
-    forwardRef(() => SubfolderComponent),
+    FileComponent,
+    SubfolderComponent,
     CdkDrag,
   ],
 })

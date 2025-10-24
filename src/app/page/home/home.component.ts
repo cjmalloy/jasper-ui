@@ -20,7 +20,7 @@ import { getArgs } from '../../util/query';
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.scss'],
   imports: [
-    forwardRef(() => LensComponent),
+    LensComponent,
     MobxAngularModule,
     TabsComponent,
     RouterLink,

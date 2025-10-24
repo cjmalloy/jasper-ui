@@ -50,8 +50,8 @@ import { SortComponent } from '../sort/sort.component';
   styleUrls: ['./sidebar.component.scss'],
   host: { 'class': 'sidebar' },
   imports: [
-    forwardRef(() => ExtComponent),
-    forwardRef(() => MdComponent),
+    ExtComponent,
+    MdComponent,
     MobxAngularModule,
     SearchComponent,
     QueryComponent,
