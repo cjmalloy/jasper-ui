@@ -9,7 +9,7 @@ import {
   SimpleChanges,
   ViewChildren
 } from '@angular/core';
-import { UntypedFormArray, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
+import { ReactiveFormsModule, UntypedFormArray, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { defer } from 'lodash-es';
 import { toJS } from 'mobx';
 import { Subject, takeUntil } from 'rxjs';
@@ -26,7 +26,7 @@ import { GenFormComponent } from './gen/gen.component';
   templateUrl: './plugins.component.html',
   styleUrls: ['./plugins.component.scss'],
   host: { 'class': 'plugins-form' },
-  imports: [TitleDirective, GenFormComponent]
+  imports: [ReactiveFormsModule, TitleDirective, GenFormComponent]
 })
 export class PluginsFormComponent implements OnChanges, AfterViewInit {
   private destroy$ = new Subject<void>();
