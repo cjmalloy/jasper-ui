@@ -100,7 +100,7 @@ export function configGroups(def: Record<string, Config>): Record<ModType, [stri
     const mod = modId(item[1]);
     const type: [string, Config][] = result[item[1].config?.type || DEFAULT_TYPE] ||= [];
     if (!type.find(i => mod === modId(i[1]))) {
-      type.push(item);
+      type.push([item[0].replace(/[.]/g, '-'), item[1]]);
     }
     return result;
   }, {} as Record<ModType, [string, Config][]>)

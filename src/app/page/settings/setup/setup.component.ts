@@ -3,7 +3,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component } from '@angular/core';
 import { FormsModule, ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { forOwn, mapValues, uniq } from 'lodash-es';
+import { forOwn, uniq } from 'lodash-es';
 import { catchError, concat, last, throwError } from 'rxjs';
 import { Config } from '../../../model/tag';
 import { AdminService } from '../../../service/admin.service';
@@ -45,7 +45,9 @@ export class SettingsSetupPage {
   ) {
     mod.setTitle($localize`Settings: Setup`);
     this.adminForm = fb.group({
-      mods: fb.group(mapValues({...this.admin.def.plugins, ...this.admin.def.templates }, () => fb.control(false))),
+      mods: fb.group(Object.fromEntries(Object.entries({...this.admin.def.plugins, ...this.admin.def.templates }).map(
+        e => [e[0].replace(/[.]/g, '-'), fb.control(false)]
+      ))),
     });
     this.clear();
   }
