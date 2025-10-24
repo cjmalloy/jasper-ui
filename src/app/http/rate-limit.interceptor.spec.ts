@@ -1,7 +1,7 @@
 /// <reference types="vitest/globals" />
 import { HTTP_INTERCEPTORS, HttpClient, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { fakeAsync, TestBed, tick } from '@angular/core/testing';
+import { TestBed } from '@angular/core/testing';
 import { RateLimitInterceptor } from './rate-limit.interceptor';
 
 describe('RateLimitInterceptor', () => {
@@ -48,15 +48,18 @@ describe('RateLimitInterceptor', () => {
     await promise;
   });
 
-  it('should retry on 429 status with X-RateLimit-Retry-After header', fakeAsync(() => {
+  it('should retry on 429 status with X-RateLimit-Retry-After header', async () => {
+    vi.useFakeTimers();
+
     const testData = { message: 'success' };
     let attemptCount = 0;
-    let completed = false;
 
-    httpClient.get('/test').subscribe(data => {
-      expect(data).toEqual(testData);
-      expect(attemptCount).toBe(2); // Initial request + 1 retry
-      completed = true;
+    const promise = new Promise<void>((resolve) => {
+      httpClient.get('/test').subscribe(data => {
+        expect(data).toEqual(testData);
+        expect(attemptCount).toBe(2); // Initial request + 1 retry
+        resolve();
+      });
     });
 
     // First request - returns 429
@@ -69,25 +72,29 @@ describe('RateLimitInterceptor', () => {
     });
 
     // Wait for retry delay (1 second)
-    tick(1000);
+    await vi.advanceTimersByTimeAsync(1000);
 
     // Retry request - succeeds
     const req2 = httpTestingController.expectOne('/test');
     attemptCount++;
     req2.flush(testData);
 
-    expect(completed).toBe(true);
-  }));
+    await promise;
+    vi.useRealTimers();
+  });
 
-  it('should retry on 503 status with X-RateLimit-Retry-After header', fakeAsync(() => {
+  it('should retry on 503 status with X-RateLimit-Retry-After header', async () => {
+    vi.useFakeTimers();
+
     const testData = { message: 'success' };
     let attemptCount = 0;
-    let completed = false;
 
-    httpClient.get('/test').subscribe(data => {
-      expect(data).toEqual(testData);
-      expect(attemptCount).toBe(2); // Initial request + 1 retry
-      completed = true;
+    const promise = new Promise<void>((resolve) => {
+      httpClient.get('/test').subscribe(data => {
+        expect(data).toEqual(testData);
+        expect(attemptCount).toBe(2); // Initial request + 1 retry
+        resolve();
+      });
     });
 
     // First request - returns 503
@@ -100,27 +107,31 @@ describe('RateLimitInterceptor', () => {
     });
 
     // Wait for retry delay (1 second)
-    tick(1000);
+    await vi.advanceTimersByTimeAsync(1000);
 
     // Retry request - succeeds
     const req2 = httpTestingController.expectOne('/test');
     attemptCount++;
     req2.flush(testData);
 
-    expect(completed).toBe(true);
-  }));
+    await promise;
+    vi.useRealTimers();
+  });
 
-  it('should give up after max retries', fakeAsync(() => {
+  it('should give up after max retries', async () => {
+    vi.useFakeTimers();
+
     let attemptCount = 0;
-    let errorReceived = false;
 
-    httpClient.get('/test').subscribe({
-      next: () => { throw new Error('Should not succeed'); },
-      error: (error) => {
-        expect(error.status).toBe(429);
-        expect(attemptCount).toBe(4); // Initial + 3 retries
-        errorReceived = true;
-      }
+    const promise = new Promise<void>((resolve) => {
+      httpClient.get('/test').subscribe({
+        next: () => { throw new Error('Should not succeed'); },
+        error: (error) => {
+          expect(error.status).toBe(429);
+          expect(attemptCount).toBe(4); // Initial + 3 retries
+          resolve();
+        }
+      });
     });
 
     // Initial request
@@ -133,7 +144,7 @@ describe('RateLimitInterceptor', () => {
     });
 
     // Retry 1
-    tick(1000);
+    await vi.advanceTimersByTimeAsync(1000);
     const req2 = httpTestingController.expectOne('/test');
     attemptCount++;
     req2.flush(null, {
@@ -143,7 +154,7 @@ describe('RateLimitInterceptor', () => {
     });
 
     // Retry 2
-    tick(1000);
+    await vi.advanceTimersByTimeAsync(1000);
     const req3 = httpTestingController.expectOne('/test');
     attemptCount++;
     req3.flush(null, {
@@ -153,7 +164,7 @@ describe('RateLimitInterceptor', () => {
     });
 
     // Retry 3
-    tick(1000);
+    await vi.advanceTimersByTimeAsync(1000);
     const req4 = httpTestingController.expectOne('/test');
     attemptCount++;
     req4.flush(null, {
@@ -162,8 +173,9 @@ describe('RateLimitInterceptor', () => {
       headers: { 'X-RateLimit-Retry-After': '1' }
     });
 
-    expect(errorReceived).toBe(true);
-  }));
+    await promise;
+    vi.useRealTimers();
+  });
 
   it('should not retry on other error status codes', async () => {
     let attemptCount = 0;
@@ -186,15 +198,18 @@ describe('RateLimitInterceptor', () => {
     await promise;
   });
 
-  it('should use exponential backoff when header is missing', fakeAsync(() => {
+  it('should use exponential backoff when header is missing', async () => {
+    vi.useFakeTimers();
+
     const testData = { message: 'success' };
     let attemptCount = 0;
-    let completed = false;
 
-    httpClient.get('/test').subscribe(data => {
-      expect(data).toEqual(testData);
-      expect(attemptCount).toBe(3); // Initial request + 2 retries
-      completed = true;
+    const promise = new Promise<void>((resolve) => {
+      httpClient.get('/test').subscribe(data => {
+        expect(data).toEqual(testData);
+        expect(attemptCount).toBe(3); // Initial request + 2 retries
+        resolve();
+      });
     });
 
     // First request - returns 429 without header
@@ -206,7 +221,7 @@ describe('RateLimitInterceptor', () => {
     });
 
     // Wait for first backoff (1 second = 2^0 * 1000)
-    tick(1000);
+    await vi.advanceTimersByTimeAsync(1000);
 
     // Retry 1 - returns 429
     const req2 = httpTestingController.expectOne('/test');
@@ -217,25 +232,29 @@ describe('RateLimitInterceptor', () => {
     });
 
     // Wait for second backoff (2 seconds = 2^1 * 1000)
-    tick(2000);
+    await vi.advanceTimersByTimeAsync(2000);
 
     // Retry 2 - succeeds
     const req3 = httpTestingController.expectOne('/test');
     attemptCount++;
     req3.flush(testData);
 
-    expect(completed).toBe(true);
-  }));
+    await promise;
+    vi.useRealTimers();
+  });
 
-  it('should handle decimal retry values in X-RateLimit-Retry-After header', fakeAsync(() => {
+  it('should handle decimal retry values in X-RateLimit-Retry-After header', async () => {
+    vi.useFakeTimers();
+
     const testData = { message: 'success' };
     let attemptCount = 0;
-    let completed = false;
 
-    httpClient.get('/test').subscribe(data => {
-      expect(data).toEqual(testData);
-      expect(attemptCount).toBe(2); // Initial request + 1 retry
-      completed = true;
+    const promise = new Promise<void>((resolve) => {
+      httpClient.get('/test').subscribe(data => {
+        expect(data).toEqual(testData);
+        expect(attemptCount).toBe(2); // Initial request + 1 retry
+        resolve();
+      });
     });
 
     // First request - returns 429 with decimal retry value
@@ -248,13 +267,14 @@ describe('RateLimitInterceptor', () => {
     });
 
     // Wait for retry delay (2.5 seconds = 2500ms)
-    tick(2500);
+    await vi.advanceTimersByTimeAsync(2500);
 
     // Retry request - succeeds
     const req2 = httpTestingController.expectOne('/test');
     attemptCount++;
     req2.flush(testData);
 
-    expect(completed).toBe(true);
-  }));
+    await promise;
+    vi.useRealTimers();
+  });
 });
