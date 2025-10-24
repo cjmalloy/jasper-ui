@@ -13,7 +13,6 @@
   ],
   "include": [
     "src/**/*.spec.ts",
-    "src/**/*.d.ts",
-    "zone.js/testing"
+    "src/**/*.d.ts"
   ]
 }
