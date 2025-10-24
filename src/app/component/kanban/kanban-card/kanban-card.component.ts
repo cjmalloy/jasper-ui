@@ -6,7 +6,7 @@ import {
   AfterViewInit,
   Component,
   ElementRef,
-  EventEmitter,
+  EventEmitter, forwardRef,
   HostBinding,
   HostListener,
   Input,
@@ -52,7 +52,7 @@ import { TodoComponent } from '../../todo/todo.component';
   styleUrls: ['./kanban-card.component.scss'],
   host: { 'class': 'kanban-card' },
   imports: [
-    MdComponent,
+    forwardRef(() => MdComponent),
     LoadingComponent,
     RouterLink,
     ChessComponent,
