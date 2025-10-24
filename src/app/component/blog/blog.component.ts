@@ -18,7 +18,7 @@ import { BlogEntryComponent } from './blog-entry/blog-entry.component';
   styleUrls: ['./blog.component.scss'],
   host: { 'class': 'blog ext' },
   imports: [
-    forwardRef(() => BlogEntryComponent),
+    BlogEntryComponent,
     PageControlsComponent,
     LoadingComponent,
   ],

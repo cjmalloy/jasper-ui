@@ -91,9 +91,9 @@ import { ViewerComponent } from '../viewer/viewer.component';
   templateUrl: './ref.component.html',
   styleUrls: ['./ref.component.scss'],
   imports: [
-    forwardRef(() => ViewerComponent),
-    forwardRef(() => RefFormComponent),
-    forwardRef(() => MdComponent),
+    ViewerComponent,
+    RefFormComponent,
+    MdComponent,
     NavComponent,
     RouterLink,
     TitleDirective,

@@ -13,7 +13,7 @@ import { ExtComponent } from '../ext.component';
   styleUrls: ['./ext-list.component.scss'],
   host: { 'class': 'ext-list' },
   imports: [
-    forwardRef(() => ExtComponent),
+    ExtComponent,
     PageControlsComponent,
     LoadingComponent,
   ],

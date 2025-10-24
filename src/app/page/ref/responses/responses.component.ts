@@ -17,7 +17,7 @@ import { getArgs, UrlFilter } from '../../../util/query';
   styleUrls: ['./responses.component.scss'],
   imports: [
     MobxAngularModule,
-    forwardRef(() => RefListComponent),
+    RefListComponent,
   ],
 })
 export class RefResponsesComponent implements OnInit, OnDestroy, HasChanges {

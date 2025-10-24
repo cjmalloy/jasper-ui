@@ -18,7 +18,7 @@ import { getArgs } from '../../../util/query';
   host: { 'class': 'modlist' },
   imports: [
     MobxAngularModule,
-    forwardRef(() => RefListComponent),
+    RefListComponent,
   ],
 })
 export class InboxReportsPage  implements OnInit, OnDestroy, HasChanges {

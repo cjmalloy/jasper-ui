@@ -49,7 +49,7 @@ import { TagsFormComponent } from '../tags/tags.component';
   styleUrls: ['./ref.component.scss'],
   host: { 'class': 'nested-form' },
   imports: [
-    forwardRef(() => EditorComponent),
+    EditorComponent,
     CdkDropListGroup,
     ReactiveFormsModule,
     LinksFormComponent,

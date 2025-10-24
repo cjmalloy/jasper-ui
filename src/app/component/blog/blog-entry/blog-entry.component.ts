@@ -67,7 +67,7 @@ import { ViewerComponent } from '../../viewer/viewer.component';
   styleUrls: ['./blog-entry.component.scss'],
   host: { 'class': 'blog-entry' },
   imports: [
-    forwardRef(() => ViewerComponent),
+    ViewerComponent,
     NavComponent,
     RouterLink,
     TitleDirective,

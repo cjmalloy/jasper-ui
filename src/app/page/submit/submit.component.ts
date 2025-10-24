@@ -48,7 +48,7 @@ type Validation = { test: (url: string) => Observable<any>; name: string; passed
   templateUrl: './submit.component.html',
   styleUrls: ['./submit.component.scss'],
   imports: [
-    forwardRef(() => RefComponent),
+    RefComponent,
     MobxAngularModule,
     TabsComponent,
     RouterLink,

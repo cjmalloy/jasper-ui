@@ -29,7 +29,7 @@ import { RefComponent } from '../ref/ref.component';
     forwardRef(() => FolderComponent),
     forwardRef(() => RefListComponent),
     forwardRef(() => KanbanComponent),
-    NotebookComponent,
+    forwardRef(() => NotebookComponent),
   ],
 })
 export class LensComponent implements OnChanges, HasChanges {

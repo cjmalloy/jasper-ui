@@ -1,7 +1,9 @@
 /// <reference types="vitest/globals" />
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { forwardRef } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 
 import { InboxRefPage } from './ref.component';
 
@@ -11,10 +13,11 @@ describe('InboxRefPage', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [InboxRefPage],
+      imports: [forwardRef(() => InboxRefPage)],
       providers: [
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),
+        provideRouter([]),
       ],
     }).compileComponents();
 

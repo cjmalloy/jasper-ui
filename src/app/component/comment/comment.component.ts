@@ -64,8 +64,8 @@ import { CommentThreadComponent } from './comment-thread/comment-thread.componen
   styleUrls: ['./comment.component.scss'],
   host: { 'class': 'comment' },
   imports: [
-    forwardRef(() => CommentThreadComponent),
-    forwardRef(() => ViewerComponent),
+    CommentThreadComponent,
+    ViewerComponent,
     MobxAngularModule,
     RouterLink,
     TitleDirective,
