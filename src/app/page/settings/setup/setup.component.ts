@@ -10,7 +10,7 @@ import { AdminService } from '../../../service/admin.service';
 import { ModService } from '../../../service/mod.service';
 import { Store } from '../../../store/store';
 import { scrollToFirstInvalid } from '../../../util/form';
-import { configGroups, modId } from '../../../util/format';
+import { configGroups, formSafeNames, modId } from '../../../util/format';
 import { printError } from '../../../util/http';
 
 @Component({
@@ -44,9 +44,7 @@ export class SettingsSetupPage {
   ) {
     mod.setTitle($localize`Settings: Setup`);
     this.adminForm = fb.group({
-      mods: fb.group(Object.fromEntries(Object.entries({...this.admin.def.plugins, ...this.admin.def.templates }).map(
-        e => [e[0].replace(/[.]/g, '-'), fb.control(false)]
-      ))),
+      mods: fb.group(formSafeNames({...this.admin.def.plugins, ...this.admin.def.templates })),
     });
     this.clear();
   }
@@ -63,20 +61,22 @@ export class SettingsSetupPage {
     const deletes: string[] = [];
     const installs: string[] = [];
     for (const plugin in this.admin.def.plugins) {
+      const formName = plugin.replace(/[.]/g, '-');
       const def = this.admin.def.plugins[plugin];
       const status = this.admin.status.plugins[plugin] || this.admin.status.disabledPlugins[plugin];
-      if (!!status === !!this.adminForm.value.mods[plugin]) continue;
-      if (this.adminForm.value.mods[plugin]) {
+      if (!!status === !!this.adminForm.value.mods[formName]) continue;
+      if (this.adminForm.value.mods[formName]) {
         installs.push(modId(def));
       } else {
         deletes.push(modId(status));
       }
     }
     for (const template in this.admin.def.templates) {
+      const formName = template.replace(/[.]/g, '-');
       const def = this.admin.def.templates[template];
       const status = this.admin.status.templates[template] || this.admin.status.disabledTemplates[template];
-      if (!!status === !!this.adminForm.value.mods[template]) continue;
-      if (this.adminForm.value.mods[template]) {
+      if (!!status === !!this.adminForm.value.mods[formName]) continue;
+      if (this.adminForm.value.mods[formName]) {
         installs.push(modId(def));
       } else {
         deletes.push(modId(status));
@@ -104,12 +104,14 @@ export class SettingsSetupPage {
   }
 
   clear() {
-    this.adminForm.reset({ mods: {
+    this.adminForm.reset({
+      mods: formSafeNames({
         ...this.admin.status.plugins,
         ...this.admin.status.disabledPlugins,
         ...this.admin.status.templates,
         ...this.admin.status.disabledTemplates,
-      }});
+      }),
+    });
   }
 
   updateAll() {
