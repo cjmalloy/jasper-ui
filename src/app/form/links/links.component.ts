@@ -1,5 +1,12 @@
 import { Component, HostBinding, Input } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, UntypedFormArray, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
+import {
+  FormBuilder,
+  ReactiveFormsModule,
+  UntypedFormArray,
+  UntypedFormBuilder,
+  UntypedFormGroup,
+  Validators
+} from '@angular/forms';
 import { FormlyForm } from '@ngx-formly/core';
 import { map } from 'lodash-es';
 import { URI_REGEX } from '../../util/format';

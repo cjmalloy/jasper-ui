@@ -200,8 +200,8 @@ export class QueryComponent {
     return crumbs;
   }
 
-  blur(event: FocusEvent) {
-    if ((event.target as HTMLInputElement)?.value === this.query) {
+  blur(value: string) {
+    if (value === this.query) {
       this.editing = false;
     }
   }

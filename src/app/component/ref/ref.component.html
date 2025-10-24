@@ -333,7 +333,7 @@
     <span class="buttons right">
       @if (overwritten) {
         <div class="overwrite warning">
-          <input id="overwrite" type="checkbox" [(ngModel)]="overwrite" [ngModelOptions]="{standalone: true}">
+          <input id="overwrite" type="checkbox" [checked]="overwrite" (input)="overwrite = !overwrite">
           <label for="overwrite" i18n>Overwrite</label>
         </div>
       }
@@ -361,7 +361,7 @@
       <span class="buttons right">
         @if (overwritten) {
           <div class="overwrite warning">
-            <input id="overwriteDiff" type="checkbox" [(ngModel)]="overwrite" [ngModelOptions]="{standalone: true}">
+            <input id="overwriteDiff" type="checkbox" [checked]="overwrite" (input)="overwrite = !overwrite">
             <label for="overwriteDiff" i18n>Overwrite</label>
           </div>
         }

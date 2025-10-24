@@ -6,7 +6,7 @@ import {
   AfterViewInit,
   Component,
   ElementRef,
-  EventEmitter, forwardRef,
+  EventEmitter,
   HostBinding,
   HostListener,
   Input,

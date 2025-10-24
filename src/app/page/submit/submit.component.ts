@@ -1,5 +1,5 @@
 import { AsyncPipe } from '@angular/common';
-import { Component, forwardRef, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import {
   AbstractControl,
   AsyncValidatorFn,

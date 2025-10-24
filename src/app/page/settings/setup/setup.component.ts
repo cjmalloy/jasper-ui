@@ -1,7 +1,7 @@
 import { KeyValuePipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component } from '@angular/core';
-import { FormsModule, ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
+import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { forOwn, uniq } from 'lodash-es';
 import { catchError, concat, last, throwError } from 'rxjs';
@@ -19,7 +19,6 @@ import { printError } from '../../../util/http';
   styleUrls: ['./setup.component.scss'],
   imports: [
     ReactiveFormsModule,
-    FormsModule,
     RouterLink,
     KeyValuePipe,
   ],

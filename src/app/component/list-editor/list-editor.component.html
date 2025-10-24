@@ -5,7 +5,8 @@
            autocapitalize="none"
            (keydown)="keydown($event)"
            [placeholder]="placeholder"
-           [(ngModel)]="addingText">
+           [value]="addingText"
+           (input)="addingText = $any($event.target).value">
   </div>
   <button type="button" (click)="add()" i18n>+</button>
 </span>

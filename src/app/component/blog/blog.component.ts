@@ -1,4 +1,4 @@
-import { Component, forwardRef, Input, OnDestroy, QueryList, ViewChildren } from '@angular/core';
+import { Component, Input, OnDestroy, QueryList, ViewChildren } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, forkJoin, of, Subject, takeUntil } from 'rxjs';
 import { HasChanges } from '../../guard/pending-changes.guard';

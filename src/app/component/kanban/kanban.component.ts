@@ -3,7 +3,6 @@ import { CdkScrollable } from '@angular/cdk/scrolling';
 import { AsyncPipe } from '@angular/common';
 import {
   Component,
-  forwardRef,
   HostListener,
   Input,
   OnChanges,
@@ -12,7 +11,7 @@ import {
   SimpleChanges,
   ViewChildren
 } from '@angular/core';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { uniq, without } from 'lodash-es';
 import { DateTime } from 'luxon';
@@ -58,7 +57,6 @@ export interface KanbanDrag {
     RouterLink,
     TitleDirective,
     ReactiveFormsModule,
-    FormsModule,
     PageControlsComponent,
     AsyncPipe,
   ],

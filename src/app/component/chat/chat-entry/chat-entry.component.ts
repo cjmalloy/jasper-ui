@@ -1,8 +1,7 @@
 import { AsyncPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
-  Component,
-  forwardRef,
+  Component, forwardRef,
   HostBinding,
   Input,
   OnChanges,
@@ -43,7 +42,7 @@ import { ViewerComponent } from '../../viewer/viewer.component';
   styleUrls: ['./chat-entry.component.scss'],
   host: { 'class': 'chat-entry' },
   imports: [
-    ViewerComponent,
+    forwardRef(() => ViewerComponent),
     MdComponent,
     RouterLink,
     TitleDirective,

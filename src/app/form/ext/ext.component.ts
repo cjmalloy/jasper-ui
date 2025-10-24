@@ -1,5 +1,5 @@
 import { CdkDropListGroup } from '@angular/cdk/drag-drop';
-import { Component, ElementRef, EventEmitter, forwardRef, Input, OnDestroy, Output, ViewChild } from '@angular/core';
+import { Component, ElementRef, EventEmitter, Input, OnDestroy, Output, ViewChild } from '@angular/core';
 import {
   FormArray,
   FormControl,
