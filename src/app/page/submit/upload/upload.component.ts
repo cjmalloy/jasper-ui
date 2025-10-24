@@ -1,6 +1,6 @@
 import { HttpErrorResponse, HttpEventType } from '@angular/common/http';
-import { Component, forwardRef, OnDestroy } from '@angular/core';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { Component, OnDestroy } from '@angular/core';
+import { ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { FormlyForm } from '@ngx-formly/core';
 import { pick, uniq } from 'lodash-es';
@@ -40,7 +40,6 @@ import { FilteredModels, filterModels, getModels, getTextFile, unzip, zippedFile
     MobxAngularModule,
     RouterLink,
     ReactiveFormsModule,
-    FormsModule,
     AutofocusDirective,
     LoadingComponent,
     FormlyForm,
@@ -433,6 +432,10 @@ export class UploadPage implements OnDestroy {
     }
   }
 
+  set overwrite(value: boolean) {
+    runInAction(() => this.store.submit.overwrite = value);
+  }
+
   private getModels(file: File): Promise<FilteredModels> {
     if (file.name.toLowerCase().endsWith('.zip')) {
       return unzip(file).then(zip => Promise.all([
@@ -463,6 +466,4 @@ export class UploadPage implements OnDestroy {
     }
     return null;
   }
-
-  protected readonly console = console;
 }

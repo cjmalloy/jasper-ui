@@ -2,7 +2,7 @@ import { CdkDropListGroup } from '@angular/cdk/drag-drop';
 import {
   Component,
   ElementRef,
-  EventEmitter, forwardRef,
+  EventEmitter,
   HostBinding,
   HostListener,
   Input,

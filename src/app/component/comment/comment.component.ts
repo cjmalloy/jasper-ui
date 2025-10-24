@@ -3,7 +3,6 @@ import {
   AfterViewInit,
   Component,
   ElementRef,
-  forwardRef,
   HostBinding,
   Input,
   OnChanges,

@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, EventEmitter, forwardRef, Input, Output, ViewChild } from '@angular/core';
-import { FormBuilder, FormsModule, ReactiveFormsModule, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { pickBy, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { catchError, Subscription, throwError } from 'rxjs';
@@ -29,7 +29,6 @@ import { LoadingComponent } from '../../loading/loading.component';
   imports: [
     forwardRef(() => EditorComponent),
     ReactiveFormsModule,
-    FormsModule,
     LoadingComponent,
   ]
 })

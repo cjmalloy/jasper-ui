@@ -6,7 +6,6 @@ import {
   Component,
   ElementRef,
   EventEmitter,
-  forwardRef,
   HostBinding,
   HostListener,
   Input,
@@ -18,7 +17,7 @@ import {
   ViewChild,
   ViewChildren
 } from '@angular/core';
-import { FormsModule, ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
+import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { cloneDeep, defer, delay, groupBy, pick, throttle, uniq, without } from 'lodash-es';
 import { DateTime } from 'luxon';
@@ -103,7 +102,6 @@ import { ViewerComponent } from '../viewer/viewer.component';
     ActionListComponent,
     CommentReplyComponent,
     ReactiveFormsModule,
-    FormsModule,
     LoadingComponent,
     DiffComponent,
     AsyncPipe,

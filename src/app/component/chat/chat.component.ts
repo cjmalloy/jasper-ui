@@ -1,6 +1,6 @@
 import { CdkFixedSizeVirtualScroll, CdkVirtualForOf, CdkVirtualScrollViewport } from '@angular/cdk/scrolling';
 import { Component, Input, OnChanges, OnDestroy, SimpleChanges, ViewChild } from '@angular/core';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { ReactiveFormsModule } from '@angular/forms';
 import { debounce, defer, delay, pull, pullAllWith, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { catchError, map, Subject, Subscription, takeUntil, throwError } from 'rxjs';
@@ -36,7 +36,6 @@ import { ChatEntryComponent } from './chat-entry/chat-entry.component';
     CdkVirtualForOf,
     ReactiveFormsModule,
     AutofocusDirective,
-    FormsModule,
   ],
 })
 export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
@@ -62,7 +61,7 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
   errored: Ref[] = [];
   scrollLock?: number;
 
-  latex = this.admin.getPlugin('plugin/latex');
+  latex = !!this.admin.getPlugin('plugin/latex');
 
   private tags: string[] = [];
   private timeoutId?: number;
@@ -279,7 +278,9 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
       ...this.tags,
       ...([this.store.view.localTag || 'chat', ...this.store.view.ext?.config?.addTags || []]),
       ...this.plugins,
-      ...(this.store.account.localTag ? [this.store.account.localTag] : [])]).filter(t => !!t);
+      ...(this.latex ? ['plugin/latex'] : []),
+      ...(this.store.account.localTag ? [this.store.account.localTag] : []),
+    ]).filter(t => !!t);
     const ref: Ref = URI_REGEX.test(this.addText) ? {
       url: this.editor.getRefUrl(this.addText),
       origin: this.store.account.origin,

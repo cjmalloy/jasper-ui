@@ -31,7 +31,7 @@ export class SearchComponent implements OnDestroy {
     public admin: AdminService,
   ) {
     this.disposers.push(autorun(() => {
-      this.searchValue = toJS(this.store.view.search);
+      this.searchValue = toJS(this.store.view.search) || '';
     }));
     router.events.pipe(
       filter(event => event instanceof NavigationEnd),
@@ -44,7 +44,7 @@ export class SearchComponent implements OnDestroy {
   }
 
   change(target: HTMLInputElement) {
-    this.searchValue = target.value;
+    this.searchValue = target.value || '';
     if (this.searchEvent) return;
     if (!this.store.account.config.liveSearch) return;
     this.debounceSearch();

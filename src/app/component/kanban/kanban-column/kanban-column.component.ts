@@ -2,7 +2,6 @@ import { CdkDrag } from '@angular/cdk/drag-drop';
 import {
   AfterViewInit,
   Component,
-  forwardRef,
   HostBinding,
   HostListener,
   Input,
@@ -11,7 +10,7 @@ import {
   OnDestroy,
   SimpleChanges
 } from '@angular/core';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { ReactiveFormsModule } from '@angular/forms';
 import { isEqual, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { catchError, Observable, Subject, Subscription, switchMap, takeUntil, throwError } from 'rxjs';
@@ -46,7 +45,6 @@ import { KanbanDrag } from '../kanban.component';
     CdkDrag,
     LoadingComponent,
     ReactiveFormsModule,
-    FormsModule,
   ],
 })
 export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestroy, HasChanges {

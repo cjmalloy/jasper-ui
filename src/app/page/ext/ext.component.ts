@@ -1,7 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostBinding, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import {
-  FormsModule,
   ReactiveFormsModule,
   UntypedFormBuilder,
   UntypedFormControl,
@@ -43,7 +42,6 @@ import { access, hasPrefix, localTag, prefix } from '../../util/tag';
     LoadingComponent,
     LimitWidthDirective,
     ExtFormComponent,
-    FormsModule,
   ],
 })
 export class ExtPage implements OnInit, OnDestroy, HasChanges {

@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, forwardRef } from '@angular/core';
+import { Component } from '@angular/core';
 import {
   ReactiveFormsModule,
   UntypedFormBuilder,

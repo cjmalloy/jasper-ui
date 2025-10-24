@@ -35,7 +35,8 @@
          placeholder="chat..."
          enterkeyhint="send"
          size="10"
-         [(ngModel)]="addText"
+         [value]="addText"
+         (input)="addText = $any($event.target).value"
          (keydown)="$event.key === 'Enter' && add() || true"
          appAutofocus>
   <button type="button"
@@ -46,7 +47,7 @@
 </div>
 <span class="hints">
   @if (admin.getPlugin('plugin/latex')) {
-    <input id="latex" type="checkbox" [(ngModel)]="latex">
+    <input id="latex" type="checkbox" [checked]="latex" (input)="latex = !latex">
     <label for="latex" i18n>
       LaTeX plugin
       <sup><a target="_blank" href="https://katex.org/docs/supported.html">help</a></sup>

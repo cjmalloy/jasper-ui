@@ -5,7 +5,7 @@ import { FullscreenOverlayContainer, OverlayContainer, OverlayModule } from '@an
 import { ScrollingModule } from '@angular/cdk/scrolling';
 import { HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { APP_INITIALIZER, enableProdMode, importProvidersFrom, isDevMode } from '@angular/core';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { ReactiveFormsModule } from '@angular/forms';
 import { bootstrapApplication, BrowserModule, HAMMER_GESTURE_CONFIG, HammerModule } from '@angular/platform-browser';
 import { ServiceWorkerModule } from '@angular/service-worker';
 import { Settings } from 'luxon';
@@ -74,7 +74,6 @@ bootstrapApplication(AppComponent, {
           BrowserModule,
           HammerModule,
           AppRoutingModule,
-          FormsModule,
           ReactiveFormsModule,
           MobxAngularModule,
           MarkdownModule.forRoot(),

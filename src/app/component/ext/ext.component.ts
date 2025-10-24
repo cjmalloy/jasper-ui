@@ -11,7 +11,7 @@ import {
   ViewChild,
   ViewChildren
 } from '@angular/core';
-import { FormsModule, ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
+import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { isObject } from 'lodash-es';
 import { DateTime } from 'luxon';
@@ -51,7 +51,6 @@ import { ConfirmActionComponent } from '../action/confirm-action/confirm-action.
     TitleDirective,
     ConfirmActionComponent,
     ReactiveFormsModule,
-    FormsModule,
     AsyncPipe,
   ],
 })

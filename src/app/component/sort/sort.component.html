@@ -9,7 +9,7 @@
 </select>
 @for (sort of sorts; track sort; let i = $index) {
   <span class="controls">
-    <select id="sort-{{ i }}" [ngModel]="sortCol(sort)" (ngModelChange)="setSortCol(i, $event)" [title]="title(sortCol(sort))">
+    <select id="sort-{{ i }}" [value]="sortCol(sort)" (input)="setSortCol(i, $any($event.target).value)" [title]="title(sortCol(sort))">
       @for (s of allSorts; track s) {
         <option [value]="s.value" [title]="s.title || ''">{{ s.label || s.value }}</option>
       }
