@@ -28,7 +28,9 @@ jobs:
         run: npm ci && npm run build
 
       - name: Zip
-        run: cd dist/jasper-ui/browser/; zip -r ../../../${{ env.RELEASE_FILE }} .
+        run: |
+          cd dist/jasper-ui/browser/
+          zip -r $GITHUB_WORKSPACE/${{ env.RELEASE_FILE }} .
 
       - name: Create Draft Release
         id: create_release
