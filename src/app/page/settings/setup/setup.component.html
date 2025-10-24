@@ -1,61 +1,63 @@
-<div class="row" [formGroup]="adminForm">
-  <form class="form" formGroupName="mods" (ngSubmit)="install()">
-    <span><!-- Title --></span>
-    <h2 i18n>Install Mods</h2>
-    <span><!-- Description --></span>
-    <p i18n>
-      Quickly turn on and off mods bundled with this client.
-      Visit the <a routerLink="../plugin">plugins</a> or
-      <a routerLink="../template">templates</a> settings page to manage all
-      plugins and templates.
-    </p>
+<div class="row">
+  <form class="form" [formGroup]="adminForm" (ngSubmit)="install()">
+    <div formGroupName="mods">
+      <span><!-- Title --></span>
+      <h2 i18n>Install Mods</h2>
+      <span><!-- Description --></span>
+      <p i18n>
+        Quickly turn on and off mods bundled with this client.
+        Visit the <a routerLink="../plugin">plugins</a> or
+        <a routerLink="../template">templates</a> settings page to manage all
+        plugins and templates.
+      </p>
 
-    <span><!-- Buttons --></span>
-    <span class="buttons right">
-      @if (store.view.updates) {
-        <button type="button" (click)="updateAll()" i18n>🌟️ Update All</button>
-      }
-      @if (selectAllToggle) {
-        <button type="button" (click)="selectAll()" i18n>Select None</button>
-      } @else {
-        <button type="button" (click)="selectAll()" i18n>Select All</button>
-      }
-      <button type="submit" [disabled]="submitted && !adminForm.valid" i18n>Save</button>
-    </span>
-
-    @if (serverError.length || installMessages.length) {
-      <span class="mobile-block"><!-- Log --></span>
-      <div class="log mobile-block">
-        @for (e of serverError; track e) {
-          <div class="error">{{ e }}</div>
+      <span><!-- Buttons --></span>
+      <span class="buttons right">
+        @if (store.view.updates) {
+          <button type="button" (click)="updateAll()" i18n>🌟️ Update All</button>
         }
-        @for (i of installMessages; track i) {
-          <div>{{ i }}</div>
+        @if (selectAllToggle) {
+          <button type="button" (click)="selectAll()" i18n>Select None</button>
+        } @else {
+          <button type="button" (click)="selectAll()" i18n>Select All</button>
         }
-      </div>
-    }
+        <button type="submit" [disabled]="submitted && !adminForm.valid" i18n>Save</button>
+      </span>
 
-    @for (group of modGroups | keyvalue; track group.key) {
-      <label [style.text-transform]="'capitalize'" i18n>{{ group.key }}</label>
-      <div class="bubble">
-        @for (e of group.value; track e[0]) {
-          @if (experiments || !e[1].config?.experimental || installed(e[1])) {
-            <div [title]="e[1].config?.description || ''" class="nowrap" [class.deleted]="disabled(e[1])">
-              <input id="mod-{{ modLabel(e) }}" type="checkbox" [formControlName]="e[0]">
-              <label for="mod-{{ modLabel(e) }}" [title]="e[1].config?.description || ''">{{ e[1].config?.mod || e[1].name || e[1].tag || 'root' }}</label>
-              @if (e[1].config?.experimental) {
-                <span>🧪️</span>
-              }
-              @if (needsModUpdate(e[1])) {
-                <span class="update">
-                  <span class="fake-link no-select" (click)="updateMod(e[1])" i18n>🌟️ update</span>
-                </span>
-              }
-            </div>
+      @if (serverError.length || installMessages.length) {
+        <span class="mobile-block"><!-- Log --></span>
+        <div class="log mobile-block">
+          @for (e of serverError; track e) {
+            <div class="error">{{ e }}</div>
           }
-        }
-      </div>
-    }
+          @for (i of installMessages; track i) {
+            <div>{{ i }}</div>
+          }
+        </div>
+      }
+
+      @for (group of modGroups | keyvalue; track group.key) {
+        <label [style.text-transform]="'capitalize'" i18n>{{ group.key }}</label>
+        <div class="bubble">
+          @for (e of group.value; track e[0]) {
+            @if (experiments || !e[1].config?.experimental || installed(e[1])) {
+              <div [title]="e[1].config?.description || ''" class="nowrap" [class.deleted]="disabled(e[1])">
+                <input id="mod-{{ modLabel(e) }}" type="checkbox" [formControlName]="e[0]">
+                <label for="mod-{{ modLabel(e) }}" [title]="e[1].config?.description || ''">{{ e[1].config?.mod || e[1].name || e[1].tag || 'root' }}</label>
+                @if (e[1].config?.experimental) {
+                  <span>🧪️</span>
+                }
+                @if (needsModUpdate(e[1])) {
+                  <span class="update">
+                    <span class="fake-link no-select" (click)="updateMod(e[1])" i18n>🌟️ update</span>
+                  </span>
+                }
+              </div>
+            }
+          }
+        </div>
+      }
+    </div>
   </form>
   @if (serverError.length || installMessages.length) {
     <span class="log mobile-hide">
