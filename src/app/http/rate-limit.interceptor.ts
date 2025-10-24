@@ -1,7 +1,6 @@
 import { HttpErrorResponse, HttpEvent, HttpHandler, HttpInterceptor, HttpRequest } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, retry, timer } from 'rxjs';
-import 'zone.js/testing';
 
 @Injectable()
 export class RateLimitInterceptor implements HttpInterceptor {

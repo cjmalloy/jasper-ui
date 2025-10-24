@@ -35,7 +35,7 @@ describe('KanbanColumnComponent', () => {
       component.failed = [];
       component.adding = [];
       component.addText = '';
-      vi.spyOn(component, 'add');
+      vi.spyOn(component, 'add').mockImplementation(() => {});
     });
 
     it('should track failed items', () => {
