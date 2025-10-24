@@ -39,7 +39,7 @@
             "inlineStyleLanguage": "scss",
             "allowedCommonJsDependencies": [
               "handlebars/dist/cjs/handlebars",
-              "moment",
+              "jtd",
               "file-saver",
               "jszip",
               "qrcode",
