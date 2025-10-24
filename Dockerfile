@@ -39,7 +39,7 @@ CMD mkdir -p /report && \
 FROM nginx:1.27-alpine3.19-slim AS deploy
 RUN apk add jq moreutils
 WORKDIR /var/lib/jasper/
-COPY --from=builder /app/dist/jasper-ui ./
+COPY --from=builder /app/dist/jasper-ui/browser ./
 ARG BASE_HREF="/"
 ENV BASE_HREF=$BASE_HREF
 RUN date -R -u > /build-timestamp
