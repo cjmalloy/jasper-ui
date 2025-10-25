@@ -1,5 +1,5 @@
 import { Component, ElementRef, Input, OnChanges, OnDestroy, SimpleChanges, ViewChild } from '@angular/core';
-import { ReactiveFormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { NavigationEnd, Router } from '@angular/router';
 import { autorun, IReactionDisposer, toJS } from 'mobx';
 import { filter } from 'rxjs';
@@ -30,7 +30,7 @@ export const allRefSorts: {value: RefSort, label: string, title?: string }[] = [
   templateUrl: './sort.component.html',
   styleUrls: ['./sort.component.scss'],
   host: { 'class': 'sort form-group' },
-  imports: [ReactiveFormsModule]
+  imports: [ReactiveFormsModule, FormsModule]
 })
 export class SortComponent implements OnChanges, OnDestroy {
   private disposers: IReactionDisposer[] = [];

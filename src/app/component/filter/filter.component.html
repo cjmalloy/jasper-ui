@@ -15,7 +15,7 @@
 </select>
 @for (filter of filters; track filter; let i = $index) {
   <div class="controls" [title]="filter">
-    <select id="filter-{{ i }}" [value]="filter" (input)="setFilter(i, $any($event.target).value)" [title]="title(filter)">
+    <select id="filter-{{ i }}" [ngModel]="filter" (ngModelChange)="setFilter(i, $event)" [title]="title(filter)">
       @for (g of allFilters; track g.label) {
         @if (g.filters.length) {
           <optgroup [label]="g.label">
