@@ -23,7 +23,7 @@ import { ConfigService } from '../../service/config.service';
 import { QueryStore } from '../../store/query';
 import { Store } from '../../store/store';
 import { memo, MemoCache } from '../../util/memo';
-import { hasPrefix, hasTag, localTag, topAnds } from '../../util/tag';
+import { hasPrefix, hasTag, isQuery, localTag, topAnds } from '../../util/tag';
 import { BulkComponent } from '../bulk/bulk.component';
 import { ChatComponent } from '../chat/chat.component';
 import { DebugComponent } from '../debug/debug.component';
@@ -126,7 +126,7 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
     this.disposers.push(autorun(() => {
       if (!this.store.view.template) {
         this.template = undefined;
-      } else if (this.template?.tag !== this.store.view.template) {
+      } else if (!isQuery(this.store.view.template) && this.template?.tag !== this.store.view.template) {
         this.templates.get(this.store.view.template + this.store.account.origin).pipe(
           catchError(() => of(undefined))
         ).subscribe(t => this.template = t);
