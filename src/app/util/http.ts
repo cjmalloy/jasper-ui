@@ -209,3 +209,39 @@ export function getExtension(url: string): string | null {
   if (!parsed.pathname.includes('.')) return parsed.pathname;
   return parsed.pathname.substring(parsed.pathname.lastIndexOf('.'));
 }
+
+/**
+ * Extract a human-readable title from a URL's filename.
+ * Removes the extension, decodes URL encoding, and replaces separators with spaces.
+ */
+export function getTitleFromFilename(url: string): string | null {
+  const path = getPath(url);
+  if (!path) return null;
+  
+  // Get the last segment of the path (the filename)
+  const segments = path.split('/').filter(s => s.length > 0);
+  if (segments.length === 0) return null;
+  
+  let filename = segments[segments.length - 1];
+  
+  // Remove file extension
+  const lastDot = filename.lastIndexOf('.');
+  if (lastDot > 0) {
+    filename = filename.substring(0, lastDot);
+  }
+  
+  // Decode URL encoding
+  try {
+    filename = decodeURIComponent(filename);
+  } catch (e) {
+    // If decoding fails, use the original filename
+  }
+  
+  // Replace common separators with spaces and clean up
+  filename = filename
+    .replace(/[-_+]/g, ' ')  // Replace hyphens, underscores, plus signs with spaces
+    .replace(/\s+/g, ' ')     // Collapse multiple spaces
+    .trim();
+  
+  return filename || null;
+}
