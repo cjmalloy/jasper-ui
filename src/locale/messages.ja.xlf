@@ -84,6 +84,21 @@
         <source> Black Wins <x id="START_BLOCK_IF" equiv-text="@if (backgammon) {"/><x id="START_TAG_SPAN" ctype="x-span" equiv-text="&lt;span i18n-title title=&quot;Backgammon&quot;&gt;"/>🎲️🎲️🎲️<x id="CLOSE_TAG_SPAN" ctype="x-span" equiv-text="&lt;/span&gt;"/><x id="CLOSE_BLOCK_IF" equiv-text="}"/><x id="START_BLOCK_IF_1" equiv-text="@if (gammon &amp;&amp; !backgammon) {"/><x id="START_TAG_SPAN_1" ctype="x-span_1" equiv-text="&lt;span i18n-title title=&quot;Gammon&quot;&gt;"/>🎲️🎲️<x id="CLOSE_TAG_SPAN" ctype="x-span" equiv-text="&lt;/span&gt;"/><x id="CLOSE_BLOCK_IF" equiv-text="}"/><x id="START_BLOCK_IF_2" equiv-text="@if (!gammon) {"/><x id="START_TAG_SPAN_2" ctype="x-span_2" equiv-text="&lt;span&gt;"/>🎲️<x id="CLOSE_TAG_SPAN" ctype="x-span" equiv-text="&lt;/span&gt;"/><x id="CLOSE_BLOCK_IF" equiv-text="}"/></source>
         <target> 黒の勝ち <x id="START_BLOCK_IF" equiv-text="@if (backgammon) {"/><x id="START_TAG_SPAN" ctype="x-span" equiv-text="&lt;span i18n-title title=&quot;Backgammon&quot;&gt;"/>🎲️🎲️🎲️<x id="CLOSE_TAG_SPAN" ctype="x-span" equiv-text="&lt;/span&gt;"/><x id="CLOSE_BLOCK_IF" equiv-text="}"/><x id="START_BLOCK_IF_1" equiv-text="@if (gammon &amp;&amp; !backgammon) {"/><x id="START_TAG_SPAN_1" ctype="x-span_1" equiv-text="&lt;span i18n-title title=&quot;Gammon&quot;&gt;"/>🎲️🎲️<x id="CLOSE_TAG_SPAN" ctype="x-span" equiv-text="&lt;/span&gt;"/><x id="CLOSE_BLOCK_IF" equiv-text="}"/><x id="START_BLOCK_IF_2" equiv-text="@if (!gammon) {"/><x id="START_TAG_SPAN_2" ctype="x-span_2" equiv-text="&lt;span&gt;"/>🎲️<x id="CLOSE_TAG_SPAN" ctype="x-span" equiv-text="&lt;/span&gt;"/><x id="CLOSE_BLOCK_IF" equiv-text="}"/></target>
       </trans-unit>
+      <trans-unit id="8564202903947049539" datatype="html">
+        <source>Play</source>
+      </trans-unit>
+      <trans-unit id="9042260521669277115" datatype="html">
+        <source>Pause</source>
+      </trans-unit>
+      <trans-unit id="61146899238241461" datatype="html">
+        <source>Change playback speed</source>
+      </trans-unit>
+      <trans-unit id="8106459808350358911" datatype="html">
+        <source>Move <x id="INTERPOLATION" equiv-text="{{ floor(replayPosition) }}"/> / <x id="INTERPOLATION_1" equiv-text="{{ replayAnimations.length }}"/></source>
+      </trans-unit>
+      <trans-unit id="1226509592528490232" datatype="html">
+        <source>Illegal move <x id="PH" equiv-text="renderMove(p, from, to)"/></source>
+      </trans-unit>
       <trans-unit id="8031128496622857527" datatype="html">
         <source>Game History Rewritten!
 
@@ -96,13 +111,24 @@ Please Reload.</source>
         <source>Game Over</source>
         <target>ゲームオーバー</target>
       </trans-unit>
+      <trans-unit id="554149296192196884" datatype="html">
+        <source>Not your turn</source>
+      </trans-unit>
       <trans-unit id="6947524598307975659" datatype="html">
         <source>Must move</source>
         <target>移動する必要があります</target>
       </trans-unit>
-      <trans-unit id="554149296192196884" datatype="html">
-        <source>Not your turn</source>
-        <target>あなたのターンではありません</target>
+      <trans-unit id="4104861352185074031" datatype="html">
+        <source>Double 6s</source>
+      </trans-unit>
+      <trans-unit id="269137713886171303" datatype="html">
+        <source><x id="PH" equiv-text="piecesHitThisTurn"/> pieces hit</source>
+      </trans-unit>
+      <trans-unit id="3195148963394868807" datatype="html">
+        <source>Red all home</source>
+      </trans-unit>
+      <trans-unit id="2828116563312710431" datatype="html">
+        <source>Black all home</source>
       </trans-unit>
       <trans-unit id="5896623720033494810" datatype="html">
         <source>in progress...</source>
@@ -116,13 +142,41 @@ Please Reload.</source>
         <source>Cache</source>
         <target>キャッシュ</target>
       </trans-unit>
-      <trans-unit id="72253831937845080" datatype="html">
-        <source> by <x id="START_TAG_NG_CONTAINER_1" ctype="x-ng_container_1" equiv-text="&lt;ng-container *ngIf=&quot;authorExts$ | async as authorExts; else authorNoExts&quot;&gt;"/><x id="START_TAG_NG_CONTAINER" ctype="x-ng_container" equiv-text="&lt;ng-container *ngFor=&quot;let user of authorExts&quot;&gt;"/><x id="START_LINK" ctype="x-a" equiv-text="&lt;a class=&quot;user tag&quot;                    [title]=&quot;formatAuthor(user.tag + user.origin)&quot;                    [routerLink]=&quot;['/tag', user.tag + user.origin]&quot;                    [appTitle]=&quot;user&quot;&gt;"/><x id="INTERPOLATION" equiv-text="formatAuthor(user.tag) }}"/><x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;"/><x id="CLOSE_TAG_NG_CONTAINER" ctype="x-ng_container" equiv-text="&lt;/ng-container&gt;"/><x id="CLOSE_TAG_NG_CONTAINER" ctype="x-ng_container" equiv-text="&lt;/ng-container&gt;"/><x id="START_TAG_NG_TEMPLATE" ctype="x-ng_template" equiv-text="&lt;ng-template #authorNoExts&gt;"/><x id="START_TAG_NG_CONTAINER_2" ctype="x-ng_container_2" equiv-text="&lt;ng-container *ngFor=&quot;let t of authors&quot;&gt;"/><x id="START_LINK_1" equiv-text="&lt;a class=&quot;user tag&quot;                    [title]=&quot;formatAuthor(t)&quot;                    [routerLink]=&quot;['/tag', t]&quot;&gt;"/><x id="INTERPOLATION_1" equiv-text=") }}"/><x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;"/><x id="CLOSE_TAG_NG_CONTAINER" ctype="x-ng_container" equiv-text="&lt;/ng-container&gt;"/><x id="CLOSE_TAG_NG_TEMPLATE" ctype="x-ng_template" equiv-text="&lt;/ng-template&gt;"/></source>
-        <target><x id="START_TAG_NG_CONTAINER_1" ctype="x-ng_container_1" equiv-text="&lt;ng-container *ngIf=&quot;authorExts$ | async as authorExts; else authorNoExts&quot;&gt;"/><x id="START_TAG_NG_CONTAINER" ctype="x-ng_container" equiv-text="&lt;ng-container *ngFor=&quot;let user of authorExts&quot;&gt;"/><x id="START_LINK" ctype="x-a" equiv-text="&lt;a class=&quot;user tag&quot;                    [title]=&quot;formatAuthor(user.tag + user.origin)&quot;                    [routerLink]=&quot;['/tag', user.tag + user.origin]&quot;                    [appTitle]=&quot;user&quot;&gt;"/><x id="INTERPOLATION" equiv-text="formatAuthor(user.tag) }}"/><x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;"/><x id="CLOSE_TAG_NG_CONTAINER" ctype="x-ng_container" equiv-text="&lt;/ng-container&gt;"/><x id="CLOSE_TAG_NG_CONTAINER" ctype="x-ng_container" equiv-text="&lt;/ng-container&gt;"/><x id="START_TAG_NG_TEMPLATE" ctype="x-ng_template" equiv-text="&lt;ng-template #authorNoExts&gt;"/><x id="START_TAG_NG_CONTAINER_2" ctype="x-ng_container_2" equiv-text="&lt;ng-container *ngFor=&quot;let t of authors&quot;&gt;"/><x id="START_LINK_1" equiv-text="&lt;a class=&quot;user tag&quot;                    [title]=&quot;formatAuthor(t)&quot;                    [routerLink]=&quot;['/tag', t]&quot;&gt;"/><x id="INTERPOLATION_1" equiv-text=") }}"/><x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;"/><x id="CLOSE_TAG_NG_CONTAINER" ctype="x-ng_container" equiv-text="&lt;/ng-container&gt;"/><x id="CLOSE_TAG_NG_TEMPLATE" ctype="x-ng_template" equiv-text="&lt;/ng-template&gt;"/>によって</target>
+      <trans-unit id="7290417644239030193" datatype="html">
+        <source>Refs</source>
       </trans-unit>
-      <trans-unit id="6813769723759925998" datatype="html">
-        <source> tagged <x id="START_TAG_NG_CONTAINER_1" ctype="x-ng_container_1" equiv-text="&lt;ng-container *ngIf=&quot;tagExts$ | async as tagExts; else tagNoExts&quot;&gt;"/><x id="START_TAG_NG_CONTAINER" ctype="x-ng_container" equiv-text="&lt;ng-container *ngFor=&quot;let e of tagExts&quot;&gt;"/><x id="START_LINK" ctype="x-a" equiv-text="&lt;a class=&quot;tag&quot; [routerLink]=&quot;['/tag', e.tag]&quot; [appTitle]=&quot;e.tag&quot;&gt;"/><x id="INTERPOLATION" equiv-text="' + e.tag }}"/><x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;"/><x id="CLOSE_TAG_NG_CONTAINER" ctype="x-ng_container" equiv-text="&lt;/ng-container&gt;"/><x id="CLOSE_TAG_NG_CONTAINER" ctype="x-ng_container" equiv-text="&lt;/ng-container&gt;"/><x id="START_TAG_NG_TEMPLATE" ctype="x-ng_template" equiv-text="&lt;ng-template #tagNoExts&gt;"/><x id="START_TAG_NG_CONTAINER_2" ctype="x-ng_container_2" equiv-text="&lt;ng-container *ngFor=&quot;let t of tags&quot;&gt;"/><x id="START_LINK_1" equiv-text="&lt;a class=&quot;tag&quot; [routerLink]=&quot;['/tag', t]&quot;&gt;"/><x id="INTERPOLATION_1" equiv-text="&lt;/a&gt;"/><x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;"/><x id="CLOSE_TAG_NG_CONTAINER" ctype="x-ng_container" equiv-text="&lt;/ng-container&gt;"/><x id="CLOSE_TAG_NG_TEMPLATE" ctype="x-ng_template" equiv-text="&lt;/ng-template&gt;"/></source>
-        <target><x id="START_TAG_NG_CONTAINER_1" ctype="x-ng_container_1" equiv-text="&lt;ng-container *ngIf=&quot;tagExts$ | async as tagExts; else tagNoExts&quot;&gt;"/><x id="START_TAG_NG_CONTAINER" ctype="x-ng_container" equiv-text="&lt;ng-container *ngFor=&quot;let e of tagExts&quot;&gt;"/><x id="START_LINK" ctype="x-a" equiv-text="&lt;a class=&quot;tag&quot; [routerLink]=&quot;['/tag', e.tag]&quot; [appTitle]=&quot;e.tag&quot;&gt;"/><x id="INTERPOLATION" equiv-text="' + e.tag }}"/><x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;"/><x id="CLOSE_TAG_NG_CONTAINER" ctype="x-ng_container" equiv-text="&lt;/ng-container&gt;"/><x id="CLOSE_TAG_NG_CONTAINER" ctype="x-ng_container" equiv-text="&lt;/ng-container&gt;"/><x id="START_TAG_NG_TEMPLATE" ctype="x-ng_template" equiv-text="&lt;ng-template #tagNoExts&gt;"/><x id="START_TAG_NG_CONTAINER_2" ctype="x-ng_container_2" equiv-text="&lt;ng-container *ngFor=&quot;let t of tags&quot;&gt;"/><x id="START_LINK_1" equiv-text="&lt;a class=&quot;tag&quot; [routerLink]=&quot;['/tag', t]&quot;&gt;"/><x id="INTERPOLATION_1" equiv-text="&lt;/a&gt;"/><x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;"/><x id="CLOSE_TAG_NG_CONTAINER" ctype="x-ng_container" equiv-text="&lt;/ng-container&gt;"/><x id="CLOSE_TAG_NG_TEMPLATE" ctype="x-ng_template" equiv-text="&lt;/ng-template&gt;"/>タグ付き</target>
+      <trans-unit id="874279231928254463" datatype="html">
+        <source>Exts</source>
+      </trans-unit>
+      <trans-unit id="4555457172864212828" datatype="html">
+        <source>Users</source>
+      </trans-unit>
+      <trans-unit id="6901018060567164184" datatype="html">
+        <source>Plugins</source>
+      </trans-unit>
+      <trans-unit id="5433675495457939071" datatype="html">
+        <source>Templates</source>
+      </trans-unit>
+      <trans-unit id="2258332150307719183" datatype="html">
+        <source>Newer than:</source>
+      </trans-unit>
+      <trans-unit id="8700121026680200191" datatype="html">
+        <source>Clear</source>
+      </trans-unit>
+      <trans-unit id="5971949012006735861" datatype="html">
+        <source>🆑️</source>
+      </trans-unit>
+      <trans-unit id="3347932678307141902" datatype="html">
+        <source>restore</source>
+      </trans-unit>
+      <trans-unit id="4936024166764234896" datatype="html">
+        <source> by <x id="START_BLOCK_IF" equiv-text="@if (authorExts$ | async; as xs) {"/><x id="START_BLOCK_FOR" equiv-text="@for (x of xs; track x.tag) {"/><x id="START_LINK" ctype="x-a" equiv-text="&lt;a class=&quot;user tag&quot;                      [title]=&quot;formatAuthor(x.tag + x.origin)&quot;                      [routerLink]=&quot;['/tag', x.tag + x.origin]&quot;                      [appTitle]=&quot;x&quot;&gt;"/><x id="INTERPOLATION" equiv-text="{{ x.name || formatAuthor(x.tag) }}"/><x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/><x id="CLOSE_BLOCK_FOR" equiv-text="}"/><x id="CLOSE_BLOCK_IF" equiv-text="}"/><x id="START_BLOCK_ELSE" equiv-text="@else {"/><x id="START_BLOCK_FOR_1" equiv-text="@for (t of authors; track t) {"/><x id="START_LINK_1" equiv-text="&lt;a class=&quot;user tag&quot;                      [title]=&quot;formatAuthor(t)&quot;                      [routerLink]=&quot;['/tag', t]&quot;&gt;"/><x id="INTERPOLATION_1" equiv-text="{{ formatAuthor(t) }}"/><x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/><x id="CLOSE_BLOCK_FOR" equiv-text="}"/><x id="CLOSE_BLOCK_ELSE" equiv-text="}"/></source>
+      </trans-unit>
+      <trans-unit id="8744130888389005921" datatype="html">
+        <source> tagged <x id="START_BLOCK_IF" equiv-text="@if (tagExts$ | async; as xs) {"/><x id="START_BLOCK_FOR" equiv-text="@for (x of xs; track x.tag) {"/><x id="START_LINK" ctype="x-a" equiv-text="&lt;a class=&quot;tag&quot; [routerLink]=&quot;['/tag', x.tag]&quot; [appTitle]=&quot;x.tag&quot;&gt;"/><x id="INTERPOLATION" equiv-text="{{ x.name || '#' + x.tag }}"/><x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/><x id="CLOSE_BLOCK_FOR" equiv-text="}"/><x id="CLOSE_BLOCK_IF" equiv-text="}"/><x id="START_BLOCK_ELSE" equiv-text="@else {"/><x id="START_BLOCK_FOR_1" equiv-text="@for (t of tags; track t) {"/><x id="START_LINK_1" equiv-text="&lt;a class=&quot;tag&quot; [routerLink]=&quot;['/tag', t]&quot;&gt;"/><x id="INTERPOLATION_1" equiv-text="{{ t }}"/><x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/><x id="CLOSE_BLOCK_FOR" equiv-text="}"/><x id="CLOSE_BLOCK_ELSE" equiv-text="}"/></source>
+      </trans-unit>
+      <trans-unit id="2402409795048148312" datatype="html">
+        <source> on <x id="START_LINK" ctype="x-a" equiv-text="&lt;a class=&quot;origin tag&quot; [routerLink]=&quot;['/tag', ref.origin]&quot;&gt;"/><x id="INTERPOLATION" equiv-text="{{ ref.origin }}"/><x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/></source>
       </trans-unit>
       <trans-unit id="4087625955892152801" datatype="html">
         <source>permalink</source>
@@ -145,8 +199,8 @@ Please Reload.</source>
         <target>親</target>
       </trans-unit>
       <trans-unit id="4864851517866666316" datatype="html">
-        <source><x id="INTERPOLATION" equiv-text="sources }}"/> sources</source>
-        <target><x id="INTERPOLATION" equiv-text="sources }}"/> ソース</target>
+        <source><x id="INTERPOLATION" equiv-text="{{ sources }}"/> sources</source>
+        <target><x id="INTERPOLATION" equiv-text="{{ sources }}"/> ソース</target>
       </trans-unit>
       <trans-unit id="2456043080471762298" datatype="html">
         <source>delete</source>
@@ -309,8 +363,8 @@ Please Reload.</source>
         <source>[+]</source>
       </trans-unit>
       <trans-unit id="6390629675750795231" datatype="html">
-        <source><x id="INTERPOLATION" equiv-text="score }}"/> points </source>
-        <target><x id="INTERPOLATION" equiv-text="score }}"/> ポイント </target>
+        <source><x id="INTERPOLATION" equiv-text="{{ score }}"/> points </source>
+        <target><x id="INTERPOLATION" equiv-text="{{ score }}"/> ポイント </target>
       </trans-unit>
       <trans-unit id="4460910310199934772" datatype="html">
         <source>{VAR_PLURAL, plural, =1 {1 child} other {<x id="INTERPOLATION"/> children}}</source>
@@ -319,10 +373,6 @@ Please Reload.</source>
       <trans-unit id="7151986426571991667" datatype="html">
         <source> deleted comment </source>
         <target> コメントを削除しました </target>
-      </trans-unit>
-      <trans-unit id="8744130888389005921" datatype="html">
-        <source> tagged <x id="START_BLOCK_IF" equiv-text="@if (tagExts$ | async; as tagExts) {"/><x id="START_BLOCK_FOR" equiv-text="@for (e of tagExts; track e.tag) {"/><x id="START_LINK" ctype="x-a" equiv-text="&lt;a class=&quot;tag&quot;                      [routerLink]=&quot;['/tag', e.tag]&quot;                      [appTitle]=&quot;e.tag&quot;&gt;"/><x id="INTERPOLATION" equiv-text="' + e.tag }}"/><x id="CLOSE_LINK" ctype="x-a"/><x id="CLOSE_BLOCK_FOR" equiv-text="}"/><x id="CLOSE_BLOCK_IF" equiv-text="}"/><x id="START_BLOCK_ELSE" equiv-text="@else {"/><x id="START_BLOCK_FOR_1" equiv-text="@for (t of tagged; track t) {"/><x id="START_LINK_1" equiv-text="&lt;a class=&quot;tag&quot; [routerLink]=&quot;['/tag', t]&quot;&gt;"/><x id="INTERPOLATION_1" equiv-text="&lt;/a&gt;"/><x id="CLOSE_LINK" ctype="x-a"/><x id="CLOSE_BLOCK_FOR" equiv-text="}"/><x id="CLOSE_BLOCK_ELSE" equiv-text="}"/></source>
-        <target><x id="START_BLOCK_IF" equiv-text="@if (tagExts$ | async; as tagExts) {"/><x id="START_BLOCK_FOR" equiv-text="@for (e of tagExts; track e.tag) {"/><x id="START_LINK" ctype="x-a" equiv-text="&lt;a class=&quot;tag&quot;                      [routerLink]=&quot;['/tag', e.tag]&quot;                      [appTitle]=&quot;e.tag&quot;&gt;"/><x id="INTERPOLATION" equiv-text="' + e.tag }}"/><x id="CLOSE_LINK" ctype="x-a"/><x id="CLOSE_BLOCK_FOR" equiv-text="}"/><x id="CLOSE_BLOCK_IF" equiv-text="}"/><x id="START_BLOCK_ELSE" equiv-text="@else {"/><x id="START_BLOCK_FOR_1" equiv-text="@for (t of tagged; track t) {"/><x id="START_LINK_1" equiv-text="&lt;a class=&quot;tag&quot; [routerLink]=&quot;['/tag', t]&quot;&gt;"/><x id="INTERPOLATION_1" equiv-text="&lt;/a&gt;"/><x id="CLOSE_LINK" ctype="x-a"/><x id="CLOSE_BLOCK_FOR" equiv-text="}"/><x id="CLOSE_BLOCK_ELSE" equiv-text="}"/>タグ付き</target>
       </trans-unit>
       <trans-unit id="7755775997410085293" datatype="html">
         <source> load more comments </source>
@@ -598,20 +648,20 @@ Please Reload.</source>
         <target>リモート参照をコピー</target>
       </trans-unit>
       <trans-unit id="4943422610726991" datatype="html">
-        <source><x id="INTERPOLATION" equiv-text="dependents }}"/> Dependents</source>
-        <target><x id="INTERPOLATION" equiv-text="dependents }}"/> 依存先</target>
+        <source><x id="INTERPOLATION" equiv-text="{{ dependents }}"/> Dependents</source>
+        <target><x id="INTERPOLATION" equiv-text="{{ dependents }}"/> 依存先</target>
       </trans-unit>
       <trans-unit id="732445867796777904" datatype="html">
-        <source><x id="INTERPOLATION" equiv-text="dependencies }}"/> Dependencies</source>
-        <target><x id="INTERPOLATION" equiv-text="dependencies }}"/> 依存元</target>
+        <source><x id="INTERPOLATION" equiv-text="{{ dependencies }}"/> Dependencies</source>
+        <target><x id="INTERPOLATION" equiv-text="{{ dependencies }}"/> 依存元</target>
       </trans-unit>
       <trans-unit id="7402944183785280580" datatype="html">
         <source>Thread (<x id="INTERPOLATION" equiv-text="{{ threads }}"/> replies)</source>
         <target>スレッド (<x id="INTERPOLATION" equiv-text="{{ threads }}"/> 件の返信)</target>
       </trans-unit>
       <trans-unit id="6326693689225506833" datatype="html">
-        <source><x id="INTERPOLATION" equiv-text="comments }}"/> Comments</source>
-        <target><x id="INTERPOLATION" equiv-text="comments }}"/> コメント</target>
+        <source><x id="INTERPOLATION" equiv-text="{{ comments }}"/> Comments</source>
+        <target><x id="INTERPOLATION" equiv-text="{{ comments }}"/> コメント</target>
       </trans-unit>
       <trans-unit id="6056582193969546097" datatype="html">
         <source>Toggle Badges</source>
@@ -620,6 +670,9 @@ Please Reload.</source>
       <trans-unit id="4391990329573710305" datatype="html">
         <source>Retry creating this item</source>
         <target>このアイテムの作成を再試行</target>
+      </trans-unit>
+      <trans-unit id="2931404412008216542" datatype="html">
+        <source>↻</source>
       </trans-unit>
       <trans-unit id="749800792036691371" datatype="html">
         <source>Dismiss this failed item</source>
@@ -657,28 +710,6 @@ Please Reload.</source>
         <source>clear</source>
         <target>クリア</target>
       </trans-unit>
-      <trans-unit id="7290417644239030193" datatype="html">
-        <source>Refs</source>
-      </trans-unit>
-      <trans-unit id="874279231928254463" datatype="html">
-        <source>Exts</source>
-      </trans-unit>
-      <trans-unit id="4555457172864212828" datatype="html">
-        <source>Users</source>
-        <target>ユーザー</target>
-      </trans-unit>
-      <trans-unit id="6901018060567164184" datatype="html">
-        <source>Plugins</source>
-        <target>プラグイン</target>
-      </trans-unit>
-      <trans-unit id="5433675495457939071" datatype="html">
-        <source>Templates</source>
-        <target>テンプレート</target>
-      </trans-unit>
-      <trans-unit id="2258332150307719183" datatype="html">
-        <source>Newer than:</source>
-        <target>より新しい:</target>
-      </trans-unit>
       <trans-unit id="4217733100334209102" datatype="html">
         <source>pages: <x id="INTERPOLATION" equiv-text="{{ page.page.totalPages }}"/>, results: <x id="INTERPOLATION_1" equiv-text="{{ page.page.totalElements }}"/></source>
         <target>ページ: <x id="INTERPOLATION" equiv-text="{{ page.page.totalPages }}"/>, 結果: <x id="INTERPOLATION_1" equiv-text="{{ page.page.totalElements }}"/></target>
@@ -715,11 +746,9 @@ Please Reload.</source>
         <source>default</source>
         <target>デフォルト</target>
       </trans-unit>
-      <trans-unit id="9024135977657918039" datatype="html">
-        <source> Page <x id="INTERPOLATION" equiv-text="{{ page.page.number + 1 }}"/> of <x id="INTERPOLATION_1" equiv-text="{{ page.page.totalPages }}"/> (size: <x id="INTERPOLATION_2" equiv-text="{{ page.page.size }}"/>)
-</source>
-        <target><x id="INTERPOLATION" equiv-text="{{ page.page.number + 1 }}"/> / <x id="INTERPOLATION_1" equiv-text="{{ page.page.totalPages }}"/> ページ (サイズ: <x id="INTERPOLATION_2" equiv-text="{{ page.page.size }}"/>)
-</target>
+      <trans-unit id="9005900682610436567" datatype="html">
+        <source> Page <x id="INTERPOLATION" equiv-text="{{ page.page.number + 1 }}"/> of <x id="INTERPOLATION_1" equiv-text="{{ page.page.totalPages }}"/> (size: <x id="INTERPOLATION_2" equiv-text="{{ page.page.size }}"/>) </source>
+        <target><x id="INTERPOLATION" equiv-text="{{ page.page.number + 1 }}"/> / <x id="INTERPOLATION_1" equiv-text="{{ page.page.totalPages }}"/> ページ (サイズ: <x id="INTERPOLATION_2" equiv-text="{{ page.page.size }}"/>)</target>
       </trans-unit>
       <trans-unit id="1645193489541371451" datatype="html">
         <source>No results found</source>
@@ -738,44 +767,36 @@ Please Reload.</source>
         <target>タグ検索条件</target>
       </trans-unit>
       <trans-unit id="8739351927658317645" datatype="html">
-        <source><x id="START_BLOCK_IF" equiv-text="(!config.mobile) {"/> submitted <x id="CLOSE_BLOCK_IF" equiv-text="}"/> <x id="INTERPOLATION" equiv-text="{{ ref.created.toRelative() }}"/></source>
-        <target><x id="INTERPOLATION" equiv-text="{{ ref.created.toRelative() }}"/><x id="START_BLOCK_IF" equiv-text="(!config.mobile) {"/>投稿 <x id="CLOSE_BLOCK_IF" equiv-text="}"/></target>
+        <source><x id="START_BLOCK_IF" equiv-text="@if (!config.mobile) {"/> submitted <x id="CLOSE_BLOCK_IF" equiv-text="}"/> <x id="INTERPOLATION" equiv-text="{{ ref.created.toRelative() }}"/></source>
+        <target><x id="INTERPOLATION" equiv-text="{{ ref.created.toRelative() }}"/> <x id="START_BLOCK_IF" equiv-text="@if (!config.mobile) {"/> 投稿 <x id="CLOSE_BLOCK_IF" equiv-text="}"/></target>
       </trans-unit>
       <trans-unit id="8545340068072942278" datatype="html">
-        <source><x id="START_BLOCK_IF" equiv-text="(!config.mobile) {"/> published <x id="CLOSE_BLOCK_IF" equiv-text="}"/> <x id="INTERPOLATION" equiv-text="{{ ref.published!.toRelative() }}"/></source>
-        <target><x id="INTERPOLATION" equiv-text="{{ ref.published!.toRelative() }}"/><x id="START_BLOCK_IF" equiv-text="(!config.mobile) {"/>公開 <x id="CLOSE_BLOCK_IF" equiv-text="}"/></target>
+        <source><x id="START_BLOCK_IF" equiv-text="@if (!config.mobile) {"/> published <x id="CLOSE_BLOCK_IF" equiv-text="}"/> <x id="INTERPOLATION" equiv-text="{{ ref.published!.toRelative() }}"/></source>
+        <target><x id="INTERPOLATION" equiv-text="{{ ref.published!.toRelative() }}"/><x id="START_BLOCK_IF" equiv-text="@if (!config.mobile) {"/> 公開 <x id="CLOSE_BLOCK_IF" equiv-text="}"/></target>
       </trans-unit>
       <trans-unit id="7392311934469844500" datatype="html">
         <source>last edited <x id="INTERPOLATION" equiv-text="{{ ref.modified!.toRelative() }}"/></source>
         <target>最終編集 <x id="INTERPOLATION" equiv-text="{{ ref.modified!.toRelative() }}"/></target>
       </trans-unit>
-      <trans-unit id="4936024166764234896" datatype="html">
-        <source> by <x id="START_BLOCK_IF" equiv-text="@if (authorExts$ | async; as authorExts) {"/><x id="START_BLOCK_FOR" equiv-text="@for (user of authorExts; track user.tag + user.origin) {"/><x id="START_LINK" ctype="x-a" equiv-text="&lt;a class=&quot;user tag&quot;                      [title]=&quot;formatAuthor(user.tag + user.origin)&quot;                      [routerLink]=&quot;['/tag', user.tag + user.origin]&quot;                      [appTitle]=&quot;user&quot;&gt;"/><x id="INTERPOLATION" equiv-text="formatAuthor(user.tag) }}"/><x id="CLOSE_LINK" ctype="x-a"/><x id="CLOSE_BLOCK_FOR" equiv-text="}"/><x id="CLOSE_BLOCK_IF" equiv-text="}"/><x id="START_BLOCK_ELSE" equiv-text="@else {"/><x id="START_BLOCK_FOR_1" equiv-text="@for (t of authors; track t) {"/><x id="START_LINK_1" equiv-text="&lt;a class=&quot;user tag&quot;                      [title]=&quot;formatAuthor(t)&quot;                      [routerLink]=&quot;['/tag', t]&quot;&gt;"/><x id="INTERPOLATION_1" equiv-text=") }}"/><x id="CLOSE_LINK" ctype="x-a"/><x id="CLOSE_BLOCK_FOR" equiv-text="}"/><x id="CLOSE_BLOCK_ELSE" equiv-text="}"/></source>
-        <target><x id="START_BLOCK_IF" equiv-text="@if (authorExts$ | async; as authorExts) {"/><x id="START_BLOCK_FOR" equiv-text="@for (user of authorExts; track user.tag + user.origin) {"/><x id="START_LINK" ctype="x-a" equiv-text="&lt;a class=&quot;user tag&quot;                      [title]=&quot;formatAuthor(user.tag + user.origin)&quot;                      [routerLink]=&quot;['/tag', user.tag + user.origin]&quot;                      [appTitle]=&quot;user&quot;&gt;"/><x id="INTERPOLATION" equiv-text="formatAuthor(user.tag) }}"/><x id="CLOSE_LINK" ctype="x-a"/><x id="CLOSE_BLOCK_FOR" equiv-text="}"/><x id="CLOSE_BLOCK_IF" equiv-text="}"/><x id="START_BLOCK_ELSE" equiv-text="@else {"/><x id="START_BLOCK_FOR_1" equiv-text="@for (t of authors; track t) {"/><x id="START_LINK_1" equiv-text="&lt;a class=&quot;user tag&quot;                      [title]=&quot;formatAuthor(t)&quot;                      [routerLink]=&quot;['/tag', t]&quot;&gt;"/><x id="INTERPOLATION_1" equiv-text=") }}"/><x id="CLOSE_LINK" ctype="x-a"/><x id="CLOSE_BLOCK_FOR" equiv-text="}"/><x id="CLOSE_BLOCK_ELSE" equiv-text="}"/>によって</target>
-      </trans-unit>
       <trans-unit id="3700586480750627287" datatype="html">
-        <source> to <x id="START_BLOCK_IF" equiv-text="@if (recipientExts$ | async; as recipientExts) {"/><x id="START_BLOCK_FOR" equiv-text="@for (user of recipientExts; track user.tag + user.origin) {"/><x id="START_LINK" ctype="x-a" equiv-text="&lt;a class=&quot;user tag&quot;                      [title]=&quot;formatAuthor(user.tag + user.origin)&quot;                      [routerLink]=&quot;['/tag', user.tag + user.origin]&quot;                      [appTitle]=&quot;user&quot;&gt;"/><x id="INTERPOLATION" equiv-text="formatAuthor(user.tag + user.origin) }}"/><x id="CLOSE_LINK" ctype="x-a"/><x id="CLOSE_BLOCK_FOR" equiv-text="}"/><x id="CLOSE_BLOCK_IF" equiv-text="}"/><x id="START_BLOCK_ELSE" equiv-text="@else {"/><x id="START_BLOCK_FOR_1" equiv-text="@for (t of recipients; track t) {"/><x id="START_LINK_1" equiv-text="&lt;a class=&quot;user tag&quot;                      [title]=&quot;formatAuthor(t)&quot;                      [routerLink]=&quot;['/tag', t]&quot;&gt;"/><x id="INTERPOLATION_1" equiv-text=") }}"/><x id="CLOSE_LINK" ctype="x-a"/><x id="CLOSE_BLOCK_FOR" equiv-text="}"/><x id="CLOSE_BLOCK_ELSE" equiv-text="}"/></source>
-        <target><x id="START_BLOCK_IF" equiv-text="@if (recipientExts$ | async; as recipientExts) {"/><x id="START_BLOCK_FOR" equiv-text="@for (user of recipientExts; track user.tag + user.origin) {"/><x id="START_LINK" ctype="x-a" equiv-text="&lt;a class=&quot;user tag&quot;                      [title]=&quot;formatAuthor(user.tag + user.origin)&quot;                      [routerLink]=&quot;['/tag', user.tag + user.origin]&quot;                      [appTitle]=&quot;user&quot;&gt;"/><x id="INTERPOLATION" equiv-text="formatAuthor(user.tag + user.origin) }}"/><x id="CLOSE_LINK" ctype="x-a"/><x id="CLOSE_BLOCK_FOR" equiv-text="}"/><x id="CLOSE_BLOCK_IF" equiv-text="}"/><x id="START_BLOCK_ELSE" equiv-text="@else {"/><x id="START_BLOCK_FOR_1" equiv-text="@for (t of recipients; track t) {"/><x id="START_LINK_1" equiv-text="&lt;a class=&quot;user tag&quot;                      [title]=&quot;formatAuthor(t)&quot;                      [routerLink]=&quot;['/tag', t]&quot;&gt;"/><x id="INTERPOLATION_1" equiv-text=") }}"/><x id="CLOSE_LINK" ctype="x-a"/><x id="CLOSE_BLOCK_FOR" equiv-text="}"/><x id="CLOSE_BLOCK_ELSE" equiv-text="}"/>へ</target>
+        <source> to <x id="START_BLOCK_IF" equiv-text="@if (recipientExts$ | async; as xs) {"/><x id="START_BLOCK_FOR" equiv-text="@for (x of xs; track x.tag + x.origin) {"/><x id="START_LINK" ctype="x-a" equiv-text="&lt;a class=&quot;user tag&quot;                      [title]=&quot;formatAuthor(x.tag + x.origin)&quot;                      [routerLink]=&quot;['/tag', x.tag + x.origin]&quot;                      [appTitle]=&quot;x&quot;&gt;"/><x id="INTERPOLATION" equiv-text="{{ x.name || formatAuthor(x.tag + x.origin) }}"/><x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/><x id="CLOSE_BLOCK_FOR" equiv-text="}"/><x id="CLOSE_BLOCK_IF" equiv-text="}"/><x id="START_BLOCK_ELSE" equiv-text="@else {"/><x id="START_BLOCK_FOR_1" equiv-text="@for (t of recipients; track t) {"/><x id="START_LINK_1" equiv-text="&lt;a class=&quot;user tag&quot;                      [title]=&quot;formatAuthor(t)&quot;                      [routerLink]=&quot;['/tag', t]&quot;&gt;"/><x id="INTERPOLATION_1" equiv-text="{{ formatAuthor(t) }}"/><x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/><x id="CLOSE_BLOCK_FOR" equiv-text="}"/><x id="CLOSE_BLOCK_ELSE" equiv-text="}"/></source>
+        <target><x id="START_BLOCK_IF" equiv-text="@if (recipientExts$ | async; as xs) {"/><x id="START_BLOCK_FOR" equiv-text="@for (x of xs; track x.tag + x.origin) {"/><x id="START_LINK" ctype="x-a" equiv-text="&lt;a class=&quot;user tag&quot;                      [title]=&quot;formatAuthor(x.tag + x.origin)&quot;                      [routerLink]=&quot;['/tag', x.tag + x.origin]&quot;                      [appTitle]=&quot;x&quot;&gt;"/><x id="INTERPOLATION" equiv-text="{{ x.name || formatAuthor(x.tag + x.origin) }}"/><x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/><x id="CLOSE_BLOCK_FOR" equiv-text="}"/><x id="CLOSE_BLOCK_IF" equiv-text="}"/><x id="START_BLOCK_ELSE" equiv-text="@else {"/><x id="START_BLOCK_FOR_1" equiv-text="@for (t of recipients; track t) {"/><x id="START_LINK_1" equiv-text="&lt;a class=&quot;user tag&quot;                      [title]=&quot;formatAuthor(t)&quot;                      [routerLink]=&quot;['/tag', t]&quot;&gt;"/><x id="INTERPOLATION_1" equiv-text="{{ formatAuthor(t) }}"/><x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/><x id="CLOSE_BLOCK_FOR" equiv-text="}"/><x id="CLOSE_BLOCK_ELSE" equiv-text="}"/>へ</target>
       </trans-unit>
       <trans-unit id="1196103407975658227" datatype="html">
         <source>Alarm (<x id="INTERPOLATION" equiv-text="{{ alarm }}"/>)</source>
         <target>アラーム (<x id="INTERPOLATION" equiv-text="{{ alarm }}"/>)</target>
-      </trans-unit>
-      <trans-unit id="2402409795048148312" datatype="html">
-        <source> on <x id="START_LINK" ctype="x-a" equiv-text="&lt;a class=&quot;origin tag&quot; [routerLink]=&quot;['/tag', ref.origin || '*']&quot;&gt;"/><x id="INTERPOLATION" equiv-text="| 'default' }}"/><x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/span&gt;"/></source>
-        <target><x id="START_LINK" ctype="x-a" equiv-text="&lt;a class=&quot;origin tag&quot; [routerLink]=&quot;['/tag', ref.origin || '*']&quot;&gt;"/><x id="INTERPOLATION" equiv-text="| 'default' }}"/><x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/span&gt;"/>に</target>
       </trans-unit>
       <trans-unit id="6183288723862758287" datatype="html">
         <source> from <x id="INTERPOLATION" equiv-text="{{ remoteOrigin }}"/></source>
         <target><x id="INTERPOLATION" equiv-text="{{ remoteOrigin }}"/>から</target>
       </trans-unit>
       <trans-unit id="2644908465518438185" datatype="html">
-        <source> to <x id="START_LINK" ctype="x-a" equiv-text="&lt;a class=&quot;origin tag&quot; [routerLink]=&quot;['/tag', localOrigin]&quot;&gt;"/><x id="INTERPOLATION" equiv-text="}}"/><x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/span&gt;"/></source>
-        <target><x id="START_LINK" ctype="x-a" equiv-text="&lt;a class=&quot;origin tag&quot; [routerLink]=&quot;['/tag', localOrigin]&quot;&gt;"/><x id="INTERPOLATION" equiv-text="}}"/><x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/span&gt;"/>へ</target>
+        <source> to <x id="START_LINK" ctype="x-a" equiv-text="&lt;a class=&quot;origin tag&quot; [routerLink]=&quot;['/tag', localOrigin]&quot;&gt;"/><x id="INTERPOLATION" equiv-text="{{ localOrigin }}"/><x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/></source>
+        <target><x id="START_LINK" ctype="x-a" equiv-text="&lt;a class=&quot;origin tag&quot; [routerLink]=&quot;['/tag', localOrigin]&quot;&gt;"/><x id="INTERPOLATION" equiv-text="{{ localOrigin }}"/><x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/>へ</target>
       </trans-unit>
       <trans-unit id="7682812131975352776" datatype="html">
-        <source> from <x id="START_LINK" ctype="x-a" equiv-text="&lt;a class=&quot;origin tag&quot; [routerLink]=&quot;['/tag', localOrigin]&quot;&gt;"/><x id="INTERPOLATION" equiv-text="}}"/><x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/span&gt;"/></source>
-        <target><x id="START_LINK" ctype="x-a" equiv-text="&lt;a class=&quot;origin tag&quot; [routerLink]=&quot;['/tag', localOrigin]&quot;&gt;"/><x id="INTERPOLATION" equiv-text="}}"/><x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/span&gt;"/>から</target>
+        <source> from <x id="START_LINK" ctype="x-a" equiv-text="&lt;a class=&quot;origin tag&quot; [routerLink]=&quot;['/tag', localOrigin]&quot;&gt;"/><x id="INTERPOLATION" equiv-text="{{ localOrigin }}"/><x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/></source>
+        <target><x id="START_LINK" ctype="x-a" equiv-text="&lt;a class=&quot;origin tag&quot; [routerLink]=&quot;['/tag', localOrigin]&quot;&gt;"/><x id="INTERPOLATION" equiv-text="{{ localOrigin }}"/><x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/>から</target>
       </trans-unit>
       <trans-unit id="1256017723998787040" datatype="html">
         <source> to <x id="INTERPOLATION" equiv-text="{{ remoteOrigin }}"/></source>
@@ -1267,21 +1288,12 @@ Please Reload.</source>
       </trans-unit>
       <trans-unit id="9022185585863748051" datatype="html">
         <source>(root: "")</source>
-        <target>(ルート: "")</target>
       </trans-unit>
       <trans-unit id="6292583733826531781" datatype="html">
         <source>(root: <x id="INTERPOLATION" equiv-text="{{ template.origin }}"/>)</source>
-        <target>(ルート: <x id="INTERPOLATION" equiv-text="{{ template.origin }}"/>)</target>
       </trans-unit>
       <trans-unit id="8879565425060985712" datatype="html">
         <source>Override Tag...</source>
-        <target>タグをオーバーライド...</target>
-      </trans-unit>
-      <trans-unit id="8837693192568283306" datatype="html">
-        <source> No results found
-</source>
-        <target> 結果が見つかりませんでした
-</target>
       </trans-unit>
       <trans-unit id="7557275684476197518" datatype="html">
         <source>sync</source>
@@ -1394,13 +1406,6 @@ Please Reload.</source>
       <trans-unit id="6981597304368709332" datatype="html">
         <source>New Ext</source>
         <target>新規 Ext</target>
-      </trans-unit>
-      <trans-unit id="5971949012006735861" datatype="html">
-        <source>🆑️</source>
-      </trans-unit>
-      <trans-unit id="3347932678307141902" datatype="html">
-        <source>restore</source>
-        <target>復元</target>
       </trans-unit>
       <trans-unit id="7658402240953727096" datatype="html">
         <source>Name:</source>
@@ -1943,10 +1948,6 @@ Private tags start with an underscore.
       <trans-unit id="2149905836239703266" datatype="html">
         <source>📷️</source>
       </trans-unit>
-      <trans-unit id="8700121026680200191" datatype="html">
-        <source>Clear</source>
-        <target>クリア</target>
-      </trans-unit>
       <trans-unit id="8531478208997019445" datatype="html">
         <source>PDF File</source>
         <target>PDFファイル</target>
@@ -2007,14 +2008,6 @@ Private tags start with an underscore.
         <source>Send this Ref to the ai for response.</source>
         <target>このRefをAIに送って応答を得る。</target>
       </trans-unit>
-      <trans-unit id="2445400111201258289" datatype="html">
-        <source>configure</source>
-        <target>設定</target>
-      </trans-unit>
-      <trans-unit id="1196677943728239216" datatype="html">
-        <source>Configure AI</source>
-        <target>AIを設定</target>
-      </trans-unit>
       <trans-unit id="5576505306158210930" datatype="html">
         <source>✨️ AI Response</source>
         <target>✨️ AI応答</target>
@@ -2022,6 +2015,9 @@ Private tags start with an underscore.
       <trans-unit id="3726077662820449864" datatype="html">
         <source>✨️ LLM Config</source>
         <target>✨️ LLM設定</target>
+      </trans-unit>
+      <trans-unit id="2904728311021851795" datatype="html">
+        <source>⏳️</source>
       </trans-unit>
       <trans-unit id="5319118734822942433" datatype="html">
         <source>Responding...</source>
@@ -2100,6 +2096,12 @@ Private tags start with an underscore.
       <trans-unit id="7298464772828563221" datatype="html">
         <source>🔎️🌐️ AI Web Context</source>
         <target>🔎️🌐️ AIウェブコンテキスト</target>
+      </trans-unit>
+      <trans-unit id="5833023658250803462" datatype="html">
+        <source>🔎️🌐️</source>
+      </trans-unit>
+      <trans-unit id="1408060915920557981" datatype="html">
+        <source>AI Web Context</source>
       </trans-unit>
       <trans-unit id="4044740211559960759" datatype="html">
         <source>🎭️ Alias</source>
@@ -2220,13 +2222,11 @@ Private tags start with an underscore.
         <source>ask navi</source>
         <target>ナビに質問</target>
       </trans-unit>
-      <trans-unit id="1565661300945228079" datatype="html">
-        <source>+plugin/delta/ai/navi is thinking...</source>
-        <target>+plugin/delta/ai/navi は考え中です・・・</target>
+      <trans-unit id="2445400111201258289" datatype="html">
+        <source>configure</source>
       </trans-unit>
-      <trans-unit id="3895242880647843070" datatype="html">
-        <source>👻️ Navi</source>
-        <target>👻️ ナビ</target>
+      <trans-unit id="1196677943728239216" datatype="html">
+        <source>Configure AI</source>
       </trans-unit>
       <trans-unit id="6894945807805404316" datatype="html">
         <source>👻️💭️</source>
@@ -2235,9 +2235,18 @@ Private tags start with an underscore.
         <source>Ask Navi</source>
         <target>Naviに質問</target>
       </trans-unit>
+      <trans-unit id="1752075388451550172" datatype="html">
+        <source>✨️</source>
+      </trans-unit>
       <trans-unit id="8162946528531123706" datatype="html">
         <source>Web Context</source>
         <target>ウェブコンテキスト</target>
+      </trans-unit>
+      <trans-unit id="1565661300945228079" datatype="html">
+        <source>+plugin/delta/ai/navi is thinking...</source>
+      </trans-unit>
+      <trans-unit id="3895242880647843070" datatype="html">
+        <source>👻️ Navi</source>
       </trans-unit>
       <trans-unit id="5738626649832833456" datatype="html">
         <source>👻️</source>
@@ -2796,16 +2805,15 @@ Refのみが削除されたファイルはまだ回復できますが、この�
         <source>🗒️ Code</source>
         <target>🗒️ コード</target>
       </trans-unit>
+      <trans-unit id="1790021539424506116" datatype="html">
+        <source>🗒️ code</source>
+      </trans-unit>
       <trans-unit id="1138881534333015466" datatype="html">
         <source>Uses the monaco editor (like vscode).</source>
         <target>Monacoエディター(vscodeのようなもの)を使用します。</target>
       </trans-unit>
       <trans-unit id="504535741569024611" datatype="html">
         <source>🗒️</source>
-      </trans-unit>
-      <trans-unit id="1790021539424506116" datatype="html">
-        <source>🗒️ code</source>
-        <target>🗒️ コード</target>
       </trans-unit>
       <trans-unit id="8186013988289067040" datatype="html">
         <source>Code</source>
@@ -2948,6 +2956,12 @@ Refのみが削除されたファイルはまだ回復できますが、この�
       <trans-unit id="7893595669897912836" datatype="html">
         <source>Adds LaTeX support to the markdown editor. Use $ to mark inline math, $$ to mark block math.</source>
         <target>MarkdownエディターにLaTeXサポートを追加します。$でインライン数式、$$でブロック数式をマークします。</target>
+      </trans-unit>
+      <trans-unit id="250994100339430078" datatype="html">
+        <source>💲️</source>
+      </trans-unit>
+      <trans-unit id="7736392907940185086" datatype="html">
+        <source>LaTeX</source>
       </trans-unit>
       <trans-unit id="6817971173758446472" datatype="html">
         <source>📧️ Email</source>
@@ -4707,9 +4721,6 @@ Refのみが削除されたファイルはまだ回復できますが、この�
         <source>➰️ Scripts</source>
         <target>➰️ スクリプト</target>
       </trans-unit>
-      <trans-unit id="2904728311021851795" datatype="html">
-        <source>⏳️</source>
-      </trans-unit>
       <trans-unit id="1889554647572686204" datatype="html">
         <source>⏳️ Running</source>
         <target>⏳️ 実行中</target>
@@ -5553,8 +5564,8 @@ Enter the origin to confirm:</source>
         <target>QRコードは空にできません。</target>
       </trans-unit>
       <trans-unit id="837260473628534595" datatype="html">
-        <source> Submit <x id="START_BLOCK_IF" equiv-text="@if (selectedPlugin) {"/><x id="START_TAG_SPAN" ctype="x-span" equiv-text="&lt;span&gt;"/><x id="INTERPOLATION" equiv-text="ame || selectedPlugin.tag }}"/><x id="CLOSE_TAG_SPAN" ctype="x-span" equiv-text="}"/><x id="CLOSE_BLOCK_IF" equiv-text="}"/></source>
-        <target> 提出 <x id="START_BLOCK_IF" equiv-text="@if (selectedPlugin) {"/><x id="START_TAG_SPAN" ctype="x-span" equiv-text="&lt;span&gt;"/><x id="INTERPOLATION" equiv-text="ame || selectedPlugin.tag }}"/><x id="CLOSE_TAG_SPAN" ctype="x-span" equiv-text="}"/><x id="CLOSE_BLOCK_IF" equiv-text="}"/></target>
+        <source> Submit <x id="START_BLOCK_IF" equiv-text="@if (selectedPlugin) {"/><x id="START_TAG_SPAN" ctype="x-span" equiv-text="&lt;span&gt;"/><x id="INTERPOLATION" equiv-text="{{ selectedPlugin.name || selectedPlugin.tag }}"/><x id="CLOSE_TAG_SPAN" ctype="x-span" equiv-text="&lt;/span&gt;"/><x id="CLOSE_BLOCK_IF" equiv-text="}"/></source>
+        <target> 提出 <x id="START_BLOCK_IF" equiv-text="@if (selectedPlugin) {"/><x id="START_TAG_SPAN" ctype="x-span" equiv-text="&lt;span&gt;"/><x id="INTERPOLATION" equiv-text="{{ selectedPlugin.name || selectedPlugin.tag }}"/><x id="CLOSE_TAG_SPAN" ctype="x-span" equiv-text="&lt;/span&gt;"/><x id="CLOSE_BLOCK_IF" equiv-text="}"/></target>
       </trans-unit>
       <trans-unit id="3471849938876137128" datatype="html">
         <source>🔗️ Link Post</source>
@@ -5603,8 +5614,14 @@ Enter the origin to confirm:</source>
         <source>Submit link</source>
       </trans-unit>
       <trans-unit id="6717448292919062161" datatype="html">
-        <source><x id="START_BLOCK_IF" equiv-text="(repost) {"/> Repost <x id="CLOSE_BLOCK_IF" equiv-text="}"/><x id="START_BLOCK_ELSE" equiv-text="@else {"/> Next <x id="CLOSE_BLOCK_ELSE" equiv-text="}"/></source>
-        <target><x id="START_BLOCK_IF" equiv-text="(repost) {"/> 再投稿 <x id="CLOSE_BLOCK_IF" equiv-text="}"/><x id="START_BLOCK_ELSE" equiv-text="@else {"/> 次へ <x id="CLOSE_BLOCK_ELSE" equiv-text="}"/></target>
+        <source><x id="START_BLOCK_IF" equiv-text="@if (repost) {"/> Repost <x id="CLOSE_BLOCK_IF" equiv-text="}"/><x id="START_BLOCK_ELSE" equiv-text="@else {"/> Next <x id="CLOSE_BLOCK_ELSE" equiv-text="}"/></source>
+        <target><x id="START_BLOCK_IF" equiv-text="@if (repost) {"/> 再投稿 <x id="CLOSE_BLOCK_IF" equiv-text="}"/><x id="START_BLOCK_ELSE" equiv-text="@else {"/> 次へ <x id="CLOSE_BLOCK_ELSE" equiv-text="}"/></target>
+      </trans-unit>
+      <trans-unit id="5892766151948709734" datatype="html">
+        <source>Existing Responses:</source>
+      </trans-unit>
+      <trans-unit id="3566925839516679188" datatype="html">
+        <source> see all </source>
       </trans-unit>
       <trans-unit id="7619500327529268180" datatype="html">
         <source>Unsaved:</source>
@@ -5681,7 +5698,7 @@ Enter the origin to confirm:</source>
         <target>アップロード</target>
       </trans-unit>
       <trans-unit id="878726568452052561" datatype="html">
-        <source> Upload Refs, Exts, images, audio, video, spreadsheets, bookmarks (XML or HTML), and PDFs. <x id="START_TAG_SPAN" ctype="x-span" equiv-text="&lt;span&gt;"/>View your <x id="START_LINK" ctype="x-a" equiv-text="&lt;a [routerLink]=&quot;[&apos;/tag&apos;, store.account.tag]&quot; [queryParams]=&quot;{ filter: &apos;query/plugin/file&apos; }&quot;&gt;"/>files here<x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/>.<x id="CLOSE_TAG_SPAN" ctype="x-span" equiv-text="&lt;/span&gt;"/><x id="START_BLOCK_IF" equiv-text="@if (store.account.admin) {"/><x id="START_TAG_SPAN" ctype="x-span" equiv-text="&lt;span&gt;"/>Visit the <x id="START_LINK_1" equiv-text="&lt;a routerLink=&quot;/settings/setup&quot;&gt;"/>setup<x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/> settings page to manage mods.<x id="CLOSE_TAG_SPAN" ctype="x-span" equiv-text="&lt;/span&gt;"/><x id="CLOSE_BLOCK_IF" equiv-text="}"/></source>
+        <source> Upload Refs, Exts, images, audio, video, spreadsheets, bookmarks (XML or HTML), and PDFs. <x id="START_TAG_SPAN" ctype="x-span" equiv-text="&lt;span&gt;"/>View your <x id="START_LINK" ctype="x-a" equiv-text="&lt;a [routerLink]=&quot;['/tag', store.account.tag]&quot; [queryParams]=&quot;{ filter: 'query/plugin/file' }&quot;&gt;"/>files here<x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/>.<x id="CLOSE_TAG_SPAN" ctype="x-span" equiv-text="&lt;/span&gt;"/><x id="START_BLOCK_IF" equiv-text="@if (store.account.admin) {"/><x id="START_TAG_SPAN" ctype="x-span" equiv-text="&lt;span&gt;"/>Visit the <x id="START_LINK_1" equiv-text="&lt;a routerLink=&quot;/settings/setup&quot;&gt;"/>setup<x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/> settings page to manage mods.<x id="CLOSE_TAG_SPAN" ctype="x-span" equiv-text="&lt;/span&gt;"/><x id="CLOSE_BLOCK_IF" equiv-text="}"/></source>
         <target> Refs、Exts、画像、音声、動画、スプレッドシート、ブックマーク（XMLまたはHTML）、PDFをアップロードします。<x id="START_TAG_SPAN" ctype="x-span" equiv-text="&lt;span&gt;"/>あなたの<x id="START_LINK" ctype="x-a" equiv-text="&lt;a [routerLink]=&quot;[&apos;/tag&apos;, store.account.tag]&quot; [queryParams]=&quot;{ filter: &apos;query/plugin/file&apos; }&quot;&gt;"/>ファイルはこちら<x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/>で確認できます。<x id="CLOSE_TAG_SPAN" ctype="x-span" equiv-text="&lt;/span&gt;"/><x id="START_BLOCK_IF" equiv-text="@if (store.account.admin) {"/><x id="START_TAG_SPAN" ctype="x-span" equiv-text="&lt;span&gt;"/>modを管理するには<x id="START_LINK_1" equiv-text="&lt;a routerLink=&quot;/settings/setup&quot;&gt;"/>セットアップ<x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/>設定ページにアクセスしてください。<x id="CLOSE_TAG_SPAN" ctype="x-span" equiv-text="&lt;/span&gt;"/><x id="CLOSE_BLOCK_IF" equiv-text="}"/></target>
       </trans-unit>
       <trans-unit id="8369271451769460452" datatype="html">
@@ -5916,69 +5933,6 @@ Enter the origin to confirm:</source>
       <trans-unit id="950338657895578107" datatype="html">
         <source> Image </source>
         <target> 画像 </target>
-      </trans-unit>
-      <trans-unit id="1408060915920557981" datatype="html">
-        <source>AI Web Context</source>
-        <target>AIウェブコンテキスト</target>
-      </trans-unit>
-      <trans-unit id="1226509592528490232" datatype="html">
-        <source>Illegal move <x id="PH" equiv-text="renderMove(p, from, to)"/></source>
-        <target>不正な移動 <x id="PH" equiv-text="renderMove(p, from, to)"/></target>
-      </trans-unit>
-      <trans-unit id="1752075388451550172" datatype="html">
-        <source>✨️</source>
-      </trans-unit>
-      <trans-unit id="250994100339430078" datatype="html">
-        <source>💲️</source>
-      </trans-unit>
-      <trans-unit id="269137713886171303" datatype="html">
-        <source><x id="PH" equiv-text="piecesHitThisTurn"/> pieces hit</source>
-        <target><x id="PH" equiv-text="piecesHitThisTurn"/> 個のコマがヒットされました</target>
-      </trans-unit>
-      <trans-unit id="2828116563312710431" datatype="html">
-        <source>Black all home</source>
-        <target>黒がすべてホームに戻りました</target>
-      </trans-unit>
-      <trans-unit id="2931404412008216542" datatype="html">
-        <source>↻</source>
-      </trans-unit>
-      <trans-unit id="3195148963394868807" datatype="html">
-        <source>Red all home</source>
-        <target>赤がすべてホームに戻りました</target>
-      </trans-unit>
-      <trans-unit id="3566925839516679188" datatype="html">
-        <source> see all </source>
-        <target> すべて表示 </target>
-      </trans-unit>
-      <trans-unit id="4104861352185074031" datatype="html">
-        <source>Double 6s</source>
-        <target>ダブル6</target>
-      </trans-unit>
-      <trans-unit id="5833023658250803462" datatype="html">
-        <source>🔎️🌐️</source>
-      </trans-unit>
-      <trans-unit id="5892766151948709734" datatype="html">
-        <source>Existing Responses:</source>
-        <target>既存の応答:</target>
-      </trans-unit>
-      <trans-unit id="61146899238241461" datatype="html">
-        <source>Change playback speed</source>
-        <target>再生速度を変更</target>
-      </trans-unit>
-      <trans-unit id="7736392907940185086" datatype="html">
-        <source>LaTeX</source>
-      </trans-unit>
-      <trans-unit id="8106459808350358911" datatype="html">
-        <source>Move <x id="INTERPOLATION" equiv-text="{{ floor(replayPosition) }}"/> / <x id="INTERPOLATION_1" equiv-text="{{ replayAnimations.length }}"/></source>
-        <target>移動 <x id="INTERPOLATION" equiv-text="{{ floor(replayPosition) }}"/> / <x id="INTERPOLATION_1" equiv-text="{{ replayAnimations.length }}"/></target>
-      </trans-unit>
-      <trans-unit id="8564202903947049539" datatype="html">
-        <source>Play</source>
-        <target>再生</target>
-      </trans-unit>
-      <trans-unit id="9042260521669277115" datatype="html">
-        <source>Pause</source>
-        <target>一時停止</target>
       </trans-unit>
     </body>
   </file>
