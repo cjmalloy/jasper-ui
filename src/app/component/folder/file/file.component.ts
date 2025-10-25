@@ -1,5 +1,5 @@
 import { AsyncPipe } from '@angular/common';
-import { Component, HostBinding, Input, OnChanges, OnDestroy, SimpleChanges } from '@angular/core';
+import { Component, forwardRef, HostBinding, Input, OnChanges, OnDestroy, SimpleChanges } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { catchError, of, Subject, takeUntil, throwError } from 'rxjs';
 import { Ref } from '../../../model/ref';
@@ -31,7 +31,7 @@ import { ViewerComponent } from '../../viewer/viewer.component';
   templateUrl: './file.component.html',
   styleUrls: ['./file.component.scss'],
   imports: [
-    ViewerComponent,
+    forwardRef(() => ViewerComponent),
     RouterLink,
     AsyncPipe,
     ThumbnailPipe,
