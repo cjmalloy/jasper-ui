@@ -1,5 +1,5 @@
 import { Component, ElementRef, Input, ViewChild } from '@angular/core';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { defer } from 'lodash-es';
 import { AdminService } from '../../service/admin.service';
@@ -13,7 +13,7 @@ export type Crumb = { text: string, tag?: string, pos: number, len: number };
   selector: 'app-query',
   templateUrl: './query.component.html',
   styleUrls: ['./query.component.scss'],
-  imports: [ReactiveFormsModule, FormsModule, RouterLink]
+  imports: [ReactiveFormsModule, RouterLink]
 })
 export class QueryComponent {
 

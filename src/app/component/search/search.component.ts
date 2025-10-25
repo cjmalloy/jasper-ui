@@ -1,5 +1,5 @@
 import { Component, OnDestroy } from '@angular/core';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { ReactiveFormsModule } from '@angular/forms';
 import { NavigationEnd, Router } from '@angular/router';
 import { debounce } from 'lodash-es';
 import { autorun, IReactionDisposer, toJS } from 'mobx';
@@ -14,7 +14,7 @@ import { View } from '../../store/view';
   templateUrl: './search.component.html',
   styleUrls: ['./search.component.scss'],
   host: { 'class': 'search form-group' },
-  imports: [MobxAngularModule, ReactiveFormsModule, FormsModule]
+  imports: [MobxAngularModule, ReactiveFormsModule]
 })
 export class SearchComponent implements OnDestroy {
 

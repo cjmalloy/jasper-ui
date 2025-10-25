@@ -10,7 +10,7 @@ import {
   Output,
   SimpleChanges
 } from '@angular/core';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { ReactiveFormsModule } from '@angular/forms';
 import { catchError, Observable, of, Subscription, switchMap, throwError, timer } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Ref } from '../../model/ref';
@@ -24,7 +24,7 @@ import { TodoItemComponent } from './item/item.component';
   templateUrl: './todo.component.html',
   styleUrls: ['./todo.component.scss'],
   host: { 'class': 'todo-list' },
-  imports: [CdkDropList, TodoItemComponent, CdkDrag, ReactiveFormsModule, FormsModule]
+  imports: [CdkDropList, TodoItemComponent, CdkDrag, ReactiveFormsModule]
 })
 export class TodoComponent implements OnChanges {
 
