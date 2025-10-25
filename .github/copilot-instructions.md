@@ -106,8 +106,9 @@ comm -23 \
 #### Step 3: Add Translations
 For each missing translation ID:
 1. Find the `<trans-unit>` entry in `messages.xlf`
-2. Copy it to the appropriate location in `messages.<locale>.xlf`
+2. Copy **only** the `<source>` element to the appropriate location in `messages.<locale>.xlf`
 3. Add a `<target>` element with the translated text
+4. **DO NOT** include `<context-group>` elements - they are not needed in translation files
 
 **Example:**
 ```xml
@@ -118,6 +119,8 @@ For each missing translation ID:
 ```
 
 #### Step 4: Format Guidelines
+
+**No Context Groups:** Translation files should NOT include `<context-group>` elements. Only include `<source>` and `<target>` (if translated) in each `<trans-unit>`.
 
 **Newlines:** Use the same format as the source. If the source has actual newlines (blank lines), use them in the target too - do NOT use `\n` escape sequences.
 ```xml
@@ -133,14 +136,14 @@ Line 2</source>
 <target>行1\n\n行2</target>
 ```
 
-**Redundant Translations:** Skip entries where the translation would be identical to the source (emojis, symbols, technical terms). Omit these `<trans-unit>` entries entirely from the translation file - the system will automatically fall back to the source text.
+**Untranslated Entries:** For entries where the translation would be identical to the source (emojis, symbols, technical terms), include a source-only `<trans-unit>` (no `<target>`) to prevent build warnings.
 ```xml
-<!-- SKIP these in translation files -->
-<trans-unit id="xxx">
-  <source>🔎️🌐️</source>  <!-- Emoji - same in all languages -->
+<!-- Include these with source only in translation files -->
+<trans-unit id="xxx" datatype="html">
+  <source>🔎️🌐️</source>  <!-- Emoji - no translation needed -->
 </trans-unit>
-<trans-unit id="yyy">
-  <source>LaTeX</source>  <!-- Technical term - unchanged -->
+<trans-unit id="yyy" datatype="html">
+  <source>LaTeX</source>  <!-- Technical term - no translation needed -->
 </trans-unit>
 ```
 
@@ -149,7 +152,7 @@ Build the project to verify translations work correctly:
 ```bash
 npm run build
 ```
-- Check for "No translation found" warnings - expected for intentionally skipped entries
+- There should be NO "No translation found" warnings if all source-only entries are included
 - Verify there are no errors for entries that should have translations
 
 ### Configuration
