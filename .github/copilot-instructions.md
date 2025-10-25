@@ -94,7 +94,17 @@ npm run ng extract-i18n -- --output-path src/locale
 ```
 This updates `src/locale/messages.xlf` with any new `$localize` strings from the code.
 
-#### Step 2: Identify Missing Translations
+#### Step 2: Remove Obsolete Translations
+**IMPORTANT**: Remove translations that no longer exist in the base file to keep the translation file in sync:
+```bash
+# Example for Japanese - identify obsolete translations
+comm -13 \
+  <(grep -oP 'id="\K[^"]+' src/locale/messages.xlf | sort) \
+  <(grep -oP 'id="\K[^"]+' src/locale/messages.ja.xlf | sort)
+```
+Remove any `<trans-unit>` entries whose IDs appear in this list - they are no longer used in the codebase.
+
+#### Step 3: Identify Missing Translations
 Compare the base file with the target language file to find missing translations:
 ```bash
 # Example for Japanese
@@ -103,7 +113,7 @@ comm -23 \
   <(grep -oP 'id="\K[^"]+' src/locale/messages.ja.xlf | sort)
 ```
 
-#### Step 3: Add Translations
+#### Step 4: Add Translations
 For each missing translation ID:
 1. Find the `<trans-unit>` entry in `messages.xlf`
 2. Copy **only** the `<source>` element to the appropriate location in `messages.<locale>.xlf`
@@ -118,7 +128,7 @@ For each missing translation ID:
 </trans-unit>
 ```
 
-#### Step 4: Format Guidelines
+#### Step 5: Format Guidelines
 
 **No Context Groups:** Translation files should NOT include `<context-group>` elements. Only include `<source>` and `<target>` (if translated) in each `<trans-unit>`.
 
@@ -147,7 +157,7 @@ Line 2</source>
 </trans-unit>
 ```
 
-#### Step 5: Verify
+#### Step 6: Verify
 Build the project to verify translations work correctly:
 ```bash
 npm run build
