@@ -44,10 +44,6 @@
         保護されたタグはプラス記号で始まります。
         プライベートタグはアンダースコアで始まります。</target>
       </trans-unit>
-      <trans-unit id="6681780065446926308" datatype="html">
-        <source>Must be a valid URI according to RFC 3986.</source>
-        <target>RFC 3986に準拠した有効なURIである必要があります。</target>
-      </trans-unit>
       <trans-unit id="4046446611860328467" datatype="html">
         <source>Red</source>
         <target>赤</target>
@@ -95,18 +91,6 @@ Please Reload.</source>
         <target>ゲーム履歴が書き換えられました！
 
 再読み込みしてください。</target>
-      </trans-unit>
-      <trans-unit id="7627075302015812535" datatype="html">
-        <source>Game history was rewritten!</source>
-        <target>ゲーム履歴が書き換えられました！</target>
-      </trans-unit>
-      <trans-unit id="4927462529152957780" datatype="html">
-        <source>Illegal Move</source>
-        <target>不正な移動</target>
-      </trans-unit>
-      <trans-unit id="8614373912500788308" datatype="html">
-        <source>Illegal move</source>
-        <target>不正な移動</target>
       </trans-unit>
       <trans-unit id="8350303712541512324" datatype="html">
         <source>Game Over</source>
@@ -207,10 +191,6 @@ Please Reload.</source>
       <trans-unit id="8177566366977274201" datatype="html">
         <source>toggle</source>
         <target>切り替え</target>
-      </trans-unit>
-      <trans-unit id="919133713232396432" datatype="html">
-        <source>thumbnail</source>
-        <target>サムネイル</target>
       </trans-unit>
       <trans-unit id="6862265996781523030" datatype="html">
         <source>copy</source>
@@ -392,14 +372,6 @@ Please Reload.</source>
         <source>Overwrite</source>
         <target>上書き</target>
       </trans-unit>
-      <trans-unit id="8403453785702498520" datatype="html">
-        <source>Will reset config to defaults.</source>
-        <target>設定がデフォルトにリセットされます。</target>
-      </trans-unit>
-      <trans-unit id="208857653041830470" datatype="html">
-        <source>Force</source>
-        <target>強制</target>
-      </trans-unit>
       <trans-unit id="5407098412547993382" datatype="html">
         <source>🧑️</source>
       </trans-unit>
@@ -580,18 +552,6 @@ Please Reload.</source>
       <trans-unit id="6741405788491536837" datatype="html">
         <source>Load responses <x id="START_BLOCK_IF" equiv-text="@if (rc &gt; 1) {"/><x id="START_TAG_SPAN" ctype="x-span" equiv-text="&lt;span&gt;"/><x id="INTERPOLATION" equiv-text="{{ max(rc) }}"/><x id="CLOSE_TAG_SPAN" ctype="x-span" equiv-text="&lt;/span&gt;"/><x id="CLOSE_BLOCK_IF" equiv-text="}"/></source>
         <target><x id="START_BLOCK_IF" equiv-text="@if (rc &gt; 1) {"/><x id="START_TAG_SPAN" ctype="x-span" equiv-text="&lt;span&gt;"/><x id="INTERPOLATION" equiv-text="{{ max(rc) }}"/><x id="CLOSE_TAG_SPAN" ctype="x-span" equiv-text="&lt;/span&gt;"/><x id="CLOSE_BLOCK_IF" equiv-text="}"/> レスポンスを読み込む</target>
-      </trans-unit>
-      <trans-unit id="957326900371911604" datatype="html">
-        <source>Load <x id="START_TAG_SPAN" ctype="x-span" equiv-text="&lt;span *ngIf=&quot;uc &gt; 1&quot;&gt;"/><x id="INTERPOLATION" equiv-text="{{ max(uc) }}"/><x id="CLOSE_TAG_SPAN" ctype="x-span" equiv-text="&lt;/span&gt;"/></source>
-        <target><x id="START_TAG_SPAN" ctype="x-span" equiv-text="&lt;span *ngIf=&quot;uc &gt; 1&quot;&gt;"/><x id="INTERPOLATION" equiv-text="{{ max(uc) }}"/><x id="CLOSE_TAG_SPAN" ctype="x-span" equiv-text="&lt;/span&gt;"/> を読み込む</target>
-      </trans-unit>
-      <trans-unit id="3715467272873613011" datatype="html">
-        <source>Load sources <x id="START_TAG_SPAN" ctype="x-span" equiv-text="&lt;span *ngIf=&quot;sc &gt; 1&quot;&gt;"/><x id="INTERPOLATION" equiv-text="{{ max(sc) }}"/><x id="CLOSE_TAG_SPAN" ctype="x-span" equiv-text="&lt;/span&gt;"/></source>
-        <target><x id="START_TAG_SPAN" ctype="x-span" equiv-text="&lt;span *ngIf=&quot;sc &gt; 1&quot;&gt;"/><x id="INTERPOLATION" equiv-text="{{ max(sc) }}"/><x id="CLOSE_TAG_SPAN" ctype="x-span" equiv-text="&lt;/span&gt;"/> ソースを読み込む</target>
-      </trans-unit>
-      <trans-unit id="1633962098477465724" datatype="html">
-        <source>Load responses <x id="START_TAG_SPAN" ctype="x-span" equiv-text="&lt;span *ngIf=&quot;rc &gt; 1&quot;&gt;"/><x id="INTERPOLATION" equiv-text="{{ max(rc) }}"/><x id="CLOSE_TAG_SPAN" ctype="x-span" equiv-text="&lt;/span&gt;"/></source>
-        <target><x id="START_TAG_SPAN" ctype="x-span" equiv-text="&lt;span *ngIf=&quot;rc &gt; 1&quot;&gt;"/><x id="INTERPOLATION" equiv-text="{{ max(rc) }}"/><x id="CLOSE_TAG_SPAN" ctype="x-span" equiv-text="&lt;/span&gt;"/> レスポンスを読み込む</target>
       </trans-unit>
       <trans-unit id="4814285799071780083" datatype="html">
         <source>Remove</source>
@@ -852,14 +812,6 @@ Please Reload.</source>
       <trans-unit id="2123171795960509943" datatype="html">
         <source>remove</source>
         <target>削除</target>
-      </trans-unit>
-      <trans-unit id="5892087533649019950" datatype="html">
-        <source>Will drop all unknown plugins.</source>
-        <target>未知のプラグインはすべて削除されます。</target>
-      </trans-unit>
-      <trans-unit id="7016621193545077876" datatype="html">
-        <source>Will reset all plugins to defaults.</source>
-        <target>すべてのプラグインがデフォルトにリセットされます。</target>
       </trans-unit>
       <trans-unit id="801123407476237938" datatype="html">
         <source> * Published date was changed to be after source published date. </source>
@@ -2063,10 +2015,6 @@ Private tags start with an underscore.
         <source>Configure AI</source>
         <target>AIを設定</target>
       </trans-unit>
-      <trans-unit id="5578341680066291318" datatype="html">
-        <source>Configure LLM settings</source>
-        <target>LLM設定を構成</target>
-      </trans-unit>
       <trans-unit id="5576505306158210930" datatype="html">
         <source>✨️ AI Response</source>
         <target>✨️ AI応答</target>
@@ -2140,13 +2088,6 @@ Private tags start with an underscore.
       <trans-unit id="748442765614238105" datatype="html">
         <source>Max Sources:</source>
         <target>最大ソース数:</target>
-      </trans-unit>
-      <trans-unit id="7732427751128927589" datatype="html">
-        <source>Ignore thread top:</source>
-        <target>スレッドの先頭を無視</target>
-      </trans-unit>
-      <trans-unit id="4819443934027846343" datatype="html">
-        <source>JSON:</source>
       </trans-unit>
       <trans-unit id="954152769713616958" datatype="html">
         <source>Any Response:</source>
@@ -4028,10 +3969,6 @@ Refのみが削除されたファイルはまだ回復できますが、この�
         <source>📇️ Person</source>
         <target>📇️ 人物</target>
       </trans-unit>
-      <trans-unit id="3739058896399553701" datatype="html">
-        <source>📇️‍ Person</source>
-        <target>📇️‍ 人物</target>
-      </trans-unit>
       <trans-unit id="5707946642992415630" datatype="html">
         <source>Adds filtering and stylizing to support people semantics.</source>
         <target>人物のセマンティクスをサポートするための絞り込みとスタイル設定を追加します。</target>
@@ -4432,10 +4369,6 @@ Refのみが削除されたファイルはまだ回復できますが、この�
       <trans-unit id="5059740404270943619" datatype="html">
         <source>+ Add another response filter</source>
         <target>+ 応答絞り込みをもう一つ追加</target>
-      </trans-unit>
-      <trans-unit id="8386140069534115367" datatype="html">
-        <source>Default Thumbnail:</source>
-        <target>デフォルトサムネイル:</target>
       </trans-unit>
       <trans-unit id="5607669932062416162" datatype="html">
         <source>Default</source>
@@ -5751,10 +5684,6 @@ Enter the origin to confirm:</source>
         <source> Upload Refs, Exts, images, audio, video, spreadsheets, bookmarks (XML or HTML), and PDFs. <x id="START_TAG_SPAN" ctype="x-span" equiv-text="&lt;span&gt;"/>View your <x id="START_LINK" ctype="x-a" equiv-text="&lt;a [routerLink]=&quot;[&apos;/tag&apos;, store.account.tag]&quot; [queryParams]=&quot;{ filter: &apos;query/plugin/file&apos; }&quot;&gt;"/>files here<x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/>.<x id="CLOSE_TAG_SPAN" ctype="x-span" equiv-text="&lt;/span&gt;"/><x id="START_BLOCK_IF" equiv-text="@if (store.account.admin) {"/><x id="START_TAG_SPAN" ctype="x-span" equiv-text="&lt;span&gt;"/>Visit the <x id="START_LINK_1" equiv-text="&lt;a routerLink=&quot;/settings/setup&quot;&gt;"/>setup<x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/> settings page to manage mods.<x id="CLOSE_TAG_SPAN" ctype="x-span" equiv-text="&lt;/span&gt;"/><x id="CLOSE_BLOCK_IF" equiv-text="}"/></source>
         <target> Refs、Exts、画像、音声、動画、スプレッドシート、ブックマーク（XMLまたはHTML）、PDFをアップロードします。<x id="START_TAG_SPAN" ctype="x-span" equiv-text="&lt;span&gt;"/>あなたの<x id="START_LINK" ctype="x-a" equiv-text="&lt;a [routerLink]=&quot;[&apos;/tag&apos;, store.account.tag]&quot; [queryParams]=&quot;{ filter: &apos;query/plugin/file&apos; }&quot;&gt;"/>ファイルはこちら<x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/>で確認できます。<x id="CLOSE_TAG_SPAN" ctype="x-span" equiv-text="&lt;/span&gt;"/><x id="START_BLOCK_IF" equiv-text="@if (store.account.admin) {"/><x id="START_TAG_SPAN" ctype="x-span" equiv-text="&lt;span&gt;"/>modを管理するには<x id="START_LINK_1" equiv-text="&lt;a routerLink=&quot;/settings/setup&quot;&gt;"/>セットアップ<x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/>設定ページにアクセスしてください。<x id="CLOSE_TAG_SPAN" ctype="x-span" equiv-text="&lt;/span&gt;"/><x id="CLOSE_BLOCK_IF" equiv-text="}"/></target>
       </trans-unit>
-      <trans-unit id="132025905372207083" datatype="html">
-        <source> Upload Refs, Exts, images, audio, video, spreadsheets, bookmarks (XML or HTML), and PDFs. <x id="START_BLOCK_IF" equiv-text="@if (store.account.admin) {"/><x id="START_TAG_SPAN" ctype="x-span" equiv-text="&lt;span&gt;"/> Visit the <x id="START_LINK" ctype="x-a" equiv-text="&lt;a routerLink=&quot;/settings/setup&quot;&gt;"/>setup<x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/> settings page to manage mods. <x id="CLOSE_TAG_SPAN" ctype="x-span" equiv-text="&lt;/span&gt;"/><x id="CLOSE_BLOCK_IF" equiv-text="}"/></source>
-        <target> Ref、Ext、画像、音声、ビデオ、スプレッドシート、ブックマーク (XMLまたはHTML)、PDFをアップロードします。<x id="START_BLOCK_IF" equiv-text="@if (store.account.admin) {"/><x id="START_TAG_SPAN" ctype="x-span" equiv-text="&lt;span&gt;"/> modを管理するには<x id="START_LINK" ctype="x-a" equiv-text="&lt;a routerLink=&quot;/settings/setup&quot;&gt;"/>セットアップ<x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/>設定ページにアクセスしてください。<x id="CLOSE_TAG_SPAN" ctype="x-span" equiv-text="&lt;/span&gt;"/><x id="CLOSE_BLOCK_IF" equiv-text="}"/></target>
-      </trans-unit>
       <trans-unit id="8369271451769460452" datatype="html">
         <source>drop files anywhere to </source>
         <target>ファイルをどこにでもドロップして</target>
@@ -5992,6 +5921,65 @@ Enter the origin to confirm:</source>
         <source>AI Web Context</source>
         <target>AIウェブコンテキスト</target>
       </trans-unit>
-</body>
+      <trans-unit id="1226509592528490232" datatype="html">
+        <source>Illegal move <x id="PH" equiv-text="renderMove(p, from, to)"/></source>
+        <target>不正な移動 <x id="PH" equiv-text="renderMove(p, from, to)"/></target>
+      </trans-unit>
+      <trans-unit id="1752075388451550172" datatype="html">
+        <source>✨️</source>
+      </trans-unit>
+      <trans-unit id="250994100339430078" datatype="html">
+        <source>💲️</source>
+      </trans-unit>
+      <trans-unit id="269137713886171303" datatype="html">
+        <source><x id="PH" equiv-text="piecesHitThisTurn"/> pieces hit</source>
+        <target><x id="PH" equiv-text="piecesHitThisTurn"/> 個のコマがヒットされました</target>
+      </trans-unit>
+      <trans-unit id="2828116563312710431" datatype="html">
+        <source>Black all home</source>
+        <target>黒がすべてホームに戻りました</target>
+      </trans-unit>
+      <trans-unit id="2931404412008216542" datatype="html">
+        <source>↻</source>
+      </trans-unit>
+      <trans-unit id="3195148963394868807" datatype="html">
+        <source>Red all home</source>
+        <target>赤がすべてホームに戻りました</target>
+      </trans-unit>
+      <trans-unit id="3566925839516679188" datatype="html">
+        <source> see all </source>
+        <target> すべて表示 </target>
+      </trans-unit>
+      <trans-unit id="4104861352185074031" datatype="html">
+        <source>Double 6s</source>
+        <target>ダブル6</target>
+      </trans-unit>
+      <trans-unit id="5833023658250803462" datatype="html">
+        <source>🔎️🌐️</source>
+      </trans-unit>
+      <trans-unit id="5892766151948709734" datatype="html">
+        <source>Existing Responses:</source>
+        <target>既存の応答:</target>
+      </trans-unit>
+      <trans-unit id="61146899238241461" datatype="html">
+        <source>Change playback speed</source>
+        <target>再生速度を変更</target>
+      </trans-unit>
+      <trans-unit id="7736392907940185086" datatype="html">
+        <source>LaTeX</source>
+      </trans-unit>
+      <trans-unit id="8106459808350358911" datatype="html">
+        <source>Move <x id="INTERPOLATION" equiv-text="{{ floor(replayPosition) }}"/> / <x id="INTERPOLATION_1" equiv-text="{{ replayAnimations.length }}"/></source>
+        <target>移動 <x id="INTERPOLATION" equiv-text="{{ floor(replayPosition) }}"/> / <x id="INTERPOLATION_1" equiv-text="{{ replayAnimations.length }}"/></target>
+      </trans-unit>
+      <trans-unit id="8564202903947049539" datatype="html">
+        <source>Play</source>
+        <target>再生</target>
+      </trans-unit>
+      <trans-unit id="9042260521669277115" datatype="html">
+        <source>Pause</source>
+        <target>一時停止</target>
+      </trans-unit>
+    </body>
   </file>
 </xliff>
