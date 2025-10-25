@@ -71,5 +71,26 @@ describe('HTTP Utils', () => {
       const title = getTitleFromFilename('https://example.com/R%C3%A9sum%C3%A9.pdf');
       expect(title).toBe('Résumé.pdf');
     });
+
+    // Tests for special URL schemes that should return null
+    it('should return null for comment: scheme', () => {
+      const title = getTitleFromFilename('comment:12345-abcd-6789');
+      expect(title).toBeNull();
+    });
+
+    it('should return null for internal: scheme', () => {
+      const title = getTitleFromFilename('internal:67890-xyz');
+      expect(title).toBeNull();
+    });
+
+    it('should return null for cache: scheme', () => {
+      const title = getTitleFromFilename('cache:cached-content-id');
+      expect(title).toBeNull();
+    });
+
+    it('should return null for tag: scheme', () => {
+      const title = getTitleFromFilename('tag:/some/tag');
+      expect(title).toBeNull();
+    });
   });
 });

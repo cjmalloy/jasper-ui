@@ -214,8 +214,14 @@ export function getExtension(url: string): string | null {
 /**
  * Extract a title from a URL's filename.
  * Decodes URL encoding and trims whitespace.
+ * Returns null for non-path-like URLs (e.g., comment:, internal:, cache:).
  */
 export function getTitleFromFilename(url: string): string | null {
+  // Only extract from http/https URLs
+  const scheme = getScheme(url);
+  if (!scheme) return null;
+  if (scheme !== 'http:' && scheme !== 'https:') return null;
+  
   const path = getPath(url);
   if (!path) return null;
   
