@@ -1,7 +1,12 @@
 import { Component, HostBinding, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { isEqual, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
+import { MobxAngularModule } from 'mobx-angular';
 import { LensComponent } from '../../component/lens/lens.component';
+import { LoadingComponent } from '../../component/loading/loading.component';
+import { SidebarComponent } from '../../component/sidebar/sidebar.component';
+import { TabsComponent } from '../../component/tabs/tabs.component';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
@@ -13,10 +18,17 @@ import { Store } from '../../store/store';
 import { getArgs, UrlFilter } from '../../util/query';
 
 @Component({
-  standalone: false,
   selector: 'app-tag-page',
   templateUrl: './tag.component.html',
   styleUrls: ['./tag.component.scss'],
+  imports: [
+    LensComponent,
+    MobxAngularModule,
+    TabsComponent,
+    RouterLink,
+    SidebarComponent,
+    LoadingComponent,
+  ],
 })
 export class TagPage implements OnInit, OnDestroy, HasChanges {
   private disposers: IReactionDisposer[] = [];
@@ -39,10 +51,10 @@ export class TagPage implements OnInit, OnDestroy, HasChanges {
     runInAction(() => {
       this.store.view.clear([
         !!this.admin.getPlugin('plugin/user/vote/up')
-        ? 'voteScoreDecay'
-        : this.store.view.tag.includes('*')
-        ? 'published'
-        : 'created'
+          ? 'voteScoreDecay'
+          : this.store.view.tag.includes('*')
+            ? 'published'
+            : 'created'
       ]);
       this.store.view.extTemplates = this.admin.view;
     });
@@ -59,7 +71,7 @@ export class TagPage implements OnInit, OnDestroy, HasChanges {
               runInAction(() => this.store.view.exts = exts);
             }
             this.loading = false;
-        });
+          });
       }
     }));
     this.query.clear();

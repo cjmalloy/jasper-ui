@@ -1,5 +1,6 @@
+/// <reference types="vitest/globals" />
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { RouterModule } from '@angular/router';
+import { provideRouter } from '@angular/router';
 
 import { PluginListComponent } from './plugin-list.component';
 
@@ -9,12 +10,11 @@ describe('PluginListComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ PluginListComponent ],
-      imports: [
-        RouterModule.forRoot([]),
+      imports: [PluginListComponent],
+      providers: [
+        provideRouter([]),
       ],
-    })
-    .compileComponents();
+    }).compileComponents();
 
     fixture = TestBed.createComponent(PluginListComponent);
     component = fixture.componentInstance;

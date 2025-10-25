@@ -1,3 +1,4 @@
+/// <reference types="vitest/globals" />
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 
@@ -9,9 +10,8 @@ describe('TemplateFormComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ TemplateFormComponent ]
-    })
-    .compileComponents();
+      imports: [TemplateFormComponent]
+    }).compileComponents();
 
     fixture = TestBed.createComponent(TemplateFormComponent);
     component = fixture.componentInstance;

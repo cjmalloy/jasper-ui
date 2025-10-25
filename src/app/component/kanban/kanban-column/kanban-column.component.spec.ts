@@ -1,9 +1,11 @@
+/// <reference types="vitest/globals" />
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { forwardRef } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { RouterModule } from '@angular/router';
+import { provideRouter } from '@angular/router';
 
 import { KanbanColumnComponent } from './kanban-column.component';
-import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 describe('KanbanColumnComponent', () => {
   let component: KanbanColumnComponent;
@@ -11,16 +13,14 @@ describe('KanbanColumnComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [KanbanColumnComponent],
-      imports: [RouterModule.forRoot([])],
+      imports: [forwardRef(() => KanbanColumnComponent)],
       providers: [
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),
+        provideRouter([]),
       ]
     }).compileComponents();
-  });
 
-  beforeEach(() => {
     fixture = TestBed.createComponent(KanbanColumnComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
@@ -35,7 +35,7 @@ describe('KanbanColumnComponent', () => {
       component.failed = [];
       component.adding = [];
       component.addText = '';
-      spyOn(component, 'add');
+      vi.spyOn(component, 'add').mockImplementation(() => {});
     });
 
     it('should track failed items', () => {

@@ -1,6 +1,9 @@
 import { AfterViewInit, Component, HostBinding, HostListener, isDevMode } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, RouterOutlet } from '@angular/router';
 import { autorun, runInAction } from 'mobx';
+import { MobxAngularModule } from 'mobx-angular';
+import { LoginPopupComponent } from './component/login-popup/login-popup.component';
+import { SubscriptionBarComponent } from './component/subscription-bar/subscription-bar.component';
 import { archivePlugin, archiveUrl } from './mods/archive';
 import { pdfPlugin, pdfUrl } from './mods/pdf';
 import { AdminService } from './service/admin.service';
@@ -12,10 +15,15 @@ import { Store } from './store/store';
 import { memo } from './util/memo';
 
 @Component({
-  standalone: false,
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
+  imports: [
+    MobxAngularModule,
+    LoginPopupComponent,
+    SubscriptionBarComponent,
+    RouterOutlet,
+  ],
 })
 export class AppComponent implements AfterViewInit {
 

@@ -1,11 +1,13 @@
+/// <reference types="vitest/globals" />
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, ComponentFixtureAutoDetect, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import { provideRouter } from '@angular/router';
 import { TagsFormComponent } from '../../../form/tags/tags.component';
+import { JasperFormlyModule } from '../../../formly/formly.module';
 
 import { SubmitTextPage } from './text.component';
-import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 describe('SubmitTextPage', () => {
   let component: SubmitTextPage;
@@ -13,15 +15,20 @@ describe('SubmitTextPage', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    declarations: [SubmitTextPage, TagsFormComponent],
-    imports: [ReactiveFormsModule,
-        RouterModule.forRoot([])],
-    providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
-})
-    .compileComponents();
-  });
+      imports: [
+        ReactiveFormsModule,
+        JasperFormlyModule,
+        SubmitTextPage,
+        TagsFormComponent
+      ],
+      providers: [
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting(),
+        provideRouter([]),
+        { provide: ComponentFixtureAutoDetect, useValue: true },
+      ],
+    }).compileComponents();
 
-  beforeEach(() => {
     fixture = TestBed.createComponent(SubmitTextPage);
     component = fixture.componentInstance;
     fixture.detectChanges();

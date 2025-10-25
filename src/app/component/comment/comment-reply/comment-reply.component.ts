@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, EventEmitter, Input, Output, ViewChild } from '@angular/core';
-import { FormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
+import { Component, EventEmitter, forwardRef, Input, Output, ViewChild } from '@angular/core';
+import { FormBuilder, ReactiveFormsModule, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { pickBy, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { catchError, Subscription, throwError } from 'rxjs';
@@ -19,13 +19,18 @@ import { getMailboxes } from '../../../util/editor';
 import { getRe } from '../../../util/format';
 import { printError } from '../../../util/http';
 import { hasTag, removeTag } from '../../../util/tag';
+import { LoadingComponent } from '../../loading/loading.component';
 
 @Component({
-  standalone: false,
   selector: 'app-comment-reply',
   templateUrl: './comment-reply.component.html',
   styleUrls: ['./comment-reply.component.scss'],
-  host: {'class': 'comment-reply'}
+  host: { 'class': 'comment-reply' },
+  imports: [
+    forwardRef(() => EditorComponent),
+    ReactiveFormsModule,
+    LoadingComponent,
+  ]
 })
 export class CommentReplyComponent implements HasChanges {
 

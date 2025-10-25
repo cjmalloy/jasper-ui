@@ -1,4 +1,4 @@
-import { CdkDragDrop } from '@angular/cdk/drag-drop';
+import { CdkDrag, CdkDragDrop, CdkDropList } from '@angular/cdk/drag-drop';
 import {
   Component,
   EventEmitter,
@@ -10,19 +10,21 @@ import {
   Output,
   SimpleChanges
 } from '@angular/core';
+import { ReactiveFormsModule } from '@angular/forms';
 import { catchError, Observable, of, Subscription, switchMap, throwError, timer } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Ref } from '../../model/ref';
 import { ActionService } from '../../service/action.service';
 import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
+import { TodoItemComponent } from './item/item.component';
 
 @Component({
-  standalone: false,
   selector: 'app-todo',
   templateUrl: './todo.component.html',
   styleUrls: ['./todo.component.scss'],
-  host: {'class': 'todo-list'}
+  host: { 'class': 'todo-list' },
+  imports: [CdkDropList, TodoItemComponent, CdkDrag, ReactiveFormsModule]
 })
 export class TodoComponent implements OnChanges {
 

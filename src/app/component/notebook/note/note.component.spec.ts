@@ -1,9 +1,11 @@
+/// <reference types="vitest/globals" />
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { forwardRef } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { RouterModule } from '@angular/router';
+import { provideRouter } from '@angular/router';
 
 import { NoteComponent } from './note.component';
-import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 describe('NoteComponent', () => {
   let component: NoteComponent;
@@ -11,16 +13,14 @@ describe('NoteComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [NoteComponent],
-      imports: [RouterModule.forRoot([])],
+      imports: [forwardRef(() => NoteComponent)],
       providers: [
         provideHttpClient(withInterceptorsFromDi()),
-        provideHttpClientTesting()
+        provideHttpClientTesting(),
+        provideRouter([]),
       ],
     }).compileComponents();
-  });
 
-  beforeEach(() => {
     fixture = TestBed.createComponent(NoteComponent);
     component = fixture.componentInstance;
     component.ref = {url: ''};

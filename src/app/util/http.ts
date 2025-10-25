@@ -193,13 +193,14 @@ export function parts(url: string) {
 }
 
 export function getPath(url: string): string | null {
-  if (url.startsWith('/')) {
+  if (!url) return '';
+  if ((''+url).startsWith('/')) {
     if (url.includes('#')) url = url.substring(0, url.indexOf('#'));
     if (url.includes('?')) url = url.substring(0, url.indexOf('?'));
     return url;
   }
   const parsed = getUrl(url);
-  if (!parsed) return null;
+  if (!parsed) return '';
   return parsed.pathname;
 }
 

@@ -1,12 +1,13 @@
-import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
+/// <reference types="vitest/globals" />
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import { provideRouter } from '@angular/router';
+import { JasperFormlyModule } from '../../formly/formly.module';
 import { PluginsFormComponent } from '../plugins/plugins.component';
 
 import { RefFormComponent } from './ref.component';
-import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
-import { ScrapeService } from '../../service/api/scrape.service';
 
 describe('RefFormComponent', () => {
   let component: RefFormComponent;
@@ -15,21 +16,19 @@ describe('RefFormComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    declarations: [
-        RefFormComponent,
-    ],
-    imports: [RouterModule.forRoot([]),
-        ReactiveFormsModule],
-    providers: [
+      imports: [
+        ReactiveFormsModule,
+        JasperFormlyModule,
+        RefFormComponent
+      ],
+      providers: [
         PluginsFormComponent,
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),
-    ]
-})
-    .compileComponents();
-  });
+        provideRouter([]),
+      ],
+    }).compileComponents();
 
-  beforeEach(() => {
     fixture = TestBed.createComponent(RefFormComponent);
     component = fixture.componentInstance;
     httpMock = TestBed.inject(HttpTestingController);
@@ -41,7 +40,7 @@ describe('RefFormComponent', () => {
       sources: new UntypedFormControl(),
       alternateUrls: new UntypedFormControl(),
       tags: new UntypedFormControl(),
-      plugins: new UntypedFormControl(),
+      plugins: new UntypedFormGroup({}),
     });
     fixture.detectChanges();
   });

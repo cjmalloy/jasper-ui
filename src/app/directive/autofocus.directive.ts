@@ -2,10 +2,7 @@ import { Directive, ElementRef, Input } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import { filter } from 'rxjs';
 
-@Directive({
-  standalone: false,
-  selector: '[appAutofocus]',
-})
+@Directive({ selector: '[appAutofocus]', })
 export class AutofocusDirective {
 
   @Input('appAutofocus')

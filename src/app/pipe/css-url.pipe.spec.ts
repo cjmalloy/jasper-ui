@@ -1,3 +1,4 @@
+/// <reference types="vitest/globals" />
 import { CssUrlPipe } from './css-url.pipe';
 
 describe('CssUrlPipe', () => {

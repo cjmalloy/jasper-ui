@@ -1,15 +1,7 @@
-import {
-  Component,
-  ElementRef,
-  HostListener,
-  Input,
-  OnChanges,
-  OnDestroy,
-  SimpleChanges,
-  ViewChild
-} from '@angular/core';
+import { Component, ElementRef, Input, OnChanges, OnDestroy, SimpleChanges, ViewChild } from '@angular/core';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { delay, filter, find, pullAll, uniq } from 'lodash-es';
+import { filter, find, pullAll, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { autorun, IReactionDisposer, toJS } from 'mobx';
 import { Ext } from '../../model/ext';
@@ -18,7 +10,6 @@ import { KanbanConfig } from '../../mods/kanban';
 import { RootConfig } from '../../mods/root';
 import { UserConfig } from '../../mods/user';
 import { AdminService } from '../../service/admin.service';
-import { ExtService } from '../../service/api/ext.service';
 import { AuthzService } from '../../service/authz.service';
 import { BookmarkService } from '../../service/bookmark.service';
 import { EditorService } from '../../service/editor.service';
@@ -29,11 +20,11 @@ import { convertFilter, FilterGroup, FilterItem, negatable, toggle, UrlFilter } 
 import { hasPrefix } from '../../util/tag';
 
 @Component({
-  standalone: false,
   selector: 'app-filter',
   templateUrl: './filter.component.html',
   styleUrls: ['./filter.component.scss'],
-  host: {'class': 'filter form-group'}
+  host: { 'class': 'filter form-group' },
+  imports: [ReactiveFormsModule, FormsModule]
 })
 export class FilterComponent implements OnChanges, OnDestroy {
 
@@ -65,7 +56,6 @@ export class FilterComponent implements OnChanges, OnDestroy {
     public router: Router,
     public admin: AdminService,
     public store: Store,
-    private exts: ExtService,
     private auth: AuthzService,
     private bookmarks: BookmarkService,
     private editor: EditorService,
@@ -200,9 +190,9 @@ export class FilterComponent implements OnChanges, OnDestroy {
         filters: this.store.origins.list.map(o => ({ filter: 'query/' + (o || '*') as UrlFilter,
           label:
             !o ? $localize`✴️ local`
-            : o === this.store.account.origin ? $localize`🏛️ ${o}`
-            : !this.store.account.origin ? $localize`🏛️ ${o}`
-            : $localize`🪆 ${o}` })),
+              : o === this.store.account.origin ? $localize`🏛️ ${o}`
+                : !this.store.account.origin ? $localize`🏛️ ${o}`
+                  : $localize`🪆 ${o}` })),
       });
       this.sync();
     }
@@ -221,15 +211,15 @@ export class FilterComponent implements OnChanges, OnDestroy {
   get userConfigs() {
     if (!this.admin.getTemplate('user')) return [];
     return this.activeExts
-        .filter(x => hasPrefix(x.tag, 'user'))
-        .map(x => x.config).filter(c => !!c) as UserConfig[];
+      .filter(x => hasPrefix(x.tag, 'user'))
+      .map(x => x.config).filter(c => !!c) as UserConfig[];
   }
 
   get kanbanExts() {
     if (!this.admin.getTemplate('kanban')) return [];
     return this.activeExts
-        .filter(x => hasPrefix(x.tag, 'kanban'))
-        .filter(x => x.config);
+      .filter(x => hasPrefix(x.tag, 'kanban'))
+      .filter(x => x.config);
   }
 
   /**
