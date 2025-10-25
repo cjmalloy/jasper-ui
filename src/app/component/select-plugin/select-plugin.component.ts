@@ -1,4 +1,5 @@
 import { Component, ElementRef, EventEmitter, Input, OnChanges, Output, SimpleChanges, ViewChild } from '@angular/core';
+import { ReactiveFormsModule } from '@angular/forms';
 import { defer, uniqBy } from 'lodash-es';
 import { v4 as uuid } from 'uuid';
 import { Plugin } from '../../model/plugin';
@@ -6,11 +7,11 @@ import { AdminService } from '../../service/admin.service';
 import { AuthzService } from '../../service/authz.service';
 
 @Component({
-  standalone: false,
   selector: 'app-select-plugin',
   templateUrl: './select-plugin.component.html',
   styleUrls: ['./select-plugin.component.scss'],
-  host: {'class': 'select-plugin'}
+  host: { 'class': 'select-plugin' },
+  imports: [ReactiveFormsModule]
 })
 export class SelectPluginComponent implements OnChanges {
 

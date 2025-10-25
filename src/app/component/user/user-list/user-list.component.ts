@@ -7,14 +7,16 @@ import { Page } from '../../../model/page';
 import { Profile } from '../../../model/profile';
 import { User } from '../../../model/user';
 import { ProfileService } from '../../../service/api/profile.service';
+import { LoadingComponent } from '../../loading/loading.component';
+import { PageControlsComponent } from '../../page-controls/page-controls.component';
 import { UserComponent } from '../user.component';
 
 @Component({
-  standalone: false,
   selector: 'app-user-list',
   templateUrl: './user-list.component.html',
   styleUrls: ['./user-list.component.scss'],
-  host: {'class': 'user-list'}
+  host: { 'class': 'user-list' },
+  imports: [UserComponent, LoadingComponent, PageControlsComponent]
 })
 export class UserListComponent implements HasChanges {
 

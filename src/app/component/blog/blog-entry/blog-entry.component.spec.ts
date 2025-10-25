@@ -1,10 +1,13 @@
+/// <reference types="vitest/globals" />
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { forwardRef } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import { provideRouter } from '@angular/router';
+import { MarkdownModule } from 'ngx-markdown';
 
 import { BlogEntryComponent } from './blog-entry.component';
-import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 describe('BlogEntryComponent', () => {
   let component: BlogEntryComponent;
@@ -12,14 +15,15 @@ describe('BlogEntryComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [BlogEntryComponent],
       imports: [
-        RouterModule.forRoot([]),
+        forwardRef(() => BlogEntryComponent),
+        MarkdownModule.forRoot(),
         ReactiveFormsModule,
       ],
       providers: [
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),
+        provideRouter([]),
       ],
     }).compileComponents();
 

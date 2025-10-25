@@ -13,16 +13,20 @@
   <div class="file-icon thumbnail" [class.default-thumbnail]="true"></div>
 }
 <div class="row">
-  <div class="toggle"
-       *ngIf="showToggle && (ref.comment || expandPlugins.length)"
-       (click)="editing ? editing = false : viewSource = false">
-    <span class="toggle-plus" *ngIf="!editing && !viewSource && !expanded">＋</span>
-    <span class="toggle-x" *ngIf="editing || viewSource || expanded">✕</span>
-  </div>
+  @if (showToggle && (ref.comment || expandPlugins.length)) {
+    <div class="toggle" (click)="editing ? editing = false : viewSource = false">
+      @if (!editing && !viewSource && !expanded) {
+        <span class="toggle-plus">＋</span>
+      } @else {
+        <span class="toggle-x">✕</span>
+      }
+    </div>
+  }
   <a [routerLink]="['/ref', ref.url]"
      [queryParams]="{ origin: nonLocalOrigin }"
      (click)="saveRef()"
      [style.pointer-events]="dragging ? 'none' : undefined">{{ title }}</a>
 </div>
-
-<app-viewer *ngIf="expanded" [ref]="ref"></app-viewer>
+@if (expanded) {
+  <app-viewer [ref]="ref"></app-viewer>
+}

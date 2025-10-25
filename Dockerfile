@@ -32,14 +32,14 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /app
 RUN npm i -g @angular/cli
 COPY --from=builder /app ./
-CMD ng test --karma-config karma-ci.conf.js && \
-    mkdir -p /report && \
-    cp -r /reports/*/* /report/
+CMD mkdir -p /report && \
+    NO_COLOR=1 ng test --watch=false --reporters=default --reporters=html 2>&1 | tee /report/test-output.log || true && \
+    if [ -d html ]; then cp -r html/* /report/; fi
 
 FROM nginx:1.27-alpine3.19-slim AS deploy
 RUN apk add jq moreutils
 WORKDIR /var/lib/jasper/
-COPY --from=builder /app/dist/jasper-ui ./
+COPY --from=builder /app/dist/jasper-ui/browser ./
 ARG BASE_HREF="/"
 ENV BASE_HREF=$BASE_HREF
 RUN date -R -u > /build-timestamp

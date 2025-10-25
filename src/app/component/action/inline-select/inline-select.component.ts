@@ -1,13 +1,14 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { catchError, Observable, of } from 'rxjs';
+import { LoadingComponent } from '../../loading/loading.component';
 import { ActionComponent } from '../action.component';
 
 @Component({
-  standalone: false,
   selector: 'app-inline-select',
   templateUrl: './inline-select.component.html',
   styleUrls: ['./inline-select.component.scss'],
-  host: {'class': 'action'}
+  host: { 'class': 'action' },
+  imports: [LoadingComponent]
 })
 export class InlineSelectComponent extends ActionComponent {
 

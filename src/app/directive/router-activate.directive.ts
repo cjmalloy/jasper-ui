@@ -1,10 +1,7 @@
 import { Directive, HostListener, Input } from '@angular/core';
 import { Router } from '@angular/router';
 
-@Directive({
-  standalone: false,
-  selector: '[appRouterActivate]'
-})
+@Directive({ selector: '[appRouterActivate]' })
 export class RouterActivateDirective {
 
   @Input('appRouterActivate')

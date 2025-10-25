@@ -1,6 +1,7 @@
 import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { defer } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
+import { MobxAngularModule } from 'mobx-angular';
 import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { AdminService } from '../../../service/admin.service';
@@ -10,11 +11,11 @@ import { Store } from '../../../store/store';
 import { getArgs } from '../../../util/query';
 
 @Component({
-  standalone: false,
   selector: 'app-inbox-dms',
   templateUrl: './dms.component.html',
   styleUrls: ['./dms.component.scss'],
-  host: {'class': 'dms'}
+  host: { 'class': 'dms' },
+  imports: [MobxAngularModule, RefListComponent]
 })
 export class InboxDmsPage implements OnInit, OnDestroy, HasChanges {
 

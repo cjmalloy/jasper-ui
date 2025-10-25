@@ -17,14 +17,18 @@ import {
   ViewChild,
   ViewContainerRef
 } from '@angular/core';
-import { FormBuilder, UntypedFormArray, UntypedFormControl } from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule, UntypedFormArray, UntypedFormControl } from '@angular/forms';
 import { NavigationEnd, Router } from '@angular/router';
 import Europa from 'europa';
 import { debounce, defer, delay, intersection, sortedLastIndex, uniq, without } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import { catchError, filter, last, map, Observable, of, Subject, Subscription, switchMap, takeUntil, tap } from 'rxjs';
 import { v4 as uuid } from 'uuid';
+import { LoadingComponent } from '../../component/loading/loading.component';
 import { MdComponent } from '../../component/md/md.component';
+import { AutofocusDirective } from '../../directive/autofocus.directive';
+import { FillWidthDirective } from '../../directive/fill-width.directive';
+import { LimitWidthDirective } from '../../directive/limit-width.directive';
 import { Ref } from '../../model/ref';
 import { EditorButton, sortOrder } from '../../model/tag';
 import { mimeToCode } from '../../mods/code';
@@ -50,11 +54,18 @@ export interface EditorUpload {
 }
 
 @Component({
-  standalone: false,
   selector: 'app-editor',
   templateUrl: './editor.component.html',
   styleUrls: ['./editor.component.scss'],
-  host: {'class': 'editor'}
+  host: { 'class': 'editor' },
+  imports: [
+    MdComponent,
+    LoadingComponent,
+    ReactiveFormsModule,
+    FillWidthDirective,
+    AutofocusDirective,
+    LimitWidthDirective,
+  ],
 })
 export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   private destroy$ = new Subject<void>();

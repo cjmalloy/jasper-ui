@@ -1,11 +1,13 @@
+import { AsyncPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { FieldType, FieldTypeConfig } from '@ngx-formly/core';
+import { ReactiveFormsModule } from '@angular/forms';
+import { FieldType, FieldTypeConfig, FormlyAttributes } from '@ngx-formly/core';
+import { FormlySelectModule } from '@ngx-formly/core/select';
 
 @Component({
-  standalone: false,
   selector: 'formly-field-radio',
   template: `
-    <ng-container *ngFor="let option of props.options | formlySelectOptions: field | async; let i = index">
+    @for (option of props.options | formlySelectOptions: field | async; track option.value; let i = $index) {
       <input type="radio"
              [id]="id + '_' + i"
              [class.is-invalid]="showError"
@@ -15,8 +17,14 @@ import { FieldType, FieldTypeConfig } from '@ngx-formly/core';
              [formlyAttributes]="field"
              [attr.disabled]="option.disabled || formControl.disabled ? true : null">
       <label [for]="id + '_' + i">{{ option.label }}</label>
-    </ng-container>
+    }
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [
+    ReactiveFormsModule,
+    AsyncPipe,
+    FormlySelectModule,
+    FormlyAttributes,
+  ],
 })
 export class FormlyFieldRadio extends FieldType<FieldTypeConfig> { }

@@ -45,7 +45,8 @@
        enterkeyhint="send"
        i18n-placeholder
        placeholder="Add..."
-       [(ngModel)]="addText"
+       [value]="addText"
+       (input)="addText = $any($event.target).value"
        [style.display]="addText ? 'block' : 'none'"
        (keydown)="$event.key === 'Enter' && add() || true"
        (blur)="add()">

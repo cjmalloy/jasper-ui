@@ -5,6 +5,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   ElementRef,
+  forwardRef,
   HostListener,
   Input,
   OnDestroy,
@@ -17,6 +18,7 @@ import { ForceLink, ScaleTime, Selection, Simulation, SimulationNodeDatum } from
 import { filter } from 'lodash-es';
 import { DateTime, Duration } from 'luxon';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
+import { MobxAngularModule } from 'mobx-angular';
 import { Observable, of, Subscription } from 'rxjs';
 import { switchMap, tap } from 'rxjs/operators';
 import { HasChanges } from '../../../guard/pending-changes.guard';
@@ -30,14 +32,19 @@ import { findNode, GraphNode, isGraphable, isInternal, responses, sources } from
 import { getScheme } from '../../../util/http';
 import { Point, Rect } from '../../../util/math';
 import { capturesAny, hasTag } from '../../../util/tag';
+import { LoadingComponent } from '../../loading/loading.component';
 import { RefListComponent } from '../../ref/ref-list/ref-list.component';
 
 @Component({
-  standalone: false,
   selector: 'app-force-directed',
   templateUrl: './force-directed.component.html',
   styleUrls: ['./force-directed.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [
+    forwardRef(() => RefListComponent),
+    MobxAngularModule,
+    LoadingComponent,
+  ],
 })
 export class ForceDirectedComponent implements AfterViewInit, OnDestroy, HasChanges {
   private disposers: IReactionDisposer[] = [];
@@ -402,8 +409,8 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy, HasChan
       .attr('markerHeight', 6)
       .attr('orient', 'auto')
       .append('path')
-        .attr('fill', this.linkStroke)
-        .attr('d', 'M0,-5L10,0L0,5');
+      .attr('fill', this.linkStroke)
+      .attr('d', 'M0,-5L10,0L0,5');
 
     this.link = this.svg.append('g')
       .attr('stroke-opacity', this.linkStrokeOpacity)
@@ -443,12 +450,12 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy, HasChan
 
         this.node!
           .selectAll('g').select('circle')
-            .attr('cx', (d: any) => d.x)
-            .attr('cy', (d: any) => d.y);
+          .attr('cx', (d: any) => d.x)
+          .attr('cy', (d: any) => d.y);
         this.node!
           .selectAll('g').select('text')
-            .attr('x', (d: any) => d.x)
-            .attr('y', (d: any) => d.y);
+          .attr('x', (d: any) => d.x)
+          .attr('y', (d: any) => d.y);
       });
 
     this.dragRect = this.svg.append('g')
@@ -547,7 +554,7 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy, HasChan
             .attr('stroke-width', ref => this.store.graph.selected.includes(ref) ? this.selectedStrokeWidth : this.nodeStrokeOpacity)
             .attr('fill', ref => this.color(ref))
             .select('title')
-              .text(ref => getTitle(ref));
+            .text(ref => getTitle(ref));
           update.select('text')
             .text(ref => this.icon(ref));
           return update;

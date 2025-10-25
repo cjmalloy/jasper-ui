@@ -1,4 +1,4 @@
-import { CdkDragDrop, CdkDropListGroup } from '@angular/cdk/drag-drop';
+import { CdkDrag, CdkDragDrop, CdkDropList, CdkDropListGroup } from '@angular/cdk/drag-drop';
 import {
   AfterViewInit,
   Component,
@@ -501,12 +501,12 @@ function loadMove(state: GameState, p: Piece, from: number, to: number) {
 }
 
 @Component({
-  standalone: false,
   selector: 'app-backgammon',
   templateUrl: './backgammon.component.html',
   styleUrls: ['./backgammon.component.scss'],
   hostDirectives: [CdkDropListGroup],
-  host: {'class': 'backgammon-board'}
+  host: { 'class': 'backgammon-board' },
+  imports: [CdkDropList, CdkDrag]
 })
 export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, OnDestroy {
   private disposers: IReactionDisposer[] = [];
@@ -1084,8 +1084,8 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   // Replay mode controls
   get isGameEnded() {
     return !!this.state.winner || hasTag('plugin/backgammon/draw', this.ref) ||
-           hasTag('plugin/backgammon/winner/r', this.ref) ||
-           hasTag('plugin/backgammon/winner/b', this.ref);
+      hasTag('plugin/backgammon/winner/r', this.ref) ||
+      hasTag('plugin/backgammon/winner/b', this.ref);
   }
 
   precomputeReplayAnimations() {

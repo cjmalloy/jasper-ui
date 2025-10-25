@@ -2,7 +2,8 @@ import { Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { TemplatePortal } from '@angular/cdk/portal';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, ElementRef, HostBinding, Input, TemplateRef, ViewChild, ViewContainerRef } from '@angular/core';
-import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
+import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { catchError, Observable, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { BackupOptions } from '../../model/backup';
@@ -11,12 +12,13 @@ import { BackupService } from '../../service/api/backup.service';
 import { Store } from '../../store/store';
 import { readableBytes } from '../../util/format';
 import { printError } from '../../util/http';
+import { ConfirmActionComponent } from '../action/confirm-action/confirm-action.component';
 
 @Component({
-  standalone: false,
   selector: 'app-backup',
   templateUrl: './backup.component.html',
-  styleUrls: ['./backup.component.scss']
+  styleUrls: ['./backup.component.scss'],
+  imports: [RouterLink, ConfirmActionComponent, ReactiveFormsModule]
 })
 export class BackupComponent {
 

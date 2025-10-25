@@ -69,7 +69,9 @@
           }
         </select>
         @if (filter) {
-          <button type="button" *ngIf="negatable(filter)" (click)="toggleFilter()">{{ store.account.querySymbol('!') }}</button>
+          @if (negatable(filter)) {
+            <button type="button" (click)="toggleFilter()">{{ store.account.querySymbol('!') }}</button>
+          }
           <button type="button" (click)="setFilter(null)" i18n>&ndash;</button>
         }
       </span>
