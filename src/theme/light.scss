@@ -33,11 +33,11 @@ body.light-theme {
   color: var(--text);
 
   background-color: var(--bg);
-  background-image: url("/assets/bg-light.png");
+  background-image: url("../assets/bg-light.png");
   background-blend-mode: darken;
   figure::backdrop, .editor.fullscreen app-md {
     background-color: var(--bg);
-    background-image: url("/assets/bg-light.png");
+    background-image: url("../assets/bg-light.png");
     background-blend-mode: darken;
   }
 
@@ -92,7 +92,7 @@ body.light-theme {
     background-color: var(--blue);
 
     .logo {
-      background-image: url("/assets/jasper-light.png");
+      background-image: url("../assets/jasper-light.png");
     }
 
     & > a {
@@ -101,7 +101,7 @@ body.light-theme {
       }
 
       &.current-tab {
-        background-image: url("/assets/bg-light.png");
+        background-image: url("../assets/bg-light.png");
         background-blend-mode: darken;
       }
     }

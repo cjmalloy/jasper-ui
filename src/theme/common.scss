@@ -110,7 +110,7 @@ textarea {
     min-height: 72px;
     line-height: 72px;
     background-repeat: repeat-x !important;
-    background-image: url("/assets/debug.png") !important;
+    background-image: url("../assets/debug.png") !important;
     border-top: 2px solid var(--border);
     border-bottom: 2px solid var(--border);
   }
@@ -1584,7 +1584,7 @@ formly-field-radio, formly-field-multicheckbox {
   overflow: hidden;
 
   &.default-thumbnail {
-    background-image: url("/assets/default-thumbnail.png");
+    background-image: url("../assets/default-thumbnail.png");
   }
 }
 
@@ -2047,7 +2047,7 @@ formly-field-radio, formly-field-multicheckbox {
 .loading {
   color: transparent;
   user-select: none;
-  background-image: url("/assets/image-loading.png");
+  background-image: url("../assets/image-loading.png");
   background-repeat: no-repeat;
   background-position: center center;
   background-size: unset;
