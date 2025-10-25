@@ -5992,6 +5992,110 @@ Enter the origin to confirm:</source>
         <source>AI Web Context</source>
         <target>AIウェブコンテキスト</target>
       </trans-unit>
-</body>
+      <trans-unit id="1226509592528490232" datatype="html">
+        <source>Illegal move <x id="PH" equiv-text="renderMove(p, from, to)"/></source>
+        <target>不正な移動 <x id="PH" equiv-text="renderMove(p, from, to)"/></target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/component/backgammon/backgammon.component.ts</context>
+          <context context-type="linenumber">278</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/component/backgammon/backgammon.component.ts</context>
+          <context context-type="linenumber">451</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/component/backgammon/backgammon.component.ts</context>
+          <context context-type="linenumber">733</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/component/backgammon/backgammon.component.ts</context>
+          <context context-type="linenumber">743</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="269137713886171303" datatype="html">
+        <source><x id="PH" equiv-text="piecesHitThisTurn"/> pieces hit</source>
+        <target><x id="PH" equiv-text="piecesHitThisTurn"/> 個のコマがヒットされました</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/component/backgammon/backgammon.component.ts</context>
+          <context context-type="linenumber">1154</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/component/backgammon/backgammon.component.ts</context>
+          <context context-type="linenumber">1203</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="2828116563312710431" datatype="html">
+        <source>Black all home</source>
+        <target>黒がすべてホームに戻りました</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/component/backgammon/backgammon.component.ts</context>
+          <context context-type="linenumber">1194</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="3195148963394868807" datatype="html">
+        <source>Red all home</source>
+        <target>赤がすべてホームに戻りました</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/component/backgammon/backgammon.component.ts</context>
+          <context context-type="linenumber">1178</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="3566925839516679188" datatype="html">
+        <source> see all </source>
+        <target> すべて表示 </target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/page/submit/submit.component.html</context>
+          <context context-type="linenumber">180,182</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="4104861352185074031" datatype="html">
+        <source>Double 6s</source>
+        <target>ダブル6</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/component/backgammon/backgammon.component.ts</context>
+          <context context-type="linenumber">1145</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="5892766151948709734" datatype="html">
+        <source>Existing Responses:</source>
+        <target>既存の応答:</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/page/submit/submit.component.html</context>
+          <context context-type="linenumber">168</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="61146899238241461" datatype="html">
+        <source>Change playback speed</source>
+        <target>再生速度を変更</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/component/backgammon/backgammon.component.html</context>
+          <context context-type="linenumber">207</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="8106459808350358911" datatype="html">
+        <source>Move <x id="INTERPOLATION" equiv-text="{{ floor(replayPosition) }}"/> / <x id="INTERPOLATION_1" equiv-text="{{ replayAnimations.length }}"/></source>
+        <target>移動 <x id="INTERPOLATION" equiv-text="{{ floor(replayPosition) }}"/> / <x id="INTERPOLATION_1" equiv-text="{{ replayAnimations.length }}"/></target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/component/backgammon/backgammon.component.html</context>
+          <context context-type="linenumber">210</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="8564202903947049539" datatype="html">
+        <source>Play</source>
+        <target>再生</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/component/backgammon/backgammon.component.html</context>
+          <context context-type="linenumber">197</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="9042260521669277115" datatype="html">
+        <source>Pause</source>
+        <target>一時停止</target>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/component/backgammon/backgammon.component.html</context>
+          <context context-type="linenumber">202</context>
+        </context-group>
+      </trans-unit>
+    </body>
   </file>
 </xliff>
