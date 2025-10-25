@@ -1,5 +1,5 @@
-<div class="row" [formGroup]="adminForm">
-  <form class="form" formGroupName="mods" (ngSubmit)="install()">
+<div class="row">
+  <form class="form" [formGroup]="adminForm">
     <span><!-- Title --></span>
     <h2 i18n>Install Mods</h2>
     <span><!-- Description --></span>
@@ -20,7 +20,7 @@
       } @else {
         <button type="button" (click)="selectAll()" i18n>Select All</button>
       }
-      <button type="submit" [disabled]="submitted && !adminForm.valid" i18n>Save</button>
+      <button type="button" (click)="install()" [disabled]="submitted && !adminForm.valid" i18n>Save</button>
     </span>
 
     @if (serverError.length || installMessages.length) {
@@ -37,7 +37,7 @@
 
     @for (group of modGroups | keyvalue; track group.key) {
       <label [style.text-transform]="'capitalize'" i18n>{{ group.key }}</label>
-      <div class="bubble">
+      <div formGroupName="mods" class="bubble">
         @for (e of group.value; track e[0]) {
           @if (experiments || !e[1].config?.experimental || installed(e[1])) {
             <div [title]="e[1].config?.description || ''" class="nowrap" [class.deleted]="disabled(e[1])">

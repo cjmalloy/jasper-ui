@@ -1,8 +1,10 @@
+/// <reference types="vitest/globals" />
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule, UntypedFormGroup } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import { provideRouter } from '@angular/router';
+import { JasperFormlyModule } from '../../../formly/formly.module';
 
 import { GenFormComponent } from './gen.component';
 
@@ -12,17 +14,17 @@ describe('GenComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ GenFormComponent ],
       imports: [
-        RouterModule.forRoot([]),
-        ReactiveFormsModule
+        ReactiveFormsModule,
+        JasperFormlyModule,
+        GenFormComponent,
       ],
       providers: [
         provideHttpClient(withInterceptorsFromDi()),
-        provideHttpClientTesting()
+        provideHttpClientTesting(),
+        provideRouter([]),
       ],
-    })
-    .compileComponents();
+    }).compileComponents();
 
     fixture = TestBed.createComponent(GenFormComponent);
     component = fixture.componentInstance;

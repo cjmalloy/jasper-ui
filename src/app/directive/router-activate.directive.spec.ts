@@ -1,3 +1,4 @@
+/// <reference types="vitest/globals" />
 import { RouterActivateDirective } from './router-activate.directive';
 
 describe('RouterActivateDirective', () => {

@@ -1,7 +1,19 @@
 import { DateTime } from 'luxon';
+// @ts-ignore
+import extModelText from '../model/ext.ts' with { loader: 'text' };
 import { Plugin } from '../model/plugin';
+// @ts-ignore
+import pluginModelText from '../model/plugin.ts' with { loader: 'text' };
+// @ts-ignore
+import refModelText from '../model/ref.ts' with { loader: 'text' };
 import { Mod } from '../model/tag';
+// @ts-ignore
+import tagModelText from '../model/tag.ts' with { loader: 'text' };
 import { Template } from '../model/template';
+// @ts-ignore
+import templateModelText from '../model/template.ts' with { loader: 'text' };
+// @ts-ignore
+import userModelText from '../model/user.ts' with { loader: 'text' };
 
 export const rootTemplate: Template = {
   tag: '',
@@ -16,13 +28,14 @@ export const rootTemplate: Template = {
     The root template uses the empty string as a tag. Since templates are matched to Exts by prefix matching,
     the root template matches every tag. Here are the models in use:
     \`\`\`typescript
-    ` + require('!!raw-loader!../model/tag.ts').default + `
-    ` + require('!!raw-loader!../model/ref.ts').default + `
-    ` + require('!!raw-loader!../model/ext.ts').default + `
-    ` + require('!!raw-loader!../model/user.ts').default + `
-    ` + require('!!raw-loader!../model/plugin.ts').default + `
-    ` + require('!!raw-loader!../model/template.ts').default + `
+    ` + tagModelText + `
+    ` + refModelText + `
+    ` + extModelText + `
+    ` + userModelText + `
+    ` + pluginModelText + `
+    ` + templateModelText + `
     \`\`\`
+
     The root template sets up basic functionality such as deleted icons and filters, and basic Ext config:
     \`\`\`typescript
     export interface RootConfig {

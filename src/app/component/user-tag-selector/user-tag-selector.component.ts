@@ -1,4 +1,5 @@
 import { ChangeDetectorRef, Component, OnDestroy } from '@angular/core';
+import { ReactiveFormsModule } from '@angular/forms';
 import { debounce, uniqBy } from 'lodash-es';
 import { forkJoin, map, Observable, of, Subscription, switchMap } from 'rxjs';
 import { AdminService } from '../../service/admin.service';
@@ -8,10 +9,10 @@ import { EditorService } from '../../service/editor.service';
 import { Store } from '../../store/store';
 
 @Component({
-  standalone: false,
   selector: 'app-user-tag-selector',
   templateUrl: './user-tag-selector.component.html',
-  styleUrls: ['./user-tag-selector.component.scss']
+  styleUrls: ['./user-tag-selector.component.scss'],
+  imports: [ReactiveFormsModule]
 })
 export class UserTagSelectorComponent implements OnDestroy {
 

@@ -1,5 +1,4 @@
 import { DateTime } from 'luxon';
-import { Plugin } from '../model/plugin';
 import { Mod } from '../model/tag';
 import { Template } from '../model/template';
 

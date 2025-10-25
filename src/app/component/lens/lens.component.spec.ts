@@ -1,20 +1,26 @@
+/// <reference types="vitest/globals" />
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { forwardRef } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { RouterModule } from '@angular/router';
+import { provideRouter } from '@angular/router';
 
 import { LensComponent } from './lens.component';
-import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 describe('LensComponent', () => {
   let component: LensComponent;
   let fixture: ComponentFixture<LensComponent>;
 
-  beforeEach(() => {
-    TestBed.configureTestingModule({
-    declarations: [LensComponent],
-    imports: [RouterModule.forRoot([])],
-    providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
-});
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [forwardRef(() => LensComponent)],
+      providers: [
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting(),
+        provideRouter([]),
+      ],
+    }).compileComponents()
+
     fixture = TestBed.createComponent(LensComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();

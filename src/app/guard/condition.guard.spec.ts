@@ -1,3 +1,4 @@
+/// <reference types="vitest/globals" />
 import { TestBed } from '@angular/core/testing';
 import { CanActivateFn } from '@angular/router';
 
@@ -7,8 +8,8 @@ describe('conditionGuard', () => {
   const executeGuard: CanActivateFn = (...guardParameters) =>
       TestBed.runInInjectionContext(() => conditionGuard(() => true, ['../other'])(...guardParameters));
 
-  beforeEach(() => {
-    TestBed.configureTestingModule({});
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({});
   });
 
   it('should be created', () => {

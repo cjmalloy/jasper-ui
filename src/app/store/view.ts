@@ -1,5 +1,5 @@
-import { delay, isEqual, uniq } from 'lodash-es';
-import { action, makeAutoObservable, observable, runInAction } from 'mobx';
+import { isEqual, uniq } from 'lodash-es';
+import { action, makeAutoObservable, observable } from 'mobx';
 import { RouterStore } from 'mobx-angular';
 import { Ext } from '../model/ext';
 import { Plugin } from '../model/plugin';

@@ -1,11 +1,8 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { DateTime } from 'luxon';
-import { autorun } from 'mobx';
 import { catchError, map, Observable } from 'rxjs';
-import { Store } from '../../store/store';
 import { params } from '../../util/http';
-import { hasTag } from '../../util/tag';
 import { ConfigService } from '../config.service';
 import { LoginService } from '../login.service';
 

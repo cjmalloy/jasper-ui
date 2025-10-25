@@ -1,19 +1,32 @@
 import { Component, ElementRef, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
-import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import {
+  ReactiveFormsModule,
+  UntypedFormBuilder,
+  UntypedFormControl,
+  UntypedFormGroup,
+  Validators
+} from '@angular/forms';
 import { defer } from 'lodash-es';
 import { v4 as uuid } from 'uuid';
+import { FillWidthDirective } from '../../directive/fill-width.directive';
 import { User } from '../../model/user';
 import { isMailbox } from '../../mods/mailbox';
 import { Store } from '../../store/store';
 import { USER_REGEX } from '../../util/format';
+import { JsonComponent } from '../json/json.component';
 import { TagsFormComponent } from '../tags/tags.component';
 
 @Component({
-  standalone: false,
   selector: 'app-user-form',
   templateUrl: './user.component.html',
   styleUrls: ['./user.component.scss'],
-  host: {'class': 'nested-form'}
+  host: { 'class': 'nested-form' },
+  imports: [
+    ReactiveFormsModule,
+    TagsFormComponent,
+    FillWidthDirective,
+    JsonComponent,
+  ]
 })
 export class UserFormComponent implements OnInit {
 

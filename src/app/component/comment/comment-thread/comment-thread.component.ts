@@ -1,5 +1,16 @@
-import { Component, Input, OnChanges, OnDestroy, OnInit, QueryList, SimpleChanges, ViewChildren } from '@angular/core';
+import {
+  Component,
+  forwardRef,
+  Input,
+  OnChanges,
+  OnDestroy,
+  OnInit,
+  QueryList,
+  SimpleChanges,
+  ViewChildren
+} from '@angular/core';
 import { autorun, IReactionDisposer } from 'mobx';
+import { MobxAngularModule } from 'mobx-angular';
 import { Observable, Subject, takeUntil } from 'rxjs';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Ref } from '../../../model/ref';
@@ -8,11 +19,14 @@ import { ThreadStore } from '../../../store/thread';
 import { CommentComponent } from '../comment.component';
 
 @Component({
-  standalone: false,
   selector: 'app-comment-thread',
   templateUrl: './comment-thread.component.html',
   styleUrls: ['./comment-thread.component.scss'],
-  host: {'class': 'comment-thread'}
+  host: { 'class': 'comment-thread' },
+  imports: [
+    forwardRef(() => CommentComponent),
+    MobxAngularModule,
+  ],
 })
 export class CommentThreadComponent implements OnInit, OnChanges, OnDestroy, HasChanges {
   private destroy$ = new Subject<void>();

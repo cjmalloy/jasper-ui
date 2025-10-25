@@ -1,8 +1,8 @@
+import { CdkDragHandle } from '@angular/cdk/drag-drop';
 import { Component, HostBinding } from '@angular/core';
 import { FieldWrapper, FormlyFieldConfig } from '@ngx-formly/core';
 
 @Component({
-  standalone: false,
   selector: 'formly-wrapper-form-field',
   template: `
     <label cdkDragHandle [attr.for]="id" class="form-label" [class.required]="props.required">
@@ -16,6 +16,7 @@ import { FieldWrapper, FormlyFieldConfig } from '@ngx-formly/core';
       </div>
     }
   `,
+  imports: [CdkDragHandle],
 })
 export class FormlyWrapperFormField extends FieldWrapper<FormlyFieldConfig> {
   @HostBinding('title')

@@ -16,7 +16,7 @@ import { ConfigService } from './config.service';
 })
 export class ModService {
 
-  nesting = CSS.supports('selector(& > *)');
+  nesting = CSS && CSS.supports('selector(& > *)');
 
   constructor(
     @Inject(DOCUMENT) private document: Document,

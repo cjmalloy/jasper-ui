@@ -1,6 +1,7 @@
+import { AsyncPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
-  Component,
+  Component, forwardRef,
   HostBinding,
   Input,
   OnChanges,
@@ -9,9 +10,11 @@ import {
   SimpleChanges,
   ViewChildren
 } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { defer, uniq } from 'lodash-es';
 import { catchError, map, of, Subject, switchMap, takeUntil, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
+import { TitleDirective } from '../../../directive/title.directive';
 import { Ref } from '../../../model/ref';
 import { deleteNotice } from '../../../mods/delete';
 import { AdminService } from '../../../service/admin.service';
@@ -26,13 +29,29 @@ import { printError } from '../../../util/http';
 import { memo, MemoCache } from '../../../util/memo';
 import { hasTag, localTag, repost, tagOrigin } from '../../../util/tag';
 import { ActionComponent } from '../../action/action.component';
+import { ConfirmActionComponent } from '../../action/confirm-action/confirm-action.component';
+import { InlineTagComponent } from '../../action/inline-tag/inline-tag.component';
+import { LoadingComponent } from '../../loading/loading.component';
+import { MdComponent } from '../../md/md.component';
+import { NavComponent } from '../../nav/nav.component';
+import { ViewerComponent } from '../../viewer/viewer.component';
 
 @Component({
-  standalone: false,
   selector: 'app-chat-entry',
   templateUrl: './chat-entry.component.html',
   styleUrls: ['./chat-entry.component.scss'],
-  host: {'class': 'chat-entry'}
+  host: { 'class': 'chat-entry' },
+  imports: [
+    forwardRef(() => ViewerComponent),
+    MdComponent,
+    RouterLink,
+    TitleDirective,
+    LoadingComponent,
+    NavComponent,
+    ConfirmActionComponent,
+    InlineTagComponent,
+    AsyncPipe,
+  ],
 })
 export class ChatEntryComponent implements OnChanges, OnDestroy {
   @HostBinding('attr.tabindex') tabIndex = 0;

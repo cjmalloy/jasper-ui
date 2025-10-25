@@ -1,3 +1,4 @@
+/// <reference types="vitest/globals" />
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { QrComponent } from './qr.component';
@@ -8,9 +9,8 @@ describe('QrComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ QrComponent ]
-    })
-    .compileComponents();
+      imports: [QrComponent]
+    }).compileComponents();
 
     fixture = TestBed.createComponent(QrComponent);
     component = fixture.componentInstance;

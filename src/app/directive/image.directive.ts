@@ -5,10 +5,7 @@ import { ConfigService } from '../service/config.service';
 import { Dim, height, ImageService, width } from '../service/image.service';
 import { Store } from '../store/store';
 
-@Directive({
-  standalone: false,
-  selector: '[appImage]'
-})
+@Directive({ selector: '[appImage]' })
 export class ImageDirective implements OnInit, OnDestroy {
   private disposers: IReactionDisposer[] = [];
 

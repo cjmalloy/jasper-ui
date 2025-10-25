@@ -1,4 +1,4 @@
-import * as JSZip from 'jszip';
+import JSZip from 'jszip';
 import { isArray } from 'lodash-es';
 import { Ext, mapExt } from '../model/ext';
 import { mapRef, Ref } from '../model/ref';

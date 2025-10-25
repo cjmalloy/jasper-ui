@@ -1,7 +1,8 @@
+/// <reference types="vitest/globals" />
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { RouterModule } from '@angular/router';
+import { provideRouter } from '@angular/router';
 
 import { InlineTagComponent } from './inline-tag.component';
 
@@ -9,15 +10,15 @@ describe('InlineTagComponent', () => {
   let component: InlineTagComponent;
   let fixture: ComponentFixture<InlineTagComponent>;
 
-  beforeEach(() => {
-    TestBed.configureTestingModule({
-      declarations: [InlineTagComponent],
-      imports: [RouterModule.forRoot([])],
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [InlineTagComponent],
       providers: [
         provideHttpClient(withInterceptorsFromDi()),
-        provideHttpClientTesting()
-      ,]
-    });
+        provideHttpClientTesting(),
+        provideRouter([]),
+      ]
+    }).compileComponents();
     fixture = TestBed.createComponent(InlineTagComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();

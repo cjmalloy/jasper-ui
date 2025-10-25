@@ -1,5 +1,8 @@
+/// <reference types="vitest/globals" />
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
+import { provideRouter } from '@angular/router';
+import { JasperFormlyModule } from '../../formly/formly.module';
 import { LinksFormComponent } from './links.component';
 
 
@@ -9,15 +12,16 @@ describe('LinksFormComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ LinksFormComponent ],
       imports: [
         ReactiveFormsModule,
+        JasperFormlyModule,
+        LinksFormComponent,
       ],
-    })
-    .compileComponents();
-  });
+      providers: [
+        provideRouter([]),
+      ],
+    }).compileComponents();
 
-  beforeEach(() => {
     fixture = TestBed.createComponent(LinksFormComponent);
     component = fixture.componentInstance;
     component.group = new UntypedFormGroup({ links: new UntypedFormControl({}) });

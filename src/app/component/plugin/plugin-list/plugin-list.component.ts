@@ -3,14 +3,16 @@ import { Router } from '@angular/router';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Page } from '../../../model/page';
 import { Plugin } from '../../../model/plugin';
+import { LoadingComponent } from '../../loading/loading.component';
+import { PageControlsComponent } from '../../page-controls/page-controls.component';
 import { PluginComponent } from '../plugin.component';
 
 @Component({
-  standalone: false,
   selector: 'app-plugin-list',
   templateUrl: './plugin-list.component.html',
   styleUrls: ['./plugin-list.component.scss'],
-  host: {'class': 'plugin-list'}
+  host: { 'class': 'plugin-list' },
+  imports: [PluginComponent, PageControlsComponent, LoadingComponent]
 })
 export class PluginListComponent implements HasChanges {
 

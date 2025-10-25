@@ -1,3 +1,4 @@
+import { AsyncPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
   AfterViewInit,
@@ -16,13 +17,15 @@ import {
   ViewChild,
   ViewChildren
 } from '@angular/core';
-import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
+import { Router, RouterLink } from '@angular/router';
 import { cloneDeep, defer, delay, groupBy, pick, throttle, uniq, without } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { catchError, map, of, Subject, Subscription, switchMap, takeUntil, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
+import { TitleDirective } from '../../directive/title.directive';
+import { DiffComponent } from '../../form/diff/diff.component';
 import { writePlugins } from '../../form/plugins/plugins.component';
 import { refForm, RefFormComponent } from '../../form/ref/ref.component';
 import { HasChanges } from '../../guard/pending-changes.guard';
@@ -31,6 +34,8 @@ import { equalsRef, isRef, Ref } from '../../model/ref';
 import { Action, active, hydrate, Icon, sortOrder, uniqueConfigs, visible } from '../../model/tag';
 import { deleteNotice } from '../../mods/delete';
 import { addressedTo, getMailbox, mailboxes } from '../../mods/mailbox';
+import { CssUrlPipe } from '../../pipe/css-url.pipe';
+import { ThumbnailPipe } from '../../pipe/thumbnail.pipe';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
@@ -69,15 +74,40 @@ import {
   tagOrigin,
   top
 } from '../../util/tag';
+import { ActionListComponent } from '../action/action-list/action-list.component';
 import { ActionComponent } from '../action/action.component';
+import { ConfirmActionComponent } from '../action/confirm-action/confirm-action.component';
+import { InlineButtonComponent } from '../action/inline-button/inline-button.component';
+import { InlineTagComponent } from '../action/inline-tag/inline-tag.component';
 import { CommentReplyComponent } from '../comment/comment-reply/comment-reply.component';
+import { LoadingComponent } from '../loading/loading.component';
+import { MdComponent } from '../md/md.component';
+import { NavComponent } from '../nav/nav.component';
 import { ViewerComponent } from '../viewer/viewer.component';
 
 @Component({
-  standalone: false,
   selector: 'app-ref',
   templateUrl: './ref.component.html',
   styleUrls: ['./ref.component.scss'],
+  imports: [
+    ViewerComponent,
+    RefFormComponent,
+    MdComponent,
+    NavComponent,
+    RouterLink,
+    TitleDirective,
+    InlineTagComponent,
+    InlineButtonComponent,
+    ConfirmActionComponent,
+    ActionListComponent,
+    CommentReplyComponent,
+    ReactiveFormsModule,
+    LoadingComponent,
+    DiffComponent,
+    AsyncPipe,
+    ThumbnailPipe,
+    CssUrlPipe,
+  ],
 })
 export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasChanges {
   css = 'ref list-item';
@@ -247,8 +277,8 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     this.expandPlugins = this.admin.getEmbeds(this.ref);
     if (this.repost && this.ref && this.fetchRepost && this.repostRef?.url != repost(this.ref)) {
       (this.store.view.top?.url === this.ref.sources![0]
-        ? of(this.store.view.top)
-        : this.refs.getCurrent(this.url)
+          ? of(this.store.view.top)
+          : this.refs.getCurrent(this.url)
       ).pipe(
         catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
         takeUntil(this.destroy$),
@@ -1176,8 +1206,8 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     return (this.local && hasTag('locked', this.ref)
         ? this.ts.patch(['plugin/delete', 'internal'], this.ref.url, this.ref.origin)
         : this.local && !hasTag('plugin/delete', this.ref) && this.admin.getPlugin('plugin/delete')
-        ? this.refs.update(deleteNotice(this.ref))
-        : this.refs.delete(this.ref.url, this.ref.origin).pipe(map(() => ''))
+          ? this.refs.update(deleteNotice(this.ref))
+          : this.refs.delete(this.ref.url, this.ref.origin).pipe(map(() => ''))
     ).pipe(
       tap((cursor: string) => {
         this.deleted = true;

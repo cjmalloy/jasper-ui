@@ -1,6 +1,7 @@
 import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { defer, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
+import { MobxAngularModule } from 'mobx-angular';
 import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Page } from '../../../model/page';
@@ -13,13 +14,15 @@ import { getTitle } from '../../../util/format';
 import { getArgs } from '../../../util/query';
 
 @Component({
-  standalone: false,
   selector: 'app-ref-sources',
   templateUrl: './sources.component.html',
   styleUrls: ['./sources.component.scss'],
+  imports: [
+    MobxAngularModule,
+    RefListComponent,
+  ],
 })
 export class RefSourcesComponent implements OnInit, OnDestroy, HasChanges {
-
   private disposers: IReactionDisposer[] = [];
 
   @ViewChild(RefListComponent)

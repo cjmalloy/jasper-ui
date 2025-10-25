@@ -1,4 +1,5 @@
 import { Component, ElementRef, Input, OnDestroy, OnInit } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
@@ -10,10 +11,10 @@ import { getPath, parseParams } from '../../util/http';
 import { hasPrefix } from '../../util/tag';
 
 @Component({
-  standalone: false,
   selector: 'app-nav',
   templateUrl: './nav.component.html',
-  styleUrls: ['./nav.component.scss']
+  styleUrls: ['./nav.component.scss'],
+  imports: [RouterLink]
 })
 export class NavComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();

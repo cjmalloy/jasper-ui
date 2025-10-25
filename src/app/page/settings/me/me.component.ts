@@ -1,11 +1,15 @@
 import { Location } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, isDevMode, ViewChild } from '@angular/core';
-import { FormBuilder, UntypedFormGroup } from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule, UntypedFormGroup } from '@angular/forms';
 import { cloneDeep, defer } from 'lodash-es';
 import { runInAction } from 'mobx';
+import { MobxAngularModule } from 'mobx-angular';
 import { catchError, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
+import { LoadingComponent } from '../../../component/loading/loading.component';
+import { UserTagSelectorComponent } from '../../../component/user-tag-selector/user-tag-selector.component';
+import { LimitWidthDirective } from '../../../directive/limit-width.directive';
 import { extForm, ExtFormComponent } from '../../../form/ext/ext.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { AccountService } from '../../../service/account.service';
@@ -17,11 +21,11 @@ import { scrollToFirstInvalid } from '../../../util/form';
 import { printError } from '../../../util/http';
 
 @Component({
-  standalone: false,
   selector: 'app-settings-me-page',
   templateUrl: './me.component.html',
   styleUrls: ['./me.component.scss'],
-  host: {'class': 'full-page-form'}
+  host: { 'class': 'full-page-form' },
+  imports: [MobxAngularModule, ReactiveFormsModule, LimitWidthDirective, UserTagSelectorComponent, ExtFormComponent, LoadingComponent]
 })
 export class SettingsMePage implements HasChanges {
 

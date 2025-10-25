@@ -1,12 +1,13 @@
+/// <reference types="vitest/globals" />
 import { TestBed } from '@angular/core/testing';
-import { Router, RouterModule } from '@angular/router';
+import { provideRouter, Router } from '@angular/router';
 import { AutofocusDirective } from './autofocus.directive';
 
 describe('AutofocusDirective', () => {
-  beforeEach(() => {
-    TestBed.configureTestingModule({
-      imports: [
-        RouterModule.forRoot([]),
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      providers: [
+        provideRouter([]),
       ]
     });
   });

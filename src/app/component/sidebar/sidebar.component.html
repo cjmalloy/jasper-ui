@@ -214,13 +214,13 @@
     </div>
   }
   @if (!home && expanded) {
-    @for (res of queryExts$ | async; track res) {
-      <h5>{{ res.ext.name || res.ext.tag}} Tags:</h5>
-      @for (c of res.children; track c.tag + c.origin) {
-        <app-ext [ext]="c" [useEditPage]="true"></app-ext>
+    @for (res of queryExts$ | async; track res.x.tag) {
+      <h5>{{ res.x.name || res.x.tag}} Tags:</h5>
+      @for (x of res.children; track x.tag + x.origin) {
+        <app-ext [ext]="x" [useEditPage]="true"></app-ext>
       }
       @if (res.more) {
-        <a [routerLink]="['/tags', res.ext.tag]"
+        <a [routerLink]="['/tags', res.x.tag]"
            queryParamsHandling="merge"
            class="load-more no-select" i18n>
           load more

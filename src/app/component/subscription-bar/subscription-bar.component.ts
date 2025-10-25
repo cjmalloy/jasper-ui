@@ -1,6 +1,9 @@
 import { Location } from '@angular/common';
 import { Component, OnDestroy } from '@angular/core';
+import { RouterLink, RouterLinkActive } from '@angular/router';
 import { autorun, IReactionDisposer } from 'mobx';
+import { MobxAngularModule } from 'mobx-angular';
+import { TitleDirective } from '../../directive/title.directive';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
 import { ConfigService } from '../../service/config.service';
@@ -9,11 +12,11 @@ import { ModService } from '../../service/mod.service';
 import { Store } from '../../store/store';
 
 @Component({
-  standalone: false,
   selector: 'app-subscription-bar',
   templateUrl: './subscription-bar.component.html',
   styleUrls: ['./subscription-bar.component.scss'],
-  host: {'class': 'subscription-bar'}
+  host: { 'class': 'subscription-bar' },
+  imports: [MobxAngularModule, RouterLink, RouterLinkActive, TitleDirective]
 })
 export class SubscriptionBarComponent implements OnDestroy {
   private disposers: IReactionDisposer[] = [];

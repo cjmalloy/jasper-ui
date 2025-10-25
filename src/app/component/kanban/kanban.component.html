@@ -25,7 +25,8 @@
                 <div class="disable-swim-lanes">
                   <input id="disable-swim-lanes"
                          type="checkbox"
-                         [(ngModel)]="disableSwimLanes">
+                         [checked]="disableSwimLanes"
+                         (input)="disableSwimLanes = !disableSwimLanes">
                   <label for="disable-swim-lanes" i18n>Hide Swim Lanes</label>
                 </div>
               }

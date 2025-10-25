@@ -1,9 +1,12 @@
+/// <reference types="vitest/globals" />
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { RouterModule } from '@angular/router';
+import { UntypedFormControl, UntypedFormGroup } from '@angular/forms';
+import { provideRouter } from '@angular/router';
+import { NGX_MONACO_EDITOR_CONFIG } from 'ngx-monaco-editor';
 
 import { JsonComponent } from './json.component';
-import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 describe('JsonComponent', () => {
   let component: JsonComponent;
@@ -11,14 +14,25 @@ describe('JsonComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    declarations: [JsonComponent],
-    imports: [RouterModule.forRoot([])],
-    providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
-})
-    .compileComponents();
+      imports: [JsonComponent],
+      providers: [
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting(),
+        provideRouter([]),
+        {
+          provide: NGX_MONACO_EDITOR_CONFIG,
+          useValue: {}
+        }
+      ]
+    }).compileComponents();
 
     fixture = TestBed.createComponent(JsonComponent);
     component = fixture.componentInstance;
+    // Create a FormGroup for the component with all required controls
+    component.group = new UntypedFormGroup({
+      json: new UntypedFormControl(''),
+      source: new UntypedFormControl('')
+    });
     fixture.detectChanges();
   });
 

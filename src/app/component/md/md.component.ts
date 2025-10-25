@@ -1,16 +1,20 @@
 import { Component, ElementRef, Input, Output } from '@angular/core';
 import { MermaidConfig } from 'mermaid';
-import { MermaidAPI } from 'ngx-markdown';
+import { MarkdownComponent, MermaidAPI } from 'ngx-markdown';
 import { Subject } from 'rxjs';
 import * as XLSX from 'xlsx';
+import { MdPostDirective } from '../../directive/md-post.directive';
 import { AdminService } from '../../service/admin.service';
 import { Store } from '../../store/store';
 
 @Component({
-  standalone: false,
   selector: 'app-md',
   templateUrl: './md.component.html',
-  styleUrls: ['./md.component.scss']
+  styleUrls: ['./md.component.scss'],
+  imports: [
+    MarkdownComponent,
+    MdPostDirective,
+  ]
 })
 export class MdComponent {
 
@@ -22,6 +26,10 @@ export class MdComponent {
   disableSanitizer = false;
   @Output()
   postProcessMarkdown: Subject<void> = new Subject();
+  @Input()
+  mermaid = true;
+  @Input()
+  clipboard = true;
 
   katexOptions = {
     throwOnError: false,
