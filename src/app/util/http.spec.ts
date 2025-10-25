@@ -88,17 +88,17 @@ describe('HTTP Utils', () => {
       expect(title).toBeNull();
     });
 
-    it('should return null for ftp: scheme', () => {
+    // Tests for path-like URL schemes
+    it('should handle ftp: scheme', () => {
       const title = getTitleFromFilename('ftp://example.com/document.pdf');
-      expect(title).toBeNull();
+      expect(title).toBe('document.pdf');
     });
 
-    it('should return null for file: scheme', () => {
+    it('should handle file: scheme', () => {
       const title = getTitleFromFilename('file:///path/to/document.pdf');
-      expect(title).toBeNull();
+      expect(title).toBe('document.pdf');
     });
 
-    // Tests for tag: scheme (considered path-like)
     it('should handle tag: scheme with path', () => {
       const title = getTitleFromFilename('tag:/some/tag');
       expect(title).toBe('tag');
