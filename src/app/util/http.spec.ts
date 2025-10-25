@@ -88,9 +88,25 @@ describe('HTTP Utils', () => {
       expect(title).toBeNull();
     });
 
-    it('should return null for tag: scheme', () => {
-      const title = getTitleFromFilename('tag:/some/tag');
+    it('should return null for ftp: scheme', () => {
+      const title = getTitleFromFilename('ftp://example.com/document.pdf');
       expect(title).toBeNull();
+    });
+
+    it('should return null for file: scheme', () => {
+      const title = getTitleFromFilename('file:///path/to/document.pdf');
+      expect(title).toBeNull();
+    });
+
+    // Tests for tag: scheme (considered path-like)
+    it('should handle tag: scheme with path', () => {
+      const title = getTitleFromFilename('tag:/some/tag');
+      expect(title).toBe('tag');
+    });
+
+    it('should handle tag: scheme with single segment', () => {
+      const title = getTitleFromFilename('tag:mytag');
+      expect(title).toBe('mytag');
     });
   });
 });

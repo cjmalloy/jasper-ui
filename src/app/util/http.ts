@@ -217,10 +217,10 @@ export function getExtension(url: string): string | null {
  * Returns null for non-path-like URLs (e.g., comment:, internal:, cache:).
  */
 export function getTitleFromFilename(url: string): string | null {
-  // Only extract from http/https URLs
+  // Only extract from http/https/tag URLs (path-like schemes)
   const scheme = getScheme(url);
   if (!scheme) return null;
-  if (scheme !== 'http:' && scheme !== 'https:') return null;
+  if (scheme !== 'http:' && scheme !== 'https:' && scheme !== 'tag:') return null;
   
   const path = getPath(url);
   if (!path) return null;
