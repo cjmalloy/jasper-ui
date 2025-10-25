@@ -211,8 +211,8 @@ export function getExtension(url: string): string | null {
 }
 
 /**
- * Extract a human-readable title from a URL's filename.
- * Removes the extension, decodes URL encoding, and replaces separators with spaces.
+ * Extract a title from a URL's filename.
+ * Decodes URL encoding and trims whitespace.
  */
 export function getTitleFromFilename(url: string): string | null {
   const path = getPath(url);
@@ -224,12 +224,6 @@ export function getTitleFromFilename(url: string): string | null {
   
   let filename = segments[segments.length - 1];
   
-  // Remove file extension (but preserve dotfiles like .gitignore)
-  const lastDot = filename.lastIndexOf('.');
-  if (lastDot > 0) {
-    filename = filename.substring(0, lastDot);
-  }
-  
   // Decode URL encoding
   try {
     filename = decodeURIComponent(filename);
@@ -237,11 +231,8 @@ export function getTitleFromFilename(url: string): string | null {
     // If decoding fails, use the original filename
   }
   
-  // Replace common separators with spaces and clean up
-  filename = filename
-    .replace(/[-_+]/g, ' ')  // Replace hyphens, underscores, plus signs with spaces
-    .replace(/\s+/g, ' ')     // Collapse multiple spaces
-    .trim();
+  // Trim whitespace
+  filename = filename.trim();
   
   return filename || null;
 }

@@ -71,8 +71,8 @@ describe('RefFormComponent', () => {
     
     // Give the observable time to complete
     setTimeout(() => {
-      // Check that title was extracted from filename
-      expect(component.title.value).toBe('my document');
+      // Check that title was extracted from filename (with extension and separators preserved)
+      expect(component.title.value).toBe('my-document.pdf');
       done();
     }, 100);
   });

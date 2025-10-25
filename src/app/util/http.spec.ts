@@ -2,49 +2,49 @@ import { getTitleFromFilename } from './http';
 
 describe('HTTP Utils', () => {
   describe('getTitleFromFilename', () => {
-    it('should extract title from simple filename', () => {
+    it('should extract filename from URL', () => {
       const title = getTitleFromFilename('https://example.com/document.pdf');
-      expect(title).toBe('document');
+      expect(title).toBe('document.pdf');
     });
 
-    it('should extract title from filename with hyphens', () => {
+    it('should keep hyphens in filename', () => {
       const title = getTitleFromFilename('https://example.com/my-document-file.pdf');
-      expect(title).toBe('my document file');
+      expect(title).toBe('my-document-file.pdf');
     });
 
-    it('should extract title from filename with underscores', () => {
+    it('should keep underscores in filename', () => {
       const title = getTitleFromFilename('https://example.com/my_document_file.pdf');
-      expect(title).toBe('my document file');
+      expect(title).toBe('my_document_file.pdf');
     });
 
-    it('should extract title from filename with mixed separators', () => {
+    it('should keep all separators in filename', () => {
       const title = getTitleFromFilename('https://example.com/my-document_file+name.pdf');
-      expect(title).toBe('my document file name');
+      expect(title).toBe('my-document_file+name.pdf');
     });
 
     it('should decode URL-encoded filename', () => {
       const title = getTitleFromFilename('https://example.com/my%20document.pdf');
-      expect(title).toBe('my document');
+      expect(title).toBe('my document.pdf');
     });
 
     it('should handle nested paths', () => {
       const title = getTitleFromFilename('https://example.com/path/to/document.pdf');
-      expect(title).toBe('document');
+      expect(title).toBe('document.pdf');
     });
 
-    it('should handle multiple dots in filename', () => {
+    it('should keep multiple dots in filename', () => {
       const title = getTitleFromFilename('https://example.com/my.document.file.pdf');
-      expect(title).toBe('my.document.file');
+      expect(title).toBe('my.document.file.pdf');
     });
 
     it('should handle URL with query parameters', () => {
       const title = getTitleFromFilename('https://example.com/document.pdf?download=true');
-      expect(title).toBe('document');
+      expect(title).toBe('document.pdf');
     });
 
     it('should handle URL with hash', () => {
       const title = getTitleFromFilename('https://example.com/document.pdf#section1');
-      expect(title).toBe('document');
+      expect(title).toBe('document.pdf');
     });
 
     it('should return null for URL without path', () => {
@@ -62,14 +62,14 @@ describe('HTTP Utils', () => {
       expect(title).toBe('document');
     });
 
-    it('should collapse multiple spaces', () => {
-      const title = getTitleFromFilename('https://example.com/my---document___file.pdf');
-      expect(title).toBe('my document file');
+    it('should trim whitespace from filename', () => {
+      const title = getTitleFromFilename('https://example.com/my%20%20document.pdf');
+      expect(title).toBe('my  document.pdf');
     });
 
     it('should handle complex URL-encoded characters', () => {
       const title = getTitleFromFilename('https://example.com/R%C3%A9sum%C3%A9.pdf');
-      expect(title).toBe('Résumé');
+      expect(title).toBe('Résumé.pdf');
     });
   });
 });
