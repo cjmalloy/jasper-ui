@@ -224,7 +224,7 @@ export function getTitleFromFilename(url: string): string | null {
   
   let filename = segments[segments.length - 1];
   
-  // Remove file extension
+  // Remove file extension (but preserve dotfiles like .gitignore)
   const lastDot = filename.lastIndexOf('.');
   if (lastDot > 0) {
     filename = filename.substring(0, lastDot);
