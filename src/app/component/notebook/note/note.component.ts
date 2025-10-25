@@ -7,6 +7,7 @@ import {
   Component,
   ElementRef,
   EventEmitter,
+  forwardRef,
   HostBinding,
   HostListener,
   Input,
@@ -49,7 +50,7 @@ import { TodoComponent } from '../../todo/todo.component';
   styleUrls: ['./note.component.scss'],
   host: { 'class': 'note' },
   imports: [
-    MdComponent,
+    forwardRef(() => MdComponent),
     LoadingComponent,
     RouterLink,
     ChessComponent,
