@@ -260,7 +260,6 @@ export class RefFormComponent implements OnChanges {
       )),
     ).subscribe((s: Ref) => {
       this.scrapingTitle = false;
-      // If no title was scraped, try to extract it from the filename
       const title = s.title || getTitleFromFilename(this.url.value);
       if (title) this.group.patchValue({ title });
     });
