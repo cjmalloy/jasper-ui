@@ -210,3 +210,16 @@ export function getExtension(url: string): string | null {
   if (!parsed.pathname.includes('.')) return parsed.pathname;
   return parsed.pathname.substring(parsed.pathname.lastIndexOf('.'));
 }
+
+export function getTitleFromFilename(url: string): string | null {
+  if (!url.includes('/')) return null;
+  const path = getPath(url);
+  if (!path) return null;
+  const segments = path.split('/').filter(s => !!s);
+  if (!segments.length) return null;
+  let filename = segments[segments.length - 1];
+  try {
+    filename = decodeURIComponent(filename);
+  } catch (e) { }
+  return filename?.trim() || null;
+}
