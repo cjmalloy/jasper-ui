@@ -211,35 +211,14 @@ export function getExtension(url: string): string | null {
   return parsed.pathname.substring(parsed.pathname.lastIndexOf('.'));
 }
 
-/**
- * Extract a title from a URL's filename.
- * Decodes URL encoding and trims whitespace.
- * Returns null for non-path-like URLs (e.g., comment:, internal:, cache:).
- */
 export function getTitleFromFilename(url: string): string | null {
-  // Only extract from path-like URLs (http, https, ftp, file, tag)
-  const scheme = getScheme(url);
-  if (!scheme) return null;
-  if (scheme !== 'http:' && scheme !== 'https:' && scheme !== 'ftp:' && scheme !== 'file:' && scheme !== 'tag:') return null;
-  
   const path = getPath(url);
   if (!path) return null;
-  
-  // Get the last segment of the path (the filename)
-  const segments = path.split('/').filter(s => s.length > 0);
-  if (segments.length === 0) return null;
-  
+  const segments = path.split('/').filter(s => !!s);
+  if (!segments.length) return null;
   let filename = segments[segments.length - 1];
-  
-  // Decode URL encoding
   try {
     filename = decodeURIComponent(filename);
-  } catch (e) {
-    // If decoding fails, use the original filename
-  }
-  
-  // Trim whitespace
-  filename = filename.trim();
-  
-  return filename || null;
+  } catch (e) { }
+  return filename?.trim() || null;
 }
