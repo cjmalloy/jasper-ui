@@ -35,7 +35,7 @@ import { ConfigService } from '../../service/config.service';
 import { EditorService } from '../../service/editor.service';
 import { OembedStore } from '../../store/oembed';
 import { Store } from '../../store/store';
-import { getScheme } from '../../util/http';
+import { getScheme, getTitleFromFilename } from '../../util/http';
 import { memo, MemoCache } from '../../util/memo';
 import { hasMedia, hasPrefix, hasTag } from '../../util/tag';
 import { EditorComponent } from '../editor/editor.component';
@@ -260,7 +260,8 @@ export class RefFormComponent implements OnChanges {
       )),
     ).subscribe((s: Ref) => {
       this.scrapingTitle = false;
-      if (s.title) this.group.patchValue({ title: s.title });
+      const title = s.title || getTitleFromFilename(this.url.value);
+      if (title) this.group.patchValue({ title });
     });
   }
 
