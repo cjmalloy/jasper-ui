@@ -33,8 +33,9 @@ WORKDIR /app
 RUN npm i -g @angular/cli
 COPY --from=builder /app ./
 CMD mkdir -p /report && \
-    NO_COLOR=1 ng test --watch=false --reporters=default --reporters=html 2>&1 | tee /report/test-output.log || true && \
-    if [ -d html ]; then cp -r html/* /report/; fi
+    (NO_COLOR=1 ng test --watch=false --reporters=default --reporters=html 2>&1 | tee /report/test-output.log; echo ${PIPESTATUS[0]} > /report/exit-code.txt) && \
+    if [ -d html ]; then cp -r html/* /report/; fi && \
+    exit $(cat /report/exit-code.txt)
 
 FROM nginx:1.27-alpine3.19-slim AS deploy
 RUN apk add jq moreutils
