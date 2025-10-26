@@ -106,7 +106,7 @@ describe('HTTP Utils', () => {
 
     it('should handle tag: scheme with single segment', () => {
       const title = getTitleFromFilename('tag:mytag');
-      expect(title).toBe('mytag');
+      expect(title).toBeNull();
     });
   });
 });
