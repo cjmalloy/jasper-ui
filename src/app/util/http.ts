@@ -212,7 +212,6 @@ export function getExtension(url: string): string | null {
 }
 
 export function getTitleFromFilename(url: string): string | null {
-  const scheme = getScheme(url);
   if (!url.includes('/')) return null;
   const path = getPath(url);
   if (!path) return null;
