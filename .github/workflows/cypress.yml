@@ -25,14 +25,6 @@ jobs:
       - name: Run Cypress Tests
         id: cypress
         run: npm run cy:ci
-      - name: Debug - List Report Files
-        if: always()
-        run: |
-          echo "Listing cypress/reports directory:"
-          ls -laR cypress/reports/ || echo "cypress/reports directory not found"
-          echo ""
-          echo "Searching for JSON files:"
-          find cypress -name "*.json" -type f || echo "No JSON files found"
       - name: Generate Test Summary
         if: always()
         uses: actions/github-script@v8
@@ -62,31 +54,7 @@ jobs:
             let summary = '## 🧪 Cypress Test Results\n\n';
             
             try {
-              const jsonPath = 'cypress/reports/html/mochawesome.json';
-              
-              // Debug: Log what we're looking for and what exists
-              console.log('Looking for JSON at:', jsonPath);
-              console.log('File exists:', fs.existsSync(jsonPath));
-              
-              // Try to find JSON files in the reports directory
-              const reportsDir = 'cypress/reports';
-              if (fs.existsSync(reportsDir)) {
-                console.log('Reports directory exists');
-                const findJsonFiles = (dir) => {
-                  const files = fs.readdirSync(dir, { withFileTypes: true });
-                  for (const file of files) {
-                    const fullPath = `${dir}/${file.name}`;
-                    if (file.isDirectory()) {
-                      findJsonFiles(fullPath);
-                    } else if (file.name.endsWith('.json')) {
-                      console.log('Found JSON file:', fullPath);
-                    }
-                  }
-                };
-                findJsonFiles(reportsDir);
-              } else {
-                console.log('Reports directory does not exist');
-              }
+              const jsonPath = 'cypress/reports/html/index.json';
               
               if (fs.existsSync(jsonPath)) {
                 const jsonContent = fs.readFileSync(jsonPath, 'utf8');
@@ -119,7 +87,6 @@ jobs:
               }
             } catch (error) {
               summary += `⚠️ Error parsing test results: ${error.message}\n\n`;
-              console.error('Error details:', error);
             }
             
             // Write summary to GitHub Step Summary
