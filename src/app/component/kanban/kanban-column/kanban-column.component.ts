@@ -251,7 +251,7 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
     const text = this.addText;
     this.addText = '';
     this.adding.push(text);
-    const tagsWithAuthor = !hasTag(this.store.account.localTag, this.addTags) ? [...this.addTags, this.store.account.localTag] : this.addTags;
+    const tagsWithAuthor = this.getTagsWithAuthor();
     const isUrl = URI_REGEX.test(text) && this.config.allowedSchemes.filter(s => text.startsWith(s)).length;
     // TODO: support local urls
     const ref: Ref = isUrl ? {
@@ -342,6 +342,12 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
     this.failed.splice(this.failed.indexOf(failedItem), 1);
   }
 
+  private getTagsWithAuthor(): string[] {
+    return !hasTag(this.store.account.localTag, this.addTags) 
+      ? [...this.addTags, this.store.account.localTag] 
+      : this.addTags;
+  }
+
   handlePaste(event: ClipboardEvent) {
     const items = event.clipboardData?.items;
     if (!items) return;
@@ -390,9 +396,7 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
   }
 
   uploadFile$(file: File, upload: KanbanUpload): Observable<Ref | null> {
-    const tagsWithAuthor = !hasTag(this.store.account.localTag, this.addTags) 
-      ? [...this.addTags, this.store.account.localTag] 
-      : this.addTags;
+    const tagsWithAuthor = this.getTagsWithAuthor();
     
     const codeType = mimeToCode(file.type);
     if (codeType.length) {
@@ -413,6 +417,7 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
         catchError(err => {
           upload.error = err.message || 'Upload failed';
           upload.progress = 0;
+          console.warn('File upload failed, falling back to base64 encoding:', err);
           return readFileAsDataURL(file).pipe(map(url => ({ ...ref, url }))); // base64
         }),
       );
@@ -447,6 +452,7 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
         catchError(err => {
           upload.error = err.message || 'Upload failed';
           upload.progress = 0;
+          console.warn('File upload failed, falling back to base64 encoding:', err);
           return readFileAsDataURL(file).pipe(map(url => ({ url, tags }))); // base64
         }),
       );
@@ -455,13 +461,11 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
 
   submitUpload(ref: Ref) {
     if (!this.page) {
-      console.error('Should not happen, will probably get cleared.');
-      this.page = { content: [] } as any;
+      // Initialize page if it doesn't exist yet
+      this.page = { content: [], page: { totalElements: 0, number: 0, totalPages: 0, size: 0 } } as Page<Ref>;
     }
     
-    const tagsWithAuthor = !hasTag(this.store.account.localTag, this.addTags) 
-      ? [...this.addTags, this.store.account.localTag] 
-      : this.addTags;
+    const tagsWithAuthor = this.getTagsWithAuthor();
     
     // Add the required tags to the ref
     ref.tags = uniq([...ref.tags || [], ...tagsWithAuthor]);
