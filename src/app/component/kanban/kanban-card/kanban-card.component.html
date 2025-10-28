@@ -1,9 +1,6 @@
 @if (!ref.modified) {
   @if (progress !== undefined) {
-    <div class="upload-progress-container">
-      <app-loading></app-loading>
-      <progress class="upload-progress" max="100" [value]="progress"></progress>
-    </div>
+    <progress class="upload-progress" max="100" [value]="progress"></progress>
   } @else {
     <app-loading></app-loading>
   }
