@@ -45,7 +45,6 @@ jobs:
                 failures: stats.failures || 0,
                 pending: stats.pending || 0,
                 skipped: stats.skipped || 0,
-                other: stats.other || 0,
                 passPercent: stats.passPercent || 0,
               };
             }
