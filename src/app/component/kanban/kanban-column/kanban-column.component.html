@@ -10,16 +10,9 @@
                      (copied)="copy($event)"></app-kanban-card>
   }
   @for (text of adding; track text) {
-    @if (uploadProgress.has(text)) {
-      <div class="upload-placeholder">
-        <app-kanban-card [ref]="{ url: '', title: text }"
-                         [ext]="ext"></app-kanban-card>
-        <progress class="upload-progress" max="100" [value]="uploadProgress.get(text)"></progress>
-      </div>
-    } @else {
-      <app-kanban-card [ref]="{ url: '', title: text }"
-                       [ext]="ext"></app-kanban-card>
-    }
+    <app-kanban-card [ref]="{ url: '', title: text }"
+                     [ext]="ext"
+                     [progress]="uploadProgress.get(text)"></app-kanban-card>
   }
   @for (failedItem of failed; track failedItem.text) {
     <div class="failed-item">

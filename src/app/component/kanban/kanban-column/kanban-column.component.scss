@@ -96,20 +96,6 @@
       margin-left: 8px;
     }
   }
-
-  .upload-placeholder {
-    position: relative;
-
-    .upload-progress {
-      position: absolute;
-      bottom: 4px;
-      left: 8px;
-      right: 8px;
-      width: calc(100% - 16px);
-      height: 4px;
-      border-radius: 2px;
-    }
-  }
 }
 
 .cdk-drag-animating {
