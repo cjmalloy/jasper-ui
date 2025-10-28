@@ -31,6 +31,21 @@ app-loading {
   height: calc(20px + 100%);
 }
 
+.upload-progress-container {
+  position: relative;
+
+  .upload-progress {
+    position: absolute;
+    bottom: 4px;
+    left: 8px;
+    right: 8px;
+    width: calc(100% - 16px);
+    height: 4px;
+    border-radius: 2px;
+    z-index: 2;
+  }
+}
+
 .thumbnail {
   min-width: 48px;
   min-height: 48px;

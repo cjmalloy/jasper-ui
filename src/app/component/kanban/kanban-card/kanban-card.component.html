@@ -1,5 +1,12 @@
 @if (!ref.modified) {
-  <app-loading></app-loading>
+  @if (progress !== undefined) {
+    <div class="upload-progress-container">
+      <app-loading></app-loading>
+      <progress class="upload-progress" max="100" [value]="progress"></progress>
+    </div>
+  } @else {
+    <app-loading></app-loading>
+  }
 }
 <div class="kanban-card-container">
   <div class="badges">
