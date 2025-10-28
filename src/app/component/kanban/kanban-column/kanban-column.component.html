@@ -13,6 +13,27 @@
     <app-kanban-card [ref]="{ url: '', title: text }"
                      [ext]="ext"></app-kanban-card>
   }
+  @for (upload of uploads; track upload.id) {
+    <div class="upload-card">
+      <div class="upload-content">
+        <div class="upload-filename">{{ upload.name }}</div>
+        @if (upload.error) {
+          <div class="upload-error">{{ upload.error }}</div>
+        } @else if (upload.completed) {
+          <div class="upload-complete">✅️ Complete</div>
+        } @else {
+          <progress class="upload-progress-bar" max="100" [value]="upload.progress"></progress>
+        }
+      </div>
+      @if (!upload.completed && !upload.error) {
+        <button type="button"
+                class="upload-cancel"
+                (click)="cancelUpload(upload)"
+                i18n-title title="Cancel upload"
+                i18n>&ndash;</button>
+      }
+    </div>
+  }
   @for (failedItem of failed; track failedItem.text) {
     <div class="failed-item">
       <div class="failed-content">
@@ -47,6 +68,7 @@
        placeholder="Add..."
        [value]="addText"
        (input)="addText = $any($event.target).value"
+       (paste)="handlePaste($event)"
        [style.display]="addText ? 'block' : 'none'"
        (keydown)="$event.key === 'Enter' && add() || true"
        (blur)="add()">

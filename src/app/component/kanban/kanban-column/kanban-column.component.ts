@@ -1,4 +1,5 @@
 import { CdkDrag } from '@angular/cdk/drag-drop';
+import { HttpEventType } from '@angular/common/http';
 import {
   AfterViewInit,
   Component,
@@ -13,20 +14,23 @@ import {
 import { ReactiveFormsModule } from '@angular/forms';
 import { isEqual, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
-import { catchError, Observable, Subject, Subscription, switchMap, takeUntil, throwError } from 'rxjs';
+import { catchError, last, map, Observable, of, Subject, Subscription, switchMap, takeUntil, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Ext } from '../../../model/ext';
 import { Page } from '../../../model/page';
 import { Ref, RefSort } from '../../../model/ref';
+import { mimeToCode } from '../../../mods/code';
 import { AccountService } from '../../../service/account.service';
 import { AdminService } from '../../../service/admin.service';
+import { ProxyService } from '../../../service/api/proxy.service';
 import { RefService } from '../../../service/api/ref.service';
 import { TaggingService } from '../../../service/api/tagging.service';
 import { ConfigService } from '../../../service/config.service';
 import { OembedStore } from '../../../store/oembed';
 import { Store } from '../../../store/store';
+import { readFileAsDataURL, readFileAsString } from '../../../util/async';
 import { URI_REGEX } from '../../../util/format';
 import { fixUrl, printError } from '../../../util/http';
 import { getArgs, UrlFilter } from '../../../util/query';
@@ -34,6 +38,16 @@ import { hasTag } from '../../../util/tag';
 import { LoadingComponent } from '../../loading/loading.component';
 import { KanbanCardComponent } from '../kanban-card/kanban-card.component';
 import { KanbanDrag } from '../kanban.component';
+
+export interface KanbanUpload {
+  id: string;
+  name: string;
+  progress: number;
+  subscription?: Subscription;
+  completed?: boolean;
+  error?: string;
+  ref?: Ref | null;
+}
 
 @Component({
   selector: 'app-kanban-column',
@@ -75,6 +89,7 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
   pressToUnlock = false;
   adding: string[] = [];
   failed: { text: string; error: string }[] = [];
+  uploads: KanbanUpload[] = [];
 
   private currentRequest?: Subscription;
   private runningSources?: Subscription;
@@ -91,6 +106,7 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
     private refs: RefService,
     private tags: TaggingService,
     private zone: NgZone,
+    private proxy: ProxyService,
   ) {
     if (config.mobile) {
       this.pressToUnlock = true;
@@ -324,6 +340,152 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
 
   dismissFailed(failedItem: { text: string; error: string }) {
     this.failed.splice(this.failed.indexOf(failedItem), 1);
+  }
+
+  handlePaste(event: ClipboardEvent) {
+    const items = event.clipboardData?.items;
+    if (!items) return;
+    
+    const files: File[] = [];
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      if (item.kind === 'file') {
+        const file = item.getAsFile();
+        if (file) files.push(file);
+      }
+    }
+    
+    if (files.length > 0) {
+      event.preventDefault();
+      event.stopPropagation();
+      this.uploadFiles(files);
+    }
+  }
+
+  uploadFiles(files: File[]) {
+    if (!files.length) return;
+    if (!this.admin.getPlugin('plugin/file')) return;
+    
+    const fileUploads: KanbanUpload[] = files.map(file => ({
+      id: uuid(),
+      name: file.name,
+      progress: 0
+    }));
+    
+    this.uploads = [...this.uploads, ...fileUploads];
+    
+    files.forEach((file, index) => {
+      const upload = fileUploads[index];
+      const subscription = this.uploadFile$(file, upload).subscribe(ref => {
+        if (ref) {
+          upload.completed = true;
+          upload.progress = 100;
+          upload.ref = ref;
+          this.submitUpload(ref);
+        }
+        this.checkAllUploadsComplete();
+      });
+      upload.subscription = subscription;
+    });
+  }
+
+  uploadFile$(file: File, upload: KanbanUpload): Observable<Ref | null> {
+    const tagsWithAuthor = !hasTag(this.store.account.localTag, this.addTags) 
+      ? [...this.addTags, this.store.account.localTag] 
+      : this.addTags;
+    
+    const codeType = mimeToCode(file.type);
+    if (codeType.length) {
+      const ref: Ref = {
+        origin: this.store.account.origin,
+        url: 'internal:' + uuid(),
+        title: file.name,
+        tags: [this.store.account.localTag, 'internal', ...file.type === 'text/markdown' ? [] : codeType]
+      };
+      upload.progress = 50;
+      return readFileAsString(file).pipe(
+        switchMap(contents => this.refs.create({
+          ...ref,
+          comment: contents,
+        })),
+        map(() => ref),
+        tap(() => upload.progress = 100),
+        catchError(err => {
+          upload.error = err.message || 'Upload failed';
+          upload.progress = 0;
+          return readFileAsDataURL(file).pipe(map(url => ({ ...ref, url }))); // base64
+        }),
+      );
+    } else {
+      const tags: string[] = ['plugin/file'];
+      if (file.type.startsWith('audio/') && this.admin.getPlugin('plugin/audio')) {
+        tags.push('plugin/audio');
+      } else if (file.type.startsWith('video/') && this.admin.getPlugin('plugin/video')) {
+        tags.push('plugin/video', 'plugin/thumbnail');
+      } else if (file.type.startsWith('image/') && this.admin.getPlugin('plugin/image')) {
+        tags.push('plugin/image', 'plugin/thumbnail');
+      } else if (file.type.startsWith('application/pdf') && this.admin.getPlugin('plugin/pdf')) {
+        tags.push('plugin/pdf');
+      }
+      
+      return this.proxy.save(file, this.store.account.origin).pipe(
+        map(event => {
+          switch (event.type) {
+            case HttpEventType.Response:
+              return event.body;
+            case HttpEventType.UploadProgress:
+              const percentDone = event.total ? Math.round(100 * event.loaded / event.total) : 0;
+              upload.progress = percentDone;
+              return null;
+          }
+          return null;
+        }),
+        last(),
+        switchMap(ref => !ref ? of(ref) : this.tags.patch(tags, ref.url, ref.origin).pipe(
+          map(cursor => ({ ...ref, tags: uniq([...ref?.tags || [], ...tags]) })),
+        )),
+        catchError(err => {
+          upload.error = err.message || 'Upload failed';
+          upload.progress = 0;
+          return readFileAsDataURL(file).pipe(map(url => ({ url, tags }))); // base64
+        }),
+      );
+    }
+  }
+
+  submitUpload(ref: Ref) {
+    if (!this.page) {
+      console.error('Should not happen, will probably get cleared.');
+      this.page = { content: [] } as any;
+    }
+    
+    const tagsWithAuthor = !hasTag(this.store.account.localTag, this.addTags) 
+      ? [...this.addTags, this.store.account.localTag] 
+      : this.addTags;
+    
+    // Add the required tags to the ref
+    ref.tags = uniq([...ref.tags || [], ...tagsWithAuthor]);
+    ref.origin = this.store.account.origin;
+    
+    this.mutated = true;
+    this.page!.content.push(ref);
+  }
+
+  checkAllUploadsComplete() {
+    const allComplete = this.uploads.every(upload => upload.completed || upload.error);
+    if (allComplete && this.uploads.length > 0) {
+      setTimeout(() => {
+        this.uploads = [];
+      }, 2000);
+    }
+  }
+
+  cancelUpload(upload: KanbanUpload) {
+    if (upload.subscription) {
+      upload.subscription.unsubscribe();
+    }
+    this.uploads = this.uploads.filter(u => u.id !== upload.id);
+    this.checkAllUploadsComplete();
   }
 
   private refreshPage(i: number, pinned?: Ref[]) {
