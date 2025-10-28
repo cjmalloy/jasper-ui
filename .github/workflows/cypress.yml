@@ -32,7 +32,6 @@ jobs:
           # language=JavaScript
           script: |
             const fs = require('fs');
-            const path = require('path');
             
             // Parse Cypress mochawesome JSON output
             function parseCypressResults(jsonContent) {
@@ -76,7 +75,7 @@ jobs:
                   if (results.failures === 0) {
                     summary += '🎉 All tests passed!\n\n';
                   } else {
-                    const passRate = results.passPercent.toFixed(1);
+                    const passRate = (results.passPercent || 0).toFixed(1);
                     summary += `📊 **Pass Rate:** ${passRate}%\n\n`;
                   }
                 } else {
