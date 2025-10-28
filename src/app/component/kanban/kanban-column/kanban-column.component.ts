@@ -80,6 +80,7 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
   adding: string[] = [];
   failed: { text: string; error: string }[] = [];
   dropping = false;
+  uploadProgress = new Map<string, number>();
 
   private currentRequest?: Subscription;
   private runningSources?: Subscription;
@@ -392,8 +393,9 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
     files.forEach(file => {
       const fileName = file.name;
       this.adding.push(fileName);
+      this.uploadProgress.set(fileName, 0);
       
-      this.uploadFile$(file).subscribe({
+      this.uploadFile$(file, fileName).subscribe({
         next: ref => {
           if (ref) {
             this.submitUpload(ref, fileName);
@@ -401,13 +403,14 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
         },
         error: err => {
           this.adding.splice(this.adding.indexOf(fileName), 1);
+          this.uploadProgress.delete(fileName);
           this.failed.push({ text: fileName, error: printError(err).join('\n') });
         }
       });
     });
   }
 
-  uploadFile$(file: File): Observable<Ref | null> {
+  uploadFile$(file: File, fileName: string): Observable<Ref | null> {
     const tagsWithAuthor = this.getTagsWithAuthor();
     
     const codeType = mimeToCode(file.type);
@@ -418,12 +421,14 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
         title: file.name,
         tags: [this.store.account.localTag, 'internal', ...file.type === 'text/markdown' ? [] : codeType]
       };
+      this.uploadProgress.set(fileName, 50);
       return readFileAsString(file).pipe(
         switchMap(contents => this.refs.create({
           ...ref,
           comment: contents,
         })),
         map(() => ref),
+        tap(() => this.uploadProgress.set(fileName, 100)),
         catchError(err => {
           console.warn('File upload failed, falling back to base64 encoding:', err);
           return readFileAsDataURL(file).pipe(map(url => ({ ...ref, url }))); // base64
@@ -447,6 +452,8 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
             case HttpEventType.Response:
               return event.body;
             case HttpEventType.UploadProgress:
+              const percentDone = event.total ? Math.round(100 * event.loaded / event.total) : 0;
+              this.uploadProgress.set(fileName, percentDone);
               return null;
           }
           return null;
@@ -477,6 +484,7 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
     
     this.mutated = true;
     this.adding.splice(this.adding.indexOf(fileName), 1);
+    this.uploadProgress.delete(fileName);
     this.page!.content.push(ref);
   }
 
