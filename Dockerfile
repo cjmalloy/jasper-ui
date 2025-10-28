@@ -1,13 +1,13 @@
-FROM node:22.21.0 AS builder
+FROM oven/bun:1.3.1 AS builder
 WORKDIR /app
-RUN npm i -g @angular/cli
-COPY package.json package-lock.json ./
+COPY package.json bun.lock ./
 COPY patches ./patches/
-RUN npm ci
+ENV NODE_TLS_REJECT_UNAUTHORIZED=0
+RUN bun install --frozen-lockfile
 COPY . ./
-RUN npm run build
+RUN bun run build
 
-FROM node:22.21.0 AS test
+FROM oven/bun:1.3.1 AS test
 RUN apt-get update && apt-get install -y \
 	apt-transport-https \
 	ca-certificates \
@@ -30,7 +30,6 @@ RUN apt-get update && apt-get install -y \
 	&& apt-get purge --auto-remove -y curl gnupg \
 	&& rm -rf /var/lib/apt/lists/*
 WORKDIR /app
-RUN npm i -g @angular/cli
 COPY --from=builder /app ./
 SHELL ["/bin/bash", "-c"]
 CMD mkdir -p /report && \

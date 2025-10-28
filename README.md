@@ -210,11 +210,11 @@ file will be generated from environment variables:
 |                  | `CSP_FONT_SRC`           | Additional URLS to add to the font-src content security policy.                                   |                                                                                                         |
 
 ## Developing
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 13.3.0.
+This project uses [Bun](https://bun.sh) as the package manager and runtime, and was generated with [Angular CLI](https://github.com/angular/angular-cli) version 13.3.0.
 
 ### Development server
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The
+Run `bun start` (or `ng serve`) for a dev server. Navigate to `http://localhost:4200/`. The
 application will automatically reload if you change any of the source files.
 
 ### Code scaffolding
@@ -226,25 +226,23 @@ You can also use
 ### Localizing
 
 To update the localization file after new text is added run
-`ng extract-i18n --output-path src/locale`.
+`bun run ng extract-i18n -- --output-path src/locale`.
 Run
 `xmlstarlet ed -N x="urn:oasis:names:tc:xliff:document:1.2" -d "//x:context-group" src/locale/messages.xlf > src/locale/messages.<locale here>.xlf`
 to generate a new translation file. Then add it to the `locales` array in `angular.json`.
 
 ### Build
 
-Run `ng build` to build the project. The build artifacts will be stored in the
+Run `bun run build` (or `ng build`) to build the project. The build artifacts will be stored in the
 `dist/` directory.
 
 ### Running unit tests
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
+Run `bun test` (or `ng test`) to execute the unit tests via [Karma](https://karma-runner.github.io).
 
 ### Running end-to-end tests
 
-Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To
-use this command, you need to first add a package that implements end-to-end
-testing capabilities.
+Run `bun run cy:ci` to execute the end-to-end tests via Cypress. This uses Docker to run the full stack.
 
 ### Further help
 

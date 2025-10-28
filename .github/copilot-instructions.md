@@ -35,14 +35,14 @@ This Angular client (jasper-ui) provides the reference implementation for intera
 ## Quick Start
 
 - **CRITICAL**: Debugging requires the Jasper server backend running
-- Install Node.js 22: `curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash - && sudo apt-get install -y nodejs`
-- Install dependencies: `npm ci` (use `CYPRESS_INSTALL_BINARY=0 npm ci` if network blocks Cypress)
+- Install Bun: `curl -fsSL https://bun.sh/install | bash`
+- Install dependencies: `bun install --frozen-lockfile` (use `CYPRESS_INSTALL_BINARY=0 bun install --frozen-lockfile` if network blocks Cypress)
 
 ## Development Commands
 
 ### Frontend Only (Limited)
 ```bash
-npm start  # Serves on http://localhost:4200/, expect API errors without backend
+bun start  # Serves on http://localhost:4200/, expect API errors without backend
 ```
 
 ### Full Stack (Recommended)
@@ -51,7 +51,7 @@ npm start  # Serves on http://localhost:4200/, expect API errors without backend
 docker compose --profile server up --build
 
 # Terminal 2: Start frontend (wait for backend health check)
-npm start
+bun start
 ```
 - Backend: http://localhost:8081/
 - Frontend: http://localhost:4200/
@@ -63,10 +63,10 @@ docker compose up --build  # Everything on http://localhost:8082/
 
 ## Build & Test
 
-- Build: `npm run build` (~100s, NEVER CANCEL, timeout 180+s)
-- Unit tests: `npm test -- --watch=false --browsers=ChromeHeadless` (~55s, NEVER CANCEL, timeout 120+s) - runs Angular test suite
+- Build: `bun run build` (~100s, NEVER CANCEL, timeout 180+s)
+- Unit tests: `bun test -- --watch=false --browsers=ChromeHeadless` (~55s, NEVER CANCEL, timeout 120+s) - runs Angular test suite
 - Docker tests: `docker build . --target test -t jasper-ui-test && docker run --rm jasper-ui-test`
-- E2E tests: `npm run cy:ci` (10-20 min, NEVER CANCEL, timeout 30+ min)
+- E2E tests: `bun run cy:ci` (10-20 min, NEVER CANCEL, timeout 30+ min)
 - Stop services: `docker compose down`
 
 **IMPORTANT**: When making UI changes that affect user interactions (buttons, overlays, dialogs, etc.), **ALWAYS** update the corresponding Cypress E2E tests in `cypress/e2e/`. This is a critical step that should not be forgotten.
@@ -90,7 +90,7 @@ Jasper-UI uses Angular's i18n system with XLIFF format for translations. The bas
 #### Step 1: Extract Latest Strings
 Always start by extracting the latest translatable strings from the codebase:
 ```bash
-npm run ng extract-i18n -- --output-path src/locale
+bun run ng extract-i18n -- --output-path src/locale
 ```
 This updates `src/locale/messages.xlf` with any new `$localize` strings from the code.
 
@@ -160,7 +160,7 @@ Line 2</source>
 #### Step 6: Verify
 Build the project to verify translations work correctly:
 ```bash
-npm run build
+bun run build
 ```
 - There should be NO "No translation found" warnings if all source-only entries are included
 - Verify there are no errors for entries that should have translations
