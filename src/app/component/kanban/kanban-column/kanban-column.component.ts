@@ -39,16 +39,6 @@ import { LoadingComponent } from '../../loading/loading.component';
 import { KanbanCardComponent } from '../kanban-card/kanban-card.component';
 import { KanbanDrag } from '../kanban.component';
 
-export interface KanbanUpload {
-  id: string;
-  name: string;
-  progress: number;
-  subscription?: Subscription;
-  completed?: boolean;
-  error?: string;
-  ref?: Ref | null;
-}
-
 @Component({
   selector: 'app-kanban-column',
   templateUrl: './kanban-column.component.html',
@@ -89,7 +79,6 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
   pressToUnlock = false;
   adding: string[] = [];
   failed: { text: string; error: string }[] = [];
-  uploads: KanbanUpload[] = [];
   dropping = false;
 
   private currentRequest?: Subscription;
@@ -400,30 +389,25 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
     if (!files.length) return;
     if (!this.admin.getPlugin('plugin/file')) return;
     
-    const fileUploads: KanbanUpload[] = files.map(file => ({
-      id: uuid(),
-      name: file.name,
-      progress: 0
-    }));
-    
-    this.uploads = [...this.uploads, ...fileUploads];
-    
-    files.forEach((file, index) => {
-      const upload = fileUploads[index];
-      const subscription = this.uploadFile$(file, upload).subscribe(ref => {
-        if (ref) {
-          upload.completed = true;
-          upload.progress = 100;
-          upload.ref = ref;
-          this.submitUpload(ref);
+    files.forEach(file => {
+      const fileName = file.name;
+      this.adding.push(fileName);
+      
+      this.uploadFile$(file).subscribe({
+        next: ref => {
+          if (ref) {
+            this.submitUpload(ref, fileName);
+          }
+        },
+        error: err => {
+          this.adding.splice(this.adding.indexOf(fileName), 1);
+          this.failed.push({ text: fileName, error: printError(err).join('\n') });
         }
-        this.checkAllUploadsComplete();
       });
-      upload.subscription = subscription;
     });
   }
 
-  uploadFile$(file: File, upload: KanbanUpload): Observable<Ref | null> {
+  uploadFile$(file: File): Observable<Ref | null> {
     const tagsWithAuthor = this.getTagsWithAuthor();
     
     const codeType = mimeToCode(file.type);
@@ -434,17 +418,13 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
         title: file.name,
         tags: [this.store.account.localTag, 'internal', ...file.type === 'text/markdown' ? [] : codeType]
       };
-      upload.progress = 50;
       return readFileAsString(file).pipe(
         switchMap(contents => this.refs.create({
           ...ref,
           comment: contents,
         })),
         map(() => ref),
-        tap(() => upload.progress = 100),
         catchError(err => {
-          upload.error = err.message || 'Upload failed';
-          upload.progress = 0;
           console.warn('File upload failed, falling back to base64 encoding:', err);
           return readFileAsDataURL(file).pipe(map(url => ({ ...ref, url }))); // base64
         }),
@@ -467,8 +447,6 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
             case HttpEventType.Response:
               return event.body;
             case HttpEventType.UploadProgress:
-              const percentDone = event.total ? Math.round(100 * event.loaded / event.total) : 0;
-              upload.progress = percentDone;
               return null;
           }
           return null;
@@ -478,8 +456,6 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
           map(cursor => ({ ...ref, tags: uniq([...ref?.tags || [], ...tags]) })),
         )),
         catchError(err => {
-          upload.error = err.message || 'Upload failed';
-          upload.progress = 0;
           console.warn('File upload failed, falling back to base64 encoding:', err);
           return readFileAsDataURL(file).pipe(map(url => ({ url, tags }))); // base64
         }),
@@ -487,7 +463,7 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
     }
   }
 
-  submitUpload(ref: Ref) {
+  submitUpload(ref: Ref, fileName: string) {
     if (!this.page) {
       // Initialize page if it doesn't exist yet
       this.page = { content: [], page: { totalElements: 0, number: 0, totalPages: 0, size: 0 } } as Page<Ref>;
@@ -500,24 +476,8 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
     ref.origin = this.store.account.origin;
     
     this.mutated = true;
+    this.adding.splice(this.adding.indexOf(fileName), 1);
     this.page!.content.push(ref);
-  }
-
-  checkAllUploadsComplete() {
-    const allComplete = this.uploads.every(upload => upload.completed || upload.error);
-    if (allComplete && this.uploads.length > 0) {
-      setTimeout(() => {
-        this.uploads = [];
-      }, 2000);
-    }
-  }
-
-  cancelUpload(upload: KanbanUpload) {
-    if (upload.subscription) {
-      upload.subscription.unsubscribe();
-    }
-    this.uploads = this.uploads.filter(u => u.id !== upload.id);
-    this.checkAllUploadsComplete();
   }
 
   private refreshPage(i: number, pinned?: Ref[]) {
