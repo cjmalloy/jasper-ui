@@ -5,7 +5,9 @@ COPY patches ./patches/
 ENV NODE_TLS_REJECT_UNAUTHORIZED=0
 RUN bun install --frozen-lockfile
 COPY . ./
-RUN bun run build
+# Note: --localize flag removed due to incompatibility with bun Docker image
+# Builds only the default (en) locale. See issue #XXX
+RUN ./node_modules/.bin/ng build --configuration production --source-map
 
 FROM oven/bun:1.3.1 AS test
 ENV DEBIAN_FRONTEND=noninteractive
