@@ -2,10 +2,6 @@ import { defineConfig } from 'cypress'
 
 export default defineConfig({
   viewportWidth: 1025, // Prevent mobile layout
-  reporter: 'cypress-mochawesome-reporter',
-  reporterOptions: {
-    saveJson: true,
-  },
   e2e: {
     // baseUrl: 'http://localhost:4200', // Use debugger with `npm run cy:open`
     baseUrl: 'http://localhost:8080',
