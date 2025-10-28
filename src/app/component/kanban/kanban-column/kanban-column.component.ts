@@ -90,6 +90,7 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
   adding: string[] = [];
   failed: { text: string; error: string }[] = [];
   uploads: KanbanUpload[] = [];
+  dropping = false;
 
   private currentRequest?: Subscription;
   private runningSources?: Subscription;
@@ -365,6 +366,33 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
       event.preventDefault();
       event.stopPropagation();
       this.uploadFiles(files);
+    }
+  }
+
+  handleDrop(event: DragEvent) {
+    this.dropping = false;
+    const items = event.dataTransfer?.items;
+    if (!items) return;
+    
+    const files: File[] = [];
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      if (item.kind === 'file') {
+        const file = item.getAsFile();
+        if (file) files.push(file);
+      }
+    }
+    
+    if (files.length > 0) {
+      event.preventDefault();
+      event.stopPropagation();
+      this.uploadFiles(files);
+    }
+  }
+
+  dragLeave(parent: HTMLElement, target: HTMLElement) {
+    if (this.dropping && (parent === target || !parent.contains(target))) {
+      this.dropping = false;
     }
   }
 
