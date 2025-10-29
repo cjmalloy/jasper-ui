@@ -51,10 +51,10 @@
        (input)="addText = $any($event.target).value"
        (paste)="handlePaste($event)"
        [class.dropping]="dropping"
-       (dragenter)="dropping = true"
+       (dragenter)="handleDragEnter($event)"
        (dragleave)="dragLeave(inputField, $any($event.target))"
        (drop)="handleDrop($event)"
-       (dragover)="$event.preventDefault()"
+       (dragover)="handleDragOver($event)"
        [style.display]="addText ? 'block' : 'none'"
        (keydown)="$event.key === 'Enter' && add() || true"
        (blur)="add()">

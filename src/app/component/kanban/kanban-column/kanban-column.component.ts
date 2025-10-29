@@ -360,6 +360,8 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
   }
 
   handleDrop(event: DragEvent) {
+    event.preventDefault();
+    event.stopPropagation();
     this.dropping = false;
     const items = event.dataTransfer?.items;
     if (!items) return;
@@ -374,10 +376,19 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
     }
     
     if (files.length > 0) {
-      event.preventDefault();
-      event.stopPropagation();
       this.uploadFiles(files);
     }
+  }
+
+  handleDragEnter(event: DragEvent) {
+    event.preventDefault();
+    event.stopPropagation();
+    this.dropping = true;
+  }
+
+  handleDragOver(event: DragEvent) {
+    event.preventDefault();
+    event.stopPropagation();
   }
 
   dragLeave(parent: HTMLElement, target: HTMLElement) {
