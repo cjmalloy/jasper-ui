@@ -419,7 +419,7 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
         origin: this.store.account.origin,
         url: 'internal:' + uuid(),
         title: file.name,
-        tags: [this.store.account.localTag, 'internal', ...file.type === 'text/markdown' ? [] : codeType]
+        tags: [...tagsWithAuthor, 'internal', ...file.type === 'text/markdown' ? [] : codeType]
       };
       this.uploadProgress.set(fileName, 50);
       return readFileAsString(file).pipe(
@@ -435,7 +435,7 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
         }),
       );
     } else {
-      const tags: string[] = ['plugin/file'];
+      const tags: string[] = [...tagsWithAuthor, 'plugin/file'];
       if (file.type.startsWith('audio/') && this.admin.getPlugin('plugin/audio')) {
         tags.push('plugin/audio');
       } else if (file.type.startsWith('video/') && this.admin.getPlugin('plugin/video')) {
@@ -476,10 +476,6 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
       this.page = { content: [], page: { totalElements: 0, number: 0, totalPages: 0, size: 0 } } as Page<Ref>;
     }
     
-    const tagsWithAuthor = this.getTagsWithAuthor();
-    
-    // Add the required tags to the ref
-    ref.tags = uniq([...ref.tags || [], ...tagsWithAuthor]);
     ref.origin = this.store.account.origin;
     
     this.mutated = true;
