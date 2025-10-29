@@ -10,15 +10,24 @@
     box-shadow: inset 0 0 60px rgba(128, 128, 128, 0.1);
   }
 
-  input {
+  .add-input-wrapper {
     margin: 8px;
-    width: calc(100% - 24px);
-    height: 30px;
+    min-height: 30px;
+    position: relative;
 
     &.dropping {
       border: 2px dashed var(--active);
       background-color: var(--bg-hover);
+      border-radius: 4px;
     }
+  }
+
+  input {
+    width: 100%;
+    height: 30px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 0 8px;
   }
 
   .spacer {
@@ -37,7 +46,7 @@
   &.cdk-drop-list-dragging,
   &.cdk-drop-list-receiving {
     padding-bottom: 50px;
-    .spacer, input {
+    .spacer, .add-input-wrapper {
       display: none !important;
     }
   }

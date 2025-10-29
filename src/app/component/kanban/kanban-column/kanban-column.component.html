@@ -42,19 +42,22 @@
   <a class="fake-link no-select load-more"
      (click)="loadMore()" i18n>load more @if (more) {<span class="more">({{ more }})</span>}</a>
 }
-<input #inputField
-       type="text"
-       enterkeyhint="send"
-       i18n-placeholder
-       placeholder="Add..."
-       [value]="addText"
-       (input)="addText = $any($event.target).value"
-       (paste)="handlePaste($event)"
-       [class.dropping]="dropping"
-       (dragenter)="handleDragEnter($event)"
-       (dragleave)="dragLeave(inputField, $any($event.target))"
-       (drop)="handleDrop($event)"
-       (dragover)="handleDragOver($event)"
-       [style.display]="addText ? 'block' : 'none'"
-       (keydown)="$event.key === 'Enter' && add() || true"
-       (blur)="add()">
+<div class="add-input-wrapper"
+     [class.dropping]="dropping"
+     (dragenter)="handleDragEnter($event)"
+     (dragleave)="dragLeave(inputWrapper, $any($event.target))"
+     (drop)="handleDrop($event)"
+     (dragover)="handleDragOver($event)"
+     #inputWrapper>
+  <input #inputField
+         type="text"
+         enterkeyhint="send"
+         i18n-placeholder
+         placeholder="Add..."
+         [value]="addText"
+         (input)="addText = $any($event.target).value"
+         (paste)="handlePaste($event)"
+         [style.display]="addText ? 'block' : 'none'"
+         (keydown)="$event.key === 'Enter' && add() || true"
+         (blur)="add()">
+</div>
