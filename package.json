@@ -78,7 +78,7 @@
     "cypress": "^15.5.0",
     "cypress-mochawesome-reporter": "^4.0.2",
     "cypress-real-events": "^1.15.0",
-    "jsdom": "^27.0.1",
+    "jsdom": "^27.1.0",
     "patch-package": "^8.0.1",
     "raw-loader": "^4.0.2",
     "typescript": "~5.9.2"
