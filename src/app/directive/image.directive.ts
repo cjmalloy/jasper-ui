@@ -43,16 +43,17 @@ export class ImageDirective implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    if (this.config.mobile) {
-      this.el.style.width = this.defaultWidthPx || null;
-      this.el.style.height = this.defaultHeightPx || this.el.clientWidth + 'px';
-    } else {
-      this.el.style.width = this.defaultWidthPx || '600px';
-      this.el.style.height = this.defaultHeightPx || '600px';
-    }
     if (this.grid) {
       this.resizeObserver = window.ResizeObserver && new ResizeObserver(() => this.onResize());
       this.resizeObserver?.observe(this.el);
+    } else {
+      if (this.config.mobile) {
+        this.el.style.width = this.defaultWidthPx || null;
+        this.el.style.height = this.defaultHeightPx || this.el.clientWidth + 'px';
+      } else {
+        this.el.style.width = this.defaultWidthPx || '600px';
+        this.el.style.height = this.defaultHeightPx || '600px';
+      }
     }
   }
 
