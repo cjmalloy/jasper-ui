@@ -24,7 +24,12 @@ import { TodoItemComponent } from './item/item.component';
   templateUrl: './todo.component.html',
   styleUrls: ['./todo.component.scss'],
   host: { 'class': 'todo-list' },
-  imports: [CdkDropList, TodoItemComponent, CdkDrag, ReactiveFormsModule]
+  imports: [
+    CdkDropList,
+    CdkDrag,
+    ReactiveFormsModule,
+    TodoItemComponent,
+  ]
 })
 export class TodoComponent implements OnChanges {
 
