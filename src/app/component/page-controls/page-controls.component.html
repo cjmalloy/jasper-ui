@@ -34,7 +34,7 @@
   }
 
   <label for="pageSize" i18n> size: </label>
-  <select id="pageSize" [value]="pageSize" (input)="pageSize = $any($event.target).value">
+  <select id="pageSize" [(ngModel)]="pageSize">
     @if (outOfPageSizeRange(store.view.pageSize)) {
       <option [value]="store.view.pageSize">{{ store.view.pageSize }}</option>
     }
@@ -45,7 +45,7 @@
 
   @if (!hideCols && (cols || colsChanged)) {
     <label for="cols" i18n> cols: </label>
-    <select id="cols" [value]="cols" (input)="$any($event.target).value">
+    <select id="cols" [(ngModel)]="cols">
       <option [value]="0" i18n>default</option>
       @if (outOfColSizeRange(store.view.cols || 1)) {
         <option [value]="store.view.cols">{{ store.view.cols }}</option>

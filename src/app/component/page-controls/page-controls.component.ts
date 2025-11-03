@@ -1,5 +1,5 @@
 import { Component, HostBinding, Input } from '@angular/core';
-import { ReactiveFormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { delay } from 'lodash-es';
 import { Page } from '../../model/page';
@@ -11,7 +11,12 @@ import { Store } from '../../store/store';
   templateUrl: './page-controls.component.html',
   styleUrls: ['./page-controls.component.scss'],
   host: { 'class': 'page-controls' },
-  imports: [RouterLink, RouterLinkActive, ReactiveFormsModule]
+  imports: [
+    RouterLink,
+    RouterLinkActive,
+    ReactiveFormsModule,
+    FormsModule,
+  ]
 })
 export class PageControlsComponent {
 
