@@ -239,39 +239,4 @@ body.dark-theme {
                 0 6px 5px 1px rgba(0, 0, 0, 0.1);
   }
 
-  .kanban {
-    .column-title, .swim-lane-title {
-      background-color: var(--bg-accent);
-      backdrop-filter: blur(1px);
-      box-shadow: 0 0 2px 1px rgba(0, 0, 0, 0.1);
-      &:hover {
-        box-shadow: 0 0 4px rgba(0, 0, 0, 0.2),
-                    0 0 1px rgba(255, 255, 255, 0.5);
-      }
-    }
-  }
-
-  .kanban-card {
-    &.cdk-drag-preview {
-      background-color: var(--card-dragging);
-    }
-  }
-
-  .todo-item {
-    &.cdk-drag-preview {
-      background-color: var(--card-dragging);
-    }
-  }
-
-  .backgammon-board {
-    --bg: rgba(178, 103, 41, 0.2);
-    --black: #111;
-    --red: #633;
-    --play: rgba(255, 255, 0, 0.3);
-    --brown: #431;
-    --brown-alt: #653;
-    --glow: rgba(200, 200, 200, 0.5);
-    --move: rgba(0, 128, 0, 0.5);
-  }
-
 }

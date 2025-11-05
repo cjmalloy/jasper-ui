@@ -147,25 +147,4 @@ body.light-theme {
                 0 4px 0.5px 0 white;
   }
 
-  .kanban {
-    .column-title, .swim-lane-title {
-      background-color: transparent;
-      backdrop-filter: blur(1px) sepia(5%);
-      border: 0.5px solid var(--border-light);
-      &:hover {
-        box-shadow: 0 0 4px rgba(0, 0, 0, 0.2);
-      }
-    }
-  }
-
-  .backgammon-board {
-    --bg: rgba(187, 147, 71, 0.5);
-    --black: #333;
-    --red: #A55;
-    --play: #DDD;
-    --brown: #862;
-    --brown-alt: #975;
-    --glow: rgba(0, 0, 0, 0.5);
-    --move: rgba(82, 136, 82, 0.5);
-  }
 }
