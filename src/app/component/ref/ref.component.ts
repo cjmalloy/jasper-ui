@@ -142,6 +142,8 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   @Input()
   showAlarm = true;
   @Input()
+  showObsolete = true;
+  @Input()
   fetchRepost = true;
   @Output()
   copied = new EventEmitter<string>();

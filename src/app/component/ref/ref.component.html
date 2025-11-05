@@ -128,8 +128,11 @@
               }
             </span>
           }
+          @if (showObsolete && ref.metadata?.obsolete) {
+            <span class="icon" [routerLink]="['/tag', alarm]" i18n-title title="Obsolete">⏮️</span>
+          }
           @if (showAlarm && alarm) {
-            <span class="icon" [routerLink]="['/tag', alarm]" i18n-title title="Alarm ({{ alarm }})">🔔</span>
+            <span class="icon" [routerLink]="['/tag', alarm]" i18n-title title="Alarm ({{ alarm }})">🔔️</span>
           }
           @for (icon of icons; track icon) {
             @if (showIcon(icon)) {
