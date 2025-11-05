@@ -231,7 +231,7 @@
           }
           @if (!hideEdit) {
             @if (ref.created && writeAccess) {
-              <a class="fake-link" (click)="editing = !editing" i18n>edit</a>
+              <a class="fake-link" (click)="editing = !editing" i18n>@if (editForm.dirty) {*edit*} @else {edit}</a>
             } @else {
               <a class="fake-link" (click)="viewSource = !viewSource" i18n>source</a>
             }
@@ -258,7 +258,7 @@
               @if (taggingAccess) {
                 <app-inline-tag #action [action]="tag$" i18n>tag</app-inline-tag>
               }
-              <a class="fake-link" (click)="editing = !editing" i18n>edit</a>
+              <a class="fake-link" (click)="editing = !editing" i18n>@if (editForm.dirty) {*edit*} @else {edit}</a>
             }
             <app-confirm-action #action [action]="remove$" i18n>remove</app-confirm-action>
           }

@@ -37,7 +37,7 @@
         @if (useEditPage) {
           <a [routerLink]="['/ext/', ext.tag]" i18n>edit</a>
         } @else {
-          <a class="fake-link" (click)="editing = !editing" i18n>edit</a>
+          <a class="fake-link" (click)="editing = !editing" i18n>@if (editForm.dirty) {*edit*} @else {edit}</a>
         }
       } @else if (useEditPage) {
         <a [routerLink]="['/ext/', ext.tag]" i18n>source</a>
@@ -55,7 +55,7 @@
         <a [routerLink]="['/tags', parent]" i18n>parent</a>
       }
       <a [routerLink]="['/tags', ext.tag]" i18n>tags</a>
-      <a class="fake-link" (click)="editing = !editing" i18n>edit</a>
+      <a class="fake-link" (click)="editing = !editing" i18n>@if (editForm.dirty) {*edit*} @else {edit}</a>
       <a class="fake-link" (click)="download()" i18n>download</a>
       <app-confirm-action #action [action]="delete$" i18n>delete</app-confirm-action>
     }
