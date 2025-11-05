@@ -214,6 +214,7 @@ export class ExtComponent implements OnChanges, HasChanges {
           return throwError(() => res);
         }),
       ).subscribe(ext => {
+        this.editForm.reset();
         this.ext = ext;
         this.init();
       });

@@ -426,6 +426,7 @@ export class BlogEntryComponent implements OnChanges, OnDestroy, HasChanges {
         return throwError(() => err);
       }),
     ).subscribe(ref => {
+      this.editForm.reset();
       delete this.submitting;
       this.serverError = [];
       this.editing = false;

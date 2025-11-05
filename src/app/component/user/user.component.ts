@@ -257,6 +257,7 @@ export class UserComponent implements OnChanges, HasChanges {
         return throwError(() => err);
       }),
     ).subscribe(cursor => {
+      this.editForm.reset();
       this.user = updates;
       this.user.modifiedString = cursor;
       this.user.modified = DateTime.fromISO(cursor);

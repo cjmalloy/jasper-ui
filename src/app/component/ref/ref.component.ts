@@ -1021,6 +1021,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     };
     if (this.ref.upload) {
       ref.upload = true;
+      this.editForm.reset();
       this.init();
       this.store.submit.setRef(ref);
     } else {
@@ -1028,6 +1029,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
       this.submitting = this.store.eventBus.runAndReload(this.refs.update(ref).pipe(
         tap(cursor => {
           this.accounts.clearNotificationsIfNone(DateTime.fromISO(cursor));
+          this.editForm.reset();
           delete this.submitting;
           this.editing = false;
         }),

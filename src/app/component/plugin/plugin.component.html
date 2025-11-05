@@ -20,7 +20,7 @@
       <app-inline-button #action [action]="copy$" i18n>copy</app-inline-button>
     }
     @if (created && local && store.account.admin) {
-      <a class="fake-link" (click)="editing = !editing" i18n>edit</a>
+      <a class="fake-link" (click)="editing = !editing" i18n>@if (editForm.dirty) {*edit*} @else {edit}</a>
     } @else {
       <a class="fake-link" (click)="viewSource = !viewSource" i18n>source</a>
     }

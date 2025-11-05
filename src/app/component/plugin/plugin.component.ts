@@ -140,6 +140,7 @@ export class PluginComponent implements OnChanges, HasChanges {
         return throwError(() => err);
       }),
     ).subscribe(tag => {
+      this.editForm.reset();
       this.serverError = [];
       this.editing = false;
       this.plugin = tag;
