@@ -253,14 +253,14 @@ export class RefFormComponent implements OnChanges {
       switchMap(s => this.oembeds.get(s.url).pipe(
         map(oembed => {
           this.oembed = oembed!;
-          if (oembed) s.title ||= oembed.title;
+          if (oembed) s.title ||= oembed.title || '';
           return s;
         }),
         catchError(err => of(s)),
       )),
     ).subscribe((s: Ref) => {
       this.scrapingTitle = false;
-      const title = s.title || getTitleFromFilename(this.url.value);
+      const title = s.title ?? getTitleFromFilename(this.url.value);
       if (title) this.group.patchValue({ title });
     });
   }
