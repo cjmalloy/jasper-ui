@@ -53,7 +53,6 @@ export class TodoComponent implements OnChanges {
   serverErrors: string[] = [];
 
   private watch?: Subscription;
-  private pushing?: Subscription;
   private comment$!: (comment: string) => Observable<string>;
 
   constructor(
@@ -137,22 +136,19 @@ export class TodoComponent implements OnChanges {
     if (!this.addText) return;
     this.pushText.push(`- [ ] ${this.addText}`);
     this.addText = '';
-    if (!this.pushing) this.pushing = this.push$().subscribe();
+    this.push$().subscribe();
   }
 
   push$(): Observable<string> {
     const lines = [...this.pushText];
     return this.save$([...this.lines, ...lines].join('\n')).pipe(
       catchError((err: any) => {
-        if (err.conflict) {
-          return timer(100).pipe(switchMap(() => this.push$()));
-        }
+        if (err.conflict) return timer(100).pipe(switchMap(() => this.push$()));
         return throwError(() => err);
       }),
-      tap(() => {
+      switchMap(cursor => {
         this.pushText = this.pushText.slice(lines.length);
-        delete this.pushing;
-        if (this.pushText.length) this.pushing = this.push$().subscribe();
+        return this.pushText.length ? this.push$() : of(cursor);
       }),
     );
   }

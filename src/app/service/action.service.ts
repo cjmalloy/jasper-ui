@@ -2,7 +2,19 @@ import { Injectable } from '@angular/core';
 import { debounce, isArray, without } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { runInAction } from 'mobx';
-import { catchError, concat, last, merge, mergeMap, Observable, of, Subscription, switchMap, throwError } from 'rxjs';
+import {
+  catchError,
+  concat,
+  last,
+  merge,
+  mergeMap,
+  Observable,
+  of,
+  Subject,
+  Subscription,
+  switchMap, takeUntil,
+  throwError
+} from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { PluginApi } from '../model/plugin';
 import { Ref } from '../model/ref';
@@ -169,6 +181,7 @@ export class ActionService {
   }
 
   watch(ref: Ref, delimiter = '\n') {
+    const cancel$ = new Subject();
     let cursor = ref.origin === this.store.account.origin ? ref.modifiedString! : '';
     let baseComment = ref.comment || '';
     const inner = {
@@ -179,6 +192,7 @@ export class ActionService {
         }),
       ))),
       comment$: (comment: string): Observable<string> => {
+        cancel$.next(null);
         if (!cursor) {
           return this.refs.get(ref.url, this.store.account.origin).pipe(
             tap(ref => {
@@ -186,6 +200,7 @@ export class ActionService {
               baseComment = ref.comment || '';
             }),
             switchMap(ref => inner.comment$(comment)),
+            takeUntil(cancel$),
           );
         }
         return this.refs.patch(ref.url, this.store.account.origin, cursor, [{
@@ -203,15 +218,16 @@ export class ActionService {
               return this.refs.get(ref.url, this.store.account.origin).pipe(
                 switchMap(remote => {
                   const { mergedComment, conflict } = merge3(comment, baseComment, remote.comment || '', delimiter);
-                  if (conflict) return throwError(() => ({ conflict }));
                   cursor = remote.modifiedString!;
                   baseComment = remote.comment || '';
+                  if (conflict) return throwError(() => ({ conflict }));
                   return inner.comment$(mergedComment || '');
                 }),
               );
             }
             return throwError(() => err);
           }),
+          takeUntil(cancel$),
         );
       },
     };
