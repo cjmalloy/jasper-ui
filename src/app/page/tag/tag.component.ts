@@ -5,6 +5,7 @@ import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { MobxAngularModule } from 'mobx-angular';
 import { LensComponent } from '../../component/lens/lens.component';
 import { LoadingComponent } from '../../component/loading/loading.component';
+import { RefComponent } from '../../component/ref/ref.component';
 import { SidebarComponent } from '../../component/sidebar/sidebar.component';
 import { TabsComponent } from '../../component/tabs/tabs.component';
 import { HasChanges } from '../../guard/pending-changes.guard';
@@ -28,6 +29,7 @@ import { getArgs, UrlFilter } from '../../util/query';
     RouterLink,
     SidebarComponent,
     LoadingComponent,
+    RefComponent,
   ],
 })
 export class TagPage implements OnInit, OnDestroy, HasChanges {

@@ -1,76 +1,79 @@
 <ng-container *mobxAutorun>
-  <h1 class="print-block">{{ store.view.pageTitle }}</h1>
-  <app-tabs>
-    <a class="logo" routerLink="/"></a>
-    <h5></h5>
-    @switch (store.view.current) {
-      @case ('ref/summary') {
-        <h5 class="print-inline" i18n>Summary</h5>
+  <h1 class="print-block"
+      [class.browse]="this.store.view.browser">{{ store.view.pageTitle }}</h1>
+  @if (!store.view.browser) {
+    <app-tabs>
+      <a class="logo" routerLink="/"></a>
+      <h5></h5>
+      @switch (store.view.current) {
+        @case ('ref/summary') {
+          <h5 class="print-inline" i18n>Summary</h5>
+        }
+        @case ('ref/comments') {
+          <h5 class="print-inline" i18n>Comments</h5>
+        }
+        @case ('ref/thread') {
+          <h5 class="print-inline" i18n>Thread</h5>
+        }
+        @case ('ref/responses') {
+          <h5 class="print-inline" i18n>Responses</h5>
+        }
+        @case ('ref/errors') {
+          <h5 class="print-inline" i18n>Errors</h5>
+        }
+        @case ('ref/sources') {
+          <h5 class="print-inline" i18n>Sources</h5>
+        }
+        @case ('ref/alts') {
+          <h5 class="print-inline" i18n>Alternate URLs</h5>
+        }
+        @case ('ref/versions') {
+          <h5 class="print-inline" i18n>Versions</h5>
+        }
       }
-      @case ('ref/comments') {
-        <h5 class="print-inline" i18n>Comments</h5>
+      <a routerLink="." [queryParams]="{origin: store.view.origin}" [class.current-tab]="store.view.summary"
+         i18n-title title="Summary View"
+         i18n>view</a>
+      @if (store.view.current === 'ref/comments' || comments) {
+        <a routerLink="comments" [queryParams]="{origin: store.view.origin}" routerLinkActive="current-tab"
+           i18n-title title="Comments"
+           i18n>comments</a>
       }
-      @case ('ref/thread') {
-        <h5 class="print-inline" i18n>Thread</h5>
+      @if (store.view.current === 'ref/thread' || threads) {
+        <a routerLink="thread" [queryParams]="{origin: store.view.origin}" routerLinkActive="current-tab"
+           i18n-title title="Threads"
+           i18n>threads</a>
       }
-      @case ('ref/responses') {
-        <h5 class="print-inline" i18n>Responses</h5>
+      @if (store.view.current === 'ref/responses' || responses) {
+        <a routerLink="responses" [queryParams]="{origin: store.view.origin}" routerLinkActive="current-tab"
+           i18n-title title="Responses"
+           i18n>responses</a>
       }
-      @case ('ref/errors') {
-        <h5 class="print-inline" i18n>Errors</h5>
+      @if (store.view.current === 'ref/errors' || logs) {
+        <a routerLink="errors" [queryParams]="{origin: store.view.origin}" routerLinkActive="current-tab"
+           i18n-title title="Errors"
+           i18n>errors</a>
       }
-      @case ('ref/sources') {
-        <h5 class="print-inline" i18n>Sources</h5>
+      @if (store.view.current === 'ref/sources' || sources) {
+        <a routerLink="sources" [queryParams]="{origin: store.view.origin}" routerLinkActive="current-tab"
+           i18n-title title="Sources"
+           i18n>sources</a>
       }
-      @case ('ref/alts') {
-        <h5 class="print-inline" i18n>Alternate URLs</h5>
+      @if (store.view.current === 'ref/alts' || alts) {
+        <a routerLink="alts" [queryParams]="{origin: store.view.origin}" routerLinkActive="current-tab"
+           i18n-title title="Alternate URLs"
+           i18n>alts</a>
       }
-      @case ('ref/versions') {
-        <h5 class="print-inline" i18n>Versions</h5>
+      @if (store.view.current === 'ref/versions' || store.view.versions) {
+        <a routerLink="versions" [queryParams]="{origin: store.view.origin}" routerLinkActive="current-tab"
+           i18n-title title="Versions"
+           i18n>versions</a>
       }
-    }
-    <a routerLink="." [queryParams]="{origin: store.view.origin}" [class.current-tab]="store.view.summary"
-       i18n-title title="Summary View"
-       i18n>view</a>
-    @if (store.view.current === 'ref/comments' || comments) {
-      <a routerLink="comments" [queryParams]="{origin: store.view.origin}" routerLinkActive="current-tab"
-         i18n-title title="Comments"
-         i18n>comments</a>
-    }
-    @if (store.view.current === 'ref/thread' || threads) {
-      <a routerLink="thread" [queryParams]="{origin: store.view.origin}" routerLinkActive="current-tab"
-         i18n-title title="Threads"
-         i18n>threads</a>
-    }
-    @if (store.view.current === 'ref/responses' || responses) {
-      <a routerLink="responses" [queryParams]="{origin: store.view.origin}" routerLinkActive="current-tab"
-         i18n-title title="Responses"
-         i18n>responses</a>
-    }
-    @if (store.view.current === 'ref/errors' || logs) {
-      <a routerLink="errors" [queryParams]="{origin: store.view.origin}" routerLinkActive="current-tab"
-         i18n-title title="Errors"
-         i18n>errors</a>
-    }
-    @if (store.view.current === 'ref/sources' || sources) {
-      <a routerLink="sources" [queryParams]="{origin: store.view.origin}" routerLinkActive="current-tab"
-         i18n-title title="Sources"
-         i18n>sources</a>
-    }
-    @if (store.view.current === 'ref/alts' || alts) {
-      <a routerLink="alts" [queryParams]="{origin: store.view.origin}" routerLinkActive="current-tab"
-         i18n-title title="Alternate URLs"
-         i18n>alts</a>
-    }
-    @if (store.view.current === 'ref/versions' || store.view.versions) {
-      <a routerLink="versions" [queryParams]="{origin: store.view.origin}" routerLinkActive="current-tab"
-         i18n-title title="Versions"
-         i18n>versions</a>
-    }
-  </app-tabs>
-  <app-sidebar [ext]="store.view.viewExt"
-               [tag]="store.view.tag"
-               [activeExts]="store.view.activeExts"></app-sidebar>
+    </app-tabs>
+    <app-sidebar [ext]="store.view.viewExt"
+                 [tag]="store.view.tag"
+                 [activeExts]="store.view.activeExts"></app-sidebar>
+  }
   @if (store.view.ref) {
     @if ((thread || comment) && store.view.top && store.view.ref.url !== store.view.top.url && store.view.current !== 'ref/sources' && !store.view.repost) {
       <app-ref class="print-hide"
@@ -81,20 +84,25 @@
                [expanded]="false"
                (copied)="reload()"></app-ref>
       @if (thread) {
-        <span class="parent-link fake-link print-hide" [routerLink]="['/ref', store.view.top.url, 'thread']" (click)="store.view.preloadRef(store.view.top)" i18n>full thread</span>
+        <span class="parent-link fake-link print-hide" [routerLink]="[store.view.refPath, store.view.top.url, 'thread']" (click)="store.view.preloadRef(store.view.top)" i18n>full thread</span>
       } @else if (comment && store.view.current === 'ref/comments') {
-        <span class="parent-link fake-link print-hide" [routerLink]="['/ref', store.view.top.url, 'comments']" (click)="store.view.preloadRef(store.view.top)" i18n>full comments</span>
+        <span class="parent-link fake-link print-hide" [routerLink]="[store.view.refPath, store.view.top.url, 'comments']" (click)="store.view.preloadRef(store.view.top)" i18n>full comments</span>
       } @else {
-        <span class="parent-link fake-link print-hide" [routerLink]="['/ref', store.view.top.url]" (click)="store.view.preloadRef(store.view.top)" i18n>parent</span>
+        <span class="parent-link fake-link print-hide" [routerLink]="[store.view.refPath, store.view.top.url]" (click)="store.view.preloadRef(store.view.top)" i18n>parent</span>
       }
     }
-    <app-ref class="full-page"
-             [class.thread]="thread"
-             [ref]="store.view.ref"
-             [showToggle]="!thread"
-             [expandInline]="!config.mobile || !!thread"
-             [expanded]="expandedOnLoad || !!thread"
-             (copied)="reload()"></app-ref>
+    @if (this.store.view.browser) {
+      <app-viewer class="browse"
+                  [ref]="store.view.ref"></app-viewer>
+    } @else {
+      <app-ref class="full-page"
+               [class.thread]="thread"
+               [ref]="store.view.ref"
+               [showToggle]="!thread"
+               [expandInline]="!config.mobile || !!thread"
+               [expanded]="expandedOnLoad || !!thread"
+               (copied)="reload()"></app-ref>
+    }
     @if (newResponses) {
       <div class="warning print-hide" i18n>
         {newResponses, plural, =1 {1 new response} other {{{newResponses}} new responses}}
@@ -105,7 +113,7 @@
         * Published date was changed to be after source published date.
       </div>
     }
-    @if (!store.view.ref.created) {
+    @if (!store.view.ref.created && (!store.view.browser || !store.view.ref.url.startsWith('tag:/'))) {
       <div class="stack">
         <div class="error-404" i18n>Not Found</div>
         @if (store.account.signedIn) {
@@ -125,7 +133,15 @@
         }
       </div>
     }
-    @if (store.view.ref.created || store.view.versions || store.view.current !== 'ref/summary') {
+    @if (this.store.view.browser) {
+      @if (admin.getPlugin('plugin/comment')) {
+        <hr>
+        <app-ref-comments></app-ref-comments>
+      } @else if (admin.getPlugin('plugin/thread')) {
+        <hr>
+        <app-ref-thread></app-ref-thread>
+      }
+    } @else if (store.view.ref.created || store.view.versions || store.view.current !== 'ref/summary') {
       <hr>
       <router-outlet></router-outlet>
     }

@@ -83,6 +83,12 @@ export class AppComponent implements AfterViewInit {
         }
       });
     }
+    autorun(() => {
+      if (this.store.eventBus.event === 'browse') {
+        if (!this.store.eventBus.ref?.url) return;
+        open('/browse/' + this.store.eventBus.ref.url, '_blank', 'toolbar=no,menubar=no');
+      }
+    });
 
     window.visualViewport?.addEventListener('resize', event => {
       const vv = event?.target as VisualViewport;
