@@ -51,7 +51,13 @@ export class RefCommentsComponent implements OnInit, OnDestroy, HasChanges {
 
   ngOnInit(): void {
     // TODO: set title for bare reposts
-    this.disposers.push(autorun(() => this.mod.setTitle($localize`Comments: ` + getTitle(this.store.view.ref))));
+    this.disposers.push(autorun(() => {
+      if (this.store.view.browser) {
+        this.mod.setTitle(getTitle(this.store.view.ref));
+      } else {
+        this.mod.setTitle($localize`Comments: ` + getTitle(this.store.view.ref));
+      }
+    }));
     this.disposers.push(autorun(() => {
       MemoCache.clear(this);
       const top = this.store.view.url;
@@ -62,7 +68,10 @@ export class RefCommentsComponent implements OnInit, OnDestroy, HasChanges {
     }));
     this.newComments$.subscribe(c => {
       if (c && this.store.view.ref) {
-        runInAction(() => updateMetadata(this.store.view.ref!, c));
+        runInAction(() => {
+          updateMetadata(this.store.view.ref!, c);
+          this.thread.newComments = true;
+        });
         this.store.eventBus.refresh(this.store.view.ref!);
       }
     });

@@ -78,53 +78,30 @@
           }
           @if (authors.length) {
             <span i18n> by
-              @if (authorExts$ | async; as xs) {
-                @for (x of xs; track x.tag + x.origin) {
-                  <a class="user tag"
-                     [title]="formatAuthor(x.tag + x.origin)"
-                     [routerLink]="['/tag', x.tag + x.origin]"
-                     [appTitle]="x">{{ x.name || formatAuthor(x.tag) }}</a>
-                }
-              } @else {
-                @for (t of authors; track t) {
-                  <a class="user tag"
-                     [title]="formatAuthor(t)"
-                     [routerLink]="['/tag', t]">{{ formatAuthor(t) }}</a>
-                }
+              @for (t of authors; track t) {
+                <app-nav css="user tag"
+                         [url]="'tag:/' + t"
+                         [title]="formatAuthor(t)"
+                         [shortUser]="true"></app-nav>
               }
             </span>
           }
           @if (tags.length) {
             <span i18n> tagged
-              @if (tagExts$ | async; as xs) {
-                @for (x of xs; track x.tag) {
-                  <a class="tag"
-                     [routerLink]="['/tag', x.tag]"
-                     [appTitle]="'#' + x.tag">{{ x.name || '#' + x.tag }}</a>
-                }
-              } @else {
-                @for (t of tags; track t) {
-                  <a class="tag"
-                     [routerLink]="['/tag', t]">{{ t }}</a>
-                }
+              @for (t of tags; track t) {
+                <app-nav css="tag"
+                         [url]="'tag:/' + t"
+                         [origin]="origin"></app-nav>
               }
             </span>
           }
           @if (recipients.length) {
             <span i18n> to
-              @if (recipientExts$ | async; as xs) {
-                @for (x of xs; track x.tag + x.origin) {
-                  <a class="user tag"
-                     [title]="formatAuthor(x.tag + x.origin)"
-                     [routerLink]="['/tag', x.tag + x.origin]"
-                     [appTitle]="x">{{ x.name || formatAuthor(x.tag + x.origin) }}</a>
-                }
-              } @else {
-                @for (t of recipients; track t) {
-                  <a class="user tag"
-                     [title]="formatAuthor(t)"
-                     [routerLink]="['/tag', t]">{{ formatAuthor(t) }}</a>
-                }
+              @for (t of recipients; track t) {
+                <app-nav css="user tag"
+                         [url]="'tag:/' + t"
+                         [title]="formatAuthor(t)"
+                         [shortUser]="true"></app-nav>
               }
             </span>
           }
@@ -150,7 +127,10 @@
                     [text]="uiMarkdown(ui.tag)"></app-md>
           }
           @if (ref.created && !local) {
-            <span i18n> on <a class="origin tag" [routerLink]="['/tag', ref.origin || '*']">{{ ref.origin || 'default' }}</a></span>
+            <span i18n>
+              on
+              <app-nav css="origin tag" [url]="'tag:/' + (origin || '*')"></app-nav>
+            </span>
           }
           @if (local) {
             @if (originPull) {
@@ -187,39 +167,39 @@
           }
           @if (ref.created && !ref.upload) {
             @if (thread) {
-              <a [routerLink]="['/ref', ref.url, 'thread']" [queryParams]="{ origin: obsoleteOrigin }" (click)="saveRef()" i18n>permalink</a>
+              <a [routerLink]="[store.view.refPath, ref.url, 'thread']" [queryParams]="{ origin: obsoleteOrigin }" (click)="saveRef()" i18n>permalink</a>
             } @else if (comment) {
-              <a [routerLink]="['/ref', ref.url, 'comments']" [queryParams]="{ origin: obsoleteOrigin }" (click)="saveRef()" i18n>permalink</a>
+              <a [routerLink]="[store.view.refPath, ref.url, 'comments']" [queryParams]="{ origin: obsoleteOrigin }" (click)="saveRef()" i18n>permalink</a>
             } @else {
-              <a [routerLink]="['/ref', ref.url]" [queryParams]="{ origin: obsoleteOrigin }" (click)="saveRef()" i18n>permalink</a>
+              <a [routerLink]="[store.view.refPath, ref.url]" [queryParams]="{ origin: obsoleteOrigin }" (click)="saveRef()" i18n>permalink</a>
             }
             @if (parentCommentTop) {
-              <a [routerLink]="['/ref', parentCommentTop, 'comments']" [queryParams]="{ origin: obsoleteOrigin }" (click)="saveRef()" i18n>top</a>
+              <a [routerLink]="[store.view.refPath, parentCommentTop, 'comments']" [queryParams]="{ origin: obsoleteOrigin }" (click)="saveRef()" i18n>top</a>
             }
             @if (parentThreadTop) {
-              <a [routerLink]="['/ref', parentThreadTop, 'thread']" [queryParams]="{ origin: obsoleteOrigin }" (click)="saveRef()" i18n>parent</a>
+              <a [routerLink]="[store.view.refPath, parentThreadTop, 'thread']" [queryParams]="{ origin: obsoleteOrigin }" (click)="saveRef()" i18n>parent</a>
             }
             @if (store.account.user) {
               <a class="fake-link" (click)="replying = !replying" i18n>reply</a>
             }
             @if (errors) {
-              <a [routerLink]="['/ref', ref.url, 'errors']" [queryParams]="{ origin: obsoleteOrigin }" (click)="saveRef()" i18n>{errors, plural, =1 {1&thinsp;error} other {{{ errors }}&thinsp;errors}}</a>
+              <a [routerLink]="[store.view.refPath, ref.url, 'errors']" [queryParams]="{ origin: obsoleteOrigin }" (click)="saveRef()" i18n>{errors, plural, =1 {1&thinsp;error} other {{{ errors }}&thinsp;errors}}</a>
             }
             @if (comments) {
-              <a [routerLink]="['/ref', ref.url, 'comments']" [queryParams]="{ origin: obsoleteOrigin }" (click)="saveRef()" i18n>{comments, plural, =1 {1&thinsp;comment} other {{{ comments }}&thinsp;comments}}</a>
+              <a [routerLink]="[store.view.refPath, ref.url, 'comments']" [queryParams]="{ origin: obsoleteOrigin }" (click)="saveRef()" i18n>{comments, plural, =1 {1&thinsp;comment} other {{{ comments }}&thinsp;comments}}</a>
             } @else if (threads) {
-              <a [routerLink]="['/ref', ref.url, 'thread']" [queryParams]="{ origin: obsoleteOrigin }" (click)="saveRef()" i18n>{threads, plural, =1 {1&thinsp;reply} other {{{ threads }}&thinsp;replies}}</a>
+              <a [routerLink]="[store.view.refPath, ref.url, 'thread']" [queryParams]="{ origin: obsoleteOrigin }" (click)="saveRef()" i18n>{threads, plural, =1 {1&thinsp;reply} other {{{ threads }}&thinsp;replies}}</a>
             }
             @if (responses) {
-              <a [routerLink]="['/ref', ref.url, 'responses']" [queryParams]="{ origin: obsoleteOrigin }" (click)="saveRef()" i18n>{feed, select, true {{{ responses }}&thinsp;scraped} false {{responses, plural, =1 {1&thinsp;citation} other {{{ responses }}&thinsp;citations}}}}</a>
+              <a [routerLink]="[store.view.refPath, ref.url, 'responses']" [queryParams]="{ origin: obsoleteOrigin }" (click)="saveRef()" i18n>{feed, select, true {{{ responses }}&thinsp;scraped} false {{responses, plural, =1 {1&thinsp;citation} other {{{ responses }}&thinsp;citations}}}}</a>
             }
             @if (parentComment) {
-              <a [routerLink]="['/ref', parentComment, 'comments']" [queryParams]="{ origin: obsoleteOrigin }" i18n>parent</a>
+              <a [routerLink]="[store.view.refPath, parentComment, 'comments']" [queryParams]="{ origin: obsoleteOrigin }" i18n>parent</a>
             } @else if (!parentThreadTop) {
               @if (parent) {
-                <a [routerLink]="['/ref', parent]" [queryParams]="{ origin: obsoleteOrigin }" i18n>parent</a>
+                <a [routerLink]="[store.view.refPath, parent]" [queryParams]="{ origin: obsoleteOrigin }" i18n>parent</a>
               } @else if (sources) {
-                <a [routerLink]="['/ref', ref.url, 'sources']" [queryParams]="{ origin: obsoleteOrigin }" (click)="saveRef()" i18n>{{ sources }}&thinsp;sources</a>
+                <a [routerLink]="[store.view.refPath, ref.url, 'sources']" [queryParams]="{ origin: obsoleteOrigin }" (click)="saveRef()" i18n>{{ sources }}&thinsp;sources</a>
               }
             }
             @if (taggingAccess) {
@@ -249,7 +229,7 @@
           }
           @if (ref.upload) {
             @if (ref.exists) {
-              <a [routerLink]="['/ref', ref.url]" [queryParams]="{ origin: obsoleteOrigin }" i18n>permalink</a>
+              <a [routerLink]="[store.view.refPath, ref.url]" [queryParams]="{ origin: obsoleteOrigin }" i18n>permalink</a>
             }
             @if (store.account.user) {
               <app-inline-button #action [action]="upload$" i18n>upload</app-inline-button>
@@ -282,22 +262,22 @@
         <div class="toggle threads"
              (focus)="delayLastSelected()"
              (pointerdown)="delayLastSelected()"
-             [routerLink]="['/ref', top, 'thread']"
+             [routerLink]="[store.view.refPath, top, 'thread']"
              (click)="saveRef()"
              [queryParams]="{ origin: obsoleteOrigin }">🧵️</div>
       } @else if (comment || comments) {
         <div class="toggle comments"
-             [routerLink]="['/ref', ref.url, 'comments']"
+             [routerLink]="[store.view.refPath, ref.url, 'comments']"
              [queryParams]="{ origin: obsoleteOrigin }"
              (click)="saveRef()">💬️</div>
       } @else if (admin.getPlugin('plugin/comment')) {
         <div class="toggle comments"
-             [routerLink]="['/ref', ref.url]"
+             [routerLink]="[store.view.refPath, ref.url]"
              [queryParams]="{ origin: obsoleteOrigin }"
              (click)="saveRef()">💬️</div>
       } @else {
         <div class="toggle view"
-             [routerLink]="['/ref', ref.url]"
+             [routerLink]="[store.view.refPath, ref.url]"
              [queryParams]="{ origin: obsoleteOrigin }"
              (click)="saveRef()">🖇️️</div>
       }
