@@ -183,7 +183,7 @@
             </div>
             @if (responsesToUrl.page.totalPages > 1) {
               <span><!-- show more --></span>
-              <a [routerLink]="['/ref', url.value, 'responses']"
+              <a [routerLink]="[store.view.refPath, url.value, 'responses']"
                  class="load-more no-select" i18n>
                 see all
               </a>

@@ -10,6 +10,7 @@ import { LoadingComponent } from '../../component/loading/loading.component';
 import { RefComponent } from '../../component/ref/ref.component';
 import { SidebarComponent } from '../../component/sidebar/sidebar.component';
 import { TabsComponent } from '../../component/tabs/tabs.component';
+import { ViewerComponent } from '../../component/viewer/viewer.component';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ref } from '../../model/ref';
 import { isWiki } from '../../mods/org/wiki';
@@ -21,6 +22,8 @@ import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
 import { memo, MemoCache } from '../../util/memo';
 import { hasTag, privateTag, top } from '../../util/tag';
+import { RefCommentsComponent } from './comments/comments.component';
+import { RefThreadComponent } from './thread/thread.component';
 
 @Component({
   selector: 'app-ref-page',
@@ -35,6 +38,9 @@ import { hasTag, privateTag, top } from '../../util/tag';
     SidebarComponent,
     RouterOutlet,
     LoadingComponent,
+    ViewerComponent,
+    RefCommentsComponent,
+    RefThreadComponent,
   ],
 })
 export class RefPage implements OnInit, OnDestroy, HasChanges {
@@ -163,7 +169,7 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
         : this.refs.getCurrent(url)
     ).pipe(
       catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
-      map(ref => ref || { url }),
+      map(ref => ref || { url, tags: url?.startsWith('tag:/') ? ['plugin/lens'] : [] }),
       tap(ref => this.markRead(ref)),
       switchMap(ref => !fetchTop(ref) ? of([ref, undefined])
         : top(ref) === url ? of([ref, ref])
@@ -228,6 +234,7 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
   }
 
   markRead(ref: Ref) {
+    if (!ref.created) return;
     if (!this.admin.getPlugin('plugin/user/read')) return;
     if (ref.metadata?.userUrls?.includes('plugin/user/read')) return;
     this.ts.createResponse('plugin/user/read', ref.url).subscribe();

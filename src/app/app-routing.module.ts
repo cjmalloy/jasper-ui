@@ -48,6 +48,12 @@ import { TagsPage } from './page/tags/tags.component';
 import { UserPage } from './page/user/user.component';
 import { parts } from './util/http';
 
+const stripTrailingSlash = Location.stripTrailingSlash;
+Location.stripTrailingSlash = (url) => {
+  if (url.startsWith('/browse/')) return url;
+  return stripTrailingSlash(url);
+}
+
 const dus = new DefaultUrlSerializer();
 export class CustomUrlSerializer implements UrlSerializer {
 
@@ -98,6 +104,9 @@ export class CustomUrlSerializer implements UrlSerializer {
         return dus.parse('/ref/' + this.stripParam(url.substring('/ref/e/'.length + refChildren[1].length + 1)) + '/' + refChildren[1] + this.getExtras(url));
       }
     }
+    if (url.startsWith('/browse/')) {
+      return dus.parse('/browse/' + encodeURIComponent(url.substring('/browse/'.length)));
+    }
     for (const page of ['/tag/', '/tags/', '/ext/', '/user/', '/inbox/ref/', '/settings/ref/']) {
       if (url.startsWith(page)) {
         return dus.parse(page + this.encodeTagParam(url.substring(page.length)));
@@ -121,6 +130,9 @@ export class CustomUrlSerializer implements UrlSerializer {
       } else {
         return '/ref/' + tree.root.children.primary.segments[2].path + '/e/' + encodeURIComponent(tree.root.children.primary.segments[1].path) + this.getExtras(url);
       }
+    }
+    if (tree.root.children.primary?.segments[0]?.path === 'browse' && tree.root.children.primary.segments.length === 2) {
+      return '/browse/' + tree.root.children.primary.segments[1].path;
     }
     for (let page of ['tag', 'tags', 'ext', 'user', 'inbox/ref', 'settings/ref']) {
       const parts = (page.match(/\//g)?.length || 0) + 1;
@@ -168,6 +180,8 @@ const routes: Routes = [
   { path: 'ext/:tag', component: ExtPage, canDeactivate: [pendingChangesGuard], runGuardsAndResolvers: 'always' },
   { path: 'user', component: UserPage },
   { path: 'user/:tag', component: UserPage, canDeactivate: [pendingChangesGuard], runGuardsAndResolvers: 'always' },
+  { path: 'browse', redirectTo: 'browse/wiki:Homepage', pathMatch: 'full' },
+  { path: 'browse/:url', component: RefPage },
   {
     path: 'ref/:url',
     component: RefPage,

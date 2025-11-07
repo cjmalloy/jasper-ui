@@ -39,7 +39,6 @@ import {
 import { deleteNotice } from '../../../mods/delete';
 import { findArchive } from '../../../mods/tools/archive';
 import { AdminService } from '../../../service/admin.service';
-import { ExtService } from '../../../service/api/ext.service';
 import { RefService } from '../../../service/api/ref.service';
 import { TaggingService } from '../../../service/api/tagging.service';
 import { AuthzService } from '../../../service/authz.service';
@@ -77,7 +76,6 @@ import { ViewerComponent } from '../../viewer/viewer.component';
     ReactiveFormsModule,
     RefFormComponent,
     LoadingComponent,
-    AsyncPipe,
   ],
 })
 export class BlogEntryComponent implements OnChanges, OnDestroy, HasChanges {
@@ -117,7 +115,6 @@ export class BlogEntryComponent implements OnChanges, OnDestroy, HasChanges {
     private auth: AuthzService,
     private editor: EditorService,
     private refs: RefService,
-    private exts: ExtService,
     private bookmarks: BookmarkService,
     private ts: TaggingService,
     private fb: UntypedFormBuilder,
@@ -177,6 +174,11 @@ export class BlogEntryComponent implements OnChanges, OnDestroy, HasChanges {
     this.destroy$.complete();
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
+  }
+
+  @memo
+  get origin() {
+    return this.ref.origin || '';
   }
 
   @memo
@@ -290,20 +292,10 @@ export class BlogEntryComponent implements OnChanges, OnDestroy, HasChanges {
   }
 
   @memo
-  get authorExts$() {
-    return this.exts.getCachedExts(this.authors, this.ref.origin || '').pipe(this.admin.authorFallback);
-  }
-
-  @memo
   get tags() {
     let result = interestingTags(this.ref.tags);
     if (!this.blog?.config?.filterTags) return result;
     return intersection(result, this.blog.config.tags || []);
-  }
-
-  @memo
-  get tagExts$() {
-    return this.editor.getTagsPreview(this.tags, this.ref.origin || '');
   }
 
   @memo

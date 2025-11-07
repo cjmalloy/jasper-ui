@@ -3,19 +3,11 @@
     <div class="comment-container info collapsed" tabindex="0">
       <span class="comment-expand fake-link" (click)="store.local.setRefToggled('comment:' + ref.url, !(collapsed = false))" i18n>[+]</span>&nbsp;
       @if (authors.length) {
-        @if (authorExts$ | async; as xs) {
-          @for (x of xs; track x.tag + x.origin) {
-            <a class="user tag"
-               [title]="formatAuthor(x.tag + x.origin)"
-               [routerLink]="['/tag', x.tag + x.origin]"
-               [appTitle]="x">{{ x.name || formatAuthor(x.tag + x.origin) }}</a>
-          }
-        } @else {
-          @for (t of authors; track t) {
-            <a class="user tag"
-               [title]="formatAuthor(t)"
-               [routerLink]="['/tag', t]">{{ formatAuthor(t) }}</a>
-          }
+        @for (t of authors; track t) {
+          <app-nav css="user tag"
+                   [url]="'tag:/' + t"
+                   [title]="formatAuthor(t)"
+                   [shortUser]="true"></app-nav>
         }
       }
       @if (store.view.isVoteSorted && admin.getPlugin('plugin/user/vote/up')) {
@@ -61,19 +53,11 @@
         <div class="info">
           <span class="comment-collapse fake-link" (click)="store.local.setRefToggled('comment:' + ref.url, !(collapsed = true))">[&ndash;]</span>&nbsp;
           @if (authors.length) {
-            @if (authorExts$ | async; as xs) {
-              @for (x of xs; track x.tag + x.origin) {
-                <a class="user tag"
-                   [title]="formatAuthor(x.tag + x.origin)"
-                   [routerLink]="['/tag', x.tag + x.origin]"
-                   [appTitle]="x">{{ x.name || formatAuthor(x.tag + x.origin) }}</a>
-              }
-            } @else {
-              @for (t of authors; track t) {
-                <a class="user tag"
-                   [title]="formatAuthor(t)"
-                   [routerLink]="['/tag', t]">{{ formatAuthor(t) }}</a>
-              }
+            @for (t of authors; track t) {
+              <app-nav css="user tag"
+                       [url]="'tag:/' + t + origin"
+                       [title]="formatAuthor(t)"
+                       [shortUser]="true"></app-nav>
             }
           }
           @if (admin.getPlugin('plugin/user/vote/up')) {
@@ -84,19 +68,11 @@
             <span [title]="'last edited ' + ref.modified!.toRelative()">* </span>
           }
           @if (tagged.length) {
-            <span i18n> tagged
-              @if (tagExts$ | async; as xs) {
-                @for (x of xs; track x.tag) {
-                  <a class="tag"
-                     [routerLink]="['/tag', x.tag]"
-                     [appTitle]="x.tag">{{ x.name || '#' + x.tag }}</a>
-                }
-              } @else {
-                @for (t of tagged; track t) {
-                  <a class="tag" [routerLink]="['/tag', t]">{{ t }}</a>
-                }
-              }
-            </span>
+            @for (t of tagged; track t) {
+              <app-nav css="tag"
+                       [url]="'tag:/' + t"
+                       [origin]="origin"></app-nav>
+            }
           }
           @for (icon of icons; track icon) {
             @if (showIcon(icon)) {
@@ -117,7 +93,7 @@
                       [ref]="ref"></app-viewer>
         }
         <div class="actions">
-          <a [routerLink]="['/ref', ref.url, 'comments']"
+          <a [routerLink]="[store.view.refPath, ref.url, 'comments']"
              [queryParams]="{ origin: nonLocalOrigin }"
              (click)="store.view.preloadRef(ref)"
              i18n>permalink</a>
@@ -125,13 +101,13 @@
              (click)="replying = !replying"
              i18n>reply</a>
           @if (responses) {
-            <a [routerLink]="['/ref', ref.url, 'responses']"
+            <a [routerLink]="[store.view.refPath, ref.url, 'responses']"
                [queryParams]="{ origin: nonLocalOrigin }"
                (click)="store.view.preloadRef(ref)"
                i18n>{responses, plural, =1 {1&thinsp;citation} other {{{ responses }}&thinsp;citations}}</a>
           }
           @if (sources > 2) {
-            <a [routerLink]="['/ref', ref.url, 'sources']"
+            <a [routerLink]="[store.view.refPath, ref.url, 'sources']"
                [queryParams]="{ origin: nonLocalOrigin }"
                (click)="store.view.preloadRef(ref)"
                i18n>{{ sources }}&thinsp;sources</a>
@@ -185,7 +161,7 @@
       </span>
     } @else {
       <a class="load-more"
-         [routerLink]="['/ref', ref.url, 'comments']"
+         [routerLink]="[store.view.refPath, ref.url, 'comments']"
          [queryParams]="{ origin: nonLocalOrigin }"
          (click)="store.view.preloadRef(ref)" i18n>
         continue this thread
