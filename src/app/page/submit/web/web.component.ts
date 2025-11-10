@@ -171,8 +171,8 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
             } else {
               // Feed url already exists, just post the page and drop the feed plugin
               this.setTitle($localize`Submit: Web Link`);
-              this.removeTag('plugin/feed', 'internal');
-              this.bookmarks.tags = without(this.bookmarks.tags, 'plugin/feed', 'internal');
+              this.removeTag('plugin/script/feed', 'internal');
+              this.bookmarks.tags = without(this.bookmarks.tags, 'plugin/script/feed', 'internal');
               if (url.startsWith('https://www.youtube.com/@') || url.startsWith('https://youtube.com/@')) {
                 const username = url.substring(url.indexOf('@'));
                 if (!this.store.submit.title) this.webForm.get('title')!.setValue(username);
@@ -226,7 +226,7 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
   }
 
   get feed() {
-    return !!this.webForm.value.tags.includes('plugin/feed');
+    return !!this.webForm.value.tags.includes('plugin/script/feed');
   }
 
   get origin() {
@@ -327,11 +327,11 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
 
   private addFeedTags(...tags: string[]) {
     if (!this.feed) return;
-    tags = tags.filter(t => t !== 'plugin/feed');
+    tags = tags.filter(t => t !== 'plugin/script/feed');
     const ref = this.webForm.value || {};
     ref.plugins ||= {};
-    ref.plugins['plugin/feed'] ||= {};
-    ref.plugins['plugin/feed'].addTags = uniq([...ref.plugins['plugin/feed'].addTags || [], ...tags]);
+    ref.plugins['plugin/script/feed'] ||= {};
+    ref.plugins['plugin/script/feed'].addTags = uniq([...ref.plugins['plugin/script/feed'].addTags || [], ...tags]);
     this.refForm.pluginsFormComponent.setValue(ref.plugins);
   }
 }

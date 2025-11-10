@@ -490,7 +490,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
 
   @memo
   get feed() {
-    return !!this.admin.getPlugin('plugin/feed') && hasTag('plugin/feed', this.ref);
+    return !!this.admin.getPlugin('plugin/script/feed') && hasTag('plugin/script/feed', this.ref);
   }
 
   @memo
