@@ -3,7 +3,7 @@ import { Plugin } from '../model/plugin';
 import { Mod } from '../model/tag';
 
 export const feedPlugin: Plugin = {
-  tag: 'plugin/feed',
+  tag: 'plugin/script/feed',
   name: $localize`🗞️ RSS/Atom Feed`,
   config: {
     default: true,
@@ -42,7 +42,8 @@ export const feedPlugin: Plugin = {
       { tag: '+plugin/cron', labelOn: $localize`disable`, labelOff: $localize`enable`, title: $localize`Schedule this feed to pull every 15 minutes.` },
     ],
     advancedActions: [
-      { response: '+plugin/user/run', labelOff: $localize`pull`, title: $localize`Scrape the feed and add any new Refs.`, confirm: $localize`Are you sure you want to pull?` },],
+      { response: '+plugin/user/run', labelOff: $localize`pull`, title: $localize`Scrape the feed and add any new Refs.`, confirm: $localize`Are you sure you want to pull?` },
+    ],
     // language=Handlebars
     infoUi: `
       {{#if (interestingTags addTags)}} tagging refs {{/if}}
@@ -153,7 +154,279 @@ export const feedPlugin: Plugin = {
         label: $localize`Disable ETag Caching:`,
         title: $localize`Don't use the ETag to check if a feed is updated.`
       }
-    }]
+    }],
+    timeoutMs: 30_000,
+    requirements: `
+      feedparser
+      beautifulsoup4
+      requests
+    `,
+    language: 'python',
+    // language=python
+    script: `
+import sys
+import json
+import os
+import requests
+import feedparser
+from bs4 import BeautifulSoup
+from datetime import datetime
+from email.utils import formatdate
+from urllib.parse import urlparse, parse_qs, urljoin
+SVG_TAG_LIST = [
+  "a", "altGlyph", "altGlyphDef", "altGlyphItem", "animate", "animateColor",
+  "animateMotion", "animateTransform", "animation", "circle", "clipPath",
+  "color-profile", "cursor", "defs", "desc", "discard", "ellipse", "feBlend",
+  "feColorMatrix", "feComponentTransfer", "feComposite", "feConvolveMatrix",
+  "feDiffuseLighting", "feDisplacementMap", "feDistantLight", "feDropShadow",
+  "feFlood", "feFuncA", "feFuncB", "feFuncG", "feFuncR", "feGaussianBlur",
+  "feImage", "feMerge", "feMergeNode", "feMorphology", "feOffset", "fePointLight",
+  "feSpecularLighting", "feSpotLight", "feTile", "feTurbulence", "filter", "font",
+  "font-face", "font-face-format", "font-face-name", "font-face-src",
+  "font-face-uri", "foreignObject", "g", "glyph", "glyphRef", "handler",
+  "hkern", "iframe", "image", "line", "linearGradient", "listener", "marker",
+  "mask", "metadata", "missing-glyph", "mpath", "path", "pattern", "polygon",
+  "polyline", "radialGradient", "rect", "set", "solidColor", "stop", "svg",
+  "switch", "symbol", "tbreak", "text", "textArea", "textPath", "title",
+  "tref", "tspan", "unknown", "use", "view", "vkern"
+]
+SVG_ATTRS = [
+  "xmlns", "style", "viewBox", "viewbox", "x", "y", "cx", "cy", "rx", "ry",
+  "width", "height", "r", "d", "fill", "path-length", "points",
+  "gradient-units", "gradient-transform", "spread-method", "transform",
+  "pattern-transform", "alignment-baseline", "baseline-shift", "clip-path",
+  "clip-rule", "color", "color-interpolation", "color-interpolation-filters",
+  "color-rendering", "cursor", "direction", "display", "dominant-baseline",
+  "fill-opacity", "fill-rule", "filter", "flood-color", "flood-opacity",
+  "font-family", "font-size", "font-size-adjust", "font-stretch", "font-style",
+  "font-variant", "font-weight", "glyph-orientation-horizontal",
+  "glyph-orientation-vertical", "image-rendering", "letter-spacing",
+  "lighting-color", "marker-end", "marker-mid", "marker-start", "mask",
+  "opacity", "overflow", "paint-order", "pointer-events", "shape-rendering",
+  "stop-color", "stop-opacity", "stroke", "stroke-dasharray",
+  "stroke-dashoffset", "stroke-linecap", "stroke-linejoin", "stroke-miterlimit",
+  "stroke-opacity", "stroke-width", "text-anchor", "text-decoration",
+  "text-overflow", "text-rendering", "unicode-bidi", "vector-effect",
+  "visibility", "white-space", "word-spacing", "writing-mode"
+]
+IMG_ATTRS = ["srcset", "style", "width", "height", "src", "alt", "title"]
+ALLOWED_TAGS = {
+  "a", "abbr", "acronym", "b", "blockquote", "code", "em", "i", "li", "ol", "strong", "ul",
+  "div", "span", "img", "svg", "figure", "figcaption", "address", "time", "p", "pre",
+  "caption", "cite", "col", "colgroup", "dd", "dl", "dt", "q", "small", "h1", "h2", "h3",
+  "h4", "h5", "h6", "strike", "sub", "sup", "u", "br", "hr", "table", "tbody", "td",
+  "tfoot", "th", "thead", "tr"
+}.union(set(SVG_TAG_LIST))
+ALLOWED_ATTRS = {
+  "a": ["href", "title"],
+  "abbr": ["title"],
+  "acronym": ["title"],
+  "img": IMG_ATTRS,
+  "svg": SVG_ATTRS,
+  "g": SVG_ATTRS,
+  "path": SVG_ATTRS,
+  "*": ["style"]
+}
+def clean_html(html_content, base_url):
+  """Sanitizes HTML using BeautifulSoup, resolving relative URLs."""
+  soup = BeautifulSoup(html_content, 'html.parser')
+  if base_url:
+    for tag in soup.find_all(href=True):
+      tag['href'] = urljoin(base_url, tag['href'])
+    for tag in soup.find_all(src=True):
+      tag['src'] = urljoin(base_url, tag['src'])
+  for tag in soup.find_all(True):
+    if tag.name not in ALLOWED_TAGS:
+      tag.decompose()
+    else:
+      allowed_attributes = ALLOWED_ATTRS.get(tag.name, []) + ALLOWED_ATTRS.get('*', [])
+      for attr in list(tag.attrs.keys()):
+        if attr not in allowed_attributes:
+          del tag[attr]
+  return str(soup)
+def handle_temporary_error(message):
+  """Logs the error and exits gracefully (0) to allow retries."""
+  print(message, file=sys.stderr)
+  sys.exit(0)
+def handle_permanent_error(message):
+  """Logs the error and exits with a failure code (1) to prevent retries."""
+  print(message, file=sys.stderr)
+  sys.exit(1)
+try:
+  ref = json.load(sys.stdin)
+except json.JSONDecodeError as e:
+  handle_permanent_error(f"Error: Invalid JSON input. {e}")
+origin = ref.get('origin', '')
+config = ref.get('plugins', {}).get('plugin/script/feed', {})
+def has_tag(tag_prefix, current_ref):
+  if not current_ref.get('tags'): return False
+  for t in current_ref['tags']:
+    if t == tag_prefix or t.startswith(tag_prefix + '/'): return True
+  return False
+def add_plugin(tag, target_ref, plugin_data):
+  """Adds a plugin tag and data to a ref, ensuring no duplicate tags."""
+  target_ref.setdefault('tags', [])
+  if not has_tag(tag, target_ref):
+    target_ref['tags'].append(tag)
+  target_ref.setdefault('plugins', {})[tag] = plugin_data
+debug = has_tag('+plugin/debug', ref)
+def log_debug(message):
+  if debug: print(message, file=sys.stderr)
+JASPER_API_URL = os.environ.get('JASPER_API')
+if not JASPER_API_URL:
+  handle_permanent_error('JASPER_API environment variable not set.')
+api = requests.Session()
+api.headers.update({
+  'Local-Origin': origin or 'default',
+  'User-Role': 'ROLE_ADMIN',
+})
+def ref_exists(url):
+  try:
+    response = api.get(f"{JASPER_API_URL}/api/v1/ref/count", params={'url': url, 'query': origin or '*'})
+    response.raise_for_status()
+    return response.json() > 0
+  except requests.RequestException as e:
+    print(f"Error checking if ref exists for URL {url}: {e}", file=sys.stderr)
+    return True
+def update_ref(entry):
+  try:
+    response = api.put(f"{JASPER_API_URL}/api/v1/ref", json=entry)
+    response.raise_for_status()
+  except requests.RequestException as e:
+    print(f"Error updating ref {entry.get('url', 'N/A')}: {e}", file=sys.stderr)
+def cache_later(url):
+  if not url: return
+  try:
+    response = api.get(f"{JASPER_API_URL}/api/v1/ref", params={'url': url, 'origin': origin})
+    response.raise_for_status()
+    results = response.json()
+    if results.get('content'):
+      existing = results['content'][0]
+      if has_tag('_plugin/cache', existing) or has_tag('_plugin/delta/cache', existing):
+        return
+      existing.setdefault('tags', []).append('_plugin/delta/cache')
+      update_ref(existing)
+    else:
+      tag_params = {'tag': '_plugin/delta/cache', 'url': url, 'origin': origin}
+      api.post(f"{JASPER_API_URL}/api/v1/tags", params=tag_params).raise_for_status()
+  except requests.RequestException as e:
+    print(f"Error tagging cache for {url}: {e}", file=sys.stderr)
+def parse_entry(feed_ref, entry):
+  new_ref = {'origin': origin, 'sources': [feed_ref['url']], 'tags': list(config.get('addTags', []))}
+  link = entry.get('link')
+  guid = entry.get('id')
+  if guid and guid.startswith('http'): link = guid
+  if config.get('stripQuery') and link and '?' in link: link = link.split('?')[0]
+  new_ref['url'] = link
+  new_ref['title'] = entry.get('title', '')
+  published_date_parsed = entry.get('published_parsed') or entry.get('updated_parsed')
+  if published_date_parsed:
+    new_ref['published'] = datetime(*published_date_parsed[:6]).isoformat() + 'Z'
+  elif 'arxiv.org' in link:
+    try:
+      date_part = link.split('/')[-1][:4]
+      year_prefix = '19' if int(date_part[:2]) > 90 else '20'
+      year, month = year_prefix + date_part[:2], date_part[2:]
+      new_ref['published'] = f"{year}-{month}-01T00:00:00.000Z"
+    except (IndexError, ValueError):
+      pass
+  comment = ''
+  if config.get('scrapeContents') and entry.get('content'):
+    comment = clean_html(entry.content[0].value, link)
+  elif config.get('scrapeDescription') and entry.get('summary'):
+    comment = entry.summary
+  if config.get('scrapeAuthors') and entry.get('author') and entry.author != 'Unknown':
+    if comment: comment += '\\n\\n\\n\\n'
+    comment += entry.author
+  new_ref['comment'] = comment
+  if entry.get('enclosures'):
+    for enc in entry.enclosures:
+      mime, url = enc.get('type', ''), enc.get('href')
+      if config.get('scrapeThumbnail') and not has_tag('plugin/thumbnail', new_ref) and mime.startswith('image/'):
+        add_plugin('plugin/thumbnail', new_ref, {'url': url})
+      if config.get('scrapeAudio') and mime.startswith('audio/'):
+        add_plugin('plugin/audio', new_ref, {'url': url})
+      if config.get('scrapeVideo') and mime.startswith('video/'):
+        add_plugin('plugin/video', new_ref, {'url': url})
+  if config.get('scrapeThumbnail') and not has_tag('plugin/thumbnail', new_ref) and entry.get('media_group'):
+    if entry.media_group and entry.media_group[0].get('media_thumbnail'):
+      if entry.media_group[0].media_thumbnail:
+        thumbnail_url = entry.media_group[0].media_thumbnail[0].get('url')
+        if thumbnail_url: add_plugin('plugin/thumbnail', new_ref, {'url': thumbnail_url})
+  if config.get('scrapeThumbnail') and not has_tag('plugin/thumbnail', new_ref) and entry.get('media_thumbnail'):
+    if entry.media_thumbnail:
+      thumbnail_url = entry.media_thumbnail[0].get('url')
+      if thumbnail_url: add_plugin('plugin/thumbnail', new_ref, {'url': thumbnail_url})
+  if config.get('scrapeThumbnail') and not has_tag('plugin/thumbnail', new_ref) and entry.get('itunes_image'):
+    url = entry.itunes_image.get('href') if isinstance(entry.itunes_image, dict) else entry.itunes_image
+    if url: add_plugin('plugin/thumbnail', new_ref, {'url': url})
+  if config.get('scrapeThumbnail') and not has_tag('plugin/thumbnail', new_ref) and config.get(
+    'defaultThumbnail'):
+    add_plugin('plugin/thumbnail', new_ref, config['defaultThumbnail'])
+  video_id = entry.get('yt_videoid')
+  if video_id:
+    add_plugin('plugin/embed', new_ref, {'url': f'https://www.youtube.com/embed/{video_id}'})
+  elif config.get('scrapeVideo') and not has_tag('plugin/video', new_ref) and 'youtube.com' in new_ref['url']:
+    try:
+      parsed_video_id = parse_qs(urlparse(new_ref['url']).query).get('v', [None])[0]
+      if parsed_video_id: add_plugin('plugin/embed', new_ref, {'url': f'https://www.youtube.com/embed/{parsed_video_id}'})
+    except Exception:
+      pass
+  if config.get('scrapeWebpage'): new_ref['tags'].append('_plugin/delta/scrape/ref')
+  return new_ref
+headers = {
+  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.75 Safari/537.36'
+}
+etag = config.get('etag') if not config.get('disableEtag') else None
+modified = None
+if config.get('lastScrape'):
+  dt_modified = datetime.fromisoformat(config['lastScrape'].replace('Z', '+00:00'))
+  modified = formatdate(dt_modified.timestamp(), usegmt=True)
+try:
+  feed_data = feedparser.parse(ref['url'], etag=etag, modified=modified, agent=headers['User-Agent'])
+except Exception as e:
+  handle_temporary_error(f"Temporary network error fetching feed: {e}")
+status = feed_data.get('status')
+if status == 304:
+  log_debug(f"Feed {ref.get('title') or ref['url']} not modified (304).")
+  sys.exit(0)
+if status and status >= 500: handle_temporary_error(f"Server error fetching feed ({status}): {ref['url']}")
+if status and status >= 400: handle_permanent_error(f"Client error fetching feed ({status}): {ref['url']}")
+if feed_data.bozo:
+  exc = feed_data.get('bozo_exception', '')
+  if 'html' in str(exc).lower(): handle_temporary_error(
+    f"Error parsing feed, received HTML instead of XML: {ref['url']}")
+  handle_permanent_error(f"Error parsing feed: {exc}")
+feed_needs_update = False
+updated_config = config.copy()
+new_etag = feed_data.get('etag')
+if not config.get('disableEtag') and new_etag and new_etag != etag:
+  updated_config['etag'] = new_etag
+  feed_needs_update = True
+updated_config['lastScrape'] = datetime.utcnow().isoformat() + 'Z'
+feed_needs_update = True
+feed_thumbnail_url = feed_data.feed.get('image', {}).get('href')
+if feed_thumbnail_url and not has_tag('plugin/thumbnail', ref):
+  add_plugin('plugin/thumbnail', ref, {'url': feed_thumbnail_url})
+  cache_later(feed_thumbnail_url)
+  feed_needs_update = True
+if feed_needs_update:
+  ref.setdefault('plugins', {})['plugin/script/feed'] = updated_config
+  update_ref(ref)
+bundle = {'ref': []}
+for entry in reversed(feed_data.entries):
+  new_ref = parse_entry(ref, entry)
+  if ref_exists(new_ref['url']):
+    log_debug(f"Skipping existing entry: {entry.get('title')}")
+    continue
+  log_debug(f"Ingesting new entry: {entry.get('title')}")
+  bundle['ref'].append(new_ref)
+  cache_later(new_ref.get('plugins', {}).get('plugin/thumbnail', {}).get('url'))
+  cache_later(new_ref.get('plugins', {}).get('plugin/audio', {}).get('url'))
+  cache_later(new_ref.get('plugins', {}).get('plugin/video', {}).get('url'))
+if bundle['ref']:
+  print(json.dumps(bundle))
+    `,
   },
   schema: {
     optionalProperties: {
