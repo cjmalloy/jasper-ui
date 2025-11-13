@@ -55,7 +55,7 @@
           @if (authors.length) {
             @for (t of authors; track t) {
               <app-nav css="user tag"
-                       [url]="'tag:/' + t + origin"
+                       [url]="'tag:/' + t"
                        [title]="formatAuthor(t)"
                        [shortUser]="true"></app-nav>
             }
