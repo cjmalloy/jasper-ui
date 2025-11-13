@@ -22,8 +22,8 @@ export const lensPlugin: Plugin = {
     automatically be shown, otherwise the lens type can be overridden by adding ?view=lens to the URL.
     For markdown, any relative or absolute links to a query will automatically display the default lens.
     If no lens can be found, the list lens is used.
-    Use ![+](/tag/lens) to display an link with an embed toggle.
-    Use ![](/tag/lens) embed the lens directly.`,
+    Use ![+](/tag/lens) to display a link with an embed toggle.
+    Use ![](/tag/lens) to embed the lens directly.`,
     icons: [{ label: $localize`🪞`, order: 1 }],
     filters: [
       { query: 'plugin/lens', label: $localize`🪞 lens`, title: $localize`Lens`, group: $localize`Plugins 🧰️` },
