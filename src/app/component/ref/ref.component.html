@@ -38,7 +38,7 @@
       } @else if (clickableLink) {
         <app-nav [url]="link" [text]="title" [external]="true"></app-nav>
       } @else {
-        <a [routerLink]="defaultView ? ['/ref', url, defaultView] : ['/ref', url]"
+        <a [routerLink]="defaultView ? [store.view.refPath, url, defaultView] : [store.view.refPath, url]"
            [queryParams]="{ origin: obsoleteOrigin }"
            (click)="saveRef()">{{ title }}</a><wbr>
       }
