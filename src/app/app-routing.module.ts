@@ -236,6 +236,7 @@ const routes: Routes = [
     paramsInheritanceStrategy: 'always',
     onSameUrlNavigation: 'reload',
     enableTracing: false,
+    scrollPositionRestoration: 'enabled',
   })],
   exports: [RouterModule],
   providers: [{ provide: UrlSerializer, useClass: CustomUrlSerializer }]
