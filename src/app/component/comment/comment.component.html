@@ -68,11 +68,13 @@
             <span [title]="'last edited ' + ref.modified!.toRelative()">* </span>
           }
           @if (tagged.length) {
-            @for (t of tagged; track t) {
-              <app-nav css="tag"
-                       [url]="'tag:/' + t"
-                       [origin]="origin"></app-nav>
-            }
+            <span i18n> tagged
+              @for (t of tagged; track t) {
+                <app-nav css="tag"
+                         [url]="'tag:/' + t"
+                         [origin]="origin"></app-nav>
+              }
+            </span>
           }
           @for (icon of icons; track icon) {
             @if (showIcon(icon)) {
