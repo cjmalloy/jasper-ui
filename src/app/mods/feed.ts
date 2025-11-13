@@ -360,8 +360,7 @@ def parse_entry(feed_ref, entry):
   if config.get('scrapeThumbnail') and not has_tag('plugin/thumbnail', new_ref) and entry.get('itunes_image'):
     url = entry.itunes_image.get('href') if isinstance(entry.itunes_image, dict) else entry.itunes_image
     if url: add_plugin('plugin/thumbnail', new_ref, {'url': url})
-  if config.get('scrapeThumbnail') and not has_tag('plugin/thumbnail', new_ref) and config.get(
-    'defaultThumbnail'):
+  if config.get('scrapeThumbnail') and not has_tag('plugin/thumbnail', new_ref) and config.get('defaultThumbnail'):
     add_plugin('plugin/thumbnail', new_ref, config['defaultThumbnail'])
   video_id = entry.get('yt_videoid')
   if video_id:
@@ -394,8 +393,7 @@ if status and status >= 500: handle_temporary_error(f"Server error fetching feed
 if status and status >= 400: handle_permanent_error(f"Client error fetching feed ({status}): {ref['url']}")
 if feed_data.bozo:
   exc = feed_data.get('bozo_exception', '')
-  if 'html' in str(exc).lower(): handle_temporary_error(
-    f"Error parsing feed, received HTML instead of XML: {ref['url']}")
+  if 'html' in str(exc).lower(): handle_temporary_error(f"Error parsing feed, received HTML instead of XML: {ref['url']}")
   handle_permanent_error(f"Error parsing feed: {exc}")
 feed_needs_update = False
 updated_config = config.copy()
@@ -424,8 +422,7 @@ for entry in reversed(feed_data.entries):
   cache_later(new_ref.get('plugins', {}).get('plugin/thumbnail', {}).get('url'))
   cache_later(new_ref.get('plugins', {}).get('plugin/audio', {}).get('url'))
   cache_later(new_ref.get('plugins', {}).get('plugin/video', {}).get('url'))
-if bundle['ref']:
-  print(json.dumps(bundle))
+if bundle['ref']: print(json.dumps(bundle))
     `,
   },
   schema: {
