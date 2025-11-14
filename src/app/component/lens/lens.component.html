@@ -1,21 +1,3 @@
-@if (query.responseOf) {
-  <div class="list-container">
-    <div class="label" i18n>Responses Of:</div>
-    <app-ref class="full-page"
-             [ref]="query.responseOf"
-             [showToggle]="true"
-             (copied)="query.refresh()"></app-ref>
-  </div>
-}
-@if (query.sourcesOf) {
-  <div class="list-container">
-    <div class="label" i18n>Sources Of:</div>
-    <app-ref class="full-page"
-             [ref]="query.sourcesOf"
-             [showToggle]="true"
-             (copied)="query.refresh()"></app-ref>
-  </div>
-}
 @if (isTemplate('graph')) {
   <app-force-directed #lens
                       [tag]="tag"

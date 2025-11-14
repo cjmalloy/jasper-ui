@@ -95,7 +95,13 @@ export class RefThreadComponent implements HasChanges {
       defer(() => this.query.setArgs(args));
     }));
     // TODO: set title for bare reposts
-    this.disposers.push(autorun(() => this.mod.setTitle($localize`Thread: ` + getTitle(this.store.view.ref))));
+    this.disposers.push(autorun(() => {
+      if (this.store.view.browser) {
+        this.mod.setTitle(getTitle(this.store.view.ref));
+      } else {
+        this.mod.setTitle($localize`Thread: ` + getTitle(this.store.view.ref));
+      }
+    }));
     this.disposers.push(autorun(() => {
       MemoCache.clear(this);
       if (this.store.view.ref && this.config.websockets) {
