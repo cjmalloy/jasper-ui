@@ -113,9 +113,53 @@ export class EditorService {
         }
       }
     });
+    const audioProvider = (api: PluginApi): Plugin => ({
+      converters: {
+        AUDIO: {
+          startTag(conversion): boolean {
+            const { element } = conversion;
+            const source = element.find('source')?.attr('src');
+            if (!source) {
+              return false; // No source found, skip
+            }
+
+            const absolute = conversion.getOption('absolute');
+            const url = absolute ? conversion.resolveUrl(source) : source;
+            const value = `(${url})`;
+
+            conversion.output(`![]${value}`);
+
+            return false;
+          },
+        },
+      }
+    });
+    const videoProvider = (api: PluginApi): Plugin => ({
+      converters: {
+        VIDEO: {
+          startTag(conversion): boolean {
+            const { element } = conversion;
+            const source = element.find('source')?.attr('src');
+            if (!source) {
+              return false; // No source found, skip
+            }
+
+            const absolute = conversion.getOption('absolute');
+            const url = absolute ? conversion.resolveUrl(source) : source;
+            const value = `(${url})`;
+
+            conversion.output(`![]${value}`);
+
+            return false;
+          },
+        },
+      }
+    });
+    Europa.registerPlugin(superscriptProvider);
     Europa.registerPlugin(paragraphProvider);
     Europa.registerPlugin(linkProvider);
-    Europa.registerPlugin(superscriptProvider);
+    Europa.registerPlugin(audioProvider);
+    Europa.registerPlugin(videoProvider);
   }
 
   getUrlType(url: string) {

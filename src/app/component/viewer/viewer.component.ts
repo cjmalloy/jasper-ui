@@ -88,6 +88,8 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
   @Input()
   expand = true;
   @Input()
+  autoplay = false;
+  @Input()
   text? = '';
   @Input()
   origin? = '';
