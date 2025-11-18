@@ -368,13 +368,12 @@ export const aiQueryPlugin: Plugin = {
         },
         gemini: {
           init(config) {
-            config.model ||= 'gemini-2.5-pro';
-            config.pdf = config.model === 'gemini-2.5-pro';
+            config.model ||= 'gemini-3-pro-preview';
+            config.pdf = ['gemini-3-pro-preview', 'gemini-2.5-pro'].includes(config.model);
             config.image = true;
             config.audio = true;
             config.video = true;
-            config.embed = config.url && ['gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.5-flash-lite', 'gemini-live-2.5-flash-preview'].includes(config.model);
-            if (config.search) config.json = false;
+            config.embed = config.url && ['gemini-3-pro-preview', 'gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.5-flash-lite', 'gemini-live-2.5-flash-preview'].includes(config.model);
           },
           loadMessage(source, plugins = {}) {
             const message = {};
