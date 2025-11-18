@@ -110,11 +110,11 @@ export const aiQueryPlugin: Plugin = {
       const providers = {
         openai: {
           init(config) {
-            config.model ||= config.vision ? 'gpt-5-codex' : config.audio ? 'gpt-4o-audio-preview' : 'gpt-5-codex';
+            config.model ||= config.vision ? 'gpt-5.1-codex' : config.audio ? 'gpt-4o-audio-preview' : 'gpt-5.1-codex';
             config.maxTokens ||= 4096;
             config.thinking = false;
             config.pdf = false;
-            config.image = ['gpt-5', 'gpt-5-mini', 'gpt-5-nano', 'gpt-5-codex'].includes(config.model);
+            config.image = ['gpt-5.1', 'gpt-5-mini', 'gpt-5-nano', 'gpt-5.1-codex'].includes(config.model);
             config.audio = ['gpt-4o-audio-preview', 'gpt-4o-mini-audio-preview'].includes(config.model);
             config.video = false;
           },
