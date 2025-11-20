@@ -4,7 +4,7 @@ import { DragDropModule } from '@angular/cdk/drag-drop';
 import { FullscreenOverlayContainer, OverlayContainer, OverlayModule } from '@angular/cdk/overlay';
 import { ScrollingModule } from '@angular/cdk/scrolling';
 import { HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
-import { APP_INITIALIZER, enableProdMode, importProvidersFrom, isDevMode } from '@angular/core';
+import { APP_INITIALIZER, enableProdMode, importProvidersFrom, isDevMode, provideZonelessChangeDetection } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { bootstrapApplication, BrowserModule, HAMMER_GESTURE_CONFIG, HammerModule } from '@angular/platform-browser';
 import { ServiceWorkerModule } from '@angular/service-worker';
@@ -70,6 +70,7 @@ if (environment.production) {
 
 bootstrapApplication(AppComponent, {
     providers: [
+        provideZonelessChangeDetection(),
         importProvidersFrom(
           BrowserModule,
           HammerModule,
