@@ -37,4 +37,11 @@ export class SubfolderComponent {
     // TODO: Thumbnail in config
     return '';
   }
+
+  protected getLink() {
+    if (this.store.view.browser) {
+      return ['/browse', 'tag:/' + this.ext?.tag + (this.ext?.origin || '@')];
+    }
+    return ['/tag', this.ext?.tag + (this.ext?.origin || '@')];
+  }
 }
