@@ -1,4 +1,5 @@
 import { CdkDrag } from '@angular/cdk/drag-drop';
+import { HttpEventType } from '@angular/common/http';
 import {
   AfterViewInit,
   Component,
@@ -13,20 +14,23 @@ import {
 import { ReactiveFormsModule } from '@angular/forms';
 import { isEqual, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
-import { catchError, Observable, Subject, Subscription, switchMap, takeUntil, throwError } from 'rxjs';
+import { catchError, last, map, Observable, of, Subject, Subscription, switchMap, takeUntil, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Ext } from '../../../model/ext';
 import { Page } from '../../../model/page';
 import { Ref, RefSort } from '../../../model/ref';
+import { mimeToCode } from '../../../mods/code';
 import { AccountService } from '../../../service/account.service';
 import { AdminService } from '../../../service/admin.service';
+import { ProxyService } from '../../../service/api/proxy.service';
 import { RefService } from '../../../service/api/ref.service';
 import { TaggingService } from '../../../service/api/tagging.service';
 import { ConfigService } from '../../../service/config.service';
 import { OembedStore } from '../../../store/oembed';
 import { Store } from '../../../store/store';
+import { readFileAsDataURL, readFileAsString } from '../../../util/async';
 import { URI_REGEX } from '../../../util/format';
 import { fixUrl, printError } from '../../../util/http';
 import { getArgs, UrlFilter } from '../../../util/query';
@@ -75,6 +79,8 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
   pressToUnlock = false;
   adding: string[] = [];
   failed: { text: string; error: string }[] = [];
+  dropping = false;
+  uploadProgress = new Map<string, number>();
 
   private currentRequest?: Subscription;
   private runningSources?: Subscription;
@@ -91,6 +97,7 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
     private refs: RefService,
     private tags: TaggingService,
     private zone: NgZone,
+    private proxy: ProxyService,
   ) {
     if (config.mobile) {
       this.pressToUnlock = true;
@@ -235,7 +242,7 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
     const text = this.addText;
     this.addText = '';
     this.adding.push(text);
-    const tagsWithAuthor = !hasTag(this.store.account.localTag, this.addTags) ? [...this.addTags, this.store.account.localTag] : this.addTags;
+    const tagsWithAuthor = this.getTagsWithAuthor();
     const isUrl = URI_REGEX.test(text) && this.config.allowedSchemes.filter(s => text.startsWith(s)).length;
     // TODO: support local urls
     const ref: Ref = isUrl ? {
@@ -324,6 +331,168 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
 
   dismissFailed(failedItem: { text: string; error: string }) {
     this.failed.splice(this.failed.indexOf(failedItem), 1);
+  }
+
+  private getTagsWithAuthor(): string[] {
+    return !hasTag(this.store.account.localTag, this.addTags) 
+      ? [...this.addTags, this.store.account.localTag] 
+      : this.addTags;
+  }
+
+  handlePaste(event: ClipboardEvent) {
+    const items = event.clipboardData?.items;
+    if (!items) return;
+    
+    const files: File[] = [];
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      if (item.kind === 'file') {
+        const file = item.getAsFile();
+        if (file) files.push(file);
+      }
+    }
+    
+    if (files.length > 0) {
+      event.preventDefault();
+      event.stopPropagation();
+      this.uploadFiles(files);
+    }
+  }
+
+  handleDrop(event: DragEvent) {
+    event.preventDefault();
+    event.stopPropagation();
+    this.dropping = false;
+    const items = event.dataTransfer?.items;
+    if (!items) return;
+    
+    const files: File[] = [];
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      if (item.kind === 'file') {
+        const file = item.getAsFile();
+        if (file) files.push(file);
+      }
+    }
+    
+    if (files.length > 0) {
+      this.uploadFiles(files);
+    }
+  }
+
+  handleDragEnter(event: DragEvent) {
+    event.preventDefault();
+    event.stopPropagation();
+    this.dropping = true;
+  }
+
+  handleDragOver(event: DragEvent) {
+    event.preventDefault();
+    event.stopPropagation();
+  }
+
+  dragLeave(parent: HTMLElement, target: HTMLElement) {
+    if (this.dropping && (parent === target || !parent.contains(target))) {
+      this.dropping = false;
+    }
+  }
+
+  uploadFiles(files: File[]) {
+    if (!files.length) return;
+    if (!this.admin.getPlugin('plugin/file')) return;
+    
+    files.forEach(file => {
+      const fileName = file.name;
+      this.adding.push(fileName);
+      this.uploadProgress.set(fileName, 0);
+      
+      this.uploadFile$(file, fileName).subscribe({
+        next: ref => {
+          if (ref) {
+            this.submitUpload(ref, fileName);
+          }
+        },
+        error: err => {
+          this.adding.splice(this.adding.indexOf(fileName), 1);
+          this.uploadProgress.delete(fileName);
+          this.failed.push({ text: fileName, error: printError(err).join('\n') });
+        }
+      });
+    });
+  }
+
+  uploadFile$(file: File, fileName: string): Observable<Ref | null> {
+    const tagsWithAuthor = this.getTagsWithAuthor();
+    
+    const codeType = mimeToCode(file.type);
+    if (codeType.length) {
+      const ref: Ref = {
+        origin: this.store.account.origin,
+        url: 'internal:' + uuid(),
+        title: file.name,
+        tags: [...tagsWithAuthor, 'internal', ...file.type === 'text/markdown' ? [] : codeType]
+      };
+      this.uploadProgress.set(fileName, 50);
+      return readFileAsString(file).pipe(
+        switchMap(contents => this.refs.create({
+          ...ref,
+          comment: contents,
+        })),
+        map(() => ref),
+        tap(() => this.uploadProgress.set(fileName, 100)),
+        catchError(err => {
+          console.warn('File upload failed, falling back to base64 encoding:', err);
+          return readFileAsDataURL(file).pipe(map(url => ({ ...ref, url }))); // base64
+        }),
+      );
+    } else {
+      const tags: string[] = [...tagsWithAuthor, 'plugin/file'];
+      if (file.type.startsWith('audio/') && this.admin.getPlugin('plugin/audio')) {
+        tags.push('plugin/audio');
+      } else if (file.type.startsWith('video/') && this.admin.getPlugin('plugin/video')) {
+        tags.push('plugin/video', 'plugin/thumbnail');
+      } else if (file.type.startsWith('image/') && this.admin.getPlugin('plugin/image')) {
+        tags.push('plugin/image', 'plugin/thumbnail');
+      } else if (file.type.startsWith('application/pdf') && this.admin.getPlugin('plugin/pdf')) {
+        tags.push('plugin/pdf');
+      }
+      
+      return this.proxy.save(file, this.store.account.origin).pipe(
+        map(event => {
+          switch (event.type) {
+            case HttpEventType.Response:
+              return event.body;
+            case HttpEventType.UploadProgress:
+              const percentDone = event.total ? Math.round(100 * event.loaded / event.total) : 0;
+              this.uploadProgress.set(fileName, percentDone);
+              return null;
+          }
+          return null;
+        }),
+        last(),
+        switchMap(ref => !ref ? of(ref) : this.tags.patch(tags, ref.url, ref.origin).pipe(
+          map(cursor => ({ ...ref, tags: uniq([...ref?.tags || [], ...tags]) })),
+        )),
+        catchError(err => {
+          console.warn('File upload failed, falling back to base64 encoding:', err);
+          return readFileAsDataURL(file).pipe(map(url => ({ url, tags }))); // base64
+        }),
+      );
+    }
+  }
+
+  submitUpload(ref: Ref, fileName: string) {
+    if (!this.page) {
+      // Initialize page if it doesn't exist yet
+      this.page = { content: [], page: { totalElements: 0, number: 0, totalPages: 0, size: 0 } } as Page<Ref>;
+    }
+    
+    ref.origin = this.store.account.origin;
+    
+    this.mutated = true;
+    this.adding.splice(this.adding.indexOf(fileName), 1);
+    this.uploadProgress.delete(fileName);
+    this.page!.content.push(ref);
   }
 
   private refreshPage(i: number, pinned?: Ref[]) {

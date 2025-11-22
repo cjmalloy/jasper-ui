@@ -76,6 +76,8 @@ export class KanbanCardComponent implements OnChanges, AfterViewInit, OnDestroy 
   hideSwimLanes = true;
   @Input()
   ext?: Ext;
+  @Input()
+  progress?: number;
 
   @Output()
   copied = new EventEmitter<Ref>();
