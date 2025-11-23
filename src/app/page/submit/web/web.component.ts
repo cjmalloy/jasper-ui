@@ -149,7 +149,7 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
           this.scrape.rss(url).pipe(
             switchMap(value => {
               if (!value) return of(value);
-              return this.refs.page({ url: value, size: 1, query: this.store.account.origin, obsolete: null }).pipe(
+              return this.refs.page({ url: value, size: 1, query: this.store.account.origin || '*', obsolete: null }).pipe(
                 map(page => page.content.length > 0 ? undefined : value),
                 catchError(() => of(value))
               );

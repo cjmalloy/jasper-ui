@@ -181,7 +181,7 @@ export class SubmitPage implements OnInit, OnDestroy {
     if (this.existingRef?.url === url && this.existingRef.origin === this.store.account.origin) return of(true);
     if (this.responsesToUrlFor === url) return of(false);
     return timer(400).pipe(
-      switchMap(() => this.refs.page({ url, size: 1, query: this.store.account.origin, obsolete: null })),
+      switchMap(() => this.refs.page({ url, size: 1, query: this.store.account.origin || '*', obsolete: null })),
       map(page => {
         this.existingRef = page.content[0];
         return !!this.existingRef;
