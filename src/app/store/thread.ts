@@ -12,6 +12,8 @@ import { getArgs, UrlFilter } from '../util/query';
 })
 export class ThreadStore {
 
+  empty = false;
+  newComments = false;
   defaultBatchSize = 500;
   args?: RefPageArgs = {} as any;
   pages: Page<Ref>[] = [];
@@ -70,6 +72,7 @@ export class ThreadStore {
   }
 
   addPage(page: Page<Ref>) {
+    this.empty = !this.latest.length && !page.content.length;
     if (!page.content.length) return;
     this.pages.push(page);
     for (const r of page.content) this.add(r);
