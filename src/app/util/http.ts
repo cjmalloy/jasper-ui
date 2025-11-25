@@ -25,7 +25,7 @@ export function writeObj(obj?: Record<string, any>): Record<string, any> | undef
     let v = obj[k];
     if (DateTime.isDateTime(v)) v = v.toUTC().toISO();
     if ((v || v === false) && !emptyObject(v)) {
-      result[k] = v;
+      result[k] = (isObject(v) && !isArray(v))  ? writeObj(v) : v;
     }
   }
   if (emptyObject(result)) return undefined;
