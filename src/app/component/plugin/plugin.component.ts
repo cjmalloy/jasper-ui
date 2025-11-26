@@ -2,7 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostBinding, Input, OnChanges, QueryList, SimpleChanges, ViewChildren } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { catchError, of, switchMap, throwError } from 'rxjs';
+import { catchError, of, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { pluginForm, PluginFormComponent } from '../../form/plugin/plugin.component';
 import { HasChanges } from '../../guard/pending-changes.guard';
@@ -18,12 +18,13 @@ import { printError } from '../../util/http';
 import { ActionComponent } from '../action/action.component';
 import { ConfirmActionComponent } from '../action/confirm-action/confirm-action.component';
 import { InlineButtonComponent } from '../action/inline-button/inline-button.component';
+import { LoadingComponent } from '../loading/loading.component';
 
 @Component({
   selector: 'app-plugin',
   templateUrl: './plugin.component.html',
   styleUrls: ['./plugin.component.scss'],
-  imports: [RouterLink, ConfirmActionComponent, InlineButtonComponent, ReactiveFormsModule, PluginFormComponent]
+  imports: [RouterLink, ConfirmActionComponent, InlineButtonComponent, ReactiveFormsModule, PluginFormComponent, LoadingComponent]
 })
 export class PluginComponent implements OnChanges, HasChanges {
   css = 'plugin list-item';
@@ -45,6 +46,7 @@ export class PluginComponent implements OnChanges, HasChanges {
   configErrors: string[] = [];
   defaultsErrors: string[] = [];
   schemaErrors: string[] = [];
+  saving?: Subscription;
 
   constructor(
     private mod: ModService,
@@ -133,13 +135,15 @@ export class PluginComponent implements OnChanges, HasChanges {
       this.schemaErrors.push(e.message);
     }
     if (this.configErrors.length || this.defaultsErrors.length || this.schemaErrors.length) return;
-    this.plugins.update(plugin).pipe(
+    this.saving = this.plugins.update(plugin).pipe(
       switchMap(() => this.plugins.get(this.qualifiedTag)),
       catchError((err: HttpErrorResponse) => {
+        delete this.saving;
         this.serverError = printError(err);
         return throwError(() => err);
       }),
     ).subscribe(tag => {
+      delete this.saving;
       this.editForm.reset();
       this.serverError = [];
       this.editing = false;
