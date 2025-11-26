@@ -394,9 +394,8 @@ if status and status >= 500: handle_temporary_error(f"Server error fetching feed
 if status and status >= 400: handle_permanent_error(f"Client error fetching feed ({status}): {ref['url']}")
 if feed_data.bozo:
   exc = feed_data.get('bozo_exception', '')
-  if 'html' in str(exc).lower(): handle_temporary_error(
-    f"Error parsing feed, received HTML instead of XML: {ref['url']}")
-  handle_permanent_error(f"Error parsing feed: {exc}")
+  if 'html' in str(exc).lower(): handle_temporary_error(f"Error parsing feed, received HTML instead of XML: {ref['url']}")
+  if not 'ascii' in str(exc).lower(): handle_permanent_error(f"Error parsing feed: {exc}")
 feed_needs_update = False
 updated_config = config.copy()
 new_etag = feed_data.get('etag')
