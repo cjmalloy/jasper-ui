@@ -1,11 +1,22 @@
 /// <reference types="vitest/globals" />
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
-import { forwardRef } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { Ref } from '../../model/ref';
 
 import { CommentComponent } from './comment.component';
+
+// Mock ViewerComponent to avoid circular dependency issues
+@Component({
+  selector: 'app-viewer',
+  template: '<div>Mock Viewer</div>',
+  standalone: true,
+})
+class MockViewerComponent {
+  @Input() ref?: Ref;
+}
 
 describe('CommentComponent', () => {
   let component: CommentComponent;
@@ -13,13 +24,19 @@ describe('CommentComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [forwardRef(() => CommentComponent)],
+      imports: [CommentComponent],
       providers: [
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),
         provideRouter([]),
       ]
-    }).compileComponents();
+    })
+    .overrideComponent(CommentComponent, {
+      set: {
+        imports: [MockViewerComponent]
+      }
+    })
+    .compileComponents();
 
     fixture = TestBed.createComponent(CommentComponent);
     component = fixture.componentInstance;

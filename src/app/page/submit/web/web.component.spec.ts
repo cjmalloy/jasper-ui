@@ -1,15 +1,23 @@
 /// <reference types="vitest/globals" />
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { Component, Input } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ReactiveFormsModule } from '@angular/forms';
+import { ReactiveFormsModule, UntypedFormGroup } from '@angular/forms';
 import { provideRouter } from '@angular/router';
-import { LinksFormComponent } from '../../../form/links/links.component';
-import { RefFormComponent } from '../../../form/ref/ref.component';
-import { TagsFormComponent } from '../../../form/tags/tags.component';
-import { JasperFormlyModule } from '../../../formly/formly.module';
+import { Ref } from '../../../model/ref';
 
 import { SubmitWebPage } from './web.component';
+
+// Mock RefFormComponent to avoid circular dependency issues
+@Component({
+  selector: 'app-ref-form',
+  template: '<div>Mock RefForm</div>',
+  standalone: true,
+})
+class MockRefFormComponent {
+  @Input() group?: UntypedFormGroup;
+}
 
 describe('SubmitWebPage', () => {
   let component: SubmitWebPage;
@@ -19,18 +27,20 @@ describe('SubmitWebPage', () => {
     await TestBed.configureTestingModule({
       imports: [
         ReactiveFormsModule,
-        JasperFormlyModule,
         SubmitWebPage,
-        RefFormComponent,
-        TagsFormComponent,
-        LinksFormComponent,
       ],
       providers: [
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),
         provideRouter([]),
       ],
-    }).compileComponents();
+    })
+    .overrideComponent(SubmitWebPage, {
+      set: {
+        imports: [ReactiveFormsModule, MockRefFormComponent]
+      }
+    })
+    .compileComponents();
 
     fixture = TestBed.createComponent(SubmitWebPage);
     component = fixture.componentInstance;

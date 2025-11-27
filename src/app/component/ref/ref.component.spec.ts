@@ -1,13 +1,23 @@
 /// <reference types="vitest/globals" />
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
-import { forwardRef } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { provideRouter } from '@angular/router';
-import { SafePipe } from '../../pipe/safe.pipe';
+import { Ref } from '../../model/ref';
 
 import { RefComponent } from './ref.component';
+
+// Mock ViewerComponent to avoid circular dependency issues
+@Component({
+  selector: 'app-viewer',
+  template: '<div>Mock Viewer</div>',
+  standalone: true,
+})
+class MockViewerComponent {
+  @Input() ref?: Ref;
+}
 
 describe('RefComponent', () => {
   let component: RefComponent;
@@ -16,16 +26,21 @@ describe('RefComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [
-        forwardRef(() => RefComponent),
+        RefComponent,
         ReactiveFormsModule,
-        SafePipe,
       ],
       providers: [
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),
         provideRouter([]),
       ],
-    }).compileComponents();
+    })
+    .overrideComponent(RefComponent, {
+      set: {
+        imports: [MockViewerComponent]
+      }
+    })
+    .compileComponents();
 
     fixture = TestBed.createComponent(RefComponent);
     component = fixture.componentInstance;
