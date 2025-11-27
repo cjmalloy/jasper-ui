@@ -84,7 +84,7 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
   userSubExts: Ext[] = [];
 
   @HostBinding('class.expanded')
-  private _expanded = false;
+  _expanded = false;
   private _ext?: Ext;
   private lastView = this.store.view.current;
 
