@@ -1,19 +1,58 @@
 /// <reference types="vitest/globals" />
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ReactiveFormsModule, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
+import { provideRouter } from '@angular/router';
+import { JasperFormlyModule } from '../../formly/formly.module';
+import { PluginsFormComponent } from '../plugins/plugins.component';
+
 import { RefFormComponent } from './ref.component';
 
 describe('RefFormComponent', () => {
+  let component: RefFormComponent;
+  let fixture: ComponentFixture<RefFormComponent>;
+  let httpMock: HttpTestingController;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [
+        ReactiveFormsModule,
+        JasperFormlyModule,
+        RefFormComponent
+      ],
+      providers: [
+        PluginsFormComponent,
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting(),
+        provideRouter([]),
+      ],
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(RefFormComponent);
+    component = fixture.componentInstance;
+    httpMock = TestBed.inject(HttpTestingController);
+    component.group = new UntypedFormGroup({
+      url: new UntypedFormControl(),
+      published: new UntypedFormControl(),
+      title: new UntypedFormControl(),
+      comment: new UntypedFormControl(),
+      sources: new UntypedFormControl(),
+      alternateUrls: new UntypedFormControl(),
+      tags: new UntypedFormControl(),
+      plugins: new UntypedFormGroup({}),
+    });
+    fixture.detectChanges();
+  });
+
+  afterEach(() => {
+    httpMock.verify();
+  });
+
   it('should create', () => {
-    // Test the component class directly without TestBed
-    // This avoids the circular dependency issue with ViewerComponent chain
-    const component = Object.create(RefFormComponent.prototype);
     expect(component).toBeTruthy();
   });
 
-  // Note: The following tests require TestBed with HttpTestingController
-  // They are currently disabled due to Angular 21's Vitest integration 
-  // having issues with circular dependencies using forwardRef.
-  // TODO: Re-enable when the forwardRef circular dependency issue is resolved
-  /*
   it('should extract title from filename when scrape returns no title', async () => {
     // Set a URL to a PDF file
     component.url.setValue('https://example.com/my-document.pdf');
@@ -54,5 +93,4 @@ describe('RefFormComponent', () => {
     // Check that scraped title was used instead of filename
     expect(component.title.value).toBe('Scraped Title');
   });
-  */
 });
