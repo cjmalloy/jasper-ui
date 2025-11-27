@@ -155,7 +155,7 @@ export const feedPlugin: Plugin = {
         title: $localize`Don't use the ETag to check if a feed is updated.`
       }
     }],
-    timeoutMs: 300_000,
+    timeoutMs: 900_000,
     requirements: `
       feedparser
       beautifulsoup4
