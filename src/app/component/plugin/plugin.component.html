@@ -49,9 +49,12 @@
 
     <span><!-- Buttons --></span>
     <span class="buttons right">
-    <button type="submit" [disabled]="submitted && !editForm.valid" i18n>save</button>
-    <button type="button" (click)="editing = false" i18n>cancel</button>
-  </span>
+      @if (saving) {
+        <app-loading [inline]="true"></app-loading>
+      }
+      <button type="submit" [disabled]="saving || submitted && !editForm.valid" i18n>save</button>
+      <button type="button" (click)="editing = false" i18n>cancel</button>
+    </span>
   </form>
 }  @else if (viewSource) {
   <form class="form" [formGroup]="editForm">
