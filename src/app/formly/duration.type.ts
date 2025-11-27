@@ -59,8 +59,8 @@ export class FormlyFieldDuration extends FieldType<FieldTypeConfig> {
     },
   ],
   host: {
-    '(change)': 'onChange($event.target.value)',
-    '(input)': 'onChange($event.target.value)',
+    '(change)': 'onHostChange($event)',
+    '(input)': 'onHostInput($event)',
     '(blur)': 'onTouched()'
   },
 })
@@ -72,6 +72,20 @@ export class DurationInputAccessor implements ControlValueAccessor {
   datalist: { value: string, label: string }[] = [];
 
   constructor(private elementRef: ElementRef) {}
+
+  onHostChange(event: Event) {
+    const target = event.target as HTMLInputElement;
+    if (target && this.onChange) {
+      this.onChange(target.value);
+    }
+  }
+
+  onHostInput(event: Event) {
+    const target = event.target as HTMLInputElement;
+    if (target && this.onChange) {
+      this.onChange(target.value);
+    }
+  }
 
   writeValue(value: any) {
     this.elementRef.nativeElement.value = this.datalist.findIndex(o => o.value === value);

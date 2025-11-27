@@ -75,13 +75,15 @@
     "@types/lodash-es": "^4.17.12",
     "@types/luxon": "^3.7.1",
     "@types/qrcode": "^1.5.6",
+    "@vitest/browser-playwright": "^4.0.14",
     "cypress": "^15.7.0",
     "cypress-mochawesome-reporter": "^4.0.2",
     "cypress-real-events": "^1.15.0",
     "jsdom": "^27.2.0",
     "patch-package": "^8.0.1",
     "raw-loader": "^4.0.2",
-    "typescript": "~5.9.3"
+    "typescript": "~5.9.3",
+    "vitest": "^4.0.14"
   },
   "overrides": {
     "@angular/common": "$@angular/common",
