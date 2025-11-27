@@ -164,13 +164,13 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy, HasChan
     this.update();
   }
 
-  @HostListener('window:resize', ['$event'])
+  @HostListener('window:resize')
   onResize() {
     this.simulation?.alpha(0.3);
     this.update();
   }
 
-  @HostListener('window:click', ['$event'])
+  @HostListener('window:click')
   onWindowClick() {
     this.close();
   }

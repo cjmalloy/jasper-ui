@@ -1,5 +1,4 @@
-import { FormlyConfig } from '@ngx-formly/core';
-import { FormlyFieldConfig } from '@ngx-formly/core/lib/models';
+import { FormlyConfig, FormlyFieldConfig } from '@ngx-formly/core';
 import { isObject } from 'lodash-es';
 
 export function getErrorMessage(field: FormlyFieldConfig, config: FormlyConfig) {

@@ -9,12 +9,12 @@ export class RouterActivateDirective {
   @Input()
   queryParams: any;
 
-  @HostListener('[dblclick, $event]')
+  @HostListener('dblclick', ['$event'])
   onDblClick(event: MouseEvent) {
     this.activate();
   }
 
-  @HostListener('[keydown, $event]')
+  @HostListener('keydown', ['$event'])
   onKeyDown(event: KeyboardEvent) {
     if (event.key === 'Enter') this.activate();
   }
