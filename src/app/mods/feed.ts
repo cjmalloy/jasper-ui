@@ -315,7 +315,7 @@ def parse_entry(feed_ref, entry):
   new_ref = {'origin': origin, 'sources': [feed_ref['url']], 'tags': list(config.get('addTags', []))}
   link = entry.get('link')
   guid = entry.get('id')
-  if guid and guid.startswith('http'): link = guid
+  if not link.startswith('http') and guid and guid.startswith('http'): link = guid
   if config.get('stripQuery') and link and '?' in link: link = link.split('?')[0]
   new_ref['url'] = link
   new_ref['title'] = entry.get('title', '')
