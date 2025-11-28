@@ -57,7 +57,7 @@ export class SettingsMePage implements AfterViewInit, HasChanges {
   }
 
   ngAfterViewInit() {
-    this.form!.setValue(this.editForm.value);
+    defer(() => this.form!.setValue(this.editForm.value));
   }
 
   save() {
