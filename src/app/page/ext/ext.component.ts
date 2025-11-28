@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, HostBinding, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, HostBinding, OnDestroy, ViewChild } from '@angular/core';
 import {
   ReactiveFormsModule,
   UntypedFormBuilder,
@@ -8,7 +8,7 @@ import {
   Validators
 } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { defer, isObject } from 'lodash-es';
+import { isObject } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { MobxAngularModule } from 'mobx-angular';
 import { catchError, of, Subscription, switchMap, throwError } from 'rxjs';
@@ -44,12 +44,9 @@ import { access, hasPrefix, localTag, prefix } from '../../util/tag';
     ExtFormComponent,
   ],
 })
-export class ExtPage implements OnInit, OnDestroy, HasChanges {
+export class ExtPage implements AfterViewInit, OnDestroy, HasChanges {
   private disposers: IReactionDisposer[] = [];
   @HostBinding('class') css = 'full-page-form';
-
-  @ViewChild('form')
-  form?: ExtFormComponent;
 
   template = '';
   created = false;
@@ -76,6 +73,7 @@ export class ExtPage implements OnInit, OnDestroy, HasChanges {
     public store: Store,
     private exts: ExtService,
     private fb: UntypedFormBuilder,
+    private cd: ChangeDetectorRef,
   ) {
     mod.setTitle($localize`Edit Tag`);
     this.extForm = fb.group({
@@ -87,7 +85,7 @@ export class ExtPage implements OnInit, OnDestroy, HasChanges {
     return !this.editForm?.dirty;
   }
 
-  ngOnInit(): void {
+  ngAfterViewInit(): void {
     this.disposers.push(autorun(() => {
       if (!this.store.view.tag) {
         this.template = '';
@@ -108,7 +106,7 @@ export class ExtPage implements OnInit, OnDestroy, HasChanges {
     if (ext) {
       this.editForm = extForm(this.fb, ext, this.admin, true);
       this.editForm.patchValue(ext);
-      defer(() => this.form!.setValue(ext));
+      this.cd.markForCheck()
     } else {
       for (const t of this.templates) {
         if (hasPrefix(tag, t.tag)) {
@@ -135,6 +133,11 @@ export class ExtPage implements OnInit, OnDestroy, HasChanges {
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
   }
+
+  @ViewChild(ExtFormComponent)
+  set form(form: ExtFormComponent) {
+    form?.setValue(this.editForm.value);
+  };
 
   get tag() {
     return this.extForm.get('tag') as UntypedFormControl;

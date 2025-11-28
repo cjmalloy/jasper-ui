@@ -3,6 +3,7 @@ import {
   AfterViewInit,
   Component,
   ElementRef,
+  forwardRef,
   HostBinding,
   Input,
   OnChanges,
@@ -64,7 +65,7 @@ import { CommentThreadComponent } from './comment-thread/comment-thread.componen
   host: { 'class': 'comment' },
   imports: [
     CommentThreadComponent,
-    ViewerComponent,
+    forwardRef(() => ViewerComponent),
     MobxAngularModule,
     RouterLink,
     TitleDirective,
