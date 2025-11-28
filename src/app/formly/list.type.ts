@@ -176,9 +176,8 @@ export class ListTypeComponent extends FieldArrayType {
     if (this.field.fieldGroup?.length === 0) return;
     if (index === undefined || index >= this.field.fieldGroup!.length) index = this.field.fieldGroup!.length - 1;
     if (index < 0) index = 0;
-    const fieldIndex = index;
     setTimeout(() => {
-      const selector = '#' + this.field.fieldGroup![fieldIndex].id;
+      const selector = '#' + this.field.fieldGroup![index!].id;
       const el = document.querySelector(selector) as HTMLInputElement;
       if (el) {
         el.focus();
