@@ -2,7 +2,7 @@ import { HttpEventType } from '@angular/common/http';
 import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { FieldType, FieldTypeConfig, FormlyAttributes, FormlyConfig } from '@ngx-formly/core';
-import { debounce, isString, uniqBy } from 'lodash-es';
+import { debounce, defer, isString, uniqBy } from 'lodash-es';
 import { catchError, last, map, of, Subscription, throwError } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { Ref } from '../model/ref';
@@ -136,7 +136,7 @@ export class FormlyFieldRefInput extends FieldType<FieldTypeConfig> implements A
     this.editing = false;
     if (this.showError && !this.showedError) {
       this.showedError = true;
-      setTimeout(() => this.validate(input), 0);
+      defer(() => this.validate(input));
     } else {
       this.showedError = false;
       this.getPreview(input.value);

@@ -1,5 +1,5 @@
 import { CdkDropListGroup } from '@angular/cdk/drag-drop';
-import { AfterViewInit, Component, ElementRef, EventEmitter, Input, OnDestroy, Output, ViewChild } from '@angular/core';
+import { Component, ElementRef, EventEmitter, Input, OnDestroy, Output, ViewChild } from '@angular/core';
 import {
   FormArray,
   FormControl,
@@ -11,7 +11,7 @@ import {
 } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { FormlyFieldConfig, FormlyForm, FormlyFormOptions } from '@ngx-formly/core';
-import { cloneDeep, uniq } from 'lodash-es';
+import { cloneDeep, defer, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { catchError, of, Subject, takeUntil } from 'rxjs';
 import { v4 as uuid } from 'uuid';
@@ -47,7 +47,7 @@ import { themesForm, ThemesFormComponent } from '../themes/themes.component';
     LoadingComponent,
   ],
 })
-export class ExtFormComponent implements AfterViewInit, OnDestroy {
+export class ExtFormComponent implements OnDestroy {
   private destroy$ = new Subject<void>();
   allSorts = allRefSorts;
   allFilters = this.admin.filters.map(convertFilter);
@@ -82,23 +82,12 @@ export class ExtFormComponent implements AfterViewInit, OnDestroy {
   };
 
   private tag?: string;
-  private viewInitialized = false;
-  private pendingExt?: Ext;
 
   constructor(
     public admin: AdminService,
     public store: Store,
     private refs: RefService,
   ) { }
-
-  ngAfterViewInit() {
-    this.viewInitialized = true;
-    // Apply pending ext if it was set before view was initialized
-    if (this.pendingExt) {
-      this.applyExtToForm(this.pendingExt);
-      this.pendingExt = undefined;
-    }
-  }
 
   ngOnDestroy() {
     this.destroy$.next();
@@ -200,10 +189,6 @@ export class ExtFormComponent implements AfterViewInit, OnDestroy {
     return negatable(filter);
   }
 
-  /**
-   * Set the ext value using reactive form methods.
-   * Patches the form group and updates formly models.
-   */
   setValue(ext: Ext) {
     this.tag = ext.tag;
     if (ext.config?.defaults) {
@@ -220,42 +205,29 @@ export class ExtFormComponent implements AfterViewInit, OnDestroy {
     if (!this.advancedForm) {
       this.advancedForm = cloneDeep(this.admin.getTemplateAdvancedForm(ext.tag));
     }
-    if (this.viewInitialized) {
-      this.applyExtToForm(ext);
-    } else {
-      // Store pending ext to apply after view init
-      this.pendingExt = ext;
-    }
-  }
-
-  /**
-   * Apply ext values to the form and formly components.
-   */
-  private applyExtToForm(ext: Ext) {
-    this.group.patchValue(ext);
-    this.options.formState.config = ext.config;
-    if (this.mainFormlyForm) {
-      this.mainFormlyForm.model = ext.config;
-      // Rebuild formly form to detect model changes
+    defer(() => {
+      this.group!.patchValue(ext);
+      this.options.formState.config = ext.config;
+      this.mainFormlyForm!.model = ext.config;
+      // TODO: Why aren't changed being detected?
       // @ts-ignore
-      this.mainFormlyForm.builder?.build(this.mainFormlyForm.field);
-    }
-    if (this.advancedFormlyForm) {
-      this.advancedFormlyForm.model = ext.config;
-      // Rebuild formly form to detect model changes
-      // @ts-ignore
-      this.advancedFormlyForm.builder?.build(this.advancedFormlyForm.field);
-    }
-    // Subscribe to config changes to handle defaults reactively
-    this.config.valueChanges.pipe(
-      takeUntil(this.destroy$),
-    ).subscribe(value => {
-      if (value.defaults) {
-        if (!this.defaults) this.createDefaults();
-      } else {
-        delete this.defaults;
-        this.loadingDefaults = false;
+      this.mainFormlyForm.builder.build(this.mainFormlyForm.field);
+      if (this.advancedFormlyForm) {
+        this.advancedFormlyForm!.model = ext.config;
+        // TODO: Why aren't changed being detected?
+        // @ts-ignore
+        this.advancedFormlyForm.builder.build(this.advancedFormlyForm.field);
       }
+      this.config.valueChanges.pipe(
+        takeUntil(this.destroy$),
+      ).subscribe(value => {
+        if (value.defaults) {
+          if (!this.defaults) this.createDefaults();
+        } else {
+          delete this.defaults;
+          this.loadingDefaults = false;
+        }
+      });
     });
   }
 

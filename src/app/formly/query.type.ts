@@ -2,7 +2,7 @@ import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, O
 import { ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { FieldType, FieldTypeConfig, FormlyAttributes, FormlyConfig } from '@ngx-formly/core';
-import { debounce, uniqBy } from 'lodash-es';
+import { debounce, defer, uniqBy } from 'lodash-es';
 import { forkJoin, map, Observable, of, Subscription, switchMap } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { Crumb } from '../component/query/query.component';
@@ -164,7 +164,7 @@ export class FormlyFieldQueryInput extends FieldType<FieldTypeConfig> implements
   blur(input: HTMLInputElement) {
     if (this.showError && !this.showedError) {
       this.showedError = true;
-      setTimeout(() => this.validate(input), 0);
+      defer(() => this.validate(input));
     } else {
       this.showedError = false;
       this.getPreview(input.value);
