@@ -256,21 +256,21 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
 
   addTag(...values: string[]) {
     for (const value of values) {
-      this.refForm.tagsFormComponent.addTag(value);
+      this.refForm.addTag(value);
     }
     this.submitted = false;
   }
 
   removeTag(...values: string[]) {
     for (const value of values) {
-      this.refForm.tagsFormComponent.removeTag(value);
+      this.refForm.removeTag(value);
     }
     this.submitted = false;
   }
 
   addPlugin(tag: string, plugin: any) {
-    this.refForm.tagsFormComponent.addTag(tag);
-    this.refForm.pluginsFormComponent.setValue({
+    this.refForm.addTag(tag);
+    this.refForm.setPlugins({
       ...this.webForm.value.plugins || {},
       [tag]: plugin,
     });
@@ -278,12 +278,12 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
   }
 
   addSource(value = '') {
-    this.refForm.sourcesFormComponent.addLink(value);
+    this.refForm.addSource(value);
     this.submitted = false;
   }
 
   addAlt(value = '') {
-    this.refForm.altsFormComponent.addLink(value);
+    this.refForm.addAlt(value);
     this.submitted = false;
   }
 
@@ -332,6 +332,6 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
     ref.plugins ||= {};
     ref.plugins['plugin/script/feed'] ||= {};
     ref.plugins['plugin/script/feed'].addTags = uniq([...ref.plugins['plugin/script/feed'].addTags || [], ...tags]);
-    this.refForm.pluginsFormComponent.setValue(ref.plugins);
+    this.refForm.setPlugins(ref.plugins);
   }
 }

@@ -1,6 +1,7 @@
 import { Component, HostBinding, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, UntypedFormArray, UntypedFormGroup, Validators } from '@angular/forms';
 import { FormlyForm } from '@ngx-formly/core';
+import { defer } from 'lodash-es';
 import { TAG_REGEX } from '../../util/format';
 import { hasPrefix, hasTag } from '../../util/tag';
 
@@ -81,7 +82,7 @@ export class TagsFormComponent implements OnChanges {
   setTags(values: string[]) {
     if (!this.tags) throw 'Not ready yet!';
     while (this.tags.length > values.length) this.tags.removeAt(this.tags.length - 1, { emitEvent: false });
-    while (this.tags.length < values.length) this.tags.push(this.fb.control('', TagsFormComponent.validators), { emitEvent: false });
+    while (this.tags.length < values.length) this.tags.push(this.fb.control(''), { emitEvent: false });
     this.tags.setValue(values);
   }
 
@@ -95,37 +96,31 @@ export class TagsFormComponent implements OnChanges {
         break;
       }
     }
-    const currentValues = this.tags.value as string[];
-    values = values.filter(t => t === 'placeholder' || !hasTag(t, currentValues));
-    for (const value of values) {
-      this.tags.push(this.fb.control(value, TagsFormComponent.validators));
+    values = values.filter(t => t === 'placeholder' || !hasTag(t, this.tags.value));
+    if (values.length) {
+      this.setTags([...this.tags.value, ...values]);
     }
   }
 
-  /**
-   * Trigger validation update on all tag controls.
-   */
-  updateValidity() {
-    this.tags.controls.forEach(control => control.updateValueAndValidity());
+  update() {
+    defer(() => this.tags.controls.forEach(control => control.updateValueAndValidity()));
   }
 
   removeTag(tag: string) {
     if (!this.tags) throw 'Not ready yet!';
-    const values = this.tags.value as string[];
-    for (let i = values.length - 1; i >= 0; i--) {
-      if (hasPrefix(values[i], tag)) {
+    for (let i = this.tags.value.length - 1; i >= 0; i--) {
+      if (hasPrefix(this.tags.value[i], tag)) {
         this.tags.removeAt(i);
       }
     }
-    this.updateValidity();
+    this.update();
   }
 
   removeTagAndChildren(tag: string) {
     if (!this.tags) throw 'Not ready yet!';
     let removed = false;
-    const values = this.tags.value as string[];
-    for (let i = values.length - 1; i >= 0; i--) {
-      if (hasPrefix(values[i], tag)) {
+    for (let i = this.tags.value.length - 1; i >= 0; i--) {
+      if (hasPrefix(this.tags.value[i], tag)) {
         this.tags.removeAt(i);
         removed = true;
       }
@@ -134,6 +129,6 @@ export class TagsFormComponent implements OnChanges {
       const parent = tag.substring(0, tag.lastIndexOf('/'));
       if (!hasTag(parent, this.tags.value)) this.addTag(parent);
     }
-    if (removed) this.updateValidity();
+    if (removed) this.update();
   }
 }

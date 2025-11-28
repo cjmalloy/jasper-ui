@@ -2,6 +2,7 @@ import { CdkDrag, CdkDragDrop, CdkDragHandle, CdkDropList } from '@angular/cdk/d
 import { CdkScrollable } from '@angular/cdk/scrolling';
 import { Component, HostBinding } from '@angular/core';
 import { FieldArrayType, FormlyField } from '@ngx-formly/core';
+import { defer } from 'lodash-es';
 import { Store } from '../store/store';
 import { getPath } from '../util/http';
 
@@ -167,39 +168,27 @@ export class ListTypeComponent extends FieldArrayType {
     if (!input.value) this.remove(i);
   }
 
-  /**
-   * Focus the input at the given index.
-   * Uses setTimeout to wait for DOM updates after form changes.
-   */
   focus(index?: number, select = false) {
     if (this.groupArray) return;
     if (this.field.fieldGroup?.length === 0) return;
     if (index === undefined || index >= this.field.fieldGroup!.length) index = this.field.fieldGroup!.length - 1;
     if (index < 0) index = 0;
-    setTimeout(() => {
-      const selector = '#' + this.field.fieldGroup![index!].id;
+    defer(() => {
+      const selector = '#' + this.field.fieldGroup![index].id;
       const el = document.querySelector(selector) as HTMLInputElement;
-      if (el) {
-        el.focus();
-        if (select) {
-          el.setSelectionRange(0, el.value.length);
-        }
+      el.focus();
+      if (select) {
+        el.setSelectionRange(0, el.value.length);
       }
-    }, 0);
+    });
   }
 
-  /**
-   * Blur the first input field.
-   * Uses setTimeout to wait for DOM updates after form changes.
-   */
   blur() {
     const selector = '#' + this.field.fieldGroup![0].id;
-    setTimeout(() => {
+    defer(() => {
       const el = document.querySelector(selector) as HTMLInputElement;
-      if (el) {
-        el.blur();
-      }
-    }, 0);
+      el.blur();
+    });
   }
 
   drop(event: CdkDragDrop<ListTypeComponent>) {

@@ -1,7 +1,7 @@
 import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { FieldType, FieldTypeConfig, FormlyAttributes, FormlyConfig } from '@ngx-formly/core';
-import { debounce, uniqBy } from 'lodash-es';
+import { debounce, defer, uniqBy } from 'lodash-es';
 import { forkJoin, map, Observable, of, Subscription, switchMap } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { Config } from '../model/tag';
@@ -106,7 +106,7 @@ export class FormlyFieldTagInput extends FieldType<FieldTypeConfig> implements A
     this.editing = false;
     if (this.showError && !this.showedError) {
       this.showedError = true;
-      setTimeout(() => this.validate(input), 0);
+      defer(() => this.validate(input));
     } else {
       this.showedError = false;
       this.getPreview(input.value);

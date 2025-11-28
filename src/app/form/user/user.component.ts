@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
+import { Component, ElementRef, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
 import {
   ReactiveFormsModule,
   UntypedFormBuilder,
@@ -6,6 +6,7 @@ import {
   UntypedFormGroup,
   Validators
 } from '@angular/forms';
+import { defer } from 'lodash-es';
 import { v4 as uuid } from 'uuid';
 import { FillWidthDirective } from '../../directive/fill-width.directive';
 import { User } from '../../model/user';
@@ -27,7 +28,7 @@ import { TagsFormComponent } from '../tags/tags.component';
     JsonComponent,
   ]
 })
-export class UserFormComponent implements OnInit, AfterViewInit {
+export class UserFormComponent implements OnInit {
 
   @Input()
   group!: UntypedFormGroup;
@@ -62,8 +63,6 @@ export class UserFormComponent implements OnInit, AfterViewInit {
   editingExternal = false;
 
   private showedError = false;
-  private viewInitialized = false;
-  private pendingUser?: User;
 
   constructor(
     public store: Store,
@@ -71,15 +70,6 @@ export class UserFormComponent implements OnInit, AfterViewInit {
 
   ngOnInit(): void {
     this.pubKey.disable();
-  }
-
-  ngAfterViewInit(): void {
-    this.viewInitialized = true;
-    // Apply pending user if it was set before view was initialized
-    if (this.pendingUser) {
-      this.applyUserToForm(this.pendingUser);
-      this.pendingUser = undefined;
-    }
   }
 
   get tag() {
@@ -118,30 +108,14 @@ export class UserFormComponent implements OnInit, AfterViewInit {
   blur(input: HTMLInputElement) {
     if (this.showError && !this.showedError) {
       this.showedError = true;
-      // Use setTimeout to allow Angular change detection to run before validation
-      setTimeout(() => this.validate(input), 0);
+      defer(() => this.validate(input));
     } else {
       this.showedError = false;
       this.tagChanges.next(input.value)
     }
   }
 
-  /**
-   * Set the user value using reactive form methods.
-   */
   setUser(user: User) {
-    if (this.viewInitialized) {
-      this.applyUserToForm(user);
-    } else {
-      // Store pending user to apply after view init
-      this.pendingUser = user;
-    }
-  }
-
-  /**
-   * Apply user values to the form and tag components.
-   */
-  private applyUserToForm(user: User) {
     this.notifications.setTags((user.readAccess || []).filter(isMailbox));
     this.readAccess.setTags((user.readAccess || []).filter(t => !isMailbox(t)));
     this.writeAccess.setTags([...user.writeAccess || []]);

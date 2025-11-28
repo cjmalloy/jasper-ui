@@ -1,6 +1,5 @@
 import { CdkDropListGroup } from '@angular/cdk/drag-drop';
 import {
-  AfterViewInit,
   Component,
   ElementRef,
   EventEmitter,
@@ -63,7 +62,7 @@ import { TagsFormComponent } from '../tags/tags.component';
     TagsFormComponent,
   ],
 })
-export class RefFormComponent implements OnChanges, AfterViewInit {
+export class RefFormComponent implements OnChanges {
 
   @Input()
   origin? = '';
@@ -72,14 +71,6 @@ export class RefFormComponent implements OnChanges, AfterViewInit {
   @Output()
   toggleTag = new EventEmitter<string>();
 
-  @ViewChild(TagsFormComponent)
-  tagsFormComponent!: TagsFormComponent;
-  @ViewChild('sources')
-  sourcesFormComponent!: LinksFormComponent;
-  @ViewChild('alts')
-  altsFormComponent!: LinksFormComponent;
-  @ViewChild(PluginsFormComponent)
-  pluginsFormComponent!: PluginsFormComponent;
   @ViewChild('fill')
   fill?: ElementRef;
 
@@ -94,9 +85,6 @@ export class RefFormComponent implements OnChanges, AfterViewInit {
   scrapingPublished = false;
   scrapingAll = false;
 
-  private viewInitialized = false;
-  private pendingRef?: Partial<Ref>;
-
   constructor(
     public config: ConfigService,
     public admin: AdminService,
@@ -106,15 +94,6 @@ export class RefFormComponent implements OnChanges, AfterViewInit {
     private store: Store,
     private fb: UntypedFormBuilder,
   ) { }
-
-  ngAfterViewInit() {
-    this.viewInitialized = true;
-    // Apply pending ref if it was set before view was initialized
-    if (this.pendingRef) {
-      this.applyRefToChildComponents(this.pendingRef);
-      this.pendingRef = undefined;
-    }
-  }
 
   ngOnChanges(changes: SimpleChanges) {
     MemoCache.clear(this);
@@ -149,24 +128,85 @@ export class RefFormComponent implements OnChanges, AfterViewInit {
     return this.group.get('sources') as UntypedFormArray;
   }
 
+  get alternateUrls() {
+    return this.group.get('alternateUrls') as UntypedFormArray;
+  }
+
+  get plugins() {
+    return this.group.get('plugins') as UntypedFormGroup;
+  }
+
   addSource(value = '') {
     this.sources.push(this.fb.control(value, LinksFormComponent.validators));
   }
 
   /**
-   * Set tags using reactive form methods through the tags form component.
+   * Add an alternate URL to the alternateUrls array through the form group.
    */
-  setTags(value: string[]) {
+  addAlt(value = '') {
+    this.alternateUrls.push(this.fb.control(value, LinksFormComponent.validators));
+  }
+
+  /**
+   * Set tags array values through the form group.
+   */
+  setTags(values: string[]) {
     MemoCache.clear(this);
-    if (this.viewInitialized && this.tagsFormComponent?.tags) {
-      this.tagsFormComponent.setTags(value);
-    } else {
-      // If view not initialized, update the form array directly
-      const tags = this.group.get('tags') as UntypedFormArray;
-      while (tags.length > value.length) tags.removeAt(tags.length - 1, { emitEvent: false });
-      while (tags.length < value.length) tags.push(this.fb.control('', TagsFormComponent.validators), { emitEvent: false });
-      tags.setValue(value);
+    this.setFormArray(this.tags, values, TagsFormComponent.validators);
+  }
+
+  /**
+   * Add a tag to the tags array through the form group.
+   */
+  addTag(tag: string) {
+    if (!tag || hasTag(tag, this.tags.value)) return;
+    this.tags.push(this.fb.control(tag, TagsFormComponent.validators));
+  }
+
+  /**
+   * Remove a tag from the tags array through the form group.
+   */
+  removeTag(tag: string) {
+    for (let i = this.tags.value.length - 1; i >= 0; i--) {
+      if (hasPrefix(this.tags.value[i], tag)) {
+        this.tags.removeAt(i);
+      }
     }
+  }
+
+  /**
+   * Remove a tag and its children from the tags array through the form group.
+   */
+  removeTagAndChildren(tag: string) {
+    let removed = false;
+    for (let i = this.tags.value.length - 1; i >= 0; i--) {
+      if (hasPrefix(this.tags.value[i], tag)) {
+        this.tags.removeAt(i);
+        removed = true;
+      }
+    }
+    if (removed && tag.includes('/')) {
+      const parent = tag.substring(0, tag.lastIndexOf('/'));
+      if (!hasTag(parent, this.tags.value)) this.addTag(parent);
+    }
+  }
+
+  /**
+   * Set plugins form group values through the form group.
+   */
+  setPlugins(value: any) {
+    if (value) {
+      this.plugins.patchValue(value);
+    }
+  }
+
+  /**
+   * Set links array values through the form group.
+   */
+  private setFormArray(formArray: UntypedFormArray, values: string[], validators: any[] = []) {
+    while (formArray.length > values.length) formArray.removeAt(formArray.length - 1, { emitEvent: false });
+    while (formArray.length < values.length) formArray.push(this.fb.control('', validators), { emitEvent: false });
+    formArray.setValue(values);
   }
 
   get editorLabel() {
@@ -327,7 +367,8 @@ export class RefFormComponent implements OnChanges, AfterViewInit {
         for (const t of s.tags || []) {
           if (!hasTag(t, this.tags.value)) this.togglePlugin(t);
         }
-        this.pluginsFormComponent.setValue({
+        // Patch the plugins form group directly
+        this.plugins.patchValue({
           ...this.group.value.plugins || {},
           ...s.plugins || {},
         });
@@ -348,39 +389,32 @@ export class RefFormComponent implements OnChanges, AfterViewInit {
     this.toggleTag.next(tag);
     if (tag) {
       if (hasTag(tag, this.tags.value)) {
-        this.tagsFormComponent.removeTagAndChildren(tag);
+        this.removeTagAndChildren(tag);
       } else {
-        this.tagsFormComponent.addTag(tag);
+        this.addTag(tag);
       }
     }
   }
 
   /**
-   * Set the ref value using reactive form methods.
-   * Patches the main form group and updates child components.
+   * Set ref values through the form group.
+   * All child form arrays are updated through reactive form methods.
    */
   setRef(ref: Partial<Ref>) {
     this.ref = ref as Ref;
+    // Update simple form controls
     this.group.patchValue({
       ...ref,
       published: ref.published ? ref.published.toFormat("yyyy-MM-dd'T'TT") : undefined,
     });
-    if (this.viewInitialized) {
-      this.applyRefToChildComponents(ref);
-    } else {
-      // Store pending ref to apply after view init
-      this.pendingRef = ref;
+    // Update form arrays through the form group
+    this.setFormArray(this.sources, ref.sources || [], LinksFormComponent.validators);
+    this.setFormArray(this.alternateUrls, ref.alternateUrls || [], LinksFormComponent.validators);
+    this.setFormArray(this.tags, ref.tags || [], TagsFormComponent.validators);
+    // Patch the plugins form group
+    if (ref.plugins) {
+      this.plugins.patchValue(ref.plugins);
     }
-  }
-
-  /**
-   * Apply ref values to child form components.
-   */
-  private applyRefToChildComponents(ref: Partial<Ref>) {
-    this.sourcesFormComponent.setLinks(ref.sources || []);
-    this.altsFormComponent.setLinks(ref.alternateUrls || []);
-    this.tagsFormComponent.setTags(ref.tags || []);
-    this.pluginsFormComponent.setValue(ref.plugins);
     MemoCache.clear(this);
   }
 }
