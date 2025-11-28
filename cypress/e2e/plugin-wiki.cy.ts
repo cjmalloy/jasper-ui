@@ -63,7 +63,7 @@ describe('Wiki Plugin', {
     } else {
       cy.get('[name=config]').click().focused().type('{ctrl}a{backspace}');
     }
-    cy.get('[name=config]').type(JSON.stringify({ prefix: 'https://externalwiki/', external: true }), { parseSpecialCharSequences: false });
+    cy.get('[name=config]').click().focused().type(JSON.stringify({ prefix: 'https://externalwiki/', external: true }), { parseSpecialCharSequences: false });
     cy.get('button').contains('save').click();
   });
   it('submit wiki button removed', () => {
