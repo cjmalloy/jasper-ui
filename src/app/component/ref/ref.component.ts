@@ -6,6 +6,7 @@ import {
   Component,
   ElementRef,
   EventEmitter,
+  forwardRef,
   HostBinding,
   HostListener,
   Input,
@@ -90,7 +91,7 @@ import { ViewerComponent } from '../viewer/viewer.component';
   templateUrl: './ref.component.html',
   styleUrls: ['./ref.component.scss'],
   imports: [
-    ViewerComponent,
+    forwardRef(() => ViewerComponent),
     RefFormComponent,
     MdComponent,
     NavComponent,
