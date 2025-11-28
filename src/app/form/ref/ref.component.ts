@@ -1,5 +1,6 @@
 import { CdkDropListGroup } from '@angular/cdk/drag-drop';
 import {
+  AfterViewInit,
   Component,
   ElementRef,
   EventEmitter,
@@ -18,7 +19,7 @@ import {
   UntypedFormControl,
   UntypedFormGroup
 } from '@angular/forms';
-import { defer, some } from 'lodash-es';
+import { some } from 'lodash-es';
 import { MonacoEditorModule } from 'ngx-monaco-editor';
 import { catchError, map, of, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
@@ -62,7 +63,7 @@ import { TagsFormComponent } from '../tags/tags.component';
     TagsFormComponent,
   ],
 })
-export class RefFormComponent implements OnChanges {
+export class RefFormComponent implements OnChanges, AfterViewInit {
 
   @Input()
   origin? = '';
@@ -93,6 +94,9 @@ export class RefFormComponent implements OnChanges {
   scrapingPublished = false;
   scrapingAll = false;
 
+  private viewInitialized = false;
+  private pendingRef?: Partial<Ref>;
+
   constructor(
     public config: ConfigService,
     public admin: AdminService,
@@ -102,6 +106,15 @@ export class RefFormComponent implements OnChanges {
     private store: Store,
     private fb: UntypedFormBuilder,
   ) { }
+
+  ngAfterViewInit() {
+    this.viewInitialized = true;
+    // Apply pending ref if it was set before view was initialized
+    if (this.pendingRef) {
+      this.applyRefToChildComponents(this.pendingRef);
+      this.pendingRef = undefined;
+    }
+  }
 
   ngOnChanges(changes: SimpleChanges) {
     MemoCache.clear(this);
@@ -140,13 +153,20 @@ export class RefFormComponent implements OnChanges {
     this.sources.push(this.fb.control(value, LinksFormComponent.validators));
   }
 
+  /**
+   * Set tags using reactive form methods through the tags form component.
+   */
   setTags(value: string[]) {
-    if (!this.tagsFormComponent?.tags) {
-      defer(() => this.setTags(value));
-      return;
-    }
     MemoCache.clear(this);
-    this.tagsFormComponent.setTags(value);
+    if (this.viewInitialized && this.tagsFormComponent?.tags) {
+      this.tagsFormComponent.setTags(value);
+    } else {
+      // If view not initialized, update the form array directly
+      const tags = this.group.get('tags') as UntypedFormArray;
+      while (tags.length > value.length) tags.removeAt(tags.length - 1, { emitEvent: false });
+      while (tags.length < value.length) tags.push(this.fb.control('', TagsFormComponent.validators), { emitEvent: false });
+      tags.setValue(value);
+    }
   }
 
   get editorLabel() {
@@ -307,11 +327,9 @@ export class RefFormComponent implements OnChanges {
         for (const t of s.tags || []) {
           if (!hasTag(t, this.tags.value)) this.togglePlugin(t);
         }
-        defer(() => {
-          this.pluginsFormComponent.setValue({
-            ...this.group.value.plugins || {},
-            ...s.plugins || {},
-          });
+        this.pluginsFormComponent.setValue({
+          ...this.group.value.plugins || {},
+          ...s.plugins || {},
         });
       });
     }
@@ -337,19 +355,33 @@ export class RefFormComponent implements OnChanges {
     }
   }
 
+  /**
+   * Set the ref value using reactive form methods.
+   * Patches the main form group and updates child components.
+   */
   setRef(ref: Partial<Ref>) {
     this.ref = ref as Ref;
     this.group.patchValue({
       ...ref,
       published: ref.published ? ref.published.toFormat("yyyy-MM-dd'T'TT") : undefined,
     });
-    defer(() => {
-      this.sourcesFormComponent.setLinks(ref.sources || []);
-      this.altsFormComponent.setLinks(ref.alternateUrls || []);
-      this.tagsFormComponent.setTags(ref.tags || []);
-      this.pluginsFormComponent.setValue(ref.plugins);
-      MemoCache.clear(this);
-    });
+    if (this.viewInitialized) {
+      this.applyRefToChildComponents(ref);
+    } else {
+      // Store pending ref to apply after view init
+      this.pendingRef = ref;
+    }
+  }
+
+  /**
+   * Apply ref values to child form components.
+   */
+  private applyRefToChildComponents(ref: Partial<Ref>) {
+    this.sourcesFormComponent.setLinks(ref.sources || []);
+    this.altsFormComponent.setLinks(ref.alternateUrls || []);
+    this.tagsFormComponent.setTags(ref.tags || []);
+    this.pluginsFormComponent.setValue(ref.plugins);
+    MemoCache.clear(this);
   }
 }
 

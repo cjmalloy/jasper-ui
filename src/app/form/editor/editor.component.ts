@@ -20,7 +20,7 @@ import {
 import { FormBuilder, ReactiveFormsModule, UntypedFormArray, UntypedFormControl } from '@angular/forms';
 import { NavigationEnd, Router } from '@angular/router';
 import Europa from 'europa';
-import { debounce, defer, delay, intersection, sortedLastIndex, uniq, without } from 'lodash-es';
+import { debounce, delay, intersection, sortedLastIndex, uniq, without } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import { catchError, filter, last, map, Observable, of, Subject, Subscription, switchMap, takeUntil, tap } from 'rxjs';
 import { v4 as uuid } from 'uuid';
@@ -242,13 +242,13 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
 
   onSelect(event?: MouseEvent) {
     if (event && !event.button) return;
-    defer(() => {
+    setTimeout(() => {
       this.selectionStart = this.editor?.nativeElement.selectionStart || 0;
       this.selectionEnd = this.editor?.nativeElement.selectionEnd || 0;
       if (this.selectionEnd > this.selectionStart) {
         this.onSelectEditor();
       }
-    });
+    }, 0);
   }
 
   postProcessMarkdown() {
@@ -306,10 +306,10 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   @HostBinding('class.editing')
   set editing(value: boolean) {
     if (!this._editing && value) {
-      defer(() => {
+      setTimeout(() => {
         this._editing = true;
         this.updateTags(this.initTags);
-      });
+      }, 0);
     }
   }
 
@@ -592,7 +592,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
 
   addComment() {
     this.editing = true;
-    defer(() => this.editor?.nativeElement?.focus());
+    setTimeout(() => this.editor?.nativeElement?.focus(), 0);
   }
 
   private setButtonOn(b: EditorButton) {
