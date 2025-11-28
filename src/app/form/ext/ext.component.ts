@@ -1,5 +1,14 @@
 import { CdkDropListGroup } from '@angular/cdk/drag-drop';
-import { Component, ElementRef, EventEmitter, Input, OnDestroy, Output, ViewChild } from '@angular/core';
+import {
+  ChangeDetectorRef,
+  Component,
+  ElementRef,
+  EventEmitter,
+  Input,
+  OnDestroy,
+  Output,
+  ViewChild
+} from '@angular/core';
 import {
   FormArray,
   FormControl,
@@ -87,6 +96,7 @@ export class ExtFormComponent implements OnDestroy {
     public admin: AdminService,
     public store: Store,
     private refs: RefService,
+    private cd: ChangeDetectorRef,
   ) { }
 
   ngOnDestroy() {
@@ -228,6 +238,7 @@ export class ExtFormComponent implements OnDestroy {
           this.loadingDefaults = false;
         }
       });
+      this.cd.markForCheck();
     });
   }
 
