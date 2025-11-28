@@ -26,7 +26,6 @@ export class LinksFormComponent {
   @Input()
   fieldName = 'links';
 
-  model: string[] = [];
   field = {
     type: 'refs',
     props: {
@@ -76,22 +75,28 @@ export class LinksFormComponent {
     return this.group?.get(this.fieldName) as UntypedFormArray | undefined;
   }
 
+  /**
+   * Get the model for formly. Uses the form array value directly.
+   */
+  get model(): string[] {
+    return this.links?.value || [];
+  }
+
   setLinks(values: string[]) {
-    this.model = values;
     if (!this.links) return;
     while (this.links.length > values.length) this.links.removeAt(this.links.length - 1, { emitEvent: false });
-    while (this.links.length < values.length) this.links.push(this.fb.control(''), { emitEvent: false });
+    while (this.links.length < values.length) this.links.push(this.fb.control('', LinksFormComponent.validators), { emitEvent: false });
     this.links.setValue(values);
   }
 
   addLink(...values: string[]) {
-    if (!values.length) return;
-    this.model = this.links!.value;
+    if (!this.links || !values.length) return;
+    const currentValues = this.links.value as string[];
     this.field.fieldArray.focus = true;
     for (const value of values) {
       if (value) this.field.fieldArray.focus = false;
-      if (value && value !== 'placeholder' && this.model.includes(value)) return;
-      this.model.push(value);
+      if (value && value !== 'placeholder' && currentValues.includes(value)) return;
+      this.links.push(this.fb.control(value, LinksFormComponent.validators));
     }
   }
 

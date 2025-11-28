@@ -4,13 +4,13 @@ import {
   EventEmitter,
   Input,
   OnChanges,
+  OnDestroy,
   Output,
   QueryList,
   SimpleChanges,
   ViewChildren
 } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormArray, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
-import { defer } from 'lodash-es';
 import { toJS } from 'mobx';
 import { Subject, takeUntil } from 'rxjs';
 import { TitleDirective } from '../../directive/title.directive';
@@ -28,7 +28,7 @@ import { GenFormComponent } from './gen/gen.component';
   host: { 'class': 'plugins-form' },
   imports: [ReactiveFormsModule, TitleDirective, GenFormComponent]
 })
-export class PluginsFormComponent implements OnChanges, AfterViewInit {
+export class PluginsFormComponent implements OnChanges, AfterViewInit, OnDestroy {
   private destroy$ = new Subject<void>();
 
   @ViewChildren('gen')
@@ -113,12 +113,15 @@ export class PluginsFormComponent implements OnChanges, AfterViewInit {
     return !this.icons.length && !Object.keys(this.plugins.controls).length;
   }
 
+  /**
+   * Set plugin values using reactive form methods.
+   * Uses patchValue to update the plugins form group.
+   */
   setValue(value: any) {
+    if (!value) return;
     value = toJS(value);
-    defer(() => {
-      this.plugins.patchValue(value);
-      this.gens!.forEach(g => g.setValue(value))
-    });
+    this.plugins.patchValue(value);
+    this.gens?.forEach(g => g.setValue(value));
   }
 
   visible(v: Visibility) {

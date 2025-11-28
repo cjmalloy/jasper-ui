@@ -1,5 +1,6 @@
 import { CdkDropListGroup } from '@angular/cdk/drag-drop';
 import {
+  AfterViewInit,
   ChangeDetectorRef,
   Component,
   ElementRef,
@@ -20,7 +21,7 @@ import {
 } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { FormlyFieldConfig, FormlyForm, FormlyFormOptions } from '@ngx-formly/core';
-import { cloneDeep, defer, uniq } from 'lodash-es';
+import { cloneDeep, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { catchError, of, Subject, takeUntil } from 'rxjs';
 import { v4 as uuid } from 'uuid';
@@ -56,7 +57,7 @@ import { themesForm, ThemesFormComponent } from '../themes/themes.component';
     LoadingComponent,
   ],
 })
-export class ExtFormComponent implements OnDestroy {
+export class ExtFormComponent implements AfterViewInit, OnDestroy {
   private destroy$ = new Subject<void>();
   allSorts = allRefSorts;
   allFilters = this.admin.filters.map(convertFilter);
@@ -91,6 +92,8 @@ export class ExtFormComponent implements OnDestroy {
   };
 
   private tag?: string;
+  private viewInitialized = false;
+  private pendingExt?: Ext;
 
   constructor(
     public admin: AdminService,
@@ -98,6 +101,15 @@ export class ExtFormComponent implements OnDestroy {
     private refs: RefService,
     private cd: ChangeDetectorRef,
   ) { }
+
+  ngAfterViewInit() {
+    this.viewInitialized = true;
+    // Apply pending ext if it was set before view was initialized
+    if (this.pendingExt) {
+      this.applyExtToForm(this.pendingExt);
+      this.pendingExt = undefined;
+    }
+  }
 
   ngOnDestroy() {
     this.destroy$.next();
@@ -199,6 +211,10 @@ export class ExtFormComponent implements OnDestroy {
     return negatable(filter);
   }
 
+  /**
+   * Set the ext value using reactive form methods.
+   * Patches the form group and updates formly models.
+   */
   setValue(ext: Ext) {
     this.tag = ext.tag;
     if (ext.config?.defaults) {
@@ -236,6 +252,7 @@ export class ExtFormComponent implements OnDestroy {
       // @ts-ignore
       this.advancedFormlyForm.builder.build(this.advancedFormlyForm.field);
     }
+    // Subscribe to config changes to handle defaults reactively
     this.config.valueChanges.pipe(
       takeUntil(this.destroy$),
     ).subscribe(value => {
