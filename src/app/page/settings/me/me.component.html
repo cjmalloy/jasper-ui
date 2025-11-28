@@ -10,7 +10,7 @@
       <app-user-tag-selector id="change-user"></app-user-tag-selector>
       <hr><hr>
     }
-    <app-ext-form #form [group]="editForm"></app-ext-form>
+    <app-ext-form [group]="editForm"></app-ext-form>
 
     @for (e of serverError; track e) {
       <span><!-- Unexpected Error --></span>

@@ -1,6 +1,6 @@
 import { Location } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, isDevMode, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, isDevMode, ViewChild } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, UntypedFormGroup } from '@angular/forms';
 import { cloneDeep, defer } from 'lodash-es';
 import { runInAction } from 'mobx';
@@ -27,9 +27,9 @@ import { printError } from '../../../util/http';
   host: { 'class': 'full-page-form' },
   imports: [MobxAngularModule, ReactiveFormsModule, LimitWidthDirective, UserTagSelectorComponent, ExtFormComponent, LoadingComponent]
 })
-export class SettingsMePage implements HasChanges {
+export class SettingsMePage implements AfterViewInit, HasChanges {
 
-  @ViewChild('form')
+  @ViewChild(ExtFormComponent)
   form?: ExtFormComponent;
 
   submitted = false;
@@ -50,11 +50,14 @@ export class SettingsMePage implements HasChanges {
     const ext = cloneDeep(store.account.ext!);
     this.editForm = extForm(fb, ext, this.admin, true);
     this.editForm.patchValue(ext);
-    defer(() => this.form!.setValue(ext));
   }
 
   saveChanges() {
     return !this.editForm?.dirty;
+  }
+
+  ngAfterViewInit() {
+    this.form!.setValue(this.editForm.value);
   }
 
   save() {
