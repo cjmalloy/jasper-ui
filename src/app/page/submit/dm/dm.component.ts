@@ -72,9 +72,6 @@ export class SubmitDmPage implements AfterViewInit, OnChanges, OnDestroy, HasCha
   @ViewChild('fill')
   fill?: ElementRef;
 
-  @ViewChild(TagsFormComponent)
-  tagsFormComponent?: TagsFormComponent;
-
   preview = '';
   editing = false;
   autocomplete: { value: string, label: string }[] = [];
@@ -156,21 +153,20 @@ export class SubmitDmPage implements AfterViewInit, OnChanges, OnDestroy, HasCha
     return !this.to.value || this.to.value === this.store.account.tag;
   }
 
+  /**
+   * Add tags to the tags array through the form group.
+   */
   addTags(value: string[]) {
-    if (!this.tagsFormComponent?.tags) {
-      defer(() => this.addTags(value));
-      return;
-    }
-    this.tagsFormComponent.setTags(uniq([...this.tags.value, ...value]));
+    const newTags = uniq([...this.tags.value, ...value]);
+    this.setFormArray(this.tags, newTags, TagsFormComponent.validators);
     MemoCache.clear(this);
   }
 
-  setTags(value: string[]) {
-    if (!this.tagsFormComponent?.tags) {
-      defer(() => this.setTags(value));
-      return;
-    }
-    this.tagsFormComponent.setTags(value);
+  /**
+   * Set tags array values through the form group.
+   */
+  setTags(values: string[]) {
+    this.setFormArray(this.tags, values, TagsFormComponent.validators);
     MemoCache.clear(this);
   }
 
@@ -305,6 +301,15 @@ export class SubmitDmPage implements AfterViewInit, OnChanges, OnDestroy, HasCha
 
   syncEditor() {
     this.editor.syncEditor(this.fb, this.dmForm);
+  }
+
+  /**
+   * Set form array values through the form group.
+   */
+  private setFormArray(formArray: UntypedFormArray, values: string[], validators: any[] = []) {
+    while (formArray.length > values.length) formArray.removeAt(formArray.length - 1, { emitEvent: false });
+    while (formArray.length < values.length) formArray.push(this.fb.control('', validators), { emitEvent: false });
+    formArray.setValue(values);
   }
 
   submit() {
