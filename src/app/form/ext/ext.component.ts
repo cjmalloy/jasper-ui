@@ -1,16 +1,15 @@
 import { CdkDropListGroup } from '@angular/cdk/drag-drop';
 import {
-  AfterViewInit,
   ChangeDetectorRef,
   Component,
   ElementRef,
   EventEmitter,
+  forwardRef,
   Input,
   OnDestroy,
   Output,
   ViewChild
 } from '@angular/core';
-import { Component, ElementRef, EventEmitter, Input, OnDestroy, Output, ViewChild } from '@angular/core';
 import {
   FormArray,
   FormControl,
@@ -48,7 +47,7 @@ import { themesForm, ThemesFormComponent } from '../themes/themes.component';
   styleUrls: ['./ext.component.scss'],
   host: { 'class': 'nested-form' },
   imports: [
-    RefComponent,
+    forwardRef(() => RefComponent),
     EditorComponent,
     ReactiveFormsModule,
     FormlyForm,
@@ -238,7 +237,6 @@ export class ExtFormComponent implements OnDestroy {
       // @ts-ignore
       this.advancedFormlyForm.builder.build(this.advancedFormlyForm.field);
     }
-    // Subscribe to config changes to handle defaults reactively
     this.config.valueChanges.pipe(
       takeUntil(this.destroy$),
     ).subscribe(value => {

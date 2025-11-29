@@ -8,7 +8,7 @@ import {
   UntypedFormGroup
 } from '@angular/forms';
 import { Router } from '@angular/router';
-import { some, uniq, without } from 'lodash-es';
+import { defer, some, uniq, without } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { MobxAngularModule } from 'mobx-angular';
@@ -76,6 +76,8 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
 
   @ViewChild('fill')
   fill?: ElementRef;
+  @ViewChild(PluginsFormComponent)
+  pluginsFormComponent?: PluginsFormComponent;
 
   submitting?: Subscription;
   addAnother = false;
@@ -283,11 +285,15 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
 
   /**
    * Set plugins form group values.
+   * Uses defer to ensure child GenFormComponent instances are initialized.
    */
   setPlugins(value: any) {
-    if (value) {
-      this.plugins.patchValue(value);
+    if (!value) return;
+    if (!this.pluginsFormComponent) {
+      defer(() => this.setPlugins(value));
+      return;
     }
+    this.pluginsFormComponent.setValue(value);
   }
 
   addSource(value = '') {
