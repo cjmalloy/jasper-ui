@@ -18,7 +18,7 @@ import {
   UntypedFormControl,
   UntypedFormGroup
 } from '@angular/forms';
-import { some } from 'lodash-es';
+import { defer, some } from 'lodash-es';
 import { MonacoEditorModule } from 'ngx-monaco-editor';
 import { catchError, map, of, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
@@ -73,6 +73,8 @@ export class RefFormComponent implements OnChanges {
 
   @ViewChild('fill')
   fill?: ElementRef;
+  @ViewChild(PluginsFormComponent)
+  pluginsFormComponent?: PluginsFormComponent;
 
   @HostBinding('class.show-drops')
   dropping = false;
@@ -192,12 +194,16 @@ export class RefFormComponent implements OnChanges {
   }
 
   /**
-   * Set plugins form group values through the form group.
+   * Set plugins form group values.
+   * Uses defer to ensure child GenFormComponent instances are initialized.
    */
   setPlugins(value: any) {
-    if (value) {
-      this.plugins.patchValue(value);
+    if (!value) return;
+    if (!this.pluginsFormComponent) {
+      defer(() => this.setPlugins(value));
+      return;
     }
+    this.pluginsFormComponent.setValue(value);
   }
 
   /**
@@ -367,8 +373,8 @@ export class RefFormComponent implements OnChanges {
         for (const t of s.tags || []) {
           if (!hasTag(t, this.tags.value)) this.togglePlugin(t);
         }
-        // Patch the plugins form group directly
-        this.plugins.patchValue({
+        // Set the plugins using the helper method
+        this.setPlugins({
           ...this.group.value.plugins || {},
           ...s.plugins || {},
         });
@@ -411,10 +417,8 @@ export class RefFormComponent implements OnChanges {
     this.setFormArray(this.sources, ref.sources || [], LinksFormComponent.validators);
     this.setFormArray(this.alternateUrls, ref.alternateUrls || [], LinksFormComponent.validators);
     this.setFormArray(this.tags, ref.tags || [], TagsFormComponent.validators);
-    // Patch the plugins form group
-    if (ref.plugins) {
-      this.plugins.patchValue(ref.plugins);
-    }
+    // Set plugins using the helper method which calls PluginsFormComponent.setValue
+    this.setPlugins(ref.plugins);
     MemoCache.clear(this);
   }
 }
