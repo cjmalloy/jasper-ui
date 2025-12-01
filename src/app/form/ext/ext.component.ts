@@ -1,5 +1,14 @@
 import { CdkDropListGroup } from '@angular/cdk/drag-drop';
-import { Component, ElementRef, EventEmitter, Input, OnDestroy, Output, ViewChild } from '@angular/core';
+import {
+  ChangeDetectorRef,
+  Component,
+  ElementRef,
+  EventEmitter,
+  Input,
+  OnDestroy,
+  Output,
+  ViewChild
+} from '@angular/core';
 import {
   FormArray,
   FormControl,
@@ -87,6 +96,7 @@ export class ExtFormComponent implements OnDestroy {
     public admin: AdminService,
     public store: Store,
     private refs: RefService,
+    private cd: ChangeDetectorRef,
   ) { }
 
   ngOnDestroy() {
@@ -205,30 +215,38 @@ export class ExtFormComponent implements OnDestroy {
     if (!this.advancedForm) {
       this.advancedForm = cloneDeep(this.admin.getTemplateAdvancedForm(ext.tag));
     }
-    defer(() => {
-      this.group!.patchValue(ext);
-      this.options.formState.config = ext.config;
-      this.mainFormlyForm!.model = ext.config;
+    this.setModel(ext);
+  }
+
+  private setModel(ext: Ext) {
+    if (!this.mainFormlyForm || !this.advancedFormlyForm) {
+      this.cd.markForCheck();
+      defer(() => this.setModel(ext));
+      return;
+    }
+    this.group!.patchValue(ext);
+    this.options.formState.config = ext.config;
+    this.mainFormlyForm!.model = ext.config;
+    // TODO: Why aren't changed being detected?
+    // @ts-ignore
+    this.mainFormlyForm.builder.build(this.mainFormlyForm.field);
+    if (this.advancedFormlyForm) {
+      this.advancedFormlyForm!.model = ext.config;
       // TODO: Why aren't changed being detected?
       // @ts-ignore
-      this.mainFormlyForm.builder.build(this.mainFormlyForm.field);
-      if (this.advancedFormlyForm) {
-        this.advancedFormlyForm!.model = ext.config;
-        // TODO: Why aren't changed being detected?
-        // @ts-ignore
-        this.advancedFormlyForm.builder.build(this.advancedFormlyForm.field);
+      this.advancedFormlyForm.builder.build(this.advancedFormlyForm.field);
+    }
+    this.config.valueChanges.pipe(
+      takeUntil(this.destroy$),
+    ).subscribe(value => {
+      if (value.defaults) {
+        if (!this.defaults) this.createDefaults();
+      } else {
+        delete this.defaults;
+        this.loadingDefaults = false;
       }
-      this.config.valueChanges.pipe(
-        takeUntil(this.destroy$),
-      ).subscribe(value => {
-        if (value.defaults) {
-          if (!this.defaults) this.createDefaults();
-        } else {
-          delete this.defaults;
-          this.loadingDefaults = false;
-        }
-      });
     });
+    this.cd.markForCheck();
   }
 
   createDefaults() {

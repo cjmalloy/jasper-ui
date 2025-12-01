@@ -1,5 +1,6 @@
 import {
   AfterViewInit,
+  ChangeDetectorRef,
   Component,
   ContentChildren,
   ElementRef,
@@ -40,6 +41,7 @@ export class TabsComponent implements AfterViewInit {
   constructor(
     private config: ConfigService,
     private el: ElementRef<HTMLElement>,
+    private cd: ChangeDetectorRef,
   ) { }
 
   ngAfterViewInit() {
@@ -104,6 +106,7 @@ export class TabsComponent implements AfterViewInit {
       }
     }
     this.measuring = false;
+    this.cd.markForCheck();
   }
 
   @memo

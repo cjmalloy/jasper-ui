@@ -1,7 +1,7 @@
 import { Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { TemplatePortal } from '@angular/cdk/portal';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, ElementRef, TemplateRef, ViewChild, ViewContainerRef } from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, TemplateRef, ViewChild, ViewContainerRef } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { sortBy, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
@@ -50,6 +50,7 @@ export class SettingsBackupPage {
     private fb: UntypedFormBuilder,
     private overlay: Overlay,
     private viewContainerRef: ViewContainerRef,
+    private cd: ChangeDetectorRef,
   ) {
     mod.setTitle($localize`Settings: Backup & Restore`);
     this.fetchBackups();
@@ -67,7 +68,10 @@ export class SettingsBackupPage {
       newerThan: [''],
     });
     this.origins.list()
-      .subscribe(origins => this.backupOrigins = uniq([...this.store.origins.list, ...origins]));
+      .subscribe(origins => {
+        this.backupOrigins = uniq([...this.store.origins.list, ...origins]);
+        this.cd.markForCheck();
+      });
   }
 
   get origin() {
