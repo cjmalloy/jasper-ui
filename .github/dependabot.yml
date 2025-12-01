@@ -29,6 +29,7 @@ updates:
         - "tslib"
         - "ngx-markdown"
         - "ngx-monaco-editor"
+        - "@vitest/ui"
     formly:
       patterns:
         - "@ngx-formly/*"
