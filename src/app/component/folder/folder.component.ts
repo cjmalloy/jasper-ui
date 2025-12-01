@@ -1,3 +1,4 @@
+import { CdkDrag } from '@angular/cdk/drag-drop';
 import { Component, ElementRef, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { Router } from '@angular/router';
 import { mapValues } from 'lodash-es';
@@ -12,13 +13,19 @@ import { ExtService } from '../../service/api/ext.service';
 import { Store } from '../../store/store';
 import { escapePath } from '../../util/json-patch';
 import { defaultOrigin, level, tagOrigin } from '../../util/tag';
+import { FileComponent } from './file/file.component';
+import { SubfolderComponent } from './subfolder/subfolder.component';
 
 @Component({
-  standalone: false,
   selector: 'app-folder',
   templateUrl: './folder.component.html',
   styleUrls: ['./folder.component.scss'],
-  host: {'class': 'folder ext'}
+  host: { 'class': 'folder ext' },
+  imports: [
+    FileComponent,
+    SubfolderComponent,
+    CdkDrag,
+  ],
 })
 export class FolderComponent implements OnChanges, HasChanges {
 

@@ -1,17 +1,22 @@
+import { CdkDropListGroup } from '@angular/cdk/drag-drop';
 import { Component, ElementRef, EventEmitter, Input, OnDestroy, Output, ViewChild } from '@angular/core';
 import {
   FormArray,
   FormControl,
+  ReactiveFormsModule,
   UntypedFormBuilder,
   UntypedFormControl,
   UntypedFormGroup,
   Validators
 } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { FormlyFieldConfig, FormlyForm, FormlyFormOptions } from '@ngx-formly/core';
 import { cloneDeep, defer, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { catchError, of, Subject, takeUntil } from 'rxjs';
 import { v4 as uuid } from 'uuid';
+import { LoadingComponent } from '../../component/loading/loading.component';
+import { RefComponent } from '../../component/ref/ref.component';
 import { allRefSorts } from '../../component/sort/sort.component';
 import { Ext } from '../../model/ext';
 import { Ref } from '../../model/ref';
@@ -22,15 +27,25 @@ import { Store } from '../../store/store';
 import { TAG_REGEX } from '../../util/format';
 import { convertFilter, defaultDesc, negatable, toggle, UrlFilter } from '../../util/query';
 import { hasPrefix } from '../../util/tag';
+import { EditorComponent } from '../editor/editor.component';
 import { linksForm } from '../links/links.component';
-import { themesForm } from '../themes/themes.component';
+import { themesForm, ThemesFormComponent } from '../themes/themes.component';
 
 @Component({
-  standalone: false,
   selector: 'app-ext-form',
   templateUrl: './ext.component.html',
   styleUrls: ['./ext.component.scss'],
-  host: {'class': 'nested-form'}
+  host: { 'class': 'nested-form' },
+  imports: [
+    RefComponent,
+    EditorComponent,
+    ReactiveFormsModule,
+    FormlyForm,
+    CdkDropListGroup,
+    RouterLink,
+    ThemesFormComponent,
+    LoadingComponent,
+  ],
 })
 export class ExtFormComponent implements OnDestroy {
   private destroy$ = new Subject<void>();
@@ -219,23 +234,23 @@ export class ExtFormComponent implements OnDestroy {
   createDefaults() {
     this.loadingDefaults = true;
     this.refs.getCurrent('tag:/' + this.tag).pipe(
-        catchError(err => {
-          this.defaults = {
-            origin: this.store.account.origin,
-            url: 'tag:/' + this.tag,
-            tags: ['internal', this.store.account.localTag],
-            created: DateTime.now(),
-            published: DateTime.now(),
-            modified: DateTime.now(),
-          };
-          this.refs.create(this.defaults).subscribe(cursor => this.defaults!.modifiedString = cursor);
-          return of(this.defaults);
-        })
-      ).subscribe(ref => {
-        if (!this.loadingDefaults) return;
-        this.defaults = ref;
-        this.loadingDefaults = false;
-      });
+      catchError(err => {
+        this.defaults = {
+          origin: this.store.account.origin,
+          url: 'tag:/' + this.tag,
+          tags: ['internal', this.store.account.localTag],
+          created: DateTime.now(),
+          published: DateTime.now(),
+          modified: DateTime.now(),
+        };
+        this.refs.create(this.defaults).subscribe(cursor => this.defaults!.modifiedString = cursor);
+        return of(this.defaults);
+      })
+    ).subscribe(ref => {
+      if (!this.loadingDefaults) return;
+      this.defaults = ref;
+      this.loadingDefaults = false;
+    });
   }
 }
 

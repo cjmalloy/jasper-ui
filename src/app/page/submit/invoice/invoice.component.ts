@@ -1,11 +1,21 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component } from '@angular/core';
-import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import {
+  ReactiveFormsModule,
+  UntypedFormBuilder,
+  UntypedFormControl,
+  UntypedFormGroup,
+  Validators
+} from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { flatten, uniq, without } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { catchError, map, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
+import { LoadingComponent } from '../../../component/loading/loading.component';
+import { LimitWidthDirective } from '../../../directive/limit-width.directive';
+import { EditorComponent } from '../../../form/editor/editor.component';
+import { QrScannerComponent } from '../../../formly/qr-scanner/qr-scanner.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Ext } from '../../../model/ext';
 import { getMailbox } from '../../../mods/mailbox';
@@ -21,11 +31,17 @@ import { printError } from '../../../util/http';
 import { prefix } from '../../../util/tag';
 
 @Component({
-  standalone: false,
   selector: 'app-submit-invoice',
   templateUrl: './invoice.component.html',
   styleUrls: ['./invoice.component.scss'],
-  host: {'class': 'full-page-form'}
+  host: { 'class': 'full-page-form' },
+  imports: [
+    EditorComponent,
+    ReactiveFormsModule,
+    LimitWidthDirective,
+    QrScannerComponent,
+    LoadingComponent,
+  ]
 })
 export class SubmitInvoicePage implements HasChanges {
 

@@ -1,9 +1,11 @@
+/// <reference types="vitest/globals" />
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { forwardRef } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { RouterModule } from '@angular/router';
+import { provideRouter } from '@angular/router';
 
 import { RefVersionsComponent } from './versions.component';
-import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 describe('RefVersionsComponent', () => {
   let component: RefVersionsComponent;
@@ -11,14 +13,14 @@ describe('RefVersionsComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    declarations: [RefVersionsComponent],
-    imports: [RouterModule.forRoot([])],
-    providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
-})
-    .compileComponents();
-  });
+      imports: [forwardRef(() => RefVersionsComponent)],
+      providers: [
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting(),
+        provideRouter([]),
+      ],
+    }).compileComponents();
 
-  beforeEach(() => {
     fixture = TestBed.createComponent(RefVersionsComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();

@@ -1,18 +1,20 @@
 import { Component, OnDestroy } from '@angular/core';
+import { ReactiveFormsModule } from '@angular/forms';
 import { NavigationEnd, Router } from '@angular/router';
 import { debounce } from 'lodash-es';
 import { autorun, IReactionDisposer, toJS } from 'mobx';
+import { MobxAngularModule } from 'mobx-angular';
 import { filter } from 'rxjs';
 import { AdminService } from '../../service/admin.service';
 import { Store } from '../../store/store';
 import { View } from '../../store/view';
 
 @Component({
-  standalone: false,
   selector: 'app-search',
   templateUrl: './search.component.html',
   styleUrls: ['./search.component.scss'],
-  host: {'class': 'search form-group'}
+  host: { 'class': 'search form-group' },
+  imports: [MobxAngularModule, ReactiveFormsModule]
 })
 export class SearchComponent implements OnDestroy {
 
@@ -29,7 +31,7 @@ export class SearchComponent implements OnDestroy {
     public admin: AdminService,
   ) {
     this.disposers.push(autorun(() => {
-      this.searchValue = toJS(this.store.view.search);
+      this.searchValue = toJS(this.store.view.search) || '';
     }));
     router.events.pipe(
       filter(event => event instanceof NavigationEnd),
@@ -42,7 +44,7 @@ export class SearchComponent implements OnDestroy {
   }
 
   change(target: HTMLInputElement) {
-    this.searchValue = target.value;
+    this.searchValue = target.value || '';
     if (this.searchEvent) return;
     if (!this.store.account.config.liveSearch) return;
     this.debounceSearch();

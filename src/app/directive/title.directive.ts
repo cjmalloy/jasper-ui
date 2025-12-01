@@ -8,10 +8,7 @@ import { getTemplateScope } from '../model/template';
 import { TagPreview } from '../service/editor.service';
 import { Store } from '../store/store';
 
-@Directive({
-  standalone: false,
-  selector: '[appTitle]'
-})
+@Directive({ selector: '[appTitle]' })
 export class TitleDirective implements OnChanges {
 
   @Input('appTitle')

@@ -16,6 +16,36 @@ export const blogTemplate: Template = {
     filters: [
       { query: 'blog', label: $localize`📰️ blog`, title: $localize`Blog posts`, group: $localize`Templates 🎨️` },
     ],
+    // language=CSS
+    css: `
+      .blog {
+        .blog-entry {
+          .blog-title {
+            max-width: 40em;
+            word-wrap: break-word;
+          }
+          .blog-body {
+            .expand {
+              border: none;
+            }
+          }
+          display: block;
+          max-width: calc(100vw - 8px);
+          overflow: hidden;
+          border: 1px solid transparent;
+          margin: 2px;
+          padding: 2px;
+
+          .row {
+            margin-left: 10px;
+          }
+
+          .link-below {
+            display: flex;
+          }
+        }
+      }
+    `,
     form: [{
       key: 'filterTags',
       type: 'boolean',

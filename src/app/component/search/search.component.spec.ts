@@ -1,9 +1,11 @@
+/// <reference types="vitest/globals" />
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { RouterModule } from '@angular/router';
+import { ActivatedRoute, provideRouter } from '@angular/router';
+import { of } from 'rxjs';
 
 import { SearchComponent } from './search.component';
-import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 describe('SearchComponent', () => {
   let component: SearchComponent;
@@ -11,14 +13,22 @@ describe('SearchComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    declarations: [SearchComponent],
-    imports: [RouterModule.forRoot([])],
-    providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
-})
-    .compileComponents();
-  });
+      imports: [SearchComponent],
+      providers: [
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting(),
+        provideRouter([]),
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            params: of({}),
+            queryParams: of({}),
+            snapshot: { params: {}, queryParams: {} }
+          }
+        }
+      ],
+    }).compileComponents();
 
-  beforeEach(() => {
     fixture = TestBed.createComponent(SearchComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();

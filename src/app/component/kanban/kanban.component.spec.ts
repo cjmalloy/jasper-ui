@@ -1,7 +1,9 @@
+/// <reference types="vitest/globals" />
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { forwardRef } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { RouterModule } from '@angular/router';
+import { provideRouter } from '@angular/router';
 
 import { KanbanComponent } from './kanban.component';
 
@@ -11,16 +13,14 @@ describe('KanbanComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [KanbanComponent],
-      imports: [RouterModule.forRoot([])],
+      imports: [forwardRef(() => KanbanComponent)],
       providers: [
         provideHttpClient(withInterceptorsFromDi()),
-        provideHttpClientTesting()
+        provideHttpClientTesting(),
+        provideRouter([]),
       ],
     }).compileComponents();
-  });
 
-  beforeEach(() => {
     fixture = TestBed.createComponent(KanbanComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
@@ -42,7 +42,7 @@ describe('KanbanComponent', () => {
       const mockColumn2 = { saveChanges: () => true } as any;
 
       component.list = {
-        find: jasmine.createSpy('find').and.returnValue(undefined) // No column returns false
+        find: vi.fn().mockReturnValue(undefined) // No column returns false
       } as any;
 
       expect(component.saveChanges()).toBe(true);
@@ -54,7 +54,7 @@ describe('KanbanComponent', () => {
       const mockColumnPreventing = { saveChanges: () => false } as any;
 
       component.list = {
-        find: jasmine.createSpy('find').and.returnValue(mockColumnPreventing) // One column returns false
+        find: vi.fn().mockReturnValue(mockColumnPreventing) // One column returns false
       } as any;
 
       expect(component.saveChanges()).toBe(false);

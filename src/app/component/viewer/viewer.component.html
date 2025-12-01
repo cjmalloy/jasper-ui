@@ -46,7 +46,7 @@
   @if (videoUrl) {
     <video #video
            class="video-expand"
-           autoplay
+           [autoplay]="autoplay"
            controls
            [appResize]="!disableResize">
       <source [src]="videoUrl">
@@ -54,7 +54,7 @@
   }
   @if (audioUrl) {
     <audio class="audio-expand"
-           autoplay
+           [autoplay]="autoplay"
            controls>
       <source [src]="audioUrl">
     </audio>

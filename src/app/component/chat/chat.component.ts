@@ -1,9 +1,11 @@
-import { CdkVirtualScrollViewport } from '@angular/cdk/scrolling';
+import { CdkFixedSizeVirtualScroll, CdkVirtualForOf, CdkVirtualScrollViewport } from '@angular/cdk/scrolling';
 import { Component, Input, OnChanges, OnDestroy, SimpleChanges, ViewChild } from '@angular/core';
+import { ReactiveFormsModule } from '@angular/forms';
 import { debounce, defer, delay, pull, pullAllWith, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { catchError, map, Subject, Subscription, takeUntil, throwError } from 'rxjs';
 import { v4 as uuid } from 'uuid';
+import { AutofocusDirective } from '../../directive/autofocus.directive';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ref } from '../../model/ref';
 import { EditorButton, sortOrder } from '../../model/tag';
@@ -18,13 +20,23 @@ import { Store } from '../../store/store';
 import { URI_REGEX } from '../../util/format';
 import { getArgs } from '../../util/query';
 import { braces, tagOrigin } from '../../util/tag';
+import { LoadingComponent } from '../loading/loading.component';
+import { ChatEntryComponent } from './chat-entry/chat-entry.component';
 
 @Component({
-  standalone: false,
   selector: 'app-chat',
   templateUrl: './chat.component.html',
   styleUrls: ['./chat.component.scss'],
-  host: {'class': 'chat ext'}
+  host: { 'class': 'chat ext' },
+  imports: [
+    ChatEntryComponent,
+    LoadingComponent,
+    CdkVirtualScrollViewport,
+    CdkFixedSizeVirtualScroll,
+    CdkVirtualForOf,
+    ReactiveFormsModule,
+    AutofocusDirective,
+  ],
 })
 export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
   private destroy$ = new Subject<void>();
@@ -49,7 +61,7 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
   errored: Ref[] = [];
   scrollLock?: number;
 
-  latex = this.admin.getPlugin('plugin/latex');
+  latex = !!this.admin.getPlugin('plugin/latex');
 
   private tags: string[] = [];
   private timeoutId?: number;
@@ -266,7 +278,9 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
       ...this.tags,
       ...([this.store.view.localTag || 'chat', ...this.store.view.ext?.config?.addTags || []]),
       ...this.plugins,
-      ...(this.store.account.localTag ? [this.store.account.localTag] : [])]).filter(t => !!t);
+      ...(this.latex ? ['plugin/latex'] : []),
+      ...(this.store.account.localTag ? [this.store.account.localTag] : []),
+    ]).filter(t => !!t);
     const ref: Ref = URI_REGEX.test(this.addText) ? {
       url: this.editor.getRefUrl(this.addText),
       origin: this.store.account.origin,

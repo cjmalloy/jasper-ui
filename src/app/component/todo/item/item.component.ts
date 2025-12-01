@@ -1,13 +1,28 @@
-import { Component, ElementRef, EventEmitter, HostBinding, HostListener, Input, NgZone, Output } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  EventEmitter,
+  forwardRef,
+  HostBinding,
+  HostListener,
+  Input,
+  NgZone,
+  Output
+} from '@angular/core';
+import { AutofocusDirective } from '../../../directive/autofocus.directive';
 import { ConfigService } from '../../../service/config.service';
 import { Store } from '../../../store/store';
+import { MdComponent } from '../../md/md.component';
 
 @Component({
-  standalone: false,
   selector: 'app-todo-item',
   templateUrl: './item.component.html',
   styleUrls: ['./item.component.scss'],
-  host: {'class': 'todo-item'}
+  host: { 'class': 'todo-item' },
+  imports: [
+    AutofocusDirective,
+    forwardRef(() => MdComponent),
+  ]
 })
 export class TodoItemComponent {
 

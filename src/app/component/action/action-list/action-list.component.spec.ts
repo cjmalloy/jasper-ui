@@ -1,24 +1,23 @@
+/// <reference types="vitest/globals" />
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { RouterModule } from '@angular/router';
+import { provideRouter } from '@angular/router';
 import { ActionListComponent } from './action-list.component';
 
 describe('ActionListComponent', () => {
   let component: ActionListComponent;
   let fixture: ComponentFixture<ActionListComponent>;
 
-  beforeEach(() => {
-    TestBed.configureTestingModule({
-      declarations: [ActionListComponent],
-      imports: [
-        RouterModule.forRoot([]),
-      ],
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [ActionListComponent,],
       providers: [
         provideHttpClient(withInterceptorsFromDi()),
-        provideHttpClientTesting()
+        provideHttpClientTesting(),
+        provideRouter([]),
       ],
-    });
+    }).compileComponents();
     fixture = TestBed.createComponent(ActionListComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();

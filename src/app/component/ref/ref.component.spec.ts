@@ -1,11 +1,13 @@
+/// <reference types="vitest/globals" />
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { forwardRef } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import { provideRouter } from '@angular/router';
 import { SafePipe } from '../../pipe/safe.pipe';
 
 import { RefComponent } from './ref.component';
-import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 describe('RefComponent', () => {
   let component: RefComponent;
@@ -13,18 +15,18 @@ describe('RefComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    declarations: [
-        RefComponent,
+      imports: [
+        forwardRef(() => RefComponent),
+        ReactiveFormsModule,
         SafePipe,
-    ],
-    imports: [RouterModule.forRoot([]),
-        ReactiveFormsModule],
-    providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
-})
-    .compileComponents();
-  });
+      ],
+      providers: [
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting(),
+        provideRouter([]),
+      ],
+    }).compileComponents();
 
-  beforeEach(() => {
     fixture = TestBed.createComponent(RefComponent);
     component = fixture.componentInstance;
     component.ref = { url: '' };

@@ -29,6 +29,29 @@ export const chatTemplate: Template = {
     filters: [
       { query: 'chat', label: $localize`🗨️ chats`, title: $localize`Chats`, group: $localize`Templates 🎨️` },
     ],
+    // language=CSS
+    css: `
+      .chat {
+        .odd > * {
+          background-color: var(--bg-accent);
+          backdrop-filter: blur(1px);
+        }
+        .gutter {
+          opacity: 0.5;
+        }
+        .focused {
+          margin: 4px;
+        }
+        .messages {
+          max-height: 80vh;
+          .cdk-virtual-scroll-content-wrapper {
+            display: grid;
+            grid-template-columns: min-content auto;
+            width: 100%;
+          }
+        }
+      }
+    `,
     form: [{
       key: 'authorTags',
       type: 'qtags',

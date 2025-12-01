@@ -8,14 +8,20 @@ import { Ref } from '../../model/ref';
 import { RootConfig } from '../../mods/root';
 import { RefService } from '../../service/api/ref.service';
 import { Store } from '../../store/store';
+import { LoadingComponent } from '../loading/loading.component';
+import { PageControlsComponent } from '../page-controls/page-controls.component';
 import { BlogEntryComponent } from './blog-entry/blog-entry.component';
 
 @Component({
-  standalone: false,
   selector: 'app-blog',
   templateUrl: './blog.component.html',
   styleUrls: ['./blog.component.scss'],
-  host: {'class': 'blog ext'}
+  host: { 'class': 'blog ext' },
+  imports: [
+    BlogEntryComponent,
+    PageControlsComponent,
+    LoadingComponent,
+  ],
 })
 export class BlogComponent implements HasChanges, OnDestroy {
   private destroy$ = new Subject<void>();

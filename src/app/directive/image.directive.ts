@@ -5,10 +5,7 @@ import { ConfigService } from '../service/config.service';
 import { Dim, height, ImageService, width } from '../service/image.service';
 import { Store } from '../store/store';
 
-@Directive({
-  standalone: false,
-  selector: '[appImage]'
-})
+@Directive({ selector: '[appImage]' })
 export class ImageDirective implements OnInit, OnDestroy {
   private disposers: IReactionDisposer[] = [];
 
@@ -46,16 +43,17 @@ export class ImageDirective implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    if (this.config.mobile) {
-      this.el.style.width = this.defaultWidthPx || null;
-      this.el.style.height = this.defaultHeightPx || this.el.clientWidth + 'px';
-    } else {
-      this.el.style.width = this.defaultWidthPx || '600px';
-      this.el.style.height = this.defaultHeightPx || '600px';
-    }
     if (this.grid) {
       this.resizeObserver = window.ResizeObserver && new ResizeObserver(() => this.onResize());
       this.resizeObserver?.observe(this.el);
+    } else {
+      if (this.config.mobile) {
+        this.el.style.width = this.defaultWidthPx || null;
+        this.el.style.height = this.defaultHeightPx || this.el.clientWidth + 'px';
+      } else {
+        this.el.style.width = this.defaultWidthPx || '600px';
+        this.el.style.height = this.defaultHeightPx || '600px';
+      }
     }
   }
 
@@ -115,7 +113,7 @@ export class ImageDirective implements OnInit, OnDestroy {
       this.el.style.width = (parentWidth - 12) + 'px';
       this.el.style.height = this.defaultHeightPx || height(parentWidth, this.dim) + 'px';
     } else if (this.grid || this.dim.width > parentWidth && (!this.defaultWidth || this.defaultWidth >= parentWidth)) {
-      this.el.style.width = parentWidth + 'px';
+      this.el.style.width = (parentWidth - 12) + 'px';
       this.el.style.height = this.defaultHeightPx || height(this.defaultWidth || parentWidth, this.dim) + 'px';
     } else if (this.defaultWidth) {
       this.el.style.width = this.defaultWidthPx;

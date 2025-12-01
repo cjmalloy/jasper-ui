@@ -17,7 +17,6 @@
     @for (plugin of store.view.settingsTabs; track plugin.tag) {
       <a [routerLink]="['./ref', plugin.tag]"
          routerLinkActive="current-tab"
-         queryParamsHandling="merge"
          [title]="plugin.name || plugin.tag">{{ plugin.config?.settings || plugin.tag }}</a>
     }
     <a routerLink="./user"

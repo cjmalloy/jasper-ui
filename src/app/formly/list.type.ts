@@ -1,12 +1,12 @@
-import { CdkDragDrop } from '@angular/cdk/drag-drop';
+import { CdkDrag, CdkDragDrop, CdkDragHandle, CdkDropList } from '@angular/cdk/drag-drop';
+import { CdkScrollable } from '@angular/cdk/scrolling';
 import { Component, HostBinding } from '@angular/core';
-import { FieldArrayType } from '@ngx-formly/core';
+import { FieldArrayType, FormlyField } from '@ngx-formly/core';
 import { defer } from 'lodash-es';
 import { Store } from '../store/store';
 import { getPath } from '../util/http';
 
 @Component({
-  standalone: false,
   selector: 'formly-list-section',
   template: `
     <label [class.no-margin]="props.showLabel === false">{{ props.showLabel !== false && props.label || '' }}</label>
@@ -40,6 +40,13 @@ import { getPath } from '../util/http';
       }
     </div>
   `,
+  imports: [
+    CdkDropList,
+    CdkScrollable,
+    CdkDrag,
+    CdkDragHandle,
+    FormlyField,
+  ],
 })
 export class ListTypeComponent extends FieldArrayType {
 

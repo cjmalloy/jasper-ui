@@ -110,11 +110,11 @@ export const aiQueryPlugin: Plugin = {
       const providers = {
         openai: {
           init(config) {
-            config.model ||= config.vision ? 'gpt-5-codex' : config.audio ? 'gpt-4o-audio-preview' : 'gpt-5-codex';
+            config.model ||= config.vision ? 'gpt-5.1-codex' : config.audio ? 'gpt-4o-audio-preview' : 'gpt-5.1-codex';
             config.maxTokens ||= 4096;
             config.thinking = false;
             config.pdf = false;
-            config.image = ['gpt-5', 'gpt-5-mini', 'gpt-5-nano', 'gpt-5-codex'].includes(config.model);
+            config.image = ['gpt-5.1', 'gpt-5-mini', 'gpt-5-nano', 'gpt-5.1-codex'].includes(config.model);
             config.audio = ['gpt-4o-audio-preview', 'gpt-4o-mini-audio-preview'].includes(config.model);
             config.video = false;
           },
@@ -274,7 +274,7 @@ export const aiQueryPlugin: Plugin = {
         },
         anthropic: {
           init(config) {
-            config.model ||= 'claude-sonnet-4-5';
+            config.model ||= 'claude-opus-4-5';
             config.maxTokens ||= 4096;
             config.thinkingTokens ||= 4096
             config.pdf = true;
@@ -368,13 +368,12 @@ export const aiQueryPlugin: Plugin = {
         },
         gemini: {
           init(config) {
-            config.model ||= 'gemini-2.5-pro';
-            config.pdf = config.model === 'gemini-2.5-pro';
+            config.model ||= 'gemini-3-pro-preview';
+            config.pdf = ['gemini-3-pro-preview', 'gemini-2.5-pro'].includes(config.model);
             config.image = true;
             config.audio = true;
             config.video = true;
-            config.embed = config.url && ['gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.5-flash-lite', 'gemini-live-2.5-flash-preview'].includes(config.model);
-            if (config.search) config.json = false;
+            config.embed = config.url && ['gemini-3-pro-preview', 'gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.5-flash-lite', 'gemini-live-2.5-flash-preview'].includes(config.model);
           },
           loadMessage(source, plugins = {}) {
             const message = {};

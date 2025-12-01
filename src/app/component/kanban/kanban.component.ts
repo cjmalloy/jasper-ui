@@ -1,4 +1,6 @@
-import { CdkDragDrop } from '@angular/cdk/drag-drop';
+import { CdkDragDrop, CdkDropList, CdkDropListGroup } from '@angular/cdk/drag-drop';
+import { CdkScrollable } from '@angular/cdk/scrolling';
+import { AsyncPipe } from '@angular/common';
 import {
   Component,
   HostListener,
@@ -9,11 +11,15 @@ import {
   SimpleChanges,
   ViewChildren
 } from '@angular/core';
+import { ReactiveFormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { uniq, without } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { runInAction } from 'mobx';
+import { MobxAngularModule } from 'mobx-angular';
 import { catchError, of, Subject } from 'rxjs';
 import { tap } from 'rxjs/operators';
+import { TitleDirective } from '../../directive/title.directive';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ext } from '../../model/ext';
 import { Ref, RefSort } from '../../model/ref';
@@ -25,6 +31,8 @@ import { BookmarkService } from '../../service/bookmark.service';
 import { Store } from '../../store/store';
 import { negate, UrlFilter } from '../../util/query';
 import { isQuery, isSelector, localTag, topAnds } from '../../util/tag';
+import { LoadingComponent } from '../loading/loading.component';
+import { PageControlsComponent } from '../page-controls/page-controls.component';
 import { KanbanColumnComponent } from './kanban-column/kanban-column.component';
 
 export interface KanbanDrag {
@@ -35,11 +43,23 @@ export interface KanbanDrag {
 }
 
 @Component({
-  standalone: false,
   selector: 'app-kanban',
   templateUrl: './kanban.component.html',
   styleUrls: ['./kanban.component.scss'],
-  host: {'class': 'kanban ext'}
+  host: { 'class': 'kanban ext' },
+  imports: [
+    KanbanColumnComponent,
+    MobxAngularModule,
+    LoadingComponent,
+    CdkDropListGroup,
+    CdkScrollable,
+    CdkDropList,
+    RouterLink,
+    TitleDirective,
+    ReactiveFormsModule,
+    PageControlsComponent,
+    AsyncPipe,
+  ],
 })
 export class KanbanComponent implements OnChanges, OnDestroy, HasChanges {
 
@@ -236,8 +256,8 @@ export class KanbanComponent implements OnChanges, OnDestroy, HasChanges {
    */
   addingTags(tags: { col?: string, sl?: string }) {
     const result = [
-        ...this.kanbanConfig.addTags || [],
-        ...this.store.view.queryTags.map(localTag),
+      ...this.kanbanConfig.addTags || [],
+      ...this.store.view.queryTags.map(localTag),
     ];
     result.push(this.ext!.tag);
     if (tags.col) result.push(tags.col);

@@ -1,3 +1,4 @@
+import { AsyncPipe } from '@angular/common';
 import {
   AfterViewInit,
   Component,
@@ -12,9 +13,12 @@ import {
   ViewChild,
   ViewChildren
 } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { delay, groupBy, uniq, without } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
+import { MobxAngularModule } from 'mobx-angular';
 import { Subject, takeUntil } from 'rxjs';
+import { TitleDirective } from '../../directive/title.directive';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ref } from '../../model/ref';
 import {
@@ -44,17 +48,33 @@ import { authors, formatAuthor, interestingTags } from '../../util/format';
 import { getScheme } from '../../util/http';
 import { memo, MemoCache } from '../../util/memo';
 import { hasTag, hasUserUrlResponse, localTag, removeTag, tagOrigin } from '../../util/tag';
+import { ActionListComponent } from '../action/action-list/action-list.component';
 import { ActionComponent } from '../action/action.component';
+import { ConfirmActionComponent } from '../action/confirm-action/confirm-action.component';
+import { InlineTagComponent } from '../action/inline-tag/inline-tag.component';
+import { ViewerComponent } from '../viewer/viewer.component';
 import { CommentEditComponent } from './comment-edit/comment-edit.component';
 import { CommentReplyComponent } from './comment-reply/comment-reply.component';
 import { CommentThreadComponent } from './comment-thread/comment-thread.component';
 
 @Component({
-  standalone: false,
   selector: 'app-comment',
   templateUrl: './comment.component.html',
   styleUrls: ['./comment.component.scss'],
-  host: {'class': 'comment'}
+  host: { 'class': 'comment' },
+  imports: [
+    CommentThreadComponent,
+    ViewerComponent,
+    MobxAngularModule,
+    RouterLink,
+    TitleDirective,
+    CommentEditComponent,
+    ConfirmActionComponent,
+    InlineTagComponent,
+    ActionListComponent,
+    CommentReplyComponent,
+    AsyncPipe,
+  ],
 })
 export class CommentComponent implements OnInit, AfterViewInit, OnChanges, OnDestroy, HasChanges {
   @HostBinding('attr.tabindex') tabIndex = 0;

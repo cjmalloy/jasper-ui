@@ -1,11 +1,12 @@
+/// <reference types="vitest/globals" />
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { RouterModule } from '@angular/router';
+import { provideRouter } from '@angular/router';
 import { Subject } from 'rxjs';
+import { Ref } from '../../../model/ref';
 
 import { CommentEditComponent } from './comment-edit.component';
-import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
-import { Ref } from '../../../model/ref';
 
 describe('CommentEditComponent', () => {
   let component: CommentEditComponent;
@@ -13,15 +14,14 @@ describe('CommentEditComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [CommentEditComponent],
-      imports: [RouterModule.forRoot([])],
+      imports: [CommentEditComponent],
       providers: [
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),
-      ]}).compileComponents();
-  });
+        provideRouter([]),
+      ]
+    }).compileComponents();
 
-  beforeEach(() => {
     fixture = TestBed.createComponent(CommentEditComponent);
     component = fixture.componentInstance;
     component.ref = { url: '' };
@@ -45,7 +45,7 @@ describe('CommentEditComponent', () => {
 
     // Spy on the save method to examine patches
     const patches: any[] = [];
-    spyOn(component['refs'], 'patch').and.callFake((url, origin, modified, patchList) => {
+    vi.spyOn(component['refs'], 'patch').mockImplementation((url, origin, modified, patchList) => {
       patches.push(...patchList);
       return { pipe: () => ({ subscribe: () => {} }) } as any;
     });
@@ -79,7 +79,7 @@ describe('CommentEditComponent', () => {
 
     // Spy on the save method to examine patches
     const patches: any[] = [];
-    spyOn(component['refs'], 'patch').and.callFake((url, origin, modified, patchList) => {
+    vi.spyOn(component['refs'], 'patch').mockImplementation((url, origin, modified, patchList) => {
       patches.push(...patchList);
       return { pipe: () => ({ subscribe: () => {} }) } as any;
     });
@@ -109,7 +109,7 @@ describe('CommentEditComponent', () => {
 
     // Spy on the save method to examine patches
     const patches: any[] = [];
-    spyOn(component['refs'], 'patch').and.callFake((url, origin, modified, patchList) => {
+    vi.spyOn(component['refs'], 'patch').mockImplementation((url, origin, modified, patchList) => {
       patches.push(...patchList);
       return { pipe: () => ({ subscribe: () => {} }) } as any;
     });

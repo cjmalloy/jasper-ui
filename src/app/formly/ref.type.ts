@@ -1,6 +1,7 @@
 import { HttpEventType } from '@angular/common/http';
 import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy } from '@angular/core';
-import { FieldType, FieldTypeConfig, FormlyConfig } from '@ngx-formly/core';
+import { ReactiveFormsModule } from '@angular/forms';
+import { FieldType, FieldTypeConfig, FormlyAttributes, FormlyConfig } from '@ngx-formly/core';
 import { debounce, defer, isString, uniqBy } from 'lodash-es';
 import { catchError, last, map, of, Subscription, throwError } from 'rxjs';
 import { v4 as uuid } from 'uuid';
@@ -14,12 +15,16 @@ import { Store } from '../store/store';
 import { Saving } from '../store/submit';
 import { readFileAsDataURL } from '../util/async';
 import { getPageTitle } from '../util/format';
+import { AudioUploadComponent } from './audio-upload/audio-upload.component';
 import { getErrorMessage } from './errors';
+import { ImageUploadComponent } from './image-upload/image-upload.component';
+import { PdfUploadComponent } from './pdf-upload/pdf-upload.component';
+import { QrScannerComponent } from './qr-scanner/qr-scanner.component';
+import { VideoUploadComponent } from './video-upload/video-upload.component';
 
 @Component({
-  standalone: false,
   selector: 'formly-field-ref-input',
-  host: {'class': 'field'},
+  host: { 'class': 'field' },
   template: `
     <div class="form-array">
       @if (uploading) {
@@ -64,6 +69,15 @@ import { getErrorMessage } from './errors';
     </div>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [
+    ReactiveFormsModule,
+    QrScannerComponent,
+    PdfUploadComponent,
+    AudioUploadComponent,
+    VideoUploadComponent,
+    ImageUploadComponent,
+    FormlyAttributes,
+  ],
 })
 export class FormlyFieldRefInput extends FieldType<FieldTypeConfig> implements AfterViewInit, OnDestroy {
 

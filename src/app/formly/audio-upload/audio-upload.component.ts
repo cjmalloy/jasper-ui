@@ -1,6 +1,6 @@
-import { HttpEvent, HttpEventType } from '@angular/common/http';
+import { HttpEventType } from '@angular/common/http';
 import { Component, EventEmitter, Output } from '@angular/core';
-import { catchError, last, map, of } from 'rxjs';
+import { catchError, last, map } from 'rxjs';
 import { Ref } from '../../model/ref';
 import { ProxyService } from '../../service/api/proxy.service';
 import { Store } from '../../store/store';
@@ -8,11 +8,10 @@ import { Saving } from '../../store/submit';
 import { readFileAsDataURL } from '../../util/async';
 
 @Component({
-  standalone: false,
   selector: 'app-audio-upload',
   templateUrl: './audio-upload.component.html',
   styleUrls: ['./audio-upload.component.scss'],
-  host: {'class': 'form-array'}
+  host: { 'class': 'form-array' }
 })
 export class AudioUploadComponent {
 

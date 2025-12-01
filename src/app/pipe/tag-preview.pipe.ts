@@ -1,14 +1,11 @@
 import { Pipe, PipeTransform } from '@angular/core';
-import { editor } from 'monaco-editor';
-import { map, Observable } from 'rxjs';
-import { AdminService } from '../service/admin.service';
+import { Observable } from 'rxjs';
 import { EditorService, TagPreview } from '../service/editor.service';
 import { Store } from '../store/store';
 
 @Pipe({
-  standalone: false,
-  name: 'tagPreview',
-  pure: true,
+    name: 'tagPreview',
+    pure: true,
 })
 export class TagPreviewPipe implements PipeTransform {
 

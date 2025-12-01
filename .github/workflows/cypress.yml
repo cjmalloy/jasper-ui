@@ -15,7 +15,7 @@ jobs:
   cypress-run:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
         with:
           node-version: 22
@@ -25,16 +25,85 @@ jobs:
       - name: Run Cypress Tests
         id: cypress
         run: npm run cy:ci
+      - name: Generate Test Summary
+        if: always()
+        uses: actions/github-script@v8
+        with:
+          # language=JavaScript
+          script: |
+            const fs = require('fs');
+            
+            // Parse Cypress mochawesome JSON output
+            function parseCypressResults(jsonContent) {
+              const data = JSON.parse(jsonContent);
+              const stats = data.stats || {};
+              
+              return {
+                suites: stats.suites || 0,
+                tests: stats.tests || 0,
+                passes: stats.passes || 0,
+                failures: stats.failures || 0,
+                pending: stats.pending || 0,
+                skipped: stats.skipped || 0,
+                passPercent: stats.passPercent || 0,
+              };
+            }
+            
+            let summary = '## 🧪 Cypress Test Results\n\n';
+            
+            try {
+              const jsonPath = 'cypress/reports/html/index.json';
+              
+              if (fs.existsSync(jsonPath)) {
+                const jsonContent = fs.readFileSync(jsonPath, 'utf8');
+                const results = parseCypressResults(jsonContent);
+                
+                if (results.tests > 0) {
+                  const emoji = results.failures === 0 ? '✅' : '⚠️';
+                  
+                  summary += `${emoji} **Test Suites:** ${results.suites} total\n\n`;
+                  summary += `${emoji} **Tests:** ${results.failures} failed | ${results.passes} passed`;
+                  if (results.pending > 0) {
+                    summary += ` | ${results.pending} pending`;
+                  }
+                  if (results.skipped > 0) {
+                    summary += ` | ${results.skipped} skipped`;
+                  }
+                  summary += ` (${results.tests})\n\n`;
+                  
+                  if (results.failures === 0) {
+                    summary += '🎉 All tests passed!\n\n';
+                  } else {
+                    const passRate = (results.passPercent || 0).toFixed(1);
+                    summary += `📊 **Pass Rate:** ${passRate}%\n\n`;
+                  }
+                } else {
+                  summary += '⚠️ No test results found in JSON output.\n\n';
+                }
+              } else {
+                summary += '⚠️ Test results JSON not found.\n\n';
+              }
+            } catch (error) {
+              summary += `⚠️ Error parsing test results: ${error.message}\n\n`;
+            }
+            
+            // Write summary to GitHub Step Summary
+            await core.summary
+              .addRaw(summary)
+              .write();
+            
+            // Store summary for use in PR comment
+            fs.writeFileSync('cypress-summary.md', summary);
       - name: Upload PR Report
         if: github.event_name == 'pull_request' && always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: cypress-reports-pr-${{ github.event.pull_request.number }}
           path: cypress/reports/html
           retention-days: 7
       - name: Upload Reports
         if: github.event_name != 'pull_request' && always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: cypress-reports-${{ github.ref_name }}-${{ github.run_number }}
           path: cypress/reports/html
@@ -45,11 +114,20 @@ jobs:
         with:
           # language=JavaScript
           script: |
-            const emoji = '${{ steps.cypress.outcome }}' === 'success' ? '✅' : '❌';
-            const url = `https://${context.repo.owner}.github.io/${context.repo.repo}/reports/cypress-reports-pr-${context.issue.number}/`
+            const fs = require('fs');
+            
+            let summary = '';
+            try {
+              summary = fs.readFileSync('cypress-summary.md', 'utf8');
+            } catch (error) {
+              summary = '⚠️ Could not read test summary.';
+            }
+            
+            const reportUrl = `https://${context.repo.owner}.github.io/${context.repo.repo}/reports/cypress-reports-pr-${context.issue.number}/`;
+            summary += `\n\n📊 [View detailed HTML report](${reportUrl})`;
             
             // Add HTML comment marker for identification
-            const body = `<!-- cypress-results-comment -->\n${emoji} Cypress report available at: ${url}`;
+            const body = `<!-- cypress-results-comment -->\n${summary}`;
             
             // Find existing comment (with pagination)
             const comments = await github.paginate(github.rest.issues.listComments, {

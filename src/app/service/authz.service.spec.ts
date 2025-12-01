@@ -1,20 +1,25 @@
+/// <reference types="vitest/globals" />
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-import { RouterModule } from '@angular/router';
+import { provideRouter } from '@angular/router';
+import { Store } from '../store/store';
 
 import { AuthzService } from './authz.service';
-import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
-import { Store } from '../store/store';
 
 describe('AuthzService', () => {
   let service: AuthzService;
   let store: Store;
 
-  beforeEach(() => {
-    TestBed.configureTestingModule({
-    imports: [RouterModule.forRoot([])],
-    providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
-});
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      providers: [
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting(),
+        provideRouter([]),
+      ],
+    }).compileComponents();
+
     service = TestBed.inject(AuthzService);
     store = TestBed.inject(Store);
   });

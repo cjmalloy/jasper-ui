@@ -1,4 +1,4 @@
-import { CdkDragDrop } from '@angular/cdk/drag-drop';
+import { CdkDrag, CdkDragDrop, CdkDropList } from '@angular/cdk/drag-drop';
 import {
   Component,
   EventEmitter,
@@ -10,19 +10,26 @@ import {
   Output,
   SimpleChanges
 } from '@angular/core';
+import { ReactiveFormsModule } from '@angular/forms';
 import { catchError, Observable, of, Subscription, switchMap, throwError, timer } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Ref } from '../../model/ref';
 import { ActionService } from '../../service/action.service';
 import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
+import { TodoItemComponent } from './item/item.component';
 
 @Component({
-  standalone: false,
   selector: 'app-todo',
   templateUrl: './todo.component.html',
   styleUrls: ['./todo.component.scss'],
-  host: {'class': 'todo-list'}
+  host: { 'class': 'todo-list' },
+  imports: [
+    CdkDropList,
+    CdkDrag,
+    ReactiveFormsModule,
+    TodoItemComponent,
+  ]
 })
 export class TodoComponent implements OnChanges {
 
@@ -46,7 +53,6 @@ export class TodoComponent implements OnChanges {
   serverErrors: string[] = [];
 
   private watch?: Subscription;
-  private pushing?: Subscription;
   private comment$!: (comment: string) => Observable<string>;
 
   constructor(
@@ -130,22 +136,19 @@ export class TodoComponent implements OnChanges {
     if (!this.addText) return;
     this.pushText.push(`- [ ] ${this.addText}`);
     this.addText = '';
-    if (!this.pushing) this.pushing = this.push$().subscribe();
+    this.push$().subscribe();
   }
 
   push$(): Observable<string> {
     const lines = [...this.pushText];
     return this.save$([...this.lines, ...lines].join('\n')).pipe(
       catchError((err: any) => {
-        if (err.conflict) {
-          return timer(100).pipe(switchMap(() => this.push$()));
-        }
+        if (err.conflict) return timer(100).pipe(switchMap(() => this.push$()));
         return throwError(() => err);
       }),
-      tap(() => {
+      switchMap(cursor => {
         this.pushText = this.pushText.slice(lines.length);
-        delete this.pushing;
-        if (this.pushText.length) this.pushing = this.push$().subscribe();
+        return this.pushText.length ? this.push$() : of(cursor);
       }),
     );
   }

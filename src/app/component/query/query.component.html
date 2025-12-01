@@ -5,8 +5,8 @@
          autocapitalize="none"
          i18n-placeholder
          placeholder="Tag Query"
-         [ngModel]="query"
-         (blur)="blur($event)"
+         [value]="query"
+         (blur)="blur(editor.value)"
          (keydown)="$event.key === 'Enter' && search(editor.value) || true">
   <button type="button" (click)="search(editor.value)">🔎️</button>
 } @else {

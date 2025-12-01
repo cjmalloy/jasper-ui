@@ -3,7 +3,7 @@ import { Plugin } from '../model/plugin';
 import { Mod } from '../model/tag';
 
 export const feedPlugin: Plugin = {
-  tag: 'plugin/feed',
+  tag: 'plugin/script/feed',
   name: $localize`🗞️ RSS/Atom Feed`,
   config: {
     default: true,
@@ -42,7 +42,8 @@ export const feedPlugin: Plugin = {
       { tag: '+plugin/cron', labelOn: $localize`disable`, labelOff: $localize`enable`, title: $localize`Schedule this feed to pull every 15 minutes.` },
     ],
     advancedActions: [
-      { response: '+plugin/user/run', labelOff: $localize`pull`, title: $localize`Scrape the feed and add any new Refs.`, confirm: $localize`Are you sure you want to pull?` },],
+      { response: '+plugin/user/run', labelOff: $localize`pull`, title: $localize`Scrape the feed and add any new Refs.`, confirm: $localize`Are you sure you want to pull?` },
+    ],
     // language=Handlebars
     infoUi: `
       {{#if (interestingTags addTags)}} tagging refs {{/if}}
@@ -153,7 +154,7 @@ export const feedPlugin: Plugin = {
         label: $localize`Disable ETag Caching:`,
         title: $localize`Don't use the ETag to check if a feed is updated.`
       }
-    }]
+    }],
   },
   schema: {
     optionalProperties: {

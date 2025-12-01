@@ -64,7 +64,7 @@
         </div>
       }
 
-      <app-tags #tagsFormComponent [group]="textForm"></app-tags>
+      <app-tags [group]="textForm"></app-tags>
 
       <span><!-- Advanced --></span>
       <a class="fake-link no-select" (click)="showAdvanced()" i18n>show advanced</a>
@@ -83,7 +83,7 @@
     <span class="buttons right">
       @if (randomURL && (addAnother || store.hotkey)) {
         <div class="add-more" i18n-title title="Will not clear form to all another Ref.">
-          <input id="addAnother" type="checkbox" [(ngModel)]="addAnother" [ngModelOptions]="{standalone: true}">
+          <input id="addAnother" type="checkbox" [checked]="addAnother" (input)="addAnother = !addAnother">
           <label for="addAnother" i18n>Add another</label>
         </div>
       }
