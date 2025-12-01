@@ -83,7 +83,6 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
   tagSubExts: Ext[] = [];
   userSubExts: Ext[] = [];
 
-  @HostBinding('class.expanded')
   private _expanded = false;
   private _ext?: Ext;
   private lastView = this.store.view.current;
@@ -205,6 +204,7 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   @Input()
+  @HostBinding('class.expanded')
   set expanded(value: boolean) {
     localStorage.setItem('sidebar-expanded', ''+value);
     this._expanded = value;

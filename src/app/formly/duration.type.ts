@@ -59,8 +59,8 @@ export class FormlyFieldDuration extends FieldType<FieldTypeConfig> {
     },
   ],
   host: {
-    '(change)': 'onChange($event.target.value)',
-    '(input)': 'onChange($event.target.value)',
+    '(change)': 'onChange($any($event.target).value)',
+    '(input)': 'onChange($any($event.target).value)',
     '(blur)': 'onTouched()'
   },
 })
