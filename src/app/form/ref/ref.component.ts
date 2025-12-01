@@ -163,6 +163,7 @@ export class RefFormComponent implements OnChanges {
   addTag(tag: string) {
     if (!tag || hasTag(tag, this.tags.value)) return;
     this.tags.push(this.fb.control(tag, TagsFormComponent.validators));
+    MemoCache.clear(this);
   }
 
   /**
@@ -174,6 +175,7 @@ export class RefFormComponent implements OnChanges {
         this.tags.removeAt(i);
       }
     }
+    MemoCache.clear(this);
   }
 
   /**
@@ -191,6 +193,7 @@ export class RefFormComponent implements OnChanges {
       const parent = tag.substring(0, tag.lastIndexOf('/'));
       if (!hasTag(parent, this.tags.value)) this.addTag(parent);
     }
+    MemoCache.clear(this);
   }
 
   /**
@@ -207,7 +210,7 @@ export class RefFormComponent implements OnChanges {
   }
 
   /**
-   * Set links array values through the form group.
+   * Set form array values through the form group.
    */
   private setFormArray(formArray: UntypedFormArray, values: string[], validators: any[] = []) {
     while (formArray.length > values.length) formArray.removeAt(formArray.length - 1, { emitEvent: false });
