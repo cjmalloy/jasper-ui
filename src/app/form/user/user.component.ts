@@ -1,6 +1,7 @@
 import { Component, ElementRef, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
 import {
   ReactiveFormsModule,
+  UntypedFormArray,
   UntypedFormBuilder,
   UntypedFormControl,
   UntypedFormGroup,
@@ -48,17 +49,6 @@ export class UserFormComponent implements OnInit {
   @ViewChild('fill')
   fill?: ElementRef;
 
-  @ViewChild('notifications')
-  notifications!: TagsFormComponent;
-  @ViewChild('readAccess')
-  readAccess!: TagsFormComponent;
-  @ViewChild('writeAccess')
-  writeAccess!: TagsFormComponent;
-  @ViewChild('tagReadAccess')
-  tagReadAccess!: TagsFormComponent;
-  @ViewChild('tagWriteAccess')
-  tagWriteAccess!: TagsFormComponent;
-
   id = 'user-' + uuid();
   editingExternal = false;
 
@@ -66,6 +56,7 @@ export class UserFormComponent implements OnInit {
 
   constructor(
     public store: Store,
+    private fb: UntypedFormBuilder,
   ) { }
 
   ngOnInit(): void {
@@ -78,6 +69,26 @@ export class UserFormComponent implements OnInit {
 
   get pubKey() {
     return this.group.get('pubKey') as UntypedFormControl;
+  }
+
+  get notifications() {
+    return this.group.get('notifications') as UntypedFormArray;
+  }
+
+  get readAccess() {
+    return this.group.get('readAccess') as UntypedFormArray;
+  }
+
+  get writeAccess() {
+    return this.group.get('writeAccess') as UntypedFormArray;
+  }
+
+  get tagReadAccess() {
+    return this.group.get('tagReadAccess') as UntypedFormArray;
+  }
+
+  get tagWriteAccess() {
+    return this.group.get('tagWriteAccess') as UntypedFormArray;
   }
 
   get external() {
@@ -115,16 +126,29 @@ export class UserFormComponent implements OnInit {
     }
   }
 
+  /**
+   * Set the user value through the form group.
+   * All form arrays are manipulated directly.
+   */
   setUser(user: User) {
-    this.notifications.setTags((user.readAccess || []).filter(isMailbox));
-    this.readAccess.setTags((user.readAccess || []).filter(t => !isMailbox(t)));
-    this.writeAccess.setTags([...user.writeAccess || []]);
-    this.tagReadAccess.setTags([...user.tagReadAccess || []]);
-    this.tagWriteAccess.setTags([...user.tagWriteAccess || []]);
+    this.setFormArray(this.notifications, (user.readAccess || []).filter(isMailbox));
+    this.setFormArray(this.readAccess, (user.readAccess || []).filter(t => !isMailbox(t)));
+    this.setFormArray(this.writeAccess, [...user.writeAccess || []]);
+    this.setFormArray(this.tagReadAccess, [...user.tagReadAccess || []]);
+    this.setFormArray(this.tagWriteAccess, [...user.tagWriteAccess || []]);
     this.group.patchValue({
       ...user,
       external: user.external ? JSON.stringify(user.external, null, 2) : undefined,
     });
+  }
+
+  /**
+   * Set form array values through the form group.
+   */
+  private setFormArray(formArray: UntypedFormArray, values: string[]) {
+    while (formArray.length > values.length) formArray.removeAt(formArray.length - 1, { emitEvent: false });
+    while (formArray.length < values.length) formArray.push(this.fb.control('', TagsFormComponent.validators), { emitEvent: false });
+    formArray.setValue(values);
   }
 
 }

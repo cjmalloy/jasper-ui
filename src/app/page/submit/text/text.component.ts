@@ -76,11 +76,8 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
 
   @ViewChild('fill')
   fill?: ElementRef;
-
-  @ViewChild(TagsFormComponent)
-  tagsFormComponent!: TagsFormComponent;
   @ViewChild(PluginsFormComponent)
-  plugins!: PluginsFormComponent;
+  pluginsFormComponent?: PluginsFormComponent;
 
   submitting?: Subscription;
   addAnother = false;
@@ -126,7 +123,7 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
       if (d) {
         this.oldSubmit = uniq([...allTags, ...Object.keys(d.ref.plugins || {})]);
         this.addTag(...this.oldSubmit);
-        this.plugins.setValue(d.ref.plugins);
+        this.setPlugins(d.ref.plugins);
         this.textForm.patchValue({
           ...d.ref,
           tags: this.oldSubmit,
@@ -151,11 +148,11 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
         const removed = without(this.oldSubmit, ...tags);
         if (added.length || removed.length) {
           this.oldSubmit = uniq([...without(this.oldSubmit, ...removed), ...added]);
-          this.tagsFormComponent!.setTags(this.oldSubmit);
+          this.setTags(this.oldSubmit);
         }
         if (this.store.submit.pluginUpload) {
           this.addTag(this.store.submit.plugin);
-          this.plugins.setValue({
+          this.setPlugins({
             ...this.textForm.value.plugins || {},
             [this.store.submit.plugin]: { url: this.store.submit.pluginUpload },
           });
@@ -226,6 +223,10 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
     return this.textForm.get('tags') as UntypedFormArray;
   }
 
+  get plugins() {
+    return this.textForm.get('plugins') as UntypedFormGroup;
+  }
+
   @memo
   get codeLang() {
     for (const t of this.tags.value) {
@@ -251,12 +252,12 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
     return some(this.admin.editor, t => hasTag(t.tag, this.tags!.value));
   }
 
-  setTags(value: string[]) {
-    if (!this.tagsFormComponent?.tags) {
-      defer(() => this.setTags(value));
-      return;
-    }
-    this.tagsFormComponent.setTags(value);
+  /**
+   * Set tags array values through the form group.
+   */
+  setTags(values: string[]) {
+    this.setFormArray(this.tags, values, TagsFormComponent.validators);
+    MemoCache.clear(this);
   }
 
   validate(input: HTMLInputElement) {
@@ -268,14 +269,31 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
     }
   }
 
+  /**
+   * Add tags to the tags array through the form group.
+   */
   addTag(...values: string[]) {
-    if (!this.tagsFormComponent?.tags) {
-      defer(() => this.addTag(...values));
-      return;
+    values = values.filter(t => t && !hasTag(t, this.tags.value));
+    if (values.length) {
+      for (const value of values) {
+        this.tags.push(this.fb.control(value, TagsFormComponent.validators));
+      }
     }
-    this.tagsFormComponent.addTag(...values);
     this.submitted = false;
     MemoCache.clear(this);
+  }
+
+  /**
+   * Set plugins form group values.
+   * Uses defer to ensure child GenFormComponent instances are initialized.
+   */
+  setPlugins(value: any) {
+    if (!value) return;
+    if (!this.pluginsFormComponent) {
+      defer(() => this.setPlugins(value));
+      return;
+    }
+    this.pluginsFormComponent.setValue(value);
   }
 
   addSource(value = '') {
@@ -285,6 +303,15 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
 
   syncEditor() {
     this.editor.syncEditor(this.fb, this.textForm);
+  }
+
+  /**
+   * Set form array values through the form group.
+   */
+  private setFormArray(formArray: UntypedFormArray, values: string[], validators: any[] = []) {
+    while (formArray.length > values.length) formArray.removeAt(formArray.length - 1, { emitEvent: false });
+    while (formArray.length < values.length) formArray.push(this.fb.control('', validators), { emitEvent: false });
+    formArray.setValue(values);
   }
 
   submit() {

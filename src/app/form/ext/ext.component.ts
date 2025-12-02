@@ -4,6 +4,7 @@ import {
   Component,
   ElementRef,
   EventEmitter,
+  forwardRef,
   Input,
   OnDestroy,
   Output,
@@ -46,7 +47,7 @@ import { themesForm, ThemesFormComponent } from '../themes/themes.component';
   styleUrls: ['./ext.component.scss'],
   host: { 'class': 'nested-form' },
   imports: [
-    RefComponent,
+    forwardRef(() => RefComponent),
     EditorComponent,
     ReactiveFormsModule,
     FormlyForm,
