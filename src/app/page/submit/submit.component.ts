@@ -84,6 +84,7 @@ export class SubmitPage implements OnInit, OnDestroy {
 
   listId = 'list-' + uuid();
   autocomplete: { value: string, label: string }[] = [];
+  private searching?: any;
 
   constructor(
     public admin: AdminService,
@@ -137,6 +138,7 @@ export class SubmitPage implements OnInit, OnDestroy {
   ngOnDestroy() {
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
+    this.searching?.unsubscribe();
   }
 
   get selectedPlugin() {
@@ -322,10 +324,13 @@ export class SubmitPage implements OnInit, OnDestroy {
 
   search = debounce((value: string) => {
     if (!value) return;
-    this.refs.page({
+    this.searching?.unsubscribe();
+    this.searching = this.refs.page({
       search: value,
       size: 3,
-    }).subscribe(page => {
+    }).pipe(
+      catchError(() => of(Page.of([])))
+    ).subscribe(page => {
       this.autocomplete = uniqBy(page.content, ref => ref.url).map(ref => ({ value: ref.url, label: getPageTitle(ref) }));
     });
   }, 400);
