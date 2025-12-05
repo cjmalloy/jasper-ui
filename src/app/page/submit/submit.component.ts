@@ -14,7 +14,7 @@ import { Router, RouterLink, RouterOutlet } from '@angular/router';
 import { debounce, defer, isString, uniq, uniqBy, without } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { MobxAngularModule } from 'mobx-angular';
-import { catchError, forkJoin, map, mergeMap, Observable, of, switchMap, timer } from 'rxjs';
+import { catchError, forkJoin, map, mergeMap, Observable, of, Subscription, switchMap, timer } from 'rxjs';
 import { scan, tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
 import { RefComponent } from '../../component/ref/ref.component';
@@ -84,7 +84,7 @@ export class SubmitPage implements OnInit, OnDestroy {
 
   listId = 'list-' + uuid();
   autocomplete: { value: string, label: string }[] = [];
-  private searching?: any;
+  private searching?: Subscription;
 
   constructor(
     public admin: AdminService,
