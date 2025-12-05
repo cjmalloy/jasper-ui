@@ -69,6 +69,11 @@ export class CustomUrlSerializer implements UrlSerializer {
     return this.getSearch(search) + hash;
   }
 
+  getHash(url: string) {
+    let [_, __, hash] = parts(url);
+    return hash;
+  }
+
   getSearch(search: string) {
     return search
       .replace(/%2F/g, '/')
@@ -103,14 +108,14 @@ export class CustomUrlSerializer implements UrlSerializer {
   serialize(tree: UrlTree) {
     const url = dus.serialize(tree);
     if (tree.root.children.primary?.segments[0]?.path === 'ref' && tree.root.children.primary.segments.length === 2) {
-      if (!this.getExtras(url)) {
+      if (!this.getExtras(url) && !this.getHash(tree.root.children.primary.segments[1].path)) {
         return '/ref/' + tree.root.children.primary.segments[1].path;
       } else {
         return '/ref/e/' + encodeURIComponent(tree.root.children.primary.segments[1].path) + this.getExtras(url);
       }
     }
     if (tree.root.children.primary?.segments[0]?.path === 'ref' && tree.root.children.primary.segments.length === 3) {
-      if (!this.getExtras(url)) {
+      if (!this.getExtras(url) && !this.getHash(tree.root.children.primary.segments[1].path)) {
         return '/ref/' + tree.root.children.primary.segments[2].path + '/' + tree.root.children.primary.segments[1].path;
       } else {
         return '/ref/' + tree.root.children.primary.segments[2].path + '/e/' + encodeURIComponent(tree.root.children.primary.segments[1].path) + this.getExtras(url);
