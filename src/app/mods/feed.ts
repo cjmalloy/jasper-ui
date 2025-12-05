@@ -148,6 +148,13 @@ export const feedPlugin: Plugin = {
         title: $localize`Strip all query parameters from the feed entry URLs.`
       }
     }, {
+      key: 'stripHash',
+      type: 'boolean',
+      props: {
+        label: $localize`Strip Hash:`,
+        title: $localize`Strip all anchors from the feed entry URLs.`
+      }
+    }, {
       key: 'disableEtag',
       type: 'boolean',
       props: {
@@ -162,6 +169,7 @@ export const feedPlugin: Plugin = {
       disableEtag: { type: 'boolean' },
       etag: { type: 'string' },
       stripQuery: { type: 'boolean' },
+      stripHash: { type: 'boolean' },
       scrapeWebpage: { type: 'boolean' },
       scrapeDescription: { type: 'boolean' },
       scrapeContents: { type: 'boolean' },
