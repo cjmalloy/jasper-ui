@@ -31,13 +31,13 @@
       <a class="badge"
          (focus)="store.view.setLastSelected(ref)"
          (pointerdown)="store.view.setLastSelected(ref)"
-         [routerLink]="['/ref', thread, 'thread']"
+         [routerLink]="[store.view.refPath, thread, 'thread']"
          (click)="saveRef()"
          i18n-title title="Thread ({{ threads }} replies)">🧵️</a>
     }
     @if (comments) {
       <a class="badge"
-         [routerLink]="['/ref', ref.url, 'comments']"
+         [routerLink]="[store.view.refPath, ref.url, 'comments']"
          (click)="saveRef()"
          i18n-title title="{{ comments }} Comments">💬️</a>
     }
@@ -49,7 +49,7 @@
            [style.background-color]="thumbnailColor"
            [style.border-radius]="thumbnailRadius">{{ thumbnailEmoji }}</div>
     }
-    <a class="card-title grow" [routerLink]="['/ref', ref.url]" (click)="saveRef()">{{ title }}</a>
+    <a class="card-title grow" [routerLink]="[store.view.refPath, ref.url]" (click)="saveRef()">{{ title }}</a>
   </div>
   @if (chess) {
     <app-chess [white]="chessWhite"

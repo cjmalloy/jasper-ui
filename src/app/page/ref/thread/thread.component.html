@@ -9,7 +9,7 @@
   } @else {
     <app-loading></app-loading>
   }
-  @if (store.view.ref) {
+  @if (store.view.ref && store.account.signedIn) {
     <app-comment-reply [to]="to"
                        quote=""
                        [tags]="replyTags"

@@ -22,7 +22,7 @@
       }
     </div>
   }
-  <a [routerLink]="['/ref', ref.url]"
+  <a [routerLink]="[store.view.refPath, ref.url]"
      [queryParams]="{ origin: nonLocalOrigin }"
      (click)="saveRef()"
      [style.pointer-events]="dragging ? 'none' : undefined">{{ title }}</a>
