@@ -102,14 +102,21 @@
           @if (uploading) {
             <progress class="grow" max="100" [value]="progress"></progress>
           } @else {
+            <datalist [id]="listId">
+              @for (o of autocomplete; track o.value) {
+                <option [value]="o.value">{{ o.label }}</option>
+              }
+            </datalist>
             <input id="url"
                    [placeholder]="placeholder"
                    class="big"
                    type="text"
                    size="1"
                    autocomplete="off"
+                   [attr.list]="listId"
                    formControlName="url"
                    appAutofocus
+                   (input)="search(url.value)"
                    (paste)="getUrlPlugin()">
           }
           @if (!store.submit.wiki) {

@@ -11,7 +11,7 @@ import {
   Validators
 } from '@angular/forms';
 import { Router, RouterLink, RouterOutlet } from '@angular/router';
-import { defer, isString, uniq, without } from 'lodash-es';
+import { debounce, defer, isString, uniq, uniqBy, without } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { MobxAngularModule } from 'mobx-angular';
 import { catchError, forkJoin, map, mergeMap, Observable, of, switchMap, timer } from 'rxjs';
@@ -37,7 +37,7 @@ import { AuthzService } from '../../service/authz.service';
 import { ModService } from '../../service/mod.service';
 import { Store } from '../../store/store';
 import { Saving } from '../../store/submit';
-import { URI_REGEX } from '../../util/format';
+import { getPageTitle, URI_REGEX } from '../../util/format';
 import { fixUrl } from '../../util/http';
 import { hasPrefix } from '../../util/tag';
 
@@ -81,6 +81,9 @@ export class SubmitPage implements OnInit, OnDestroy {
   existingRef?: Ref;
   responsesToUrl: Page<Ref> = Page.of([]);
   responsesToUrlFor?: string;
+
+  listId = 'list-' + uuid();
+  autocomplete: { value: string, label: string }[] = [];
 
   constructor(
     public admin: AdminService,
@@ -316,4 +319,14 @@ export class SubmitPage implements OnInit, OnDestroy {
       }
     });
   }
+
+  search = debounce((value: string) => {
+    if (!value) return;
+    this.refs.page({
+      search: value,
+      size: 3,
+    }).subscribe(page => {
+      this.autocomplete = uniqBy(page.content, ref => ref.url).map(ref => ({ value: ref.url, label: getPageTitle(ref) }));
+    });
+  }, 400);
 }
