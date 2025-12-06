@@ -360,15 +360,15 @@ export function removeTag(tag: string | undefined, tags: string[]): string[] {
  */
 export function getVisibilityTags(tags?: string[]): string[] {
   if (!tags || tags.length === 0) return [];
-  
+
   // Check if public - if so, just return public tag
   const isPublicRef = tags.some(t => t === 'public' || publicTag(t));
   if (isPublicRef) {
     return ['public'];
   }
-  
+
   const visibilityTags: string[] = [];
-  
+
   for (const tag of tags) {
     // Skip mailbox tags (plugin/inbox and plugin/outbox)
     if (tag.startsWith('plugin/inbox') || tag.startsWith('plugin/outbox')) {
