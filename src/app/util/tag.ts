@@ -355,8 +355,10 @@ export function removeTag(tag: string | undefined, tags: string[]): string[] {
  * Extract visibility tags from a Ref for use in uploaded files/refs.
  * Returns tags that control visibility:
  * - If public: returns ['public']
- * - Otherwise: keeps user tags as-is, converts protected tags to public, keeps private tags
- * - Ignores plugin/inbox and plugin/outbox tags
+ * - Otherwise: only processes user tags (user, +user, _user)
+ *   - Converts +user/... to user/... (removes '+' prefix)
+ *   - Keeps user/... and _user/... as-is
+ * - Skips all other tags
  */
 export function getVisibilityTags(tags?: string[]): string[] {
   if (!tags || tags.length === 0) return [];
@@ -369,23 +371,18 @@ export function getVisibilityTags(tags?: string[]): string[] {
   const visibilityTags: string[] = [];
 
   for (const tag of tags) {
-    // Skip mailbox tags (plugin/inbox and plugin/outbox)
-    if (tag.startsWith('plugin/inbox') || tag.startsWith('plugin/outbox')) {
-      continue;
+    // Only process user tags (user, +user, _user)
+    if (hasPrefix(tag, 'user') || hasPrefix(tag, '+user') || hasPrefix(tag, '_user')) {
+      // Convert +user/... to user/... (remove the '+' prefix)
+      if (tag.startsWith('+user')) {
+        visibilityTags.push(tag.substring(1)); // Remove the '+'
+      }
+      // Keep user/... and _user/... as-is
+      else {
+        visibilityTags.push(tag);
+      }
     }
-    
-    // Keep private tags as-is (assuming user has permission to add them)
-    if (privateTag(tag)) {
-      visibilityTags.push(tag);
-    }
-    // Convert protected tags to public (remove the '+' prefix)
-    else if (protectedTag(tag)) {
-      visibilityTags.push(setPublic(tag));
-    }
-    // Keep user tags as-is
-    else if (hasPrefix(tag, 'user')) {
-      visibilityTags.push(tag);
-    }
+    // Skip all other tags
   }
   
   return uniq(visibilityTags);
