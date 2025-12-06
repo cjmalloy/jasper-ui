@@ -362,8 +362,7 @@ export function getVisibilityTags(tags?: string[]): string[] {
   if (!tags || tags.length === 0) return [];
 
   // Check if public - if so, just return public tag
-  const isPublicRef = tags.some(t => t === 'public' || publicTag(t));
-  if (isPublicRef) {
+  if (hasTag('public', tags)) {
     return ['public'];
   }
 
