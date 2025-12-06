@@ -71,6 +71,7 @@
                     [fillWidth]="fill"
                     (syncEditor)="syncEditor()"
                     [tags]="tags"
+                    [visibilityTags]="visibilityTags"
                     (syncTags)="setTags($event)"
                     (addSource)="addSource($event)"
                     [autoFocus]="!!store.submit.dmPlugin || !!store.submit.to.length"></app-editor>

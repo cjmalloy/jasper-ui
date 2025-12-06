@@ -122,6 +122,12 @@ export class SubmitInvoicePage implements HasChanges {
     return this.invoiceForm.get('comment') as UntypedFormControl;
   }
 
+  get visibilityTags(): string[] {
+    // For invoices, compute visibility from current editor tags
+    const { getVisibilityTags } = require('../../../util/tag');
+    return getVisibilityTags(this.editorTags || [], this.store.account.origin || '');
+  }
+
   validate(input: HTMLInputElement) {
     this.checkUrl();
     if (this.url.touched) {

@@ -42,6 +42,7 @@
                 [fillWidth]="fill"
                 (syncEditor)="syncEditor()"
                 [tags]="$any(invoiceForm.value).tags"
+                [visibilityTags]="visibilityTags"
                 (syncTags)="editorTags = $event"></app-editor>
   </div>
 

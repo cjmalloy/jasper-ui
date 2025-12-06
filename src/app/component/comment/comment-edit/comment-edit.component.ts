@@ -79,6 +79,12 @@ export class CommentEditComponent implements AfterViewInit, HasChanges, OnDestro
     ]);
   }
 
+  get visibilityTags(): string[] {
+    // For editing existing refs, use the ref's current visibility tags
+    const { getVisibilityTags } = require('../../../util/tag');
+    return getVisibilityTags(this.ref?.tags || [], this.ref?.origin || '');
+  }
+
   save() {
     const patches: OpPatch[] = [];
     if (this.comment.dirty) {

@@ -1,4 +1,4 @@
-import { filter, find, flatMap, isArray, without } from 'lodash-es';
+import { filter, find, flatMap, isArray, uniq, without } from 'lodash-es';
 import { Ref } from '../model/ref';
 import { User } from '../model/user';
 
@@ -349,6 +349,55 @@ export function removeTag(tag: string | undefined, tags: string[]): string[] {
     tag = parentTag(tag);
   }
   return tags;
+}
+
+/**
+ * Extract visibility tags from a Ref for use in uploaded files/refs.
+ * Returns tags that control visibility (user tags for private refs, public indicator).
+ * For refs addressed to users via mailbox, extracts the user tag without prefix for read access.
+ */
+export function getVisibilityTags(tags?: string[], origin?: string): string[] {
+  if (!tags || tags.length === 0) return [];
+  
+  const visibilityTags: string[] = [];
+  
+  // Check if public
+  const isPublic = tags.some(t => t === 'public' || publicTag(t));
+  
+  // If not explicitly public, collect private/protected tags and user tags
+  if (!isPublic) {
+    // Add all private and protected tags
+    for (const tag of tags) {
+      if (privateTag(tag) || protectedTag(tag)) {
+        visibilityTags.push(tag);
+      }
+    }
+    
+    // Extract user tags from mailbox tags for read access
+    // plugin/inbox/bob -> user/bob (no prefix)
+    // plugin/outbox/origin/alice -> use plugin/outbox/origin/alice exactly
+    for (const tag of tags) {
+      if (tag.startsWith('plugin/inbox/')) {
+        const userPart = tag.substring('plugin/inbox/'.length);
+        if (userPart && !userPart.includes('/')) {
+          // Simple user like plugin/inbox/bob -> user/bob
+          visibilityTags.push('user/' + userPart);
+        } else if (userPart) {
+          // Hierarchical user like plugin/inbox/alice/something -> user/alice
+          const firstPart = userPart.split('/')[0];
+          visibilityTags.push('user/' + firstPart);
+        }
+      } else if (tag.startsWith('plugin/outbox/')) {
+        // Use the plugin/outbox tag exactly as-is
+        visibilityTags.push(tag);
+      }
+    }
+  } else {
+    // If public, just add the public tag
+    visibilityTags.push('public');
+  }
+  
+  return uniq(visibilityTags);
 }
 
 export function top(ref?: Ref) {

@@ -227,6 +227,13 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
   }
 
   @memo
+  get visibilityTags(): string[] {
+    // For new refs being created, compute visibility from current form tags
+    const { getVisibilityTags } = require('../../../util/tag');
+    return getVisibilityTags(this.tags?.value || [], this.store.account.origin || '');
+  }
+
+  @memo
   get codeLang() {
     for (const t of this.tags.value) {
       if (hasPrefix(t, 'plugin/code')) {

@@ -18,7 +18,7 @@ import { Store } from '../../../store/store';
 import { getMailboxes } from '../../../util/editor';
 import { getRe } from '../../../util/format';
 import { printError } from '../../../util/http';
-import { hasTag, removeTag } from '../../../util/tag';
+import { getVisibilityTags, hasTag, removeTag } from '../../../util/tag';
 import { LoadingComponent } from '../../loading/loading.component';
 
 @Component({
@@ -91,6 +91,11 @@ export class CommentReplyComponent implements HasChanges {
 
   syncTags(tags: string[]) {
     this.editorTags = tags;
+  }
+
+  get visibilityTags() {
+    // Get visibility tags from the parent ref
+    return getVisibilityTags(this.to?.tags || [], this.to?.origin || '');
   }
 
   reply() {

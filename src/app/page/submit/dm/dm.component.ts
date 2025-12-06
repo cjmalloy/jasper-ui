@@ -152,6 +152,13 @@ export class SubmitDmPage implements AfterViewInit, OnChanges, OnDestroy, HasCha
     return this.dmForm.get('tags') as UntypedFormArray;
   }
 
+  @memo
+  get visibilityTags(): string[] {
+    // For DMs, compute visibility from current form tags
+    const { getVisibilityTags } = require('../../../util/tag');
+    return getVisibilityTags(this.tags?.value || [], this.store.account.origin || '');
+  }
+
   get notes() {
     return !this.to.value || this.to.value === this.store.account.tag;
   }

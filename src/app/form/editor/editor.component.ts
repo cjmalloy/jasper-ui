@@ -121,6 +121,8 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   addCommentLabel = $localize`+ Add comment`;
   @Input()
   fillWidth?: HTMLElement;
+  @Input()
+  visibilityTags: string[] = [];
 
   @Output()
   syncEditor = new EventEmitter<string>();
@@ -654,7 +656,12 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
         origin: this.store.account.origin,
         url: 'internal:' + uuid(),
         title: file.name,
-        tags: [this.store.account.localTag, 'internal', ...file.type === 'text/markdown' ? [] : codeType]
+        tags: uniq([
+          this.store.account.localTag,
+          'internal',
+          ...this.visibilityTags,
+          ...file.type === 'text/markdown' ? [] : codeType
+        ])
       };
       upload.progress = 50; // Simulate progress for text files
       return readFileAsString(file).pipe(
@@ -671,7 +678,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
         }),
       );
     } else {
-      const tags: string[] = ['plugin/file'];
+      const tags: string[] = ['plugin/file', ...this.visibilityTags];
       if (file.type.startsWith('audio/') && this.admin.getPlugin('plugin/audio')) {
         tags.push('plugin/audio');
       } else if (file.type.startsWith('video/') && this.admin.getPlugin('plugin/video')) {

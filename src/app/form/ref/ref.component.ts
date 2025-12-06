@@ -136,6 +136,13 @@ export class RefFormComponent implements OnChanges {
     return this.group.get('sources') as UntypedFormArray;
   }
 
+  @memo
+  get visibilityTags(): string[] {
+    // For new refs being edited, compute visibility from current form tags
+    const { getVisibilityTags } = require('../../util/tag');
+    return getVisibilityTags(this.tags?.value || [], this.origin || '');
+  }
+
   addSource(value = '') {
     this.sources.push(this.fb.control(value, LinksFormComponent.validators));
   }
