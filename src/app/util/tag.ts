@@ -353,8 +353,10 @@ export function removeTag(tag: string | undefined, tags: string[]): string[] {
 
 /**
  * Extract visibility tags from a Ref for use in uploaded files/refs.
- * Returns tags that control visibility (user tags for private refs, public indicator).
- * For refs addressed to users via mailbox, extracts the user tag without prefix for read access.
+ * Returns tags that control visibility:
+ * - If public: returns ['public']
+ * - Otherwise: keeps user tags as-is, converts protected tags to public, keeps private tags
+ * - Ignores plugin/inbox and plugin/outbox tags
  */
 export function getVisibilityTags(tags?: string[]): string[] {
   if (!tags || tags.length === 0) return [];
@@ -367,28 +369,23 @@ export function getVisibilityTags(tags?: string[]): string[] {
   
   const visibilityTags: string[] = [];
   
-  // Add all private and protected tags
   for (const tag of tags) {
-    if (privateTag(tag) || protectedTag(tag)) {
+    // Skip mailbox tags (plugin/inbox and plugin/outbox)
+    if (tag.startsWith('plugin/inbox') || tag.startsWith('plugin/outbox')) {
+      continue;
+    }
+    
+    // Keep private tags as-is (assuming user has permission to add them)
+    if (privateTag(tag)) {
       visibilityTags.push(tag);
     }
-  }
-  
-  // Use existing mailbox functions to extract user tags for read access
-  // Import isMailbox from mods/mailbox would create circular dependency,
-  // so we check inline
-  for (const tag of tags) {
-    if (tag.startsWith('plugin/outbox/')) {
-      // Use the plugin/outbox tag exactly as-is
+    // Convert protected tags to public (remove the '+' prefix)
+    else if (protectedTag(tag)) {
+      visibilityTags.push(setPublic(tag));
+    }
+    // Keep user tags as-is
+    else if (hasPrefix(tag, 'user')) {
       visibilityTags.push(tag);
-    } else if (tag.startsWith('plugin/inbox/')) {
-      // Extract user tag without prefix: plugin/inbox/bob -> user/bob
-      const userPart = tag.substring('plugin/inbox/'.length);
-      if (userPart) {
-        // Take first segment for hierarchical tags: plugin/inbox/alice/foo -> user/alice
-        const firstPart = userPart.split('/')[0];
-        visibilityTags.push('user/' + firstPart);
-      }
     }
   }
   
