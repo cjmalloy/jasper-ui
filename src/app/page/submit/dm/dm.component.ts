@@ -40,7 +40,7 @@ import { scrollToFirstInvalid } from '../../../util/form';
 import { QUALIFIED_TAGS_REGEX } from '../../../util/format';
 import { printError } from '../../../util/http';
 import { memo, MemoCache } from '../../../util/memo';
-import { hasPrefix, hasTag } from '../../../util/tag';
+import { getVisibilityTags, hasPrefix, hasTag } from '../../../util/tag';
 
 @Component({
   selector: 'app-submit-dm',
@@ -155,8 +155,7 @@ export class SubmitDmPage implements AfterViewInit, OnChanges, OnDestroy, HasCha
   @memo
   get visibilityTags(): string[] {
     // For DMs, compute visibility from current form tags
-    const { getVisibilityTags } = require('../../../util/tag');
-    return getVisibilityTags(this.tags?.value || [], this.store.account.origin || '');
+    return getVisibilityTags(this.tags?.value || []);
   }
 
   get notes() {

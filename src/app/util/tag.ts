@@ -356,45 +356,40 @@ export function removeTag(tag: string | undefined, tags: string[]): string[] {
  * Returns tags that control visibility (user tags for private refs, public indicator).
  * For refs addressed to users via mailbox, extracts the user tag without prefix for read access.
  */
-export function getVisibilityTags(tags?: string[], origin?: string): string[] {
+export function getVisibilityTags(tags?: string[]): string[] {
   if (!tags || tags.length === 0) return [];
+  
+  // Check if public - if so, just return public tag
+  const isPublicRef = tags.some(t => t === 'public' || publicTag(t));
+  if (isPublicRef) {
+    return ['public'];
+  }
   
   const visibilityTags: string[] = [];
   
-  // Check if public
-  const isPublic = tags.some(t => t === 'public' || publicTag(t));
+  // Add all private and protected tags
+  for (const tag of tags) {
+    if (privateTag(tag) || protectedTag(tag)) {
+      visibilityTags.push(tag);
+    }
+  }
   
-  // If not explicitly public, collect private/protected tags and user tags
-  if (!isPublic) {
-    // Add all private and protected tags
-    for (const tag of tags) {
-      if (privateTag(tag) || protectedTag(tag)) {
-        visibilityTags.push(tag);
+  // Use existing mailbox functions to extract user tags for read access
+  // Import isMailbox from mods/mailbox would create circular dependency,
+  // so we check inline
+  for (const tag of tags) {
+    if (tag.startsWith('plugin/outbox/')) {
+      // Use the plugin/outbox tag exactly as-is
+      visibilityTags.push(tag);
+    } else if (tag.startsWith('plugin/inbox/')) {
+      // Extract user tag without prefix: plugin/inbox/bob -> user/bob
+      const userPart = tag.substring('plugin/inbox/'.length);
+      if (userPart) {
+        // Take first segment for hierarchical tags: plugin/inbox/alice/foo -> user/alice
+        const firstPart = userPart.split('/')[0];
+        visibilityTags.push('user/' + firstPart);
       }
     }
-    
-    // Extract user tags from mailbox tags for read access
-    // plugin/inbox/bob -> user/bob (no prefix)
-    // plugin/outbox/origin/alice -> use plugin/outbox/origin/alice exactly
-    for (const tag of tags) {
-      if (tag.startsWith('plugin/inbox/')) {
-        const userPart = tag.substring('plugin/inbox/'.length);
-        if (userPart && !userPart.includes('/')) {
-          // Simple user like plugin/inbox/bob -> user/bob
-          visibilityTags.push('user/' + userPart);
-        } else if (userPart) {
-          // Hierarchical user like plugin/inbox/alice/something -> user/alice
-          const firstPart = userPart.split('/')[0];
-          visibilityTags.push('user/' + firstPart);
-        }
-      } else if (tag.startsWith('plugin/outbox/')) {
-        // Use the plugin/outbox tag exactly as-is
-        visibilityTags.push(tag);
-      }
-    }
-  } else {
-    // If public, just add the public tag
-    visibilityTags.push('public');
   }
   
   return uniq(visibilityTags);

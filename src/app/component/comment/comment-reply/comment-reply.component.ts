@@ -95,7 +95,7 @@ export class CommentReplyComponent implements HasChanges {
 
   get visibilityTags() {
     // Get visibility tags from the parent ref
-    return getVisibilityTags(this.to?.tags || [], this.to?.origin || '');
+    return getVisibilityTags(this.to?.tags || []);
   }
 
   reply() {

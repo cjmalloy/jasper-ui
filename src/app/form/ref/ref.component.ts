@@ -37,7 +37,7 @@ import { OembedStore } from '../../store/oembed';
 import { Store } from '../../store/store';
 import { getScheme, getTitleFromFilename } from '../../util/http';
 import { memo, MemoCache } from '../../util/memo';
-import { hasMedia, hasPrefix, hasTag } from '../../util/tag';
+import { getVisibilityTags, hasMedia, hasPrefix, hasTag } from '../../util/tag';
 import { EditorComponent } from '../editor/editor.component';
 import { LinksFormComponent } from '../links/links.component';
 import { PluginsFormComponent } from '../plugins/plugins.component';
@@ -139,8 +139,7 @@ export class RefFormComponent implements OnChanges {
   @memo
   get visibilityTags(): string[] {
     // For new refs being edited, compute visibility from current form tags
-    const { getVisibilityTags } = require('../../util/tag');
-    return getVisibilityTags(this.tags?.value || [], this.origin || '');
+    return getVisibilityTags(this.tags?.value || []);
   }
 
   addSource(value = '') {

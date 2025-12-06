@@ -43,7 +43,7 @@ import { Store } from '../../../store/store';
 import { scrollToFirstInvalid } from '../../../util/form';
 import { printError } from '../../../util/http';
 import { memo, MemoCache } from '../../../util/memo';
-import { hasPrefix, hasTag } from '../../../util/tag';
+import { getVisibilityTags, hasPrefix, hasTag } from '../../../util/tag';
 
 @Component({
   selector: 'app-submit-text',
@@ -229,8 +229,7 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
   @memo
   get visibilityTags(): string[] {
     // For new refs being created, compute visibility from current form tags
-    const { getVisibilityTags } = require('../../../util/tag');
-    return getVisibilityTags(this.tags?.value || [], this.store.account.origin || '');
+    return getVisibilityTags(this.tags?.value || []);
   }
 
   @memo

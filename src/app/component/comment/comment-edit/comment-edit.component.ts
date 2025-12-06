@@ -11,6 +11,7 @@ import { Store } from '../../../store/store';
 import { getIfNew, getMailboxes } from '../../../util/editor';
 import { printError } from '../../../util/http';
 import { OpPatch } from '../../../util/json-patch';
+import { getVisibilityTags } from '../../../util/tag';
 import { LoadingComponent } from '../../loading/loading.component';
 
 @Component({
@@ -81,8 +82,7 @@ export class CommentEditComponent implements AfterViewInit, HasChanges, OnDestro
 
   get visibilityTags(): string[] {
     // For editing existing refs, use the ref's current visibility tags
-    const { getVisibilityTags } = require('../../../util/tag');
-    return getVisibilityTags(this.ref?.tags || [], this.ref?.origin || '');
+    return getVisibilityTags(this.ref?.tags || []);
   }
 
   save() {

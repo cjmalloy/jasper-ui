@@ -28,7 +28,7 @@ import { Store } from '../../../store/store';
 import { scrollToFirstInvalid } from '../../../util/form';
 import { templates, URI_REGEX } from '../../../util/format';
 import { printError } from '../../../util/http';
-import { prefix } from '../../../util/tag';
+import { getVisibilityTags, prefix } from '../../../util/tag';
 
 @Component({
   selector: 'app-submit-invoice',
@@ -124,8 +124,7 @@ export class SubmitInvoicePage implements HasChanges {
 
   get visibilityTags(): string[] {
     // For invoices, compute visibility from current editor tags
-    const { getVisibilityTags } = require('../../../util/tag');
-    return getVisibilityTags(this.editorTags || [], this.store.account.origin || '');
+    return getVisibilityTags(this.editorTags || []);
   }
 
   validate(input: HTMLInputElement) {
