@@ -165,14 +165,13 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
       catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
       map(ref => ref || { url }),
       tap(ref => this.markRead(ref)),
-      switchMap(ref => !fetchTop(ref)
-        ? of([ref, undefined])
+      switchMap(ref => !fetchTop(ref) ? of([ref, undefined])
         : top(ref) === url ? of([ref, ref])
-          : top(ref) === this.store.view.top?.url ? of([ref, this.store.view.top])
-            : this.refs.getCurrent(top(ref)).pipe(
-              catchError(err => err.status === 404 ? of([ref, undefined]) : throwError(() => err)),
-              map(top => [ref, top] as [Ref, Ref]),
-            )),
+        : top(ref) === this.store.view.top?.url ? of([ref, this.store.view.top])
+        : this.refs.getCurrent(top(ref)).pipe(
+          map(top => [ref, top]),
+          catchError(err => err.status === 404 ? of([ref, undefined]) : throwError(() => err)),
+        )),
       tap(([ref, top]) => runInAction(() => this.store.view.setRef(ref, top))),
       takeUntil(this.destroy$),
     ).subscribe(() => MemoCache.clear(this));
