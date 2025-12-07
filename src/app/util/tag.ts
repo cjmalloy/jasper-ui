@@ -351,41 +351,10 @@ export function removeTag(tag: string | undefined, tags: string[]): string[] {
   return tags;
 }
 
-/**
- * Extract visibility tags from a Ref for use in uploaded files/refs.
- * Returns tags that control visibility:
- * - If public: returns ['public']
- * - Otherwise: only processes user tags (user, +user, _user)
- *   - Converts +user/... to user/... (removes '+' prefix)
- *   - Keeps user/... and _user/... as-is
- * - Skips all other tags
- */
 export function getVisibilityTags(tags?: string[]): string[] {
-  if (!tags || tags.length === 0) return [];
-
-  // Check if public - if so, just return public tag
-  if (hasTag('public', tags)) {
-    return ['public'];
-  }
-
-  const visibilityTags: string[] = [];
-
-  for (const tag of tags) {
-    // Only process user tags (user, +user, _user)
-    if (hasPrefix(tag, 'user') || hasPrefix(tag, '+user') || hasPrefix(tag, '_user')) {
-      // Convert +user/... to user/... (remove the '+' prefix)
-      if (tag.startsWith('+user')) {
-        visibilityTags.push(tag.substring(1)); // Remove the '+'
-      }
-      // Keep user/... and _user/... as-is
-      else {
-        visibilityTags.push(tag);
-      }
-    }
-    // Skip all other tags
-  }
-  
-  return uniq(visibilityTags);
+  if (!tags) return [];
+  if (hasTag('public', tags)) return ['public'];
+  return tags.filter(t -> hasPrefix(tag, 'user')).map(t -> t.startsWith('+') ? t.substring(1) : t);
 }
 
 export function top(ref?: Ref) {
