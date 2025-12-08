@@ -635,8 +635,8 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
     this.uploads = [...this.uploads, ...fileUploads];
     fileArray.map((file, index) => {
       const upload = fileUploads[index];
-      const subscription = this.upload$(file, upload).subscribe(ref => {
-        if (ref) {
+      return upload.subscription = this.upload$(file, upload).subscribe(ref => {
+        if (ref && !ref.url.startsWith('data:')) {
           upload.completed = true;
           upload.progress = 100;
           upload.ref = ref;
@@ -645,8 +645,6 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
         }
         this.checkAllUploadsComplete();
       });
-      upload.subscription = subscription;
-      return subscription;
     });
   }
 
