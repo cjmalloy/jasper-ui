@@ -48,6 +48,8 @@ describe('MailboxPlugin', () => {
     expect(mailboxes(ref('+user/alice', 'public'), '+user')).toEqual(['plugin/inbox/user/alice']);
     expect(mailboxes(ref('+user', 'plugin/inbox/user/alice', 'public'), '+user')).toEqual(['plugin/inbox/user/alice']);
     expect(mailboxes(ref('+user/alice', 'plugin/inbox/user/bob', 'public'), '+user')).toEqual(['plugin/inbox/user/alice', 'plugin/inbox/user/bob']);
+    expect(mailboxes(ref('_user/alice'), '+user')).toEqual(['plugin/inbox/user/alice']);
+    expect(mailboxes(ref('+user/alice', '_user/bob'), '+user')).toEqual(['plugin/inbox/user/alice', 'plugin/inbox/user/bob', 'user/alice']);
   });
   it('mailboxes multi-tenant', () => {
     expect(mailboxes(ref('+user/alice'), '+user@test')).toEqual(['plugin/inbox/user/alice', 'user/alice']);
