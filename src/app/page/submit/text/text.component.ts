@@ -22,7 +22,7 @@ import { SelectPluginComponent } from '../../../component/select-plugin/select-p
 import { FillWidthDirective } from '../../../directive/fill-width.directive';
 import { LimitWidthDirective } from '../../../directive/limit-width.directive';
 import { ResizeHandleDirective } from '../../../directive/resize-handle.directive';
-import { EditorComponent, EditorUpload } from '../../../form/editor/editor.component';
+import { EditorComponent } from '../../../form/editor/editor.component';
 import { LinksFormComponent } from '../../../form/links/links.component';
 import { PluginsFormComponent, writePlugins } from '../../../form/plugins/plugins.component';
 import { refForm, RefFormComponent } from '../../../form/ref/ref.component';
@@ -89,7 +89,7 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
   addAnother = false;
   defaults?: { url: string, ref: Partial<Ref> };
   loadingDefaults: Ext[] = [];
-  completedUploads: EditorUpload[] = [];
+  completedUploads: Ref[] = [];
   private oldSubmit: string[] = [];
   private savedRef?: Ref;
 
@@ -230,11 +230,6 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
     return this.textForm.get('tags') as UntypedFormArray;
   }
 
-  onUploadCompleted(upload: EditorUpload) {
-    // Track completed uploads to tag them after the ref is saved
-    this.completedUploads.push(upload);
-  }
-
   @memo
   get codeLang() {
     for (const t of this.tags.value) {
@@ -305,7 +300,7 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
       scrollToFirstInvalid();
       return;
     }
-    const tags = uniq(this.textForm.value.tags);
+    const tags = uniq(this.textForm.value.tags) as string[];
     const published = this.textForm.value.published ? DateTime.fromISO(this.textForm.value.published) : DateTime.now();
     const ref = {
       ...this.textForm.value,
@@ -322,26 +317,24 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
           this.ts.createResponse('plugin/user/vote/up', this.url.value).subscribe();
         }
       }),
+      switchMap(res => {
+        const finalVisibilityTags = getVisibilityTags(tags);
+        if (!finalVisibilityTags.length) return of(res);
+        const taggingOps = this.completedUploads
+          .map(upload => this.ts.patch(finalVisibilityTags, upload.url, upload.origin!));
+        if (!taggingOps.length) return of(res);
+        return forkJoin(taggingOps).pipe(map(() => res));
+      }),
       catchError((res: HttpErrorResponse) => {
         delete this.submitting;
         this.serverError = printError(res);
         return throwError(() => res);
       }),
-    ).pipe(
-      switchMap(() => {
-        // Tag completed uploads with the visibility tags from the saved ref
-        const finalVisibilityTags = getVisibilityTags(tags as string[]);
-        const taggingOps = this.completedUploads
-          .filter(upload => upload.ref?.url && upload.ref?.origin && finalVisibilityTags.length > 0)
-          .map(upload => this.ts.patch(finalVisibilityTags, upload.ref!.url, upload.ref!.origin!));
-        
-        return taggingOps.length > 0 ? forkJoin(taggingOps) : of([]);
-      }),
     ).subscribe(() => {
       delete this.submitting;
       this.textForm.markAsPristine();
       this.completedUploads = [];
-      
+
       if (this.addAnother) {
         this.url.enable();
         this.url.setValue('comment:' + uuid());

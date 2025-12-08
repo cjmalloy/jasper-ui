@@ -59,7 +59,7 @@
                       [tags]="tags"
                       (syncTags)="setTags($event)"
                       (addSource)="addSource($event)"
-                      (uploadCompleted)="onUploadCompleted($event)"
+                      (uploadCompleted)="completedUploads.push($event)"
                       [fillWidth]="fill"
                       [autoFocus]="true"></app-editor>
         </div>

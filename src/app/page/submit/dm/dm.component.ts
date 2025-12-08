@@ -22,15 +22,17 @@ import { AutofocusDirective } from '../../../directive/autofocus.directive';
 import { FillWidthDirective } from '../../../directive/fill-width.directive';
 import { LimitWidthDirective } from '../../../directive/limit-width.directive';
 import { ResizeHandleDirective } from '../../../directive/resize-handle.directive';
-import { EditorComponent, EditorUpload } from '../../../form/editor/editor.component';
+import { EditorComponent } from '../../../form/editor/editor.component';
 import { LinksFormComponent } from '../../../form/links/links.component';
 import { PluginsFormComponent, writePlugins } from '../../../form/plugins/plugins.component';
 import { TagsFormComponent } from '../../../form/tags/tags.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
+import { Ref } from '../../../model/ref';
 import { getMailbox } from '../../../mods/mailbox';
 import { AdminService } from '../../../service/admin.service';
 import { ExtService } from '../../../service/api/ext.service';
 import { RefService } from '../../../service/api/ref.service';
+import { TaggingService } from '../../../service/api/tagging.service';
 import { BookmarkService } from '../../../service/bookmark.service';
 import { ConfigService } from '../../../service/config.service';
 import { EditorService } from '../../../service/editor.service';
@@ -82,7 +84,7 @@ export class SubmitDmPage implements AfterViewInit, OnChanges, OnDestroy, HasCha
   editing = false;
   autocomplete: { value: string, label: string }[] = [];
   submitting?: Subscription;
-  completedUploads: EditorUpload[] = [];
+  completedUploads: Ref[] = [];
   private showedError = false;
   private addedMailboxes: string[] = [];
   private searching?: Subscription;
@@ -96,6 +98,7 @@ export class SubmitDmPage implements AfterViewInit, OnChanges, OnDestroy, HasCha
     public bookmarks: BookmarkService,
     private refs: RefService,
     private exts: ExtService,
+    private ts: TaggingService,
     private editor: EditorService,
     private fb: UntypedFormBuilder,
   ) {
@@ -154,11 +157,6 @@ export class SubmitDmPage implements AfterViewInit, OnChanges, OnDestroy, HasCha
 
   get tags() {
     return this.dmForm.get('tags') as UntypedFormArray;
-  }
-
-  onUploadCompleted(upload: EditorUpload) {
-    // Track completed uploads to tag them after the ref is saved
-    this.completedUploads.push(upload);
   }
 
   get notes() {
@@ -279,7 +277,7 @@ export class SubmitDmPage implements AfterViewInit, OnChanges, OnDestroy, HasCha
   }
 
   getMailboxes(tag: string): string[] {
-    return this.admin.getPlugin(tag)?.config?.reply || [ getMailbox(tag, this.store.account.origin) ];
+    return this.admin.getPlugin(tag)?.config?.reply || [ getMailbox(tag, this.store.account.origin), ...hasPrefix(tag, '+user') ? [tag.substring(1)] : [] ];
   }
 
   @memo
@@ -339,28 +337,24 @@ export class SubmitDmPage implements AfterViewInit, OnChanges, OnDestroy, HasCha
       tags: finalTags,
       plugins: writePlugins(this.dmForm.value.tags, this.dmForm.value.plugins),
     }).pipe(
+      switchMap(res => {
+        const finalVisibilityTags = getVisibilityTags(finalTags);
+        if (!finalVisibilityTags.length) return of(res);
+        const taggingOps = this.completedUploads
+          .map(upload => this.ts.patch(finalVisibilityTags, upload.url, upload.origin!));
+        if (!taggingOps.length) return of(res);
+        return forkJoin(taggingOps).pipe(map(() => res));
+      }),
       catchError((res: HttpErrorResponse) => {
         delete this.submitting;
         this.serverError = printError(res);
         return throwError(() => res);
       }),
-    ).pipe(
-      switchMap(() => {
-        // Tag completed uploads with the visibility tags from the saved ref
-        const finalVisibilityTags = getVisibilityTags(finalTags);
-        const taggingOps = this.completedUploads
-          .filter(upload => upload.ref?.url && upload.ref?.origin && finalVisibilityTags.length > 0)
-          .map(upload => this.refs.patch(upload.ref!.url, upload.ref!.origin!, '', [
-            ...finalVisibilityTags.map(t => ({ op: 'add' as const, path: '/tags/-', value: t }))
-          ]));
-        
-        return taggingOps.length > 0 ? forkJoin(taggingOps) : of([]);
-      }),
     ).subscribe(() => {
       delete this.submitting;
       this.dmForm.markAsPristine();
       this.completedUploads = [];
-      
+
       this.router.navigate(['/ref', url, 'thread'], { queryParams: { published }, replaceUrl: true});
     });
   }

@@ -130,7 +130,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   @Output()
   scrape = new EventEmitter<void>();
   @Output()
-  uploadCompleted = new EventEmitter<EditorUpload>();
+  uploadCompleted = new EventEmitter<Ref>();
 
   dropping = false;
   overlayRef?: OverlayRef;
@@ -641,7 +641,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
           upload.progress = 100;
           upload.ref = ref;
           // Emit upload completion so parent can tag it
-          this.uploadCompleted.emit(upload);
+          this.uploadCompleted.emit(ref);
         }
         this.checkAllUploadsComplete();
       });

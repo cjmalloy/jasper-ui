@@ -14,14 +14,16 @@ import { catchError, forkJoin, map, of, Subscription, switchMap, throwError } fr
 import { tap } from 'rxjs/operators';
 import { LoadingComponent } from '../../../component/loading/loading.component';
 import { LimitWidthDirective } from '../../../directive/limit-width.directive';
-import { EditorComponent, EditorUpload } from '../../../form/editor/editor.component';
+import { EditorComponent } from '../../../form/editor/editor.component';
 import { QrScannerComponent } from '../../../formly/qr-scanner/qr-scanner.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Ext } from '../../../model/ext';
+import { Ref } from '../../../model/ref';
 import { getMailbox } from '../../../mods/mailbox';
 import { AdminService } from '../../../service/admin.service';
 import { ExtService } from '../../../service/api/ext.service';
 import { RefService } from '../../../service/api/ref.service';
+import { TaggingService } from '../../../service/api/tagging.service';
 import { EditorService } from '../../../service/editor.service';
 import { ModService } from '../../../service/mod.service';
 import { Store } from '../../../store/store';
@@ -55,7 +57,7 @@ export class SubmitInvoicePage implements HasChanges {
   refUrl?: string;
   queue?: string;
   editorTags: string[] = [];
-  completedUploads: EditorUpload[] = [];
+  completedUploads: Ref[] = [];
 
   submitting?: Subscription;
 
@@ -68,6 +70,7 @@ export class SubmitInvoicePage implements HasChanges {
     private editor: EditorService,
     private refs: RefService,
     private exts: ExtService,
+    private ts: TaggingService,
     private fb: UntypedFormBuilder,
   ) {
     mod.setTitle($localize`Submit: Invoice`);
@@ -126,11 +129,6 @@ export class SubmitInvoicePage implements HasChanges {
     return this.invoiceForm.get('comment') as UntypedFormControl;
   }
 
-  onUploadCompleted(upload: EditorUpload) {
-    // Track completed uploads to tag them after the ref is saved
-    this.completedUploads.push(upload);
-  }
-
   validate(input: HTMLInputElement) {
     this.checkUrl();
     if (this.url.touched) {
@@ -184,17 +182,14 @@ export class SubmitInvoicePage implements HasChanges {
           tags: finalTags,
           sources: flatten([this.refUrl]),
         }).pipe(
-          switchMap(() => {
-            // Tag completed uploads with the visibility tags from the saved ref
+          switchMap(res => {
             const finalVisibilityTags = getVisibilityTags(finalTags);
+            if (!finalVisibilityTags.length) return of(res);
             const taggingOps = this.completedUploads
-              .filter(upload => upload.ref?.url && upload.ref?.origin && finalVisibilityTags.length > 0)
-              .map(upload => this.refs.patch(upload.ref!.url, upload.ref!.origin!, '', [
-                ...finalVisibilityTags.map(t => ({ op: 'add' as const, path: '/tags/-', value: t }))
-              ]));
-            
-            return taggingOps.length > 0 ? forkJoin(taggingOps) : of([]);
-          })
+              .map(upload => this.ts.patch(finalVisibilityTags, upload.url, upload.origin!));
+            if (!taggingOps.length) return of(res);
+            return forkJoin(taggingOps).pipe(map(() => res));
+          }),
         );
       }),
       catchError((res: HttpErrorResponse) => {

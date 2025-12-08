@@ -315,28 +315,24 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
           this.ts.createResponse('plugin/user/vote/up', this.url).subscribe();
         }
       }),
+      switchMap(res => {
+        const finalVisibilityTags = getVisibilityTags(finalTags);
+        if (!finalVisibilityTags.length) return of(res);
+        const taggingOps = this.refForm.completedUploads
+          .map(upload => this.ts.patch(finalVisibilityTags, upload.url, upload.origin!));
+        if (!taggingOps.length) return of(res);
+        return forkJoin(taggingOps).pipe(map(() => res));
+      }),
       catchError((res: HttpErrorResponse) => {
         delete this.submitting;
         this.serverError = printError(res);
         return throwError(() => res);
       }),
-    ).pipe(
-      switchMap(() => {
-        // Tag completed uploads with the visibility tags from the saved ref
-        const finalVisibilityTags = getVisibilityTags(finalTags);
-        const taggingOps = this.refForm.completedUploads
-          .filter(upload => upload.ref?.url && upload.ref?.origin && finalVisibilityTags.length > 0)
-          .map(upload => this.refs.patch(upload.ref!.url, upload.ref!.origin!, '', [
-            ...finalVisibilityTags.map(t => ({ op: 'add' as const, path: '/tags/-', value: t }))
-          ]));
-        
-        return taggingOps.length > 0 ? forkJoin(taggingOps) : of([]);
-      }),
     ).subscribe(() => {
       delete this.submitting;
       this.webForm.markAsPristine();
       this.refForm.completedUploads = [];
-      
+
       this.router.navigate(['/ref', this.url], { queryParams: { published }, replaceUrl: true});
     });
   }

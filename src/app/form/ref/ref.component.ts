@@ -37,8 +37,8 @@ import { OembedStore } from '../../store/oembed';
 import { Store } from '../../store/store';
 import { getScheme, getTitleFromFilename } from '../../util/http';
 import { memo, MemoCache } from '../../util/memo';
-import { getVisibilityTags, hasMedia, hasPrefix, hasTag } from '../../util/tag';
-import { EditorComponent, EditorUpload } from '../editor/editor.component';
+import { hasMedia, hasPrefix, hasTag } from '../../util/tag';
+import { EditorComponent } from '../editor/editor.component';
 import { LinksFormComponent } from '../links/links.component';
 import { PluginsFormComponent } from '../plugins/plugins.component';
 import { TagsFormComponent } from '../tags/tags.component';
@@ -94,7 +94,7 @@ export class RefFormComponent implements OnChanges {
   scrapingTitle = false;
   scrapingPublished = false;
   scrapingAll = false;
-  completedUploads: EditorUpload[] = [];
+  completedUploads: Ref[] = [];
 
   constructor(
     public config: ConfigService,
@@ -137,11 +137,6 @@ export class RefFormComponent implements OnChanges {
 
   get sources() {
     return this.group.get('sources') as UntypedFormArray;
-  }
-
-  onUploadCompleted(upload: EditorUpload) {
-    // Track completed uploads to tag them after the ref is saved
-    this.completedUploads.push(upload);
   }
 
   addSource(value = '') {

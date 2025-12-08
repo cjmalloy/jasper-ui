@@ -3,7 +3,7 @@ import { AfterViewInit, Component, forwardRef, Input, OnDestroy, ViewChild } fro
 import { FormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { uniq, without } from 'lodash-es';
 import { catchError, forkJoin, map, of, Subject, Subscription, switchMap, takeUntil, throwError } from 'rxjs';
-import { EditorComponent, EditorUpload } from '../../../form/editor/editor.component';
+import { EditorComponent } from '../../../form/editor/editor.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Ref } from '../../../model/ref';
 import { RefService } from '../../../service/api/ref.service';
@@ -42,7 +42,7 @@ export class CommentEditComponent implements AfterViewInit, HasChanges, OnDestro
   commentForm: UntypedFormGroup;
   editorTags: string[] = [];
   sources: string[] = [];
-  completedUploads: EditorUpload[] = [];
+  completedUploads: Ref[] = [];
 
   constructor(
     private store: Store,
@@ -86,11 +86,6 @@ export class CommentEditComponent implements AfterViewInit, HasChanges, OnDestro
     ]);
   }
 
-  onUploadCompleted(upload: EditorUpload) {
-    // Track completed uploads to tag them after the ref is saved
-    this.completedUploads.push(upload);
-  }
-
   save() {
     const patches: OpPatch[] = [];
     if (this.comment.dirty) {
@@ -123,28 +118,24 @@ export class CommentEditComponent implements AfterViewInit, HasChanges, OnDestro
     }
     this.editing = this.refs.patch(this.ref.url, this.ref.origin!, this.ref!.modifiedString!, patches).pipe(
       switchMap(() => this.refs.get(this.ref.url, this.ref.origin!).pipe(takeUntil(this.destroy$))),
+      switchMap(res => {
+        const finalVisibilityTags = getVisibilityTags(finalTags);
+        if (!finalVisibilityTags.length) return of(res);
+        const taggingOps = this.completedUploads
+          .map(upload => this.ts.patch(finalVisibilityTags, upload.url, upload.origin!));
+        if (!taggingOps.length) return of(res);
+        return forkJoin(taggingOps).pipe(map(() => res));
+      }),
       catchError((res: HttpErrorResponse) => {
         delete this.editing;
         this.serverError = printError(res);
         return throwError(() => res);
       }),
-    ).pipe(
-      switchMap(res => {
-        // Tag completed uploads with the visibility tags from the saved ref
-        const finalVisibilityTags = getVisibilityTags(res.tags || []);
-        const taggingOps = this.completedUploads
-          .filter(upload => upload.ref?.url && upload.ref?.origin && finalVisibilityTags.length > 0)
-          .map(upload => this.ts.patch(finalVisibilityTags, upload.ref!.url, upload.ref!.origin));
-        
-        return (taggingOps.length > 0 ? forkJoin(taggingOps) : of([])).pipe(
-          map(() => res)
-        );
-      }),
     ).subscribe(res => {
       delete this.editing;
       this.ref = res;
       this.completedUploads = [];
-      
+
       this.commentEdited$.next(res);
     });
   }

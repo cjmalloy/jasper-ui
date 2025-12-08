@@ -4,7 +4,7 @@
               [selectResponseType]="selectResponseType"
               (syncTags)="syncTags($event)"
               (addSource)="addSource($event)"
-              (uploadCompleted)="onUploadCompleted($event)"
+              (uploadCompleted)="completedUploads.push($event)"
               [autoFocus]="autofocus"></app-editor>
 </form>
 @for (e of serverError; track e) {

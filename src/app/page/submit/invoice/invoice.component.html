@@ -44,7 +44,7 @@
                 (syncEditor)="syncEditor()"
                 [tags]="$any(invoiceForm.value).tags"
                 (syncTags)="editorTags = $event"
-                (uploadCompleted)="onUploadCompleted($event)"></app-editor>
+                (uploadCompleted)="completedUploads.push($event)"></app-editor>
   </div>
 
   @for (e of serverError; track e) {

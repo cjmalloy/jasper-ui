@@ -112,7 +112,7 @@
                   (syncEditor)="syncEditor()"
                   (syncTags)="setTags($event)"
                   (addSource)="addSource($event)"
-                  (uploadCompleted)="onUploadCompleted($event)"></app-editor>
+                  (uploadCompleted)="completedUploads.push($event)"></app-editor>
     </div>
   }
 
