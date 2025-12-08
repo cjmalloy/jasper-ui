@@ -6,7 +6,7 @@ import { defer, uniq, without } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { autorun, IReactionDisposer } from 'mobx';
 import { MobxAngularModule } from 'mobx-angular';
-import { catchError, map, of, Subscription, switchMap, throwError } from 'rxjs';
+import { catchError, forkJoin, map, of, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
 import { LoadingComponent } from '../../../component/loading/loading.component';
@@ -320,19 +320,21 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
         this.serverError = printError(res);
         return throwError(() => res);
       }),
+    ).pipe(
+      switchMap(() => {
+        // Tag completed uploads with the visibility tags from the saved ref
+        const finalVisibilityTags = getVisibilityTags(finalTags);
+        const taggingOps = this.refForm.completedUploads
+          .filter(upload => upload.ref?.url && upload.ref?.origin && finalVisibilityTags.length > 0)
+          .map(upload => this.refs.patch(upload.ref!.url, upload.ref!.origin!, '', [
+            ...finalVisibilityTags.map(t => ({ op: 'add' as const, path: '/tags/-', value: t }))
+          ]));
+        
+        return taggingOps.length > 0 ? forkJoin(taggingOps) : of([]);
+      }),
     ).subscribe(() => {
       delete this.submitting;
       this.webForm.markAsPristine();
-      
-      // Tag completed uploads with the visibility tags from the saved ref
-      const finalVisibilityTags = getVisibilityTags(finalTags);
-      this.refForm.completedUploads.forEach(upload => {
-        if (upload.ref?.url && upload.ref?.origin && finalVisibilityTags.length > 0) {
-          this.refs.patch(upload.ref.url, upload.ref.origin, '', [
-            ...finalVisibilityTags.map(t => ({ op: 'add' as const, path: '/tags/-', value: t }))
-          ]).subscribe();
-        }
-      });
       this.refForm.completedUploads = [];
       
       this.router.navigate(['/ref', this.url], { queryParams: { published }, replaceUrl: true});

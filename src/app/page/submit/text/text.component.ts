@@ -13,7 +13,7 @@ import { DateTime } from 'luxon';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { MobxAngularModule } from 'mobx-angular';
 import { MonacoEditorModule } from 'ngx-monaco-editor';
-import { catchError, map, Subscription, switchMap, throwError } from 'rxjs';
+import { catchError, forkJoin, map, of, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
 import { LoadingComponent } from '../../../component/loading/loading.component';
@@ -327,17 +327,19 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
         this.serverError = printError(res);
         return throwError(() => res);
       }),
+    ).pipe(
+      switchMap(() => {
+        // Tag completed uploads with the visibility tags from the saved ref
+        const finalVisibilityTags = getVisibilityTags(tags as string[]);
+        const taggingOps = this.completedUploads
+          .filter(upload => upload.ref?.url && upload.ref?.origin && finalVisibilityTags.length > 0)
+          .map(upload => this.ts.patch(finalVisibilityTags, upload.ref!.url, upload.ref!.origin!));
+        
+        return taggingOps.length > 0 ? forkJoin(taggingOps) : of([]);
+      }),
     ).subscribe(() => {
       delete this.submitting;
       this.textForm.markAsPristine();
-      
-      // Tag completed uploads with the visibility tags from the saved ref
-      const finalVisibilityTags = getVisibilityTags(tags as string[]);
-      this.completedUploads.forEach(upload => {
-        if (upload.ref?.url && upload.ref?.origin && finalVisibilityTags.length > 0) {
-          this.ts.patch(finalVisibilityTags, upload.ref.url, upload.ref.origin).subscribe();
-        }
-      });
       this.completedUploads = [];
       
       if (this.addAnother) {

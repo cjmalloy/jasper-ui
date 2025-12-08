@@ -344,19 +344,21 @@ export class SubmitDmPage implements AfterViewInit, OnChanges, OnDestroy, HasCha
         this.serverError = printError(res);
         return throwError(() => res);
       }),
+    ).pipe(
+      switchMap(() => {
+        // Tag completed uploads with the visibility tags from the saved ref
+        const finalVisibilityTags = getVisibilityTags(finalTags);
+        const taggingOps = this.completedUploads
+          .filter(upload => upload.ref?.url && upload.ref?.origin && finalVisibilityTags.length > 0)
+          .map(upload => this.refs.patch(upload.ref!.url, upload.ref!.origin!, '', [
+            ...finalVisibilityTags.map(t => ({ op: 'add' as const, path: '/tags/-', value: t }))
+          ]));
+        
+        return taggingOps.length > 0 ? forkJoin(taggingOps) : of([]);
+      }),
     ).subscribe(() => {
       delete this.submitting;
       this.dmForm.markAsPristine();
-      
-      // Tag completed uploads with the visibility tags from the saved ref
-      const finalVisibilityTags = getVisibilityTags(finalTags);
-      this.completedUploads.forEach(upload => {
-        if (upload.ref?.url && upload.ref?.origin && finalVisibilityTags.length > 0) {
-          this.refs.patch(upload.ref.url, upload.ref.origin, '', [
-            ...finalVisibilityTags.map(t => ({ op: 'add' as const, path: '/tags/-', value: t }))
-          ]).subscribe();
-        }
-      });
       this.completedUploads = [];
       
       this.router.navigate(['/ref', url, 'thread'], { queryParams: { published }, replaceUrl: true});

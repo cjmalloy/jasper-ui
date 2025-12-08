@@ -3,7 +3,7 @@ import { Component, EventEmitter, forwardRef, Input, Output, ViewChild } from '@
 import { FormBuilder, ReactiveFormsModule, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { pickBy, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
-import { catchError, Subscription, throwError } from 'rxjs';
+import { catchError, forkJoin, of, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
 import { EditorComponent, EditorUpload } from '../../../form/editor/editor.component';
@@ -145,6 +145,16 @@ export class CommentReplyComponent implements HasChanges {
         this.comment.enable();
         return throwError(() => err);
       }),
+    ).pipe(
+      switchMap(() => {
+        // Tag completed uploads with the visibility tags from the saved ref
+        const finalVisibilityTags = getVisibilityTags(tags);
+        const taggingOps = this.completedUploads
+          .filter(upload => upload.ref?.url && upload.ref?.origin && finalVisibilityTags.length > 0)
+          .map(upload => this.ts.patch(finalVisibilityTags, upload.ref!.url, upload.ref!.origin!));
+        
+        return taggingOps.length > 0 ? forkJoin(taggingOps) : of([]);
+      }),
     ).subscribe(() => {
       delete this.replying;
       this.serverError = [];
@@ -152,14 +162,6 @@ export class CommentReplyComponent implements HasChanges {
       this.commentForm.reset();
       this.editorTags = [...this.tags];
       this.tags = [...this.tags];
-      
-      // Tag completed uploads with the visibility tags from the saved ref
-      const finalVisibilityTags = getVisibilityTags(tags);
-      this.completedUploads.forEach(upload => {
-        if (upload.ref?.url && upload.ref?.origin && finalVisibilityTags.length > 0) {
-          this.ts.patch(finalVisibilityTags, upload.ref.url, upload.ref.origin).subscribe();
-        }
-      });
       this.completedUploads = [];
       
       this.editor?.syncText('');

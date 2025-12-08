@@ -10,7 +10,7 @@ import {
 import { ActivatedRoute, Router } from '@angular/router';
 import { flatten, uniq, without } from 'lodash-es';
 import { DateTime } from 'luxon';
-import { catchError, map, Subscription, switchMap, throwError } from 'rxjs';
+import { catchError, forkJoin, map, of, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { LoadingComponent } from '../../../component/loading/loading.component';
 import { LimitWidthDirective } from '../../../directive/limit-width.directive';
@@ -184,17 +184,16 @@ export class SubmitInvoicePage implements HasChanges {
           tags: finalTags,
           sources: flatten([this.refUrl]),
         }).pipe(
-          tap(() => {
+          switchMap(() => {
             // Tag completed uploads with the visibility tags from the saved ref
             const finalVisibilityTags = getVisibilityTags(finalTags);
-            this.completedUploads.forEach(upload => {
-              if (upload.ref?.url && upload.ref?.origin && finalVisibilityTags.length > 0) {
-                this.refs.patch(upload.ref.url, upload.ref.origin, '', [
-                  ...finalVisibilityTags.map(t => ({ op: 'add' as const, path: '/tags/-', value: t }))
-                ]).subscribe();
-              }
-            });
-            this.completedUploads = [];
+            const taggingOps = this.completedUploads
+              .filter(upload => upload.ref?.url && upload.ref?.origin && finalVisibilityTags.length > 0)
+              .map(upload => this.refs.patch(upload.ref!.url, upload.ref!.origin!, '', [
+                ...finalVisibilityTags.map(t => ({ op: 'add' as const, path: '/tags/-', value: t }))
+              ]));
+            
+            return taggingOps.length > 0 ? forkJoin(taggingOps) : of([]);
           })
         );
       }),
@@ -206,6 +205,7 @@ export class SubmitInvoicePage implements HasChanges {
     ).subscribe(() => {
       delete this.submitting;
       this.invoiceForm.markAsPristine();
+      this.completedUploads = [];
       this.router.navigate(['/ref', this.invoiceForm.value.url], { queryParams: { published }, replaceUrl: true});
     });
   }
