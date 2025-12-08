@@ -22,7 +22,7 @@ import { SelectPluginComponent } from '../../../component/select-plugin/select-p
 import { FillWidthDirective } from '../../../directive/fill-width.directive';
 import { LimitWidthDirective } from '../../../directive/limit-width.directive';
 import { ResizeHandleDirective } from '../../../directive/resize-handle.directive';
-import { EditorComponent } from '../../../form/editor/editor.component';
+import { EditorComponent, EditorUpload } from '../../../form/editor/editor.component';
 import { LinksFormComponent } from '../../../form/links/links.component';
 import { PluginsFormComponent, writePlugins } from '../../../form/plugins/plugins.component';
 import { refForm, RefFormComponent } from '../../../form/ref/ref.component';
@@ -89,6 +89,7 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
   addAnother = false;
   defaults?: { url: string, ref: Partial<Ref> };
   loadingDefaults: Ext[] = [];
+  completedUploads: EditorUpload[] = [];
   private oldSubmit: string[] = [];
   private savedRef?: Ref;
 
@@ -229,10 +230,9 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
     return this.textForm.get('tags') as UntypedFormArray;
   }
 
-  @memo
-  get visibilityTags(): string[] {
-    // For new refs being created, compute visibility from current form tags
-    return getVisibilityTags(this.tags?.value || []);
+  onUploadCompleted(upload: EditorUpload) {
+    // Track completed uploads to tag them after the ref is saved
+    this.completedUploads.push(upload);
   }
 
   @memo
@@ -331,9 +331,14 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
       delete this.submitting;
       this.textForm.markAsPristine();
       
-      // Update uploads with the visibility tags from the saved ref
+      // Tag completed uploads with the visibility tags from the saved ref
       const finalVisibilityTags = getVisibilityTags(tags as string[]);
-      this.editorComponent?.updateUploadsVisibility(finalVisibilityTags);
+      this.completedUploads.forEach(upload => {
+        if (upload.ref?.url && upload.ref?.origin && finalVisibilityTags.length > 0) {
+          this.ts.patch(finalVisibilityTags, upload.ref.url, upload.ref.origin).subscribe();
+        }
+      });
+      this.completedUploads = [];
       
       if (this.addAnother) {
         this.url.enable();

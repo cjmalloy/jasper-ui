@@ -14,7 +14,7 @@ import { catchError, map, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { LoadingComponent } from '../../../component/loading/loading.component';
 import { LimitWidthDirective } from '../../../directive/limit-width.directive';
-import { EditorComponent } from '../../../form/editor/editor.component';
+import { EditorComponent, EditorUpload } from '../../../form/editor/editor.component';
 import { QrScannerComponent } from '../../../formly/qr-scanner/qr-scanner.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Ext } from '../../../model/ext';
@@ -55,6 +55,7 @@ export class SubmitInvoicePage implements HasChanges {
   refUrl?: string;
   queue?: string;
   editorTags: string[] = [];
+  completedUploads: EditorUpload[] = [];
 
   submitting?: Subscription;
 
@@ -125,9 +126,9 @@ export class SubmitInvoicePage implements HasChanges {
     return this.invoiceForm.get('comment') as UntypedFormControl;
   }
 
-  get visibilityTags(): string[] {
-    // For invoices, compute visibility from current editor tags
-    return getVisibilityTags(this.editorTags || []);
+  onUploadCompleted(upload: EditorUpload) {
+    // Track completed uploads to tag them after the ref is saved
+    this.completedUploads.push(upload);
   }
 
   validate(input: HTMLInputElement) {
@@ -184,9 +185,16 @@ export class SubmitInvoicePage implements HasChanges {
           sources: flatten([this.refUrl]),
         }).pipe(
           tap(() => {
-            // Update uploads with the visibility tags from the saved ref
+            // Tag completed uploads with the visibility tags from the saved ref
             const finalVisibilityTags = getVisibilityTags(finalTags);
-            this.editorComponent?.updateUploadsVisibility(finalVisibilityTags);
+            this.completedUploads.forEach(upload => {
+              if (upload.ref?.url && upload.ref?.origin && finalVisibilityTags.length > 0) {
+                this.refs.patch(upload.ref.url, upload.ref.origin, '', [
+                  ...finalVisibilityTags.map(t => ({ op: 'add' as const, path: '/tags/-', value: t }))
+                ]).subscribe();
+              }
+            });
+            this.completedUploads = [];
           })
         );
       }),

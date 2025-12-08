@@ -22,7 +22,7 @@ import { AutofocusDirective } from '../../../directive/autofocus.directive';
 import { FillWidthDirective } from '../../../directive/fill-width.directive';
 import { LimitWidthDirective } from '../../../directive/limit-width.directive';
 import { ResizeHandleDirective } from '../../../directive/resize-handle.directive';
-import { EditorComponent } from '../../../form/editor/editor.component';
+import { EditorComponent, EditorUpload } from '../../../form/editor/editor.component';
 import { LinksFormComponent } from '../../../form/links/links.component';
 import { PluginsFormComponent, writePlugins } from '../../../form/plugins/plugins.component';
 import { TagsFormComponent } from '../../../form/tags/tags.component';
@@ -82,6 +82,7 @@ export class SubmitDmPage implements AfterViewInit, OnChanges, OnDestroy, HasCha
   editing = false;
   autocomplete: { value: string, label: string }[] = [];
   submitting?: Subscription;
+  completedUploads: EditorUpload[] = [];
   private showedError = false;
   private addedMailboxes: string[] = [];
   private searching?: Subscription;
@@ -155,10 +156,9 @@ export class SubmitDmPage implements AfterViewInit, OnChanges, OnDestroy, HasCha
     return this.dmForm.get('tags') as UntypedFormArray;
   }
 
-  @memo
-  get visibilityTags(): string[] {
-    // For DMs, compute visibility from current form tags
-    return getVisibilityTags(this.tags?.value || []);
+  onUploadCompleted(upload: EditorUpload) {
+    // Track completed uploads to tag them after the ref is saved
+    this.completedUploads.push(upload);
   }
 
   get notes() {
@@ -348,9 +348,16 @@ export class SubmitDmPage implements AfterViewInit, OnChanges, OnDestroy, HasCha
       delete this.submitting;
       this.dmForm.markAsPristine();
       
-      // Update uploads with the visibility tags from the saved ref
+      // Tag completed uploads with the visibility tags from the saved ref
       const finalVisibilityTags = getVisibilityTags(finalTags);
-      this.editorComponent?.updateUploadsVisibility(finalVisibilityTags);
+      this.completedUploads.forEach(upload => {
+        if (upload.ref?.url && upload.ref?.origin && finalVisibilityTags.length > 0) {
+          this.refs.patch(upload.ref.url, upload.ref.origin, '', [
+            ...finalVisibilityTags.map(t => ({ op: 'add' as const, path: '/tags/-', value: t }))
+          ]).subscribe();
+        }
+      });
+      this.completedUploads = [];
       
       this.router.navigate(['/ref', url, 'thread'], { queryParams: { published }, replaceUrl: true});
     });

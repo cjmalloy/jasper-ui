@@ -38,7 +38,7 @@ import { Store } from '../../store/store';
 import { getScheme, getTitleFromFilename } from '../../util/http';
 import { memo, MemoCache } from '../../util/memo';
 import { getVisibilityTags, hasMedia, hasPrefix, hasTag } from '../../util/tag';
-import { EditorComponent } from '../editor/editor.component';
+import { EditorComponent, EditorUpload } from '../editor/editor.component';
 import { LinksFormComponent } from '../links/links.component';
 import { PluginsFormComponent } from '../plugins/plugins.component';
 import { TagsFormComponent } from '../tags/tags.component';
@@ -94,6 +94,7 @@ export class RefFormComponent implements OnChanges {
   scrapingTitle = false;
   scrapingPublished = false;
   scrapingAll = false;
+  completedUploads: EditorUpload[] = [];
 
   constructor(
     public config: ConfigService,
@@ -138,10 +139,9 @@ export class RefFormComponent implements OnChanges {
     return this.group.get('sources') as UntypedFormArray;
   }
 
-  @memo
-  get visibilityTags(): string[] {
-    // For new refs being edited, compute visibility from current form tags
-    return getVisibilityTags(this.tags?.value || []);
+  onUploadCompleted(upload: EditorUpload) {
+    // Track completed uploads to tag them after the ref is saved
+    this.completedUploads.push(upload);
   }
 
   addSource(value = '') {

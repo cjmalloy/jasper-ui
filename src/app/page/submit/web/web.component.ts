@@ -30,6 +30,7 @@ import { Store } from '../../../store/store';
 import { scrollToFirstInvalid } from '../../../util/form';
 import { interestingTags } from '../../../util/format';
 import { printError } from '../../../util/http';
+import { getVisibilityTags } from '../../../util/tag';
 
 @Component({
   selector: 'app-submit-web-page',
@@ -323,10 +324,16 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
       delete this.submitting;
       this.webForm.markAsPristine();
       
-      // Update uploads with the visibility tags from the saved ref
-      const { getVisibilityTags } = require('../../../util/tag');
+      // Tag completed uploads with the visibility tags from the saved ref
       const finalVisibilityTags = getVisibilityTags(finalTags);
-      this.refForm.editorComponent?.updateUploadsVisibility(finalVisibilityTags);
+      this.refForm.completedUploads.forEach(upload => {
+        if (upload.ref?.url && upload.ref?.origin && finalVisibilityTags.length > 0) {
+          this.refs.patch(upload.ref.url, upload.ref.origin, '', [
+            ...finalVisibilityTags.map(t => ({ op: 'add' as const, path: '/tags/-', value: t }))
+          ]).subscribe();
+        }
+      });
+      this.refForm.completedUploads = [];
       
       this.router.navigate(['/ref', this.url], { queryParams: { published }, replaceUrl: true});
     });
