@@ -150,7 +150,11 @@ export function mailboxes(ref: Ref, myUserTag: string, lookup?: Map<string, Map<
   const local = tagOrigin(myUserTag);
   return uniq([
     ...userAuthors(ref).filter(tag => tag !== myUserTag).map(tag => getMailbox(tag, local)),
-    ...hasTag('public', ref) ? [] : userAuthors(ref).filter(tag => hasPrefix(tag, '+user') && (tagOrigin(tag) === local || !tagOrigin(tag))).map(tag => localTag(tag).substring(1)),
+    ...hasTag('public', ref)
+      ? []
+      : userAuthors(ref)
+        .filter(tag => hasPrefix(tag, 'user') && (tagOrigin(tag) === local || !tagOrigin(tag)))
+        .map(tag => tag.startsWith('+') ? localTag(tag).substring(1) : localTag(tag)),
     ...notifications(ref).map(m => getLocalMailbox(m, local, ref.origin || '', lookup)).filter(t => !!t) as string[],
   ]);
 }

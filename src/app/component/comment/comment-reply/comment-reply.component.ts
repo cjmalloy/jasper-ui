@@ -138,7 +138,7 @@ export class CommentReplyComponent implements HasChanges {
         const finalVisibilityTags = getVisibilityTags(tags);
         if (!finalVisibilityTags.length) return of(res);
         const taggingOps = this.completedUploads
-          .map(upload => this.ts.patch(finalVisibilityTags, upload.url, upload.origin!));
+          .map(upload => this.ts.patch(finalVisibilityTags, upload.url, upload.origin));
         if (!taggingOps.length) return of(res);
         return forkJoin(taggingOps).pipe(map(() => res));
       }),

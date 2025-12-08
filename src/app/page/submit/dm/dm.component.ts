@@ -341,7 +341,7 @@ export class SubmitDmPage implements AfterViewInit, OnChanges, OnDestroy, HasCha
         const finalVisibilityTags = getVisibilityTags(finalTags);
         if (!finalVisibilityTags.length) return of(res);
         const taggingOps = this.completedUploads
-          .map(upload => this.ts.patch(finalVisibilityTags, upload.url, upload.origin!));
+          .map(upload => this.ts.patch(finalVisibilityTags, upload.url, upload.origin));
         if (!taggingOps.length) return of(res);
         return forkJoin(taggingOps).pipe(map(() => res));
       }),
