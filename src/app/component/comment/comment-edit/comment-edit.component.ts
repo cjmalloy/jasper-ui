@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { AfterViewInit, Component, forwardRef, Input, OnDestroy } from '@angular/core';
+import { AfterViewInit, Component, forwardRef, Input, OnDestroy, ViewChild } from '@angular/core';
 import { FormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { uniq, without } from 'lodash-es';
 import { catchError, Subject, Subscription, switchMap, takeUntil, throwError } from 'rxjs';
@@ -33,6 +33,9 @@ export class CommentEditComponent implements AfterViewInit, HasChanges, OnDestro
   ref!: Ref;
   @Input()
   commentEdited$!: Subject<Ref>;
+
+  @ViewChild(EditorComponent)
+  editor?: EditorComponent;
 
   editing?: Subscription;
   commentForm: UntypedFormGroup;
@@ -125,6 +128,11 @@ export class CommentEditComponent implements AfterViewInit, HasChanges, OnDestro
     ).subscribe(res => {
       delete this.editing;
       this.ref = res;
+      
+      // Update uploads with the visibility tags from the saved ref
+      const finalVisibilityTags = getVisibilityTags(res.tags || []);
+      this.editor?.updateUploadsVisibility(finalVisibilityTags);
+      
       this.commentEdited$.next(res);
     });
   }

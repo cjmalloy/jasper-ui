@@ -72,6 +72,9 @@ export class SubmitDmPage implements AfterViewInit, OnChanges, OnDestroy, HasCha
   @ViewChild('fill')
   fill?: ElementRef;
 
+  @ViewChild('ed')
+  editorComponent?: EditorComponent;
+
   @ViewChild(TagsFormComponent)
   tagsFormComponent?: TagsFormComponent;
 
@@ -325,6 +328,7 @@ export class SubmitDmPage implements AfterViewInit, OnChanges, OnDestroy, HasCha
     const published = this.dmForm.value.published ? DateTime.fromISO(this.dmForm.value.published) : DateTime.now();
     let sources = [url, ...uniq([url, ...this.store.submit.sources, ...this.dmForm.value.sources])];
     if (sources.length === 2) sources = [];
+    const finalTags = this.dmForm.value.tags;
     this.submitting = this.refs.create({
       url,
       origin: this.store.account.origin,
@@ -332,7 +336,7 @@ export class SubmitDmPage implements AfterViewInit, OnChanges, OnDestroy, HasCha
       comment: this.dmForm.value.comment,
       sources,
       published,
-      tags: this.dmForm.value.tags,
+      tags: finalTags,
       plugins: writePlugins(this.dmForm.value.tags, this.dmForm.value.plugins),
     }).pipe(
       catchError((res: HttpErrorResponse) => {
@@ -343,6 +347,11 @@ export class SubmitDmPage implements AfterViewInit, OnChanges, OnDestroy, HasCha
     ).subscribe(() => {
       delete this.submitting;
       this.dmForm.markAsPristine();
+      
+      // Update uploads with the visibility tags from the saved ref
+      const finalVisibilityTags = getVisibilityTags(finalTags);
+      this.editorComponent?.updateUploadsVisibility(finalVisibilityTags);
+      
       this.router.navigate(['/ref', url, 'thread'], { queryParams: { published }, replaceUrl: true});
     });
   }

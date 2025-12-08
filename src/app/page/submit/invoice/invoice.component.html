@@ -34,7 +34,8 @@
 
   <span><!-- Message --></span>
   <div #fill class="fill-editor">
-    <app-editor class="bubble"
+    <app-editor #editor
+                class="bubble"
                 [control]="comment"
                 [addButton]="true"
                 i18n-addCommentTitle addCommentTitle="Add message"

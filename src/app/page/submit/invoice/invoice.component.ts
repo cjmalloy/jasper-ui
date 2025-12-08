@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component } from '@angular/core';
+import { Component, ViewChild } from '@angular/core';
 import {
   ReactiveFormsModule,
   UntypedFormBuilder,
@@ -48,6 +48,9 @@ export class SubmitInvoicePage implements HasChanges {
   submitted = false;
   invoiceForm: UntypedFormGroup;
   serverError: string[] = [];
+
+  @ViewChild('editor')
+  editorComponent?: EditorComponent;
 
   refUrl?: string;
   queue?: string;
@@ -171,13 +174,22 @@ export class SubmitInvoicePage implements HasChanges {
     }
     const published = this.invoiceForm.value.published ? DateTime.fromISO(this.invoiceForm.value.published) : DateTime.now();
     this.submitting = this.exts.getCachedExt(this.queue!).pipe(
-      switchMap(queueExt => this.refs.create({
-        ...this.invoiceForm.value,
-        origin: this.store.account.origin,
-        published,
-        tags: this.getTags(queueExt),
-        sources: flatten([this.refUrl]),
-      })),
+      switchMap(queueExt => {
+        const finalTags = this.getTags(queueExt);
+        return this.refs.create({
+          ...this.invoiceForm.value,
+          origin: this.store.account.origin,
+          published,
+          tags: finalTags,
+          sources: flatten([this.refUrl]),
+        }).pipe(
+          tap(() => {
+            // Update uploads with the visibility tags from the saved ref
+            const finalVisibilityTags = getVisibilityTags(finalTags);
+            this.editorComponent?.updateUploadsVisibility(finalVisibilityTags);
+          })
+        );
+      }),
       catchError((res: HttpErrorResponse) => {
         delete this.submitting;
         this.serverError = printError(res);

@@ -301,6 +301,7 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
       return;
     }
     const published = this.webForm.value.published ? DateTime.fromISO(this.webForm.value.published) : DateTime.now();
+    const finalTags = this.webForm.value.tags;
     this.submitting = this.refs.create({
       ...this.webForm.value,
       url: this.url, // Need to pull separately since control is locked
@@ -321,6 +322,12 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
     ).subscribe(() => {
       delete this.submitting;
       this.webForm.markAsPristine();
+      
+      // Update uploads with the visibility tags from the saved ref
+      const { getVisibilityTags } = require('../../../util/tag');
+      const finalVisibilityTags = getVisibilityTags(finalTags);
+      this.refForm.editorComponent?.updateUploadsVisibility(finalVisibilityTags);
+      
       this.router.navigate(['/ref', this.url], { queryParams: { published }, replaceUrl: true});
     });
   }

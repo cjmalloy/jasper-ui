@@ -151,6 +151,11 @@ export class CommentReplyComponent implements HasChanges {
       this.commentForm.reset();
       this.editorTags = [...this.tags];
       this.tags = [...this.tags];
+      
+      // Update uploads with the visibility tags from the saved ref
+      const finalVisibilityTags = getVisibilityTags(tags);
+      this.editor?.updateUploadsVisibility(finalVisibilityTags);
+      
       this.editor?.syncText('');
       const update = {
         ...ref,

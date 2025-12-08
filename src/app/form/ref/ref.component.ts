@@ -81,6 +81,8 @@ export class RefFormComponent implements OnChanges {
   pluginsFormComponent!: PluginsFormComponent;
   @ViewChild('fill')
   fill?: ElementRef;
+  @ViewChild('ed')
+  editorComponent?: EditorComponent;
 
   @HostBinding('class.show-drops')
   dropping = false;

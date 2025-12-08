@@ -77,6 +77,9 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
   @ViewChild('fill')
   fill?: ElementRef;
 
+  @ViewChild('ed')
+  editorComponent?: EditorComponent;
+
   @ViewChild(TagsFormComponent)
   tagsFormComponent!: TagsFormComponent;
   @ViewChild(PluginsFormComponent)
@@ -327,6 +330,11 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
     ).subscribe(() => {
       delete this.submitting;
       this.textForm.markAsPristine();
+      
+      // Update uploads with the visibility tags from the saved ref
+      const finalVisibilityTags = getVisibilityTags(tags as string[]);
+      this.editorComponent?.updateUploadsVisibility(finalVisibilityTags);
+      
       if (this.addAnother) {
         this.url.enable();
         this.url.setValue('comment:' + uuid());
