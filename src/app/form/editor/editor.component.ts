@@ -51,7 +51,6 @@ export interface EditorUpload {
   completed?: boolean;
   error?: string;
   ref?: Ref | null;
-  visibilityTagsAtUpload?: string[]; // Track visibility tags used during upload
 }
 
 @Component({
@@ -122,9 +121,6 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   addCommentLabel = $localize`+ Add comment`;
   @Input()
   fillWidth?: HTMLElement;
-  @Input()
-  visibilityTags: string[] = [];
-
   @Output()
   syncEditor = new EventEmitter<string>();
   @Output()
@@ -133,6 +129,8 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   addSource = new EventEmitter<string>();
   @Output()
   scrape = new EventEmitter<void>();
+  @Output()
+  uploadCompleted = new EventEmitter<EditorUpload>();
 
   dropping = false;
   overlayRef?: OverlayRef;
@@ -642,6 +640,8 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
           upload.completed = true;
           upload.progress = 100;
           upload.ref = ref;
+          // Emit upload completion so parent can tag it
+          this.uploadCompleted.emit(upload);
         }
         this.checkAllUploadsComplete();
       });
@@ -651,19 +651,16 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   }
 
   upload$(file: File, upload: EditorUpload): Observable<Ref | null> {
-    // Track visibility tags at upload time
-    upload.visibilityTagsAtUpload = [...this.visibilityTags];
-    
     const codeType = mimeToCode(file.type);
     if (codeType.length) {
       const ref = {
         origin: this.store.account.origin,
         url: 'internal:' + uuid(),
         title: file.name,
+        // Upload as private - only localTag and internal, no visibility tags
         tags: uniq([
           this.store.account.localTag,
           'internal',
-          ...this.visibilityTags,
           ...file.type === 'text/markdown' ? [] : codeType
         ])
       };
@@ -682,7 +679,8 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
         }),
       );
     } else {
-      const tags: string[] = ['plugin/file', ...this.visibilityTags];
+      // Upload binary files as private - only plugin/file and type-specific tags
+      const tags: string[] = ['plugin/file'];
       if (file.type.startsWith('audio/') && this.admin.getPlugin('plugin/audio')) {
         tags.push('plugin/audio');
       } else if (file.type.startsWith('video/') && this.admin.getPlugin('plugin/video')) {
@@ -791,46 +789,4 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
     return this.uploads.some(upload => !upload.completed && !upload.error);
   }
 
-  /**
-   * Update uploaded refs with new visibility tags if they differ from upload time.
-   * Should be called after the parent ref is saved with potentially different tags.
-   * @param newVisibilityTags The new visibility tags from the saved ref
-   */
-  updateUploadsVisibility(newVisibilityTags: string[]) {
-    this.uploads.forEach(upload => {
-      if (!upload.completed || !upload.ref || upload.error) return;
-      
-      const oldTags = upload.visibilityTagsAtUpload || [];
-      
-      // Calculate tags to add and remove
-      const tagsToAdd = newVisibilityTags.filter(t => !oldTags.includes(t));
-      const tagsToRemove = oldTags.filter(t => !newVisibilityTags.includes(t));
-      
-      // If there are changes, update the ref
-      if (tagsToAdd.length > 0 || tagsToRemove.length > 0) {
-        const addOps = tagsToAdd.map(t => t);
-        const removeOps = tagsToRemove.map(t => '-' + t);
-        const allOps = [...addOps, ...removeOps];
-        
-        if (allOps.length > 0 && upload.ref.url && upload.ref.origin) {
-          this.ts.patch(allOps, upload.ref.url, upload.ref.origin).subscribe({
-            next: () => {
-              // Update the stored visibility tags
-              upload.visibilityTagsAtUpload = [...newVisibilityTags];
-              // Update the ref's tags
-              if (upload.ref) {
-                upload.ref.tags = uniq([
-                  ...(upload.ref.tags || []).filter(t => !tagsToRemove.includes(t)),
-                  ...tagsToAdd
-                ]);
-              }
-            },
-            error: (err) => {
-              console.error('Failed to update upload visibility:', err);
-            }
-          });
-        }
-      }
-    });
-  }
 }

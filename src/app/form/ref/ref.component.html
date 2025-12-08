@@ -105,14 +105,14 @@
                   [addCommentLabel]="addEditorLabel"
                   [control]="comment"
                   [tags]="tags"
-                  [visibilityTags]="visibilityTags"
                   [fillWidth]="fill"
                   [url]="web && url.value"
                   (scrape)="scrapeAll()"
                   [scraping]="scrapingAll"
                   (syncEditor)="syncEditor()"
                   (syncTags)="setTags($event)"
-                  (addSource)="addSource($event)"></app-editor>
+                  (addSource)="addSource($event)"
+                  (uploadCompleted)="onUploadCompleted($event)"></app-editor>
     </div>
   }
 

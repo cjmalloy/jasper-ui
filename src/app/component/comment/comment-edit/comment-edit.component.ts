@@ -3,10 +3,11 @@ import { AfterViewInit, Component, forwardRef, Input, OnDestroy, ViewChild } fro
 import { FormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { uniq, without } from 'lodash-es';
 import { catchError, Subject, Subscription, switchMap, takeUntil, throwError } from 'rxjs';
-import { EditorComponent } from '../../../form/editor/editor.component';
+import { EditorComponent, EditorUpload } from '../../../form/editor/editor.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Ref } from '../../../model/ref';
 import { RefService } from '../../../service/api/ref.service';
+import { TaggingService } from '../../../service/api/tagging.service';
 import { Store } from '../../../store/store';
 import { getIfNew, getMailboxes } from '../../../util/editor';
 import { printError } from '../../../util/http';
@@ -41,10 +42,12 @@ export class CommentEditComponent implements AfterViewInit, HasChanges, OnDestro
   commentForm: UntypedFormGroup;
   editorTags: string[] = [];
   sources: string[] = [];
+  completedUploads: EditorUpload[] = [];
 
   constructor(
     private store: Store,
     private refs: RefService,
+    private ts: TaggingService,
     private fb: FormBuilder,
   ) {
     this.commentForm = fb.group({
@@ -83,9 +86,9 @@ export class CommentEditComponent implements AfterViewInit, HasChanges, OnDestro
     ]);
   }
 
-  get visibilityTags(): string[] {
-    // For editing existing refs, use the ref's current visibility tags
-    return getVisibilityTags(this.ref?.tags || []);
+  onUploadCompleted(upload: EditorUpload) {
+    // Track completed uploads to tag them after the ref is saved
+    this.completedUploads.push(upload);
   }
 
   save() {
@@ -129,9 +132,14 @@ export class CommentEditComponent implements AfterViewInit, HasChanges, OnDestro
       delete this.editing;
       this.ref = res;
       
-      // Update uploads with the visibility tags from the saved ref
+      // Tag completed uploads with the visibility tags from the saved ref
       const finalVisibilityTags = getVisibilityTags(res.tags || []);
-      this.editor?.updateUploadsVisibility(finalVisibilityTags);
+      this.completedUploads.forEach(upload => {
+        if (upload.ref?.url && upload.ref?.origin && finalVisibilityTags.length > 0) {
+          this.ts.patch(finalVisibilityTags, upload.ref.url, upload.ref.origin).subscribe();
+        }
+      });
+      this.completedUploads = [];
       
       this.commentEdited$.next(res);
     });

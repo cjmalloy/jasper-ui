@@ -57,9 +57,9 @@
                       [control]="comment"
                       (syncEditor)="syncEditor()"
                       [tags]="tags"
-                      [visibilityTags]="visibilityTags"
                       (syncTags)="setTags($event)"
                       (addSource)="addSource($event)"
+                      (uploadCompleted)="onUploadCompleted($event)"
                       [fillWidth]="fill"
                       [autoFocus]="true"></app-editor>
         </div>

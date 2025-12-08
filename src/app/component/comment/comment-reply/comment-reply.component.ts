@@ -6,7 +6,7 @@ import { DateTime } from 'luxon';
 import { catchError, Subscription, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
-import { EditorComponent } from '../../../form/editor/editor.component';
+import { EditorComponent, EditorUpload } from '../../../form/editor/editor.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Ref } from '../../../model/ref';
 import { commentPlugin } from '../../../mods/comment';
@@ -52,6 +52,7 @@ export class CommentReplyComponent implements HasChanges {
 
   editorTags: string[] = [];
   editorSources: string[] = [];
+  completedUploads: EditorUpload[] = [];
 
   replying?: Subscription;
   commentForm: UntypedFormGroup;
@@ -93,9 +94,9 @@ export class CommentReplyComponent implements HasChanges {
     this.editorTags = tags;
   }
 
-  get visibilityTags() {
-    // Get visibility tags from the parent ref
-    return getVisibilityTags(this.to?.tags || []);
+  onUploadCompleted(upload: EditorUpload) {
+    // Track completed uploads to tag them after the reply is saved
+    this.completedUploads.push(upload);
   }
 
   reply() {
@@ -152,9 +153,14 @@ export class CommentReplyComponent implements HasChanges {
       this.editorTags = [...this.tags];
       this.tags = [...this.tags];
       
-      // Update uploads with the visibility tags from the saved ref
+      // Tag completed uploads with the visibility tags from the saved ref
       const finalVisibilityTags = getVisibilityTags(tags);
-      this.editor?.updateUploadsVisibility(finalVisibilityTags);
+      this.completedUploads.forEach(upload => {
+        if (upload.ref?.url && upload.ref?.origin && finalVisibilityTags.length > 0) {
+          this.ts.patch(finalVisibilityTags, upload.ref.url, upload.ref.origin).subscribe();
+        }
+      });
+      this.completedUploads = [];
       
       this.editor?.syncText('');
       const update = {

@@ -43,8 +43,8 @@
                 [fillWidth]="fill"
                 (syncEditor)="syncEditor()"
                 [tags]="$any(invoiceForm.value).tags"
-                [visibilityTags]="visibilityTags"
-                (syncTags)="editorTags = $event"></app-editor>
+                (syncTags)="editorTags = $event"
+                (uploadCompleted)="onUploadCompleted($event)"></app-editor>
   </div>
 
   @for (e of serverError; track e) {
