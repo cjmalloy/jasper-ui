@@ -354,7 +354,7 @@ export function removeTag(tag: string | undefined, tags: string[]): string[] {
 export function getVisibilityTags(tags?: string[]): string[] {
   if (!tags) return [];
   if (hasTag('public', tags)) return ['public'];
-  return tags.filter(t => hasPrefix(t, 'user')).map(t => t.startsWith('+') ? t.substring(1) : t);
+  return uniq(tags.filter(t => hasPrefix(t, 'user')).map(t => t.startsWith('+') ? t.substring(1) : t));
 }
 
 export function top(ref?: Ref) {
