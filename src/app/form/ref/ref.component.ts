@@ -81,6 +81,8 @@ export class RefFormComponent implements OnChanges {
   pluginsFormComponent!: PluginsFormComponent;
   @ViewChild('fill')
   fill?: ElementRef;
+  @ViewChild('ed')
+  editorComponent?: EditorComponent;
 
   @HostBinding('class.show-drops')
   dropping = false;
@@ -92,6 +94,7 @@ export class RefFormComponent implements OnChanges {
   scrapingTitle = false;
   scrapingPublished = false;
   scrapingAll = false;
+  completedUploads: Ref[] = [];
 
   constructor(
     public config: ConfigService,

@@ -111,7 +111,8 @@
                   [scraping]="scrapingAll"
                   (syncEditor)="syncEditor()"
                   (syncTags)="setTags($event)"
-                  (addSource)="addSource($event)"></app-editor>
+                  (addSource)="addSource($event)"
+                  (uploadCompleted)="completedUploads.push($event)"></app-editor>
     </div>
   }
 

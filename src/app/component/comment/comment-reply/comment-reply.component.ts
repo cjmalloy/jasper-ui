@@ -3,7 +3,7 @@ import { Component, EventEmitter, forwardRef, Input, Output, ViewChild } from '@
 import { FormBuilder, ReactiveFormsModule, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { pickBy, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
-import { catchError, Subscription, throwError } from 'rxjs';
+import { catchError, forkJoin, map, of, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
 import { EditorComponent } from '../../../form/editor/editor.component';
@@ -18,7 +18,7 @@ import { Store } from '../../../store/store';
 import { getMailboxes } from '../../../util/editor';
 import { getRe } from '../../../util/format';
 import { printError } from '../../../util/http';
-import { hasTag, removeTag } from '../../../util/tag';
+import { getVisibilityTags, hasTag, removeTag } from '../../../util/tag';
 import { LoadingComponent } from '../../loading/loading.component';
 
 @Component({
@@ -52,6 +52,7 @@ export class CommentReplyComponent implements HasChanges {
 
   editorTags: string[] = [];
   editorSources: string[] = [];
+  completedUploads: Ref[] = [];
 
   replying?: Subscription;
   commentForm: UntypedFormGroup;
@@ -133,6 +134,14 @@ export class CommentReplyComponent implements HasChanges {
           this.ts.createResponse('plugin/user/vote/up', url).subscribe();
         }
       }),
+      switchMap(res => {
+        const finalVisibilityTags = getVisibilityTags(tags);
+        if (!finalVisibilityTags.length) return of(res);
+        const taggingOps = this.completedUploads
+          .map(upload => this.ts.patch(finalVisibilityTags, upload.url, upload.origin!));
+        if (!taggingOps.length) return of(res);
+        return forkJoin(taggingOps).pipe(map(() => res));
+      }),
       catchError((err: HttpErrorResponse) => {
         delete this.replying;
         this.serverError = printError(err);
@@ -146,6 +155,8 @@ export class CommentReplyComponent implements HasChanges {
       this.commentForm.reset();
       this.editorTags = [...this.tags];
       this.tags = [...this.tags];
+      this.completedUploads = [];
+
       this.editor?.syncText('');
       const update = {
         ...ref,

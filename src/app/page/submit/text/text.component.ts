@@ -13,7 +13,7 @@ import { DateTime } from 'luxon';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { MobxAngularModule } from 'mobx-angular';
 import { MonacoEditorModule } from 'ngx-monaco-editor';
-import { catchError, map, Subscription, switchMap, throwError } from 'rxjs';
+import { catchError, forkJoin, map, of, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
 import { LoadingComponent } from '../../../component/loading/loading.component';
@@ -43,7 +43,7 @@ import { Store } from '../../../store/store';
 import { scrollToFirstInvalid } from '../../../util/form';
 import { printError } from '../../../util/http';
 import { memo, MemoCache } from '../../../util/memo';
-import { hasPrefix, hasTag } from '../../../util/tag';
+import { getVisibilityTags, hasPrefix, hasTag } from '../../../util/tag';
 
 @Component({
   selector: 'app-submit-text',
@@ -77,6 +77,9 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
   @ViewChild('fill')
   fill?: ElementRef;
 
+  @ViewChild('ed')
+  editorComponent?: EditorComponent;
+
   @ViewChild(TagsFormComponent)
   tagsFormComponent!: TagsFormComponent;
   @ViewChild(PluginsFormComponent)
@@ -86,6 +89,7 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
   addAnother = false;
   defaults?: { url: string, ref: Partial<Ref> };
   loadingDefaults: Ext[] = [];
+  completedUploads: Ref[] = [];
   private oldSubmit: string[] = [];
   private savedRef?: Ref;
 
@@ -296,7 +300,7 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
       scrollToFirstInvalid();
       return;
     }
-    const tags = uniq(this.textForm.value.tags);
+    const tags = uniq(this.textForm.value.tags) as string[];
     const published = this.textForm.value.published ? DateTime.fromISO(this.textForm.value.published) : DateTime.now();
     const ref = {
       ...this.textForm.value,
@@ -313,6 +317,14 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
           this.ts.createResponse('plugin/user/vote/up', this.url.value).subscribe();
         }
       }),
+      switchMap(res => {
+        const finalVisibilityTags = getVisibilityTags(tags);
+        if (!finalVisibilityTags.length) return of(res);
+        const taggingOps = this.completedUploads
+          .map(upload => this.ts.patch(finalVisibilityTags, upload.url, upload.origin!));
+        if (!taggingOps.length) return of(res);
+        return forkJoin(taggingOps).pipe(map(() => res));
+      }),
       catchError((res: HttpErrorResponse) => {
         delete this.submitting;
         this.serverError = printError(res);
@@ -321,6 +333,8 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
     ).subscribe(() => {
       delete this.submitting;
       this.textForm.markAsPristine();
+      this.completedUploads = [];
+
       if (this.addAnother) {
         this.url.enable();
         this.url.setValue('comment:' + uuid());

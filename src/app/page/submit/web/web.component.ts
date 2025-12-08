@@ -6,7 +6,7 @@ import { defer, uniq, without } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { autorun, IReactionDisposer } from 'mobx';
 import { MobxAngularModule } from 'mobx-angular';
-import { catchError, map, of, Subscription, switchMap, throwError } from 'rxjs';
+import { catchError, forkJoin, map, of, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
 import { LoadingComponent } from '../../../component/loading/loading.component';
@@ -30,6 +30,7 @@ import { Store } from '../../../store/store';
 import { scrollToFirstInvalid } from '../../../util/form';
 import { interestingTags } from '../../../util/format';
 import { printError } from '../../../util/http';
+import { getVisibilityTags } from '../../../util/tag';
 
 @Component({
   selector: 'app-submit-web-page',
@@ -301,6 +302,7 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
       return;
     }
     const published = this.webForm.value.published ? DateTime.fromISO(this.webForm.value.published) : DateTime.now();
+    const finalTags = this.webForm.value.tags;
     this.submitting = this.refs.create({
       ...this.webForm.value,
       url: this.url, // Need to pull separately since control is locked
@@ -313,6 +315,14 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
           this.ts.createResponse('plugin/user/vote/up', this.url).subscribe();
         }
       }),
+      switchMap(res => {
+        const finalVisibilityTags = getVisibilityTags(finalTags);
+        if (!finalVisibilityTags.length) return of(res);
+        const taggingOps = this.refForm.completedUploads
+          .map(upload => this.ts.patch(finalVisibilityTags, upload.url, upload.origin!));
+        if (!taggingOps.length) return of(res);
+        return forkJoin(taggingOps).pipe(map(() => res));
+      }),
       catchError((res: HttpErrorResponse) => {
         delete this.submitting;
         this.serverError = printError(res);
@@ -321,6 +331,8 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
     ).subscribe(() => {
       delete this.submitting;
       this.webForm.markAsPristine();
+      this.refForm.completedUploads = [];
+
       this.router.navigate(['/ref', this.url], { queryParams: { published }, replaceUrl: true});
     });
   }

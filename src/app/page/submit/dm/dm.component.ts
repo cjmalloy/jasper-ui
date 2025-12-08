@@ -27,10 +27,12 @@ import { LinksFormComponent } from '../../../form/links/links.component';
 import { PluginsFormComponent, writePlugins } from '../../../form/plugins/plugins.component';
 import { TagsFormComponent } from '../../../form/tags/tags.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
+import { Ref } from '../../../model/ref';
 import { getMailbox } from '../../../mods/mailbox';
 import { AdminService } from '../../../service/admin.service';
 import { ExtService } from '../../../service/api/ext.service';
 import { RefService } from '../../../service/api/ref.service';
+import { TaggingService } from '../../../service/api/tagging.service';
 import { BookmarkService } from '../../../service/bookmark.service';
 import { ConfigService } from '../../../service/config.service';
 import { EditorService } from '../../../service/editor.service';
@@ -40,7 +42,7 @@ import { scrollToFirstInvalid } from '../../../util/form';
 import { QUALIFIED_TAGS_REGEX } from '../../../util/format';
 import { printError } from '../../../util/http';
 import { memo, MemoCache } from '../../../util/memo';
-import { hasPrefix, hasTag } from '../../../util/tag';
+import { getVisibilityTags, hasPrefix, hasTag, localTag } from '../../../util/tag';
 
 @Component({
   selector: 'app-submit-dm',
@@ -72,6 +74,9 @@ export class SubmitDmPage implements AfterViewInit, OnChanges, OnDestroy, HasCha
   @ViewChild('fill')
   fill?: ElementRef;
 
+  @ViewChild('ed')
+  editorComponent?: EditorComponent;
+
   @ViewChild(TagsFormComponent)
   tagsFormComponent?: TagsFormComponent;
 
@@ -79,6 +84,7 @@ export class SubmitDmPage implements AfterViewInit, OnChanges, OnDestroy, HasCha
   editing = false;
   autocomplete: { value: string, label: string }[] = [];
   submitting?: Subscription;
+  completedUploads: Ref[] = [];
   private showedError = false;
   private addedMailboxes: string[] = [];
   private searching?: Subscription;
@@ -92,6 +98,7 @@ export class SubmitDmPage implements AfterViewInit, OnChanges, OnDestroy, HasCha
     public bookmarks: BookmarkService,
     private refs: RefService,
     private exts: ExtService,
+    private ts: TaggingService,
     private editor: EditorService,
     private fb: UntypedFormBuilder,
   ) {
@@ -270,7 +277,7 @@ export class SubmitDmPage implements AfterViewInit, OnChanges, OnDestroy, HasCha
   }
 
   getMailboxes(tag: string): string[] {
-    return this.admin.getPlugin(tag)?.config?.reply || [ getMailbox(tag, this.store.account.origin) ];
+    return this.admin.getPlugin(tag)?.config?.reply || [ getMailbox(tag, this.store.account.origin), ...hasPrefix(tag, '+user') ? [localTag(tag).substring(1)] : [] ];
   }
 
   @memo
@@ -319,6 +326,7 @@ export class SubmitDmPage implements AfterViewInit, OnChanges, OnDestroy, HasCha
     const published = this.dmForm.value.published ? DateTime.fromISO(this.dmForm.value.published) : DateTime.now();
     let sources = [url, ...uniq([url, ...this.store.submit.sources, ...this.dmForm.value.sources])];
     if (sources.length === 2) sources = [];
+    const finalTags = this.dmForm.value.tags;
     this.submitting = this.refs.create({
       url,
       origin: this.store.account.origin,
@@ -326,9 +334,17 @@ export class SubmitDmPage implements AfterViewInit, OnChanges, OnDestroy, HasCha
       comment: this.dmForm.value.comment,
       sources,
       published,
-      tags: this.dmForm.value.tags,
+      tags: finalTags,
       plugins: writePlugins(this.dmForm.value.tags, this.dmForm.value.plugins),
     }).pipe(
+      switchMap(res => {
+        const finalVisibilityTags = getVisibilityTags(finalTags);
+        if (!finalVisibilityTags.length) return of(res);
+        const taggingOps = this.completedUploads
+          .map(upload => this.ts.patch(finalVisibilityTags, upload.url, upload.origin!));
+        if (!taggingOps.length) return of(res);
+        return forkJoin(taggingOps).pipe(map(() => res));
+      }),
       catchError((res: HttpErrorResponse) => {
         delete this.submitting;
         this.serverError = printError(res);
@@ -337,6 +353,8 @@ export class SubmitDmPage implements AfterViewInit, OnChanges, OnDestroy, HasCha
     ).subscribe(() => {
       delete this.submitting;
       this.dmForm.markAsPristine();
+      this.completedUploads = [];
+
       this.router.navigate(['/ref', url, 'thread'], { queryParams: { published }, replaceUrl: true});
     });
   }

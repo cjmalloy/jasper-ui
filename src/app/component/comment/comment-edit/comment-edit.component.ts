@@ -1,16 +1,18 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { AfterViewInit, Component, forwardRef, Input, OnDestroy } from '@angular/core';
+import { AfterViewInit, Component, forwardRef, Input, OnDestroy, ViewChild } from '@angular/core';
 import { FormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { uniq, without } from 'lodash-es';
-import { catchError, Subject, Subscription, switchMap, takeUntil, throwError } from 'rxjs';
+import { catchError, forkJoin, map, of, Subject, Subscription, switchMap, takeUntil, throwError } from 'rxjs';
 import { EditorComponent } from '../../../form/editor/editor.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Ref } from '../../../model/ref';
 import { RefService } from '../../../service/api/ref.service';
+import { TaggingService } from '../../../service/api/tagging.service';
 import { Store } from '../../../store/store';
 import { getIfNew, getMailboxes } from '../../../util/editor';
 import { printError } from '../../../util/http';
 import { OpPatch } from '../../../util/json-patch';
+import { getVisibilityTags } from '../../../util/tag';
 import { LoadingComponent } from '../../loading/loading.component';
 
 @Component({
@@ -33,14 +35,19 @@ export class CommentEditComponent implements AfterViewInit, HasChanges, OnDestro
   @Input()
   commentEdited$!: Subject<Ref>;
 
+  @ViewChild(EditorComponent)
+  editor?: EditorComponent;
+
   editing?: Subscription;
   commentForm: UntypedFormGroup;
   editorTags: string[] = [];
   sources: string[] = [];
+  completedUploads: Ref[] = [];
 
   constructor(
     private store: Store,
     private refs: RefService,
+    private ts: TaggingService,
     private fb: FormBuilder,
   ) {
     this.commentForm = fb.group({
@@ -111,6 +118,14 @@ export class CommentEditComponent implements AfterViewInit, HasChanges, OnDestro
     }
     this.editing = this.refs.patch(this.ref.url, this.ref.origin!, this.ref!.modifiedString!, patches).pipe(
       switchMap(() => this.refs.get(this.ref.url, this.ref.origin!).pipe(takeUntil(this.destroy$))),
+      switchMap(res => {
+        const finalVisibilityTags = getVisibilityTags(finalTags);
+        if (!finalVisibilityTags.length) return of(res);
+        const taggingOps = this.completedUploads
+          .map(upload => this.ts.patch(finalVisibilityTags, upload.url, upload.origin!));
+        if (!taggingOps.length) return of(res);
+        return forkJoin(taggingOps).pipe(map(() => res));
+      }),
       catchError((res: HttpErrorResponse) => {
         delete this.editing;
         this.serverError = printError(res);
@@ -119,6 +134,8 @@ export class CommentEditComponent implements AfterViewInit, HasChanges, OnDestro
     ).subscribe(res => {
       delete this.editing;
       this.ref = res;
+      this.completedUploads = [];
+
       this.commentEdited$.next(res);
     });
   }

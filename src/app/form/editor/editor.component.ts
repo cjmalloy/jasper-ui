@@ -121,7 +121,6 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   addCommentLabel = $localize`+ Add comment`;
   @Input()
   fillWidth?: HTMLElement;
-
   @Output()
   syncEditor = new EventEmitter<string>();
   @Output()
@@ -130,6 +129,8 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   addSource = new EventEmitter<string>();
   @Output()
   scrape = new EventEmitter<void>();
+  @Output()
+  uploadCompleted = new EventEmitter<Ref>();
 
   dropping = false;
   overlayRef?: OverlayRef;
@@ -634,16 +635,16 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
     this.uploads = [...this.uploads, ...fileUploads];
     fileArray.map((file, index) => {
       const upload = fileUploads[index];
-      const subscription = this.upload$(file, upload).subscribe(ref => {
-        if (ref) {
+      return upload.subscription = this.upload$(file, upload).subscribe(ref => {
+        if (ref && !ref.url.startsWith('data:')) {
           upload.completed = true;
           upload.progress = 100;
           upload.ref = ref;
+          // Emit upload completion so parent can tag it
+          this.uploadCompleted.emit(ref);
         }
         this.checkAllUploadsComplete();
       });
-      upload.subscription = subscription;
-      return subscription;
     });
   }
 
@@ -654,7 +655,12 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
         origin: this.store.account.origin,
         url: 'internal:' + uuid(),
         title: file.name,
-        tags: [this.store.account.localTag, 'internal', ...file.type === 'text/markdown' ? [] : codeType]
+        // Upload as private - only localTag and internal, no visibility tags
+        tags: uniq([
+          this.store.account.localTag,
+          'internal',
+          ...file.type === 'text/markdown' ? [] : codeType
+        ])
       };
       upload.progress = 50; // Simulate progress for text files
       return readFileAsString(file).pipe(
@@ -671,6 +677,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
         }),
       );
     } else {
+      // Upload binary files as private - only plugin/file and type-specific tags
       const tags: string[] = ['plugin/file'];
       if (file.type.startsWith('audio/') && this.admin.getPlugin('plugin/audio')) {
         tags.push('plugin/audio');
@@ -779,4 +786,5 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   hasActiveUploads(): boolean {
     return this.uploads.some(upload => !upload.completed && !upload.error);
   }
+
 }

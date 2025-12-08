@@ -1,4 +1,4 @@
-import { filter, find, flatMap, isArray, without } from 'lodash-es';
+import { filter, find, flatMap, isArray, uniq, without } from 'lodash-es';
 import { Ref } from '../model/ref';
 import { User } from '../model/user';
 
@@ -349,6 +349,12 @@ export function removeTag(tag: string | undefined, tags: string[]): string[] {
     tag = parentTag(tag);
   }
   return tags;
+}
+
+export function getVisibilityTags(tags?: string[]): string[] {
+  if (!tags) return [];
+  if (hasTag('public', tags)) return ['public'];
+  return uniq(tags.filter(t => hasPrefix(t, 'user')).map(t => t.startsWith('+') ? t.substring(1) : t));
 }
 
 export function top(ref?: Ref) {
