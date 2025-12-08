@@ -931,7 +931,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   }
 
   showIcon(i: Icon) {
-    return visible(i, this.isAuthor, this.isRecipient) && active(this.ref, i);
+    return visible(this.ref, i, this.isAuthor, this.isRecipient) && active(this.ref, i);
   }
 
   clickIcon(i: Icon, ctrl: boolean) {
@@ -947,7 +947,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   }
 
   showAction(a: Action) {
-    if (!visible(a, this.isAuthor, this.isRecipient)) return false;
+    if (!visible(this.ref, a, this.isAuthor, this.isRecipient)) return false;
     if ('scheme' in a) {
       if (a.scheme !== getScheme(this.repostRef?.url || this.ref.url)) return false;
     }

@@ -228,7 +228,7 @@ export class BulkComponent implements OnChanges, OnDestroy {
   }
 
   showAction(ref: Ref, a: Action) {
-    if (!visible(a, isAuthorTag(this.store.account.tag, ref), hasTag(this.store.account.mailbox, ref))) return false;
+    if (!visible(ref, a, isAuthorTag(this.store.account.tag, ref), hasTag(this.store.account.mailbox, ref))) return false;
     const writeAccess = this.auth.writeAccess(ref);
     const taggingAccess = this.auth.taggingAccess(ref);
     if ('scheme' in a) {

@@ -332,7 +332,7 @@ export class CommentComponent implements OnInit, AfterViewInit, OnChanges, OnDes
   }
 
   visible(v: Visibility) {
-    return visible(v, this.isAuthor, this.isRecipient);
+    return visible(this.ref, v, this.isAuthor, this.isRecipient);
   }
 
   label(a: Action) {

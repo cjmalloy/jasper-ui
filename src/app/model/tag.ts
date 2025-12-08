@@ -204,6 +204,10 @@ export interface Visibility {
    */
   title?: string;
   /**
+   * Tag to show / hide.
+   */
+  if?: string;
+  /**
    * Minimum role required to be visible.
    */
   role?: Role;
@@ -233,7 +237,8 @@ export interface Visibility {
   _parent?: Config;
 }
 
-export function visible(v: Visibility, isAuthor: boolean, isRecipient: boolean) {
+export function visible(ref: Ref, v: Visibility, isAuthor: boolean, isRecipient: boolean) {
+  if (('if' in v) && !hasTag(v.if, ref)) return false;
   if (!v.visible) return true;
   if (isAuthor) return v.visible === 'author' || v.visible === 'participant';
   if (isRecipient) return v.visible === 'recipient' || v.visible === 'participant';

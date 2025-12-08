@@ -355,7 +355,7 @@ export class BlogEntryComponent implements OnChanges, OnDestroy, HasChanges {
   }
 
   visible(v: Visibility) {
-    return visible(v, this.isAuthor, this.isRecipient);
+    return visible(this.ref, v, this.isAuthor, this.isRecipient);
   }
 
   label(a: Action) {
