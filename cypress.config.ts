@@ -29,6 +29,7 @@ export default defineConfig({
             });
             return matchingFiles.length > 0 ? matchingFiles[0] : null;
           } catch (e) {
+            console.error('Error finding downloaded file:', e);
             return null;
           }
         },
