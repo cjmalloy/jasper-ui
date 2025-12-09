@@ -80,6 +80,7 @@ import { userMod } from '../mods/user';
 import { videoMod } from '../mods/video';
 import { voteMod } from '../mods/vote';
 import { DEFAULT_WIKI_PREFIX, wikiMod } from '../mods/wiki';
+import { ytdlpMod } from '../mods/ytdlp';
 import { progress } from '../store/bus';
 import { Store } from '../store/store';
 import { modId } from '../util/format';
@@ -173,6 +174,7 @@ export class AdminService {
     embedMod,
     audioMod,
     videoMod,
+    ytdlpMod,
     voteMod,
     imageMod,
     lensMod,
