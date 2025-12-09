@@ -23,7 +23,6 @@ export const ytdlpPlugin: Plugin = {
     // language=python
     script: `
 import tempfile
-import glob
 import os
 import sys
 import requests
