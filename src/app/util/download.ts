@@ -1,9 +1,11 @@
 import * as FileSaver from 'file-saver';
 import JSZip from 'jszip';
+import { Observable } from 'rxjs';
 import { Ext, writeExt } from '../model/ext';
 import { Page } from '../model/page';
 import { Plugin, writePlugin } from '../model/plugin';
 import { Ref, writeRef } from '../model/ref';
+import { Resource } from '../model/resource';
 import { Tag } from '../model/tag';
 import { writeTemplate } from '../model/template';
 import { writeUser } from '../model/user';
@@ -31,10 +33,62 @@ function write(type: Type): any {
   }
 }
 
-export async function downloadPage(type: Type, page: Page<any>, exts: Ext[], query: string) {
+export async function downloadPage(
+  type: Type,
+  page: Page<any>,
+  exts: Ext[],
+  query: string,
+  cacheFetcher?: (url: string, origin: string) => Observable<Resource>
+) {
   const zip = new JSZip();
   zip.file(type + '.json', file(page.content!.map(write(type))));
   if (exts.length) zip.file('ext.json', file(exts.map(writeExt)));
+  
+  // Add cache files if type is 'ref' and cacheFetcher is provided
+  if (type === 'ref' && cacheFetcher && page.content) {
+    const cachePromises: Promise<void>[] = [];
+    
+    for (const ref of page.content as Ref[]) {
+      // Check if ref has a cache: URL or _plugin/cache plugin
+      let cacheId: string | undefined;
+      
+      if (ref.url?.startsWith('cache:')) {
+        // Extract UUID from cache:<uuid>
+        cacheId = ref.url.substring(6);
+      } else if (ref.plugins?.['_plugin/cache']?.id) {
+        // Get cache ID from plugin
+        cacheId = ref.plugins['_plugin/cache'].id;
+      }
+      
+      if (cacheId) {
+        const cacheUrl = `cache:${cacheId}`;
+        const origin = ref.origin || '';
+        
+        // Create a promise to fetch the cache file
+        const promise = new Promise<void>((resolve) => {
+          cacheFetcher(cacheUrl, origin).subscribe({
+            next: (resource) => {
+              if (resource.data) {
+                // Add the cache file to the cache/ folder with just the UUID as filename
+                zip.file(`cache/${cacheId}`, resource.data);
+              }
+              resolve();
+            },
+            error: () => {
+              // If fetch fails, just skip this cache file
+              resolve();
+            }
+          });
+        });
+        
+        cachePromises.push(promise);
+      }
+    }
+    
+    // Wait for all cache files to be fetched
+    await Promise.all(cachePromises);
+  }
+  
   return zip.generateAsync({ type: 'blob' })
     .then(content => FileSaver.saveAs(content, `${query.replace('/', '_')}` + (page.page.totalPages > 1 ? ` (page ${page.page.number + 1} of ${page.page.totalPages})` : '') + '.zip'));
 }
