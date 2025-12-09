@@ -33,6 +33,8 @@ origin = ref.get('origin', '')
 url = ref.get('plugins', {}).get('plugin/embed', {}).get('url', ref.get('url', ''))
 with tempfile.NamedTemporaryFile(delete=False) as temp_file:
   base_name = temp_file.name
+downloaded_file = None
+try:
   ydl_opts = {
     'outtmpl': f'{base_name}.%(ext)s',
     'remote_components': ['ejs:github'],
@@ -81,17 +83,22 @@ with tempfile.NamedTemporaryFile(delete=False) as temp_file:
     sys.exit(1)
   cache = response.json()
   ref.pop('metadata', None)
-  os.remove(downloaded_file)
   ref.setdefault('tags', []).append('plugin/video')
   ref['tags'] = [t for t in ref['tags'] if not (t + '/').startswith('_plugin/delta/ytdlp/') and not (t + '/').startswith('plugin/embed/')]
   ref.setdefault('plugins', {}).setdefault('plugin/video', {})['url'] = cache['url']
-  del ref.get('plugins', {})['plugin/embed']
+  ref.setdefault('plugins', {}).pop('plugin/embed', None)
   print(json.dumps({
     'ref': [{
       **cache,
       **ref,
     }],
   }))
+finally:
+  # Clean up both the base temp file and the downloaded file
+  if os.path.exists(base_name):
+    os.remove(base_name)
+  if downloaded_file and os.path.exists(downloaded_file):
+    os.remove(downloaded_file)
     `,
   },
 };
