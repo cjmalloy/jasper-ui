@@ -65,7 +65,7 @@ export async function downloadRef(
   }
   
   // Otherwise, download as JSON
-  FileSaver.saveAs(file(ref), (ref.title || ref.url.replace(/[^\[\]\w.(){}!@#$%^&*-]+/, '_')) + '.json');
+  return Promise.resolve(FileSaver.saveAs(file(ref), (ref.title || ref.url.replace(/[^\[\]\w.(){}!@#$%^&*-]+/, '_')) + '.json'));
 }
 
 function write(type: Type): any {
