@@ -43,6 +43,7 @@ export default defineConfig({
             });
             return true;
           } catch (e) {
+            console.error('Error deleting downloads:', e);
             return false;
           }
         }
