@@ -18,6 +18,7 @@ export default defineConfig({
       require('cypress-mochawesome-reporter/plugin')(on);
       
       // Task to find a downloaded file
+      // Note: pattern is treated as a substring match, not a glob pattern
       on('task', {
         findDownloadedFile({ folder, pattern, exclude }: { folder: string, pattern: string, exclude?: string }) {
           try {
@@ -37,6 +38,11 @@ export default defineConfig({
         // Task to delete all downloads
         deleteDownloads(folder: string) {
           try {
+            // Validate that this is a downloads folder for safety
+            if (!folder.includes('downloads') && !folder.includes('Downloads')) {
+              console.error('Invalid folder path - must be a downloads folder:', folder);
+              throw new Error('Invalid folder path - must be a downloads folder');
+            }
             const files = fs.readdirSync(folder);
             files.forEach(file => {
               fs.unlinkSync(path.join(folder, file));

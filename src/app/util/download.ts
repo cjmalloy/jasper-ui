@@ -19,20 +19,36 @@ export function downloadTag(tag: Tag) {
   FileSaver.saveAs(file(tag), (tag.name || tag.tag.replace('/', '_')) + '.json');
 }
 
+/**
+ * Extracts the cache ID from a Ref if it has a cache file.
+ * Checks both cache: URL scheme and _plugin/cache plugin.
+ * 
+ * @param ref - The Ref to check for cache ID
+ * @returns The cache ID (UUID) if found, undefined otherwise
+ */
+function getCacheId(ref: Ref): string | undefined {
+  if (ref.url?.startsWith('cache:')) {
+    return ref.url.substring('cache:'.length);
+  } else if (ref.plugins?.['_plugin/cache']?.id) {
+    return ref.plugins['_plugin/cache'].id;
+  }
+  return undefined;
+}
+
+/**
+ * Downloads a Ref as either a JSON file or a ZIP file containing the ref and its cache file.
+ * If the ref has a cache file and cacheFetcher is provided, creates a ZIP with both ref.json 
+ * and the cache file in a cache/ folder. Otherwise, downloads as plain JSON.
+ * 
+ * @param ref - The Ref to download
+ * @param cacheFetcher - Optional function to fetch cache files from the server
+ * @returns Promise that resolves when the download is complete
+ */
 export async function downloadRef(
   ref: Ref,
   cacheFetcher?: (url: string, origin: string) => Observable<Resource>
-) {
-  // Check if ref has a cache: URL or _plugin/cache plugin
-  let cacheId: string | undefined;
-  
-  if (ref.url?.startsWith('cache:')) {
-    // Extract UUID from cache:<uuid>
-    cacheId = ref.url.substring('cache:'.length);
-  } else if (ref.plugins?.['_plugin/cache']?.id) {
-    // Get cache ID from plugin
-    cacheId = ref.plugins['_plugin/cache'].id;
-  }
+): Promise<void> {
+  const cacheId = getCacheId(ref);
   
   // If ref has cache and cacheFetcher is provided, create a zip with ref.json and cache file
   if (cacheId && cacheFetcher) {
@@ -61,11 +77,11 @@ export async function downloadRef(
     });
     
     return zip.generateAsync({ type: 'blob' })
-      .then(content => FileSaver.saveAs(content, (ref.title || ref.url.replace(/[^\[\]\w.(){}!@#$%^&*-]+/, '_')) + '.zip'));
+      .then(content => FileSaver.saveAs(content, (ref.title || ref.url.replace(/[^\[\]\w.(){}!@#$%^&*-]+/g, '_')) + '.zip'));
   }
   
   // Otherwise, download as JSON
-  return Promise.resolve(FileSaver.saveAs(file(ref), (ref.title || ref.url.replace(/[^\[\]\w.(){}!@#$%^&*-]+/, '_')) + '.json'));
+  return Promise.resolve(FileSaver.saveAs(file(ref), (ref.title || ref.url.replace(/[^\[\]\w.(){}!@#$%^&*-]+/g, '_')) + '.json'));
 }
 
 function write(type: Type): any {
@@ -78,6 +94,17 @@ function write(type: Type): any {
   }
 }
 
+/**
+ * Downloads a page of entities as a ZIP file.
+ * For 'ref' type pages, includes cache files in a cache/ folder if cacheFetcher is provided.
+ * 
+ * @param type - The type of entities being downloaded
+ * @param page - The page of entities to download
+ * @param exts - Associated extensions
+ * @param query - Query string used for filename
+ * @param cacheFetcher - Optional function to fetch cache files for refs
+ * @returns Promise that resolves when the download is complete
+ */
 export async function downloadPage(
   type: Type,
   page: Page<any>,
@@ -94,16 +121,7 @@ export async function downloadPage(
     const cachePromises: Promise<void>[] = [];
     
     for (const ref of page.content as Ref[]) {
-      // Check if ref has a cache: URL or _plugin/cache plugin
-      let cacheId: string | undefined;
-      
-      if (ref.url?.startsWith('cache:')) {
-        // Extract UUID from cache:<uuid>
-        cacheId = ref.url.substring('cache:'.length);
-      } else if (ref.plugins?.['_plugin/cache']?.id) {
-        // Get cache ID from plugin
-        cacheId = ref.plugins['_plugin/cache'].id;
-      }
+      const cacheId = getCacheId(ref);
       
       if (cacheId) {
         const cacheUrl = `cache:${cacheId}`;

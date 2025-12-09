@@ -10,6 +10,9 @@ describe('Bulk Download/Upload with Cache Files', () => {
     openSidebar();
     cy.contains('Submit').click();
     
+    // Intercept the proxy upload
+    cy.intercept('POST', '/api/v1/proxy').as('cacheUpload');
+    
     // Upload a file which will be cached
     cy.get('input[type="file"]').selectFile({
       contents: Cypress.Buffer.from(testFileContent),
@@ -17,23 +20,29 @@ describe('Bulk Download/Upload with Cache Files', () => {
       mimeType: 'text/plain'
     }, { force: true });
     
-    // Wait for upload to complete
-    cy.wait(2000);
+    // Wait for cache upload to complete
+    cy.wait('@cacheUpload', { timeout: 15000 });
+    
+    // Navigate to upload page to see the result
+    cy.visit('/submit/upload?debug=ADMIN');
     
     // The file should now be in the uploads list
-    cy.get('.uploads').should('contain', testFileName);
+    cy.get('.uploads', { timeout: 10000 }).should('contain', testFileName);
   });
   
   it('tags and submits the cached ref', () => {
     cy.visit('/submit/upload?debug=ADMIN');
     
+    // Ensure uploads exist before trying to tag
+    cy.get('.uploads .ref', { timeout: 10000 }).should('have.length.greaterThan', 0);
+    
     // Tag all refs with a test tag
     cy.get('input[placeholder*="tag"]').type('test/cache/bulk{enter}');
     
     // Submit the refs
-    cy.intercept({pathname: '/api/v1/ref'}).as('submit');
+    cy.intercept('POST', '/api/v1/ref').as('submit');
     cy.get('button').contains('push').click();
-    cy.wait('@submit');
+    cy.wait('@submit', { timeout: 15000 });
     cy.wait(1000);
   });
   
@@ -48,15 +57,20 @@ describe('Bulk Download/Upload with Cache Files', () => {
   
   it('downloads refs with bulk download (real zip)', () => {
     cy.visit('/tag/test/cache/bulk?debug=ADMIN');
-    cy.wait(1000);
+    
+    // Wait for refs to load
+    cy.get('.ref', { timeout: 10000 }).should('have.length.greaterThan', 0);
     
     // Open bulk actions
     cy.get('.bulk.actions').should('be.visible');
     
+    // Intercept cache file fetch
+    cy.intercept('GET', '/api/v1/proxy*').as('cacheFetch');
+    
     // Click download button - this creates a real zip file
     cy.get('.bulk.actions button').contains('download').click();
     
-    // Wait for download to complete
+    // Wait for cache fetch (may or may not happen depending on if ref has cache)
     cy.wait(3000);
     
     // Verify the downloaded zip exists
@@ -65,12 +79,17 @@ describe('Bulk Download/Upload with Cache Files', () => {
   
   it('deletes the cached ref to test restore', () => {
     cy.visit('/tag/test/cache/bulk?debug=ADMIN');
-    cy.wait(1000);
+    
+    // Wait for refs to load
+    cy.get('.ref', { timeout: 10000 }).should('have.length.greaterThan', 0);
+    
+    // Intercept delete request
+    cy.intercept('DELETE', '/api/v1/ref*').as('deleteRef');
     
     // Delete the ref to test restore functionality
     cy.get('.bulk.actions button').contains('delete').click();
     cy.get('.bulk.actions').contains('yes').click();
-    cy.wait(2000);
+    cy.wait('@deleteRef', { timeout: 15000 });
     
     // Verify ref is deleted
     cy.visit('/tag/test/cache/bulk?debug=ADMIN');
@@ -81,44 +100,57 @@ describe('Bulk Download/Upload with Cache Files', () => {
   it('uploads the downloaded zip to restore refs with cache files', () => {
     cy.visit('/submit/upload?debug=ADMIN');
     
+<<<<<<< Updated upstream
     // Intercept the cache upload network request
     cy.intercept('POST', '/api/v1/proxy').as('cacheUpload');
     // Upload the previously downloaded zip file
     cy.get('input[type="file"]').selectFile(`${downloadsFolder}/test_cache_bulk.zip`, { force: true });
     // Wait for the upload network request to complete
     cy.wait('@cacheUpload');
+=======
+    // Intercept cache upload from zip
+    cy.intercept('POST', '/api/v1/proxy').as('cacheRestore');
+    
+    // Upload the previously downloaded zip file
+    cy.get('input[type="file"]').selectFile(`${downloadsFolder}/test_cache_bulk.zip`, { force: true });
+    
+    // Wait for cache files to be extracted and uploaded
+    cy.wait('@cacheRestore', { timeout: 15000 }).then(() => {
+      // Give a bit more time for processing
+      cy.wait(2000);
+    });
+>>>>>>> Stashed changes
     
     // The refs should appear in the upload list
-    cy.get('.uploads').should('contain', testFileName);
+    cy.get('.uploads', { timeout: 10000 }).should('contain', testFileName);
   });
   
   it('submits the restored refs', () => {
     cy.visit('/submit/upload?debug=ADMIN');
     
-    // Check if there are refs to submit
-    cy.get('body').then($body => {
-      if ($body.find('.uploads .ref').length > 0) {
-        // Submit the refs
-        cy.intercept({pathname: '/api/v1/ref'}).as('submit');
-        cy.get('button').contains('push').click();
-        cy.wait('@submit');
-        cy.wait(1000);
-      }
-    });
+    // Wait for uploads to appear
+    cy.get('.uploads .ref', { timeout: 10000 }).should('have.length.greaterThan', 0);
+    
+    // Submit the refs
+    cy.intercept('POST', '/api/v1/ref').as('submit');
+    cy.get('button').contains('push').click();
+    cy.wait('@submit', { timeout: 15000 });
+    cy.wait(1000);
   });
   
   it('verifies the restored ref exists with cache file', () => {
     cy.visit('/tag/test/cache/bulk?debug=ADMIN');
-    cy.wait(1000);
     
     // Should see the restored ref
-    cy.get('.ref').should('have.length.greaterThan', 0);
+    cy.get('.ref', { timeout: 10000 }).should('have.length.greaterThan', 0);
     cy.get('.ref').first().should('contain', testFileName);
   });
   
   it('tests individual ref download with cache file', () => {
     cy.visit('/tag/test/cache/bulk?debug=ADMIN');
-    cy.wait(1000);
+    
+    // Wait for refs to load
+    cy.get('.ref', { timeout: 10000 }).should('have.length.greaterThan', 0);
     
     // Click on the first ref to open it
     cy.get('.ref').first().click();
@@ -144,9 +176,10 @@ describe('Bulk Download/Upload with Cache Files', () => {
     
     cy.get('body').then($body => {
       if ($body.find('.ref').length > 0) {
+        cy.intercept('DELETE', '/api/v1/ref*').as('cleanup');
         cy.get('.bulk.actions button').contains('delete').click();
         cy.get('.bulk.actions').contains('yes').click();
-        cy.wait(2000);
+        cy.wait('@cleanup', { timeout: 15000 });
       }
     });
     

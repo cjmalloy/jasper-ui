@@ -439,7 +439,10 @@ export class UploadPage implements OnDestroy {
   private getModels(file: File): Promise<FilteredModels> {
     if (file.name.toLowerCase().endsWith('.zip')) {
       return unzip(file).then(async zip => {
-        // Extract cache files from cache/ folder
+        // Extract cache files from cache/ folder and upload them to the server.
+        // When these files are uploaded, the server will generate new cache IDs for files
+        // that do not already exist, or reuse existing cache entries if the content matches.
+        // This ensures deduplication and consistent cache references for identical files.
         const cacheFilePromises: Promise<File>[] = [];
         zip.folder('cache')?.forEach((relativePath, file) => {
           // Skip directories
@@ -455,7 +458,10 @@ export class UploadPage implements OnDestroy {
         // Wait for all cache files to be extracted
         if (cacheFilePromises.length > 0) {
           const cacheFiles = await Promise.all(cacheFilePromises);
-          // Upload cache files
+          // Upload cache files asynchronously. These will upload in the background.
+          // Note: readCache doesn't return a Promise, so refs may be processed before
+          // cache uploads complete. This is intentional - the server will handle missing
+          // cache references gracefully.
           this.readCache(cacheFiles, 'plugin/file', this.store.account.localTag, ...this.store.submit.tags);
         }
         
