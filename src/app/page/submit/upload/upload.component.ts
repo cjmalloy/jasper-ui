@@ -362,17 +362,18 @@ export class UploadPage implements OnDestroy {
       : of(null);
     
     return uploadCacheFiles$.pipe(
-      switchMap(() => (ref.exists
-        ? this.refs.update(ref).pipe(
-          catchError((err: HttpErrorResponse) => {
-            if (err.status === 404) {
-              return this.refs.create(ref);
-            }
-            return throwError(() => err);
-          }),
-        )
-        : this.refs.create(ref)
-      )),
+      switchMap(() => {
+        return ref.exists
+          ? this.refs.update(ref).pipe(
+              catchError((err: HttpErrorResponse) => {
+                if (err.status === 404) {
+                  return this.refs.create(ref);
+                }
+                return throwError(() => err);
+              }),
+            )
+          : this.refs.create(ref);
+      }),
       catchError((err: HttpErrorResponse) => {
         if (err.status === 409) {
           if (this.store.submit.overwrite) {
@@ -495,7 +496,8 @@ export class UploadPage implements OnDestroy {
     if (file.name.toLowerCase().endsWith('.zip')) {
       return unzip(file).then(async zip => {
         // Check if the zip contains cache files
-        const hasCacheFiles = zip.folder('cache')?.file(/.+/)?.length > 0;
+        const cacheFiles = zip.folder('cache')?.file(/.+/);
+        const hasCacheFiles = cacheFiles ? cacheFiles.length > 0 : false;
         
         return Promise.all([
           zippedFile(zip, 'ext.json')
