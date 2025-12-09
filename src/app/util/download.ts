@@ -1,6 +1,6 @@
 import * as FileSaver from 'file-saver';
 import JSZip from 'jszip';
-import { Observable } from 'rxjs';
+import { Observable, take } from 'rxjs';
 import { Ext, writeExt } from '../model/ext';
 import { Page } from '../model/page';
 import { Plugin, writePlugin } from '../model/plugin';
@@ -66,7 +66,7 @@ export async function downloadPage(
         
         // Create a promise to fetch the cache file
         const promise = new Promise<void>((resolve) => {
-          cacheFetcher(cacheUrl, origin).subscribe({
+          cacheFetcher(cacheUrl, origin).pipe(take(1)).subscribe({
             next: (resource) => {
               if (resource.data) {
                 // Add the cache file to the cache/ folder with just the UUID as filename
@@ -74,8 +74,9 @@ export async function downloadPage(
               }
               resolve();
             },
-            error: () => {
+            error: (err) => {
               // If fetch fails, just skip this cache file
+              console.warn(`Failed to fetch cache file ${cacheId}:`, err);
               resolve();
             }
           });
