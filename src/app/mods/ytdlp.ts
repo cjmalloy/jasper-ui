@@ -72,7 +72,7 @@ with tempfile.NamedTemporaryFile(delete=False) as temp_file:
     },
     params={
       'origin': origin,
-      'title': ref['title'],
+      'title': ref.get('title', ''),
       'mime': mime,
     }
   )
