@@ -6,12 +6,14 @@ describe('Download/Upload with Cache Files', () => {
   const downloadsFolder = Cypress.config('downloadsFolder');
 
   it('uploads a file to create a cached ref', () => {
-    cy.visit('/?debug=ADMIN');
-    openSidebar();
-    cy.contains('Submit').click();
+    // Go directly to the upload page
+    cy.visit('/submit/upload?debug=ADMIN');
 
     // Intercept the proxy upload
     cy.intercept('POST', '/api/v1/proxy').as('cacheUpload');
+
+    // Wait for the page to load and find the file input
+    cy.get('input[type="file"]', { timeout: 10000 }).should('exist');
 
     // Upload a file which will be cached
     cy.get('input[type="file"]').selectFile({
@@ -22,9 +24,6 @@ describe('Download/Upload with Cache Files', () => {
 
     // Wait for cache upload to complete
     cy.wait('@cacheUpload', { timeout: 15000 });
-
-    // Navigate to upload page to see the result
-    cy.visit('/submit/upload?debug=ADMIN');
 
     // The file should now be in the uploads list
     cy.get('.uploads', { timeout: 10000 }).should('contain', testFileName);
@@ -73,8 +72,8 @@ describe('Download/Upload with Cache Files', () => {
     // Wait for cache fetch (may or may not happen depending on if ref has cache)
     cy.wait(3000);
 
-    // Verify the downloaded zip exists
-    cy.readFile(`${downloadsFolder}/test_cache_bulk.zip`, { timeout: 10000 }).should('exist');
+    // Verify the downloaded zip exists (filename is based on tag: test/cache -> test_cache.zip)
+    cy.readFile(`${downloadsFolder}/test_cache.zip`, { timeout: 10000 }).should('exist');
   });
 
   it('deletes the cached ref to test restore', () => {
@@ -100,12 +99,15 @@ describe('Download/Upload with Cache Files', () => {
   it('uploads the downloaded zip to restore refs with cache files', () => {
     cy.visit('/submit/upload?debug=ADMIN');
 
+    // Wait for the file input to be available
+    cy.get('input[type="file"]', { timeout: 10000 }).should('exist');
+
     // Intercept the cache upload network request
     cy.intercept('POST', '/api/v1/proxy').as('cacheUpload');
-    // Upload the previously downloaded zip file
-    cy.get('input[type="file"]').selectFile(`${downloadsFolder}/test_cache_bulk.zip`, { force: true });
+    // Upload the previously downloaded zip file (filename is test_cache.zip based on tag)
+    cy.get('input[type="file"]').selectFile(`${downloadsFolder}/test_cache.zip`, { force: true });
     // Wait for the upload network request to complete
-    cy.wait('@cacheUpload');
+    cy.wait('@cacheUpload', { timeout: 15000 });
 
     // The refs should appear in the upload list
     cy.get('.uploads', { timeout: 10000 }).should('contain', testFileName);
@@ -151,7 +153,7 @@ describe('Download/Upload with Cache Files', () => {
     cy.task('findDownloadedFile', {
       folder: downloadsFolder,
       pattern: '*.zip',
-      exclude: 'test_cache_bulk.zip'
+      exclude: 'test_cache.zip'
     }).should('exist');
   });
 
