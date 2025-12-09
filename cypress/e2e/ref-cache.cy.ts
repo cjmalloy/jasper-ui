@@ -5,7 +5,7 @@ describe('Download/Upload with Cache Files', () => {
   const testFileName = 'test-cache-file.txt';
   const downloadsFolder = Cypress.config('downloadsFolder');
 
-  it('uploads a file to create a cached ref', () => {
+  it('uploads a file to create a cached ref and submits it', () => {
     // Go directly to the upload page
     cy.visit('/submit/upload?debug=ADMIN');
 
@@ -27,15 +27,8 @@ describe('Download/Upload with Cache Files', () => {
 
     // The file should now be in the uploads list
     cy.get('.uploads', { timeout: 10000 }).should('contain', testFileName);
-  });
 
-  it('tags and submits the cached ref', () => {
-    cy.visit('/submit/upload?debug=ADMIN');
-
-    // Ensure uploads exist before trying to tag
-    cy.get('.uploads .ref', { timeout: 10000 }).should('have.length.greaterThan', 0);
-
-    // Tag all refs with a test tag
+    // Tag all refs with a test tag (without reloading the page)
     cy.get('input[placeholder*="tag"]').type('test/cache{enter}');
 
     // Submit the refs
@@ -96,7 +89,7 @@ describe('Download/Upload with Cache Files', () => {
     cy.get('body').should('contain', 'No Refs');
   });
 
-  it('uploads the downloaded zip to restore refs with cache files', () => {
+  it('uploads the downloaded zip to restore refs with cache files and submits them', () => {
     cy.visit('/submit/upload?debug=ADMIN');
 
     // Wait for the file input to be available
@@ -111,15 +104,8 @@ describe('Download/Upload with Cache Files', () => {
 
     // The refs should appear in the upload list
     cy.get('.uploads', { timeout: 10000 }).should('contain', testFileName);
-  });
 
-  it('submits the restored refs', () => {
-    cy.visit('/submit/upload?debug=ADMIN');
-
-    // Wait for uploads to appear
-    cy.get('.uploads .ref', { timeout: 10000 }).should('have.length.greaterThan', 0);
-
-    // Submit the refs
+    // Submit the refs (without reloading the page)
     cy.intercept('POST', '/api/v1/ref').as('submit');
     cy.get('button').contains('push').click();
     cy.wait('@submit', { timeout: 15000 });
