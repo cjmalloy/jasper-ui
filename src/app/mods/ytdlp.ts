@@ -33,6 +33,7 @@ origin = ref.get('origin', '')
 url = ref.get('plugins', {}).get('plugin/embed', {}).get('url', ref.get('url', ''))
 with tempfile.NamedTemporaryFile(delete=False) as temp_file:
   base_name = temp_file.name
+downloaded_file = None
 try:
   ydl_opts = {
     'outtmpl': f'{base_name}.%(ext)s',
@@ -85,8 +86,7 @@ try:
   ref.setdefault('tags', []).append('plugin/video')
   ref['tags'] = [t for t in ref['tags'] if not (t + '/').startswith('_plugin/delta/ytdlp/') and not (t + '/').startswith('plugin/embed/')]
   ref.setdefault('plugins', {}).setdefault('plugin/video', {})['url'] = cache['url']
-  if 'plugins' in ref and 'plugin/embed' in ref['plugins']:
-    del ref['plugins']['plugin/embed']
+  ref.setdefault('plugins', {}).pop('plugin/embed', None)
   print(json.dumps({
     'ref': [{
       **cache,
@@ -97,8 +97,7 @@ finally:
   # Clean up both the base temp file and the downloaded file
   if os.path.exists(base_name):
     os.remove(base_name)
-  # downloaded_file may not be defined if an error occurred before its assignment
-  if 'downloaded_file' in locals() and os.path.exists(downloaded_file):
+  if downloaded_file and os.path.exists(downloaded_file):
     os.remove(downloaded_file)
     `,
   },
