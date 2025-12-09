@@ -438,15 +438,37 @@ export class UploadPage implements OnDestroy {
 
   private getModels(file: File): Promise<FilteredModels> {
     if (file.name.toLowerCase().endsWith('.zip')) {
-      return unzip(file).then(zip => Promise.all([
-        zippedFile(zip, 'ext.json')
-          .then(json => getModels<Ext>(json))
-          .then(exts => exts.map(mapExt)),
-        zippedFile(zip, 'ref.json')
-          .then(json => getModels<Ref>(json))
-          .then(refs => refs.map(mapRef)),
-      ]))
-        .then(([ext, ref]) => ({ ext, ref }));
+      return unzip(file).then(async zip => {
+        // Extract cache files from cache/ folder
+        const cacheFilePromises: Promise<File>[] = [];
+        zip.folder('cache')?.forEach((relativePath, file) => {
+          // Skip directories
+          if (!file.dir) {
+            cacheFilePromises.push(
+              file.async('blob').then(blob => 
+                new File([blob], relativePath, { type: 'application/octet-stream' })
+              )
+            );
+          }
+        });
+        
+        // Wait for all cache files to be extracted
+        if (cacheFilePromises.length > 0) {
+          const cacheFiles = await Promise.all(cacheFilePromises);
+          // Upload cache files
+          this.readCache(cacheFiles, 'plugin/file', this.store.account.localTag, ...this.store.submit.tags);
+        }
+        
+        return Promise.all([
+          zippedFile(zip, 'ext.json')
+            .then(json => getModels<Ext>(json))
+            .then(exts => exts.map(mapExt)),
+          zippedFile(zip, 'ref.json')
+            .then(json => getModels<Ref>(json))
+            .then(refs => refs.map(mapRef)),
+        ])
+          .then(([ext, ref]) => ({ ext, ref }));
+      });
     } else {
       return getTextFile(file)
         .then(getModels)
