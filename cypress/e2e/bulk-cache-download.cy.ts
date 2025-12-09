@@ -81,11 +81,12 @@ describe('Bulk Download/Upload with Cache Files', () => {
   it('uploads the downloaded zip to restore refs with cache files', () => {
     cy.visit('/submit/upload?debug=ADMIN');
     
+    // Intercept the cache upload network request
+    cy.intercept('POST', '/api/v1/proxy').as('cacheUpload');
     // Upload the previously downloaded zip file
     cy.get('input[type="file"]').selectFile(`${downloadsFolder}/test_cache_bulk.zip`, { force: true });
-    
-    // Wait for upload processing
-    cy.wait(3000);
+    // Wait for the upload network request to complete
+    cy.wait('@cacheUpload');
     
     // The refs should appear in the upload list
     cy.get('.uploads').should('contain', testFileName);
