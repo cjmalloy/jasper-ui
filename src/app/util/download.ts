@@ -54,7 +54,7 @@ export async function downloadPage(
       
       if (ref.url?.startsWith('cache:')) {
         // Extract UUID from cache:<uuid>
-        cacheId = ref.url.substring(6);
+        cacheId = ref.url.substring('cache:'.length);
       } else if (ref.plugins?.['_plugin/cache']?.id) {
         // Get cache ID from plugin
         cacheId = ref.plugins['_plugin/cache'].id;
