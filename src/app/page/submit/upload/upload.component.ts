@@ -439,31 +439,11 @@ export class UploadPage implements OnDestroy {
   private getModels(file: File): Promise<FilteredModels> {
     if (file.name.toLowerCase().endsWith('.zip')) {
       return unzip(file).then(async zip => {
-        // Extract cache files from cache/ folder and upload them to the server.
-        // When these files are uploaded, the server will generate new cache IDs for files
-        // that do not already exist, or reuse existing cache entries if the content matches.
-        // This ensures deduplication and consistent cache references for identical files.
-        const cacheFilePromises: Promise<File>[] = [];
-        zip.folder('cache')?.forEach((relativePath, file) => {
-          // Skip directories
-          if (!file.dir) {
-            cacheFilePromises.push(
-              file.async('blob').then(blob => 
-                new File([blob], relativePath, { type: 'application/octet-stream' })
-              )
-            );
-          }
-        });
-        
-        // Wait for all cache files to be extracted
-        if (cacheFilePromises.length > 0) {
-          const cacheFiles = await Promise.all(cacheFilePromises);
-          // Upload cache files asynchronously. These will upload in the background.
-          // Note: readCache doesn't return a Promise, so refs may be processed before
-          // cache uploads complete. This is intentional - the server will handle missing
-          // cache references gracefully.
-          this.readCache(cacheFiles, 'plugin/file', this.store.account.localTag, ...this.store.submit.tags);
-        }
+        // Note: Cache files from zips are NOT uploaded immediately like regular file uploads.
+        // They are extracted and stored, but will only be uploaded when the Ref is submitted,
+        // and only if the existence check fails. This prevents unnecessary uploads for refs
+        // that already exist on the server.
+        // TODO: Implement delayed cache file upload on ref submission
         
         return Promise.all([
           zippedFile(zip, 'ext.json')

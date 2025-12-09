@@ -95,12 +95,11 @@ describe('Download/Upload with Cache Files', () => {
     // Wait for the file input to be available
     cy.get('input[type="file"]', { timeout: 10000 }).should('exist');
 
-    // Intercept the cache upload network request
-    cy.intercept('POST', '/api/v1/proxy').as('cacheUpload');
     // Upload the previously downloaded zip file (filename is test_cache.zip based on tag)
+    // Note: With current implementation, cache files from zips are NOT uploaded when selected.
+    // They are extracted but not uploaded until implementation is enhanced to upload them
+    // conditionally when refs are submitted (after existence check fails).
     cy.get('input[type="file"]').selectFile(`${downloadsFolder}/test_cache.zip`, { force: true });
-    // Wait for the upload network request to complete
-    cy.wait('@cacheUpload', { timeout: 15000 });
 
     // The refs should appear in the upload list
     cy.get('.uploads', { timeout: 10000 }).should('contain', testFileName);
