@@ -43,7 +43,7 @@
     "jsqr": "^1.4.0",
     "jszip": "^3.10.1",
     "jtd": "^0.1.1",
-    "katex": "^0.16.25",
+    "katex": "^0.16.27",
     "lodash-es": "^4.17.21",
     "luxon": "^3.7.2",
     "marked": "^17.0.1",
@@ -79,7 +79,7 @@
     "cypress": "^15.7.1",
     "cypress-mochawesome-reporter": "^4.0.2",
     "cypress-real-events": "^1.15.0",
-    "jsdom": "^27.2.0",
+    "jsdom": "^27.3.0",
     "patch-package": "^8.0.1",
     "raw-loader": "^4.0.2",
     "typescript": "~5.9.3"
