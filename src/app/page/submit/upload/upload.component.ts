@@ -7,7 +7,7 @@ import { pick, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { autorun, IReactionDisposer, runInAction, toJS } from 'mobx';
 import { MobxAngularModule } from 'mobx-angular';
-import { catchError, concat, last, lastValueFrom, map, of, switchMap, throwError } from 'rxjs';
+import { catchError, concat, last, lastValueFrom, map, Observable, of, switchMap, throwError } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import * as XLSX from 'xlsx';
 import { ExtComponent } from '../../../component/ext/ext.component';
@@ -354,7 +354,15 @@ export class UploadPage implements OnDestroy {
     ref.origin = this.store.account.origin;
     ref.tags = ref.tags?.filter(t => this.auth.canAddTag(t));
     ref.plugins = pick(ref.plugins, ref.tags || []);
-    return (ref.exists
+    
+    // Check if this ref has an associated zip with cache files
+    const zipFile = this.store.submit.zipCache.get(ref.url);
+    const uploadCacheFiles$ = zipFile && !ref.exists
+      ? this.uploadCacheFilesFromZip(zipFile, ref)
+      : of(null);
+    
+    return uploadCacheFiles$.pipe(
+      switchMap(() => (ref.exists
         ? this.refs.update(ref).pipe(
           catchError((err: HttpErrorResponse) => {
             if (err.status === 404) {
@@ -364,7 +372,7 @@ export class UploadPage implements OnDestroy {
           }),
         )
         : this.refs.create(ref)
-    ).pipe(
+      )),
       catchError((err: HttpErrorResponse) => {
         if (err.status === 409) {
           if (this.store.submit.overwrite) {
@@ -385,6 +393,53 @@ export class UploadPage implements OnDestroy {
         return of(null);
       }),
     );
+  }
+  
+  private uploadCacheFilesFromZip(zipFile: File, ref: Ref) {
+    // Extract and upload cache files from the zip for this ref
+    // Returns an Observable that completes after all cache files are uploaded
+    return new Observable<void>(observer => {
+      unzip(zipFile).then(zip => {
+        const cacheFiles: Promise<{ name: string, file: File }>[] = [];
+        
+        // Get cache files from the zip
+        zip.folder('cache')?.forEach((relativePath, file) => {
+          if (!file.dir) {
+            cacheFiles.push(
+              file.async('blob').then(blob =>  ({
+                name: relativePath,
+                file: new File([blob], relativePath, { type: 'application/octet-stream' })
+              }))
+            );
+          }
+        });
+        
+        if (cacheFiles.length === 0) {
+          observer.next();
+          observer.complete();
+          return;
+        }
+        
+        // Wait for all cache files to be extracted
+        Promise.all(cacheFiles).then(files => {
+          // Upload each cache file
+          const uploads = files.map(({ file }) => 
+            lastValueFrom(this.proxy.save(file, this.store.account.origin).pipe(
+              last(),
+              catchError(err => {
+                console.error('Failed to upload cache file:', file.name, err);
+                return of(null);
+              })
+            ))
+          );
+          
+          Promise.all(uploads).then(() => {
+            observer.next();
+            observer.complete();
+          }).catch(err => observer.error(err));
+        }).catch(err => observer.error(err));
+      }).catch(err => observer.error(err));
+    });
   }
 
   uploadExt$(ext: Ext) {
@@ -439,11 +494,8 @@ export class UploadPage implements OnDestroy {
   private getModels(file: File): Promise<FilteredModels> {
     if (file.name.toLowerCase().endsWith('.zip')) {
       return unzip(file).then(async zip => {
-        // Note: Cache files from zips are NOT uploaded immediately like regular file uploads.
-        // They are extracted and stored, but will only be uploaded when the Ref is submitted,
-        // and only if the existence check fails. This prevents unnecessary uploads for refs
-        // that already exist on the server.
-        // TODO: Implement delayed cache file upload on ref submission
+        // Check if the zip contains cache files
+        const hasCacheFiles = zip.folder('cache')?.file(/.+/)?.length > 0;
         
         return Promise.all([
           zippedFile(zip, 'ext.json')
@@ -453,7 +505,20 @@ export class UploadPage implements OnDestroy {
             .then(json => getModels<Ref>(json))
             .then(refs => refs.map(mapRef)),
         ])
-          .then(([ext, ref]) => ({ ext, ref }));
+          .then(([ext, ref]) => {
+            // If the zip contains cache files, store a reference to the zip file
+            // for each ref so we can lazily extract and upload cache files when the ref is submitted
+            if (hasCacheFiles && ref) {
+              ref.forEach(r => {
+                if (r.url) {
+                  runInAction(() => {
+                    this.store.submit.zipCache.set(r.url, file);
+                  });
+                }
+              });
+            }
+            return { ext, ref };
+          });
       });
     } else {
       return getTextFile(file)

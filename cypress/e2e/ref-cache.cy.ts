@@ -96,17 +96,21 @@ describe('Download/Upload with Cache Files', () => {
     cy.get('input[type="file"]', { timeout: 10000 }).should('exist');
 
     // Upload the previously downloaded zip file (filename is test_cache.zip based on tag)
-    // Note: With current implementation, cache files from zips are NOT uploaded when selected.
-    // They are extracted but not uploaded until implementation is enhanced to upload them
-    // conditionally when refs are submitted (after existence check fails).
+    // Cache files from zips are NOT uploaded when selected - they are stored and uploaded
+    // lazily when refs are submitted (after existence check fails).
     cy.get('input[type="file"]').selectFile(`${downloadsFolder}/test_cache.zip`, { force: true });
 
     // The refs should appear in the upload list
     cy.get('.uploads', { timeout: 10000 }).should('contain', testFileName);
 
     // Submit the refs (without reloading the page)
+    // This is when cache files should be uploaded (after existence check fails)
+    cy.intercept('POST', '/api/v1/proxy').as('cacheUpload');
     cy.intercept('POST', '/api/v1/ref').as('submit');
     cy.get('button').contains('push').click();
+    
+    // Wait for cache upload to complete, then ref submission
+    cy.wait('@cacheUpload', { timeout: 15000 });
     cy.wait('@submit', { timeout: 15000 });
     cy.wait(1000);
   });

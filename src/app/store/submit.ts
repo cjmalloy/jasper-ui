@@ -16,6 +16,8 @@ export class SubmitStore {
   submitDm: Plugin[] = [];
   files: File[] = [] as any;
   caching: Map<File, Saving> = new Map<File, Saving>();
+  // Store zip files that contain cache files, mapped by ref URL
+  zipCache: Map<string, File> = new Map<string, File>();
   exts: Ext[] = [];
   refs: Ref[] = [];
   overwrite = false;
@@ -30,6 +32,7 @@ export class SubmitStore {
       submitDm: observable.shallow,
       files: observable.shallow,
       caching: observable.shallow,
+      zipCache: observable.shallow,
       setRef: action,
       setExt: action,
     });
@@ -180,6 +183,7 @@ export class SubmitStore {
   clearUpload(refs: Ref[] = [], exts: Ext[] = []) {
     this.exts = exts;
     this.refs = refs;
+    this.zipCache.clear();
   }
 
   addFiles(files?: File[]) {
