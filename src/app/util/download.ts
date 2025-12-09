@@ -19,7 +19,52 @@ export function downloadTag(tag: Tag) {
   FileSaver.saveAs(file(tag), (tag.name || tag.tag.replace('/', '_')) + '.json');
 }
 
-export function downloadRef(ref: Ref) {
+export async function downloadRef(
+  ref: Ref,
+  cacheFetcher?: (url: string, origin: string) => Observable<Resource>
+) {
+  // Check if ref has a cache: URL or _plugin/cache plugin
+  let cacheId: string | undefined;
+  
+  if (ref.url?.startsWith('cache:')) {
+    // Extract UUID from cache:<uuid>
+    cacheId = ref.url.substring('cache:'.length);
+  } else if (ref.plugins?.['_plugin/cache']?.id) {
+    // Get cache ID from plugin
+    cacheId = ref.plugins['_plugin/cache'].id;
+  }
+  
+  // If ref has cache and cacheFetcher is provided, create a zip with ref.json and cache file
+  if (cacheId && cacheFetcher) {
+    const zip = new JSZip();
+    zip.file('ref.json', file([writeRef(ref)]));
+    
+    const cacheUrl = `cache:${cacheId}`;
+    const origin = ref.origin || '';
+    
+    // Fetch the cache file
+    await new Promise<void>((resolve) => {
+      cacheFetcher(cacheUrl, origin).pipe(take(1)).subscribe({
+        next: (resource) => {
+          if (resource.data) {
+            // Add the cache file to the cache/ folder with just the UUID as filename
+            zip.file(`cache/${cacheId}`, resource.data);
+          }
+          resolve();
+        },
+        error: (err) => {
+          // If fetch fails, just skip the cache file
+          console.warn(`Failed to fetch cache file ${cacheId}:`, err);
+          resolve();
+        }
+      });
+    });
+    
+    return zip.generateAsync({ type: 'blob' })
+      .then(content => FileSaver.saveAs(content, (ref.title || ref.url.replace(/[^\[\]\w.(){}!@#$%^&*-]+/, '_')) + '.zip'));
+  }
+  
+  // Otherwise, download as JSON
   FileSaver.saveAs(file(ref), (ref.title || ref.url.replace(/[^\[\]\w.(){}!@#$%^&*-]+/, '_')) + '.json');
 }
 

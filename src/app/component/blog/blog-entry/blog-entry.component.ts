@@ -40,6 +40,7 @@ import { findArchive } from '../../../mods/archive';
 import { deleteNotice } from '../../../mods/delete';
 import { AdminService } from '../../../service/admin.service';
 import { ExtService } from '../../../service/api/ext.service';
+import { ProxyService } from '../../../service/api/proxy.service';
 import { RefService } from '../../../service/api/ref.service';
 import { TaggingService } from '../../../service/api/tagging.service';
 import { AuthzService } from '../../../service/authz.service';
@@ -118,6 +119,7 @@ export class BlogEntryComponent implements OnChanges, OnDestroy, HasChanges {
     private editor: EditorService,
     private refs: RefService,
     private exts: ExtService,
+    private proxy: ProxyService,
     private bookmarks: BookmarkService,
     private ts: TaggingService,
     private fb: UntypedFormBuilder,
@@ -346,7 +348,7 @@ export class BlogEntryComponent implements OnChanges, OnDestroy, HasChanges {
   }
 
   download() {
-    downloadRef(writeRef(this.ref));
+    downloadRef(writeRef(this.ref), (url: string, origin: string) => this.proxy.fetch(url, origin));
   }
 
   tag$ = (tag: string) => {

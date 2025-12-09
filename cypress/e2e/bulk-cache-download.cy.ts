@@ -3,6 +3,7 @@ import { openSidebar } from './setup';
 describe('Bulk Download/Upload with Cache Files', () => {
   const testFileContent = 'Test cache file content for Cypress test';
   const testFileName = 'test-cache-file.txt';
+  const downloadsFolder = Cypress.config('downloadsFolder');
   
   it('uploads a file to create a cached ref', () => {
     cy.visit('/?debug=ADMIN');
@@ -45,74 +46,97 @@ describe('Bulk Download/Upload with Cache Files', () => {
     cy.get('.ref').first().should('contain', testFileName);
   });
   
-  it('downloads refs with bulk download', () => {
+  it('downloads refs with bulk download (real zip)', () => {
     cy.visit('/tag/test/cache/bulk?debug=ADMIN');
     cy.wait(1000);
     
     // Open bulk actions
     cy.get('.bulk.actions').should('be.visible');
     
-    // Click download button
+    // Click download button - this creates a real zip file
     cy.get('.bulk.actions button').contains('download').click();
     
-    // File should start downloading
-    // Note: Cypress has limitations with file downloads, so we mainly verify the button click works
-    cy.wait(2000);
+    // Wait for download to complete
+    cy.wait(3000);
+    
+    // Verify the downloaded zip exists
+    cy.readFile(`${downloadsFolder}/test_cache_bulk.zip`, { timeout: 10000 }).should('exist');
   });
   
-  it('verifies download functionality by checking the downloadPage call', () => {
-    // This test verifies the download function is properly wired
+  it('deletes the cached ref to test restore', () => {
     cy.visit('/tag/test/cache/bulk?debug=ADMIN');
     cy.wait(1000);
     
-    // Spy on the download function
-    cy.window().then((win) => {
-      cy.spy(win.console, 'warn').as('consoleWarn');
-    });
-    
-    // Trigger download
-    cy.get('.bulk.actions button').contains('download').click();
+    // Delete the ref to test restore functionality
+    cy.get('.bulk.actions button').contains('delete').click();
+    cy.get('.bulk.actions').contains('yes').click();
     cy.wait(2000);
     
-    // If there were any cache fetch failures, they would be logged
-    // In a successful case, there should be no warnings
+    // Verify ref is deleted
+    cy.visit('/tag/test/cache/bulk?debug=ADMIN');
+    cy.wait(1000);
+    cy.get('body').should('contain', 'No Refs');
   });
   
-  it('tests upload with cache files via mock zip', () => {
-    // Create a mock zip structure with cache files
-    // Since Cypress doesn't easily support creating actual zip files,
-    // we'll verify the upload form accepts files
+  it('uploads the downloaded zip to restore refs with cache files', () => {
     cy.visit('/submit/upload?debug=ADMIN');
     
-    // Verify the upload area exists
-    cy.get('input[type="file"]').should('exist');
+    // Upload the previously downloaded zip file
+    cy.get('input[type="file"]').selectFile(`${downloadsFolder}/test_cache_bulk.zip`, { force: true });
     
-    // Try uploading a JSON file (which simulates part of a zip)
-    const mockRef = {
-      url: 'cache:test-uuid-123',
-      title: 'Test Cache Ref',
-      tags: ['test/cache/restore'],
-      origin: '',
-      plugins: {
-        '_plugin/cache': {
-          id: 'test-uuid-123'
-        }
-      }
-    };
+    // Wait for upload processing
+    cy.wait(3000);
     
-    cy.get('input[type="file"]').selectFile({
-      contents: Cypress.Buffer.from(JSON.stringify([mockRef])),
-      fileName: 'test-refs.json',
-      mimeType: 'application/json'
-    }, { force: true });
-    
-    cy.wait(1000);
-    
-    // Verify the ref appears in the upload list
-    cy.get('.uploads').should('contain', 'Test Cache Ref');
+    // The refs should appear in the upload list
+    cy.get('.uploads').should('contain', testFileName);
   });
   
-  it('cleans up test refs', () => {
+  it('submits the restored refs', () => {
+    cy.visit('/submit/upload?debug=ADMIN');
+    
+    // Check if there are refs to submit
+    cy.get('body').then($body => {
+      if ($body.find('.uploads .ref').length > 0) {
+        // Submit the refs
+        cy.intercept({pathname: '/api/v1/ref'}).as('submit');
+        cy.get('button').contains('push').click();
+        cy.wait('@submit');
+        cy.wait(1000);
+      }
+    });
+  });
+  
+  it('verifies the restored ref exists with cache file', () => {
+    cy.visit('/tag/test/cache/bulk?debug=ADMIN');
+    cy.wait(1000);
+    
+    // Should see the restored ref
+    cy.get('.ref').should('have.length.greaterThan', 0);
+    cy.get('.ref').first().should('contain', testFileName);
+  });
+  
+  it('tests individual ref download with cache file', () => {
+    cy.visit('/tag/test/cache/bulk?debug=ADMIN');
+    cy.wait(1000);
+    
+    // Click on the first ref to open it
+    cy.get('.ref').first().click();
+    cy.wait(1000);
+    
+    // Find and click the download action
+    cy.get('.actions').contains('download').click();
+    cy.wait(2000);
+    
+    // Verify a zip was downloaded for the individual ref with cache
+    // The filename will be based on the ref title
+    cy.task('findDownloadedFile', { 
+      folder: downloadsFolder, 
+      pattern: '*.zip',
+      exclude: 'test_cache_bulk.zip'
+    }).should('exist');
+  });
+  
+  it('cleans up test refs and downloaded files', () => {
     // Delete refs with test tag
     cy.visit('/tag/test/cache/bulk?debug=ADMIN');
     cy.wait(1000);
@@ -125,15 +149,7 @@ describe('Bulk Download/Upload with Cache Files', () => {
       }
     });
     
-    cy.visit('/tag/test/cache/restore?debug=ADMIN');
-    cy.wait(1000);
-    
-    cy.get('body').then($body => {
-      if ($body.find('.ref').length > 0) {
-        cy.get('.bulk.actions button').contains('delete').click();
-        cy.get('.bulk.actions').contains('yes').click();
-        cy.wait(2000);
-      }
-    });
+    // Clean up downloaded files
+    cy.task('deleteDownloads', downloadsFolder);
   });
 });

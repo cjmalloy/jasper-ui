@@ -20,6 +20,7 @@ import { TitleDirective } from '../../../directive/title.directive';
 import { Ref, writeRef } from '../../../model/ref';
 import { Action } from '../../../model/tag';
 import { ActionService } from '../../../service/action.service';
+import { ProxyService } from '../../../service/api/proxy.service';
 import { ConfigService } from '../../../service/config.service';
 import { downloadRef } from '../../../util/download';
 import { memo, MemoCache } from '../../../util/memo';
@@ -60,6 +61,7 @@ export class ActionListComponent implements AfterViewInit, OnChanges {
   constructor(
     private config: ConfigService,
     private acts: ActionService,
+    private proxy: ProxyService,
     private overlay: Overlay,
     private el: ElementRef<HTMLElement>,
     private viewContainerRef: ViewContainerRef,
@@ -86,7 +88,7 @@ export class ActionListComponent implements AfterViewInit, OnChanges {
   }
 
   download() {
-    downloadRef(writeRef(this.ref));
+    downloadRef(writeRef(this.ref), (url: string, origin: string) => this.proxy.fetch(url, origin));
   }
 
   downloadMedia() {
