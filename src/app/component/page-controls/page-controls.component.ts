@@ -159,6 +159,20 @@ export class PageControlsComponent {
   }
 
   /**
+   * Remove any existing cursor filters for the current sort field.
+   */
+  private cleanCursorFilters(): string[] {
+    const prefix = this.getFilterPrefix();
+    const existingFilters = this.store.view.filter || [];
+    return without(
+      existingFilters,
+      ...existingFilters.filter(f =>
+        f.startsWith(`${prefix}/before/`) || f.startsWith(`${prefix}/after/`)
+      )
+    );
+  }
+
+  /**
    * Navigate to the next page using cursor-based pagination.
    */
   navigateNext() {
@@ -194,13 +208,7 @@ export class PageControlsComponent {
     const newFilter = `${prefix}/${filterType}/${timestamp}` as UrlFilter;
 
     // Remove any existing cursor filters for this sort field and add the new one
-    const existingFilters = this.store.view.filter || [];
-    const cleanedFilters = without(
-      existingFilters,
-      ...existingFilters.filter(f =>
-        f.startsWith(`${prefix}/before/`) || f.startsWith(`${prefix}/after/`)
-      )
-    );
+    const cleanedFilters = this.cleanCursorFilters();
 
     this.router.navigate([], {
       queryParams: {
@@ -246,13 +254,7 @@ export class PageControlsComponent {
     const newFilter = `${prefix}/${filterType}/${timestamp}` as UrlFilter;
 
     // Remove any existing cursor filters for this sort field and add the new one
-    const existingFilters = this.store.view.filter || [];
-    const cleanedFilters = without(
-      existingFilters,
-      ...existingFilters.filter(f =>
-        f.startsWith(`${prefix}/before/`) || f.startsWith(`${prefix}/after/`)
-      )
-    );
+    const cleanedFilters = this.cleanCursorFilters();
 
     this.router.navigate([], {
       queryParams: {
@@ -276,14 +278,7 @@ export class PageControlsComponent {
       return;
     }
 
-    const prefix = this.getFilterPrefix();
-    const existingFilters = this.store.view.filter || [];
-    const cleanedFilters = without(
-      existingFilters,
-      ...existingFilters.filter(f =>
-        f.startsWith(`${prefix}/before/`) || f.startsWith(`${prefix}/after/`)
-      )
-    );
+    const cleanedFilters = this.cleanCursorFilters();
 
     this.router.navigate([], {
       queryParams: {
