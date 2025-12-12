@@ -112,7 +112,7 @@ export function getArgs(
     sort = Array.isArray(sort) ? [...sort] : [sort];
     for (let i = 0; i < sort.length; i++) {
       const s = sort[i];
-      if (defaultDesc(s)) {
+      if (!s.includes(',') && defaultDesc(s)) {
         sort[i] = s + ',DESC' as RefSort;
       }
     }
