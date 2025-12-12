@@ -117,7 +117,7 @@ export class TabsComponent implements AfterViewInit {
       const el = t.nativeElement as HTMLAnchorElement;
       if (el.tagName !== 'A') continue;
       if (el.classList.contains('logo')) continue;
-      result.push(el.offsetWidth + 8);
+      result.push(el.offsetWidth + 8.5);
     }
     return result;
   }
@@ -127,7 +127,7 @@ export class TabsComponent implements AfterViewInit {
     for (let i = 0; i < el.children.length; i++) {
       const e = el.children[i] as HTMLElement;
       if (!e.classList.contains('current-tab')) continue;
-      return e.offsetWidth + 8;
+      return e.offsetWidth + 8.5;
     }
     return 0;
   }
