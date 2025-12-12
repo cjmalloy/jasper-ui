@@ -3,8 +3,13 @@ import { Filter, RefFilter, RefPageArgs, RefSort } from '../model/ref';
 import { FilterConfig, SortConfig, TagQueryArgs, TagSort } from '../model/tag';
 import { braces, fixClientQuery, hasPrefix } from './tag';
 
-export const defaultDesc = (sort: string) => ['created', 'published', 'modified', 'metadata->modified', 'rank'].includes(sort) || sort.endsWith(':num') || sort.endsWith(':top') || sort.endsWith(':score') || sort.endsWith(':decay');
+// Suffixes for which defaultDesc should return true if sort ends with any of them
+const DEFAULT_DESC_SUFFIXES = [':num', ':top', ':score', ':decay'];
+const DEFAULT_DESC_EXACT = ['created', 'published', 'modified', 'metadata->modified', 'rank'];
 
+export const defaultDesc = (sort: string) =>
+  DEFAULT_DESC_EXACT.includes(sort) ||
+  DEFAULT_DESC_SUFFIXES.some(suffix => sort.endsWith(suffix));
 export type FilterItem = { filter: UrlFilter, label: string, title?: string, time?: boolean };
 export type FilterGroup = { filters: FilterItem[], label: string };
 export type UrlFilter = Filter |
