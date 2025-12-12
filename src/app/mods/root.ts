@@ -382,4 +382,4 @@ export const rootMod: Mod = {
     privateTemplate,
     diffTemplate,
   ]
-}
+};

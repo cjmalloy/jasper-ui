@@ -150,10 +150,6 @@ export interface Config extends Tag {
      */
     filters?: FilterConfig[],
     /**
-     * Add to the sort dropdown.
-     */
-    sorts?: SortConfig[],
-    /**
      * Add an action to the Ref actions bar.
      */
     actions?: Action[],
@@ -331,12 +327,6 @@ export interface FilterConfig {
   label?: string;
   title?: string;
   group?: string;
-}
-
-export interface SortConfig {
-  sort: string;
-  label: string;
-  title?: string;
 }
 
 export interface EditorButton {

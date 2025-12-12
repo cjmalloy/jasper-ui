@@ -1,6 +1,6 @@
 import { isArray, uniq, without } from 'lodash-es';
 import { Filter, RefFilter, RefPageArgs, RefSort } from '../model/ref';
-import { FilterConfig, SortConfig, TagQueryArgs, TagSort } from '../model/tag';
+import { FilterConfig, TagQueryArgs, TagSort } from '../model/tag';
 import { braces, fixClientQuery, hasPrefix } from './tag';
 
 const DEFAULT_DESC_SUFFIXES = [':num', ':top', ':score', ':decay'];
@@ -84,7 +84,7 @@ export function convertFilter(filter: FilterConfig): FilterItem {
   throw 'Can\'t convert filter';
 }
 
-export function convertSort(sort: SortConfig): SortItem {
+export function convertSort(sort: any): SortItem {
   return { value: sort.sort as any, label: sort.label, title: sort.title };
 }
 
