@@ -51,7 +51,7 @@ export class TagPage implements OnInit, OnDestroy, HasChanges {
     runInAction(() => {
       this.store.view.clear([
         !!this.admin.getPlugin('plugin/user/vote/up')
-          ? 'voteScoreDecay'
+          ? 'plugins->plugin/user/vote:decay'
           : this.store.view.tag.includes('*')
             ? 'published'
             : 'created'

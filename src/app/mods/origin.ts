@@ -19,6 +19,10 @@ export const originPlugin: Plugin = {
      If the remote is also set up to replicate from this instance, you may
      communicate with remote users.
      You may configure if metadata is generated or plugins are validated. `,
+    sorts: [
+      { sort: 'origin', label: $localize`🏛️ origin` },
+      { sort: 'origin:len', label: $localize`🪆 nesting` },
+    ],
     form: [{
       key: 'local',
       type: 'origin',

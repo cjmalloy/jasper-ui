@@ -1,9 +1,9 @@
 import { isArray, uniq, without } from 'lodash-es';
 import { Filter, RefFilter, RefPageArgs, RefSort } from '../model/ref';
-import { FilterConfig, TagQueryArgs } from '../model/tag';
+import { FilterConfig, SortConfig, TagQueryArgs, TagSort } from '../model/tag';
 import { braces, fixClientQuery, hasPrefix } from './tag';
 
-export const defaultDesc = ['created', 'published', 'modified', 'metadataModified', 'rank', 'tagCount', 'commentCount', 'sourceCount', 'responseCount', 'voteCount', 'voteScore', 'voteScoreDecay'];
+export const defaultDesc = (sort: string) => ['created', 'published', 'modified', 'metadata->modified', 'rank'].includes(sort) || sort.endsWith(':num') || sort.endsWith(':top') ||  sort.endsWith(':score') || sort.endsWith(':decay');
 
 export type FilterItem = { filter: UrlFilter, label: string, title?: string, time?: boolean };
 export type FilterGroup = { filters: FilterItem[], label: string };
@@ -31,6 +31,8 @@ export type UrlFilter = Filter |
   `!plugin/${string}` |
   `!+plugin/${string}` |
   `!_plugin/${string}`;
+
+export type SortItem = { value: RefSort | TagSort, label: string, title?: string };
 
 export function negatable(filter: string) {
   if (!filter) return false;
@@ -76,6 +78,10 @@ export function convertFilter(filter: FilterConfig): FilterItem {
   throw 'Can\'t convert filter';
 }
 
+export function convertSort(sort: SortConfig): SortItem {
+  return { value: sort.sort as any, label: sort.label, title: sort.title };
+}
+
 export function getArgs(
   tagOrSimpleQuery?: string,
   sort?: RefSort | RefSort[],
@@ -100,7 +106,7 @@ export function getArgs(
     sort = Array.isArray(sort) ? [...sort] : [sort];
     for (let i = 0; i < sort.length; i++) {
       const s = sort[i];
-      if (defaultDesc.includes(s)) {
+      if (defaultDesc(s)) {
         sort[i] = s + ',DESC' as RefSort;
       }
     }

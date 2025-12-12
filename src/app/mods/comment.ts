@@ -25,6 +25,7 @@ export const commentPlugin: Plugin = {
     filters: [
       { query: 'plugin/comment', label: $localize`💬️ comments`, title: $localize`Comments`, group: $localize`Plugins 🧰️` },
     ],
+    sorts: [{ sort: 'metadata->plugins->plugin/comment', label: $localize`💬️ comments`, title: $localize`Number of comments` }],
   },
 };
 

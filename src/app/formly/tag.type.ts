@@ -161,7 +161,7 @@ export class FormlyFieldTagInput extends FieldType<FieldTypeConfig> implements A
       this.searching = this.exts.page({
         query: this.props.prefix || '',
         search: value,
-        sort: ['nesting', 'levels'],
+        sort: ['origin:len', 'tag:len'],
         size: 5,
       }).pipe(
         switchMap(page => page.page.totalElements ? forkJoin(page.content.map(x => this.preview$(x.tag + x.origin))) : of([])),

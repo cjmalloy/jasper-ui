@@ -134,7 +134,7 @@ export class ExtService {
           }),
           catchError(err => {
             if (tag.includes('@')) throw throwError(() => err);
-            return this.page({ query: localTag(tag), sort: ['levels,ASC', 'modified,DESC'] }).pipe(
+            return this.page({ query: localTag(tag), sort: ['tag:len,ASC', 'modified,DESC'] }).pipe(
               map(p => p.content.filter(x => x.tag === localTag(tag))[0])
             );
           }),

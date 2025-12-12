@@ -42,7 +42,7 @@ export class HomePage implements OnInit, OnDestroy, HasChanges {
     private exts: ExtService,
   ) {
     mod.setTitle($localize`Home`);
-    store.view.clear([!!admin.getPlugin('plugin/user/vote/up') ? 'voteScoreDecay' : 'published']);
+    store.view.clear([!!admin.getPlugin('plugin/user/vote/up') ? 'plugins->plugin/user/vote:decay' : 'published']);
     query.clear();
     if (admin.getTemplate('home')) {
       exts.getCachedExt('home' + (store.account.origin || '@')).subscribe(x => runInAction(() => {
