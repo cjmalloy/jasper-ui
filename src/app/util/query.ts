@@ -3,7 +3,7 @@ import { Filter, RefFilter, RefPageArgs, RefSort } from '../model/ref';
 import { FilterConfig, SortConfig, TagQueryArgs, TagSort } from '../model/tag';
 import { braces, fixClientQuery, hasPrefix } from './tag';
 
-export const defaultDesc = (sort: string) => ['created', 'published', 'modified', 'metadata->modified', 'rank'].includes(sort) || sort.endsWith(':num') || sort.endsWith(':top') ||  sort.endsWith(':score') || sort.endsWith(':decay');
+export const defaultDesc = (sort: string) => ['created', 'published', 'modified', 'metadata->modified', 'rank'].includes(sort) || sort.endsWith(':num') || sort.endsWith(':top') || sort.endsWith(':score') || sort.endsWith(':decay');
 
 export type FilterItem = { filter: UrlFilter, label: string, title?: string, time?: boolean };
 export type FilterGroup = { filters: FilterItem[], label: string };
