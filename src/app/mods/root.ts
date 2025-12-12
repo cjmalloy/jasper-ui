@@ -32,7 +32,7 @@ export const rootPlugin: Plugin = {
       { sort: 'url', label: $localize`🔗️ url` },
       { sort: 'scheme', label: $localize`🏳️️ scheme` },
       { sort: 'tags:len', label: $localize`🏷️ tags`, title: $localize`Number of tags` },
-      { sort: 'metadata->responses:len', label: $localize`💌️ responses`, title: $localize`Number of responses` },
+      { sort: 'metadata->responses', label: $localize`💌️ responses`, title: $localize`Number of responses` },
       { sort: 'sources:len', label: $localize`📜️ sources`, title: $localize`Number of sources` },
     ],
   }
