@@ -403,7 +403,7 @@ export class ViewStore {
   }
 
   get isVoteSorted() {
-    return this.sort[0]?.startsWith('vote');
+    return this.sort[0]?.startsWith('plugins->plugin/user/vote');
   }
 
   get filter(): UrlFilter[] {

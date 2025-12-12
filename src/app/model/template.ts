@@ -2,7 +2,7 @@ import { Schema } from 'jtd';
 import { DateTime } from 'luxon';
 import { toJS } from 'mobx';
 import { Ext } from './ext';
-import { Config } from './tag';
+import { Config, TagSort } from './tag';
 import { Roles } from './user';
 
 export interface Template extends Config {
@@ -28,9 +28,19 @@ export interface Template extends Config {
      * Submit text instead of links by default.
      */
     submitText?: boolean,
+    /**
+     * Add to the sort dropdown.
+     */
+    sorts?: SortConfig[],
   };
   // Client-only
   type?: 'template';
+}
+
+export interface SortConfig {
+  sort: TagSort;
+  label: string;
+  title?: string;
 }
 
 export const templateSchema: Schema = {

@@ -600,6 +600,16 @@ export class AdminService {
       .flatMap(p => p.config?.filters!);
   }
 
+  get refSorts() {
+    return this.pluginConfigProperty('sorts')
+      .flatMap(p => p.config?.sorts!);
+  }
+
+  get tagSorts() {
+    return this.templateConfigProperty('sorts')
+      .flatMap(p => p.config?.sorts!);
+  }
+
   addPluginParents(cs: Plugin[]) {
     return uniq(cs.flatMap(c =>
       addHierarchicalTags(c.tag)

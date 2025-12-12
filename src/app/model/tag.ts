@@ -559,7 +559,12 @@ export type TagPageArgs = TagQueryArgs & {
 export type TagSort = '' |
   'modified' | 'modified,ASC' | 'modified,DESC' |
   'tag' | 'tag,ASC' | 'tag,DESC' |
-  'levels' | 'levels,ASC' | 'levels,DESC' |
+  'tag:len' | 'tag:len,ASC' | 'tag:len,DESC' |
   'name' | 'name,ASC' | 'name,DESC' |
   'origin' | 'origin,ASC' | 'origin,DESC' |
-  'nesting' | 'nesting,ASC' | 'nesting,DESC';
+  'origin:len' | 'origin:len,ASC' | 'origin:len,DESC' |
+  `config->${string}` | `config->${string},ASC` | `config->${string},DESC`;
+
+export type ConfigSort = TagSort |
+  `defaults->${string}` | `defaults->${string},ASC` | `defaults->${string},DESC` |
+  `schema->${string}` | `schema->${string},ASC` | `schema->${string},DESC`;

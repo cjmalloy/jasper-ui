@@ -86,7 +86,7 @@ export class InlineTagComponent extends ActionComponent {
     this.searching?.unsubscribe();
     this.searching = this.exts.page({
       search: tag,
-      sort: ['nesting', 'levels'],
+      sort: ['origin:len', 'tag:len'],
       size: 3,
     }).pipe(
       switchMap(page => page.page.totalElements ? forkJoin(page.content.map(x => this.preview$(x.tag + x.origin))) : of([])),
