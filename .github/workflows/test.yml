@@ -32,14 +32,14 @@ jobs:
         run: docker cp test:/report report
       - name: Upload PR Report
         if: github.event_name == 'pull_request' && always()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: vitest-reports-pr-${{ github.event.pull_request.number }}
           path: report
           retention-days: 7
       - name: Upload Reports
         if: github.event_name != 'pull_request' && always()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: vitest-reports-${{ github.ref_name }}-${{ github.run_number }}
           path: report
