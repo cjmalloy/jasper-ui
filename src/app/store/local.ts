@@ -84,4 +84,12 @@ export class LocalStore {
     if (this._selectedUserTag !== undefined) return this._selectedUserTag;
     return this._selectedUserTag = localStorage.getItem('selectedUserTag') || '';
   }
+
+  shownHelpPopup(id: string) {
+    return localStorage.getItem('help:' + id);
+  }
+
+  dismissHelpPopup(id: string) {
+    localStorage.setItem('help:' + id, 'true');
+  }
 }
