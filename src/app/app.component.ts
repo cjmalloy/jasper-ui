@@ -2,6 +2,7 @@ import { AfterViewInit, Component, HostBinding, HostListener, isDevMode, ViewCon
 import { Router, RouterOutlet } from '@angular/router';
 import { autorun, runInAction } from 'mobx';
 import { MobxAngularModule } from 'mobx-angular';
+import { HelpPopupComponent } from './component/help-popup/help-popup.component';
 import { LoginPopupComponent } from './component/login-popup/login-popup.component';
 import { SubscriptionBarComponent } from './component/subscription-bar/subscription-bar.component';
 import { pdfPlugin, pdfUrl } from './mods/media/pdf';
@@ -12,6 +13,7 @@ import { OriginService } from './service/api/origin.service';
 import { ProxyService } from './service/api/proxy.service';
 import { ScrapeService } from './service/api/scrape.service';
 import { ConfigService } from './service/config.service';
+import { HelpService } from './service/help.service';
 import { Store } from './store/store';
 import { createPip } from './util/embed';
 import { memo } from './util/memo';
@@ -24,6 +26,7 @@ import { memo } from './util/memo';
     MobxAngularModule,
     LoginPopupComponent,
     SubscriptionBarComponent,
+    HelpPopupComponent,
     RouterOutlet,
   ],
 })
