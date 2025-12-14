@@ -7,6 +7,11 @@
          routerLinkActive="current-tab"
          i18n-title title="⚙️ My settings"
          i18n>me</a>
+    } @else {
+      <a routerLink="./me"
+         routerLinkActive="current-tab"
+         i18n-title title="🔧 Troubleshooting"
+         i18n>troubleshooting</a>
     }
     @if (store.account.admin) {
       <a routerLink="./setup"

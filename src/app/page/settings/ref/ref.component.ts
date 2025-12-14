@@ -85,3 +85,12 @@ export const getSettings = () => {
   const auth = inject(AuthzService);
   return inject(AdminService).settings.find(p => auth.tagReadAccess(p.tag))?.tag || '';
 };
+
+export const getDefaultSettings = () => {
+  const store = inject(Store);
+  const admin = inject(AdminService);
+  // If user has localTag and user template is installed, show 'me'
+  if (store.account.localTag && admin.getTemplate('user')) return 'me';
+  // Otherwise redirect to 'setup' (which has its own guard for non-admin users)
+  return 'setup';
+};

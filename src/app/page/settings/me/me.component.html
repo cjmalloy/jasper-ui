@@ -1,28 +1,37 @@
 <ng-container *mobxAutorun>
-  <form class="form"
-        [formGroup]="editForm"
-        (ngSubmit)="save()"
-        [appLimitWidth]="form?.fillPopover?.nativeElement || form?.fillSidebar?.nativeElement"
-        [limitSibling]="true">
+  @if (store.account.localTag && editForm) {
+    <form class="form"
+          [formGroup]="editForm"
+          (ngSubmit)="save()"
+          [appLimitWidth]="form?.fillPopover?.nativeElement || form?.fillSidebar?.nativeElement"
+          [limitSibling]="true">
 
-    @if (store.local.selectedUserTag || config.electron || isDevMode() || store.account.localTag === '+user' || store.account.localTag === '_user') {
-      <label for="change-user" i18n>Change User:</label>
-      <app-user-tag-selector id="change-user"></app-user-tag-selector>
-      <hr><hr>
-    }
-    <app-ext-form #form [group]="editForm"></app-ext-form>
-
-    @for (e of serverError; track e) {
-      <span><!-- Unexpected Error --></span>
-      <div class="error">{{ e }}</div>
-    }
-
-    <span><!-- Buttons --></span>
-    <span class="buttons right">
-      @if (editing) {
-        <app-loading [inline]="true"></app-loading>
+      @if (store.local.selectedUserTag || config.electron || isDevMode() || store.account.localTag === '+user' || store.account.localTag === '_user') {
+        <label for="change-user" i18n>Change User:</label>
+        <app-user-tag-selector id="change-user"></app-user-tag-selector>
+        <hr><hr>
       }
-      <button type="submit" [disabled]="editing || submitted && !editForm.valid" i18n>Save</button>
+      <app-ext-form #form [group]="editForm"></app-ext-form>
+
+      @for (e of serverError; track e) {
+        <span><!-- Unexpected Error --></span>
+        <div class="error">{{ e }}</div>
+      }
+
+      <span><!-- Buttons --></span>
+      <span class="buttons right">
+        @if (editing) {
+          <app-loading [inline]="true"></app-loading>
+        }
+        <button type="submit" [disabled]="editing || submitted && !editForm.valid" i18n>Save</button>
+      </span>
+    </form>
+  }
+  <div class="troubleshooting-section">
+    <h3 i18n>Troubleshooting</h3>
+    <p i18n>If you are experiencing issues with the application, try clearing your local cache.</p>
+    <span class="buttons">
+      <button type="button" (click)="clearLocalCache()" i18n>Clear Local Cache</button>
     </span>
-  </form>
+  </div>
 </ng-container>
