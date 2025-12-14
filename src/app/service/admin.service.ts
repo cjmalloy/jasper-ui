@@ -509,6 +509,10 @@ export class AdminService {
     return this.pluginConfigProperty('settings');
   }
 
+  get settingsExt() {
+    return this.settings;
+  }
+
   get submitSettings() {
     return this.pluginConfigProperty('submit', 'settings', '!genId');
   }

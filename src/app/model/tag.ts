@@ -171,6 +171,18 @@ export interface Config extends Tag {
      * with the plugin tag.
      */
     writeAccess?: string[],
+    /**
+     * Show help text for search box.
+     */
+    searchHelp?: string,
+    /**
+     * Show help text for filter box.
+     */
+    filterHelp?: string,
+    /**
+     * Show help text for sort box.
+     */
+    sortHelp?: string,
   };
   /**
    * Default config values when validating or reading. Should pass validation.

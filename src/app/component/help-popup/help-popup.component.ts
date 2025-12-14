@@ -1,11 +1,10 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { Store } from '../../store/store';
 
 @Component({
   selector: 'app-help-popup',
   templateUrl: './help-popup.component.html',
-  styleUrls: ['./help-popup.component.scss'],
-  standalone: false
+  styleUrls: ['./help-popup.component.scss']
 })
 export class HelpPopupComponent {
   @Input()

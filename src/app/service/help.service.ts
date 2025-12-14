@@ -24,6 +24,7 @@ export class HelpService {
    * Adds a help step to the queue. If no tour is active, starts the tour.
    */
   async pushStep(el: ElementRef, text: string) {
+    if (!el) return;
     const id = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text.substring(0, 150))).then(hash => {
       let result = '';
       const view = new DataView(hash);

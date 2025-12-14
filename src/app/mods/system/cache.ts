@@ -25,6 +25,7 @@ export const cachePlugin: Plugin = {
     sorts: [
       { sort: 'plugins->_plugin/cache->contentLength:num', label: '🗜️ size', title: $localize`Cache size` },
     ],
+    sortHelp: $localize`Sort by cache size.`,
     description: $localize`Cache remote resources locally.
     If you delete a Ref it's cached file will not be removed from storage right away.
     If you restore a Ref before the cache is cleared you also recover the cached file.
