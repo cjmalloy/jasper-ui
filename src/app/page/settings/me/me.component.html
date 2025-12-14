@@ -11,7 +11,14 @@
         <app-user-tag-selector id="change-user"></app-user-tag-selector>
         <hr><hr>
       }
-      <app-ext-form #form [group]="editForm"></app-ext-form>
+      <app-ext-form #form [group]="editForm">
+        <div advanced class="troubleshooting-section">
+          <label i18n>Troubleshooting:</label>
+          <span class="buttons">
+            <button type="button" (click)="clearLocalCache()" i18n>Clear Local Cache</button>
+          </span>
+        </div>
+      </app-ext-form>
 
       @for (e of serverError; track e) {
         <span><!-- Unexpected Error --></span>
@@ -27,11 +34,4 @@
       </span>
     </form>
   }
-  <div class="troubleshooting-section">
-    <h3 i18n>Troubleshooting</h3>
-    <p i18n>If you are experiencing issues with the application, try clearing your local cache.</p>
-    <span class="buttons">
-      <button type="button" (click)="clearLocalCache()" i18n>Clear Local Cache</button>
-    </span>
-  </div>
 </ng-container>
