@@ -1,7 +1,7 @@
 import { Location } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { DefaultUrlSerializer, RouterModule, Routes, UrlSerializer, UrlTree } from '@angular/router';
-import { conditionGuard, redirectGuard } from './guard/condition.guard';
+import { conditionGuard } from './guard/condition.guard';
 import { hasRoleGuard } from './guard/has-role.guard';
 import { installedModGuard } from './guard/installed-mod.guard';
 import { clearLastSelected } from './guard/last-selected.guard';
@@ -31,7 +31,7 @@ import { SettingsBackupPage } from './page/settings/backup/backup.component';
 import { SettingsMePage } from './page/settings/me/me.component';
 import { SettingsPasswordPage } from './page/settings/password/password.component';
 import { SettingsPluginPage } from './page/settings/plugin/plugin.component';
-import { getDefaultSettings, getSettings, SettingsRefPage } from './page/settings/ref/ref.component';
+import { getSettings, SettingsRefPage } from './page/settings/ref/ref.component';
 import { SettingsPage } from './page/settings/settings.component';
 import { SettingsSetupPage } from './page/settings/setup/setup.component';
 import { SettingsTemplatePage } from './page/settings/template/template.component';
@@ -209,8 +209,8 @@ const routes: Routes = [
     path: 'settings',
     component: SettingsPage,
     children: [
-      { path: '', canActivate: [redirectGuard(getDefaultSettings)], children: [] },
-      { path: 'me', component: SettingsMePage, canDeactivate: [pendingChangesGuard], runGuardsAndResolvers: 'always' },
+      { path: '', redirectTo: 'me', pathMatch: 'full' },
+      { path: 'me', component: SettingsMePage, canActivate: [installedModGuard('user', ['../setup'])], canDeactivate: [pendingChangesGuard], runGuardsAndResolvers: 'always' },
       { path: 'setup', component: SettingsSetupPage, canActivate: [hasRoleGuard('admin', ['../ref', getSettings])] },
       { path: 'ref/:tag', component: SettingsRefPage, canActivate: [conditionGuard(getSettings, ['../../user'])], canDeactivate: [pendingChangesGuard, clearLastSelected], runGuardsAndResolvers: 'always' },
       { path: 'user', component: SettingsUserPage, canDeactivate: [pendingChangesGuard], runGuardsAndResolvers: 'always' },

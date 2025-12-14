@@ -12,10 +12,3 @@ export const conditionGuard = (condition: () => any, redirect: (string | (() => 
   });
   return fn;
 };
-
-export const redirectGuard = (redirect: () => string) => {
-  const fn: CanActivateFn = ((route, state) => {
-    return new RedirectCommand(createUrlTreeFromSnapshot(route, [redirect()]));
-  });
-  return fn;
-};
