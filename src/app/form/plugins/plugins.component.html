@@ -1,6 +1,6 @@
 @if (icons.length) {
   <div>
-    @for(icon of icons; track icon) {
+    @for (icon of icons; track icon) {
       <span class="icon"
             [appTitle]="icon"
             [ref]="group.value">{{ icon.label || icon.thumbnail }}</span>

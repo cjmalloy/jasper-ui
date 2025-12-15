@@ -15,8 +15,8 @@ export function decompose(tag: string): [string, string] {
   return [tag.substring(0, index), tag.substring(index)];
 }
 
-export function level(tag: string) {
-  return (tag.match(/\//g)?.length || 0) + 1;
+export function level(tag?: string) {
+  return (tag?.match(/\//g)?.length || 0) + 1;
 }
 
 export function captures(selector: string, target: string): boolean {
@@ -233,6 +233,10 @@ export function hasPrefix(tag?: string, prefix?: string) {
     tag.startsWith(prefix + '@') ||
     tag.startsWith('_' + prefix + '@') ||
     tag.startsWith('+' + prefix + '@');
+}
+
+export function directChild(child?: string, parent?: string) {
+  return hasPrefix(child, parent) && level(child) - 1 === level(parent);
 }
 
 export function removePrefix(tag: string, count = 1) {
