@@ -51,6 +51,20 @@ export const feedPlugin: Plugin = {
         #{{.}}
       {{/each}}`,
     form: [{
+      key: 'matchText',
+      type: 'list',
+      props: {
+        label: $localize`Text: `,
+        addText: $localize`+ Match text`,
+        title: $localize`Add a list of text to match against the feed entries. If any of the text is found, the entry will be added.`
+      },
+      fieldArray: {
+        type: 'string',
+        props: {
+          label: $localize`🎯️`,
+        }
+      },
+    }, {
       key: 'addTags',
       type: 'tags',
     }],
