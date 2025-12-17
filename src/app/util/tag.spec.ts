@@ -1,4 +1,4 @@
-import { removeTag } from './tag';
+import { removeTag, setPrivate, setProtected } from './tag';
 
 describe('Tag Utils', () => {
   describe('removeTag', () => {
@@ -130,6 +130,110 @@ describe('Tag Utils', () => {
       const tags = ['_private/data', '_private', 'public'];
       const result = removeTag('_private/data', tags);
       expect(result).toEqual(['public']);
+    });
+  });
+
+  describe('setPrivate', () => {
+    it('should add private prefix to public tag', () => {
+      const result = setPrivate('science');
+      expect(result).toEqual('_science');
+    });
+
+    it('should handle already private tag', () => {
+      const result = setPrivate('_science');
+      expect(result).toEqual('_science');
+    });
+
+    it('should handle protected tag by converting to private', () => {
+      const result = setPrivate('+science');
+      expect(result).toEqual('_science');
+    });
+
+    it('should handle empty string', () => {
+      const result = setPrivate('');
+      expect(result).toEqual('');
+    });
+
+    it('should handle hierarchical tags', () => {
+      const result = setPrivate('people/murray/anne');
+      expect(result).toEqual('_people/murray/anne');
+    });
+
+    it('should handle hierarchical tags with existing private prefix', () => {
+      const result = setPrivate('_people/murray/anne');
+      expect(result).toEqual('_people/murray/anne');
+    });
+
+    it('should handle hierarchical tags with protected prefix', () => {
+      const result = setPrivate('+people/murray/anne');
+      expect(result).toEqual('_people/murray/anne');
+    });
+
+    it('should handle tags with origins', () => {
+      const result = setPrivate('science@origin');
+      expect(result).toEqual('_science@origin');
+    });
+
+    it('should handle tags with origins and existing prefix', () => {
+      const result = setPrivate('_science@origin');
+      expect(result).toEqual('_science@origin');
+    });
+
+    it('should handle nested tags', () => {
+      const result = setPrivate('a/b/c/d/e');
+      expect(result).toEqual('_a/b/c/d/e');
+    });
+  });
+
+  describe('setProtected', () => {
+    it('should add protected prefix to public tag', () => {
+      const result = setProtected('science');
+      expect(result).toEqual('+science');
+    });
+
+    it('should handle already protected tag', () => {
+      const result = setProtected('+science');
+      expect(result).toEqual('+science');
+    });
+
+    it('should handle private tag by converting to protected', () => {
+      const result = setProtected('_science');
+      expect(result).toEqual('+science');
+    });
+
+    it('should handle empty string', () => {
+      const result = setProtected('');
+      expect(result).toEqual('');
+    });
+
+    it('should handle hierarchical tags', () => {
+      const result = setProtected('people/murray/anne');
+      expect(result).toEqual('+people/murray/anne');
+    });
+
+    it('should handle hierarchical tags with existing protected prefix', () => {
+      const result = setProtected('+people/murray/anne');
+      expect(result).toEqual('+people/murray/anne');
+    });
+
+    it('should handle hierarchical tags with private prefix', () => {
+      const result = setProtected('_people/murray/anne');
+      expect(result).toEqual('+people/murray/anne');
+    });
+
+    it('should handle tags with origins', () => {
+      const result = setProtected('science@origin');
+      expect(result).toEqual('+science@origin');
+    });
+
+    it('should handle tags with origins and existing prefix', () => {
+      const result = setProtected('+science@origin');
+      expect(result).toEqual('+science@origin');
+    });
+
+    it('should handle nested tags', () => {
+      const result = setProtected('a/b/c/d/e');
+      expect(result).toEqual('+a/b/c/d/e');
     });
   });
 });
