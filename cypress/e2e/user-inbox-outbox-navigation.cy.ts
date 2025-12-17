@@ -24,7 +24,7 @@ describe('User Page: Inbox/Outbox Navigation', {
   });
 
   it('displays inbox and outbox navigation buttons on user page', () => {
-    cy.visit('/?debug=USER&tag=alice');
+    cy.visit('/tag/user/alice?debug=USER');
     cy.url().should('include', '/tag/user/alice');
     cy.get('.sidebar .tag-select').should('be.visible');
     cy.get('.sidebar .tag-select').contains('Inbox').should('be.visible');
@@ -32,7 +32,7 @@ describe('User Page: Inbox/Outbox Navigation', {
   });
 
   it('inbox button navigates to public user tag and is active', () => {
-    cy.visit('/?debug=USER&tag=alice');
+    cy.visit('/tag/user/alice?debug=USER');
     cy.get('.sidebar .tag-select').contains('Inbox').click();
     cy.url().should('include', '/tag/user/alice');
     cy.get('.sidebar .tag-select').contains('Inbox').parent().should('have.class', 'toggled');
@@ -40,7 +40,7 @@ describe('User Page: Inbox/Outbox Navigation', {
   });
 
   it('outbox button navigates to protected user tag and is active', () => {
-    cy.visit('/?debug=USER&tag=alice');
+    cy.visit('/tag/user/alice?debug=USER');
     cy.get('.sidebar .tag-select').contains('Outbox').click();
     cy.url().should('include', '/tag/%2Buser/alice');
     cy.get('.sidebar .tag-select').contains('Outbox').parent().should('have.class', 'toggled');
@@ -54,7 +54,7 @@ describe('User Page: Inbox/Outbox Navigation', {
   });
 
   it('navigation works for different user tags', () => {
-    cy.visit('/?debug=USER&tag=bob');
+    cy.visit('/tag/user/bob?debug=USER');
     cy.url().should('include', '/tag/user/bob');
     cy.get('.sidebar .tag-select').contains('Inbox').should('be.visible');
     cy.get('.sidebar .tag-select').contains('Inbox').click();
