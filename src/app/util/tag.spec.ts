@@ -65,7 +65,8 @@ describe('Tag Utils', () => {
 
     it('should handle array with undefined elements', () => {
       const tags = ['science', 'funny', 'news'];
-      const result = removeTag([undefined, 'funny', undefined] as any, tags);
+      // Testing runtime behavior when array contains undefined (bypassing type check)
+      const result = removeTag([undefined, 'funny', undefined] as unknown as string[], tags);
       expect(result).toEqual(['science', 'news']);
     });
 
