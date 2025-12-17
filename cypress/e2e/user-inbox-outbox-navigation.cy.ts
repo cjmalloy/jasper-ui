@@ -62,11 +62,9 @@ describe('User Page: Inbox/Outbox Navigation', {
   it('navigation works for different user tags', () => {
     cy.visit('/?debug=USER&tag=bob');
     cy.url().should('include', '/tag/user/bob');
-    
     cy.get('.sidebar .tag-select').contains('Inbox').should('be.visible');
     cy.get('.sidebar .tag-select').contains('Inbox').click();
     cy.url().should('include', '/tag/user/bob');
-    
     cy.get('.sidebar .tag-select').contains('Outbox').click();
     cy.url().should('include', '/tag/%2Buser/bob');
   });
