@@ -12,14 +12,13 @@ describe('User Page: Inbox/Outbox Navigation', {
     clearMods();
   });
 
-  it('enable user and mailbox plugins', () => {
+  it('enable user plugin', () => {
     cy.visit('/?debug=ADMIN');
     cy.get('.settings a').contains('settings').click();
     cy.get('.tabs').contains('setup').click();
 
     cy.wait(100);
     cy.get('#mod-user').should('not.be.checked').check().should('be.checked');
-    cy.get('#mod-mailbox').should('not.be.checked').check().should('be.checked');
     cy.get('button').contains('Save').click();
     cy.get('.log').contains('Success');
   });
