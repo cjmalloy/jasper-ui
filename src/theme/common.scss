@@ -672,6 +672,10 @@ video.qr-preview {
       background-color: var(--bg-active);
     }
   }
+  &.toggled {
+    background-color: var(--bg-hover);
+    border: 1px dashed var(--border);
+  }
   label {
     margin-left: 16px;
   }
@@ -1032,8 +1036,21 @@ video.qr-preview {
 
   &:not(.expanded) {
     width: 40px;
-    .tag-header, .ui, .md, .sidebar-link, .ext-text, .breadcrumbs {
-      display: none;
+    .tag-header, .ui, .md, .sidebar-link, .ext-text, .breadcrumbs, app-nav {
+      display: none !important;
+    }
+    .tag-select {
+      display: block;
+    }
+    .tag-select > * {
+      padding: 4px !important;
+    }
+  }
+
+  &.expanded {
+    .tag-select > * {
+      margin: 4px;
+      padding: 8px;
     }
   }
 

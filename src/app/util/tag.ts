@@ -331,8 +331,18 @@ export function privateTag(tag: string) {
   return tag.startsWith('_');
 }
 
+export function setPrivate(tag: string) {
+  if (!tag) return '';
+  return '_' + setPublic(tag);
+}
+
 export function protectedTag(tag: string) {
   return tag.startsWith('+');
+}
+
+export function setProtected(tag: string) {
+  if (!tag) return '';
+  return '+' + setPublic(tag);
 }
 
 export function access(tag?: string) {
