@@ -53,8 +53,7 @@ describe('User Page: Inbox/Outbox Navigation', {
   });
 
   it('outbox button is active when viewing protected user tag', () => {
-    cy.visit('/?debug=USER');
-    cy.visit('/tag/%2Buser/alice');
+    cy.visit('/tag/%2Buser/alice?debug=USER');
     cy.get('.sidebar .tag-select').contains('Outbox').parent().should('have.class', 'toggled');
     cy.get('.sidebar .tag-select').contains('Inbox').parent().should('not.have.class', 'toggled');
   });
