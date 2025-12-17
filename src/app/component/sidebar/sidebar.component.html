@@ -129,9 +129,9 @@
       @if (writeAccess) {
         <div class="submit-button" [routerLink]="['/ext', store.view.template]" tabindex="0">
           <span i18n-title title="Extend Tag" i18n>🎨️</span> <label i18n>Extend Tag
-            &nbsp;
-            &nbsp;
-            {{ template?.name || '' }}</label>
+          &nbsp;
+          &nbsp;
+          {{ template?.name || '' }}</label>
         </div>
       } @else if (!store.view.template) {
         <div class="submit-button" [routerLink]="['/ext']" tabindex="0">
