@@ -13,37 +13,23 @@
       <div class="stack">
         <div class="info">
           @if (authors.length) {
-            <ng-container i18n>
-              by
-              @if (authorExts$ | async; as xs) {
-                @for (x of xs; track x.tag) {
-                  <a class="user tag"
-                     [title]="formatAuthor(x.tag + x.origin)"
-                     [routerLink]="['/tag', x.tag + x.origin]"
-                     [appTitle]="x">{{ x.name || formatAuthor(x.tag) }}</a>
-                }
-              } @else {
-                @for (t of authors; track t) {
-                  <a class="user tag"
-                     [title]="formatAuthor(t)"
-                     [routerLink]="['/tag', t]">{{ formatAuthor(t) }}</a>
-                }
+            <span i18n> by
+              @for (t of authors; track t) {
+                <app-nav css="user tag"
+                         [url]="'tag:/' + t"
+                         [title]="formatAuthor(t)"
+                         [shortUser]="true"></app-nav>
               }
-            </ng-container>
+            </span>
           }
           @if (tags.length) {
-            <ng-container i18n>
-              tagged
-              @if (tagExts$ | async; as xs) {
-                @for (x of xs; track x.tag) {
-                  <a class="tag" [routerLink]="['/tag', x.tag]" [appTitle]="x.tag">{{ x.name || '#' + x.tag }}</a>
-                }
-              } @else {
-                @for (t of tags; track t) {
-                  <a class="tag" [routerLink]="['/tag', t]">{{ t }}</a>
-                }
+            <span i18n> tagged
+              @for (t of tags; track t) {
+                <app-nav css="tag"
+                         [url]="'tag:/' + t"
+                         [origin]="origin"></app-nav>
               }
-            </ng-container>
+            </span>
           }
           @for (icon of icons; track icon.tag) {
             @if (showIcon(icon)) {
@@ -56,26 +42,27 @@
           }
           <span [title]="ref.published?.toISO()">{{ ref.published?.toRelative() }}</span>
           @if (!authors.length && ref.created && !local) {
-            <ng-container i18n>
-              on <a class="origin tag" [routerLink]="['/tag', ref.origin]">{{ ref.origin }}</a>
-            </ng-container>
+            <span i18n>
+              on
+              <app-nav css="origin tag" [url]="'tag:/' + (origin || '*')"></app-nav>
+            </span>
           }
         </div>
         <div class="actions">
-          <a [routerLink]="['/ref', ref.url]" [queryParams]="{ origin: nonLocalOrigin }" (click)="saveRef()" i18n>permalink</a>
+          <a [routerLink]="[store.view.refPath, ref.url]" [queryParams]="{ origin: nonLocalOrigin }" (click)="saveRef()" i18n>permalink</a>
           @if (store.account.user) {
             <a routerLink="/submit" [queryParams]="{source: ref.url}" i18n>reply</a>
           }
           @if (comments) {
-            <a [routerLink]="['/ref', ref.url, 'comments']" [queryParams]="{ origin: nonLocalOrigin }" (click)="saveRef()" i18n>{comments, plural, =1 {1&thinsp;comment} other {{{ comments }}&thinsp;comments}}</a>
+            <a [routerLink]="[store.view.refPath, ref.url, 'comments']" [queryParams]="{ origin: nonLocalOrigin }" (click)="saveRef()" i18n>{comments, plural, =1 {1&thinsp;comment} other {{{ comments }}&thinsp;comments}}</a>
           }
           @if (responses) {
-            <a [routerLink]="['/ref', ref.url, 'responses']" [queryParams]="{ origin: nonLocalOrigin }" (click)="saveRef()" i18n>{responses, plural, =1 {1&thinsp;citation} other {{{ responses }}&thinsp;citations}}</a>
+            <a [routerLink]="[store.view.refPath, ref.url, 'responses']" [queryParams]="{ origin: nonLocalOrigin }" (click)="saveRef()" i18n>{responses, plural, =1 {1&thinsp;citation} other {{{ responses }}&thinsp;citations}}</a>
           }
           @if (sources === 1) {
-            <a [routerLink]="['/ref', ref.sources![0]]" [queryParams]="{ origin: nonLocalOrigin }" i18n>parent</a>
+            <a [routerLink]="[store.view.refPath, ref.sources![0]]" [queryParams]="{ origin: nonLocalOrigin }" i18n>parent</a>
           } @else if (sources > 1) {
-            <a [routerLink]="['/ref', ref.url, 'sources']" [queryParams]="{ origin: nonLocalOrigin }" (click)="saveRef()" i18n>{{ sources }}&thinsp;sources</a>
+            <a [routerLink]="[store.view.refPath, ref.url, 'sources']" [queryParams]="{ origin: nonLocalOrigin }" (click)="saveRef()" i18n>{{ sources }}&thinsp;sources</a>
           }
           @if (store.account.mod || taggingAccess) {
             <app-confirm-action #action

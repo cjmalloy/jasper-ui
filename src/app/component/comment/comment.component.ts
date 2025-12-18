@@ -1,4 +1,3 @@
-import { AsyncPipe } from '@angular/common';
 import {
   AfterViewInit,
   Component,
@@ -36,12 +35,10 @@ import { deleteNotice } from '../../mods/delete';
 import { getMailbox, mailboxes } from '../../mods/mailbox';
 import { score } from '../../mods/vote';
 import { AdminService } from '../../service/admin.service';
-import { ExtService } from '../../service/api/ext.service';
 import { RefService } from '../../service/api/ref.service';
 import { TaggingService } from '../../service/api/tagging.service';
 import { AuthzService } from '../../service/authz.service';
 import { BookmarkService } from '../../service/bookmark.service';
-import { EditorService } from '../../service/editor.service';
 import { Store } from '../../store/store';
 import { ThreadStore } from '../../store/thread';
 import { authors, formatAuthor, interestingTags } from '../../util/format';
@@ -52,6 +49,7 @@ import { ActionListComponent } from '../action/action-list/action-list.component
 import { ActionComponent } from '../action/action.component';
 import { ConfirmActionComponent } from '../action/confirm-action/confirm-action.component';
 import { InlineTagComponent } from '../action/inline-tag/inline-tag.component';
+import { NavComponent } from '../nav/nav.component';
 import { ViewerComponent } from '../viewer/viewer.component';
 import { CommentEditComponent } from './comment-edit/comment-edit.component';
 import { CommentReplyComponent } from './comment-reply/comment-reply.component';
@@ -73,7 +71,7 @@ import { CommentThreadComponent } from './comment-thread/comment-thread.componen
     InlineTagComponent,
     ActionListComponent,
     CommentReplyComponent,
-    AsyncPipe,
+    NavComponent,
   ],
 })
 export class CommentComponent implements OnInit, AfterViewInit, OnChanges, OnDestroy, HasChanges {
@@ -121,8 +119,6 @@ export class CommentComponent implements OnInit, AfterViewInit, OnChanges, OnDes
     public thread: ThreadStore,
     private auth: AuthzService,
     private refs: RefService,
-    private exts: ExtService,
-    private editor: EditorService,
     private ts: TaggingService,
     private bookmarks: BookmarkService,
     private el: ElementRef<HTMLDivElement>,
@@ -211,6 +207,11 @@ export class CommentComponent implements OnInit, AfterViewInit, OnChanges, OnDes
   }
 
   @memo
+  get origin() {
+    return this.ref.origin || '';
+  }
+
+  @memo
   get nonLocalOrigin() {
     if (this.ref.origin === this.store.account.origin) return undefined;
     return this.ref.origin || '';
@@ -249,11 +250,6 @@ export class CommentComponent implements OnInit, AfterViewInit, OnChanges, OnDes
   }
 
   @memo
-  get authorExts$() {
-    return this.exts.getCachedExts(this.authors, this.ref.origin || '').pipe(this.admin.authorFallback);
-  }
-
-  @memo
   get mailboxes() {
     return mailboxes(this.ref, this.store.account.tag, this.store.origins.originMap);
   }
@@ -270,11 +266,6 @@ export class CommentComponent implements OnInit, AfterViewInit, OnChanges, OnDes
   @memo
   get tagged() {
     return interestingTags(this.ref.tags);
-  }
-
-  @memo
-  get tagExts$() {
-    return this.editor.getTagsPreview(this.tagged, this.ref.origin || '');
   }
 
   @memo
