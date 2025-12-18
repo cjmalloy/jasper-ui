@@ -323,8 +323,8 @@ export function publicTag(tag: string) {
 
 export function setPublic(tag: string) {
   if (!tag) return '';
- if (publicTag(tag)) return tag;
- return tag.substring(1);
+  if (publicTag(tag)) return tag;
+  return tag.substring(1);
 }
 
 export function privateTag(tag: string) {
