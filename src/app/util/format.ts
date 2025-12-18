@@ -4,7 +4,7 @@ import { Ref } from '../model/ref';
 import { Config, ModType } from '../model/tag';
 import { reverseOrigin } from '../mods/mailbox';
 import { config } from '../service/config.service';
-import { hasPrefix, hasTag } from './tag';
+import { hasPrefix, hasTag, publicTag } from './tag';
 
 export const URI_REGEX = /^[^\s:\/?#]+:(\/\/([^\/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?$/;
 export const TAG_REGEX = /^[_+]?[a-z0-9]+([./][a-z0-9]+)*$/;
@@ -43,7 +43,9 @@ export function authors(ref: Ref, prefixes = ['+user', '_user', 'plugin/from', '
 }
 
 export function userAuthors(ref: Ref) {
-  return uniq(templates(ref.tags || [], 'user').map(t => t + (ref.origin || '')));
+  return uniq(templates(ref.tags || [], 'user')
+    .filter(t => !publicTag(t))
+    .map(t => t + (ref.origin || '')));
 }
 
 export function clickableLink(url: string) {

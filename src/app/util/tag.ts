@@ -331,8 +331,18 @@ export function privateTag(tag: string) {
   return tag.startsWith('_');
 }
 
+export function setPrivate(tag: string) {
+  if (!tag) return '';
+  return '_' + setPublic(tag);
+}
+
 export function protectedTag(tag: string) {
   return tag.startsWith('+');
+}
+
+export function setProtected(tag: string) {
+  if (!tag) return '';
+  return '+' + setPublic(tag);
 }
 
 export function access(tag?: string) {
@@ -347,10 +357,13 @@ export function parentTag(tag: string): string | undefined {
   return tag.substring(0, tag.lastIndexOf('/'));
 }
 
-export function removeTag(tag: string | undefined, tags: string[]): string[] {
-  while (tag) {
-    tags = without(tags, tag);
-    tag = parentTag(tag);
+export function removeTag(tag: string | string[] | undefined, tags: string[]): string[] {
+  const ts = isArray(tag) ? tag : [tag];
+  for (let t of ts) {
+    while (t) {
+      tags = without(tags, t);
+      t = parentTag(t);
+    }
   }
   return tags;
 }

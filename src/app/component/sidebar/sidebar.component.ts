@@ -1,6 +1,6 @@
 import { AsyncPipe } from '@angular/common';
 import { Component, ElementRef, HostBinding, Input, OnChanges, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
-import { NavigationEnd, Router, RouterLink } from '@angular/router';
+import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { uniq, uniqBy } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { MobxAngularModule } from 'mobx-angular';
@@ -23,13 +23,14 @@ import { ConfigService } from '../../service/config.service';
 import { QueryStore } from '../../store/query';
 import { Store } from '../../store/store';
 import { memo, MemoCache } from '../../util/memo';
-import { hasPrefix, hasTag, isQuery, localTag, topAnds } from '../../util/tag';
+import { hasPrefix, hasTag, isQuery, localTag, setProtected, setPublic, topAnds } from '../../util/tag';
 import { BulkComponent } from '../bulk/bulk.component';
 import { ChatComponent } from '../chat/chat.component';
 import { DebugComponent } from '../debug/debug.component';
 import { ExtComponent } from '../ext/ext.component';
 import { FilterComponent } from '../filter/filter.component';
 import { MdComponent } from '../md/md.component';
+import { NavComponent } from '../nav/nav.component';
 import { QueryComponent } from '../query/query.component';
 import { SearchComponent } from '../search/search.component';
 import { SortComponent } from '../sort/sort.component';
@@ -52,6 +53,8 @@ import { SortComponent } from '../sort/sort.component';
     RouterLink,
     ChatComponent,
     AsyncPipe,
+    NavComponent,
+    RouterLinkActive,
   ]
 })
 export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
@@ -252,6 +255,16 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
   @memo
   get user() {
     return !this.store.view.query && !!this.admin.getTemplate('user') && hasPrefix(this.tag, 'user') && !this.store.view.userTemplate;
+  }
+
+  @memo
+  get inbox() {
+    return setPublic(this.tag);
+  }
+
+  @memo
+  get outbox() {
+    return setProtected(this.tag);
   }
 
   @memo

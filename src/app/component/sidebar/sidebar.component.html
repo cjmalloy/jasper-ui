@@ -19,11 +19,31 @@
       </div>
     }
   </div>
+  @if (store.view.type) {
+    @if (tag && (store.view.tag || store.view.template)) {
+      @if (!user) {
+        <app-query [query]="tag" class="breadcrumbs"></app-query>
+      } @else {
+        <app-nav class="center" [url]="'tag:/' + tag"></app-nav>
+        <div class="tag-select row center">
+          <div class="submit-button"
+               routerLinkActive="toggled"
+               [routerLink]="['/tag', inbox]"
+               tabindex="0">
+            <span i18n-title title="Inbox" i18n>📥️</span> <label i18n>Inbox</label>
+          </div>
+          <div class="submit-button"
+               routerLinkActive="toggled"
+               [routerLink]="['/tag', outbox]"
+               tabindex="0">
+            <span i18n-title title="Outbox" i18n>📤️</span> <label i18n>Outbox</label>
+          </div>
+        </div>
+      }
+    }
+  }
   @if (expanded) {
     @if (store.view.type) {
-      @if (tag && (store.view.tag || store.view.template)) {
-        <app-query [query]="tag" class="breadcrumbs"></app-query>
-      }
       <div class="row mini-col reverse">
         <app-filter [type]="store.view.type!" [activeExts]="activeExts"></app-filter>
         <app-sort [type]="store.view.type!"></app-sort>
@@ -111,7 +131,7 @@
           <span i18n-title title="Extend Tag" i18n>🎨️</span> <label i18n>Extend Tag
           &nbsp;
           &nbsp;
-            {{ template?.name || '' }}</label>
+          {{ template?.name || '' }}</label>
         </div>
       } @else if (!store.view.template) {
         <div class="submit-button" [routerLink]="['/ext']" tabindex="0">
