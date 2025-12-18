@@ -155,7 +155,10 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
         if (this.home) {
           this.addTags = this.rootConfig?.addTags || this.plugin?.config?.reply || ['public'];
         } else if (this.plugin) {
-          this.addTags = uniq([...this.rootConfig?.addTags || this.plugin?.config?.reply || ['public'], ...this.plugin?.config?.submit ? [this.plugin.tag] : []]);
+          this.addTags = uniq([
+            ...this.rootConfig?.addTags || this.plugin?.config?.reply || ['public'],
+            ...this.plugin?.config?.submit ? [this.plugin.tag] : [],
+            ...this.plugin?.config?.internal ? ['internal'] : []]);
         } else {
           this.addTags = uniq([...this.rootConfig?.addTags || ['public'], ...topAnds(this.tag).map(localTag)]);
         }
