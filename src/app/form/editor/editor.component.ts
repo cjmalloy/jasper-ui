@@ -749,9 +749,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
       if (completedRefs.length > 0) {
         this.attachUrls(...completedRefs);
       }
-      setTimeout(() => {
-        this.uploads = [];
-      }, 2000);
+      delay(() => this.uploads = [], 400);
     }
   }
 
