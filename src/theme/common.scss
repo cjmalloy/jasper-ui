@@ -2062,6 +2062,7 @@ formly-field-radio, formly-field-multicheckbox {
 }
 
 .loading {
+  max-width: 60em;
   color: transparent;
   user-select: none;
   background-image: url("../assets/image-loading.png");
