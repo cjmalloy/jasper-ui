@@ -151,6 +151,7 @@
                      [form]="config"
                      [fields]="advancedForm!"
                      [options]="options"></formly-form>
+        <ng-content select="[advanced]"></ng-content>
       </div>
       @if (defaults) {
         <app-ref class="bubble" [ref]="defaults"></app-ref>

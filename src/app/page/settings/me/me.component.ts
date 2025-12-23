@@ -33,7 +33,7 @@ export class SettingsMePage implements HasChanges {
   form?: ExtFormComponent;
 
   submitted = false;
-  editForm!: UntypedFormGroup;
+  editForm?: UntypedFormGroup;
   serverError: string[] = [];
 
   editing?: Subscription;
@@ -47,10 +47,12 @@ export class SettingsMePage implements HasChanges {
     private fb: FormBuilder,
     private location: Location,
   ) {
-    const ext = cloneDeep(store.account.ext!);
-    this.editForm = extForm(fb, ext, this.admin, true);
-    this.editForm.patchValue(ext);
-    defer(() => this.form!.setValue(ext));
+    if (store.account.ext) {
+      const ext = cloneDeep(store.account.ext);
+      this.editForm = extForm(fb, ext, this.admin, true);
+      this.editForm.patchValue(ext);
+      defer(() => this.form!.setValue(ext));
+    }
   }
 
   saveChanges() {
@@ -58,6 +60,9 @@ export class SettingsMePage implements HasChanges {
   }
 
   save() {
+    if (!this.editForm) return;
+    const ext = this.store.account.ext;
+    if (!ext) return;
     this.serverError = [];
     this.submitted = true;
     this.editForm.markAllAsTouched();
@@ -65,7 +70,6 @@ export class SettingsMePage implements HasChanges {
       scrollToFirstInvalid();
       return;
     }
-    const ext = this.store.account.ext!;
     this.editing = this.exts.update({
       ...ext,
       ...this.editForm.value,
@@ -84,9 +88,14 @@ export class SettingsMePage implements HasChanges {
       }),
     ).subscribe(() => {
       delete this.editing;
-      this.editForm.markAsPristine();
+      this.editForm!.markAsPristine();
       this.location.back();
     });
+  }
+
+  clearLocalCache() {
+    localStorage.clear();
+    window.location.reload();
   }
 
   protected readonly isDevMode = isDevMode;
