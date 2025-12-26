@@ -112,7 +112,7 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
     router.events.pipe(
       filter(event => event instanceof NavigationEnd),
     ).subscribe(() => {
-      if (hasTag('plugin/chat', this.store.view.ref)) return;
+      if (this.chat) return;
       if (this.config.tablet && this.lastView != this.store.view.current ||
         !this.config.huge  && this.store.view.current === 'ref/summary') {
         this.lastView = this.store.view.current;
@@ -124,6 +124,11 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
   ngOnInit(): void {
     this.disposers.push(autorun(() => {
       this.expanded = this.store.view.sidebarExpanded;
+    }));
+    this.disposers.push(autorun(() => {
+      if (this.store.view.ref) {
+        MemoCache.clear(this);
+      }
     }));
     this.disposers.push(autorun(() => {
       if (!this.store.view.template) {
@@ -251,6 +256,7 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
     return !this.plugin?.tag || this.auth.canAddTag(this.plugin.tag);
   }
 
+  @memo
   get chat() {
     return !!this.admin.getPlugin('plugin/chat') && hasTag('plugin/chat', this.store.view.ref);
   }
@@ -388,6 +394,6 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
 
   startChat() {
     runInAction(() => this.store.view.ref?.tags?.push('plugin/chat'));
-    this.ts.create('plugin/chat', this.store.view.ref!.url, this.store.account.origin).subscribe()
+    this.ts.create('plugin/chat', this.store.view.ref!.url, this.store.account.origin).subscribe();
   }
 }
