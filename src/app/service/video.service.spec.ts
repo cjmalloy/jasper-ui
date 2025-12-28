@@ -9,6 +9,10 @@ import { RefService } from './api/ref.service';
 import { Ref } from '../model/ref';
 import { Page } from '../model/page';
 
+// Constants for test timing
+const ASYNC_OPERATION_WAIT_MS = 150;
+const QUICK_OPERATION_WAIT_MS = 50;
+
 describe('VideoService', () => {
   let service: VideoService;
   let mockStore: any;
@@ -167,7 +171,7 @@ describe('VideoService', () => {
       service.call(query, responseOf, mockMediaStream);
 
       // Wait for async operations
-      await new Promise(resolve => setTimeout(resolve, 150));
+      await new Promise(resolve => setTimeout(resolve, ASYNC_OPERATION_WAIT_MS));
       
       expect(mockPeerConnection.createOffer).toHaveBeenCalled();
       expect(mockPeerConnection.setLocalDescription).toHaveBeenCalledWith(mockOffer);
@@ -195,7 +199,7 @@ describe('VideoService', () => {
       service.call(query, '', mockMediaStream);
 
       // Wait for async operations
-      await new Promise(resolve => setTimeout(resolve, 150));
+      await new Promise(resolve => setTimeout(resolve, ASYNC_OPERATION_WAIT_MS));
       
       expect(mockPeerConnection.setRemoteDescription).toHaveBeenCalled();
       expect(mockPeerConnection.createAnswer).toHaveBeenCalled();
@@ -221,7 +225,7 @@ describe('VideoService', () => {
       service.call('test-query', '', mockMediaStream);
 
       // Wait for async operations
-      await new Promise(resolve => setTimeout(resolve, 150));
+      await new Promise(resolve => setTimeout(resolve, ASYNC_OPERATION_WAIT_MS));
       
       expect(mockPeerConnection.setRemoteDescription).toHaveBeenCalled();
     });
@@ -252,7 +256,7 @@ describe('VideoService', () => {
       iceCandidateHandler!(mockEvent);
 
       // Wait for async operations to queue the candidate
-      await new Promise(resolve => setTimeout(resolve, 50));
+      await new Promise(resolve => setTimeout(resolve, QUICK_OPERATION_WAIT_MS));
 
       // Verify candidate toJSON was called (meaning the candidate was processed)
       expect(mockCandidate.toJSON).toHaveBeenCalled();
@@ -277,7 +281,7 @@ describe('VideoService', () => {
       service.call('test-query', '', mockMediaStream);
 
       // Wait for async operations
-      await new Promise(resolve => setTimeout(resolve, 150));
+      await new Promise(resolve => setTimeout(resolve, ASYNC_OPERATION_WAIT_MS));
       
       expect(mockPeerConnection.addIceCandidate).toHaveBeenCalledWith(mockCandidate);
     });
@@ -305,7 +309,7 @@ describe('VideoService', () => {
       service.call('test-query', '', mockMediaStream);
 
       // Wait for async operations
-      await new Promise(resolve => setTimeout(resolve, 150));
+      await new Promise(resolve => setTimeout(resolve, ASYNC_OPERATION_WAIT_MS));
       
       expect(consoleErrorSpy).toHaveBeenCalledWith('Error adding received ice candidate', expect.any(Error));
       consoleErrorSpy.mockRestore();
@@ -327,7 +331,7 @@ describe('VideoService', () => {
       service.send({ type: 'offer', payload: { type: 'offer', sdp: 'mock-sdp' } });
 
       // Wait for async operations
-      await new Promise(resolve => setTimeout(resolve, 150));
+      await new Promise(resolve => setTimeout(resolve, ASYNC_OPERATION_WAIT_MS));
       
       // Should have attempted to update at least once
       expect(mockRefs.update).toHaveBeenCalled();
@@ -349,7 +353,7 @@ describe('VideoService', () => {
       service.send({ type: 'offer', payload: { type: 'offer', sdp: 'mock-sdp' } });
 
       // Wait for async operations
-      await new Promise(resolve => setTimeout(resolve, 150));
+      await new Promise(resolve => setTimeout(resolve, ASYNC_OPERATION_WAIT_MS));
       
       // After 409, video data should be set from the ref
       expect(service['video']).toBeDefined();
@@ -370,7 +374,7 @@ describe('VideoService', () => {
       service.send({ type: 'offer', payload: { type: 'offer', sdp: 'mock-sdp' } });
 
       // Wait for async operations
-      await new Promise(resolve => setTimeout(resolve, 150));
+      await new Promise(resolve => setTimeout(resolve, ASYNC_OPERATION_WAIT_MS));
       
       expect(consoleErrorSpy).toHaveBeenCalled();
       consoleErrorSpy.mockRestore();
