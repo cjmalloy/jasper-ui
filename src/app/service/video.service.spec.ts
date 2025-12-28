@@ -1,10 +1,9 @@
 /// <reference types="vitest/globals" />
 import { TestBed } from '@angular/core/testing';
-import { of, throwError } from 'rxjs';
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
-import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { of, throwError } from 'rxjs';
 import { VideoService } from './video.service';
 import { Store } from '../store/store';
 import { StompService } from './api/stomp.service';
@@ -95,6 +94,7 @@ describe('VideoService', () => {
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),
         provideRouter([]),
+      ],
     });
     service = TestBed.inject(VideoService);
   });
