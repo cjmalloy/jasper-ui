@@ -98,6 +98,11 @@ body.dark-theme {
     color: var(--text);
   }
 
+  .glass {
+    backdrop-filter: grayscale(1) contrast(0.4) brightness(0.4) blur(8px);
+    border: 0.5px solid rgba(255, 255, 255, 0.2);
+  }
+
   .toolbar {
     label.on {
       backdrop-filter: contrast(0.1) brightness(0.6) blur(1.5px);
