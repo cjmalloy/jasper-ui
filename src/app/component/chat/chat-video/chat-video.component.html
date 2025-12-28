@@ -1,0 +1,30 @@
+<ng-container *mobxAutorun>
+  @if (!store.video.enabled) {
+    <div class="submit-button" (click)="call()" tabindex="0">
+      <span i18n-title title="Start a Call" i18n>📞️</span> <label i18n>call</label>
+    </div>
+  } @else {
+    <div class="submit-button" (click)="hangup()" tabindex="0">
+      <span i18n-title title="End a Call" i18n>👋️</span> <label i18n>hangup</label>
+    </div>
+    @if (store.video.stream) {
+      <video [srcObject]="store.video.stream"
+             autoplay
+             playsinline
+             [muted]="true"></video>
+    }
+    @for (u of userStreams; track u) {
+      <app-nav class="stream-label"
+               [url]="'tag:/' + u.tag"></app-nav>
+      @for (s of u.streams; track s) {
+        <video [srcObject]="s"
+               autoplay
+               playsinline></video>
+      } @empty {
+        <app-loading></app-loading>
+      }
+    } @empty {
+      <app-loading></app-loading>
+    }
+  }
+</ng-container>

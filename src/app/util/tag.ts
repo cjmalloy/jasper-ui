@@ -401,3 +401,7 @@ export function updateMetadata(parent: Ref, child: Ref) {
     parent.metadata.responses++;
   }
 }
+
+export function getUserUrl(ref: Ref) {
+  return ref.url.substring('tag:/'.length, ref.url.indexOf('?')) + (ref.origin || '');
+}
