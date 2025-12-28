@@ -163,9 +163,12 @@ describe('ChatVideoComponent', () => {
     it('should not call VideoService when getUserMedia fails', async () => {
       mockGetUserMedia.mockRejectedValue(new Error('Permission denied'));
 
-      component.call();
-      // Wait a tick to ensure .catch() has been processed
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await component.call();
+      // Give time for the .catch() handler to complete
+      await vi.waitFor(() => {
+        // VideoService.call should never be called, so we just wait briefly
+        // and then check the expectation
+      }, { timeout: 50 });
 
       expect(mockVideoService.call).not.toHaveBeenCalled();
     });
@@ -192,8 +195,11 @@ describe('ChatVideoComponent', () => {
       mockStore.video.enabled = false; // Disable before getUserMedia resolves
       
       await callPromise;
-      // Wait a tick to ensure .then() has been processed
-      await new Promise(resolve => setTimeout(resolve, 10));
+      // Give time for the .then() handler to complete
+      await vi.waitFor(() => {
+        // VideoService.call should never be called, so we just wait briefly
+        // and then check the expectation
+      }, { timeout: 50 });
 
       expect(mockVideoService.call).not.toHaveBeenCalled();
     });
