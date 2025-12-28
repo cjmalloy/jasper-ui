@@ -136,9 +136,7 @@ export class VideoService {
         this.video.answer = data.payload;
       }
       if (data.type === 'candidate') {
-        if (!this.video.candidate) {
-          this.video.candidate = [];
-        }
+        this.video.candidate ||= [];
         this.video.candidate.push(data.payload);
       }
     }
