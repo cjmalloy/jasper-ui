@@ -1,5 +1,5 @@
 import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, Input } from '@angular/core';
-import { autorun, runInAction } from 'mobx';
+import { runInAction } from 'mobx';
 import { MobxAngularModule } from 'mobx-angular';
 import { Ref } from '../../../model/ref';
 import { TaggingService } from '../../../service/api/tagging.service';
