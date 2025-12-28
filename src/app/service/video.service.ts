@@ -130,16 +130,16 @@ export class VideoService {
       this.video ||= {};
       if (data.type === 'offer') {
         this.video = {};
-        this.video[data.type] = data.payload;
+        this.video.offer = data.payload;
       }
       if (data.type === 'answer') {
-        this.video[data.type] = data.payload;
+        this.video.answer = data.payload;
       }
       if (data.type === 'candidate') {
-        if (!this.video[data.type]) {
-          this.video[data.type] = [];
+        if (!this.video.candidate) {
+          this.video.candidate = [];
         }
-        this.video[data.type]!.push(data.payload);
+        this.video.candidate.push(data.payload);
       }
     }
     if (!this.video) return;
