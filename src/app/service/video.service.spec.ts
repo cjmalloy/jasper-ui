@@ -165,7 +165,7 @@ describe('VideoService', () => {
       const responseOf = 'test-response';
       const mockOffer = { type: 'offer', sdp: 'mock-sdp' } as RTCSessionDescriptionInit;
       const mockRef: Ref = {
-        url: 'user/alice',
+        url: 'tag:/user/alice?plugin/user/video',
         origin: '',
         tags: ['plugin/user/video'],
       };
@@ -188,7 +188,7 @@ describe('VideoService', () => {
       const mockOffer = { type: 'offer', sdp: 'mock-sdp' } as RTCSessionDescriptionInit;
       const mockAnswer = { type: 'answer', sdp: 'mock-answer-sdp' } as RTCSessionDescriptionInit;
       const mockRef: Ref = {
-        url: 'user/alice',
+        url: 'tag:/user/alice?plugin/user/video',
         origin: '',
         tags: ['plugin/user/video'],
         plugins: {
@@ -215,7 +215,7 @@ describe('VideoService', () => {
     it('should handle incoming answer', async () => {
       const mockAnswer = { type: 'answer', sdp: 'mock-answer-sdp' } as RTCSessionDescriptionInit;
       const mockRef: Ref = {
-        url: 'user/alice',
+        url: 'tag:/user/alice?plugin/user/video',
         origin: '',
         tags: ['plugin/user/video'],
         plugins: {
@@ -271,7 +271,7 @@ describe('VideoService', () => {
     it('should handle incoming ICE candidates', async () => {
       const mockCandidate = { candidate: 'mock-candidate', sdpMid: '0' } as RTCIceCandidate;
       const mockRef: Ref = {
-        url: 'user/alice',
+        url: 'tag:/user/alice?plugin/user/video',
         origin: '',
         tags: ['plugin/user/video'],
         plugins: {
@@ -295,7 +295,7 @@ describe('VideoService', () => {
     it('should handle errors when adding ICE candidates', async () => {
       const mockCandidate = { candidate: 'mock-candidate', sdpMid: '0' } as RTCIceCandidate;
       const mockRef: Ref = {
-        url: 'user/alice',
+        url: 'tag:/user/alice?plugin/user/video',
         origin: '',
         tags: ['plugin/user/video'],
         plugins: {
@@ -442,7 +442,7 @@ describe('VideoService', () => {
 
     it('should stop previous subscription when calling with different parameters', () => {
       const mockRef1: Ref = {
-        url: 'user/alice',
+        url: 'tag:/user/alice?plugin/user/video',
         origin: '',
         tags: ['plugin/user/video'],
       };
