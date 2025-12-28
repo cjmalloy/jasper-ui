@@ -135,10 +135,11 @@ describe('ChatVideoComponent', () => {
     });
 
     it('should call VideoService with the stream', async () => {
-      await component.call();
-      await new Promise(resolve => setTimeout(resolve, 0)); // Wait for promise to resolve
-
-      expect(mockVideoService.call).toHaveBeenCalledWith('chat', '', mockMediaStream);
+      component.call();
+      // Wait for getUserMedia promise to resolve and .then() to execute
+      await vi.waitFor(() => {
+        expect(mockVideoService.call).toHaveBeenCalledWith('chat', '', mockMediaStream);
+      });
     });
   });
 
@@ -150,19 +151,21 @@ describe('ChatVideoComponent', () => {
     it('should handle getUserMedia errors gracefully', async () => {
       const mockError = new Error('Permission denied');
       mockGetUserMedia.mockRejectedValue(mockError);
-      vi.spyOn(console, 'log');
+      const consoleSpy = vi.spyOn(console, 'log');
 
-      await component.call();
-      await new Promise(resolve => setTimeout(resolve, 0)); // Wait for promise to reject
-
-      expect(console.log).toHaveBeenCalledWith('Raised error when capturing:', mockError);
+      component.call();
+      // Wait for getUserMedia promise to reject and .catch() to execute
+      await vi.waitFor(() => {
+        expect(consoleSpy).toHaveBeenCalledWith('Raised error when capturing:', mockError);
+      });
     });
 
     it('should not call VideoService when getUserMedia fails', async () => {
       mockGetUserMedia.mockRejectedValue(new Error('Permission denied'));
 
-      await component.call();
-      await new Promise(resolve => setTimeout(resolve, 0)); // Wait for promise to reject
+      component.call();
+      // Wait a tick to ensure .catch() has been processed
+      await new Promise(resolve => setTimeout(resolve, 10));
 
       expect(mockVideoService.call).not.toHaveBeenCalled();
     });
@@ -174,15 +177,14 @@ describe('ChatVideoComponent', () => {
     });
 
     it('should stop stream tracks if video is disabled before stream is obtained', async () => {
-      mockStore.video.enabled = false;
-      
       const callPromise = component.call();
       mockStore.video.enabled = false; // Disable before getUserMedia resolves
       
       await callPromise;
-      await new Promise(resolve => setTimeout(resolve, 0)); // Wait for promise to resolve
-
-      expect(mockMediaStream.getTracks()[0].stop).toHaveBeenCalled();
+      // Wait for .then() to execute
+      await vi.waitFor(() => {
+        expect(mockMediaStream.getTracks()[0].stop).toHaveBeenCalled();
+      });
     });
 
     it('should not call VideoService if video is disabled before stream is obtained', async () => {
@@ -190,7 +192,8 @@ describe('ChatVideoComponent', () => {
       mockStore.video.enabled = false; // Disable before getUserMedia resolves
       
       await callPromise;
-      await new Promise(resolve => setTimeout(resolve, 0)); // Wait for promise to resolve
+      // Wait a tick to ensure .then() has been processed
+      await new Promise(resolve => setTimeout(resolve, 10));
 
       expect(mockVideoService.call).not.toHaveBeenCalled();
     });
