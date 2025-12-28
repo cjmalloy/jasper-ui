@@ -52,6 +52,10 @@ body.light-theme {
     filter: brightness(3);
   }
 
+  .glass {
+    backdrop-filter: grayscale(1) contrast(0.3) brightness(1.5) blur(8px);
+  }
+
   .toolbar {
     label.on {
       backdrop-filter: contrast(0.2) brightness(1.5) blur(1.5px);
