@@ -9,6 +9,15 @@ import { RefService } from './api/ref.service';
 import { StompService } from './api/stomp.service';
 import { TaggingService } from './api/tagging.service';
 
+/**
+ * Interface for video signaling data structure used in WebRTC communication
+ */
+interface VideoSignaling {
+  offer?: RTCSessionDescriptionInit;
+  answer?: RTCSessionDescriptionInit;
+  candidate?: RTCIceCandidateInit[];
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -25,7 +34,7 @@ export class VideoService {
   };
 
   private res?: Ref;
-  private video?: any;
+  private video?: VideoSignaling;
   private tx?: Subscription;
   private stream?: MediaStream;
 
@@ -87,7 +96,7 @@ export class VideoService {
     ).subscribe(res => {
       const user = getUserUrl(res);
       if (user === this.store.account.tag) return;
-      const video = res.plugins?.['plugin/user/video'];
+      const video = res.plugins?.['plugin/user/video'] as VideoSignaling | undefined;
       if (video && hasTag('plugin/user/video', res)) {
         const peer = this.peer(user);
         if (video.offer) {
@@ -103,7 +112,7 @@ export class VideoService {
           peer.setRemoteDescription(new RTCSessionDescription(video.answer));
         }
         if (video.candidate) {
-          video.candidate.forEach((c: RTCIceCandidate) => {
+          video.candidate.forEach((c) => {
             try {
               peer.addIceCandidate(c);
             } catch (e) {
@@ -121,14 +130,14 @@ export class VideoService {
       this.video ||= {};
       if (data.type === 'offer') {
         this.video = {};
-        this.video[data.type] = data.payload;
+        this.video.offer = data.payload;
       }
       if (data.type === 'answer') {
-        this.video[data.type] = data.payload;
+        this.video.answer = data.payload;
       }
       if (data.type === 'candidate') {
-        this.video[data.type] ||= [];
-        this.video[data.type].push(data.payload);
+        this.video.candidate ||= [];
+        this.video.candidate.push(data.payload);
       }
     }
     if (!this.video) return;
