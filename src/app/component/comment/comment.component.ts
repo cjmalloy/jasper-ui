@@ -184,7 +184,7 @@ export class CommentComponent implements OnInit, AfterViewInit, OnChanges, OnDes
     this.collapsed = !this.store.local.isRefToggled('comment:' + this.ref.url, true);
     // Update last seen count when viewing an expanded comment
     if (!this.collapsed) {
-      this.store.local.setLastSeenCount(this.ref.url, 'comments', this.comments);
+      this.updateLastSeenCount();
     }
     this.writeAccess = this.auth.writeAccess(this.ref);
     this.taggingAccess = this.auth.taggingAccess(this.ref);
@@ -443,12 +443,16 @@ export class CommentComponent implements OnInit, AfterViewInit, OnChanges, OnDes
     });
   }
 
+  updateLastSeenCount() {
+    this.store.local.setLastSeenCount(this.ref.url, 'comments', this.comments);
+  }
+
   toggleCollapse(newCollapsedState: boolean) {
     this.collapsed = newCollapsedState;
     this.store.local.setRefToggled('comment:' + this.ref.url, !newCollapsedState);
     // Update last seen count when expanding
     if (!newCollapsedState) {
-      this.store.local.setLastSeenCount(this.ref.url, 'comments', this.comments);
+      this.updateLastSeenCount();
     }
   }
 }
