@@ -3,7 +3,7 @@ import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http'
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { of, throwError } from 'rxjs';
+import { of } from 'rxjs';
 import { Ref } from '../../../model/ref';
 import { TaggingService } from '../../../service/api/tagging.service';
 import { VideoService } from '../../../service/video.service';
@@ -30,7 +30,7 @@ describe('ChatVideoComponent', () => {
       call: vi.fn(),
       hangup: vi.fn()
     };
-    
+
     // Create a mock MediaStream
     const mockStop = vi.fn();
     mockMediaStream = {
@@ -77,7 +77,7 @@ describe('ChatVideoComponent', () => {
       mockTaggingService.respond.mockReturnValue(of(undefined));
 
       vi.spyOn(component, 'call');
-      
+
       fixture.detectChanges();
 
       expect(mockTaggingService.getResponse).toHaveBeenCalledWith('tag:/chat');
@@ -86,9 +86,9 @@ describe('ChatVideoComponent', () => {
 
     it('should not call when video is already enabled', () => {
       mockStore.video.enabled = true;
-      
+
       vi.spyOn(component, 'call');
-      
+
       fixture.detectChanges();
 
       expect(mockTaggingService.getResponse).not.toHaveBeenCalled();
@@ -179,7 +179,7 @@ describe('ChatVideoComponent', () => {
     it('should stop stream tracks if video is disabled before stream is obtained', async () => {
       component.call();
       mockStore.video.enabled = false; // Disable before getUserMedia resolves
-      
+
       // Wait for .then() handler to execute and stop the stream
       await vi.waitFor(() => {
         expect(mockMediaStream.getTracks()[0].stop).toHaveBeenCalled();
@@ -189,7 +189,7 @@ describe('ChatVideoComponent', () => {
     it('should not call VideoService if video is disabled before stream is obtained', async () => {
       component.call();
       mockStore.video.enabled = false; // Disable before getUserMedia resolves
-      
+
       // Wait for getUserMedia resolution and .then() handler to complete
       await new Promise(resolve => setTimeout(resolve, 50));
 
