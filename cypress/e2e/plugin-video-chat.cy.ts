@@ -12,7 +12,7 @@ describe('Video Chat Plugin', {
     clearMods();
   });
 
-  it('turn on chat and video plugins', () => {
+  it('turn on chat mod (includes chat, lobby, and video plugins)', () => {
     cy.visit('/?debug=ADMIN');
     cy.get('.settings a').contains('settings').click();
     cy.get('.tabs').contains('setup').click();
@@ -49,6 +49,8 @@ describe('Video Chat Plugin', {
     cy.window().then((win) => {
       cy.stub(win.navigator.mediaDevices, 'getUserMedia').resolves({
         getTracks: () => [],
+        getVideoTracks: () => [],
+        getAudioTracks: () => [],
       } as any);
     });
 
