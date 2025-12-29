@@ -45,6 +45,7 @@ describe('Video Chat Plugin', {
 
   it('starts a video call', () => {
     // Mock getUserMedia to avoid browser permission prompts
+    // Using minimal mock to test basic call flow
     cy.window().then((win) => {
       cy.stub(win.navigator.mediaDevices, 'getUserMedia').resolves({
         getTracks: () => [],
@@ -104,7 +105,7 @@ describe('Video Chat Plugin', {
   });
 
   it('video call works with mock media stream', () => {
-    // Mock getUserMedia with a more realistic stream
+    // Mock getUserMedia with a more realistic stream to test track handling
     cy.window().then((win) => {
       const mockTrack = {
         stop: cy.stub(),
@@ -133,7 +134,7 @@ describe('Video Chat Plugin', {
   });
 
   it('cleans up test refs', () => {
-    // Set up intercept before the action
+    // Set up intercepts before the actions
     cy.intercept({method: 'DELETE', pathname: '/api/v1/ref'}).as('delete1');
     
     cy.visit('/ref/e/internal:?debug=USER&search=Video+Chat+Room');
@@ -143,8 +144,10 @@ describe('Video Chat Plugin', {
     // Wait for deletion to complete before navigating
     cy.wait('@delete1');
 
+    cy.intercept({method: 'DELETE', pathname: '/api/v1/ref'}).as('delete2');
     cy.visit('/ref/e/internal:?debug=USER&search=General+Chat');
     cy.get('.ref-list-item.ref .actions *').contains('delete').click();
     cy.get('.ref-list-item.ref .actions *').contains('yes').click();
+    cy.wait('@delete2');
   });
 });
