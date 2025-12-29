@@ -133,12 +133,14 @@ describe('Video Chat Plugin', {
   });
 
   it('cleans up test refs', () => {
+    // Set up intercept before the action
+    cy.intercept({method: 'DELETE', pathname: '/api/v1/ref'}).as('delete1');
+    
     cy.visit('/ref/e/internal:?debug=USER&search=Video+Chat+Room');
     cy.get('.ref-list-item.ref .actions *').contains('delete').click();
     cy.get('.ref-list-item.ref .actions *').contains('yes').click();
     
     // Wait for deletion to complete before navigating
-    cy.intercept({method: 'DELETE', pathname: '/api/v1/ref'}).as('delete1');
     cy.wait('@delete1');
 
     cy.visit('/ref/e/internal:?debug=USER&search=General+Chat');
