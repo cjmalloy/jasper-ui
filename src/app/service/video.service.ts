@@ -139,7 +139,9 @@ export class VideoService {
 
   hangup() {
     this.url = '';
-    this.store.video.peers.keys().forEach(user => this.ts.deleteResponse('plugin/user/video', 'tag:/' + user).subscribe());
+    for (const user of this.store.video.peers.keys()) {
+      this.ts.deleteResponse('plugin/user/video', 'tag:/' + user).subscribe();
+    }
     this.store.video.hangup();
     this.destroy$.next();
   }
