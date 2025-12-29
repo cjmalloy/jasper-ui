@@ -28,6 +28,12 @@ export class VideoStore {
     }
   }
 
+  remove(user: string) {
+    this.peers.get(user)?.close();
+    this.peers.delete(user);
+    this.streams.delete(user);
+  }
+
   hangup() {
     for (const [user, peer] of this.peers) peer.close();
     this.peers.clear();
