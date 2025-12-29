@@ -5,7 +5,7 @@ describe('Video Chat Plugin', {
 }, () => {
   it('loads the page', () => {
     cy.visit('/?debug=USER');
-    cy.contains('Powered by Jasper', { timeout: 1000 * 60 });
+    cy.contains('Powered by Jasper', { timeout: 1000 * 60 }); // 1 minute
   });
 
   it('clear mods', () => {
@@ -17,7 +17,8 @@ describe('Video Chat Plugin', {
     cy.get('.settings a').contains('settings').click();
     cy.get('.tabs').contains('setup').click();
 
-    cy.wait(100);
+    // Wait for the setup tab to load
+    cy.get('#mod-chat').should('be.visible');
     cy.get('#mod-chat').should('not.be.checked').check().should('be.checked');
     cy.get('button').contains('Save').click();
     cy.get('.log').contains('Success');
@@ -135,7 +136,10 @@ describe('Video Chat Plugin', {
     cy.visit('/ref/e/internal:?debug=USER&search=Video+Chat+Room');
     cy.get('.ref-list-item.ref .actions *').contains('delete').click();
     cy.get('.ref-list-item.ref .actions *').contains('yes').click();
-    cy.wait(500);
+    
+    // Wait for deletion to complete before navigating
+    cy.intercept({method: 'DELETE', pathname: '/api/v1/ref'}).as('delete1');
+    cy.wait('@delete1');
 
     cy.visit('/ref/e/internal:?debug=USER&search=General+Chat');
     cy.get('.ref-list-item.ref .actions *').contains('delete').click();
