@@ -1,10 +1,9 @@
 import { Injectable } from '@angular/core';
-import { defer, isEqual } from 'lodash-es';
 import { runInAction } from 'mobx';
-import { catchError, filter, map, mergeMap, of, Subject, Subscription, switchMap, takeUntil } from 'rxjs';
-import { Ref } from '../model/ref';
+import { filter, map, mergeMap, Subject, Subscription, switchMap, takeUntil } from 'rxjs';
 import { Store } from '../store/store';
-import { getUserUrl, hasTag } from '../util/tag';
+import { escapePath } from '../util/json-patch';
+import { getUserUrl, hasTag, setPublic } from '../util/tag';
 import { RefService } from './api/ref.service';
 import { StompService } from './api/stomp.service';
 import { TaggingService } from './api/tagging.service';
@@ -24,8 +23,7 @@ interface VideoSignaling {
 export class VideoService {
   private destroy$ = new Subject<void>();
 
-  query = '';
-  responseOf = '';
+  url = '';
 
   config: RTCConfiguration = {
     iceServers: [
@@ -33,8 +31,6 @@ export class VideoService {
     ],
   };
 
-  private res?: Ref;
-  private video?: VideoSignaling;
   private tx?: Subscription;
   private stream?: MediaStream;
 
@@ -51,12 +47,20 @@ export class VideoService {
     this.store.video.call(user, peer);
     peer.addEventListener('icecandidate', event => {
       if (event.candidate) {
-        this.send({ type: 'candidate', payload: event.candidate.toJSON() })
+        this.ts.patchResponse([setPublic(user), 'plugin/user/video'], 'tag:/' + user, [{
+          op: 'add',
+          path: '/' + escapePath('plugin/user/video') + '/candidate/-',
+          value: event.candidate.toJSON(),
+        }]).subscribe();
       }
     });
     peer.addEventListener('connectionstatechange', event => {
       if (peer.connectionState === 'connected') {
         //
+      }
+      if (peer.connectionState === 'disconnected') {
+        this.store.video.remove(user);
+        this.ts.deleteResponse('plugin/user/video', 'tag:/' + user).subscribe();
       }
       console.log('connectionstatechange', peer.connectionState);
     });
@@ -68,14 +72,13 @@ export class VideoService {
     return peer;
   }
 
-  call(query: string, responseOf: string, stream: MediaStream) {
-    if (this.query === query && this.responseOf === responseOf) return;
+  call(url: string, stream: MediaStream) {
+    if (this.url === url) return;
     this.stream = stream;
-    this.query = query;
-    this.responseOf = responseOf;
+    this.url = url;
     this.destroy$.next();
     runInAction(() => this.store.video.stream = stream);
-    this.refs.page({ query: 'plugin/user/video', responses: this.responseOf || ('tag:/' + this.query) })
+    this.refs.page({ query: 'plugin/user/lobby', responses: url })
       .pipe(
         mergeMap(page => page.content),
         map(ref => getUserUrl(ref)),
@@ -84,34 +87,44 @@ export class VideoService {
         const peer = this.peer(user);
         peer.createOffer().then(offer => {
           peer.setLocalDescription(offer).then(() => {
-            defer(() => {
-              this.send({ type: 'offer', payload: offer });
-            });
+            this.ts.mergeResponse([setPublic(user), 'plugin/user/video'], 'tag:/' + user, {
+              'plugin/user/video': { offer }
+            }).subscribe();
           });
         });
       });
-    this.stomp.watchResponse(this.responseOf || ('tag:/' + this.query)).pipe(
+    this.stomp.watchResponse('tag:/' + this.store.account.localTag).pipe(
       switchMap(url => this.refs.getCurrent(url)),
       takeUntil(this.destroy$)
     ).subscribe(res => {
       const user = getUserUrl(res);
       if (user === this.store.account.tag) return;
+      if (!hasTag('plugin/user/video', res)) {
+        if (this.store.video.peers.has(user)) {
+          this.store.video.remove(user);
+          this.ts.deleteResponse('plugin/user/video', 'tag:/' + user).subscribe();
+        }
+        return;
+      }
       const video = res.plugins?.['plugin/user/video'] as VideoSignaling | undefined;
-      if (video && hasTag('plugin/user/video', res)) {
+      if (video) {
         const peer = this.peer(user);
-        if (video.offer) {
-          peer.setRemoteDescription(new RTCSessionDescription(video.offer))
-            .then(() => peer.createAnswer())
-            .then(answer => {
-              peer.setLocalDescription(answer).then(() => {
-                this.send({ type: 'answer', payload: answer });
+        if (video.offer && !peer.remoteDescription) {
+          if (!peer.localDescription) {
+            peer.setRemoteDescription(new RTCSessionDescription(video.offer))
+              .then(() => peer.createAnswer())
+              .then(answer => {
+                peer.setLocalDescription(answer).then(() => {
+                  this.ts.mergeResponse([setPublic(user), 'plugin/user/video'], 'tag:/' + user, {
+                    'plugin/user/video': { offer: answer }
+                  }).subscribe();
+                });
               });
-            });
+          } else {
+            peer.setRemoteDescription(new RTCSessionDescription(video.offer));
+          }
         }
-        if (video.answer) {
-          peer.setRemoteDescription(new RTCSessionDescription(video.answer));
-        }
-        if (video.candidate) {
+        if (video.candidate && peer.remoteDescription) {
           video.candidate.forEach((c) => {
             try {
               peer.addIceCandidate(c);
@@ -124,57 +137,9 @@ export class VideoService {
     });
   }
 
-  send(data?: { type: string, payload: any  }) {
-    if (data?.type) {
-      console.log('Peer trying to send message', data);
-      this.video ||= {};
-      if (data.type === 'offer') {
-        this.video = {};
-        this.video.offer = data.payload;
-      }
-      if (data.type === 'answer') {
-        this.video.answer = data.payload;
-      }
-      if (data.type === 'candidate') {
-        this.video.candidate ||= [];
-        this.video.candidate.push(data.payload);
-      }
-    }
-    if (!this.video) return;
-    if (this.res) {
-      if (this.tx) return;
-      if (isEqual(this.res.plugins?.['plugin/user/video'], this.video)) return;
-      this.res.plugins ||= {};
-      this.res.plugins['plugin/user/video'] = this.video;
-      delete this.video;
-      this.tx = this.refs.update(this.res).pipe(
-        catchError(err => {
-          if (err.status === 409) {
-            this.video = this.res!.plugins!['plugin/user/video'];
-            this.res = undefined;
-            this.send(data);
-            return of();
-          }
-          console.error(err);
-          return of();
-        })
-      ).subscribe(() => {
-        delete this.tx;
-        if (this.video) this.send();
-      });
-    } else {
-      this.tx = this.ts.getResponse(this.responseOf || ('tag:/' + this.query))
-        .subscribe(res => {
-          delete this.tx;
-          this.res = res;
-          this.send();
-        });
-    }
-  }
-
   hangup() {
-    this.query = '';
-    this.responseOf = '';
+    this.url = '';
+    this.store.video.peers.keys().forEach(user => this.ts.deleteResponse('plugin/user/video', 'tag:/' + user).subscribe());
     this.store.video.hangup();
     this.destroy$.next();
   }
