@@ -206,12 +206,12 @@
               <a [routerLink]="['/ref', ref.url, 'errors']" [queryParams]="{ origin: obsoleteOrigin }" (click)="saveRef()" i18n>{errors, plural, =1 {1&thinsp;error} other {{{ errors }}&thinsp;errors}}</a>
             }
             @if (comments) {
-              <a [routerLink]="['/ref', ref.url, 'comments']" [queryParams]="{ origin: obsoleteOrigin }" (click)="markCommentsAsSeen(); saveRef()" i18n>{comments, plural, =1 {1&thinsp;comment} other {{{ comments }}&thinsp;comments}}@if (newCommentsCount > 0) {<span> ({{ newCommentsCount }} new)</span>}</a>
+              <a [routerLink]="['/ref', ref.url, 'comments']" [queryParams]="{ origin: obsoleteOrigin }" (click)="markCommentsAsSeen(); saveRef()" i18n>{comments, plural, =1 {1&thinsp;comment} other {{{ comments }}&thinsp;comments}}</a>@if (newCommentsCount > 0) {<span i18n> ({{ newCommentsCount }} new)</span>}
             } @else if (threads) {
-              <a [routerLink]="['/ref', ref.url, 'thread']" [queryParams]="{ origin: obsoleteOrigin }" (click)="markThreadsAsSeen(); saveRef()" i18n>{threads, plural, =1 {1&thinsp;reply} other {{{ threads }}&thinsp;replies}}@if (newThreadsCount > 0) {<span> ({{ newThreadsCount }} new)</span>}</a>
+              <a [routerLink]="['/ref', ref.url, 'thread']" [queryParams]="{ origin: obsoleteOrigin }" (click)="markThreadsAsSeen(); saveRef()" i18n>{threads, plural, =1 {1&thinsp;reply} other {{{ threads }}&thinsp;replies}}</a>@if (newThreadsCount > 0) {<span i18n> ({{ newThreadsCount }} new)</span>}
             }
             @if (responses) {
-              <a [routerLink]="['/ref', ref.url, 'responses']" [queryParams]="{ origin: obsoleteOrigin }" (click)="markResponsesAsSeen(); saveRef()" i18n>{feed, select, true {{{ responses }}&thinsp;scraped} false {{responses, plural, =1 {1&thinsp;citation} other {{{ responses }}&thinsp;citations}}}}@if (newResponsesCount > 0) {<span> ({{ newResponsesCount }} new)</span>}</a>
+              <a [routerLink]="['/ref', ref.url, 'responses']" [queryParams]="{ origin: obsoleteOrigin }" (click)="markResponsesAsSeen(); saveRef()" i18n>{feed, select, true {{{ responses }}&thinsp;scraped} false {{responses, plural, =1 {1&thinsp;citation} other {{{ responses }}&thinsp;citations}}}}</a>@if (newResponsesCount > 0) {<span i18n> ({{ newResponsesCount }} new)</span>}
             }
             @if (parentComment) {
               <a [routerLink]="['/ref', parentComment, 'comments']" [queryParams]="{ origin: obsoleteOrigin }" i18n>parent</a>
