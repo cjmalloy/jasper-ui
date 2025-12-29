@@ -90,7 +90,7 @@ export class LocalStore {
    */
   getLastSeenCount(url: string, type: 'comments' | 'threads' | 'replies'): number {
     const value = localStorage.getItem(`lastSeen:${type}:${url}`);
-    return value ? parseInt(value, 10) : 0;
+    return value ? (parseInt(value, 10) || 0) : 0;
   }
 
   /**
