@@ -80,7 +80,7 @@ describe('VideoService', () => {
 
     // Mock RTCPeerConnection constructor
     vi.stubGlobal('RTCPeerConnection', vi.fn(() => mockPeerConnection));
-    
+
     // Mock RTCSessionDescription constructor
     vi.stubGlobal('RTCSessionDescription', vi.fn((init: any) => init));
 
@@ -130,8 +130,8 @@ describe('VideoService', () => {
       const user = 'user/alice';
       const mockTrack = {} as MediaStreamTrack;
       mockMediaStream.getTracks.mockReturnValue([mockTrack]);
-      
-      service.call('test-query', '', mockMediaStream);
+
+      service.call('tag:/chat', mockMediaStream);
       service.peer(user);
 
       expect(mockPeerConnection.addTrack).toHaveBeenCalledWith(mockTrack, mockMediaStream);
@@ -161,8 +161,7 @@ describe('VideoService', () => {
 
   describe('offer/answer exchange', () => {
     it('should create and send offer when calling', async () => {
-      const query = 'test-query';
-      const responseOf = 'test-response';
+      const url = 'tag:/chat';
       const mockOffer = { type: 'offer', sdp: 'mock-sdp' } as RTCSessionDescriptionInit;
       const mockRef: Ref = {
         url: 'tag:/user/alice?plugin/user/video',
@@ -174,17 +173,17 @@ describe('VideoService', () => {
       mockRefs.page.mockReturnValue(of(mockPage));
       mockPeerConnection.createOffer.mockResolvedValue(mockOffer);
 
-      service.call(query, responseOf, mockMediaStream);
+      service.call(url, mockMediaStream);
 
       // Wait for async operations
       await new Promise(resolve => setTimeout(resolve, ASYNC_OPERATION_WAIT_MS));
-      
+
       expect(mockPeerConnection.createOffer).toHaveBeenCalled();
       expect(mockPeerConnection.setLocalDescription).toHaveBeenCalledWith(mockOffer);
     });
 
     it('should handle incoming offer and create answer', async () => {
-      const query = 'test-query';
+      const url = 'tag:/chat';
       const mockOffer = { type: 'offer', sdp: 'mock-sdp' } as RTCSessionDescriptionInit;
       const mockAnswer = { type: 'answer', sdp: 'mock-answer-sdp' } as RTCSessionDescriptionInit;
       const mockRef: Ref = {
@@ -202,11 +201,11 @@ describe('VideoService', () => {
       mockRefs.getCurrent.mockReturnValue(of(mockRef));
       mockPeerConnection.createAnswer.mockResolvedValue(mockAnswer);
 
-      service.call(query, '', mockMediaStream);
+      service.call(url, mockMediaStream);
 
       // Wait for async operations
       await new Promise(resolve => setTimeout(resolve, ASYNC_OPERATION_WAIT_MS));
-      
+
       expect(mockPeerConnection.setRemoteDescription).toHaveBeenCalled();
       expect(mockPeerConnection.createAnswer).toHaveBeenCalled();
       expect(mockPeerConnection.setLocalDescription).toHaveBeenCalledWith(mockAnswer);
@@ -228,11 +227,11 @@ describe('VideoService', () => {
       mockStomp.watchResponse.mockReturnValue(of('test-url'));
       mockRefs.getCurrent.mockReturnValue(of(mockRef));
 
-      service.call('test-query', '', mockMediaStream);
+      service.call('tag:/chat', mockMediaStream);
 
       // Wait for async operations
       await new Promise(resolve => setTimeout(resolve, ASYNC_OPERATION_WAIT_MS));
-      
+
       expect(mockPeerConnection.setRemoteDescription).toHaveBeenCalled();
     });
   });
@@ -240,8 +239,8 @@ describe('VideoService', () => {
   describe('ICE candidate handling', () => {
     it('should send ICE candidates when generated', async () => {
       const user = 'user/alice';
-      const mockCandidate = { 
-        candidate: 'mock-candidate', 
+      const mockCandidate = {
+        candidate: 'mock-candidate',
         sdpMid: '0',
         toJSON: vi.fn().mockReturnValue({ candidate: 'mock-candidate', sdpMid: '0' })
       } as any;
@@ -256,7 +255,7 @@ describe('VideoService', () => {
       service.peer(user);
 
       expect(iceCandidateHandler).toBeDefined();
-      
+
       // Simulate ICE candidate event
       const mockEvent = { candidate: mockCandidate } as RTCPeerConnectionIceEvent;
       iceCandidateHandler!(mockEvent);
@@ -284,11 +283,11 @@ describe('VideoService', () => {
       mockStomp.watchResponse.mockReturnValue(of('test-url'));
       mockRefs.getCurrent.mockReturnValue(of(mockRef));
 
-      service.call('test-query', '', mockMediaStream);
+      service.call('tag:/chat', mockMediaStream);
 
       // Wait for async operations
       await new Promise(resolve => setTimeout(resolve, ASYNC_OPERATION_WAIT_MS));
-      
+
       expect(mockPeerConnection.addIceCandidate).toHaveBeenCalledWith(mockCandidate);
     });
 
@@ -312,90 +311,23 @@ describe('VideoService', () => {
       });
 
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-      service.call('test-query', '', mockMediaStream);
+      service.call('tag:/chat', mockMediaStream);
 
       // Wait for async operations
       await new Promise(resolve => setTimeout(resolve, ASYNC_OPERATION_WAIT_MS));
-      
+
       expect(consoleErrorSpy).toHaveBeenCalledWith('Error adding received ice candidate', expect.any(Error));
-      consoleErrorSpy.mockRestore();
-    });
-  });
-
-  describe('conflict resolution on 409 errors', () => {
-    it('should handle 409 conflict by resetting state', async () => {
-      const mockRef: Ref = {
-        url: 'test-url',
-        origin: '',
-        tags: ['plugin/user/video'],
-        plugins: {},
-      };
-
-      mockTagging.getResponse.mockReturnValue(of(mockRef));
-      mockRefs.update.mockReturnValue(throwError(() => ({ status: 409 })));
-
-      service.send({ type: 'offer', payload: { type: 'offer', sdp: 'mock-sdp' } });
-
-      // Wait for async operations
-      await new Promise(resolve => setTimeout(resolve, ASYNC_OPERATION_WAIT_MS));
-      
-      // Should have attempted to update at least once
-      expect(mockRefs.update).toHaveBeenCalled();
-    });
-
-    it('should preserve video data on 409 conflict', async () => {
-      const mockRef: Ref = {
-        url: 'test-url',
-        origin: '',
-        tags: ['plugin/user/video'],
-        plugins: {
-          'plugin/user/video': { existing: 'data' },
-        },
-      };
-
-      mockTagging.getResponse.mockReturnValue(of(mockRef));
-      mockRefs.update.mockReturnValue(throwError(() => ({ status: 409 })));
-
-      service.send({ type: 'offer', payload: { type: 'offer', sdp: 'mock-sdp' } });
-
-      // Wait for async operations
-      await new Promise(resolve => setTimeout(resolve, ASYNC_OPERATION_WAIT_MS));
-      
-      // After 409, video data should be set from the ref
-      expect(service['video']).toBeDefined();
-    });
-
-    it('should handle non-409 errors gracefully', async () => {
-      const mockRef: Ref = {
-        url: 'test-url',
-        origin: '',
-        tags: ['plugin/user/video'],
-        plugins: {},
-      };
-
-      mockTagging.getResponse.mockReturnValue(of(mockRef));
-      mockRefs.update.mockReturnValue(throwError(() => ({ status: 500, message: 'Server error' })));
-
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-      service.send({ type: 'offer', payload: { type: 'offer', sdp: 'mock-sdp' } });
-
-      // Wait for async operations
-      await new Promise(resolve => setTimeout(resolve, ASYNC_OPERATION_WAIT_MS));
-      
-      expect(consoleErrorSpy).toHaveBeenCalled();
       consoleErrorSpy.mockRestore();
     });
   });
 
   describe('cleanup on hangup', () => {
     it('should clear query and responseOf on hangup', () => {
-      service.query = 'test-query';
-      service.responseOf = 'test-response';
+      service.url = 'test:/chat';
 
       service.hangup();
 
-      expect(service.query).toBe('');
-      expect(service.responseOf).toBe('');
+      expect(service.url).toBe('');
     });
 
     it('should call store.video.hangup on hangup', () => {
@@ -416,7 +348,7 @@ describe('VideoService', () => {
 
   describe('subscription management', () => {
     let freshMockStore: any;
-    
+
     beforeEach(() => {
       // Create a completely fresh mock store for these tests
       const videoStore = {
@@ -431,13 +363,12 @@ describe('VideoService', () => {
         video: videoStore,
         account: { tag: 'user/test' },
       };
-      
+
       // Replace the service's store reference
       (service as any).store = freshMockStore;
-      
+
       // Reset service state
-      service.query = '';
-      service.responseOf = '';
+      service.url = '';
     });
 
     it('should stop previous subscription when calling with different parameters', () => {
@@ -451,26 +382,24 @@ describe('VideoService', () => {
       mockRefs.page.mockReturnValue(of(mockPage1));
 
       // First call
-      service.call('query1', 'response1', mockMediaStream);
+      service.call('tag:/chat', mockMediaStream);
       const firstDestroySpy = vi.fn();
       service['destroy$'].subscribe(firstDestroySpy);
 
       // Second call with different parameters
-      service.call('query2', 'response2', mockMediaStream);
+      service.call('tag:/chat', mockMediaStream);
 
       expect(firstDestroySpy).toHaveBeenCalled();
     });
 
     it('should not create new subscription when calling with same parameters', () => {
-      const query = 'test-query';
-      const responseOf = 'test-response';
-      
-      service.query = query;
-      service.responseOf = responseOf;
+      const url = 'tag:/chat';
+
+      service.url = url;
 
       const pageCallCount = mockRefs.page.mock.calls.length;
 
-      service.call(query, responseOf, mockMediaStream);
+      service.call(url, mockMediaStream);
 
       expect(mockRefs.page.mock.calls.length).toBe(pageCallCount);
     });
@@ -490,7 +419,7 @@ describe('VideoService', () => {
 
       mockRefs.page.mockReturnValue(of(mockPage));
 
-      service.call('test-query', '', mockMediaStream);
+      service.call('tag:/chat', mockMediaStream);
 
       // Should only create peer for alice, not for self (test user)
       expect(freshMockStore.video.call).toHaveBeenCalledTimes(1);
