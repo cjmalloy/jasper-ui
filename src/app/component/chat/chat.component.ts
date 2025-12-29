@@ -22,7 +22,6 @@ import { getArgs } from '../../util/query';
 import { braces, tagOrigin } from '../../util/tag';
 import { LoadingComponent } from '../loading/loading.component';
 import { ChatEntryComponent } from './chat-entry/chat-entry.component';
-import { ChatVideoComponent } from './chat-video/chat-video.component';
 
 @Component({
   selector: 'app-chat',
@@ -31,7 +30,6 @@ import { ChatVideoComponent } from './chat-video/chat-video.component';
   host: { 'class': 'chat ext' },
   imports: [
     ChatEntryComponent,
-    ChatVideoComponent,
     LoadingComponent,
     CdkVirtualScrollViewport,
     CdkFixedSizeVirtualScroll,
