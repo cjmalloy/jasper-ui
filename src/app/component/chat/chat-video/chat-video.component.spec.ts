@@ -66,12 +66,12 @@ describe('ChatVideoComponent', () => {
   });
 
   describe('Automatic call initiation', () => {
-    it('should automatically call when plugin/user/video tag is detected and video is not enabled', () => {
+    it('should automatically call when plugin/user/lobby tag is detected and video is not enabled', () => {
       mockStore.video.enabled = false;
       const mockRef: Ref = {
         url: 'test://url',
         origin: '',
-        tags: ['plugin/user/video']
+        tags: ['plugin/user/lobby']
       };
       mockTaggingService.getResponse.mockReturnValue(of(mockRef));
       mockTaggingService.respond.mockReturnValue(of(undefined));
@@ -95,9 +95,9 @@ describe('ChatVideoComponent', () => {
       expect(component.call).not.toHaveBeenCalled();
     });
 
-    it('should use responseOf URL if provided', () => {
+    it('should use custom URL if provided', () => {
       mockStore.video.enabled = false;
-      component.responseOf = { url: 'test://response', origin: '' } as Ref;
+      component.url = 'test://response';
       mockTaggingService.getResponse.mockReturnValue(of({} as Ref));
 
       fixture.detectChanges();
@@ -129,7 +129,7 @@ describe('ChatVideoComponent', () => {
       await component.call();
 
       expect(mockTaggingService.respond).toHaveBeenCalledWith(
-        ['public', 'plugin/user/video'],
+        ['public', 'plugin/user/lobby'],
         'tag:/chat'
       );
     });
@@ -138,7 +138,7 @@ describe('ChatVideoComponent', () => {
       component.call();
       // Wait for getUserMedia promise to resolve and .then() to execute
       await vi.waitFor(() => {
-        expect(mockVideoService.call).toHaveBeenCalledWith('chat', '', mockMediaStream);
+        expect(mockVideoService.call).toHaveBeenCalledWith('tag:/chat', mockMediaStream);
       });
     });
   });
@@ -214,7 +214,7 @@ describe('ChatVideoComponent', () => {
       component.hangup();
 
       expect(mockTaggingService.deleteResponse).toHaveBeenCalledWith(
-        'plugin/user/video',
+        'plugin/user/lobby',
         'tag:/chat'
       );
     });
@@ -225,13 +225,13 @@ describe('ChatVideoComponent', () => {
       expect(mockVideoService.hangup).toHaveBeenCalled();
     });
 
-    it('should use responseOf URL when provided', () => {
-      component.responseOf = { url: 'test://response', origin: '' } as Ref;
+    it('should use custom URL when provided', () => {
+      component.url = 'test://response';
 
       component.hangup();
 
       expect(mockTaggingService.deleteResponse).toHaveBeenCalledWith(
-        'plugin/user/video',
+        'plugin/user/lobby',
         'test://response'
       );
     });
