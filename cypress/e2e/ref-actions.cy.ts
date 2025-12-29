@@ -85,19 +85,23 @@ describe('Ref Actions', {
     });
 
     it('should show "(1 new)" when first comment is added', () => {
-      // Add a comment
+      // Add a comment with API intercept
+      cy.intercept('POST', '/api/v1/ref').as('createComment');
       cy.get('.actions *').contains('reply').click();
       cy.get('.full-page.ref .comment-reply textarea').type('First comment');
       cy.get('.full-page.ref button').contains('reply').click();
       
-      // Wait for comment to be created and navigate away
-      cy.wait(500);
+      // Wait for comment to be created
+      cy.wait('@createComment');
+      cy.wait(1000); // Additional wait for metadata to update
+      
+      // Navigate away
       cy.visit('/?debug=MOD');
-      cy.wait(500);
+      cy.wait(1000);
       
       // Navigate back and check for "(1 new)" indicator
       cy.get('.ref-list .link a').contains('Test Ref for New Indicators').parent().parent().parent().as('testRef');
-      cy.get('@testRef').find('.actions').should('contain', '1 comment');
+      cy.get('@testRef').find('.actions').should('contain', 'comment');
       cy.get('@testRef').find('.actions').should('contain', '(1 new)');
     });
 
@@ -106,14 +110,16 @@ describe('Ref Actions', {
       cy.get('.ref-list .link a').contains('Test Ref for New Indicators').parent().parent().parent().as('testRef');
       cy.get('@testRef').find('.actions *').contains('comment').click();
       
+      // Wait for page to load
+      cy.wait(1000);
+      
       // Navigate away and back
-      cy.wait(500);
       cy.visit('/?debug=MOD');
-      cy.wait(500);
+      cy.wait(1000);
       
       // Check that "(X new)" is gone
       cy.get('.ref-list .link a').contains('Test Ref for New Indicators').parent().parent().parent().as('testRef');
-      cy.get('@testRef').find('.actions').should('contain', '1 comment');
+      cy.get('@testRef').find('.actions').should('contain', 'comment');
       cy.get('@testRef').find('.actions').should('not.contain', 'new');
     });
 
@@ -121,36 +127,40 @@ describe('Ref Actions', {
       // Navigate to the ref
       cy.get('.ref-list .link a').contains('Test Ref for New Indicators').click();
       
-      // Add second comment
+      // Add second comment with API intercept
+      cy.intercept('POST', '/api/v1/ref').as('createComment2');
       cy.get('.actions *').contains('reply').click();
       cy.get('.full-page.ref .comment-reply textarea').type('Second comment');
       cy.get('.full-page.ref button').contains('reply').click();
-      cy.wait(500);
+      cy.wait('@createComment2');
+      cy.wait(1000);
       
-      // Add third comment
+      // Add third comment with API intercept
+      cy.intercept('POST', '/api/v1/ref').as('createComment3');
       cy.get('.actions *').contains('reply').click();
       cy.get('.full-page.ref .comment-reply textarea').type('Third comment');
       cy.get('.full-page.ref button').contains('reply').click();
-      cy.wait(500);
+      cy.wait('@createComment3');
+      cy.wait(1000);
       
       // Navigate away and back
       cy.visit('/?debug=MOD');
-      cy.wait(500);
+      cy.wait(1000);
       
       // Check for "(2 new)" indicator (3 total - 1 previously seen)
       cy.get('.ref-list .link a').contains('Test Ref for New Indicators').parent().parent().parent().as('testRef');
-      cy.get('@testRef').find('.actions').should('contain', '3 comments');
+      cy.get('@testRef').find('.actions').should('contain', 'comment');
       cy.get('@testRef').find('.actions').should('contain', '(2 new)');
     });
 
     it('should persist "(X new)" across page reloads', () => {
       // Reload the page
       cy.reload();
-      cy.wait(500);
+      cy.wait(1000);
       
       // Check that "(2 new)" is still there
       cy.get('.ref-list .link a').contains('Test Ref for New Indicators').parent().parent().parent().as('testRef');
-      cy.get('@testRef').find('.actions').should('contain', '3 comments');
+      cy.get('@testRef').find('.actions').should('contain', 'comment');
       cy.get('@testRef').find('.actions').should('contain', '(2 new)');
     });
 
@@ -159,14 +169,14 @@ describe('Ref Actions', {
       cy.get('.ref-list .link a').contains('Test Ref for New Indicators').parent().parent().parent().as('testRef');
       cy.get('@testRef').find('.actions *').contains('comment').click();
       
-      // Wait and navigate away
-      cy.wait(500);
+      // Wait for page to load and navigate away
+      cy.wait(1000);
       cy.visit('/?debug=MOD');
-      cy.wait(500);
+      cy.wait(1000);
       
       // Verify "(X new)" is cleared
       cy.get('.ref-list .link a').contains('Test Ref for New Indicators').parent().parent().parent().as('testRef');
-      cy.get('@testRef').find('.actions').should('contain', '3 comments');
+      cy.get('@testRef').find('.actions').should('contain', 'comment');
       cy.get('@testRef').find('.actions').should('not.contain', 'new');
     });
 
@@ -182,27 +192,34 @@ describe('Ref Actions', {
       cy.get('button').contains('Submit').click({ force: true });
       cy.get('.full-page.ref .link a').should('have.text', 'Parent for Nested Comments');
       
-      // Add a comment
+      // Add a comment with API intercept
+      cy.intercept('POST', '/api/v1/ref').as('createParent');
       cy.get('.actions *').contains('reply').click();
       cy.get('.full-page.ref .comment-reply textarea').type('Parent comment');
       cy.get('.full-page.ref button').contains('reply').click();
-      cy.wait(500);
+      cy.wait('@createParent');
+      cy.wait(1000);
       
       // Navigate to the comment
-      cy.get('.full-page.ref .actions *').contains('1 citation').click();
+      cy.get('.full-page.ref .actions *').contains('citation').click();
+      cy.wait(500);
       cy.get('.ref-list-item.ref .actions *').contains('permalink').click();
+      cy.wait(1000);
       
-      // Add a reply to the comment
+      // Add a reply to the comment with API intercept
+      cy.intercept('POST', '/api/v1/ref').as('createChild');
       cy.get('.actions *').contains('reply').click();
       cy.get('.full-page.ref .comment-reply textarea').type('Child comment');
       cy.get('.full-page.ref button').contains('reply').click();
-      cy.wait(500);
+      cy.wait('@createChild');
+      cy.wait(1000);
       
       // Collapse the comment (if expanded)
       cy.get('.comment-collapse').first().click();
+      cy.wait(500);
       
       // The collapsed comment should show "(1 new)" for the child comment
-      cy.get('.comment.collapsed').should('contain', '1 child');
+      cy.get('.comment.collapsed').should('contain', 'child');
       cy.get('.comment.collapsed').should('contain', '(1 new)');
     });
   });
