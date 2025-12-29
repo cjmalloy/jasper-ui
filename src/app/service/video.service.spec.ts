@@ -51,11 +51,12 @@ describe('VideoService', () => {
       stream: undefined,
       call: vi.fn(),
       addStream: vi.fn(),
+      remove: vi.fn(),
       hangup: vi.fn(),
     };
     mockStore = {
       video: videoStore,
-      account: { tag: 'user/test' },
+      account: { tag: 'user/test', localTag: 'user/test' },
     };
 
     // Create mock StompService
@@ -69,6 +70,9 @@ describe('VideoService', () => {
         url: 'test-url',
         origin: '',
       } as Ref)),
+      patchResponse: vi.fn().mockReturnValue(of('success')),
+      mergeResponse: vi.fn().mockReturnValue(of('success')),
+      deleteResponse: vi.fn().mockReturnValue(of(undefined)),
     };
 
     // Create mock RefService
@@ -211,18 +215,21 @@ describe('VideoService', () => {
       expect(mockPeerConnection.setLocalDescription).toHaveBeenCalledWith(mockAnswer);
     });
 
-    it('should handle incoming answer', async () => {
-      const mockAnswer = { type: 'answer', sdp: 'mock-answer-sdp' } as RTCSessionDescriptionInit;
+    it('should handle incoming offer when already have local description', async () => {
+      const mockOffer = { type: 'offer', sdp: 'mock-offer-sdp' } as RTCSessionDescriptionInit;
       const mockRef: Ref = {
         url: 'tag:/user/alice?plugin/user/video',
         origin: '',
         tags: ['plugin/user/video'],
         plugins: {
           'plugin/user/video': {
-            answer: mockAnswer,
+            offer: mockOffer,
           },
         },
       };
+
+      // Set local description to simulate that we've already made an offer
+      mockPeerConnection.localDescription = { type: 'offer', sdp: 'our-offer' };
 
       mockStomp.watchResponse.mockReturnValue(of('test-url'));
       mockRefs.getCurrent.mockReturnValue(of(mockRef));
@@ -280,6 +287,9 @@ describe('VideoService', () => {
         },
       };
 
+      // Set remote description so ICE candidates can be added
+      mockPeerConnection.remoteDescription = { type: 'offer', sdp: 'mock-sdp' };
+
       mockStomp.watchResponse.mockReturnValue(of('test-url'));
       mockRefs.getCurrent.mockReturnValue(of(mockRef));
 
@@ -303,6 +313,9 @@ describe('VideoService', () => {
           },
         },
       };
+
+      // Set remote description so ICE candidates can be added
+      mockPeerConnection.remoteDescription = { type: 'offer', sdp: 'mock-sdp' };
 
       mockStomp.watchResponse.mockReturnValue(of('test-url'));
       mockRefs.getCurrent.mockReturnValue(of(mockRef));
@@ -357,11 +370,12 @@ describe('VideoService', () => {
         stream: undefined,
         call: vi.fn(),
         addStream: vi.fn(),
+        remove: vi.fn(),
         hangup: vi.fn(),
       };
       freshMockStore = {
         video: videoStore,
-        account: { tag: 'user/test' },
+        account: { tag: 'user/test', localTag: 'user/test' },
       };
 
       // Replace the service's store reference
@@ -381,13 +395,15 @@ describe('VideoService', () => {
 
       mockRefs.page.mockReturnValue(of(mockPage1));
 
-      // First call
-      service.call('tag:/chat', mockMediaStream);
+      // Subscribe to destroy$ before making calls
       const firstDestroySpy = vi.fn();
       service['destroy$'].subscribe(firstDestroySpy);
 
-      // Second call with different parameters
-      service.call('tag:/chat', mockMediaStream);
+      // First call
+      service.call('tag:/chat1', mockMediaStream);
+
+      // Second call with different URL
+      service.call('tag:/chat2', mockMediaStream);
 
       expect(firstDestroySpy).toHaveBeenCalled();
     });
