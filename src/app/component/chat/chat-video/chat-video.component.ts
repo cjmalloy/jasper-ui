@@ -1,7 +1,6 @@
-import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, Input } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, Input } from '@angular/core';
 import { runInAction } from 'mobx';
 import { MobxAngularModule } from 'mobx-angular';
-import { Ref } from '../../../model/ref';
 import { TaggingService } from '../../../service/api/tagging.service';
 import { VideoService } from '../../../service/video.service';
 import { Store } from '../../../store/store';
@@ -23,22 +22,19 @@ import { NavComponent } from '../../nav/nav.component';
 export class ChatVideoComponent implements AfterViewInit {
 
   @Input()
-  query = 'chat';
-  @Input()
-  responseOf?: Ref;
+  url = 'tag:/chat';
 
   constructor(
     public store: Store,
     private ts: TaggingService,
     private vs: VideoService,
-    private cd: ChangeDetectorRef,
   ) { }
 
   ngAfterViewInit() {
     if (!this.store.video.enabled) {
-      this.ts.getResponse(this.responseOf?.url || ('tag:/' + this.query))
+      this.ts.getResponse(this.url)
         .subscribe(ref => {
-          if (hasTag('plugin/user/video', ref)) this.call();
+          if (hasTag('plugin/user/lobby', ref)) this.call();
         });
     }
   }
@@ -49,14 +45,14 @@ export class ChatVideoComponent implements AfterViewInit {
 
   call() {
     runInAction(() => this.store.video.enabled = true);
-    this.ts.respond(['public', 'plugin/user/video'], this.responseOf?.url || ('tag:/' + this.query)).subscribe();
+    this.ts.respond(['public', 'plugin/user/lobby'], this.url).subscribe();
     navigator.mediaDevices.getUserMedia({ audio: true, video: true })
       .then(stream => {
         if (!this.store.video.enabled) {
           stream.getTracks().forEach(t => t.stop());
           return;
         }
-        this.vs.call(this.query, this.responseOf?.url || '', stream);
+        this.vs.call(this.url, stream);
       })
       .catch(err => {
         console.log("Raised error when capturing:", err);
@@ -65,7 +61,7 @@ export class ChatVideoComponent implements AfterViewInit {
 
   hangup() {
     runInAction(() => this.store.video.enabled = false);
-    this.ts.deleteResponse('plugin/user/video', this.responseOf?.url || ('tag:/' + this.query)).subscribe();
+    this.ts.deleteResponse('plugin/user/lobby', this.url).subscribe();
     this.vs.hangup();
   }
 }
