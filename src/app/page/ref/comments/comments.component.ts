@@ -59,6 +59,11 @@ export class RefCommentsComponent implements OnInit, OnDestroy, HasChanges {
       const filter = this.store.view.filter;
       const search = this.store.view.search;
       runInAction(() => this.thread.setArgs(top, sort, filter, search));
+      // Mark comments as seen when viewing the comments page
+      if (this.store.view.ref) {
+        const commentCount = this.store.view.ref.metadata?.plugins?.['plugin/comment'] || 0;
+        this.store.local.setLastSeenCount(this.store.view.url, 'comments', commentCount);
+      }
     }));
     this.newComments$.subscribe(c => {
       if (c && this.store.view.ref) {

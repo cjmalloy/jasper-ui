@@ -1,7 +1,7 @@
 <ng-container *mobxAutorun>
   @if (collapsed) {
     <div class="comment-container info collapsed" tabindex="0">
-      <span class="comment-expand fake-link" (click)="store.local.setRefToggled('comment:' + ref.url, !(collapsed = false))" i18n>[+]</span>&nbsp;
+      <span class="comment-expand fake-link" (click)="toggleCollapse(false)" i18n>[+]</span>&nbsp;
       @if (authors.length) {
         @if (authorExts$ | async; as xs) {
           @for (x of xs; track x.tag + x.origin) {
@@ -34,7 +34,7 @@
                 [ref]="ref">{{ icon.label }}</span>
         }
       }
-      ({comments, plural, =1 {1&thinsp;child} other {{{ comments }}&thinsp;children}})
+      ({comments, plural, =1 {1&thinsp;child} other {{{ comments }}&thinsp;children}})@if (newCommentsCount > 0) {<span i18n> ({{ newCommentsCount }} new)</span>}
     </div>
   }
 
@@ -59,7 +59,7 @@
     @if (!collapsed && !deleted) {
       <div class="comment-container" tabindex="0">
         <div class="info">
-          <span class="comment-collapse fake-link" (click)="store.local.setRefToggled('comment:' + ref.url, !(collapsed = true))">[&ndash;]</span>&nbsp;
+          <span class="comment-collapse fake-link" (click)="toggleCollapse(true)">[&ndash;]</span>&nbsp;
           @if (authors.length) {
             @if (authorExts$ | async; as xs) {
               @for (x of xs; track x.tag + x.origin) {

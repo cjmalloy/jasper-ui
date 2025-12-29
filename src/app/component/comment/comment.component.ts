@@ -182,6 +182,10 @@ export class CommentComponent implements OnInit, AfterViewInit, OnChanges, OnDes
     this.editing = false;
     this.actionComponents?.forEach(c => c.reset());
     this.collapsed = !this.store.local.isRefToggled('comment:' + this.ref.url, true);
+    // Update last seen count when viewing an expanded comment
+    if (!this.collapsed) {
+      this.store.local.setLastSeenCount(this.ref.url, 'comments', this.comments);
+    }
     this.writeAccess = this.auth.writeAccess(this.ref);
     this.taggingAccess = this.auth.taggingAccess(this.ref);
     this.deleteAccess = this.auth.deleteAccess(this.ref);
@@ -285,6 +289,13 @@ export class CommentComponent implements OnInit, AfterViewInit, OnChanges, OnDes
   @memo
   get comments() {
     return this.ref.metadata?.plugins?.['plugin/comment'] || 0;
+  }
+
+  @memo
+  get newCommentsCount() {
+    const current = this.comments;
+    const lastSeen = this.store.local.getLastSeenCount(this.ref.url, 'comments');
+    return Math.max(0, current - lastSeen);
   }
 
   @memo
@@ -430,5 +441,14 @@ export class CommentComponent implements OnInit, AfterViewInit, OnChanges, OnDes
     runInAction(() => {
       this.thread.loadAdHoc(this.ref?.url);
     });
+  }
+
+  toggleCollapse(newCollapsedState: boolean) {
+    this.collapsed = newCollapsedState;
+    this.store.local.setRefToggled('comment:' + this.ref.url, !newCollapsedState);
+    // Update last seen count when expanding
+    if (!newCollapsedState) {
+      this.store.local.setLastSeenCount(this.ref.url, 'comments', this.comments);
+    }
   }
 }

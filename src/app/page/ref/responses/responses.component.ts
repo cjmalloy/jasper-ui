@@ -57,6 +57,13 @@ export class RefResponsesComponent implements OnInit, OnDestroy, HasChanges {
     }));
     // TODO: set title for bare reposts
     this.disposers.push(autorun(() => this.mod.setTitle($localize`Responses: ` + getTitle(this.store.view.ref))));
+    // Mark responses as seen when viewing the responses page
+    this.disposers.push(autorun(() => {
+      if (this.store.view.ref) {
+        const responsesCount = this.store.view.ref.metadata?.responses || 0;
+        this.store.local.setLastSeenCount(this.store.view.url, 'replies', responsesCount);
+      }
+    }));
   }
 
   ngOnDestroy() {
