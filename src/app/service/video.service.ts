@@ -3,7 +3,7 @@ import { delay } from 'lodash-es';
 import { runInAction } from 'mobx';
 import { filter, map, mergeMap, Subject, switchMap, takeUntil } from 'rxjs';
 import { Store } from '../store/store';
-import { escapePath } from '../util/json-patch';
+import { escapePath, OpPatch } from '../util/json-patch';
 import { getUserUrl, hasTag, localTag, setPublic } from '../util/tag';
 import { RefService } from './api/ref.service';
 import { StompService } from './api/stomp.service';
@@ -50,11 +50,11 @@ export class VideoService {
       .subscribe();
     peer.addEventListener('icecandidate', event => {
       if (event.candidate) {
-        this.ts.patchResponse([setPublic(localTag(user)), 'plugin/user/video'], 'tag:/' + localTag(user), [{
+        this.patch(user, [{
           op: 'add',
           path: '/' + escapePath('plugin/user/video') + '/candidate/-',
           value: event.candidate.toJSON(),
-        }]).subscribe();
+        }])
       }
     });
     peer.addEventListener('connectionstatechange', event => {
@@ -188,4 +188,20 @@ export class VideoService {
     this.destroy$.next();
   }
 
+  queue = new Map<string, OpPatch[]>();
+  patch(user: string, ops: OpPatch[]) {
+    const scheduled = !this.queue.size;
+    const throttle = 400;
+    if (this.queue.has(user)) {
+      this.queue.get(user)!.push(...ops);
+    } else {
+      this.queue.set(user, ops);
+    }
+    if (!scheduled) delay(() => {
+      for (const [u, o] of this.queue.entries()) {
+        this.ts.patchResponse([setPublic(localTag(u)), 'plugin/user/video'], 'tag:/' + localTag(u), o).subscribe();
+      }
+      this.queue.clear();
+    }, throttle);
+  }
 }
