@@ -80,13 +80,11 @@ export class VideoService {
     const peer = new RTCPeerConnection(this.admin.getPlugin('plugin/user/video')!.config!.rtc);
     this.store.video.call(user, peer);
     peer.addEventListener('icecandidate', event => {
-      if (event.candidate) {
-        this.patch(user, [{
-          op: 'add',
-          path: '/' + escapePath('plugin/user/video') + '/candidate/-',
-          value: event.candidate.toJSON(),
-        }]);
-      }
+      this.patch(user, [{
+        op: 'add',
+        path: '/' + escapePath('plugin/user/video') + '/candidate/-',
+        value: event.candidate?.toJSON() || { candidate: null },
+      }]);
     });
     peer.addEventListener('connectionstatechange', event => {
       if (peer.connectionState === 'connected') {
@@ -198,11 +196,11 @@ export class VideoService {
           }
         }
       }
-      if (peer.remoteDescription && video.candidate?.length) {
-        console.warn('Adding Ice!', user);
+      if (peer.iceConnectionState !== 'completed' &&  peer.remoteDescription && video.candidate?.length) {
         // TODO: ignore seen
         video.candidate.forEach((c) => {
-          peer.addIceCandidate(c).catch(err => {
+          console.warn('Adding Ice!', user);
+          peer.addIceCandidate(c.candidate ? c : null).catch(err => {
             console.error('Error adding received ice candidate', err);
           });
         });
