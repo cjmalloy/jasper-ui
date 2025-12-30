@@ -13,12 +13,9 @@ describe('Video Chat Plugin', {
   });
 
   it('turn on chat mod (includes chat, lobby, and video plugins)', () => {
-    cy.visit('/?debug=ADMIN');
-    cy.get('.settings a').contains('settings').click();
-    cy.get('.tabs').contains('setup').click();
+    cy.visit('/settings/setup?debug=ADMIN');
 
-    // Wait for the setup tab to load
-    cy.get('#mod-chat').should('be.visible');
+    cy.wait(100);
     cy.get('#mod-chat').should('not.be.checked').check().should('be.checked');
     cy.get('button').contains('Save').click();
     cy.get('.log').contains('Success');
@@ -30,12 +27,15 @@ describe('Video Chat Plugin', {
     cy.contains('Submit').click();
     cy.get('.tabs').contains('text').click();
     cy.get('[name=title]').type('Video Chat Room');
-    cy.contains('show advanced').click();
-    cy.get('.tag-edit input').type('plugin/chat{enter}');
     cy.intercept({pathname: '/api/v1/ref'}).as('submit');
     cy.get('button').contains('Submit').click();
     cy.wait('@submit');
     cy.get('.full-page.ref .link a').should('have.text', 'Video Chat Room');
+    
+    // Add plugin/chat tag after creation
+    cy.get('.actions *').contains('tag').click();
+    cy.get('.inline-tagging input').type('plugin/chat{enter}');
+    cy.get('.full-page.ref .tag:not(.user)').contains('plugin/chat').should('exist');
   });
 
   it('shows call button in chatroom', () => {
@@ -87,12 +87,15 @@ describe('Video Chat Plugin', {
     cy.contains('Submit').click();
     cy.get('.tabs').contains('text').click();
     cy.get('[name=title]').type('General Chat');
-    cy.contains('show advanced').click();
-    cy.get('.tag-edit input').type('chat/general{enter}');
     cy.intercept({pathname: '/api/v1/ref'}).as('submit');
     cy.get('button').contains('Submit').click();
     cy.wait('@submit');
     cy.get('.full-page.ref .link a').should('have.text', 'General Chat');
+    
+    // Add chat/general tag after creation
+    cy.get('.actions *').contains('tag').click();
+    cy.get('.inline-tagging input').type('chat/general{enter}');
+    cy.get('.full-page.ref .tag:not(.user)').contains('chat/general').should('exist');
   });
 
   it('shows call button for chat/ tagged refs', () => {
