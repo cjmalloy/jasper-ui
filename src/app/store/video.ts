@@ -17,19 +17,25 @@ export class VideoStore {
   }
 
   call(user: string, peer: RTCPeerConnection) {
+    if (!user) throw 'No user';
     this.peers.set(user, peer);
+    this.streams.set(user, []);
   }
 
   addStream(user: string, stream: MediaStream) {
-    if (!this.streams.get(user)) {
+    if (!user) throw 'No user';
+    if (!this.streams.get(user)?.length) {
       this.streams.set(user, [stream]);
     } else if (!this.streams.get(user)?.find(s => s.id === stream.id)) {
+      console.warn('adding second stream');
       this.streams.set(user, [...this.streams.get(user)!, stream]);
     }
   }
 
   remove(user: string) {
+    if (!user) throw 'No user';
     this.peers.get(user)?.close();
+    this.streams.get(user)?.forEach(s => s.getTracks().forEach(t => t.stop()));
     this.peers.delete(user);
     this.streams.delete(user);
   }

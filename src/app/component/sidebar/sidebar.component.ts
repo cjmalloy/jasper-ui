@@ -265,7 +265,7 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
 
   @memo
   get chat() {
-    return !!this.admin.getPlugin('plugin/chat') && hasTag('plugin/chat', this.store.view.ref);
+    return !!this.admin.getPlugin('plugin/user/lobby') && !!this.admin.getPlugin('plugin/chat') && hasTag('plugin/chat', this.store.view.ref);
   }
 
   @memo
