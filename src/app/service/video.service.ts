@@ -78,6 +78,7 @@ export class VideoService {
   }
 
   invite() {
+    const stuck = 30_000;
     const jitter = 2_000;
     this.refs.page({ query: 'plugin/user/lobby', responses: this.url })
       .pipe(
@@ -98,7 +99,7 @@ export class VideoService {
                   this.store.video.remove(user);
                   this.invite();
                 }
-              }, 10_000);
+              }, stuck);
               this.ts.mergeResponse([setPublic(localTag(user)), '-plugin/user/video', 'plugin/user/video'], 'tag:/' + localTag(user), {
                 'plugin/user/video': { offer }
               }).subscribe();
