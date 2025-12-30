@@ -79,6 +79,7 @@ export class VideoService {
     if (this.store.video.peers.has(user)) return this.store.video.peers.get(user)!;
     const peer = new RTCPeerConnection(this.admin.getPlugin('plugin/user/video')!.config!.rtc);
     this.store.video.call(user, peer);
+    this.seen.delete(user);
     peer.addEventListener('icecandidate', event => {
       this.patch(user, [{
         op: 'add',
@@ -155,6 +156,7 @@ export class VideoService {
     ).subscribe(() => poll());
   }
 
+  seen = new Map<string, Set<string>>();
   answer() {
     const doAnswer = (res: Ref) => {
       const user = getUserUrl(res);
@@ -197,8 +199,11 @@ export class VideoService {
         }
       }
       if (peer.iceConnectionState !== 'completed' &&  peer.remoteDescription && video.candidate?.length) {
-        // TODO: ignore seen
         video.candidate.forEach((c) => {
+          const hash = JSON.stringify(c);
+          if (this.seen.get(user)?.has(hash)) return;
+          if (!this.seen.get(user)) this.seen.set(user, new Set<string>());
+          this.seen.get(user)?.add(hash);
           console.warn('Adding Ice!', user);
           peer.addIceCandidate(c.candidate ? c : null).catch(err => {
             console.error('Error adding received ice candidate', err);
