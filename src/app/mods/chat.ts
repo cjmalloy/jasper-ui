@@ -199,9 +199,9 @@ export const videoPlugin: Plugin = {
       candidate: {
         elements: {
           optionalProperties: {
-            candidate: { type: 'string' },
-            sdpMid: { type: 'string' },
-            sdpMLineIndex: { type: 'uint32' },
+            candidate: { type: 'string', nullable: true },
+            sdpMid: { type: 'string', nullable: true },
+            sdpMLineIndex: { type: 'uint32', nullable: true },
             usernameFragment: { type: 'string', nullable: true },
           }
         }
