@@ -179,7 +179,6 @@ describe('Ref Actions', {
       cy.get('.full-page.ref .actions').should('contain', 'citation');
       cy.get('.full-page.ref .actions').should('not.contain', 'new');
     });
-    });
 
     it('should show "(X new)" for collapsed comments in comment thread', () => {
       // Create a ref with a comment
