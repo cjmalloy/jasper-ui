@@ -95,20 +95,22 @@ describe('Ref Actions', {
       cy.wait('@createComment');
       cy.wait(1000); // Additional wait for metadata to update
       
-      // Navigate away
+      // Navigate away to home and then find the ref to check indicators
       cy.visit('/?debug=MOD');
       cy.wait(1000);
       
-      // Navigate back and check for "(1 new)" indicator
-      cy.get('.ref-list .link a').contains('Test Ref for New Indicators').parent().parent().parent().as('testRef');
-      cy.get('@testRef').find('.actions').should('contain', 'comment');
-      cy.get('@testRef').find('.actions').should('contain', '(1 new)');
+      // Try to find and click on the ref we created
+      cy.contains('Test Ref for New Indicators').click();
+      cy.wait(500);
+      
+      // Check for citation count (comment shows as citation)
+      cy.get('.full-page.ref .actions').should('contain', 'citation');
+      cy.get('.full-page.ref .actions').should('contain', '(1 new)');
     });
 
     it('should clear "(X new)" after viewing comments', () => {
-      // Click on comments link to view them
-      cy.get('.ref-list .link a').contains('Test Ref for New Indicators').parent().parent().parent().as('testRef');
-      cy.get('@testRef').find('.actions *').contains('comment').click();
+      // Click on citation link to view them
+      cy.get('.full-page.ref .actions *').contains('citation').click();
       
       // Wait for page to load
       cy.wait(1000);
@@ -116,18 +118,16 @@ describe('Ref Actions', {
       // Navigate away and back
       cy.visit('/?debug=MOD');
       cy.wait(1000);
+      cy.contains('Test Ref for New Indicators').click();
+      cy.wait(500);
       
       // Check that "(X new)" is gone
-      cy.get('.ref-list .link a').contains('Test Ref for New Indicators').parent().parent().parent().as('testRef');
-      cy.get('@testRef').find('.actions').should('contain', 'comment');
-      cy.get('@testRef').find('.actions').should('not.contain', 'new');
+      cy.get('.full-page.ref .actions').should('contain', 'citation');
+      cy.get('.full-page.ref .actions').should('not.contain', 'new');
     });
 
     it('should show "(2 new)" when two more comments are added', () => {
-      // Navigate to the ref
-      cy.get('.ref-list .link a').contains('Test Ref for New Indicators').click();
-      
-      // Add second comment with API intercept
+      // We're already on the ref page, add second comment with API intercept
       cy.intercept('POST', '/api/v1/ref').as('createComment2');
       cy.get('.actions *').contains('reply').click();
       cy.get('.full-page.ref .comment-reply textarea').type('Second comment');
@@ -146,11 +146,12 @@ describe('Ref Actions', {
       // Navigate away and back
       cy.visit('/?debug=MOD');
       cy.wait(1000);
+      cy.contains('Test Ref for New Indicators').click();
+      cy.wait(500);
       
       // Check for "(2 new)" indicator (3 total - 1 previously seen)
-      cy.get('.ref-list .link a').contains('Test Ref for New Indicators').parent().parent().parent().as('testRef');
-      cy.get('@testRef').find('.actions').should('contain', 'comment');
-      cy.get('@testRef').find('.actions').should('contain', '(2 new)');
+      cy.get('.full-page.ref .actions').should('contain', 'citation');
+      cy.get('.full-page.ref .actions').should('contain', '(2 new)');
     });
 
     it('should persist "(X new)" across page reloads', () => {
@@ -159,25 +160,25 @@ describe('Ref Actions', {
       cy.wait(1000);
       
       // Check that "(2 new)" is still there
-      cy.get('.ref-list .link a').contains('Test Ref for New Indicators').parent().parent().parent().as('testRef');
-      cy.get('@testRef').find('.actions').should('contain', 'comment');
-      cy.get('@testRef').find('.actions').should('contain', '(2 new)');
+      cy.get('.full-page.ref .actions').should('contain', 'citation');
+      cy.get('.full-page.ref .actions').should('contain', '(2 new)');
     });
 
-    it('should reset counter when navigating to comments page', () => {
-      // Click on comments to view them
-      cy.get('.ref-list .link a').contains('Test Ref for New Indicators').parent().parent().parent().as('testRef');
-      cy.get('@testRef').find('.actions *').contains('comment').click();
+    it('should reset counter when navigating to citations page', () => {
+      // Click on citations to view them
+      cy.get('.full-page.ref .actions *').contains('citation').click();
       
       // Wait for page to load and navigate away
       cy.wait(1000);
       cy.visit('/?debug=MOD');
       cy.wait(1000);
+      cy.contains('Test Ref for New Indicators').click();
+      cy.wait(500);
       
       // Verify "(X new)" is cleared
-      cy.get('.ref-list .link a').contains('Test Ref for New Indicators').parent().parent().parent().as('testRef');
-      cy.get('@testRef').find('.actions').should('contain', 'comment');
-      cy.get('@testRef').find('.actions').should('not.contain', 'new');
+      cy.get('.full-page.ref .actions').should('contain', 'citation');
+      cy.get('.full-page.ref .actions').should('not.contain', 'new');
+    });
     });
 
     it('should show "(X new)" for collapsed comments in comment thread', () => {
