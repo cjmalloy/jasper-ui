@@ -99,7 +99,7 @@ export class VideoService {
                   this.invite();
                 }
               }, 10_000);
-              this.ts.mergeResponse([setPublic(user), '-plugin/user/video', 'plugin/user/video'], 'tag:/' + localTag(user), {
+              this.ts.mergeResponse([setPublic(localTag(user)), '-plugin/user/video', 'plugin/user/video'], 'tag:/' + localTag(user), {
                 'plugin/user/video': { offer }
               }).subscribe();
             });
@@ -156,7 +156,7 @@ export class VideoService {
             .then(answer => {
               peer.setLocalDescription(answer).then(() => {
                 console.warn('Send Answer!', user);
-                this.ts.mergeResponse([setPublic(user), '-plugin/user/video', 'plugin/user/video'], 'tag:/' + localTag(user), {
+                this.ts.mergeResponse([setPublic(localTag(user)), '-plugin/user/video', 'plugin/user/video'], 'tag:/' + localTag(user), {
                   'plugin/user/video': { answer }
                 }).subscribe();
               });
