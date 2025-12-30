@@ -54,8 +54,9 @@ export class ChatVideoComponent implements AfterViewInit {
         }
         this.vs.call(this.url, stream);
       })
-      .catch(err => {
-        console.log("Raised error when capturing:", err);
+      .catch(_err => {
+        runInAction(() => this.store.video.enabled = false);
+        alert($localize`Unable to access camera or microphone. Please check your browser permissions and try again.`);
       });
   }
 
