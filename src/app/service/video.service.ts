@@ -46,7 +46,7 @@ export class VideoService {
     if (this.store.video.peers.has(user)) return this.store.video.peers.get(user)!;
     const peer = new RTCPeerConnection(this.config);
     this.store.video.call(user, peer);
-    this.ts.respond(['-plugin/user/video', 'plugin/user/video'], 'tag:/' + localTag(user))
+    this.ts.respond([setPublic(localTag(user)), '-plugin/user/video', 'plugin/user/video'], 'tag:/' + localTag(user))
       .subscribe();
     peer.addEventListener('icecandidate', event => {
       if (event.candidate) {
@@ -59,7 +59,7 @@ export class VideoService {
     });
     peer.addEventListener('connectionstatechange', event => {
       if (peer.connectionState === 'connected') {
-        this.ts.respond([setPublic(localTag(user)), '-plugin/user/video', 'plugin/user/video'], 'tag:/' + localTag(user))
+        this.ts.respond(['-plugin/user/video', 'plugin/user/video'], 'tag:/' + localTag(user))
           .subscribe();
       }
       if (['disconnected', 'failed'].includes(peer.connectionState)) {
@@ -93,6 +93,9 @@ export class VideoService {
           peer.createOffer().then(offer => {
             peer.setLocalDescription(offer).then(() => {
               console.warn('Making Offer!', user);
+              this.ts.mergeResponse(['-plugin/user/video', 'plugin/user/video'], 'tag:/' + localTag(user), {
+                'plugin/user/video': { offer }
+              }).subscribe();
               delay(() => {
                 if (peer.signalingState === 'have-local-offer') {
                   console.error('Stuck!');
@@ -100,9 +103,6 @@ export class VideoService {
                   this.invite();
                 }
               }, stuck);
-              this.ts.mergeResponse([setPublic(localTag(user)), '-plugin/user/video', 'plugin/user/video'], 'tag:/' + localTag(user), {
-                'plugin/user/video': { offer }
-              }).subscribe();
             });
           });
         }, Math.random() * jitter);
@@ -157,8 +157,8 @@ export class VideoService {
             .then(answer => {
               peer.setLocalDescription(answer).then(() => {
                 console.warn('Send Answer!', user);
-                this.ts.mergeResponse([setPublic(localTag(user)), '-plugin/user/video', 'plugin/user/video'], 'tag:/' + localTag(user), {
-                  'plugin/user/video': { answer }
+                this.ts.mergeResponse(['plugin/user/video'], 'tag:/' + localTag(user), {
+                  'plugin/user/video': { answer, offer: null }
                 }).subscribe();
               });
             });
@@ -199,7 +199,7 @@ export class VideoService {
     }
     if (!scheduled) delay(() => {
       for (const [u, o] of this.queue.entries()) {
-        this.ts.patchResponse([setPublic(localTag(u)), 'plugin/user/video'], 'tag:/' + localTag(u), o).subscribe();
+        this.ts.patchResponse(['plugin/user/video'], 'tag:/' + localTag(u), o).subscribe();
       }
       this.queue.clear();
     }, throttle);
