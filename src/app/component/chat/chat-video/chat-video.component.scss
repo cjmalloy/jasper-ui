@@ -5,6 +5,13 @@ video, .video-placeholder {
   width: 100%;
 }
 
+.mirror-video {
+  transform: scaleX(-1);
+  &::-webkit-media-controls-panel {
+    transform: scaleX(-1);
+  }
+}
+
 .video-placeholder {
   aspect-ratio: 19/10;
 }
