@@ -1,13 +1,17 @@
 import { Injectable } from '@angular/core';
 import { delay } from 'lodash-es';
 import { runInAction } from 'mobx';
-import { filter, map, mergeMap, Subject, switchMap, takeUntil } from 'rxjs';
+import { filter, map, mergeMap, Subject, switchMap, takeUntil, takeWhile, timer } from 'rxjs';
+import { tap } from 'rxjs/operators';
+import { Ref } from '../model/ref';
 import { Store } from '../store/store';
 import { escapePath, OpPatch } from '../util/json-patch';
-import { getUserUrl, hasTag, localTag, setPublic } from '../util/tag';
+import { getUserUrl, hasTag, localTag } from '../util/tag';
+import { AdminService } from './admin.service';
 import { RefService } from './api/ref.service';
 import { StompService } from './api/stomp.service';
 import { TaggingService } from './api/tagging.service';
+import { ConfigService } from './config.service';
 
 /**
  * Interface for video signaling data structure used in WebRTC communication
@@ -24,47 +28,51 @@ interface VideoSignaling {
 })
 export class VideoService {
   private destroy$ = new Subject<void>();
+  poll = 30_000;
+  fastPoll = 4_000;
+  stuck = 30_000;
+  jitter = 2_000;
 
   url = '';
 
-  config: RTCConfiguration = {
-    iceServers: [
-      { urls: 'stun:stun.l.google.com:19302' },
-    ],
-  };
+  websockets = false;
 
   private stream?: MediaStream;
 
   constructor(
+    private config: ConfigService,
+    private admin: AdminService,
     private store: Store,
     private stomp: StompService,
     private ts: TaggingService,
     private refs: RefService,
   ) { }
 
+  get connecting() {
+    return !this.store.video.peers.size || !!this.store.video.peers.values().find(p => p.connectionState !== 'connected');
+  }
+
   peer(user: string) {
     if (this.store.video.peers.has(user)) return this.store.video.peers.get(user)!;
-    const peer = new RTCPeerConnection(this.config);
+    const peer = new RTCPeerConnection(this.admin.getPlugin('plugin/user/video')!.config!.rtc);
     this.store.video.call(user, peer);
-    this.ts.respond([setPublic(localTag(user)), '-plugin/user/video', 'plugin/user/video'], 'tag:/' + localTag(user))
-      .subscribe();
     peer.addEventListener('icecandidate', event => {
       if (event.candidate) {
         this.patch(user, [{
           op: 'add',
           path: '/' + escapePath('plugin/user/video') + '/candidate/-',
           value: event.candidate.toJSON(),
-        }])
+        }]);
       }
     });
     peer.addEventListener('connectionstatechange', event => {
       if (peer.connectionState === 'connected') {
-        this.ts.respond(['-plugin/user/video', 'plugin/user/video'], 'tag:/' + localTag(user))
-          .subscribe();
+        // this.ts.deleteResponse('plugin/user/video', 'tag:/' + localTag(user))
+        //   .subscribe();
       }
       if (['disconnected', 'failed'].includes(peer.connectionState)) {
         this.store.video.remove(user);
-        this.ts.respond(['-plugin/user/video', 'plugin/user/video'], 'tag:/' + localTag(user))
+        this.ts.deleteResponse('plugin/user/video', 'tag:/' + localTag(user))
           .subscribe(() => this.invite());
       }
       console.log('connectionstatechange', peer.connectionState);
@@ -78,51 +86,59 @@ export class VideoService {
   }
 
   invite() {
-    const stuck = 30_000;
-    const jitter = 2_000;
-    this.refs.page({ query: 'plugin/user/lobby', responses: this.url })
-      .pipe(
-        mergeMap(page => page.content),
+    const doInvite = (user: string) => {
+      delay(() => {
+        if (this.store.video.peers.has(user)) return;
+        this.ts.deleteResponse('plugin/user/video', 'tag:/' + localTag(user))
+          .subscribe(() => {
+            const peer = this.peer(user);
+            peer.createOffer().then(offer => {
+              peer.setLocalDescription(offer).then(() => {
+                console.warn('Making Offer!', user);
+                this.ts.mergeResponse(['plugin/user/video'], 'tag:/' + localTag(user), {
+                  'plugin/user/video': { offer, answer: null, hangup: false }
+                }).subscribe();
+                delay(() => {
+                  if (peer.signalingState === 'have-local-offer') {
+                    console.error('Stuck!');
+                    this.store.video.remove(user);
+                    this.invite();
+                  }
+                }, this.stuck);
+              });
+            });
+          });
+      }, Math.random() * this.jitter);
+    };
+    const poll = () => this.refs.page({
+      query: 'plugin/user/lobby',
+      responses: this.url,
+    }).pipe(
+      mergeMap(page => page.content),
+      map(ref => getUserUrl(ref)),
+      filter(user => !!user),
+      filter(user => user !== this.store.account.tag),
+    ).subscribe(doInvite);
+    if (this.config.websockets) {
+      poll();
+      this.stomp.watchResponse(this.url).pipe(
+        tap(() => this.websockets = true),
+        switchMap(url => this.refs.getCurrent(url)),
+        filter(res => hasTag('plugin/user/lobby', res)),
         map(ref => getUserUrl(ref)),
         filter(user => !!user),
         filter(user => user !== this.store.account.tag),
-      ).subscribe(user => {
-        delay(() => {
-          if (this.store.video.peers.has(user)) return;
-          const peer = this.peer(user);
-          peer.createOffer().then(offer => {
-            peer.setLocalDescription(offer).then(() => {
-              console.warn('Making Offer!', user);
-              this.ts.mergeResponse(['-plugin/user/video', 'plugin/user/video'], 'tag:/' + localTag(user), {
-                'plugin/user/video': { offer }
-              }).subscribe();
-              delay(() => {
-                if (peer.signalingState === 'have-local-offer') {
-                  console.error('Stuck!');
-                  this.store.video.remove(user);
-                  this.invite();
-                }
-              }, stuck);
-            });
-          });
-        }, Math.random() * jitter);
-    });
+        takeUntil(this.destroy$)
+      ).subscribe(doInvite);
+    }
+    timer(0, this.poll).pipe(
+      takeWhile(() => !this.websockets),
+      takeUntil(this.destroy$),
+    ).subscribe(() => poll());
   }
 
-  call(url: string, stream: MediaStream) {
-    if (this.url === url) return;
-    console.warn('Joining Lobby!');
-    this.stream = stream;
-    this.url = url;
-    this.destroy$.next();
-    runInAction(() => this.store.video.stream = stream);
-    this.invite();
-    // TODO: Watch remote mapped tags
-    this.stomp.watchResponse('tag:/' + this.store.account.localTag).pipe(
-      switchMap(url => this.refs.getCurrent(url)),
-      filter(res => hasTag('plugin/user/video', res)),
-      takeUntil(this.destroy$)
-    ).subscribe(res => {
+  answer() {
+    const doAnswer = (res: Ref) => {
       const user = getUserUrl(res);
       if (!user || user === this.store.account.tag) return;
       let peer = this.peer(user);
@@ -158,7 +174,7 @@ export class VideoService {
               peer.setLocalDescription(answer).then(() => {
                 console.warn('Send Answer!', user);
                 this.ts.mergeResponse(['plugin/user/video'], 'tag:/' + localTag(user), {
-                  'plugin/user/video': { answer, offer: null }
+                  'plugin/user/video': { answer, offer: null, hangup: false }
                 }).subscribe();
               });
             });
@@ -173,15 +189,53 @@ export class VideoService {
           });
         });
       }
+    };
+    const poll = () => this.refs.page({
+      query: 'plugin/user/video',
+      responses: 'tag:/' + this.store.account.localTag,
+    }).pipe(
+      mergeMap(page => page.content),
+    ).subscribe(doAnswer);
+    if (this.config.websockets) {
+      poll();
+      this.stomp.watchResponse('tag:/' + this.store.account.localTag).pipe(
+        tap(() => this.websockets = true),
+        switchMap(url => this.refs.getCurrent(url)),
+        filter(res => hasTag('plugin/user/video', res)),
+        takeUntil(this.destroy$)
+      ).subscribe(doAnswer);
+    }
+    timer(0, this.poll).pipe(
+      takeWhile(() => !this.websockets),
+      takeUntil(this.destroy$),
+    ).subscribe(() => {
+      if (!this.connecting) poll();
     });
+    timer(0, this.fastPoll).pipe(
+      takeWhile(() => !this.websockets),
+      takeUntil(this.destroy$),
+    ).subscribe(() => {
+      if (this.connecting) poll();
+    });
+  }
+
+  call(url: string, stream: MediaStream) {
+    if (this.url === url) return;
+    console.warn('Joining Lobby!');
+    this.stream = stream;
+    this.url = url;
+    this.destroy$.next();
+    runInAction(() => this.store.video.stream = stream);
+    this.invite();
+    this.answer();
   }
 
   hangup() {
     console.warn('Hung Up!');
     this.url = '';
     for (const user of this.store.video.peers.keys()) {
-      this.ts.mergeResponse(['-plugin/user/video', 'plugin/user/video'], 'tag:/' + localTag(user), {
-        'plugin/user/video': { hangup: true }
+      this.ts.mergeResponse(['plugin/user/video'], 'tag:/' + localTag(user), {
+        'plugin/user/video': { offer: null, answer: null, hangup: true }
       }).subscribe();
     }
     this.store.video.hangup();
