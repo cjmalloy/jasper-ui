@@ -87,6 +87,12 @@ export class VideoService {
         value: event.candidate?.toJSON() || { candidate: null },
       }]);
     });
+    peer.addEventListener('icecandidateerror', event => {
+      console.error(event.errorCode, event.errorText);
+      this.store.video.remove(user);
+      this.ts.respond([setPublic(localTag(user)), '-plugin/user/video', 'plugin/user/video'], 'tag:/' + localTag(user))
+        .subscribe(() => this.invite());
+    });
     peer.addEventListener('connectionstatechange', event => {
       if (peer.connectionState === 'connected') {
         this.ts.respond([setPublic(localTag(user)), '-plugin/user/video'], 'tag:/' + localTag(user))
