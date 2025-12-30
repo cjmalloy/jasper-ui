@@ -202,7 +202,7 @@ export const videoPlugin: Plugin = {
             candidate: { type: 'string' },
             sdpMid: { type: 'string' },
             sdpMLineIndex: { type: 'uint32' },
-            usernameFragment: { type: 'string' },
+            usernameFragment: { type: 'string', nullable: true },
           }
         }
       },
