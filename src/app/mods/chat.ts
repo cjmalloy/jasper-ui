@@ -134,7 +134,14 @@ export const videoPlugin: Plugin = {
       },
     },
     optionalProperties: {
+      hangup: { type: 'boolean' },
       offer: {
+        optionalProperties: {
+          type: { type: 'string' },
+          sdp: { type: 'string' },
+        }
+      },
+      answer: {
         optionalProperties: {
           type: { type: 'string' },
           sdp: { type: 'string' },

@@ -15,11 +15,12 @@
              playsinline
              [muted]="true"></video>
     }
-    @for (u of userStreams; track u) {
+    @for (u of userStreams; track u.tag) {
       <app-nav class="stream-label glass"
                [url]="'tag:/' + u.tag"></app-nav>
-      @for (s of u.streams; track s) {
+      @for (s of u.streams; track s.id) {
         <video [srcObject]="s"
+               [class.loading]="!s.active"
                autoplay
                playsinline></video>
       } @empty {
