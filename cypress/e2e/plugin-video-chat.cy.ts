@@ -16,6 +16,11 @@ describe('Video Chat Plugin', {
     cy.visit('/settings/setup?debug=ADMIN');
 
     cy.wait(100);
+    cy.get('#mod-experiments').should('not.be.checked').check().should('be.checked');
+    cy.get('button').contains('Save').click();
+    cy.reload();
+
+    cy.wait(100);
     cy.get('#mod-chat').should('not.be.checked').check().should('be.checked');
     cy.get('button').contains('Save').click();
     cy.get('.log').contains('Success');
@@ -34,7 +39,9 @@ describe('Video Chat Plugin', {
     
     // Add plugin/chat tag after creation
     cy.get('.actions *').contains('tag').click();
+    cy.intercept({method: 'PATCH', pathname: '/api/v1/ref'}).as('updateRef');
     cy.get('.inline-tagging input').type('plugin/chat{enter}');
+    cy.wait('@updateRef');
     cy.get('.full-page.ref .tag:not(.user)').contains('plugin/chat').should('exist');
   });
 
@@ -94,7 +101,9 @@ describe('Video Chat Plugin', {
     
     // Add chat/general tag after creation
     cy.get('.actions *').contains('tag').click();
+    cy.intercept({method: 'PATCH', pathname: '/api/v1/ref'}).as('updateRef');
     cy.get('.inline-tagging input').type('chat/general{enter}');
+    cy.wait('@updateRef');
     cy.get('.full-page.ref .tag:not(.user)').contains('chat/general').should('exist');
   });
 
