@@ -11,6 +11,7 @@
       <app-nav class="stream-label glass"
                [url]="'tag:/' + store.account.tag"></app-nav>
       <video [srcObject]="store.video.stream"
+             class="mirror-video"
              autoplay
              playsinline
              [muted]="true"></video>
