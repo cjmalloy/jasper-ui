@@ -120,7 +120,7 @@ export class VideoService {
               'plugin/user/video': { offer }
             }).subscribe();
             delay(() => {
-              if (peer.signalingState === 'have-local-offer') {
+              if (peer.localDescription && !peer.remoteDescription) {
                 console.error('Stuck!');
                 this.store.video.remove(user);
                 this.invite();
