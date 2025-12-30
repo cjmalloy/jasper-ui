@@ -40,7 +40,7 @@ export class ChatVideoComponent implements AfterViewInit {
   }
 
   get userStreams() {
-    return [...this.store.video.streams.entries()].map(e =>({ tag: e[0], streams: e[1]}));
+    return [...this.store.video.streams.entries()].map(e =>({ tag: e[0], streams: e[1].filter(s => s.active) }));
   }
 
   call() {
