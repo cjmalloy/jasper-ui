@@ -919,18 +919,6 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     this.store.view.preloadRef(this.ref, this.repostRef);
   }
 
-  markCommentsAsSeen() {
-    this.store.local.setLastSeenCount(this.ref.url, 'comments', this.comments);
-  }
-
-  markThreadsAsSeen() {
-    this.store.local.setLastSeenCount(this.ref.url, 'threads', this.threads);
-  }
-
-  markResponsesAsSeen() {
-    this.store.local.setLastSeenCount(this.ref.url, 'replies', this.responses);
-  }
-
   formatAuthor(user: string) {
     return formatAuthor(user);
   }

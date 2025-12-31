@@ -30,6 +30,7 @@ import { hasTag, removeTag, updateMetadata } from '../../../util/tag';
 })
 export class RefCommentsComponent implements OnInit, OnDestroy, HasChanges {
   private disposers: IReactionDisposer[] = [];
+  private lastSeenCommentsCount = -1;
   newComments$ = new Subject<Ref | undefined>();
 
   @ViewChild(CommentReplyComponent)
@@ -59,10 +60,13 @@ export class RefCommentsComponent implements OnInit, OnDestroy, HasChanges {
       const filter = this.store.view.filter;
       const search = this.store.view.search;
       runInAction(() => this.thread.setArgs(top, sort, filter, search));
-      // Mark comments as seen when viewing the comments page
+      // Mark comments as seen when viewing the comments page (only if count changed)
       if (this.store.view.ref) {
         const commentCount = this.store.view.ref.metadata?.plugins?.['plugin/comment'] || 0;
-        this.store.local.setLastSeenCount(this.store.view.url, 'comments', commentCount);
+        if (this.lastSeenCommentsCount !== commentCount) {
+          this.lastSeenCommentsCount = commentCount;
+          this.store.local.setLastSeenCount(this.store.view.url, 'comments', commentCount);
+        }
       }
     }));
     this.newComments$.subscribe(c => {

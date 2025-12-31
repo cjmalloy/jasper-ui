@@ -33,6 +33,7 @@ export class RefThreadComponent implements HasChanges {
 
   private disposers: IReactionDisposer[] = [];
   private destroy$ = new Subject<void>();
+  private lastSeenThreadsCount = -1;
 
   @ViewChild(CommentReplyComponent)
   reply?: CommentReplyComponent;
@@ -98,10 +99,13 @@ export class RefThreadComponent implements HasChanges {
     this.disposers.push(autorun(() => this.mod.setTitle($localize`Thread: ` + getTitle(this.store.view.ref))));
     this.disposers.push(autorun(() => {
       MemoCache.clear(this);
-      // Mark threads as seen when viewing the thread page
+      // Mark threads as seen when viewing the thread page (only if count changed)
       if (this.store.view.ref) {
         const threadCount = this.store.view.ref.metadata?.plugins?.['plugin/thread'] || 0;
-        this.store.local.setLastSeenCount(this.store.view.url, 'threads', threadCount);
+        if (this.lastSeenThreadsCount !== threadCount) {
+          this.lastSeenThreadsCount = threadCount;
+          this.store.local.setLastSeenCount(this.store.view.url, 'threads', threadCount);
+        }
       }
       if (this.store.view.ref && this.config.websockets) {
         const topUrl = top(this.store.view.ref);
