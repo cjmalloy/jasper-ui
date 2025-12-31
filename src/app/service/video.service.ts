@@ -77,7 +77,7 @@ export class VideoService {
 
   peer(user: string) {
     if (this.store.video.peers.has(user)) return this.store.video.peers.get(user)!;
-    const peer = new RTCPeerConnection(this.admin.getPlugin('plugin/user/video')!.config!.rtc);
+    const peer = new RTCPeerConnection(this.admin.getPlugin('plugin/user/video')!.config!.rtcConfig);
     this.store.video.call(user, peer);
     this.seen.delete(user);
     peer.addEventListener('icecandidate', event => {
