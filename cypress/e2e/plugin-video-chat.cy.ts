@@ -36,12 +36,10 @@ describe('Video Chat Plugin', {
     cy.get('button').contains('Submit').click();
     cy.wait('@submit');
     cy.get('.full-page.ref .link a').should('have.text', 'Video Chat Room');
-    
+
     // Add plugin/chat tag after creation
     cy.get('.actions *').contains('tag').click();
-    cy.intercept({method: 'PATCH', pathname: '/api/v1/ref'}).as('updateRef');
     cy.get('.inline-tagging input').type('plugin/chat{enter}');
-    cy.wait('@updateRef');
     cy.get('.full-page.ref .tag:not(.user)').contains('plugin/chat').should('exist');
   });
 
@@ -98,12 +96,10 @@ describe('Video Chat Plugin', {
     cy.get('button').contains('Submit').click();
     cy.wait('@submit');
     cy.get('.full-page.ref .link a').should('have.text', 'General Chat');
-    
+
     // Add chat/general tag after creation
     cy.get('.actions *').contains('tag').click();
-    cy.intercept({method: 'PATCH', pathname: '/api/v1/ref'}).as('updateRef');
     cy.get('.inline-tagging input').type('chat/general{enter}');
-    cy.wait('@updateRef');
     cy.get('.full-page.ref .tag:not(.user)').contains('chat/general').should('exist');
   });
 
@@ -150,11 +146,11 @@ describe('Video Chat Plugin', {
   it('cleans up test refs', () => {
     // Set up intercepts before the actions
     cy.intercept({method: 'DELETE', pathname: '/api/v1/ref'}).as('delete1');
-    
+
     cy.visit('/ref/e/internal:?debug=USER&search=Video+Chat+Room');
     cy.get('.ref-list-item.ref .actions *').contains('delete').click();
     cy.get('.ref-list-item.ref .actions *').contains('yes').click();
-    
+
     // Wait for deletion to complete before navigating
     cy.wait('@delete1');
 
