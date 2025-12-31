@@ -84,4 +84,19 @@ export class LocalStore {
     if (this._selectedUserTag !== undefined) return this._selectedUserTag;
     return this._selectedUserTag = localStorage.getItem('selectedUserTag') || '';
   }
+
+  /**
+   * Get the last seen count for a specific type (comments, threads, replies) on a URL.
+   */
+  getLastSeenCount(url: string, type: 'comments' | 'threads' | 'replies'): number {
+    const value = localStorage.getItem(`lastSeen:${type}:${url}`);
+    return value ? (parseInt(value, 10) || 0) : 0;
+  }
+
+  /**
+   * Set the last seen count for a specific type (comments, threads, replies) on a URL.
+   */
+  setLastSeenCount(url: string, type: 'comments' | 'threads' | 'replies', count: number): void {
+    localStorage.setItem(`lastSeen:${type}:${url}`, count.toString());
+  }
 }
