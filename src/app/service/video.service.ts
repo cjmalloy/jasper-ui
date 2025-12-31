@@ -30,7 +30,6 @@ export class VideoService {
   poll = 30_000;
   fastPoll = 4_000;
   stuck = 30_000;
-  jitter = 2_000;
   maxInitial = 100;
 
   url = '';
@@ -117,26 +116,22 @@ export class VideoService {
     const doInvite = (user: string) => {
       runInAction(() => this.store.video.hungup.set(user, false));
       if (this.store.video.peers.has(user)) return;
-      this.ts.respond([setPublic(localTag(user)), '-plugin/user/video', 'plugin/user/video'], 'tag:/' + localTag(user))
-        .subscribe(() => delay(() => {
-          if (this.store.video.peers.has(user)) return;
-          const peer = this.peer(user);
-          peer.createOffer().then(offer => {
-            peer.setLocalDescription(offer).then(() => {
-              console.warn('Making Offer!', user);
-              this.ts.mergeResponse([setPublic(localTag(user)), '-plugin/user/video', 'plugin/user/video'], 'tag:/' + localTag(user), {
-                'plugin/user/video': { offer }
-              }).subscribe();
-              delay(() => {
-                if (peer.localDescription && !peer.remoteDescription) {
-                  console.error('Stuck!');
-                  this.store.video.remove(user);
-                  this.invite();
-                }
-              }, this.stuck);
-            });
-          });
-        }, Math.random() * this.jitter));
+      const peer = this.peer(user);
+      peer.createOffer().then(offer => {
+        peer.setLocalDescription(offer).then(() => {
+          console.warn('Making Offer!', user);
+          this.ts.mergeResponse([setPublic(localTag(user)), '-plugin/user/video', 'plugin/user/video'], 'tag:/' + localTag(user), {
+            'plugin/user/video': { offer }
+          }).subscribe();
+          delay(() => {
+            if (peer.localDescription && !peer.remoteDescription) {
+              console.error('Stuck!');
+              this.store.video.remove(user);
+              this.invite();
+            }
+          }, this.stuck);
+        });
+      });
     };
     const poll = () => this.refs.page({
       query: 'plugin/user/lobby',
@@ -197,33 +192,36 @@ export class VideoService {
             peer = this.peer(user);
           }
         }
-        if (peer.signalingState === 'stable' && !peer.localDescription && !peer.pendingLocalDescription) {
-          if (video.offer) {
-            console.warn('Accept Offer!', user, peer.signalingState);
-            peer.setRemoteDescription(new RTCSessionDescription(video.offer))
-              .then(() => peer.createAnswer())
-              .then(answer => {
-                peer.setLocalDescription(answer).then(() => {
-                  console.warn('Send Answer!', user);
-                  this.ts.mergeResponse([setPublic(localTag(user)), '-plugin/user/video', 'plugin/user/video'], 'tag:/' + localTag(user), {
-                    'plugin/user/video': { answer }
-                  }).subscribe();
-                });
+        const checkIce = () => {
+          if (peer.iceConnectionState !== 'completed' &&  peer.remoteDescription && video.candidate?.length) {
+            video.candidate.forEach((c) => {
+              const hash = JSON.stringify(c);
+              if (this.seen.get(user)?.has(hash)) return;
+              if (!this.seen.get(user)) this.seen.set(user, new Set<string>());
+              this.seen.get(user)?.add(hash);
+              console.warn('Adding Ice!', user);
+              peer.addIceCandidate(c.candidate ? c : null).catch(err => {
+                console.error('Error adding received ice candidate', err);
               });
+            });
           }
+        };
+        if (video.offer && peer.signalingState === 'stable' && !peer.localDescription && !peer.pendingLocalDescription) {
+          console.warn('Accept Offer!', user, peer.signalingState);
+          peer.setRemoteDescription(new RTCSessionDescription(video.offer!))
+            .then(() => peer.createAnswer())
+            .then(answer => {
+              peer.setLocalDescription(answer).then(() => {
+                console.warn('Send Answer!', user);
+                this.ts.mergeResponse([setPublic(localTag(user)), '-plugin/user/video', 'plugin/user/video'], 'tag:/' + localTag(user), {
+                  'plugin/user/video': { answer }
+                }).subscribe();
+                checkIce();
+              });
+            });
+        } else {
+          checkIce();
         }
-      }
-      if (peer.iceConnectionState !== 'completed' &&  peer.remoteDescription && video.candidate?.length) {
-        video.candidate.forEach((c) => {
-          const hash = JSON.stringify(c);
-          if (this.seen.get(user)?.has(hash)) return;
-          if (!this.seen.get(user)) this.seen.set(user, new Set<string>());
-          this.seen.get(user)?.add(hash);
-          console.warn('Adding Ice!', user);
-          peer.addIceCandidate(c.candidate ? c : null).catch(err => {
-            console.error('Error adding received ice candidate', err);
-          });
-        });
       }
     };
     const poll = () => this.refs.page({
