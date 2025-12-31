@@ -33,7 +33,7 @@
     @for (tag of hungup; track tag) {
       <app-nav class="stream-label glass"
                [url]="'tag:/' + tag"></app-nav>
-      <div class="hungup video-placeholder">👋️</div>
+      <div class="hungup video-placeholder" i18n-title title="Hung up" i18n>👋️</div>
     }
   }
 </ng-container>
