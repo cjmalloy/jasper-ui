@@ -180,10 +180,10 @@ export class VideoService {
       const video = res.plugins?.['plugin/user/video'] as VideoSignaling | undefined;
       if (!video) return;
       if (this.store.video.hungup.get(user)) return;
-      let peer = this.peer(user);
-      if (peer.connectionState === 'connected') return;
-      if (!peer.remoteDescription && !peer.pendingRemoteDescription) {
-        if (peer.signalingState === 'have-local-offer') {
+      let peer = this.store.video.peers.get(user);
+      if (peer?.connectionState === 'connected') return;
+      if (!peer?.remoteDescription && !peer?.pendingRemoteDescription) {
+        if (peer?.signalingState === 'have-local-offer') {
           if (video.answer) {
             console.warn('Accept Answer!', user);
             peer.setRemoteDescription(new RTCSessionDescription(video.answer));
@@ -195,25 +195,25 @@ export class VideoService {
           }
         }
         const checkIce = () => {
-          if (peer.iceConnectionState !== 'completed' &&  peer.remoteDescription && video.candidate?.length) {
+          if (peer?.iceConnectionState !== 'completed' &&  peer?.remoteDescription && video.candidate?.length) {
             video.candidate.forEach((c) => {
               const hash = JSON.stringify(c);
               if (this.seen.get(user)?.has(hash)) return;
               if (!this.seen.get(user)) this.seen.set(user, new Set<string>());
               this.seen.get(user)?.add(hash);
               console.warn('Adding Ice!', user);
-              peer.addIceCandidate(c.candidate ? c : null).catch(err => {
+              peer!.addIceCandidate(c.candidate ? c : null).catch(err => {
                 console.error('Error adding received ice candidate', err);
               });
             });
           }
         };
-        if (video.offer && peer.signalingState === 'stable' && !peer.localDescription && !peer.pendingLocalDescription) {
+        if (video.offer && peer?.signalingState === 'stable' && !peer.localDescription && !peer.pendingLocalDescription) {
           console.warn('Accept Offer!', user, peer.signalingState);
           peer.setRemoteDescription(new RTCSessionDescription(video.offer!))
-            .then(() => peer.createAnswer())
+            .then(() => peer!.createAnswer())
             .then(answer => {
-              peer.setLocalDescription(answer).then(() => {
+              peer!.setLocalDescription(answer).then(() => {
                 console.warn('Send Answer!', user);
                 this.ts.mergeResponse([setPublic(localTag(user)), '-plugin/user/video', 'plugin/user/video'], 'tag:/' + localTag(user), {
                   'plugin/user/video': { answer }
