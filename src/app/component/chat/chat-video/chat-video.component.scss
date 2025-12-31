@@ -1,8 +1,11 @@
+video {
+  width: 100%;
+}
+
 video, .video-placeholder {
   margin: 4px 0;
   border-radius: 4px;
   display: block;
-  width: 100%;
 }
 
 .mirror-video {
@@ -13,7 +16,13 @@ video, .video-placeholder {
 }
 
 .video-placeholder {
-  aspect-ratio: 19/10;
+  height: 64px;
+  &.hungup {
+    box-shadow: inset 0 0 24px grey;
+    padding: 24px;
+    font-size: 48px;
+    text-align: center;
+  }
 }
 
 .stream-label {
