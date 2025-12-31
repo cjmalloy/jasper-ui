@@ -89,7 +89,7 @@ export class VideoService {
     });
     peer.addEventListener('icecandidateerror', event => {
       console.error(event.errorCode, event.errorText);
-      this.store.video.remove(user);
+      this.store.video.reset(user);
       this.ts.respond([setPublic(localTag(user)), '-plugin/user/video', 'plugin/user/video'], 'tag:/' + localTag(user))
         .subscribe(() => this.invite());
     });
@@ -99,7 +99,7 @@ export class VideoService {
           .subscribe();
       }
       if (['disconnected', 'failed'].includes(peer.connectionState)) {
-        this.store.video.remove(user);
+        this.store.video.reset(user);
         this.ts.respond([setPublic(localTag(user)), '-plugin/user/video', 'plugin/user/video'], 'tag:/' + localTag(user))
           .subscribe(() => this.invite());
       }
@@ -116,7 +116,18 @@ export class VideoService {
   invite() {
     const doInvite = (user: string) => {
       runInAction(() => this.store.video.hungup.set(user, false));
-      if (this.store.video.peers.get(user)?.connectionState === 'connected') return;
+      const checkStuck = () => delay(() => {
+        const peer = this.store.video.peers.get(user);
+        if (peer?.localDescription && !peer.remoteDescription) {
+          console.error('Stuck!');
+          this.store.video.reset(user);
+          this.invite();
+        }
+      }, this.stuck);
+      if (this.store.video.peers.has(user)) {
+        checkStuck();
+        return;
+      }
       const peer = this.peer(user);
       peer.createOffer().then(offer => {
         peer.setLocalDescription(offer).then(() => {
@@ -124,13 +135,7 @@ export class VideoService {
           this.ts.mergeResponse([setPublic(localTag(user)), '-plugin/user/video', 'plugin/user/video'], 'tag:/' + localTag(user), {
             'plugin/user/video': { offer }
           }).subscribe();
-          delay(() => {
-            if (peer.localDescription && !peer.remoteDescription) {
-              console.error('Stuck!');
-              this.store.video.remove(user);
-              this.invite();
-            }
-          }, this.stuck);
+          checkStuck();
         });
       });
     };
@@ -190,7 +195,7 @@ export class VideoService {
           } else if (video.offer) {
             console.warn('Double Offer!', user);
             console.warn('Cancelled Offer! (will accept offer)', user);
-            this.store.video.remove(user);
+            this.store.video.reset(user);
             peer = this.peer(user);
           }
         }
