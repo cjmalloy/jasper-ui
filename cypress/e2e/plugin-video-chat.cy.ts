@@ -40,6 +40,7 @@ describe('Video Chat Plugin', {
     // Add plugin/chat tag after creation
     cy.get('.actions *').contains('tag').click();
     cy.get('.inline-tagging input').type('plugin/chat{enter}');
+    cy.get('.inline-tagging input').should('not.exist');
     cy.get('.full-page.ref .tag:not(.user)').contains('plugin/chat').should('exist');
   });
 
@@ -100,6 +101,7 @@ describe('Video Chat Plugin', {
     // Add chat/general tag after creation
     cy.get('.actions *').contains('tag').click();
     cy.get('.inline-tagging input').type('chat/general{enter}');
+    cy.get('.inline-tagging input').should('not.exist');
     cy.get('.full-page.ref .tag:not(.user)').contains('chat/general').should('exist');
   });
 
