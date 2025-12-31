@@ -34,6 +34,14 @@ export class VideoStore {
     }
   }
 
+  reset(user: string) {
+    if (!user) throw 'No user';
+    this.peers.get(user)?.close();
+    this.streams.get(user)?.forEach(s => s.getTracks().forEach(t => t.stop()));
+    this.peers.delete(user);
+    this.streams.set(user, []);
+  }
+
   remove(user: string) {
     if (!user) throw 'No user';
     this.peers.get(user)?.close();
