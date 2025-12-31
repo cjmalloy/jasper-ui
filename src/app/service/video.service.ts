@@ -27,6 +27,7 @@ interface VideoSignaling {
 })
 export class VideoService {
   private destroy$ = new Subject<void>();
+  hostDelay = 30_000;
   poll = 30_000;
   fastPoll = 4_000;
   stuck = 30_000;
@@ -161,8 +162,9 @@ export class VideoService {
         map(res => getUserUrl(res)),
         filter(user => !!user),
         filter(user => user !== this.store.account.tag),
+        tap(user => this.peer(user)),
         takeUntil(this.destroy$)
-      ).subscribe(user => doInvite(user));
+      ).subscribe(user => delay(() => doInvite(user), this.hostDelay));
     }
     timer(0, this.poll).pipe(
       takeWhile(() => !this.lobbyWebsocket),
