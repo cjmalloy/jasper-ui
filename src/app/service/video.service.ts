@@ -263,7 +263,7 @@ export class VideoService {
 
   queue = new Map<string, OpPatch[]>();
   patch(user: string, ops: OpPatch[]) {
-    const scheduled = !this.queue.size;
+    const scheduled = !!this.queue.size;
     const throttle = 400;
     if (this.queue.has(user)) {
       this.queue.get(user)!.push(...ops);
