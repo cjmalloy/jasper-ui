@@ -122,12 +122,6 @@ export const videoPlugin: Plugin = {
       ],
     },
     form: [{
-      key: 'hangup',
-      type: 'boolean',
-      props: {
-        label: $localize`Hang Up: `,
-      },
-    }, {
       key: 'candidate',
       type: 'list',
       props: {
@@ -208,7 +202,6 @@ export const videoPlugin: Plugin = {
       },
     },
     optionalProperties: {
-      hangup: { type: 'boolean' },
       offer: {
         optionalProperties: {
           type: { type: 'string' },
