@@ -200,7 +200,7 @@ export class VideoService {
           }
         }
         const checkIce = () => {
-          if (peer?.iceConnectionState !== 'completed' &&  peer?.remoteDescription && video.candidate?.length) {
+          if (peer?.iceConnectionState !== 'completed' && peer?.remoteDescription && video.candidate?.length) {
             video.candidate.forEach((c) => {
               const hash = JSON.stringify(c);
               if (this.seen.get(user)?.has(hash)) return;
