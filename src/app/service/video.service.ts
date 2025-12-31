@@ -35,7 +35,8 @@ export class VideoService {
 
   url = '';
 
-  websockets = false;
+  lobbyWebsocket = false;
+  peerWebsocket = false;
 
   private stream?: MediaStream;
 
@@ -149,7 +150,7 @@ export class VideoService {
     if (this.config.websockets) {
       poll();
       this.stomp.watchResponse(this.url).pipe(
-        tap(() => this.websockets = true),
+        tap(() => this.lobbyWebsocket = true),
         switchMap(url => this.refs.getCurrent(url)),
         filter(res => hasTag('plugin/user/lobby', res)),
         map(ref => getUserUrl(ref)),
@@ -159,7 +160,7 @@ export class VideoService {
       ).subscribe(user => doInvite(user));
     }
     timer(0, this.poll).pipe(
-      takeWhile(() => !this.websockets),
+      takeWhile(() => !this.lobbyWebsocket),
       takeUntil(this.destroy$),
     ).subscribe(() => poll());
   }
@@ -228,20 +229,20 @@ export class VideoService {
     if (this.config.websockets) {
       poll();
       this.stomp.watchResponse('tag:/' + this.store.account.localTag).pipe(
-        tap(() => this.websockets = true),
+        tap(() => this.peerWebsocket = true),
         switchMap(url => this.refs.getCurrent(url)),
         filter(res => hasTag('plugin/user/video', res)),
         takeUntil(this.destroy$)
       ).subscribe(ref => doAnswer(ref));
     }
     timer(0, this.poll).pipe(
-      takeWhile(() => !this.websockets),
+      takeWhile(() => !this.peerWebsocket),
       takeUntil(this.destroy$),
     ).subscribe(() => {
       if (!this.connecting) poll();
     });
     timer(0, this.fastPoll).pipe(
-      takeWhile(() => !this.websockets),
+      takeWhile(() => !this.peerWebsocket),
       takeUntil(this.destroy$),
     ).subscribe(() => {
       if (this.connecting) poll();
