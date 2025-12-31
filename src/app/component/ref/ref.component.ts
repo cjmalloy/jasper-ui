@@ -784,6 +784,13 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   }
 
   @memo
+  get newCommentsCount() {
+    const current = this.comments;
+    const lastSeen = this.store.local.getLastSeenCount(this.ref.url, 'comments');
+    return Math.max(0, current - lastSeen);
+  }
+
+  @memo
   get errors() {
     if (!this.admin.getPlugin('+plugin/log')) return 0;
     return this.ref.metadata?.plugins?.['+plugin/log'] || 0;
@@ -796,8 +803,22 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   }
 
   @memo
+  get newThreadsCount() {
+    const current = this.threads;
+    const lastSeen = this.store.local.getLastSeenCount(this.ref.url, 'threads');
+    return Math.max(0, current - lastSeen);
+  }
+
+  @memo
   get responses() {
     return this.ref.metadata?.responses || 0;
+  }
+
+  @memo
+  get newResponsesCount() {
+    const current = this.responses;
+    const lastSeen = this.store.local.getLastSeenCount(this.ref.url, 'replies');
+    return Math.max(0, current - lastSeen);
   }
 
   @memo
