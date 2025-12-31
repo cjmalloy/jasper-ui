@@ -143,6 +143,10 @@ textarea {
   color: var(--tag) !important;
 }
 
+.new-resp {
+  color: var(--active);
+}
+
 .pinned > .row > .stack > .link {
   :link, :visited, :active {
     color: var(--mod) !important;
