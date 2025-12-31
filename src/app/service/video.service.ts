@@ -116,7 +116,7 @@ export class VideoService {
   invite() {
     const doInvite = (user: string) => {
       runInAction(() => this.store.video.hungup.set(user, false));
-      if (this.store.video.peers.has(user)) return;
+      if (this.store.video.peers.get(user)?.connectionState === 'connected') return;
       const peer = this.peer(user);
       peer.createOffer().then(offer => {
         peer.setLocalDescription(offer).then(() => {
