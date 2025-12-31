@@ -105,7 +105,7 @@ export class VideoService {
       }
       console.log('connectionstatechange', peer.connectionState);
     });
-    peer.addEventListener('track',  (event) => {
+    peer.addEventListener('track', (event) => {
       const [remoteStream] = event.streams;
       this.store.video.addStream(user, remoteStream);
     });
