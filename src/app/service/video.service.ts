@@ -31,6 +31,7 @@ export class VideoService {
   fastPoll = 4_000;
   stuck = 30_000;
   jitter = 2_000;
+  maxInitial = 100;
 
   url = '';
 
@@ -115,6 +116,7 @@ export class VideoService {
   hungup = new Map<string, boolean>();
   invite() {
     const doInvite = (user: string) => {
+      this.hungup.set(user, false);
       if (this.store.video.peers.has(user)) return;
       this.ts.respond([setPublic(localTag(user)), '-plugin/user/video', 'plugin/user/video'], 'tag:/' + localTag(user))
         .subscribe(() => delay(() => {
@@ -140,6 +142,7 @@ export class VideoService {
     const poll = () => this.refs.page({
       query: 'plugin/user/lobby',
       responses: this.url,
+      size: this.maxInitial,
     }).pipe(
       mergeMap(page => page.content),
       map(ref => getUserUrl(ref)),
@@ -151,9 +154,17 @@ export class VideoService {
       this.stomp.watchResponse(this.url).pipe(
         tap(() => this.lobbyWebsocket = true),
         switchMap(url => this.refs.getCurrent(url)),
-        tap(res => this.hungup.set(getUserUrl(res), !hasTag('plugin/user/lobby', res))),
+        tap(res => {
+          const user = getUserUrl(res);
+          const hungup = !hasTag('plugin/user/lobby', res);
+          this.hungup.set(user, hungup);
+          if (hungup && this.store.video.peers.has(user)) {
+            console.warn('Hung Up!', user);
+            this.store.video.remove(user);
+          }
+        }),
         filter(res => hasTag('plugin/user/lobby', res)),
-        map(ref => getUserUrl(ref)),
+        map(res => getUserUrl(res)),
         filter(user => !!user),
         filter(user => user !== this.store.account.tag),
         takeUntil(this.destroy$)
@@ -172,11 +183,7 @@ export class VideoService {
       if (!user || user === this.store.account.tag) return;
       const video = res.plugins?.['plugin/user/video'] as VideoSignaling | undefined;
       if (!video) return;
-      if (this.hungup.get(user)) {
-        console.warn('Hung Up!', user);
-        this.store.video.remove(user);
-        return;
-      }
+      if (this.hungup.get(user)) return;
       let peer = this.peer(user);
       if (peer.connectionState === 'connected') return;
       if (!peer.remoteDescription && !peer.pendingRemoteDescription) {
