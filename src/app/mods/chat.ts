@@ -122,12 +122,6 @@ export const videoPlugin: Plugin = {
       ],
     },
     form: [{
-      key: 'hangup',
-      type: 'boolean',
-      props: {
-        label: $localize`Hang Up: `,
-      },
-    }, {
       key: 'candidate',
       type: 'list',
       props: {
@@ -199,16 +193,15 @@ export const videoPlugin: Plugin = {
       candidate: {
         elements: {
           optionalProperties: {
-            candidate: { type: 'string' },
-            sdpMid: { type: 'string' },
-            sdpMLineIndex: { type: 'uint32' },
-            usernameFragment: { type: 'string' },
+            candidate: { type: 'string', nullable: true },
+            sdpMid: { type: 'string', nullable: true },
+            sdpMLineIndex: { type: 'uint32', nullable: true },
+            usernameFragment: { type: 'string', nullable: true },
           }
         }
       },
     },
     optionalProperties: {
-      hangup: { type: 'boolean' },
       offer: {
         optionalProperties: {
           type: { type: 'string' },

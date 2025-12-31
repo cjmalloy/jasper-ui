@@ -6,12 +6,14 @@ export class VideoStore {
   stream?: MediaStream = {} as any;
   peers = new Map<string, RTCPeerConnection>();
   streams = new Map<string, MediaStream[]>();
+  hungup = new Map<string, boolean>();
 
   constructor() {
     makeAutoObservable(this, {
       stream: observable.ref,
       peers: observable.shallow,
       streams: observable.shallow,
+      hungup: observable.shallow,
     });
     this.stream = undefined;
   }
@@ -32,6 +34,14 @@ export class VideoStore {
     }
   }
 
+  reset(user: string) {
+    if (!user) throw 'No user';
+    this.peers.get(user)?.close();
+    this.streams.get(user)?.forEach(s => s.getTracks().forEach(t => t.stop()));
+    this.peers.delete(user);
+    this.streams.set(user, []);
+  }
+
   remove(user: string) {
     if (!user) throw 'No user';
     this.peers.get(user)?.close();
@@ -44,6 +54,7 @@ export class VideoStore {
     for (const [user, peer] of this.peers) peer.close();
     this.peers.clear();
     this.streams.clear();
+    this.hungup.clear();
     this.stream?.getTracks().forEach(t => t.stop());
   }
 }
