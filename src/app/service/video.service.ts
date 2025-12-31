@@ -17,7 +17,6 @@ import { ConfigService } from './config.service';
  * Interface for video signaling data structure used in WebRTC communication
  */
 interface VideoSignaling {
-  hangup?: boolean;
   offer?: RTCSessionDescriptionInit;
   answer?: RTCSessionDescriptionInit;
   candidate?: RTCIceCandidateInit[];
@@ -68,9 +67,8 @@ export class VideoService {
     console.warn('Hung Up!');
     this.url = '';
     for (const user of this.store.video.peers.keys()) {
-      this.ts.mergeResponse([setPublic(localTag(user)), '-plugin/user/video', 'plugin/user/video'], 'tag:/' + localTag(user), {
-        'plugin/user/video': { hangup: true }
-      }).subscribe();
+      this.ts.respond([setPublic(localTag(user)), '-plugin/user/video', 'plugin/user/video'], 'tag:/' + localTag(user))
+        .subscribe();
     }
     this.store.video.hangup();
     this.destroy$.next();
@@ -114,6 +112,7 @@ export class VideoService {
     return peer;
   }
 
+  hungup = new Map<string, boolean>();
   invite() {
     const doInvite = (user: string) => {
       if (this.store.video.peers.has(user)) return;
@@ -152,6 +151,7 @@ export class VideoService {
       this.stomp.watchResponse(this.url).pipe(
         tap(() => this.lobbyWebsocket = true),
         switchMap(url => this.refs.getCurrent(url)),
+        tap(res => this.hungup.set(getUserUrl(res), !hasTag('plugin/user/lobby', res))),
         filter(res => hasTag('plugin/user/lobby', res)),
         map(ref => getUserUrl(ref)),
         filter(user => !!user),
@@ -172,7 +172,7 @@ export class VideoService {
       if (!user || user === this.store.account.tag) return;
       const video = res.plugins?.['plugin/user/video'] as VideoSignaling | undefined;
       if (!video) return;
-      if (video.hangup) {
+      if (this.hungup.get(user)) {
         console.warn('Hung Up!', user);
         this.store.video.remove(user);
         return;
