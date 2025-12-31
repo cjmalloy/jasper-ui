@@ -239,8 +239,12 @@ describe('ChatVideoComponent', () => {
 
   describe('User streams', () => {
     it('should return user streams from store', () => {
-      const mockStream1 = {} as MediaStream;
-      const mockStream2 = {} as MediaStream;
+      const mockStream1 = {
+        getTracks: vi.fn().mockReturnValue([{ readyState: 'live' }])
+      } as any as MediaStream;
+      const mockStream2 = {
+        getTracks: vi.fn().mockReturnValue([{ readyState: 'live' }])
+      } as any as MediaStream;
       mockStore.video.streams.set('user1', [mockStream1]);
       mockStore.video.streams.set('user2', [mockStream2]);
 
