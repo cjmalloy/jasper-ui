@@ -40,7 +40,7 @@ export class ChatVideoComponent implements AfterViewInit {
   }
 
   get userStreams() {
-    return [...this.store.video.streams.entries()].map(e =>({ tag: e[0], streams: e[1].filter(s => s.active) }));
+    return [...this.store.video.streams.entries()].map(e =>({ tag: e[0], streams: e[1].filter(s => s.getTracks().some(t => t.readyState === 'live')) }));
   }
 
   get hungup() {
@@ -58,7 +58,8 @@ export class ChatVideoComponent implements AfterViewInit {
         }
         this.vs.call(this.url, stream);
       })
-      .catch(_err => {
+      .catch(err => {
+        console.log('Raised error when capturing:', err);
         runInAction(() => this.store.video.enabled = false);
         alert($localize`Unable to access camera or microphone. Please check your browser permissions and try again.`);
       });
