@@ -9,6 +9,8 @@ import { Store } from '../store/store';
 import { StompService } from './api/stomp.service';
 import { TaggingService } from './api/tagging.service';
 import { RefService } from './api/ref.service';
+import { AdminService } from './admin.service';
+import { ConfigService } from './config.service';
 import { Ref } from '../model/ref';
 import { Page } from '../model/page';
 
@@ -22,6 +24,8 @@ describe('VideoService', () => {
   let mockStomp: any;
   let mockTagging: any;
   let mockRefs: any;
+  let mockAdmin: any;
+  let mockConfig: any;
   let mockPeerConnection: any;
   let mockMediaStream: any;
 
@@ -42,6 +46,12 @@ describe('VideoService', () => {
       addIceCandidate: vi.fn().mockResolvedValue(undefined),
       close: vi.fn(),
       connectionState: 'new',
+      signalingState: 'stable',
+      iceConnectionState: 'new',
+      localDescription: null,
+      remoteDescription: null,
+      pendingLocalDescription: null,
+      pendingRemoteDescription: null,
     };
 
     // Create mock Store with video store
@@ -49,9 +59,11 @@ describe('VideoService', () => {
       peers: new Map<string, RTCPeerConnection>(),
       streams: new Map<string, MediaStream[]>(),
       stream: undefined,
+      hungup: new Map<string, boolean>(),
       call: vi.fn(),
       addStream: vi.fn(),
       remove: vi.fn(),
+      reset: vi.fn(),
       hangup: vi.fn(),
     };
     mockStore = {
@@ -82,6 +94,22 @@ describe('VideoService', () => {
       update: vi.fn().mockReturnValue(of({ url: 'test-url', origin: '' } as Ref)),
     };
 
+    // Create mock AdminService
+    mockAdmin = {
+      getPlugin: vi.fn().mockReturnValue({
+        config: {
+          rtcConfig: {
+            iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+          }
+        }
+      }),
+    };
+
+    // Create mock ConfigService
+    mockConfig = {
+      websockets: true,
+    };
+
     // Mock RTCPeerConnection constructor
     vi.stubGlobal('RTCPeerConnection', vi.fn(() => mockPeerConnection));
 
@@ -95,6 +123,8 @@ describe('VideoService', () => {
         { provide: StompService, useValue: mockStomp },
         { provide: TaggingService, useValue: mockTagging },
         { provide: RefService, useValue: mockRefs },
+        { provide: AdminService, useValue: mockAdmin },
+        { provide: ConfigService, useValue: mockConfig },
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),
         provideRouter([]),
@@ -104,6 +134,8 @@ describe('VideoService', () => {
   });
 
   afterEach(() => {
+    // Trigger destroy to stop subscriptions
+    service['destroy$'].next();
     vi.unstubAllGlobals();
   });
 
@@ -201,7 +233,13 @@ describe('VideoService', () => {
         },
       };
 
-      mockStomp.watchResponse.mockReturnValue(of('test-url'));
+      // Mock watchResponse to emit the ref URL for the correct tag
+      mockStomp.watchResponse.mockImplementation((responseUrl: string) => {
+        if (responseUrl === 'tag:/user/test') {
+          return of('tag:/user/alice?plugin/user/video');
+        }
+        return of();
+      });
       mockRefs.getCurrent.mockReturnValue(of(mockRef));
       mockPeerConnection.createAnswer.mockResolvedValue(mockAnswer);
 
@@ -231,7 +269,12 @@ describe('VideoService', () => {
       // Set local description to simulate that we've already made an offer
       mockPeerConnection.localDescription = { type: 'offer', sdp: 'our-offer' };
 
-      mockStomp.watchResponse.mockReturnValue(of('test-url'));
+      mockStomp.watchResponse.mockImplementation((responseUrl: string) => {
+        if (responseUrl === 'tag:/user/test') {
+          return of('tag:/user/alice?plugin/user/video');
+        }
+        return of();
+      });
       mockRefs.getCurrent.mockReturnValue(of(mockRef));
 
       service.call('tag:/chat', mockMediaStream);
@@ -276,12 +319,14 @@ describe('VideoService', () => {
 
     it('should handle incoming ICE candidates', async () => {
       const mockCandidate = { candidate: 'mock-candidate', sdpMid: '0' } as RTCIceCandidate;
+      const mockOffer = { type: 'offer', sdp: 'mock-sdp' } as RTCSessionDescriptionInit;
       const mockRef: Ref = {
         url: 'tag:/user/alice?plugin/user/video',
         origin: '',
         tags: ['plugin/user/video'],
         plugins: {
           'plugin/user/video': {
+            offer: mockOffer,
             candidate: [mockCandidate],
           },
         },
@@ -290,7 +335,12 @@ describe('VideoService', () => {
       // Set remote description so ICE candidates can be added
       mockPeerConnection.remoteDescription = { type: 'offer', sdp: 'mock-sdp' };
 
-      mockStomp.watchResponse.mockReturnValue(of('test-url'));
+      mockStomp.watchResponse.mockImplementation((responseUrl: string) => {
+        if (responseUrl === 'tag:/user/test') {
+          return of('tag:/user/alice?plugin/user/video');
+        }
+        return of();
+      });
       mockRefs.getCurrent.mockReturnValue(of(mockRef));
 
       service.call('tag:/chat', mockMediaStream);
@@ -303,12 +353,14 @@ describe('VideoService', () => {
 
     it('should handle errors when adding ICE candidates', async () => {
       const mockCandidate = { candidate: 'mock-candidate', sdpMid: '0' } as RTCIceCandidate;
+      const mockOffer = { type: 'offer', sdp: 'mock-sdp' } as RTCSessionDescriptionInit;
       const mockRef: Ref = {
         url: 'tag:/user/alice?plugin/user/video',
         origin: '',
         tags: ['plugin/user/video'],
         plugins: {
           'plugin/user/video': {
+            offer: mockOffer,
             candidate: [mockCandidate],
           },
         },
@@ -317,11 +369,14 @@ describe('VideoService', () => {
       // Set remote description so ICE candidates can be added
       mockPeerConnection.remoteDescription = { type: 'offer', sdp: 'mock-sdp' };
 
-      mockStomp.watchResponse.mockReturnValue(of('test-url'));
-      mockRefs.getCurrent.mockReturnValue(of(mockRef));
-      mockPeerConnection.addIceCandidate.mockImplementation(() => {
-        throw new Error('Invalid candidate');
+      mockStomp.watchResponse.mockImplementation((responseUrl: string) => {
+        if (responseUrl === 'tag:/user/test') {
+          return of('tag:/user/alice?plugin/user/video');
+        }
+        return of();
       });
+      mockRefs.getCurrent.mockReturnValue(of(mockRef));
+      mockPeerConnection.addIceCandidate.mockRejectedValue(new Error('Invalid candidate'));
 
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
       service.call('tag:/chat', mockMediaStream);
@@ -368,9 +423,11 @@ describe('VideoService', () => {
         peers: new Map<string, RTCPeerConnection>(),
         streams: new Map<string, MediaStream[]>(),
         stream: undefined,
+        hungup: new Map<string, boolean>(),
         call: vi.fn(),
         addStream: vi.fn(),
         remove: vi.fn(),
+        reset: vi.fn(),
         hangup: vi.fn(),
       };
       freshMockStore = {
