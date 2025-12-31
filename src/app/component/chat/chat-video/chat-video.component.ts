@@ -43,6 +43,10 @@ export class ChatVideoComponent implements AfterViewInit {
     return [...this.store.video.streams.entries()].map(e =>({ tag: e[0], streams: e[1].filter(s => s.active) }));
   }
 
+  get hungup() {
+    return [...this.store.video.hungup.entries()].filter(e => e[1]).map(e => e[0]);
+  }
+
   call() {
     runInAction(() => this.store.video.enabled = true);
     this.ts.respond(['public', 'plugin/user/lobby'], this.url).subscribe();
