@@ -115,25 +115,27 @@ export class VideoService {
 
   invite() {
     const doInvite = (user: string) => {
-      delay(() => {
-        if (this.store.video.peers.has(user)) return;
-        const peer = this.peer(user);
-        peer.createOffer().then(offer => {
-          peer.setLocalDescription(offer).then(() => {
-            console.warn('Making Offer!', user);
-            this.ts.mergeResponse([setPublic(localTag(user)), '-plugin/user/video', 'plugin/user/video'], 'tag:/' + localTag(user), {
-              'plugin/user/video': { offer }
-            }).subscribe();
-            delay(() => {
-              if (peer.localDescription && !peer.remoteDescription) {
-                console.error('Stuck!');
-                this.store.video.remove(user);
-                this.invite();
-              }
-            }, this.stuck);
+      if (this.store.video.peers.has(user)) return;
+      this.ts.respond([setPublic(localTag(user)), '-plugin/user/video', 'plugin/user/video'], 'tag:/' + localTag(user))
+        .subscribe(() => delay(() => {
+          if (this.store.video.peers.has(user)) return;
+          const peer = this.peer(user);
+          peer.createOffer().then(offer => {
+            peer.setLocalDescription(offer).then(() => {
+              console.warn('Making Offer!', user);
+              this.ts.mergeResponse([setPublic(localTag(user)), '-plugin/user/video', 'plugin/user/video'], 'tag:/' + localTag(user), {
+                'plugin/user/video': { offer }
+              }).subscribe();
+              delay(() => {
+                if (peer.localDescription && !peer.remoteDescription) {
+                  console.error('Stuck!');
+                  this.store.video.remove(user);
+                  this.invite();
+                }
+              }, this.stuck);
+            });
           });
-        });
-      }, Math.random() * this.jitter);
+        }, Math.random() * this.jitter));
     };
     const poll = () => this.refs.page({
       query: 'plugin/user/lobby',
