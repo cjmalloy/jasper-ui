@@ -167,7 +167,6 @@ export class VideoService {
     const doAnswer = (res: Ref) => {
       const user = getUserUrl(res);
       if (!user || user === this.store.account.tag) return;
-      let peer = this.peer(user);
       const video = res.plugins?.['plugin/user/video'] as VideoSignaling | undefined;
       if (!video) return;
       if (video.hangup) {
@@ -175,6 +174,7 @@ export class VideoService {
         this.store.video.remove(user);
         return;
       }
+      let peer = this.peer(user);
       if (peer.connectionState === 'connected') return;
       if (!peer.remoteDescription && !peer.pendingRemoteDescription) {
         if (peer.signalingState === 'have-local-offer') {
