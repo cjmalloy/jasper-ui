@@ -213,7 +213,8 @@ export class VideoService {
             });
           }
         };
-        if (video.offer && peer?.signalingState === 'stable' && !peer.localDescription && !peer.pendingLocalDescription) {
+        if (video.offer && (!peer || peer?.signalingState === 'stable') && !peer?.localDescription && !peer?.pendingLocalDescription) {
+          peer ||= this.peer(user);
           console.warn('Accept Offer!', user, peer.signalingState);
           peer.setRemoteDescription(new RTCSessionDescription(video.offer!))
             .then(() => peer!.createAnswer())
