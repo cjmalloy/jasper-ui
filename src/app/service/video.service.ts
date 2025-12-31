@@ -105,7 +105,7 @@ export class VideoService {
       }
       console.log('connectionstatechange', peer.connectionState);
     });
-    peer.addEventListener('track',  (event) => {
+    peer.addEventListener('track', (event) => {
       const [remoteStream] = event.streams;
       this.store.video.addStream(user, remoteStream);
     });
@@ -200,7 +200,7 @@ export class VideoService {
           }
         }
         const checkIce = () => {
-          if (peer?.iceConnectionState !== 'completed' &&  peer?.remoteDescription && video.candidate?.length) {
+          if (peer?.iceConnectionState !== 'completed' && peer?.remoteDescription && video.candidate?.length) {
             video.candidate.forEach((c) => {
               const hash = JSON.stringify(c);
               if (this.seen.get(user)?.has(hash)) return;
@@ -263,7 +263,7 @@ export class VideoService {
 
   queue = new Map<string, OpPatch[]>();
   patch(user: string, ops: OpPatch[]) {
-    const scheduled = !this.queue.size;
+    const scheduled = !!this.queue.size;
     const throttle = 400;
     if (this.queue.has(user)) {
       this.queue.get(user)!.push(...ops);
