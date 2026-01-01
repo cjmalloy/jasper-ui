@@ -90,9 +90,6 @@ export class VideoService {
     });
     peer.addEventListener('icecandidateerror', event => {
       console.error(event.errorCode, event.errorText);
-      this.store.video.reset(user);
-      this.ts.respond([setPublic(localTag(user)), '-plugin/user/video'], 'tag:/' + localTag(user))
-        .subscribe(() => this.invite());
     });
     peer.addEventListener('connectionstatechange', event => {
       if (peer.connectionState === 'connected') {
