@@ -52,7 +52,7 @@ export class VideoStore {
   }
 
   hangup() {
-    for (const [user, peer] of this.peers) {
+    for (const peer of this.peers.values()) {
       peer.close();
       peer.removeAllListeners!('icecandidate');
       peer.removeAllListeners!('icecandidateerror');
