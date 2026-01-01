@@ -19,13 +19,11 @@ export class VideoStore {
   }
 
   call(user: string, peer: RTCPeerConnection) {
-    if (!user) throw 'No user';
     this.peers.set(user, peer);
     this.streams.set(user, []);
   }
 
   addStream(user: string, stream: MediaStream) {
-    if (!user) throw 'No user';
     if (!this.streams.get(user)?.length) {
       this.streams.set(user, [stream]);
     } else if (!this.streams.get(user)?.find(s => s.id === stream.id)) {
@@ -35,24 +33,34 @@ export class VideoStore {
   }
 
   reset(user: string) {
-    if (!user) throw 'No user';
-    this.peers.get(user)?.close();
-    this.streams.get(user)?.forEach(s => s.getTracks().forEach(t => t.stop()));
-    this.peers.delete(user);
+    this.remove(user);
     this.streams.set(user, []);
   }
 
   remove(user: string) {
-    if (!user) throw 'No user';
-    this.peers.get(user)?.close();
+    const peer = this.peers.get(user);
+    if (peer) {
+      peer.close();
+      peer.removeAllListeners!('icecandidate');
+      peer.removeAllListeners!('icecandidateerror');
+      peer.removeAllListeners!('connectionstatechange');
+      peer.removeAllListeners!('track');
+    }
     this.streams.get(user)?.forEach(s => s.getTracks().forEach(t => t.stop()));
     this.peers.delete(user);
     this.streams.delete(user);
   }
 
   hangup() {
-    for (const [user, peer] of this.peers) peer.close();
+    for (const [user, peer] of this.peers) {
+      peer.close();
+      peer.removeAllListeners!('icecandidate');
+      peer.removeAllListeners!('icecandidateerror');
+      peer.removeAllListeners!('connectionstatechange');
+      peer.removeAllListeners!('track');
+    }
     this.peers.clear();
+    this.streams.forEach(ss => ss.forEach(s => s.getTracks().forEach(t => t.stop())));
     this.streams.clear();
     this.hungup.clear();
     this.stream?.getTracks().forEach(t => t.stop());
