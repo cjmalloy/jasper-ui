@@ -38,9 +38,11 @@ describe('Video Chat Plugin', {
     cy.get('.full-page.ref .link a').should('have.text', 'Video Chat Room');
 
     // Add plugin/chat tag after creation
+    cy.intercept({method: 'PATCH', pathname: '/api/v1/ref'}).as('updateRef');
     cy.get('.actions *').contains('tag').click();
     cy.get('.inline-tagging input').type('plugin/chat{enter}');
-    cy.wait(500); // Wait for tag to be processed
+    cy.wait('@updateRef');
+    cy.reload(); // Reload to ensure tag is displayed
     cy.get('.full-page.ref .tag:not(.user)').contains('plugin/chat').should('exist');
   });
 
@@ -99,9 +101,11 @@ describe('Video Chat Plugin', {
     cy.get('.full-page.ref .link a').should('have.text', 'General Chat');
 
     // Add chat/general tag after creation
+    cy.intercept({method: 'PATCH', pathname: '/api/v1/ref'}).as('updateRef');
     cy.get('.actions *').contains('tag').click();
     cy.get('.inline-tagging input').type('chat/general{enter}');
-    cy.wait(500); // Wait for tag to be processed
+    cy.wait('@updateRef');
+    cy.reload(); // Reload to ensure tag is displayed
     cy.get('.full-page.ref .tag:not(.user)').contains('chat/general').should('exist');
   });
 
