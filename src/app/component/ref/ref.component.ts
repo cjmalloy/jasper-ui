@@ -785,9 +785,9 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
 
   @memo
   get newCommentsCount() {
-    const current = this.comments;
     const lastSeen = this.store.local.getLastSeenCount(this.ref.url, 'comments');
-    return Math.max(0, current - lastSeen);
+    if (!lastSeen) return 0;
+    return Math.max(0, this.comments - lastSeen);
   }
 
   @memo
@@ -804,9 +804,9 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
 
   @memo
   get newThreadsCount() {
-    const current = this.threads;
     const lastSeen = this.store.local.getLastSeenCount(this.ref.url, 'threads');
-    return Math.max(0, current - lastSeen);
+    if (!lastSeen) return 0;
+    return Math.max(0,  this.threads - lastSeen);
   }
 
   @memo
@@ -816,9 +816,9 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
 
   @memo
   get newResponsesCount() {
-    const current = this.responses;
     const lastSeen = this.store.local.getLastSeenCount(this.ref.url, 'replies');
-    return Math.max(0, current - lastSeen);
+    if (!lastSeen) return 0;
+    return Math.max(0, this.responses - lastSeen);
   }
 
   @memo
