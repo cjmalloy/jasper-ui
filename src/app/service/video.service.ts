@@ -68,7 +68,7 @@ export class VideoService {
     console.warn('Hung Up!');
     this.url = '';
     for (const user of this.store.video.peers.keys()) {
-      this.ts.respond([setPublic(localTag(user)), '-plugin/user/video', 'plugin/user/video'], 'tag:/' + localTag(user))
+      this.ts.respond([setPublic(localTag(user)), '-plugin/user/video'], 'tag:/' + localTag(user))
         .subscribe();
     }
     this.store.video.hangup();
@@ -90,7 +90,7 @@ export class VideoService {
     peer.addEventListener('icecandidateerror', event => {
       console.error(event.errorCode, event.errorText);
       this.store.video.reset(user);
-      this.ts.respond([setPublic(localTag(user)), '-plugin/user/video', 'plugin/user/video'], 'tag:/' + localTag(user))
+      this.ts.respond([setPublic(localTag(user)), '-plugin/user/video'], 'tag:/' + localTag(user))
         .subscribe(() => this.invite());
     });
     peer.addEventListener('connectionstatechange', event => {
@@ -100,7 +100,7 @@ export class VideoService {
       }
       if (['disconnected', 'failed'].includes(peer.connectionState)) {
         this.store.video.reset(user);
-        this.ts.respond([setPublic(localTag(user)), '-plugin/user/video', 'plugin/user/video'], 'tag:/' + localTag(user))
+        this.ts.respond([setPublic(localTag(user)), '-plugin/user/video'], 'tag:/' + localTag(user))
           .subscribe(() => this.invite());
       }
       console.log('connectionstatechange', peer.connectionState);
