@@ -232,12 +232,15 @@ export class VideoService {
         }
       }
     };
+    let hostWaited = false;
+    delay(() => hostWaited = true, this.hostDelay);
     const poll = () => this.refs.page({
       query: 'plugin/user/video',
       responses: 'tag:/' + this.store.account.localTag,
     }).pipe(
       mergeMap(page => page.content),
-    ).subscribe(ref => doAnswer(ref));
+      filter(res => (!this.peerWebsocket && hostWaited) || this.store.video.peers.has(getUserUrl(res))),
+    ).subscribe(res => doAnswer(res));
     if (this.config.websockets) {
       poll();
       this.stomp.watchResponse('tag:/' + this.store.account.localTag).pipe(
