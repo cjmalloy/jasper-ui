@@ -37,6 +37,7 @@ export class VideoService {
 
   lobbyWebsocket = false;
   peerWebsocket = false;
+  initialInvite = false;
 
   private stream?: MediaStream;
 
@@ -60,8 +61,8 @@ export class VideoService {
     this.url = url;
     this.destroy$.next();
     runInAction(() => this.store.video.stream = stream);
-    this.invite();
     this.answer();
+    this.invite();
   }
 
   hangup() {
@@ -115,6 +116,7 @@ export class VideoService {
 
   invite() {
     const doInvite = (user: string) => {
+      this.initialInvite = true;
       runInAction(() => this.store.video.hungup.set(user, false));
       const checkStuck = () => delay(() => {
         const peer = this.store.video.peers.get(user);
@@ -232,14 +234,12 @@ export class VideoService {
         }
       }
     };
-    let hostWaited = false;
-    delay(() => hostWaited = true, this.hostDelay);
     const poll = () => this.refs.page({
       query: 'plugin/user/video',
       responses: 'tag:/' + this.store.account.localTag,
     }).pipe(
       mergeMap(page => page.content),
-      filter(res => (!this.peerWebsocket && hostWaited) || this.store.video.peers.has(getUserUrl(res))),
+      filter(res => (!this.peerWebsocket && this.initialInvite) || this.store.video.peers.has(getUserUrl(res))),
     ).subscribe(res => doAnswer(res));
     if (this.config.websockets) {
       poll();
