@@ -98,6 +98,7 @@ export class VideoService {
       }
       if (['disconnected', 'failed'].includes(peer.connectionState)) {
         this.store.video.reset(user);
+        this.offers.delete(user);
         this.ts.respond([setPublic(localTag(user)), '-plugin/user/video'], 'tag:/' + localTag(user))
           .subscribe(() => this.invite());
       }
@@ -111,6 +112,7 @@ export class VideoService {
     return peer;
   }
 
+  offers = new Map<string, string>();
   invite() {
     const doInvite = (user: string) => {
       this.initialInvite = true;
@@ -120,6 +122,7 @@ export class VideoService {
         if (peer?.localDescription && !peer.remoteDescription) {
           console.error('Stuck!');
           this.store.video.reset(user);
+          this.offers.delete(user);
           this.invite();
         }
       }, this.stuck);
@@ -135,6 +138,7 @@ export class VideoService {
         }
         peer.setLocalDescription(offer).then(() => {
           console.warn('Making Offer!', user);
+          this.offers.set(user, JSON.stringify(offer));
           this.ts.mergeResponse([setPublic(localTag(user)), '-plugin/user/video', 'plugin/user/video'], 'tag:/' + localTag(user), {
             'plugin/user/video': { offer }
           }).subscribe();
@@ -193,12 +197,17 @@ export class VideoService {
       if (!peer?.remoteDescription && !peer?.pendingRemoteDescription) {
         if (peer?.signalingState === 'have-local-offer') {
           if (video.answer) {
-            console.warn('Accept Answer!', user);
-            peer.setRemoteDescription(new RTCSessionDescription(video.answer));
+            if (this.offers.get(user) === JSON.stringify(video.offer)) {
+              console.warn('Accept Answer!', user);
+              peer.setRemoteDescription(new RTCSessionDescription(video.answer));
+            } else {
+              console.warn('Ignored Old Answer!', user);
+            }
           } else if (video.offer) {
             console.warn('Double Offer!', user);
             console.warn('Cancelled Offer! (will accept offer)', user);
             this.store.video.reset(user);
+            this.offers.delete(user);
             peer = this.peer(user);
           }
         }
@@ -225,7 +234,7 @@ export class VideoService {
               peer!.setLocalDescription(answer).then(() => {
                 console.warn('Send Answer!', user);
                 this.ts.mergeResponse([setPublic(localTag(user)), '-plugin/user/video', 'plugin/user/video'], 'tag:/' + localTag(user), {
-                  'plugin/user/video': { answer }
+                  'plugin/user/video': { answer, offer: video.offer }
                 }).subscribe();
                 checkIce();
               });
