@@ -129,6 +129,10 @@ export class VideoService {
       }
       const peer = this.peer(user);
       peer.createOffer().then(offer => {
+        if (peer.signalingState !== 'stable' || peer.localDescription || peer.pendingLocalDescription) {
+          // Already accepted remote offer
+          return;
+        }
         peer.setLocalDescription(offer).then(() => {
           console.warn('Making Offer!', user);
           this.ts.mergeResponse([setPublic(localTag(user)), '-plugin/user/video', 'plugin/user/video'], 'tag:/' + localTag(user), {
