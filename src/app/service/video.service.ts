@@ -28,8 +28,8 @@ interface VideoSignaling {
 export class VideoService {
   private destroy$ = new Subject<void>();
   hostDelay = 30_000;
-  poll = 30_000;
-  fastPoll = 4_000;
+  poll = 60_000;
+  fastPoll = 10_000;
   stuck = 30_000;
   maxInitial = 100;
 
