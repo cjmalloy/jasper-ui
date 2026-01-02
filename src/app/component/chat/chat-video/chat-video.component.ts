@@ -3,7 +3,7 @@ import { AfterViewInit, ChangeDetectionStrategy, Component, Input } from '@angul
 import { RouterLink } from '@angular/router';
 import { runInAction } from 'mobx';
 import { MobxAngularModule } from 'mobx-angular';
-import { first, map, mergeMap, Observable } from 'rxjs';
+import { map, Observable } from 'rxjs';
 import { TitleDirective } from '../../../directive/title.directive';
 import { Ext } from '../../../model/ext';
 import { AdminService } from '../../../service/admin.service';
