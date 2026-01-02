@@ -37,7 +37,14 @@
               }
             </div>
             @for (s of u.streams; track s.id) {
-              <video [srcObject]="s" autoplay playsinline (click)="speaker = u.tag"></video>
+              <video
+                [srcObject]="s"
+                autoplay
+                playsinline
+                tabindex="0"
+                (click)="speaker = u.tag"
+                (keydown.enter)="speaker = u.tag"
+                (keydown.space)="speaker = u.tag"></video>
             }
           </div>
         }
