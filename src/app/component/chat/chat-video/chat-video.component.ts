@@ -1,12 +1,17 @@
+import { AsyncPipe } from '@angular/common';
 import { AfterViewInit, ChangeDetectionStrategy, Component, Input } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { runInAction } from 'mobx';
 import { MobxAngularModule } from 'mobx-angular';
+import { map, Observable } from 'rxjs';
+import { TitleDirective } from '../../../directive/title.directive';
+import { Ext } from '../../../model/ext';
+import { AdminService } from '../../../service/admin.service';
+import { ExtService } from '../../../service/api/ext.service';
 import { TaggingService } from '../../../service/api/tagging.service';
 import { VideoService } from '../../../service/video.service';
 import { Store } from '../../../store/store';
 import { hasTag } from '../../../util/tag';
-import { LoadingComponent } from '../../loading/loading.component';
-import { NavComponent } from '../../nav/nav.component';
 
 @Component({
   selector: 'app-chat-video',
@@ -14,9 +19,10 @@ import { NavComponent } from '../../nav/nav.component';
   styleUrl: './chat-video.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    NavComponent,
-    LoadingComponent,
     MobxAngularModule,
+    RouterLink,
+    TitleDirective,
+    AsyncPipe,
   ],
 })
 export class ChatVideoComponent implements AfterViewInit {
@@ -26,6 +32,8 @@ export class ChatVideoComponent implements AfterViewInit {
 
   constructor(
     public store: Store,
+    private admin: AdminService,
+    private exts: ExtService,
     private ts: TaggingService,
     private vs: VideoService,
   ) { }
@@ -39,8 +47,33 @@ export class ChatVideoComponent implements AfterViewInit {
     }
   }
 
+  authorExt$(user: string): Observable<Ext> {
+    return this.exts.getCachedExt(user).pipe(map(x => ({ ...x, name: x.name || x.tag.substring('+user/'.length) })));
+  }
+
+  set speaker(user: string) {
+    runInAction(() => this.store.video.activeSpeaker = (user === this.store.account.tag) ? '' : user);
+  }
+
   get userStreams() {
     return [...this.store.video.streams.entries()].map(e =>({ tag: e[0], streams: e[1].filter(s => s.getTracks().some(t => t.readyState === 'live')) }));
+  }
+
+  get isTwoPersonCall() {
+    return this.userStreams.length === 1;
+  }
+
+  get featuredStream() {
+    if (this.userStreams.length === 1 || !this.store.video.activeSpeaker) {
+      return this.userStreams[0];
+    }
+    return this.userStreams.find(u => u.tag === this.store.video.activeSpeaker) || this.userStreams[0];
+  }
+
+  get gridStreams() {
+    if (this.userStreams.length === 1) return [];
+    if (!this.store.video.activeSpeaker) return this.userStreams.slice(1);
+    return this.userStreams.filter(u => u.tag !== this.store.video.activeSpeaker);
   }
 
   get hungup() {
@@ -70,4 +103,5 @@ export class ChatVideoComponent implements AfterViewInit {
     this.ts.deleteResponse('plugin/user/lobby', this.url).subscribe();
     this.vs.hangup();
   }
+
 }
