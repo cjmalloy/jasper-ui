@@ -99,8 +99,8 @@ describe('Ref Actions', {
       cy.get('.full-page.ref .actions *').contains('citation').click();
       cy.wait(1000);
       
-      // Navigate back to the ref
-      cy.get('.full-page.ref .actions *').contains('parent').click();
+      // Navigate back to the ref using the "view" tab (not "parent" since the main ref doesn't have one)
+      cy.get('.tabs').contains('view').click();
       cy.wait(500);
       
       // Add another comment with API intercept
