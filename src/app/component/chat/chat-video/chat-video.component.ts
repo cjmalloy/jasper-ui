@@ -56,7 +56,13 @@ export class ChatVideoComponent implements AfterViewInit {
   }
 
   get userStreams() {
-    return [...this.store.video.streams.entries()].map(e =>({ tag: e[0], streams: e[1].filter(s => s.getTracks().some(t => t.readyState === 'live')) }));
+    return [...this.store.video.streams.entries()].map(e =>({
+      tag: e[0],
+      streams: e[1].map(stream => ({
+        stream,
+        live: stream.getTracks().some(t => t.readyState === 'live')
+      })),
+    }));
   }
 
   get isTwoPersonCall() {

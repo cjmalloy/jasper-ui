@@ -19,8 +19,10 @@
                  [appTitle]="x">{{ x.name }}</a>
             }
           </div>
-          @for (s of featuredStream.streams; track s.id) {
-            <video [srcObject]="s" class="featured-video" autoplay playsinline></video>
+          @for (s of featuredStream.streams; track s.stream.id) {
+            <video [srcObject]="s.stream"
+                   [class.reconnecting]="!s.live"
+                   class="featured-video" autoplay playsinline></video>
           } @empty {
             <div class="loading video-placeholder featured-video"></div>
           }
@@ -36,9 +38,10 @@
                    [appTitle]="x">{{ x.name }}</a>
               }
             </div>
-            @for (s of u.streams; track s.id) {
+            @for (s of u.streams; track s.stream.id) {
               <video
-                [srcObject]="s"
+                [srcObject]="s.stream"
+                [class.reconnecting]="!s.live"
                 autoplay
                 playsinline
                 tabindex="0"
