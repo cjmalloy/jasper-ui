@@ -84,6 +84,46 @@ describe('Ref Actions', {
       cy.get('.full-page.ref .link a').should('have.text', 'Test Ref for New Indicators');
     });
 
+    it('should show "(1 new)" when first comment is added', () => {
+      // Add a comment with API intercept
+      cy.intercept('POST', '/api/v1/ref').as('createComment');
+      cy.get('.actions *').contains('reply').click();
+      cy.get('.full-page.ref .comment-reply textarea').type('First comment');
+      cy.get('.full-page.ref button').contains('reply').click();
+      
+      // Wait for comment to be created
+      cy.wait('@createComment');
+      cy.wait(1000); // Additional wait for metadata to update
+      
+      // View the comment page to mark the first comment as seen
+      cy.get('.full-page.ref .actions *').contains('citation').click();
+      cy.wait(1000);
+      
+      // Navigate back to the ref
+      cy.get('.full-page.ref .actions *').contains('parent').click();
+      cy.wait(500);
+      
+      // Add another comment with API intercept
+      cy.intercept('POST', '/api/v1/ref').as('createComment2');
+      cy.get('.actions *').contains('reply').click();
+      cy.get('.full-page.ref .comment-reply textarea').type('Second comment');
+      cy.get('.full-page.ref button').contains('reply').click();
+      cy.wait('@createComment2');
+      cy.wait(1000);
+      
+      // Navigate away to home and then find the ref to check indicators
+      cy.visit('/?debug=MOD');
+      cy.wait(1000);
+      
+      // Try to find and click on the ref we created
+      cy.contains('Test Ref for New Indicators').click();
+      cy.wait(500);
+      
+      // Check for citation count (should show "(1 new)" for the second comment)
+      cy.get('.full-page.ref .actions').should('contain', 'citation');
+      cy.get('.full-page.ref .actions').should('contain', '(1 new)');
+    });
+
     it('should clear "(X new)" after viewing comments', () => {
       // Click on citation link to view them
       cy.get('.full-page.ref .actions *').contains('citation').click();
@@ -103,20 +143,20 @@ describe('Ref Actions', {
     });
 
     it('should show "(2 new)" when two more comments are added', () => {
-      // We're already on the ref page, add second comment with API intercept
-      cy.intercept('POST', '/api/v1/ref').as('createComment2');
-      cy.get('.actions *').contains('reply').click();
-      cy.get('.full-page.ref .comment-reply textarea').type('Second comment');
-      cy.get('.full-page.ref button').contains('reply').click();
-      cy.wait('@createComment2');
-      cy.wait(1000);
-      
-      // Add third comment with API intercept
+      // We're already on the ref page, add third comment with API intercept
       cy.intercept('POST', '/api/v1/ref').as('createComment3');
       cy.get('.actions *').contains('reply').click();
       cy.get('.full-page.ref .comment-reply textarea').type('Third comment');
       cy.get('.full-page.ref button').contains('reply').click();
       cy.wait('@createComment3');
+      cy.wait(1000);
+      
+      // Add fourth comment with API intercept
+      cy.intercept('POST', '/api/v1/ref').as('createComment4');
+      cy.get('.actions *').contains('reply').click();
+      cy.get('.full-page.ref .comment-reply textarea').type('Fourth comment');
+      cy.get('.full-page.ref button').contains('reply').click();
+      cy.wait('@createComment4');
       cy.wait(1000);
       
       // Navigate away and back
@@ -125,7 +165,7 @@ describe('Ref Actions', {
       cy.contains('Test Ref for New Indicators').click();
       cy.wait(500);
       
-      // Check for "(2 new)" indicator (3 total - 1 previously seen)
+      // Check for "(2 new)" indicator (4 total - 2 previously seen)
       cy.get('.full-page.ref .actions').should('contain', 'citation');
       cy.get('.full-page.ref .actions').should('contain', '(2 new)');
     });
