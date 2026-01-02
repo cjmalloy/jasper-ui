@@ -47,7 +47,6 @@ export class VideoStore {
       peer.removeAllListeners!('connectionstatechange');
       peer.removeAllListeners!('track');
     }
-    this.streams.get(user)?.forEach(s => s.getTracks().forEach(t => t.stop()));
     this.peers.delete(user);
     this.streams.delete(user);
   }
@@ -61,7 +60,6 @@ export class VideoStore {
       peer.removeAllListeners!('track');
     }
     this.peers.clear();
-    this.streams.forEach(ss => ss.forEach(s => s.getTracks().forEach(t => t.stop())));
     this.streams.clear();
     this.hungup.clear();
     this.stream?.getTracks().forEach(t => t.stop());
