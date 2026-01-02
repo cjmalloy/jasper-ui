@@ -96,7 +96,7 @@ export class VideoService {
         this.ts.respond([setPublic(localTag(user)), '-plugin/user/video'], 'tag:/' + localTag(user))
           .subscribe();
       }
-      if (['disconnected', 'failed'].includes(peer.connectionState)) {
+      if (peer.connectionState === 'failed') {
         this.store.video.reset(user);
         this.offers.delete(user);
         this.ts.respond([setPublic(localTag(user)), '-plugin/user/video'], 'tag:/' + localTag(user))
