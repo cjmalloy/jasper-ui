@@ -4,6 +4,7 @@ export class VideoStore {
 
   enabled = false;
   stream?: MediaStream = {} as any;
+  activeSpeaker = '';
   peers = new Map<string, RTCPeerConnection>();
   streams = new Map<string, MediaStream[]>();
   hungup = new Map<string, boolean>();
