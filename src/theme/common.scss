@@ -1040,7 +1040,7 @@ video.qr-preview {
 
   &:not(.expanded) {
     width: 40px;
-    .tag-header, .ui, .md, .sidebar-link, .ext-text, .breadcrumbs, app-nav {
+    .tag-header, .ui, .md, .sidebar-link, .ext-text, .breadcrumbs, app-nav, .stream-label {
       display: none !important;
     }
     .tag-select {
@@ -1048,6 +1048,12 @@ video.qr-preview {
     }
     .tag-select > * {
       padding: 4px !important;
+    }
+    .featured-section {
+      display: none;
+    }
+    .video-grid {
+      display: block;
     }
   }
 
