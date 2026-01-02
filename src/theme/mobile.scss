@@ -82,6 +82,9 @@ $tablet-width: 948px;
         padding: 0 !important;
         border: 0 !important;
       }
+      app-chat-video > *:not(.submit-button) {
+        display: none;
+      }
       .button-bar {
         flex-direction: row;
       }

@@ -1,12 +1,17 @@
+import { AsyncPipe } from '@angular/common';
 import { AfterViewInit, ChangeDetectionStrategy, Component, Input } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { runInAction } from 'mobx';
 import { MobxAngularModule } from 'mobx-angular';
+import { first, map, mergeMap, Observable } from 'rxjs';
+import { TitleDirective } from '../../../directive/title.directive';
+import { Ext } from '../../../model/ext';
+import { AdminService } from '../../../service/admin.service';
+import { ExtService } from '../../../service/api/ext.service';
 import { TaggingService } from '../../../service/api/tagging.service';
 import { VideoService } from '../../../service/video.service';
 import { Store } from '../../../store/store';
 import { hasTag } from '../../../util/tag';
-import { LoadingComponent } from '../../loading/loading.component';
-import { NavComponent } from '../../nav/nav.component';
 
 @Component({
   selector: 'app-chat-video',
@@ -14,9 +19,10 @@ import { NavComponent } from '../../nav/nav.component';
   styleUrl: './chat-video.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    NavComponent,
-    LoadingComponent,
     MobxAngularModule,
+    RouterLink,
+    TitleDirective,
+    AsyncPipe,
   ],
 })
 export class ChatVideoComponent implements AfterViewInit {
@@ -24,8 +30,13 @@ export class ChatVideoComponent implements AfterViewInit {
   @Input()
   url = 'tag:/chat';
 
+  private audioContexts = new Map<string, { ctx: AudioContext, analyser: AnalyserNode }>();
+  private speakerDebounce?: ReturnType<typeof setTimeout>;
+
   constructor(
     public store: Store,
+    private admin: AdminService,
+    private exts: ExtService,
     private ts: TaggingService,
     private vs: VideoService,
   ) { }
@@ -37,6 +48,10 @@ export class ChatVideoComponent implements AfterViewInit {
           if (hasTag('plugin/user/lobby', ref)) this.call();
         });
     }
+  }
+
+  authorExt$(user: string): Observable<Ext> {
+    return this.exts.getCachedExt(user).pipe(map(x => ({ ...x, name: x.name || x.tag.substring('+user/'.length) })));
   }
 
   get userStreams() {
@@ -70,4 +85,58 @@ export class ChatVideoComponent implements AfterViewInit {
     this.ts.deleteResponse('plugin/user/lobby', this.url).subscribe();
     this.vs.hangup();
   }
+
+  get isTwoPersonCall() {
+    return this.userStreams.length === 1;
+  }
+
+  get activeSpeaker() {
+    return this.store.video.activeSpeaker;
+  }
+
+  get featuredStream() {
+    if (this.isTwoPersonCall) {
+      return this.userStreams[0]; // Callee on top for 2-person
+    }
+    return this.userStreams.find(u => u.tag === this.activeSpeaker) || this.userStreams[0];
+  }
+
+  get gridStreams() {
+    if (this.isTwoPersonCall) return [];
+    return this.userStreams.filter(u => u.tag !== this.activeSpeaker);
+  }
+
+  setupAudioDetection(tag: string, stream: MediaStream) {
+    if (this.audioContexts.has(tag)) return;
+
+    const audioTrack = stream.getAudioTracks()[0];
+    if (!audioTrack) return;
+
+    const ctx = new AudioContext();
+    const analyser = ctx.createAnalyser();
+    const source = ctx.createMediaStreamSource(stream);
+    source.connect(analyser);
+    analyser.fftSize = 256;
+
+    this.audioContexts.set(tag, { ctx, analyser });
+
+    const dataArray = new Uint8Array(analyser.frequencyBinCount);
+    const checkLevel = () => {
+      if (!this.store.video.enabled) return;
+      analyser.getByteFrequencyData(dataArray);
+      const avg = dataArray.reduce((a, b) => a + b) / dataArray.length;
+
+      runInAction(() => this.store.video.speakingLevels.set(tag, avg));
+
+      if (avg > 25) { // Speaking threshold
+        clearTimeout(this.speakerDebounce);
+        this.speakerDebounce = setTimeout(() => {
+          runInAction(() => this.store.video.activeSpeaker = tag);
+        }, 300);
+      }
+      requestAnimationFrame(checkLevel);
+    };
+    checkLevel();
+  }
+
 }
