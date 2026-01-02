@@ -115,7 +115,7 @@ export class VideoService {
 
   offers = new Map<string, string>();
   invite() {
-    const doInvite = (user: string) => {
+    const doInvite = async (user: string) => {
       this.initialInvite = true;
       runInAction(() => this.store.video.hungup.set(user, false));
       const checkStuck = () => delay(() => {
@@ -132,20 +132,18 @@ export class VideoService {
         return;
       }
       const peer = this.peer(user);
-      peer.createOffer().then(offer => {
-        if (peer.signalingState !== 'stable' || peer.localDescription || peer.pendingLocalDescription) {
-          // Already accepted remote offer
-          return;
-        }
-        peer.setLocalDescription(offer).then(() => {
-          console.warn('Making Offer!', user);
-          this.offers.set(user, JSON.stringify(offer));
-          this.ts.mergeResponse([setPublic(localTag(user)), '-plugin/user/video', 'plugin/user/video'], 'tag:/' + localTag(user), {
-            'plugin/user/video': { offer }
-          }).subscribe();
-          checkStuck();
-        });
-      });
+      const offer = await peer.createOffer();
+      if (peer.signalingState !== 'stable') {
+        // Already accepted remote offer
+        return;
+      }
+      await peer.setLocalDescription(offer);
+      console.warn('Making Offer!', user);
+      this.offers.set(user, JSON.stringify(offer));
+      this.ts.mergeResponse([setPublic(localTag(user)), '-plugin/user/video', 'plugin/user/video'], 'tag:/' + localTag(user), {
+        'plugin/user/video': { offer }
+      }).subscribe();
+      checkStuck();
     };
     const poll = () => this.refs.page({
       query: 'plugin/user/lobby',
@@ -187,7 +185,7 @@ export class VideoService {
 
   seen = new Map<string, Set<string>>();
   answer() {
-    const doAnswer = (res: Ref) => {
+    const doAnswer = async (res: Ref) => {
       const user = getUserUrl(res);
       if (!user || user === this.store.account.tag) return;
       const video = res.plugins?.['plugin/user/video'] as VideoSignaling | undefined;
@@ -195,53 +193,48 @@ export class VideoService {
       if (this.store.video.hungup.get(user)) return;
       let peer = this.store.video.peers.get(user);
       if (peer?.connectionState === 'connected') return;
-      if (!peer?.remoteDescription && !peer?.pendingRemoteDescription) {
-        if (peer?.signalingState === 'have-local-offer') {
-          if (video.answer) {
-            if (this.offers.get(user) === JSON.stringify(video.offer)) {
-              console.warn('Accept Answer!', user);
-              peer.setRemoteDescription(new RTCSessionDescription(video.answer));
-            } else {
-              console.warn('Ignored Old Answer!', user);
-            }
-          } else if (video.offer) {
-            console.warn('Double Offer!', user);
+      if (peer?.signalingState === 'have-local-offer') {
+        if (video.answer) {
+          if (this.offers.get(user) !== JSON.stringify(video.offer)) {
+            console.warn('Ignored Old Answer!', user);
+          } else {
+            console.warn('Accept Answer!', user);
+            await peer.setRemoteDescription(new RTCSessionDescription(video.answer));
+          }
+        } else if (video.offer) {
+          console.warn('Double Offer!', user);
+          if (this.store.account.tag < user) {
             console.warn('Cancelled Offer! (will accept offer)', user);
-            this.store.video.reset(user);
-            this.offers.delete(user);
-            peer = this.peer(user);
+            await peer.setLocalDescription({ type: 'rollback' });
+          } else {
+            console.warn('Waiting for answer!', user);
+            return;
           }
         }
-        const checkIce = () => {
-          if (peer?.iceConnectionState !== 'completed' && peer?.remoteDescription && video.candidate?.length) {
-            video.candidate.forEach((c) => {
-              const hash = JSON.stringify(c);
-              if (this.seen.get(user)?.has(hash)) return;
-              if (!this.seen.get(user)) this.seen.set(user, new Set<string>());
-              this.seen.get(user)?.add(hash);
-              console.warn('Adding Ice!', user);
-              peer!.addIceCandidate(c.candidate ? c : null).catch(err => {
-                console.error('Error adding received ice candidate', err);
-              });
-            });
+      }
+      if (video.offer && !video.answer && (!peer || peer?.signalingState === 'stable')) {
+        peer ||= this.peer(user);
+        console.warn('Accept Offer!', user, peer.signalingState);
+        await peer.setRemoteDescription(new RTCSessionDescription(video.offer!));
+        const answer = await peer.createAnswer();
+        await peer!.setLocalDescription(answer);
+        console.warn('Send Answer!', user);
+        this.ts.mergeResponse([setPublic(localTag(user)), '-plugin/user/video', 'plugin/user/video'], 'tag:/' + localTag(user), {
+          'plugin/user/video': { answer, offer: video.offer }
+        }).subscribe();
+      }
+      if (peer?.iceConnectionState !== 'completed' && peer?.remoteDescription && video.candidate?.length) {
+        for (const c of video.candidate) {
+          const hash = JSON.stringify(c);
+          if (this.seen.get(user)?.has(hash)) return;
+          if (!this.seen.get(user)) this.seen.set(user, new Set<string>());
+          this.seen.get(user)?.add(hash);
+          console.warn('Adding Ice!', user);
+          try {
+            await peer!.addIceCandidate(c.candidate ? c : null);
+          } catch (err) {
+            console.error('Error adding received ice candidate', err);
           }
-        };
-        if (video.offer && (!peer || peer?.signalingState === 'stable') && !peer?.localDescription && !peer?.pendingLocalDescription) {
-          peer ||= this.peer(user);
-          console.warn('Accept Offer!', user, peer.signalingState);
-          peer.setRemoteDescription(new RTCSessionDescription(video.offer!))
-            .then(() => peer!.createAnswer())
-            .then(answer => {
-              peer!.setLocalDescription(answer).then(() => {
-                console.warn('Send Answer!', user);
-                this.ts.mergeResponse([setPublic(localTag(user)), '-plugin/user/video', 'plugin/user/video'], 'tag:/' + localTag(user), {
-                  'plugin/user/video': { answer, offer: video.offer }
-                }).subscribe();
-                checkIce();
-              });
-            });
-        } else {
-          checkIce();
         }
       }
     };
