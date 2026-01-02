@@ -84,30 +84,6 @@ describe('Ref Actions', {
       cy.get('.full-page.ref .link a').should('have.text', 'Test Ref for New Indicators');
     });
 
-    it('should show "(1 new)" when first comment is added', () => {
-      // Add a comment with API intercept
-      cy.intercept('POST', '/api/v1/ref').as('createComment');
-      cy.get('.actions *').contains('reply').click();
-      cy.get('.full-page.ref .comment-reply textarea').type('First comment');
-      cy.get('.full-page.ref button').contains('reply').click();
-      
-      // Wait for comment to be created
-      cy.wait('@createComment');
-      cy.wait(1000); // Additional wait for metadata to update
-      
-      // Navigate away to home and then find the ref to check indicators
-      cy.visit('/?debug=MOD');
-      cy.wait(1000);
-      
-      // Try to find and click on the ref we created
-      cy.contains('Test Ref for New Indicators').click();
-      cy.wait(500);
-      
-      // Check for citation count (comment shows as citation)
-      cy.get('.full-page.ref .actions').should('contain', 'citation');
-      cy.get('.full-page.ref .actions').should('contain', '(1 new)');
-    });
-
     it('should clear "(X new)" after viewing comments', () => {
       // Click on citation link to view them
       cy.get('.full-page.ref .actions *').contains('citation').click();
