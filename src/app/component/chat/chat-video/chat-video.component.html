@@ -21,7 +21,7 @@
           </div>
           @for (s of featuredStream.streams; track s.stream.id) {
             <video [srcObject]="s.stream"
-                   [class.reconnecting]="!s.live"
+                   [class.loading]="!s.live"
                    class="featured-video" autoplay playsinline></video>
           } @empty {
             <div class="loading video-placeholder featured-video"></div>
@@ -41,7 +41,7 @@
             @for (s of u.streams; track s.stream.id) {
               <video
                 [srcObject]="s.stream"
-                [class.reconnecting]="!s.live"
+                [class.loading]="!s.live"
                 autoplay
                 playsinline
                 tabindex="0"
