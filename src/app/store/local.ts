@@ -95,13 +95,15 @@ export class LocalStore {
 
   /**
    * Set the last seen count for a specific type (comments, threads, replies) on a URL.
-   * Avoids storing 0 values to keep localStorage clean.
+   * Avoids storing 0 values to keep localStorage clean, but clears existing entries if count becomes 0.
    */
   setLastSeenCount(url: string, type: 'comments' | 'threads' | 'replies', count: number): void {
+    const key = `lastSeen:${type}:${url}`;
     if (count === 0) {
-      // Don't store 0 values in localStorage
+      // Clear existing storage if count is 0 (e.g., comments were deleted)
+      localStorage.removeItem(key);
       return;
     }
-    localStorage.setItem(`lastSeen:${type}:${url}`, count.toString());
+    localStorage.setItem(key, count.toString());
   }
 }
