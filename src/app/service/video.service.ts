@@ -22,6 +22,11 @@ interface VideoSignaling {
   candidate?: RTCIceCandidateInit[];
 }
 
+function getSessionId(sdp: string): string {
+  const match = sdp.match(/^o=\S+ (\d+) /m);
+  return match?.[1] || '';
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -192,6 +197,18 @@ export class VideoService {
       if (!video) return;
       if (this.store.video.hungup.get(user)) return;
       let peer = this.store.video.peers.get(user);
+      if (peer?.connectionState === 'connected' && video.offer && !video.answer) {
+        const newSessionId = getSessionId(video.offer.sdp!);
+        const currentSessionId = peer?.remoteDescription
+          ? getSessionId(peer.remoteDescription.sdp)
+          : '';
+        if (newSessionId !== currentSessionId) {
+          console.warn('Peer reloaded - resetting connection', user);
+          this.store.video.reset(user);
+          this.offers.delete(user);
+          peer = undefined;  // Will be recreated below
+        }
+      }
       if (peer?.connectionState === 'connected') return;
       if (peer?.signalingState === 'have-local-offer') {
         if (video.answer) {
