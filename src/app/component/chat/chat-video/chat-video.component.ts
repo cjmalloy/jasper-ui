@@ -3,7 +3,7 @@ import { AfterViewInit, ChangeDetectionStrategy, Component, Input } from '@angul
 import { RouterLink } from '@angular/router';
 import { runInAction } from 'mobx';
 import { MobxAngularModule } from 'mobx-angular';
-import { first, map, mergeMap, Observable } from 'rxjs';
+import { map, Observable } from 'rxjs';
 import { TitleDirective } from '../../../directive/title.directive';
 import { Ext } from '../../../model/ext';
 import { AdminService } from '../../../service/admin.service';
@@ -54,8 +54,29 @@ export class ChatVideoComponent implements AfterViewInit {
     return this.exts.getCachedExt(user).pipe(map(x => ({ ...x, name: x.name || x.tag.substring('+user/'.length) })));
   }
 
+  set speaker(user: string) {
+    runInAction(() => this.store.video.activeSpeaker = (user === this.store.account.tag) ? '' : user);
+  }
+
   get userStreams() {
     return [...this.store.video.streams.entries()].map(e =>({ tag: e[0], streams: e[1].filter(s => s.getTracks().some(t => t.readyState === 'live')) }));
+  }
+
+  get isTwoPersonCall() {
+    return this.userStreams.length === 1;
+  }
+
+  get featuredStream() {
+    if (this.userStreams.length === 1 || !this.store.video.activeSpeaker) {
+      return this.userStreams[0];
+    }
+    return this.userStreams.find(u => u.tag === this.store.video.activeSpeaker) || this.userStreams[0];
+  }
+
+  get gridStreams() {
+    if (this.userStreams.length === 1) return [];
+    if (!this.store.video.activeSpeaker) return this.userStreams.slice(1);
+    return this.userStreams.filter(u => u.tag !== this.store.video.activeSpeaker);
   }
 
   get hungup() {
@@ -84,59 +105,6 @@ export class ChatVideoComponent implements AfterViewInit {
     runInAction(() => this.store.video.enabled = false);
     this.ts.deleteResponse('plugin/user/lobby', this.url).subscribe();
     this.vs.hangup();
-  }
-
-  get isTwoPersonCall() {
-    return this.userStreams.length === 1;
-  }
-
-  get activeSpeaker() {
-    return this.store.video.activeSpeaker;
-  }
-
-  get featuredStream() {
-    if (this.isTwoPersonCall) {
-      return this.userStreams[0]; // Callee on top for 2-person
-    }
-    return this.userStreams.find(u => u.tag === this.activeSpeaker) || this.userStreams[0];
-  }
-
-  get gridStreams() {
-    if (this.isTwoPersonCall) return [];
-    return this.userStreams.filter(u => u.tag !== this.activeSpeaker);
-  }
-
-  setupAudioDetection(tag: string, stream: MediaStream) {
-    if (this.audioContexts.has(tag)) return;
-
-    const audioTrack = stream.getAudioTracks()[0];
-    if (!audioTrack) return;
-
-    const ctx = new AudioContext();
-    const analyser = ctx.createAnalyser();
-    const source = ctx.createMediaStreamSource(stream);
-    source.connect(analyser);
-    analyser.fftSize = 256;
-
-    this.audioContexts.set(tag, { ctx, analyser });
-
-    const dataArray = new Uint8Array(analyser.frequencyBinCount);
-    const checkLevel = () => {
-      if (!this.store.video.enabled) return;
-      analyser.getByteFrequencyData(dataArray);
-      const avg = dataArray.reduce((a, b) => a + b) / dataArray.length;
-
-      runInAction(() => this.store.video.speakingLevels.set(tag, avg));
-
-      if (avg > 25) { // Speaking threshold
-        clearTimeout(this.speakerDebounce);
-        this.speakerDebounce = setTimeout(() => {
-          runInAction(() => this.store.video.activeSpeaker = tag);
-        }, 300);
-      }
-      requestAnimationFrame(checkLevel);
-    };
-    checkLevel();
   }
 
 }

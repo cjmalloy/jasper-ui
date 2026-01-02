@@ -4,11 +4,10 @@ export class VideoStore {
 
   enabled = false;
   stream?: MediaStream = {} as any;
+  activeSpeaker = '';
   peers = new Map<string, RTCPeerConnection>();
   streams = new Map<string, MediaStream[]>();
   hungup = new Map<string, boolean>();
-  activeSpeaker = '';
-  speakingLevels = new Map<string, number>();
 
   constructor() {
     makeAutoObservable(this, {
@@ -16,7 +15,6 @@ export class VideoStore {
       peers: observable.shallow,
       streams: observable.shallow,
       hungup: observable.shallow,
-      speakingLevels: observable.shallow,
     });
     this.stream = undefined;
   }

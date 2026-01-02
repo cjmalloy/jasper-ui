@@ -37,7 +37,7 @@
               }
             </div>
             @for (s of u.streams; track s.id) {
-              <video [srcObject]="s" autoplay playsinline></video>
+              <video [srcObject]="s" autoplay playsinline (click)="speaker = u.tag"></video>
             }
           </div>
         }
