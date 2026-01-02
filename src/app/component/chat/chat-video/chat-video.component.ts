@@ -30,9 +30,6 @@ export class ChatVideoComponent implements AfterViewInit {
   @Input()
   url = 'tag:/chat';
 
-  private audioContexts = new Map<string, { ctx: AudioContext, analyser: AnalyserNode }>();
-  private speakerDebounce?: ReturnType<typeof setTimeout>;
-
   constructor(
     public store: Store,
     private admin: AdminService,
