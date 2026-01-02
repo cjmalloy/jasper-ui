@@ -119,6 +119,7 @@ export class LocalStore {
       } else if (key.startsWith('lastSeen:')) {
         const rest = key.substring('lastSeen:'.length);
         const colonIndex = rest.indexOf(':');
+        if (colonIndex === -1) continue;
         const type = rest.substring(0, colonIndex);
         const url = rest.substring(colonIndex + 1);
         results.push({
