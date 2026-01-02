@@ -50,7 +50,7 @@ export class ChatVideoComponent implements AfterViewInit {
   call() {
     runInAction(() => this.store.video.enabled = true);
     this.ts.respond(['public', 'plugin/user/lobby'], this.url).subscribe();
-    navigator.mediaDevices.getUserMedia({ audio: true, video: true })
+    navigator.mediaDevices.getUserMedia({ audio: true, video: { width: { ideal: 640 }, height: { ideal: 640 } } })
       .then(stream => {
         if (!this.store.video.enabled) {
           stream.getTracks().forEach(t => t.stop());
