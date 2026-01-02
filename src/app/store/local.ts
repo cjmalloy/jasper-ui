@@ -99,11 +99,10 @@ export class LocalStore {
    */
   setLastSeenCount(url: string, type: 'comments' | 'threads' | 'replies', count: number): void {
     const key = `lastSeen:${type}:${url}`;
-    if (count === 0) {
-      // Clear existing storage if count is 0 (e.g., comments were deleted)
+    if (count) {
+      localStorage.setItem(key, count.toString());
+    } else {
       localStorage.removeItem(key);
-      return;
     }
-    localStorage.setItem(key, count.toString());
   }
 }
