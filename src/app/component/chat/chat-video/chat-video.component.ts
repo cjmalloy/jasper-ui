@@ -1,5 +1,5 @@
 import { AsyncPipe } from '@angular/common';
-import { AfterViewInit, ChangeDetectionStrategy, Component, Input } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, Input, OnDestroy } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { runInAction } from 'mobx';
 import { MobxAngularModule } from 'mobx-angular';
@@ -25,13 +25,14 @@ import { hasTag } from '../../../util/tag';
     AsyncPipe,
   ],
 })
-export class ChatVideoComponent implements AfterViewInit {
+export class ChatVideoComponent implements AfterViewInit, OnDestroy {
 
   @Input()
   url = 'tag:/chat';
 
   private audioContexts = new Map<string, { ctx: AudioContext, analyser: AnalyserNode }>();
   private speakerDebounce?: ReturnType<typeof setTimeout>;
+  private animationFrameId?: number;
 
   constructor(
     public store: Store,
@@ -134,9 +135,27 @@ export class ChatVideoComponent implements AfterViewInit {
           runInAction(() => this.store.video.activeSpeaker = tag);
         }, 300);
       }
-      requestAnimationFrame(checkLevel);
+      this.animationFrameId = requestAnimationFrame(checkLevel);
     };
     checkLevel();
+  }
+
+  ngOnDestroy() {
+    // Clear the debounce timeout
+    if (this.speakerDebounce) {
+      clearTimeout(this.speakerDebounce);
+    }
+
+    // Stop the requestAnimationFrame loop
+    if (this.animationFrameId) {
+      cancelAnimationFrame(this.animationFrameId);
+    }
+
+    // Close all AudioContext instances
+    this.audioContexts.forEach(({ ctx }) => {
+      ctx.close();
+    });
+    this.audioContexts.clear();
   }
 
 }
