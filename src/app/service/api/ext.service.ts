@@ -162,8 +162,8 @@ export class ExtService {
 
         const resolvedExt = ext || this.defaultExt(item.tag, origin);
         
-        // Update cache with the resolved ext
-        this._cache.set(resolvedExt.tag + resolvedExt.origin + ':', of(resolvedExt));
+        // Update cache with the resolved ext using the same logic as prefillCache()
+        this.prefillCache(resolvedExt);
         
         // Emit the result to the subject
         item.subject.next(resolvedExt);
