@@ -121,6 +121,13 @@ export const videoPlugin: Plugin = {
         { urls: 'stun:stun.l.google.com:19302' },
       ],
     },
+    gumConfig: {
+      audio: true,
+      video: {
+        width: { ideal: 640 },
+        height: { ideal: 640 }
+      }
+    },
     form: [{
       key: 'candidate',
       type: 'list',
