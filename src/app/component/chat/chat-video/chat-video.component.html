@@ -74,6 +74,24 @@
           </div>
         }
       </div>
+
+      <!-- Passive Viewers Section -->
+      @if (viewers.length) {
+        <div class="viewers-section">
+          <h4 i18n>Viewers</h4>
+          <div class="viewer-list">
+            @for (v of viewers; track v) {
+              <div class="viewer-tag">
+                @if (authorExt$(v) | async; as x) {
+                  <a class="user tag"
+                     [routerLink]="['/tag', x.tag + x.origin]"
+                     [appTitle]="x">{{ x.name }}</a>
+                }
+              </div>
+            }
+          </div>
+        </div>
+      }
     </div>
   }
 </ng-container>

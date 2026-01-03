@@ -35,7 +35,7 @@ export class ChatVideoComponent implements AfterViewInit {
     private admin: AdminService,
     private exts: ExtService,
     private ts: TaggingService,
-    private vs: VideoService,
+    public vs: VideoService,
   ) { }
 
   ngAfterViewInit() {
@@ -57,12 +57,16 @@ export class ChatVideoComponent implements AfterViewInit {
 
   get userStreams() {
     return [...this.store.video.streams.entries()].map(e =>({
-      tag: e[0],
-      streams: e[1].map(stream => ({
-        stream,
-        live: stream.getTracks().some(t => t.readyState === 'live')
-      })),
-    }));
+      tag: e[0],\n      streams: e[1].map(stream => ({
+      stream,
+      live: stream.getTracks().some(t => t.readyState === 'live')
+    })),\n    })).filter(u => this.vs.connectionTypes.get(u.tag) === 'cohost');
+  }
+
+  get viewers() {
+    return [...this.vs.connectionTypes.entries()]
+      .filter(([user, type]) => type === 'viewer')
+      .map(([user]) => user);
   }
 
   get isTwoPersonCall() {
