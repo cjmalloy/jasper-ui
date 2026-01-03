@@ -245,7 +245,7 @@ export class VideoService {
       if (peer?.iceConnectionState !== 'completed' && peer?.remoteDescription && video.candidate?.length) {
         for (const c of video.candidate) {
           const hash = JSON.stringify(c);
-          if (this.seen.get(user)?.has(hash)) return;
+          if (this.seen.get(user)?.has(hash)) continue;
           if (!this.seen.get(user)) this.seen.set(user, new Set<string>());
           this.seen.get(user)?.add(hash);
           console.warn('Adding Ice!', user);
