@@ -270,5 +270,214 @@ describe('ChatVideoComponent', () => {
 
       expect(userStreams.length).toBe(0);
     });
+
+    it('should correctly detect live and non-live streams', () => {
+      const liveStream = {
+        getTracks: vi.fn().mockReturnValue([{ readyState: 'live' }])
+      } as any as MediaStream;
+      const endedStream = {
+        getTracks: vi.fn().mockReturnValue([{ readyState: 'ended' }])
+      } as any as MediaStream;
+      mockStore.video.streams.set('user1', [liveStream, endedStream]);
+
+      const userStreams = component.userStreams;
+
+      expect(userStreams[0].streams).toEqual([
+        { stream: liveStream, live: true },
+        { stream: endedStream, live: false }
+      ]);
+    });
+  });
+
+  describe('isTwoPersonCall', () => {
+    it('should return true when there is exactly one remote stream', () => {
+      const mockStream = {
+        getTracks: vi.fn().mockReturnValue([{ readyState: 'live' }])
+      } as any as MediaStream;
+      mockStore.video.streams.set('user1', [mockStream]);
+
+      expect(component.isTwoPersonCall).toBe(true);
+    });
+
+    it('should return false when there are no streams', () => {
+      mockStore.video.streams.clear();
+
+      expect(component.isTwoPersonCall).toBe(false);
+    });
+
+    it('should return false when there are multiple streams', () => {
+      const mockStream1 = {
+        getTracks: vi.fn().mockReturnValue([{ readyState: 'live' }])
+      } as any as MediaStream;
+      const mockStream2 = {
+        getTracks: vi.fn().mockReturnValue([{ readyState: 'live' }])
+      } as any as MediaStream;
+      mockStore.video.streams.set('user1', [mockStream1]);
+      mockStore.video.streams.set('user2', [mockStream2]);
+
+      expect(component.isTwoPersonCall).toBe(false);
+    });
+  });
+
+  describe('featuredStream', () => {
+    it('should return the only stream when there is one stream', () => {
+      const mockStream = {
+        getTracks: vi.fn().mockReturnValue([{ readyState: 'live' }])
+      } as any as MediaStream;
+      mockStore.video.streams.set('user1', [mockStream]);
+
+      const featured = component.featuredStream;
+
+      expect(featured.tag).toBe('user1');
+      expect(featured.streams).toEqual([{ stream: mockStream, live: true }]);
+    });
+
+    it('should return first stream when no active speaker is set', () => {
+      const mockStream1 = {
+        getTracks: vi.fn().mockReturnValue([{ readyState: 'live' }])
+      } as any as MediaStream;
+      const mockStream2 = {
+        getTracks: vi.fn().mockReturnValue([{ readyState: 'live' }])
+      } as any as MediaStream;
+      mockStore.video.streams.set('user1', [mockStream1]);
+      mockStore.video.streams.set('user2', [mockStream2]);
+      mockStore.video.activeSpeaker = '';
+
+      const featured = component.featuredStream;
+
+      expect(featured.tag).toBe('user1');
+    });
+
+    it('should return active speaker stream when set', () => {
+      const mockStream1 = {
+        getTracks: vi.fn().mockReturnValue([{ readyState: 'live' }])
+      } as any as MediaStream;
+      const mockStream2 = {
+        getTracks: vi.fn().mockReturnValue([{ readyState: 'live' }])
+      } as any as MediaStream;
+      mockStore.video.streams.set('user1', [mockStream1]);
+      mockStore.video.streams.set('user2', [mockStream2]);
+      mockStore.video.activeSpeaker = 'user2';
+
+      const featured = component.featuredStream;
+
+      expect(featured.tag).toBe('user2');
+      expect(featured.streams).toEqual([{ stream: mockStream2, live: true }]);
+    });
+
+    it('should fallback to first stream if active speaker not found', () => {
+      const mockStream1 = {
+        getTracks: vi.fn().mockReturnValue([{ readyState: 'live' }])
+      } as any as MediaStream;
+      mockStore.video.streams.set('user1', [mockStream1]);
+      mockStore.video.activeSpeaker = 'nonexistent';
+
+      const featured = component.featuredStream;
+
+      expect(featured.tag).toBe('user1');
+    });
+  });
+
+  describe('gridStreams', () => {
+    it('should return empty array when there is only one stream', () => {
+      const mockStream = {
+        getTracks: vi.fn().mockReturnValue([{ readyState: 'live' }])
+      } as any as MediaStream;
+      mockStore.video.streams.set('user1', [mockStream]);
+
+      const grid = component.gridStreams;
+
+      expect(grid.length).toBe(0);
+    });
+
+    it('should return all streams except first when no active speaker', () => {
+      const mockStream1 = {
+        getTracks: vi.fn().mockReturnValue([{ readyState: 'live' }])
+      } as any as MediaStream;
+      const mockStream2 = {
+        getTracks: vi.fn().mockReturnValue([{ readyState: 'live' }])
+      } as any as MediaStream;
+      const mockStream3 = {
+        getTracks: vi.fn().mockReturnValue([{ readyState: 'live' }])
+      } as any as MediaStream;
+      mockStore.video.streams.set('user1', [mockStream1]);
+      mockStore.video.streams.set('user2', [mockStream2]);
+      mockStore.video.streams.set('user3', [mockStream3]);
+      mockStore.video.activeSpeaker = '';
+
+      const grid = component.gridStreams;
+
+      expect(grid.length).toBe(2);
+      expect(grid[0].tag).toBe('user2');
+      expect(grid[1].tag).toBe('user3');
+    });
+
+    it('should return all streams except active speaker', () => {
+      const mockStream1 = {
+        getTracks: vi.fn().mockReturnValue([{ readyState: 'live' }])
+      } as any as MediaStream;
+      const mockStream2 = {
+        getTracks: vi.fn().mockReturnValue([{ readyState: 'live' }])
+      } as any as MediaStream;
+      const mockStream3 = {
+        getTracks: vi.fn().mockReturnValue([{ readyState: 'live' }])
+      } as any as MediaStream;
+      mockStore.video.streams.set('user1', [mockStream1]);
+      mockStore.video.streams.set('user2', [mockStream2]);
+      mockStore.video.streams.set('user3', [mockStream3]);
+      mockStore.video.activeSpeaker = 'user2';
+
+      const grid = component.gridStreams;
+
+      expect(grid.length).toBe(2);
+      expect(grid[0].tag).toBe('user1');
+      expect(grid[1].tag).toBe('user3');
+    });
+  });
+
+  describe('hungup', () => {
+    it('should return empty array when no users have hung up', () => {
+      mockStore.video.hungup.clear();
+
+      const hungup = component.hungup;
+
+      expect(hungup.length).toBe(0);
+    });
+
+    it('should return users who have hung up', () => {
+      mockStore.video.hungup.set('user1', true);
+      mockStore.video.hungup.set('user2', false);
+      mockStore.video.hungup.set('user3', true);
+
+      const hungup = component.hungup;
+
+      expect(hungup).toEqual(['user1', 'user3']);
+    });
+
+    it('should not include users with false hungup status', () => {
+      mockStore.video.hungup.set('user1', false);
+
+      const hungup = component.hungup;
+
+      expect(hungup.length).toBe(0);
+    });
+  });
+
+  describe('speaker setter', () => {
+    beforeEach(() => {
+      mockStore.account.tag = '+user/me';
+    });
+
+    it('should set activeSpeaker to empty string when setting to current user', () => {
+      component.speaker = '+user/me';
+
+      expect(mockStore.video.activeSpeaker).toBe('');
+    });
+
+    it('should set activeSpeaker to user tag when setting to different user', () => {
+      component.speaker = '+user/other';
+
+      expect(mockStore.video.activeSpeaker).toBe('+user/other');
+    });
   });
 });
