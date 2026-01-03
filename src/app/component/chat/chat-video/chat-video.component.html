@@ -56,7 +56,7 @@
             <div class="stream-label glass">
               <a class="user tag"
                  [routerLink]="['/tag', store.account.tag]"
-                 [appTitle]="store.account.ext">{{ '⭕️ Me' }}</a>
+                 [appTitle]="store.account.ext" i18n>⭕️ Me</a>
             </div>
             <video [srcObject]="store.video.stream" class="mirror-video" autoplay playsinline [muted]="true"></video>
           </div>
