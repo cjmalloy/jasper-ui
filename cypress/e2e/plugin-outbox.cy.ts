@@ -1,4 +1,4 @@
-import { clearMods, openSidebar } from './setup';
+import { clearMods, openSidebar, waitForNotification } from './setup';
 
 describe('Outbox Plugin: Remote Notifications', {
   testIsolation: false
@@ -145,35 +145,17 @@ describe('Outbox Plugin: Remote Notifications', {
     cy.wait(3000);
   });
   it('@repl: check reply was pulled', { retries: 3 }, () => {
-    // Wait for replication to complete (happens in background on server)
-    cy.wait(5000);
-    // Visit page first time - might not have notifications yet
-    cy.visit(replUrl + '/?debug=ADMIN&tag=bob');
-    cy.wait(2000);
-    // Reload to check for notifications again
-    cy.reload();
-    cy.wait(2000);
-    // Reload one more time to be sure
-    cy.reload();
-    cy.wait(1000);
-    // Now notification should be there
-    cy.get('.settings .notification', { timeout: 5000 }).should('be.visible').click();
+    // Wait for replication from @main to @repl, reload until notification appears
+    waitForNotification(replUrl + '/?debug=ADMIN&tag=bob');
+    cy.get('.settings .notification').should('be.visible').click();
     cy.get('.tabs').contains('all').click();
     cy.get('.ref-list .link.remote').contains('Doing well, thanks!').parent().parent().parent().as('ref');
     cy.get('@ref').find('.user.tag').contains('alice');
   });
   it('@repl: check inbox was converted to outbox', { retries: 3 }, () => {
     // Charlie should also see the notification (outbox converted from inbox)
-    cy.visit(replUrl + '/?debug=ADMIN&tag=charlie');
-    cy.wait(2000);
-    // Reload to check for notifications
-    cy.reload();
-    cy.wait(2000);
-    // Reload one more time
-    cy.reload();
-    cy.wait(1000);
-    // Now notification should be there
-    cy.get('.settings .notification', { timeout: 5000 }).should('be.visible').click();
+    waitForNotification(replUrl + '/?debug=ADMIN&tag=charlie');
+    cy.get('.settings .notification').should('be.visible').click();
     cy.get('.tabs').contains('all').click();
     cy.get('.ref-list .link.remote').contains('Doing well, thanks!').parent().parent().parent().as('ref');
     cy.get('@ref').find('.user.tag').contains('alice');

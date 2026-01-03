@@ -41,3 +41,26 @@ export function closeSidebar() {
     }
   });
 }
+
+export function waitForNotification(url: string, maxAttempts = 5) {
+  // Wait for remote replication and reload until notification appears
+  // Notifications are checked only when page loads, so we need to reload
+  const checkForNotification = (attemptsLeft: number) => {
+    if (attemptsLeft <= 0) {
+      cy.log('Max attempts reached, notification should be visible now');
+      return;
+    }
+    
+    cy.get('body').then($body => {
+      if ($body.find('.settings .notification').length === 0) {
+        cy.log(`Notification not found, ${attemptsLeft} attempts remaining. Reloading...`);
+        cy.wait(3000); // Wait for replication
+        cy.reload();
+        checkForNotification(attemptsLeft - 1);
+      }
+    });
+  };
+  
+  cy.visit(url);
+  checkForNotification(maxAttempts);
+}
