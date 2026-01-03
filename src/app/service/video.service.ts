@@ -123,7 +123,9 @@ export class VideoService {
     const doInvite = async (user: string) => {
       this.initialInvite = true;
       runInAction(() => this.store.video.hungup.set(user, false));
-      const checkStuck = () => delay(() => {
+      const checkStuck = () => timer(this.stuck).pipe(
+        takeUntil(this.destroy$),
+      ).subscribe(() => {
         const peer = this.store.video.peers.get(user);
         if (peer?.localDescription && !peer.remoteDescription) {
           console.error('Stuck!');
@@ -131,7 +133,7 @@ export class VideoService {
           this.offers.delete(user);
           this.invite();
         }
-      }, this.stuck);
+      });
       if (this.store.video.peers.has(user)) {
         checkStuck();
         return;
@@ -180,7 +182,7 @@ export class VideoService {
         filter(user => user !== this.store.account.tag),
         tap(user => this.peer(user)),
         takeUntil(this.destroy$)
-      ).subscribe(user => delay(() => doInvite(user), this.hostDelay));
+      ).subscribe(user => timer(this.hostDelay).pipe(takeUntil(this.destroy$)).subscribe(() => doInvite(user)));
     }
     timer(0, this.poll).pipe(
       takeWhile(() => !this.lobbyWebsocket),
@@ -294,11 +296,13 @@ export class VideoService {
     } else {
       this.queue.set(user, ops);
     }
-    if (!scheduled) delay(() => {
+    if (!scheduled) timer(throttle).pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(() => {
       for (const [u, o] of this.queue.entries()) {
         this.ts.patchResponse(['plugin/user/video'], 'tag:/' + localTag(u), o).subscribe();
       }
       this.queue.clear();
-    }, throttle);
+    });
   }
 }
