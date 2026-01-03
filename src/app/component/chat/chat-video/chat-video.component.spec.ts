@@ -258,9 +258,9 @@ describe('ChatVideoComponent', () => {
 
       expect(userStreams.length).toBe(2);
       expect(userStreams[0].tag).toBe('user1');
-      expect(userStreams[0].streams).toEqual([mockStream1]);
+      expect(userStreams[0].streams).toEqual([{ stream: mockStream1, live: true }]);
       expect(userStreams[1].tag).toBe('user2');
-      expect(userStreams[1].streams).toEqual([mockStream2]);
+      expect(userStreams[1].streams).toEqual([{ stream: mockStream2, live: true }]);
     });
 
     it('should return empty array when no streams', () => {
