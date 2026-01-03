@@ -122,7 +122,13 @@ describe('ChatVideoComponent', () => {
     it('should request media permissions with audio and video', async () => {
       await component.call();
 
-      expect(mockGetUserMedia).toHaveBeenCalledWith({ audio: true, video: true });
+      expect(mockGetUserMedia).toHaveBeenCalledWith({
+        audio: true,
+        video: {
+          width: { ideal: 640 },
+          height: { ideal: 640 }
+        }
+      });
     });
 
     it('should call TaggingService.respond with correct tags', async () => {
