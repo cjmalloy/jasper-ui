@@ -76,16 +76,16 @@ export class TaggingService {
     );
   }
 
-  respond(tags: string[], url?: string): Observable<string> {
-    return this.http.patch<string>(`${this.base}/response`, null, {
+  respond(tags: string[], url?: string): Observable<void> {
+    return this.http.patch<void>(`${this.base}/response`, null, {
       params: params({ tags, url }),
     }).pipe(
       catchError(err => this.login.handleHttpError(err)),
     );
   }
 
-  patchResponse(tags: string[], url?: string, patch?: OpPatch[]): Observable<string> {
-    return this.http.patch<string>(`${this.base}/response`, patch, {
+  patchResponse(tags: string[], url?: string, patch?: OpPatch[]): Observable<void> {
+    return this.http.patch<void>(`${this.base}/response`, patch, {
       headers: { 'Content-Type': 'application/json-patch+json' },
       params: params({ tags, url }),
     }).pipe(
@@ -93,8 +93,8 @@ export class TaggingService {
     );
   }
 
-  mergeResponse(tags: string[], url?: string, patch?: any): Observable<string> {
-    return this.http.patch<string>(`${this.base}/response`, patch, {
+  mergeResponse(tags: string[], url?: string, patch?: Record<string, any>): Observable<void> {
+    return this.http.patch<void>(`${this.base}/response`, patch, {
       headers: { 'Content-Type': 'application/merge-patch+json' },
       params: params({ tags, url }),
     }).pipe(

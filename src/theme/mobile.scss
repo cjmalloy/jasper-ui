@@ -82,6 +82,9 @@ $tablet-width: 948px;
         padding: 0 !important;
         border: 0 !important;
       }
+      app-chat-video > *:not(.submit-button) {
+        display: none;
+      }
       .button-bar {
         flex-direction: row;
       }
@@ -370,7 +373,7 @@ $tablet-width: 948px;
     margin: 10px 0;
   }
 
-  video {
+  .video-expand {
     width: 100vw;
     height: 100vh;
   }
