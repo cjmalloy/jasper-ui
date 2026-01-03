@@ -1,4 +1,4 @@
-import { clearMods, openSidebar } from './setup';
+import { clearMods, openSidebar, waitForNotification } from './setup';
 
 describe('Outbox Plugin: Remote Notifications', {
   testIsolation: false
@@ -145,22 +145,17 @@ describe('Outbox Plugin: Remote Notifications', {
     cy.wait(3000);
   });
   it('@repl: check reply was pulled', { retries: 3 }, () => {
-    cy.intercept({pathname: '/api/v1/ref/count'}).as('notifications');
-    cy.visit(replUrl + '/?debug=ADMIN&tag=bob');
-    cy.wait('@notifications');
-    cy.wait(100);
-    cy.get('.settings .notification').click();
+    // Wait for replication from @main to @repl, reload until notification appears
+    waitForNotification(replUrl + '/?debug=ADMIN&tag=bob');
+    cy.get('.settings .notification').should('be.visible').click();
     cy.get('.tabs').contains('all').click();
     cy.get('.ref-list .link.remote').contains('Doing well, thanks!').parent().parent().parent().as('ref');
     cy.get('@ref').find('.user.tag').contains('alice');
   });
   it('@repl: check inbox was converted to outbox', { retries: 3 }, () => {
-    cy.visit(replUrl + '/?debug=ADMIN&tag=charlie');
-    cy.intercept({pathname: '/api/v1/ref/count'}).as('notifications');
-    cy.visit(replUrl + '/?debug=ADMIN&tag=charlie');
-    cy.wait('@notifications');
-    cy.wait(100);
-    cy.get('.settings .notification').click();
+    // Charlie should also see the notification (outbox converted from inbox)
+    waitForNotification(replUrl + '/?debug=ADMIN&tag=charlie');
+    cy.get('.settings .notification').should('be.visible').click();
     cy.get('.tabs').contains('all').click();
     cy.get('.ref-list .link.remote').contains('Doing well, thanks!').parent().parent().parent().as('ref');
     cy.get('@ref').find('.user.tag').contains('alice');
