@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { delay } from 'lodash-es';
-import { catchError, concat, map, Observable, of, shareReplay, Subject, switchMap, throwError, toArray } from 'rxjs';
+import { catchError, concat, map, Observable, of, shareReplay, Subject, switchMap, toArray } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Ext, mapExt, writeExt } from '../../model/ext';
 import { mapPage, Page } from '../../model/page';
