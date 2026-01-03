@@ -93,7 +93,7 @@ export class TaggingService {
     );
   }
 
-  mergeResponse(tags: string[], url?: string, patch?: any): Observable<void> {
+  mergeResponse(tags: string[], url?: string, patch?: Record<string, any>): Observable<void> {
     return this.http.patch<void>(`${this.base}/response`, patch, {
       headers: { 'Content-Type': 'application/merge-patch+json' },
       params: params({ tags, url }),
