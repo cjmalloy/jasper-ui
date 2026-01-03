@@ -6,7 +6,7 @@ export class VideoStore {
   stream?: MediaStream = {} as any;
   activeSpeaker = '';
   peers = new Map<string, RTCPeerConnection>();
-  streams = new Map<string, MediaStream[]>();
+  streams = new Map<string, { playing?: boolean, stream: MediaStream }[]>();
   hungup = new Map<string, boolean>();
 
   constructor() {
@@ -26,11 +26,15 @@ export class VideoStore {
 
   addStream(user: string, stream: MediaStream) {
     if (!this.streams.get(user)?.length) {
-      this.streams.set(user, [stream]);
-    } else if (!this.streams.get(user)?.find(s => s.id === stream.id)) {
+      this.streams.set(user, [{ stream }]);
+    } else if (!this.streams.get(user)?.find(s => s.stream.id === stream.id)) {
       console.warn('adding second stream');
-      this.streams.set(user, [...this.streams.get(user)!, stream]);
+      this.streams.set(user, [...this.streams.get(user)!, { stream }]);
     }
+  }
+
+  playing(user: string, id: string) {
+    this.streams.get(user)!.find(s => s.stream.id === id)!.playing = true;
   }
 
   reset(user: string) {
