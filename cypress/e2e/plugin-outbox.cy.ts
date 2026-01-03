@@ -148,8 +148,7 @@ describe('Outbox Plugin: Remote Notifications', {
     cy.intercept({pathname: '/api/v1/ref/count'}).as('notifications');
     cy.visit(replUrl + '/?debug=ADMIN&tag=bob');
     cy.wait('@notifications');
-    cy.wait(100);
-    cy.get('.settings .notification').click();
+    cy.get('.settings .notification', { timeout: 10000 }).should('be.visible').click();
     cy.get('.tabs').contains('all').click();
     cy.get('.ref-list .link.remote').contains('Doing well, thanks!').parent().parent().parent().as('ref');
     cy.get('@ref').find('.user.tag').contains('alice');
@@ -159,8 +158,7 @@ describe('Outbox Plugin: Remote Notifications', {
     cy.intercept({pathname: '/api/v1/ref/count'}).as('notifications');
     cy.visit(replUrl + '/?debug=ADMIN&tag=charlie');
     cy.wait('@notifications');
-    cy.wait(100);
-    cy.get('.settings .notification').click();
+    cy.get('.settings .notification', { timeout: 10000 }).should('be.visible').click();
     cy.get('.tabs').contains('all').click();
     cy.get('.ref-list .link.remote').contains('Doing well, thanks!').parent().parent().parent().as('ref');
     cy.get('@ref').find('.user.tag').contains('alice');
