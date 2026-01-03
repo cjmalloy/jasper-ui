@@ -376,6 +376,14 @@ describe('ChatVideoComponent', () => {
 
       expect(featured.tag).toBe('user1');
     });
+
+    it('should return undefined when there are no streams', () => {
+      mockStore.video.streams.clear();
+
+      const featured = component.featuredStream;
+
+      expect(featured).toBeUndefined();
+    });
   });
 
   describe('gridStreams', () => {
@@ -432,6 +440,14 @@ describe('ChatVideoComponent', () => {
       expect(grid.length).toBe(2);
       expect(grid[0].tag).toBe('user1');
       expect(grid[1].tag).toBe('user3');
+    });
+
+    it('should return empty array when there are no streams', () => {
+      mockStore.video.streams.clear();
+
+      const grid = component.gridStreams;
+
+      expect(grid.length).toBe(0);
     });
   });
 
