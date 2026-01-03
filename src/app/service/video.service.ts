@@ -131,7 +131,7 @@ export class VideoService {
           console.error('Stuck!');
           this.store.video.reset(user);
           this.offers.delete(user);
-          this.invite();
+          void doInvite(user);
         }
       });
       if (this.store.video.peers.has(user)) {
