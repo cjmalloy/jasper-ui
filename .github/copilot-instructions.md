@@ -71,6 +71,48 @@ docker compose up --build  # Everything on http://localhost:8082/
 
 **IMPORTANT**: When making UI changes that affect user interactions (buttons, overlays, dialogs, etc.), **ALWAYS** update the corresponding Cypress E2E tests in `cypress/e2e/`. This is a critical step that should not be forgotten.
 
+### Running Cypress E2E Tests
+
+Cypress tests require the full backend and frontend stack to be running. There are two ways to run them:
+
+#### Option 1: CI Mode (Headless, Recommended for Validation)
+```bash
+npm run cy:ci
+```
+This runs all tests in headless mode using Docker. The command:
+- Starts the backend, frontend, and Cypress container via docker-compose
+- Runs all E2E tests in the `cypress/e2e/` directory
+- Exits with the test results
+- Takes 10-20 minutes, use timeout 30+ minutes
+
+**Note**: You cannot run individual test files with `npm run cy:ci` - it always runs the full suite.
+
+#### Option 2: Interactive Mode (For Development)
+```bash
+npm run cy:open
+```
+This opens the Cypress UI where you can:
+- Select and run individual test files
+- Watch tests execute in real-time
+- Debug test failures interactively
+- Requires X11/display for GUI
+
+**Limitations in Sandboxed Environments**:
+- The sandboxed GitHub Copilot environment typically doesn't support running Cypress tests directly
+- No X11 display for `cy:open`
+- Docker-in-Docker limitations may prevent `cy:ci` from working
+- Network restrictions may block Cypress binary downloads
+- When in doubt, rely on CI test results from GitHub Actions
+
+#### Test Development Best Practices
+When creating or modifying Cypress tests:
+1. Follow existing patterns in `cypress/e2e/` (use `testIsolation: false`, direct URL navigation)
+2. Use established helper functions from `cypress/e2e/setup.ts` (clearMods, openSidebar)
+3. Wait for elements and API calls explicitly (cy.wait, cy.should)
+4. Mock browser APIs when needed (e.g., getUserMedia for video features)
+5. Clean up test data at the end of test suites
+6. Check CI results rather than trying to run tests locally in sandboxed environments
+
 ## Project Structure
 
 - `src/app/mods/` - Plugin features (80+ files)
