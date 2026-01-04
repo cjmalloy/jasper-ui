@@ -57,6 +57,9 @@
     }
   }
   <span class="button-bar">
+    @if (videoChat) {
+      <app-chat-video [url]="store.view.ref?.url || 'tag:/chat'"></app-chat-video>
+    }
     @if (!dm && !user && canAddTag && !plugin?.config?.reply && store.account.user && (store.view.type === 'ref' || store.view.current === 'ref/summary')) {
       @if (plugin?.config?.submitText || rootConfig?.submitText) {
         <div class="submit-button" routerLink="/submit/text" tabindex="0"
