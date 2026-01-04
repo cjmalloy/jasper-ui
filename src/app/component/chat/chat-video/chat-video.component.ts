@@ -35,7 +35,7 @@ export class ChatVideoComponent implements AfterViewInit {
     private admin: AdminService,
     private exts: ExtService,
     private ts: TaggingService,
-    private vs: VideoService,
+    public vs: VideoService,
   ) { }
 
   ngAfterViewInit() {
