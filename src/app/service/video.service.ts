@@ -165,6 +165,7 @@ export class VideoService {
       poll();
       this.stomp.watchResponse(this.url).pipe(
         tap(() => this.lobbyWebsocket = true),
+        filter(url => url?.startsWith('tag:/')),
         switchMap(url => this.refs.getCurrent(url)),
         tap(res => {
           const user = getUserUrl(res);
@@ -181,7 +182,7 @@ export class VideoService {
         filter(user => user !== this.store.account.tag),
         tap(user => this.peer(user)),
         takeUntil(this.destroy$)
-      ).subscribe(user => timer(this.hostDelay).pipe(takeUntil(this.destroy$)).subscribe(() => doInvite(user)));
+      ).subscribe((user: any) => timer(this.hostDelay).pipe(takeUntil(this.destroy$)).subscribe(() => doInvite(user)));
     }
     timer(0, this.poll).pipe(
       takeWhile(() => !this.lobbyWebsocket),
