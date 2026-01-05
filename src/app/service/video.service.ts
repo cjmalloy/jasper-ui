@@ -31,7 +31,6 @@ function getSessionId(sdp: string): string {
 })
 export class VideoService {
   private destroy$ = new Subject<void>();
-  hostDelay = 30_000;
   poll = 30_000;
   fastPoll = 4_000;
   stuck = 30_000;
@@ -41,7 +40,6 @@ export class VideoService {
 
   lobbyWebsocket = false;
   peerWebsocket = false;
-  initialInvite = false;
 
   private stream?: MediaStream;
 
@@ -120,7 +118,6 @@ export class VideoService {
   offers = new Map<string, string>();
   invite() {
     const doInvite = async (user: string) => {
-      this.initialInvite = true;
       runInAction(() => this.store.video.hungup.set(user, false));
       const checkStuck = () => timer(this.stuck).pipe(
         takeUntil(this.destroy$),
@@ -165,6 +162,7 @@ export class VideoService {
       poll();
       this.stomp.watchResponse(this.url).pipe(
         tap(() => this.lobbyWebsocket = true),
+        filter(url => url?.startsWith('tag:/')),
         switchMap(url => this.refs.getCurrent(url)),
         tap(res => {
           const user = getUserUrl(res);
@@ -181,7 +179,7 @@ export class VideoService {
         filter(user => user !== this.store.account.tag),
         tap(user => this.peer(user)),
         takeUntil(this.destroy$)
-      ).subscribe(user => timer(this.hostDelay).pipe(takeUntil(this.destroy$)).subscribe(() => doInvite(user)));
+      ).subscribe((user: any) => doInvite(user));
     }
     timer(0, this.poll).pipe(
       takeWhile(() => !this.lobbyWebsocket),
@@ -191,7 +189,7 @@ export class VideoService {
 
   seen = new Map<string, Set<string>>();
   answer() {
-    const doAnswer = async (res: Ref) => {
+    const doAnswer = async (res: Ref, allowUnknown: boolean) => {
       const user = getUserUrl(res);
       if (!user || user === this.store.account.tag) return;
       const video = res.plugins?.['plugin/user/video'] as VideoSignaling | undefined;
@@ -230,6 +228,7 @@ export class VideoService {
           }
         }
       }
+      if (!peer && !allowUnknown) return;
       if (video.offer && !video.answer && (!peer || peer?.signalingState === 'stable')) {
         peer ||= this.peer(user);
         console.warn('Accept Offer!', user, peer.signalingState);
@@ -261,8 +260,7 @@ export class VideoService {
       responses: 'tag:/' + this.store.account.localTag,
     }).pipe(
       mergeMap(page => page.content),
-      filter(res => (!this.peerWebsocket && this.initialInvite) || this.store.video.peers.has(getUserUrl(res))),
-    ).subscribe(res => doAnswer(res));
+    ).subscribe(res => doAnswer(res, false));
     if (this.config.websockets) {
       poll();
       this.stomp.watchResponse('tag:/' + this.store.account.localTag).pipe(
@@ -270,7 +268,7 @@ export class VideoService {
         switchMap(url => this.refs.getCurrent(url)),
         filter(res => hasTag('plugin/user/video', res)),
         takeUntil(this.destroy$)
-      ).subscribe(ref => doAnswer(ref));
+      ).subscribe(ref => doAnswer(ref, true));
     }
     timer(0, this.poll).pipe(
       takeWhile(() => !this.peerWebsocket),
