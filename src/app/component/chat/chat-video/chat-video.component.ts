@@ -57,16 +57,9 @@ export class ChatVideoComponent implements AfterViewInit {
 
   get userStreams() {
     return [...this.store.video.streams.entries()].map(e =>({
-      tag: e[0],\n      streams: e[1].map(stream => ({
-      stream,
-      live: stream.getTracks().some(t => t.readyState === 'live')
-    })),\n    })).filter(u => this.vs.connectionTypes.get(u.tag) === 'cohost');
-  }
-
-  get viewers() {
-    return [...this.vs.connectionTypes.entries()]
-      .filter(([user, type]) => type === 'viewer')
-      .map(([user]) => user);
+      tag: e[0],
+      streams: e[1].filter(s => s.stream.getTracks().some(t => t.readyState === 'live')),
+    }));
   }
 
   get isTwoPersonCall() {
