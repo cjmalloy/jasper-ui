@@ -119,7 +119,11 @@ export const videoPlugin: Plugin = {
     rtcConfig: <RTCConfiguration> {
       iceServers: [
         { urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'stun:stun.cloudflare.com:3478' },
+        { urls: 'stun:openrelay.metered.ca:80' },
+        { urls: 'stun:stun.nextcloud.com:3478' },
       ],
+      iceCandidatePoolSize: 10,
     },
     gumConfig: {
       audio: true,
