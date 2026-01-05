@@ -511,8 +511,8 @@ export class VideoService {
     for (const [user, streams] of this.store.video.streams.entries()) {
       if (this.connectionTypes.get(user) === 'cohost') {
         for (const stream of streams) {
-          for (const track of stream.getTracks()) {
-            peer.addTrack(track, stream);
+          for (const track of stream.stream.getTracks()) {
+            peer.addTrack(track, stream.stream);
           }
         }
       }
