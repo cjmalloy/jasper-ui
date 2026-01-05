@@ -46,10 +46,6 @@ export class VideoStore {
     const peer = this.peers.get(user);
     if (peer) {
       peer.close();
-      peer.removeAllListeners!('icecandidate');
-      peer.removeAllListeners!('icecandidateerror');
-      peer.removeAllListeners!('connectionstatechange');
-      peer.removeAllListeners!('track');
     }
     this.peers.delete(user);
     this.streams.delete(user);
@@ -58,10 +54,6 @@ export class VideoStore {
   hangup() {
     for (const peer of this.peers.values()) {
       peer.close();
-      peer.removeAllListeners!('icecandidate');
-      peer.removeAllListeners!('icecandidateerror');
-      peer.removeAllListeners!('connectionstatechange');
-      peer.removeAllListeners!('track');
     }
     this.peers.clear();
     this.streams.clear();
