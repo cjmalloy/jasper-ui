@@ -91,6 +91,12 @@ export class VideoService {
     }
   }
 
+  private resetUserConnection(user: string): void {
+    this.cleanupUser(user);
+    this.store.video.remove(user);
+    this.store.video.streams.set(user, []);
+  }
+
   hangup() {
     console.warn('Hung Up!');
     this.url = '';
@@ -128,9 +134,7 @@ export class VideoService {
           .subscribe();
       }
       if (peer.connectionState === 'failed') {
-        this.cleanupUser(user);
-        this.store.video.remove(user);
-        this.store.video.streams.set(user, []);
+        this.resetUserConnection(user);
         this.offers.delete(user);
         this.ts.respond([setPublic(localTag(user)), '-plugin/user/video'], 'tag:/' + localTag(user))
           .subscribe(() => this.invite());
@@ -158,9 +162,7 @@ export class VideoService {
         const peer = this.store.video.peers.get(user);
         if (peer?.localDescription && !peer.remoteDescription) {
           console.error('Stuck!');
-          this.cleanupUser(user);
-          this.store.video.remove(user);
-          this.store.video.streams.set(user, []);
+          this.resetUserConnection(user);
           this.offers.delete(user);
           void doInvite(user);
         }
@@ -238,9 +240,7 @@ export class VideoService {
           : '';
         if (newSessionId !== currentSessionId) {
           console.warn('Peer reloaded - resetting connection', user);
-          this.cleanupUser(user);
-          this.store.video.remove(user);
-          this.store.video.streams.set(user, []);
+          this.resetUserConnection(user);
           this.offers.delete(user);
           peer = undefined;  // Will be recreated below
         }
