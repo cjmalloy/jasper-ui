@@ -870,11 +870,11 @@ export class AdminService {
   }
 
   isWikiExternal() {
-    return !!this.getTemplate('wiki')?.config?.external;
+    return !!this.getTemplate('config/wiki')?.config?.external;
   }
 
   getWikiPrefix() {
-    return this.getTemplate('wiki')?.config?.prefix || DEFAULT_WIKI_PREFIX;
+    return this.getTemplate('config/wiki')?.config?.prefix || DEFAULT_WIKI_PREFIX;
   }
 
   getMod(mod: String) {

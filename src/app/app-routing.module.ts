@@ -157,7 +157,7 @@ Location.prototype.normalize = function(url) {
 
 const routes: Routes = [
   { path: '', redirectTo: 'home', pathMatch: 'full' },
-  { path: 'home', component: HomePage, canActivate: [installedModGuard('home', ['../all'])], canDeactivate: [pendingChangesGuard, clearLastSelected], runGuardsAndResolvers: 'always' },
+  { path: 'home', component: HomePage, canActivate: [installedModGuard('config/home', ['../all'])], canDeactivate: [pendingChangesGuard, clearLastSelected], runGuardsAndResolvers: 'always' },
   { path: 'login', component: LoginPage },
   { path: 'all', redirectTo: 'tag/@*', pathMatch: 'full' },
   { path: 'tag', redirectTo: 'tag/@*', pathMatch: 'full' },

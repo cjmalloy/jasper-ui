@@ -53,7 +53,7 @@ describe('Wiki Plugin', {
     cy.visit('/?debug=ADMIN');
     cy.get('.settings a').contains('settings').click();
     cy.get('.tabs').contains('template').click();
-    cy.get('input.upload').selectFile(Cypress.Buffer.from(JSON.stringify({ tag: 'wiki', config: { prefix: 'https://externalwiki/', external: true }})), { force: true });
+    cy.get('input.upload').selectFile(Cypress.Buffer.from(JSON.stringify({ tag: 'config/wiki', config: { prefix: 'https://externalwiki/', external: true }})), { force: true });
   });
   it('submit wiki button removed', () => {
     cy.visit('/?debug=USER');
