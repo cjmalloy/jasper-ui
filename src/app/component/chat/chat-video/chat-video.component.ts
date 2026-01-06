@@ -35,7 +35,7 @@ export class ChatVideoComponent implements AfterViewInit {
     private admin: AdminService,
     private exts: ExtService,
     private ts: TaggingService,
-    private vs: VideoService,
+    public vs: VideoService,
   ) { }
 
   ngAfterViewInit() {
@@ -81,6 +81,13 @@ export class ChatVideoComponent implements AfterViewInit {
 
   get hungup() {
     return [...this.store.video.hungup.entries()].filter(e => e[1]).map(e => e[0]);
+  }
+
+  get viewers() {
+    if (!this.vs.connectionTypes) return [];
+    return [...this.vs.connectionTypes.entries()]
+      .filter(([_, type]) => type === 'viewer')
+      .map(([user, _]) => user);
   }
 
   call() {

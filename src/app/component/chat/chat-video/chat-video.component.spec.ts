@@ -18,6 +18,7 @@ describe('ChatVideoComponent', () => {
   let mockAdminService: any;
   let mockTaggingService: any;
   let mockVideoService: any;
+  let mockAdminService: any;
   let mockStore: Store;
   let mockGetUserMedia: any;
   let mockMediaStream: MediaStream;
@@ -40,7 +41,21 @@ describe('ChatVideoComponent', () => {
     };
     mockVideoService = {
       call: vi.fn(),
-      hangup: vi.fn()
+      hangup: vi.fn(),
+      connectionTypes: new Map()
+    };
+    mockAdminService = {
+      getPlugin: vi.fn().mockReturnValue({
+        config: {
+          gumConfig: { 
+            audio: true, 
+            video: {
+              width: { ideal: 640 },
+              height: { ideal: 640 }
+            }
+          }
+        }
+      })
     };
 
     // Create a mock MediaStream
@@ -65,6 +80,7 @@ describe('ChatVideoComponent', () => {
         { provide: AdminService, useValue: mockAdminService },
         { provide: TaggingService, useValue: mockTaggingService },
         { provide: VideoService, useValue: mockVideoService },
+        { provide: AdminService, useValue: mockAdminService },
       ]
     })
     .compileComponents();
