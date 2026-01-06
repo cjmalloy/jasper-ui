@@ -44,12 +44,12 @@ export class HomePage implements OnInit, OnDestroy, HasChanges {
     mod.setTitle($localize`Home`);
     store.view.clear([!!admin.getPlugin('plugin/user/vote/up') ? 'plugins->plugin/user/vote:decay' : 'published']);
     query.clear();
-    if (admin.getTemplate('home')) {
-      exts.getCachedExt('home' + (store.account.origin || '@')).subscribe(x => runInAction(() => {
+    if (admin.getTemplate('config/home')) {
+      exts.getCachedExt('config/home' + (store.account.origin || '@')).subscribe(x => runInAction(() => {
         if (x.modified) {
           store.view.exts = [x];
         } else {
-          store.view.exts = [ { ...this.exts.defaultExt('home'), config: admin.getDefaults('home') }];
+          store.view.exts = [ { ...this.exts.defaultExt('config/home'), config: admin.getDefaults('config/home') }];
         }
       }));
     }

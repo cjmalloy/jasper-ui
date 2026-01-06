@@ -350,7 +350,7 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
 
   @memo
   get homeWriteAccess() {
-    return this.home && this.admin.getTemplate('home') && this.auth.tagWriteAccess('home');
+    return this.home && this.admin.getTemplate('config/home') && this.auth.tagWriteAccess('config/home');
   }
 
   @memo

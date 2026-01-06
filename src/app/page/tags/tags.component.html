@@ -10,7 +10,7 @@
     } @else {
       <h5 class="fake-link" routerLink=".">{{ title }}</h5>
     }
-    @if (admin.getTemplate('home')) {
+    @if (admin.getTemplate('config/home')) {
       <a routerLink="/tags"
          [queryParams]="{ noTemplate: null, home: true }"
          [class.current-tab]="store.view.home"
