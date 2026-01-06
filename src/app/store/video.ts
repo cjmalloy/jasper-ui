@@ -1,5 +1,12 @@
 import { makeAutoObservable, observable } from 'mobx';
 
+export type VideoEventListeners = {
+  icecandidate: (event: RTCPeerConnectionIceEvent) => void;
+  icecandidateerror: (event: RTCPeerConnectionIceErrorEvent) => void;
+  connectionstatechange: (event: Event) => void;
+  track: (event: RTCTrackEvent) => void;
+};
+
 export class VideoStore {
 
   enabled = false;
@@ -8,12 +15,7 @@ export class VideoStore {
   peers = new Map<string, RTCPeerConnection>();
   streams = new Map<string, { playing?: boolean, stream: MediaStream }[]>();
   hungup = new Map<string, boolean>();
-  listeners = new Map<string, {
-    icecandidate: (event: RTCPeerConnectionIceEvent) => void;
-    icecandidateerror: (event: Event) => void;
-    connectionstatechange: (event: Event) => void;
-    track: (event: RTCTrackEvent) => void;
-  }>();
+  listeners = new Map<string, VideoEventListeners>();
 
   constructor() {
     makeAutoObservable(this, {
@@ -31,12 +33,7 @@ export class VideoStore {
     this.streams.set(user, []);
   }
 
-  setListeners(user: string, listeners: {
-    icecandidate: (event: RTCPeerConnectionIceEvent) => void;
-    icecandidateerror: (event: Event) => void;
-    connectionstatechange: (event: Event) => void;
-    track: (event: RTCTrackEvent) => void;
-  }) {
+  setListeners(user: string, listeners: VideoEventListeners) {
     this.listeners.set(user, listeners);
   }
 

@@ -4,6 +4,7 @@ import { filter, map, mergeMap, Subject, switchMap, takeUntil, takeWhile, timer 
 import { tap } from 'rxjs/operators';
 import { Ref } from '../model/ref';
 import { Store } from '../store/store';
+import { VideoEventListeners } from '../store/video';
 import { escapePath, OpPatch } from '../util/json-patch';
 import { getUserUrl, hasTag, localTag, setPublic } from '../util/tag';
 import { AdminService } from './admin.service';
@@ -90,9 +91,8 @@ export class VideoService {
         value: event.candidate?.toJSON() || { candidate: null },
       }]);
     };
-    const icecandidateerrorHandler = (event: Event) => {
-      const errorEvent = event as RTCPeerConnectionIceErrorEvent;
-      console.error(errorEvent.errorCode, errorEvent.errorText);
+    const icecandidateerrorHandler = (event: RTCPeerConnectionIceErrorEvent) => {
+      console.error(event.errorCode, event.errorText);
     };
     const connectionstatechangeHandler = (event: Event) => {
       if (peer.connectionState === 'connected') {
@@ -112,7 +112,7 @@ export class VideoService {
       const [remoteStream] = event.streams;
       this.store.video.addStream(user, remoteStream);
     };
-    const listeners = {
+    const listeners: VideoEventListeners = {
       icecandidate: icecandidateHandler,
       icecandidateerror: icecandidateerrorHandler,
       connectionstatechange: connectionstatechangeHandler,
