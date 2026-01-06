@@ -90,6 +90,7 @@ export class VideoService {
       this.cleanupHandlers.delete(user);
     }
     this.store.video.reset(user);
+    this.offers.delete(user);
   }
 
   hangup() {
@@ -130,7 +131,6 @@ export class VideoService {
       }
       if (peer.connectionState === 'failed') {
         this.resetUserConnection(user);
-        this.offers.delete(user);
         this.ts.respond([setPublic(localTag(user)), '-plugin/user/video'], 'tag:/' + localTag(user))
           .subscribe(() => this.invite());
       }
@@ -158,7 +158,6 @@ export class VideoService {
         if (peer?.localDescription && !peer.remoteDescription) {
           console.error('Stuck!');
           this.resetUserConnection(user);
-          this.offers.delete(user);
           void doInvite(user);
         }
       });
@@ -236,7 +235,6 @@ export class VideoService {
         if (newSessionId !== currentSessionId) {
           console.warn('Peer reloaded - resetting connection', user);
           this.resetUserConnection(user);
-          this.offers.delete(user);
           peer = undefined;  // Will be recreated below
         }
       }
