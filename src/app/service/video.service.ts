@@ -91,7 +91,8 @@ export class VideoService {
       }]);
     };
     const icecandidateerrorHandler = (event: Event) => {
-      console.error((event as RTCPeerConnectionIceErrorEvent).errorCode, (event as RTCPeerConnectionIceErrorEvent).errorText);
+      const errorEvent = event as RTCPeerConnectionIceErrorEvent;
+      console.error(errorEvent.errorCode, errorEvent.errorText);
     };
     const connectionstatechangeHandler = (event: Event) => {
       if (peer.connectionState === 'connected') {

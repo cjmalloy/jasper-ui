@@ -73,10 +73,10 @@ export class VideoStore {
     if (peer) {
       this.removeListeners(user, peer);
       peer.close();
+      this.listeners.delete(user);
     }
     this.peers.delete(user);
     this.streams.delete(user);
-    this.listeners.delete(user);
   }
 
   hangup() {
