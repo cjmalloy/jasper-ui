@@ -111,16 +111,17 @@ export class VideoService {
       const [remoteStream] = event.streams;
       this.store.video.addStream(user, remoteStream);
     };
-    peer.addEventListener('icecandidate', icecandidateHandler);
-    peer.addEventListener('icecandidateerror', icecandidateerrorHandler);
-    peer.addEventListener('connectionstatechange', connectionstatechangeHandler);
-    peer.addEventListener('track', trackHandler);
-    this.store.video.setListeners(user, {
+    const listeners = {
       icecandidate: icecandidateHandler,
       icecandidateerror: icecandidateerrorHandler,
       connectionstatechange: connectionstatechangeHandler,
       track: trackHandler,
-    });
+    };
+    peer.addEventListener('icecandidate', listeners.icecandidate);
+    peer.addEventListener('icecandidateerror', listeners.icecandidateerror);
+    peer.addEventListener('connectionstatechange', listeners.connectionstatechange);
+    peer.addEventListener('track', listeners.track);
+    this.store.video.setListeners(user, listeners);
     this.stream?.getTracks().forEach(t => peer.addTrack(t, this.stream!));
     return peer;
   }

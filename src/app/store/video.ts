@@ -58,16 +58,20 @@ export class VideoStore {
     this.streams.set(user, []);
   }
 
-  remove(user: string) {
-    const peer = this.peers.get(user);
+  private removeListeners(user: string, peer: RTCPeerConnection) {
     const listeners = this.listeners.get(user);
-    if (peer && listeners) {
+    if (listeners) {
       peer.removeEventListener('icecandidate', listeners.icecandidate);
       peer.removeEventListener('icecandidateerror', listeners.icecandidateerror);
       peer.removeEventListener('connectionstatechange', listeners.connectionstatechange);
       peer.removeEventListener('track', listeners.track);
-      peer.close();
-    } else if (peer) {
+    }
+  }
+
+  remove(user: string) {
+    const peer = this.peers.get(user);
+    if (peer) {
+      this.removeListeners(user, peer);
       peer.close();
     }
     this.peers.delete(user);
@@ -77,13 +81,7 @@ export class VideoStore {
 
   hangup() {
     for (const [user, peer] of this.peers.entries()) {
-      const listeners = this.listeners.get(user);
-      if (listeners) {
-        peer.removeEventListener('icecandidate', listeners.icecandidate);
-        peer.removeEventListener('icecandidateerror', listeners.icecandidateerror);
-        peer.removeEventListener('connectionstatechange', listeners.connectionstatechange);
-        peer.removeEventListener('track', listeners.track);
-      }
+      this.removeListeners(user, peer);
       peer.close();
     }
     this.peers.clear();
