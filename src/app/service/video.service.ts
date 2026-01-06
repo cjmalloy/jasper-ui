@@ -355,17 +355,17 @@ export class VideoService {
     const myChildren = this.viewerTree.get(this.store.account.tag) || [];
     const hasCapacity = myChildren.length < this.fanOutDegree;
 
-    this.ts.patch('tag:/' + this.store.account.localTag, [{
-      op: 'merge',
-      path: '/plugins/plugin~1user~1video',
-      value: {
-        relay: {
-          url,
-          capacity: hasCapacity ? this.fanOutDegree - myChildren.length : 0,
-          children: myChildren,
+    this.ts.mergeResponse(['plugin/user/video'], 'tag:/' + this.store.account.localTag, {
+      plugins: {
+        'plugin/user/video': {
+          relay: {
+            url,
+            capacity: hasCapacity ? this.fanOutDegree - myChildren.length : 0,
+            children: myChildren,
+          }
         }
       }
-    }]).subscribe();
+    }).subscribe();
   }
 
   /**
@@ -511,8 +511,8 @@ export class VideoService {
     for (const [user, streams] of this.store.video.streams.entries()) {
       if (this.connectionTypes.get(user) === 'cohost') {
         for (const stream of streams) {
-          for (const track of stream.getTracks()) {
-            peer.addTrack(track, stream);
+          for (const track of stream.stream.getTracks()) {
+            peer.addTrack(track, stream.stream);
           }
         }
       }

@@ -5,6 +5,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { of } from 'rxjs';
 import { Ref } from '../../../model/ref';
+import { AdminService } from '../../../service/admin.service';
 import { TaggingService } from '../../../service/api/tagging.service';
 import { VideoService } from '../../../service/video.service';
 import { Store } from '../../../store/store';
@@ -16,6 +17,7 @@ describe('ChatVideoComponent', () => {
   let fixture: ComponentFixture<ChatVideoComponent>;
   let mockTaggingService: any;
   let mockVideoService: any;
+  let mockAdminService: any;
   let mockStore: Store;
   let mockGetUserMedia: any;
   let mockMediaStream: MediaStream;
@@ -28,7 +30,21 @@ describe('ChatVideoComponent', () => {
     };
     mockVideoService = {
       call: vi.fn(),
-      hangup: vi.fn()
+      hangup: vi.fn(),
+      connectionTypes: new Map()
+    };
+    mockAdminService = {
+      getPlugin: vi.fn().mockReturnValue({
+        config: {
+          gumConfig: { 
+            audio: true, 
+            video: {
+              width: { ideal: 640 },
+              height: { ideal: 640 }
+            }
+          }
+        }
+      })
     };
 
     // Create a mock MediaStream
@@ -52,6 +68,7 @@ describe('ChatVideoComponent', () => {
         provideRouter([]),
         { provide: TaggingService, useValue: mockTaggingService },
         { provide: VideoService, useValue: mockVideoService },
+        { provide: AdminService, useValue: mockAdminService },
       ]
     })
     .compileComponents();
@@ -251,16 +268,16 @@ describe('ChatVideoComponent', () => {
       const mockStream2 = {
         getTracks: vi.fn().mockReturnValue([{ readyState: 'live' }])
       } as any as MediaStream;
-      mockStore.video.streams.set('user1', [mockStream1]);
-      mockStore.video.streams.set('user2', [mockStream2]);
+      mockStore.video.streams.set('user1', [{ stream: mockStream1 }]);
+      mockStore.video.streams.set('user2', [{ stream: mockStream2 }]);
 
       const userStreams = component.userStreams;
 
       expect(userStreams.length).toBe(2);
       expect(userStreams[0].tag).toBe('user1');
-      expect(userStreams[0].streams).toEqual([mockStream1]);
+      expect(userStreams[0].streams).toEqual([{ stream: mockStream1 }]);
       expect(userStreams[1].tag).toBe('user2');
-      expect(userStreams[1].streams).toEqual([mockStream2]);
+      expect(userStreams[1].streams).toEqual([{ stream: mockStream2 }]);
     });
 
     it('should return empty array when no streams', () => {
