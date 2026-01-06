@@ -83,16 +83,12 @@ export class VideoService {
     });
   }
 
-  private cleanupUser(user: string): void {
+  private resetUserConnection(user: string): void {
     const handlers = this.cleanupHandlers.get(user);
     if (handlers) {
       handlers.forEach(cleanup => cleanup());
       this.cleanupHandlers.delete(user);
     }
-  }
-
-  private resetUserConnection(user: string): void {
-    this.cleanupUser(user);
     this.store.video.reset(user);
   }
 
