@@ -83,17 +83,17 @@ export class VideoService {
     const peer = new RTCPeerConnection(this.admin.getPlugin('plugin/user/video')!.config!.rtcConfig);
     this.store.video.call(user, peer);
     this.seen.delete(user);
-    peer.addEventListener('icecandidate', event => {
+    const icecandidateHandler = (event: RTCPeerConnectionIceEvent) => {
       this.patch(user, [{
         op: 'add',
         path: '/' + escapePath('plugin/user/video') + '/candidate/-',
         value: event.candidate?.toJSON() || { candidate: null },
       }]);
-    });
-    peer.addEventListener('icecandidateerror', event => {
-      console.error(event.errorCode, event.errorText);
-    });
-    peer.addEventListener('connectionstatechange', event => {
+    };
+    const icecandidateerrorHandler = (event: Event) => {
+      console.error((event as RTCPeerConnectionIceErrorEvent).errorCode, (event as RTCPeerConnectionIceErrorEvent).errorText);
+    };
+    const connectionstatechangeHandler = (event: Event) => {
       if (peer.connectionState === 'connected') {
         this.ts.respond([setPublic(localTag(user)), '-plugin/user/video'], 'tag:/' + localTag(user))
           .subscribe();
@@ -105,11 +105,21 @@ export class VideoService {
           .subscribe(() => this.invite());
       }
       console.log('connectionstatechange', peer.connectionState);
-    });
-    peer.addEventListener('track', (event) => {
+    };
+    const trackHandler = (event: RTCTrackEvent) => {
       console.warn('Track received:', event.streams[0]?.id, event.track.readyState);
       const [remoteStream] = event.streams;
       this.store.video.addStream(user, remoteStream);
+    };
+    peer.addEventListener('icecandidate', icecandidateHandler);
+    peer.addEventListener('icecandidateerror', icecandidateerrorHandler);
+    peer.addEventListener('connectionstatechange', connectionstatechangeHandler);
+    peer.addEventListener('track', trackHandler);
+    this.store.video.setListeners(user, {
+      icecandidate: icecandidateHandler,
+      icecandidateerror: icecandidateerrorHandler,
+      connectionstatechange: connectionstatechangeHandler,
+      track: trackHandler,
     });
     this.stream?.getTracks().forEach(t => peer.addTrack(t, this.stream!));
     return peer;
