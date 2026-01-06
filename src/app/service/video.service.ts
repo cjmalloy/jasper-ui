@@ -42,6 +42,7 @@ export class VideoService {
   peerWebsocket = false;
 
   private stream?: MediaStream;
+  private cleanupHandlers = new Map<string, (() => void)[]>();
 
   constructor(
     private config: ConfigService,
@@ -67,6 +68,31 @@ export class VideoService {
     this.invite();
   }
 
+  private addListener<K extends keyof RTCPeerConnectionEventMap>(
+    user: string,
+    peer: RTCPeerConnection,
+    eventType: K,
+    handler: (event: RTCPeerConnectionEventMap[K]) => void
+  ): void {
+    peer.addEventListener(eventType, handler);
+    if (!this.cleanupHandlers.has(user)) {
+      this.cleanupHandlers.set(user, []);
+    }
+    this.cleanupHandlers.get(user)!.push(() => {
+      peer.removeEventListener(eventType, handler);
+    });
+  }
+
+  private resetUserConnection(user: string): void {
+    const handlers = this.cleanupHandlers.get(user);
+    if (handlers) {
+      handlers.forEach(cleanup => cleanup());
+      this.cleanupHandlers.delete(user);
+    }
+    this.store.video.reset(user);
+    this.offers.delete(user);
+  }
+
   hangup() {
     console.warn('Hung Up!');
     this.url = '';
@@ -75,6 +101,8 @@ export class VideoService {
         .subscribe();
     }
     this.store.video.hangup();
+    this.cleanupHandlers.forEach(handlers => handlers.forEach(cleanup => cleanup()));
+    this.cleanupHandlers.clear();
     this.destroy$.next();
   }
 
@@ -83,34 +111,38 @@ export class VideoService {
     const peer = new RTCPeerConnection(this.admin.getPlugin('plugin/user/video')!.config!.rtcConfig);
     this.store.video.call(user, peer);
     this.seen.delete(user);
-    peer.addEventListener('icecandidate', event => {
+    
+    this.addListener(user, peer, 'icecandidate', (event) => {
       this.patch(user, [{
         op: 'add',
         path: '/' + escapePath('plugin/user/video') + '/candidate/-',
         value: event.candidate?.toJSON() || { candidate: null },
       }]);
     });
-    peer.addEventListener('icecandidateerror', event => {
+    
+    this.addListener(user, peer, 'icecandidateerror', (event) => {
       console.error(event.errorCode, event.errorText);
     });
-    peer.addEventListener('connectionstatechange', event => {
+    
+    this.addListener(user, peer, 'connectionstatechange', () => {
       if (peer.connectionState === 'connected') {
         this.ts.respond([setPublic(localTag(user)), '-plugin/user/video'], 'tag:/' + localTag(user))
           .subscribe();
       }
       if (peer.connectionState === 'failed') {
-        this.store.video.reset(user);
-        this.offers.delete(user);
+        this.resetUserConnection(user);
         this.ts.respond([setPublic(localTag(user)), '-plugin/user/video'], 'tag:/' + localTag(user))
           .subscribe(() => this.invite());
       }
       console.log('connectionstatechange', peer.connectionState);
     });
-    peer.addEventListener('track', (event) => {
+    
+    this.addListener(user, peer, 'track', (event) => {
       console.warn('Track received:', event.streams[0]?.id, event.track.readyState);
       const [remoteStream] = event.streams;
       this.store.video.addStream(user, remoteStream);
     });
+    
     this.stream?.getTracks().forEach(t => peer.addTrack(t, this.stream!));
     return peer;
   }
@@ -125,8 +157,7 @@ export class VideoService {
         const peer = this.store.video.peers.get(user);
         if (peer?.localDescription && !peer.remoteDescription) {
           console.error('Stuck!');
-          this.store.video.reset(user);
-          this.offers.delete(user);
+          this.resetUserConnection(user);
           void doInvite(user);
         }
       });
@@ -203,8 +234,7 @@ export class VideoService {
           : '';
         if (newSessionId !== currentSessionId) {
           console.warn('Peer reloaded - resetting connection', user);
-          this.store.video.reset(user);
-          this.offers.delete(user);
+          this.resetUserConnection(user);
           peer = undefined;  // Will be recreated below
         }
       }
