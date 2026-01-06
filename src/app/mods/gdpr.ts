@@ -3,7 +3,7 @@ import { Mod } from '../model/tag';
 import { Template } from '../model/template';
 
 export const gdprConfig: Template = {
-  tag: 'gdpr',
+  tag: 'config/gdpr',
   name: $localize`⚠️ GDPR`,
   config: {
     type: 'config',
