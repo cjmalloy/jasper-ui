@@ -37,6 +37,11 @@ export class VideoStore {
     this.streams.get(user)!.find(s => s.stream.id === id)!.playing = true;
   }
 
+  reset(user: string) {
+    this.remove(user);
+    this.streams.set(user, []);
+  }
+
   remove(user: string) {
     const peer = this.peers.get(user);
     if (peer) {

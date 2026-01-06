@@ -93,8 +93,7 @@ export class VideoService {
 
   private resetUserConnection(user: string): void {
     this.cleanupUser(user);
-    this.store.video.remove(user);
-    this.store.video.streams.set(user, []);
+    this.store.video.reset(user);
   }
 
   hangup() {
