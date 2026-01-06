@@ -39,7 +39,6 @@ try:
     'remote_components': ['ejs:github'],
     'js_runtimes': {'bun': {'path': os.environ['JASPER_NODE']}},
     'noprogress': True,
-    'quiet': True,
   }
   saveStdout = sys.stdout
   sys.stdout = sys.stderr
