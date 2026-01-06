@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { flatMap } from 'lodash-es';
 import { runInAction } from 'mobx';
 import { filter, map, mergeMap, Subject, switchMap, takeUntil, takeWhile, timer } from 'rxjs';
 import { tap } from 'rxjs/operators';
@@ -41,7 +42,6 @@ export class VideoService {
   lobbyWebsocket = false;
   peerWebsocket = false;
 
-  private stream?: MediaStream;
   private cleanupHandlers = new Map<string, (() => void)[]>();
 
   constructor(
@@ -51,21 +51,30 @@ export class VideoService {
     private stomp: StompService,
     private ts: TaggingService,
     private refs: RefService,
-  ) { }
+  ) {
+    timer(30_000).pipe(
+      mergeMap(() => this.store.video.peers.entries()),
+      map(([user, peer]) => ({ user, stats: peer.getStats() })),
+    ).subscribe(({ user, stats }) => {
+      console.log(user, stats);
+    });
+  }
 
   get connecting() {
     return !this.store.video.peers.size || !!this.store.video.peers.values().find(p => p.connectionState !== 'connected');
   }
 
-  call(url: string, stream: MediaStream) {
+  call(url: string) {
     if (this.url === url) return;
     console.warn('Joining Lobby!');
-    this.stream = stream;
     this.url = url;
     this.destroy$.next();
-    runInAction(() => this.store.video.stream = stream);
     this.answer();
     this.invite();
+  }
+
+  setStream(stream: MediaStream) {
+    this.store.video.setStream(stream);
   }
 
   private addListener<K extends keyof RTCPeerConnectionEventMap>(
@@ -111,7 +120,7 @@ export class VideoService {
     const peer = new RTCPeerConnection(this.admin.getPlugin('plugin/user/video')!.config!.rtcConfig);
     this.store.video.call(user, peer);
     this.seen.delete(user);
-    
+
     this.addListener(user, peer, 'icecandidate', (event) => {
       this.patch(user, [{
         op: 'add',
@@ -119,11 +128,11 @@ export class VideoService {
         value: event.candidate?.toJSON() || { candidate: null },
       }]);
     });
-    
+
     this.addListener(user, peer, 'icecandidateerror', (event) => {
       console.error(event.errorCode, event.errorText);
     });
-    
+
     this.addListener(user, peer, 'connectionstatechange', () => {
       if (peer.connectionState === 'connected') {
         this.ts.respond([setPublic(localTag(user)), '-plugin/user/video'], 'tag:/' + localTag(user))
@@ -136,14 +145,14 @@ export class VideoService {
       }
       console.log('connectionstatechange', peer.connectionState);
     });
-    
+
     this.addListener(user, peer, 'track', (event) => {
       console.warn('Track received:', event.streams[0]?.id, event.track.readyState);
       const [remoteStream] = event.streams;
       this.store.video.addStream(user, remoteStream);
     });
-    
-    this.stream?.getTracks().forEach(t => peer.addTrack(t, this.stream!));
+
+    this.store.video.stream?.getTracks().forEach(t => peer.addTrack(t, this.store.video.stream!));
     return peer;
   }
 
