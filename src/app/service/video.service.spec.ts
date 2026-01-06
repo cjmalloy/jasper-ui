@@ -58,13 +58,16 @@ describe('VideoService', () => {
     const videoStore = {
       peers: new Map<string, RTCPeerConnection>(),
       streams: new Map<string, MediaStream[]>(),
-      stream: undefined,
+      stream: undefined as MediaStream | undefined,
       hungup: new Map<string, boolean>(),
       call: vi.fn(),
       addStream: vi.fn(),
       remove: vi.fn(),
       reset: vi.fn(),
       hangup: vi.fn(),
+      setStream: vi.fn((stream: MediaStream) => {
+        videoStore.stream = stream;
+      }),
     };
     mockStore = {
       video: videoStore,
@@ -167,7 +170,8 @@ describe('VideoService', () => {
       const mockTrack = {} as MediaStreamTrack;
       mockMediaStream.getTracks.mockReturnValue([mockTrack]);
 
-      service.call('tag:/chat', mockMediaStream);
+      service.call('tag:/chat');
+      service.setStream(mockMediaStream);
       service.peer(user);
 
       expect(mockPeerConnection.addTrack).toHaveBeenCalledWith(mockTrack, mockMediaStream);
@@ -209,7 +213,8 @@ describe('VideoService', () => {
       mockRefs.page.mockReturnValue(of(mockPage));
       mockPeerConnection.createOffer.mockResolvedValue(mockOffer);
 
-      service.call(url, mockMediaStream);
+      service.call(url);
+      service.setStream(mockMediaStream);
 
       // Wait for async operations
       await new Promise(resolve => setTimeout(resolve, ASYNC_OPERATION_WAIT_MS));
@@ -243,7 +248,8 @@ describe('VideoService', () => {
       mockRefs.getCurrent.mockReturnValue(of(mockRef));
       mockPeerConnection.createAnswer.mockResolvedValue(mockAnswer);
 
-      service.call(url, mockMediaStream);
+      service.call(url);
+      service.setStream(mockMediaStream);
 
       // Wait for async operations
       await new Promise(resolve => setTimeout(resolve, ASYNC_OPERATION_WAIT_MS));
@@ -277,7 +283,8 @@ describe('VideoService', () => {
       });
       mockRefs.getCurrent.mockReturnValue(of(mockRef));
 
-      service.call('tag:/chat', mockMediaStream);
+      service.call('tag:/chat');
+      service.setStream(mockMediaStream);
 
       // Wait for async operations
       await new Promise(resolve => setTimeout(resolve, ASYNC_OPERATION_WAIT_MS));
@@ -343,7 +350,8 @@ describe('VideoService', () => {
       });
       mockRefs.getCurrent.mockReturnValue(of(mockRef));
 
-      service.call('tag:/chat', mockMediaStream);
+      service.call('tag:/chat');
+      service.setStream(mockMediaStream);
 
       // Wait for async operations
       await new Promise(resolve => setTimeout(resolve, ASYNC_OPERATION_WAIT_MS));
@@ -379,7 +387,8 @@ describe('VideoService', () => {
       mockPeerConnection.addIceCandidate.mockRejectedValue(new Error('Invalid candidate'));
 
       const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-      service.call('tag:/chat', mockMediaStream);
+      service.call('tag:/chat');
+      service.setStream(mockMediaStream);
 
       // Wait for async operations
       await new Promise(resolve => setTimeout(resolve, ASYNC_OPERATION_WAIT_MS));
@@ -422,13 +431,16 @@ describe('VideoService', () => {
       const videoStore = {
         peers: new Map<string, RTCPeerConnection>(),
         streams: new Map<string, MediaStream[]>(),
-        stream: undefined,
+        stream: undefined as MediaStream | undefined,
         hungup: new Map<string, boolean>(),
         call: vi.fn(),
         addStream: vi.fn(),
         remove: vi.fn(),
         reset: vi.fn(),
         hangup: vi.fn(),
+        setStream: vi.fn((stream: MediaStream) => {
+          videoStore.stream = stream;
+        }),
       };
       freshMockStore = {
         video: videoStore,
@@ -457,10 +469,12 @@ describe('VideoService', () => {
       service['destroy$'].subscribe(firstDestroySpy);
 
       // First call
-      service.call('tag:/chat1', mockMediaStream);
+      service.call('tag:/chat1');
+      service.setStream(mockMediaStream);
 
       // Second call with different URL
-      service.call('tag:/chat2', mockMediaStream);
+      service.call('tag:/chat2');
+      service.setStream(mockMediaStream);
 
       expect(firstDestroySpy).toHaveBeenCalled();
     });
@@ -472,7 +486,8 @@ describe('VideoService', () => {
 
       const pageCallCount = mockRefs.page.mock.calls.length;
 
-      service.call(url, mockMediaStream);
+      service.call(url);
+      service.setStream(mockMediaStream);
 
       expect(mockRefs.page.mock.calls.length).toBe(pageCallCount);
     });
@@ -492,7 +507,8 @@ describe('VideoService', () => {
 
       mockRefs.page.mockReturnValue(of(mockPage));
 
-      service.call('tag:/chat', mockMediaStream);
+      service.call('tag:/chat');
+      service.setStream(mockMediaStream);
 
       // Should only create peer for alice, not for self (test user)
       expect(freshMockStore.video.call).toHaveBeenCalledTimes(1);
