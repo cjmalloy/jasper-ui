@@ -160,6 +160,11 @@ export function localTag(tag?: string) {
   return tag.substring(0, tag.indexOf('@'));
 }
 
+export function userResponse(tag?: string) {
+  if (!tag) return '';
+  return 'tag:/' + setPublic(localTag(tag));
+}
+
 export function tagOrigin(tag?: string) {
   if (!tag) return '';
   if (!tag.includes('@')) return '';

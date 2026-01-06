@@ -6,7 +6,7 @@ import { tap } from 'rxjs/operators';
 import { Ref } from '../model/ref';
 import { Store } from '../store/store';
 import { escapePath, OpPatch } from '../util/json-patch';
-import { getUserUrl, hasTag, localTag, setPublic } from '../util/tag';
+import { getUserUrl, hasTag, localTag, setPublic, userResponse } from '../util/tag';
 import { AdminService } from './admin.service';
 import { RefService } from './api/ref.service';
 import { StompService } from './api/stomp.service';
@@ -106,7 +106,7 @@ export class VideoService {
     console.warn('Hung Up!');
     this.url = '';
     for (const user of this.store.video.peers.keys()) {
-      this.ts.respond([setPublic(localTag(user)), '-plugin/user/video'], 'tag:/' + localTag(user))
+      this.ts.respond([setPublic(localTag(user)), '-plugin/user/video'], userResponse(user))
         .subscribe();
     }
     this.store.video.hangup();
@@ -135,12 +135,12 @@ export class VideoService {
 
     this.addListener(user, peer, 'connectionstatechange', () => {
       if (peer.connectionState === 'connected') {
-        this.ts.respond([setPublic(localTag(user)), '-plugin/user/video'], 'tag:/' + localTag(user))
+        this.ts.respond([setPublic(localTag(user)), '-plugin/user/video'], userResponse(user))
           .subscribe();
       }
       if (peer.connectionState === 'failed') {
         this.resetUserConnection(user);
-        this.ts.respond([setPublic(localTag(user)), '-plugin/user/video'], 'tag:/' + localTag(user))
+        this.ts.respond([setPublic(localTag(user)), '-plugin/user/video'], userResponse(user))
           .subscribe(() => this.invite());
       }
       console.log('connectionstatechange', peer.connectionState);
@@ -183,7 +183,7 @@ export class VideoService {
       await peer.setLocalDescription(offer);
       console.warn('Making Offer!', user);
       this.offers.set(user, JSON.stringify(offer));
-      this.ts.mergeResponse([setPublic(localTag(user)), '-plugin/user/video', 'plugin/user/video'], 'tag:/' + localTag(user), {
+      this.ts.mergeResponse([setPublic(localTag(user)), '-plugin/user/video', 'plugin/user/video'], userResponse(user), {
         'plugin/user/video': { offer }
       }).subscribe();
       checkStuck();
@@ -275,7 +275,7 @@ export class VideoService {
         const answer = await peer.createAnswer();
         await peer!.setLocalDescription(answer);
         console.warn('Send Answer!', user);
-        this.ts.mergeResponse([setPublic(localTag(user)), '-plugin/user/video', 'plugin/user/video'], 'tag:/' + localTag(user), {
+        this.ts.mergeResponse([setPublic(localTag(user)), '-plugin/user/video', 'plugin/user/video'], userResponse(user), {
           'plugin/user/video': { answer, offer: video.offer }
         }).subscribe();
       }
@@ -296,13 +296,13 @@ export class VideoService {
     };
     const poll = () => this.refs.page({
       query: 'plugin/user/video',
-      responses: 'tag:/' + this.store.account.localTag,
+      responses: userResponse(this.store.account.localTag),
     }).pipe(
       mergeMap(page => page.content),
     ).subscribe(res => doAnswer(res, false));
     if (this.config.websockets) {
       poll();
-      this.stomp.watchResponse('tag:/' + this.store.account.localTag).pipe(
+      this.stomp.watchResponse(userResponse(this.store.account.localTag)).pipe(
         tap(() => this.peerWebsocket = true),
         switchMap(url => this.refs.getCurrent(url)),
         filter(res => hasTag('plugin/user/video', res)),
@@ -335,8 +335,8 @@ export class VideoService {
     if (!scheduled) timer(throttle).pipe(
       takeUntil(this.destroy$)
     ).subscribe(() => {
-      for (const [u, o] of this.queue.entries()) {
-        this.ts.patchResponse(['plugin/user/video'], 'tag:/' + localTag(u), o).subscribe();
+      for (const [user, patch] of this.queue.entries()) {
+        this.ts.patchResponse(['plugin/user/video'], userResponse(user), patch).subscribe();
       }
       this.queue.clear();
     });
