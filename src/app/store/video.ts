@@ -1,4 +1,4 @@
-import { makeAutoObservable, observable } from 'mobx';
+import { makeAutoObservable, observable, runInAction } from 'mobx';
 
 export class VideoStore {
 
@@ -24,6 +24,18 @@ export class VideoStore {
     this.streams.set(user, []);
   }
 
+  setStream(stream: MediaStream) {
+    if (this.stream) {
+      for (const peer of this.peers.values()) {
+        peer.getSenders().forEach(s => peer.removeTrack(s));
+      }
+    }
+    this.stream = stream;
+    for (const peer of this.peers.values()) {
+      stream.getTracks().forEach(t => peer.addTrack(t, stream));
+    }
+  }
+
   addStream(user: string, stream: MediaStream) {
     if (!this.streams.get(user)?.length) {
       this.streams.set(user, [{ stream }]);
@@ -44,17 +56,13 @@ export class VideoStore {
 
   remove(user: string) {
     const peer = this.peers.get(user);
-    if (peer) {
-      peer.close();
-    }
+    if (peer) peer.close();
     this.peers.delete(user);
     this.streams.delete(user);
   }
 
   hangup() {
-    for (const peer of this.peers.values()) {
-      peer.close();
-    }
+    for (const peer of this.peers.values()) peer.close();
     this.peers.clear();
     this.streams.clear();
     this.hungup.clear();
