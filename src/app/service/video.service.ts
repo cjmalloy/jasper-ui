@@ -128,24 +128,12 @@ export class VideoService {
   invite() {
     const doInvite = async (user: string) => {
       runInAction(() => this.store.video.hungup.set(user, false));
-      const checkStuck = () => timer(this.stuck).pipe(
-        takeUntil(this.destroy$),
-      ).subscribe(() => {
-        const peer = this.store.video.peers.get(user);
-        if (peer?.localDescription && !peer.remoteDescription) {
-          console.error('Stuck!');
-          this.resetUserConnection(user);
-          void doInvite(user);
-        }
-      });
-      if (this.store.video.peers.has(user)) {
-        checkStuck();
-        return;
-      }
+      if (this.store.video.peers.has(user)) return;
       const peer = this.peer(user);
       const offer = await peer.createOffer();
       if (peer.signalingState !== 'stable') {
         // Already accepted remote offer
+        console.warn('Already accepted remote offer!', user);
         return;
       }
       await peer.setLocalDescription(offer);
@@ -155,7 +143,16 @@ export class VideoService {
       this.ts.mergeResponse([setPublic(localTag(user)), '-plugin/user/video', 'plugin/user/video'], userResponse(user), {
         'plugin/user/video': { offer, dial }
       }).subscribe();
-      checkStuck();
+      timer(this.stuck).pipe(
+        takeUntil(this.destroy$),
+      ).subscribe(() => {
+        const peer = this.store.video.peers.get(user);
+        if (peer?.localDescription && !peer.remoteDescription) {
+          console.error('Stuck!');
+          this.resetUserConnection(user);
+          doInvite(user);
+        }
+      })
     };
     const pollLobby = () => this.refs.page({
       query: 'plugin/user/lobby',
