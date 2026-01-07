@@ -1,11 +1,11 @@
-import { AfterViewInit, Directive, ElementRef, HostBinding, HostListener, Input, NgZone } from '@angular/core';
+import { AfterViewInit, Directive, ElementRef, HostBinding, HostListener, Input, NgZone, OnDestroy } from '@angular/core';
 import { ConfigService } from '../service/config.service';
 import { relativeX, relativeY } from '../util/math';
 
 @Directive({
     selector: '[appResizeHandle]',
 })
-export class ResizeHandleDirective implements AfterViewInit {
+export class ResizeHandleDirective implements AfterViewInit, OnDestroy {
   @HostBinding('style.cursor') cursor = 'auto';
 
   @Input()
@@ -40,6 +40,10 @@ export class ResizeHandleDirective implements AfterViewInit {
     if (!this.appResizeHandle) return;
     this.resizeObserver = window.ResizeObserver && new ResizeObserver(() => this.shrinkContainer()) || undefined;
     if (this.child) this.resizeObserver?.observe(this.child);
+  }
+
+  ngOnDestroy() {
+    this.resizeObserver?.disconnect();
   }
 
   shrinkContainer() {
