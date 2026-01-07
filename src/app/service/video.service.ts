@@ -266,6 +266,7 @@ export class VideoService {
       responses: userResponse(this.store.account.localTag),
     }).pipe(
       mergeMap(page => page.content),
+      takeUntil(this.destroy$),
     ).subscribe(res => doAnswer(res, false));
     if (this.config.websockets) {
       this.stomp.watchResponse(userResponse(this.store.account.localTag)).pipe(
