@@ -30,7 +30,6 @@ import { ActionService } from '../../service/action.service';
 import { AdminService } from '../../service/admin.service';
 import { ProxyService } from '../../service/api/proxy.service';
 import { RefService } from '../../service/api/ref.service';
-import { StompService } from '../../service/api/stomp.service';
 import { ConfigService } from '../../service/config.service';
 import { EditorService } from '../../service/editor.service';
 import { EmbedService } from '../../service/embed.service';
@@ -132,7 +131,6 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
     private actions: ActionService,
     private embeds: EmbedService,
     private editor: EditorService,
-    private stomp: StompService,
     private refs: RefService,
     private store: Store,
     public el: ElementRef,
