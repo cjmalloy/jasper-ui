@@ -200,6 +200,7 @@ export const videoPlugin: Plugin = {
     }]
   },
   defaults: {
+    dial: 0,
     candidate: [],
   },
   schema: {
@@ -216,6 +217,7 @@ export const videoPlugin: Plugin = {
       },
     },
     optionalProperties: {
+      dial: { type: 'float32' },
       offer: {
         optionalProperties: {
           type: { type: 'string' },
