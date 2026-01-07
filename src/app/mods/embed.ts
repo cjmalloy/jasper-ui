@@ -51,7 +51,7 @@ export const embedPlugin: Plugin = {
       key: 'noResize',
       type: 'boolean',
       props: {
-        label: $localize`Not Resizeable:`
+        label: $localize`Not Resizable:`
       }
     }],
   },
