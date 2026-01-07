@@ -92,6 +92,7 @@ export class VideoService {
     this.store.video.call(user, peer);
     this.seen.delete(user);
     this.addListener(user, peer, 'icecandidate', (event) => {
+      if (peer.connectionState === 'closed') return;
       console.warn('Sending Ice Candidate', user);
       this.patch(user, [{
         op: 'add',
@@ -100,9 +101,11 @@ export class VideoService {
       }]);
     });
     this.addListener(user, peer, 'icecandidateerror', (event) => {
+      if (peer.connectionState === 'closed') return;
       console.error(event.errorCode, event.errorText);
     });
     this.addListener(user, peer, 'connectionstatechange', () => {
+      if (peer.connectionState === 'closed') return;
       if (peer.connectionState === 'connected') {
         this.ts.respond([setPublic(localTag(user)), '-plugin/user/video'], userResponse(user))
           .subscribe();
@@ -115,11 +118,14 @@ export class VideoService {
       console.log('connectionstatechange', peer.connectionState);
     });
     this.addListener(user, peer, 'track', (event) => {
+      if (peer.connectionState === 'closed') return;
       console.warn('Track received:', event.streams[0]?.id, event.track.readyState);
       const [remoteStream] = event.streams;
       this.store.video.addStream(user, remoteStream);
     });
     this.addListener(user, peer, 'negotiationneeded', (event) => {
+      if (peer.connectionState === 'closed') return;
+      if (peer.connectionState === 'new') return;
       console.warn('Renegotiation needed for', user);
       this.resetUserConnection(user);
       this.doInvite(user);
