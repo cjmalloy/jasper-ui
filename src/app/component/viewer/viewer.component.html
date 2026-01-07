@@ -24,7 +24,7 @@
     <div class="embed-container"
          [class.loading]="!embedReady"
          [class.twitter]="twitter"
-         [appResizeHandle]="true"
+         [appResizeHandle]="resizable"
          [child]="iframe">
       <iframe #iframe
               class="embed-expand"
@@ -32,8 +32,8 @@
               src="about:blank"
               frameborder="0"
               scrolling="yes"
-              allow="fullscreen; accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowfullscreen></iframe>
+              allow="fullscreen; accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              referrerpolicy="strict-origin-when-cross-origin"></iframe>
     </div>
   }
   @if (imageUrl) {

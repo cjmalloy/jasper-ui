@@ -1,18 +1,18 @@
-import { Directive, ElementRef, HostBinding, HostListener, Input, NgZone } from '@angular/core';
+import { AfterViewInit, Directive, ElementRef, HostBinding, HostListener, Input, NgZone } from '@angular/core';
 import { ConfigService } from '../service/config.service';
 import { relativeX, relativeY } from '../util/math';
 
 @Directive({
     selector: '[appResizeHandle]',
-    host: { 'class': 'resize-handle' }
 })
-export class ResizeHandleDirective {
+export class ResizeHandleDirective implements AfterViewInit {
   @HostBinding('style.cursor') cursor = 'auto';
 
   @Input()
   hitArea = 24;
 
   @Input()
+  @HostBinding('class.resize-handle')
   appResizeHandle?: boolean | string = true;
 
   @Input()
@@ -24,6 +24,8 @@ export class ResizeHandleDirective {
   width = 0;
   height = 0;
 
+  resizeObserver?: ResizeObserver;
+
   constructor(
     private config: ConfigService,
     private el: ElementRef,
@@ -34,12 +36,20 @@ export class ResizeHandleDirective {
     return this.config.mobile ? 'row-resize' : 'se-resize';
   }
 
-  get enabled() {
-    return this.dragging !== false;
+  ngAfterViewInit() {
+    if (!this.appResizeHandle) return;
+    this.resizeObserver = window.ResizeObserver && new ResizeObserver(() => this.shrinkContainer()) || undefined;
+    if (this.child) this.resizeObserver?.observe(this.child);
+  }
+
+  shrinkContainer() {
+    this.el.nativeElement.style.width = this.child!.style.width;
+    this.el.nativeElement.style.height = this.child!.style.height;
   }
 
   @HostListener('pointerdown', ['$event'])
   onPointerDown(event: PointerEvent) {
+    if (!this.appResizeHandle) return;
     if (event.button) return;
     if (this.hit(event)) {
       this.dragging = true;
@@ -56,12 +66,13 @@ export class ResizeHandleDirective {
 
   @HostListener('window:pointermove', ['$event'])
   onPointerMove(event: PointerEvent) {
+    if (!this.appResizeHandle) return;
     if (this.dragging) {
       this.zone.run(() => {
         const dx = event.clientX - this.x;
         const dy = event.clientY - this.y;
-        this.setWidth(this.el.nativeElement.style.width = (this.width + dx) + 'px');
-        this.setHeight(this.el.nativeElement.style.height = (this.height + dy) + 'px');
+        this.setWidth((this.width + dx) + 'px');
+        this.setHeight((this.height + dy) + 'px');
         event.preventDefault();
         event.stopPropagation();
         event.stopImmediatePropagation();
@@ -76,9 +87,13 @@ export class ResizeHandleDirective {
 
   @HostListener('window:pointerup', ['$event'])
   onPointerUp(event: PointerEvent) {
+    if (!this.appResizeHandle) return;
     if (this.dragging) {
       this.dragging = false;
       this.cursor = this.hit(event) ? this.resizeCursor : 'auto';
+      event.preventDefault();
+      event.stopPropagation();
+      event.stopImmediatePropagation();
     }
   }
 

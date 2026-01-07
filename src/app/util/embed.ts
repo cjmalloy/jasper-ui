@@ -10,3 +10,7 @@ export interface Embed {
   createRef(ref: Ref, showToggle?: boolean): ComponentRef<any>;
   createLens(params: any, page: Page<Ref>, tag: string, ext?: Ext): ComponentRef<any>;
 }
+
+export function parseSrc(html: string) {
+  return new DOMParser().parseFromString(html, 'text/html').documentElement.getElementsByTagName('iframe')[0].src;
+}

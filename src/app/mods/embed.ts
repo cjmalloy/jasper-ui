@@ -48,10 +48,10 @@ export const embedPlugin: Plugin = {
         }
       }
     }, {
-      key: 'resize',
+      key: 'noResize',
       type: 'boolean',
       props: {
-        label: $localize`Resizeable:`
+        label: $localize`Not Resizeable:`
       }
     }],
   },
@@ -59,7 +59,7 @@ export const embedPlugin: Plugin = {
   schema: {
     optionalProperties: {
       url: { type: 'string' },
-      resize: { type: 'boolean' },
+      noResize: { type: 'boolean' },
       width: { type: 'int32', nullable: true },
       height: { type: 'int32', nullable: true },
     },
