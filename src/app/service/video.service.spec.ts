@@ -167,7 +167,8 @@ describe('VideoService', () => {
       const mockTrack = {} as MediaStreamTrack;
       mockMediaStream.getTracks.mockReturnValue([mockTrack]);
 
-      service.call('tag:/chat', mockMediaStream);
+      service.setStream(mockMediaStream);
+      service.call('tag:/chat');
       service.peer(user);
 
       expect(mockPeerConnection.addTrack).toHaveBeenCalledWith(mockTrack, mockMediaStream);
