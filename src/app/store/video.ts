@@ -41,9 +41,9 @@ export class VideoStore {
   addStream(user: string, stream: MediaStream) {
     if (!this.streams.get(user)?.length) {
       this.streams.set(user, [{ stream }]);
-    } else if (!this.streams.get(user)?.find(s => s.stream.id === stream.id)) {
+    } else {
       console.warn('adding second stream');
-      this.streams.set(user, [...this.streams.get(user)!, { stream }]);
+      this.streams.set(user, [{ stream }, ...this.streams.get(user)!.filter(s => s.stream.id !== stream.id)]);
     }
   }
 
