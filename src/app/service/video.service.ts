@@ -261,7 +261,10 @@ export class VideoService {
           }
         }
       }
-      if (!peer && !allowUnknown) return;
+      if (!peer && !allowUnknown) {
+        this.ts.deleteResponse('plugin/user/video', userResponse(user)).subscribe();
+        return;
+      }
       if (video.offer && !video.answer && (!peer || peer?.signalingState === 'stable')) {
         peer ||= this.peer(user);
         console.warn('Accept Offer!', user, peer.signalingState);
