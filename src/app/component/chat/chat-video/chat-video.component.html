@@ -50,6 +50,8 @@
                 (click)="speaker = u.tag"
                 (keydown.enter)="speaker = u.tag"
                 (keydown.space)="speaker = u.tag"></video>
+            } @empty {
+              <div class="loading video-placeholder"></div>
             }
           </div>
         }
