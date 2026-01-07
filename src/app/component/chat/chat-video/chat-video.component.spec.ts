@@ -40,6 +40,7 @@ describe('ChatVideoComponent', () => {
     };
     mockVideoService = {
       call: vi.fn(),
+      setStream: vi.fn(),
       hangup: vi.fn()
     };
 
@@ -157,7 +158,8 @@ describe('ChatVideoComponent', () => {
       component.call();
       // Wait for getUserMedia promise to resolve and .then() to execute
       await vi.waitFor(() => {
-        expect(mockVideoService.call).toHaveBeenCalledWith('tag:/chat', mockMediaStream);
+        expect(mockVideoService.call).toHaveBeenCalledWith('tag:/chat');
+        expect(mockVideoService.setStream).toHaveBeenCalledWith(mockMediaStream);
       });
     });
   });
