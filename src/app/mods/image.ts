@@ -30,10 +30,6 @@ export const imagePlugin: Plugin = {
     filters: [
       { query: 'plugin/image', label: $localize`🖼️ image`, title: $localize`Images`, group: $localize`Media 🎬️` },
     ],
-    editorButtons: [
-      { tag: 'plugin/comment', label: $localize`🖼️`, title: $localize`Attach Image`, ribbon: true },
-      { tag: 'plugin/thread', label: $localize`🖼️`, title: $localize`Attach Image`, ribbon: true },
-    ],
     extensions: ['.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp'],
     description: $localize`Display an image.`,
     advancedForm: [{

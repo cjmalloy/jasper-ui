@@ -1,8 +1,10 @@
+import { AsyncPipe } from '@angular/common';
 import { Component, ElementRef, HostBinding, Input, OnChanges, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
-import { NavigationEnd, Router } from '@angular/router';
+import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { uniq, uniqBy } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
-import { catchError, filter, forkJoin, map, Observable, of, Subject } from 'rxjs';
+import { MobxAngularModule } from 'mobx-angular';
+import { catchError, filter, forkJoin, map, of, Subject } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { Ext } from '../../model/ext';
 import { Plugin } from '../../model/plugin';
@@ -21,16 +23,39 @@ import { ConfigService } from '../../service/config.service';
 import { QueryStore } from '../../store/query';
 import { Store } from '../../store/store';
 import { memo, MemoCache } from '../../util/memo';
-import { hasPrefix, hasTag, localTag, topAnds } from '../../util/tag';
-
-type Exts = { ext: Ext, children: Ext[], more: boolean };
+import { hasPrefix, hasTag, isQuery, localTag, setProtected, setPublic, topAnds } from '../../util/tag';
+import { BulkComponent } from '../bulk/bulk.component';
+import { ChatComponent } from '../chat/chat.component';
+import { DebugComponent } from '../debug/debug.component';
+import { ExtComponent } from '../ext/ext.component';
+import { FilterComponent } from '../filter/filter.component';
+import { MdComponent } from '../md/md.component';
+import { NavComponent } from '../nav/nav.component';
+import { QueryComponent } from '../query/query.component';
+import { SearchComponent } from '../search/search.component';
+import { SortComponent } from '../sort/sort.component';
 
 @Component({
-  standalone: false,
   selector: 'app-sidebar',
   templateUrl: './sidebar.component.html',
   styleUrls: ['./sidebar.component.scss'],
-  host: {'class': 'sidebar'}
+  host: { 'class': 'sidebar' },
+  imports: [
+    ExtComponent,
+    MdComponent,
+    MobxAngularModule,
+    SearchComponent,
+    QueryComponent,
+    FilterComponent,
+    SortComponent,
+    DebugComponent,
+    BulkComponent,
+    RouterLink,
+    ChatComponent,
+    AsyncPipe,
+    NavComponent,
+    RouterLinkActive,
+  ]
 })
 export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
   private disposers: IReactionDisposer[] = [];
@@ -61,7 +86,6 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
   tagSubExts: Ext[] = [];
   userSubExts: Ext[] = [];
 
-  @HostBinding('class.expanded')
   private _expanded = false;
   private _ext?: Ext;
   private lastView = this.store.view.current;
@@ -82,15 +106,15 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
     if (localStorage.getItem('sidebar-expanded') !== null) {
       this.expanded = localStorage.getItem('sidebar-expanded') !== 'false';
     } else {
-      this.expanded = !!window.matchMedia('(min-width: 1024px)').matches;
+      this.expanded = window.matchMedia && !!window.matchMedia('(min-width: 1024px)').matches;
     }
 
     router.events.pipe(
       filter(event => event instanceof NavigationEnd),
     ).subscribe(() => {
-      if (hasTag('plugin/chat', this.store.view.ref)) return;
+      if (this.chat) return;
       if (this.config.tablet && this.lastView != this.store.view.current ||
-          !this.config.huge  && this.store.view.current === 'ref/summary') {
+        !this.config.huge  && this.store.view.current === 'ref/summary') {
         this.lastView = this.store.view.current;
         this.expanded = false;
       }
@@ -102,9 +126,14 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
       this.expanded = this.store.view.sidebarExpanded;
     }));
     this.disposers.push(autorun(() => {
+      if (this.store.view.ref) {
+        MemoCache.clear(this);
+      }
+    }));
+    this.disposers.push(autorun(() => {
       if (!this.store.view.template) {
         this.template = undefined;
-      } else if (this.template?.tag !== this.store.view.template) {
+      } else if (!isQuery(this.store.view.template) && this.template?.tag !== this.store.view.template) {
         this.templates.get(this.store.view.template + this.store.account.origin).pipe(
           catchError(() => of(undefined))
         ).subscribe(t => this.template = t);
@@ -131,7 +160,10 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
         if (this.home) {
           this.addTags = this.rootConfig?.addTags || this.plugin?.config?.reply || ['public'];
         } else if (this.plugin) {
-          this.addTags = uniq([...this.rootConfig?.addTags || this.plugin?.config?.reply || ['public'], ...this.plugin?.config?.submit ? [this.plugin.tag] : []]);
+          this.addTags = uniq([
+            ...this.rootConfig?.addTags || this.plugin?.config?.reply || ['public'],
+            ...this.plugin?.config?.submit ? [this.plugin.tag] : [],
+            ...this.plugin?.config?.internal ? ['internal'] : []]);
         } else {
           this.addTags = uniq([...this.rootConfig?.addTags || ['public'], ...topAnds(this.tag).map(localTag)]);
         }
@@ -183,6 +215,7 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   @Input()
+  @HostBinding('class.expanded')
   set expanded(value: boolean) {
     localStorage.setItem('sidebar-expanded', ''+value);
     this._expanded = value;
@@ -223,6 +256,7 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
     return !this.plugin?.tag || this.auth.canAddTag(this.plugin.tag);
   }
 
+  @memo
   get chat() {
     return !!this.admin.getPlugin('plugin/chat') && hasTag('plugin/chat', this.store.view.ref);
   }
@@ -230,6 +264,16 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
   @memo
   get user() {
     return !this.store.view.query && !!this.admin.getTemplate('user') && hasPrefix(this.tag, 'user') && !this.store.view.userTemplate;
+  }
+
+  @memo
+  get inbox() {
+    return setPublic(this.tag);
+  }
+
+  @memo
+  get outbox() {
+    return setProtected(this.tag);
   }
 
   @memo
@@ -266,21 +310,21 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
   @memo
   get queryExts$() {
     if (!this.store.view.exts.length) return of([]);
-    return forkJoin(this.store.view.exts.map(ext => this.exts.page({
-      query: ext.tag,
-      sort: ['origin', 'levels', 'tag', 'modified,DESC'],
-      size: ext.config?.childTags || 5,
+    return forkJoin(this.store.view.exts.map(x => this.exts.page({
+      query: x.tag,
+      sort: ['origin', 'tag:len', 'tag', 'modified,DESC'],
+      size: x.config?.childTags || 5,
     }).pipe(
       map(page => ({
-        ext: ext,
-        children: uniqBy(page.content, c => c.tag).filter(c => c.tag !== ext.tag),
+        x: x,
+        children: uniqBy(page.content, c => c.tag).filter(c => c.tag !== x.tag),
         more: page.page.totalPages > 1,
       })),
-      map(ext => ext.children.length ? ext : null),
+      map(res => res.children.length ? res : null),
       catchError(() => of(null))
     ))).pipe(
-      map(exts => exts.filter(ext => !!ext)),
-    ) as Observable<Exts[]>;
+      map(ress => ress.filter(res => !!res)),
+    );
   }
 
   @memo
@@ -299,7 +343,7 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
 
   @memo
   get homeWriteAccess() {
-    return this.home && this.admin.getTemplate('home') && this.auth.tagWriteAccess('home');
+    return this.home && this.admin.getTemplate('config/home') && this.auth.tagWriteAccess('config/home');
   }
 
   @memo
@@ -350,6 +394,6 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
 
   startChat() {
     runInAction(() => this.store.view.ref?.tags?.push('plugin/chat'));
-    this.ts.create('plugin/chat', this.store.view.ref!.url, this.store.account.origin).subscribe()
+    this.ts.create('plugin/chat', this.store.view.ref!.url, this.store.account.origin).subscribe();
   }
 }

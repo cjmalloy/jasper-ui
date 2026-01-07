@@ -1,8 +1,11 @@
 import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { uniq } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
+import { MobxAngularModule } from 'mobx-angular';
 import { Subject } from 'rxjs';
 import { CommentReplyComponent } from '../../../component/comment/comment-reply/comment-reply.component';
+import { CommentThreadComponent } from '../../../component/comment/comment-thread/comment-thread.component';
+import { LoadingComponent } from '../../../component/loading/loading.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Ref } from '../../../model/ref';
 import { getMailbox, mailboxes } from '../../../mods/mailbox';
@@ -15,10 +18,15 @@ import { memo, MemoCache } from '../../../util/memo';
 import { hasTag, removeTag, updateMetadata } from '../../../util/tag';
 
 @Component({
-  standalone: false,
   selector: 'app-ref-comments',
   templateUrl: './comments.component.html',
   styleUrls: ['./comments.component.scss'],
+  imports: [
+    MobxAngularModule,
+    CommentReplyComponent,
+    CommentThreadComponent,
+    LoadingComponent,
+  ],
 })
 export class RefCommentsComponent implements OnInit, OnDestroy, HasChanges {
   private disposers: IReactionDisposer[] = [];
@@ -51,6 +59,10 @@ export class RefCommentsComponent implements OnInit, OnDestroy, HasChanges {
       const filter = this.store.view.filter;
       const search = this.store.view.search;
       runInAction(() => this.thread.setArgs(top, sort, filter, search));
+      if (this.store.view.ref) {
+        const commentCount = this.store.view.ref.metadata?.plugins?.['plugin/comment'] || 0;
+        this.store.local.setLastSeenCount(this.store.view.url, 'comments', commentCount);
+      }
     }));
     this.newComments$.subscribe(c => {
       if (c && this.store.view.ref) {

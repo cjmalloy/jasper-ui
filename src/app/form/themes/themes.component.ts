@@ -1,13 +1,15 @@
 import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { mapValues } from 'lodash-es';
+import { ListEditorComponent } from '../../component/list-editor/list-editor.component';
+import { CodeComponent } from '../code/code.component';
 
 @Component({
-  standalone: false,
   selector: 'app-themes',
   templateUrl: './themes.component.html',
   styleUrls: ['./themes.component.scss'],
-  host: {'class': 'form-group'}
+  host: { 'class': 'form-group' },
+  imports: [ListEditorComponent, CodeComponent]
 })
 export class ThemesFormComponent implements OnChanges {
 

@@ -19,6 +19,10 @@ export const originPlugin: Plugin = {
      If the remote is also set up to replicate from this instance, you may
      communicate with remote users.
      You may configure if metadata is generated or plugins are validated. `,
+    sorts: [
+      { sort: 'origin', label: $localize`🏛️ origin` },
+      { sort: 'origin:len', label: $localize`🪆 nesting` },
+    ],
     form: [{
       key: 'local',
       type: 'origin',
@@ -165,7 +169,7 @@ export const originPullPlugin: Plugin = {
     }],
   },
   defaults: {
-    cache: true,
+    cachePrefetch: true,
     websocket: true,
   },
   schema: {
@@ -305,8 +309,8 @@ export const originTunnelPlugin: Plugin = {
 export function isReplicating(local: string, remote: Ref, apis: Map<string, string>) {
   if (!hasTag('+plugin/origin/pull', remote)) return false;
   const plugin = remote.plugins?.['+plugin/origin'];
-  if (plugin.proxy && apis.has(plugin.proxy)) return apis.get(plugin.proxy) === (plugin.remote || '');
-  if (apis.has(remote.url)) return apis.get(remote.url) === (plugin.remote || '');
+  if (plugin?.proxy && apis.has(plugin.proxy)) return apis.get(plugin.proxy) === (plugin.remote || '');
+  if (apis.has(remote.url)) return apis.get(remote.url) === (plugin?.remote || '');
   return false;
 }
 

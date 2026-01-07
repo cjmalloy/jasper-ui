@@ -1,4 +1,4 @@
-import { filter, find, flatMap, isArray, without } from 'lodash-es';
+import { filter, find, flatMap, isArray, uniq, without } from 'lodash-es';
 import { Ref } from '../model/ref';
 import { User } from '../model/user';
 
@@ -15,14 +15,14 @@ export function decompose(tag: string): [string, string] {
   return [tag.substring(0, index), tag.substring(index)];
 }
 
-export function level(tag: string) {
-  return (tag.match(/\//g)?.length || 0) + 1;
+export function level(tag?: string) {
+  return (tag?.match(/\//g)?.length || 0) + 1;
 }
 
 export function captures(selector: string, target: string): boolean {
   const [sTag, sOrigin] = decompose(selector);
   const [tTag, tOrigin] = decompose(target);
-  if (sTag && !hasPrefix(target, selector)) return false;
+  if (sTag && !expandedTagsInclude(tTag, sTag)) return false;
   return sOrigin === '@*' || sOrigin === tOrigin;
 }
 
@@ -79,6 +79,24 @@ export function hasTag(tag: string | undefined, ref: Ref | string[] | undefined)
   return !!find(tags, t => expandedTagsInclude(t, tag)) !== not;
 }
 
+export function test(query: string, ref: Ref | string[] | undefined) {
+  if (!query) return false;
+  const tags = isArray(ref) ? ref : ref?.tags;
+  if (!tags) return false;
+  if (query.includes('(') || query.includes(':') && query.includes('|')) {
+    // TODO: Parse query
+    console.error('Query parsing not implemented.');
+    return false;
+  }
+  if (query.includes('|')) {
+    return query.split('|').find(s => tags.find(t => expandedTagsInclude(s, t)));
+  }
+  if (query.includes(':')) {
+    return !query.split(':').find(s => !tags.find(t => captures(s, t)));
+  }
+  return tags.find(t => captures(query, t));
+}
+
 export function hasAnyResponse(plugin: string | undefined, ref: Ref | undefined): boolean {
   if (!plugin) return false;
   for (const p of Object.keys(ref?.metadata?.plugins || {})) {
@@ -108,7 +126,7 @@ export function hasUserUrlResponse(tag?: string, ref?: Ref)  {
 
 export function tagIntersection(expand: string[] | undefined, targets: string[] | undefined) {
   if (!expand || !targets) return [];
-  return filter(targets, target => hasTag(target, expand));
+  return filter(expand, target => targets.find(t => expandedTagsInclude(target, t)));
 }
 
 export function expandedTagsInclude(tag?: string, target?: string) {
@@ -167,10 +185,10 @@ export function isSubOrigin(local?: string, origin?: string) {
 export function subOrigin(local?: string, origin?: string) {
   if (!local) local = '';
   if (!origin) origin = '';
+  if (origin && !origin.startsWith('@')) origin = '@' + origin;
   if (!local) return origin;
   if (!origin) return local;
-  if (origin.startsWith('@')) origin = origin.substring(1);
-  return local + '.' + origin;
+  return local + '.' + origin.substring(1);
 }
 
 export function removeParentOrigin(local?: string, parent?: string) {
@@ -215,6 +233,10 @@ export function hasPrefix(tag?: string, prefix?: string) {
     tag.startsWith(prefix + '@') ||
     tag.startsWith('_' + prefix + '@') ||
     tag.startsWith('+' + prefix + '@');
+}
+
+export function directChild(child?: string, parent?: string) {
+  return hasPrefix(child, parent) && level(child) - 1 === level(parent);
 }
 
 export function removePrefix(tag: string, count = 1) {
@@ -301,16 +323,26 @@ export function publicTag(tag: string) {
 
 export function setPublic(tag: string) {
   if (!tag) return '';
- if (publicTag(tag)) return tag;
- return tag.substring(1);
+  if (publicTag(tag)) return tag;
+  return tag.substring(1);
 }
 
 export function privateTag(tag: string) {
   return tag.startsWith('_');
 }
 
+export function setPrivate(tag: string) {
+  if (!tag) return '';
+  return '_' + setPublic(tag);
+}
+
 export function protectedTag(tag: string) {
   return tag.startsWith('+');
+}
+
+export function setProtected(tag: string) {
+  if (!tag) return '';
+  return '+' + setPublic(tag);
 }
 
 export function access(tag?: string) {
@@ -325,12 +357,21 @@ export function parentTag(tag: string): string | undefined {
   return tag.substring(0, tag.lastIndexOf('/'));
 }
 
-export function removeTag(tag: string | undefined, tags: string[]): string[] {
-  while (tag) {
-    tags = without(tags, tag);
-    tag = parentTag(tag);
+export function removeTag(tag: string | string[] | undefined, tags: string[]): string[] {
+  const ts = isArray(tag) ? tag : [tag];
+  for (let t of ts) {
+    while (t) {
+      tags = without(tags, t);
+      t = parentTag(t);
+    }
   }
   return tags;
+}
+
+export function getVisibilityTags(tags?: string[]): string[] {
+  if (!tags) return [];
+  if (hasTag('public', tags)) return ['public'];
+  return uniq(tags.filter(t => hasPrefix(t, 'user')).map(t => t.startsWith('+') ? t.substring(1) : t));
 }
 
 export function top(ref?: Ref) {

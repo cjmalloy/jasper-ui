@@ -48,7 +48,7 @@ Markdown editor with support for rendering both markdown and HTML.
   as `^[1]` or `^[[1]]`.
 * Any links to a ref or tag will render a toggle button to expand inline (any link that starts
   with `/ref/` or `/tag/`, with or without the server host and base path).
-* Links of the form `[ref](www.example.com)` will add a ref entry inline.
+* Links of the form `![=](www.example.com)` will add a ref entry inline.
 * Links of the form `![](www.example.com)` will embed the contents of the Ref if it exists, or attempt to embed
   the url directly if it is an image, audio, video, or embeddable sites.
 * Links of the form `![+](www.example.com)` will add a toggle button that will expand to show the contents
@@ -185,6 +185,7 @@ file will be generated from environment variables:
 | `title`          | `JASPER_TITLE`           | Name to display in the title bar.                                                                 | `Jasper`                                                                                                |
 | `version`        | `JASPER_VERSION`         | Version string to display as a tooltip in the footer.                                             | `v1.0.0`                                                                                                |
 | `api`            | `JASPER_API`             | URL of the API server (no trailing slash)                                                         | `//jasperkm.info`                                                                                       |
+|                  | `JASPER_API_PROXY`       | Backend host to proxy on `/api`. Sets `JASPER_API` to `.`                                         | `http://web:80`                                                                                         |
 | `logout`         | `JASPER_LOGOUT`          | Optional URL to log out.                                                                          | `//jasperkm.info/oauth2/sign_out?rd=https%3A%2F%2Fauth.jasperkm.info%2Fauthn%2Fauthentication%2Flogout` |
 | `login`          | `JASPER_LOGIN`           | Optional URL to log in. A redirect (`?rd=`) will be appended with the current page.               | `//jasperkm.info/oauth2/sign_in`                                                                        |
 | `signup`         | `JASPER_SIGNUP`          | Optional URL to sign up.                                                                          | `https://auth.jasperkm.info/authn/registration/form`                                                    |

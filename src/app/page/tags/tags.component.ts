@@ -1,7 +1,11 @@
 import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { defer } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
+import { MobxAngularModule } from 'mobx-angular';
 import { ExtListComponent } from '../../component/ext/ext-list/ext-list.component';
+import { SidebarComponent } from '../../component/sidebar/sidebar.component';
+import { TabsComponent } from '../../component/tabs/tabs.component';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
@@ -13,10 +17,16 @@ import { getTagFilter, getTagQueryFilter } from '../../util/query';
 import { braces, getPrefixes, hasPrefix, publicTag } from '../../util/tag';
 
 @Component({
-  standalone: false,
   selector: 'app-tags-page',
   templateUrl: './tags.component.html',
-  styleUrls: ['./tags.component.scss']
+  styleUrls: ['./tags.component.scss'],
+  imports: [
+    ExtListComponent,
+    MobxAngularModule,
+    TabsComponent,
+    RouterLink,
+    SidebarComponent,
+  ]
 })
 export class TagsPage implements OnInit, OnDestroy, HasChanges {
 
@@ -37,7 +47,7 @@ export class TagsPage implements OnInit, OnDestroy, HasChanges {
     private exts: ExtService,
   ) {
     mod.setTitle($localize`Tags`);
-    store.view.clear(['levels', 'tag'], ['levels', 'tag']);
+    store.view.clear(['tag:len', 'tag'], ['tag:len', 'tag']);
     query.clear();
   }
 
@@ -52,16 +62,16 @@ export class TagsPage implements OnInit, OnDestroy, HasChanges {
         .subscribe(ext => this.title = ext.name || this.title);
       const query
         = this.store.view.home
-        ? [...getPrefixes('home'), ...this.store.account.subs, ...this.store.account.bookmarks].filter(t => this.auth.tagReadAccess(t)).join('|')
+        ? [...getPrefixes('config/home'), ...this.store.account.subs, ...this.store.account.bookmarks].filter(t => this.auth.tagReadAccess(t)).join('|')
         : this.store.view.noTemplate
           ? [braces(this.store.view.template), '!+user', '!_user', ...this.templates.map(t => '!' + t.tag).flatMap(getPrefixes)].filter(t => this.auth.tagReadAccess(t)).join(':')
-        : this.store.view.template
-        ? (publicTag(this.store.view.template)
-            ? getPrefixes(this.store.view.template).filter(t => this.auth.tagReadAccess(t)).join('|')
-            : this.store.view.template)
-        : '@*';
+          : this.store.view.template
+            ? (publicTag(this.store.view.template)
+              ? getPrefixes(this.store.view.template).filter(t => this.auth.tagReadAccess(t)).join('|')
+              : this.store.view.template)
+            : '@*';
       const args = {
-        query:  getTagQueryFilter(braces(query), this.store.view.filter) + ':' + (this.store.view.showRemotes ? '@*' : (this.store.account.origin || '*')),
+        query: getTagQueryFilter(braces(query), this.store.view.filter) + (!this.store.view.showRemotes ? ':' + (this.store.account.origin || '*') : ''),
         search: this.store.view.search,
         sort: [...this.store.view.sort],
         page: this.store.view.pageNumber,

@@ -4,24 +4,26 @@ import { ElementRef, Injectable } from '@angular/core';
   providedIn: 'root'
 })
 export class VisibilityService {
-  private observer: IntersectionObserver;
+  private observer?: IntersectionObserver;
   private observedElements = new Map<Element, () => void>();
 
   constructor() {
-    this.observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          const cb = this.observedElements.get(entry.target);
-          if (cb) {
-            cb();
-            this.observer.unobserve(entry.target);
-            this.observedElements.delete(entry.target);
+    if (('IntersectionObserver' in window)) {
+      this.observer = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const cb = this.observedElements.get(entry.target);
+            if (cb) {
+              cb();
+              this.observer!.unobserve(entry.target);
+              this.observedElements.delete(entry.target);
+            }
           }
-        }
-      }, {
-        rootMargin: '200px'
+        }, {
+          rootMargin: '200px'
+        });
       });
-    });
+    }
   }
 
   public notifyVisible(element: ElementRef, callback: () => void) {
@@ -30,7 +32,7 @@ export class VisibilityService {
       callback();
       return;
     }
-    this.observer.observe(element.nativeElement);
+    this.observer!.observe(element.nativeElement);
     this.observedElements.set(element.nativeElement, callback);
   }
 }

@@ -1,15 +1,15 @@
 import { Component, HostBinding, Input, OnChanges, SimpleChanges } from '@angular/core';
-import { FormBuilder, UntypedFormArray, UntypedFormGroup, Validators } from '@angular/forms';
-import { some, uniq } from 'lodash-es';
-import { AdminService } from '../../service/admin.service';
+import { FormBuilder, ReactiveFormsModule, UntypedFormArray, UntypedFormGroup, Validators } from '@angular/forms';
+import { FormlyForm } from '@ngx-formly/core';
+import { defer } from 'lodash-es';
 import { TAG_REGEX } from '../../util/format';
 import { hasPrefix, hasTag } from '../../util/tag';
 
 @Component({
-  standalone: false,
   selector: 'app-tags',
   templateUrl: './tags.component.html',
-  styleUrls: ['./tags.component.scss']
+  styleUrls: ['./tags.component.scss'],
+  imports: [ReactiveFormsModule, FormlyForm]
 })
 export class TagsFormComponent implements OnChanges {
   static validators = [Validators.pattern(TAG_REGEX)];
@@ -39,7 +39,6 @@ export class TagsFormComponent implements OnChanges {
   };
 
   constructor(
-    private admin: AdminService,
     private fb: FormBuilder,
   ) {  }
 
@@ -77,7 +76,7 @@ export class TagsFormComponent implements OnChanges {
   }
 
   get model() {
-    return this.tags.value;
+    return this.tags?.value;
   }
 
   setTags(values: string[]) {
@@ -103,9 +102,18 @@ export class TagsFormComponent implements OnChanges {
     }
   }
 
-  get editingViewer() {
-    if (!this.tags?.value) return false;
-    return some(this.admin.editingViewer, t => hasTag(t.tag, this.tags!.value));
+  update() {
+    defer(() => this.tags.controls.forEach(control => control.updateValueAndValidity()));
+  }
+
+  removeTag(tag: string) {
+    if (!this.tags) throw 'Not ready yet!';
+    for (let i = this.tags.value.length - 1; i >= 0; i--) {
+      if (hasPrefix(this.tags.value[i], tag)) {
+        this.tags.removeAt(i);
+      }
+    }
+    this.update();
   }
 
   removeTagAndChildren(tag: string) {
@@ -121,5 +129,6 @@ export class TagsFormComponent implements OnChanges {
       const parent = tag.substring(0, tag.lastIndexOf('/'));
       if (!hasTag(parent, this.tags.value)) this.addTag(parent);
     }
+    if (removed) this.update();
   }
 }

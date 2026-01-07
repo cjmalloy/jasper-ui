@@ -1,5 +1,5 @@
-import { delay, isEqual, uniq } from 'lodash-es';
-import { action, makeAutoObservable, observable, runInAction } from 'mobx';
+import { isEqual, uniq } from 'lodash-es';
+import { action, makeAutoObservable, observable } from 'mobx';
 import { RouterStore } from 'mobx-angular';
 import { Ext } from '../model/ext';
 import { Plugin } from '../model/plugin';
@@ -36,6 +36,7 @@ export class ViewStore {
   defaultBlogPageSize = 5;
   defaultSort: RefSort[] | TagSort[] = ['published'];
   defaultSearchSort: RefSort[] | TagSort[] = ['rank'];
+  defaultPageNumber = 0;
   ref?: Ref = {} as any;
   top?: Ref = {} as any;
   lastSelected?: Ref = {} as any;
@@ -74,7 +75,7 @@ export class ViewStore {
     }
   }
 
-  clear(defaultSort: RefSort[] | TagSort[] = ['published'], defaultSearchSort: RefSort[] | TagSort[] = ['rank']) {
+  clear(defaultSort: RefSort[] | TagSort[] = ['published'], defaultSearchSort: RefSort[] | TagSort[] = ['rank'], defaultPageNumber = 0) {
     this.ref = undefined;
     this.top = undefined;
     this.versions = 0;
@@ -83,25 +84,26 @@ export class ViewStore {
     this.selectedUser = undefined;
     this.defaultSort = defaultSort;
     this.defaultSearchSort = defaultSearchSort;
+    this.defaultPageNumber = defaultPageNumber;
   }
 
-  clearRef() {
-    if (this.ref) this.lastSelected = this.ref;
+  clearRef(ref?: Ref) {
+    if (this.ref && (!ref || ref.url !== this.ref?.url)) this.lastSelected = this.ref;
     this.ref = undefined;
     this.top = undefined;
   }
 
   setRef(ref?: Ref, top?: Ref) {
-    this.clearRef();
+    this.clearRef(ref);
     this.ref = ref;
     this.top = top;
-    this.versions = 0;
     this.exts = [];
     this.extTemplates = [];
     this.selectedUser = undefined;
   }
 
   preloadRef(ref: Ref, topRef?: Ref) {
+    this.clearRef(ref);
     if (ref?.created) this.ref = ref;
     if (topRef || top(ref) !== this.top?.url) this.top = topRef;
   }
@@ -253,7 +255,12 @@ export class ViewStore {
     return undefined;
   }
 
+  get originFilter() {
+    return this.filter?.some(f => f.startsWith('query/@') || f === 'query/*');
+  }
+
   get showRemotesCheckbox() {
+    if (this.originFilter) return false;
     return ['tags', 'settings/user', 'settings/plugin', 'settings/template', 'settings/ref', 'inbox/ref'].includes(this.current!);
   }
 
@@ -396,7 +403,7 @@ export class ViewStore {
   }
 
   get isVoteSorted() {
-    return this.sort[0]?.startsWith('vote');
+    return this.sort[0]?.startsWith('plugins->plugin/user/vote');
   }
 
   get filter(): UrlFilter[] {
@@ -414,10 +421,6 @@ export class ViewStore {
 
   get search() {
     return this.route.routeSnapshot?.queryParams['search'];
-  }
-
-  get defaultPageNumber() {
-    return this.current === 'ref/thread' ? Math.floor((this.ref?.metadata?.plugins?.['plugin/thread'] || 0) / this.pageSize) : 0;
   }
 
   get pageNumber() {
@@ -453,6 +456,7 @@ export class ViewStore {
   }
 
   get showRemotes() {
+    if (!this.showRemotesCheckbox) return true;
     return this.route.routeSnapshot?.queryParams['showRemotes'] !== undefined && this.route.routeSnapshot?.queryParams['showRemotes'] !== 'false';
   }
 

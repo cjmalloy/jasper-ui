@@ -5,7 +5,7 @@ services:
       - ci
     depends_on:
       client:
-          condition: service_started
+        condition: service_started
       repl-client:
         condition: service_started
       web:
@@ -23,6 +23,7 @@ services:
       CYPRESS_replApi: http://localhost:8083
       CYPRESS_replApiProxy: http://repl-web
       CYPRESS_reporter: cypress-mochawesome-reporter
+      CYPRESS_reporterOptions_saveJson: true
       CYPRESS_video: true
 #      ELECTRON_ENABLE_LOGGING: 1
     working_dir: /e2e

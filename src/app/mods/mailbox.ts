@@ -8,6 +8,7 @@ import { userAuthors } from '../util/format';
 import {
   access,
   hasPrefix,
+  hasTag,
   localTag,
   prefix,
   removeParentOrigin,
@@ -108,7 +109,7 @@ export function reverseOrigin(tag: string, rootOrigin: string): string {
   let prefix = access(tag);
   if (prefix) tag = tag.substring(1);
   const len = tag.indexOf('/');
-  return prefix + tag.substring(len + 1) + '@' + subOrigin(rootOrigin, tag.substring(0, len));
+  return prefix + tag.substring(len + 1) + subOrigin(rootOrigin, tag.substring(0, len));
 }
 
 export function getMailbox(tag: string, local: string): string {
@@ -149,6 +150,11 @@ export function mailboxes(ref: Ref, myUserTag: string, lookup?: Map<string, Map<
   const local = tagOrigin(myUserTag);
   return uniq([
     ...userAuthors(ref).filter(tag => tag !== myUserTag).map(tag => getMailbox(tag, local)),
+    ...hasTag('public', ref)
+      ? []
+      : userAuthors(ref)
+        .filter(tag => hasPrefix(tag, 'user') && (tagOrigin(tag) === local || !tagOrigin(tag)))
+        .map(tag => tag.startsWith('+') ? localTag(tag).substring(1) : localTag(tag)),
     ...notifications(ref).map(m => getLocalMailbox(m, local, ref.origin || '', lookup)).filter(t => !!t) as string[],
   ]);
 }

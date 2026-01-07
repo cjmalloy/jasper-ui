@@ -53,18 +53,7 @@ describe('Wiki Plugin', {
     cy.visit('/?debug=ADMIN');
     cy.get('.settings a').contains('settings').click();
     cy.get('.tabs').contains('template').click();
-    cy.get('.template.wiki .actions').contains('edit').click();
-    cy.get('button').then($b => {
-      if ($b.text().includes('+ Add Config')) $b.click();
-    });
-    cy.wait(1000); // Warm up monaco editor
-    if (Cypress.platform == 'darwin') {
-      cy.get('[name=config]').click().focused().type('{cmd}a{backspace}');
-    } else {
-      cy.get('[name=config]').click().focused().type('{ctrl}a{backspace}');
-    }
-    cy.get('[name=config]').type(JSON.stringify({ prefix: 'https://externalwiki/', external: true }), { parseSpecialCharSequences: false });
-    cy.get('button').contains('save').click();
+    cy.get('input.upload').selectFile(Cypress.Buffer.from(JSON.stringify({ tag: 'config/wiki', config: { prefix: 'https://externalwiki/', external: true }})), { force: true });
   });
   it('submit wiki button removed', () => {
     cy.visit('/?debug=USER');

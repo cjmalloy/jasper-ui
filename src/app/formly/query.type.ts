@@ -1,23 +1,22 @@
 import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy } from '@angular/core';
-import { Router } from '@angular/router';
-import { FieldType, FieldTypeConfig, FormlyConfig } from '@ngx-formly/core';
-import { debounce, defer, delay, uniqBy } from 'lodash-es';
+import { ReactiveFormsModule } from '@angular/forms';
+import { Router, RouterLink } from '@angular/router';
+import { FieldType, FieldTypeConfig, FormlyAttributes, FormlyConfig } from '@ngx-formly/core';
+import { debounce, defer, uniqBy } from 'lodash-es';
 import { forkJoin, map, Observable, of, Subscription, switchMap } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { Crumb } from '../component/query/query.component';
 import { Config } from '../model/tag';
 import { AdminService } from '../service/admin.service';
 import { ExtService } from '../service/api/ext.service';
-import { ConfigService } from '../service/config.service';
 import { EditorService } from '../service/editor.service';
 import { Store } from '../store/store';
 import { access, fixClientQuery, getStrictPrefix, localTag, tagOrigin } from '../util/tag';
 import { getErrorMessage } from './errors';
 
 @Component({
-  standalone: false,
   selector: 'formly-field-query-input',
-  host: {'class': 'field'},
+  host: { 'class': 'field' },
   styles: `
     .form-array {
       position: relative;
@@ -89,6 +88,11 @@ import { getErrorMessage } from './errors';
     </div>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [
+    RouterLink,
+    ReactiveFormsModule,
+    FormlyAttributes,
+  ],
 })
 export class FormlyFieldQueryInput extends FieldType<FieldTypeConfig> implements AfterViewInit, OnDestroy {
 
@@ -332,7 +336,7 @@ export class FormlyFieldQueryInput extends FieldType<FieldTypeConfig> implements
     this.searching = this.exts.page({
       query: this.props.prefix || '',
       search: tag,
-      sort: ['nesting', 'levels'],
+      sort: ['origin:len', 'tag:len'],
       size: 5,
     }).pipe(
       switchMap(page => page.page.totalElements ? forkJoin(page.content.map(x => this.preview$(x.tag + x.origin))) : of([])),

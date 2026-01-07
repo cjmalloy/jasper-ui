@@ -26,11 +26,17 @@
                 i18n-title title="Show preview"
                 i18n>📝️</button>
       }
-      @for (button of editorPushButtons; track button; let i = $index) {
+      @for (button of editorPushButtons; track button) {
         @if (button.event) {
-          <button type="button"
-                  (click)="fireEvent(button.event)"
-                  [title]="button.title || ''" i18n>{{ button.label }}</button>
+          @if (button.eventDone && loadingEvents[button.eventDone]) {
+            <app-loading class="event-loading"
+                         [inline]="true"
+                         [title]="button.title || button.label || ''"></app-loading>
+          } @else {
+            <button type="button"
+                    (click)="fireEvent(button)"
+                    [title]="button.title || ''" i18n>{{ button.label }}</button>
+          }
         } @else if (hasTags) {
           <button type="button"
                   (click)="toggleTag(button)"
@@ -63,7 +69,44 @@
         }
       }
     </div>
+    @if (uploads.length) {
+      <div class="upload-progress">
+        <div class="upload-list">
+          @for (upload of uploads; track upload.id) {
+            <div class="upload-item">
+              <div class="upload-filename">{{ upload.name }}</div>
+              <div class="upload-controls">
+                @if (upload.error) {
+                  <span class="upload-error">{{ upload.error }}</span>
+                } @else if (upload.completed) {
+                  <span class="upload-complete">✅️ Complete</span>
+                } @else {
+                  <progress class="upload-progress-bar" max="100" [value]="upload.progress"></progress>
+                  <span class="upload-percentage">{{ upload.progress }}%</span>
+                }
+                @if (!upload.completed && !upload.error) {
+                  <button type="button"
+                          class="upload-cancel"
+                          (click)="cancelUpload(upload)"
+                          i18n-title title="Cancel upload" i18n>&ndash;</button>
+                }
+              </div>
+            </div>
+          }
+        </div>
+        @if (uploads.length > 1) {
+          <div class="upload-actions">
+            <button type="button"
+                    class="upload-cancel-all"
+                    (click)="cancelAllUploads()"
+                    i18n>&ndash; remove all</button>
+          </div>
+        }
+      </div>
+      <app-loading class="upload-loading" [batch]="true"></app-loading>
+    }
     <textarea #editor
+              [disabled]="!!uploads.length"
               [id]="id"
               [formControl]="control"
               (focusin)="editing = true"
@@ -76,8 +119,8 @@
               [class.dropping]="dropping"
               (dragenter)="dropping = true"
               (dragleave)="dragLeave(editor, $any($event.target))"
-              (drop)="upload($event, $event.dataTransfer?.items)"
-              (paste)="upload($event, $event.clipboardData?.items)"
+              (drop)="drop($event, $event.dataTransfer?.items)"
+              (paste)="drop($event, $event.clipboardData?.items)"
               [appFillWidth]="fillWidth"
               [padding]="padding"
               [appAutofocus]="autoFocus"></textarea>
@@ -96,6 +139,11 @@
     <textarea #hiddenMeasure
               class="measurer"></textarea>
   }
+  <input #fileUpload
+         type="file"
+         accept="*"
+         (change)="upload(fileUpload.files)"
+         multiple/>
 
   <ng-template #help>
     <div class="context-menu" (click)="$event.stopPropagation()">
@@ -105,15 +153,6 @@
       <div (click)="toggleHelp()">
         <a target="_blank" href="https://katex.org/docs/supported.html">LaTeX plugin</a>
       </div>
-    </div>
-  </ng-template>
-  <ng-template #ref>
-    <div class="bubble popup row">
-      <app-form-gen class="stretch"
-                    [promoteAdvanced]="true"
-                    (keydown)="$event.key === 'Enter' && savePlugin() || true"
-                    [plugins]="pluginGroup"
-                    [plugin]="addingPlugin!"></app-form-gen>
     </div>
   </ng-template>
 }

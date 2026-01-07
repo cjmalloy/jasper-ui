@@ -29,7 +29,7 @@ export const pdfPlugin: Plugin = {
     submit: $localize`📄️ pdf`,
     icons: [{ label: $localize`📄️`, order: 2 }],
     filters: [
-      { query: 'plugin/pdf', label: $localize`📄️ pdf`, title: $localize`PDFs`, group: $localize`Plugins 🧰️` },
+      { query: 'plugin/pdf', label: $localize`📄️ pdf`, title: $localize`PDFs`, group: $localize`Media 🎬️` },
     ],
     actions: [{ label: $localize`pdf`, event: 'pdf' }],
     extensions: ['.pdf'],

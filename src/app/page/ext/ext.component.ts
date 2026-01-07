@@ -1,10 +1,21 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostBinding, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import {
+  ReactiveFormsModule,
+  UntypedFormBuilder,
+  UntypedFormControl,
+  UntypedFormGroup,
+  Validators
+} from '@angular/forms';
+import { Router, RouterLink } from '@angular/router';
 import { defer, isObject } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
+import { MobxAngularModule } from 'mobx-angular';
 import { catchError, of, Subscription, switchMap, throwError } from 'rxjs';
+import { LoadingComponent } from '../../component/loading/loading.component';
+import { SelectTemplateComponent } from '../../component/select-template/select-template.component';
+import { SettingsComponent } from '../../component/settings/settings.component';
+import { LimitWidthDirective } from '../../directive/limit-width.directive';
 import { extForm, ExtFormComponent } from '../../form/ext/ext.component';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ext } from '../../model/ext';
@@ -19,10 +30,19 @@ import { printError } from '../../util/http';
 import { access, hasPrefix, localTag, prefix } from '../../util/tag';
 
 @Component({
-  standalone: false,
   selector: 'app-ext-page',
   templateUrl: './ext.component.html',
   styleUrls: ['./ext.component.scss'],
+  imports: [
+    MobxAngularModule,
+    RouterLink,
+    SettingsComponent,
+    ReactiveFormsModule,
+    SelectTemplateComponent,
+    LoadingComponent,
+    LimitWidthDirective,
+    ExtFormComponent,
+  ],
 })
 export class ExtPage implements OnInit, OnDestroy, HasChanges {
   private disposers: IReactionDisposer[] = [];
@@ -217,7 +237,7 @@ export class ExtPage implements OnInit, OnDestroy, HasChanges {
     ).subscribe(() => {
       delete this.editing;
       this.editForm.markAsPristine();
-      if (ext.tag === 'home' && this.admin.getTemplate('home')) {
+      if (ext.tag === 'config/home' && this.admin.getTemplate('config/home')) {
         this.router.navigate(['/home']);
       } else {
         this.router.navigate(['/tag', ext.tag]);

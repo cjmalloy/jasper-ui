@@ -30,6 +30,8 @@ export const chessPlugin: Plugin = {
     advancedActions: [
       { tag: 'plugin/delta/chess', labelOff: $localize`play ai`, labelOn: $localize`cancel ai`, title: $localize`Play against an AI opponent.` },
     ],
+    // language=Handlebars
+    infoUi: `{{#if ref.comment}}{{tail ref.comment}}{{/if}}`,
     // language=CSS
     css: `
       body.dark-theme {
@@ -43,7 +45,6 @@ export const chessPlugin: Plugin = {
           }
         }
       }
-
       body.light-theme {
         .chess-board {
           border: 0.5px solid transparent;
@@ -53,18 +54,15 @@ export const chessPlugin: Plugin = {
             &.light {
               background: repeating-linear-gradient(-80deg, rgba(200, 140, 50, 0.9), rgba(210, 140, 50, 0.9), rgba(180, 130, 45, 0.9) 50%) !important;
             }
-
             &.dark {
               background: repeating-linear-gradient(40deg, rgba(120, 70, 30, 0.9), rgba(130, 70, 30, 0.9), rgba(100, 60, 20, 0.9) 20%) !important;
             }
           }
         }
-
         .chess-piece {
           &.w {
             color: #DC9 !important;
           }
-
           &.b {
             opacity: 0.90;
             color: #123 !important;
@@ -72,6 +70,35 @@ export const chessPlugin: Plugin = {
           }
         }
       }
+      .chess-piece {
+        cursor: grab;
+        text-align: center;
+        vertical-align: middle;
+        &.w {
+          color: #DC9;
+          filter: drop-shadow(1px 1px 1px black);
+        }
+        &.b {
+          color: #111;
+          filter: drop-shadow(0 0 1px rgba(200, 200, 200, 0.5));
+        }
+        &.cdk-drag-placeholder {
+          display: none !important;
+        }
+        &.cdk-drag-preview {
+          font-size: var(--drag-piece-size) !important;
+        }
+        &.disabled {
+          cursor: default !important;
+        }
+      }
+      .cdk-drop-list-dragging {
+        .chess-piece {
+          transform: scale(0.9) !important;
+          transition: transform 0.1s ease-in-out;
+        }
+      }
+
     `,
   },
 };

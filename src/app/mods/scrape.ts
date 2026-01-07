@@ -16,8 +16,8 @@ export const scrapePlugin: Plugin = {
     internal: true,
     icons: [{ label: $localize`🪝`, order: 3 }],
     editorButtons: [
-      { label: $localize`🪝`, title: $localize`Scrape Webpage`, event: 'scrape', scheme: 'http:', global: true },
-      { label: $localize`🪝`, title: $localize`Scrape Webpage`, event: 'scrape', scheme: 'https:', global: true },
+      { label: $localize`🪝`, title: $localize`Scrape Webpage`, event: 'scrape', eventDone: 'scrape-done', scheme: 'http:', global: true },
+      { label: $localize`🪝`, title: $localize`Scrape Webpage`, event: 'scrape', eventDone: 'scrape-done', scheme: 'https:', global: true },
     ],
     description: $localize`Configure CSS classes for scraping websites.`,
     hasDefaults: true,

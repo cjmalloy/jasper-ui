@@ -1,4 +1,4 @@
-FROM node:22.18.0 AS builder
+FROM node:22.21.1 AS builder
 WORKDIR /app
 RUN npm i -g @angular/cli
 COPY package.json package-lock.json ./
@@ -7,7 +7,7 @@ RUN npm ci
 COPY . ./
 RUN npm run build
 
-FROM node:22.18.0 AS test
+FROM node:22.21.1 AS test
 RUN apt-get update && apt-get install -y \
 	apt-transport-https \
 	ca-certificates \
@@ -32,22 +32,25 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /app
 RUN npm i -g @angular/cli
 COPY --from=builder /app ./
-CMD ng test --karma-config karma-ci.conf.js && \
-    mkdir -p /report && \
-    cp -r /reports/*/* /report/
+SHELL ["/bin/bash", "-c"]
+CMD mkdir -p /report && \
+    (NO_COLOR=1 ng test --watch=false --reporters=default --reporters=html 2>&1 | tee /report/test-output.log; echo ${PIPESTATUS[0]} > /report/exit-code.txt) && \
+    (if [ -d html ]; then cp -r html/* /report/ 2>/dev/null || true; fi) && \
+    exit $(cat /report/exit-code.txt)
 
 FROM nginx:1.27-alpine3.19-slim AS deploy
 RUN apk add jq moreutils
 WORKDIR /var/lib/jasper/
-COPY --from=builder /app/dist/jasper-ui ./
+COPY --from=builder /app/dist/jasper-ui/browser ./
 ARG BASE_HREF="/"
 ENV BASE_HREF=$BASE_HREF
 RUN date -R -u > /build-timestamp
-COPY docker/security-headers.conf /etc/nginx/conf.d
+COPY docker/security-headers.conf /etc/nginx
 COPY docker/default.conf /etc/nginx/conf.d
 COPY docker/nginx.conf /etc/nginx
 COPY docker/00-select-locale.sh /docker-entrypoint.d
 COPY docker/40-create-jasper-config.sh /docker-entrypoint.d
+COPY docker/41-proxy.sh /docker-entrypoint.d
 COPY docker/50-set-base-href.sh /docker-entrypoint.d
 COPY docker/60-set-title.sh /docker-entrypoint.d
 COPY docker/70-csp.sh /docker-entrypoint.d

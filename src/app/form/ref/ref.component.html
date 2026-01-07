@@ -23,7 +23,13 @@
            [formControl]="title"
            (blur)="validate($any($event.target))">
     @if (web) {
-      <button type="button" (click)="scrapeTitle()" i18n-title title="Scrape Title" i18n>🪝</button>
+      @if (scrapingTitle) {
+        <app-loading class="event-loading"
+                     [inline]="true"
+                     i18n-title title="Scrape Title"></app-loading>
+      } @else {
+        <button type="button" (click)="scrapeTitle()" i18n-title title="Scrape Title" i18n>🪝</button>
+      }
     }
   </div>
 
@@ -36,7 +42,13 @@
            [formControl]="published"
            (blur)="validate($any($event.target))">
     @if (web) {
-      <button type="button" (click)="scrapePublished()" i18n-title title="Scrape Published" i18n>🪝</button>
+      @if (scrapingPublished) {
+        <app-loading class="event-loading"
+                     [inline]="true"
+                     i18n-title title="Scrape Published"></app-loading>
+      } @else {
+        <button type="button" (click)="scrapePublished()" i18n-title title="Scrape Published" i18n>🪝</button>
+      }
     }
     <button type="button" (click)="sources.addLink('')" i18n-title title="+ Add another source" i18n>📜️</button>
   </div>
@@ -71,12 +83,18 @@
                     (togglePlugin)="togglePlugin($event)"
                     [group]="group"></app-form-plugins>
 
-  @if (tagsFormComponent.editingViewer) {
-    <span><!-- Viewer --></span>
-    <app-viewer [text]="ref?.comment"
-                [tags]="tags.value"
-                [commentControl]="comment"
-                (comment)="comment.setValue($event)"></app-viewer>
+  @if (customEditor) {
+    <span><!-- Editor --></span>
+    <div #fill class="fill-editor">
+      <ngx-monaco-editor #ed
+                         [formControl]="comment"
+                         [options]="codeOptions"
+                         [style.width]="'min(900px, 50vw)'"
+                         [style.height]="'min(200px, 90vh)'"
+                         appResizeHandle
+                         [appFillWidth]="fill"
+                         [hitArea]="config.mobile ? 48 : 20"></ngx-monaco-editor>
+    </div>
   } @else {
     <label [for]="ed.id" class="editor-label">{{ editorLabel }}:</label><!-- TODO: Let plugins change comment label -->
     <div #fill class="fill-editor">
@@ -90,11 +108,11 @@
                   [fillWidth]="fill"
                   [url]="web && url.value"
                   (scrape)="scrapeAll()"
+                  [scraping]="scrapingAll"
                   (syncEditor)="syncEditor()"
-                  [uploadFiles]="true"
                   (syncTags)="setTags($event)"
-                  (addPlugin)="addPlugin($event)"
-                  (addSource)="addSource($event)"></app-editor>
+                  (addSource)="addSource($event)"
+                  (uploadCompleted)="completedUploads.push($event)"></app-editor>
     </div>
   }
 

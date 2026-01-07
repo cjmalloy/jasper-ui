@@ -14,13 +14,14 @@ import { Store } from '../../store/store';
 import { TemplateStore } from '../../store/template';
 import { UserStore } from '../../store/user';
 import { printError } from '../../util/http';
+import { LoadingComponent } from '../loading/loading.component';
 
 @Component({
-  standalone: false,
   selector: 'app-debug',
   templateUrl: './debug.component.html',
   styleUrls: ['./debug.component.scss'],
-  host: {'class': 'debug actions'}
+  host: { 'class': 'debug actions' },
+  imports: [LoadingComponent]
 })
 export class DebugComponent {
 

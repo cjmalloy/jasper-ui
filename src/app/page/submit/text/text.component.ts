@@ -1,13 +1,28 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { AfterViewInit, Component, ElementRef, OnDestroy, ViewChild } from '@angular/core';
-import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
+import { AfterViewInit, Component, ElementRef, OnChanges, OnDestroy, SimpleChanges, ViewChild } from '@angular/core';
+import {
+  ReactiveFormsModule,
+  UntypedFormArray,
+  UntypedFormBuilder,
+  UntypedFormControl,
+  UntypedFormGroup
+} from '@angular/forms';
 import { Router } from '@angular/router';
-import { defer, uniq, without } from 'lodash-es';
+import { defer, some, uniq, without } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
-import { catchError, map, Subscription, switchMap, throwError } from 'rxjs';
+import { MobxAngularModule } from 'mobx-angular';
+import { MonacoEditorModule } from 'ngx-monaco-editor';
+import { catchError, forkJoin, map, of, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
+import { LoadingComponent } from '../../../component/loading/loading.component';
+import { NavComponent } from '../../../component/nav/nav.component';
+import { SelectPluginComponent } from '../../../component/select-plugin/select-plugin.component';
+import { FillWidthDirective } from '../../../directive/fill-width.directive';
+import { LimitWidthDirective } from '../../../directive/limit-width.directive';
+import { ResizeHandleDirective } from '../../../directive/resize-handle.directive';
+import { EditorComponent } from '../../../form/editor/editor.component';
 import { LinksFormComponent } from '../../../form/links/links.component';
 import { PluginsFormComponent, writePlugins } from '../../../form/plugins/plugins.component';
 import { refForm, RefFormComponent } from '../../../form/ref/ref.component';
@@ -21,21 +36,37 @@ import { ExtService } from '../../../service/api/ext.service';
 import { RefService } from '../../../service/api/ref.service';
 import { TaggingService } from '../../../service/api/tagging.service';
 import { BookmarkService } from '../../../service/bookmark.service';
+import { ConfigService } from '../../../service/config.service';
 import { EditorService } from '../../../service/editor.service';
 import { ModService } from '../../../service/mod.service';
 import { Store } from '../../../store/store';
 import { scrollToFirstInvalid } from '../../../util/form';
 import { printError } from '../../../util/http';
-import { hasTag } from '../../../util/tag';
+import { memo, MemoCache } from '../../../util/memo';
+import { getVisibilityTags, hasPrefix, hasTag } from '../../../util/tag';
 
 @Component({
-  standalone: false,
   selector: 'app-submit-text',
   templateUrl: './text.component.html',
   styleUrls: ['./text.component.scss'],
-  host: {'class': 'full-page-form'}
+  host: { 'class': 'full-page-form' },
+  imports: [
+    EditorComponent,
+    MobxAngularModule,
+    ReactiveFormsModule,
+    LimitWidthDirective,
+    NavComponent,
+    LoadingComponent,
+    SelectPluginComponent,
+    PluginsFormComponent,
+    MonacoEditorModule,
+    ResizeHandleDirective,
+    FillWidthDirective,
+    TagsFormComponent,
+    RefFormComponent,
+  ],
 })
-export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
+export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasChanges {
   private disposers: IReactionDisposer[] = [];
 
   submitted = false;
@@ -46,6 +77,9 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
   @ViewChild('fill')
   fill?: ElementRef;
 
+  @ViewChild('ed')
+  editorComponent?: EditorComponent;
+
   @ViewChild(TagsFormComponent)
   tagsFormComponent!: TagsFormComponent;
   @ViewChild(PluginsFormComponent)
@@ -55,10 +89,12 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
   addAnother = false;
   defaults?: { url: string, ref: Partial<Ref> };
   loadingDefaults: Ext[] = [];
+  completedUploads: Ref[] = [];
   private oldSubmit: string[] = [];
   private savedRef?: Ref;
 
   constructor(
+    public config: ConfigService,
     private mod: ModService,
     public admin: AdminService,
     private router: Router,
@@ -102,6 +138,7 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
       }
       if (this.store.account.localTag) this.addTag(this.store.account.localTag);
       this.disposers.push(autorun(() => {
+        MemoCache.clear(this);
         let url = this.store.submit.url || 'comment:' + uuid();
         if (!this.admin.isWikiExternal() && this.store.submit.wiki) {
           url = wikiUriFormat(url, this.admin.getWikiPrefix());
@@ -135,6 +172,10 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
         }
       }));
     });
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    MemoCache.clear(this);
   }
 
   ngOnDestroy() {
@@ -189,6 +230,31 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
     return this.textForm.get('tags') as UntypedFormArray;
   }
 
+  @memo
+  get codeLang() {
+    for (const t of this.tags.value) {
+      if (hasPrefix(t, 'plugin/code')) {
+        return t.split('/')[2];
+      }
+    }
+    return '';
+  }
+
+  @memo
+  get codeOptions() {
+    return {
+      language: this.codeLang,
+      theme: this.store.darkTheme ? 'vs-dark' : 'vs',
+      automaticLayout: true,
+    };
+  }
+
+  @memo
+  get customEditor() {
+    if (!this.tags?.value) return false;
+    return some(this.admin.editor, t => hasTag(t.tag, this.tags!.value));
+  }
+
   setTags(value: string[]) {
     if (!this.tagsFormComponent?.tags) {
       defer(() => this.setTags(value));
@@ -213,15 +279,12 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
     }
     this.tagsFormComponent.addTag(...values);
     this.submitted = false;
+    MemoCache.clear(this);
   }
 
   addSource(value = '') {
     this.sources.push(this.fb.control(value, LinksFormComponent.validators));
     this.submitted = false;
-  }
-
-  addPlugin(add: any) {
-    this.plugins.setValue(Object.assign(this.plugins.plugins.value, add));
   }
 
   syncEditor() {
@@ -237,7 +300,7 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
       scrollToFirstInvalid();
       return;
     }
-    const tags = uniq(this.textForm.value.tags);
+    const tags = uniq(this.textForm.value.tags) as string[];
     const published = this.textForm.value.published ? DateTime.fromISO(this.textForm.value.published) : DateTime.now();
     const ref = {
       ...this.textForm.value,
@@ -254,6 +317,14 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
           this.ts.createResponse('plugin/user/vote/up', this.url.value).subscribe();
         }
       }),
+      switchMap(res => {
+        const finalVisibilityTags = getVisibilityTags(tags);
+        if (!finalVisibilityTags.length) return of(res);
+        const taggingOps = this.completedUploads
+          .map(upload => this.ts.patch(finalVisibilityTags, upload.url, upload.origin));
+        if (!taggingOps.length) return of(res);
+        return forkJoin(taggingOps).pipe(map(() => res));
+      }),
       catchError((res: HttpErrorResponse) => {
         delete this.submitting;
         this.serverError = printError(res);
@@ -262,6 +333,8 @@ export class SubmitTextPage implements AfterViewInit, OnDestroy, HasChanges {
     ).subscribe(() => {
       delete this.submitting;
       this.textForm.markAsPristine();
+      this.completedUploads = [];
+
       if (this.addAnother) {
         this.url.enable();
         this.url.setValue('comment:' + uuid());

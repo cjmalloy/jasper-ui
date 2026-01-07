@@ -1,13 +1,20 @@
 import { HttpErrorResponse, HttpEventType } from '@angular/common/http';
 import { Component, OnDestroy } from '@angular/core';
-import { Router } from '@angular/router';
-import { delay, pick, uniq } from 'lodash-es';
+import { ReactiveFormsModule } from '@angular/forms';
+import { Router, RouterLink } from '@angular/router';
+import { FormlyForm } from '@ngx-formly/core';
+import { pick, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { autorun, IReactionDisposer, runInAction, toJS } from 'mobx';
+import { MobxAngularModule } from 'mobx-angular';
 import { catchError, concat, last, lastValueFrom, map, of, switchMap, throwError } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import * as XLSX from 'xlsx';
-import { Ext, mapTag } from '../../../model/ext';
+import { ExtComponent } from '../../../component/ext/ext.component';
+import { LoadingComponent } from '../../../component/loading/loading.component';
+import { RefComponent } from '../../../component/ref/ref.component';
+import { AutofocusDirective } from '../../../directive/autofocus.directive';
+import { Ext, mapExt } from '../../../model/ext';
 import { mapRef, Ref } from '../../../model/ref';
 import { AdminService } from '../../../service/admin.service';
 import { ExtService } from '../../../service/api/ext.service';
@@ -23,11 +30,20 @@ import { printError } from '../../../util/http';
 import { FilteredModels, filterModels, getModels, getTextFile, unzip, zippedFile } from '../../../util/zip';
 
 @Component({
-  standalone: false,
   selector: 'app-upload',
   templateUrl: './upload.component.html',
   styleUrls: ['./upload.component.scss'],
-  host: {'class': 'full-page-upload'}
+  host: { 'class': 'full-page-upload' },
+  imports: [
+    ExtComponent,
+    RefComponent,
+    MobxAngularModule,
+    RouterLink,
+    ReactiveFormsModule,
+    AutofocusDirective,
+    LoadingComponent,
+    FormlyForm,
+  ]
 })
 export class UploadPage implements OnDestroy {
   private disposers: IReactionDisposer[] = [];
@@ -54,6 +70,9 @@ export class UploadPage implements OnDestroy {
     this.disposers.push(autorun(() => {
       this.readUploads(this.store.submit.files);
       runInAction(() => this.store.submit.clearFiles());
+    }));
+    this.disposers.push(autorun(() => {
+      console.log(this.store.submit.uploads.length);
     }));
     this.store.submit.clearOverride();
   }
@@ -165,11 +184,20 @@ export class UploadPage implements OnDestroy {
     if (!files) return;
     for (let i = 0; i < files?.length; i++) {
       const file = files[i];
+      runInAction(() => {
+        this.store.submit.caching.set(file, { name: file.name, progress: 0 });
+      });
       this.proxy.save(file, this.store.account.origin).pipe(
         map(event => {
           switch (event.type) {
             case HttpEventType.Response:
               return event.body;
+            case HttpEventType.UploadProgress:
+              const percentDone = event.total ? Math.round(100 * event.loaded / event.total) : 0;
+              runInAction(() => {
+                this.store.submit.caching.set(file, { name: file.name, progress: percentDone });
+              });
+              return null;
           }
           return null;
         }),
@@ -182,6 +210,7 @@ export class UploadPage implements OnDestroy {
           return ref!;
         }),
       ).subscribe(ref => runInAction(() => {
+        this.store.submit.caching.delete(file);
         this.store.submit.addRefs({ ...ref, upload: true, exists: true });
       }));
     }
@@ -326,7 +355,7 @@ export class UploadPage implements OnDestroy {
     ref.tags = ref.tags?.filter(t => this.auth.canAddTag(t));
     ref.plugins = pick(ref.plugins, ref.tags || []);
     return (ref.exists
-      ? this.refs.update(ref).pipe(
+        ? this.refs.update(ref).pipe(
           catchError((err: HttpErrorResponse) => {
             if (err.status === 404) {
               return this.refs.create(ref);
@@ -334,7 +363,7 @@ export class UploadPage implements OnDestroy {
             return throwError(() => err);
           }),
         )
-      : this.refs.create(ref)
+        : this.refs.create(ref)
     ).pipe(
       catchError((err: HttpErrorResponse) => {
         if (err.status === 409) {
@@ -403,12 +432,16 @@ export class UploadPage implements OnDestroy {
     }
   }
 
+  set overwrite(value: boolean) {
+    runInAction(() => this.store.submit.overwrite = value);
+  }
+
   private getModels(file: File): Promise<FilteredModels> {
     if (file.name.toLowerCase().endsWith('.zip')) {
       return unzip(file).then(zip => Promise.all([
         zippedFile(zip, 'ext.json')
           .then(json => getModels<Ext>(json))
-          .then(exts => exts.map(mapTag)),
+          .then(exts => exts.map(mapExt)),
         zippedFile(zip, 'ref.json')
           .then(json => getModels<Ref>(json))
           .then(refs => refs.map(mapRef)),
@@ -433,6 +466,4 @@ export class UploadPage implements OnDestroy {
     }
     return null;
   }
-
-  protected readonly console = console;
 }

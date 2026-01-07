@@ -55,7 +55,20 @@ export class IdPrefixExtension implements FormlyExtension {
 }
 
 @NgModule({
-  declarations: [
+  exports: [
+    QrScannerComponent,
+    AudioUploadComponent,
+    VideoUploadComponent,
+    ImageUploadComponent,
+    PdfUploadComponent,
+  ],
+  imports: [
+    BrowserModule,
+    ReactiveFormsModule,
+    AppRoutingModule,
+    DragDropModule,
+    OverlayModule,
+    FormlySelectModule,
     FormlyWrapperFormField,
     FormlyFieldInput,
     FormlyFieldRange,
@@ -75,21 +88,6 @@ export class IdPrefixExtension implements FormlyExtension {
     AudioUploadComponent,
     PdfUploadComponent,
     ListTypeComponent,
-  ],
-  exports: [
-    QrScannerComponent,
-    AudioUploadComponent,
-    VideoUploadComponent,
-    ImageUploadComponent,
-    PdfUploadComponent,
-  ],
-  imports: [
-    BrowserModule,
-    ReactiveFormsModule,
-    AppRoutingModule,
-    DragDropModule,
-    OverlayModule,
-    FormlySelectModule,
     FormlyModule.forRoot({
       extensions: [{ name: 'id-prefix', extension: new IdPrefixExtension() }],
       validationMessages: [
@@ -284,16 +282,16 @@ export class IdPrefixExtension implements FormlyExtension {
           props: {
             label: $localize`Duration:`,
             datalist: [
-              { value: 'PT1M', label: $localize`1 min`},
-              { value: 'PT5M', label: $localize`5 mins`},
-              { value: 'PT15M', label: $localize`15 mins`},
-              { value: 'PT30M', label: $localize`30 mins`},
-              { value: 'PT30M', label: $localize`30 mins`},
-              { value: 'PT1H', label: $localize`1 hour`},
-              { value: 'PT2H', label: $localize`2 hours`},
-              { value: 'PT6H', label: $localize`6 hours`},
-              { value: 'PT12H', label: $localize`12 hours`},
-              { value: 'PT24H', label: $localize`1 day`},
+              { value: 'PT1M', label: $localize`1 min` },
+              { value: 'PT5M', label: $localize`5 mins` },
+              { value: 'PT15M', label: $localize`15 mins` },
+              { value: 'PT30M', label: $localize`30 mins` },
+              { value: 'PT30M', label: $localize`30 mins` },
+              { value: 'PT1H', label: $localize`1 hour` },
+              { value: 'PT2H', label: $localize`2 hours` },
+              { value: 'PT6H', label: $localize`6 hours` },
+              { value: 'PT12H', label: $localize`12 hours` },
+              { value: 'PT24H', label: $localize`1 day` },
             ],
           },
         },

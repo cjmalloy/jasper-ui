@@ -1,22 +1,29 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { AfterViewInit, Component, Input, OnDestroy } from '@angular/core';
+import { AfterViewInit, Component, forwardRef, Input, OnDestroy, ViewChild } from '@angular/core';
 import { FormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { uniq, without } from 'lodash-es';
-import { catchError, Subject, Subscription, switchMap, takeUntil, throwError } from 'rxjs';
+import { catchError, forkJoin, map, of, Subject, Subscription, switchMap, takeUntil, throwError } from 'rxjs';
+import { EditorComponent } from '../../../form/editor/editor.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Ref } from '../../../model/ref';
 import { RefService } from '../../../service/api/ref.service';
+import { TaggingService } from '../../../service/api/tagging.service';
 import { Store } from '../../../store/store';
 import { getIfNew, getMailboxes } from '../../../util/editor';
 import { printError } from '../../../util/http';
 import { OpPatch } from '../../../util/json-patch';
+import { getVisibilityTags } from '../../../util/tag';
+import { LoadingComponent } from '../../loading/loading.component';
 
 @Component({
-  standalone: false,
   selector: 'app-comment-edit',
   templateUrl: './comment-edit.component.html',
   styleUrls: ['./comment-edit.component.scss'],
-  host: {'class': 'comment-edit'}
+  host: { 'class': 'comment-edit' },
+  imports: [
+    forwardRef(() => EditorComponent),
+    LoadingComponent,
+  ]
 })
 export class CommentEditComponent implements AfterViewInit, HasChanges, OnDestroy {
   private destroy$ = new Subject<void>();
@@ -28,15 +35,19 @@ export class CommentEditComponent implements AfterViewInit, HasChanges, OnDestro
   @Input()
   commentEdited$!: Subject<Ref>;
 
+  @ViewChild(EditorComponent)
+  editor?: EditorComponent;
+
   editing?: Subscription;
   commentForm: UntypedFormGroup;
   editorTags: string[] = [];
-  plugins: any[] = [];
   sources: string[] = [];
+  completedUploads: Ref[] = [];
 
   constructor(
     private store: Store,
     private refs: RefService,
+    private ts: TaggingService,
     private fb: FormBuilder,
   ) {
     this.commentForm = fb.group({
@@ -68,6 +79,13 @@ export class CommentEditComponent implements AfterViewInit, HasChanges, OnDestro
     ]), this.ref.tags);
   }
 
+  get allTags() {
+    return uniq([
+      ...this.editorTags,
+      ...getMailboxes(this.comment.value, this.store.account.origin),
+    ]);
+  }
+
   save() {
     const patches: OpPatch[] = [];
     if (this.comment.dirty) {
@@ -77,14 +95,15 @@ export class CommentEditComponent implements AfterViewInit, HasChanges, OnDestro
         value: this.comment.value,
       });
     }
-    for (const t of without(this.newTags, ...this.ref.tags || [])) {
+    const finalTags = this.allTags;
+    for (const t of without(finalTags, ...this.ref.tags || [])) {
       patches.push({
         op: 'add',
         path: '/tags/-',
         value: t,
       });
     }
-    for (const t of without(this.ref.tags, ...this.newTags)) {
+    for (const t of without(this.ref.tags || [], ...finalTags)) {
       patches.push({
         op: 'remove',
         path: '/tags/' + this.ref.tags!.indexOf(t),
@@ -97,16 +116,16 @@ export class CommentEditComponent implements AfterViewInit, HasChanges, OnDestro
         value: s,
       });
     }
-    for (const p of this.plugins) {
-      const tag = Object.keys(p)[0];
-      patches.push({
-        op: 'add',
-        path: '/plugins/' + tag.replace('/', '~1'),
-        value: p[tag],
-      });
-    }
     this.editing = this.refs.patch(this.ref.url, this.ref.origin!, this.ref!.modifiedString!, patches).pipe(
       switchMap(() => this.refs.get(this.ref.url, this.ref.origin!).pipe(takeUntil(this.destroy$))),
+      switchMap(res => {
+        const finalVisibilityTags = getVisibilityTags(finalTags);
+        if (!finalVisibilityTags.length) return of(res);
+        const taggingOps = this.completedUploads
+          .map(upload => this.ts.patch(finalVisibilityTags, upload.url, upload.origin));
+        if (!taggingOps.length) return of(res);
+        return forkJoin(taggingOps).pipe(map(() => res));
+      }),
       catchError((res: HttpErrorResponse) => {
         delete this.editing;
         this.serverError = printError(res);
@@ -115,6 +134,8 @@ export class CommentEditComponent implements AfterViewInit, HasChanges, OnDestro
     ).subscribe(res => {
       delete this.editing;
       this.ref = res;
+      this.completedUploads = [];
+
       this.commentEdited$.next(res);
     });
   }

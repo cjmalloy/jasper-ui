@@ -1,11 +1,15 @@
 import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { pickBy, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
+import { MobxAngularModule } from 'mobx-angular';
 import { catchError, filter, map, of, Subject, Subscription, switchMap, takeUntil, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
+import { LoadingComponent } from '../../component/loading/loading.component';
 import { RefComponent } from '../../component/ref/ref.component';
+import { SidebarComponent } from '../../component/sidebar/sidebar.component';
+import { TabsComponent } from '../../component/tabs/tabs.component';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ref } from '../../model/ref';
 import { isWiki } from '../../mods/wiki';
@@ -19,10 +23,19 @@ import { memo, MemoCache } from '../../util/memo';
 import { hasTag, privateTag, top } from '../../util/tag';
 
 @Component({
-  standalone: false,
   selector: 'app-ref-page',
   templateUrl: './ref.component.html',
   styleUrls: ['./ref.component.scss'],
+  imports: [
+    RefComponent,
+    MobxAngularModule,
+    TabsComponent,
+    RouterLink,
+    RouterLinkActive,
+    SidebarComponent,
+    RouterOutlet,
+    LoadingComponent,
+  ],
 })
 export class RefPage implements OnInit, OnDestroy, HasChanges {
   private disposers: IReactionDisposer[] = [];
@@ -136,7 +149,7 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
   }
 
   reload(url?: string) {
-    url ||= this.store.view.url || '';
+    url ||= this.url || '';
     if (!url) {
       this.store.view.clear();
       return;
@@ -146,19 +159,18 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
       this.store.view.versions = count));
     const fetchTop = (ref: Ref) => hasTag('plugin/thread', ref) || hasTag('plugin/comment', ref);
     (url === this.store.view.ref?.url
-      ? of(this.store.view.ref)
-      : this.refs.getCurrent(url)
+        ? of(this.store.view.ref)
+        : this.refs.getCurrent(url)
     ).pipe(
       catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
       map(ref => ref || { url }),
       tap(ref => this.markRead(ref)),
-      switchMap(ref => !fetchTop(ref)
-        ? of([ref, undefined])
+      switchMap(ref => !fetchTop(ref) ? of([ref, undefined])
         : top(ref) === url ? of([ref, ref])
         : top(ref) === this.store.view.top?.url ? of([ref, this.store.view.top])
         : this.refs.getCurrent(top(ref)).pipe(
+          map(top => [ref, top]),
           catchError(err => err.status === 404 ? of([ref, undefined]) : throwError(() => err)),
-          map(top => [ref, top] as [Ref, Ref]),
         )),
       tap(([ref, top]) => runInAction(() => this.store.view.setRef(ref, top))),
       takeUntil(this.destroy$),

@@ -1,21 +1,24 @@
 import { Component, Input } from '@angular/core';
+import { ReactiveFormsModule } from '@angular/forms';
 import { debounce } from 'lodash-es';
 import { catchError, forkJoin, map, Observable, of, Subscription, switchMap } from 'rxjs';
 import { v4 as uuid } from 'uuid';
+import { AutofocusDirective } from '../../../directive/autofocus.directive';
 import { Config } from '../../../model/tag';
 import { AdminService } from '../../../service/admin.service';
 import { ExtService } from '../../../service/api/ext.service';
 import { EditorService } from '../../../service/editor.service';
 import { Store } from '../../../store/store';
 import { TAGS_REGEX } from '../../../util/format';
+import { LoadingComponent } from '../../loading/loading.component';
 import { ActionComponent } from '../action.component';
 
 @Component({
-  standalone: false,
   selector: 'app-inline-tag',
   templateUrl: './inline-tag.component.html',
   styleUrls: ['./inline-tag.component.scss'],
-  host: {'class': 'action'}
+  host: { 'class': 'action' },
+  imports: [ReactiveFormsModule, AutofocusDirective, LoadingComponent]
 })
 export class InlineTagComponent extends ActionComponent {
   tagsRegex = TAGS_REGEX.source;
@@ -83,15 +86,15 @@ export class InlineTagComponent extends ActionComponent {
     this.searching?.unsubscribe();
     this.searching = this.exts.page({
       search: tag,
-      sort: ['nesting', 'levels'],
-      size: 1,
+      sort: ['origin:len', 'tag:len'],
+      size: 3,
     }).pipe(
       switchMap(page => page.page.totalElements ? forkJoin(page.content.map(x => this.preview$(x.tag + x.origin))) : of([])),
       map(xs => xs.filter(x => !!x) as { name?: string, tag: string }[]),
     ).subscribe(xs => {
       this.autocomplete = xs.map(x => ({ value: prefix + x.tag, label: x.name || '#' + x.tag }));
-      if (this.autocomplete.length < 1) this.autocomplete.push(...getPlugins(tag));
-      if (this.autocomplete.length < 1) this.autocomplete.push(...getTemplates(tag));
+      if (this.autocomplete.length < 3) this.autocomplete.push(...getPlugins(tag));
+      if (this.autocomplete.length < 3) this.autocomplete.push(...getTemplates(tag));
     });
   }, 400);
 

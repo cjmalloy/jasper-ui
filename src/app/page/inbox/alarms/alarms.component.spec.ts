@@ -1,20 +1,25 @@
+/// <reference types="vitest/globals" />
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { forwardRef } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { RouterModule } from '@angular/router';
+import { provideRouter } from '@angular/router';
 
 import { InboxAlarmsPage } from './alarms.component';
-import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 describe('InboxAlarmsPage', () => {
   let component: InboxAlarmsPage;
   let fixture: ComponentFixture<InboxAlarmsPage>;
 
-  beforeEach(() => {
-    TestBed.configureTestingModule({
-    declarations: [InboxAlarmsPage],
-    imports: [RouterModule.forRoot([])],
-    providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
-});
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [forwardRef(() => InboxAlarmsPage)],
+      providers: [
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting(),
+        provideRouter([]),
+      ],
+    }).compileComponents();
     fixture = TestBed.createComponent(InboxAlarmsPage);
     component = fixture.componentInstance;
     fixture.detectChanges();

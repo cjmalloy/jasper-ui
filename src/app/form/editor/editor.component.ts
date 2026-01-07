@@ -17,32 +17,55 @@ import {
   ViewChild,
   ViewContainerRef
 } from '@angular/core';
-import { FormBuilder, UntypedFormArray, UntypedFormControl } from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule, UntypedFormArray, UntypedFormControl } from '@angular/forms';
 import { NavigationEnd, Router } from '@angular/router';
 import Europa from 'europa';
-import { debounce, defer, delay, sortedLastIndex, throttle, uniq, without } from 'lodash-es';
+import { debounce, defer, delay, intersection, sortedLastIndex, uniq, without } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
-import { catchError, filter, last, map, Subject, takeUntil } from 'rxjs';
+import { catchError, filter, last, map, Observable, of, Subject, Subscription, switchMap, takeUntil, tap } from 'rxjs';
 import { v4 as uuid } from 'uuid';
+import { LoadingComponent } from '../../component/loading/loading.component';
 import { MdComponent } from '../../component/md/md.component';
-import { Plugin } from '../../model/plugin';
+import { AutofocusDirective } from '../../directive/autofocus.directive';
+import { FillWidthDirective } from '../../directive/fill-width.directive';
+import { LimitWidthDirective } from '../../directive/limit-width.directive';
 import { Ref } from '../../model/ref';
 import { EditorButton, sortOrder } from '../../model/tag';
+import { mimeToCode } from '../../mods/code';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { ProxyService } from '../../service/api/proxy.service';
+import { RefService } from '../../service/api/ref.service';
+import { TaggingService } from '../../service/api/tagging.service';
 import { AuthzService } from '../../service/authz.service';
 import { Store } from '../../store/store';
-import { readFileAsDataURL } from '../../util/async';
+import { readFileAsDataURL, readFileAsString } from '../../util/async';
 import { memo, MemoCache } from '../../util/memo';
-import { hasTag } from '../../util/tag';
+import { expandedTagsInclude, hasTag, test } from '../../util/tag';
+
+export interface EditorUpload {
+  id: string;
+  name: string;
+  progress: number;
+  subscription?: Subscription;
+  completed?: boolean;
+  error?: string;
+  ref?: Ref | null;
+}
 
 @Component({
-  standalone: false,
   selector: 'app-editor',
   templateUrl: './editor.component.html',
   styleUrls: ['./editor.component.scss'],
-  host: {'class': 'editor'}
+  host: { 'class': 'editor' },
+  imports: [
+    MdComponent,
+    LoadingComponent,
+    ReactiveFormsModule,
+    FillWidthDirective,
+    AutofocusDirective,
+    LimitWidthDirective,
+  ],
 })
 export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   private destroy$ = new Subject<void>();
@@ -73,6 +96,8 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   helpTemplate!: TemplateRef<any>;
   @ViewChild('ref')
   refTemplate!: TemplateRef<any>;
+  @ViewChild('fileUpload')
+  fileUpload!: ElementRef<HTMLInputElement>;
 
   @Input()
   hasTags = true;
@@ -96,11 +121,6 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   addCommentLabel = $localize`+ Add comment`;
   @Input()
   fillWidth?: HTMLElement;
-  @Input()
-  addPlugins = false;
-  @Input()
-  uploadFiles = false;
-
   @Output()
   syncEditor = new EventEmitter<string>();
   @Output()
@@ -108,22 +128,20 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   @Output()
   addSource = new EventEmitter<string>();
   @Output()
-  addPlugin = new EventEmitter<any>();
-  @Output()
   scrape = new EventEmitter<void>();
+  @Output()
+  uploadCompleted = new EventEmitter<Ref>();
 
   dropping = false;
   overlayRef?: OverlayRef;
   helpRef?: OverlayRef;
-  refRef?: OverlayRef;
-  addingPlugin?: Plugin;
-  pluginGroup = this.fb.group({});
   toggleIndex = 0;
   initialFullscreen = false;
   focused?: boolean = false;
   progress = 0;
-  uploading = false;
+  uploads: EditorUpload[] = [];
   files = !!this.admin.getPlugin('plugin/file');
+  loadingEvents: any = {};
 
   private _text? = '';
   private _editing = false;
@@ -144,6 +162,8 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
     private accounts: AccountService,
     private auth: AuthzService,
     private proxy: ProxyService,
+    private refs: RefService,
+    private ts: TaggingService,
     public store: Store,
     private overlay: Overlay,
     private router: Router,
@@ -154,6 +174,9 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
     this.router.events.pipe(
       filter(event => event instanceof NavigationEnd)
     ).subscribe(() => this.toggleFullscreen(false));
+    this.disposers.push(autorun(() => {
+      this.loadingEvents[this.store.eventBus.event] = false;
+    }));
   }
 
   init() {
@@ -204,6 +227,11 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
     document.body.style.height = '';
     document.body.classList.remove('fullscreen');
     this.el.nativeElement.style.setProperty('--viewport-height', this.store.viewportHeight + 'px');
+  }
+
+  @Input()
+  set scraping(value: boolean) {
+    this.loadingEvents['scrape-done'] = value;
   }
 
   @HostListener('window:scroll')
@@ -297,7 +325,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   @memo
   get initTags() {
     return [
-      ...without(this.store.account.defaultEditors(this.editors), ...this.allTags),
+      ...without(intersection(this.store.account.defaultEditors(this.editors), this.editorButtons.filter(b => this.visible(b)).map(b => b.toggle!)), ...this.allTags),
       ...this.allTags,
     ];
   }
@@ -360,44 +388,21 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   }
 
   toggleTag(button: EditorButton) {
-    if (button.event) this.fireEvent(button.event);
-    const tag = button.toggle!;
-    if (hasTag(tag, this.allTags)) {
-      this.updateTags(without(this.allTags, tag));
+    if (button.event) this.fireEvent(button);
+    const toggle = button.toggle!;
+    if (hasTag(toggle, this.allTags)) {
+      this.updateTags(this.allTags.filter(t => !expandedTagsInclude(t, toggle)));
       if (button.remember && this.admin.getTemplate('user')) {
-        this.accounts.removeConfigArray$('editors', tag).subscribe();
+        this.accounts.removeConfigArray$('editors', toggle).subscribe();
       }
-    } else if (tag !== 'locked' || confirm($localize`Locking is permanent once saved. Are you sure you want to lock?`)) {
-      this.addingPlugin = this.admin.getPlugin(tag);
-      if (this.addPlugins && (this.addingPlugin?.config?.form || this.addingPlugin?.config?.advancedForm)) {
-        this.pluginGroup = this.fb.group({
-          [tag]: this.fb.group({}),
-        });
-        this.refRef = this.overlay.create({
-          hasBackdrop: true,
-          positionStrategy: this.overlay.position().global().centerHorizontally().centerVertically(),
-          scrollStrategy: this.overlay.scrollStrategies.close()
-        });
-        this.refRef.attach(new TemplatePortal(this.refTemplate, this.vc));
-        this.refRef.backdropClick().subscribe(() => this.savePlugin());
-      } else {
-        this.updateTags([...this.allTags, tag]);
-      }
+    } else if (toggle !== 'locked' || confirm($localize`Locking is permanent once saved. Are you sure you want to lock?`)) {
+      this.updateTags([...this.allTags, toggle]);
       if (button.remember && this.admin.getTemplate('user')) {
-        this.accounts.addConfigArray$('editors', tag).subscribe();
+        this.accounts.addConfigArray$('editors', toggle).subscribe();
       }
     }
     if ('vibrate' in navigator) navigator.vibrate([2, 8, 8]);
     if (this.focused !== false) this.editor?.nativeElement.focus();
-  }
-
-  savePlugin() {
-    const tags = [this.addingPlugin!.tag];
-    if (['plugin/image', 'plugin/video'].includes(this.addingPlugin!.tag)) tags.push('plugin/thumbnail');
-    this.updateTags(uniq([...this.allTags, ...tags]));
-    this.addPlugin.next(this.pluginGroup.value);
-    this.refRef?.detach();
-    this.refRef?.dispose();
   }
 
   setResponse(tag: string) {
@@ -430,11 +435,11 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
     this.setText(value);
   }
 
-  setText = throttle((value: string) => {
+  setText = debounce((value: string) => {
     if (this._text === value) return;
     this._text = value;
     this.store.local.saveEditing(value);
-  }, 400);
+  }, 400, { leading: true, trailing: true, maxWait: 3000 });
 
   syncText(value: string) {
     if (!value) {
@@ -445,6 +450,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
     }
     // Clear previous throttled values
     this.syncTextThrottled(value);
+    this.control.setValue(value);
   }
 
   syncTextThrottled = debounce((value: string) => {
@@ -561,10 +567,12 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
     if (button.scheme && button.scheme !== this.scheme) return false;
     if (button.toggle && !this.auth.canAddTag(button.toggle)) return false;
     if (button.global) return true;
-    return hasTag(button.tag || button._parent!.tag, this.allTags);
+    return test(button.query || button._parent!.tag, this.allTags);
   }
 
-  fireEvent(event: string) {
+  fireEvent(button: EditorButton) {
+    const event = button.event!;
+    if (button.eventDone) this.loadingEvents[button.eventDone] = true;
     if (event === 'html-to-markdown') {
       this.europa ||= new Europa({
         absolute: !!this.url,
@@ -572,11 +580,12 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
         inline: true,
       });
       const md = this.europa.convert(this.editor!.nativeElement.value);
-      this.control.setValue(md);
       this.syncText(md);
     } else if (event === 'scrape') {
       this.scrape.emit();
-    } {
+    } else if (event === 'attach') {
+      this.fileUpload.nativeElement.click();
+    } else {
       this.store.eventBus.fire(event);
     }
     if (this.focused !== false) this.editor?.nativeElement.focus();
@@ -592,64 +601,178 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
     return b;
   }
 
-  upload(event: Event, items?: DataTransferItemList) {
+  drop(event: Event, items?: DataTransferItemList) {
     this.dropping = false;
-    this.uploading = false;
-    if (!this.uploadFiles || !this.admin.getPlugin('plugin/file')) return;
+    if (!this.admin.getPlugin('plugin/file')) return;
     if (!items) return;
     const files = [] as any;
     for (let i = 0; i < items.length; i++) {
       const d = items[i];
       if (d?.kind == 'file') {
         files.push(d.getAsFile());
-        break;
       }
     }
     if (!files.length) return;
     event.preventDefault();
     event.stopPropagation();
-    const file = files[0]!;
-    const tags: string[] = [];
-    let plugin = this.admin.getPlugin('plugin/file')!;
-    if (file.type.startsWith('audio/') && this.admin.getPlugin('plugin/audio')) {
-      plugin = this.admin.getPlugin('plugin/audio')!;
-    } else if (file.type.startsWith('video/') && this.admin.getPlugin('plugin/video')) {
-      plugin = this.admin.getPlugin('plugin/video')!;
-      tags.push('plugin/thumbnail')
-    } else if (file.type.startsWith('image/') && this.admin.getPlugin('plugin/image')) {
-      plugin = this.admin.getPlugin('plugin/image')!;
-      tags.push('plugin/thumbnail')
-    } else if (file.type.startsWith('application/pdf') && this.admin.getPlugin('plugin/pdf')) {
-      plugin = this.admin.getPlugin('plugin/pdf')!;
+    this.upload(files);
+  }
+
+  upload(files?: FileList | null) {
+    if (!files) return;
+    const hasActiveUploads = this.uploads.some(upload => !upload.completed && !upload.error);
+    if (!hasActiveUploads) {
+      // Only clear uploads if no active uploads exist
+      this.uploads = [];
     }
-    tags.push(plugin.tag);
-    this.uploading = true;
-    this.proxy.save(file, this.store.account.origin).pipe(
-      map(event => {
-        switch (event.type) {
-          case HttpEventType.Response:
-            return event.body;
-          case HttpEventType.UploadProgress:
-            const percentDone = event.total ? Math.round(100 * event.loaded / event.total) : 0;
-            this.progress = percentDone;
-            return null;
+    this.control.disable();
+    const fileArray = Array.from(files);
+    const fileUploads: EditorUpload[] = fileArray.map(file => ({
+      id: uuid(),
+      name: file.name,
+      progress: 0
+    }));
+    this.uploads = [...this.uploads, ...fileUploads];
+    fileArray.map((file, index) => {
+      const upload = fileUploads[index];
+      return upload.subscription = this.upload$(file, upload).subscribe(ref => {
+        if (ref && !ref.url.startsWith('data:')) {
+          upload.completed = true;
+          upload.progress = 100;
+          upload.ref = ref;
+          // Emit upload completion so parent can tag it
+          this.uploadCompleted.emit(ref);
         }
-        return null;
-      }),
-      last(),
-      map((ref: Ref | null) => ref?.url),
-      catchError(err => readFileAsDataURL(file)) // base64
-    ).subscribe(url => {
-      if (!url) return;
-      if (plugin!.tag === 'plugin/file') {
-        this.addSource.next(url);
-      } else {
-        this.addPlugin.next({
-          [plugin!.tag]: { url },
-        });
-      }
-      this.updateTags(uniq([...this.allTags, ...tags]));
+        this.checkAllUploadsComplete();
+      });
     });
+  }
+
+  upload$(file: File, upload: EditorUpload): Observable<Ref | null> {
+    const codeType = mimeToCode(file.type);
+    if (codeType.length) {
+      const ref = {
+        origin: this.store.account.origin,
+        url: 'internal:' + uuid(),
+        title: file.name,
+        // Upload as private - only localTag and internal, no visibility tags
+        tags: uniq([
+          this.store.account.localTag,
+          'internal',
+          ...file.type === 'text/markdown' ? [] : codeType
+        ])
+      };
+      upload.progress = 50; // Simulate progress for text files
+      return readFileAsString(file).pipe(
+        switchMap(contents => this.refs.create({
+          ...ref,
+          comment: contents,
+        })),
+        map(cursor => ref),
+        tap(() => upload.progress = 100),
+        catchError(err => {
+          upload.error = err.message || 'Upload failed';
+          upload.progress = 0;
+          return readFileAsDataURL(file).pipe(map(url => ({ ...ref, url }))); // base64
+        }),
+      );
+    } else {
+      // Upload binary files as private - only plugin/file and type-specific tags
+      const tags: string[] = ['plugin/file'];
+      if (file.type.startsWith('audio/') && this.admin.getPlugin('plugin/audio')) {
+        tags.push('plugin/audio');
+      } else if (file.type.startsWith('video/') && this.admin.getPlugin('plugin/video')) {
+        tags.push('plugin/video', 'plugin/thumbnail');
+      } else if (file.type.startsWith('image/') && this.admin.getPlugin('plugin/image')) {
+        tags.push('plugin/image', 'plugin/thumbnail');
+      } else if (file.type.startsWith('application/pdf') && this.admin.getPlugin('plugin/pdf')) {
+        tags.push('plugin/pdf');
+      }
+      return this.proxy.save(file, this.store.account.origin).pipe(
+        map(event => {
+          switch (event.type) {
+            case HttpEventType.Response:
+              return event.body;
+            case HttpEventType.UploadProgress:
+              const percentDone = event.total ? Math.round(100 * event.loaded / event.total) : 0;
+              this.progress = percentDone;
+              upload.progress = percentDone;
+              return null;
+          }
+          return null;
+        }),
+        last(),
+        switchMap(ref => !ref ? of(ref) : this.ts.patch(tags, ref.url, ref.origin).pipe(
+          map(cursor => ({ ...ref, tags: uniq([...ref?.tags || [], ...tags]) })),
+        )),
+        catchError(err => {
+          upload.error = err.message || 'Upload failed';
+          upload.progress = 0;
+          return readFileAsDataURL(file).pipe(map(url => ({url, tags}))); // base64
+        }),
+      );
+    }
+  }
+
+  attachUrls(...refs: (Ref | null)[]) {
+    refs = refs.filter(u => !!u);
+    if (!refs.length) return;
+    for (const ref of refs) this.addSource.next(ref!.url);
+    const text = this.currentText;
+    const embed = (ref: Ref) => hasTag('plugin/audio', ref) || hasTag('plugin/video', ref) || hasTag('plugin/image', ref) || hasTag('plugin/pdf', ref);
+    if (refs.length === 1) {
+      if (!refs[0]) return;
+      const encodedUrl = (this.selectionStart !== this.selectionEnd ? '[' + text.substring(this.selectionStart, this.selectionEnd) + ']'
+          : embed(refs[0]) ? '![]' : '![=]'
+      ) + '(' + refs[0].url.replace(')', '\\)') + ')\n';
+      if (this.selectionStart || this.selectionStart !== this.selectionEnd) {
+        this.syncText(text.substring(0, this.selectionStart) + encodedUrl + text.substring(this.selectionEnd));
+      } else {
+        this.syncText(text + encodedUrl + '\n');
+      }
+    } else {
+      const encodedUrls = refs.map(ref => (embed(ref!) ? '![]' : '![=]') + '(' + ref!.url.replace(')', '\\)') + ')\n').join('');
+      this.syncText(text.substring(0, this.selectionStart) + encodedUrls + text.substring(this.selectionStart));
+      if (!text) this.preview = true;
+    }
+    if (!text) this.preview = true;
+    if (this.focused !== false) this.editor?.nativeElement.focus();
+  }
+
+  checkAllUploadsComplete() {
+    const allComplete = this.uploads.every(upload => upload.completed || upload.error);
+    if (allComplete && this.uploads.length > 0) {
+      this.control.enable();
+      const completedRefs = this.uploads
+        .filter(upload => upload.completed && upload.ref)
+        .map(upload => upload.ref!);
+      if (completedRefs.length > 0) {
+        this.attachUrls(...completedRefs);
+      }
+      this.uploads = [];
+    }
+  }
+
+  cancelUpload(upload: EditorUpload) {
+    if (upload.subscription) {
+      upload.subscription.unsubscribe();
+    }
+    this.uploads = this.uploads.filter(u => u.id !== upload.id);
+    if (this.uploads.length === 0) {
+      this.control.enable();
+    } else {
+      this.checkAllUploadsComplete();
+    }
+  }
+
+  cancelAllUploads() {
+    this.uploads.forEach(upload => {
+      if (upload.subscription) {
+        upload.subscription.unsubscribe();
+      }
+    });
+    this.uploads = [];
+    this.control.enable();
   }
 
   dragLeave(parent: HTMLElement, target: HTMLElement) {
@@ -657,4 +780,9 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
       this.dropping = false;
     }
   }
+
+  hasActiveUploads(): boolean {
+    return this.uploads.some(upload => !upload.completed && !upload.error);
+  }
+
 }

@@ -3,6 +3,7 @@ import {
   Component,
   ElementRef,
   EventEmitter,
+  forwardRef,
   HostBinding,
   Input,
   OnChanges,
@@ -14,13 +15,17 @@ import { FormControl } from '@angular/forms';
 import Hls from 'hls.js';
 import { defer, isEqual, some, without } from 'lodash-es';
 import { runInAction } from 'mobx';
-import { catchError, of, Subject, takeUntil, throwError } from 'rxjs';
+import { BehaviorSubject, catchError, of, Subject, takeUntil, throwError } from 'rxjs';
+import { ImageDirective } from '../../directive/image.directive';
+import { ResizeHandleDirective } from '../../directive/resize-handle.directive';
+import { ResizeDirective } from '../../directive/resize.directive';
 import { Ext } from '../../model/ext';
 import { Oembed } from '../../model/oembed';
 import { Page } from '../../model/page';
 import { getPluginScope, PluginApi } from '../../model/plugin';
-import { findCache, findExtension, Ref, RefSort } from '../../model/ref';
+import { findCache, findExtension, Ref, RefSort, RefUpdates } from '../../model/ref';
 import { EmitAction, hydrate } from '../../model/tag';
+import { SafePipe } from '../../pipe/safe.pipe';
 import { ActionService } from '../../service/action.service';
 import { AdminService } from '../../service/admin.service';
 import { ProxyService } from '../../service/api/proxy.service';
@@ -36,12 +41,37 @@ import { getExtension } from '../../util/http';
 import { memo, MemoCache } from '../../util/memo';
 import { UrlFilter } from '../../util/query';
 import { hasPrefix, hasTag } from '../../util/tag';
+import { BackgammonComponent } from '../backgammon/backgammon.component';
+import { ChessComponent } from '../chess/chess.component';
+import { LensComponent } from '../lens/lens.component';
+import { MdComponent } from '../md/md.component';
+import { ModComponent } from '../mod/mod.component';
+import { PlaylistComponent } from '../playlist/playlist.component';
+import { QrComponent } from '../qr/qr.component';
+import { RefComponent } from '../ref/ref.component';
+import { TodoComponent } from '../todo/todo.component';
+
+export const IFRAME_SANDBOX = 'allow-scripts allow-forms allow-modals allow-orientation-lock allow-pointer-lock allow-popups allow-presentation allow-top-navigation-by-user-activation';
 
 @Component({
-  standalone: false,
   selector: 'app-viewer',
   templateUrl: './viewer.component.html',
-  styleUrls: ['./viewer.component.scss']
+  styleUrls: ['./viewer.component.scss'],
+  imports: [
+    forwardRef(() => RefComponent),
+    forwardRef(() => PlaylistComponent),
+    forwardRef(() => LensComponent),
+    forwardRef(() => ModComponent),
+    MdComponent,
+    ImageDirective,
+    ResizeDirective,
+    QrComponent,
+    TodoComponent,
+    BackgammonComponent,
+    ChessComponent,
+    SafePipe,
+    ResizeHandleDirective,
+  ],
 })
 export class ViewerComponent implements OnChanges, AfterViewInit {
   @HostBinding('class') css = 'embed print-images';
@@ -59,6 +89,8 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
   tags?: string[];
   @Input()
   expand = true;
+  @Input()
+  autoplay = false;
   @Input()
   text? = '';
   @Input()
@@ -136,7 +168,7 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
         });
     }
     if (this.ref?.url && hasTag('plugin/embed', this.currentTags)) {
-      this.width = this.embed?.width || (this.config.mobile ? (window.innerWidth - (this.thread ? 32 : 12)) : this.el.nativeElement.parentElement.offsetWidth - 400);
+      this.width = this.embed?.width || (this.el.nativeElement.parentElement.offsetWidth - ((this.thread || !this.config.mobile) ? 32 : 12));
       this.height = this.embed?.height || window.innerHeight;
       if (hasTag('plugin/fullscreen', this.ref)) {
         this.width = screen.width;
@@ -197,21 +229,16 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
   }
 
   set oembed(oembed: Oembed | null) {
-    if (!this.iframe) {
-      defer(() => this.oembed = oembed);
-      return;
-    }
     if (isEqual(this._oembed, oembed)) return;
-    this._oembed = oembed!;
-    MemoCache.clear(this);
-    const i = this.iframe.nativeElement;
-    if (oembed) {
-      if (oembed.url && oembed.type === 'photo') {
-        // Image embed
-        this.tags = without(this.currentTags, 'plugin/embed');
-        this.image = oembed.url;
-        this.init();
-      } else {
+    this._oembed = oembed || undefined;
+    if (oembed?.url && oembed?.type === 'photo') {
+      // Image embed
+      this.tags = without(this.currentTags, 'plugin/embed');
+      this.image = oembed.url;
+      MemoCache.clear(this);
+    } else if (this.iframe) {
+      const i = this.iframe.nativeElement;
+      if (oembed) {
         this.embeds.writeIframe(oembed, i, this.embedWidth)
           .then(() => {
             if (oembed.width! > this.width) {
@@ -224,13 +251,23 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
               i.style.marginBottom = -1 * marginTop + 'px';
             }
             this.embedReady = true;
+            MemoCache.clear(this);
           });
+      } else {
+        // @ts-ignore
+        const l = new URL(window.location);
+        const url = new URL(this.embed?.url || this.ref?.url);
+        if (url.protocol === l.protocol && url.host === l.host && url.port === l.port) {
+          i.sandbox = IFRAME_SANDBOX;
+        }
+        i.src = url.toString();
+        i.style.width = this.embedWidth;
+        i.style.height = this.embedHeight;
+        this.embedReady = true;
       }
     } else {
-      this.embedReady = true;
-      i.src = this.embed?.url || this.ref?.url;
-      i.style.width = this.embedWidth;
-      i.style.height = this.embedHeight;
+      delete this._oembed;
+      defer(() => this.oembed = oembed);
     }
   }
 
@@ -255,6 +292,13 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
   @memo
   get twitter() {
     return this.oembed?.provider_name === 'Twitter';
+  }
+
+  @memo
+  get resizable() {
+    if (this.config.mobile) return false;
+    if (this.ref?.plugins?.['plugin/embed']?.noResize) return false;
+    return !this.oembed || !this.oembed.html || this.oembed.html.startsWith('<iframe');
   }
 
   @memo
@@ -310,11 +354,11 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
   }
 
   get embedWidth() {
-    if (this.embed?.width) return Math.min(this.embed.width, this.config.mobile ? (window.innerWidth - (this.thread ? 32 : 12)) : this.el.nativeElement.parentElement.offsetWidth - 32) + 'px';
+    if (this.embed?.width) return Math.min(this.embed.width, this.el.nativeElement.parentElement.offsetWidth - ((this.thread || !this.config.mobile) ? 32 : 12)) + 'px';
     if (this.config.mobile && window.matchMedia("(orientation: landscape)").matches) {
       return this.thread ? 'calc(100vw - 32px)' : 'calc(100vw - 12px)';
     }
-    return this.config.huge ? '67vw' : '80vw';
+    return `calc(min(100%, ${this.config.huge ? '67vw' : '80vw'}))`;
   }
 
   get embedHeight() {
@@ -323,6 +367,11 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
       return '100vh';
     }
     return '67vh';
+  }
+
+  @memo
+  get embedIframe() {
+    return hasTag('plugin/embed', this.currentTags);
   }
 
   @memo
@@ -353,15 +402,6 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
       return this.proxy.getFetch(url, this.currentOrigin);
     }
     return url;
-  }
-
-  @memo
-  get codeOptions() {
-    return {
-      language: this.codeLang,
-      theme: this.store.darkTheme ? 'vs-dark' : 'vs',
-      automaticLayout: true,
-    };
   }
 
   @memo
@@ -407,12 +447,6 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
   }
 
   @memo
-  get updates$() {
-    if (!this.ref || !this.config.websockets) return of();
-    return this.stomp.watchRef(this.ref!.url).pipe(takeUntil(this.destroy$));
-  }
-
-  @memo
   get uiActions(): PluginApi {
     const actions = this.actions.wrap(this.ref);
     return {
@@ -436,14 +470,38 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
       },
       respond: (response: string, clear?: string[]) => {
         if (this.ref?.modified) actions.respond(response, clear);
-      }
+      },
+      watch: () => {
+        if (this.ref?.modified) return actions.watch();
+        const subject$ = new BehaviorSubject<RefUpdates>({ comment: this.text } as RefUpdates);
+        return {
+          ref$: subject$,
+          comment$: (comment: string) => {
+            this.text = comment;
+            subject$.next({ comment: this.text } as RefUpdates)
+            return of();
+          },
+        };
+      },
+      append: () => {
+        if (this.ref?.modified) return actions.append();
+        const subject$ = new Subject<string>();
+        return {
+          updates$: subject$,
+          append$: (value: string) => {
+            this.text += value;
+            subject$.next(value);
+            return of();
+          },
+        };
+      },
     };
   }
 
   @memo
   uiMarkdown(tag: string) {
     const plugin = this.admin.getPlugin(tag)!;
-    return hydrate(plugin.config, 'ui', getPluginScope(plugin, this.ref || { url: '', comment: this.text, tags: this.tags }, this.el.nativeElement, this.uiActions, this.updates$));
+    return hydrate(plugin.config, 'ui', getPluginScope(plugin, this.ref || { url: '', comment: this.text, tags: this.tags }, this.el.nativeElement, this.uiActions));
   }
 
   @memo

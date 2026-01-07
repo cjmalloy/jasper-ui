@@ -17,10 +17,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out Git repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Install Node.js, NPM and Yarn
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 22
 
@@ -28,7 +28,7 @@ jobs:
         run: npm ci && npm run build
 
       - name: Zip
-        run: cd dist/jasper-ui/; zip -r ../../${{ env.RELEASE_FILE }} .
+        run: cd dist/jasper-ui/browser/; zip -r $GITHUB_WORKSPACE/${{ env.RELEASE_FILE }} .
 
       - name: Create Draft Release
         id: create_release

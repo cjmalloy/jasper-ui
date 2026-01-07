@@ -15,6 +15,7 @@ export class SubmitStore {
   submitGenId: Plugin[] = [];
   submitDm: Plugin[] = [];
   files: File[] = [] as any;
+  caching: Map<File, Saving> = new Map<File, Saving>();
   exts: Ext[] = [];
   refs: Ref[] = [];
   overwrite = false;
@@ -28,6 +29,7 @@ export class SubmitStore {
       submitGenId: observable.shallow,
       submitDm: observable.shallow,
       files: observable.shallow,
+      caching: observable.shallow,
       setRef: action,
       setExt: action,
     });
@@ -145,6 +147,10 @@ export class SubmitStore {
   get huge() {
     if (this.refLimitOverride) return false;
     return this.refs.length > 100 || this.exts.length > 100;
+  }
+
+  get uploads() {
+    return [...this.caching.values()];
   }
 
   clearOverride() {

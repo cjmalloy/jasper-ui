@@ -3,7 +3,7 @@ import { Plugin } from '../model/plugin';
 import { Mod } from '../model/tag';
 
 export const feedPlugin: Plugin = {
-  tag: 'plugin/feed',
+  tag: 'plugin/script/feed',
   name: $localize`🗞️ RSS/Atom Feed`,
   config: {
     default: true,
@@ -42,7 +42,8 @@ export const feedPlugin: Plugin = {
       { tag: '+plugin/cron', labelOn: $localize`disable`, labelOff: $localize`enable`, title: $localize`Schedule this feed to pull every 15 minutes.` },
     ],
     advancedActions: [
-      { response: '+plugin/user/run', labelOff: $localize`pull`, title: $localize`Scrape the feed and add any new Refs.`, confirm: $localize`Are you sure you want to pull?` },],
+      { response: '+plugin/user/run', labelOff: $localize`pull`, title: $localize`Scrape the feed and add any new Refs.`, confirm: $localize`Are you sure you want to pull?` },
+    ],
     // language=Handlebars
     infoUi: `
       {{#if (interestingTags addTags)}} tagging refs {{/if}}
@@ -50,6 +51,20 @@ export const feedPlugin: Plugin = {
         #{{.}}
       {{/each}}`,
     form: [{
+      key: 'matchText',
+      type: 'list',
+      props: {
+        label: $localize`Text: `,
+        addText: $localize`+ Match text`,
+        title: $localize`Add a list of text to match against the feed entries. If any of the text is found, the entry will be added.`
+      },
+      fieldArray: {
+        type: 'string',
+        props: {
+          label: $localize`🎯️`,
+        }
+      },
+    }, {
       key: 'addTags',
       type: 'tags',
     }],
@@ -147,20 +162,29 @@ export const feedPlugin: Plugin = {
         title: $localize`Strip all query parameters from the feed entry URLs.`
       }
     }, {
+      key: 'stripHash',
+      type: 'boolean',
+      props: {
+        label: $localize`Strip Hash:`,
+        title: $localize`Strip all anchors from the feed entry URLs.`
+      }
+    }, {
       key: 'disableEtag',
       type: 'boolean',
       props: {
         label: $localize`Disable ETag Caching:`,
         title: $localize`Don't use the ETag to check if a feed is updated.`
       }
-    }]
+    }],
   },
   schema: {
     optionalProperties: {
+      matchText: { elements: { type: 'string' } },
       addTags: { elements: { type: 'string' } },
       disableEtag: { type: 'boolean' },
       etag: { type: 'string' },
       stripQuery: { type: 'boolean' },
+      stripHash: { type: 'boolean' },
       scrapeWebpage: { type: 'boolean' },
       scrapeDescription: { type: 'boolean' },
       scrapeContents: { type: 'boolean' },

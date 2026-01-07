@@ -1,3 +1,4 @@
+import { CdkDrag } from '@angular/cdk/drag-drop';
 import {
   AfterViewInit,
   Component,
@@ -9,11 +10,13 @@ import {
   OnDestroy,
   SimpleChanges
 } from '@angular/core';
+import { ReactiveFormsModule } from '@angular/forms';
 import { isEqual, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { catchError, Observable, Subject, Subscription, switchMap, takeUntil, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
+import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Ext } from '../../../model/ext';
 import { Page } from '../../../model/page';
 import { Ref, RefSort } from '../../../model/ref';
@@ -25,19 +28,26 @@ import { ConfigService } from '../../../service/config.service';
 import { OembedStore } from '../../../store/oembed';
 import { Store } from '../../../store/store';
 import { URI_REGEX } from '../../../util/format';
-import { fixUrl } from '../../../util/http';
+import { fixUrl, printError } from '../../../util/http';
 import { getArgs, UrlFilter } from '../../../util/query';
 import { hasTag } from '../../../util/tag';
+import { LoadingComponent } from '../../loading/loading.component';
+import { KanbanCardComponent } from '../kanban-card/kanban-card.component';
 import { KanbanDrag } from '../kanban.component';
 
 @Component({
-  standalone: false,
   selector: 'app-kanban-column',
   templateUrl: './kanban-column.component.html',
   styleUrls: ['./kanban-column.component.scss'],
-  host: {'class': 'kanban-column'}
+  host: { 'class': 'kanban-column' },
+  imports: [
+    KanbanCardComponent,
+    CdkDrag,
+    LoadingComponent,
+    ReactiveFormsModule,
+  ],
 })
-export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestroy {
+export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestroy, HasChanges {
   private destroy$ = new Subject<void>();
 
   @Input()
@@ -64,6 +74,7 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
   addText = '';
   pressToUnlock = false;
   adding: string[] = [];
+  failed: { text: string; error: string }[] = [];
 
   private currentRequest?: Subscription;
   private runningSources?: Subscription;
@@ -156,26 +167,26 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
         this.runningSources = this.refs.page({ ...args, url: args.sources, size: 1, sources: undefined, responses: undefined }).pipe(
           takeUntil(this.destroy$)
         ).subscribe(res => {
-            if (res.content[0]) {
-              this.mutated = true;
-              // @ts-ignore
-              res.content[0]['pinned'] = true
-              page.content.unshift(res.content[0]);
-            }
-          });
+          if (res.content[0]) {
+            this.mutated = true;
+            // @ts-ignore
+            res.content[0]['pinned'] = true
+            page.content.unshift(res.content[0]);
+          }
+        });
       }
       this.runningResponses?.unsubscribe();
       if (args.responses) {
         this.runningResponses = this.refs.page({ ...args, url: args.responses, size: 1, sources: undefined, responses: undefined }).pipe(
           takeUntil(this.destroy$)
         ).subscribe(res => {
-            if (res.content[0]) {
-              this.mutated = true;
-              // @ts-ignore
-              res.content[0]['pinned'] = true
-              page.content.unshift(res.content[0]);
-            }
-          });
+          if (res.content[0]) {
+            this.mutated = true;
+            // @ts-ignore
+            res.content[0]['pinned'] = true
+            page.content.unshift(res.content[0]);
+          }
+        });
       }
     });
   }
@@ -228,7 +239,7 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
     const isUrl = URI_REGEX.test(text) && this.config.allowedSchemes.filter(s => text.startsWith(s)).length;
     // TODO: support local urls
     const ref: Ref = isUrl ? {
-      url: fixUrl(text, this.admin.getTemplate('banlist') || this.admin.def.templates.banlist),
+      url: fixUrl(text, this.admin.getTemplate('config/banlist') || this.admin.def.templates['config/banlist']),
       origin: this.store.account.origin,
       tags: [...tagsWithAuthor],
     } : {
@@ -287,6 +298,8 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
             }),
           );
         }
+        this.adding.splice(this.adding.indexOf(text), 1);
+        this.failed.push({ text, error: printError(err).join('\n') });
         return throwError(err);
       }),
       tap(cursor => this.accounts.clearNotificationsIfNone(DateTime.fromISO(cursor))),
@@ -301,6 +314,16 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
       ref.modifiedString = cursor;
       this.page!.content.push(ref)
     });
+  }
+
+  retry(failedItem: { text: string; error: string }) {
+    this.failed.splice(this.failed.indexOf(failedItem), 1);
+    this.addText = failedItem.text;
+    this.add();
+  }
+
+  dismissFailed(failedItem: { text: string; error: string }) {
+    this.failed.splice(this.failed.indexOf(failedItem), 1);
   }
 
   private refreshPage(i: number, pinned?: Ref[]) {
@@ -340,5 +363,9 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
         return throwError(err);
       }),
     );
+  }
+
+  saveChanges(): boolean {
+    return this.adding.length === 0 && this.failed.length === 0;
   }
 }

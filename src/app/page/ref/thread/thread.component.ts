@@ -1,9 +1,11 @@
 import { Component, ViewChild } from '@angular/core';
 import { defer, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
+import { MobxAngularModule } from 'mobx-angular';
 import { catchError, filter, of, Subject, Subscription, switchMap, takeUntil } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { CommentReplyComponent } from '../../../component/comment/comment-reply/comment-reply.component';
+import { LoadingComponent } from '../../../component/loading/loading.component';
 import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Ref } from '../../../model/ref';
@@ -21,11 +23,11 @@ import { getArgs } from '../../../util/query';
 import { hasTag, removeTag, top, updateMetadata } from '../../../util/tag';
 
 @Component({
-  standalone: false,
   selector: 'app-ref-thread',
   templateUrl: './thread.component.html',
   styleUrls: ['./thread.component.scss'],
-  host: {'class': 'thread'}
+  host: { 'class': 'thread' },
+  imports: [MobxAngularModule, RefListComponent, LoadingComponent, CommentReplyComponent]
 })
 export class RefThreadComponent implements HasChanges {
 
@@ -64,6 +66,23 @@ export class RefThreadComponent implements HasChanges {
 
   ngOnInit(): void {
     this.disposers.push(autorun(() => {
+      if (this.store.view.pageSize) {
+        runInAction(() => this.store.view.defaultPageNumber = Math.floor(((this.to.metadata?.plugins?.['plugin/thread'] || 1) - 1) / this.store.view.pageSize));
+      }
+    }));
+    this.disposers.push(autorun(() => {
+      const args = getArgs(
+        'plugin/thread:!plugin/delete',
+        this.store.view.sort,
+        this.store.view.filter,
+        this.store.view.search,
+        this.store.view.pageNumber,
+        this.store.view.pageSize,
+      );
+      args.responses = this.store.view.url;
+      defer(() => this.query.setArgs(args));
+    }));
+    this.disposers.push(autorun(() => {
       const args = getArgs(
         'plugin/thread:!plugin/delete',
         this.store.view.sort,
@@ -79,6 +98,10 @@ export class RefThreadComponent implements HasChanges {
     this.disposers.push(autorun(() => this.mod.setTitle($localize`Thread: ` + getTitle(this.store.view.ref))));
     this.disposers.push(autorun(() => {
       MemoCache.clear(this);
+      if (this.store.view.ref) {
+        const threadCount = this.store.view.ref.metadata?.plugins?.['plugin/thread'] || 0;
+        this.store.local.setLastSeenCount(this.store.view.url, 'threads', threadCount);
+      }
       if (this.store.view.ref && this.config.websockets) {
         const topUrl = top(this.store.view.ref);
         if (this.watchUrl !== topUrl) {

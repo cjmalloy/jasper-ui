@@ -19,11 +19,31 @@
       </div>
     }
   </div>
+  @if (store.view.type) {
+    @if (tag && (store.view.tag || store.view.template)) {
+      @if (!user) {
+        <app-query [query]="tag" class="breadcrumbs"></app-query>
+      } @else {
+        <app-nav class="center" [url]="'tag:/' + tag"></app-nav>
+        <div class="tag-select row center">
+          <div class="submit-button"
+               routerLinkActive="toggled"
+               [routerLink]="['/tag', inbox]"
+               tabindex="0">
+            <span i18n-title title="Inbox" i18n>📥️</span> <label i18n>Inbox</label>
+          </div>
+          <div class="submit-button"
+               routerLinkActive="toggled"
+               [routerLink]="['/tag', outbox]"
+               tabindex="0">
+            <span i18n-title title="Outbox" i18n>📤️</span> <label i18n>Outbox</label>
+          </div>
+        </div>
+      }
+    }
+  }
   @if (expanded) {
     @if (store.view.type) {
-      @if (tag && (store.view.tag || store.view.template)) {
-        <app-query [query]="tag" class="breadcrumbs"></app-query>
-      }
       <div class="row mini-col reverse">
         <app-filter [type]="store.view.type!" [activeExts]="activeExts"></app-filter>
         <app-sort [type]="store.view.type!"></app-sort>
@@ -102,7 +122,7 @@
       </div>
     }
     @if (homeWriteAccess) {
-      <div class="submit-button" [routerLink]="['/ext', 'home']" tabindex="0">
+      <div class="submit-button" [routerLink]="['/ext', 'config/home']" tabindex="0">
         <span i18n-title title="Edit Home Page" i18n>🏡️</span> <label i18n>Home Page</label>
       </div>
     } @else if (store.view.type === 'ext') {
@@ -111,7 +131,7 @@
           <span i18n-title title="Extend Tag" i18n>🎨️</span> <label i18n>Extend Tag
           &nbsp;
           &nbsp;
-            {{ template?.name || '' }}</label>
+          {{ template?.name || '' }}</label>
         </div>
       } @else if (!store.view.template) {
         <div class="submit-button" [routerLink]="['/ext']" tabindex="0">
@@ -158,7 +178,7 @@
                     i18n-title title="Add to top bar"
                     class="bookmark" i18n>+ bookmark</button>
           }
-          @if (admin.getTemplate('home')) {
+          @if (admin.getTemplate('config/home')) {
             @if (user) {
               @if (inSubs) {
                 <button type="button"
@@ -214,13 +234,13 @@
     </div>
   }
   @if (!home && expanded) {
-    @for (res of queryExts$ | async; track res) {
-      <h5>{{ res.ext.name || res.ext.tag}} Tags:</h5>
-      @for (c of res.children; track c.tag + c.origin) {
-        <app-ext [ext]="c" [useEditPage]="true"></app-ext>
+    @for (res of queryExts$ | async; track res.x.tag) {
+      <h5>{{ res.x.name || res.x.tag}} Tags:</h5>
+      @for (x of res.children; track x.tag + x.origin) {
+        <app-ext [ext]="x" [useEditPage]="true"></app-ext>
       }
       @if (res.more) {
-        <a [routerLink]="['/tags', res.ext.tag]"
+        <a [routerLink]="['/tags', res.x.tag]"
            queryParamsHandling="merge"
            class="load-more no-select" i18n>
           load more

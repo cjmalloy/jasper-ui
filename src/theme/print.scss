@@ -4,10 +4,6 @@
   display: none !important;
 }
 
-.ref {
-  break-inside: avoid;
-}
-
 @media print {
   .print-hide {
     display: none !important;
@@ -29,6 +25,7 @@
   .blog .icon,
   app-comment-reply,
   .mobile-tab-select,
+  .markdown-clipboard-toolbar,
   footer {
     display: none !important;
   }
@@ -53,7 +50,7 @@
     min-height: 0;
     background-color: unset !important;
     .logo {
-      background-image: url("~/assets/jasper-light.png") !important;
+      background-image: url("../assets/jasper-light.png") !important;
     }
   }
 

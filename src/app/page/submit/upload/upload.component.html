@@ -44,13 +44,18 @@
       }
     </div>
 
+    @for (c of store.submit.uploads; track c) {
+      <span><!-- Uploading --></span>
+      <div>Uploading {{ c.name }} <progress max="100" [value]="c.progress"></progress></div>
+    }
+
     @if (!store.submit.empty) {
       <span></span>
       <div>
         <hr>
         <div class="padded form-array">
           <button type="button" (click)="push()" i18n>upload all</button>
-          <div><input id="overwrite" type="checkbox" [(ngModel)]="store.submit.overwrite"></div>
+          <div><input id="overwrite" type="checkbox" [checked]="store.submit.overwrite" (input)="overwrite = !store.submit.overwrite"></div>
           <label for="overwrite" i18n>Overwrite existing</label>
           <div class="buttons right">
             <button type="button" (click)="download()" i18n>download all</button>

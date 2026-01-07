@@ -1,7 +1,11 @@
 import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { defer } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
+import { MobxAngularModule } from 'mobx-angular';
 import { LensComponent } from '../../component/lens/lens.component';
+import { SidebarComponent } from '../../component/sidebar/sidebar.component';
+import { TabsComponent } from '../../component/tabs/tabs.component';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
@@ -12,10 +16,16 @@ import { Store } from '../../store/store';
 import { getArgs } from '../../util/query';
 
 @Component({
-  standalone: false,
   selector: 'app-home-page',
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.scss'],
+  imports: [
+    LensComponent,
+    MobxAngularModule,
+    TabsComponent,
+    RouterLink,
+    SidebarComponent,
+  ],
 })
 export class HomePage implements OnInit, OnDestroy, HasChanges {
   private disposers: IReactionDisposer[] = [];
@@ -32,14 +42,14 @@ export class HomePage implements OnInit, OnDestroy, HasChanges {
     private exts: ExtService,
   ) {
     mod.setTitle($localize`Home`);
-    store.view.clear([!!admin.getPlugin('plugin/user/vote/up') ? 'voteScoreDecay' : 'published']);
+    store.view.clear([!!admin.getPlugin('plugin/user/vote/up') ? 'plugins->plugin/user/vote:decay' : 'published']);
     query.clear();
-    if (admin.getTemplate('home')) {
-      exts.getCachedExt('home' + store.account.origin).subscribe(x => runInAction(() => {
-        if (x.origin === store.account.origin && x.modified) {
+    if (admin.getTemplate('config/home')) {
+      exts.getCachedExt('config/home' + (store.account.origin || '@')).subscribe(x => runInAction(() => {
+        if (x.modified) {
           store.view.exts = [x];
         } else {
-          store.view.exts = [ { ...this.exts.defaultExt('home'), config: admin.getDefaults('home') }];
+          store.view.exts = [ { ...this.exts.defaultExt('config/home'), config: admin.getDefaults('config/home') }];
         }
       }));
     }

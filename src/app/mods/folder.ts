@@ -17,6 +17,61 @@ export const folderTemplate: Template = {
     filters: [
       { query: 'folder', label: $localize`📂️ folder`, title: $localize`Folders`, group: $localize`Templates 🎨️` },
     ],
+    // language=CSS
+    css: `
+      .desktop {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-start;
+        align-content: flex-start;
+        max-width: 100vw;
+        height: 90vh;
+      }
+
+      .file, .subfolder {
+        display: block;
+        padding: 6px;
+        border-radius: 16px;
+        &:hover, &:active, &.cdk-drag-dragging {
+          z-index: 1000;
+          box-shadow: inset 0 0 5px grey;
+          backdrop-filter: blur(3px);
+          transition: box-shadow 0.1s ease-out;
+        }
+        &.cdk-drag-dragging {
+          box-shadow: inset 0 0 10px grey;
+          transition: box-shadow 0.1s ease-in;
+        }
+        width: 128px;
+        min-height: 128px;
+        display: inline-block;
+        user-select: none;
+        text-align: center;
+        .row {
+          justify-content: center;
+          a {
+            -webkit-box-orient: vertical;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: normal;
+          }
+        }
+        .thumbnail {
+          width: 128px;
+          height: 128px;
+          line-height: 128px;
+          font-size: 64px;
+          cursor: default;
+        }
+        :focus, :focus-within {
+          .folder-icon {
+            filter: drop-shadow(0 0 2px var(--border));
+          }
+        }
+      }
+    `,
   },
   defaults: {
     files: {},

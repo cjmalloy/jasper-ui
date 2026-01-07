@@ -17,7 +17,6 @@
     @for (plugin of store.view.settingsTabs; track plugin.tag) {
       <a [routerLink]="['./ref', plugin.tag]"
          routerLinkActive="current-tab"
-         queryParamsHandling="merge"
          [title]="plugin.name || plugin.tag">{{ plugin.config?.settings || plugin.tag }}</a>
     }
     <a routerLink="./user"
@@ -44,6 +43,10 @@
          i18n-title title="🔏 Change Password"
          i18n>password</a>
     }
+    <a routerLink="./local"
+       routerLinkActive="current-tab"
+       i18n-title title="💾 Local Storage"
+       i18n>local</a>
   </app-tabs>
   @if (store.view.type) {
     <app-sidebar [tag]="store.view.settingsTag"></app-sidebar>

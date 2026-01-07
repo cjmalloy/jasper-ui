@@ -1,25 +1,31 @@
+import { KeyValuePipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component } from '@angular/core';
-import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
-import { forOwn, mapValues, uniq } from 'lodash-es';
+import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
+import { RouterLink } from '@angular/router';
+import { forOwn, uniq } from 'lodash-es';
 import { catchError, concat, last, throwError } from 'rxjs';
 import { Config } from '../../../model/tag';
 import { AdminService } from '../../../service/admin.service';
 import { ModService } from '../../../service/mod.service';
 import { Store } from '../../../store/store';
 import { scrollToFirstInvalid } from '../../../util/form';
-import { configGroups, modId } from '../../../util/format';
+import { configGroups, formSafeNames, modId } from '../../../util/format';
 import { printError } from '../../../util/http';
 
 @Component({
-  standalone: false,
   selector: 'app-settings-setup-page',
   templateUrl: './setup.component.html',
   styleUrls: ['./setup.component.scss'],
+  imports: [
+    ReactiveFormsModule,
+    RouterLink,
+    KeyValuePipe,
+  ],
 })
 export class SettingsSetupPage {
 
-  experiments = !!this.admin.getTemplate('experiments');
+  experiments = !!this.admin.getTemplate('config/experiments');
   selectAllToggle = false;
   submitted = false;
   adminForm: UntypedFormGroup;
@@ -38,7 +44,7 @@ export class SettingsSetupPage {
   ) {
     mod.setTitle($localize`Settings: Setup`);
     this.adminForm = fb.group({
-      mods: fb.group(mapValues({...this.admin.def.plugins, ...this.admin.def.templates }, () => fb.control(false))),
+      mods: fb.group(formSafeNames({...this.admin.def.plugins, ...this.admin.def.templates })),
     });
     this.clear();
   }
@@ -55,20 +61,22 @@ export class SettingsSetupPage {
     const deletes: string[] = [];
     const installs: string[] = [];
     for (const plugin in this.admin.def.plugins) {
+      const formName = plugin.replace(/[.]/g, '-');
       const def = this.admin.def.plugins[plugin];
       const status = this.admin.status.plugins[plugin] || this.admin.status.disabledPlugins[plugin];
-      if (!!status === !!this.adminForm.value.mods[plugin]) continue;
-      if (this.adminForm.value.mods[plugin]) {
+      if (!!status === !!this.adminForm.value.mods[formName]) continue;
+      if (this.adminForm.value.mods[formName]) {
         installs.push(modId(def));
       } else {
         deletes.push(modId(status));
       }
     }
     for (const template in this.admin.def.templates) {
+      const formName = template.replace(/[.]/g, '-');
       const def = this.admin.def.templates[template];
       const status = this.admin.status.templates[template] || this.admin.status.disabledTemplates[template];
-      if (!!status === !!this.adminForm.value.mods[template]) continue;
-      if (this.adminForm.value.mods[template]) {
+      if (!!status === !!this.adminForm.value.mods[formName]) continue;
+      if (this.adminForm.value.mods[formName]) {
         installs.push(modId(def));
       } else {
         deletes.push(modId(status));
@@ -76,8 +84,8 @@ export class SettingsSetupPage {
     }
     const _ = (msg?: string) => this.installMessages.push(msg!);
     concat(
-        ...uniq(deletes).map(m => this.admin.deleteMod$(m, _)),
-        ...uniq(installs).map(m => this.admin.installMod$(m, _))
+      ...uniq(deletes).map(m => this.admin.deleteMod$(m, _)),
+      ...uniq(installs).map(m => this.admin.installMod$(m, _))
     ).pipe(
       catchError((res: HttpErrorResponse) => {
         this.serverError = printError(res);
@@ -96,12 +104,14 @@ export class SettingsSetupPage {
   }
 
   clear() {
-    this.adminForm.reset({ mods: {
-      ...this.admin.status.plugins,
-      ...this.admin.status.disabledPlugins,
-      ...this.admin.status.templates,
-      ...this.admin.status.disabledTemplates,
-    }});
+    this.adminForm.reset({
+      mods: formSafeNames({
+        ...this.admin.status.plugins,
+        ...this.admin.status.disabledPlugins,
+        ...this.admin.status.templates,
+        ...this.admin.status.disabledTemplates,
+      }),
+    });
   }
 
   updateAll() {

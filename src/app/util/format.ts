@@ -4,7 +4,7 @@ import { Ref } from '../model/ref';
 import { Config, ModType } from '../model/tag';
 import { reverseOrigin } from '../mods/mailbox';
 import { config } from '../service/config.service';
-import { hasPrefix, hasTag } from './tag';
+import { hasPrefix, hasTag, publicTag } from './tag';
 
 export const URI_REGEX = /^[^\s:\/?#]+:(\/\/([^\/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?$/;
 export const TAG_REGEX = /^[_+]?[a-z0-9]+([./][a-z0-9]+)*$/;
@@ -43,7 +43,9 @@ export function authors(ref: Ref, prefixes = ['+user', '_user', 'plugin/from', '
 }
 
 export function userAuthors(ref: Ref) {
-  return uniq(templates(ref.tags || [], 'user').map(t => t + (ref.origin || '')));
+  return uniq(templates(ref.tags || [], 'user')
+    .filter(t => !publicTag(t))
+    .map(t => t + (ref.origin || '')));
 }
 
 export function clickableLink(url: string) {
@@ -100,15 +102,18 @@ export function configGroups(def: Record<string, Config>): Record<ModType, [stri
     const mod = modId(item[1]);
     const type: [string, Config][] = result[item[1].config?.type || DEFAULT_TYPE] ||= [];
     if (!type.find(i => mod === modId(i[1]))) {
-      type.push(item);
+      type.push([item[0].replace(/[.]/g, '-'), item[1]]);
     }
     return result;
   }, {} as Record<ModType, [string, Config][]>)
   for (const k of Object.keys(result) as ModType[]) {
-    // @ts-ignore
     result[k] = sortBy(result[k], [e => e[1]!.tag.match(/^[+_]/) ? e[1]!.tag.substring(1) : e[1]!.tag]);
   }
   return result;
+}
+
+export function formSafeNames(map: any) {
+  return Object.fromEntries(Object.entries(map).map(e => [e[0].replace(/[.]/g, '-'), e[1]]));
 }
 
 export function modId(c?: Config) {
@@ -120,11 +125,9 @@ export function getTitle(ref: Ref | undefined): string {
   const title = (ref.title || '').trim();
   const comment = (ref.comment || '').trim();
   if (title) return title;
-  if (!comment) {
-    if (ref.url?.startsWith('tag:/')) return '#' + ref.url.substring('tag:/'.length);
-    return ref.url;
-  }
-  return trimCommentForTitle(comment);
+  if (comment) return trimCommentForTitle(comment);
+  if (ref.url?.startsWith('tag:/')) return '#' + ref.url.substring('tag:/'.length);
+  return ref.url;
 }
 
 export function getNiceTitle(ref: Ref | undefined): string {
@@ -132,14 +135,12 @@ export function getNiceTitle(ref: Ref | undefined): string {
   const title = (ref.title || '').trim();
   const comment = (ref.comment || '').trim();
   if (title) return title;
-  if (!comment) {
-    if (ref.url.startsWith('cache:')) return '';
-    if (ref.url.startsWith('comment:')) return '';
-    if (ref.url.startsWith('internal:')) return '';
-    if (ref.url.startsWith('tag:/')) return '#' + ref.url.substring('tag:/'.length);
-    return ref.url;
-  }
-  return trimCommentForTitle(comment);
+  if (comment) return trimCommentForTitle(comment);
+  if (ref.url.startsWith('cache:')) return '';
+  if (ref.url.startsWith('comment:')) return '';
+  if (ref.url.startsWith('internal:')) return '';
+  if (ref.url.startsWith('tag:/')) return '#' + ref.url.substring('tag:/'.length);
+  return ref.url;
 }
 
 export function getPageTitle(ref: Ref | undefined, top?: Ref): string {
@@ -148,28 +149,26 @@ export function getPageTitle(ref: Ref | undefined, top?: Ref): string {
   const comment = (ref.comment || '').trim();
   if (title) return title;
   if (top?.title) return $localize`Re: ` + getTitle(top);
-  if (!comment) {
-    if (top?.comment) return $localize`Re: ` + getTitle(top);
-    if (ref.url.startsWith('tag:/')) return '#' + ref.url.substring('tag:/'.length);
-    return ref.url;
-  }
-  return trimCommentForTitle(comment);
+  if (comment) return trimCommentForTitle(comment);
+  if (top?.comment) return $localize`Re: ` + getTitle(top);
+  if (ref.url.startsWith('tag:/')) return '#' + ref.url.substring('tag:/'.length);
+  return ref.url;
 }
 
 function trimCommentForTitle(comment: string): string {
   if (!comment) return '';
   comment = he.decode(comment.replace( /<[^>]+>/g, ''));
-  if (comment.includes('\n')) {
-    const lines = comment.split('\n').map(t => t.trim()).filter(t => t.length);
-    const newText = lines.filter(l => !l.startsWith('>'));
-    if (newText.length) return trimTextForTitle(newText[0]);
-    return trimTextForTitle(lines[0]);
-  }
-  return trimTextForTitle(comment);
+  if (!comment.includes('\n')) return trimTextForTitle(comment)
+  const lines = comment.split('\n').map(t => t.trim()).filter(t => t.length);
+  const newText = lines.filter(l => !l.startsWith('>'));
+  if (newText.length) return trimTextForTitle(newText[0]);
+  return trimTextForTitle(lines[0]);
 }
 
 function trimTextForTitle(comment: string) {
   if (!comment) return '';
+  comment = comment.replace(/!\[+?]\(([^)]|\\\))*\)/, $localize` Image `);
+  comment = comment.replace(/\[([^\]]+)]\(([^)]|\\\))*\)/, ' $1 ');
   if (comment.length <= 140) return comment;
   return comment.substring(0, 140) + '...';
 }

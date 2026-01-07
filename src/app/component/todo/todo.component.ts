@@ -1,4 +1,4 @@
-import { CdkDragDrop } from '@angular/cdk/drag-drop';
+import { CdkDrag, CdkDragDrop, CdkDropList } from '@angular/cdk/drag-drop';
 import {
   Component,
   EventEmitter,
@@ -10,20 +10,26 @@ import {
   Output,
   SimpleChanges
 } from '@angular/core';
-import { DateTime } from 'luxon';
-import { catchError, Observable, Subscription, throwError } from 'rxjs';
-import { Ref, RefUpdates } from '../../model/ref';
-import { RefService } from '../../service/api/ref.service';
+import { ReactiveFormsModule } from '@angular/forms';
+import { catchError, Observable, of, Subscription, switchMap, throwError, timer } from 'rxjs';
+import { tap } from 'rxjs/operators';
+import { Ref } from '../../model/ref';
+import { ActionService } from '../../service/action.service';
 import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
-import { printError } from '../../util/http';
+import { TodoItemComponent } from './item/item.component';
 
 @Component({
-  standalone: false,
   selector: 'app-todo',
   templateUrl: './todo.component.html',
   styleUrls: ['./todo.component.scss'],
-  host: {'class': 'todo-list'}
+  host: { 'class': 'todo-list' },
+  imports: [
+    CdkDropList,
+    CdkDrag,
+    ReactiveFormsModule,
+    TodoItemComponent,
+  ]
 })
 export class TodoComponent implements OnChanges {
 
@@ -35,25 +41,25 @@ export class TodoComponent implements OnChanges {
   origin = '';
   @Input()
   tags?: string[];
-  @Input()
-  updates$?: Observable<RefUpdates>;
   @Output()
   comment = new EventEmitter<string>();
   @Output()
   copied = new EventEmitter<string>();
 
   lines: string[] = [];
-  addText = ``;
+  addText = '';
+  pushText: string[] = [];
   pressToUnlock = false;
   serverErrors: string[] = [];
 
   private watch?: Subscription;
-  private cursor?: string;
+  private pushing?: Subscription;
+  private comment$!: (comment: string) => Observable<string>;
 
   constructor(
     public config: ConfigService,
     private store: Store,
-    private refs: RefService,
+    private actions: ActionService,
     private zone: NgZone,
   ) {
     if (config.mobile) {
@@ -63,17 +69,12 @@ export class TodoComponent implements OnChanges {
 
   init() {
     this.lines = (this.ref?.comment || this.text || '').split('\n')?.filter(l => !!l) || [];
-    if (this.local) {
-      this.cursor ||= this.ref?.modifiedString;
-    }
-    if (!this.watch && this.updates$) {
-      this.watch = this.updates$.subscribe(u => {
-        this.ref!.comment = u.comment;
-        if (u.origin === this.store.account.origin) {
-          this.ref!.modified = u.modified;
-          this.ref!.modifiedString = this.cursor = u.modifiedString;
-          this.init();
-        }
+    if (!this.watch && this.ref) {
+      const watch = this.actions.watch(this.ref);
+      this.comment$ = watch.comment$;
+      this.watch = watch.ref$.subscribe(update => {
+        this.ref!.comment = update.comment;
+        this.init();
       });
     }
   }
@@ -105,7 +106,7 @@ export class TodoComponent implements OnChanges {
       // TODO: Delete from prev
     }
     this.lines.splice(event.currentIndex, 0, event.item.data);
-    this.save(this.lines.join('\n'));
+    this.save$(this.lines.join('\n'))?.subscribe();
   }
 
   update(line: {index: number, text: string, checked: boolean}) {
@@ -114,37 +115,45 @@ export class TodoComponent implements OnChanges {
     } else {
       this.lines[line.index] = `- [${line.checked ? 'X' : ' '}] ${line.text}`;
     }
-    this.save(this.lines.join('\n'));
+    this.save$(this.lines.join('\n'))?.subscribe();
   }
 
-  save(comment: string) {
+  save$(comment: string) {
     this.comment.emit(comment);
-    if (!this.ref) return;
-    this.refs.merge(this.ref.url, this.store.account.origin, this.ref.modifiedString!,
-      { comment }
-    ).pipe(
-      catchError(err => {
-        this.serverErrors = printError(err);
-        return throwError(() => err);
-      })
-    ).subscribe(cursor => {
-      if (!this.cursor) {
-        this.ref!.origin = this.store.account.origin;
-        this.copied.emit(this.store.account.origin);
-      }
-      this.ref!.comment = comment;
-      this.ref!.modified = DateTime.fromISO(cursor);
-      this.ref!.modifiedString = this.cursor = cursor;
-      this.store.eventBus.refresh(this.ref);
-    });
+    if (!this.ref) return of();
+    return this.comment$(comment).pipe(
+      tap(() => {
+        if (!this.local) {
+          this.copied.emit(this.store.account.origin);
+          this.store.eventBus.refresh(this.ref);
+        }
+      }),
+    );
   }
 
   add(cancel?: Event) {
     cancel?.preventDefault();
     this.addText = this.addText.trim();
     if (!this.addText) return;
-    this.lines.push(`- [ ] ${this.addText}`);
-    this.save(this.lines.join('\n'));
+    this.pushText.push(`- [ ] ${this.addText}`);
     this.addText = '';
+    if (!this.pushing) this.pushing = this.push$().subscribe();
+  }
+
+  push$(): Observable<string> {
+    const lines = [...this.pushText];
+    return this.save$([...this.lines, ...lines].join('\n')).pipe(
+      catchError((err: any) => {
+        if (err.conflict) {
+          return timer(100).pipe(switchMap(() => this.push$()));
+        }
+        return throwError(() => err);
+      }),
+      tap(() => {
+        this.pushText = this.pushText.slice(lines.length);
+        delete this.pushing;
+        if (this.pushText.length) this.pushing = this.push$().subscribe();
+      }),
+    );
   }
 }

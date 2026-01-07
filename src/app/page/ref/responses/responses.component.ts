@@ -1,6 +1,7 @@
 import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { defer, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
+import { MobxAngularModule } from 'mobx-angular';
 import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { AdminService } from '../../../service/admin.service';
@@ -11,10 +12,13 @@ import { getTitle } from '../../../util/format';
 import { getArgs, UrlFilter } from '../../../util/query';
 
 @Component({
-  standalone: false,
   selector: 'app-ref-responses',
   templateUrl: './responses.component.html',
   styleUrls: ['./responses.component.scss'],
+  imports: [
+    MobxAngularModule,
+    RefListComponent,
+  ],
 })
 export class RefResponsesComponent implements OnInit, OnDestroy, HasChanges {
 
@@ -53,6 +57,12 @@ export class RefResponsesComponent implements OnInit, OnDestroy, HasChanges {
     }));
     // TODO: set title for bare reposts
     this.disposers.push(autorun(() => this.mod.setTitle($localize`Responses: ` + getTitle(this.store.view.ref))));
+    this.disposers.push(autorun(() => {
+      if (this.store.view.ref) {
+        const responsesCount = this.store.view.ref.metadata?.responses || 0;
+        this.store.local.setLastSeenCount(this.store.view.url, 'replies', responsesCount);
+      }
+    }));
   }
 
   ngOnDestroy() {

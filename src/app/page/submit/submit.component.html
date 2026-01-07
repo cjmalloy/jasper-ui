@@ -102,14 +102,21 @@
           @if (uploading) {
             <progress class="grow" max="100" [value]="progress"></progress>
           } @else {
+            <datalist [id]="listId">
+              @for (o of autocomplete; track o.value) {
+                <option [value]="o.value">{{ o.label }}</option>
+              }
+            </datalist>
             <input id="url"
                    [placeholder]="placeholder"
                    class="big"
                    type="text"
                    size="1"
                    autocomplete="off"
+                   [attr.list]="listId"
                    formControlName="url"
                    appAutofocus
+                   (input)="search(url.value)"
                    (paste)="getUrlPlugin()">
           }
           @if (!store.submit.wiki) {
@@ -158,10 +165,30 @@
 
           <span><!-- Buttons --></span>
           <span class="buttons right">
-          <button type="submit" [disabled]="!submitForm.valid && !existingRef"
-                  i18n-title title="Submit link"
-                  i18n>@if (repost) { Repost } @else { Next }</button>
-        </span>
+            <button type="submit" [disabled]="!submitForm.valid && !existingRef"
+                    i18n-title title="Submit link"
+                    i18n>@if (repost) { Repost } @else { Next }</button>
+          </span>
+
+          @if (responsesToUrl.content.length > 0) {
+            <span><!-- Title --></span>
+            <span i18n>Existing Responses:</span>
+
+            <span><!-- Existing responses --></span>
+            <div class="list-container">
+              @for (ref of responsesToUrl.content; track ref.url; let i = $index) {
+                <div class="list-number">{{ i + 1 }}</div>
+                <app-ref [ref]="ref" [showToggle]="true"></app-ref>
+              }
+            </div>
+            @if (responsesToUrl.page.totalPages > 1) {
+              <span><!-- show more --></span>
+              <a [routerLink]="['/ref', url.value, 'responses']"
+                 class="load-more no-select" i18n>
+                see all
+              </a>
+            }
+          }
         }
       </form>
 

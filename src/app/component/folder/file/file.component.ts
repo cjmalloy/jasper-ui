@@ -1,4 +1,6 @@
-import { Component, HostBinding, Input, OnChanges, OnDestroy, SimpleChanges } from '@angular/core';
+import { AsyncPipe } from '@angular/common';
+import { Component, forwardRef, HostBinding, Input, OnChanges, OnDestroy, SimpleChanges } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { catchError, of, Subject, takeUntil, throwError } from 'rxjs';
 import { Ref } from '../../../model/ref';
 import {
@@ -12,6 +14,8 @@ import {
   Visibility,
   visible
 } from '../../../model/tag';
+import { CssUrlPipe } from '../../../pipe/css-url.pipe';
+import { ThumbnailPipe } from '../../../pipe/thumbnail.pipe';
 import { AdminService } from '../../../service/admin.service';
 import { RefService } from '../../../service/api/ref.service';
 import { AuthzService } from '../../../service/authz.service';
@@ -20,12 +24,19 @@ import { getTitle, templates } from '../../../util/format';
 import { getScheme } from '../../../util/http';
 import { memo, MemoCache } from '../../../util/memo';
 import { hasTag, isAuthorTag, repost } from '../../../util/tag';
+import { ViewerComponent } from '../../viewer/viewer.component';
 
 @Component({
-  standalone: false,
   selector: 'app-file',
   templateUrl: './file.component.html',
-  styleUrls: ['./file.component.scss']
+  styleUrls: ['./file.component.scss'],
+  imports: [
+    forwardRef(() => ViewerComponent),
+    RouterLink,
+    AsyncPipe,
+    ThumbnailPipe,
+    CssUrlPipe,
+  ],
 })
 export class FileComponent implements OnChanges, OnDestroy {
   css = 'file ';
@@ -187,7 +198,7 @@ export class FileComponent implements OnChanges, OnDestroy {
   }
 
   visible(v: Visibility) {
-    return visible(v, this.isAuthor, this.isRecipient);
+    return visible(this.ref, v, this.isAuthor, this.isRecipient);
   }
 
   active(a: TagAction | ResponseAction | Icon) {

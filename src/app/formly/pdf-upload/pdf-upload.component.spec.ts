@@ -1,7 +1,8 @@
+/// <reference types="vitest/globals" />
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { RouterModule } from '@angular/router';
+import { provideRouter } from '@angular/router';
 
 import { PdfUploadComponent } from './pdf-upload.component';
 
@@ -11,11 +12,11 @@ describe('PdfUploadComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [PdfUploadComponent],
-      imports: [RouterModule.forRoot([])],
+      imports: [PdfUploadComponent],
       providers: [
-        provideHttpClient(withInterceptorsFromDi()),
-        provideHttpClientTesting()
+          provideHttpClient(withInterceptorsFromDi()),
+          provideHttpClientTesting(),
+        provideRouter([]),
       ],
     }).compileComponents();
 

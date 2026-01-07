@@ -13,6 +13,26 @@
     <app-kanban-card [ref]="{ url: '', title: text }"
                      [ext]="ext"></app-kanban-card>
   }
+  @for (failedItem of failed; track failedItem.text) {
+    <div class="failed-item">
+      <div class="failed-content">
+        <div class="failed-text">{{ failedItem.text }}</div>
+        <div class="failed-error">{{ failedItem.error }}</div>
+      </div>
+      <div class="failed-actions">
+        <button type="button"
+                class="retry-btn"
+                (click)="retry(failedItem)"
+                i18n-title title="Retry creating this item"
+                i18n>↻</button>
+        <button type="button"
+                class="dismiss-btn"
+                (click)="dismissFailed(failedItem)"
+                i18n-title title="Dismiss this failed item"
+                i18n>&ndash;</button>
+      </div>
+    </div>
+  }
 } @else {
   <app-loading></app-loading>
 }
@@ -25,7 +45,8 @@
        enterkeyhint="send"
        i18n-placeholder
        placeholder="Add..."
-       [(ngModel)]="addText"
+       [value]="addText"
+       (input)="addText = $any($event.target).value"
        [style.display]="addText ? 'block' : 'none'"
        (keydown)="$event.key === 'Enter' && add() || true"
        (blur)="add()">

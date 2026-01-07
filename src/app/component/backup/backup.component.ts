@@ -1,18 +1,24 @@
+import { Overlay, OverlayRef } from '@angular/cdk/overlay';
+import { TemplatePortal } from '@angular/cdk/portal';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, HostBinding, Input } from '@angular/core';
-import { catchError, throwError } from 'rxjs';
+import { Component, ElementRef, HostBinding, Input, TemplateRef, ViewChild, ViewContainerRef } from '@angular/core';
+import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
+import { RouterLink } from '@angular/router';
+import { catchError, Observable, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
+import { BackupOptions } from '../../model/backup';
 import { AdminService } from '../../service/admin.service';
 import { BackupService } from '../../service/api/backup.service';
 import { Store } from '../../store/store';
 import { readableBytes } from '../../util/format';
 import { printError } from '../../util/http';
+import { ConfirmActionComponent } from '../action/confirm-action/confirm-action.component';
 
 @Component({
-  standalone: false,
   selector: 'app-backup',
   templateUrl: './backup.component.html',
-  styleUrls: ['./backup.component.scss']
+  styleUrls: ['./backup.component.scss'],
+  imports: [RouterLink, ConfirmActionComponent, ReactiveFormsModule]
 })
 export class BackupComponent {
 
@@ -23,9 +29,16 @@ export class BackupComponent {
   @Input()
   origin = '';
 
+  @ViewChild('restoreButton', { read: ElementRef })
+  restoreButton?: ElementRef<HTMLElement>;
+  @ViewChild('restoreOptions')
+  restoreOptionsTemplate!: TemplateRef<any>;
+
   @HostBinding('class.deleted')
   deleted = false;
   serverError: string[] = [];
+  restoreOptionsForm: UntypedFormGroup;
+  restoreOptionsRef?: OverlayRef;
 
   private backupKey = '';
 
@@ -33,9 +46,21 @@ export class BackupComponent {
     public admin: AdminService,
     public backups: BackupService,
     public store: Store,
+    private fb: UntypedFormBuilder,
+    private overlay: Overlay,
+    private viewContainerRef: ViewContainerRef,
   ) {
     backups.getDownloadKey()
       .subscribe(key => this.backupKey = key);
+    this.restoreOptionsForm = fb.group({
+      cache: [false],
+      ref: [true],
+      ext: [true],
+      user: [true],
+      plugin: [false],
+      template: [false],
+      newerThan: [''],
+    });
   }
 
   get inProgress() {
@@ -59,16 +84,82 @@ export class BackupComponent {
     return this.downloadLink + (this.origin ? '&' : '?') + 'p=' + encodeURIComponent(this.backupKey);
   }
 
+  showRestoreOptions() {
+    if (this.restoreOptionsRef || !this.restoreButton) return;
+    const positionStrategy = this.overlay.position()
+      .flexibleConnectedTo(this.restoreButton)
+      .withPositions([{
+        originX: 'start',
+        originY: 'bottom',
+        overlayX: 'start',
+        overlayY: 'top',
+        offsetY: 4,
+      }]);
+    this.restoreOptionsRef = this.overlay.create({
+      hasBackdrop: true,
+      backdropClass: 'hide',
+      positionStrategy,
+      scrollStrategy: this.overlay.scrollStrategies.close()
+    });
+    this.restoreOptionsRef.attach(new TemplatePortal(this.restoreOptionsTemplate, this.viewContainerRef));
+    this.restoreOptionsRef.backdropClick().subscribe(() => this.cancelRestore());
+  }
+
   restore$ = () => {
-    return this.backups.restore(this.origin, this.id).pipe(
+    // Show options popup
+    this.showRestoreOptions();
+    // Return an observable that will be resolved when user clicks OK
+    return new Observable(observer => {
+      // Store the observer so we can complete it later
+      this.restoreObserver = observer;
+    });
+  }
+
+  private restoreObserver: any = null;
+
+  confirmRestore() {
+    const options: BackupOptions = {
+      cache: this.restoreOptionsForm.value.cache,
+      ref: this.restoreOptionsForm.value.ref,
+      ext: this.restoreOptionsForm.value.ext,
+      user: this.restoreOptionsForm.value.user,
+      plugin: this.restoreOptionsForm.value.plugin,
+      template: this.restoreOptionsForm.value.template,
+      newerThan: this.restoreOptionsForm.value.newerThan || undefined,
+    };
+    this.closeRestoreOptions();
+    this.backups.restore(this.origin, this.id, options).pipe(
       catchError((err: HttpErrorResponse) => {
         this.serverError = printError(err);
+        if (this.restoreObserver) {
+          this.restoreObserver.error(err);
+          this.restoreObserver = null;
+        }
         return throwError(() => err);
       }),
       tap(() => {
         this.serverError = [];
+        if (this.restoreObserver) {
+          this.restoreObserver.next();
+          this.restoreObserver.complete();
+          this.restoreObserver = null;
+        }
       }),
-    );
+    ).subscribe();
+  }
+
+  cancelRestore() {
+    this.closeRestoreOptions();
+    if (this.restoreObserver) {
+      this.restoreObserver.error(new Error('cancelled'));
+      this.restoreObserver = null;
+    }
+  }
+
+  closeRestoreOptions() {
+    this.restoreOptionsRef?.detach();
+    this.restoreOptionsRef?.dispose();
+    this.restoreOptionsRef = undefined;
   }
 
   delete$ = () => {

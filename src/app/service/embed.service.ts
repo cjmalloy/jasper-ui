@@ -3,7 +3,7 @@ import { escape, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { marked, Token, Tokens, TokensList } from 'marked';
 import { MarkdownService, MarkedRenderer } from 'ngx-markdown';
-import { catchError, forkJoin, map, Observable, of } from 'rxjs';
+import { catchError, forkJoin, map, Observable, of, Subscription, switchMap } from 'rxjs';
 import { Ext } from '../model/ext';
 import { Oembed } from '../model/oembed';
 import { Page } from '../model/page';
@@ -12,7 +12,7 @@ import { wikiUriFormat } from '../mods/wiki';
 import { OembedStore } from '../store/oembed';
 import { Store } from '../store/store';
 import { delay } from '../util/async';
-import { Embed } from '../util/embed';
+import { Embed, parseSrc } from '../util/embed';
 import { parseParams } from '../util/http';
 import { getFilters, getFiltersQuery, parseArgs } from '../util/query';
 import { isQuery, localTag, queryPrefix, tagOrigin, topAnds } from '../util/tag';
@@ -174,10 +174,11 @@ export class EmbedService {
       start: (src: string) => src.match(/#/)?.index,
       tokenizer(src: string, tokens: any): any {
         const rule = /^#([+_]?[a-z0-9]+([./][a-z0-9]+)*)/;
-        const notNumber = /[a-z]/;
-        const match = notNumber.exec(src) && rule.exec(src);
+        const match = rule.exec(src);
         if (match) {
           const text = match[0];
+          // Don't link simple numbers
+          if (/^#[0-9]+$/.exec(text)) return undefined;
           return {
             type: 'hashTag',
             href: '/tag/' + match[1],
@@ -265,34 +266,13 @@ export class EmbedService {
         return undefined;
       },
       renderer(token: any): string {
-        if (token.text?.trim() === '+') {
+        if (token.text?.trim() === '=') {
+          return `<div class="loading inline-ref" title="${token.title}">${token.href}</div>`;
+        } else if (token.text?.trim() === '+') {
           return `<span class="toggle embed" title="${token.href}"><span class="toggle-plus">＋</span></span>`;
         } else {
           return `<div class="loading inline-embed" title="${token.title}">${token.href}</div>`;
         }
-      }
-    }, {
-      name: 'embed',
-      level: 'inline',
-      start: (src: string) => src.match(/\[(ref|embed)]/)?.index,
-      tokenizer(src: string, tokens: any): any {
-        const rule = /^\[(ref|embed)]\(([^\]]+)\)/;
-        const match = rule.exec(src);
-        if (match) {
-          const css = match[1];
-          const text = match[2];
-          return {
-            type: 'embed',
-            css,
-            text,
-            raw: match[0],
-            tokens: [],
-          };
-        }
-        return undefined;
-      },
-      renderer(token: any): string {
-        return `<div class="inline-${token.css}">${token.text}</div>`;
       }
     }, {
       name: 'preserveMath',
@@ -347,6 +327,7 @@ export class EmbedService {
    * @param origin origin to append to user links without existing origins
    */
   postProcess(el: HTMLDivElement, embed: Embed, event: (type: string, el: Element, fn: () => void) => void, origin = '') {
+    const subscriptions: Subscription[] = [];
     const lookup = this.store.origins.originMap.get(origin || '');
     const userTags = el.querySelectorAll<HTMLAnchorElement>('.user.tag');
     userTags.forEach(t => {
@@ -425,7 +406,7 @@ export class EmbedService {
     const inlineRefs = el.querySelectorAll<HTMLAnchorElement>('.inline-ref');
     inlineRefs.forEach(t => {
       const url = t.innerText;
-      this.refs.getCurrent(this.editor.getRefUrl(url)).pipe(
+      subscriptions.push(this.refs.getCurrent(this.editor.getRefUrl(url)).pipe(
         catchError(() => of(null)),
       ).subscribe(ref => {
         if (ref) {
@@ -437,7 +418,7 @@ export class EmbedService {
           t.parentNode?.insertBefore(el, t);
         }
         t.remove();
-      });
+      }));
     });
     const embedRefs = el.querySelectorAll<HTMLAnchorElement>('.inline-embed');
     embedRefs.forEach(t => {
@@ -445,47 +426,50 @@ export class EmbedService {
       const title = t.title;
       const type = this.editor.getUrlType(url);
       if (type === 'tag') {
-        this.loadQuery$(t.innerText).subscribe(({params, page, ext}) => {
+        subscriptions.push(this.loadQuery$(t.innerText).subscribe(({params, page, ext}) => {
           const c = embed.createLens(params, page, this.editor.getQuery(t.innerText), ext);
           if (title) c.location.nativeElement.title = title;
           t.parentNode?.insertBefore(c.location.nativeElement, t);
           t.remove();
-        });
+        }));
       } else {
-        this.refs.getCurrent(this.editor.getRefUrl(url)).pipe(
+        subscriptions.push(this.refs.getCurrent(this.editor.getRefUrl(url)).pipe(
           catchError(() => of(null)),
-        ).subscribe(ref => {
-          const expandPlugins = this.admin.getEmbeds(ref);
-          if (ref?.comment || expandPlugins.length) {
-            const c = embed.createEmbed(ref!, expandPlugins);
-            if (title) c.location.nativeElement.title = title;
-            t.parentNode?.insertBefore(c.location.nativeElement, t);
-            t.remove();
-          } else {
-            const embeds = this.admin.getPluginsForUrl(url);
-            if (embeds.length) {
-              const c = embed.createEmbed(url, embeds.map(p => p.tag));
+          switchMap(ref => {
+            const expandPlugins = this.admin.getEmbeds(ref);
+            if (ref?.comment || expandPlugins.length) {
+              const c = embed.createEmbed(ref!, expandPlugins);
               if (title) c.location.nativeElement.title = title;
               t.parentNode?.insertBefore(c.location.nativeElement, t);
               t.remove();
-            } else if (url.startsWith('/ref/')) {
-              el = document.createElement('div');
-              el.innerHTML = `<span class="error">Ref ${escape(url)} not found and could not embed directly.</span>`;
-              t.parentNode?.insertBefore(el, t);
-              t.remove();
             } else {
-              this.oembeds.get(url, this.store.darkTheme ? 'dark' : undefined)
-                .pipe(catchError(() => of(null)))
-                .subscribe(oembed => {
-                  const expandPlugins = oembed ? ['plugin/embed'] : ['plugin/image'];
-                  const c = embed.createEmbed(url, expandPlugins);
-                  c.location.nativeElement.title = t.title;
-                  t.parentNode?.insertBefore(c.location.nativeElement, t);
-                  t.remove();
-                });
+              const embeds = this.admin.getPluginsForUrl(url);
+              if (embeds.length) {
+                const c = embed.createEmbed(url, embeds.map(p => p.tag));
+                if (title) c.location.nativeElement.title = title;
+                t.parentNode?.insertBefore(c.location.nativeElement, t);
+                t.remove();
+              } else if (url.startsWith('/ref/')) {
+                el = document.createElement('div');
+                el.innerHTML = `<span class="error">Ref ${escape(url)} not found and could not embed directly.</span>`;
+                t.parentNode?.insertBefore(el, t);
+                t.remove();
+              } else {
+                return this.oembeds.get(url, this.store.darkTheme ? 'dark' : undefined).pipe(
+                  catchError(() => of(null)),
+                  map(oembed => {
+                    const expandPlugins = oembed ? ['plugin/embed'] : ['plugin/image'];
+                    const c = embed.createEmbed(url, expandPlugins);
+                    c.location.nativeElement.title = t.title;
+                    t.parentNode?.insertBefore(c.location.nativeElement, t);
+                    t.remove();
+                  }),
+                );
+              }
             }
-          }
-        });
+            return of(null);
+          }),
+        ).subscribe());
       }
     });
     const toggleFaces = '<span class="toggle-plus">＋</span><span class="toggle-x" style="display: none">✕</span>';
@@ -515,7 +499,7 @@ export class EmbedService {
           const url = t.title!;
           const type = this.editor.getUrlType(url);
           if (type === 'ref') {
-            this.refs.getCurrent(this.editor.getRefUrl(url)).pipe(
+            subscriptions.push(this.refs.getCurrent(this.editor.getRefUrl(url)).pipe(
               catchError(() => of(null)),
             ).subscribe(ref => {
               if (ref) {
@@ -528,14 +512,14 @@ export class EmbedService {
               }
               // @ts-ignore
               t.expanded = !t.expanded;
-            });
+            }));
           } else if (type === 'tag') {
-            this.loadQuery$(url).subscribe(({params, page, ext}) => {
+            subscriptions.push(this.loadQuery$(url).subscribe(({params, page, ext}) => {
               const c = embed.createLens(params, page, this.editor.getQuery(url), ext);
               t.parentNode?.insertBefore(c.location.nativeElement, t.nextSibling);
               // @ts-ignore
               t.expanded = !t.expanded;
-            });
+            }));
           }
         }
       });
@@ -577,14 +561,14 @@ export class EmbedService {
           } else {
             const type = this.editor.getUrlType(url);
             if (type === 'tag') {
-              this.loadQuery$(url).subscribe(({params, page, ext}) => {
+              subscriptions.push(this.loadQuery$(url).subscribe(({params, page, ext}) => {
                 const c = embed.createLens(params, page, this.editor.getQuery(url), ext);
                 t.parentNode?.insertBefore(c.location.nativeElement, t.nextSibling);
                 // @ts-ignore
                 t.expanded = !t.expanded;
-              });
+              }));
             } else {
-              this.refs.getCurrent(this.editor.getRefUrl(url)).pipe(
+              subscriptions.push(this.refs.getCurrent(this.editor.getRefUrl(url)).pipe(
                 catchError(() => of(null)),
               ).subscribe(ref => {
                 if (ref) {
@@ -604,7 +588,7 @@ export class EmbedService {
                 }
                 // @ts-ignore
                 t.expanded = !t.expanded;
-              });
+              }));
             }
           }
         }
@@ -622,6 +606,7 @@ export class EmbedService {
       t.parentNode?.insertBefore(c.location.nativeElement, t);
       t.remove();
     });
+    return () => subscriptions.forEach(s => s.unsubscribe());
   }
 
   private get iframeBg() {
@@ -632,7 +617,11 @@ export class EmbedService {
     iframe.style.width = (oembed.width ? oembed.width + 'px' : width);
     if (oembed.height) iframe.style.height = oembed.height + 'px';
     if (oembed.html) {
-      this.writeIframeHtml(oembed.html || '', iframe);
+      if (oembed.html.startsWith('<iframe')) {
+        iframe.src = parseSrc(oembed.html);
+      } else {
+        this.writeIframeHtml(oembed.html || '', iframe);
+      }
     } else {
       iframe.src = oembed.url;
     }

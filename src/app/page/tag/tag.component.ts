@@ -1,7 +1,12 @@
 import { Component, HostBinding, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { isEqual, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
+import { MobxAngularModule } from 'mobx-angular';
 import { LensComponent } from '../../component/lens/lens.component';
+import { LoadingComponent } from '../../component/loading/loading.component';
+import { SidebarComponent } from '../../component/sidebar/sidebar.component';
+import { TabsComponent } from '../../component/tabs/tabs.component';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
@@ -11,12 +16,20 @@ import { ModService } from '../../service/mod.service';
 import { QueryStore } from '../../store/query';
 import { Store } from '../../store/store';
 import { getArgs, UrlFilter } from '../../util/query';
+import { hasPrefix } from '../../util/tag';
 
 @Component({
-  standalone: false,
   selector: 'app-tag-page',
   templateUrl: './tag.component.html',
   styleUrls: ['./tag.component.scss'],
+  imports: [
+    LensComponent,
+    MobxAngularModule,
+    TabsComponent,
+    RouterLink,
+    SidebarComponent,
+    LoadingComponent,
+  ],
 })
 export class TagPage implements OnInit, OnDestroy, HasChanges {
   private disposers: IReactionDisposer[] = [];
@@ -39,10 +52,10 @@ export class TagPage implements OnInit, OnDestroy, HasChanges {
     runInAction(() => {
       this.store.view.clear([
         !!this.admin.getPlugin('plugin/user/vote/up')
-        ? 'voteScoreDecay'
-        : this.store.view.tag.includes('*')
-        ? 'published'
-        : 'created'
+          ? 'plugins->plugin/user/vote:decay'
+          : this.store.view.tag.includes('*')
+            ? 'published'
+            : 'created'
       ]);
       this.store.view.extTemplates = this.admin.view;
     });
@@ -59,7 +72,7 @@ export class TagPage implements OnInit, OnDestroy, HasChanges {
               runInAction(() => this.store.view.exts = exts);
             }
             this.loading = false;
-        });
+          });
       }
     }));
     this.query.clear();
@@ -71,6 +84,8 @@ export class TagPage implements OnInit, OnDestroy, HasChanges {
 
   ngOnInit() {
     this.disposers.push(autorun(() => {
+      if (hasPrefix(this.store.view.viewExt?.tag, 'kanban')) return;
+      if (hasPrefix(this.store.view.viewExt?.tag, 'chat')) return;
       const filters = this.store.view.filter.length ? this.store.view.filter : this.store.view.viewExtFilter;
       if (!this.store.view.filter.length && this.store.view.viewExtFilter?.length) {
         this.bookmarks.filters = this.store.view.viewExtFilter;
