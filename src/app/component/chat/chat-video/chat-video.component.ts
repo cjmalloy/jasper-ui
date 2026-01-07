@@ -91,18 +91,18 @@ export class ChatVideoComponent implements AfterViewInit {
       this.store.video.enabled = true;
       this.store.local.setInCall(true);
     });
-    this.ts.respond(['public', 'plugin/user/lobby'], this.url)
-      .subscribe(() => this.vs.call(this.url));
     navigator.mediaDevices.getUserMedia(this.admin.getPlugin('plugin/user/video')!.config!.gumConfig)
       .then(stream => {
         if (!this.store.video.enabled) {
           stream.getTracks().forEach(t => t.stop());
           return;
         }
-        this.vs.setStream(stream);
+        this.ts.respond(['public', 'plugin/user/lobby'], this.url)
+          .subscribe(() => this.vs.call(this.url, stream));
       })
       .catch(err => {
         console.log('Raised error when capturing:', err);
+        this.hangup();
         alert($localize`Unable to access camera or microphone. Please check your browser permissions and try again.`);
       });
   }

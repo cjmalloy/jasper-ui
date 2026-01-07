@@ -59,18 +59,14 @@ export class VideoService {
     return !this.store.video.peers.size || !!this.store.video.peers.values().find(p => p.connectionState !== 'connected');
   }
 
-  call(url: string) {
+  call(url: string, stream: MediaStream) {
     if (this.url === url) return;
     console.warn('Joining Lobby!');
     this.url = url;
     this.destroy$.next();
-    this.store.video.setStream(undefined);
+    runInAction(() => this.store.video.stream = stream);
     this.invite();
     this.answer();
-  }
-
-  setStream(stream: MediaStream) {
-    this.store.video.setStream(stream);
   }
 
   hangup() {
