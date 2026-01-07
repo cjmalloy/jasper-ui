@@ -64,37 +64,12 @@ export class VideoService {
     console.warn('Joining Lobby!');
     this.url = url;
     this.destroy$.next();
-    this.answer();
     this.invite();
+    this.answer();
   }
 
   setStream(stream: MediaStream) {
     this.store.video.setStream(stream);
-  }
-
-  private addListener<K extends keyof RTCPeerConnectionEventMap>(
-    user: string,
-    peer: RTCPeerConnection,
-    eventType: K,
-    handler: (event: RTCPeerConnectionEventMap[K]) => void
-  ): void {
-    peer.addEventListener(eventType, handler);
-    if (!this.cleanupHandlers.has(user)) {
-      this.cleanupHandlers.set(user, []);
-    }
-    this.cleanupHandlers.get(user)!.push(() => {
-      peer.removeEventListener(eventType, handler);
-    });
-  }
-
-  private resetUserConnection(user: string): void {
-    const handlers = this.cleanupHandlers.get(user);
-    if (handlers) {
-      handlers.forEach(cleanup => cleanup());
-      this.cleanupHandlers.delete(user);
-    }
-    this.store.video.reset(user);
-    this.offers.delete(user);
   }
 
   hangup() {
@@ -179,7 +154,7 @@ export class VideoService {
       }).subscribe();
       checkStuck();
     };
-    const poll = () => this.refs.page({
+    const pollLobby = () => this.refs.page({
       query: 'plugin/user/lobby',
       responses: this.url,
       size: this.maxInitial,
@@ -190,7 +165,6 @@ export class VideoService {
       filter(user => user !== setPublic(this.store.account.tag)),
     ).subscribe(user => doInvite(user));
     if (this.config.websockets) {
-      poll();
       this.stomp.watchResponse(this.url).pipe(
         tap(() => this.lobbyWebsocket = true),
         filter(url => url?.startsWith('tag:/')),
@@ -212,10 +186,11 @@ export class VideoService {
         takeUntil(this.destroy$)
       ).subscribe((user: any) => doInvite(user));
     }
-    timer(0, this.poll).pipe(
+    timer(this.poll).pipe(
       takeWhile(() => !this.lobbyWebsocket),
       takeUntil(this.destroy$),
-    ).subscribe(() => poll());
+    ).subscribe(() => pollLobby());
+    pollLobby()
   }
 
   seen = new Map<string, Set<string>>();
@@ -286,14 +261,13 @@ export class VideoService {
         }
       }
     };
-    const poll = () => this.refs.page({
+    const pollPeer = () => this.refs.page({
       query: 'plugin/user/video',
       responses: userResponse(this.store.account.localTag),
     }).pipe(
       mergeMap(page => page.content),
     ).subscribe(res => doAnswer(res, false));
     if (this.config.websockets) {
-      poll();
       this.stomp.watchResponse(userResponse(this.store.account.localTag)).pipe(
         tap(() => this.peerWebsocket = true),
         switchMap(url => this.refs.getCurrent(url)),
@@ -305,13 +279,13 @@ export class VideoService {
       takeWhile(() => !this.peerWebsocket),
       takeUntil(this.destroy$),
     ).subscribe(() => {
-      if (!this.connecting) poll();
+      if (!this.connecting) pollPeer();
     });
     timer(0, this.fastPoll).pipe(
       takeWhile(() => !this.peerWebsocket),
       takeUntil(this.destroy$),
     ).subscribe(() => {
-      if (this.connecting) poll();
+      if (this.connecting) pollPeer();
     });
   }
 
@@ -332,5 +306,30 @@ export class VideoService {
       }
       this.queue.clear();
     });
+  }
+
+  private addListener<K extends keyof RTCPeerConnectionEventMap>(
+    user: string,
+    peer: RTCPeerConnection,
+    eventType: K,
+    handler: (event: RTCPeerConnectionEventMap[K]) => void
+  ): void {
+    peer.addEventListener(eventType, handler);
+    if (!this.cleanupHandlers.has(user)) {
+      this.cleanupHandlers.set(user, []);
+    }
+    this.cleanupHandlers.get(user)!.push(() => {
+      peer.removeEventListener(eventType, handler);
+    });
+  }
+
+  private resetUserConnection(user: string): void {
+    const handlers = this.cleanupHandlers.get(user);
+    if (handlers) {
+      handlers.forEach(cleanup => cleanup());
+      this.cleanupHandlers.delete(user);
+    }
+    this.store.video.reset(user);
+    this.offers.delete(user);
   }
 }
