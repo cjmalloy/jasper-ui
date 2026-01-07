@@ -110,7 +110,7 @@ export class VideoService {
       if (peer.connectionState === 'failed') {
         this.resetUserConnection(user);
         this.ts.respond([setPublic(localTag(user)), '-plugin/user/video'], userResponse(user))
-          .subscribe(() => this.invite());
+          .subscribe(() => this.doInvite(user));
       }
       console.log('connectionstatechange', peer.connectionState);
     });
@@ -119,46 +119,45 @@ export class VideoService {
       const [remoteStream] = event.streams;
       this.store.video.addStream(user, remoteStream);
     });
-    this.addListener(user, peer, 'negotiationneeded', async () => {
+    this.addListener(user, peer, 'negotiationneeded', (event) => {
       console.warn('Renegotiation needed for', user);
       this.resetUserConnection(user);
-      this.ts.respond([setPublic(localTag(user)), '-plugin/user/video'], userResponse(user))
-        .subscribe(() => this.invite());
+      this.doInvite(user);
     });
     this.store.video.stream?.getTracks().forEach(t => peer.addTrack(t, this.store.video.stream!));
     return peer;
   }
 
   offers = new Map<string, number>();
-  invite() {
-    const doInvite = async (user: string) => {
-      runInAction(() => this.store.video.hungup.set(user, false));
-      if (this.store.video.peers.has(user)) return;
-      const peer = this.peer(user);
-      const offer = await peer.createOffer();
-      if (peer.signalingState !== 'stable') {
-        // Already accepted remote offer
-        console.warn('Already accepted remote offer!', user);
-        return;
+  doInvite = async (user: string) => {
+    runInAction(() => this.store.video.hungup.set(user, false));
+    if (this.store.video.peers.has(user)) return;
+    const peer = this.peer(user);
+    const offer = await peer.createOffer();
+    if (peer.signalingState !== 'stable') {
+      // Already accepted remote offer
+      console.warn('Already accepted remote offer!', user);
+      return;
+    }
+    await peer.setLocalDescription(offer);
+    console.warn('Making Offer!', user);
+    const dial = Math.random();
+    this.offers.set(user, dial);
+    this.ts.mergeResponse([setPublic(localTag(user)), '-plugin/user/video', 'plugin/user/video'], userResponse(user), {
+      'plugin/user/video': { offer, dial }
+    }).subscribe();
+    timer(this.stuck).pipe(
+      takeUntil(this.destroy$),
+    ).subscribe(() => {
+      const peer = this.store.video.peers.get(user);
+      if (peer?.localDescription && !peer.remoteDescription) {
+        console.error('Stuck!');
+        this.resetUserConnection(user);
+        this.doInvite(user);
       }
-      await peer.setLocalDescription(offer);
-      console.warn('Making Offer!', user);
-      const dial = Math.random();
-      this.offers.set(user, dial);
-      this.ts.mergeResponse([setPublic(localTag(user)), '-plugin/user/video', 'plugin/user/video'], userResponse(user), {
-        'plugin/user/video': { offer, dial }
-      }).subscribe();
-      timer(this.stuck).pipe(
-        takeUntil(this.destroy$),
-      ).subscribe(() => {
-        const peer = this.store.video.peers.get(user);
-        if (peer?.localDescription && !peer.remoteDescription) {
-          console.error('Stuck!');
-          this.resetUserConnection(user);
-          doInvite(user);
-        }
-      })
-    };
+    });
+  };
+  invite() {
     const pollLobby = () => this.refs.page({
       query: 'plugin/user/lobby',
       responses: this.url,
@@ -169,7 +168,7 @@ export class VideoService {
       filter(user => !!user),
       filter(user => user !== setPublic(this.store.account.tag)),
       takeUntil(this.destroy$),
-    ).subscribe(user => doInvite(user));
+    ).subscribe(user => this.doInvite(user));
     if (this.config.websockets) {
       this.stomp.watchResponse(this.url).pipe(
         tap(() => this.lobbyWebsocket = true),
@@ -190,7 +189,7 @@ export class VideoService {
         filter(user => user !== setPublic(this.store.account.tag)),
         tap(user => this.peer(user)),
         takeUntil(this.destroy$)
-      ).subscribe((user: any) => doInvite(user));
+      ).subscribe((user: any) => this.doInvite(user));
     }
     timer(this.poll).pipe(
       takeWhile(() => !this.lobbyWebsocket),
