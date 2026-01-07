@@ -39,10 +39,13 @@ export class ChatVideoComponent implements AfterViewInit {
   ) { }
 
   ngAfterViewInit() {
-    if (!this.store.video.enabled) {
+    if (this.store.local.inCall() && !this.store.video.enabled) {
       this.ts.getResponse(this.url)
         .subscribe(ref => {
-          if (hasTag('plugin/user/lobby', ref)) this.call();
+          if (hasTag('plugin/user/lobby', ref)) {
+            this.ts.deleteResponse('plugin/user/lobby', this.url).subscribe();
+            if (confirm($localize`Rejoin the call?`)) this.call();
+          }
         });
     }
   }
@@ -84,7 +87,10 @@ export class ChatVideoComponent implements AfterViewInit {
   }
 
   call() {
-    runInAction(() => this.store.video.enabled = true);
+    runInAction(() => {
+      this.store.video.enabled = true;
+      this.store.local.setInCall(true);
+    });
     this.ts.respond(['public', 'plugin/user/lobby'], this.url)
       .subscribe(() => this.vs.call(this.url));
     navigator.mediaDevices.getUserMedia(this.admin.getPlugin('plugin/user/video')!.config!.gumConfig)
@@ -102,7 +108,10 @@ export class ChatVideoComponent implements AfterViewInit {
   }
 
   hangup() {
-    runInAction(() => this.store.video.enabled = false);
+    runInAction(() => {
+      this.store.video.enabled = false;
+      this.store.local.setInCall(false);
+    });
     this.ts.deleteResponse('plugin/user/lobby', this.url).subscribe();
     this.vs.hangup();
   }
