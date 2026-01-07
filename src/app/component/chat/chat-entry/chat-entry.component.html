@@ -2,21 +2,17 @@
   <span class="gutter"
         [class.deleted]="deleted">
     @if (ref.origin && !authors.length) {
-      <a class="origin tag" [routerLink]="['/tag', ref.origin]">{{ ref.origin }}</a>
+      <app-nav css="origin tag" [url]="'tag:/' + (ref.origin || '*')"></app-nav>
     }
-    @if (authorExts$ | async; as xs) {
-      @for (x of xs; track x.tag + x.origin) {
-        <a class="user tag"
-           [title]="formatAuthor(x.tag + x.origin)"
-           [routerLink]="['/tag', x.tag + x.origin]"
-           [appTitle]="x">{{ x.name || formatAuthor(x.tag) }}</a>
-      }
-    } @else {
-      @for (t of authors; track t) {
-        <a class="user tag"
-           [title]="formatAuthor(t)"
-           [routerLink]="['/tag', t]">{{ formatAuthor(t) }}</a>
-      }
+    @if (authors.length) {
+      <span i18n> by
+        @for (t of authors; track t) {
+          <app-nav css="user tag"
+                   [url]="'tag:/' + t"
+                   [title]="formatAuthor(t)"
+                   [shortUser]="true"></app-nav>
+        }
+            </span>
     }
     <span class="timestamp" [title]="ref.modified?.toISO()">{{ ref.modified?.toRelative() }}</span>
     &nbsp;|&nbsp;
@@ -49,22 +45,22 @@
   @if (ref.created) {
     <div class="actions" [style.pointer-events]="allowActions ? 'auto' : 'none'">
       @if (threads) {
-        <a  [routerLink]="['/ref', ref.url, 'thread']"
+        <a  [routerLink]="[store.view.refPath, ref.url, 'thread']"
             [queryParams]="{ origin: nonLocalOrigin }"
             (click)="saveRef()"
             i18n>sidebar</a>
       } @else if (comments) {
-        <a  [routerLink]="['/ref', ref.url, 'comments']"
+        <a  [routerLink]="[store.view.refPath, ref.url, 'comments']"
             [queryParams]="{ origin: nonLocalOrigin }"
             (click)="saveRef()"
             i18n>{comments, plural, =1 {1&thinsp;comment} other {{{ comments }}&thinsp;comments}}</a>
       } @else if (chatroom) {
-        <a [routerLink]="['/ref', ref.url]"
+        <a [routerLink]="[store.view.refPath, ref.url]"
            [queryParams]="{ origin: nonLocalOrigin }"
            (click)="saveRef()"
            i18n>sidebar</a>
       } @else {
-        <a [routerLink]="['/ref', ref.url]"
+        <a [routerLink]="[store.view.refPath, ref.url]"
            [queryParams]="{ origin: nonLocalOrigin }"
            (click)="saveRef()"
            i18n>permalink</a>

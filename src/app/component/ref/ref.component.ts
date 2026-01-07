@@ -38,7 +38,6 @@ import { CssUrlPipe } from '../../pipe/css-url.pipe';
 import { ThumbnailPipe } from '../../pipe/thumbnail.pipe';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
-import { ExtService } from '../../service/api/ext.service';
 import { ProxyService } from '../../service/api/proxy.service';
 import { RefService } from '../../service/api/ref.service';
 import { TaggingService } from '../../service/api/tagging.service';
@@ -193,7 +192,6 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     private auth: AuthzService,
     private editor: EditorService,
     private refs: RefService,
-    private exts: ExtService,
     private bookmarks: BookmarkService,
     private proxy: ProxyService,
     private ts: TaggingService,
@@ -655,26 +653,15 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   }
 
   @memo
-  get authorExts$() {
-    return this.exts.getCachedExts(this.authors, this.ref.origin || '').pipe(this.admin.authorFallback);
-  }
-
-  @memo
   get recipients() {
     const lookup = this.store.origins.originMap.get(this.ref.origin || '');
-    const userRecipients = without(addressedTo(this.ref), ...this.authors).map(a => {
+    return without([
+      ...addressedTo(this.ref),
+      ...this.ref.tags?.filter(t => this.admin.getPlugin(t)?.config?.signature && this.admin.getPlugin(t)?.config?.signature != t).map(t => t + (this.ref.origin || '')) || [],
+      ], ...this.authors).map(a => {
       if (!tagOrigin(a)) return a;
       return localTag(a) + (lookup?.get(tagOrigin(a)) ?? tagOrigin(a));
     });
-    return [
-      ...userRecipients,
-      ...this.ref.tags?.filter(t => this.admin.getPlugin(t)?.config?.signature && this.admin.getPlugin(t)?.config?.signature != t) || [],
-    ];
-  }
-
-  @memo
-  get recipientExts$() {
-    return this.exts.getCachedExts(this.recipients, this.ref.origin || '').pipe(this.admin.recipientFallback);
   }
 
   @memo
@@ -713,18 +700,13 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   }
 
   @memo
-  get tagExts$() {
-    return this.editor.getTagsPreview(this.tags, this.ref.origin || '');
-  }
-
-  @memo
   get url() {
     return this.repost ? this.ref.sources![0] : this.ref.url;
   }
 
   @memo
   get origin() {
-    return this.bareRef?.origin;
+    return this.bareRef?.origin || '';
   }
 
   @memo

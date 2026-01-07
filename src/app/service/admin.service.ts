@@ -84,7 +84,7 @@ import { ytdlpMod } from '../mods/ytdlp';
 import { progress } from '../store/bus';
 import { Store } from '../store/store';
 import { modId } from '../util/format';
-import { getExtension, getHost } from '../util/http';
+import { getExtension, getHost, getScheme } from '../util/http';
 import { memo, MemoCache } from '../util/memo';
 import { addHierarchicalTags, directChild, hasPrefix, hasTag, tagIntersection, test } from '../util/tag';
 import { ExtService } from './api/ext.service';
@@ -519,6 +519,10 @@ export class AdminService {
     return this.pluginConfigProperty('hosts');
   }
 
+  get schemes() {
+    return this.pluginConfigProperty('schemes');
+  }
+
   get tmplSubmit() {
     return this.templateConfigProperty('submit');
   }
@@ -630,7 +634,7 @@ export class AdminService {
   }
 
   getPluginsForUrl(url: string) {
-    return uniq([...this.getPluginsForHost(url), ...this.getPluginsForPrefix(url), ...this.getPluginsForExtension(url)]);
+    return uniq([...this.getPluginsForHost(url), ...this.getPluginsForScheme(url), ...this.getPluginsForPrefix(url), ...this.getPluginsForExtension(url)]);
   }
 
   getPluginsForCache(ref: Ref): string[] {
@@ -644,6 +648,11 @@ export class AdminService {
   getPluginsForHost(url: string) {
     const host = getHost(url);
     return this.hosts.filter(p => p.config!.hosts!.includes(host!))
+  }
+
+  getPluginsForScheme(url: string) {
+    const scheme = getScheme(url);
+    return this.schemes.filter(p => p.config!.schemes!.includes(scheme!))
   }
 
   getPluginsForPrefix(url: string) {

@@ -5,7 +5,6 @@ import { Page } from '../../model/page';
 import { Ref, RefSort } from '../../model/ref';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
-import { QueryStore } from '../../store/query';
 import { UrlFilter } from '../../util/query';
 import { hasPrefix } from '../../util/tag';
 import { BlogComponent } from '../blog/blog.component';
@@ -15,14 +14,12 @@ import { ForceDirectedComponent } from '../graph/force-directed/force-directed.c
 import { KanbanComponent } from '../kanban/kanban.component';
 import { NotebookComponent } from '../notebook/notebook.component';
 import { RefListComponent } from '../ref/ref-list/ref-list.component';
-import { RefComponent } from '../ref/ref.component';
 
 @Component({
   selector: 'app-lens',
   templateUrl: './lens.component.html',
   styleUrls: ['./lens.component.scss'],
   imports: [
-    forwardRef(() => RefComponent),
     forwardRef(() => ForceDirectedComponent),
     forwardRef(() => BlogComponent),
     forwardRef(() => ChatComponent),
@@ -67,7 +64,6 @@ export class LensComponent implements OnChanges, HasChanges {
   constructor(
     public admin: AdminService,
     public account: AccountService,
-    public query: QueryStore,
   ) { }
 
   saveChanges() {
