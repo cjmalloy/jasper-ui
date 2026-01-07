@@ -86,13 +86,13 @@ export class VideoService {
     this.destroy$.next();
   }
 
+  renegotiated = new Map<string, boolean>();
   peer(user: string) {
     if (this.store.video.peers.has(user)) return this.store.video.peers.get(user)!;
     const peer = new RTCPeerConnection(this.admin.getPlugin('plugin/user/video')!.config!.rtcConfig);
     this.store.video.call(user, peer);
     this.seen.delete(user);
     this.addListener(user, peer, 'icecandidate', (event) => {
-      if (peer.connectionState === 'closed') return;
       console.warn('Sending Ice Candidate', user);
       this.patch(user, [{
         op: 'add',
@@ -101,12 +101,11 @@ export class VideoService {
       }]);
     });
     this.addListener(user, peer, 'icecandidateerror', (event) => {
-      if (peer.connectionState === 'closed') return;
       console.error(event.errorCode, event.errorText);
     });
     this.addListener(user, peer, 'connectionstatechange', () => {
-      if (peer.connectionState === 'closed') return;
       if (peer.connectionState === 'connected') {
+        this.renegotiated.set(user, false);
         this.ts.respond([setPublic(localTag(user)), '-plugin/user/video'], userResponse(user))
           .subscribe();
       }
@@ -118,19 +117,25 @@ export class VideoService {
       console.log('connectionstatechange', peer.connectionState);
     });
     this.addListener(user, peer, 'track', (event) => {
-      if (peer.connectionState === 'closed') return;
       console.warn('Track received:', event.streams[0]?.id, event.track.readyState);
       const [remoteStream] = event.streams;
       this.store.video.addStream(user, remoteStream);
     });
     this.addListener(user, peer, 'negotiationneeded', (event) => {
-      if (peer.connectionState === 'closed') return;
-      if (peer.connectionState === 'new') return;
+      if (this.renegotiated.get(user)) return;
+      this.renegotiated.set(user, true);
       console.warn('Renegotiation needed for', user);
       this.resetUserConnection(user);
       this.doInvite(user);
+
     });
-    this.store.video.stream?.getTracks().forEach(t => peer.addTrack(t, this.store.video.stream!));
+    this.addListener(user, peer, 'iceconnectionstatechange', (event) => {
+      if (peer.iceConnectionState === 'failed') {
+        console.warn('Restarting ICE', user);
+        peer.restartIce();
+      }
+    });
+    this.store.video.stream!.getTracks().forEach(t => peer.addTrack(t, this.store.video.stream!));
     return peer;
   }
 
@@ -213,7 +218,7 @@ export class VideoService {
       if (!video) return;
       if (this.store.video.hungup.get(user)) return;
       let peer = this.store.video.peers.get(user);
-      if (peer?.connectionState === 'connected' && video.offer && !video.answer) {
+      if (peer?.connectionState === 'connected' && video.offer && video.dial && !video.answer) {
         if (this.offers.get(user) !== video.dial) {
           console.warn('Peer reloaded - resetting connection', user);
           this.resetUserConnection(user);
@@ -244,7 +249,7 @@ export class VideoService {
         this.ts.deleteResponse('plugin/user/video', userResponse(user)).subscribe();
         return;
       }
-      if (video.offer && !video.answer && (!peer || peer?.signalingState === 'stable')) {
+      if (video.offer && !video.answer && (peer?.signalingState === 'stable')) {
         const dial = video.dial;
         peer ||= this.peer(user);
         this.offers.set(user, dial);
