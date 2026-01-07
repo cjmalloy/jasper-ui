@@ -24,15 +24,17 @@ export class VideoStore {
     this.streams.set(user, []);
   }
 
-  setStream(stream: MediaStream) {
+  setStream(stream?: MediaStream) {
     if (this.stream) {
       for (const peer of this.peers.values()) {
         peer.getSenders().forEach(s => peer.removeTrack(s));
       }
     }
     this.stream = stream;
-    for (const peer of this.peers.values()) {
-      stream.getTracks().forEach(t => peer.addTrack(t, stream));
+    if (stream) {
+      for (const peer of this.peers.values()) {
+        stream.getTracks().forEach(t => peer.addTrack(t, stream));
+      }
     }
   }
 
