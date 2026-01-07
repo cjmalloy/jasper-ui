@@ -79,11 +79,14 @@ least $k$ red circles.
         }
         return traverse(0, 0, 0)
       }
-      Handlebars.registerHelper('ninjaTriangle', (comment, actions, el, updates$, d3) => {
-        let watch = null;
+      Handlebars.registerHelper('ninjaTriangle', (ref, actions, el, d3) => {
+        let comment$ = null;
+        let comment = ref.comment || '';
         function renderSvg() {
-          if (!watch && updates$) {
-            watch = updates$.subscribe(u => {
+          if (!comment$) {
+            const watch = actions.watch(ref, ' ');
+            comment$ = watch.comment$;
+            watch.ref$.subscribe(u => {
               comment = u.comment;
               renderSvg();
             });
@@ -94,7 +97,7 @@ least $k$ red circles.
             text = write(t);
             comment = text;
             renderSvg();
-            actions.comment(text);
+            comment$(text).subscribe();
           }
           function tagRed(text, i, j) {
             const t = read(text);
@@ -105,7 +108,7 @@ least $k$ red circles.
             text = write(t);
             comment = text;
             renderSvg();
-            actions.comment(text);
+            comment$(text).subscribe();
           }
           const triangle = read(comment);
           const n = geometricSumInv(triangle.length);
@@ -174,7 +177,7 @@ least $k$ red circles.
     `,
     // language=Handlebars
     ui: `
-      <svg class="japanese-triangle">{{defer el (ninjaTriangle ref.comment actions el updates$ (d3))}}</svg>
+      <svg class="japanese-triangle">{{defer el (ninjaTriangle ref actions el (d3))}}</svg>
     `,
   },
 };

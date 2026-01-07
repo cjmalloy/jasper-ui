@@ -13,110 +13,124 @@ To start the server, client and database with a single admin user, run
 the [quickstart](https://github.com/cjmalloy/jasper-ui/blob/master/quickstart/docker-compose.yaml)
 docker compose file.
 
+## Knowledge Management Client
+As the reference client for the jasper protocol this project is designed to expose all
+features of the jasper protocol with a user experience supporting devs and power users.
+
+This client allows you to expressively annotate links with tags and your own ontology.
+It can be left unmodded to act as a general purpose database or admin tool.
+With modding single purpose UIs can be derived for prototyping, one-off use, or micro-frontends.
+Modding can also augment existing general purpose functionality. See `src/app/mods` for bundled mods.
+Other mod distributions may be compatible with this client or require a different client.
+The same network can be used by multiple clients and unsupported features are silently ignored.
+
+General Purpose Usage:
+* RSS Reader
+* AI Chat
+* Bulletin Board
+* Discussion Forum
+* Wiki / Knowledge Base
+* Business Workflow Automation
+* Continuous Offsite Backups
+
 ## Features
 
 ### Text Editor
 Markdown editor with support for rendering both markdown and HTML.
-* Use `#tag` to create a tag link `[tag](/tag/politics)` (add a space for the usual markdown
-  H1 "# Title").
+* Use `#tag` to create a tag link. Add a space for the usual markdown H1 "# Title".
 * Any links in markdown will automatically be added to either sources or alternate URLs
 * Use `[1]` or `[[1]]` to reference existing sources. The number will be the 1-based index of the source.
 * Use `[alt1]` or `[[alt1]]` to reference alternate URLs. Use `[alt1](url)` to add an alternate URL. The
   number will be the 1-based index of the alternate URLs.
-* Using `#+user/charlie` with the inbox plugin installed will add `plugin/inbox/user/charlie`
-  to the tags. Will remove `#+user/` prefix when displaying.
+* Using `+user/charlie` with the inbox plugin installed will add `plugin/inbox/user/charlie`
+  to the tags. Use `#+user/charlie` instead to simply link to the user without notifying them.
 * Use `^` to create superscripts. Use in combination with source references for standard reference style such
   as `^[1]` or `^[[1]]`.
 * Any links to a ref or tag will render a toggle button to expand inline (any link that starts
   with `/ref/` or `/tag/`, with or without the server host and base path).
-* Links of the form `[ref](www.example.com)` will add a ref entry inline.
-* Links of the form `[query](tag|query)` will add results of a tag query inline.
-* Links of the form `[toggle](www.example.com)` will add a toggle button that will expand to show the contents
-  of the Ref if it exists, or attempt to show the content directly if it is an image, audio, video, and embeddable
-  sites (currently YouTube, Twitter, and BitChute).
+* Links of the form `![=](www.example.com)` will add a ref entry inline.
 * Links of the form `![](www.example.com)` will embed the contents of the Ref if it exists, or attempt to embed
-  the url directly if it is an image, audio, video, or embeddable sites (currently YouTube, Twitter, and BitChute).
+  the url directly if it is an image, audio, video, or embeddable sites.
+* Links of the form `![+](www.example.com)` will add a toggle button that will expand to show the contents
+  of the Ref if it exists, or attempt to show the content directly if it is an image, audio, video, and embeddable
+  sites.
+* Links of the form `![](/tag/query)` will add results of a tag query inline.
 ### Tag Query Page
 * Perform any tag query while performing a full text search and multi-column sort
 * Displays title from tag Ext if present
 * Displays sidebar markdown from tag Ext if present
 * Displays pinned Refs from tag Ext if present
 * Adds Modmail button that sends a DM to `plugin/inbox/tag`
-### Home Page
-* Query all tags in users Ext subscriptions
-### Templates
-1. Default template: (matches all tags):
+### Mods
+1. **Root Mod:**
    1. **Pinned links:** Display these links at the top of this tag's page.
    2. **Sidebar:** (optional) Custom markdown content for the sidebar. LaTeX and emojis are
    supported if plugins are installed.
    3. **Themes:** (optional) Set a custom theme for a tag page. Will remain active until a
    different tag page is visited.
-2. User: (matches `user/`) Store user generated data:
+2. **User:** (matches `user/`) Store user generated data:
    1. Inbox: last notified time (for use with the inbox plugin)
    2. Subscriptions: List of tags to show on your home page
    3. Themes: (optional) Override the theme for the entire site. Will cause custom tag themes
    to be ignored.
-### Plugins
-1. **Inbox:** Enables notifications when installed. You receive a notification when someone posts a
+3. **Home Page:** Enables a home page where you can subscribe to various tags or queries and
+see them there. Adds a for **Requires user mod**
+4. **Inbox:** Enables notifications when installed. You receive a notification when someone posts a
 response to yours. Activates the envelope icon button in the settings area of the client.
 Requires the inbox field in the user template. When posting a response the client will add (for
 example with `+user/charlie`) `plugin/inbox/user/charlie` to the tags. This will cause it to show up
 in `+user/charlie`'s notifications. Users also receive notifications for all tags they have write
 access to (tag modmail). This tag is also the convention by which you may address a Ref "To:"
-another user. Does not add data to a Ref. Does not generate metadata.
-2. **Comment:** Enables comments and comment threads when installed. Allows sorting Refs by number
+another user. Does not add data to a Ref.
+5. **Comment:** Enables comments and comment threads when installed. Allows sorting Refs by number
 of comments. Comments are created with `plugin/comment` and `internal` tags. (the `internal` tag
 prevents the comment from showing up on `@*`). Adds a deleted field to the ref to mark the
 comment as deleted. This is used to prevent breaking a comment thread by actually removing a
-node when a comment is deleted. Generates count metadata in parent.
-3. **Thumbnail:** Enables the Ref thumbnail when installed. When a Ref is tagged `plugin/thumbnail`,
+node when a comment is deleted.
+6. **Thumbnail:** Enables the Ref thumbnail when installed. When a Ref is tagged `plugin/thumbnail`,
 the Ref has an image that can be used as a thumbnail. Adds optional url, width, height, and time
 fields to the Ref. If the url field is not specified, the url of the Ref will be the image
-thumbnail. Does not generate metadata.
-4. **Latex:** Enables KaTeX processing on the Ref comment markdown. Does not add data to a Ref.
-Does not generate metadata. KaTeX support for sidebar content is always enabled if this plugin
+thumbnail.
+7. **Latex:** Enables KaTeX processing on the Ref comment markdown. Does not add data to a Ref.
+KaTeX support for sidebar content is always enabled if this plugin
 is installed.
-5. **Emoji:** Enables emoji support in the Ref comment markdown. Does not add data to a Ref. Does
-not generate metadata. Emoji support for sidebar content is always enabled if this plugin is
-installed.
-6. **Graph:** Enable the knowledge graph tab in the client UI when this is installed. Adds data
+8. **Graph:** Enable the knowledge graph tab in the client UI when this is installed. Adds data
 to refs to override how they are graphed.
-7. **QR:** Enables the QR embed when installed. When the `plugin/qr` is applied to a Ref, the Ref has
+9. **QR:** Enables the QR embed when installed. When the `plugin/qr` is applied to a Ref, the Ref has
 a URL to be converted into a QR code. The QR code is shown when the embed toggle is pressed. Adds
 optional URL field to the Ref to use for the QR code, if this is unspecified the URL of the Ref
-will be used. Does not generate metadata.
-8. **Embed:** Enables the iframe embed when installed. When the plugin/embed is applied to a Ref,
+will be used.
+10. **Embed:** Enables the iframe embed when installed. When the plugin/embed is applied to a Ref,
 the Ref has a URL that can be used in an iframe. The iframe is shown when the embed toggle is
 pressed. Adds optional URL field to the Ref to use for the iframe, if this is unspecified the
-URL of the Ref will be used. Does not generate metadata. Currently implemented for:
-   1. YouTube
-   2. X/Twitter
-   3. BitChute
-9. **Audio:** Enables the audio embed when installed. When the `plugin/audio` is applied to a Ref,
+URL of the Ref will be used. Currently implemented for:
+    1. YouTube
+    2. X/Twitter
+    3. BitChute
+11. **Audio:** Enables the audio embed when installed. When the `plugin/audio` is applied to a Ref,
 the Ref has a URL that points to an audio file. The audio player is shown when the embed toggle
 is pressed. Adds optional URL field to the Ref to use for the audio file, if this is unspecified
-the URL of the Ref will be used. Does not generate metadata. This plugin will be suggested when
+the URL of the Ref will be used. This plugin will be suggested when
 you submit a link ending in an audio file extension.
-10. **Video:** Enables the video embed when installed. When the `plugin/video` is applied to a Ref,
+12. **Video:** Enables the video embed when installed. When the `plugin/video` is applied to a Ref,
 the Ref has a URL that points to a video file. The video player is shown when the embed toggle
 is pressed. Adds optional URL field to the Ref to use for the video file, if this is unspecified
-the URL of the Ref will be used. Does not generate metadata. This plugin will be suggested when
+the URL of the Ref will be used. This plugin will be suggested when
 you submit a link ending in a video file extension.
-11. **Image:** Enables the image embed when installed. When the `plugin/image` is applied to a Ref,
+13. **Image:** Enables the image embed when installed. When the `plugin/image` is applied to a Ref,
 the Ref has a URL that points to an image file. The image is shown when the embed toggle is
 pressed. Adds optional URL field to the Ref to use for the image file, if this is unspecified
-the URL of the Ref will be used. Does not generate metadata. This plugin will be suggested when
+the URL of the Ref will be used. This plugin will be suggested when
 you submit a link ending in an image file extension.
-12. **Wiki:** Enables adding Wiki Refs when installed. When creating a wiki the URL will be
+14. **Wiki:** Enables adding Wiki Refs when installed. When creating a wiki the URL will be
 `wiki://Page_name`. You can link to a Wiki page using the double `[[bracket syntax]]` in all
-markdown fields. Does not add data to the Ref. Does not generate metadata.
-13. **Poll:** Enables polls in the embeds when installed. When a Ref is tagged `plugin/poll` data is
+markdown fields. Does not add data to the Ref.
+15. **Poll:** Enables polls in the embeds when installed. When a Ref is tagged `plugin/poll` data is
 added to specify the options and their description text. Voting is done by adding a Ref response
 tagged with `plugin/poll/response/tag` and the response field, with tag being the response to the
-poll. The `poll/response` plugin will generate metadata, but the poll plugin will not.
+poll.
 
 ## Coming Soon
-### Templates
 1. **Delta:** (matches `delta/`) Apply a server side script to transform this Ref into a new Ref.
 Adds data to the tag Ext to contain the code or service reference and config.
 2. Queue: (matches `queue/`) Work Queue for assigning or tracking work and paying workers. Requires
@@ -125,39 +139,37 @@ the invoice plugin to pay workers. Adds data:
    2. Bounty: (optional) payment for responses to items in the queue.
    3. Max Age: (optional) max age Refs in the queue to be considered active. Refs in the queue
    older than this will have an expired icon when viewed from the queue tag page.
-### Plugins
-1. **Table:** Enabled the table embed when installed. When the `plugin/table` is applied to a Ref,
+3. **Table:** Enabled the table embed when installed. When the `plugin/table` is applied to a Ref,
 the Ref contains tabular data. The tabular data is shown when the embed toggle is pressed. Adds
 an optional field to the Ref to use for the tabular data, if this is unspecified the URL of the
-Ref will be used to point to a TSV file. Does not generate metadata.
-2. **Chart:** Enabled the graph embed when installed. When the `plugin/chart` is applied to a Ref, the
+Ref will be used to point to a TSV file.
+4. **Chart:** Enabled the graph embed when installed. When the `plugin/chart` is applied to a Ref, the
 Ref contains tabular data. The tabular data rendered in a graph is shown when the embed toggle is
 pressed. Adds fields to the ref for defining the chart type, labels, and location of the data in
 the table. Adds an optional field to the Ref to use for the tabular data, if this is unspecified
-the URL of the Ref will be used to point to a TSV file. Does not generate metadata.
-3. **Voting:** Enables voting and sorting by vote when installed. Requires additions to the user
+the URL of the Ref will be used to point to a TSV file.
+5. **Voting:** Enables voting and sorting by vote when installed. Requires additions to the user
 template to hold votes. This adds two new sort fields to the UI: Top and Hot. Top sorts by vote
 total, and Hot applies an exponential time decay when sorting. If the inbox plugin is enabled
 there is a tab on the index page to view the refs you voted on. Can be configured to allow
 positive or both positive and negative votes. Voting on a Ref adds it to a list in your user
-extension. Does not add data to a Ref. Does not generate metadata.
-4. **Analytics:** Enables engagement tracking when installed. Reports links clicked, Refs expanded,
+extension. Does not add data to a Ref.
+6. **Analytics:** Enables engagement tracking when installed. Reports links clicked, Refs expanded,
 Ref action taken, Refs viewed, and queries searched. Adds data to the Ref to override analytic
-tracking for that ref. Does not generate metadata.
-5. **Geo:** Enables a map in the embeds that displays GeoJson when installed. When a Ref is tagged
+tracking for that ref.
+7. **Geo:** Enables a map in the embeds that displays GeoJson when installed. When a Ref is tagged
 `plugin/geo`, the Ref includes some GeoJson. The map is shown when the embed toggle is pressed.
 Adds an optional field to the Ref to use for the GeoJson, if this is unspecified the URL of the
-Ref will be used to point to a GeoJson file. Does not generate metadata.
-6. **GeoPackage:** Enables a map in the embeds that displays GeoPackage when installed. When a
+Ref will be used to point to a GeoJson file.
+8. **GeoPackage:** Enables a map in the embeds that displays GeoPackage when installed. When a
 Ref is tagged `plugin/geopackage`, the Ref includes some GeoPackage. The map is shown when the
 embed toggle is pressed. Adds an optional field to the Ref to use for the GeoPackage, if this
-is unspecified the URL of the Ref will be used to point to a GeoPackage file. Does not generate
-metadata.
-7. **Invoice:** Enables invoice support in the client when installed. When invoices are created they
+is unspecified the URL of the Ref will be used to point to a GeoPackage file.
+9. **Invoice:** Enables invoice support in the client when installed. When invoices are created they
 will be tagged `plugin/invoice`. When the inbox plugin is installed there is a tab on the inbox
 page to show invoices addressed to you. Requires the QR plugin to send QR invoices. If the Work
 Queue template is installed, any invoices can include a Work Queue to address the invoice to all
-work queue approvers. Does not add data to a Ref. Generates count metadata in any sourced Refs.
+work queue approvers. Does not add data to a Ref.
 
 ## Deployment
 Jasper-UI is available in the following distributions:
@@ -173,6 +185,7 @@ file will be generated from environment variables:
 | `title`          | `JASPER_TITLE`           | Name to display in the title bar.                                                                 | `Jasper`                                                                                                |
 | `version`        | `JASPER_VERSION`         | Version string to display as a tooltip in the footer.                                             | `v1.0.0`                                                                                                |
 | `api`            | `JASPER_API`             | URL of the API server (no trailing slash)                                                         | `//jasperkm.info`                                                                                       |
+|                  | `JASPER_API_PROXY`       | Backend host to proxy on `/api`. Sets `JASPER_API` to `.`                                         | `http://web:80`                                                                                         |
 | `logout`         | `JASPER_LOGOUT`          | Optional URL to log out.                                                                          | `//jasperkm.info/oauth2/sign_out?rd=https%3A%2F%2Fauth.jasperkm.info%2Fauthn%2Fauthentication%2Flogout` |
 | `login`          | `JASPER_LOGIN`           | Optional URL to log in. A redirect (`?rd=`) will be appended with the current page.               | `//jasperkm.info/oauth2/sign_in`                                                                        |
 | `signup`         | `JASPER_SIGNUP`          | Optional URL to sign up.                                                                          | `https://auth.jasperkm.info/authn/registration/form`                                                    |
@@ -189,6 +202,7 @@ file will be generated from environment variables:
 | `token`          | `JASPER_TOKEN`           | Set client bearer token.                                                                          |                                                                                                         |
 | `prefetch`       | `JASPER_PREFETCH`        | Prefetch proxied urls. Needed when not using cookies as image requests will not be authenticated. | `false`                                                                                                 |
 |                  | `BASE_HREF`              | Set the base href for the SPA.                                                                    | `/j/`                                                                                                   |
+|                  | `JASPER_LOCALE`          | One of 'en', or 'ja'. Default is 'en'.                                                            | `ja'`                                                                                                   |
 |                  | `CSP_DEFAULT_SRC`        | Additional URLS to add to the default content security policy.                                    | `https://accounts.google.com https://www.googleapis.com`                                                |
 |                  | `CSP_SCRIPT_SRC`         | Additional URLS to add to the script-src content security policy.                                 |                                                                                                         |
 |                  | `CSP_STYLE_SRC`          | Additional URLS to add to the style-src content security policy.                                  |                                                                                                         |
@@ -200,15 +214,27 @@ This project was generated with [Angular CLI](https://github.com/angular/angular
 
 ### Development server
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The application will automatically reload if you change any of the source files.
+Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The
+application will automatically reload if you change any of the source files.
 
 ### Code scaffolding
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+Run `ng generate component component-name` to generate a new component.
+You can also use
+`ng generate directive|pipe|service|class|guard|interface|enum|module`.
+
+### Localizing
+
+To update the localization file after new text is added run
+`ng extract-i18n --output-path src/locale`.
+Run
+`xmlstarlet ed -N x="urn:oasis:names:tc:xliff:document:1.2" -d "//x:context-group" src/locale/messages.xlf > src/locale/messages.<locale here>.xlf`
+to generate a new translation file. Then add it to the `locales` array in `angular.json`.
 
 ### Build
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
+Run `ng build` to build the project. The build artifacts will be stored in the
+`dist/` directory.
 
 ### Running unit tests
 
@@ -216,8 +242,11 @@ Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.
 
 ### Running end-to-end tests
 
-Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To use this command, you need to first add a package that implements end-to-end testing capabilities.
+Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To
+use this command, you need to first add a package that implements end-to-end
+testing capabilities.
 
 ### Further help
 
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.io/cli) page.
+To get more help on the Angular CLI use `ng help` or go check out the
+[Angular CLI Overview and Command Reference](https://angular.io/cli) page.

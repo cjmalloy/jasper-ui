@@ -74,26 +74,26 @@
   @if (store.view.ref) {
     @if ((thread || comment) && store.view.top && store.view.ref.url !== store.view.top.url && store.view.current !== 'ref/sources' && !store.view.repost) {
       <app-ref class="print-hide"
-               [class.thread]="store.view.current === 'ref/thread'"
+               [class.thread]="thread"
                [class.parent-ref]="true"
                [ref]="store.view.top"
                [showToggle]="false"
                [expanded]="false"
                (copied)="reload()"></app-ref>
-      @if (thread && store.view.current === 'ref/thread') {
-        <span class="parent-link fake-link print-hide" [routerLink]="['/ref', store.view.top.url, 'thread']" (click)="store.view.setRef(store.view.top)" i18n>full thread</span>
+      @if (thread) {
+        <span class="parent-link fake-link print-hide" [routerLink]="['/ref', store.view.top.url, 'thread']" (click)="store.view.preloadRef(store.view.top)" i18n>full thread</span>
       } @else if (comment && store.view.current === 'ref/comments') {
-        <span class="parent-link fake-link print-hide" [routerLink]="['/ref', store.view.top.url, 'comments']" (click)="store.view.setRef(store.view.top)" i18n>full comments</span>
+        <span class="parent-link fake-link print-hide" [routerLink]="['/ref', store.view.top.url, 'comments']" (click)="store.view.preloadRef(store.view.top)" i18n>full comments</span>
       } @else {
-        <span class="parent-link fake-link print-hide" [routerLink]="['/ref', store.view.top.url]" (click)="store.view.setRef(store.view.top)" i18n>parent</span>
+        <span class="parent-link fake-link print-hide" [routerLink]="['/ref', store.view.top.url]" (click)="store.view.preloadRef(store.view.top)" i18n>parent</span>
       }
     }
     <app-ref class="full-page"
-             [class.thread]="store.view.current === 'ref/thread'"
+             [class.thread]="thread"
              [ref]="store.view.ref"
-             [showToggle]="store.view.current !== 'ref/thread'"
-             [expandInline]="!config.mobile || store.view.current === 'ref/thread' || !!threads"
-             [expanded]="expandedOnLoad"
+             [showToggle]="!thread"
+             [expandInline]="!config.mobile || !!thread"
+             [expanded]="expandedOnLoad || !!thread"
              (copied)="reload()"></app-ref>
     @if (newResponses) {
       <div class="warning print-hide" i18n>
@@ -105,7 +105,7 @@
         * Published date was changed to be after source published date.
       </div>
     }
-    @if (!store.view.ref.created && !store.view.versions) {
+    @if (!store.view.ref.created) {
       <div class="stack">
         <div class="error-404" i18n>Not Found</div>
         @if (store.account.signedIn) {
@@ -124,7 +124,8 @@
           }
         }
       </div>
-    } @else {
+    }
+    @if (store.view.ref.created || store.view.versions || store.view.current !== 'ref/summary') {
       <hr>
       <router-outlet></router-outlet>
     }

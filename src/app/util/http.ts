@@ -25,10 +25,31 @@ export function writeObj(obj?: Record<string, any>): Record<string, any> | undef
     let v = obj[k];
     if (DateTime.isDateTime(v)) v = v.toUTC().toISO();
     if ((v || v === false) && !emptyObject(v)) {
-      result[k] = v;
+      result[k] = (isObject(v) && !isArray(v))  ? writeObj(v) : v;
     }
   }
   if (emptyObject(result)) return undefined;
+  return result;
+}
+
+/**
+ * Jsonify object and set missing fields to null to remove during merge.
+ */
+export function patchObj(obj?: Record<string, any>): Record<string, any> | null {
+  if (!obj) return {};
+  if (!isObject(obj)) return obj;
+  const result: Record<string, any> = {};
+  for (const k in obj) {
+    // @ts-ignore
+    let v = obj[k];
+    if (DateTime.isDateTime(v)) v = v.toUTC().toISO();
+    if ((v || v === false) && !emptyObject(v)) {
+      result[k] = v;
+    } else {
+      result[k] = null;
+    }
+  }
+  if (emptyObject(result)) return null;
   return result;
 }
 
@@ -166,14 +187,20 @@ export function getScheme(url: string) {
   return parsed.protocol;
 }
 
+export function parts(url: string) {
+  const parts = new URL('http://test.com/' + url);
+  return [parts.pathname, parts.search, parts.hash];
+}
+
 export function getPath(url: string): string | null {
-  if (url.startsWith('/')) {
+  if (!url) return '';
+  if ((''+url).startsWith('/')) {
     if (url.includes('#')) url = url.substring(0, url.indexOf('#'));
     if (url.includes('?')) url = url.substring(0, url.indexOf('?'));
     return url;
   }
   const parsed = getUrl(url);
-  if (!parsed) return null;
+  if (!parsed) return '';
   return parsed.pathname;
 }
 
@@ -182,4 +209,17 @@ export function getExtension(url: string): string | null {
   if (!parsed) return null;
   if (!parsed.pathname.includes('.')) return parsed.pathname;
   return parsed.pathname.substring(parsed.pathname.lastIndexOf('.'));
+}
+
+export function getTitleFromFilename(url: string): string | null {
+  if (!url.includes('/')) return null;
+  const path = getPath(url);
+  if (!path) return null;
+  const segments = path.split('/').filter(s => !!s);
+  if (!segments.length) return null;
+  let filename = segments[segments.length - 1];
+  try {
+    filename = decodeURIComponent(filename);
+  } catch (e) { }
+  return filename?.trim() || null;
 }

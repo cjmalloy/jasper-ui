@@ -22,11 +22,12 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: actions/configure-pages@v5
 
       # Create site directory
       - name: Create site directory
+        # language=bash
         run: |
           mkdir -p _build _site
           cp README.md _build/
@@ -42,10 +43,23 @@ jobs:
 
       # Download and merge any test reports
       - name: Process Reports
+        # language=bash
         run: |
           mkdir -p "_site/reports"
           gh auth login --with-token <<< "${{ github.token }}"
-          gh run download --pattern "*-reports-*" --dir _site/reports
+
+          # Download only the latest 10 reports for each type to save space
+          gh run list --workflow test.yml --branch master --limit 10 --json databaseId --jq '.[].databaseId' | while read run_id; do
+            gh run download "$run_id" --pattern "karma-reports-*" --dir _site/reports 2>/dev/null || true
+          done
+
+          gh run list --workflow cypress.yml --branch master --limit 10 --json databaseId --jq '.[].databaseId' | while read run_id; do
+            gh run download "$run_id" --pattern "cypress-reports-*" --dir _site/reports 2>/dev/null || true
+          done
+
+          # Download PR reports
+          gh run download --pattern "*-reports-pr-*" --dir _site/reports 2>/dev/null || true
+
           latest_karma=$(ls -dv _site/reports/karma-reports-master-* 2>/dev/null | tail -1)
           echo "Creating latest Karma $latest_karma"
           if [ -n "$latest_karma" ] && [ -d "$latest_karma" ]; then
@@ -143,7 +157,7 @@ jobs:
           EOF
 
       # Upload combined site
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v4
 
   deploy:
     needs: build

@@ -1,15 +1,18 @@
 import { Component, Input } from '@angular/core';
+import { BackupRef } from '../../../service/api/backup.service';
+import { LoadingComponent } from '../../loading/loading.component';
+import { BackupComponent } from '../backup.component';
 
 @Component({
-  standalone: false,
   selector: 'app-backup-list',
   templateUrl: './backup-list.component.html',
-  styleUrls: ['./backup-list.component.scss']
+  styleUrls: ['./backup-list.component.scss'],
+  imports: [LoadingComponent, BackupComponent]
 })
 export class BackupListComponent {
 
   @Input()
-  list?: string[];
+  list?: BackupRef[];
   @Input()
   origin = '';
 

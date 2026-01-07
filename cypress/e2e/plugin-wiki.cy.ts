@@ -5,7 +5,7 @@ describe('Wiki Plugin', {
 }, () => {
   it('loads the page', () => {
     cy.visit('/?debug=USER');
-    cy.contains('Home', { timeout: 1000 * 60 });
+    cy.contains('Powered by Jasper', { timeout: 1000 * 60 });
   });
   it('clear mods', () => {
     clearMods();
@@ -17,7 +17,7 @@ describe('Wiki Plugin', {
     cy.get('.tabs').contains('wiki').click();
     cy.get('#url').type('WIKI TEST');
     cy.get('button').contains('Next').click();
-    cy.get('#comment textarea').type('Link to [[Other WIKI]].');
+    cy.get('.editor textarea').type('Link to [[Other WIKI]].');
     cy.intercept({pathname: '/api/v1/ref'}).as('submit');
     cy.get('button').contains('Submit').click();
     cy.wait('@submit');
@@ -37,7 +37,7 @@ describe('Wiki Plugin', {
     cy.get('.error-404').contains('Not Found');
     cy.get('.submit-button').contains('Submit Wiki').click();
     cy.get('h5').should('contain.text', 'Submit');
-    cy.get('#title').should('have.value', 'Other wiki');
+    cy.get('[name=title]').should('have.value', 'Other wiki');
   });
   it('turn on wiki config', () => {
     cy.visit('/?debug=ADMIN');
@@ -53,18 +53,7 @@ describe('Wiki Plugin', {
     cy.visit('/?debug=ADMIN');
     cy.get('.settings a').contains('settings').click();
     cy.get('.tabs').contains('template').click();
-    cy.get('.template.wiki .actions').contains('edit').click();
-    cy.get('button').then($b => {
-      if ($b.text().includes('+ Add Config')) $b.click();
-    });
-    cy.wait(1000); // Warm up monaco editor
-    if (Cypress.platform == 'darwin') {
-      cy.get('#config').click().focused().type('{cmd}a{backspace}');
-    } else {
-      cy.get('#config').click().focused().type('{ctrl}a{backspace}');
-    }
-    cy.get('#config').type(JSON.stringify({ prefix: 'https://externalwiki/', external: true }), { parseSpecialCharSequences: false });
-    cy.get('button').contains('save').click();
+    cy.get('input.upload').selectFile(Cypress.Buffer.from(JSON.stringify({ tag: 'config/wiki', config: { prefix: 'https://externalwiki/', external: true }})), { force: true });
   });
   it('submit wiki button removed', () => {
     cy.visit('/?debug=USER');

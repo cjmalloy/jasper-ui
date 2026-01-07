@@ -1,17 +1,31 @@
+# Development artifacts
 .angular/
 .github/
 .idea/
 .vscode/
+coverage/
 cypress/
 dist/
 node_modules/
 quickstart/
-.editorconfig
+.DS_Store
+
+# Documentation
+_includes/
+docs/
+*.md
+LICENSE
+
+# Git and config files not needed for build
+.git/
 .gitignore
+.editorconfig
 _config.yml
 cypress.config.ts
 cypress.config.js
+
+# Scripts and local dev files
+set-debug-ip.sh
 docker-compose.yaml
 Dockerfile
-LICENSE
-README.md
+.dockerignore

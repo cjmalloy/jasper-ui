@@ -1,5 +1,9 @@
-<app-loading *ngIf="!messages || loadingPrev"></app-loading>
-<a *ngIf="messages && !loadingPrev" class="load-more fake-link" (click)="loadPrev()">load prev</a>
+@if (!messages || loadingPrev) {
+  <app-loading></app-loading>
+}
+@if (messages && !loadingPrev) {
+  <a class="load-more fake-link" (click)="loadPrev()">load prev</a>
+}
 <cdk-virtual-scroll-viewport class="messages"
                              [class.scroll-lock]="scrollLock"
                              [itemSize]="itemSize"
@@ -13,16 +17,26 @@
 </cdk-virtual-scroll-viewport>
 <div class="spacer"></div>
 <div class="input-box">
-  <button type="button"
-          class="refresh"
-          [title]="'last polled ' + lastPoll.toRelative()"
-          (click)="refresh()" i18n>🔄</button>
+  @if (!config.websockets) {
+    <button type="button"
+            class="refresh"
+            [title]="'last polled ' + lastPoll.toRelative()"
+            (click)="refresh()" i18n>🔄</button>
+  }
+  @for (button of editorPushButtons; track button; let i = $index) {
+    @if (!button.event) {
+      <button type="button"
+              (click)="toggleTag(button)"
+              [title]="button.title" i18n>{{(buttonOn(button.toggle!) ? button.labelOn : button.labelOff) || button.label }}</button>
+    }
+  }
   <input type="text"
          i18n-placeholder
          placeholder="chat..."
          enterkeyhint="send"
          size="10"
-         [(ngModel)]="addText"
+         [value]="addText"
+         (input)="addText = $any($event.target).value"
          (keydown)="$event.key === 'Enter' && add() || true"
          appAutofocus>
   <button type="button"
@@ -32,18 +46,20 @@
           (click)="add()" i18n>⏎</button>
 </div>
 <span class="hints">
-  <ng-container *ngIf="admin.getPlugin('plugin/latex')">
-    <input id="latex" type="checkbox" [(ngModel)]="latex">
+  @if (admin.getPlugin('plugin/latex')) {
+    <input id="latex" type="checkbox" [checked]="latex" (input)="latex = !latex">
     <label for="latex" i18n>
       LaTeX plugin
       <sup><a target="_blank" href="https://katex.org/docs/supported.html">help</a></sup>
     </label>
-  </ng-container>
+  }
 </span>
 <div class="list-container">
-  <ng-container *ngFor="let ref of errored">
+  @for (ref of errored; track ref.origin + ref.url) {
     <button type="button" class="retry" (click)="retry(ref)" i18n>retry</button>
     <app-chat-entry [ref]="ref" [loading]="false"></app-chat-entry>
-  </ng-container>
-  <app-chat-entry *ngFor="let ref of sending" [ref]="ref"></app-chat-entry>
+  }
+  @for (ref of sending; track ref.url) {
+    <app-chat-entry [ref]="ref"></app-chat-entry>
+  }
 </div>

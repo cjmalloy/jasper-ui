@@ -99,24 +99,36 @@
             <app-select-plugin [(plugin)]="plugin"
                                [settings]="!!admin.getPluginSettings(store.submit.tags).length"></app-select-plugin>
           }
-          <input id="url"
-                 [placeholder]="placeholder"
-                 class="big"
-                 type="text"
-                 size="1"
-                 autocomplete="off"
-                 formControlName="url"
-                 appAutofocus>
+          @if (uploading) {
+            <progress class="grow" max="100" [value]="progress"></progress>
+          } @else {
+            <datalist [id]="listId">
+              @for (o of autocomplete; track o.value) {
+                <option [value]="o.value">{{ o.label }}</option>
+              }
+            </datalist>
+            <input id="url"
+                   [placeholder]="placeholder"
+                   class="big"
+                   type="text"
+                   size="1"
+                   autocomplete="off"
+                   [attr.list]="listId"
+                   formControlName="url"
+                   appAutofocus
+                   (input)="search(url.value)"
+                   (paste)="getUrlPlugin()">
+          }
           @if (!store.submit.wiki) {
             @if ((!plugin || plugin === 'plugin/qr') && admin.getPlugin('plugin/qr')) {
               <app-qr-scanner [upload]="plugin === 'plugin/qr'" (data)="scanQr($event)"></app-qr-scanner>
             }
             @if (admin.getPlugin('plugin/file')) {
               @switch (plugin) {
-                @case (  'plugin/pdf') { <app-pdf-upload   (data)="upload($event)"></app-pdf-upload> }
-                @case ('plugin/audio') { <app-audio-upload (data)="upload($event)"></app-audio-upload> }
-                @case ('plugin/video') { <app-video-upload (data)="upload($event)"></app-video-upload> }
-                @case ('plugin/image') { <app-image-upload (data)="upload($event)"></app-image-upload> }
+                @case (  'plugin/pdf') { <app-pdf-upload   (data)="onUpload($event)"></app-pdf-upload> }
+                @case ('plugin/audio') { <app-audio-upload (data)="onUpload($event)"></app-audio-upload> }
+                @case ('plugin/video') { <app-video-upload (data)="onUpload($event)"></app-video-upload> }
+                @case ('plugin/image') { <app-image-upload (data)="onUpload($event)"></app-image-upload> }
               }
             }
           }
@@ -129,33 +141,55 @@
 
         <span><!-- Tags --></span>
         <div class="form-array right">
-          @for (tag of store.submit.tags | plugins; track tag) {
-            <span>{{ tag }}</span>
+          @for (p of store.submit.tags | tagPreview | async; track p.tag) {
+            <a class="tag" [routerLink]="['/tag', p.tag]">{{ p.name || '#' + p.tag }}</a>
           }
         </div>
 
-        @if (existingRef) {
-          <br>
-          <app-ref [ref]="existingRef" [showToggle]="true"></app-ref>
-        }
+        @if (!uploading) {
+          @if (existingRef) {
+            <br>
+            <app-ref [ref]="existingRef" [showToggle]="true"></app-ref>
+          }
 
-        <br>
-        <div class="validations">
-          @for (v of validations; track v.name) {
-            @if (v.passed) {
-              <div>✅️ &nbsp;{{ v.name }}</div>
-            } @else {
-              <div>❌️ &nbsp;{{ v.name }}</div>
+          <br>
+          <div class="validations">
+            @for (v of validations; track v.name) {
+              @if (v.passed) {
+                <div>✅️ &nbsp;{{ v.name }}</div>
+              } @else {
+                <div>❌️ &nbsp;{{ v.name }}</div>
+              }
+            }
+          </div>
+
+          <span><!-- Buttons --></span>
+          <span class="buttons right">
+            <button type="submit" [disabled]="!submitForm.valid && !existingRef"
+                    i18n-title title="Submit link"
+                    i18n>@if (repost) { Repost } @else { Next }</button>
+          </span>
+
+          @if (responsesToUrl.content.length > 0) {
+            <span><!-- Title --></span>
+            <span i18n>Existing Responses:</span>
+
+            <span><!-- Existing responses --></span>
+            <div class="list-container">
+              @for (ref of responsesToUrl.content; track ref.url; let i = $index) {
+                <div class="list-number">{{ i + 1 }}</div>
+                <app-ref [ref]="ref" [showToggle]="true"></app-ref>
+              }
+            </div>
+            @if (responsesToUrl.page.totalPages > 1) {
+              <span><!-- show more --></span>
+              <a [routerLink]="['/ref', url.value, 'responses']"
+                 class="load-more no-select" i18n>
+                see all
+              </a>
             }
           }
-        </div>
-
-        <span><!-- Buttons --></span>
-        <span class="buttons right">
-          <button type="submit" [disabled]="!submitForm.valid && !existingRef"
-                  i18n-title title="Submit link"
-                  i18n>{{ repost ? 'Repost' : 'Next' }}</button>
-        </span>
+        }
       </form>
 
       <span></span>

@@ -1,5 +1,6 @@
 import { Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { TemplatePortal } from '@angular/cdk/portal';
+import { KeyValuePipe } from '@angular/common';
 import {
   AfterViewInit,
   Component,
@@ -7,26 +8,31 @@ import {
   HostListener,
   Input,
   NgZone,
+  OnChanges,
+  SimpleChanges,
   TemplateRef,
   ViewChild,
   ViewContainerRef
 } from '@angular/core';
 import { defer } from 'lodash-es';
 import { Subscription } from 'rxjs';
+import { TitleDirective } from '../../../directive/title.directive';
 import { Ref, writeRef } from '../../../model/ref';
 import { Action } from '../../../model/tag';
 import { ActionService } from '../../../service/action.service';
 import { ConfigService } from '../../../service/config.service';
 import { downloadRef } from '../../../util/download';
-import { memo } from '../../../util/memo';
+import { memo, MemoCache } from '../../../util/memo';
+import { ConfirmActionComponent } from '../confirm-action/confirm-action.component';
+import { InlineButtonComponent } from '../inline-button/inline-button.component';
 
 @Component({
-  standalone: false,
   selector: 'app-action-list',
   templateUrl: './action-list.component.html',
-  styleUrl: './action-list.component.scss'
+  styleUrl: './action-list.component.scss',
+  imports: [ConfirmActionComponent, TitleDirective, InlineButtonComponent, KeyValuePipe]
 })
-export class ActionListComponent implements AfterViewInit {
+export class ActionListComponent implements AfterViewInit, OnChanges {
 
   @Input()
   ref!: Ref;
@@ -62,7 +68,11 @@ export class ActionListComponent implements AfterViewInit {
 
   ngAfterViewInit() {
     this.resizeObserver?.observe(this.el.nativeElement!.parentElement!);
-    this.onResize();
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    MemoCache.clear(this);
+    defer(() => this.onResize());
   }
 
   @memo

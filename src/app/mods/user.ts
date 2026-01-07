@@ -26,9 +26,6 @@ export const userTemplate: Template = {
     to reply to a thread, one convention is to simply reply tagging the user like so: '+user/chris'.
     If you receive such a message, simply respond 'ACK', so that we can silently hide your response.
     `,
-    filters: [
-      { query: '+user|_user', label: $localize`🧑️ user`, title: $localize`User Settings`, group: $localize`Templates 🎨️` },
-    ],
     overrideForm: true,
     form: [{
       key: 'liveSearch',
@@ -43,6 +40,9 @@ export const userTemplate: Template = {
     }, {
       key: 'subscriptions',
       type: 'queries',
+      expressions: {
+        hide: '!formState.admin.getTemplate("home")',
+      },
       props: {
         label: $localize`Subscriptions:`,
         addText: $localize`+ Add another subscription`,
@@ -158,6 +158,12 @@ export const userTemplate: Template = {
       props: {
         label: $localize`Kanban Load Size:`,
       }
+    }, {
+      key: 'defaults',
+      type: 'boolean',
+      props: {
+        label: $localize`Defaults:`,
+      },
     }],
   },
   defaults: <UserConfig> {
@@ -173,9 +179,9 @@ export const userTemplate: Template = {
       bookmarks: { elements: { type: 'string' } },
       alarms: { elements: { type: 'string' } },
       editors: { elements: { type: 'string' } },
-      userTheme: { type: "string" },
+      userTheme: { type: 'string' },
       consent: { values: { type: 'boolean' }},
-      kanbanLoadSize: { type: "uint8" },
+      kanbanLoadSize: { type: 'uint8' },
     }
   },
 };

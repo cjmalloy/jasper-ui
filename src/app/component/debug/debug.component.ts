@@ -14,13 +14,14 @@ import { Store } from '../../store/store';
 import { TemplateStore } from '../../store/template';
 import { UserStore } from '../../store/user';
 import { printError } from '../../util/http';
+import { LoadingComponent } from '../loading/loading.component';
 
 @Component({
-  standalone: false,
   selector: 'app-debug',
   templateUrl: './debug.component.html',
   styleUrls: ['./debug.component.scss'],
-  host: {'class': 'debug actions'}
+  host: { 'class': 'debug actions' },
+  imports: [LoadingComponent]
 })
 export class DebugComponent {
 
@@ -93,8 +94,8 @@ export class DebugComponent {
         tags: ['public', 'gen'],
       }).pipe(
         tap(() => {
-          if (this.admin.getPlugin('plugin/vote/up')) {
-            this.ts.createResponse('plugin/vote/up', url).subscribe();
+          if (this.admin.getPlugin('plugin/user/vote/up')) {
+            this.ts.createResponse('plugin/user/vote/up', url).subscribe();
           }
         }),
       );

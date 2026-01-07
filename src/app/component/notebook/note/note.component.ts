@@ -1,26 +1,32 @@
 import { Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { TemplatePortal } from '@angular/cdk/portal';
+import { AsyncPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
   AfterViewInit,
   Component,
   ElementRef,
   EventEmitter,
+  forwardRef,
   HostBinding,
   HostListener,
   Input,
   NgZone,
   OnChanges,
+  OnDestroy,
   Output,
   SimpleChanges,
   TemplateRef,
   ViewChild,
   ViewContainerRef
 } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { defer, delay, difference, intersection, uniq } from 'lodash-es';
-import { catchError, of, Subscription, switchMap, throwError } from 'rxjs';
+import { catchError, of, Subject, Subscription, switchMap, takeUntil, throwError } from 'rxjs';
 import { Ext } from '../../../model/ext';
 import { equalsRef, Ref } from '../../../model/ref';
+import { CssUrlPipe } from '../../../pipe/css-url.pipe';
+import { ThumbnailPipe } from '../../../pipe/thumbnail.pipe';
 import { AdminService } from '../../../service/admin.service';
 import { ExtService } from '../../../service/api/ext.service';
 import { RefService } from '../../../service/api/ref.service';
@@ -33,15 +39,29 @@ import { getTitle, hasComment } from '../../../util/format';
 import { printError } from '../../../util/http';
 import { memo, MemoCache } from '../../../util/memo';
 import { expandedTagsInclude, hasTag, repost } from '../../../util/tag';
+import { ChessComponent } from '../../chess/chess.component';
+import { LoadingComponent } from '../../loading/loading.component';
+import { MdComponent } from '../../md/md.component';
+import { TodoComponent } from '../../todo/todo.component';
 
 @Component({
-  standalone: false,
   selector: 'app-note',
   templateUrl: './note.component.html',
   styleUrls: ['./note.component.scss'],
-  host: {'class': 'note'}
+  host: { 'class': 'note' },
+  imports: [
+    forwardRef(() => MdComponent),
+    LoadingComponent,
+    RouterLink,
+    ChessComponent,
+    TodoComponent,
+    AsyncPipe,
+    ThumbnailPipe,
+    CssUrlPipe,
+  ],
 })
-export class NoteComponent implements OnChanges, AfterViewInit {
+export class NoteComponent implements OnChanges, AfterViewInit, OnDestroy {
+  private destroy$ = new Subject<void>();
 
   @HostBinding('class.unlocked')
   unlocked = false;
@@ -97,6 +117,7 @@ export class NoteComponent implements OnChanges, AfterViewInit {
           : this.refs.getCurrent(this.url)
       ).pipe(
         catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
+        takeUntil(this.destroy$),
       ).subscribe(ref => this.repostRef = ref);
     }
   }
@@ -113,6 +134,11 @@ export class NoteComponent implements OnChanges, AfterViewInit {
         this.el.nativeElement.scrollIntoView({ behavior: 'smooth' });
       }
     }, 400);
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   @HostListener('click')
@@ -297,7 +323,7 @@ export class NoteComponent implements OnChanges, AfterViewInit {
   }
 
   saveRef() {
-    this.store.view.setRef(this.ref, this.repostRef);
+    this.store.view.preloadRef(this.ref, this.repostRef);
   }
 
   close() {
@@ -338,14 +364,14 @@ export class NoteComponent implements OnChanges, AfterViewInit {
       origin: this.store.account.origin,
       tags,
     };
-    this.refs.create(copied, true).pipe(
+    this.refs.create(copied).pipe(
       catchError((err: HttpErrorResponse) => {
         if (err.status === 409) {
           return this.refs.get(this.ref.url, this.store.account.origin).pipe(
             switchMap(existing => {
               if (equalsRef(existing, copied) || confirm('An old version already exists. Overwrite it?')) {
                 // TODO: Show diff and merge or split
-                return this.refs.update({ ...copied, modifiedString: existing.modifiedString }, true);
+                return this.refs.update({ ...copied, modifiedString: existing.modifiedString });
               } else {
                 return throwError(() => 'Cancelled')
               }
@@ -356,7 +382,7 @@ export class NoteComponent implements OnChanges, AfterViewInit {
         console.error(printError(err));
         return throwError(() => err);
       }),
-      switchMap(() => this.refs.get(copied.url, this.store.account.origin)),
+      switchMap(() => this.refs.get(copied.url, this.store.account.origin).pipe(takeUntil(this.destroy$))),
     ).subscribe(ref => {
       this.ref = ref;
       this.init();

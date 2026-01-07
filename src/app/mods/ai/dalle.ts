@@ -1,6 +1,6 @@
 import { DateTime } from 'luxon';
-import { Plugin } from '../model/plugin';
-import { Mod } from '../model/tag';
+import { Plugin } from '../../model/plugin';
+import { Mod } from '../../model/tag';
 
 export const dalleQueryPlugin: Plugin = {
   tag: 'plugin/delta/dalle',
@@ -299,7 +299,6 @@ export const dallePlugin: Plugin = {
     description: $localize`DALL-E signature tag. Plugin configures DALL-E to respond to 'plugin/delta/dalle' prompts
     and sign this response with this tag`,
   },
-  generateMetadata: true,
 };
 
 export const dalleMod: Mod = {

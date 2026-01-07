@@ -1,7 +1,9 @@
+/// <reference types="vitest/globals" />
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { forwardRef } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { RouterModule } from '@angular/router';
+import { provideRouter } from '@angular/router';
 
 import { ModComponent } from './mod.component';
 
@@ -11,16 +13,14 @@ describe('ModComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ModComponent],
-      imports: [RouterModule.forRoot([])],
+      imports: [forwardRef(() => ModComponent)],
       providers: [
         provideHttpClient(withInterceptorsFromDi()),
-        provideHttpClientTesting()
+        provideHttpClientTesting(),
+        provideRouter([]),
       ],
     }).compileComponents();
-  });
 
-  beforeEach(() => {
     fixture = TestBed.createComponent(ModComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();

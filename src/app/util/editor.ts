@@ -16,6 +16,7 @@ export function getTags(markdown: string) {
 
 export function extractPattern(markdown: string, pattern: RegExp, extractor?: RegExp, validator?: RegExp) {
   const result: string[] = [];
+  if (!markdown) return result;
   const matches = markdown.match(pattern);
   for (const s of matches || []) {
     const url = (extractor ? s.match(extractor)?.[1] : s)?.trim();

@@ -50,6 +50,9 @@ app-loading {
   position: relative;;
   z-index: 1;
   .badge {
+    max-width: 22px;
+    overflow: hidden;
+    white-space: nowrap;
     cursor: pointer;
     text-decoration: none;
     margin: 4px;
@@ -60,16 +63,15 @@ app-loading {
     min-width: 21px;
     text-align: center;
     display: block;
+    background-color: var(--card);
     border: 1px solid transparent;
     &.filtering {
       transform: translate(1px, -1px);
-      background-color: var(--card);
       filter: drop-shadow(0 0 0.5px white) drop-shadow(1px 1px 0.5px black);
       border: 1px solid rgba(0, 0, 0, 0.1);
     }
     &:hover {
       transform: scale(1.2) translate(1px, -1px);
-      background-color: var(--card);
       filter: drop-shadow(0 0 0.5px white) drop-shadow(1px 1px 0.5px black);
       border: 1px solid rgba(0, 0, 0, 0.1);
     }

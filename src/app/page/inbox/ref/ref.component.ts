@@ -1,6 +1,7 @@
 import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { defer, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
+import { MobxAngularModule } from 'mobx-angular';
 import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Plugin } from '../../../model/plugin';
@@ -11,10 +12,10 @@ import { Store } from '../../../store/store';
 import { getArgs } from '../../../util/query';
 
 @Component({
-  standalone: false,
   selector: 'app-inbox-ref-page',
   templateUrl: './ref.component.html',
   styleUrls: ['./ref.component.scss'],
+  imports: [MobxAngularModule, RefListComponent],
 })
 export class InboxRefPage implements OnInit, OnDestroy, HasChanges {
   private disposers: IReactionDisposer[] = [];
@@ -42,10 +43,10 @@ export class InboxRefPage implements OnInit, OnDestroy, HasChanges {
 
   ngOnInit(): void {
     this.disposers.push(autorun(() => {
-      this.plugin = this.admin.getPlugin(this.store.view.childTag);
-      this.mod.setTitle($localize`Inbox: ${this.plugin?.config?.inbox || this.store.view.childTag}`);
+      this.plugin = this.admin.getPlugin(this.store.view.inboxTag);
+      this.mod.setTitle($localize`Inbox: ${this.plugin?.config?.inbox || this.store.view.inboxTag}`);
       const args = getArgs(
-        this.store.view.childTag + (this.store.view.showRemotes ? '' : (this.plugin?.origin || '@')),
+        this.store.view.inboxTag + (this.store.view.showRemotes ? '' : (this.plugin?.origin || '@')),
         this.store.view.sort,
         uniq(['!obsolete', ...this.store.view.filter]),
         this.store.view.search,
@@ -57,6 +58,7 @@ export class InboxRefPage implements OnInit, OnDestroy, HasChanges {
   }
 
   ngOnDestroy() {
+    this.query.close();
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
   }

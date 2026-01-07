@@ -1,9 +1,9 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { AfterViewInit, Component, EventEmitter, Input, Output, ViewChild } from '@angular/core';
-import { FormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
-import { merge, pickBy, uniq, without } from 'lodash-es';
+import { Component, EventEmitter, forwardRef, Input, Output, ViewChild } from '@angular/core';
+import { FormBuilder, ReactiveFormsModule, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
+import { pickBy, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
-import { catchError, Subscription, throwError } from 'rxjs';
+import { catchError, forkJoin, map, of, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
 import { EditorComponent } from '../../../form/editor/editor.component';
@@ -15,19 +15,24 @@ import { AdminService } from '../../../service/admin.service';
 import { RefService } from '../../../service/api/ref.service';
 import { TaggingService } from '../../../service/api/tagging.service';
 import { Store } from '../../../store/store';
-import { getMailboxes, getTags } from '../../../util/editor';
+import { getMailboxes } from '../../../util/editor';
 import { getRe } from '../../../util/format';
 import { printError } from '../../../util/http';
-import { hasTag, removeTag, tagIntersection } from '../../../util/tag';
+import { getVisibilityTags, hasTag, removeTag } from '../../../util/tag';
+import { LoadingComponent } from '../../loading/loading.component';
 
 @Component({
-  standalone: false,
   selector: 'app-comment-reply',
   templateUrl: './comment-reply.component.html',
   styleUrls: ['./comment-reply.component.scss'],
-  host: {'class': 'comment-reply'}
+  host: { 'class': 'comment-reply' },
+  imports: [
+    forwardRef(() => EditorComponent),
+    ReactiveFormsModule,
+    LoadingComponent,
+  ]
 })
-export class CommentReplyComponent implements AfterViewInit, HasChanges {
+export class CommentReplyComponent implements HasChanges {
 
   @Input()
   to!: Ref;
@@ -46,12 +51,13 @@ export class CommentReplyComponent implements AfterViewInit, HasChanges {
   editor?: EditorComponent
 
   editorTags: string[] = [];
+  editorSources: string[] = [];
+  completedUploads: Ref[] = [];
 
   replying?: Subscription;
   commentForm: UntypedFormGroup;
   serverError: string[] = [];
   config = this.admin.getPlugin('plugin/comment')?.config || commentPlugin.config!;
-  _quote?: string;
 
   constructor(
     public admin: AdminService,
@@ -69,56 +75,36 @@ export class CommentReplyComponent implements AfterViewInit, HasChanges {
     return !this.commentForm.dirty;
   }
 
-  ngAfterViewInit(): void {
-    this.comment.setValue(this.quote);
-  }
-
-  get publicTag() {
-    if (!hasTag('public', this.to)) return [];
-    return ['public'];
-  }
-
   get comment() {
     return this.commentForm.get('comment') as UntypedFormControl;
   }
 
-  get quote() {
-    if (this._quote !== undefined) return this._quote;
-    const q = this.to.comment || '';
-    if (!q) return q;
-    return q.split('\n').map(l => '> ' + l).join('\n') + '\n\n';
-  }
-
-  @Input()
-  set quote(value: string) {
-    this._quote = value;
-  }
-
   get inheritedPlugins() {
     const plugins = this.admin.getPlugins(this.to.tags)
-      .filter(p => p.tag === p.config?.signature && tagIntersection(this.tags, p.config?.reply).length)
+      .filter(p => p.config?.inherit)
       .map(p => p.tag);
-    const parentPlugins = pickBy(this.to.plugins, (data, tag) => plugins.includes(tag));
-    return merge({}, ...Object.keys(parentPlugins)
-      .flatMap(tag => (this.admin.getPlugin(tag)?.config?.reply || [])
-        .filter(r => this.tags.includes(r))
-        .map(r => ({ [r]: this.admin.stripInvalid(r, parentPlugins[tag]) }))));
+    return pickBy(this.to.plugins, (data, tag) => hasTag(tag, plugins));
+  }
+
+  addSource(add: any) {
+    this.editorSources.push(add);
+  }
+
+  syncTags(tags: string[]) {
+    this.editorTags = tags;
   }
 
   reply() {
     if (!this.comment.value) return;
     const url = 'comment:' + uuid();
-    const value = this.comment.value;
-    const addTags = this.editorTags.filter(t => !t.startsWith('-'));
-    const removeTags = this.editorTags.filter(t => t.startsWith('-')).map(t => t.substring(1));
-    const tags = removeTag(getMailbox(this.store.account.tag, this.store.account.origin), without(uniq([
-      ...this.publicTag,
+    const value = this.comment.value || '';
+    const inheritedPlugins = this.inheritedPlugins;
+    const tags = removeTag(getMailbox(this.store.account.tag, this.store.account.origin), uniq([
       ...(this.store.account.localTag ? [this.store.account.localTag] : []),
-      ...without(this.tags, ...this.admin.getEditorButtons(this.tags, 'comment:').map(b => b.toggle) as string[]),
-      ...addTags,
-      ...getTags(value),
+      ...this.editorTags,
       ...getMailboxes(value, this.store.account.origin),
-    ]), ...removeTags));
+      ...Object.keys(inheritedPlugins),
+    ]));
     const sources = [this.to.url];
     if (hasTag('plugin/comment', tags) || hasTag('plugin/thread', tags)) {
       if (hasTag('plugin/comment', this.to) || hasTag('plugin/thread', this.to)) {
@@ -134,9 +120,9 @@ export class CommentReplyComponent implements AfterViewInit, HasChanges {
       origin: this.store.account.origin,
       title: (hasTag('plugin/email', this.to) || hasTag('plugin/thread', this.to)) ? getRe(this.to.title) : '',
       comment: value,
-      sources,
+      sources: [...sources, ...this.editorSources],
       tags,
-      plugins: this.inheritedPlugins,
+      plugins: inheritedPlugins,
       published: DateTime.now(),
     };
     this.comment.disable();
@@ -144,9 +130,17 @@ export class CommentReplyComponent implements AfterViewInit, HasChanges {
       tap(cursor => {
         ref.modifiedString = cursor;
         ref.modified = DateTime.fromISO(cursor);
-        if (this.admin.getPlugin('plugin/vote/up')) {
-          this.ts.createResponse('plugin/vote/up', url).subscribe();
+        if (this.admin.getPlugin('plugin/user/vote/up')) {
+          this.ts.createResponse('plugin/user/vote/up', url).subscribe();
         }
+      }),
+      switchMap(res => {
+        const finalVisibilityTags = getVisibilityTags(tags);
+        if (!finalVisibilityTags.length) return of(res);
+        const taggingOps = this.completedUploads
+          .map(upload => this.ts.patch(finalVisibilityTags, upload.url, upload.origin));
+        if (!taggingOps.length) return of(res);
+        return forkJoin(taggingOps).pipe(map(() => res));
       }),
       catchError((err: HttpErrorResponse) => {
         delete this.replying;
@@ -159,13 +153,17 @@ export class CommentReplyComponent implements AfterViewInit, HasChanges {
       this.serverError = [];
       this.comment.enable();
       this.commentForm.reset();
+      this.editorTags = [...this.tags];
+      this.tags = [...this.tags];
+      this.completedUploads = [];
+
       this.editor?.syncText('');
       const update = {
         ...ref,
         created: DateTime.now(),
         metadata: {
           plugins: {
-            'plugin/vote/up': 1
+            'plugin/user/vote/up': 1
           }
         }
       };

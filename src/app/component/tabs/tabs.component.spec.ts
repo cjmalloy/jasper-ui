@@ -1,7 +1,9 @@
+/// <reference types="vitest/globals" />
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { PluginsFormComponent } from '../../form/plugins/plugins.component';
+import { ActivatedRoute } from '@angular/router';
+import { of } from 'rxjs';
 
 import { TabsComponent } from './tabs.component';
 
@@ -11,10 +13,18 @@ describe('TabsComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [TabsComponent],
+      imports: [TabsComponent],
       providers: [
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            params: of({}),
+            queryParams: of({}),
+            snapshot: { params: {}, queryParams: {} }
+          }
+        }
       ],
     }).compileComponents();
 

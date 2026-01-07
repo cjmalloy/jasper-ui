@@ -7,7 +7,7 @@ describe('Origin Pull Plugin', {
   const replApiProxy = Cypress.env('CYPRESS_replApiProxy') || 'http://repl-web';
   it('@main: loads the page', () => {
     cy.visit('/?debug=ADMIN');
-    cy.contains('Home', { timeout: 1000 * 60 });
+    cy.contains('Powered by Jasper', { timeout: 1000 * 60 });
   });
   it('@main: clear mods', () => {
     clearMods();
@@ -18,6 +18,7 @@ describe('Origin Pull Plugin', {
     cy.get('.tabs').contains('setup').click();
 
     cy.wait(100);
+    cy.get('#mod-root').should('not.be.checked').check().should('be.checked');
     cy.get('#mod-remoteorigin').should('not.be.checked').check().should('be.checked');
     cy.get('button').contains('Save').click();
     cy.get('.log').contains('Success');
@@ -33,9 +34,9 @@ describe('Origin Pull Plugin', {
     cy.contains('Next').click();
     cy.wait(400);
     cy.get('.floating-ribbons .plugin_origin_pull').click();
-    cy.get('#local').type('@repl');
-    cy.get('#remote').type('@repl');
-    cy.get('#title').type('Testing Remote @repl');
+    cy.get('[name=local]').type('@repl');
+    cy.get('[name=remote]').type('@repl');
+    cy.get('[name=title]').type('Testing Remote @repl');
     cy.intercept({pathname: '/api/v1/ref'}).as('submit');
     cy.get('button').contains('Submit').click();
     cy.wait('@submit');
@@ -51,7 +52,7 @@ describe('Origin Pull Plugin', {
     cy.contains('Submit').click();
     cy.get('.tabs').contains('text').click();
     cy.wait(400);
-    cy.get('#title').type('Pull Test');
+    cy.get('[name=title]').type('Pull Test');
     cy.intercept({pathname: '/api/v1/ref'}).as('submit');
     cy.get('button').contains('Submit').click();
     cy.wait('@submit');

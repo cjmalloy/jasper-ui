@@ -1,9 +1,10 @@
 <form>
   <app-editor [control]="comment"
-              [tags]="tags"
-              [fullscreenDefault]="false"
+              [createdTags]="tags || []"
               [selectResponseType]="selectResponseType"
-              (syncTags)="editorTags = $event"
+              (syncTags)="syncTags($event)"
+              (addSource)="addSource($event)"
+              (uploadCompleted)="completedUploads.push($event)"
               [autoFocus]="autofocus"></app-editor>
 </form>
 @for (e of serverError; track e) {

@@ -7,8 +7,8 @@
   <base href="/">
   <meta name="viewport" content="width=device-width, initial-scale=1, interactive-widget=resizes-content">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
-  <link rel="prefetch" href="/assets/jasper-dark.png">
-  <link rel="prefetch" href="/assets/jasper-light.png">
+  <link rel="prefetch" href="assets/jasper-dark.png">
+  <link rel="prefetch" href="assets/jasper-light.png">
   <link rel="manifest" href="manifest.webmanifest">
   <meta name="theme-color" media="(prefers-color-scheme: light)" content="#44b" />
   <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#222" />
@@ -16,16 +16,16 @@
     body.init-theme {
       /* Prevent bright flash while loading */
       background-color: black;
-      background-image: url("/assets/jasper-dark.png");
+      background-image: url("assets/jasper-dark.png");
       background-blend-mode: soft-light;
       background-position: center center;
       background-repeat: no-repeat;
-      animation: fadein 5s ease-in-out;
+      animation: loading 5s ease-in-out;
       animation-iteration-count: infinite;
       height: 100vh;
       overflow: hidden;
     }
-    @keyframes fadein {
+    @keyframes loading {
       from {
         background-color: black;
       }

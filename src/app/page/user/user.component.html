@@ -13,6 +13,7 @@
                    (tagChanges)="setTag($event)"
                    [showClear]="!!store.view.selectedUser"
                    [showPubKey]="!!store.view.selectedUser"
+                   [externalErrors]="externalErrors"
                    (clear)="clear()"></app-user-form>
 
     @if (config.scim) {

@@ -1,22 +1,29 @@
 import { Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
+import { MobxAngularModule } from 'mobx-angular';
 import { Observable, Subject, takeUntil } from 'rxjs';
 import { Ref } from '../../../model/ref';
 import { RefService } from '../../../service/api/ref.service';
 import { Store } from '../../../store/store';
 import { getArgs } from '../../../util/query';
+import { RefComponent } from '../../ref/ref.component';
+import { CommentComponent } from '../comment.component';
 
 @Component({
-  standalone: false,
   selector: 'app-thread-summary',
   templateUrl: './thread-summary.component.html',
   styleUrls: ['./thread-summary.component.scss'],
-  host: {'class': 'thread-summary'}
+  host: { 'class': 'thread-summary' },
+  imports: [
+    CommentComponent,
+    RefComponent,
+    MobxAngularModule,
+  ]
 })
 export class ThreadSummaryComponent implements OnInit, OnChanges, OnDestroy {
   private destroy$ = new Subject<void>();
 
   @Input()
-  source?: Ref;
+  source = '';
   @Input()
   commentView = false;
   @Input()
@@ -53,9 +60,11 @@ export class ThreadSummaryComponent implements OnInit, OnChanges, OnDestroy {
       this.newRefs = [];
       this.refs.page({
         ...getArgs(this.query, this.store.view.sort, this.store.view.filter),
-        responses: this.source?.url,
+        responses: this.source,
         size: this.pageSize,
-      }).subscribe(page => {
+      }).pipe(
+        takeUntil(this.destroy$)
+      ).subscribe(page => {
         this.list = page.content;
       });
     }

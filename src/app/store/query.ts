@@ -39,6 +39,13 @@ export class QueryStore {
     this.error = undefined;
     this.sourcesOf = undefined;
     this.responseOf = undefined;
+    this.running?.unsubscribe();
+    this.runningSources?.unsubscribe();
+    this.runningResponses?.unsubscribe();
+  }
+
+  close() {
+    if (this.running && !this.running.closed) this.clear()
   }
 
   setArgs(args: RefPageArgs) {

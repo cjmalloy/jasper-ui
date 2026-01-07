@@ -15,10 +15,10 @@ import { getTagFilter } from '../../../util/query';
 import { getModels, getZipOrTextFile } from '../../../util/zip';
 
 @Component({
-  standalone: false,
   selector: 'app-settings-template-page',
   templateUrl: './template.component.html',
   styleUrls: ['./template.component.scss'],
+  imports: [TemplateListComponent],
 })
 export class SettingsTemplatePage implements OnInit, OnDestroy, HasChanges {
 
@@ -36,7 +36,7 @@ export class SettingsTemplatePage implements OnInit, OnDestroy, HasChanges {
     private templates: TemplateService,
   ) {
     mod.setTitle($localize`Settings: Templates`);
-    store.view.clear(['levels', 'tag'], ['levels', 'tag']);
+    store.view.clear(['tag:len', 'tag'], ['tag:len', 'tag']);
     query.clear();
   }
 
@@ -59,6 +59,7 @@ export class SettingsTemplatePage implements OnInit, OnDestroy, HasChanges {
   }
 
   ngOnDestroy() {
+    this.query.close();
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
   }

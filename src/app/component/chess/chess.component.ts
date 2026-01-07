@@ -1,4 +1,4 @@
-import { CdkDragDrop, CdkDropListGroup } from '@angular/cdk/drag-drop';
+import { CdkDrag, CdkDragDrop, CdkDropList, CdkDropListGroup } from '@angular/cdk/drag-drop';
 import {
   Component,
   ElementRef,
@@ -12,14 +12,12 @@ import {
   Output,
   SimpleChanges
 } from '@angular/core';
-import { Chess, Move, Square } from 'chess.js';
+import { Chess, Square } from 'chess.js';
 import { defer, delay, flatten, without } from 'lodash-es';
-import { DateTime } from 'luxon';
 import { autorun, IReactionDisposer } from 'mobx';
-import { catchError, Observable, Subscription, throwError } from 'rxjs';
-import { Ref, RefUpdates } from '../../model/ref';
-import { RefService } from '../../service/api/ref.service';
-import { AuthzService } from '../../service/authz.service';
+import { catchError, Observable, of, Subscription, throwError } from 'rxjs';
+import { Ref } from '../../model/ref';
+import { ActionService } from '../../service/action.service';
 import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
 
@@ -27,14 +25,15 @@ export type PieceType = 'p' | 'n' | 'b' | 'r' | 'q' | 'k';
 export type PieceColor = 'b' | 'w';
 
 type Piece = { type: PieceType, color: PieceColor, square: Square, };
+type AnimationState = { from: Square; to: Square; capture?: { square: Square; piece: Piece }; piece: Piece; boardState: (Piece | null)[], turnState: PieceColor, movesState: Square[] };
 
 @Component({
-  standalone: false,
   selector: 'app-chess',
   templateUrl: './chess.component.html',
   styleUrls: ['./chess.component.scss'],
   hostDirectives: [CdkDropListGroup],
-  host: {'class': 'chess-board'}
+  host: { 'class': 'chess-board' },
+  imports: [CdkDropList, CdkDrag]
 })
 export class ChessComponent implements OnInit, OnChanges, OnDestroy {
   private disposers: IReactionDisposer[] = [];
@@ -45,8 +44,6 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
   text? = '';
   @Input()
   white = true; // TODO: Save in local storage
-  @Input()
-  updates$?: Observable<RefUpdates>;
   @Output()
   comment = new EventEmitter<string>();
   @Output()
@@ -59,28 +56,25 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
   chess = new Chess();
   pieces: (Piece | null)[] = flatten(this.chess.board());
   writeAccess = false;
-  bounce: string[] = [];
+  translate: string[] = [];
+  lastMoveTo?: Square;
+  animating = false;
+  animationQueue: AnimationState[] = [];
+  movingPiece?: { piece: Piece; from: Square; to: Square };
+  capturedPiece?: { piece: Piece; square: Square };
   @HostBinding('class.flip')
   flip = false;
 
-  private cursor?: string;
   private resizeObserver = window.ResizeObserver && new ResizeObserver(() => this.onResize()) || undefined;
   private fen = '';
   private watch?: Subscription;
-  /**
-   * Flag to prevent animations for own moves.
-   */
-  private prevComment = '';
-  /**
-   * Queued animation.
-   */
-  private incoming?: Square;
+  private append$!: (value: string) => Observable<string>;
   private board?: string;
+  private retry: string[] = [];
 
   constructor(
     public config: ConfigService,
-    private auth: AuthzService,
-    private refs: RefService,
+    private actions: ActionService,
     private store: Store,
     private el: ElementRef<HTMLDivElement>,
   ) {
@@ -102,65 +96,55 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   init() {
-    this.prevComment = this.ref?.comment || '';
-    if (!this.watch && this.updates$) {
-      this.watch = this.updates$.subscribe(u => {
-        if (u.origin === this.store.account.origin) this.cursor = u.modifiedString;
-        else this.ref!.modifiedString = u.modifiedString;
-        const prev = this.prevComment
-          .trim()
-          .split(/\s+/g)
-          .map(m => m.trim() as Square)
-          .filter(m => !!m);
-        const current = (u.comment || '')
-          .trim()
-          .split(/\s+/g)
-          .map(m => m.trim() as Square)
-          .filter(m => !!m);
-        const minLen = Math.min(prev.length, current.length);
-        for (let i = 0; i < minLen; i++) {
-          if (prev[i] !== current[i] || i === minLen - 1) {
-            prev.splice(0, i + 1);
-            current.splice(0, i + 1);
-            break;
-          }
-        }
-        if (prev.length) {
-          alert($localize`Game history was rewritten!`);
-        }
-        this.prevComment = u.comment || '';
-        if (prev.length || !current.length) return;
-        for (const m of current) this.chess.move(m);
-        this.check();
-        // TODO: queue all moves and animate one by one
-        const move = current.shift()!;
-        let lastMove = this.incoming = this.getMoveCoord(move, this.turn === 'w' ? 'b' : 'w');
-        requestAnimationFrame(() => {
-          if (lastMove != this.incoming) return;
-          if (lastMove.length > 2) lastMove = lastMove.substring(lastMove.length - 2, lastMove.length) as Square;
-          this.bounce.push(lastMove);
-          delay(() => this.bounce = without(this.bounce, lastMove), 3400);
-        });
-      });
-    }
-    if (this.local) {
-      this.writeAccess = !this.ref?.created || this.ref?.upload || this.auth.writeAccess(this.ref);
-      this.cursor = this.ref?.modifiedString;
-    } else {
-      this.writeAccess = true;
-      this.refs.get(this.ref!.url, this.store.account.origin).pipe(
-        catchError(err => {
-          if (err.status === 404) {
-            delete this.cursor;
-          }
-          return throwError(() => err);
-        })
-      ).subscribe(ref => {
-        this.cursor = ref.modifiedString;
-        this.writeAccess = this.auth.writeAccess(ref)
-      });
-    }
     this.reset(this.ref?.comment || this.text);
+    if (!this.watch && this.ref) {
+      const watch = this.actions.append(this.ref);
+      this.append$ = watch.append$;
+      this.watch = watch.updates$.pipe(
+        catchError(err => {
+          if (err.url) {
+            // Game history rewritten
+            alert($localize`Game History Rewritten!\n\nPlease Reload.`);
+          }
+          return of();
+        }),
+      ).subscribe(move => {
+        try {
+          this.chess.move(move);
+          this.check();
+          if (this.retry.length) {
+            if (this.retry[0] === move) {
+              // TODO: also check move number?
+              this.retry.shift();
+              return;
+            } else {
+              this.retrySave();
+            }
+          }
+          const boardState = flatten(this.chess.board());
+          const turnState = this.chess.turn();
+          const movesState = this.chess.moves({ verbose: true }).map(m => m.to);
+          const moveObj = this.chess.history({ verbose: true }).pop();
+          if (moveObj) {
+            const capturedPieceInfo = moveObj.captured ? {
+              square: moveObj.to,
+              piece: { type: moveObj.captured, color: moveObj.color === 'w' ? 'b' : 'w', square: moveObj.to } as Piece
+            } : undefined;
+            this.queueAnimation({
+              from: moveObj.from,
+              to: moveObj.to,
+              capture: capturedPieceInfo,
+              piece: { type: moveObj.piece, color: moveObj.color, square: moveObj.to },
+              boardState,
+              turnState,
+              movesState
+            });
+          }
+        } catch (e) {
+          this.clearErrors();
+        }
+      });
+    }
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -177,6 +161,15 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
     this.resizeObserver?.disconnect();
+    this.watch?.unsubscribe();
+  }
+
+  clearErrors() {
+    if (this.ref) {
+      this.actions.comment(this.history, this.ref!);
+    } else {
+      this.text = this.history;
+    }
   }
 
   reset(board?: string) {
@@ -191,7 +184,6 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
         lines.shift();
         for (const l of lines) {
           if (!l.trim()) continue;
-          console.log(this.chess.ascii());
           try {
             this.chess.move(l);
           } catch (e) {
@@ -208,14 +200,10 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
         console.error(e);
       }
     }
-    this.pieces = flatten(this.chess.board());
-    this.turn = this.chess.turn();
-    this.moves = this.chess.moves({ verbose: true }).map(m => m.to);
-    console.log(this.chess.ascii());
-  }
-
-  get local() {
-    return !this.ref?.created || this.ref.upload || this.ref?.origin === this.store.account.origin;
+    this.render();
+    if (!this.ref || (this.ref.comment || '') !== this.history) {
+      this.clearErrors();
+    }
   }
 
   @HostListener('window:resize')
@@ -285,15 +273,20 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
     const isPromotion = !!this.chess.moves({ verbose: true }).find((move) => move.from === from && move.to === to && move.flags.includes('p'));
     const move = this.chess.move({from, to, promotion: isPromotion ? confirm($localize`Promote to Queen:`) ? 'q' : prompt($localize`Promotion:`) as Exclude<PieceType, 'p' | 'k'> : undefined});
     if (move) {
+      this.render();
       this.check();
-      this.save(move!);
+      this.save(move.san);
     }
   }
 
-  check() {
+  render() {
     this.pieces = flatten(this.chess.board());
+    this.lastMoveTo = this.chess.history({ verbose: true }).pop()?.to;
     this.turn = this.chess.turn();
-    console.log(this.chess.ascii());
+    this.moves = this.chess.moves({ verbose: true }).map(m => m.to);
+  }
+
+  check() {
     if (this.chess.isGameOver()) {
       defer(() => {
         if (this.chess.isCheckmate()) {
@@ -313,39 +306,40 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
     }
     delete this.from;
     delete this.to;
-    this.moves = this.chess.moves({ verbose: true }).map(m => m.to);
   }
 
-  save(move?: Move) {
-    const comment = this.prevComment = (this.fen ? this.fen + '\n\n' : '') + this.chess.history().join('  \n');
-    this.comment.emit(comment)
-    if (!this.ref) return;
-    const title = move && this.ref.title ? (this.ref.title || '').replace(/\s*\|.*/, '')  + ' | ' + move.san : '';
-    (this.cursor ? this.refs.merge(this.ref.url, this.store.account.origin, this.cursor,
-      { title, comment }
-    ).pipe(
+  get history() {
+    return (this.fen ? this.fen + '\n\n' : '') + this.chess.history().join('  \n');
+  }
+
+  save(move: string) {
+    this.comment.emit(this.history);
+    this.append$(move).pipe(
       catchError(err => {
-        window.alert('Error syncing game. Please reload.');
+        this.retry.push(move);
+        delay(() => {
+          if (this.retry.length) {
+            this.clearErrors();
+          }
+        }, 1000);
         return throwError(() => err);
-      })
-    ) : this.refs.create({
-      ...this.ref,
-      origin: this.store.account.origin,
-      title,
-      comment,
-    })).subscribe(cursor => {
-      this.writeAccess = true;
-      if (this.prevComment !== comment) return;
-      this.ref!.title = title;
-      this.ref!.comment = comment;
-      this.ref!.modified = DateTime.fromISO(cursor);
-      this.ref!.modifiedString = cursor;
-      if (!this.local) {
-        this.ref!.origin = this.store.account.origin;
-        this.copied.emit(this.store.account.origin)
-      }
-      this.store.eventBus.refresh(this.ref);
-    });
+      }),
+    ).subscribe();
+  }
+
+  retrySave() {
+    if (!this.retry.length) return;
+    const move = this.retry.shift()!;
+    if (this.chess.moves().includes(move)) {
+      this.append$(move).pipe(
+        catchError(err => {
+          this.retry.unshift(move);
+          return throwError(() => err);
+        }),
+      ).subscribe();
+    } else {
+      this.retry.length = 0;
+    }
   }
 
   clickSquare(index: number) {
@@ -371,5 +365,80 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
     } else {
       return move.replace(/[^a-h1-8]/g, '') as Square;
     }
+  }
+
+  queueAnimation(state: AnimationState) {
+    this.animationQueue.push(state);
+    if (!this.animating) {
+      this.processAnimationQueue();
+    }
+  }
+
+  processAnimationQueue() {
+    if (this.animationQueue.length === 0) {
+      this.animating = false;
+      delete this.movingPiece;
+      delete this.capturedPiece;
+      this.render();
+      this.check();
+      return;
+    }
+
+    this.animating = true;
+    const animation = this.animationQueue.shift()!;
+    this.pieces = animation.boardState;
+    this.turn = animation.turnState;
+    this.moves = animation.movesState;
+    this.lastMoveTo = animation.to;
+    this.movingPiece = { piece: animation.piece, from: animation.from, to: animation.to };
+    if (animation.capture) {
+      this.capturedPiece = animation.capture;
+    }
+
+    // Calculate coordinates for CSS animation
+    const fromIndex = this.getIndex(animation.from);
+    const toIndex = this.getIndex(animation.to);
+    const fromCol = fromIndex % 8;
+    const fromRow = Math.floor(fromIndex / 8);
+    const toCol = toIndex % 8;
+    const toRow = Math.floor(toIndex / 8);
+
+    // Calculate deltas - the piece at destination needs to animate FROM source position
+    // So we need the negative offset from destination back to source
+    const xFrom = this.white ? -(toCol - fromCol) : -(fromCol - toCol);
+    const yFrom = this.white ? -(toRow - fromRow) : -(fromRow - toRow);
+    const xTo = 0;
+    const yTo = 0;
+
+    // Set CSS variables on the host element
+    this.el.nativeElement.style.setProperty('--xFrom', xFrom.toString());
+    this.el.nativeElement.style.setProperty('--yFrom', yFrom.toString());
+    this.el.nativeElement.style.setProperty('--xTo', xTo.toString());
+    this.el.nativeElement.style.setProperty('--yTo', yTo.toString());
+
+    // Animate the piece moving to its destination with translation
+    const movingPiece = animation.to;
+    this.translate.push(movingPiece);
+
+    // Remove captured piece animation after it completes (delay + duration)
+    // Capture animation: 1.0s delay + 0.8s animation = 1.8s total
+    if (animation.capture) {
+      delay(() => {
+        delete this.capturedPiece;
+      }, 1800);
+    }
+
+    // Remove animation after completion (wait for capture to finish if present)
+    const totalDuration = animation.capture ? 1900 : 1600;
+    delay(() => {
+      this.translate = without(this.translate, movingPiece);
+      delete this.movingPiece;
+      // capturedPiece already deleted above if it existed
+      if (!animation.capture) {
+        delete this.capturedPiece;
+      }
+      // Process next animation after current one completes
+      this.processAnimationQueue();
+    }, totalDuration);
   }
 }

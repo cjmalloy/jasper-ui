@@ -33,6 +33,7 @@ export const thumbnailPlugin: Plugin = {
       { query: 'plugin/thumbnail', label: $localize`⭕️ thumbnail`, title: $localize`Has Thumbnail`, group: $localize`Plugins 🧰️` },
     ],
     extensions: [...videoPlugin.config!.extensions!, ...imagePlugin.config!.extensions!],
+    bulkForm: true,
     advancedForm: [{
       key: 'url',
       type: 'image',
@@ -54,6 +55,7 @@ export const thumbnailPlugin: Plugin = {
     }, {
       key: 'radius',
       type: 'range',
+      defaultValue: 0,
       props: {
         label: $localize`Radius:`,
         min: 0,

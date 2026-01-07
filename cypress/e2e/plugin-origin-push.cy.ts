@@ -7,10 +7,13 @@ describe('Origin Push Plugin', {
   const replApiProxy = Cypress.env('CYPRESS_replApiProxy') || 'http://repl-web';
   it('@main: loads the page', () => {
     cy.visit('/?debug=ADMIN');
-    cy.contains('Home', { timeout: 1000 * 60 });
+    cy.contains('Powered by Jasper', { timeout: 1000 * 60 });
   });
   it('@main: clear mods', () => {
     clearMods();
+  });
+  it('@repl: clear mods', () => {
+    clearMods(replUrl);
   });
   it('@main: turn on push', () => {
     cy.visit('/?debug=ADMIN');
@@ -18,6 +21,7 @@ describe('Origin Push Plugin', {
     cy.get('.tabs').contains('setup').click();
 
     cy.wait(100);
+    cy.get('#mod-root').should('not.be.checked').check().should('be.checked');
     cy.get('#mod-remoteorigin').should('not.be.checked').check().should('be.checked');
     cy.get('button').contains('Save').click();
     cy.get('.log').contains('Success');
@@ -33,8 +37,8 @@ describe('Origin Push Plugin', {
     cy.get('@next').click();
     cy.wait(400);
     cy.get('.floating-ribbons .plugin_origin_push').click();
-    cy.get('#remote').type('@repl');
-    cy.get('#title').type('Testing Remote @repl');
+    cy.get('[name=remote]').type('@repl');
+    cy.get('[name=title]').type('Testing Remote @repl');
     cy.intercept({pathname: '/api/v1/ref'}).as('submit');
     cy.get('button').contains('Submit').click();
     cy.wait('@submit');
@@ -47,15 +51,12 @@ describe('Origin Push Plugin', {
     cy.contains('Submit').click();
     cy.get('.tabs').contains('text').click();
     cy.wait(1000);
-    cy.get('#title').type('Push Test');
+    cy.get('[name=title]').type('Push Test');
     cy.get('button').contains('Submit').click({ force: true });
     cy.wait(1000);
     cy.get('.full-page.ref .link a').should('have.text', 'Push Test');
   });
-  it('@repl: clear mods', () => {
-    clearMods(replUrl);
-  });
-  it('@main: check ref was scraped', () => {
+  it('@repl: check ref was pushed', () => {
     cy.visit(replUrl + '/tag/@repl?debug=ADMIN');
     cy.get('.ref-list .link').contains('Push Test').parent().parent().parent().as('ref');
     cy.get('@ref').find('.user.tag').contains('bob');

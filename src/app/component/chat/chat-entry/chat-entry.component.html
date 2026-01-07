@@ -1,26 +1,29 @@
-<div *ngIf="!ref.created && loading" class="loading-container"><app-loading></app-loading></div>
-<span *ngIf="ref.created" class="gutter" [class.deleted]="deleted">
-  <a *ngIf="ref.origin && !authors.length"
-     class="origin tag"
-     [routerLink]="['/tag', ref.origin]">
-    {{ ref.origin }}</a>
-  @if (authorExts$ | async; as authorExts) {
-    @for (user of authorExts; track user.tag + user.origin) {
-      <a class="user tag"
-         [title]="formatAuthor(user.tag + user.origin)"
-         [routerLink]="['/tag', user.tag + user.origin]"
-         [appTitle]="user">{{ user.name || formatAuthor(user.tag) }}</a>
+@if (ref.created) {
+  <span class="gutter"
+        [class.deleted]="deleted">
+    @if (ref.origin && !authors.length) {
+      <a class="origin tag" [routerLink]="['/tag', ref.origin]">{{ ref.origin }}</a>
     }
-  } @else {
-    @for (t of authors; track t) {
-      <a class="user tag"
-         [title]="formatAuthor(t)"
-         [routerLink]="['/tag', t]">{{ formatAuthor(t) }}</a>
+    @if (authorExts$ | async; as xs) {
+      @for (x of xs; track x.tag + x.origin) {
+        <a class="user tag"
+           [title]="formatAuthor(x.tag + x.origin)"
+           [routerLink]="['/tag', x.tag + x.origin]"
+           [appTitle]="x">{{ x.name || formatAuthor(x.tag) }}</a>
+      }
+    } @else {
+      @for (t of authors; track t) {
+        <a class="user tag"
+           [title]="formatAuthor(t)"
+           [routerLink]="['/tag', t]">{{ formatAuthor(t) }}</a>
+      }
     }
-  }
-  <span class="timestamp" [title]="ref.modified?.toISO()">{{ ref.modified?.toRelative() }}</span>
-  &nbsp;|&nbsp;
-</span>
+    <span class="timestamp" [title]="ref.modified?.toISO()">{{ ref.modified?.toRelative() }}</span>
+    &nbsp;|&nbsp;
+  </span>
+} @else if (loading) {
+  <div class="loading-container"><app-loading></app-loading></div>
+}
 <span class="message"
       [class.bubble]="focused"
       [class.focused]="focused"

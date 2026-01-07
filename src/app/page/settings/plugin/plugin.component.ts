@@ -4,7 +4,6 @@ import { defer } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import { catchError, switchMap, throwError } from 'rxjs';
 import { PluginListComponent } from '../../../component/plugin/plugin-list/plugin-list.component';
-import { PluginComponent } from '../../../component/plugin/plugin.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { mapPlugin, Plugin } from '../../../model/plugin';
 import { PluginService } from '../../../service/api/plugin.service';
@@ -16,10 +15,10 @@ import { getTagFilter } from '../../../util/query';
 import { getModels, getZipOrTextFile } from '../../../util/zip';
 
 @Component({
-  standalone: false,
   selector: 'app-settings-plugin-page',
   templateUrl: './plugin.component.html',
   styleUrls: ['./plugin.component.scss'],
+  imports: [PluginListComponent],
 })
 export class SettingsPluginPage implements OnInit, OnDestroy, HasChanges {
 
@@ -37,7 +36,7 @@ export class SettingsPluginPage implements OnInit, OnDestroy, HasChanges {
     private plugins: PluginService,
   ) {
     mod.setTitle($localize`Settings: Plugins`);
-    store.view.clear(['levels', 'tag'], ['levels', 'tag']);
+    store.view.clear(['tag:len', 'tag'], ['tag:len', 'tag']);
     query.clear();
   }
 
@@ -60,6 +59,7 @@ export class SettingsPluginPage implements OnInit, OnDestroy, HasChanges {
   }
 
   ngOnDestroy() {
+    this.query.close();
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
   }

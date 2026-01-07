@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
 import { escape, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
-import { marked, Tokens } from 'marked';
-import { MarkdownService } from 'ngx-markdown';
-import { catchError, forkJoin, map, Observable, of } from 'rxjs';
+import { marked, Token, Tokens, TokensList } from 'marked';
+import { MarkdownService, MarkedRenderer } from 'ngx-markdown';
+import { catchError, forkJoin, map, Observable, of, Subscription, switchMap } from 'rxjs';
 import { Ext } from '../model/ext';
 import { Oembed } from '../model/oembed';
 import { Page } from '../model/page';
@@ -50,50 +50,29 @@ export class EmbedService {
       }
       return href;
     }
+    function sourceMap<T extends keyof MarkedRenderer>(name: T) {
+      const orig = marked.Renderer.prototype[name] as any;
+      return function (this: any, token: any, ...rest: any[]) {
+        const html = orig.call(this, token, ...rest);
+        return html.replace(/^(<\w+)/, `$1 aria-posinset="${token.sourceMap}"`);
+      };
+    }
     marked.use({
-      renderer: {
-        html({text}: Tokens.HTML | Tokens.Tag): string {
-          return text.replace(/<img/g, '<img loading="lazy"');
-        },
-        image({href, title, text}: Tokens.Image): string {
-          const cleanHref = cleanUrl(href);
-          if (cleanHref === null) {
-            return escape(text);
-          }
-          href = cleanHref;
-          if (href.startsWith(config.base) || !href.startsWith('http')) {
-            return `<a class="inline-embed" title="${text}">${href}</a>`;
-          }
-          let out = `<img src="${href}" alt="${text}"`;
-          if (title) {
-            out += ` title="${escape(title)}"`;
-          }
-          out += '>';
-          return out;
-        },
-        link({href, title, tokens}: Tokens.Link): string {
-          const text = this.parser.parseInline(tokens);
-          const cleanHref = cleanUrl(href);
-          if (cleanHref === null) {
-            return text;
-          }
-          href = cleanHref;
-          let out = '<a href="' + href + '"';
-          if (title) {
-            out += ' title="' + (escape(title)) + '"';
-          }
-          out += '>' + text + '</a>';
-          if (text.toLowerCase().trim() === 'toggle' || admin.getPluginsForUrl(href).length) {
-            return out + `<span class="toggle embed" title="${href}"><span class="toggle-plus">＋</span></span>`;
-          }
-          const type = editor.getUrlType(href);
-          if (type === 'ref' || type === 'tag') {
-            return out + `<span class="toggle inline" title="${href}"><span class="toggle-plus">＋</span></span>`;
-          }
-          return out;
-        }
-      },
       hooks: {
+        processAllTokens(tokens: Token[] | TokensList) {
+          let pos = 0;
+          const walk = (ts: any[]) => {
+            for (const t of ts) {
+              t.sourceMap = pos;
+              if (t.tokens?.length) walk(t.tokens);
+              else if (t.items?.length) walk(t.items);
+              else if (t.rows?.length) walk(t.rows);
+              pos = t.sourceMap + (t.raw?.length ?? 0);
+            }
+          };
+          walk(tokens);
+          return tokens;
+        },
         postprocess(html: string): string {
           const parser = new DOMParser();
           const htmlDoc = parser.parseFromString(html, 'text/html');
@@ -107,6 +86,56 @@ export class EmbedService {
             }
           });
           return htmlDoc.body.innerHTML;
+        },
+      },
+      renderer: {
+        paragraph : sourceMap('paragraph'),
+        heading   : sourceMap('heading'),
+        list      : sourceMap('list'),
+        listitem  : sourceMap('listitem'),
+        code      : sourceMap('code'),
+        blockquote: sourceMap('blockquote'),
+        table     : sourceMap('table'),
+        tablerow  : sourceMap('tablerow'),
+        html({text}: Tokens.HTML | Tokens.Tag): string {
+          return text.replace(/<img/g, '<img loading="lazy"');
+        },
+        image({href, title, text}: Tokens.Image): string {
+          const cleanHref = cleanUrl(href);
+          if (cleanHref === null) {
+            return escape(text);
+          }
+          href = cleanHref;
+          if (href.startsWith(config.base) || !href.startsWith('http')) {
+            return `<div class="loading inline-embed" title="${text}">${href}</div>`;
+          }
+          let out = `<img src="${href}" alt="${text}"`;
+          if (title) {
+            out += ` title="${escape(title)}"`;
+          }
+          out += '>';
+          return out;
+        },
+        link({href, title, tokens}: Tokens.Link): string {
+          const text = this.parser.parseInline(tokens);
+          if (tokens.find(t => t.type === 'bang-embed' || t.type === 'image')) {
+            // Skip linking images
+            return text;
+          }
+          const cleanHref = cleanUrl(href);
+          if (cleanHref === null) {
+            return text;
+          }
+          href = cleanHref;
+          let out = '<a href="' + href + '"';
+          if (title) {
+            out += ' title="' + (escape(title)) + '"';
+          }
+          out += '>' + text + '</a>';
+          if (admin.getPluginsForUrl(href).length || ['ref', 'tag'].includes(editor.getUrlType(href))) {
+            return out + `<span class="toggle embed" title="${href}"><span class="toggle-plus">＋</span></span>`;
+          }
+          return out;
         }
       },
       extensions: this.extensions,
@@ -120,7 +149,7 @@ export class EmbedService {
       level: 'inline',
       start: (src: string) => src.match(/[+_]/)?.index,
       tokenizer(src: string, tokens: any): any {
-        const rule = /^([+_]user\/[a-z0-9]+([./][a-z0-9]+)*(@[a-z0-9]+(\.[a-z0-9]+)*)?)/;
+        const rule = /^([+_](user|plugin)\/[a-z0-9]+([./][a-z0-9]+)*(@[a-z0-9]+(\.[a-z0-9]+)*)?)/;
         const match = rule.exec(src);
         if (match) {
           const text = match[0]
@@ -144,16 +173,17 @@ export class EmbedService {
       level: 'inline',
       start: (src: string) => src.match(/#/)?.index,
       tokenizer(src: string, tokens: any): any {
-        const rule = /^#[+_]?([a-z0-9]+([./][a-z0-9]+)*)/;
+        const rule = /^#([+_]?[a-z0-9]+([./][a-z0-9]+)*)/;
         const match = rule.exec(src);
         if (match) {
           const text = match[0];
-          const title = 'Hashtag ' + text;
+          // Don't link simple numbers
+          if (/^#[0-9]+$/.exec(text)) return undefined;
           return {
             type: 'hashTag',
             href: '/tag/' + match[1],
             text,
-            title,
+            title: text,
             raw: text,
             tokens: [],
           };
@@ -216,7 +246,7 @@ export class EmbedService {
         if (self.admin.isWikiExternal()) {
           return `<a target="_blank" href="${token.href}">${token.text}</a>`;
         } else {
-          return `<a class="inline-embed">${token.href}</a>`;
+          return `<div class="loading inline-embed">${token.href}</div>`;
         }
       }
     }, {
@@ -224,46 +254,25 @@ export class EmbedService {
       level: 'inline',
       start: (src: string) => src.match(/!\[]\(/)?.index,
       tokenizer(src: string, tokens: any): any {
-        const rule = /^!\[]\(([^\]]+)\)/;
-        const match = rule.exec(src);
+        // @ts-ignore
+        const match = src.startsWith('!') && this.lexer.tokenizer.rules.inline.link.exec(src);
         if (match) {
-          const text = match[0];
-          const href = match[1];
           return {
+            // @ts-ignore
+            ...this.lexer.tokenizer.link(src),
             type: 'bang-embed',
-            href,
-            text,
-            raw: match[0],
-            tokens: [],
           };
         }
         return undefined;
       },
       renderer(token: any): string {
-        return `<a class="inline-embed">${token.href}</a>`;
-      }
-    }, {
-      name: 'embed',
-      level: 'inline',
-      start: (src: string) => src.match(/\[(ref|embed)]/)?.index,
-      tokenizer(src: string, tokens: any): any {
-        const rule = /^\[(ref|embed)]\(([^\]]+)\)/;
-        const match = rule.exec(src);
-        if (match) {
-          const css = match[1];
-          const text = match[2];
-          return {
-            type: 'embed',
-            css,
-            text,
-            raw: match[0],
-            tokens: [],
-          };
+        if (token.text?.trim() === '=') {
+          return `<div class="loading inline-ref" title="${token.title}">${token.href}</div>`;
+        } else if (token.text?.trim() === '+') {
+          return `<span class="toggle embed" title="${token.href}"><span class="toggle-plus">＋</span></span>`;
+        } else {
+          return `<div class="loading inline-embed" title="${token.title}">${token.href}</div>`;
         }
-        return undefined;
-      },
-      renderer(token: any): string {
-        return `<a class="inline-${token.css}">${token.text}</a>`;
       }
     }, {
       name: 'preserveMath',
@@ -318,6 +327,7 @@ export class EmbedService {
    * @param origin origin to append to user links without existing origins
    */
   postProcess(el: HTMLDivElement, embed: Embed, event: (type: string, el: Element, fn: () => void) => void, origin = '') {
+    const subscriptions: Subscription[] = [];
     const lookup = this.store.origins.originMap.get(origin || '');
     const userTags = el.querySelectorAll<HTMLAnchorElement>('.user.tag');
     userTags.forEach(t => {
@@ -396,7 +406,7 @@ export class EmbedService {
     const inlineRefs = el.querySelectorAll<HTMLAnchorElement>('.inline-ref');
     inlineRefs.forEach(t => {
       const url = t.innerText;
-      this.refs.getCurrent(this.editor.getRefUrl(url)).pipe(
+      subscriptions.push(this.refs.getCurrent(this.editor.getRefUrl(url)).pipe(
         catchError(() => of(null)),
       ).subscribe(ref => {
         if (ref) {
@@ -408,7 +418,7 @@ export class EmbedService {
           t.parentNode?.insertBefore(el, t);
         }
         t.remove();
-      });
+      }));
     });
     const embedRefs = el.querySelectorAll<HTMLAnchorElement>('.inline-embed');
     embedRefs.forEach(t => {
@@ -416,47 +426,50 @@ export class EmbedService {
       const title = t.title;
       const type = this.editor.getUrlType(url);
       if (type === 'tag') {
-        this.loadQuery$(t.innerText).subscribe(({params, page, ext}) => {
+        subscriptions.push(this.loadQuery$(t.innerText).subscribe(({params, page, ext}) => {
           const c = embed.createLens(params, page, this.editor.getQuery(t.innerText), ext);
           if (title) c.location.nativeElement.title = title;
           t.parentNode?.insertBefore(c.location.nativeElement, t);
           t.remove();
-        });
+        }));
       } else {
-        this.refs.getCurrent(this.editor.getRefUrl(url)).pipe(
+        subscriptions.push(this.refs.getCurrent(this.editor.getRefUrl(url)).pipe(
           catchError(() => of(null)),
-        ).subscribe(ref => {
-          const expandPlugins = this.admin.getEmbeds(ref);
-          if (ref?.comment || expandPlugins.length) {
-            const c = embed.createEmbed(ref!, expandPlugins);
-            if (title) c.location.nativeElement.title = title;
-            t.parentNode?.insertBefore(c.location.nativeElement, t);
-            t.remove();
-          } else {
-            const embeds = this.admin.getPluginsForUrl(url);
-            if (embeds.length) {
-              const c = embed.createEmbed(url, embeds.map(p => p.tag));
+          switchMap(ref => {
+            const expandPlugins = this.admin.getEmbeds(ref);
+            if (ref?.comment || expandPlugins.length) {
+              const c = embed.createEmbed(ref!, expandPlugins);
               if (title) c.location.nativeElement.title = title;
               t.parentNode?.insertBefore(c.location.nativeElement, t);
               t.remove();
-            } else if (url.startsWith('/ref/')) {
-              el = document.createElement('div');
-              el.innerHTML = `<span class="error">Ref ${escape(url)} not found and could not embed directly.</span>`;
-              t.parentNode?.insertBefore(el, t);
-              t.remove();
             } else {
-              this.oembeds.get(url, this.store.darkTheme ? 'dark' : undefined)
-                .pipe(catchError(() => of(null)))
-                .subscribe(oembed => {
-                  const expandPlugins = oembed ? ['plugin/embed'] : ['plugin/image'];
-                  const c = embed.createEmbed(url, expandPlugins);
-                  c.location.nativeElement.title = t.title;
-                  t.parentNode?.insertBefore(c.location.nativeElement, t);
-                  t.remove();
-                });
+              const embeds = this.admin.getPluginsForUrl(url);
+              if (embeds.length) {
+                const c = embed.createEmbed(url, embeds.map(p => p.tag));
+                if (title) c.location.nativeElement.title = title;
+                t.parentNode?.insertBefore(c.location.nativeElement, t);
+                t.remove();
+              } else if (url.startsWith('/ref/')) {
+                el = document.createElement('div');
+                el.innerHTML = `<span class="error">Ref ${escape(url)} not found and could not embed directly.</span>`;
+                t.parentNode?.insertBefore(el, t);
+                t.remove();
+              } else {
+                return this.oembeds.get(url, this.store.darkTheme ? 'dark' : undefined).pipe(
+                  catchError(() => of(null)),
+                  map(oembed => {
+                    const expandPlugins = oembed ? ['plugin/embed'] : ['plugin/image'];
+                    const c = embed.createEmbed(url, expandPlugins);
+                    c.location.nativeElement.title = t.title;
+                    t.parentNode?.insertBefore(c.location.nativeElement, t);
+                    t.remove();
+                  }),
+                );
+              }
             }
-          }
-        });
+            return of(null);
+          }),
+        ).subscribe());
       }
     });
     const toggleFaces = '<span class="toggle-plus">＋</span><span class="toggle-x" style="display: none">✕</span>';
@@ -486,7 +499,7 @@ export class EmbedService {
           const url = t.title!;
           const type = this.editor.getUrlType(url);
           if (type === 'ref') {
-            this.refs.getCurrent(this.editor.getRefUrl(url)).pipe(
+            subscriptions.push(this.refs.getCurrent(this.editor.getRefUrl(url)).pipe(
               catchError(() => of(null)),
             ).subscribe(ref => {
               if (ref) {
@@ -499,14 +512,14 @@ export class EmbedService {
               }
               // @ts-ignore
               t.expanded = !t.expanded;
-            });
+            }));
           } else if (type === 'tag') {
-            this.loadQuery$(url).subscribe(({params, page, ext}) => {
+            subscriptions.push(this.loadQuery$(url).subscribe(({params, page, ext}) => {
               const c = embed.createLens(params, page, this.editor.getQuery(url), ext);
               t.parentNode?.insertBefore(c.location.nativeElement, t.nextSibling);
               // @ts-ignore
               t.expanded = !t.expanded;
-            });
+            }));
           }
         }
       });
@@ -519,7 +532,7 @@ export class EmbedService {
       t.postProcessed = true;
       t.innerHTML = toggleFaces;
       // @ts-ignore
-      if (t.previousSibling.innerText === 'toggle') {
+      if (t.previousSibling?.innerText === 'toggle') {
         t.previousSibling?.remove();
       }
       // @ts-ignore
@@ -548,14 +561,14 @@ export class EmbedService {
           } else {
             const type = this.editor.getUrlType(url);
             if (type === 'tag') {
-              this.loadQuery$(url).subscribe(({params, page, ext}) => {
+              subscriptions.push(this.loadQuery$(url).subscribe(({params, page, ext}) => {
                 const c = embed.createLens(params, page, this.editor.getQuery(url), ext);
                 t.parentNode?.insertBefore(c.location.nativeElement, t.nextSibling);
                 // @ts-ignore
                 t.expanded = !t.expanded;
-              });
+              }));
             } else {
-              this.refs.getCurrent(this.editor.getRefUrl(url)).pipe(
+              subscriptions.push(this.refs.getCurrent(this.editor.getRefUrl(url)).pipe(
                 catchError(() => of(null)),
               ).subscribe(ref => {
                 if (ref) {
@@ -575,7 +588,7 @@ export class EmbedService {
                 }
                 // @ts-ignore
                 t.expanded = !t.expanded;
-              });
+              }));
             }
           }
         }
@@ -584,7 +597,7 @@ export class EmbedService {
     const links = el.querySelectorAll<HTMLAnchorElement>('a[href]');
     links.forEach(t => {
       if (t.querySelectorAll('app-viewer').length) {
-        // TODO: allow image links?
+        // Don't allow linking images
         while (t.firstChild) t.parentNode?.insertBefore(t.firstChild, t);
         t.remove();
         return;
@@ -593,6 +606,7 @@ export class EmbedService {
       t.parentNode?.insertBefore(c.location.nativeElement, t);
       t.remove();
     });
+    return () => subscriptions.forEach(s => s.unsubscribe());
   }
 
   private get iframeBg() {

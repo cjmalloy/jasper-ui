@@ -1,13 +1,17 @@
+import { KeyValuePipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, Input, OnChanges, OnDestroy, SimpleChanges } from '@angular/core';
-import { groupBy, intersection, map, pick, uniq } from 'lodash-es';
+import { RouterLink } from '@angular/router';
+import { groupBy, intersection, isEqual, map, pick, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import { catchError, concat, last, Observable, of, switchMap } from 'rxjs';
 import { tap } from 'rxjs/operators';
+import { TitleDirective } from '../../directive/title.directive';
+import { patchPlugins } from '../../form/plugins/plugins.component';
 import { Ext } from '../../model/ext';
 import { Plugin } from '../../model/plugin';
 import { Ref } from '../../model/ref';
-import { Action, active, sortOrder, uniqueConfigs, visible } from '../../model/tag';
+import { Action, active, sortOrder, Tag, uniqueConfigs, visible } from '../../model/tag';
 import { Template } from '../../model/template';
 import { User } from '../../model/user';
 import { deleteNotice, isDeletorTag, tagDeleteNotice } from '../../mods/delete';
@@ -30,14 +34,19 @@ import { Type } from '../../store/view';
 import { downloadPage } from '../../util/download';
 import { getScheme, printError } from '../../util/http';
 import { memo, MemoCache } from '../../util/memo';
-import { addAllHierarchicalTags, expandedTagsInclude, hasTag, isOwnerTag, subOrigin } from '../../util/tag';
+import { addAllHierarchicalTags, expandedTagsInclude, hasTag, isAuthorTag, subOrigin } from '../../util/tag';
+import { ConfirmActionComponent } from '../action/confirm-action/confirm-action.component';
+import { InlineButtonComponent } from '../action/inline-button/inline-button.component';
+import { InlinePluginComponent } from '../action/inline-plugin/inline-plugin.component';
+import { InlineTagComponent } from '../action/inline-tag/inline-tag.component';
+import { LoadingComponent } from '../loading/loading.component';
 
 @Component({
-  standalone: false,
   selector: 'app-bulk',
   templateUrl: './bulk.component.html',
   styleUrls: ['./bulk.component.scss'],
-  host: {'class': 'bulk actions'}
+  host: { 'class': 'bulk actions' },
+  imports: [LoadingComponent, RouterLink, InlineTagComponent, ConfirmActionComponent, InlinePluginComponent, TitleDirective, InlineButtonComponent, KeyValuePipe]
 })
 export class BulkComponent implements OnChanges, OnDestroy {
 
@@ -50,6 +59,8 @@ export class BulkComponent implements OnChanges, OnDestroy {
   @Input()
   activeExts: Ext[] = [];
 
+  defaults?: Partial<Ref>;
+  forms: Plugin[] = [];
   actions: Action[] = [];
   groupedActions: { [key: string]: Action[] } = {};
   batchRunning = false;
@@ -76,10 +87,14 @@ export class BulkComponent implements OnChanges, OnDestroy {
     this.disposers.push(autorun(() => {
       MemoCache.clear(this);
       const commonTags = intersection(...map(this.query.page?.content, ref => ref.tags || []));
+      this.forms = this.admin.bulkForm;
       this.actions = uniqueConfigs([
         ...sortOrder(this.admin.getActions(commonTags).filter(a => !('tag' in a) || this.auth.canAddTag(a.tag))),
         ...sortOrder(this.admin.getAdvancedActions(commonTags))]);
       this.groupedActions = groupBy(this.actions, a => this.label(a));
+      delete this.defaults;
+      const xs = [...(this.viewExt ? [this.viewExt] : []), ...this.activeExts, this.admin.getTemplate('')] as Tag[];
+      this.refs.getDefaults(...xs.filter(x => x).map(x => x.tag)).subscribe(d => this.defaults = d?.ref)
     }));
   }
 
@@ -92,11 +107,6 @@ export class BulkComponent implements OnChanges, OnDestroy {
   ngOnDestroy() {
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
-  }
-
-  @memo
-  get defaultThumbnail() {
-    return [...(this.viewExt ? [this.viewExt] : []), ...this.activeExts, this.admin.getTemplate('')].find(x => x?.config?.defaultThumbnail)?.config?.defaultThumbnail || '';
   }
 
   @memo
@@ -199,15 +209,13 @@ export class BulkComponent implements OnChanges, OnDestroy {
     return result;
   }
 
-  thumbnail$ = (url: string) => {
+  plugin$ = (value: any) => {
     return this.batch$<Ref>(ref => {
-      if (ref.plugins?.['plugin/thumbnail']?.url === url) return of(null);
+      if (isEqual(ref.plugins, value)) return of(null);
       return this.refs.merge(ref.url, ref.origin!, ref.modifiedString!, {
-        tags: uniq([...(ref.tags || []), 'plugin/thumbnail']),
-        plugins: {
-          'plugin/thumbnail': {url}
-        }
-      })
+        tags: uniq([...(ref.tags || []), ...Object.keys(value)]),
+        plugins: patchPlugins(value),
+      });
     });
   }
 
@@ -220,7 +228,7 @@ export class BulkComponent implements OnChanges, OnDestroy {
   }
 
   showAction(ref: Ref, a: Action) {
-    if (!visible(a, isOwnerTag(this.store.account.tag, ref), hasTag(this.store.account.mailbox, ref))) return false;
+    if (!visible(ref, a, isAuthorTag(this.store.account.tag, ref), hasTag(this.store.account.mailbox, ref))) return false;
     const writeAccess = this.auth.writeAccess(ref);
     const taggingAccess = this.auth.taggingAccess(ref);
     if ('scheme' in a) {
@@ -301,7 +309,7 @@ export class BulkComponent implements OnChanges, OnDestroy {
         copied.plugins['+plugin/origin/tunnel'] = this.store.origins.tunnelLookup.get(ref.origin || '');
       }
       copied.plugins = pick(copied.plugins, tags || []);
-      return this.refs.create(copied, true);
+      return this.refs.create(copied);
     });
   }
 }

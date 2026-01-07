@@ -1,7 +1,7 @@
 import { Schema } from 'jtd';
 import { isEqual } from 'lodash-es';
 import { DateTime } from 'luxon';
-import { Tag } from './tag';
+import { Tag, TagSort } from './tag';
 
 export interface Ext extends Tag {
   type?: 'ext';
@@ -16,7 +16,7 @@ export const extSchema: Schema = {
   }
 };
 
-export function mapTag(obj: any): Ext {
+export function mapExt(obj: any): Ext {
   obj.type = 'ext';
   obj.origin ||= '';
   obj.modifiedString = obj.modified;
@@ -30,6 +30,7 @@ export function writeExt(ext: Ext): Ext {
   delete result.type;
   delete result.upload;
   delete result.exists;
+  delete result.outdated;
   delete result.modifiedString;
   if (result.config) delete result.config._cache;
   return result;
@@ -41,3 +42,6 @@ export function equalsExt(a?: Ext, b?: Ext) {
     a.name === b.name &&
     isEqual(a.config, b.config);
 }
+
+export type ExtSort = TagSort |
+  `config->${string}` | `config->${string},ASC` | `config->${string},DESC`;

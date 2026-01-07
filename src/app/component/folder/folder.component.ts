@@ -1,8 +1,9 @@
+import { CdkDrag } from '@angular/cdk/drag-drop';
 import { Component, ElementRef, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { Router } from '@angular/router';
 import { mapValues } from 'lodash-es';
 import { toJS } from 'mobx';
-import { Subscription } from 'rxjs';
+import { catchError, of, Subscription } from 'rxjs';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ext } from '../../model/ext';
 import { Page } from '../../model/page';
@@ -11,21 +12,27 @@ import { Pos } from '../../mods/folder';
 import { ExtService } from '../../service/api/ext.service';
 import { Store } from '../../store/store';
 import { escapePath } from '../../util/json-patch';
-import { level } from '../../util/tag';
+import { defaultOrigin, level, tagOrigin } from '../../util/tag';
+import { FileComponent } from './file/file.component';
+import { SubfolderComponent } from './subfolder/subfolder.component';
 
 @Component({
-  standalone: false,
   selector: 'app-folder',
   templateUrl: './folder.component.html',
   styleUrls: ['./folder.component.scss'],
-  host: {'class': 'folder ext'}
+  host: { 'class': 'folder ext' },
+  imports: [
+    FileComponent,
+    SubfolderComponent,
+    CdkDrag,
+  ],
 })
 export class FolderComponent implements OnChanges, HasChanges {
 
   @Input()
   tag?: string;
   @Input()
-  ext!: Ext;
+  ext?: Ext;
   @Input()
   pinned?: Ref[] | null;
   @Input()
@@ -37,7 +44,7 @@ export class FolderComponent implements OnChanges, HasChanges {
   flatten = false;
   files: Record<string, string | undefined> = {};
   subfolders: Record<string, string | undefined> = {};
-  folderExts: Ext[] = [];
+  folderExts?: Ext[];
   cursor = '';
   dragging = false;
   zIndex = 1;
@@ -61,33 +68,39 @@ export class FolderComponent implements OnChanges, HasChanges {
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes.tag) {
+      delete this.folderExts;
       delete this.parent;
       if (this.tag?.includes('/')) {
-        this.exts.getCachedExt(this.tag.substring(0, this.tag.lastIndexOf('/')))
+        this.exts.getCachedExt(this.tag.substring(0, this.tag.lastIndexOf('/')), tagOrigin(this.tag) || '@')
           .subscribe(ext => this.parent = ext);
       }
       this.folderSubscription?.unsubscribe();
       if (!this.tag) return;
       this.folderSubscription = this.exts.page({
-        query: this.tag + this.ext.origin,
+        query: defaultOrigin(this.tag, (this.ext?.origin || '@')),
         level: level(this.tag) + 1,
         size: 100
-      }).subscribe(page => {
-        this.folderExts = page.content;
+      }).pipe(
+        catchError(() => of(undefined)),
+      ).subscribe(page => {
+        this.folderExts = page?.content;
       });
     }
     if (changes.ext) {
       this.files = {};
       this.subfolders = {};
-      this.folderExts = [];
       this.flatten = this.ext?.config.flatten;
       if (!this.ext) return;
       this.cursor = this.ext.modifiedString!;
       this.files = mapValues(toJS(this.ext.config.files) || {}, p => this.transform(p));
       for (const e of Object.entries<Pos>(toJS(this.ext.config.subfolders) || {})) {
-        this.subfolders[e[0] !== '..' ? this.tag + '/' + e[0] : '..'] = this.transform(e[1]);
+        this.subfolders[this.ext.tag + (e[0] !== '..' ? '/' + e[0] : '')] = this.transform(e[1]);
       }
     }
+  }
+
+  get local() {
+    return this.ext?.origin === this.store.account.origin;
   }
 
   get page(): Page<Ref> | undefined {
@@ -115,6 +128,7 @@ export class FolderComponent implements OnChanges, HasChanges {
 
   moveFile(url: string, target: HTMLElement) {
     if (!this.cursor) return; // Wait for last move to complete
+    if (!this.local) return;
     const cursor = this.cursor;
     this.cursor = '';
     this.dragging = true
@@ -122,7 +136,7 @@ export class FolderComponent implements OnChanges, HasChanges {
       x: Math.floor(target.getBoundingClientRect().x + window.scrollX - this.el.nativeElement.offsetLeft),
       y: Math.floor(target.getBoundingClientRect().y + window.scrollY - this.el.nativeElement.offsetTop),
     };
-    this.exts.patch(this.ext!.tag, cursor, [{
+    this.exts.patch(this.ext!.tag + this.store.account.origin, cursor, [{
       op: 'add',
       path: '/config/files/' + escapePath(url),
       value: pos,
@@ -132,12 +146,13 @@ export class FolderComponent implements OnChanges, HasChanges {
   moveFolder(tag: string, target: HTMLElement) {
     // TODO: write patches to websocket
     if (!this.cursor) return; // Wait for last move to complete
+    if (!this.local) return;
     const cursor = this.cursor;
     this.cursor = '';
     this.dragging = true
     this.exts.patch(this.ext!.tag + this.store.account.origin, cursor, [{
       op: 'add',
-      path: '/config/subfolders/' + (tag === '..' ? '..' : escapePath(tag.substring(this.ext!.tag.length + 1))),
+      path: '/config/subfolders/' + (tag === this.tag ? '..' : escapePath(tag.substring(this.ext!.tag.length + 1))),
       value: {
         x: Math.floor(target.getBoundingClientRect().x + window.scrollX - this.el.nativeElement.offsetLeft),
         y: Math.floor(target.getBoundingClientRect().y + window.scrollY - this.el.nativeElement.offsetTop),

@@ -36,6 +36,89 @@ export const todoPlugin: Plugin = {
     filters: [
       { query: 'plugin/todo', label: $localize`📑️ todo`, title: $localize`TODO Lists`, group: $localize`Plugins 🧰️` },
     ],
+    // language=CSS
+    css: `
+      body.dark-theme {
+        .todo-item {
+          &.cdk-drag-preview {
+            background-color: var(--card-dragging);
+          }
+        }
+      }
+      .form .todo-list > input {
+        display: block !important;
+      }
+      .nested-form .todo-list {
+        padding-bottom: 4px !important;
+        & > input {
+          display: block !important;
+        }
+        & > .spacer {
+          display: none !important;
+        }
+      }
+      .todo-item {
+        padding: 4px;
+        margin-top: 2px;
+        border-radius: 4px;
+        background-color: var(--card);
+        textarea {
+          height: 64px !important;
+          resize: none;
+        }
+        &.unlocked {
+          border-radius: 5px;
+          border: 0.25px dashed var(--border-accent);
+        }
+        &:hover {
+          filter: drop-shadow(0 0 0.5px var(--border));
+        }
+        &.cdk-drag-placeholder {
+          background-color: var(--placeholder);
+        }
+        .md p {
+          text-align: left;
+          margin: 1px;
+        }
+        &.no-write {
+          cursor: no-drop !important;
+
+          &.cdk-drag-preview {
+            pointer-events: auto !important;
+            cursor: no-drop !important;
+            * {
+              pointer-events: none !important;
+            }
+          }
+        }
+        transform: scale(1);
+        transform-origin: center;
+        transition: transform 0.1s cubic-bezier(.47,1.64,.8,1.2);
+        &.unlocked {
+          z-index: 1;
+          transform: scale(1.05);
+        }
+        &:hover {
+          z-index: 1;
+          transform: scale(1.01);
+        }
+        &:not(.no-write) {
+          cursor: grab;
+        }
+        &.cdk-drag-preview {
+          transition: transform 0s;
+          box-shadow: 0 5px 5px -3px rgba(0, 0, 0, 0.2),
+          0 8px 10px 1px rgba(0, 0, 0, 0.14),
+          0 3px 14px 2px rgba(0, 0, 0, 0.12);
+        }
+        &.cdk-drag-placeholder {
+          transition: transform 0s;
+          * {
+            visibility: hidden !important;
+          }
+        }
+      }
+    `,
   },
 };
 

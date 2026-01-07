@@ -1,13 +1,21 @@
 import { Component, HostBinding, Input } from '@angular/core';
-import { UntypedFormArray, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
+import {
+  FormBuilder,
+  ReactiveFormsModule,
+  UntypedFormArray,
+  UntypedFormBuilder,
+  UntypedFormGroup,
+  Validators
+} from '@angular/forms';
+import { FormlyForm } from '@ngx-formly/core';
 import { map } from 'lodash-es';
 import { URI_REGEX } from '../../util/format';
 
 @Component({
-  standalone: false,
   selector: 'app-links',
   templateUrl: './links.component.html',
-  styleUrls: ['./links.component.scss']
+  styleUrls: ['./links.component.scss'],
+  imports: [ReactiveFormsModule, FormlyForm]
 })
 export class LinksFormComponent {
   static validators = [Validators.pattern(URI_REGEX)];
@@ -34,6 +42,10 @@ export class LinksFormComponent {
       }
     },
   };
+
+  constructor(
+    private fb: FormBuilder,
+  ) { }
 
   @Input()
   set emoji(value: string) {
@@ -62,6 +74,14 @@ export class LinksFormComponent {
 
   get links() {
     return this.group?.get(this.fieldName) as UntypedFormArray | undefined;
+  }
+
+  setLinks(values: string[]) {
+    this.model = values;
+    if (!this.links) return;
+    while (this.links.length > values.length) this.links.removeAt(this.links.length - 1, { emitEvent: false });
+    while (this.links.length < values.length) this.links.push(this.fb.control(''), { emitEvent: false });
+    this.links.setValue(values);
   }
 
   addLink(...values: string[]) {

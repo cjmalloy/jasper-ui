@@ -1,6 +1,8 @@
+import { AsyncPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
   Component,
+  forwardRef,
   HostBinding,
   Input,
   OnChanges,
@@ -10,12 +12,14 @@ import {
   ViewChild,
   ViewChildren
 } from '@angular/core';
-import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
+import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { defer, groupBy, intersection, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { autorun, IReactionDisposer } from 'mobx';
-import { catchError, map, of, Subscription, switchMap, throwError } from 'rxjs';
+import { catchError, map, of, Subject, Subscription, switchMap, takeUntil, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
+import { TitleDirective } from '../../../directive/title.directive';
 import { writePlugins } from '../../../form/plugins/plugins.component';
 import { refForm, RefFormComponent } from '../../../form/ref/ref.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
@@ -48,19 +52,38 @@ import { scrollToFirstInvalid } from '../../../util/form';
 import { authors, clickableLink, formatAuthor, interestingTags } from '../../../util/format';
 import { getScheme, printError } from '../../../util/http';
 import { memo, MemoCache } from '../../../util/memo';
-import { hasTag, isOwnerTag, localTag, repost, tagOrigin } from '../../../util/tag';
+import { hasTag, isAuthorTag, localTag, repost, tagOrigin } from '../../../util/tag';
+import { ActionListComponent } from '../../action/action-list/action-list.component';
 import { ActionComponent } from '../../action/action.component';
+import { ConfirmActionComponent } from '../../action/confirm-action/confirm-action.component';
+import { InlineTagComponent } from '../../action/inline-tag/inline-tag.component';
+import { LoadingComponent } from '../../loading/loading.component';
+import { NavComponent } from '../../nav/nav.component';
+import { ViewerComponent } from '../../viewer/viewer.component';
 
 @Component({
-  standalone: false,
   selector: 'app-blog-entry',
   templateUrl: './blog-entry.component.html',
   styleUrls: ['./blog-entry.component.scss'],
-  host: {'class': 'blog-entry'}
+  host: { 'class': 'blog-entry' },
+  imports: [
+    forwardRef(() => ViewerComponent),
+    NavComponent,
+    RouterLink,
+    TitleDirective,
+    ConfirmActionComponent,
+    InlineTagComponent,
+    ActionListComponent,
+    ReactiveFormsModule,
+    RefFormComponent,
+    LoadingComponent,
+    AsyncPipe,
+  ],
 })
 export class BlogEntryComponent implements OnChanges, OnDestroy, HasChanges {
   @HostBinding('attr.tabindex') tabIndex = 0;
   private disposers: IReactionDisposer[] = [];
+  private destroy$ = new Subject<void>();
 
   @ViewChildren('action')
   actionComponents?: QueryList<ActionComponent>;
@@ -138,6 +161,7 @@ export class BlogEntryComponent implements OnChanges, OnDestroy, HasChanges {
           : this.refs.getCurrent(this.url)
       ).pipe(
         catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
+        takeUntil(this.destroy$),
       ).subscribe(ref => this.repostRef = ref);
     }
   }
@@ -149,6 +173,8 @@ export class BlogEntryComponent implements OnChanges, OnDestroy, HasChanges {
   }
 
   ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
   }
@@ -246,7 +272,7 @@ export class BlogEntryComponent implements OnChanges, OnDestroy, HasChanges {
 
   @memo
   get isAuthor() {
-    return isOwnerTag(this.store.account.tag, this.ref);
+    return isAuthorTag(this.store.account.tag, this.ref);
   }
 
   @memo
@@ -316,7 +342,7 @@ export class BlogEntryComponent implements OnChanges, OnDestroy, HasChanges {
   }
 
   saveRef() {
-    this.store.view.setRef(this.ref, this.repostRef);
+    this.store.view.preloadRef(this.ref, this.repostRef);
   }
 
   download() {
@@ -329,7 +355,7 @@ export class BlogEntryComponent implements OnChanges, OnDestroy, HasChanges {
   }
 
   visible(v: Visibility) {
-    return visible(v, this.isAuthor, this.isRecipient);
+    return visible(this.ref, v, this.isAuthor, this.isRecipient);
   }
 
   label(a: Action) {
@@ -393,13 +419,14 @@ export class BlogEntryComponent implements OnChanges, OnDestroy, HasChanges {
         ...this.editForm.value.plugins
       }),
     }).pipe(
-      switchMap(() => this.refs.get(this.ref.url, this.ref.origin)),
+      switchMap(() => this.refs.get(this.ref.url, this.ref.origin).pipe(takeUntil(this.destroy$))),
       catchError((err: HttpErrorResponse) => {
         delete this.submitting;
         this.serverError = printError(err);
         return throwError(() => err);
       }),
     ).subscribe(ref => {
+      this.editForm.reset();
       delete this.submitting;
       this.serverError = [];
       this.editing = false;

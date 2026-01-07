@@ -1,6 +1,7 @@
 import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { defer } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
+import { MobxAngularModule } from 'mobx-angular';
 import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { AdminService } from '../../../service/admin.service';
@@ -10,11 +11,11 @@ import { Store } from '../../../store/store';
 import { getArgs } from '../../../util/query';
 
 @Component({
-  standalone: false,
   selector: 'app-inbox-dms',
   templateUrl: './dms.component.html',
   styleUrls: ['./dms.component.scss'],
-  host: {'class': 'dms'}
+  host: { 'class': 'dms' },
+  imports: [MobxAngularModule, RefListComponent]
 })
 export class InboxDmsPage implements OnInit, OnDestroy, HasChanges {
 
@@ -30,7 +31,7 @@ export class InboxDmsPage implements OnInit, OnDestroy, HasChanges {
     public query: QueryStore,
   ) {
     mod.setTitle($localize`Inbox: DMs`);
-    store.view.clear(['metadataModified']);
+    store.view.clear(['metadata->modified']);
     query.clear();
   }
 
@@ -41,9 +42,9 @@ export class InboxDmsPage implements OnInit, OnDestroy, HasChanges {
   ngOnInit(): void {
     this.disposers.push(autorun(() => {
       const args = getArgs(
-        (this.store.view.search ? 'dm:' : 'dm:!plugin/thread:') + `(${this.store.account.tag}|${this.store.account.inboxQuery})`,
+        (this.store.view.search ? 'dm:' : 'dm:!internal:') + `(${this.store.account.tagWithOrigin}|${this.store.account.inboxQuery})`,
         this.store.view.sort,
-        ['query/!plugin/delete', 'user/!plugin/hide', ...this.store.view.filter],
+        ['query/!plugin/delete', 'user/!plugin/user/hide', ...this.store.view.filter],
         this.store.view.search,
         this.store.view.pageNumber,
         this.store.view.pageSize,
@@ -53,6 +54,7 @@ export class InboxDmsPage implements OnInit, OnDestroy, HasChanges {
   }
 
   ngOnDestroy() {
+    this.query.close();
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
   }

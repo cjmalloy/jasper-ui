@@ -1,28 +1,42 @@
-import { CdkVirtualScrollViewport } from '@angular/cdk/scrolling';
+import { CdkFixedSizeVirtualScroll, CdkVirtualForOf, CdkVirtualScrollViewport } from '@angular/cdk/scrolling';
 import { Component, Input, OnChanges, OnDestroy, SimpleChanges, ViewChild } from '@angular/core';
+import { ReactiveFormsModule } from '@angular/forms';
 import { debounce, defer, delay, pull, pullAllWith, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { catchError, map, Subject, Subscription, takeUntil, throwError } from 'rxjs';
 import { v4 as uuid } from 'uuid';
+import { AutofocusDirective } from '../../directive/autofocus.directive';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ref } from '../../model/ref';
+import { EditorButton, sortOrder } from '../../model/tag';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
 import { StompService } from '../../service/api/stomp.service';
+import { AuthzService } from '../../service/authz.service';
 import { ConfigService } from '../../service/config.service';
 import { EditorService } from '../../service/editor.service';
 import { Store } from '../../store/store';
 import { URI_REGEX } from '../../util/format';
 import { getArgs } from '../../util/query';
 import { braces, tagOrigin } from '../../util/tag';
+import { LoadingComponent } from '../loading/loading.component';
+import { ChatEntryComponent } from './chat-entry/chat-entry.component';
 
 @Component({
-  standalone: false,
   selector: 'app-chat',
   templateUrl: './chat.component.html',
   styleUrls: ['./chat.component.scss'],
-  host: {'class': 'chat ext'}
+  host: { 'class': 'chat ext' },
+  imports: [
+    ChatEntryComponent,
+    LoadingComponent,
+    CdkVirtualScrollViewport,
+    CdkFixedSizeVirtualScroll,
+    CdkVirtualForOf,
+    ReactiveFormsModule,
+    AutofocusDirective,
+  ],
 })
 export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
   private destroy$ = new Subject<void>();
@@ -47,18 +61,20 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
   errored: Ref[] = [];
   scrollLock?: number;
 
-  latex = this.admin.getPlugin('plugin/latex');
+  latex = !!this.admin.getPlugin('plugin/latex');
 
+  private tags: string[] = [];
   private timeoutId?: number;
   private retries = 0;
   private lastScrolled = 0;
   private watch?: Subscription;
 
   constructor(
-    private config: ConfigService,
+    public config: ConfigService,
     private accounts: AccountService,
     public admin: AdminService,
     private store: Store,
+    private auth: AuthzService,
     private refs: RefService,
     private editor: EditorService,
     private stomp: StompService,
@@ -84,6 +100,7 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
   init() {
     this.messages = undefined;
     this.cursors.clear();
+    this.tags = this.store.account.defaultEditors(this.editors);
     this.loadPrev(true);
     if (this.config.websockets) {
       this.watch?.unsubscribe();
@@ -91,6 +108,25 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
         takeUntil(this.destroy$),
       ).subscribe(tag =>  this.refresh(tagOrigin(tag)));
     }
+  }
+
+  get editors() {
+    return this.editorButtons.map(p => p?.toggle as string).filter(p => !!p);
+  }
+
+  get editorButtons() {
+    return sortOrder(this.admin.getEditorButtons()).reverse();
+  }
+
+  get editorPushButtons() {
+    return this.editorButtons.filter(b => !b.ribbon && this.visible(b));
+  }
+
+  visible(button: EditorButton) {
+    if (button.scheme) return false;
+    if (!button.global) return false;
+    if (button.toggle && !this.auth.canAddTag(button.toggle)) return false;
+    return true;
   }
 
   get containerHeight() {
@@ -126,13 +162,17 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
       ),
       responses: this.responseOf?.url,
       modifiedAfter: this.cursors.get(origin!)
-    }).pipe(catchError(err => {
-      this.setPoll(true);
-      return throwError(() => err);
-    })).subscribe(page => {
+    }).pipe(
+      catchError(err => {
+        this.setPoll(true);
+        this.messages ||= [];
+        return throwError(() => err);
+      }),
+      takeUntil(this.destroy$),
+    ).subscribe(page => {
       this.setPoll(!page.content.length);
+      this.messages ||= [];
       if (!page.content.length) return;
-      if (!this.messages) this.messages = [];
       this.messages = [...this.messages, ...page.content];
       const last = page.content[page.content.length - 1];
       this.cursors.set(origin, last?.modifiedString);
@@ -159,16 +199,20 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
       ),
       responses: this.responseOf?.url,
       modifiedBefore: this.messages?.[0]?.modifiedString,
-    }).pipe(catchError(err => {
-      this.loadingPrev = false;
-      this.setPoll(true);
-      return throwError(() => err);
-    })).subscribe(page => {
+    }).pipe(
+      catchError(err => {
+        this.loadingPrev = false;
+        this.messages ||= [];
+        this.setPoll(true);
+        return throwError(() => err);
+      }),
+      takeUntil(this.destroy$),
+    ).subscribe(page => {
       this.loadingPrev = false;
       this.setPoll(!page.content.length);
-      if (!page.content.length) return;
+      this.messages ||= [];
       this.scrollLock = undefined;
-      if (!this.messages) this.messages = [];
+      if (!page.content.length) return;
       for (const ref of page.content) {
         if (!this.cursors.has(ref.origin!)) {
           this.cursors.set(ref.origin!, ref.modifiedString);
@@ -233,9 +277,12 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
     this.scrollLock = undefined;
     const newTags = uniq([
       'internal',
+      ...this.tags,
       ...([this.store.view.localTag || 'chat', ...this.store.view.ext?.config?.addTags || []]),
       ...this.plugins,
-      ...(this.store.account.localTag ? [this.store.account.localTag] : [])]).filter(t => !!t);
+      ...(this.latex ? ['plugin/latex'] : []),
+      ...(this.store.account.localTag ? [this.store.account.localTag] : []),
+    ]).filter(t => !!t);
     const ref: Ref = URI_REGEX.test(this.addText) ? {
       url: this.editor.getRefUrl(this.addText),
       origin: this.store.account.origin,
@@ -287,6 +334,26 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
     if (diff < -5) {
       this.scrollLock = undefined;
     }
+  }
+
+  toggleTag(button: EditorButton) {
+    const tag = button.toggle!;
+    if (this.buttonOn(tag)) {
+      if (this.tags.includes(tag)) this.tags.splice(this.tags.indexOf(tag), 1);
+      if (button.remember && this.admin.getTemplate('user')) {
+        this.accounts.removeConfigArray$('editors', tag).subscribe();
+      }
+    } else {
+      this.tags.push(tag);
+      if (button.remember && this.admin.getTemplate('user')) {
+        this.accounts.addConfigArray$('editors', tag).subscribe();
+      }
+    }
+    if ('vibrate' in navigator) navigator.vibrate([2, 8, 8]);
+  }
+
+  buttonOn(tag: string) {
+    return this.tags?.includes(tag);
   }
 
 }

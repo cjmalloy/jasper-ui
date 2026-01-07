@@ -5,6 +5,7 @@ body.light-theme {
   --bg-hover: rgba(0, 0, 0, 0.1);
   --bg-active: rgba(0, 0, 0, 0.4);
   --text: black;
+  --visited: #551a8b;
   --blue: rgba(207, 221, 255, 0.7);
   --active: #da0000;
   --info: gray;
@@ -32,11 +33,11 @@ body.light-theme {
   color: var(--text);
 
   background-color: var(--bg);
-  background-image: url("~/assets/bg-light.png");
+  background-image: url("../assets/bg-light.png");
   background-blend-mode: darken;
   figure::backdrop, .editor.fullscreen app-md {
     background-color: var(--bg);
-    background-image: url("~/assets/bg-light.png");
+    background-image: url("../assets/bg-light.png");
     background-blend-mode: darken;
   }
 
@@ -91,7 +92,7 @@ body.light-theme {
     background-color: var(--blue);
 
     .logo {
-      background-image: url("~/assets/jasper-light.png");
+      background-image: url("../assets/jasper-light.png");
     }
 
     & > a {
@@ -100,7 +101,7 @@ body.light-theme {
       }
 
       &.current-tab {
-        background-image: url("~/assets/bg-light.png");
+        background-image: url("../assets/bg-light.png");
         background-blend-mode: darken;
       }
     }
@@ -146,25 +147,4 @@ body.light-theme {
                 0 4px 0.5px 0 white;
   }
 
-  .kanban {
-    .column-title, .swim-lane-title {
-      background-color: transparent;
-      backdrop-filter: blur(1px) sepia(5%);
-      border: 0.5px solid var(--border-light);
-      &:hover {
-        box-shadow: 0 0 4px rgba(0, 0, 0, 0.2);
-      }
-    }
-  }
-
-  .backgammon-board {
-    --bg: rgba(187, 147, 71, 0.5);
-    --black: #333;
-    --red: #A55;
-    --play: #DDD;
-    --brown: #862;
-    --brown-alt: #975;
-    --glow: rgba(0, 0, 0, 0.5);
-    --move: rgba(82, 136, 82, 0.5);
-  }
 }

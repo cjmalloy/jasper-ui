@@ -1,14 +1,16 @@
-<div class="list-container">
-  @for (id of list; track id; let i = $index) {
-    <div class="list-number">{{ i + 1 }}</div>
-    <app-backup [id]="id"
-                [origin]="origin"></app-backup>
-  }
-</div>
 @if (!list) {
   <app-loading></app-loading>
 } @else if (list.length === 0) {
   <p class="no-results">
     No results found
   </p>
+} @else {
+  <div class="list-container">
+    @for (b of list; track b.id; let i = $index) {
+      <div class="list-number">{{ i + 1 }}</div>
+      <app-backup [id]="b.id"
+                  [size]="b.size"
+                  [origin]="origin"></app-backup>
+    }
+  </div>
 }

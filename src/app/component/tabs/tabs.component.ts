@@ -1,5 +1,6 @@
 import {
   AfterViewInit,
+  ChangeDetectorRef,
   Component,
   ContentChildren,
   ElementRef,
@@ -7,17 +8,19 @@ import {
   HostListener,
   QueryList
 } from '@angular/core';
+import { ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { defer } from 'lodash-es';
 import { ConfigService } from '../../service/config.service';
 import { memo, MemoCache } from '../../util/memo';
+import { SettingsComponent } from '../settings/settings.component';
 
 @Component({
-  standalone: false,
   selector: 'app-tabs',
   templateUrl: './tabs.component.html',
   styleUrl: './tabs.component.scss',
-  host: {'class': 'tabs'}
+  host: { 'class': 'tabs' },
+  imports: [ReactiveFormsModule, SettingsComponent]
 })
 export class TabsComponent implements AfterViewInit {
 
@@ -38,6 +41,7 @@ export class TabsComponent implements AfterViewInit {
   constructor(
     private config: ConfigService,
     private el: ElementRef<HTMLElement>,
+    private cd: ChangeDetectorRef,
   ) { }
 
   ngAfterViewInit() {
@@ -102,6 +106,7 @@ export class TabsComponent implements AfterViewInit {
       }
     }
     this.measuring = false;
+    this.cd.markForCheck();
   }
 
   @memo
@@ -112,7 +117,7 @@ export class TabsComponent implements AfterViewInit {
       const el = t.nativeElement as HTMLAnchorElement;
       if (el.tagName !== 'A') continue;
       if (el.classList.contains('logo')) continue;
-      result.push(el.offsetWidth + 8);
+      result.push(el.offsetWidth + 8.5);
     }
     return result;
   }
@@ -122,7 +127,7 @@ export class TabsComponent implements AfterViewInit {
     for (let i = 0; i < el.children.length; i++) {
       const e = el.children[i] as HTMLElement;
       if (!e.classList.contains('current-tab')) continue;
-      return e.offsetWidth + 8;
+      return e.offsetWidth + 8.5;
     }
     return 0;
   }

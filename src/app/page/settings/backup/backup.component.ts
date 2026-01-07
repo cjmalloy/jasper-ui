@@ -1,10 +1,17 @@
+import { Overlay, OverlayRef } from '@angular/cdk/overlay';
+import { TemplatePortal } from '@angular/cdk/portal';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component } from '@angular/core';
-import { UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
+import { ChangeDetectorRef, Component, ElementRef, TemplateRef, ViewChild, ViewContainerRef } from '@angular/core';
+import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
+import { sortBy, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { catchError, throwError } from 'rxjs';
-import { BackupService } from '../../../service/api/backup.service';
+import { BackupListComponent } from '../../../component/backup/backup-list/backup-list.component';
+import { LoadingComponent } from '../../../component/loading/loading.component';
+import { BackupOptions } from '../../../model/backup';
+import { BackupRef, BackupService } from '../../../service/api/backup.service';
 import { OriginService } from '../../../service/api/origin.service';
+import { BookmarkService } from '../../../service/bookmark.service';
 import { ModService } from '../../../service/mod.service';
 import { Store } from '../../../store/store';
 import { scrollToFirstInvalid } from '../../../util/form';
@@ -12,49 +19,137 @@ import { ORIGIN_REGEX } from '../../../util/format';
 import { printError } from '../../../util/http';
 
 @Component({
-  standalone: false,
   selector: 'app-settings-backup-page',
   templateUrl: './backup.component.html',
   styleUrls: ['./backup.component.scss'],
-  host: {'class': 'backup'}
+  host: { 'class': 'backup' },
+  imports: [ReactiveFormsModule, LoadingComponent, BackupListComponent]
 })
 export class SettingsBackupPage {
-  originPattern = ORIGIN_REGEX.source;
 
-  submitted = false;
+  @ViewChild('backupButton')
+  backupButton!: ElementRef<HTMLButtonElement>;
+  @ViewChild('backupOptions')
+  backupOptionsTemplate!: TemplateRef<any>;
+
   originForm: UntypedFormGroup;
+  backupOptionsForm: UntypedFormGroup;
 
-  origin = this.store.account.origin;
-  list?: string[];
+  list?: BackupRef[];
   uploading = false;
   serverError: string[] = [];
+  backupOrigins: string[] = this.store.origins.list;
+  backupOptionsRef?: OverlayRef;
 
   constructor(
     private mod: ModService,
     public store: Store,
     private backups: BackupService,
+    private bookmarks: BookmarkService,
     private origins: OriginService,
     private fb: UntypedFormBuilder,
+    private overlay: Overlay,
+    private viewContainerRef: ViewContainerRef,
+    private cd: ChangeDetectorRef,
   ) {
     mod.setTitle($localize`Settings: Backup & Restore`);
-    backups.list(this.origin)
-      .subscribe(list => this.list = list.sort().reverse());
+    this.fetchBackups();
     this.originForm = fb.group({
-      origin: ['', [Validators.pattern(ORIGIN_REGEX)]],
+      origin: [this.origin, [Validators.pattern(ORIGIN_REGEX)]],
       olderThan: [DateTime.now().toISO()],
     });
+    this.backupOptionsForm = fb.group({
+      cache: [false],
+      ref: [true],
+      ext: [true],
+      user: [true],
+      plugin: [false],
+      template: [false],
+      newerThan: [''],
+    });
+    this.origins.list()
+      .subscribe(origins => {
+        this.backupOrigins = uniq([...this.store.origins.list, ...origins]);
+        this.cd.markForCheck();
+      });
   }
 
-  backup() {
+  get origin() {
+    return this.store.view.origin || this.store.account.origin;
+  }
+
+  selectOrigin(origin: string) {
+    if (origin === this.origin) return;
+    this.fetchBackups(origin);
+    this.bookmarks.origin = origin;
+  }
+
+  fetchBackups(origin?: string) {
+    delete this.list;
+    this.backups.list(origin === undefined ? this.origin : origin)
+      .subscribe(list => this.list = sortBy(list, 'id').reverse());
+  }
+
+  showBackupOptions() {
+    if (this.backupOptionsRef) return;
+    const positionStrategy = this.overlay.position()
+      .flexibleConnectedTo(this.backupButton!)
+      .withPositions([{
+        originX: 'start',
+        originY: 'bottom',
+        overlayX: 'start',
+        overlayY: 'top',
+        offsetY: 4,
+      }]);
+    this.backupOptionsRef = this.overlay.create({
+      hasBackdrop: true,
+      backdropClass: 'hide',
+      positionStrategy,
+      scrollStrategy: this.overlay.scrollStrategies.close()
+    });
+    this.backupOptionsRef.attach(new TemplatePortal(this.backupOptionsTemplate, this.viewContainerRef));
+    this.backupOptionsRef.backdropClick().subscribe(() => this.cancelBackup());
+  }
+
+  confirmBackup() {
+    const options: BackupOptions = {
+      cache: this.backupOptionsForm.value.cache,
+      ref: this.backupOptionsForm.value.ref,
+      ext: this.backupOptionsForm.value.ext,
+      user: this.backupOptionsForm.value.user,
+      plugin: this.backupOptionsForm.value.plugin,
+      template: this.backupOptionsForm.value.template,
+      newerThan: this.backupOptionsForm.value.newerThan || undefined,
+    };
+    this.closeBackupOptions();
+    this.backup(options);
+  }
+
+  cancelBackup() {
+    this.closeBackupOptions();
+  }
+
+  closeBackupOptions() {
+    this.backupOptionsRef?.detach();
+    this.backupOptionsRef?.dispose();
+    this.backupOptionsRef = undefined;
+  }
+
+  backup(options: BackupOptions) {
     this.serverError = [];
-    this.backups.create(this.origin).pipe(
+    this.backups.create(this.origin, options).pipe(
       catchError((res: HttpErrorResponse) => {
         this.serverError = printError(res);
         return throwError(() => res);
       }),
     ).subscribe(id => {
-      this.list?.unshift('_' + id);
+      this.list ||= [];
+      this.list.unshift({ id: '_' + id });
     });
+  }
+
+  onBackupCancelled() {
+    // Nothing to do when cancelled
   }
 
   upload(files?: FileList) {
@@ -70,13 +165,15 @@ export class SettingsBackupPage {
       }),
     ).subscribe(() => {
       this.uploading = false;
-      this.list?.unshift(files[0].name);
+      this.list ||= [];
+      this.list.unshift({ id: files[0].name });
     });
   }
 
-  backfill() {
+  regen() {
     this.serverError = [];
-    this.backups.backfill(this.origin).pipe(
+    if (!confirm($localize`Are you sure you want totally regenerate metadata${this.origin ? ' in ' + this.origin : ''}?`)) return;
+    this.backups.regen(this.origin).pipe(
       catchError((res: HttpErrorResponse) => {
         this.serverError = printError(res);
         return throwError(() => res);
@@ -86,21 +183,23 @@ export class SettingsBackupPage {
 
   deleteOrigin() {
     this.serverError = [];
-    this.submitted = true;
     this.originForm.markAllAsTouched();
     if (!this.originForm.valid) {
       scrollToFirstInvalid();
       return;
     }
-    const origin = this.originForm.value.origin;
+    const confirmation = prompt($localize`Are you sure you want totally delete everything in ${this.origin || 'default'}?\n\nEnter the origin to confirm:`);
+    if (confirmation === null) return;
+    if (confirmation !== (this.origin || 'default')){
+      alert($localize`Origin did not match ${this.origin || 'default'}, aborting.`)
+      return;
+    }
     const olderThan = DateTime.fromISO(this.originForm.value.olderThan);
-    this.origins.delete(origin, olderThan).pipe(
+    this.origins.delete(this.origin, olderThan).pipe(
       catchError((res: HttpErrorResponse) => {
         this.serverError = printError(res);
         return throwError(() => res);
       }),
-    ).subscribe(() => {
-      this.submitted = true;
-    });
+    ).subscribe();
   }
 }

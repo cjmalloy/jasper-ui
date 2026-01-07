@@ -7,9 +7,8 @@ import { OembedStore } from '../store/oembed';
 import { hasTag } from '../util/tag';
 
 @Pipe({
-  standalone: false,
-  name: 'thumbnail',
-  pure: true
+    name: 'thumbnail',
+    pure: true
 })
 export class ThumbnailPipe implements PipeTransform {
 
@@ -52,7 +51,7 @@ export class ThumbnailPipe implements PipeTransform {
 
   fetchUrl(url: string, origin: string | undefined, plugin: string) {
     if (!url) return '';
-    if (this.admin.getPlugin(plugin)?.config?.proxy) {
+    if (url.startsWith('cache:') || this.admin.getPlugin(plugin)?.config?.proxy) {
       return this.proxy.getFetch(url, origin, true);
     }
     return url;

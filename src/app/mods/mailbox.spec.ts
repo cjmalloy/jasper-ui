@@ -1,3 +1,4 @@
+/// <reference types="vitest/globals" />
 import { Ref } from '../model/ref';
 import { getMailbox, isMailbox, mailboxes, notifications } from './mailbox';
 
@@ -42,20 +43,25 @@ describe('MailboxPlugin', () => {
   });
   const refAt = (origin: string, ...tags: string[]): Ref => ({ url: 'spec:test', origin, tags });
   it('mailboxes', () => {
-    expect(mailboxes(ref('+user'), '+user')).toEqual([]);
-    expect(mailboxes(ref('+user/alice'), '+user')).toEqual(['plugin/inbox/user/alice']);
-    expect(mailboxes(ref('+user', 'plugin/inbox/user/alice'), '+user')).toEqual(['plugin/inbox/user/alice']);
-    expect(mailboxes(ref('+user/alice', 'plugin/inbox/user/bob'), '+user')).toEqual(['plugin/inbox/user/alice', 'plugin/inbox/user/bob']);
+    expect(mailboxes(ref('+user', 'public'), '+user')).toEqual([]);
+    expect(mailboxes(ref('+user/alice'), '+user')).toEqual(['plugin/inbox/user/alice', 'user/alice']);
+    expect(mailboxes(ref('+user/alice', 'public'), '+user')).toEqual(['plugin/inbox/user/alice']);
+    expect(mailboxes(ref('+user', 'plugin/inbox/user/alice', 'public'), '+user')).toEqual(['plugin/inbox/user/alice']);
+    expect(mailboxes(ref('+user/alice', 'plugin/inbox/user/bob', 'public'), '+user')).toEqual(['plugin/inbox/user/alice', 'plugin/inbox/user/bob']);
+    expect(mailboxes(ref('_user/alice'), '+user')).toEqual(['plugin/inbox/user/alice', '_user/alice']);
+    expect(mailboxes(ref('+user/alice', '_user/bob'), '+user')).toEqual(['plugin/inbox/user/alice', 'plugin/inbox/user/bob', 'user/alice', '_user/bob']);
   });
   it('mailboxes multi-tenant', () => {
-    expect(mailboxes(ref('+user/alice'), '+user@test')).toEqual(['plugin/inbox/user/alice']);
-    expect(mailboxes(ref('+user/alice', 'plugin/inbox/user/bob'), '+user@test')).toEqual(['plugin/inbox/user/alice', 'plugin/inbox/user/bob']);
+    expect(mailboxes(ref('+user/alice'), '+user@test')).toEqual(['plugin/inbox/user/alice', 'user/alice']);
+    expect(mailboxes(ref('+user/alice', 'public'), '+user@test')).toEqual(['plugin/inbox/user/alice']);
+    expect(mailboxes(ref('+user/alice', 'plugin/inbox/user/bob'), '+user@test')).toEqual(['plugin/inbox/user/alice', 'user/alice', 'plugin/inbox/user/bob']);
+    expect(mailboxes(ref('+user/alice', 'plugin/inbox/user/bob', 'public'), '+user@test')).toEqual(['plugin/inbox/user/alice', 'plugin/inbox/user/bob']);
     expect(mailboxes(refAt('@test'), '+user')).toEqual([]);
-    expect(mailboxes(refAt('@test', '+user'), '+user@test')).toEqual([]);
+    expect(mailboxes(refAt('@test', '+user', 'public'), '+user@test')).toEqual([]);
     expect(mailboxes(refAt('@test', '+user/alice'), '+user')).toEqual(['plugin/outbox/test/user/alice']);
     expect(mailboxes(refAt('@test', 'plugin/inbox/user/alice'), '+user')).toEqual(['plugin/outbox/test/user/alice']);
     expect(mailboxes(refAt('@test', '+user/alice', 'plugin/inbox/user/bob'), '+user')).toEqual(['plugin/outbox/test/user/alice', 'plugin/outbox/test/user/bob']);
-    expect(mailboxes(refAt('@test', '+user/alice', 'plugin/inbox/user/bob'), '+user@test')).toEqual(['plugin/inbox/user/alice', 'plugin/inbox/user/bob']);
+    expect(mailboxes(refAt('@test', '+user/alice', 'plugin/inbox/user/bob', 'public'), '+user@test')).toEqual(['plugin/inbox/user/alice', 'plugin/inbox/user/bob']);
   });
   it('mailboxes multi-tenant with lookup', () => {
     const lookup = new Map([

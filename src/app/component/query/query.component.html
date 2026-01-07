@@ -1,22 +1,25 @@
-<ng-container *ngIf="editing || !query">
-  <input type="email"
-         #editor
+@if (editing || !query) {
+  <input #editor
+         type="text"
          autocorrect="off"
          autocapitalize="none"
          i18n-placeholder
          placeholder="Tag Query"
-         [ngModel]="query"
-         (blur)="blur($event)"
+         [value]="query"
+         (blur)="blur(editor.value)"
          (keydown)="$event.key === 'Enter' && search(editor.value) || true">
-  <button type="button" *ngIf="query && editing" (click)="search(editor.value)">🔎️</button>
-</ng-container>
-<div #div *ngIf="!editing && query" class="breadcrumbs" (click)="$event.target === div && edit(false)">
-  <span *ngFor="let breadcrumb of breadcrumbs" class="crumb">
-    <a *ngIf="breadcrumb.tag"
-       class="tag"
-       [routerLink]="['/tag', breadcrumb.tag]"
-       queryParamsHandling="merge"><span (click)="click($event, breadcrumb)">{{ breadcrumb.text }}</span></a>
-    <span *ngIf="!breadcrumb.tag" class="op" (click)="edit(breadcrumb)">{{ breadcrumb.text }}</span>
-  </span>
-</div>
-<button type="button" *ngIf="query && !editing" (click)="edit(true)">✏️</button>
+  <button type="button" (click)="search(editor.value)">🔎️</button>
+} @else {
+  <div #div class="breadcrumbs" (click)="$event.target === div && edit(false)">
+    @for (breadcrumb of breadcrumbs; track breadcrumb) {
+      <span class="crumb">
+        @if (breadcrumb.tag) {
+          <a class="tag" [routerLink]="['../', breadcrumb.tag]" queryParamsHandling="merge"><span (click)="click($event, breadcrumb)">{{ breadcrumb.text }}</span></a>
+        } @else {
+          <span class="op" (click)="edit(breadcrumb)">{{ breadcrumb.text }}</span>
+        }
+      </span>
+    }
+  </div>
+  <button type="button" (click)="edit(true)">✏️</button>
+}

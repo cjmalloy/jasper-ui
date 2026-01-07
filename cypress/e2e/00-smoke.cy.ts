@@ -5,7 +5,7 @@ describe('Smoke Tests', {
 }, () => {
   it('loads the page', () => {
     cy.visit('/?debug=USER');
-    cy.contains('Home', { timeout: 1000 * 60 * 20 }); // 20 minutes
+    cy.contains('Powered by Jasper', { timeout: 1000 * 60 * 20 }); // 20 minutes
   });
   it('@main: clear mods', () => {
     clearMods();
@@ -21,7 +21,7 @@ describe('Smoke Tests', {
     cy.contains('Next').as('next');
     cy.get('@next').click();
     cy.wait(1000); // First part of 'Title' getting truncated
-    cy.get('#title').type('Title');
+    cy.get('[name=title]').type('Title');
     cy.intercept({pathname: '/api/v1/ref'}).as('submit');
     cy.get('button').contains('Submit').click();
     cy.wait('@submit');

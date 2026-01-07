@@ -17,7 +17,7 @@
       <app-inline-button #action [action]="copy$" i18n>copy</app-inline-button>
     }
     @if (created && local && store.account.admin) {
-      <a class="fake-link" (click)="editing = !editing" i18n>edit</a>
+      <a class="fake-link" (click)="editing = !editing" i18n>@if (editForm.dirty) {*edit*} @else {edit}</a>
     } @else {
       <a class="fake-link" (click)="viewSource = !viewSource" i18n>source</a>
     }
@@ -67,7 +67,8 @@
 @if (editing) {
   <form class="form" [formGroup]="editForm" (ngSubmit)="save()">
 
-    <app-user-form [group]="editForm"></app-user-form>
+    <app-user-form [group]="editForm"
+                   [externalErrors]="externalErrors"></app-user-form>
 
     @for (e of serverError; track e) {
       <span><!-- Unexpected Error --></span>

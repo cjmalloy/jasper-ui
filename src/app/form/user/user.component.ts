@@ -1,16 +1,32 @@
 import { Component, ElementRef, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
-import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import {
+  ReactiveFormsModule,
+  UntypedFormBuilder,
+  UntypedFormControl,
+  UntypedFormGroup,
+  Validators
+} from '@angular/forms';
+import { defer } from 'lodash-es';
+import { v4 as uuid } from 'uuid';
+import { FillWidthDirective } from '../../directive/fill-width.directive';
 import { User } from '../../model/user';
 import { isMailbox } from '../../mods/mailbox';
+import { Store } from '../../store/store';
 import { USER_REGEX } from '../../util/format';
+import { JsonComponent } from '../json/json.component';
 import { TagsFormComponent } from '../tags/tags.component';
 
 @Component({
-  standalone: false,
   selector: 'app-user-form',
   templateUrl: './user.component.html',
   styleUrls: ['./user.component.scss'],
-  host: {'class': 'nested-form'}
+  host: { 'class': 'nested-form' },
+  imports: [
+    ReactiveFormsModule,
+    TagsFormComponent,
+    FillWidthDirective,
+    JsonComponent,
+  ]
 })
 export class UserFormComponent implements OnInit {
 
@@ -26,6 +42,8 @@ export class UserFormComponent implements OnInit {
   showClear = false;
   @Output()
   clear = new EventEmitter<void>();
+  @Input()
+  externalErrors: string[] = [];
 
   @ViewChild('fill')
   fill?: ElementRef;
@@ -41,6 +59,15 @@ export class UserFormComponent implements OnInit {
   @ViewChild('tagWriteAccess')
   tagWriteAccess!: TagsFormComponent;
 
+  id = 'user-' + uuid();
+  editingExternal = false;
+
+  private showedError = false;
+
+  constructor(
+    public store: Store,
+  ) { }
+
   ngOnInit(): void {
     this.pubKey.disable();
   }
@@ -53,8 +80,16 @@ export class UserFormComponent implements OnInit {
     return this.group.get('pubKey') as UntypedFormControl;
   }
 
+  get external() {
+    return this.editingExternal ||= this.group.get('external')?.value;
+  }
+
+  get showError() {
+    return this.tag.touched && this.tag.errors;
+  }
+
   validate(input: HTMLInputElement) {
-    if (this.tag.touched) {
+    if (this.showError) {
       if (this.tag.errors?.['required']) {
         input.setCustomValidity($localize`Tag must not be blank.`);
         input.reportValidity();
@@ -68,23 +103,27 @@ export class UserFormComponent implements OnInit {
         input.reportValidity();
       }
     }
-    if (!this.tag.errors) {
+  }
+
+  blur(input: HTMLInputElement) {
+    if (this.showError && !this.showedError) {
+      this.showedError = true;
+      defer(() => this.validate(input));
+    } else {
+      this.showedError = false;
       this.tagChanges.next(input.value)
     }
   }
 
   setUser(user: User) {
-    const ns = (user.readAccess || []).filter(isMailbox);
-    this.notifications.model = ns;
-    const ra = (user.readAccess || []).filter(t => !isMailbox(t));
-    this.readAccess.model = ra;
-    this.writeAccess.model = [...user.writeAccess || []];
-    this.tagReadAccess.model = [...user.tagReadAccess || []];
-    this.tagWriteAccess.model = [...user.tagWriteAccess || []];
+    this.notifications.setTags((user.readAccess || []).filter(isMailbox));
+    this.readAccess.setTags((user.readAccess || []).filter(t => !isMailbox(t)));
+    this.writeAccess.setTags([...user.writeAccess || []]);
+    this.tagReadAccess.setTags([...user.tagReadAccess || []]);
+    this.tagWriteAccess.setTags([...user.tagWriteAccess || []]);
     this.group.patchValue({
       ...user,
-      notifications: ns,
-      readAccess: ra,
+      external: user.external ? JSON.stringify(user.external, null, 2) : undefined,
     });
   }
 
@@ -102,5 +141,6 @@ export function userForm(fb: UntypedFormBuilder, locked = false) {
     tagWriteAccess: fb.array([]),
     pubKey: ['', { disabled: true }],
     authorizedKeys: [''],
+    external: [],
   });
 }

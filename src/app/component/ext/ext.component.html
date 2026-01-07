@@ -1,11 +1,14 @@
 <div class="link" [class.remote]="!local">
   @if (preview | async; as p) {
-    <a [routerLink]="['/tag', extLink]" [appTitle]="ext">{{ p.name || p.tag }}</a>
+    <a [routerLink]="['/tag', extLink]" [appTitle]="ext">{{ p.name || '#' + p.tag }}</a>
   } @else {
-    <a [routerLink]="['/tag', extLink]" [appTitle]="ext">{{ ext.name || template?.name || plugin?.name || ext.tag }}</a>
+    <a [routerLink]="['/tag', extLink]" [appTitle]="ext">{{ ext.name || template?.name || plugin?.name || '#' + ext.tag }}</a>
   }
-  <span *ngIf="ext.name" class="host">({{ qualifiedTag }})</span>
-  <span *ngIf="!ext.name && ext.origin" class="host">({{ ext.origin }})</span>
+  @if (ext.name) {
+    <span class="host">({{ qualifiedTag }})</span>
+  } @else if (ext.origin) {
+    <span class="host">({{ ext.origin }})</span>
+  }
 </div>
 <div class="stack">
   <div class="info">
@@ -34,7 +37,7 @@
         @if (useEditPage) {
           <a [routerLink]="['/ext/', ext.tag]" i18n>edit</a>
         } @else {
-          <a class="fake-link" (click)="editing = !editing" i18n>edit</a>
+          <a class="fake-link" (click)="editing = !editing" i18n>@if (editForm.dirty) {*edit*} @else {edit}</a>
         }
       } @else if (useEditPage) {
         <a [routerLink]="['/ext/', ext.tag]" i18n>source</a>
@@ -52,7 +55,7 @@
         <a [routerLink]="['/tags', parent]" i18n>parent</a>
       }
       <a [routerLink]="['/tags', ext.tag]" i18n>tags</a>
-      <a class="fake-link" (click)="editing = !editing" i18n>edit</a>
+      <a class="fake-link" (click)="editing = !editing" i18n>@if (editForm.dirty) {*edit*} @else {edit}</a>
       <a class="fake-link" (click)="download()" i18n>download</a>
       <app-confirm-action #action [action]="delete$" i18n>delete</app-confirm-action>
     }
@@ -71,14 +74,12 @@
 
     <span><!-- Buttons --></span>
     <span class="buttons right">
-    <div *ngIf="invalid && !force" class="overwrite warning" i18n-title title="Will drop all unknown configs.">
-      <input id="overwrite" type="checkbox" [(ngModel)]="overwrite" [ngModelOptions]="{standalone: true}">
-      <label for="overwrite" i18n>Overwrite</label>
-    </div>
-    <div *ngIf="invalid && force" class="force error" i18n-title title="Will reset config to defaults.">
-      <input id="force" type="checkbox" [(ngModel)]="force" [ngModelOptions]="{standalone: true}">
-      <label for="force" i18n>Force</label>
-    </div>
+    @if (overwritten) {
+      <div class="overwrite warning" i18n-title title="Will drop all unknown configs.">
+        <input id="overwrite" type="checkbox" [checked]="overwrite" (input)="overwrite = !overwrite">
+        <label for="overwrite" i18n>Overwrite</label>
+      </div>
+    }
     <button type="submit" [disabled]="submitted && !editForm.valid" i18n>save</button>
     <button type="button" (click)="editing = false" i18n>cancel</button>
   </span>

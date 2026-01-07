@@ -1,10 +1,13 @@
+/// <reference types="vitest/globals" />
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { forwardRef } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import { ActivatedRoute, provideRouter } from '@angular/router';
+import { of } from 'rxjs';
 
 import { SubmitPage } from './submit.component';
-import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 describe('SubmitPage', () => {
   let component: SubmitPage;
@@ -12,15 +15,25 @@ describe('SubmitPage', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    declarations: [SubmitPage],
-    imports: [RouterModule.forRoot([]),
-        ReactiveFormsModule],
-    providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
-})
-    .compileComponents();
-  });
+      imports: [
+        ReactiveFormsModule,
+        forwardRef(() => SubmitPage),
+      ],
+      providers: [
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting(),
+        provideRouter([]),
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            params: of({}),
+            queryParams: of({}),
+            snapshot: { params: {}, queryParams: {} }
+          }
+        },
+      ],
+    }).compileComponents();
 
-  beforeEach(() => {
     fixture = TestBed.createComponent(SubmitPage);
     component = fixture.componentInstance;
     fixture.detectChanges();

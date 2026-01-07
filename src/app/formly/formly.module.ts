@@ -3,8 +3,10 @@ import { OverlayModule } from '@angular/cdk/overlay';
 import { NgModule } from '@angular/core';
 import { AbstractControl, ReactiveFormsModule } from '@angular/forms';
 import { BrowserModule } from '@angular/platform-browser';
-import { FormlyModule } from '@ngx-formly/core';
+import { FormlyExtension, FormlyFieldConfig, FormlyModule } from '@ngx-formly/core';
 import { FormlySelectModule } from '@ngx-formly/core/select';
+import { v4 as uuid } from 'uuid';
+import { AppRoutingModule } from '../app-routing.module';
 import {
   ORIGIN_REGEX,
   PLUGIN_REGEX,
@@ -20,12 +22,14 @@ import { AudioUploadComponent } from './audio-upload/audio-upload.component';
 import { FormlyFieldCheckbox } from './checkbox.type';
 import { DurationInputAccessor, FormlyFieldDuration } from './duration.type';
 import { FormlyWrapperFormField } from './form-field.wrapper';
+import { FormlyWrapperFormGroup } from './form-group.wrapper';
 import { ImageUploadComponent } from './image-upload/image-upload.component';
 import { FormlyFieldInput } from './input.type';
 import { ListTypeComponent } from './list.type';
 import { FormlyFieldMultiCheckbox } from './multicheckbox.type';
 import { PdfUploadComponent } from './pdf-upload/pdf-upload.component';
 import { QrScannerComponent } from './qr-scanner/qr-scanner.component';
+import { FormlyFieldQueryInput } from './query.type';
 import { FormlyFieldRadio } from './radio.type';
 import { FormlyFieldRange } from './range.type';
 import { FormlyFieldRefInput } from './ref.type';
@@ -34,12 +38,42 @@ import { FormlyFieldTagInput } from './tag.type';
 import { FormlyFieldTextArea } from './textarea.type';
 import { VideoUploadComponent } from './video-upload/video-upload.component';
 
+export class IdPrefixExtension implements FormlyExtension {
+  prePopulate(field: FormlyFieldConfig) {
+    if (field.key && !field.id) {
+      field.id = `formly-${uuid()}-${field.key}`;
+    }
+    if (field.key && !field.name) {
+      field.name = field.key as string;
+    }
+    // Recurse for nested fields
+    field.fieldGroup?.forEach(f => this.prePopulate(f));
+    if (field.fieldArray) {
+      this.prePopulate(field.fieldArray as FormlyFieldConfig);
+    }
+  }
+}
+
 @NgModule({
-  declarations: [
+  exports: [
+    QrScannerComponent,
+    AudioUploadComponent,
+    VideoUploadComponent,
+    ImageUploadComponent,
+    PdfUploadComponent,
+  ],
+  imports: [
+    BrowserModule,
+    ReactiveFormsModule,
+    AppRoutingModule,
+    DragDropModule,
+    OverlayModule,
+    FormlySelectModule,
     FormlyWrapperFormField,
     FormlyFieldInput,
     FormlyFieldRange,
     FormlyFieldTagInput,
+    FormlyFieldQueryInput,
     FormlyFieldRefInput,
     FormlyFieldTextArea,
     FormlyFieldCheckbox,
@@ -54,27 +88,17 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
     AudioUploadComponent,
     PdfUploadComponent,
     ListTypeComponent,
-  ],
-  exports: [
-    QrScannerComponent,
-    AudioUploadComponent,
-    VideoUploadComponent,
-    ImageUploadComponent,
-    PdfUploadComponent,
-  ],
-  imports: [
-    BrowserModule,
-    ReactiveFormsModule,
-    DragDropModule,
-    OverlayModule,
-    FormlySelectModule,
     FormlyModule.forRoot({
+      extensions: [{ name: 'id-prefix', extension: new IdPrefixExtension() }],
       validationMessages: [
         { name: 'required', message: 'This field is required' },
       ],
       wrappers: [{
         name: 'form-field',
         component: FormlyWrapperFormField,
+      }, {
+        name: 'form-group',
+        component: FormlyWrapperFormGroup,
       }],
       types: [{
         name: 'list',
@@ -88,6 +112,7 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
         component: FormlyFieldRange,
         wrappers: ['form-field'],
         defaultOptions: {
+          defaultValue: 0,
           props: {
             min: 0,
             max: 10,
@@ -257,16 +282,16 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
           props: {
             label: $localize`Duration:`,
             datalist: [
-              { value: 'PT1M', label: $localize`1 min`},
-              { value: 'PT5M', label: $localize`5 mins`},
-              { value: 'PT15M', label: $localize`15 mins`},
-              { value: 'PT30M', label: $localize`30 mins`},
-              { value: 'PT30M', label: $localize`30 mins`},
-              { value: 'PT1H', label: $localize`1 hour`},
-              { value: 'PT2H', label: $localize`2 hours`},
-              { value: 'PT6H', label: $localize`6 hours`},
-              { value: 'PT12H', label: $localize`12 hours`},
-              { value: 'PT24H', label: $localize`1 day`},
+              { value: 'PT1M', label: $localize`1 min` },
+              { value: 'PT5M', label: $localize`5 mins` },
+              { value: 'PT15M', label: $localize`15 mins` },
+              { value: 'PT30M', label: $localize`30 mins` },
+              { value: 'PT30M', label: $localize`30 mins` },
+              { value: 'PT1H', label: $localize`1 hour` },
+              { value: 'PT2H', label: $localize`2 hours` },
+              { value: 'PT6H', label: $localize`6 hours` },
+              { value: 'PT12H', label: $localize`12 hours` },
+              { value: 'PT24H', label: $localize`1 day` },
             ],
           },
         },
@@ -519,7 +544,8 @@ Private tags start with an underscore.
         },
       }, {
         name: 'query',
-        extends: 'tag',
+        component: FormlyFieldQueryInput,
+        wrappers: ['form-field'],
         defaultOptions: {
           props: {
             label: $localize`Query: `,

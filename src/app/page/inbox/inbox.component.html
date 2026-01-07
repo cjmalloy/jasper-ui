@@ -30,7 +30,7 @@
          i18n-title title="🛡️ Moderation List"
          i18n>modlist</a>
     }
-    @if (admin.getPlugin('plugin/report')) {
+    @if (admin.getPlugin('plugin/user/report')) {
       <a routerLink="./reports" routerLinkActive="current-tab"
          i18n-title title="🙅️ Reports"
          i18n>reports</a>
@@ -44,7 +44,7 @@
     }
   </app-tabs>
   @if (store.view.type) {
-    <app-sidebar [tag]="store.view.childTag"></app-sidebar>
+    <app-sidebar [tag]="store.view.inboxTag"></app-sidebar>
   }
   <router-outlet></router-outlet>
 </ng-container>

@@ -11,10 +11,16 @@ updates:
     - "/cypress"
   schedule:
     interval: daily
+    timezone: America/Halifax
 - package-ecosystem: npm
+  open-pull-requests-limit: 10
   directory: /
   schedule:
     interval: daily
+    timezone: America/Halifax
+  ignore:
+    - dependency-name: "@angular/*"
+      versions: [ "21.0.*" ]
   groups:
     angular:
       patterns:
@@ -43,3 +49,4 @@ updates:
   directory: /
   schedule:
     interval: daily
+    timezone: America/Halifax

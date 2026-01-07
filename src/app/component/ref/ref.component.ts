@@ -1,3 +1,4 @@
+import { AsyncPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
   AfterViewInit,
@@ -16,20 +17,25 @@ import {
   ViewChild,
   ViewChildren
 } from '@angular/core';
-import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
+import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
+import { Router, RouterLink } from '@angular/router';
 import { cloneDeep, defer, delay, groupBy, pick, throttle, uniq, without } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { catchError, map, of, Subject, Subscription, switchMap, takeUntil, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
+import { TitleDirective } from '../../directive/title.directive';
+import { DiffComponent } from '../../form/diff/diff.component';
 import { writePlugins } from '../../form/plugins/plugins.component';
 import { refForm, RefFormComponent } from '../../form/ref/ref.component';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { getPluginScope, Plugin } from '../../model/plugin';
-import { equalsRef, Ref } from '../../model/ref';
+import { equalsRef, isRef, Ref } from '../../model/ref';
 import { Action, active, hydrate, Icon, sortOrder, uniqueConfigs, visible } from '../../model/tag';
 import { deleteNotice } from '../../mods/delete';
 import { addressedTo, getMailbox, mailboxes } from '../../mods/mailbox';
+import { CssUrlPipe } from '../../pipe/css-url.pipe';
+import { ThumbnailPipe } from '../../pipe/thumbnail.pipe';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
@@ -60,7 +66,7 @@ import {
   expandedTagsInclude,
   hasTag,
   hasUserUrlResponse,
-  isOwnerTag,
+  isAuthorTag,
   localTag,
   removeTag,
   repost,
@@ -68,15 +74,40 @@ import {
   tagOrigin,
   top
 } from '../../util/tag';
+import { ActionListComponent } from '../action/action-list/action-list.component';
 import { ActionComponent } from '../action/action.component';
+import { ConfirmActionComponent } from '../action/confirm-action/confirm-action.component';
+import { InlineButtonComponent } from '../action/inline-button/inline-button.component';
+import { InlineTagComponent } from '../action/inline-tag/inline-tag.component';
 import { CommentReplyComponent } from '../comment/comment-reply/comment-reply.component';
+import { LoadingComponent } from '../loading/loading.component';
+import { MdComponent } from '../md/md.component';
+import { NavComponent } from '../nav/nav.component';
 import { ViewerComponent } from '../viewer/viewer.component';
 
 @Component({
-  standalone: false,
   selector: 'app-ref',
   templateUrl: './ref.component.html',
   styleUrls: ['./ref.component.scss'],
+  imports: [
+    ViewerComponent,
+    RefFormComponent,
+    MdComponent,
+    NavComponent,
+    RouterLink,
+    TitleDirective,
+    InlineTagComponent,
+    InlineButtonComponent,
+    ConfirmActionComponent,
+    ActionListComponent,
+    CommentReplyComponent,
+    ReactiveFormsModule,
+    LoadingComponent,
+    DiffComponent,
+    AsyncPipe,
+    ThumbnailPipe,
+    CssUrlPipe,
+  ],
 })
 export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasChanges {
   css = 'ref list-item';
@@ -89,6 +120,8 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   refForm?: RefFormComponent;
   @ViewChild(CommentReplyComponent)
   reply?: CommentReplyComponent;
+  @ViewChild('diffEditor')
+  diffEditor?: any;
 
   @Input()
   ref!: Ref;
@@ -109,6 +142,8 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   @Input()
   showAlarm = true;
   @Input()
+  showObsolete = true;
+  @Input()
   fetchRepost = true;
   @Output()
   copied = new EventEmitter<string>();
@@ -117,8 +152,8 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   editForm: UntypedFormGroup;
   submitted = false;
   invalid = false;
+  overwritten = false;
   overwrite = true;
-  force = false;
   expandPlugins: string[] = [];
   icons: Icon[] = [];
   alarm?: string;
@@ -127,8 +162,6 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   advancedActions: Action[] = [];
   groupedAdvancedActions: { [key: string]: Action[] } = {};
   infoUis: Plugin[] = [];
-  submittedLabel = $localize`submitted`;
-  publishedLabel = $localize`published`;
   @HostBinding('class.deleted')
   deleted = false;
   @HostBinding('class.mobile-unlock')
@@ -140,11 +173,17 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   deleteAccess = false;
   serverError: string[] = [];
   publishChanged = false;
+  diffOriginal?: Ref;
+  diffModified?: Ref;
+  fullscreen = this.admin.getPlugin('plugin/fullscreen') && hasTag('plugin/fullscreen', this.plugins);
 
   submitting?: Subscription;
   private refreshTap?: () => void;
   private _editing = false;
   private _viewSource = false;
+  private _diffing = false;
+  private overwrittenModified? = '';
+  private diffSubscription?: Subscription;
 
   constructor(
     public config: ConfigService,
@@ -158,6 +197,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     private bookmarks: BookmarkService,
     private proxy: ProxyService,
     private ts: TaggingService,
+    private router: Router,
     private fb: UntypedFormBuilder,
     private el: ElementRef<HTMLDivElement>,
     private cd: ChangeDetectorRef,
@@ -175,7 +215,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
       MemoCache.clear(this, 'thumbnailColor');
       MemoCache.clear(this, 'thumbnailEmoji');
       MemoCache.clear(this, 'thumbnailEmojiDefaults');
-      this.initFields(value);
+      this.initFields({ ...this.ref, ...value });
       cd.detectChanges();
     }, 400, { leading: true, trailing: true }));
     this.disposers.push(autorun(() => {
@@ -223,8 +263,8 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     this.serverError.length = 0;
     this.submitted = false;
     this.invalid = false;
+    this.overwritten = false;
     this.overwrite = false;
-    this.force = false;
     this.deleted = false;
     this.editing = false;
     this.viewSource = false;
@@ -233,15 +273,17 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     this.writeAccess = this.auth.writeAccess(this.ref);
     this.taggingAccess = this.auth.taggingAccess(this.ref);
     this.deleteAccess = this.auth.deleteAccess(this.ref);
+    this.fullscreen = this.admin.getPlugin('plugin/fullscreen') && hasTag('plugin/fullscreen', this.plugins);
     this.initFields(this.ref);
 
     this.expandPlugins = this.admin.getEmbeds(this.ref);
     if (this.repost && this.ref && this.fetchRepost && this.repostRef?.url != repost(this.ref)) {
       (this.store.view.top?.url === this.ref.sources![0]
-        ? of(this.store.view.top)
-        : this.refs.getCurrent(this.url)
+          ? of(this.store.view.top)
+          : this.refs.getCurrent(this.url)
       ).pipe(
-          catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
+        catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
+        takeUntil(this.destroy$),
       ).subscribe(ref => {
         this.repostRef = ref;
         if (!ref) return;
@@ -264,7 +306,6 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     this.advancedActions = ref.created ? sortOrder(this.admin.getAdvancedActions(ref.tags, ref.plugins)) : [];
     this.groupedAdvancedActions = groupBy(this.advancedActions.filter(a => this.showAction(a)), a => (a as any)[this.label(a)]);
     this.infoUis = this.admin.getPluginInfoUis(ref.tags);
-    this.publishedLabel = this.admin.getPublished(ref.tags).join($localize`/`) || $localize`published`;
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -275,7 +316,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
 
   ngAfterViewInit(): void {
     delay(() => {
-      if (this.scrollToLatest && this.lastSelected) {
+      if (this.lastSelected) {
         scrollTo({ left: 0, top: this.el.nativeElement.getBoundingClientRect().top - 20, behavior: 'smooth' });
       }
     }, 400);
@@ -286,7 +327,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     this.destroy$.complete();
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
-    if (this.scrollToLatest && this.lastSelected) {
+    if (this.lastSelected) {
       this.store.view.clearLastSelected();
     }
   }
@@ -299,14 +340,15 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
 
   @HostBinding('class')
   get pluginClasses() {
-    return this.css + ' ' + templates(this.ref.tags, 'plugin')
-      .map(t => t.replace(/[+_]/g, '').replace(/\//g, '_').replace(/\./g, '-'))
-      .join(' ');
+    return this.css + ' ' + [
+      ...templates(this.ref.tags, 'plugin'),
+      ...Object.keys(this.ref.metadata?.plugins || {}).map(p => 'response-' + p)
+    ].map(t => t.replace(/[+_]/g, '').replace(/\//g, '_').replace(/\./g, '-')).join(' ');
   }
 
   @HostBinding('class.last-selected')
   get lastSelected() {
-    return this.store.view.lastSelected?.url === this.ref.url;
+    return this.scrollToLatest && this.store.view.lastSelected?.url === this.ref.url;
   }
 
   @HostBinding('class.upload')
@@ -317,6 +359,11 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   @HostBinding('class.exists')
   get existsFile() {
     return this.ref.exists;
+  }
+
+  @HostBinding('class.outdated')
+  get modifiedFile() {
+    return this.ref.outdated;
   }
 
   get obsoleteOrigin() {
@@ -335,9 +382,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
 
   @HostListener('click')
   onClick() {
-    if (!this.lastSelected && this.store.view.lastSelected) {
-      this.store.view.clearLastSelected();
-    }
+    this.store.view.clearLastSelected(this.ref.url);
   }
 
   @ViewChild(ViewerComponent)
@@ -359,6 +404,18 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     this._viewSource = value;
     if (value) {
       this.syncEditor();
+    }
+  }
+
+  get diffing(): boolean {
+    return this._diffing;
+  }
+
+  set diffing(value: boolean) {
+    if (this._diffing === value) return;
+    this._diffing = value;
+    if (value) {
+      this.diff()
     }
   }
 
@@ -433,7 +490,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
 
   @memo
   get feed() {
-    return !!this.admin.getPlugin('plugin/feed') && hasTag('plugin/feed', this.ref);
+    return !!this.admin.getPlugin('plugin/script/feed') && hasTag('plugin/script/feed', this.ref);
   }
 
   @memo
@@ -534,19 +591,22 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   @memo
   get audio() {
     return this.admin.getPlugin('plugin/audio') &&
-      hasTag('plugin/audio', this.currentRef);
+      hasTag('plugin/audio', this.currentRef) &&
+      (this.ref?.plugins?.['plugin/audio']?.url || this.url);
   }
 
   @memo
   get video() {
     return this.admin.getPlugin('plugin/video') &&
-      hasTag('plugin/video', this.currentRef);
+      hasTag('plugin/video', this.currentRef) &&
+      (this.ref?.plugins?.['plugin/video']?.url || this.url);
   }
 
   @memo
   get image() {
     return this.admin.getPlugin('plugin/image') &&
-      hasTag('plugin/image', this.currentRef);
+      hasTag('plugin/image', this.currentRef) &&
+      (this.ref?.plugins?.['plugin/image']?.url || this.url);
   }
 
   @memo
@@ -554,14 +614,14 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     if (this.file) {
       return this.proxy.getFetch(this.url, this.origin);
     }
-    if (this.audio && this.admin.getPlugin('plugin/audio')?.config?.proxy) {
-      return this.proxy.getFetch(this.ref?.plugins?.['plugin/audio']?.url || this.url, this.origin);
+    if (this.audio && (this.audio.startsWith('cache:') || this.admin.getPlugin('plugin/audio')?.config?.proxy)) {
+      return this.proxy.getFetch(this.audio, this.origin);
     }
-    if (this.video && this.admin.getPlugin('plugin/video')?.config?.proxy) {
-      return this.proxy.getFetch(this.ref?.plugins?.['plugin/video']?.url || this.url, this.origin);
+    if (this.video && (this.video.startsWith('cache:') || this.admin.getPlugin('plugin/video')?.config?.proxy)) {
+      return this.proxy.getFetch(this.video, this.origin);
     }
-    if (this.image && this.admin.getPlugin('plugin/image')?.config?.proxy) {
-      return this.proxy.getFetch(this.ref?.plugins?.['plugin/image']?.url || this.url, this.origin);
+    if (this.image && (this.image.startsWith('cache:') || this.admin.getPlugin('plugin/image')?.config?.proxy)) {
+      return this.proxy.getFetch(this.image, this.origin);
     }
     return '';
   }
@@ -577,7 +637,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   @memo
   @HostBinding('class.sent')
   get isAuthor() {
-    return isOwnerTag(this.store.account.tag, this.ref);
+    return isAuthorTag(this.store.account.tag, this.ref);
   }
 
   @memo
@@ -636,12 +696,9 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   @memo
   get replyTags(): string[] {
     const tags = [
-      ...this.admin.reply.filter(p => (this.ref?.tags || []).includes(p.tag)).flatMap(p => p.config!.reply as string[]),
+      ...this.admin.reply.filter(p => hasTag(p.tag, this.ref)).flatMap(p => p.config!.reply as string[]),
       ...this.mailboxes,
     ];
-    if (this.comments) tags.push('plugin/comment', 'internal');
-    if (this.threads) tags.push('plugin/thread', 'internal');
-    if (this.dm) tags.push('dm', 'plugin/thread', 'internal');
     return removeTag(getMailbox(this.store.account.tag, this.store.account.origin), uniq(tags));
   }
 
@@ -672,7 +729,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
 
   @memo
   get link() {
-    if (this.file) return this.proxy.getFetch(this.url, this.origin);
+    if (this.file || this.url.startsWith('cache:')) return this.proxy.getFetch(this.url, this.origin);
     return this.url;
   }
 
@@ -727,6 +784,13 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   }
 
   @memo
+  get newCommentsCount() {
+    const lastSeen = this.store.local.getLastSeenCount(this.ref.url, 'comments');
+    if (!lastSeen) return 0;
+    return Math.max(0, this.comments - lastSeen);
+  }
+
+  @memo
   get errors() {
     if (!this.admin.getPlugin('+plugin/log')) return 0;
     return this.ref.metadata?.plugins?.['+plugin/log'] || 0;
@@ -739,8 +803,22 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   }
 
   @memo
+  get newThreadsCount() {
+    const lastSeen = this.store.local.getLastSeenCount(this.ref.url, 'threads');
+    if (!lastSeen) return 0;
+    return Math.max(0,  this.threads - lastSeen);
+  }
+
+  @memo
   get responses() {
     return this.ref.metadata?.responses || 0;
+  }
+
+  @memo
+  get newResponsesCount() {
+    const lastSeen = this.store.local.getLastSeenCount(this.ref.url, 'replies');
+    if (!lastSeen) return 0;
+    return Math.max(0, this.responses - lastSeen);
   }
 
   @memo
@@ -791,7 +869,6 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
 
   @memo
   get publishedIsSubmitted() {
-    if (this.admin.getPublished(this.ref.tags).length) return false;
     return !this.ref.published || Math.abs(this.ref.published.diff(this.ref.created!, 'seconds').seconds) <= 5;
   }
 
@@ -802,18 +879,34 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
 
   @memo
   get upvote() {
-    return hasUserUrlResponse('plugin/vote/up', this.ref);
+    return hasUserUrlResponse('plugin/user/vote/up', this.ref);
   }
 
   @memo
   get downvote() {
-    return hasUserUrlResponse('plugin/vote/down', this.ref);
+    return hasUserUrlResponse('plugin/user/vote/down', this.ref);
   }
 
   @memo
-  get fullscreen() {
-    if (this.plugins) return hasTag('plugin/fullscreen', this.plugins);
-    return hasTag('plugin/fullscreen', this.ref);
+  get isView() {
+    return isRef(this.ref, this.store.view.ref);
+  }
+
+  toggle(fullscreen = false) {
+    this.fullscreen ||= fullscreen;
+    if (this.editing) {
+      this.editing = false;
+    } else if (this.viewSource) {
+      this.viewSource = false;
+    } else {
+      this.expanded = !this.expanded;
+      this.store.local.setRefToggled(this.ref.url, this.expanded);
+      // Mark as read
+      if (!this.expanded) return;
+      if (!this.admin.getPlugin('plugin/user/read')) return;
+      if (this.ref.metadata?.userUrls?.includes('plugin/user/read')) return;
+      this.ts.createResponse('plugin/user/read', this.ref.url).subscribe();
+    }
   }
 
   @memo
@@ -823,7 +916,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   }
 
   saveRef() {
-    this.store.view.setRef(this.ref, this.repostRef);
+    this.store.view.preloadRef(this.ref, this.repostRef);
   }
 
   formatAuthor(user: string) {
@@ -859,7 +952,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   }
 
   showIcon(i: Icon) {
-    return visible(i, this.isAuthor, this.isRecipient) && active(this.ref, i);
+    return visible(this.ref, i, this.isAuthor, this.isRecipient) && active(this.ref, i);
   }
 
   clickIcon(i: Icon, ctrl: boolean) {
@@ -875,14 +968,15 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   }
 
   showAction(a: Action) {
-    if (!visible(a, this.isAuthor, this.isRecipient)) return false;
+    if (!visible(this.ref, a, this.isAuthor, this.isRecipient)) return false;
     if ('scheme' in a) {
       if (a.scheme !== getScheme(this.repostRef?.url || this.ref.url)) return false;
     }
     if ('tag' in a) {
       if (a.tag === 'locked' && !this.writeAccess) return false;
       if (a.tag && !this.taggingAccess) return false;
-      if (a.tag && !this.auth.canAddTag(a.tag)) return false;
+      if (a.tag && !hasTag(a.tag, this.ref) && !this.auth.canAddTag(a.tag)) return false;
+      if (a.tag && hasTag(a.tag, this.ref) && !this.writeAccess) return false;
     }
     if ('tag' in a || 'response' in a) {
       if (active(this.ref, a) && !a.labelOn) return false;
@@ -897,15 +991,15 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     this.ref.metadata ||= {};
     this.ref.metadata.userUrls ||= [];
     if (this.upvote) {
-      this.ref.metadata.userUrls = without(this.ref.metadata.userUrls, 'plugin/vote/up');
-      this.store.eventBus.runAndRefresh(this.ts.deleteResponse('plugin/vote/up', this.ref.url), this.ref);
+      this.ref.metadata.userUrls = without(this.ref.metadata.userUrls, 'plugin/user/vote/up');
+      this.store.eventBus.runAndRefresh(this.ts.deleteResponse('plugin/user/vote/up', this.ref.url), this.ref);
     } else if (!this.downvote) {
-      this.ref.metadata.userUrls.push('plugin/vote/up');
-      this.store.eventBus.runAndRefresh(this.ts.createResponse('plugin/vote/up', this.ref.url), this.ref);
+      this.ref.metadata.userUrls.push('plugin/user/vote/up');
+      this.store.eventBus.runAndRefresh(this.ts.createResponse('plugin/user/vote/up', this.ref.url), this.ref);
     } else {
-      this.ref.metadata.userUrls.push('plugin/vote/up');
-      this.ref.metadata.userUrls = without(this.ref.metadata.userUrls, 'plugin/vote/down');
-      this.store.eventBus.runAndRefresh(this.ts.respond(['plugin/vote/up', '-plugin/vote/down'], this.ref.url), this.ref);
+      this.ref.metadata.userUrls.push('plugin/user/vote/up');
+      this.ref.metadata.userUrls = without(this.ref.metadata.userUrls, 'plugin/user/vote/down');
+      this.store.eventBus.runAndRefresh(this.ts.respond(['plugin/user/vote/up', '-plugin/user/vote/down'], this.ref.url), this.ref);
     }
   }
 
@@ -913,15 +1007,15 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     this.ref.metadata ||= {};
     this.ref.metadata.userUrls ||= [];
     if (this.downvote) {
-      this.ref.metadata.userUrls = without(this.ref.metadata.userUrls, 'plugin/vote/down');
-      this.store.eventBus.runAndRefresh(this.ts.deleteResponse('plugin/vote/down', this.ref.url), this.ref);
+      this.ref.metadata.userUrls = without(this.ref.metadata.userUrls, 'plugin/user/vote/down');
+      this.store.eventBus.runAndRefresh(this.ts.deleteResponse('plugin/user/vote/down', this.ref.url), this.ref);
     } else if (!this.upvote) {
-      this.ref.metadata.userUrls.push('plugin/vote/down');
-      this.store.eventBus.runAndRefresh(this.ts.createResponse('plugin/vote/down', this.ref.url), this.ref);
+      this.ref.metadata.userUrls.push('plugin/user/vote/down');
+      this.store.eventBus.runAndRefresh(this.ts.createResponse('plugin/user/vote/down', this.ref.url), this.ref);
     } else {
-      this.ref.metadata.userUrls.push('plugin/vote/down');
-      this.ref.metadata.userUrls = without(this.ref.metadata.userUrls, 'plugin/vote/up');
-      this.store.eventBus.runAndRefresh(this.ts.respond(['-plugin/vote/up', 'plugin/vote/down'], this.ref.url), this.ref);
+      this.ref.metadata.userUrls.push('plugin/user/vote/down');
+      this.ref.metadata.userUrls = without(this.ref.metadata.userUrls, 'plugin/user/vote/up');
+      this.store.eventBus.runAndRefresh(this.ts.respond(['-plugin/user/vote/up', 'plugin/user/vote/down'], this.ref.url), this.ref);
     }
   }
 
@@ -938,37 +1032,40 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
       ...this.editForm.value,
       published,
       plugins: writePlugins(this.editForm.value.tags, this.editForm.value.plugins),
+      modifiedString: this.overwrite ? this.overwrittenModified : this.ref.modifiedString,
     };
-    if (this.ref.upload || !this.invalid || !this.overwrite) {
-      ref = {
-        ...this.ref,
-        ...ref,
-        plugins: writePlugins(this.editForm.value.tags, {
-          ...this.ref.plugins,
-          ...ref.plugins,
-        }),
-      }
-    }
+    ref = {
+      ...this.ref,
+      ...ref,
+      plugins: writePlugins(this.editForm.value.tags, {
+        ...this.ref.plugins,
+        ...ref.plugins,
+      }),
+    };
     if (this.ref.upload) {
       ref.upload = true;
+      this.editForm.reset();
       this.init();
-      this.store.submit.setRef(this.ref);
+      this.store.submit.setRef(ref);
     } else {
       this.refreshTap = () => this.publishChanged = +published !== +this.ref.published!;
-      this.submitting = this.store.eventBus.runAndReload(this.refs.update(ref, this.force).pipe(
+      this.submitting = this.store.eventBus.runAndReload(this.refs.update(ref).pipe(
         tap(cursor => {
           this.accounts.clearNotificationsIfNone(DateTime.fromISO(cursor));
+          this.editForm.reset();
           delete this.submitting;
           this.editing = false;
         }),
         catchError((res: HttpErrorResponse) => {
           delete this.submitting;
           if (res.status === 400) {
-            if (this.invalid) {
-              this.force = true;
-            } else {
-              this.invalid = true;
-            }
+            this.invalid = true;
+            console.log(res.message);
+            // TODO: read res.message to find which fields to delete
+          }
+          if (res.status === 409) {
+            this.overwritten = true;
+            this.refs.get(this.ref.url, this.ref.origin).subscribe(x => this.overwrittenModified = x.modifiedString);
           }
           return throwError(() => res);
         }),
@@ -997,16 +1094,15 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     if (hasTag('+plugin/origin/tunnel', copied)) {
       copied.plugins['+plugin/origin/tunnel'] = this.store.origins.tunnelLookup.get(this.ref.origin || '');
     }
-    return this.refs.create(copied, true).pipe(
+    return this.refs.create(copied).pipe(
       catchError((err: HttpErrorResponse) => {
         if (err.status === 409) {
           return this.refs.get(this.ref.url, this.store.account.origin).pipe(
             switchMap(existing => {
               if (equalsRef(existing, copied) || confirm('An old version already exists. Overwrite it?')) {
-                // TODO: Show diff and merge or split
-                return this.refs.update({ ...copied, modifiedString: existing.modifiedString }, true);
+                return this.refs.update({ ...copied, modifiedString: existing.modifiedString });
               } else {
-                return throwError(() => 'Cancelled')
+                return throwError(() => 'Cancelled');
               }
             })
           );
@@ -1022,6 +1118,68 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     );
   }
 
+  diff() {
+    // Fetch obsolete versions and show diff with most recent remote version
+    this.diffSubscription?.unsubscribe();
+    this.diffSubscription = this.refs.page({
+      url: this.ref.url,
+      query: `!${this.store.account.origin || '*'}`,
+      obsolete: null,
+      size: 1,
+      sort: ['modified,DESC']
+    }).pipe(
+      takeUntil(this.destroy$),
+      map(page => {
+        // Find the most recent remote version (not from local origin)
+        const remoteVersion = page.content.find(r => r.origin !== this.store.account.origin);
+        if (!remoteVersion) {
+          throw new Error('No remote version found');
+        }
+        return remoteVersion;
+      }),
+      switchMap(remoteVersion =>
+        this.refs.get(this.ref.url, this.store.account.origin).pipe(
+          map(localVersion => ({ local: localVersion, remote: remoteVersion }))
+        )
+      ),
+      catchError(err => {
+        console.error('Error fetching versions for diff:', err);
+        alert('Could not load versions for comparison');
+        return throwError(() => err);
+      })
+    ).subscribe(({ local, remote }) => {
+      this.diffOriginal = remote;
+      this.diffModified = local;
+      this.diffing = true;
+    });
+  }
+
+  saveDiff() {
+    const ref = this.diffEditor?.getModifiedContent();
+    if (!ref) return;
+    ref.modifiedString = this.overwrite ? this.overwrittenModified : this.ref.modifiedString;
+    this.submitting = this.store.eventBus.runAndReload(this.refs.update(ref).pipe(
+      tap(cursor => {
+        this.accounts.clearNotificationsIfNone(DateTime.fromISO(cursor));
+        delete this.submitting;
+        this.diffing = false;
+      }),
+      catchError((res: HttpErrorResponse) => {
+        delete this.submitting;
+        if (res.status === 400) {
+          this.invalid = true;
+          console.error('Invalid ref data:', res.message);
+          // TODO: read res.message to find which fields to delete
+        }
+        if (res.status === 409) {
+          this.overwritten = true;
+          this.refs.get(this.ref.url, this.ref.origin).subscribe(x => this.overwrittenModified = x.modifiedString);
+        }
+        return throwError(() => res);
+      }),
+    ), ref);
+  }
+
   upload$ = () => {
     const ref: Ref = {
       ...this.ref,
@@ -1031,15 +1189,15 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     ref.plugins = pick(ref.plugins, ref.tags || []);
     return this.store.eventBus.runAndReload$(
       (this.store.submit.overwrite
-        ? this.refs.update(ref, true)
-        : this.refs.create(ref, true).pipe(
+        ? this.refs.update(ref)
+        : this.refs.create(ref).pipe(
           catchError((err: HttpErrorResponse) => {
             if (err.status === 409) {
               return this.refs.get(this.ref.url, this.store.account.origin).pipe(
                 switchMap(existing => {
                   if (+existing.modified! === +ref.modified! || equalsRef(existing, ref) || confirm('An old version already exists. Overwrite it?')) {
                     // TODO: Show diff and merge or split
-                    return this.refs.update({ ...ref, modifiedString: existing.modifiedString }, true);
+                    return this.refs.update({ ...ref, modifiedString: existing.modifiedString });
                   } else {
                     return throwError(() => 'Cancelled');
                   }
@@ -1050,6 +1208,9 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
           }),
           tap(() => {
             this.store.submit.removeRef(ref);
+            if (!this.store.submit.refs.length && !this.store.submit.exts.length) {
+              this.router.navigate(['/ref', ref.url]);
+            }
           }),
         )), ref);
   }
@@ -1070,14 +1231,13 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     return (this.local && hasTag('locked', this.ref)
         ? this.ts.patch(['plugin/delete', 'internal'], this.ref.url, this.ref.origin)
         : this.local && !hasTag('plugin/delete', this.ref) && this.admin.getPlugin('plugin/delete')
-        ? this.refs.update(deleteNotice(this.ref))
-        : this.refs.delete(this.ref.url, this.ref.origin).pipe(map(() => ''))
+          ? this.refs.update(deleteNotice(this.ref))
+          : this.refs.delete(this.ref.url, this.ref.origin).pipe(map(() => ''))
     ).pipe(
       tap((cursor: string) => {
-        if (cursor) {
-          return this.store.eventBus.reload(this.ref);
-        } else {
-          this.deleted = true;
+        this.deleted = true;
+        if (this.store.account.mod && cursor) {
+          this.store.eventBus.reload(this.ref);
         }
       }),
       catchError((err: HttpErrorResponse) => {

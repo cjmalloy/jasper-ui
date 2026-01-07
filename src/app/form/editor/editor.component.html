@@ -9,7 +9,8 @@
               (click)="toggleFullscreen()"
               i18n-title title="Fullscreen editor"
               i18n>⛶</button>
-      <button type="button"
+      <button #helpButton
+              type="button"
               (click)="toggleHelp()"
               i18n-title title="Help"
               i18n>❓️</button>
@@ -25,51 +26,101 @@
                 i18n-title title="Show preview"
                 i18n>📝️</button>
       }
-      @for (button of editorPushButtons; track button; let i = $index) {
-        @if (!button.event) {
+      @for (button of editorPushButtons; track button) {
+        @if (button.event) {
+          @if (button.eventDone && loadingEvents[button.eventDone]) {
+            <app-loading class="event-loading"
+                         [inline]="true"
+                         [title]="button.title || button.label || ''"></app-loading>
+          } @else {
+            <button type="button"
+                    (click)="fireEvent(button)"
+                    [title]="button.title || ''" i18n>{{ button.label }}</button>
+          }
+        } @else if (hasTags) {
           <button type="button"
                   (click)="toggleTag(button)"
-                  [title]="button.title" i18n>{{(buttonOn(button.toggle!) ? button.labelOn : button.labelOff) || button.label }}</button>
-        } @else {
-          <button type="button"
-                  (click)="fireEvent(button.event)"
-                  [title]="button.title" i18n>{{ button.label }}</button>
+                  [title]="button.title || ''" i18n>{{(button._on ? button.labelOn : button.labelOff) || button.label }}</button>
         }
       }
-      @for (button of editorRibbons; track button; let i = $index) {
-        <div class="editor-toggle">
-          <input type="checkbox"
-                 [style.display]="'none'"
-                 [id]="'ribbon-' + id + i"
-                 [checked]="buttonOn(button.toggle!)"
-                 (click)="toggleTag(button)">
-          <label [for]="'ribbon-' + id + i"
-                 [class.on]="buttonOn(button.toggle!)"
-                 [title]="button.title">{{(buttonOn(button.toggle!) ? button.labelOn : button.labelOff) || button.label }}</label>
-        </div>
-      }
-      @if (selectResponseType && responseButtons.length > 1) {
-        <div class="toolbar-toggle toolbar-toggle-{{toggleIndex}}">
-          @for (plugin of responseButtons; track plugin.tag; let i=$index) {
-            <button type="button"
-                    class="response-button"
-                    (click)="setResponse(plugin.tag)"
-                    [class.selected]="toggleIndex === i"
-                    [title]="plugin.name" i18n>{{ plugin.config?.responseButton }}</button>
-          }
-        </div>
+      @if (hasTags) {
+        @for (button of editorRibbons; track button; let i = $index) {
+          <div class="editor-toggle">
+            <input type="checkbox"
+                   [style.display]="'none'"
+                   [id]="'ribbon-' + id + i"
+                   [checked]="button._on"
+                   (click)="toggleTag(button)">
+            <label [for]="'ribbon-' + id + i"
+                   [class.on]="button._on"
+                   [title]="button.title || ''">{{ (button._on ? button.labelOn : button.labelOff) || button.label }}</label>
+          </div>
+        }
+        @if (selectResponseType && responseButtons.length > 1) {
+          <div class="toolbar-toggle toolbar-toggle-{{toggleIndex}}">
+            @for (plugin of responseButtons; track plugin.tag; let i=$index) {
+              <button type="button"
+                      class="response-button"
+                      (click)="setResponse(plugin.tag)"
+                      [class.selected]="toggleIndex === i"
+                      [title]="plugin.name || ''" i18n>{{ plugin.config?.responseButton }}</button>
+            }
+          </div>
+        }
       }
     </div>
+    @if (uploads.length) {
+      <div class="upload-progress">
+        <div class="upload-list">
+          @for (upload of uploads; track upload.id) {
+            <div class="upload-item">
+              <div class="upload-filename">{{ upload.name }}</div>
+              <div class="upload-controls">
+                @if (upload.error) {
+                  <span class="upload-error">{{ upload.error }}</span>
+                } @else if (upload.completed) {
+                  <span class="upload-complete">✅️ Complete</span>
+                } @else {
+                  <progress class="upload-progress-bar" max="100" [value]="upload.progress"></progress>
+                  <span class="upload-percentage">{{ upload.progress }}%</span>
+                }
+                @if (!upload.completed && !upload.error) {
+                  <button type="button"
+                          class="upload-cancel"
+                          (click)="cancelUpload(upload)"
+                          i18n-title title="Cancel upload" i18n>&ndash;</button>
+                }
+              </div>
+            </div>
+          }
+        </div>
+        @if (uploads.length > 1) {
+          <div class="upload-actions">
+            <button type="button"
+                    class="upload-cancel-all"
+                    (click)="cancelAllUploads()"
+                    i18n>&ndash; remove all</button>
+          </div>
+        }
+      </div>
+      <app-loading class="upload-loading" [batch]="true"></app-loading>
+    }
     <textarea #editor
+              [disabled]="!!uploads.length"
+              [id]="id"
               [formControl]="control"
-              (touchstart)="fullscreenDefault = fullscreenDefault === undefined ? true : undefined"
               (focusin)="editing = true"
-              (pointerup)="onSelect()"
+              (pointerup)="onSelect($event)"
               (select)="onSelect()"
               (selectionchange)="onSelect()"
               (input)="setText($any($event).target.value)"
               (blur)="blurText($any($event).target.value)"
               (focus)="focusText()"
+              [class.dropping]="dropping"
+              (dragenter)="dropping = true"
+              (dragleave)="dragLeave(editor, $any($event.target))"
+              (drop)="drop($event, $event.dataTransfer?.items)"
+              (paste)="drop($event, $event.clipboardData?.items)"
               [appFillWidth]="fillWidth"
               [padding]="padding"
               [appAutofocus]="autoFocus"></textarea>
@@ -77,19 +128,31 @@
     </div>
   </div>
   @if (preview && (fullscreen || currentText)) {
-    <app-md class="expand"
+    <app-md #md
+            class="expand"
             [origin]="store.account.origin"
             [text]="currentText"
-            [plugins]="fullTags"
-            [appLimitWidth]="editor"></app-md>
+            [plugins]="allTags"
+            [appLimitWidth]="editor"
+            (postProcessMarkdown)="postProcessMarkdown()"
+            (pointerup)="onSelectPreview()"></app-md>
+    <textarea #hiddenMeasure
+              class="measurer"></textarea>
   }
+  <input #fileUpload
+         type="file"
+         accept="*"
+         (change)="upload(fileUpload.files)"
+         multiple/>
 
   <ng-template #help>
-    <div class="editor-help-popup" (click)="toggleHelp()">
-      <a target="_blank" href="https://jfcere.github.io/ngx-markdown/cheat-sheet">Markdown</a>
-    </div>
-    <div class="editor-help-popup" (click)="toggleHelp()">
-      <a target="_blank" href="https://katex.org/docs/supported.html">LaTeX plugin</a>
+    <div class="context-menu" (click)="$event.stopPropagation()">
+      <div (click)="toggleHelp()">
+        <a target="_blank" href="https://jfcere.github.io/ngx-markdown/cheat-sheet">Markdown</a>
+      </div>
+      <div (click)="toggleHelp()">
+        <a target="_blank" href="https://katex.org/docs/supported.html">LaTeX plugin</a>
+      </div>
     </div>
   </ng-template>
 }

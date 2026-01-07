@@ -15,7 +15,6 @@ import { Ref, refSchema } from './ref';
 import { Template, templateSchema } from './template';
 import { Role, User, userSchema } from './user';
 
-
 export interface Cursor {
   origin?: string;
   modified?: DateTime;
@@ -25,6 +24,7 @@ export interface Cursor {
   // Client-only
   upload?: boolean;
   exists?: boolean;
+  outdated?: boolean;
 }
 
 export interface Tag extends Cursor {
@@ -204,6 +204,10 @@ export interface Visibility {
    */
   title?: string;
   /**
+   * Tag to show / hide.
+   */
+  if?: string;
+  /**
    * Minimum role required to be visible.
    */
   role?: Role;
@@ -233,15 +237,17 @@ export interface Visibility {
   _parent?: Config;
 }
 
-export function visible(v: Visibility, isAuthor: boolean, isRecipient: boolean) {
+export function visible(ref: Ref, v: Visibility, isAuthor: boolean, isRecipient: boolean) {
+  if (('if' in v) && !hasTag(v.if, ref)) return false;
   if (!v.visible) return true;
   if (isAuthor) return v.visible === 'author' || v.visible === 'participant';
   if (isRecipient) return v.visible === 'recipient' || v.visible === 'participant';
   return false;
 }
 
-export function sortOrder<T extends { order?: number }>(vs: T[]) {
-  return vs.sort((a, b) => (b.order || 0) - (a.order || 0));
+export function sortOrder<T extends { order?: number, toggle?: string, _parent?: Config; }>(vs: T[]) {
+  const getTag = (o: T) => o.toggle || o._parent?.tag || '';
+  return vs.sort((a, b) => a.order === b.order ? getTag(b).localeCompare(getTag(a)) : (b.order || 0) - (a.order || 0));
 }
 
 export function uniqueConfigs<T extends Visibility>(vs: T[]) {
@@ -280,7 +286,7 @@ export interface Icon extends Visibility {
   /**
    * If set, makes this icon conditional on the current user's plugin response.
    */
-  response?: `plugin/${string}` | `+plugin/${string}` | `_plugin/${string}`;
+  response?: `plugin/user/${string}` | `+plugin/user/${string}` | `_plugin/user/${string}`;
   /**
    * If set, makes this icon conditional on a ref scheme.
    */
@@ -309,21 +315,25 @@ export interface FilterConfig {
    */
   responses?: string;
   /**
-   * Filter based on plugin responses in metadata. Plugins must be generating metadata to work.
+   * Filter based on plugin responses in metadata.
    * If set, query and scheme must not be set.
    */
   response?: `plugin/${string}` | `+plugin/${string}` | `_plugin/${string}` | `!plugin/${string}` | `!+plugin/${string}` | `!_plugin/${string}`;
   /**
-   * Filter based on user plugin responses in metadata. Plugins must have be user URLs and generating metadata to work.
+   * Filter based on user plugin responses in metadata.
    * If set, query and scheme must not be set.
    */
-  user?: `plugin/${string}` | `+plugin/${string}` | `_plugin/${string}` | `!plugin/${string}` | `!+plugin/${string}` | `!_plugin/${string}`;
+  user?: `plugin/user/${string}` | `+plugin/user/${string}` | `_plugin/user/${string}` | `!plugin/user/${string}` | `!+plugin/user/${string}` | `!_plugin/user/${string}`;
   label?: string;
   title?: string;
   group?: string;
 }
 
 export interface EditorButton {
+  /**
+   * Query required to show this button (default to the parent tag).
+   */
+  query?: string;
   /**
    * Label for editor button.
    */
@@ -357,6 +367,11 @@ export interface EditorButton {
    */
   event?: string;
   /**
+   * Event to listen for to stop showing loading indicator.
+   * If set, button will show loading indicator after click until this event fires.
+   */
+  eventDone?: string;
+  /**
    * Only show button if URL is of scheme.
    */
   scheme?: `${string}:`;
@@ -376,6 +391,7 @@ export interface EditorButton {
 
   //cache
   _parent?: Config;
+  _on?: boolean;
 }
 
 export type Action = (TagAction | ResponseAction | EmitAction | EventAction) & {
@@ -404,11 +420,11 @@ export interface ResponseAction extends Visibility {
   /**
    * Add a tag response to the Ref.
    */
-  response: `plugin/${string}` | `+plugin/${string}` | `_plugin/${string}` | `!plugin/${string}` | `!+plugin/${string}` | `!_plugin/${string}`;
+  response: `plugin/user/${string}` | `+plugin/user/${string}` | `_plugin/user/${string}` | `!plugin/user/${string}` | `!+plugin/user/${string}` | `!_plugin/user/${string}`;
   /**
    * Clear other tag responses when adding tag response.
    */
-  clear?: (`plugin/${string}` | `+plugin/${string}` | `_plugin/${string}`)[];
+  clear?: (`plugin/user/${string}` | `+plugin/user/${string}` | `_plugin/user/${string}`)[];
   /**
    * Handlebars template label to show when this action has been applied.
    * The response plugin must have metadata generation turned on.
@@ -479,6 +495,7 @@ Handlebars.registerHelper('response', (ref: Ref, value: string) => ref.metadata?
 Handlebars.registerHelper('includes', (array: string[], value: string) => array?.includes(value));
 Handlebars.registerHelper('interestingTags', (tags: string[]) => interestingTags(tags));
 Handlebars.registerHelper('hasTag', (tag: string | undefined, ref: Ref | string[] | undefined) => hasTag(tag, ref));
+Handlebars.registerHelper('tail', (text: string) => text.split('\n').pop()!.trim());
 Handlebars.registerHelper('eq', (v1, v2) => v1 === v2);
 Handlebars.registerHelper('ne', (v1, v2) => v1 !== v2);
 Handlebars.registerHelper('lt', (v1, v2) => v1 < v2);
@@ -542,7 +559,12 @@ export type TagPageArgs = TagQueryArgs & {
 export type TagSort = '' |
   'modified' | 'modified,ASC' | 'modified,DESC' |
   'tag' | 'tag,ASC' | 'tag,DESC' |
-  'levels' | 'levels,ASC' | 'levels,DESC' |
+  'tag:len' | 'tag:len,ASC' | 'tag:len,DESC' |
   'name' | 'name,ASC' | 'name,DESC' |
   'origin' | 'origin,ASC' | 'origin,DESC' |
-  'nesting' | 'nesting,ASC' | 'nesting,DESC';
+  'origin:len' | 'origin:len,ASC' | 'origin:len,DESC' |
+  `config->${string}` | `config->${string},ASC` | `config->${string},DESC`;
+
+export type ConfigSort = TagSort |
+  `defaults->${string}` | `defaults->${string},ASC` | `defaults->${string},DESC` |
+  `schema->${string}` | `schema->${string},ASC` | `schema->${string},DESC`;

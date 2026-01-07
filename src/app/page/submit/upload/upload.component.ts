@@ -1,13 +1,20 @@
-import { HttpErrorResponse } from '@angular/common/http';
+import { HttpErrorResponse, HttpEventType } from '@angular/common/http';
 import { Component, OnDestroy } from '@angular/core';
-import { Router } from '@angular/router';
-import { delay, pick, uniq } from 'lodash-es';
+import { ReactiveFormsModule } from '@angular/forms';
+import { Router, RouterLink } from '@angular/router';
+import { FormlyForm } from '@ngx-formly/core';
+import { pick, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { autorun, IReactionDisposer, runInAction, toJS } from 'mobx';
-import { catchError, concat, lastValueFrom, map, of, switchMap, throwError } from 'rxjs';
+import { MobxAngularModule } from 'mobx-angular';
+import { catchError, concat, last, lastValueFrom, map, of, switchMap, throwError } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import * as XLSX from 'xlsx';
-import { Ext, mapTag } from '../../../model/ext';
+import { ExtComponent } from '../../../component/ext/ext.component';
+import { LoadingComponent } from '../../../component/loading/loading.component';
+import { RefComponent } from '../../../component/ref/ref.component';
+import { AutofocusDirective } from '../../../directive/autofocus.directive';
+import { Ext, mapExt } from '../../../model/ext';
 import { mapRef, Ref } from '../../../model/ref';
 import { AdminService } from '../../../service/admin.service';
 import { ExtService } from '../../../service/api/ext.service';
@@ -23,16 +30,27 @@ import { printError } from '../../../util/http';
 import { FilteredModels, filterModels, getModels, getTextFile, unzip, zippedFile } from '../../../util/zip';
 
 @Component({
-  standalone: false,
   selector: 'app-upload',
   templateUrl: './upload.component.html',
   styleUrls: ['./upload.component.scss'],
-  host: {'class': 'full-page-upload'}
+  host: { 'class': 'full-page-upload' },
+  imports: [
+    ExtComponent,
+    RefComponent,
+    MobxAngularModule,
+    RouterLink,
+    ReactiveFormsModule,
+    AutofocusDirective,
+    LoadingComponent,
+    FormlyForm,
+  ]
 })
 export class UploadPage implements OnDestroy {
   private disposers: IReactionDisposer[] = [];
   tagRegex = TAGS_REGEX.source;
 
+  erroredExts: Ext[] = [];
+  erroredRefs: Ref[] = [];
   serverErrors: string[] = [];
   processing = false;
   fileCache = this.admin.getPlugin('plugin/file');
@@ -52,6 +70,9 @@ export class UploadPage implements OnDestroy {
     this.disposers.push(autorun(() => {
       this.readUploads(this.store.submit.files);
       runInAction(() => this.store.submit.clearFiles());
+    }));
+    this.disposers.push(autorun(() => {
+      console.log(this.store.submit.uploads.length);
     }));
     this.store.submit.clearOverride();
   }
@@ -163,13 +184,35 @@ export class UploadPage implements OnDestroy {
     if (!files) return;
     for (let i = 0; i < files?.length; i++) {
       const file = files[i];
+      runInAction(() => {
+        this.store.submit.caching.set(file, { name: file.name, progress: 0 });
+      });
       this.proxy.save(file, this.store.account.origin).pipe(
-        map(ref => {
-          ref.title = file.name;
-          ref.tags = uniq([...ref.tags || [], tag, ...extraTags.filter(t => !!t)]);
-          return ref;
+        map(event => {
+          switch (event.type) {
+            case HttpEventType.Response:
+              return event.body;
+            case HttpEventType.UploadProgress:
+              const percentDone = event.total ? Math.round(100 * event.loaded / event.total) : 0;
+              runInAction(() => {
+                this.store.submit.caching.set(file, { name: file.name, progress: percentDone });
+              });
+              return null;
+          }
+          return null;
         }),
-      ).subscribe(ref => runInAction(() => this.store.submit.addRefs({ ...ref, upload: true })));
+        last(),
+        // TODO: Why is initial cursor wrong???
+        switchMap((ref: Ref | null) => this.refs.get(ref!.url, ref!.origin)),
+        map((ref: Ref | null) => {
+          ref!.title = file.name;
+          ref!.tags = uniq([...ref!.tags || [], tag, ...extraTags.filter(t => !!t)]);
+          return ref!;
+        }),
+      ).subscribe(ref => runInAction(() => {
+        this.store.submit.caching.delete(file);
+        this.store.submit.addRefs({ ...ref, upload: true, exists: true });
+      }));
     }
   }
 
@@ -295,10 +338,13 @@ export class UploadPage implements OnDestroy {
       ...this.store.submit.refs.map(ref => this.uploadRef$(ref)),
     ];
     return lastValueFrom(concat(...uploads))
-      .then(() => delay(() => this.postNavigate(), 1000))
-      .catch(() => null)
       .then(() => {
-        this.store.submit.clearUpload();
+        if (!this.erroredExts.length && !this.erroredRefs.length) {
+          this.postNavigate();
+        }
+        this.store.submit.clearUpload(this.erroredRefs, this.erroredExts);
+        this.erroredRefs = [];
+        this.erroredExts = [];
         this.processing = false;
       });
   }
@@ -308,8 +354,8 @@ export class UploadPage implements OnDestroy {
     ref.origin = this.store.account.origin;
     ref.tags = ref.tags?.filter(t => this.auth.canAddTag(t));
     ref.plugins = pick(ref.plugins, ref.tags || []);
-    return (this.store.submit.overwrite
-      ? this.refs.update(ref, true).pipe(
+    return (ref.exists
+        ? this.refs.update(ref).pipe(
           catchError((err: HttpErrorResponse) => {
             if (err.status === 404) {
               return this.refs.create(ref);
@@ -317,19 +363,24 @@ export class UploadPage implements OnDestroy {
             return throwError(() => err);
           }),
         )
-      : this.refs.create(ref)
+        : this.refs.create(ref)
     ).pipe(
       catchError((err: HttpErrorResponse) => {
-        if (err.status === 409 && this.store.submit.overwrite) {
-          return this.refs.get(ref.url, this.store.account.origin).pipe(
-            switchMap(existing => {
-              return this.refs.update({ ...ref, modifiedString: existing.modifiedString }, true);
-            }),
-          );
+        if (err.status === 409) {
+          if (this.store.submit.overwrite) {
+            return this.refs.get(ref.url, this.store.account.origin).pipe(
+              switchMap(existing => {
+                return this.refs.update({ ...ref, modifiedString: existing.modifiedString });
+              }),
+            );
+          } else {
+            ref.outdated = true;
+          }
         }
         return throwError(() => err);
       }),
       catchError((res: HttpErrorResponse) => {
+        this.erroredRefs.push(ref);
         this.serverErrors.push(...printError(res));
         return of(null);
       }),
@@ -339,20 +390,25 @@ export class UploadPage implements OnDestroy {
   uploadExt$(ext: Ext) {
     ext = toJS(ext);
     ext.origin = this.store.account.origin;
-    return (this.store.submit.overwrite
-      ? this.exts.update(ext, true)
+    return (ext.exists
+      ? this.exts.update(ext)
       : this.exts.create(ext)).pipe(
       catchError((err: HttpErrorResponse) => {
-        if (err.status === 409 && this.store.submit.overwrite) {
-          return this.exts.get(ext.tag + this.store.account.origin).pipe(
-            switchMap(existing => {
-              return this.exts.update({ ...ext, modifiedString: existing.modifiedString }, true);
-            })
-          );
+        if (err.status === 409) {
+          if (this.store.submit.overwrite) {
+            return this.exts.get(ext.tag + this.store.account.origin).pipe(
+              switchMap(existing => {
+                return this.exts.update({ ...ext, modifiedString: existing.modifiedString });
+              })
+            );
+          } else {
+            ext.outdated = true;
+          }
         }
         return throwError(() => err);
       }),
       catchError((res: HttpErrorResponse) => {
+        this.erroredExts.push(ext);
         this.serverErrors.push(...printError(res));
         return of(null);
       }),
@@ -376,12 +432,16 @@ export class UploadPage implements OnDestroy {
     }
   }
 
+  set overwrite(value: boolean) {
+    runInAction(() => this.store.submit.overwrite = value);
+  }
+
   private getModels(file: File): Promise<FilteredModels> {
     if (file.name.toLowerCase().endsWith('.zip')) {
       return unzip(file).then(zip => Promise.all([
         zippedFile(zip, 'ext.json')
           .then(json => getModels<Ext>(json))
-          .then(exts => exts.map(mapTag)),
+          .then(exts => exts.map(mapExt)),
         zippedFile(zip, 'ref.json')
           .then(json => getModels<Ref>(json))
           .then(refs => refs.map(mapRef)),
@@ -402,10 +462,8 @@ export class UploadPage implements OnDestroy {
       return this.router.navigate(['/ref', this.store.submit.refs[0].url]);
     }
     if (this.store.submit.refs.length) {
-      return this.router.navigate(['/tag', '*'], { queryParams: { sort: 'modified,DESC' } });
+      return this.router.navigate(['/tag', this.store.account.tag], { queryParams: { filter: 'query/plugin/file' } });
     }
     return null;
   }
-
-  protected readonly console = console;
 }

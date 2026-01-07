@@ -12,10 +12,10 @@ import { UserStore } from '../../../store/user';
 import { getTagFilter } from '../../../util/query';
 
 @Component({
-  standalone: false,
   selector: 'app-settings-user-page',
   templateUrl: './user.component.html',
   styleUrls: ['./user.component.scss'],
+  imports: [UserListComponent],
 })
 export class SettingsUserPage implements OnInit, OnDestroy, HasChanges {
 
@@ -33,7 +33,7 @@ export class SettingsUserPage implements OnInit, OnDestroy, HasChanges {
     public query: UserStore,
   ) {
     mod.setTitle($localize`Settings: User Profiles`);
-    store.view.clear(['levels', 'tag'], ['levels', 'tag']);
+    store.view.clear(['tag:len', 'tag'], ['tag:len', 'tag']);
     scim.clear();
     query.clear();
   }
@@ -67,6 +67,7 @@ export class SettingsUserPage implements OnInit, OnDestroy, HasChanges {
   }
 
   ngOnDestroy() {
+    this.query.close();
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
   }

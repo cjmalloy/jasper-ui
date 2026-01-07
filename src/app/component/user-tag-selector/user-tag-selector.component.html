@@ -1,0 +1,32 @@
+<div class="form-array skip-margin">
+  <input class="preview grow"
+         type="text"
+         [value]="preview"
+         [title]="userTagInput.value"
+         [style.display]="preview ? 'block' : 'none'"
+         (focus)="clickPreview(userTagInput)">
+  <datalist id="user-tag">
+    @for (o of autocomplete; track o.value) {
+      <option [value]="o.value">{{ o.label }}</option>
+    }
+  </datalist>
+  <input #userTagInput
+         id="user-tag-input"
+         class="grow"
+         type="text"
+         inputmode="email"
+         enterkeyhint="enter"
+         autocorrect="off"
+         autocapitalize="none"
+         list="user-tag"
+         i18n-placeholder
+         placeholder="Override Tag..."
+         [value]="store.local.selectedUserTag"
+         [class.hidden-without-removing]="preview"
+         (input)="search(userTagInput.value)"
+         (keydown)="$event.key === 'Enter' && blur(userTagInput) || true"
+         (blur)="blur(userTagInput)"
+         (focusin)="edit(userTagInput)"
+         (focus)="edit(userTagInput)"
+         (focusout)="blur(userTagInput)">
+</div>

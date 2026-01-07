@@ -1,6 +1,7 @@
 import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { defer } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
+import { MobxAngularModule } from 'mobx-angular';
 import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Page } from '../../../model/page';
@@ -9,13 +10,14 @@ import { AdminService } from '../../../service/admin.service';
 import { ModService } from '../../../service/mod.service';
 import { QueryStore } from '../../../store/query';
 import { Store } from '../../../store/store';
+import { getTitle } from '../../../util/format';
 import { getArgs } from '../../../util/query';
 
 @Component({
-  standalone: false,
   selector: 'app-ref-alts',
   templateUrl: './alts.component.html',
-  styleUrls: ['./alts.component.scss']
+  styleUrls: ['./alts.component.scss'],
+  imports: [MobxAngularModule, RefListComponent]
 })
 export class RefAltsComponent implements OnInit, OnDestroy, HasChanges {
 
@@ -69,12 +71,12 @@ export class RefAltsComponent implements OnInit, OnDestroy, HasChanges {
         content: refs,
       };
     }));
-    this.disposers.push(autorun(() => {
-      this.mod.setTitle($localize`Alternate URLs: ` + (this.store.view.ref?.title || this.store.view.url));
-    }));
+    // TODO: set title for bare reposts
+    this.disposers.push(autorun(() => this.mod.setTitle($localize`Alternate URLs: ` + getTitle(this.store.view.ref))));
   }
 
   ngOnDestroy() {
+    this.query.close();
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
   }

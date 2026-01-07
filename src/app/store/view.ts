@@ -10,9 +10,8 @@ import { User } from '../model/user';
 import { RootConfig } from '../mods/root';
 import { getPageTitle } from '../util/format';
 import { UrlFilter } from '../util/query';
-import { hasPrefix, hasTag, isQuery, localTag, queryPrefix, topAnds } from '../util/tag';
+import { hasPrefix, hasTag, isQuery, localTag, queryPrefix, top, topAnds } from '../util/tag';
 import { AccountStore } from './account';
-import { EventBus } from './bus';
 
 /**
  * ID for current view. Only includes pages that make queries.
@@ -37,6 +36,7 @@ export class ViewStore {
   defaultBlogPageSize = 5;
   defaultSort: RefSort[] | TagSort[] = ['published'];
   defaultSearchSort: RefSort[] | TagSort[] = ['rank'];
+  defaultPageNumber = 0;
   ref?: Ref = {} as any;
   top?: Ref = {} as any;
   lastSelected?: Ref = {} as any;
@@ -51,11 +51,11 @@ export class ViewStore {
   constructor(
     public route: RouterStore,
     private account: AccountStore,
-    private eventBus: EventBus,
   ) {
     makeAutoObservable(this, {
       clear: action,
       setRef: action,
+      preloadRef: action,
       setLastSelected: action,
       exts: observable.shallow,
       extTemplates: observable.shallow,
@@ -65,23 +65,17 @@ export class ViewStore {
     this.clear(); // Initial observables may not be null for MobX
   }
 
-  setRef(ref?: Ref, top?: Ref) {
-    if (this.ref && this.ref !== ref) {
-      this.lastSelected = this.ref;
-    }
-    this.ref = ref;
-    if (top) this.top = top;
-  }
-
   setLastSelected(ref?: Ref) {
     this.lastSelected = ref;
   }
 
-  clearLastSelected() {
-    this.lastSelected = undefined;
+  clearLastSelected(url?: string) {
+    if (!url || url === this.lastSelected?.url) {
+      this.lastSelected = undefined;
+    }
   }
 
-  clear(defaultSort: RefSort[] | TagSort[] = ['published'], defaultSearchSort: RefSort[] | TagSort[] = ['rank']) {
+  clear(defaultSort: RefSort[] | TagSort[] = ['published'], defaultSearchSort: RefSort[] | TagSort[] = ['rank'], defaultPageNumber = 0) {
     this.ref = undefined;
     this.top = undefined;
     this.versions = 0;
@@ -90,15 +84,28 @@ export class ViewStore {
     this.selectedUser = undefined;
     this.defaultSort = defaultSort;
     this.defaultSearchSort = defaultSearchSort;
+    this.defaultPageNumber = defaultPageNumber;
   }
 
-  clearRef(defaultSort: RefSort[] | TagSort[] = ['published'], defaultSearchSort: RefSort[] | TagSort[] = ['rank']) {
+  clearRef(ref?: Ref) {
+    if (this.ref && (!ref || ref.url !== this.ref?.url)) this.lastSelected = this.ref;
     this.ref = undefined;
     this.top = undefined;
-    this.versions = 0;
+  }
+
+  setRef(ref?: Ref, top?: Ref) {
+    this.clearRef(ref);
+    this.ref = ref;
+    this.top = top;
+    this.exts = [];
+    this.extTemplates = [];
     this.selectedUser = undefined;
-    this.defaultSort = defaultSort;
-    this.defaultSearchSort = defaultSearchSort;
+  }
+
+  preloadRef(ref: Ref, topRef?: Ref) {
+    this.clearRef(ref);
+    if (ref?.created) this.ref = ref;
+    if (topRef || top(ref) !== this.top?.url) this.top = topRef;
   }
 
   get pageTitle() {
@@ -174,10 +181,6 @@ export class ViewStore {
     return this.extTemplates.filter(t => t.config?.global);
   }
 
-  get hasTemplate() {
-    return !!this.activeTemplates.length || !!this.globalTemplates.length;
-  }
-
   isTemplate(template: string) {
     return hasPrefix(this.viewExt?.tag, template);
   }
@@ -187,11 +190,6 @@ export class ViewStore {
     return s?.url[0].path === 'tags';
   }
 
-  get allTags(): boolean {
-    const s = this.route.routeSnapshot?.firstChild;
-    return s?.url[0].path === 'tags' && !s?.params.template;
-  }
-
   get settings() {
     const s = this.route.routeSnapshot?.firstChild;
     return s?.routeConfig?.path === 'settings';
@@ -199,8 +197,17 @@ export class ViewStore {
 
   get settingsTag() {
     if (!this.settings) return '';
-    const s = this.route.routeSnapshot?.firstChild?.firstChild;
-    return s?.params['tag'];
+    return this.childTag;
+  }
+
+  get inbox() {
+    const s = this.route.routeSnapshot?.firstChild;
+    return s?.routeConfig?.path === 'inbox';
+  }
+
+  get inboxTag() {
+    if (!this.inbox) return '';
+    return this.childTag;
   }
 
   get current(): View | undefined {
@@ -246,6 +253,15 @@ export class ViewStore {
         return undefined;
     }
     return undefined;
+  }
+
+  get originFilter() {
+    return this.filter?.some(f => f.startsWith('query/@') || f === 'query/*');
+  }
+
+  get showRemotesCheckbox() {
+    if (this.originFilter) return false;
+    return ['tags', 'settings/user', 'settings/plugin', 'settings/template', 'settings/ref', 'inbox/ref'].includes(this.current!);
   }
 
   get type(): Type | undefined {
@@ -387,7 +403,7 @@ export class ViewStore {
   }
 
   get isVoteSorted() {
-    return this.sort[0]?.startsWith('vote');
+    return this.sort[0]?.startsWith('plugins->plugin/user/vote');
   }
 
   get filter(): UrlFilter[] {
@@ -405,10 +421,6 @@ export class ViewStore {
 
   get search() {
     return this.route.routeSnapshot?.queryParams['search'];
-  }
-
-  get defaultPageNumber() {
-    return this.current === 'ref/thread' ? Math.floor((this.ref?.metadata?.plugins?.['plugin/thread'] || 0) / this.pageSize) : 0;
   }
 
   get pageNumber() {
@@ -444,6 +456,7 @@ export class ViewStore {
   }
 
   get showRemotes() {
+    if (!this.showRemotesCheckbox) return true;
     return this.route.routeSnapshot?.queryParams['showRemotes'] !== undefined && this.route.routeSnapshot?.queryParams['showRemotes'] !== 'false';
   }
 

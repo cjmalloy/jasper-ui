@@ -1,4 +1,4 @@
-import { Component, Input, OnDestroy, OnInit, QueryList, ViewChildren } from '@angular/core';
+import { Component, forwardRef, Input, OnDestroy, OnInit, QueryList, ViewChildren } from '@angular/core';
 import { Router } from '@angular/router';
 import { DateTime } from 'luxon';
 import { catchError, forkJoin, Observable, of, Subject, takeUntil } from 'rxjs';
@@ -10,14 +10,20 @@ import { score } from '../../../mods/vote';
 import { AccountService } from '../../../service/account.service';
 import { RefService } from '../../../service/api/ref.service';
 import { Store } from '../../../store/store';
+import { LoadingComponent } from '../../loading/loading.component';
+import { PageControlsComponent } from '../../page-controls/page-controls.component';
 import { RefComponent } from '../ref.component';
 
 @Component({
-  standalone: false,
   selector: 'app-ref-list',
   templateUrl: './ref-list.component.html',
   styleUrls: ['./ref-list.component.scss'],
-  host: {'class': 'ref-list'}
+  host: { 'class': 'ref-list' },
+  imports: [
+    forwardRef(() => RefComponent),
+    PageControlsComponent,
+    LoadingComponent,
+  ],
 })
 export class RefListComponent implements OnInit, OnDestroy, HasChanges {
   private destroy$ = new Subject<void>();
@@ -33,7 +39,7 @@ export class RefListComponent implements OnInit, OnDestroy, HasChanges {
   @Input()
   pageControls = true;
   @Input()
-  emptyMessage = 'No results found';
+  emptyMessage = $localize`No results found`;
   @Input()
   showToggle = true;
   @Input()
@@ -83,7 +89,8 @@ export class RefListComponent implements OnInit, OnDestroy, HasChanges {
     } else {
       forkJoin((value.config.pinned as string[])
         .map(pin => this.refs.getCurrent(pin).pipe(
-          catchError(err => of({ url: pin }))
+          catchError(err => of({ url: pin })),
+          takeUntil(this.destroy$),
         )))
         .subscribe(pinned => this.pinned = pinned);
     }
@@ -131,6 +138,7 @@ export class RefListComponent implements OnInit, OnDestroy, HasChanges {
             pageNumber: this._page.page.totalPages - 1,
           },
           queryParamsHandling: 'merge',
+          replaceUrl: true,
         });
       }
     }

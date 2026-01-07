@@ -1,26 +1,30 @@
 import { Component, ViewChild } from '@angular/core';
 import { defer } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
+import { MobxAngularModule } from 'mobx-angular';
 import { catchError, filter, of, Subject, Subscription, switchMap, takeUntil } from 'rxjs';
+import { tap } from 'rxjs/operators';
 import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Ref } from '../../../model/ref';
 import { AdminService } from '../../../service/admin.service';
 import { RefService } from '../../../service/api/ref.service';
 import { StompService } from '../../../service/api/stomp.service';
+import { BookmarkService } from '../../../service/bookmark.service';
 import { ConfigService } from '../../../service/config.service';
 import { ModService } from '../../../service/mod.service';
 import { QueryStore } from '../../../store/query';
 import { Store } from '../../../store/store';
+import { getTitle } from '../../../util/format';
 import { getArgs } from '../../../util/query';
-import { hasTag, top } from '../../../util/tag';
+import { hasTag, updateMetadata } from '../../../util/tag';
 
 @Component({
-  standalone: false,
   selector: 'app-ref-errors',
   templateUrl: './errors.component.html',
   styleUrl: './errors.component.scss',
-  host: {'class': 'errors'}
+  host: { 'class': 'errors' },
+  imports: [MobxAngularModule, RefListComponent]
 })
 export class RefErrorsComponent implements HasChanges {
 
@@ -42,9 +46,11 @@ export class RefErrorsComponent implements HasChanges {
     public query: QueryStore,
     private stomp: StompService,
     private refs: RefService,
+    private bookmarks: BookmarkService,
   ) {
     query.clear();
     runInAction(() => store.view.defaultSort = ['published']);
+    if (!this.store.view.filter.length) bookmarks.filters = ['query/' + (store.account.origin || '*')];
   }
 
   saveChanges() {
@@ -64,33 +70,24 @@ export class RefErrorsComponent implements HasChanges {
       args.responses = this.store.view.url;
       defer(() => this.query.setArgs(args));
     }));
+    // TODO: set title for bare reposts
+    this.disposers.push(autorun(() => this.mod.setTitle($localize`Errors: ` + getTitle(this.store.view.ref))));
     this.disposers.push(autorun(() => {
-      this.mod.setTitle($localize`Errors: ` + (this.store.view.ref?.title || this.store.view.url));
-    }));
-    this.disposers.push(autorun(() => {
-      if (this.store.view.ref && this.config.websockets) {
+      if (this.store.view.url && this.config.websockets) {
         this.watch?.unsubscribe();
-        this.watch = this.stomp.watchResponse(this.store.view.ref.url).pipe(
-          takeUntil(this.destroy$),
+        this.watch = this.stomp.watchResponse(this.store.view.url).pipe(
           switchMap(url => this.refs.getCurrent(url)),
+          tap(ref => runInAction(() => updateMetadata(this.store.view.ref!, ref))),
           filter(ref => hasTag('+plugin/log', ref)),
           catchError(err => of(undefined)),
+          takeUntil(this.destroy$),
         ).subscribe(ref => this.newRefs$.next(ref));
       }
     }));
-    this.newRefs$.subscribe(c => {
-      if (c && this.store.view.ref) {
-        runInAction(() => {
-          this.store.view.ref!.metadata ||= {};
-          this.store.view.ref!.metadata.plugins ||= {} as any;
-          this.store.view.ref!.metadata.plugins!['+plugin/log'] ||= 0;
-          this.store.view.ref!.metadata.plugins!['+plugin/log']++;
-        });
-      }
-    });
   }
 
   ngOnDestroy() {
+    this.query.close();
     this.destroy$.next();
     this.destroy$.complete();
     for (const dispose of this.disposers) dispose();

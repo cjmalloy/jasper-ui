@@ -3,12 +3,12 @@
     <div class="comment-container info collapsed" tabindex="0">
       <span class="comment-expand fake-link" (click)="store.local.setRefToggled('comment:' + ref.url, !(collapsed = false))" i18n>[+]</span>&nbsp;
       @if (authors.length) {
-        @if (authorExts$ | async; as authorExts) {
-          @for (user of authorExts; track user.tag + user.origin) {
+        @if (authorExts$ | async; as xs) {
+          @for (x of xs; track x.tag + x.origin) {
             <a class="user tag"
-               [title]="formatAuthor(user.tag + user.origin)"
-               [routerLink]="['/tag', user.tag + user.origin]"
-               [appTitle]="user">{{ user.name || formatAuthor(user.tag + user.origin) }}</a>
+               [title]="formatAuthor(x.tag + x.origin)"
+               [routerLink]="['/tag', x.tag + x.origin]"
+               [appTitle]="x">{{ x.name || formatAuthor(x.tag + x.origin) }}</a>
           }
         } @else {
           @for (t of authors; track t) {
@@ -18,7 +18,7 @@
           }
         }
       }
-      @if (store.view.isVoteSorted && admin.getPlugin('plugin/vote/up')) {
+      @if (store.view.isVoteSorted && admin.getPlugin('plugin/user/vote/up')) {
         <span class="vote-score" i18n>{{ score }} points&nbsp;</span>
       }
       <span [title]="ref.created?.toISO()">{{ ref.created?.toRelative() }}</span>
@@ -44,12 +44,12 @@
     </div>
   }
   <div class="row">
-    @if (store.view.isVoteSorted && !collapsed && !deleted && store.account.user && admin.getPlugin('plugin/vote/up')) {
+    @if (store.view.isVoteSorted && !collapsed && !deleted && store.account.user && admin.getPlugin('plugin/user/vote/up')) {
       <div class="voting">
         <div class="vote-up"
              [class.on]="upvote"
              (click)="voteUp()"></div>
-        @if (admin.getPlugin('plugin/vote/down')) {
+        @if (admin.getPlugin('plugin/user/vote/down')) {
           <div class="vote-down"
                [class.on]="downvote"
                (click)="voteDown()"></div>
@@ -61,12 +61,12 @@
         <div class="info">
           <span class="comment-collapse fake-link" (click)="store.local.setRefToggled('comment:' + ref.url, !(collapsed = true))">[&ndash;]</span>&nbsp;
           @if (authors.length) {
-            @if (authorExts$ | async; as authorExts) {
-              @for (user of authorExts; track user.tag + user.origin) {
+            @if (authorExts$ | async; as xs) {
+              @for (x of xs; track x.tag + x.origin) {
                 <a class="user tag"
-                   [title]="formatAuthor(user.tag + user.origin)"
-                   [routerLink]="['/tag', user.tag + user.origin]"
-                   [appTitle]="user">{{ user.name || formatAuthor(user.tag + user.origin) }}</a>
+                   [title]="formatAuthor(x.tag + x.origin)"
+                   [routerLink]="['/tag', x.tag + x.origin]"
+                   [appTitle]="x">{{ x.name || formatAuthor(x.tag + x.origin) }}</a>
               }
             } @else {
               @for (t of authors; track t) {
@@ -76,7 +76,7 @@
               }
             }
           }
-          @if (admin.getPlugin('plugin/vote/up')) {
+          @if (admin.getPlugin('plugin/user/vote/up')) {
             <span class="vote-score" i18n>{{ score }} points&nbsp;</span>
           }
           <span [title]="ref.created?.toISO()">{{ ref.created?.toRelative() }}</span>
@@ -84,18 +84,19 @@
             <span [title]="'last edited ' + ref.modified!.toRelative()">* </span>
           }
           @if (tagged.length) {
-            <span i18n> tagged</span>
-            @if (tagExts$ | async; as tagExts) {
-              @for (e of tagExts; track e.tag) {
-                <a class="tag"
-                   [routerLink]="['/tag', e.tag]"
-                   [appTitle]="e.tag">{{ e.name || e.tag }}</a>
+            <span i18n> tagged
+              @if (tagExts$ | async; as xs) {
+                @for (x of xs; track x.tag) {
+                  <a class="tag"
+                     [routerLink]="['/tag', x.tag]"
+                     [appTitle]="x.tag">{{ x.name || '#' + x.tag }}</a>
+                }
+              } @else {
+                @for (t of tagged; track t) {
+                  <a class="tag" [routerLink]="['/tag', t]">{{ t }}</a>
+                }
               }
-            } @else {
-              @for (t of tagged; track t) {
-                <a class="tag" [routerLink]="['/tag', t]">{{ t }}</a>
-              }
-            }
+            </span>
           }
           @for (icon of icons; track icon) {
             @if (showIcon(icon)) {
@@ -118,21 +119,21 @@
         <div class="actions">
           <a [routerLink]="['/ref', ref.url, 'comments']"
              [queryParams]="{ origin: nonLocalOrigin }"
-             (click)="store.view.setRef(ref)"
+             (click)="store.view.preloadRef(ref)"
              i18n>permalink</a>
           <a class="fake-link"
              (click)="replying = !replying"
              i18n>reply</a>
-          @if(responses) {
+          @if (responses) {
             <a [routerLink]="['/ref', ref.url, 'responses']"
                [queryParams]="{ origin: nonLocalOrigin }"
-               (click)="store.view.setRef(ref)"
+               (click)="store.view.preloadRef(ref)"
                i18n>{responses, plural, =1 {1&thinsp;citation} other {{{ responses }}&thinsp;citations}}</a>
           }
           @if (sources > 2) {
             <a [routerLink]="['/ref', ref.url, 'sources']"
                [queryParams]="{ origin: nonLocalOrigin }"
-               (click)="store.view.setRef(ref)"
+               (click)="store.view.preloadRef(ref)"
                i18n>{{ sources }}&thinsp;sources</a>
           }
           @if (writeAccess) {
@@ -170,7 +171,7 @@
   }
   <div class="comment-children"
        [class.hidden-without-removing]="collapsed">
-    <app-comment-thread [source]="ref"
+    <app-comment-thread [source]="ref.url"
                         [scrollToLatest]="scrollToLatest"
                         [depth]="depth! - 1"
                         [context]="context + 1"
@@ -186,7 +187,7 @@
       <a class="load-more"
          [routerLink]="['/ref', ref.url, 'comments']"
          [queryParams]="{ origin: nonLocalOrigin }"
-         (click)="store.view.setRef(ref)" i18n>
+         (click)="store.view.preloadRef(ref)" i18n>
         continue this thread
       </a>
     }

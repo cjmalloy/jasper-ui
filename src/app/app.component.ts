@@ -1,20 +1,29 @@
 import { AfterViewInit, Component, HostBinding, HostListener, isDevMode } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, RouterOutlet } from '@angular/router';
 import { autorun, runInAction } from 'mobx';
+import { MobxAngularModule } from 'mobx-angular';
+import { LoginPopupComponent } from './component/login-popup/login-popup.component';
+import { SubscriptionBarComponent } from './component/subscription-bar/subscription-bar.component';
 import { archivePlugin, archiveUrl } from './mods/archive';
 import { pdfPlugin, pdfUrl } from './mods/pdf';
 import { AdminService } from './service/admin.service';
 import { OriginService } from './service/api/origin.service';
 import { ProxyService } from './service/api/proxy.service';
+import { ScrapeService } from './service/api/scrape.service';
 import { ConfigService } from './service/config.service';
 import { Store } from './store/store';
 import { memo } from './util/memo';
 
 @Component({
-  standalone: false,
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
+  imports: [
+    MobxAngularModule,
+    LoginPopupComponent,
+    SubscriptionBarComponent,
+    RouterOutlet,
+  ],
 })
 export class AppComponent implements AfterViewInit {
 
@@ -33,6 +42,7 @@ export class AppComponent implements AfterViewInit {
     private admin: AdminService,
     private proxy: ProxyService,
     private origins: OriginService,
+    private scrape: ScrapeService,
     private router: Router,
   ) {
     document.body.style.height = '';
@@ -59,7 +69,7 @@ export class AppComponent implements AfterViewInit {
         if (this.store.eventBus.event === 'pdf') {
           let pdf = pdfUrl(this.pdfPlugin, this.store.eventBus.ref, this.store.eventBus.repost);
           if (!pdf) return;
-          if (this.pdfPlugin!.config?.proxy) pdf.url = this.proxy.getFetch(pdf.url, pdf.origin);
+          if (pdf.url.startsWith('cache:') || this.pdfPlugin!.config?.proxy) pdf.url = this.proxy.getFetch(pdf.url, pdf.origin);
           open(pdf.url, '_blank');
         }
       });
@@ -108,7 +118,6 @@ export class AppComponent implements AfterViewInit {
     }
   }
 
-
   @HostListener('window:online')
   online() {
     if (this.store.offline) {
@@ -116,20 +125,37 @@ export class AppComponent implements AfterViewInit {
     }
   }
 
+  @HostListener('window:paste', ['$event'])
+  paste(event: ClipboardEvent) {
+    const items = event.clipboardData?.items;
+    if (!items) return;
+    for (let i = 0; i < items.length; i++) {
+      const d = items[i];
+      if (d?.kind === 'file') {
+        this.upload(event, items);
+        this.removeHotkey();
+        return;
+      }
+    }
+  }
+
   dragOver(event: DragEvent) {
     event.preventDefault();
   }
 
-  drop(event: DragEvent) {
-    const items = event.dataTransfer?.items;
+  upload(event: Event, items?: DataTransferItemList) {
     if (!items) return;
+    if ((event.target as HTMLElement)?.tagName === 'INPUT') return;
+    if ((event.target as HTMLElement)?.tagName === 'TEXTAREA') return;
     event.preventDefault();
     const files = [] as any;
     for (let i = 0; i < items.length; i++) {
       const d = items[i];
-      if (d?.kind !== 'file') return;
-      files.push(d.getAsFile());
+      if (d?.kind === 'file') {
+        files.push(d.getAsFile());
+      }
     }
+    if (!files.length) return;
     this.store.submit.addFiles(files);
     if (!this.store.submit.upload) {
       this.router.navigate(['/submit/upload'], { queryParams: { tag: this.store.view.queryTags }});

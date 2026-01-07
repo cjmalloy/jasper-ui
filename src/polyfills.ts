@@ -53,3 +53,4 @@ import 'zone.js'; // Included with Angular CLI.
  * APPLICATION IMPORTS
  */
 import 'globalthis/auto';
+import 'array.prototype.at';

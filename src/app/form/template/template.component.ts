@@ -1,12 +1,20 @@
 import { Component, Input } from '@angular/core';
-import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import {
+  ReactiveFormsModule,
+  UntypedFormBuilder,
+  UntypedFormControl,
+  UntypedFormGroup,
+  Validators
+} from '@angular/forms';
+import { v4 as uuid } from 'uuid';
+import { JsonComponent } from '../json/json.component';
 
 @Component({
-  standalone: false,
   selector: 'app-template-form',
   templateUrl: './template.component.html',
   styleUrls: ['./template.component.scss'],
-  host: {'class': 'nested-form'}
+  host: { 'class': 'nested-form' },
+  imports: [ReactiveFormsModule, JsonComponent]
 })
 export class TemplateFormComponent {
 
@@ -19,6 +27,7 @@ export class TemplateFormComponent {
   @Input()
   schemaErrors: string[] = [];
 
+  id = 'template-' + uuid();
   editingConfig = false;
   editingDefaults = false;
   editingSchema = false;

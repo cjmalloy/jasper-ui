@@ -1,10 +1,12 @@
+/// <reference types="vitest/globals" />
+import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, ComponentFixtureAutoDetect, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import { provideRouter } from '@angular/router';
+import { JasperFormlyModule } from '../../../formly/formly.module';
 
 import { SubmitDmPage } from './dm.component';
-import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 describe('SubmitDmPage', () => {
   let component: SubmitDmPage;
@@ -12,15 +14,19 @@ describe('SubmitDmPage', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    declarations: [SubmitDmPage],
-    imports: [ReactiveFormsModule,
-        RouterModule.forRoot([])],
-    providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
-})
-    .compileComponents();
-  });
+      imports: [
+        ReactiveFormsModule,
+        JasperFormlyModule,
+        SubmitDmPage
+      ],
+      providers: [
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClientTesting(),
+        provideRouter([]),
+        { provide: ComponentFixtureAutoDetect, useValue: true }
+      ],
+    }).compileComponents();
 
-  beforeEach(() => {
     fixture = TestBed.createComponent(SubmitDmPage);
     component = fixture.componentInstance;
     fixture.detectChanges();

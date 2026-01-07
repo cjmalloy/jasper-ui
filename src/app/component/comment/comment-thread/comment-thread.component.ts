@@ -1,5 +1,16 @@
-import { Component, Input, OnChanges, OnDestroy, OnInit, QueryList, SimpleChanges, ViewChildren } from '@angular/core';
+import {
+  Component,
+  forwardRef,
+  Input,
+  OnChanges,
+  OnDestroy,
+  OnInit,
+  QueryList,
+  SimpleChanges,
+  ViewChildren
+} from '@angular/core';
 import { autorun, IReactionDisposer } from 'mobx';
+import { MobxAngularModule } from 'mobx-angular';
 import { Observable, Subject, takeUntil } from 'rxjs';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Ref } from '../../../model/ref';
@@ -8,18 +19,21 @@ import { ThreadStore } from '../../../store/thread';
 import { CommentComponent } from '../comment.component';
 
 @Component({
-  standalone: false,
   selector: 'app-comment-thread',
   templateUrl: './comment-thread.component.html',
   styleUrls: ['./comment-thread.component.scss'],
-  host: {'class': 'comment-thread'}
+  host: { 'class': 'comment-thread' },
+  imports: [
+    forwardRef(() => CommentComponent),
+    MobxAngularModule,
+  ],
 })
 export class CommentThreadComponent implements OnInit, OnChanges, OnDestroy, HasChanges {
   private destroy$ = new Subject<void>();
   private disposers: IReactionDisposer[] = [];
 
   @Input()
-  source?: Ref;
+  source = '';
   @Input()
   scrollToLatest = false;
   @Input()
@@ -43,7 +57,7 @@ export class CommentThreadComponent implements OnInit, OnChanges, OnDestroy, Has
   ) {
     this.disposers.push(autorun(() => {
       if (thread.latest.length) {
-        this.comments = thread.cache.get(this.source?.url);
+        this.comments = thread.cache.get(this.source);
         if (this.comments && this.pageSize) {
           this.comments = [...this.comments!];
           this.comments.length = this.pageSize;
@@ -65,7 +79,7 @@ export class CommentThreadComponent implements OnInit, OnChanges, OnDestroy, Has
   ngOnChanges(changes: SimpleChanges) {
     if (changes.source || changes.pageSize) {
       this.newComments = [];
-      this.comments = this.thread.cache.get(this.source?.url);
+      this.comments = this.thread.cache.get(this.source);
       if (this.comments && this.pageSize) {
         this.comments = [...this.comments!];
         this.comments.length = this.pageSize;

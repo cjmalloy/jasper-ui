@@ -3,7 +3,7 @@ import { FormlyFieldConfig } from '@ngx-formly/core';
 import { Schema, validate } from 'jtd';
 import { identity, isEqual, reduce, uniq } from 'lodash-es';
 import { autorun, runInAction } from 'mobx';
-import { catchError, concat, forkJoin, map, Observable, of, switchMap, throwError, toArray } from 'rxjs';
+import { catchError, concat, forkJoin, map, Observable, of, retry, switchMap, throwError, toArray } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
 import { Ext } from '../model/ext';
@@ -12,7 +12,11 @@ import { Ref } from '../model/ref';
 import { bundleSize, clear, condition, Config, EditorButton, Mod } from '../model/tag';
 import { Template } from '../model/template';
 import { User } from '../model/user';
-import { aiMod } from '../mods/ai';
+import { aiMod } from '../mods/ai/ai';
+import { dalleMod } from '../mods/ai/dalle';
+import { naviMod } from '../mods/ai/navi';
+import { summaryMod } from '../mods/ai/summary';
+import { translateMod } from '../mods/ai/translate';
 import { archiveMod } from '../mods/archive';
 import { audioMod } from '../mods/audio';
 import { backgammonMod } from '../mods/backgammon';
@@ -23,7 +27,6 @@ import { chatMod } from '../mods/chat';
 import { chessMod } from '../mods/chess';
 import { codeMod } from '../mods/code';
 import { commentMod } from '../mods/comment';
-import { dalleMod } from '../mods/dalle';
 import { debugMod } from '../mods/debug';
 import { deleteMod, tagDeleteNotice } from '../mods/delete';
 import { htmlMod, latexMod } from '../mods/editor';
@@ -57,6 +60,7 @@ import { playlistMod } from '../mods/playlist';
 import { pollMod } from '../mods/poll';
 import { qrMod } from '../mods/qr';
 import { queueMod } from '../mods/queue';
+import { readMod } from '../mods/read';
 import { repostMod } from '../mods/repost';
 import { rootMod } from '../mods/root';
 import { saveMod } from '../mods/save';
@@ -65,7 +69,6 @@ import { scriptMod } from '../mods/script';
 import { seamlessMod } from '../mods/seamless';
 import { secretMod } from '../mods/secret';
 import { snippetMod } from '../mods/snippet';
-import { summaryMod } from '../mods/summary';
 import { systemMod } from '../mods/system';
 import { tableMod } from '../mods/table';
 import { thanksMod } from '../mods/thanks';
@@ -77,12 +80,13 @@ import { userMod } from '../mods/user';
 import { videoMod } from '../mods/video';
 import { voteMod } from '../mods/vote';
 import { DEFAULT_WIKI_PREFIX, wikiMod } from '../mods/wiki';
+import { ytdlpMod } from '../mods/ytdlp';
 import { progress } from '../store/bus';
 import { Store } from '../store/store';
 import { modId } from '../util/format';
 import { getExtension, getHost } from '../util/http';
 import { memo, MemoCache } from '../util/memo';
-import { addHierarchicalTags, hasPrefix, hasTag, tagIntersection } from '../util/tag';
+import { addHierarchicalTags, directChild, hasPrefix, hasTag, tagIntersection, test } from '../util/tag';
 import { ExtService } from './api/ext.service';
 import { PluginService } from './api/plugin.service';
 import { RefService } from './api/ref.service';
@@ -115,6 +119,7 @@ export class AdminService {
     mailboxMod,
     hideMod,
     saveMod,
+    readMod,
 
     // Themes
     themesMod,
@@ -153,8 +158,10 @@ export class AdminService {
     thumbnailMod,
     tableMod,
     aiMod,
+    naviMod,
     dalleMod,
     summaryMod,
+    translateMod,
     pdfMod,
     archiveMod,
     latexMod,
@@ -167,6 +174,7 @@ export class AdminService {
     embedMod,
     audioMod,
     videoMod,
+    ytdlpMod,
     voteMod,
     imageMod,
     lensMod,
@@ -286,6 +294,7 @@ export class AdminService {
       return of(null);
     }
     return this.plugins.page({query: this.localOriginQuery, page, size: this.config.fetchBatch}).pipe(
+      retry(10),
       tap(batch => this.pluginToStatus(batch.content)),
       switchMap(batch => page + 1 < batch.page.totalPages ? this.loadPlugins$(page + 1) : of(null)),
     );
@@ -298,6 +307,7 @@ export class AdminService {
       return of(null);
     }
     return this.templates.page({query: this.localOriginQuery + ':!_config', page, size: this.config.fetchBatch}).pipe(
+      retry(10),
       tap(batch => this.templateToStatus(batch.content)),
       switchMap(batch => page + 1 < batch.page.totalPages ? this.loadTemplates$(page + 1) : of(null)),
     );
@@ -330,7 +340,7 @@ export class AdminService {
       t.config ||= {};
       t.config.needsUpdate ||= this.needsUpdate(this.def.templates[t.tag], t);
       if (t.config.needsUpdate) {
-        console.log(t.tag + ' needs update');
+        console.log((t.tag || 'Root template') + ' needs update');
       }
     }
   }
@@ -501,6 +511,10 @@ export class AdminService {
     return this.pluginConfigProperty('extensions');
   }
 
+  get prefix() {
+    return this.pluginConfigProperty('prefix');
+  }
+
   get hosts() {
     return this.pluginConfigProperty('hosts');
   }
@@ -511,6 +525,10 @@ export class AdminService {
 
   get view() {
     return this.templateConfigProperty('view');
+  }
+
+  get local() {
+    return this.templateConfigProperty('local');
   }
 
   get editorButtons() {
@@ -549,12 +567,20 @@ export class AdminService {
     return this._cache.get('embeddable')!;
   }
 
+  get editor() {
+    return this.pluginConfigProperty('editor');
+  }
+
   get editingViewer() {
     return this.pluginConfigProperty('editingViewer');
   }
 
   get icons() {
     return this.configProperty('icons');
+  }
+
+  get bulkForm() {
+    return this.pluginConfigProperty('bulkForm');
   }
 
   get actions() {
@@ -565,10 +591,6 @@ export class AdminService {
     return this.configProperty('advancedActions');
   }
 
-  get published() {
-    return this.pluginConfigProperty('published');
-  }
-
   get themes() {
     return this.configProperty('themes');
   }
@@ -576,6 +598,16 @@ export class AdminService {
   get filters() {
     return this.configProperty('filters')
       .flatMap(p => p.config?.filters!);
+  }
+
+  get refSorts() {
+    return this.pluginConfigProperty('sorts')
+      .flatMap(p => p.config?.sorts!);
+  }
+
+  get tagSorts() {
+    return this.templateConfigProperty('sorts')
+      .flatMap(p => p.config?.sorts!);
   }
 
   addPluginParents(cs: Plugin[]) {
@@ -598,7 +630,7 @@ export class AdminService {
   }
 
   getPluginsForUrl(url: string) {
-    return uniq([...this.getPluginsForHost(url), ...this.getPluginsForExtension(url)]);
+    return uniq([...this.getPluginsForHost(url), ...this.getPluginsForPrefix(url), ...this.getPluginsForExtension(url)]);
   }
 
   getPluginsForCache(ref: Ref): string[] {
@@ -612,6 +644,10 @@ export class AdminService {
   getPluginsForHost(url: string) {
     const host = getHost(url);
     return this.hosts.filter(p => p.config!.hosts!.includes(host!))
+  }
+
+  getPluginsForPrefix(url: string) {
+    return this.prefix.filter(p => p.config!.prefix!.find(prefix => url.startsWith(prefix)));
   }
 
   getPluginsForExtension(url: string) {
@@ -648,11 +684,12 @@ export class AdminService {
         if (i.condition && !condition(i.condition, config?.[p.tag])) return false;
         if (i.global) return true;
         if (i.scheme && i.scheme === scheme) return true;
+        if (i.tag && !hasTag(i.tag, match)) return false;
         return hasTag(p.tag, match);
       }).map(addParent(p))
         .map(i => {
-          if (!i.response && !i.anyResponse && !i.noResponse && !i.scheme) i.tag ||= p.tag;
-          if (i.tag === p.tag)  i.title ||= p.name;
+          if (!i.tag && !i.response && !i.anyResponse && !i.noResponse && !i.scheme) i.tag ||= p.tag;
+          if (!i.tag || i.tag === p.tag) i.title ||= p.name;
           i.title ||= i.tag;
           return i;
         }))
@@ -665,7 +702,7 @@ export class AdminService {
       .flatMap(config => config.config!.editorButtons!.filter(b => {
         if (b.global) return true;
         if (b.scheme && b.scheme === scheme) return true;
-        return hasTag(config.tag, match);
+        return test(b.query || config.tag, match);
       }).map(addParent(config))
         .map(b => {
           if (b.ribbon || !b.event) b.toggle ||= config.tag;
@@ -676,12 +713,6 @@ export class AdminService {
   getTemplateView(tag: string) {
     return this.view
       .filter(t => hasPrefix(tag, t.tag));
-  }
-
-  getPublished(tags?: string[]) {
-    const match = ['plugin', ...(tags || [])];
-    return this.published.filter(p => hasTag(p.tag, match))
-      .flatMap(p => p.config!.published as string);
   }
 
   @memo
@@ -720,8 +751,9 @@ export class AdminService {
     return this.forms.filter(p => hasTag(p.tag, match));
   }
 
+  @memo
   getPluginSubForms(parent: string) {
-    return this.forms.filter(p => p.config?.submitChild && hasPrefix(p.tag, parent));
+    return this.forms.filter(p => p.config?.submitChild && directChild(p.tag, parent));
   }
 
   getTemplate(tag: string) {
@@ -838,11 +870,25 @@ export class AdminService {
   }
 
   isWikiExternal() {
-    return !!this.getTemplate('wiki')?.config?.external;
+    return !!this.getTemplate('config/wiki')?.config?.external;
   }
 
   getWikiPrefix() {
-    return this.getTemplate('wiki')?.config?.prefix || DEFAULT_WIKI_PREFIX;
+    return this.getTemplate('config/wiki')?.config?.prefix || DEFAULT_WIKI_PREFIX;
+  }
+
+  getMod(mod: String) {
+    const bundle = this.mods.find(m =>
+      m.plugin?.find(p => modId(p) === mod) ||
+      m.template?.find(t => modId(t) === mod)
+    );
+    if (bundle) return bundle;
+    const modPlugins = Object.values(this.status.plugins).filter(p => modId(p) === mod).map(p => p.tag);
+    const modTemplates = Object.values(this.status.templates).filter(p => modId(p) === mod).map(t => t.tag);
+    return this.mods.find(m =>
+      m.plugin?.find(p => modPlugins.includes(p.tag)) ||
+      m.template?.find(t => modTemplates.includes(t.tag))
+    );
   }
 
   installRef$(def: Ref, _: progress) {
@@ -943,27 +989,32 @@ export class AdminService {
   }
 
   install$(mod: string, bundle: Mod, _: progress): Observable<any> {
-    const defaultMod: <T extends Config> (t: T) => T = c =>( { ...c, config: { ...c.config || {}, mod: c.config?.mod || mod } });
+    if (!bundle) return of(null);
     return concat(...[
       of(null).pipe(tap(() => _($localize`Installing ${mod} mod...`))),
       ...(bundle.ref || []).map(p => this.installRef$(p, _)),
       ...(bundle.ext || []).map(p => this.installExt$(p, _)),
       ...(bundle.user || []).map(p => this.installUser$(p, _)),
-      ...(bundle.plugin || []).map(p => this.installPlugin$(defaultMod(p), _)),
-      ...(bundle.template || []).map(t => this.installTemplate$(defaultMod(t), _)),
+      ...(bundle.plugin || []).map(p => this.installPlugin$(p, _)),
+      ...(bundle.template || []).map(t => this.installTemplate$(t, _)),
     ]).pipe(toArray());
   }
 
   installMod$(mod: string, _: progress): Observable<any> {
+    return this.install$(mod, this.getMod(mod)!, _);
+  }
+
+  update$(mod: string, bundle: Mod, _: progress): Observable<any> {
+    if (!bundle) return of(null);
     return concat(...[
       of(null).pipe(tap(() => _($localize`Installing ${mod} mod...`))),
-      ...Object.values(this.def.plugins)
-        .filter(p => modId(p) === mod)
-        .map(p => this.installPlugin$(p, _)),
-      ...Object.values(this.def.templates)
-        .filter(t => modId(t) === mod)
-        .map(t => this.installTemplate$(t, _)),
+      ...(bundle.plugin || []).map(p => this.updatePlugin$(p, _)),
+      ...(bundle.template || []).map(t => this.updateTemplate$(t, _)),
     ]).pipe(toArray());
+  }
+
+  updateMod$(mod: string, _: progress): Observable<any> {
+    return this.update$(mod, this.getMod(mod)!, _);
   }
 
   deleteMod$(mod: string, _: progress): Observable<any> {
@@ -978,9 +1029,8 @@ export class AdminService {
     ]).pipe(toArray());
   }
 
-  updatePlugin$(key: string, _: progress) {
-    const def = this.def.plugins[key];
-    const status = this.status.plugins[key];
+  updatePlugin$(def: Plugin, _: progress) {
+    const status = this.status.plugins[def.tag];
     return of(null).pipe(
       tap(() => _('\u00A0'.repeat(4) + $localize`Updating ${def.name || def.tag} plugin...`)),
       switchMap(() => this.plugins.update({
@@ -996,9 +1046,8 @@ export class AdminService {
     );
   }
 
-  updateTemplate$(key: string, _: progress) {
-    const def = this.def.templates[key];
-    const status = this.status.templates[key];
+  updateTemplate$(def: Template, _: progress) {
+    const status = this.status.templates[def.tag];
     return of(null).pipe(
       tap(() => _('\u00A0'.repeat(4) + $localize`Updating ${def.name || def.tag} template...`)),
       switchMap(() => this.templates.update({
@@ -1012,18 +1061,6 @@ export class AdminService {
       })),
       tap(() => _('', 1)),
     );
-  }
-
-  updateMod$(mod: string, _: progress): Observable<any> {
-    return concat(...[
-      of(null).pipe(tap(() => _($localize`Updating ${mod} mod...`))),
-      ...Object.values(this.def.plugins)
-        .filter(p => modId(p) === mod)
-        .map(p => this.updatePlugin$(p.tag, _)),
-      ...Object.values(this.def.templates)
-        .filter(t => modId(t) === mod)
-        .map(t => this.updateTemplate$(t.tag, _)),
-    ]).pipe(toArray());
   }
 
   needsUpdate(def: Config, status: Config) {

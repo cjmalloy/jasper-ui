@@ -14,7 +14,7 @@
         <a class="badge filter-toggle"
            [class.filtering]="bookmarks.filters.includes($any('query/' + x.tag))"
            (click)="bookmarks.toggleQuery(store.hotkey ? '!(' + x.tag + ')' : x.tag)"
-           [title]="x.name && x.tag">{{ x.name || x.tag }}</a>
+           [title]="x.name && x.tag">{{ firstWord(x.name) || '#' + x.tag }}</a>
       }
     }
     @if (dependents) {
@@ -67,7 +67,7 @@
   <ng-template #cardMenu>
     <div class="context-menu" (click)="$event.stopPropagation()">
       <span i18n>Toggle Badges</span>
-      @if (allBadgeExts$ | async; as xs) {
+      @if (allBadges$ | async; as xs) {
         @for (x of xs; track x.tag) {
           <div (contextmenu)="$event.preventDefault()"
                (pointerdown)="autoClose = false"
@@ -76,7 +76,7 @@
                    type="checkbox"
                    [checked]="ref.tags?.includes(x.tag)">
             <label [for]="x.tag"
-                   [title]="x.name && x.tag" i18n>{{ x.name || x.tag }}</label>
+                   [title]="x.name && x.tag" i18n>{{ x.name || '#' + x.tag }}</label>
           </div>
         }
       } @else {

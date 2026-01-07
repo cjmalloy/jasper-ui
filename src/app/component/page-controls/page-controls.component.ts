@@ -1,14 +1,22 @@
 import { Component, HostBinding, Input } from '@angular/core';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { RouterLink, RouterLinkActive } from '@angular/router';
+import { delay } from 'lodash-es';
 import { Page } from '../../model/page';
 import { BookmarkService } from '../../service/bookmark.service';
 import { Store } from '../../store/store';
 
 @Component({
-  standalone: false,
   selector: 'app-page-controls',
   templateUrl: './page-controls.component.html',
   styleUrls: ['./page-controls.component.scss'],
-  host: {'class': 'page-controls'}
+  host: { 'class': 'page-controls' },
+  imports: [
+    RouterLink,
+    RouterLinkActive,
+    ReactiveFormsModule,
+    FormsModule,
+  ]
 })
 export class PageControlsComponent {
 
@@ -76,7 +84,7 @@ export class PageControlsComponent {
   }
 
   scrollUp() {
-    window.scrollTo(0, 0);
+    delay(() => window.scrollTo(0, 0), 400);
   }
 
   outOfPageSizeRange(size: number) {

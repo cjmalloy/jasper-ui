@@ -12,7 +12,7 @@ describe('Kanban Template No Swimlanes', {
 }, () => {
   it('loads the page', () => {
     cy.visit('/?debug=USER');
-    cy.contains('Home', { timeout: 1000 * 60 });
+    cy.contains('Powered by Jasper', { timeout: 1000 * 60 });
   });
   it('clear mods', () => {
     clearMods();
@@ -33,14 +33,14 @@ describe('Kanban Template No Swimlanes', {
     cy.get('.subs').contains('tags').click();
     openSidebar();
     cy.contains('Extend').click();
-    cy.get('#tag').type('kanban/test');
+    cy.get('[name=tag]').type('kanban/test');
     cy.get('button').contains('Extend').click();
-    cy.get('#name').type('Kanban Test');
+    cy.get('[name=name]').type('Kanban Test');
     cy.get('.columns button').click()
         .type('doing{enter}')
         .type('done');
-    cy.get('#showColumnBacklog').click();
-    cy.get('#columnBacklogTitle').type('todo');
+    cy.get('[name=showColumnBacklog]').click();
+    cy.get('[name=columnBacklogTitle]').type('todo');
     cy.get('button').contains('Save').click();
     cy.get('h2').should('have.text', 'Kanban Test');
   });

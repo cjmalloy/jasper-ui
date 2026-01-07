@@ -1,5 +1,6 @@
 import { Component, ElementRef, Input, ViewChild } from '@angular/core';
-import { Router } from '@angular/router';
+import { ReactiveFormsModule } from '@angular/forms';
+import { Router, RouterLink } from '@angular/router';
 import { defer } from 'lodash-es';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
@@ -9,10 +10,10 @@ import { access, fixClientQuery, getStrictPrefix, localTag, tagOrigin } from '..
 export type Crumb = { text: string, tag?: string, pos: number, len: number };
 
 @Component({
-  standalone: false,
   selector: 'app-query',
   templateUrl: './query.component.html',
-  styleUrls: ['./query.component.scss']
+  styleUrls: ['./query.component.scss'],
+  imports: [ReactiveFormsModule, RouterLink]
 })
 export class QueryComponent {
 
@@ -52,9 +53,7 @@ export class QueryComponent {
       if (this.select === true) {
         el.select();
       } else if (this.select) {
-        el.setAttribute('type', 'text'); // Email does not support selections
         el.setSelectionRange(this.select.pos, this.select.pos + this.select.len);
-        el.setAttribute('type', 'email');
       }
     });
   }
@@ -80,7 +79,11 @@ export class QueryComponent {
       .replace(/[\s|]*:[\s|]*/g, ':')
       .replace(/\s+/g, '+')
       .replace(/[^_+/a-z-0-9.:|!@*()]+/g, '');
-    this.router.navigate(['/tag', query], { queryParams: { pageNumber: null },  queryParamsHandling: 'merge'});
+    if (this.store.view.current === 'tags') {
+      this.router.navigate(['/tags', query], { queryParams: { pageNumber: null }, queryParamsHandling: 'merge' });
+    } else {
+      this.router.navigate(['/tag', query], { queryParams: { pageNumber: null }, queryParamsHandling: 'merge' });
+    }
   }
 
   private queryCrumbs(query: string): Crumb[] {
@@ -197,8 +200,8 @@ export class QueryComponent {
     return crumbs;
   }
 
-  blur(event: FocusEvent) {
-    if ((event.target as HTMLInputElement)?.value === this.query) {
+  blur(value: string) {
+    if (value === this.query) {
       this.editing = false;
     }
   }

@@ -1,4 +1,5 @@
 import { Component, ElementRef, Input, OnChanges, OnDestroy, SimpleChanges, ViewChild } from '@angular/core';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { filter, find, pullAll, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
@@ -9,9 +10,9 @@ import { KanbanConfig } from '../../mods/kanban';
 import { RootConfig } from '../../mods/root';
 import { UserConfig } from '../../mods/user';
 import { AdminService } from '../../service/admin.service';
-import { ExtService } from '../../service/api/ext.service';
 import { AuthzService } from '../../service/authz.service';
 import { BookmarkService } from '../../service/bookmark.service';
+import { EditorService } from '../../service/editor.service';
 import { Store } from '../../store/store';
 import { Type } from '../../store/view';
 import { emoji } from '../../util/emoji';
@@ -19,11 +20,11 @@ import { convertFilter, FilterGroup, FilterItem, negatable, toggle, UrlFilter } 
 import { hasPrefix } from '../../util/tag';
 
 @Component({
-  standalone: false,
   selector: 'app-filter',
   templateUrl: './filter.component.html',
   styleUrls: ['./filter.component.scss'],
-  host: {'class': 'filter form-group'}
+  host: { 'class': 'filter form-group' },
+  imports: [ReactiveFormsModule, FormsModule]
 })
 export class FilterComponent implements OnChanges, OnDestroy {
 
@@ -55,9 +56,9 @@ export class FilterComponent implements OnChanges, OnDestroy {
     public router: Router,
     public admin: AdminService,
     public store: Store,
-    private exts: ExtService,
     private auth: AuthzService,
     private bookmarks: BookmarkService,
+    private editor: EditorService,
   ) {
     this.disposers.push(autorun(() => {
       this.filters = toJS(this.store.view.filter);
@@ -73,7 +74,7 @@ export class FilterComponent implements OnChanges, OnDestroy {
         for (const ext of this.activeExts) {
           for (const f of [...ext.config?.queryFilters || [], ...ext.config?.responseFilters || []]) {
             this.loadFilter({
-              group: ext.name || this.admin.getPlugin(ext.tag)?.name || this.admin.getTemplate(ext.tag)?.name || ext.tag,
+              group: ext.name || this.admin.getPlugin(ext.tag)?.name || this.admin.getTemplate(ext.tag)?.name || '#' + ext.tag,
               ...f,
             });
           }
@@ -116,12 +117,12 @@ export class FilterComponent implements OnChanges, OnDestroy {
               ...k.swimLanes || [],
               ...k.badges || []
             ]);
-            this.exts.getCachedExts(kanbanTags, e.origin || '').subscribe(exts => {
-              for (const e of exts) {
+            this.editor.getTagsPreview(kanbanTags, e.origin || '').subscribe(ps => {
+              for (const p of ps) {
                 this.loadFilter({
                   group,
-                  label: e.name || e.tag,
-                  query: e.tag,
+                  label: p.name || '#' + p.tag,
+                  query: p.tag,
                 });
               }
               if (k.columns?.length && k.showColumnBacklog) {
@@ -161,9 +162,6 @@ export class FilterComponent implements OnChanges, OnDestroy {
           filters: [
             { filter: 'obsolete', label: $localize`⏮️ obsolete`, title: $localize`Show older versions` },
             { filter: 'query/_plugin:!+user', label: $localize`📟️ system`, title: $localize`System configs` },
-            { filter: 'untagged', label: $localize`🚫️🏷️ untagged` },
-            { filter: 'uncited', label: $localize`🚫️💌️ uncited` },
-            { filter: 'unsourced', label: $localize`🚫️📜️ unsourced` },
           ],
         });
       } else {
@@ -184,6 +182,15 @@ export class FilterComponent implements OnChanges, OnDestroy {
           });
         }
       }
+      this.pushFilter({
+        label: $localize`Origins 🏛️`,
+        filters: this.store.origins.list.map(o => ({ filter: 'query/' + (o || '*') as UrlFilter,
+          label:
+            !o ? $localize`✴️ local`
+              : o === this.store.account.origin ? $localize`🏛️ ${o}`
+                : !this.store.account.origin ? $localize`🏛️ ${o}`
+                  : $localize`🪆 ${o}` })),
+      });
       this.sync();
     }
   }
@@ -201,15 +208,15 @@ export class FilterComponent implements OnChanges, OnDestroy {
   get userConfigs() {
     if (!this.admin.getTemplate('user')) return [];
     return this.activeExts
-        .filter(x => hasPrefix(x.tag, 'user'))
-        .map(x => x.config).filter(c => !!c) as UserConfig[];
+      .filter(x => hasPrefix(x.tag, 'user'))
+      .map(x => x.config).filter(c => !!c) as UserConfig[];
   }
 
   get kanbanExts() {
     if (!this.admin.getTemplate('kanban')) return [];
     return this.activeExts
-        .filter(x => hasPrefix(x.tag, 'kanban'))
-        .filter(x => x.config);
+      .filter(x => hasPrefix(x.tag, 'kanban'))
+      .filter(x => x.config);
   }
 
   /**
@@ -271,6 +278,9 @@ export class FilterComponent implements OnChanges, OnDestroy {
         this.loadFilter({ group: $localize`Plugins 🧰️`, response: f as any });
       } else if (f.startsWith('user/')) {
         this.loadFilter({ group: $localize`Filters 🕵️️`, user: f.substring('user/'.length) as any });
+      } else if (f.startsWith('query/@')) {
+        const origin = f.substring('query/'.length);
+        this.loadFilter({ group: $localize`Queries 🔎️️`, label: $localize`🏛️ ${origin}`, query: origin });
       } else {
         // TODO: On page load Kanaban Exts are not loaded in time to find proper negate query filter
         this.loadFilter({ group: $localize`Queries 🔎️️`, query: f.substring('query/'.length)});
@@ -335,26 +345,24 @@ export class FilterComponent implements OnChanges, OnDestroy {
     this.setFilters();
   }
 
-  setModified(index: number, before: boolean, isoDate: string) {
-    this.filters[index] = `modified/${before ? 'before' : 'after'}/${isoDate}`;
-    this.sync();
-    this.setFilters();
+  lastFocused = false;
+  hasFocus() {
+    return this.lastFocused;
+  }
+  focus() {
+    this.lastFocused = true;
+    return true;
+  }
+  clearFocus() {
+    this.lastFocused = false;
+    return true;
   }
 
-  setResponse(index: number, before: boolean, isoDate: string) {
-    this.filters[index] = `response/${before ? 'before' : 'after'}/${isoDate}`;
-    this.sync();
-    this.setFilters();
-  }
-
-  setPublished(index: number, before: boolean, isoDate: string) {
-    this.filters[index] = `published/${before ? 'before' : 'after'}/${isoDate}`;
-    this.sync();
-    this.setFilters();
-  }
-
-  setCreated(index: number, before: boolean, isoDate: string) {
-    this.filters[index] = `created/${before ? 'before' : 'after'}/${isoDate}`;
+  set(index: number, filter: UrlFilter, isoDate: string) {
+    this.clearFocus();
+    if (!isoDate) return;
+    // @ts-ignore
+    this.filters[index] = filter.substring(0, filter.lastIndexOf('/') + 1) + isoDate;
     this.sync();
     this.setFilters();
   }
@@ -374,7 +382,7 @@ export class FilterComponent implements OnChanges, OnDestroy {
 
   toDate(filter: string) {
     if (filter.includes('/')) filter = filter.substring(filter.lastIndexOf('/') + 1);
-    return DateTime.fromISO(filter).toFormat("YYYY-MM-DD'T'TT");
+    return DateTime.fromISO(filter).toFormat("yyyy-MM-dd'T'T");
   }
 
 }

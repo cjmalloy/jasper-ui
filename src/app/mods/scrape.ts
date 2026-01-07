@@ -16,8 +16,8 @@ export const scrapePlugin: Plugin = {
     internal: true,
     icons: [{ label: $localize`🪝`, order: 3 }],
     editorButtons: [
-      { label: $localize`🪝`, title: $localize`Scrape Webpage`, event: 'scrape', scheme: 'http:', global: true },
-      { label: $localize`🪝`, title: $localize`Scrape Webpage`, event: 'scrape', scheme: 'https:', global: true },
+      { label: $localize`🪝`, title: $localize`Scrape Webpage`, event: 'scrape', eventDone: 'scrape-done', scheme: 'http:', global: true },
+      { label: $localize`🪝`, title: $localize`Scrape Webpage`, event: 'scrape', eventDone: 'scrape-done', scheme: 'https:', global: true },
     ],
     description: $localize`Configure CSS classes for scraping websites.`,
     hasDefaults: true,
@@ -76,7 +76,6 @@ export const scrapePlugin: Plugin = {
     }, {
       key: 'textSelectors',
       type: 'list',
-      expressions: { hide: '!formState.config.text' },
       props: {
         label: $localize`Text Selectors: `,
         addText: $localize`+ Add text selector`,
@@ -86,6 +85,9 @@ export const scrapePlugin: Plugin = {
         props: {
           label: $localize`🎯️`,
         }
+      },
+      expressions: {
+        hide: '!field.parent.model.text',
       },
     }, {
       key: 'publishedSelectors',

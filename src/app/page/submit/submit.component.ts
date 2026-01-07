@@ -1,44 +1,77 @@
+import { AsyncPipe } from '@angular/common';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import {
   AbstractControl,
   AsyncValidatorFn,
+  ReactiveFormsModule,
   UntypedFormBuilder,
   UntypedFormControl,
   UntypedFormGroup,
   ValidationErrors,
   Validators
 } from '@angular/forms';
-import { Router } from '@angular/router';
-import { uniq, without } from 'lodash-es';
+import { Router, RouterLink, RouterOutlet } from '@angular/router';
+import { debounce, defer, isString, uniq, uniqBy, without } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
-import { catchError, forkJoin, map, mergeMap, Observable, of, switchMap, timer } from 'rxjs';
+import { MobxAngularModule } from 'mobx-angular';
+import { catchError, forkJoin, map, mergeMap, Observable, of, Subscription, switchMap, timer } from 'rxjs';
 import { scan, tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
+import { RefComponent } from '../../component/ref/ref.component';
+import { SelectPluginComponent } from '../../component/select-plugin/select-plugin.component';
+import { TabsComponent } from '../../component/tabs/tabs.component';
+import { AutofocusDirective } from '../../directive/autofocus.directive';
+import { AudioUploadComponent } from '../../formly/audio-upload/audio-upload.component';
+import { ImageUploadComponent } from '../../formly/image-upload/image-upload.component';
+import { PdfUploadComponent } from '../../formly/pdf-upload/pdf-upload.component';
+import { QrScannerComponent } from '../../formly/qr-scanner/qr-scanner.component';
+import { VideoUploadComponent } from '../../formly/video-upload/video-upload.component';
+import { Page } from '../../model/page';
 import { Plugin } from '../../model/plugin';
 import { Ref } from '../../model/ref';
 import { isWiki, wikiUriFormat } from '../../mods/wiki';
+import { TagPreviewPipe } from '../../pipe/tag-preview.pipe';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
 import { AuthzService } from '../../service/authz.service';
 import { ModService } from '../../service/mod.service';
 import { Store } from '../../store/store';
-import { URI_REGEX } from '../../util/format';
+import { Saving } from '../../store/submit';
+import { getPageTitle, URI_REGEX } from '../../util/format';
 import { fixUrl } from '../../util/http';
 import { hasPrefix } from '../../util/tag';
 
 type Validation = { test: (url: string) => Observable<any>; name: string; passed: boolean };
 
 @Component({
-  standalone: false,
   selector: 'app-submit-page',
   templateUrl: './submit.component.html',
   styleUrls: ['./submit.component.scss'],
+  imports: [
+    RefComponent,
+    MobxAngularModule,
+    TabsComponent,
+    RouterLink,
+    RouterOutlet,
+    ReactiveFormsModule,
+    SelectPluginComponent,
+    AutofocusDirective,
+    QrScannerComponent,
+    PdfUploadComponent,
+    AudioUploadComponent,
+    VideoUploadComponent,
+    ImageUploadComponent,
+    AsyncPipe,
+    TagPreviewPipe,
+  ],
 })
 export class SubmitPage implements OnInit, OnDestroy {
   private disposers: IReactionDisposer[] = [];
 
   submitForm: UntypedFormGroup;
 
+  uploading = false;
+  progress?: number;
   validations: Validation[] = [];
 
   genUrl = 'internal:' + uuid();
@@ -46,6 +79,12 @@ export class SubmitPage implements OnInit, OnDestroy {
   private _selectedPlugin?: Plugin;
   serverErrors: string[] = [];
   existingRef?: Ref;
+  responsesToUrl: Page<Ref> = Page.of([]);
+  responsesToUrlFor?: string;
+
+  listId = 'list-' + uuid();
+  autocomplete: { value: string, label: string }[] = [];
+  private searching?: Subscription;
 
   constructor(
     public admin: AdminService,
@@ -70,30 +109,36 @@ export class SubmitPage implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.disposers.push(autorun(() => {
-      this.plugin = '';
-      for (const t of this.store.submit.tags) {
-        if (hasPrefix(t, 'plugin')) {
-          this.plugin = t;
-          break;
-        }
-      }
       this.validations.length = 0;
       if (!this.admin.isWikiExternal() && this.store.submit.wiki) {
-        this.validations.push({ name: 'Valid title', passed: false, test: url => of(this.linkType(this.fixed(url))) });
-        this.validations.push({ name: 'Not created yet', passed: true, test: url => this.exists(this.fixed(url)).pipe(map(exists => !exists)) });
+        this.validations.push({ name: $localize`Valid title`, passed: false, test: url => of(this.linkType(this.fixed(url))) });
+        this.validations.push({ name: $localize`Not created yet`, passed: true, test: url => this.exists(this.fixed(url)).pipe(map(exists => !exists)) });
       } else {
         this.url.setValue(this.store.submit.url);
-        this.validations.push({ name: 'Valid link', passed: false, test: url => of(this.linkType(this.fixed(url))) });
-        this.validations.push({ name: 'Not submitted yet', passed: true, test: url => this.exists(this.fixed(url)).pipe(map(exists => !exists)) });
-        this.validations.push({ name: 'No link shorteners', passed: true, test: url => of(!this.isShortener(this.fixed(url))) });
+        this.validations.push({ name: $localize`Valid link`, passed: false, test: url => of(this.linkType(this.fixed(url))) });
+        this.validations.push({ name: $localize`Not submitted yet`, passed: true, test: url => this.exists(this.fixed(url)).pipe(map(exists => !exists)) });
+        this.validations.push({ name: $localize`No link shorteners`, passed: true, test: url => of(!this.isShortener(this.fixed(url))) });
       }
       this.url.updateValueAndValidity();
+      if (this.url.value) {
+        const tags = [
+          ...this.store.submit.tags,
+          ...this.admin.getPluginsForUrl(this.store.submit.url).map(p => p.tag),
+        ];
+        for (const t of tags) {
+          if (hasPrefix(t, 'plugin')) {
+            this.plugin = t;
+            break;
+          }
+        }
+      }
     }));
   }
 
   ngOnDestroy() {
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
+    this.searching?.unsubscribe();
   }
 
   get selectedPlugin() {
@@ -122,7 +167,7 @@ export class SubmitPage implements OnInit, OnDestroy {
   }
 
   get bannedUrls() {
-    return this.admin.getTemplate('banlist')?.config?.bannedUrls || this.admin.def.templates.banlist?.config?.bannedUrls;
+    return this.admin.getTemplate('config/banlist')?.config?.bannedUrls || this.admin.def.templates['config/banlist']?.config?.bannedUrls;
   }
 
   submitInternal(tag: string) {
@@ -133,20 +178,29 @@ export class SubmitPage implements OnInit, OnDestroy {
     if (this.store.submit.wiki) {
       return wikiUriFormat(url, this.admin.getWikiPrefix());
     }
-    return fixUrl(url, this.admin.getTemplate('banlist') || this.admin.def.templates.banlist);
+    return fixUrl(url, this.admin.getTemplate('config/banlist') || this.admin.def.templates['config/banlist']);
   }
 
   exists(url: string) {
-    if (this.linkType(url)) {
-      if (this.existingRef?.url === url && this.existingRef.origin === this.store.account.origin) return of(true);
-      return timer(400).pipe(
-        switchMap(() => this.refs.getCurrent(url)),
-        tap(ref => this.existingRef = ref),
-        map(ref => ref.url === url && ref.origin === this.store.account.origin),
+    if (!this.linkType(url)) return of(false);
+    if (this.existingRef?.url === url && this.existingRef.origin === this.store.account.origin) return of(true);
+    if (this.responsesToUrlFor === url) return of(false);
+    return timer(400).pipe(
+      switchMap(() => this.refs.page({ url, size: 1, query: this.store.account.origin || '*', obsolete: null })),
+      map(page => {
+        this.existingRef = page.content[0];
+        return !!this.existingRef;
+      }),
+      catchError(err => of(false)),
+      switchMap(exists => this.refs.page({ responses: url, size: 10, query: exists ? 'plugin/repost' : '', obsolete: null }).pipe(
+        map(page => {
+          this.responsesToUrl = page;
+          this.responsesToUrlFor = url;
+          return false;
+        }),
         catchError(err => of(false)),
-      );
-    }
-    return of(false);
+      )),
+    );
   }
 
   isShortener(url: string) {
@@ -183,20 +237,30 @@ export class SubmitPage implements OnInit, OnDestroy {
     });
   }
 
-  upload(file: { url: string, name: string}) {
-    let tags = this.store.submit.tags;
-    if (this.store.submit.web && this.plugin) {
-      tags.push(this.plugin);
+  onUpload(event?: Saving | string) {
+    if (!event) {
+      this.uploading = false;
+    } else if (isString(event)) {
+      // TODO set error
+    } else if (event.url) {
+      this.uploading = false;
+      const tags = this.store.submit.tags;
+      if (this.store.submit.web && this.plugin) {
+        tags.push(this.plugin);
+      }
+      this.router.navigate(['./submit', 'text'], {
+        queryParams: {
+          upload: event.url,
+          plugin: this.plugin,
+          title: event.name,
+          tag: uniq(tags),
+        },
+        queryParamsHandling: 'merge',
+      });
+    } else {
+      this.uploading = true;
+      this.progress = event.progress || undefined;
     }
-    this.router.navigate(['./submit', 'text'], {
-      queryParams: {
-        upload: file.url,
-        plugin: this.plugin,
-        title: file.name,
-        tag: uniq(tags),
-      },
-      queryParamsHandling: 'merge',
-    });
   }
 
   validLink(control: AbstractControl): Observable<ValidationErrors | null> {
@@ -244,4 +308,30 @@ export class SubmitPage implements OnInit, OnDestroy {
       queryParamsHandling: 'merge'
     });
   }
+
+  getUrlPlugin() {
+    defer(() => {
+      if (!this.plugin && this.url.value) {
+        for (const t of this.admin.getPluginsForUrl(this.url.value).map(p => p.tag)) {
+          if (hasPrefix(t, 'plugin')) {
+            this.plugin = t;
+            break;
+          }
+        }
+      }
+    });
+  }
+
+  search = debounce((value: string) => {
+    if (!value) return;
+    this.searching?.unsubscribe();
+    this.searching = this.refs.page({
+      search: value,
+      size: 3,
+    }).pipe(
+      catchError(() => of(Page.of([])))
+    ).subscribe(page => {
+      this.autocomplete = uniqBy(page.content, ref => ref.url).map(ref => ({ value: ref.url, label: getPageTitle(ref) }));
+    });
+  }, 400);
 }

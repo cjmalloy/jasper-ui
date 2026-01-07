@@ -5,6 +5,7 @@ body {
   --bg-hover: rgba(255, 255, 255, 0.2);
   --bg-active: rgba(255, 255, 255, 0.4);
   --text: black;
+  --visited: #551a8b;
   --blue: rgba(207, 221, 255, 0.7);
   --active: #da0000;
   --info: gray;
@@ -46,6 +47,30 @@ body.fullscreen {
   }
 }
 
+.cdk-overlay-backdrop.hide {
+  opacity: 0;
+}
+
+input[type=color].cleared::-moz-color-swatch {
+  opacity: 0;
+}
+
+input[type=color]::-moz-color-swatch {
+  border-radius: 3px;
+}
+
+input[type=color].cleared::-webkit-color-swatch-wrapper {
+  opacity: 0;
+}
+
+input[type=color]::-webkit-color-swatch-wrapper {
+  border-radius: 3px;
+}
+
+input[type=color]::-webkit-color-swatch {
+  border-radius: 3px;
+}
+
 input[type="color"],
 input[type="date"],
 input[type="datetime"],
@@ -85,7 +110,7 @@ textarea {
     min-height: 72px;
     line-height: 72px;
     background-repeat: repeat-x !important;
-    background-image: url("~/assets/debug.png") !important;
+    background-image: url("../assets/debug.png") !important;
     border-top: 2px solid var(--border);
     border-bottom: 2px solid var(--border);
   }
@@ -118,7 +143,11 @@ textarea {
   color: var(--tag) !important;
 }
 
-.pinned .link {
+.new-resp {
+  color: var(--active);
+}
+
+.pinned > .row > .stack > .link {
   :link, :visited, :active {
     color: var(--mod) !important;
   }
@@ -272,6 +301,7 @@ input:not([type=checkbox]):not([type=radio]) {
 }
 
 input:not([type=checkbox]):not([type=radio]),
+select,
 textarea {
   box-sizing: border-box;
   padding-block: 2px;
@@ -588,6 +618,14 @@ video.qr-preview {
   overflow: hidden;
 }
 
+.popup {
+  padding: 8px;
+  background-color: var(--card) !important;
+  box-shadow: 0 5px 5px -3px rgba(0, 0, 0, 0.2),
+              0 8px 10px 1px rgba(0, 0, 0, 0.14),
+              0 3px 14px 2px rgba(0, 0, 0, 0.12);
+}
+
 .context-menu {
   user-select: none;
   border-radius: 2px;
@@ -620,6 +658,36 @@ video.qr-preview {
   margin: 8px;
 }
 
+
+.submit-button {
+  white-space: nowrap;
+  text-transform: capitalize;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  margin: 4px 0;
+  padding: 4px;
+  cursor: pointer;
+  overflow: hidden;
+  user-select: none;
+  transition: background-color 0.2s;
+  &:hover {
+    background-color: var(--bg-hover);
+    &:active {
+      background-color: var(--bg-active);
+    }
+  }
+  &.toggled {
+    background-color: var(--bg-hover);
+    border: 1px dashed var(--border);
+  }
+  label {
+    margin-left: 16px;
+  }
+  * {
+    cursor: pointer;
+  }
+}
+
 .warning {
   font-size: 80%;
   font-style: italic;
@@ -641,11 +709,17 @@ video.qr-preview {
   overflow: hidden;
 }
 
+.add-more,
 .overwrite.warning,
 .force.error {
+  display: flex;
+  align-items: center;
   font-size: 100% !important;
   margin-right: 16px !important;
   padding: 0 !important;
+  input {
+    margin: 4px;
+  }
 }
 
 .tag,
@@ -966,8 +1040,21 @@ video.qr-preview {
 
   &:not(.expanded) {
     width: 40px;
-    .tag-header, .ui, .md, .sidebar-link, .ext-text, .breadcrumbs {
-      display: none;
+    .tag-header, .ui, .md, .sidebar-link, .ext-text, .breadcrumbs, app-nav {
+      display: none !important;
+    }
+    .tag-select {
+      display: block;
+    }
+    .tag-select > * {
+      padding: 4px !important;
+    }
+  }
+
+  &.expanded {
+    .tag-select > * {
+      margin: 4px;
+      padding: 8px;
     }
   }
 
@@ -1013,28 +1100,7 @@ video.qr-preview {
   }
 
   .submit-button {
-    white-space: nowrap;
-    text-transform: capitalize;
-    border: 1px solid var(--border);
-    border-radius: 2px;
     margin: 4px 0;
-    padding: 4px;
-    cursor: pointer;
-    overflow: hidden;
-    user-select: none;
-    transition: background-color 0.2s;
-    &:hover {
-      background-color: var(--bg-hover);
-      &:active {
-        background-color: var(--bg-active);
-      }
-    }
-    label {
-      margin-left: 16px;
-    }
-    * {
-      cursor: pointer;
-    }
   }
 
   .tag-header {
@@ -1114,6 +1180,20 @@ video.qr-preview {
   }
 }
 
+.hotkey {
+  .sidebar .breadcrumbs .tag {
+    color: var(--text);
+    text-decoration: unset;
+    cursor: text;
+  }
+  .form {
+     .breadcrumbs .tag span {
+       text-decoration: underline !important;
+       cursor: pointer !important;
+     }
+   }
+}
+
 details.advanced {
   transition: max-height 1s;
   max-height: 37px;
@@ -1156,7 +1236,7 @@ details.advanced {
 }
 
 details.advanced[open] {
-  max-height: 1000px;
+  max-height: 2000px;
   summary > span {
     &:after {
       content: '🔆';
@@ -1209,6 +1289,7 @@ details.mini:not([open]) {
     padding: 0 10px;
     font-weight: bold;
     height: 100%;
+    min-width: 18px;
     max-height: 57px;
     line-height: 57px;
   }
@@ -1232,6 +1313,10 @@ details.mini:not([open]) {
   }
 }
 
+progress.grow {
+  height: 100%;
+}
+
 .no-margin {
   margin: 0 !important;
 }
@@ -1250,6 +1335,10 @@ formly-list-section .form-array > formly-field > formly-group {
   padding: 10px;
   .shrink select {
     margin-top: 2px;
+  }
+  .nested-title {
+    text-align: left;
+    margin: 12px 4px 0;
   }
   .nested-form,
   .field,
@@ -1288,6 +1377,26 @@ formly-list-section .form-array > formly-field > formly-group {
     user-select: none;
     white-space: nowrap;
   }
+  .block-form {
+    display: flex;
+    align-items: center;
+  }
+}
+
+.nested-footer-left, .nested-footer-right {
+  border: none;
+  border-top: 0.5px dotted var(--border);
+  position: relative;
+  width: calc(100% + 16px);
+  margin-bottom: 8px !important;
+}
+
+.nested-footer-left {
+  left: -16px;
+}
+
+.nested-footer-right {
+  left: 0.5px;
 }
 
 .show-drops {
@@ -1323,7 +1432,7 @@ formly-list-section .form-array > formly-field > formly-group {
   }
   & > * {
     margin-right: 4px;
-    &:last-child, input[file] {
+    &:last-child, input[file], .preview {
       margin-right: 0 !important;
     }
   }
@@ -1470,6 +1579,7 @@ formly-field-radio, formly-field-multicheckbox {
   line-height: 24px;
   padding: 2px;
   margin: 10px;
+  white-space: nowrap;
 
   .disabled {
     pointer-events: none;
@@ -1495,7 +1605,7 @@ formly-field-radio, formly-field-multicheckbox {
   overflow: hidden;
 
   &.default-thumbnail {
-    background-image: url("~/assets/default-thumbnail.png");
+    background-image: url("../assets/default-thumbnail.png");
   }
 }
 
@@ -1521,10 +1631,11 @@ formly-field-radio, formly-field-multicheckbox {
 }
 
 .email {
-  .thumbnail, .link {
+  & > .row .thumbnail,
+  & > .row > .stack > .link {
     display: none;
   }
-  .list-item .expand {
+  &.list-item > .embed > .expand {
     border: none;
   }
 }
@@ -1533,8 +1644,54 @@ formly-field-radio, formly-field-multicheckbox {
   display: block;
 }
 
-.ref.thread textarea {
-  max-width: 800px;
+.ref.thread,
+.ref.plugin_thread  {
+  textarea {
+    max-width: 800px;
+  }
+}
+
+.ref-list .ref.plugin_thread.plugin_placeholder {
+  .expand {
+    animation: fadein 2s ease-in-out;
+    animation-iteration-count: infinite;
+  }
+  .actions, .info {
+    transition: opacity 0.2s linear;
+    opacity: 0;
+  }
+  &:hover {
+    .actions, .info {
+      transition: opacity 0.2s 1s linear;
+      opacity: 1;
+      animation: none;
+    }
+  }
+  &:not(:hover) {
+    transition: border-color 0.2s linear,
+                background-color 0.2s linear,
+                box-shadow 0.2s linear;
+    border-color: transparent !important;
+    background-color: transparent !important;
+    box-shadow: none !important;
+  }
+  &:hover {
+    transition: border-color 0.2s 1s linear,
+                background-color 0.2s 1s linear,
+                box-shadow 0.2s 1s linear;
+  }
+}
+
+@keyframes fadein {
+  from {
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
 }
 
 .thread > .ref-list > .list-container > .ref,
@@ -1570,7 +1727,12 @@ formly-field-radio, formly-field-multicheckbox {
   }
   &.exists {
     &:before {
-      border-left: var(--upload-border) solid var(--error);
+      border-left: var(--upload-border) solid var(--tag);
+    }
+    &.outdated {
+      &:before {
+        border-left: var(--upload-border) solid var(--error);
+      }
     }
   }
 }
@@ -1612,8 +1774,12 @@ formly-field-radio, formly-field-multicheckbox {
     }
   }
 }
+.parent-ref.thread {
+  & > .row > .stack > .link-below > .toggle {
+    display: none;
+  }
+}
 .thread > .ref-list > .list-container > .ref,
-.parent-ref.thread,
 .full-page.ref.thread {
   & > .row > .stack > .comment-title,
   & > .row > .stack > .link-below > .toggle {
@@ -1695,7 +1861,7 @@ formly-field-radio, formly-field-multicheckbox {
 .comment {
   margin-left: 10px;
 
-  .voting {
+  & > .row > .voting {
     margin-top: 4px;
     margin-right: 2px;
     font-size: 80%;
@@ -1706,11 +1872,12 @@ formly-field-radio, formly-field-multicheckbox {
     }
   }
 
-  .comment-children {
+  & > .comment-children {
     margin-left: 18px;
   }
 
-  .comment-container {
+  & > .comment-container,
+  & > .row .comment-container {
     padding: 2px;
     border: 1px solid transparent;
     &:focus-visible {
@@ -1718,12 +1885,13 @@ formly-field-radio, formly-field-multicheckbox {
     }
   }
 
-  .comment-body, .row > .comment-container > .actions {
+  & > .row .comment-container > .comment-body,
+  & > .row > .comment-container > .actions {
     padding: 4px;
     margin-left: 20px;
   }
 
-  .collapsed {
+  & > .collapsed {
     font-style: italic;
 
     .comment-expand {
@@ -1731,7 +1899,7 @@ formly-field-radio, formly-field-multicheckbox {
     }
   }
 
-  .info {
+  & > .row > .comment-container > .info {
     .author {
       font-weight: bold;
     }
@@ -1771,6 +1939,7 @@ formly-field-radio, formly-field-multicheckbox {
 .info {
   font-size: 80%;
   color: var(--info);
+  white-space: nowrap;
 
   :link, :visited, a:active {
     color: var(--tag);
@@ -1787,6 +1956,7 @@ formly-field-radio, formly-field-multicheckbox {
   padding: 2px 0;
   height: 14px;
   user-select: none;
+  white-space: nowrap;
 
   a, .fake-link {
     margin: 2px 6px 2px 0;
@@ -1801,30 +1971,32 @@ formly-field-radio, formly-field-multicheckbox {
     color: var(--info) !important;
   }
 
-  input {
-    margin: 0;
-    font-size: 85%;
-    height: 16px !important;
-    &:invalid {
-      color: var(--error);
+  .action > span {
+    & > input {
+      margin: 0;
+      font-size: 85%;
+      height: 16px !important;
+      &:invalid {
+        color: var(--error);
+      }
     }
-  }
 
-  select {
-    margin-top: -4px;
-    min-height: 20px;
-    height: 20px;
-  }
+    & > select {
+      margin-top: -4px;
+      min-height: 20px;
+      height: 20px;
+    }
 
-  button {
-    position: relative;
-    top: 1px;
-    margin: 0 6px;
-    padding: 0 4px;
-    height: 14px;
-    min-width: 0 !important;
-    min-height: 0 !important;
-    line-height: 10px;
+    & > button {
+      position: relative;
+      top: 1px;
+      margin: 0 6px;
+      padding: 0 4px;
+      height: 14px;
+      min-width: 0 !important;
+      min-height: 0 !important;
+      line-height: 10px;
+    }
   }
 }
 
@@ -1832,12 +2004,12 @@ formly-field-radio, formly-field-multicheckbox {
   color: var(--active) !important;
 }
 
-.ref.parent-ref {
+.ref.parent-ref > .row {
   margin-left: 20px;
-  .thumbnail {
+  & > .thumbnail {
     display: none;
   }
-  .link {
+  & > .stack > .link {
     &:before {
       content: '⤴️';
       font-size: 80%;
@@ -1851,11 +2023,13 @@ formly-field-radio, formly-field-multicheckbox {
       font-size: 70%;
     }
   }
-  .info {
-    font-size: 70%;
-  }
-  .actions {
-    display: none;
+  & > .stack > .link-below > .stack {
+    & > .info {
+      font-size: 70%;
+    }
+    & > .actions {
+      display: none;
+    }
   }
 }
 
@@ -1885,39 +2059,54 @@ formly-field-radio, formly-field-multicheckbox {
 }
 
 .image-expand {
-  height: 240px;
+  height: 600px;
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
+}
 
-  &.loading {
-    border-radius: 7px;
-    opacity: 50%;
-    animation-duration: 4s;
-    animation-name: image-loading;
-    animation-iteration-count: infinite;
-    animation-timing-function: linear;
+.loading {
+  max-width: 60em;
+  color: transparent;
+  user-select: none;
+  background-image: url("../assets/image-loading.png");
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: unset;
+  border-radius: 7px;
+  opacity: 50%;
+  animation-duration: 4s;
+  animation-name: image-loading;
+  animation-iteration-count: infinite;
+  animation-timing-function: linear;
+
+  * {
+    display: none;
   }
-  @keyframes image-loading {
-    from {
-      box-shadow: inset 0 0 5px grey;
-    }
 
-    5% {
-      box-shadow: inset 0 0 5px grey;
-    }
+  &.inline-embed, &.embed-container {
+    height: 600px;
+  }
+}
+@keyframes image-loading {
+  from {
+    box-shadow: inset 0 0 5px grey;
+  }
 
-    35% {
-      box-shadow: inset 0 0 30px grey;
-    }
+  5% {
+    box-shadow: inset 0 0 5px grey;
+  }
 
-    70% {
-      box-shadow: inset 0 0 30px grey;
-    }
+  35% {
+    box-shadow: inset 0 0 30px grey;
+  }
 
-    to {
-      box-shadow: inset 0 0 5px grey;
-    }
+  70% {
+    box-shadow: inset 0 0 30px grey;
+  }
+
+  to {
+    box-shadow: inset 0 0 5px grey;
   }
 }
 
@@ -1942,10 +2131,11 @@ formly-field-radio, formly-field-multicheckbox {
 
 .load-more {
   display: inline-block;
+  margin: auto;
   font-size: 80%;
   font-weight: bold;
   padding: 10px;
-  color: var(--info);
+  color: var(--info) !important;
 }
 
 .empty-plugins {
@@ -1982,7 +2172,7 @@ footer {
   }
 }
 
-button.backup, button.backfill, button.upload, input.upload {
+.backup.buttons button, input.upload {
   margin: 10px;
 }
 
@@ -2017,6 +2207,10 @@ button.backup, button.backfill, button.upload, input.upload {
     margin-bottom: 0;
   }
 
+  p:empty {
+    display: none;
+  }
+
   p {
     text-align: justify;
     & > app-nav > .tag {
@@ -2047,13 +2241,8 @@ button.backup, button.backfill, button.upload, input.upload {
 
   hr {
     border: none;
-    height: 2px;
-    background: var(--info);
-    border-top: 1px groove var(--border);
-    hr {
-      border: none;
-      border-top: 1px groove var(--border-accent);
-    }
+    height: 0;
+    border-top: 0.5px dotted var(--border);
   }
 
   td, th {
@@ -2082,380 +2271,14 @@ button.backup, button.backfill, button.upload, input.upload {
   }
 }
 
-ngx-monaco-editor {
+ngx-monaco-editor,
+ngx-monaco-diff-editor {
   position: relative;
   border: 1px solid var(--border);
   .editor-container {
     height: 100% !important;
   }
-}
-
-.kanban {
-  padding: 4px;
-  grid-gap: 8px;
-
-  .column-title {
-    justify-self: center;
-    width: calc(100% - 32px);
-  }
-  .column-title, .swim-lane-title {
-    margin: 8px 0;
-    padding: 4px;
-    border-radius: 12px !important;
-    font-weight: bold;
-    text-align: center;
-
-    transform: scale(1);
-    transform-origin: center;
-    transition: transform 0.1s cubic-bezier(.47,1.64,.8,1.2);
-    &:hover {
-      z-index: 1;
-      transform: scale(1.01);
-    }
-  }
-  .kanban-column {
-    justify-self: center;
-    border: 1px solid transparent;
-
-    &:hover {
-      border: 1px dashed var(--border);
-    }
-  }
-
-  .kanban-header {
-    margin-top: 8px;
-    .kanban-remove {
-      border-radius: 4px;
-      background-color: var(--placeholder);
-    }
-    &.cdk-drop-list-dragging {
-      .kanban-remove {
-        background-color: var(--deleting);
-      }
-    }
-
-    .cdk-drag-placeholder {
-      display: none;
-    }
-  }
-}
-
-.kanban-card-container,
-.note-container {
-  .row * {
-    align-self: center;
-  }
-}
-
-.kanban-card,
-.note {
-  padding: 4px;
-  margin-top: 2px;
-  border-radius: 4px;
-  background-color: var(--card);
-  .plugin_thread .toggle {
-    background-color: var(--toggle-accent);
-  }
-
-  .md p {
-    text-align: left;
-  }
-}
-
-.kanban-card {
-  &.unlocked {
-    border-radius: 5px;
-    border: 0.25px dashed var(--border-accent);
-  }
-  &:hover {
-    filter: drop-shadow(0 0 0.5px var(--border));
-  }
-  &.cdk-drag-placeholder {
-    background-color: var(--placeholder);
-  }
-  &.no-write {
-    cursor: no-drop !important;
-
-    &.cdk-drag-preview {
-      pointer-events: auto !important;
-      cursor: no-drop !important;
-      * {
-        pointer-events: none !important;
-      }
-    }
-  }
-  transform: scale(1);
-  transform-origin: center;
-  transition: transform 0.1s cubic-bezier(.47,1.64,.8,1.2);
-  &.unlocked {
-    z-index: 1;
-    transform: scale(1.05);
-  }
-  &:hover {
-    z-index: 1;
-    transform: scale(1.01);
-  }
-  &:not(.no-write) {
-    cursor: grab;
-  }
-  .card-title, .thumbnail {
-    margin-bottom: 4px;
-  }
-  &.cdk-drag-preview {
-    transition: transform 0s;
-    box-shadow: 0 5px 5px -3px rgba(0, 0, 0, 0.2),
-    0 8px 10px 1px rgba(0, 0, 0, 0.14),
-    0 3px 14px 2px rgba(0, 0, 0, 0.12);
-  }
-  &.cdk-drag-placeholder {
-    transition: transform 0s;
-    * {
-      visibility: hidden !important;
-    }
-  }
-}
-
-.form .todo-list > input {
-  display: block !important;
-}
-
-.nested-form .todo-list {
-  padding-bottom: 4px !important;
-  & > input {
-    display: block !important;
-  }
-  & > .spacer {
-    display: none !important;
-  }
-}
-
-.todo-item {
-  padding: 4px;
-  margin-top: 2px;
-  border-radius: 4px;
-  background-color: var(--card);
-
-  textarea {
-    height: 64px !important;
-    resize: none;
-  }
-
-  &.unlocked {
-    border-radius: 5px;
-    border: 0.25px dashed var(--border-accent);
-  }
-  &:hover {
-    filter: drop-shadow(0 0 0.5px var(--border));
-  }
-  &.cdk-drag-placeholder {
-    background-color: var(--placeholder);
-  }
-
-  .md p {
-    text-align: left;
-    margin: 1px;
-  }
-
-  &.no-write {
-    cursor: no-drop !important;
-
-    &.cdk-drag-preview {
-      pointer-events: auto !important;
-      cursor: no-drop !important;
-      * {
-        pointer-events: none !important;
-      }
-    }
-  }
-
-  transform: scale(1);
-  transform-origin: center;
-  transition: transform 0.1s cubic-bezier(.47,1.64,.8,1.2);
-  &.unlocked {
-    z-index: 1;
-    transform: scale(1.05);
-  }
-  &:hover {
-    z-index: 1;
-    transform: scale(1.01);
-  }
-
-  &:not(.no-write) {
-    cursor: grab;
-  }
-
-  &.cdk-drag-preview {
-    transition: transform 0s;
-    box-shadow: 0 5px 5px -3px rgba(0, 0, 0, 0.2),
-    0 8px 10px 1px rgba(0, 0, 0, 0.14),
-    0 3px 14px 2px rgba(0, 0, 0, 0.12);
-  }
-
-  &.cdk-drag-placeholder {
-    transition: transform 0s;
-    * {
-      visibility: hidden !important;
-    }
-  }
-}
-
-.blog {
-  .blog-entry {
-    .blog-title {
-      max-width: 40em;
-      word-wrap: break-word;
-    }
-    .blog-body {
-      .expand {
-        border: none;
-      }
-    }
-    display: block;
-    max-width: calc(100vw - 8px);
-    overflow: hidden;
-    border: 1px solid transparent;
-    margin: 2px;
-    padding: 2px;
-
-    .row {
-      margin-left: 10px;
-    }
-
-    .link-below {
-      display: flex;
-    }
-  }
-}
-
-.chat {
-  .odd > * {
-    background-color: var(--bg-accent);
-    backdrop-filter: blur(1px);
-  }
-
-  .gutter {
-    opacity: 0.5;
-  }
-
-  .focused {
-    margin: 4px;
-  }
-
-  .messages {
-    max-height: 80vh;
-    .cdk-virtual-scroll-content-wrapper {
-      display: grid;
-      grid-template-columns: min-content auto;
-      width: 100%;
-    }
-  }
-}
-
-.desktop {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  align-content: flex-start;
-  max-width: 100vw;
-  height: 90vh;
-}
-
-.file, .subfolder {
-  display: block;
-  padding: 6px;
-  border-radius: 16px;
-  &:hover, &:active, &.cdk-drag-dragging {
-    z-index: 1000;
-    box-shadow: inset 0 0 5px grey;
-    backdrop-filter: blur(3px);
-    transition: box-shadow 0.1s ease-out;
-  }
-  &.cdk-drag-dragging {
-    box-shadow: inset 0 0 10px grey;
-    transition: box-shadow 0.1s ease-in;
-  }
-  width: 128px;
-  min-height: 128px;
-  display: inline-block;
-  user-select: none;
-  text-align: center;
-  .row {
-    justify-content: center;
-    a {
-      -webkit-box-orient: vertical;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: normal;
-    }
-  }
-  .thumbnail {
-    width: 128px;
-    height: 128px;
-    line-height: 128px;
-    font-size: 64px;
-    cursor: default;
-  }
-  :focus, :focus-within {
-    .folder-icon {
-      filter: drop-shadow(0 0 2px var(--border));
-    }
-  }
-}
-
-.chess-piece {
-  cursor: grab;
-  text-align: center;
-  vertical-align: middle;
-  &.w {
-    color: #DC9;
-    filter: drop-shadow(1px 1px 1px black);
-  }
-  &.b {
-    color: #111;
-    filter: drop-shadow(0 0 1px rgba(200, 200, 200, 0.5));
-  }
-  &.cdk-drag-placeholder {
-    display: none !important;
-  }
-  &.cdk-drag-preview {
-    font-size: var(--drag-piece-size) !important;
-  }
-  &.disabled {
-    cursor: default !important;
-  }
-}
-
-.backgammon-piece {
-  cursor: grab;
-  text-align: center;
-  vertical-align: middle;
-  transition: transform 250ms cubic-bezier(0, 0, 0.2, 1), scale 250ms cubic-bezier(0, 0, 0.2, 1);
-
-  &.cdk-drag-preview {
-    font-size: var(--drag-piece-size) !important;
-    transform: scale(1.2);
-  }
-  &.disabled {
-    cursor: default !important;
-  }
-}
-
-.backgammon-spot, .backgammon-bar, .backgammon-off {
-  .backgammon-piece.cdk-drag-placeholder {
-    opacity: 0;
-  }
-  &:not(.drag-source) {
-    .backgammon-piece.cdk-drag-placeholder {
-      height: 0 !important;
-    }
-  }
-}
-
-.cdk-drop-list-dragging {
-  .chess-piece {
-    transform: scale(0.9) !important;
-    transition: transform 0.1s ease-in-out;
+  .monaco-diff-editor {
+    background: var(--vscode-editor-background);
   }
 }

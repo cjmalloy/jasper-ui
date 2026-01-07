@@ -33,6 +33,11 @@ export class PluginStore {
     this.args = undefined;
     this.page = undefined;
     this.error = undefined;
+    this.running?.unsubscribe();
+  }
+
+  close() {
+    if (this.running && !this.running.closed) this.clear();
   }
 
   setArgs(args: TagPageArgs) {

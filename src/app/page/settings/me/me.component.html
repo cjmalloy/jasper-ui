@@ -4,6 +4,12 @@
         (ngSubmit)="save()"
         [appLimitWidth]="form?.fillPopover?.nativeElement || form?.fillSidebar?.nativeElement"
         [limitSibling]="true">
+
+    @if (store.local.selectedUserTag || config.electron || isDevMode() || store.account.localTag === '+user' || store.account.localTag === '_user') {
+      <label for="change-user" i18n>Change User:</label>
+      <app-user-tag-selector id="change-user"></app-user-tag-selector>
+      <hr><hr>
+    }
     <app-ext-form #form [group]="editForm"></app-ext-form>
 
     @for (e of serverError; track e) {

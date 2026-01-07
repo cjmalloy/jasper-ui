@@ -1,10 +1,21 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostBinding, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import {
+  ReactiveFormsModule,
+  UntypedFormBuilder,
+  UntypedFormControl,
+  UntypedFormGroup,
+  Validators
+} from '@angular/forms';
+import { Router, RouterLink } from '@angular/router';
 import { defer, isObject } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
+import { MobxAngularModule } from 'mobx-angular';
 import { catchError, of, Subscription, switchMap, throwError } from 'rxjs';
+import { LoadingComponent } from '../../component/loading/loading.component';
+import { SelectTemplateComponent } from '../../component/select-template/select-template.component';
+import { SettingsComponent } from '../../component/settings/settings.component';
+import { LimitWidthDirective } from '../../directive/limit-width.directive';
 import { extForm, ExtFormComponent } from '../../form/ext/ext.component';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ext } from '../../model/ext';
@@ -19,10 +30,19 @@ import { printError } from '../../util/http';
 import { access, hasPrefix, localTag, prefix } from '../../util/tag';
 
 @Component({
-  standalone: false,
   selector: 'app-ext-page',
   templateUrl: './ext.component.html',
   styleUrls: ['./ext.component.scss'],
+  imports: [
+    MobxAngularModule,
+    RouterLink,
+    SettingsComponent,
+    ReactiveFormsModule,
+    SelectTemplateComponent,
+    LoadingComponent,
+    LimitWidthDirective,
+    ExtFormComponent,
+  ],
 })
 export class ExtPage implements OnInit, OnDestroy, HasChanges {
   private disposers: IReactionDisposer[] = [];
@@ -35,8 +55,8 @@ export class ExtPage implements OnInit, OnDestroy, HasChanges {
   created = false;
   submitted = false;
   invalid = false;
+  overwritten = false;
   overwrite = false;
-  force = false;
   extForm: UntypedFormGroup;
   editForm!: UntypedFormGroup;
   serverError: string[] = [];
@@ -46,6 +66,8 @@ export class ExtPage implements OnInit, OnDestroy, HasChanges {
   creating?: Subscription;
   editing?: Subscription;
   deleting?: Subscription;
+
+  private overwrittenModified? = '';
 
   constructor(
     private mod: ModService,
@@ -186,28 +208,28 @@ export class ExtPage implements OnInit, OnDestroy, HasChanges {
     let ext = {
       ...this.editForm.value,
       tag: this.store.view.ext!.tag, // Need to fetch because control is disabled
-      modifiedString: this.store.view.ext!.modifiedString,
+      modifiedString: this.overwrite ? this.overwrittenModified : this.store.view.ext!.modifiedString,
     };
-    if (!this.overwrite) {
-      const config = this.store.view.ext!.config;
-      ext = {
-        ...this.store.view.ext,
-        ...ext,
-        config: {
-          ...isObject(config) ? config : {},
-          ...ext.config,
-        },
-      };
-    }
-    this.editing = this.exts.update(ext, this.force).pipe(
+    const config = this.store.view.ext!.config;
+    ext = {
+      ...this.store.view.ext,
+      ...ext,
+      config: {
+        ...isObject(config) ? config : {},
+        ...ext.config,
+      },
+    };
+    this.editing = this.exts.update(ext).pipe(
       catchError((res: HttpErrorResponse) => {
         delete this.editing;
         if (res.status === 400) {
-          if (this.invalid && this.overwrite) {
-            this.force = true;
-          } else {
-            this.invalid = true;
-          }
+          this.invalid = true;
+          console.log(res.message);
+          // TODO: read res.message to find which fields to delete
+        }
+        if (res.status === 409) {
+          this.overwritten = true;
+          this.exts.get(ext.tag + ext.origin).subscribe(x => this.overwrittenModified = x.modifiedString);
         }
         this.serverError = printError(res);
         return throwError(() => res);
@@ -215,7 +237,7 @@ export class ExtPage implements OnInit, OnDestroy, HasChanges {
     ).subscribe(() => {
       delete this.editing;
       this.editForm.markAsPristine();
-      if (ext.tag === 'home' && this.admin.getTemplate('home')) {
+      if (ext.tag === 'config/home' && this.admin.getTemplate('config/home')) {
         this.router.navigate(['/home']);
       } else {
         this.router.navigate(['/tag', ext.tag]);

@@ -1,0 +1,15 @@
+<a class="fake-link" (click)="editing = !editing">
+  <ng-content></ng-content>
+</a>
+@if (editing) {
+  <div class="bubble inline-plugin row">
+    <app-form-gen class="stretch"
+                  [bulk]="true"
+                  (keydown)="$event.key === 'Enter' && save() || true"
+                  [plugins]="group"
+                  [plugin]="plugin"></app-form-gen>
+    <button type="button" (click)="save()" i18n>+</button>
+  </div>
+} @else if (acting) {
+  <app-loading [inline]="true"></app-loading>
+}

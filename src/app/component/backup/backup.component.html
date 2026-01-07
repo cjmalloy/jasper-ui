@@ -9,13 +9,15 @@
   <div class="info">
     @if (inProgress) {
       <span i18n>in progress...</span>
+    } @else if (size) {
+      <span>{{ fileSize }}</span>
     }
   </div>
   <div class="actions">
     <a [routerLink]="['/ref', downloadLink]" i18n>ref</a>
     @if (store.account.admin) {
       @if (!inProgress) {
-        <app-confirm-action [action]="restore$">restore</app-confirm-action>
+        <app-confirm-action #restoreButton [action]="restore$">restore</app-confirm-action>
       }
       <app-confirm-action [action]="delete$">delete</app-confirm-action>
     }
@@ -26,3 +28,52 @@
 @for (e of serverError; track e) {
   <div class="error">{{ e }}</div>
 }
+
+<ng-template #restoreOptions>
+  <div class="popup bubble" (click)="$event.stopPropagation()" [formGroup]="restoreOptionsForm">
+    <div class="form">
+      <label for="restoreCache" i18n>Cache</label>
+      <div>
+        <input id="restoreCache" type="checkbox" formControlName="cache">
+      </div>
+      <label for="restoreRefs" i18n>Refs</label>
+      <div>
+        <input id="restoreRefs" type="checkbox" formControlName="ref">
+      </div>
+      <label for="restoreExts" i18n>Exts</label>
+      <div>
+        <input id="restoreExts" type="checkbox" formControlName="ext">
+      </div>
+      <label for="restoreUsers" i18n>Users</label>
+      <div>
+        <input id="restoreUsers" type="checkbox" formControlName="user">
+      </div>
+      <label for="restorePlugins" i18n>Plugins</label>
+      <div>
+        <input id="restorePlugins" type="checkbox" formControlName="plugin">
+      </div>
+      <label for="restoreTemplates" i18n>Templates</label>
+      <div>
+        <input id="restoreTemplates" type="checkbox" formControlName="template">
+      </div>
+    </div>
+    <hr>
+    <div class="form">
+      <div>
+        <label for="newerThan" i18n>Newer than:</label>
+        <div class="form-array">
+          <input type="datetime-local"
+                 id="newerThan"
+                 step="1"
+                 formControlName="newerThan"
+                 class="grow">
+          <button type="button" (click)="restoreOptionsForm.get('newerThan')!.setValue('')" i18n-title title="Clear" i18n>🆑️</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="buttons right">
+      <button type="button" (click)="confirmRestore()" i18n>restore</button>
+    </div>
+  </div>
+</ng-template>

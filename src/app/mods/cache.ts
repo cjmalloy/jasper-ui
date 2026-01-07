@@ -12,10 +12,18 @@ export const cachePlugin: Plugin = {
     settings: $localize`cache`,
     submit: $localize`🗜️ cache`,
     internal: true,
-    icons: [{ label: $localize`🗜️`, thumbnail: $localize`🗜️`, order: -10 }],
+    icons: [
+      { label: $localize`🗜️`, thumbnail: $localize`🗜️`, order: -10 },
+      { label: $localize`⭕️`, condition: 'thumbnail', title: $localize`Thumbnail`, order: -1 },
+      { label: $localize`🙅️`, condition: 'ban', title: $localize`Banned`, order: 10 },
+      { label: $localize`⛔️`, condition: '!id', title: $localize`Broken`, order: 10 },
+    ],
     filters: [
       { query: '_plugin/cache', label: $localize`🗜️ cache`, title: $localize`Has cache entry`, group: $localize`Plugins 🧰️` },
       { scheme: 'cache:', label: $localize`cache:`, group: $localize`Schemes 🏳️️`},
+    ],
+    sorts: [
+      { sort: 'plugins->_plugin/cache->contentLength:num', label: '🗜️ size', title: $localize`Cache size` },
     ],
     description: $localize`Cache remote resources locally.
     If you delete a Ref it's cached file will not be removed from storage right away.

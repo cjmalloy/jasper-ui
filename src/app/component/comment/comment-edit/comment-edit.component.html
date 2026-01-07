@@ -1,6 +1,8 @@
 <app-editor [control]="comment"
-            [tags]="ref.tags"
+            [createdTags]="ref.tags || []"
             (syncTags)="editorTags = $event"
+            (addSource)="sources.push($event)"
+            (uploadCompleted)="completedUploads.push($event)"
             [autoFocus]="true"></app-editor>
 @for (e of serverError; track e) {
   <span><!-- Unexpected Error --></span>

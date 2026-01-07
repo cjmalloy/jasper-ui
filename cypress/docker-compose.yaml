@@ -5,11 +5,11 @@ services:
       - ci
     depends_on:
       client:
-          condition: service_started
+        condition: service_started
       repl-client:
         condition: service_started
       web:
-          condition: service_healthy
+        condition: service_healthy
       repl-web:
         condition: service_healthy
     network_mode: host
@@ -23,6 +23,7 @@ services:
       CYPRESS_replApi: http://localhost:8083
       CYPRESS_replApiProxy: http://repl-web
       CYPRESS_reporter: cypress-mochawesome-reporter
+      CYPRESS_reporterOptions_saveJson: true
       CYPRESS_video: true
 #      ELECTRON_ENABLE_LOGGING: 1
     working_dir: /e2e
@@ -50,7 +51,7 @@ services:
       test: "curl -f http://localhost/management/health/readiness"
     environment:
       SPRING_LOGGING_LEVEL_ROOT: WARN
-      SPRING_PROFILES_ACTIVE: prod,jwt
+      SPRING_PROFILES_ACTIVE: prod,jwt,storage
       SPRING_DATASOURCE_URL: jdbc:postgresql://db/jasper
       SPRING_DATASOURCE_USERNAME: jasper
       SPRING_DATASOURCE_PASSWORD: jasper
@@ -109,8 +110,6 @@ services:
       JASPER_LOCAL_ORIGIN: '@repl'
       JASPER_DEFAULT_ROLE: ROLE_ADMIN # TODO: create remote user instead
       JASPER_OVERRIDE_SERVER_WEB_ORIGINS: '@repl'
-      JASPER_OVERRIDE_SERVER_PULL_ORIGINS: '@repl'
-      JASPER_OVERRIDE_SERVER_PUSH_ORIGINS: '@repl'
       JASPER_OVERRIDE_SECURITY_MODE: 'jwt'
       JASPER_OVERRIDE_SECURITY_CLIENT_ID: ''
       JASPER_OVERRIDE_SECURITY_BASE64_SECRET: 'MjY0ZWY2ZTZhYmJhMTkyMmE5MTAxMTg3Zjc2ZDlmZWUwYjk0MDgzODA0MDJiOTgyNTk4MmNjYmQ4Yjg3MmVhYjk0MmE0OGFmNzE2YTQ5ZjliMTEyN2NlMWQ4MjA5OTczYjU2NzAxYTc4YThkMzYxNzdmOTk5MTIxODZhMTkwMDM='

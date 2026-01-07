@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { action, makeAutoObservable, observable, runInAction } from 'mobx';
-import { catchError, throwError } from 'rxjs';
+import { catchError, Subscription, throwError } from 'rxjs';
 import { Page } from '../model/page';
 import { Ref, RefPageArgs, RefSort } from '../model/ref';
 import { RefService } from '../service/api/ref.service';
@@ -18,6 +18,8 @@ export class ThreadStore {
   error?: HttpErrorResponse = {} as any;
   cache = new Map<string | undefined, Ref[]>();
   latest: Ref[] = [];
+
+  private loading?: Subscription;
 
   constructor(
     private refs: RefService,
@@ -44,13 +46,14 @@ export class ThreadStore {
     };
     this.pages = [];
     this.cache.clear();
+    this.loading?.unsubscribe();
   }
 
-  setArgs(top?: Ref, sort?: RefSort | RefSort[], filters?: UrlFilter[], search?: string) {
+  setArgs(top?: string, sort?: RefSort | RefSort[], filters?: UrlFilter[], search?: string) {
     this.clear();
     this.args = {
       ...getArgs('plugin/comment', sort, filters, search),
-      responses: top?.url,
+      responses: top,
       size: this.defaultBatchSize,
       page: 0,
     };
@@ -78,7 +81,7 @@ export class ThreadStore {
       ...this.args,
       page: this.pages.length,
     };
-    this.refs.page(this.args).pipe(
+    this.loading = this.refs.page(this.args).pipe(
       catchError((err: HttpErrorResponse) => {
         runInAction(() => this.error = err);
         return throwError(() => err);
@@ -87,19 +90,16 @@ export class ThreadStore {
   }
 
   loadAdHoc(source?: string) {
-    this.args = {
+    const args = {
       ...this.args,
       responses: source,
     };
     const existing = this.cache.get(source)?.length;
     if (existing) {
-      this.args = {
-        ...this.args,
-        size: existing || 20,
-        page: 1,
-      };
+      args.size = 20;
+      args.page = Math.floor(existing / 20);
     }
-    this.refs.page(this.args).pipe(
+    this.loading = this.refs.page(args).pipe(
       catchError((err: HttpErrorResponse) => {
         runInAction(() => this.error = err);
         return throwError(() => err);

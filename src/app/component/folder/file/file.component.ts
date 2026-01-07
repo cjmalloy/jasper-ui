@@ -1,5 +1,7 @@
-import { Component, HostBinding, Input, OnChanges, SimpleChanges } from '@angular/core';
-import { catchError, of, throwError } from 'rxjs';
+import { AsyncPipe } from '@angular/common';
+import { Component, forwardRef, HostBinding, Input, OnChanges, OnDestroy, SimpleChanges } from '@angular/core';
+import { RouterLink } from '@angular/router';
+import { catchError, of, Subject, takeUntil, throwError } from 'rxjs';
 import { Ref } from '../../../model/ref';
 import {
   Action,
@@ -12,6 +14,8 @@ import {
   Visibility,
   visible
 } from '../../../model/tag';
+import { CssUrlPipe } from '../../../pipe/css-url.pipe';
+import { ThumbnailPipe } from '../../../pipe/thumbnail.pipe';
 import { AdminService } from '../../../service/admin.service';
 import { RefService } from '../../../service/api/ref.service';
 import { AuthzService } from '../../../service/authz.service';
@@ -19,17 +23,25 @@ import { Store } from '../../../store/store';
 import { getTitle, templates } from '../../../util/format';
 import { getScheme } from '../../../util/http';
 import { memo, MemoCache } from '../../../util/memo';
-import { hasTag, isOwnerTag, repost } from '../../../util/tag';
+import { hasTag, isAuthorTag, repost } from '../../../util/tag';
+import { ViewerComponent } from '../../viewer/viewer.component';
 
 @Component({
-  standalone: false,
   selector: 'app-file',
   templateUrl: './file.component.html',
-  styleUrls: ['./file.component.scss']
+  styleUrls: ['./file.component.scss'],
+  imports: [
+    forwardRef(() => ViewerComponent),
+    RouterLink,
+    AsyncPipe,
+    ThumbnailPipe,
+    CssUrlPipe,
+  ],
 })
-export class FileComponent implements OnChanges {
+export class FileComponent implements OnChanges, OnDestroy {
   css = 'file ';
   @HostBinding('attr.tabindex') tabIndex = 0;
+  private destroy$ = new Subject<void>();
 
   @Input()
   ref!: Ref;
@@ -48,7 +60,6 @@ export class FileComponent implements OnChanges {
   expandPlugins: string[] = [];
   icons: Icon[] = [];
   actions: Action[] = [];
-  publishedLabel = $localize`published`;
   editing = false;
   viewSource = false;
   writeAccess = false;
@@ -71,7 +82,6 @@ export class FileComponent implements OnChanges {
       this.taggingAccess = this.auth.taggingAccess(this.ref);
       this.icons = uniqueConfigs(sortOrder(this.admin.getIcons(this.ref.tags, this.ref.plugins, getScheme(this.ref.url))));
       this.actions = uniqueConfigs(sortOrder(this.admin.getActions(this.ref.tags, this.ref.plugins)));
-      this.publishedLabel = this.admin.getPublished(this.ref.tags).join($localize`/`) || this.publishedLabel;
 
       this.expandPlugins = this.admin.getEmbeds(this.ref);
       if (this.repost && this.ref && this.fetchRepost && this.repostRef?.url != repost(this.ref)) {
@@ -80,6 +90,7 @@ export class FileComponent implements OnChanges {
             : this.refs.getCurrent(this.url)
         ).pipe(
           catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
+          takeUntil(this.destroy$),
         ).subscribe(ref => {
           this.repostRef = ref;
           if (!ref) return;
@@ -92,6 +103,11 @@ export class FileComponent implements OnChanges {
         });
       }
     }
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   @memo
@@ -165,7 +181,7 @@ export class FileComponent implements OnChanges {
   @memo
   @HostBinding('class.sent')
   get isAuthor() {
-    return isOwnerTag(this.store.account.tag, this.ref);
+    return isAuthorTag(this.store.account.tag, this.ref);
   }
 
   @memo
@@ -174,7 +190,7 @@ export class FileComponent implements OnChanges {
   }
 
   saveRef() {
-    this.store.view.setRef(this.ref, this.repostRef);
+    this.store.view.preloadRef(this.ref, this.repostRef);
   }
 
   showIcon(i: Icon) {
@@ -182,7 +198,7 @@ export class FileComponent implements OnChanges {
   }
 
   visible(v: Visibility) {
-    return visible(v, this.isAuthor, this.isRecipient);
+    return visible(this.ref, v, this.isAuthor, this.isRecipient);
   }
 
   active(a: TagAction | ResponseAction | Icon) {

@@ -1,47 +1,69 @@
 import { Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { TemplatePortal } from '@angular/cdk/portal';
+import { AsyncPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
   AfterViewInit,
   Component,
   ElementRef,
-  EventEmitter,
+  EventEmitter, forwardRef,
   HostBinding,
   HostListener,
   Input,
   NgZone,
   OnChanges,
+  OnDestroy,
   Output,
   SimpleChanges,
   TemplateRef,
   ViewChild,
   ViewContainerRef
 } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { defer, delay, difference, intersection, uniq } from 'lodash-es';
-import { catchError, of, Subscription, switchMap, throwError } from 'rxjs';
+import { DateTime } from 'luxon';
+import { catchError, of, Subject, Subscription, switchMap, takeUntil, throwError } from 'rxjs';
+import { tap } from 'rxjs/operators';
 import { Ext } from '../../../model/ext';
 import { equalsRef, Ref } from '../../../model/ref';
+import { CssUrlPipe } from '../../../pipe/css-url.pipe';
+import { ThumbnailPipe } from '../../../pipe/thumbnail.pipe';
+import { AccountService } from '../../../service/account.service';
 import { AdminService } from '../../../service/admin.service';
-import { ExtService } from '../../../service/api/ext.service';
 import { RefService } from '../../../service/api/ref.service';
 import { TaggingService } from '../../../service/api/tagging.service';
 import { AuthzService } from '../../../service/authz.service';
 import { BookmarkService } from '../../../service/bookmark.service';
 import { ConfigService } from '../../../service/config.service';
+import { EditorService } from '../../../service/editor.service';
 import { Store } from '../../../store/store';
 import { getTitle, hasComment } from '../../../util/format';
 import { printError } from '../../../util/http';
 import { memo, MemoCache } from '../../../util/memo';
 import { expandedTagsInclude, hasTag, repost } from '../../../util/tag';
+import { ChessComponent } from '../../chess/chess.component';
+import { LoadingComponent } from '../../loading/loading.component';
+import { MdComponent } from '../../md/md.component';
+import { TodoComponent } from '../../todo/todo.component';
 
 @Component({
-  standalone: false,
   selector: 'app-kanban-card',
   templateUrl: './kanban-card.component.html',
   styleUrls: ['./kanban-card.component.scss'],
-  host: {'class': 'kanban-card'}
+  host: { 'class': 'kanban-card' },
+  imports: [
+    forwardRef(() => MdComponent),
+    LoadingComponent,
+    RouterLink,
+    ChessComponent,
+    TodoComponent,
+    AsyncPipe,
+    ThumbnailPipe,
+    CssUrlPipe,
+  ],
 })
-export class KanbanCardComponent implements OnChanges, AfterViewInit {
+export class KanbanCardComponent implements OnChanges, AfterViewInit, OnDestroy {
+  private destroy$ = new Subject<void>();
 
   @HostBinding('class.unlocked')
   unlocked = false;
@@ -79,7 +101,8 @@ export class KanbanCardComponent implements OnChanges, AfterViewInit {
     private auth: AuthzService,
     private refs: RefService,
     private tags: TaggingService,
-    private exts: ExtService,
+    private editor: EditorService,
+    private accounts: AccountService,
     private overlay: Overlay,
     private el: ElementRef,
     private viewContainerRef: ViewContainerRef,
@@ -97,6 +120,7 @@ export class KanbanCardComponent implements OnChanges, AfterViewInit {
           : this.refs.getCurrent(this.url)
       ).pipe(
         catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
+        takeUntil(this.destroy$),
       ).subscribe(ref => this.repostRef = ref);
     }
   }
@@ -105,6 +129,11 @@ export class KanbanCardComponent implements OnChanges, AfterViewInit {
     if (changes.ref) {
       this.init();
     }
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   ngAfterViewInit(): void {
@@ -229,12 +258,12 @@ export class KanbanCardComponent implements OnChanges, AfterViewInit {
 
   @memo
   get badgeExts$() {
-    return this.exts.getCachedExts(this.badges, this.ref.origin || '');
+    return this.editor.getTagsPreview(this.badges, this.ref.origin || '');
   }
 
   @memo
-  get allBadgeExts$() {
-    return this.exts.getCachedExts(this.ext?.config?.badges || [], this.ref.origin || '');
+  get allBadges$() {
+    return this.editor.getTagsPreview(this.ext?.config?.badges || [], this.ref.origin || '');
   }
 
   @HostBinding('class.last-selected')
@@ -297,7 +326,7 @@ export class KanbanCardComponent implements OnChanges, AfterViewInit {
   }
 
   saveRef() {
-    this.store.view.setRef(this.ref, this.repostRef);
+    this.store.view.preloadRef(this.ref, this.repostRef);
   }
 
   close() {
@@ -310,12 +339,16 @@ export class KanbanCardComponent implements OnChanges, AfterViewInit {
 
   toggleBadge(tag: string, event?: MouseEvent) {
     if (hasTag(tag, this.ref.tags)) {
-      this.tags.delete(tag, this.ref.url, this.ref.origin).subscribe(() => {
+      this.tags.delete(tag, this.ref.url, this.ref.origin).pipe(
+        tap(cursor => this.accounts.clearNotificationsIfNone(DateTime.fromISO(cursor))),
+      ).subscribe(() => {
         this.ref.tags = this.ref.tags!.filter(t => expandedTagsInclude(t, tag));
         this.init();
       });
     } else {
-      this.tags.create(tag, this.ref.url, this.ref.origin).subscribe(() => {
+      this.tags.create(tag, this.ref.url, this.ref.origin).pipe(
+        tap(cursor => this.accounts.clearNotificationsIfNone(DateTime.fromISO(cursor))),
+      ).subscribe(() => {
         this.ref.tags ||= [];
         this.ref.tags.push(tag);
         this.init();
@@ -338,14 +371,14 @@ export class KanbanCardComponent implements OnChanges, AfterViewInit {
       origin: this.store.account.origin,
       tags,
     };
-    this.refs.create(copied, true).pipe(
+    this.refs.create(copied).pipe(
       catchError((err: HttpErrorResponse) => {
         if (err.status === 409) {
           return this.refs.get(this.ref.url, this.store.account.origin).pipe(
             switchMap(existing => {
               if (equalsRef(existing, copied) || confirm('An old version already exists. Overwrite it?')) {
                 // TODO: Show diff and merge or split
-                return this.refs.update({ ...copied, modifiedString: existing.modifiedString }, true);
+                return this.refs.update({ ...copied, modifiedString: existing.modifiedString });
               } else {
                 return throwError(() => 'Cancelled')
               }
@@ -356,11 +389,17 @@ export class KanbanCardComponent implements OnChanges, AfterViewInit {
         console.error(printError(err));
         return throwError(() => err);
       }),
-      switchMap(() => this.refs.get(copied.url, this.store.account.origin)),
+      tap(cursor => this.accounts.clearNotificationsIfNone(DateTime.fromISO(cursor))),
+      switchMap(() => this.refs.get(copied.url, this.store.account.origin).pipe(takeUntil(this.destroy$))),
     ).subscribe(ref => {
       this.ref = ref;
       this.init();
       this.copied.emit(ref);
     });
+  }
+
+  firstWord(name?: string) {
+    if (!name) return name;
+    return name.trim().split(' ')[0];
   }
 }

@@ -1,43 +1,47 @@
-<form class="form" [formGroup]="originForm" (ngSubmit)="deleteOrigin()">
+<form class="form" [formGroup]="originForm">
   <span></span>
-  <h2>Clear Origin</h2>
+  <h2>Backup & Restore</h2>
 
   <label>Origin:</label>
-  <input type="text" [pattern]="originPattern" formControlName="origin">
+  <select #originSelect
+          formControlName="origin"
+          [value]="origin"
+          (input)="selectOrigin(originSelect.value)">
+    @if (!backupOrigins.includes(origin)) {
+      <option [value]="origin">{{ origin || 'default' }}</option>
+    }
+    @for (origin of backupOrigins; track origin) {
+      <option [value]="origin">{{ origin || 'default' }}</option>
+    }
+  </select>
 
   <label>Older than:</label>
   <input type="datetime-local" step="1" formControlName="olderThan">
 
   <span><!-- Buttons --></span>
   <span class="buttons right">
-    <button type="submit" [disabled]="submitted && !originForm.valid" i18n>Delete</button>
   </span>
 </form>
 
-<div class="buttons">
+<div class="backup buttons">
   @if (store.account.admin) {
+    <button #backupButton
+            type="button"
+            [disabled]="!originForm.valid"
+            (click)="showBackupOptions()"
+            i18n-title title="Create Backup" i18n>+ backup</button>
     <button type="button"
-            (click)="backup()"
-            i18n-title
-            title="Create Backup"
-            class="backup" i18n>+ backup</button>
-  }
-
-  @if (store.account.mod) {
-    <button type="button"
-            (click)="backfill()"
-            i18n-title
-            title="Backfill Metadata"
-            class="backfill" i18n>♻️ backfill</button>
+            [disabled]="!originForm.valid"
+            (click)="deleteOrigin()"
+            i18n-title title="Delete all from origin" i18n>&ndash; delete</button>
   }
 
   @if (!uploading) {
-    <button
-      type="button"
-      (click)="uploadFile.click()"
-      i18n-title
-      title="Upload Backup"
-      class="upload" i18n>+ upload</button>
+    <button type="button"
+            [disabled]="!originForm.valid"
+            (click)="uploadFile.click()"
+            i18n-title
+            title="Upload Backup" i18n>+ upload</button>
   } @else {
     <app-loading></app-loading>
   }
@@ -45,6 +49,14 @@
          type="file"
          class="upload"
          (change)="upload(uploadFile?.files!)">
+
+  @if (store.account.mod) {
+    <button type="button"
+            [disabled]="!originForm.valid"
+            (click)="regen()"
+            i18n-title
+            title="Regenerate Metadata" i18n>♻️ regen</button>
+  }
 </div>
 
 @for (e of serverError; track e) {
@@ -54,3 +66,52 @@
 
 <app-backup-list [list]="list"
                  [origin]="origin"></app-backup-list>
+
+<ng-template #backupOptions>
+  <div class="popup bubble" (click)="$event.stopPropagation()" [formGroup]="backupOptionsForm">
+    <div class="form">
+      <label for="backupCache" i18n>Cache</label>
+      <div>
+        <input id="backupCache" type="checkbox" formControlName="cache">
+      </div>
+      <label for="backupRefs" i18n>Refs</label>
+      <div>
+        <input id="backupRefs" type="checkbox" formControlName="ref">
+      </div>
+      <label for="backupExts" i18n>Exts</label>
+      <div>
+        <input id="backupExts" type="checkbox" formControlName="ext">
+      </div>
+      <label for="backupUsers" i18n>Users</label>
+      <div>
+        <input id="backupUsers" type="checkbox" formControlName="user">
+      </div>
+      <label for="backupPlugins" i18n>Plugins</label>
+      <div>
+        <input id="backupPlugins" type="checkbox" formControlName="plugin">
+      </div>
+      <label for="backupTemplates" i18n>Templates</label>
+      <div>
+        <input id="backupTemplates" type="checkbox" formControlName="template">
+      </div>
+    </div>
+    <hr>
+    <div class="form">
+      <div>
+        <label for="newerThan" i18n>Newer than:</label>
+        <div class="form-array">
+          <input type="datetime-local"
+                 id="newerThan"
+                 step="1"
+                 formControlName="newerThan"
+                 class="grow">
+          <button type="button" (click)="backupOptionsForm.get('newerThan')!.setValue('')" i18n-title title="Clear" i18n>🆑️</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="buttons right">
+      <button type="button" (click)="confirmBackup()" i18n>+ backup</button>
+    </div>
+  </div>
+</ng-template>

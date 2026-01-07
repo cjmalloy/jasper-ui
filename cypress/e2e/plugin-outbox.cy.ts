@@ -10,7 +10,7 @@ describe('Outbox Plugin: Remote Notifications', {
   const replApiProxy = Cypress.env('CYPRESS_replApiProxy') || 'http://repl-web';
   it('@main: loads the page', () => {
     cy.visit('/?debug=ADMIN');
-    cy.contains('Home', { timeout: 1000 * 60 });
+    cy.contains('Powered by Jasper', { timeout: 1000 * 60 });
   });
   it('@main: clear mods', () => {
     clearMods();
@@ -23,6 +23,7 @@ describe('Outbox Plugin: Remote Notifications', {
     cy.wait(100);
     cy.get('#mod-comment').should('not.be.checked').check().should('be.checked');
     cy.get('#mod-mailbox').should('not.be.checked').check().should('be.checked');
+    cy.get('#mod-root').should('not.be.checked').check().should('be.checked');
     cy.get('#mod-remoteorigin').should('not.be.checked').check().should('be.checked');
     cy.get('#mod-user').should('not.be.checked').check().should('be.checked');
     cy.get('button').contains('Save').click();
@@ -37,12 +38,12 @@ describe('Outbox Plugin: Remote Notifications', {
     cy.get('#url').type(replApi).blur();
     cy.contains('Next').as('next');
     cy.get('@next').click();
-    cy.get('#title').type('Testing Remote @repl');
+    cy.get('[name=title]').type('Testing Remote @repl');
     cy.get('.floating-ribbons .plugin_origin_pull').click();
-    cy.get('#local').type('@repl');
-    cy.get('#remote').type('@repl');
-    cy.get('.plugins-form details.advanced summary').click();
-    cy.get('#proxy').type(replApiProxy).blur();
+    cy.get('[name=local]').type('@repl');
+    cy.get('[name=remote]').type('@repl');
+    cy.get('.plugins-form details.plugin_origin.advanced summary').click();
+    cy.get('[name=proxy]').type(replApiProxy).blur();
     cy.intercept({pathname: '/api/v1/ref'}).as('submit');
     cy.get('button').contains('Submit').click();
     cy.wait('@submit');
@@ -68,6 +69,7 @@ describe('Outbox Plugin: Remote Notifications', {
     cy.get('.log').contains('Success');
 
     cy.wait(100);
+    cy.get('#mod-root').should('not.be.checked').check().should('be.checked');
     cy.get('#mod-remoteorigin').should('not.be.checked').check().should('be.checked');
     cy.get('button').contains('Save').click();
     cy.get('.log').contains('Success');
@@ -88,10 +90,10 @@ describe('Outbox Plugin: Remote Notifications', {
     cy.get('@next').click();
     cy.wait(1000) // First part of text is missing
     cy.get('.floating-ribbons .plugin_origin_pull').click();
-    cy.get('#local').type('@main');
-    cy.get('.plugins-form details.advanced summary').click();
-    cy.get('#proxy').type(mainApiProxy).blur();
-    cy.get('#title').type('Testing Remote @main');
+    cy.get('[name=local]').type('@main');
+    cy.get('.plugins-form details.plugin_origin.advanced summary').click();
+    cy.get('[name=proxy]').type(mainApiProxy).blur();
+    cy.get('[name=title]').type('Testing Remote @main');
     cy.intercept({pathname: '/api/v1/ref'}).as('submit');
     cy.get('button').contains('Submit').click();
     cy.wait('@submit');
@@ -103,8 +105,8 @@ describe('Outbox Plugin: Remote Notifications', {
     openSidebar();
     cy.contains('Submit').click();
     cy.get('.tabs').contains('text').click();
-    cy.get('#title').type('Ref from other');
-    cy.get('#comment textarea').type('Hi +user/alice@repl.main! How\'s it going? You should also see this +user/charlie.').blur();
+    cy.get('[name=title]').type('Ref from other');
+    cy.get('.editor textarea').type('Hi +user/alice@repl.main! How\'s it going? You should also see this +user/charlie.').blur();
     cy.get('button').contains('Submit').click({ force: true });
     cy.get('.full-page.ref .link a').should('have.text', 'Ref from other');
     cy.wait(1000);
@@ -142,7 +144,7 @@ describe('Outbox Plugin: Remote Notifications', {
     cy.get('.comment-reply button').contains('reply').click();
     cy.wait(3000);
   });
-  it('@repl: check reply was pulled', () => {
+  it('@repl: check reply was pulled', { retries: 3 }, () => {
     cy.intercept({pathname: '/api/v1/ref/count'}).as('notifications');
     cy.visit(replUrl + '/?debug=ADMIN&tag=bob');
     cy.wait('@notifications');
@@ -152,7 +154,8 @@ describe('Outbox Plugin: Remote Notifications', {
     cy.get('.ref-list .link.remote').contains('Doing well, thanks!').parent().parent().parent().as('ref');
     cy.get('@ref').find('.user.tag').contains('alice');
   });
-  it('@repl: check inbox was converted to outbox', () => {
+  it('@repl: check inbox was converted to outbox', { retries: 3 }, () => {
+    cy.visit(replUrl + '/?debug=ADMIN&tag=charlie');
     cy.intercept({pathname: '/api/v1/ref/count'}).as('notifications');
     cy.visit(replUrl + '/?debug=ADMIN&tag=charlie');
     cy.wait('@notifications');

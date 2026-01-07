@@ -1,12 +1,20 @@
 import { Component, Input } from '@angular/core';
-import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import {
+  ReactiveFormsModule,
+  UntypedFormBuilder,
+  UntypedFormControl,
+  UntypedFormGroup,
+  Validators
+} from '@angular/forms';
+import { v4 as uuid } from 'uuid';
+import { JsonComponent } from '../json/json.component';
 
 @Component({
-  standalone: false,
   selector: 'app-plugin-form',
   templateUrl: './plugin.component.html',
   styleUrls: ['./plugin.component.scss'],
-  host: {'class': 'nested-form'}
+  host: { 'class': 'nested-form' },
+  imports: [ReactiveFormsModule, JsonComponent]
 })
 export class PluginFormComponent {
 
@@ -19,6 +27,7 @@ export class PluginFormComponent {
   @Input()
   schemaErrors: string[] = [];
 
+  id = 'plugin-' + uuid();
   editingConfig = false;
   editingDefaults = false;
   editingSchema = false;
@@ -58,7 +67,6 @@ export function pluginForm(fb: UntypedFormBuilder) {
   return fb.group({
     tag: [{value: '', disabled: true}, [Validators.required]],
     name: ['', [Validators.required]],
-    generateMetadata: [false],
     config: [],
     defaults: [],
     schema: [],

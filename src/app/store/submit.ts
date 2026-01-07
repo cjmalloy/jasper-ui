@@ -7,6 +7,7 @@ import { Ref } from '../model/ref';
 import { DEFAULT_WIKI_PREFIX } from '../mods/wiki';
 import { EventBus } from './bus';
 
+export type Saving = { url?: string, name: string, progress?: number };
 export class SubmitStore {
 
   wikiPrefix = DEFAULT_WIKI_PREFIX;
@@ -14,6 +15,7 @@ export class SubmitStore {
   submitGenId: Plugin[] = [];
   submitDm: Plugin[] = [];
   files: File[] = [] as any;
+  caching: Map<File, Saving> = new Map<File, Saving>();
   exts: Ext[] = [];
   refs: Ref[] = [];
   overwrite = false;
@@ -27,6 +29,7 @@ export class SubmitStore {
       submitGenId: observable.shallow,
       submitDm: observable.shallow,
       files: observable.shallow,
+      caching: observable.shallow,
       setRef: action,
       setExt: action,
     });
@@ -92,10 +95,6 @@ export class SubmitStore {
       .filter(t => t && !t.includes('*'));
   }
 
-  get thumbnail() {
-    return this.route.routeSnapshot?.queryParams['thumbnail'] as string;
-  }
-
   get plugin() {
     return this.route.routeSnapshot?.queryParams['plugin'] || '' as string;
   }
@@ -150,6 +149,10 @@ export class SubmitStore {
     return this.refs.length > 100 || this.exts.length > 100;
   }
 
+  get uploads() {
+    return [...this.caching.values()];
+  }
+
   clearOverride() {
     this.refLimitOverride = false;
   }
@@ -174,9 +177,9 @@ export class SubmitStore {
     this.exts = this.exts.filter(x => x.tag !== ext.tag || x.modifiedString !== ext.modifiedString);
   }
 
-  clearUpload() {
-    this.exts = [];
-    this.refs = [];
+  clearUpload(refs: Ref[] = [], exts: Ext[] = []) {
+    this.exts = exts;
+    this.refs = refs;
   }
 
   addFiles(files?: File[]) {

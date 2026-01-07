@@ -2,7 +2,9 @@
   @if (!store.account.signedIn) {
     @if (config.login) {
       <a [href]="config.loginLink" i18n>login</a>
-      <span *ngIf="config.signup" i18n> or </span>
+      @if (config.signup) {
+        <span i18n> or </span>
+      }
     }
     @if (config.signup) {
       <a [href]="config.signup" i18n>sign up</a>
@@ -15,7 +17,7 @@
     @if (store.account.localTag) {
       <a class="author"
          [title]="fullUserTagAndRole"
-         [routerLink]="['/tag', store.account.tag]">{{ shortUserTag }}</a>
+         [routerLink]="['/tag', store.account.tag]">{{ store.account.ext?.name || shortUserTag }}</a>
       @if (admin.getTemplate('dm') || admin.inbox.length || (admin.getTemplate('user') && store.account.userTag)) {
         @if (admin.getTemplate('user') && store.account.userTag && store.account.notifications) {
           | {{ (store.account.notifications - store.account.alarmCount) || '' }}

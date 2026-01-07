@@ -6,7 +6,6 @@ import { mapRef, Ref } from '../../model/ref';
 import { catchAll } from '../../mods/scrape';
 import { Store } from '../../store/store';
 import { params } from '../../util/http';
-import { hasTag } from '../../util/tag';
 import { ConfigService } from '../config.service';
 import { LoginService } from '../login.service';
 import { RefService } from './ref.service';
@@ -59,9 +58,9 @@ export class ScrapeService {
   }
 
   defaults(): Observable<any> {
-    return this.refs.update(catchAll, true).pipe(
+    return this.refs.update({ ...catchAll, origin: this.store.account.origin }).pipe(
       catchError(err => {
-        if (err.status === 404) return this.refs.create(catchAll, true);
+        if (err.status === 404) return this.refs.create({ ...catchAll, origin: this.store.account.origin });
         return throwError(() => err);
       })
     );

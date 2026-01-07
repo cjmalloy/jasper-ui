@@ -1,115 +1,113 @@
 @if (ref || tags) {
-  <app-ref *ngIf="repost"
-           class="expand"
-           [fetchRepost]="false"
-           [showToggle]="true"
-           [expandInline]="true"
-           [ref]="repost"></app-ref>
-  <app-playlist *ngIf="playlist"
-                [ref]="ref"></app-playlist>
-  <app-lens *ngIf="page"
-            [page]="page"
-            [pageControls]="false"
-            [tag]="lensQuery"
-            [ext]="ext"
-            [size]="lensSize"
-            [cols]="lensCols"
-            [sort]="lensSort"
-            [filter]="lensFilter"
-            [search]="lensSearch"></app-lens>
-  <div *ngIf="currentTags.includes('plugin/embed')"
-       class="embed-container"
-       [appResizeHandle]="true"
-       [child]="iframe"
-       [class.twitter]="twitter">
-    <app-loading *ngIf="!embedReady"></app-loading>
-    <iframe #iframe
-            class="embed-expand"
-            [class.ready]="embedReady"
-            src="about:blank"
-            frameborder="0"
-            scrolling="yes"
-            allow="fullscreen; accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowfullscreen></iframe>
-  </div>
-  <div *ngIf="imageUrl"
-       class="image-expand"
-       [appImage]="imageUrl"
-       [ref]="ref"
-       [defaultWidth]="ref?.plugins?.['plugin/image']?.width"
-       [defaultHeight]="ref?.plugins?.['plugin/image']?.height"
-       [grid]="disableResize"
-       [appResize]="!disableResize"></div>
-  <video *ngIf="videoUrl"
-         #video
-         class="video-expand"
-         autoplay
-         controls
-         [appResize]="!disableResize">
-    <source [src]="videoUrl">
-  </video>
-  <audio *ngIf="audioUrl"
-         class="audio-expand"
-         autoplay
-         controls>
-    <source [src]="audioUrl">
-  </audio>
-  <app-qr *ngIf="qrUrl"
-          class="qr-expand"
-          [url]="qrUrl"
-          [appResize]="!disableResize"></app-qr>
-  <app-todo *ngIf="todo"
-            [ref]="ref"
-            [text]="text"
-            [tags]="tags"
-            [updates$]="updates$"
-            (comment)="comment.emit($event)"
-            (copied)="copied.emit($event)"></app-todo>
-  <app-backgammon *ngIf="backgammon"
-                  [ref]="ref"
-                  [text]="text"
-                  [updates$]="updates$"
-                  (comment)="comment.emit($event)"
-                  (copied)="copied.emit($event)"></app-backgammon>
-  <app-chess *ngIf="chess"
-             [white]="chessWhite"
-             [ref]="ref"
-             [text]="text"
-             [updates$]="updates$"
-             (comment)="comment.emit($event)"
-             (copied)="copied.emit($event)"></app-chess>
+  @if (repost) {
+    <app-ref class="expand"
+             [fetchRepost]="false"
+             [showToggle]="true"
+             [expandInline]="true"
+             [ref]="repost"></app-ref>
+  }
+  @if (playlist) {
+    <app-playlist [ref]="ref"></app-playlist>
+  }
+  @if (page) {
+    <app-lens [page]="page"
+              [pageControls]="false"
+              [tag]="lensQuery"
+              [ext]="ext"
+              [size]="lensSize"
+              [cols]="lensCols"
+              [sort]="lensSort"
+              [filter]="lensFilter"
+              [search]="lensSearch"></app-lens>
+  }
+  @if (this.embedIframe) {
+    <div class="embed-container"
+         [class.loading]="!embedReady"
+         [class.twitter]="twitter"
+         [appResizeHandle]="true"
+         [child]="iframe">
+      <iframe #iframe
+              class="embed-expand"
+              [class.ready]="embedReady"
+              src="about:blank"
+              frameborder="0"
+              scrolling="yes"
+              allow="fullscreen; accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowfullscreen></iframe>
+    </div>
+  }
+  @if (imageUrl) {
+    <div class="image-expand"
+         [appImage]="imageUrl"
+         [ref]="ref"
+         [defaultWidth]="ref?.plugins?.['plugin/image']?.width"
+         [defaultHeight]="ref?.plugins?.['plugin/image']?.height"
+         [grid]="disableResize"
+         [appResize]="!disableResize"></div>
+  }
+  @if (videoUrl) {
+    <video #video
+           class="video-expand"
+           [autoplay]="autoplay"
+           controls
+           [appResize]="!disableResize">
+      <source [src]="videoUrl">
+    </video>
+  }
+  @if (audioUrl) {
+    <audio class="audio-expand"
+           [autoplay]="autoplay"
+           controls>
+      <source [src]="audioUrl">
+    </audio>
+  }
+  @if (qrUrl) {
+    <app-qr class="qr-expand"
+            [url]="qrUrl"
+            [appResize]="!disableResize"></app-qr>
+  }
+  @if (todo) {
+    <app-todo [ref]="ref"
+              [text]="text"
+              [tags]="tags"
+              (comment)="comment.emit($event)"
+              (copied)="copied.emit($event)"></app-todo>
+  }
+  @if (backgammon) {
+    <app-backgammon [ref]="ref"
+                    [text]="text"
+                    (comment)="comment.emit($event)"
+                    (copied)="copied.emit($event)"></app-backgammon>
+  }
+  @if (chess) {
+    <app-chess [white]="chessWhite"
+               [ref]="ref"
+               [text]="text"
+               (comment)="comment.emit($event)"
+               (copied)="copied.emit($event)"></app-chess>
+  }
 }
 @if (code) {
-  @if (commentControl) {
-    <ngx-monaco-editor *ngIf="code"
-                       [formControl]="commentControl"
-                       [options]="codeOptions"
-                       [style.width]="'min(900px, 50vw)'"
-                       [style.height]="'min(200px, 90vh)'"
-                       appResizeHandle
-                       [hitArea]="config.mobile ? 48 : 20"></ngx-monaco-editor>
-  } @else if (currentCode) {
-    <app-md [origin]="currentOrigin"
-            [text]="currentCode"></app-md>
-  }
-} @else {
-  <app-md *ngIf="currentText"
-          [class.expand]="expand"
+  <app-md [origin]="currentOrigin"
+          [text]="currentCode"></app-md>
+} @else if (currentText) {
+  <app-md [class.expand]="expand"
           [origin]="currentOrigin"
           [text]="currentText"
           [plugins]="currentTags"></app-md>
 }
-<embed *ngIf="pdfUrl"
-       type="application/pdf"
-       [src]="pdfUrl | safe"
-       [style.width]="embedWidth"
-       [style.height]="embedHeight">
-<ng-container *ngFor="let ui of uis">
+@if (pdfUrl) {
+  <embed type="application/pdf"
+         [src]="pdfUrl | safe"
+         [style.width]="embedWidth"
+         [style.height]="embedHeight">
+}
+@for (ui of uis; track ui.tag) {
   <app-md [class]="uiCss(ui.tag)"
           [disableSanitizer]="true"
           [origin]="currentOrigin"
           [text]="uiMarkdown(ui.tag)"></app-md>
-</ng-container>
+}
 @if (mod) {
   <app-mod [mod]="mod"
            [class.expand]="expand"></app-mod>

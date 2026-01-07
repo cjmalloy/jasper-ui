@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { catchError, Observable } from 'rxjs';
-import { Ref } from '../../model/ref';
+import { catchError, map, Observable } from 'rxjs';
+import { mapRef, Ref } from '../../model/ref';
 import { params } from '../../util/http';
 import { ConfigService } from '../config.service';
 import { LoginService } from '../login.service';
@@ -49,10 +49,11 @@ export class TaggingService {
     );
   }
 
-  getResponse(tag?: string, url?: string): Observable<Ref> {
+  getResponse(url?: string): Observable<Ref> {
     return this.http.get<Ref>(`${this.base}/response`, {
-      params: params({ tag, url }),
+      params: params({ url }),
     }).pipe(
+      map(mapRef),
       catchError(err => this.login.handleHttpError(err)),
     );
   }

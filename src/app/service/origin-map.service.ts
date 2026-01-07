@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { uniq } from 'lodash-es';
 import { runInAction } from 'mobx';
 import { catchError, Observable, of, switchMap } from 'rxjs';
 import { tap } from 'rxjs/operators';
@@ -30,6 +31,7 @@ export class OriginMapService {
     return this.loadOrigins$().pipe(
       tap(() => runInAction(() => {
         this.store.origins.origins = this.origins;
+        this.store.origins.list = this.list;
         this.store.origins.lookup = this.lookup;
         this.store.origins.tunnelLookup = this.tunnelLookup;
         this.store.origins.reverseLookup = this.reverseLookup;
@@ -75,6 +77,19 @@ export class OriginMapService {
         .filter(remote => isPushing(remote, ''))
         .map(remote => [trimUrl(remote.url), config(remote).remote]),
     ] as [string, string][]);
+  }
+
+  /**
+   * Lists all visible origins.
+   */
+  private get list(): string[] {
+    const config = (remote?: Ref): any => remote?.plugins?.['+plugin/origin'];
+    const remotesForOrigin = (origin: string) => this.origins.filter(remote => remote.origin === origin);
+    return uniq([
+      this.store.account.origin,
+      ...remotesForOrigin(this.store.account.origin)
+        .map(remote => subOrigin(remote.origin, config(remote)?.local)),
+    ]);
   }
 
   /**

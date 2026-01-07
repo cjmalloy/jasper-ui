@@ -1,8 +1,20 @@
+import { AsyncPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, HostBinding, Input, OnChanges, QueryList, SimpleChanges, ViewChildren } from '@angular/core';
+import {
+  Component, forwardRef,
+  HostBinding,
+  Input,
+  OnChanges,
+  OnDestroy,
+  QueryList,
+  SimpleChanges,
+  ViewChildren
+} from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { defer, uniq } from 'lodash-es';
-import { catchError, map, of, switchMap, throwError } from 'rxjs';
+import { catchError, map, of, Subject, switchMap, takeUntil, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
+import { TitleDirective } from '../../../directive/title.directive';
 import { Ref } from '../../../model/ref';
 import { deleteNotice } from '../../../mods/delete';
 import { AdminService } from '../../../service/admin.service';
@@ -17,16 +29,33 @@ import { printError } from '../../../util/http';
 import { memo, MemoCache } from '../../../util/memo';
 import { hasTag, localTag, repost, tagOrigin } from '../../../util/tag';
 import { ActionComponent } from '../../action/action.component';
+import { ConfirmActionComponent } from '../../action/confirm-action/confirm-action.component';
+import { InlineTagComponent } from '../../action/inline-tag/inline-tag.component';
+import { LoadingComponent } from '../../loading/loading.component';
+import { MdComponent } from '../../md/md.component';
+import { NavComponent } from '../../nav/nav.component';
+import { ViewerComponent } from '../../viewer/viewer.component';
 
 @Component({
-  standalone: false,
   selector: 'app-chat-entry',
   templateUrl: './chat-entry.component.html',
   styleUrls: ['./chat-entry.component.scss'],
-  host: {'class': 'chat-entry'}
+  host: { 'class': 'chat-entry' },
+  imports: [
+    forwardRef(() => ViewerComponent),
+    MdComponent,
+    RouterLink,
+    TitleDirective,
+    LoadingComponent,
+    NavComponent,
+    ConfirmActionComponent,
+    InlineTagComponent,
+    AsyncPipe,
+  ],
 })
-export class ChatEntryComponent implements OnChanges {
+export class ChatEntryComponent implements OnChanges, OnDestroy {
   @HostBinding('attr.tabindex') tabIndex = 0;
+  private destroy$ = new Subject<void>();
 
   @ViewChildren('action')
   actionComponents?: QueryList<ActionComponent>;
@@ -70,6 +99,7 @@ export class ChatEntryComponent implements OnChanges {
           : this.refs.getCurrent(this.url)
       ).pipe(
         catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
+        takeUntil(this.destroy$),
       ).subscribe(ref => {
         this.repostRef = ref;
         if (!ref) return;
@@ -93,6 +123,11 @@ export class ChatEntryComponent implements OnChanges {
       MemoCache.clear(this);
       if (!this.focused && !this._allowActions) this.actionComponents?.forEach(c => c.reset());
     }
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   @memo
@@ -253,7 +288,7 @@ export class ChatEntryComponent implements OnChanges {
   }
 
   saveRef() {
-    this.store.view.setRef(this.ref, this.repostRef);
+    this.store.view.preloadRef(this.ref, this.repostRef);
   }
 
   tag$ = (tag: string) => {
@@ -267,7 +302,7 @@ export class ChatEntryComponent implements OnChanges {
       path: '/tags/-',
       value: '_moderated',
     }]).pipe(
-      switchMap(() => this.refs.get(this.ref.url, this.ref.origin!)),
+      switchMap(() => this.refs.get(this.ref.url, this.ref.origin!).pipe(takeUntil(this.destroy$))),
       catchError((err: HttpErrorResponse) => {
         this.serverError = printError(err);
         return throwError(() => err);

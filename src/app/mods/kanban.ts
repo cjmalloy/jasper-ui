@@ -31,6 +31,154 @@ export const kanbanTemplate: Template = {
     filters: [
       { query: 'kanban', label: $localize`📋️ kanban`, title: $localize`Kanban Boards`, group: $localize`Templates 🎨️` },
     ],
+    // language=CSS
+    css: `
+      body.light-theme {
+        .kanban {
+          .column-title, .swim-lane-title {
+            background-color: transparent;
+            backdrop-filter: blur(1px) sepia(5%);
+            border: 0.5px solid var(--border-light);
+            &:hover {
+              box-shadow: 0 0 4px rgba(0, 0, 0, 0.2);
+            }
+          }
+        }
+      }
+      body.dark-theme {
+        .kanban {
+          .column-title, .swim-lane-title {
+            background-color: var(--bg-accent);
+            backdrop-filter: blur(1px);
+            box-shadow: 0 0 2px 1px rgba(0, 0, 0, 0.1);
+            &:hover {
+              box-shadow: 0 0 4px rgba(0, 0, 0, 0.2),
+              0 0 1px rgba(255, 255, 255, 0.5);
+            }
+          }
+        }
+        .kanban-card {
+          &.cdk-drag-preview {
+            background-color: var(--card-dragging);
+          }
+        }
+      }
+      .kanban {
+        padding: 4px;
+        grid-gap: 8px;
+        .column-title {
+          justify-self: center;
+          width: calc(100% - 32px);
+        }
+        .column-title, .swim-lane-title {
+          margin: 8px 0;
+          padding: 4px;
+          border-radius: 12px !important;
+          font-weight: bold;
+          text-align: center;
+          transform: scale(1);
+          transform-origin: center;
+          transition: transform 0.1s cubic-bezier(.47,1.64,.8,1.2);
+          &:hover {
+            z-index: 1;
+            transform: scale(1.01);
+          }
+        }
+        .kanban-column {
+          justify-self: center;
+          border: 1px solid transparent;
+          &:hover {
+            border: 1px dashed var(--border);
+          }
+        }
+        .kanban-header {
+          margin-top: 8px;
+          .kanban-remove {
+            border-radius: 4px;
+            background-color: var(--placeholder);
+          }
+          &.cdk-drop-list-dragging {
+            .kanban-remove {
+              background-color: var(--deleting);
+            }
+          }
+          .cdk-drag-placeholder {
+            display: none;
+          }
+        }
+      }
+      .kanban-card-container,
+      .note-container {
+        .row * {
+          align-self: center;
+        }
+      }
+      .kanban-card,
+      .note {
+        padding: 4px;
+        margin-top: 2px;
+        border-radius: 4px;
+        background-color: var(--card);
+        .plugin_thread .toggle {
+          background-color: var(--toggle-accent);
+        }
+        .md p {
+          text-align: left;
+        }
+      }
+      .kanban-card {
+        &.unlocked {
+          border-radius: 5px;
+          border: 0.25px dashed var(--border-accent);
+        }
+        &:hover {
+          filter: drop-shadow(0 0 0.5px var(--border));
+        }
+        &.cdk-drag-placeholder {
+          background-color: var(--placeholder);
+        }
+        &.no-write {
+          cursor: no-drop !important;
+
+          &.cdk-drag-preview {
+            pointer-events: auto !important;
+            cursor: no-drop !important;
+            * {
+              pointer-events: none !important;
+            }
+          }
+        }
+        transform: scale(1);
+        transform-origin: center;
+        transition: transform 0.1s cubic-bezier(.47,1.64,.8,1.2);
+        &.unlocked {
+          z-index: 1;
+          transform: scale(1.05);
+        }
+        &:hover {
+          z-index: 1;
+          transform: scale(1.01);
+        }
+        &:not(.no-write) {
+          cursor: grab;
+        }
+        .card-title, .thumbnail {
+          margin-bottom: 4px;
+        }
+        &.cdk-drag-preview {
+          transition: transform 0s;
+          box-shadow: 0 5px 5px -3px rgba(0, 0, 0, 0.2),
+          0 8px 10px 1px rgba(0, 0, 0, 0.14),
+          0 3px 14px 2px rgba(0, 0, 0, 0.12);
+        }
+        &.cdk-drag-placeholder {
+          transition: transform 0s;
+          * {
+            visibility: hidden !important;
+          }
+        }
+      }
+    `,
     form: [{
       key: 'columns',
       className: 'columns',
@@ -41,14 +189,12 @@ export const kanbanTemplate: Template = {
       }
     }, {
       key: 'showColumnBacklog',
-      id: 'showColumnBacklog',
       type: 'boolean',
       props: {
         label: $localize`Show Columns Backlog:`
       }
     }, {
       key: 'columnBacklogTitle',
-      id: 'columnBacklogTitle',
       type: 'string',
       props: {
         label: $localize`Column Backlog Title:`
@@ -66,7 +212,6 @@ export const kanbanTemplate: Template = {
       }
     }, {
       key: 'showSwimLaneBacklog',
-      id: 'showSwimLaneBacklog',
       type: 'boolean',
       props: {
         label: $localize`Show Swim Lane Backlog:`
@@ -76,7 +221,6 @@ export const kanbanTemplate: Template = {
       },
     }, {
       key: 'swimLaneBacklogTitle',
-      id: 'swimLaneBacklogTitle',
       type: 'string',
       props: {
         label: $localize`Swim Lane Backlog Title:`
@@ -86,7 +230,6 @@ export const kanbanTemplate: Template = {
       },
     }, {
       key: 'hideSwimLanes',
-      id: 'hideSwimLanes',
       type: 'boolean',
       props: {
         label: $localize`Hide Swim Lanes by Default:`
@@ -105,7 +248,7 @@ export const kanbanTemplate: Template = {
     }]
   },
   defaults: <KanbanConfig> {
-    defaultSort: ['metadataModified,desc'],
+    defaultSort: ['metadata->modified'],
     submitText: true,
     badges: ['p1', 'p2', 'p3', 'p4', 'p5']
   },

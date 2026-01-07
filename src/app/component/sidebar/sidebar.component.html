@@ -5,21 +5,45 @@
     }
     @if (store.view.type) {
       <div class="wide">
-        <app-search [class.centered]="!expanded || !store.view.settings && !store.view.tags"></app-search>
-        @if (expanded && (store.view.settings || store.view.tags)) {
-          <div class="show-remotes">
-            <input id="show-remotes" #sr type="checkbox" [checked]="store.view.showRemotes" (input)="showRemotes = sr.checked">
-            <label for="show-remotes" i18n>show remotes</label>
-          </div>
+        @if (expanded && store.view.showRemotesCheckbox) {
+          <app-search></app-search>
+          @if (admin.getPlugin('+plugin/origin')) {
+            <div class="show-remotes">
+              <input id="show-remotes" #sr type="checkbox" [checked]="store.view.showRemotes" (input)="showRemotes = sr.checked">
+              <label for="show-remotes" i18n>show remotes</label>
+            </div>
+          }
+        } @else {
+          <app-search class="centered"></app-search>
         }
       </div>
     }
   </div>
+  @if (store.view.type) {
+    @if (tag && (store.view.tag || store.view.template)) {
+      @if (!user) {
+        <app-query [query]="tag" class="breadcrumbs"></app-query>
+      } @else {
+        <app-nav class="center" [url]="'tag:/' + tag"></app-nav>
+        <div class="tag-select row center">
+          <div class="submit-button"
+               routerLinkActive="toggled"
+               [routerLink]="['/tag', inbox]"
+               tabindex="0">
+            <span i18n-title title="Inbox" i18n>📥️</span> <label i18n>Inbox</label>
+          </div>
+          <div class="submit-button"
+               routerLinkActive="toggled"
+               [routerLink]="['/tag', outbox]"
+               tabindex="0">
+            <span i18n-title title="Outbox" i18n>📤️</span> <label i18n>Outbox</label>
+          </div>
+        </div>
+      }
+    }
+  }
   @if (expanded) {
     @if (store.view.type) {
-      @if (store.view.tag) {
-        <app-query [query]="tag" class="breadcrumbs"></app-query>
-      }
       <div class="row mini-col reverse">
         <app-filter [type]="store.view.type!" [activeExts]="activeExts"></app-filter>
         <app-sort [type]="store.view.type!"></app-sort>
@@ -33,10 +57,10 @@
     }
   }
   <span class="button-bar">
-    @if (!user && canAddTag && !plugin?.config?.reply && store.account.user && (store.view.type === 'ref' || store.view.current === 'ref/summary')) {
+    @if (!dm && !user && canAddTag && !plugin?.config?.reply && store.account.user && (store.view.type === 'ref' || store.view.current === 'ref/summary')) {
       @if (plugin?.config?.submitText || rootConfig?.submitText) {
         <div class="submit-button" routerLink="/submit/text" tabindex="0"
-             [queryParams]="{ tag: addTags, thumbnail: defaultThumbnail }">
+             [queryParams]="{ tag: addTags }">
         <span i18n-title title="Submit" i18n>📝️</span> <label i18n>Submit
         &nbsp;
         &nbsp;
@@ -44,7 +68,7 @@
       </div>
       } @else if (plugin?.config?.submit && plugin?.config?.genId) {
         <div class="submit-button" routerLink="/submit/web" tabindex="0"
-             [queryParams]="{ tag: addTags, url: genUrl, thumbnail: defaultThumbnail }">
+             [queryParams]="{ tag: addTags, url: genUrl }">
           <span i18n-title title="Submit" i18n>📝️</span> <label i18n>Submit
           &nbsp;
           &nbsp;
@@ -52,7 +76,7 @@
         </div>
       } @else {
         <div class="submit-button" routerLink="/submit" tabindex="0"
-             [queryParams]="{ tag: addTags, thumbnail: defaultThumbnail }">
+             [queryParams]="{ tag: addTags }">
           <span i18n-title title="Submit" i18n>📝️</span> <label i18n>Submit
           &nbsp;
           &nbsp;
@@ -80,7 +104,7 @@
           &nbsp;
           {{ mailPlugin.config?.submit || '' }}</label>
         </div>
-      } @else if (modmail || user) {
+      } @else if (dm || modmail || user) {
         <div class="submit-button" routerLink="/submit/dm"  tabindex="0"
              [queryParams]="{ to: tag, tag: null }">
           <span i18n-title title="Direct Message" i18n>✉️</span> <label i18n>Message</label>
@@ -97,32 +121,30 @@
         <span i18n-title title="Edit User" i18n>🧑️</span> <label i18n>Edit Permissions</label>
       </div>
     }
-    @if (writeAccess && store.view.type === 'ext') {
-      <div class="submit-button" [routerLink]="['/ext', store.view.template]" tabindex="0">
-        <span i18n-title title="Extend Tag" i18n>🎨️</span> <label i18n>Extend Tag
-        &nbsp;
-        &nbsp;
-        {{ template?.name || '' }}</label>
-      </div>
-    }
     @if (homeWriteAccess) {
-      <div class="submit-button" [routerLink]="['/ext', 'home']" tabindex="0">
+      <div class="submit-button" [routerLink]="['/ext', 'config/home']" tabindex="0">
         <span i18n-title title="Edit Home Page" i18n>🏡️</span> <label i18n>Home Page</label>
       </div>
-    }
-    @if (store.view.type === 'ext' && !store.view.template) {
-      <div class="submit-button" [routerLink]="['/ext']" tabindex="0">
-        <span i18n-title title="Extend Tag" i18n>🎨️</span> <label i18n>Extend Tag</label>
-      </div>
-    }
-    @if (local && writeAccess && store.view.noQuery) {
+    } @else if (store.view.type === 'ext') {
+      @if (writeAccess) {
+        <div class="submit-button" [routerLink]="['/ext', store.view.template]" tabindex="0">
+          <span i18n-title title="Extend Tag" i18n>🎨️</span> <label i18n>Extend Tag
+          &nbsp;
+          &nbsp;
+          {{ template?.name || '' }}</label>
+        </div>
+      } @else if (!store.view.template) {
+        <div class="submit-button" [routerLink]="['/ext']" tabindex="0">
+          <span i18n-title title="Extend Tag" i18n>🎨️</span> <label i18n>Extend Tag</label>
+        </div>
+      }
+    } @else if (local && writeAccess && store.view.noQuery) {
       <div class="submit-button" [routerLink]="['/ext', tag]" tabindex="0">
         <span i18n-title title="Edit Tag" i18n>🎨️</span> <label i18n>Edit Tag</label>
       </div>
-    }
-    @if (store.account.user && ext && (!local || !writeAccess) && store.view.noQuery) {
-      <div class="submit-button" [routerLink]="['/tags', tag]" tabindex="0">
-        <span i18n-title title="Edit Tag" i18n>🎨️</span> <label i18n>Edit Tag</label>
+    } @else if (!local && store.account.user && existing && store.view.noQuery) {
+      <div class="submit-button" [routerLink]="['/tags', tag]" [queryParams]="{ showRemotes: true }" tabindex="0">
+        <span i18n-title title="Edit Tag" i18n>🎨️</span> <label i18n>Copy Tag</label>
       </div>
     }
   </span>
@@ -143,7 +165,7 @@
       @if (store.view.current === 'tag') {
         <h3>{{ ext?.name || tag }}</h3>
       }
-      @if (store.account.signedIn && tag && admin.getTemplate('user')) {
+      @if (store.account.signedIn && tag && tag !== '@*' && tag != '*' && admin.getTemplate('user')) {
         <div class="row center">
           @if (inBookmarks) {
             <button type="button"
@@ -156,29 +178,31 @@
                     i18n-title title="Add to top bar"
                     class="bookmark" i18n>+ bookmark</button>
           }
-          @if (user) {
-            @if (inSubs) {
-              <button type="button"
-                      class="subscribe"
-                      i18n-title title="Remove from home screen"
-                      (click)="unsubscribe()" i18n>&ndash; unfollow</button>
+          @if (admin.getTemplate('config/home')) {
+            @if (user) {
+              @if (inSubs) {
+                <button type="button"
+                        class="subscribe"
+                        i18n-title title="Remove from home screen"
+                        (click)="unsubscribe()" i18n>&ndash; unfollow</button>
+              } @else {
+                <button type="button"
+                        (click)="subscribe()"
+                        i18n-title title="Add to home screen"
+                        class="subscribe" i18n>+ follow</button>
+              }
             } @else {
-              <button type="button"
-                      (click)="subscribe()"
-                      i18n-title title="Add to home screen"
-                      class="subscribe" i18n>+ follow</button>
-            }
-          } @else {
-            @if (inSubs) {
-              <button type="button"
-                      class="subscribe"
-                      i18n-title title="Remove from home screen"
-                      (click)="unsubscribe()" i18n>&ndash; unsubscribe</button>
-            } @else {
-              <button type="button"
-                      (click)="subscribe()"
-                      i18n-title title="Add to home screen"
-                      class="subscribe" i18n>+ subscribe</button>
+              @if (inSubs) {
+                <button type="button"
+                        class="subscribe"
+                        i18n-title title="Remove from home screen"
+                        (click)="unsubscribe()" i18n>&ndash; unsubscribe</button>
+              } @else {
+                <button type="button"
+                        (click)="subscribe()"
+                        i18n-title title="Add to home screen"
+                        class="subscribe" i18n>+ subscribe</button>
+              }
             }
           }
           @if (inAlarms) {
@@ -210,13 +234,13 @@
     </div>
   }
   @if (!home && expanded) {
-    @for (res of queryExts$ | async; track res) {
-      <h5>{{ res.ext.name || res.ext.tag}} Tags:</h5>
-      @for (c of res.children; track c.tag + c.origin) {
-        <app-ext [ext]="c" [useEditPage]="true"></app-ext>
+    @for (res of queryExts$ | async; track res.x.tag) {
+      <h5>{{ res.x.name || res.x.tag}} Tags:</h5>
+      @for (x of res.children; track x.tag + x.origin) {
+        <app-ext [ext]="x" [useEditPage]="true"></app-ext>
       }
       @if (res.more) {
-        <a [routerLink]="['/tags', res.ext.tag]"
+        <a [routerLink]="['/tags', res.x.tag]"
            queryParamsHandling="merge"
            class="load-more no-select" i18n>
           load more
