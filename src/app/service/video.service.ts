@@ -163,6 +163,7 @@ export class VideoService {
       map(ref => getUserUrl(ref)),
       filter(user => !!user),
       filter(user => user !== setPublic(this.store.account.tag)),
+      takeUntil(this.destroy$),
     ).subscribe(user => doInvite(user));
     if (this.config.websockets) {
       this.stomp.watchResponse(this.url).pipe(
