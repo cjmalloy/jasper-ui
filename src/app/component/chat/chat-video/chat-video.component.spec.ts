@@ -179,14 +179,14 @@ describe('ChatVideoComponent', () => {
       });
     });
 
-    it('should not call VideoService when getUserMedia fails', async () => {
+    it('should not set stream on VideoService when getUserMedia fails', async () => {
       mockGetUserMedia.mockRejectedValue(new Error('Permission denied'));
 
       component.call();
       // Wait for getUserMedia rejection and .catch() handler to complete
       await new Promise(resolve => setTimeout(resolve, 50));
 
-      expect(mockVideoService.call).not.toHaveBeenCalled();
+      expect(mockVideoService.setStream).not.toHaveBeenCalled();
     });
   });
 
@@ -205,14 +205,14 @@ describe('ChatVideoComponent', () => {
       });
     });
 
-    it('should not call VideoService if video is disabled before stream is obtained', async () => {
+    it('should not set stream if video is disabled before stream is obtained', async () => {
       component.call();
       mockStore.video.enabled = false; // Disable before getUserMedia resolves
 
       // Wait for getUserMedia resolution and .then() handler to complete
       await new Promise(resolve => setTimeout(resolve, 50));
 
-      expect(mockVideoService.call).not.toHaveBeenCalled();
+      expect(mockVideoService.setStream).not.toHaveBeenCalled();
     });
   });
 
