@@ -81,6 +81,15 @@ describe('ChatVideoComponent', () => {
 
   describe('Automatic call initiation', () => {
     it('should automatically call when plugin/user/lobby tag is detected and video is not enabled', () => {
+      // Mock that user was previously in a call
+      vi.spyOn(Storage.prototype, 'getItem').mockImplementation((key) => {
+        if (key === 'video') return 'true';
+        return null;
+      });
+      
+      // Mock confirm dialog to return true
+      vi.spyOn(window, 'confirm').mockReturnValue(true);
+      
       mockStore.video.enabled = false;
       const mockRef: Ref = {
         url: 'test://url',
@@ -89,12 +98,14 @@ describe('ChatVideoComponent', () => {
       };
       mockTaggingService.getResponse.mockReturnValue(of(mockRef));
       mockTaggingService.respond.mockReturnValue(of(undefined));
+      mockTaggingService.deleteResponse.mockReturnValue(of(undefined));
 
       vi.spyOn(component, 'call');
 
       fixture.detectChanges();
 
       expect(mockTaggingService.getResponse).toHaveBeenCalledWith('tag:/chat');
+      expect(mockTaggingService.deleteResponse).toHaveBeenCalledWith('plugin/user/lobby', 'tag:/chat');
       expect(component.call).toHaveBeenCalled();
     });
 
@@ -110,13 +121,82 @@ describe('ChatVideoComponent', () => {
     });
 
     it('should use custom URL if provided', () => {
+      // Mock that user was previously in a call
+      vi.spyOn(Storage.prototype, 'getItem').mockImplementation((key) => {
+        if (key === 'video') return 'true';
+        return null;
+      });
+      
+      // Mock confirm dialog to return true
+      vi.spyOn(window, 'confirm').mockReturnValue(true);
+      
       mockStore.video.enabled = false;
       component.url = 'test://response';
-      mockTaggingService.getResponse.mockReturnValue(of({} as Ref));
+      const mockRef: Ref = {
+        url: 'test://url',
+        origin: '',
+        tags: ['plugin/user/lobby']
+      };
+      mockTaggingService.getResponse.mockReturnValue(of(mockRef));
+      mockTaggingService.deleteResponse.mockReturnValue(of(undefined));
 
       fixture.detectChanges();
 
       expect(mockTaggingService.getResponse).toHaveBeenCalledWith('test://response');
+      expect(mockTaggingService.deleteResponse).toHaveBeenCalledWith('plugin/user/lobby', 'test://response');
+    });
+
+    it('should not call when user declines rejoin dialog', () => {
+      // Mock that user was previously in a call
+      vi.spyOn(Storage.prototype, 'getItem').mockImplementation((key) => {
+        if (key === 'video') return 'true';
+        return null;
+      });
+      
+      // Mock confirm dialog to return false (user declines)
+      vi.spyOn(window, 'confirm').mockReturnValue(false);
+      
+      mockStore.video.enabled = false;
+      const mockRef: Ref = {
+        url: 'test://url',
+        origin: '',
+        tags: ['plugin/user/lobby']
+      };
+      mockTaggingService.getResponse.mockReturnValue(of(mockRef));
+      mockTaggingService.deleteResponse.mockReturnValue(of(undefined));
+
+      vi.spyOn(component, 'call');
+
+      fixture.detectChanges();
+
+      expect(mockTaggingService.getResponse).toHaveBeenCalledWith('tag:/chat');
+      expect(mockTaggingService.deleteResponse).toHaveBeenCalledWith('plugin/user/lobby', 'tag:/chat');
+      expect(component.call).not.toHaveBeenCalled();
+    });
+
+    it('should not show dialog when user was not previously in a call', () => {
+      // Mock that user was NOT previously in a call
+      vi.spyOn(Storage.prototype, 'getItem').mockImplementation((key) => {
+        if (key === 'video') return 'false';
+        return null;
+      });
+      
+      mockStore.video.enabled = false;
+      const mockRef: Ref = {
+        url: 'test://url',
+        origin: '',
+        tags: ['plugin/user/lobby']
+      };
+      mockTaggingService.getResponse.mockReturnValue(of(mockRef));
+
+      vi.spyOn(component, 'call');
+      const confirmSpy = vi.spyOn(window, 'confirm');
+
+      fixture.detectChanges();
+
+      expect(mockTaggingService.getResponse).not.toHaveBeenCalled();
+      expect(confirmSpy).not.toHaveBeenCalled();
+      expect(component.call).not.toHaveBeenCalled();
     });
   });
 
