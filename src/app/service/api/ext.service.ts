@@ -125,7 +125,7 @@ export class ExtService {
     for (const key of keys) {
       this._cache.set(key, value);
     }
-    let timerId = 0;
+    let timerId: ReturnType<typeof setTimeout>;
     const sub = this.stomp.watchExt(ext.tag + ext.origin).subscribe(x => {
       value = of(x);
       for (const key of keys) {
@@ -139,7 +139,7 @@ export class ExtService {
       sub.unsubscribe();
       clearTimeout(timerId);
     };
-    timerId = setTimeout(clear, EXT_CACHE_MS) as any;
+    timerId = setTimeout(clear, EXT_CACHE_MS);
   }
 
   getCachedExts(tags: string[], origin?: string): Observable<Ext[]> {
@@ -154,8 +154,8 @@ export class ExtService {
       if (!tag || isQuery(tag)) {
         this._cache.set(key, value = of(this.defaultExt(tag, origin)));
       } else {
-        let sub: Subscription | undefined = undefined;
-        let update: Ext | undefined = undefined;
+        let sub: Subscription | undefined;
+        let update: Ext | undefined;
         this._cache.set(key, value = this.get(defaultOrigin(tag, this.store.account.origin)).pipe(
           catchError(err => {
             if (origin === undefined) throw throwError(() => err);
@@ -185,7 +185,7 @@ export class ExtService {
           }),
           shareReplay(1),
         ));
-        let timerId = 0;
+        let timerId: ReturnType<typeof setTimeout>;
         const clear = () => {
           const key2 = update ? update.tag + update.origin + ':' : undefined;
           if (this._cache.get(key) === value) this._cache.delete(key);
@@ -193,7 +193,7 @@ export class ExtService {
           sub?.unsubscribe();
           clearTimeout(timerId);
         };
-        timerId = setTimeout(clear, EXT_CACHE_MS) as any;
+        timerId = setTimeout(clear, EXT_CACHE_MS);
       }
       this.store.local.loadExt([...this._cache.keys()]);
     }
