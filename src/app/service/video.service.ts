@@ -119,8 +119,13 @@ export class VideoService {
       const [remoteStream] = event.streams;
       this.store.video.addStream(user, remoteStream);
     });
+    this.addListener(user, peer, 'negotiationneeded', async () => {
+      console.warn('Renegotiation needed for', user);
+      this.resetUserConnection(user);
+      this.ts.respond([setPublic(localTag(user)), '-plugin/user/video'], userResponse(user))
+        .subscribe(() => this.invite());
+    });
     this.store.video.stream?.getTracks().forEach(t => peer.addTrack(t, this.store.video.stream!));
-    peer.createDataChannel('start');
     return peer;
   }
 
