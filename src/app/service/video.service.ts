@@ -64,6 +64,7 @@ export class VideoService {
     console.warn('Joining Lobby!');
     this.url = url;
     this.destroy$.next();
+    this.store.video.setStream(undefined);
     this.invite();
     this.answer();
   }
@@ -119,6 +120,7 @@ export class VideoService {
       this.store.video.addStream(user, remoteStream);
     });
     this.store.video.stream?.getTracks().forEach(t => peer.addTrack(t, this.store.video.stream!));
+    peer.createDataChannel('start');
     return peer;
   }
 
