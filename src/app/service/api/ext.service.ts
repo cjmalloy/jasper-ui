@@ -1,6 +1,5 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { delay } from 'lodash-es';
 import {
   catchError,
   concat,
@@ -140,7 +139,7 @@ export class ExtService {
       sub.unsubscribe();
       clearTimeout(timerId);
     };
-    timerId = delay(clear, EXT_CACHE_MS);
+    timerId = setTimeout(clear, EXT_CACHE_MS) as any;
   }
 
   getCachedExts(tags: string[], origin?: string): Observable<Ext[]> {
@@ -155,8 +154,8 @@ export class ExtService {
       if (!tag || isQuery(tag)) {
         this._cache.set(key, value = of(this.defaultExt(tag, origin)));
       } else {
-        let sub: Subscription;
-        let update: Ext;
+        let sub: Subscription | undefined = undefined;
+        let update: Ext | undefined = undefined;
         this._cache.set(key, value = this.get(defaultOrigin(tag, this.store.account.origin)).pipe(
           catchError(err => {
             if (origin === undefined) throw throwError(() => err);
@@ -188,13 +187,13 @@ export class ExtService {
         ));
         let timerId = 0;
         const clear = () => {
-          const key2 = update?.tag + update?.origin + ':';
+          const key2 = update ? update.tag + update.origin + ':' : undefined;
           if (this._cache.get(key) === value) this._cache.delete(key);
-          if (update && key !== key2 && this._cache.get(key2) === value) this._cache.delete(key2);
+          if (update && key2 && key !== key2 && this._cache.get(key2) === value) this._cache.delete(key2);
           sub?.unsubscribe();
           clearTimeout(timerId);
         };
-        timerId = delay(clear, EXT_CACHE_MS);
+        timerId = setTimeout(clear, EXT_CACHE_MS) as any;
       }
       this.store.local.loadExt([...this._cache.keys()]);
     }
