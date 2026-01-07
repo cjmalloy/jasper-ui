@@ -119,9 +119,12 @@ export const videoPlugin: Plugin = {
     rtcConfig: <RTCConfiguration> {
       iceServers: [
         { urls: 'stun:stun.l.google.com:19302' },
-        { urls: 'stun:stun.cloudflare.com:3478' },
-        { urls: 'stun:openrelay.metered.ca:80' },
-        { urls: 'stun:stun.nextcloud.com:3478' },
+        { urls: ['stun:stun.cloudflare.com:3478', 'stun:stun.cloudflare.com:53'] },
+        // { urls: 'stun:openrelay.metered.ca:80' },
+        // { urls: 'stun:stun.services.mozilla.com:3478' },
+        // { urls: 'stun:stunserver.stunprotocol.org:3478' },
+        // { urls: 'stun:stun.services.mozilla.com:3478' },
+        // { urls: 'stun:stun.nextcloud.com:3478' }
       ],
       iceCandidatePoolSize: 10,
     },
