@@ -40,7 +40,8 @@ describe('ChatVideoComponent', () => {
     };
     mockVideoService = {
       call: vi.fn(),
-      hangup: vi.fn()
+      hangup: vi.fn(),
+      setStream: vi.fn()
     };
 
     // Create a mock MediaStream
