@@ -196,7 +196,7 @@ export class VideoService {
       mergeMap(page => page.content),
       map(ref => getUserUrl(ref)),
       filter(user => !!user),
-      filter(user => user !== this.store.account.tag),
+      filter(user => user !== setPublic(this.store.account.tag)),
     ).subscribe(user => doInvite(user));
     if (this.config.websockets) {
       poll();
@@ -216,7 +216,7 @@ export class VideoService {
         filter(res => hasTag('plugin/user/lobby', res)),
         map(res => getUserUrl(res)),
         filter(user => !!user),
-        filter(user => user !== this.store.account.tag),
+        filter(user => user !== setPublic(this.store.account.tag)),
         tap(user => this.peer(user)),
         takeUntil(this.destroy$)
       ).subscribe((user: any) => doInvite(user));
@@ -231,7 +231,7 @@ export class VideoService {
   answer() {
     const doAnswer = async (res: Ref, allowUnknown: boolean) => {
       const user = getUserUrl(res);
-      if (!user || user === this.store.account.tag) return;
+      if (!user || user === setPublic(this.store.account.tag)) return;
       const video = res.plugins?.['plugin/user/video'] as VideoSignaling | undefined;
       if (!video) return;
       if (this.store.video.hungup.get(user)) return;
@@ -258,7 +258,7 @@ export class VideoService {
           }
         } else if (video.offer) {
           console.warn('Double Offer!', user);
-          if (this.store.account.tag < user) {
+          if (setPublic(this.store.account.tag) < user) {
             console.warn('Cancelled Offer! (will accept offer)', user);
             await peer.setLocalDescription({ type: 'rollback' });
           } else {
