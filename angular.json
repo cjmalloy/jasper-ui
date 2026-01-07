@@ -55,7 +55,8 @@
             ],
             "styles": [
               "src/styles.scss",
-              "node_modules/katex/dist/katex.min.css"
+              "node_modules/katex/dist/katex.min.css",
+              "node_modules/maplibre-gl/dist/maplibre-gl.css"
             ],
             "scripts": [
               "node_modules/mermaid/dist/mermaid.min.js",
@@ -155,7 +156,7 @@
             },
             "development": {
               "headers": {
-                "Content-Security-Policy": "default-src 'self' ws://localhost:8081 http://localhost:8081; frame-src * data:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://storage.googleapis.com https://platform.twitter.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' http://cdn.jsdelivr.net; media-src * data: blob:; img-src * data: blob:; font-src 'self' data:"
+                "Content-Security-Policy": "default-src 'self' ws://localhost:8081 http://localhost:8081 https://demotiles.maplibre.org; frame-src * data:; script-src blob: 'self' 'unsafe-inline' 'unsafe-eval' https://storage.googleapis.com https://platform.twitter.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' http://cdn.jsdelivr.net; media-src * data: blob:; img-src * data: blob:; font-src 'self' data:"
               },
               "buildTarget": "jasper-ui:build:development"
             }

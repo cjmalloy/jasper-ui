@@ -1,0 +1,14 @@
+<mgl-map [mapStyle]="'https://demotiles.maplibre.org/style.json'"
+         [zoom]="[9]"
+         [center]="[-74.5, 40]">
+  <mgl-control mglNavigation
+               position="top-left"
+               [visualizePitch]="true"
+               [visualizeRoll]="true"
+               [showCompass]="true"
+               [position]=""
+               [showZoom]="true"></mgl-control>
+  <mgl-control mglScale
+               position="bottom-left"
+               unit="imperial"></mgl-control>
+</mgl-map>
