@@ -410,5 +410,5 @@ export function updateMetadata(parent: Ref, child: Ref) {
 export function getUserUrl(ref: Ref) {
   if (!ref.url.startsWith('tag:/')) return '';
   if (!ref.url.includes('?')) return ref.url.substring('tag:/'.length);
-  return ref.url.substring('tag:/'.length, ref.url.indexOf('?')) + (ref.origin || '');
+  return setPublic(ref.url.substring('tag:/'.length, ref.url.indexOf('?'))) + (ref.origin || '');
 }

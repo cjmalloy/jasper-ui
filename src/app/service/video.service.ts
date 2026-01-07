@@ -1,5 +1,4 @@
 import { Injectable } from '@angular/core';
-import { flatMap } from 'lodash-es';
 import { runInAction } from 'mobx';
 import { filter, map, mergeMap, Subject, switchMap, takeUntil, takeWhile, timer } from 'rxjs';
 import { tap } from 'rxjs/operators';
@@ -17,14 +16,10 @@ import { ConfigService } from './config.service';
  * Interface for video signaling data structure used in WebRTC communication
  */
 interface VideoSignaling {
+  dial: number;
   offer?: RTCSessionDescriptionInit;
   answer?: RTCSessionDescriptionInit;
   candidate?: RTCIceCandidateInit[];
-}
-
-function getSessionId(sdp: string): string {
-  const match = sdp.match(/^o=\S+ (\d+) /m);
-  return match?.[1] || '';
 }
 
 @Injectable({
@@ -151,7 +146,7 @@ export class VideoService {
     return peer;
   }
 
-  offers = new Map<string, string>();
+  offers = new Map<string, number>();
   invite() {
     const doInvite = async (user: string) => {
       runInAction(() => this.store.video.hungup.set(user, false));
@@ -177,9 +172,10 @@ export class VideoService {
       }
       await peer.setLocalDescription(offer);
       console.warn('Making Offer!', user);
-      this.offers.set(user, JSON.stringify(offer));
+      const dial = Math.random();
+      this.offers.set(user, dial);
       this.ts.mergeResponse([setPublic(localTag(user)), '-plugin/user/video', 'plugin/user/video'], userResponse(user), {
-        'plugin/user/video': { offer }
+        'plugin/user/video': { offer, dial }
       }).subscribe();
       checkStuck();
     };
@@ -232,11 +228,7 @@ export class VideoService {
       if (this.store.video.hungup.get(user)) return;
       let peer = this.store.video.peers.get(user);
       if (peer?.connectionState === 'connected' && video.offer && !video.answer) {
-        const newSessionId = getSessionId(video.offer.sdp!);
-        const currentSessionId = peer?.remoteDescription
-          ? getSessionId(peer.remoteDescription.sdp)
-          : '';
-        if (newSessionId !== currentSessionId) {
+        if (this.offers.get(user) !== video.dial) {
           console.warn('Peer reloaded - resetting connection', user);
           this.resetUserConnection(user);
           peer = undefined;  // Will be recreated below
@@ -245,7 +237,7 @@ export class VideoService {
       if (peer?.connectionState === 'connected') return;
       if (peer?.signalingState === 'have-local-offer') {
         if (video.answer) {
-          if (this.offers.get(user) !== JSON.stringify(video.offer)) {
+          if (this.offers.get(user) !== video.dial) {
             console.warn('Ignored Old Answer!', user);
           } else {
             console.warn('Accept Answer!', user);
@@ -262,16 +254,21 @@ export class VideoService {
           }
         }
       }
-      if (!peer && !allowUnknown) return;
+      if (!peer && !allowUnknown) {
+        this.ts.deleteResponse('plugin/user/video', userResponse(user)).subscribe();
+        return;
+      }
       if (video.offer && !video.answer && (!peer || peer?.signalingState === 'stable')) {
+        const dial = video.dial;
         peer ||= this.peer(user);
+        this.offers.set(user, dial);
         console.warn('Accept Offer!', user, peer.signalingState);
         await peer.setRemoteDescription(new RTCSessionDescription(video.offer!));
         const answer = await peer.createAnswer();
         await peer!.setLocalDescription(answer);
         console.warn('Send Answer!', user);
         this.ts.mergeResponse([setPublic(localTag(user)), '-plugin/user/video', 'plugin/user/video'], userResponse(user), {
-          'plugin/user/video': { answer, offer: video.offer }
+          'plugin/user/video': { answer, dial }
         }).subscribe();
       }
       if (peer?.iceConnectionState !== 'completed' && peer?.remoteDescription && video.candidate?.length) {
