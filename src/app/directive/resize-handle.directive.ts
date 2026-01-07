@@ -43,8 +43,9 @@ export class ResizeHandleDirective implements AfterViewInit {
   }
 
   shrinkContainer() {
-    this.el.nativeElement.style.width = this.child!.style.width;
-    this.el.nativeElement.style.height = this.child!.style.height;
+    if (!this.child) return;
+    this.el.nativeElement.style.width = this.child.style.width;
+    this.el.nativeElement.style.height = this.child.style.height;
   }
 
   @HostListener('pointerdown', ['$event'])
