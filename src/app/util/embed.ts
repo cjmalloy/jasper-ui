@@ -12,5 +12,7 @@ export interface Embed {
 }
 
 export function parseSrc(html: string) {
-  return new DOMParser().parseFromString(html, 'text/html').documentElement.getElementsByTagName('iframe')[0].src;
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+  const iframes = doc.documentElement.getElementsByTagName('iframe');
+  return iframes.length > 0 ? iframes[0].src : '';
 }
