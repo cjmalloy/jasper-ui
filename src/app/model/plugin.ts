@@ -3,7 +3,7 @@ import { Schema } from 'jtd';
 import { DateTime } from 'luxon';
 import { toJS } from 'mobx';
 import { Observable } from 'rxjs';
-import { Ref, RefUpdates } from './ref';
+import { Ref, RefSort, RefUpdates } from './ref';
 import { Config, EmitAction } from './tag';
 
 export interface Plugin extends Config {
@@ -47,6 +47,10 @@ export interface Plugin extends Config {
      * Nest this plugin within its parent.
      */
     submitChild?: string,
+    /**
+     * Add to the sort dropdown.
+     */
+    sorts?: SortConfig[],
     /**
      * Add tab on the inbox page for this plugin using this label.
      */
@@ -121,6 +125,12 @@ export interface Plugin extends Config {
   };
   // Client-only
   type?: 'plugin';
+}
+
+export interface SortConfig {
+  sort: RefSort;
+  label: string;
+  title?: string;
 }
 
 export const pluginSchema: Schema = {

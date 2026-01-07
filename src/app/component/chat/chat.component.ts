@@ -165,13 +165,14 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
     }).pipe(
       catchError(err => {
         this.setPoll(true);
+        this.messages ||= [];
         return throwError(() => err);
       }),
       takeUntil(this.destroy$),
     ).subscribe(page => {
       this.setPoll(!page.content.length);
+      this.messages ||= [];
       if (!page.content.length) return;
-      if (!this.messages) this.messages = [];
       this.messages = [...this.messages, ...page.content];
       const last = page.content[page.content.length - 1];
       this.cursors.set(origin, last?.modifiedString);
@@ -201,6 +202,7 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
     }).pipe(
       catchError(err => {
         this.loadingPrev = false;
+        this.messages ||= [];
         this.setPoll(true);
         return throwError(() => err);
       }),
@@ -208,9 +210,9 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
     ).subscribe(page => {
       this.loadingPrev = false;
       this.setPoll(!page.content.length);
-      if (!page.content.length) return;
+      this.messages ||= [];
       this.scrollLock = undefined;
-      if (!this.messages) this.messages = [];
+      if (!page.content.length) return;
       for (const ref of page.content) {
         if (!this.cursors.has(ref.origin!)) {
           this.cursors.set(ref.origin!, ref.modifiedString);

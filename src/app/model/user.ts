@@ -1,6 +1,6 @@
 import { Schema } from 'jtd';
 import { DateTime } from 'luxon';
-import { Tag } from './tag';
+import { Tag, TagSort } from './tag';
 
 export interface User extends Tag {
   type?: 'user';
@@ -61,3 +61,5 @@ export function writeUser(user: User): User {
   return result;
 }
 
+export type UserSort = TagSort |
+  `external->${string}` | `external->${string},ASC` | `external->${string},DESC`;

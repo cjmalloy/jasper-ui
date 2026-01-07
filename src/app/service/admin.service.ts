@@ -80,12 +80,13 @@ import { userMod } from '../mods/user';
 import { videoMod } from '../mods/video';
 import { voteMod } from '../mods/vote';
 import { DEFAULT_WIKI_PREFIX, wikiMod } from '../mods/wiki';
+import { ytdlpMod } from '../mods/ytdlp';
 import { progress } from '../store/bus';
 import { Store } from '../store/store';
 import { modId } from '../util/format';
 import { getExtension, getHost, getScheme } from '../util/http';
 import { memo, MemoCache } from '../util/memo';
-import { addHierarchicalTags, hasPrefix, hasTag, tagIntersection, test } from '../util/tag';
+import { addHierarchicalTags, directChild, hasPrefix, hasTag, tagIntersection, test } from '../util/tag';
 import { ExtService } from './api/ext.service';
 import { PluginService } from './api/plugin.service';
 import { RefService } from './api/ref.service';
@@ -173,6 +174,7 @@ export class AdminService {
     embedMod,
     audioMod,
     videoMod,
+    ytdlpMod,
     voteMod,
     imageMod,
     lensMod,
@@ -602,6 +604,16 @@ export class AdminService {
       .flatMap(p => p.config?.filters!);
   }
 
+  get refSorts() {
+    return this.pluginConfigProperty('sorts')
+      .flatMap(p => p.config?.sorts!);
+  }
+
+  get tagSorts() {
+    return this.templateConfigProperty('sorts')
+      .flatMap(p => p.config?.sorts!);
+  }
+
   addPluginParents(cs: Plugin[]) {
     return uniq(cs.flatMap(c =>
       addHierarchicalTags(c.tag)
@@ -750,7 +762,7 @@ export class AdminService {
 
   @memo
   getPluginSubForms(parent: string) {
-    return this.forms.filter(p => p.config?.submitChild && hasPrefix(p.tag, parent));
+    return this.forms.filter(p => p.config?.submitChild && directChild(p.tag, parent));
   }
 
   getTemplate(tag: string) {
@@ -867,11 +879,11 @@ export class AdminService {
   }
 
   isWikiExternal() {
-    return !!this.getTemplate('wiki')?.config?.external;
+    return !!this.getTemplate('config/wiki')?.config?.external;
   }
 
   getWikiPrefix() {
-    return this.getTemplate('wiki')?.config?.prefix || DEFAULT_WIKI_PREFIX;
+    return this.getTemplate('config/wiki')?.config?.prefix || DEFAULT_WIKI_PREFIX;
   }
 
   getMod(mod: String) {

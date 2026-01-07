@@ -1,4 +1,4 @@
-import { filter, find, flatMap, isArray, without } from 'lodash-es';
+import { filter, find, flatMap, isArray, uniq, without } from 'lodash-es';
 import { Ref } from '../model/ref';
 import { User } from '../model/user';
 
@@ -15,8 +15,8 @@ export function decompose(tag: string): [string, string] {
   return [tag.substring(0, index), tag.substring(index)];
 }
 
-export function level(tag: string) {
-  return (tag.match(/\//g)?.length || 0) + 1;
+export function level(tag?: string) {
+  return (tag?.match(/\//g)?.length || 0) + 1;
 }
 
 export function captures(selector: string, target: string): boolean {
@@ -235,6 +235,10 @@ export function hasPrefix(tag?: string, prefix?: string) {
     tag.startsWith('+' + prefix + '@');
 }
 
+export function directChild(child?: string, parent?: string) {
+  return hasPrefix(child, parent) && level(child) - 1 === level(parent);
+}
+
 export function removePrefix(tag: string, count = 1) {
   return access(tag) + tag.split('/').slice(count).join('/');
 }
@@ -319,16 +323,26 @@ export function publicTag(tag: string) {
 
 export function setPublic(tag: string) {
   if (!tag) return '';
- if (publicTag(tag)) return tag;
- return tag.substring(1);
+  if (publicTag(tag)) return tag;
+  return tag.substring(1);
 }
 
 export function privateTag(tag: string) {
   return tag.startsWith('_');
 }
 
+export function setPrivate(tag: string) {
+  if (!tag) return '';
+  return '_' + setPublic(tag);
+}
+
 export function protectedTag(tag: string) {
   return tag.startsWith('+');
+}
+
+export function setProtected(tag: string) {
+  if (!tag) return '';
+  return '+' + setPublic(tag);
 }
 
 export function access(tag?: string) {
@@ -343,12 +357,21 @@ export function parentTag(tag: string): string | undefined {
   return tag.substring(0, tag.lastIndexOf('/'));
 }
 
-export function removeTag(tag: string | undefined, tags: string[]): string[] {
-  while (tag) {
-    tags = without(tags, tag);
-    tag = parentTag(tag);
+export function removeTag(tag: string | string[] | undefined, tags: string[]): string[] {
+  const ts = isArray(tag) ? tag : [tag];
+  for (let t of ts) {
+    while (t) {
+      tags = without(tags, t);
+      t = parentTag(t);
+    }
   }
   return tags;
+}
+
+export function getVisibilityTags(tags?: string[]): string[] {
+  if (!tags) return [];
+  if (hasTag('public', tags)) return ['public'];
+  return uniq(tags.filter(t => hasPrefix(t, 'user')).map(t => t.startsWith('+') ? t.substring(1) : t));
 }
 
 export function top(ref?: Ref) {

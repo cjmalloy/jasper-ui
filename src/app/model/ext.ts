@@ -1,7 +1,7 @@
 import { Schema } from 'jtd';
 import { isEqual } from 'lodash-es';
 import { DateTime } from 'luxon';
-import { Tag } from './tag';
+import { Tag, TagSort } from './tag';
 
 export interface Ext extends Tag {
   type?: 'ext';
@@ -42,3 +42,6 @@ export function equalsExt(a?: Ext, b?: Ext) {
     a.name === b.name &&
     isEqual(a.config, b.config);
 }
+
+export type ExtSort = TagSort |
+  `config->${string}` | `config->${string},ASC` | `config->${string},DESC`;

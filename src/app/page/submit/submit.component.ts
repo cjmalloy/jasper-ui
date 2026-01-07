@@ -167,7 +167,7 @@ export class SubmitPage implements OnInit, OnDestroy {
   }
 
   get bannedUrls() {
-    return this.admin.getTemplate('banlist')?.config?.bannedUrls || this.admin.def.templates.banlist?.config?.bannedUrls;
+    return this.admin.getTemplate('config/banlist')?.config?.bannedUrls || this.admin.def.templates['config/banlist']?.config?.bannedUrls;
   }
 
   submitInternal(tag: string) {
@@ -178,7 +178,7 @@ export class SubmitPage implements OnInit, OnDestroy {
     if (this.store.submit.wiki) {
       return wikiUriFormat(url, this.admin.getWikiPrefix());
     }
-    return fixUrl(url, this.admin.getTemplate('banlist') || this.admin.def.templates.banlist);
+    return fixUrl(url, this.admin.getTemplate('config/banlist') || this.admin.def.templates['config/banlist']);
   }
 
   exists(url: string) {

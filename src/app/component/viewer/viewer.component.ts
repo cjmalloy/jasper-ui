@@ -17,6 +17,7 @@ import { defer, isEqual, some, without } from 'lodash-es';
 import { runInAction } from 'mobx';
 import { BehaviorSubject, catchError, of, Subject, takeUntil, throwError } from 'rxjs';
 import { ImageDirective } from '../../directive/image.directive';
+import { ResizeHandleDirective } from '../../directive/resize-handle.directive';
 import { ResizeDirective } from '../../directive/resize.directive';
 import { Ext } from '../../model/ext';
 import { Oembed } from '../../model/oembed';
@@ -69,6 +70,7 @@ export const IFRAME_SANDBOX = 'allow-scripts allow-forms allow-modals allow-orie
     BackgammonComponent,
     ChessComponent,
     SafePipe,
+    ResizeHandleDirective,
   ],
 })
 export class ViewerComponent implements OnChanges, AfterViewInit {
@@ -251,6 +253,7 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
               i.style.marginBottom = -1 * marginTop + 'px';
             }
             this.embedReady = true;
+            MemoCache.clear(this);
           });
       } else {
         // @ts-ignore
@@ -291,6 +294,13 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
   @memo
   get twitter() {
     return this.oembed?.provider_name === 'Twitter';
+  }
+
+  @memo
+  get resizable() {
+    if (this.config.mobile) return false;
+    if (this.ref?.plugins?.['plugin/embed']?.noResize) return false;
+    return !this.oembed || !this.oembed.html || this.oembed.html.startsWith('<iframe');
   }
 
   @memo
@@ -350,7 +360,7 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
     if (this.config.mobile && window.matchMedia("(orientation: landscape)").matches) {
       return this.thread ? 'calc(100vw - 32px)' : 'calc(100vw - 12px)';
     }
-    return this.config.huge ? '67vw' : '80vw';
+    return `calc(min(100%, ${this.config.huge ? '67vw' : '80vw'}))`;
   }
 
   get embedHeight() {

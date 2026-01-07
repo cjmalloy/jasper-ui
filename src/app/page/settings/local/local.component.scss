@@ -1,0 +1,36 @@
+.local-storage-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+
+  th, td {
+    padding: 0.5rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+
+  th {
+    font-weight: bold;
+  }
+
+  .url-cell, .tag-cell {
+    max-width: 300px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  td:last-child {
+    width: 50px;
+    text-align: center;
+  }
+}
+
+.empty {
+  color: var(--text-dim);
+  font-style: italic;
+}
+
+h3 {
+  margin-top: 2rem;
+}

@@ -1,6 +1,6 @@
 import { AsyncPipe } from '@angular/common';
 import { Component, ElementRef, HostBinding, Input, OnChanges, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
-import { NavigationEnd, Router, RouterLink } from '@angular/router';
+import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { uniq, uniqBy } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { MobxAngularModule } from 'mobx-angular';
@@ -23,13 +23,14 @@ import { ConfigService } from '../../service/config.service';
 import { QueryStore } from '../../store/query';
 import { Store } from '../../store/store';
 import { memo, MemoCache } from '../../util/memo';
-import { hasPrefix, hasTag, isQuery, localTag, topAnds } from '../../util/tag';
+import { hasPrefix, hasTag, isQuery, localTag, setProtected, setPublic, topAnds } from '../../util/tag';
 import { BulkComponent } from '../bulk/bulk.component';
 import { ChatComponent } from '../chat/chat.component';
 import { DebugComponent } from '../debug/debug.component';
 import { ExtComponent } from '../ext/ext.component';
 import { FilterComponent } from '../filter/filter.component';
 import { MdComponent } from '../md/md.component';
+import { NavComponent } from '../nav/nav.component';
 import { QueryComponent } from '../query/query.component';
 import { SearchComponent } from '../search/search.component';
 import { SortComponent } from '../sort/sort.component';
@@ -52,6 +53,8 @@ import { SortComponent } from '../sort/sort.component';
     RouterLink,
     ChatComponent,
     AsyncPipe,
+    NavComponent,
+    RouterLinkActive,
   ]
 })
 export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
@@ -109,7 +112,7 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
     router.events.pipe(
       filter(event => event instanceof NavigationEnd),
     ).subscribe(() => {
-      if (hasTag('plugin/chat', this.store.view.ref)) return;
+      if (this.chat) return;
       if (this.config.tablet && this.lastView != this.store.view.current ||
         !this.config.huge  && this.store.view.current === 'ref/summary') {
         this.lastView = this.store.view.current;
@@ -121,6 +124,11 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
   ngOnInit(): void {
     this.disposers.push(autorun(() => {
       this.expanded = this.store.view.sidebarExpanded;
+    }));
+    this.disposers.push(autorun(() => {
+      if (this.store.view.ref) {
+        MemoCache.clear(this);
+      }
     }));
     this.disposers.push(autorun(() => {
       if (!this.store.view.template) {
@@ -152,7 +160,10 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
         if (this.home) {
           this.addTags = this.rootConfig?.addTags || this.plugin?.config?.reply || ['public'];
         } else if (this.plugin) {
-          this.addTags = uniq([...this.rootConfig?.addTags || this.plugin?.config?.reply || ['public'], ...this.plugin?.config?.submit ? [this.plugin.tag] : []]);
+          this.addTags = uniq([
+            ...this.rootConfig?.addTags || this.plugin?.config?.reply || ['public'],
+            ...this.plugin?.config?.submit ? [this.plugin.tag] : [],
+            ...this.plugin?.config?.internal ? ['internal'] : []]);
         } else {
           this.addTags = uniq([...this.rootConfig?.addTags || ['public'], ...topAnds(this.tag).map(localTag)]);
         }
@@ -245,6 +256,7 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
     return !this.plugin?.tag || this.auth.canAddTag(this.plugin.tag);
   }
 
+  @memo
   get chat() {
     return !!this.admin.getPlugin('plugin/chat') && hasTag('plugin/chat', this.store.view.ref);
   }
@@ -252,6 +264,16 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
   @memo
   get user() {
     return !this.store.view.query && !!this.admin.getTemplate('user') && hasPrefix(this.tag, 'user') && !this.store.view.userTemplate;
+  }
+
+  @memo
+  get inbox() {
+    return setPublic(this.tag);
+  }
+
+  @memo
+  get outbox() {
+    return setProtected(this.tag);
   }
 
   @memo
@@ -290,7 +312,7 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
     if (!this.store.view.exts.length) return of([]);
     return forkJoin(this.store.view.exts.map(x => this.exts.page({
       query: x.tag,
-      sort: ['origin', 'levels', 'tag', 'modified,DESC'],
+      sort: ['origin', 'tag:len', 'tag', 'modified,DESC'],
       size: x.config?.childTags || 5,
     }).pipe(
       map(page => ({
@@ -321,7 +343,7 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
 
   @memo
   get homeWriteAccess() {
-    return this.home && this.admin.getTemplate('home') && this.auth.tagWriteAccess('home');
+    return this.home && this.admin.getTemplate('config/home') && this.auth.tagWriteAccess('config/home');
   }
 
   @memo
@@ -372,6 +394,6 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
 
   startChat() {
     runInAction(() => this.store.view.ref?.tags?.push('plugin/chat'));
-    this.ts.create('plugin/chat', this.store.view.ref!.url, this.store.account.origin).subscribe()
+    this.ts.create('plugin/chat', this.store.view.ref!.url, this.store.account.origin).subscribe();
   }
 }

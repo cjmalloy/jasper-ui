@@ -122,7 +122,7 @@ export class PluginsFormComponent implements OnChanges, AfterViewInit {
   }
 
   visible(v: Visibility) {
-    return visible(v, true, false);
+    return visible(this.group.value, v, true, false);
   }
 
   active(a: TagAction | ResponseAction | Icon) {

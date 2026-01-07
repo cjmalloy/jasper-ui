@@ -766,6 +766,13 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   }
 
   @memo
+  get newCommentsCount() {
+    const lastSeen = this.store.local.getLastSeenCount(this.ref.url, 'comments');
+    if (!lastSeen) return 0;
+    return Math.max(0, this.comments - lastSeen);
+  }
+
+  @memo
   get errors() {
     if (!this.admin.getPlugin('+plugin/log')) return 0;
     return this.ref.metadata?.plugins?.['+plugin/log'] || 0;
@@ -778,8 +785,22 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   }
 
   @memo
+  get newThreadsCount() {
+    const lastSeen = this.store.local.getLastSeenCount(this.ref.url, 'threads');
+    if (!lastSeen) return 0;
+    return Math.max(0,  this.threads - lastSeen);
+  }
+
+  @memo
   get responses() {
     return this.ref.metadata?.responses || 0;
+  }
+
+  @memo
+  get newResponsesCount() {
+    const lastSeen = this.store.local.getLastSeenCount(this.ref.url, 'replies');
+    if (!lastSeen) return 0;
+    return Math.max(0, this.responses - lastSeen);
   }
 
   @memo
@@ -913,7 +934,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   }
 
   showIcon(i: Icon) {
-    return visible(i, this.isAuthor, this.isRecipient) && active(this.ref, i);
+    return visible(this.ref, i, this.isAuthor, this.isRecipient) && active(this.ref, i);
   }
 
   clickIcon(i: Icon, ctrl: boolean) {
@@ -929,7 +950,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   }
 
   showAction(a: Action) {
-    if (!visible(a, this.isAuthor, this.isRecipient)) return false;
+    if (!visible(this.ref, a, this.isAuthor, this.isRecipient)) return false;
     if ('scheme' in a) {
       if (a.scheme !== getScheme(this.repostRef?.url || this.ref.url)) return false;
     }

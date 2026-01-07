@@ -25,7 +25,7 @@ import { printError } from '../../../util/http';
 })
 export class SettingsSetupPage {
 
-  experiments = !!this.admin.getTemplate('experiments');
+  experiments = !!this.admin.getTemplate('config/experiments');
   selectAllToggle = false;
   submitted = false;
   adminForm: UntypedFormGroup;

@@ -85,14 +85,18 @@ $tablet-width: 948px;
       .button-bar {
         flex-direction: row;
       }
+      .tag-select {
+        display: flex;
+      }
       .submit-button {
         display: flex;
         flex-grow: 1;
-        margin: 0;
-        margin-right: 4px;
+        padding: 4px !important;
+        margin: 0 !important;
+        margin-right: 4px !important;
         align-items: center;
         &:last-child {
-          margin-right: 1px;
+          margin-right: 1px !important;
         }
         span {
           width: 100%;

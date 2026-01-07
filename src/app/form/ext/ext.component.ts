@@ -26,7 +26,6 @@ import { catchError, of, Subject, takeUntil } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { LoadingComponent } from '../../component/loading/loading.component';
 import { RefComponent } from '../../component/ref/ref.component';
-import { allRefSorts } from '../../component/sort/sort.component';
 import { Ext } from '../../model/ext';
 import { Ref } from '../../model/ref';
 import { getMailbox } from '../../mods/mailbox';
@@ -34,7 +33,7 @@ import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
 import { Store } from '../../store/store';
 import { TAG_REGEX } from '../../util/format';
-import { convertFilter, defaultDesc, negatable, toggle, UrlFilter } from '../../util/query';
+import { convertFilter, convertSort, defaultDesc, negatable, toggle, UrlFilter } from '../../util/query';
 import { hasPrefix } from '../../util/tag';
 import { EditorComponent } from '../editor/editor.component';
 import { linksForm } from '../links/links.component';
@@ -58,7 +57,7 @@ import { themesForm, ThemesFormComponent } from '../themes/themes.component';
 })
 export class ExtFormComponent implements OnDestroy {
   private destroy$ = new Subject<void>();
-  allSorts = allRefSorts;
+  allSorts = this.admin.refSorts.map(convertSort);
   allFilters = this.admin.filters.map(convertFilter);
 
   @Input()
@@ -138,7 +137,7 @@ export class ExtFormComponent implements OnDestroy {
 
   get sortDir() {
     if (!this.defaultSort.value?.[0]) return undefined;
-    if (!this.defaultSort.value[0].includes(',')) return defaultDesc.includes(this.defaultSort.value[0]) ? 'DESC' : 'ASC';
+    if (!this.defaultSort.value[0].includes(',')) return defaultDesc(this.defaultSort.value[0]) ? 'DESC' : 'ASC';
     return this.defaultSort.value[0].split(',')[1].toUpperCase() === 'DESC' ? 'DESC' : 'ASC';
   }
 

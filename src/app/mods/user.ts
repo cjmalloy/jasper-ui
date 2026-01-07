@@ -26,9 +26,6 @@ export const userTemplate: Template = {
     to reply to a thread, one convention is to simply reply tagging the user like so: '+user/chris'.
     If you receive such a message, simply respond 'ACK', so that we can silently hide your response.
     `,
-    filters: [
-      { query: '+user|_user', label: $localize`🧑️ user`, title: $localize`User Settings`, group: $localize`Templates 🎨️` },
-    ],
     overrideForm: true,
     form: [{
       key: 'liveSearch',

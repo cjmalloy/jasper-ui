@@ -204,6 +204,10 @@ export interface Visibility {
    */
   title?: string;
   /**
+   * Tag to show / hide.
+   */
+  if?: string;
+  /**
    * Minimum role required to be visible.
    */
   role?: Role;
@@ -233,7 +237,8 @@ export interface Visibility {
   _parent?: Config;
 }
 
-export function visible(v: Visibility, isAuthor: boolean, isRecipient: boolean) {
+export function visible(ref: Ref, v: Visibility, isAuthor: boolean, isRecipient: boolean) {
+  if (('if' in v) && !hasTag(v.if, ref)) return false;
   if (!v.visible) return true;
   if (isAuthor) return v.visible === 'author' || v.visible === 'participant';
   if (isRecipient) return v.visible === 'recipient' || v.visible === 'participant';
@@ -554,7 +559,12 @@ export type TagPageArgs = TagQueryArgs & {
 export type TagSort = '' |
   'modified' | 'modified,ASC' | 'modified,DESC' |
   'tag' | 'tag,ASC' | 'tag,DESC' |
-  'levels' | 'levels,ASC' | 'levels,DESC' |
+  'tag:len' | 'tag:len,ASC' | 'tag:len,DESC' |
   'name' | 'name,ASC' | 'name,DESC' |
   'origin' | 'origin,ASC' | 'origin,DESC' |
-  'nesting' | 'nesting,ASC' | 'nesting,DESC';
+  'origin:len' | 'origin:len,ASC' | 'origin:len,DESC' |
+  `config->${string}` | `config->${string},ASC` | `config->${string},DESC`;
+
+export type ConfigSort = TagSort |
+  `defaults->${string}` | `defaults->${string},ASC` | `defaults->${string},DESC` |
+  `schema->${string}` | `schema->${string},ASC` | `schema->${string},DESC`;

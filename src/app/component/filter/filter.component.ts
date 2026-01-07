@@ -162,9 +162,6 @@ export class FilterComponent implements OnChanges, OnDestroy {
           filters: [
             { filter: 'obsolete', label: $localize`⏮️ obsolete`, title: $localize`Show older versions` },
             { filter: 'query/_plugin:!+user', label: $localize`📟️ system`, title: $localize`System configs` },
-            { filter: 'untagged', label: $localize`🚫️🏷️ untagged` },
-            { filter: 'uncited', label: $localize`🚫️💌️ uncited` },
-            { filter: 'unsourced', label: $localize`🚫️📜️ unsourced` },
           ],
         });
       } else {

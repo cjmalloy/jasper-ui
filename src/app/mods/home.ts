@@ -3,7 +3,7 @@ import { Mod } from '../model/tag';
 import { Template } from '../model/template';
 
 export const homeTemplate: Template = {
-  tag: 'home',
+  tag: 'config/home',
   name: $localize`🏡️ Home Page`,
   config: {
     type: 'config',
