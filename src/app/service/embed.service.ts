@@ -12,7 +12,7 @@ import { wikiUriFormat } from '../mods/wiki';
 import { OembedStore } from '../store/oembed';
 import { Store } from '../store/store';
 import { delay } from '../util/async';
-import { Embed } from '../util/embed';
+import { Embed, parseSrc } from '../util/embed';
 import { parseParams } from '../util/http';
 import { getFilters, getFiltersQuery, parseArgs } from '../util/query';
 import { isQuery, localTag, queryPrefix, tagOrigin, topAnds } from '../util/tag';
@@ -617,7 +617,11 @@ export class EmbedService {
     iframe.style.width = (oembed.width ? oembed.width + 'px' : width);
     if (oembed.height) iframe.style.height = oembed.height + 'px';
     if (oembed.html) {
-      this.writeIframeHtml(oembed.html || '', iframe);
+      if (oembed.html.startsWith('<iframe')) {
+        iframe.src = parseSrc(oembed.html);
+      } else {
+        this.writeIframeHtml(oembed.html || '', iframe);
+      }
     } else {
       iframe.src = oembed.url;
     }
