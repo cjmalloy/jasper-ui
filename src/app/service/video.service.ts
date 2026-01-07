@@ -91,6 +91,7 @@ export class VideoService {
     this.store.video.call(user, peer);
     this.seen.delete(user);
     this.addListener(user, peer, 'icecandidate', (event) => {
+      console.warn('Sending Ice Candidate', user);
       this.patch(user, [{
         op: 'add',
         path: '/' + escapePath('plugin/user/video') + '/candidate/-',
@@ -294,7 +295,7 @@ export class VideoService {
   queue = new Map<string, OpPatch[]>();
   patch(user: string, ops: OpPatch[]) {
     const scheduled = !!this.queue.size;
-    const throttle = 400;
+    const throttle = 50;
     if (this.queue.has(user)) {
       this.queue.get(user)!.push(...ops);
     } else {
