@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, isDevMode } from '@angular/core';
 import { runInAction } from 'mobx';
 import { filter, map, mergeMap, Subject, switchMap, takeUntil, takeWhile, timer } from 'rxjs';
 import { tap } from 'rxjs/operators';
@@ -47,7 +47,7 @@ export class VideoService {
     private ts: TaggingService,
     private refs: RefService,
   ) {
-    timer(3_000, 30_000).pipe(
+    if (isDevMode()) timer(3_000, 30_000).pipe(
       mergeMap(() => this.store.video.peers.entries()),
       map(([user, peer]) => ({ user, stats: peer.getStats() })),
     ).subscribe(({ user, stats }) => {
@@ -61,7 +61,7 @@ export class VideoService {
 
   call(url: string, stream: MediaStream) {
     if (this.url === url) return;
-    console.warn('Joining Lobby!');
+    console.debug('Joining Lobby!');
     this.url = url;
     this.destroy$.next();
     runInAction(() => this.store.video.stream = stream);
@@ -70,7 +70,7 @@ export class VideoService {
   }
 
   hangup() {
-    console.warn('Hung Up!');
+    console.debug('Hung Up!');
     this.url = '';
     for (const user of this.store.video.peers.keys()) {
       this.ts.respond([setPublic(localTag(user)), '-plugin/user/video'], userResponse(user))
@@ -88,7 +88,7 @@ export class VideoService {
     this.store.video.call(user, peer);
     this.seen.delete(user);
     this.addListener(user, peer, 'icecandidate', (event) => {
-      console.warn('Sending Ice Candidate', user);
+      console.debug('Sending Ice Candidate', user);
       this.patch(user, [{
         op: 'add',
         path: '/' + escapePath('plugin/user/video') + '/candidate/-',
@@ -111,7 +111,7 @@ export class VideoService {
       console.log('connectionstatechange', peer.connectionState);
     });
     this.addListener(user, peer, 'track', (event) => {
-      console.warn('Track received:', event.streams[0]?.id, event.track.readyState);
+      console.debug('Track received:', event.streams[0]?.id, event.track.readyState);
       const [remoteStream] = event.streams;
       this.store.video.addStream(user, remoteStream);
     });
@@ -122,7 +122,7 @@ export class VideoService {
     //   const offer = await peer.createOffer({ iceRestart: true, offerToReceiveAudio: true, offerToReceiveVideo: true });
     //   if (peer.signalingState !== 'stable') {
     //     // Already accepted remote offer
-    //     console.warn('Already accepted remote offer!', user);
+    //     console.debug('Already accepted remote offer!', user);
     //     return;
     //   }
     //   await peer.setLocalDescription(offer);
@@ -146,11 +146,11 @@ export class VideoService {
     const offer = await peer.createOffer();
     if (peer.signalingState !== 'stable') {
       // Already accepted remote offer
-      console.warn('Already accepted remote offer!', user);
+      console.debug('Already accepted remote offer!', user);
       return;
     }
     await peer.setLocalDescription(offer);
-    console.warn('Making Offer!', user);
+    console.debug('Making Offer!', user);
     const dial = Math.random() * Number.MAX_SAFE_INTEGER;
     this.offers.set(user, dial);
     this.ts.mergeResponse([setPublic(localTag(user)), '-plugin/user/video', 'plugin/user/video'], userResponse(user), {
@@ -189,7 +189,7 @@ export class VideoService {
           const hungup = !hasTag('plugin/user/lobby', res);
           runInAction(() => this.store.video.hungup.set(user, hungup));
           if (hungup && this.store.video.peers.has(user)) {
-            console.warn('Hung Up!', user);
+            console.debug('Hung Up!', user);
             this.store.video.remove(user);
           }
         }),
@@ -228,18 +228,18 @@ export class VideoService {
       if (peer?.signalingState === 'have-local-offer') {
         if (video.answer) {
           if (this.offers.get(user) !== video.dial) {
-            console.warn('Ignored Old Answer!', user);
+            console.debug('Ignored Old Answer!', user);
           } else {
-            console.warn('Accept Answer!', user);
+            console.debug('Accept Answer!', user);
             await peer.setRemoteDescription(new RTCSessionDescription(video.answer));
           }
         } else if (video.offer) {
-          console.warn('Double Offer!', user);
+          console.debug('Double Offer!', user);
           if (setPublic(this.store.account.tag) < user) {
-            console.warn('Cancelled Offer! (will accept offer)', user);
+            console.debug('Cancelled Offer! (will accept offer)', user);
             await peer.setLocalDescription({ type: 'rollback' });
           } else {
-            console.warn('Waiting for answer!', user);
+            console.debug('Waiting for answer!', user);
             return;
           }
         }
@@ -252,11 +252,11 @@ export class VideoService {
         const dial = video.dial;
         peer ||= this.peer(user);
         this.offers.set(user, dial);
-        console.warn('Accept Offer!', user, peer.signalingState);
+        console.debug('Accept Offer!', user, peer.signalingState);
         await peer.setRemoteDescription(new RTCSessionDescription(video.offer!));
         const answer = await peer.createAnswer();
         await peer!.setLocalDescription(answer);
-        console.warn('Send Answer!', user);
+        console.debug('Send Answer!', user);
         this.ts.mergeResponse([setPublic(localTag(user)), '-plugin/user/video', 'plugin/user/video'], userResponse(user), {
           'plugin/user/video': { answer, dial }
         }).subscribe();
@@ -267,7 +267,7 @@ export class VideoService {
           if (this.seen.get(user)?.has(hash)) continue;
           if (!this.seen.get(user)) this.seen.set(user, new Set<string>());
           this.seen.get(user)?.add(hash);
-          console.warn('Adding Ice!', user);
+          console.debug('Adding Ice!', user);
           try {
             await peer!.addIceCandidate(c.candidate ? c : null);
           } catch (err) {
