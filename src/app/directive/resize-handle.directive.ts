@@ -1,4 +1,13 @@
-import { AfterViewInit, Directive, ElementRef, HostBinding, HostListener, Input, NgZone, OnDestroy } from '@angular/core';
+import {
+  AfterViewInit,
+  Directive,
+  ElementRef,
+  HostBinding,
+  HostListener,
+  Input,
+  NgZone,
+  OnDestroy
+} from '@angular/core';
 import { ConfigService } from '../service/config.service';
 import { relativeX, relativeY } from '../util/math';
 

@@ -25,6 +25,7 @@ import { Store } from '../../store/store';
 import { memo, MemoCache } from '../../util/memo';
 import { hasPrefix, hasTag, isQuery, localTag, setProtected, setPublic, topAnds } from '../../util/tag';
 import { BulkComponent } from '../bulk/bulk.component';
+import { ChatVideoComponent } from '../chat/chat-video/chat-video.component';
 import { ChatComponent } from '../chat/chat.component';
 import { DebugComponent } from '../debug/debug.component';
 import { ExtComponent } from '../ext/ext.component';
@@ -55,6 +56,7 @@ import { SortComponent } from '../sort/sort.component';
     AsyncPipe,
     NavComponent,
     RouterLinkActive,
+    ChatVideoComponent,
   ]
 })
 export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
@@ -257,8 +259,13 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   @memo
+  get videoChat() {
+    return !!this.admin.getPlugin('plugin/user/video') && (this.chat || hasPrefix(this.ext?.tag || this.tag, 'chat'));
+  }
+
+  @memo
   get chat() {
-    return !!this.admin.getPlugin('plugin/chat') && hasTag('plugin/chat', this.store.view.ref);
+    return !!this.admin.getPlugin('plugin/user/lobby') && !!this.admin.getPlugin('plugin/chat') && hasTag('plugin/chat', this.store.view.ref);
   }
 
   @memo
