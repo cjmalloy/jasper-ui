@@ -82,7 +82,6 @@ export class VideoService {
     this.destroy$.next();
   }
 
-  renegotiated = new Map<string, boolean>();
   peer(user: string) {
     if (this.store.video.peers.has(user)) return this.store.video.peers.get(user)!;
     const peer = new RTCPeerConnection(this.admin.getPlugin('plugin/user/video')!.config!.rtcConfig);
@@ -101,7 +100,6 @@ export class VideoService {
     });
     this.addListener(user, peer, 'connectionstatechange', () => {
       if (peer.connectionState === 'connected') {
-        this.renegotiated.set(user, false);
         this.ts.respond([setPublic(localTag(user)), '-plugin/user/video'], userResponse(user))
           .subscribe();
       }
@@ -117,20 +115,25 @@ export class VideoService {
       const [remoteStream] = event.streams;
       this.store.video.addStream(user, remoteStream);
     });
-    this.addListener(user, peer, 'negotiationneeded', (event) => {
-      if (this.renegotiated.get(user)) return;
-      this.renegotiated.set(user, true);
-      console.warn('Renegotiation needed for', user);
-      this.resetUserConnection(user);
-      this.doInvite(user);
-
-    });
-    this.addListener(user, peer, 'iceconnectionstatechange', (event) => {
-      if (peer.iceConnectionState === 'failed') {
-        console.warn('Restarting ICE', user);
-        peer.restartIce();
-      }
-    });
+    // TODO: negotiationneeded
+    // this.addListener(user, peer, 'negotiationneeded', async (event) => {
+    //   if (peer.signalingState !== 'stable') return;
+    //   console.warn('Renegotiation needed for', user);
+    //   const offer = await peer.createOffer({ iceRestart: true, offerToReceiveAudio: true, offerToReceiveVideo: true });
+    //   if (peer.signalingState !== 'stable') {
+    //     // Already accepted remote offer
+    //     console.warn('Already accepted remote offer!', user);
+    //     return;
+    //   }
+    //   await peer.setLocalDescription(offer);
+    //
+    // });
+    // this.addListener(user, peer, 'iceconnectionstatechange', (event) => {
+    //   if (peer.iceConnectionState === 'failed') {
+    //     console.warn('Restarting ICE', user);
+    //     peer.restartIce();
+    //   }
+    // });
     this.store.video.stream!.getTracks().forEach(t => peer.addTrack(t, this.store.video.stream!));
     return peer;
   }
@@ -245,7 +248,7 @@ export class VideoService {
         this.ts.deleteResponse('plugin/user/video', userResponse(user)).subscribe();
         return;
       }
-      if (video.offer && !video.answer && (peer?.signalingState === 'stable')) {
+      if (video.offer && !video.answer && peer?.signalingState === 'stable') {
         const dial = video.dial;
         peer ||= this.peer(user);
         this.offers.set(user, dial);
