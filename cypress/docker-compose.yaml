@@ -69,7 +69,7 @@ services:
     depends_on:
       - db
   db:
-    image: postgres
+    image: postgres:18-alpine
     environment:
       POSTGRES_USER: jasper
       POSTGRES_PASSWORD: jasper
@@ -117,7 +117,7 @@ services:
     depends_on:
       - repl-db
   repl-db:
-    image: postgres
+    image: postgres:18-alpine
     environment:
       POSTGRES_USER: jasper
       POSTGRES_PASSWORD: jasper
