@@ -260,7 +260,7 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
 
   @memo
   get videoChat() {
-    return !!this.admin.getPlugin('plugin/user/video') && this.chat || hasPrefix(this.ext?.tag || this.tag, 'chat');
+    return !!this.admin.getPlugin('plugin/user/video') && (this.chat || hasPrefix(this.ext?.tag || this.tag, 'chat'));
   }
 
   @memo
