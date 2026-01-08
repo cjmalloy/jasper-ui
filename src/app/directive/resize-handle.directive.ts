@@ -21,7 +21,6 @@ export class ResizeHandleDirective implements AfterViewInit, OnDestroy {
   hitArea = 24;
 
   @Input()
-  @HostBinding('class.resize-handle')
   appResizeHandle?: boolean | string = true;
 
   @Input()
@@ -45,8 +44,13 @@ export class ResizeHandleDirective implements AfterViewInit, OnDestroy {
     return this.config.mobile ? 'row-resize' : 'se-resize';
   }
 
+  @HostBinding('class.resize-handle')
+  get enabled() {
+    return this.appResizeHandle !== 'false' && this.appResizeHandle !== false;
+  }
+
   ngAfterViewInit() {
-    if (!this.appResizeHandle) return;
+    if (!this.enabled) return;
     this.resizeObserver = window.ResizeObserver && new ResizeObserver(() => this.shrinkContainer()) || undefined;
     if (this.child) this.resizeObserver?.observe(this.child);
   }
@@ -63,7 +67,7 @@ export class ResizeHandleDirective implements AfterViewInit, OnDestroy {
 
   @HostListener('pointerdown', ['$event'])
   onPointerDown(event: PointerEvent) {
-    if (!this.appResizeHandle) return;
+    if (!this.enabled) return;
     if (event.button) return;
     if (this.hit(event)) {
       this.dragging = true;
@@ -80,7 +84,7 @@ export class ResizeHandleDirective implements AfterViewInit, OnDestroy {
 
   @HostListener('window:pointermove', ['$event'])
   onPointerMove(event: PointerEvent) {
-    if (!this.appResizeHandle) return;
+    if (!this.enabled) return;
     if (this.dragging) {
       this.zone.run(() => {
         const dx = event.clientX - this.x;
@@ -101,7 +105,7 @@ export class ResizeHandleDirective implements AfterViewInit, OnDestroy {
 
   @HostListener('window:pointerup', ['$event'])
   onPointerUp(event: PointerEvent) {
-    if (!this.appResizeHandle) return;
+    if (!this.enabled) return;
     if (this.dragging) {
       this.dragging = false;
       this.cursor = this.hit(event) ? this.resizeCursor : 'auto';
