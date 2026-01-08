@@ -80,6 +80,8 @@ describe('ChatVideoComponent', () => {
 
   describe('Automatic call initiation', () => {
     it('should automatically call when plugin/user/lobby tag is detected and video is not enabled', () => {
+      // Setup localStorage to indicate user was in a call
+      localStorage.setItem('video', 'true');
       mockStore.video.enabled = false;
       const mockRef: Ref = {
         url: 'test://url',
@@ -88,8 +90,10 @@ describe('ChatVideoComponent', () => {
       };
       mockTaggingService.getResponse.mockReturnValue(of(mockRef));
       mockTaggingService.respond.mockReturnValue(of(undefined));
+      mockTaggingService.deleteResponse.mockReturnValue(of(undefined));
 
       vi.spyOn(component, 'call');
+      vi.spyOn(window, 'confirm').mockReturnValue(true);
 
       fixture.detectChanges();
 
@@ -109,6 +113,8 @@ describe('ChatVideoComponent', () => {
     });
 
     it('should use custom URL if provided', () => {
+      // Setup localStorage to indicate user was in a call
+      localStorage.setItem('video', 'true');
       mockStore.video.enabled = false;
       component.url = 'test://response';
       mockTaggingService.getResponse.mockReturnValue(of({} as Ref));

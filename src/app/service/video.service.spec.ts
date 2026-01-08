@@ -60,7 +60,10 @@ describe('VideoService', () => {
       streams: new Map<string, MediaStream[]>(),
       stream: undefined,
       hungup: new Map<string, boolean>(),
-      call: vi.fn(),
+      call: vi.fn((user: string, peer: RTCPeerConnection) => {
+        videoStore.peers.set(user, peer);
+        videoStore.streams.set(user, []);
+      }),
       addStream: vi.fn(),
       remove: vi.fn(),
       reset: vi.fn(),
@@ -146,6 +149,8 @@ describe('VideoService', () => {
   describe('peer connection creation', () => {
     it('should create a new peer connection for a user', () => {
       const user = 'user/alice';
+      // Set up the stream so peer() can access it
+      mockStore.video.stream = mockMediaStream;
       const peer = service.peer(user);
 
       expect(peer).toBe(mockPeerConnection);
@@ -175,6 +180,8 @@ describe('VideoService', () => {
 
     it('should set up ice candidate event listener', () => {
       const user = 'user/alice';
+      // Set up the stream so peer() can access it
+      mockStore.video.stream = mockMediaStream;
       service.peer(user);
 
       expect(mockPeerConnection.addEventListener).toHaveBeenCalledWith('icecandidate', expect.any(Function));
@@ -182,6 +189,8 @@ describe('VideoService', () => {
 
     it('should set up connection state change event listener', () => {
       const user = 'user/alice';
+      // Set up the stream so peer() can access it
+      mockStore.video.stream = mockMediaStream;
       service.peer(user);
 
       expect(mockPeerConnection.addEventListener).toHaveBeenCalledWith('connectionstatechange', expect.any(Function));
@@ -189,6 +198,8 @@ describe('VideoService', () => {
 
     it('should set up track event listener', () => {
       const user = 'user/alice';
+      // Set up the stream so peer() can access it
+      mockStore.video.stream = mockMediaStream;
       service.peer(user);
 
       expect(mockPeerConnection.addEventListener).toHaveBeenCalledWith('track', expect.any(Function));
@@ -225,7 +236,7 @@ describe('VideoService', () => {
       const mockRef: Ref = {
         url: 'tag:/user/alice?plugin/user/video',
         origin: '',
-        tags: ['plugin/user/video'],
+        tags: ['plugin/user/video', 'plugin/user/lobby'],
         plugins: {
           'plugin/user/video': {
             offer: mockOffer,
@@ -236,6 +247,9 @@ describe('VideoService', () => {
       // Mock watchResponse to emit the ref URL for the correct tag
       mockStomp.watchResponse.mockImplementation((responseUrl: string) => {
         if (responseUrl === 'tag:/user/test') {
+          return of('tag:/user/alice?plugin/user/video');
+        }
+        if (responseUrl === 'tag:/chat') {
           return of('tag:/user/alice?plugin/user/video');
         }
         return of();
@@ -258,7 +272,7 @@ describe('VideoService', () => {
       const mockRef: Ref = {
         url: 'tag:/user/alice?plugin/user/video',
         origin: '',
-        tags: ['plugin/user/video'],
+        tags: ['plugin/user/video', 'plugin/user/lobby'],
         plugins: {
           'plugin/user/video': {
             offer: mockOffer,
@@ -271,6 +285,9 @@ describe('VideoService', () => {
 
       mockStomp.watchResponse.mockImplementation((responseUrl: string) => {
         if (responseUrl === 'tag:/user/test') {
+          return of('tag:/user/alice?plugin/user/video');
+        }
+        if (responseUrl === 'tag:/chat') {
           return of('tag:/user/alice?plugin/user/video');
         }
         return of();
@@ -302,6 +319,8 @@ describe('VideoService', () => {
         }
       });
 
+      // Set up the stream so peer() can access it
+      mockStore.video.stream = mockMediaStream;
       service.peer(user);
 
       expect(iceCandidateHandler).toBeDefined();
@@ -323,7 +342,7 @@ describe('VideoService', () => {
       const mockRef: Ref = {
         url: 'tag:/user/alice?plugin/user/video',
         origin: '',
-        tags: ['plugin/user/video'],
+        tags: ['plugin/user/video', 'plugin/user/lobby'],
         plugins: {
           'plugin/user/video': {
             offer: mockOffer,
@@ -337,6 +356,9 @@ describe('VideoService', () => {
 
       mockStomp.watchResponse.mockImplementation((responseUrl: string) => {
         if (responseUrl === 'tag:/user/test') {
+          return of('tag:/user/alice?plugin/user/video');
+        }
+        if (responseUrl === 'tag:/chat') {
           return of('tag:/user/alice?plugin/user/video');
         }
         return of();
@@ -357,7 +379,7 @@ describe('VideoService', () => {
       const mockRef: Ref = {
         url: 'tag:/user/alice?plugin/user/video',
         origin: '',
-        tags: ['plugin/user/video'],
+        tags: ['plugin/user/video', 'plugin/user/lobby'],
         plugins: {
           'plugin/user/video': {
             offer: mockOffer,
@@ -371,6 +393,9 @@ describe('VideoService', () => {
 
       mockStomp.watchResponse.mockImplementation((responseUrl: string) => {
         if (responseUrl === 'tag:/user/test') {
+          return of('tag:/user/alice?plugin/user/video');
+        }
+        if (responseUrl === 'tag:/chat') {
           return of('tag:/user/alice?plugin/user/video');
         }
         return of();
@@ -514,6 +539,8 @@ describe('VideoService', () => {
         }
       });
 
+      // Set up the stream so peer() can access it
+      mockStore.video.stream = mockMediaStream;
       service.peer(user);
 
       expect(trackHandler).toBeDefined();
