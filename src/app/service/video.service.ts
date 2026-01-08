@@ -151,7 +151,7 @@ export class VideoService {
     }
     await peer.setLocalDescription(offer);
     console.warn('Making Offer!', user);
-    const dial = Math.random();
+    const dial = Math.random() * Number.MAX_SAFE_INTEGER;
     this.offers.set(user, dial);
     this.ts.mergeResponse([setPublic(localTag(user)), '-plugin/user/video', 'plugin/user/video'], userResponse(user), {
       'plugin/user/video': { offer, dial }

@@ -217,7 +217,7 @@ export const videoPlugin: Plugin = {
       },
     },
     optionalProperties: {
-      dial: { type: 'float32' },
+      dial: { type: 'float64' },
       offer: {
         optionalProperties: {
           type: { type: 'string' },
