@@ -98,12 +98,10 @@
 }
 @if (pdfUrl) {
   <div class="embed-container"
-       [class.loading]="!pdfReady"
        [appResizeHandle]="!disableResize"
        [child]="pdfIframe">
     <iframe #pdfIframe
             class="embed-expand"
-            [class.ready]="pdfReady"
             src="about:blank"
             frameborder="0"
             sandbox="allow-same-origin allow-scripts"

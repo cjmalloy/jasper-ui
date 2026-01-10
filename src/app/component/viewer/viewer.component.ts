@@ -86,10 +86,12 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
     const url = this.pdfUrl;
     if (!url) return;
     
-    this.embeds.writeIframeHtml(this.pdfEmbedHtml(url), iframe);
+    // URL is already sanitized by ProxyService.getFetch which validates URLs
+    // Using he.encode for HTML entity escaping
+    const escapedUrl = he.encode(url);
+    this.embeds.writeIframeHtml(`<embed type="application/pdf" src="${escapedUrl}" width="100%" height="100%">`, iframe);
     iframe.style.width = this.embedWidth;
     iframe.style.height = this.embedHeight;
-    this.pdfReady = true;
   }
 
   @Input()
@@ -130,7 +132,6 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
   chessWhite = true;
   uis = this.admin.getPluginUi(this.currentTags);
   embedReady = false;
-  pdfReady = false;
 
   private _oembed?: Oembed;
   private width = 0;
@@ -286,13 +287,6 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
   @memo
   get oembed(): Oembed | undefined {
     return this._oembed;
-  }
-
-  private pdfEmbedHtml(url: string): string {
-    // URL is already sanitized by ProxyService.getFetch which validates URLs
-    // Using he.encode for HTML entity escaping
-    const escapedUrl = he.encode(url);
-    return `<embed type="application/pdf" src="${escapedUrl}" width="100%" height="100%">`;
   }
 
   @memo
