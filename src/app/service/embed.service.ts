@@ -718,6 +718,10 @@ export function transparentIframe(content: string, bgColor: string) {
       overflow: hidden;
       margin: 0;
     }
+    body > * {
+      margin-left: auto;
+      margin-right: auto;
+    }
     </style>
   </head>
     <body>${content}</body>
