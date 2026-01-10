@@ -25,7 +25,6 @@ import { Page } from '../../model/page';
 import { getPluginScope, PluginApi } from '../../model/plugin';
 import { findCache, findExtension, Ref, RefSort, RefUpdates } from '../../model/ref';
 import { EmitAction, hydrate } from '../../model/tag';
-import { SafePipe } from '../../pipe/safe.pipe';
 import { ActionService } from '../../service/action.service';
 import { AdminService } from '../../service/admin.service';
 import { ProxyService } from '../../service/api/proxy.service';
@@ -68,7 +67,6 @@ export const IFRAME_SANDBOX = 'allow-scripts allow-forms allow-modals allow-orie
     TodoComponent,
     BackgammonComponent,
     ChessComponent,
-    SafePipe,
     ResizeHandleDirective,
   ],
 })
@@ -79,6 +77,43 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
 
   @ViewChild('iframe')
   iframe!: ElementRef;
+
+  @ViewChild('pdfIframe')
+  set pdfIframe(value: ElementRef<HTMLIFrameElement>) {
+    if (!value) return;
+    const iframe = value.nativeElement;
+    const url = this.pdfUrl;
+    if (!url) return;
+    
+    // Write the PDF embed into the iframe
+    const doc = iframe.contentWindow!.document;
+    doc.open();
+    doc.write(`
+      <html>
+      <head>
+        <style>
+          body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+          }
+          embed {
+            width: 100%;
+            height: 100%;
+            border: none;
+          }
+        </style>
+      </head>
+      <body>
+        <embed type="application/pdf" src="${url}" width="100%" height="100%">
+      </body>
+      </html>
+    `);
+    doc.close();
+    this.pdfReady = true;
+  }
 
   @Input()
   ref?: Ref;
@@ -118,6 +153,7 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
   chessWhite = true;
   uis = this.admin.getPluginUi(this.currentTags);
   embedReady = false;
+  pdfReady = false;
 
   private _oembed?: Oembed;
   private width = 0;

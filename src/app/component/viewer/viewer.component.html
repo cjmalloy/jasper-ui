@@ -97,10 +97,19 @@
           [plugins]="currentTags"></app-md>
 }
 @if (pdfUrl) {
-  <embed type="application/pdf"
-         [src]="pdfUrl | safe"
-         [style.width]="embedWidth"
-         [style.height]="embedHeight">
+  <div class="pdf-container"
+       [class.loading]="!pdfReady"
+       [appResizeHandle]="!disableResize"
+       [child]="pdfIframe">
+    <iframe #pdfIframe
+            class="pdf-expand"
+            [class.ready]="pdfReady"
+            src="about:blank"
+            frameborder="0"
+            sandbox="allow-same-origin"
+            [style.width]="embedWidth"
+            [style.height]="embedHeight"></iframe>
+  </div>
 }
 @for (ui of uis; track ui.tag) {
   <app-md [class]="uiCss(ui.tag)"
