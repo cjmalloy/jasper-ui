@@ -71,12 +71,9 @@ body.dark-theme {
     }
   }
 
-  & {
-    background-color: var(--bg);
-    background-image: url("../assets/bg-dark.png");
-    background-blend-mode: soft-light;
-  }
-  figure::backdrop, .editor.fullscreen app-md {
+  &,
+  ::backdrop,
+  .editor.fullscreen app-md {
     background-color: var(--bg);
     background-image: url("../assets/bg-dark.png");
     background-blend-mode: soft-light;

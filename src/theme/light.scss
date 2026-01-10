@@ -32,10 +32,9 @@ body.light-theme {
   color-scheme: light;
   color: var(--text);
 
-  background-color: var(--bg);
-  background-image: url("../assets/bg-light.png");
-  background-blend-mode: darken;
-  figure::backdrop, .editor.fullscreen app-md {
+  &,
+  ::backdrop,
+  .editor.fullscreen app-md {
     background-color: var(--bg);
     background-image: url("../assets/bg-light.png");
     background-blend-mode: darken;
