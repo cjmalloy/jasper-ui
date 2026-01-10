@@ -86,8 +86,14 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
     if (!url) return;
     
     // Write the PDF embed into the iframe
-    const doc = iframe.contentWindow!.document;
+    const contentWindow = iframe.contentWindow;
+    if (!contentWindow) return;
+    
+    const doc = contentWindow.document;
     doc.open();
+    // URL is already sanitized by SafePipe in the Angular template binding
+    // or by ProxyService.getFetch which validates URLs
+    const escapedUrl = url.replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     doc.write(`
       <html>
       <head>
@@ -107,7 +113,7 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
         </style>
       </head>
       <body>
-        <embed type="application/pdf" src="${url}" width="100%" height="100%">
+        <embed type="application/pdf" src="${escapedUrl}" width="100%" height="100%">
       </body>
       </html>
     `);
