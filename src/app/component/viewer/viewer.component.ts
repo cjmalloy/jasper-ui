@@ -81,21 +81,6 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
   @ViewChild('iframe')
   iframe!: ElementRef;
 
-  @ViewChild('pdfIframe')
-  set pdfIframe(value: ElementRef<HTMLIFrameElement>) {
-    if (!value) return;
-    const iframe = value.nativeElement;
-    const url = this.pdfUrl;
-    if (!url) return;
-    
-    // URL is already sanitized by ProxyService.getFetch which validates URLs
-    // Using he.encode for HTML entity escaping
-    const escapedUrl = he.encode(url);
-    this.embeds.writeIframeHtml(`<embed type="application/pdf" src="${escapedUrl}" width="100%" height="100%">`, iframe);
-    iframe.style.width = this.embedWidth;
-    iframe.style.height = this.embedHeight;
-  }
-
   @Input()
   ref?: Ref;
   @Input()
@@ -211,6 +196,17 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
       const pipWindow = await documentPictureInPicture.requestWindow();
       pipWindow.document.body.append(this.el.nativeElement);
     }
+  }
+
+  @ViewChild('pdfIframe')
+  set pdfIframe(value: ElementRef<HTMLIFrameElement>) {
+    if (!value) return;
+    const iframe = value.nativeElement;
+    const url = this.pdfUrl;
+    if (!url) return;
+    this.embeds.writeIframeHtml(`<embed type="application/pdf" src="${he.encode(url)}" width="100%" height="100%">`, iframe);
+    iframe.style.width = this.embedWidth;
+    iframe.style.height = this.embedHeight;
   }
 
   @HostBinding('class')
