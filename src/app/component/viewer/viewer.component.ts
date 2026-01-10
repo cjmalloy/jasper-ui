@@ -12,6 +12,7 @@ import {
   ViewChild
 } from '@angular/core';
 import { FormControl } from '@angular/forms';
+import * as he from 'he';
 import Hls from 'hls.js';
 import { defer, isEqual, some, without } from 'lodash-es';
 import { runInAction } from 'mobx';
@@ -297,13 +298,8 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
 
   private pdfEmbedHtml(url: string): string {
     // URL is already sanitized by ProxyService.getFetch which validates URLs
-    // Additional escaping to prevent XSS when injecting into HTML
-    const escapedUrl = url
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#39;');
+    // Using he.encode for HTML entity escaping
+    const escapedUrl = he.encode(url);
     return `<embed type="application/pdf" src="${escapedUrl}" width="100%" height="100%">`;
   }
 
