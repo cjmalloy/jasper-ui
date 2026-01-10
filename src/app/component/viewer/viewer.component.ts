@@ -51,8 +51,6 @@ import { QrComponent } from '../qr/qr.component';
 import { RefComponent } from '../ref/ref.component';
 import { TodoComponent } from '../todo/todo.component';
 
-export const IFRAME_SANDBOX = 'allow-scripts allow-plugins allow-forms allow-modals allow-orientation-lock allow-pointer-lock allow-popups allow-presentation allow-top-navigation-by-user-activation';
-
 @Component({
   selector: 'app-viewer',
   templateUrl: './viewer.component.html',
@@ -230,8 +228,9 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
   set pdfIframe(value: ElementRef<HTMLIFrameElement>) {
     if (!value) return;
     const iframe = value.nativeElement;
-    const url = this.pdfUrl;
+    let url = this.pdfUrl;
     if (!url) return;
+    if (url.startsWith('//')) url = location.protocol + url;
     this.embeds.writeIframeHtml(`<embed type="application/pdf" src="${he.encode(url)}" width="100%" height="100%">`, iframe);
     iframe.style.width = this.embedWidth;
     iframe.style.height = this.embedHeight;
@@ -263,13 +262,7 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
             MemoCache.clear(this);
           });
       } else {
-        // @ts-ignore
-        const l = new URL(window.location);
-        const url = new URL(this.embed?.url || this.ref?.url);
-        if (url.protocol === l.protocol && url.host === l.host && url.port === l.port) {
-          i.sandbox = IFRAME_SANDBOX;
-        }
-        i.src = url.toString();
+        i.src = this.embed?.url || this.ref?.url;
         i.style.width = this.embedWidth;
         i.style.height = this.embedHeight;
         this.embedReady = true;
