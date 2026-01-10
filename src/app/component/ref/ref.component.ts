@@ -175,7 +175,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   publishChanged = false;
   diffOriginal?: Ref;
   diffModified?: Ref;
-  fullscreen = this.admin.getPlugin('plugin/fullscreen') && hasTag('plugin/fullscreen', this.plugins);
+  fullscreen = this.fullscreenRequired;
 
   submitting?: Subscription;
   private refreshTap?: () => void;
@@ -275,7 +275,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     this.writeAccess = this.auth.writeAccess(this.ref);
     this.taggingAccess = this.auth.taggingAccess(this.ref);
     this.deleteAccess = this.auth.deleteAccess(this.ref);
-    this.fullscreen = this.admin.getPlugin('plugin/fullscreen') && hasTag('plugin/fullscreen', this.plugins);
+    this.fullscreen = this.fullscreenRequired;
     this.initFields(this.ref);
 
     this.expandPlugins = this.admin.getEmbeds(this.ref);
@@ -373,10 +373,17 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     return undefined;
   }
 
+  get fullscreenRequired() {
+    if (!this.admin.getPlugin('plugin/fullscreen')) return false;
+    if (!hasTag('plugin/fullscreen', this.plugins)) return false;
+    return !this.ref.plugins?.['plugin/fullscreen']?.optional;
+  }
+
   @HostListener('fullscreenchange')
   onFullscreenChange() {
     if (!this.fullscreen) return;
-    this.fullscreen = this.admin.getPlugin('plugin/fullscreen') && hasTag('plugin/fullscreen', this.plugins);
+    if (document.fullscreenElement) return;
+    this.fullscreen = this.fullscreenRequired;
     if (this.closeOffFullscreen && !document.fullscreenElement) {
       this.expanded = false;
     }
