@@ -27,12 +27,6 @@ iframe {
   }
 }
 
-.pdf-container {
-  iframe {
-    display: block !important;
-  }
-}
-
 :host:fullscreen {
   &,
   & .embed-container iframe {
