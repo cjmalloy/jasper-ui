@@ -79,57 +79,7 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
   iframe!: ElementRef;
 
   @ViewChild('pdfIframe')
-  set pdfIframe(value: ElementRef<HTMLIFrameElement>) {
-    if (!value) return;
-    const iframe = value.nativeElement;
-    const url = this.pdfUrl;
-    if (!url) return;
-    
-    // Write the PDF embed into the iframe
-    const contentWindow = iframe.contentWindow;
-    if (!contentWindow) return;
-    
-    try {
-      const doc = contentWindow.document;
-      doc.open();
-      // URL is already sanitized by ProxyService.getFetch which validates URLs
-      // Additional escaping to prevent XSS when injecting into HTML
-      const escapedUrl = url
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
-      doc.write(`
-        <html>
-        <head>
-          <style>
-            body, html {
-              margin: 0;
-              padding: 0;
-              width: 100%;
-              height: 100%;
-              overflow: hidden;
-            }
-            embed {
-              width: 100%;
-              height: 100%;
-              border: none;
-            }
-          </style>
-        </head>
-        <body>
-          <embed type="application/pdf" src="${escapedUrl}" width="100%" height="100%">
-        </body>
-        </html>
-      `);
-      doc.close();
-      this.pdfReady = true;
-    } catch (e) {
-      // Iframe document may become inaccessible during cleanup
-      console.error('Failed to initialize PDF iframe:', e);
-    }
-  }
+  pdfIframe!: ElementRef;
 
   @Input()
   ref?: Ref;
@@ -172,6 +122,7 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
   pdfReady = false;
 
   private _oembed?: Oembed;
+  private _pdfUrl?: string;
   private width = 0;
   private height = 0;
 
@@ -225,6 +176,9 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
         this.height = screen.height;
       }
       this.oembeds.get(this.ref.url, this.theme, this.width, this.height).subscribe(oembed => this.oembed = oembed);
+    }
+    if (this.pdfUrl) {
+      this.pdfUrl = this.pdfUrl;
     }
   }
 
@@ -325,6 +279,32 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
   @memo
   get oembed(): Oembed | undefined {
     return this._oembed;
+  }
+
+  set pdfUrl(url: string | undefined) {
+    if (this._pdfUrl === url) return;
+    this._pdfUrl = url;
+    if (this.pdfIframe && url) {
+      const i = this.pdfIframe.nativeElement;
+      this.embeds.writeIframeHtml(this.pdfEmbedHtml(url), i);
+      i.style.width = this.embedWidth;
+      i.style.height = this.embedHeight;
+      this.pdfReady = true;
+    } else if (!this.pdfIframe && url) {
+      defer(() => this.pdfUrl = url);
+    }
+  }
+
+  private pdfEmbedHtml(url: string): string {
+    // URL is already sanitized by ProxyService.getFetch which validates URLs
+    // Additional escaping to prevent XSS when injecting into HTML
+    const escapedUrl = url
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+    return `<embed type="application/pdf" src="${escapedUrl}" width="100%" height="100%">`;
   }
 
   @memo
