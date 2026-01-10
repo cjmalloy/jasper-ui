@@ -178,8 +178,11 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
       }
       this.oembeds.get(this.ref.url, this.theme, this.width, this.height).subscribe(oembed => this.oembed = oembed);
     }
-    if (this.pdfUrl) {
-      this.pdfUrl = this.pdfUrl;
+    // Trigger PDF iframe initialization if pdfUrl exists
+    const url = this.pdfUrl;
+    if (url) {
+      this._pdfUrl = undefined; // Reset to force setter to reinitialize
+      this.pdfUrl = url;
     }
   }
 
@@ -285,6 +288,7 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
   set pdfUrl(url: string | undefined) {
     if (this._pdfUrl === url) return;
     this._pdfUrl = url;
+    this.pdfReady = false;
     if (this.pdfIframe && url) {
       const i = this.pdfIframe.nativeElement;
       this.embeds.writeIframeHtml(this.pdfEmbedHtml(url), i);
