@@ -80,7 +80,17 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
   iframe!: ElementRef;
 
   @ViewChild('pdfIframe')
-  pdfIframe!: ElementRef;
+  set pdfIframe(value: ElementRef<HTMLIFrameElement>) {
+    if (!value) return;
+    const iframe = value.nativeElement;
+    const url = this.pdfUrl;
+    if (!url) return;
+    
+    this.embeds.writeIframeHtml(this.pdfEmbedHtml(url), iframe);
+    iframe.style.width = this.embedWidth;
+    iframe.style.height = this.embedHeight;
+    this.pdfReady = true;
+  }
 
   @Input()
   ref?: Ref;
@@ -123,7 +133,6 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
   pdfReady = false;
 
   private _oembed?: Oembed;
-  private _pdfUrl?: string;
   private width = 0;
   private height = 0;
 
@@ -177,12 +186,6 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
         this.height = screen.height;
       }
       this.oembeds.get(this.ref.url, this.theme, this.width, this.height).subscribe(oembed => this.oembed = oembed);
-    }
-    // Trigger PDF iframe initialization if pdfUrl exists
-    const url = this.pdfUrl;
-    if (url) {
-      this._pdfUrl = undefined; // Reset to force setter to reinitialize
-      this.pdfUrl = url;
     }
   }
 
@@ -283,21 +286,6 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
   @memo
   get oembed(): Oembed | undefined {
     return this._oembed;
-  }
-
-  set pdfUrl(url: string | undefined) {
-    if (this._pdfUrl === url) return;
-    this._pdfUrl = url;
-    this.pdfReady = false;
-    if (this.pdfIframe && url) {
-      const i = this.pdfIframe.nativeElement;
-      this.embeds.writeIframeHtml(this.pdfEmbedHtml(url), i);
-      i.style.width = this.embedWidth;
-      i.style.height = this.embedHeight;
-      this.pdfReady = true;
-    } else if (!this.pdfIframe && url) {
-      defer(() => this.pdfUrl = url);
-    }
   }
 
   private pdfEmbedHtml(url: string): string {
