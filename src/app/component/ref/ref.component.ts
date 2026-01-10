@@ -184,6 +184,8 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   private _diffing = false;
   private overwrittenModified? = '';
   private diffSubscription?: Subscription;
+  private _viewer?: ViewerComponent;
+  private closeOffFullscreen = false;
 
   constructor(
     public config: ConfigService,
@@ -374,8 +376,8 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   @HostListener('fullscreenchange')
   onFullscreenChange() {
     if (!this.fullscreen) return;
-    if (this.ref.plugins?.['plugin/fullscreen']?.optional) return;
-    if (!document.fullscreenElement) {
+    this.fullscreen = this.admin.getPlugin('plugin/fullscreen') && hasTag('plugin/fullscreen', this.plugins);
+    if (this.closeOffFullscreen && !document.fullscreenElement) {
       this.expanded = false;
     }
   }
@@ -387,6 +389,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
 
   @ViewChild(ViewerComponent)
   set viewer(value: ViewerComponent | undefined) {
+    this._viewer = value;
     if (!this.fullscreen) return;
     if (value) {
       value.el.nativeElement.requestFullscreen().catch(() => {
@@ -394,6 +397,10 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
         this.expanded = false;
       });
     }
+  }
+
+  get viewer() {
+    return this._viewer;
   }
 
   get viewSource(): boolean {
@@ -899,8 +906,18 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     } else if (this.viewSource) {
       this.viewSource = false;
     } else {
-      this.expanded = !this.expanded;
-      this.store.local.setRefToggled(this.ref.url, this.expanded);
+      if (fullscreen) {
+        this.closeOffFullscreen = !this.expanded;
+        if (this.viewer) {
+          this.viewer.el.nativeElement.requestFullscreen().catch(() => {
+            console.warn('Could not make fullscreen.');
+          });
+        }
+        this.expanded = true;
+      } else {
+        this.expanded = !this.expanded;
+        this.store.local.setRefToggled(this.ref.url, this.expanded);
+      }
       // Mark as read
       if (!this.expanded) return;
       if (!this.admin.getPlugin('plugin/user/read')) return;
