@@ -75,6 +75,8 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
   @HostBinding('class') css = 'embed print-images';
   @HostBinding('tabindex') tabIndex = 0;
   private destroy$ = new Subject<void>();
+  
+  readonly IFRAME_SANDBOX = IFRAME_SANDBOX;
 
   @ViewChild('iframe')
   iframe!: ElementRef;
