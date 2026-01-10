@@ -665,7 +665,11 @@ export class EmbedService {
 
   writeIframeHtml(html: string, iframe: HTMLIFrameElement) {
     const blob = new Blob([transparentIframe(html, this.iframeBg)], {type: 'text/html'});
-    iframe.src = URL.createObjectURL(blob);
+    const blobUrl = URL.createObjectURL(blob);
+    iframe.addEventListener('load', () => {
+      URL.revokeObjectURL(blobUrl);
+    }, { once: true });
+    iframe.src = blobUrl;
   }
 
   loadQuery$(url: string):  Observable<{params: any, page: Page<Ref>, ext?: Ext}> {
