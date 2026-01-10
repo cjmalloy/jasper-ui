@@ -201,6 +201,9 @@ hr {
     bottom: -2px;
     filter: drop-shadow(0.5px 0.5px 1.25px white);
   }
+  &.resize-dragging > * {
+    pointer-events: none;
+  }
 }
 
 .nowrap {

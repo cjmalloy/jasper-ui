@@ -12,6 +12,7 @@ import {
   ViewChild
 } from '@angular/core';
 import { FormControl } from '@angular/forms';
+import * as he from 'he';
 import Hls from 'hls.js';
 import { defer, isEqual, some, without } from 'lodash-es';
 import { runInAction } from 'mobx';
@@ -25,7 +26,7 @@ import { Page } from '../../model/page';
 import { getPluginScope, PluginApi } from '../../model/plugin';
 import { findCache, findExtension, Ref, RefSort, RefUpdates } from '../../model/ref';
 import { EmitAction, hydrate } from '../../model/tag';
-import { SafePipe } from '../../pipe/safe.pipe';
+import { pdfUrl } from '../../mods/pdf';
 import { ActionService } from '../../service/action.service';
 import { AdminService } from '../../service/admin.service';
 import { ProxyService } from '../../service/api/proxy.service';
@@ -50,8 +51,6 @@ import { QrComponent } from '../qr/qr.component';
 import { RefComponent } from '../ref/ref.component';
 import { TodoComponent } from '../todo/todo.component';
 
-export const IFRAME_SANDBOX = 'allow-scripts allow-forms allow-modals allow-orientation-lock allow-pointer-lock allow-popups allow-presentation allow-top-navigation-by-user-activation';
-
 @Component({
   selector: 'app-viewer',
   templateUrl: './viewer.component.html',
@@ -68,7 +67,6 @@ export const IFRAME_SANDBOX = 'allow-scripts allow-forms allow-modals allow-orie
     TodoComponent,
     BackgammonComponent,
     ChessComponent,
-    SafePipe,
     ResizeHandleDirective,
   ],
 })
@@ -226,6 +224,18 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
     }
   }
 
+  @ViewChild('pdfIframe')
+  set pdfIframe(value: ElementRef<HTMLIFrameElement>) {
+    if (!value) return;
+    const iframe = value.nativeElement;
+    let url = this.pdfUrl;
+    if (!url) return;
+    if (url.startsWith('//')) url = location.protocol + url;
+    this.embeds.writeIframeHtml(`<embed type="application/pdf" src="${he.encode(url)}" width="100%" height="100%">`, iframe);
+    iframe.style.width = this.embedWidth;
+    iframe.style.height = this.embedHeight;
+  }
+
   set oembed(oembed: Oembed | null) {
     if (isEqual(this._oembed, oembed)) return;
     this._oembed = oembed || undefined;
@@ -252,13 +262,7 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
             MemoCache.clear(this);
           });
       } else {
-        // @ts-ignore
-        const l = new URL(window.location);
-        const url = new URL(this.embed?.url || this.ref?.url);
-        if (url.protocol === l.protocol && url.host === l.host && url.port === l.port) {
-          i.sandbox = IFRAME_SANDBOX;
-        }
-        i.src = url.toString();
+        i.src = this.embed?.url || this.ref?.url;
         i.style.width = this.embedWidth;
         i.style.height = this.embedHeight;
         this.embedReady = true;
@@ -268,7 +272,6 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
       defer(() => this.oembed = oembed);
     }
   }
-
 
   @memo
   get oembed(): Oembed | undefined {
@@ -431,9 +434,7 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
   @memo
   get pdf(): string | undefined {
     if (!this.admin.getPlugin('plugin/pdf')) return undefined;
-    return this.ref?.plugins?.['plugin/pdf']?.url
-      || findExtension('.pdf', this.ref)?.url
-      || hasTag('plugin/pdf', this.ref) && findCache(this.ref)?.url;
+    return pdfUrl(this.admin.getPlugin('plugin/pdf'), this.ref, this.repost)?.url;
   }
 
   @memo

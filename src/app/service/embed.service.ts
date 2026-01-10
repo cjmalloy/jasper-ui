@@ -625,38 +625,51 @@ export class EmbedService {
     } else {
       iframe.src = oembed.url;
     }
-    const doc = iframe.contentWindow!.document;
     if (!oembed.height) {
-      let start = DateTime.now();
-      let oldHeight = doc.body.scrollHeight;
-      let newHeight = false;
-      const f = async () => {
-        if (document.fullscreenElement) return;
-        const h = doc.body.scrollHeight;
-        if (h !== oldHeight) {
-          newHeight = true;
-          start = DateTime.now();
-          oldHeight = h;
-          iframe.style.height = h + 'px';
+      iframe.style.height = (oembed.width ? oembed.width + 'px' : width);
+      const doCheck = async () => {
+        const doc = iframe.contentWindow?.document;
+        if (!doc) {
+          await delay(100);
+          await doCheck();
+          return;
         }
-        await delay(100);
-        if ((!newHeight || h < 300) && start > DateTime.now().minus({ seconds: 5 })) {
-          // Keep checking height
-          await f();
-        } else if (start > DateTime.now().minus({ seconds: 30 })) {
-          // Timeout checking height less than 5 seconds since the last change
-          f(); // Keep checking height until 30 seconds timeout but let promise resolve
-        }
+        let start = DateTime.now();
+        let oldHeight = doc.body.scrollHeight;
+        let newHeight = false;
+        const f = async () => {
+          const doc = iframe.contentWindow!.document;
+          if (document.fullscreenElement) return;
+          const h = doc.body.scrollHeight;
+          if (h !== oldHeight) {
+            newHeight = true;
+            start = DateTime.now();
+            oldHeight = h;
+            iframe.style.height = h + 'px';
+          }
+          await delay(100);
+          if ((!newHeight || h < 300) && start > DateTime.now().minus({ seconds: 5 })) {
+            // Keep checking height
+            await f();
+          } else if (start > DateTime.now().minus({ seconds: 30 })) {
+            // Timeout checking height less than 5 seconds since the last change
+            f(); // Keep checking height until 30 seconds timeout but let promise resolve
+          }
+        };
+        await f();
+
       };
-      await f();
+      await doCheck();
     }
   }
 
   writeIframeHtml(html: string, iframe: HTMLIFrameElement) {
-    const doc = iframe.contentWindow!.document;
-    doc.open();
-    doc.write(transparentIframe(html, this.iframeBg));
-    doc.close();
+    const blob = new Blob([transparentIframe(html, this.iframeBg)], {type: 'text/html'});
+    const blobUrl = URL.createObjectURL(blob);
+    iframe.addEventListener('load', () => {
+      URL.revokeObjectURL(blobUrl);
+    }, { once: true });
+    iframe.src = blobUrl;
   }
 
   loadQuery$(url: string):  Observable<{params: any, page: Page<Ref>, ext?: Ext}> {
@@ -699,7 +712,8 @@ export function transparentIframe(content: string, bgColor: string) {
   <html>
   <head>
     <style>
-    body {
+    html, body {
+      height: 100%;
       background-color: ${bgColor};
       overflow: hidden;
       margin: 0;

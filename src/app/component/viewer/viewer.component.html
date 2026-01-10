@@ -32,7 +32,7 @@
               src="about:blank"
               frameborder="0"
               scrolling="yes"
-              allow="fullscreen; accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allow="fullscreen; accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share;"
               referrerpolicy="strict-origin-when-cross-origin"></iframe>
     </div>
   }
@@ -97,10 +97,17 @@
           [plugins]="currentTags"></app-md>
 }
 @if (pdfUrl) {
-  <embed type="application/pdf"
-         [src]="pdfUrl | safe"
-         [style.width]="embedWidth"
-         [style.height]="embedHeight">
+  <div class="embed-container"
+       [appResizeHandle]="!disableResize"
+       [child]="pdfIframe">
+    <iframe #pdfIframe
+            class="embed-expand ready"
+            src="about:blank"
+            frameborder="0"
+            scrolling="yes"
+            allow="fullscreen; accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share;"
+            referrerpolicy="strict-origin-when-cross-origin"></iframe>
+  </div>
 }
 @for (ui of uis; track ui.tag) {
   <app-md [class]="uiCss(ui.tag)"
