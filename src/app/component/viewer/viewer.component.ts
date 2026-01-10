@@ -94,7 +94,12 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
       doc.open();
       // URL is already sanitized by ProxyService.getFetch which validates URLs
       // Additional escaping to prevent XSS when injecting into HTML
-      const escapedUrl = url.replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      const escapedUrl = url
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
       doc.write(`
         <html>
         <head>
