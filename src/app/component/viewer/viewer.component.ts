@@ -89,36 +89,41 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
     const contentWindow = iframe.contentWindow;
     if (!contentWindow) return;
     
-    const doc = contentWindow.document;
-    doc.open();
-    // URL is already sanitized by SafePipe in the Angular template binding
-    // or by ProxyService.getFetch which validates URLs
-    const escapedUrl = url.replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    doc.write(`
-      <html>
-      <head>
-        <style>
-          body, html {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-          }
-          embed {
-            width: 100%;
-            height: 100%;
-            border: none;
-          }
-        </style>
-      </head>
-      <body>
-        <embed type="application/pdf" src="${escapedUrl}" width="100%" height="100%">
-      </body>
-      </html>
-    `);
-    doc.close();
-    this.pdfReady = true;
+    try {
+      const doc = contentWindow.document;
+      doc.open();
+      // URL is already sanitized by ProxyService.getFetch which validates URLs
+      // Additional escaping to prevent XSS when injecting into HTML
+      const escapedUrl = url.replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      doc.write(`
+        <html>
+        <head>
+          <style>
+            body, html {
+              margin: 0;
+              padding: 0;
+              width: 100%;
+              height: 100%;
+              overflow: hidden;
+            }
+            embed {
+              width: 100%;
+              height: 100%;
+              border: none;
+            }
+          </style>
+        </head>
+        <body>
+          <embed type="application/pdf" src="${escapedUrl}" width="100%" height="100%">
+        </body>
+        </html>
+      `);
+      doc.close();
+      this.pdfReady = true;
+    } catch (e) {
+      // Iframe document may become inaccessible during cleanup
+      console.error('Failed to initialize PDF iframe:', e);
+    }
   }
 
   @Input()
