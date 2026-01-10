@@ -653,10 +653,7 @@ export class EmbedService {
   }
 
   writeIframeHtml(html: string, iframe: HTMLIFrameElement) {
-    const doc = iframe.contentWindow!.document;
-    doc.open();
-    doc.write(transparentIframe(html, this.iframeBg));
-    doc.close();
+    iframe.srcdoc = transparentIframe(html, this.iframeBg);
   }
 
   loadQuery$(url: string):  Observable<{params: any, page: Page<Ref>, ext?: Ext}> {
@@ -699,7 +696,8 @@ export function transparentIframe(content: string, bgColor: string) {
   <html>
   <head>
     <style>
-    body {
+    html, body {
+      height: 100%;
       background-color: ${bgColor};
       overflow: hidden;
       margin: 0;

@@ -104,9 +104,9 @@
             class="embed-expand"
             src="about:blank"
             frameborder="0"
-            [attr.sandbox]="IFRAME_SANDBOX"
-            [style.width]="embedWidth"
-            [style.height]="embedHeight"></iframe>
+            scrolling="yes"
+            allow="allow-scripts; allow-plugins; fullscreen; accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            referrerpolicy="strict-origin-when-cross-origin"></iframe>
   </div>
 }
 @for (ui of uis; track ui.tag) {

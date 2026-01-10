@@ -155,7 +155,7 @@
             },
             "development": {
               "headers": {
-                "Content-Security-Policy": "default-src 'self' ws://localhost:8081 http://localhost:8081; frame-src * data:; worker-src 'self' blob:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://storage.googleapis.com https://platform.twitter.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' http://cdn.jsdelivr.net; media-src * data: blob:; img-src * data: blob:; font-src 'self' data:; object-src 'none'"
+                "Content-Security-Policy": "default-src 'self' ws://localhost:8081 http://localhost:8081; frame-src * data:; worker-src 'self' blob:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://storage.googleapis.com https://platform.twitter.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' http://cdn.jsdelivr.net; media-src * data: blob:; img-src * data: blob:; font-src 'self' data:"
               },
               "buildTarget": "jasper-ui:build:development"
             }

@@ -29,7 +29,11 @@ iframe {
 
 :host:fullscreen {
   &,
+  & .embed-container,
   & .embed-container iframe {
+    position: absolute;
+    left: 0;
+    top: 0;
     margin: 0 !important;
     width: 100vw !important;
     height: 100vw !important;

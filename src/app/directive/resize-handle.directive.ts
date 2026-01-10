@@ -8,6 +8,7 @@ import {
   NgZone,
   OnDestroy
 } from '@angular/core';
+import { defer } from 'lodash-es';
 import { ConfigService } from '../service/config.service';
 import { relativeX, relativeY } from '../util/math';
 
@@ -26,6 +27,7 @@ export class ResizeHandleDirective implements AfterViewInit, OnDestroy {
   @Input()
   child?: HTMLElement;
 
+  @HostBinding('class.resize-dragging')
   dragging = false;
   x = 0;
   y = 0;
@@ -107,11 +109,11 @@ export class ResizeHandleDirective implements AfterViewInit, OnDestroy {
   onPointerUp(event: PointerEvent) {
     if (!this.enabled) return;
     if (this.dragging) {
-      this.dragging = false;
       this.cursor = this.hit(event) ? this.resizeCursor : 'auto';
       event.preventDefault();
       event.stopPropagation();
       event.stopImmediatePropagation();
+      defer(() => this.dragging = false);
     }
   }
 
