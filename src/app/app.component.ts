@@ -61,6 +61,20 @@ export class AppComponent implements AfterViewInit {
         document.body.classList.add('hotkey');
       }
     }, { capture: true });
+    document.addEventListener('pointerenter', event => {
+      const hotkey = this.hotkeyActive(event);
+      if (this.store.hotkey !== hotkey) {
+        runInAction(() => this.store.hotkey = hotkey);
+        document.body.classList.toggle('hotkey', hotkey);
+      }
+    }, { capture: true });
+    document.addEventListener('pointerout', event => {
+      const hotkey = this.hotkeyActive(event);
+      if (this.store.hotkey !== hotkey) {
+        runInAction(() => this.store.hotkey = false);
+        document.body.classList.remove('hotkey');
+      }
+    }, { capture: true });
   }
 
   ngAfterViewInit() {
@@ -99,7 +113,7 @@ export class AppComponent implements AfterViewInit {
     return this.macos ? key === 'Meta' : key === 'Control';
   }
 
-  hotkeyActive(event: KeyboardEvent) {
+  hotkeyActive(event: KeyboardEvent | PointerEvent) {
     return this.macos ? event.metaKey : event.ctrlKey;
   }
 
