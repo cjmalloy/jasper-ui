@@ -99,7 +99,7 @@ export class AppComponent implements AfterViewInit {
     return this.macos ? key === 'Meta' : key === 'Control';
   }
 
-  hotkeyActive(event: KeyboardEvent) {
+  hotkeyActive(event: KeyboardEvent | PointerEvent) {
     return this.macos ? event.metaKey : event.ctrlKey;
   }
 
@@ -108,6 +108,23 @@ export class AppComponent implements AfterViewInit {
     if (this.store.hotkey) {
       runInAction(() => this.store.hotkey = false);
       document.body.classList.remove('hotkey');
+    }
+  }
+
+  @HostListener('window:pointerout')
+  removeHotkeyFromPointer() {
+    if (this.store.hotkey) {
+      runInAction(() => this.store.hotkey = false);
+      document.body.classList.remove('hotkey');
+    }
+  }
+
+  @HostListener('window:pointerover', ['$event'])
+  checkHotkey(event: PointerEvent) {
+    const active = this.hotkeyActive(event);
+    if (this.store.hotkey !== active) {
+      runInAction(() => this.store.hotkey = active);
+      document.body.classList.toggle('hotkey', active);
     }
   }
 
