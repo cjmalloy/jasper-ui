@@ -1,5 +1,6 @@
 import {
   AfterViewInit,
+  ChangeDetectorRef,
   Directive,
   ElementRef,
   HostBinding,
@@ -40,6 +41,7 @@ export class ResizeHandleDirective implements AfterViewInit, OnDestroy {
     private config: ConfigService,
     private el: ElementRef,
     private zone: NgZone,
+    private cd: ChangeDetectorRef,
   ) { }
 
   get resizeCursor() {
@@ -65,6 +67,11 @@ export class ResizeHandleDirective implements AfterViewInit, OnDestroy {
     if (!this.child) return;
     this.el.nativeElement.style.width = this.child.style.width;
     this.el.nativeElement.style.height = this.child.style.height;
+  }
+
+  @HostListener('fullscreenchange')
+  onFullscreenChange() {
+    this.cd.markForCheck();
   }
 
   @HostListener('pointerdown', ['$event'])

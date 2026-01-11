@@ -24,7 +24,7 @@ import { Ext } from '../../model/ext';
 import { Oembed } from '../../model/oembed';
 import { Page } from '../../model/page';
 import { getPluginScope, PluginApi } from '../../model/plugin';
-import { findCache, findExtension, Ref, RefSort, RefUpdates } from '../../model/ref';
+import { Ref, RefSort, RefUpdates } from '../../model/ref';
 import { EmitAction, hydrate } from '../../model/tag';
 import { pdfUrl } from '../../mods/pdf';
 import { ActionService } from '../../service/action.service';
@@ -231,7 +231,7 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
     let url = this.pdfUrl;
     if (!url) return;
     if (url.startsWith('//')) url = location.protocol + url;
-    this.embeds.writeIframeHtml(`<embed type="application/pdf" src="${he.encode(url)}" width="100%" height="100%">`, iframe);
+    this.embeds.writeIframeHtml(`<embed type="application/pdf" src="${he.encode(url)}" width="100%" height="100%">`, iframe, false);
     iframe.style.width = this.embedWidth;
     iframe.style.height = this.embedHeight;
   }
@@ -247,7 +247,7 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
     } else if (this.iframe) {
       const i = this.iframe.nativeElement;
       if (oembed) {
-        this.embeds.writeIframe(oembed, i, this.embedWidth)
+        this.embeds.writeIframe(oembed, i, this.embedWidth, true)
           .then(() => {
             if (oembed.width! > this.width) {
               const s = this.width / oembed.width!;
@@ -293,6 +293,11 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
   @memo
   get twitter() {
     return this.oembed?.provider_name === 'Twitter';
+  }
+
+  @memo
+  get zoom() {
+    return this.oembed?.html && !this.oembed.html.startsWith('<iframe');
   }
 
   @memo

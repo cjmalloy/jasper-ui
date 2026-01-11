@@ -24,7 +24,8 @@
     <div class="embed-container"
          [class.loading]="!embedReady"
          [class.twitter]="twitter"
-         [appResizeHandle]="resizable"
+         [class.zoom]="zoom"
+         [appResizeHandle]="resizable && !disableResize"
          [child]="iframe">
       <iframe #iframe
               class="embed-expand"

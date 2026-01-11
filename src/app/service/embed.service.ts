@@ -613,14 +613,14 @@ export class EmbedService {
     return getComputedStyle(document.body).backgroundColor;
   }
 
-  async writeIframe(oembed: Oembed, iframe: HTMLIFrameElement, width = '100px') {
+  async writeIframe(oembed: Oembed, iframe: HTMLIFrameElement, width = '100px', scroll = true) {
     iframe.style.width = (oembed.width ? oembed.width + 'px' : width);
     if (oembed.height) iframe.style.height = oembed.height + 'px';
     if (oembed.html) {
       if (oembed.html.startsWith('<iframe')) {
         iframe.src = parseSrc(oembed.html);
       } else {
-        this.writeIframeHtml(oembed.html || '', iframe);
+        this.writeIframeHtml(oembed.html || '', iframe, scroll);
       }
     } else {
       iframe.src = oembed.url;
@@ -628,7 +628,13 @@ export class EmbedService {
     if (!oembed.height) {
       iframe.style.height = (oembed.width ? oembed.width + 'px' : width);
       const doCheck = async () => {
-        const doc = iframe.contentWindow?.document;
+        let doc: Document | undefined;
+        try {
+          doc = iframe.contentWindow?.document;
+        } catch (e) {
+          // Cross origin
+          return;
+        }
         if (!doc) {
           await delay(100);
           await doCheck();
@@ -638,7 +644,13 @@ export class EmbedService {
         let oldHeight = doc.body.scrollHeight;
         let newHeight = false;
         const f = async () => {
-          const doc = iframe.contentWindow!.document;
+          let doc: Document;
+          try {
+            doc = iframe.contentWindow!.document;
+          } catch (e) {
+            // Cross origin
+            return;
+          }
           if (document.fullscreenElement) return;
           const h = doc.body.scrollHeight;
           if (h !== oldHeight) {
@@ -663,8 +675,8 @@ export class EmbedService {
     }
   }
 
-  writeIframeHtml(html: string, iframe: HTMLIFrameElement) {
-    const blob = new Blob([transparentIframe(html, this.iframeBg)], {type: 'text/html'});
+  writeIframeHtml(html: string, iframe: HTMLIFrameElement, scroll = true) {
+    const blob = new Blob([transparentIframe(html, this.iframeBg, scroll ? 'auto' : 'hidden')], {type: 'text/html'});
     const blobUrl = URL.createObjectURL(blob);
     iframe.addEventListener('load', () => {
       URL.revokeObjectURL(blobUrl);
@@ -707,7 +719,7 @@ export class EmbedService {
   }
 }
 
-export function transparentIframe(content: string, bgColor: string) {
+export function transparentIframe(content: string, bgColor: string, overflow = 'auto') {
   return `
   <html>
   <head>
@@ -715,7 +727,7 @@ export function transparentIframe(content: string, bgColor: string) {
     html, body {
       height: 100%;
       background-color: ${bgColor};
-      overflow: hidden;
+      overflow: ${overflow};
       margin: 0;
     }
     body > * {

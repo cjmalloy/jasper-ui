@@ -28,17 +28,33 @@ iframe {
 }
 
 :host:fullscreen {
+  overflow: auto;
+  width: 100vw;
+  height: 100vh;
   &,
-  & .embed-container,
-  & .embed-container iframe {
+  .embed-container,
+  .embed-container iframe {
     position: absolute;
     left: 0;
     top: 0;
     margin: 0 !important;
-    width: 100vw !important;
-    height: 100vh !important;
   }
   & > * {
     margin: auto;
+  }
+
+  zoom: 200%;
+  .embed-container.zoom,
+  .embed-container.zoom iframe {
+    width: 50vw !important;
+    height: 50vh !important;
+  }
+  .embed-container:not(.zoom) {
+    zoom: 50%;
+  }
+  .embed-container:not(.zoom),
+  .embed-container:not(.zoom) iframe {
+    width: 100vw !important;
+    height: 100vh !important;
   }
 }
