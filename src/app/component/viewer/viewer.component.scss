@@ -28,6 +28,7 @@ iframe {
 }
 
 :host:fullscreen {
+  zoom: 200%;
   overflow: auto;
   width: 100vw;
   height: 100vh;
@@ -42,19 +43,25 @@ iframe {
   & > * {
     margin: auto;
   }
-
-  zoom: 200%;
   .embed-container.zoom,
   .embed-container.zoom iframe {
-    width: 50vw !important;
-    height: 50vh !important;
+    width: 50vw;
+    height: 50vh;
   }
-  .embed-container:not(.zoom) {
+  *:not(.zoom) {
     zoom: 50%;
   }
-  .embed-container:not(.zoom),
-  .embed-container:not(.zoom) iframe {
+  *:not(.zoom),
+  *:not(.zoom) iframe {
+    width: 100vw;
+    height: 100vh;
+  }
+  audio {
     width: 100vw !important;
-    height: 100vh !important;
+    height: 45vh !important;
+  }
+  .expand {
+    width: 100vw !important;
+    height: unset !important;
   }
 }

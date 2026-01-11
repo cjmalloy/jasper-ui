@@ -56,9 +56,23 @@ export class AppComponent implements AfterViewInit {
     }, { capture: true });
     window.addEventListener('keydown', event => {
       const hotkey = this.hotkeyActive(event) || this.hotkey(event.key);
-      if (!this.store.hotkey && hotkey) {
-        runInAction(() => this.store.hotkey = true);
-        document.body.classList.add('hotkey');
+      if (this.store.hotkey !== hotkey) {
+        runInAction(() => this.store.hotkey = hotkey);
+        document.body.classList.toggle('hotkey', hotkey);
+      }
+    }, { capture: true });
+    window.addEventListener('pointerenter', event => {
+      const hotkey = this.hotkeyActive(event);
+      if (this.store.hotkey !== hotkey) {
+        runInAction(() => this.store.hotkey = hotkey);
+        document.body.classList.toggle('hotkey', hotkey);
+      }
+    }, { capture: true });
+    window.addEventListener('pointerout', event => {
+      const hotkey = this.hotkeyActive(event);
+      if (this.store.hotkey !== hotkey) {
+        runInAction(() => this.store.hotkey = hotkey);
+        document.body.classList.toggle('hotkey', hotkey);
       }
     }, { capture: true });
   }
@@ -99,7 +113,7 @@ export class AppComponent implements AfterViewInit {
     return this.macos ? key === 'Meta' : key === 'Control';
   }
 
-  hotkeyActive(event: KeyboardEvent) {
+  hotkeyActive(event: KeyboardEvent | PointerEvent) {
     return this.macos ? event.metaKey : event.ctrlKey;
   }
 
