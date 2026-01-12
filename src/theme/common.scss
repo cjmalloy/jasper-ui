@@ -2280,6 +2280,53 @@ footer {
   }
 }
 
+.embed:fullscreen {
+  zoom: 200%;
+  overflow: auto;
+  width: 100vw;
+  height: 100vh;
+  &,
+  & > .embed-container,
+  & > .embed-container > iframe {
+    position: absolute;
+    left: 0;
+    top: 0;
+    margin: 0 !important;
+  }
+  & > * {
+    margin: auto;
+  }
+  & > .embed-container.zoom,
+  & > .embed-container.zoom > iframe {
+    width: 50vw !important;
+    height: 50vh !important;
+  }
+  & > *:not(.zoom) {
+    zoom: 50%;
+  }
+  & > *:not(.md-container):not(.no-resize):not(.zoom),
+  & > *:not(.md-container):not(.no-resize):not(.zoom) > iframe {
+    width: 100vw !important;
+    height: 100vh !important;
+  }
+  & > .audio-expand {
+    width: 100vw !important;
+    height: 45vh !important;
+  }
+  & > .code {
+    display: contents;
+    & > .md {
+      display: contents;
+      & > pre {
+        max-width: unset !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: auto !important;
+      }
+    }
+  }
+}
+
 ngx-monaco-editor,
 ngx-monaco-diff-editor {
   position: relative;

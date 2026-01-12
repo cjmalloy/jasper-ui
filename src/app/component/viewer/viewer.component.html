@@ -56,32 +56,35 @@
     </video>
   }
   @if (audioUrl) {
-    <audio class="audio-expand"
+    <audio class="no-resize audio-expand"
            [autoplay]="autoplay"
            controls>
       <source [src]="audioUrl">
     </audio>
   }
   @if (qrUrl) {
-    <app-qr class="qr-expand"
+    <app-qr class="zoom qr-expand"
             [url]="qrUrl"
             [appResize]="!disableResize"></app-qr>
   }
   @if (todo) {
-    <app-todo [ref]="ref"
+    <app-todo class="zoom"
+              [ref]="ref"
               [text]="text"
               [tags]="tags"
               (comment)="comment.emit($event)"
               (copied)="copied.emit($event)"></app-todo>
   }
   @if (backgammon) {
-    <app-backgammon [ref]="ref"
+    <app-backgammon class="no-resize"
+                    [ref]="ref"
                     [text]="text"
                     (comment)="comment.emit($event)"
                     (copied)="copied.emit($event)"></app-backgammon>
   }
   @if (chess) {
-    <app-chess [white]="chessWhite"
+    <app-chess class="no-resize"
+               [white]="chessWhite"
                [ref]="ref"
                [text]="text"
                (comment)="comment.emit($event)"
@@ -89,10 +92,14 @@
   }
 }
 @if (code) {
-  <app-md [origin]="currentOrigin"
-          [text]="currentCode"></app-md>
+  <app-md class="code md-container"
+          [origin]="currentOrigin"
+          [text]="currentCode"
+          [mermaid]="false"
+          [clipboard]="false"></app-md>
 } @else if (currentText) {
-  <app-md [class.expand]="expand"
+  <app-md class="zoom md-container"
+          [class.expand]="expand"
           [origin]="currentOrigin"
           [text]="currentText"
           [plugins]="currentTags"></app-md>
@@ -111,12 +118,14 @@
   </div>
 }
 @for (ui of uis; track ui.tag) {
-  <app-md [class]="uiCss(ui.tag)"
+  <app-md class="zoom md-container"
+          [class]="uiCss(ui.tag)"
           [disableSanitizer]="true"
           [origin]="currentOrigin"
           [text]="uiMarkdown(ui.tag)"></app-md>
 }
 @if (mod) {
-  <app-mod [mod]="mod"
+  <app-mod class="zoom md-container"
+           [mod]="mod"
            [class.expand]="expand"></app-mod>
 }
