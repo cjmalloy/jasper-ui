@@ -94,6 +94,8 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
   origin? = '';
   @Input()
   disableResize = false;
+  @Input()
+  fullscreen = false;
   @Output()
   comment = new EventEmitter<string>();
   @Output()

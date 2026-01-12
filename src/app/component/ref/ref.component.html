@@ -177,7 +177,8 @@
           <app-viewer class="viewer-inline"
                       [ref]="bareRef"
                       [tags]="plugins || currentTags"
-                      [disableResize]="disableResize || fullscreen"
+                      [disableResize]="disableResize"
+                      [fullscreen]="fullscreen"
                       (contextmenu)="unlockViewer($event)"
                       (copied)="copied.emit($event)"></app-viewer>
         }
@@ -319,7 +320,8 @@
   <app-viewer class="viewer-below"
               [ref]="bareRef"
               [tags]="plugins || currentTags"
-              [disableResize]="disableResize || fullscreen"
+              [disableResize]="disableResize"
+              [fullscreen]="fullscreen"
               (contextmenu)="unlockViewer($event)"
               (copied)="copied.emit($event)"></app-viewer>
 }
