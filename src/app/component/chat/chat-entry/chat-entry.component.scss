@@ -52,16 +52,21 @@
   &:focus-within, &:hover, &.deleting, &.tagging, &.focused {
     white-space: normal !important;
     height: unset;
-    .actions {
-      position: absolute;
-      right: 4px;
-    }
     .has-title {
-      margin-top: 24px;
       height: unset;
       app-md {
         display: block;
       }
+    }
+  }
+  &:focus-within, &.deleting, &.tagging, &.focused {
+    .actions {
+      display: block;
+      position: absolute;
+      right: 4px;
+    }
+    .content {
+      margin-top: 24px;
     }
   }
 }

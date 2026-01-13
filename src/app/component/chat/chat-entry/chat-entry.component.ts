@@ -1,7 +1,8 @@
 import { AsyncPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
-  Component, forwardRef,
+  Component,
+  forwardRef,
   HostBinding,
   Input,
   OnChanges,

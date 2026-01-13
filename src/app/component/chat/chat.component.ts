@@ -4,7 +4,19 @@ import { Component, Input, OnChanges, OnDestroy, SimpleChanges, ViewChild } from
 import { ReactiveFormsModule } from '@angular/forms';
 import { debounce, defer, delay, pull, pullAllWith, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
-import { catchError, last, map, Observable, of, Subject, Subscription, switchMap, takeUntil, tap, throwError } from 'rxjs';
+import {
+  catchError,
+  last,
+  map,
+  Observable,
+  of,
+  Subject,
+  Subscription,
+  switchMap,
+  takeUntil,
+  tap,
+  throwError
+} from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { AutofocusDirective } from '../../directive/autofocus.directive';
 import { HasChanges } from '../../guard/pending-changes.guard';
@@ -23,9 +35,8 @@ import { EditorService } from '../../service/editor.service';
 import { Store } from '../../store/store';
 import { readFileAsDataURL, readFileAsString } from '../../util/async';
 import { URI_REGEX } from '../../util/format';
-import { fixUrl } from '../../util/http';
 import { getArgs } from '../../util/query';
-import { braces, hasTag, tagOrigin } from '../../util/tag';
+import { braces, tagOrigin } from '../../util/tag';
 import { LoadingComponent } from '../loading/loading.component';
 import { ChatEntryComponent } from './chat-entry/chat-entry.component';
 
