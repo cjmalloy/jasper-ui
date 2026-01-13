@@ -598,17 +598,24 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
       ...(ref.tags || []),
     ]).filter(t => !!t);
 
+    // Generate a comment URL for the sending queue that will match the server response
+    // The server transforms cache: URLs to comment: URLs when adding chat tags
+    const commentUrl = ref.url.startsWith('cache:') ? 'comment:' + ref.url.substring(6) : ref.url;
+    
+    // Update the ref with chat tags and comment URL for sending queue
+    const chatRef: Ref = {
+      ...ref,
+      url: commentUrl,
+      tags: newTags,
+      title: undefined,
+    };
+    
     // Patch the existing ref with chat tags
-    // Don't add to sending array - the ref is already created and will appear when we fetch
+    if (this.responseOf) chatRef.sources = [this.responseOf.url];
+    this.sending.push(chatRef);
     this.ts.patch(newTags, ref.url, ref.origin).pipe(
       catchError(err => {
-        // If patching fails, add to errored array
-        const chatRef: Ref = {
-          ...ref,
-          tags: newTags,
-          title: undefined,
-        };
-        if (this.responseOf) chatRef.sources = [this.responseOf.url];
+        pull(this.sending, chatRef);
         this.errored.push(chatRef);
         return throwError(err);
       }),
