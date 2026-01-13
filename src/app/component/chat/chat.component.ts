@@ -452,12 +452,9 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
         catchError(err => {
           upload.error = err.message || $localize`Upload failed`;
           upload.progress = 0;
-          const modifiedString = DateTime.utc().toISO();
           return readFileAsDataURL(file).pipe(map(url => ({ 
             ...ref, 
             url,
-            modifiedString,
-            modified: DateTime.fromISO(modifiedString),
           } as Ref)));
         }),
       );
@@ -497,13 +494,10 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
         catchError(err => {
           upload.error = err.message || $localize`Upload failed`;
           upload.progress = 0;
-          const modifiedString = DateTime.utc().toISO();
           return readFileAsDataURL(file).pipe(map(url => ({ 
             url, 
             tags, 
-            origin: this.store.account.origin,
-            modifiedString,
-            modified: DateTime.fromISO(modifiedString),
+            origin: this.store.account.origin 
           } as Ref)));
         }),
       );
