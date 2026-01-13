@@ -113,6 +113,12 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
     this.clearPoll();
     this.destroy$.next();
     this.destroy$.complete();
+    // Clean up any active upload subscriptions to prevent memory leaks
+    this.uploads.forEach(upload => {
+      if (upload.subscription) {
+        upload.subscription.unsubscribe();
+      }
+    });
   }
 
   init() {
@@ -444,11 +450,14 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
         }),
         tap(() => upload.progress = 100),
         catchError(err => {
-          upload.error = err.message || 'Upload failed';
+          upload.error = err.message || $localize`Upload failed`;
           upload.progress = 0;
+          const modifiedString = DateTime.utc().toISO();
           return readFileAsDataURL(file).pipe(map(url => ({ 
             ...ref, 
             url,
+            modifiedString,
+            modified: DateTime.fromISO(modifiedString),
           } as Ref)));
         }),
       );
@@ -486,12 +495,15 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
           })),
         )),
         catchError(err => {
-          upload.error = err.message || 'Upload failed';
+          upload.error = err.message || $localize`Upload failed`;
           upload.progress = 0;
+          const modifiedString = DateTime.utc().toISO();
           return readFileAsDataURL(file).pipe(map(url => ({ 
             url, 
             tags, 
-            origin: this.store.account.origin 
+            origin: this.store.account.origin,
+            modifiedString,
+            modified: DateTime.fromISO(modifiedString),
           } as Ref)));
         }),
       );
