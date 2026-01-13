@@ -38,6 +38,8 @@
          [value]="addText"
          (input)="addText = $any($event.target).value"
          (keydown)="$event.key === 'Enter' && add() || true"
+         (paste)="handlePaste($event)"
+         [disabled]="hasActiveUploads()"
          appAutofocus>
   <button type="button"
           class="add"
@@ -45,6 +47,42 @@
           title="Send"
           (click)="add()" i18n>⏎</button>
 </div>
+@if (uploads.length) {
+  <div class="upload-progress">
+    <div class="upload-list">
+      @for (upload of uploads; track upload.id) {
+        <div class="upload-item">
+          <div class="upload-filename">{{ upload.name }}</div>
+          <div class="upload-controls">
+            @if (upload.error) {
+              <span class="upload-error">{{ upload.error }}</span>
+            } @else if (upload.completed) {
+              <span class="upload-complete">✅️ Complete</span>
+            } @else {
+              <progress class="upload-progress-bar" max="100" [value]="upload.progress"></progress>
+              <span class="upload-percentage">{{ upload.progress }}%</span>
+            }
+            @if (!upload.completed && !upload.error) {
+              <button type="button"
+                      class="upload-cancel"
+                      (click)="cancelUpload(upload)"
+                      i18n-title title="Cancel upload" i18n>&ndash;</button>
+            }
+          </div>
+        </div>
+      }
+    </div>
+    @if (uploads.length > 1) {
+      <div class="upload-actions">
+        <button type="button"
+                class="upload-cancel-all"
+                (click)="cancelAllUploads()"
+                i18n>&ndash; remove all</button>
+      </div>
+    }
+  </div>
+  <app-loading class="upload-loading" [batch]="true"></app-loading>
+}
 <span class="hints">
   @if (admin.getPlugin('plugin/latex')) {
     <input id="latex" type="checkbox" [checked]="latex" (input)="latex = !latex">

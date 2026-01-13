@@ -1,27 +1,42 @@
 import { CdkFixedSizeVirtualScroll, CdkVirtualForOf, CdkVirtualScrollViewport } from '@angular/cdk/scrolling';
+import { HttpEventType } from '@angular/common/http';
 import { Component, Input, OnChanges, OnDestroy, SimpleChanges, ViewChild } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { debounce, defer, delay, pull, pullAllWith, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
-import { catchError, map, Subject, Subscription, takeUntil, throwError } from 'rxjs';
+import { catchError, last, map, Observable, of, Subject, Subscription, switchMap, takeUntil, tap, throwError } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { AutofocusDirective } from '../../directive/autofocus.directive';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ref } from '../../model/ref';
 import { EditorButton, sortOrder } from '../../model/tag';
+import { mimeToCode } from '../../mods/code';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
+import { ProxyService } from '../../service/api/proxy.service';
 import { RefService } from '../../service/api/ref.service';
 import { StompService } from '../../service/api/stomp.service';
+import { TaggingService } from '../../service/api/tagging.service';
 import { AuthzService } from '../../service/authz.service';
 import { ConfigService } from '../../service/config.service';
 import { EditorService } from '../../service/editor.service';
 import { Store } from '../../store/store';
+import { readFileAsDataURL, readFileAsString } from '../../util/async';
 import { URI_REGEX } from '../../util/format';
 import { getArgs } from '../../util/query';
-import { braces, tagOrigin } from '../../util/tag';
+import { braces, hasTag, tagOrigin } from '../../util/tag';
 import { LoadingComponent } from '../loading/loading.component';
 import { ChatEntryComponent } from './chat-entry/chat-entry.component';
+
+export interface ChatUpload {
+  id: string;
+  name: string;
+  progress: number;
+  subscription?: Subscription;
+  completed?: boolean;
+  error?: string;
+  ref?: Ref | null;
+}
 
 @Component({
   selector: 'app-chat',
@@ -60,6 +75,7 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
   sending: Ref[] = [];
   errored: Ref[] = [];
   scrollLock?: number;
+  uploads: ChatUpload[] = [];
 
   latex = !!this.admin.getPlugin('plugin/latex');
 
@@ -78,6 +94,8 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
     private refs: RefService,
     private editor: EditorService,
     private stomp: StompService,
+    private proxy: ProxyService,
+    private ts: TaggingService,
   ) { }
 
   saveChanges() {
@@ -354,6 +372,185 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
 
   buttonOn(tag: string) {
     return this.tags?.includes(tag);
+  }
+
+  handlePaste(event: ClipboardEvent) {
+    if (!this.admin.getPlugin('plugin/file')) return;
+    const items = event.clipboardData?.items;
+    if (!items) return;
+    const files = [] as File[];
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      if (item?.kind === 'file') {
+        const file = item.getAsFile();
+        if (file) files.push(file);
+      }
+    }
+    if (!files.length) return;
+    event.preventDefault();
+    event.stopPropagation();
+    this.upload(files);
+  }
+
+  upload(files: File[]) {
+    if (!files || files.length === 0) return;
+    const hasActiveUploads = this.uploads.some(upload => !upload.completed && !upload.error);
+    if (!hasActiveUploads) {
+      // Only clear uploads if no active uploads exist
+      this.uploads = [];
+    }
+    const fileUploads: ChatUpload[] = files.map(file => ({
+      id: uuid(),
+      name: file.name,
+      progress: 0
+    }));
+    this.uploads = [...this.uploads, ...fileUploads];
+    files.forEach((file, index) => {
+      const upload = fileUploads[index];
+      upload.subscription = this.upload$(file, upload).subscribe(ref => {
+        if (ref && !ref.url.startsWith('data:')) {
+          upload.completed = true;
+          upload.progress = 100;
+          upload.ref = ref;
+        }
+        this.checkAllUploadsComplete();
+      });
+    });
+  }
+
+  upload$(file: File, upload: ChatUpload): Observable<Ref | null> {
+    const codeType = mimeToCode(file.type);
+    if (codeType.length) {
+      const ref: Ref = {
+        origin: this.store.account.origin,
+        url: 'internal:' + uuid(),
+        title: file.name,
+        // Upload as private - only localTag and internal, no visibility tags
+        tags: uniq([
+          this.store.account.localTag,
+          'internal',
+          ...file.type === 'text/markdown' ? [] : codeType
+        ])
+      };
+      upload.progress = 50; // Simulate progress for text files
+      return readFileAsString(file).pipe(
+        switchMap(contents => this.refs.create({
+          ...ref,
+          comment: contents,
+        })),
+        map(() => ref),
+        tap(() => upload.progress = 100),
+        catchError(err => {
+          upload.error = err.message || 'Upload failed';
+          upload.progress = 0;
+          return readFileAsDataURL(file).pipe(map(url => ({ ...ref, url }))); // base64
+        }),
+      );
+    } else {
+      // Upload binary files as private - only plugin/file and type-specific tags
+      const tags: string[] = ['plugin/file'];
+      if (file.type.startsWith('audio/') && this.admin.getPlugin('plugin/audio')) {
+        tags.push('plugin/audio');
+      } else if (file.type.startsWith('video/') && this.admin.getPlugin('plugin/video')) {
+        tags.push('plugin/video', 'plugin/thumbnail');
+      } else if (file.type.startsWith('image/') && this.admin.getPlugin('plugin/image')) {
+        tags.push('plugin/image', 'plugin/thumbnail');
+      } else if (file.type.startsWith('application/pdf') && this.admin.getPlugin('plugin/pdf')) {
+        tags.push('plugin/pdf');
+      }
+      return this.proxy.save(file, this.store.account.origin).pipe(
+        map(event => {
+          switch (event.type) {
+            case HttpEventType.Response:
+              return event.body;
+            case HttpEventType.UploadProgress:
+              const percentDone = event.total ? Math.round(100 * event.loaded / event.total) : 0;
+              upload.progress = percentDone;
+              return null;
+          }
+          return null;
+        }),
+        last(),
+        switchMap(ref => !ref ? of(ref) : this.ts.patch(tags, ref.url, ref.origin).pipe(
+          map(() => ({ ...ref, tags: uniq([...ref?.tags || [], ...tags]) })),
+        )),
+        catchError(err => {
+          upload.error = err.message || 'Upload failed';
+          upload.progress = 0;
+          return readFileAsDataURL(file).pipe(map(url => ({url, tags}))); // base64
+        }),
+      );
+    }
+  }
+
+  checkAllUploadsComplete() {
+    const allComplete = this.uploads.every(upload => upload.completed || upload.error);
+    if (allComplete && this.uploads.length > 0) {
+      const completedRefs = this.uploads
+        .filter(upload => upload.completed && upload.ref)
+        .map(upload => upload.ref!);
+      if (completedRefs.length > 0) {
+        this.attachFiles(completedRefs);
+      }
+      this.uploads = [];
+    }
+  }
+
+  attachFiles(refs: Ref[]) {
+    // Create a chat message with the uploaded files as sources
+    const newTags = uniq([
+      'internal',
+      ...this.tags,
+      ...([this.store.view.localTag || 'chat', ...this.store.view.ext?.config?.addTags || []]),
+      ...this.plugins,
+      ...(this.latex ? ['plugin/latex'] : []),
+      ...(this.store.account.localTag ? [this.store.account.localTag] : []),
+    ]).filter(t => !!t);
+
+    // If there's text, include it in the comment
+    let comment = this.addText.trim();
+    
+    // Add markdown links for each file
+    const fileLinks = refs.map(ref => {
+      const embed = hasTag('plugin/audio', ref) || hasTag('plugin/video', ref) || hasTag('plugin/image', ref) || hasTag('plugin/pdf', ref);
+      return (embed ? '![]' : '![=]') + '(' + ref.url.replace(')', '\\)') + ')';
+    }).join('\n');
+    
+    if (comment) {
+      comment = comment + '\n\n' + fileLinks;
+    } else {
+      comment = fileLinks;
+    }
+
+    const ref: Ref = {
+      url: 'comment:' + uuid(),
+      origin: this.store.account.origin,
+      comment,
+      tags: newTags,
+      sources: refs.map(r => r.url),
+    };
+    this.addText = '';
+    this.send(ref);
+  }
+
+  cancelUpload(upload: ChatUpload) {
+    if (upload.subscription) {
+      upload.subscription.unsubscribe();
+    }
+    this.uploads = this.uploads.filter(u => u.id !== upload.id);
+  }
+
+  cancelAllUploads() {
+    this.uploads.forEach(upload => {
+      if (upload.subscription) {
+        upload.subscription.unsubscribe();
+      }
+    });
+    this.uploads = [];
+  }
+
+  hasActiveUploads(): boolean {
+    return this.uploads.some(upload => !upload.completed && !upload.error);
   }
 
 }

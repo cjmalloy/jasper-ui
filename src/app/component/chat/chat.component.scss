@@ -9,6 +9,89 @@
   input {
     flex: 1;
   }
+
+  input:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.upload-progress {
+  margin: 8px;
+  padding: 8px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+
+.upload-list {
+  margin-bottom: 8px;
+}
+
+.upload-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.upload-item:last-child {
+  border-bottom: none;
+}
+
+.upload-filename {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-right: 8px;
+}
+
+.upload-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.upload-progress-bar {
+  width: 100px;
+}
+
+.upload-percentage {
+  min-width: 40px;
+  text-align: right;
+  font-size: 0.9em;
+}
+
+.upload-complete {
+  color: var(--success, green);
+  font-size: 0.9em;
+}
+
+.upload-error {
+  color: var(--error, red);
+  font-size: 0.9em;
+}
+
+.upload-cancel {
+  padding: 2px 6px;
+  font-size: 1.2em;
+  line-height: 1;
+}
+
+.upload-actions {
+  text-align: right;
+  margin-top: 4px;
+}
+
+.upload-cancel-all {
+  padding: 4px 8px;
+  font-size: 0.9em;
+}
+
+.upload-loading {
+  margin: 8px;
 }
 
 .fake-link {
