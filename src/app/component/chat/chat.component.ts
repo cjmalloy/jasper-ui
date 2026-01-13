@@ -297,9 +297,13 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
       Math.max(1000, 250 * Math.pow(2, Math.min(10, this.retries))));
   }
 
-  add() {
-    this.addText = this.addText.trim();
-    if (!this.addText) return;
+  add(text = '') {
+    if (!text) {
+      this.addText = this.addText.trim();
+      if (!this.addText) return;
+      text = this.addText;
+      this.addText = '';
+    }
     this.scrollLock = undefined;
     const newTags = uniq([
       'internal',
@@ -309,41 +313,77 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
       ...(this.latex ? ['plugin/latex'] : []),
       ...(this.store.account.localTag ? [this.store.account.localTag] : []),
     ]).filter(t => !!t);
-    const ref: Ref = URI_REGEX.test(this.addText) ? {
-      url: this.editor.getRefUrl(this.addText),
-      origin: this.store.account.origin,
-      tags: newTags,
-    } : {
-      url: 'comment:' + uuid(),
-      origin: this.store.account.origin,
-      comment: this.addText,
-      tags: newTags,
-    };
-    this.addText = '';
-    this.send(ref);
+    if (URI_REGEX.test(text)) {
+      const url = this.editor.getRefUrl(text);
+      newTags.push(...this.admin.getPluginsForExtension(url).filter(p => !newTags.includes(p.tag)));
+      this.send({
+        url,
+        origin: this.store.account.origin,
+        tags: newTags,
+      });
+    } else {
+      this.send({
+        url: 'comment:' + uuid(),
+        origin: this.store.account.origin,
+        comment: text,
+        tags: newTags,
+      });
+    }
   }
 
   private send(ref: Ref) {
     if (this.responseOf) ref.sources = [this.responseOf.url];
     this.sending.push(ref);
-    this.refs.create(ref).pipe(
+    (ref.modified ? this.refs.update(ref).pipe(
       map(() => ref),
       catchError(err => {
-        if (err.status === 409) {
+        if (err.status === 403) {
           // Ref already exists, repost
-          return this.refs.create({
+          pull(this.sending, ref);
+          ref = {
             ...ref,
             url: 'comment:' + uuid(),
             tags: [...ref.tags!, 'plugin/repost'],
             sources: [ ref.url, ...ref.sources || [] ],
-          });
+          };
+          this.sending.push(ref);
+          return this.refs.create(ref);
+        } else if (err.status === 409) {
+          // Ref already exists, repost
+          return this.refs.get(ref.url, ref.origin).pipe(
+            switchMap(r => this.refs.update({
+              ...ref,
+              modified: r.modified,
+              modifiedString: r.modifiedString,
+            })),
+          );
         } else {
           pull(this.sending, ref);
           this.errored.push(ref);
         }
         return throwError(err);
       }),
-    ).subscribe(cursor => {
+    ) : this.refs.create(ref).pipe(
+      map(() => ref),
+      catchError(err => {
+        if (err.status === 409) {
+          // Ref already exists, repost
+          pull(this.sending, ref);
+          ref = {
+            ...ref,
+            url: 'comment:' + uuid(),
+            tags: [...ref.tags!, 'plugin/repost'],
+            sources: [ ref.url, ...ref.sources || [] ],
+          };
+          this.sending.push(ref);
+          return this.refs.create(ref);
+        } else {
+          pull(this.sending, ref);
+          this.errored.push(ref);
+        }
+        return throwError(err);
+      }),
+    )).subscribe(cursor => {
       this.fetch();
     });
   }
@@ -385,7 +425,7 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
   handlePaste(event: ClipboardEvent) {
     const items = event.clipboardData?.items;
     if (!items) return;
-    
+
     // First, check for files
     const files = [] as File[];
     for (let i = 0; i < items.length; i++) {
@@ -395,7 +435,7 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
         if (file) files.push(file);
       }
     }
-    
+
     // If files found and plugin/file is enabled, upload them
     if (files.length && this.admin.getPlugin('plugin/file')) {
       event.preventDefault();
@@ -403,24 +443,13 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
       this.upload(files);
       return;
     }
-    
-    // Check for URL in text content
-    const text = event.clipboardData?.getData('text/plain')?.trim();
-    if (!text) return;
-    
-    const isUrl = URI_REGEX.test(text) && this.config.allowedSchemes.filter(s => text.startsWith(s)).length;
-    if (isUrl) {
-      event.preventDefault();
-      event.stopPropagation();
-      this.submitUrl(text);
-    }
   }
 
   handleDrop(event: DragEvent) {
     this.dropping = false;
     const items = event.dataTransfer?.items;
     if (!items) return;
-    
+
     // Check for files first
     const files = [] as File[];
     for (let i = 0; i < items.length; i++) {
@@ -430,7 +459,7 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
         if (file) files.push(file);
       }
     }
-    
+
     // If files found and plugin/file is enabled, upload them
     if (files.length && this.admin.getPlugin('plugin/file')) {
       event.preventDefault();
@@ -438,17 +467,13 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
       this.upload(files);
       return;
     }
-    
+
     // Check for URL in text content
     const text = event.dataTransfer?.getData('text/plain')?.trim();
     if (!text) return;
-    
-    const isUrl = URI_REGEX.test(text) && this.config.allowedSchemes.filter(s => text.startsWith(s)).length;
-    if (isUrl) {
-      event.preventDefault();
-      event.stopPropagation();
-      this.submitUrl(text);
-    }
+    event.preventDefault();
+    event.stopPropagation();
+    this.addText = text;
   }
 
   dragLeave(event: DragEvent) {
@@ -460,28 +485,6 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
     }
   }
 
-  submitUrl(text: string) {
-    const newTags = uniq([
-      'internal',
-      ...this.tags,
-      ...([this.store.view.localTag || 'chat', ...this.store.view.ext?.config?.addTags || []]),
-      ...this.plugins,
-      ...(this.latex ? ['plugin/latex'] : []),
-      ...(this.store.account.localTag ? [this.store.account.localTag] : []),
-    ]).filter(t => !!t);
-
-    const ref: Ref = {
-      url: fixUrl(text, this.admin.getTemplate('config/banlist') || this.admin.def.templates['config/banlist']),
-      origin: this.store.account.origin,
-      tags: newTags,
-    };
-    
-    // Add plugins for the URL
-    ref.tags = uniq([...(ref.tags || []), ...this.admin.getPluginsForUrl(ref.url).map(p => p.tag)]);
-    
-    this.send(ref);
-  }
-
   upload(files: File[]) {
     if (!files || files.length === 0) return;
     files.forEach((file) => {
@@ -491,15 +494,12 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
         progress: 0
       };
       this.uploads.push(upload);
-      
       upload.subscription = this.upload$(file, upload).subscribe(ref => {
         if (ref && !upload.error) {
           upload.completed = true;
           upload.progress = 100;
           upload.ref = ref;
-          // Immediately send the file to chat
-          this.sendFile(ref);
-          // Remove successful upload immediately after sending
+          this.add(ref.url);
           this.uploads = this.uploads.filter(u => u.id !== upload.id);
         }
       });
@@ -534,8 +534,8 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
         catchError(err => {
           upload.error = err.message || $localize`Upload failed`;
           upload.progress = 0;
-          return readFileAsDataURL(file).pipe(map(url => ({ 
-            ...ref, 
+          return readFileAsDataURL(file).pipe(map(url => ({
+            ...ref,
             url,
           } as Ref)));
         }),
@@ -566,8 +566,8 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
         }),
         last(),
         switchMap(ref => !ref ? of(ref) : this.ts.patch(tags, ref.url, ref.origin).pipe(
-          map(cursor => ({ 
-            ...ref, 
+          map(cursor => ({
+            ...ref,
             tags: uniq([...ref?.tags || [], ...tags]),
             modifiedString: cursor,
             modified: DateTime.fromISO(cursor),
@@ -576,52 +576,14 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
         catchError(err => {
           upload.error = err.message || $localize`Upload failed`;
           upload.progress = 0;
-          return readFileAsDataURL(file).pipe(map(url => ({ 
-            url, 
-            tags, 
-            origin: this.store.account.origin 
+          return readFileAsDataURL(file).pipe(map(url => ({
+            url,
+            tags,
+            origin: this.store.account.origin
           } as Ref)));
         }),
       );
     }
-  }
-
-  sendFile(ref: Ref) {
-    // Add chat tags to the uploaded file ref
-    const newTags = uniq([
-      'internal',
-      ...this.tags,
-      ...([this.store.view.localTag || 'chat', ...this.store.view.ext?.config?.addTags || []]),
-      ...this.plugins,
-      ...(this.latex ? ['plugin/latex'] : []),
-      ...(this.store.account.localTag ? [this.store.account.localTag] : []),
-      ...(ref.tags || []),
-    ]).filter(t => !!t);
-
-    // Generate a comment URL for the sending queue that will match the server response
-    // The server transforms cache: URLs to comment: URLs when adding chat tags
-    const commentUrl = ref.url.startsWith('cache:') ? 'comment:' + ref.url.substring(6) : ref.url;
-    
-    // Update the ref with chat tags and comment URL for sending queue
-    const chatRef: Ref = {
-      ...ref,
-      url: commentUrl,
-      tags: newTags,
-      title: undefined,
-    };
-    
-    // Patch the existing ref with chat tags
-    if (this.responseOf) chatRef.sources = [this.responseOf.url];
-    this.sending.push(chatRef);
-    this.ts.patch(newTags, ref.url, ref.origin).pipe(
-      catchError(err => {
-        pull(this.sending, chatRef);
-        this.errored.push(chatRef);
-        return throwError(err);
-      }),
-    ).subscribe(() => {
-      this.fetch();
-    });
   }
 
   cancelUpload(upload: ChatUpload) {
