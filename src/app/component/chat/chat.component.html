@@ -56,7 +56,7 @@
             @if (upload.error) {
               <span class="upload-error">{{ upload.error }}</span>
             } @else if (upload.completed) {
-              <span class="upload-complete">✅ Complete</span>
+              <span class="upload-complete" i18n>✅ Complete</span>
             } @else {
               <progress class="upload-progress-bar" max="100" [value]="upload.progress"></progress>
               <span class="upload-percentage">{{ upload.progress }}%</span>
