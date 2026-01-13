@@ -387,7 +387,7 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
     if (!hasTag('plugin/audio', this.currentTags)) return '';
     const url = this.ref?.plugins?.['plugin/audio']?.url || this.ref?.url;
     if (url.startsWith('cache:') || this.admin.getPlugin('plugin/audio')?.config?.proxy) {
-      return this.proxy.getFetch(url, this.currentOrigin);
+      return this.proxy.getFetch(url, this.currentOrigin, (this.ref?.title || 'audio') + (getExtension(url) || ''));
     }
     return url;
   }
@@ -397,7 +397,7 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
     if (!hasTag('plugin/video', this.currentTags)) return '';
     const url = this.ref?.plugins?.['plugin/video']?.url || this.ref?.url;
     if (url.startsWith('cache:') || this.admin.getPlugin('plugin/video')?.config?.proxy) {
-      return this.proxy.getFetch(url, this.currentOrigin);
+      return this.proxy.getFetch(url, this.currentOrigin, (this.ref?.title || 'video') + (getExtension(url) || ''));
     }
     return url;
   }
@@ -407,7 +407,7 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
     if (!this.image && !hasTag('plugin/image', this.currentTags)) return '';
     const url = this.image || this.ref?.plugins?.['plugin/image']?.url || this.ref?.url;
     if (url.startsWith('cache:') || this.admin.getPlugin('plugin/image')?.config?.proxy) {
-      return this.proxy.getFetch(url, this.currentOrigin);
+      return this.proxy.getFetch(url, this.currentOrigin, (this.ref?.title || 'image') + (getExtension(url) || ''));
     }
     return url;
   }
@@ -449,7 +449,7 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
     const url = this.pdf;
     if (!url) return url;
     if (!this.admin.getPlugin('plugin/pdf')?.config?.proxy) return url;
-    return this.proxy.getFetch(url, this.currentOrigin);
+    return this.proxy.getFetch(url, this.currentOrigin, (this.ref?.title || 'Untitled') + '.pdf');
   }
 
   @memo

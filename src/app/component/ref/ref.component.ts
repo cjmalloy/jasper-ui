@@ -626,16 +626,16 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   @memo
   get mediaAttachment() {
     if (this.file) {
-      return this.proxy.getFetch(this.url, this.origin);
+      return this.proxy.getFetch(this.url, this.origin, this.title);
     }
     if (this.audio && (this.audio.startsWith('cache:') || this.admin.getPlugin('plugin/audio')?.config?.proxy)) {
-      return this.proxy.getFetch(this.audio, this.origin);
+      return this.proxy.getFetch(this.audio, this.origin, this.title);
     }
     if (this.video && (this.video.startsWith('cache:') || this.admin.getPlugin('plugin/video')?.config?.proxy)) {
-      return this.proxy.getFetch(this.video, this.origin);
+      return this.proxy.getFetch(this.video, this.origin, this.title);
     }
     if (this.image && (this.image.startsWith('cache:') || this.admin.getPlugin('plugin/image')?.config?.proxy)) {
-      return this.proxy.getFetch(this.image, this.origin);
+      return this.proxy.getFetch(this.image, this.origin, this.title);
     }
     return '';
   }
@@ -743,7 +743,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
 
   @memo
   get link() {
-    if (this.file || this.url.startsWith('cache:')) return this.proxy.getFetch(this.url, this.origin);
+    if (this.file || this.url.startsWith('cache:')) return this.proxy.getFetch(this.url, this.origin, this.title);
     return this.url;
   }
 
