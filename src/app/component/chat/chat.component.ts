@@ -516,10 +516,11 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
       ...(ref.tags || []),
     ]).filter(t => !!t);
 
-    // Send the uploaded ref directly with chat tags
+    // Send the uploaded ref directly with chat tags, without title
     const chatRef: Ref = {
       ...ref,
       tags: newTags,
+      title: undefined,
     };
     this.send(chatRef);
   }
