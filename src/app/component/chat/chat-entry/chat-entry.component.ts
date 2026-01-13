@@ -135,7 +135,7 @@ export class ChatEntryComponent implements OnChanges, OnDestroy {
     const title = (this.ref?.title || '').trim();
     if (title) return title;
     if (this.focused) return '';
-    if (this.bareRepost) return getNiceTitle(this.repostRef) || $localize`Repost`;
+    if (this.bareRepost) return getNiceTitle(this.repostRef) || '';
     return getNiceTitle(this.ref);
   }
 
