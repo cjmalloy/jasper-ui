@@ -409,9 +409,7 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
           upload.ref = ref;
           // Immediately send the file to chat
           this.sendFile(ref);
-        }
-        // Auto-remove successful uploads after a delay
-        if (ref && !upload.error) {
+          // Auto-remove successful uploads after a delay
           setTimeout(() => {
             this.uploads = this.uploads.filter(u => u.id !== upload.id);
           }, 2000);
