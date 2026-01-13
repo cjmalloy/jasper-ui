@@ -499,10 +499,8 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
           upload.ref = ref;
           // Immediately send the file to chat
           this.sendFile(ref);
-          // Auto-remove successful uploads after a delay
-          setTimeout(() => {
-            this.uploads = this.uploads.filter(u => u.id !== upload.id);
-          }, 2000);
+          // Remove successful upload immediately after sending
+          this.uploads = this.uploads.filter(u => u.id !== upload.id);
         }
       });
     });
@@ -589,7 +587,7 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
   }
 
   sendFile(ref: Ref) {
-    // Add chat tags to the uploaded file ref and send it directly
+    // Add chat tags to the uploaded file ref
     const newTags = uniq([
       'internal',
       ...this.tags,
@@ -600,13 +598,25 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
       ...(ref.tags || []),
     ]).filter(t => !!t);
 
-    // Send the uploaded ref directly with chat tags, without title
+    // Update the ref with chat tags
     const chatRef: Ref = {
       ...ref,
       tags: newTags,
       title: undefined,
     };
-    this.send(chatRef);
+    
+    // Patch the existing ref with chat tags instead of creating a new one
+    if (this.responseOf) chatRef.sources = [this.responseOf.url];
+    this.sending.push(chatRef);
+    this.ts.patch(newTags, chatRef.url, chatRef.origin).pipe(
+      catchError(err => {
+        pull(this.sending, chatRef);
+        this.errored.push(chatRef);
+        return throwError(err);
+      }),
+    ).subscribe(() => {
+      this.fetch();
+    });
   }
 
   cancelUpload(upload: ChatUpload) {
