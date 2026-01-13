@@ -16,7 +16,12 @@
                   [focused]="scrollLock === index"></app-chat-entry>
 </cdk-virtual-scroll-viewport>
 <div class="spacer"></div>
-<div class="input-box">
+<div class="input-box"
+     [class.dropping]="dropping"
+     (dragenter)="dropping = true"
+     (dragleave)="dragLeave($event)"
+     (dragover)="$event.preventDefault()"
+     (drop)="handleDrop($event)">
   @if (!config.websockets) {
     <button type="button"
             class="refresh"

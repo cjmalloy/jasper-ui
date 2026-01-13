@@ -9,6 +9,13 @@
   input {
     flex: 1;
   }
+
+  &.dropping {
+    background: var(--active);
+    border-radius: 4px;
+    outline: 2px dashed var(--border);
+    outline-offset: -4px;
+  }
 }
 
 .upload-progress {

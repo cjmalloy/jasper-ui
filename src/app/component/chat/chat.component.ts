@@ -77,6 +77,7 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
   errored: Ref[] = [];
   scrollLock?: number;
   uploads: ChatUpload[] = [];
+  dropping = false;
 
   latex = !!this.admin.getPlugin('plugin/latex');
 
@@ -412,6 +413,50 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
       event.preventDefault();
       event.stopPropagation();
       this.submitUrl(text);
+    }
+  }
+
+  handleDrop(event: DragEvent) {
+    this.dropping = false;
+    const items = event.dataTransfer?.items;
+    if (!items) return;
+    
+    // Check for files first
+    const files = [] as File[];
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      if (item?.kind === 'file') {
+        const file = item.getAsFile();
+        if (file) files.push(file);
+      }
+    }
+    
+    // If files found and plugin/file is enabled, upload them
+    if (files.length && this.admin.getPlugin('plugin/file')) {
+      event.preventDefault();
+      event.stopPropagation();
+      this.upload(files);
+      return;
+    }
+    
+    // Check for URL in text content
+    const text = event.dataTransfer?.getData('text/plain')?.trim();
+    if (!text) return;
+    
+    const isUrl = URI_REGEX.test(text) && this.config.allowedSchemes.filter(s => text.startsWith(s)).length;
+    if (isUrl) {
+      event.preventDefault();
+      event.stopPropagation();
+      this.submitUrl(text);
+    }
+  }
+
+  dragLeave(event: DragEvent) {
+    const target = event.target as HTMLElement;
+    const relatedTarget = event.relatedTarget as HTMLElement;
+    // Only set dropping to false if we're leaving the container entirely
+    if (this.dropping && (!relatedTarget || !target.contains(relatedTarget))) {
+      this.dropping = false;
     }
   }
 
