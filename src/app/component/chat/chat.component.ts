@@ -541,6 +541,7 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
       upload.subscription.unsubscribe();
     }
     this.uploads = this.uploads.filter(u => u.id !== upload.id);
+    this.checkAllUploadsComplete();
   }
 
   cancelAllUploads() {
