@@ -39,7 +39,6 @@
          (input)="addText = $any($event.target).value"
          (keydown)="$event.key === 'Enter' && add() || true"
          (paste)="handlePaste($event)"
-         [disabled]="hasActiveUploads()"
          appAutofocus>
   <button type="button"
           class="add"

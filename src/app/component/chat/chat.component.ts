@@ -394,26 +394,28 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
 
   upload(files: File[]) {
     if (!files || files.length === 0) return;
-    const hasActiveUploads = this.uploads.some(upload => !upload.completed && !upload.error);
-    if (!hasActiveUploads) {
-      // Only clear uploads if no active uploads exist
-      this.uploads = [];
-    }
-    const fileUploads: ChatUpload[] = files.map(file => ({
-      id: uuid(),
-      name: file.name,
-      progress: 0
-    }));
-    this.uploads = [...this.uploads, ...fileUploads];
-    files.forEach((file, index) => {
-      const upload = fileUploads[index];
+    files.forEach((file) => {
+      const upload: ChatUpload = {
+        id: uuid(),
+        name: file.name,
+        progress: 0
+      };
+      this.uploads.push(upload);
+      
       upload.subscription = this.upload$(file, upload).subscribe(ref => {
         if (ref) {
           upload.completed = true;
           upload.progress = 100;
           upload.ref = ref;
+          // Immediately send the file to chat
+          this.sendFile(ref);
         }
-        this.checkAllUploadsComplete();
+        // Auto-remove successful uploads after a delay
+        if (ref && !upload.error) {
+          setTimeout(() => {
+            this.uploads = this.uploads.filter(u => u.id !== upload.id);
+          }, 2000);
+        }
       });
     });
   }
@@ -424,7 +426,6 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
       const ref: Ref = {
         origin: this.store.account.origin,
         url: 'internal:' + uuid(),
-        title: file.name,
         // Upload as private - only localTag and internal, no visibility tags
         tags: uniq([
           this.store.account.localTag,
@@ -450,7 +451,6 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
           return readFileAsDataURL(file).pipe(map(url => ({ 
             ...ref, 
             url,
-            title: file.name,
           } as Ref)));
         }),
       );
@@ -492,7 +492,6 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
           upload.progress = 0;
           return readFileAsDataURL(file).pipe(map(url => ({ 
             url, 
-            title: file.name,
             tags, 
             origin: this.store.account.origin 
           } as Ref)));
@@ -501,21 +500,8 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
     }
   }
 
-  checkAllUploadsComplete() {
-    const allComplete = this.uploads.every(upload => upload.completed || upload.error);
-    if (allComplete && this.uploads.length > 0) {
-      const completedRefs = this.uploads
-        .filter(upload => upload.completed && upload.ref)
-        .map(upload => upload.ref!);
-      if (completedRefs.length > 0) {
-        this.attachFiles(completedRefs);
-      }
-      this.uploads = [];
-    }
-  }
-
-  attachFiles(refs: Ref[]) {
-    // Create a chat message with the uploaded files as sources
+  sendFile(ref: Ref) {
+    // Create a chat message with the uploaded file
     const newTags = uniq([
       'internal',
       ...this.tags,
@@ -525,30 +511,18 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
       ...(this.store.account.localTag ? [this.store.account.localTag] : []),
     ]).filter(t => !!t);
 
-    // If there's text, include it in the comment
-    let comment = this.addText.trim();
-    
-    // Add markdown links for each file
-    const fileLinks = refs.map(ref => {
-      const embed = hasTag('plugin/audio', ref) || hasTag('plugin/video', ref) || hasTag('plugin/image', ref) || hasTag('plugin/pdf', ref);
-      return (embed ? '![]' : '![=]') + '(' + ref.url.replace(')', '\\)') + ')';
-    }).join('\n');
-    
-    if (comment) {
-      comment = comment + '\n\n' + fileLinks;
-    } else {
-      comment = fileLinks;
-    }
+    // Create markdown link for the file (without title)
+    const embed = hasTag('plugin/audio', ref) || hasTag('plugin/video', ref) || hasTag('plugin/image', ref) || hasTag('plugin/pdf', ref);
+    const fileLink = (embed ? '![]' : '![=]') + '(' + ref.url.replace(')', '\\)') + ')';
 
-    const ref: Ref = {
+    const chatRef: Ref = {
       url: 'comment:' + uuid(),
       origin: this.store.account.origin,
-      comment,
+      comment: fileLink,
       tags: newTags,
-      sources: refs.map(r => r.url),
+      sources: [ref.url],
     };
-    this.addText = '';
-    this.send(ref);
+    this.send(chatRef);
   }
 
   cancelUpload(upload: ChatUpload) {
@@ -556,7 +530,6 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
       upload.subscription.unsubscribe();
     }
     this.uploads = this.uploads.filter(u => u.id !== upload.id);
-    this.checkAllUploadsComplete();
   }
 
   cancelAllUploads() {
@@ -569,7 +542,7 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
   }
 
   hasActiveUploads(): boolean {
-    return this.uploads.some(upload => !upload.completed && !upload.error);
+    return this.uploads.some(u => !u.completed && !u.error);
   }
 
 }
