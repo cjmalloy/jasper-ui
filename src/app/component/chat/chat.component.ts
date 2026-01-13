@@ -598,19 +598,17 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
       ...(ref.tags || []),
     ]).filter(t => !!t);
 
-    // Update the ref with chat tags
-    const chatRef: Ref = {
-      ...ref,
-      tags: newTags,
-      title: undefined,
-    };
-    
-    // Patch the existing ref with chat tags instead of creating a new one
-    if (this.responseOf) chatRef.sources = [this.responseOf.url];
-    this.sending.push(chatRef);
-    this.ts.patch(newTags, chatRef.url, chatRef.origin).pipe(
+    // Patch the existing ref with chat tags
+    // Don't add to sending array - the ref is already created and will appear when we fetch
+    this.ts.patch(newTags, ref.url, ref.origin).pipe(
       catchError(err => {
-        pull(this.sending, chatRef);
+        // If patching fails, add to errored array
+        const chatRef: Ref = {
+          ...ref,
+          tags: newTags,
+          title: undefined,
+        };
+        if (this.responseOf) chatRef.sources = [this.responseOf.url];
         this.errored.push(chatRef);
         return throwError(err);
       }),
