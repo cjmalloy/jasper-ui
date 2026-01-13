@@ -23,6 +23,7 @@ import { EditorService } from '../../service/editor.service';
 import { Store } from '../../store/store';
 import { readFileAsDataURL, readFileAsString } from '../../util/async';
 import { URI_REGEX } from '../../util/format';
+import { fixUrl } from '../../util/http';
 import { getArgs } from '../../util/query';
 import { braces, hasTag, tagOrigin } from '../../util/tag';
 import { LoadingComponent } from '../loading/loading.component';
@@ -381,9 +382,10 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
   }
 
   handlePaste(event: ClipboardEvent) {
-    if (!this.admin.getPlugin('plugin/file')) return;
     const items = event.clipboardData?.items;
     if (!items) return;
+    
+    // First, check for files
     const files = [] as File[];
     for (let i = 0; i < items.length; i++) {
       const item = items[i];
@@ -392,10 +394,47 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
         if (file) files.push(file);
       }
     }
-    if (!files.length) return;
-    event.preventDefault();
-    event.stopPropagation();
-    this.upload(files);
+    
+    // If files found and plugin/file is enabled, upload them
+    if (files.length && this.admin.getPlugin('plugin/file')) {
+      event.preventDefault();
+      event.stopPropagation();
+      this.upload(files);
+      return;
+    }
+    
+    // Check for URL in text content
+    const text = event.clipboardData?.getData('text/plain')?.trim();
+    if (!text) return;
+    
+    const isUrl = URI_REGEX.test(text) && this.config.allowedSchemes.filter(s => text.startsWith(s)).length;
+    if (isUrl) {
+      event.preventDefault();
+      event.stopPropagation();
+      this.submitUrl(text);
+    }
+  }
+
+  submitUrl(text: string) {
+    const newTags = uniq([
+      'internal',
+      ...this.tags,
+      ...([this.store.view.localTag || 'chat', ...this.store.view.ext?.config?.addTags || []]),
+      ...this.plugins,
+      ...(this.latex ? ['plugin/latex'] : []),
+      ...(this.store.account.localTag ? [this.store.account.localTag] : []),
+    ]).filter(t => !!t);
+
+    const ref: Ref = {
+      url: fixUrl(text, this.admin.getTemplate('config/banlist') || this.admin.def.templates['config/banlist']),
+      origin: this.store.account.origin,
+      tags: newTags,
+    };
+    
+    // Add plugins for the URL
+    ref.tags = uniq([...(ref.tags || []), ...this.admin.getPluginsForUrl(ref.url).map(p => p.tag)]);
+    
+    this.send(ref);
   }
 
   upload(files: File[]) {
