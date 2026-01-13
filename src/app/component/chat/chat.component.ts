@@ -505,7 +505,7 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
   }
 
   sendFile(ref: Ref) {
-    // Create a chat message with the uploaded file
+    // Add chat tags to the uploaded file ref and send it directly
     const newTags = uniq([
       'internal',
       ...this.tags,
@@ -513,18 +513,13 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
       ...this.plugins,
       ...(this.latex ? ['plugin/latex'] : []),
       ...(this.store.account.localTag ? [this.store.account.localTag] : []),
+      ...(ref.tags || []),
     ]).filter(t => !!t);
 
-    // Create markdown link for the file (without title)
-    const embed = hasTag('plugin/audio', ref) || hasTag('plugin/video', ref) || hasTag('plugin/image', ref) || hasTag('plugin/pdf', ref);
-    const fileLink = (embed ? '![]' : '![=]') + '(' + ref.url.replace(')', '\\)') + ')';
-
+    // Send the uploaded ref directly with chat tags
     const chatRef: Ref = {
-      url: 'comment:' + uuid(),
-      origin: this.store.account.origin,
-      comment: fileLink,
+      ...ref,
       tags: newTags,
-      sources: [ref.url],
     };
     this.send(chatRef);
   }
