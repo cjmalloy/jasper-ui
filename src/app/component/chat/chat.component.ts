@@ -438,7 +438,10 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
           ...ref,
           comment: contents,
         })),
-        map(() => ref),
+        map(cursor => {
+          ref.modifiedString = cursor;
+          return ref;
+        }),
         tap(() => upload.progress = 100),
         catchError(err => {
           upload.error = err.message || 'Upload failed';
@@ -472,12 +475,12 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
         }),
         last(),
         switchMap(ref => !ref ? of(ref) : this.ts.patch(tags, ref.url, ref.origin).pipe(
-          map(() => ({ ...ref, tags: uniq([...ref?.tags || [], ...tags]) })),
+          map(cursor => ({ ...ref, tags: uniq([...ref?.tags || [], ...tags]) })),
         )),
         catchError(err => {
           upload.error = err.message || 'Upload failed';
           upload.progress = 0;
-          return readFileAsDataURL(file).pipe(map(url => ({url, tags}))); // base64
+          return readFileAsDataURL(file).pipe(map(url => ({ url, tags, origin: this.store.account.origin }))); // base64
         }),
       );
     }
