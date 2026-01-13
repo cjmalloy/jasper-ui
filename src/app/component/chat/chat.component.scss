@@ -11,10 +11,8 @@
   }
 
   &.dropping {
-    background: var(--active);
+    border: 0.5px dashed var(--border);
     border-radius: 4px;
-    outline: 2px dashed var(--border);
-    outline-offset: -4px;
   }
 }
 
