@@ -53,9 +53,11 @@
     white-space: normal !important;
     height: unset;
     .actions {
-      display: inline;
+      position: absolute;
+      right: 4px;
     }
     .has-title {
+      margin-top: 24px;
       height: unset;
       app-md {
         display: block;
