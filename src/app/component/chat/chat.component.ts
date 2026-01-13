@@ -408,7 +408,7 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
     files.forEach((file, index) => {
       const upload = fileUploads[index];
       upload.subscription = this.upload$(file, upload).subscribe(ref => {
-        if (ref && !ref.url.startsWith('data:')) {
+        if (ref) {
           upload.completed = true;
           upload.progress = 100;
           upload.ref = ref;
@@ -440,13 +440,18 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
         })),
         map(cursor => {
           ref.modifiedString = cursor;
+          ref.modified = DateTime.fromISO(cursor);
           return ref;
         }),
         tap(() => upload.progress = 100),
         catchError(err => {
           upload.error = err.message || 'Upload failed';
           upload.progress = 0;
-          return readFileAsDataURL(file).pipe(map(url => ({ ...ref, url }))); // base64
+          return readFileAsDataURL(file).pipe(map(url => ({ 
+            ...ref, 
+            url,
+            title: file.name,
+          } as Ref)));
         }),
       );
     } else {
@@ -475,12 +480,22 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
         }),
         last(),
         switchMap(ref => !ref ? of(ref) : this.ts.patch(tags, ref.url, ref.origin).pipe(
-          map(cursor => ({ ...ref, tags: uniq([...ref?.tags || [], ...tags]) })),
+          map(cursor => ({ 
+            ...ref, 
+            tags: uniq([...ref?.tags || [], ...tags]),
+            modifiedString: cursor,
+            modified: DateTime.fromISO(cursor),
+          })),
         )),
         catchError(err => {
           upload.error = err.message || 'Upload failed';
           upload.progress = 0;
-          return readFileAsDataURL(file).pipe(map(url => ({ url, tags, origin: this.store.account.origin }))); // base64
+          return readFileAsDataURL(file).pipe(map(url => ({ 
+            url, 
+            title: file.name,
+            tags, 
+            origin: this.store.account.origin 
+          } as Ref)));
         }),
       );
     }
