@@ -651,7 +651,7 @@ export class AdminService {
   }
 
   getPluginsForExtension(url: string) {
-    const type = getExtension(url)!;
+    const type = getExtension(url) || '';
     return this.extensions.filter(p => p.config!.extensions!.includes(type))
   }
 
