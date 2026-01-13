@@ -58,7 +58,7 @@ import {
   templates,
   urlSummary
 } from '../../util/format';
-import { getScheme, printError } from '../../util/http';
+import { getExtension, getScheme, printError } from '../../util/http';
 import { memo, MemoCache } from '../../util/memo';
 import {
   addAllHierarchicalTags,
@@ -624,18 +624,25 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   }
 
   @memo
+  getFilename(d = $localize`Untitled`) {
+    const ext = getExtension(this.url) || '';
+    const filename = this.title || d;
+    return filename + (ext && !filename.toLowerCase().endsWith(ext) ? ext : '');
+  }
+
+  @memo
   get mediaAttachment() {
     if (this.file) {
-      return this.proxy.getFetch(this.url, this.origin);
+      return this.proxy.getFetch(this.url, this.origin, this.getFilename());
     }
     if (this.audio && (this.audio.startsWith('cache:') || this.admin.getPlugin('plugin/audio')?.config?.proxy)) {
-      return this.proxy.getFetch(this.audio, this.origin);
+      return this.proxy.getFetch(this.audio, this.origin, this.getFilename($localize`Untitled Audio`));
     }
     if (this.video && (this.video.startsWith('cache:') || this.admin.getPlugin('plugin/video')?.config?.proxy)) {
-      return this.proxy.getFetch(this.video, this.origin);
+      return this.proxy.getFetch(this.video, this.origin, this.getFilename($localize`Untitled Video`));
     }
     if (this.image && (this.image.startsWith('cache:') || this.admin.getPlugin('plugin/image')?.config?.proxy)) {
-      return this.proxy.getFetch(this.image, this.origin);
+      return this.proxy.getFetch(this.image, this.origin, this.getFilename($localize`Untitled Image`));
     }
     return '';
   }
@@ -743,7 +750,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
 
   @memo
   get link() {
-    if (this.file || this.url.startsWith('cache:')) return this.proxy.getFetch(this.url, this.origin);
+    if (this.file || this.url.startsWith('cache:')) return this.proxy.getFetch(this.url, this.origin, this.getFilename());
     return this.url;
   }
 

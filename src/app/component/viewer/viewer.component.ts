@@ -387,7 +387,7 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
     if (!hasTag('plugin/audio', this.currentTags)) return '';
     const url = this.ref?.plugins?.['plugin/audio']?.url || this.ref?.url;
     if (url.startsWith('cache:') || this.admin.getPlugin('plugin/audio')?.config?.proxy) {
-      return this.proxy.getFetch(url, this.currentOrigin);
+      return this.proxy.getFetch(url, this.currentOrigin, this.getFilename($localize`Untitled Audio`));
     }
     return url;
   }
@@ -397,7 +397,7 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
     if (!hasTag('plugin/video', this.currentTags)) return '';
     const url = this.ref?.plugins?.['plugin/video']?.url || this.ref?.url;
     if (url.startsWith('cache:') || this.admin.getPlugin('plugin/video')?.config?.proxy) {
-      return this.proxy.getFetch(url, this.currentOrigin);
+      return this.proxy.getFetch(url, this.currentOrigin, this.getFilename($localize`Untitled Video`));
     }
     return url;
   }
@@ -407,9 +407,16 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
     if (!this.image && !hasTag('plugin/image', this.currentTags)) return '';
     const url = this.image || this.ref?.plugins?.['plugin/image']?.url || this.ref?.url;
     if (url.startsWith('cache:') || this.admin.getPlugin('plugin/image')?.config?.proxy) {
-      return this.proxy.getFetch(url, this.currentOrigin);
+      return this.proxy.getFetch(url, this.currentOrigin, this.getFilename($localize`Untitled Image`));
     }
     return url;
+  }
+
+  @memo
+  getFilename(d = $localize`Untitled`) {
+    const ext = this.ref?.url ? getExtension(this.ref.url) || '' : '';
+    const filename = this.title || d;
+    return filename + (ext && !filename.toLowerCase().endsWith(ext) ? ext : '');
   }
 
   @memo
@@ -449,7 +456,7 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
     const url = this.pdf;
     if (!url) return url;
     if (!this.admin.getPlugin('plugin/pdf')?.config?.proxy) return url;
-    return this.proxy.getFetch(url, this.currentOrigin);
+    return this.proxy.getFetch(url, this.currentOrigin, this.getFilename($localize`Untitled`));
   }
 
   @memo
