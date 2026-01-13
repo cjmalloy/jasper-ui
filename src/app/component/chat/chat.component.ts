@@ -409,7 +409,7 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
       this.uploads.push(upload);
       
       upload.subscription = this.upload$(file, upload).subscribe(ref => {
-        if (ref) {
+        if (ref && !upload.error) {
           upload.completed = true;
           upload.progress = 100;
           upload.ref = ref;
