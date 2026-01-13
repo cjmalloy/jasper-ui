@@ -415,7 +415,7 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
   @memo
   getFilename(d = $localize`Untitled`) {
     const ext = this.ref?.url ? getExtension(this.ref.url) || '' : '';
-    const filename = this.title || d;
+    const filename = this.ref?.title || d;
     return filename + (ext && !filename.toLowerCase().endsWith(ext) ? ext : '');
   }
 
@@ -456,7 +456,7 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
     const url = this.pdf;
     if (!url) return url;
     if (!this.admin.getPlugin('plugin/pdf')?.config?.proxy) return url;
-    return this.proxy.getFetch(url, this.currentOrigin, this.getFilename($localize`Untitled`));
+    return this.proxy.getFetch(url, this.currentOrigin, this.getFilename());
   }
 
   @memo

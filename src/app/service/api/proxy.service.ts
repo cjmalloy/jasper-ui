@@ -43,7 +43,7 @@ export class ProxyService {
     if (this.cacheList.has(origin + url)) return;
     this.cacheList.add(origin + url);
     const s = () => {
-      this.http.get(`${this.base}/prefetch/${encodeURIComponent(this.scraping[0]?.title || this.scraping[0].url)}`, {
+      this.http.get(`${this.base}/prefetch/${encodeURIComponent(this.scraping[0]?.title?.trim() || this.scraping[0].url)}`, {
         params: params({ url: this.scraping[0].url, origin: this.scraping[0].origin }),
       }).pipe(
         catchError(() => of(null)),
@@ -92,8 +92,8 @@ export class ProxyService {
     if (!url) return '';
     if (url.startsWith('data:')) return url;
     if (this.config.prefetch && this.store.account.user) this.prefetch(url, origin, filename);
-    if (thumbnail) return `${this.base}/${encodeURIComponent(filename)}?thumbnail=true&url=${encodeURIComponent(url)}&origin=${origin}`;
-    return `${this.base}/${encodeURIComponent(filename)}?url=${encodeURIComponent(url)}&origin=${origin}`;
+    if (thumbnail) return `${this.base}/${encodeURIComponent(filename.trim())}?thumbnail=true&url=${encodeURIComponent(url)}&origin=${origin}`;
+    return `${this.base}/${encodeURIComponent(filename.trim())}?url=${encodeURIComponent(url)}&origin=${origin}`;
   }
 
   isProxied(url?: string) {

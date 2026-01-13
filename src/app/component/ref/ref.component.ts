@@ -626,7 +626,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   @memo
   getFilename(d = $localize`Untitled`) {
     const ext = getExtension(this.url) || '';
-    const filename = this.title || d;
+    const filename = this.ref?.title || d;
     return filename + (ext && !filename.toLowerCase().endsWith(ext) ? ext : '');
   }
 

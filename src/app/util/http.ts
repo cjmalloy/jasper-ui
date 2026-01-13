@@ -207,7 +207,7 @@ export function getPath(url: string): string | null {
 export function getExtension(url: string): string | null {
   const parsed = getUrl(url);
   if (!parsed) return null;
-  if (!parsed.pathname.includes('.')) return parsed.pathname;
+  if (!parsed.pathname.includes('.')) return null;
   return parsed.pathname.substring(parsed.pathname.lastIndexOf('.')).toLowerCase();
 }
 
