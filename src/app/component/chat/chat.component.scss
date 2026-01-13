@@ -9,11 +9,6 @@
   input {
     flex: 1;
   }
-
-  input:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
 }
 
 .upload-progress {
