@@ -83,7 +83,7 @@ export async function createPip(vc: ViewContainerRef, ref: Ref) {
       padding: 0;
       width: 100%;
       height: 100%;
-      .embed {
+      & > .embed {
         display: contents;
         & > *:first-child {
           width: 100% !important;
