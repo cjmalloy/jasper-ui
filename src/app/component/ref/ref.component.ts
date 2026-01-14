@@ -951,11 +951,21 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     }
   }
 
-  pip(event: MouseEvent) {
-    if (!this.admin.getPlugin('plugin/pip')) return;
+  @HostListener('press', ['$event'])
+  press(event: Event) {
+    if (!this.config.mobile) return;
+    this.pip();
+    if ('vibrate' in navigator) navigator.vibrate([2, 32, 4]);
     event.preventDefault();
-    event.stopPropagation();
-    createPip(this.vc, this.ref);
+  }
+
+  pip(event?: MouseEvent) {
+    if (!this.admin.getPlugin('plugin/pip')) return;
+    createPip(this.vc, this.ref).catch(err => {
+      createPip(this.vc, this.ref);
+    });
+    event?.preventDefault();
+    event?.stopPropagation();
   }
 
   @memo
