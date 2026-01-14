@@ -1,5 +1,4 @@
 import {
-  AfterViewInit,
   Component,
   ElementRef,
   EventEmitter,
@@ -36,6 +35,7 @@ import { EditorService } from '../../service/editor.service';
 import { EmbedService } from '../../service/embed.service';
 import { OembedStore } from '../../store/oembed';
 import { Store } from '../../store/store';
+import { embedUrl } from '../../util/embed';
 import { hasComment, templates } from '../../util/format';
 import { getExtension } from '../../util/http';
 import { memo, MemoCache } from '../../util/memo';
@@ -70,7 +70,7 @@ import { TodoComponent } from '../todo/todo.component';
     ResizeHandleDirective,
   ],
 })
-export class ViewerComponent implements OnChanges, AfterViewInit {
+export class ViewerComponent implements OnChanges {
   @HostBinding('class') css = 'embed print-images';
   @HostBinding('tabindex') tabIndex = 0;
   private destroy$ = new Subject<void>();
@@ -190,14 +190,6 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
     this.destroy$.complete();
   }
 
-  async ngAfterViewInit() {
-    if (hasTag('plugin/pip', this.currentTags)) {
-      // @ts-ignore
-      const pipWindow = await documentPictureInPicture.requestWindow();
-      pipWindow.document.body.append(this.el.nativeElement);
-    }
-  }
-
   @HostBinding('class')
   @memo
   get pluginClasses() {
@@ -245,7 +237,7 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
     if (oembed?.url && oembed?.type === 'photo') {
       // Image embed
       this.tags = without(this.currentTags, 'plugin/embed');
-      this.image = oembed.url;
+      this.image = embedUrl(oembed.url);
       MemoCache.clear(this);
     } else if (this.iframe) {
       const i = this.iframe.nativeElement;
@@ -265,7 +257,7 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
             MemoCache.clear(this);
           });
       } else {
-        i.src = this.embed?.url || this.ref?.url;
+        i.src = embedUrl(this.embed?.url || this.ref?.url);
         i.style.width = this.embedWidth;
         i.style.height = this.embedHeight;
         this.embedReady = true;
@@ -515,11 +507,16 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
   @memo
   uiMarkdown(tag: string) {
     const plugin = this.admin.getPlugin(tag)!;
-    return hydrate(plugin.config, 'ui', getPluginScope(plugin, this.ref || { url: '', comment: this.text, tags: this.tags }, this.el.nativeElement, this.uiActions));
+    return hydrate(plugin.config, 'ui', getPluginScope(plugin, this.refOrDefault, this.el.nativeElement, this.uiActions));
   }
 
   @memo
   uiCss(tag: string) {
     return 'ui ' + tag.replace(/\//g, '_').replace(/\./g, '-');
+  }
+
+  @memo
+  get refOrDefault() {
+    return this.ref || { url: '', comment: this.text, tags: this.tags };
   }
 }

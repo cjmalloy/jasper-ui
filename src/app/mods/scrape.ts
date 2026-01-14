@@ -5,7 +5,7 @@ import { Mod } from '../model/tag';
 
 export const scrapePlugin: Plugin = {
   tag: '+plugin/scrape',
-  name: $localize`🪝 Scrape`,
+  name: $localize`🪝 Scrape Config`,
   config: {
     mod: $localize`🪝 Scrape`,
     default: true,

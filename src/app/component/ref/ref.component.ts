@@ -47,7 +47,6 @@ import { AuthzService } from '../../service/authz.service';
 import { BookmarkService } from '../../service/bookmark.service';
 import { ConfigService } from '../../service/config.service';
 import { EditorService } from '../../service/editor.service';
-import { EmbedService } from '../../service/embed.service';
 import { Store } from '../../store/store';
 import { createPip } from '../../util/embed';
 import { scrollToFirstInvalid } from '../../util/form';
@@ -178,7 +177,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   publishChanged = false;
   diffOriginal?: Ref;
   diffModified?: Ref;
-  fullscreen = this.fullscreenRequired;
+  fullscreen = false;
 
   submitting?: Subscription;
   private refreshTap?: () => void;
@@ -189,6 +188,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   private diffSubscription?: Subscription;
   private _viewer?: ViewerComponent;
   private closeOffFullscreen = false;
+  private _expanded = false;
 
   constructor(
     public config: ConfigService,
@@ -197,7 +197,6 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     public store: Store,
     private auth: AuthzService,
     private editor: EditorService,
-    private embeds: EmbedService,
     private refs: RefService,
     private exts: ExtService,
     private bookmarks: BookmarkService,
@@ -380,8 +379,13 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
 
   get fullscreenRequired() {
     if (!this.admin.getPlugin('plugin/fullscreen')) return false;
-    if (!hasTag('plugin/fullscreen', this.plugins)) return false;
+    if (!hasTag('plugin/fullscreen', this.currentTags)) return false;
     return !this.ref.plugins?.['plugin/fullscreen']?.optional;
+  }
+
+  get pipRequired() {
+    if (!this.admin.getPlugin('plugin/pip')) return false;
+    return hasTag('plugin/pip', this.currentTags);
   }
 
   @HostListener('fullscreenchange')
@@ -389,9 +393,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     if (!this.fullscreen) return;
     if (document.fullscreenElement) return;
     this.fullscreen = this.fullscreenRequired;
-    if (this.closeOffFullscreen && !document.fullscreenElement) {
-      this.expanded = false;
-    }
+    if (this.closeOffFullscreen) this.expanded = false;
   }
 
   @HostListener('click')
@@ -402,11 +404,13 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   @ViewChild(ViewerComponent)
   set viewer(value: ViewerComponent | undefined) {
     this._viewer = value;
-    if (value && this.fullscreen) {
-      value.el.nativeElement.requestFullscreen().catch(() => {
-        console.warn('Could not make fullscreen.');
-        this.expanded = false;
-      });
+    if (value) {
+      if (this.fullscreen) {
+        value.el.nativeElement.requestFullscreen().catch((err: TypeError) => {
+          console.warn('Could not make fullscreen.');
+          if (this.closeOffFullscreen) this.expanded = false;
+        });
+      }
     }
   }
 
@@ -922,7 +926,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
       this.editing = false;
     } else if (this.viewSource) {
       this.viewSource = false;
-    } else {
+    } else if (!this.fullscreen) {
       if (this.store.hotkey && this.admin.getPlugin('plugin/fullscreen')) {
         this.fullscreen = true;
         this.closeOffFullscreen = !this.expanded;
@@ -932,6 +936,9 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
           });
         }
         this.expanded = true;
+        this.cd.detectChanges();
+      } else if (this.pipRequired) {
+        createPip(this.vc, this.ref);
       } else {
         this.expanded = !this.expanded;
         this.store.local.setRefToggled(this.ref.url, this.expanded);
@@ -944,11 +951,21 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     }
   }
 
-  pip(event: MouseEvent) {
-    if (!this.admin.getPlugin('plugin/pip')) return;
+  @HostListener('press', ['$event'])
+  press(event: Event) {
+    if (!this.config.mobile) return;
+    this.pip();
+    if ('vibrate' in navigator) navigator.vibrate([2, 32, 4]);
     event.preventDefault();
-    event.stopPropagation();
-    createPip(this.vc, this.ref);
+  }
+
+  pip(event?: MouseEvent) {
+    if (!this.admin.getPlugin('plugin/pip')) return;
+    createPip(this.vc, this.ref).catch(err => {
+      createPip(this.vc, this.ref);
+    });
+    event?.preventDefault();
+    event?.stopPropagation();
   }
 
   @memo

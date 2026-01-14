@@ -71,7 +71,8 @@ export function createLens(vc: ViewContainerRef, params: any, page: Page<Ref>, t
 export async function createPip(vc: ViewContainerRef, ref: Ref) {
   // @ts-ignore
   const pipWindow = await documentPictureInPicture.requestWindow();
-  pipWindow.document.head.innerHTML = `
+  const pipStyle = `
+  <meta name="referrer" content="strict-origin-when-cross-origin">
   <style>
     html {
       overflow: hidden;
@@ -81,7 +82,7 @@ export async function createPip(vc: ViewContainerRef, ref: Ref) {
       padding: 0;
       width: 100%;
       height: 100%;
-      .embed {
+      & > .embed {
         display: contents;
         & > *:first-child {
           width: 100% !important;
@@ -94,6 +95,9 @@ export async function createPip(vc: ViewContainerRef, ref: Ref) {
             margin: 0 !important;
             width: 100% !important;
             height: 100% !important;
+          }
+          &.audio-expand {
+            height: 54px !important;
           }
           &.code {
             display: contents;
@@ -110,7 +114,12 @@ export async function createPip(vc: ViewContainerRef, ref: Ref) {
         }
       }
     }
-  </style>
-`;
+  </style>`;
+  pipWindow.document.head.innerHTML = document.head.innerHTML + pipStyle;
+  document.body.classList.forEach(c => pipWindow.document.body.classList.add(c));
   pipWindow.document.body.append(createEmbed(vc, ref, true).location.nativeElement);
+}
+
+export function embedUrl(url: string) {
+  return url.includes('https://www.youtube.com') ? url.replace('https://www.youtube.com', 'https://www.youtube-nocookie.com') : url;
 }
