@@ -15,7 +15,8 @@ import {
   QueryList,
   SimpleChanges,
   ViewChild,
-  ViewChildren
+  ViewChildren,
+  ViewContainerRef
 } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -47,6 +48,7 @@ import { BookmarkService } from '../../service/bookmark.service';
 import { ConfigService } from '../../service/config.service';
 import { EditorService } from '../../service/editor.service';
 import { Store } from '../../store/store';
+import { createPip } from '../../util/embed';
 import { scrollToFirstInvalid } from '../../util/form';
 import {
   authors,
@@ -58,7 +60,7 @@ import {
   templates,
   urlSummary
 } from '../../util/format';
-import { getScheme, printError } from '../../util/http';
+import { getExtension, getScheme, printError } from '../../util/http';
 import { memo, MemoCache } from '../../util/memo';
 import {
   addAllHierarchicalTags,
@@ -175,7 +177,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   publishChanged = false;
   diffOriginal?: Ref;
   diffModified?: Ref;
-  fullscreen = this.fullscreenRequired;
+  fullscreen = false;
 
   submitting?: Subscription;
   private refreshTap?: () => void;
@@ -186,6 +188,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   private diffSubscription?: Subscription;
   private _viewer?: ViewerComponent;
   private closeOffFullscreen = false;
+  private _expanded = false;
 
   constructor(
     public config: ConfigService,
@@ -203,6 +206,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     private fb: UntypedFormBuilder,
     private el: ElementRef<HTMLDivElement>,
     private cd: ChangeDetectorRef,
+    private vc: ViewContainerRef,
   ) {
     this.editForm = refForm(fb);
     this.editForm.valueChanges.pipe(
@@ -375,8 +379,13 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
 
   get fullscreenRequired() {
     if (!this.admin.getPlugin('plugin/fullscreen')) return false;
-    if (!hasTag('plugin/fullscreen', this.plugins)) return false;
+    if (!hasTag('plugin/fullscreen', this.currentTags)) return false;
     return !this.ref.plugins?.['plugin/fullscreen']?.optional;
+  }
+
+  get pipRequired() {
+    if (!this.admin.getPlugin('plugin/pip')) return false;
+    return hasTag('plugin/pip', this.currentTags);
   }
 
   @HostListener('fullscreenchange')
@@ -384,9 +393,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     if (!this.fullscreen) return;
     if (document.fullscreenElement) return;
     this.fullscreen = this.fullscreenRequired;
-    if (this.closeOffFullscreen && !document.fullscreenElement) {
-      this.expanded = false;
-    }
+    if (this.closeOffFullscreen) this.expanded = false;
   }
 
   @HostListener('click')
@@ -397,12 +404,13 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   @ViewChild(ViewerComponent)
   set viewer(value: ViewerComponent | undefined) {
     this._viewer = value;
-    if (!this.fullscreen) return;
     if (value) {
-      value.el.nativeElement.requestFullscreen().catch(() => {
-        console.warn('Could not make fullscreen.');
-        this.expanded = false;
-      });
+      if (this.fullscreen) {
+        value.el.nativeElement.requestFullscreen().catch((err: TypeError) => {
+          console.warn('Could not make fullscreen.');
+          if (this.closeOffFullscreen) this.expanded = false;
+        });
+      }
     }
   }
 
@@ -624,18 +632,25 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   }
 
   @memo
+  getFilename(d = $localize`Untitled`) {
+    const ext = getExtension(this.url) || '';
+    const filename = this.ref?.title || d;
+    return filename + (ext && !filename.toLowerCase().endsWith(ext) ? ext : '');
+  }
+
+  @memo
   get mediaAttachment() {
     if (this.file) {
-      return this.proxy.getFetch(this.url, this.origin);
+      return this.proxy.getFetch(this.url, this.origin, this.getFilename());
     }
     if (this.audio && (this.audio.startsWith('cache:') || this.admin.getPlugin('plugin/audio')?.config?.proxy)) {
-      return this.proxy.getFetch(this.audio, this.origin);
+      return this.proxy.getFetch(this.audio, this.origin, this.getFilename($localize`Untitled Audio`));
     }
     if (this.video && (this.video.startsWith('cache:') || this.admin.getPlugin('plugin/video')?.config?.proxy)) {
-      return this.proxy.getFetch(this.video, this.origin);
+      return this.proxy.getFetch(this.video, this.origin, this.getFilename($localize`Untitled Video`));
     }
     if (this.image && (this.image.startsWith('cache:') || this.admin.getPlugin('plugin/image')?.config?.proxy)) {
-      return this.proxy.getFetch(this.image, this.origin);
+      return this.proxy.getFetch(this.image, this.origin, this.getFilename($localize`Untitled Image`));
     }
     return '';
   }
@@ -743,7 +758,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
 
   @memo
   get link() {
-    if (this.file || this.url.startsWith('cache:')) return this.proxy.getFetch(this.url, this.origin);
+    if (this.file || this.url.startsWith('cache:')) return this.proxy.getFetch(this.url, this.origin, this.getFilename());
     return this.url;
   }
 
@@ -906,14 +921,14 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     return isRef(this.ref, this.store.view.ref);
   }
 
-  toggle(fullscreen = false) {
-    this.fullscreen ||= fullscreen;
+  toggle() {
     if (this.editing) {
       this.editing = false;
     } else if (this.viewSource) {
       this.viewSource = false;
-    } else {
-      if (fullscreen) {
+    } else if (!this.fullscreen) {
+      if (this.store.hotkey && this.admin.getPlugin('plugin/fullscreen')) {
+        this.fullscreen = true;
         this.closeOffFullscreen = !this.expanded;
         if (this.viewer) {
           this.viewer.el.nativeElement.requestFullscreen().catch(() => {
@@ -921,6 +936,9 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
           });
         }
         this.expanded = true;
+        this.cd.detectChanges();
+      } else if (this.pipRequired) {
+        createPip(this.vc, this.ref);
       } else {
         this.expanded = !this.expanded;
         this.store.local.setRefToggled(this.ref.url, this.expanded);
@@ -931,6 +949,23 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
       if (this.ref.metadata?.userUrls?.includes('plugin/user/read')) return;
       this.ts.createResponse('plugin/user/read', this.ref.url).subscribe();
     }
+  }
+
+  @HostListener('press', ['$event'])
+  press(event: Event) {
+    if (!this.config.mobile) return;
+    this.pip();
+    if ('vibrate' in navigator) navigator.vibrate([2, 32, 4]);
+    event.preventDefault();
+  }
+
+  pip(event?: MouseEvent) {
+    if (!this.admin.getPlugin('plugin/pip')) return;
+    createPip(this.vc, this.ref).catch(err => {
+      createPip(this.vc, this.ref);
+    });
+    event?.preventDefault();
+    event?.stopPropagation();
   }
 
   @memo
