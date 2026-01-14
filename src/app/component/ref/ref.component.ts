@@ -922,6 +922,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   }
 
   toggle() {
+    let read = false;
     if (this.editing) {
       this.editing = false;
     } else if (this.viewSource) {
@@ -939,12 +940,13 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
         this.cd.detectChanges();
       } else if (this.pipRequired) {
         createPip(this.vc, this.ref);
+        read = true;
       } else {
         this.expanded = !this.expanded;
         this.store.local.setRefToggled(this.ref.url, this.expanded);
       }
       // Mark as read
-      if (!this.expanded) return;
+      if (!read && !this.expanded) return;
       if (!this.admin.getPlugin('plugin/user/read')) return;
       if (this.ref.metadata?.userUrls?.includes('plugin/user/read')) return;
       this.ts.createResponse('plugin/user/read', this.ref.url).subscribe();
