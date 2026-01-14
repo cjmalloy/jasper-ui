@@ -96,6 +96,9 @@ export async function createPip(vc: ViewContainerRef, ref: Ref) {
             width: 100% !important;
             height: 100% !important;
           }
+          &.audio-expand {
+            height: 54px !important;
+          }
           &.code {
             display: contents;
             & > .md {

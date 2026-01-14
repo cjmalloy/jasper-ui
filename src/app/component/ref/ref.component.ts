@@ -178,7 +178,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   publishChanged = false;
   diffOriginal?: Ref;
   diffModified?: Ref;
-  fullscreen = this.fullscreenRequired;
+  fullscreen = false;
 
   submitting?: Subscription;
   private refreshTap?: () => void;
@@ -380,8 +380,13 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
 
   get fullscreenRequired() {
     if (!this.admin.getPlugin('plugin/fullscreen')) return false;
-    if (!hasTag('plugin/fullscreen', this.plugins)) return false;
+    if (!hasTag('plugin/fullscreen', this.currentTags)) return false;
     return !this.ref.plugins?.['plugin/fullscreen']?.optional;
+  }
+
+  get pipRequired() {
+    if (!this.admin.getPlugin('plugin/pip')) return false;
+    return hasTag('plugin/pip', this.currentTags);
   }
 
   @HostListener('fullscreenchange')
@@ -402,11 +407,13 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   @ViewChild(ViewerComponent)
   set viewer(value: ViewerComponent | undefined) {
     this._viewer = value;
-    if (value && this.fullscreen) {
-      value.el.nativeElement.requestFullscreen().catch(() => {
-        console.warn('Could not make fullscreen.');
-        this.expanded = false;
-      });
+    if (value) {
+      if (this.fullscreen) {
+        value.el.nativeElement.requestFullscreen().catch(() => {
+          console.warn('Could not make fullscreen.');
+          this.expanded = false;
+        });
+      }
     }
   }
 
@@ -932,6 +939,8 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
           });
         }
         this.expanded = true;
+      } if (this.pipRequired) {
+        createPip(this.vc, this.ref);
       } else {
         this.expanded = !this.expanded;
         this.store.local.setRefToggled(this.ref.url, this.expanded);

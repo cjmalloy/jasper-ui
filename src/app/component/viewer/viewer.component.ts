@@ -1,5 +1,4 @@
 import {
-  AfterViewInit,
   Component,
   ElementRef,
   EventEmitter,
@@ -9,7 +8,8 @@ import {
   OnChanges,
   Output,
   SimpleChanges,
-  ViewChild
+  ViewChild,
+  ViewContainerRef
 } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import * as he from 'he';
@@ -70,7 +70,7 @@ import { TodoComponent } from '../todo/todo.component';
     ResizeHandleDirective,
   ],
 })
-export class ViewerComponent implements OnChanges, AfterViewInit {
+export class ViewerComponent implements OnChanges {
   @HostBinding('class') css = 'embed print-images';
   @HostBinding('tabindex') tabIndex = 0;
   private destroy$ = new Subject<void>();
@@ -135,6 +135,7 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
     private refs: RefService,
     private store: Store,
     public el: ElementRef,
+    private vc: ViewContainerRef,
   ) { }
 
   init() {
@@ -188,14 +189,6 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
-  }
-
-  async ngAfterViewInit() {
-    if (hasTag('plugin/pip', this.currentTags)) {
-      // @ts-ignore
-      const pipWindow = await documentPictureInPicture.requestWindow();
-      pipWindow.document.body.append(this.el.nativeElement);
-    }
   }
 
   @HostBinding('class')
@@ -515,11 +508,16 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
   @memo
   uiMarkdown(tag: string) {
     const plugin = this.admin.getPlugin(tag)!;
-    return hydrate(plugin.config, 'ui', getPluginScope(plugin, this.ref || { url: '', comment: this.text, tags: this.tags }, this.el.nativeElement, this.uiActions));
+    return hydrate(plugin.config, 'ui', getPluginScope(plugin, this.refOrDefault, this.el.nativeElement, this.uiActions));
   }
 
   @memo
   uiCss(tag: string) {
     return 'ui ' + tag.replace(/\//g, '_').replace(/\./g, '-');
+  }
+
+  @memo
+  get refOrDefault() {
+    return this.ref || { url: '', comment: this.text, tags: this.tags };
   }
 }
