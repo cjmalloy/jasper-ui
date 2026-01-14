@@ -73,6 +73,7 @@ export async function createPip(vc: ViewContainerRef, ref: Ref) {
   const pipWindow = await documentPictureInPicture.requestWindow();
   const pipStyle = `
   <title>${ref.title}</title>
+  <meta name="referrer" content="strict-origin-when-cross-origin">
   <style>
     html {
       overflow: hidden;
@@ -119,4 +120,8 @@ export async function createPip(vc: ViewContainerRef, ref: Ref) {
   document.body.classList.forEach(c => pipWindow.document.body.classList.add(c));
   pipWindow.document.body.append(createEmbed(vc, ref, true).location.nativeElement);
   pipWindow.document.title = ref.title;
+}
+
+export function embedUrl(url: string) {
+  return url.includes('https://www.youtube.com') ? url.replace('https://www.youtube.com', 'https://www.youtube-nocookie.com') : url;
 }

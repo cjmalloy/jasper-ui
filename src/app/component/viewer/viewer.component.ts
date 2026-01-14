@@ -8,8 +8,7 @@ import {
   OnChanges,
   Output,
   SimpleChanges,
-  ViewChild,
-  ViewContainerRef
+  ViewChild
 } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import * as he from 'he';
@@ -36,6 +35,7 @@ import { EditorService } from '../../service/editor.service';
 import { EmbedService } from '../../service/embed.service';
 import { OembedStore } from '../../store/oembed';
 import { Store } from '../../store/store';
+import { embedUrl } from '../../util/embed';
 import { hasComment, templates } from '../../util/format';
 import { getExtension } from '../../util/http';
 import { memo, MemoCache } from '../../util/memo';
@@ -135,7 +135,6 @@ export class ViewerComponent implements OnChanges {
     private refs: RefService,
     private store: Store,
     public el: ElementRef,
-    private vc: ViewContainerRef,
   ) { }
 
   init() {
@@ -238,7 +237,7 @@ export class ViewerComponent implements OnChanges {
     if (oembed?.url && oembed?.type === 'photo') {
       // Image embed
       this.tags = without(this.currentTags, 'plugin/embed');
-      this.image = oembed.url;
+      this.image = embedUrl(oembed.url);
       MemoCache.clear(this);
     } else if (this.iframe) {
       const i = this.iframe.nativeElement;
@@ -258,7 +257,7 @@ export class ViewerComponent implements OnChanges {
             MemoCache.clear(this);
           });
       } else {
-        i.src = this.embed?.url || this.ref?.url;
+        i.src = embedUrl(this.embed?.url || this.ref?.url);
         i.style.width = this.embedWidth;
         i.style.height = this.embedHeight;
         this.embedReady = true;
