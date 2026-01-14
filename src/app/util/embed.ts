@@ -71,7 +71,8 @@ export function createLens(vc: ViewContainerRef, params: any, page: Page<Ref>, t
 export async function createPip(vc: ViewContainerRef, ref: Ref) {
   // @ts-ignore
   const pipWindow = await documentPictureInPicture.requestWindow();
-  pipWindow.document.head.innerHTML = `
+  const pipStyle = `
+  <title>${ref.title}</title>
   <style>
     html {
       overflow: hidden;
@@ -110,7 +111,9 @@ export async function createPip(vc: ViewContainerRef, ref: Ref) {
         }
       }
     }
-  </style>
-`;
+  </style>`;
+  pipWindow.document.head.innerHTML = document.head.innerHTML + pipStyle;
+  document.body.classList.forEach(c => pipWindow.document.body.classList.add(c));
   pipWindow.document.body.append(createEmbed(vc, ref, true).location.nativeElement);
+  pipWindow.document.title = ref.title;
 }
