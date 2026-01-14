@@ -72,7 +72,6 @@ export async function createPip(vc: ViewContainerRef, ref: Ref) {
   // @ts-ignore
   const pipWindow = await documentPictureInPicture.requestWindow();
   const pipStyle = `
-  <title>${ref.title}</title>
   <meta name="referrer" content="strict-origin-when-cross-origin">
   <style>
     html {
@@ -119,7 +118,6 @@ export async function createPip(vc: ViewContainerRef, ref: Ref) {
   pipWindow.document.head.innerHTML = document.head.innerHTML + pipStyle;
   document.body.classList.forEach(c => pipWindow.document.body.classList.add(c));
   pipWindow.document.body.append(createEmbed(vc, ref, true).location.nativeElement);
-  pipWindow.document.title = ref.title;
 }
 
 export function embedUrl(url: string) {
