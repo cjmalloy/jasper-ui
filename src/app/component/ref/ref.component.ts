@@ -15,7 +15,8 @@ import {
   QueryList,
   SimpleChanges,
   ViewChild,
-  ViewChildren
+  ViewChildren,
+  ViewContainerRef
 } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -46,7 +47,9 @@ import { AuthzService } from '../../service/authz.service';
 import { BookmarkService } from '../../service/bookmark.service';
 import { ConfigService } from '../../service/config.service';
 import { EditorService } from '../../service/editor.service';
+import { EmbedService } from '../../service/embed.service';
 import { Store } from '../../store/store';
+import { createPip } from '../../util/embed';
 import { scrollToFirstInvalid } from '../../util/form';
 import {
   authors,
@@ -194,6 +197,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     public store: Store,
     private auth: AuthzService,
     private editor: EditorService,
+    private embeds: EmbedService,
     private refs: RefService,
     private exts: ExtService,
     private bookmarks: BookmarkService,
@@ -203,6 +207,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     private fb: UntypedFormBuilder,
     private el: ElementRef<HTMLDivElement>,
     private cd: ChangeDetectorRef,
+    private vc: ViewContainerRef,
   ) {
     this.editForm = refForm(fb);
     this.editForm.valueChanges.pipe(
@@ -397,8 +402,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   @ViewChild(ViewerComponent)
   set viewer(value: ViewerComponent | undefined) {
     this._viewer = value;
-    if (!this.fullscreen) return;
-    if (value) {
+    if (value && this.fullscreen) {
       value.el.nativeElement.requestFullscreen().catch(() => {
         console.warn('Could not make fullscreen.');
         this.expanded = false;
@@ -913,14 +917,14 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     return isRef(this.ref, this.store.view.ref);
   }
 
-  toggle(fullscreen = false) {
-    this.fullscreen ||= fullscreen;
+  toggle() {
     if (this.editing) {
       this.editing = false;
     } else if (this.viewSource) {
       this.viewSource = false;
     } else {
-      if (fullscreen) {
+      if (this.store.hotkey && this.admin.getPlugin('plugin/fullscreen')) {
+        this.fullscreen = true;
         this.closeOffFullscreen = !this.expanded;
         if (this.viewer) {
           this.viewer.el.nativeElement.requestFullscreen().catch(() => {
@@ -938,6 +942,13 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
       if (this.ref.metadata?.userUrls?.includes('plugin/user/read')) return;
       this.ts.createResponse('plugin/user/read', this.ref.url).subscribe();
     }
+  }
+
+  pip(event: MouseEvent) {
+    if (!this.admin.getPlugin('plugin/pip')) return;
+    event.preventDefault();
+    event.stopPropagation();
+    createPip(this.vc, this.ref);
   }
 
   @memo
