@@ -19,7 +19,7 @@ export const codePlugin: Plugin = {
     Do not include the standard triple backticks or any extra text. The entire comment field is treated as a raw file.`,
     icons: [{ label: $localize`🗒️`, order: 2 }],
     filters: [
-      { query: 'plugin/code', label: $localize`🗒️ code`, title: $localize`Code`, group: $localize`Plugins 🧰️` },
+      { query: 'plugin/code', label: $localize`🗒️ code`, title: $localize`Code`, group: $localize`Media 🎬️` },
     ],
   },
 };
