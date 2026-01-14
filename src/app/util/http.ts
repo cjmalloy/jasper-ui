@@ -223,3 +223,7 @@ export function getTitleFromFilename(url: string): string | null {
   } catch (e) { }
   return filename?.trim() || null;
 }
+
+export function noPercentEncode(value: string) {
+  return encodeURIComponent(value.replace('%', ''));
+}
