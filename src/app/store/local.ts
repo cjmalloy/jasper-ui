@@ -93,6 +93,14 @@ export class LocalStore {
     return this._selectedUserTag = localStorage.getItem('selectedUserTag') || '';
   }
 
+  shownHelpPopup(id: string) {
+    return localStorage.getItem('help:' + id);
+  }
+
+  dismissHelpPopup(id: string) {
+    localStorage.setItem('help:' + id, 'true');
+  }
+  
   /**
    * Get the last seen count for a specific type (comments, threads, replies) on a URL.
    */
