@@ -8,6 +8,7 @@ import { ViewerComponent } from '../component/viewer/viewer.component';
 import { Ext } from '../model/ext';
 import { Page } from '../model/page';
 import { Ref } from '../model/ref';
+import { PipWindowConfig } from '../mods/pip';
 import { hasTag } from './tag';
 
 export function parseSrc(html: string) {
@@ -68,9 +69,9 @@ export function createLens(vc: ViewContainerRef, params: any, page: Page<Ref>, t
   return c;
 }
 
-export async function createPip(vc: ViewContainerRef, ref: Ref) {
+export async function createPip(vc: ViewContainerRef, ref: Ref, config: PipWindowConfig) {
   // @ts-ignore
-  const pipWindow = await documentPictureInPicture.requestWindow();
+  const pipWindow = await documentPictureInPicture.requestWindow(config);
   const pipStyle = `
   <meta name="referrer" content="strict-origin-when-cross-origin">
   <style>

@@ -104,7 +104,7 @@ export class AppComponent implements AfterViewInit {
     if (this.pipPlugin) {
       autorun(() => {
         if (this.store.eventBus.event === 'pip') {
-          createPip(this.vc, this.store.eventBus.ref!);
+          createPip(this.vc, this.store.eventBus.ref!, this.pipPlugin?.config?.windowConfig);
         }
       });
     }

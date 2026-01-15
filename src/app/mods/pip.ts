@@ -15,8 +15,13 @@ export const pipPlugin: Plugin = {
       { query: 'plugin/pip', label: $localize`🪟 pip`, title: $localize`Picture-in-picture`, group: $localize`Plugins 🧰️` },
     ],
     description: $localize`Open embed picture-in-picture..`,
+    windowConfig: <PipWindowConfig> {
+      disallowReturnToOpener: true,
+    },
   }
 };
+
+export type PipWindowConfig = { width?: number, height?: number, disallowReturnToOpener?: boolean, preferInitialWindowPlacement?: boolean };
 
 export const pipMod: Mod = {
   plugin: [
