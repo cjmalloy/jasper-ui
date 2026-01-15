@@ -46,11 +46,13 @@
     </div>
     <div class="link-below">
       @if (showToggle && (thread || commentNoTitle || expandPlugins.length)) {
-        <button type="button" class="toggle" (click)="toggle(store.hotkey)">
-          @if (editing || viewSource || diffing || expanded) {
+        <button type="button" class="toggle" (click)="toggle()" (contextmenu)="pip($event)">
+          @if (editing || viewSource || diffing) {
             <span class="toggle-x">✕</span>
           } @else if (fullscreen || store.hotkey && admin.getPlugin('plugin/fullscreen')) {
             <span class="toggle-fullscreen">⛶</span>
+          } @else if (expanded) {
+            <span class="toggle-x">✕</span>
           } @else {
             <span class="toggle-plus">＋</span>
           }
@@ -176,6 +178,7 @@
                       [ref]="bareRef"
                       [tags]="plugins || currentTags"
                       [disableResize]="disableResize"
+                      [fullscreen]="fullscreen"
                       (contextmenu)="unlockViewer($event)"
                       (copied)="copied.emit($event)"></app-viewer>
         }
@@ -318,6 +321,7 @@
               [ref]="bareRef"
               [tags]="plugins || currentTags"
               [disableResize]="disableResize"
+              [fullscreen]="fullscreen"
               (contextmenu)="unlockViewer($event)"
               (copied)="copied.emit($event)"></app-viewer>
 }

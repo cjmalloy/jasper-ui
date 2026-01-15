@@ -53,21 +53,11 @@ export const pdfPlugin: Plugin = {
   },
 };
 
-
 export function pdfUrl(plugin?: typeof pdfPlugin, ref?: Ref, repost?: Ref) {
   return ref?.plugins?.['plugin/pdf']?.url && { url: ref!.plugins?.['plugin/pdf'].url, origin: ref!.origin }
     || repost?.plugins?.['plugin/pdf']?.url && { url: repost!.plugins?.['plugin/pdf'].url, origin: repost!.origin }
     || findExtension('.pdf', ref, repost)
     || hasTag('plugin/pdf', ref) && findCache(ref, repost);
-}
-
-export const pdfResizePlugin: Plugin = {
-  tag: 'plugin/pdf/resize',
-  name: $localize`📄️ PDF Resize handle`,
-  config: {
-    mod: $localize`📄️ PDF`,
-    description: $localize`Adds an action button to open the PDF version.`,
-  }
 }
 
 export const pdfMod: Mod = {

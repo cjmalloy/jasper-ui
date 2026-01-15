@@ -31,7 +31,7 @@
       [class.sending]="!ref.created"
       (pointerenter)="allowActions = true"
       (pointerleave)="allowActions = false">
-  <div [class.has-title]="clickableLink || title && !focused">
+  <div class="content" [class.has-title]="clickableLink || title && !focused">
     @if (tagLink) {
       <app-nav [url]="ref.url" [text]="title"></app-nav>
     } @else if (clickableLink && (title && !focused || !media)) {

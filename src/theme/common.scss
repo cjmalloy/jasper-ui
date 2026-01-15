@@ -201,6 +201,9 @@ hr {
     bottom: -2px;
     filter: drop-shadow(0.5px 0.5px 1.25px white);
   }
+  &.resize-dragging > * {
+    pointer-events: none;
+  }
 }
 
 .nowrap {
@@ -1040,7 +1043,7 @@ video.qr-preview {
 
   &:not(.expanded) {
     width: 40px;
-    .tag-header, .ui, .md, .sidebar-link, .ext-text, .breadcrumbs, app-nav {
+    .tag-header, .ui, .md, .sidebar-link, .ext-text, .breadcrumbs, app-nav, .stream-label {
       display: none !important;
     }
     .tag-select {
@@ -1048,6 +1051,12 @@ video.qr-preview {
     }
     .tag-select > * {
       padding: 4px !important;
+    }
+    .video-grid {
+      display: block;
+    }
+    .hungup {
+      font-size: 16px !important;
     }
   }
 
@@ -2268,6 +2277,53 @@ footer {
 
   .embed > * {
     margin: 0 auto;
+  }
+}
+
+.embed:fullscreen {
+  zoom: 200%;
+  overflow: auto;
+  width: 100vw;
+  height: 100vh;
+  &,
+  & > .embed-container,
+  & > .embed-container > iframe {
+    position: absolute;
+    left: 0;
+    top: 0;
+    margin: 0 !important;
+  }
+  & > * {
+    margin: auto;
+  }
+  & > .embed-container.zoom,
+  & > .embed-container.zoom > iframe {
+    width: 50vw !important;
+    height: 50vh !important;
+  }
+  & > *:not(.zoom) {
+    zoom: 50%;
+  }
+  & > *:not(.md-container):not(.no-resize):not(.zoom),
+  & > *:not(.md-container):not(.no-resize):not(.zoom) > iframe {
+    width: 100vw !important;
+    height: 100vh !important;
+  }
+  & > .audio-expand {
+    width: 100vw !important;
+    height: 45vh !important;
+  }
+  & > .code {
+    display: contents;
+    & > .md {
+      display: contents;
+      & > pre {
+        max-width: unset !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        overflow: auto !important;
+      }
+    }
   }
 }
 

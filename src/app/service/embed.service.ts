@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, ViewContainerRef } from '@angular/core';
 import { escape, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { marked, Token, Tokens, TokensList } from 'marked';
@@ -12,7 +12,7 @@ import { wikiUriFormat } from '../mods/wiki';
 import { OembedStore } from '../store/oembed';
 import { Store } from '../store/store';
 import { delay } from '../util/async';
-import { Embed, parseSrc } from '../util/embed';
+import { createEmbed, createLens, createLink, createRef, embedUrl, parseSrc } from '../util/embed';
 import { parseParams } from '../util/http';
 import { getFilters, getFiltersQuery, parseArgs } from '../util/query';
 import { isQuery, localTag, queryPrefix, tagOrigin, topAnds } from '../util/tag';
@@ -321,12 +321,12 @@ export class EmbedService {
 
   /**
    * Post process a markdown render.
-   * @param el the div containing the rendered markdown
-   * @param embed interface that injects components
+   * @param vc
    * @param event callback to add event handlers without memory leaks
    * @param origin origin to append to user links without existing origins
    */
-  postProcess(el: HTMLDivElement, embed: Embed, event: (type: string, el: Element, fn: () => void) => void, origin = '') {
+  postProcess(vc: ViewContainerRef, event: (type: string, el: Element, fn: () => void) => void, origin = '') {
+    const el = vc.element.nativeElement as HTMLDivElement;
     const subscriptions: Subscription[] = [];
     const lookup = this.store.origins.originMap.get(origin || '');
     const userTags = el.querySelectorAll<HTMLAnchorElement>('.user.tag');
@@ -353,7 +353,7 @@ export class EmbedService {
         const config = {} as any;
         if (t.style.width) config.width = t.style.width;
         if (t.style.height) config.height = t.style.height;
-        const c = embed.createEmbed({ url, origin, plugins: { 'plugin/image': config } }, ['plugin/image']);
+        const c = createEmbed(vc, { url, origin, tags: ['plugin/image'], plugins: { 'plugin/image': config } });
         c.location.nativeElement.title = t.title;
         c.location.nativeElement.alt = t.querySelectorAll('img')[0]?.alt;
         t.parentNode?.insertBefore(c.location.nativeElement, t);
@@ -369,7 +369,7 @@ export class EmbedService {
         const config = {} as any;
         if (t.style.width) config.width = t.style.width;
         if (t.style.height) config.height = t.style.height;
-        const c = embed.createEmbed({ url, origin, plugins: { 'plugin/image': config } }, ['plugin/image']);
+        const c = createEmbed(vc, { url, origin, tags: ['plugin/image'], plugins: { 'plugin/image': config } });
         c.location.nativeElement.title = t.title;
         c.location.nativeElement.alt = t.alt;
         t.parentNode?.insertBefore(c.location.nativeElement, t);
@@ -382,7 +382,7 @@ export class EmbedService {
       if (source) {
         let url = source.src;
         if (url.startsWith('unsafe:')) url = url.substring('unsafe:'.length);
-        const c = embed.createEmbed({ url, origin }, ['plugin/audio']);
+        const c = createEmbed(vc, { url, origin, tags: ['plugin/audio'] });
         c.location.nativeElement.title = t.title;
         t.parentNode?.insertBefore(c.location.nativeElement, t);
       }
@@ -397,7 +397,7 @@ export class EmbedService {
         const config = {} as any;
         if (t.style.width) config.width = t.style.width;
         if (t.style.height) config.height = t.style.height;
-        const c = embed.createEmbed({ url, origin, plugins: { 'plugin/video': config } }, ['plugin/video']);
+        const c = createEmbed(vc, { url, origin, tags: ['plugin/video'], plugins: { 'plugin/video': config } });
         c.location.nativeElement.title = t.title;
         t.parentNode?.insertBefore(c.location.nativeElement, t);
       }
@@ -410,12 +410,12 @@ export class EmbedService {
         catchError(() => of(null)),
       ).subscribe(ref => {
         if (ref) {
-          const c = embed.createRef(ref, true);
+          const c = createRef(vc, ref, true);
           t.parentNode?.insertBefore(c.location.nativeElement, t);
         } else {
-          el = document.createElement('div');
-          el.innerHTML = `<span class="error">Ref ${escape(url)} not found.</span>`;
-          t.parentNode?.insertBefore(el, t);
+          const warn = document.createElement('div');
+          warn.innerHTML = `<span class="error">Ref ${escape(url)} not found.</span>`;
+          t.parentNode?.insertBefore(warn, t);
         }
         t.remove();
       }));
@@ -427,7 +427,7 @@ export class EmbedService {
       const type = this.editor.getUrlType(url);
       if (type === 'tag') {
         subscriptions.push(this.loadQuery$(t.innerText).subscribe(({params, page, ext}) => {
-          const c = embed.createLens(params, page, this.editor.getQuery(t.innerText), ext);
+          const c = createLens(vc, params, page, this.editor.getQuery(t.innerText), ext);
           if (title) c.location.nativeElement.title = title;
           t.parentNode?.insertBefore(c.location.nativeElement, t);
           t.remove();
@@ -438,28 +438,28 @@ export class EmbedService {
           switchMap(ref => {
             const expandPlugins = this.admin.getEmbeds(ref);
             if (ref?.comment || expandPlugins.length) {
-              const c = embed.createEmbed(ref!, expandPlugins);
+              const c = createEmbed(vc, { ...ref!, tags: expandPlugins });
               if (title) c.location.nativeElement.title = title;
               t.parentNode?.insertBefore(c.location.nativeElement, t);
               t.remove();
             } else {
               const embeds = this.admin.getPluginsForUrl(url);
               if (embeds.length) {
-                const c = embed.createEmbed(url, embeds.map(p => p.tag));
+                const c = createEmbed(vc, { url, origin, tags: embeds.map(p => p.tag) });
                 if (title) c.location.nativeElement.title = title;
                 t.parentNode?.insertBefore(c.location.nativeElement, t);
                 t.remove();
               } else if (url.startsWith('/ref/')) {
-                el = document.createElement('div');
-                el.innerHTML = `<span class="error">Ref ${escape(url)} not found and could not embed directly.</span>`;
-                t.parentNode?.insertBefore(el, t);
+                const warn = document.createElement('div');
+                warn.innerHTML = `<span class="error">Ref ${escape(url)} not found and could not embed directly.</span>`;
+                t.parentNode?.insertBefore(warn, t);
                 t.remove();
               } else {
                 return this.oembeds.get(url, this.store.darkTheme ? 'dark' : undefined).pipe(
                   catchError(() => of(null)),
                   map(oembed => {
                     const expandPlugins = oembed ? ['plugin/embed'] : ['plugin/image'];
-                    const c = embed.createEmbed(url, expandPlugins);
+                    const c = createEmbed(vc, { url, origin, tags: expandPlugins });
                     c.location.nativeElement.title = t.title;
                     t.parentNode?.insertBefore(c.location.nativeElement, t);
                     t.remove();
@@ -503,19 +503,19 @@ export class EmbedService {
               catchError(() => of(null)),
             ).subscribe(ref => {
               if (ref) {
-                const c = embed.createRef(ref, true);
+                const c = createRef(vc, ref, true);
                 t.parentNode?.insertBefore(c.location.nativeElement, t.nextSibling);
               } else {
-                el = document.createElement('div');
-                el.innerHTML = `<span class="error">Ref ${escape(url)} not found.</span>`;
-                t.parentNode?.insertBefore(el, t.nextSibling);
+                const warn = document.createElement('div');
+                warn.innerHTML = `<span class="error">Ref ${escape(url)} not found.</span>`;
+                t.parentNode?.insertBefore(warn, t.nextSibling);
               }
               // @ts-ignore
               t.expanded = !t.expanded;
             }));
           } else if (type === 'tag') {
             subscriptions.push(this.loadQuery$(url).subscribe(({params, page, ext}) => {
-              const c = embed.createLens(params, page, this.editor.getQuery(url), ext);
+              const c = createLens(vc, params, page, this.editor.getQuery(url), ext);
               t.parentNode?.insertBefore(c.location.nativeElement, t.nextSibling);
               // @ts-ignore
               t.expanded = !t.expanded;
@@ -554,7 +554,7 @@ export class EmbedService {
           const url = t.title!;
           const embeds = this.admin.getPluginsForUrl(url);
           if (embeds.length) {
-            const c = embed.createEmbed(url, embeds.map(p => p.tag));
+            const c = createEmbed(vc, { url, origin, tags: embeds.map(p => p.tag) }, );
             t.parentNode?.insertBefore(c.location.nativeElement, t.nextSibling);
             // @ts-ignore
             t.expanded = !t.expanded;
@@ -562,7 +562,7 @@ export class EmbedService {
             const type = this.editor.getUrlType(url);
             if (type === 'tag') {
               subscriptions.push(this.loadQuery$(url).subscribe(({params, page, ext}) => {
-                const c = embed.createLens(params, page, this.editor.getQuery(url), ext);
+                const c = createLens(vc, params, page, this.editor.getQuery(url), ext);
                 t.parentNode?.insertBefore(c.location.nativeElement, t.nextSibling);
                 // @ts-ignore
                 t.expanded = !t.expanded;
@@ -574,17 +574,17 @@ export class EmbedService {
                 if (ref) {
                   const expandPlugins = this.admin.getEmbeds(ref);
                   if (ref.comment || expandPlugins.length) {
-                    const c = embed.createEmbed(ref, expandPlugins);
+                    const c = createEmbed(vc, { ...ref, tags: expandPlugins });
                     t.parentNode?.insertBefore(c.location.nativeElement, t.nextSibling);
                   } else {
-                    el = document.createElement('div');
-                    el.innerHTML = `<span class="error">Ref ${escape(ref.title || ref.url)} does not contain any embeds.</span>`;
-                    t.parentNode?.insertBefore(el, t.nextSibling);
+                    const warn = document.createElement('div');
+                    warn.innerHTML = `<span class="error">Ref ${escape(ref.title || ref.url)} does not contain any embeds.</span>`;
+                    t.parentNode?.insertBefore(warn, t.nextSibling);
                   }
                 } else {
-                  el = document.createElement('div');
-                  el.innerHTML = `<span class="error">Ref ${escape(url)} not found and could not embed directly.</span>`;
-                  t.parentNode?.insertBefore(el, t.nextSibling);
+                  const warn = document.createElement('div');
+                  warn.innerHTML = `<span class="error">Ref ${escape(url)} not found and could not embed directly.</span>`;
+                  t.parentNode?.insertBefore(warn, t.nextSibling);
                 }
                 // @ts-ignore
                 t.expanded = !t.expanded;
@@ -602,7 +602,7 @@ export class EmbedService {
         t.remove();
         return;
       }
-      const c = embed.createLink(t.getAttribute('href') || '', t.innerText, t.title, t.className);
+      const c = createLink(vc, t.getAttribute('href') || '', t.innerText, t.title, t.className);
       t.parentNode?.insertBefore(c.location.nativeElement, t);
       t.remove();
     });
@@ -613,50 +613,75 @@ export class EmbedService {
     return getComputedStyle(document.body).backgroundColor;
   }
 
-  async writeIframe(oembed: Oembed, iframe: HTMLIFrameElement, width = '100px') {
+  async writeIframe(oembed: Oembed, iframe: HTMLIFrameElement, width = '100px', scroll = true) {
     iframe.style.width = (oembed.width ? oembed.width + 'px' : width);
     if (oembed.height) iframe.style.height = oembed.height + 'px';
     if (oembed.html) {
       if (oembed.html.startsWith('<iframe')) {
-        iframe.src = parseSrc(oembed.html);
+        iframe.src = embedUrl(parseSrc(oembed.html));
       } else {
-        this.writeIframeHtml(oembed.html || '', iframe);
+        this.writeIframeHtml(oembed.html || '', iframe, scroll);
       }
     } else {
-      iframe.src = oembed.url;
+      iframe.src = embedUrl(oembed.url);
     }
-    const doc = iframe.contentWindow!.document;
     if (!oembed.height) {
-      let start = DateTime.now();
-      let oldHeight = doc.body.scrollHeight;
-      let newHeight = false;
-      const f = async () => {
-        if (document.fullscreenElement) return;
-        const h = doc.body.scrollHeight;
-        if (h !== oldHeight) {
-          newHeight = true;
-          start = DateTime.now();
-          oldHeight = h;
-          iframe.style.height = h + 'px';
+      iframe.style.height = (oembed.width ? oembed.width + 'px' : width);
+      const doCheck = async () => {
+        let doc: Document | undefined;
+        try {
+          doc = iframe.contentWindow?.document;
+        } catch (e) {
+          // Cross origin
+          return;
         }
-        await delay(100);
-        if ((!newHeight || h < 300) && start > DateTime.now().minus({ seconds: 5 })) {
-          // Keep checking height
-          await f();
-        } else if (start > DateTime.now().minus({ seconds: 30 })) {
-          // Timeout checking height less than 5 seconds since the last change
-          f(); // Keep checking height until 30 seconds timeout but let promise resolve
+        if (!doc) {
+          await delay(100);
+          await doCheck();
+          return;
         }
+        let start = DateTime.now();
+        let oldHeight = doc.body.scrollHeight;
+        let newHeight = false;
+        const f = async () => {
+          let doc: Document;
+          try {
+            doc = iframe.contentWindow!.document;
+          } catch (e) {
+            // Cross origin
+            return;
+          }
+          if (document.fullscreenElement) return;
+          const h = doc.body.scrollHeight;
+          if (h !== oldHeight) {
+            newHeight = true;
+            start = DateTime.now();
+            oldHeight = h;
+            iframe.style.height = h + 'px';
+          }
+          await delay(100);
+          if ((!newHeight || h < 300) && start > DateTime.now().minus({ seconds: 5 })) {
+            // Keep checking height
+            await f();
+          } else if (start > DateTime.now().minus({ seconds: 30 })) {
+            // Timeout checking height less than 5 seconds since the last change
+            f(); // Keep checking height until 30 seconds timeout but let promise resolve
+          }
+        };
+        await f();
+
       };
-      await f();
+      await doCheck();
     }
   }
 
-  writeIframeHtml(html: string, iframe: HTMLIFrameElement) {
-    const doc = iframe.contentWindow!.document;
-    doc.open();
-    doc.write(transparentIframe(html, this.iframeBg));
-    doc.close();
+  writeIframeHtml(html: string, iframe: HTMLIFrameElement, scroll = true) {
+    const blob = new Blob([transparentIframe(html, this.iframeBg, scroll ? 'auto' : 'hidden')], {type: 'text/html'});
+    const blobUrl = URL.createObjectURL(blob);
+    iframe.addEventListener('load', () => {
+      URL.revokeObjectURL(blobUrl);
+    }, { once: true });
+    iframe.src = blobUrl;
   }
 
   loadQuery$(url: string):  Observable<{params: any, page: Page<Ref>, ext?: Ext}> {
@@ -694,15 +719,20 @@ export class EmbedService {
   }
 }
 
-export function transparentIframe(content: string, bgColor: string) {
+export function transparentIframe(content: string, bgColor: string, overflow = 'auto') {
   return `
   <html>
   <head>
     <style>
-    body {
+    html, body {
+      height: 100%;
       background-color: ${bgColor};
-      overflow: hidden;
+      overflow: ${overflow};
       margin: 0;
+    }
+    body > * {
+      margin-left: auto;
+      margin-right: auto;
     }
     </style>
   </head>
