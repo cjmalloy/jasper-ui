@@ -937,6 +937,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
         this.cd.detectChanges();
       } else if (this.pipRequired) {
         this.store.eventBus.fire('pip', this.ref);
+        this.store.eventBus.fire('');
         read = true;
       } else {
         this.expanded = !this.expanded;
@@ -962,6 +963,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   pip(event?: MouseEvent) {
     if (!this.admin.getPlugin('plugin/pip')) return;
     this.store.eventBus.fire('pip', this.ref);
+    this.store.eventBus.fire('');
     event?.preventDefault();
     event?.stopPropagation();
   }
