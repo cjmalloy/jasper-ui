@@ -26,6 +26,7 @@ updates:
       patterns:
         - "@angular/*"
         - "@angular-devkit/*"
+        - "@vitest/*"
         - "rxjs"
         - "zone.js"
         - "typescript"
@@ -40,7 +41,6 @@ updates:
         - "@types/jasmine"
         - "jasmine*"
         - "karma*"
-        - "@ngx-formly/*"
     cypress:
       patterns:
         - "@cypress/schematic"

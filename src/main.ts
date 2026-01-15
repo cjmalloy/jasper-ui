@@ -4,7 +4,7 @@ import { DragDropModule } from '@angular/cdk/drag-drop';
 import { FullscreenOverlayContainer, OverlayContainer, OverlayModule } from '@angular/cdk/overlay';
 import { ScrollingModule } from '@angular/cdk/scrolling';
 import { HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
-import { APP_INITIALIZER, enableProdMode, importProvidersFrom, isDevMode } from '@angular/core';
+import { APP_INITIALIZER, enableProdMode, importProvidersFrom, isDevMode, provideZoneChangeDetection } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { bootstrapApplication, BrowserModule, HAMMER_GESTURE_CONFIG, HammerModule } from '@angular/platform-browser';
 import { ServiceWorkerModule } from '@angular/service-worker';
@@ -69,38 +69,39 @@ if (environment.production) {
 }
 
 bootstrapApplication(AppComponent, {
-    providers: [
-        importProvidersFrom(
-          BrowserModule,
-          HammerModule,
-          AppRoutingModule,
-          ReactiveFormsModule,
-          MobxAngularModule,
-          MarkdownModule.forRoot(),
-          MonacoEditorModule.forRoot(),
-          DragDropModule,
-          OverlayModule,
-          ScrollingModule,
-          JasperFormlyModule,
-          ServiceWorkerModule.register('ngsw-worker.js', {
-            scope: '.',
-            enabled: !isDevMode() && location.hostname != 'localhost',
-            // Register the ServiceWorker as soon as the application is stable
-            // or after 30 seconds (whichever comes first).
-            registrationStrategy: 'registerWhenStable:30000'
-        })),
-        provideHttpClient(withInterceptorsFromDi()),
-        { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },
-        { provide: HTTP_INTERCEPTORS, useClass: CsrfInterceptor, multi: true },
-        { provide: HTTP_INTERCEPTORS, useClass: RateLimitInterceptor, multi: true },
-        { provide: OverlayContainer, useClass: FullscreenOverlayContainer },
-        { provide: HAMMER_GESTURE_CONFIG, useClass: HammerConfig },
-        {
-            provide: APP_INITIALIZER,
-            useFactory: loadFactory,
-            deps: [ConfigService, DebugService, AdminService, AccountService, OriginMapService, ModService, ExtService],
-            multi: true,
-        },
-    ]
+  providers: [
+    provideZoneChangeDetection(),
+    importProvidersFrom(
+      BrowserModule,
+      HammerModule,
+      AppRoutingModule,
+      ReactiveFormsModule,
+      MobxAngularModule,
+      MarkdownModule.forRoot(),
+      MonacoEditorModule.forRoot(),
+      DragDropModule,
+      OverlayModule,
+      ScrollingModule,
+      JasperFormlyModule,
+      ServiceWorkerModule.register('ngsw-worker.js', {
+        scope: '.',
+        enabled: !isDevMode() && location.hostname != 'localhost',
+        // Register the ServiceWorker as soon as the application is stable
+        // or after 30 seconds (whichever comes first).
+        registrationStrategy: 'registerWhenStable:30000'
+      })),
+    provideHttpClient(withInterceptorsFromDi()),
+    { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },
+    { provide: HTTP_INTERCEPTORS, useClass: CsrfInterceptor, multi: true },
+    { provide: HTTP_INTERCEPTORS, useClass: RateLimitInterceptor, multi: true },
+    { provide: OverlayContainer, useClass: FullscreenOverlayContainer },
+    { provide: HAMMER_GESTURE_CONFIG, useClass: HammerConfig },
+    {
+      provide: APP_INITIALIZER,
+      useFactory: loadFactory,
+      deps: [ConfigService, DebugService, AdminService, AccountService, OriginMapService, ModService, ExtService],
+      multi: true,
+    },
+  ]
 })
   .catch(err => console.error(err));
