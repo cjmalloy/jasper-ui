@@ -38,6 +38,7 @@ try:
     'outtmpl': f'{base_name}.%(ext)s',
     'remote_components': ['ejs:github'],
     'js_runtimes': {'bun': {'path': os.environ['JASPER_NODE']}},
+    'noprogress': True,
   }
   saveStdout = sys.stdout
   sys.stdout = sys.stderr

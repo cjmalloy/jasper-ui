@@ -2,7 +2,7 @@
   <span class="back-button" (click)="back()">🔙️</span>
   <div class="subs">
     <a [routerLink]="['/tags', store.view.noQuery || '@*']" [class.current-page]="store.view.tags" [queryParams]="{ home: store.view.current === 'home' || null }" i18n>tags</a>
-    @if (admin.getTemplate('home')) {
+    @if (admin.getTemplate('config/home')) {
       &bullet; <a routerLink="/home" [class.current-page]="store.view.current === 'home' && !store.view.forYou" i18n>home</a>
       @if (admin.getTemplate('user') && store.account.signedIn) {
         &bullet; <a routerLink="/home" [queryParams]="{ forYou : true }" routerLinkActive="current-page" i18n>for you</a>
@@ -21,7 +21,7 @@
         &bullet; <a [routerLink]="['/tag', t]" routerLinkActive="current-page">{{ t }}</a>
       }
     }
-    @if (admin.getTemplate('home')) {
+    @if (admin.getTemplate('config/home')) {
       @if (subs.length) {
         @for (sub of subs; track i; let i = $index) {
           &bullet; <a [routerLink]="['/tag', store.account.subs[i]]" [appTitle]="sub" routerLinkActive="current-page">{{ sub.name || store.account.subs[i] }}</a>

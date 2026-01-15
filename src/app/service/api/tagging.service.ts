@@ -1,8 +1,9 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { catchError, Observable } from 'rxjs';
-import { Ref } from '../../model/ref';
+import { catchError, map, Observable } from 'rxjs';
+import { mapRef, Ref } from '../../model/ref';
 import { params } from '../../util/http';
+import { OpPatch } from '../../util/json-patch';
 import { ConfigService } from '../config.service';
 import { LoginService } from '../login.service';
 
@@ -49,10 +50,11 @@ export class TaggingService {
     );
   }
 
-  getResponse(tag?: string, url?: string): Observable<Ref> {
+  getResponse(url?: string): Observable<Ref> {
     return this.http.get<Ref>(`${this.base}/response`, {
-      params: params({ tag, url }),
+      params: params({ url }),
     }).pipe(
+      map(mapRef),
       catchError(err => this.login.handleHttpError(err)),
     );
   }
@@ -76,6 +78,24 @@ export class TaggingService {
 
   respond(tags: string[], url?: string): Observable<void> {
     return this.http.patch<void>(`${this.base}/response`, null, {
+      params: params({ tags, url }),
+    }).pipe(
+      catchError(err => this.login.handleHttpError(err)),
+    );
+  }
+
+  patchResponse(tags: string[], url?: string, patch?: OpPatch[]): Observable<void> {
+    return this.http.patch<void>(`${this.base}/response`, patch, {
+      headers: { 'Content-Type': 'application/json-patch+json' },
+      params: params({ tags, url }),
+    }).pipe(
+      catchError(err => this.login.handleHttpError(err)),
+    );
+  }
+
+  mergeResponse(tags: string[], url?: string, patch?: Record<string, any>): Observable<void> {
+    return this.http.patch<void>(`${this.base}/response`, patch, {
+      headers: { 'Content-Type': 'application/merge-patch+json' },
       params: params({ tags, url }),
     }).pipe(
       catchError(err => this.login.handleHttpError(err)),

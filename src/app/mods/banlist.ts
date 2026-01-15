@@ -3,7 +3,7 @@ import { Mod } from '../model/tag';
 import { Template } from '../model/template';
 
 export const banlistConfig: Template = {
-  tag: 'banlist',
+  tag: 'config/banlist',
   name: $localize`🚫️ Banlist`,
   config: {
     type: 'config',

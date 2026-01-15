@@ -86,7 +86,7 @@ import { Store } from '../store/store';
 import { modId } from '../util/format';
 import { getExtension, getHost } from '../util/http';
 import { memo, MemoCache } from '../util/memo';
-import { addHierarchicalTags, hasPrefix, hasTag, tagIntersection, test } from '../util/tag';
+import { addHierarchicalTags, directChild, hasPrefix, hasTag, tagIntersection, test } from '../util/tag';
 import { ExtService } from './api/ext.service';
 import { PluginService } from './api/plugin.service';
 import { RefService } from './api/ref.service';
@@ -655,7 +655,7 @@ export class AdminService {
   }
 
   getPluginsForExtension(url: string) {
-    const type = getExtension(url)!;
+    const type = getExtension(url) || '';
     return this.extensions.filter(p => p.config!.extensions!.includes(type))
   }
 
@@ -757,7 +757,7 @@ export class AdminService {
 
   @memo
   getPluginSubForms(parent: string) {
-    return this.forms.filter(p => p.config?.submitChild && hasPrefix(p.tag, parent));
+    return this.forms.filter(p => p.config?.submitChild && directChild(p.tag, parent));
   }
 
   getTemplate(tag: string) {
@@ -874,11 +874,11 @@ export class AdminService {
   }
 
   isWikiExternal() {
-    return !!this.getTemplate('wiki')?.config?.external;
+    return !!this.getTemplate('config/wiki')?.config?.external;
   }
 
   getWikiPrefix() {
-    return this.getTemplate('wiki')?.config?.prefix || DEFAULT_WIKI_PREFIX;
+    return this.getTemplate('config/wiki')?.config?.prefix || DEFAULT_WIKI_PREFIX;
   }
 
   getMod(mod: String) {

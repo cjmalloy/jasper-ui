@@ -62,7 +62,7 @@ export class TagsPage implements OnInit, OnDestroy, HasChanges {
         .subscribe(ext => this.title = ext.name || this.title);
       const query
         = this.store.view.home
-        ? [...getPrefixes('home'), ...this.store.account.subs, ...this.store.account.bookmarks].filter(t => this.auth.tagReadAccess(t)).join('|')
+        ? [...getPrefixes('config/home'), ...this.store.account.subs, ...this.store.account.bookmarks].filter(t => this.auth.tagReadAccess(t)).join('|')
         : this.store.view.noTemplate
           ? [braces(this.store.view.template), '!+user', '!_user', ...this.templates.map(t => '!' + t.tag).flatMap(getPrefixes)].filter(t => this.auth.tagReadAccess(t)).join(':')
           : this.store.view.template

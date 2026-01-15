@@ -5,7 +5,7 @@ import { Template } from '../model/template';
 export const DEFAULT_WIKI_PREFIX = 'wiki:';
 
 export const wikiConfig: Template = {
-  tag: 'wiki',
+  tag: 'config/wiki',
   name: $localize`📔️ Wiki`,
   config: {
     mod: $localize`📔️ Wiki`,

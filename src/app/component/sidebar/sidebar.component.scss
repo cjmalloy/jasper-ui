@@ -16,3 +16,18 @@
   text-align: center;
   user-select: none;
 }
+
+app-nav.center {
+  display: block;
+  text-align: center;
+}
+
+.tag-select {
+  margin: 0;
+  padding: 0;
+}
+
+.tag-select > * {
+  margin: 4px;
+  padding: 8px;
+}

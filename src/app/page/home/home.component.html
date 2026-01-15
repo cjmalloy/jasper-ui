@@ -49,7 +49,7 @@
   @if (query.error?.status !== 403) {
     <app-lens [page]="query.page"
               [showVotes]="store.view.isVoteSorted"
-              [tag]="store.view.tag || 'home'"
+              [tag]="store.view.tag || 'config/home'"
               [ext]="store.view.viewExt"
               [fullPage]="true"
               [size]="store.view.pageSize"

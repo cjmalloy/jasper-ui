@@ -3,7 +3,7 @@ import { Mod } from '../model/tag';
 import { Template } from '../model/template';
 
 export const snippetConfig: Template = {
-  tag: 'snippet',
+  tag: 'config/snippet',
   name: $localize`👨️‍💻️ Snippet`,
   config: {
     type: 'config',

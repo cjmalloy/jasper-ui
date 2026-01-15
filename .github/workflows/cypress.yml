@@ -4,7 +4,7 @@ on:
   push:
     branches: [ master ]
   pull_request:
-    branches: [ master ]
+    branches: [ '**' ]
   workflow_dispatch:
 
 permissions:
@@ -32,12 +32,12 @@ jobs:
           # language=JavaScript
           script: |
             const fs = require('fs');
-            
+
             // Parse Cypress mochawesome JSON output
             function parseCypressResults(jsonContent) {
               const data = JSON.parse(jsonContent);
               const stats = data.stats || {};
-              
+
               return {
                 suites: stats.suites || 0,
                 tests: stats.tests || 0,
@@ -48,19 +48,19 @@ jobs:
                 passPercent: stats.passPercent || 0,
               };
             }
-            
+
             let summary = '## 🧪 Cypress Test Results\n\n';
-            
+
             try {
               const jsonPath = 'cypress/reports/html/index.json';
-              
+
               if (fs.existsSync(jsonPath)) {
                 const jsonContent = fs.readFileSync(jsonPath, 'utf8');
                 const results = parseCypressResults(jsonContent);
-                
+
                 if (results.tests > 0) {
                   const emoji = results.failures === 0 ? '✅' : '⚠️';
-                  
+
                   summary += `${emoji} **Test Suites:** ${results.suites} total\n\n`;
                   summary += `${emoji} **Tests:** ${results.failures} failed | ${results.passes} passed`;
                   if (results.pending > 0) {
@@ -70,7 +70,7 @@ jobs:
                     summary += ` | ${results.skipped} skipped`;
                   }
                   summary += ` (${results.tests})\n\n`;
-                  
+
                   if (results.failures === 0) {
                     summary += '🎉 All tests passed!\n\n';
                   } else {
@@ -86,12 +86,12 @@ jobs:
             } catch (error) {
               summary += `⚠️ Error parsing test results: ${error.message}\n\n`;
             }
-            
+
             // Write summary to GitHub Step Summary
             await core.summary
               .addRaw(summary)
               .write();
-            
+
             // Store summary for use in PR comment
             fs.writeFileSync('cypress-summary.md', summary);
       - name: Upload PR Report
@@ -115,31 +115,31 @@ jobs:
           # language=JavaScript
           script: |
             const fs = require('fs');
-            
+
             let summary = '';
             try {
               summary = fs.readFileSync('cypress-summary.md', 'utf8');
             } catch (error) {
               summary = '⚠️ Could not read test summary.';
             }
-            
+
             const reportUrl = `https://${context.repo.owner}.github.io/${context.repo.repo}/reports/cypress-reports-pr-${context.issue.number}/`;
             summary += `\n\n📊 [View detailed HTML report](${reportUrl})`;
-            
+
             // Add HTML comment marker for identification
             const body = `<!-- cypress-results-comment -->\n${summary}`;
-            
+
             // Find existing comment (with pagination)
             const comments = await github.paginate(github.rest.issues.listComments, {
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
             });
-            
-            const botComment = comments.find(comment => 
+
+            const botComment = comments.find(comment =>
               comment.body.includes('<!-- cypress-results-comment -->')
             );
-            
+
             if (botComment) {
               // Update existing comment
               await github.rest.issues.updateComment({

@@ -2,7 +2,11 @@
   @if (plugin) {
     <div class="row form">
       <span><!-- Title --></span>
-      <h2 i18n>{{ plugin.name || plugin.tag }} Settings</h2>
+      @if (plugin.config?.mod) {
+        <h2>{{ plugin.config?.mod }}</h2>
+      } @else {
+        <h2 i18n>{{ plugin.name || plugin.tag }} Settings</h2>
+      }
       <span><!-- Description --></span>
       <p>{{ plugin.config?.description || '' }}</p>
 

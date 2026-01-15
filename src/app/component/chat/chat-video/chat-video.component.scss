@@ -1,0 +1,68 @@
+:host {
+  flex: 1;
+}
+
+.call-layout {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  gap: 4px;
+}
+
+.featured-section {
+  position: relative;
+}
+
+.featured-video {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 4px;
+  display: block;
+}
+
+.video-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+  gap: 4px;
+
+  .grid-tile {
+    position: relative;
+
+    video {
+      width: 100%;
+      aspect-ratio: 1;
+      object-fit: cover;
+      border-radius: 4px;
+      display: block;
+    }
+  }
+}
+
+.mirror-video {
+  transform: scaleX(-1);
+  &::-webkit-media-controls-panel {
+    transform: scaleX(-1);
+  }
+}
+
+.video-placeholder {
+  aspect-ratio: 1;
+  border-radius: 4px;
+  &.hungup {
+    box-shadow: inset 0 0 24px grey;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 48px;
+  }
+}
+
+.stream-label {
+  position: absolute;
+  right: 4px;
+  top: 4px;
+  border-radius: 4px;
+  padding: 6px;
+  z-index: 1;
+}
