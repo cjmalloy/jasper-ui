@@ -12,7 +12,7 @@ export const filePlugin: Plugin = {
     icons: [{ label: $localize`💾️️`, order: 1 }],
     description: $localize`Allow storing user files on the server.`,
     filters: [
-      { query: 'plugin/file', label: $localize`💾️️ file`, title: $localize`Uploaded Files`, group: $localize`Plugins 🧰️` },
+      { query: 'plugin/file', label: $localize`💾️️ file`, title: $localize`Uploaded Files`, group: $localize`Media 🎬️` },
     ],
     editorButtons: [
       { event: 'attach', label: $localize`📎️`, title: $localize`Attach File`, global: true },

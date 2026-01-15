@@ -160,6 +160,11 @@ export function localTag(tag?: string) {
   return tag.substring(0, tag.indexOf('@'));
 }
 
+export function userResponse(tag?: string) {
+  if (!tag) return '';
+  return 'tag:/' + setPublic(localTag(tag));
+}
+
 export function tagOrigin(tag?: string) {
   if (!tag) return '';
   if (!tag.includes('@')) return '';
@@ -400,4 +405,10 @@ export function updateMetadata(parent: Ref, child: Ref) {
     parent.metadata.responses ||= 0;
     parent.metadata.responses++;
   }
+}
+
+export function getUserUrl(ref: Ref) {
+  if (!ref.url.startsWith('tag:/')) return '';
+  if (!ref.url.includes('?')) return ref.url.substring('tag:/'.length);
+  return setPublic(ref.url.substring('tag:/'.length, ref.url.indexOf('?'))) + (ref.origin || '');
 }

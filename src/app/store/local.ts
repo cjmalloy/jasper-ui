@@ -2,6 +2,14 @@
 export class LocalStore {
   private _extPrefetch?: string[];
 
+  inCall() {
+    return localStorage.getItem('video') === 'true';
+  }
+
+  setInCall(value: boolean) {
+    localStorage.setItem('video', value ? 'true' : 'false');
+  }
+
   isRefToggled(url: string, defaultValue = false) {
     const value = localStorage.getItem(`toggled:${url}`);
     if (value === null) return defaultValue;

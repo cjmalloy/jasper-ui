@@ -20,7 +20,7 @@ updates:
     timezone: America/Halifax
   ignore:
     - dependency-name: "@angular/*"
-      versions: [ "21.0.*" ]
+      versions: ["21.0.*", "21.1.*"]
   groups:
     angular:
       patterns:

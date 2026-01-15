@@ -4,88 +4,94 @@
 
   <span></span>
   <p i18n>This page shows data stored in your browser's local storage for Refs and Exts.</p>
-</div>
 
-<h3 i18n>Ref Data</h3>
-<p i18n>Stored toggle states and last seen counts for Refs.</p>
 
-<div class="buttons">
-  <button type="button"
-          [disabled]="!refEntries.length"
-          (click)="clearAllRefs()"
-          i18n-title title="Clear all Ref data from local storage"
-          i18n>🗑️ clear all refs</button>
-</div>
+  <h3 i18n>Refs</h3>
+  <p i18n>Stored toggle states and last seen counts for Refs.</p>
+  <span></span>
+  <div class="buttons">
+    <button type="button"
+            [disabled]="!refEntries.length"
+            (click)="clearAllRefs()"
+            i18n-title title="Clear all Ref data from local storage"
+            i18n>🗑️ clear all refs</button>
+  </div>
 
-@if (refEntries.length) {
-  <table class="local-storage-table">
-    <thead>
+  @if (refEntries.length) {
+    <span></span>
+    <table class="local-storage-table">
+      <thead>
       <tr>
         <th i18n>URL</th>
         <th i18n>Type</th>
         <th i18n>Value</th>
         <th></th>
       </tr>
-    </thead>
-    <tbody>
-      @for (entry of refEntries; track entry.key) {
-        <tr>
-          <td class="url-cell">
-            <a [routerLink]="['/ref', entry.url]">{{ entry.url }}</a>
-          </td>
-          <td>{{ entry.type }}</td>
-          <td>{{ entry.value }}</td>
-          <td>
-            <button type="button"
-                    (click)="clearRefEntry(entry.key)"
-                    i18n-title title="Remove this entry"
-                    i18n>🗑️</button>
-          </td>
-        </tr>
-      }
-    </tbody>
-  </table>
-} @else {
-  <p class="empty" i18n>No Ref data stored in local storage.</p>
-}
+      </thead>
+      <tbody>
+        @for (entry of refEntries; track entry.key) {
+          <tr>
+            <td class="url-cell">
+              <a [routerLink]="['/ref', entry.url]">{{ entry.url }}</a>
+            </td>
+            <td>{{ entry.type }}</td>
+            <td>{{ entry.value }}</td>
+            <td>
+              <button type="button"
+                      (click)="clearRefEntry(entry.key)"
+                      i18n-title title="Remove this entry"
+                      i18n>🗑️</button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  } @else {
+    <span></span>
+    <p class="empty" i18n>No Ref data stored in local storage.</p>
+  }
 
-<h3 i18n>Ext Data</h3>
-<p i18n>Cached Ext tags for faster loading.</p>
+  <h3 i18n>Exts</h3>
+  <p i18n>Cached Ext tags for faster loading.</p>
+  <span></span>
+  <div class="buttons">
+    <button type="button"
+            [disabled]="!extEntries.length"
+            (click)="clearAllExts()"
+            i18n-title title="Clear all Ext data from local storage"
+            i18n>🗑️ clear all exts</button>
+  </div>
 
-<div class="buttons">
-  <button type="button"
-          [disabled]="!extEntries.length"
-          (click)="clearAllExts()"
-          i18n-title title="Clear all Ext data from local storage"
-          i18n>🗑️ clear all exts</button>
-</div>
 
-@if (extEntries.length) {
-  <table class="local-storage-table">
-    <thead>
+  @if (extEntries.length) {
+    <span></span>
+    <table class="local-storage-table">
+      <thead>
       <tr>
         <th i18n>Tag</th>
         <th i18n>Status</th>
         <th></th>
       </tr>
-    </thead>
-    <tbody>
-      @for (entry of extEntries; track entry.tag) {
-        <tr>
-          <td class="tag-cell">
-            <a [routerLink]="['/tag', entry.tag]">{{ entry.tag }}</a>
-          </td>
-          <td>{{ entry.value }}</td>
-          <td>
-            <button type="button"
-                    (click)="clearExtEntry(entry.tag)"
-                    i18n-title title="Remove this entry"
-                    i18n>🗑️</button>
-          </td>
-        </tr>
-      }
-    </tbody>
-  </table>
-} @else {
-  <p class="empty" i18n>No Ext data stored in local storage.</p>
-}
+      </thead>
+      <tbody>
+        @for (entry of extEntries; track entry.tag) {
+          <tr>
+            <td class="tag-cell">
+              <a [routerLink]="['/tag', entry.tag]">{{ entry.tag }}</a>
+            </td>
+            <td>{{ entry.value }}</td>
+            <td>
+              <button type="button"
+                      (click)="clearExtEntry(entry.tag)"
+                      i18n-title title="Remove this entry"
+                      i18n>🗑️</button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  } @else {
+    <span></span>
+    <p class="empty" i18n>No Ext data stored in local storage.</p>
+  }
+</div>

@@ -32,10 +32,10 @@ body.light-theme {
   color-scheme: light;
   color: var(--text);
 
-  background-color: var(--bg);
-  background-image: url("../assets/bg-light.png");
-  background-blend-mode: darken;
-  figure::backdrop, .editor.fullscreen app-md {
+  &,
+  .embed::backdrop,
+  figure::backdrop,
+  .editor.fullscreen app-md {
     background-color: var(--bg);
     background-image: url("../assets/bg-light.png");
     background-blend-mode: darken;
@@ -50,6 +50,10 @@ body.light-theme {
   }
   .debug footer p {
     filter: brightness(3);
+  }
+
+  .glass {
+    backdrop-filter: grayscale(1) contrast(0.3) brightness(1.5) blur(8px);
   }
 
   .toolbar {
