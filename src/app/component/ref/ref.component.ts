@@ -15,8 +15,7 @@ import {
   QueryList,
   SimpleChanges,
   ViewChild,
-  ViewChildren,
-  ViewContainerRef
+  ViewChildren
 } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -48,7 +47,6 @@ import { BookmarkService } from '../../service/bookmark.service';
 import { ConfigService } from '../../service/config.service';
 import { EditorService } from '../../service/editor.service';
 import { Store } from '../../store/store';
-import { createPip } from '../../util/embed';
 import { scrollToFirstInvalid } from '../../util/form';
 import {
   authors,
@@ -206,7 +204,6 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     private fb: UntypedFormBuilder,
     private el: ElementRef<HTMLDivElement>,
     private cd: ChangeDetectorRef,
-    private vc: ViewContainerRef,
   ) {
     this.editForm = refForm(fb);
     this.editForm.valueChanges.pipe(
@@ -939,7 +936,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
         this.expanded = true;
         this.cd.detectChanges();
       } else if (this.pipRequired) {
-        createPip(this.vc, this.ref);
+        this.store.eventBus.fire('pip', this.ref);
         read = true;
       } else {
         this.expanded = !this.expanded;
@@ -949,6 +946,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
       if (!read && !this.expanded) return;
       if (!this.admin.getPlugin('plugin/user/read')) return;
       if (this.ref.metadata?.userUrls?.includes('plugin/user/read')) return;
+      // TODO: Update ref metadata
       this.ts.createResponse('plugin/user/read', this.ref.url).subscribe();
     }
   }
@@ -963,9 +961,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
 
   pip(event?: MouseEvent) {
     if (!this.admin.getPlugin('plugin/pip')) return;
-    createPip(this.vc, this.ref).catch(err => {
-      createPip(this.vc, this.ref);
-    });
+    this.store.eventBus.fire('pip', this.ref);
     event?.preventDefault();
     event?.stopPropagation();
   }
