@@ -224,6 +224,9 @@ export function getTitleFromFilename(url: string): string | null {
   return filename?.trim() || null;
 }
 
-export function noPercentEncode(value: string) {
-  return encodeURIComponent(value.replace('%', ''));
+export function sanitizePath(value: string) {
+  return encodeURIComponent(value
+    .replace('/', ' ')
+    .replace(/[%;]/g, '')
+  );
 }
