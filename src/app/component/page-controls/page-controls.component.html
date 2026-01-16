@@ -2,27 +2,48 @@
   @if (page) {
     <label i18n-title title="pages: {{ page.page.totalPages }}, results: {{ page.page.totalElements }}" i18n>more results: </label>
     @if (hasQuery) {
-      <a class="first-page"
-         routerLink="./"
-         [class.disabled]="page.page.number === 0"
-         [queryParams]="{ pageNumber: store.view.defaultPageNumber ? 0 : null }"
-         queryParamsHandling="merge" i18n>first</a>
+      @if (useCursor) {
+        <a class="first-page"
+           routerLink="./"
+           [class.disabled]="page.page.number === 0"
+           (click)="navigateFirst(); $event.preventDefault()" i18n>first</a>
+      } @else {
+        <a class="first-page"
+           routerLink="./"
+           [class.disabled]="page.page.number === 0"
+           [queryParams]="{ pageNumber: store.view.defaultPageNumber ? 0 : null }"
+           queryParamsHandling="merge" i18n>first</a>
+      }
       <span> | </span>
       @if (showPrev) {
-        <a class="prev-page"
-           routerLink="./"
-           routerLinkActive="disabled"
-           [queryParams]="{ pageNumber: prev }"
-           queryParamsHandling="merge" i18n>prev</a>
+        @if (useCursor) {
+          <a class="prev-page"
+             routerLink="./"
+             [class.disabled]="page.page.number === 0"
+             (click)="navigatePrev(); $event.preventDefault()" i18n>prev</a>
+        } @else {
+          <a class="prev-page"
+             routerLink="./"
+             routerLinkActive="disabled"
+             [queryParams]="{ pageNumber: prev }"
+             queryParamsHandling="merge" i18n>prev</a>
+        }
         <span> | </span>
       }
     }
-    <a class="next-page"
-       routerLink="./"
-       [class.disabled]="page.page.number === page.page.totalPages - 1"
-       [queryParams]="{ pageNumber: next }"
-       (click)="scrollUp()"
-       queryParamsHandling="merge" i18n>next</a>
+    @if (useCursor) {
+      <a class="next-page"
+         routerLink="./"
+         [class.disabled]="page.page.number === page.page.totalPages - 1"
+         (click)="navigateNext(); $event.preventDefault()" i18n>next</a>
+    } @else {
+      <a class="next-page"
+         routerLink="./"
+         [class.disabled]="page.page.number === page.page.totalPages - 1"
+         [queryParams]="{ pageNumber: next }"
+         (click)="scrollUp()"
+         queryParamsHandling="merge" i18n>next</a>
+    }
     <span> | </span>
     @if (showPageLast) {
       <a class="last-page"
