@@ -453,6 +453,12 @@ export class AdminService {
     return this._cache.get(key)!;
   }
 
+  get pip() {
+    // @ts-ignore
+    if (!documentPictureInPicture) return false;
+    return this.getPlugin('plugin/pip');
+  }
+
   get defaultPlugins() {
     return Object.values(this.def.plugins).filter(p => p?.config?.default) as Plugin[];
   }
