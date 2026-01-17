@@ -15,7 +15,7 @@ import { delay } from '../util/async';
 import { createEmbed, createLens, createLink, createRef, embedUrl, parseSrc } from '../util/embed';
 import { parseParams } from '../util/http';
 import { getFilters, getFiltersQuery, parseArgs } from '../util/query';
-import { isQuery, localTag, queryPrefix, tagOrigin, topAnds } from '../util/tag';
+import { hasPrefix, isQuery, localTag, queryPrefix, tagOrigin, topAnds } from '../util/tag';
 import { AdminService } from './admin.service';
 import { ExtService } from './api/ext.service';
 import { RefService } from './api/ref.service';
@@ -711,7 +711,7 @@ export class EmbedService {
     }
     const ext = exts.find(x => x.modifiedString && x.tag === view);
     if (ext) return ext;
-    const t = this.admin.view.find(t => t.tag === view);
+    const t = this.admin.view.find(t => hasPrefix(view, t.tag));
     if (t) {
       return { tag: t.tag, origin: t.origin, name: t.name, config: { ...t.defaults, view: t.config?.view } };
     }
