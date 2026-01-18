@@ -36,7 +36,7 @@ import { Store } from '../../store/store';
 import { readFileAsDataURL, readFileAsString } from '../../util/async';
 import { URI_REGEX } from '../../util/format';
 import { getArgs } from '../../util/query';
-import { braces, tagOrigin } from '../../util/tag';
+import { braces, hasTag, tagOrigin } from '../../util/tag';
 import { LoadingComponent } from '../loading/loading.component';
 import { ChatEntryComponent } from './chat-entry/chat-entry.component';
 
@@ -210,7 +210,7 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
       this.setPoll(!page.content.length);
       this.messages ||= [];
       if (!page.content.length) return;
-      this.messages = [...this.messages, ...page.content];
+      this.messages = [...this.messages, ...page.content.filter(r => !hasTag('+plugin/placeholder', r))];
       const last = page.content[page.content.length - 1];
       this.cursors.set(origin, last?.modifiedString);
       // TODO: verify read before clearing?
@@ -255,7 +255,7 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
           this.cursors.set(ref.origin!, ref.modifiedString);
         }
       }
-      this.messages = [...page.content.reverse(), ...this.messages];
+      this.messages = [...page.content.reverse().filter(r => !hasTag('+plugin/placeholder', r)), ...this.messages];
       pullAllWith(this.sending, page.content, (a, b) => a.url === b.url);
       defer(() => this.viewport.checkViewportSize());
       if (scrollDown) {
