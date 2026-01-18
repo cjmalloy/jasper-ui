@@ -142,7 +142,7 @@ export const naviQueryPlugin: Plugin = {
       if (ref.tags.includes('plugin/thread')) response.tags.push('plugin/thread', 'internal');
       const chatTags = ref.tags.filter(t => t === 'chat' || t.startsWith('chat/'));
       if (chatTags.length) {
-        response.tags.push(chatTags);
+        response.tags.push(...chatTags);
       }
       const uniq = (v, i, a) => a.indexOf(v) === i;
       response.tags = response.tags.filter(uniq);
