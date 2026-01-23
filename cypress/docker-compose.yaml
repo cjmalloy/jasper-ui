@@ -43,7 +43,7 @@ services:
     depends_on:
       - web
   web:
-    image: ghcr.io/cjmalloy/jasper:master
+    image: ghcr.io/cjmalloy/jasper:pr-508
 #    build: ../../jasper
     ports:
       - 8081:80
@@ -88,7 +88,7 @@ services:
     depends_on:
       - repl-web
   repl-web:
-    image: ghcr.io/cjmalloy/jasper:master
+    image: ghcr.io/cjmalloy/jasper:pr-508
 #    build: ../../jasper
     ports:
       - 8083:80
