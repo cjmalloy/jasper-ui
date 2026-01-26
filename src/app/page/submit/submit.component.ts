@@ -29,7 +29,7 @@ import { VideoUploadComponent } from '../../formly/video-upload/video-upload.com
 import { Page } from '../../model/page';
 import { Plugin } from '../../model/plugin';
 import { Ref } from '../../model/ref';
-import { isWiki, wikiUriFormat } from '../../mods/wiki';
+import { isWiki, wikiUriFormat } from '../../mods/org/wiki';
 import { TagPreviewPipe } from '../../pipe/tag-preview.pipe';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';

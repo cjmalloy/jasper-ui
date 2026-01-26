@@ -2,7 +2,7 @@ import { HttpErrorResponse, HttpParameterCodec, HttpParams } from '@angular/comm
 import { isArray, isObject } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { Problem } from '../model/problem';
-import { banlistConfig } from '../mods/banlist';
+import { banlistConfig } from '../mods/system/banlist';
 
 export class HttpUrlEncodingCodec implements HttpParameterCodec {
   encodeKey(k: string): string { return encodeURIComponent(k); }

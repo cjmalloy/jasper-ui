@@ -1,8 +1,8 @@
 import { DateTime } from 'luxon';
 import { Plugin } from '../model/plugin';
 import { Mod } from '../model/tag';
-import { imagePlugin } from './image';
-import { videoPlugin } from './video';
+import { imagePlugin } from './media/image';
+import { videoPlugin } from './media/video';
 
 export const thumbnailPlugin: Plugin = {
   tag: 'plugin/thumbnail',
