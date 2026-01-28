@@ -21,6 +21,7 @@ import { blogMod } from '../mods/blog';
 import { chatMod } from '../mods/chat';
 import { commentMod } from '../mods/comment';
 import { deleteMod, tagDeleteNotice } from '../mods/delete';
+import { editingMod } from '../mods/editing';
 import { htmlMod, latexMod } from '../mods/editor';
 import { experimentsMod } from '../mods/experiments';
 import { backgammonMod } from '../mods/games/backgammon';
@@ -120,6 +121,7 @@ export class AdminService {
     hideMod,
     saveMod,
     readMod,
+    editingMod,
 
     // Themes
     themesMod,
@@ -457,6 +459,10 @@ export class AdminService {
     // @ts-ignore
     if (!documentPictureInPicture) return false;
     return this.getPlugin('plugin/pip');
+  }
+
+  get editing() {
+    return this.getPlugin('plugin/editing');
   }
 
   get defaultPlugins() {

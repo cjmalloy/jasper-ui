@@ -438,14 +438,12 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   setText = debounce((value: string) => {
     if (this._text === value) return;
     this._text = value;
-    this.store.local.saveEditing(value);
   }, 400, { leading: true, trailing: true, maxWait: 3000 });
 
   syncText(value: string) {
     if (!value) {
       // Do not throttle
       this._text = value;
-      this.store.local.saveEditing(value);
       this.syncEditor.next(this._text);
     }
     // Clear previous throttled values
