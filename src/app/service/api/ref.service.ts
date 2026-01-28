@@ -5,10 +5,10 @@ import { autorun } from 'mobx';
 import { catchError, concat, first, map, Observable, of } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { mapPage, Page } from '../../model/page';
-import { mapRef, Ref, RefFilter, RefPageArgs, writeRef } from '../../model/ref';
+import { mapRef, Ref, RefFilter, RefPageArgs, writeEdit, writeRef } from '../../model/ref';
 import { Store } from '../../store/store';
 import { params } from '../../util/http';
-import { OpPatch } from '../../util/json-patch';
+import { escapePath, OpPatch } from '../../util/json-patch';
 import { ConfigService } from '../config.service';
 import { LoginService } from '../login.service';
 
@@ -126,6 +126,24 @@ export class RefService {
     return this.http.put<string>(this.base, writeRef(ref)).pipe(
       catchError(err => this.login.handleHttpError(err)),
     );
+  }
+
+  startEditing(ref: Ref) {
+    return this.create({
+      url: ref.url,
+      origin: this.store.account.origin,
+      tags: [this.store.account.localTag, 'internal', 'plugin/editing'],
+      plugins: { 'plugin/editing': writeEdit(ref) }
+    });
+  }
+
+  saveEdit(ref: Ref, cursor?: string): Observable<string> {
+    if (!cursor) return this.startEditing(ref);
+    return this.patch(ref.url, this.store.account.origin, cursor, [{
+      op: 'add',
+      path: '/plugins/' + escapePath('plugin/editing'),
+      value: writeEdit(ref),
+    }]);
   }
 
   patch(url: string, origin: string, cursor: string, patch: OpPatch[]): Observable<string> {

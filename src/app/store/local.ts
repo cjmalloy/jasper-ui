@@ -20,10 +20,6 @@ export class LocalStore {
     localStorage.setItem(`toggled:${url}`, ''+value);
   }
 
-  saveEditing(text: string) {
-    // TODO:
-  }
-
   set editorStacked(value: boolean) {
     localStorage.setItem('editorStacked', ''+value);
   }
