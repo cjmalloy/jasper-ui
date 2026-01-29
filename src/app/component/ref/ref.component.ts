@@ -61,9 +61,9 @@ import {
 import { getExtension, getScheme, printError } from '../../util/http';
 import { memo, MemoCache } from '../../util/memo';
 import {
-  addAllHierarchicalTags,
   capturesAny,
   expandedTagsInclude,
+  hasPrefix,
   hasTag,
   hasUserUrlResponse,
   isAuthorTag,
@@ -1126,13 +1126,14 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   }
 
   copy$ = () => {
-    const tags = uniq(addAllHierarchicalTags([
+    const tags = uniq([
       ...(this.store.account.localTag ? [this.store.account.localTag] : []),
-      ...(this.ref.tags || []).filter(t => this.auth.canAddTag(t))
-    ]).filter(t => !expandedTagsInclude(t, '+plugin/origin/push')
-      && !expandedTagsInclude(t, 'plugin/delta')
-      && !expandedTagsInclude(t, '+plugin/delta')
-      && !expandedTagsInclude(t, '+plugin/cron')));
+      ...(this.ref.tags || [])
+        .filter(t => !t.startsWith('+'))
+        .filter(t => !t.startsWith('_'))
+        .filter(t => !hasPrefix(t, 'user'))
+        .filter(t => this.auth.canAddTag(t))
+    ]);
     const copied: Ref = {
       ...this.ref,
       origin: this.store.account.origin,
