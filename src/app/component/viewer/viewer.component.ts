@@ -25,7 +25,7 @@ import { Page } from '../../model/page';
 import { getPluginScope, PluginApi } from '../../model/plugin';
 import { Ref, RefSort, RefUpdates } from '../../model/ref';
 import { EmitAction, hydrate } from '../../model/tag';
-import { pdfUrl } from '../../mods/pdf';
+import { pdfUrl } from '../../mods/media/pdf';
 import { ActionService } from '../../service/action.service';
 import { AdminService } from '../../service/admin.service';
 import { ProxyService } from '../../service/api/proxy.service';

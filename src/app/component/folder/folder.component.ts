@@ -8,7 +8,7 @@ import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ext } from '../../model/ext';
 import { Page } from '../../model/page';
 import { Ref } from '../../model/ref';
-import { Pos } from '../../mods/folder';
+import { Pos } from '../../mods/org/folder';
 import { ExtService } from '../../service/api/ext.service';
 import { Store } from '../../store/store';
 import { escapePath } from '../../util/json-patch';

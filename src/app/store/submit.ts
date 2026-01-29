@@ -4,7 +4,7 @@ import { RouterStore } from 'mobx-angular';
 import { Ext } from '../model/ext';
 import { Plugin } from '../model/plugin';
 import { Ref } from '../model/ref';
-import { DEFAULT_WIKI_PREFIX } from '../mods/wiki';
+import { DEFAULT_WIKI_PREFIX } from '../mods/org/wiki';
 import { EventBus } from './bus';
 
 export type Saving = { url?: string, name: string, progress?: number };

@@ -8,7 +8,7 @@ import { Ext } from '../model/ext';
 import { Oembed } from '../model/oembed';
 import { Page } from '../model/page';
 import { Ref } from '../model/ref';
-import { wikiUriFormat } from '../mods/wiki';
+import { wikiUriFormat } from '../mods/org/wiki';
 import { OembedStore } from '../store/oembed';
 import { Store } from '../store/store';
 import { delay } from '../util/async';

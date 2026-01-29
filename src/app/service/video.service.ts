@@ -1,6 +1,6 @@
 import { Injectable, isDevMode } from '@angular/core';
 import { runInAction } from 'mobx';
-import { filter, map, mergeMap, Subject, switchMap, takeUntil, takeWhile, timer } from 'rxjs';
+import { filter, interval, map, mergeMap, Subject, switchMap, takeUntil, takeWhile, timer } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Ref } from '../model/ref';
 import { Store } from '../store/store';
@@ -201,7 +201,7 @@ export class VideoService {
         takeUntil(this.destroy$)
       ).subscribe((user: any) => this.doInvite(user));
     }
-    timer(this.poll).pipe(
+    interval(this.poll).pipe(
       takeWhile(() => !this.lobbyWebsocket),
       takeUntil(this.destroy$),
     ).subscribe(() => pollLobby());

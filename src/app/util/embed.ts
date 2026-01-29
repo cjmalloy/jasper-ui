@@ -8,7 +8,7 @@ import { ViewerComponent } from '../component/viewer/viewer.component';
 import { Ext } from '../model/ext';
 import { Page } from '../model/page';
 import { Ref } from '../model/ref';
-import { PipWindowConfig } from '../mods/pip';
+import { PipWindowConfig } from '../mods/system/pip';
 import { hasTag } from './tag';
 
 export function parseSrc(html: string) {

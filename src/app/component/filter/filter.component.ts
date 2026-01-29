@@ -6,7 +6,7 @@ import { DateTime } from 'luxon';
 import { autorun, IReactionDisposer, toJS } from 'mobx';
 import { Ext } from '../../model/ext';
 import { FilterConfig } from '../../model/tag';
-import { KanbanConfig } from '../../mods/kanban';
+import { KanbanConfig } from '../../mods/org/kanban';
 import { RootConfig } from '../../mods/root';
 import { UserConfig } from '../../mods/user';
 import { AdminService } from '../../service/admin.service';
