@@ -30,7 +30,7 @@ import { TagsFormComponent } from '../../../form/tags/tags.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Ext } from '../../../model/ext';
 import { Ref } from '../../../model/ref';
-import { wikiTitleFormat, wikiUriFormat } from '../../../mods/wiki';
+import { wikiTitleFormat, wikiUriFormat } from '../../../mods/org/wiki';
 import { AdminService } from '../../../service/admin.service';
 import { ExtService } from '../../../service/api/ext.service';
 import { RefService } from '../../../service/api/ref.service';

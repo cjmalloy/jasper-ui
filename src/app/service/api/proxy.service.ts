@@ -4,7 +4,7 @@ import { autorun } from 'mobx';
 import { catchError, map, Observable, of, throwError } from 'rxjs';
 import { mapRef, Ref } from '../../model/ref';
 import { Resource } from '../../model/resource';
-import { catchAll } from '../../mods/scrape';
+import { catchAll } from '../../mods/sync/scrape';
 import { Store } from '../../store/store';
 import { params, sanitizePath } from '../../util/http';
 import { ConfigService } from '../config.service';
