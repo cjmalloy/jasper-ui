@@ -52,7 +52,23 @@ export const notesTemplate: Template = {
         }
       }
     `,
+    overrideForm: true,
     form: [{
+      key: 'defaultCols',
+      type: 'select',
+      props: {
+        label: $localize`Columns:`,
+        options: [
+          { label: $localize`Default` },
+          { value: 1, label: $localize`1 Column` },
+          { value: 2, label: $localize`2 Columns` },
+          { value: 3, label: $localize`3 Columns` },
+          { value: 4, label: $localize`4 Columns` },
+          { value: 5, label: $localize`5 Columns` },
+          { value: 6, label: $localize`6 Columns` },
+        ],
+      },
+    }, {
       key: 'badges',
       className: 'badges',
       type: 'tags',
@@ -60,11 +76,14 @@ export const notesTemplate: Template = {
         label: $localize`Badges:`,
         addText: $localize`+ Add another badge tag`,
       }
-    }]
+    }],
+    advancedForm: [],
   },
   defaults: {
     defaultCols: 0, // Leave to CSS screen size detection, but show cols dropdown
-    badges: ['reminder', 'important']
+    badges: ['reminder', 'important'],
+    defaultSort: ['modified'],
+    addTags: [],
   },
   schema: {
     optionalProperties: {
