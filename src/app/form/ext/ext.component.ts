@@ -273,13 +273,25 @@ export class ExtFormComponent implements OnDestroy {
 
 export function extForm(fb: UntypedFormBuilder, ext: Ext | undefined, admin: AdminService, locked: boolean) {
   let configControls = {};
-  if (admin.getTemplate('')) {
+  if (admin.getTemplate('') && !hasPrefix(ext?.tag, 'config')) {
     configControls = {
       ...configControls,
       defaultSort: [[]],
       defaultFilter: [[]],
       sidebar: [''],
       popover: [''],
+      modmail: [false],
+      pinned: linksForm(fb, ext?.config?.pinned || []),
+      themes: themesForm(fb, ext?.config?.themes || []),
+      theme: [''],
+    };
+  }
+  if (admin.getTemplate('config/home') && hasPrefix(ext?.tag, 'config/home')) {
+    configControls = {
+      ...configControls,
+      defaultSort: [[]],
+      defaultFilter: [[]],
+      sidebar: [''],
       modmail: [false],
       pinned: linksForm(fb, ext?.config?.pinned || []),
       themes: themesForm(fb, ext?.config?.themes || []),

@@ -336,7 +336,6 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
 
   @memo
   get messages() {
-    if (this.home) return false;
     if (!this.admin.getPlugin('plugin/inbox')) return false;
     if (!this.admin.getTemplate('dm')) return false;
     if (!this.store.account.user) return false;
