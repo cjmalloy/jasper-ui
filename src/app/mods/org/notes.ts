@@ -1,4 +1,5 @@
 import { DateTime } from 'luxon';
+import { Ext } from '../../model/ext';
 import { Mod } from '../../model/tag';
 import { Template } from '../../model/template';
 
@@ -18,40 +19,6 @@ export const notesTemplate: Template = {
     filters: [
       { query: 'notes', label: $localize`✍️ notes`, title: $localize`Notes`, group: $localize`Templates 🎨️` },
     ],
-    // language=CSS
-    css: `
-      app-ref-list.notes {
-        .list-container {
-          grid-auto-flow: row dense;
-          padding: 4px;
-          gap: 8px;
-          grid-template-columns:  1fr;
-          @media (min-width: 1000px) {
-            grid-template-columns:  1fr 1fr;
-          }
-          @media (min-width: 1500px) {
-            grid-template-columns: 1fr 1fr 1fr;
-          }
-          @media (min-width: 2000px) {
-            grid-template-columns: 1fr 1fr 1fr 1fr;
-          }
-          .list-number {
-            display: none;
-          }
-          .ref {
-            break-inside: avoid;
-            .toggle {
-              display: none;
-            }
-            @media (max-width: 740px) {
-              .actions, .info {
-                height: 28px;
-              }
-            }
-          }
-        }
-      }
-    `,
     overrideForm: true,
     form: [{
       key: 'defaultCols',
@@ -76,12 +43,38 @@ export const notesTemplate: Template = {
         label: $localize`Badges:`,
         addText: $localize`+ Add another badge tag`,
       }
+    }, {
+      key: 'queryFilters',
+      type: 'list',
+      props: {
+        label: $localize`Query Filters:`,
+        addText: $localize`+ Add another query filter`,
+      },
+      fieldArray: {
+        fieldGroup: [{
+          key: 'label',
+          type: 'string',
+          props: {
+            label: $localize`Label:`
+          }
+        }, {
+          key: 'query',
+          type: 'query',
+          props: {
+            required: true,
+          }
+        }]
+      }
     }],
     advancedForm: [],
   },
   defaults: {
     defaultCols: 0, // Leave to CSS screen size detection, but show cols dropdown
     badges: ['reminder', 'important'],
+    queryFilters: [
+      { query: 'reminder', label: $localize`🎗️ Reminder` },
+      { query: 'important', label: $localize`‼️ Important` },
+    ],
     defaultSort: ['modified'],
     addTags: [],
   },
@@ -92,8 +85,22 @@ export const notesTemplate: Template = {
   }
 };
 
+export const reminderExt: Ext = {
+  tag: 'reminder',
+  name: $localize`🎗️`
+}
+
+export const importantExt: Ext = {
+  tag: 'reminder',
+  name: $localize`‼️`
+}
+
 export const notesMod: Mod = {
   template: [
     notesTemplate,
+  ],
+  ext: [
+    reminderExt,
+    importantExt,
   ]
 };
