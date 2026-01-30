@@ -9,11 +9,13 @@
               (click)="toggleFullscreen()"
               i18n-title title="Fullscreen editor"
               i18n>⛶</button>
-      <button #helpButton
-              type="button"
-              (click)="toggleHelp()"
-              i18n-title title="Help"
-              i18n>❓️</button>
+      @if (helpLinks.length) {
+        <button #helpButton
+                type="button"
+                (click)="toggleHelp()"
+                i18n-title title="Help"
+                i18n>❓️</button>
+      }
       @if (fullscreen) {
         <button type="button"
                 (click)="toggleStacked()"
@@ -147,12 +149,11 @@
 
   <ng-template #help>
     <div class="context-menu" (click)="$event.stopPropagation()">
-      <div (click)="toggleHelp()">
-        <a target="_blank" href="https://jfcere.github.io/ngx-markdown/cheat-sheet">Markdown</a>
-      </div>
-      <div (click)="toggleHelp()">
-        <a target="_blank" href="https://katex.org/docs/supported.html">LaTeX plugin</a>
-      </div>
+      @for (link of helpLinks; track link.url) {
+        <div (click)="toggleHelp()">
+          <a target="_blank" [href]="link.url">{{ link.label }}</a>
+        </div>
+      }
     </div>
   </ng-template>
 }

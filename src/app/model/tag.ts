@@ -183,6 +183,10 @@ export interface Config extends Tag {
      * Show help text for sort box.
      */
     sortHelp?: string,
+    /**
+     * Help links to show in editor dropdown.
+     */
+    helpLinks?: Array<{ label: string; url: string }>,
   };
   /**
    * Default config values when validating or reading. Should pass validation.

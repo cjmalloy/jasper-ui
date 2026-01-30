@@ -375,6 +375,12 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
     return this.url.substring(0, this.url.indexOf(':') + 1);
   }
 
+  @memo
+  get helpLinks() {
+    const helpConfig = this.admin.getTemplate('config/help');
+    return helpConfig?.config?.helpLinks || [];
+  }
+
   get currentText() {
     return this._text || this.control?.value || '';
   }
