@@ -21,7 +21,7 @@ import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Ext } from '../../../model/ext';
 import { Page } from '../../../model/page';
 import { Ref, RefSort } from '../../../model/ref';
-import { mimeToCode } from '../../../mods/code';
+import { mimeToCode } from '../../../mods/media/code';
 import { AccountService } from '../../../service/account.service';
 import { AdminService } from '../../../service/admin.service';
 import { ProxyService } from '../../../service/api/proxy.service';
@@ -79,6 +79,7 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
   pressToUnlock = false;
   adding: string[] = [];
   failed: { text: string; error: string }[] = [];
+  @HostBinding('class.dropping')
   dropping = false;
   uploadProgress = new Map<string, number>();
 
@@ -334,15 +335,15 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
   }
 
   private getTagsWithAuthor(): string[] {
-    return !hasTag(this.store.account.localTag, this.addTags) 
-      ? [...this.addTags, this.store.account.localTag] 
+    return !hasTag(this.store.account.localTag, this.addTags)
+      ? [...this.addTags, this.store.account.localTag]
       : this.addTags;
   }
 
   handlePaste(event: ClipboardEvent) {
     const items = event.clipboardData?.items;
     if (!items) return;
-    
+
     const files: File[] = [];
     for (let i = 0; i < items.length; i++) {
       const item = items[i];
@@ -351,7 +352,7 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
         if (file) files.push(file);
       }
     }
-    
+
     if (files.length > 0) {
       event.preventDefault();
       event.stopPropagation();
@@ -359,13 +360,14 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
     }
   }
 
+  @HostListener('drop', ['$event'])
   handleDrop(event: DragEvent) {
     event.preventDefault();
     event.stopPropagation();
     this.dropping = false;
     const items = event.dataTransfer?.items;
     if (!items) return;
-    
+
     const files: File[] = [];
     for (let i = 0; i < items.length; i++) {
       const item = items[i];
@@ -374,25 +376,28 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
         if (file) files.push(file);
       }
     }
-    
+
     if (files.length > 0) {
       this.uploadFiles(files);
     }
   }
 
+  @HostListener('dragenter', ['$event'])
   handleDragEnter(event: DragEvent) {
     event.preventDefault();
     event.stopPropagation();
     this.dropping = true;
   }
 
+  @HostListener('dragover', ['$event'])
   handleDragOver(event: DragEvent) {
     event.preventDefault();
     event.stopPropagation();
   }
 
-  dragLeave(parent: HTMLElement, target: HTMLElement) {
-    if (this.dropping && (parent === target || !parent.contains(target))) {
+  @HostListener('dragleave', ['$event'])
+  dragLeave(event: DragEvent) {
+    if (this.dropping && event.target === event.currentTarget) {
       this.dropping = false;
     }
   }
@@ -400,12 +405,12 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
   uploadFiles(files: File[]) {
     if (!files.length) return;
     if (!this.admin.getPlugin('plugin/file')) return;
-    
+
     files.forEach(file => {
       const fileName = file.name;
       this.adding.push(fileName);
       this.uploadProgress.set(fileName, 0);
-      
+
       this.uploadFile$(file, fileName).subscribe({
         next: ref => {
           if (ref) {
@@ -423,7 +428,7 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
 
   uploadFile$(file: File, fileName: string): Observable<Ref | null> {
     const tagsWithAuthor = this.getTagsWithAuthor();
-    
+
     const codeType = mimeToCode(file.type);
     if (codeType.length) {
       const ref: Ref = {
@@ -456,7 +461,7 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
       } else if (file.type.startsWith('application/pdf') && this.admin.getPlugin('plugin/pdf')) {
         tags.push('plugin/pdf');
       }
-      
+
       return this.proxy.save(file, this.store.account.origin).pipe(
         map(event => {
           switch (event.type) {
@@ -486,9 +491,9 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
       // Initialize page if it doesn't exist yet
       this.page = { content: [], page: { totalElements: 0, number: 0, totalPages: 0, size: 0 } } as Page<Ref>;
     }
-    
+
     ref.origin = this.store.account.origin;
-    
+
     this.mutated = true;
     this.adding.splice(this.adding.indexOf(fileName), 1);
     this.uploadProgress.delete(fileName);
