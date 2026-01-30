@@ -186,7 +186,7 @@ export interface Config extends Tag {
     /**
      * Help links to show in editor dropdown.
      */
-    helpLinks?: Array<{ label: string; url: string }>,
+    editorHelpLinks?: Array<{ label: string; url: string }>,
   };
   /**
    * Default config values when validating or reading. Should pass validation.

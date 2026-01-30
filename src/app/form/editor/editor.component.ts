@@ -378,7 +378,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   @memo
   get helpLinks() {
     const helpConfig = this.admin.getTemplate('config/help');
-    return helpConfig?.config?.helpLinks || [];
+    return helpConfig?.config?.editorHelpLinks || [];
   }
 
   get currentText() {
