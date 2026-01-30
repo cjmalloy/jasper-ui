@@ -2,8 +2,10 @@ import { AsyncPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
   Component,
+  effect,
   forwardRef,
   HostBinding,
+  Injector,
   Input,
   OnChanges,
   OnDestroy,
@@ -16,7 +18,6 @@ import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angu
 import { RouterLink } from '@angular/router';
 import { defer, groupBy, intersection, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
-import { autorun, IReactionDisposer } from 'mobx';
 import { catchError, map, of, Subject, Subscription, switchMap, takeUntil, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { TitleDirective } from '../../../directive/title.directive';
@@ -82,7 +83,6 @@ import { ViewerComponent } from '../../viewer/viewer.component';
 })
 export class BlogEntryComponent implements OnChanges, OnDestroy, HasChanges {
   @HostBinding('attr.tabindex') tabIndex = 0;
-  private disposers: IReactionDisposer[] = [];
   private destroy$ = new Subject<void>();
 
   @ViewChildren('action')
@@ -111,6 +111,7 @@ export class BlogEntryComponent implements OnChanges, OnDestroy, HasChanges {
   submitting?: Subscription;
 
   constructor(
+    private injector: Injector,
     private config: ConfigService,
     public admin: AdminService,
     public store: Store,
@@ -123,7 +124,7 @@ export class BlogEntryComponent implements OnChanges, OnDestroy, HasChanges {
     private fb: UntypedFormBuilder,
   ) {
     this.editForm = refForm(fb);
-    this.disposers.push(autorun(() => {
+    effect(() => {
       if (this.store.eventBus.event === 'refresh') {
         if (this.ref?.url && this.store.eventBus.isRef(this.ref)) {
           this.ref = this.store.eventBus.ref!;
@@ -135,7 +136,7 @@ export class BlogEntryComponent implements OnChanges, OnDestroy, HasChanges {
           this.serverError = this.store.eventBus.errors;
         }
       }
-    }));
+    }, { injector: this.injector });
   }
 
   saveChanges() {
@@ -175,8 +176,6 @@ export class BlogEntryComponent implements OnChanges, OnDestroy, HasChanges {
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
   }
 
   @memo

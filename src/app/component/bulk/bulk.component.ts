@@ -1,9 +1,8 @@
 import { KeyValuePipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, Input, OnChanges, OnDestroy, SimpleChanges } from '@angular/core';
+import { Component, effect, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { groupBy, intersection, isEqual, map, pick, uniq } from 'lodash-es';
-import { autorun, IReactionDisposer } from 'mobx';
 import { catchError, concat, last, Observable, of, switchMap } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { TitleDirective } from '../../directive/title.directive';
@@ -48,9 +47,7 @@ import { LoadingComponent } from '../loading/loading.component';
   host: { 'class': 'bulk actions' },
   imports: [LoadingComponent, RouterLink, InlineTagComponent, ConfirmActionComponent, InlinePluginComponent, TitleDirective, InlineButtonComponent, KeyValuePipe]
 })
-export class BulkComponent implements OnChanges, OnDestroy {
-
-  private disposers: IReactionDisposer[] = [];
+export class BulkComponent implements OnChanges {
 
   @Input()
   type: Type = 'ref';
@@ -84,7 +81,7 @@ export class BulkComponent implements OnChanges, OnDestroy {
     private acts: ActionService,
     private ts: TaggingService,
   ) {
-    this.disposers.push(autorun(() => {
+    effect(() => {
       MemoCache.clear(this);
       const commonTags = intersection(...map(this.query.page?.content, ref => ref.tags || []));
       this.forms = this.admin.bulkForm;
@@ -95,7 +92,7 @@ export class BulkComponent implements OnChanges, OnDestroy {
       delete this.defaults;
       const xs = [...(this.viewExt ? [this.viewExt] : []), ...this.activeExts, this.admin.getTemplate('')] as Tag[];
       this.refs.getDefaults(...xs.filter(x => x).map(x => x.tag)).subscribe(d => this.defaults = d?.ref)
-    }));
+    });
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -104,10 +101,6 @@ export class BulkComponent implements OnChanges, OnDestroy {
     }
   }
 
-  ngOnDestroy() {
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
-  }
 
   @memo
   get urls() {

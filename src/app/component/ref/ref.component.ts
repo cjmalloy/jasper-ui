@@ -4,6 +4,7 @@ import {
   AfterViewInit,
   ChangeDetectorRef,
   Component,
+  effect,
   ElementRef,
   EventEmitter,
   HostBinding,
@@ -21,7 +22,6 @@ import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angu
 import { Router, RouterLink } from '@angular/router';
 import { cloneDeep, defer, delay, groupBy, pick, throttle, uniq, without } from 'lodash-es';
 import { DateTime } from 'luxon';
-import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { catchError, map, of, Subject, Subscription, switchMap, takeUntil, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { TitleDirective } from '../../directive/title.directive';
@@ -111,7 +111,6 @@ import { ViewerComponent } from '../viewer/viewer.component';
 })
 export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasChanges {
   css = 'ref list-item';
-  private disposers: IReactionDisposer[] = [];
   private destroy$ = new Subject<void>();
 
   @ViewChildren('action')
@@ -221,7 +220,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
       this.initFields({ ...this.ref, ...value });
       cd.detectChanges();
     }, 400, { leading: true, trailing: true }));
-    this.disposers.push(autorun(() => {
+    effect(() => {
       if (this.store.eventBus.event === 'refresh') {
         if (this.editing || this.viewSource) {
           // TODO: show somewhere
@@ -253,7 +252,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
       if (this.store.eventBus.event === 'toggle-all-closed') {
         this.expanded = false;
       }
-    }));
+    });
   }
 
   saveChanges() {
@@ -328,8 +327,6 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
     if (this.lastSelected) {
       this.store.view.clearLastSelected();
     }
@@ -977,16 +974,14 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
 
   tag$ = (tag: string) => {
     if (this.ref.upload) {
-      runInAction(() => {
-        this.ref.tags ||= [];
-        for (const t of tag.split(' ').filter(t => !!t.trim())) {
-          if (t.startsWith('-')) {
-            this.ref.tags = this.ref.tags.filter(r => expandedTagsInclude(r, t.substring(1)));
-          } else if (!hasTag(t, this.ref)) {
-            this.ref.tags.push(t);
-          }
+      this.ref.tags ||= [];
+      for (const t of tag.split(' ').filter(t => !!t.trim())) {
+        if (t.startsWith('-')) {
+          this.ref.tags = this.ref.tags.filter(r => expandedTagsInclude(r, t.substring(1)));
+        } else if (!hasTag(t, this.ref)) {
+          this.ref.tags.push(t);
         }
-      });
+      }
       this.init();
       return of(null);
     } else {

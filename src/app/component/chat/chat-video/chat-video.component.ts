@@ -1,8 +1,7 @@
 import { AsyncPipe } from '@angular/common';
 import { AfterViewInit, ChangeDetectionStrategy, Component, Input } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { runInAction } from 'mobx';
-import { MobxAngularModule } from 'mobx-angular';
+
 import { map, Observable } from 'rxjs';
 import { TitleDirective } from '../../../directive/title.directive';
 import { Ext } from '../../../model/ext';
@@ -19,7 +18,7 @@ import { hasTag } from '../../../util/tag';
   styleUrl: './chat-video.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    MobxAngularModule,
+
     RouterLink,
     TitleDirective,
     AsyncPipe,
@@ -55,7 +54,7 @@ export class ChatVideoComponent implements AfterViewInit {
   }
 
   set speaker(user: string) {
-    runInAction(() => this.store.video.activeSpeaker = (user === this.store.account.tag) ? '' : user);
+    this.store.video.activeSpeaker = (user === this.store.account.tag) ? '' : user;
   }
 
   get userStreams() {
@@ -87,10 +86,8 @@ export class ChatVideoComponent implements AfterViewInit {
   }
 
   call() {
-    runInAction(() => {
-      this.store.video.enabled = true;
-      this.store.local.setInCall(true);
-    });
+    this.store.video.enabled = true;
+    this.store.local.setInCall(true);
     navigator.mediaDevices.getUserMedia(this.admin.getPlugin('plugin/user/video')!.config!.gumConfig)
       .then(stream => {
         if (!this.store.video.enabled) {
@@ -108,12 +105,9 @@ export class ChatVideoComponent implements AfterViewInit {
   }
 
   hangup() {
-    runInAction(() => {
-      this.store.video.enabled = false;
-      this.store.local.setInCall(false);
-    });
+    this.store.video.enabled = false;
+    this.store.local.setInCall(false);
     this.ts.deleteResponse('plugin/user/lobby', this.url).subscribe();
     this.vs.hangup();
   }
-
 }

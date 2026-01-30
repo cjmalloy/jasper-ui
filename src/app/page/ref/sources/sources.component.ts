@@ -1,7 +1,6 @@
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, effect, OnDestroy, ViewChild } from '@angular/core';
 import { defer, uniq } from 'lodash-es';
-import { autorun, IReactionDisposer, runInAction } from 'mobx';
-import { MobxAngularModule } from 'mobx-angular';
+
 import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Page } from '../../../model/page';
@@ -18,12 +17,11 @@ import { getArgs } from '../../../util/query';
   templateUrl: './sources.component.html',
   styleUrls: ['./sources.component.scss'],
   imports: [
-    MobxAngularModule,
+
     RefListComponent,
   ],
 })
-export class RefSourcesComponent implements OnInit, OnDestroy, HasChanges {
-  private disposers: IReactionDisposer[] = [];
+export class RefSourcesComponent implements OnDestroy, HasChanges {
 
   @ViewChild(RefListComponent)
   list?: RefListComponent;
@@ -37,18 +35,15 @@ export class RefSourcesComponent implements OnInit, OnDestroy, HasChanges {
     public query: QueryStore,
   ) {
     query.clear();
-    runInAction(() => store.view.defaultSort = ['published']);
-  }
+    store.view.defaultSort = ['published'];
 
-  saveChanges() {
-    return !this.list || this.list.saveChanges();
-  }
-
-  ngOnInit(): void {
-    this.disposers.push(autorun(() => {
+    // Effect for page from sources
+    effect(() => {
       this.page = Page.of(this.sources.map(url => ({ url })) || []);
-    }));
-    this.disposers.push(autorun(() => {
+    });
+
+    // Effect for query args
+    effect(() => {
       const args = getArgs(
         '',
         this.store.view.sort,
@@ -59,8 +54,10 @@ export class RefSourcesComponent implements OnInit, OnDestroy, HasChanges {
       );
       args.sources = this.store.view.url;
       defer(() => this.query.setArgs(args));
-    }));
-    this.disposers.push(autorun(() => {
+    });
+
+    // Effect for merging query results
+    effect(() => {
       if (!this.query.page) return;
       for (let i = 0; i < this.sources.length; i ++) {
         if (this.page.content[i].created) continue;
@@ -68,19 +65,21 @@ export class RefSourcesComponent implements OnInit, OnDestroy, HasChanges {
         const existing = this.query.page.content.find(r => r.url === url);
         if (existing) this.page.content[i] = existing;
       }
-    }));
-    // TODO: set title for bare reposts
-    this.disposers.push(autorun(() => this.mod.setTitle($localize`Sources: ` + getTitle(this.store.view.ref))));
+    });
+
+    // Effect for title
+    effect(() => this.mod.setTitle($localize`Sources: ` + getTitle(this.store.view.ref)));
+  }
+
+  saveChanges() {
+    return !this.list || this.list.saveChanges();
   }
 
   ngOnDestroy() {
     this.query.close();
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
   }
 
   get sources() {
     return uniq(this.store.view.ref?.sources).filter(s => s != this.store.view.url);
   }
-
 }

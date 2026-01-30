@@ -1,7 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 import { isEqual, omit } from 'lodash-es';
-import { action, makeAutoObservable, observable, runInAction } from 'mobx';
 import { catchError, Subscription, throwError } from 'rxjs';
 import { Page } from '../model/page';
 import { Ref, RefPageArgs } from '../model/ref';
@@ -12,11 +11,11 @@ import { RefService } from '../service/api/ref.service';
 })
 export class QueryStore {
 
-  args?: RefPageArgs = {} as any;
-  sourcesOf?: Ref = {} as any;
-  responseOf?: Ref = {} as any;
-  page?: Page<Ref> = {} as any;
-  error?: HttpErrorResponse = {} as any;
+  private _args = signal<RefPageArgs | undefined>(undefined);
+  private _sourcesOf = signal<Ref | undefined>(undefined);
+  private _responseOf = signal<Ref | undefined>(undefined);
+  private _page = signal<Page<Ref> | undefined>(undefined);
+  private _error = signal<HttpErrorResponse | undefined>(undefined);
 
   private running?: Subscription;
   private runningSources?: Subscription;
@@ -24,21 +23,29 @@ export class QueryStore {
 
   constructor(
     private refs: RefService,
-  ) {
-    makeAutoObservable(this, {
-      args: observable.struct,
-      page: observable.ref,
-      clear: action,
-    });
-    this.clear(); // Initial observables may not be null for MobX
-  }
+  ) {}
+
+  get args() { return this._args(); }
+  set args(value: RefPageArgs | undefined) { this._args.set(value); }
+
+  get sourcesOf() { return this._sourcesOf(); }
+  set sourcesOf(value: Ref | undefined) { this._sourcesOf.set(value); }
+
+  get responseOf() { return this._responseOf(); }
+  set responseOf(value: Ref | undefined) { this._responseOf.set(value); }
+
+  get page() { return this._page(); }
+  set page(value: Page<Ref> | undefined) { this._page.set(value); }
+
+  get error() { return this._error(); }
+  set error(value: HttpErrorResponse | undefined) { this._error.set(value); }
 
   clear() {
-    this.args = undefined;
-    this.page = undefined;
-    this.error = undefined;
-    this.sourcesOf = undefined;
-    this.responseOf = undefined;
+    this._args.set(undefined);
+    this._page.set(undefined);
+    this._error.set(undefined);
+    this._sourcesOf.set(undefined);
+    this._responseOf.set(undefined);
     this.running?.unsubscribe();
     this.runningSources?.unsubscribe();
     this.runningResponses?.unsubscribe();
@@ -49,29 +56,30 @@ export class QueryStore {
   }
 
   setArgs(args: RefPageArgs) {
-    if (!isEqual(omit(this.args, 'search'), omit(args, 'search'))) this.clear();
-    this.args = args;
+    if (!isEqual(omit(this._args(), 'search'), omit(args, 'search'))) this.clear();
+    this._args.set(args);
     this.refresh();
   }
 
   refresh() {
-    if (this.args) {
+    const args = this._args();
+    if (args) {
       this.running?.unsubscribe();
-      this.running = this.refs.page(this.args).pipe(
+      this.running = this.refs.page(args).pipe(
         catchError((err: HttpErrorResponse) => {
-          runInAction(() => this.error = err);
+          this._error.set(err);
           return throwError(() => err);
         }),
-      ).subscribe(p => runInAction(() => this.page = p));
+      ).subscribe(p => this._page.set(p));
       this.runningSources?.unsubscribe();
-      if (this.args.sources) {
-        this.runningSources = this.refs.getCurrent(this.args.sources)
-          .subscribe(ref => runInAction(() => this.sourcesOf = ref));
+      if (args.sources) {
+        this.runningSources = this.refs.getCurrent(args.sources)
+          .subscribe(ref => this._sourcesOf.set(ref));
       }
       this.runningResponses?.unsubscribe();
-      if (this.args.responses) {
-        this.runningResponses = this.refs.getCurrent(this.args.responses)
-          .subscribe(ref => runInAction(() => this.responseOf = ref));
+      if (args.responses) {
+        this.runningResponses = this.refs.getCurrent(args.responses)
+          .subscribe(ref => this._responseOf.set(ref));
       }
     }
   }

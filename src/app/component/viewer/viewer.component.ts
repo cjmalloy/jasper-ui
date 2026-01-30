@@ -14,7 +14,6 @@ import { FormControl } from '@angular/forms';
 import * as he from 'he';
 import Hls from 'hls.js';
 import { defer, isEqual, some, without } from 'lodash-es';
-import { runInAction } from 'mobx';
 import { BehaviorSubject, catchError, of, Subject, takeUntil, throwError } from 'rxjs';
 import { ImageDirective } from '../../directive/image.directive';
 import { ResizeHandleDirective } from '../../directive/resize-handle.directive';
@@ -458,7 +457,7 @@ export class ViewerComponent implements OnChanges {
     return {
       comment: (comment: string) => {
         if (this.ref) {
-          runInAction(() => this.ref!.comment = comment);
+          this.ref!.comment = comment;
         } else {
           this.text = comment;
         }

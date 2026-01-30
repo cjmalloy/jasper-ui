@@ -1,8 +1,7 @@
 import { Location } from '@angular/common';
-import { Component, OnDestroy } from '@angular/core';
+import { Component, effect, Injector, OnDestroy } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
-import { autorun, IReactionDisposer } from 'mobx';
-import { MobxAngularModule } from 'mobx-angular';
+
 import { TitleDirective } from '../../directive/title.directive';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
@@ -16,10 +15,9 @@ import { Store } from '../../store/store';
   templateUrl: './subscription-bar.component.html',
   styleUrls: ['./subscription-bar.component.scss'],
   host: { 'class': 'subscription-bar' },
-  imports: [MobxAngularModule, RouterLink, RouterLinkActive, TitleDirective]
+  imports: [ RouterLink, RouterLinkActive, TitleDirective]
 })
 export class SubscriptionBarComponent implements OnDestroy {
-  private disposers: IReactionDisposer[] = [];
 
   bookmarks: TagPreview[] = [];
   subs: TagPreview[] = [];
@@ -27,6 +25,7 @@ export class SubscriptionBarComponent implements OnDestroy {
   private startIndex = this.currentIndex;
 
   constructor(
+    private injector: Injector,
     public config: ConfigService,
     public store: Store,
     public themes: ModService,
@@ -35,15 +34,13 @@ export class SubscriptionBarComponent implements OnDestroy {
     private exts: ExtService,
     public location: Location,
   ) {
-    this.disposers.push(autorun(() => this.editor.getTagsPreview(this.store.account.bookmarks, this.store.account.origin)
-      .subscribe(xs => this.bookmarks = xs)));
-    this.disposers.push(autorun(() => this.exts.getCachedExts(this.store.account.subs)
-      .subscribe(xs => this.subs = xs)));
+    effect(() => this.editor.getTagsPreview(this.store.account.bookmarks, this.store.account.origin)
+      .subscribe(xs => this.bookmarks = xs), { injector: this.injector });
+    effect(() => this.exts.getCachedExts(this.store.account.subs)
+      .subscribe(xs => this.subs = xs), { injector: this.injector });
   }
 
   ngOnDestroy() {
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
   }
 
   get currentIndex() {

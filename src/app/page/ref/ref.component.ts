@@ -1,9 +1,8 @@
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, effect, Injector, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { pickBy, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
-import { autorun, IReactionDisposer, runInAction } from 'mobx';
-import { MobxAngularModule } from 'mobx-angular';
+
 import { catchError, filter, map, of, Subject, Subscription, switchMap, takeUntil, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { LoadingComponent } from '../../component/loading/loading.component';
@@ -28,7 +27,7 @@ import { hasTag, privateTag, top } from '../../util/tag';
   styleUrls: ['./ref.component.scss'],
   imports: [
     RefComponent,
-    MobxAngularModule,
+
     TabsComponent,
     RouterLink,
     RouterLinkActive,
@@ -38,7 +37,6 @@ import { hasTag, privateTag, top } from '../../util/tag';
   ],
 })
 export class RefPage implements OnInit, OnDestroy, HasChanges {
-  private disposers: IReactionDisposer[] = [];
   private destroy$ = new Subject<void>();
 
   @ViewChild(RefComponent)
@@ -52,6 +50,7 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
   private seen = new Set<string>();
 
   constructor(
+    private injector: Injector,
     public config: ConfigService,
     public admin: AdminService,
     public store: Store,
@@ -68,20 +67,18 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
   ngOnInit(): void {
     this.url = this.store.view.url;
     if (this.url) this.reload(this.url);
-    this.disposers.push(autorun(() => {
+    effect(() => {
       const url = this.store.view.url;
       if (!url) return;
       if (url === this.url) return;
       this.url = url;
       this.reload(url);
-    }));
+    }, { injector: this.injector });
   }
 
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
     this.store.view.clearRef();
   }
 
@@ -155,8 +152,8 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
       return;
     }
     this.newResponses = 0;
-    this.refs.count({ url, obsolete: true }).subscribe(count => runInAction(() =>
-      this.store.view.versions = count));
+    this.refs.count({ url, obsolete: true }).subscribe(count =>
+      this.store.view.versions = count);
     const fetchTop = (ref: Ref) => hasTag('plugin/thread', ref) || hasTag('plugin/comment', ref);
     (url === this.store.view.ref?.url
         ? of(this.store.view.ref)
@@ -172,7 +169,7 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
           map(top => [ref, top]),
           catchError(err => err.status === 404 ? of([ref, undefined]) : throwError(() => err)),
         )),
-      tap(([ref, top]) => runInAction(() => this.store.view.setRef(ref, top))),
+      tap(([ref, top]) => this.store.view.setRef(ref, top)),
       takeUntil(this.destroy$),
     ).subscribe(() => MemoCache.clear(this));
     if (this.config.websockets && this.watchUrl !== url) {
@@ -205,7 +202,7 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
           modified: this.store.view.ref?.modified,
           modifiedString: this.store.view.ref?.modifiedString,
         };
-        runInAction(() => Object.assign(this.store.view.ref!, merged));
+        Object.assign(this.store.view.ref!, merged);
         this.store.eventBus.refresh(merged);
         this.store.eventBus.reset();
       });

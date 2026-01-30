@@ -1,9 +1,8 @@
 import { AsyncPipe } from '@angular/common';
-import { Component, ElementRef, HostBinding, Input, OnChanges, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
+import { Component, effect, ElementRef, HostBinding, Input, OnChanges, OnDestroy, SimpleChanges } from '@angular/core';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { uniq, uniqBy } from 'lodash-es';
-import { autorun, IReactionDisposer, runInAction } from 'mobx';
-import { MobxAngularModule } from 'mobx-angular';
+
 import { catchError, filter, forkJoin, map, of, Subject } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { Ext } from '../../model/ext';
@@ -44,7 +43,7 @@ import { SortComponent } from '../sort/sort.component';
   imports: [
     ExtComponent,
     MdComponent,
-    MobxAngularModule,
+
     SearchComponent,
     QueryComponent,
     FilterComponent,
@@ -59,8 +58,7 @@ import { SortComponent } from '../sort/sort.component';
     ChatVideoComponent,
   ]
 })
-export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
-  private disposers: IReactionDisposer[] = [];
+export class SidebarComponent implements OnChanges, OnDestroy {
   private destroy$ = new Subject<void>();
 
   @Input()
@@ -121,18 +119,16 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
         this.expanded = false;
       }
     });
-  }
 
-  ngOnInit(): void {
-    this.disposers.push(autorun(() => {
+    effect(() => {
       this.expanded = this.store.view.sidebarExpanded;
-    }));
-    this.disposers.push(autorun(() => {
+    });
+    effect(() => {
       if (this.store.view.ref) {
         MemoCache.clear(this);
       }
-    }));
-    this.disposers.push(autorun(() => {
+    });
+    effect(() => {
       if (!this.store.view.template) {
         this.template = undefined;
       } else if (!isQuery(this.store.view.template) && this.template?.tag !== this.store.view.template) {
@@ -140,7 +136,7 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
           catchError(() => of(undefined))
         ).subscribe(t => this.template = t);
       }
-    }));
+    });
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -189,8 +185,6 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
   }
 
   @memo
@@ -205,7 +199,7 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
   @Input()
   set ext(value: Ext | undefined) {
     this._ext = value;
-    runInAction(() => this.store.view.floatingSidebar = !value?.config?.noFloatingSidebar && value?.config?.defaultCols === undefined);
+    this.store.view.floatingSidebar = !value?.config?.noFloatingSidebar && value?.config?.defaultCols === undefined;
   }
 
   get existing() {
@@ -221,7 +215,7 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
   set expanded(value: boolean) {
     localStorage.setItem('sidebar-expanded', ''+value);
     this._expanded = value;
-    runInAction(() => this.store.view.sidebarExpanded = value);
+    this.store.view.sidebarExpanded = value;
   }
 
   @memo
@@ -399,7 +393,7 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   startChat() {
-    runInAction(() => this.store.view.ref?.tags?.push('plugin/chat'));
+    this.store.view.ref?.tags?.push('plugin/chat');
     this.ts.create('plugin/chat', this.store.view.ref!.url, this.store.account.origin).subscribe();
   }
 }

@@ -3,8 +3,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, isDevMode, ViewChild } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, UntypedFormGroup } from '@angular/forms';
 import { cloneDeep, defer } from 'lodash-es';
-import { runInAction } from 'mobx';
-import { MobxAngularModule } from 'mobx-angular';
+
 import { catchError, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { LoadingComponent } from '../../../component/loading/loading.component';
@@ -25,7 +24,7 @@ import { printError } from '../../../util/http';
   templateUrl: './me.component.html',
   styleUrls: ['./me.component.scss'],
   host: { 'class': 'full-page-form' },
-  imports: [MobxAngularModule, ReactiveFormsModule, LimitWidthDirective, UserTagSelectorComponent, ExtFormComponent, LoadingComponent]
+  imports: [ ReactiveFormsModule, LimitWidthDirective, UserTagSelectorComponent, ExtFormComponent, LoadingComponent]
 })
 export class SettingsMePage implements HasChanges {
 
@@ -75,7 +74,7 @@ export class SettingsMePage implements HasChanges {
         ...this.editForm.value.config,
       },
     }).pipe(
-      tap(() => runInAction(() => this.accounts.clearCache())),
+      tap(() => this.accounts.clearCache()),
       switchMap(() => this.accounts.initExt$),
       catchError((res: HttpErrorResponse) => {
         delete this.editing;

@@ -1,7 +1,13 @@
-import { AfterViewInit, Component, HostBinding, HostListener, isDevMode, ViewContainerRef } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  effect,
+  HostBinding,
+  HostListener,
+  isDevMode,
+  ViewContainerRef
+} from '@angular/core';
 import { Router, RouterOutlet } from '@angular/router';
-import { autorun, runInAction } from 'mobx';
-import { MobxAngularModule } from 'mobx-angular';
 import { LoginPopupComponent } from './component/login-popup/login-popup.component';
 import { SubscriptionBarComponent } from './component/subscription-bar/subscription-bar.component';
 import { pdfPlugin, pdfUrl } from './mods/media/pdf';
@@ -21,7 +27,6 @@ import { memo } from './util/memo';
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
   imports: [
-    MobxAngularModule,
     LoginPopupComponent,
     SubscriptionBarComponent,
     RouterOutlet,
@@ -54,36 +59,35 @@ export class AppComponent implements AfterViewInit {
     window.addEventListener('keyup', event => {
       const hotkey = !this.hotkeyActive(event) || this.hotkey(event.key);
       if (this.store.hotkey && hotkey) {
-        runInAction(() => this.store.hotkey = false);
+        this.store.hotkey = false;
         document.body.classList.remove('hotkey');
       }
     }, { capture: true });
     window.addEventListener('keydown', event => {
       const hotkey = this.hotkeyActive(event) || this.hotkey(event.key);
       if (this.store.hotkey !== hotkey) {
-        runInAction(() => this.store.hotkey = hotkey);
+        this.store.hotkey = hotkey;
         document.body.classList.toggle('hotkey', hotkey);
       }
     }, { capture: true });
     window.addEventListener('pointerenter', event => {
       const hotkey = this.hotkeyActive(event);
       if (this.store.hotkey !== hotkey) {
-        runInAction(() => this.store.hotkey = hotkey);
+        this.store.hotkey = hotkey;
         document.body.classList.toggle('hotkey', hotkey);
       }
     }, { capture: true });
     window.addEventListener('pointerout', event => {
       const hotkey = this.hotkeyActive(event);
       if (this.store.hotkey !== hotkey) {
-        runInAction(() => this.store.hotkey = hotkey);
+        this.store.hotkey = hotkey;
         document.body.classList.toggle('hotkey', hotkey);
       }
     }, { capture: true });
-  }
 
-  ngAfterViewInit() {
+    // PDF plugin effect
     if (this.pdfPlugin) {
-      autorun(() => {
+      effect(() => {
         if (this.store.eventBus.event === 'pdf') {
           let pdf = pdfUrl(this.pdfPlugin, this.store.eventBus.ref, this.store.eventBus.repost);
           if (!pdf) return;
@@ -92,8 +96,10 @@ export class AppComponent implements AfterViewInit {
         }
       });
     }
+
+    // Archive plugin effect
     if (this.archivePlugin) {
-      autorun(() => {
+      effect(() => {
         if (this.store.eventBus.event === 'archive') {
           let url = archiveUrl(this.archivePlugin, this.store.eventBus.ref, this.store.eventBus.repost);
           if (!url) return;
@@ -101,17 +107,21 @@ export class AppComponent implements AfterViewInit {
         }
       });
     }
+
+    // PiP plugin effect
     if (this.pipPlugin) {
-      autorun(() => {
+      effect(() => {
         if (this.store.eventBus.event === 'pip') {
           createPip(this.vc, this.store.eventBus.ref!, this.pipPlugin?.config?.windowConfig);
         }
       });
     }
+  }
 
+  ngAfterViewInit() {
     window.visualViewport?.addEventListener('resize', event => {
       const vv = event?.target as VisualViewport;
-      runInAction(() => this.store.viewportHeight = vv.height);
+      this.store.viewportHeight = vv.height;
     });
   }
 
@@ -131,7 +141,7 @@ export class AppComponent implements AfterViewInit {
   @HostListener('window:blur')
   removeHotkey() {
     if (this.store.hotkey) {
-      runInAction(() => this.store.hotkey = false);
+      this.store.hotkey = false;
       document.body.classList.remove('hotkey');
     }
   }
@@ -139,14 +149,14 @@ export class AppComponent implements AfterViewInit {
   @HostListener('window:offline')
   offline() {
     if (!this.store.offline) {
-      runInAction(() => this.store.offline = true);
+      this.store.offline = true;
     }
   }
 
   @HostListener('window:online')
   online() {
     if (this.store.offline) {
-      runInAction(() => this.store.offline = false);
+      this.store.offline = false;
     }
   }
 
@@ -186,5 +196,4 @@ export class AppComponent implements AfterViewInit {
       this.router.navigate(['/submit/upload'], { queryParams: { tag: this.store.view.queryTags }});
     }
   }
-
 }
