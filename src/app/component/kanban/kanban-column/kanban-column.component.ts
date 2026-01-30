@@ -42,6 +42,7 @@ import { KanbanDrag } from '../kanban.component';
 interface PendingUpload {
   id: string;
   name: string;
+  progress?: number;
 }
 
 @Component({
@@ -86,7 +87,6 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
   failed: { text: string; error: string }[] = [];
   @HostBinding('class.dropping')
   dropping = false;
-  uploadProgress = new Map<string, number>();
 
   private currentRequest?: Subscription;
   private runningSources?: Subscription;
@@ -421,8 +421,7 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
     files.forEach(file => {
       const uploadId = uuid();
       const fileName = file.name;
-      this.adding.push({ id: uploadId, name: fileName });
-      this.uploadProgress.set(uploadId, 0);
+      this.adding.push({ id: uploadId, name: fileName, progress: 0 });
 
       this.uploadFile$(file, uploadId).subscribe({
         next: ref => {
@@ -435,7 +434,6 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
           if (uploadIndex !== -1) {
             this.adding.splice(uploadIndex, 1);
           }
-          this.uploadProgress.delete(uploadId);
           this.failed.push({ text: fileName, error: printError(err).join('\n') });
         }
       });
@@ -453,14 +451,18 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
         title: file.name,
         tags: [...tagsWithAuthor, 'internal', ...file.type === 'text/markdown' ? [] : codeType]
       };
-      this.uploadProgress.set(uploadId, 50);
+      const upload = this.adding.find(u => u.id === uploadId);
+      if (upload) upload.progress = 50;
       return readFileAsString(file).pipe(
         switchMap(contents => this.refs.create({
           ...ref,
           comment: contents,
         })),
         map(() => ref),
-        tap(() => this.uploadProgress.set(uploadId, 100)),
+        tap(() => {
+          const upload = this.adding.find(u => u.id === uploadId);
+          if (upload) upload.progress = 100;
+        }),
         catchError(err => {
           console.warn('File upload failed, falling back to base64 encoding:', err);
           return readFileAsDataURL(file).pipe(map(url => ({ ...ref, url }))); // base64
@@ -485,7 +487,8 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
               return event.body;
             case HttpEventType.UploadProgress:
               const percentDone = event.total ? Math.round(100 * event.loaded / event.total) : 0;
-              this.uploadProgress.set(uploadId, percentDone);
+              const upload = this.adding.find(u => u.id === uploadId);
+              if (upload) upload.progress = percentDone;
               return null;
           }
           return null;
@@ -515,7 +518,6 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
     if (uploadIndex !== -1) {
       this.adding.splice(uploadIndex, 1);
     }
-    this.uploadProgress.delete(uploadId);
     this.page!.content.push(ref);
   }
 
