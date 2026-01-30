@@ -209,18 +209,31 @@ for fmt in formats_to_convert:
             markdown_content = f"(No text content could be extracted from {plugin})"
 
         # Create response ref
+        response_ref_tags = ['+plugin/delta/md', 'internal']
+
+        # Propagate visibility/access tags from source ref
+        visibility_tags = []
+
+        if 'public' in tags:
+            visibility_tags.append('public')
+        if 'dm' in tags:
+            visibility_tags.append('dm')
+
+        for t in tags:
+            if t.startswith('plugin/thread') or t.startswith('plugin/comment') or t.startswith('user/'):
+                visibility_tags.append(t)
+
         response_ref = {
             'origin': origin,
             'url': 'internal:' + str(uuid.uuid4()),
             'title': f"Markdown: {ref.get('title', 'Untitled')} ({plugin})",
             'comment': markdown_content,
-            'tags': ['+plugin/delta/md', 'internal'],
+            'tags': response_ref_tags + visibility_tags,
             'sources': [ref.get('url')],
         }
 
-        # Copy visibility tags
-        if 'public' in tags:
-            response_ref['tags'].append('public')
+        # Adjust storage visibility if public
+        if 'public' in visibility_tags and 'internal' in response_ref['tags']:
             response_ref['tags'].remove('internal')
 
         bundle['ref'].append(response_ref)
