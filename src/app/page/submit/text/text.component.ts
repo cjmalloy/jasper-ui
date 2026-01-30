@@ -177,7 +177,7 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
           }
         }
         for (const s of this.store.submit.sources) {
-          this.addSource(s)
+          this.addSource(s);
         }
       }, { injector: this.injector });
     });
