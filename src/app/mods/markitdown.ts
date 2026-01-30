@@ -51,7 +51,7 @@ import sys
 import tempfile
 import uuid
 import requests
-from markitdown import MarkItDown
+from markitdown import MarkItDown, StreamInfo
 
 ref = json.load(sys.stdin)
 origin = ref.get('origin', '')
@@ -147,8 +147,23 @@ def convert_to_markdown(data, ext, content_type=''):
         temp_file.write(data)
         temp_file.close()
 
+        # Extract mimetype from content-type (remove charset and other parameters)
+        mimetype = None
+        if content_type:
+            mimetype = content_type.split(';')[0].strip()
+            if mimetype and mimetype.count('/') != 1:
+                mimetype = None
+
+        # Create StreamInfo with mimetype hint
+        stream_info = None
+        if mimetype or ext:
+            stream_info = StreamInfo(
+                mimetype=mimetype if mimetype else None,
+                extension=ext if ext else None
+            )
+
         md = MarkItDown()
-        result = md.convert(temp_file.name)
+        result = md.convert(temp_file.name, stream_info=stream_info)
         return result.text_content
     finally:
         if os.path.exists(temp_file.name):
