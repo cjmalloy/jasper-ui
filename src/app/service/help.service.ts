@@ -1,6 +1,7 @@
 import { Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { ComponentPortal } from '@angular/cdk/portal';
 import { ElementRef, Injectable } from '@angular/core';
+import { delay } from 'lodash-es';
 import { runInAction } from 'mobx';
 import { HelpPopupComponent } from '../component/help-popup/help-popup.component';
 import { Store } from '../store/store';
@@ -22,8 +23,11 @@ export class HelpService {
   /**
    * Adds a help step to the queue. If no tour is active, starts the tour.
    */
-  async pushStep(el: ElementRef, text: string) {
+  async pushStep(el: ElementRef | HTMLElement | null, text: string) {
     if (!el) return;
+    if (!(el instanceof ElementRef)) {
+      el = new ElementRef(el);
+    }
     const id = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text.substring(0, 150))).then(hash => {
       let result = '';
       const view = new DataView(hash);
@@ -56,7 +60,7 @@ export class HelpService {
       runInAction(() => this.store.helpStepIndex = 0);
     }
 
-    setTimeout(() => this.showCurrentStep(), 1000);
+    delay(() => this.showCurrentStep(), 1000);
   }
 
   /**

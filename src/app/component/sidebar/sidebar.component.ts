@@ -157,16 +157,13 @@ export class SidebarComponent implements OnInit, AfterViewInit, OnChanges, OnDes
 
   ngAfterViewInit() {
     if (this.ext?.config.searchHelp) {
-      const el = this.el.nativeElement.querySelector('app-search');
-      if (el) this.help.pushStep(new ElementRef(el), this.ext.config.searchHelp);
+      this.help.pushStep(this.el.nativeElement.querySelector('app-search'), this.ext.config.searchHelp);
     }
     if (this.ext?.config.filterHelp) {
-      const el = this.el.nativeElement.querySelector('app-filter');
-      if (el) this.help.pushStep(new ElementRef(el), this.ext.config.filterHelp);
+      this.help.pushStep(this.el.nativeElement.querySelector('app-filter'), this.ext.config.filterHelp);
     }
     if (this.ext?.config.sortHelp) {
-      const el = this.el.nativeElement.querySelector('app-sort');
-      if (el) this.help.pushStep(new ElementRef(el), this.ext.config.sortHelp);
+      this.help.pushStep(this.el.nativeElement.querySelector('app-sort'), this.ext.config.sortHelp);
     }
   }
 
