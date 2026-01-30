@@ -4,9 +4,9 @@ import { autorun } from 'mobx';
 import { catchError, map, Observable, of, throwError } from 'rxjs';
 import { mapRef, Ref } from '../../model/ref';
 import { Resource } from '../../model/resource';
-import { catchAll } from '../../mods/scrape';
+import { catchAll } from '../../mods/sync/scrape';
 import { Store } from '../../store/store';
-import { noPercentEncode, params } from '../../util/http';
+import { params, sanitizePath } from '../../util/http';
 import { ConfigService } from '../config.service';
 import { LoginService } from '../login.service';
 import { RefService } from './ref.service';
@@ -43,7 +43,7 @@ export class ProxyService {
     if (this.cacheList.has(origin + url)) return;
     this.cacheList.add(origin + url);
     const s = () => {
-      this.http.get(`${this.base}/prefetch/${noPercentEncode(this.scraping[0]?.title?.trim() || this.scraping[0].url)}`, {
+      this.http.get(`${this.base}/prefetch/${sanitizePath(this.scraping[0]?.title?.trim() || this.scraping[0].url)}`, {
         params: params({ url: this.scraping[0].url, origin: this.scraping[0].origin }),
       }).pipe(
         catchError(() => of(null)),
@@ -58,7 +58,7 @@ export class ProxyService {
 
   fetch(url: string, origin = '', filename = 'file', thumbnail?: boolean): Observable<Resource> {
     this.cacheList.add(origin + url);
-    return this.http.get(`${this.base}/${noPercentEncode(filename)}`, {
+    return this.http.get(`${this.base}/${sanitizePath(filename)}`, {
       params: params({ url, origin, thumbnail }),
       observe: 'response',
       responseType: 'arraybuffer',
@@ -92,8 +92,8 @@ export class ProxyService {
     if (!url) return '';
     if (url.startsWith('data:')) return url;
     if (this.config.prefetch && this.store.account.user) this.prefetch(url, origin, filename);
-    if (thumbnail) return `${this.base}/${noPercentEncode(filename.trim())}?thumbnail=true&url=${encodeURIComponent(url)}&origin=${origin}`;
-    return `${this.base}/${noPercentEncode(filename.trim())}?url=${encodeURIComponent(url)}&origin=${origin}`;
+    if (thumbnail) return `${this.base}/${sanitizePath(filename.trim())}?thumbnail=true&url=${encodeURIComponent(url)}&origin=${origin}`;
+    return `${this.base}/${sanitizePath(filename.trim())}?url=${encodeURIComponent(url)}&origin=${origin}`;
   }
 
   isProxied(url?: string) {

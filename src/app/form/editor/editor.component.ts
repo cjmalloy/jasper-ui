@@ -31,7 +31,7 @@ import { FillWidthDirective } from '../../directive/fill-width.directive';
 import { LimitWidthDirective } from '../../directive/limit-width.directive';
 import { Ref } from '../../model/ref';
 import { EditorButton, sortOrder } from '../../model/tag';
-import { mimeToCode } from '../../mods/code';
+import { mimeToCode } from '../../mods/media/code';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { ProxyService } from '../../service/api/proxy.service';

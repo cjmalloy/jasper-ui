@@ -20,8 +20,12 @@ export const chatTemplate: Template = {
     When replying to a chat message, adding a notification to the user is optional, but not required.
     Notifying the user is only necessary if they have stepped away fom the chat room and need a ping.
     When replying to a chat message, be sure to include the same chat tag. For example, chat/general.
-    Never include a title in a chat message, only a comment. If you include a title and a comment,
-    only the title text will be visible until the user clicks on the chat message, which is poor form.
+    Never include a title in a chat message, only a comment.
+    NEVER INCLUDE A TITLE IN A CHAT MESSAGE, ONLY A COMMENT.
+    If you include a title and a comment, only the title text will be visible until the user clicks
+    on the chat message, which is poor form.
+    If the comment is longer than 140 characters, the first 140 characters followed by ellipsis  will
+    be used as the title.
     Always give the shortest possible response. Responses longer than a line will be wrapped, and only
     show past the first line when focused. Respond in multiple messages if necessary.`,
     icons: [{ thumbnail: $localize`🗨️`, order: 1 }],

@@ -4,9 +4,9 @@ import { autorun, runInAction } from 'mobx';
 import { MobxAngularModule } from 'mobx-angular';
 import { LoginPopupComponent } from './component/login-popup/login-popup.component';
 import { SubscriptionBarComponent } from './component/subscription-bar/subscription-bar.component';
-import { archivePlugin, archiveUrl } from './mods/archive';
-import { pdfPlugin, pdfUrl } from './mods/pdf';
-import { pipPlugin } from './mods/pip';
+import { pdfPlugin, pdfUrl } from './mods/media/pdf';
+import { pipPlugin } from './mods/system/pip';
+import { archivePlugin, archiveUrl } from './mods/tools/archive';
 import { AdminService } from './service/admin.service';
 import { OriginService } from './service/api/origin.service';
 import { ProxyService } from './service/api/proxy.service';
@@ -104,7 +104,7 @@ export class AppComponent implements AfterViewInit {
     if (this.pipPlugin) {
       autorun(() => {
         if (this.store.eventBus.event === 'pip') {
-          createPip(this.vc, this.store.eventBus.ref!);
+          createPip(this.vc, this.store.eventBus.ref!, this.pipPlugin?.config?.windowConfig);
         }
       });
     }

@@ -7,7 +7,7 @@ import { tap } from 'rxjs/operators';
 import { pluginForm, PluginFormComponent } from '../../form/plugin/plugin.component';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Plugin, writePlugin } from '../../model/plugin';
-import { isDeletorTag, tagDeleteNotice } from "../../mods/delete";
+import { isDeletorTag, tagDeleteNotice } from '../../mods/delete';
 import { AdminService } from '../../service/admin.service';
 import { PluginService } from '../../service/api/plugin.service';
 import { ModService } from '../../service/mod.service';
