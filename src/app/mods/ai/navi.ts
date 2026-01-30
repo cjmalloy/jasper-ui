@@ -49,6 +49,9 @@ export const naviQueryPlugin: Plugin = {
           responses: ref.url,
           size: 1,
         },
+      }).catch(e => {
+        console.error(e.response.data);
+        process.exit(1);
       })).data.content[0];
       if (existingResponse) process.exit(0);
       const context = new Map();
@@ -64,6 +67,9 @@ export const naviQueryPlugin: Plugin = {
           sort: 'published,desc',
           size: config.maxSources,
         },
+      }).catch(e => {
+        console.error(e.response.data);
+        process.exit(1);
       })).data.content.filter(p => !p.url.startsWith('tag:') || !p.url.includes('?'));
       let parents = await getSources(ref.url);
       parents.forEach(p => context.set(p.url, p));
@@ -92,6 +98,9 @@ export const naviQueryPlugin: Plugin = {
           'User-Role': 'ROLE_ADMIN',
         },
         params: { origin },
+      }).catch(e => {
+        console.error(e.response.data);
+        process.exit(1);
       })).data;
       const templateCursor = (await axios.get(process.env.JASPER_API + '/pub/api/v1/repl/template/cursor', {
         headers: {
@@ -99,6 +108,9 @@ export const naviQueryPlugin: Plugin = {
           'User-Role': 'ROLE_ADMIN',
         },
         params: { origin },
+      }).catch(e => {
+        console.error(e.response.data);
+        process.exit(1);
       })).data;
       const modPrompt = (await axios.get(process.env.JASPER_API + '/api/v1/ref', {
         headers: {
@@ -106,6 +118,9 @@ export const naviQueryPlugin: Plugin = {
           'User-Role': 'ROLE_ADMIN',
         },
         params: { url: 'system:mod-prompt', origin },
+      }).catch(e => {
+        console.error(e.response.data);
+        process.exit(1);
       })).data;
       if (modPrompt.modified < templateCursor || modPrompt.modified < pluginCursor) {
         const getAll = async type => (await axios.get(process.env.JASPER_API + '/api/v1/' + type + '/page', {
@@ -114,6 +129,9 @@ export const naviQueryPlugin: Plugin = {
             'User-Role': 'ROLE_ADMIN',
           },
           params: { query: origin || '*' },
+        }).catch(e => {
+          console.error(e.response.data);
+          process.exit(1);
         })).data.content;
         delete modPrompt.metadata;
         modPrompt.comment = [...await getAll('plugin'), ...await getAll('template')]

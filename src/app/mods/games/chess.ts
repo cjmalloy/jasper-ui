@@ -139,6 +139,9 @@ export const chessAiPlugin: Plugin = {
             'User-Role': 'ROLE_ADMIN',
           },
           params: { query: (config?.apiKeyTag || '+plugin/secret/openai') + origin },
+        }).catch(e => {
+          console.error(e.response.data);
+          process.exit(1);
         })).data.content[0].comment;
         const prompt =
           'You are playing a game of chess against an opponent.\\n' +

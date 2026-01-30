@@ -35,6 +35,9 @@ export const aiQueryPlugin: Plugin = {
           responses: ref.url,
           size: 1,
         },
+      }).catch(e => {
+        console.error(e.response.data);
+        process.exit(1);
       })).data.content[0];
       if (!response) {
         // No placeholder, earlier stage failed
@@ -469,6 +472,9 @@ export const aiQueryPlugin: Plugin = {
           'User-Role': 'ROLE_ADMIN',
         },
         params: { query: (config.apiKeyTag ||= ('+plugin/secret/' + config.provider)) + (origin || '@') },
+      }).catch(e => {
+        console.error(e.response.data);
+        process.exit(1);
       })).data.content[0]?.comment;
       const messages = [];
       const systemPrompts = (await axios.get(process.env.JASPER_API + '/api/v1/ref/page', {
@@ -482,6 +488,9 @@ export const aiQueryPlugin: Plugin = {
           sort: 'published',
           size: response.sources.length,
         },
+      }).catch(e => {
+        console.error(e.response.data);
+        process.exit(1);
       })).data.content;
       for (const c of systemPrompts) {
         if (c.url === 'system:ext-prompt') continue; // Placeholder
@@ -501,6 +510,9 @@ export const aiQueryPlugin: Plugin = {
                 'User-Tag': authors[0] || '',
               },
               params: { tag: tag + origin },
+            }).catch(e => {
+              console.error(e.response.data);
+              process.exit(1);
             })).data;
           } catch (e) {
             return null;
@@ -541,6 +553,9 @@ export const aiQueryPlugin: Plugin = {
             sort: 'published,desc',
             size: config.maxSources || 2000,
           },
+        }).catch(e => {
+          console.error(e.response.data);
+          process.exit(1);
         })).data.content.reverse();
         for (const w of workspace) {
           const role
@@ -564,6 +579,9 @@ export const aiQueryPlugin: Plugin = {
           sort: 'published',
           size: response.sources.length,
         },
+      }).catch(e => {
+        console.error(e.response.data);
+        process.exit(1);
       })).data.content;
       for (const c of sources) {
         if (config.ignoreThread && ref.sources && c.url === ref.sources[1] && ref.sources[0] !== ref.sources[1]) continue;
@@ -580,6 +598,9 @@ export const aiQueryPlugin: Plugin = {
               'User-Tag': authors[0] || '',
             },
             params: { url, origin: c.origin || '' },
+          }).catch(e => {
+            console.error(e.response.data);
+            process.exit(1);
           });
         }
         if (config.image && hasTag('plugin/image', c)) {
@@ -591,6 +612,9 @@ export const aiQueryPlugin: Plugin = {
               'User-Tag': authors[0] || '',
             },
             params: { url, origin: c.origin || '' },
+          }).catch(e => {
+            console.error(e.response.data);
+            process.exit(1);
           });
         }
         if (config.audio && hasTag('plugin/audio', c)) {
@@ -602,6 +626,9 @@ export const aiQueryPlugin: Plugin = {
               'User-Tag': authors[0] || '',
             },
             params: { url, origin: c.origin || '' },
+          }).catch(e => {
+            console.error(e.response.data);
+            process.exit(1);
           });
         }
         if (config.video && hasTag('plugin/video', c)) {
@@ -613,6 +640,9 @@ export const aiQueryPlugin: Plugin = {
               'User-Tag': authors[0] || '',
             },
             params: { url, origin: c.origin || '' },
+          }).catch(e => {
+            console.error(e.response.data);
+            process.exit(1);
           });
         }
         messages.push({

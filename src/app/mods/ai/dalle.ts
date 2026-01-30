@@ -135,6 +135,9 @@ export const dalleQueryPlugin: Plugin = {
           'User-Role': 'ROLE_ADMIN',
         },
         params: { query: (config?.apiKeyTag || '+plugin/secret/openai') + origin },
+      }).catch(e => {
+        console.error(e.response.data);
+        process.exit(1);
       })).data.content[0].comment;
       const openai = new OpenAi({ apiKey });
       const gen = await openai.images.generate({
@@ -187,6 +190,9 @@ export const dalleQueryPlugin: Plugin = {
             'Content-Type': 'image/png',
           },
           params: { origin, mime: 'image/png' },
+        }).catch(e => {
+          console.error(e.response.data);
+          process.exit(1);
         })).data;
         delete cache.metadata;
         console.log(JSON.stringify({

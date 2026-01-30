@@ -40,6 +40,9 @@ export const summaryQueryPlugin: Plugin = {
           responses: ref.url,
           size: 1,
         },
+      }).catch(e => {
+        console.error(e.response.data);
+        process.exit(1);
       })).data.content[0];
       if (existingResponse) process.exit(0);
       const response = {
