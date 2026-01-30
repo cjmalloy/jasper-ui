@@ -81,6 +81,7 @@ import { thanksMod } from '../mods/tools/thanks';
 import { userMod } from '../mods/user';
 import { voteMod } from '../mods/vote';
 import { ytdlpMod } from '../mods/ytdlp';
+import { markitdownMod } from '../mods/markitdown';
 import { progress } from '../store/bus';
 import { Store } from '../store/store';
 import { modId } from '../util/format';
@@ -175,6 +176,7 @@ export class AdminService {
     audioMod,
     videoMod,
     ytdlpMod,
+    markitdownMod,
     voteMod,
     imageMod,
     lensMod,
