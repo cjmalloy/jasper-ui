@@ -10,7 +10,7 @@ import { Store } from '../store/store';
   providedIn: 'root',
 })
 export class HelpService {
-  private steps: { id: string, text: string, el: ElementRef }[] = [];
+  private steps: { id: string, text: string, el: HTMLElement }[] = [];
   private overlayRef: OverlayRef | null = null;
 
   private shown: string[] = [];
@@ -25,9 +25,7 @@ export class HelpService {
    */
   async pushStep(el: ElementRef | HTMLElement | null, text: string) {
     if (!el) return;
-    if (!(el instanceof ElementRef)) {
-      el = new ElementRef(el);
-    }
+    const element = el instanceof ElementRef ? el.nativeElement : el;
     const id = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text.substring(0, 150))).then(hash => {
       let result = '';
       const view = new DataView(hash);
@@ -38,7 +36,7 @@ export class HelpService {
     });
     if (this.shown.includes(id) || this.store.local.shownHelpPopup(id)) return;
     this.shown.push(id);
-    this.steps.push({ id, el, text });
+    this.steps.push({ id, el: element, text });
     runInAction(() => this.store.helpSteps = this.steps.length);
     if (this.store.helpStepIndex === -1) {
       // If no tour is active, start immediately with this step
@@ -96,7 +94,7 @@ export class HelpService {
     this.dismissOverlay();
 
     const currentStep = this.steps[this.store.helpStepIndex];
-    const element = currentStep.el.nativeElement;
+    const element = currentStep.el;
     element.classList.add('help-element');
 
     // Create an overlay that attaches to the element
