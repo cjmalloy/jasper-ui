@@ -148,10 +148,11 @@ export class HelpService {
    */
   endTour(): void {
     this.dismissOverlay();
-    // Only dismiss the current step if we've actually shown it (maxIndexReached >= 0)
-    const currentIndex = this.store.helpStepIndex;
-    if (this.maxIndexReached >= 0 && currentIndex >= 0 && currentIndex < this.steps.length) {
-      this.store.local.dismissHelpPopup(this.steps[currentIndex].id);
+    // Dismiss all steps that were shown (up to maxIndexReached)
+    if (this.maxIndexReached >= 0) {
+      for (let i = 0; i <= this.maxIndexReached && i < this.steps.length; i++) {
+        this.store.local.dismissHelpPopup(this.steps[i].id);
+      }
     }
     // Remove shown steps (up to max index reached) but keep undisplayed ones
     const undisplayedSteps = this.maxIndexReached >= 0 
