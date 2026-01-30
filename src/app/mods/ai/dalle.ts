@@ -136,9 +136,9 @@ export const dalleQueryPlugin: Plugin = {
         },
         params: { query: (config?.apiKeyTag || '+plugin/secret/openai') + origin },
       }).catch(e => {
-        console.error(e.response.data);
-        process.exit(1);
-      })).data.content[0].comment;
+          console.error(e.response.data);
+          throw new Error(e);
+        })).data.content[0].comment;
       const openai = new OpenAi({ apiKey });
       const gen = await openai.images.generate({
         model: config?.model || 'dall-e-3',
@@ -192,7 +192,7 @@ export const dalleQueryPlugin: Plugin = {
           params: { origin, mime: 'image/png' },
         }).catch(e => {
           console.error(e.response.data);
-          process.exit(1);
+          throw new Error(e);
         })).data;
         delete cache.metadata;
         console.log(JSON.stringify({

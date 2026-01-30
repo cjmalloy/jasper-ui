@@ -38,9 +38,9 @@ export const translateQueryPlugin: Plugin = {
           size: 1,
         },
       }).catch(e => {
-        console.error(e.response.data);
-        process.exit(1);
-      })).data.content[0];
+          console.error(e.response.data);
+          throw new Error(e);
+        })).data.content[0];
       if (existingResponse) process.exit(0);
       const response = {
         origin,

@@ -141,7 +141,7 @@ export const chessAiPlugin: Plugin = {
           params: { query: (config?.apiKeyTag || '+plugin/secret/openai') + origin },
         }).catch(e => {
           console.error(e.response.data);
-          process.exit(1);
+          throw new Error(e);
         })).data.content[0].comment;
         const prompt =
           'You are playing a game of chess against an opponent.\\n' +
@@ -172,8 +172,7 @@ export const chessAiPlugin: Plugin = {
           } catch (e) {
             retry++;
             if (retry >= 10) {
-              console.error(e.message);
-              process.exit(1);
+              throw new Error(e);
             }
             messages.push({ role: 'assistant', content: move });
             messages.push({ role: 'system', content: e.message });
@@ -305,7 +304,7 @@ export const chessMod: Mod = {
     chessPlugin,
     chessAiPlugin,
   ],
-   template: [
+  template: [
     chessTemplate,
   ],
 };

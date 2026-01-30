@@ -50,9 +50,9 @@ export const naviQueryPlugin: Plugin = {
           size: 1,
         },
       }).catch(e => {
-        console.error(e.response.data);
-        process.exit(1);
-      })).data.content[0];
+          console.error(e.response.data);
+          throw new Error(e);
+        })).data.content[0];
       if (existingResponse) process.exit(0);
       const context = new Map();
       const getSources = async (url, rel = 'sources') => (await axios.get(process.env.JASPER_API + '/api/v1/ref/page', {
@@ -68,9 +68,9 @@ export const naviQueryPlugin: Plugin = {
           size: config.maxSources,
         },
       }).catch(e => {
-        console.error(e.response.data);
-        process.exit(1);
-      })).data.content.filter(p => !p.url.startsWith('tag:') || !p.url.includes('?'));
+          console.error(e.response.data);
+          throw new Error(e);
+        })).data.content.filter(p => !p.url.startsWith('tag:') || !p.url.includes('?'));
       let parents = await getSources(ref.url);
       parents.forEach(p => context.set(p.url, p));
       for (let i = 0; i < config.maxContext; i++) {
@@ -99,9 +99,9 @@ export const naviQueryPlugin: Plugin = {
         },
         params: { origin },
       }).catch(e => {
-        console.error(e.response.data);
-        process.exit(1);
-      })).data;
+          console.error(e.response.data);
+          throw new Error(e);
+        })).data;
       const templateCursor = (await axios.get(process.env.JASPER_API + '/pub/api/v1/repl/template/cursor', {
         headers: {
           'Local-Origin': origin || 'default',
@@ -109,9 +109,9 @@ export const naviQueryPlugin: Plugin = {
         },
         params: { origin },
       }).catch(e => {
-        console.error(e.response.data);
-        process.exit(1);
-      })).data;
+          console.error(e.response.data);
+          throw new Error(e);
+        })).data;
       const modPrompt = (await axios.get(process.env.JASPER_API + '/api/v1/ref', {
         headers: {
           'Local-Origin': origin || 'default',
@@ -119,9 +119,9 @@ export const naviQueryPlugin: Plugin = {
         },
         params: { url: 'system:mod-prompt', origin },
       }).catch(e => {
-        console.error(e.response.data);
-        process.exit(1);
-      })).data;
+          console.error(e.response.data);
+          throw new Error(e);
+        })).data;
       if (modPrompt.modified < templateCursor || modPrompt.modified < pluginCursor) {
         const getAll = async type => (await axios.get(process.env.JASPER_API + '/api/v1/' + type + '/page', {
           headers: {
@@ -131,7 +131,7 @@ export const naviQueryPlugin: Plugin = {
           params: { query: origin || '*' },
         }).catch(e => {
           console.error(e.response.data);
-          process.exit(1);
+          throw new Error(e);
         })).data.content;
         delete modPrompt.metadata;
         modPrompt.comment = [...await getAll('plugin'), ...await getAll('template')]
