@@ -113,7 +113,7 @@
         * Published date was changed to be after source published date.
       </div>
     }
-    @if (!store.view.ref.created && (!store.view.browser || !store.view.ref.url.startsWith('tag:/'))) {
+    @if (!store.view.ref.created && (!store.view.browser || !store.view.ref.url || !store.view.ref.url.startsWith('tag:/'))) {
       <div class="stack">
         <div class="error-404" i18n>Not Found</div>
         @if (store.account.signedIn) {
