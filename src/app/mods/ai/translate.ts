@@ -37,7 +37,10 @@ export const translateQueryPlugin: Plugin = {
           responses: ref.url,
           size: 1,
         },
-      })).data.content[0];
+      }).catch(e => {
+          console.error(e.response.data);
+          throw new Error(e);
+        })).data.content[0];
       if (existingResponse) process.exit(0);
       const response = {
         origin,

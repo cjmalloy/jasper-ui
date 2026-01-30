@@ -35,7 +35,10 @@ export const aiQueryPlugin: Plugin = {
           responses: ref.url,
           size: 1,
         },
-      })).data.content[0];
+      }).catch(e => {
+          console.error(e.response.data);
+          throw new Error(e);
+        })).data.content[0];
       if (!response) {
         // No placeholder, earlier stage failed
         process.exit(0);
@@ -469,7 +472,10 @@ export const aiQueryPlugin: Plugin = {
           'User-Role': 'ROLE_ADMIN',
         },
         params: { query: (config.apiKeyTag ||= ('+plugin/secret/' + config.provider)) + (origin || '@') },
-      })).data.content[0]?.comment;
+      }).catch(e => {
+          console.error(e.response.data);
+          throw new Error(e);
+        })).data.content[0]?.comment;
       const messages = [];
       const systemPrompts = (await axios.get(process.env.JASPER_API + '/api/v1/ref/page', {
         headers: {
@@ -482,7 +488,10 @@ export const aiQueryPlugin: Plugin = {
           sort: 'published',
           size: response.sources.length,
         },
-      })).data.content;
+      }).catch(e => {
+          console.error(e.response.data);
+          throw new Error(e);
+        })).data.content;
       for (const c of systemPrompts) {
         if (c.url === 'system:ext-prompt') continue; // Placeholder
         if (config.systemPrompt && c.url === 'system:app-prompt') continue; // Overridden by config.systemPrompt
@@ -501,7 +510,10 @@ export const aiQueryPlugin: Plugin = {
                 'User-Tag': authors[0] || '',
               },
               params: { tag: tag + origin },
-            })).data;
+            }).catch(e => {
+          console.error(e.response.data);
+          throw new Error(e);
+        })).data;
           } catch (e) {
             return null;
           }
@@ -541,6 +553,9 @@ export const aiQueryPlugin: Plugin = {
             sort: 'published,desc',
             size: config.maxSources || 2000,
           },
+        }).catch(e => {
+          console.error(e.response.data);
+          throw new Error(e);
         })).data.content.reverse();
         for (const w of workspace) {
           const role
@@ -564,7 +579,10 @@ export const aiQueryPlugin: Plugin = {
           sort: 'published',
           size: response.sources.length,
         },
-      })).data.content;
+      }).catch(e => {
+          console.error(e.response.data);
+          throw new Error(e);
+        })).data.content;
       for (const c of sources) {
         if (config.ignoreThread && ref.sources && c.url === ref.sources[1] && ref.sources[0] !== ref.sources[1]) continue;
         const plugins = {};
@@ -580,7 +598,10 @@ export const aiQueryPlugin: Plugin = {
               'User-Tag': authors[0] || '',
             },
             params: { url, origin: c.origin || '' },
-          });
+          }).catch(e => {
+          console.error(e.response.data);
+          throw new Error(e);
+        });
         }
         if (config.image && hasTag('plugin/image', c)) {
           const url = c.plugins?.['plugin/image']?.url || c.url;
@@ -591,7 +612,10 @@ export const aiQueryPlugin: Plugin = {
               'User-Tag': authors[0] || '',
             },
             params: { url, origin: c.origin || '' },
-          });
+          }).catch(e => {
+          console.error(e.response.data);
+          throw new Error(e);
+        });
         }
         if (config.audio && hasTag('plugin/audio', c)) {
           const url = c.plugins?.['plugin/audio']?.url || c.url;
@@ -602,7 +626,10 @@ export const aiQueryPlugin: Plugin = {
               'User-Tag': authors[0] || '',
             },
             params: { url, origin: c.origin || '' },
-          });
+          }).catch(e => {
+          console.error(e.response.data);
+          throw new Error(e);
+        });
         }
         if (config.video && hasTag('plugin/video', c)) {
           const url = c.plugins?.['plugin/video']?.url || c.url;
@@ -613,7 +640,10 @@ export const aiQueryPlugin: Plugin = {
               'User-Tag': authors[0] || '',
             },
             params: { url, origin: c.origin || '' },
-          });
+          }).catch(e => {
+          console.error(e.response.data);
+          throw new Error(e);
+        });
         }
         messages.push({
           role: hasTag('+plugin/delta/ai', c) ? 'assistant' : 'user',
@@ -656,7 +686,7 @@ export const aiQueryPlugin: Plugin = {
           if (hasTag('+plugin/debug', ref)) {
             console.error(debugLogs());
           }
-          process.exit(1);
+          throw new Error(e);
         }
       } else {
         bundle = {
@@ -673,7 +703,7 @@ export const aiQueryPlugin: Plugin = {
         if (hasTag('+plugin/debug', ref)) {
           console.error(debugLogs());
         }
-        process.exit(1);
+        throw new Error();
       }
       bundle.ref[0] = response;
       delete response.metadata;
