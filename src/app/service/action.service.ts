@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { debounce, isArray, without } from 'lodash-es';
 import { DateTime } from 'luxon';
-import { runInAction } from 'mobx';
+
 import { catchError, concat, last, merge, Observable, of, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { PluginApi } from '../model/plugin';
@@ -128,11 +128,11 @@ export class ActionService {
         }
         return throwError(() => err);
       }),
-      tap(cursor => runInAction(() => {
+      tap(cursor => {
         ref.comment = comment;
         ref.modifiedString = cursor;
         ref.modified = DateTime.fromISO(cursor);
-      })),
+      }),
     );
   }
 

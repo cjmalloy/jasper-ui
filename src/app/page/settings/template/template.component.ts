@@ -1,7 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, effect, OnDestroy, ViewChild } from '@angular/core';
 import { defer } from 'lodash-es';
-import { autorun, IReactionDisposer } from 'mobx';
 import { catchError, switchMap, throwError } from 'rxjs';
 import { TemplateListComponent } from '../../../component/template/template-list/template-list.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
@@ -20,14 +19,12 @@ import { getModels, getZipOrTextFile } from '../../../util/zip';
   styleUrls: ['./template.component.scss'],
   imports: [TemplateListComponent],
 })
-export class SettingsTemplatePage implements OnInit, OnDestroy, HasChanges {
+export class SettingsTemplatePage implements OnDestroy, HasChanges {
 
   serverError: string[] = [];
 
   @ViewChild('list')
   list?: TemplateListComponent;
-
-  private disposers: IReactionDisposer[] = [];
 
   constructor(
     private mod: ModService,
@@ -38,14 +35,8 @@ export class SettingsTemplatePage implements OnInit, OnDestroy, HasChanges {
     mod.setTitle($localize`Settings: Templates`);
     store.view.clear(['tag:len', 'tag'], ['tag:len', 'tag']);
     query.clear();
-  }
 
-  saveChanges() {
-    return !this.list || this.list.saveChanges();
-  }
-
-  ngOnInit(): void {
-    this.disposers.push(autorun(() => {
+    effect(() => {
       const args = {
         query: this.store.view.showRemotes ? '@*' : (this.store.account.origin || '*'),
         search: this.store.view.search,
@@ -55,13 +46,15 @@ export class SettingsTemplatePage implements OnInit, OnDestroy, HasChanges {
         ...getTagFilter(this.store.view.filter),
       };
       defer(() => this.query.setArgs(args));
-    }));
+    });
+  }
+
+  saveChanges() {
+    return !this.list || this.list.saveChanges();
   }
 
   ngOnDestroy() {
     this.query.close();
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
   }
 
   upload(files?: FileList) {

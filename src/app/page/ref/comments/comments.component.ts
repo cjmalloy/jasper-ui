@@ -1,7 +1,6 @@
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, effect, Injector, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { uniq } from 'lodash-es';
-import { autorun, IReactionDisposer, runInAction } from 'mobx';
-import { MobxAngularModule } from 'mobx-angular';
+
 import { Subject } from 'rxjs';
 import { CommentReplyComponent } from '../../../component/comment/comment-reply/comment-reply.component';
 import { CommentThreadComponent } from '../../../component/comment/comment-thread/comment-thread.component';
@@ -22,27 +21,27 @@ import { hasTag, removeTag, updateMetadata } from '../../../util/tag';
   templateUrl: './comments.component.html',
   styleUrls: ['./comments.component.scss'],
   imports: [
-    MobxAngularModule,
+
     CommentReplyComponent,
     CommentThreadComponent,
     LoadingComponent,
   ],
 })
 export class RefCommentsComponent implements OnInit, OnDestroy, HasChanges {
-  private disposers: IReactionDisposer[] = [];
   newComments$ = new Subject<Ref | undefined>();
 
   @ViewChild('reply')
   reply?: CommentReplyComponent;
 
   constructor(
+    private injector: Injector,
     private mod: ModService,
     public store: Store,
     public thread: ThreadStore,
     private admin: AdminService,
   ) {
     thread.clear();
-    runInAction(() => store.view.defaultSort = ['published']);
+    store.view.defaultSort = ['published'];
   }
 
   saveChanges() {
@@ -51,30 +50,28 @@ export class RefCommentsComponent implements OnInit, OnDestroy, HasChanges {
 
   ngOnInit(): void {
     // TODO: set title for bare reposts
-    this.disposers.push(autorun(() => this.mod.setTitle($localize`Comments: ` + getTitle(this.store.view.ref))));
-    this.disposers.push(autorun(() => {
+    effect(() => this.mod.setTitle($localize`Comments: ` + getTitle(this.store.view.ref)), { injector: this.injector });
+    effect(() => {
       MemoCache.clear(this);
       const top = this.store.view.url;
       const sort = this.store.view.sort;
       const filter = this.store.view.filter;
       const search = this.store.view.search;
-      runInAction(() => this.thread.setArgs(top, sort, filter, search));
+      this.thread.setArgs(top, sort, filter, search);
       if (this.store.view.ref) {
         const commentCount = this.store.view.ref.metadata?.plugins?.['plugin/comment'] || 0;
         this.store.local.setLastSeenCount(this.store.view.url, 'comments', commentCount);
       }
-    }));
+    }, { injector: this.injector });
     this.newComments$.subscribe(c => {
       if (c && this.store.view.ref) {
-        runInAction(() => updateMetadata(this.store.view.ref!, c));
+        updateMetadata(this.store.view.ref!, c);
         this.store.eventBus.refresh(this.store.view.ref!);
       }
     });
   }
 
   ngOnDestroy() {
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
     this.newComments$.complete();
   }
 

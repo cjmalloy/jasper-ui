@@ -1,7 +1,6 @@
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, effect, OnDestroy, ViewChild } from '@angular/core';
 import { defer } from 'lodash-es';
-import { autorun, IReactionDisposer } from 'mobx';
-import { MobxAngularModule } from 'mobx-angular';
+
 import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { AdminService } from '../../../service/admin.service';
@@ -15,11 +14,9 @@ import { getArgs } from '../../../util/query';
   templateUrl: './sent.component.html',
   styleUrls: ['./sent.component.scss'],
   host: { 'class': 'inbox-sent' },
-  imports: [MobxAngularModule, RefListComponent]
+  imports: [ RefListComponent]
 })
-export class InboxSentPage implements OnInit, OnDestroy, HasChanges {
-
-  private disposers: IReactionDisposer[] = [];
+export class InboxSentPage implements OnDestroy, HasChanges {
 
   @ViewChild('list')
   list?: RefListComponent;
@@ -33,14 +30,8 @@ export class InboxSentPage implements OnInit, OnDestroy, HasChanges {
     mod.setTitle($localize`Inbox: Sent`);
     store.view.clear();
     query.clear();
-  }
 
-  saveChanges() {
-    return !this.list || this.list.saveChanges();
-  }
-
-  ngOnInit(): void {
-    this.disposers.push(autorun(() => {
+    effect(() => {
       const args = getArgs(
         this.store.account.tag + ':(plugin/inbox|plugin/outbox)',
         this.store.view.sort,
@@ -50,12 +41,14 @@ export class InboxSentPage implements OnInit, OnDestroy, HasChanges {
         this.store.view.pageSize,
       );
       defer(() => this.query.setArgs(args));
-    }));
+    });
+  }
+
+  saveChanges() {
+    return !this.list || this.list.saveChanges();
   }
 
   ngOnDestroy() {
     this.query.close();
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
   }
 }

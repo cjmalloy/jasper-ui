@@ -5,7 +5,7 @@ import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 
-import { ExtService, EXT_BATCH_THROTTLE_MS, EXT_BATCH_SIZE } from './ext.service';
+import { EXT_BATCH_SIZE, EXT_BATCH_THROTTLE_MS, ExtService } from './ext.service';
 
 describe('ExtService', () => {
   let service: ExtService;
@@ -39,7 +39,7 @@ describe('ExtService', () => {
     const start = Date.now();
     const ext = await firstValueFrom(service.getCachedExt('test', ''));
     const elapsed = Date.now() - start;
-    
+
     expect(ext).toEqual(testExt);
     expect(elapsed).toBeLessThan(10); // Should be immediate
   });
@@ -52,17 +52,17 @@ describe('ExtService', () => {
 
     // Wait for batch throttle
     await new Promise(resolve => setTimeout(resolve, EXT_BATCH_THROTTLE_MS + 50));
-    
+
     // Verify only one request is made
     const requests = httpMock.match(req => req.url.includes('/api/v1/ext/page'));
     expect(requests.length).toBe(1);
-    
+
     // Verify the query includes all three tags
     const query = requests[0].request.params.get('query');
     expect(query).toContain('tag1');
     expect(query).toContain('tag2');
     expect(query).toContain('tag3');
-    
+
     // Respond with the data
     requests[0].flush({
       content: [
@@ -72,7 +72,7 @@ describe('ExtService', () => {
       ],
       page: { number: 0, size: 3, totalElements: 3, totalPages: 1 }
     });
-    
+
     // Verify all subscribers received their results
     const [result1, result2, result3] = await Promise.all([promise1, promise2, promise3]);
     expect(result1.tag).toBe('tag1');
@@ -84,21 +84,21 @@ describe('ExtService', () => {
     // Request more than EXT_BATCH_SIZE exts (e.g., 55 exts for batch size of 50)
     const numExts = EXT_BATCH_SIZE + 5;
     const promises: Promise<any>[] = [];
-    
+
     for (let i = 0; i < numExts; i++) {
       promises.push(firstValueFrom(service.getCachedExt(`tag${i}`, '')));
     }
 
     // Wait for first batch throttle
     await new Promise(resolve => setTimeout(resolve, EXT_BATCH_THROTTLE_MS + 50));
-    
+
     // Get the first batch request
     const firstRequest = httpMock.expectOne(req => {
       const query = req.params.get('query');
-      return req.url.includes('/api/v1/ext/page') && 
+      return req.url.includes('/api/v1/ext/page') &&
              query !== null && query.includes('tag0'); // Make sure it's from this test
     });
-    
+
     // Respond with the first batch data
     const firstBatchContent = [];
     for (let i = 0; i < EXT_BATCH_SIZE; i++) {
@@ -116,14 +116,14 @@ describe('ExtService', () => {
 
     // Wait for second batch throttle
     await new Promise(resolve => setTimeout(resolve, EXT_BATCH_THROTTLE_MS + 50));
-    
+
     // Get the second batch request
     const secondRequest = httpMock.expectOne(req => {
       const query = req.params.get('query');
       return req.url.includes('/api/v1/ext/page') &&
              query !== null && query.includes(`tag${EXT_BATCH_SIZE}`); // Should have tag from second batch
     });
-    
+
     // Respond with the second batch data (remaining 5 items)
     const secondBatchContent = [];
     for (let i = EXT_BATCH_SIZE; i < numExts; i++) {
@@ -138,7 +138,7 @@ describe('ExtService', () => {
       content: secondBatchContent,
       page: { number: 0, size: 5, totalElements: 5, totalPages: 1 }
     });
-    
+
     // Verify all subscribers received their results
     const results = await Promise.all(promises);
     expect(results.length).toBe(numExts);

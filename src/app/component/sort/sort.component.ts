@@ -1,7 +1,6 @@
-import { Component, ElementRef, Input, OnChanges, OnDestroy, SimpleChanges, ViewChild } from '@angular/core';
+import { Component, effect, ElementRef, Input, OnChanges, SimpleChanges, ViewChild } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { NavigationEnd, Router } from '@angular/router';
-import { autorun, IReactionDisposer, toJS } from 'mobx';
 import { filter } from 'rxjs';
 import { AdminService } from '../../service/admin.service';
 import { Store } from '../../store/store';
@@ -15,8 +14,7 @@ import { convertSort, defaultDesc, SortItem } from '../../util/query';
   host: { 'class': 'sort form-group' },
   imports: [ReactiveFormsModule, FormsModule]
 })
-export class SortComponent implements OnChanges, OnDestroy {
-  private disposers: IReactionDisposer[] = [];
+export class SortComponent implements OnChanges {
 
   @ViewChild('create')
   create?: ElementRef<HTMLSelectElement>;
@@ -39,10 +37,10 @@ export class SortComponent implements OnChanges, OnDestroy {
     public store: Store,
   ) {
     this.type = 'ref';
-    this.disposers.push(autorun(() => {
-      this.sorts = toJS(this.store.view.sort);
+    effect(() => {
+      this.sorts = this.store.view.sort;
       if (!Array.isArray(this.sorts)) this.sorts = [this.sorts];
-    }));
+    });
     router.events.pipe(
       filter(event => event instanceof NavigationEnd),
     ).subscribe(() => this.replace = false);
@@ -59,11 +57,6 @@ export class SortComponent implements OnChanges, OnDestroy {
         this.allSorts = [...this.allTagSorts];
       }
     }
-  }
-
-  ngOnDestroy() {
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
   }
 
   addSort(value: string) {

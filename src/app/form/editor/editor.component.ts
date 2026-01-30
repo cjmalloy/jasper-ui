@@ -4,10 +4,12 @@ import { HttpEventType } from '@angular/common/http';
 import {
   AfterViewInit,
   Component,
+  effect,
   ElementRef,
   EventEmitter,
   HostBinding,
   HostListener,
+  Injector,
   Input,
   OnChanges,
   OnDestroy,
@@ -21,7 +23,6 @@ import { FormBuilder, ReactiveFormsModule, UntypedFormArray, UntypedFormControl 
 import { NavigationEnd, Router } from '@angular/router';
 import Europa from 'europa';
 import { debounce, defer, delay, intersection, sortedLastIndex, uniq, without } from 'lodash-es';
-import { autorun, IReactionDisposer } from 'mobx';
 import { catchError, filter, last, map, Observable, of, Subject, Subscription, switchMap, takeUntil, tap } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { LoadingComponent } from '../../component/loading/loading.component';
@@ -69,7 +70,6 @@ export interface EditorUpload {
 })
 export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   private destroy$ = new Subject<void>();
-  private disposers: IReactionDisposer[] = [];
 
   @Input()
   id = 'editor-' + uuid();
@@ -158,6 +158,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   private sourceMap: number[] = [];
 
   constructor(
+    private injector: Injector,
     public admin: AdminService,
     private accounts: AccountService,
     private auth: AuthzService,
@@ -174,9 +175,9 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
     this.router.events.pipe(
       filter(event => event instanceof NavigationEnd)
     ).subscribe(() => this.toggleFullscreen(false));
-    this.disposers.push(autorun(() => {
+    effect(() => {
       this.loadingEvents[this.store.eventBus.event] = false;
-    }));
+    });
   }
 
   init() {
@@ -193,14 +194,14 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit(): void {
-    this.disposers.push(autorun(() => {
+    effect(() => {
       const height = this.store.viewportHeight - 4;
       if (this.overlayRef) {
         this.overlayRef.updateSize({ height });
         document.body.style.height = height + 'px';
         this.el.nativeElement.style.setProperty('--viewport-height', height + 'px');
       }
-    }));
+    }, { injector: this.injector });
     if (this.tags) {
       this.tags.valueChanges.pipe(
         takeUntil(this.destroy$),
@@ -222,8 +223,6 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
     document.body.style.height = '';
     document.body.classList.remove('fullscreen');
     this.el.nativeElement.style.setProperty('--viewport-height', this.store.viewportHeight + 'px');

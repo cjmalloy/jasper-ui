@@ -4,6 +4,7 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { forwardRef } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { EmbedService } from '../../service/embed.service';
 
 import { CommentComponent } from './comment.component';
 
@@ -15,6 +16,7 @@ describe('CommentComponent', () => {
     await TestBed.configureTestingModule({
       imports: [forwardRef(() => CommentComponent)],
       providers: [
+        { provide: EmbedService, useValue: {} },
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),
         provideRouter([]),

@@ -1,8 +1,7 @@
-import { Injectable } from '@angular/core';
+import { effect, Injectable } from '@angular/core';
 import { FormlyFieldConfig } from '@ngx-formly/core';
 import { Schema, validate } from 'jtd';
 import { identity, isEqual, reduce, uniq } from 'lodash-es';
-import { autorun, runInAction } from 'mobx';
 import { catchError, concat, forkJoin, map, Observable, of, retry, switchMap, throwError, toArray } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
@@ -206,7 +205,7 @@ export class AdminService {
     private templates: TemplateService,
     private store: Store,
   ) {
-    autorun(() => {
+    effect(() => {
       const mod = this.store.eventBus.ref?.plugins?.['plugin/mod'];
       if (this.store.eventBus.event === 'install') {
         store.eventBus.clearProgress(bundleSize(mod));
@@ -222,7 +221,7 @@ export class AdminService {
   get init$() {
     this._cache.clear();
     MemoCache.clear(this);
-    runInAction(() => this.store.view.updates = false);
+    this.store.view.updates = false;
     this.status.plugins = {};
     this.status.disabledPlugins = {};
     this.status.templates = {};

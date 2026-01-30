@@ -1,9 +1,8 @@
-import { Component, ElementRef, Input, OnChanges, OnDestroy, SimpleChanges, ViewChild } from '@angular/core';
+import { Component, effect, ElementRef, Input, OnChanges, SimpleChanges, ViewChild } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { filter, find, pullAll, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
-import { autorun, IReactionDisposer, toJS } from 'mobx';
 import { Ext } from '../../model/ext';
 import { FilterConfig } from '../../model/tag';
 import { KanbanConfig } from '../../mods/org/kanban';
@@ -26,9 +25,7 @@ import { hasPrefix } from '../../util/tag';
   host: { 'class': 'filter form-group' },
   imports: [ReactiveFormsModule, FormsModule]
 })
-export class FilterComponent implements OnChanges, OnDestroy {
-
-  private disposers: IReactionDisposer[] = [];
+export class FilterComponent implements OnChanges {
 
   @ViewChild('create')
   create?: ElementRef<HTMLSelectElement>;
@@ -60,11 +57,11 @@ export class FilterComponent implements OnChanges, OnDestroy {
     private bookmarks: BookmarkService,
     private editor: EditorService,
   ) {
-    this.disposers.push(autorun(() => {
-      this.filters = toJS(this.store.view.filter);
+    effect(() => {
+      this.filters = this.store.view.filter;
       if (!Array.isArray(this.filters)) this.filters = [this.filters];
       this.sync();
-    }));
+    });
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -195,10 +192,6 @@ export class FilterComponent implements OnChanges, OnDestroy {
     }
   }
 
-  ngOnDestroy() {
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
-  }
 
   get rootConfigs() {
     if (!this.admin.getTemplate('')) return [];

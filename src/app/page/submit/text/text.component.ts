@@ -1,5 +1,15 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { AfterViewInit, Component, ElementRef, OnChanges, OnDestroy, SimpleChanges, ViewChild } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  effect,
+  ElementRef,
+  Injector,
+  OnChanges,
+  OnDestroy,
+  SimpleChanges,
+  ViewChild
+} from '@angular/core';
 import {
   ReactiveFormsModule,
   UntypedFormArray,
@@ -10,8 +20,7 @@ import {
 import { Router } from '@angular/router';
 import { defer, some, uniq, without } from 'lodash-es';
 import { DateTime } from 'luxon';
-import { autorun, IReactionDisposer, runInAction } from 'mobx';
-import { MobxAngularModule } from 'mobx-angular';
+
 import { MonacoEditorModule } from 'ngx-monaco-editor';
 import { catchError, forkJoin, map, of, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
@@ -52,7 +61,7 @@ import { getVisibilityTags, hasPrefix, hasTag } from '../../../util/tag';
   host: { 'class': 'full-page-form' },
   imports: [
     EditorComponent,
-    MobxAngularModule,
+
     ReactiveFormsModule,
     LimitWidthDirective,
     NavComponent,
@@ -67,7 +76,6 @@ import { getVisibilityTags, hasPrefix, hasTag } from '../../../util/tag';
   ],
 })
 export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasChanges {
-  private disposers: IReactionDisposer[] = [];
 
   submitted = false;
   textForm: UntypedFormGroup;
@@ -94,6 +102,7 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
   private savedRef?: Ref;
 
   constructor(
+    private injector: Injector,
     public config: ConfigService,
     private mod: ModService,
     public admin: AdminService,
@@ -108,7 +117,7 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
   ) {
     mod.setTitle($localize`Submit: Text Post`);
     this.textForm = refForm(fb);
-    runInAction(() => store.submit.wikiPrefix = admin.getWikiPrefix());
+    store.submit.wikiPrefix = admin.getWikiPrefix();
   }
 
   saveChanges() {
@@ -137,7 +146,7 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
         });
       }
       if (this.store.account.localTag) this.addTag(this.store.account.localTag);
-      this.disposers.push(autorun(() => {
+      effect(() => {
         MemoCache.clear(this);
         let url = this.store.submit.url || 'comment:' + uuid();
         if (!this.admin.isWikiExternal() && this.store.submit.wiki) {
@@ -168,9 +177,9 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
           }
         }
         for (const s of this.store.submit.sources) {
-          this.addSource(s)
+          this.addSource(s);
         }
-      }));
+      }, { injector: this.injector });
     });
   }
 
@@ -179,8 +188,6 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
   }
 
   ngOnDestroy() {
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
   }
 
   get randomURL() {

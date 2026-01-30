@@ -1,6 +1,5 @@
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, effect, OnDestroy, ViewChild } from '@angular/core';
 import { defer } from 'lodash-es';
-import { autorun, IReactionDisposer } from 'mobx';
 import { UserListComponent } from '../../../component/user/user-list/user-list.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { UserService } from '../../../service/api/user.service';
@@ -17,9 +16,7 @@ import { getTagFilter } from '../../../util/query';
   styleUrls: ['./user.component.scss'],
   imports: [UserListComponent],
 })
-export class SettingsUserPage implements OnInit, OnDestroy, HasChanges {
-
-  private disposers: IReactionDisposer[] = [];
+export class SettingsUserPage implements OnDestroy, HasChanges {
 
   @ViewChild('list')
   list?: UserListComponent;
@@ -36,24 +33,19 @@ export class SettingsUserPage implements OnInit, OnDestroy, HasChanges {
     store.view.clear(['tag:len', 'tag'], ['tag:len', 'tag']);
     scim.clear();
     query.clear();
-  }
 
-  saveChanges() {
-    return !this.list || this.list.saveChanges();
-  }
-
-  ngOnInit(): void {
     if (this.config.scim) {
       // TODO: better way to find unattached profiles
-      this.disposers.push(autorun(() => {
+      effect(() => {
         const args = {
           page: this.store.view.pageNumber,
           size: this.store.view.pageSize,
         };
         defer(() => this.scim.setArgs(args));
-      }));
+      });
     }
-    this.disposers.push(autorun(() => {
+
+    effect(() => {
       const args = {
         query: this.store.view.showRemotes ? '@*' : (this.store.account.origin || '*'),
         search: this.store.view.search,
@@ -63,12 +55,14 @@ export class SettingsUserPage implements OnInit, OnDestroy, HasChanges {
         ...getTagFilter(this.store.view.filter),
       };
       defer(() => this.query.setArgs(args));
-    }));
+    });
+  }
+
+  saveChanges() {
+    return !this.list || this.list.saveChanges();
   }
 
   ngOnDestroy() {
     this.query.close();
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
   }
 }

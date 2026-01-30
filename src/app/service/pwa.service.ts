@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { SwUpdate } from '@angular/service-worker';
-import { runInAction } from 'mobx';
+
 import { Store } from '../store/store';
 
 @Injectable({
@@ -28,7 +28,7 @@ export class PwaService {
     });
     updates.unrecoverable.subscribe(event => {
       console.error(`Unrecoverable PWA error: ${event.reason}`);
-      runInAction(() => store.account.unrecoverable = true);
+      (store.account.unrecoverable = true);
     });
   }
 }
