@@ -1,4 +1,3 @@
-import axios from 'axios';
 import { DateTime } from 'luxon';
 import { Plugin } from '../model/plugin';
 import { refSchema } from '../model/ref';
@@ -15,7 +14,8 @@ export const editingPlugin: Plugin = {
     description: $localize`Save edits to a plugin before publishing.`,
     icons: [{ thumbnail: $localize`📝️`, order: 1 }],
     actions: [
-      { tag: 'plugin/delta/commit', labelOff: $localize`commit`, title: $localize`Save pending edits to this Ref`, confirm: $localize`Are you sure?` }
+      { tag: 'plugin/editing', labelOn: $localize`revert`, title: $localize`Revert pending edits to this Ref`, confirm: $localize`Are you sure?` },
+      { tag: 'plugin/delta/commit', labelOff: $localize`commit`, title: $localize`Save pending edits to this Ref`, confirm: $localize`Are you sure?` },
     ],
   },
   schema: refSchema,
@@ -62,7 +62,7 @@ export const commitPlugin: Plugin = {
           }
         }).catch(e => {
           console.error(e.response.data);
-          process.exit(1);
+          throw new Error(e);
         });
       }
     `,
