@@ -18,7 +18,7 @@
     left: -10px; // Example for right side of target
     margin-top: -5px; // Half of border size for vertical centering
     border-width: 5px 10px 5px 0; // Pointing left
-    border-color: transparent #ccc transparent transparent; // Match border color
+    border-color: transparent var(--border) transparent transparent; // Match border color
   }
   &::after {
     content: '';
@@ -31,7 +31,7 @@
     left: -9px; // Example for right side of target
     margin-top: -5px; // Half of border size for vertical centering
     border-width: 5px 10px 5px 0; // Pointing left
-    border-color: transparent white transparent transparent; // Match background color
+    border-color: transparent var(--bg) transparent transparent; // Match background color
   }
 }
 
@@ -42,7 +42,7 @@
 hr {
   border: none;
   height: 1px;
-  background-color: #ccc;
+  background-color: var(--border);
   margin: 10px 0;
 }
 
@@ -68,5 +68,5 @@ hr {
 
 .stepper-controls span {
   font-size: 0.9em;
-  color: #555;
+  color: var(--info);
 }
