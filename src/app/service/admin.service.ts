@@ -26,7 +26,7 @@ import { htmlMod, latexMod } from '../mods/editor';
 import { experimentsMod } from '../mods/experiments';
 import { backgammonMod } from '../mods/games/backgammon';
 import { chessMod } from '../mods/games/chess';
-import { gridMod } from '../mods/org/grid';
+import { helpMod } from '../mods/help';
 import { homeMod } from '../mods/home';
 import { lensMod } from '../mods/lens';
 import { mailboxMod } from '../mods/mailbox';
@@ -45,6 +45,7 @@ import { modMod } from '../mods/mod';
 import { modlistMod } from '../mods/modlist';
 import { folderMod } from '../mods/org/folder';
 import { graphMod } from '../mods/org/graph';
+import { gridMod } from '../mods/org/grid';
 import { hideMod } from '../mods/org/hide';
 import { kanbanMod } from '../mods/org/kanban';
 import { notesMod } from '../mods/org/notes';
@@ -131,6 +132,7 @@ export class AdminService {
 
     // Configs
     experimentsMod,
+    helpMod,
     wikiMod,
     graphMod,
     modlistMod,

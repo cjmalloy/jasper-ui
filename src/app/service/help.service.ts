@@ -5,6 +5,7 @@ import { delay } from 'lodash-es';
 import { runInAction } from 'mobx';
 import { HelpPopupComponent } from '../component/help-popup/help-popup.component';
 import { Store } from '../store/store';
+import { AdminService } from './admin.service';
 
 @Injectable({
   providedIn: 'root',
@@ -18,12 +19,15 @@ export class HelpService {
   constructor(
     private store: Store,
     private overlay: Overlay,
+    private admin: AdminService,
   ) {}
 
   /**
    * Adds a help step to the queue. If no tour is active, starts the tour.
    */
   async pushStep(el: HTMLElement | null, text: string) {
+    // Only show help popups if config/help template is enabled
+    if (!this.admin.getTemplate('config/help')) return;
     if (!el) return;
     const id = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text.substring(0, 150))).then(hash => {
       let result = '';
