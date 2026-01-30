@@ -23,10 +23,8 @@ export class HelpService {
   /**
    * Adds a help step to the queue. If no tour is active, starts the tour.
    */
-  async pushStep(el: ElementRef | HTMLElement | null, text: string) {
+  async pushStep(el: HTMLElement | null, text: string) {
     if (!el) return;
-    const element = el instanceof ElementRef ? el.nativeElement : el;
-    if (!element) return;
     const id = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text.substring(0, 150))).then(hash => {
       let result = '';
       const view = new DataView(hash);
@@ -37,7 +35,7 @@ export class HelpService {
     });
     if (this.shown.includes(id) || this.store.local.shownHelpPopup(id)) return;
     this.shown.push(id);
-    this.steps.push({ id, el: element, text });
+    this.steps.push({ id, el, text });
     runInAction(() => this.store.helpSteps = this.steps.length);
     if (this.store.helpStepIndex === -1) {
       // If no tour is active, start immediately with this step
