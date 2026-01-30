@@ -27,6 +27,8 @@ export class Store {
   hotkey = false;
   offline = false;
   viewportHeight = screen.height;
+  helpSteps = 0;
+  helpStepIndex = -1;
 
   constructor(
     private route: RouterStore,
