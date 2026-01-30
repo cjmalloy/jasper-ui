@@ -958,6 +958,7 @@ export class AdminService {
   installPlugin$(def: Plugin, _: progress) {
     return of(null).pipe(
       tap(() => _('\u00A0'.repeat(4) + $localize`Installing ${def.name || def.tag} plugin...`)),
+      switchMap(() => this.plugins.delete(def.tag + this.store.account.origin)),
       switchMap(() => this.plugins.create({ ...def, origin: this.store.account.origin })),
       catchError(err => {
         if (err.status === 409) {
@@ -982,6 +983,7 @@ export class AdminService {
   installTemplate$(def: Template, _: progress) {
     return of(null).pipe(
       tap(() => _('\u00A0'.repeat(4) + $localize`Installing ${def.name || def.tag} template...`)),
+      switchMap(() => this.templates.delete(def.tag + this.store.account.origin)),
       switchMap(() => this.templates.create({ ...def, origin: this.store.account.origin })),
       catchError(err => {
         if (err.status === 409) {
@@ -1045,35 +1047,21 @@ export class AdminService {
   }
 
   updatePlugin$(def: Plugin, _: progress) {
-    const status = this.status.plugins[def.tag];
+    // TODO: diff
     return of(null).pipe(
       tap(() => _('\u00A0'.repeat(4) + $localize`Updating ${def.name || def.tag} plugin...`)),
-      switchMap(() => this.plugins.update({
-        ...def,
-        defaults: {
-          ...def.defaults || {},
-          ...status?.defaults || {},
-        },
-        origin: this.store.account.origin,
-        modifiedString: status?.modifiedString,
-      })),
+      switchMap(() => this.plugins.delete(def.tag + this.store.account.origin)),
+      switchMap(() => this.plugins.create({ ...def, origin: this.store.account.origin })),
       tap(() => _('', 1)),
     );
   }
 
   updateTemplate$(def: Template, _: progress) {
-    const status = this.status.templates[def.tag];
+    // TODO: diff
     return of(null).pipe(
       tap(() => _('\u00A0'.repeat(4) + $localize`Updating ${def.name || def.tag} template...`)),
-      switchMap(() => this.templates.update({
-        ...def,
-        defaults: {
-          ...def.defaults || {},
-          ...status?.defaults || {},
-        },
-        origin: this.store.account.origin,
-        modifiedString: status?.modifiedString,
-      })),
+      switchMap(() => this.templates.delete(def.tag + this.store.account.origin)),
+      switchMap(() => this.templates.create({ ...def, origin: this.store.account.origin })),
       tap(() => _('', 1)),
     );
   }
