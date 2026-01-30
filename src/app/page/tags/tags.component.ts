@@ -1,8 +1,7 @@
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, effect, OnDestroy, ViewChild } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { defer } from 'lodash-es';
-import { autorun, IReactionDisposer } from 'mobx';
-import { MobxAngularModule } from 'mobx-angular';
+
 import { ExtListComponent } from '../../component/ext/ext-list/ext-list.component';
 import { SidebarComponent } from '../../component/sidebar/sidebar.component';
 import { TabsComponent } from '../../component/tabs/tabs.component';
@@ -22,15 +21,13 @@ import { braces, getPrefixes, hasPrefix, publicTag } from '../../util/tag';
   styleUrls: ['./tags.component.scss'],
   imports: [
     ExtListComponent,
-    MobxAngularModule,
+
     TabsComponent,
     RouterLink,
     SidebarComponent,
   ]
 })
-export class TagsPage implements OnInit, OnDestroy, HasChanges {
-
-  private disposers: IReactionDisposer[] = [];
+export class TagsPage implements OnDestroy, HasChanges {
 
   title = '';
   templates = this.admin.tmplSubmit.filter(t => t.config?.view);
@@ -49,14 +46,8 @@ export class TagsPage implements OnInit, OnDestroy, HasChanges {
     mod.setTitle($localize`Tags`);
     store.view.clear(['tag:len', 'tag'], ['tag:len', 'tag']);
     query.clear();
-  }
 
-  saveChanges() {
-    return !this.list || this.list.saveChanges();
-  }
-
-  ngOnInit(): void {
-    this.disposers.push(autorun(() => {
+    effect(() => {
       this.title = this.store.view.template && this.admin.getTemplate(this.store.view.template)?.name || this.store.view.ext?.name || this.store.view.template || '';
       this.exts.getCachedExt(this.store.view.template)
         .subscribe(ext => this.title = ext.name || this.title);
@@ -79,13 +70,15 @@ export class TagsPage implements OnInit, OnDestroy, HasChanges {
         ...getTagFilter(this.store.view.filter),
       };
       defer(() => this.query.setArgs(args));
-    }));
+    });
+  }
+
+  saveChanges() {
+    return !this.list || this.list.saveChanges();
   }
 
   ngOnDestroy() {
     this.query.close();
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
   }
 
   templateIs(tag: string): boolean {

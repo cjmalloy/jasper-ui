@@ -1,10 +1,9 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, HostBinding, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, effect, HostBinding, ViewChild } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { defer, uniq } from 'lodash-es';
-import { autorun, IReactionDisposer, runInAction } from 'mobx';
-import { MobxAngularModule } from 'mobx-angular';
+
 import { catchError, forkJoin, Observable, of, switchMap, throwError } from 'rxjs';
 import { SettingsComponent } from '../../component/settings/settings.component';
 import { LimitWidthDirective } from '../../directive/limit-width.directive';
@@ -25,10 +24,9 @@ import { prefix, setPublic } from '../../util/tag';
   selector: 'app-user-page',
   templateUrl: './user.component.html',
   styleUrls: ['./user.component.scss'],
-  imports: [MobxAngularModule, RouterLink, SettingsComponent, ReactiveFormsModule, LimitWidthDirective, UserFormComponent]
+  imports: [ RouterLink, SettingsComponent, ReactiveFormsModule, LimitWidthDirective, UserFormComponent]
 })
-export class UserPage implements OnInit, OnDestroy, HasChanges {
-  private disposers: IReactionDisposer[] = [];
+export class UserPage implements HasChanges {
   @HostBinding('class') css = 'full-page-form';
 
   @ViewChild(UserFormComponent)
@@ -56,21 +54,15 @@ export class UserPage implements OnInit, OnDestroy, HasChanges {
       role: [''],
       user: userForm(fb),
     });
-  }
 
-  saveChanges() {
-    return !this.profileForm?.dirty;
-  }
-
-  ngOnInit(): void {
-    this.disposers.push(autorun(() => {
+    effect(() => {
       if (!this.store.view.tag) {
-        runInAction(() => this.store.view.selectedUser = undefined);
+        this.store.view.selectedUser = undefined;
       } else {
         const tag = this.store.view.localTag + this.store.account.origin;
         this.users.get(tag).pipe(
           catchError(() => of(undefined)),
-        ).subscribe(user => runInAction(() => {
+        ).subscribe(user => {
           this.store.view.selectedUser = user;
           if (user) {
             this.profileForm.setControl('user', userForm(this.fb, true));
@@ -84,14 +76,13 @@ export class UserPage implements OnInit, OnDestroy, HasChanges {
               writeAccess: this.admin.writeAccess.map(t => setPublic(prefix(t, this.store.view.localTag))),
             }));
           }
-        }));
+        });
       }
-    }));
+    });
   }
 
-  ngOnDestroy() {
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
+  saveChanges() {
+    return !this.profileForm?.dirty;
   }
 
   get active() {

@@ -1,5 +1,4 @@
-import { Directive, ElementRef, HostBinding, Input, OnDestroy, OnInit } from '@angular/core';
-import { autorun, IReactionDisposer } from 'mobx';
+import { Directive, effect, ElementRef, HostBinding, Injector, Input, OnDestroy, OnInit } from '@angular/core';
 import { Ref } from '../model/ref';
 import { ConfigService } from '../service/config.service';
 import { Dim, height, ImageService, width } from '../service/image.service';
@@ -7,7 +6,6 @@ import { Store } from '../store/store';
 
 @Directive({ selector: '[appImage]' })
 export class ImageDirective implements OnInit, OnDestroy {
-  private disposers: IReactionDisposer[] = [];
 
   @Input()
   grid = false;
@@ -26,12 +24,13 @@ export class ImageDirective implements OnInit, OnDestroy {
   private loadingUrl = '';
 
   constructor(
+    private injector: Injector,
     private config: ConfigService,
     private store: Store,
     private elRef: ElementRef,
     private imgs: ImageService,
   ) {
-    this.disposers.push(autorun(() => {
+    effect(() => {
       if (this.store.eventBus.event === 'refresh') {
         if (this.ref?.url && this.store.eventBus.isRef(this.ref)) {
           if (this.loading && this.loadingUrl) {
@@ -39,7 +38,7 @@ export class ImageDirective implements OnInit, OnDestroy {
           }
         }
       }
-    }));
+    }, { injector: this.injector });
   }
 
   ngOnInit() {
@@ -58,8 +57,6 @@ export class ImageDirective implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
     this.resizeObserver?.disconnect();
   }
 

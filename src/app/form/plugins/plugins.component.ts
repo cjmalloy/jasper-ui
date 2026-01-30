@@ -11,7 +11,6 @@ import {
 } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormArray, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { defer } from 'lodash-es';
-import { toJS } from 'mobx';
 import { Subject, takeUntil } from 'rxjs';
 import { TitleDirective } from '../../directive/title.directive';
 import { Plugin } from '../../model/plugin';
@@ -114,7 +113,6 @@ export class PluginsFormComponent implements OnChanges, AfterViewInit {
   }
 
   setValue(value: any) {
-    value = toJS(value);
     defer(() => {
       this.plugins.patchValue(value);
       this.gens!.forEach(g => g.setValue(value))

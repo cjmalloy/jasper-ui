@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { delay, isArray, uniq, without } from 'lodash-es';
 import { DateTime } from 'luxon';
-import { runInAction } from 'mobx';
+
 import { catchError, forkJoin, map, Observable, of, shareReplay, throwError } from 'rxjs';
 import { switchMap, tap } from 'rxjs/operators';
 import { Ext } from '../model/ext';
@@ -52,7 +52,7 @@ export class AccountService {
   }
 
   get init$() {
-    runInAction(() => this.store.account.defaultConfig = this.admin.defaultConfig('user'));
+    this.store.account.defaultConfig = this.admin.defaultConfig('user');
     if (!this.store.account.signedIn) return this.subscriptions$.pipe(
       switchMap(() => this.bookmarks$),
       switchMap(() => this.theme$),
@@ -89,7 +89,7 @@ export class AccountService {
     if (!this.store.account.signedIn) return throwError(() => 'Not signed in');
     if (!this._user$) {
       this._user$ = this.users.get(this.store.account.tag).pipe(
-        tap(user => runInAction(() => this.store.account.access = user)),
+        tap(user => this.store.account.access = user),
         shareReplay(1),
         catchError(() => of(undefined)),
       );
@@ -102,7 +102,7 @@ export class AccountService {
     if (!this.store.account.signedIn) return throwError(() => 'Not signed in');
     if (!this._userExt$) {
       this._userExt$ = this.exts.get(this.store.account.tag).pipe(
-        tap(ext => runInAction(() => this.store.account.ext = ext)),
+        tap(ext => this.store.account.ext = ext),
         shareReplay(1),
       );
       delay(() => this._userExt$ = undefined, CACHE_MS);
@@ -223,7 +223,7 @@ export class AccountService {
         query: this.store.account.notificationsQuery,
         modifiedAfter: this.store.account.config.lastNotified || DateTime.now().minus({ year: 1 }),
       })),
-    ).subscribe(count => runInAction(() => this.store.account.notifications = count));
+    ).subscribe(count => this.store.account.notifications = count);
     this.checkAlarms();
   }
 
@@ -241,7 +241,7 @@ export class AccountService {
       if (count === 0) {
         this.clearNotifications(readDate);
       } else {
-        runInAction(() => this.store.account.ignoreNotifications.push(readDate.valueOf()));
+        this.store.account.ignoreNotifications.push(readDate.valueOf());
       }
     });
   }
@@ -270,7 +270,7 @@ export class AccountService {
         query: this.store.account.alarmsQuery,
         modifiedAfter: this.store.account.config.lastNotified || DateTime.now().minus({ year: 1 }),
       })),
-    ).subscribe(count => runInAction(() => this.store.account.alarmCount = count));
+    ).subscribe(count => this.store.account.alarmCount = count);
   }
 
   checkConsent(consent?: [string, string][]) {
@@ -296,7 +296,7 @@ export class AccountService {
         op: 'add',
         path: '/config/' + name,
         value: value,
-      }]).pipe(tap(cursor => runInAction(() => {
+      }]).pipe(tap(cursor => {
         this.store.account.ext = <Ext> {
           ...this.store.account.ext,
           config: {
@@ -306,7 +306,7 @@ export class AccountService {
           modified: DateTime.fromISO(cursor),
           modifiedString: cursor,
         };
-      })));
+      }));
   }
 
   addConfigArray$(name: keyof UserConfig, value: any) {
@@ -321,7 +321,7 @@ export class AccountService {
         op: 'add',
         path: '/config/' + path,
         value: value,
-      }]).pipe(tap(cursor => runInAction(() => {
+      }]).pipe(tap(cursor => {
         this.store.account.ext = <Ext> {
           ...this.store.account.ext,
           config: {
@@ -334,7 +334,7 @@ export class AccountService {
           modified: DateTime.fromISO(cursor),
           modifiedString: cursor,
         };
-      })));
+      }));
   }
 
   removeConfigArray$(name: keyof UserConfig, value: any) {
@@ -344,7 +344,7 @@ export class AccountService {
     return this.exts.patch(this.store.account.tag, this.store.account.ext!.modifiedString!, [{
       op: 'remove',
       path: '/config/' + name + '/' + index,
-    }]).pipe(tap(cursor => runInAction(() => {
+    }]).pipe(tap(cursor => {
         this.store.account.ext = <Ext> {
           ...this.store.account.ext,
           config: {
@@ -354,6 +354,6 @@ export class AccountService {
           modified: DateTime.fromISO(cursor),
           modifiedString: cursor,
         };
-      })));
+      }));
   }
 }

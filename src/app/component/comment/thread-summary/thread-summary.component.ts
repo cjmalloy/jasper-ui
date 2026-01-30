@@ -1,5 +1,5 @@
 import { Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
-import { MobxAngularModule } from 'mobx-angular';
+
 import { Observable, Subject, takeUntil } from 'rxjs';
 import { Ref } from '../../../model/ref';
 import { RefService } from '../../../service/api/ref.service';
@@ -16,7 +16,7 @@ import { CommentComponent } from '../comment.component';
   imports: [
     CommentComponent,
     RefComponent,
-    MobxAngularModule,
+    
   ]
 })
 export class ThreadSummaryComponent implements OnInit, OnChanges, OnDestroy {

@@ -15,7 +15,6 @@ import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angu
 import { RouterLink } from '@angular/router';
 import { isObject } from 'lodash-es';
 import { DateTime } from 'luxon';
-import { toJS } from 'mobx';
 import { catchError, of, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { TitleDirective } from '../../directive/title.directive';
@@ -141,7 +140,7 @@ export class ExtComponent implements OnChanges, HasChanges {
 
   @ViewChild(ExtFormComponent)
   set extForm(value: ExtFormComponent) {
-    value?.setValue(toJS(this.ext));
+    value?.setValue(this.ext);
   }
 
   @memo
