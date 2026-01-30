@@ -56,13 +56,13 @@ ref = json.load(sys.stdin)
 origin = ref.get('origin', '')
 tags = ref.get('tags', [])
 
-# Supported format plugins and their file extensions
+# Supported format plugins and their default file extensions
 SUPPORTED_FORMATS = {
     'plugin/pdf': '.pdf',
-    'plugin/image': '.png',
-    'plugin/audio': '.mp3',
-    'plugin/video': '.mp4',
-    'plugin/file': '',  # Extension determined by URL or content-type
+    'plugin/image': '',  # Extension determined by URL or content-type
+    'plugin/audio': '',  # Extension determined by URL or content-type
+    'plugin/video': '',  # Extension determined by URL or content-type
+    'plugin/file': '',   # Extension determined by URL or content-type
 }
 
 def has_tag(tag, tags):
