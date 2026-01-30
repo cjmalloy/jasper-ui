@@ -1,7 +1,6 @@
 import { Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { ComponentPortal } from '@angular/cdk/portal';
 import { ElementRef, Injectable } from '@angular/core';
-import { delay } from 'lodash-es';
 import { runInAction } from 'mobx';
 import { HelpPopupComponent } from '../component/help-popup/help-popup.component';
 import { Store } from '../store/store';
@@ -57,7 +56,7 @@ export class HelpService {
       runInAction(() => this.store.helpStepIndex = 0);
     }
 
-    delay(() => this.showCurrentStep(), 1000);
+    setTimeout(() => this.showCurrentStep(), 1000);
   }
 
   /**
@@ -139,7 +138,10 @@ export class HelpService {
       this.store.local.dismissHelpPopup(step.id);
     }
     this.steps = [];
-    runInAction(() => this.store.helpStepIndex = -1);
+    runInAction(() => {
+      this.store.helpStepIndex = -1;
+      this.store.helpSteps = 0;
+    });
   }
 
   private dismissOverlay(): void {

@@ -1,14 +1,15 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { MobxAngularModule } from 'mobx-angular';
 import { Store } from '../../store/store';
 
 @Component({
   selector: 'app-help-popup',
   templateUrl: './help-popup.component.html',
-  styleUrls: ['./help-popup.component.scss']
+  styleUrls: ['./help-popup.component.scss'],
+  standalone: true,
+  imports: [MobxAngularModule]
 })
 export class HelpPopupComponent {
-  @Input()
-  id!: string;
   @Input()
   text!: string;
 
