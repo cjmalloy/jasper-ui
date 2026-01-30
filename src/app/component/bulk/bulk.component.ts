@@ -102,7 +102,7 @@ export class BulkComponent implements AfterViewInit, OnChanges, OnDestroy {
   }
 
   ngAfterViewInit() {
-    this.help.pushStep(this.el, $localize`Bulk actions will only affect all Refs in the current page.`);
+    this.help.pushStep(this.el?.nativeElement, $localize`Bulk actions will only affect all Refs in the current page.`);
   }
 
   ngOnChanges(changes: SimpleChanges) {

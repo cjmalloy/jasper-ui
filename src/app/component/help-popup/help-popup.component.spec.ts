@@ -9,8 +9,7 @@ describe('HelpPopupComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [HelpPopupComponent],
-      imports: [RouterModule.forRoot([])],
+      imports: [HelpPopupComponent, RouterModule.forRoot([])],
     })
     .compileComponents();
 

@@ -45,7 +45,7 @@ export class SubscriptionBarComponent implements AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit() {
-    this.help.pushStep(this.el, $localize`The top bar holds bookmarks and subscriptions.`);
+    this.help.pushStep(this.el?.nativeElement, $localize`The top bar holds bookmarks and subscriptions.`);
   }
 
   ngOnDestroy() {
