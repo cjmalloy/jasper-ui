@@ -13,6 +13,7 @@ import { ChatComponent } from '../chat/chat.component';
 import { FolderComponent } from '../folder/folder.component';
 import { ForceDirectedComponent } from '../graph/force-directed/force-directed.component';
 import { KanbanComponent } from '../kanban/kanban.component';
+import { MapComponent } from '../map/map.component';
 import { NotebookComponent } from '../notebook/notebook.component';
 import { RefListComponent } from '../ref/ref-list/ref-list.component';
 import { RefComponent } from '../ref/ref.component';
@@ -30,6 +31,7 @@ import { RefComponent } from '../ref/ref.component';
     forwardRef(() => RefListComponent),
     forwardRef(() => KanbanComponent),
     forwardRef(() => NotebookComponent),
+    forwardRef(() => MapComponent),
   ],
 })
 export class LensComponent implements OnChanges, HasChanges {

@@ -25,6 +25,7 @@ import { htmlMod, latexMod } from '../mods/editor';
 import { experimentsMod } from '../mods/experiments';
 import { backgammonMod } from '../mods/games/backgammon';
 import { chessMod } from '../mods/games/chess';
+import { geoMod } from '../mods/geo';
 import { homeMod } from '../mods/home';
 import { lensMod } from '../mods/lens';
 import { mailboxMod } from '../mods/mailbox';
@@ -115,6 +116,7 @@ export class AdminService {
     homeMod,
     kanbanMod,
     blogMod,
+    geoMod,
     chatMod,
     mailboxMod,
     hideMod,

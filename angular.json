@@ -55,7 +55,8 @@
             ],
             "styles": [
               "src/styles.scss",
-              "node_modules/katex/dist/katex.min.css"
+              "node_modules/katex/dist/katex.min.css",
+              "node_modules/maplibre-gl/dist/maplibre-gl.css"
             ],
             "scripts": [
               "node_modules/mermaid/dist/mermaid.min.js",
