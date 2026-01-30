@@ -26,6 +26,7 @@ export class HelpService {
   async pushStep(el: ElementRef | HTMLElement | null, text: string) {
     if (!el) return;
     const element = el instanceof ElementRef ? el.nativeElement : el;
+    if (!element) return;
     const id = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text.substring(0, 150))).then(hash => {
       let result = '';
       const view = new DataView(hash);
