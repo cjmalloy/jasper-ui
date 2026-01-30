@@ -158,8 +158,8 @@ def convert_to_markdown(data, ext, content_type=''):
         stream_info = None
         if mimetype or ext:
             stream_info = StreamInfo(
-                mimetype=mimetype if mimetype else None,
-                extension=ext if ext else None
+                mimetype=mimetype,
+                extension=ext
             )
 
         md = MarkItDown()
