@@ -163,6 +163,7 @@ export class EditorService {
   }
 
   getUrlType(url: string) {
+    if (url.startsWith('tag:/')) return 'tag';
     if (url.startsWith(this.config.base)) {
       url = url.substring(this.config.base.length);
     }
@@ -206,7 +207,9 @@ export class EditorService {
     if (url.startsWith('unsafe:')) url = url.substring('unsafe:'.length);
     const tagPrefix = this.config.base + 'tag/';
     let ending = '';
-    if (url.startsWith(tagPrefix)) {
+    if (url.startsWith('tag:/')) {
+      ending = url.substring('tag:/'.length);
+    } else if (url.startsWith(tagPrefix)) {
       ending = url.substring(tagPrefix.length);
     } else {
       const relTagPrefix = getPath(tagPrefix)!;
