@@ -1,17 +1,19 @@
-import { AfterViewInit, Component, HostBinding, HostListener, isDevMode } from '@angular/core';
+import { AfterViewInit, Component, HostBinding, HostListener, isDevMode, ViewContainerRef } from '@angular/core';
 import { Router, RouterOutlet } from '@angular/router';
 import { autorun, runInAction } from 'mobx';
 import { MobxAngularModule } from 'mobx-angular';
 import { LoginPopupComponent } from './component/login-popup/login-popup.component';
 import { SubscriptionBarComponent } from './component/subscription-bar/subscription-bar.component';
-import { archivePlugin, archiveUrl } from './mods/archive';
-import { pdfPlugin, pdfUrl } from './mods/pdf';
+import { pdfPlugin, pdfUrl } from './mods/media/pdf';
+import { pipPlugin } from './mods/system/pip';
+import { archivePlugin, archiveUrl } from './mods/tools/archive';
 import { AdminService } from './service/admin.service';
 import { OriginService } from './service/api/origin.service';
 import { ProxyService } from './service/api/proxy.service';
 import { ScrapeService } from './service/api/scrape.service';
 import { ConfigService } from './service/config.service';
 import { Store } from './store/store';
+import { createPip } from './util/embed';
 import { memo } from './util/memo';
 
 @Component({
@@ -35,6 +37,7 @@ export class AppComponent implements AfterViewInit {
 
   pdfPlugin = this.admin.getPlugin('plugin/pdf') as typeof pdfPlugin || undefined;
   archivePlugin = this.admin.getPlugin('plugin/archive') as typeof archivePlugin || undefined;
+  pipPlugin = this.admin.getPlugin('plugin/pip') as typeof pipPlugin || undefined;
 
   constructor(
     public config: ConfigService,
@@ -44,6 +47,7 @@ export class AppComponent implements AfterViewInit {
     private origins: OriginService,
     private scrape: ScrapeService,
     private router: Router,
+    private vc: ViewContainerRef,
   ) {
     document.body.style.height = '';
     if (!this.store.account.debug && this.config.version) this.website = 'https://github.com/cjmalloy/jasper-ui/releases/tag/' + this.config.version;
@@ -56,9 +60,23 @@ export class AppComponent implements AfterViewInit {
     }, { capture: true });
     window.addEventListener('keydown', event => {
       const hotkey = this.hotkeyActive(event) || this.hotkey(event.key);
-      if (!this.store.hotkey && hotkey) {
-        runInAction(() => this.store.hotkey = true);
-        document.body.classList.add('hotkey');
+      if (this.store.hotkey !== hotkey) {
+        runInAction(() => this.store.hotkey = hotkey);
+        document.body.classList.toggle('hotkey', hotkey);
+      }
+    }, { capture: true });
+    window.addEventListener('pointerenter', event => {
+      const hotkey = this.hotkeyActive(event);
+      if (this.store.hotkey !== hotkey) {
+        runInAction(() => this.store.hotkey = hotkey);
+        document.body.classList.toggle('hotkey', hotkey);
+      }
+    }, { capture: true });
+    window.addEventListener('pointerout', event => {
+      const hotkey = this.hotkeyActive(event);
+      if (this.store.hotkey !== hotkey) {
+        runInAction(() => this.store.hotkey = hotkey);
+        document.body.classList.toggle('hotkey', hotkey);
       }
     }, { capture: true });
   }
@@ -69,7 +87,7 @@ export class AppComponent implements AfterViewInit {
         if (this.store.eventBus.event === 'pdf') {
           let pdf = pdfUrl(this.pdfPlugin, this.store.eventBus.ref, this.store.eventBus.repost);
           if (!pdf) return;
-          if (pdf.url.startsWith('cache:') || this.pdfPlugin!.config?.proxy) pdf.url = this.proxy.getFetch(pdf.url, pdf.origin);
+          if (pdf.url.startsWith('cache:') || this.pdfPlugin!.config?.proxy) pdf.url = this.proxy.getFetch(pdf.url, pdf.origin, pdf.title + (pdf.title.toLowerCase().endsWith('.pdf') ? '' : '.pdf'));
           open(pdf.url, '_blank');
         }
       });
@@ -80,6 +98,13 @@ export class AppComponent implements AfterViewInit {
           let url = archiveUrl(this.archivePlugin, this.store.eventBus.ref, this.store.eventBus.repost);
           if (!url) return;
           open(url, '_blank');
+        }
+      });
+    }
+    if (this.pipPlugin) {
+      autorun(() => {
+        if (this.store.eventBus.event === 'pip') {
+          createPip(this.vc, this.store.eventBus.ref!, this.pipPlugin?.config?.windowConfig);
         }
       });
     }
@@ -99,7 +124,7 @@ export class AppComponent implements AfterViewInit {
     return this.macos ? key === 'Meta' : key === 'Control';
   }
 
-  hotkeyActive(event: KeyboardEvent) {
+  hotkeyActive(event: KeyboardEvent | PointerEvent) {
     return this.macos ? event.metaKey : event.ctrlKey;
   }
 

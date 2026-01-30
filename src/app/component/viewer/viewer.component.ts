@@ -1,5 +1,4 @@
 import {
-  AfterViewInit,
   Component,
   ElementRef,
   EventEmitter,
@@ -12,29 +11,31 @@ import {
   ViewChild
 } from '@angular/core';
 import { FormControl } from '@angular/forms';
+import * as he from 'he';
 import Hls from 'hls.js';
 import { defer, isEqual, some, without } from 'lodash-es';
 import { runInAction } from 'mobx';
 import { BehaviorSubject, catchError, of, Subject, takeUntil, throwError } from 'rxjs';
 import { ImageDirective } from '../../directive/image.directive';
+import { ResizeHandleDirective } from '../../directive/resize-handle.directive';
 import { ResizeDirective } from '../../directive/resize.directive';
 import { Ext } from '../../model/ext';
 import { Oembed } from '../../model/oembed';
 import { Page } from '../../model/page';
 import { getPluginScope, PluginApi } from '../../model/plugin';
-import { findCache, findExtension, Ref, RefSort, RefUpdates } from '../../model/ref';
+import { Ref, RefSort, RefUpdates } from '../../model/ref';
 import { EmitAction, hydrate } from '../../model/tag';
-import { SafePipe } from '../../pipe/safe.pipe';
+import { pdfUrl } from '../../mods/media/pdf';
 import { ActionService } from '../../service/action.service';
 import { AdminService } from '../../service/admin.service';
 import { ProxyService } from '../../service/api/proxy.service';
 import { RefService } from '../../service/api/ref.service';
-import { StompService } from '../../service/api/stomp.service';
 import { ConfigService } from '../../service/config.service';
 import { EditorService } from '../../service/editor.service';
 import { EmbedService } from '../../service/embed.service';
 import { OembedStore } from '../../store/oembed';
 import { Store } from '../../store/store';
+import { embedUrl } from '../../util/embed';
 import { hasComment, templates } from '../../util/format';
 import { getExtension } from '../../util/http';
 import { memo, MemoCache } from '../../util/memo';
@@ -49,8 +50,6 @@ import { PlaylistComponent } from '../playlist/playlist.component';
 import { QrComponent } from '../qr/qr.component';
 import { RefComponent } from '../ref/ref.component';
 import { TodoComponent } from '../todo/todo.component';
-
-export const IFRAME_SANDBOX = 'allow-scripts allow-forms allow-modals allow-orientation-lock allow-pointer-lock allow-popups allow-presentation allow-top-navigation-by-user-activation';
 
 @Component({
   selector: 'app-viewer',
@@ -68,10 +67,10 @@ export const IFRAME_SANDBOX = 'allow-scripts allow-forms allow-modals allow-orie
     TodoComponent,
     BackgammonComponent,
     ChessComponent,
-    SafePipe,
+    ResizeHandleDirective,
   ],
 })
-export class ViewerComponent implements OnChanges, AfterViewInit {
+export class ViewerComponent implements OnChanges {
   @HostBinding('class') css = 'embed print-images';
   @HostBinding('tabindex') tabIndex = 0;
   private destroy$ = new Subject<void>();
@@ -95,6 +94,9 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
   origin? = '';
   @Input()
   disableResize = false;
+  @Input()
+  @HostBinding('class.fullscreen')
+  fullscreen = false;
   @Output()
   comment = new EventEmitter<string>();
   @Output()
@@ -130,7 +132,6 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
     private actions: ActionService,
     private embeds: EmbedService,
     private editor: EditorService,
-    private stomp: StompService,
     private refs: RefService,
     private store: Store,
     public el: ElementRef,
@@ -189,14 +190,6 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
     this.destroy$.complete();
   }
 
-  async ngAfterViewInit() {
-    if (hasTag('plugin/pip', this.currentTags)) {
-      // @ts-ignore
-      const pipWindow = await documentPictureInPicture.requestWindow();
-      pipWindow.document.body.append(this.el.nativeElement);
-    }
-  }
-
   @HostBinding('class')
   @memo
   get pluginClasses() {
@@ -226,18 +219,30 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
     }
   }
 
+  @ViewChild('pdfIframe')
+  set pdfIframe(value: ElementRef<HTMLIFrameElement>) {
+    if (!value) return;
+    const iframe = value.nativeElement;
+    let url = this.pdfUrl;
+    if (!url) return;
+    if (url.startsWith('//')) url = location.protocol + url;
+    this.embeds.writeIframeHtml(`<embed type="application/pdf" src="${he.encode(url)}" width="100%" height="100%">`, iframe, false);
+    iframe.style.width = this.embedWidth;
+    iframe.style.height = this.embedHeight;
+  }
+
   set oembed(oembed: Oembed | null) {
     if (isEqual(this._oembed, oembed)) return;
     this._oembed = oembed || undefined;
     if (oembed?.url && oembed?.type === 'photo') {
       // Image embed
       this.tags = without(this.currentTags, 'plugin/embed');
-      this.image = oembed.url;
+      this.image = embedUrl(oembed.url);
       MemoCache.clear(this);
     } else if (this.iframe) {
       const i = this.iframe.nativeElement;
       if (oembed) {
-        this.embeds.writeIframe(oembed, i, this.embedWidth)
+        this.embeds.writeIframe(oembed, i, this.embedWidth, true)
           .then(() => {
             if (oembed.width! > this.width) {
               const s = this.width / oembed.width!;
@@ -249,15 +254,10 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
               i.style.marginBottom = -1 * marginTop + 'px';
             }
             this.embedReady = true;
+            MemoCache.clear(this);
           });
       } else {
-        // @ts-ignore
-        const l = new URL(window.location);
-        const url = new URL(this.embed?.url || this.ref?.url);
-        if (url.protocol === l.protocol && url.host === l.host && url.port === l.port) {
-          i.sandbox = IFRAME_SANDBOX;
-        }
-        i.src = url.toString();
+        i.src = embedUrl(this.embed?.url || this.ref?.url);
         i.style.width = this.embedWidth;
         i.style.height = this.embedHeight;
         this.embedReady = true;
@@ -267,7 +267,6 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
       defer(() => this.oembed = oembed);
     }
   }
-
 
   @memo
   get oembed(): Oembed | undefined {
@@ -289,6 +288,18 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
   @memo
   get twitter() {
     return this.oembed?.provider_name === 'Twitter';
+  }
+
+  @memo
+  get zoom() {
+    return this.oembed?.html && !this.oembed.html.startsWith('<iframe');
+  }
+
+  @memo
+  get resizable() {
+    if (this.config.mobile) return false;
+    if (this.ref?.plugins?.['plugin/embed']?.noResize) return false;
+    return !this.oembed || !this.oembed.html || this.oembed.html.startsWith('<iframe');
   }
 
   @memo
@@ -369,7 +380,7 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
     if (!hasTag('plugin/audio', this.currentTags)) return '';
     const url = this.ref?.plugins?.['plugin/audio']?.url || this.ref?.url;
     if (url.startsWith('cache:') || this.admin.getPlugin('plugin/audio')?.config?.proxy) {
-      return this.proxy.getFetch(url, this.currentOrigin);
+      return this.proxy.getFetch(url, this.currentOrigin, this.getFilename($localize`Untitled Audio`));
     }
     return url;
   }
@@ -379,7 +390,7 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
     if (!hasTag('plugin/video', this.currentTags)) return '';
     const url = this.ref?.plugins?.['plugin/video']?.url || this.ref?.url;
     if (url.startsWith('cache:') || this.admin.getPlugin('plugin/video')?.config?.proxy) {
-      return this.proxy.getFetch(url, this.currentOrigin);
+      return this.proxy.getFetch(url, this.currentOrigin, this.getFilename($localize`Untitled Video`));
     }
     return url;
   }
@@ -389,9 +400,16 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
     if (!this.image && !hasTag('plugin/image', this.currentTags)) return '';
     const url = this.image || this.ref?.plugins?.['plugin/image']?.url || this.ref?.url;
     if (url.startsWith('cache:') || this.admin.getPlugin('plugin/image')?.config?.proxy) {
-      return this.proxy.getFetch(url, this.currentOrigin);
+      return this.proxy.getFetch(url, this.currentOrigin, this.getFilename($localize`Untitled Image`));
     }
     return url;
+  }
+
+  @memo
+  getFilename(d = $localize`Untitled`) {
+    const ext = this.ref?.url ? getExtension(this.ref.url) || '' : '';
+    const filename = this.ref?.title || d;
+    return filename + (ext && !filename.toLowerCase().endsWith(ext) ? ext : '');
   }
 
   @memo
@@ -423,9 +441,7 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
   @memo
   get pdf(): string | undefined {
     if (!this.admin.getPlugin('plugin/pdf')) return undefined;
-    return this.ref?.plugins?.['plugin/pdf']?.url
-      || findExtension('.pdf', this.ref)?.url
-      || hasTag('plugin/pdf', this.ref) && findCache(this.ref)?.url;
+    return pdfUrl(this.admin.getPlugin('plugin/pdf'), this.ref, this.repost)?.url;
   }
 
   @memo
@@ -433,7 +449,7 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
     const url = this.pdf;
     if (!url) return url;
     if (!this.admin.getPlugin('plugin/pdf')?.config?.proxy) return url;
-    return this.proxy.getFetch(url, this.currentOrigin);
+    return this.proxy.getFetch(url, this.currentOrigin, this.getFilename());
   }
 
   @memo
@@ -491,11 +507,16 @@ export class ViewerComponent implements OnChanges, AfterViewInit {
   @memo
   uiMarkdown(tag: string) {
     const plugin = this.admin.getPlugin(tag)!;
-    return hydrate(plugin.config, 'ui', getPluginScope(plugin, this.ref || { url: '', comment: this.text, tags: this.tags }, this.el.nativeElement, this.uiActions));
+    return hydrate(plugin.config, 'ui', getPluginScope(plugin, this.refOrDefault, this.el.nativeElement, this.uiActions));
   }
 
   @memo
   uiCss(tag: string) {
     return 'ui ' + tag.replace(/\//g, '_').replace(/\./g, '-');
+  }
+
+  @memo
+  get refOrDefault() {
+    return this.ref || { url: '', comment: this.text, tags: this.tags };
   }
 }

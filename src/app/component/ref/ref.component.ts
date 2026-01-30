@@ -58,12 +58,12 @@ import {
   templates,
   urlSummary
 } from '../../util/format';
-import { getScheme, printError } from '../../util/http';
+import { getExtension, getScheme, printError } from '../../util/http';
 import { memo, MemoCache } from '../../util/memo';
 import {
-  addAllHierarchicalTags,
   capturesAny,
   expandedTagsInclude,
+  hasPrefix,
   hasTag,
   hasUserUrlResponse,
   isAuthorTag,
@@ -175,7 +175,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   publishChanged = false;
   diffOriginal?: Ref;
   diffModified?: Ref;
-  fullscreen = this.admin.getPlugin('plugin/fullscreen') && hasTag('plugin/fullscreen', this.plugins);
+  fullscreen = false;
 
   submitting?: Subscription;
   private refreshTap?: () => void;
@@ -184,6 +184,9 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   private _diffing = false;
   private overwrittenModified? = '';
   private diffSubscription?: Subscription;
+  private _viewer?: ViewerComponent;
+  private closeOffFullscreen = false;
+  private _expanded = false;
 
   constructor(
     public config: ConfigService,
@@ -273,7 +276,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     this.writeAccess = this.auth.writeAccess(this.ref);
     this.taggingAccess = this.auth.taggingAccess(this.ref);
     this.deleteAccess = this.auth.deleteAccess(this.ref);
-    this.fullscreen = this.admin.getPlugin('plugin/fullscreen') && hasTag('plugin/fullscreen', this.plugins);
+    this.fullscreen = this.fullscreenRequired;
     this.initFields(this.ref);
 
     this.expandPlugins = this.admin.getEmbeds(this.ref);
@@ -371,13 +374,23 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     return undefined;
   }
 
+  get fullscreenRequired() {
+    if (!this.admin.getPlugin('plugin/fullscreen')) return false;
+    if (!hasTag('plugin/fullscreen', this.currentTags)) return false;
+    return !this.ref.plugins?.['plugin/fullscreen']?.optional;
+  }
+
+  get pipRequired() {
+    if (!this.admin.pip) return false;
+    return hasTag('plugin/pip', this.currentTags);
+  }
+
   @HostListener('fullscreenchange')
   onFullscreenChange() {
     if (!this.fullscreen) return;
-    if (this.ref.plugins?.['plugin/fullscreen']?.optional) return;
-    if (!document.fullscreenElement) {
-      this.expanded = false;
-    }
+    if (document.fullscreenElement) return;
+    this.fullscreen = this.fullscreenRequired;
+    if (this.closeOffFullscreen) this.expanded = false;
   }
 
   @HostListener('click')
@@ -387,13 +400,19 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
 
   @ViewChild(ViewerComponent)
   set viewer(value: ViewerComponent | undefined) {
-    if (!this.fullscreen) return;
+    this._viewer = value;
     if (value) {
-      value.el.nativeElement.requestFullscreen().catch(() => {
-        console.warn('Could not make fullscreen.');
-        this.expanded = false;
-      });
+      if (this.fullscreen) {
+        value.el.nativeElement.requestFullscreen().catch((err: TypeError) => {
+          console.warn('Could not make fullscreen.');
+          if (this.closeOffFullscreen) this.expanded = false;
+        });
+      }
     }
+  }
+
+  get viewer() {
+    return this._viewer;
   }
 
   get viewSource(): boolean {
@@ -610,18 +629,25 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   }
 
   @memo
+  getFilename(d = $localize`Untitled`) {
+    const ext = getExtension(this.url) || '';
+    const filename = this.ref?.title || d;
+    return filename + (ext && !filename.toLowerCase().endsWith(ext) ? ext : '');
+  }
+
+  @memo
   get mediaAttachment() {
     if (this.file) {
-      return this.proxy.getFetch(this.url, this.origin);
+      return this.proxy.getFetch(this.url, this.origin, this.getFilename());
     }
     if (this.audio && (this.audio.startsWith('cache:') || this.admin.getPlugin('plugin/audio')?.config?.proxy)) {
-      return this.proxy.getFetch(this.audio, this.origin);
+      return this.proxy.getFetch(this.audio, this.origin, this.getFilename($localize`Untitled Audio`));
     }
     if (this.video && (this.video.startsWith('cache:') || this.admin.getPlugin('plugin/video')?.config?.proxy)) {
-      return this.proxy.getFetch(this.video, this.origin);
+      return this.proxy.getFetch(this.video, this.origin, this.getFilename($localize`Untitled Video`));
     }
     if (this.image && (this.image.startsWith('cache:') || this.admin.getPlugin('plugin/image')?.config?.proxy)) {
-      return this.proxy.getFetch(this.image, this.origin);
+      return this.proxy.getFetch(this.image, this.origin, this.getFilename($localize`Untitled Image`));
     }
     return '';
   }
@@ -729,7 +755,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
 
   @memo
   get link() {
-    if (this.file || this.url.startsWith('cache:')) return this.proxy.getFetch(this.url, this.origin);
+    if (this.file || this.url.startsWith('cache:')) return this.proxy.getFetch(this.url, this.origin, this.getFilename());
     return this.url;
   }
 
@@ -784,6 +810,13 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   }
 
   @memo
+  get newCommentsCount() {
+    const lastSeen = this.store.local.getLastSeenCount(this.ref.url, 'comments');
+    if (!lastSeen) return 0;
+    return Math.max(0, this.comments - lastSeen);
+  }
+
+  @memo
   get errors() {
     if (!this.admin.getPlugin('+plugin/log')) return 0;
     return this.ref.metadata?.plugins?.['+plugin/log'] || 0;
@@ -796,8 +829,22 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   }
 
   @memo
+  get newThreadsCount() {
+    const lastSeen = this.store.local.getLastSeenCount(this.ref.url, 'threads');
+    if (!lastSeen) return 0;
+    return Math.max(0,  this.threads - lastSeen);
+  }
+
+  @memo
   get responses() {
     return this.ref.metadata?.responses || 0;
+  }
+
+  @memo
+  get newResponsesCount() {
+    const lastSeen = this.store.local.getLastSeenCount(this.ref.url, 'replies');
+    if (!lastSeen) return 0;
+    return Math.max(0, this.responses - lastSeen);
   }
 
   @memo
@@ -871,21 +918,47 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     return isRef(this.ref, this.store.view.ref);
   }
 
-  toggle(fullscreen = false) {
-    this.fullscreen ||= fullscreen;
+  toggle() {
+    let read = false;
     if (this.editing) {
       this.editing = false;
     } else if (this.viewSource) {
       this.viewSource = false;
-    } else {
-      this.expanded = !this.expanded;
-      this.store.local.setRefToggled(this.ref.url, this.expanded);
+    } else if (!this.fullscreen) {
+      if (this.store.hotkey && this.admin.getPlugin('plugin/fullscreen')) {
+        this.fullscreen = true;
+        this.closeOffFullscreen = !this.expanded;
+        if (this.viewer) {
+          this.viewer.el.nativeElement.requestFullscreen().catch(() => {
+            console.warn('Could not make fullscreen.');
+          });
+        }
+        this.expanded = true;
+        this.cd.detectChanges();
+      } else if (this.pipRequired) {
+        this.store.eventBus.fire('pip', this.ref);
+        this.store.eventBus.fire('');
+        read = true;
+      } else {
+        this.expanded = !this.expanded;
+        this.store.local.setRefToggled(this.ref.url, this.expanded);
+      }
       // Mark as read
-      if (!this.expanded) return;
+      if (!read && !this.expanded) return;
       if (!this.admin.getPlugin('plugin/user/read')) return;
       if (this.ref.metadata?.userUrls?.includes('plugin/user/read')) return;
+      // TODO: Update ref metadata
       this.ts.createResponse('plugin/user/read', this.ref.url).subscribe();
     }
+  }
+
+  pip(event?: MouseEvent) {
+    if (!this.admin.pip) return;
+    this.store.eventBus.fire('pip', this.ref);
+    this.store.eventBus.fire('');
+    if ('vibrate' in navigator) navigator.vibrate([2, 32, 4]);
+    event?.preventDefault();
+    event?.stopPropagation();
   }
 
   @memo
@@ -1053,13 +1126,14 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   }
 
   copy$ = () => {
-    const tags = uniq(addAllHierarchicalTags([
+    const tags = uniq([
       ...(this.store.account.localTag ? [this.store.account.localTag] : []),
-      ...(this.ref.tags || []).filter(t => this.auth.canAddTag(t))
-    ]).filter(t => !expandedTagsInclude(t, '+plugin/origin/push')
-      && !expandedTagsInclude(t, 'plugin/delta')
-      && !expandedTagsInclude(t, '+plugin/delta')
-      && !expandedTagsInclude(t, '+plugin/cron')));
+      ...(this.ref.tags || [])
+        .filter(t => !t.startsWith('+'))
+        .filter(t => !t.startsWith('_'))
+        .filter(t => !hasPrefix(t, 'user'))
+        .filter(t => this.auth.canAddTag(t))
+    ]);
     const copied: Ref = {
       ...this.ref,
       origin: this.store.account.origin,

@@ -57,6 +57,9 @@
     }
   }
   <span class="button-bar">
+    @if (videoChat) {
+      <app-chat-video [url]="store.view.ref?.url || 'tag:/chat'"></app-chat-video>
+    }
     @if (!dm && !user && canAddTag && !plugin?.config?.reply && store.account.user && (store.view.type === 'ref' || store.view.current === 'ref/summary')) {
       @if (plugin?.config?.submitText || rootConfig?.submitText) {
         <div class="submit-button" routerLink="/submit/text" tabindex="0"
@@ -122,7 +125,7 @@
       </div>
     }
     @if (homeWriteAccess) {
-      <div class="submit-button" [routerLink]="['/ext', 'home']" tabindex="0">
+      <div class="submit-button" [routerLink]="['/ext', 'config/home']" tabindex="0">
         <span i18n-title title="Edit Home Page" i18n>🏡️</span> <label i18n>Home Page</label>
       </div>
     } @else if (store.view.type === 'ext') {
@@ -178,7 +181,7 @@
                     i18n-title title="Add to top bar"
                     class="bookmark" i18n>+ bookmark</button>
           }
-          @if (admin.getTemplate('home')) {
+          @if (admin.getTemplate('config/home')) {
             @if (user) {
               @if (inSubs) {
                 <button type="button"

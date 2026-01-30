@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { autorun } from 'mobx';
 import { catchError, map, Observable, throwError } from 'rxjs';
 import { mapRef, Ref } from '../../model/ref';
-import { catchAll } from '../../mods/scrape';
+import { catchAll } from '../../mods/sync/scrape';
 import { Store } from '../../store/store';
 import { params } from '../../util/http';
 import { ConfigService } from '../config.service';

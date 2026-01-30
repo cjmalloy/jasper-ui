@@ -29,7 +29,7 @@ import { VideoUploadComponent } from '../../formly/video-upload/video-upload.com
 import { Page } from '../../model/page';
 import { Plugin } from '../../model/plugin';
 import { Ref } from '../../model/ref';
-import { isWiki, wikiUriFormat } from '../../mods/wiki';
+import { isWiki, wikiUriFormat } from '../../mods/org/wiki';
 import { TagPreviewPipe } from '../../pipe/tag-preview.pipe';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
@@ -167,7 +167,7 @@ export class SubmitPage implements OnInit, OnDestroy {
   }
 
   get bannedUrls() {
-    return this.admin.getTemplate('banlist')?.config?.bannedUrls || this.admin.def.templates.banlist?.config?.bannedUrls;
+    return this.admin.getTemplate('config/banlist')?.config?.bannedUrls || this.admin.def.templates['config/banlist']?.config?.bannedUrls;
   }
 
   submitInternal(tag: string) {
@@ -178,7 +178,7 @@ export class SubmitPage implements OnInit, OnDestroy {
     if (this.store.submit.wiki) {
       return wikiUriFormat(url, this.admin.getWikiPrefix());
     }
-    return fixUrl(url, this.admin.getTemplate('banlist') || this.admin.def.templates.banlist);
+    return fixUrl(url, this.admin.getTemplate('config/banlist') || this.admin.def.templates['config/banlist']);
   }
 
   exists(url: string) {

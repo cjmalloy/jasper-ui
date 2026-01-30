@@ -2,7 +2,7 @@ import { HttpErrorResponse, HttpParameterCodec, HttpParams } from '@angular/comm
 import { isArray, isObject } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { Problem } from '../model/problem';
-import { banlistConfig } from '../mods/banlist';
+import { banlistConfig } from '../mods/system/banlist';
 
 export class HttpUrlEncodingCodec implements HttpParameterCodec {
   encodeKey(k: string): string { return encodeURIComponent(k); }
@@ -207,8 +207,8 @@ export function getPath(url: string): string | null {
 export function getExtension(url: string): string | null {
   const parsed = getUrl(url);
   if (!parsed) return null;
-  if (!parsed.pathname.includes('.')) return parsed.pathname;
-  return parsed.pathname.substring(parsed.pathname.lastIndexOf('.'));
+  if (!parsed.pathname.includes('.')) return null;
+  return parsed.pathname.substring(parsed.pathname.lastIndexOf('.')).toLowerCase();
 }
 
 export function getTitleFromFilename(url: string): string | null {
@@ -222,4 +222,11 @@ export function getTitleFromFilename(url: string): string | null {
     filename = decodeURIComponent(filename);
   } catch (e) { }
   return filename?.trim() || null;
+}
+
+export function sanitizePath(value: string) {
+  return encodeURIComponent(value
+    .replace(/[/]/g, ' ')
+    .replace(/[?%;]/g, '')
+  );
 }

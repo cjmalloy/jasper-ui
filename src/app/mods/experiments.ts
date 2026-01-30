@@ -3,7 +3,7 @@ import { Mod } from '../model/tag';
 import { Template } from '../model/template';
 
 export const experimentsConfig: Template = {
-  tag: 'experiments',
+  tag: 'config/experiments',
   name: $localize`🧪️ Experiments`,
   config: {
     mod: $localize`🧪️ Experiments`,

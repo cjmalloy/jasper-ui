@@ -4,9 +4,9 @@ import { autorun } from 'mobx';
 import { catchError, map, Observable, of, throwError } from 'rxjs';
 import { mapRef, Ref } from '../../model/ref';
 import { Resource } from '../../model/resource';
-import { catchAll } from '../../mods/scrape';
+import { catchAll } from '../../mods/sync/scrape';
 import { Store } from '../../store/store';
-import { params } from '../../util/http';
+import { params, sanitizePath } from '../../util/http';
 import { ConfigService } from '../config.service';
 import { LoginService } from '../login.service';
 import { RefService } from './ref.service';
@@ -38,12 +38,12 @@ export class ProxyService {
     return this.config.api + '/api/v1/proxy';
   }
 
-  prefetch(url: string, origin = '') {
+  prefetch(url: string, origin = '', filename = 'file') {
     if (url.startsWith('data:')) return;
     if (this.cacheList.has(origin + url)) return;
     this.cacheList.add(origin + url);
     const s = () => {
-      this.http.get(`${this.base}/prefetch`, {
+      this.http.get(`${this.base}/prefetch/${sanitizePath(this.scraping[0]?.title?.trim() || this.scraping[0].url)}`, {
         params: params({ url: this.scraping[0].url, origin: this.scraping[0].origin }),
       }).pipe(
         catchError(() => of(null)),
@@ -52,19 +52,19 @@ export class ProxyService {
         if (this.scraping.length) s();
       });
     };
-    this.scraping.push({url, origin});
+    this.scraping.push({ url, origin, title: filename });
     if (this.scraping.length === 1) s();
   }
 
-  fetch(url: string, origin = '', thumbnail?: boolean): Observable<Resource> {
+  fetch(url: string, origin = '', filename = 'file', thumbnail?: boolean): Observable<Resource> {
     this.cacheList.add(origin + url);
-    return this.http.get(`${this.base}`, {
+    return this.http.get(`${this.base}/${sanitizePath(filename)}`, {
       params: params({ url, origin, thumbnail }),
       observe: 'response',
       responseType: 'arraybuffer',
     }).pipe(
       map(req => ({
-        url: this.getFetch(url, origin, thumbnail),
+        url: this.getFetch(url, origin, filename, thumbnail),
         mimeType: req.headers.get('Content-Type'),
         data: req.body
       })),
@@ -88,12 +88,12 @@ export class ProxyService {
     );
   }
 
-  getFetch(url: string, origin = '', thumbnail = false) {
+  getFetch(url: string, origin = '', filename = 'file', thumbnail = false) {
     if (!url) return '';
     if (url.startsWith('data:')) return url;
-    if (this.config.prefetch && this.store.account.user) this.prefetch(url, origin);
-    if (thumbnail) return `${this.base}?thumbnail=true&url=${encodeURIComponent(url)}&origin=${origin}`;
-    return `${this.base}?url=${encodeURIComponent(url)}&origin=${origin}`;
+    if (this.config.prefetch && this.store.account.user) this.prefetch(url, origin, filename);
+    if (thumbnail) return `${this.base}/${sanitizePath(filename.trim())}?thumbnail=true&url=${encodeURIComponent(url)}&origin=${origin}`;
+    return `${this.base}/${sanitizePath(filename.trim())}?url=${encodeURIComponent(url)}&origin=${origin}`;
   }
 
   isProxied(url?: string) {

@@ -23,7 +23,7 @@ import { TitleDirective } from '../../directive/title.directive';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ext } from '../../model/ext';
 import { Ref, RefSort } from '../../model/ref';
-import { KanbanConfig } from '../../mods/kanban';
+import { KanbanConfig } from '../../mods/org/kanban';
 import { AccountService } from '../../service/account.service';
 import { ExtService } from '../../service/api/ext.service';
 import { TaggingService } from '../../service/api/tagging.service';

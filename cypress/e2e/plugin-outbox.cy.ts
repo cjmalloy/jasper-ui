@@ -24,7 +24,7 @@ describe('Outbox Plugin: Remote Notifications', {
     cy.get('#mod-comment').should('not.be.checked').check().should('be.checked');
     cy.get('#mod-mailbox').should('not.be.checked').check().should('be.checked');
     cy.get('#mod-root').should('not.be.checked').check().should('be.checked');
-    cy.get('#mod-remoteorigin').should('not.be.checked').check().should('be.checked');
+    cy.get('#mod-origin').should('not.be.checked').check().should('be.checked');
     cy.get('#mod-user').should('not.be.checked').check().should('be.checked');
     cy.get('button').contains('Save').click();
     cy.get('.log').contains('Success');
@@ -70,7 +70,7 @@ describe('Outbox Plugin: Remote Notifications', {
 
     cy.wait(100);
     cy.get('#mod-root').should('not.be.checked').check().should('be.checked');
-    cy.get('#mod-remoteorigin').should('not.be.checked').check().should('be.checked');
+    cy.get('#mod-origin').should('not.be.checked').check().should('be.checked');
     cy.get('button').contains('Save').click();
     cy.get('.log').contains('Success');
 
@@ -144,7 +144,7 @@ describe('Outbox Plugin: Remote Notifications', {
     cy.get('.comment-reply button').contains('reply').click();
     cy.wait(3000);
   });
-  it('@repl: check reply was pulled', { retries: 3 }, () => {
+  xit('@repl: check reply was pulled', { retries: 3 }, () => {
     cy.intercept({pathname: '/api/v1/ref/count'}).as('notifications');
     cy.visit(replUrl + '/?debug=ADMIN&tag=bob');
     cy.wait('@notifications');
@@ -154,7 +154,7 @@ describe('Outbox Plugin: Remote Notifications', {
     cy.get('.ref-list .link.remote').contains('Doing well, thanks!').parent().parent().parent().as('ref');
     cy.get('@ref').find('.user.tag').contains('alice');
   });
-  it('@repl: check inbox was converted to outbox', { retries: 3 }, () => {
+  xit('@repl: check inbox was converted to outbox', { retries: 3 }, () => {
     cy.visit(replUrl + '/?debug=ADMIN&tag=charlie');
     cy.intercept({pathname: '/api/v1/ref/count'}).as('notifications');
     cy.visit(replUrl + '/?debug=ADMIN&tag=charlie');

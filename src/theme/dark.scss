@@ -71,12 +71,10 @@ body.dark-theme {
     }
   }
 
-  & {
-    background-color: var(--bg);
-    background-image: url("../assets/bg-dark.png");
-    background-blend-mode: soft-light;
-  }
-  figure::backdrop, .editor.fullscreen app-md {
+  &,
+  .embed::backdrop,
+  figure::backdrop,
+  .editor.fullscreen app-md {
     background-color: var(--bg);
     background-image: url("../assets/bg-dark.png");
     background-blend-mode: soft-light;
@@ -96,6 +94,11 @@ body.dark-theme {
 
   a:active {
     color: var(--text);
+  }
+
+  .glass {
+    backdrop-filter: grayscale(1) contrast(0.4) brightness(0.4) blur(8px);
+    border: 0.5px solid rgba(255, 255, 255, 0.2);
   }
 
   .toolbar {

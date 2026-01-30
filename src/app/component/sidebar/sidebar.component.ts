@@ -25,6 +25,7 @@ import { Store } from '../../store/store';
 import { memo, MemoCache } from '../../util/memo';
 import { hasPrefix, hasTag, isQuery, localTag, setProtected, setPublic, topAnds } from '../../util/tag';
 import { BulkComponent } from '../bulk/bulk.component';
+import { ChatVideoComponent } from '../chat/chat-video/chat-video.component';
 import { ChatComponent } from '../chat/chat.component';
 import { DebugComponent } from '../debug/debug.component';
 import { ExtComponent } from '../ext/ext.component';
@@ -55,6 +56,7 @@ import { SortComponent } from '../sort/sort.component';
     AsyncPipe,
     NavComponent,
     RouterLinkActive,
+    ChatVideoComponent,
   ]
 })
 export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
@@ -112,7 +114,7 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
     router.events.pipe(
       filter(event => event instanceof NavigationEnd),
     ).subscribe(() => {
-      if (hasTag('plugin/chat', this.store.view.ref)) return;
+      if (this.chat) return;
       if (this.config.tablet && this.lastView != this.store.view.current ||
         !this.config.huge  && this.store.view.current === 'ref/summary') {
         this.lastView = this.store.view.current;
@@ -124,6 +126,11 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
   ngOnInit(): void {
     this.disposers.push(autorun(() => {
       this.expanded = this.store.view.sidebarExpanded;
+    }));
+    this.disposers.push(autorun(() => {
+      if (this.store.view.ref) {
+        MemoCache.clear(this);
+      }
     }));
     this.disposers.push(autorun(() => {
       if (!this.store.view.template) {
@@ -251,8 +258,14 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
     return !this.plugin?.tag || this.auth.canAddTag(this.plugin.tag);
   }
 
+  @memo
+  get videoChat() {
+    return !!this.admin.getPlugin('plugin/user/video') && (this.chat || hasPrefix(this.ext?.tag || this.tag, 'chat'));
+  }
+
+  @memo
   get chat() {
-    return !!this.admin.getPlugin('plugin/chat') && hasTag('plugin/chat', this.store.view.ref);
+    return !!this.admin.getPlugin('plugin/user/lobby') && !!this.admin.getPlugin('plugin/chat') && hasTag('plugin/chat', this.store.view.ref);
   }
 
   @memo
@@ -323,7 +336,6 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
 
   @memo
   get messages() {
-    if (this.home) return false;
     if (!this.admin.getPlugin('plugin/inbox')) return false;
     if (!this.admin.getTemplate('dm')) return false;
     if (!this.store.account.user) return false;
@@ -337,7 +349,7 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
 
   @memo
   get homeWriteAccess() {
-    return this.home && this.admin.getTemplate('home') && this.auth.tagWriteAccess('home');
+    return this.home && this.admin.getTemplate('config/home') && this.auth.tagWriteAccess('config/home');
   }
 
   @memo
@@ -388,6 +400,6 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
 
   startChat() {
     runInAction(() => this.store.view.ref?.tags?.push('plugin/chat'));
-    this.ts.create('plugin/chat', this.store.view.ref!.url, this.store.account.origin).subscribe()
+    this.ts.create('plugin/chat', this.store.view.ref!.url, this.store.account.origin).subscribe();
   }
 }

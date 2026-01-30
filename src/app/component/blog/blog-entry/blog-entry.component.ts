@@ -36,8 +36,8 @@ import {
   Visibility,
   visible
 } from '../../../model/tag';
-import { findArchive } from '../../../mods/archive';
 import { deleteNotice } from '../../../mods/delete';
+import { findArchive } from '../../../mods/tools/archive';
 import { AdminService } from '../../../service/admin.service';
 import { ExtService } from '../../../service/api/ext.service';
 import { RefService } from '../../../service/api/ref.service';

@@ -150,6 +150,7 @@ export function isAuthorTag(tag: string, ref?: Ref) {
 }
 
 export function isOwnerTag(tag: string, ref?: Ref) {
+  if (publicTag(tag)) return false;
   if (ref?.origin !== tagOrigin(tag)) return false;
   return hasDownwardsTag(localTag(tag), ref);
 }
@@ -158,6 +159,11 @@ export function localTag(tag?: string) {
   if (!tag) return '';
   if (!tag.includes('@')) return tag;
   return tag.substring(0, tag.indexOf('@'));
+}
+
+export function userResponse(tag?: string) {
+  if (!tag) return '';
+  return 'tag:/' + setPublic(localTag(tag));
 }
 
 export function tagOrigin(tag?: string) {
@@ -400,4 +406,10 @@ export function updateMetadata(parent: Ref, child: Ref) {
     parent.metadata.responses ||= 0;
     parent.metadata.responses++;
   }
+}
+
+export function getUserUrl(ref: Ref) {
+  if (!ref.url.startsWith('tag:/')) return '';
+  if (!ref.url.includes('?')) return ref.url.substring('tag:/'.length);
+  return setPublic(ref.url.substring('tag:/'.length, ref.url.indexOf('?'))) + (ref.origin || '');
 }
