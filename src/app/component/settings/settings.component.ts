@@ -30,7 +30,7 @@ export class SettingsComponent implements AfterViewInit {
   }
 
   ngAfterViewInit() {
-    this.help.pushStep(this.el, $localize`Change your settings.`);
+    this.help.pushStep(this.el?.nativeElement, $localize`Change your settings.`);
   }
 
   get fullUserTagAndRole() {
