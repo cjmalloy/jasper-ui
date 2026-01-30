@@ -105,6 +105,7 @@ def convert_to_markdown(data, ext, content_type=''):
             mimetype = None
 
     # Create StreamInfo with mimetype and extension hints
+    # MarkItDown uses these hints to identify the file format
     stream_info = None
     if mimetype or ext:
         stream_info = StreamInfo(
@@ -112,7 +113,8 @@ def convert_to_markdown(data, ext, content_type=''):
             extension=ext
         )
 
-    temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=ext or '')
+    # Use extension if available, otherwise rely on mimetype
+    temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=ext if ext else '')
     try:
         temp_file.write(data)
         temp_file.close()
@@ -146,7 +148,8 @@ if not formats_to_convert:
     url = ref.get('url', '')
     if url:
         ext = get_extension_from_url(url)
-        # Let MarkItDown try to convert any file with an extension
+        # Allow MarkItDown to attempt conversion of any file with an extension
+        # Error handling in the conversion loop will catch unsupported formats
         if ext:
             formats_to_convert.append({
                 'plugin': 'url',
