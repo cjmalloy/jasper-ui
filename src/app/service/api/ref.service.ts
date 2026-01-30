@@ -132,7 +132,7 @@ export class RefService {
     return this.create({
       url: ref.url,
       origin: this.store.account.origin,
-      tags: [this.store.account.localTag, 'internal', 'plugin/editing'],
+      tags: [this.store.account.localTag, 'plugin/editing'],
       plugins: { 'plugin/editing': writeEdit(ref) }
     });
   }
