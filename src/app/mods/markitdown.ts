@@ -96,71 +96,26 @@ def fetch_resource(url, resource_origin):
 
 def convert_to_markdown(data, ext, content_type=''):
     """Convert data to markdown using MarkItDown."""
-    # Determine extension from content-type if not provided
-    if not ext and content_type:
-        ct = content_type.lower()
-        if 'pdf' in ct:
-            ext = '.pdf'
-        elif 'word' in ct or 'docx' in ct or 'msword' in ct:
-            ext = '.docx'
-        elif 'excel' in ct or 'xlsx' in ct or 'spreadsheet' in ct:
-            ext = '.xlsx'
-        elif 'powerpoint' in ct or 'pptx' in ct or 'presentation' in ct:
-            ext = '.pptx'
-        elif 'html' in ct:
-            ext = '.html'
-        elif 'image/jpeg' in ct:
-            ext = '.jpg'
-        elif 'image/png' in ct:
-            ext = '.png'
-        elif 'image/gif' in ct:
-            ext = '.gif'
-        elif 'image/webp' in ct:
-            ext = '.webp'
-        elif 'image' in ct:
-            ext = '.png'
-        elif 'audio/mpeg' in ct or 'audio/mp3' in ct:
-            ext = '.mp3'
-        elif 'audio/wav' in ct:
-            ext = '.wav'
-        elif 'audio/ogg' in ct:
-            ext = '.ogg'
-        elif 'audio' in ct:
-            ext = '.mp3'
-        elif 'video/mp4' in ct:
-            ext = '.mp4'
-        elif 'video/webm' in ct:
-            ext = '.webm'
-        elif 'video' in ct:
-            ext = '.mp4'
-        elif 'json' in ct:
-            ext = '.json'
-        elif 'xml' in ct:
-            ext = '.xml'
-        elif 'csv' in ct:
-            ext = '.csv'
-        elif 'text/plain' in ct:
-            ext = '.txt'
+    # Extract mimetype from content-type (remove charset and other parameters)
+    mimetype = None
+    if content_type:
+        mimetype = content_type.split(';')[0].strip()
+        # Validate mimetype format
+        if not mimetype or mimetype.count('/') != 1:
+            mimetype = None
 
-    temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=ext)
+    # Create StreamInfo with mimetype and extension hints
+    stream_info = None
+    if mimetype or ext:
+        stream_info = StreamInfo(
+            mimetype=mimetype,
+            extension=ext
+        )
+
+    temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=ext or '')
     try:
         temp_file.write(data)
         temp_file.close()
-
-        # Extract mimetype from content-type (remove charset and other parameters)
-        mimetype = None
-        if content_type:
-            mimetype = content_type.split(';')[0].strip()
-            if mimetype and mimetype.count('/') != 1:
-                mimetype = None
-
-        # Create StreamInfo with mimetype hint
-        stream_info = None
-        if mimetype or ext:
-            stream_info = StreamInfo(
-                mimetype=mimetype,
-                extension=ext
-            )
 
         md = MarkItDown()
         result = md.convert(temp_file.name, stream_info=stream_info)
@@ -186,16 +141,13 @@ for plugin_tag, default_ext in SUPPORTED_FORMATS.items():
                 'ext': ext,
             })
 
-# If no supported format tags found, check if ref URL has a supported extension
+# If no supported format tags found, check if ref URL has an extension
 if not formats_to_convert:
     url = ref.get('url', '')
     if url:
         ext = get_extension_from_url(url)
-        supported_extensions = ['.pdf', '.docx', '.xlsx', '.pptx', '.html', '.htm',
-                               '.jpg', '.jpeg', '.png', '.gif', '.webp',
-                               '.mp3', '.wav', '.ogg', '.mp4', '.webm',
-                               '.json', '.xml', '.csv', '.txt']
-        if ext in supported_extensions:
+        # Let MarkItDown try to convert any file with an extension
+        if ext:
             formats_to_convert.append({
                 'plugin': 'url',
                 'url': url,
