@@ -15,6 +15,7 @@ export class HelpService {
   private overlayRef: OverlayRef | null = null;
 
   private shown: string[] = [];
+  private maxIndexReached: number = -1;
 
   constructor(
     private store: Store,
@@ -58,6 +59,7 @@ export class HelpService {
     }
 
     if (this.store.helpStepIndex === -1) {
+      this.maxIndexReached = -1;
       runInAction(() => this.store.helpStepIndex = 0);
     }
 
@@ -91,6 +93,11 @@ export class HelpService {
     if (this.store.helpStepIndex < 0 || this.store.helpStepIndex >= this.steps.length) {
       this.endTour();
       return;
+    }
+
+    // Track the maximum index reached
+    if (this.store.helpStepIndex > this.maxIndexReached) {
+      this.maxIndexReached = this.store.helpStepIndex;
     }
 
     // Dismiss the current overlay if it exists
@@ -136,16 +143,26 @@ export class HelpService {
 
   /**
    * Ends the help tour and dismisses the overlay.
+   * Only dismisses steps that have been shown (up to max index reached).
+   * Undisplayed steps remain available for future display.
    */
   endTour(): void {
     this.dismissOverlay();
-    for (const step of this.steps) {
-      this.store.local.dismissHelpPopup(step.id);
+    // Dismiss all steps that were shown (up to maxIndexReached)
+    if (this.maxIndexReached >= 0) {
+      for (let i = 0; i <= this.maxIndexReached && i < this.steps.length; i++) {
+        this.store.local.dismissHelpPopup(this.steps[i].id);
+      }
     }
-    this.steps = [];
+    // Remove shown steps (up to max index reached) but keep undisplayed ones
+    const undisplayedSteps = this.maxIndexReached >= 0 
+      ? this.steps.slice(this.maxIndexReached + 1)
+      : this.steps;
+    this.steps = undisplayedSteps;
+    this.maxIndexReached = -1;
     runInAction(() => {
       this.store.helpStepIndex = -1;
-      this.store.helpSteps = 0;
+      this.store.helpSteps = this.steps.length;
     });
   }
 
