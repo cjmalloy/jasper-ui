@@ -34,7 +34,7 @@ Resources are fetched through the Jasper proxy API.`,
       { query: 'plugin/delta/md', label: $localize`📝️💭️ markitdown query`, title: $localize`Convert to Markdown`, group: $localize`Notifications ✉️` },
     ],
     actions: [
-      { tag: 'plugin/delta/md', labelOff: $localize`to markdown`, title: $localize`Convert document to Markdown using MarkItDown`, confirm: $localize`Are you sure you want to convert this document to Markdown?`, global: true },
+      { tag: 'plugin/delta/md', labelOff: $localize`markdown`, title: $localize`Convert document to Markdown using MarkItDown`, global: true },
       { tag: 'plugin/delta/md', labelOn: $localize`cancel`, title: $localize`Cancel MarkItDown conversion.` },
     ],
     timeoutMs: 600_000,
