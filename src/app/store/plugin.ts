@@ -1,7 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { Injectable, signal } from '@angular/core';
 import { isEqual, omit } from 'lodash-es';
-import { makeAutoObservable, observable, runInAction } from 'mobx';
 import { catchError, Subscription, throwError } from 'rxjs';
 import { Page } from '../model/page';
 import { Plugin } from '../model/plugin';
@@ -13,26 +12,29 @@ import { PluginService } from '../service/api/plugin.service';
 })
 export class PluginStore {
 
-  args?: TagPageArgs = {} as any;
-  page?: Page<Plugin> = {} as any;
-  error?: HttpErrorResponse = {} as any;
+  private _args = signal<TagPageArgs | undefined>(undefined);
+  private _page = signal<Page<Plugin> | undefined>(undefined);
+  private _error = signal<HttpErrorResponse | undefined>(undefined);
 
   private running?: Subscription;
 
   constructor(
     private plugins: PluginService,
-  ) {
-    makeAutoObservable(this, {
-      args: observable.struct,
-      page: observable.ref,
-    });
-    this.clear(); // Initial observables may not be null for MobX
-  }
+  ) {}
+
+  get args() { return this._args(); }
+  set args(value: TagPageArgs | undefined) { this._args.set(value); }
+
+  get page() { return this._page(); }
+  set page(value: Page<Plugin> | undefined) { this._page.set(value); }
+
+  get error() { return this._error(); }
+  set error(value: HttpErrorResponse | undefined) { this._error.set(value); }
 
   clear() {
-    this.args = undefined;
-    this.page = undefined;
-    this.error = undefined;
+    this._args.set(undefined);
+    this._page.set(undefined);
+    this._error.set(undefined);
     this.running?.unsubscribe();
   }
 
@@ -41,20 +43,19 @@ export class PluginStore {
   }
 
   setArgs(args: TagPageArgs) {
-    if (!isEqual(omit(this.args, 'search'), omit(args, 'search'))) this.clear();
-    this.args = args;
+    if (!isEqual(omit(this._args(), 'search'), omit(args, 'search'))) this.clear();
+    this._args.set(args);
     this.refresh();
   }
 
   refresh() {
-    if (!this.args) return;
+    if (!this._args()) return;
     this.running?.unsubscribe();
-    this.running = this.plugins.page(this.args || {}).pipe(
+    this.running = this.plugins.page(this._args() || {}).pipe(
       catchError((err: HttpErrorResponse) => {
-        runInAction(() => this.error = err);
+        this._error.set(err);
         return throwError(() => err);
       }),
-    ).subscribe(p => runInAction(() => this.page = p));
+    ).subscribe(p => this._page.set(p));
   }
-
 }

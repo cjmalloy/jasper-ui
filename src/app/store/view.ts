@@ -1,6 +1,6 @@
+import { signal } from '@angular/core';
+import { Router } from '@angular/router';
 import { isEqual, uniq } from 'lodash-es';
-import { action, makeAutoObservable, observable } from 'mobx';
-import { RouterStore } from 'mobx-angular';
 import { Ext } from '../model/ext';
 import { Plugin } from '../model/plugin';
 import { Ref, RefSort } from '../model/ref';
@@ -29,95 +29,143 @@ export type Type = 'ref' | 'ext' | 'user' | 'plugin' | 'template';
 
 export class ViewStore {
 
-  floatingSidebar = true;
-  sidebarExpanded = true;
-  defaultPageSize = 24;
-  defaultKanbanLoadSize = 8;
-  defaultBlogPageSize = 5;
-  defaultSort: RefSort[] | TagSort[] = ['published'];
-  defaultSearchSort: RefSort[] | TagSort[] = ['rank'];
-  defaultPageNumber = 0;
-  ref?: Ref = {} as any;
-  top?: Ref = {} as any;
-  lastSelected?: Ref = {} as any;
-  versions = 0;
-  exts: Ext[] = [];
-  extTemplates: Template[] = [];
-  selectedUser?: User = {} as any;
-  updates = false;
-  inboxTabs: Plugin[] = [];
-  settingsTabs: Plugin[] = [];
+  private _floatingSidebar = signal(true);
+  private _sidebarExpanded = signal(true);
+  private _defaultPageSize = signal(24);
+  private _defaultKanbanLoadSize = signal(8);
+  private _defaultBlogPageSize = signal(5);
+  private _defaultSort = signal<RefSort[] | TagSort[]>(['published']);
+  private _defaultSearchSort = signal<RefSort[] | TagSort[]>(['rank']);
+  private _defaultPageNumber = signal(0);
+  private _ref = signal<Ref | undefined>(undefined);
+  private _top = signal<Ref | undefined>(undefined);
+  private _lastSelected = signal<Ref | undefined>(undefined);
+  private _versions = signal(0);
+  private _exts = signal<Ext[]>([]);
+  private _extTemplates = signal<Template[]>([]);
+  private _selectedUser = signal<User | undefined>(undefined);
+  private _updates = signal(false);
+  private _inboxTabs = signal<Plugin[]>([]);
+  private _settingsTabs = signal<Plugin[]>([]);
 
   constructor(
-    public route: RouterStore,
+    private router: Router,
     private account: AccountStore,
-  ) {
-    makeAutoObservable(this, {
-      clear: action,
-      setRef: action,
-      preloadRef: action,
-      setLastSelected: action,
-      exts: observable.shallow,
-      extTemplates: observable.shallow,
-      inboxTabs: observable.shallow,
-      settingsTabs: observable.shallow,
-    });
-    this.clear(); // Initial observables may not be null for MobX
+  ) {}
+
+  get floatingSidebar() { return this._floatingSidebar(); }
+  set floatingSidebar(value: boolean) { this._floatingSidebar.set(value); }
+
+  get sidebarExpanded() { return this._sidebarExpanded(); }
+  set sidebarExpanded(value: boolean) { this._sidebarExpanded.set(value); }
+
+  get defaultPageSize() { return this._defaultPageSize(); }
+  set defaultPageSize(value: number) { this._defaultPageSize.set(value); }
+
+  get defaultKanbanLoadSize() { return this._defaultKanbanLoadSize(); }
+  set defaultKanbanLoadSize(value: number) { this._defaultKanbanLoadSize.set(value); }
+
+  get defaultBlogPageSize() { return this._defaultBlogPageSize(); }
+  set defaultBlogPageSize(value: number) { this._defaultBlogPageSize.set(value); }
+
+  get defaultSort() { return this._defaultSort(); }
+  set defaultSort(value: RefSort[] | TagSort[]) { this._defaultSort.set(value); }
+
+  get defaultSearchSort() { return this._defaultSearchSort(); }
+  set defaultSearchSort(value: RefSort[] | TagSort[]) { this._defaultSearchSort.set(value); }
+
+  get defaultPageNumber() { return this._defaultPageNumber(); }
+  set defaultPageNumber(value: number) { this._defaultPageNumber.set(value); }
+
+  get ref() { return this._ref(); }
+  set ref(value: Ref | undefined) { this._ref.set(value); }
+
+  get top() { return this._top(); }
+  set top(value: Ref | undefined) { this._top.set(value); }
+
+  get lastSelected() { return this._lastSelected(); }
+  set lastSelected(value: Ref | undefined) { this._lastSelected.set(value); }
+
+  get versions() { return this._versions(); }
+  set versions(value: number) { this._versions.set(value); }
+
+  get exts() { return this._exts(); }
+  set exts(value: Ext[]) { this._exts.set(value); }
+
+  get extTemplates() { return this._extTemplates(); }
+  set extTemplates(value: Template[]) { this._extTemplates.set(value); }
+
+  get selectedUser() { return this._selectedUser(); }
+  set selectedUser(value: User | undefined) { this._selectedUser.set(value); }
+
+  get updates() { return this._updates(); }
+  set updates(value: boolean) { this._updates.set(value); }
+
+  get inboxTabs() { return this._inboxTabs(); }
+  set inboxTabs(value: Plugin[]) { this._inboxTabs.set(value); }
+
+  get settingsTabs() { return this._settingsTabs(); }
+  set settingsTabs(value: Plugin[]) { this._settingsTabs.set(value); }
+
+  // Helper to get current route snapshot
+  private get routeSnapshot() {
+    // @ts-ignore - accessing internal router state
+    return this.router.routerState?.snapshot?.root;
   }
 
   setLastSelected(ref?: Ref) {
-    this.lastSelected = ref;
+    this._lastSelected.set(ref);
   }
 
   clearLastSelected(url?: string) {
-    if (!url || url === this.lastSelected?.url) {
-      this.lastSelected = undefined;
+    if (!url || url === this._lastSelected()?.url) {
+      this._lastSelected.set(undefined);
     }
   }
 
   clear(defaultSort: RefSort[] | TagSort[] = ['published'], defaultSearchSort: RefSort[] | TagSort[] = ['rank'], defaultPageNumber = 0) {
-    this.ref = undefined;
-    this.top = undefined;
-    this.versions = 0;
-    this.exts = [];
-    this.extTemplates = [];
-    this.selectedUser = undefined;
-    this.defaultSort = defaultSort;
-    this.defaultSearchSort = defaultSearchSort;
-    this.defaultPageNumber = defaultPageNumber;
+    this._ref.set(undefined);
+    this._top.set(undefined);
+    this._versions.set(0);
+    this._exts.set([]);
+    this._extTemplates.set([]);
+    this._selectedUser.set(undefined);
+    this._defaultSort.set(defaultSort);
+    this._defaultSearchSort.set(defaultSearchSort);
+    this._defaultPageNumber.set(defaultPageNumber);
   }
 
   clearRef(ref?: Ref) {
-    if (this.ref && (!ref || ref.url !== this.ref?.url)) this.lastSelected = this.ref;
-    this.ref = undefined;
-    this.top = undefined;
+    if (this._ref() && (!ref || ref.url !== this._ref()?.url)) this._lastSelected.set(this._ref());
+    this._ref.set(undefined);
+    this._top.set(undefined);
   }
 
-  setRef(ref?: Ref, top?: Ref) {
+  setRef(ref?: Ref, topRef?: Ref) {
     this.clearRef(ref);
-    this.ref = ref;
-    this.top = top;
-    this.exts = [];
-    this.extTemplates = [];
-    this.selectedUser = undefined;
+    this._ref.set(ref);
+    this._top.set(topRef);
+    this._exts.set([]);
+    this._extTemplates.set([]);
+    this._selectedUser.set(undefined);
   }
 
   preloadRef(ref: Ref, topRef?: Ref) {
     this.clearRef(ref);
-    if (ref?.created) this.ref = ref;
-    if (topRef || top(ref) !== this.top?.url) this.top = topRef;
+    if (ref?.created) this._ref.set(ref);
+    if (topRef || top(ref) !== this._top()?.url) this._top.set(topRef);
   }
 
   get pageTitle() {
-    return getPageTitle(this.ref, this.top);
+    return getPageTitle(this._ref(), this._top());
   }
 
   get ext() {
-    return this.exts[0];
+    return this._exts()[0];
   }
 
   get extTemplate() {
-    return this.extTemplates.find(t => this.exts.find(x => hasPrefix(x.tag, t.tag)));
+    return this._extTemplates().find(t => this._exts().find(x => hasPrefix(x.tag, t.tag)));
   }
 
   get config(): RootConfig | undefined {
@@ -125,17 +173,17 @@ export class ViewStore {
   }
 
   get url() {
-    return this.route.routeSnapshot?.firstChild?.params['url'];
+    return this.routeSnapshot?.firstChild?.params['url'];
   }
 
   get summary() {
-    const s = this.route.routeSnapshot?.firstChild;
+    const s = this.routeSnapshot?.firstChild;
     if (s?.url[0].path !== 'ref') return false;
     return !s.firstChild?.routeConfig?.path;
   }
 
   get alternateUrls() {
-    const s = this.route.routeSnapshot?.firstChild;
+    const s = this.routeSnapshot?.firstChild;
     if (s?.url[0].path !== 'ref') return false;
     return s.firstChild?.routeConfig?.path === 'alts';
   }
@@ -146,7 +194,7 @@ export class ViewStore {
   get activeExts(): Ext[] {
     return uniq(this.activeTemplates
         .flatMap(t => {
-          const exts = this.exts.filter(x => x.modifiedString && hasPrefix(x.tag, t.tag));
+          const exts = this._exts().filter(x => x.modifiedString && hasPrefix(x.tag, t.tag));
           if (exts.length) return exts;
           return [{ tag: t.tag, origin: t.origin, name: t.name, config: { ...t.defaults, view: t?.config?.view} }];
         })
@@ -159,7 +207,7 @@ export class ViewStore {
   get globalExts(): Ext[] {
     return uniq(this.globalTemplates
         .flatMap(t => {
-          if (this.exts.find(x => hasPrefix(x.tag, t.tag))) {
+          if (this._exts().find(x => hasPrefix(x.tag, t.tag))) {
             // Already an active ext so ignore global
             return [];
           }
@@ -173,12 +221,12 @@ export class ViewStore {
    */
   get activeTemplates(): Template[] {
     return uniq(this.queryTags
-        .map(tag => this.extTemplates.find(t => hasPrefix(tag, t.tag))!)
+        .map(tag => this._extTemplates().find(t => hasPrefix(tag, t.tag))!)
         .filter(t => !!t));
   }
 
   get globalTemplates(): Template[] {
-    return this.extTemplates.filter(t => t.config?.global);
+    return this._extTemplates().filter(t => t.config?.global);
   }
 
   isTemplate(template: string) {
@@ -186,12 +234,12 @@ export class ViewStore {
   }
 
   get tags(): boolean {
-    const s = this.route.routeSnapshot?.firstChild;
+    const s = this.routeSnapshot?.firstChild;
     return s?.url[0].path === 'tags';
   }
 
   get settings() {
-    const s = this.route.routeSnapshot?.firstChild;
+    const s = this.routeSnapshot?.firstChild;
     return s?.routeConfig?.path === 'settings';
   }
 
@@ -201,7 +249,7 @@ export class ViewStore {
   }
 
   get inbox() {
-    const s = this.route.routeSnapshot?.firstChild;
+    const s = this.routeSnapshot?.firstChild;
     return s?.routeConfig?.path === 'inbox';
   }
 
@@ -211,7 +259,7 @@ export class ViewStore {
   }
 
   get current(): View | undefined {
-    const s = this.route.routeSnapshot?.firstChild;
+    const s = this.routeSnapshot?.firstChild;
     switch (s?.url[0].path) {
       case 'home': return 'home';
       case 'tags': return 'tags';
@@ -284,15 +332,15 @@ export class ViewStore {
   }
 
   get forYou() {
-    return !!this.route.routeSnapshot?.queryParams['forYou'];
+    return !!this.routeSnapshot?.queryParams['forYou'];
   }
 
   get origin() {
-    return this.route.routeSnapshot?.queryParams['origin'];
+    return this.routeSnapshot?.queryParams['origin'];
   }
 
   get depth() {
-    return this.route.routeSnapshot?.queryParams['depth'];
+    return this.routeSnapshot?.queryParams['depth'];
   }
 
   get isTextPost() {
@@ -304,11 +352,11 @@ export class ViewStore {
   }
 
   get tag(): string {
-    return this.route.routeSnapshot?.firstChild?.params['tag'] || '';
+    return this.routeSnapshot?.firstChild?.params['tag'] || '';
   }
 
   get childTag(): string {
-    return this.route.routeSnapshot?.firstChild?.firstChild?.params['tag'] || '';
+    return this.routeSnapshot?.firstChild?.firstChild?.params['tag'] || '';
   }
 
   /**
@@ -323,11 +371,11 @@ export class ViewStore {
    */
   get viewExt() {
     if (this.list) return undefined;
-    return this.viewTag && [...this.activeExts, ...this.globalExts].find(x => hasPrefix(x.tag, this.viewTag)) || this.exts[0];
+    return this.viewTag && [...this.activeExts, ...this.globalExts].find(x => hasPrefix(x.tag, this.viewTag)) || this._exts()[0];
   }
 
   get template(): string {
-    return this.route.routeSnapshot?.firstChild?.params['template'] || '';
+    return this.routeSnapshot?.firstChild?.params['template'] || '';
   }
 
   get localTemplate(): string {
@@ -339,11 +387,11 @@ export class ViewStore {
   }
 
   get noTemplate(): boolean {
-    return this.route.routeSnapshot?.queryParams['noTemplate'] !== undefined && this.route.routeSnapshot?.queryParams['noTemplate'] !== 'false';
+    return this.routeSnapshot?.queryParams['noTemplate'] !== undefined && this.routeSnapshot?.queryParams['noTemplate'] !== 'false';
   }
 
   get home(): boolean {
-    return this.route.routeSnapshot?.queryParams['home'] !== undefined && this.route.routeSnapshot?.queryParams['home'] !== 'false';
+    return this.routeSnapshot?.queryParams['home'] !== undefined && this.routeSnapshot?.queryParams['home'] !== 'false';
   }
 
   get query() {
@@ -369,11 +417,11 @@ export class ViewStore {
     if (this.tag === '@*') return $localize`All`;
     if (this.tag === '*') return $localize`Local`;
     if (isQuery(this.tag)) return $localize`Query`;
-    return this.exts[0]?.name || this.viewExt?.name || (this.viewExt?.tag || this.tag).substring(this.tag.lastIndexOf('/') + 1);
+    return this._exts()[0]?.name || this.viewExt?.name || (this.viewExt?.tag || this.tag).substring(this.tag.lastIndexOf('/') + 1);
   }
 
   get cols() {
-    return parseInt(this.route.routeSnapshot?.queryParams['cols'] || this.viewExt?.config?.defaultCols || 0);
+    return parseInt(this.routeSnapshot?.queryParams['cols'] || this.viewExt?.config?.defaultCols || 0);
   }
 
   get viewExtSort() {
@@ -387,10 +435,10 @@ export class ViewStore {
   }
 
   get sort() {
-    const sort = this.route.routeSnapshot?.queryParams['sort'];
+    const sort = this.routeSnapshot?.queryParams['sort'];
     if (!sort) {
-      if (this.search && this.defaultSearchSort) return this.defaultSearchSort;
-      return this.viewExtSort || this.defaultSort || [];
+      if (this.search && this._defaultSearchSort()) return this._defaultSearchSort();
+      return this.viewExtSort || this._defaultSort() || [];
     }
     if (!Array.isArray(sort)) return [sort]
     return sort;
@@ -398,8 +446,8 @@ export class ViewStore {
 
   get isSorted() {
     if (this.sort.length > 1) return true;
-    if (this.search && this.defaultSearchSort) return !isEqual(this.sort, this.defaultSearchSort);
-    return !isEqual(this.sort, this.defaultSort);
+    if (this.search && this._defaultSearchSort()) return !isEqual(this.sort, this._defaultSearchSort());
+    return !isEqual(this.sort, this._defaultSort());
   }
 
   get isVoteSorted() {
@@ -407,7 +455,7 @@ export class ViewStore {
   }
 
   get filter(): UrlFilter[] {
-    const filter = this.route.routeSnapshot?.queryParams['filter'];
+    const filter = this.routeSnapshot?.queryParams['filter'];
     if (!filter) return [];
     if (!Array.isArray(filter)) return [filter]
     return filter;
@@ -420,27 +468,27 @@ export class ViewStore {
   }
 
   get search() {
-    return this.route.routeSnapshot?.queryParams['search'];
+    return this.routeSnapshot?.queryParams['search'];
   }
 
   get pageNumber() {
-    return this.route.routeSnapshot?.queryParams['pageNumber'] || this.defaultPageNumber;
+    return this.routeSnapshot?.queryParams['pageNumber'] || this._defaultPageNumber();
   }
 
   get pageSize() {
-    if (this.route.routeSnapshot?.queryParams['pageSize']) {
-      return parseInt(this.route.routeSnapshot?.queryParams['pageSize']);
+    if (this.routeSnapshot?.queryParams['pageSize']) {
+      return parseInt(this.routeSnapshot?.queryParams['pageSize']);
     }
-    if (this.isTemplate('kanban')) return this.account.config.kanbanLoadSize || this.defaultKanbanLoadSize;
-    return parseInt(this.route.routeSnapshot?.queryParams['pageSize'] ?? (this.isTemplate('blog') ? this.defaultBlogPageSize : this.defaultPageSize));
+    if (this.isTemplate('kanban')) return this.account.config.kanbanLoadSize || this._defaultKanbanLoadSize();
+    return parseInt(this.routeSnapshot?.queryParams['pageSize'] ?? (this.isTemplate('blog') ? this._defaultBlogPageSize() : this._defaultPageSize()));
   }
 
   get published() {
-    return this.route.routeSnapshot?.queryParams['published'];
+    return this.routeSnapshot?.queryParams['published'];
   }
 
   get view(): string {
-    return this.route.routeSnapshot?.queryParams['view'];
+    return this.routeSnapshot?.queryParams['view'];
   }
 
   get noView() {
@@ -457,14 +505,14 @@ export class ViewStore {
 
   get showRemotes() {
     if (!this.showRemotesCheckbox) return true;
-    return this.route.routeSnapshot?.queryParams['showRemotes'] !== undefined && this.route.routeSnapshot?.queryParams['showRemotes'] !== 'false';
+    return this.routeSnapshot?.queryParams['showRemotes'] !== undefined && this.routeSnapshot?.queryParams['showRemotes'] !== 'false';
   }
 
   get repost() {
-    return this.ref?.sources?.[0] && hasTag('plugin/repost', this.ref);
+    return this._ref()?.sources?.[0] && hasTag('plugin/repost', this._ref());
   }
 
   updateNotify() {
-    return this.updates = true;
+    return this._updates.set(true);
   }
 }

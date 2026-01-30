@@ -2,10 +2,12 @@ import { CdkDrag, CdkDragDrop, CdkDropList, CdkDropListGroup } from '@angular/cd
 import {
   AfterViewInit,
   Component,
+  effect,
   ElementRef,
   EventEmitter,
   HostBinding,
   HostListener,
+  Injector,
   Input,
   OnChanges,
   OnDestroy,
@@ -14,7 +16,6 @@ import {
   SimpleChanges
 } from '@angular/core';
 import { cloneDeep, defer, delay, filter, range, uniq } from 'lodash-es';
-import { autorun, IReactionDisposer } from 'mobx';
 import { catchError, Observable, of, Subscription } from 'rxjs';
 import { Ref } from '../../model/ref';
 import { ActionService } from '../../service/action.service';
@@ -513,7 +514,6 @@ function loadMove(state: GameState, p: Piece, from: number, to: number) {
   imports: [CdkDropList, CdkDrag]
 })
 export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, OnDestroy {
-  private disposers: IReactionDisposer[] = [];
 
   @Input()
   @HostBinding('class.red')
@@ -572,16 +572,17 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   errored = false;
 
   constructor(
+    private injector: Injector,
     private store: Store,
     private actions: ActionService,
     private el: ElementRef<HTMLDivElement>,
   ) {
-    this.disposers.push(autorun(() => {
+    effect(() => {
       if (this.store.eventBus.event === 'flip' && this.store.eventBus.ref?.url === this.ref?.url) {
         this.red = !this.red;
         defer(() => this.store.eventBus.fire('flip-done'));
       }
-    }));
+    }, { injector: this.injector });
   }
 
   ngOnInit(): void {
@@ -646,8 +647,6 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   }
 
   ngOnDestroy() {
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
     this.resizeObserver?.disconnect();
     this.watch?.unsubscribe();
     this.pauseReplay();

@@ -1,4 +1,4 @@
-<ng-container *mobxAutorun>
+<ng-container>
   @if (collapsed) {
     <div class="comment-container info collapsed" tabindex="0">
       <span class="comment-expand fake-link" (click)="store.local.setRefToggled('comment:' + ref.url, !(collapsed = false))" i18n>[+]</span>&nbsp;

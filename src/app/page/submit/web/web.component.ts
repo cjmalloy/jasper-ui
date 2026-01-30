@@ -1,11 +1,10 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { AfterViewInit, Component, OnDestroy, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, effect, Injector, OnDestroy, ViewChild } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
 import { defer, uniq, without } from 'lodash-es';
 import { DateTime } from 'luxon';
-import { autorun, IReactionDisposer } from 'mobx';
-import { MobxAngularModule } from 'mobx-angular';
+
 import { catchError, forkJoin, map, of, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
@@ -38,7 +37,7 @@ import { getVisibilityTags } from '../../../util/tag';
   styleUrls: ['./web.component.scss'],
   host: { 'class': 'full-page-form' },
   imports: [
-    MobxAngularModule,
+
     ReactiveFormsModule,
     LimitWidthDirective,
     NavComponent,
@@ -48,7 +47,6 @@ import { getVisibilityTags } from '../../../util/tag';
 })
 export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
 
-  private disposers: IReactionDisposer[] = [];
 
   submitted = false;
   title = '';
@@ -64,6 +62,7 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
   private _refForm?: RefFormComponent;
 
   constructor(
+    private injector: Injector,
     private mod: ModService,
     private admin: AdminService,
     private router: Router,
@@ -110,7 +109,7 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
         });
       }
       if (this.store.account.localTag) this.addTag(this.store.account.localTag);
-      this.disposers.push(autorun(() => {
+      effect(() => {
         const tags = [...this.store.submit.tags, ...(this.store.account.localTag ? [this.store.account.localTag] : [])];
         const added = without(tags, ...this.oldSubmit);
         const removed = without(this.oldSubmit, ...tags);
@@ -119,7 +118,7 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
           this.addTag(...this.oldSubmit);
         }
         if (this.store.submit.pluginUpload) {
-          this.addPlugin(this.store.submit.plugin, { url: this.store.submit.pluginUpload })
+          this.addPlugin(this.store.submit.plugin, { url: this.store.submit.pluginUpload });
           if (this.store.submit.plugin === 'plugin/image' || this.store.submit.plugin === 'plugin/video') {
             this.addTag('plugin/thumbnail');
           }
@@ -127,7 +126,7 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
         if (this.admin.getPlugin('plugin/thumbnail') && (
           this.store.submit.tags.includes('plugin/video') ||
           this.store.submit.tags.includes('plugin/image'))) {
-          this.addTag('plugin/thumbnail')
+          this.addTag('plugin/thumbnail');
         }
         if (this.origin) {
           this.addTag('internal');
@@ -207,13 +206,11 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
         if (this.store.submit.source) {
           this.store.submit.sources.map(s => this.addSource(s));
         }
-      }));
+      }, { injector: this.injector });
     });
   }
 
   ngOnDestroy() {
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
   }
 
   get refForm(): RefFormComponent {

@@ -1,6 +1,5 @@
 import { Component } from '@angular/core';
-import { runInAction } from 'mobx';
-import { MobxAngularModule } from 'mobx-angular';
+
 import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
 
@@ -9,7 +8,7 @@ import { Store } from '../../store/store';
   templateUrl: './login-popup.component.html',
   styleUrls: ['./login-popup.component.scss'],
   host: { 'class': 'login-popup' },
-  imports: [MobxAngularModule]
+  imports: []
 })
 export class LoginPopupComponent {
 
@@ -19,7 +18,7 @@ export class LoginPopupComponent {
   ) { }
 
   clear() {
-    runInAction(() => this.store.account.authError = false);
+    this.store.account.authError = false;
   }
 
   doLogin() {

@@ -5,6 +5,7 @@ describe('ImageDirective', () => {
     const directive = new ImageDirective(
       {} as any,
       {} as any,
+      {} as any,
       { nativeElement: { style: {}}} as any,
       {} as any,
     );

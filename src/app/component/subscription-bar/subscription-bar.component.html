@@ -1,4 +1,4 @@
-<ng-container *mobxAutorun>
+<ng-container>
   <span class="back-button" (click)="back()">🔙️</span>
   <div class="subs">
     <a [routerLink]="['/tags', store.view.noQuery || '@*']" [class.current-page]="store.view.tags" [queryParams]="{ home: store.view.current === 'home' || null }" i18n>tags</a>

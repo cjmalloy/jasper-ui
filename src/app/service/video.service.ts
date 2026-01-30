@@ -1,5 +1,5 @@
 import { Injectable, isDevMode } from '@angular/core';
-import { runInAction } from 'mobx';
+
 import { filter, interval, map, mergeMap, Subject, switchMap, takeUntil, takeWhile, timer } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Ref } from '../model/ref';
@@ -64,7 +64,7 @@ export class VideoService {
     console.debug('Joining Lobby!');
     this.url = url;
     this.destroy$.next();
-    runInAction(() => this.store.video.stream = stream);
+    (this.store.video.stream = stream);
     this.invite();
     this.answer();
   }
@@ -140,7 +140,7 @@ export class VideoService {
 
   offers = new Map<string, number>();
   doInvite = async (user: string) => {
-    runInAction(() => this.store.video.hungup.set(user, false));
+    (this.store.video.hungup.set(user, false));
     if (this.store.video.peers.has(user)) return;
     const peer = this.peer(user);
     const offer = await peer.createOffer();
@@ -187,7 +187,7 @@ export class VideoService {
         tap(res => {
           const user = getUserUrl(res);
           const hungup = !hasTag('plugin/user/lobby', res);
-          runInAction(() => this.store.video.hungup.set(user, hungup));
+          (this.store.video.hungup.set(user, hungup));
           if (hungup && this.store.video.peers.has(user)) {
             console.debug('Hung Up!', user);
             this.store.video.remove(user);

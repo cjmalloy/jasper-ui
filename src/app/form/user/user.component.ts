@@ -111,7 +111,7 @@ export class UserFormComponent implements OnInit {
       defer(() => this.validate(input));
     } else {
       this.showedError = false;
-      this.tagChanges.next(input.value)
+      this.tagChanges.next(input.value);
     }
   }
 

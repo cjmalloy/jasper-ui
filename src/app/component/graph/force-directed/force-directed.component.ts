@@ -4,9 +4,11 @@ import {
   AfterViewInit,
   ChangeDetectionStrategy,
   Component,
+  effect,
   ElementRef,
   forwardRef,
   HostListener,
+  Injector,
   Input,
   OnDestroy,
   TemplateRef,
@@ -17,8 +19,7 @@ import * as d3 from 'd3';
 import { ForceLink, ScaleTime, Selection, Simulation, SimulationNodeDatum } from 'd3';
 import { filter } from 'lodash-es';
 import { DateTime, Duration } from 'luxon';
-import { autorun, IReactionDisposer, runInAction } from 'mobx';
-import { MobxAngularModule } from 'mobx-angular';
+
 import { Observable, of, Subscription } from 'rxjs';
 import { switchMap, tap } from 'rxjs/operators';
 import { HasChanges } from '../../../guard/pending-changes.guard';
@@ -42,12 +43,11 @@ import { RefListComponent } from '../../ref/ref-list/ref-list.component';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     forwardRef(() => RefListComponent),
-    MobxAngularModule,
+
     LoadingComponent,
   ],
 })
 export class ForceDirectedComponent implements AfterViewInit, OnDestroy, HasChanges {
-  private disposers: IReactionDisposer[] = [];
 
   @Input()
   filter?: string[];
@@ -115,17 +115,18 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy, HasChan
   private forceLink?: ForceLink<SimulationNodeDatum, any>;
 
   constructor(
+    private injector: Injector,
     public store: Store,
     private admin: AdminService,
     private graphs: GraphService,
     private overlay: Overlay,
     private viewContainerRef: ViewContainerRef,
   ) {
-    this.disposers.push(autorun(() => {
+    effect(() => {
       this.selectedStroke = store.darkTheme ? this.selectedStrokeDarkTheme : this.selectedStrokeLightTheme;
       this.linkStroke = store.darkTheme ? this.linkStrokeDarkTheme : this.linkStrokeLightTheme;
       this.update();
-    }));
+    }, { injector: this.injector });
   }
 
   saveChanges() {
@@ -133,8 +134,6 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy, HasChan
   }
 
   ngOnDestroy() {
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
     this.store.graph.set([]);
   }
 
@@ -348,12 +347,12 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy, HasChan
 
   toggleTimeline() {
     this.simulation?.alpha(0.5);
-    runInAction(() => this.store.graph.timeline = !this.store.graph.timeline);
+    this.store.graph.timeline = !this.store.graph.timeline;
     this.close();
   }
 
   toggleArrows() {
-    runInAction(() => this.store.graph.arrows = !this.store.graph.arrows);
+    this.store.graph.arrows = !this.store.graph.arrows;
     this.close();
   }
 

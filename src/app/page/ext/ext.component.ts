@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, HostBinding, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, effect, HostBinding, OnDestroy, ViewChild } from '@angular/core';
 import {
   ReactiveFormsModule,
   UntypedFormBuilder,
@@ -9,8 +9,7 @@ import {
 } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { defer, isObject } from 'lodash-es';
-import { autorun, IReactionDisposer, runInAction } from 'mobx';
-import { MobxAngularModule } from 'mobx-angular';
+
 import { catchError, of, Subscription, switchMap, throwError } from 'rxjs';
 import { LoadingComponent } from '../../component/loading/loading.component';
 import { SelectTemplateComponent } from '../../component/select-template/select-template.component';
@@ -34,7 +33,7 @@ import { access, hasPrefix, localTag, prefix } from '../../util/tag';
   templateUrl: './ext.component.html',
   styleUrls: ['./ext.component.scss'],
   imports: [
-    MobxAngularModule,
+
     RouterLink,
     SettingsComponent,
     ReactiveFormsModule,
@@ -44,8 +43,7 @@ import { access, hasPrefix, localTag, prefix } from '../../util/tag';
     ExtFormComponent,
   ],
 })
-export class ExtPage implements OnInit, OnDestroy, HasChanges {
-  private disposers: IReactionDisposer[] = [];
+export class ExtPage implements OnDestroy, HasChanges {
   @HostBinding('class') css = 'full-page-form';
 
   @ViewChild('form')
@@ -81,30 +79,28 @@ export class ExtPage implements OnInit, OnDestroy, HasChanges {
     this.extForm = fb.group({
       tag: ['', [Validators.pattern(TAG_SUFFIX_REGEX)]],
     });
-  }
 
-  saveChanges() {
-    return !this.editForm?.dirty;
-  }
-
-  ngOnInit(): void {
-    this.disposers.push(autorun(() => {
+    effect(() => {
       if (!this.store.view.tag) {
         this.template = '';
         this.tag.setValue('');
-        runInAction(() => this.store.view.exts = []);
+        this.store.view.exts = [];
       } else {
         const tag = this.store.view.localTag + this.store.account.origin;
         this.exts.get(tag).pipe(
           catchError(() => of(undefined)),
         ).subscribe(ext => this.setExt(tag, ext));
       }
-    }));
+    });
+  }
+
+  saveChanges() {
+    return !this.editForm?.dirty;
   }
 
   setExt(tag: string, ext?: Ext) {
     tag = localTag(tag);
-    runInAction(() => this.store.view.exts = ext ? [ext] : []);
+    this.store.view.exts = ext ? [ext] : [];
     if (ext) {
       this.editForm = extForm(this.fb, ext, this.admin, true);
       this.editForm.patchValue(ext);
@@ -132,8 +128,6 @@ export class ExtPage implements OnInit, OnDestroy, HasChanges {
   }
 
   ngOnDestroy() {
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
   }
 
   get tag() {

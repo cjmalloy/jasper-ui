@@ -1,7 +1,6 @@
-import { Component, ViewChild } from '@angular/core';
+import { Component, effect, Injector, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { defer } from 'lodash-es';
-import { autorun, IReactionDisposer, runInAction } from 'mobx';
-import { MobxAngularModule } from 'mobx-angular';
+
 import { catchError, filter, of, Subject, Subscription, switchMap, takeUntil } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
@@ -24,11 +23,10 @@ import { hasTag, updateMetadata } from '../../../util/tag';
   templateUrl: './errors.component.html',
   styleUrl: './errors.component.scss',
   host: { 'class': 'errors' },
-  imports: [MobxAngularModule, RefListComponent]
+  imports: [ RefListComponent]
 })
-export class RefErrorsComponent implements HasChanges {
+export class RefErrorsComponent implements OnInit, OnDestroy, HasChanges {
 
-  private disposers: IReactionDisposer[] = [];
   private destroy$ = new Subject<void>();
 
   @ViewChild('list')
@@ -39,6 +37,7 @@ export class RefErrorsComponent implements HasChanges {
   private watch?: Subscription;
 
   constructor(
+    private injector: Injector,
     public config: ConfigService,
     private mod: ModService,
     public admin: AdminService,
@@ -49,7 +48,7 @@ export class RefErrorsComponent implements HasChanges {
     private bookmarks: BookmarkService,
   ) {
     query.clear();
-    runInAction(() => store.view.defaultSort = ['published']);
+    store.view.defaultSort = ['published'];
     if (!this.store.view.filter.length) bookmarks.filters = ['query/' + (store.account.origin || '*')];
   }
 
@@ -58,7 +57,7 @@ export class RefErrorsComponent implements HasChanges {
   }
 
   ngOnInit(): void {
-    this.disposers.push(autorun(() => {
+    effect(() => {
       const args = getArgs(
         '+plugin/log:!plugin/delete',
         this.store.view.sort,
@@ -69,29 +68,27 @@ export class RefErrorsComponent implements HasChanges {
       );
       args.responses = this.store.view.url;
       defer(() => this.query.setArgs(args));
-    }));
+    }, { injector: this.injector });
     // TODO: set title for bare reposts
-    this.disposers.push(autorun(() => this.mod.setTitle($localize`Errors: ` + getTitle(this.store.view.ref))));
-    this.disposers.push(autorun(() => {
+    effect(() => this.mod.setTitle($localize`Errors: ` + getTitle(this.store.view.ref)), { injector: this.injector });
+    effect(() => {
       if (this.store.view.url && this.config.websockets) {
         this.watch?.unsubscribe();
         this.watch = this.stomp.watchResponse(this.store.view.url).pipe(
           switchMap(url => this.refs.getCurrent(url)),
-          tap(ref => runInAction(() => updateMetadata(this.store.view.ref!, ref))),
+          tap(ref => updateMetadata(this.store.view.ref!, ref)),
           filter(ref => hasTag('+plugin/log', ref)),
           catchError(err => of(undefined)),
           takeUntil(this.destroy$),
         ).subscribe(ref => this.newRefs$.next(ref));
       }
-    }));
+    }, { injector: this.injector });
   }
 
   ngOnDestroy() {
     this.query.close();
     this.destroy$.next();
     this.destroy$.complete();
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
   }
 
 }

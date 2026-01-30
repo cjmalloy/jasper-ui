@@ -1,5 +1,6 @@
 import {
   Component,
+  effect,
   forwardRef,
   Input,
   OnChanges,
@@ -9,8 +10,7 @@ import {
   SimpleChanges,
   ViewChildren
 } from '@angular/core';
-import { autorun, IReactionDisposer } from 'mobx';
-import { MobxAngularModule } from 'mobx-angular';
+
 import { Observable, Subject, takeUntil } from 'rxjs';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Ref } from '../../../model/ref';
@@ -25,12 +25,11 @@ import { CommentComponent } from '../comment.component';
   host: { 'class': 'comment-thread' },
   imports: [
     forwardRef(() => CommentComponent),
-    MobxAngularModule,
+
   ],
 })
 export class CommentThreadComponent implements OnInit, OnChanges, OnDestroy, HasChanges {
   private destroy$ = new Subject<void>();
-  private disposers: IReactionDisposer[] = [];
 
   @Input()
   source = '';
@@ -55,7 +54,7 @@ export class CommentThreadComponent implements OnInit, OnChanges, OnDestroy, Has
     public store: Store,
     public thread: ThreadStore,
   ) {
-    this.disposers.push(autorun(() => {
+    effect(() => {
       if (thread.latest.length) {
         this.comments = thread.cache.get(this.source);
         if (this.comments && this.pageSize) {
@@ -63,7 +62,7 @@ export class CommentThreadComponent implements OnInit, OnChanges, OnDestroy, Has
           this.comments.length = this.pageSize;
         }
       }
-    }));
+    });
   }
 
   saveChanges(): boolean {
@@ -90,8 +89,5 @@ export class CommentThreadComponent implements OnInit, OnChanges, OnDestroy, Has
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
   }
-
 }

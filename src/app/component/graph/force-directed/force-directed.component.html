@@ -55,7 +55,7 @@
     <div (click)="fullscreen()" i18n>Fullscreen</div>
   </div>
 </ng-template>
-<ng-container *mobxAutorun>
+<ng-container>
   @if (store.graph.unloaded.length) {
     <a class="load-more fake-link no-select" (click)="drawMore()" i18n>load more</a>
   }
