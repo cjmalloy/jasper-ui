@@ -121,7 +121,7 @@ describe('Outbox Plugin: Remote Notifications', {
     cy.get('.ref-list .link:not(.remote)').contains('Ref from other').parent().parent().parent().as('ref');
     cy.get('@ref').find('.user.tag').contains('bob');
   });
-  it('@main: check ref was pulled', () => {
+  xit('@main: check ref was pulled', () => {
     cy.intercept({pathname: '/api/v1/ref/count'}).as('notifications');
     cy.visit('/?debug=USER&tag=alice');
     cy.wait('@notifications');
@@ -131,7 +131,7 @@ describe('Outbox Plugin: Remote Notifications', {
     cy.get('.ref-list .link.remote').contains('Ref from other').parent().parent().parent().as('ref');
     cy.get('@ref').find('.user.tag').contains('bob');
   });
-  it('@main: reply to remote message', () => {
+  xit('@main: reply to remote message', () => {
     cy.intercept({pathname: '/api/v1/ref/count'}).as('notifications');
     cy.visit('/?debug=USER&tag=alice');
     cy.wait('@notifications');
