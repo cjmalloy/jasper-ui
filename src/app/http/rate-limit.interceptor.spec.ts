@@ -1,3 +1,4 @@
+import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { HTTP_INTERCEPTORS, HttpClient, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
@@ -16,6 +17,8 @@ describe('RateLimitInterceptor', () => {
         provideHttpClientTesting(),
         { provide: HTTP_INTERCEPTORS, useClass: RateLimitInterceptor, multi: true },
       ]
+    ,
+      schemas: [NO_ERRORS_SCHEMA],
     }).compileComponents();
 
     httpClient = TestBed.inject(HttpClient);

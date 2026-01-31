@@ -1,3 +1,4 @@
+import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
@@ -17,6 +18,8 @@ describe('InlineTagComponent', () => {
         provideHttpClientTesting(),
         provideRouter([]),
       ]
+    ,
+      schemas: [NO_ERRORS_SCHEMA],
     }).compileComponents();
     fixture = TestBed.createComponent(InlineTagComponent);
     component = fixture.componentInstance;

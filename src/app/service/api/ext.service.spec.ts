@@ -1,3 +1,4 @@
+import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
@@ -17,6 +18,7 @@ describe('ExtService', () => {
         provideHttpClientTesting(),
         provideRouter([]),
       ],
+      schemas: [NO_ERRORS_SCHEMA],
     }).compileComponents();
 
     service = TestBed.inject(ExtService);

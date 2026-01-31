@@ -1,3 +1,4 @@
+import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { ConfirmActionComponent } from './confirm-action.component';
@@ -9,6 +10,8 @@ describe('ConfirmActionComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [ConfirmActionComponent]
+    ,
+      schemas: [NO_ERRORS_SCHEMA],
     }).compileComponents();
     fixture = TestBed.createComponent(ConfirmActionComponent);
     component = fixture.componentInstance;
