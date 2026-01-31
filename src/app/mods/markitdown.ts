@@ -76,8 +76,12 @@ def get_extension_from_url(url):
         return '.' + url_path.rsplit('.', 1)[-1].lower()
     return ''
 
-def fetch_resource(url, resource_origin):
-    """Fetch resource through the Jasper proxy API."""
+def fetch_resource(url, resource_origin, ext=''):
+    """Fetch resource through the Jasper proxy API using streaming to avoid memory issues."""
+    # Normalize extension to ensure it starts with a dot
+    if ext and not ext.startswith('.'):
+        ext = '.' + ext
+    
     proxy_url = f"{os.environ['JASPER_API']}/api/v1/proxy"
     response = requests.get(
         proxy_url,
@@ -89,13 +93,32 @@ def fetch_resource(url, resource_origin):
             'url': url,
             'origin': resource_origin or '',
         },
-        timeout=120
+        timeout=120,
+        stream=True  # Enable streaming to avoid loading entire file into memory
     )
     response.raise_for_status()
-    return response.content, response.headers.get('content-type', '')
+    
+    # Stream download to temporary file in chunks
+    temp_file = None
+    try:
+        temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=ext if ext else '')
+        for chunk in response.iter_content(chunk_size=8192):
+            if chunk:  # Filter out keep-alive chunks
+                temp_file.write(chunk)
+        temp_file.flush()  # Ensure all buffered data is written to disk
+        temp_file.close()
+        return temp_file.name, response.headers.get('content-type', '')
+    except Exception as e:
+        # Clean up temp file if download fails
+        print(f"Error downloading resource from {url}: {e}", file=sys.stderr)
+        if temp_file:
+            temp_file.close()
+            if os.path.exists(temp_file.name):
+                os.remove(temp_file.name)
+        raise
 
-def convert_to_markdown(data, ext, content_type=''):
-    """Convert data to markdown using MarkItDown."""
+def convert_to_markdown(file_path, ext, content_type=''):
+    """Convert file to markdown using MarkItDown."""
     # Extract mimetype from content-type (remove charset and other parameters)
     mimetype = None
     if content_type:
@@ -113,18 +136,14 @@ def convert_to_markdown(data, ext, content_type=''):
             extension=ext
         )
 
-    # Use extension if available, otherwise rely on mimetype
-    temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=ext if ext else '')
     try:
-        temp_file.write(data)
-        temp_file.close()
-
         md = MarkItDown()
-        result = md.convert(temp_file.name, stream_info=stream_info)
+        result = md.convert(file_path, stream_info=stream_info)
         return result.text_content
     finally:
-        if os.path.exists(temp_file.name):
-            os.remove(temp_file.name)
+        # Clean up the temporary file created by fetch_resource
+        if os.path.exists(file_path):
+            os.remove(file_path)
 
 # Find all supported formats in the ref
 formats_to_convert = []
@@ -169,11 +188,11 @@ for fmt in formats_to_convert:
         ext = fmt['ext']
         plugin = fmt['plugin']
 
-        # Fetch the resource through proxy
-        data, content_type = fetch_resource(url, ref.get('origin', ''))
+        # Fetch the resource through proxy with streaming
+        file_path, content_type = fetch_resource(url, ref.get('origin', ''), ext)
 
         # Convert to markdown
-        markdown_content = convert_to_markdown(data, ext, content_type)
+        markdown_content = convert_to_markdown(file_path, ext, content_type)
 
         if not markdown_content or not markdown_content.strip():
             print(f"Warning: No content extracted from {plugin}", file=sys.stderr)
