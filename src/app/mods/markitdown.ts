@@ -213,18 +213,24 @@ for fmt in formats_to_convert:
         if 'plugin/thread' in tags:
             response_ref_tags.extend(['plugin/thread', 'internal'])
         
-        # Propagate author tags (+user, _user, +user/*, _user/*)
-        author_tags = [t for t in tags if t in ('+user', '_user') or t.startswith('+user/') or t.startswith('_user/')]
+        # Propagate user tags (+user, _user, +user/*, _user/*)
+        user_tags = [t for t in tags if t in ('+user', '_user') or t.startswith('+user/') or t.startswith('_user/')]
         
-        # Propagate mailbox tags and create inbox tags for authors
+        # Propagate mailbox tags and create inbox tags for users
         mailbox_tags = [t for t in tags if t.startswith('plugin/inbox') or t.startswith('plugin/outbox')]
         response_ref_tags.extend(mailbox_tags)
-        response_ref_tags.extend(['plugin/inbox/' + t[1:] for t in author_tags])
-        response_ref_tags.extend(author_tags)
+        # Create inbox tags by removing the leading + or _ from user tags
+        response_ref_tags.extend(['plugin/inbox/' + t[1:] for t in user_tags])
+        response_ref_tags.extend(user_tags)
         
         # Remove duplicates while preserving order
         seen = set()
-        response_ref_tags = [t for t in response_ref_tags if not (t in seen or seen.add(t))]
+        unique_tags = []
+        for t in response_ref_tags:
+            if t not in seen:
+                seen.add(t)
+                unique_tags.append(t)
+        response_ref_tags = unique_tags
 
         response_ref = {
             'origin': origin,
