@@ -2,6 +2,9 @@
 // https://karma-runner.github.io/1.0/config/configuration-file.html
 
 module.exports = function (config) {
+  // Detect CI environment (Docker/GitHub Actions)
+  const isCI = process.env.CI || process.env.DOCKER;
+
   config.set({
     basePath: '',
     frameworks: ['jasmine', '@angular-devkit/build-angular'],
@@ -10,6 +13,8 @@ module.exports = function (config) {
       require('karma-chrome-launcher'),
       require('karma-jasmine-html-reporter'),
       require('karma-coverage'),
+      require('karma-junit-reporter'),
+      require('karma-html-reporter'),
       require('@angular-devkit/build-angular/plugins/karma')
     ],
     client: {
@@ -32,8 +37,26 @@ module.exports = function (config) {
         { type: 'text-summary' }
       ]
     },
-    reporters: ['progress', 'kjhtml'],
+    // CI-specific reporters for JUnit XML and HTML reports
+    junitReporter: {
+      outputDir: '/tests',
+    },
+    htmlReporter: {
+      outputDir: '/reports',
+    },
+    reporters: isCI ? ['junit', 'html'] : ['progress', 'kjhtml'],
+    port: 9876,
+    colors: true,
+    logLevel: config.LOG_INFO,
+    autoWatch: !isCI,
     browsers: ['Chrome'],
-    restartOnFileChange: true
+    customLaunchers: {
+      ChromeHeadlessNoSandbox: {
+        base: 'ChromeHeadless',
+        flags: ['--no-sandbox']
+      }
+    },
+    singleRun: isCI,
+    restartOnFileChange: !isCI
   });
 };

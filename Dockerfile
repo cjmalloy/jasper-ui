@@ -32,7 +32,8 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /app
 RUN npm i -g @angular/cli
 COPY --from=builder /app ./
-CMD ng test --karma-config karma-ci.conf.js && \
+ENV CI=true
+CMD ng test --watch=false --browsers=ChromeHeadlessNoSandbox && \
     mkdir -p /report && \
     cp -r /reports/*/* /report/
 
