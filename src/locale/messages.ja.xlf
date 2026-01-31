@@ -5934,6 +5934,64 @@ Enter the origin to confirm:</source>
         <source> Image </source>
         <target> 画像 </target>
       </trans-unit>
+      <trans-unit id="3943396075593320243" datatype="html">
+        <source>📝️ MarkItDown</source>
+      </trans-unit>
+      <trans-unit id="4482966957981976743" datatype="html">
+        <source>Convert documents to Markdown using Microsoft MarkItDown.
+Supports PDF, Word, Excel, PowerPoint, images (with OCR), audio (transcription), HTML, and more.
+Creates one response per supported format found.</source>
+        <target>Microsoft MarkItDownを使用してドキュメントをMarkdownに変換します。
+PDF、Word、Excel、PowerPoint、画像（OCR付き）、音声（文字起こし）、HTMLなどをサポートしています。
+検出されたサポート対象の形式ごとに1つの応答を作成します。</target>
+      </trans-unit>
+      <trans-unit id="5872989223865369131" datatype="html">
+        <source>Convert document to Markdown using MarkItDown</source>
+        <target>MarkItDownを使用してドキュメントをMarkdownに変換</target>
+      </trans-unit>
+      <trans-unit id="5723091485366213365" datatype="html">
+        <source>Cancel MarkItDown conversion.</source>
+        <target>MarkItDown変換をキャンセルします。</target>
+      </trans-unit>
+      <trans-unit id="5823834902091884994" datatype="html">
+        <source>📝️ MarkItDown Result</source>
+        <target>📝️ MarkItDown結果</target>
+      </trans-unit>
+      <trans-unit id="137212084026101929" datatype="html">
+        <source>Signature tag for documents converted to Markdown using Microsoft MarkItDown.
+Each response contains the converted Markdown from a specific source format.</source>
+        <target>Microsoft MarkItDownを使用してMarkdownに変換されたドキュメントの署名タグ。
+各応答には、特定のソース形式から変換されたMarkdownが含まれます。</target>
+      </trans-unit>
+
+      <trans-unit id="3708536625756871474" datatype="html">
+        <source>📝️💭️ markitdown query</source>
+        <target>📝️💭️ markitdown検索</target>
+      </trans-unit>
+      <trans-unit id="4605873401590629136" datatype="html">
+        <source>Convert to Markdown</source>
+        <target>Markdownに変換</target>
+      </trans-unit>
+      <trans-unit id="2998229675870911678" datatype="html">
+        <source>markdown</source>
+      </trans-unit>
+      <trans-unit id="4339537312758352578" datatype="html">
+        <source>📝️ markdown</source>
+        <target>📝️ markdown</target>
+      </trans-unit>
+      <trans-unit id="7451719878296732001" datatype="html">
+        <source>Converted to Markdown</source>
+        <target>Markdownに変換済み</target>
+      </trans-unit>
+      <trans-unit id="8111454443106685389" datatype="html">
+        <source>reconvert</source>
+        <target>再変換</target>
+      </trans-unit>
+      <trans-unit id="8128305518628119950" datatype="html">
+        <source>Reconvert document to Markdown</source>
+        <target>ドキュメントをMarkdownに再変換</target>
+      </trans-unit>
+
     </body>
   </file>
 </xliff>
