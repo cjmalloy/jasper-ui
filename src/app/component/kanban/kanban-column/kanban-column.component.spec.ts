@@ -1,4 +1,3 @@
-/// <reference types="vitest/globals" />
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { forwardRef } from '@angular/core';
@@ -35,7 +34,7 @@ describe('KanbanColumnComponent', () => {
       component.failed = [];
       component.adding = [];
       component.addText = '';
-      vi.spyOn(component, 'add').mockImplementation(() => {});
+      spyOn(component, 'add').and.callFake(() => {});
     });
 
     it('should track failed items', () => {

@@ -1,4 +1,3 @@
-/// <reference types="vitest/globals" />
 import { Point, Rect, relativeX, relativeY } from './math';
 
 describe('Math Utils', () => {

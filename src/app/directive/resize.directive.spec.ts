@@ -1,4 +1,3 @@
-/// <reference types="vitest/globals" />
 import { ResizeDirective } from './resize.directive';
 
 describe('ResizeDirective', () => {

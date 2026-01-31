@@ -1,4 +1,3 @@
-/// <reference types="vitest/globals" />
 import { forwardRef } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 

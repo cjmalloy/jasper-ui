@@ -1,4 +1,3 @@
-/// <reference types="vitest/globals" />
 import { SafePipe } from './safe.pipe';
 
 describe('SafePipe', () => {

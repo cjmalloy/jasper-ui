@@ -1,4 +1,3 @@
-/// <reference types="vitest/globals" />
 import { ActionComponent } from './action.component';
 
 describe('ActionComponent', () => {

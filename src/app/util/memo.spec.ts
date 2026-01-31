@@ -1,4 +1,3 @@
-/// <reference types="vitest/globals" />
 import { memo, MemoCache } from './memo';
 
 describe('Memo Utils', () => {

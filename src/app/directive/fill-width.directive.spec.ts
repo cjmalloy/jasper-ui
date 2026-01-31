@@ -1,4 +1,3 @@
-/// <reference types="vitest/globals" />
 import { FillWidthDirective } from './fill-width.directive';
 
 describe('FillWidthDirective', () => {

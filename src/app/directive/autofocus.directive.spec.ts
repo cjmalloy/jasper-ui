@@ -1,4 +1,3 @@
-/// <reference types="vitest/globals" />
 import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { AutofocusDirective } from './autofocus.directive';

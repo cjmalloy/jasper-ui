@@ -1,4 +1,3 @@
-/// <reference types="vitest/globals" />
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
@@ -24,7 +23,7 @@ describe('QueryComponent', () => {
     fixture = TestBed.createComponent(QueryComponent);
     component = fixture.componentInstance;
     router = TestBed.inject(Router);
-    vi.spyOn(router, 'navigate');
+    spyOn(router, 'navigate');
     fixture.detectChanges();
   });
 
@@ -37,7 +36,8 @@ describe('QueryComponent', () => {
 
     // Check that navigation was called with a cleaned query
     expect(router.navigate).toHaveBeenCalled();
-    const navigateCall = vi.mocked(router.navigate).mock.calls[0];
+    const navigateSpy = router.navigate as jasmine.Spy;
+    const navigateCall = navigateSpy.calls.mostRecent().args;
     // The actual cleaning keeps ! and @ characters, removes # and spaces become +
     expect(navigateCall[0]).toEqual(['/tag', 'test+query!+withspecial@characters']);
   });

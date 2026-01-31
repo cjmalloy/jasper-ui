@@ -1,4 +1,3 @@
-/// <reference types="vitest/globals" />
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
@@ -45,7 +44,7 @@ describe('CommentEditComponent', () => {
 
     // Spy on the save method to examine patches
     const patches: any[] = [];
-    vi.spyOn(component['refs'], 'patch').mockImplementation((url, origin, modified, patchList) => {
+    spyOn(component['refs'], 'patch').and.callFake((url: any, origin: any, modified: any, patchList: any) => {
       patches.push(...patchList);
       return { pipe: () => ({ subscribe: () => {} }) } as any;
     });
@@ -79,7 +78,7 @@ describe('CommentEditComponent', () => {
 
     // Spy on the save method to examine patches
     const patches: any[] = [];
-    vi.spyOn(component['refs'], 'patch').mockImplementation((url, origin, modified, patchList) => {
+    spyOn(component['refs'], 'patch').and.callFake((url: any, origin: any, modified: any, patchList: any) => {
       patches.push(...patchList);
       return { pipe: () => ({ subscribe: () => {} }) } as any;
     });
@@ -109,7 +108,7 @@ describe('CommentEditComponent', () => {
 
     // Spy on the save method to examine patches
     const patches: any[] = [];
-    vi.spyOn(component['refs'], 'patch').mockImplementation((url, origin, modified, patchList) => {
+    spyOn(component['refs'], 'patch').and.callFake((url: any, origin: any, modified: any, patchList: any) => {
       patches.push(...patchList);
       return { pipe: () => ({ subscribe: () => {} }) } as any;
     });

@@ -1,4 +1,3 @@
-/// <reference types="vitest/globals" />
 import { Ref } from '../../model/ref';
 import { isReplicating } from './origin';
 

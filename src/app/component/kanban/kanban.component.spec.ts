@@ -1,4 +1,3 @@
-/// <reference types="vitest/globals" />
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { forwardRef } from '@angular/core';
@@ -42,7 +41,7 @@ describe('KanbanComponent', () => {
       const mockColumn2 = { saveChanges: () => true } as any;
 
       component.list = {
-        find: vi.fn().mockReturnValue(undefined) // No column returns false
+        find: jasmine.createSpy('fn').and.returnValue(undefined) // No column returns false
       } as any;
 
       expect(component.saveChanges()).toBe(true);
@@ -54,7 +53,7 @@ describe('KanbanComponent', () => {
       const mockColumnPreventing = { saveChanges: () => false } as any;
 
       component.list = {
-        find: vi.fn().mockReturnValue(mockColumnPreventing) // One column returns false
+        find: jasmine.createSpy('fn').and.returnValue(mockColumnPreventing) // One column returns false
       } as any;
 
       expect(component.saveChanges()).toBe(false);

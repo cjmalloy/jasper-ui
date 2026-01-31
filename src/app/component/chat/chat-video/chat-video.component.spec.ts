@@ -1,4 +1,3 @@
-/// <reference types="vitest/globals" />
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
@@ -24,7 +23,7 @@ describe('ChatVideoComponent', () => {
 
   beforeEach(async () => {
     mockAdminService = {
-      getPlugin: vi.fn().mockReturnValue({
+      getPlugin: jasmine.createSpy('fn').and.returnValue({
         config: {
           gumConfig: { 
             audio: true, 
@@ -34,23 +33,23 @@ describe('ChatVideoComponent', () => {
       })
     };
     mockTaggingService = {
-      getResponse: vi.fn(),
-      respond: vi.fn(),
-      deleteResponse: vi.fn()
+      getResponse: jasmine.createSpy('fn'),
+      respond: jasmine.createSpy('fn'),
+      deleteResponse: jasmine.createSpy('fn')
     };
     mockVideoService = {
-      call: vi.fn(),
-      hangup: vi.fn()
+      call: jasmine.createSpy('fn'),
+      hangup: jasmine.createSpy('fn')
     };
 
     // Create a mock MediaStream
-    const mockStop = vi.fn();
+    const mockStop = jasmine.createSpy('fn');
     mockMediaStream = {
-      getTracks: vi.fn().mockReturnValue([{ stop: mockStop }])
+      getTracks: jasmine.createSpy('fn').and.returnValue([{ stop: mockStop }])
     } as any;
 
     // Mock navigator.mediaDevices.getUserMedia
-    mockGetUserMedia = vi.fn().mockResolvedValue(mockMediaStream);
+    mockGetUserMedia = jasmine.createSpy('fn').and.resolveTo(mockMediaStream);
     if (!navigator.mediaDevices) {
       (navigator as any).mediaDevices = {};
     }
@@ -88,12 +87,12 @@ describe('ChatVideoComponent', () => {
         origin: '',
         tags: ['plugin/user/lobby']
       };
-      mockTaggingService.getResponse.mockReturnValue(of(mockRef));
-      mockTaggingService.respond.mockReturnValue(of(undefined));
-      mockTaggingService.deleteResponse.mockReturnValue(of(undefined));
+      mockTaggingService.getResponse.and.returnValue(of(mockRef));
+      mockTaggingService.respond.and.returnValue(of(undefined));
+      mockTaggingService.deleteResponse.and.returnValue(of(undefined));
 
-      vi.spyOn(component, 'call');
-      vi.spyOn(window, 'confirm').mockReturnValue(true);
+      spyOn(component, 'call');
+      spyOn(window, 'confirm').and.returnValue(true);
 
       fixture.detectChanges();
 
@@ -104,7 +103,7 @@ describe('ChatVideoComponent', () => {
     it('should not call when video is already enabled', () => {
       mockStore.video.enabled = true;
 
-      vi.spyOn(component, 'call');
+      spyOn(component, 'call');
 
       fixture.detectChanges();
 
@@ -117,7 +116,7 @@ describe('ChatVideoComponent', () => {
       localStorage.setItem('video', 'true');
       mockStore.video.enabled = false;
       component.url = 'test://response';
-      mockTaggingService.getResponse.mockReturnValue(of({} as Ref));
+      mockTaggingService.getResponse.and.returnValue(of({} as Ref));
 
       fixture.detectChanges();
 
@@ -127,7 +126,7 @@ describe('ChatVideoComponent', () => {
 
   describe('Enabling video', () => {
     beforeEach(() => {
-      mockTaggingService.respond.mockReturnValue(of(undefined));
+      mockTaggingService.respond.and.returnValue(of(undefined));
     });
 
     it('should enable video when call() is invoked', async () => {
@@ -162,31 +161,31 @@ describe('ChatVideoComponent', () => {
     it('should call VideoService with the stream', async () => {
       component.call();
       // Wait for getUserMedia promise to resolve and .then() to execute
-      await vi.waitFor(() => {
-        expect(mockVideoService.call).toHaveBeenCalledWith('tag:/chat', mockMediaStream);
-      });
+      await new Promise(resolve => setTimeout(resolve, 50));
+
+      expect(mockVideoService.call).toHaveBeenCalledWith('tag:/chat', mockMediaStream);
     });
   });
 
   describe('Handling getUserMedia errors', () => {
     beforeEach(() => {
-      mockTaggingService.respond.mockReturnValue(of(undefined));
+      mockTaggingService.respond.and.returnValue(of(undefined));
     });
 
     it('should handle getUserMedia errors gracefully', async () => {
       const mockError = new Error('Permission denied');
-      mockGetUserMedia.mockRejectedValue(mockError);
-      const consoleSpy = vi.spyOn(console, 'log');
+      mockGetUserMedia.and.rejectWith(mockError);
+      const consoleSpy = spyOn(console, 'log');
 
       component.call();
       // Wait for getUserMedia promise to reject and .catch() to execute
-      await vi.waitFor(() => {
-        expect(consoleSpy).toHaveBeenCalledWith('Raised error when capturing:', mockError);
-      });
+      await new Promise(resolve => setTimeout(resolve, 50));
+
+      expect(consoleSpy).toHaveBeenCalledWith('Raised error when capturing:', mockError);
     });
 
     it('should not call VideoService when getUserMedia fails', async () => {
-      mockGetUserMedia.mockRejectedValue(new Error('Permission denied'));
+      mockGetUserMedia.and.rejectWith(new Error('Permission denied'));
 
       component.call();
       // Wait for getUserMedia rejection and .catch() handler to complete
@@ -198,7 +197,7 @@ describe('ChatVideoComponent', () => {
 
   describe('Stream cleanup', () => {
     beforeEach(() => {
-      mockTaggingService.respond.mockReturnValue(of(undefined));
+      mockTaggingService.respond.and.returnValue(of(undefined));
     });
 
     it('should stop stream tracks if video is disabled before stream is obtained', async () => {
@@ -206,9 +205,9 @@ describe('ChatVideoComponent', () => {
       mockStore.video.enabled = false; // Disable before getUserMedia resolves
 
       // Wait for .then() handler to execute and stop the stream
-      await vi.waitFor(() => {
-        expect(mockMediaStream.getTracks()[0].stop).toHaveBeenCalled();
-      });
+      await new Promise(resolve => setTimeout(resolve, 50));
+
+      expect(mockMediaStream.getTracks()[0].stop).toHaveBeenCalled();
     });
 
     it('should not call VideoService if video is disabled before stream is obtained', async () => {
@@ -224,7 +223,7 @@ describe('ChatVideoComponent', () => {
 
   describe('Disabling video', () => {
     beforeEach(() => {
-      mockTaggingService.deleteResponse.mockReturnValue(of(undefined));
+      mockTaggingService.deleteResponse.and.returnValue(of(undefined));
     });
 
     it('should disable video when hangup() is invoked', () => {
@@ -265,10 +264,10 @@ describe('ChatVideoComponent', () => {
   describe('User streams', () => {
     it('should return user streams from store', () => {
       const mockStream1 = {
-        getTracks: vi.fn().mockReturnValue([{ readyState: 'live' }])
+        getTracks: jasmine.createSpy('fn').and.returnValue([{ readyState: 'live' }])
       } as any as MediaStream;
       const mockStream2 = {
-        getTracks: vi.fn().mockReturnValue([{ readyState: 'live' }])
+        getTracks: jasmine.createSpy('fn').and.returnValue([{ readyState: 'live' }])
       } as any as MediaStream;
       mockStore.video.streams.set('user1', [{ stream: mockStream1 }]);
       mockStore.video.streams.set('user2', [{ stream: mockStream2 }]);
@@ -292,10 +291,10 @@ describe('ChatVideoComponent', () => {
 
     it('should correctly detect live and non-live streams', () => {
       const liveStream = {
-        getTracks: vi.fn().mockReturnValue([{ readyState: 'live' }])
+        getTracks: jasmine.createSpy('fn').and.returnValue([{ readyState: 'live' }])
       } as any as MediaStream;
       const endedStream = {
-        getTracks: vi.fn().mockReturnValue([{ readyState: 'ended' }])
+        getTracks: jasmine.createSpy('fn').and.returnValue([{ readyState: 'ended' }])
       } as any as MediaStream;
       mockStore.video.streams.set('user1', [{ stream: liveStream }, { stream: endedStream }]);
 
@@ -309,7 +308,7 @@ describe('ChatVideoComponent', () => {
   describe('isTwoPersonCall', () => {
     it('should return true when there is exactly one remote stream', () => {
       const mockStream = {
-        getTracks: vi.fn().mockReturnValue([{ readyState: 'live' }])
+        getTracks: jasmine.createSpy('fn').and.returnValue([{ readyState: 'live' }])
       } as any as MediaStream;
       mockStore.video.streams.set('user1', [{ stream: mockStream }]);
 
@@ -324,10 +323,10 @@ describe('ChatVideoComponent', () => {
 
     it('should return false when there are multiple streams', () => {
       const mockStream1 = {
-        getTracks: vi.fn().mockReturnValue([{ readyState: 'live' }])
+        getTracks: jasmine.createSpy('fn').and.returnValue([{ readyState: 'live' }])
       } as any as MediaStream;
       const mockStream2 = {
-        getTracks: vi.fn().mockReturnValue([{ readyState: 'live' }])
+        getTracks: jasmine.createSpy('fn').and.returnValue([{ readyState: 'live' }])
       } as any as MediaStream;
       mockStore.video.streams.set('user1', [{ stream: mockStream1 }]);
       mockStore.video.streams.set('user2', [{ stream: mockStream2 }]);
@@ -339,7 +338,7 @@ describe('ChatVideoComponent', () => {
   describe('featuredStream', () => {
     it('should return the only stream when there is one stream', () => {
       const mockStream = {
-        getTracks: vi.fn().mockReturnValue([{ readyState: 'live' }])
+        getTracks: jasmine.createSpy('fn').and.returnValue([{ readyState: 'live' }])
       } as any as MediaStream;
       mockStore.video.streams.set('user1', [{ stream: mockStream }]);
 
@@ -351,10 +350,10 @@ describe('ChatVideoComponent', () => {
 
     it('should return first stream when no active speaker is set', () => {
       const mockStream1 = {
-        getTracks: vi.fn().mockReturnValue([{ readyState: 'live' }])
+        getTracks: jasmine.createSpy('fn').and.returnValue([{ readyState: 'live' }])
       } as any as MediaStream;
       const mockStream2 = {
-        getTracks: vi.fn().mockReturnValue([{ readyState: 'live' }])
+        getTracks: jasmine.createSpy('fn').and.returnValue([{ readyState: 'live' }])
       } as any as MediaStream;
       mockStore.video.streams.set('user1', [{ stream: mockStream1 }]);
       mockStore.video.streams.set('user2', [{ stream: mockStream2 }]);
@@ -367,10 +366,10 @@ describe('ChatVideoComponent', () => {
 
     it('should return active speaker stream when set', () => {
       const mockStream1 = {
-        getTracks: vi.fn().mockReturnValue([{ readyState: 'live' }])
+        getTracks: jasmine.createSpy('fn').and.returnValue([{ readyState: 'live' }])
       } as any as MediaStream;
       const mockStream2 = {
-        getTracks: vi.fn().mockReturnValue([{ readyState: 'live' }])
+        getTracks: jasmine.createSpy('fn').and.returnValue([{ readyState: 'live' }])
       } as any as MediaStream;
       mockStore.video.streams.set('user1', [{ stream: mockStream1 }]);
       mockStore.video.streams.set('user2', [{ stream: mockStream2 }]);
@@ -384,7 +383,7 @@ describe('ChatVideoComponent', () => {
 
     it('should fallback to first stream if active speaker not found', () => {
       const mockStream1 = {
-        getTracks: vi.fn().mockReturnValue([{ readyState: 'live' }])
+        getTracks: jasmine.createSpy('fn').and.returnValue([{ readyState: 'live' }])
       } as any as MediaStream;
       mockStore.video.streams.set('user1', [{ stream: mockStream1 }]);
       mockStore.video.activeSpeaker = 'nonexistent';
@@ -406,7 +405,7 @@ describe('ChatVideoComponent', () => {
   describe('gridStreams', () => {
     it('should return empty array when there is only one stream', () => {
       const mockStream = {
-        getTracks: vi.fn().mockReturnValue([{ readyState: 'live' }])
+        getTracks: jasmine.createSpy('fn').and.returnValue([{ readyState: 'live' }])
       } as any as MediaStream;
       mockStore.video.streams.set('user1', [{ stream: mockStream }]);
 
@@ -417,13 +416,13 @@ describe('ChatVideoComponent', () => {
 
     it('should return all streams except first when no active speaker', () => {
       const mockStream1 = {
-        getTracks: vi.fn().mockReturnValue([{ readyState: 'live' }])
+        getTracks: jasmine.createSpy('fn').and.returnValue([{ readyState: 'live' }])
       } as any as MediaStream;
       const mockStream2 = {
-        getTracks: vi.fn().mockReturnValue([{ readyState: 'live' }])
+        getTracks: jasmine.createSpy('fn').and.returnValue([{ readyState: 'live' }])
       } as any as MediaStream;
       const mockStream3 = {
-        getTracks: vi.fn().mockReturnValue([{ readyState: 'live' }])
+        getTracks: jasmine.createSpy('fn').and.returnValue([{ readyState: 'live' }])
       } as any as MediaStream;
       mockStore.video.streams.set('user1', [{ stream: mockStream1 }]);
       mockStore.video.streams.set('user2', [{ stream: mockStream2 }]);
@@ -439,13 +438,13 @@ describe('ChatVideoComponent', () => {
 
     it('should return all streams except active speaker', () => {
       const mockStream1 = {
-        getTracks: vi.fn().mockReturnValue([{ readyState: 'live' }])
+        getTracks: jasmine.createSpy('fn').and.returnValue([{ readyState: 'live' }])
       } as any as MediaStream;
       const mockStream2 = {
-        getTracks: vi.fn().mockReturnValue([{ readyState: 'live' }])
+        getTracks: jasmine.createSpy('fn').and.returnValue([{ readyState: 'live' }])
       } as any as MediaStream;
       const mockStream3 = {
-        getTracks: vi.fn().mockReturnValue([{ readyState: 'live' }])
+        getTracks: jasmine.createSpy('fn').and.returnValue([{ readyState: 'live' }])
       } as any as MediaStream;
       mockStore.video.streams.set('user1', [{ stream: mockStream1 }]);
       mockStore.video.streams.set('user2', [{ stream: mockStream2 }]);

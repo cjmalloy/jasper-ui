@@ -1,4 +1,3 @@
-/// <reference types="vitest/globals" />
 import { TestBed } from '@angular/core/testing';
 import { CanMatchFn } from '@angular/router';
 

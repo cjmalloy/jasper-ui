@@ -1,4 +1,3 @@
-/// <reference types="vitest/globals" />
 import { escapePath } from './json-patch';
 
 describe('JSON Patch Utils', () => {

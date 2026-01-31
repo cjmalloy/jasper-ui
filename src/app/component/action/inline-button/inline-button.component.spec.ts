@@ -1,4 +1,3 @@
-/// <reference types="vitest/globals" />
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { InlineButtonComponent } from './inline-button.component';

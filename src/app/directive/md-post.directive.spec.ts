@@ -1,4 +1,3 @@
-/// <reference types="vitest/globals" />
 import { MdPostDirective } from './md-post.directive';
 
 describe('MdPostDirective', () => {

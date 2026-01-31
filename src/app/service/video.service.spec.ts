@@ -1,4 +1,3 @@
-/// <reference types="vitest/globals" />
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
@@ -28,23 +27,29 @@ describe('VideoService', () => {
   let mockConfig: any;
   let mockPeerConnection: any;
   let mockMediaStream: any;
+  let originalRTCPeerConnection: any;
+  let originalRTCSessionDescription: any;
 
   beforeEach(() => {
+    // Save original globals
+    originalRTCPeerConnection = (window as any).RTCPeerConnection;
+    originalRTCSessionDescription = (window as any).RTCSessionDescription;
+
     // Create mock MediaStream
     mockMediaStream = {
-      getTracks: vi.fn().mockReturnValue([]),
+      getTracks: jasmine.createSpy('getTracks').and.returnValue([]),
     };
 
     // Create mock RTCPeerConnection
     mockPeerConnection = {
-      addEventListener: vi.fn(),
-      createOffer: vi.fn().mockResolvedValue({ type: 'offer', sdp: 'mock-sdp' }),
-      createAnswer: vi.fn().mockResolvedValue({ type: 'answer', sdp: 'mock-answer-sdp' }),
-      setLocalDescription: vi.fn().mockResolvedValue(undefined),
-      setRemoteDescription: vi.fn().mockResolvedValue(undefined),
-      addTrack: vi.fn(),
-      addIceCandidate: vi.fn().mockResolvedValue(undefined),
-      close: vi.fn(),
+      addEventListener: jasmine.createSpy('addEventListener'),
+      createOffer: jasmine.createSpy('createOffer').and.resolveTo({ type: 'offer', sdp: 'mock-sdp' }),
+      createAnswer: jasmine.createSpy('createAnswer').and.resolveTo({ type: 'answer', sdp: 'mock-answer-sdp' }),
+      setLocalDescription: jasmine.createSpy('setLocalDescription').and.resolveTo(undefined),
+      setRemoteDescription: jasmine.createSpy('setRemoteDescription').and.resolveTo(undefined),
+      addTrack: jasmine.createSpy('addTrack'),
+      addIceCandidate: jasmine.createSpy('addIceCandidate').and.resolveTo(undefined),
+      close: jasmine.createSpy('close'),
       connectionState: 'new',
       signalingState: 'stable',
       iceConnectionState: 'new',
@@ -60,14 +65,14 @@ describe('VideoService', () => {
       streams: new Map<string, MediaStream[]>(),
       stream: undefined,
       hungup: new Map<string, boolean>(),
-      call: vi.fn((user: string, peer: RTCPeerConnection) => {
+      call: jasmine.createSpy('call').and.callFake((user: string, peer: RTCPeerConnection) => {
         videoStore.peers.set(user, peer);
         videoStore.streams.set(user, []);
       }),
-      addStream: vi.fn(),
-      remove: vi.fn(),
-      reset: vi.fn(),
-      hangup: vi.fn(),
+      addStream: jasmine.createSpy('addStream'),
+      remove: jasmine.createSpy('remove'),
+      reset: jasmine.createSpy('reset'),
+      hangup: jasmine.createSpy('hangup'),
     };
     mockStore = {
       video: videoStore,
@@ -76,30 +81,30 @@ describe('VideoService', () => {
 
     // Create mock StompService
     mockStomp = {
-      watchResponse: vi.fn().mockReturnValue(of()),
+      watchResponse: jasmine.createSpy('watchResponse').and.returnValue(of()),
     };
 
     // Create mock TaggingService
     mockTagging = {
-      getResponse: vi.fn().mockReturnValue(of({
+      getResponse: jasmine.createSpy('getResponse').and.returnValue(of({
         url: 'test-url',
         origin: '',
       } as Ref)),
-      patchResponse: vi.fn().mockReturnValue(of('success')),
-      mergeResponse: vi.fn().mockReturnValue(of('success')),
-      deleteResponse: vi.fn().mockReturnValue(of(undefined)),
+      patchResponse: jasmine.createSpy('patchResponse').and.returnValue(of('success')),
+      mergeResponse: jasmine.createSpy('mergeResponse').and.returnValue(of('success')),
+      deleteResponse: jasmine.createSpy('deleteResponse').and.returnValue(of(undefined)),
     };
 
     // Create mock RefService
     mockRefs = {
-      page: vi.fn().mockReturnValue(of(Page.of([]))),
-      getCurrent: vi.fn(),
-      update: vi.fn().mockReturnValue(of({ url: 'test-url', origin: '' } as Ref)),
+      page: jasmine.createSpy('page').and.returnValue(of(Page.of([]))),
+      getCurrent: jasmine.createSpy('getCurrent'),
+      update: jasmine.createSpy('update').and.returnValue(of({ url: 'test-url', origin: '' } as Ref)),
     };
 
     // Create mock AdminService
     mockAdmin = {
-      getPlugin: vi.fn().mockReturnValue({
+      getPlugin: jasmine.createSpy('getPlugin').and.returnValue({
         config: {
           rtcConfig: {
             iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
@@ -114,10 +119,10 @@ describe('VideoService', () => {
     };
 
     // Mock RTCPeerConnection constructor
-    vi.stubGlobal('RTCPeerConnection', vi.fn(() => mockPeerConnection));
+    (window as any).RTCPeerConnection = jasmine.createSpy('RTCPeerConnection').and.returnValue(mockPeerConnection);
 
     // Mock RTCSessionDescription constructor
-    vi.stubGlobal('RTCSessionDescription', vi.fn((init: any) => init));
+    (window as any).RTCSessionDescription = jasmine.createSpy('RTCSessionDescription').and.callFake((init: any) => init);
 
     TestBed.configureTestingModule({
       providers: [
@@ -139,7 +144,9 @@ describe('VideoService', () => {
   afterEach(() => {
     // Trigger destroy to stop subscriptions
     service['destroy$'].next();
-    vi.unstubAllGlobals();
+    // Restore original globals
+    (window as any).RTCPeerConnection = originalRTCPeerConnection;
+    (window as any).RTCSessionDescription = originalRTCSessionDescription;
   });
 
   it('should be created', () => {
@@ -184,7 +191,7 @@ describe('VideoService', () => {
       mockStore.video.stream = mockMediaStream;
       service.peer(user);
 
-      expect(mockPeerConnection.addEventListener).toHaveBeenCalledWith('icecandidate', expect.any(Function));
+      expect(mockPeerConnection.addEventListener).toHaveBeenCalledWith('icecandidate', jasmine.any(Function));
     });
 
     it('should set up connection state change event listener', () => {
@@ -193,7 +200,7 @@ describe('VideoService', () => {
       mockStore.video.stream = mockMediaStream;
       service.peer(user);
 
-      expect(mockPeerConnection.addEventListener).toHaveBeenCalledWith('connectionstatechange', expect.any(Function));
+      expect(mockPeerConnection.addEventListener).toHaveBeenCalledWith('connectionstatechange', jasmine.any(Function));
     });
 
     it('should set up track event listener', () => {
@@ -202,7 +209,7 @@ describe('VideoService', () => {
       mockStore.video.stream = mockMediaStream;
       service.peer(user);
 
-      expect(mockPeerConnection.addEventListener).toHaveBeenCalledWith('track', expect.any(Function));
+      expect(mockPeerConnection.addEventListener).toHaveBeenCalledWith('track', jasmine.any(Function));
     });
   });
 
@@ -217,8 +224,8 @@ describe('VideoService', () => {
       };
       const mockPage: Page<Ref> = Page.of([mockRef]);
 
-      mockRefs.page.mockReturnValue(of(mockPage));
-      mockPeerConnection.createOffer.mockResolvedValue(mockOffer);
+      mockRefs.page.and.returnValue(of(mockPage));
+      mockPeerConnection.createOffer.and.resolveTo(mockOffer);
 
       service.call(url, mockMediaStream);
 
@@ -245,7 +252,7 @@ describe('VideoService', () => {
       };
 
       // Mock watchResponse to emit the ref URL for the correct tag
-      mockStomp.watchResponse.mockImplementation((responseUrl: string) => {
+      mockStomp.watchResponse.and.callFake((responseUrl: string) => {
         if (responseUrl === 'tag:/user/test') {
           return of('tag:/user/alice?plugin/user/video');
         }
@@ -254,8 +261,8 @@ describe('VideoService', () => {
         }
         return of();
       });
-      mockRefs.getCurrent.mockReturnValue(of(mockRef));
-      mockPeerConnection.createAnswer.mockResolvedValue(mockAnswer);
+      mockRefs.getCurrent.and.returnValue(of(mockRef));
+      mockPeerConnection.createAnswer.and.resolveTo(mockAnswer);
 
       service.call(url, mockMediaStream);
 
@@ -283,7 +290,7 @@ describe('VideoService', () => {
       // Set local description to simulate that we've already made an offer
       mockPeerConnection.localDescription = { type: 'offer', sdp: 'our-offer' };
 
-      mockStomp.watchResponse.mockImplementation((responseUrl: string) => {
+      mockStomp.watchResponse.and.callFake((responseUrl: string) => {
         if (responseUrl === 'tag:/user/test') {
           return of('tag:/user/alice?plugin/user/video');
         }
@@ -292,7 +299,7 @@ describe('VideoService', () => {
         }
         return of();
       });
-      mockRefs.getCurrent.mockReturnValue(of(mockRef));
+      mockRefs.getCurrent.and.returnValue(of(mockRef));
 
       service.call('tag:/chat', mockMediaStream);
 
@@ -309,11 +316,11 @@ describe('VideoService', () => {
       const mockCandidate = {
         candidate: 'mock-candidate',
         sdpMid: '0',
-        toJSON: vi.fn().mockReturnValue({ candidate: 'mock-candidate', sdpMid: '0' })
+        toJSON: jasmine.createSpy('toJSON').and.returnValue({ candidate: 'mock-candidate', sdpMid: '0' })
       } as any;
       let iceCandidateHandler: ((event: RTCPeerConnectionIceEvent) => void) | undefined;
 
-      mockPeerConnection.addEventListener.mockImplementation((event: string, handler: any) => {
+      mockPeerConnection.addEventListener.and.callFake((event: string, handler: any) => {
         if (event === 'icecandidate') {
           iceCandidateHandler = handler;
         }
@@ -354,7 +361,7 @@ describe('VideoService', () => {
       // Set remote description so ICE candidates can be added
       mockPeerConnection.remoteDescription = { type: 'offer', sdp: 'mock-sdp' };
 
-      mockStomp.watchResponse.mockImplementation((responseUrl: string) => {
+      mockStomp.watchResponse.and.callFake((responseUrl: string) => {
         if (responseUrl === 'tag:/user/test') {
           return of('tag:/user/alice?plugin/user/video');
         }
@@ -363,7 +370,7 @@ describe('VideoService', () => {
         }
         return of();
       });
-      mockRefs.getCurrent.mockReturnValue(of(mockRef));
+      mockRefs.getCurrent.and.returnValue(of(mockRef));
 
       service.call('tag:/chat', mockMediaStream);
 
@@ -391,7 +398,7 @@ describe('VideoService', () => {
       // Set remote description so ICE candidates can be added
       mockPeerConnection.remoteDescription = { type: 'offer', sdp: 'mock-sdp' };
 
-      mockStomp.watchResponse.mockImplementation((responseUrl: string) => {
+      mockStomp.watchResponse.and.callFake((responseUrl: string) => {
         if (responseUrl === 'tag:/user/test') {
           return of('tag:/user/alice?plugin/user/video');
         }
@@ -400,17 +407,16 @@ describe('VideoService', () => {
         }
         return of();
       });
-      mockRefs.getCurrent.mockReturnValue(of(mockRef));
-      mockPeerConnection.addIceCandidate.mockRejectedValue(new Error('Invalid candidate'));
+      mockRefs.getCurrent.and.returnValue(of(mockRef));
+      mockPeerConnection.addIceCandidate.and.rejectWith(new Error('Invalid candidate'));
 
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+      const consoleErrorSpy = spyOn(console, 'error');
       service.call('tag:/chat', mockMediaStream);
 
       // Wait for async operations
       await new Promise(resolve => setTimeout(resolve, ASYNC_OPERATION_WAIT_MS));
 
-      expect(consoleErrorSpy).toHaveBeenCalledWith('Error adding received ice candidate', expect.any(Error));
-      consoleErrorSpy.mockRestore();
+      expect(consoleErrorSpy).toHaveBeenCalledWith('Error adding received ice candidate', jasmine.any(Error));
     });
   });
 
@@ -430,7 +436,7 @@ describe('VideoService', () => {
     });
 
     it('should trigger destroy$ subject on hangup', () => {
-      const destroySpy = vi.fn();
+      const destroySpy = jasmine.createSpy('destroySpy');
       service['destroy$'].subscribe(destroySpy);
 
       service.hangup();
@@ -449,11 +455,11 @@ describe('VideoService', () => {
         streams: new Map<string, MediaStream[]>(),
         stream: undefined,
         hungup: new Map<string, boolean>(),
-        call: vi.fn(),
-        addStream: vi.fn(),
-        remove: vi.fn(),
-        reset: vi.fn(),
-        hangup: vi.fn(),
+        call: jasmine.createSpy('call'),
+        addStream: jasmine.createSpy('addStream'),
+        remove: jasmine.createSpy('remove'),
+        reset: jasmine.createSpy('reset'),
+        hangup: jasmine.createSpy('hangup'),
       };
       freshMockStore = {
         video: videoStore,
@@ -475,10 +481,10 @@ describe('VideoService', () => {
       };
       const mockPage1: Page<Ref> = Page.of([mockRef1]);
 
-      mockRefs.page.mockReturnValue(of(mockPage1));
+      mockRefs.page.and.returnValue(of(mockPage1));
 
       // Subscribe to destroy$ before making calls
-      const firstDestroySpy = vi.fn();
+      const firstDestroySpy = jasmine.createSpy('firstDestroySpy');
       service['destroy$'].subscribe(firstDestroySpy);
 
       // First call
@@ -495,11 +501,11 @@ describe('VideoService', () => {
 
       service.url = url;
 
-      const pageCallCount = mockRefs.page.mock.calls.length;
+      const pageCallCount = mockRefs.page.calls.count();
 
       service.call(url, mockMediaStream);
 
-      expect(mockRefs.page.mock.calls.length).toBe(pageCallCount);
+      expect(mockRefs.page.calls.count()).toBe(pageCallCount);
     });
 
     it('should filter out own user from peer connections', () => {
@@ -515,13 +521,13 @@ describe('VideoService', () => {
       };
       const mockPage: Page<Ref> = Page.of([mockRef1, mockRef2]);
 
-      mockRefs.page.mockReturnValue(of(mockPage));
+      mockRefs.page.and.returnValue(of(mockPage));
 
       service.call('tag:/chat', mockMediaStream);
 
       // Should only create peer for alice, not for self (test user)
       expect(freshMockStore.video.call).toHaveBeenCalledTimes(1);
-      expect(freshMockStore.video.call).toHaveBeenCalledWith('user/alice', expect.anything());
+      expect(freshMockStore.video.call).toHaveBeenCalledWith('user/alice', jasmine.anything());
     });
   });
 
@@ -529,11 +535,11 @@ describe('VideoService', () => {
     it('should add remote stream to store when track event fires', () => {
       const user = 'user/alice';
       const mockRemoteStream = {
-        getTracks: vi.fn(),
+        getTracks: jasmine.createSpy('getTracks'),
       };
       let trackHandler: ((event: RTCTrackEvent) => void) | undefined;
 
-      mockPeerConnection.addEventListener.mockImplementation((event: string, handler: any) => {
+      mockPeerConnection.addEventListener.and.callFake((event: string, handler: any) => {
         if (event === 'track') {
           trackHandler = handler;
         }

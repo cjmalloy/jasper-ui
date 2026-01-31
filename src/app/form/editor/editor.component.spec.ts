@@ -1,4 +1,3 @@
-/// <reference types="vitest/globals" />
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
@@ -51,7 +50,7 @@ describe('EditorComponent', () => {
   });
 
   it('should cancel individual upload correctly', () => {
-    const mockSubscription = { unsubscribe: vi.fn() };
+    const mockSubscription = { unsubscribe: jasmine.createSpy('fn') };
     component.uploads = [
       { id: '1', name: 'test.pdf', progress: 50, subscription: mockSubscription as any },
       { id: '2', name: 'test2.jpg', progress: 75 }
@@ -65,8 +64,8 @@ describe('EditorComponent', () => {
   });
 
   it('should cancel all uploads correctly', () => {
-    const mockSubscription1 = { unsubscribe: vi.fn() };
-    const mockSubscription2 = { unsubscribe: vi.fn() };
+    const mockSubscription1 = { unsubscribe: jasmine.createSpy('fn') };
+    const mockSubscription2 = { unsubscribe: jasmine.createSpy('fn') };
     component.uploads = [
       { id: '1', name: 'test.pdf', progress: 50, subscription: mockSubscription1 as any },
       { id: '2', name: 'test2.jpg', progress: 75, subscription: mockSubscription2 as any }
@@ -87,7 +86,7 @@ describe('EditorComponent', () => {
     ];
 
     // Mock the upload$ method to avoid real HTTP requests
-    vi.spyOn(component, 'upload$').mockReturnValue(of(null));
+    spyOn(component, 'upload$').and.returnValue(of(null));
 
     // Mock file list for new upload
     const file1 = new File(['test'], 'new1.txt', { type: 'text/plain' });
@@ -112,7 +111,7 @@ describe('EditorComponent', () => {
     ];
 
     // Mock the upload$ method to avoid real HTTP requests
-    vi.spyOn(component, 'upload$').mockReturnValue(of(null));
+    spyOn(component, 'upload$').and.returnValue(of(null));
 
     // Mock file list for new upload
     const file = new File(['test'], 'new.txt', { type: 'text/plain' });
@@ -127,7 +126,7 @@ describe('EditorComponent', () => {
 
   it('should attach all URLs at once when all uploads complete', () => {
     // Mock the attachUrls method to spy on its calls
-    vi.spyOn(component, 'attachUrls');
+    spyOn(component, 'attachUrls');
 
     // Mock refs to return from upload$
     const ref1 = { url: 'url1', tags: [] } as any;

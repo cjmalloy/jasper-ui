@@ -172,7 +172,7 @@
           "builder": "@angular/build:unit-test",
           "options": {
             "tsConfig": "tsconfig.spec.json",
-            "runner": "vitest",
+            "runner": "karma",
             "buildTarget": "jasper-ui:build:development"
           }
         },

@@ -1,4 +1,3 @@
-/// <reference types="vitest/globals" />
 import { firstValueFrom } from 'rxjs';
 import { delay, readFileAsDataURL, readFileAsString } from './async';
 

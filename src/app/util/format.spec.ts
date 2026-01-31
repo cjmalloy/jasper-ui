@@ -1,4 +1,3 @@
-/// <reference types="vitest/globals" />
 import {
   URI_REGEX,
   TAG_REGEX,

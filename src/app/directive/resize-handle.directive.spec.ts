@@ -1,4 +1,3 @@
-/// <reference types="vitest/globals" />
 import { ResizeHandleDirective } from './resize-handle.directive';
 
 describe('ResizeHandleDirective', () => {

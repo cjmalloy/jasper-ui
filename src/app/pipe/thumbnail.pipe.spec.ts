@@ -1,4 +1,3 @@
-/// <reference types="vitest/globals" />
 import { ThumbnailPipe } from './thumbnail.pipe';
 
 describe('ThumbnailPipe', () => {
