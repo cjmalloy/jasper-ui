@@ -32,11 +32,9 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /app
 RUN npm i -g @angular/cli
 COPY --from=builder /app ./
-SHELL ["/bin/bash", "-c"]
-CMD mkdir -p /report && \
-    (NO_COLOR=1 ng test --watch=false --browsers=ChromeHeadless 2>&1 | tee /report/test-output.log; echo ${PIPESTATUS[0]} > /report/exit-code.txt) && \
-    (if [ -d coverage ]; then cp -r coverage/* /report/ 2>/dev/null || true; fi) && \
-    exit $(cat /report/exit-code.txt)
+CMD ng test --karma-config karma-ci.conf.js && \
+    mkdir -p /report && \
+    cp -r /reports/*/* /report/
 
 FROM nginx:1.27-alpine3.19-slim AS deploy
 RUN apk add jq moreutils

@@ -27,9 +27,20 @@ jobs:
         run: docker build . --file Dockerfile --target test --tag test
       - name: Run the test container
         run: docker run --name test test
-      - name: Copy test reports from container
+      - name: Copy the tests from the container
         if: always()
-        run: docker cp test:/report report
+        run: docker cp test:/tests tests
+      - name: Publish Unit Test Results
+        uses: dorny/test-reporter@v2.1.1
+        if: always()
+        continue-on-error: true
+        with:
+          name: Test Results
+          path: "tests/*.xml"
+          reporter: java-junit
+      - name: Copy the reports from the container
+        if: always()
+        run: docker cp test:/report/ report/
       - name: Upload PR Report
         if: github.event_name == 'pull_request' && always()
         uses: actions/upload-artifact@v6
@@ -53,81 +64,101 @@ jobs:
             const fs = require('fs');
             const path = require('path');
             
-            // Parse Karma console output
-            function parseKarmaOutput(logContent) {
-              let testsTotal = 0;
-              let testsFailed = 0;
-              let testsSkipped = 0;
+            // Parse JUnit XML files
+            function parseJUnitXML(xmlContent) {
+              const testsuites = [];
+              const testsuitesMatch = xmlContent.matchAll(/<testsuite[^>]*>/g);
               
-              // Look for the Karma summary line: "Executed X of Y (Z FAILED) (skipped N)"
-              // or "Executed X of Y SUCCESS"
-              // or "Executed X of Y (Z FAILED)"
-              const failedWithSkipMatch = logContent.match(/Executed\s+(\d+)\s+of\s+(\d+)\s+\((\d+)\s+FAILED\).*?\(skipped\s+(\d+)\)/);
-              const failedMatch = logContent.match(/Executed\s+(\d+)\s+of\s+(\d+)\s+\((\d+)\s+FAILED\)/);
-              const successWithSkipMatch = logContent.match(/Executed\s+(\d+)\s+of\s+(\d+)\s+SUCCESS.*?\(skipped\s+(\d+)\)/);
-              const successMatch = logContent.match(/Executed\s+(\d+)\s+of\s+(\d+)\s+SUCCESS/);
-              const disconnectedMatch = logContent.match(/Executed\s+(\d+)\s+of\s+(\d+)\s+\((\d+)\s+FAILED\)\s+DISCONNECTED/);
-              const errorMatch = logContent.match(/Executed\s+(\d+)\s+of\s+(\d+)\s+\((\d+)\s+FAILED\)\s+ERROR/);
-              
-              if (disconnectedMatch || errorMatch) {
-                const match = disconnectedMatch || errorMatch;
-                testsTotal = parseInt(match[2]);
-                testsFailed = parseInt(match[3]);
-              } else if (failedWithSkipMatch) {
-                testsTotal = parseInt(failedWithSkipMatch[2]);
-                testsFailed = parseInt(failedWithSkipMatch[3]);
-                testsSkipped = parseInt(failedWithSkipMatch[4]);
-              } else if (failedMatch) {
-                testsTotal = parseInt(failedMatch[2]);
-                testsFailed = parseInt(failedMatch[3]);
-              } else if (successWithSkipMatch) {
-                testsTotal = parseInt(successWithSkipMatch[2]);
-                testsFailed = 0;
-                testsSkipped = parseInt(successWithSkipMatch[3]);
-              } else if (successMatch) {
-                testsTotal = parseInt(successMatch[2]);
-                testsFailed = 0;
+              for (const match of testsuitesMatch) {
+                const suiteStr = match[0];
+                const nameMatch = suiteStr.match(/name="([^"]*)"/);
+                const testsMatch = suiteStr.match(/tests="(\d+)"/);
+                const failuresMatch = suiteStr.match(/failures="(\d+)"/);
+                const errorsMatch = suiteStr.match(/errors="(\d+)"/);
+                const timeMatch = suiteStr.match(/time="([^"]*)"/);
+                
+                testsuites.push({
+                  name: nameMatch ? nameMatch[1] : 'Unknown',
+                  tests: testsMatch ? parseInt(testsMatch[1]) : 0,
+                  failures: failuresMatch ? parseInt(failuresMatch[1]) : 0,
+                  errors: errorsMatch ? parseInt(errorsMatch[1]) : 0,
+                  time: timeMatch ? parseFloat(timeMatch[1]) : 0
+                });
               }
               
-              return {
-                testsTotal,
-                testsFailed,
-                testsSkipped
-              };
+              // Parse individual test cases that failed
+              const failures = [];
+              const testcaseRegex = /<testcase[^>]*>[\s\S]*?<\/testcase>/g;
+              const testcases = xmlContent.matchAll(testcaseRegex);
+              
+              for (const tcMatch of testcases) {
+                const tcStr = tcMatch[0];
+                if (tcStr.includes('<failure') || tcStr.includes('<error')) {
+                  const nameMatch = tcStr.match(/name="([^"]*)"/);
+                  const classnameMatch = tcStr.match(/classname="([^"]*)"/);
+                  const failureMatch = tcStr.match(/<failure[^>]*>([\s\S]*?)<\/failure>/);
+                  const errorMatch = tcStr.match(/<error[^>]*>([\s\S]*?)<\/error>/);
+                  
+                  const message = failureMatch ? failureMatch[1] : (errorMatch ? errorMatch[1] : 'Unknown error');
+                  
+                  failures.push({
+                    name: nameMatch ? nameMatch[1] : 'Unknown',
+                    classname: classnameMatch ? classnameMatch[1] : 'Unknown',
+                    message: message.trim().substring(0, 500) // Limit message length
+                  });
+                }
+              }
+              
+              return { testsuites, failures };
             }
             
             let summary = '## 🧪 Test Results\n\n';
+            let totalTests = 0;
+            let totalFailures = 0;
+            let totalErrors = 0;
+            let allFailures = [];
             
             try {
-              const logPath = 'report/test-output.log';
-              if (fs.existsSync(logPath)) {
-                const logContent = fs.readFileSync(logPath, 'utf8');
-                const results = parseKarmaOutput(logContent);
+              const testsDir = 'tests';
+              if (fs.existsSync(testsDir)) {
+                const files = fs.readdirSync(testsDir).filter(f => f.endsWith('.xml'));
                 
-                if (results.testsTotal > 0) {
-                  const testsPassed = results.testsTotal - results.testsFailed - results.testsSkipped;
-                  const emoji = results.testsFailed === 0 ? '✅' : '⚠️';
+                for (const file of files) {
+                  const content = fs.readFileSync(path.join(testsDir, file), 'utf8');
+                  const { testsuites, failures } = parseJUnitXML(content);
                   
-                  summary += `${emoji} **Tests:** ${results.testsFailed} failed | ${testsPassed} passed`;
-                  if (results.testsSkipped > 0) {
-                    summary += ` | ${results.testsSkipped} skipped`;
+                  for (const suite of testsuites) {
+                    totalTests += suite.tests;
+                    totalFailures += suite.failures;
+                    totalErrors += suite.errors;
                   }
-                  summary += ` (${results.testsTotal} total)\n\n`;
                   
-                  if (results.testsFailed === 0) {
-                    summary += '🎉 All tests passed!\n\n';
-                  } else {
-                    const passRate = ((testsPassed / results.testsTotal) * 100).toFixed(1);
-                    summary += `📊 **Pass Rate:** ${passRate}%\n\n`;
+                  allFailures.push(...failures);
+                }
+                
+                const totalFailed = totalFailures + totalErrors;
+                const emoji = totalFailed === 0 ? '✅' : '❌';
+                
+                summary += `${emoji} **Total:** ${totalTests} tests, ${totalFailed} failed\n\n`;
+                
+                if (totalFailed > 0) {
+                  summary += '### Failed Tests\n\n';
+                  for (const failure of allFailures.slice(0, 20)) { // Limit to first 20 failures
+                    summary += `- **${failure.classname}** › ${failure.name}\n`;
+                    summary += `  \`\`\`\n  ${failure.message}\n  \`\`\`\n\n`;
+                  }
+                  
+                  if (allFailures.length > 20) {
+                    summary += `\n_... and ${allFailures.length - 20} more failures_\n\n`;
                   }
                 } else {
-                  summary += '⚠️ No test results found in log output.\n\n';
+                  summary += '�� All tests passed!\n\n';
                 }
               } else {
-                summary += '⚠️ Test output log not found.\n\n';
+                summary += '⚠️ No test results found.\n';
               }
             } catch (error) {
-              summary += `⚠️ Error parsing test results: ${error.message}\n\n`;
+              summary += `⚠️ Error parsing test results: ${error.message}\n`;
             }
             
             // Write summary to GitHub Step Summary
