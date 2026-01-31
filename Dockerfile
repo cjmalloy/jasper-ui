@@ -33,9 +33,10 @@ WORKDIR /app
 RUN npm i -g @angular/cli
 COPY --from=builder /app ./
 ENV CI=true
-CMD ng test --watch=false --browsers=ChromeHeadlessNoSandbox && \
-    mkdir -p /report && \
-    cp -r /reports/*/* /report/
+RUN mkdir -p /tests /reports /report
+CMD TEST_EXIT=0; ng test --watch=false --browsers=ChromeHeadlessNoSandbox || TEST_EXIT=$?; \
+    cp -r /reports/*/* /report/ 2>/dev/null || true; \
+    exit $TEST_EXIT
 
 FROM nginx:1.27-alpine3.19-slim AS deploy
 RUN apk add jq moreutils
