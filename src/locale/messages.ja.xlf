@@ -5936,7 +5936,6 @@ Enter the origin to confirm:</source>
       </trans-unit>
       <trans-unit id="3943396075593320243" datatype="html">
         <source>📝️ MarkItDown</source>
-        <target>📝️ MarkItDown</target>
       </trans-unit>
       <trans-unit id="4482966957981976743" datatype="html">
         <source>Convert documents to Markdown using Microsoft MarkItDown.
@@ -5975,7 +5974,6 @@ Each response contains the converted Markdown from a specific source format.</so
       </trans-unit>
       <trans-unit id="2998229675870911678" datatype="html">
         <source>markdown</source>
-        <target>markdown</target>
       </trans-unit>
       <trans-unit id="4339537312758352578" datatype="html">
         <source>📝️ markdown</source>
