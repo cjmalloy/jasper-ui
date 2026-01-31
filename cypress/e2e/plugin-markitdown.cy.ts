@@ -27,9 +27,11 @@ describe('MarkItDown Plugin', {
     cy.visit('/?debug=USER');
     openSidebar();
     cy.contains('Submit').click();
-    cy.get('.tabs').contains('text').click();
+    cy.get('#url').type('https://example.com/sample.pdf');
+    cy.contains('Next').as('next');
+    cy.get('@next').click();
+    cy.wait(500);
     cy.get('[name=title]').type('Test PDF Document');
-    cy.get('[name=url]').type('https://example.com/sample.pdf');
     cy.contains('show advanced').click();
     cy.get('[name=published]').type('2020-01-01T00:00').blur();
     
@@ -67,9 +69,11 @@ describe('MarkItDown Plugin', {
     cy.visit('/?debug=USER');
     openSidebar();
     cy.contains('Submit').click();
-    cy.get('.tabs').contains('text').click();
+    cy.get('#url').type('https://example.com/image.png');
+    cy.contains('Next').as('next');
+    cy.get('@next').click();
+    cy.wait(500);
     cy.get('[name=title]').type('Test Image');
-    cy.get('[name=url]').type('https://example.com/image.png');
     cy.contains('show advanced').click();
     cy.get('[name=published]').type('2020-01-02T00:00').blur();
     
@@ -90,9 +94,11 @@ describe('MarkItDown Plugin', {
     cy.visit('/?debug=USER');
     openSidebar();
     cy.contains('Submit').click();
-    cy.get('.tabs').contains('text').click();
+    cy.get('#url').type('https://example.com/document.docx');
+    cy.contains('Next').as('next');
+    cy.get('@next').click();
+    cy.wait(500);
     cy.get('[name=title]').type('Test Word Document');
-    cy.get('[name=url]').type('https://example.com/document.docx');
     cy.contains('show advanced').click();
     cy.get('[name=published]').type('2020-01-03T00:00').blur();
     
@@ -113,9 +119,11 @@ describe('MarkItDown Plugin', {
     cy.visit('/?debug=USER');
     openSidebar();
     cy.contains('Submit').click();
-    cy.get('.tabs').contains('text').click();
+    cy.get('#url').type('https://example.com/public.pdf');
+    cy.contains('Next').as('next');
+    cy.get('@next').click();
+    cy.wait(500);
     cy.get('[name=title]').type('Public PDF Document');
-    cy.get('[name=url]').type('https://example.com/public.pdf');
     cy.contains('show advanced').click();
     cy.get('[name=published]').type('2020-01-04T00:00').blur();
     
@@ -154,9 +162,11 @@ describe('MarkItDown Plugin', {
     cy.visit('/?debug=USER');
     openSidebar();
     cy.contains('Submit').click();
-    cy.get('.tabs').contains('text').click();
+    cy.get('#url').type('https://example.com/cancel.pdf');
+    cy.contains('Next').as('next');
+    cy.get('@next').click();
+    cy.wait(500);
     cy.get('[name=title]').type('Cancel Test PDF');
-    cy.get('[name=url]').type('https://example.com/cancel.pdf');
     cy.contains('show advanced').click();
     cy.get('[name=published]').type('2020-01-05T00:00').blur();
     
