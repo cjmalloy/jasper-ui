@@ -174,7 +174,7 @@
           }
         </div>
         @if (expanded && expandInline && !editing && !viewSource) {
-          <app-viewer class="viewer-inline"
+          <app-viewer #viewer class="viewer-inline"
                       [ref]="bareRef"
                       [tags]="plugins || currentTags"
                       [disableResize]="disableResize"
@@ -317,7 +317,7 @@
                      (save)="onReply($event)"></app-comment-reply>
 }
 @if (expanded && !expandInline && !editing && !viewSource) {
-  <app-viewer class="viewer-below"
+  <app-viewer #viewer class="viewer-below"
               [ref]="bareRef"
               [tags]="plugins || currentTags"
               [disableResize]="disableResize"
