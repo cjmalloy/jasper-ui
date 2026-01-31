@@ -1,6 +1,6 @@
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
-import { forwardRef, NO_ERRORS_SCHEMA} from '@angular/core';
+import { NO_ERRORS_SCHEMA} from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { provideRouter } from '@angular/router';
@@ -17,7 +17,7 @@ describe('ExtFormComponent', () => {
       imports: [
         ReactiveFormsModule,
         JasperFormlyModule,
-        forwardRef(() => ExtFormComponent),
+        ExtFormComponent,
       ],
       providers: [
         provideHttpClient(withInterceptorsFromDi()),

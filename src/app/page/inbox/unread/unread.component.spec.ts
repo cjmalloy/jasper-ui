@@ -1,6 +1,6 @@
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
-import { forwardRef, NO_ERRORS_SCHEMA} from '@angular/core';
+import { NO_ERRORS_SCHEMA} from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { BehaviorSubject } from 'rxjs';
@@ -18,7 +18,7 @@ describe('InboxUnreadPage', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [forwardRef(() => InboxUnreadPage)],
+      imports: [InboxUnreadPage],
       providers: [
         { provide: RefService, useValue: { page: () => new BehaviorSubject<Page<Ref>>(Page.of([])) } },
         { provide: AccountService, useValue: { userExt$: new BehaviorSubject<Ext>({ tag: 'user/test' }) } },
