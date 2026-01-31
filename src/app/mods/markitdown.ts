@@ -198,33 +198,42 @@ for fmt in formats_to_convert:
             print(f"Warning: No content extracted from {plugin}", file=sys.stderr)
             markdown_content = f"(No text content could be extracted from {plugin})"
 
-        # Create response ref
-        response_ref_tags = ['+plugin/delta/md', 'internal']
-
-        # Propagate visibility/access tags from source ref
-        visibility_tags = []
-
+        # Create response ref with propagated tags (similar to dalle.ts pattern)
+        response_ref_tags = ['+plugin/delta/md']
+        
+        # Propagate visibility/context tags from source ref
         if 'public' in tags:
-            visibility_tags.append('public')
+            response_ref_tags.append('public')
+        if 'internal' in tags:
+            response_ref_tags.append('internal')
         if 'dm' in tags:
-            visibility_tags.append('dm')
-
-        for t in tags:
-            if t.startswith('plugin/thread') or t.startswith('plugin/comment') or t.startswith('user/'):
-                visibility_tags.append(t)
+            response_ref_tags.extend(['dm', 'internal', 'plugin/thread'])
+        if 'plugin/comment' in tags:
+            response_ref_tags.extend(['plugin/comment', 'internal'])
+        if 'plugin/thread' in tags:
+            response_ref_tags.extend(['plugin/thread', 'internal'])
+        
+        # Propagate author tags (+user, _user, +user/*, _user/*)
+        author_tags = [t for t in tags if t in ('+user', '_user') or t.startswith('+user/') or t.startswith('_user/')]
+        
+        # Propagate mailbox tags and create inbox tags for authors
+        mailbox_tags = [t for t in tags if t.startswith('plugin/inbox') or t.startswith('plugin/outbox')]
+        response_ref_tags.extend(mailbox_tags)
+        response_ref_tags.extend(['plugin/inbox/' + t[1:] for t in author_tags])
+        response_ref_tags.extend(author_tags)
+        
+        # Remove duplicates while preserving order
+        seen = set()
+        response_ref_tags = [t for t in response_ref_tags if not (t in seen or seen.add(t))]
 
         response_ref = {
             'origin': origin,
             'url': 'internal:' + str(uuid.uuid4()),
             'title': f"Markdown: {ref.get('title', 'Untitled')} ({plugin})",
             'comment': markdown_content,
-            'tags': response_ref_tags + visibility_tags,
+            'tags': response_ref_tags,
             'sources': [ref.get('url')],
         }
-
-        # Adjust storage visibility if public
-        if 'public' in visibility_tags and 'internal' in response_ref['tags']:
-            response_ref['tags'].remove('internal')
 
         bundle['ref'].append(response_ref)
 
