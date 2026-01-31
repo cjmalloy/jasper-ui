@@ -34,14 +34,14 @@ jobs:
         if: github.event_name == 'pull_request' && always()
         uses: actions/upload-artifact@v6
         with:
-          name: vitest-reports-pr-${{ github.event.pull_request.number }}
+          name: karma-reports-pr-${{ github.event.pull_request.number }}
           path: report
           retention-days: 7
       - name: Upload Reports
         if: github.event_name != 'pull_request' && always()
         uses: actions/upload-artifact@v6
         with:
-          name: vitest-reports-${{ github.ref_name }}-${{ github.run_number }}
+          name: karma-reports-${{ github.ref_name }}-${{ github.run_number }}
           path: report
           retention-days: 30
       - name: Generate Test Summary
@@ -53,46 +53,46 @@ jobs:
             const fs = require('fs');
             const path = require('path');
             
-            // Parse Vitest console output
-            function parseVitestOutput(logContent) {
-              let testFiles = 0;
-              let testFilesFailed = 0;
+            // Parse Karma console output
+            function parseKarmaOutput(logContent) {
               let testsTotal = 0;
               let testsFailed = 0;
+              let testsSkipped = 0;
               
-              // Look for the summary line: "Test Files  X failed | Y passed (Z)" or "Test Files  X passed (X)"
-              const testFilesFailMatch = logContent.match(/Test Files\s+(\d+)\s+failed\s+\|\s+(\d+)\s+passed\s+\((\d+)\)/);
-              const testFilesPassMatch = logContent.match(/Test Files\s+(\d+)\s+passed\s+\((\d+)\)/);
+              // Look for the Karma summary line: "Executed X of Y (Z FAILED) (skipped N)"
+              // or "Executed X of Y SUCCESS"
+              // or "Executed X of Y (Z FAILED)"
+              const failedWithSkipMatch = logContent.match(/Executed\s+(\d+)\s+of\s+(\d+)\s+\((\d+)\s+FAILED\).*?\(skipped\s+(\d+)\)/);
+              const failedMatch = logContent.match(/Executed\s+(\d+)\s+of\s+(\d+)\s+\((\d+)\s+FAILED\)/);
+              const successWithSkipMatch = logContent.match(/Executed\s+(\d+)\s+of\s+(\d+)\s+SUCCESS.*?\(skipped\s+(\d+)\)/);
+              const successMatch = logContent.match(/Executed\s+(\d+)\s+of\s+(\d+)\s+SUCCESS/);
+              const disconnectedMatch = logContent.match(/Executed\s+(\d+)\s+of\s+(\d+)\s+\((\d+)\s+FAILED\)\s+DISCONNECTED/);
+              const errorMatch = logContent.match(/Executed\s+(\d+)\s+of\s+(\d+)\s+\((\d+)\s+FAILED\)\s+ERROR/);
               
-              if (testFilesFailMatch) {
-                testFilesFailed = parseInt(testFilesFailMatch[1]);
-                const testFilesPassed = parseInt(testFilesFailMatch[2]);
-                testFiles = parseInt(testFilesFailMatch[3]);
-              } else if (testFilesPassMatch) {
-                testFilesFailed = 0;
-                const testFilesPassed = parseInt(testFilesPassMatch[1]);
-                testFiles = parseInt(testFilesPassMatch[2]);
-              }
-              
-              // Look for the tests summary line: "Tests  X failed | Y passed (Z)" or "Tests  X passed (X)"
-              const testsFailMatch = logContent.match(/Tests\s+(\d+)\s+failed\s+\|\s+(\d+)\s+passed\s+\((\d+)\)/);
-              const testsPassMatch = logContent.match(/Tests\s+(\d+)\s+passed\s+\((\d+)\)/);
-              
-              if (testsFailMatch) {
-                testsFailed = parseInt(testsFailMatch[1]);
-                const testsPassed = parseInt(testsFailMatch[2]);
-                testsTotal = parseInt(testsFailMatch[3]);
-              } else if (testsPassMatch) {
+              if (disconnectedMatch || errorMatch) {
+                const match = disconnectedMatch || errorMatch;
+                testsTotal = parseInt(match[2]);
+                testsFailed = parseInt(match[3]);
+              } else if (failedWithSkipMatch) {
+                testsTotal = parseInt(failedWithSkipMatch[2]);
+                testsFailed = parseInt(failedWithSkipMatch[3]);
+                testsSkipped = parseInt(failedWithSkipMatch[4]);
+              } else if (failedMatch) {
+                testsTotal = parseInt(failedMatch[2]);
+                testsFailed = parseInt(failedMatch[3]);
+              } else if (successWithSkipMatch) {
+                testsTotal = parseInt(successWithSkipMatch[2]);
                 testsFailed = 0;
-                const testsPassed = parseInt(testsPassMatch[1]);
-                testsTotal = parseInt(testsPassMatch[2]);
+                testsSkipped = parseInt(successWithSkipMatch[3]);
+              } else if (successMatch) {
+                testsTotal = parseInt(successMatch[2]);
+                testsFailed = 0;
               }
               
               return {
-                testFiles,
-                testFilesFailed,
                 testsTotal,
-                testsFailed
+                testsFailed,
+                testsSkipped
               };
             }
             
@@ -102,15 +102,17 @@ jobs:
               const logPath = 'report/test-output.log';
               if (fs.existsSync(logPath)) {
                 const logContent = fs.readFileSync(logPath, 'utf8');
-                const results = parseVitestOutput(logContent);
+                const results = parseKarmaOutput(logContent);
                 
                 if (results.testsTotal > 0) {
-                  const testFilesPassed = results.testFiles - results.testFilesFailed;
-                  const testsPassed = results.testsTotal - results.testsFailed;
+                  const testsPassed = results.testsTotal - results.testsFailed - results.testsSkipped;
                   const emoji = results.testsFailed === 0 ? '✅' : '⚠️';
                   
-                  summary += `${emoji} **Test Files:** ${results.testFilesFailed} failed | ${testFilesPassed} passed (${results.testFiles})\n\n`;
-                  summary += `${emoji} **Tests:** ${results.testsFailed} failed | ${testsPassed} passed (${results.testsTotal})\n\n`;
+                  summary += `${emoji} **Tests:** ${results.testsFailed} failed | ${testsPassed} passed`;
+                  if (results.testsSkipped > 0) {
+                    summary += ` | ${results.testsSkipped} skipped`;
+                  }
+                  summary += ` (${results.testsTotal} total)\n\n`;
                   
                   if (results.testsFailed === 0) {
                     summary += '🎉 All tests passed!\n\n';
@@ -150,7 +152,7 @@ jobs:
               summary = '⚠️ Could not read test summary.';
             }
             
-            const reportUrl = `https://${context.repo.owner}.github.io/${context.repo.repo}/reports/vitest-reports-pr-${context.issue.number}/`;
+            const reportUrl = `https://${context.repo.owner}.github.io/${context.repo.repo}/reports/karma-reports-pr-${context.issue.number}/`;
             summary += `\n\n📊 [View detailed HTML report](${reportUrl})`;
             
             // Add HTML comment marker for identification
@@ -205,7 +207,7 @@ jobs:
               per_page: 100
             });
             const artifacts = response.data.artifacts
-              .filter(artifact => artifact.name.startsWith('vitest-reports-' + '${{ github.ref_name }}'));
+              .filter(artifact => artifact.name.startsWith('karma-reports-' + '${{ github.ref_name }}'));
             if (artifacts.length > maxVersions) {
               // Sort by created_at descending
               artifacts.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
