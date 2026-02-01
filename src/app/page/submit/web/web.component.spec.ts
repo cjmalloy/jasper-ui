@@ -20,11 +20,11 @@ describe('SubmitWebPage', () => {
     await TestBed.configureTestingModule({
       imports: [
         forwardRef(() => SubmitWebPage),
+        forwardRef(() => LinksFormComponent),
+        forwardRef(() => RefFormComponent),
+        forwardRef(() => TagsFormComponent),
         ReactiveFormsModule,
         JasperFormlyModule,
-        RefFormComponent,
-        TagsFormComponent,
-        LinksFormComponent,
       ],
       providers: [
         provideHttpClient(withInterceptorsFromDi()),
