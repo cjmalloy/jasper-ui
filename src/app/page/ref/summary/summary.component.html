@@ -1,6 +1,6 @@
 <ng-container *mobxAutorun>
   @if (store.view.ref) {
-    <app-comment-reply [to]="store.view.ref"
+    <app-comment-reply #reply [to]="store.view.ref"
                        quote=""
                        [tags]="replyTags"
                        [selectResponseType]="!responseSet"
@@ -36,7 +36,7 @@
     </div>
     <div class="summary-box" [class.hidden-without-removing]="!responses">
       <h5 routerLink="./responses" i18n>Responses:</h5>
-      <app-ref-list [page]="query.page"
+      <app-ref-list #list [page]="query.page"
                     [pageControls]="false"
                     [insertNewAtTop]="true"
                     [newRefs$]="newResp$"></app-ref-list>

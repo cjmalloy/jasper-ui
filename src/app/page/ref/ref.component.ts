@@ -41,7 +41,7 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
   private disposers: IReactionDisposer[] = [];
   private destroy$ = new Subject<void>();
 
-  @ViewChild(RefComponent)
+  @ViewChild('ref')
   ref?: RefComponent;
 
   newResponses = 0;

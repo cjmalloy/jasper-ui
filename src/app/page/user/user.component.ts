@@ -31,7 +31,7 @@ export class UserPage implements OnInit, OnDestroy, HasChanges {
   private disposers: IReactionDisposer[] = [];
   @HostBinding('class') css = 'full-page-form';
 
-  @ViewChild(UserFormComponent)
+  @ViewChild('form')
   userForm!: UserFormComponent;
 
   submitted = false;

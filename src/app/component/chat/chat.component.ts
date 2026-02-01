@@ -74,7 +74,7 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
   @Input()
   responseOf?: Ref;
 
-  @ViewChild(CdkVirtualScrollViewport)
+  @ViewChild('viewport')
   viewport!: CdkVirtualScrollViewport;
 
   cursors = new Map<string, string | undefined>();
