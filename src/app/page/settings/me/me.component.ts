@@ -1,6 +1,6 @@
 import { Location } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, isDevMode, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, isDevMode, ViewChild } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, UntypedFormGroup } from '@angular/forms';
 import { cloneDeep, defer } from 'lodash-es';
 
@@ -24,12 +24,16 @@ import { printError } from '../../../util/http';
   templateUrl: './me.component.html',
   styleUrls: ['./me.component.scss'],
   host: { 'class': 'full-page-form' },
-  imports: [ ReactiveFormsModule, LimitWidthDirective, UserTagSelectorComponent, ExtFormComponent, LoadingComponent]
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [
+    ReactiveFormsModule,
+    LimitWidthDirective,
+    UserTagSelectorComponent,
+    ExtFormComponent,
+    LoadingComponent,
+  ]
 })
 export class SettingsMePage implements HasChanges {
-
-  @ViewChild('form')
-  form?: ExtFormComponent;
 
   submitted = false;
   editForm!: UntypedFormGroup;
@@ -49,7 +53,12 @@ export class SettingsMePage implements HasChanges {
     const ext = cloneDeep(store.account.ext!);
     this.editForm = extForm(fb, ext, this.admin, true);
     this.editForm.patchValue(ext);
-    defer(() => this.form!.setValue(ext));
+  }
+
+  @ViewChild('form')
+  set form(value: ExtFormComponent) {
+    if (!value) return;
+    value.setValue(this.editForm.value);
   }
 
   saveChanges() {
