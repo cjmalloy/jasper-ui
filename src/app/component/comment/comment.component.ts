@@ -65,7 +65,6 @@ import { CommentThreadComponent } from './comment-thread/comment-thread.componen
   imports: [
     CommentThreadComponent,
     ViewerComponent,
-
     RouterLink,
     TitleDirective,
     CommentEditComponent,

@@ -1,96 +1,94 @@
-<ng-container>
-  <form class="form" [formGroup]="dmForm" (ngSubmit)="submit()"
-        [appLimitWidth]="fill?.nativeElement" [limitSibling]="true">
-    @if (!store.submit.dmPlugin) {
-      <label for="to" i18n>To:</label>
-      <div class="form-array skip-margin">
-        <input class="preview grow"
-               type="text"
-               [value]="preview"
-               [title]="toInput.value"
-               [style.display]="preview ? 'block' : 'none'"
-               (focus)="clickPreview(toInput)">
-        <datalist id="to-list">
-          @for (o of autocomplete; track o.value) {
-            <option [value]="o.value">{{ o.label }}</option>
-          }
-        </datalist>
-        <input #toInput
-               id="to"
-               i18n-placeholder placeholder="Myself"
-               [formControl]="to"
-               type="text"
-               inputmode="email"
-               autocorrect="off"
-               autocapitalize="none"
-               list="to-list"
-               [class.hidden-without-removing]="preview"
-               [appAutofocus]="!store.submit.to.length"
-               (input)="search(toInput)"
-               (blur)="blur(toInput)"
-               (focusin)="edit(toInput)"
-               (focus)="edit(toInput)"
-               (focusout)="getPreview(toInput.value)">
-      </div>
-      @if (to.touched && !to.value) {
-        <div><!-- Warning --></div>
-        <div>
-            <div class="warning" i18n> Message to myself</div>
-        </div>
-      }
-    }
-
-    <label for="title" i18n>Title:</label>
-    <input id="title" type="text" [formControl]="title">
-
-    <app-select-plugin #pluginSelect
-                       class="shrink"
-                       [text]="true"
-                       i18n-title title="Add Plugin"
-                       (pluginChange)="bookmarks.toggleTag($event); pluginSelect.plugin = ''"></app-select-plugin>
-    <app-form-plugins id="plugins"[group]="dmForm"></app-form-plugins>
-
-    @if (customEditor) {
-      <span><!-- Editor --></span>
-      <div #fill class="fill-editor">
-        <ngx-monaco-editor #ed
-                           [formControl]="comment"
-                           [options]="codeOptions"
-                           [style.width]="'min(900px, 50vw)'"
-                           [style.height]="'min(200px, 90vh)'"
-                           [appFillWidth]="fill"
-                           appResizeHandle
-                           [hitArea]="config.mobile ? 48 : 20"></ngx-monaco-editor>
-      </div>
-    } @else {
-      <label [for]="ed.id" i18n>Message:</label>
-      <div #fill class="fill-editor">
-        <app-editor #ed
-                    class="bubble"
-                    [control]="comment"
-                    [fillWidth]="fill"
-                    (syncEditor)="syncEditor()"
-                    [tags]="tags"
-                    (syncTags)="setTags($event)"
-                    (addSource)="addSource($event)"
-                    (uploadCompleted)="completedUploads.push($event)"
-                    [autoFocus]="!!store.submit.dmPlugin || !!store.submit.to.length"></app-editor>
+<form class="form" [formGroup]="dmForm" (ngSubmit)="submit()"
+      [appLimitWidth]="fill?.nativeElement" [limitSibling]="true">
+  @if (!store.submit.dmPlugin) {
+    <label for="to" i18n>To:</label>
+    <div class="form-array skip-margin">
+      <input class="preview grow"
+             type="text"
+             [value]="preview"
+             [title]="toInput.value"
+             [style.display]="preview ? 'block' : 'none'"
+             (focus)="clickPreview(toInput)">
+      <datalist id="to-list">
+        @for (o of autocomplete; track o.value) {
+          <option [value]="o.value">{{ o.label }}</option>
+        }
+      </datalist>
+      <input #toInput
+             id="to"
+             i18n-placeholder placeholder="Myself"
+             [formControl]="to"
+             type="text"
+             inputmode="email"
+             autocorrect="off"
+             autocapitalize="none"
+             list="to-list"
+             [class.hidden-without-removing]="preview"
+             [appAutofocus]="!store.submit.to.length"
+             (input)="search(toInput)"
+             (blur)="blur(toInput)"
+             (focusin)="edit(toInput)"
+             (focus)="edit(toInput)"
+             (focusout)="getPreview(toInput.value)">
+    </div>
+    @if (to.touched && !to.value) {
+      <div><!-- Warning --></div>
+      <div>
+        <div class="warning" i18n> Message to myself</div>
       </div>
     }
+  }
 
-    <app-tags #tagsFormComponent [group]="dmForm"></app-tags>
+  <label for="title" i18n>Title:</label>
+  <input id="title" type="text" [formControl]="title">
 
-    @for (e of serverError; track e) {
-      <span><!-- Unexpected Error --></span>
-      <div class="error">{{ e }}</div>
-    }
+  <app-select-plugin #pluginSelect
+                     class="shrink"
+                     [text]="true"
+                     i18n-title title="Add Plugin"
+                     (pluginChange)="bookmarks.toggleTag($event); pluginSelect.plugin = ''"></app-select-plugin>
+  <app-form-plugins id="plugins"[group]="dmForm"></app-form-plugins>
 
-    <span><!-- Buttons --></span>
-    <span class="buttons right">
+  @if (customEditor) {
+    <span><!-- Editor --></span>
+    <div #fill class="fill-editor">
+      <ngx-monaco-editor #ed
+                         [formControl]="comment"
+                         [options]="codeOptions"
+                         [style.width]="'min(900px, 50vw)'"
+                         [style.height]="'min(200px, 90vh)'"
+                         [appFillWidth]="fill"
+                         appResizeHandle
+                         [hitArea]="config.mobile ? 48 : 20"></ngx-monaco-editor>
+    </div>
+  } @else {
+    <label [for]="ed.id" i18n>Message:</label>
+    <div #fill class="fill-editor">
+      <app-editor #ed
+                  class="bubble"
+                  [control]="comment"
+                  [fillWidth]="fill"
+                  (syncEditor)="syncEditor()"
+                  [tags]="tags"
+                  (syncTags)="setTags($event)"
+                  (addSource)="addSource($event)"
+                  (uploadCompleted)="completedUploads.push($event)"
+                  [autoFocus]="!!store.submit.dmPlugin || !!store.submit.to.length"></app-editor>
+    </div>
+  }
+
+  <app-tags #tagsFormComponent [group]="dmForm"></app-tags>
+
+  @for (e of serverError; track e) {
+    <span><!-- Unexpected Error --></span>
+    <div class="error">{{ e }}</div>
+  }
+
+  <span><!-- Buttons --></span>
+  <span class="buttons right">
       @if (submitting) {
         <app-loading [inline]="true"></app-loading>
       }
-      <button type="submit" [disabled]="submitting || submitted && !dmForm.valid" i18n>Send</button>
+    <button type="submit" [disabled]="submitting || submitted && !dmForm.valid" i18n>Send</button>
     </span>
-  </form>
-</ng-container>
+</form>

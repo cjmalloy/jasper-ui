@@ -43,7 +43,6 @@ import { RefListComponent } from '../../ref/ref-list/ref-list.component';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     forwardRef(() => RefListComponent),
-
     LoadingComponent,
   ],
 })

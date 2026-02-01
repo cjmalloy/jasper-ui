@@ -33,7 +33,6 @@ import { access, hasPrefix, localTag, prefix } from '../../util/tag';
   templateUrl: './ext.component.html',
   styleUrls: ['./ext.component.scss'],
   imports: [
-
     RouterLink,
     SettingsComponent,
     ReactiveFormsModule,

@@ -43,7 +43,6 @@ import { SortComponent } from '../sort/sort.component';
   imports: [
     ExtComponent,
     MdComponent,
-
     SearchComponent,
     QueryComponent,
     FilterComponent,

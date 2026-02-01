@@ -21,7 +21,6 @@ import { braces, getPrefixes, hasPrefix, publicTag } from '../../util/tag';
   styleUrls: ['./tags.component.scss'],
   imports: [
     ExtListComponent,
-
     TabsComponent,
     RouterLink,
     SidebarComponent,

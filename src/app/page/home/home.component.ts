@@ -20,7 +20,6 @@ import { getArgs } from '../../util/query';
   styleUrls: ['./home.component.scss'],
   imports: [
     LensComponent,
-
     TabsComponent,
     RouterLink,
     SidebarComponent,

@@ -1,23 +1,21 @@
-<ng-container>
-  @if (store.view.ref) {
-    <app-comment-reply #reply [to]="store.view.ref"
-                       quote=""
-                       [tags]="replyTags"
-                       (save)="newComments$.next($event)"></app-comment-reply>
-    @if (thread.latest.length) {
-      <app-comment-thread [source]="store.view.url"
-                          [newComments$]="newComments$"
-                          [scrollToLatest]="true"
-                          [depth]="depth"></app-comment-thread>
-      @if (thread.hasMore) {
-        <span class="fake-link load-more" (click)="thread.loadMore()" i18n>
+@if (store.view.ref) {
+  <app-comment-reply #reply [to]="store.view.ref"
+                     quote=""
+                     [tags]="replyTags"
+                     (save)="newComments$.next($event)"></app-comment-reply>
+  @if (thread.latest.length) {
+    <app-comment-thread [source]="store.view.url"
+                        [newComments$]="newComments$"
+                        [scrollToLatest]="true"
+                        [depth]="depth"></app-comment-thread>
+    @if (thread.hasMore) {
+      <span class="fake-link load-more" (click)="thread.loadMore()" i18n>
         load more comments
       </span>
-      }
-    } @else {
-      <app-loading></app-loading>
     }
   } @else {
     <app-loading></app-loading>
   }
-</ng-container>
+} @else {
+  <app-loading></app-loading>
+}

@@ -48,7 +48,6 @@ export interface KanbanDrag {
   host: { 'class': 'kanban ext' },
   imports: [
     KanbanColumnComponent,
-
     LoadingComponent,
     CdkDropListGroup,
     CdkScrollable,

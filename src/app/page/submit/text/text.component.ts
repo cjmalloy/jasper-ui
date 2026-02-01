@@ -61,7 +61,6 @@ import { getVisibilityTags, hasPrefix, hasTag } from '../../../util/tag';
   host: { 'class': 'full-page-form' },
   imports: [
     EditorComponent,
-
     ReactiveFormsModule,
     LimitWidthDirective,
     NavComponent,

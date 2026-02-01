@@ -23,7 +23,6 @@ import { hasPrefix } from '../../util/tag';
   styleUrls: ['./tag.component.scss'],
   imports: [
     LensComponent,
-
     TabsComponent,
     RouterLink,
     SidebarComponent,

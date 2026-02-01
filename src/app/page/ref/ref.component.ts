@@ -27,7 +27,6 @@ import { hasTag, privateTag, top } from '../../util/tag';
   styleUrls: ['./ref.component.scss'],
   imports: [
     RefComponent,
-
     TabsComponent,
     RouterLink,
     RouterLinkActive,

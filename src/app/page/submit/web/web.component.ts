@@ -37,7 +37,6 @@ import { getVisibilityTags } from '../../../util/tag';
   styleUrls: ['./web.component.scss'],
   host: { 'class': 'full-page-form' },
   imports: [
-
     ReactiveFormsModule,
     LimitWidthDirective,
     NavComponent,

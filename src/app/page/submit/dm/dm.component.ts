@@ -60,7 +60,6 @@ import { getVisibilityTags, hasPrefix, hasTag, localTag } from '../../../util/ta
   host: { 'class': 'full-page-form' },
   imports: [
     EditorComponent,
-
     ReactiveFormsModule,
     LimitWidthDirective,
     AutofocusDirective,
