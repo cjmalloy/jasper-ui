@@ -35,8 +35,8 @@ describe('ChatVideoComponent', () => {
     };
     mockTaggingService = {
       getResponse: vi.fn().mockReturnValue({ subscribe: vi.fn() }),
-      respond: vi.fn(),
-      deleteResponse: vi.fn()
+      respond: vi.fn().mockReturnValue({ subscribe: vi.fn() }),
+      deleteResponse: vi.fn().mockReturnValue({ subscribe: vi.fn() }),
     };
     mockVideoService = {
       call: vi.fn(),
