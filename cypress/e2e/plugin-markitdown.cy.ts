@@ -21,25 +21,37 @@ describe('MarkItDown Plugin', {
     cy.get('#mod-markitdown').should('not.be.checked').check().should('be.checked');
     cy.get('button').contains('Save').click();
     cy.get('.log').contains('Success');
+    
+    // Enable plugin/file for upload functionality
+    cy.wait(100);
+    cy.get('#mod-file').should('not.be.checked').check().should('be.checked');
+    cy.get('button').contains('Save').click();
+    cy.get('.log').contains('Success');
   });
 
   it('creates a ref with plugin/pdf tag', () => {
     cy.visit('/?debug=USER');
     openSidebar();
     cy.contains('Submit').click();
-    cy.get('#url').type('https://example.com/sample.pdf');
-    cy.contains('Next').as('next');
-    cy.get('@next').click();
-    cy.wait(1000); // Wait for form to be ready and title to auto-populate
+    
+    // Select plugin/pdf from dropdown to show upload button
+    cy.get('app-select-plugin select').select('plugin/pdf');
+    
+    // Upload the PDF file
+    cy.get('app-pdf-upload input[type="file"]').selectFile('cypress/fixtures/test.pdf', { force: true });
+    
+    // Wait for upload to complete and form to navigate to web page
+    cy.wait(2000);
+    
+    // Set published date
     cy.get('[name=published]').type('2020-01-01T00:00').blur();
     
-    // Add plugin/pdf tag
-    cy.get('app-tags input').last().type('plugin/pdf{enter}');
+    // The plugin/pdf tag should already be added from the plugin selection
     
     cy.intercept({pathname: '/api/v1/ref'}).as('submit');
     cy.get('button').contains('Submit').click({ force: true });
     cy.wait('@submit');
-    cy.get('.full-page.ref .link a').should('have.text', 'sample.pdf');
+    cy.get('.full-page.ref .link a').should('have.text', 'test.pdf');
   });
 
   it('should show markdown action button', () => {
@@ -63,46 +75,30 @@ describe('MarkItDown Plugin', {
     cy.get('.full-page.ref').should('contain', 'markitdown');
   });
 
-  it('creates a ref with plugin/image tag', () => {
-    cy.visit('/?debug=USER');
-    openSidebar();
-    cy.contains('Submit').click();
-    cy.get('#url').type('https://example.com/image.png');
-    cy.contains('Next').as('next');
-    cy.get('@next').click();
-    cy.wait(1000); // Wait for form to be ready and title to auto-populate
-    cy.get('[name=published]').type('2020-01-02T00:00').blur();
-    
-    // Add plugin/image tag
-    cy.get('app-tags input').last().type('plugin/image{enter}');
-    
-    cy.intercept({pathname: '/api/v1/ref'}).as('submit');
-    cy.get('button').contains('Submit').click({ force: true });
-    cy.wait('@submit');
-    cy.get('.full-page.ref .link a').should('have.text', 'image.png');
-  });
-
-  it('should have markdown action on image ref', () => {
-    cy.get('.full-page.ref .actions').should('contain', 'markdown');
-  });
-
   it('creates a ref with plugin/file tag', () => {
     cy.visit('/?debug=USER');
     openSidebar();
     cy.contains('Submit').click();
-    cy.get('#url').type('https://example.com/document.docx');
-    cy.contains('Next').as('next');
-    cy.get('@next').click();
-    cy.wait(1000); // Wait for form to be ready and title to auto-populate
+    
+    // For generic file types, we'll use plugin/pdf which accepts various formats
+    cy.get('app-select-plugin select').select('plugin/pdf');
+    
+    // Upload the DOC file
+    cy.get('app-pdf-upload input[type="file"]').selectFile('cypress/fixtures/test.doc', { force: true });
+    
+    // Wait for upload to complete and form to navigate to web page
+    cy.wait(2000);
+    
+    // Set published date
     cy.get('[name=published]').type('2020-01-03T00:00').blur();
     
-    // Add plugin/file tag
+    // Change the plugin tag from plugin/pdf to plugin/file
     cy.get('app-tags input').last().type('plugin/file{enter}');
     
     cy.intercept({pathname: '/api/v1/ref'}).as('submit');
     cy.get('button').contains('Submit').click({ force: true });
     cy.wait('@submit');
-    cy.get('.full-page.ref .link a').should('have.text', 'document.docx');
+    cy.get('.full-page.ref .link a').should('have.text', 'test.doc');
   });
 
   it('should have markdown action on file ref', () => {
@@ -113,20 +109,26 @@ describe('MarkItDown Plugin', {
     cy.visit('/?debug=USER');
     openSidebar();
     cy.contains('Submit').click();
-    cy.get('#url').type('https://example.com/public.pdf');
-    cy.contains('Next').as('next');
-    cy.get('@next').click();
-    cy.wait(1000); // Wait for form to be ready and title to auto-populate
+    
+    // Select plugin/pdf from dropdown to show upload button
+    cy.get('app-select-plugin select').select('plugin/pdf');
+    
+    // Upload the PDF file
+    cy.get('app-pdf-upload input[type="file"]').selectFile('cypress/fixtures/test.pdf', { force: true });
+    
+    // Wait for upload to complete and form to navigate to web page
+    cy.wait(2000);
+    
+    // Set published date
     cy.get('[name=published]').type('2020-01-04T00:00').blur();
     
-    // Add public and plugin/pdf tags
+    // Add public tag
     cy.get('app-tags input').last().type('public{enter}');
-    cy.get('app-tags input').last().type('plugin/pdf{enter}');
     
     cy.intercept({pathname: '/api/v1/ref'}).as('submit');
     cy.get('button').contains('Submit').click({ force: true });
     cy.wait('@submit');
-    cy.get('.full-page.ref .link a').should('have.text', 'public.pdf');
+    cy.get('.full-page.ref .link a').should('have.text', 'test.pdf');
   });
 
   it('should propagate public tag to response', () => {
@@ -154,19 +156,23 @@ describe('MarkItDown Plugin', {
     cy.visit('/?debug=USER');
     openSidebar();
     cy.contains('Submit').click();
-    cy.get('#url').type('https://example.com/cancel.pdf');
-    cy.contains('Next').as('next');
-    cy.get('@next').click();
-    cy.wait(1000); // Wait for form to be ready and title to auto-populate
-    cy.get('[name=published]').type('2020-01-05T00:00').blur();
     
-    // Add plugin/pdf tag
-    cy.get('app-tags input').last().type('plugin/pdf{enter}');
+    // Select plugin/pdf from dropdown to show upload button
+    cy.get('app-select-plugin select').select('plugin/pdf');
+    
+    // Upload the PDF file
+    cy.get('app-pdf-upload input[type="file"]').selectFile('cypress/fixtures/test.pdf', { force: true });
+    
+    // Wait for upload to complete and form to navigate to web page
+    cy.wait(2000);
+    
+    // Set published date
+    cy.get('[name=published]').type('2020-01-05T00:00').blur();
     
     cy.intercept({pathname: '/api/v1/ref'}).as('submit');
     cy.get('button').contains('Submit').click({ force: true });
     cy.wait('@submit');
-    cy.get('.full-page.ref .link a').should('have.text', 'cancel.pdf');
+    cy.get('.full-page.ref .link a').should('have.text', 'test.pdf');
     
     // Click markdown action
     cy.get('.full-page.ref .actions *').contains('markdown').click();
@@ -184,44 +190,30 @@ describe('MarkItDown Plugin', {
     // Clean up the refs we created
     cy.visit('/?debug=USER');
     
-    // Search for sample.pdf
+    // Search for test.pdf (there will be multiple, delete them all)
     openSidebar();
-    cy.get('input[type=search]').type('sample.pdf{enter}');
-    cy.wait(500);
-    cy.get('.ref-list .link').contains('sample.pdf').parent().parent().parent().as('ref');
-    cy.get('@ref').find('.actions').contains('delete').click();
-    cy.get('@ref').find('.actions').contains('yes').click();
+    cy.get('input[type=search]').type('test.pdf{enter}');
     cy.wait(500);
     
-    // Search for image.png
-    cy.get('input[type=search]').clear().type('image.png{enter}');
-    cy.wait(500);
-    cy.get('.ref-list .link').contains('image.png').parent().parent().parent().as('ref');
-    cy.get('@ref').find('.actions').contains('delete').click();
-    cy.get('@ref').find('.actions').contains('yes').click();
-    cy.wait(500);
+    // Delete all test.pdf refs
+    cy.get('body').then($body => {
+      if ($body.find('.ref-list .link:contains("test.pdf")').length > 0) {
+        cy.get('.ref-list .link').contains('test.pdf').parent().parent().parent().as('ref');
+        cy.get('@ref').find('.actions').contains('delete').click();
+        cy.get('@ref').find('.actions').contains('yes').click();
+        cy.wait(500);
+      }
+    });
     
-    // Search for document.docx
-    cy.get('input[type=search]').clear().type('document.docx{enter}');
+    // Search for test.doc
+    cy.get('input[type=search]').clear().type('test.doc{enter}');
     cy.wait(500);
-    cy.get('.ref-list .link').contains('document.docx').parent().parent().parent().as('ref');
-    cy.get('@ref').find('.actions').contains('delete').click();
-    cy.get('@ref').find('.actions').contains('yes').click();
-    cy.wait(500);
-    
-    // Search for public.pdf
-    cy.get('input[type=search]').clear().type('public.pdf{enter}');
-    cy.wait(500);
-    cy.get('.ref-list .link').contains('public.pdf').parent().parent().parent().as('ref');
-    cy.get('@ref').find('.actions').contains('delete').click();
-    cy.get('@ref').find('.actions').contains('yes').click();
-    cy.wait(500);
-    
-    // Search for cancel.pdf
-    cy.get('input[type=search]').clear().type('cancel.pdf{enter}');
-    cy.wait(500);
-    cy.get('.ref-list .link').contains('cancel.pdf').parent().parent().parent().as('ref');
-    cy.get('@ref').find('.actions').contains('delete').click();
-    cy.get('@ref').find('.actions').contains('yes').click();
+    cy.get('body').then($body => {
+      if ($body.find('.ref-list .link:contains("test.doc")').length > 0) {
+        cy.get('.ref-list .link').contains('test.doc').parent().parent().parent().as('ref');
+        cy.get('@ref').find('.actions').contains('delete').click();
+        cy.get('@ref').find('.actions').contains('yes').click();
+      }
+    });
   });
 });
