@@ -21,7 +21,6 @@ import { hasTag, removeTag, updateMetadata } from '../../../util/tag';
   templateUrl: './comments.component.html',
   styleUrls: ['./comments.component.scss'],
   imports: [
-
     CommentReplyComponent,
     CommentThreadComponent,
     LoadingComponent,

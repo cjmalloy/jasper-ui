@@ -16,7 +16,6 @@ import { getArgs } from '../../../util/query';
   styleUrl: './reports.component.scss',
   host: { 'class': 'modlist' },
   imports: [
-
     RefListComponent,
   ],
 })

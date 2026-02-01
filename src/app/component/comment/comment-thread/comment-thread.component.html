@@ -1,18 +1,16 @@
-<ng-container>
-  @for (comment of newComments; track comment.url) {
+@for (comment of newComments; track comment.url) {
 
+  <app-comment #comment
+               [ref]="comment"
+               [depth]="depth"
+               [context]="context"></app-comment>
+}
+@if (depth > 0) {
+  @for (comment of comments; track comment.origin + comment.url) {
     <app-comment #comment
                  [ref]="comment"
+                 [scrollToLatest]="scrollToLatest"
                  [depth]="depth"
                  [context]="context"></app-comment>
   }
-  @if (depth > 0) {
-    @for (comment of comments; track comment.origin + comment.url) {
-      <app-comment #comment
-                   [ref]="comment"
-                   [scrollToLatest]="scrollToLatest"
-                   [depth]="depth"
-                   [context]="context"></app-comment>
-    }
-  }
-</ng-container>
+}

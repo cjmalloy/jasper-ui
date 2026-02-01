@@ -1,33 +1,31 @@
-<ng-container>
-  <form class="form"
-        [formGroup]="webForm"
-        (ngSubmit)="submit()"
-        [appLimitWidth]="limitWidth"
-        [limitSibling]="true">
+<form class="form"
+      [formGroup]="webForm"
+      (ngSubmit)="submit()"
+      [appLimitWidth]="limitWidth"
+      [limitSibling]="true">
 
-    @if (defaults?.url || loadingDefaults.length) {
-      <span></span>
-      <div>
-        <span i18n>Loading defaults for <app-nav [url]="defaults?.url || ('tag:/' + loadingDefaults[0].tag)"></app-nav></span>
-        @if (!defaults) {
-          <app-loading [inline]="true"></app-loading>
-        }
-      </div>
-    }
+  @if (defaults?.url || loadingDefaults.length) {
+    <span></span>
+    <div>
+      <span i18n>Loading defaults for <app-nav [url]="defaults?.url || ('tag:/' + loadingDefaults[0].tag)"></app-nav></span>
+      @if (!defaults) {
+        <app-loading [inline]="true"></app-loading>
+      }
+    </div>
+  }
 
-    <app-ref-form #refForm [group]="webForm"
-                  (toggleTag)="bookmarks.toggleTag($event)"></app-ref-form>
+  <app-ref-form #refForm [group]="webForm"
+                (toggleTag)="bookmarks.toggleTag($event)"></app-ref-form>
 
-    @for (e of serverError; track e) {
-      <span><!-- Unexpected Error --></span>
-      <div class="error">{{ e }}</div>
-    }
-    <span><!-- Buttons --></span>
-    <span class="buttons right">
+  @for (e of serverError; track e) {
+    <span><!-- Unexpected Error --></span>
+    <div class="error">{{ e }}</div>
+  }
+  <span><!-- Buttons --></span>
+  <span class="buttons right">
       @if (submitting) {
         <app-loading [inline]="true"></app-loading>
       }
-      <button type="submit" [disabled]="submitting || submitted && !webForm.valid" i18n>Submit</button>
+    <button type="submit" [disabled]="submitting || submitted && !webForm.valid" i18n>Submit</button>
     </span>
-  </form>
-</ng-container>
+</form>

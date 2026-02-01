@@ -18,7 +18,6 @@ import { hasTag } from '../../../util/tag';
   styleUrl: './chat-video.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-
     RouterLink,
     TitleDirective,
     AsyncPipe,

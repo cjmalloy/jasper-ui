@@ -163,7 +163,6 @@ export const videoPlugin: Plugin = {
           type: 'string',
         }],
       },
-
     }, {
       key: 'offer',
       wrappers: ['form-group'],

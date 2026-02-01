@@ -14,7 +14,6 @@ import { Store } from '../../store/store';
   styleUrls: ['./settings.component.scss'],
   host: { 'class': 'settings' },
   imports: [
-
     TabsComponent,
     RouterLink,
     RouterLinkActive,

@@ -1,9 +1,7 @@
-<ng-container>
-  @if (query.page) {
-    <app-ref-list #list [page]="query.page"
-                  [newRefs$]="newRefs$"
-                  [insertNewAtTop]="true"
-                  [expanded]="true"
-                  i18n-emptyMessage emptyMessage="No logs found"></app-ref-list>
-  }
-</ng-container>
+@if (query.page) {
+  <app-ref-list #list [page]="query.page"
+                [newRefs$]="newRefs$"
+                [insertNewAtTop]="true"
+                [expanded]="true"
+                i18n-emptyMessage emptyMessage="No logs found"></app-ref-list>
+}

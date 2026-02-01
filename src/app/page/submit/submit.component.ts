@@ -48,7 +48,6 @@ type Validation = { test: (url: string) => Observable<any>; name: string; passed
   styleUrls: ['./submit.component.scss'],
   imports: [
     RefComponent,
-
     TabsComponent,
     RouterLink,
     RouterOutlet,

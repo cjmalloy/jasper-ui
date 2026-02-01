@@ -1,69 +1,67 @@
-<ng-container>
-  <div class="tabs">
-    <a class="logo" routerLink="/"></a>
-    <h5 class="fake-link" routerLink="." i18n>Edit Tag</h5>
-    <app-settings></app-settings>
-  </div>
-  @if (!store.view.ext) {
-    <form class="form" [formGroup]="extForm" (ngSubmit)="create()">
-      <label for="tag"></label>
-      <div class="form-array">
-        <app-select-template [(template)]="template"></app-select-template>
-        <input id="tag"
-               name="tag"
-               i18n-placeholder
-               placeholder="Extend Tag..."
-               class="big"
-               type="email"
-               autocorrect="off"
-               autocapitalize="none"
-               formControlName="tag"
-               (blur)="validate($any($event.target))">
-      </div>
+<div class="tabs">
+  <a class="logo" routerLink="/"></a>
+  <h5 class="fake-link" routerLink="." i18n>Edit Tag</h5>
+  <app-settings></app-settings>
+</div>
+@if (!store.view.ext) {
+  <form class="form" [formGroup]="extForm" (ngSubmit)="create()">
+    <label for="tag"></label>
+    <div class="form-array">
+      <app-select-template [(template)]="template"></app-select-template>
+      <input id="tag"
+             name="tag"
+             i18n-placeholder
+             placeholder="Extend Tag..."
+             class="big"
+             type="email"
+             autocorrect="off"
+             autocapitalize="none"
+             formControlName="tag"
+             (blur)="validate($any($event.target))">
+    </div>
 
-      @for (e of serverError; track e) {
-        <span><!-- Unexpected Error --></span>
-        <div class="error">{{ e }}</div>
-      }
+    @for (e of serverError; track e) {
+      <span><!-- Unexpected Error --></span>
+      <div class="error">{{ e }}</div>
+    }
 
-      <span><!-- Buttons --></span>
-      <span class="buttons right">
+    <span><!-- Buttons --></span>
+    <span class="buttons right">
         @if (creating) {
           <app-loading [inline]="true"></app-loading>
         }
-        <button type="submit" [disabled]="creating || submitted && !extForm.valid" i18n>Extend</button>
+      <button type="submit" [disabled]="creating || submitted && !extForm.valid" i18n>Extend</button>
       </span>
-    </form>
-  } @else if (editForm) {
-    <form class="form"
-          [formGroup]="editForm"
-          (ngSubmit)="save()"
-          [appLimitWidth]="form?.fillPopover?.nativeElement || form?.fillSidebar?.nativeElement"
-          [limitSibling]="true">
-      <app-ext-form #form
-                    [group]="editForm"
-                    [showClear]="true"
-                    (clear)="clear()"></app-ext-form>
+  </form>
+} @else if (editForm) {
+  <form class="form"
+        [formGroup]="editForm"
+        (ngSubmit)="save()"
+        [appLimitWidth]="form?.fillPopover?.nativeElement || form?.fillSidebar?.nativeElement"
+        [limitSibling]="true">
+    <app-ext-form #form
+                  [group]="editForm"
+                  [showClear]="true"
+                  (clear)="clear()"></app-ext-form>
 
-      @for (e of serverError; track e) {
-        <span><!-- Unexpected Error --></span>
-        <div class="error">{{ e }}</div>
-      }
+    @for (e of serverError; track e) {
+      <span><!-- Unexpected Error --></span>
+      <div class="error">{{ e }}</div>
+    }
 
-      <span><!-- Buttons --></span>
-      <span class="buttons right">
+    <span><!-- Buttons --></span>
+    <span class="buttons right">
         @if (overwritten) {
           <div class="overwrite warning" i18n-title title="Will drop all unknown configs.">
             <input id="overwrite" type="checkbox" [checked]="overwrite" (input)="overwrite = !overwrite">
             <label for="overwrite" i18n>Overwrite</label>
           </div>
         }
-        @if (editing || deleting) {
-          <app-loading [inline]="true"></app-loading>
-        }
-        <button type="submit" [disabled]="editing || deleting || submitted && !editForm.valid" i18n>Save</button>
+      @if (editing || deleting) {
+        <app-loading [inline]="true"></app-loading>
+      }
+      <button type="submit" [disabled]="editing || deleting || submitted && !editForm.valid" i18n>Save</button>
           <button type="button" [disabled]="editing || deleting" (click)="delete()" i18n>Delete</button>
       </span>
-    </form>
-  }
-</ng-container>
+  </form>
+}
