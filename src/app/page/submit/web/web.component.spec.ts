@@ -1,5 +1,6 @@
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { forwardRef } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { provideRouter } from '@angular/router';
@@ -14,8 +15,12 @@ describe('SubmitWebPage', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [
+        forwardRef(() => SubmitWebPage),
         ReactiveFormsModule,
-        SubmitWebPage,
+        JasperFormlyModule,
+        RefFormComponent,
+        TagsFormComponent,
+        LinksFormComponent,
       ],
       providers: [
         provideHttpClient(withInterceptorsFromDi()),
