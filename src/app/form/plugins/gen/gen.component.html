@@ -5,7 +5,7 @@
       <div class="ribbon-margin" [style.margin-bottom.px]="childrenOn * 20"></div>
     }
     @if (form || promoteAdvanced && advancedForm) {
-      <formly-form #formlyForm class="form plugin-content"
+      <formly-form class="form plugin-content"
                    [model]="model"
                    [form]="group"
                    [fields]="form || advancedForm!"
@@ -19,7 +19,7 @@
         } @else {
           <summary i18n-title title="Advanced"><span></span></summary>
         }
-        <formly-form #formlyForm class="form plugin-content"
+        <formly-form class="form plugin-content"
                      [model]="model"
                      [form]="group"
                      [fields]="advancedForm"
