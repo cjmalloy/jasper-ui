@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, effect, HostBinding, OnDestroy, ViewChild } from '@angular/core';
+import { Component, effect, HostBinding, Injector, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import {
   ReactiveFormsModule,
   UntypedFormBuilder,
@@ -43,7 +43,8 @@ import { access, hasPrefix, localTag, prefix } from '../../util/tag';
     ExtFormComponent,
   ],
 })
-export class ExtPage implements OnDestroy, HasChanges {
+export class ExtPage implements OnInit, OnDestroy, HasChanges {
+
   @HostBinding('class') css = 'full-page-form';
 
   @ViewChild('form')
@@ -68,6 +69,7 @@ export class ExtPage implements OnDestroy, HasChanges {
   private overwrittenModified? = '';
 
   constructor(
+    private injector: Injector,
     private mod: ModService,
     private admin: AdminService,
     public router: Router,
@@ -79,7 +81,9 @@ export class ExtPage implements OnDestroy, HasChanges {
     this.extForm = fb.group({
       tag: ['', [Validators.pattern(TAG_SUFFIX_REGEX)]],
     });
+  }
 
+  ngOnInit(): void {
     effect(() => {
       if (!this.store.view.tag) {
         this.template = '';
@@ -91,7 +95,7 @@ export class ExtPage implements OnDestroy, HasChanges {
           catchError(() => of(undefined)),
         ).subscribe(ext => this.setExt(tag, ext));
       }
-    });
+    }, { injector: this.injector });
   }
 
   saveChanges() {

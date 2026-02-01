@@ -1,4 +1,4 @@
-import { Component, effect, OnDestroy, ViewChild } from '@angular/core';
+import { Component, effect, Injector, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { defer } from 'lodash-es';
 
 import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
@@ -16,12 +16,13 @@ import { getArgs } from '../../../util/query';
   styleUrls: ['./versions.component.scss'],
   imports: [ RefListComponent]
 })
-export class RefVersionsComponent implements OnDestroy, HasChanges {
+export class RefVersionsComponent implements OnInit, OnDestroy, HasChanges {
 
   @ViewChild('list')
   list?: RefListComponent;
 
   constructor(
+    private injector: Injector,
     private mod: ModService,
     public admin: AdminService,
     public store: Store,
@@ -29,8 +30,9 @@ export class RefVersionsComponent implements OnDestroy, HasChanges {
   ) {
     query.clear();
     store.view.defaultSort = ['published'];
+  }
 
-    // Effect for query args
+  ngOnInit(): void {
     effect(() => {
       const args = getArgs(
         '',
@@ -43,10 +45,9 @@ export class RefVersionsComponent implements OnDestroy, HasChanges {
       args.url = this.store.view.url;
       args.obsolete = this.store.view.ref?.metadata?.obsolete ? null : true;
       defer(() => this.query.setArgs(args));
-    });
-
-    // Effect for title
-    effect(() => this.mod.setTitle($localize`Remotes: ` + getTitle(this.store.view.ref)));
+    }, { injector: this.injector });
+    // TODO: set title for bare reposts
+    effect(() => this.mod.setTitle($localize`Remotes: ` + getTitle(this.store.view.ref)), { injector: this.injector });
   }
 
   saveChanges() {

@@ -1,4 +1,4 @@
-import { Component, effect, OnDestroy, ViewChild } from '@angular/core';
+import { Component, effect, Injector, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { defer } from 'lodash-es';
 
 import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
@@ -16,12 +16,13 @@ import { getArgs } from '../../../util/query';
   host: { 'class': 'dms' },
   imports: [ RefListComponent]
 })
-export class InboxDmsPage implements OnDestroy, HasChanges {
+export class InboxDmsPage implements OnInit, OnDestroy, HasChanges {
 
   @ViewChild('list')
   list?: RefListComponent;
 
   constructor(
+    private injector: Injector,
     private mod: ModService,
     public admin: AdminService,
     public store: Store,
@@ -30,7 +31,9 @@ export class InboxDmsPage implements OnDestroy, HasChanges {
     mod.setTitle($localize`Inbox: DMs`);
     store.view.clear(['metadata->modified']);
     query.clear();
+  }
 
+  ngOnInit(): void {
     effect(() => {
       const args = getArgs(
         (this.store.view.search ? 'dm:' : 'dm:!internal:') + `(${this.store.account.tagWithOrigin}|${this.store.account.inboxQuery})`,
@@ -41,7 +44,7 @@ export class InboxDmsPage implements OnDestroy, HasChanges {
         this.store.view.pageSize,
       );
       defer(() => this.query.setArgs(args));
-    });
+    }, { injector: this.injector });
   }
 
   saveChanges() {

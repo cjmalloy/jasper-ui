@@ -1,4 +1,4 @@
-import { Component, effect, OnDestroy, ViewChild } from '@angular/core';
+import { Component, effect, Injector, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { defer } from 'lodash-es';
 
@@ -26,12 +26,13 @@ import { getArgs } from '../../util/query';
     SidebarComponent,
   ],
 })
-export class HomePage implements OnDestroy, HasChanges {
+export class HomePage implements OnInit, OnDestroy, HasChanges {
 
   @ViewChild('lens')
   lens?: LensComponent;
 
   constructor(
+    private injector: Injector,
     private mod: ModService,
     public admin: AdminService,
     public account: AccountService,
@@ -51,9 +52,10 @@ export class HomePage implements OnDestroy, HasChanges {
         }
       });
     }
+  }
 
+  ngOnInit(): void {
     this.store.view.extTemplates = this.admin.view;
-
     effect(() => {
       if (this.store.view.forYou) {
         this.account.forYouQuery$.subscribe(q => {
@@ -78,7 +80,7 @@ export class HomePage implements OnDestroy, HasChanges {
         );
         defer(() => this.query.setArgs(args));
       }
-    });
+    }, { injector: this.injector });
   }
 
   saveChanges() {

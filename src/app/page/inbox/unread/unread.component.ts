@@ -1,4 +1,4 @@
-import { Component, effect, OnDestroy } from '@angular/core';
+import { Component, effect, Injector, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { defer } from 'lodash-es';
 import { DateTime } from 'luxon';
@@ -18,11 +18,11 @@ import { Store } from '../../../store/store';
   host: { 'class': 'unread' },
   imports: [ RefListComponent]
 })
-export class InboxUnreadPage implements OnDestroy {
-
+export class InboxUnreadPage implements OnInit, OnDestroy {
   private lastNotified?: DateTime;
 
   constructor(
+    private injector: Injector,
     private mod: ModService,
     public store: Store,
     public query: QueryStore,
@@ -32,7 +32,9 @@ export class InboxUnreadPage implements OnDestroy {
     mod.setTitle($localize`Inbox: Unread`);
     store.view.clear(['modified']);
     query.clear();
+  }
 
+  ngOnInit(): void {
     effect(() => {
       if (this.store.view.pageNumber) {
         this.router.navigate([], {
@@ -51,13 +53,13 @@ export class InboxUnreadPage implements OnDestroy {
         size: this.store.view.pageSize,
       };
       defer(() => this.query.setArgs(args));
-    });
+    }, { injector: this.injector });
 
     effect(() => {
       if (this.query.page && this.query.page!.content.length) {
         this.lastNotified = newest(this.query.page!.content)!.modified!;
       }
-    });
+    }, { injector: this.injector });
   }
 
   ngOnDestroy() {

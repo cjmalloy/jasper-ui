@@ -1,4 +1,4 @@
-import { Component, effect, OnDestroy, ViewChild } from '@angular/core';
+import { Component, effect, Injector, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { defer, uniq } from 'lodash-es';
 
 import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
@@ -17,11 +17,10 @@ import { getArgs } from '../../../util/query';
   templateUrl: './sources.component.html',
   styleUrls: ['./sources.component.scss'],
   imports: [
-
     RefListComponent,
   ],
 })
-export class RefSourcesComponent implements OnDestroy, HasChanges {
+export class RefSourcesComponent implements OnInit, OnDestroy, HasChanges {
 
   @ViewChild('list')
   list?: RefListComponent;
@@ -29,6 +28,7 @@ export class RefSourcesComponent implements OnDestroy, HasChanges {
   page: Page<Ref> = Page.of([]);
 
   constructor(
+    private injector: Injector,
     private mod: ModService,
     public admin: AdminService,
     public store: Store,
@@ -36,13 +36,12 @@ export class RefSourcesComponent implements OnDestroy, HasChanges {
   ) {
     query.clear();
     store.view.defaultSort = ['published'];
+  }
 
-    // Effect for page from sources
+  ngOnInit(): void {
     effect(() => {
       this.page = Page.of(this.sources.map(url => ({ url })) || []);
-    });
-
-    // Effect for query args
+    }, { injector: this.injector });
     effect(() => {
       const args = getArgs(
         '',
@@ -54,9 +53,7 @@ export class RefSourcesComponent implements OnDestroy, HasChanges {
       );
       args.sources = this.store.view.url;
       defer(() => this.query.setArgs(args));
-    });
-
-    // Effect for merging query results
+    }, { injector: this.injector });
     effect(() => {
       if (!this.query.page) return;
       for (let i = 0; i < this.sources.length; i ++) {
@@ -65,10 +62,9 @@ export class RefSourcesComponent implements OnDestroy, HasChanges {
         const existing = this.query.page.content.find(r => r.url === url);
         if (existing) this.page.content[i] = existing;
       }
-    });
-
-    // Effect for title
-    effect(() => this.mod.setTitle($localize`Sources: ` + getTitle(this.store.view.ref)));
+    }, { injector: this.injector });
+    // TODO: set title for bare reposts
+    effect(() => this.mod.setTitle($localize`Sources: ` + getTitle(this.store.view.ref)), { injector: this.injector });
   }
 
   saveChanges() {

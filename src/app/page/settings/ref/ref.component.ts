@@ -1,4 +1,4 @@
-import { Component, effect, inject, OnDestroy, ViewChild } from '@angular/core';
+import { Component, effect, inject, Injector, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { defer, uniq } from 'lodash-es';
 
 import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
@@ -17,7 +17,7 @@ import { getArgs } from '../../../util/query';
   styleUrls: ['./ref.component.scss'],
   imports: [ RefListComponent],
 })
-export class SettingsRefPage implements OnDestroy, HasChanges {
+export class SettingsRefPage implements OnInit, OnDestroy, HasChanges {
 
   plugin?: Plugin;
   writeAccess = false;
@@ -26,6 +26,7 @@ export class SettingsRefPage implements OnDestroy, HasChanges {
   list?: RefListComponent;
 
   constructor(
+    private injector: Injector,
     private mod: ModService,
     private admin: AdminService,
     private auth: AuthzService,
@@ -35,7 +36,9 @@ export class SettingsRefPage implements OnDestroy, HasChanges {
     mod.setTitle($localize`Settings: `);
     store.view.clear(['metadata->modified']);
     query.clear();
+  }
 
+  ngOnInit(): void {
     effect(() => {
       this.plugin = this.admin.getPlugin(this.store.view.settingsTag);
       this.writeAccess = this.auth.canAddTag(this.store.view.settingsTag);
@@ -49,7 +52,7 @@ export class SettingsRefPage implements OnDestroy, HasChanges {
         this.store.view.pageSize,
       );
       defer(() => this.query.setArgs(args));
-    });
+    }, { injector: this.injector });
   }
 
   saveChanges() {

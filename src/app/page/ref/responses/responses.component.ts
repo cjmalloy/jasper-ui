@@ -1,4 +1,4 @@
-import { Component, effect, OnDestroy, ViewChild } from '@angular/core';
+import { Component, effect, Injector, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { defer, uniq } from 'lodash-es';
 
 import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
@@ -15,16 +15,16 @@ import { getArgs, UrlFilter } from '../../../util/query';
   templateUrl: './responses.component.html',
   styleUrls: ['./responses.component.scss'],
   imports: [
-
     RefListComponent,
   ],
 })
-export class RefResponsesComponent implements OnDestroy, HasChanges {
+export class RefResponsesComponent implements OnInit, OnDestroy, HasChanges {
 
   @ViewChild('list')
   list?: RefListComponent;
 
   constructor(
+    private injector: Injector,
     private mod: ModService,
     public admin: AdminService,
     public store: Store,
@@ -32,8 +32,9 @@ export class RefResponsesComponent implements OnDestroy, HasChanges {
   ) {
     query.clear();
     store.view.defaultSort = ['published'];
+  }
 
-    // Effect for query args
+  ngOnInit(): void {
     effect(() => {
       const hideInternal = !this.admin.getPlugins(this.store.view.queryTags).length;
       const args = getArgs(
@@ -46,18 +47,15 @@ export class RefResponsesComponent implements OnDestroy, HasChanges {
       );
       args.responses = this.store.view.url;
       defer(() => this.query.setArgs(args));
-    });
-
-    // Effect for title
-    effect(() => this.mod.setTitle($localize`Responses: ` + getTitle(this.store.view.ref)));
-
-    // Effect for last seen count
+    }, { injector: this.injector });
+    // TODO: set title for bare reposts
+    effect(() => this.mod.setTitle($localize`Responses: ` + getTitle(this.store.view.ref)), { injector: this.injector });
     effect(() => {
       if (this.store.view.ref) {
         const responsesCount = this.store.view.ref.metadata?.responses || 0;
         this.store.local.setLastSeenCount(this.store.view.url, 'replies', responsesCount);
       }
-    });
+    }, { injector: this.injector });
   }
 
   saveChanges() {

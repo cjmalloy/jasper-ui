@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, effect, HostBinding, ViewChild } from '@angular/core';
+import { Component, effect, HostBinding, Injector, OnInit, ViewChild } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { defer, uniq } from 'lodash-es';
@@ -26,7 +26,8 @@ import { prefix, setPublic } from '../../util/tag';
   styleUrls: ['./user.component.scss'],
   imports: [ RouterLink, SettingsComponent, ReactiveFormsModule, LimitWidthDirective, UserFormComponent]
 })
-export class UserPage implements HasChanges {
+export class UserPage implements OnInit, HasChanges {
+
   @HostBinding('class') css = 'full-page-form';
 
   @ViewChild('form')
@@ -38,6 +39,7 @@ export class UserPage implements HasChanges {
   externalErrors: string[] = [];
 
   constructor(
+    private injector: Injector,
     private mod: ModService,
     private admin: AdminService,
     public config: ConfigService,
@@ -54,7 +56,9 @@ export class UserPage implements HasChanges {
       role: [''],
       user: userForm(fb),
     });
+  }
 
+  ngOnInit(): void {
     effect(() => {
       if (!this.store.view.tag) {
         this.store.view.selectedUser = undefined;
@@ -78,7 +82,7 @@ export class UserPage implements HasChanges {
           }
         });
       }
-    });
+    }, { injector: this.injector });
   }
 
   saveChanges() {

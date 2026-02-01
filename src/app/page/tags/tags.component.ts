@@ -1,4 +1,4 @@
-import { Component, effect, OnDestroy, ViewChild } from '@angular/core';
+import { Component, effect, Injector, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { defer } from 'lodash-es';
 
@@ -27,7 +27,7 @@ import { braces, getPrefixes, hasPrefix, publicTag } from '../../util/tag';
     SidebarComponent,
   ]
 })
-export class TagsPage implements OnDestroy, HasChanges {
+export class TagsPage implements OnInit, OnDestroy, HasChanges {
 
   title = '';
   templates = this.admin.tmplSubmit.filter(t => t.config?.view);
@@ -36,6 +36,7 @@ export class TagsPage implements OnDestroy, HasChanges {
   list?: ExtListComponent;
 
   constructor(
+    private injector: Injector,
     private mod: ModService,
     public admin: AdminService,
     public store: Store,
@@ -46,7 +47,9 @@ export class TagsPage implements OnDestroy, HasChanges {
     mod.setTitle($localize`Tags`);
     store.view.clear(['tag:len', 'tag'], ['tag:len', 'tag']);
     query.clear();
+  }
 
+  ngOnInit(): void {
     effect(() => {
       this.title = this.store.view.template && this.admin.getTemplate(this.store.view.template)?.name || this.store.view.ext?.name || this.store.view.template || '';
       this.exts.getCachedExt(this.store.view.template)
@@ -70,7 +73,7 @@ export class TagsPage implements OnDestroy, HasChanges {
         ...getTagFilter(this.store.view.filter),
       };
       defer(() => this.query.setArgs(args));
-    });
+    }, { injector: this.injector });
   }
 
   saveChanges() {

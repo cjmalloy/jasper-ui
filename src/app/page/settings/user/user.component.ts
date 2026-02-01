@@ -1,4 +1,4 @@
-import { Component, effect, OnDestroy, ViewChild } from '@angular/core';
+import { Component, effect, Injector, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { defer } from 'lodash-es';
 import { UserListComponent } from '../../../component/user/user-list/user-list.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
@@ -16,12 +16,13 @@ import { getTagFilter } from '../../../util/query';
   styleUrls: ['./user.component.scss'],
   imports: [UserListComponent],
 })
-export class SettingsUserPage implements OnDestroy, HasChanges {
+export class SettingsUserPage implements OnInit, OnDestroy, HasChanges {
 
   @ViewChild('list')
   list?: UserListComponent;
 
   constructor(
+    private injector: Injector,
     private mod: ModService,
     public config: ConfigService,
     public store: Store,
@@ -33,7 +34,9 @@ export class SettingsUserPage implements OnDestroy, HasChanges {
     store.view.clear(['tag:len', 'tag'], ['tag:len', 'tag']);
     scim.clear();
     query.clear();
+  }
 
+  ngOnInit(): void {
     if (this.config.scim) {
       // TODO: better way to find unattached profiles
       effect(() => {
@@ -42,9 +45,8 @@ export class SettingsUserPage implements OnDestroy, HasChanges {
           size: this.store.view.pageSize,
         };
         defer(() => this.scim.setArgs(args));
-      });
+      }, { injector: this.injector });
     }
-
     effect(() => {
       const args = {
         query: this.store.view.showRemotes ? '@*' : (this.store.account.origin || '*'),
@@ -55,7 +57,7 @@ export class SettingsUserPage implements OnDestroy, HasChanges {
         ...getTagFilter(this.store.view.filter),
       };
       defer(() => this.query.setArgs(args));
-    });
+    }, { injector: this.injector });
   }
 
   saveChanges() {
