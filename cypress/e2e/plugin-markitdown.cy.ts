@@ -32,7 +32,6 @@ describe('MarkItDown Plugin', {
     cy.get('@next').click();
     cy.wait(500);
     cy.get('[name=title]').type('Test PDF Document');
-    cy.contains('show advanced').click();
     cy.get('[name=published]').type('2020-01-01T00:00').blur();
     
     // Add plugin/pdf tag
@@ -74,7 +73,6 @@ describe('MarkItDown Plugin', {
     cy.get('@next').click();
     cy.wait(500);
     cy.get('[name=title]').type('Test Image');
-    cy.contains('show advanced').click();
     cy.get('[name=published]').type('2020-01-02T00:00').blur();
     
     // Add plugin/image tag
@@ -99,7 +97,6 @@ describe('MarkItDown Plugin', {
     cy.get('@next').click();
     cy.wait(500);
     cy.get('[name=title]').type('Test Word Document');
-    cy.contains('show advanced').click();
     cy.get('[name=published]').type('2020-01-03T00:00').blur();
     
     // Add plugin/file tag
@@ -124,7 +121,6 @@ describe('MarkItDown Plugin', {
     cy.get('@next').click();
     cy.wait(500);
     cy.get('[name=title]').type('Public PDF Document');
-    cy.contains('show advanced').click();
     cy.get('[name=published]').type('2020-01-04T00:00').blur();
     
     // Add public and plugin/pdf tags
@@ -167,7 +163,6 @@ describe('MarkItDown Plugin', {
     cy.get('@next').click();
     cy.wait(500);
     cy.get('[name=title]').type('Cancel Test PDF');
-    cy.contains('show advanced').click();
     cy.get('[name=published]').type('2020-01-05T00:00').blur();
     
     // Add plugin/pdf tag
