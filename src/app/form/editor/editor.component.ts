@@ -87,7 +87,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   helpButton?: ElementRef<HTMLButtonElement>;
   @ViewChild('editor')
   editor?: ElementRef<HTMLTextAreaElement>;
-  @ViewChild(MdComponent)
+  @ViewChild('md')
   md?: MdComponent;
   @ViewChild('hiddenMeasure')
   hiddenMeasure?: ElementRef<HTMLTextAreaElement>;

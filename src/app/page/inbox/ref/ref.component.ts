@@ -20,7 +20,7 @@ import { getArgs } from '../../../util/query';
 export class InboxRefPage implements OnInit, OnDestroy, HasChanges {
   private disposers: IReactionDisposer[] = [];
 
-  @ViewChild(RefListComponent)
+  @ViewChild('list')
   list?: RefListComponent;
 
   plugin?: Plugin;

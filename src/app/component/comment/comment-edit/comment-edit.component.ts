@@ -35,7 +35,7 @@ export class CommentEditComponent implements AfterViewInit, HasChanges, OnDestro
   @Input()
   commentEdited$!: Subject<Ref>;
 
-  @ViewChild(EditorComponent)
+  @ViewChild('editor')
   editor?: EditorComponent;
 
   editing?: Subscription;

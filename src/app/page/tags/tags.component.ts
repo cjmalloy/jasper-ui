@@ -35,7 +35,7 @@ export class TagsPage implements OnInit, OnDestroy, HasChanges {
   title = '';
   templates = this.admin.tmplSubmit.filter(t => t.config?.view);
 
-  @ViewChild(ExtListComponent)
+  @ViewChild('list')
   list?: ExtListComponent;
 
   constructor(

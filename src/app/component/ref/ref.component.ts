@@ -116,9 +116,9 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
 
   @ViewChildren('action')
   actionComponents?: QueryList<ActionComponent>;
-  @ViewChild(RefFormComponent)
+  @ViewChild('refForm')
   refForm?: RefFormComponent;
-  @ViewChild(CommentReplyComponent)
+  @ViewChild('reply')
   reply?: CommentReplyComponent;
   @ViewChild('diffEditor')
   diffEditor?: any;
@@ -398,7 +398,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     this.store.view.clearLastSelected(this.ref.url);
   }
 
-  @ViewChild(ViewerComponent)
+  @ViewChild('viewer')
   set viewer(value: ViewerComponent | undefined) {
     this._viewer = value;
     if (value) {
