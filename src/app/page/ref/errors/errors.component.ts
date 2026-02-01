@@ -31,7 +31,7 @@ export class RefErrorsComponent implements HasChanges {
   private disposers: IReactionDisposer[] = [];
   private destroy$ = new Subject<void>();
 
-  @ViewChild(RefListComponent)
+  @ViewChild('list')
   list?: RefListComponent;
 
   newRefs$ = new Subject<Ref | undefined>();

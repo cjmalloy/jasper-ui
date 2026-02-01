@@ -309,7 +309,7 @@
 </div>
 
 @if (replying) {
-  <app-comment-reply [autofocus]="true"
+  <app-comment-reply #reply [autofocus]="true"
                      [to]="ref"
                      [showCancel]="true"
                      [selectResponseType]="!thread && !comment && !dm"
@@ -329,7 +329,7 @@
 @if (editing) {
   <form class="form" [formGroup]="editForm" (ngSubmit)="save()">
 
-    <app-ref-form [group]="editForm"></app-ref-form>
+    <app-ref-form #refForm [group]="editForm"></app-ref-form>
 
     @for (e of serverError; track e) {
       <span><!-- Unexpected Error --></span>
@@ -353,7 +353,7 @@
   </form>
 } @else if (viewSource) {
   <form class="form" [formGroup]="editForm">
-    <app-ref-form [group]="editForm" [origin]="origin"></app-ref-form>
+    <app-ref-form #refForm [group]="editForm" [origin]="origin"></app-ref-form>
   </form>
 } @else if (diffing && diffOriginal && diffModified) {
   <div class="diff-view form">

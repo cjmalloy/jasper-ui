@@ -25,7 +25,7 @@ import { getArgs } from '../../../util/query';
 export class RefSourcesComponent implements OnInit, OnDestroy, HasChanges {
   private disposers: IReactionDisposer[] = [];
 
-  @ViewChild(RefListComponent)
+  @ViewChild('list')
   list?: RefListComponent;
 
   page: Page<Ref> = Page.of([]);

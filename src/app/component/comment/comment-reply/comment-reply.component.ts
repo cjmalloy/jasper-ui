@@ -47,7 +47,7 @@ export class CommentReplyComponent implements HasChanges {
   @Output()
   save = new EventEmitter<Ref|undefined>();
 
-  @ViewChild(EditorComponent)
+  @ViewChild('editor')
   editor?: EditorComponent
 
   editorTags: string[] = [];

@@ -116,9 +116,9 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
 
   @ViewChildren('action')
   actionComponents?: QueryList<ActionComponent>;
-  @ViewChild(RefFormComponent)
+  @ViewChild('refForm')
   refForm?: RefFormComponent;
-  @ViewChild(CommentReplyComponent)
+  @ViewChild('reply')
   reply?: CommentReplyComponent;
   @ViewChild('diffEditor')
   diffEditor?: any;

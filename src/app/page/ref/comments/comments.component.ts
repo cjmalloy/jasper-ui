@@ -32,7 +32,7 @@ export class RefCommentsComponent implements OnInit, OnDestroy, HasChanges {
   private disposers: IReactionDisposer[] = [];
   newComments$ = new Subject<Ref | undefined>();
 
-  @ViewChild(CommentReplyComponent)
+  @ViewChild('reply')
   reply?: CommentReplyComponent;
 
   constructor(
