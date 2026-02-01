@@ -1,4 +1,4 @@
-import { Component, effect, OnDestroy, ViewChild } from '@angular/core';
+import { Component, effect, Injector, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { defer } from 'lodash-es';
 
 import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
@@ -16,12 +16,13 @@ import { getArgs } from '../../../util/query';
   host: { 'class': 'inbox-sent' },
   imports: [ RefListComponent]
 })
-export class InboxSentPage implements OnDestroy, HasChanges {
+export class InboxSentPage implements OnInit, OnDestroy, HasChanges {
 
   @ViewChild('list')
   list?: RefListComponent;
 
   constructor(
+    private injector: Injector,
     private mod: ModService,
     public admin: AdminService,
     public store: Store,
@@ -30,7 +31,9 @@ export class InboxSentPage implements OnDestroy, HasChanges {
     mod.setTitle($localize`Inbox: Sent`);
     store.view.clear();
     query.clear();
+  }
 
+  ngOnInit(): void {
     effect(() => {
       const args = getArgs(
         this.store.account.tag + ':(plugin/inbox|plugin/outbox)',
@@ -41,7 +44,7 @@ export class InboxSentPage implements OnDestroy, HasChanges {
         this.store.view.pageSize,
       );
       defer(() => this.query.setArgs(args));
-    });
+    }, { injector: this.injector });
   }
 
   saveChanges() {

@@ -1,4 +1,4 @@
-import { Component, effect, HostBinding, OnDestroy, ViewChild } from '@angular/core';
+import { Component, effect, HostBinding, Injector, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { isEqual, uniq } from 'lodash-es';
 
@@ -30,7 +30,7 @@ import { hasPrefix } from '../../util/tag';
     LoadingComponent,
   ],
 })
-export class TagPage implements OnDestroy, HasChanges {
+export class TagPage implements OnInit, OnDestroy, HasChanges {
 
   loading = true;
 
@@ -38,6 +38,7 @@ export class TagPage implements OnDestroy, HasChanges {
   lens?: LensComponent;
 
   constructor(
+    private injector: Injector,
     public admin: AdminService,
     public account: AccountService,
     public store: Store,
@@ -46,8 +47,6 @@ export class TagPage implements OnDestroy, HasChanges {
     private exts: ExtService,
     private bookmarks: BookmarkService,
   ) {
-    effect(() => this.mod.setTitle(this.store.view.name));
-
     this.store.view.clear([
       !!this.admin.getPlugin('plugin/user/vote/up')
         ? 'plugins->plugin/user/vote:decay'
@@ -56,7 +55,11 @@ export class TagPage implements OnDestroy, HasChanges {
           : 'created'
     ]);
     this.store.view.extTemplates = this.admin.view;
+    this.query.clear();
+  }
 
+  ngOnInit(): void {
+    effect(() => this.mod.setTitle(this.store.view.name), { injector: this.injector });
     effect(() => {
       if (!this.store.view.queryTags.length) {
         this.store.view.exts = [];
@@ -72,10 +75,7 @@ export class TagPage implements OnDestroy, HasChanges {
             this.loading = false;
           });
       }
-    });
-
-    this.query.clear();
-
+    }, { injector: this.injector });
     effect(() => {
       if (hasPrefix(this.store.view.viewExt?.tag, 'kanban')) return;
       if (hasPrefix(this.store.view.viewExt?.tag, 'chat')) return;
@@ -93,7 +93,7 @@ export class TagPage implements OnDestroy, HasChanges {
         this.store.view.pageSize,
       );
       this.query.setArgs(args);
-    });
+    }, { injector: this.injector });
   }
 
   saveChanges() {

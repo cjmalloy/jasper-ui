@@ -1,5 +1,5 @@
 import { AsyncPipe } from '@angular/common';
-import { Component, effect, ElementRef, HostBinding, Input, OnChanges, OnDestroy, SimpleChanges } from '@angular/core';
+import { Component, effect, ElementRef, HostBinding, Injector, Input, OnChanges, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { uniq, uniqBy } from 'lodash-es';
 
@@ -58,7 +58,7 @@ import { SortComponent } from '../sort/sort.component';
     ChatVideoComponent,
   ]
 })
-export class SidebarComponent implements OnChanges, OnDestroy {
+export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
   private destroy$ = new Subject<void>();
 
   @Input()
@@ -91,6 +91,7 @@ export class SidebarComponent implements OnChanges, OnDestroy {
   private lastView = this.store.view.current;
 
   constructor(
+    private injector: Injector,
     public router: Router,
     public admin: AdminService,
     public store: Store,
@@ -119,15 +120,17 @@ export class SidebarComponent implements OnChanges, OnDestroy {
         this.expanded = false;
       }
     });
+  }
 
+  ngOnInit(): void {
     effect(() => {
       this.expanded = this.store.view.sidebarExpanded;
-    });
+    }, { injector: this.injector });
     effect(() => {
       if (this.store.view.ref) {
         MemoCache.clear(this);
       }
-    });
+    }, { injector: this.injector });
     effect(() => {
       if (!this.store.view.template) {
         this.template = undefined;
@@ -136,7 +139,7 @@ export class SidebarComponent implements OnChanges, OnDestroy {
           catchError(() => of(undefined))
         ).subscribe(t => this.template = t);
       }
-    });
+    }, { injector: this.injector });
   }
 
   ngOnChanges(changes: SimpleChanges) {

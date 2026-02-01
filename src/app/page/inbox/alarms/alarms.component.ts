@@ -1,4 +1,4 @@
-import { Component, effect, OnDestroy, ViewChild } from '@angular/core';
+import { Component, effect, Injector, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { defer } from 'lodash-es';
 
 import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
@@ -16,12 +16,13 @@ import { getArgs } from '../../../util/query';
   host: { 'class': 'alarms' },
   imports: [ RefListComponent]
 })
-export class InboxAlarmsPage implements OnDestroy, HasChanges {
+export class InboxAlarmsPage implements OnInit, OnDestroy, HasChanges {
 
   @ViewChild('list')
   list?: RefListComponent;
 
   constructor(
+    private injector: Injector,
     private mod: ModService,
     public admin: AdminService,
     public store: Store,
@@ -30,7 +31,9 @@ export class InboxAlarmsPage implements OnDestroy, HasChanges {
     mod.setTitle($localize`Inbox: Alarms`);
     store.view.clear(['modified']);
     query.clear();
+  }
 
+  ngOnInit(): void {
     effect(() => {
       const args = getArgs(
         this.store.account.alarms.length ? this.store.account.alarms.join('|') : '!@*',
@@ -41,7 +44,7 @@ export class InboxAlarmsPage implements OnDestroy, HasChanges {
         this.store.view.pageSize,
       );
       defer(() => this.query.setArgs(args));
-    });
+    }, { injector: this.injector });
   }
 
   saveChanges() {

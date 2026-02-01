@@ -1,4 +1,4 @@
-import { Component, effect, inject, Injector, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, effect, Injector, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { defer } from 'lodash-es';
 
 import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
@@ -20,14 +20,13 @@ import { getArgs } from '../../../util/query';
 })
 export class RefAltsComponent implements OnInit, OnDestroy, HasChanges {
 
-  private injector = inject(Injector);
-
   @ViewChild('list')
   list?: RefListComponent;
 
   page: Page<Ref> = Page.of([]);
 
   constructor(
+    private injector: Injector,
     private mod: ModService,
     public admin: AdminService,
     public store: Store,

@@ -1,4 +1,4 @@
-import { Component, effect, OnDestroy, ViewChild } from '@angular/core';
+import { Component, effect, Injector, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { defer } from 'lodash-es';
 
@@ -17,12 +17,13 @@ import { getArgs } from '../../../util/query';
   host: { 'class': 'inbox-all' },
   imports: [ RefListComponent]
 })
-export class InboxAllPage implements OnDestroy, HasChanges {
+export class InboxAllPage implements OnInit, OnDestroy, HasChanges {
 
   @ViewChild('list')
   list?: RefListComponent;
 
   constructor(
+    private injector: Injector,
     private mod: ModService,
     public admin: AdminService,
     public store: Store,
@@ -36,8 +37,9 @@ export class InboxAllPage implements OnDestroy, HasChanges {
     if (!this.store.view.filter.length) {
       this.router.navigate([], { queryParams: { filter: ['query/!(dm)'] }, replaceUrl: true });
     }
+  }
 
-    // Effect for query args
+  ngOnInit(): void {
     effect(() => {
       const args = getArgs(
         this.store.account.inboxQuery,
@@ -48,7 +50,7 @@ export class InboxAllPage implements OnDestroy, HasChanges {
         this.store.view.pageSize,
       );
       defer(() => this.query.setArgs(args));
-    });
+    }, { injector: this.injector });
   }
 
   saveChanges() {

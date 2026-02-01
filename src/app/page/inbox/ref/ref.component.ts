@@ -1,4 +1,4 @@
-import { Component, effect, OnDestroy, ViewChild } from '@angular/core';
+import { Component, effect, Injector, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { defer, uniq } from 'lodash-es';
 
 import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
@@ -16,7 +16,7 @@ import { getArgs } from '../../../util/query';
   styleUrls: ['./ref.component.scss'],
   imports: [ RefListComponent],
 })
-export class InboxRefPage implements OnDestroy, HasChanges {
+export class InboxRefPage implements OnInit, OnDestroy, HasChanges {
 
   @ViewChild('list')
   list?: RefListComponent;
@@ -25,6 +25,7 @@ export class InboxRefPage implements OnDestroy, HasChanges {
   writeAccess = false;
 
   constructor(
+    private injector: Injector,
     private mod: ModService,
     private admin: AdminService,
     public store: Store,
@@ -33,7 +34,9 @@ export class InboxRefPage implements OnDestroy, HasChanges {
     mod.setTitle($localize`Inbox: `);
     store.view.clear(['modified']);
     query.clear();
+  }
 
+  ngOnInit(): void {
     effect(() => {
       this.plugin = this.admin.getPlugin(this.store.view.inboxTag);
       this.mod.setTitle($localize`Inbox: ${this.plugin?.config?.inbox || this.store.view.inboxTag}`);
@@ -46,7 +49,7 @@ export class InboxRefPage implements OnDestroy, HasChanges {
         this.store.view.pageSize,
       );
       defer(() => this.query.setArgs(args));
-    });
+    }, { injector: this.injector });
   }
 
   saveChanges() {

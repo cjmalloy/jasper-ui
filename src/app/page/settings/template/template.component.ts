@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, effect, OnDestroy, ViewChild } from '@angular/core';
+import { Component, effect, Injector, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { defer } from 'lodash-es';
 import { catchError, switchMap, throwError } from 'rxjs';
 import { TemplateListComponent } from '../../../component/template/template-list/template-list.component';
@@ -19,7 +19,7 @@ import { getModels, getZipOrTextFile } from '../../../util/zip';
   styleUrls: ['./template.component.scss'],
   imports: [TemplateListComponent],
 })
-export class SettingsTemplatePage implements OnDestroy, HasChanges {
+export class SettingsTemplatePage implements OnInit, OnDestroy, HasChanges {
 
   serverError: string[] = [];
 
@@ -27,6 +27,7 @@ export class SettingsTemplatePage implements OnDestroy, HasChanges {
   list?: TemplateListComponent;
 
   constructor(
+    private injector: Injector,
     private mod: ModService,
     public store: Store,
     public query: TemplateStore,
@@ -35,7 +36,9 @@ export class SettingsTemplatePage implements OnDestroy, HasChanges {
     mod.setTitle($localize`Settings: Templates`);
     store.view.clear(['tag:len', 'tag'], ['tag:len', 'tag']);
     query.clear();
+  }
 
+  ngOnInit(): void {
     effect(() => {
       const args = {
         query: this.store.view.showRemotes ? '@*' : (this.store.account.origin || '*'),
@@ -46,7 +49,7 @@ export class SettingsTemplatePage implements OnDestroy, HasChanges {
         ...getTagFilter(this.store.view.filter),
       };
       defer(() => this.query.setArgs(args));
-    });
+    }, { injector: this.injector });
   }
 
   saveChanges() {

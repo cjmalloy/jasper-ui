@@ -1,4 +1,4 @@
-import { Component, effect, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, effect, Injector, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { defer, uniq } from 'lodash-es';
 
 import { catchError, filter, of, Subject, Subscription, switchMap, takeUntil } from 'rxjs';
@@ -29,7 +29,6 @@ import { hasTag, removeTag, top, updateMetadata } from '../../../util/tag';
   imports: [ RefListComponent, LoadingComponent, CommentReplyComponent]
 })
 export class RefThreadComponent implements OnInit, OnDestroy, HasChanges {
-
   private destroy$ = new Subject<void>();
 
   @ViewChild('reply')
@@ -45,6 +44,7 @@ export class RefThreadComponent implements OnInit, OnDestroy, HasChanges {
   private watch?: Subscription;
 
   constructor(
+    private injector: Injector,
     public config: ConfigService,
     private mod: ModService,
     public admin: AdminService,
@@ -55,15 +55,19 @@ export class RefThreadComponent implements OnInit, OnDestroy, HasChanges {
   ) {
     query.clear();
     store.view.defaultSort = ['published,ASC'];
+  }
 
-    // Effect for page number calculation
+  saveChanges() {
+    return (!this.reply || this.reply.saveChanges())
+      && (!this.list || this.list.saveChanges());
+  }
+
+  ngOnInit(): void {
     effect(() => {
       if (this.store.view.pageSize) {
         this.store.view.defaultPageNumber = Math.floor(((this.to.metadata?.plugins?.['plugin/thread'] || 1) - 1) / this.store.view.pageSize);
       }
-    });
-
-    // Effect for query args
+    }, { injector: this.injector });
     effect(() => {
       const args = getArgs(
         'plugin/thread:!plugin/delete',
@@ -75,12 +79,9 @@ export class RefThreadComponent implements OnInit, OnDestroy, HasChanges {
       );
       args.responses = this.store.view.url;
       defer(() => this.query.setArgs(args));
-    });
-
-    // Effect for title
-    effect(() => this.mod.setTitle($localize`Thread: ` + getTitle(this.store.view.ref)));
-
-    // Effect for websocket watch
+    }, { injector: this.injector });
+    // TODO: set title for bare reposts
+    effect(() => this.mod.setTitle($localize`Thread: ` + getTitle(this.store.view.ref)), { injector: this.injector });
     effect(() => {
       MemoCache.clear(this);
       if (this.store.view.ref) {
@@ -101,22 +102,12 @@ export class RefThreadComponent implements OnInit, OnDestroy, HasChanges {
           ).subscribe(ref => this.newRefs$.next(ref));
         }
       }
-    });
-
-    // Effect for updating 'to' based on query page
+    }, { injector: this.injector });
     effect(() => {
       if (this.query.page) {
         this.to = this.query.page?.content?.filter(ref => !hasTag('+plugin/placeholder', ref))?.[(this.query.page?.content?.length || 0) - 1] || this.store.view.ref!;
       }
-    });
-  }
-
-  saveChanges() {
-    return (!this.reply || this.reply.saveChanges())
-      && (!this.list || this.list.saveChanges());
-  }
-
-  ngOnInit(): void {
+    }, { injector: this.injector });
     this.newRefs$.subscribe(c => {
       if (c && this.store.view.ref) {
         if (hasTag('plugin/thread', c) && !hasTag('+plugin/placeholder', c) && c.published! > this.to.published!) {

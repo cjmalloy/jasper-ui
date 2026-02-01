@@ -1,4 +1,4 @@
-import { Component, effect, OnDestroy, ViewChild } from '@angular/core';
+import { Component, effect, Injector, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { defer } from 'lodash-es';
 
@@ -20,12 +20,13 @@ import { getArgs } from '../../../util/query';
     RefListComponent,
   ],
 })
-export class InboxReportsPage implements OnDestroy, HasChanges {
+export class InboxReportsPage implements OnInit, OnDestroy, HasChanges {
 
   @ViewChild('list')
   list?: RefListComponent;
 
   constructor(
+    private injector: Injector,
     private mod: ModService,
     public admin: AdminService,
     public store: Store,
@@ -39,7 +40,9 @@ export class InboxReportsPage implements OnDestroy, HasChanges {
     if (!this.store.view.filter.length) {
       this.router.navigate([], { queryParams: { filter: ['plugin/user/report', '!+plugin/user/approve'] }, replaceUrl: true });
     }
+  }
 
+  ngOnInit(): void {
     effect(() => {
       const args = getArgs(
         '@*',
@@ -50,7 +53,7 @@ export class InboxReportsPage implements OnDestroy, HasChanges {
         this.store.view.pageSize,
       );
       defer(() => this.query.setArgs(args));
-    });
+    }, { injector: this.injector });
   }
 
   saveChanges() {
