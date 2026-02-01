@@ -24,7 +24,7 @@ describe('MarkItDown Plugin', {
     
     // Enable plugin/file for upload functionality
     cy.wait(100);
-    cy.get('#mod-file').should('not.be.checked').check().should('be.checked');
+    cy.get('#mod-filecache').should('not.be.checked').check().should('be.checked');
     cy.get('button').contains('Save').click();
     cy.get('.log').contains('Success');
   });
