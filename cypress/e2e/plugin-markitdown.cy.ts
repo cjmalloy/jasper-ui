@@ -36,7 +36,7 @@ describe('MarkItDown Plugin', {
     cy.get('[name=published]').type('2020-01-01T00:00').blur();
     
     // Add plugin/pdf tag
-    cy.get('[name=tags]').type('plugin/pdf{enter}');
+    cy.get('app-tags input').last().type('plugin/pdf{enter}');
     
     cy.intercept({pathname: '/api/v1/ref'}).as('submit');
     cy.get('button').contains('Submit').click({ force: true });
@@ -78,7 +78,7 @@ describe('MarkItDown Plugin', {
     cy.get('[name=published]').type('2020-01-02T00:00').blur();
     
     // Add plugin/image tag
-    cy.get('[name=tags]').type('plugin/image{enter}');
+    cy.get('app-tags input').last().type('plugin/image{enter}');
     
     cy.intercept({pathname: '/api/v1/ref'}).as('submit');
     cy.get('button').contains('Submit').click({ force: true });
@@ -103,7 +103,7 @@ describe('MarkItDown Plugin', {
     cy.get('[name=published]').type('2020-01-03T00:00').blur();
     
     // Add plugin/file tag
-    cy.get('[name=tags]').type('plugin/file{enter}');
+    cy.get('app-tags input').last().type('plugin/file{enter}');
     
     cy.intercept({pathname: '/api/v1/ref'}).as('submit');
     cy.get('button').contains('Submit').click({ force: true });
@@ -128,8 +128,8 @@ describe('MarkItDown Plugin', {
     cy.get('[name=published]').type('2020-01-04T00:00').blur();
     
     // Add public and plugin/pdf tags
-    cy.get('[name=tags]').type('public{enter}');
-    cy.get('[name=tags]').type('plugin/pdf{enter}');
+    cy.get('app-tags input').last().type('public{enter}');
+    cy.get('app-tags input').last().type('plugin/pdf{enter}');
     
     cy.intercept({pathname: '/api/v1/ref'}).as('submit');
     cy.get('button').contains('Submit').click({ force: true });
@@ -171,7 +171,7 @@ describe('MarkItDown Plugin', {
     cy.get('[name=published]').type('2020-01-05T00:00').blur();
     
     // Add plugin/pdf tag
-    cy.get('[name=tags]').type('plugin/pdf{enter}');
+    cy.get('app-tags input').last().type('plugin/pdf{enter}');
     
     cy.intercept({pathname: '/api/v1/ref'}).as('submit');
     cy.get('button').contains('Submit').click({ force: true });
