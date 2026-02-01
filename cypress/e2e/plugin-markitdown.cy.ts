@@ -34,27 +34,41 @@ describe('MarkItDown Plugin', {
     openSidebar();
     cy.contains('Submit').click();
     
-    // Select plugin/pdf from dropdown to show upload button
-    cy.get('app-select-plugin select').select('plugin/pdf');
+    // Click the upload tab
+    cy.get('.tabs').contains('upload').click();
     
     // Upload the PDF file
-    cy.get('app-pdf-upload input[type="file"]').selectFile('cypress/fixtures/test.pdf', { force: true });
+    cy.get('input[type="file"]').first().selectFile('cypress/fixtures/test.pdf', { force: true });
     
-    // Wait for upload to complete and form to navigate to web page
-    cy.wait(2000);
+    // Wait for file to be processed
+    cy.wait(1000);
     
-    // Set published date
-    cy.get('[name=published]').type('2020-01-01T00:00').blur();
+    // Add plugin/pdf tag to the uploaded ref
+    cy.get('input#add-tag').type('plugin/pdf{enter}');
     
-    // The plugin/pdf tag should already be added from the plugin selection
+    // Set published date on the ref
+    cy.get('app-ref [name=published]').first().type('2020-01-01T00:00').blur();
     
+    // Upload all
     cy.intercept({pathname: '/api/v1/ref'}).as('submit');
-    cy.get('button').contains('Submit').click({ force: true });
+    cy.get('button').contains('upload all').click();
     cy.wait('@submit');
-    cy.get('.full-page.ref .link a').should('have.text', 'test.pdf');
+    
+    // Verify the ref was created
+    cy.visit('/?debug=USER');
+    openSidebar();
+    cy.get('input[type=search]').type('test.pdf{enter}');
+    cy.wait(500);
+    cy.get('.ref-list .link').contains('test.pdf').should('exist');
   });
 
   it('should show markdown action button', () => {
+    // Navigate to the uploaded ref
+    cy.visit('/?debug=USER');
+    openSidebar();
+    cy.get('input[type=search]').type('test.pdf{enter}');
+    cy.wait(500);
+    cy.get('.ref-list .link').contains('test.pdf').click();
     cy.get('.full-page.ref .actions').should('contain', 'markdown');
   });
 
@@ -80,28 +94,41 @@ describe('MarkItDown Plugin', {
     openSidebar();
     cy.contains('Submit').click();
     
-    // For generic file types, we'll use plugin/pdf which accepts various formats
-    cy.get('app-select-plugin select').select('plugin/pdf');
+    // Click the upload tab
+    cy.get('.tabs').contains('upload').click();
     
     // Upload the DOC file
-    cy.get('app-pdf-upload input[type="file"]').selectFile('cypress/fixtures/test.doc', { force: true });
+    cy.get('input[type="file"]').first().selectFile('cypress/fixtures/test.doc', { force: true });
     
-    // Wait for upload to complete and form to navigate to web page
-    cy.wait(2000);
+    // Wait for file to be processed
+    cy.wait(1000);
     
-    // Set published date
-    cy.get('[name=published]').type('2020-01-03T00:00').blur();
+    // Add plugin/file tag to the uploaded ref
+    cy.get('input#add-tag').type('plugin/file{enter}');
     
-    // Change the plugin tag from plugin/pdf to plugin/file
-    cy.get('app-tags input').last().type('plugin/file{enter}');
+    // Set published date on the ref
+    cy.get('app-ref [name=published]').first().type('2020-01-03T00:00').blur();
     
+    // Upload all
     cy.intercept({pathname: '/api/v1/ref'}).as('submit');
-    cy.get('button').contains('Submit').click({ force: true });
+    cy.get('button').contains('upload all').click();
     cy.wait('@submit');
-    cy.get('.full-page.ref .link a').should('have.text', 'test.doc');
+    
+    // Verify the ref was created
+    cy.visit('/?debug=USER');
+    openSidebar();
+    cy.get('input[type=search]').type('test.doc{enter}');
+    cy.wait(500);
+    cy.get('.ref-list .link').contains('test.doc').should('exist');
   });
 
   it('should have markdown action on file ref', () => {
+    // Navigate to the uploaded ref
+    cy.visit('/?debug=USER');
+    openSidebar();
+    cy.get('input[type=search]').type('test.doc{enter}');
+    cy.wait(500);
+    cy.get('.ref-list .link').contains('test.doc').click();
     cy.get('.full-page.ref .actions').should('contain', 'markdown');
   });
 
@@ -110,28 +137,43 @@ describe('MarkItDown Plugin', {
     openSidebar();
     cy.contains('Submit').click();
     
-    // Select plugin/pdf from dropdown to show upload button
-    cy.get('app-select-plugin select').select('plugin/pdf');
+    // Click the upload tab
+    cy.get('.tabs').contains('upload').click();
     
     // Upload the PDF file
-    cy.get('app-pdf-upload input[type="file"]').selectFile('cypress/fixtures/test.pdf', { force: true });
+    cy.get('input[type="file"]').first().selectFile('cypress/fixtures/test.pdf', { force: true });
     
-    // Wait for upload to complete and form to navigate to web page
-    cy.wait(2000);
+    // Wait for file to be processed
+    cy.wait(1000);
     
-    // Set published date
-    cy.get('[name=published]').type('2020-01-04T00:00').blur();
+    // Add public and plugin/pdf tags
+    cy.get('input#add-tag').type('public{enter}');
+    cy.get('input#add-tag').type('plugin/pdf{enter}');
     
-    // Add public tag
-    cy.get('app-tags input').last().type('public{enter}');
+    // Set published date on the ref
+    cy.get('app-ref [name=published]').first().type('2020-01-04T00:00').blur();
     
+    // Upload all
     cy.intercept({pathname: '/api/v1/ref'}).as('submit');
-    cy.get('button').contains('Submit').click({ force: true });
+    cy.get('button').contains('upload all').click();
     cy.wait('@submit');
-    cy.get('.full-page.ref .link a').should('have.text', 'test.pdf');
+    
+    // Verify the ref was created with public tag
+    cy.visit('/?debug=USER');
+    openSidebar();
+    cy.get('input[type=search]').type('test.pdf public{enter}');
+    cy.wait(500);
+    cy.get('.ref-list .link').contains('test.pdf').should('exist');
   });
 
   it('should propagate public tag to response', () => {
+    // Navigate to the public ref
+    cy.visit('/?debug=USER');
+    openSidebar();
+    cy.get('input[type=search]').type('test.pdf public{enter}');
+    cy.wait(500);
+    cy.get('.ref-list .link').contains('test.pdf').click();
+    
     // Verify public tag is visible
     cy.get('.full-page.ref .tag').contains('public').should('exist');
   });
@@ -157,22 +199,33 @@ describe('MarkItDown Plugin', {
     openSidebar();
     cy.contains('Submit').click();
     
-    // Select plugin/pdf from dropdown to show upload button
-    cy.get('app-select-plugin select').select('plugin/pdf');
+    // Click the upload tab
+    cy.get('.tabs').contains('upload').click();
     
     // Upload the PDF file
-    cy.get('app-pdf-upload input[type="file"]').selectFile('cypress/fixtures/test.pdf', { force: true });
+    cy.get('input[type="file"]').first().selectFile('cypress/fixtures/test.pdf', { force: true });
     
-    // Wait for upload to complete and form to navigate to web page
-    cy.wait(2000);
+    // Wait for file to be processed
+    cy.wait(1000);
     
-    // Set published date
-    cy.get('[name=published]').type('2020-01-05T00:00').blur();
+    // Add plugin/pdf tag
+    cy.get('input#add-tag').type('plugin/pdf{enter}');
     
+    // Set published date on the ref
+    cy.get('app-ref [name=published]').first().type('2020-01-05T00:00').blur();
+    
+    // Upload all
     cy.intercept({pathname: '/api/v1/ref'}).as('submit');
-    cy.get('button').contains('Submit').click({ force: true });
+    cy.get('button').contains('upload all').click();
     cy.wait('@submit');
-    cy.get('.full-page.ref .link a').should('have.text', 'test.pdf');
+    
+    // Navigate to the ref
+    cy.visit('/?debug=USER');
+    openSidebar();
+    cy.get('input[type=search]').clear().type('test.pdf{enter}');
+    cy.wait(500);
+    // Click on one of the test.pdf refs (there will be multiple)
+    cy.get('.ref-list .link').contains('test.pdf').last().click();
     
     // Click markdown action
     cy.get('.full-page.ref .actions *').contains('markdown').click();
@@ -187,25 +240,29 @@ describe('MarkItDown Plugin', {
   });
 
   it('cleans up test refs', () => {
-    // Clean up the refs we created
+    // Clean up the refs we created (there will be multiple test.pdf files)
     cy.visit('/?debug=USER');
     
-    // Search for test.pdf (there will be multiple, delete them all)
+    // Delete all test.pdf refs
     openSidebar();
     cy.get('input[type=search]').type('test.pdf{enter}');
     cy.wait(500);
     
-    // Delete all test.pdf refs
-    cy.get('body').then($body => {
-      if ($body.find('.ref-list .link:contains("test.pdf")').length > 0) {
-        cy.get('.ref-list .link').contains('test.pdf').parent().parent().parent().as('ref');
-        cy.get('@ref').find('.actions').contains('delete').click();
-        cy.get('@ref').find('.actions').contains('yes').click();
-        cy.wait(500);
-      }
-    });
+    // Delete each test.pdf ref found
+    const deleteRefs = () => {
+      cy.get('body').then($body => {
+        if ($body.find('.ref-list .link:contains("test.pdf")').length > 0) {
+          cy.get('.ref-list .link').contains('test.pdf').first().parent().parent().parent().as('ref');
+          cy.get('@ref').find('.actions').contains('delete').click();
+          cy.get('@ref').find('.actions').contains('yes').click();
+          cy.wait(500);
+          deleteRefs(); // Recursively delete until none left
+        }
+      });
+    };
+    deleteRefs();
     
-    // Search for test.doc
+    // Delete test.doc
     cy.get('input[type=search]').clear().type('test.doc{enter}');
     cy.wait(500);
     cy.get('body').then($body => {
