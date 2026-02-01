@@ -30,8 +30,8 @@ describe('MarkItDown Plugin', {
     cy.get('#url').type('https://example.com/sample.pdf');
     cy.contains('Next').as('next');
     cy.get('@next').click();
-    cy.wait(500);
-    cy.get('[name=title]').type('Test PDF Document');
+    cy.wait(1000); // Wait for form to be ready and title to auto-populate
+    cy.get('[name=title]').clear().type('Test PDF Document');
     cy.get('[name=published]').type('2020-01-01T00:00').blur();
     
     // Add plugin/pdf tag
@@ -71,8 +71,8 @@ describe('MarkItDown Plugin', {
     cy.get('#url').type('https://example.com/image.png');
     cy.contains('Next').as('next');
     cy.get('@next').click();
-    cy.wait(500);
-    cy.get('[name=title]').type('Test Image');
+    cy.wait(1000); // Wait for form to be ready and title to auto-populate
+    cy.get('[name=title]').clear().type('Test Image');
     cy.get('[name=published]').type('2020-01-02T00:00').blur();
     
     // Add plugin/image tag
@@ -95,8 +95,8 @@ describe('MarkItDown Plugin', {
     cy.get('#url').type('https://example.com/document.docx');
     cy.contains('Next').as('next');
     cy.get('@next').click();
-    cy.wait(500);
-    cy.get('[name=title]').type('Test Word Document');
+    cy.wait(1000); // Wait for form to be ready and title to auto-populate
+    cy.get('[name=title]').clear().type('Test Word Document');
     cy.get('[name=published]').type('2020-01-03T00:00').blur();
     
     // Add plugin/file tag
@@ -119,8 +119,8 @@ describe('MarkItDown Plugin', {
     cy.get('#url').type('https://example.com/public.pdf');
     cy.contains('Next').as('next');
     cy.get('@next').click();
-    cy.wait(500);
-    cy.get('[name=title]').type('Public PDF Document');
+    cy.wait(1000); // Wait for form to be ready and title to auto-populate
+    cy.get('[name=title]').clear().type('Public PDF Document');
     cy.get('[name=published]').type('2020-01-04T00:00').blur();
     
     // Add public and plugin/pdf tags
@@ -161,8 +161,8 @@ describe('MarkItDown Plugin', {
     cy.get('#url').type('https://example.com/cancel.pdf');
     cy.contains('Next').as('next');
     cy.get('@next').click();
-    cy.wait(500);
-    cy.get('[name=title]').type('Cancel Test PDF');
+    cy.wait(1000); // Wait for form to be ready and title to auto-populate
+    cy.get('[name=title]').clear().type('Cancel Test PDF');
     cy.get('[name=published]').type('2020-01-05T00:00').blur();
     
     // Add plugin/pdf tag
