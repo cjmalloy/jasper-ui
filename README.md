@@ -245,6 +245,11 @@ Run `npm test` to execute the unit tests via [Vitest](https://vitest.dev/).
 TEST_HEAP_SIZE=8192 npm test  # Use 8GB instead of default 16GB
 ```
 
+On Windows (non-WSL), use:
+```cmd
+set TEST_HEAP_SIZE=8192 && npm test
+```
+
 ### Running end-to-end tests
 
 Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To
