@@ -2,7 +2,6 @@ import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { provideRouter } from '@angular/router';
-import { JasperFormlyModule } from '../../formly/formly.module';
 import { LinksFormComponent } from './links.component';
 
 
@@ -14,7 +13,6 @@ describe('LinksFormComponent', () => {
     await TestBed.configureTestingModule({
       imports: [
         ReactiveFormsModule,
-        JasperFormlyModule,
         LinksFormComponent,
       ],
       providers: [

@@ -4,7 +4,6 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, ComponentFixtureAutoDetect, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { provideRouter } from '@angular/router';
-import { JasperFormlyModule } from '../../../formly/formly.module';
 
 import { SubmitDmPage } from './dm.component';
 
@@ -16,7 +15,6 @@ describe('SubmitDmPage', () => {
     await TestBed.configureTestingModule({
       imports: [
         ReactiveFormsModule,
-        JasperFormlyModule,
         SubmitDmPage
       ],
       providers: [
