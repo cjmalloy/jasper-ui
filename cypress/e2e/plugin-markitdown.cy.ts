@@ -31,7 +31,6 @@ describe('MarkItDown Plugin', {
     cy.contains('Next').as('next');
     cy.get('@next').click();
     cy.wait(1000); // Wait for form to be ready and title to auto-populate
-    cy.get('[name=title]').clear().type('Test PDF Document');
     cy.get('[name=published]').type('2020-01-01T00:00').blur();
     
     // Add plugin/pdf tag
@@ -40,7 +39,7 @@ describe('MarkItDown Plugin', {
     cy.intercept({pathname: '/api/v1/ref'}).as('submit');
     cy.get('button').contains('Submit').click({ force: true });
     cy.wait('@submit');
-    cy.get('.full-page.ref .link a').should('have.text', 'Test PDF Document');
+    cy.get('.full-page.ref .link a').should('have.text', 'sample.pdf');
   });
 
   it('should show markdown action button', () => {
@@ -72,7 +71,6 @@ describe('MarkItDown Plugin', {
     cy.contains('Next').as('next');
     cy.get('@next').click();
     cy.wait(1000); // Wait for form to be ready and title to auto-populate
-    cy.get('[name=title]').clear().type('Test Image');
     cy.get('[name=published]').type('2020-01-02T00:00').blur();
     
     // Add plugin/image tag
@@ -81,7 +79,7 @@ describe('MarkItDown Plugin', {
     cy.intercept({pathname: '/api/v1/ref'}).as('submit');
     cy.get('button').contains('Submit').click({ force: true });
     cy.wait('@submit');
-    cy.get('.full-page.ref .link a').should('have.text', 'Test Image');
+    cy.get('.full-page.ref .link a').should('have.text', 'image.png');
   });
 
   it('should have markdown action on image ref', () => {
@@ -96,7 +94,6 @@ describe('MarkItDown Plugin', {
     cy.contains('Next').as('next');
     cy.get('@next').click();
     cy.wait(1000); // Wait for form to be ready and title to auto-populate
-    cy.get('[name=title]').clear().type('Test Word Document');
     cy.get('[name=published]').type('2020-01-03T00:00').blur();
     
     // Add plugin/file tag
@@ -105,7 +102,7 @@ describe('MarkItDown Plugin', {
     cy.intercept({pathname: '/api/v1/ref'}).as('submit');
     cy.get('button').contains('Submit').click({ force: true });
     cy.wait('@submit');
-    cy.get('.full-page.ref .link a').should('have.text', 'Test Word Document');
+    cy.get('.full-page.ref .link a').should('have.text', 'document.docx');
   });
 
   it('should have markdown action on file ref', () => {
@@ -120,7 +117,6 @@ describe('MarkItDown Plugin', {
     cy.contains('Next').as('next');
     cy.get('@next').click();
     cy.wait(1000); // Wait for form to be ready and title to auto-populate
-    cy.get('[name=title]').clear().type('Public PDF Document');
     cy.get('[name=published]').type('2020-01-04T00:00').blur();
     
     // Add public and plugin/pdf tags
@@ -130,7 +126,7 @@ describe('MarkItDown Plugin', {
     cy.intercept({pathname: '/api/v1/ref'}).as('submit');
     cy.get('button').contains('Submit').click({ force: true });
     cy.wait('@submit');
-    cy.get('.full-page.ref .link a').should('have.text', 'Public PDF Document');
+    cy.get('.full-page.ref .link a').should('have.text', 'public.pdf');
   });
 
   it('should propagate public tag to response', () => {
@@ -162,7 +158,6 @@ describe('MarkItDown Plugin', {
     cy.contains('Next').as('next');
     cy.get('@next').click();
     cy.wait(1000); // Wait for form to be ready and title to auto-populate
-    cy.get('[name=title]').clear().type('Cancel Test PDF');
     cy.get('[name=published]').type('2020-01-05T00:00').blur();
     
     // Add plugin/pdf tag
@@ -171,7 +166,7 @@ describe('MarkItDown Plugin', {
     cy.intercept({pathname: '/api/v1/ref'}).as('submit');
     cy.get('button').contains('Submit').click({ force: true });
     cy.wait('@submit');
-    cy.get('.full-page.ref .link a').should('have.text', 'Cancel Test PDF');
+    cy.get('.full-page.ref .link a').should('have.text', 'cancel.pdf');
     
     // Click markdown action
     cy.get('.full-page.ref .actions *').contains('markdown').click();
@@ -189,43 +184,43 @@ describe('MarkItDown Plugin', {
     // Clean up the refs we created
     cy.visit('/?debug=USER');
     
-    // Search for Test PDF Document
+    // Search for sample.pdf
     openSidebar();
-    cy.get('input[type=search]').type('Test PDF Document{enter}');
+    cy.get('input[type=search]').type('sample.pdf{enter}');
     cy.wait(500);
-    cy.get('.ref-list .link').contains('Test PDF Document').parent().parent().parent().as('ref');
+    cy.get('.ref-list .link').contains('sample.pdf').parent().parent().parent().as('ref');
     cy.get('@ref').find('.actions').contains('delete').click();
     cy.get('@ref').find('.actions').contains('yes').click();
     cy.wait(500);
     
-    // Search for Test Image
-    cy.get('input[type=search]').clear().type('Test Image{enter}');
+    // Search for image.png
+    cy.get('input[type=search]').clear().type('image.png{enter}');
     cy.wait(500);
-    cy.get('.ref-list .link').contains('Test Image').parent().parent().parent().as('ref');
+    cy.get('.ref-list .link').contains('image.png').parent().parent().parent().as('ref');
     cy.get('@ref').find('.actions').contains('delete').click();
     cy.get('@ref').find('.actions').contains('yes').click();
     cy.wait(500);
     
-    // Search for Test Word Document
-    cy.get('input[type=search]').clear().type('Test Word Document{enter}');
+    // Search for document.docx
+    cy.get('input[type=search]').clear().type('document.docx{enter}');
     cy.wait(500);
-    cy.get('.ref-list .link').contains('Test Word Document').parent().parent().parent().as('ref');
+    cy.get('.ref-list .link').contains('document.docx').parent().parent().parent().as('ref');
     cy.get('@ref').find('.actions').contains('delete').click();
     cy.get('@ref').find('.actions').contains('yes').click();
     cy.wait(500);
     
-    // Search for Public PDF Document
-    cy.get('input[type=search]').clear().type('Public PDF Document{enter}');
+    // Search for public.pdf
+    cy.get('input[type=search]').clear().type('public.pdf{enter}');
     cy.wait(500);
-    cy.get('.ref-list .link').contains('Public PDF Document').parent().parent().parent().as('ref');
+    cy.get('.ref-list .link').contains('public.pdf').parent().parent().parent().as('ref');
     cy.get('@ref').find('.actions').contains('delete').click();
     cy.get('@ref').find('.actions').contains('yes').click();
     cy.wait(500);
     
-    // Search for Cancel Test PDF
-    cy.get('input[type=search]').clear().type('Cancel Test PDF{enter}');
+    // Search for cancel.pdf
+    cy.get('input[type=search]').clear().type('cancel.pdf{enter}');
     cy.wait(500);
-    cy.get('.ref-list .link').contains('Cancel Test PDF').parent().parent().parent().as('ref');
+    cy.get('.ref-list .link').contains('cancel.pdf').parent().parent().parent().as('ref');
     cy.get('@ref').find('.actions').contains('delete').click();
     cy.get('@ref').find('.actions').contains('yes').click();
   });
