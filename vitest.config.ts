@@ -12,7 +12,7 @@ export default defineConfig({
     },
     // Isolate tests better
     isolate: true,
-    // Increase timeout for slower test execution
+    // Increase timeout to 30s for slower test execution due to limited concurrency
     testTimeout: 30000,
   },
 });
