@@ -40,8 +40,9 @@ describe('MarkItDown Plugin', {
     // Upload the PDF file using cache input (second file input)
     cy.get('input[type="file"]').eq(1).selectFile('cypress/fixtures/test.pdf', { force: true });
     
-    // Wait for file to be processed and ref preview to appear
-    cy.get('app-ref', { timeout: 10000 }).should('exist');
+    // Wait for file to be uploaded to cache and ref to be created
+    // The "upload all" button only appears when store.submit.empty is false (refs are ready)
+    cy.get('button').contains('upload all', { timeout: 15000 }).should('be.visible');
     
     // PDF plugin should be added automatically, no need to add tags manually
     
@@ -89,8 +90,9 @@ describe('MarkItDown Plugin', {
     // Upload the DOC file using cache input (second file input)
     cy.get('input[type="file"]').eq(1).selectFile('cypress/fixtures/test.doc', { force: true });
     
-    // Wait for file to be processed and ref preview to appear
-    cy.get('app-ref', { timeout: 10000 }).should('exist');
+    // Wait for file to be uploaded to cache and ref to be created
+    // The "upload all" button only appears when store.submit.empty is false (refs are ready)
+    cy.get('button').contains('upload all', { timeout: 15000 }).should('be.visible');
     
     // File plugin should be added automatically
     
@@ -121,8 +123,9 @@ describe('MarkItDown Plugin', {
     // Upload the PDF file using cache input (second file input)
     cy.get('input[type="file"]').eq(1).selectFile('cypress/fixtures/test.pdf', { force: true });
     
-    // Wait for file to be processed and ref preview to appear
-    cy.get('app-ref', { timeout: 10000 }).should('exist');
+    // Wait for file to be uploaded to cache and ref to be created
+    // The "upload all" button only appears when store.submit.empty is false (refs are ready)
+    cy.get('button').contains('upload all', { timeout: 15000 }).should('be.visible');
     
     // Add public tag (PDF plugin is added automatically)
     cy.get('input#add-tag').type('public{enter}');
@@ -171,8 +174,9 @@ describe('MarkItDown Plugin', {
     // Upload the PDF file using cache input (second file input)
     cy.get('input[type="file"]').eq(1).selectFile('cypress/fixtures/test.pdf', { force: true });
     
-    // Wait for file to be processed and ref preview to appear
-    cy.get('app-ref', { timeout: 10000 }).should('exist');
+    // Wait for file to be uploaded to cache and ref to be created
+    // The "upload all" button only appears when store.submit.empty is false (refs are ready)
+    cy.get('button').contains('upload all', { timeout: 15000 }).should('be.visible');
     
     // PDF plugin is added automatically, no need to add tags
     
