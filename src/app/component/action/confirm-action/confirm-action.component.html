@@ -5,7 +5,7 @@
 } @else if (confirming) {
   <span>
     @if (warning) {<span class="warning">{{ warning }}</span>&nbsp;}
-    {{ message }}&nbsp;
+    {{ message() }}&nbsp;
     <a class="fake-link" (click)="confirm()" i18n>yes</a>&nbsp;/&nbsp;
     <a class="fake-link" (click)="confirming = false" i18n>no</a>&nbsp;
   </span>

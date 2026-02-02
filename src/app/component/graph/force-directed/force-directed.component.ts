@@ -8,11 +8,13 @@ import {
   ElementRef,
   forwardRef,
   HostListener,
+  inject,
   Input,
+  input,
   OnDestroy,
   TemplateRef,
-  ViewChild,
-  ViewContainerRef
+  ViewContainerRef,
+  viewChild
 } from '@angular/core';
 import * as d3 from 'd3';
 import { ForceLink, ScaleTime, Selection, Simulation, SimulationNodeDatum } from 'd3';
@@ -36,69 +38,51 @@ import { LoadingComponent } from '../../loading/loading.component';
 import { RefListComponent } from '../../ref/ref-list/ref-list.component';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-force-directed',
   templateUrl: './force-directed.component.html',
   styleUrls: ['./force-directed.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     forwardRef(() => RefListComponent),
     LoadingComponent,
   ],
 })
 export class ForceDirectedComponent implements AfterViewInit, OnDestroy, HasChanges {
+  store = inject(Store);
+  private admin = inject(AdminService);
+  private graphs = inject(GraphService);
+  private overlay = inject(Overlay);
+  private viewContainerRef = inject(ViewContainerRef);
 
-  @Input()
-  filter?: string[];
-  @Input()
-  depth = 0;
-  @Input()
-  tag?: string | null = 'science';
 
-  @Input()
-  maxLoad = 30;
-  @Input()
-  nodeStroke = '#d0d0d0';
-  @Input()
-  nodeStrokeDashedArray = '';
-  @Input()
-  nodeStrokeWidth = 1.5;
-  @Input()
-  nodeStrokeOpacity = 1;
-  @Input()
-  selectedStrokeDarkTheme = '#f6f6f6';
-  @Input()
-  selectedStrokeLightTheme = '#101010';
-  selectedStroke = this.selectedStrokeLightTheme;
-  @Input()
-  selectedStrokeWidth = 1.5;
-  @Input()
-  selectedStrokeDashedArray = '1.5,2';
-  @Input()
-  selectedStrokeOpacity = 1;
-  @Input()
-  nodeRadius = 10;
-  @Input()
-  nodeStrength?: number;
-  @Input()
-  linkStrokeLightTheme  = '#444444';
-  @Input()
-  linkStrokeDarkTheme  = '#cbcbcb';
-  linkStroke = this.linkStrokeLightTheme ;
-  @Input()
-  linkStrokeOpacity = 0.6;
-  @Input()
-  linkStrokeWidth = 1.5;
-  @Input()
-  linkStrokeLinecap = 'round';
-  @Input()
-  linkStrength?: number;
+  readonly filter = input<string[]>();
+  readonly depth = input(0);
+  readonly tag = input<(string | null) | undefined>('science');
 
-  @ViewChild('figure')
-  figure!: ElementRef;
-  @ViewChild('nodeMenu')
-  nodeMenu!: TemplateRef<any>;
-  @ViewChild('list')
-  list?: RefListComponent;
+  readonly maxLoad = input(30);
+  readonly nodeStroke = input('#d0d0d0');
+  readonly nodeStrokeDashedArray = input('');
+  readonly nodeStrokeWidth = input(1.5);
+  readonly nodeStrokeOpacity = input(1);
+  readonly selectedStrokeDarkTheme = input('#f6f6f6');
+  readonly selectedStrokeLightTheme = input('#101010');
+  selectedStroke = this.selectedStrokeLightTheme();
+  readonly selectedStrokeWidth = input(1.5);
+  readonly selectedStrokeDashedArray = input('1.5,2');
+  readonly selectedStrokeOpacity = input(1);
+  readonly nodeRadius = input(10);
+  readonly nodeStrength = input<number>();
+  readonly linkStrokeLightTheme = input('#444444');
+  readonly linkStrokeDarkTheme = input('#cbcbcb');
+  linkStroke = this.linkStrokeLightTheme() ;
+  readonly linkStrokeOpacity = input(0.6);
+  readonly linkStrokeWidth = input(1.5);
+  readonly linkStrokeLinecap = input('round');
+  readonly linkStrength = input<number>();
+
+  readonly figure = viewChild.required<ElementRef>('figure');
+  readonly nodeMenu = viewChild.required<TemplateRef<any>>('nodeMenu');
+  readonly list = viewChild<RefListComponent>('list');
 
   overlayRef?: OverlayRef;
   sub?: Subscription;
@@ -112,22 +96,19 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy, HasChan
   private dragRect?: Selection<any, unknown, any, any>;
   private forceLink?: ForceLink<SimulationNodeDatum, any>;
 
-  constructor(
-    public store: Store,
-    private admin: AdminService,
-    private graphs: GraphService,
-    private overlay: Overlay,
-    private viewContainerRef: ViewContainerRef,
-  ) {
+  constructor() {
+    const store = this.store;
+
     effect(() => {
-      this.selectedStroke = store.darkTheme ? this.selectedStrokeDarkTheme : this.selectedStrokeLightTheme;
-      this.linkStroke = store.darkTheme ? this.linkStrokeDarkTheme : this.linkStrokeLightTheme;
+      this.selectedStroke = store.darkTheme ? this.selectedStrokeDarkTheme() : this.selectedStrokeLightTheme();
+      this.linkStroke = store.darkTheme ? this.linkStrokeDarkTheme() : this.linkStrokeLightTheme();
       this.update();
     });
   }
 
   saveChanges() {
-    return !this.list || this.list.saveChanges();
+    const list = this.list();
+    return !list || list.saveChanges();
   }
 
   ngOnDestroy() {
@@ -139,17 +120,17 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy, HasChan
     this.graphs.list(refs.map(r => r.url))
       .subscribe(nodes => {
         this.store.graph.set(nodes.filter(n => !!n) as RefNode[]);
-        if (this.depth > 0) {
+        if (this.depth() > 0) {
           let init: Observable<any> = of(1);
-          for (let i = 0; i< this.depth; i++) {
+          for (let i = 0; i< this.depth(); i++) {
             init = init.pipe(switchMap(() => this.loadMore$));
           }
           init.subscribe(() => {
-            if (this.figure) {
+            if (this.figure()) {
               this.update()
             }
           });
-        } else if (this.figure) {
+        } else if (this.figure()) {
           this.update();
         }
       });
@@ -186,7 +167,7 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy, HasChan
   }
 
   get loadMore$() {
-    return this.load$(this.store.graph.getLoading(this.maxLoad));
+    return this.load$(this.store.graph.getLoading(this.maxLoad()));
   }
 
   drawMore() {
@@ -203,7 +184,7 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy, HasChan
   }
 
   max(loadCount: number) {
-    return loadCount > this.maxLoad ? `(max ${this.maxLoad})` : `(${loadCount})`;
+    return loadCount > this.maxLoad() ? `(max ${this.maxLoad()})` : `(${loadCount})`;
   }
 
   countRefUnloaded(ref: RefNode) {
@@ -260,7 +241,7 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy, HasChan
       positionStrategy,
       scrollStrategy: this.overlay.scrollStrategies.close()
     });
-    this.overlayRef.attach(new TemplatePortal(this.nodeMenu, this.viewContainerRef, {
+    this.overlayRef.attach(new TemplatePortal(this.nodeMenu(), this.viewContainerRef, {
       $implicit: ref
     }));
   }
@@ -293,7 +274,7 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy, HasChan
   }
 
   loadSources(ref: GraphNode) {
-    this.load$(sources(...this.store.graph.grabNodeOrSelection(ref)).filter(url => !this.find(url)).slice(0, this.maxLoad)).subscribe(more => {
+    this.load$(sources(...this.store.graph.grabNodeOrSelection(ref)).filter(url => !this.find(url)).slice(0, this.maxLoad())).subscribe(more => {
       if (more.length) {
         this.simulation?.alpha(0.1);
         this.update();
@@ -303,7 +284,7 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy, HasChan
   }
 
   loadResponses(ref: GraphNode) {
-    this.load$(responses(...this.store.graph.grabNodeOrSelection(ref)).filter(url => !this.find(url)).slice(0, this.maxLoad)).subscribe(more => {
+    this.load$(responses(...this.store.graph.grabNodeOrSelection(ref)).filter(url => !this.find(url)).slice(0, this.maxLoad())).subscribe(more => {
       if (more.length) {
         this.simulation?.alpha(0.1);
         this.update();
@@ -313,7 +294,7 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy, HasChan
   }
 
   load(ref: GraphNode) {
-    const urls = this.store.graph.grabNodeOrSelection(ref).filter(r => r.unloaded).map(r => r.url).slice(0, this.maxLoad);
+    const urls = this.store.graph.grabNodeOrSelection(ref).filter(r => r.unloaded).map(r => r.url).slice(0, this.maxLoad());
     this.store.graph.startLoading(...urls);
     this.load$(urls).subscribe(more => {
       if (more.length) {
@@ -357,7 +338,7 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy, HasChan
     if (document.fullscreenElement) {
       document.exitFullscreen();
     } else {
-      this.figure.nativeElement.requestFullscreen();
+      this.figure().nativeElement.requestFullscreen();
     }
     this.close();
   }
@@ -372,16 +353,17 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy, HasChan
     if (hasTag('plugin/comment', ref)) return '#4a8de5';
     if (isTextPost(ref)) return '#4ae552';
     if (!ref.tags || !ref.title || hasTag('internal', ref)) return '#857979';
-    if (this.tag && capturesAny([this.tag!], ref.tags)) return '#c34ae5';
+    const tag = this.tag();
+    if (tag && capturesAny([tag!], ref.tags)) return '#c34ae5';
     return '#1c378c';
   }
 
   get figWidth() {
-    return this.figure.nativeElement.offsetWidth;
+    return this.figure().nativeElement.offsetWidth;
   }
 
   get figHeight() {
-    return this.figure.nativeElement.offsetHeight;
+    return this.figure().nativeElement.offsetHeight;
   }
 
   get viewBox() {
@@ -409,9 +391,9 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy, HasChan
       .attr('d', 'M0,-5L10,0L0,5');
 
     this.link = this.svg.append('g')
-      .attr('stroke-opacity', this.linkStrokeOpacity)
-      .attr('stroke-width', this.linkStrokeWidth)
-      .attr('stroke-linecap', this.linkStrokeLinecap);
+      .attr('stroke-opacity', this.linkStrokeOpacity())
+      .attr('stroke-width', this.linkStrokeWidth())
+      .attr('stroke-linecap', this.linkStrokeLinecap());
 
     this.node = this.svg.append('g');
 
@@ -459,9 +441,9 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy, HasChan
       .style('display', 'none')
       .attr('fill', 'transparent')
       .attr('stroke', this.selectedStroke)
-      .attr('stroke-dasharray', this.selectedStrokeDashedArray)
-      .attr('stroke-opacity', this.selectedStrokeOpacity)
-      .attr('stroke-width', this.selectedStrokeWidth);
+      .attr('stroke-dasharray', this.selectedStrokeDashedArray())
+      .attr('stroke-opacity', this.selectedStrokeOpacity())
+      .attr('stroke-width', this.selectedStrokeWidth());
 
     const self = this;
     function dragSelection() {
@@ -522,11 +504,11 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy, HasChan
         enter => {
           const node = enter.append('g');
           const circle = node.append('circle')
-            .attr('r', this.nodeRadius)
+            .attr('r', this.nodeRadius())
             .attr('fill', ref => this.color(ref))
-            .attr('stroke', this.nodeStroke)
-            .attr('stroke-opacity', this.nodeStrokeOpacity)
-            .attr('stroke-width', this.nodeStrokeWidth)
+            .attr('stroke', this.nodeStroke())
+            .attr('stroke-opacity', this.nodeStrokeOpacity())
+            .attr('stroke-width', this.nodeStrokeWidth())
             .call(drag(this.simulation!) as any)
             .on('click', function(event) {
               self.clickNode((this as any).__data__, event);
@@ -544,10 +526,10 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy, HasChan
         },
         update => {
           update.select('circle')
-            .attr('stroke', ref => this.store.graph.selected.includes(ref) ? this.selectedStroke : this.nodeStroke)
-            .attr('stroke-dasharray', ref => this.store.graph.selected.includes(ref) ? this.selectedStrokeDashedArray : this.nodeStrokeDashedArray)
-            .attr('stroke-opacity', ref => this.store.graph.selected.includes(ref) ? this.selectedStrokeOpacity : this.nodeStrokeOpacity)
-            .attr('stroke-width', ref => this.store.graph.selected.includes(ref) ? this.selectedStrokeWidth : this.nodeStrokeOpacity)
+            .attr('stroke', ref => this.store.graph.selected.includes(ref) ? this.selectedStroke : this.nodeStroke())
+            .attr('stroke-dasharray', ref => this.store.graph.selected.includes(ref) ? this.selectedStrokeDashedArray() : this.nodeStrokeDashedArray())
+            .attr('stroke-opacity', ref => this.store.graph.selected.includes(ref) ? this.selectedStrokeOpacity() : this.nodeStrokeOpacity())
+            .attr('stroke-width', ref => this.store.graph.selected.includes(ref) ? this.selectedStrokeWidth() : this.nodeStrokeOpacity())
             .attr('fill', ref => this.color(ref))
             .select('title')
             .text(ref => getTitle(ref));

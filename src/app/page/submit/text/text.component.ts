@@ -5,11 +5,13 @@ import {
   Component,
   effect,
   ElementRef,
+  inject,
   Injector,
   OnChanges,
   OnDestroy,
   SimpleChanges,
-  ViewChild
+  ViewChild,
+  viewChild
 } from '@angular/core';
 import {
   ReactiveFormsModule,
@@ -56,10 +58,10 @@ import { memo, MemoCache } from '../../../util/memo';
 import { getVisibilityTags, hasPrefix, hasTag } from '../../../util/tag';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-submit-text',
   templateUrl: './text.component.html',
   styleUrls: ['./text.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   host: { 'class': 'full-page-form' },
   imports: [
     EditorComponent,
@@ -77,20 +79,29 @@ import { getVisibilityTags, hasPrefix, hasTag } from '../../../util/tag';
   ],
 })
 export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasChanges {
+  private injector = inject(Injector);
+  config = inject(ConfigService);
+  private mod = inject(ModService);
+  admin = inject(AdminService);
+  private router = inject(Router);
+  store = inject(Store);
+  bookmarks = inject(BookmarkService);
+  private editor = inject(EditorService);
+  private refs = inject(RefService);
+  private exts = inject(ExtService);
+  private ts = inject(TaggingService);
+  private fb = inject(UntypedFormBuilder);
+
 
   submitted = false;
   textForm: UntypedFormGroup;
   advanced = false;
   serverError: string[] = [];
 
-  @ViewChild('fill')
-  fill?: ElementRef;
-  @ViewChild('fillCustom')
-  fillCustom?: ElementRef;
-  @ViewChild('tagsFormComponent')
-  tagsFormComponent!: TagsFormComponent;
-  @ViewChild('plugins')
-  plugins!: PluginsFormComponent;
+  readonly fill = viewChild<ElementRef>('fill');
+  readonly fillCustom = viewChild<ElementRef>('fillCustom');
+  readonly tagsFormComponent = viewChild.required<TagsFormComponent>('tagsFormComponent');
+  readonly plugins = viewChild.required<PluginsFormComponent>('plugins');
 
   submitting?: Subscription;
   addAnother = false;
@@ -100,20 +111,12 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
   private oldSubmit: string[] = [];
   private savedRef?: Ref;
 
-  constructor(
-    private injector: Injector,
-    public config: ConfigService,
-    private mod: ModService,
-    public admin: AdminService,
-    private router: Router,
-    public store: Store,
-    public bookmarks: BookmarkService,
-    private editor: EditorService,
-    private refs: RefService,
-    private exts: ExtService,
-    private ts: TaggingService,
-    private fb: UntypedFormBuilder,
-  ) {
+  constructor() {
+    const mod = this.mod;
+    const admin = this.admin;
+    const store = this.store;
+    const fb = this.fb;
+
     mod.setTitle($localize`Submit: Text Post`);
     this.textForm = refForm(fb);
     store.submit.wikiPrefix = admin.getWikiPrefix();
@@ -138,7 +141,7 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
       if (d) {
         this.oldSubmit = uniq([...allTags, ...Object.keys(d.ref.plugins || {})]);
         this.addTag(...this.oldSubmit);
-        this.plugins.setValue(d.ref.plugins);
+        this.plugins().setValue(d.ref.plugins);
         this.textForm.patchValue({
           ...d.ref,
           tags: this.oldSubmit,
@@ -163,11 +166,11 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
         const removed = without(this.oldSubmit, ...tags);
         if (added.length || removed.length) {
           this.oldSubmit = uniq([...without(this.oldSubmit, ...removed), ...added]);
-          this.tagsFormComponent!.setTags(this.oldSubmit);
+          this.tagsFormComponent()!.setTags(this.oldSubmit);
         }
         if (this.store.submit.pluginUpload) {
           this.addTag(this.store.submit.plugin);
-          this.plugins.setValue({
+          this.plugins().setValue({
             ...this.textForm.value.plugins || {},
             [this.store.submit.plugin]: { url: this.store.submit.pluginUpload },
           });
@@ -262,11 +265,12 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
   }
 
   setTags(value: string[]) {
-    if (!this.tagsFormComponent?.tags) {
+    const tagsFormComponent = this.tagsFormComponent();
+    if (!tagsFormComponent?.tags) {
       defer(() => this.setTags(value));
       return;
     }
-    this.tagsFormComponent.setTags(value);
+    tagsFormComponent.setTags(value);
   }
 
   validate(input: HTMLInputElement) {
@@ -279,11 +283,12 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
   }
 
   addTag(...values: string[]) {
-    if (!this.tagsFormComponent?.tags) {
+    const tagsFormComponent = this.tagsFormComponent();
+    if (!tagsFormComponent?.tags) {
       defer(() => this.addTag(...values));
       return;
     }
-    this.tagsFormComponent.addTag(...values);
+    tagsFormComponent.addTag(...values);
     this.submitted = false;
     MemoCache.clear(this);
   }

@@ -1,4 +1,4 @@
-import { Component, Input, QueryList, ViewChildren } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, Input, viewChildren } from '@angular/core';
 import { Router } from '@angular/router';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Page } from '../../../model/page';
@@ -8,6 +8,7 @@ import { PageControlsComponent } from '../../page-controls/page-controls.compone
 import { PluginComponent } from '../plugin.component';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-plugin-list',
   templateUrl: './plugin-list.component.html',
   styleUrls: ['./plugin-list.component.scss'],
@@ -15,16 +16,15 @@ import { PluginComponent } from '../plugin.component';
   imports: [PluginComponent, PageControlsComponent, LoadingComponent]
 })
 export class PluginListComponent implements HasChanges {
+  private router = inject(Router);
 
-  @ViewChildren(PluginComponent)
-  list?: QueryList<PluginComponent>;
+
+  readonly list = viewChildren(PluginComponent);
 
   private _page?: Page<Plugin>;
 
-  constructor(private router: Router) { }
-
   saveChanges() {
-    return !this.list?.find(p => !p.saveChanges());
+    return !this.list()?.find(p => !p.saveChanges());
   }
 
   get page() {

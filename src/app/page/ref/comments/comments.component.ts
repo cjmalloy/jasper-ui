@@ -1,4 +1,13 @@
-import { Component, effect, Injector, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  effect,
+  inject,
+  Injector,
+  OnDestroy,
+  OnInit,
+  viewChild
+} from '@angular/core';
 import { uniq } from 'lodash-es';
 
 import { Subject } from 'rxjs';
@@ -17,6 +26,7 @@ import { memo, MemoCache } from '../../../util/memo';
 import { hasTag, removeTag, updateMetadata } from '../../../util/tag';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-ref-comments',
   templateUrl: './comments.component.html',
   styleUrls: ['./comments.component.scss'],
@@ -27,24 +37,27 @@ import { hasTag, removeTag, updateMetadata } from '../../../util/tag';
   ],
 })
 export class RefCommentsComponent implements OnInit, OnDestroy, HasChanges {
+  private injector = inject(Injector);
+  private mod = inject(ModService);
+  store = inject(Store);
+  thread = inject(ThreadStore);
+  private admin = inject(AdminService);
+
   newComments$ = new Subject<Ref | undefined>();
 
-  @ViewChild('reply')
-  reply?: CommentReplyComponent;
+  readonly reply = viewChild<CommentReplyComponent>('reply');
 
-  constructor(
-    private injector: Injector,
-    private mod: ModService,
-    public store: Store,
-    public thread: ThreadStore,
-    private admin: AdminService,
-  ) {
+  constructor() {
+    const store = this.store;
+    const thread = this.thread;
+
     thread.clear();
     store.view.defaultSort = ['published'];
   }
 
   saveChanges() {
-    return !this.reply || this.reply.saveChanges();
+    const reply = this.reply();
+    return !reply || reply.saveChanges();
   }
 
   ngOnInit(): void {

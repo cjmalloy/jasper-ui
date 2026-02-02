@@ -1,45 +1,42 @@
 import { Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { TemplatePortal } from '@angular/cdk/portal';
 import {
+  ChangeDetectionStrategy,
   Component,
-  EventEmitter,
-  Input,
+  inject,
+  input,
   OnDestroy,
-  Output,
+  output,
   TemplateRef,
-  ViewChild,
-  ViewContainerRef
+  ViewContainerRef,
+  viewChild
 } from '@angular/core';
 import { loadImage } from '../../util/image';
 import { QrScanner, scanImage } from '../../util/qr-scanner';
 import { Camera, hasCamera, listCameras } from '../../util/webcam';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-qr-scanner',
   templateUrl: './qr-scanner.component.html',
   styleUrls: ['./qr-scanner.component.scss'],
   host: { 'class': 'form-array' }
 })
 export class QrScannerComponent implements OnDestroy {
+  private viewContainerRef = inject(ViewContainerRef);
+  private overlay = inject(Overlay);
 
-  @ViewChild('video')
-  video!: TemplateRef<HTMLVideoElement>;
 
-  @Input()
-  upload = true;
-  @Output()
-  data = new EventEmitter<string>();
+  readonly video = viewChild.required<TemplateRef<HTMLVideoElement>>('video');
+
+  readonly upload = input(true);
+  readonly data = output<string>();
 
   scanner?: QrScanner;
   overlayRef?: OverlayRef;
   hasFlash = false;
   cameras?: Camera[];
   checkedCamera = false;
-
-  constructor(
-    private viewContainerRef: ViewContainerRef,
-    private overlay: Overlay,
-  ) { }
 
   ngOnDestroy() {
     this.stopScanQr();
@@ -50,7 +47,7 @@ export class QrScannerComponent implements OnDestroy {
     const file = files[0]!;
     loadImage(file)
       .then(image => scanImage(image))
-      .then(qr => qr?.data && this.data.next(qr.data));
+      .then(qr => qr?.data && this.data.emit(qr.data));
   }
 
   scanQr() {
@@ -65,9 +62,9 @@ export class QrScannerComponent implements OnDestroy {
       positionStrategy: this.overlay.position().global().centerHorizontally().centerVertically(),
       hasBackdrop: true,
     });
-    this.overlayRef.attach(new TemplatePortal(this.video, this.viewContainerRef));
+    this.overlayRef.attach(new TemplatePortal(this.video(), this.viewContainerRef));
     this.scanner ||= new QrScanner(this.overlayRef.overlayElement.firstElementChild as HTMLVideoElement, data => {
-      if (data) this.data.next(data);
+      if (data) this.data.emit(data);
       this.stopScanQr();
     }, this.camera);
 

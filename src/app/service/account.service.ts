@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { delay, isArray, uniq, without } from 'lodash-es';
 import { DateTime } from 'luxon';
 
@@ -21,18 +21,16 @@ export const CACHE_MS = 15 * 1000;
   providedIn: 'root',
 })
 export class AccountService {
+  private store = inject(Store);
+  private config = inject(ConfigService);
+  private admin = inject(AdminService);
+  private users = inject(UserService);
+  private exts = inject(ExtService);
+  private refs = inject(RefService);
+
 
   private _user$?: Observable<User | undefined>;
   private _userExt$?: Observable<Ext>;
-
-  constructor(
-    private store: Store,
-    private config: ConfigService,
-    private admin: AdminService,
-    private users: UserService,
-    private exts: ExtService,
-    private refs: RefService,
-  ) { }
 
   get whoAmI$() {
     return this.users.whoAmI().pipe(

@@ -1,4 +1,13 @@
-import { Component, effect, Injector, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  effect,
+  inject,
+  Injector,
+  OnDestroy,
+  OnInit,
+  viewChild
+} from '@angular/core';
 import { defer, uniq } from 'lodash-es';
 
 import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
@@ -11,6 +20,7 @@ import { getTitle } from '../../../util/format';
 import { getArgs, UrlFilter } from '../../../util/query';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-ref-responses',
   templateUrl: './responses.component.html',
   styleUrls: ['./responses.component.scss'],
@@ -19,17 +29,19 @@ import { getArgs, UrlFilter } from '../../../util/query';
   ],
 })
 export class RefResponsesComponent implements OnInit, OnDestroy, HasChanges {
+  private injector = inject(Injector);
+  private mod = inject(ModService);
+  admin = inject(AdminService);
+  store = inject(Store);
+  query = inject(QueryStore);
 
-  @ViewChild('list')
-  list?: RefListComponent;
 
-  constructor(
-    private injector: Injector,
-    private mod: ModService,
-    public admin: AdminService,
-    public store: Store,
-    public query: QueryStore,
-  ) {
+  readonly list = viewChild<RefListComponent>('list');
+
+  constructor() {
+    const store = this.store;
+    const query = this.query;
+
     query.clear();
     store.view.defaultSort = ['published'];
   }
@@ -59,7 +71,8 @@ export class RefResponsesComponent implements OnInit, OnDestroy, HasChanges {
   }
 
   saveChanges() {
-    return !this.list || this.list.saveChanges();
+    const list = this.list();
+    return !list || list.saveChanges();
   }
 
   ngOnDestroy() {

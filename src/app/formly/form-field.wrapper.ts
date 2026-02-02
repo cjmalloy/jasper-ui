@@ -1,8 +1,9 @@
 import { CdkDragHandle } from '@angular/cdk/drag-drop';
-import { Component, HostBinding } from '@angular/core';
+import { ChangeDetectionStrategy, Component, HostBinding } from '@angular/core';
 import { FieldWrapper, FormlyFieldConfig } from '@ngx-formly/core';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'formly-wrapper-form-field',
   template: `
     <label cdkDragHandle [attr.for]="id" class="form-label" [class.required]="props.required">

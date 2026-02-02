@@ -1,9 +1,12 @@
-import { Directive, Inject, Input, OnDestroy, OnInit, ViewContainerRef } from '@angular/core';
+import { Directive, inject, Input, OnDestroy, OnInit, ViewContainerRef } from '@angular/core';
 import { Subject } from 'rxjs';
 import { EmbedService } from '../service/embed.service';
 
 @Directive({ selector: '[appMdPost]' })
 export class MdPostDirective implements OnInit, OnDestroy {
+  private embeds = inject(EmbedService);
+  private viewContainerRef = inject<ViewContainerRef>(ViewContainerRef);
+
 
   @Input('appMdPost')
   load?: Subject<void> | string;
@@ -14,11 +17,6 @@ export class MdPostDirective implements OnInit, OnDestroy {
 
   private subscriptions: (() => void)[] = [];
   private lastData = '';
-
-  constructor(
-    private embeds: EmbedService,
-    @Inject(ViewContainerRef) private viewContainerRef: ViewContainerRef,
-  ) { }
 
   ngOnInit(): void {
     if (this.load && typeof this.load !== 'string') {

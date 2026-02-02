@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 
 import { SidebarComponent } from '../../component/sidebar/sidebar.component';
@@ -8,6 +8,7 @@ import { AuthzService } from '../../service/authz.service';
 import { Store } from '../../store/store';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-inbox-page',
   templateUrl: './inbox.component.html',
   styleUrls: ['./inbox.component.scss'],
@@ -15,12 +16,12 @@ import { Store } from '../../store/store';
   imports: [ TabsComponent, RouterLink, RouterLinkActive, SidebarComponent, RouterOutlet]
 })
 export class InboxPage {
+  admin = inject(AdminService);
+  store = inject(Store);
+  private auth = inject(AuthzService);
 
-  constructor(
-    public admin: AdminService,
-    public store: Store,
-    private auth: AuthzService,
-  ) {
+
+  constructor() {
     if (!this.store.view.inboxTabs.length) {
       this.store.view.inboxTabs = this.admin.inbox.filter(p => this.auth.tagReadAccess(p.tag));
     }

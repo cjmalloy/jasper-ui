@@ -1,4 +1,13 @@
-import { Component, effect, Injector, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  effect,
+  inject,
+  Injector,
+  OnDestroy,
+  OnInit,
+  viewChild
+} from '@angular/core';
 import { defer } from 'lodash-es';
 
 import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
@@ -10,6 +19,7 @@ import { Store } from '../../../store/store';
 import { getArgs } from '../../../util/query';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-inbox-sent',
   templateUrl: './sent.component.html',
   styleUrls: ['./sent.component.scss'],
@@ -17,17 +27,20 @@ import { getArgs } from '../../../util/query';
   imports: [ RefListComponent]
 })
 export class InboxSentPage implements OnInit, OnDestroy, HasChanges {
+  private injector = inject(Injector);
+  private mod = inject(ModService);
+  admin = inject(AdminService);
+  store = inject(Store);
+  query = inject(QueryStore);
 
-  @ViewChild('list')
-  list?: RefListComponent;
 
-  constructor(
-    private injector: Injector,
-    private mod: ModService,
-    public admin: AdminService,
-    public store: Store,
-    public query: QueryStore,
-  ) {
+  readonly list = viewChild<RefListComponent>('list');
+
+  constructor() {
+    const mod = this.mod;
+    const store = this.store;
+    const query = this.query;
+
     mod.setTitle($localize`Inbox: Sent`);
     store.view.clear();
     query.clear();
@@ -48,7 +61,8 @@ export class InboxSentPage implements OnInit, OnDestroy, HasChanges {
   }
 
   saveChanges() {
-    return !this.list || this.list.saveChanges();
+    const list = this.list();
+    return !list || list.saveChanges();
   }
 
   ngOnDestroy() {

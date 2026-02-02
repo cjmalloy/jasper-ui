@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 
 import { SidebarComponent } from '../../component/sidebar/sidebar.component';
@@ -9,6 +9,7 @@ import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-settings-page',
   templateUrl: './settings.component.html',
   styleUrls: ['./settings.component.scss'],
@@ -22,13 +23,13 @@ import { Store } from '../../store/store';
   ],
 })
 export class SettingsPage {
+  admin = inject(AdminService);
+  config = inject(ConfigService);
+  private auth = inject(AuthzService);
+  store = inject(Store);
 
-  constructor(
-    public admin: AdminService,
-    public config: ConfigService,
-    private auth: AuthzService,
-    public store: Store,
-  ) {
+
+  constructor() {
     if (!this.store.view.settingsTabs.length) {
       this.store.view.settingsTabs = this.admin.settings.filter(p => this.auth.tagReadAccess(p.tag));
     }

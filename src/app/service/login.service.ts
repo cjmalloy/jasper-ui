@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 
 import { throwError } from 'rxjs';
 import { Store } from '../store/store';
@@ -9,11 +9,9 @@ import { ConfigService } from './config.service';
   providedIn: 'root'
 })
 export class LoginService {
+  private config = inject(ConfigService);
+  private store = inject(Store);
 
-  constructor(
-    private config: ConfigService,
-    private store: Store,
-  ) { }
 
   handleHttpError(res: HttpErrorResponse) {
     if (!this.config.electron && navigator.onLine && this.store.account.signedIn) {

@@ -1,5 +1,5 @@
 <input #imageFile type="file" accept="image/*" (change)="readQr(imageFile.files!)"/>
-@if (upload) {
+@if (upload()) {
   <button type="button" (click)="imageFile.click()" i18n-title title="QR from photo or camera" i18n>📷️</button>
 }
 @if (hasCamera) {

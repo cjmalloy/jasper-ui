@@ -1,5 +1,5 @@
 <div class="row">
-  @if (showToggle) {
+  @if (showToggle()) {
     <div class="toggle" (click)="expanded = !expanded">☰</div>
   }
   @if (store.view.type) {
@@ -44,7 +44,7 @@
 @if (expanded) {
   @if (store.view.type) {
     <div class="row mini-col reverse">
-      <app-filter [type]="store.view.type!" [activeExts]="activeExts"></app-filter>
+      <app-filter [type]="store.view.type!" [activeExts]="activeExts()"></app-filter>
       <app-sort [type]="store.view.type!"></app-sort>
     </div>
   }
@@ -52,7 +52,7 @@
   @if (store.view.type) {
     <app-bulk [type]="store.view.type!"
               [viewExt]="ext"
-              [activeExts]="activeExts"></app-bulk>
+              [activeExts]="activeExts()"></app-bulk>
   }
 }
 <span class="button-bar">
@@ -86,7 +86,7 @@
         </div>
     }
   }
-  @if (notes && (home || store.account.tag === tag || addTags.includes('notes'))) {
+  @if (notes && (home() || store.account.tag === tag || addTags.includes('notes'))) {
     <div class="submit-button" routerLink="/submit/dm"  tabindex="0"
          [queryParams]="{ to: null }">
         <span i18n-title title="Notes" i18n>✍️</span> <label i18n>Notes</label>
@@ -150,7 +150,7 @@
       </div>
   }
   </span>
-@if (home) {
+@if (home()) {
   <div class="hide tag-header">
     @if (store.view.forYou) {
       <h3><a [routerLink]="['/home']" [queryParams]="{ forYou: true }" i18n>For You</a></h3>
@@ -162,7 +162,7 @@
     }
   </div>
 }
-@if (!home && store.view.tag) {
+@if (!home() && store.view.tag) {
   <div class="hide tag-header">
     @if (store.view.current === 'tag') {
       <h3>{{ ext?.name || tag }}</h3>
@@ -235,7 +235,7 @@
     }
   </div>
 }
-@if (!home && expanded) {
+@if (!home() && expanded) {
   @for (res of queryExts$ | async; track res.x.tag) {
     <h5>{{ res.x.name || res.x.tag}} Tags:</h5>
     @for (x of res.children; track x.tag + x.origin) {

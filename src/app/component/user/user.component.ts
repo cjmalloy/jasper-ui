@@ -1,13 +1,14 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import {
+  ChangeDetectionStrategy,
   Component,
   HostBinding,
+  inject,
   Input,
   OnChanges,
-  QueryList,
   SimpleChanges,
   ViewChild,
-  ViewChildren
+  viewChildren
 } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, UntypedFormGroup } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -41,6 +42,7 @@ import { InlinePasswordComponent } from '../action/inline-password/inline-passwo
 import { InlineSelectComponent } from '../action/inline-select/inline-select.component';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-user',
   templateUrl: './user.component.html',
   styleUrls: ['./user.component.scss'],
@@ -48,10 +50,18 @@ import { InlineSelectComponent } from '../action/inline-select/inline-select.com
   imports: [RouterLink, TitleDirective, ConfirmActionComponent, InlineButtonComponent, InlinePasswordComponent, InlineSelectComponent, ReactiveFormsModule, UserFormComponent]
 })
 export class UserComponent implements OnChanges, HasChanges {
+  admin = inject(AdminService);
+  config = inject(ConfigService);
+  store = inject(Store);
+  private auth = inject(AuthzService);
+  private profiles = inject(ProfileService);
+  private users = inject(UserService);
+  private exts = inject(ExtService);
+  private fb = inject(FormBuilder);
+
   @HostBinding('attr.tabindex') tabIndex = 0;
 
-  @ViewChildren('action')
-  actionComponents?: QueryList<ActionComponent>;
+  readonly actionComponents = viewChildren<ActionComponent>('action');
 
   @Input()
   profile?: Profile;
@@ -70,16 +80,9 @@ export class UserComponent implements OnChanges, HasChanges {
   serverError: string[] = [];
   externalErrors: string[] = [];
 
-  constructor(
-    public admin: AdminService,
-    public config: ConfigService,
-    public store: Store,
-    private auth: AuthzService,
-    private profiles: ProfileService,
-    private users: UserService,
-    private exts: ExtService,
-    private fb: FormBuilder,
-  ) {
+  constructor() {
+    const fb = this.fb;
+
     this.editForm = userForm(fb, true);
   }
 
@@ -89,7 +92,7 @@ export class UserComponent implements OnChanges, HasChanges {
 
   init() {
     MemoCache.clear(this);
-    this.actionComponents?.forEach(c => c.reset());
+    this.actionComponents()?.forEach(c => c.reset());
     this.writeAccess = this.auth.tagWriteAccess(this.qualifiedTag) && this.auth.hasRole(this.role);
     if (this.created && !this.profile) {
       this.exts.getCachedExt(this.user!.tag, this.user!.origin)

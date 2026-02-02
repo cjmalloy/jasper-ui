@@ -1,5 +1,14 @@
 import { CdkDrag } from '@angular/cdk/drag-drop';
-import { Component, ElementRef, Input, OnChanges, SimpleChanges } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  inject,
+  Input,
+  input,
+  OnChanges,
+  SimpleChanges
+} from '@angular/core';
 import { Router } from '@angular/router';
 import { mapValues } from 'lodash-es';
 import { catchError, of, Subscription } from 'rxjs';
@@ -16,6 +25,7 @@ import { FileComponent } from './file/file.component';
 import { SubfolderComponent } from './subfolder/subfolder.component';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-folder',
   templateUrl: './folder.component.html',
   styleUrls: ['./folder.component.scss'],
@@ -27,15 +37,17 @@ import { SubfolderComponent } from './subfolder/subfolder.component';
   ],
 })
 export class FolderComponent implements OnChanges, HasChanges {
+  private store = inject(Store);
+  private router = inject(Router);
+  private exts = inject(ExtService);
+  private el = inject<ElementRef<HTMLElement>>(ElementRef);
 
-  @Input()
-  tag?: string;
+
+  readonly tag = input<string>();
   @Input()
   ext?: Ext;
-  @Input()
-  pinned?: Ref[] | null;
-  @Input()
-  emptyMessage = '';
+  readonly pinned = input<Ref[] | null>();
+  readonly emptyMessage = input('');
 
   error: any;
 
@@ -51,15 +63,6 @@ export class FolderComponent implements OnChanges, HasChanges {
   private _page?: Page<Ref>;
   private folderSubscription?: Subscription;
 
-  // TODO: handle resize moving relatively positioned moved tiles
-
-  constructor(
-    private store: Store,
-    private router: Router,
-    private exts: ExtService,
-    private el: ElementRef<HTMLElement>,
-  ) { }
-
   saveChanges() {
     // TODO
     return true;
@@ -69,15 +72,16 @@ export class FolderComponent implements OnChanges, HasChanges {
     if (changes.tag) {
       delete this.folderExts;
       delete this.parent;
-      if (this.tag?.includes('/')) {
-        this.exts.getCachedExt(this.tag.substring(0, this.tag.lastIndexOf('/')), tagOrigin(this.tag) || '@')
+      const tag = this.tag();
+      if (tag?.includes('/')) {
+        this.exts.getCachedExt(tag.substring(0, tag.lastIndexOf('/')), tagOrigin(tag) || '@')
           .subscribe(ext => this.parent = ext);
       }
       this.folderSubscription?.unsubscribe();
-      if (!this.tag) return;
+      if (!tag) return;
       this.folderSubscription = this.exts.page({
-        query: defaultOrigin(this.tag, (this.ext?.origin || '@')),
-        level: level(this.tag) + 1,
+        query: defaultOrigin(tag, (this.ext?.origin || '@')),
+        level: level(tag) + 1,
         size: 100
       }).pipe(
         catchError(() => of(undefined)),
@@ -151,7 +155,7 @@ export class FolderComponent implements OnChanges, HasChanges {
     this.dragging = true
     this.exts.patch(this.ext!.tag + this.store.account.origin, cursor, [{
       op: 'add',
-      path: '/config/subfolders/' + (tag === this.tag ? '..' : escapePath(tag.substring(this.ext!.tag.length + 1))),
+      path: '/config/subfolders/' + (tag === this.tag() ? '..' : escapePath(tag.substring(this.ext!.tag.length + 1))),
       value: {
         x: Math.floor(target.getBoundingClientRect().x + window.scrollX - this.el.nativeElement.offsetLeft),
         y: Math.floor(target.getBoundingClientRect().y + window.scrollY - this.el.nativeElement.offsetTop),

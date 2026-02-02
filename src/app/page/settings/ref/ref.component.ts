@@ -1,4 +1,13 @@
-import { Component, effect, inject, Injector, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  effect,
+  inject,
+  Injector,
+  OnDestroy,
+  OnInit,
+  viewChild
+} from '@angular/core';
 import { defer, uniq } from 'lodash-es';
 
 import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
@@ -12,27 +21,31 @@ import { Store } from '../../../store/store';
 import { getArgs } from '../../../util/query';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-settings-ref-page',
   templateUrl: './ref.component.html',
   styleUrls: ['./ref.component.scss'],
   imports: [ RefListComponent],
 })
 export class SettingsRefPage implements OnInit, OnDestroy, HasChanges {
+  private injector = inject(Injector);
+  private mod = inject(ModService);
+  private admin = inject(AdminService);
+  private auth = inject(AuthzService);
+  store = inject(Store);
+  query = inject(QueryStore);
+
 
   plugin?: Plugin;
   writeAccess = false;
 
-  @ViewChild('list')
-  list?: RefListComponent;
+  readonly list = viewChild<RefListComponent>('list');
 
-  constructor(
-    private injector: Injector,
-    private mod: ModService,
-    private admin: AdminService,
-    private auth: AuthzService,
-    public store: Store,
-    public query: QueryStore,
-  ) {
+  constructor() {
+    const mod = this.mod;
+    const store = this.store;
+    const query = this.query;
+
     mod.setTitle($localize`Settings: `);
     store.view.clear(['metadata->modified']);
     query.clear();
@@ -56,7 +69,8 @@ export class SettingsRefPage implements OnInit, OnDestroy, HasChanges {
   }
 
   saveChanges() {
-    return !this.list || this.list.saveChanges();
+    const list = this.list();
+    return !list || list.saveChanges();
   }
 
   ngOnDestroy() {

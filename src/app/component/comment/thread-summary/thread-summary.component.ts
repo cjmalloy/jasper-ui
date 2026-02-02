@@ -1,4 +1,14 @@
-import { Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  inject,
+  Input,
+  input,
+  OnChanges,
+  OnDestroy,
+  OnInit,
+  SimpleChanges
+} from '@angular/core';
 
 import { Observable, Subject, takeUntil } from 'rxjs';
 import { Ref } from '../../../model/ref';
@@ -9,6 +19,7 @@ import { RefComponent } from '../../ref/ref.component';
 import { CommentComponent } from '../comment.component';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-thread-summary',
   templateUrl: './thread-summary.component.html',
   styleUrls: ['./thread-summary.component.scss'],
@@ -16,36 +27,28 @@ import { CommentComponent } from '../comment.component';
   imports: [
     CommentComponent,
     RefComponent,
-    
+
   ]
 })
 export class ThreadSummaryComponent implements OnInit, OnChanges, OnDestroy {
+  private refs = inject(RefService);
+  private store = inject(Store);
+
   private destroy$ = new Subject<void>();
 
-  @Input()
-  source = '';
-  @Input()
-  commentView = false;
-  @Input()
-  query = '';
+  readonly source = input('');
+  readonly commentView = input(false);
+  readonly query = input('');
   @Input()
   depth = 1;
-  @Input()
-  pageSize = 5;
-  @Input()
-  context = 0;
-  @Input()
-  showLoadMore = true;
+  readonly pageSize = input(5);
+  readonly context = input(0);
+  readonly showLoadMore = input(true);
   @Input()
   newRefs$!: Observable<Ref | undefined>;
 
   newRefs: Ref[] = [];
   list: Ref[] = [];
-
-  constructor(
-    private refs: RefService,
-    private store: Store,
-  ) { }
 
   ngOnInit(): void {
     this.newRefs$.pipe(
@@ -59,9 +62,9 @@ export class ThreadSummaryComponent implements OnInit, OnChanges, OnDestroy {
     if (changes.source) {
       this.newRefs = [];
       this.refs.page({
-        ...getArgs(this.query, this.store.view.sort, this.store.view.filter),
-        responses: this.source,
-        size: this.pageSize,
+        ...getArgs(this.query(), this.store.view.sort, this.store.view.filter),
+        responses: this.source(),
+        size: this.pageSize(),
       }).pipe(
         takeUntil(this.destroy$)
       ).subscribe(page => {

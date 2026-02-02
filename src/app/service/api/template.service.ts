@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { catchError, map, Observable } from 'rxjs';
 import { mapPage, Page } from '../../model/page';
 import { TagPageArgs } from '../../model/tag';
@@ -13,12 +13,10 @@ import { LoginService } from '../login.service';
   providedIn: 'root',
 })
 export class TemplateService {
+  private http = inject(HttpClient);
+  private config = inject(ConfigService);
+  private login = inject(LoginService);
 
-  constructor(
-    private http: HttpClient,
-    private config: ConfigService,
-    private login: LoginService,
-  ) { }
 
   private get base() {
     return this.config.api + '/api/v1/template';

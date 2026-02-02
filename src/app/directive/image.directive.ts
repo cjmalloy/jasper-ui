@@ -1,4 +1,4 @@
-import { Directive, effect, ElementRef, HostBinding, Injector, Input, OnDestroy, OnInit } from '@angular/core';
+import { Directive, effect, ElementRef, HostBinding, inject, Injector, Input, OnDestroy, OnInit } from '@angular/core';
 import { Ref } from '../model/ref';
 import { ConfigService } from '../service/config.service';
 import { Dim, height, ImageService, width } from '../service/image.service';
@@ -6,6 +6,12 @@ import { Store } from '../store/store';
 
 @Directive({ selector: '[appImage]' })
 export class ImageDirective implements OnInit, OnDestroy {
+  private injector = inject(Injector);
+  private config = inject(ConfigService);
+  private store = inject(Store);
+  private elRef = inject(ElementRef);
+  private imgs = inject(ImageService);
+
 
   @Input()
   grid = false;
@@ -23,13 +29,7 @@ export class ImageDirective implements OnInit, OnDestroy {
   private resizeObserver?: ResizeObserver;
   private loadingUrl = '';
 
-  constructor(
-    private injector: Injector,
-    private config: ConfigService,
-    private store: Store,
-    private elRef: ElementRef,
-    private imgs: ImageService,
-  ) {
+  constructor() {
     effect(() => {
       if (this.store.eventBus.event === 'refresh') {
         if (this.ref?.url && this.store.eventBus.isRef(this.ref)) {

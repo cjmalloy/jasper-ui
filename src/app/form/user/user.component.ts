@@ -1,4 +1,14 @@
-import { Component, ElementRef, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  inject,
+  Input,
+  input,
+  OnInit,
+  output,
+  viewChild
+} from '@angular/core';
 import {
   ReactiveFormsModule,
   UntypedFormBuilder,
@@ -17,6 +27,7 @@ import { JsonComponent } from '../json/json.component';
 import { TagsFormComponent } from '../tags/tags.component';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-user-form',
   templateUrl: './user.component.html',
   styleUrls: ['./user.component.scss'],
@@ -29,44 +40,31 @@ import { TagsFormComponent } from '../tags/tags.component';
   ]
 })
 export class UserFormComponent implements OnInit {
+  store = inject(Store);
+
 
   @Input()
   group!: UntypedFormGroup;
-  @Input()
-  showPubKey = true;
-  @Input()
-  fillWidth?: HTMLElement;
-  @Output()
-  tagChanges = new EventEmitter<string>();
-  @Input()
-  showClear = false;
-  @Output()
-  clear = new EventEmitter<void>();
+  readonly showPubKey = input(true);
+  readonly fillWidth = input<HTMLElement>();
+  readonly tagChanges = output<string>();
+  readonly showClear = input(false);
+  readonly clear = output<void>();
   @Input()
   externalErrors: string[] = [];
 
-  @ViewChild('fill')
-  fill?: ElementRef;
+  readonly fill = viewChild<ElementRef>('fill');
 
-  @ViewChild('notifications')
-  notifications!: TagsFormComponent;
-  @ViewChild('readAccess')
-  readAccess!: TagsFormComponent;
-  @ViewChild('writeAccess')
-  writeAccess!: TagsFormComponent;
-  @ViewChild('tagReadAccess')
-  tagReadAccess!: TagsFormComponent;
-  @ViewChild('tagWriteAccess')
-  tagWriteAccess!: TagsFormComponent;
+  readonly notifications = viewChild.required<TagsFormComponent>('notifications');
+  readonly readAccess = viewChild.required<TagsFormComponent>('readAccess');
+  readonly writeAccess = viewChild.required<TagsFormComponent>('writeAccess');
+  readonly tagReadAccess = viewChild.required<TagsFormComponent>('tagReadAccess');
+  readonly tagWriteAccess = viewChild.required<TagsFormComponent>('tagWriteAccess');
 
   id = 'user-' + uuid();
   editingExternal = false;
 
   private showedError = false;
-
-  constructor(
-    public store: Store,
-  ) { }
 
   ngOnInit(): void {
     this.pubKey.disable();
@@ -111,16 +109,16 @@ export class UserFormComponent implements OnInit {
       defer(() => this.validate(input));
     } else {
       this.showedError = false;
-      this.tagChanges.next(input.value);
+      this.tagChanges.emit(input.value);
     }
   }
 
   setUser(user: User) {
-    this.notifications.setTags((user.readAccess || []).filter(isMailbox));
-    this.readAccess.setTags((user.readAccess || []).filter(t => !isMailbox(t)));
-    this.writeAccess.setTags([...user.writeAccess || []]);
-    this.tagReadAccess.setTags([...user.tagReadAccess || []]);
-    this.tagWriteAccess.setTags([...user.tagWriteAccess || []]);
+    this.notifications().setTags((user.readAccess || []).filter(isMailbox));
+    this.readAccess().setTags((user.readAccess || []).filter(t => !isMailbox(t)));
+    this.writeAccess().setTags([...user.writeAccess || []]);
+    this.tagReadAccess().setTags([...user.tagReadAccess || []]);
+    this.tagWriteAccess().setTags([...user.tagWriteAccess || []]);
     this.group.patchValue({
       ...user,
       external: user.external ? JSON.stringify(user.external, null, 2) : undefined,

@@ -1,4 +1,14 @@
-import { Component, effect, ElementRef, Input, OnChanges, SimpleChanges, ViewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  effect,
+  ElementRef,
+  inject,
+  Input,
+  OnChanges,
+  SimpleChanges,
+  viewChild
+} from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { NavigationEnd, Router } from '@angular/router';
 import { filter } from 'rxjs';
@@ -8,6 +18,7 @@ import { Type } from '../../store/view';
 import { convertSort, defaultDesc, SortItem } from '../../util/query';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-sort',
   templateUrl: './sort.component.html',
   styleUrls: ['./sort.component.scss'],
@@ -15,9 +26,12 @@ import { convertSort, defaultDesc, SortItem } from '../../util/query';
   imports: [ReactiveFormsModule, FormsModule]
 })
 export class SortComponent implements OnChanges {
+  router = inject(Router);
+  admin = inject(AdminService);
+  store = inject(Store);
 
-  @ViewChild('create')
-  create?: ElementRef<HTMLSelectElement>;
+
+  readonly create = viewChild<ElementRef<HTMLSelectElement>>('create');
 
   @Input()
   type?: Type;
@@ -31,11 +45,9 @@ export class SortComponent implements OnChanges {
   sorts: string[] = [];
   replace = false;
 
-  constructor(
-    public router: Router,
-    public admin: AdminService,
-    public store: Store,
-  ) {
+  constructor() {
+    const router = this.router;
+
     this.type = 'ref';
     effect(() => {
       this.sorts = this.store.view.sort;
@@ -63,7 +75,7 @@ export class SortComponent implements OnChanges {
     this.replace = false;
     if (!this.sorts) this.sorts = [];
     this.sorts.push('');
-    this.create!.nativeElement.selectedIndex = 0;
+    this.create()!.nativeElement.selectedIndex = 0;
     this.setSortCol(this.sorts.length - 1, value);
   }
 

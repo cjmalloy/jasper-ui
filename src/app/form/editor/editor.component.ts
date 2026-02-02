@@ -3,21 +3,23 @@ import { DomPortal, TemplatePortal } from '@angular/cdk/portal';
 import { HttpEventType } from '@angular/common/http';
 import {
   AfterViewInit,
+  ChangeDetectionStrategy,
   Component,
   effect,
   ElementRef,
-  EventEmitter,
   HostBinding,
   HostListener,
+  inject,
   Injector,
   Input,
+  input,
   OnChanges,
   OnDestroy,
-  Output,
+  output,
   SimpleChanges,
   TemplateRef,
-  ViewChild,
-  ViewContainerRef
+  ViewContainerRef,
+  viewChild
 } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, UntypedFormArray, UntypedFormControl } from '@angular/forms';
 import { NavigationEnd, Router } from '@angular/router';
@@ -55,6 +57,7 @@ export interface EditorUpload {
 }
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-editor',
   templateUrl: './editor.component.html',
   styleUrls: ['./editor.component.scss'],
@@ -69,10 +72,23 @@ export interface EditorUpload {
   ],
 })
 export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
+  private injector = inject(Injector);
+  admin = inject(AdminService);
+  private accounts = inject(AccountService);
+  private auth = inject(AuthzService);
+  private proxy = inject(ProxyService);
+  private refs = inject(RefService);
+  private ts = inject(TaggingService);
+  store = inject(Store);
+  private overlay = inject(Overlay);
+  private router = inject(Router);
+  private el = inject(ElementRef);
+  private vc = inject(ViewContainerRef);
+  private fb = inject(FormBuilder);
+
   private destroy$ = new Subject<void>();
 
-  @Input()
-  id = 'editor-' + uuid();
+  readonly id = input('editor-' + uuid());
 
   @HostBinding('class.stacked')
   stacked = true;
@@ -83,54 +99,33 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   @HostBinding('class.md-preview')
   preview = this.store.local.showPreview;
 
-  @ViewChild('helpButton')
-  helpButton?: ElementRef<HTMLButtonElement>;
-  @ViewChild('editor')
-  editor?: ElementRef<HTMLTextAreaElement>;
-  @ViewChild('md')
-  md?: MdComponent;
-  @ViewChild('hiddenMeasure')
-  hiddenMeasure?: ElementRef<HTMLTextAreaElement>;
+  readonly helpButton = viewChild<ElementRef<HTMLButtonElement>>('helpButton');
+  readonly editor = viewChild<ElementRef<HTMLTextAreaElement>>('editor');
+  readonly md = viewChild<MdComponent>('md');
+  readonly hiddenMeasure = viewChild<ElementRef<HTMLTextAreaElement>>('hiddenMeasure');
 
-  @ViewChild('help')
-  helpTemplate!: TemplateRef<any>;
-  @ViewChild('ref')
-  refTemplate!: TemplateRef<any>;
-  @ViewChild('fileUpload')
-  fileUpload!: ElementRef<HTMLInputElement>;
+  readonly helpTemplate = viewChild.required<TemplateRef<any>>('help');
+  readonly refTemplate = viewChild.required<TemplateRef<any>>('ref');
+  readonly fileUpload = viewChild.required<ElementRef<HTMLInputElement>>('fileUpload');
 
-  @Input()
-  hasTags = true;
-  @Input()
-  selectResponseType = false;
-  @Input()
-  tags?: UntypedFormArray;
+  readonly hasTags = input(true);
+  readonly selectResponseType = input(false);
+  readonly tags = input<UntypedFormArray>();
   @Input()
   createdTags: string[] = [];
   @Input()
   control!: UntypedFormControl;
-  @Input()
-  autoFocus = false;
-  @Input()
-  addButton = false;
-  @Input()
-  url = '';
-  @Input()
-  addCommentTitle = $localize`Add comment`;
-  @Input()
-  addCommentLabel = $localize`+ Add comment`;
-  @Input()
-  fillWidth?: HTMLElement;
-  @Output()
-  syncEditor = new EventEmitter<string>();
-  @Output()
-  syncTags = new EventEmitter<string[]>();
-  @Output()
-  addSource = new EventEmitter<string>();
-  @Output()
-  scrape = new EventEmitter<void>();
-  @Output()
-  uploadCompleted = new EventEmitter<Ref>();
+  readonly autoFocus = input(false);
+  readonly addButton = input(false);
+  readonly url = input('');
+  readonly addCommentTitle = input($localize `Add comment`);
+  readonly addCommentLabel = input($localize `+ Add comment`);
+  readonly fillWidth = input<HTMLElement>();
+  readonly syncEditor = output<string>();
+  readonly syncTags = output<string[]>();
+  readonly addSource = output<string>();
+  readonly scrape = output<void>();
+  readonly uploadCompleted = output<Ref>();
 
   dropping = false;
   overlayRef?: OverlayRef;
@@ -157,21 +152,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   private scrollMap = new Map<number, number>();
   private sourceMap: number[] = [];
 
-  constructor(
-    private injector: Injector,
-    public admin: AdminService,
-    private accounts: AccountService,
-    private auth: AuthzService,
-    private proxy: ProxyService,
-    private refs: RefService,
-    private ts: TaggingService,
-    public store: Store,
-    private overlay: Overlay,
-    private router: Router,
-    private el: ElementRef,
-    private vc: ViewContainerRef,
-    private fb: FormBuilder,
-  ) {
+  constructor() {
     this.router.events.pipe(
       filter(event => event instanceof NavigationEnd)
     ).subscribe(() => this.toggleFullscreen(false));
@@ -182,9 +163,9 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
 
   init() {
     MemoCache.clear(this);
-    if (this.selectResponseType && this.responseButtons.length) {
+    if (this.selectResponseType() && this.responseButtons.length) {
       this.toggleIndex = 0;
-      const tags = this.tags?.value || this.createdTags;
+      const tags = this.tags()?.value || this.createdTags;
       for (const p of this.responseButtons) {
         if (hasTag(p.tag, tags)) {
           this.toggleIndex = this.responseButtons.indexOf(p);
@@ -202,8 +183,9 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
         this.el.nativeElement.style.setProperty('--viewport-height', height + 'px');
       }
     }, { injector: this.injector });
-    if (this.tags) {
-      this.tags.valueChanges.pipe(
+    const tags = this.tags();
+    if (tags) {
+      tags.valueChanges.pipe(
         takeUntil(this.destroy$),
       ).subscribe(() => {
         this.init();
@@ -243,8 +225,8 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   onSelect(event?: MouseEvent) {
     if (event && !event.button) return;
     defer(() => {
-      this.selectionStart = this.editor?.nativeElement.selectionStart || 0;
-      this.selectionEnd = this.editor?.nativeElement.selectionEnd || 0;
+      this.selectionStart = this.editor()?.nativeElement.selectionStart || 0;
+      this.selectionEnd = this.editor()?.nativeElement.selectionEnd || 0;
       if (this.selectionEnd > this.selectionStart) {
         this.onSelectEditor();
       }
@@ -263,30 +245,33 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   }
 
   onSelectEditor() {
-    if (!this.preview || !this.fullscreen || !this.md) return;
+    const md = this.md();
+    if (!this.preview || !this.fullscreen || !md) return;
     const start = this.sourceMap[Math.max(sortedLastIndex(this.sourceMap, this.selectionStart) - 1, 0)];
-    this.md.el.nativeElement.scrollTop = (this.scrollMap.get(start) ?? 0) - this.md.el.nativeElement.clientHeight / 2;
+    md.el.nativeElement.scrollTop = (this.scrollMap.get(start) ?? 0) - md.el.nativeElement.clientHeight / 2;
   }
 
   onSelectPreview() {
-    if (!this.preview || !this.fullscreen || !this.hiddenMeasure || !this.editor) return;
+    const editor = this.editor();
+    const hiddenMeasure = this.hiddenMeasure();
+    if (!this.preview || !this.fullscreen || !hiddenMeasure || !editor) return;
     const sel = window.getSelection();
     if (!sel || sel.isCollapsed) return;
-    if (!this.md?.el.nativeElement?.contains(sel.anchorNode)) return;
+    if (!this.md()?.el.nativeElement?.contains(sel.anchorNode)) return;
     const anchorEl = (sel.anchorNode as Node).nodeType === Node.ELEMENT_NODE
       ? sel.anchorNode as HTMLElement
       : (sel.anchorNode as Node).parentElement;
     const sourceMap = anchorEl!.closest('[aria-posinset]');
     if (!sourceMap) return;
     const start = +sourceMap.getAttribute('aria-posinset')!;
-    this.hiddenMeasure.nativeElement.style.width = this.editor.nativeElement.clientWidth + 'px';
-    this.hiddenMeasure.nativeElement.value = this.currentText.slice(0, start);
-    this.editor.nativeElement.scrollTop = this.hiddenMeasure.nativeElement.scrollHeight - this.editor.nativeElement.clientHeight / 2;
+    hiddenMeasure.nativeElement.style.width = editor.nativeElement.clientWidth + 'px';
+    hiddenMeasure.nativeElement.value = this.currentText.slice(0, start);
+    editor.nativeElement.scrollTop = hiddenMeasure.nativeElement.scrollHeight - editor.nativeElement.clientHeight / 2;
   }
 
   @HostBinding('class.add-button')
   get addButtonClass() {
-    return this.addButton && !this.editing && !this.currentText;
+    return this.addButton() && !this.editing && !this.currentText;
   }
 
   @HostBinding('style.padding.px')
@@ -315,8 +300,9 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
 
   @memo
   get allTags() {
+    const tags = this.tags();
     return uniq([
-      ...without(this.tags ? this.tags.value : this.createdTags, ...this.allResponseTags),
+      ...without(tags ? tags.value : this.createdTags, ...this.allResponseTags),
       ...this.responseTags,
     ]);
   }
@@ -356,22 +342,23 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
 
   @memo
   get responseTags() {
-    if (!this.selectResponseType || !this.responseButtons.length) return [];
+    if (!this.selectResponseType() || !this.responseButtons.length) return [];
     const p = this.responseButtons[this.toggleIndex];
     return p.config?.reply || [p.tag];
   }
 
   @memo
   get allResponseTags() {
-    if (!this.selectResponseType) return [];
+    if (!this.selectResponseType()) return [];
     return this.responseButtons.flatMap(p => p.config?.reply || [p.tag]);
   }
 
   @memo
   get scheme() {
-    if (!this.url) return '';
-    if (!this.url.includes(':')) return '';
-    return this.url.substring(0, this.url.indexOf(':') + 1);
+    const url = this.url();
+    if (!url) return '';
+    if (!url.includes(':')) return '';
+    return url.substring(0, url.indexOf(':') + 1);
   }
 
   get currentText() {
@@ -379,11 +366,11 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   }
 
   updateTags(tags: string[]) {
-    if (!this.tags) {
+    if (!this.tags()) {
       this.createdTags = tags;
       MemoCache.clear(this);
     }
-    this.syncTags.next(tags);
+    this.syncTags.emit(tags);
   }
 
   toggleTag(button: EditorButton) {
@@ -401,18 +388,18 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
       }
     }
     if ('vibrate' in navigator) navigator.vibrate([2, 8, 8]);
-    if (this.focused !== false) this.editor?.nativeElement.focus();
+    if (this.focused !== false) this.editor()?.nativeElement.focus();
   }
 
   setResponse(tag: string) {
-    const tags = this.tags?.value || this.createdTags;
+    const tags = this.tags()?.value || this.createdTags;
     if (!hasTag(tag, tags)) {
       const responses = this.responseButtons.map(p => p.tag);
       this.toggleIndex = responses.indexOf(tag);
       this.updateTags([...without(tags, ...responses), tag]);
     }
     if ('vibrate' in navigator) navigator.vibrate([2, 8, 8]);
-    if (this.focused !== false) this.editor?.nativeElement.focus();
+    if (this.focused !== false) this.editor()?.nativeElement.focus();
   }
 
   focusText() {
@@ -445,7 +432,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
       // Do not throttle
       this._text = value;
       this.store.local.saveEditing(value);
-      this.syncEditor.next(this._text);
+      this.syncEditor.emit(this._text);
     }
     // Clear previous throttled values
     this.syncTextThrottled(value);
@@ -455,7 +442,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   syncTextThrottled = debounce((value: string) => {
     if (this._text === value) return;
     this._text = value;
-    this.syncEditor.next(this._text);
+    this.syncEditor.emit(this._text);
   }, 400);
 
   togglePreview() {
@@ -464,7 +451,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
     } else {
       this.store.local.showPreview = this.preview = !this.preview;
     }
-    if (this.focused !== false) this.editor?.nativeElement.focus();
+    if (this.focused !== false) this.editor()?.nativeElement.focus();
   }
 
   toggleStacked() {
@@ -478,11 +465,12 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
     } else {
       this.store.local.editorStacked = this.stacked = true;
     }
-    if (this.focused !== false) this.editor?.nativeElement.focus();
+    if (this.focused !== false) this.editor()?.nativeElement.focus();
   }
 
   toggleFullscreen(override?: boolean) {
-    if (!this.editor) return;
+    const editor = this.editor();
+    if (!editor) return;
     if (override === this.fullscreen) return;
     this.initialFullscreen = true;
     this.fullscreen = override !== undefined ? override : !this.fullscreen;
@@ -492,7 +480,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
       this._text = this.currentText;
       this.stacked = this.store.local.editorStacked;
       this.preview = this.store.local.showFullscreenPreview;
-      this.scrollTop = this.editor.nativeElement.scrollTop;
+      this.scrollTop = editor.nativeElement.scrollTop;
       let height = 'calc(100vh - 4px)';
       if (window.visualViewport?.height) {
         height = (window.visualViewport.height - 4) + 'px';
@@ -513,26 +501,26 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
       this.overlayRef.attach(new DomPortal(this.el));
       this.overlayRef.backdropClick().subscribe(() => this.toggleFullscreen(false));
       this.overlayRef.keydownEvents().subscribe(event => event.key === 'Escape' && this.toggleFullscreen(false));
-      this.editor.nativeElement.scrollIntoView({ block: 'end' });
-      this.editor.nativeElement.focus();
-      this.editor.nativeElement.setSelectionRange(this.selectionStart, this.selectionEnd);
-      this.editor.nativeElement.scrollTop = this.scrollTopFullscreen;
+      editor.nativeElement.scrollIntoView({ block: 'end' });
+      editor.nativeElement.focus();
+      editor.nativeElement.setSelectionRange(this.selectionStart, this.selectionEnd);
+      editor.nativeElement.scrollTop = this.scrollTopFullscreen;
     } else {
       document.documentElement.style.overflowY = 'scroll';
       this.stacked = true;
       this.preview = this.store.local.showPreview;
-      this.scrollTopFullscreen = this.editor.nativeElement.scrollTop;
+      this.scrollTopFullscreen = editor.nativeElement.scrollTop;
       this.overlayRef?.detach();
       this.overlayRef?.dispose();
       delete this.overlayRef;
       document.body.style.height = '';
       this.el.nativeElement.style.setProperty('--viewport-height', this.store.viewportHeight + 'px');
       document.body.classList.remove('fullscreen');
-      this.editor.nativeElement.scrollIntoView({ block: 'center', inline: 'center' });
+      editor.nativeElement.scrollIntoView({ block: 'center', inline: 'center' });
       if (this.focused) {
-        this.editor.nativeElement.focus();
-        this.editor.nativeElement.setSelectionRange(this.selectionStart, this.selectionEnd);
-        this.editor.nativeElement.scrollTop = this.scrollTop;
+        editor.nativeElement.focus();
+        editor.nativeElement.setSelectionRange(this.selectionStart, this.selectionEnd);
+        editor.nativeElement.scrollTop = this.scrollTop;
       }
     }
   }
@@ -541,7 +529,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
     this.help = override !== undefined ? override : !this.help;
     if (this.help) {
       const positionStrategy = this.overlay.position()
-        .flexibleConnectedTo(this.helpButton!)
+        .flexibleConnectedTo(this.helpButton()!)
         .withPositions([{
           originX: 'start',
           originY: 'bottom',
@@ -554,7 +542,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
         positionStrategy,
         scrollStrategy: this.overlay.scrollStrategies.close()
       });
-      this.helpRef.attach(new TemplatePortal(this.helpTemplate, this.vc));
+      this.helpRef.attach(new TemplatePortal(this.helpTemplate(), this.vc));
       this.helpRef.backdropClick().subscribe(() => this.toggleHelp(false));
     } else {
       this.helpRef?.detach();
@@ -574,25 +562,26 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
     if (button.eventDone) this.loadingEvents[button.eventDone] = true;
     if (event === 'html-to-markdown') {
       this.europa ||= new Europa({
-        absolute: !!this.url,
-        baseUri: this.url,
+        absolute: !!this.url(),
+        baseUri: this.url(),
         inline: true,
       });
-      const md = this.europa.convert(this.editor!.nativeElement.value);
+      const md = this.europa.convert(this.editor()!.nativeElement.value);
       this.syncText(md);
     } else if (event === 'scrape') {
+      // TODO: The 'emit' function requires a mandatory void argument
       this.scrape.emit();
     } else if (event === 'attach') {
-      this.fileUpload.nativeElement.click();
+      this.fileUpload().nativeElement.click();
     } else {
       this.store.eventBus.fire(event);
     }
-    if (this.focused !== false) this.editor?.nativeElement.focus();
+    if (this.focused !== false) this.editor()?.nativeElement.focus();
   }
 
   addComment() {
     this.editing = true;
-    defer(() => this.editor?.nativeElement?.focus());
+    defer(() => this.editor()?.nativeElement?.focus());
   }
 
   private setButtonOn(b: EditorButton) {
@@ -716,7 +705,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   attachUrls(...refs: (Ref | null)[]) {
     refs = refs.filter(u => !!u);
     if (!refs.length) return;
-    for (const ref of refs) this.addSource.next(ref!.url);
+    for (const ref of refs) this.addSource.emit(ref!.url);
     const text = this.currentText;
     const embed = (ref: Ref) => hasTag('plugin/audio', ref) || hasTag('plugin/video', ref) || hasTag('plugin/image', ref) || hasTag('plugin/pdf', ref);
     if (refs.length === 1) {
@@ -735,7 +724,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
       if (!text) this.preview = true;
     }
     if (!text) this.preview = true;
-    if (this.focused !== false) this.editor?.nativeElement.focus();
+    if (this.focused !== false) this.editor()?.nativeElement.focus();
   }
 
   checkAllUploadsComplete() {

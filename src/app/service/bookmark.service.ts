@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { filter, without } from 'lodash-es';
 import { Store } from '../store/store';
@@ -8,11 +8,9 @@ import { toggle, UrlFilter } from '../util/query';
   providedIn: 'root'
 })
 export class BookmarkService {
+  private store = inject(Store);
+  private router = inject(Router);
 
-  constructor(
-    private store: Store,
-    private router: Router,
-  ) { }
 
   toggleFilter(f: UrlFilter, ...clear: string[]) {
     const filters = filter(this.store.view.filter, f => !clear.find(p => f.startsWith(p)));

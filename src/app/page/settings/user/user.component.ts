@@ -1,4 +1,13 @@
-import { Component, effect, Injector, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  effect,
+  inject,
+  Injector,
+  OnDestroy,
+  OnInit,
+  viewChild
+} from '@angular/core';
 import { defer } from 'lodash-es';
 import { UserListComponent } from '../../../component/user/user-list/user-list.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
@@ -11,25 +20,30 @@ import { UserStore } from '../../../store/user';
 import { getTagFilter } from '../../../util/query';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-settings-user-page',
   templateUrl: './user.component.html',
   styleUrls: ['./user.component.scss'],
   imports: [UserListComponent],
 })
 export class SettingsUserPage implements OnInit, OnDestroy, HasChanges {
+  private injector = inject(Injector);
+  private mod = inject(ModService);
+  config = inject(ConfigService);
+  store = inject(Store);
+  users = inject(UserService);
+  scim = inject(ProfileStore);
+  query = inject(UserStore);
 
-  @ViewChild('list')
-  list?: UserListComponent;
 
-  constructor(
-    private injector: Injector,
-    private mod: ModService,
-    public config: ConfigService,
-    public store: Store,
-    public users: UserService,
-    public scim: ProfileStore,
-    public query: UserStore,
-  ) {
+  readonly list = viewChild<UserListComponent>('list');
+
+  constructor() {
+    const mod = this.mod;
+    const store = this.store;
+    const scim = this.scim;
+    const query = this.query;
+
     mod.setTitle($localize`Settings: User Profiles`);
     store.view.clear(['tag:len', 'tag'], ['tag:len', 'tag']);
     scim.clear();
@@ -61,7 +75,8 @@ export class SettingsUserPage implements OnInit, OnDestroy, HasChanges {
   }
 
   saveChanges() {
-    return !this.list || this.list.saveChanges();
+    const list = this.list();
+    return !list || list.saveChanges();
   }
 
   ngOnDestroy() {

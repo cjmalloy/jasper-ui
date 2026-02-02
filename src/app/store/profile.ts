@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Injectable, signal } from '@angular/core';
+import { inject, Injectable, signal } from '@angular/core';
 import { isEqual, omit } from 'lodash-es';
 import { catchError, Subscription, throwError } from 'rxjs';
 import { Page } from '../model/page';
@@ -10,16 +10,14 @@ import { ProfileService } from '../service/api/profile.service';
   providedIn: 'root'
 })
 export class ProfileStore {
+  private profiles = inject(ProfileService);
+
 
   private _args = signal<ProfilePageArgs | undefined>(undefined);
   private _page = signal<Page<Profile> | undefined>(undefined);
   private _error = signal<HttpErrorResponse | undefined>(undefined);
 
   private running?: Subscription;
-
-  constructor(
-    private profiles: ProfileService,
-  ) {}
 
   get args() { return this._args(); }
   set args(value: ProfilePageArgs | undefined) { this._args.set(value); }

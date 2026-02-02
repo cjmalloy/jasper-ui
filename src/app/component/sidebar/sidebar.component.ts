@@ -1,5 +1,19 @@
 import { AsyncPipe } from '@angular/common';
-import { Component, effect, ElementRef, HostBinding, Injector, Input, OnChanges, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  effect,
+  ElementRef,
+  HostBinding,
+  inject,
+  Injector,
+  Input,
+  input,
+  OnChanges,
+  OnDestroy,
+  OnInit,
+  SimpleChanges
+} from '@angular/core';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { uniq, uniqBy } from 'lodash-es';
 
@@ -36,6 +50,7 @@ import { SearchComponent } from '../search/search.component';
 import { SortComponent } from '../sort/sort.component';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-sidebar',
   templateUrl: './sidebar.component.html',
   styleUrls: ['./sidebar.component.scss'],
@@ -58,16 +73,26 @@ import { SortComponent } from '../sort/sort.component';
   ]
 })
 export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
+  private injector = inject(Injector);
+  router = inject(Router);
+  admin = inject(AdminService);
+  store = inject(Store);
+  query = inject(QueryStore);
+  config = inject(ConfigService);
+  private auth = inject(AuthzService);
+  private account = inject(AccountService);
+  ts = inject(TaggingService);
+  private exts = inject(ExtService);
+  private templates = inject(TemplateService);
+  private el = inject(ElementRef);
+
   private destroy$ = new Subject<void>();
 
   @Input()
   tag = '';
-  @Input()
-  activeExts: Ext[] = [];
-  @Input()
-  showToggle = true;
-  @Input()
-  home = false;
+  readonly activeExts = input<Ext[]>([]);
+  readonly showToggle = input(true);
+  readonly home = input(false);
   @Input()
   @HostBinding('class.floating')
   floating = true;
@@ -89,20 +114,9 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
   private _ext?: Ext;
   private lastView = this.store.view.current;
 
-  constructor(
-    private injector: Injector,
-    public router: Router,
-    public admin: AdminService,
-    public store: Store,
-    public query: QueryStore,
-    public config: ConfigService,
-    private auth: AuthzService,
-    private account: AccountService,
-    public ts: TaggingService,
-    private exts: ExtService,
-    private templates: TemplateService,
-    private el: ElementRef,
-  ) {
+  constructor() {
+    const router = this.router;
+
     if (localStorage.getItem('sidebar-expanded') !== null) {
       this.expanded = localStorage.getItem('sidebar-expanded') !== 'false';
     } else {
@@ -157,7 +171,7 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
       if (this.tag) {
         this.localTag = localTag(this.tag);
         this.plugin = this.admin.getPlugin(this.tag);
-        if (this.home) {
+        if (this.home()) {
           this.addTags = this.rootConfig?.addTags || this.plugin?.config?.reply || ['public'];
         } else if (this.plugin) {
           this.addTags = uniq([
@@ -281,7 +295,7 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
 
   @memo
   get userConfig() {
-    if (!this.user && !this.home) return null;
+    if (!this.user && !this.home()) return null;
     return this.store.account.ext?.config as UserConfig;
   }
 
@@ -345,7 +359,7 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
 
   @memo
   get homeWriteAccess() {
-    return this.home && this.admin.getTemplate('config/home') && this.auth.tagWriteAccess('config/home');
+    return this.home() && this.admin.getTemplate('config/home') && this.auth.tagWriteAccess('config/home');
   }
 
   @memo

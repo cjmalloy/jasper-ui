@@ -1,17 +1,19 @@
 import { AsyncPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
+  ChangeDetectionStrategy,
   Component,
   effect,
   forwardRef,
   HostBinding,
+  inject,
   Input,
+  input,
   OnChanges,
   OnDestroy,
-  QueryList,
   SimpleChanges,
   ViewChild,
-  ViewChildren
+  viewChildren
 } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -62,6 +64,7 @@ import { NavComponent } from '../../nav/nav.component';
 import { ViewerComponent } from '../../viewer/viewer.component';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-blog-entry',
   templateUrl: './blog-entry.component.html',
   styleUrls: ['./blog-entry.component.scss'],
@@ -81,14 +84,23 @@ import { ViewerComponent } from '../../viewer/viewer.component';
   ],
 })
 export class BlogEntryComponent implements OnChanges, OnDestroy, HasChanges {
+  private config = inject(ConfigService);
+  admin = inject(AdminService);
+  store = inject(Store);
+  private auth = inject(AuthzService);
+  private editor = inject(EditorService);
+  private refs = inject(RefService);
+  private exts = inject(ExtService);
+  private bookmarks = inject(BookmarkService);
+  private ts = inject(TaggingService);
+  private fb = inject(UntypedFormBuilder);
+
   @HostBinding('attr.tabindex') tabIndex = 0;
   private destroy$ = new Subject<void>();
 
-  @ViewChildren('action')
-  actionComponents?: QueryList<ActionComponent>;
+  readonly actionComponents = viewChildren<ActionComponent>('action');
 
-  @Input()
-  blog?: Ext;
+  readonly blog = input<Ext>();
   @Input()
   ref!: Ref;
 
@@ -109,18 +121,9 @@ export class BlogEntryComponent implements OnChanges, OnDestroy, HasChanges {
 
   submitting?: Subscription;
 
-  constructor(
-    private config: ConfigService,
-    public admin: AdminService,
-    public store: Store,
-    private auth: AuthzService,
-    private editor: EditorService,
-    private refs: RefService,
-    private exts: ExtService,
-    private bookmarks: BookmarkService,
-    private ts: TaggingService,
-    private fb: UntypedFormBuilder,
-  ) {
+  constructor() {
+    const fb = this.fb;
+
     this.editForm = refForm(fb);
     effect(() => {
       if (this.store.eventBus.event === 'refresh') {
@@ -147,7 +150,7 @@ export class BlogEntryComponent implements OnChanges, OnDestroy, HasChanges {
     this.deleted = false;
     this.editing = false;
     this.viewSource = false;
-    this.actionComponents?.forEach(c => c.reset());
+    this.actionComponents()?.forEach(c => c.reset());
     this.writeAccess = this.auth.writeAccess(this.ref);
     this.taggingAccess = this.auth.taggingAccess(this.ref);
     this.deleteAccess = this.auth.deleteAccess(this.ref);
@@ -294,8 +297,9 @@ export class BlogEntryComponent implements OnChanges, OnDestroy, HasChanges {
   @memo
   get tags() {
     let result = interestingTags(this.ref.tags);
-    if (!this.blog?.config?.filterTags) return result;
-    return intersection(result, this.blog.config.tags || []);
+    const blog = this.blog();
+    if (!blog?.config?.filterTags) return result;
+    return intersection(result, blog.config.tags || []);
   }
 
   @memo

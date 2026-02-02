@@ -1,4 +1,4 @@
-import { Component, effect, Input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, inject, Input, input } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormGroup } from '@angular/forms';
 import { MonacoEditorModule } from 'ngx-monaco-editor';
 import { ResizeHandleDirective } from '../../directive/resize-handle.directive';
@@ -6,6 +6,7 @@ import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-json',
   templateUrl: './json.component.html',
   styleUrls: ['./json.component.scss'],
@@ -13,21 +14,22 @@ import { Store } from '../../store/store';
   imports: [ReactiveFormsModule, MonacoEditorModule, ResizeHandleDirective]
 })
 export class JsonComponent {
+  config = inject(ConfigService);
+  private store = inject(Store);
+
 
   @Input()
   group!: UntypedFormGroup;
-  @Input()
-  fieldName = 'source';
+  readonly fieldName = input('source');
 
   options: any = {
     language: 'json',
     automaticLayout: true,
   };
 
-  constructor(
-    public config: ConfigService,
-    private store: Store,
-  ) {
+  constructor() {
+    const store = this.store;
+
     effect(() => {
       this.options = {
         ...this.options,

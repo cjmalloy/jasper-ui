@@ -1,7 +1,16 @@
 import { Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { TemplatePortal } from '@angular/cdk/portal';
 import { HttpErrorResponse } from '@angular/common/http';
-import { ChangeDetectorRef, Component, ElementRef, TemplateRef, ViewChild, ViewContainerRef } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  ElementRef,
+  inject,
+  TemplateRef,
+  ViewContainerRef,
+  viewChild
+} from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { sortBy, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
@@ -19,6 +28,7 @@ import { ORIGIN_REGEX } from '../../../util/format';
 import { printError } from '../../../util/http';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-settings-backup-page',
   templateUrl: './backup.component.html',
   styleUrls: ['./backup.component.scss'],
@@ -26,11 +36,19 @@ import { printError } from '../../../util/http';
   imports: [ReactiveFormsModule, LoadingComponent, BackupListComponent]
 })
 export class SettingsBackupPage {
+  private mod = inject(ModService);
+  store = inject(Store);
+  private backups = inject(BackupService);
+  private bookmarks = inject(BookmarkService);
+  private origins = inject(OriginService);
+  private fb = inject(UntypedFormBuilder);
+  private overlay = inject(Overlay);
+  private viewContainerRef = inject(ViewContainerRef);
+  private cd = inject(ChangeDetectorRef);
 
-  @ViewChild('backupButton')
-  backupButton!: ElementRef<HTMLButtonElement>;
-  @ViewChild('backupOptions')
-  backupOptionsTemplate!: TemplateRef<any>;
+
+  readonly backupButton = viewChild.required<ElementRef<HTMLButtonElement>>('backupButton');
+  readonly backupOptionsTemplate = viewChild.required<TemplateRef<any>>('backupOptions');
 
   originForm: UntypedFormGroup;
   backupOptionsForm: UntypedFormGroup;
@@ -41,17 +59,10 @@ export class SettingsBackupPage {
   backupOrigins: string[] = this.store.origins.list;
   backupOptionsRef?: OverlayRef;
 
-  constructor(
-    private mod: ModService,
-    public store: Store,
-    private backups: BackupService,
-    private bookmarks: BookmarkService,
-    private origins: OriginService,
-    private fb: UntypedFormBuilder,
-    private overlay: Overlay,
-    private viewContainerRef: ViewContainerRef,
-    private cd: ChangeDetectorRef,
-  ) {
+  constructor() {
+    const mod = this.mod;
+    const fb = this.fb;
+
     mod.setTitle($localize`Settings: Backup & Restore`);
     this.fetchBackups();
     this.originForm = fb.group({
@@ -93,7 +104,7 @@ export class SettingsBackupPage {
   showBackupOptions() {
     if (this.backupOptionsRef) return;
     const positionStrategy = this.overlay.position()
-      .flexibleConnectedTo(this.backupButton!)
+      .flexibleConnectedTo(this.backupButton()!)
       .withPositions([{
         originX: 'start',
         originY: 'bottom',
@@ -107,7 +118,7 @@ export class SettingsBackupPage {
       positionStrategy,
       scrollStrategy: this.overlay.scrollStrategies.close()
     });
-    this.backupOptionsRef.attach(new TemplatePortal(this.backupOptionsTemplate, this.viewContainerRef));
+    this.backupOptionsRef.attach(new TemplatePortal(this.backupOptionsTemplate(), this.viewContainerRef));
     this.backupOptionsRef.backdropClick().subscribe(() => this.cancelBackup());
   }
 

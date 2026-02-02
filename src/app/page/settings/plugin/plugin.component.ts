@@ -1,5 +1,14 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, effect, Injector, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  effect,
+  inject,
+  Injector,
+  OnDestroy,
+  OnInit,
+  viewChild
+} from '@angular/core';
 import { defer } from 'lodash-es';
 import { catchError, switchMap, throwError } from 'rxjs';
 import { PluginListComponent } from '../../../component/plugin/plugin-list/plugin-list.component';
@@ -14,25 +23,29 @@ import { getTagFilter } from '../../../util/query';
 import { getModels, getZipOrTextFile } from '../../../util/zip';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-settings-plugin-page',
   templateUrl: './plugin.component.html',
   styleUrls: ['./plugin.component.scss'],
   imports: [PluginListComponent],
 })
 export class SettingsPluginPage implements OnInit, OnDestroy, HasChanges {
+  private injector = inject(Injector);
+  private mod = inject(ModService);
+  store = inject(Store);
+  query = inject(PluginStore);
+  private plugins = inject(PluginService);
+
 
   serverError: string[] = [];
 
-  @ViewChild('list')
-  list?: PluginListComponent;
+  readonly list = viewChild<PluginListComponent>('list');
 
-  constructor(
-    private injector: Injector,
-    private mod: ModService,
-    public store: Store,
-    public query: PluginStore,
-    private plugins: PluginService,
-  ) {
+  constructor() {
+    const mod = this.mod;
+    const store = this.store;
+    const query = this.query;
+
     mod.setTitle($localize`Settings: Plugins`);
     store.view.clear(['tag:len', 'tag'], ['tag:len', 'tag']);
     query.clear();
@@ -53,7 +66,8 @@ export class SettingsPluginPage implements OnInit, OnDestroy, HasChanges {
   }
 
   saveChanges() {
-    return !this.list || this.list.saveChanges();
+    const list = this.list();
+    return !list || list.saveChanges();
   }
 
   ngOnDestroy() {

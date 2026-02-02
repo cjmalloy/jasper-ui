@@ -1,15 +1,17 @@
 import { AsyncPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
+  ChangeDetectionStrategy,
   Component,
   forwardRef,
   HostBinding,
+  inject,
   Input,
+  input,
   OnChanges,
-  QueryList,
   SimpleChanges,
   ViewChild,
-  ViewChildren
+  viewChildren
 } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -40,6 +42,7 @@ import { ActionComponent } from '../action/action.component';
 import { ConfirmActionComponent } from '../action/confirm-action/confirm-action.component';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-ext',
   templateUrl: './ext.component.html',
   styleUrls: ['./ext.component.scss'],
@@ -54,15 +57,21 @@ import { ConfirmActionComponent } from '../action/confirm-action/confirm-action.
   ],
 })
 export class ExtComponent implements OnChanges, HasChanges {
+  admin = inject(AdminService);
+  store = inject(Store);
+  private auth = inject(AuthzService);
+  private exts = inject(ExtService);
+  private editor = inject(EditorService);
+  bookmarks = inject(BookmarkService);
+  private fb = inject(UntypedFormBuilder);
+
   @HostBinding('attr.tabindex') tabIndex = 0;
 
-  @ViewChildren('action')
-  actionComponents?: QueryList<ActionComponent>;
+  readonly actionComponents = viewChildren<ActionComponent>('action');
 
   @Input()
   ext!: Ext;
-  @Input()
-  useEditPage = false;
+  readonly useEditPage = input(false);
 
   editForm!: UntypedFormGroup;
   submitted = false;
@@ -81,16 +90,6 @@ export class ExtComponent implements OnChanges, HasChanges {
 
   private overwrittenModified? = '';
 
-  constructor(
-    public admin: AdminService,
-    public store: Store,
-    private auth: AuthzService,
-    private exts: ExtService,
-    private editor: EditorService,
-    public bookmarks: BookmarkService,
-    private fb: UntypedFormBuilder,
-  ) { }
-
   saveChanges() {
     return !this.editForm?.dirty;
   }
@@ -108,7 +107,7 @@ export class ExtComponent implements OnChanges, HasChanges {
     this.deleted = false;
     this.writeAccess = false;
     this.serverError = [];
-    this.actionComponents?.forEach(c => c.reset());
+    this.actionComponents()?.forEach(c => c.reset());
     if (this.ext) {
       this.icons = this.admin.getTemplateView(this.ext.tag);
       if (hasPrefix(this.ext.tag, 'user')) {

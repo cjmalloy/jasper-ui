@@ -1,5 +1,14 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { AfterViewInit, Component, forwardRef, Input, OnDestroy, ViewChild } from '@angular/core';
+import {
+  AfterViewInit,
+  ChangeDetectionStrategy,
+  Component,
+  forwardRef,
+  inject,
+  Input,
+  OnDestroy,
+  viewChild
+} from '@angular/core';
 import { FormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { uniq, without } from 'lodash-es';
 import { catchError, forkJoin, map, of, Subject, Subscription, switchMap, takeUntil, throwError } from 'rxjs';
@@ -16,6 +25,7 @@ import { getVisibilityTags } from '../../../util/tag';
 import { LoadingComponent } from '../../loading/loading.component';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-comment-edit',
   templateUrl: './comment-edit.component.html',
   styleUrls: ['./comment-edit.component.scss'],
@@ -26,6 +36,11 @@ import { LoadingComponent } from '../../loading/loading.component';
   ]
 })
 export class CommentEditComponent implements AfterViewInit, HasChanges, OnDestroy {
+  private store = inject(Store);
+  private refs = inject(RefService);
+  private ts = inject(TaggingService);
+  private fb = inject(FormBuilder);
+
   private destroy$ = new Subject<void>();
 
   serverError: string[] = [];
@@ -35,8 +50,7 @@ export class CommentEditComponent implements AfterViewInit, HasChanges, OnDestro
   @Input()
   commentEdited$!: Subject<Ref>;
 
-  @ViewChild('editor')
-  editor?: EditorComponent;
+  readonly editor = viewChild<EditorComponent>('editor');
 
   editing?: Subscription;
   commentForm: UntypedFormGroup;
@@ -44,12 +58,9 @@ export class CommentEditComponent implements AfterViewInit, HasChanges, OnDestro
   sources: string[] = [];
   completedUploads: Ref[] = [];
 
-  constructor(
-    private store: Store,
-    private refs: RefService,
-    private ts: TaggingService,
-    private fb: FormBuilder,
-  ) {
+  constructor() {
+    const fb = this.fb;
+
     this.commentForm = fb.group({
       comment: [''],
     });

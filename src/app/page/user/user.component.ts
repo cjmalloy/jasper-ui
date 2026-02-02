@@ -1,5 +1,14 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, effect, HostBinding, Injector, OnInit, ViewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  effect,
+  HostBinding,
+  inject,
+  Injector,
+  OnInit,
+  viewChild
+} from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { defer, uniq } from 'lodash-es';
@@ -21,34 +30,37 @@ import { printError } from '../../util/http';
 import { prefix, setPublic } from '../../util/tag';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-user-page',
   templateUrl: './user.component.html',
   styleUrls: ['./user.component.scss'],
   imports: [ RouterLink, SettingsComponent, ReactiveFormsModule, LimitWidthDirective, UserFormComponent]
 })
 export class UserPage implements OnInit, HasChanges {
+  private injector = inject(Injector);
+  private mod = inject(ModService);
+  private admin = inject(AdminService);
+  config = inject(ConfigService);
+  router = inject(Router);
+  store = inject(Store);
+  private profiles = inject(ProfileService);
+  private users = inject(UserService);
+  private fb = inject(UntypedFormBuilder);
+
 
   @HostBinding('class') css = 'full-page-form';
 
-  @ViewChild('form')
-  userForm!: UserFormComponent;
+  readonly userForm = viewChild.required<UserFormComponent>('form');
 
   submitted = false;
   profileForm: UntypedFormGroup;
   serverError: string[] = [];
   externalErrors: string[] = [];
 
-  constructor(
-    private injector: Injector,
-    private mod: ModService,
-    private admin: AdminService,
-    public config: ConfigService,
-    public router: Router,
-    public store: Store,
-    private profiles: ProfileService,
-    private users: UserService,
-    private fb: UntypedFormBuilder,
-  ) {
+  constructor() {
+    const mod = this.mod;
+    const fb = this.fb;
+
     mod.setTitle($localize`Create Profile`);
     this.profileForm = fb.group({
       active: [true],
@@ -70,10 +82,10 @@ export class UserPage implements OnInit, HasChanges {
           this.store.view.selectedUser = user;
           if (user) {
             this.profileForm.setControl('user', userForm(this.fb, true));
-            defer(() => this.userForm.setUser(user));
+            defer(() => this.userForm().setUser(user));
           } else {
             this.profileForm.setControl('user', userForm(this.fb, false));
-            defer(() => this.userForm.setUser({
+            defer(() => this.userForm().setUser({
               tag: this.store.view.localTag,
               origin: this.store.view.origin,
               readAccess: this.admin.readAccess.map(t => setPublic(prefix(t, this.store.view.localTag))),

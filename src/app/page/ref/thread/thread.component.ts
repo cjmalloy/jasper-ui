@@ -1,4 +1,13 @@
-import { Component, effect, Injector, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  effect,
+  inject,
+  Injector,
+  OnDestroy,
+  OnInit,
+  viewChild
+} from '@angular/core';
 import { defer, uniq } from 'lodash-es';
 
 import { catchError, filter, of, Subject, Subscription, switchMap, takeUntil } from 'rxjs';
@@ -22,6 +31,7 @@ import { getArgs } from '../../../util/query';
 import { hasTag, removeTag, top, updateMetadata } from '../../../util/tag';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-ref-thread',
   templateUrl: './thread.component.html',
   styleUrls: ['./thread.component.scss'],
@@ -29,12 +39,19 @@ import { hasTag, removeTag, top, updateMetadata } from '../../../util/tag';
   imports: [ RefListComponent, LoadingComponent, CommentReplyComponent]
 })
 export class RefThreadComponent implements OnInit, OnDestroy, HasChanges {
+  private injector = inject(Injector);
+  config = inject(ConfigService);
+  private mod = inject(ModService);
+  admin = inject(AdminService);
+  store = inject(Store);
+  query = inject(QueryStore);
+  private stomp = inject(StompService);
+  private refs = inject(RefService);
+
   private destroy$ = new Subject<void>();
 
-  @ViewChild('reply')
-  reply?: CommentReplyComponent;
-  @ViewChild('list')
-  list?: RefListComponent;
+  readonly reply = viewChild<CommentReplyComponent>('reply');
+  readonly list = viewChild<RefListComponent>('list');
 
   newRefs$ = new Subject<Ref | undefined>();
 
@@ -43,23 +60,19 @@ export class RefThreadComponent implements OnInit, OnDestroy, HasChanges {
   private watchUrl = '';
   private watch?: Subscription;
 
-  constructor(
-    private injector: Injector,
-    public config: ConfigService,
-    private mod: ModService,
-    public admin: AdminService,
-    public store: Store,
-    public query: QueryStore,
-    private stomp: StompService,
-    private refs: RefService,
-  ) {
+  constructor() {
+    const store = this.store;
+    const query = this.query;
+
     query.clear();
     store.view.defaultSort = ['published,ASC'];
   }
 
   saveChanges() {
-    return (!this.reply || this.reply.saveChanges())
-      && (!this.list || this.list.saveChanges());
+    const reply = this.reply();
+    const list = this.list();
+    return (!reply || reply.saveChanges())
+      && (!list || list.saveChanges());
   }
 
   ngOnInit(): void {

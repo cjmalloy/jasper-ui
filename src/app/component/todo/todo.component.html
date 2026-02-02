@@ -1,6 +1,6 @@
 <div class="todo-list-container"
      cdkDropList
-     [cdkDropListData]="ref?.url"
+     [cdkDropListData]="ref()?.url"
      (cdkDropListDropped)="drop($any($event))">
   @for (line of lines; let i = $index; track line) {
     <app-todo-item cdkDrag
@@ -8,14 +8,14 @@
                    [cdkDragStartDelay]="pressToUnlock ? 251 : 0"
                    [pressToUnlock]="pressToUnlock"
                    [line]="line"
-                   [origin]="origin"
-                   [plugins]="tags || ref?.tags || []"
+                   [origin]="origin()"
+                   [plugins]="tags() || ref()?.tags || []"
                    (update)="update({ index: i, text: $event.text, checked: $event.checked })"></app-todo-item>
   }
   @for (line of pushText; let i = $index; track line) {
     <app-todo-item [line]="line"
-                   [origin]="origin"
-                   [plugins]="tags || ref?.tags || []"></app-todo-item>
+                   [origin]="origin()"
+                   [plugins]="tags() || ref()?.tags || []"></app-todo-item>
   }
 </div>
 <div class="spacer"></div>

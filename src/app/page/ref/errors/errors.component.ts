@@ -1,4 +1,13 @@
-import { Component, effect, Injector, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  effect,
+  inject,
+  Injector,
+  OnDestroy,
+  OnInit,
+  viewChild
+} from '@angular/core';
 import { defer } from 'lodash-es';
 
 import { catchError, filter, of, Subject, Subscription, switchMap, takeUntil } from 'rxjs';
@@ -19,6 +28,7 @@ import { getArgs } from '../../../util/query';
 import { hasTag, updateMetadata } from '../../../util/tag';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-ref-errors',
   templateUrl: './errors.component.html',
   styleUrl: './errors.component.scss',
@@ -26,34 +36,38 @@ import { hasTag, updateMetadata } from '../../../util/tag';
   imports: [ RefListComponent]
 })
 export class RefErrorsComponent implements OnInit, OnDestroy, HasChanges {
+  private injector = inject(Injector);
+  config = inject(ConfigService);
+  private mod = inject(ModService);
+  admin = inject(AdminService);
+  store = inject(Store);
+  query = inject(QueryStore);
+  private stomp = inject(StompService);
+  private refs = inject(RefService);
+  private bookmarks = inject(BookmarkService);
+
 
   private destroy$ = new Subject<void>();
 
-  @ViewChild('list')
-  list?: RefListComponent;
+  readonly list = viewChild<RefListComponent>('list');
 
   newRefs$ = new Subject<Ref | undefined>();
 
   private watch?: Subscription;
 
-  constructor(
-    private injector: Injector,
-    public config: ConfigService,
-    private mod: ModService,
-    public admin: AdminService,
-    public store: Store,
-    public query: QueryStore,
-    private stomp: StompService,
-    private refs: RefService,
-    private bookmarks: BookmarkService,
-  ) {
+  constructor() {
+    const store = this.store;
+    const query = this.query;
+    const bookmarks = this.bookmarks;
+
     query.clear();
     store.view.defaultSort = ['published'];
     if (!this.store.view.filter.length) bookmarks.filters = ['query/' + (store.account.origin || '*')];
   }
 
   saveChanges() {
-    return !this.list || this.list.saveChanges();
+    const list = this.list();
+    return !list || list.saveChanges();
   }
 
   ngOnInit(): void {

@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { uniq } from 'lodash-es';
 
 import { catchError, Observable, of, switchMap } from 'rxjs';
@@ -15,15 +15,13 @@ import { ConfigService } from './config.service';
   providedIn: 'root'
 })
 export class OriginMapService {
+  private config = inject(ConfigService);
+  private admin = inject(AdminService);
+  private refs = inject(RefService);
+  private store = inject(Store);
+
 
   private origins: Ref[] = [];
-
-  constructor(
-    private config: ConfigService,
-    private admin: AdminService,
-    private refs: RefService,
-    private store: Store,
-  ) { }
 
   get init$() {
     this.origins = [];

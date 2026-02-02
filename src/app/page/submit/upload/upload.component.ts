@@ -1,5 +1,5 @@
 import { HttpErrorResponse, HttpEventType } from '@angular/common/http';
-import { Component, effect, forwardRef, OnDestroy } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, forwardRef, inject } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { pick, uniq } from 'lodash-es';
@@ -29,6 +29,7 @@ import { printError } from '../../../util/http';
 import { FilteredModels, filterModels, getModels, getTextFile, unzip, zippedFile } from '../../../util/zip';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-upload',
   templateUrl: './upload.component.html',
   styleUrls: ['./upload.component.scss'],
@@ -44,6 +45,16 @@ import { FilteredModels, filterModels, getModels, getTextFile, unzip, zippedFile
   ]
 })
 export class UploadPage {
+  store = inject(Store);
+  bookmarks = inject(BookmarkService);
+  private mod = inject(ModService);
+  private admin = inject(AdminService);
+  private refs = inject(RefService);
+  private exts = inject(ExtService);
+  private proxy = inject(ProxyService);
+  private auth = inject(AuthzService);
+  private router = inject(Router);
+
   tagRegex = TAGS_REGEX.source;
 
   erroredExts: Ext[] = [];
@@ -52,17 +63,9 @@ export class UploadPage {
   processing = false;
   fileCache = this.admin.getPlugin('plugin/file');
 
-  constructor(
-    public store: Store,
-    public bookmarks: BookmarkService,
-    private mod: ModService,
-    private admin: AdminService,
-    private refs: RefService,
-    private exts: ExtService,
-    private proxy: ProxyService,
-    private auth: AuthzService,
-    private router: Router,
-  ) {
+  constructor() {
+    const mod = this.mod;
+
     mod.setTitle($localize`Submit: Upload`);
     effect(() => {
       this.readUploads(this.store.submit.files);

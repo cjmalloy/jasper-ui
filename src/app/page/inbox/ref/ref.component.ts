@@ -1,4 +1,13 @@
-import { Component, effect, Injector, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  effect,
+  inject,
+  Injector,
+  OnDestroy,
+  OnInit,
+  viewChild
+} from '@angular/core';
 import { defer, uniq } from 'lodash-es';
 
 import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
@@ -11,26 +20,30 @@ import { Store } from '../../../store/store';
 import { getArgs } from '../../../util/query';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-inbox-ref-page',
   templateUrl: './ref.component.html',
   styleUrls: ['./ref.component.scss'],
   imports: [ RefListComponent],
 })
 export class InboxRefPage implements OnInit, OnDestroy, HasChanges {
+  private injector = inject(Injector);
+  private mod = inject(ModService);
+  private admin = inject(AdminService);
+  store = inject(Store);
+  query = inject(QueryStore);
 
-  @ViewChild('list')
-  list?: RefListComponent;
+
+  readonly list = viewChild<RefListComponent>('list');
 
   plugin?: Plugin;
   writeAccess = false;
 
-  constructor(
-    private injector: Injector,
-    private mod: ModService,
-    private admin: AdminService,
-    public store: Store,
-    public query: QueryStore,
-  ) {
+  constructor() {
+    const mod = this.mod;
+    const store = this.store;
+    const query = this.query;
+
     mod.setTitle($localize`Inbox: `);
     store.view.clear(['modified']);
     query.clear();
@@ -53,7 +66,8 @@ export class InboxRefPage implements OnInit, OnDestroy, HasChanges {
   }
 
   saveChanges() {
-    return !this.list || this.list.saveChanges();
+    const list = this.list();
+    return !list || list.saveChanges();
   }
 
   ngOnDestroy() {

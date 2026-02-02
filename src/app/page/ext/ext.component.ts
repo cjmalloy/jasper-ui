@@ -1,5 +1,15 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, effect, HostBinding, Injector, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  effect,
+  HostBinding,
+  inject,
+  Injector,
+  OnDestroy,
+  OnInit,
+  viewChild
+} from '@angular/core';
 import {
   ReactiveFormsModule,
   UntypedFormBuilder,
@@ -29,6 +39,7 @@ import { printError } from '../../util/http';
 import { access, hasPrefix, localTag, prefix } from '../../util/tag';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-ext-page',
   templateUrl: './ext.component.html',
   styleUrls: ['./ext.component.scss'],
@@ -43,11 +54,18 @@ import { access, hasPrefix, localTag, prefix } from '../../util/tag';
   ],
 })
 export class ExtPage implements OnInit, OnDestroy, HasChanges {
+  private injector = inject(Injector);
+  private mod = inject(ModService);
+  private admin = inject(AdminService);
+  router = inject(Router);
+  store = inject(Store);
+  private exts = inject(ExtService);
+  private fb = inject(UntypedFormBuilder);
+
 
   @HostBinding('class') css = 'full-page-form';
 
-  @ViewChild('form')
-  form?: ExtFormComponent;
+  readonly form = viewChild<ExtFormComponent>('form');
 
   template = '';
   created = false;
@@ -67,15 +85,10 @@ export class ExtPage implements OnInit, OnDestroy, HasChanges {
 
   private overwrittenModified? = '';
 
-  constructor(
-    private injector: Injector,
-    private mod: ModService,
-    private admin: AdminService,
-    public router: Router,
-    public store: Store,
-    private exts: ExtService,
-    private fb: UntypedFormBuilder,
-  ) {
+  constructor() {
+    const mod = this.mod;
+    const fb = this.fb;
+
     mod.setTitle($localize`Edit Tag`);
     this.extForm = fb.group({
       tag: ['', [Validators.pattern(TAG_SUFFIX_REGEX)]],
@@ -107,7 +120,7 @@ export class ExtPage implements OnInit, OnDestroy, HasChanges {
     if (ext) {
       this.editForm = extForm(this.fb, ext, this.admin, true);
       this.editForm.patchValue(ext);
-      defer(() => this.form!.setValue(ext));
+      defer(() => this.form()!.setValue(ext));
     } else {
       for (const t of this.templates) {
         if (hasPrefix(tag, t.tag)) {

@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Injectable, signal } from '@angular/core';
+import { effect, inject, Injectable, signal } from '@angular/core';
 import { isEqual, omit } from 'lodash-es';
 import { catchError, Subscription, throwError } from 'rxjs';
 import { Page } from '../model/page';
@@ -11,16 +11,30 @@ import { PluginService } from '../service/api/plugin.service';
   providedIn: 'root'
 })
 export class PluginStore {
+  private plugins = inject(PluginService);
 
-  private _args = signal<TagPageArgs | undefined>(undefined);
+
+  private _args = signal<TagPageArgs | undefined>(undefined, { equal: isEqual });
   private _page = signal<Page<Plugin> | undefined>(undefined);
   private _error = signal<HttpErrorResponse | undefined>(undefined);
+  private _refresh = signal(0);
 
   private running?: Subscription;
 
-  constructor(
-    private plugins: PluginService,
-  ) {}
+  constructor() {
+    effect(() => {
+      const args = this._args();
+      this._refresh(); // Track refresh signal
+      if (!args) return;
+      this.running?.unsubscribe();
+      this.running = this.plugins.page(args).pipe(
+        catchError((err: HttpErrorResponse) => {
+          this._error.set(err);
+          return throwError(() => err);
+        }),
+      ).subscribe(p => this._page.set(p));
+    });
+  }
 
   get args() { return this._args(); }
   set args(value: TagPageArgs | undefined) { this._args.set(value); }
@@ -45,17 +59,9 @@ export class PluginStore {
   setArgs(args: TagPageArgs) {
     if (!isEqual(omit(this._args(), 'search'), omit(args, 'search'))) this.clear();
     this._args.set(args);
-    this.refresh();
   }
 
   refresh() {
-    if (!this._args()) return;
-    this.running?.unsubscribe();
-    this.running = this.plugins.page(this._args() || {}).pipe(
-      catchError((err: HttpErrorResponse) => {
-        this._error.set(err);
-        return throwError(() => err);
-      }),
-    ).subscribe(p => this._page.set(p));
+    this._refresh.update(n => n + 1);
   }
 }
