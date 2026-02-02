@@ -4,15 +4,15 @@ import { provideRouter, Router } from '@angular/router';
 import { AutofocusDirective } from './autofocus.directive';
 
 describe('AutofocusDirective', () => {
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
+  beforeEach(() => {
+    TestBed.configureTestingModule({
       providers: [
         provideRouter([]),
       ]
     });
   });
   it('should create an instance', () => {
-    const directive = new AutofocusDirective({} as any, TestBed.inject(Router));
+    const directive = new AutofocusDirective();
     expect(directive).toBeTruthy();
   });
 });
