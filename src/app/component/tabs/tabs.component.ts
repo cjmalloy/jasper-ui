@@ -3,12 +3,11 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
-  ContentChildren,
   ElementRef,
   HostBinding,
   HostListener,
   inject,
-  QueryList
+  contentChildren, effect
 } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -30,11 +29,16 @@ export class TabsComponent implements AfterViewInit {
   private el = inject<ElementRef<HTMLElement>>(ElementRef);
   private cd = inject(ChangeDetectorRef);
 
+  readonly routerLinks = contentChildren(RouterLink);
+  readonly anchors = contentChildren(RouterLink, { read: ElementRef });
 
-  @ContentChildren(RouterLink)
-  routerLinks!: QueryList<RouterLink>;
-  @ContentChildren(RouterLink, { read: ElementRef })
-  anchors!: QueryList<ElementRef>;
+  constructor() {
+    effect(() => {
+      this.anchors();
+      this.measuring = true;
+      this.updateTabs();
+    });
+  }
 
   options: string[] = [];
   map = new Map<string, number>();
@@ -48,10 +52,6 @@ export class TabsComponent implements AfterViewInit {
   ngAfterViewInit() {
     defer(() => {
       this.updateTabs();
-      this.anchors.changes.subscribe(value => {
-        this.measuring = true;
-        this.updateTabs();
-      });
       defer(() => this.resizeObserver?.observe(this.el.nativeElement!.parentElement!));
     });
   }
@@ -82,22 +82,22 @@ export class TabsComponent implements AfterViewInit {
     this.hidden = 0;
     this.options = [];
     this.map.clear();
-    const tabs = this.anchors.toArray();
-    for (const t of tabs) {
+    const tabs = this.anchors;
+    for (const t of tabs()) {
       const el = t.nativeElement as HTMLAnchorElement;
       if (el.tagName !== 'A') continue;
       if (el.classList.contains('logo')) continue;
       const value = el.title || el.innerText;
       this.options.push(value);
-      this.map.set(value, tabs.indexOf(t));
+      this.map.set(value, tabs().indexOf(t));
     }
     defer(() => this.onResize());
   }
 
   hideTabs() {
-    const tabs = this.anchors.toArray();
+    const tabs = this.anchors;
     let i = this.options.length - 1;
-    for (const t of tabs) {
+    for (const t of tabs()) {
       const el = t.nativeElement as HTMLAnchorElement;
       if (el.tagName !== 'A') continue;
       if (el.classList.contains('logo')) continue;
@@ -115,8 +115,8 @@ export class TabsComponent implements AfterViewInit {
   @memo
   get tabWidths() {
     const result: number[] = [];
-    const tabs = this.anchors.toArray();
-    for (const t of tabs) {
+    const tabs = this.anchors;
+    for (const t of tabs()) {
       const el = t.nativeElement as HTMLAnchorElement;
       if (el.tagName !== 'A') continue;
       if (el.classList.contains('logo')) continue;
@@ -188,7 +188,7 @@ export class TabsComponent implements AfterViewInit {
 
   nav(select: HTMLSelectElement) {
     if (select.value && this.map.has(select.value)) {
-      this.routerLinks.get(this.map.get(select.value)!)?.onClick(0, false, false, false, false);
+      this.routerLinks().at(this.map.get(select.value)!)?.onClick(0, false, false, false, false);
     }
     select.selectedIndex = 0;
     this.measureVisible();

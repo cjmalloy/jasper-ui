@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, inject, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, viewChild } from '@angular/core';
 import {
   ReactiveFormsModule,
   UntypedFormBuilder,
@@ -63,8 +63,7 @@ export class SubmitInvoicePage implements HasChanges {
   invoiceForm: UntypedFormGroup;
   serverError: string[] = [];
 
-  @ViewChild('editor')
-  editorComponent?: EditorComponent;
+  readonly editorComponent = viewChild<EditorComponent>('editor');
 
   refUrl?: string;
   queue?: string;

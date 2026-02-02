@@ -6,7 +6,7 @@ import {
   Injector,
   OnDestroy,
   OnInit,
-  ViewChild
+  viewChild
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { defer } from 'lodash-es';
@@ -45,8 +45,7 @@ export class HomePage implements OnInit, OnDestroy, HasChanges {
   private exts = inject(ExtService);
 
 
-  @ViewChild('lens')
-  lens?: LensComponent;
+  readonly lens = viewChild<LensComponent>('lens');
 
   constructor() {
     const mod = this.mod;
@@ -99,7 +98,8 @@ export class HomePage implements OnInit, OnDestroy, HasChanges {
   }
 
   saveChanges() {
-    return !this.lens || this.lens.saveChanges();
+    const lens = this.lens();
+    return !lens || lens.saveChanges();
   }
 
   ngOnDestroy() {

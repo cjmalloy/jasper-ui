@@ -10,9 +10,8 @@ import {
   input,
   OnChanges,
   OnDestroy,
-  QueryList,
   SimpleChanges,
-  ViewChildren
+  viewChildren
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { defer, uniq } from 'lodash-es';
@@ -70,8 +69,7 @@ export class ChatEntryComponent implements OnChanges, OnDestroy {
   @HostBinding('attr.tabindex') tabIndex = 0;
   private destroy$ = new Subject<void>();
 
-  @ViewChildren('action')
-  actionComponents?: QueryList<ActionComponent>;
+  readonly actionComponents = viewChildren<ActionComponent>('action');
 
   @Input()
   ref!: Ref;
@@ -90,7 +88,7 @@ export class ChatEntryComponent implements OnChanges, OnDestroy {
 
   init() {
     MemoCache.clear(this);
-    this.actionComponents?.forEach(c => c.reset());
+    this.actionComponents()?.forEach(c => c.reset());
     this.writeAccess = this.auth.writeAccess(this.ref);
     this.taggingAccess = this.auth.taggingAccess(this.ref);
     this.deleteAccess = this.auth.deleteAccess(this.ref);
@@ -122,7 +120,7 @@ export class ChatEntryComponent implements OnChanges, OnDestroy {
       this.init();
     } else if (changes.focused) {
       MemoCache.clear(this);
-      if (!this.focused() && !this._allowActions) this.actionComponents?.forEach(c => c.reset());
+      if (!this.focused() && !this._allowActions) this.actionComponents()?.forEach(c => c.reset());
     }
   }
 
@@ -141,7 +139,7 @@ export class ChatEntryComponent implements OnChanges, OnDestroy {
   }
 
   get allowActions(): boolean {
-    return this._allowActions || this.focused() || !!this.actionComponents?.find(c => c.active());
+    return this._allowActions || this.focused() || !!this.actionComponents()?.find(c => c.active());
   }
 
   set allowActions(value: boolean) {

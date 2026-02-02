@@ -7,8 +7,7 @@ import {
   input,
   OnDestroy,
   OnInit,
-  QueryList,
-  ViewChildren
+  viewChildren
 } from '@angular/core';
 import { Router } from '@angular/router';
 import { DateTime } from 'luxon';
@@ -60,8 +59,7 @@ export class RefListComponent implements OnInit, OnDestroy, HasChanges {
   readonly insertNewAtTop = input(false);
   readonly showPrev = input(true);
 
-  @ViewChildren(RefComponent)
-  list?: QueryList<RefComponent>;
+  readonly list = viewChildren(RefComponent);
 
   pinned: Ref[] = [];
   newRefs: Ref[] = [];
@@ -72,7 +70,7 @@ export class RefListComponent implements OnInit, OnDestroy, HasChanges {
   private _cols = 0;
 
   saveChanges() {
-    return !this.list?.find(r => !r.saveChanges());
+    return !this.list()?.find(r => !r.saveChanges());
   }
 
   get ext() {

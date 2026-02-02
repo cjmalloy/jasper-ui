@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, Input, input, QueryList, ViewChildren } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, Input, input, viewChildren } from '@angular/core';
 import { Router } from '@angular/router';
 import { find } from 'lodash-es';
 import { catchError, of } from 'rxjs';
@@ -26,14 +26,13 @@ export class UserListComponent implements HasChanges {
 
   readonly scim = input<Page<Profile>>();
 
-  @ViewChildren(UserComponent)
-  list?: QueryList<UserComponent>;
+  readonly list = viewChildren(UserComponent);
 
   private _page?: Page<User>;
   private cache: Map<string, Profile | undefined> = new Map();
 
   saveChanges() {
-    return !this.list?.find(u => !u.saveChanges());
+    return !this.list()?.find(u => !u.saveChanges());
   }
 
   get page() {

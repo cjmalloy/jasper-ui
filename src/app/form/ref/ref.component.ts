@@ -11,7 +11,7 @@ import {
   OnChanges,
   output,
   SimpleChanges,
-  ViewChild
+  viewChild
 } from '@angular/core';
 import {
   ReactiveFormsModule,
@@ -80,18 +80,12 @@ export class RefFormComponent implements OnChanges {
   group!: UntypedFormGroup;
   readonly toggleTag = output<string>();
 
-  @ViewChild('tagsFormComponent')
-  tagsFormComponent!: TagsFormComponent;
-  @ViewChild('sources')
-  sourcesFormComponent!: LinksFormComponent;
-  @ViewChild('alts')
-  altsFormComponent!: LinksFormComponent;
-  @ViewChild('pluginsFormComponent')
-  pluginsFormComponent!: PluginsFormComponent;
-  @ViewChild('fill')
-  fill?: ElementRef;
-  @ViewChild('ed')
-  editorComponent?: EditorComponent;
+  readonly tagsFormComponent = viewChild.required<TagsFormComponent>('tagsFormComponent');
+  readonly sourcesFormComponent = viewChild.required<LinksFormComponent>('sources');
+  readonly altsFormComponent = viewChild.required<LinksFormComponent>('alts');
+  readonly pluginsFormComponent = viewChild.required<PluginsFormComponent>('pluginsFormComponent');
+  readonly fill = viewChild<ElementRef>('fill');
+  readonly editorComponent = viewChild<EditorComponent>('ed');
 
   @HostBinding('class.show-drops')
   dropping = false;
@@ -143,12 +137,13 @@ export class RefFormComponent implements OnChanges {
   }
 
   setTags(value: string[]) {
-    if (!this.tagsFormComponent?.tags) {
+    const tagsFormComponent = this.tagsFormComponent();
+    if (!tagsFormComponent?.tags) {
       defer(() => this.setTags(value));
       return;
     }
     MemoCache.clear(this);
-    this.tagsFormComponent.setTags(value);
+    tagsFormComponent.setTags(value);
   }
 
   get editorLabel() {
@@ -310,7 +305,7 @@ export class RefFormComponent implements OnChanges {
           if (!hasTag(t, this.tags.value)) this.togglePlugin(t);
         }
         defer(() => {
-          this.pluginsFormComponent.setValue({
+          this.pluginsFormComponent().setValue({
             ...this.group.value.plugins || {},
             ...s.plugins || {},
           });
@@ -332,9 +327,9 @@ export class RefFormComponent implements OnChanges {
     this.toggleTag.emit(tag);
     if (tag) {
       if (hasTag(tag, this.tags.value)) {
-        this.tagsFormComponent.removeTagAndChildren(tag);
+        this.tagsFormComponent().removeTagAndChildren(tag);
       } else {
-        this.tagsFormComponent.addTag(tag);
+        this.tagsFormComponent().addTag(tag);
       }
     }
   }
@@ -346,10 +341,10 @@ export class RefFormComponent implements OnChanges {
       published: ref.published ? ref.published.toFormat("yyyy-MM-dd'T'TT") : undefined,
     });
     defer(() => {
-      this.sourcesFormComponent.setLinks(ref.sources || []);
-      this.altsFormComponent.setLinks(ref.alternateUrls || []);
-      this.tagsFormComponent.setTags(ref.tags || []);
-      this.pluginsFormComponent.setValue(ref.plugins);
+      this.sourcesFormComponent().setLinks(ref.sources || []);
+      this.altsFormComponent().setLinks(ref.alternateUrls || []);
+      this.tagsFormComponent().setTags(ref.tags || []);
+      this.pluginsFormComponent().setValue(ref.plugins);
       MemoCache.clear(this);
     });
   }

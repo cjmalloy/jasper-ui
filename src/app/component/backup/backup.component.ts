@@ -10,8 +10,8 @@ import {
   Input,
   input,
   TemplateRef,
-  ViewChild,
-  ViewContainerRef
+  ViewContainerRef,
+  viewChild
 } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -46,10 +46,8 @@ export class BackupComponent {
   readonly size = input<number | undefined>(0);
   readonly origin = input('');
 
-  @ViewChild('restoreButton', { read: ElementRef })
-  restoreButton?: ElementRef<HTMLElement>;
-  @ViewChild('restoreOptions')
-  restoreOptionsTemplate!: TemplateRef<any>;
+  readonly restoreButton = viewChild('restoreButton', { read: ElementRef });
+  readonly restoreOptionsTemplate = viewChild.required<TemplateRef<any>>('restoreOptions');
 
   @HostBinding('class.deleted')
   deleted = false;
@@ -99,9 +97,10 @@ export class BackupComponent {
   }
 
   showRestoreOptions() {
-    if (this.restoreOptionsRef || !this.restoreButton) return;
+    const restoreButton = this.restoreButton();
+    if (this.restoreOptionsRef || !restoreButton) return;
     const positionStrategy = this.overlay.position()
-      .flexibleConnectedTo(this.restoreButton)
+      .flexibleConnectedTo(restoreButton)
       .withPositions([{
         originX: 'start',
         originY: 'bottom',
@@ -115,7 +114,7 @@ export class BackupComponent {
       positionStrategy,
       scrollStrategy: this.overlay.scrollStrategies.close()
     });
-    this.restoreOptionsRef.attach(new TemplatePortal(this.restoreOptionsTemplate, this.viewContainerRef));
+    this.restoreOptionsRef.attach(new TemplatePortal(this.restoreOptionsTemplate(), this.viewContainerRef));
     this.restoreOptionsRef.backdropClick().subscribe(() => this.cancelRestore());
   }
 

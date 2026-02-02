@@ -1,7 +1,7 @@
 <form class="form"
       [formGroup]="editForm"
       (ngSubmit)="save()"
-      [appLimitWidth]="form?.fillPopover?.nativeElement || form?.fillSidebar?.nativeElement"
+      [appLimitWidth]="form?.fillPopover()?.nativeElement || form?.fillSidebar()?.nativeElement"
       [limitSibling]="true">
 
   @if (store.local.selectedUserTag || config.electron || isDevMode() || store.account.localTag === '+user' || store.account.localTag === '_user') {

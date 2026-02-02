@@ -10,7 +10,7 @@ import {
   OnChanges,
   OnDestroy,
   SimpleChanges,
-  ViewChild
+  viewChild
 } from '@angular/core';
 import {
   ReactiveFormsModule,
@@ -94,12 +94,9 @@ export class SubmitDmPage implements AfterViewInit, OnChanges, OnDestroy, HasCha
   dmForm: UntypedFormGroup;
   serverError: string[] = [];
 
-  @ViewChild('fill')
-  fill?: ElementRef;
-  @ViewChild('fillCustom')
-  fillCustom?: ElementRef;
-  @ViewChild('tagsFormComponent')
-  tagsFormComponent?: TagsFormComponent;
+  readonly fill = viewChild<ElementRef>('fill');
+  readonly fillCustom = viewChild<ElementRef>('fillCustom');
+  readonly tagsFormComponent = viewChild<TagsFormComponent>('tagsFormComponent');
 
   preview = '';
   editing = false;
@@ -174,20 +171,22 @@ export class SubmitDmPage implements AfterViewInit, OnChanges, OnDestroy, HasCha
   }
 
   addTags(value: string[]) {
-    if (!this.tagsFormComponent?.tags) {
+    const tagsFormComponent = this.tagsFormComponent();
+    if (!tagsFormComponent?.tags) {
       defer(() => this.addTags(value));
       return;
     }
-    this.tagsFormComponent.setTags(uniq([...this.tags.value, ...value]));
+    tagsFormComponent.setTags(uniq([...this.tags.value, ...value]));
     MemoCache.clear(this);
   }
 
   setTags(value: string[]) {
-    if (!this.tagsFormComponent?.tags) {
+    const tagsFormComponent = this.tagsFormComponent();
+    if (!tagsFormComponent?.tags) {
       defer(() => this.setTags(value));
       return;
     }
-    this.tagsFormComponent.setTags(value);
+    tagsFormComponent.setTags(value);
     MemoCache.clear(this);
   }
 

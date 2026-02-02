@@ -6,9 +6,8 @@ import {
   Injector,
   OnDestroy,
   OnInit,
-  QueryList,
-  ViewChild,
-  ViewChildren
+  viewChild,
+  viewChildren
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { defer, uniq } from 'lodash-es';
@@ -56,12 +55,9 @@ export class RefSummaryComponent implements OnInit, OnDestroy, HasChanges {
 
   summaryItems = 5;
 
-  @ViewChild('reply')
-  reply?: CommentReplyComponent;
-  @ViewChildren(CommentThreadComponent)
-  threadComponents?: QueryList<CommentThreadComponent>;
-  @ViewChild('list')
-  list?: RefListComponent;
+  readonly reply = viewChild<CommentReplyComponent>('reply');
+  readonly threadComponents = viewChildren(CommentThreadComponent);
+  readonly list = viewChild<RefListComponent>('list');
 
   constructor() {
     const store = this.store;
@@ -74,9 +70,11 @@ export class RefSummaryComponent implements OnInit, OnDestroy, HasChanges {
   }
 
   saveChanges() {
-    return (!this.reply || this.reply.saveChanges())
-      && (!this.list || this.list.saveChanges())
-      && !this.threadComponents?.find(t => !t.saveChanges());
+    const reply = this.reply();
+    const list = this.list();
+    return (!reply || reply.saveChanges())
+      && (!list || list.saveChanges())
+      && !this.threadComponents()?.find(t => !t.saveChanges());
   }
 
   ngOnInit(): void {

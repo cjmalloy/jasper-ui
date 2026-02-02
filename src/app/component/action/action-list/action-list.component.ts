@@ -13,8 +13,8 @@ import {
   OnChanges,
   SimpleChanges,
   TemplateRef,
-  ViewChild,
-  ViewContainerRef
+  ViewContainerRef,
+  viewChild
 } from '@angular/core';
 import { defer } from 'lodash-es';
 import { Subscription } from 'rxjs';
@@ -54,8 +54,7 @@ export class ActionListComponent implements AfterViewInit, OnChanges {
   @Input()
   groupedAdvancedActions?: { [key: string]: Action[] };
 
-  @ViewChild('actionsMenu')
-  actionsMenu!: TemplateRef<any>;
+  readonly actionsMenu = viewChild.required<TemplateRef<any>>('actionsMenu');
 
   hiddenActions = 0;
   overlayRef?: OverlayRef;
@@ -153,7 +152,7 @@ export class ActionListComponent implements AfterViewInit, OnChanges {
         positionStrategy,
         scrollStrategy: this.overlay.scrollStrategies.close(),
       });
-      this.overlayRef.attach(new TemplatePortal(this.actionsMenu, this.viewContainerRef));
+      this.overlayRef.attach(new TemplatePortal(this.actionsMenu(), this.viewContainerRef));
       this.overlayEvents = this.overlayRef.outsidePointerEvents().subscribe((event: MouseEvent) => {
         switch (event.type) {
           case 'click':

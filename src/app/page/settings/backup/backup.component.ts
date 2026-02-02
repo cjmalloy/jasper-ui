@@ -8,8 +8,8 @@ import {
   ElementRef,
   inject,
   TemplateRef,
-  ViewChild,
-  ViewContainerRef
+  ViewContainerRef,
+  viewChild
 } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { sortBy, uniq } from 'lodash-es';
@@ -47,10 +47,8 @@ export class SettingsBackupPage {
   private cd = inject(ChangeDetectorRef);
 
 
-  @ViewChild('backupButton')
-  backupButton!: ElementRef<HTMLButtonElement>;
-  @ViewChild('backupOptions')
-  backupOptionsTemplate!: TemplateRef<any>;
+  readonly backupButton = viewChild.required<ElementRef<HTMLButtonElement>>('backupButton');
+  readonly backupOptionsTemplate = viewChild.required<TemplateRef<any>>('backupOptions');
 
   originForm: UntypedFormGroup;
   backupOptionsForm: UntypedFormGroup;
@@ -106,7 +104,7 @@ export class SettingsBackupPage {
   showBackupOptions() {
     if (this.backupOptionsRef) return;
     const positionStrategy = this.overlay.position()
-      .flexibleConnectedTo(this.backupButton!)
+      .flexibleConnectedTo(this.backupButton()!)
       .withPositions([{
         originX: 'start',
         originY: 'bottom',
@@ -120,7 +118,7 @@ export class SettingsBackupPage {
       positionStrategy,
       scrollStrategy: this.overlay.scrollStrategies.close()
     });
-    this.backupOptionsRef.attach(new TemplatePortal(this.backupOptionsTemplate, this.viewContainerRef));
+    this.backupOptionsRef.attach(new TemplatePortal(this.backupOptionsTemplate(), this.viewContainerRef));
     this.backupOptionsRef.backdropClick().subscribe(() => this.cancelBackup());
   }
 

@@ -7,7 +7,7 @@ import {
   inject,
   Injector,
   OnInit,
-  ViewChild
+  viewChild
 } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -50,8 +50,7 @@ export class UserPage implements OnInit, HasChanges {
 
   @HostBinding('class') css = 'full-page-form';
 
-  @ViewChild('form')
-  userForm!: UserFormComponent;
+  readonly userForm = viewChild.required<UserFormComponent>('form');
 
   submitted = false;
   profileForm: UntypedFormGroup;
@@ -83,10 +82,10 @@ export class UserPage implements OnInit, HasChanges {
           this.store.view.selectedUser = user;
           if (user) {
             this.profileForm.setControl('user', userForm(this.fb, true));
-            defer(() => this.userForm.setUser(user));
+            defer(() => this.userForm().setUser(user));
           } else {
             this.profileForm.setControl('user', userForm(this.fb, false));
-            defer(() => this.userForm.setUser({
+            defer(() => this.userForm().setUser({
               tag: this.store.view.localTag,
               origin: this.store.view.origin,
               readAccess: this.admin.readAccess.map(t => setPublic(prefix(t, this.store.view.localTag))),

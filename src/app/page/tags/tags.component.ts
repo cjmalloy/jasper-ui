@@ -6,7 +6,7 @@ import {
   Injector,
   OnDestroy,
   OnInit,
-  ViewChild
+  viewChild
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { defer } from 'lodash-es';
@@ -49,8 +49,7 @@ export class TagsPage implements OnInit, OnDestroy, HasChanges {
   title = '';
   templates = this.admin.tmplSubmit.filter(t => t.config?.view);
 
-  @ViewChild('list')
-  list?: ExtListComponent;
+  readonly list = viewChild<ExtListComponent>('list');
 
   constructor() {
     const mod = this.mod;
@@ -90,7 +89,8 @@ export class TagsPage implements OnInit, OnDestroy, HasChanges {
   }
 
   saveChanges() {
-    return !this.list || this.list.saveChanges();
+    const list = this.list();
+    return !list || list.saveChanges();
   }
 
   ngOnDestroy() {

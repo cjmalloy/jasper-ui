@@ -6,7 +6,7 @@ import {
   Injector,
   OnDestroy,
   OnInit,
-  ViewChild
+  viewChild
 } from '@angular/core';
 import { defer } from 'lodash-es';
 import { UserListComponent } from '../../../component/user/user-list/user-list.component';
@@ -36,8 +36,7 @@ export class SettingsUserPage implements OnInit, OnDestroy, HasChanges {
   query = inject(UserStore);
 
 
-  @ViewChild('list')
-  list?: UserListComponent;
+  readonly list = viewChild<UserListComponent>('list');
 
   constructor() {
     const mod = this.mod;
@@ -76,7 +75,8 @@ export class SettingsUserPage implements OnInit, OnDestroy, HasChanges {
   }
 
   saveChanges() {
-    return !this.list || this.list.saveChanges();
+    const list = this.list();
+    return !list || list.saveChanges();
   }
 
   ngOnDestroy() {

@@ -10,9 +10,8 @@ import {
   input,
   OnChanges,
   OnDestroy,
-  QueryList,
   SimpleChanges,
-  ViewChildren
+  viewChildren
 } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -71,8 +70,7 @@ export class KanbanComponent implements OnChanges, OnDestroy, HasChanges {
   private tags = inject(TaggingService);
 
 
-  @ViewChildren(KanbanColumnComponent)
-  list?: QueryList<KanbanColumnComponent>;
+  readonly list = viewChildren(KanbanColumnComponent);
 
   readonly query = input<string>();
   @Input()
@@ -94,7 +92,7 @@ export class KanbanComponent implements OnChanges, OnDestroy, HasChanges {
   };
 
   saveChanges() {
-    return !this.list?.find(r => !r.saveChanges());
+    return !this.list()?.find(r => !r.saveChanges());
   }
 
   ngOnChanges(changes: SimpleChanges) {

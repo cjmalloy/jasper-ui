@@ -1,7 +1,7 @@
 <form class="form"
       [formGroup]="textForm"
       (ngSubmit)="submit()"
-      [appLimitWidth]="advancedForm?.fill?.nativeElement || (fill || fillCustom)?.nativeElement"
+      [appLimitWidth]="advancedForm?.fill()?.nativeElement || (fill() || fillCustom())?.nativeElement"
       [limitSibling]="true">
 
   @if (defaults?.url || loadingDefaults.length) {

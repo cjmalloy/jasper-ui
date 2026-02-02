@@ -7,7 +7,7 @@ import {
   inject,
   Input,
   OnDestroy,
-  ViewChild
+  viewChild
 } from '@angular/core';
 import { FormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { uniq, without } from 'lodash-es';
@@ -50,8 +50,7 @@ export class CommentEditComponent implements AfterViewInit, HasChanges, OnDestro
   @Input()
   commentEdited$!: Subject<Ref>;
 
-  @ViewChild('editor')
-  editor?: EditorComponent;
+  readonly editor = viewChild<EditorComponent>('editor');
 
   editing?: Subscription;
   commentForm: UntypedFormGroup;

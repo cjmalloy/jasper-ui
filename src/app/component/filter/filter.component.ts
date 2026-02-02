@@ -7,7 +7,7 @@ import {
   input,
   OnChanges,
   SimpleChanges,
-  ViewChild
+  viewChild
 } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -45,8 +45,7 @@ export class FilterComponent implements OnChanges {
   private editor = inject(EditorService);
 
 
-  @ViewChild('create')
-  create?: ElementRef<HTMLSelectElement>;
+  readonly create = viewChild<ElementRef<HTMLSelectElement>>('create');
 
   readonly activeExts = input<Ext[]>([]);
   readonly type = input<Type>();
@@ -319,7 +318,7 @@ export class FilterComponent implements OnChanges {
     if (value) {
       if (!this.filters) this.filters = [];
       this.filters.push(value);
-      this.create!.nativeElement.selectedIndex = 0;
+      this.create()!.nativeElement.selectedIndex = 0;
       this.setFilters();
     }
   }

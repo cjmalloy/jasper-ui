@@ -6,7 +6,7 @@ import {
   Injector,
   OnDestroy,
   OnInit,
-  ViewChild
+  viewChild
 } from '@angular/core';
 import { Router } from '@angular/router';
 import { defer } from 'lodash-es';
@@ -38,8 +38,7 @@ export class InboxReportsPage implements OnInit, OnDestroy, HasChanges {
   private router = inject(Router);
 
 
-  @ViewChild('list')
-  list?: RefListComponent;
+  readonly list = viewChild<RefListComponent>('list');
 
   constructor() {
     const mod = this.mod;
@@ -70,7 +69,8 @@ export class InboxReportsPage implements OnInit, OnDestroy, HasChanges {
   }
 
   saveChanges() {
-    return !this.list || this.list.saveChanges();
+    const list = this.list();
+    return !list || list.saveChanges();
   }
 
   ngOnDestroy() {

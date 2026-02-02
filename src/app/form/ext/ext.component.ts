@@ -9,7 +9,7 @@ import {
   input,
   OnDestroy,
   output,
-  ViewChild
+  viewChild
 } from '@angular/core';
 import {
   FormArray,
@@ -73,14 +73,10 @@ export class ExtFormComponent implements OnDestroy {
   readonly showClear = input(false);
   readonly clear = output<void>();
 
-  @ViewChild('fillPopover')
-  fillPopover?: ElementRef;
-  @ViewChild('fillSidebar')
-  fillSidebar?: ElementRef;
-  @ViewChild('mainFormlyForm')
-  mainFormlyForm?: FormlyForm;
-  @ViewChild('advancedFormlyForm')
-  advancedFormlyForm?: FormlyForm;
+  readonly fillPopover = viewChild<ElementRef>('fillPopover');
+  readonly fillSidebar = viewChild<ElementRef>('fillSidebar');
+  readonly mainFormlyForm = viewChild<FormlyForm>('mainFormlyForm');
+  readonly advancedFormlyForm = viewChild<FormlyForm>('advancedFormlyForm');
 
   id = 'ext-' + uuid();
   form?: FormlyFieldConfig[];
@@ -217,22 +213,24 @@ export class ExtFormComponent implements OnDestroy {
   }
 
   private setModel(ext: Ext) {
-    if (!this.mainFormlyForm || !this.advancedFormlyForm) {
+    const mainFormlyForm = this.mainFormlyForm();
+    const advancedFormlyForm = this.advancedFormlyForm();
+    if (!mainFormlyForm || !advancedFormlyForm) {
       this.cd.markForCheck();
       defer(() => this.setModel(ext));
       return;
     }
     this.group!.patchValue(ext);
     this.options.formState.config = ext.config;
-    this.mainFormlyForm!.model = ext.config;
+    mainFormlyForm!.model = ext.config;
     // TODO: Why aren't changed being detected?
     // @ts-ignore
-    this.mainFormlyForm.builder.build(this.mainFormlyForm.field);
-    if (this.advancedFormlyForm) {
-      this.advancedFormlyForm!.model = ext.config;
+    mainFormlyForm.builder.build(mainFormlyForm.field);
+    if (advancedFormlyForm) {
+      advancedFormlyForm!.model = ext.config;
       // TODO: Why aren't changed being detected?
       // @ts-ignore
-      this.advancedFormlyForm.builder.build(this.advancedFormlyForm.field);
+      advancedFormlyForm.builder.build(advancedFormlyForm.field);
     }
     this.config.valueChanges.pipe(
       takeUntil(this.destroy$),

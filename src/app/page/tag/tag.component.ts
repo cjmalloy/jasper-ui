@@ -7,7 +7,7 @@ import {
   Injector,
   OnDestroy,
   OnInit,
-  ViewChild
+  viewChild
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { isEqual, uniq } from 'lodash-es';
@@ -53,8 +53,7 @@ export class TagPage implements OnInit, OnDestroy, HasChanges {
 
   loading = true;
 
-  @ViewChild('lens')
-  lens?: LensComponent;
+  readonly lens = viewChild<LensComponent>('lens');
 
   constructor() {
     this.store.view.clear([
@@ -107,7 +106,8 @@ export class TagPage implements OnInit, OnDestroy, HasChanges {
   }
 
   saveChanges() {
-    return !this.lens || this.lens.saveChanges();
+    const lens = this.lens();
+    return !lens || lens.saveChanges();
   }
 
   ngOnDestroy() {
