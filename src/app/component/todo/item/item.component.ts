@@ -6,6 +6,7 @@ import {
   forwardRef,
   HostBinding,
   HostListener,
+  inject,
   Input,
   Output
 } from '@angular/core';
@@ -26,6 +27,10 @@ import { MdComponent } from '../../md/md.component';
   ]
 })
 export class TodoItemComponent {
+  private store = inject(Store);
+  config = inject(ConfigService);
+  private el = inject(ElementRef);
+
 
   @HostBinding('class.unlocked')
   unlocked = false;
@@ -46,12 +51,6 @@ export class TodoItemComponent {
   hovering = false;
 
   private _line = '';
-
-  constructor(
-    private store: Store,
-    public config: ConfigService,
-    private el: ElementRef,
-  ) { }
 
   get local() {
     return this.origin === this.store.account.origin;

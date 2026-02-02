@@ -1,4 +1,13 @@
-import { ChangeDetectionStrategy, Component, effect, Injector, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  effect,
+  inject,
+  Injector,
+  OnDestroy,
+  OnInit,
+  ViewChild
+} from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { defer } from 'lodash-es';
 
@@ -28,6 +37,14 @@ import { braces, getPrefixes, hasPrefix, publicTag } from '../../util/tag';
   ]
 })
 export class TagsPage implements OnInit, OnDestroy, HasChanges {
+  private injector = inject(Injector);
+  private mod = inject(ModService);
+  admin = inject(AdminService);
+  store = inject(Store);
+  query = inject(ExtStore);
+  private auth = inject(AuthzService);
+  private exts = inject(ExtService);
+
 
   title = '';
   templates = this.admin.tmplSubmit.filter(t => t.config?.view);
@@ -35,15 +52,11 @@ export class TagsPage implements OnInit, OnDestroy, HasChanges {
   @ViewChild('list')
   list?: ExtListComponent;
 
-  constructor(
-    private injector: Injector,
-    private mod: ModService,
-    public admin: AdminService,
-    public store: Store,
-    public query: ExtStore,
-    private auth: AuthzService,
-    private exts: ExtService,
-  ) {
+  constructor() {
+    const mod = this.mod;
+    const store = this.store;
+    const query = this.query;
+
     mod.setTitle($localize`Tags`);
     store.view.clear(['tag:len', 'tag'], ['tag:len', 'tag']);
     query.clear();

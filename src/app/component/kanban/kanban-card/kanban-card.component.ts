@@ -11,6 +11,7 @@ import {
   forwardRef,
   HostBinding,
   HostListener,
+  inject,
   Input,
   OnChanges,
   OnDestroy,
@@ -65,6 +66,19 @@ import TodoComponent from '../../todo/todo.component';
   ],
 })
 export class KanbanCardComponent implements OnChanges, AfterViewInit, OnDestroy {
+  store = inject(Store);
+  bookmarks = inject(BookmarkService);
+  private admin = inject(AdminService);
+  private config = inject(ConfigService);
+  private auth = inject(AuthzService);
+  private refs = inject(RefService);
+  private tags = inject(TaggingService);
+  private editor = inject(EditorService);
+  private accounts = inject(AccountService);
+  private overlay = inject(Overlay);
+  private el = inject(ElementRef);
+  private viewContainerRef = inject(ViewContainerRef);
+
   private destroy$ = new Subject<void>();
 
   @HostBinding('class.unlocked')
@@ -96,21 +110,6 @@ export class KanbanCardComponent implements OnChanges, AfterViewInit, OnDestroy 
   cardMenu!: TemplateRef<any>;
 
   private overlayEvents?: Subscription;
-
-  constructor(
-    public store: Store,
-    public bookmarks: BookmarkService,
-    private admin: AdminService,
-    private config: ConfigService,
-    private auth: AuthzService,
-    private refs: RefService,
-    private tags: TaggingService,
-    private editor: EditorService,
-    private accounts: AccountService,
-    private overlay: Overlay,
-    private el: ElementRef,
-    private viewContainerRef: ViewContainerRef,
-  ) { }
 
   init() {
     MemoCache.clear(this);

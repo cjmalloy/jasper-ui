@@ -11,6 +11,7 @@ import {
   forwardRef,
   HostBinding,
   HostListener,
+  inject,
   Input,
   OnChanges,
   OnDestroy,
@@ -62,6 +63,18 @@ import TodoComponent from '../../todo/todo.component';
   ],
 })
 export class NoteComponent implements OnChanges, AfterViewInit, OnDestroy {
+  store = inject(Store);
+  bookmarks = inject(BookmarkService);
+  private admin = inject(AdminService);
+  private config = inject(ConfigService);
+  private auth = inject(AuthzService);
+  private refs = inject(RefService);
+  private tags = inject(TaggingService);
+  private exts = inject(ExtService);
+  private overlay = inject(Overlay);
+  private el = inject(ElementRef);
+  private viewContainerRef = inject(ViewContainerRef);
+
   private destroy$ = new Subject<void>();
 
   @HostBinding('class.unlocked')
@@ -91,20 +104,6 @@ export class NoteComponent implements OnChanges, AfterViewInit, OnDestroy {
   cardMenu!: TemplateRef<any>;
 
   private overlayEvents?: Subscription;
-
-  constructor(
-    public store: Store,
-    public bookmarks: BookmarkService,
-    private admin: AdminService,
-    private config: ConfigService,
-    private auth: AuthzService,
-    private refs: RefService,
-    private tags: TaggingService,
-    private exts: ExtService,
-    private overlay: Overlay,
-    private el: ElementRef,
-    private viewContainerRef: ViewContainerRef,
-  ) { }
 
   init() {
     MemoCache.clear(this);

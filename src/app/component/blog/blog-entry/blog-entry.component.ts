@@ -6,6 +6,7 @@ import {
   effect,
   forwardRef,
   HostBinding,
+  inject,
   Input,
   OnChanges,
   OnDestroy,
@@ -83,6 +84,17 @@ import { ViewerComponent } from '../../viewer/viewer.component';
   ],
 })
 export class BlogEntryComponent implements OnChanges, OnDestroy, HasChanges {
+  private config = inject(ConfigService);
+  admin = inject(AdminService);
+  store = inject(Store);
+  private auth = inject(AuthzService);
+  private editor = inject(EditorService);
+  private refs = inject(RefService);
+  private exts = inject(ExtService);
+  private bookmarks = inject(BookmarkService);
+  private ts = inject(TaggingService);
+  private fb = inject(UntypedFormBuilder);
+
   @HostBinding('attr.tabindex') tabIndex = 0;
   private destroy$ = new Subject<void>();
 
@@ -111,18 +123,9 @@ export class BlogEntryComponent implements OnChanges, OnDestroy, HasChanges {
 
   submitting?: Subscription;
 
-  constructor(
-    private config: ConfigService,
-    public admin: AdminService,
-    public store: Store,
-    private auth: AuthzService,
-    private editor: EditorService,
-    private refs: RefService,
-    private exts: ExtService,
-    private bookmarks: BookmarkService,
-    private ts: TaggingService,
-    private fb: UntypedFormBuilder,
-  ) {
+  constructor() {
+    const fb = this.fb;
+
     this.editForm = refForm(fb);
     effect(() => {
       if (this.store.eventBus.event === 'refresh') {

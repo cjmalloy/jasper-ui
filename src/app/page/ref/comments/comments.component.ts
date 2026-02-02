@@ -1,4 +1,13 @@
-import { ChangeDetectionStrategy, Component, effect, Injector, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  effect,
+  inject,
+  Injector,
+  OnDestroy,
+  OnInit,
+  ViewChild
+} from '@angular/core';
 import { uniq } from 'lodash-es';
 
 import { Subject } from 'rxjs';
@@ -28,18 +37,21 @@ import { hasTag, removeTag, updateMetadata } from '../../../util/tag';
   ],
 })
 export class RefCommentsComponent implements OnInit, OnDestroy, HasChanges {
+  private injector = inject(Injector);
+  private mod = inject(ModService);
+  store = inject(Store);
+  thread = inject(ThreadStore);
+  private admin = inject(AdminService);
+
   newComments$ = new Subject<Ref | undefined>();
 
   @ViewChild('reply')
   reply?: CommentReplyComponent;
 
-  constructor(
-    private injector: Injector,
-    private mod: ModService,
-    public store: Store,
-    public thread: ThreadStore,
-    private admin: AdminService,
-  ) {
+  constructor() {
+    const store = this.store;
+    const thread = this.thread;
+
     thread.clear();
     store.view.defaultSort = ['published'];
   }

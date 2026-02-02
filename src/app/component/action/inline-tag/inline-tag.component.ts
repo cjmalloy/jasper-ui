@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, Input } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { debounce } from 'lodash-es';
 import { catchError, forkJoin, map, Observable, of, Subscription, switchMap } from 'rxjs';
@@ -22,6 +22,11 @@ import { ActionComponent } from '../action.component';
   imports: [ReactiveFormsModule, AutofocusDirective, LoadingComponent]
 })
 export class InlineTagComponent extends ActionComponent {
+  private store = inject(Store);
+  private admin = inject(AdminService);
+  private editor = inject(EditorService);
+  private exts = inject(ExtService);
+
   tagsRegex = TAGS_REGEX.source;
 
   @Input()
@@ -33,15 +38,6 @@ export class InlineTagComponent extends ActionComponent {
   autocomplete: { value: string; label: string }[] = [];
 
   private searching?: Subscription;
-
-  constructor(
-    private store: Store,
-    private admin: AdminService,
-    private editor: EditorService,
-    private exts: ExtService,
-  ) {
-    super();
-  }
 
 
   override reset() {

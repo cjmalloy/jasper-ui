@@ -1,5 +1,5 @@
 import { CdkDrag } from '@angular/cdk/drag-drop';
-import { ChangeDetectionStrategy, Component, ElementRef, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, inject, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { Router } from '@angular/router';
 import { mapValues } from 'lodash-es';
 import { catchError, of, Subscription } from 'rxjs';
@@ -28,6 +28,11 @@ import { SubfolderComponent } from './subfolder/subfolder.component';
   ],
 })
 export class FolderComponent implements OnChanges, HasChanges {
+  private store = inject(Store);
+  private router = inject(Router);
+  private exts = inject(ExtService);
+  private el = inject<ElementRef<HTMLElement>>(ElementRef);
+
 
   @Input()
   tag?: string;
@@ -51,15 +56,6 @@ export class FolderComponent implements OnChanges, HasChanges {
 
   private _page?: Page<Ref>;
   private folderSubscription?: Subscription;
-
-  // TODO: handle resize moving relatively positioned moved tiles
-
-  constructor(
-    private store: Store,
-    private router: Router,
-    private exts: ExtService,
-    private el: ElementRef<HTMLElement>,
-  ) { }
 
   saveChanges() {
     // TODO

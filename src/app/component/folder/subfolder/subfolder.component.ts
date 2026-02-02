@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, HostBinding, Input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, HostBinding, inject, Input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Ext } from '../../../model/ext';
 import { Action, Icon } from '../../../model/tag';
@@ -15,6 +15,10 @@ import { Store } from '../../../store/store';
   imports: [RouterLink]
 })
 export class SubfolderComponent {
+  admin = inject(AdminService);
+  store = inject(Store);
+  private query = inject(QueryStore);
+
   @HostBinding('attr.tabindex') tabIndex = 0;
 
   @Input()
@@ -27,12 +31,6 @@ export class SubfolderComponent {
   submitted = false;
   icons: Icon[] = [];
   actions: Action[] = [];
-
-  constructor(
-    public admin: AdminService,
-    public store: Store,
-    private query: QueryStore,
-  ) { }
 
   get thumbnail() {
     // TODO: Thumbnail in config

@@ -3,6 +3,7 @@ import {
   Component,
   ElementRef,
   EventEmitter,
+  inject,
   Input,
   OnChanges,
   Output,
@@ -25,6 +26,9 @@ import { AuthzService } from '../../service/authz.service';
   imports: [ReactiveFormsModule]
 })
 export class SelectPluginComponent implements OnChanges {
+  private admin = inject(AdminService);
+  private auth = inject(AuthzService);
+
 
   @Input()
   id = 'plugin-' + uuid();
@@ -47,11 +51,6 @@ export class SelectPluginComponent implements OnChanges {
 
   customPlugin?: Plugin;
   plugins: Plugin[] = [];
-
-  constructor(
-    private admin: AdminService,
-    private auth: AuthzService,
-  ) {  }
 
   ngOnChanges(changes: SimpleChanges) {
     this.plugins = uniqBy([

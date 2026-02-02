@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { effect, Injectable, signal } from '@angular/core';
+import { effect, inject, Injectable, signal } from '@angular/core';
 import { isEqual, omit } from 'lodash-es';
 import { catchError, Subscription, throwError } from 'rxjs';
 import { Page } from '../model/page';
@@ -10,6 +10,8 @@ import { RefService } from '../service/api/ref.service';
   providedIn: 'root'
 })
 export class QueryStore {
+  private refs = inject(RefService);
+
 
   private _args = signal<RefPageArgs | undefined>(undefined, { equal: isEqual });
   private _sourcesOf = signal<Ref | undefined>(undefined);
@@ -22,9 +24,7 @@ export class QueryStore {
   private runningSources?: Subscription;
   private runningResponses?: Subscription;
 
-  constructor(
-    private refs: RefService,
-  ) {
+  constructor() {
     effect(() => {
       const args = this._args();
       this._refresh(); // Track refresh signal

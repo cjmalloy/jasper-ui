@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, ElementRef, Input, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, inject, Input, OnDestroy, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 import { AdminService } from '../../service/admin.service';
@@ -18,6 +18,14 @@ import { hasPrefix } from '../../util/tag';
   imports: [RouterLink]
 })
 export class NavComponent implements OnInit, OnDestroy {
+  private config = inject(ConfigService);
+  private admin = inject(AdminService);
+  private refs = inject(RefService);
+  private ts = inject(TaggingService);
+  private editor = inject(EditorService);
+  private vis = inject(VisibilityService);
+  private el = inject(ElementRef);
+
   private destroy$ = new Subject<void>();
 
   @Input()
@@ -32,16 +40,6 @@ export class NavComponent implements OnInit, OnDestroy {
   external = false;
 
   nav?: (string|number)[];
-
-  constructor(
-    private config: ConfigService,
-    private admin: AdminService,
-    private refs: RefService,
-    private ts: TaggingService,
-    private editor: EditorService,
-    private vis: VisibilityService,
-    private el: ElementRef,
-  ) { }
 
   ngOnInit() {
     if (this.localUrl) {

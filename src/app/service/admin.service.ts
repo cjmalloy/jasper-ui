@@ -1,4 +1,4 @@
-import { effect, Injectable } from '@angular/core';
+import { effect, inject, Injectable } from '@angular/core';
 import { FormlyFieldConfig } from '@ngx-formly/core';
 import { Schema, validate } from 'jtd';
 import { identity, isEqual, reduce, uniq } from 'lodash-es';
@@ -98,6 +98,15 @@ import { ConfigService } from './config.service';
   providedIn: 'root',
 })
 export class AdminService {
+  private config = inject(ConfigService);
+  private auth = inject(AuthzService);
+  private refs = inject(RefService);
+  private exts = inject(ExtService);
+  private users = inject(UserService);
+  private plugins = inject(PluginService);
+  private templates = inject(TemplateService);
+  private store = inject(Store);
+
 
   status = {
     plugins: <Record<string, Plugin>> {},
@@ -195,16 +204,9 @@ export class AdminService {
   _cache = new Map<string, any>();
   private firstRun = false;
 
-  constructor(
-    private config: ConfigService,
-    private auth: AuthzService,
-    private refs: RefService,
-    private exts: ExtService,
-    private users: UserService,
-    private plugins: PluginService,
-    private templates: TemplateService,
-    private store: Store,
-  ) {
+  constructor() {
+    const store = this.store;
+
     effect(() => {
       const mod = this.store.eventBus.ref?.plugins?.['plugin/mod'];
       if (this.store.eventBus.event === 'install') {

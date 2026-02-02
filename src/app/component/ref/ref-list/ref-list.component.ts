@@ -2,6 +2,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   forwardRef,
+  inject,
   Input,
   OnDestroy,
   OnInit,
@@ -36,6 +37,11 @@ import { RefComponent } from '../ref.component';
   ],
 })
 export class RefListComponent implements OnInit, OnDestroy, HasChanges {
+  private accounts = inject(AccountService);
+  private router = inject(Router);
+  private store = inject(Store);
+  private refs = inject(RefService);
+
   private destroy$ = new Subject<void>();
 
   @Input()
@@ -75,13 +81,6 @@ export class RefListComponent implements OnInit, OnDestroy, HasChanges {
   private _ext?: Ext;
   private _expanded?: boolean;
   private _cols = 0;
-
-  constructor(
-    private accounts: AccountService,
-    private router: Router,
-    private store: Store,
-    private refs: RefService,
-  ) { }
 
   saveChanges() {
     return !this.list?.find(r => !r.saveChanges());

@@ -4,6 +4,7 @@ import {
   Component,
   forwardRef,
   HostBinding,
+  inject,
   Input,
   OnChanges,
   OnDestroy,
@@ -49,6 +50,11 @@ import { ViewerComponent } from '../../viewer/viewer.component';
   ],
 })
 export class FileComponent implements OnChanges, OnDestroy {
+  admin = inject(AdminService);
+  private refs = inject(RefService);
+  store = inject(Store);
+  private auth = inject(AuthzService);
+
   css = 'file ';
   @HostBinding('attr.tabindex') tabIndex = 0;
   private destroy$ = new Subject<void>();
@@ -75,13 +81,6 @@ export class FileComponent implements OnChanges, OnDestroy {
   writeAccess = false;
   taggingAccess = false;
   serverError: string[] = [];
-
-  constructor(
-    public admin: AdminService,
-    private refs: RefService,
-    public store: Store,
-    private auth: AuthzService,
-  ) { }
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes.ref) {

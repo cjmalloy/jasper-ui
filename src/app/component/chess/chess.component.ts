@@ -7,6 +7,7 @@ import {
   EventEmitter,
   HostBinding,
   HostListener,
+  inject,
   Input,
   OnChanges,
   OnDestroy,
@@ -38,6 +39,11 @@ type AnimationState = { from: Square; to: Square; capture?: { square: Square; pi
   imports: [CdkDropList, CdkDrag]
 })
 export class ChessComponent implements OnInit, OnChanges, OnDestroy {
+  config = inject(ConfigService);
+  private actions = inject(ActionService);
+  private store = inject(Store);
+  private el = inject<ElementRef<HTMLDivElement>>(ElementRef);
+
 
   @Input()
   ref?: Ref;
@@ -73,12 +79,7 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
   private board?: string;
   private retry: string[] = [];
 
-  constructor(
-    public config: ConfigService,
-    private actions: ActionService,
-    private store: Store,
-    private el: ElementRef<HTMLDivElement>,
-  ) {
+  constructor() {
     effect(() => {
       if (this.store.eventBus.event === 'flip' && this.store.eventBus.ref?.url === this.ref?.url) {
         this.flip = true;

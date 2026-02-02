@@ -1,5 +1,14 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, EventEmitter, forwardRef, Input, Output, ViewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  EventEmitter,
+  forwardRef,
+  inject,
+  Input,
+  Output,
+  ViewChild
+} from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { pickBy, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
@@ -34,6 +43,12 @@ import { LoadingComponent } from '../../loading/loading.component';
   ]
 })
 export class CommentReplyComponent implements HasChanges {
+  admin = inject(AdminService);
+  store = inject(Store);
+  private refs = inject(RefService);
+  private ts = inject(TaggingService);
+  private fb = inject(FormBuilder);
+
 
   @Input()
   to!: Ref;
@@ -60,13 +75,9 @@ export class CommentReplyComponent implements HasChanges {
   serverError: string[] = [];
   config = this.admin.getPlugin('plugin/comment')?.config || commentPlugin.config!;
 
-  constructor(
-    public admin: AdminService,
-    public store: Store,
-    private refs: RefService,
-    private ts: TaggingService,
-    private fb: FormBuilder,
-  ) {
+  constructor() {
+    const fb = this.fb;
+
     this.commentForm = fb.group({
       comment: [''],
     });

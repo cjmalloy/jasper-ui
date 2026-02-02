@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, inject, Input, Output, ViewChild } from '@angular/core';
 import { FormBuilder, UntypedFormGroup } from '@angular/forms';
 import { defer } from 'lodash-es';
 import { catchError, Observable, of } from 'rxjs';
@@ -18,6 +18,9 @@ import { ActionComponent } from '../action.component';
   imports: [GenFormComponent, LoadingComponent]
 })
 export class InlinePluginComponent extends ActionComponent {
+  admin = inject(AdminService);
+  private fb = inject(FormBuilder);
+
 
   @Input()
   action: (plugins: any) => Observable<any|never> = () => of(null);
@@ -32,13 +35,6 @@ export class InlinePluginComponent extends ActionComponent {
   acting = false;
 
   group: UntypedFormGroup = this.fb.group({});
-
-  constructor(
-    public admin: AdminService,
-    private fb: FormBuilder,
-  ) {
-    super();
-  }
 
   @ViewChild('gen')
   set gen(c: GenFormComponent) {

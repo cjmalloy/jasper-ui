@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { delay } from 'lodash-es';
 import { catchError, concat, map, Observable, of, shareReplay, Subject, switchMap, toArray } from 'rxjs';
 import { tap } from 'rxjs/operators';
@@ -21,17 +21,15 @@ export const EXT_BATCH_SIZE = 50;
   providedIn: 'root',
 })
 export class ExtService {
+  private http = inject(HttpClient);
+  private config = inject(ConfigService);
+  private login = inject(LoginService);
+  private store = inject(Store);
+
 
   private _cache = new Map<string, Observable<Ext>>();
   private _batchQueue: Array<{ key: string; tag: string; origin?: string; subject: Subject<Ext> }> = [];
   private _batchTimer?: any;
-
-  constructor(
-    private http: HttpClient,
-    private config: ConfigService,
-    private login: LoginService,
-    private store: Store,
-  ) { }
 
   private get base() {
     return this.config.api + '/api/v1/ext';

@@ -1,7 +1,9 @@
-import { Directive, ElementRef, HostBinding, HostListener, Input } from '@angular/core';
+import { Directive, ElementRef, HostBinding, HostListener, inject, Input } from '@angular/core';
 
 @Directive({ selector: '[appResize]' })
 export class ResizeDirective {
+  private el = inject(ElementRef);
+
 
   @Input('appResize')
   enabled?: boolean;
@@ -32,10 +34,6 @@ export class ResizeDirective {
   dragging = false;
   wasDragging = false;
   dirty = false;
-
-  constructor(
-    private el: ElementRef,
-  ) { }
 
   @HostListener('mousedown', ['$event'])
   onMousedown(e: MouseEvent) {

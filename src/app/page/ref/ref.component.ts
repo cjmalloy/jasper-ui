@@ -1,4 +1,13 @@
-import { ChangeDetectionStrategy, Component, effect, Injector, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  effect,
+  inject,
+  Injector,
+  OnDestroy,
+  OnInit,
+  ViewChild
+} from '@angular/core';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { pickBy, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
@@ -37,6 +46,15 @@ import { hasTag, privateTag, top } from '../../util/tag';
   ],
 })
 export class RefPage implements OnInit, OnDestroy, HasChanges {
+  private injector = inject(Injector);
+  config = inject(ConfigService);
+  admin = inject(AdminService);
+  store = inject(Store);
+  private refs = inject(RefService);
+  private ts = inject(TaggingService);
+  private router = inject(Router);
+  private stomp = inject(StompService);
+
   private destroy$ = new Subject<void>();
 
   @ViewChild('ref')
@@ -48,17 +66,6 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
   private watchUrl = '';
   private watchResponses?: Subscription;
   private seen = new Set<string>();
-
-  constructor(
-    private injector: Injector,
-    public config: ConfigService,
-    public admin: AdminService,
-    public store: Store,
-    private refs: RefService,
-    private ts: TaggingService,
-    private router: Router,
-    private stomp: StompService,
-  ) { }
 
   saveChanges() {
     return !this.ref || this.ref.saveChanges();

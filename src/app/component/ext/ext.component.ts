@@ -5,6 +5,7 @@ import {
   Component,
   forwardRef,
   HostBinding,
+  inject,
   Input,
   OnChanges,
   QueryList,
@@ -56,6 +57,14 @@ import { ConfirmActionComponent } from '../action/confirm-action/confirm-action.
   ],
 })
 export class ExtComponent implements OnChanges, HasChanges {
+  admin = inject(AdminService);
+  store = inject(Store);
+  private auth = inject(AuthzService);
+  private exts = inject(ExtService);
+  private editor = inject(EditorService);
+  bookmarks = inject(BookmarkService);
+  private fb = inject(UntypedFormBuilder);
+
   @HostBinding('attr.tabindex') tabIndex = 0;
 
   @ViewChildren('action')
@@ -82,16 +91,6 @@ export class ExtComponent implements OnChanges, HasChanges {
   serverError: string[] = [];
 
   private overwrittenModified? = '';
-
-  constructor(
-    public admin: AdminService,
-    public store: Store,
-    private auth: AuthzService,
-    private exts: ExtService,
-    private editor: EditorService,
-    public bookmarks: BookmarkService,
-    private fb: UntypedFormBuilder,
-  ) { }
 
   saveChanges() {
     return !this.editForm?.dirty;

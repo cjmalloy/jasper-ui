@@ -4,6 +4,7 @@ import {
   Component,
   effect,
   HostBinding,
+  inject,
   Injector,
   OnDestroy,
   OnInit,
@@ -53,6 +54,14 @@ import { access, hasPrefix, localTag, prefix } from '../../util/tag';
   ],
 })
 export class ExtPage implements OnInit, OnDestroy, HasChanges {
+  private injector = inject(Injector);
+  private mod = inject(ModService);
+  private admin = inject(AdminService);
+  router = inject(Router);
+  store = inject(Store);
+  private exts = inject(ExtService);
+  private fb = inject(UntypedFormBuilder);
+
 
   @HostBinding('class') css = 'full-page-form';
 
@@ -77,15 +86,10 @@ export class ExtPage implements OnInit, OnDestroy, HasChanges {
 
   private overwrittenModified? = '';
 
-  constructor(
-    private injector: Injector,
-    private mod: ModService,
-    private admin: AdminService,
-    public router: Router,
-    public store: Store,
-    private exts: ExtService,
-    private fb: UntypedFormBuilder,
-  ) {
+  constructor() {
+    const mod = this.mod;
+    const fb = this.fb;
+
     mod.setTitle($localize`Edit Tag`);
     this.extForm = fb.group({
       tag: ['', [Validators.pattern(TAG_SUFFIX_REGEX)]],

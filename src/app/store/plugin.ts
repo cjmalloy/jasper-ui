@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { effect, Injectable, signal } from '@angular/core';
+import { effect, inject, Injectable, signal } from '@angular/core';
 import { isEqual, omit } from 'lodash-es';
 import { catchError, Subscription, throwError } from 'rxjs';
 import { Page } from '../model/page';
@@ -11,6 +11,8 @@ import { PluginService } from '../service/api/plugin.service';
   providedIn: 'root'
 })
 export class PluginStore {
+  private plugins = inject(PluginService);
+
 
   private _args = signal<TagPageArgs | undefined>(undefined, { equal: isEqual });
   private _page = signal<Page<Plugin> | undefined>(undefined);
@@ -19,9 +21,7 @@ export class PluginStore {
 
   private running?: Subscription;
 
-  constructor(
-    private plugins: PluginService,
-  ) {
+  constructor() {
     effect(() => {
       const args = this._args();
       this._refresh(); // Track refresh signal

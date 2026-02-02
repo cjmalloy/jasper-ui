@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Input, OnDestroy, QueryList, ViewChildren } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, Input, OnDestroy, QueryList, ViewChildren } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, forkJoin, of, Subject, takeUntil } from 'rxjs';
 import { HasChanges } from '../../guard/pending-changes.guard';
@@ -25,6 +25,10 @@ import { BlogEntryComponent } from './blog-entry/blog-entry.component';
   ],
 })
 export class BlogComponent implements HasChanges, OnDestroy {
+  private router = inject(Router);
+  private store = inject(Store);
+  private refs = inject(RefService);
+
   private destroy$ = new Subject<void>();
 
   @Input()
@@ -42,12 +46,6 @@ export class BlogComponent implements HasChanges, OnDestroy {
   private _page?: Page<Ref>;
   private _ext?: Ext;
   private _cols? = 0;
-
-  constructor(
-    private router: Router,
-    private store: Store,
-    private refs: RefService,
-  ) { }
 
   ngOnDestroy() {
     this.destroy$.next();

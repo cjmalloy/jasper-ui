@@ -5,6 +5,7 @@ import {
   Component,
   forwardRef,
   HostBinding,
+  inject,
   Input,
   OnChanges,
   OnDestroy,
@@ -57,6 +58,14 @@ import { ViewerComponent } from '../../viewer/viewer.component';
   ],
 })
 export class ChatEntryComponent implements OnChanges, OnDestroy {
+  private config = inject(ConfigService);
+  admin = inject(AdminService);
+  store = inject(Store);
+  private auth = inject(AuthzService);
+  private exts = inject(ExtService);
+  private ts = inject(TaggingService);
+  private refs = inject(RefService);
+
   @HostBinding('attr.tabindex') tabIndex = 0;
   private destroy$ = new Subject<void>();
 
@@ -79,16 +88,6 @@ export class ChatEntryComponent implements OnChanges, OnDestroy {
   serverError: string[] = [];
 
   private _allowActions = false;
-
-  constructor(
-    private config: ConfigService,
-    public admin: AdminService,
-    public store: Store,
-    private auth: AuthzService,
-    private exts: ExtService,
-    private ts: TaggingService,
-    private refs: RefService,
-  ) { }
 
   init() {
     MemoCache.clear(this);

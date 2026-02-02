@@ -3,6 +3,7 @@ import {
   Component,
   effect,
   ElementRef,
+  inject,
   Input,
   OnChanges,
   SimpleChanges,
@@ -25,6 +26,10 @@ import { convertSort, defaultDesc, SortItem } from '../../util/query';
   imports: [ReactiveFormsModule, FormsModule]
 })
 export class SortComponent implements OnChanges {
+  router = inject(Router);
+  admin = inject(AdminService);
+  store = inject(Store);
+
 
   @ViewChild('create')
   create?: ElementRef<HTMLSelectElement>;
@@ -41,11 +46,9 @@ export class SortComponent implements OnChanges {
   sorts: string[] = [];
   replace = false;
 
-  constructor(
-    public router: Router,
-    public admin: AdminService,
-    public store: Store,
-  ) {
+  constructor() {
+    const router = this.router;
+
     this.type = 'ref';
     effect(() => {
       this.sorts = this.store.view.sort;

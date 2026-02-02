@@ -1,5 +1,14 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, effect, HostBinding, Injector, OnInit, ViewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  effect,
+  HostBinding,
+  inject,
+  Injector,
+  OnInit,
+  ViewChild
+} from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { defer, uniq } from 'lodash-es';
@@ -28,6 +37,16 @@ import { prefix, setPublic } from '../../util/tag';
   imports: [ RouterLink, SettingsComponent, ReactiveFormsModule, LimitWidthDirective, UserFormComponent]
 })
 export class UserPage implements OnInit, HasChanges {
+  private injector = inject(Injector);
+  private mod = inject(ModService);
+  private admin = inject(AdminService);
+  config = inject(ConfigService);
+  router = inject(Router);
+  store = inject(Store);
+  private profiles = inject(ProfileService);
+  private users = inject(UserService);
+  private fb = inject(UntypedFormBuilder);
+
 
   @HostBinding('class') css = 'full-page-form';
 
@@ -39,17 +58,10 @@ export class UserPage implements OnInit, HasChanges {
   serverError: string[] = [];
   externalErrors: string[] = [];
 
-  constructor(
-    private injector: Injector,
-    private mod: ModService,
-    private admin: AdminService,
-    public config: ConfigService,
-    public router: Router,
-    public store: Store,
-    private profiles: ProfileService,
-    private users: UserService,
-    private fb: UntypedFormBuilder,
-  ) {
+  constructor() {
+    const mod = this.mod;
+    const fb = this.fb;
+
     mod.setTitle($localize`Create Profile`);
     this.profileForm = fb.group({
       active: [true],

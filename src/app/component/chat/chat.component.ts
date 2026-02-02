@@ -3,6 +3,7 @@ import { HttpEventType } from '@angular/common/http';
 import {
   ChangeDetectionStrategy,
   Component,
+  inject,
   Input,
   OnChanges,
   OnDestroy,
@@ -75,6 +76,17 @@ export interface ChatUpload {
   ],
 })
 export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
+  config = inject(ConfigService);
+  private accounts = inject(AccountService);
+  admin = inject(AdminService);
+  private store = inject(Store);
+  private auth = inject(AuthzService);
+  private refs = inject(RefService);
+  private editor = inject(EditorService);
+  private stomp = inject(StompService);
+  private proxy = inject(ProxyService);
+  private ts = inject(TaggingService);
+
   private destroy$ = new Subject<void>();
   itemSize = 18.5;
 
@@ -106,19 +118,6 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
   private retries = 0;
   private lastScrolled = 0;
   private watch?: Subscription;
-
-  constructor(
-    public config: ConfigService,
-    private accounts: AccountService,
-    public admin: AdminService,
-    private store: Store,
-    private auth: AuthzService,
-    private refs: RefService,
-    private editor: EditorService,
-    private stomp: StompService,
-    private proxy: ProxyService,
-    private ts: TaggingService,
-  ) { }
 
   saveChanges() {
     //TODO:

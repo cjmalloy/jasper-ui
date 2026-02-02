@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { effect, Injectable, signal } from '@angular/core';
+import { effect, inject, Injectable, signal } from '@angular/core';
 import { isEqual, omit } from 'lodash-es';
 import { catchError, Subscription, throwError } from 'rxjs';
 import { Page } from '../model/page';
@@ -11,6 +11,8 @@ import { UserService } from '../service/api/user.service';
   providedIn: 'root'
 })
 export class UserStore {
+  private users = inject(UserService);
+
 
   private _args = signal<TagPageArgs | undefined>(undefined, { equal: isEqual });
   private _page = signal<Page<User> | undefined>(undefined);
@@ -19,9 +21,7 @@ export class UserStore {
 
   private running?: Subscription;
 
-  constructor(
-    private users: UserService,
-  ) {
+  constructor() {
     effect(() => {
       const args = this._args();
       this._refresh(); // Track refresh signal

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { Ref } from '../../model/ref';
 import { RefService } from '../../service/api/ref.service';
 import { ViewerComponent } from '../viewer/viewer.component';
@@ -13,16 +13,14 @@ import { ViewerComponent } from '../viewer/viewer.component';
   ],
 })
 export class PlaylistComponent implements OnChanges {
+  private refs = inject(RefService);
+
 
   @Input()
   ref?: Ref;
 
   index = 0;
   page?: Ref;
-
-  constructor(
-    private refs: RefService,
-  ) { }
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes.ref?.currentValue?.sources?.length) {

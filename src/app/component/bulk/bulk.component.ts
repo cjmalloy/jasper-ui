@@ -1,6 +1,6 @@
 import { KeyValuePipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, effect, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, inject, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { groupBy, intersection, isEqual, map, pick, uniq } from 'lodash-es';
 import { catchError, concat, last, Observable, of, switchMap } from 'rxjs';
@@ -49,6 +49,22 @@ import { LoadingComponent } from '../loading/loading.component';
   imports: [LoadingComponent, RouterLink, InlineTagComponent, ConfirmActionComponent, InlinePluginComponent, TitleDirective, InlineButtonComponent, KeyValuePipe]
 })
 export class BulkComponent implements OnChanges {
+  admin = inject(AdminService);
+  auth = inject(AuthzService);
+  store = inject(Store);
+  query = inject(QueryStore);
+  ext = inject(ExtStore);
+  user = inject(UserStore);
+  plugin = inject(PluginStore);
+  template = inject(TemplateStore);
+  private refs = inject(RefService);
+  private exts = inject(ExtService);
+  private users = inject(UserService);
+  private plugins = inject(PluginService);
+  private templates = inject(TemplateService);
+  private acts = inject(ActionService);
+  private ts = inject(TaggingService);
+
 
   @Input()
   type: Type = 'ref';
@@ -65,23 +81,7 @@ export class BulkComponent implements OnChanges {
   toggled = false;
   serverError: string[] = [];
 
-  constructor(
-    public admin: AdminService,
-    public auth: AuthzService,
-    public store: Store,
-    public query: QueryStore,
-    public ext: ExtStore,
-    public user: UserStore,
-    public plugin: PluginStore,
-    public template: TemplateStore,
-    private refs: RefService,
-    private exts: ExtService,
-    private users: UserService,
-    private plugins: PluginService,
-    private templates: TemplateService,
-    private acts: ActionService,
-    private ts: TaggingService,
-  ) {
+  constructor() {
     effect(() => {
       MemoCache.clear(this);
       const commonTags = intersection(...map(this.query.page?.content, ref => ref.tags || []));

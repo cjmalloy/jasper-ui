@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 import { AccountService } from '../../service/account.service';
@@ -15,13 +15,17 @@ import { Store } from '../../store/store';
   imports: [ RouterLink]
 })
 export class SettingsComponent {
+  admin = inject(AdminService);
+  config = inject(ConfigService);
+  store = inject(Store);
+  account = inject(AccountService);
 
-  constructor(
-    public admin: AdminService,
-    public config: ConfigService,
-    public store: Store,
-    public account: AccountService,
-  ) {
+
+  constructor() {
+    const admin = this.admin;
+    const store = this.store;
+    const account = this.account;
+
     if (admin.getTemplate('user') && admin.getPlugin('plugin/inbox') && store.account.signedIn) {
       account.checkNotifications();
     }

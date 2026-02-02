@@ -3,6 +3,7 @@ import {
   Component,
   ElementRef,
   EventEmitter,
+  inject,
   Input,
   OnInit,
   Output,
@@ -39,6 +40,8 @@ import { TagsFormComponent } from '../tags/tags.component';
   ]
 })
 export class UserFormComponent implements OnInit {
+  store = inject(Store);
+
 
   @Input()
   group!: UntypedFormGroup;
@@ -73,10 +76,6 @@ export class UserFormComponent implements OnInit {
   editingExternal = false;
 
   private showedError = false;
-
-  constructor(
-    public store: Store,
-  ) { }
 
   ngOnInit(): void {
     this.pubKey.disable();

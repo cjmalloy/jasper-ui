@@ -6,6 +6,7 @@ import {
   Component,
   ElementRef,
   HostBinding,
+  inject,
   Input,
   TemplateRef,
   ViewChild,
@@ -31,6 +32,13 @@ import { ConfirmActionComponent } from '../action/confirm-action/confirm-action.
   imports: [RouterLink, ConfirmActionComponent, ReactiveFormsModule]
 })
 export class BackupComponent {
+  admin = inject(AdminService);
+  backups = inject(BackupService);
+  store = inject(Store);
+  private fb = inject(UntypedFormBuilder);
+  private overlay = inject(Overlay);
+  private viewContainerRef = inject(ViewContainerRef);
+
 
   @Input()
   id!: string;
@@ -52,14 +60,10 @@ export class BackupComponent {
 
   private backupKey = '';
 
-  constructor(
-    public admin: AdminService,
-    public backups: BackupService,
-    public store: Store,
-    private fb: UntypedFormBuilder,
-    private overlay: Overlay,
-    private viewContainerRef: ViewContainerRef,
-  ) {
+  constructor() {
+    const backups = this.backups;
+    const fb = this.fb;
+
     backups.getDownloadKey()
       .subscribe(key => this.backupKey = key);
     this.restoreOptionsForm = fb.group({

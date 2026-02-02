@@ -1,5 +1,5 @@
 import { AsyncPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, effect, Injector, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, inject, Injector, OnDestroy, OnInit } from '@angular/core';
 import {
   AbstractControl,
   AsyncValidatorFn,
@@ -65,6 +65,15 @@ type Validation = { test: (url: string) => Observable<any>; name: string; passed
   ],
 })
 export class SubmitPage implements OnInit, OnDestroy {
+  private injector = inject(Injector);
+  admin = inject(AdminService);
+  private mod = inject(ModService);
+  private router = inject(Router);
+  store = inject(Store);
+  private auth = inject(AuthzService);
+  private refs = inject(RefService);
+  private fb = inject(UntypedFormBuilder);
+
 
   submitForm: UntypedFormGroup;
 
@@ -84,16 +93,12 @@ export class SubmitPage implements OnInit, OnDestroy {
   autocomplete: { value: string, label: string }[] = [];
   private searching?: Subscription;
 
-  constructor(
-    private injector: Injector,
-    public admin: AdminService,
-    private mod: ModService,
-    private router: Router,
-    public store: Store,
-    private auth: AuthzService,
-    private refs: RefService,
-    private fb: UntypedFormBuilder,
-  ) {
+  constructor() {
+    const admin = this.admin;
+    const mod = this.mod;
+    const store = this.store;
+    const fb = this.fb;
+
     mod.setTitle($localize`Submit: Link`);
     this.submitForm = fb.group({
       url: ['', [Validators.required], [this.validator]],

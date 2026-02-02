@@ -5,6 +5,7 @@ import {
   effect,
   ElementRef,
   HostBinding,
+  inject,
   Injector,
   Input,
   OnChanges,
@@ -71,6 +72,19 @@ import { SortComponent } from '../sort/sort.component';
   ]
 })
 export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
+  private injector = inject(Injector);
+  router = inject(Router);
+  admin = inject(AdminService);
+  store = inject(Store);
+  query = inject(QueryStore);
+  config = inject(ConfigService);
+  private auth = inject(AuthzService);
+  private account = inject(AccountService);
+  ts = inject(TaggingService);
+  private exts = inject(ExtService);
+  private templates = inject(TemplateService);
+  private el = inject(ElementRef);
+
   private destroy$ = new Subject<void>();
 
   @Input()
@@ -102,20 +116,9 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
   private _ext?: Ext;
   private lastView = this.store.view.current;
 
-  constructor(
-    private injector: Injector,
-    public router: Router,
-    public admin: AdminService,
-    public store: Store,
-    public query: QueryStore,
-    public config: ConfigService,
-    private auth: AuthzService,
-    private account: AccountService,
-    public ts: TaggingService,
-    private exts: ExtService,
-    private templates: TemplateService,
-    private el: ElementRef,
-  ) {
+  constructor() {
+    const router = this.router;
+
     if (localStorage.getItem('sidebar-expanded') !== null) {
       this.expanded = localStorage.getItem('sidebar-expanded') !== 'false';
     } else {

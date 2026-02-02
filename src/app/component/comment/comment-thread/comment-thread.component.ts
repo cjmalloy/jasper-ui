@@ -3,6 +3,7 @@ import {
   Component,
   effect,
   forwardRef,
+  inject,
   Input,
   OnChanges,
   OnDestroy,
@@ -31,6 +32,9 @@ import { CommentComponent } from '../comment.component';
   ],
 })
 export class CommentThreadComponent implements OnInit, OnChanges, OnDestroy, HasChanges {
+  store = inject(Store);
+  thread = inject(ThreadStore);
+
   private destroy$ = new Subject<void>();
 
   @Input()
@@ -52,10 +56,9 @@ export class CommentThreadComponent implements OnInit, OnChanges, OnDestroy, Has
   comments?: Ref[] = [];
   newComments: Ref[] = [];
 
-  constructor(
-    public store: Store,
-    public thread: ThreadStore,
-  ) {
+  constructor() {
+    const thread = this.thread;
+
     effect(() => {
       if (thread.latest.length) {
         this.comments = thread.cache.get(this.source);

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, ElementRef, Input, Output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, inject, Input, Output } from '@angular/core';
 import { MermaidConfig } from 'mermaid';
 import { MarkdownComponent, MermaidAPI } from 'ngx-markdown';
 import { Subject } from 'rxjs';
@@ -18,6 +18,10 @@ import { Store } from '../../store/store';
   ]
 })
 export class MdComponent {
+  admin = inject(AdminService);
+  store = inject(Store);
+  el = inject(ElementRef);
+
 
   @Input()
   origin? = '';
@@ -45,12 +49,6 @@ export class MdComponent {
 
   private _text = '';
   private _value? = '';
-
-  constructor(
-    public admin: AdminService,
-    public store: Store,
-    public el: ElementRef,
-  ) { }
 
   get text(): string {
     return this._text;

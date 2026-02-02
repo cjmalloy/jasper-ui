@@ -6,6 +6,7 @@ import {
   ChangeDetectorRef,
   Component,
   ElementRef,
+  inject,
   TemplateRef,
   ViewChild,
   ViewContainerRef
@@ -35,6 +36,16 @@ import { printError } from '../../../util/http';
   imports: [ReactiveFormsModule, LoadingComponent, BackupListComponent]
 })
 export class SettingsBackupPage {
+  private mod = inject(ModService);
+  store = inject(Store);
+  private backups = inject(BackupService);
+  private bookmarks = inject(BookmarkService);
+  private origins = inject(OriginService);
+  private fb = inject(UntypedFormBuilder);
+  private overlay = inject(Overlay);
+  private viewContainerRef = inject(ViewContainerRef);
+  private cd = inject(ChangeDetectorRef);
+
 
   @ViewChild('backupButton')
   backupButton!: ElementRef<HTMLButtonElement>;
@@ -50,17 +61,10 @@ export class SettingsBackupPage {
   backupOrigins: string[] = this.store.origins.list;
   backupOptionsRef?: OverlayRef;
 
-  constructor(
-    private mod: ModService,
-    public store: Store,
-    private backups: BackupService,
-    private bookmarks: BookmarkService,
-    private origins: OriginService,
-    private fb: UntypedFormBuilder,
-    private overlay: Overlay,
-    private viewContainerRef: ViewContainerRef,
-    private cd: ChangeDetectorRef,
-  ) {
+  constructor() {
+    const mod = this.mod;
+    const fb = this.fb;
+
     mod.setTitle($localize`Settings: Backup & Restore`);
     this.fetchBackups();
     this.originForm = fb.group({

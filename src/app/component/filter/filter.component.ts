@@ -3,6 +3,7 @@ import {
   Component,
   effect,
   ElementRef,
+  inject,
   Input,
   OnChanges,
   SimpleChanges,
@@ -36,6 +37,13 @@ import { hasPrefix } from '../../util/tag';
   imports: [ReactiveFormsModule, FormsModule]
 })
 export class FilterComponent implements OnChanges {
+  router = inject(Router);
+  admin = inject(AdminService);
+  store = inject(Store);
+  private auth = inject(AuthzService);
+  private bookmarks = inject(BookmarkService);
+  private editor = inject(EditorService);
+
 
   @ViewChild('create')
   create?: ElementRef<HTMLSelectElement>;
@@ -59,14 +67,7 @@ export class FilterComponent implements OnChanges {
 
   emoji = emoji($localize`🪄️`) || $localize`🔍️`;
 
-  constructor(
-    public router: Router,
-    public admin: AdminService,
-    public store: Store,
-    private auth: AuthzService,
-    private bookmarks: BookmarkService,
-    private editor: EditorService,
-  ) {
+  constructor() {
     effect(() => {
       this.filters = this.store.view.filter;
       if (!Array.isArray(this.filters)) this.filters = [this.filters];

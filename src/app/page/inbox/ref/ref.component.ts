@@ -1,4 +1,13 @@
-import { ChangeDetectionStrategy, Component, effect, Injector, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  effect,
+  inject,
+  Injector,
+  OnDestroy,
+  OnInit,
+  ViewChild
+} from '@angular/core';
 import { defer, uniq } from 'lodash-es';
 
 import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
@@ -18,6 +27,12 @@ import { getArgs } from '../../../util/query';
   imports: [ RefListComponent],
 })
 export class InboxRefPage implements OnInit, OnDestroy, HasChanges {
+  private injector = inject(Injector);
+  private mod = inject(ModService);
+  private admin = inject(AdminService);
+  store = inject(Store);
+  query = inject(QueryStore);
+
 
   @ViewChild('list')
   list?: RefListComponent;
@@ -25,13 +40,11 @@ export class InboxRefPage implements OnInit, OnDestroy, HasChanges {
   plugin?: Plugin;
   writeAccess = false;
 
-  constructor(
-    private injector: Injector,
-    private mod: ModService,
-    private admin: AdminService,
-    public store: Store,
-    public query: QueryStore,
-  ) {
+  constructor() {
+    const mod = this.mod;
+    const store = this.store;
+    const query = this.query;
+
     mod.setTitle($localize`Inbox: `);
     store.view.clear(['modified']);
     query.clear();

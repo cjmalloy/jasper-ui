@@ -8,6 +8,7 @@ import {
   EventEmitter,
   HostBinding,
   HostListener,
+  inject,
   Input,
   OnChanges,
   OnDestroy,
@@ -515,6 +516,10 @@ function loadMove(state: GameState, p: Piece, from: number, to: number) {
   imports: [CdkDropList, CdkDrag]
 })
 export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, OnDestroy {
+  private store = inject(Store);
+  private actions = inject(ActionService);
+  private el = inject<ElementRef<HTMLDivElement>>(ElementRef);
+
 
   @Input()
   @HostBinding('class.red')
@@ -572,11 +577,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   private animationHandler = 0;
   errored = false;
 
-  constructor(
-    private store: Store,
-    private actions: ActionService,
-    private el: ElementRef<HTMLDivElement>,
-  ) {
+  constructor() {
     effect(() => {
       if (this.store.eventBus.event === 'flip' && this.store.eventBus.ref?.url === this.ref?.url) {
         this.red = !this.red;

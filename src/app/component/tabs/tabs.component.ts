@@ -7,6 +7,7 @@ import {
   ElementRef,
   HostBinding,
   HostListener,
+  inject,
   QueryList
 } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
@@ -25,6 +26,10 @@ import { SettingsComponent } from '../settings/settings.component';
   imports: [ReactiveFormsModule, SettingsComponent]
 })
 export class TabsComponent implements AfterViewInit {
+  private config = inject(ConfigService);
+  private el = inject<ElementRef<HTMLElement>>(ElementRef);
+  private cd = inject(ChangeDetectorRef);
+
 
   @ContentChildren(RouterLink)
   routerLinks!: QueryList<RouterLink>;
@@ -39,12 +44,6 @@ export class TabsComponent implements AfterViewInit {
   measuring = true;
 
   private resizeObserver = window.ResizeObserver && new ResizeObserver(() => this.onResize()) || undefined;
-
-  constructor(
-    private config: ConfigService,
-    private el: ElementRef<HTMLElement>,
-    private cd: ChangeDetectorRef,
-  ) { }
 
   ngAfterViewInit() {
     defer(() => {

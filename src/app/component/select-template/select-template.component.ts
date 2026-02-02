@@ -1,4 +1,13 @@
-import { ChangeDetectionStrategy, Component, ElementRef, EventEmitter, Input, Output, ViewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  EventEmitter,
+  inject,
+  Input,
+  Output,
+  ViewChild
+} from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { defer } from 'lodash-es';
 import { Template } from '../../model/template';
@@ -15,6 +24,9 @@ import { access } from '../../util/tag';
   imports: [ReactiveFormsModule]
 })
 export class SelectTemplateComponent {
+  private admin = inject(AdminService);
+  private auth = inject(AuthzService);
+
 
   @Output()
   templateChange = new EventEmitter<string>();
@@ -25,11 +37,6 @@ export class SelectTemplateComponent {
   submitTemplates = this.admin.tmplSubmit.filter(p => this.auth.canAddTag(p.tag));
 
   templates: Template[] = [...this.submitTemplates];
-
-  constructor(
-    private admin: AdminService,
-    private auth: AuthzService,
-  ) {  }
 
   @Input()
   set template(value: string) {
