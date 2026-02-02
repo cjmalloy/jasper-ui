@@ -1,6 +1,6 @@
 @if (plugins.length) {
   <select #select
-          [id]="id"
+          [id]="id()"
           class="big"
           (input)="pluginChange.next(select.value)">
     <option value="" i18n>🧰️</option>

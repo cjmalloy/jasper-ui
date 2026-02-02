@@ -61,7 +61,7 @@
                          [hitArea]="config.mobile ? 48 : 20"></ngx-monaco-editor>
     </div>
   } @else {
-    <label [for]="ed.id" i18n>Message:</label>
+    <label [for]="ed.id()" i18n>Message:</label>
     <div #fill class="fill-editor">
       <app-editor #ed
                   class="bubble"

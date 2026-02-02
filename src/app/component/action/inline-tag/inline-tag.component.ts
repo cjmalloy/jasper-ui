@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, Input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, input } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { debounce } from 'lodash-es';
 import { catchError, forkJoin, map, Observable, of, Subscription, switchMap } from 'rxjs';
@@ -29,8 +29,7 @@ export class InlineTagComponent extends ActionComponent {
 
   tagsRegex = TAGS_REGEX.source;
 
-  @Input()
-  action: (tag: string) => Observable<any|never> = () => of(null);
+  readonly action = input<(tag: string) => Observable<any | never>>(() => of(null));
 
   editing = false;
   acting = false;
@@ -62,7 +61,7 @@ export class InlineTagComponent extends ActionComponent {
     }
     this.editing = false;
     this.acting = true;
-    this.action((field.value || '').toLowerCase().trim()).pipe(
+    this.action()((field.value || '').toLowerCase().trim()).pipe(
       catchError(() => of(null)),
     ).subscribe(() => this.acting = false);
   }

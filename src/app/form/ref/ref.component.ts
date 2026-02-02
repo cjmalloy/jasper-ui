@@ -8,6 +8,7 @@ import {
   HostListener,
   inject,
   Input,
+  input,
   OnChanges,
   Output,
   SimpleChanges,
@@ -75,8 +76,7 @@ export class RefFormComponent implements OnChanges {
   private fb = inject(UntypedFormBuilder);
 
 
-  @Input()
-  origin? = '';
+  readonly origin = input<string | undefined>('');
   @Input()
   group!: UntypedFormGroup;
   @Output()

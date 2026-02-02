@@ -4,6 +4,7 @@ import {
   forwardRef,
   inject,
   Input,
+  input,
   OnChanges,
   QueryList,
   SimpleChanges,
@@ -53,8 +54,7 @@ export class LensComponent implements OnChanges, HasChanges {
   ext?: Ext;
   @Input()
   tag = '';
-  @Input()
-  fullPage = false;
+  readonly fullPage = input(false);
   @Input()
   cols? = 0;
   @Input()
@@ -69,10 +69,8 @@ export class LensComponent implements OnChanges, HasChanges {
   page?: Page<Ref>;
   @Input()
   pageControls = true;
-  @Input()
-  showAlarm = true;
-  @Input()
-  showVotes = false;
+  readonly showAlarm = input(true);
+  readonly showVotes = input(false);
 
   plugins?: string[];
 

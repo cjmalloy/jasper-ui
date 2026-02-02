@@ -5,6 +5,7 @@ import {
   EventEmitter,
   inject,
   Input,
+  input,
   OnInit,
   Output,
   ViewChild
@@ -45,14 +46,11 @@ export class UserFormComponent implements OnInit {
 
   @Input()
   group!: UntypedFormGroup;
-  @Input()
-  showPubKey = true;
-  @Input()
-  fillWidth?: HTMLElement;
+  readonly showPubKey = input(true);
+  readonly fillWidth = input<HTMLElement>();
   @Output()
   tagChanges = new EventEmitter<string>();
-  @Input()
-  showClear = false;
+  readonly showClear = input(false);
   @Output()
   clear = new EventEmitter<void>();
   @Input()

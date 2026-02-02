@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, ElementRef, inject, Input, Output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, inject, Input, input, Output } from '@angular/core';
 import { MermaidConfig } from 'mermaid';
 import { MarkdownComponent, MermaidAPI } from 'ngx-markdown';
 import { Subject } from 'rxjs';
@@ -23,12 +23,9 @@ export class MdComponent {
   el = inject(ElementRef);
 
 
-  @Input()
-  origin? = '';
-  @Input()
-  plugins?: string[];
-  @Input()
-  disableSanitizer = false;
+  readonly origin = input<string | undefined>('');
+  readonly plugins = input<string[]>();
+  readonly disableSanitizer = input(false);
   @Output()
   postProcessMarkdown: Subject<void> = new Subject();
   @Input()
@@ -61,7 +58,7 @@ export class MdComponent {
   }
 
   get value() {
-    if (this.plugins?.includes('plugin/table')) {
+    if (this.plugins()?.includes('plugin/table')) {
       if (this._value) return this._value;
       try {
         const wb = XLSX.read(this._text, {type: 'string'});

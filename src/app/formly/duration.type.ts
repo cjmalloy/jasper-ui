@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Directive, ElementRef, forwardRef, inject, Input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Directive, ElementRef, forwardRef, inject, input } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR, ReactiveFormsModule } from '@angular/forms';
 import { FieldType, FieldTypeConfig, FormlyAttributes, FormlyConfig } from '@ngx-formly/core';
 import { Duration } from 'luxon';
@@ -66,16 +66,18 @@ export class DurationInputAccessor implements ControlValueAccessor {
   onChange: any;
   onTouched: any;
 
-  @Input('duration')
-  datalist: { value: string, label: string }[] = [];
+  readonly datalist = input<{
+    value: string;
+    label: string;
+}[]>([], { alias: "duration" });
 
   writeValue(value: any) {
-    this.elementRef.nativeElement.value = this.datalist.findIndex(o => o.value === value);
+    this.elementRef.nativeElement.value = this.datalist().findIndex(o => o.value === value);
   }
 
   registerOnChange(fn: any) {
     this.onChange = (value: any) => {
-      fn(this.datalist[value].value);
+      fn(this.datalist()[value].value);
     };
   }
 

@@ -12,6 +12,7 @@ import {
   HostListener,
   inject,
   Input,
+  input,
   OnChanges,
   OnDestroy,
   Output,
@@ -145,24 +146,17 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   ref!: Ref;
   @Input()
   expanded = false;
-  @Input()
-  plugins?: string[];
+  readonly plugins = input<string[]>();
   @Input()
   expandInline = false;
   @Input()
   showToggle = false;
-  @Input()
-  scrollToLatest = false;
-  @Input()
-  hideEdit = false;
-  @Input()
-  disableResize = false;
-  @Input()
-  showAlarm = true;
-  @Input()
-  showObsolete = true;
-  @Input()
-  fetchRepost = true;
+  readonly scrollToLatest = input(false);
+  readonly hideEdit = input(false);
+  readonly disableResize = input(false);
+  readonly showAlarm = input(true);
+  readonly showObsolete = input(true);
+  readonly fetchRepost = input(true);
   @Output()
   copied = new EventEmitter<string>();
 
@@ -285,7 +279,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     this.initFields(this.ref);
 
     this.expandPlugins = this.admin.getEmbeds(this.ref);
-    if (this.repost && this.ref && this.fetchRepost && this.repostRef?.url != repost(this.ref)) {
+    if (this.repost && this.ref && this.fetchRepost() && this.repostRef?.url != repost(this.ref)) {
       (this.store.view.top?.url === this.ref.sources![0]
           ? of(this.store.view.top)
           : this.refs.getCurrent(this.url)
@@ -354,7 +348,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
 
   @HostBinding('class.last-selected')
   get lastSelected() {
-    return this.scrollToLatest && this.store.view.lastSelected?.url === this.ref.url;
+    return this.scrollToLatest() && this.store.view.lastSelected?.url === this.ref.url;
   }
 
   @HostBinding('class.upload')

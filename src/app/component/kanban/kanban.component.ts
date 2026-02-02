@@ -7,6 +7,7 @@ import {
   HostListener,
   inject,
   Input,
+  input,
   OnChanges,
   OnDestroy,
   QueryList,
@@ -73,22 +74,15 @@ export class KanbanComponent implements OnChanges, OnDestroy, HasChanges {
   @ViewChildren(KanbanColumnComponent)
   list?: QueryList<KanbanColumnComponent>;
 
-  @Input()
-  query?: string;
+  readonly query = input<string>();
   @Input()
   ext?: Ext;
-  @Input()
-  pageControls = true;
-  @Input()
-  fullPage = false;
-  @Input()
-  size = 8;
-  @Input()
-  sort: RefSort[] = [];
-  @Input()
-  filter: UrlFilter[] = [];
-  @Input()
-  search = '';
+  readonly pageControls = input(true);
+  readonly fullPage = input(false);
+  readonly size = input(8);
+  readonly sort = input<RefSort[]>([]);
+  readonly filter = input<UrlFilter[]>([]);
+  readonly search = input('');
 
   error: any;
   updates = new Subject<KanbanDrag>();
@@ -173,8 +167,8 @@ export class KanbanComponent implements OnChanges, OnDestroy, HasChanges {
 
   get queryTags(): string[] {
     return uniq([
-      ...topAnds(this.query).filter(t => !isQuery(t)),
-      ...this.filter
+      ...topAnds(this.query()).filter(t => !isQuery(t)),
+      ...this.filter()
         .filter(f => f.startsWith('query/'))
         .filter(f => !f.startsWith('query/!('))
         .map(f => f.substring('query/'.length)),
@@ -184,9 +178,9 @@ export class KanbanComponent implements OnChanges, OnDestroy, HasChanges {
   get negateFilters(): string[] {
     // TODO: evaluate queries
     return uniq([
-      ...topAnds(this.query).filter(t => isSelector(t))
+      ...topAnds(this.query()).filter(t => isSelector(t))
         .map(f => f.startsWith('!') ? f.substring(1) : '!' + f),
-      ...this.filter
+      ...this.filter()
         .filter(f => f.startsWith('query/'))
         .flatMap(f => f.startsWith('query/!(')
           ? [f.substring('query/!('.length, f.length - 1)]
@@ -266,7 +260,7 @@ export class KanbanComponent implements OnChanges, OnDestroy, HasChanges {
     if (!tags) return '';
     const cols =  tags.col ? ':' + tags.col : this.andColBacklog;
     const sl =  tags.sl ? ':' + tags.sl : this.andSlBacklog;
-    return '(' + this.query + ')' + cols + sl;
+    return '(' + this.query() + ')' + cols + sl;
   }
 
   drop(event: CdkDragDrop<{ sl?: string, col?: string }>) {

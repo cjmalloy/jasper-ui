@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, input, Output } from '@angular/core';
 import { catchError, Observable, of } from 'rxjs';
 import { AutofocusDirective } from '../../../directive/autofocus.directive';
 import { LoadingComponent } from '../../loading/loading.component';
@@ -14,8 +14,7 @@ import { ActionComponent } from '../action.component';
 })
 export class InlinePasswordComponent extends ActionComponent {
 
-  @Input()
-  action: (password: string) => Observable<any|never> = () => of(null);
+  readonly action = input<(password: string) => Observable<any | never>>(() => of(null));
   @Output()
   error = new EventEmitter<string>();
 
@@ -39,7 +38,7 @@ export class InlinePasswordComponent extends ActionComponent {
     }
     this.editing = false;
     this.acting = true;
-    this.action(password).pipe(
+    this.action()(password).pipe(
       catchError(() => of(null)),
     ).subscribe(() => this.acting = false);
   }

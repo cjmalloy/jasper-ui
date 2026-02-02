@@ -8,6 +8,7 @@ import {
   HostBinding,
   inject,
   Input,
+  input,
   TemplateRef,
   ViewChild,
   ViewContainerRef
@@ -42,10 +43,8 @@ export class BackupComponent {
 
   @Input()
   id!: string;
-  @Input()
-  size? = 0;
-  @Input()
-  origin = '';
+  readonly size = input<number | undefined>(0);
+  readonly origin = input('');
 
   @ViewChild('restoreButton', { read: ElementRef })
   restoreButton?: ElementRef<HTMLElement>;
@@ -82,7 +81,7 @@ export class BackupComponent {
   }
 
   get fileSize() {
-    return readableBytes(this.size || 0);
+    return readableBytes(this.size() || 0);
   }
 
   get downloadLink() {
@@ -90,12 +89,13 @@ export class BackupComponent {
     if (link.startsWith('//')) link = location.protocol + link;
     if (link.startsWith("_")) link = link.substring(1);
     if (!link.endsWith(".zip")) link = link + '.zip';
-    if (this.origin) link += '?origin=' + encodeURIComponent(this.origin)
+    const origin = this.origin();
+    if (origin) link += '?origin=' + encodeURIComponent(origin)
     return link;
   }
 
   get downloadLinkAuth() {
-    return this.downloadLink + (this.origin ? '&' : '?') + 'p=' + encodeURIComponent(this.backupKey);
+    return this.downloadLink + (this.origin() ? '&' : '?') + 'p=' + encodeURIComponent(this.backupKey);
   }
 
   showRestoreOptions() {
@@ -142,7 +142,7 @@ export class BackupComponent {
       newerThan: this.restoreOptionsForm.value.newerThan || undefined,
     };
     this.closeRestoreOptions();
-    this.backups.restore(this.origin, this.id, options).pipe(
+    this.backups.restore(this.origin(), this.id, options).pipe(
       catchError((err: HttpErrorResponse) => {
         this.serverError = printError(err);
         if (this.restoreObserver) {
@@ -177,7 +177,7 @@ export class BackupComponent {
   }
 
   delete$ = () => {
-    return this.backups.delete(this.origin, this.id).pipe(
+    return this.backups.delete(this.origin(), this.id).pipe(
       catchError((err: HttpErrorResponse) => {
         this.serverError = printError(err);
         return throwError(() => err);

@@ -6,6 +6,7 @@ import {
   forwardRef,
   inject,
   Input,
+  input,
   Output,
   ViewChild
 } from '@angular/core';
@@ -52,14 +53,11 @@ export class CommentReplyComponent implements HasChanges {
 
   @Input()
   to!: Ref;
-  @Input()
-  selectResponseType = false;
+  readonly selectResponseType = input(false);
   @Input()
   tags: string[] = [];
-  @Input()
-  showCancel = false;
-  @Input()
-  autofocus = false;
+  readonly showCancel = input(false);
+  readonly autofocus = input(false);
   @Output()
   save = new EventEmitter<Ref|undefined>();
 

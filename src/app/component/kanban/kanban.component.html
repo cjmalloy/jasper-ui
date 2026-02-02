@@ -18,7 +18,7 @@
          [style.grid-column]="'1 / ' + (1 + (swimLanes ? 1 : 0) + (showColumnBacklog ? 1 : 0) + columns.length)">
       <div class="kanban-options">
         <h2><a [routerLink]="['/tag', ext.tag + ext.origin]" [appTitle]="ext">{{ ext.name || '#' + ext.tag }}</a></h2>
-        @if (pageControls) {
+        @if (pageControls()) {
           <div>
             @if (kanbanConfig.swimLanes?.length) {
               <div class="disable-swim-lanes">
@@ -57,10 +57,10 @@
           <app-kanban-column cdkDropList
                              cdkScrollable
                              [ext]="ext"
-                             [size]="size"
-                             [sort]="sort"
-                             [filter]="filter"
-                             [search]="search"
+                             [size]="size()"
+                             [sort]="sort()"
+                             [filter]="filter()"
+                             [search]="search()"
                              [hideSwimLanes]="disableSwimLanes"
                              [cdkDropListData]="{sl}"
                              (cdkDropListDropped)="drop($any($event))"
@@ -72,10 +72,10 @@
           <app-kanban-column cdkDropList
                              cdkScrollable
                              [ext]="ext"
-                             [size]="size"
-                             [sort]="sort"
-                             [filter]="filter"
-                             [search]="search"
+                             [size]="size()"
+                             [sort]="sort()"
+                             [filter]="filter()"
+                             [search]="search()"
                              [hideSwimLanes]="disableSwimLanes"
                              [cdkDropListData]="{col, sl}"
                              (cdkDropListDropped)="drop($any($event))"
@@ -92,10 +92,10 @@
           <app-kanban-column cdkDropList
                              cdkScrollable
                              [ext]="ext"
-                             [size]="size"
-                             [sort]="sort"
-                             [filter]="filter"
-                             [search]="search"
+                             [size]="size()"
+                             [sort]="sort()"
+                             [filter]="filter()"
+                             [search]="search()"
                              [hideSwimLanes]="disableSwimLanes"
                              [cdkDropListData]="{}"
                              (cdkDropListDropped)="drop($any($event))"
@@ -107,10 +107,10 @@
           <app-kanban-column cdkDropList
                              cdkScrollable
                              [ext]="ext"
-                             [size]="size"
-                             [sort]="sort"
-                             [filter]="filter"
-                             [search]="search"
+                             [size]="size()"
+                             [sort]="sort()"
+                             [filter]="filter()"
+                             [search]="search()"
                              [hideSwimLanes]="disableSwimLanes"
                              [cdkDropListData]="{col}"
                              (cdkDropListDropped)="drop($any($event))"
@@ -124,10 +124,10 @@
         <app-kanban-column cdkDropList
                            cdkScrollable
                            [ext]="ext"
-                           [size]="size"
-                           [sort]="sort"
-                           [filter]="filter"
-                           [search]="search"
+                           [size]="size()"
+                           [sort]="sort()"
+                           [filter]="filter()"
+                           [search]="search()"
                            [hideSwimLanes]="disableSwimLanes"
                            [cdkDropListData]="{}"
                            (cdkDropListDropped)="drop($any($event))"
@@ -139,10 +139,10 @@
         <app-kanban-column cdkDropList
                            cdkScrollable
                            [ext]="ext"
-                           [size]="size"
-                           [sort]="sort"
-                           [filter]="filter"
-                           [search]="search"
+                           [size]="size()"
+                           [sort]="sort()"
+                           [filter]="filter()"
+                           [search]="search()"
                            [hideSwimLanes]="disableSwimLanes"
                            [cdkDropListData]="{col}"
                            (cdkDropListDropped)="drop($any($event))"
@@ -153,6 +153,6 @@
     }
   </div>
 }
-@if (pageControls) {
+@if (pageControls()) {
   <app-page-controls></app-page-controls>
 }

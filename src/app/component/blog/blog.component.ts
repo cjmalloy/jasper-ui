@@ -1,4 +1,13 @@
-import { ChangeDetectionStrategy, Component, inject, Input, OnDestroy, QueryList, ViewChildren } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  inject,
+  Input,
+  input,
+  OnDestroy,
+  QueryList,
+  ViewChildren
+} from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, forkJoin, of, Subject, takeUntil } from 'rxjs';
 import { HasChanges } from '../../guard/pending-changes.guard';
@@ -31,10 +40,8 @@ export class BlogComponent implements HasChanges, OnDestroy {
 
   private destroy$ = new Subject<void>();
 
-  @Input()
-  pageControls = true;
-  @Input()
-  emptyMessage = $localize`No blog entries found`;
+  readonly pageControls = input(true);
+  readonly emptyMessage = input($localize `No blog entries found`);
 
   pinned: Ref[] = [];
   colStyle = '';

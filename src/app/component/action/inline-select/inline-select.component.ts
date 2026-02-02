@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, input, Output } from '@angular/core';
 import { catchError, Observable, of } from 'rxjs';
 import { LoadingComponent } from '../../loading/loading.component';
 import { ActionComponent } from '../action.component';
@@ -13,10 +13,8 @@ import { ActionComponent } from '../action.component';
 })
 export class InlineSelectComponent extends ActionComponent {
 
-  @Input()
-  action: (value: any) => Observable<any|never> = () => of(null);
-  @Input()
-  value?: any;
+  readonly action = input<(value: any) => Observable<any | never>>(() => of(null));
+  readonly value = input<any>();
   @Output()
   error = new EventEmitter<string>();
 
@@ -35,7 +33,7 @@ export class InlineSelectComponent extends ActionComponent {
   save(field: HTMLSelectElement) {
     this.editing = false;
     this.acting = true;
-    this.action((field.value || '').trim()).pipe(
+    this.action()((field.value || '').trim()).pipe(
       catchError(() => of(null)),
     ).subscribe(() => this.acting = false);
   }

@@ -7,6 +7,7 @@ import {
   HostBinding,
   inject,
   Input,
+  input,
   OnChanges,
   QueryList,
   SimpleChanges,
@@ -72,8 +73,7 @@ export class ExtComponent implements OnChanges, HasChanges {
 
   @Input()
   ext!: Ext;
-  @Input()
-  useEditPage = false;
+  readonly useEditPage = input(false);
 
   editForm!: UntypedFormGroup;
   submitted = false;

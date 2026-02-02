@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, Input, QueryList, ViewChildren } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, Input, input, QueryList, ViewChildren } from '@angular/core';
 import { Router } from '@angular/router';
 import { find } from 'lodash-es';
 import { catchError, of } from 'rxjs';
@@ -24,8 +24,7 @@ export class UserListComponent implements HasChanges {
   private profiles = inject(ProfileService);
 
 
-  @Input()
-  scim?: Page<Profile>;
+  readonly scim = input<Page<Profile>>();
 
   @ViewChildren(UserComponent)
   list?: QueryList<UserComponent>;
@@ -55,7 +54,7 @@ export class UserListComponent implements HasChanges {
     const tag = user.tag + user.origin;
     if (!this._page) this._page = {} as any;
     if (!this.cache.has(tag)) {
-      const profile = find(this.scim?.content, p => p.tag === tag);
+      const profile = find(this.scim()?.content, p => p.tag === tag);
       if (profile) {
         this.cache.set(tag, profile);
       } else {

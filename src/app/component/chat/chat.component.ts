@@ -4,7 +4,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   inject,
-  Input,
+  input,
   OnChanges,
   OnDestroy,
   SimpleChanges,
@@ -90,10 +90,8 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
   private destroy$ = new Subject<void>();
   itemSize = 18.5;
 
-  @Input()
-  query = 'chat';
-  @Input()
-  responseOf?: Ref;
+  readonly query = input('chat');
+  readonly responseOf = input<Ref>();
 
   @ViewChild('viewport')
   viewport!: CdkVirtualScrollViewport;
@@ -149,7 +147,7 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
     this.loadPrev(true);
     if (this.config.websockets) {
       this.watch?.unsubscribe();
-      this.watch = this.stomp.watchTag(this.query).pipe(
+      this.watch = this.stomp.watchTag(this.query()).pipe(
         takeUntil(this.destroy$),
       ).subscribe(tag =>  this.refresh(tagOrigin(tag)));
     }
@@ -195,7 +193,7 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
       return;
     }
     this.lastPoll = DateTime.now();
-    const query = braces(this.query) + ':' + (origin || '@');
+    const query = braces(this.query()) + ':' + (origin || '@');
     this.refs.page({
       ...getArgs(
         query,
@@ -205,7 +203,7 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
         this.store.view.pageNumber,
         this.store.view.pageSize,
       ),
-      responses: this.responseOf?.url,
+      responses: this.responseOf()?.url,
       modifiedAfter: this.cursors.get(origin!)
     }).pipe(
       catchError(err => {
@@ -235,14 +233,14 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
     this.lastPoll = DateTime.now();
     this.refs.page({
       ...getArgs(
-        this.query,
+        this.query(),
         'modified,DESC',
         this.store.view.filter,
         this.store.view.search,
         this.store.view.pageNumber,
         Math.max(this.store.view.pageSize, !this.cursors.size ? this.initialSize : 0),
       ),
-      responses: this.responseOf?.url,
+      responses: this.responseOf()?.url,
       modifiedBefore: this.messages?.[0]?.modifiedString,
     }).pipe(
       catchError(err => {
@@ -351,7 +349,8 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
   }
 
   private send(ref: Ref) {
-    if (this.responseOf) ref.sources = [this.responseOf.url];
+    const responseOf = this.responseOf();
+    if (responseOf) ref.sources = [responseOf.url];
     this.sending.push(ref);
     (ref.modified ? this.refs.update(ref).pipe(
       map(() => ref),

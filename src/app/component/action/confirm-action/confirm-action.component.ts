@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, input } from '@angular/core';
 import { catchError, Observable, of } from 'rxjs';
 import { LoadingComponent } from '../../loading/loading.component';
 import { ActionComponent } from '../action.component';
@@ -13,14 +13,11 @@ import { ActionComponent } from '../action.component';
 })
 export class ConfirmActionComponent extends ActionComponent {
 
-  @Input()
-  message = $localize`are you sure?`;
+  readonly message = input($localize `are you sure?`);
   @Input()
   warning = '';
-  @Input()
-  action: () => Observable<any|never> = () => of(null);
-  @Input()
-  minDelayMs = 1000;
+  readonly action = input<() => Observable<any | never>>(() => of(null));
+  readonly minDelayMs = input(1000);
 
   confirming = false;
   acting = false;
@@ -39,8 +36,8 @@ export class ConfirmActionComponent extends ActionComponent {
     this.confirming = false;
     this.acting = true;
     this.minTimeout = true;
-    setTimeout(() => this.minTimeout = false, this.minDelayMs);
-    this.action().pipe(
+    setTimeout(() => this.minTimeout = false, this.minDelayMs());
+    this.action()().pipe(
       catchError(() => of(null)),
     ).subscribe(() => this.acting = false);
   }

@@ -45,9 +45,9 @@
       </div>
     } @else {
       @if (store.submit.wiki) {
-        <label [for]="ed.id" class="editor-label" i18n>Entry:</label>
+        <label [for]="ed.id()" class="editor-label" i18n>Entry:</label>
       } @else {
-        <label [for]="ed.id" class="editor-label" i18n>Comment:</label>
+        <label [for]="ed.id()" class="editor-label" i18n>Comment:</label>
       }
       <div #fill class="fill-editor">
         <app-editor #ed
