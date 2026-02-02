@@ -5,7 +5,6 @@ import {
   Component,
   effect,
   ElementRef,
-  EventEmitter,
   HostBinding,
   HostListener,
   inject,
@@ -14,7 +13,7 @@ import {
   OnChanges,
   OnDestroy,
   OnInit,
-  Output,
+  output,
   SimpleChanges
 } from '@angular/core';
 import { cloneDeep, defer, delay, filter, range, uniq } from 'lodash-es';
@@ -528,10 +527,8 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   readonly ref = input<Ref>();
   @Input()
   text? = '';
-  @Output()
-  comment = new EventEmitter<string>();
-  @Output()
-  copied = new EventEmitter<string>();
+  readonly comment = output<string>();
+  readonly copied = output<string>();
 
   state: GameState = {
     bar: [],

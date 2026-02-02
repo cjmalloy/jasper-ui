@@ -3,11 +3,10 @@ import { TemplatePortal } from '@angular/cdk/portal';
 import {
   ChangeDetectionStrategy,
   Component,
-  EventEmitter,
   inject,
   input,
   OnDestroy,
-  Output,
+  output,
   TemplateRef,
   ViewChild,
   ViewContainerRef
@@ -32,8 +31,7 @@ export class QrScannerComponent implements OnDestroy {
   video!: TemplateRef<HTMLVideoElement>;
 
   readonly upload = input(true);
-  @Output()
-  data = new EventEmitter<string>();
+  readonly data = output<string>();
 
   scanner?: QrScanner;
   overlayRef?: OverlayRef;
@@ -50,7 +48,7 @@ export class QrScannerComponent implements OnDestroy {
     const file = files[0]!;
     loadImage(file)
       .then(image => scanImage(image))
-      .then(qr => qr?.data && this.data.next(qr.data));
+      .then(qr => qr?.data && this.data.emit(qr.data));
   }
 
   scanQr() {
@@ -67,7 +65,7 @@ export class QrScannerComponent implements OnDestroy {
     });
     this.overlayRef.attach(new TemplatePortal(this.video, this.viewContainerRef));
     this.scanner ||= new QrScanner(this.overlayRef.overlayElement.firstElementChild as HTMLVideoElement, data => {
-      if (data) this.data.next(data);
+      if (data) this.data.emit(data);
       this.stopScanQr();
     }, this.camera);
 

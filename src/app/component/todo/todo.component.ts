@@ -2,13 +2,12 @@ import { CdkDrag, CdkDragDrop, CdkDropList } from '@angular/cdk/drag-drop';
 import {
   ChangeDetectionStrategy,
   Component,
-  EventEmitter,
   HostBinding,
   HostListener,
   inject,
   input,
   OnChanges,
-  Output,
+  output,
   SimpleChanges
 } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
@@ -43,10 +42,8 @@ class TodoComponent implements OnChanges {
   readonly text = input<string | undefined>('');
   readonly origin = input('');
   readonly tags = input<string[]>();
-  @Output()
-  comment = new EventEmitter<string>();
-  @Output()
-  copied = new EventEmitter<string>();
+  readonly comment = output<string>();
+  readonly copied = output<string>();
 
   lines: string[] = [];
   addText = '';

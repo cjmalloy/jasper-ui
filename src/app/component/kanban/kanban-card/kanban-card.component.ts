@@ -7,7 +7,6 @@ import {
   ChangeDetectionStrategy,
   Component,
   ElementRef,
-  EventEmitter,
   forwardRef,
   HostBinding,
   HostListener,
@@ -16,7 +15,7 @@ import {
   input,
   OnChanges,
   OnDestroy,
-  Output,
+  output,
   SimpleChanges,
   TemplateRef,
   ViewChild,
@@ -93,8 +92,7 @@ export class KanbanCardComponent implements OnChanges, AfterViewInit, OnDestroy 
   @Input()
   progress?: number;
 
-  @Output()
-  copied = new EventEmitter<Ref>();
+  readonly copied = output<Ref>();
 
   repostRef?: Ref;
   @HostBinding('class.full-size')

@@ -2,14 +2,13 @@ import {
   ChangeDetectionStrategy,
   Component,
   ElementRef,
-  EventEmitter,
   forwardRef,
   HostBinding,
   inject,
   Input,
   input,
   OnChanges,
-  Output,
+  output,
   SimpleChanges,
   ViewChild
 } from '@angular/core';
@@ -106,10 +105,8 @@ export class ViewerComponent implements OnChanges {
   @Input()
   @HostBinding('class.fullscreen')
   fullscreen = false;
-  @Output()
-  comment = new EventEmitter<string>();
-  @Output()
-  copied = new EventEmitter<string>();
+  readonly comment = output<string>();
+  readonly copied = output<string>();
 
   repost?: Ref;
   page?: Page<Ref>;

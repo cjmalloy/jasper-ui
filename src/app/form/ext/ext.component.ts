@@ -4,12 +4,11 @@ import {
   ChangeDetectorRef,
   Component,
   ElementRef,
-  EventEmitter,
   inject,
   Input,
   input,
   OnDestroy,
-  Output,
+  output,
   ViewChild
 } from '@angular/core';
 import {
@@ -72,8 +71,7 @@ export class ExtFormComponent implements OnDestroy {
   @Input()
   group!: UntypedFormGroup;
   readonly showClear = input(false);
-  @Output()
-  clear = new EventEmitter<void>();
+  readonly clear = output<void>();
 
   @ViewChild('fillPopover')
   fillPopover?: ElementRef;

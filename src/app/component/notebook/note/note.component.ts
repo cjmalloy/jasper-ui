@@ -7,7 +7,6 @@ import {
   ChangeDetectionStrategy,
   Component,
   ElementRef,
-  EventEmitter,
   forwardRef,
   HostBinding,
   HostListener,
@@ -16,7 +15,7 @@ import {
   input,
   OnChanges,
   OnDestroy,
-  Output,
+  output,
   SimpleChanges,
   TemplateRef,
   ViewChild,
@@ -87,8 +86,7 @@ export class NoteComponent implements OnChanges, AfterViewInit, OnDestroy {
   readonly hideSwimLanes = input(true);
   readonly ext = input<Ext>();
 
-  @Output()
-  copied = new EventEmitter<Ref>();
+  readonly copied = output<Ref>();
 
   repostRef?: Ref;
   @HostBinding('class.full-size')

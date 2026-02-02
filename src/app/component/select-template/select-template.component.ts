@@ -1,13 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  ElementRef,
-  EventEmitter,
-  inject,
-  Input,
-  Output,
-  ViewChild
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, inject, Input, output, ViewChild } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { defer } from 'lodash-es';
 import { Template } from '../../model/template';
@@ -28,8 +19,7 @@ export class SelectTemplateComponent {
   private auth = inject(AuthzService);
 
 
-  @Output()
-  templateChange = new EventEmitter<string>();
+  readonly templateChange = output<string>();
 
   @ViewChild('select')
   select?: ElementRef<HTMLSelectElement>;

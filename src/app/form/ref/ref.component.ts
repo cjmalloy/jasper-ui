@@ -3,14 +3,13 @@ import {
   ChangeDetectionStrategy,
   Component,
   ElementRef,
-  EventEmitter,
   HostBinding,
   HostListener,
   inject,
   Input,
   input,
   OnChanges,
-  Output,
+  output,
   SimpleChanges,
   ViewChild
 } from '@angular/core';
@@ -79,8 +78,7 @@ export class RefFormComponent implements OnChanges {
   readonly origin = input<string | undefined>('');
   @Input()
   group!: UntypedFormGroup;
-  @Output()
-  toggleTag = new EventEmitter<string>();
+  readonly toggleTag = output<string>();
 
   @ViewChild('tagsFormComponent')
   tagsFormComponent!: TagsFormComponent;
@@ -331,7 +329,7 @@ export class RefFormComponent implements OnChanges {
 
   togglePlugin(tag: string) {
     MemoCache.clear(this);
-    this.toggleTag.next(tag);
+    this.toggleTag.emit(tag);
     if (tag) {
       if (hasTag(tag, this.tags.value)) {
         this.tagsFormComponent.removeTagAndChildren(tag);
