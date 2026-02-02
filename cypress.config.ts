@@ -18,12 +18,7 @@ export default defineConfig({
       
       // Configure Electron with increased memory limits
       on('before:browser:launch', (browser, launchOptions) => {
-        if (browser.family === 'chromium' && browser.name !== 'electron') {
-          launchOptions.args.push('--disable-dev-shm-usage');
-          launchOptions.args.push('--js-flags=--max-old-space-size=4096');
-        }
-        
-        if (browser.name === 'electron') {
+        if (browser.family === 'chromium' || browser.name === 'electron') {
           launchOptions.args.push('--disable-dev-shm-usage');
           launchOptions.args.push('--js-flags=--max-old-space-size=4096');
         }
