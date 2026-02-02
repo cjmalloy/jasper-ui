@@ -5,6 +5,7 @@ import { Duration } from 'luxon';
 import { getErrorMessage } from './errors';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'formly-field-duration',
   host: { 'class': 'field' },
   template: `
@@ -22,7 +23,6 @@ import { getErrorMessage } from './errors';
              [class.is-invalid]="showError">
     </div>
   `,
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     ReactiveFormsModule,
     forwardRef(() => DurationInputAccessor),

@@ -1,4 +1,13 @@
-import { Component, forwardRef, Input, OnChanges, QueryList, SimpleChanges, ViewChildren } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  forwardRef,
+  Input,
+  OnChanges,
+  QueryList,
+  SimpleChanges,
+  ViewChildren
+} from '@angular/core';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ext } from '../../model/ext';
 import { Page } from '../../model/page';
@@ -18,6 +27,7 @@ import { RefListComponent } from '../ref/ref-list/ref-list.component';
 import { RefComponent } from '../ref/ref.component';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-lens',
   templateUrl: './lens.component.html',
   styleUrls: ['./lens.component.scss'],

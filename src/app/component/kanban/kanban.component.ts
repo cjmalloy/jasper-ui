@@ -2,6 +2,7 @@ import { CdkDragDrop, CdkDropList, CdkDropListGroup } from '@angular/cdk/drag-dr
 import { CdkScrollable } from '@angular/cdk/scrolling';
 import { AsyncPipe } from '@angular/common';
 import {
+  ChangeDetectionStrategy,
   Component,
   HostListener,
   Input,
@@ -42,6 +43,7 @@ export interface KanbanDrag {
 }
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-kanban',
   templateUrl: './kanban.component.html',
   styleUrls: ['./kanban.component.scss'],

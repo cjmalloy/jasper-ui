@@ -1,5 +1,6 @@
 import { CdkDropListGroup } from '@angular/cdk/drag-drop';
 import {
+  ChangeDetectionStrategy,
   Component,
   ElementRef,
   EventEmitter,
@@ -44,6 +45,7 @@ import { PluginsFormComponent } from '../plugins/plugins.component';
 import { TagsFormComponent } from '../tags/tags.component';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-ref-form',
   templateUrl: './ref.component.html',
   styleUrls: ['./ref.component.scss'],

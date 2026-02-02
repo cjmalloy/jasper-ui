@@ -1,9 +1,10 @@
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ModService } from '../../../service/mod.service';
 import { Store } from '../../../store/store';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-settings-local-page',
   templateUrl: './local.component.html',
   styleUrls: ['./local.component.scss'],

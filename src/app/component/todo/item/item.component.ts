@@ -1,4 +1,5 @@
 import {
+  ChangeDetectionStrategy,
   Component,
   ElementRef,
   EventEmitter,
@@ -6,7 +7,6 @@ import {
   HostBinding,
   HostListener,
   Input,
-  NgZone,
   Output
 } from '@angular/core';
 import { AutofocusDirective } from '../../../directive/autofocus.directive';
@@ -15,6 +15,7 @@ import { Store } from '../../../store/store';
 import { MdComponent } from '../../md/md.component';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-todo-item',
   templateUrl: './item.component.html',
   styleUrls: ['./item.component.scss'],
@@ -50,7 +51,6 @@ export class TodoItemComponent {
     private store: Store,
     public config: ConfigService,
     private el: ElementRef,
-    private zone: NgZone,
   ) { }
 
   get local() {
@@ -71,7 +71,7 @@ export class TodoItemComponent {
 
   @HostListener('touchend', ['$event'])
   touchend(e: TouchEvent) {
-    this.zone.run(() => this.unlocked = false);
+    this.unlocked = false;
   }
 
   @HostListener('press', ['$event'])

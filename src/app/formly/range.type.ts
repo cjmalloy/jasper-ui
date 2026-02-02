@@ -4,6 +4,7 @@ import { FieldType, FieldTypeConfig, FormlyAttributes, FormlyConfig } from '@ngx
 import { getErrorMessage } from './errors';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'formly-field-range',
   host: { 'class': 'field' },
   template: `
@@ -17,7 +18,6 @@ import { getErrorMessage } from './errors';
            [formlyAttributes]="field"
            [class.is-invalid]="showError">
   `,
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     ReactiveFormsModule,
     FormlyAttributes,

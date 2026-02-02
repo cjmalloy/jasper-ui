@@ -1,4 +1,13 @@
-import { Component, forwardRef, Input, OnDestroy, OnInit, QueryList, ViewChildren } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  forwardRef,
+  Input,
+  OnDestroy,
+  OnInit,
+  QueryList,
+  ViewChildren
+} from '@angular/core';
 import { Router } from '@angular/router';
 import { DateTime } from 'luxon';
 import { catchError, forkJoin, Observable, of, Subject, takeUntil } from 'rxjs';
@@ -15,6 +24,7 @@ import { PageControlsComponent } from '../../page-controls/page-controls.compone
 import { RefComponent } from '../ref.component';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-ref-list',
   templateUrl: './ref-list.component.html',
   styleUrls: ['./ref-list.component.scss'],

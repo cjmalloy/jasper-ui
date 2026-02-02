@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
 
 import { Observable, Subject, takeUntil } from 'rxjs';
 import { Ref } from '../../../model/ref';
@@ -9,6 +9,7 @@ import { RefComponent } from '../../ref/ref.component';
 import { CommentComponent } from '../comment.component';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-thread-summary',
   templateUrl: './thread-summary.component.html',
   styleUrls: ['./thread-summary.component.scss'],
@@ -16,7 +17,7 @@ import { CommentComponent } from '../comment.component';
   imports: [
     CommentComponent,
     RefComponent,
-    
+
   ]
 })
 export class ThreadSummaryComponent implements OnInit, OnChanges, OnDestroy {

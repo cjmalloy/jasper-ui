@@ -15,6 +15,7 @@ import { access, fixClientQuery, getStrictPrefix, localTag, tagOrigin } from '..
 import { getErrorMessage } from './errors';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'formly-field-query-input',
   host: { 'class': 'field' },
   styles: `
@@ -87,7 +88,6 @@ import { getErrorMessage } from './errors';
              [class.is-invalid]="showError">
     </div>
   `,
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     RouterLink,
     ReactiveFormsModule,

@@ -1,5 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import {
+  ChangeDetectionStrategy,
   Component,
   HostBinding,
   Input,
@@ -41,6 +42,7 @@ import { InlinePasswordComponent } from '../action/inline-password/inline-passwo
 import { InlineSelectComponent } from '../action/inline-select/inline-select.component';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-user',
   templateUrl: './user.component.html',
   styleUrls: ['./user.component.scss'],

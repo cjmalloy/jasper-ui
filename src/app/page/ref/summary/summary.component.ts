@@ -1,4 +1,14 @@
-import { Component, effect, Injector, OnDestroy, OnInit, QueryList, ViewChild, ViewChildren } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  effect,
+  Injector,
+  OnDestroy,
+  OnInit,
+  QueryList,
+  ViewChild,
+  ViewChildren
+} from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { defer, uniq } from 'lodash-es';
 
@@ -24,6 +34,7 @@ import { getArgs } from '../../../util/query';
 import { hasTag, removeTag, top, updateMetadata } from '../../../util/tag';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-ref-summary',
   templateUrl: './summary.component.html',
   styleUrls: ['./summary.component.scss'],

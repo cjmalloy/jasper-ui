@@ -56,10 +56,10 @@ import { memo, MemoCache } from '../../../util/memo';
 import { getVisibilityTags, hasPrefix, hasTag } from '../../../util/tag';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-submit-text',
   templateUrl: './text.component.html',
   styleUrls: ['./text.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   host: { 'class': 'full-page-form' },
   imports: [
     EditorComponent,

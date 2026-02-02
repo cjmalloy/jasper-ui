@@ -1,4 +1,4 @@
-import { Component, Input, QueryList, ViewChildren } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, QueryList, ViewChildren } from '@angular/core';
 import { Router } from '@angular/router';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Page } from '../../../model/page';
@@ -8,6 +8,7 @@ import { PageControlsComponent } from '../../page-controls/page-controls.compone
 import { TemplateComponent } from '../template.component';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-template-list',
   templateUrl: './template-list.component.html',
   styleUrls: ['./template-list.component.scss'],

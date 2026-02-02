@@ -9,7 +9,7 @@ import {
   enableProdMode,
   importProvidersFrom,
   isDevMode,
-  provideZoneChangeDetection
+  provideZonelessChangeDetection
 } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { bootstrapApplication, BrowserModule, HAMMER_GESTURE_CONFIG, HammerModule } from '@angular/platform-browser';
@@ -74,13 +74,13 @@ if (environment.production) {
 
 bootstrapApplication(AppComponent, {
   providers: [
-    provideZoneChangeDetection({ eventCoalescing: true, runCoalescing: true }),
+    provideZonelessChangeDetection(),
     importProvidersFrom(
       BrowserModule,
       HammerModule,
       AppRoutingModule,
       ReactiveFormsModule,
-      
+
       MarkdownModule.forRoot(),
       MonacoEditorModule.forRoot(),
       DragDropModule,

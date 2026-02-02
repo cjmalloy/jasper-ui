@@ -1,4 +1,14 @@
-import { Component, ElementRef, EventEmitter, Input, OnChanges, Output, SimpleChanges, ViewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  EventEmitter,
+  Input,
+  OnChanges,
+  Output,
+  SimpleChanges,
+  ViewChild
+} from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { defer, uniqBy } from 'lodash-es';
 import { v4 as uuid } from 'uuid';
@@ -7,6 +17,7 @@ import { AdminService } from '../../service/admin.service';
 import { AuthzService } from '../../service/authz.service';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-select-plugin',
   templateUrl: './select-plugin.component.html',
   styleUrls: ['./select-plugin.component.scss'],

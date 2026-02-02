@@ -1,5 +1,5 @@
 import { AsyncPipe } from '@angular/common';
-import { Component, effect, Injector, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, Injector, OnDestroy, OnInit } from '@angular/core';
 import {
   AbstractControl,
   AsyncValidatorFn,
@@ -43,6 +43,7 @@ import { hasPrefix } from '../../util/tag';
 type Validation = { test: (url: string) => Observable<any>; name: string; passed: boolean };
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-submit-page',
   templateUrl: './submit.component.html',
   styleUrls: ['./submit.component.scss'],

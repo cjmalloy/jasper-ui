@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ViewChild } from '@angular/core';
 import {
   ReactiveFormsModule,
   UntypedFormBuilder,
@@ -33,6 +33,7 @@ import { printError } from '../../../util/http';
 import { getVisibilityTags, prefix } from '../../../util/tag';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-submit-invoice',
   templateUrl: './invoice.component.html',
   styleUrls: ['./invoice.component.scss'],

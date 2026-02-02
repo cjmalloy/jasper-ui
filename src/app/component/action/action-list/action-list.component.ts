@@ -3,11 +3,11 @@ import { TemplatePortal } from '@angular/cdk/portal';
 import { KeyValuePipe } from '@angular/common';
 import {
   AfterViewInit,
+  ChangeDetectionStrategy,
   Component,
   ElementRef,
   HostListener,
   Input,
-  NgZone,
   OnChanges,
   SimpleChanges,
   TemplateRef,
@@ -27,6 +27,7 @@ import { ConfirmActionComponent } from '../confirm-action/confirm-action.compone
 import { InlineButtonComponent } from '../inline-button/inline-button.component';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-action-list',
   templateUrl: './action-list.component.html',
   styleUrl: './action-list.component.scss',
@@ -63,7 +64,6 @@ export class ActionListComponent implements AfterViewInit, OnChanges {
     private overlay: Overlay,
     private el: ElementRef<HTMLElement>,
     private viewContainerRef: ViewContainerRef,
-    private zone: NgZone,
   ) { }
 
   ngAfterViewInit() {
@@ -163,7 +163,7 @@ export class ActionListComponent implements AfterViewInit, OnChanges {
           case 'touchstart':
           case 'mousedown':
           case 'contextmenu':
-            this.zone.run(() => this.closeAdvanced());
+            this.closeAdvanced();
         }
       });
       this.overlayResizeObserver?.observe(this.overlayRef.overlayElement);

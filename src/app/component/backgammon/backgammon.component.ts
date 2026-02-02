@@ -1,6 +1,7 @@
 import { CdkDrag, CdkDragDrop, CdkDropList, CdkDropListGroup } from '@angular/cdk/drag-drop';
 import {
   AfterViewInit,
+  ChangeDetectionStrategy,
   Component,
   effect,
   ElementRef,
@@ -505,6 +506,7 @@ function loadMove(state: GameState, p: Piece, from: number, to: number) {
 }
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-backgammon',
   templateUrl: './backgammon.component.html',
   styleUrls: ['./backgammon.component.scss'],

@@ -1,4 +1,4 @@
-import { Component, effect } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { NavigationEnd, Router } from '@angular/router';
 import { debounce } from 'lodash-es';
@@ -9,6 +9,7 @@ import { Store } from '../../store/store';
 import { View } from '../../store/view';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-search',
   templateUrl: './search.component.html',
   styleUrls: ['./search.component.scss'],

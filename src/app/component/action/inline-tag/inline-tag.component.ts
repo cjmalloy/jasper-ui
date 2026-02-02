@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { debounce } from 'lodash-es';
 import { catchError, forkJoin, map, Observable, of, Subscription, switchMap } from 'rxjs';
@@ -14,6 +14,7 @@ import { LoadingComponent } from '../../loading/loading.component';
 import { ActionComponent } from '../action.component';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-inline-tag',
   templateUrl: './inline-tag.component.html',
   styleUrls: ['./inline-tag.component.scss'],

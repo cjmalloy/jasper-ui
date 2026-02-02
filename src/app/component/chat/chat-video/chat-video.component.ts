@@ -13,10 +13,10 @@ import { Store } from '../../../store/store';
 import { hasTag } from '../../../util/tag';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-chat-video',
   templateUrl: './chat-video.component.html',
   styleUrl: './chat-video.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     RouterLink,
     TitleDirective,

@@ -1,5 +1,6 @@
 import {
   AfterViewInit,
+  ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
   ContentChildren,
@@ -16,6 +17,7 @@ import { memo, MemoCache } from '../../util/memo';
 import { SettingsComponent } from '../settings/settings.component';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-tabs',
   templateUrl: './tabs.component.html',
   styleUrl: './tabs.component.scss',

@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 
 import { SidebarComponent } from '../../component/sidebar/sidebar.component';
@@ -9,6 +9,7 @@ import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-settings-page',
   templateUrl: './settings.component.html',
   styleUrls: ['./settings.component.scss'],
