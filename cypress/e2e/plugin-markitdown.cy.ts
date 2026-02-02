@@ -37,38 +37,27 @@ describe('MarkItDown Plugin', {
     // Click the upload tab
     cy.get('.tabs').contains('upload').click();
     
-    // Upload the PDF file
-    cy.get('input[type="file"]').first().selectFile('cypress/fixtures/test.pdf', { force: true });
+    // Upload the PDF file using cache input (second file input)
+    cy.get('input[type="file"]').eq(1).selectFile('cypress/fixtures/test.pdf', { force: true });
     
     // Wait for file to be processed
     cy.wait(1000);
     
-    // Add plugin/pdf tag to the uploaded ref
-    cy.get('input#add-tag').type('plugin/pdf{enter}');
+    // PDF plugin should be added automatically, no need to add tags manually
     
-    // Set published date on the ref
-    cy.get('app-ref [name=published]').first().type('2020-01-01T00:00').blur();
-    
-    // Upload all
-    cy.intercept({pathname: '/api/v1/ref'}).as('submit');
+    // Upload all - intercept cache POST then ref GET
+    cy.intercept('POST', '/api/v1/cache').as('cache');
+    cy.intercept('GET', '/api/v1/ref').as('ref');
     cy.get('button').contains('upload all').click();
-    cy.wait('@submit');
+    cy.wait('@cache');
+    cy.wait('@ref');
     
-    // Verify the ref was created
-    cy.visit('/?debug=USER');
-    openSidebar();
-    cy.get('input[type=search]').type('test.pdf{enter}');
-    cy.wait(500);
-    cy.get('.ref-list .link').contains('test.pdf').should('exist');
+    // After uploading a single file, it navigates to that ref automatically
+    cy.get('.full-page.ref .link a').should('contain', 'test.pdf');
   });
 
   it('should show markdown action button', () => {
-    // Navigate to the uploaded ref
-    cy.visit('/?debug=USER');
-    openSidebar();
-    cy.get('input[type=search]').type('test.pdf{enter}');
-    cy.wait(500);
-    cy.get('.ref-list .link').contains('test.pdf').click();
+    // Should already be on the uploaded ref page from previous test
     cy.get('.full-page.ref .actions').should('contain', 'markdown');
   });
 
@@ -97,38 +86,27 @@ describe('MarkItDown Plugin', {
     // Click the upload tab
     cy.get('.tabs').contains('upload').click();
     
-    // Upload the DOC file
-    cy.get('input[type="file"]').first().selectFile('cypress/fixtures/test.doc', { force: true });
+    // Upload the DOC file using cache input (second file input)
+    cy.get('input[type="file"]').eq(1).selectFile('cypress/fixtures/test.doc', { force: true });
     
     // Wait for file to be processed
     cy.wait(1000);
     
-    // Add plugin/file tag to the uploaded ref
-    cy.get('input#add-tag').type('plugin/file{enter}');
+    // File plugin should be added automatically
     
-    // Set published date on the ref
-    cy.get('app-ref [name=published]').first().type('2020-01-03T00:00').blur();
-    
-    // Upload all
-    cy.intercept({pathname: '/api/v1/ref'}).as('submit');
+    // Upload all - intercept cache POST then ref GET
+    cy.intercept('POST', '/api/v1/cache').as('cache');
+    cy.intercept('GET', '/api/v1/ref').as('ref');
     cy.get('button').contains('upload all').click();
-    cy.wait('@submit');
+    cy.wait('@cache');
+    cy.wait('@ref');
     
-    // Verify the ref was created
-    cy.visit('/?debug=USER');
-    openSidebar();
-    cy.get('input[type=search]').type('test.doc{enter}');
-    cy.wait(500);
-    cy.get('.ref-list .link').contains('test.doc').should('exist');
+    // After uploading a single file, it navigates to that ref automatically
+    cy.get('.full-page.ref .link a').should('contain', 'test.doc');
   });
 
   it('should have markdown action on file ref', () => {
-    // Navigate to the uploaded ref
-    cy.visit('/?debug=USER');
-    openSidebar();
-    cy.get('input[type=search]').type('test.doc{enter}');
-    cy.wait(500);
-    cy.get('.ref-list .link').contains('test.doc').click();
+    // Should already be on the uploaded ref page from previous test
     cy.get('.full-page.ref .actions').should('contain', 'markdown');
   });
 
@@ -140,40 +118,28 @@ describe('MarkItDown Plugin', {
     // Click the upload tab
     cy.get('.tabs').contains('upload').click();
     
-    // Upload the PDF file
-    cy.get('input[type="file"]').first().selectFile('cypress/fixtures/test.pdf', { force: true });
+    // Upload the PDF file using cache input (second file input)
+    cy.get('input[type="file"]').eq(1).selectFile('cypress/fixtures/test.pdf', { force: true });
     
     // Wait for file to be processed
     cy.wait(1000);
     
-    // Add public and plugin/pdf tags
+    // Add public tag (PDF plugin is added automatically)
     cy.get('input#add-tag').type('public{enter}');
-    cy.get('input#add-tag').type('plugin/pdf{enter}');
     
-    // Set published date on the ref
-    cy.get('app-ref [name=published]').first().type('2020-01-04T00:00').blur();
-    
-    // Upload all
-    cy.intercept({pathname: '/api/v1/ref'}).as('submit');
+    // Upload all - intercept cache POST then ref GET
+    cy.intercept('POST', '/api/v1/cache').as('cache');
+    cy.intercept('GET', '/api/v1/ref').as('ref');
     cy.get('button').contains('upload all').click();
-    cy.wait('@submit');
+    cy.wait('@cache');
+    cy.wait('@ref');
     
-    // Verify the ref was created with public tag
-    cy.visit('/?debug=USER');
-    openSidebar();
-    cy.get('input[type=search]').type('test.pdf public{enter}');
-    cy.wait(500);
-    cy.get('.ref-list .link').contains('test.pdf').should('exist');
+    // After uploading a single file, it navigates to that ref automatically
+    cy.get('.full-page.ref .link a').should('contain', 'test.pdf');
   });
 
   it('should propagate public tag to response', () => {
-    // Navigate to the public ref
-    cy.visit('/?debug=USER');
-    openSidebar();
-    cy.get('input[type=search]').type('test.pdf public{enter}');
-    cy.wait(500);
-    cy.get('.ref-list .link').contains('test.pdf').click();
-    
+    // Should already be on the uploaded public ref from previous test
     // Verify public tag is visible
     cy.get('.full-page.ref .tag').contains('public').should('exist');
   });
@@ -202,30 +168,23 @@ describe('MarkItDown Plugin', {
     // Click the upload tab
     cy.get('.tabs').contains('upload').click();
     
-    // Upload the PDF file
-    cy.get('input[type="file"]').first().selectFile('cypress/fixtures/test.pdf', { force: true });
+    // Upload the PDF file using cache input (second file input)
+    cy.get('input[type="file"]').eq(1).selectFile('cypress/fixtures/test.pdf', { force: true });
     
     // Wait for file to be processed
     cy.wait(1000);
     
-    // Add plugin/pdf tag
-    cy.get('input#add-tag').type('plugin/pdf{enter}');
+    // PDF plugin is added automatically, no need to add tags
     
-    // Set published date on the ref
-    cy.get('app-ref [name=published]').first().type('2020-01-05T00:00').blur();
-    
-    // Upload all
-    cy.intercept({pathname: '/api/v1/ref'}).as('submit');
+    // Upload all - intercept cache POST then ref GET
+    cy.intercept('POST', '/api/v1/cache').as('cache');
+    cy.intercept('GET', '/api/v1/ref').as('ref');
     cy.get('button').contains('upload all').click();
-    cy.wait('@submit');
+    cy.wait('@cache');
+    cy.wait('@ref');
     
-    // Navigate to the ref
-    cy.visit('/?debug=USER');
-    openSidebar();
-    cy.get('input[type=search]').clear().type('test.pdf{enter}');
-    cy.wait(500);
-    // Click on one of the test.pdf refs (there will be multiple)
-    cy.get('.ref-list .link').contains('test.pdf').last().click();
+    // After uploading, it navigates to that ref automatically
+    cy.get('.full-page.ref .link a').should('contain', 'test.pdf');
     
     // Click markdown action
     cy.get('.full-page.ref .actions *').contains('markdown').click();
