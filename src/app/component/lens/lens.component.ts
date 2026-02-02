@@ -6,9 +6,8 @@ import {
   Input,
   input,
   OnChanges,
-  QueryList,
   SimpleChanges,
-  ViewChildren
+  viewChildren
 } from '@angular/core';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ext } from '../../model/ext';
@@ -74,11 +73,10 @@ export class LensComponent implements OnChanges, HasChanges {
 
   plugins?: string[];
 
-  @ViewChildren('lens')
-  list?: QueryList<HasChanges>;
+  readonly list = viewChildren<HasChanges>('lens');
 
   saveChanges() {
-    return !this.list?.find(t => !t.saveChanges());
+    return !this.list()?.find(t => !t.saveChanges());
   }
 
   init() {

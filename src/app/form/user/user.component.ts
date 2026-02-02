@@ -7,7 +7,7 @@ import {
   input,
   OnInit,
   output,
-  ViewChild
+  viewChild
 } from '@angular/core';
 import {
   ReactiveFormsModule,
@@ -53,19 +53,13 @@ export class UserFormComponent implements OnInit {
   @Input()
   externalErrors: string[] = [];
 
-  @ViewChild('fill')
-  fill?: ElementRef;
+  readonly fill = viewChild<ElementRef>('fill');
 
-  @ViewChild('notifications')
-  notifications!: TagsFormComponent;
-  @ViewChild('readAccess')
-  readAccess!: TagsFormComponent;
-  @ViewChild('writeAccess')
-  writeAccess!: TagsFormComponent;
-  @ViewChild('tagReadAccess')
-  tagReadAccess!: TagsFormComponent;
-  @ViewChild('tagWriteAccess')
-  tagWriteAccess!: TagsFormComponent;
+  readonly notifications = viewChild.required<TagsFormComponent>('notifications');
+  readonly readAccess = viewChild.required<TagsFormComponent>('readAccess');
+  readonly writeAccess = viewChild.required<TagsFormComponent>('writeAccess');
+  readonly tagReadAccess = viewChild.required<TagsFormComponent>('tagReadAccess');
+  readonly tagWriteAccess = viewChild.required<TagsFormComponent>('tagWriteAccess');
 
   id = 'user-' + uuid();
   editingExternal = false;
@@ -120,11 +114,11 @@ export class UserFormComponent implements OnInit {
   }
 
   setUser(user: User) {
-    this.notifications.setTags((user.readAccess || []).filter(isMailbox));
-    this.readAccess.setTags((user.readAccess || []).filter(t => !isMailbox(t)));
-    this.writeAccess.setTags([...user.writeAccess || []]);
-    this.tagReadAccess.setTags([...user.tagReadAccess || []]);
-    this.tagWriteAccess.setTags([...user.tagWriteAccess || []]);
+    this.notifications().setTags((user.readAccess || []).filter(isMailbox));
+    this.readAccess().setTags((user.readAccess || []).filter(t => !isMailbox(t)));
+    this.writeAccess().setTags([...user.writeAccess || []]);
+    this.tagReadAccess().setTags([...user.tagReadAccess || []]);
+    this.tagWriteAccess().setTags([...user.tagWriteAccess || []]);
     this.group.patchValue({
       ...user,
       external: user.external ? JSON.stringify(user.external, null, 2) : undefined,

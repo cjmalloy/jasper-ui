@@ -12,10 +12,9 @@ import {
   OnChanges,
   OnDestroy,
   OnInit,
-  QueryList,
   SimpleChanges,
-  ViewChild,
-  ViewChildren
+  viewChildren,
+  viewChild
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { delay, groupBy, uniq, without } from 'lodash-es';
@@ -96,14 +95,10 @@ export class CommentComponent implements OnInit, AfterViewInit, OnChanges, OnDes
 
   maxContext = 20;
 
-  @ViewChildren('action')
-  actionComponents?: QueryList<ActionComponent>;
-  @ViewChild('replyComponent')
-  replyComponent?: CommentReplyComponent;
-  @ViewChild('editComponent')
-  editComponent?: CommentEditComponent;
-  @ViewChild('threadComponent')
-  threadComponent?: CommentThreadComponent;
+  readonly actionComponents = viewChildren<ActionComponent>('action');
+  readonly replyComponent = viewChild<CommentReplyComponent>('replyComponent');
+  readonly editComponent = viewChild<CommentEditComponent>('editComponent');
+  readonly threadComponent = viewChild<CommentThreadComponent>('threadComponent');
 
   @Input()
   ref!: Ref;
@@ -143,9 +138,12 @@ export class CommentComponent implements OnInit, AfterViewInit, OnChanges, OnDes
   }
 
   saveChanges() {
-    return (!this.editComponent || this.editComponent.saveChanges())
-      && (!this.replyComponent || this.replyComponent.saveChanges())
-      && (!this.threadComponent || this.threadComponent.saveChanges());
+    const editComponent = this.editComponent();
+    const replyComponent = this.replyComponent();
+    const threadComponent = this.threadComponent();
+    return (!editComponent || editComponent.saveChanges())
+      && (!replyComponent || replyComponent.saveChanges())
+      && (!threadComponent || threadComponent.saveChanges());
   }
 
   ngOnInit(): void {
@@ -180,7 +178,7 @@ export class CommentComponent implements OnInit, AfterViewInit, OnChanges, OnDes
   init() {
     MemoCache.clear(this);
     this.editing = false;
-    this.actionComponents?.forEach(c => c.reset());
+    this.actionComponents()?.forEach(c => c.reset());
     this.collapsed = !this.store.local.isRefToggled('comment:' + this.ref.url, true);
     this.writeAccess = this.auth.writeAccess(this.ref);
     this.taggingAccess = this.auth.taggingAccess(this.ref);

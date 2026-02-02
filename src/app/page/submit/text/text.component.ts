@@ -10,7 +10,8 @@ import {
   OnChanges,
   OnDestroy,
   SimpleChanges,
-  ViewChild
+  ViewChild,
+  viewChild
 } from '@angular/core';
 import {
   ReactiveFormsModule,
@@ -97,14 +98,10 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
   advanced = false;
   serverError: string[] = [];
 
-  @ViewChild('fill')
-  fill?: ElementRef;
-  @ViewChild('fillCustom')
-  fillCustom?: ElementRef;
-  @ViewChild('tagsFormComponent')
-  tagsFormComponent!: TagsFormComponent;
-  @ViewChild('plugins')
-  plugins!: PluginsFormComponent;
+  readonly fill = viewChild<ElementRef>('fill');
+  readonly fillCustom = viewChild<ElementRef>('fillCustom');
+  readonly tagsFormComponent = viewChild.required<TagsFormComponent>('tagsFormComponent');
+  readonly plugins = viewChild.required<PluginsFormComponent>('plugins');
 
   submitting?: Subscription;
   addAnother = false;
@@ -144,7 +141,7 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
       if (d) {
         this.oldSubmit = uniq([...allTags, ...Object.keys(d.ref.plugins || {})]);
         this.addTag(...this.oldSubmit);
-        this.plugins.setValue(d.ref.plugins);
+        this.plugins().setValue(d.ref.plugins);
         this.textForm.patchValue({
           ...d.ref,
           tags: this.oldSubmit,
@@ -169,11 +166,11 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
         const removed = without(this.oldSubmit, ...tags);
         if (added.length || removed.length) {
           this.oldSubmit = uniq([...without(this.oldSubmit, ...removed), ...added]);
-          this.tagsFormComponent!.setTags(this.oldSubmit);
+          this.tagsFormComponent()!.setTags(this.oldSubmit);
         }
         if (this.store.submit.pluginUpload) {
           this.addTag(this.store.submit.plugin);
-          this.plugins.setValue({
+          this.plugins().setValue({
             ...this.textForm.value.plugins || {},
             [this.store.submit.plugin]: { url: this.store.submit.pluginUpload },
           });
@@ -268,11 +265,12 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
   }
 
   setTags(value: string[]) {
-    if (!this.tagsFormComponent?.tags) {
+    const tagsFormComponent = this.tagsFormComponent();
+    if (!tagsFormComponent?.tags) {
       defer(() => this.setTags(value));
       return;
     }
-    this.tagsFormComponent.setTags(value);
+    tagsFormComponent.setTags(value);
   }
 
   validate(input: HTMLInputElement) {
@@ -285,11 +283,12 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
   }
 
   addTag(...values: string[]) {
-    if (!this.tagsFormComponent?.tags) {
+    const tagsFormComponent = this.tagsFormComponent();
+    if (!tagsFormComponent?.tags) {
       defer(() => this.addTag(...values));
       return;
     }
-    this.tagsFormComponent.addTag(...values);
+    tagsFormComponent.addTag(...values);
     this.submitted = false;
     MemoCache.clear(this);
   }

@@ -6,7 +6,7 @@ import {
   Injector,
   OnDestroy,
   OnInit,
-  ViewChild
+  viewChild
 } from '@angular/core';
 import { defer, uniq } from 'lodash-es';
 
@@ -50,10 +50,8 @@ export class RefThreadComponent implements OnInit, OnDestroy, HasChanges {
 
   private destroy$ = new Subject<void>();
 
-  @ViewChild('reply')
-  reply?: CommentReplyComponent;
-  @ViewChild('list')
-  list?: RefListComponent;
+  readonly reply = viewChild<CommentReplyComponent>('reply');
+  readonly list = viewChild<RefListComponent>('list');
 
   newRefs$ = new Subject<Ref | undefined>();
 
@@ -71,8 +69,10 @@ export class RefThreadComponent implements OnInit, OnDestroy, HasChanges {
   }
 
   saveChanges() {
-    return (!this.reply || this.reply.saveChanges())
-      && (!this.list || this.list.saveChanges());
+    const reply = this.reply();
+    const list = this.list();
+    return (!reply || reply.saveChanges())
+      && (!list || list.saveChanges());
   }
 
   ngOnInit(): void {

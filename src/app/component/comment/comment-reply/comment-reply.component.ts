@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, forwardRef, inject, Input, input, output, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, forwardRef, inject, Input, input, output, viewChild } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { pickBy, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
@@ -50,8 +50,7 @@ export class CommentReplyComponent implements HasChanges {
   readonly autofocus = input(false);
   readonly save = output<Ref | undefined>();
 
-  @ViewChild('editor')
-  editor?: EditorComponent
+  readonly editor = viewChild<EditorComponent>('editor');
 
   editorTags: string[] = [];
   editorSources: string[] = [];
@@ -156,7 +155,7 @@ export class CommentReplyComponent implements HasChanges {
       this.tags = [...this.tags];
       this.completedUploads = [];
 
-      this.editor?.syncText('');
+      this.editor()?.syncText('');
       const update = {
         ...ref,
         created: DateTime.now(),

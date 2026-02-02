@@ -6,7 +6,7 @@ import {
   Injector,
   OnDestroy,
   OnInit,
-  ViewChild
+  viewChild
 } from '@angular/core';
 import { defer, uniq } from 'lodash-es';
 
@@ -39,8 +39,7 @@ export class SettingsRefPage implements OnInit, OnDestroy, HasChanges {
   plugin?: Plugin;
   writeAccess = false;
 
-  @ViewChild('list')
-  list?: RefListComponent;
+  readonly list = viewChild<RefListComponent>('list');
 
   constructor() {
     const mod = this.mod;
@@ -70,7 +69,8 @@ export class SettingsRefPage implements OnInit, OnDestroy, HasChanges {
   }
 
   saveChanges() {
-    return !this.list || this.list.saveChanges();
+    const list = this.list();
+    return !list || list.saveChanges();
   }
 
   ngOnDestroy() {

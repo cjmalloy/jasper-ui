@@ -8,7 +8,7 @@ import {
   Injector,
   OnDestroy,
   OnInit,
-  ViewChild
+  viewChild
 } from '@angular/core';
 import {
   ReactiveFormsModule,
@@ -65,8 +65,7 @@ export class ExtPage implements OnInit, OnDestroy, HasChanges {
 
   @HostBinding('class') css = 'full-page-form';
 
-  @ViewChild('form')
-  form?: ExtFormComponent;
+  readonly form = viewChild<ExtFormComponent>('form');
 
   template = '';
   created = false;
@@ -121,7 +120,7 @@ export class ExtPage implements OnInit, OnDestroy, HasChanges {
     if (ext) {
       this.editForm = extForm(this.fb, ext, this.admin, true);
       this.editForm.patchValue(ext);
-      defer(() => this.form!.setValue(ext));
+      defer(() => this.form()!.setValue(ext));
     } else {
       for (const t of this.templates) {
         if (hasPrefix(tag, t.tag)) {

@@ -11,10 +11,9 @@ import {
   input,
   OnChanges,
   OnDestroy,
-  QueryList,
   SimpleChanges,
   ViewChild,
-  ViewChildren
+  viewChildren
 } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -99,8 +98,7 @@ export class BlogEntryComponent implements OnChanges, OnDestroy, HasChanges {
   @HostBinding('attr.tabindex') tabIndex = 0;
   private destroy$ = new Subject<void>();
 
-  @ViewChildren('action')
-  actionComponents?: QueryList<ActionComponent>;
+  readonly actionComponents = viewChildren<ActionComponent>('action');
 
   readonly blog = input<Ext>();
   @Input()
@@ -152,7 +150,7 @@ export class BlogEntryComponent implements OnChanges, OnDestroy, HasChanges {
     this.deleted = false;
     this.editing = false;
     this.viewSource = false;
-    this.actionComponents?.forEach(c => c.reset());
+    this.actionComponents()?.forEach(c => c.reset());
     this.writeAccess = this.auth.writeAccess(this.ref);
     this.taggingAccess = this.auth.taggingAccess(this.ref);
     this.deleteAccess = this.auth.deleteAccess(this.ref);

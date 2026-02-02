@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, Input, QueryList, ViewChildren } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, Input, viewChildren } from '@angular/core';
 import { Router } from '@angular/router';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Page } from '../../../model/page';
@@ -19,13 +19,12 @@ export class PluginListComponent implements HasChanges {
   private router = inject(Router);
 
 
-  @ViewChildren(PluginComponent)
-  list?: QueryList<PluginComponent>;
+  readonly list = viewChildren(PluginComponent);
 
   private _page?: Page<Plugin>;
 
   saveChanges() {
-    return !this.list?.find(p => !p.saveChanges());
+    return !this.list()?.find(p => !p.saveChanges());
   }
 
   get page() {

@@ -6,7 +6,7 @@ import {
   Injector,
   OnDestroy,
   OnInit,
-  ViewChild
+  viewChild
 } from '@angular/core';
 import { defer } from 'lodash-es';
 
@@ -34,8 +34,7 @@ export class RefVersionsComponent implements OnInit, OnDestroy, HasChanges {
   query = inject(QueryStore);
 
 
-  @ViewChild('list')
-  list?: RefListComponent;
+  readonly list = viewChild<RefListComponent>('list');
 
   constructor() {
     const store = this.store;
@@ -64,7 +63,8 @@ export class RefVersionsComponent implements OnInit, OnDestroy, HasChanges {
   }
 
   saveChanges() {
-    return !this.list || this.list.saveChanges();
+    const list = this.list();
+    return !list || list.saveChanges();
   }
 
   ngOnDestroy() {

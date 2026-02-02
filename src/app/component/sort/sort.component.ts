@@ -7,7 +7,7 @@ import {
   Input,
   OnChanges,
   SimpleChanges,
-  ViewChild
+  viewChild
 } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { NavigationEnd, Router } from '@angular/router';
@@ -31,8 +31,7 @@ export class SortComponent implements OnChanges {
   store = inject(Store);
 
 
-  @ViewChild('create')
-  create?: ElementRef<HTMLSelectElement>;
+  readonly create = viewChild<ElementRef<HTMLSelectElement>>('create');
 
   @Input()
   type?: Type;
@@ -76,7 +75,7 @@ export class SortComponent implements OnChanges {
     this.replace = false;
     if (!this.sorts) this.sorts = [];
     this.sorts.push('');
-    this.create!.nativeElement.selectedIndex = 0;
+    this.create()!.nativeElement.selectedIndex = 0;
     this.setSortCol(this.sorts.length - 1, value);
   }
 

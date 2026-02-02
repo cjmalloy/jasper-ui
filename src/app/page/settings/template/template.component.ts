@@ -7,7 +7,7 @@ import {
   Injector,
   OnDestroy,
   OnInit,
-  ViewChild
+  viewChild
 } from '@angular/core';
 import { defer } from 'lodash-es';
 import { catchError, switchMap, throwError } from 'rxjs';
@@ -39,8 +39,7 @@ export class SettingsTemplatePage implements OnInit, OnDestroy, HasChanges {
 
   serverError: string[] = [];
 
-  @ViewChild('list')
-  list?: TemplateListComponent;
+  readonly list = viewChild<TemplateListComponent>('list');
 
   constructor() {
     const mod = this.mod;
@@ -67,7 +66,8 @@ export class SettingsTemplatePage implements OnInit, OnDestroy, HasChanges {
   }
 
   saveChanges() {
-    return !this.list || this.list.saveChanges();
+    const list = this.list();
+    return !list || list.saveChanges();
   }
 
   ngOnDestroy() {

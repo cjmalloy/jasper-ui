@@ -6,7 +6,7 @@ import {
   Injector,
   OnDestroy,
   OnInit,
-  ViewChild
+  viewChild
 } from '@angular/core';
 import { uniq } from 'lodash-es';
 
@@ -45,8 +45,7 @@ export class RefCommentsComponent implements OnInit, OnDestroy, HasChanges {
 
   newComments$ = new Subject<Ref | undefined>();
 
-  @ViewChild('reply')
-  reply?: CommentReplyComponent;
+  readonly reply = viewChild<CommentReplyComponent>('reply');
 
   constructor() {
     const store = this.store;
@@ -57,7 +56,8 @@ export class RefCommentsComponent implements OnInit, OnDestroy, HasChanges {
   }
 
   saveChanges() {
-    return !this.reply || this.reply.saveChanges();
+    const reply = this.reply();
+    return !reply || reply.saveChanges();
   }
 
   ngOnInit(): void {

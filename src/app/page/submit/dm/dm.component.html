@@ -1,5 +1,5 @@
 <form class="form" [formGroup]="dmForm" (ngSubmit)="submit()"
-      [appLimitWidth]="(fill || fillCustom)?.nativeElement" [limitSibling]="true">
+      [appLimitWidth]="(fill() || fillCustom())?.nativeElement" [limitSibling]="true">
   @if (!store.submit.dmPlugin) {
     <label for="to" i18n>To:</label>
     <div class="form-array skip-margin">

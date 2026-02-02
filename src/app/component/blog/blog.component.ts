@@ -5,8 +5,7 @@ import {
   Input,
   input,
   OnDestroy,
-  QueryList,
-  ViewChildren
+  viewChildren
 } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, forkJoin, of, Subject, takeUntil } from 'rxjs';
@@ -47,8 +46,7 @@ export class BlogComponent implements HasChanges, OnDestroy {
   colStyle = '';
   error: any;
 
-  @ViewChildren(BlogEntryComponent)
-  list?: QueryList<BlogEntryComponent>;
+  readonly list = viewChildren(BlogEntryComponent);
 
   private _page?: Page<Ref>;
   private _ext?: Ext;
@@ -60,7 +58,7 @@ export class BlogComponent implements HasChanges, OnDestroy {
   }
 
   saveChanges() {
-    return !this.list?.find(r => !r.saveChanges());
+    return !this.list()?.find(r => !r.saveChanges());
   }
 
   get page(): Page<Ref> | undefined {

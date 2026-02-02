@@ -7,9 +7,8 @@ import {
   input,
   OnChanges,
   output,
-  QueryList,
   SimpleChanges,
-  ViewChildren
+  viewChildren
 } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormArray, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { defer } from 'lodash-es';
@@ -36,8 +35,7 @@ export class PluginsFormComponent implements OnChanges, AfterViewInit {
 
   private destroy$ = new Subject<void>();
 
-  @ViewChildren('gen')
-  gens?: QueryList<GenFormComponent>;
+  readonly gens = viewChildren<GenFormComponent>('gen');
 
   readonly fieldName = input('plugins');
   @Input()
@@ -119,7 +117,7 @@ export class PluginsFormComponent implements OnChanges, AfterViewInit {
   setValue(value: any) {
     defer(() => {
       this.plugins.patchValue(value);
-      this.gens!.forEach(g => g.setValue(value))
+      this.gens()!.forEach(g => g.setValue(value))
     });
   }
 

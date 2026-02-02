@@ -6,7 +6,7 @@ import {
   Injector,
   OnDestroy,
   OnInit,
-  ViewChild
+  viewChild
 } from '@angular/core';
 import { defer } from 'lodash-es';
 
@@ -49,8 +49,7 @@ export class RefErrorsComponent implements OnInit, OnDestroy, HasChanges {
 
   private destroy$ = new Subject<void>();
 
-  @ViewChild('list')
-  list?: RefListComponent;
+  readonly list = viewChild<RefListComponent>('list');
 
   newRefs$ = new Subject<Ref | undefined>();
 
@@ -67,7 +66,8 @@ export class RefErrorsComponent implements OnInit, OnDestroy, HasChanges {
   }
 
   saveChanges() {
-    return !this.list || this.list.saveChanges();
+    const list = this.list();
+    return !list || list.saveChanges();
   }
 
   ngOnInit(): void {
