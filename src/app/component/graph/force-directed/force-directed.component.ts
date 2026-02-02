@@ -8,7 +8,6 @@ import {
   ElementRef,
   forwardRef,
   HostListener,
-  Injector,
   Input,
   OnDestroy,
   TemplateRef,
@@ -114,7 +113,6 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy, HasChan
   private forceLink?: ForceLink<SimulationNodeDatum, any>;
 
   constructor(
-    private injector: Injector,
     public store: Store,
     private admin: AdminService,
     private graphs: GraphService,
@@ -125,7 +123,7 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy, HasChan
       this.selectedStroke = store.darkTheme ? this.selectedStrokeDarkTheme : this.selectedStrokeLightTheme;
       this.linkStroke = store.darkTheme ? this.linkStrokeDarkTheme : this.linkStrokeLightTheme;
       this.update();
-    }, { injector: this.injector });
+    });
   }
 
   saveChanges() {
