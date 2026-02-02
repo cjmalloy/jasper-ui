@@ -40,8 +40,8 @@ describe('MarkItDown Plugin', {
     // Upload the PDF file using cache input (second file input)
     cy.get('input[type="file"]').eq(1).selectFile('cypress/fixtures/test.pdf', { force: true });
     
-    // Wait for file to be processed
-    cy.wait(1000);
+    // Wait for file to be processed and ref preview to appear
+    cy.get('app-ref', { timeout: 10000 }).should('exist');
     
     // PDF plugin should be added automatically, no need to add tags manually
     
@@ -89,8 +89,8 @@ describe('MarkItDown Plugin', {
     // Upload the DOC file using cache input (second file input)
     cy.get('input[type="file"]').eq(1).selectFile('cypress/fixtures/test.doc', { force: true });
     
-    // Wait for file to be processed
-    cy.wait(1000);
+    // Wait for file to be processed and ref preview to appear
+    cy.get('app-ref', { timeout: 10000 }).should('exist');
     
     // File plugin should be added automatically
     
@@ -121,8 +121,8 @@ describe('MarkItDown Plugin', {
     // Upload the PDF file using cache input (second file input)
     cy.get('input[type="file"]').eq(1).selectFile('cypress/fixtures/test.pdf', { force: true });
     
-    // Wait for file to be processed
-    cy.wait(1000);
+    // Wait for file to be processed and ref preview to appear
+    cy.get('app-ref', { timeout: 10000 }).should('exist');
     
     // Add public tag (PDF plugin is added automatically)
     cy.get('input#add-tag').type('public{enter}');
@@ -171,8 +171,8 @@ describe('MarkItDown Plugin', {
     // Upload the PDF file using cache input (second file input)
     cy.get('input[type="file"]').eq(1).selectFile('cypress/fixtures/test.pdf', { force: true });
     
-    // Wait for file to be processed
-    cy.wait(1000);
+    // Wait for file to be processed and ref preview to appear
+    cy.get('app-ref', { timeout: 10000 }).should('exist');
     
     // PDF plugin is added automatically, no need to add tags
     
