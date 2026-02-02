@@ -1,11 +1,11 @@
 import { CdkDrag, CdkDragDrop, CdkDropList } from '@angular/cdk/drag-drop';
 import {
+  ChangeDetectionStrategy,
   Component,
   EventEmitter,
   HostBinding,
   HostListener,
   Input,
-  NgZone,
   OnChanges,
   Output,
   SimpleChanges
@@ -20,6 +20,7 @@ import { Store } from '../../store/store';
 import { TodoItemComponent } from './item/item.component';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-todo',
   templateUrl: './todo.component.html',
   styleUrls: ['./todo.component.scss'],
@@ -31,7 +32,7 @@ import { TodoItemComponent } from './item/item.component';
     TodoItemComponent,
   ]
 })
-export class TodoComponent implements OnChanges {
+class TodoComponent implements OnChanges {
 
   @Input()
   ref?: Ref;
@@ -60,7 +61,6 @@ export class TodoComponent implements OnChanges {
     public config: ConfigService,
     private store: Store,
     private actions: ActionService,
-    private zone: NgZone,
   ) {
     if (config.mobile) {
       this.pressToUnlock = true;
@@ -87,7 +87,7 @@ export class TodoComponent implements OnChanges {
 
   @HostListener('touchstart', ['$event'])
   touchstart(e: TouchEvent) {
-    this.zone.run(() => this.pressToUnlock = true);
+    this.pressToUnlock = true;
   }
 
   @HostBinding('class.empty')
@@ -157,3 +157,5 @@ export class TodoComponent implements OnChanges {
     );
   }
 }
+
+export default TodoComponent

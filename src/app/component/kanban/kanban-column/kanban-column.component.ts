@@ -2,11 +2,11 @@ import { CdkDrag } from '@angular/cdk/drag-drop';
 import { HttpEventType } from '@angular/common/http';
 import {
   AfterViewInit,
+  ChangeDetectionStrategy,
   Component,
   HostBinding,
   HostListener,
   Input,
-  NgZone,
   OnChanges,
   OnDestroy,
   SimpleChanges
@@ -46,6 +46,7 @@ interface PendingUpload {
 }
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-kanban-column',
   templateUrl: './kanban-column.component.html',
   styleUrls: ['./kanban-column.component.scss'],
@@ -102,7 +103,6 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
     private oembeds: OembedStore,
     private refs: RefService,
     private tags: TaggingService,
-    private zone: NgZone,
     private proxy: ProxyService,
   ) {
     if (config.mobile) {
@@ -150,7 +150,7 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
 
   @HostListener('touchstart', ['$event'])
   touchstart(e: TouchEvent) {
-    this.zone.run(() => this.pressToUnlock = true);
+    this.pressToUnlock = true;
   }
 
   @HostListener('contextmenu', ['$event'])

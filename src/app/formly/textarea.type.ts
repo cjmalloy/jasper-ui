@@ -9,6 +9,7 @@ interface TextAreaProps extends FormlyFieldProps {
 }
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'formly-field-textarea',
   host: { 'class': 'field' },
   template: `
@@ -19,7 +20,6 @@ interface TextAreaProps extends FormlyFieldProps {
               [class.is-invalid]="showError"
               [formlyAttributes]="field"></textarea>
   `,
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     ReactiveFormsModule,
     FormlyAttributes,

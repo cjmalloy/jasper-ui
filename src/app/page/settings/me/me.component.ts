@@ -2,7 +2,7 @@ import { Location } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, isDevMode, ViewChild } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, UntypedFormGroup } from '@angular/forms';
-import { cloneDeep, defer } from 'lodash-es';
+import { cloneDeep } from 'lodash-es';
 
 import { catchError, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
@@ -20,11 +20,11 @@ import { scrollToFirstInvalid } from '../../../util/form';
 import { printError } from '../../../util/http';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-settings-me-page',
   templateUrl: './me.component.html',
   styleUrls: ['./me.component.scss'],
   host: { 'class': 'full-page-form' },
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     ReactiveFormsModule,
     LimitWidthDirective,

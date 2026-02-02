@@ -1,4 +1,4 @@
-import { Component, effect, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { DiffEditorModel, MonacoEditorModule } from 'ngx-monaco-editor';
 import { ResizeHandleDirective } from '../../directive/resize-handle.directive';
 import { Ref } from '../../model/ref';
@@ -7,6 +7,7 @@ import { Store } from '../../store/store';
 import { formatRefForDiff } from '../../util/diff';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-diff',
   templateUrl: './diff.component.html',
   styleUrl: './diff.component.scss',

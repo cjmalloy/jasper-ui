@@ -4,6 +4,7 @@ import { AsyncPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
   AfterViewInit,
+  ChangeDetectionStrategy,
   Component,
   ElementRef,
   EventEmitter,
@@ -11,7 +12,6 @@ import {
   HostBinding,
   HostListener,
   Input,
-  NgZone,
   OnChanges,
   OnDestroy,
   Output,
@@ -45,9 +45,10 @@ import { expandedTagsInclude, hasTag, repost } from '../../../util/tag';
 import { ChessComponent } from '../../chess/chess.component';
 import { LoadingComponent } from '../../loading/loading.component';
 import { MdComponent } from '../../md/md.component';
-import { TodoComponent } from '../../todo/todo.component';
+import TodoComponent from '../../todo/todo.component';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-kanban-card',
   templateUrl: './kanban-card.component.html',
   styleUrls: ['./kanban-card.component.scss'],
@@ -109,7 +110,6 @@ export class KanbanCardComponent implements OnChanges, AfterViewInit, OnDestroy 
     private overlay: Overlay,
     private el: ElementRef,
     private viewContainerRef: ViewContainerRef,
-    private zone: NgZone,
   ) { }
 
   init() {
@@ -276,7 +276,7 @@ export class KanbanCardComponent implements OnChanges, AfterViewInit, OnDestroy 
 
   @HostListener('touchend', ['$event'])
   touchend(e: TouchEvent) {
-    this.zone.run(() => this.unlocked = false);
+    this.unlocked = false;
   }
 
   @HostListener('press', ['$event'])
@@ -322,7 +322,7 @@ export class KanbanCardComponent implements OnChanges, AfterViewInit, OnDestroy 
           case 'touchstart':
           case 'mousedown':
           case 'contextmenu':
-            this.zone.run(() => this.close());
+            this.close();
         }
       });
     });

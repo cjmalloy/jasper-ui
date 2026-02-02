@@ -1,6 +1,6 @@
 import { KeyValuePipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, effect, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { groupBy, intersection, isEqual, map, pick, uniq } from 'lodash-es';
 import { catchError, concat, last, Observable, of, switchMap } from 'rxjs';
@@ -41,6 +41,7 @@ import { InlineTagComponent } from '../action/inline-tag/inline-tag.component';
 import { LoadingComponent } from '../loading/loading.component';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-bulk',
   templateUrl: './bulk.component.html',
   styleUrls: ['./bulk.component.scss'],

@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 import {
   ReactiveFormsModule,
   UntypedFormBuilder,
@@ -10,6 +10,7 @@ import { v4 as uuid } from 'uuid';
 import { JsonComponent } from '../json/json.component';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-plugin-form',
   templateUrl: './plugin.component.html',
   styleUrls: ['./plugin.component.scss'],

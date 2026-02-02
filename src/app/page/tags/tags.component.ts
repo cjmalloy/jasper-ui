@@ -1,4 +1,4 @@
-import { Component, effect, Injector, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, Injector, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { defer } from 'lodash-es';
 
@@ -16,6 +16,7 @@ import { getTagFilter, getTagQueryFilter } from '../../util/query';
 import { braces, getPrefixes, hasPrefix, publicTag } from '../../util/tag';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-tags-page',
   templateUrl: './tags.component.html',
   styleUrls: ['./tags.component.scss'],

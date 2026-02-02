@@ -1,4 +1,4 @@
-import { Component, effect, Input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, Input } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormGroup } from '@angular/forms';
 import { MonacoEditorModule } from 'ngx-monaco-editor';
 import { ResizeHandleDirective } from '../../directive/resize-handle.directive';
@@ -6,6 +6,7 @@ import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-code',
   templateUrl: './code.component.html',
   styleUrls: ['./code.component.scss'],

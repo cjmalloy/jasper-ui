@@ -1,10 +1,11 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
 import { catchError, Observable, of } from 'rxjs';
 import { AutofocusDirective } from '../../../directive/autofocus.directive';
 import { LoadingComponent } from '../../loading/loading.component';
 import { ActionComponent } from '../action.component';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-inline-password',
   templateUrl: './inline-password.component.html',
   styleUrls: ['./inline-password.component.scss'],

@@ -1,6 +1,7 @@
 import { AsyncPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
+  ChangeDetectionStrategy,
   Component,
   forwardRef,
   HostBinding,
@@ -38,6 +39,7 @@ import { NavComponent } from '../../nav/nav.component';
 import { ViewerComponent } from '../../viewer/viewer.component';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-chat-entry',
   templateUrl: './chat-entry.component.html',
   styleUrls: ['./chat-entry.component.scss'],

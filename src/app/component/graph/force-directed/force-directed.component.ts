@@ -36,10 +36,10 @@ import { LoadingComponent } from '../../loading/loading.component';
 import { RefListComponent } from '../../ref/ref-list/ref-list.component';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-force-directed',
   templateUrl: './force-directed.component.html',
   styleUrls: ['./force-directed.component.scss'],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     forwardRef(() => RefListComponent),
     LoadingComponent,

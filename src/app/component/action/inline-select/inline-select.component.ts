@@ -1,9 +1,10 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
 import { catchError, Observable, of } from 'rxjs';
 import { LoadingComponent } from '../../loading/loading.component';
 import { ActionComponent } from '../action.component';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-inline-select',
   templateUrl: './inline-select.component.html',
   styleUrls: ['./inline-select.component.scss'],

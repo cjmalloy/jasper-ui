@@ -1,4 +1,4 @@
-import { Component, HostBinding, Input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, HostBinding, Input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Ext } from '../../../model/ext';
 import { Action, Icon } from '../../../model/tag';
@@ -7,6 +7,7 @@ import { QueryStore } from '../../../store/query';
 import { Store } from '../../../store/store';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-subfolder',
   templateUrl: './subfolder.component.html',
   styleUrls: ['./subfolder.component.scss'],

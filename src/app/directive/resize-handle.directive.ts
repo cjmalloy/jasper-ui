@@ -6,7 +6,6 @@ import {
   HostBinding,
   HostListener,
   Input,
-  NgZone,
   OnDestroy
 } from '@angular/core';
 import { defer } from 'lodash-es';
@@ -40,7 +39,6 @@ export class ResizeHandleDirective implements AfterViewInit, OnDestroy {
   constructor(
     private config: ConfigService,
     private el: ElementRef,
-    private zone: NgZone,
     private cd: ChangeDetectorRef,
   ) { }
 
@@ -95,19 +93,17 @@ export class ResizeHandleDirective implements AfterViewInit, OnDestroy {
   onPointerMove(event: PointerEvent) {
     if (!this.enabled) return;
     if (this.dragging) {
-      this.zone.run(() => {
-        const dx = event.clientX - this.x;
-        const dy = event.clientY - this.y;
-        this.setWidth((this.width + dx) + 'px');
-        this.setHeight((this.height + dy) + 'px');
-        event.preventDefault();
-        event.stopPropagation();
-        event.stopImmediatePropagation();
-      });
+      const dx = event.clientX - this.x;
+      const dy = event.clientY - this.y;
+      this.setWidth((this.width + dx) + 'px');
+      this.setHeight((this.height + dy) + 'px');
+      event.preventDefault();
+      event.stopPropagation();
+      event.stopImmediatePropagation();
     } else {
       const cursor = this.hit(event) ? this.resizeCursor : 'auto';
       if (this.cursor !== cursor) {
-        this.zone.run(() => this.cursor = cursor);
+        this.cursor = cursor;
       }
     }
   }

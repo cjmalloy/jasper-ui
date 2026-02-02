@@ -1,6 +1,6 @@
 import { KeyValuePipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { forOwn, uniq } from 'lodash-es';
@@ -14,6 +14,7 @@ import { configGroups, formSafeNames, modId } from '../../../util/format';
 import { printError } from '../../../util/http';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-settings-setup-page',
   templateUrl: './setup.component.html',
   styleUrls: ['./setup.component.scss'],

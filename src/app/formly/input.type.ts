@@ -12,6 +12,7 @@ import { QrScannerComponent } from './qr-scanner/qr-scanner.component';
 import { VideoUploadComponent } from './video-upload/video-upload.component';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'formly-field-input',
   host: { 'class': 'field' },
   template: `
@@ -44,7 +45,6 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
       }
     </div>
   `,
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     ReactiveFormsModule,
     QrScannerComponent,

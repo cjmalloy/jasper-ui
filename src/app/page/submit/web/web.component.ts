@@ -1,5 +1,13 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { AfterViewInit, Component, effect, Injector, OnDestroy, ViewChild } from '@angular/core';
+import {
+  AfterViewInit,
+  ChangeDetectionStrategy,
+  Component,
+  effect,
+  Injector,
+  OnDestroy,
+  ViewChild
+} from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
 import { defer, uniq, without } from 'lodash-es';
@@ -32,6 +40,7 @@ import { printError } from '../../../util/http';
 import { getVisibilityTags } from '../../../util/tag';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-submit-web-page',
   templateUrl: './web.component.html',
   styleUrls: ['./web.component.scss'],

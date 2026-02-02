@@ -1,5 +1,13 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { AfterViewInit, Component, forwardRef, Input, OnDestroy, ViewChild } from '@angular/core';
+import {
+  AfterViewInit,
+  ChangeDetectionStrategy,
+  Component,
+  forwardRef,
+  Input,
+  OnDestroy,
+  ViewChild
+} from '@angular/core';
 import { FormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { uniq, without } from 'lodash-es';
 import { catchError, forkJoin, map, of, Subject, Subscription, switchMap, takeUntil, throwError } from 'rxjs';
@@ -16,6 +24,7 @@ import { getVisibilityTags } from '../../../util/tag';
 import { LoadingComponent } from '../../loading/loading.component';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-comment-edit',
   templateUrl: './comment-edit.component.html',
   styleUrls: ['./comment-edit.component.scss'],

@@ -1,4 +1,4 @@
-import { Component, effect, Injector, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, Injector, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { pickBy, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
@@ -22,6 +22,7 @@ import { memo, MemoCache } from '../../util/memo';
 import { hasTag, privateTag, top } from '../../util/tag';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-ref-page',
   templateUrl: './ref.component.html',
   styleUrls: ['./ref.component.scss'],

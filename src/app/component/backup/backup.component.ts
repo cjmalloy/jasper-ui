@@ -1,7 +1,16 @@
 import { Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { TemplatePortal } from '@angular/cdk/portal';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, ElementRef, HostBinding, Input, TemplateRef, ViewChild, ViewContainerRef } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  HostBinding,
+  Input,
+  TemplateRef,
+  ViewChild,
+  ViewContainerRef
+} from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { catchError, Observable, throwError } from 'rxjs';
@@ -15,6 +24,7 @@ import { printError } from '../../util/http';
 import { ConfirmActionComponent } from '../action/confirm-action/confirm-action.component';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-backup',
   templateUrl: './backup.component.html',
   styleUrls: ['./backup.component.scss'],

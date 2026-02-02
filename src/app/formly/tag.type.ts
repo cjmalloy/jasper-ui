@@ -13,6 +13,7 @@ import { Store } from '../store/store';
 import { getErrorMessage } from './errors';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'formly-field-tag-input',
   host: { 'class': 'field' },
   template: `
@@ -47,7 +48,6 @@ import { getErrorMessage } from './errors';
              [class.is-invalid]="showError">
     </div>
   `,
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     ReactiveFormsModule,
     FormlyAttributes,

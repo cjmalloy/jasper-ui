@@ -1,5 +1,5 @@
 import { Location } from '@angular/common';
-import { Component, effect, OnDestroy } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, OnDestroy } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 
 import { TitleDirective } from '../../directive/title.directive';
@@ -11,6 +11,7 @@ import { ModService } from '../../service/mod.service';
 import { Store } from '../../store/store';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-subscription-bar',
   templateUrl: './subscription-bar.component.html',
   styleUrls: ['./subscription-bar.component.scss'],

@@ -1,7 +1,8 @@
-import { Component, EventEmitter, HostBinding, Input, Output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, HostBinding, Input, Output } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-list-editor',
   templateUrl: './list-editor.component.html',
   styleUrls: ['./list-editor.component.scss'],

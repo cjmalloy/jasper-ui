@@ -1,4 +1,4 @@
-import { Component, effect, Injector, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, Injector, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { defer } from 'lodash-es';
 import { UserListComponent } from '../../../component/user/user-list/user-list.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
@@ -11,6 +11,7 @@ import { UserStore } from '../../../store/user';
 import { getTagFilter } from '../../../util/query';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-settings-user-page',
   templateUrl: './user.component.html',
   styleUrls: ['./user.component.scss'],

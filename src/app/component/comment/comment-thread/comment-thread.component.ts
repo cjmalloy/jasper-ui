@@ -1,4 +1,5 @@
 import {
+  ChangeDetectionStrategy,
   Component,
   effect,
   forwardRef,
@@ -19,6 +20,7 @@ import { ThreadStore } from '../../../store/thread';
 import { CommentComponent } from '../comment.component';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-comment-thread',
   templateUrl: './comment-thread.component.html',
   styleUrls: ['./comment-thread.component.scss'],

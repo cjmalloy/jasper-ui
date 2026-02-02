@@ -1,4 +1,5 @@
 import {
+  ChangeDetectionStrategy,
   Component,
   ElementRef,
   EventEmitter,
@@ -48,9 +49,10 @@ import { ModComponent } from '../mod/mod.component';
 import { PlaylistComponent } from '../playlist/playlist.component';
 import { QrComponent } from '../qr/qr.component';
 import { RefComponent } from '../ref/ref.component';
-import { TodoComponent } from '../todo/todo.component';
+import TodoComponent from '../todo/todo.component';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-viewer',
   templateUrl: './viewer.component.html',
   styleUrls: ['./viewer.component.scss'],
