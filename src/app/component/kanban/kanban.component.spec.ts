@@ -1,13 +1,15 @@
 /// <reference types="vitest/globals" />
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
-import { forwardRef } from '@angular/core';
+import { forwardRef, inputBinding, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { KanbanColumnComponent } from './kanban-column/kanban-column.component';
 
 import { KanbanComponent } from './kanban.component';
 
 describe('KanbanComponent', () => {
+  let listSignal = signal<KanbanColumnComponent>([] as any);
   let component: KanbanComponent;
   let fixture: ComponentFixture<KanbanComponent>;
 
@@ -21,7 +23,10 @@ describe('KanbanComponent', () => {
       ],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(KanbanComponent);
+    listSignal.set([] as any);
+    fixture = TestBed.createComponent(KanbanComponent, {
+      bindings: [inputBinding('list', () => listSignal)],
+    });
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
@@ -41,10 +46,6 @@ describe('KanbanComponent', () => {
       const mockColumn1 = { saveChanges: () => true } as any;
       const mockColumn2 = { saveChanges: () => true } as any;
 
-      component.list = {
-        find: vi.fn().mockReturnValue(undefined) // No column returns false
-      } as any;
-
       expect(component.saveChanges()).toBe(true);
     });
 
@@ -53,9 +54,7 @@ describe('KanbanComponent', () => {
       const mockColumnAllowing = { saveChanges: () => true } as any;
       const mockColumnPreventing = { saveChanges: () => false } as any;
 
-      component.list = {
-        find: vi.fn().mockReturnValue(mockColumnPreventing) // One column returns false
-      } as any;
+      listSignal.set(mockColumnPreventing) // One column returns false
 
       expect(component.saveChanges()).toBe(false);
     });
