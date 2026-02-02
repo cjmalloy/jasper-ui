@@ -8,7 +8,7 @@ import { escapePath, OpPatch } from '../util/json-patch';
 import { getUserUrl, hasTag, localTag, setPublic, userResponse } from '../util/tag';
 import { AdminService } from './admin.service';
 import { RefService } from './api/ref.service';
-import { StompService } from './api/stomp.service';
+import { isTestEnvironment, StompService } from './api/stomp.service';
 import { TaggingService } from './api/tagging.service';
 import { ConfigService } from './config.service';
 
@@ -47,7 +47,7 @@ export class VideoService {
     private ts: TaggingService,
     private refs: RefService,
   ) {
-    if (isDevMode()) timer(3_000, 30_000).pipe(
+    if (isDevMode() && !isTestEnvironment()) timer(3_000, 30_000).pipe(
       mergeMap(() => this.store.video.peers.entries()),
       map(([user, peer]) => ({ user, stats: peer.getStats() })),
     ).subscribe(({ user, stats }) => {

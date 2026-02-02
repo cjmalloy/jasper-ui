@@ -2,7 +2,7 @@
   <form class="form"
         [formGroup]="textForm"
         (ngSubmit)="submit()"
-        [appLimitWidth]="advancedForm?.fill?.nativeElement || fill?.nativeElement"
+        [appLimitWidth]="(advancedForm || fill || fillCustom)?.nativeElement"
         [limitSibling]="true">
 
     @if (defaults?.url || loadingDefaults.length) {
@@ -35,13 +35,12 @@
 
       @if (customEditor) {
         <span><!-- Editor --></span>
-        <div #fill class="fill-editor">
-          <ngx-monaco-editor #ed
-                             [formControl]="comment"
+        <div #fillCustom class="fill-editor">
+          <ngx-monaco-editor [formControl]="comment"
                              [options]="codeOptions"
                              [style.width]="'min(900px, 50vw)'"
                              [style.height]="'min(200px, 90vh)'"
-                             [appFillWidth]="fill"
+                             [appFillWidth]="fillCustom"
                              appResizeHandle
                              [hitArea]="config.mobile ? 48 : 20"></ngx-monaco-editor>
         </div>

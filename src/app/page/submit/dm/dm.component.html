@@ -1,6 +1,6 @@
 <ng-container *mobxAutorun>
   <form class="form" [formGroup]="dmForm" (ngSubmit)="submit()"
-        [appLimitWidth]="fill?.nativeElement" [limitSibling]="true">
+        [appLimitWidth]="(fill || fillCustom)?.nativeElement" [limitSibling]="true">
     @if (!store.submit.dmPlugin) {
       <label for="to" i18n>To:</label>
       <div class="form-array skip-margin">
@@ -48,17 +48,16 @@
                        [text]="true"
                        i18n-title title="Add Plugin"
                        (pluginChange)="bookmarks.toggleTag($event); pluginSelect.plugin = ''"></app-select-plugin>
-    <app-form-plugins id="plugins"[group]="dmForm"></app-form-plugins>
+    <app-form-plugins id="plugins" [group]="dmForm"></app-form-plugins>
 
     @if (customEditor) {
       <span><!-- Editor --></span>
-      <div #fill class="fill-editor">
-        <ngx-monaco-editor #ed
-                           [formControl]="comment"
+      <div #fillCustom class="fill-editor">
+        <ngx-monaco-editor [formControl]="comment"
                            [options]="codeOptions"
                            [style.width]="'min(900px, 50vw)'"
                            [style.height]="'min(200px, 90vh)'"
-                           [appFillWidth]="fill"
+                           [appFillWidth]="fillCustom"
                            appResizeHandle
                            [hitArea]="config.mobile ? 48 : 20"></ngx-monaco-editor>
       </div>
@@ -78,7 +77,7 @@
       </div>
     }
 
-    <app-tags [group]="dmForm"></app-tags>
+    <app-tags #tagsFormComponent [group]="dmForm"></app-tags>
 
     @for (e of serverError; track e) {
       <span><!-- Unexpected Error --></span>

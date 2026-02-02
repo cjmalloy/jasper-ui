@@ -8,11 +8,9 @@ import { isSubOrigin, localTag, tagOrigin } from '../../util/tag';
 import { ConfigService } from '../config.service';
 
 
-function isTestEnvironment(): boolean {
-  // Check for Vitest/Jest test environment
+export function isTestEnvironment(): boolean {
   // @ts-ignore
-  if (typeof globalThis !== 'undefined' && (globalThis.__vitest_worker__ || globalThis.jest)) return true;
-  // Check for Zone.js test zone (Angular TestBed)
+  if (typeof globalThis !== 'undefined' && (globalThis.__vitest_worker__ || globalThis.jest || globalThis.jasmine)) return true;
   // @ts-ignore
   if (typeof Zone !== 'undefined' && Zone.current?.name === 'ProxyZone') return true;
   return false;

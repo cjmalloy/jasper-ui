@@ -73,10 +73,8 @@ export class SubmitDmPage implements AfterViewInit, OnChanges, OnDestroy, HasCha
 
   @ViewChild('fill')
   fill?: ElementRef;
-
-  @ViewChild('ed')
-  editorComponent?: EditorComponent;
-
+  @ViewChild('fillCustom')
+  fillCustom?: ElementRef;
   @ViewChild('tagsFormComponent')
   tagsFormComponent?: TagsFormComponent;
 

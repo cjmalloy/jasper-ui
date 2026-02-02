@@ -553,7 +553,7 @@ describe('VideoService', () => {
       expect(trackHandler).toBeDefined();
 
       // Simulate track event
-      const mockEvent = { 
+      const mockEvent = {
         streams: [mockRemoteStream],
         track: { readyState: 'live' }
       } as any;

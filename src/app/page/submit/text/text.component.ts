@@ -76,10 +76,10 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
 
   @ViewChild('fill')
   fill?: ElementRef;
-
-  @ViewChild('ed')
-  editorComponent?: EditorComponent;
-
+  @ViewChild('fillCustom')
+  fillCustom?: ElementRef;
+  @ViewChild('advancedForm')
+  advancedForm?: ElementRef;
   @ViewChild('tagsFormComponent')
   tagsFormComponent!: TagsFormComponent;
   @ViewChild('plugins')
@@ -203,7 +203,7 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
   }
 
   @ViewChild('advancedForm')
-  set advancedForm(value: RefFormComponent | undefined) {
+  set advancedFormComponent(value: RefFormComponent | undefined) {
     if (this.savedRef && value) {
       value.setRef(this.savedRef);
       delete this.savedRef;
