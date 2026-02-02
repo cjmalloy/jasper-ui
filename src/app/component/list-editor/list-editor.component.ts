@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, HostBinding, Input, Output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, HostBinding, input, Output } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 
 @Component({
@@ -11,12 +11,9 @@ import { ReactiveFormsModule } from '@angular/forms';
 export class ListEditorComponent{
   @HostBinding('class') css = 'listbox form-group';
 
-  @Input()
-  list: string[] = [];
-  @Input()
-  type = 'email';
-  @Input()
-  placeholder = 'Add item';
+  readonly list = input<string[]>([]);
+  readonly type = input('email');
+  readonly placeholder = input('Add item');
   @Output()
   onAdd = new EventEmitter<string>();
   @Output()
@@ -32,25 +29,27 @@ export class ListEditorComponent{
   add() {
     this.error = '';
     if (!this.addingText) return;
-    if (this.list.includes(this.addingText)) {
+    const list = this.list();
+    if (list.includes(this.addingText)) {
       this.error = 'Duplicate name';
       return;
     }
-    this.list.push(this.addingText);
+    list.push(this.addingText);
     this.onAdd.emit(this.addingText);
     this.addingText = '';
-    this.select(this.list.length - 1);
+    this.select(list.length - 1);
   }
 
   remove(index: number) {
-    this.onRemove.emit(this.list[index]);
-    this.list.splice(index, 1);
+    const list = this.list();
+    this.onRemove.emit(list[index]);
+    list.splice(index, 1);
   }
 
   select(index: number) {
     this.selectedIndex = index;
     if (index !== -1) {
-      this.selected.emit(this.list[index]);
+      this.selected.emit(this.list()[index]);
     } else {
       this.selected.emit(undefined);
     }

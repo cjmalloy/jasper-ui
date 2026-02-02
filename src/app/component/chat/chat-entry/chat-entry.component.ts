@@ -7,6 +7,7 @@ import {
   HostBinding,
   inject,
   Input,
+  input,
   OnChanges,
   OnDestroy,
   QueryList,
@@ -74,10 +75,8 @@ export class ChatEntryComponent implements OnChanges, OnDestroy {
 
   @Input()
   ref!: Ref;
-  @Input()
-  focused = false;
-  @Input()
-  loading = true;
+  readonly focused = input(false);
+  readonly loading = input(true);
 
   noComment: Ref = {} as any;
   repostRef?: Ref;
@@ -123,7 +122,7 @@ export class ChatEntryComponent implements OnChanges, OnDestroy {
       this.init();
     } else if (changes.focused) {
       MemoCache.clear(this);
-      if (!this.focused && !this._allowActions) this.actionComponents?.forEach(c => c.reset());
+      if (!this.focused() && !this._allowActions) this.actionComponents?.forEach(c => c.reset());
     }
   }
 
@@ -136,13 +135,13 @@ export class ChatEntryComponent implements OnChanges, OnDestroy {
   get title() {
     const title = (this.ref?.title || '').trim();
     if (title) return title;
-    if (this.focused) return '';
+    if (this.focused()) return '';
     if (this.bareRepost) return getNiceTitle(this.repostRef) || '';
     return getNiceTitle(this.ref);
   }
 
   get allowActions(): boolean {
-    return this._allowActions || this.focused || !!this.actionComponents?.find(c => c.active());
+    return this._allowActions || this.focused() || !!this.actionComponents?.find(c => c.active());
   }
 
   set allowActions(value: boolean) {

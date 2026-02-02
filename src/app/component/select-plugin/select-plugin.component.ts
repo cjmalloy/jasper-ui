@@ -5,6 +5,7 @@ import {
   EventEmitter,
   inject,
   Input,
+  input,
   OnChanges,
   Output,
   SimpleChanges,
@@ -30,14 +31,10 @@ export class SelectPluginComponent implements OnChanges {
   private auth = inject(AuthzService);
 
 
-  @Input()
-  id = 'plugin-' + uuid();
-  @Input()
-  add = false;
-  @Input()
-  text = false;
-  @Input()
-  settings = false;
+  readonly id = input('plugin-' + uuid());
+  readonly add = input(false);
+  readonly text = input(false);
+  readonly settings = input(false);
   @Output()
   pluginChange = new EventEmitter<string>();
 
@@ -55,9 +52,9 @@ export class SelectPluginComponent implements OnChanges {
   ngOnChanges(changes: SimpleChanges) {
     this.plugins = uniqBy([
       ...(this.customPlugin ? [this.customPlugin] : []),
-      ...(this.add ? this.addPlugins : []),
-      ...(this.text ? this.textPlugins : []),
-      ...(this.settings ? this.settingsPlugins : []),
+      ...(this.add() ? this.addPlugins : []),
+      ...(this.text() ? this.textPlugins : []),
+      ...(this.settings() ? this.settingsPlugins : []),
       ...this.submitPlugins
     ], 'tag');
   }

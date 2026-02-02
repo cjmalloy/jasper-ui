@@ -13,6 +13,7 @@ import {
   HostListener,
   inject,
   Input,
+  input,
   OnChanges,
   OnDestroy,
   Output,
@@ -82,12 +83,9 @@ export class NoteComponent implements OnChanges, AfterViewInit, OnDestroy {
 
   @Input()
   ref!: Ref;
-  @Input()
-  pressToUnlock = false;
-  @Input()
-  hideSwimLanes = true;
-  @Input()
-  ext?: Ext;
+  readonly pressToUnlock = input(false);
+  readonly hideSwimLanes = input(true);
+  readonly ext = input<Ext>();
 
   @Output()
   copied = new EventEmitter<Ref>();
@@ -247,9 +245,9 @@ export class NoteComponent implements OnChanges, AfterViewInit, OnDestroy {
 
   @memo
   get badges() {
-    const badges = intersection(this.ref.tags, this.ext?.config?.badges || []);
-    if (this.hideSwimLanes) return badges;
-    return difference(badges, this.ext?.config?.swimLanes || []);
+    const badges = intersection(this.ref.tags, this.ext()?.config?.badges || []);
+    if (this.hideSwimLanes()) return badges;
+    return difference(badges, this.ext()?.config?.swimLanes || []);
   }
 
   @memo
@@ -259,7 +257,7 @@ export class NoteComponent implements OnChanges, AfterViewInit, OnDestroy {
 
   @memo
   get allBadgeExts$() {
-    return this.exts.getCachedExts(this.ext?.config?.badges || [], this.ref.origin || '');
+    return this.exts.getCachedExts(this.ext()?.config?.badges || [], this.ref.origin || '');
   }
 
   @HostBinding('class.last-selected')
@@ -288,7 +286,7 @@ export class NoteComponent implements OnChanges, AfterViewInit, OnDestroy {
 
   @HostListener('contextmenu', ['$event'])
   contextMenu(event: MouseEvent) {
-    if (this.pressToUnlock) {
+    if (this.pressToUnlock()) {
       // no badge menu on mobile
       return;
     }

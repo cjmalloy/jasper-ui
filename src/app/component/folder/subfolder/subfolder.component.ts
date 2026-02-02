@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, HostBinding, inject, Input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, HostBinding, inject, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Ext } from '../../../model/ext';
 import { Action, Icon } from '../../../model/tag';
@@ -21,12 +21,9 @@ export class SubfolderComponent {
 
   @HostBinding('attr.tabindex') tabIndex = 0;
 
-  @Input()
-  ext?: Ext;
-  @Input()
-  name?: string;
-  @Input()
-  dragging = false;
+  readonly ext = input<Ext>();
+  readonly name = input<string>();
+  readonly dragging = input(false);
 
   submitted = false;
   icons: Icon[] = [];

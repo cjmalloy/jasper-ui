@@ -5,6 +5,7 @@ import {
   forwardRef,
   inject,
   Input,
+  input,
   OnChanges,
   OnDestroy,
   OnInit,
@@ -37,16 +38,12 @@ export class CommentThreadComponent implements OnInit, OnChanges, OnDestroy, Has
 
   private destroy$ = new Subject<void>();
 
-  @Input()
-  source = '';
-  @Input()
-  scrollToLatest = false;
+  readonly source = input('');
+  readonly scrollToLatest = input(false);
   @Input()
   depth = 7;
-  @Input()
-  pageSize?: number;
-  @Input()
-  context = 0;
+  readonly pageSize = input<number>();
+  readonly context = input(0);
   @Input()
   newComments$!: Observable<Ref | undefined>;
 
@@ -61,10 +58,11 @@ export class CommentThreadComponent implements OnInit, OnChanges, OnDestroy, Has
 
     effect(() => {
       if (thread.latest.length) {
-        this.comments = thread.cache.get(this.source);
-        if (this.comments && this.pageSize) {
+        this.comments = thread.cache.get(this.source());
+        const pageSize = this.pageSize();
+        if (this.comments && pageSize) {
           this.comments = [...this.comments!];
-          this.comments.length = this.pageSize;
+          this.comments.length = pageSize;
         }
       }
     });
@@ -83,10 +81,11 @@ export class CommentThreadComponent implements OnInit, OnChanges, OnDestroy, Has
   ngOnChanges(changes: SimpleChanges) {
     if (changes.source || changes.pageSize) {
       this.newComments = [];
-      this.comments = this.thread.cache.get(this.source);
-      if (this.comments && this.pageSize) {
+      this.comments = this.thread.cache.get(this.source());
+      const pageSize = this.pageSize();
+      if (this.comments && pageSize) {
         this.comments = [...this.comments!];
-        this.comments.length = this.pageSize;
+        this.comments.length = pageSize;
       }
     }
   }

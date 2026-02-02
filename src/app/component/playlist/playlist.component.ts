@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, input, OnChanges, SimpleChanges } from '@angular/core';
 import { Ref } from '../../model/ref';
 import { RefService } from '../../service/api/ref.service';
 import { ViewerComponent } from '../viewer/viewer.component';
@@ -16,8 +16,7 @@ export class PlaylistComponent implements OnChanges {
   private refs = inject(RefService);
 
 
-  @Input()
-  ref?: Ref;
+  readonly ref = input<Ref>();
 
   index = 0;
   page?: Ref;
@@ -30,16 +29,16 @@ export class PlaylistComponent implements OnChanges {
   }
 
   fetch() {
-    this.refs.getCurrent(this.ref!.sources![this.index]).subscribe(ref => this.page = ref);
+    this.refs.getCurrent(this.ref()!.sources![this.index]).subscribe(ref => this.page = ref);
   }
 
   back() {
-    this.index = (this.index - 1 + this.ref!.sources!.length) % this.ref!.sources!.length;
+    this.index = (this.index - 1 + this.ref()!.sources!.length) % this.ref()!.sources!.length;
     this.fetch();
   }
 
   next() {
-    this.index = (this.index + 1) % this.ref!.sources!.length;
+    this.index = (this.index + 1) % this.ref()!.sources!.length;
     this.fetch();
   }
 }

@@ -4,6 +4,7 @@ import {
   forwardRef,
   inject,
   Input,
+  input,
   OnDestroy,
   OnInit,
   QueryList,
@@ -44,32 +45,20 @@ export class RefListComponent implements OnInit, OnDestroy, HasChanges {
 
   private destroy$ = new Subject<void>();
 
-  @Input()
-  hide?: number[];
-  @Input()
-  plugins?: string[];
-  @Input()
-  showPageLast = true;
-  @Input()
-  showAlarm = true;
-  @Input()
-  pageControls = true;
+  readonly hide = input<number[]>();
+  readonly plugins = input<string[]>();
+  readonly showPageLast = input(true);
+  readonly showAlarm = input(true);
+  readonly pageControls = input(true);
   @Input()
   emptyMessage = $localize`No results found`;
-  @Input()
-  showToggle = true;
-  @Input()
-  expandInline = false;
-  @Input()
-  showVotes = false;
-  @Input()
-  hideNewZeroVoteScores = true;
-  @Input()
-  newRefs$?: Observable<Ref | undefined>;
-  @Input()
-  insertNewAtTop = false;
-  @Input()
-  showPrev = true;
+  readonly showToggle = input(true);
+  readonly expandInline = input(false);
+  readonly showVotes = input(false);
+  readonly hideNewZeroVoteScores = input(true);
+  readonly newRefs$ = input<Observable<Ref | undefined>>();
+  readonly insertNewAtTop = input(false);
+  readonly showPrev = input(true);
 
   @ViewChildren(RefComponent)
   list?: QueryList<RefComponent>;
@@ -154,7 +143,7 @@ export class RefListComponent implements OnInit, OnDestroy, HasChanges {
   }
 
   ngOnInit(): void {
-    this.newRefs$?.pipe(
+    this.newRefs$()?.pipe(
       takeUntil(this.destroy$),
     ).subscribe(ref => ref && this.addNewRef(ref));
   }
@@ -165,10 +154,10 @@ export class RefListComponent implements OnInit, OnDestroy, HasChanges {
   }
 
   getNumber(i: number) {
-    if (this.showVotes) {
+    if (this.showVotes()) {
       const votes = score(this.page!.content[i]);
       if (votes < 100 &&
-        this.hideNewZeroVoteScores &&
+        this.hideNewZeroVoteScores() &&
         DateTime.now().diff(this.page!.content[i].created!, 'minutes').minutes < 5) {
         return '•';
       }
@@ -184,7 +173,7 @@ export class RefListComponent implements OnInit, OnDestroy, HasChanges {
       const index = this.newRefs.findIndex(r => r.url === ref.url);
       if (index !== -1) {
         this.newRefs[index] = ref;
-      } else if (this.insertNewAtTop) {
+      } else if (this.insertNewAtTop()) {
         this.newRefs = [ref, ...this.newRefs];
         return;
       } else {

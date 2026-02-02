@@ -9,7 +9,7 @@
     <span i18n>no results</span>
   } @else {
     <span class="fake-link" (click)="download()" i18n>download</span>
-    @if (type === 'ref') {
+    @if (type() === 'ref') {
       <a class="fake-link" (click)="toggle()" i18n>toggle</a>
       @if (store.account.user) {
         <a class="fake-link" routerLink="/submit" [queryParams]="{source: urls}" i18n>reply</a>
@@ -18,7 +18,7 @@
       <app-confirm-action [action]="copy$" i18n>copy</app-confirm-action>
     }
     <app-confirm-action class="force-delete" [action]="store.hotkey ? forceDelete$ : delete$" i18n>delete</app-confirm-action>
-    @if (type === 'ref') {
+    @if (type() === 'ref') {
       @if (admin.getPlugin('plugin/invoice')) {
         <a routerLink="/submit/invoice" [queryParams]="{url: urls}" i18n>invoice</a>
       }

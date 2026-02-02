@@ -13,6 +13,7 @@ import {
   inject,
   Injector,
   Input,
+  input,
   OnChanges,
   OnDestroy,
   Output,
@@ -88,8 +89,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
 
   private destroy$ = new Subject<void>();
 
-  @Input()
-  id = 'editor-' + uuid();
+  readonly id = input('editor-' + uuid());
 
   @HostBinding('class.stacked')
   stacked = true;
@@ -116,28 +116,19 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   @ViewChild('fileUpload')
   fileUpload!: ElementRef<HTMLInputElement>;
 
-  @Input()
-  hasTags = true;
-  @Input()
-  selectResponseType = false;
-  @Input()
-  tags?: UntypedFormArray;
+  readonly hasTags = input(true);
+  readonly selectResponseType = input(false);
+  readonly tags = input<UntypedFormArray>();
   @Input()
   createdTags: string[] = [];
   @Input()
   control!: UntypedFormControl;
-  @Input()
-  autoFocus = false;
-  @Input()
-  addButton = false;
-  @Input()
-  url = '';
-  @Input()
-  addCommentTitle = $localize`Add comment`;
-  @Input()
-  addCommentLabel = $localize`+ Add comment`;
-  @Input()
-  fillWidth?: HTMLElement;
+  readonly autoFocus = input(false);
+  readonly addButton = input(false);
+  readonly url = input('');
+  readonly addCommentTitle = input($localize `Add comment`);
+  readonly addCommentLabel = input($localize `+ Add comment`);
+  readonly fillWidth = input<HTMLElement>();
   @Output()
   syncEditor = new EventEmitter<string>();
   @Output()
@@ -185,9 +176,9 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
 
   init() {
     MemoCache.clear(this);
-    if (this.selectResponseType && this.responseButtons.length) {
+    if (this.selectResponseType() && this.responseButtons.length) {
       this.toggleIndex = 0;
-      const tags = this.tags?.value || this.createdTags;
+      const tags = this.tags()?.value || this.createdTags;
       for (const p of this.responseButtons) {
         if (hasTag(p.tag, tags)) {
           this.toggleIndex = this.responseButtons.indexOf(p);
@@ -205,8 +196,9 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
         this.el.nativeElement.style.setProperty('--viewport-height', height + 'px');
       }
     }, { injector: this.injector });
-    if (this.tags) {
-      this.tags.valueChanges.pipe(
+    const tags = this.tags();
+    if (tags) {
+      tags.valueChanges.pipe(
         takeUntil(this.destroy$),
       ).subscribe(() => {
         this.init();
@@ -289,7 +281,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
 
   @HostBinding('class.add-button')
   get addButtonClass() {
-    return this.addButton && !this.editing && !this.currentText;
+    return this.addButton() && !this.editing && !this.currentText;
   }
 
   @HostBinding('style.padding.px')
@@ -318,8 +310,9 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
 
   @memo
   get allTags() {
+    const tags = this.tags();
     return uniq([
-      ...without(this.tags ? this.tags.value : this.createdTags, ...this.allResponseTags),
+      ...without(tags ? tags.value : this.createdTags, ...this.allResponseTags),
       ...this.responseTags,
     ]);
   }
@@ -359,22 +352,23 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
 
   @memo
   get responseTags() {
-    if (!this.selectResponseType || !this.responseButtons.length) return [];
+    if (!this.selectResponseType() || !this.responseButtons.length) return [];
     const p = this.responseButtons[this.toggleIndex];
     return p.config?.reply || [p.tag];
   }
 
   @memo
   get allResponseTags() {
-    if (!this.selectResponseType) return [];
+    if (!this.selectResponseType()) return [];
     return this.responseButtons.flatMap(p => p.config?.reply || [p.tag]);
   }
 
   @memo
   get scheme() {
-    if (!this.url) return '';
-    if (!this.url.includes(':')) return '';
-    return this.url.substring(0, this.url.indexOf(':') + 1);
+    const url = this.url();
+    if (!url) return '';
+    if (!url.includes(':')) return '';
+    return url.substring(0, url.indexOf(':') + 1);
   }
 
   get currentText() {
@@ -382,7 +376,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   }
 
   updateTags(tags: string[]) {
-    if (!this.tags) {
+    if (!this.tags()) {
       this.createdTags = tags;
       MemoCache.clear(this);
     }
@@ -408,7 +402,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   }
 
   setResponse(tag: string) {
-    const tags = this.tags?.value || this.createdTags;
+    const tags = this.tags()?.value || this.createdTags;
     if (!hasTag(tag, tags)) {
       const responses = this.responseButtons.map(p => p.tag);
       this.toggleIndex = responses.indexOf(tag);
@@ -577,8 +571,8 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
     if (button.eventDone) this.loadingEvents[button.eventDone] = true;
     if (event === 'html-to-markdown') {
       this.europa ||= new Europa({
-        absolute: !!this.url,
-        baseUri: this.url,
+        absolute: !!this.url(),
+        baseUri: this.url(),
         inline: true,
       });
       const md = this.europa.convert(this.editor!.nativeElement.value);

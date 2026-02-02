@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, effect, inject, Input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, inject, Input, input } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormGroup } from '@angular/forms';
 import { MonacoEditorModule } from 'ngx-monaco-editor';
 import { ResizeHandleDirective } from '../../directive/resize-handle.directive';
@@ -20,8 +20,7 @@ export class JsonComponent {
 
   @Input()
   group!: UntypedFormGroup;
-  @Input()
-  fieldName = 'source';
+  readonly fieldName = input('source');
 
   options: any = {
     language: 'json',

@@ -7,6 +7,7 @@ import {
   EventEmitter,
   inject,
   Input,
+  input,
   OnDestroy,
   Output,
   ViewChild
@@ -70,8 +71,7 @@ export class ExtFormComponent implements OnDestroy {
 
   @Input()
   group!: UntypedFormGroup;
-  @Input()
-  showClear = false;
+  readonly showClear = input(false);
   @Output()
   clear = new EventEmitter<void>();
 

@@ -7,6 +7,7 @@ import {
   HostBinding,
   inject,
   Input,
+  input,
   OnChanges,
   Output,
   SimpleChanges,
@@ -93,20 +94,15 @@ export class ViewerComponent implements OnChanges {
 
   @Input()
   ref?: Ref;
-  @Input()
-  commentControl?: FormControl<string>;
+  readonly commentControl = input<FormControl<string>>();
   @Input()
   tags?: string[];
-  @Input()
-  expand = true;
-  @Input()
-  autoplay = false;
+  readonly expand = input(true);
+  readonly autoplay = input(false);
   @Input()
   text? = '';
-  @Input()
-  origin? = '';
-  @Input()
-  disableResize = false;
+  readonly origin = input<string | undefined>('');
+  readonly disableResize = input(false);
   @Input()
   @HostBinding('class.fullscreen')
   fullscreen = false;
@@ -316,7 +312,7 @@ export class ViewerComponent implements OnChanges {
 
   @memo
   get currentOrigin() {
-    return this.origin || this.ref?.origin || this.store.account.origin;
+    return this.origin() || this.ref?.origin || this.store.account.origin;
   }
 
   @memo

@@ -171,13 +171,13 @@
 <div class="comment-children"
      [class.hidden-without-removing]="collapsed">
   <app-comment-thread #threadComponent [source]="ref.url"
-                      [scrollToLatest]="scrollToLatest"
+                      [scrollToLatest]="scrollToLatest()"
                       [depth]="depth! - 1"
-                      [context]="context + 1"
+                      [context]="context() + 1"
                       [newComments$]="newComments$"></app-comment-thread>
 </div>
 @if (!collapsed && ((depth === 1 && comments) || moreComments)) {
-  @if (context < maxContext) {
+  @if (context() < maxContext) {
     <span class="fake-link load-more no-select"
           (click)="loadMore()" i18n>
         load more comments

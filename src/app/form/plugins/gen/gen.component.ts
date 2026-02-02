@@ -4,6 +4,7 @@ import {
   EventEmitter,
   inject,
   Input,
+  input,
   OnChanges,
   OnInit,
   Output,
@@ -27,16 +28,13 @@ export class GenFormComponent implements OnInit, OnChanges {
   private admin = inject(AdminService);
 
 
-  @Input()
-  bulk = false;
-  @Input()
-  promoteAdvanced = false;
+  readonly bulk = input(false);
+  readonly promoteAdvanced = input(false);
   @Input()
   plugins!: UntypedFormGroup;
   @Input()
   plugin!: Plugin;
-  @Input()
-  children: Plugin[] = [];
+  readonly children = input<Plugin[]>([]);
   @Output()
   togglePlugin = new EventEmitter<string>();
 
@@ -58,7 +56,7 @@ export class GenFormComponent implements OnInit, OnChanges {
 
   @memo
   get form() {
-    if (this.bulk) {
+    if (this.bulk()) {
       if (this.plugin.config?.bulkForm === true) {
         return cloneDeep(this.plugin.config?.form || this.plugin.config?.advancedForm);
       }
@@ -69,13 +67,13 @@ export class GenFormComponent implements OnInit, OnChanges {
 
   @memo
   get advancedForm() {
-    if (this.bulk) return undefined;
+    if (this.bulk()) return undefined;
     return cloneDeep(this.plugin.config?.advancedForm);
   }
 
   get childrenOn() {
-    for (let i = this.children.length - 1; i >= 0; i--) {
-      if (this.plugins.contains(this.children[i].tag)) return i;
+    for (let i = this.children().length - 1; i >= 0; i--) {
+      if (this.plugins.contains(this.children()[i].tag)) return i;
     }
     return 0;
   }

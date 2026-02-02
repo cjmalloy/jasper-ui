@@ -10,6 +10,7 @@ import {
   HostListener,
   inject,
   Input,
+  input,
   OnChanges,
   OnDestroy,
   OnInit,
@@ -524,8 +525,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   @Input()
   @HostBinding('class.red')
   red = false; // TODO: Save in local storage
-  @Input()
-  ref?: Ref;
+  readonly ref = input<Ref>();
   @Input()
   text? = '';
   @Output()
@@ -579,7 +579,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
 
   constructor() {
     effect(() => {
-      if (this.store.eventBus.event === 'flip' && this.store.eventBus.ref?.url === this.ref?.url) {
+      if (this.store.eventBus.event === 'flip' && this.store.eventBus.ref?.url === this.ref()?.url) {
         this.red = !this.red;
         defer(() => this.store.eventBus.fire('flip-done'));
       }
@@ -595,7 +595,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
     this.el.nativeElement.style.setProperty('--red-name', '"🔴️ ' + (this.bgConf?.redName || $localize`Red`) + '"');
     this.el.nativeElement.style.setProperty('--black-name', '"⚫️ ' + (this.bgConf?.blackName || $localize`Black`) + '"');
     if (!this.watch) {
-      const watch = this.actions.append(this.ref!);
+      const watch = this.actions.append(this.ref()!);
       this.append$ = watch.append$;
       this.reset$ = watch.reset$;
       this.watch = watch.updates$.pipe(
@@ -617,7 +617,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
         }
       });
     }
-    this.reset(this.ref?.comment || this.text);
+    this.reset(this.ref()?.comment || this.text);
   }
 
   ngAfterViewInit() {
@@ -627,9 +627,10 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   ngOnChanges(changes: SimpleChanges) {
     if (changes.ref || changes.text) {
       const newRef = changes.ref?.firstChange || changes.ref?.previousValue?.url != changes.ref?.currentValue?.url;
-      if (!this.ref || newRef) {
+      const ref = this.ref();
+      if (!ref || newRef) {
         this.watch?.unsubscribe();
-        if (this.ref || this.text != null) this.init();
+        if (ref || this.text != null) this.init();
       } else if (changes.ref && !changes.ref.firstChange) {
         // Check if end game tags were added
         const prevEnded = !!(changes.ref.previousValue && (
@@ -654,16 +655,17 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   }
 
   get bgConf() {
-    return this.ref?.plugins?.['plugin/backgammon'];
+    return this.ref()?.plugins?.['plugin/backgammon'];
   }
 
   get local() {
-    return !this.ref?.created || this.ref.upload || this.ref?.origin === this.store.account.origin;
+    const ref = this.ref();
+    return !ref?.created || ref.upload || ref?.origin === this.store.account.origin;
   }
 
   @HostListener('window:resize')
   onResize() {
-    const dim = Math.floor(hasTag('plugin/fullscreen', this.ref) ? Math.min(
+    const dim = Math.floor(hasTag('plugin/fullscreen', this.ref()) ? Math.min(
       screen.width / 28,
       screen.height / 26.5
     ) : Math.min(
@@ -1113,9 +1115,10 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
 
   // Replay mode controls
   get isGameEnded() {
-    return !!this.state.winner || hasTag('plugin/backgammon/draw', this.ref) ||
-      hasTag('plugin/backgammon/winner/r', this.ref) ||
-      hasTag('plugin/backgammon/winner/b', this.ref);
+    const ref = this.ref();
+    return !!this.state.winner || hasTag('plugin/backgammon/draw', ref) ||
+      hasTag('plugin/backgammon/winner/r', ref) ||
+      hasTag('plugin/backgammon/winner/b', ref);
   }
 
   precomputeReplayAnimations() {

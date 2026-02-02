@@ -3,6 +3,7 @@ import {
   Component,
   inject,
   Input,
+  input,
   OnDestroy,
   OnInit,
   QueryList,
@@ -42,30 +43,19 @@ export class NotebookComponent implements OnInit, OnDestroy, HasChanges {
 
   private destroy$ = new Subject<void>();
 
-  @Input()
-  hide?: number[];
-  @Input()
-  plugins?: string[];
-  @Input()
-  showPageLast = true;
-  @Input()
-  showAlarm = true;
-  @Input()
-  pageControls = true;
+  readonly hide = input<number[]>();
+  readonly plugins = input<string[]>();
+  readonly showPageLast = input(true);
+  readonly showAlarm = input(true);
+  readonly pageControls = input(true);
   @Input()
   emptyMessage = 'No results found';
-  @Input()
-  showToggle = true;
-  @Input()
-  expandInline = false;
-  @Input()
-  showVotes = false;
-  @Input()
-  hideNewZeroVoteScores = true;
-  @Input()
-  newRefs$?: Observable<Ref | undefined>;
-  @Input()
-  showPrev = true;
+  readonly showToggle = input(true);
+  readonly expandInline = input(false);
+  readonly showVotes = input(false);
+  readonly hideNewZeroVoteScores = input(true);
+  readonly newRefs$ = input<Observable<Ref | undefined>>();
+  readonly showPrev = input(true);
 
   @ViewChildren(RefComponent)
   list?: QueryList<RefComponent>;
@@ -149,7 +139,7 @@ export class NotebookComponent implements OnInit, OnDestroy, HasChanges {
   }
 
   ngOnInit(): void {
-    this.newRefs$?.pipe(
+    this.newRefs$()?.pipe(
       takeUntil(this.destroy$),
     ).subscribe(ref => ref && this.addNewRef(ref));
   }

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, HostBinding, inject, Input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, HostBinding, inject, Input, input } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { delay } from 'lodash-es';
@@ -26,12 +26,9 @@ export class PageControlsComponent {
 
   @Input()
   page?: Page<any>;
-  @Input()
-  showPageLast = true;
-  @Input()
-  hideCols = false;
-  @Input()
-  showPrev = true;
+  readonly showPageLast = input(true);
+  readonly hideCols = input(false);
+  readonly showPrev = input(true);
 
   pageSizes = [6, 24, 48, 96, 480];
   colSizes = [1, 2, 3, 4, 5, 6];

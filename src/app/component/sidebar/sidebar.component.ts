@@ -8,6 +8,7 @@ import {
   inject,
   Injector,
   Input,
+  input,
   OnChanges,
   OnDestroy,
   OnInit,
@@ -89,12 +90,9 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
 
   @Input()
   tag = '';
-  @Input()
-  activeExts: Ext[] = [];
-  @Input()
-  showToggle = true;
-  @Input()
-  home = false;
+  readonly activeExts = input<Ext[]>([]);
+  readonly showToggle = input(true);
+  readonly home = input(false);
   @Input()
   @HostBinding('class.floating')
   floating = true;
@@ -173,7 +171,7 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
       if (this.tag) {
         this.localTag = localTag(this.tag);
         this.plugin = this.admin.getPlugin(this.tag);
-        if (this.home) {
+        if (this.home()) {
           this.addTags = this.rootConfig?.addTags || this.plugin?.config?.reply || ['public'];
         } else if (this.plugin) {
           this.addTags = uniq([
@@ -297,7 +295,7 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
 
   @memo
   get userConfig() {
-    if (!this.user && !this.home) return null;
+    if (!this.user && !this.home()) return null;
     return this.store.account.ext?.config as UserConfig;
   }
 
@@ -361,7 +359,7 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
 
   @memo
   get homeWriteAccess() {
-    return this.home && this.admin.getTemplate('config/home') && this.auth.tagWriteAccess('config/home');
+    return this.home() && this.admin.getTemplate('config/home') && this.auth.tagWriteAccess('config/home');
   }
 
   @memo

@@ -8,6 +8,7 @@ import {
   HostBinding,
   inject,
   Input,
+  input,
   OnChanges,
   OnDestroy,
   QueryList,
@@ -101,8 +102,7 @@ export class BlogEntryComponent implements OnChanges, OnDestroy, HasChanges {
   @ViewChildren('action')
   actionComponents?: QueryList<ActionComponent>;
 
-  @Input()
-  blog?: Ext;
+  readonly blog = input<Ext>();
   @Input()
   ref!: Ref;
 
@@ -299,8 +299,9 @@ export class BlogEntryComponent implements OnChanges, OnDestroy, HasChanges {
   @memo
   get tags() {
     let result = interestingTags(this.ref.tags);
-    if (!this.blog?.config?.filterTags) return result;
-    return intersection(result, this.blog.config.tags || []);
+    const blog = this.blog();
+    if (!blog?.config?.filterTags) return result;
+    return intersection(result, blog.config.tags || []);
   }
 
   @memo

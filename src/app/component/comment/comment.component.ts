@@ -8,6 +8,7 @@ import {
   HostBinding,
   inject,
   Input,
+  input,
   OnChanges,
   OnDestroy,
   OnInit,
@@ -106,12 +107,10 @@ export class CommentComponent implements OnInit, AfterViewInit, OnChanges, OnDes
 
   @Input()
   ref!: Ref;
-  @Input()
-  scrollToLatest = false;
+  readonly scrollToLatest = input(false);
   @Input()
   depth?: number | null = 7;
-  @Input()
-  context = 0
+  readonly context = input(0);
 
   commentEdited$ = new Subject<Ref>();
   newComments = 0;
@@ -173,7 +172,7 @@ export class CommentComponent implements OnInit, AfterViewInit, OnChanges, OnDes
   }
 
   ngAfterViewInit(): void {
-    if (this.scrollToLatest && this.lastSelected) {
+    if (this.scrollToLatest() && this.lastSelected) {
       delay(() => scrollTo({ left: 0, top: this.el.nativeElement.getBoundingClientRect().top - 20, behavior: 'smooth' }), 400);
     }
   }

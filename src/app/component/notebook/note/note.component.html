@@ -80,7 +80,7 @@
           </div>
         }
       } @else {
-        @for (b of ext?.config?.badges || []; track b) {
+        @for (b of ext()?.config?.badges || []; track b) {
           <div (contextmenu)="$event.preventDefault()"
                (pointerdown)="autoClose = false"
                (pointerup)="toggleBadge(b, $event)">

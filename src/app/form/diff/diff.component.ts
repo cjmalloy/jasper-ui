@@ -1,4 +1,14 @@
-import { ChangeDetectionStrategy, Component, effect, EventEmitter, inject, Input, OnInit, Output } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  effect,
+  EventEmitter,
+  inject,
+  Input,
+  input,
+  OnInit,
+  Output
+} from '@angular/core';
 import { DiffEditorModel, MonacoEditorModule } from 'ngx-monaco-editor';
 import { ResizeHandleDirective } from '../../directive/resize-handle.directive';
 import { Ref } from '../../model/ref';
@@ -23,8 +33,7 @@ export class DiffComponent implements OnInit {
   original!: Ref;
   @Input()
   modified!: Ref;
-  @Input()
-  readOnly = false;
+  readonly readOnly = input(false);
   @Output()
   modifiedChange = new EventEmitter<Ref>();
 
@@ -44,7 +53,7 @@ export class DiffComponent implements OnInit {
       this.options = {
         ...this.options,
         theme: store.darkTheme ? 'vs-dark' : 'vs',
-        readOnly: this.readOnly,
+        readOnly: this.readOnly(),
       }
     });
   }

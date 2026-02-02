@@ -5,7 +5,7 @@ import {
   Component,
   EventEmitter,
   inject,
-  Input,
+  input,
   OnDestroy,
   Output,
   TemplateRef,
@@ -31,8 +31,7 @@ export class QrScannerComponent implements OnDestroy {
   @ViewChild('video')
   video!: TemplateRef<HTMLVideoElement>;
 
-  @Input()
-  upload = true;
+  readonly upload = input(true);
   @Output()
   data = new EventEmitter<string>();
 

@@ -8,6 +8,7 @@ import {
   HostListener,
   inject,
   Input,
+  input,
   Output
 } from '@angular/core';
 import { AutofocusDirective } from '../../../directive/autofocus.directive';
@@ -35,12 +36,9 @@ export class TodoItemComponent {
   @HostBinding('class.unlocked')
   unlocked = false;
 
-  @Input()
-  pressToUnlock = false;
-  @Input()
-  plugins: string[] = [];
-  @Input()
-  origin = '';
+  readonly pressToUnlock = input(false);
+  readonly plugins = input<string[]>([]);
+  readonly origin = input('');
 
   @Output()
   update = new EventEmitter<{ text: string, checked: boolean }>();
@@ -53,7 +51,7 @@ export class TodoItemComponent {
   private _line = '';
 
   get local() {
-    return this.origin === this.store.account.origin;
+    return this.origin() === this.store.account.origin;
   }
 
   @Input()

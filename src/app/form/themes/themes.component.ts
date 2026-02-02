@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, input, OnChanges, SimpleChanges } from '@angular/core';
 import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { mapValues } from 'lodash-es';
 import { ListEditorComponent } from '../../component/list-editor/list-editor.component';
@@ -16,12 +16,9 @@ export class ThemesFormComponent implements OnChanges {
   private fb = inject(UntypedFormBuilder);
 
 
-  @Input()
-  fieldName = 'themes';
-  @Input()
-  label = $localize`theme`;
-  @Input()
-  group!: UntypedFormGroup;
+  readonly fieldName = input('themes');
+  readonly label = input($localize `theme`);
+  readonly group = input.required<UntypedFormGroup>();
 
   keys: string[] = [];
   selectedTheme?: string;
@@ -33,10 +30,12 @@ export class ThemesFormComponent implements OnChanges {
   }
 
   get themes() {
-    if (!this.group.contains(this.fieldName)) {
-      this.group.addControl(this.fieldName, this.fb.group({}));
+    const group = this.group();
+    const fieldName = this.fieldName();
+    if (!group.contains(fieldName)) {
+      group.addControl(fieldName, this.fb.group({}));
     }
-    return this.group.get(this.fieldName) as UntypedFormGroup;
+    return group.get(fieldName) as UntypedFormGroup;
   }
 
   addTheme(name: string, value = '') {
