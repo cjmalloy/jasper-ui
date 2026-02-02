@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, effect } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, inject } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { NavigationEnd, Router } from '@angular/router';
 import { debounce } from 'lodash-es';
@@ -17,17 +17,19 @@ import { View } from '../../store/view';
   imports: [ ReactiveFormsModule]
 })
 export class SearchComponent {
+  router = inject(Router);
+  store = inject(Store);
+  admin = inject(AdminService);
+
 
   searchValue = '';
   replace = false;
 
   private searchEvent = false;
 
-  constructor(
-    public router: Router,
-    public store: Store,
-    public admin: AdminService,
-  ) {
+  constructor() {
+    const router = this.router;
+
     effect(() => {
       this.searchValue = this.store.view.search || '';
     });

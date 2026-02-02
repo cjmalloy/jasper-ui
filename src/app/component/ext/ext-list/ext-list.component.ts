@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Input, QueryList, ViewChildren } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, Input, QueryList, ViewChildren } from '@angular/core';
 import { Router } from '@angular/router';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Ext } from '../../../model/ext';
@@ -20,13 +20,13 @@ import { ExtComponent } from '../ext.component';
   ],
 })
 export class ExtListComponent implements HasChanges {
+  private router = inject(Router);
+
 
   @ViewChildren(ExtComponent)
   list?: QueryList<ExtComponent>;
 
   private _page?: Page<Ext>;
-
-  constructor(private router: Router) { }
 
   saveChanges() {
     return !this.list?.find(r => !r.saveChanges());

@@ -28,6 +28,13 @@ import { getArgs } from '../../../util/query';
   imports: [ RefListComponent],
 })
 export class SettingsRefPage implements OnInit, OnDestroy, HasChanges {
+  private injector = inject(Injector);
+  private mod = inject(ModService);
+  private admin = inject(AdminService);
+  private auth = inject(AuthzService);
+  store = inject(Store);
+  query = inject(QueryStore);
+
 
   plugin?: Plugin;
   writeAccess = false;
@@ -35,14 +42,11 @@ export class SettingsRefPage implements OnInit, OnDestroy, HasChanges {
   @ViewChild('list')
   list?: RefListComponent;
 
-  constructor(
-    private injector: Injector,
-    private mod: ModService,
-    private admin: AdminService,
-    private auth: AuthzService,
-    public store: Store,
-    public query: QueryStore,
-  ) {
+  constructor() {
+    const mod = this.mod;
+    const store = this.store;
+    const query = this.query;
+
     mod.setTitle($localize`Settings: `);
     store.view.clear(['metadata->modified']);
     query.clear();

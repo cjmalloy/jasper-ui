@@ -3,6 +3,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   HostBinding,
+  inject,
   Input,
   OnChanges,
   QueryList,
@@ -36,6 +37,11 @@ import { LoadingComponent } from '../loading/loading.component';
   imports: [RouterLink, ConfirmActionComponent, InlineButtonComponent, ReactiveFormsModule, TemplateFormComponent, LoadingComponent]
 })
 export class TemplateComponent implements OnChanges, HasChanges {
+  admin = inject(AdminService);
+  store = inject(Store);
+  private templates = inject(TemplateService);
+  private fb = inject(UntypedFormBuilder);
+
   css = 'template list-item';
   @HostBinding('attr.tabindex') tabIndex = 0;
 
@@ -57,12 +63,9 @@ export class TemplateComponent implements OnChanges, HasChanges {
   schemaErrors: string[] = [];
   saving?: Subscription;
 
-  constructor(
-    public admin: AdminService,
-    public store: Store,
-    private templates: TemplateService,
-    private fb: UntypedFormBuilder,
-  ) {
+  constructor() {
+    const fb = this.fb;
+
     this.editForm = templateForm(fb);
   }
 

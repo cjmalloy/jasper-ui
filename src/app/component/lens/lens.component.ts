@@ -2,6 +2,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   forwardRef,
+  inject,
   Input,
   OnChanges,
   QueryList,
@@ -43,6 +44,10 @@ import { RefComponent } from '../ref/ref.component';
   ],
 })
 export class LensComponent implements OnChanges, HasChanges {
+  admin = inject(AdminService);
+  account = inject(AccountService);
+  query = inject(QueryStore);
+
 
   @Input()
   ext?: Ext;
@@ -73,12 +78,6 @@ export class LensComponent implements OnChanges, HasChanges {
 
   @ViewChildren('lens')
   list?: QueryList<HasChanges>;
-
-  constructor(
-    public admin: AdminService,
-    public account: AccountService,
-    public query: QueryStore,
-  ) { }
 
   saveChanges() {
     return !this.list?.find(t => !t.saveChanges());

@@ -5,6 +5,7 @@ import {
   Component,
   effect,
   ElementRef,
+  inject,
   Injector,
   OnChanges,
   OnDestroy,
@@ -77,6 +78,19 @@ import { getVisibilityTags, hasPrefix, hasTag } from '../../../util/tag';
   ],
 })
 export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasChanges {
+  private injector = inject(Injector);
+  config = inject(ConfigService);
+  private mod = inject(ModService);
+  admin = inject(AdminService);
+  private router = inject(Router);
+  store = inject(Store);
+  bookmarks = inject(BookmarkService);
+  private editor = inject(EditorService);
+  private refs = inject(RefService);
+  private exts = inject(ExtService);
+  private ts = inject(TaggingService);
+  private fb = inject(UntypedFormBuilder);
+
 
   submitted = false;
   textForm: UntypedFormGroup;
@@ -100,20 +114,12 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
   private oldSubmit: string[] = [];
   private savedRef?: Ref;
 
-  constructor(
-    private injector: Injector,
-    public config: ConfigService,
-    private mod: ModService,
-    public admin: AdminService,
-    private router: Router,
-    public store: Store,
-    public bookmarks: BookmarkService,
-    private editor: EditorService,
-    private refs: RefService,
-    private exts: ExtService,
-    private ts: TaggingService,
-    private fb: UntypedFormBuilder,
-  ) {
+  constructor() {
+    const mod = this.mod;
+    const admin = this.admin;
+    const store = this.store;
+    const fb = this.fb;
+
     mod.setTitle($localize`Submit: Text Post`);
     this.textForm = refForm(fb);
     store.submit.wikiPrefix = admin.getWikiPrefix();

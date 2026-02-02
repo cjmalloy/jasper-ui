@@ -1,16 +1,14 @@
 import { HttpEvent, HttpHandler, HttpInterceptor, HttpRequest } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { ConfigService } from '../service/config.service';
 import { Store } from '../store/store';
 
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
+  private config = inject(ConfigService);
+  private store = inject(Store);
 
-  constructor(
-    private config: ConfigService,
-    private store: Store,
-  ) {}
 
   intercept(request: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
     const userTag = this.store.local.selectedUserTag;

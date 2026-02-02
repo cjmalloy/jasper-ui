@@ -3,6 +3,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   EventEmitter,
+  inject,
   Input,
   OnChanges,
   Output,
@@ -30,6 +31,9 @@ import { GenFormComponent } from './gen/gen.component';
   imports: [ReactiveFormsModule, TitleDirective, GenFormComponent]
 })
 export class PluginsFormComponent implements OnChanges, AfterViewInit {
+  admin = inject(AdminService);
+  private fb = inject(UntypedFormBuilder);
+
   private destroy$ = new Subject<void>();
 
   @ViewChildren('gen')
@@ -45,10 +49,10 @@ export class PluginsFormComponent implements OnChanges, AfterViewInit {
   icons: Icon[] = [];
   forms: Plugin[] = [];
 
-  constructor(
-    public admin: AdminService,
-    private fb: UntypedFormBuilder,
-  ) {
+  constructor() {
+    const admin = this.admin;
+    const fb = this.fb;
+
     this.group = fb.group({
       tags: fb.array([]),
       [this.fieldName]: pluginsForm(fb, admin, []),

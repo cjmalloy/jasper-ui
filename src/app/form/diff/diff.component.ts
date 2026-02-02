@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, effect, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, EventEmitter, inject, Input, OnInit, Output } from '@angular/core';
 import { DiffEditorModel, MonacoEditorModule } from 'ngx-monaco-editor';
 import { ResizeHandleDirective } from '../../directive/resize-handle.directive';
 import { Ref } from '../../model/ref';
@@ -15,6 +15,9 @@ import { formatRefForDiff } from '../../util/diff';
   imports: [MonacoEditorModule, ResizeHandleDirective]
 })
 export class DiffComponent implements OnInit {
+  config = inject(ConfigService);
+  private store = inject(Store);
+
 
   @Input()
   original!: Ref;
@@ -34,10 +37,9 @@ export class DiffComponent implements OnInit {
     renderSideBySide: !this.config.mobile,
   };
 
-  constructor(
-    public config: ConfigService,
-    private store: Store,
-  ) {
+  constructor() {
+    const store = this.store;
+
     effect(() => {
       this.options = {
         ...this.options,

@@ -4,6 +4,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   EventEmitter,
+  inject,
   Input,
   OnDestroy,
   Output,
@@ -23,6 +24,9 @@ import { Camera, hasCamera, listCameras } from '../../util/webcam';
   host: { 'class': 'form-array' }
 })
 export class QrScannerComponent implements OnDestroy {
+  private viewContainerRef = inject(ViewContainerRef);
+  private overlay = inject(Overlay);
+
 
   @ViewChild('video')
   video!: TemplateRef<HTMLVideoElement>;
@@ -37,11 +41,6 @@ export class QrScannerComponent implements OnDestroy {
   hasFlash = false;
   cameras?: Camera[];
   checkedCamera = false;
-
-  constructor(
-    private viewContainerRef: ViewContainerRef,
-    private overlay: Overlay,
-  ) { }
 
   ngOnDestroy() {
     this.stopScanQr();

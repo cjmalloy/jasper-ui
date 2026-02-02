@@ -1,5 +1,5 @@
 import { HttpClient, HttpEvent } from '@angular/common/http';
-import { effect, Injectable } from '@angular/core';
+import { effect, inject, Injectable } from '@angular/core';
 import { catchError, map, Observable, of, throwError } from 'rxjs';
 import { mapRef, Ref } from '../../model/ref';
 import { Resource } from '../../model/resource';
@@ -14,18 +14,20 @@ import { RefService } from './ref.service';
   providedIn: 'root',
 })
 export class ProxyService {
+  private http = inject(HttpClient);
+  private config = inject(ConfigService);
+  private store = inject(Store);
+  private refs = inject(RefService);
+  private login = inject(LoginService);
+
 
   private cacheList = new Set<string>();
 
   private scraping: Ref[] = [];
 
-  constructor(
-    private http: HttpClient,
-    private config: ConfigService,
-    private store: Store,
-    private refs: RefService,
-    private login: LoginService,
-  ) {
+  constructor() {
+    const store = this.store;
+
     effect(() => {
       if (store.eventBus.event === '_plugin/cache:clear-cache') {
         this.clearDeleted(store.account.origin).subscribe();

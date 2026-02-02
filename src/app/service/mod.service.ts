@@ -1,5 +1,5 @@
 import { DOCUMENT } from '@angular/common';
-import { effect, Inject, Injectable } from '@angular/core';
+import { effect, inject, Injectable } from '@angular/core';
 import { Title } from '@angular/platform-browser';
 import flatten from 'css-flatten';
 import { marked } from 'marked';
@@ -14,17 +14,17 @@ import { ConfigService } from './config.service';
   providedIn: 'root',
 })
 export class ModService {
+  private document = inject<Document>(DOCUMENT);
+  private config = inject(ConfigService);
+  private admin = inject(AdminService);
+  private account = inject(AccountService);
+  private store = inject(Store);
+  private titleService = inject(Title);
+
 
   nesting = CSS && CSS.supports('selector(& > *)');
 
-  constructor(
-    @Inject(DOCUMENT) private document: Document,
-    private config: ConfigService,
-    private admin: AdminService,
-    private account: AccountService,
-    private store: Store,
-    private titleService: Title,
-  ) {
+  constructor() {
     // Setup custom CSS effect
     effect(() => this.setCustomCss('custom-css', ...(this.store.account.config.userTheme ? this.getUserCss() : this.getExtCss())));
   }

@@ -1,5 +1,5 @@
 import { Location } from '@angular/common';
-import { ChangeDetectionStrategy, Component, effect, OnDestroy } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, inject, OnDestroy } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 
 import { TitleDirective } from '../../directive/title.directive';
@@ -19,21 +19,21 @@ import { Store } from '../../store/store';
   imports: [ RouterLink, RouterLinkActive, TitleDirective]
 })
 export class SubscriptionBarComponent implements OnDestroy {
+  config = inject(ConfigService);
+  store = inject(Store);
+  themes = inject(ModService);
+  admin = inject(AdminService);
+  private editor = inject(EditorService);
+  private exts = inject(ExtService);
+  location = inject(Location);
+
 
   bookmarks: TagPreview[] = [];
   subs: TagPreview[] = [];
 
   private startIndex = this.currentIndex;
 
-  constructor(
-    public config: ConfigService,
-    public store: Store,
-    public themes: ModService,
-    public admin: AdminService,
-    private editor: EditorService,
-    private exts: ExtService,
-    public location: Location,
-  ) {
+  constructor() {
     effect(() => this.editor.getTagsPreview(this.store.account.bookmarks, this.store.account.origin)
       .subscribe(xs => this.bookmarks = xs));
     effect(() => this.exts.getCachedExts(this.store.account.subs)

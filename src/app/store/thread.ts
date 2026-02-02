@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Injectable, signal } from '@angular/core';
+import { inject, Injectable, signal } from '@angular/core';
 import { catchError, Subscription, throwError } from 'rxjs';
 import { Page } from '../model/page';
 import { Ref, RefPageArgs, RefSort } from '../model/ref';
@@ -10,6 +10,8 @@ import { getArgs, UrlFilter } from '../util/query';
   providedIn: 'root'
 })
 export class ThreadStore {
+  private refs = inject(RefService);
+
 
   defaultBatchSize = 500;
 
@@ -20,10 +22,6 @@ export class ThreadStore {
   private _latest = signal<Ref[]>([]);
 
   private loading?: Subscription;
-
-  constructor(
-    private refs: RefService,
-  ) {}
 
   get args() { return this._args(); }
   set args(value: RefPageArgs | undefined) { this._args.set(value); }

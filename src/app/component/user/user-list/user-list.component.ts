@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Input, QueryList, ViewChildren } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, Input, QueryList, ViewChildren } from '@angular/core';
 import { Router } from '@angular/router';
 import { find } from 'lodash-es';
 import { catchError, of } from 'rxjs';
@@ -20,6 +20,9 @@ import { UserComponent } from '../user.component';
   imports: [UserComponent, LoadingComponent, PageControlsComponent]
 })
 export class UserListComponent implements HasChanges {
+  private router = inject(Router);
+  private profiles = inject(ProfileService);
+
 
   @Input()
   scim?: Page<Profile>;
@@ -29,11 +32,6 @@ export class UserListComponent implements HasChanges {
 
   private _page?: Page<User>;
   private cache: Map<string, Profile | undefined> = new Map();
-
-  constructor(
-    private router: Router,
-    private profiles: ProfileService,
-  ) { }
 
   saveChanges() {
     return !this.list?.find(u => !u.saveChanges());

@@ -6,6 +6,7 @@ import {
   Component,
   HostBinding,
   HostListener,
+  inject,
   Input,
   OnChanges,
   OnDestroy,
@@ -59,6 +60,15 @@ interface PendingUpload {
   ],
 })
 export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestroy, HasChanges {
+  config = inject(ConfigService);
+  private accounts = inject(AccountService);
+  private admin = inject(AdminService);
+  private store = inject(Store);
+  private oembeds = inject(OembedStore);
+  private refs = inject(RefService);
+  private tags = inject(TaggingService);
+  private proxy = inject(ProxyService);
+
   private destroy$ = new Subject<void>();
 
   @Input()
@@ -95,16 +105,9 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
   private _sort: RefSort[] = [];
   private _filter: UrlFilter[] = [];
 
-  constructor(
-    public config: ConfigService,
-    private accounts: AccountService,
-    private admin: AdminService,
-    private store: Store,
-    private oembeds: OembedStore,
-    private refs: RefService,
-    private tags: TaggingService,
-    private proxy: ProxyService,
-  ) {
+  constructor() {
+    const config = this.config;
+
     if (config.mobile) {
       this.pressToUnlock = true;
     }

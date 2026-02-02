@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, effect, Injector, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, inject, Injector, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { defer } from 'lodash-es';
 import { DateTime } from 'luxon';
@@ -20,16 +20,20 @@ import { Store } from '../../../store/store';
   imports: [ RefListComponent]
 })
 export class InboxUnreadPage implements OnInit, OnDestroy {
+  private injector = inject(Injector);
+  private mod = inject(ModService);
+  store = inject(Store);
+  query = inject(QueryStore);
+  private account = inject(AccountService);
+  private router = inject(Router);
+
   private lastNotified?: DateTime;
 
-  constructor(
-    private injector: Injector,
-    private mod: ModService,
-    public store: Store,
-    public query: QueryStore,
-    private account: AccountService,
-    private router: Router,
-  ) {
+  constructor() {
+    const mod = this.mod;
+    const store = this.store;
+    const query = this.query;
+
     mod.setTitle($localize`Inbox: Unread`);
     store.view.clear(['modified']);
     query.clear();

@@ -1,4 +1,12 @@
-import { ChangeDetectionStrategy, Component, HostBinding, Input, OnChanges, SimpleChanges } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  HostBinding,
+  inject,
+  Input,
+  OnChanges,
+  SimpleChanges
+} from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, UntypedFormArray, UntypedFormGroup, Validators } from '@angular/forms';
 import { FormlyForm } from '@ngx-formly/core';
 import { defer } from 'lodash-es';
@@ -13,6 +21,8 @@ import { hasPrefix, hasTag } from '../../util/tag';
   imports: [ReactiveFormsModule, FormlyForm]
 })
 export class TagsFormComponent implements OnChanges {
+  private fb = inject(FormBuilder);
+
   static validators = [Validators.pattern(TAG_REGEX)];
   @HostBinding('class') css = 'form-group';
 
@@ -38,10 +48,6 @@ export class TagsFormComponent implements OnChanges {
       } as any,
     },
   };
-
-  constructor(
-    private fb: FormBuilder,
-  ) {  }
 
   ngOnChanges(changes: SimpleChanges) {
     this.field.fieldArray.props.origin = this.origin;

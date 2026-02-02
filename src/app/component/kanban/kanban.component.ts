@@ -5,6 +5,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   HostListener,
+  inject,
   Input,
   OnChanges,
   OnDestroy,
@@ -62,6 +63,12 @@ export interface KanbanDrag {
   ],
 })
 export class KanbanComponent implements OnChanges, OnDestroy, HasChanges {
+  private accounts = inject(AccountService);
+  bookmarks = inject(BookmarkService);
+  store = inject(Store);
+  exts = inject(ExtService);
+  private tags = inject(TaggingService);
+
 
   @ViewChildren(KanbanColumnComponent)
   list?: QueryList<KanbanColumnComponent>;
@@ -91,14 +98,6 @@ export class KanbanComponent implements OnChanges, OnDestroy, HasChanges {
   private defaultConfig: KanbanConfig = {
     columns: []
   };
-
-  constructor(
-    private accounts: AccountService,
-    public bookmarks: BookmarkService,
-    public store: Store,
-    public exts: ExtService,
-    private tags: TaggingService,
-  ) { }
 
   saveChanges() {
     return !this.list?.find(r => !r.saveChanges());

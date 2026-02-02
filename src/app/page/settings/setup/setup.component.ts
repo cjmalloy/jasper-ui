@@ -1,6 +1,6 @@
 import { KeyValuePipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { forOwn, uniq } from 'lodash-es';
@@ -25,6 +25,11 @@ import { printError } from '../../../util/http';
   ],
 })
 export class SettingsSetupPage {
+  admin = inject(AdminService);
+  private mod = inject(ModService);
+  store = inject(Store);
+  private fb = inject(UntypedFormBuilder);
+
 
   experiments = !!this.admin.getTemplate('config/experiments');
   selectAllToggle = false;
@@ -37,12 +42,10 @@ export class SettingsSetupPage {
     ...this.admin.status.plugins, ...this.admin.status.templates,
     ...this.admin.def.plugins, ...this.admin.def.templates });
 
-  constructor(
-    public admin: AdminService,
-    private mod: ModService,
-    public store: Store,
-    private fb: UntypedFormBuilder,
-  ) {
+  constructor() {
+    const mod = this.mod;
+    const fb = this.fb;
+
     mod.setTitle($localize`Settings: Setup`);
     this.adminForm = fb.group({
       mods: fb.group(formSafeNames({...this.admin.def.plugins, ...this.admin.def.templates })),

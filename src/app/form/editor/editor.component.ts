@@ -10,6 +10,7 @@ import {
   EventEmitter,
   HostBinding,
   HostListener,
+  inject,
   Injector,
   Input,
   OnChanges,
@@ -71,6 +72,20 @@ export interface EditorUpload {
   ],
 })
 export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
+  private injector = inject(Injector);
+  admin = inject(AdminService);
+  private accounts = inject(AccountService);
+  private auth = inject(AuthzService);
+  private proxy = inject(ProxyService);
+  private refs = inject(RefService);
+  private ts = inject(TaggingService);
+  store = inject(Store);
+  private overlay = inject(Overlay);
+  private router = inject(Router);
+  private el = inject(ElementRef);
+  private vc = inject(ViewContainerRef);
+  private fb = inject(FormBuilder);
+
   private destroy$ = new Subject<void>();
 
   @Input()
@@ -159,21 +174,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   private scrollMap = new Map<number, number>();
   private sourceMap: number[] = [];
 
-  constructor(
-    private injector: Injector,
-    public admin: AdminService,
-    private accounts: AccountService,
-    private auth: AuthzService,
-    private proxy: ProxyService,
-    private refs: RefService,
-    private ts: TaggingService,
-    public store: Store,
-    private overlay: Overlay,
-    private router: Router,
-    private el: ElementRef,
-    private vc: ViewContainerRef,
-    private fb: FormBuilder,
-  ) {
+  constructor() {
     this.router.events.pipe(
       filter(event => event instanceof NavigationEnd)
     ).subscribe(() => this.toggleFullscreen(false));

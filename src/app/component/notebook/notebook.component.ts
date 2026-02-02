@@ -1,4 +1,13 @@
-import { ChangeDetectionStrategy, Component, Input, OnDestroy, OnInit, QueryList, ViewChildren } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  inject,
+  Input,
+  OnDestroy,
+  OnInit,
+  QueryList,
+  ViewChildren
+} from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, forkJoin, Observable, of, Subject, takeUntil } from 'rxjs';
 import { HasChanges } from '../../guard/pending-changes.guard';
@@ -26,6 +35,11 @@ import { NoteComponent } from './note/note.component';
   ],
 })
 export class NotebookComponent implements OnInit, OnDestroy, HasChanges {
+  private accounts = inject(AccountService);
+  private router = inject(Router);
+  private store = inject(Store);
+  private refs = inject(RefService);
+
   private destroy$ = new Subject<void>();
 
   @Input()
@@ -63,13 +77,6 @@ export class NotebookComponent implements OnInit, OnDestroy, HasChanges {
   private _ext?: Ext;
   private _expanded?: boolean;
   private _cols = 0;
-
-  constructor(
-    private accounts: AccountService,
-    private router: Router,
-    private store: Store,
-    private refs: RefService,
-  ) { }
 
   saveChanges() {
     return !this.list?.find(r => !r.saveChanges());

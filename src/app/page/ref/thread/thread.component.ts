@@ -1,4 +1,13 @@
-import { ChangeDetectionStrategy, Component, effect, Injector, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  effect,
+  inject,
+  Injector,
+  OnDestroy,
+  OnInit,
+  ViewChild
+} from '@angular/core';
 import { defer, uniq } from 'lodash-es';
 
 import { catchError, filter, of, Subject, Subscription, switchMap, takeUntil } from 'rxjs';
@@ -30,6 +39,15 @@ import { hasTag, removeTag, top, updateMetadata } from '../../../util/tag';
   imports: [ RefListComponent, LoadingComponent, CommentReplyComponent]
 })
 export class RefThreadComponent implements OnInit, OnDestroy, HasChanges {
+  private injector = inject(Injector);
+  config = inject(ConfigService);
+  private mod = inject(ModService);
+  admin = inject(AdminService);
+  store = inject(Store);
+  query = inject(QueryStore);
+  private stomp = inject(StompService);
+  private refs = inject(RefService);
+
   private destroy$ = new Subject<void>();
 
   @ViewChild('reply')
@@ -44,16 +62,10 @@ export class RefThreadComponent implements OnInit, OnDestroy, HasChanges {
   private watchUrl = '';
   private watch?: Subscription;
 
-  constructor(
-    private injector: Injector,
-    public config: ConfigService,
-    private mod: ModService,
-    public admin: AdminService,
-    public store: Store,
-    public query: QueryStore,
-    private stomp: StompService,
-    private refs: RefService,
-  ) {
+  constructor() {
+    const store = this.store;
+    const query = this.query;
+
     query.clear();
     store.view.defaultSort = ['published,ASC'];
   }

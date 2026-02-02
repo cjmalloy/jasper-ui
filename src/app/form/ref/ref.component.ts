@@ -6,6 +6,7 @@ import {
   EventEmitter,
   HostBinding,
   HostListener,
+  inject,
   Input,
   OnChanges,
   Output,
@@ -65,6 +66,14 @@ import { TagsFormComponent } from '../tags/tags.component';
   ],
 })
 export class RefFormComponent implements OnChanges {
+  config = inject(ConfigService);
+  admin = inject(AdminService);
+  private editor = inject(EditorService);
+  private scrape = inject(ScrapeService);
+  private oembeds = inject(OembedStore);
+  private store = inject(Store);
+  private fb = inject(UntypedFormBuilder);
+
 
   @Input()
   origin? = '';
@@ -97,16 +106,6 @@ export class RefFormComponent implements OnChanges {
   scrapingPublished = false;
   scrapingAll = false;
   completedUploads: Ref[] = [];
-
-  constructor(
-    public config: ConfigService,
-    public admin: AdminService,
-    private editor: EditorService,
-    private scrape: ScrapeService,
-    private oembeds: OembedStore,
-    private store: Store,
-    private fb: UntypedFormBuilder,
-  ) { }
 
   ngOnChanges(changes: SimpleChanges) {
     MemoCache.clear(this);

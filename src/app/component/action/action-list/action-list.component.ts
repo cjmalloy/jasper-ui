@@ -7,6 +7,7 @@ import {
   Component,
   ElementRef,
   HostListener,
+  inject,
   Input,
   OnChanges,
   SimpleChanges,
@@ -34,6 +35,12 @@ import { InlineButtonComponent } from '../inline-button/inline-button.component'
   imports: [ConfirmActionComponent, TitleDirective, InlineButtonComponent, KeyValuePipe]
 })
 export class ActionListComponent implements AfterViewInit, OnChanges {
+  private config = inject(ConfigService);
+  private acts = inject(ActionService);
+  private overlay = inject(Overlay);
+  private el = inject<ElementRef<HTMLElement>>(ElementRef);
+  private viewContainerRef = inject(ViewContainerRef);
+
 
   @Input()
   ref!: Ref;
@@ -57,14 +64,6 @@ export class ActionListComponent implements AfterViewInit, OnChanges {
   private overlayEvents?: Subscription;
   private overlayResizeObserver? = window.ResizeObserver && new ResizeObserver(() => this.overlayRef?.updatePosition()) || undefined;
   private resizeObserver? = window.ResizeObserver && new ResizeObserver(() => this.onResize()) || undefined;
-
-  constructor(
-    private config: ConfigService,
-    private acts: ActionService,
-    private overlay: Overlay,
-    private el: ElementRef<HTMLElement>,
-    private viewContainerRef: ViewContainerRef,
-  ) { }
 
   ngAfterViewInit() {
     this.resizeObserver?.observe(this.el.nativeElement!.parentElement!);

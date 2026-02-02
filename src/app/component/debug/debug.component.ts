@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, concat, concatMap, generate, last, Observable, of } from 'rxjs';
 import { tap } from 'rxjs/operators';
@@ -25,6 +25,17 @@ import { LoadingComponent } from '../loading/loading.component';
   imports: [LoadingComponent]
 })
 export class DebugComponent {
+  admin = inject(AdminService);
+  private store = inject(Store);
+  query = inject(QueryStore);
+  ext = inject(ExtStore);
+  user = inject(UserStore);
+  plugin = inject(PluginStore);
+  template = inject(TemplateStore);
+  private refs = inject(RefService);
+  private ts = inject(TaggingService);
+  private router = inject(Router);
+
 
   generating = false;
   settingUser = false;
@@ -32,19 +43,6 @@ export class DebugComponent {
   batchRunning = false;
   serverError: string[] = [];
   debug = this.admin.getPlugin('plugin/debug') || this.admin.getTemplate('debug');
-
-  constructor(
-    public admin: AdminService,
-    private store: Store,
-    public query: QueryStore,
-    public ext: ExtStore,
-    public user: UserStore,
-    public plugin: PluginStore,
-    public template: TemplateStore,
-    private refs: RefService,
-    private ts: TaggingService,
-    private router: Router,
-  ) { }
 
   get empty() {
     return !this.query.page?.content?.length;

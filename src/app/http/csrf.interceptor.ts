@@ -1,16 +1,14 @@
 import { HttpEvent, HttpHandler, HttpInterceptor, HttpRequest } from '@angular/common/http';
-import { Injectable, isDevMode } from '@angular/core';
+import { inject, Injectable, isDevMode } from '@angular/core';
 import { catchError, Observable, throwError } from 'rxjs';
 import { ConfigService } from '../service/config.service';
 
 @Injectable()
 export class CsrfInterceptor implements HttpInterceptor {
+  private config = inject(ConfigService);
+
 
   withCredentials = isDevMode() || this.config.electron || location.hostname === 'localhost';
-
-  constructor(
-    private config: ConfigService,
-  ) {}
 
   private getCsrfToken(): string {
     return document.cookie.split('; ').find(row => row.startsWith('XSRF-TOKEN='))?.split('=')?.[1] || '';

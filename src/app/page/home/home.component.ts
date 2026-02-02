@@ -1,4 +1,13 @@
-import { ChangeDetectionStrategy, Component, effect, Injector, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  effect,
+  inject,
+  Injector,
+  OnDestroy,
+  OnInit,
+  ViewChild
+} from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { defer } from 'lodash-es';
 
@@ -27,19 +36,25 @@ import { getArgs } from '../../util/query';
   ],
 })
 export class HomePage implements OnInit, OnDestroy, HasChanges {
+  private injector = inject(Injector);
+  private mod = inject(ModService);
+  admin = inject(AdminService);
+  account = inject(AccountService);
+  store = inject(Store);
+  query = inject(QueryStore);
+  private exts = inject(ExtService);
+
 
   @ViewChild('lens')
   lens?: LensComponent;
 
-  constructor(
-    private injector: Injector,
-    private mod: ModService,
-    public admin: AdminService,
-    public account: AccountService,
-    public store: Store,
-    public query: QueryStore,
-    private exts: ExtService,
-  ) {
+  constructor() {
+    const mod = this.mod;
+    const admin = this.admin;
+    const store = this.store;
+    const query = this.query;
+    const exts = this.exts;
+
     mod.setTitle($localize`Home`);
     store.view.clear([!!admin.getPlugin('plugin/user/vote/up') ? 'plugins->plugin/user/vote:decay' : 'published']);
     query.clear();

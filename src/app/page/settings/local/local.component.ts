@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ModService } from '../../../service/mod.service';
 import { Store } from '../../../store/store';
@@ -11,11 +11,13 @@ import { Store } from '../../../store/store';
   imports: [RouterLink],
 })
 export class SettingsLocalPage {
+  private mod = inject(ModService);
+  store = inject(Store);
 
-  constructor(
-    private mod: ModService,
-    public store: Store,
-  ) {
+
+  constructor() {
+    const mod = this.mod;
+
     mod.setTitle($localize`Settings: Local Storage`);
   }
 

@@ -2,6 +2,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   EventEmitter,
+  inject,
   Input,
   OnChanges,
   OnInit,
@@ -23,6 +24,8 @@ import { memo, MemoCache } from '../../../util/memo';
   imports: [ReactiveFormsModule, FormlyForm]
 })
 export class GenFormComponent implements OnInit, OnChanges {
+  private admin = inject(AdminService);
+
 
   @Input()
   bulk = false;
@@ -44,10 +47,6 @@ export class GenFormComponent implements OnInit, OnChanges {
       config: {},
     },
   };
-
-  constructor(
-    private admin: AdminService,
-  ) { }
 
   ngOnChanges(changes: SimpleChanges) {
     MemoCache.clear(this);

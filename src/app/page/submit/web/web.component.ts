@@ -4,6 +4,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   effect,
+  inject,
   Injector,
   OnDestroy,
   ViewChild
@@ -54,6 +55,20 @@ import { getVisibilityTags } from '../../../util/tag';
   ],
 })
 export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
+  private injector = inject(Injector);
+  private mod = inject(ModService);
+  private admin = inject(AdminService);
+  private router = inject(Router);
+  private store = inject(Store);
+  private editor = inject(EditorService);
+  private refs = inject(RefService);
+  private exts = inject(ExtService);
+  private ts = inject(TaggingService);
+  private oembeds = inject(OembedStore);
+  private scrape = inject(ScrapeService);
+  bookmarks = inject(BookmarkService);
+  private fb = inject(UntypedFormBuilder);
+
 
 
   submitted = false;
@@ -69,21 +84,9 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
   private oldSubmit: string[] = [];
   private _refForm?: RefFormComponent;
 
-  constructor(
-    private injector: Injector,
-    private mod: ModService,
-    private admin: AdminService,
-    private router: Router,
-    private store: Store,
-    private editor: EditorService,
-    private refs: RefService,
-    private exts: ExtService,
-    private ts: TaggingService,
-    private oembeds: OembedStore,
-    private scrape: ScrapeService,
-    public bookmarks: BookmarkService,
-    private fb: UntypedFormBuilder,
-  ) {
+  constructor() {
+    const fb = this.fb;
+
     this.setTitle($localize`Submit: Web Link`);
     this.webForm = refForm(fb);
   }

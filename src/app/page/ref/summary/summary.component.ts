@@ -2,6 +2,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   effect,
+  inject,
   Injector,
   OnDestroy,
   OnInit,
@@ -41,6 +42,14 @@ import { hasTag, removeTag, top, updateMetadata } from '../../../util/tag';
   imports: [ CommentReplyComponent, RouterLink, ThreadSummaryComponent, RefListComponent, LoadingComponent]
 })
 export class RefSummaryComponent implements OnInit, OnDestroy, HasChanges {
+  private injector = inject(Injector);
+  private mod = inject(ModService);
+  admin = inject(AdminService);
+  refs = inject(RefService);
+  store = inject(Store);
+  thread = inject(ThreadStore);
+  query = inject(QueryStore);
+
   newResp$ = new Subject<Ref | undefined>();
   newComment$ = new Subject<Ref | undefined>();
   newThread$ = new Subject<Ref | undefined>();
@@ -54,15 +63,11 @@ export class RefSummaryComponent implements OnInit, OnDestroy, HasChanges {
   @ViewChild('list')
   list?: RefListComponent;
 
-  constructor(
-    private injector: Injector,
-    private mod: ModService,
-    public admin: AdminService,
-    public refs: RefService,
-    public store: Store,
-    public thread: ThreadStore,
-    public query: QueryStore,
-  ) {
+  constructor() {
+    const store = this.store;
+    const thread = this.thread;
+    const query = this.query;
+
     query.clear();
     thread.clear();
     store.view.defaultSort = ['modified,DESC'];

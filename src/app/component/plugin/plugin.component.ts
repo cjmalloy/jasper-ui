@@ -3,6 +3,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   HostBinding,
+  inject,
   Input,
   OnChanges,
   QueryList,
@@ -37,6 +38,12 @@ import { LoadingComponent } from '../loading/loading.component';
   imports: [RouterLink, ConfirmActionComponent, InlineButtonComponent, ReactiveFormsModule, PluginFormComponent, LoadingComponent]
 })
 export class PluginComponent implements OnChanges, HasChanges {
+  private mod = inject(ModService);
+  admin = inject(AdminService);
+  store = inject(Store);
+  private plugins = inject(PluginService);
+  private fb = inject(UntypedFormBuilder);
+
   css = 'plugin list-item';
   @HostBinding('attr.tabindex') tabIndex = 0;
 
@@ -58,13 +65,9 @@ export class PluginComponent implements OnChanges, HasChanges {
   schemaErrors: string[] = [];
   saving?: Subscription;
 
-  constructor(
-    private mod: ModService,
-    public admin: AdminService,
-    public store: Store,
-    private plugins: PluginService,
-    private fb: UntypedFormBuilder,
-  ) {
+  constructor() {
+    const fb = this.fb;
+
     this.editForm = pluginForm(fb);
   }
 

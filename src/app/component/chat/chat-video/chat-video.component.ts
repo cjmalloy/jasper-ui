@@ -1,5 +1,5 @@
 import { AsyncPipe } from '@angular/common';
-import { AfterViewInit, ChangeDetectionStrategy, Component, Input } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, inject, Input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 import { map, Observable } from 'rxjs';
@@ -24,17 +24,15 @@ import { hasTag } from '../../../util/tag';
   ],
 })
 export class ChatVideoComponent implements AfterViewInit {
+  store = inject(Store);
+  private admin = inject(AdminService);
+  private exts = inject(ExtService);
+  private ts = inject(TaggingService);
+  private vs = inject(VideoService);
+
 
   @Input()
   url = 'tag:/chat';
-
-  constructor(
-    public store: Store,
-    private admin: AdminService,
-    private exts: ExtService,
-    private ts: TaggingService,
-    private vs: VideoService,
-  ) { }
 
   ngAfterViewInit() {
     if (this.store.local.inCall() && !this.store.video.enabled) {

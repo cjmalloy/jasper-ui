@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, effect, Input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, inject, Input } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormGroup } from '@angular/forms';
 import { MonacoEditorModule } from 'ngx-monaco-editor';
 import { ResizeHandleDirective } from '../../directive/resize-handle.directive';
@@ -13,6 +13,9 @@ import { Store } from '../../store/store';
   imports: [ReactiveFormsModule, MonacoEditorModule, ResizeHandleDirective]
 })
 export class CodeComponent {
+  config = inject(ConfigService);
+  private store = inject(Store);
+
 
   @Input()
   group!: UntypedFormGroup;
@@ -24,10 +27,9 @@ export class CodeComponent {
     automaticLayout: true,
   };
 
-  constructor(
-    public config: ConfigService,
-    private store: Store,
-  ) {
+  constructor() {
+    const store = this.store;
+
     effect(() => {
       this.options = {
         ...this.options,

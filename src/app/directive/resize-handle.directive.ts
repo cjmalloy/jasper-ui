@@ -5,6 +5,7 @@ import {
   ElementRef,
   HostBinding,
   HostListener,
+  inject,
   Input,
   OnDestroy
 } from '@angular/core';
@@ -16,6 +17,10 @@ import { relativeX, relativeY } from '../util/math';
     selector: '[appResizeHandle]',
 })
 export class ResizeHandleDirective implements AfterViewInit, OnDestroy {
+  private config = inject(ConfigService);
+  private el = inject(ElementRef);
+  private cd = inject(ChangeDetectorRef);
+
   @HostBinding('style.cursor') cursor = 'auto';
 
   @Input()
@@ -35,12 +40,6 @@ export class ResizeHandleDirective implements AfterViewInit, OnDestroy {
   height = 0;
 
   resizeObserver?: ResizeObserver;
-
-  constructor(
-    private config: ConfigService,
-    private el: ElementRef,
-    private cd: ChangeDetectorRef,
-  ) { }
 
   get resizeCursor() {
     return this.config.mobile ? 'row-resize' : 'se-resize';

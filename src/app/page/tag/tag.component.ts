@@ -3,6 +3,7 @@ import {
   Component,
   effect,
   HostBinding,
+  inject,
   Injector,
   OnDestroy,
   OnInit,
@@ -40,22 +41,22 @@ import { hasPrefix } from '../../util/tag';
   ],
 })
 export class TagPage implements OnInit, OnDestroy, HasChanges {
+  private injector = inject(Injector);
+  admin = inject(AdminService);
+  account = inject(AccountService);
+  store = inject(Store);
+  query = inject(QueryStore);
+  private mod = inject(ModService);
+  private exts = inject(ExtService);
+  private bookmarks = inject(BookmarkService);
+
 
   loading = true;
 
   @ViewChild('lens')
   lens?: LensComponent;
 
-  constructor(
-    private injector: Injector,
-    public admin: AdminService,
-    public account: AccountService,
-    public store: Store,
-    public query: QueryStore,
-    private mod: ModService,
-    private exts: ExtService,
-    private bookmarks: BookmarkService,
-  ) {
+  constructor() {
     this.store.view.clear([
       !!this.admin.getPlugin('plugin/user/vote/up')
         ? 'plugins->plugin/user/vote:decay'

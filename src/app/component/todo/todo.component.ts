@@ -5,6 +5,7 @@ import {
   EventEmitter,
   HostBinding,
   HostListener,
+  inject,
   Input,
   OnChanges,
   Output,
@@ -33,6 +34,10 @@ import { TodoItemComponent } from './item/item.component';
   ]
 })
 class TodoComponent implements OnChanges {
+  config = inject(ConfigService);
+  private store = inject(Store);
+  private actions = inject(ActionService);
+
 
   @Input()
   ref?: Ref;
@@ -57,11 +62,9 @@ class TodoComponent implements OnChanges {
   private pushing?: Subscription;
   private comment$!: (comment: string) => Observable<string>;
 
-  constructor(
-    public config: ConfigService,
-    private store: Store,
-    private actions: ActionService,
-  ) {
+  constructor() {
+    const config = this.config;
+
     if (config.mobile) {
       this.pressToUnlock = true;
     }

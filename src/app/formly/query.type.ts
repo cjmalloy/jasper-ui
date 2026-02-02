@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, OnDestroy } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { FieldType, FieldTypeConfig, FormlyAttributes, FormlyConfig } from '@ngx-formly/core';
@@ -95,6 +95,14 @@ import { getErrorMessage } from './errors';
   ],
 })
 export class FormlyFieldQueryInput extends FieldType<FieldTypeConfig> implements AfterViewInit, OnDestroy {
+  private router = inject(Router);
+  private config = inject(FormlyConfig);
+  private admin = inject(AdminService);
+  private editor = inject(EditorService);
+  private exts = inject(ExtService);
+  store = inject(Store);
+  private cd = inject(ChangeDetectorRef);
+
 
   listId = 'list-' + uuid();
   breadcrumbs: Crumb[] = [];
@@ -105,18 +113,6 @@ export class FormlyFieldQueryInput extends FieldType<FieldTypeConfig> implements
   private searching?: Subscription;
   private formChanges?: Subscription;
   private _query = '';
-
-  constructor(
-    private router: Router,
-    private config: FormlyConfig,
-    private admin: AdminService,
-    private editor: EditorService,
-    private exts: ExtService,
-    public store: Store,
-    private cd: ChangeDetectorRef,
-  ) {
-    super();
-  }
 
   ngAfterViewInit() {
     if (this.model) this.getPreview(this.model[this.key as any]);

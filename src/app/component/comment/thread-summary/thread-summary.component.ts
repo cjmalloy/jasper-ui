@@ -1,4 +1,13 @@
-import { ChangeDetectionStrategy, Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  inject,
+  Input,
+  OnChanges,
+  OnDestroy,
+  OnInit,
+  SimpleChanges
+} from '@angular/core';
 
 import { Observable, Subject, takeUntil } from 'rxjs';
 import { Ref } from '../../../model/ref';
@@ -21,6 +30,9 @@ import { CommentComponent } from '../comment.component';
   ]
 })
 export class ThreadSummaryComponent implements OnInit, OnChanges, OnDestroy {
+  private refs = inject(RefService);
+  private store = inject(Store);
+
   private destroy$ = new Subject<void>();
 
   @Input()
@@ -42,11 +54,6 @@ export class ThreadSummaryComponent implements OnInit, OnChanges, OnDestroy {
 
   newRefs: Ref[] = [];
   list: Ref[] = [];
-
-  constructor(
-    private refs: RefService,
-    private store: Store,
-  ) { }
 
   ngOnInit(): void {
     this.newRefs$.pipe(

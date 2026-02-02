@@ -4,6 +4,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   forwardRef,
+  inject,
   Input,
   OnDestroy,
   ViewChild
@@ -35,6 +36,11 @@ import { LoadingComponent } from '../../loading/loading.component';
   ]
 })
 export class CommentEditComponent implements AfterViewInit, HasChanges, OnDestroy {
+  private store = inject(Store);
+  private refs = inject(RefService);
+  private ts = inject(TaggingService);
+  private fb = inject(FormBuilder);
+
   private destroy$ = new Subject<void>();
 
   serverError: string[] = [];
@@ -53,12 +59,9 @@ export class CommentEditComponent implements AfterViewInit, HasChanges, OnDestro
   sources: string[] = [];
   completedUploads: Ref[] = [];
 
-  constructor(
-    private store: Store,
-    private refs: RefService,
-    private ts: TaggingService,
-    private fb: FormBuilder,
-  ) {
+  constructor() {
+    const fb = this.fb;
+
     this.commentForm = fb.group({
       comment: [''],
     });

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 
 import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
@@ -12,11 +12,9 @@ import { Store } from '../../store/store';
   imports: []
 })
 export class LoginPopupComponent {
+  store = inject(Store);
+  config = inject(ConfigService);
 
-  constructor(
-    public store: Store,
-    public config: ConfigService,
-  ) { }
 
   clear() {
     this.store.account.authError = false;

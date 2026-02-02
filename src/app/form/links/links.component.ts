@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, HostBinding, Input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, HostBinding, inject, Input } from '@angular/core';
 import {
   FormBuilder,
   ReactiveFormsModule,
@@ -19,6 +19,8 @@ import { URI_REGEX } from '../../util/format';
   imports: [ReactiveFormsModule, FormlyForm]
 })
 export class LinksFormComponent {
+  private fb = inject(FormBuilder);
+
   static validators = [Validators.pattern(URI_REGEX)];
   @HostBinding('class') css = 'form-group';
 
@@ -43,10 +45,6 @@ export class LinksFormComponent {
       }
     },
   };
-
-  constructor(
-    private fb: FormBuilder,
-  ) { }
 
   @Input()
   set emoji(value: string) {

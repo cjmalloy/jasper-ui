@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, OnDestroy } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { FieldType, FieldTypeConfig, FormlyAttributes, FormlyConfig } from '@ngx-formly/core';
 import { debounce, defer, uniqBy } from 'lodash-es';
@@ -54,6 +54,14 @@ import { getErrorMessage } from './errors';
   ],
 })
 export class FormlyFieldTagInput extends FieldType<FieldTypeConfig> implements AfterViewInit, OnDestroy {
+  private configs = inject(ConfigService);
+  private config = inject(FormlyConfig);
+  private admin = inject(AdminService);
+  private editor = inject(EditorService);
+  private exts = inject(ExtService);
+  store = inject(Store);
+  private cd = inject(ChangeDetectorRef);
+
 
   listId = 'list-' + uuid();
   preview = '';
@@ -64,18 +72,6 @@ export class FormlyFieldTagInput extends FieldType<FieldTypeConfig> implements A
   private previewing?: Subscription;
   private searching?: Subscription;
   private formChanges?: Subscription;
-
-  constructor(
-    private configs: ConfigService,
-    private config: FormlyConfig,
-    private admin: AdminService,
-    private editor: EditorService,
-    private exts: ExtService,
-    public store: Store,
-    private cd: ChangeDetectorRef,
-  ) {
-    super();
-  }
 
   ngAfterViewInit() {
     if (this.model) this.getPreview(this.model[this.key as any]);

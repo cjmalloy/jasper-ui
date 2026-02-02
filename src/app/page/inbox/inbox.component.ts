@@ -16,12 +16,12 @@ import { Store } from '../../store/store';
   imports: [ TabsComponent, RouterLink, RouterLinkActive, SidebarComponent, RouterOutlet]
 })
 export class InboxPage {
+  admin = inject(AdminService);
+  store = inject(Store);
+  private auth = inject(AuthzService);
 
-  constructor(
-    public admin: AdminService,
-    public store: Store,
-    private auth: AuthzService,
-  ) {
+
+  constructor() {
     if (!this.store.view.inboxTabs.length) {
       this.store.view.inboxTabs = this.admin.inbox.filter(p => this.auth.tagReadAccess(p.tag));
     }

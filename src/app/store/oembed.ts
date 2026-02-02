@@ -1,4 +1,4 @@
-import { Injectable, signal } from '@angular/core';
+import { inject, Injectable, signal } from '@angular/core';
 import { catchError, Observable, of, shareReplay, Subject, throwError } from 'rxjs';
 import { Oembed } from '../model/oembed';
 import { OEmbedService } from '../service/api/oembed.service';
@@ -7,14 +7,12 @@ import { OEmbedService } from '../service/api/oembed.service';
   providedIn: 'root'
 })
 export class OembedStore {
+  private oembeds = inject(OEmbedService);
+
 
   private _cache = signal(new Map<string, Observable<Oembed | null>>());
 
   private loading: (() => void)[] = [];
-
-  constructor(
-    private oembeds: OEmbedService,
-  ) {}
 
   get cache() { return this._cache(); }
   set cache(value: Map<string, Observable<Oembed | null>>) { this._cache.set(value); }

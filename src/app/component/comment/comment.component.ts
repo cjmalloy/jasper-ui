@@ -6,6 +6,7 @@ import {
   effect,
   ElementRef,
   HostBinding,
+  inject,
   Input,
   OnChanges,
   OnDestroy,
@@ -78,6 +79,17 @@ import { CommentThreadComponent } from './comment-thread/comment-thread.componen
   ],
 })
 export class CommentComponent implements OnInit, AfterViewInit, OnChanges, OnDestroy, HasChanges {
+  admin = inject(AdminService);
+  store = inject(Store);
+  thread = inject(ThreadStore);
+  private auth = inject(AuthzService);
+  private refs = inject(RefService);
+  private exts = inject(ExtService);
+  private editor = inject(EditorService);
+  private ts = inject(TaggingService);
+  private bookmarks = inject(BookmarkService);
+  private el = inject<ElementRef<HTMLDivElement>>(ElementRef);
+
   @HostBinding('attr.tabindex') tabIndex = 0;
   private destroy$ = new Subject<void>();
 
@@ -115,18 +127,7 @@ export class CommentComponent implements OnInit, AfterViewInit, OnChanges, OnDes
   deleteAccess = false;
   serverError: string[] = [];
 
-  constructor(
-    public admin: AdminService,
-    public store: Store,
-    public thread: ThreadStore,
-    private auth: AuthzService,
-    private refs: RefService,
-    private exts: ExtService,
-    private editor: EditorService,
-    private ts: TaggingService,
-    private bookmarks: BookmarkService,
-    private el: ElementRef<HTMLDivElement>,
-  ) {
+  constructor() {
     effect(() => {
       if (this.store.eventBus.event === 'refresh') {
         if (this.ref?.url && this.store.eventBus.isRef(this.ref)) {

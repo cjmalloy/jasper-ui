@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { SwUpdate } from '@angular/service-worker';
 
 import { Store } from '../store/store';
@@ -7,11 +7,14 @@ import { Store } from '../store/store';
   providedIn: 'root'
 })
 export class PwaService {
+  private store = inject(Store);
+  private updates = inject(SwUpdate);
 
-  constructor(
-    private store: Store,
-    private updates: SwUpdate,
-  ) {
+
+  constructor() {
+    const store = this.store;
+    const updates = this.updates;
+
     updates.versionUpdates.subscribe(evt => {
       switch (evt.type) {
         case 'VERSION_DETECTED':

@@ -1,5 +1,5 @@
 import { HttpEventType } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, EventEmitter, Output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, inject, Output } from '@angular/core';
 import { catchError, last, map } from 'rxjs';
 import { Ref } from '../../model/ref';
 import { ProxyService } from '../../service/api/proxy.service';
@@ -15,14 +15,12 @@ import { readFileAsDataURL } from '../../util/async';
   host: { 'class': 'form-array' }
 })
 export class VideoUploadComponent {
+  private store = inject(Store);
+  private proxy = inject(ProxyService);
+
 
   @Output()
   data = new EventEmitter<Saving | undefined | string>();
-
-  constructor(
-    private store: Store,
-    private proxy: ProxyService,
-  ) { }
 
   readVideo(files?: FileList) {
     this.data.next(undefined)

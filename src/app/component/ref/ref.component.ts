@@ -10,6 +10,7 @@ import {
   EventEmitter,
   HostBinding,
   HostListener,
+  inject,
   Input,
   OnChanges,
   OnDestroy,
@@ -112,6 +113,22 @@ import { ViewerComponent } from '../viewer/viewer.component';
   ],
 })
 export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasChanges {
+  config = inject(ConfigService);
+  accounts = inject(AccountService);
+  admin = inject(AdminService);
+  store = inject(Store);
+  private auth = inject(AuthzService);
+  private editor = inject(EditorService);
+  private refs = inject(RefService);
+  private exts = inject(ExtService);
+  private bookmarks = inject(BookmarkService);
+  private proxy = inject(ProxyService);
+  private ts = inject(TaggingService);
+  private router = inject(Router);
+  private fb = inject(UntypedFormBuilder);
+  private el = inject<ElementRef<HTMLDivElement>>(ElementRef);
+  private cd = inject(ChangeDetectorRef);
+
   css = 'ref list-item';
   private destroy$ = new Subject<void>();
 
@@ -189,23 +206,10 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   private closeOffFullscreen = false;
   private _expanded = false;
 
-  constructor(
-    public config: ConfigService,
-    public accounts: AccountService,
-    public admin: AdminService,
-    public store: Store,
-    private auth: AuthzService,
-    private editor: EditorService,
-    private refs: RefService,
-    private exts: ExtService,
-    private bookmarks: BookmarkService,
-    private proxy: ProxyService,
-    private ts: TaggingService,
-    private router: Router,
-    private fb: UntypedFormBuilder,
-    private el: ElementRef<HTMLDivElement>,
-    private cd: ChangeDetectorRef,
-  ) {
+  constructor() {
+    const fb = this.fb;
+    const cd = this.cd;
+
     this.editForm = refForm(fb);
     this.editForm.valueChanges.pipe(
       takeUntil(this.destroy$),

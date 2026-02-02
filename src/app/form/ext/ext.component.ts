@@ -5,6 +5,7 @@ import {
   Component,
   ElementRef,
   EventEmitter,
+  inject,
   Input,
   OnDestroy,
   Output,
@@ -58,6 +59,11 @@ import { themesForm, ThemesFormComponent } from '../themes/themes.component';
   ],
 })
 export class ExtFormComponent implements OnDestroy {
+  admin = inject(AdminService);
+  store = inject(Store);
+  private refs = inject(RefService);
+  private cd = inject(ChangeDetectorRef);
+
   private destroy$ = new Subject<void>();
   allSorts = this.admin.refSorts.map(convertSort);
   allFilters = this.admin.filters.map(convertFilter);
@@ -92,13 +98,6 @@ export class ExtFormComponent implements OnDestroy {
   };
 
   private tag?: string;
-
-  constructor(
-    public admin: AdminService,
-    public store: Store,
-    private refs: RefService,
-    private cd: ChangeDetectorRef,
-  ) { }
 
   ngOnDestroy() {
     this.destroy$.next();

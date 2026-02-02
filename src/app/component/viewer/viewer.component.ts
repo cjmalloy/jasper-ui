@@ -5,6 +5,7 @@ import {
   EventEmitter,
   forwardRef,
   HostBinding,
+  inject,
   Input,
   OnChanges,
   Output,
@@ -72,6 +73,17 @@ import TodoComponent from '../todo/todo.component';
   ],
 })
 export class ViewerComponent implements OnChanges {
+  config = inject(ConfigService);
+  admin = inject(AdminService);
+  private proxy = inject(ProxyService);
+  private oembeds = inject(OembedStore);
+  private actions = inject(ActionService);
+  private embeds = inject(EmbedService);
+  private editor = inject(EditorService);
+  private refs = inject(RefService);
+  private store = inject(Store);
+  el = inject(ElementRef);
+
   @HostBinding('class') css = 'embed print-images';
   @HostBinding('tabindex') tabIndex = 0;
   private destroy$ = new Subject<void>();
@@ -124,19 +136,6 @@ export class ViewerComponent implements OnChanges {
   private _oembed?: Oembed;
   private width = 0;
   private height = 0;
-
-  constructor(
-    public config: ConfigService,
-    public admin: AdminService,
-    private proxy: ProxyService,
-    private oembeds: OembedStore,
-    private actions: ActionService,
-    private embeds: EmbedService,
-    private editor: EditorService,
-    private refs: RefService,
-    private store: Store,
-    public el: ElementRef,
-  ) { }
 
   init() {
     MemoCache.clear(this);

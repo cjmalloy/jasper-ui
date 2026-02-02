@@ -8,6 +8,7 @@ import {
   ElementRef,
   forwardRef,
   HostListener,
+  inject,
   Input,
   OnDestroy,
   TemplateRef,
@@ -46,6 +47,12 @@ import { RefListComponent } from '../../ref/ref-list/ref-list.component';
   ],
 })
 export class ForceDirectedComponent implements AfterViewInit, OnDestroy, HasChanges {
+  store = inject(Store);
+  private admin = inject(AdminService);
+  private graphs = inject(GraphService);
+  private overlay = inject(Overlay);
+  private viewContainerRef = inject(ViewContainerRef);
+
 
   @Input()
   filter?: string[];
@@ -112,13 +119,9 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy, HasChan
   private dragRect?: Selection<any, unknown, any, any>;
   private forceLink?: ForceLink<SimulationNodeDatum, any>;
 
-  constructor(
-    public store: Store,
-    private admin: AdminService,
-    private graphs: GraphService,
-    private overlay: Overlay,
-    private viewContainerRef: ViewContainerRef,
-  ) {
+  constructor() {
+    const store = this.store;
+
     effect(() => {
       this.selectedStroke = store.darkTheme ? this.selectedStrokeDarkTheme : this.selectedStrokeLightTheme;
       this.linkStroke = store.darkTheme ? this.linkStrokeDarkTheme : this.linkStrokeLightTheme;

@@ -5,6 +5,7 @@ import {
   effect,
   HostBinding,
   HostListener,
+  inject,
   Injector,
   isDevMode,
   ViewContainerRef
@@ -36,6 +37,16 @@ import { memo } from './util/memo';
   ],
 })
 export class AppComponent implements AfterViewInit {
+  private injector = inject(Injector);
+  config = inject(ConfigService);
+  store = inject(Store);
+  private admin = inject(AdminService);
+  private proxy = inject(ProxyService);
+  private origins = inject(OriginService);
+  private scrape = inject(ScrapeService);
+  private router = inject(Router);
+  private vc = inject(ViewContainerRef);
+
 
   @HostBinding('class.electron')
   electron = this.config.electron;
@@ -47,17 +58,7 @@ export class AppComponent implements AfterViewInit {
   archivePlugin = this.admin.getPlugin('plugin/archive') as typeof archivePlugin || undefined;
   pipPlugin = this.admin.getPlugin('plugin/pip') as typeof pipPlugin || undefined;
 
-  constructor(
-    private injector: Injector,
-    public config: ConfigService,
-    public store: Store,
-    private admin: AdminService,
-    private proxy: ProxyService,
-    private origins: OriginService,
-    private scrape: ScrapeService,
-    private router: Router,
-    private vc: ViewContainerRef,
-  ) {
+  constructor() {
     document.body.style.height = '';
     if (!this.store.account.debug && this.config.version) this.website = 'https://github.com/cjmalloy/jasper-ui/releases/tag/' + this.config.version;
     window.addEventListener('keyup', event => {

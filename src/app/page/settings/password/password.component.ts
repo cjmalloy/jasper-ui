@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
 import { catchError, throwError } from 'rxjs';
@@ -17,18 +17,20 @@ import { printError } from '../../../util/http';
   imports: [ReactiveFormsModule]
 })
 export class SettingsPasswordPage {
+  admin = inject(AdminService);
+  private router = inject(Router);
+  private store = inject(Store);
+  private profiles = inject(ProfileService);
+  private fb = inject(UntypedFormBuilder);
+
 
   submitted = false;
   passwordForm!: UntypedFormGroup;
   serverError: string[] = [];
 
-  constructor(
-    public admin: AdminService,
-    private router: Router,
-    private store: Store,
-    private profiles: ProfileService,
-    private fb: UntypedFormBuilder,
-  ) {
+  constructor() {
+    const fb = this.fb;
+
     this.passwordForm = fb.group({
       password: [''],
     });

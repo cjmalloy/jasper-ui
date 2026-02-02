@@ -3,6 +3,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   HostBinding,
+  inject,
   Input,
   OnChanges,
   QueryList,
@@ -50,6 +51,15 @@ import { InlineSelectComponent } from '../action/inline-select/inline-select.com
   imports: [RouterLink, TitleDirective, ConfirmActionComponent, InlineButtonComponent, InlinePasswordComponent, InlineSelectComponent, ReactiveFormsModule, UserFormComponent]
 })
 export class UserComponent implements OnChanges, HasChanges {
+  admin = inject(AdminService);
+  config = inject(ConfigService);
+  store = inject(Store);
+  private auth = inject(AuthzService);
+  private profiles = inject(ProfileService);
+  private users = inject(UserService);
+  private exts = inject(ExtService);
+  private fb = inject(FormBuilder);
+
   @HostBinding('attr.tabindex') tabIndex = 0;
 
   @ViewChildren('action')
@@ -72,16 +82,9 @@ export class UserComponent implements OnChanges, HasChanges {
   serverError: string[] = [];
   externalErrors: string[] = [];
 
-  constructor(
-    public admin: AdminService,
-    public config: ConfigService,
-    public store: Store,
-    private auth: AuthzService,
-    private profiles: ProfileService,
-    private users: UserService,
-    private exts: ExtService,
-    private fb: FormBuilder,
-  ) {
+  constructor() {
+    const fb = this.fb;
+
     this.editForm = userForm(fb, true);
   }
 
