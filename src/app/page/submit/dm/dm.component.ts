@@ -1,6 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import {
   AfterViewInit,
+  ChangeDetectionStrategy,
   Component,
   effect,
   ElementRef,
@@ -57,6 +58,7 @@ import { getVisibilityTags, hasPrefix, hasTag, localTag } from '../../../util/ta
   selector: 'app-submit-dm',
   templateUrl: './dm.component.html',
   styleUrls: ['./dm.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   host: { 'class': 'full-page-form' },
   imports: [
     EditorComponent,
@@ -80,10 +82,8 @@ export class SubmitDmPage implements AfterViewInit, OnChanges, OnDestroy, HasCha
 
   @ViewChild('fill')
   fill?: ElementRef;
-
-  @ViewChild('ed')
-  editorComponent?: EditorComponent;
-
+  @ViewChild('fillCustom')
+  fillCustom?: ElementRef;
   @ViewChild('tagsFormComponent')
   tagsFormComponent?: TagsFormComponent;
 

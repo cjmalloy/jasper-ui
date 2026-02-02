@@ -1,5 +1,5 @@
 import { Location } from '@angular/common';
-import { Component, effect, Injector, OnDestroy } from '@angular/core';
+import { Component, effect, OnDestroy } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 
 import { TitleDirective } from '../../directive/title.directive';
@@ -25,7 +25,6 @@ export class SubscriptionBarComponent implements OnDestroy {
   private startIndex = this.currentIndex;
 
   constructor(
-    private injector: Injector,
     public config: ConfigService,
     public store: Store,
     public themes: ModService,
@@ -35,9 +34,9 @@ export class SubscriptionBarComponent implements OnDestroy {
     public location: Location,
   ) {
     effect(() => this.editor.getTagsPreview(this.store.account.bookmarks, this.store.account.origin)
-      .subscribe(xs => this.bookmarks = xs), { injector: this.injector });
+      .subscribe(xs => this.bookmarks = xs));
     effect(() => this.exts.getCachedExts(this.store.account.subs)
-      .subscribe(xs => this.subs = xs), { injector: this.injector });
+      .subscribe(xs => this.subs = xs));
   }
 
   ngOnDestroy() {

@@ -1,8 +1,7 @@
 import { HttpErrorResponse, HttpEventType } from '@angular/common/http';
-import { Component, effect, Injector, OnDestroy } from '@angular/core';
+import { Component, effect, forwardRef, OnDestroy } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { FormlyForm } from '@ngx-formly/core';
 import { pick, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
 
@@ -35,17 +34,16 @@ import { FilteredModels, filterModels, getModels, getTextFile, unzip, zippedFile
   styleUrls: ['./upload.component.scss'],
   host: { 'class': 'full-page-upload' },
   imports: [
-    ExtComponent,
-    RefComponent,
+    forwardRef(() => RefComponent),
+    forwardRef(() => ExtComponent),
     RouterLink,
     ReactiveFormsModule,
     AutofocusDirective,
     LoadingComponent,
     JasperFormlyModule,
-    FormlyForm,
   ]
 })
-export class UploadPage implements OnDestroy {
+export class UploadPage {
   tagRegex = TAGS_REGEX.source;
 
   erroredExts: Ext[] = [];
@@ -55,7 +53,6 @@ export class UploadPage implements OnDestroy {
   fileCache = this.admin.getPlugin('plugin/file');
 
   constructor(
-    private injector: Injector,
     public store: Store,
     public bookmarks: BookmarkService,
     private mod: ModService,
@@ -70,14 +67,8 @@ export class UploadPage implements OnDestroy {
     effect(() => {
       this.readUploads(this.store.submit.files);
       this.store.submit.clearFiles();
-    }, { injector: this.injector });
-    effect(() => {
-      console.log(this.store.submit.uploads.length);
-    }, { injector: this.injector });
+    });
     this.store.submit.clearOverride();
-  }
-
-  ngOnDestroy() {
   }
 
   readUploads(uploads?: File[], forceCache = false) {

@@ -5,7 +5,6 @@ import {
   effect,
   forwardRef,
   HostBinding,
-  Injector,
   Input,
   OnChanges,
   OnDestroy,
@@ -111,7 +110,6 @@ export class BlogEntryComponent implements OnChanges, OnDestroy, HasChanges {
   submitting?: Subscription;
 
   constructor(
-    private injector: Injector,
     private config: ConfigService,
     public admin: AdminService,
     public store: Store,
@@ -136,7 +134,7 @@ export class BlogEntryComponent implements OnChanges, OnDestroy, HasChanges {
           this.serverError = this.store.eventBus.errors;
         }
       }
-    }, { injector: this.injector });
+    });
   }
 
   saveChanges() {

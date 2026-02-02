@@ -1,6 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import {
   AfterViewInit,
+  ChangeDetectionStrategy,
   Component,
   effect,
   ElementRef,
@@ -58,6 +59,7 @@ import { getVisibilityTags, hasPrefix, hasTag } from '../../../util/tag';
   selector: 'app-submit-text',
   templateUrl: './text.component.html',
   styleUrls: ['./text.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   host: { 'class': 'full-page-form' },
   imports: [
     EditorComponent,
@@ -83,10 +85,8 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
 
   @ViewChild('fill')
   fill?: ElementRef;
-
-  @ViewChild('ed')
-  editorComponent?: EditorComponent;
-
+  @ViewChild('fillCustom')
+  fillCustom?: ElementRef;
   @ViewChild('tagsFormComponent')
   tagsFormComponent!: TagsFormComponent;
   @ViewChild('plugins')
