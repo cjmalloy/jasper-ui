@@ -13,6 +13,7 @@ services:
       repl-web:
         condition: service_healthy
     network_mode: host
+    shm_size: '2gb'
     environment:
       CYPRESS_DEFAULT_COMMAND_TIMEOUT: 30000
       CYPRESS_REQUEST_TIMEOUT: 10000
@@ -26,6 +27,7 @@ services:
       CYPRESS_reporterOptions_saveJson: true
       CYPRESS_video: true
 #      ELECTRON_ENABLE_LOGGING: 1
+      NODE_OPTIONS: '--max-old-space-size=4096'
     working_dir: /e2e
     volumes:
       - ../:/e2e
