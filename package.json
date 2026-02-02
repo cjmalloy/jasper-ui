@@ -89,7 +89,6 @@
     "marked": "$marked",
     "mermaid": "$mermaid",
     "uuid": "$uuid",
-    "zone.js": "$zone.js",
     "rxjs": "$rxjs",
     "monaco-editor": "$monaco-editor",
     "d3": "$d3",
