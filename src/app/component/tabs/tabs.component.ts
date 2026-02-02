@@ -45,12 +45,14 @@ export class TabsComponent implements AfterViewInit {
   ) { }
 
   ngAfterViewInit() {
-    this.updateTabs();
-    this.anchors.changes.subscribe(value => {
-      this.measuring = true;
+    defer(() => {
       this.updateTabs();
+      this.anchors.changes.subscribe(value => {
+        this.measuring = true;
+        this.updateTabs();
+      });
+      defer(() => this.resizeObserver?.observe(this.el.nativeElement!.parentElement!));
     });
-    defer(() => this.resizeObserver?.observe(this.el.nativeElement!.parentElement!));
   }
 
   @HostBinding('class.floating-tabs')

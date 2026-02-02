@@ -7,7 +7,6 @@ import {
   EventEmitter,
   HostBinding,
   HostListener,
-  Injector,
   Input,
   OnChanges,
   OnDestroy,
@@ -572,7 +571,6 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   errored = false;
 
   constructor(
-    private injector: Injector,
     private store: Store,
     private actions: ActionService,
     private el: ElementRef<HTMLDivElement>,
@@ -582,7 +580,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
         this.red = !this.red;
         defer(() => this.store.eventBus.fire('flip-done'));
       }
-    }, { injector: this.injector });
+    });
   }
 
   ngOnInit(): void {

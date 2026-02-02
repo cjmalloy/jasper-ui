@@ -180,10 +180,10 @@ export class ModService {
   }
 
   private getUserCss() {
-    return this.getTheme(this.store.account.config.userTheme!, [this.store.account.config.themes || {}, ...this.admin.themes.map(p => p.config!.themes!)]);
+    return this.getTheme(this.store.account.config.userTheme!, [this.store.account.config.themes || {}, ...this.admin.themes?.map(p => p.config!.themes!) || []]);
   }
 
   private getExtCss() {
-    return this.getTheme(this.store.view.ext?.config?.theme, [this.store.view.ext?.config?.themes || {}, ...this.admin.themes.map(p => p.config!.themes!)]);
+    return this.getTheme(this.store.view.ext?.config?.theme, [this.store.view.ext?.config?.themes || {}, ...this.admin.themes?.map(p => p.config!.themes!) || []]);
   }
 }
