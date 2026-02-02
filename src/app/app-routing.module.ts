@@ -201,7 +201,7 @@ const routes: Routes = [
     children: [
       { path: 'web', component: SubmitWebPage, canDeactivate: [pendingChangesGuard], runGuardsAndResolvers: 'always' },
       { path: 'text', component: SubmitTextPage, canDeactivate: [pendingChangesGuard], runGuardsAndResolvers: 'always' },
-      { path: 'upload', component: UploadPage },
+      { path: 'upload', component: UploadPage, canDeactivate: [pendingChangesGuard], runGuardsAndResolvers: 'always' },
       { path: 'dm', component: SubmitDmPage, canDeactivate: [pendingChangesGuard], runGuardsAndResolvers: 'always' },
       { path: 'invoice', component: SubmitInvoicePage, canDeactivate: [pendingChangesGuard], runGuardsAndResolvers: 'always' },
     ]
