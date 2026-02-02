@@ -4,7 +4,6 @@ import {
   Component,
   effect,
   ElementRef,
-  EventEmitter,
   HostBinding,
   HostListener,
   inject,
@@ -12,7 +11,7 @@ import {
   OnChanges,
   OnDestroy,
   OnInit,
-  Output,
+  output,
   SimpleChanges
 } from '@angular/core';
 import { Chess, Square } from 'chess.js';
@@ -51,10 +50,8 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
   text? = '';
   @Input()
   white = true; // TODO: Save in local storage
-  @Output()
-  comment = new EventEmitter<string>();
-  @Output()
-  copied = new EventEmitter<string>();
+  readonly comment = output<string>();
+  readonly copied = output<string>();
 
   turn: PieceColor = 'w';
   from?: Square;

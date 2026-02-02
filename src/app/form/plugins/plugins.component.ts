@@ -2,12 +2,11 @@ import {
   AfterViewInit,
   ChangeDetectionStrategy,
   Component,
-  EventEmitter,
   inject,
   Input,
   input,
   OnChanges,
-  Output,
+  output,
   QueryList,
   SimpleChanges,
   ViewChildren
@@ -43,8 +42,7 @@ export class PluginsFormComponent implements OnChanges, AfterViewInit {
   readonly fieldName = input('plugins');
   @Input()
   group: UntypedFormGroup;
-  @Output()
-  togglePlugin = new EventEmitter<string>();
+  readonly togglePlugin = output<string>();
 
   icons: Icon[] = [];
   forms: Plugin[] = [];

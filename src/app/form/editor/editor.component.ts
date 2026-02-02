@@ -7,7 +7,6 @@ import {
   Component,
   effect,
   ElementRef,
-  EventEmitter,
   HostBinding,
   HostListener,
   inject,
@@ -16,7 +15,7 @@ import {
   input,
   OnChanges,
   OnDestroy,
-  Output,
+  output,
   SimpleChanges,
   TemplateRef,
   ViewChild,
@@ -129,16 +128,11 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   readonly addCommentTitle = input($localize `Add comment`);
   readonly addCommentLabel = input($localize `+ Add comment`);
   readonly fillWidth = input<HTMLElement>();
-  @Output()
-  syncEditor = new EventEmitter<string>();
-  @Output()
-  syncTags = new EventEmitter<string[]>();
-  @Output()
-  addSource = new EventEmitter<string>();
-  @Output()
-  scrape = new EventEmitter<void>();
-  @Output()
-  uploadCompleted = new EventEmitter<Ref>();
+  readonly syncEditor = output<string>();
+  readonly syncTags = output<string[]>();
+  readonly addSource = output<string>();
+  readonly scrape = output<void>();
+  readonly uploadCompleted = output<Ref>();
 
   dropping = false;
   overlayRef?: OverlayRef;
@@ -380,7 +374,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
       this.createdTags = tags;
       MemoCache.clear(this);
     }
-    this.syncTags.next(tags);
+    this.syncTags.emit(tags);
   }
 
   toggleTag(button: EditorButton) {
@@ -442,7 +436,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
       // Do not throttle
       this._text = value;
       this.store.local.saveEditing(value);
-      this.syncEditor.next(this._text);
+      this.syncEditor.emit(this._text);
     }
     // Clear previous throttled values
     this.syncTextThrottled(value);
@@ -452,7 +446,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   syncTextThrottled = debounce((value: string) => {
     if (this._text === value) return;
     this._text = value;
-    this.syncEditor.next(this._text);
+    this.syncEditor.emit(this._text);
   }, 400);
 
   togglePreview() {
@@ -578,6 +572,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
       const md = this.europa.convert(this.editor!.nativeElement.value);
       this.syncText(md);
     } else if (event === 'scrape') {
+      // TODO: The 'emit' function requires a mandatory void argument
       this.scrape.emit();
     } else if (event === 'attach') {
       this.fileUpload.nativeElement.click();
@@ -713,7 +708,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   attachUrls(...refs: (Ref | null)[]) {
     refs = refs.filter(u => !!u);
     if (!refs.length) return;
-    for (const ref of refs) this.addSource.next(ref!.url);
+    for (const ref of refs) this.addSource.emit(ref!.url);
     const text = this.currentText;
     const embed = (ref: Ref) => hasTag('plugin/audio', ref) || hasTag('plugin/video', ref) || hasTag('plugin/image', ref) || hasTag('plugin/pdf', ref);
     if (refs.length === 1) {

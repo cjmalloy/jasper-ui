@@ -2,12 +2,11 @@ import {
   ChangeDetectionStrategy,
   Component,
   ElementRef,
-  EventEmitter,
   inject,
   Input,
   input,
   OnInit,
-  Output,
+  output,
   ViewChild
 } from '@angular/core';
 import {
@@ -48,11 +47,9 @@ export class UserFormComponent implements OnInit {
   group!: UntypedFormGroup;
   readonly showPubKey = input(true);
   readonly fillWidth = input<HTMLElement>();
-  @Output()
-  tagChanges = new EventEmitter<string>();
+  readonly tagChanges = output<string>();
   readonly showClear = input(false);
-  @Output()
-  clear = new EventEmitter<void>();
+  readonly clear = output<void>();
   @Input()
   externalErrors: string[] = [];
 
@@ -118,7 +115,7 @@ export class UserFormComponent implements OnInit {
       defer(() => this.validate(input));
     } else {
       this.showedError = false;
-      this.tagChanges.next(input.value);
+      this.tagChanges.emit(input.value);
     }
   }
 

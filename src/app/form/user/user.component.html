@@ -12,7 +12,7 @@
            (keydown)="$event.key === 'Enter' && validate(tagInput) || true"
            (blur)="blur(tagInput)">
     @if (showClear()) {
-      <button type="button" (click)="clear.next()" i18n-title title="New User" i18n>🆑️</button>
+      <button type="button" (click)="clear.emit()" i18n-title title="New User" i18n>🆑️</button>
     }
   </div>
 

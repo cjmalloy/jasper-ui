@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, HostBinding, input, Output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, HostBinding, input, output } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 
 @Component({
@@ -14,12 +14,9 @@ export class ListEditorComponent{
   readonly list = input<string[]>([]);
   readonly type = input('email');
   readonly placeholder = input('Add item');
-  @Output()
-  onAdd = new EventEmitter<string>();
-  @Output()
-  onRemove = new EventEmitter<string>();
-  @Output()
-  selected = new EventEmitter<string>();
+  readonly onAdd = output<string>();
+  readonly onRemove = output<string>();
+  readonly selected = output<string | undefined>();
 
   addingText = '';
   selectedIndex = -1;

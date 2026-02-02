@@ -2,12 +2,11 @@ import {
   ChangeDetectionStrategy,
   Component,
   ElementRef,
-  EventEmitter,
   inject,
   Input,
   input,
   OnChanges,
-  Output,
+  output,
   SimpleChanges,
   ViewChild
 } from '@angular/core';
@@ -35,8 +34,7 @@ export class SelectPluginComponent implements OnChanges {
   readonly add = input(false);
   readonly text = input(false);
   readonly settings = input(false);
-  @Output()
-  pluginChange = new EventEmitter<string>();
+  readonly pluginChange = output<string>();
 
   @ViewChild('select')
   select?: ElementRef<HTMLSelectElement>;

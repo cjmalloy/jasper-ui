@@ -7,7 +7,6 @@ import {
   Component,
   effect,
   ElementRef,
-  EventEmitter,
   HostBinding,
   HostListener,
   inject,
@@ -15,7 +14,7 @@ import {
   input,
   OnChanges,
   OnDestroy,
-  Output,
+  output,
   QueryList,
   SimpleChanges,
   ViewChild,
@@ -157,8 +156,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   readonly showAlarm = input(true);
   readonly showObsolete = input(true);
   readonly fetchRepost = input(true);
-  @Output()
-  copied = new EventEmitter<string>();
+  readonly copied = output<string>();
 
   repostRef?: Ref;
   editForm: UntypedFormGroup;

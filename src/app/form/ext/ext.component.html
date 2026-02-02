@@ -5,7 +5,7 @@
   <div class="form-array">
     <input [id]="id + '-tag'" name="tag" type="text" formControlName="tag">
     @if (showClear()) {
-      <button type="button" (click)="clear.next()" i18n-title title="New Ext" i18n>🆑️</button>
+      <button type="button" (click)="clear.emit()" i18n-title title="New Ext" i18n>🆑️</button>
     }
   </div>
 

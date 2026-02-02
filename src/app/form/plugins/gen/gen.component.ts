@@ -1,13 +1,12 @@
 import {
   ChangeDetectionStrategy,
   Component,
-  EventEmitter,
   inject,
   Input,
   input,
   OnChanges,
   OnInit,
-  Output,
+  output,
   SimpleChanges
 } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormGroup } from '@angular/forms';
@@ -35,8 +34,7 @@ export class GenFormComponent implements OnInit, OnChanges {
   @Input()
   plugin!: Plugin;
   readonly children = input<Plugin[]>([]);
-  @Output()
-  togglePlugin = new EventEmitter<string>();
+  readonly togglePlugin = output<string>();
 
   model: any;
   options: FormlyFormOptions = {
@@ -94,7 +92,7 @@ export class GenFormComponent implements OnInit, OnChanges {
   }
 
   toggleChild(tag: string) {
-    this.togglePlugin.next(tag);
+    this.togglePlugin.emit(tag);
     if ('vibrate' in navigator) navigator.vibrate([2, 8, 8]);
   }
 }

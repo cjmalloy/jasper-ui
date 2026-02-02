@@ -1,5 +1,5 @@
 @if (templates.length) {
-  <select #select class="big" (input)="templateChange.next(select.value)">
+  <select #select class="big" (input)="templateChange.emit(select.value)">
     <option value="" i18n>🏷️</option>
     @for (t of templates; track t.tag) {
       <option [value]="t.tag">{{ t.config?.submit }}</option>

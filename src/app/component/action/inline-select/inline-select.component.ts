@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, input, Output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 import { catchError, Observable, of } from 'rxjs';
 import { LoadingComponent } from '../../loading/loading.component';
 import { ActionComponent } from '../action.component';
@@ -15,8 +15,7 @@ export class InlineSelectComponent extends ActionComponent {
 
   readonly action = input<(value: any) => Observable<any | never>>(() => of(null));
   readonly value = input<any>();
-  @Output()
-  error = new EventEmitter<string>();
+  readonly error = output<string>();
 
   editing = false;
   acting = false;

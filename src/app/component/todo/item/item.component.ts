@@ -2,14 +2,13 @@ import {
   ChangeDetectionStrategy,
   Component,
   ElementRef,
-  EventEmitter,
   forwardRef,
   HostBinding,
   HostListener,
   inject,
   Input,
   input,
-  Output
+  output
 } from '@angular/core';
 import { AutofocusDirective } from '../../../directive/autofocus.directive';
 import { ConfigService } from '../../../service/config.service';
@@ -40,8 +39,10 @@ export class TodoItemComponent {
   readonly plugins = input<string[]>([]);
   readonly origin = input('');
 
-  @Output()
-  update = new EventEmitter<{ text: string, checked: boolean }>();
+  readonly update = output<{
+    text: string;
+    checked: boolean;
+}>();
 
   checked = false;
   editing = false;
@@ -81,11 +82,11 @@ export class TodoItemComponent {
 
   toggle() {
     this.checked = !this.checked;
-    this.update.next({ text: this.text, checked: this.checked });
+    this.update.emit({ text: this.text, checked: this.checked });
   }
 
   edit() {
-    this.update.next({ text: this.text, checked: this.checked });
+    this.update.emit({ text: this.text, checked: this.checked });
     this.editing = false;
   }
 }
