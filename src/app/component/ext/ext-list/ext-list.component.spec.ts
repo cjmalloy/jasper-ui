@@ -1,4 +1,4 @@
-import { NO_ERRORS_SCHEMA} from '@angular/core';
+import { forwardRef, NO_ERRORS_SCHEMA } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { ExtListComponent } from './ext-list.component';
@@ -9,7 +9,7 @@ describe('ExtListComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ExtListComponent],
+      imports: [forwardRef(() => ExtListComponent)],
       schemas: [NO_ERRORS_SCHEMA],
     }).compileComponents();
 

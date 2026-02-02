@@ -1,10 +1,13 @@
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
-import { forwardRef } from '@angular/core';
+import { forwardRef, NO_ERRORS_SCHEMA } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { provideRouter } from '@angular/router';
-import { NO_ERRORS_SCHEMA } from '@angular/core';
+import { LinksFormComponent } from '../../../form/links/links.component';
+import { RefFormComponent } from '../../../form/ref/ref.component';
+import { TagsFormComponent } from '../../../form/tags/tags.component';
+import { JasperFormlyModule } from '../../../formly/formly.module';
 
 import { SubmitWebPage } from './web.component';
 
@@ -16,11 +19,11 @@ describe('SubmitWebPage', () => {
     await TestBed.configureTestingModule({
       imports: [
         forwardRef(() => SubmitWebPage),
+        forwardRef(() => RefFormComponent),
+        forwardRef(() => TagsFormComponent),
+        forwardRef(() => LinksFormComponent),
         ReactiveFormsModule,
         JasperFormlyModule,
-        RefFormComponent,
-        TagsFormComponent,
-        LinksFormComponent,
       ],
       providers: [
         provideHttpClient(withInterceptorsFromDi()),

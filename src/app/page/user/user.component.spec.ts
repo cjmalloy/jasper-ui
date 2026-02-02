@@ -1,21 +1,23 @@
-import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { provideRouter } from '@angular/router';
+import { JasperFormlyModule } from '../../formly/formly.module';
 
 import { UserPage } from './user.component';
 
-describe('CreateUserPage', () => {
+describe('UserPage', () => {
   let component: UserPage;
   let fixture: ComponentFixture<UserPage>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [
+        UserPage,
         ReactiveFormsModule,
-        UserPage
+        JasperFormlyModule,
       ],
       providers: [
         provideHttpClient(withInterceptorsFromDi()),

@@ -1,9 +1,10 @@
-import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule, UntypedFormGroup } from '@angular/forms';
 import { provideRouter } from '@angular/router';
+import { JasperFormlyModule } from '../../../formly/formly.module';
 
 import { GenFormComponent } from './gen.component';
 
@@ -14,8 +15,9 @@ describe('GenComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [
-        ReactiveFormsModule,
         GenFormComponent,
+        ReactiveFormsModule,
+        JasperFormlyModule,
       ],
       providers: [
         provideHttpClient(withInterceptorsFromDi()),
