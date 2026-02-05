@@ -1,8 +1,13 @@
 name: Cleanup Old Artifacts
 
 on:
-  pull_request:
-    branches: [ '**' ]
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run (show what would be deleted without deleting)'
+        required: false
+        type: boolean
+        default: true
 
 jobs:
   cleanup:
@@ -15,7 +20,7 @@ jobs:
         with:
           # language=JavaScript
           script: |
-            const dryRun = true;
+            const dryRun = '${{ inputs.dry_run }}' === 'true';
             const threeMonthsAgo = new Date();
             threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
             
