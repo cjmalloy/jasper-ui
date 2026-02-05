@@ -1,0 +1,67 @@
+name: Cleanup Old Artifacts
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run (show what would be deleted without deleting)'
+        required: false
+        type: boolean
+        default: true
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    steps:
+      - name: Cleanup artifacts older than 3 months
+        uses: actions/github-script@v8
+        with:
+          # language=JavaScript
+          script: |
+            const dryRun = '${{ inputs.dry_run }}' === 'true';
+            const threeMonthsAgo = new Date();
+            threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+            
+            console.log(`Looking for artifacts created before ${threeMonthsAgo.toISOString()}`);
+            console.log(`Dry run: ${dryRun}`);
+            
+            let deleted = 0;
+            let page = 1;
+            let hasMore = true;
+            
+            while (hasMore) {
+              const response = await github.rest.actions.listArtifactsForRepo({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                per_page: 100,
+                page: page
+              });
+              
+              const artifacts = response.data.artifacts;
+              
+              if (artifacts.length === 0) {
+                hasMore = false;
+                break;
+              }
+              
+              for (const artifact of artifacts) {
+                const createdAt = new Date(artifact.created_at);
+                if (createdAt < threeMonthsAgo) {
+                  console.log(`${dryRun ? '[DRY RUN] Would delete' : 'Deleting'}: ${artifact.name} (created: ${artifact.created_at})`);
+                  if (!dryRun) {
+                    await github.rest.actions.deleteArtifact({
+                      owner: context.repo.owner,
+                      repo: context.repo.repo,
+                      artifact_id: artifact.id
+                    });
+                  }
+                  deleted++;
+                }
+              }
+              
+              page++;
+            }
+            
+            console.log(`\n${dryRun ? '[DRY RUN] Would have deleted' : 'Deleted'} ${deleted} artifacts older than 3 months.`);
