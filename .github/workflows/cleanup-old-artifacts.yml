@@ -43,7 +43,7 @@ jobs:
               
               if (artifacts.length === 0) {
                 hasMore = false;
-                break;
+                continue;
               }
               
               for (const artifact of artifacts) {
