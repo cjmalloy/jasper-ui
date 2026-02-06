@@ -547,18 +547,6 @@ Please Reload.</source>
         <source>System configs</source>
         <target>システム設定</target>
       </trans-unit>
-      <trans-unit id="8977130197408969180" datatype="html">
-        <source>🚫️🏷️ untagged</source>
-        <target>🚫️🏷️ タグなし</target>
-      </trans-unit>
-      <trans-unit id="6231469122221256797" datatype="html">
-        <source>🚫️💌️ uncited</source>
-        <target>🚫️💌️ 引用なし</target>
-      </trans-unit>
-      <trans-unit id="5913070456547212950" datatype="html">
-        <source>🚫️📜️ unsourced</source>
-        <target>🚫️📜️ ソースなし</target>
-      </trans-unit>
       <trans-unit id="9001537850483629945" datatype="html">
         <source>🗑️ deleted</source>
         <target>🗑️ 削除済み</target>
@@ -3520,10 +3508,6 @@ Refのみが削除されたファイルはまだ回復できますが、この�
         <source>🎁️ Mod</source>
         <target>🎁️ MOD</target>
       </trans-unit>
-      <trans-unit id="7900106699701269982" datatype="html">
-        <source>Install a mod.</source>
-        <target>MODをインストールします。</target>
-      </trans-unit>
       <trans-unit id="7615772940400448109" datatype="html">
         <source>🎁️</source>
       </trans-unit>
@@ -3974,10 +3958,6 @@ Refのみが削除されたファイルはまだ回復できますが、この�
       <trans-unit id="8035004263472623204" datatype="html">
         <source>Show Abstract:</source>
         <target>要約を表示:</target>
-      </trans-unit>
-      <trans-unit id="1628069929900919321" datatype="html">
-        <source>📄️ PDF Resize handle</source>
-        <target>📄️ PDFサイズ変更ハンドル</target>
       </trans-unit>
       <trans-unit id="6433514297428832297" datatype="html">
         <source>📇️ Person</source>
@@ -4798,10 +4778,6 @@ Refのみが削除されたファイルはまだ回復できますが、この�
       <trans-unit id="5860050689274593382" datatype="html">
         <source>🔑️</source>
       </trans-unit>
-      <trans-unit id="4006544501356322408" datatype="html">
-        <source>Secrets with opaque tags</source>
-        <target>不透明なタグ付きシークレット</target>
-      </trans-unit>
       <trans-unit id="853214468188344108" datatype="html">
         <source>Store secrets with opaque protected tags.</source>
         <target>不透明な保護されたタグでシークレットを保存します。</target>
@@ -4949,14 +4925,6 @@ Refのみが削除されたファイルはまだ回復できますが、この�
       <trans-unit id="8403041570569497664" datatype="html">
         <source>Allows users to save useful public data in their Ext.</source>
         <target>ユーザーがExtに有用な公開データを保存できるようにします。</target>
-      </trans-unit>
-      <trans-unit id="202609166641209890" datatype="html">
-        <source>🧑️ user</source>
-        <target>🧑️ ユーザー</target>
-      </trans-unit>
-      <trans-unit id="5338805589342356534" datatype="html">
-        <source>User Settings</source>
-        <target>ユーザー設定</target>
       </trans-unit>
       <trans-unit id="6777929334952032893" datatype="html">
         <source>Live Search:</source>
@@ -5933,6 +5901,320 @@ Enter the origin to confirm:</source>
       <trans-unit id="950338657895578107" datatype="html">
         <source> Image </source>
         <target> 画像 </target>
+      </trans-unit>
+      <trans-unit id="3822251104110269749" datatype="html">
+        <source><x id="START_BLOCK_IF" equiv-text="@if (editForm.dirty) {"/>*edit*<x id="CLOSE_BLOCK_IF" equiv-text="}"/><x id="START_BLOCK_ELSE" equiv-text="@else {"/>edit<x id="CLOSE_BLOCK_ELSE" equiv-text="}"/></source>
+        <target><x id="START_BLOCK_IF" equiv-text="@if (editForm.dirty) {"/>*編集*<x id="CLOSE_BLOCK_IF" equiv-text="}"/><x id="START_BLOCK_ELSE" equiv-text="@else {"/>編集<x id="CLOSE_BLOCK_ELSE" equiv-text="}"/></target>
+      </trans-unit>
+      <trans-unit id="5996471133477705996" datatype="html">
+        <source>Start a Call</source>
+        <target>通話を開始</target>
+      </trans-unit>
+      <trans-unit id="870029873537870203" datatype="html">
+        <source>📞️</source>
+      </trans-unit>
+      <trans-unit id="9148571850825426821" datatype="html">
+        <source>call</source>
+        <target>通話</target>
+      </trans-unit>
+      <trans-unit id="5298021064092986433" datatype="html">
+        <source>End a Call</source>
+        <target>通話を終了</target>
+      </trans-unit>
+      <trans-unit id="772276486312441751" datatype="html">
+        <source>👋️</source>
+      </trans-unit>
+      <trans-unit id="363965021160860755" datatype="html">
+        <source>hangup</source>
+        <target>通話終了</target>
+      </trans-unit>
+      <trans-unit id="6100521870996530830" datatype="html">
+        <source>⭕️ Me</source>
+        <target>⭕️ 自分</target>
+      </trans-unit>
+      <trans-unit id="1435598163760679357" datatype="html">
+        <source>Hung up</source>
+        <target>切断済み</target>
+      </trans-unit>
+      <trans-unit id="4085337347877112018" datatype="html">
+        <source>Rejoin the call?</source>
+        <target>通話に再参加しますか？</target>
+      </trans-unit>
+      <trans-unit id="1808983160590996631" datatype="html">
+        <source>Unable to access camera or microphone. Please check your browser permissions and try again.</source>
+        <target>カメラまたはマイクにアクセスできません。ブラウザの権限を確認して、もう一度お試しください。</target>
+      </trans-unit>
+      <trans-unit id="845727573836115653" datatype="html">
+        <source>✅ Complete</source>
+        <target>✅ 完了</target>
+      </trans-unit>
+      <trans-unit id="8151924435547335490" datatype="html">
+        <source>Upload failed</source>
+        <target>アップロード失敗</target>
+      </trans-unit>
+      <trans-unit id="8465388462838343511" datatype="html">
+        <source>Obsolete</source>
+        <target>廃止</target>
+      </trans-unit>
+      <trans-unit id="7865397727891319361" datatype="html">
+        <source><x id="ICU" equiv-text="{comments, plural, =1 {1&amp;thinsp;comment} other {{{ comments }}&amp;thinsp;comments}}" xid="4518498123811553408"/><x id="START_BLOCK_IF" equiv-text="@if (newCommentsCount &gt; 0) {"/><x id="START_TAG_SPAN" ctype="x-span" equiv-text="&lt;span class=&quot;new-resp&quot;&gt;"/> (<x id="INTERPOLATION_1" equiv-text="{{ newCommentsCount }}"/> new)<x id="CLOSE_TAG_SPAN" ctype="x-span" equiv-text="&lt;/span&gt;"/><x id="CLOSE_BLOCK_IF" equiv-text="}"/></source>
+        <target><x id="ICU" equiv-text="{comments, plural, =1 {1&amp;thinsp;comment} other {{{ comments }}&amp;thinsp;comments}}" xid="4518498123811553408"/><x id="START_BLOCK_IF" equiv-text="@if (newCommentsCount &gt; 0) {"/><x id="START_TAG_SPAN" ctype="x-span" equiv-text="&lt;span class=&quot;new-resp&quot;&gt;"/> (<x id="INTERPOLATION_1" equiv-text="{{ newCommentsCount }}"/> 件の新着)<x id="CLOSE_TAG_SPAN" ctype="x-span" equiv-text="&lt;/span&gt;"/><x id="CLOSE_BLOCK_IF" equiv-text="}"/></target>
+      </trans-unit>
+      <trans-unit id="7869199587095613616" datatype="html">
+        <source>Untitled</source>
+        <target>無題</target>
+      </trans-unit>
+      <trans-unit id="6987106121922189987" datatype="html">
+        <source>Untitled Audio</source>
+        <target>無題の音声</target>
+      </trans-unit>
+      <trans-unit id="5011079755860721986" datatype="html">
+        <source>Untitled Video</source>
+        <target>無題の動画</target>
+      </trans-unit>
+      <trans-unit id="1430852698676783618" datatype="html">
+        <source>Untitled Image</source>
+        <target>無題の画像</target>
+      </trans-unit>
+      <trans-unit id="6878271350668507024" datatype="html">
+        <source>Outbox</source>
+        <target>送信トレイ</target>
+      </trans-unit>
+      <trans-unit id="1579313689794432792" datatype="html">
+        <source>🚪️ Lobby</source>
+        <target>🚪️ ロビー</target>
+      </trans-unit>
+      <trans-unit id="273285654450049330" datatype="html">
+        <source>List users in lobby</source>
+        <target>ロビーのユーザーを一覧表示</target>
+      </trans-unit>
+      <trans-unit id="4762226614529232886" datatype="html">
+        <source>Number of people in lobby</source>
+        <target>ロビーの人数</target>
+      </trans-unit>
+      <trans-unit id="2344929101735853930" datatype="html">
+        <source>📞️ Video Call</source>
+        <target>📞️ ビデオ通話</target>
+      </trans-unit>
+      <trans-unit id="4161827698228185049" datatype="html">
+        <source>Join others in a video call</source>
+        <target>ビデオ通話に参加する</target>
+      </trans-unit>
+      <trans-unit id="3822966180583212693" datatype="html">
+        <source>Candidates: </source>
+        <target>候補: </target>
+      </trans-unit>
+      <trans-unit id="2405026999475509249" datatype="html">
+        <source>+ Add Candidate</source>
+        <target>+ 候補を追加</target>
+      </trans-unit>
+      <trans-unit id="5155228583367491266" datatype="html">
+        <source>Offer Type</source>
+        <target>オファータイプ</target>
+      </trans-unit>
+      <trans-unit id="5687593619536341548" datatype="html">
+        <source>Offer SDP</source>
+        <target>オファーSDP</target>
+      </trans-unit>
+      <trans-unit id="103450073191293956" datatype="html">
+        <source>Answer Type</source>
+        <target>アンサータイプ</target>
+      </trans-unit>
+      <trans-unit id="5893085126483662103" datatype="html">
+        <source>Answer SDP</source>
+        <target>アンサーSDP</target>
+      </trans-unit>
+      <trans-unit id="4363374250074850820" datatype="html">
+        <source>Not Resizable:</source>
+        <target>リサイズ不可:</target>
+      </trans-unit>
+      <trans-unit id="5955213880040354948" datatype="html">
+        <source>⏭️ playlist</source>
+        <target>⏭️ プレイリスト</target>
+      </trans-unit>
+      <trans-unit id="1823843876735462104" datatype="html">
+        <source>Playlists</source>
+        <target>プレイリスト</target>
+      </trans-unit>
+      <trans-unit id="2379451542832432168" datatype="html">
+        <source>🎁️ Store</source>
+        <target>🎁️ ストア</target>
+      </trans-unit>
+      <trans-unit id="5005008742279266572" datatype="html">
+        <source>store</source>
+        <target>ストア</target>
+      </trans-unit>
+      <trans-unit id="384506774397975875" datatype="html">
+        <source>Install and share mods.</source>
+        <target>MODをインストールして共有する。</target>
+      </trans-unit>
+      <trans-unit id="5123687874881528449" datatype="html">
+        <source>🎗️ Reminder</source>
+        <target>🎗️ リマインダー</target>
+      </trans-unit>
+      <trans-unit id="2496872947954446801" datatype="html">
+        <source>‼️ Important</source>
+        <target>‼️ 重要</target>
+      </trans-unit>
+      <trans-unit id="644023663634842533" datatype="html">
+        <source>🎗️</source>
+      </trans-unit>
+      <trans-unit id="8712644532406329932" datatype="html">
+        <source>‼️</source>
+      </trans-unit>
+      <trans-unit id="8343499791089897061" datatype="html">
+        <source>📦️ Root Plugin</source>
+        <target>📦️ ルートプラグイン</target>
+      </trans-unit>
+      <trans-unit id="9188679011383576247" datatype="html">
+        <source>Add Ref sorts.</source>
+        <target>Refのソートを追加する。</target>
+      </trans-unit>
+      <trans-unit id="7665909446755660630" datatype="html">
+        <source>unlock</source>
+        <target>ロック解除</target>
+      </trans-unit>
+      <trans-unit id="3383234849841349780" datatype="html">
+        <source>Unlock this post to allow editing</source>
+        <target>この投稿のロックを解除して編集を許可する</target>
+      </trans-unit>
+      <trans-unit id="155024462023665978" datatype="html">
+        <source>🔓️ Unlock</source>
+        <target>🔓️ ロック解除</target>
+      </trans-unit>
+      <trans-unit id="4825680831366090579" datatype="html">
+        <source>🗞️ Feeds</source>
+        <target>🗞️ フィード</target>
+      </trans-unit>
+      <trans-unit id="7883539603792113612" datatype="html">
+        <source>+ Match text</source>
+        <target>+ テキストマッチ</target>
+      </trans-unit>
+      <trans-unit id="2875434802578179397" datatype="html">
+        <source>Add a list of text to match against the feed entries. If any of the text is found, the entry will be added.</source>
+        <target>フィードエントリーと照合するテキストのリストを追加します。いずれかのテキストが見つかった場合、そのエントリーが追加されます。</target>
+      </trans-unit>
+      <trans-unit id="8724154916516427477" datatype="html">
+        <source>Strip Hash:</source>
+        <target>ハッシュを除去:</target>
+      </trans-unit>
+      <trans-unit id="1056649067242910715" datatype="html">
+        <source>Strip all anchors from the feed entry URLs.</source>
+        <target>フィードエントリーのURLからすべてのアンカーを除去します。</target>
+      </trans-unit>
+      <trans-unit id="8451668304606853391" datatype="html">
+        <source>🏛️ Origin</source>
+        <target>🏛️ オリジン</target>
+      </trans-unit>
+      <trans-unit id="1241581002965635507" datatype="html">
+        <source>🪝 Scrape Config</source>
+        <target>🪝 スクレイプ設定</target>
+      </trans-unit>
+      <trans-unit id="7850936824606248975" datatype="html">
+        <source>Cache size</source>
+        <target>キャッシュサイズ</target>
+      </trans-unit>
+      <trans-unit id="7893021188232153738" datatype="html">
+        <source>🔑️ Secrets</source>
+        <target>🔑️ シークレット</target>
+      </trans-unit>
+      <trans-unit id="681827542632415825" datatype="html">
+        <source>▶️ YT-DLP</source>
+        <target>▶️ YT-DLP</target>
+      </trans-unit>
+      <trans-unit id="5469721209381242917" datatype="html">
+        <source>Download and cache videos using YT-DLP.</source>
+        <target>YT-DLPを使用して動画をダウンロードしてキャッシュする。</target>
+      </trans-unit>
+      <trans-unit id="810198456096379275" datatype="html">
+        <source>yt-dlp</source>
+      </trans-unit>
+      <trans-unit id="3497909142882445634" datatype="html">
+        <source>Download video with YT-DLP.</source>
+        <target>YT-DLPで動画をダウンロードする。</target>
+      </trans-unit>
+      <trans-unit id="6614748493793986244" datatype="html">
+        <source>Cancel YT-DLP.</source>
+        <target>YT-DLPをキャンセルする。</target>
+      </trans-unit>
+      <trans-unit id="7533350102090981030" datatype="html">
+        <source>Local Storage</source>
+        <target>ローカルストレージ</target>
+      </trans-unit>
+      <trans-unit id="5369408705351652088" datatype="html">
+        <source>This page shows data stored in your browser&apos;s local storage for Refs and Exts.</source>
+        <target>このページには、RefとExtのブラウザのローカルストレージに保存されたデータが表示されます。</target>
+      </trans-unit>
+      <trans-unit id="645613494611190618" datatype="html">
+        <source>Stored toggle states and last seen counts for Refs.</source>
+        <target>Refの切り替え状態と最終閲覧数を保存。</target>
+      </trans-unit>
+      <trans-unit id="1058593620300054617" datatype="html">
+        <source>Clear all Ref data from local storage</source>
+        <target>ローカルストレージからすべてのRefデータを消去する</target>
+      </trans-unit>
+      <trans-unit id="5644305604509914774" datatype="html">
+        <source>🗑️ clear all refs</source>
+        <target>🗑️ すべてのRefを消去</target>
+      </trans-unit>
+      <trans-unit id="2375260419993138758" datatype="html">
+        <source>URL</source>
+      </trans-unit>
+      <trans-unit id="8650499415827640724" datatype="html">
+        <source>Type</source>
+        <target>タイプ</target>
+      </trans-unit>
+      <trans-unit id="6555318547274416232" datatype="html">
+        <source>Value</source>
+        <target>値</target>
+      </trans-unit>
+      <trans-unit id="1111411697912114791" datatype="html">
+        <source>Remove this entry</source>
+        <target>このエントリーを削除</target>
+      </trans-unit>
+      <trans-unit id="905011290352238500" datatype="html">
+        <source>No Ref data stored in local storage.</source>
+        <target>ローカルストレージにRefデータはありません。</target>
+      </trans-unit>
+      <trans-unit id="2415006858105878220" datatype="html">
+        <source>Cached Ext tags for faster loading.</source>
+        <target>高速読み込みのためにExtタグをキャッシュ。</target>
+      </trans-unit>
+      <trans-unit id="8990508295607829927" datatype="html">
+        <source>Clear all Ext data from local storage</source>
+        <target>ローカルストレージからすべてのExtデータを消去する</target>
+      </trans-unit>
+      <trans-unit id="1598917351276871814" datatype="html">
+        <source>🗑️ clear all exts</source>
+        <target>🗑️ すべてのExtを消去</target>
+      </trans-unit>
+      <trans-unit id="1825829511397926879" datatype="html">
+        <source>Tag</source>
+        <target>タグ</target>
+      </trans-unit>
+      <trans-unit id="5611592591303869712" datatype="html">
+        <source>Status</source>
+        <target>ステータス</target>
+      </trans-unit>
+      <trans-unit id="7340424146325569311" datatype="html">
+        <source>No Ext data stored in local storage.</source>
+        <target>ローカルストレージにExtデータはありません。</target>
+      </trans-unit>
+      <trans-unit id="6875977898191706862" datatype="html">
+        <source>Settings: Local Storage</source>
+        <target>設定: ローカルストレージ</target>
+      </trans-unit>
+      <trans-unit id="5617330625166243550" datatype="html">
+        <source>Are you sure you want to clear all Ref entries from local storage?</source>
+        <target>ローカルストレージからすべてのRefエントリーを消去してもよろしいですか？</target>
+      </trans-unit>
+      <trans-unit id="1499117911857695803" datatype="html">
+        <source>Are you sure you want to clear all Ext entries from local storage?</source>
+        <target>ローカルストレージからすべてのExtエントリーを消去してもよろしいですか？</target>
+      </trans-unit>
+      <trans-unit id="4433853817154100534" datatype="html">
+        <source>💾 Local Storage</source>
+        <target>💾 ローカルストレージ</target>
       </trans-unit>
     </body>
   </file>
