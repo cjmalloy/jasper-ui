@@ -1,6 +1,6 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { uniq } from 'lodash-es';
-import { runInAction } from 'mobx';
+
 import { catchError, Observable, of, switchMap } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Ref } from '../model/ref';
@@ -15,28 +15,26 @@ import { ConfigService } from './config.service';
   providedIn: 'root'
 })
 export class OriginMapService {
+  private config = inject(ConfigService);
+  private admin = inject(AdminService);
+  private refs = inject(RefService);
+  private store = inject(Store);
+
 
   private origins: Ref[] = [];
-
-  constructor(
-    private config: ConfigService,
-    private admin: AdminService,
-    private refs: RefService,
-    private store: Store,
-  ) { }
 
   get init$() {
     this.origins = [];
     if (!this.admin.getPlugin('+plugin/origin')) return of(null);
     return this.loadOrigins$().pipe(
-      tap(() => runInAction(() => {
+      tap(() => {
         this.store.origins.origins = this.origins;
         this.store.origins.list = this.list;
         this.store.origins.lookup = this.lookup;
         this.store.origins.tunnelLookup = this.tunnelLookup;
         this.store.origins.reverseLookup = this.reverseLookup;
         this.store.origins.originMap = this.originMap;
-      })),
+      }),
       catchError(err => {
         console.error("Error looking up origin cross references.");
         console.error(err);

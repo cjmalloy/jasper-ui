@@ -1,4 +1,14 @@
-import { Component, forwardRef, Input, OnChanges, QueryList, SimpleChanges, ViewChildren } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  forwardRef,
+  inject,
+  Input,
+  input,
+  OnChanges,
+  SimpleChanges,
+  viewChildren
+} from '@angular/core';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ext } from '../../model/ext';
 import { Page } from '../../model/page';
@@ -18,6 +28,7 @@ import { RefListComponent } from '../ref/ref-list/ref-list.component';
 import { RefComponent } from '../ref/ref.component';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-lens',
   templateUrl: './lens.component.html',
   styleUrls: ['./lens.component.scss'],
@@ -33,13 +44,16 @@ import { RefComponent } from '../ref/ref.component';
   ],
 })
 export class LensComponent implements OnChanges, HasChanges {
+  admin = inject(AdminService);
+  account = inject(AccountService);
+  query = inject(QueryStore);
+
 
   @Input()
   ext?: Ext;
   @Input()
   tag = '';
-  @Input()
-  fullPage = false;
+  readonly fullPage = input(false);
   @Input()
   cols? = 0;
   @Input()
@@ -54,24 +68,15 @@ export class LensComponent implements OnChanges, HasChanges {
   page?: Page<Ref>;
   @Input()
   pageControls = true;
-  @Input()
-  showAlarm = true;
-  @Input()
-  showVotes = false;
+  readonly showAlarm = input(true);
+  readonly showVotes = input(false);
 
   plugins?: string[];
 
-  @ViewChildren('lens')
-  list?: QueryList<HasChanges>;
-
-  constructor(
-    public admin: AdminService,
-    public account: AccountService,
-    public query: QueryStore,
-  ) { }
+  readonly list = viewChildren<HasChanges>('lens');
 
   saveChanges() {
-    return !this.list?.find(t => !t.saveChanges());
+    return !this.list()?.find(t => !t.saveChanges());
   }
 
   init() {

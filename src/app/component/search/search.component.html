@@ -1,11 +1,9 @@
-<ng-container *mobxAutorun>
-  <input type="search"
-         class="dont-hide"
-         i18n-placeholder
-         placeholder="Search {{ viewName(store.view.current) }}"
-         [value]="searchValue"
-         (input)="change($any($event.target))"
-         (keydown)="$event.key === 'Enter' && submit() || true"
-         [incremental]="store.account.config.liveSearch"
-         (search)="search()">
-</ng-container>
+<input type="search"
+       class="dont-hide"
+       i18n-placeholder
+       placeholder="Search {{ viewName(store.view.current) }}"
+       [value]="searchValue"
+       (input)="change($any($event.target))"
+       (keydown)="$event.key === 'Enter' && submit() || true"
+       [incremental]="store.account.config.liveSearch"
+       (search)="search()">

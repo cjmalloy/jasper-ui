@@ -1,13 +1,14 @@
 import {
+  ChangeDetectionStrategy,
   Component,
   ElementRef,
-  EventEmitter,
   forwardRef,
   HostBinding,
   HostListener,
+  inject,
   Input,
-  NgZone,
-  Output
+  input,
+  output
 } from '@angular/core';
 import { AutofocusDirective } from '../../../directive/autofocus.directive';
 import { ConfigService } from '../../../service/config.service';
@@ -15,6 +16,7 @@ import { Store } from '../../../store/store';
 import { MdComponent } from '../../md/md.component';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-todo-item',
   templateUrl: './item.component.html',
   styleUrls: ['./item.component.scss'],
@@ -25,19 +27,22 @@ import { MdComponent } from '../../md/md.component';
   ]
 })
 export class TodoItemComponent {
+  private store = inject(Store);
+  config = inject(ConfigService);
+  private el = inject(ElementRef);
+
 
   @HostBinding('class.unlocked')
   unlocked = false;
 
-  @Input()
-  pressToUnlock = false;
-  @Input()
-  plugins: string[] = [];
-  @Input()
-  origin = '';
+  readonly pressToUnlock = input(false);
+  readonly plugins = input<string[]>([]);
+  readonly origin = input('');
 
-  @Output()
-  update = new EventEmitter<{ text: string, checked: boolean }>();
+  readonly update = output<{
+    text: string;
+    checked: boolean;
+}>();
 
   checked = false;
   editing = false;
@@ -46,15 +51,8 @@ export class TodoItemComponent {
 
   private _line = '';
 
-  constructor(
-    private store: Store,
-    public config: ConfigService,
-    private el: ElementRef,
-    private zone: NgZone,
-  ) { }
-
   get local() {
-    return this.origin === this.store.account.origin;
+    return this.origin() === this.store.account.origin;
   }
 
   @Input()
@@ -71,7 +69,7 @@ export class TodoItemComponent {
 
   @HostListener('touchend', ['$event'])
   touchend(e: TouchEvent) {
-    this.zone.run(() => this.unlocked = false);
+    this.unlocked = false;
   }
 
   @HostListener('press', ['$event'])
@@ -84,11 +82,11 @@ export class TodoItemComponent {
 
   toggle() {
     this.checked = !this.checked;
-    this.update.next({ text: this.text, checked: this.checked });
+    this.update.emit({ text: this.text, checked: this.checked });
   }
 
   edit() {
-    this.update.next({ text: this.text, checked: this.checked });
+    this.update.emit({ text: this.text, checked: this.checked });
     this.editing = false;
   }
 }

@@ -1,13 +1,13 @@
 import { CdkDrag, CdkDragDrop, CdkDropList } from '@angular/cdk/drag-drop';
 import {
+  ChangeDetectionStrategy,
   Component,
-  EventEmitter,
   HostBinding,
   HostListener,
-  Input,
-  NgZone,
+  inject,
+  input,
   OnChanges,
-  Output,
+  output,
   SimpleChanges
 } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
@@ -20,6 +20,7 @@ import { Store } from '../../store/store';
 import { TodoItemComponent } from './item/item.component';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-todo',
   templateUrl: './todo.component.html',
   styleUrls: ['./todo.component.scss'],
@@ -31,20 +32,18 @@ import { TodoItemComponent } from './item/item.component';
     TodoItemComponent,
   ]
 })
-export class TodoComponent implements OnChanges {
+class TodoComponent implements OnChanges {
+  config = inject(ConfigService);
+  private store = inject(Store);
+  private actions = inject(ActionService);
 
-  @Input()
-  ref?: Ref;
-  @Input()
-  text? = '';
-  @Input()
-  origin = '';
-  @Input()
-  tags?: string[];
-  @Output()
-  comment = new EventEmitter<string>();
-  @Output()
-  copied = new EventEmitter<string>();
+
+  readonly ref = input<Ref>();
+  readonly text = input<string | undefined>('');
+  readonly origin = input('');
+  readonly tags = input<string[]>();
+  readonly comment = output<string>();
+  readonly copied = output<string>();
 
   lines: string[] = [];
   addText = '';
@@ -56,24 +55,22 @@ export class TodoComponent implements OnChanges {
   private pushing?: Subscription;
   private comment$!: (comment: string) => Observable<string>;
 
-  constructor(
-    public config: ConfigService,
-    private store: Store,
-    private actions: ActionService,
-    private zone: NgZone,
-  ) {
+  constructor() {
+    const config = this.config;
+
     if (config.mobile) {
       this.pressToUnlock = true;
     }
   }
 
   init() {
-    this.lines = (this.ref?.comment || this.text || '').split('\n')?.filter(l => !!l) || [];
-    if (!this.watch && this.ref) {
-      const watch = this.actions.watch(this.ref);
+    this.lines = (this.ref()?.comment || this.text() || '').split('\n')?.filter(l => !!l) || [];
+    const ref = this.ref();
+    if (!this.watch && ref) {
+      const watch = this.actions.watch(ref);
       this.comment$ = watch.comment$;
       this.watch = watch.ref$.subscribe(update => {
-        this.ref!.comment = update.comment;
+        this.ref()!.comment = update.comment;
         this.init();
       });
     }
@@ -87,7 +84,7 @@ export class TodoComponent implements OnChanges {
 
   @HostListener('touchstart', ['$event'])
   touchstart(e: TouchEvent) {
-    this.zone.run(() => this.pressToUnlock = true);
+    this.pressToUnlock = true;
   }
 
   @HostBinding('class.empty')
@@ -96,7 +93,7 @@ export class TodoComponent implements OnChanges {
   }
 
   get local() {
-    return this.ref?.origin === this.store.account.origin;
+    return this.ref()?.origin === this.store.account.origin;
   }
 
   drop(event: CdkDragDrop<string, string, string>) {
@@ -120,12 +117,12 @@ export class TodoComponent implements OnChanges {
 
   save$(comment: string) {
     this.comment.emit(comment);
-    if (!this.ref) return of();
+    if (!this.ref()) return of();
     return this.comment$(comment).pipe(
       tap(() => {
         if (!this.local) {
           this.copied.emit(this.store.account.origin);
-          this.store.eventBus.refresh(this.ref);
+          this.store.eventBus.refresh(this.ref());
         }
       }),
     );
@@ -157,3 +154,5 @@ export class TodoComponent implements OnChanges {
     );
   }
 }
+
+export default TodoComponent

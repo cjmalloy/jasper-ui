@@ -1,7 +1,7 @@
-@if (addButton && !editing && !currentText) {
+@if (addButton() && !editing && !currentText) {
   <button type="button"
           (click)="addComment()"
-          [title]="addCommentTitle">{{ addCommentLabel }}</button>
+          [title]="addCommentTitle()">{{ addCommentLabel() }}</button>
 } @else {
   <div class="text-wrapper">
     <div class="toolbar">
@@ -37,26 +37,26 @@
                     (click)="fireEvent(button)"
                     [title]="button.title || ''" i18n>{{ button.label }}</button>
           }
-        } @else if (hasTags) {
+        } @else if (hasTags()) {
           <button type="button"
                   (click)="toggleTag(button)"
                   [title]="button.title || ''" i18n>{{(button._on ? button.labelOn : button.labelOff) || button.label }}</button>
         }
       }
-      @if (hasTags) {
+      @if (hasTags()) {
         @for (button of editorRibbons; track button; let i = $index) {
           <div class="editor-toggle">
             <input type="checkbox"
                    [style.display]="'none'"
-                   [id]="'ribbon-' + id + i"
+                   [id]="'ribbon-' + id() + i"
                    [checked]="button._on"
                    (click)="toggleTag(button)">
-            <label [for]="'ribbon-' + id + i"
+            <label [for]="'ribbon-' + id() + i"
                    [class.on]="button._on"
                    [title]="button.title || ''">{{ (button._on ? button.labelOn : button.labelOff) || button.label }}</label>
           </div>
         }
-        @if (selectResponseType && responseButtons.length > 1) {
+        @if (selectResponseType() && responseButtons.length > 1) {
           <div class="toolbar-toggle toolbar-toggle-{{toggleIndex}}">
             @for (plugin of responseButtons; track plugin.tag; let i=$index) {
               <button type="button"
@@ -107,7 +107,7 @@
     }
     <textarea #editor
               [disabled]="!!uploads.length"
-              [id]="id"
+              [id]="id()"
               [formControl]="control"
               (focusin)="editing = true"
               (pointerup)="onSelect($event)"
@@ -121,9 +121,9 @@
               (dragleave)="dragLeave(editor, $any($event.target))"
               (drop)="drop($event, $event.dataTransfer?.items)"
               (paste)="drop($event, $event.clipboardData?.items)"
-              [appFillWidth]="fillWidth"
+              [appFillWidth]="fillWidth()"
               [padding]="padding"
-              [appAutofocus]="autoFocus"></textarea>
+              [appAutofocus]="autoFocus()"></textarea>
     <div class="floating-toggles">
     </div>
   </div>

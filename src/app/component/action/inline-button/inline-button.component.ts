@@ -1,9 +1,10 @@
-import { Component, Input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { catchError, Observable, of } from 'rxjs';
 import { LoadingComponent } from '../../loading/loading.component';
 import { ActionComponent } from '../action.component';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-inline-button',
   templateUrl: './inline-button.component.html',
   styleUrls: ['./inline-button.component.scss'],
@@ -12,10 +13,8 @@ import { ActionComponent } from '../action.component';
 })
 export class InlineButtonComponent extends ActionComponent {
 
-  @Input()
-  action: () => Observable<any|never> = () => of(null);
-  @Input()
-  minDelayMs = 1000;
+  readonly action = input<() => Observable<any | never>>(() => of(null));
+  readonly minDelayMs = input(1000);
 
   acting = false;
   minTimeout = false;
@@ -31,8 +30,8 @@ export class InlineButtonComponent extends ActionComponent {
   act() {
     this.acting = true;
     this.minTimeout = true;
-    setTimeout(() => this.minTimeout = false, this.minDelayMs);
-    this.action().pipe(
+    setTimeout(() => this.minTimeout = false, this.minDelayMs());
+    this.action()().pipe(
       catchError(() => of(null)),
     ).subscribe(() => this.acting = false);
   }

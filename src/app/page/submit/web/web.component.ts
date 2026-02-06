@@ -1,11 +1,19 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { AfterViewInit, Component, OnDestroy, ViewChild } from '@angular/core';
+import {
+  AfterViewInit,
+  ChangeDetectionStrategy,
+  Component,
+  effect,
+  inject,
+  Injector,
+  OnDestroy,
+  ViewChild
+} from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
 import { defer, uniq, without } from 'lodash-es';
 import { DateTime } from 'luxon';
-import { autorun, IReactionDisposer } from 'mobx';
-import { MobxAngularModule } from 'mobx-angular';
+
 import { catchError, forkJoin, map, of, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
@@ -33,12 +41,12 @@ import { printError } from '../../../util/http';
 import { getVisibilityTags } from '../../../util/tag';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-submit-web-page',
   templateUrl: './web.component.html',
   styleUrls: ['./web.component.scss'],
   host: { 'class': 'full-page-form' },
   imports: [
-    MobxAngularModule,
     ReactiveFormsModule,
     LimitWidthDirective,
     NavComponent,
@@ -47,8 +55,21 @@ import { getVisibilityTags } from '../../../util/tag';
   ],
 })
 export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
+  private injector = inject(Injector);
+  private mod = inject(ModService);
+  private admin = inject(AdminService);
+  private router = inject(Router);
+  private store = inject(Store);
+  private editor = inject(EditorService);
+  private refs = inject(RefService);
+  private exts = inject(ExtService);
+  private ts = inject(TaggingService);
+  private oembeds = inject(OembedStore);
+  private scrape = inject(ScrapeService);
+  bookmarks = inject(BookmarkService);
+  private fb = inject(UntypedFormBuilder);
 
-  private disposers: IReactionDisposer[] = [];
+
 
   submitted = false;
   title = '';
@@ -63,20 +84,9 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
   private oldSubmit: string[] = [];
   private _refForm?: RefFormComponent;
 
-  constructor(
-    private mod: ModService,
-    private admin: AdminService,
-    private router: Router,
-    private store: Store,
-    private editor: EditorService,
-    private refs: RefService,
-    private exts: ExtService,
-    private ts: TaggingService,
-    private oembeds: OembedStore,
-    private scrape: ScrapeService,
-    public bookmarks: BookmarkService,
-    private fb: UntypedFormBuilder,
-  ) {
+  constructor() {
+    const fb = this.fb;
+
     this.setTitle($localize`Submit: Web Link`);
     this.webForm = refForm(fb);
   }
@@ -110,7 +120,7 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
         });
       }
       if (this.store.account.localTag) this.addTag(this.store.account.localTag);
-      this.disposers.push(autorun(() => {
+      effect(() => {
         const tags = [...this.store.submit.tags, ...(this.store.account.localTag ? [this.store.account.localTag] : [])];
         const added = without(tags, ...this.oldSubmit);
         const removed = without(this.oldSubmit, ...tags);
@@ -119,7 +129,7 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
           this.addTag(...this.oldSubmit);
         }
         if (this.store.submit.pluginUpload) {
-          this.addPlugin(this.store.submit.plugin, { url: this.store.submit.pluginUpload })
+          this.addPlugin(this.store.submit.plugin, { url: this.store.submit.pluginUpload });
           if (this.store.submit.plugin === 'plugin/image' || this.store.submit.plugin === 'plugin/video') {
             this.addTag('plugin/thumbnail');
           }
@@ -127,7 +137,7 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
         if (this.admin.getPlugin('plugin/thumbnail') && (
           this.store.submit.tags.includes('plugin/video') ||
           this.store.submit.tags.includes('plugin/image'))) {
-          this.addTag('plugin/thumbnail')
+          this.addTag('plugin/thumbnail');
         }
         if (this.origin) {
           this.addTag('internal');
@@ -207,13 +217,11 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
         if (this.store.submit.source) {
           this.store.submit.sources.map(s => this.addSource(s));
         }
-      }));
+      }, { injector: this.injector });
     });
   }
 
   ngOnDestroy() {
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
   }
 
   get refForm(): RefFormComponent {
@@ -223,7 +231,7 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
   @ViewChild('refForm')
   set refForm(value: RefFormComponent) {
     this._refForm = value;
-    defer(() => this.limitWidth = value?.fill?.nativeElement);
+    defer(() => this.limitWidth = value?.fill()?.nativeElement);
   }
 
   get feed() {
@@ -257,21 +265,21 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
 
   addTag(...values: string[]) {
     for (const value of values) {
-      this.refForm.tagsFormComponent.addTag(value);
+      this.refForm.tagsFormComponent().addTag(value);
     }
     this.submitted = false;
   }
 
   removeTag(...values: string[]) {
     for (const value of values) {
-      this.refForm.tagsFormComponent.removeTag(value);
+      this.refForm.tagsFormComponent().removeTag(value);
     }
     this.submitted = false;
   }
 
   addPlugin(tag: string, plugin: any) {
-    this.refForm.tagsFormComponent.addTag(tag);
-    this.refForm.pluginsFormComponent.setValue({
+    this.refForm.tagsFormComponent().addTag(tag);
+    this.refForm.pluginsFormComponent().setValue({
       ...this.webForm.value.plugins || {},
       [tag]: plugin,
     });
@@ -279,12 +287,12 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
   }
 
   addSource(value = '') {
-    this.refForm.sourcesFormComponent.addLink(value);
+    this.refForm.sourcesFormComponent().addLink(value);
     this.submitted = false;
   }
 
   addAlt(value = '') {
-    this.refForm.altsFormComponent.addLink(value);
+    this.refForm.altsFormComponent().addLink(value);
     this.submitted = false;
   }
 
@@ -344,6 +352,6 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
     ref.plugins ||= {};
     ref.plugins['plugin/script/feed'] ||= {};
     ref.plugins['plugin/script/feed'].addTags = uniq([...ref.plugins['plugin/script/feed'].addTags || [], ...tags]);
-    this.refForm.pluginsFormComponent.setValue(ref.plugins);
+    this.refForm.pluginsFormComponent().setValue(ref.plugins);
   }
 }

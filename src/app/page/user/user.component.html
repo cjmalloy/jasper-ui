@@ -1,59 +1,57 @@
-<ng-container *mobxAutorun>
-  <div class="tabs">
-    <a class="logo" routerLink="/"></a>
-    <h5 class="fake-link" routerLink="." i18n>User Permissions</h5>
-    <app-settings></app-settings>
-  </div>
+<div class="tabs">
+  <a class="logo" routerLink="/"></a>
+  <h5 class="fake-link" routerLink="." i18n>User Permissions</h5>
+  <app-settings></app-settings>
+</div>
 
-  <form class="form" [formGroup]="profileForm" (ngSubmit)="save()"
-        [appLimitWidth]="form?.fill?.nativeElement" [limitSibling]="true">
+<form class="form" [formGroup]="profileForm" (ngSubmit)="save()"
+      [appLimitWidth]="form?.fill()?.nativeElement" [limitSibling]="true">
 
-    <app-user-form #form
-                   [group]="user"
-                   (tagChanges)="setTag($event)"
-                   [showClear]="!!store.view.selectedUser"
-                   [showPubKey]="!!store.view.selectedUser"
-                   [externalErrors]="externalErrors"
-                   (clear)="clear()"></app-user-form>
+  <app-user-form #form
+                 [group]="user"
+                 (tagChanges)="setTag($event)"
+                 [showClear]="!!store.view.selectedUser"
+                 [showPubKey]="!!store.view.selectedUser"
+                 [externalErrors]="externalErrors"
+                 (clear)="clear()"></app-user-form>
 
-    @if (config.scim) {
-      <label class="scim-label">SCIM</label>
-      <div class="bubble">
-        <label>System for Cross-domain Identity Management</label>
-        <div class="form">
-          <label for="active">Active:</label>
-          <div title="Enable logins">
-            <input id="active" type="checkbox" formControlName="active">
-          </div>
-
-          <label for="password" i18n>Password:</label>
-          <input id="password" type="password" [formControl]="password">
-
-          <label for="role">Role:</label>
-          <select id="role" [formControl]="role">
-            <option value="ROLE_ADMIN" i18n>admin</option>
-            <option value="ROLE_MOD" i18n>mod</option>
-            <option value="ROLE_EDITOR" i18n>editor</option>
-            <option value="ROLE_USER" i18n>user</option>
-            <option value="ROLE_VIEWER" i18n>viewer</option>
-            <option value="ROLE_ANONYMOUS" i18n>anon</option>
-            <option value="ROLE_BANNED" i18n>banned</option>
-          </select>
+  @if (config.scim) {
+    <label class="scim-label">SCIM</label>
+    <div class="bubble">
+      <label>System for Cross-domain Identity Management</label>
+      <div class="form">
+        <label for="active">Active:</label>
+        <div title="Enable logins">
+          <input id="active" type="checkbox" formControlName="active">
         </div>
+
+        <label for="password" i18n>Password:</label>
+        <input id="password" type="password" [formControl]="password">
+
+        <label for="role">Role:</label>
+        <select id="role" [formControl]="role">
+          <option value="ROLE_ADMIN" i18n>admin</option>
+          <option value="ROLE_MOD" i18n>mod</option>
+          <option value="ROLE_EDITOR" i18n>editor</option>
+          <option value="ROLE_USER" i18n>user</option>
+          <option value="ROLE_VIEWER" i18n>viewer</option>
+          <option value="ROLE_ANONYMOUS" i18n>anon</option>
+          <option value="ROLE_BANNED" i18n>banned</option>
+        </select>
       </div>
-    }
+    </div>
+  }
 
-    @for (e of serverError; track e) {
-      <span><!-- Unexpected Error --></span>
-      <div class="error">{{ e }}</div>
-    }
+  @for (e of serverError; track e) {
+    <span><!-- Unexpected Error --></span>
+    <div class="error">{{ e }}</div>
+  }
 
-    <span><!-- Buttons --></span>
-    <span class="buttons right">
+  <span><!-- Buttons --></span>
+  <span class="buttons right">
       <button type="submit" [disabled]="submitted && !profileForm.valid" i18n>{{ store.view.selectedUser ? 'Save' : 'Create' }}</button>
-      @if (!!store.view.selectedUser) {
-        <button type="button" (click)="delete()" i18n>Delete</button>
-      }
+    @if (!!store.view.selectedUser) {
+      <button type="button" (click)="delete()" i18n>Delete</button>
+    }
     </span>
-  </form>
-</ng-container>
+</form>

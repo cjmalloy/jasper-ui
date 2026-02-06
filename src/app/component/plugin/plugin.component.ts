@@ -1,5 +1,14 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, HostBinding, Input, OnChanges, QueryList, SimpleChanges, ViewChildren } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  HostBinding,
+  inject,
+  Input,
+  OnChanges,
+  SimpleChanges,
+  viewChildren
+} from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { catchError, of, Subscription, switchMap, throwError } from 'rxjs';
@@ -21,17 +30,23 @@ import { InlineButtonComponent } from '../action/inline-button/inline-button.com
 import { LoadingComponent } from '../loading/loading.component';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-plugin',
   templateUrl: './plugin.component.html',
   styleUrls: ['./plugin.component.scss'],
   imports: [RouterLink, ConfirmActionComponent, InlineButtonComponent, ReactiveFormsModule, PluginFormComponent, LoadingComponent]
 })
 export class PluginComponent implements OnChanges, HasChanges {
+  private mod = inject(ModService);
+  admin = inject(AdminService);
+  store = inject(Store);
+  private plugins = inject(PluginService);
+  private fb = inject(UntypedFormBuilder);
+
   css = 'plugin list-item';
   @HostBinding('attr.tabindex') tabIndex = 0;
 
-  @ViewChildren('action')
-  actionComponents?: QueryList<ActionComponent>;
+  readonly actionComponents = viewChildren<ActionComponent>('action');
 
   @Input()
   plugin!: Plugin;
@@ -48,13 +63,9 @@ export class PluginComponent implements OnChanges, HasChanges {
   schemaErrors: string[] = [];
   saving?: Subscription;
 
-  constructor(
-    private mod: ModService,
-    public admin: AdminService,
-    public store: Store,
-    private plugins: PluginService,
-    private fb: UntypedFormBuilder,
-  ) {
+  constructor() {
+    const fb = this.fb;
+
     this.editForm = pluginForm(fb);
   }
 
@@ -63,7 +74,7 @@ export class PluginComponent implements OnChanges, HasChanges {
   }
 
   init(): void {
-    this.actionComponents?.forEach(c => c.reset());
+    this.actionComponents()?.forEach(c => c.reset());
     this.editForm.patchValue({
       ...this.plugin,
       config: this.plugin.config ? JSON.stringify(this.plugin.config, null, 2) : undefined,

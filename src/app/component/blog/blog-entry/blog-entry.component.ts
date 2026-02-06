@@ -1,22 +1,24 @@
 import { AsyncPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
+  ChangeDetectionStrategy,
   Component,
+  effect,
   forwardRef,
   HostBinding,
+  inject,
   Input,
+  input,
   OnChanges,
   OnDestroy,
-  QueryList,
   SimpleChanges,
   ViewChild,
-  ViewChildren
+  viewChildren
 } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { defer, groupBy, intersection, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
-import { autorun, IReactionDisposer } from 'mobx';
 import { catchError, map, of, Subject, Subscription, switchMap, takeUntil, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { TitleDirective } from '../../../directive/title.directive';
@@ -62,6 +64,7 @@ import { NavComponent } from '../../nav/nav.component';
 import { ViewerComponent } from '../../viewer/viewer.component';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-blog-entry',
   templateUrl: './blog-entry.component.html',
   styleUrls: ['./blog-entry.component.scss'],
@@ -81,15 +84,23 @@ import { ViewerComponent } from '../../viewer/viewer.component';
   ],
 })
 export class BlogEntryComponent implements OnChanges, OnDestroy, HasChanges {
+  private config = inject(ConfigService);
+  admin = inject(AdminService);
+  store = inject(Store);
+  private auth = inject(AuthzService);
+  private editor = inject(EditorService);
+  private refs = inject(RefService);
+  private exts = inject(ExtService);
+  private bookmarks = inject(BookmarkService);
+  private ts = inject(TaggingService);
+  private fb = inject(UntypedFormBuilder);
+
   @HostBinding('attr.tabindex') tabIndex = 0;
-  private disposers: IReactionDisposer[] = [];
   private destroy$ = new Subject<void>();
 
-  @ViewChildren('action')
-  actionComponents?: QueryList<ActionComponent>;
+  readonly actionComponents = viewChildren<ActionComponent>('action');
 
-  @Input()
-  blog?: Ext;
+  readonly blog = input<Ext>();
   @Input()
   ref!: Ref;
 
@@ -110,20 +121,11 @@ export class BlogEntryComponent implements OnChanges, OnDestroy, HasChanges {
 
   submitting?: Subscription;
 
-  constructor(
-    private config: ConfigService,
-    public admin: AdminService,
-    public store: Store,
-    private auth: AuthzService,
-    private editor: EditorService,
-    private refs: RefService,
-    private exts: ExtService,
-    private bookmarks: BookmarkService,
-    private ts: TaggingService,
-    private fb: UntypedFormBuilder,
-  ) {
+  constructor() {
+    const fb = this.fb;
+
     this.editForm = refForm(fb);
-    this.disposers.push(autorun(() => {
+    effect(() => {
       if (this.store.eventBus.event === 'refresh') {
         if (this.ref?.url && this.store.eventBus.isRef(this.ref)) {
           this.ref = this.store.eventBus.ref!;
@@ -135,7 +137,7 @@ export class BlogEntryComponent implements OnChanges, OnDestroy, HasChanges {
           this.serverError = this.store.eventBus.errors;
         }
       }
-    }));
+    });
   }
 
   saveChanges() {
@@ -148,7 +150,7 @@ export class BlogEntryComponent implements OnChanges, OnDestroy, HasChanges {
     this.deleted = false;
     this.editing = false;
     this.viewSource = false;
-    this.actionComponents?.forEach(c => c.reset());
+    this.actionComponents()?.forEach(c => c.reset());
     this.writeAccess = this.auth.writeAccess(this.ref);
     this.taggingAccess = this.auth.taggingAccess(this.ref);
     this.deleteAccess = this.auth.deleteAccess(this.ref);
@@ -175,8 +177,6 @@ export class BlogEntryComponent implements OnChanges, OnDestroy, HasChanges {
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
   }
 
   @memo
@@ -297,8 +297,9 @@ export class BlogEntryComponent implements OnChanges, OnDestroy, HasChanges {
   @memo
   get tags() {
     let result = interestingTags(this.ref.tags);
-    if (!this.blog?.config?.filterTags) return result;
-    return intersection(result, this.blog.config.tags || []);
+    const blog = this.blog();
+    if (!blog?.config?.filterTags) return result;
+    return intersection(result, blog.config.tags || []);
   }
 
   @memo

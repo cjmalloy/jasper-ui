@@ -1,7 +1,15 @@
-import { Component, ViewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  effect,
+  inject,
+  Injector,
+  OnDestroy,
+  OnInit,
+  viewChild
+} from '@angular/core';
 import { defer } from 'lodash-es';
-import { autorun, IReactionDisposer, runInAction } from 'mobx';
-import { MobxAngularModule } from 'mobx-angular';
+
 import { catchError, filter, of, Subject, Subscription, switchMap, takeUntil } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
@@ -20,45 +28,50 @@ import { getArgs } from '../../../util/query';
 import { hasTag, updateMetadata } from '../../../util/tag';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-ref-errors',
   templateUrl: './errors.component.html',
   styleUrl: './errors.component.scss',
   host: { 'class': 'errors' },
-  imports: [MobxAngularModule, RefListComponent]
+  imports: [ RefListComponent]
 })
-export class RefErrorsComponent implements HasChanges {
+export class RefErrorsComponent implements OnInit, OnDestroy, HasChanges {
+  private injector = inject(Injector);
+  config = inject(ConfigService);
+  private mod = inject(ModService);
+  admin = inject(AdminService);
+  store = inject(Store);
+  query = inject(QueryStore);
+  private stomp = inject(StompService);
+  private refs = inject(RefService);
+  private bookmarks = inject(BookmarkService);
 
-  private disposers: IReactionDisposer[] = [];
+
   private destroy$ = new Subject<void>();
 
-  @ViewChild('list')
-  list?: RefListComponent;
+  readonly list = viewChild<RefListComponent>('list');
 
   newRefs$ = new Subject<Ref | undefined>();
 
   private watch?: Subscription;
 
-  constructor(
-    public config: ConfigService,
-    private mod: ModService,
-    public admin: AdminService,
-    public store: Store,
-    public query: QueryStore,
-    private stomp: StompService,
-    private refs: RefService,
-    private bookmarks: BookmarkService,
-  ) {
+  constructor() {
+    const store = this.store;
+    const query = this.query;
+    const bookmarks = this.bookmarks;
+
     query.clear();
-    runInAction(() => store.view.defaultSort = ['published']);
+    store.view.defaultSort = ['published'];
     if (!this.store.view.filter.length) bookmarks.filters = ['query/' + (store.account.origin || '*')];
   }
 
   saveChanges() {
-    return !this.list || this.list.saveChanges();
+    const list = this.list();
+    return !list || list.saveChanges();
   }
 
   ngOnInit(): void {
-    this.disposers.push(autorun(() => {
+    effect(() => {
       const args = getArgs(
         '+plugin/log:!plugin/delete',
         this.store.view.sort,
@@ -69,29 +82,27 @@ export class RefErrorsComponent implements HasChanges {
       );
       args.responses = this.store.view.url;
       defer(() => this.query.setArgs(args));
-    }));
+    }, { injector: this.injector });
     // TODO: set title for bare reposts
-    this.disposers.push(autorun(() => this.mod.setTitle($localize`Errors: ` + getTitle(this.store.view.ref))));
-    this.disposers.push(autorun(() => {
+    effect(() => this.mod.setTitle($localize`Errors: ` + getTitle(this.store.view.ref)), { injector: this.injector });
+    effect(() => {
       if (this.store.view.url && this.config.websockets) {
         this.watch?.unsubscribe();
         this.watch = this.stomp.watchResponse(this.store.view.url).pipe(
           switchMap(url => this.refs.getCurrent(url)),
-          tap(ref => runInAction(() => updateMetadata(this.store.view.ref!, ref))),
+          tap(ref => updateMetadata(this.store.view.ref!, ref)),
           filter(ref => hasTag('+plugin/log', ref)),
           catchError(err => of(undefined)),
           takeUntil(this.destroy$),
         ).subscribe(ref => this.newRefs$.next(ref));
       }
-    }));
+    }, { injector: this.injector });
   }
 
   ngOnDestroy() {
     this.query.close();
     this.destroy$.next();
     this.destroy$.complete();
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
   }
 
 }

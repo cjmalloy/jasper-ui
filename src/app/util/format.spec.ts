@@ -1,28 +1,28 @@
 /// <reference types="vitest/globals" />
+import { Ref } from '../model/ref';
 import {
-  URI_REGEX,
-  TAG_REGEX,
-  ORIGIN_REGEX,
-  ORIGIN_NOT_BLANK_REGEX,
-  QUALIFIED_TAG_REGEX,
-  PLUGIN_REGEX,
-  USER_REGEX,
-  urlSummary,
-  interestingTag,
-  interestingTags,
+  authors,
   formatAuthor,
-  getTitle,
   getNiceTitle,
   getRe,
-  readableBytes,
+  getTitle,
   hasComment,
-  tagLink,
+  interestingTag,
+  interestingTags,
   isTextPost,
+  ORIGIN_NOT_BLANK_REGEX,
+  ORIGIN_REGEX,
+  PLUGIN_REGEX,
+  QUALIFIED_TAG_REGEX,
+  readableBytes,
+  TAG_REGEX,
+  tagLink,
   templates,
+  URI_REGEX,
+  urlSummary,
+  USER_REGEX,
   userAuthors,
-  authors,
 } from './format';
-import { Ref } from '../model/ref';
 
 describe('Format Utils', () => {
   describe('URI_REGEX', () => {

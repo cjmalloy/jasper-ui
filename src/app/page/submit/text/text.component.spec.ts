@@ -1,7 +1,8 @@
 /// <reference types="vitest/globals" />
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
-import { ComponentFixture, ComponentFixtureAutoDetect, TestBed } from '@angular/core/testing';
+import { forwardRef } from '@angular/core';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { provideRouter } from '@angular/router';
 import { TagsFormComponent } from '../../../form/tags/tags.component';
@@ -16,16 +17,15 @@ describe('SubmitTextPage', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [
+        forwardRef(() => SubmitTextPage),
+        forwardRef(() => TagsFormComponent),
         ReactiveFormsModule,
         JasperFormlyModule,
-        SubmitTextPage,
-        TagsFormComponent
       ],
       providers: [
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),
         provideRouter([]),
-        { provide: ComponentFixtureAutoDetect, useValue: true },
       ],
     }).compileComponents();
 

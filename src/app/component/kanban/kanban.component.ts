@@ -2,21 +2,22 @@ import { CdkDragDrop, CdkDropList, CdkDropListGroup } from '@angular/cdk/drag-dr
 import { CdkScrollable } from '@angular/cdk/scrolling';
 import { AsyncPipe } from '@angular/common';
 import {
+  ChangeDetectionStrategy,
   Component,
   HostListener,
+  inject,
   Input,
+  input,
   OnChanges,
   OnDestroy,
-  QueryList,
   SimpleChanges,
-  ViewChildren
+  viewChildren
 } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { uniq, without } from 'lodash-es';
 import { DateTime } from 'luxon';
-import { runInAction } from 'mobx';
-import { MobxAngularModule } from 'mobx-angular';
+
 import { catchError, of, Subject } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { TitleDirective } from '../../directive/title.directive';
@@ -43,13 +44,13 @@ export interface KanbanDrag {
 }
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-kanban',
   templateUrl: './kanban.component.html',
   styleUrls: ['./kanban.component.scss'],
   host: { 'class': 'kanban ext' },
   imports: [
     KanbanColumnComponent,
-    MobxAngularModule,
     LoadingComponent,
     CdkDropListGroup,
     CdkScrollable,
@@ -62,26 +63,24 @@ export interface KanbanDrag {
   ],
 })
 export class KanbanComponent implements OnChanges, OnDestroy, HasChanges {
+  private accounts = inject(AccountService);
+  bookmarks = inject(BookmarkService);
+  store = inject(Store);
+  exts = inject(ExtService);
+  private tags = inject(TaggingService);
 
-  @ViewChildren(KanbanColumnComponent)
-  list?: QueryList<KanbanColumnComponent>;
 
-  @Input()
-  query?: string;
+  readonly list = viewChildren(KanbanColumnComponent);
+
+  readonly query = input<string>();
   @Input()
   ext?: Ext;
-  @Input()
-  pageControls = true;
-  @Input()
-  fullPage = false;
-  @Input()
-  size = 8;
-  @Input()
-  sort: RefSort[] = [];
-  @Input()
-  filter: UrlFilter[] = [];
-  @Input()
-  search = '';
+  readonly pageControls = input(true);
+  readonly fullPage = input(false);
+  readonly size = input(8);
+  readonly sort = input<RefSort[]>([]);
+  readonly filter = input<UrlFilter[]>([]);
+  readonly search = input('');
 
   error: any;
   updates = new Subject<KanbanDrag>();
@@ -92,16 +91,8 @@ export class KanbanComponent implements OnChanges, OnDestroy, HasChanges {
     columns: []
   };
 
-  constructor(
-    private accounts: AccountService,
-    public bookmarks: BookmarkService,
-    public store: Store,
-    public exts: ExtService,
-    private tags: TaggingService,
-  ) { }
-
   saveChanges() {
-    return !this.list?.find(r => !r.saveChanges());
+    return !this.list()?.find(r => !r.saveChanges());
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -120,9 +111,7 @@ export class KanbanComponent implements OnChanges, OnDestroy, HasChanges {
     const margin = 20;
     const minColSize = 320;
     const sidebarSize = 354;
-    runInAction(() => {
-      this.store.view.floatingSidebar = innerWidth - sidebarSize < margin + minColSize * (this.columns.length + (this.showColumnBacklog ? 1 : 0))
-    });
+    this.store.view.floatingSidebar = innerWidth - sidebarSize < margin + minColSize * (this.columns.length + (this.showColumnBacklog ? 1 : 0));
   }
 
   get disableSwimLanes(): boolean {
@@ -176,8 +165,8 @@ export class KanbanComponent implements OnChanges, OnDestroy, HasChanges {
 
   get queryTags(): string[] {
     return uniq([
-      ...topAnds(this.query).filter(t => !isQuery(t)),
-      ...this.filter
+      ...topAnds(this.query()).filter(t => !isQuery(t)),
+      ...this.filter()
         .filter(f => f.startsWith('query/'))
         .filter(f => !f.startsWith('query/!('))
         .map(f => f.substring('query/'.length)),
@@ -187,9 +176,9 @@ export class KanbanComponent implements OnChanges, OnDestroy, HasChanges {
   get negateFilters(): string[] {
     // TODO: evaluate queries
     return uniq([
-      ...topAnds(this.query).filter(t => isSelector(t))
+      ...topAnds(this.query()).filter(t => isSelector(t))
         .map(f => f.startsWith('!') ? f.substring(1) : '!' + f),
-      ...this.filter
+      ...this.filter()
         .filter(f => f.startsWith('query/'))
         .flatMap(f => f.startsWith('query/!(')
           ? [f.substring('query/!('.length, f.length - 1)]
@@ -269,7 +258,7 @@ export class KanbanComponent implements OnChanges, OnDestroy, HasChanges {
     if (!tags) return '';
     const cols =  tags.col ? ':' + tags.col : this.andColBacklog;
     const sl =  tags.sl ? ':' + tags.sl : this.andSlBacklog;
-    return '(' + this.query + ')' + cols + sl;
+    return '(' + this.query() + ')' + cols + sl;
   }
 
   drop(event: CdkDragDrop<{ sl?: string, col?: string }>) {

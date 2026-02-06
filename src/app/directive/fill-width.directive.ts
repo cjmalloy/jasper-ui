@@ -1,9 +1,12 @@
-import { AfterViewInit, Directive, ElementRef, HostListener, Input, OnDestroy } from '@angular/core';
+import { AfterViewInit, Directive, ElementRef, HostListener, inject, Input, OnDestroy } from '@angular/core';
 import { throttle } from 'lodash-es';
 import { ConfigService } from '../service/config.service';
 
 @Directive({ selector: '[appFillWidth]' })
 export class FillWidthDirective implements OnDestroy, AfterViewInit {
+  private config = inject(ConfigService);
+  private el = inject<ElementRef<HTMLTextAreaElement>>(ElementRef);
+
 
   @Input('appFillWidth')
   parent?: HTMLElement;
@@ -14,10 +17,9 @@ export class FillWidthDirective implements OnDestroy, AfterViewInit {
   resizeObserver = window.ResizeObserver && new ResizeObserver(() => this.onResize()) || undefined;
   dragging = false;
 
-  constructor(
-    private config: ConfigService,
-    private el: ElementRef<HTMLTextAreaElement>,
-  ) {
+  constructor() {
+    const el = this.el;
+
     this.resizeObserver?.observe(el.nativeElement);
   }
 

@@ -1,5 +1,16 @@
 import { AsyncPipe } from '@angular/common';
-import { Component, forwardRef, HostBinding, Input, OnChanges, OnDestroy, SimpleChanges } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  forwardRef,
+  HostBinding,
+  inject,
+  Input,
+  input,
+  OnChanges,
+  OnDestroy,
+  SimpleChanges
+} from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { catchError, of, Subject, takeUntil, throwError } from 'rxjs';
 import { Ref } from '../../../model/ref';
@@ -27,6 +38,7 @@ import { hasTag, isAuthorTag, repost } from '../../../util/tag';
 import { ViewerComponent } from '../../viewer/viewer.component';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-file',
   templateUrl: './file.component.html',
   styleUrls: ['./file.component.scss'],
@@ -39,22 +51,22 @@ import { ViewerComponent } from '../../viewer/viewer.component';
   ],
 })
 export class FileComponent implements OnChanges, OnDestroy {
+  admin = inject(AdminService);
+  private refs = inject(RefService);
+  store = inject(Store);
+  private auth = inject(AuthzService);
+
   css = 'file ';
   @HostBinding('attr.tabindex') tabIndex = 0;
   private destroy$ = new Subject<void>();
 
   @Input()
   ref!: Ref;
-  @Input()
-  expanded = false;
-  @Input()
-  expandInline = false;
-  @Input()
-  showToggle = false;
-  @Input()
-  dragging = false;
-  @Input()
-  fetchRepost = true;
+  readonly expanded = input(false);
+  readonly expandInline = input(false);
+  readonly showToggle = input(false);
+  readonly dragging = input(false);
+  readonly fetchRepost = input(true);
 
   repostRef?: Ref;
   expandPlugins: string[] = [];
@@ -65,13 +77,6 @@ export class FileComponent implements OnChanges, OnDestroy {
   writeAccess = false;
   taggingAccess = false;
   serverError: string[] = [];
-
-  constructor(
-    public admin: AdminService,
-    private refs: RefService,
-    public store: Store,
-    private auth: AuthzService,
-  ) { }
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes.ref) {
@@ -84,7 +89,7 @@ export class FileComponent implements OnChanges, OnDestroy {
       this.actions = uniqueConfigs(sortOrder(this.admin.getActions(this.ref.tags, this.ref.plugins)));
 
       this.expandPlugins = this.admin.getEmbeds(this.ref);
-      if (this.repost && this.ref && this.fetchRepost && this.repostRef?.url != repost(this.ref)) {
+      if (this.repost && this.ref && this.fetchRepost() && this.repostRef?.url != repost(this.ref)) {
         (this.store.view.top?.url === this.ref.sources![0]
             ? of(this.store.view.top)
             : this.refs.getCurrent(this.url)

@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { makeAutoObservable, observable, reaction, toJS } from 'mobx';
+import { effect, signal } from '@angular/core';
 import { catchError, Observable, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Ref } from '../model/ref';
@@ -9,37 +9,54 @@ export type progress = (msg?: string, p?: number) => void;
 
 export class EventBus {
 
-  event = '';
-  ref?: Ref = {} as any;
-  repost?: Ref = {} as any;
-  errors: string[] = [];
-  progressMessages: string[] = [];
-  progressNum = 0;
-  progressDen = 0;
+  private _event = signal('');
+  private _ref = signal<Ref | undefined>(undefined);
+  private _repost = signal<Ref | undefined>(undefined);
+  private _errors = signal<string[]>([]);
+  private _progressMessages = signal<string[]>([]);
+  private _progressNum = signal(0);
+  private _progressDen = signal(0);
 
-  constructor() {
-    makeAutoObservable(this, {
-      ref: observable.ref,
-      errors: observable.shallow,
-      runAndReload: false,
-      runAndRefresh: false,
-      catchError$: false,
-      isRef: false,
-    });
-    reaction(() => this.event, () => console.log('🚌️ Event Bus:', this.event, this.event === 'error' ? toJS(this.errors) : '', toJS(this.ref)));
-  }
+  // Debugging effect (replaces MobX reaction)
+  private _debugEffect = effect(() => {
+    const event = this._event();
+    if (event) {
+      console.log('🚌️ Event Bus:', event, event === 'error' ? this._errors() : '', this._ref());
+    }
+  });
+
+  get event() { return this._event(); }
+  set event(value: string) { this._event.set(value); }
+
+  get ref() { return this._ref(); }
+  set ref(value: Ref | undefined) { this._ref.set(value); }
+
+  get repost() { return this._repost(); }
+  set repost(value: Ref | undefined) { this._repost.set(value); }
+
+  get errors() { return this._errors(); }
+  set errors(value: string[]) { this._errors.set(value); }
+
+  get progressMessages() { return this._progressMessages(); }
+  set progressMessages(value: string[]) { this._progressMessages.set(value); }
+
+  get progressNum() { return this._progressNum(); }
+  set progressNum(value: number) { this._progressNum.set(value); }
+
+  get progressDen() { return this._progressDen(); }
+  set progressDen(value: number) { this._progressDen.set(value); }
 
   fire(event: string, ref?: Ref, repost?: Ref) {
-    this.event = event;
-    this.ref = ref;
-    this.repost = repost;
+    this._event.set(event);
+    this._ref.set(ref);
+    this._repost.set(repost);
   }
 
   fireError(errors: string[], ref?: Ref) {
-    this.event = 'error';
-    this.errors = [...errors];
+    this._event.set('error');
+    this._errors.set([...errors]);
     if (ref) {
-      this.ref = ref;
+      this._ref.set(ref);
     }
   }
 
@@ -48,31 +65,31 @@ export class EventBus {
    * 'refresh' event.
    */
   reload(ref?: Ref) {
-    this.event = 'reload';
+    this._event.set('reload');
     if (ref) {
-      this.ref = ref;
+      this._ref.set(ref);
     }
-    this.repost = undefined;
+    this._repost.set(undefined);
   }
 
   /**
    * Notify latest version of ref is not available.
    */
   refresh(ref?: Ref) {
-    this.event = 'refresh';
+    this._event.set('refresh');
     if (ref) {
-      this.ref = ref;
+      this._ref.set(ref);
     }
-    this.repost = undefined;
+    this._repost.set(undefined);
   }
 
   /**
    * Clear event bus state for sending duplicate events.
    */
   reset() {
-    this.event = '';
-    this.ref = undefined;
-    this.repost = undefined;
+    this._event.set('');
+    this._ref.set(undefined);
+    this._repost.set(undefined);
   }
 
   runAndReload(o: Observable<any>, ref?: Ref) {
@@ -101,29 +118,29 @@ export class EventBus {
   }
 
   isRef(r: Ref) {
-    return this.ref?.url === r.url && this.ref.origin === r.origin;
+    return this._ref()?.url === r.url && this._ref()?.origin === r.origin;
   }
 
   clearProgress(steps = 0) {
-    if (!steps || !this.progressDen || this.progressNum >= this.progressDen) {
-      this.progressMessages = [];
-      this.progressNum = 0;
-      this.progressDen = steps;
+    if (!steps || !this._progressDen() || this._progressNum() >= this._progressDen()) {
+      this._progressMessages.set([]);
+      this._progressNum.set(0);
+      this._progressDen.set(steps);
     } else {
-      this.progressDen += steps;
+      this._progressDen.update(v => v + steps);
     }
   }
 
   msg(msg: string) {
-    this.progressMessages.push(msg)
+    this._progressMessages.update(v => [...v, msg]);
   }
 
   steps(steps = 1) {
-    this.progressDen += steps;
+    this._progressDen.update(v => v + steps);
   }
 
   progress(msg?: string, steps = 1) {
-    if (msg) this.progressMessages.push(msg);
-    if (steps) this.progressNum += steps;
+    if (msg) this._progressMessages.update(v => [...v, msg]);
+    if (steps) this._progressNum.update(v => v + steps);
   }
 }

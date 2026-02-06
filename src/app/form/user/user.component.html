@@ -11,8 +11,8 @@
            formControlName="tag"
            (keydown)="$event.key === 'Enter' && validate(tagInput) || true"
            (blur)="blur(tagInput)">
-    @if (showClear) {
-      <button type="button" (click)="clear.next()" i18n-title title="New User" i18n>🆑️</button>
+    @if (showClear()) {
+      <button type="button" (click)="clear.emit()" i18n-title title="New User" i18n>🆑️</button>
     }
   </div>
 
@@ -56,7 +56,7 @@
             fieldName="tagWriteAccess"
             [group]="group"></app-tags>
 
-  @if (showPubKey) {
+  @if (showPubKey()) {
     <label [for]="id + '-pubKey'" i18n>SSH Public Key:</label>
     <div>
       <textarea [id]="id + '-pubKey'"

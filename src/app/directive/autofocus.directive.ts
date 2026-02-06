@@ -1,9 +1,12 @@
-import { Directive, ElementRef, Input } from '@angular/core';
+import { Directive, ElementRef, inject, Input } from '@angular/core';
 import { NavigationEnd, Router } from '@angular/router';
 import { filter } from 'rxjs';
 
 @Directive({ selector: '[appAutofocus]', })
 export class AutofocusDirective {
+  private elementRef = inject(ElementRef);
+  private router = inject(Router);
+
 
   @Input('appAutofocus')
   enabled: boolean | '' = true;
@@ -11,10 +14,9 @@ export class AutofocusDirective {
   @Input()
   select = true;
 
-  constructor(
-    private elementRef: ElementRef,
-    private router: Router,
-  ) {
+  constructor() {
+    const router = this.router;
+
     router.events.pipe(
       filter(event => event instanceof NavigationEnd),
     ).subscribe(() => this.focus());

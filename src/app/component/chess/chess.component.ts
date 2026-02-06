@@ -1,20 +1,21 @@
 import { CdkDrag, CdkDragDrop, CdkDropList, CdkDropListGroup } from '@angular/cdk/drag-drop';
 import {
+  ChangeDetectionStrategy,
   Component,
+  effect,
   ElementRef,
-  EventEmitter,
   HostBinding,
   HostListener,
+  inject,
   Input,
   OnChanges,
   OnDestroy,
   OnInit,
-  Output,
+  output,
   SimpleChanges
 } from '@angular/core';
 import { Chess, Square } from 'chess.js';
 import { defer, delay, flatten, without } from 'lodash-es';
-import { autorun, IReactionDisposer } from 'mobx';
 import { catchError, Observable, of, Subscription, throwError } from 'rxjs';
 import { Ref } from '../../model/ref';
 import { ActionService } from '../../service/action.service';
@@ -28,6 +29,7 @@ type Piece = { type: PieceType, color: PieceColor, square: Square, };
 type AnimationState = { from: Square; to: Square; capture?: { square: Square; piece: Piece }; piece: Piece; boardState: (Piece | null)[], turnState: PieceColor, movesState: Square[] };
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-chess',
   templateUrl: './chess.component.html',
   styleUrls: ['./chess.component.scss'],
@@ -36,7 +38,11 @@ type AnimationState = { from: Square; to: Square; capture?: { square: Square; pi
   imports: [CdkDropList, CdkDrag]
 })
 export class ChessComponent implements OnInit, OnChanges, OnDestroy {
-  private disposers: IReactionDisposer[] = [];
+  config = inject(ConfigService);
+  private actions = inject(ActionService);
+  private store = inject(Store);
+  private el = inject<ElementRef<HTMLDivElement>>(ElementRef);
+
 
   @Input()
   ref?: Ref;
@@ -44,10 +50,8 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
   text? = '';
   @Input()
   white = true; // TODO: Save in local storage
-  @Output()
-  comment = new EventEmitter<string>();
-  @Output()
-  copied = new EventEmitter<string>();
+  readonly comment = output<string>();
+  readonly copied = output<string>();
 
   turn: PieceColor = 'w';
   from?: Square;
@@ -72,13 +76,8 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
   private board?: string;
   private retry: string[] = [];
 
-  constructor(
-    public config: ConfigService,
-    private actions: ActionService,
-    private store: Store,
-    private el: ElementRef<HTMLDivElement>,
-  ) {
-    this.disposers.push(autorun(() => {
+  constructor() {
+    effect(() => {
       if (this.store.eventBus.event === 'flip' && this.store.eventBus.ref?.url === this.ref?.url) {
         this.flip = true;
         delay(() => {
@@ -87,7 +86,7 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
         }, 1000);
         defer(() => this.store.eventBus.fire('flip-done'));
       }
-    }));
+    });
   }
 
   ngOnInit(): void {
@@ -158,8 +157,6 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   ngOnDestroy() {
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
     this.resizeObserver?.disconnect();
     this.watch?.unsubscribe();
   }

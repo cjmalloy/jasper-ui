@@ -1,9 +1,12 @@
-import { AfterViewInit, Directive, ElementRef, HostListener, Input, OnDestroy } from '@angular/core';
+import { AfterViewInit, Directive, ElementRef, HostListener, inject, Input, OnDestroy } from '@angular/core';
 import { throttle } from 'lodash-es';
 import { ConfigService } from '../service/config.service';
 
 @Directive({ selector: '[appLimitWidth]' })
 export class LimitWidthDirective implements OnDestroy, AfterViewInit {
+  private config = inject(ConfigService);
+  private el = inject(ElementRef);
+
 
   resizeObserver = window.ResizeObserver && new ResizeObserver(() => this.fill()) || undefined;
 
@@ -11,11 +14,6 @@ export class LimitWidthDirective implements OnDestroy, AfterViewInit {
   limitSibling = false;
 
   private _linked?: HTMLElement;
-
-  constructor(
-    private config: ConfigService,
-    private el: ElementRef,
-  ) { }
 
   get linked() {
     return this._linked;

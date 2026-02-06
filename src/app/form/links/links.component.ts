@@ -1,4 +1,4 @@
-import { Component, HostBinding, Input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, HostBinding, inject, Input, input } from '@angular/core';
 import {
   FormBuilder,
   ReactiveFormsModule,
@@ -12,19 +12,21 @@ import { map } from 'lodash-es';
 import { URI_REGEX } from '../../util/format';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-links',
   templateUrl: './links.component.html',
   styleUrls: ['./links.component.scss'],
   imports: [ReactiveFormsModule, FormlyForm]
 })
 export class LinksFormComponent {
+  private fb = inject(FormBuilder);
+
   static validators = [Validators.pattern(URI_REGEX)];
   @HostBinding('class') css = 'form-group';
 
   @Input()
   group?: UntypedFormGroup;
-  @Input()
-  fieldName = 'links';
+  readonly fieldName = input('links');
 
   model: string[] = [];
   field = {
@@ -42,10 +44,6 @@ export class LinksFormComponent {
       }
     },
   };
-
-  constructor(
-    private fb: FormBuilder,
-  ) { }
 
   @Input()
   set emoji(value: string) {
@@ -73,7 +71,7 @@ export class LinksFormComponent {
   }
 
   get links() {
-    return this.group?.get(this.fieldName) as UntypedFormArray | undefined;
+    return this.group?.get(this.fieldName()) as UntypedFormArray | undefined;
   }
 
   setLinks(values: string[]) {

@@ -1,12 +1,13 @@
 import { CdkDrag, CdkDragDrop, CdkDragHandle, CdkDropList } from '@angular/cdk/drag-drop';
 import { CdkScrollable } from '@angular/cdk/scrolling';
-import { Component, HostBinding } from '@angular/core';
+import { ChangeDetectionStrategy, Component, HostBinding, inject } from '@angular/core';
 import { FieldArrayType, FormlyField } from '@ngx-formly/core';
 import { defer } from 'lodash-es';
 import { Store } from '../store/store';
 import { getPath } from '../util/http';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'formly-list-section',
   template: `
     <label [class.no-margin]="props.showLabel === false">{{ props.showLabel !== false && props.label || '' }}</label>
@@ -49,14 +50,10 @@ import { getPath } from '../util/http';
   ],
 })
 export class ListTypeComponent extends FieldArrayType {
+  private store = inject(Store);
+
 
   dropping = false;
-
-  constructor(
-    private store: Store,
-  ) {
-    super();
-  }
 
   @HostBinding('title')
   get title() {

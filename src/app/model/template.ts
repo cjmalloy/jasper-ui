@@ -1,6 +1,6 @@
 import { Schema } from 'jtd';
 import { DateTime } from 'luxon';
-import { toJS } from 'mobx';
+
 import { Ext } from './ext';
 import { Config, TagSort } from './tag';
 import { Roles } from './user';
@@ -89,9 +89,9 @@ export function getTemplateScope(account: Roles, template: Template, ext: Ext, e
   return {
     el,
     ...actions || {},
-    account: toJS(account),
-    ext: toJS(ext),
-    template: toJS(template),
+    account: account,
+    ext: ext,
+    template: template,
     ...(ext.config || {}),
   };
 }

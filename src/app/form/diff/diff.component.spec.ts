@@ -1,7 +1,7 @@
 /// <reference types="vitest/globals" />
-import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { NGX_MONACO_EDITOR_CONFIG } from 'ngx-monaco-editor';
 import { ConfigService } from '../../service/config.service';
@@ -31,7 +31,7 @@ describe('DiffComponent', () => {
         }
       ],
     }).compileComponents();
-    
+
     fixture = TestBed.createComponent(DiffComponent);
     component = fixture.componentInstance;
     component.original = { url: 'http://test.com', origin: '', title: 'Original' };

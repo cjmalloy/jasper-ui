@@ -1,9 +1,8 @@
 import { KeyValuePipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, Input, OnChanges, OnDestroy, SimpleChanges } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, inject, input, OnChanges, SimpleChanges } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { groupBy, intersection, isEqual, map, pick, uniq } from 'lodash-es';
-import { autorun, IReactionDisposer } from 'mobx';
 import { catchError, concat, last, Observable, of, switchMap } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { TitleDirective } from '../../directive/title.directive';
@@ -42,22 +41,34 @@ import { InlineTagComponent } from '../action/inline-tag/inline-tag.component';
 import { LoadingComponent } from '../loading/loading.component';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-bulk',
   templateUrl: './bulk.component.html',
   styleUrls: ['./bulk.component.scss'],
   host: { 'class': 'bulk actions' },
   imports: [LoadingComponent, RouterLink, InlineTagComponent, ConfirmActionComponent, InlinePluginComponent, TitleDirective, InlineButtonComponent, KeyValuePipe]
 })
-export class BulkComponent implements OnChanges, OnDestroy {
+export class BulkComponent implements OnChanges {
+  admin = inject(AdminService);
+  auth = inject(AuthzService);
+  store = inject(Store);
+  query = inject(QueryStore);
+  ext = inject(ExtStore);
+  user = inject(UserStore);
+  plugin = inject(PluginStore);
+  template = inject(TemplateStore);
+  private refs = inject(RefService);
+  private exts = inject(ExtService);
+  private users = inject(UserService);
+  private plugins = inject(PluginService);
+  private templates = inject(TemplateService);
+  private acts = inject(ActionService);
+  private ts = inject(TaggingService);
 
-  private disposers: IReactionDisposer[] = [];
 
-  @Input()
-  type: Type = 'ref';
-  @Input()
-  viewExt?: Ext;
-  @Input()
-  activeExts: Ext[] = [];
+  readonly type = input<Type>('ref');
+  readonly viewExt = input<Ext>();
+  readonly activeExts = input<Ext[]>([]);
 
   defaults?: Partial<Ref>;
   forms: Plugin[] = [];
@@ -67,24 +78,8 @@ export class BulkComponent implements OnChanges, OnDestroy {
   toggled = false;
   serverError: string[] = [];
 
-  constructor(
-    public admin: AdminService,
-    public auth: AuthzService,
-    public store: Store,
-    public query: QueryStore,
-    public ext: ExtStore,
-    public user: UserStore,
-    public plugin: PluginStore,
-    public template: TemplateStore,
-    private refs: RefService,
-    private exts: ExtService,
-    private users: UserService,
-    private plugins: PluginService,
-    private templates: TemplateService,
-    private acts: ActionService,
-    private ts: TaggingService,
-  ) {
-    this.disposers.push(autorun(() => {
+  constructor() {
+    effect(() => {
       MemoCache.clear(this);
       const commonTags = intersection(...map(this.query.page?.content, ref => ref.tags || []));
       this.forms = this.admin.bulkForm;
@@ -93,9 +88,10 @@ export class BulkComponent implements OnChanges, OnDestroy {
         ...sortOrder(this.admin.getAdvancedActions(commonTags))]);
       this.groupedActions = groupBy(this.actions, a => this.label(a));
       delete this.defaults;
-      const xs = [...(this.viewExt ? [this.viewExt] : []), ...this.activeExts, this.admin.getTemplate('')] as Tag[];
+      const viewExt = this.viewExt();
+      const xs = [...(viewExt ? [viewExt] : []), ...this.activeExts(), this.admin.getTemplate('')] as Tag[];
       this.refs.getDefaults(...xs.filter(x => x).map(x => x.tag)).subscribe(d => this.defaults = d?.ref)
-    }));
+    });
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -104,10 +100,6 @@ export class BulkComponent implements OnChanges, OnDestroy {
     }
   }
 
-  ngOnDestroy() {
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
-  }
 
   @memo
   get urls() {
@@ -142,7 +134,7 @@ export class BulkComponent implements OnChanges, OnDestroy {
   }
 
   get queryStore() {
-    switch (this.type) {
+    switch (this.type()) {
       case 'ref': return this.query;
       case 'ext': return this.ext
       case 'user': return this.user;
@@ -152,7 +144,7 @@ export class BulkComponent implements OnChanges, OnDestroy {
   }
 
   get service() {
-    switch (this.type) {
+    switch (this.type()) {
       case 'ref': return this.refs;
       case 'ext': return this.exts
       case 'user': return this.users
@@ -162,7 +154,7 @@ export class BulkComponent implements OnChanges, OnDestroy {
   }
 
   get tagService() {
-    switch (this.type) {
+    switch (this.type()) {
       case 'ref': throw 'Not a tag';
       case 'ext': return this.exts
       case 'user': return this.users
@@ -177,7 +169,7 @@ export class BulkComponent implements OnChanges, OnDestroy {
 
   get name() {
     let name = '';
-    name = this.store.view.name || this.type;
+    name = this.store.view.name || this.type();
     if (this.store.view.search) {
       name += ' search(' + this.store.view.search + ')';
     }
@@ -196,12 +188,12 @@ export class BulkComponent implements OnChanges, OnDestroy {
   }
 
   download() {
-    downloadPage(this.type, this.items, this.type !== 'ext' ? this.store.view.activeExts.filter(x => x.modifiedString) : [], this.name);
+    downloadPage(this.type(), this.items, this.type() !== 'ext' ? this.store.view.activeExts.filter(x => x.modifiedString) : [], this.name);
   }
 
   get items() {
     let result = this.queryStore.page!;
-    if (this.type === 'ref' && this.store.view.ref) {
+    if (this.type() === 'ref' && this.store.view.ref) {
       result = {...result};
       result.content = [...result.content] as any;
       result.content.unshift(this.store.view.ref as any);
@@ -257,12 +249,13 @@ export class BulkComponent implements OnChanges, OnDestroy {
   }
 
   delete$ = () => {
-    if (this.type === 'ref') {
+    const type = this.type();
+    if (type === 'ref') {
       return this.batch$<Ref>(ref => ref.origin === this.store.account.origin && !hasTag('plugin/delete', ref) && this.admin.getPlugin('plugin/delete')
         ? this.refs.update(deleteNotice(ref))
         : this.refs.delete(ref.url, ref.origin)
       );
-    } else if (this.type === 'ext' || this.type === 'user') {
+    } else if (type === 'ext' || type === 'user') {
       return this.batch$<Ext | User>(tag => this.tagService.delete(tag.tag + tag.origin).pipe(
         switchMap(() => !isDeletorTag(tag.tag) && this.admin.getPlugin('plugin/delete')
           ? this.tagService.create(tagDeleteNotice(tag))
@@ -278,7 +271,7 @@ export class BulkComponent implements OnChanges, OnDestroy {
   }
 
   forceDelete$ = () => {
-    if (this.type === 'ref') {
+    if (this.type() === 'ref') {
       return this.batch$<Ref>(ref => this.refs.delete(ref.url, ref.origin));
     } else {
       return this.delete$();

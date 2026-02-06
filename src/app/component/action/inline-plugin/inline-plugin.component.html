@@ -7,7 +7,7 @@
                   [bulk]="true"
                   (keydown)="$event.key === 'Enter' && save() || true"
                   [plugins]="group"
-                  [plugin]="plugin"></app-form-gen>
+                  [plugin]="plugin()"></app-form-gen>
     <button type="button" (click)="save()" i18n>+</button>
   </div>
 } @else if (acting) {

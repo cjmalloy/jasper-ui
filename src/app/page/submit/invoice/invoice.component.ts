@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, viewChild } from '@angular/core';
 import {
   ReactiveFormsModule,
   UntypedFormBuilder,
@@ -33,6 +33,7 @@ import { printError } from '../../../util/http';
 import { getVisibilityTags, prefix } from '../../../util/tag';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-submit-invoice',
   templateUrl: './invoice.component.html',
   styleUrls: ['./invoice.component.scss'],
@@ -46,13 +47,23 @@ import { getVisibilityTags, prefix } from '../../../util/tag';
   ]
 })
 export class SubmitInvoicePage implements HasChanges {
+  private mod = inject(ModService);
+  admin = inject(AdminService);
+  private router = inject(Router);
+  private route = inject(ActivatedRoute);
+  private store = inject(Store);
+  private editor = inject(EditorService);
+  private refs = inject(RefService);
+  private exts = inject(ExtService);
+  private ts = inject(TaggingService);
+  private fb = inject(UntypedFormBuilder);
+
 
   submitted = false;
   invoiceForm: UntypedFormGroup;
   serverError: string[] = [];
 
-  @ViewChild('editor')
-  editorComponent?: EditorComponent;
+  readonly editorComponent = viewChild<EditorComponent>('editor');
 
   refUrl?: string;
   queue?: string;
@@ -61,18 +72,10 @@ export class SubmitInvoicePage implements HasChanges {
 
   submitting?: Subscription;
 
-  constructor(
-    private mod: ModService,
-    public admin: AdminService,
-    private router: Router,
-    private route: ActivatedRoute,
-    private store: Store,
-    private editor: EditorService,
-    private refs: RefService,
-    private exts: ExtService,
-    private ts: TaggingService,
-    private fb: UntypedFormBuilder,
-  ) {
+  constructor() {
+    const mod = this.mod;
+    const fb = this.fb;
+
     mod.setTitle($localize`Submit: Invoice`);
     this.invoiceForm = fb.group({
       url: ['', [Validators.required, Validators.pattern(URI_REGEX)]],

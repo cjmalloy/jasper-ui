@@ -1,17 +1,17 @@
 @if (page) {
   @for (ref of page.content; track ref.origin + '@' + ref.url) {
     <app-kanban-card cdkDrag
-                     [hideSwimLanes]="hideSwimLanes"
+                     [hideSwimLanes]="hideSwimLanes()"
                      [cdkDragData]="ref"
                      [cdkDragStartDelay]="pressToUnlock ? 251 : 0"
                      [pressToUnlock]="pressToUnlock"
                      [ref]="ref"
-                     [ext]="ext"
+                     [ext]="ext()"
                      (copied)="copy($event)"></app-kanban-card>
   }
   @for (upload of adding; track upload.id) {
     <app-kanban-card [ref]="{ url: '', title: upload.name }"
-                     [ext]="ext"
+                     [ext]="ext()"
                      [progress]="upload.progress"></app-kanban-card>
   }
   @for (failedItem of failed; track failedItem.text) {

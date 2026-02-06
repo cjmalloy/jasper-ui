@@ -9,13 +9,13 @@ import {
   enableProdMode,
   importProvidersFrom,
   isDevMode,
-  provideZoneChangeDetection
+  provideZonelessChangeDetection
 } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { bootstrapApplication, BrowserModule, HAMMER_GESTURE_CONFIG, HammerModule } from '@angular/platform-browser';
 import { ServiceWorkerModule } from '@angular/service-worker';
 import { Settings } from 'luxon';
-import { MobxAngularModule } from 'mobx-angular';
+
 import { MarkdownModule } from 'ngx-markdown';
 import { MonacoEditorModule } from 'ngx-monaco-editor';
 import { retry, switchMap, timer } from 'rxjs';
@@ -74,13 +74,13 @@ if (environment.production) {
 
 bootstrapApplication(AppComponent, {
   providers: [
-    provideZoneChangeDetection({ eventCoalescing: true, runCoalescing: true }),
+    provideZonelessChangeDetection(),
     importProvidersFrom(
       BrowserModule,
       HammerModule,
       AppRoutingModule,
       ReactiveFormsModule,
-      MobxAngularModule,
+
       MarkdownModule.forRoot(),
       MonacoEditorModule.forRoot(),
       DragDropModule,

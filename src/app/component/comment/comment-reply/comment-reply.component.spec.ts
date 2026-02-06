@@ -1,6 +1,7 @@
 /// <reference types="vitest/globals" />
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { forwardRef } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { AdminService } from '../../../service/admin.service';
@@ -13,7 +14,7 @@ describe('CommentReplyComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [CommentReplyComponent],
+      imports: [forwardRef(() => CommentReplyComponent)],
       providers: [
         { provide: AdminService, useValue: {
             getPlugin: () => null,

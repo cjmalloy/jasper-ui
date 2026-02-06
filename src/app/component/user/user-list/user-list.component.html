@@ -3,9 +3,9 @@
     <div class="list-number">{{ i + page!.page.number * page!.page.size + 1 }}</div>
     <app-user [user]="user" [profile]="getProfile(user)"></app-user>
   }
-  @for (profile of scim?.content; track profile.tag; let i = $index) {
+  @for (profile of scim()?.content; track profile.tag; let i = $index) {
     @if (!hasUser(profile.tag)) {
-      <div class="list-number">{{ i + scim!.page.number * scim!.page.size + (page ? page.content.length + page.page.number * page.page.size : 0) }}</div>
+      <div class="list-number">{{ i + scim()!.page.number * scim()!.page.size + (page ? page.content.length + page.page.number * page.page.size : 0) }}</div>
       <app-user [profile]="profile"></app-user>
     }
   }

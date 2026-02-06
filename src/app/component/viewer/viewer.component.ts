@@ -1,20 +1,22 @@
 import {
+  ChangeDetectionStrategy,
   Component,
   ElementRef,
-  EventEmitter,
   forwardRef,
   HostBinding,
+  inject,
   Input,
+  input,
   OnChanges,
-  Output,
+  output,
   SimpleChanges,
-  ViewChild
+  ViewChild,
+  viewChild
 } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import * as he from 'he';
 import Hls from 'hls.js';
 import { defer, isEqual, some, without } from 'lodash-es';
-import { runInAction } from 'mobx';
 import { BehaviorSubject, catchError, of, Subject, takeUntil, throwError } from 'rxjs';
 import { ImageDirective } from '../../directive/image.directive';
 import { ResizeHandleDirective } from '../../directive/resize-handle.directive';
@@ -49,9 +51,10 @@ import { ModComponent } from '../mod/mod.component';
 import { PlaylistComponent } from '../playlist/playlist.component';
 import { QrComponent } from '../qr/qr.component';
 import { RefComponent } from '../ref/ref.component';
-import { TodoComponent } from '../todo/todo.component';
+import TodoComponent from '../todo/todo.component';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-viewer',
   templateUrl: './viewer.component.html',
   styleUrls: ['./viewer.component.scss'],
@@ -71,36 +74,39 @@ import { TodoComponent } from '../todo/todo.component';
   ],
 })
 export class ViewerComponent implements OnChanges {
+  config = inject(ConfigService);
+  admin = inject(AdminService);
+  private proxy = inject(ProxyService);
+  private oembeds = inject(OembedStore);
+  private actions = inject(ActionService);
+  private embeds = inject(EmbedService);
+  private editor = inject(EditorService);
+  private refs = inject(RefService);
+  private store = inject(Store);
+  el = inject(ElementRef);
+
   @HostBinding('class') css = 'embed print-images';
   @HostBinding('tabindex') tabIndex = 0;
   private destroy$ = new Subject<void>();
 
-  @ViewChild('iframe')
-  iframe!: ElementRef;
+  readonly iframe = viewChild.required<ElementRef>('iframe');
 
   @Input()
   ref?: Ref;
-  @Input()
-  commentControl?: FormControl<string>;
+  readonly commentControl = input<FormControl<string>>();
   @Input()
   tags?: string[];
-  @Input()
-  expand = true;
-  @Input()
-  autoplay = false;
+  readonly expand = input(true);
+  readonly autoplay = input(false);
   @Input()
   text? = '';
-  @Input()
-  origin? = '';
-  @Input()
-  disableResize = false;
+  readonly origin = input<string | undefined>('');
+  readonly disableResize = input(false);
   @Input()
   @HostBinding('class.fullscreen')
   fullscreen = false;
-  @Output()
-  comment = new EventEmitter<string>();
-  @Output()
-  copied = new EventEmitter<string>();
+  readonly comment = output<string>();
+  readonly copied = output<string>();
 
   repost?: Ref;
   page?: Page<Ref>;
@@ -123,19 +129,6 @@ export class ViewerComponent implements OnChanges {
   private _oembed?: Oembed;
   private width = 0;
   private height = 0;
-
-  constructor(
-    public config: ConfigService,
-    public admin: AdminService,
-    private proxy: ProxyService,
-    private oembeds: OembedStore,
-    private actions: ActionService,
-    private embeds: EmbedService,
-    private editor: EditorService,
-    private refs: RefService,
-    private store: Store,
-    public el: ElementRef,
-  ) { }
 
   init() {
     MemoCache.clear(this);
@@ -234,13 +227,14 @@ export class ViewerComponent implements OnChanges {
   set oembed(oembed: Oembed | null) {
     if (isEqual(this._oembed, oembed)) return;
     this._oembed = oembed || undefined;
+    const iframe = this.iframe();
     if (oembed?.url && oembed?.type === 'photo') {
       // Image embed
       this.tags = without(this.currentTags, 'plugin/embed');
       this.image = embedUrl(oembed.url);
       MemoCache.clear(this);
-    } else if (this.iframe) {
-      const i = this.iframe.nativeElement;
+    } else if (iframe) {
+      const i = iframe.nativeElement;
       if (oembed) {
         this.embeds.writeIframe(oembed, i, this.embedWidth, true)
           .then(() => {
@@ -316,7 +310,7 @@ export class ViewerComponent implements OnChanges {
 
   @memo
   get currentOrigin() {
-    return this.origin || this.ref?.origin || this.store.account.origin;
+    return this.origin() || this.ref?.origin || this.store.account.origin;
   }
 
   @memo
@@ -458,7 +452,7 @@ export class ViewerComponent implements OnChanges {
     return {
       comment: (comment: string) => {
         if (this.ref) {
-          runInAction(() => this.ref!.comment = comment);
+          this.ref!.comment = comment;
         } else {
           this.text = comment;
         }

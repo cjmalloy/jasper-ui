@@ -1,8 +1,7 @@
 import { Location } from '@angular/common';
-import { Component, OnDestroy } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, inject, OnDestroy } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
-import { autorun, IReactionDisposer } from 'mobx';
-import { MobxAngularModule } from 'mobx-angular';
+
 import { TitleDirective } from '../../directive/title.directive';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
@@ -12,38 +11,36 @@ import { ModService } from '../../service/mod.service';
 import { Store } from '../../store/store';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-subscription-bar',
   templateUrl: './subscription-bar.component.html',
   styleUrls: ['./subscription-bar.component.scss'],
   host: { 'class': 'subscription-bar' },
-  imports: [MobxAngularModule, RouterLink, RouterLinkActive, TitleDirective]
+  imports: [ RouterLink, RouterLinkActive, TitleDirective]
 })
 export class SubscriptionBarComponent implements OnDestroy {
-  private disposers: IReactionDisposer[] = [];
+  config = inject(ConfigService);
+  store = inject(Store);
+  themes = inject(ModService);
+  admin = inject(AdminService);
+  private editor = inject(EditorService);
+  private exts = inject(ExtService);
+  location = inject(Location);
+
 
   bookmarks: TagPreview[] = [];
   subs: TagPreview[] = [];
 
   private startIndex = this.currentIndex;
 
-  constructor(
-    public config: ConfigService,
-    public store: Store,
-    public themes: ModService,
-    public admin: AdminService,
-    private editor: EditorService,
-    private exts: ExtService,
-    public location: Location,
-  ) {
-    this.disposers.push(autorun(() => this.editor.getTagsPreview(this.store.account.bookmarks, this.store.account.origin)
-      .subscribe(xs => this.bookmarks = xs)));
-    this.disposers.push(autorun(() => this.exts.getCachedExts(this.store.account.subs)
-      .subscribe(xs => this.subs = xs)));
+  constructor() {
+    effect(() => this.editor.getTagsPreview(this.store.account.bookmarks, this.store.account.origin)
+      .subscribe(xs => this.bookmarks = xs));
+    effect(() => this.exts.getCachedExts(this.store.account.subs)
+      .subscribe(xs => this.subs = xs));
   }
 
   ngOnDestroy() {
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
   }
 
   get currentIndex() {

@@ -5,8 +5,8 @@ import {
   ElementRef,
   HostBinding,
   HostListener,
+  inject,
   Input,
-  NgZone,
   OnDestroy
 } from '@angular/core';
 import { defer } from 'lodash-es';
@@ -17,6 +17,10 @@ import { relativeX, relativeY } from '../util/math';
     selector: '[appResizeHandle]',
 })
 export class ResizeHandleDirective implements AfterViewInit, OnDestroy {
+  private config = inject(ConfigService);
+  private el = inject(ElementRef);
+  private cd = inject(ChangeDetectorRef);
+
   @HostBinding('style.cursor') cursor = 'auto';
 
   @Input()
@@ -36,13 +40,6 @@ export class ResizeHandleDirective implements AfterViewInit, OnDestroy {
   height = 0;
 
   resizeObserver?: ResizeObserver;
-
-  constructor(
-    private config: ConfigService,
-    private el: ElementRef,
-    private zone: NgZone,
-    private cd: ChangeDetectorRef,
-  ) { }
 
   get resizeCursor() {
     return this.config.mobile ? 'row-resize' : 'se-resize';
@@ -95,19 +92,17 @@ export class ResizeHandleDirective implements AfterViewInit, OnDestroy {
   onPointerMove(event: PointerEvent) {
     if (!this.enabled) return;
     if (this.dragging) {
-      this.zone.run(() => {
-        const dx = event.clientX - this.x;
-        const dy = event.clientY - this.y;
-        this.setWidth((this.width + dx) + 'px');
-        this.setHeight((this.height + dy) + 'px');
-        event.preventDefault();
-        event.stopPropagation();
-        event.stopImmediatePropagation();
-      });
+      const dx = event.clientX - this.x;
+      const dy = event.clientY - this.y;
+      this.setWidth((this.width + dx) + 'px');
+      this.setHeight((this.height + dy) + 'px');
+      event.preventDefault();
+      event.stopPropagation();
+      event.stopImmediatePropagation();
     } else {
       const cursor = this.hit(event) ? this.resizeCursor : 'auto';
       if (this.cursor !== cursor) {
-        this.zone.run(() => this.cursor = cursor);
+        this.cursor = cursor;
       }
     }
   }

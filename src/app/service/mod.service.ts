@@ -1,9 +1,8 @@
 import { DOCUMENT } from '@angular/common';
-import { Inject, Injectable } from '@angular/core';
+import { effect, inject, Injectable } from '@angular/core';
 import { Title } from '@angular/platform-browser';
 import flatten from 'css-flatten';
 import { marked } from 'marked';
-import { autorun, runInAction } from 'mobx';
 import { of } from 'rxjs';
 import { Plugin } from '../model/plugin';
 import { Store } from '../store/store';
@@ -15,22 +14,24 @@ import { ConfigService } from './config.service';
   providedIn: 'root',
 })
 export class ModService {
+  private document = inject<Document>(DOCUMENT);
+  private config = inject(ConfigService);
+  private admin = inject(AdminService);
+  private account = inject(AccountService);
+  private store = inject(Store);
+  private titleService = inject(Title);
+
 
   nesting = CSS && CSS.supports('selector(& > *)');
 
-  constructor(
-    @Inject(DOCUMENT) private document: Document,
-    private config: ConfigService,
-    private admin: AdminService,
-    private account: AccountService,
-    private store: Store,
-    private titleService: Title,
-  ) { }
+  constructor() {
+    // Setup custom CSS effect
+    effect(() => this.setCustomCss('custom-css', ...(this.store.account.config.userTheme ? this.getUserCss() : this.getExtCss())));
+  }
 
   get init$() {
     document.documentElement.style.overflowY = 'scroll';
     this.setTheme(localStorage.getItem('theme') || this.systemTheme);
-    autorun(() => this.setCustomCss('custom-css', ...(this.store.account.config.userTheme ? this.getUserCss() : this.getExtCss())));
     this.admin.configProperty('css').forEach(p => this.setCustomCss(p.type + '-' + p.tag, p.config!.css));
     this.admin.configProperty('snippet').forEach(p => this.addSnippet(p.type + '-' + p.tag, p.config!.snippet));
     this.admin.configProperty('banner').forEach(p => this.addBanner(p.type + '-' + p.tag, p.config!.banner));
@@ -67,7 +68,7 @@ export class ModService {
     if (this.store.theme === theme) return;
     document.body.classList.add(theme);
     document.body.classList.remove(this.store.theme);
-    runInAction(() => this.store.theme = theme!);
+    this.store.theme = theme!;
   }
 
   setCustomCss(id: string, ...cs: (string | undefined)[]) {
@@ -179,10 +180,10 @@ export class ModService {
   }
 
   private getUserCss() {
-    return this.getTheme(this.store.account.config.userTheme!, [this.store.account.config.themes || {}, ...this.admin.themes.map(p => p.config!.themes!)]);
+    return this.getTheme(this.store.account.config.userTheme!, [this.store.account.config.themes || {}, ...this.admin.themes?.map(p => p.config!.themes!) || []]);
   }
 
   private getExtCss() {
-    return this.getTheme(this.store.view.ext?.config?.theme, [this.store.view.ext?.config?.themes || {}, ...this.admin.themes.map(p => p.config!.themes!)]);
+    return this.getTheme(this.store.view.ext?.config?.theme, [this.store.view.ext?.config?.themes || {}, ...this.admin.themes?.map(p => p.config!.themes!) || []]);
   }
 }

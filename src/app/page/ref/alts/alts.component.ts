@@ -1,7 +1,15 @@
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  effect,
+  inject,
+  Injector,
+  OnDestroy,
+  OnInit,
+  viewChild
+} from '@angular/core';
 import { defer } from 'lodash-es';
-import { autorun, IReactionDisposer, runInAction } from 'mobx';
-import { MobxAngularModule } from 'mobx-angular';
+
 import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Page } from '../../../model/page';
@@ -14,39 +22,42 @@ import { getTitle } from '../../../util/format';
 import { getArgs } from '../../../util/query';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-ref-alts',
   templateUrl: './alts.component.html',
   styleUrls: ['./alts.component.scss'],
-  imports: [MobxAngularModule, RefListComponent]
+  imports: [RefListComponent]
 })
 export class RefAltsComponent implements OnInit, OnDestroy, HasChanges {
+  private injector = inject(Injector);
+  private mod = inject(ModService);
+  admin = inject(AdminService);
+  store = inject(Store);
+  query = inject(QueryStore);
 
-  private disposers: IReactionDisposer[] = [];
 
-  @ViewChild('list')
-  list?: RefListComponent;
+  readonly list = viewChild<RefListComponent>('list');
 
   page: Page<Ref> = Page.of([]);
 
-  constructor(
-    private mod: ModService,
-    public admin: AdminService,
-    public store: Store,
-    public query: QueryStore,
-  ) {
+  constructor() {
+    const store = this.store;
+    const query = this.query;
+
     query.clear();
-    runInAction(() => store.view.defaultSort = ['modified']);
+    store.view.defaultSort = ['modified'];
   }
 
   saveChanges() {
-    return !this.list || this.list.saveChanges();
+    const list = this.list();
+    return !list || list.saveChanges();
   }
 
   ngOnInit(): void {
-    this.disposers.push(autorun(() => {
+    effect(() => {
       this.page = Page.of(this.store.view.ref?.alternateUrls?.map(url => ({ url })) || []);
-    }));
-    this.disposers.push(autorun(() => {
+    }, { injector: this.injector });
+    effect(() => {
       const args = getArgs(
         '',
         this.store.view.sort,
@@ -57,8 +68,8 @@ export class RefAltsComponent implements OnInit, OnDestroy, HasChanges {
       );
       args.url = this.store.view.url;
       defer(() => this.query.setArgs(args));
-    }));
-    this.disposers.push(autorun(() => {
+    }, { injector: this.injector });
+    effect(() => {
       if (!this.query.page) return;
       const refs = this.query.page.content;
       for (let i = 0; i < (this.store.view.ref?.alternateUrls?.length || 0); i ++) {
@@ -70,15 +81,12 @@ export class RefAltsComponent implements OnInit, OnDestroy, HasChanges {
         ...this.query.page,
         content: refs,
       };
-    }));
+    }, { injector: this.injector });
     // TODO: set title for bare reposts
-    this.disposers.push(autorun(() => this.mod.setTitle($localize`Alternate URLs: ` + getTitle(this.store.view.ref))));
+    effect(() => this.mod.setTitle($localize`Alternate URLs: ` + getTitle(this.store.view.ref)), { injector: this.injector });
   }
 
   ngOnDestroy() {
     this.query.close();
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
   }
-
 }

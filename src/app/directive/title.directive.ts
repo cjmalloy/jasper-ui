@@ -1,4 +1,4 @@
-import { Directive, ElementRef, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { Directive, ElementRef, inject, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { isArray, isString, uniq } from 'lodash-es';
 import { Ext } from '../model/ext';
 import { getPluginScope } from '../model/plugin';
@@ -10,16 +10,14 @@ import { Store } from '../store/store';
 
 @Directive({ selector: '[appTitle]' })
 export class TitleDirective implements OnChanges {
+  private store = inject(Store);
+  private el = inject(ElementRef);
+
 
   @Input('appTitle')
   node?: Visibility | Visibility[] | Ext | string | TagPreview;
   @Input()
   ref?: Ref;
-
-  constructor(
-    private store: Store,
-    private el: ElementRef,
-  ) { }
 
   ngOnChanges(changes: SimpleChanges) {
     this.render();

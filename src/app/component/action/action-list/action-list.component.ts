@@ -3,16 +3,18 @@ import { TemplatePortal } from '@angular/cdk/portal';
 import { KeyValuePipe } from '@angular/common';
 import {
   AfterViewInit,
+  ChangeDetectionStrategy,
   Component,
   ElementRef,
   HostListener,
+  inject,
   Input,
-  NgZone,
+  input,
   OnChanges,
   SimpleChanges,
   TemplateRef,
-  ViewChild,
-  ViewContainerRef
+  ViewContainerRef,
+  viewChild
 } from '@angular/core';
 import { defer } from 'lodash-es';
 import { Subscription } from 'rxjs';
@@ -27,28 +29,32 @@ import { ConfirmActionComponent } from '../confirm-action/confirm-action.compone
 import { InlineButtonComponent } from '../inline-button/inline-button.component';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-action-list',
   templateUrl: './action-list.component.html',
   styleUrl: './action-list.component.scss',
   imports: [ConfirmActionComponent, TitleDirective, InlineButtonComponent, KeyValuePipe]
 })
 export class ActionListComponent implements AfterViewInit, OnChanges {
+  private config = inject(ConfigService);
+  private acts = inject(ActionService);
+  private overlay = inject(Overlay);
+  private el = inject<ElementRef<HTMLElement>>(ElementRef);
+  private viewContainerRef = inject(ViewContainerRef);
 
-  @Input()
-  ref!: Ref;
-  @Input()
-  repostRef?: Ref;
-  @Input()
-  showDownload = true;
+
+  readonly ref = input.required<Ref>();
+  readonly repostRef = input<Ref>();
+  readonly showDownload = input(true);
   @Input()
   mediaAttachment = '';
-  @Input()
-  groupedActions?: { [key: string]: Action[] } = {};
+  readonly groupedActions = input<{
+    [key: string]: Action[];
+} | undefined>({});
   @Input()
   groupedAdvancedActions?: { [key: string]: Action[] };
 
-  @ViewChild('actionsMenu')
-  actionsMenu!: TemplateRef<any>;
+  readonly actionsMenu = viewChild.required<TemplateRef<any>>('actionsMenu');
 
   hiddenActions = 0;
   overlayRef?: OverlayRef;
@@ -56,15 +62,6 @@ export class ActionListComponent implements AfterViewInit, OnChanges {
   private overlayEvents?: Subscription;
   private overlayResizeObserver? = window.ResizeObserver && new ResizeObserver(() => this.overlayRef?.updatePosition()) || undefined;
   private resizeObserver? = window.ResizeObserver && new ResizeObserver(() => this.onResize()) || undefined;
-
-  constructor(
-    private config: ConfigService,
-    private acts: ActionService,
-    private overlay: Overlay,
-    private el: ElementRef<HTMLElement>,
-    private viewContainerRef: ViewContainerRef,
-    private zone: NgZone,
-  ) { }
 
   ngAfterViewInit() {
     this.resizeObserver?.observe(this.el.nativeElement!.parentElement!);
@@ -82,11 +79,11 @@ export class ActionListComponent implements AfterViewInit, OnChanges {
 
   apply$ = (actions: Action[]) => () => {
     this.closeAdvanced();
-    return this.acts.apply$(actions, this.ref, this.repostRef);
+    return this.acts.apply$(actions, this.ref(), this.repostRef());
   }
 
   download() {
-    downloadRef(writeRef(this.ref));
+    downloadRef(writeRef(this.ref()));
   }
 
   downloadMedia() {
@@ -107,7 +104,7 @@ export class ActionListComponent implements AfterViewInit, OnChanges {
 
   @memo
   get actions() {
-    return Object.keys(this.groupedActions as any).length;
+    return Object.keys(this.groupedActions() as any).length;
   }
 
   @memo
@@ -155,7 +152,7 @@ export class ActionListComponent implements AfterViewInit, OnChanges {
         positionStrategy,
         scrollStrategy: this.overlay.scrollStrategies.close(),
       });
-      this.overlayRef.attach(new TemplatePortal(this.actionsMenu, this.viewContainerRef));
+      this.overlayRef.attach(new TemplatePortal(this.actionsMenu(), this.viewContainerRef));
       this.overlayEvents = this.overlayRef.outsidePointerEvents().subscribe((event: MouseEvent) => {
         switch (event.type) {
           case 'click':
@@ -163,7 +160,7 @@ export class ActionListComponent implements AfterViewInit, OnChanges {
           case 'touchstart':
           case 'mousedown':
           case 'contextmenu':
-            this.zone.run(() => this.closeAdvanced());
+            this.closeAdvanced();
         }
       });
       this.overlayResizeObserver?.observe(this.overlayRef.overlayElement);

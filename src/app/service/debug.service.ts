@@ -1,4 +1,4 @@
-import { Injectable, isDevMode } from '@angular/core';
+import { inject, Injectable, isDevMode } from '@angular/core';
 import { from, of } from 'rxjs';
 import { ConfigService } from './config.service';
 
@@ -6,11 +6,9 @@ import { ConfigService } from './config.service';
   providedIn: 'root'
 })
 export class DebugService {
-  loading?: Promise<string>;
+  private config = inject(ConfigService);
 
-  constructor(
-    private config: ConfigService,
-  ) { }
+  loading?: Promise<string>;
 
   get init$() {
     if (location.search.includes('debug=')) {

@@ -1,9 +1,18 @@
-import { Component, ElementRef, Input, OnChanges, OnDestroy, SimpleChanges, ViewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  effect,
+  ElementRef,
+  inject,
+  input,
+  OnChanges,
+  SimpleChanges,
+  viewChild
+} from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { filter, find, pullAll, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
-import { autorun, IReactionDisposer, toJS } from 'mobx';
 import { Ext } from '../../model/ext';
 import { FilterConfig } from '../../model/tag';
 import { KanbanConfig } from '../../mods/org/kanban';
@@ -20,23 +29,26 @@ import { convertFilter, FilterGroup, FilterItem, negatable, toggle, UrlFilter } 
 import { hasPrefix } from '../../util/tag';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-filter',
   templateUrl: './filter.component.html',
   styleUrls: ['./filter.component.scss'],
   host: { 'class': 'filter form-group' },
   imports: [ReactiveFormsModule, FormsModule]
 })
-export class FilterComponent implements OnChanges, OnDestroy {
+export class FilterComponent implements OnChanges {
+  router = inject(Router);
+  admin = inject(AdminService);
+  store = inject(Store);
+  private auth = inject(AuthzService);
+  private bookmarks = inject(BookmarkService);
+  private editor = inject(EditorService);
 
-  private disposers: IReactionDisposer[] = [];
 
-  @ViewChild('create')
-  create?: ElementRef<HTMLSelectElement>;
+  readonly create = viewChild<ElementRef<HTMLSelectElement>>('create');
 
-  @Input()
-  activeExts: Ext[] = [];
-  @Input()
-  type?: Type;
+  readonly activeExts = input<Ext[]>([]);
+  readonly type = input<Type>();
 
   modifiedBeforeFilter: FilterItem = { filter: `modified/before/${DateTime.now().toISO()}`, label: $localize`🕓️ modified before` };
   modifiedAfterFilter: FilterItem = { filter: `modified/after/${DateTime.now().toISO()}`, label: $localize`🕓️ modified after` };
@@ -52,26 +64,19 @@ export class FilterComponent implements OnChanges, OnDestroy {
 
   emoji = emoji($localize`🪄️`) || $localize`🔍️`;
 
-  constructor(
-    public router: Router,
-    public admin: AdminService,
-    public store: Store,
-    private auth: AuthzService,
-    private bookmarks: BookmarkService,
-    private editor: EditorService,
-  ) {
-    this.disposers.push(autorun(() => {
-      this.filters = toJS(this.store.view.filter);
+  constructor() {
+    effect(() => {
+      this.filters = this.store.view.filter;
       if (!Array.isArray(this.filters)) this.filters = [this.filters];
       this.sync();
-    }));
+    });
   }
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes.activeExts || changes.type) {
-      if (this.type === 'ref') {
+      if (this.type() === 'ref') {
         this.allFilters = [];
-        for (const ext of this.activeExts) {
+        for (const ext of this.activeExts()) {
           for (const f of [...ext.config?.queryFilters || [], ...ext.config?.responseFilters || []]) {
             this.loadFilter({
               group: ext.name || this.admin.getPlugin(ext.tag)?.name || this.admin.getTemplate(ext.tag)?.name || '#' + ext.tag,
@@ -195,26 +200,22 @@ export class FilterComponent implements OnChanges, OnDestroy {
     }
   }
 
-  ngOnDestroy() {
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
-  }
 
   get rootConfigs() {
     if (!this.admin.getTemplate('')) return [];
-    return this.activeExts.map(x => x.config).filter(c => !!c) as RootConfig[];
+    return this.activeExts().map(x => x.config).filter(c => !!c) as RootConfig[];
   }
 
   get userConfigs() {
     if (!this.admin.getTemplate('user')) return [];
-    return this.activeExts
+    return this.activeExts()
       .filter(x => hasPrefix(x.tag, 'user'))
       .map(x => x.config).filter(c => !!c) as UserConfig[];
   }
 
   get kanbanExts() {
     if (!this.admin.getTemplate('kanban')) return [];
-    return this.activeExts
+    return this.activeExts()
       .filter(x => hasPrefix(x.tag, 'kanban'))
       .filter(x => x.config);
   }
@@ -317,7 +318,7 @@ export class FilterComponent implements OnChanges, OnDestroy {
     if (value) {
       if (!this.filters) this.filters = [];
       this.filters.push(value);
-      this.create!.nativeElement.selectedIndex = 0;
+      this.create()!.nativeElement.selectedIndex = 0;
       this.setFilters();
     }
   }

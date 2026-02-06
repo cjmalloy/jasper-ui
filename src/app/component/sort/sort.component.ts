@@ -1,7 +1,16 @@
-import { Component, ElementRef, Input, OnChanges, OnDestroy, SimpleChanges, ViewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  effect,
+  ElementRef,
+  inject,
+  Input,
+  OnChanges,
+  SimpleChanges,
+  viewChild
+} from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { NavigationEnd, Router } from '@angular/router';
-import { autorun, IReactionDisposer, toJS } from 'mobx';
 import { filter } from 'rxjs';
 import { AdminService } from '../../service/admin.service';
 import { Store } from '../../store/store';
@@ -9,17 +18,20 @@ import { Type } from '../../store/view';
 import { convertSort, defaultDesc, SortItem } from '../../util/query';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-sort',
   templateUrl: './sort.component.html',
   styleUrls: ['./sort.component.scss'],
   host: { 'class': 'sort form-group' },
   imports: [ReactiveFormsModule, FormsModule]
 })
-export class SortComponent implements OnChanges, OnDestroy {
-  private disposers: IReactionDisposer[] = [];
+export class SortComponent implements OnChanges {
+  router = inject(Router);
+  admin = inject(AdminService);
+  store = inject(Store);
 
-  @ViewChild('create')
-  create?: ElementRef<HTMLSelectElement>;
+
+  readonly create = viewChild<ElementRef<HTMLSelectElement>>('create');
 
   @Input()
   type?: Type;
@@ -33,16 +45,14 @@ export class SortComponent implements OnChanges, OnDestroy {
   sorts: string[] = [];
   replace = false;
 
-  constructor(
-    public router: Router,
-    public admin: AdminService,
-    public store: Store,
-  ) {
+  constructor() {
+    const router = this.router;
+
     this.type = 'ref';
-    this.disposers.push(autorun(() => {
-      this.sorts = toJS(this.store.view.sort);
+    effect(() => {
+      this.sorts = this.store.view.sort;
       if (!Array.isArray(this.sorts)) this.sorts = [this.sorts];
-    }));
+    });
     router.events.pipe(
       filter(event => event instanceof NavigationEnd),
     ).subscribe(() => this.replace = false);
@@ -61,16 +71,11 @@ export class SortComponent implements OnChanges, OnDestroy {
     }
   }
 
-  ngOnDestroy() {
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
-  }
-
   addSort(value: string) {
     this.replace = false;
     if (!this.sorts) this.sorts = [];
     this.sorts.push('');
-    this.create!.nativeElement.selectedIndex = 0;
+    this.create()!.nativeElement.selectedIndex = 0;
     this.setSortCol(this.sorts.length - 1, value);
   }
 

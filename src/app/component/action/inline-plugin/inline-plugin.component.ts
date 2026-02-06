@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, input, output, ViewChild } from '@angular/core';
 import { FormBuilder, UntypedFormGroup } from '@angular/forms';
 import { defer } from 'lodash-es';
 import { catchError, Observable, of } from 'rxjs';
@@ -10,6 +10,7 @@ import { LoadingComponent } from '../../loading/loading.component';
 import { ActionComponent } from '../action.component';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-inline-plugin',
   templateUrl: './inline-plugin.component.html',
   styleUrls: ['./inline-plugin.component.scss'],
@@ -17,35 +18,27 @@ import { ActionComponent } from '../action.component';
   imports: [GenFormComponent, LoadingComponent]
 })
 export class InlinePluginComponent extends ActionComponent {
+  admin = inject(AdminService);
+  private fb = inject(FormBuilder);
 
-  @Input()
-  action: (plugins: any) => Observable<any|never> = () => of(null);
-  @Input()
-  plugin!: Plugin;
-  @Input()
-  value?: Partial<Ref>;
-  @Output()
-  error = new EventEmitter<string>();
+
+  readonly action = input<(plugins: any) => Observable<any | never>>(() => of(null));
+  readonly plugin = input.required<Plugin>();
+  readonly value = input<Partial<Ref>>();
+  readonly error = output<string>();
 
   editing = false;
   acting = false;
 
   group: UntypedFormGroup = this.fb.group({});
 
-  constructor(
-    public admin: AdminService,
-    private fb: FormBuilder,
-  ) {
-    super();
-  }
-
   @ViewChild('gen')
   set gen(c: GenFormComponent) {
     if (!c) return;
     this.group = this.fb.group({
-      [this.plugin.tag]: this.fb.group({}),
+      [this.plugin().tag]: this.fb.group({}),
     });
-    defer(() => c.setValue(this.value?.plugins || {}));
+    defer(() => c.setValue(this.value()?.plugins || {}));
   }
 
   override reset() {
@@ -60,7 +53,7 @@ export class InlinePluginComponent extends ActionComponent {
   save() {
     this.editing = false;
     this.acting = true;
-    this.action(this.group.value).pipe(
+    this.action()(this.group.value).pipe(
       catchError(() => of(null)),
     ).subscribe(() => this.acting = false);
   }

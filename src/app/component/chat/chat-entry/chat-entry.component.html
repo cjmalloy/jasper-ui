@@ -21,25 +21,25 @@
     <span class="timestamp" [title]="ref.modified?.toISO()">{{ ref.modified?.toRelative() }}</span>
     &nbsp;|&nbsp;
   </span>
-} @else if (loading) {
+} @else if (loading()) {
   <div class="loading-container"><app-loading></app-loading></div>
 }
 <span class="message"
-      [class.bubble]="focused"
-      [class.focused]="focused"
+      [class.bubble]="focused()"
+      [class.focused]="focused()"
       [class.deleted]="deleted"
       [class.sending]="!ref.created"
       (pointerenter)="allowActions = true"
       (pointerleave)="allowActions = false">
-  <div class="content" [class.has-title]="clickableLink || title && !focused">
+  <div class="content" [class.has-title]="clickableLink || title && !focused()">
     @if (tagLink) {
       <app-nav [url]="ref.url" [text]="title"></app-nav>
-    } @else if (clickableLink && (title && !focused || !media)) {
+    } @else if (clickableLink && (title && !focused() || !media)) {
       <app-nav [url]="ref.url" [text]="title" [external]="true"></app-nav>
     } @else {
       <span>{{ title }}</span>
     }
-    @if (focused && bareRef?.comment) {
+    @if (focused() && bareRef?.comment) {
       <app-md [origin]="ref.origin!"
               [text]="bareRef!.comment!"
               [plugins]="bareRef!.tags!"></app-md>

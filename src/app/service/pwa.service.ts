@@ -1,17 +1,20 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { SwUpdate } from '@angular/service-worker';
-import { runInAction } from 'mobx';
+
 import { Store } from '../store/store';
 
 @Injectable({
   providedIn: 'root'
 })
 export class PwaService {
+  private store = inject(Store);
+  private updates = inject(SwUpdate);
 
-  constructor(
-    private store: Store,
-    private updates: SwUpdate,
-  ) {
+
+  constructor() {
+    const store = this.store;
+    const updates = this.updates;
+
     updates.versionUpdates.subscribe(evt => {
       switch (evt.type) {
         case 'VERSION_DETECTED':
@@ -28,7 +31,7 @@ export class PwaService {
     });
     updates.unrecoverable.subscribe(event => {
       console.error(`Unrecoverable PWA error: ${event.reason}`);
-      runInAction(() => store.account.unrecoverable = true);
+      store.account.unrecoverable = true;
     });
   }
 }

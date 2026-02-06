@@ -4,21 +4,22 @@ import { AsyncPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
   AfterViewInit,
+  ChangeDetectionStrategy,
   Component,
   ElementRef,
-  EventEmitter,
   forwardRef,
   HostBinding,
   HostListener,
+  inject,
   Input,
-  NgZone,
+  input,
   OnChanges,
   OnDestroy,
-  Output,
+  output,
   SimpleChanges,
   TemplateRef,
-  ViewChild,
-  ViewContainerRef
+  ViewContainerRef,
+  viewChild
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { defer, delay, difference, intersection, uniq } from 'lodash-es';
@@ -45,9 +46,10 @@ import { expandedTagsInclude, hasTag, repost } from '../../../util/tag';
 import { ChessComponent } from '../../chess/chess.component';
 import { LoadingComponent } from '../../loading/loading.component';
 import { MdComponent } from '../../md/md.component';
-import { TodoComponent } from '../../todo/todo.component';
+import TodoComponent from '../../todo/todo.component';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-kanban-card',
   templateUrl: './kanban-card.component.html',
   styleUrls: ['./kanban-card.component.scss'],
@@ -64,6 +66,19 @@ import { TodoComponent } from '../../todo/todo.component';
   ],
 })
 export class KanbanCardComponent implements OnChanges, AfterViewInit, OnDestroy {
+  store = inject(Store);
+  bookmarks = inject(BookmarkService);
+  private admin = inject(AdminService);
+  private config = inject(ConfigService);
+  private auth = inject(AuthzService);
+  private refs = inject(RefService);
+  private tags = inject(TaggingService);
+  private editor = inject(EditorService);
+  private accounts = inject(AccountService);
+  private overlay = inject(Overlay);
+  private el = inject(ElementRef);
+  private viewContainerRef = inject(ViewContainerRef);
+
   private destroy$ = new Subject<void>();
 
   @HostBinding('class.unlocked')
@@ -71,17 +86,13 @@ export class KanbanCardComponent implements OnChanges, AfterViewInit, OnDestroy 
 
   @Input()
   ref!: Ref;
-  @Input()
-  pressToUnlock = false;
-  @Input()
-  hideSwimLanes = true;
-  @Input()
-  ext?: Ext;
+  readonly pressToUnlock = input(false);
+  readonly hideSwimLanes = input(true);
+  readonly ext = input<Ext>();
   @Input()
   progress?: number;
 
-  @Output()
-  copied = new EventEmitter<Ref>();
+  readonly copied = output<Ref>();
 
   repostRef?: Ref;
   @HostBinding('class.full-size')
@@ -91,26 +102,9 @@ export class KanbanCardComponent implements OnChanges, AfterViewInit, OnDestroy 
   overlayRef?: OverlayRef;
   autoClose = true;
 
-  @ViewChild('cardMenu')
-  cardMenu!: TemplateRef<any>;
+  readonly cardMenu = viewChild.required<TemplateRef<any>>('cardMenu');
 
   private overlayEvents?: Subscription;
-
-  constructor(
-    public store: Store,
-    public bookmarks: BookmarkService,
-    private admin: AdminService,
-    private config: ConfigService,
-    private auth: AuthzService,
-    private refs: RefService,
-    private tags: TaggingService,
-    private editor: EditorService,
-    private accounts: AccountService,
-    private overlay: Overlay,
-    private el: ElementRef,
-    private viewContainerRef: ViewContainerRef,
-    private zone: NgZone,
-  ) { }
 
   init() {
     MemoCache.clear(this);
@@ -254,9 +248,9 @@ export class KanbanCardComponent implements OnChanges, AfterViewInit, OnDestroy 
 
   @memo
   get badges() {
-    const badges = intersection(this.ref.tags, this.ext?.config?.badges || []);
-    if (this.hideSwimLanes) return badges;
-    return difference(badges, this.ext?.config?.swimLanes || []);
+    const badges = intersection(this.ref.tags, this.ext()?.config?.badges || []);
+    if (this.hideSwimLanes()) return badges;
+    return difference(badges, this.ext()?.config?.swimLanes || []);
   }
 
   @memo
@@ -266,7 +260,7 @@ export class KanbanCardComponent implements OnChanges, AfterViewInit, OnDestroy 
 
   @memo
   get allBadges$() {
-    return this.editor.getTagsPreview(this.ext?.config?.badges || [], this.ref.origin || '');
+    return this.editor.getTagsPreview(this.ext()?.config?.badges || [], this.ref.origin || '');
   }
 
   @HostBinding('class.last-selected')
@@ -276,7 +270,7 @@ export class KanbanCardComponent implements OnChanges, AfterViewInit, OnDestroy 
 
   @HostListener('touchend', ['$event'])
   touchend(e: TouchEvent) {
-    this.zone.run(() => this.unlocked = false);
+    this.unlocked = false;
   }
 
   @HostListener('press', ['$event'])
@@ -295,7 +289,7 @@ export class KanbanCardComponent implements OnChanges, AfterViewInit, OnDestroy 
 
   @HostListener('contextmenu', ['$event'])
   contextMenu(event: MouseEvent) {
-    if (this.pressToUnlock) {
+    if (this.pressToUnlock()) {
       // no badge menu on mobile
       return;
     }
@@ -314,7 +308,7 @@ export class KanbanCardComponent implements OnChanges, AfterViewInit, OnDestroy 
         positionStrategy,
         scrollStrategy: this.overlay.scrollStrategies.close(),
       });
-      this.overlayRef.attach(new TemplatePortal(this.cardMenu, this.viewContainerRef));
+      this.overlayRef.attach(new TemplatePortal(this.cardMenu(), this.viewContainerRef));
       this.overlayEvents = this.overlayRef.outsidePointerEvents().subscribe((event: MouseEvent) => {
         switch (event.type) {
           case 'click':
@@ -322,7 +316,7 @@ export class KanbanCardComponent implements OnChanges, AfterViewInit, OnDestroy 
           case 'touchstart':
           case 'mousedown':
           case 'contextmenu':
-            this.zone.run(() => this.close());
+            this.close();
         }
       });
     });

@@ -1,4 +1,13 @@
-import { Component, Input, OnDestroy, OnInit, QueryList, ViewChildren } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  inject,
+  Input,
+  input,
+  OnDestroy,
+  OnInit,
+  viewChildren
+} from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, forkJoin, Observable, of, Subject, takeUntil } from 'rxjs';
 import { HasChanges } from '../../guard/pending-changes.guard';
@@ -14,6 +23,7 @@ import { RefComponent } from '../ref/ref.component';
 import { NoteComponent } from './note/note.component';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-notebook',
   templateUrl: './notebook.component.html',
   styleUrl: './notebook.component.scss',
@@ -25,35 +35,28 @@ import { NoteComponent } from './note/note.component';
   ],
 })
 export class NotebookComponent implements OnInit, OnDestroy, HasChanges {
+  private accounts = inject(AccountService);
+  private router = inject(Router);
+  private store = inject(Store);
+  private refs = inject(RefService);
+
   private destroy$ = new Subject<void>();
 
-  @Input()
-  hide?: number[];
-  @Input()
-  plugins?: string[];
-  @Input()
-  showPageLast = true;
-  @Input()
-  showAlarm = true;
-  @Input()
-  pageControls = true;
+  readonly hide = input<number[]>();
+  readonly plugins = input<string[]>();
+  readonly showPageLast = input(true);
+  readonly showAlarm = input(true);
+  readonly pageControls = input(true);
   @Input()
   emptyMessage = 'No results found';
-  @Input()
-  showToggle = true;
-  @Input()
-  expandInline = false;
-  @Input()
-  showVotes = false;
-  @Input()
-  hideNewZeroVoteScores = true;
-  @Input()
-  newRefs$?: Observable<Ref | undefined>;
-  @Input()
-  showPrev = true;
+  readonly showToggle = input(true);
+  readonly expandInline = input(false);
+  readonly showVotes = input(false);
+  readonly hideNewZeroVoteScores = input(true);
+  readonly newRefs$ = input<Observable<Ref | undefined>>();
+  readonly showPrev = input(true);
 
-  @ViewChildren(RefComponent)
-  list?: QueryList<RefComponent>;
+  readonly list = viewChildren(RefComponent);
 
   pinned: Ref[] = [];
   newRefs: Ref[] = [];
@@ -63,15 +66,8 @@ export class NotebookComponent implements OnInit, OnDestroy, HasChanges {
   private _expanded?: boolean;
   private _cols = 0;
 
-  constructor(
-    private accounts: AccountService,
-    private router: Router,
-    private store: Store,
-    private refs: RefService,
-  ) { }
-
   saveChanges() {
-    return !this.list?.find(r => !r.saveChanges());
+    return !this.list()?.find(r => !r.saveChanges());
   }
 
   get ext() {
@@ -141,7 +137,7 @@ export class NotebookComponent implements OnInit, OnDestroy, HasChanges {
   }
 
   ngOnInit(): void {
-    this.newRefs$?.pipe(
+    this.newRefs$()?.pipe(
       takeUntil(this.destroy$),
     ).subscribe(ref => ref && this.addNewRef(ref));
   }

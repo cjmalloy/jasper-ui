@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { Ref } from '../model/ref';
 import { Role } from '../model/user';
 import { Store } from '../store/store';
@@ -9,11 +9,9 @@ import { ConfigService } from './config.service';
   providedIn: 'root'
 })
 export class AuthzService {
+  private store = inject(Store);
+  private config = inject(ConfigService);
 
-  constructor(
-    private store: Store,
-    private config: ConfigService,
-  ) { }
 
   writeAccess(ref: Ref): boolean {
     if (!this.store.account.signedIn) return false;

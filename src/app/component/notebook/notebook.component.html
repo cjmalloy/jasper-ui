@@ -11,7 +11,7 @@
               [ext]="ext"></app-note>
   }
   @for (ref of page?.content; track ref.origin + '@' + ref.url) {
-    @if (!hide?.includes($any(ref.modified?.valueOf()) || 0)) {
+    @if (!hide()?.includes($any(ref.modified?.valueOf()) || 0)) {
       <app-note class="ref-list-item"
                 [ref]="ref"
                 [ext]="ext"></app-note>
@@ -23,11 +23,11 @@
     @if (!newRefs.length && emptyMessage) {
       <p class="no-results">{{ emptyMessage }}</p>
     }
-  } @else if (pageControls) {
-    <app-page-controls [showPageLast]="showPageLast"
+  } @else if (pageControls()) {
+    <app-page-controls [showPageLast]="showPageLast()"
                        [page]="page"
                        [defaultCols]="cols"
-                       [showPrev]="showPrev"></app-page-controls>
+                       [showPrev]="showPrev()"></app-page-controls>
   }
 } @else {
   <app-loading></app-loading>

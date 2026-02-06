@@ -1,4 +1,4 @@
-import { Injectable, ViewContainerRef } from '@angular/core';
+import { inject, Injectable, ViewContainerRef } from '@angular/core';
 import { escape, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { marked, Token, Tokens, TokensList } from 'marked';
@@ -26,17 +26,22 @@ import { EditorService } from './editor.service';
   providedIn: 'root'
 })
 export class EmbedService {
+  private config = inject(ConfigService);
+  private admin = inject(AdminService);
+  private editor = inject(EditorService);
+  private refs = inject(RefService);
+  private exts = inject(ExtService);
+  private markdownService = inject(MarkdownService);
+  private oembeds = inject(OembedStore);
+  private store = inject(Store);
 
-  constructor(
-    private config: ConfigService,
-    private admin: AdminService,
-    private editor: EditorService,
-    private refs: RefService,
-    private exts: ExtService,
-    private markdownService: MarkdownService,
-    private oembeds: OembedStore,
-    private store: Store,
-  ) {
+
+  constructor() {
+    const config = this.config;
+    const admin = this.admin;
+    const editor = this.editor;
+    const markdownService = this.markdownService;
+
     markdownService.options = {
       gfm: true,
       breaks: false,

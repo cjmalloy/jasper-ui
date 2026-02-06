@@ -3,8 +3,7 @@ import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http'
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { forwardRef } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ActivatedRoute, provideRouter } from '@angular/router';
-import { of } from 'rxjs';
+import { provideRouter } from '@angular/router';
 
 import { UploadPage } from './upload.component';
 
@@ -19,14 +18,6 @@ describe('UploadPage', () => {
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),
         provideRouter([]),
-        {
-          provide: ActivatedRoute,
-          useValue: {
-            params: of({}),
-            queryParams: of({}),
-            snapshot: { params: {}, queryParams: {} }
-          }
-        },
       ],
     }).compileComponents();
 

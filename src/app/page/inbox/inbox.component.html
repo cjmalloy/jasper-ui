@@ -1,50 +1,48 @@
-<ng-container *mobxAutorun>
-  <app-tabs>
-    <a class="logo" routerLink="/"></a>
-    <h5 class="fake-link" routerLink="." i18n>Inbox</h5>
-    @if (admin.getTemplate('dm') && admin.getTemplate('user') && store.account.userTag) {
-      <a routerLink="./all" routerLinkActive="current-tab"
-         i18n-title title="✉️ All Messages"
-         i18n>all</a>
-    }
-    @if (admin.getTemplate('dm') && admin.getTemplate('user') && store.account.userTag) {
-      <a routerLink="./unread" routerLinkActive="current-tab"
-         i18n-title title="📩 Unread"
-         i18n>unread</a>
-    }
-    @if (admin.getTemplate('user') && store.account.userTag) {
-      <a routerLink="./sent" routerLinkActive="current-tab"
-         i18n-title title="📤 Sent"
-         i18n>sent</a>
-      <a routerLink="./alarms" routerLinkActive="current-tab"
-         i18n-title title="🔔 Alarms"
-         i18n>alarms</a>
-    }
-    @if (admin.getTemplate('dm')) {
-      <a routerLink="./dms" routerLinkActive="current-tab"
-         i18n-title title="📨 Direct Messages"
-         i18n>dms</a>
-    }
-    @if (admin.getTemplate('_moderated')) {
-      <a routerLink="./modlist" routerLinkActive="current-tab"
-         i18n-title title="🛡️ Moderation List"
-         i18n>modlist</a>
-    }
-    @if (admin.getPlugin('plugin/user/report')) {
-      <a routerLink="./reports" routerLinkActive="current-tab"
-         i18n-title title="🙅️ Reports"
-         i18n>reports</a>
-    }
-    @for (plugin of store.view.inboxTabs; track plugin.tag) {
-      <a [routerLink]="['./ref', plugin.tag]"
-         [replaceUrl]="true"
-         routerLinkActive="current-tab"
-         queryParamsHandling="merge"
-         [title]="plugin.name || plugin.tag">{{ plugin.config?.inbox || plugin.tag }}</a>
-    }
-  </app-tabs>
-  @if (store.view.type) {
-    <app-sidebar [tag]="store.view.inboxTag"></app-sidebar>
+<app-tabs>
+  <a class="logo" routerLink="/"></a>
+  <h5 class="fake-link" routerLink="." i18n>Inbox</h5>
+  @if (admin.getTemplate('dm') && admin.getTemplate('user') && store.account.userTag) {
+    <a routerLink="./all" routerLinkActive="current-tab"
+       i18n-title title="✉️ All Messages"
+       i18n>all</a>
   }
-  <router-outlet></router-outlet>
-</ng-container>
+  @if (admin.getTemplate('dm') && admin.getTemplate('user') && store.account.userTag) {
+    <a routerLink="./unread" routerLinkActive="current-tab"
+       i18n-title title="📩 Unread"
+       i18n>unread</a>
+  }
+  @if (admin.getTemplate('user') && store.account.userTag) {
+    <a routerLink="./sent" routerLinkActive="current-tab"
+       i18n-title title="📤 Sent"
+       i18n>sent</a>
+    <a routerLink="./alarms" routerLinkActive="current-tab"
+       i18n-title title="🔔 Alarms"
+       i18n>alarms</a>
+  }
+  @if (admin.getTemplate('dm')) {
+    <a routerLink="./dms" routerLinkActive="current-tab"
+       i18n-title title="📨 Direct Messages"
+       i18n>dms</a>
+  }
+  @if (admin.getTemplate('_moderated')) {
+    <a routerLink="./modlist" routerLinkActive="current-tab"
+       i18n-title title="🛡️ Moderation List"
+       i18n>modlist</a>
+  }
+  @if (admin.getPlugin('plugin/user/report')) {
+    <a routerLink="./reports" routerLinkActive="current-tab"
+       i18n-title title="🙅️ Reports"
+       i18n>reports</a>
+  }
+  @for (plugin of store.view.inboxTabs; track plugin.tag) {
+    <a [routerLink]="['./ref', plugin.tag]"
+       [replaceUrl]="true"
+       routerLinkActive="current-tab"
+       queryParamsHandling="merge"
+       [title]="plugin.name || plugin.tag">{{ plugin.config?.inbox || plugin.tag }}</a>
+  }
+</app-tabs>
+@if (store.view.type) {
+  <app-sidebar [tag]="store.view.inboxTag"></app-sidebar>
+}
+<router-outlet></router-outlet>

@@ -1,4 +1,4 @@
-import { Component, ElementRef, Input, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, inject, Input, ViewChild } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { defer } from 'lodash-es';
@@ -11,25 +11,24 @@ import { access, fixClientQuery, getStrictPrefix, localTag, tagOrigin } from '..
 export type Crumb = { text: string, tag?: string, pos: number, len: number };
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-query',
   templateUrl: './query.component.html',
   styleUrls: ['./query.component.scss'],
   imports: [ReactiveFormsModule, RouterLink]
 })
 export class QueryComponent {
+  private router = inject(Router);
+  private exts = inject(ExtService);
+  private admin = inject(AdminService);
+  store = inject(Store);
+
 
   editing = false;
   select: boolean | Crumb[] = false;
   breadcrumbs: Crumb[] = [];
 
   private _query = '';
-
-  constructor(
-    private router: Router,
-    private exts: ExtService,
-    private admin: AdminService,
-    public store: Store,
-  ) { }
 
   get query(): string {
     return this._query;

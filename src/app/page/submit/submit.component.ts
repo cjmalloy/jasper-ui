@@ -1,5 +1,5 @@
 import { AsyncPipe } from '@angular/common';
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, inject, Injector, OnDestroy, OnInit } from '@angular/core';
 import {
   AbstractControl,
   AsyncValidatorFn,
@@ -12,8 +12,7 @@ import {
 } from '@angular/forms';
 import { Router, RouterLink, RouterOutlet } from '@angular/router';
 import { debounce, defer, isString, uniq, uniqBy, without } from 'lodash-es';
-import { autorun, IReactionDisposer, runInAction } from 'mobx';
-import { MobxAngularModule } from 'mobx-angular';
+
 import { catchError, forkJoin, map, mergeMap, Observable, of, Subscription, switchMap, timer } from 'rxjs';
 import { scan, tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
@@ -44,12 +43,12 @@ import { hasPrefix } from '../../util/tag';
 type Validation = { test: (url: string) => Observable<any>; name: string; passed: boolean };
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-submit-page',
   templateUrl: './submit.component.html',
   styleUrls: ['./submit.component.scss'],
   imports: [
     RefComponent,
-    MobxAngularModule,
     TabsComponent,
     RouterLink,
     RouterOutlet,
@@ -66,7 +65,15 @@ type Validation = { test: (url: string) => Observable<any>; name: string; passed
   ],
 })
 export class SubmitPage implements OnInit, OnDestroy {
-  private disposers: IReactionDisposer[] = [];
+  private injector = inject(Injector);
+  admin = inject(AdminService);
+  private mod = inject(ModService);
+  private router = inject(Router);
+  store = inject(Store);
+  private auth = inject(AuthzService);
+  private refs = inject(RefService);
+  private fb = inject(UntypedFormBuilder);
+
 
   submitForm: UntypedFormGroup;
 
@@ -86,29 +93,24 @@ export class SubmitPage implements OnInit, OnDestroy {
   autocomplete: { value: string, label: string }[] = [];
   private searching?: Subscription;
 
-  constructor(
-    public admin: AdminService,
-    private mod: ModService,
-    private router: Router,
-    public store: Store,
-    private auth: AuthzService,
-    private refs: RefService,
-    private fb: UntypedFormBuilder,
-  ) {
+  constructor() {
+    const admin = this.admin;
+    const mod = this.mod;
+    const store = this.store;
+    const fb = this.fb;
+
     mod.setTitle($localize`Submit: Link`);
     this.submitForm = fb.group({
       url: ['', [Validators.required], [this.validator]],
       scrape: [true],
     });
-    runInAction(() => {
-      store.submit.wikiPrefix = admin.getWikiPrefix();
-      store.submit.submitGenId = this.admin.submitGenId.filter(p => p.config?.submitDm || this.auth.canAddTag(p.tag));
-      store.submit.submitDm = this.admin.submitDm;
-    });
+    store.submit.wikiPrefix = admin.getWikiPrefix();
+    store.submit.submitGenId = this.admin.submitGenId.filter(p => p.config?.submitDm || this.auth.canAddTag(p.tag));
+    store.submit.submitDm = this.admin.submitDm;
   }
 
   ngOnInit(): void {
-    this.disposers.push(autorun(() => {
+    effect(() => {
       this.validations.length = 0;
       if (!this.admin.isWikiExternal() && this.store.submit.wiki) {
         this.validations.push({ name: $localize`Valid title`, passed: false, test: url => of(this.linkType(this.fixed(url))) });
@@ -132,12 +134,10 @@ export class SubmitPage implements OnInit, OnDestroy {
           }
         }
       }
-    }));
+    }, { injector: this.injector });
   }
 
   ngOnDestroy() {
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
     this.searching?.unsubscribe();
   }
 

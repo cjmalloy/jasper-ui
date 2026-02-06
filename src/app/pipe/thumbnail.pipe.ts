@@ -1,4 +1,4 @@
-import { Pipe, PipeTransform } from '@angular/core';
+import { inject, Pipe, PipeTransform } from '@angular/core';
 import { map, Observable, of } from 'rxjs';
 import { Ref } from '../model/ref';
 import { AdminService } from '../service/admin.service';
@@ -12,12 +12,10 @@ import { hasTag } from '../util/tag';
     pure: true
 })
 export class ThumbnailPipe implements PipeTransform {
+  private admin = inject(AdminService);
+  private store = inject(OembedStore);
+  private proxy = inject(ProxyService);
 
-  constructor(
-    private admin: AdminService,
-    private store: OembedStore,
-    private proxy: ProxyService,
-  ) { }
 
   transform(refs: (Ref | undefined)[], force = false): Observable<string> {
     for (const ref of refs) {

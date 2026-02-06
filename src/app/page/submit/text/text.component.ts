@@ -1,5 +1,18 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { AfterViewInit, Component, ElementRef, OnChanges, OnDestroy, SimpleChanges, ViewChild } from '@angular/core';
+import {
+  AfterViewInit,
+  ChangeDetectionStrategy,
+  Component,
+  effect,
+  ElementRef,
+  inject,
+  Injector,
+  OnChanges,
+  OnDestroy,
+  SimpleChanges,
+  ViewChild,
+  viewChild
+} from '@angular/core';
 import {
   ReactiveFormsModule,
   UntypedFormArray,
@@ -10,8 +23,7 @@ import {
 import { Router } from '@angular/router';
 import { defer, some, uniq, without } from 'lodash-es';
 import { DateTime } from 'luxon';
-import { autorun, IReactionDisposer, runInAction } from 'mobx';
-import { MobxAngularModule } from 'mobx-angular';
+
 import { MonacoEditorModule } from 'ngx-monaco-editor';
 import { catchError, forkJoin, map, of, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
@@ -46,13 +58,13 @@ import { memo, MemoCache } from '../../../util/memo';
 import { getVisibilityTags, hasPrefix, hasTag } from '../../../util/tag';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-submit-text',
   templateUrl: './text.component.html',
   styleUrls: ['./text.component.scss'],
   host: { 'class': 'full-page-form' },
   imports: [
     EditorComponent,
-    MobxAngularModule,
     ReactiveFormsModule,
     LimitWidthDirective,
     NavComponent,
@@ -67,23 +79,29 @@ import { getVisibilityTags, hasPrefix, hasTag } from '../../../util/tag';
   ],
 })
 export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasChanges {
-  private disposers: IReactionDisposer[] = [];
+  private injector = inject(Injector);
+  config = inject(ConfigService);
+  private mod = inject(ModService);
+  admin = inject(AdminService);
+  private router = inject(Router);
+  store = inject(Store);
+  bookmarks = inject(BookmarkService);
+  private editor = inject(EditorService);
+  private refs = inject(RefService);
+  private exts = inject(ExtService);
+  private ts = inject(TaggingService);
+  private fb = inject(UntypedFormBuilder);
+
 
   submitted = false;
   textForm: UntypedFormGroup;
   advanced = false;
   serverError: string[] = [];
 
-  @ViewChild('fill')
-  fill?: ElementRef;
-
-  @ViewChild('ed')
-  editorComponent?: EditorComponent;
-
-  @ViewChild('tagsFormComponent')
-  tagsFormComponent!: TagsFormComponent;
-  @ViewChild('plugins')
-  plugins!: PluginsFormComponent;
+  readonly fill = viewChild<ElementRef>('fill');
+  readonly fillCustom = viewChild<ElementRef>('fillCustom');
+  readonly tagsFormComponent = viewChild.required<TagsFormComponent>('tagsFormComponent');
+  readonly plugins = viewChild.required<PluginsFormComponent>('plugins');
 
   submitting?: Subscription;
   addAnother = false;
@@ -93,22 +111,15 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
   private oldSubmit: string[] = [];
   private savedRef?: Ref;
 
-  constructor(
-    public config: ConfigService,
-    private mod: ModService,
-    public admin: AdminService,
-    private router: Router,
-    public store: Store,
-    public bookmarks: BookmarkService,
-    private editor: EditorService,
-    private refs: RefService,
-    private exts: ExtService,
-    private ts: TaggingService,
-    private fb: UntypedFormBuilder,
-  ) {
+  constructor() {
+    const mod = this.mod;
+    const admin = this.admin;
+    const store = this.store;
+    const fb = this.fb;
+
     mod.setTitle($localize`Submit: Text Post`);
     this.textForm = refForm(fb);
-    runInAction(() => store.submit.wikiPrefix = admin.getWikiPrefix());
+    store.submit.wikiPrefix = admin.getWikiPrefix();
   }
 
   saveChanges() {
@@ -130,14 +141,14 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
       if (d) {
         this.oldSubmit = uniq([...allTags, ...Object.keys(d.ref.plugins || {})]);
         this.addTag(...this.oldSubmit);
-        this.plugins.setValue(d.ref.plugins);
+        this.plugins().setValue(d.ref.plugins);
         this.textForm.patchValue({
           ...d.ref,
           tags: this.oldSubmit,
         });
       }
       if (this.store.account.localTag) this.addTag(this.store.account.localTag);
-      this.disposers.push(autorun(() => {
+      effect(() => {
         MemoCache.clear(this);
         let url = this.store.submit.url || 'comment:' + uuid();
         if (!this.admin.isWikiExternal() && this.store.submit.wiki) {
@@ -155,11 +166,11 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
         const removed = without(this.oldSubmit, ...tags);
         if (added.length || removed.length) {
           this.oldSubmit = uniq([...without(this.oldSubmit, ...removed), ...added]);
-          this.tagsFormComponent!.setTags(this.oldSubmit);
+          this.tagsFormComponent()!.setTags(this.oldSubmit);
         }
         if (this.store.submit.pluginUpload) {
           this.addTag(this.store.submit.plugin);
-          this.plugins.setValue({
+          this.plugins().setValue({
             ...this.textForm.value.plugins || {},
             [this.store.submit.plugin]: { url: this.store.submit.pluginUpload },
           });
@@ -168,9 +179,9 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
           }
         }
         for (const s of this.store.submit.sources) {
-          this.addSource(s)
+          this.addSource(s);
         }
-      }));
+      }, { injector: this.injector });
     });
   }
 
@@ -179,8 +190,6 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
   }
 
   ngOnDestroy() {
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
   }
 
   get randomURL() {
@@ -256,11 +265,12 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
   }
 
   setTags(value: string[]) {
-    if (!this.tagsFormComponent?.tags) {
+    const tagsFormComponent = this.tagsFormComponent();
+    if (!tagsFormComponent?.tags) {
       defer(() => this.setTags(value));
       return;
     }
-    this.tagsFormComponent.setTags(value);
+    tagsFormComponent.setTags(value);
   }
 
   validate(input: HTMLInputElement) {
@@ -273,11 +283,12 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
   }
 
   addTag(...values: string[]) {
-    if (!this.tagsFormComponent?.tags) {
+    const tagsFormComponent = this.tagsFormComponent();
+    if (!tagsFormComponent?.tags) {
       defer(() => this.addTag(...values));
       return;
     }
-    this.tagsFormComponent.addTag(...values);
+    tagsFormComponent.addTag(...values);
     this.submitted = false;
     MemoCache.clear(this);
   }

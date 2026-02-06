@@ -1,7 +1,15 @@
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  effect,
+  inject,
+  Injector,
+  OnDestroy,
+  OnInit,
+  viewChild
+} from '@angular/core';
 import { defer } from 'lodash-es';
-import { autorun, IReactionDisposer, runInAction } from 'mobx';
-import { MobxAngularModule } from 'mobx-angular';
+
 import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { AdminService } from '../../../service/admin.service';
@@ -12,34 +20,32 @@ import { getTitle } from '../../../util/format';
 import { getArgs } from '../../../util/query';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-ref-versions',
   templateUrl: './versions.component.html',
   styleUrls: ['./versions.component.scss'],
-  imports: [MobxAngularModule, RefListComponent]
+  imports: [ RefListComponent]
 })
 export class RefVersionsComponent implements OnInit, OnDestroy, HasChanges {
+  private injector = inject(Injector);
+  private mod = inject(ModService);
+  admin = inject(AdminService);
+  store = inject(Store);
+  query = inject(QueryStore);
 
-  private disposers: IReactionDisposer[] = [];
 
-  @ViewChild('list')
-  list?: RefListComponent;
+  readonly list = viewChild<RefListComponent>('list');
 
-  constructor(
-    private mod: ModService,
-    public admin: AdminService,
-    public store: Store,
-    public query: QueryStore,
-  ) {
+  constructor() {
+    const store = this.store;
+    const query = this.query;
+
     query.clear();
-    runInAction(() => store.view.defaultSort = ['published']);
-  }
-
-  saveChanges() {
-    return !this.list || this.list.saveChanges();
+    store.view.defaultSort = ['published'];
   }
 
   ngOnInit(): void {
-    this.disposers.push(autorun(() => {
+    effect(() => {
       const args = getArgs(
         '',
         this.store.view.sort,
@@ -51,15 +57,17 @@ export class RefVersionsComponent implements OnInit, OnDestroy, HasChanges {
       args.url = this.store.view.url;
       args.obsolete = this.store.view.ref?.metadata?.obsolete ? null : true;
       defer(() => this.query.setArgs(args));
-    }));
+    }, { injector: this.injector });
     // TODO: set title for bare reposts
-    this.disposers.push(autorun(() => this.mod.setTitle($localize`Remotes: ` + getTitle(this.store.view.ref))));
+    effect(() => this.mod.setTitle($localize`Remotes: ` + getTitle(this.store.view.ref)), { injector: this.injector });
+  }
+
+  saveChanges() {
+    const list = this.list();
+    return !list || list.saveChanges();
   }
 
   ngOnDestroy() {
     this.query.close();
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
   }
-
 }

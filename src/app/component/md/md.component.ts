@@ -1,4 +1,4 @@
-import { Component, ElementRef, Input, Output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, inject, Input, input, Output } from '@angular/core';
 import { MermaidConfig } from 'mermaid';
 import { MarkdownComponent, MermaidAPI } from 'ngx-markdown';
 import { Subject } from 'rxjs';
@@ -8,6 +8,7 @@ import { AdminService } from '../../service/admin.service';
 import { Store } from '../../store/store';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-md',
   templateUrl: './md.component.html',
   styleUrls: ['./md.component.scss'],
@@ -17,13 +18,14 @@ import { Store } from '../../store/store';
   ]
 })
 export class MdComponent {
+  admin = inject(AdminService);
+  store = inject(Store);
+  el = inject(ElementRef);
 
-  @Input()
-  origin? = '';
-  @Input()
-  plugins?: string[];
-  @Input()
-  disableSanitizer = false;
+
+  readonly origin = input<string | undefined>('');
+  readonly plugins = input<string[]>();
+  readonly disableSanitizer = input(false);
   @Output()
   postProcessMarkdown: Subject<void> = new Subject();
   @Input()
@@ -45,12 +47,6 @@ export class MdComponent {
   private _text = '';
   private _value? = '';
 
-  constructor(
-    public admin: AdminService,
-    public store: Store,
-    public el: ElementRef,
-  ) { }
-
   get text(): string {
     return this._text;
   }
@@ -62,7 +58,7 @@ export class MdComponent {
   }
 
   get value() {
-    if (this.plugins?.includes('plugin/table')) {
+    if (this.plugins()?.includes('plugin/table')) {
       if (this._value) return this._value;
       try {
         const wb = XLSX.read(this._text, {type: 'string'});

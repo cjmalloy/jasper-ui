@@ -25,7 +25,7 @@
          [class.loading]="!embedReady"
          [class.twitter]="twitter"
          [class.zoom]="zoom"
-         [appResizeHandle]="resizable && !disableResize && !fullscreen"
+         [appResizeHandle]="resizable && !disableResize() && !fullscreen"
          [child]="iframe">
       <iframe #iframe
               class="embed-expand"
@@ -43,21 +43,21 @@
          [ref]="ref"
          [defaultWidth]="ref?.plugins?.['plugin/image']?.width"
          [defaultHeight]="ref?.plugins?.['plugin/image']?.height"
-         [grid]="disableResize"
-         [appResize]="!disableResize"></div>
+         [grid]="disableResize()"
+         [appResize]="!disableResize()"></div>
   }
   @if (videoUrl) {
     <video #video
            class="video-expand"
-           [autoplay]="autoplay"
+           [autoplay]="autoplay()"
            controls
-           [appResize]="!disableResize">
+           [appResize]="!disableResize()">
       <source [src]="videoUrl">
     </video>
   }
   @if (audioUrl) {
     <audio class="no-resize audio-expand"
-           [autoplay]="autoplay"
+           [autoplay]="autoplay()"
            controls>
       <source [src]="audioUrl">
     </audio>
@@ -65,7 +65,7 @@
   @if (qrUrl) {
     <app-qr class="zoom qr-expand"
             [url]="qrUrl"
-            [appResize]="!disableResize"></app-qr>
+            [appResize]="!disableResize()"></app-qr>
   }
   @if (todo) {
     <app-todo class="zoom"
@@ -99,14 +99,14 @@
           [clipboard]="false"></app-md>
 } @else if (currentText) {
   <app-md class="zoom md-container"
-          [class.expand]="expand"
+          [class.expand]="expand()"
           [origin]="currentOrigin"
           [text]="currentText"
           [plugins]="currentTags"></app-md>
 }
 @if (pdfUrl) {
   <div class="embed-container"
-       [appResizeHandle]="!disableResize && !fullscreen"
+       [appResizeHandle]="!disableResize() && !fullscreen"
        [child]="pdfIframe">
     <iframe #pdfIframe
             class="embed-expand ready"
@@ -127,5 +127,5 @@
 @if (mod) {
   <app-mod class="zoom md-container"
            [mod]="mod"
-           [class.expand]="expand"></app-mod>
+           [class.expand]="expand()"></app-mod>
 }

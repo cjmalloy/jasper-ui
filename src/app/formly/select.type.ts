@@ -10,6 +10,7 @@ interface SelectProps extends FormlyFieldProps, FormlyFieldSelectProps {
 }
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'formly-field-select',
   host: { 'class': 'field' },
   template: `
@@ -57,7 +58,6 @@ interface SelectProps extends FormlyFieldProps, FormlyFieldSelectProps {
       </select>
     }
   `,
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     ReactiveFormsModule,
     AsyncPipe,

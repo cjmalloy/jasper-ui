@@ -1,7 +1,7 @@
 import { FormlyFieldConfig } from '@ngx-formly/core';
 import { Schema } from 'jtd';
 import { DateTime } from 'luxon';
-import { toJS } from 'mobx';
+
 import { Observable } from 'rxjs';
 import { Ref, RefSort, RefUpdates } from './ref';
 import { Config, EmitAction } from './tag';
@@ -188,8 +188,8 @@ export function getPluginScope(plugin?: Config, ref: Ref = { url: '' }, el?: Ele
   return {
     el,
     actions,
-    ref: toJS(ref),
-    plugin: toJS(plugin),
-    ...toJS(plugin && ref.plugins?.[plugin.tag || ''] || {}),
+    ref: ref,
+    plugin: plugin,
+    ...plugin && ref.plugins?.[plugin.tag || ''] || {},
   };
 }
