@@ -60,6 +60,7 @@ import {
 } from '../../util/format';
 import { getExtension, getScheme, printError } from '../../util/http';
 import { memo, MemoCache } from '../../util/memo';
+import { markRead } from '../../util/response';
 import {
   capturesAny,
   expandedTagsInclude,
@@ -111,6 +112,8 @@ import { ViewerComponent } from '../viewer/viewer.component';
 })
 export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasChanges {
   css = 'ref list-item';
+  @HostBinding('class')
+  allCss = this.getPluginClasses();
   private disposers: IReactionDisposer[] = [];
   private destroy$ = new Subject<void>();
 
@@ -309,6 +312,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     this.advancedActions = ref.created ? sortOrder(this.admin.getAdvancedActions(ref.tags, ref.plugins)) : [];
     this.groupedAdvancedActions = groupBy(this.advancedActions.filter(a => this.showAction(a)), a => (a as any)[this.label(a)]);
     this.infoUis = this.admin.getPluginInfoUis(ref.tags);
+    this.allCss = this.getPluginClasses()
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -341,11 +345,12 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     event.preventDefault();
   }
 
-  @HostBinding('class')
-  get pluginClasses() {
+  getPluginClasses() {
+    if (!this.ref) return this.css;
     return this.css + ' ' + [
       ...templates(this.ref.tags, 'plugin'),
-      ...Object.keys(this.ref.metadata?.plugins || {}).map(p => 'response-' + p)
+      ...Object.keys(this.ref.metadata?.plugins || {}).map(p => 'response-' + p),
+      ...(this.ref.metadata?.userUrls || []).map(p => 'user-response-' + p)
     ].map(t => t.replace(/[+_]/g, '').replace(/\//g, '_').replace(/\./g, '-')).join(' ');
   }
 
@@ -937,7 +942,6 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
         this.cd.detectChanges();
       } else if (this.pipRequired) {
         this.store.eventBus.fire('pip', this.ref);
-        this.store.eventBus.fire('');
         read = true;
       } else {
         this.expanded = !this.expanded;
@@ -945,20 +949,22 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
       }
       // Mark as read
       if (!read && !this.expanded) return;
-      if (!this.admin.getPlugin('plugin/user/read')) return;
-      if (this.ref.metadata?.userUrls?.includes('plugin/user/read')) return;
-      // TODO: Update ref metadata
-      this.ts.createResponse('plugin/user/read', this.ref.url).subscribe();
+      this.markRead();
     }
   }
 
   pip(event?: MouseEvent) {
     if (!this.admin.pip) return;
     this.store.eventBus.fire('pip', this.ref);
-    this.store.eventBus.fire('');
+    this.markRead();
     if ('vibrate' in navigator) navigator.vibrate([2, 32, 4]);
     event?.preventDefault();
     event?.stopPropagation();
+  }
+
+  markRead() {
+    markRead(this.admin, this.ts, this.ref);
+    this.allCss = this.getPluginClasses();
   }
 
   @memo

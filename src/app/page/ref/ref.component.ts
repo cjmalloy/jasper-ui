@@ -20,6 +20,7 @@ import { TaggingService } from '../../service/api/tagging.service';
 import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
 import { memo, MemoCache } from '../../util/memo';
+import { markRead } from '../../util/response';
 import { hasTag, privateTag, top } from '../../util/tag';
 
 @Component({
@@ -228,8 +229,6 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
   }
 
   markRead(ref: Ref) {
-    if (!this.admin.getPlugin('plugin/user/read')) return;
-    if (ref.metadata?.userUrls?.includes('plugin/user/read')) return;
-    this.ts.createResponse('plugin/user/read', ref.url).subscribe();
+    markRead(this.admin, this.ts, ref);
   }
 }
