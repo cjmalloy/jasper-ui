@@ -35,8 +35,6 @@ This Angular client (jasper-ui) provides the reference implementation for intera
 ## Quick Start
 
 - **CRITICAL**: Debugging requires the Jasper server backend running
-- Install Node.js 24: `curl -fsSL https://deb.nodesource.com/setup_24.x | sudo -E bash - && sudo apt-get install -y nodejs`
-- Install dependencies: `npm ci` (use `CYPRESS_INSTALL_BINARY=0 npm ci` if network blocks Cypress)
 
 ## Development Commands
 
@@ -66,10 +64,10 @@ docker compose up --build  # Everything on http://localhost:8082/
 - Build: `npm run build` (~100s, NEVER CANCEL, timeout 180+s)
 - Unit tests: `npm test -- --watch=false` (~55s, NEVER CANCEL, timeout 120+s) - runs Vitest via Angular CLI
 - Docker tests: `docker build . --target test -t jasper-ui-test && docker run --rm jasper-ui-test`
-- E2E tests: `npm run cy:ci` (10-20 min, NEVER CANCEL, timeout 30+ min)
+- E2E tests: `npm run pw:ci` (10-20 min, NEVER CANCEL, timeout 30+ min)
 - Stop services: `docker compose down`
 
-**IMPORTANT**: When making UI changes that affect user interactions (buttons, overlays, dialogs, etc.), **ALWAYS** update the corresponding Cypress E2E tests in `cypress/e2e/`. This is a critical step that should not be forgotten.
+**IMPORTANT**: When making UI changes that affect user interactions (buttons, overlays, dialogs, etc.), **ALWAYS** update the corresponding Playwright E2E tests in `e2e/`. This is a critical step that should not be forgotten.
 
 ## Project Structure
 
@@ -187,7 +185,7 @@ Translation locales are configured in `angular.json` under `projects.jasper-ui.i
 - Angular 20 + TypeScript + MobX + Vitest
 - API configured via Docker `JASPER_API` environment variable
 - Use `ng generate component|service|pipe|directive name` for new features
-- Network issues: Use `CYPRESS_INSTALL_BINARY=0` flag
+- Network issues: Playwright browsers are bundled, no separate install needed
 - Backend connection issues: Ensure `docker compose --profile server up --build` is healthy
 
 ## Theming

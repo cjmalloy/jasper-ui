@@ -4,7 +4,7 @@ on:
   push:
     branches: [ master ]
   workflow_run:
-    workflows: ["Test", "Cypress"]
+    workflows: ["Test", "Playwright"]
     types:
       - completed
     branches: [ '**' ]
@@ -54,8 +54,8 @@ jobs:
             gh run download "$run_id" --pattern "vitest-reports-*" --dir _site/reports 2>/dev/null || true
           done
 
-          gh run list --workflow cypress.yml --branch master --limit 10 --json databaseId --jq '.[].databaseId' | while read run_id; do
-            gh run download "$run_id" --pattern "cypress-reports-*" --dir _site/reports 2>/dev/null || true
+          gh run list --workflow playwright.yml --branch master --limit 10 --json databaseId --jq '.[].databaseId' | while read run_id; do
+            gh run download "$run_id" --pattern "playwright-reports-*" --dir _site/reports 2>/dev/null || true
           done
 
           # Download PR reports
@@ -67,11 +67,11 @@ jobs:
             mkdir -p _site/reports/latest-vitest
             cp -r "$latest_vitest/." _site/reports/latest-vitest/
           fi
-          latest_cypress=$(ls -dv _site/reports/cypress-reports-master-* 2>/dev/null | tail -1)
-          echo "Creating latest Cypress $latest_cypress"
-          if [ -n "$latest_cypress" ] && [ -d "$latest_cypress" ]; then
-            mkdir -p _site/reports/latest-cypress
-            cp -r "$latest_cypress/." _site/reports/latest-cypress/
+          latest_playwright=$(ls -dv _site/reports/playwright-reports-master-* 2>/dev/null | tail -1)
+          echo "Creating latest Playwright $latest_playwright"
+          if [ -n "$latest_playwright" ] && [ -d "$latest_playwright" ]; then
+            mkdir -p _site/reports/latest-playwright
+            cp -r "$latest_playwright/." _site/reports/latest-playwright/
           fi
           cat > _site/reports/index.html << EOF
           <!DOCTYPE html>
@@ -139,7 +139,7 @@ jobs:
           <body>
             <h1>Test Reports</h1>
             <div class='report'>
-              <a href='$(basename $latest_cypress)/'>Latest Cypress Report</a>
+              <a href='$(basename $latest_playwright)/'>Latest Playwright Report</a>
             </div>
             <div class='report'>
               <a href='$(basename $latest_vitest)/'>Latest Vitest Report</a>
