@@ -16,14 +16,21 @@ export async function clearMods(page: Page, base = '') {
   await page.goto(base + '/settings/template?debug=ADMIN&pageSize=2000');
   await loadTemplatePromise;
   const templates = page.locator('.list-container .template');
-  const templateCount = await templates.count();
-  for (let i = 0; i < templateCount; i++) {
-    const hostText = await templates.first().locator('.host').textContent();
-    if (hostText?.startsWith('(_config/')) continue;
-    const deletePromise = page.waitForResponse(resp => resp.url().includes('/api/v1/template') && resp.request().method() === 'DELETE');
-    await templates.first().locator('.action', { hasText: 'delete' }).click();
-    await templates.first().locator('.action', { hasText: 'yes' }).click();
-    await deletePromise;
+  let templateCount = await templates.count();
+  while (templateCount > 0) {
+    let found = false;
+    for (let i = 0; i < templateCount; i++) {
+      const hostText = await templates.nth(i).locator('.host').textContent();
+      if (hostText?.startsWith('(_config/')) continue;
+      const deletePromise = page.waitForResponse(resp => resp.url().includes('/api/v1/template') && resp.request().method() === 'DELETE');
+      await templates.nth(i).locator('.action', { hasText: 'delete' }).click();
+      await templates.nth(i).locator('.action', { hasText: 'yes' }).click();
+      await deletePromise;
+      found = true;
+      break;
+    }
+    if (!found) break;
+    templateCount = await templates.count();
   }
 }
 
