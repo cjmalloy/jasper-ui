@@ -964,7 +964,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
 
   markRead() {
     markRead(this.admin, this.ts, this.ref);
-    this.allCss = this.getPluginClasses();
+    this.initFields(this.ref);
   }
 
   @memo
