@@ -25,7 +25,7 @@ test.describe.serial('Wiki Plugin', () => {
     await page.goto('/?debug=USER');
     await openSidebar(page);
     await page.getByText('Submit').click();
-    await page.locator('.tabs').getByText('wiki').click();
+    await page.locator('.tabs a').getByText('wiki').click();
     await page.locator('#url').fill('WIKI TEST');
     await page.locator('button', { hasText: 'Next' }).click();
     await page.locator('.editor textarea').fill('Link to [[Other WIKI]].');
@@ -61,6 +61,7 @@ test.describe.serial('Wiki Plugin', () => {
     await page.locator('.tabs', { hasText: 'setup' }).click();
 
     await page.waitForTimeout(100);
+    await page.locator('#mod-wiki').waitFor();
     await expect(page.locator('#mod-wiki')).not.toBeChecked();
     await page.locator('#mod-wiki').check();
     await expect(page.locator('#mod-wiki')).toBeChecked();

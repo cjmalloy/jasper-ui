@@ -25,7 +25,7 @@ test.describe.serial('Ref Actions', () => {
     await page.goto('/?debug=MOD');
     await openSidebar(page);
     await page.getByText('Submit').click();
-    await page.locator('.tabs').getByText('text').click();
+    await page.locator('.tabs a').getByText('text').click();
     await page.locator('[name=title]').fill('Title');
     await page.getByText('show advanced').click();
     await page.locator('[name=published]').fill('2020-01-01T00:00');
@@ -96,7 +96,7 @@ test.describe.serial('Ref Actions', () => {
       await page.goto('/?debug=MOD');
       await openSidebar(page);
       await page.getByText('Submit').click();
-      await page.locator('.tabs').getByText('text').click();
+      await page.locator('.tabs a').getByText('text').click();
       await page.locator('[name=title]').fill('Test Ref for New Indicators');
       await page.getByText('show advanced').click();
       await page.locator('[name=published]').fill('2020-02-01T00:00');

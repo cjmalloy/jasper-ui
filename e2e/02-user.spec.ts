@@ -27,6 +27,7 @@ test.describe.serial('User Page', () => {
     await page.locator('.tabs', { hasText: 'setup' }).click();
 
     await page.waitForTimeout(100);
+    await page.locator('#mod-user').waitFor();
     await expect(page.locator('#mod-user')).not.toBeChecked();
     await page.locator('#mod-user').check();
     await expect(page.locator('#mod-user')).toBeChecked();

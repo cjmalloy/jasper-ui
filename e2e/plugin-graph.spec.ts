@@ -25,6 +25,7 @@ test.describe.serial('Graph Plugin', () => {
     await page.goto('/settings/setup?debug=ADMIN');
 
     await page.waitForTimeout(100);
+    await page.locator('#mod-experiments').waitFor();
     await expect(page.locator('#mod-experiments')).not.toBeChecked();
     await page.locator('#mod-experiments').check();
     await expect(page.locator('#mod-experiments')).toBeChecked();
@@ -32,6 +33,7 @@ test.describe.serial('Graph Plugin', () => {
     await page.reload();
 
     await page.waitForTimeout(100);
+    await page.locator('#mod-graph').waitFor();
     await expect(page.locator('#mod-graph')).not.toBeChecked();
     await page.locator('#mod-graph').check();
     await expect(page.locator('#mod-graph')).toBeChecked();
@@ -43,7 +45,7 @@ test.describe.serial('Graph Plugin', () => {
     await page.goto('/?debug=USER');
     await openSidebar(page);
     await page.getByText('Submit').click();
-    await page.locator('.tabs').getByText('text').click();
+    await page.locator('.tabs a').getByText('text').click();
     await page.locator('[name=title]').fill('Title');
     await page.getByText('show advanced').click();
     await page.locator('[name=published]').fill('2020-01-01T00:00');

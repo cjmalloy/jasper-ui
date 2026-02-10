@@ -29,9 +29,11 @@ test.describe.serial('Origin Pull Plugin', () => {
     await page.locator('.tabs', { hasText: 'setup' }).click();
 
     await page.waitForTimeout(100);
+    await page.locator('#mod-root').waitFor();
     await expect(page.locator('#mod-root')).not.toBeChecked();
     await page.locator('#mod-root').check();
     await expect(page.locator('#mod-root')).toBeChecked();
+    await page.locator('#mod-origin').waitFor();
     await expect(page.locator('#mod-origin')).not.toBeChecked();
     await page.locator('#mod-origin').check();
     await expect(page.locator('#mod-origin')).toBeChecked();
@@ -68,7 +70,7 @@ test.describe.serial('Origin Pull Plugin', () => {
     await page.goto(replUrl + '/?debug=USER&tag=bob');
     await openSidebar(page);
     await page.getByText('Submit').click();
-    await page.locator('.tabs').getByText('text').click();
+    await page.locator('.tabs a').getByText('text').click();
     await page.waitForTimeout(400);
     await page.locator('[name=title]').fill('Pull Test');
     const submitPromise = page.waitForResponse(resp => resp.url().includes('/api/v1/ref'));

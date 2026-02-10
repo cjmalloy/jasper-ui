@@ -36,9 +36,11 @@ test.describe.serial('Kanban Template with Swim Lanes', () => {
     await page.locator('.tabs', { hasText: 'setup' }).click();
 
     await page.waitForTimeout(100);
+    await page.locator('#mod-root').waitFor();
     await expect(page.locator('#mod-root')).not.toBeChecked();
     await page.locator('#mod-root').check();
     await expect(page.locator('#mod-root')).toBeChecked();
+    await page.locator('#mod-kanban').waitFor();
     await expect(page.locator('#mod-kanban')).not.toBeChecked();
     await page.locator('#mod-kanban').check();
     await expect(page.locator('#mod-kanban')).toBeChecked();

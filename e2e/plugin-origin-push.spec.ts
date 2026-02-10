@@ -33,9 +33,11 @@ test.describe.serial('Origin Push Plugin', () => {
     await page.locator('.tabs', { hasText: 'setup' }).click();
 
     await page.waitForTimeout(100);
+    await page.locator('#mod-root').waitFor();
     await expect(page.locator('#mod-root')).not.toBeChecked();
     await page.locator('#mod-root').check();
     await expect(page.locator('#mod-root')).toBeChecked();
+    await page.locator('#mod-origin').waitFor();
     await expect(page.locator('#mod-origin')).not.toBeChecked();
     await page.locator('#mod-origin').check();
     await expect(page.locator('#mod-origin')).toBeChecked();
@@ -66,7 +68,7 @@ test.describe.serial('Origin Push Plugin', () => {
     await page.goto('/?debug=USER&tag=bob');
     await openSidebar(page);
     await page.getByText('Submit').click();
-    await page.locator('.tabs').getByText('text').click();
+    await page.locator('.tabs a').getByText('text').click();
     await page.waitForTimeout(1000);
     await page.locator('[name=title]').fill('Push Test');
     await page.locator('button', { hasText: 'Submit' }).click({ force: true });

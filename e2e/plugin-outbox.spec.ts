@@ -32,18 +32,23 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
     await page.locator('.tabs', { hasText: 'setup' }).click();
 
     await page.waitForTimeout(100);
+    await page.locator('#mod-comment').waitFor();
     await expect(page.locator('#mod-comment')).not.toBeChecked();
     await page.locator('#mod-comment').check();
     await expect(page.locator('#mod-comment')).toBeChecked();
+    await page.locator('#mod-mailbox').waitFor();
     await expect(page.locator('#mod-mailbox')).not.toBeChecked();
     await page.locator('#mod-mailbox').check();
     await expect(page.locator('#mod-mailbox')).toBeChecked();
+    await page.locator('#mod-root').waitFor();
     await expect(page.locator('#mod-root')).not.toBeChecked();
     await page.locator('#mod-root').check();
     await expect(page.locator('#mod-root')).toBeChecked();
+    await page.locator('#mod-origin').waitFor();
     await expect(page.locator('#mod-origin')).not.toBeChecked();
     await page.locator('#mod-origin').check();
     await expect(page.locator('#mod-origin')).toBeChecked();
+    await page.locator('#mod-user').waitFor();
     await expect(page.locator('#mod-user')).not.toBeChecked();
     await page.locator('#mod-user').check();
     await expect(page.locator('#mod-user')).toBeChecked();
@@ -84,6 +89,7 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
     await page.locator('.tabs', { hasText: 'setup' }).click();
 
     await page.waitForTimeout(100);
+    await page.locator('#mod-comment').waitFor();
     await expect(page.locator('#mod-comment')).not.toBeChecked();
     await page.locator('#mod-comment').check();
     await expect(page.locator('#mod-comment')).toBeChecked();
@@ -91,6 +97,7 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
     await expect(page.locator('.log')).toContainText('Success');
 
     await page.waitForTimeout(100);
+    await page.locator('#mod-mailbox').waitFor();
     await expect(page.locator('#mod-mailbox')).not.toBeChecked();
     await page.locator('#mod-mailbox').check();
     await expect(page.locator('#mod-mailbox')).toBeChecked();
@@ -98,9 +105,11 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
     await expect(page.locator('.log')).toContainText('Success');
 
     await page.waitForTimeout(100);
+    await page.locator('#mod-root').waitFor();
     await expect(page.locator('#mod-root')).not.toBeChecked();
     await page.locator('#mod-root').check();
     await expect(page.locator('#mod-root')).toBeChecked();
+    await page.locator('#mod-origin').waitFor();
     await expect(page.locator('#mod-origin')).not.toBeChecked();
     await page.locator('#mod-origin').check();
     await expect(page.locator('#mod-origin')).toBeChecked();
@@ -108,6 +117,7 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
     await expect(page.locator('.log')).toContainText('Success');
 
     await page.waitForTimeout(100);
+    await page.locator('#mod-user').waitFor();
     await expect(page.locator('#mod-user')).not.toBeChecked();
     await page.locator('#mod-user').check();
     await expect(page.locator('#mod-user')).toBeChecked();
@@ -142,7 +152,7 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
     await page.goto(replUrl + '/?debug=USER&tag=bob');
     await openSidebar(page);
     await page.getByText('Submit').click();
-    await page.locator('.tabs').getByText('text').click();
+    await page.locator('.tabs a').getByText('text').click();
     await page.locator('[name=title]').fill('Ref from other');
     await page.locator('.editor textarea').fill('Hi +user/alice@repl.main! How\'s it going? You should also see this +user/charlie.');
     await page.locator('.editor textarea').blur();
