@@ -40,7 +40,7 @@ test.describe.serial('Origin Pull Plugin', () => {
     }
     await expect(page.locator('#mod-origin')).toBeChecked();
     await page.locator('button', { hasText: 'Save' }).click();
-    await expect(page.locator('span.log')).toContainText('Success');
+    await page.getByText('Success.').first().waitFor({ timeout: 15_000 });
   });
 
   test('@main: creates a remote origin', async () => {

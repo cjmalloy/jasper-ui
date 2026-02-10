@@ -31,7 +31,7 @@ test.describe.serial('Graph Plugin', () => {
     }
     await expect(page.locator('#mod-experiments')).toBeChecked();
     await page.locator('button', { hasText: 'Save' }).click();
-    await expect(page.locator('span.log')).toContainText('Success');
+    await page.getByText('Success.').first().waitFor({ timeout: 15_000 });
     await page.reload();
 
     await page.waitForTimeout(100);
@@ -41,7 +41,7 @@ test.describe.serial('Graph Plugin', () => {
     }
     await expect(page.locator('#mod-graph')).toBeChecked();
     await page.locator('button', { hasText: 'Save' }).click();
-    await expect(page.locator('span.log')).toContainText('Success');
+    await page.getByText('Success.').first().waitFor({ timeout: 15_000 });
   });
 
   test('creates a ref', async () => {

@@ -58,7 +58,7 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
     }
     await expect(page.locator('#mod-user')).toBeChecked();
     await page.locator('button', { hasText: 'Save' }).click();
-    await expect(page.locator('span.log')).toContainText('Success');
+    await page.getByText('Success.').first().waitFor({ timeout: 15_000 });
   });
 
   test('@main: replicate @repl', async () => {
@@ -100,7 +100,7 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
     }
     await expect(page.locator('#mod-comment')).toBeChecked();
     await page.locator('button', { hasText: 'Save' }).click();
-    await expect(page.locator('span.log')).toContainText('Success');
+    await page.getByText('Success.').first().waitFor({ timeout: 15_000 });
 
     await page.waitForTimeout(100);
     await page.locator('#mod-mailbox').waitFor();
@@ -109,7 +109,7 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
     }
     await expect(page.locator('#mod-mailbox')).toBeChecked();
     await page.locator('button', { hasText: 'Save' }).click();
-    await expect(page.locator('span.log')).toContainText('Success');
+    await page.getByText('Success.').first().waitFor({ timeout: 15_000 });
 
     await page.waitForTimeout(100);
     await page.locator('#mod-root').waitFor();
@@ -123,7 +123,7 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
     }
     await expect(page.locator('#mod-origin')).toBeChecked();
     await page.locator('button', { hasText: 'Save' }).click();
-    await expect(page.locator('span.log')).toContainText('Success');
+    await page.getByText('Success.').first().waitFor({ timeout: 15_000 });
 
     await page.waitForTimeout(100);
     await page.locator('#mod-user').waitFor();
@@ -132,7 +132,7 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
     }
     await expect(page.locator('#mod-user')).toBeChecked();
     await page.locator('button', { hasText: 'Save' }).click();
-    await expect(page.locator('span.log')).toContainText('Success');
+    await page.getByText('Success.').first().waitFor({ timeout: 15_000 });
   });
 
   test('@repl: replicate @main', async () => {

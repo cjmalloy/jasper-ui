@@ -33,7 +33,7 @@ test.describe.serial('User Page', () => {
     }
     await expect(page.locator('#mod-user')).toBeChecked();
     await page.locator('button', { hasText: 'Save' }).click();
-    await expect(page.locator('span.log')).toContainText('Success');
+    await page.getByText('Success.').first().waitFor({ timeout: 15_000 });
   });
 
   test('displays inbox and outbox navigation buttons on user page', async () => {

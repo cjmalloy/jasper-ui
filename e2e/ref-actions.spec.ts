@@ -54,7 +54,9 @@ test.describe.serial('Ref Actions', () => {
   test('creates reply', async () => {
     await page.locator('.full-page.ref .actions').getByText('reply').click();
     await page.locator('.full-page.ref .comment-reply textarea').fill('Reply');
+    const replyPromise = page.waitForResponse(resp => resp.url().includes('/api/v1/ref') && resp.request().method() === 'POST');
     await page.locator('.full-page.ref button', { hasText: 'reply' }).click();
+    await replyPromise;
     await page.locator('.full-page.ref .actions').getByText('1 citation').click();
     await page.locator('.ref-list-item.ref .actions').getByText('permalink').click();
     await expect(page.locator('.full-page.ref .link a')).toHaveText('Reply');

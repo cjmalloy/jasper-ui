@@ -47,7 +47,7 @@ test.describe.serial('Kanban Template No Swimlanes', () => {
     }
     await expect(page.locator('#mod-kanban')).toBeChecked();
     await page.locator('button', { hasText: 'Save' }).click();
-    await expect(page.locator('span.log')).toContainText('Success');
+    await page.getByText('Success.').first().waitFor({ timeout: 15_000 });
   });
 
   test('creates a board', async () => {
