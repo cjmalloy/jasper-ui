@@ -1,4 +1,4 @@
-FROM node:22.22.0 AS builder
+FROM node:24.13.0 AS builder
 WORKDIR /app
 RUN npm i -g @angular/cli
 COPY package.json package-lock.json ./
@@ -7,7 +7,7 @@ RUN npm ci
 COPY . ./
 RUN npm run build
 
-FROM node:22.22.0 AS test
+FROM node:24.13.0 AS test
 RUN apt-get update && apt-get install -y \
 	apt-transport-https \
 	ca-certificates \
@@ -38,7 +38,7 @@ CMD mkdir -p /report && \
     (if [ -d html ]; then cp -r html/* /report/ 2>/dev/null || true; fi) && \
     exit $(cat /report/exit-code.txt)
 
-FROM nginx:1.27-alpine3.19-slim AS deploy
+FROM nginx:1.29.5-alpine3.23-slim AS deploy
 RUN apk add jq moreutils
 WORKDIR /var/lib/jasper/
 COPY --from=builder /app/dist/jasper-ui/browser ./
