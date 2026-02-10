@@ -24,7 +24,7 @@ test.describe.serial('Ref Actions', () => {
   test('creates a ref', async () => {
     await page.goto('/?debug=MOD');
     await openSidebar(page);
-    await page.getByText('Submit').click();
+    await page.getByText('Submit', { exact: true }).click();
     await page.locator('.tabs a').getByText('text').click();
     await page.locator('[name=title]').fill('Title');
     await page.getByText('show advanced').click();
@@ -95,7 +95,7 @@ test.describe.serial('Ref Actions', () => {
     test('should create a ref with comments enabled', async () => {
       await page.goto('/?debug=MOD');
       await openSidebar(page);
-      await page.getByText('Submit').click();
+      await page.getByText('Submit', { exact: true }).click();
       await page.locator('.tabs a').getByText('text').click();
       await page.locator('[name=title]').fill('Test Ref for New Indicators');
       await page.getByText('show advanced').click();

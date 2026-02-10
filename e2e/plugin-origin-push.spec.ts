@@ -30,7 +30,7 @@ test.describe.serial('Origin Push Plugin', () => {
   test('@main: turn on push', async () => {
     await page.goto('/?debug=ADMIN');
     await page.locator('.settings a', { hasText: 'settings' }).click();
-    await page.locator('.tabs', { hasText: 'setup' }).click();
+    await page.locator('.tabs').getByText('setup').click();
 
     await page.waitForTimeout(100);
     await page.locator('#mod-root').waitFor();
@@ -48,9 +48,9 @@ test.describe.serial('Origin Push Plugin', () => {
   test('@main: creates a remote origin', async () => {
     await page.goto('/?debug=ADMIN');
     await page.locator('.settings a', { hasText: 'settings' }).click();
-    await page.locator('.tabs', { hasText: 'origin' }).click();
+    await page.locator('.tabs').getByText('origin').click();
     await openSidebar(page);
-    await page.getByText('Submit').click();
+    await page.getByText('Submit', { exact: true }).click();
     await page.locator('#url').fill(replApiProxy);
     await page.getByText('Next').click();
     await page.waitForTimeout(400);
@@ -67,7 +67,7 @@ test.describe.serial('Origin Push Plugin', () => {
   test('@main: creates ref', async () => {
     await page.goto('/?debug=USER&tag=bob');
     await openSidebar(page);
-    await page.getByText('Submit').click();
+    await page.getByText('Submit', { exact: true }).click();
     await page.locator('.tabs a').getByText('text').click();
     await page.waitForTimeout(1000);
     await page.locator('[name=title]').fill('Push Test');
@@ -85,7 +85,7 @@ test.describe.serial('Origin Push Plugin', () => {
   test('@main: delete remote @repl', async () => {
     await page.goto('/?debug=ADMIN');
     await page.locator('.settings a', { hasText: 'settings' }).click();
-    await page.locator('.tabs', { hasText: 'origin' }).click();
+    await page.locator('.tabs').getByText('origin').click();
     await openSidebar(page);
     await page.locator('input[type=search]').fill(replApiProxy);
     await page.locator('input[type=search]').press('Enter');

@@ -5,7 +5,7 @@ test.describe('Backup / Restore', () => {
   test('creates a ref', async ({ page }) => {
     await page.goto('/?debug=ADMIN');
     await openSidebar(page);
-    await page.getByText('Submit').click();
+    await page.getByText('Submit', { exact: true }).click();
     await page.locator('#url').fill('test:backup');
     await page.getByText('Next').click();
     await page.waitForTimeout(1000); // First part of title getting truncated

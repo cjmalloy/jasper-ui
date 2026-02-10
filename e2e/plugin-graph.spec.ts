@@ -44,7 +44,7 @@ test.describe.serial('Graph Plugin', () => {
   test('creates a ref', async () => {
     await page.goto('/?debug=USER');
     await openSidebar(page);
-    await page.getByText('Submit').click();
+    await page.getByText('Submit', { exact: true }).click();
     await page.locator('.tabs a').getByText('text').click();
     await page.locator('[name=title]').fill('Title');
     await page.getByText('show advanced').click();

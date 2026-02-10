@@ -33,7 +33,7 @@ test.describe.serial('Kanban Template with Swim Lanes', () => {
   test('turn on kanban', async () => {
     await page.goto('/?debug=ADMIN');
     await page.locator('.settings a', { hasText: 'settings' }).click();
-    await page.locator('.tabs', { hasText: 'setup' }).click();
+    await page.locator('.tabs').getByText('setup').click();
 
     await page.waitForTimeout(100);
     await page.locator('#mod-root').waitFor();

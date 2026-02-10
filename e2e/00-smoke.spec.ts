@@ -28,7 +28,7 @@ test.describe.serial('Smoke Tests', () => {
   test('creates a ref', async () => {
     await page.goto('/?debug=ADMIN');
     await openSidebar(page);
-    await page.getByText('Submit').click();
+    await page.getByText('Submit', { exact: true }).click();
     await page.locator('#url').fill('https://jasperkm.info/');
     await page.getByText('Next').click();
     await page.waitForTimeout(1000); // First part of 'Title' getting truncated

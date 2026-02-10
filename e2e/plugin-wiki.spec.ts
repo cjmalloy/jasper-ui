@@ -24,7 +24,7 @@ test.describe.serial('Wiki Plugin', () => {
   test('creates a wiki', async () => {
     await page.goto('/?debug=USER');
     await openSidebar(page);
-    await page.getByText('Submit').click();
+    await page.getByText('Submit', { exact: true }).click();
     await page.locator('.tabs a').getByText('wiki').click();
     await page.locator('#url').fill('WIKI TEST');
     await page.locator('button', { hasText: 'Next' }).click();
@@ -49,7 +49,7 @@ test.describe.serial('Wiki Plugin', () => {
     await page.locator('a', { hasText: 'Other WIKI' }).click();
     const url = page.url().replace('/ref/', '/ref/e/') + '?debug=USER';
     await page.goto(url);
-    await expect(page.locator('.error-404')).toContainText('Not Found');
+    await expect(page.locator('.error-404').first()).toContainText('Not Found');
     await page.locator('.submit-button', { hasText: 'Submit Wiki' }).click();
     await expect(page.locator('h5')).toContainText('Submit');
     await expect(page.locator('[name=title]')).toHaveValue('Other wiki');
@@ -58,7 +58,7 @@ test.describe.serial('Wiki Plugin', () => {
   test('turn on wiki config', async () => {
     await page.goto('/?debug=ADMIN');
     await page.locator('.settings a', { hasText: 'settings' }).click();
-    await page.locator('.tabs', { hasText: 'setup' }).click();
+    await page.locator('.tabs').getByText('setup').click();
 
     await page.waitForTimeout(100);
     await page.locator('#mod-wiki').waitFor();
@@ -72,7 +72,7 @@ test.describe.serial('Wiki Plugin', () => {
   test('set external wiki', async () => {
     await page.goto('/?debug=ADMIN');
     await page.locator('.settings a', { hasText: 'settings' }).click();
-    await page.locator('.tabs', { hasText: 'template' }).click();
+    await page.locator('.tabs').getByText('template').click();
     const fileContent = JSON.stringify({ tag: 'config/wiki', config: { prefix: 'https://externalwiki/', external: true }});
     const buffer = Buffer.from(fileContent);
     await page.locator('input.upload').setInputFiles({
@@ -85,7 +85,7 @@ test.describe.serial('Wiki Plugin', () => {
   test('submit wiki button removed', async () => {
     await page.goto('/?debug=USER');
     await openSidebar(page);
-    await page.getByText('Submit').click();
+    await page.getByText('Submit', { exact: true }).click();
     await expect(page.locator('.tabs')).not.toContainText('wiki');
   });
 
