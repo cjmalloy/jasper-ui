@@ -139,7 +139,7 @@ jobs:
             }
 
             const reportUrl = `https://${context.repo.owner}.github.io/${context.repo.repo}/reports/playwright-reports-pr-${context.issue.number}/`;
-            summary += `\n\n📊 [View detailed HTML report](${reportUrl})`;
+            summary += `\n\n📊 <a href="${reportUrl}" target="_blank">View detailed HTML report</a>`;
 
             // Add HTML comment marker for identification
             const body = `<!-- playwright-results-comment -->\n${summary}`;

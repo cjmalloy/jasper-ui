@@ -80,28 +80,28 @@ jobs:
             <title>Test Reports</title>
             <style>
               :root {
-                /* Light mode variables */
-                --heading-color: #2c3e50;
-                --border-color: #eee;
-                --report-bg: #f8f9fa;
-                --link-color: #3498db;
-                --latest-bg: #e8f5e9;
-                --latest-border: #4caf50;
-                --text-color: #000;
-                --bg-color: #fff;
+                /* Solarized Light */
+                --heading-color: #586e75;
+                --border-color: #eee8d5;
+                --report-bg: #eee8d5;
+                --link-color: #268bd2;
+                --latest-bg: #eee8d5;
+                --latest-border: #859900;
+                --text-color: #657b83;
+                --bg-color: #fdf6e3;
               }
               @media (prefers-color-scheme: dark) {
                 :root {
                   color-scheme: dark;
-                  /* Dark mode variables */
-                  --heading-color: #89a7c3;
-                  --border-color: #333;
-                  --report-bg: #2a2a2a;
-                  --link-color: #5dade2;
-                  --latest-bg: #1b3320;
-                  --latest-border: #2d6a31;
-                  --text-color: #fff;
-                  --bg-color: #1a1a1a;
+                  /* Solarized Dark */
+                  --heading-color: #93a1a1;
+                  --border-color: #073642;
+                  --report-bg: #073642;
+                  --link-color: #268bd2;
+                  --latest-bg: #073642;
+                  --latest-border: #859900;
+                  --text-color: #839496;
+                  --bg-color: #002b36;
                 }
               }
               body {
@@ -139,17 +139,17 @@ jobs:
           <body>
             <h1>Test Reports</h1>
             <div class='report'>
-              <a href='$(basename $latest_playwright)/'>Latest Playwright Report</a>
+              <a href='$(basename $latest_playwright)/' target='_blank'>Latest Playwright Report</a>
             </div>
             <div class='report'>
-              <a href='$(basename $latest_vitest)/'>Latest Vitest Report</a>
+              <a href='$(basename $latest_vitest)/' target='_blank'>Latest Vitest Report</a>
             </div>
             <h2>All Reports</h2>
             <div id="reports">
               $(for d in _site/reports/*/; do
                 name=$(basename "$d")
                 if [[ ! "$name" =~ ^latest-.*$ ]]; then
-                  echo "<div class='report'><a href='$name/'>$name</a></div>"
+                  echo "<div class='report'><a href='$name/' target='_blank'>$name</a></div>"
                 fi
               done)
             </div>
