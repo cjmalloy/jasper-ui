@@ -1,6 +1,5 @@
 FROM node:24.13.0 AS builder
 WORKDIR /app
-RUN npm i -g @angular/cli
 COPY package.json package-lock.json ./
 COPY patches ./patches/
 RUN npm ci
@@ -30,11 +29,10 @@ RUN apt-get update && apt-get install -y \
 	&& apt-get purge --auto-remove -y curl gnupg \
 	&& rm -rf /var/lib/apt/lists/*
 WORKDIR /app
-RUN npm i -g @angular/cli
 COPY --from=builder /app ./
 SHELL ["/bin/bash", "-c"]
 CMD mkdir -p /report && \
-    (NO_COLOR=1 ng test --watch=false --reporters=default --reporters=html 2>&1 | tee /report/test-output.log; echo ${PIPESTATUS[0]} > /report/exit-code.txt) && \
+    (NO_COLOR=1 npx ng test --watch=false --reporters=default --reporters=html 2>&1 | tee /report/test-output.log; echo ${PIPESTATUS[0]} > /report/exit-code.txt) && \
     (if [ -d html ]; then cp -r html/* /report/ 2>/dev/null || true; fi) && \
     exit $(cat /report/exit-code.txt)
 
