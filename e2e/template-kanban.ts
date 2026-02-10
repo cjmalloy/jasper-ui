@@ -1,16 +1,19 @@
 import { type Page } from '@playwright/test';
+import { closeSidebar } from './setup';
 
 export async function addToBoard(page: Page, col: number, text: string) {
   const addPromise = page.waitForResponse(resp => resp.url().includes('/api/v1/ref') && resp.request().method() === 'POST');
+  await page.locator(`.kanban-column:nth-of-type(${col})`).hover();
   const input = page.locator(`.kanban-column:nth-of-type(${col})`).first().locator('input');
   await input.focus();
-  await input.fill(text);
+  await input.pressSequentially(text, { delay: 100 });
   await input.press('Enter');
   await addPromise;
 }
 
 export async function dragCol(page: Page, from: number, to?: number) {
-  const sourceCard = page.locator(`.kanban-column:nth-of-type(${from}) a`);
+  await closeSidebar(page);
+  const sourceCard = page.locator(`.kanban-column:nth-of-type(${from}) a`).last();
   await sourceCard.waitFor({ state: 'visible', timeout: 5_000 });
   await page.waitForTimeout(16);
 
@@ -31,15 +34,22 @@ export async function dragCol(page: Page, from: number, to?: number) {
     if (!targetBox) throw new Error('Target element not found');
     await page.mouse.move(targetBox.x + 30, targetBox.y + 30);
     await page.mouse.move(targetBox.x + 30, targetBox.y + 30);
+    await target.hover();
+    await page.waitForTimeout(1000);
     await page.mouse.up();
+    await target.hover();
+    await page.waitForTimeout(1000);
   } else {
     const removeTarget = page.locator('.kanban-remove').locator('..');
     const removeBox = await removeTarget.boundingBox();
     if (!removeBox) throw new Error('Remove target not found');
     await page.mouse.move(removeBox.x + 30, removeBox.y + 30);
     await page.mouse.move(removeBox.x + 30, removeBox.y + 30);
+    await removeTarget.hover();
     await page.waitForTimeout(1000);
     await page.mouse.up();
+    await removeTarget.hover();
+    await page.waitForTimeout(1000);
   }
   await tagPromise;
 }

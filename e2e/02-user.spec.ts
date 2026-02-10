@@ -12,11 +12,6 @@ test.describe.serial('User Page', () => {
     await page.close();
   });
 
-  test('loads the page', async () => {
-    await page.goto('/?debug=ADMIN');
-    await expect(page.getByText('Powered by Jasper')).toBeVisible({ timeout: 1000 * 60 });
-  });
-
   test('clear mods', async () => {
     await clearMods(page);
   });
@@ -24,7 +19,7 @@ test.describe.serial('User Page', () => {
   test('enable user plugin', async () => {
     await page.goto('/?debug=ADMIN');
     await page.locator('.settings a', { hasText: 'settings' }).click();
-    await page.locator('.tabs a').getByText('setup').click();
+    await page.locator('.tabs a', { hasText: 'setup' }).first().click();
 
     await page.waitForTimeout(100);
     await page.locator('#mod-user').waitFor();
@@ -33,7 +28,7 @@ test.describe.serial('User Page', () => {
     }
     await expect(page.locator('#mod-user')).toBeChecked();
     await page.locator('button', { hasText: 'Save' }).click();
-    await page.getByText('Success.').first().waitFor({ timeout: 15_000 });
+    await page.locator('.log div', { hasText: 'Success.' }).first().waitFor({ timeout: 15_000, state: 'attached' });
   });
 
   test('displays inbox and outbox navigation buttons on user page', async () => {

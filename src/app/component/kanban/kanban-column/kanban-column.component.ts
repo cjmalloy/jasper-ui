@@ -347,9 +347,9 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
   }
 
   private getTagsWithAuthor(): string[] {
-    return !hasTag(this.store.account.localTag, this.addTags)
+    return uniq(!hasTag(this.store.account.localTag, this.addTags)
       ? [...this.addTags, this.store.account.localTag]
-      : this.addTags;
+      : this.addTags).filter(t => !!t);
   }
 
   handlePaste(event: ClipboardEvent) {

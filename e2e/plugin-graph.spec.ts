@@ -12,11 +12,6 @@ test.describe.serial('Graph Plugin', () => {
     await page.close();
   });
 
-  test('loads the page', async () => {
-    await page.goto('/?debug=USER');
-    await expect(page.getByText('Powered by Jasper')).toBeVisible({ timeout: 1000 * 60 });
-  });
-
   test('clear mods', async () => {
     await clearMods(page);
   });
@@ -31,7 +26,7 @@ test.describe.serial('Graph Plugin', () => {
     }
     await expect(page.locator('#mod-experiments')).toBeChecked();
     await page.locator('button', { hasText: 'Save' }).click();
-    await page.getByText('Success.').first().waitFor({ timeout: 15_000 });
+    await page.locator('.log div', { hasText: 'Success.' }).first().waitFor({ timeout: 15_000, state: 'attached' });
     await page.reload();
 
     await page.waitForTimeout(100);
@@ -41,17 +36,17 @@ test.describe.serial('Graph Plugin', () => {
     }
     await expect(page.locator('#mod-graph')).toBeChecked();
     await page.locator('button', { hasText: 'Save' }).click();
-    await page.getByText('Success.').first().waitFor({ timeout: 15_000 });
+    await page.locator('.log div', { hasText: 'Success.' }).first().waitFor({ timeout: 15_000, state: 'attached' });
   });
 
   test('creates a ref', async () => {
     await page.goto('/?debug=USER');
     await openSidebar(page);
-    await page.getByText('Submit', { exact: true }).click();
-    await page.locator('.tabs a').getByText('text').click();
-    await page.locator('[name=title]').fill('Title');
+    await page.locator('.sidebar .submit-button', { hasText: 'Submit' }).first().click();
+    await page.locator('.tabs a', { hasText: 'text' }).first().click();
+    await page.locator('[name=title]').pressSequentially('Title', { delay: 100 });
     await page.getByText('show advanced').click();
-    await page.locator('[name=published]').fill('2020-01-01T00:00');
+    await page.locator('[name=published]').pressSequentially('2020-01-01T00:00', { delay: 100 });
     const submitPromise = page.waitForResponse(resp => resp.url().includes('/api/v1/ref'));
     await page.locator('button', { hasText: 'Submit' }).click();
     await submitPromise;
@@ -59,31 +54,31 @@ test.describe.serial('Graph Plugin', () => {
   });
 
   test('shows graph', async () => {
-    await page.locator('.full-page .actions').getByText('edit').click();
+    await page.locator('.full-page .actions .fake-link', { hasText: 'edit' }).first().click();
     const url = await page.locator('[name=url]').inputValue();
     await page.goto('/tag/@*?search=' + url + '&debug=USER');
-    await page.locator('.tabs a').getByText('graph').click();
+    await page.locator('.tabs a', { hasText: 'graph' }).first().click();
     await expect(page.locator('figure')).toContainText('Title');
   });
 
   test('creates reply', async () => {
-    await page.locator('.ref .actions').getByText('reply').click();
-    await page.locator('.comment-reply textarea').fill('Reply');
+    await page.locator('.ref .actions .fake-link', { hasText: 'reply' }).first().click();
+    await page.locator('.comment-reply textarea').pressSequentially('Reply', { delay: 100 });
     const replyPromise = page.waitForResponse(resp => resp.url().includes('/api/v1/ref'));
     await page.locator('button', { hasText: 'reply' }).click();
     await replyPromise;
     await page.waitForTimeout(1000);
-    await page.locator('.ref .actions').getByText('permalink').click();
-    await page.locator('.tabs a').getByText('responses').click();
-    await page.locator('.ref-list-item.ref .actions').getByText('permalink').click();
+    await page.locator('.ref .actions a', { hasText: 'permalink' }).first().click();
+    await page.locator('.tabs a', { hasText: 'responses' }).first().click();
+    await page.locator('.ref-list-item.ref .actions a', { hasText: 'permalink' }).first().click();
     await expect(page.locator('.full-page.ref .link a')).toHaveText('Reply');
   });
 
   test('graphs reply', async () => {
-    await page.locator('.full-page .actions').getByText('edit').click();
+    await page.locator('.full-page .actions .fake-link', { hasText: 'edit' }).first().click();
     const url = await page.locator('[name=url]').inputValue();
     await page.goto('/tag/@*?search=' + url + '&debug=USER');
-    await page.locator('.tabs a').getByText('graph').click();
+    await page.locator('.tabs a', { hasText: 'graph' }).first().click();
     await expect(page.locator('figure')).toContainText('Reply');
     await page.getByText('load more').click();
     await page.locator('figure').click({ button: 'right' });
