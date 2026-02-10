@@ -62,8 +62,8 @@
     "zone.js": "~0.16.0"
   },
   "devDependencies": {
-    "@angular/build": "^20.3.15",
-    "@angular/cli": "^20.3.15",
+    "@angular/build": "^20.3.16",
+    "@angular/cli": "^20.3.16",
     "@angular/compiler-cli": "^20.3.15",
     "@cypress/schematic": "^5.0.0",
     "@ngx-formly/schematics": "7.0.0",
