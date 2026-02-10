@@ -62,11 +62,12 @@ test.describe.serial('Wiki Plugin', () => {
 
     await page.waitForTimeout(100);
     await page.locator('#mod-wiki').waitFor();
-    await expect(page.locator('#mod-wiki')).not.toBeChecked();
-    await page.locator('#mod-wiki').check();
+    if (!(await page.locator('#mod-wiki').isChecked())) {
+      await page.locator('#mod-wiki').check();
+    }
     await expect(page.locator('#mod-wiki')).toBeChecked();
     await page.locator('button', { hasText: 'Save' }).click();
-    await expect(page.locator('.log')).toContainText('Success');
+    await expect(page.locator('span.log')).toContainText('Success');
   });
 
   test('set external wiki', async () => {

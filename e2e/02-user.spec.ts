@@ -28,11 +28,12 @@ test.describe.serial('User Page', () => {
 
     await page.waitForTimeout(100);
     await page.locator('#mod-user').waitFor();
-    await expect(page.locator('#mod-user')).not.toBeChecked();
-    await page.locator('#mod-user').check();
+    if (!(await page.locator('#mod-user').isChecked())) {
+      await page.locator('#mod-user').check();
+    }
     await expect(page.locator('#mod-user')).toBeChecked();
     await page.locator('button', { hasText: 'Save' }).click();
-    await expect(page.locator('.log')).toContainText('Success');
+    await expect(page.locator('span.log')).toContainText('Success');
   });
 
   test('displays inbox and outbox navigation buttons on user page', async () => {

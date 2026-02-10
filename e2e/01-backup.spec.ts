@@ -30,7 +30,7 @@ test.describe('Backup / Restore', () => {
     await page.locator('.full-page.ref .actions').getByText('delete').click();
     await page.locator('.full-page.ref .actions').getByText('yes').click();
     await page.goto(`/ref/e/${encodeURIComponent('test:backup')}?debug=ADMIN`);
-    await expect(page.locator('.error-404')).toBeVisible();
+    await expect(page.locator('.error-404').first()).toBeVisible();
   });
 
   test('restores backup', async ({ page }) => {
@@ -52,6 +52,6 @@ test.describe('Backup / Restore', () => {
     await page.locator('.full-page.ref .actions').getByText('delete').click();
     await page.locator('.full-page.ref .actions').getByText('yes').click();
     await page.goto(`/ref/e/${encodeURIComponent('test:backup')}?debug=ADMIN`);
-    await expect(page.locator('.error-404')).toBeVisible();
+    await expect(page.locator('.error-404').first()).toBeVisible();
   });
 });

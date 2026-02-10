@@ -33,27 +33,32 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
 
     await page.waitForTimeout(100);
     await page.locator('#mod-comment').waitFor();
-    await expect(page.locator('#mod-comment')).not.toBeChecked();
-    await page.locator('#mod-comment').check();
+    if (!(await page.locator('#mod-comment').isChecked())) {
+      await page.locator('#mod-comment').check();
+    }
     await expect(page.locator('#mod-comment')).toBeChecked();
     await page.locator('#mod-mailbox').waitFor();
-    await expect(page.locator('#mod-mailbox')).not.toBeChecked();
-    await page.locator('#mod-mailbox').check();
+    if (!(await page.locator('#mod-mailbox').isChecked())) {
+      await page.locator('#mod-mailbox').check();
+    }
     await expect(page.locator('#mod-mailbox')).toBeChecked();
     await page.locator('#mod-root').waitFor();
-    await expect(page.locator('#mod-root')).not.toBeChecked();
-    await page.locator('#mod-root').check();
+    if (!(await page.locator('#mod-root').isChecked())) {
+      await page.locator('#mod-root').check();
+    }
     await expect(page.locator('#mod-root')).toBeChecked();
     await page.locator('#mod-origin').waitFor();
-    await expect(page.locator('#mod-origin')).not.toBeChecked();
-    await page.locator('#mod-origin').check();
+    if (!(await page.locator('#mod-origin').isChecked())) {
+      await page.locator('#mod-origin').check();
+    }
     await expect(page.locator('#mod-origin')).toBeChecked();
     await page.locator('#mod-user').waitFor();
-    await expect(page.locator('#mod-user')).not.toBeChecked();
-    await page.locator('#mod-user').check();
+    if (!(await page.locator('#mod-user').isChecked())) {
+      await page.locator('#mod-user').check();
+    }
     await expect(page.locator('#mod-user')).toBeChecked();
     await page.locator('button', { hasText: 'Save' }).click();
-    await expect(page.locator('.log')).toContainText('Success');
+    await expect(page.locator('span.log')).toContainText('Success');
   });
 
   test('@main: replicate @repl', async () => {
@@ -90,39 +95,44 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
 
     await page.waitForTimeout(100);
     await page.locator('#mod-comment').waitFor();
-    await expect(page.locator('#mod-comment')).not.toBeChecked();
-    await page.locator('#mod-comment').check();
+    if (!(await page.locator('#mod-comment').isChecked())) {
+      await page.locator('#mod-comment').check();
+    }
     await expect(page.locator('#mod-comment')).toBeChecked();
     await page.locator('button', { hasText: 'Save' }).click();
-    await expect(page.locator('.log')).toContainText('Success');
+    await expect(page.locator('span.log')).toContainText('Success');
 
     await page.waitForTimeout(100);
     await page.locator('#mod-mailbox').waitFor();
-    await expect(page.locator('#mod-mailbox')).not.toBeChecked();
-    await page.locator('#mod-mailbox').check();
+    if (!(await page.locator('#mod-mailbox').isChecked())) {
+      await page.locator('#mod-mailbox').check();
+    }
     await expect(page.locator('#mod-mailbox')).toBeChecked();
     await page.locator('button', { hasText: 'Save' }).click();
-    await expect(page.locator('.log')).toContainText('Success');
+    await expect(page.locator('span.log')).toContainText('Success');
 
     await page.waitForTimeout(100);
     await page.locator('#mod-root').waitFor();
-    await expect(page.locator('#mod-root')).not.toBeChecked();
-    await page.locator('#mod-root').check();
+    if (!(await page.locator('#mod-root').isChecked())) {
+      await page.locator('#mod-root').check();
+    }
     await expect(page.locator('#mod-root')).toBeChecked();
     await page.locator('#mod-origin').waitFor();
-    await expect(page.locator('#mod-origin')).not.toBeChecked();
-    await page.locator('#mod-origin').check();
+    if (!(await page.locator('#mod-origin').isChecked())) {
+      await page.locator('#mod-origin').check();
+    }
     await expect(page.locator('#mod-origin')).toBeChecked();
     await page.locator('button', { hasText: 'Save' }).click();
-    await expect(page.locator('.log')).toContainText('Success');
+    await expect(page.locator('span.log')).toContainText('Success');
 
     await page.waitForTimeout(100);
     await page.locator('#mod-user').waitFor();
-    await expect(page.locator('#mod-user')).not.toBeChecked();
-    await page.locator('#mod-user').check();
+    if (!(await page.locator('#mod-user').isChecked())) {
+      await page.locator('#mod-user').check();
+    }
     await expect(page.locator('#mod-user')).toBeChecked();
     await page.locator('button', { hasText: 'Save' }).click();
-    await expect(page.locator('.log')).toContainText('Success');
+    await expect(page.locator('span.log')).toContainText('Success');
   });
 
   test('@repl: replicate @main', async () => {

@@ -35,7 +35,7 @@ test.describe.serial('Ref Actions', () => {
   });
 
   test('edits comments field', async () => {
-    await page.locator('.actions').getByText('edit').click();
+    await page.locator('.full-page.ref .actions').getByText('edit').click();
     await page.locator('button', { hasText: '+ Add abstract' }).click();
     await page.locator('.full-page.ref .editor textarea').fill('Comment field');
     await page.locator('button', { hasText: 'save' }).click();
@@ -108,7 +108,7 @@ test.describe.serial('Ref Actions', () => {
     test('should show "(1 new)" when first comment is added', async () => {
       // Add a comment with API intercept
       const createCommentPromise = page.waitForResponse(resp => resp.url().includes('/api/v1/ref') && resp.request().method() === 'POST');
-      await page.locator('.actions').getByText('reply').click();
+      await page.locator('.full-page.ref .actions').getByText('reply').click();
       await page.locator('.full-page.ref .comment-reply textarea').fill('First comment');
       await page.locator('.full-page.ref button', { hasText: 'reply' }).click();
 
@@ -126,7 +126,7 @@ test.describe.serial('Ref Actions', () => {
 
       // Add another comment with API intercept
       const createComment2Promise = page.waitForResponse(resp => resp.url().includes('/api/v1/ref') && resp.request().method() === 'POST');
-      await page.locator('.actions').getByText('reply').click();
+      await page.locator('.full-page.ref .actions').getByText('reply').click();
       await page.locator('.full-page.ref .comment-reply textarea').fill('Second comment');
       await page.locator('.full-page.ref button', { hasText: 'reply' }).click();
       await createComment2Promise;
@@ -166,7 +166,7 @@ test.describe.serial('Ref Actions', () => {
     test('should show "(2 new)" when two more comments are added', async () => {
       // We're already on the ref page, add third comment with API intercept
       const createComment3Promise = page.waitForResponse(resp => resp.url().includes('/api/v1/ref') && resp.request().method() === 'POST');
-      await page.locator('.actions').getByText('reply').click();
+      await page.locator('.full-page.ref .actions').getByText('reply').click();
       await page.locator('.full-page.ref .comment-reply textarea').fill('Third comment');
       await page.locator('.full-page.ref button', { hasText: 'reply' }).click();
       await createComment3Promise;
@@ -174,7 +174,7 @@ test.describe.serial('Ref Actions', () => {
 
       // Add fourth comment with API intercept
       const createComment4Promise = page.waitForResponse(resp => resp.url().includes('/api/v1/ref') && resp.request().method() === 'POST');
-      await page.locator('.actions').getByText('reply').click();
+      await page.locator('.full-page.ref .actions').getByText('reply').click();
       await page.locator('.full-page.ref .comment-reply textarea').fill('Fourth comment');
       await page.locator('.full-page.ref button', { hasText: 'reply' }).click();
       await createComment4Promise;

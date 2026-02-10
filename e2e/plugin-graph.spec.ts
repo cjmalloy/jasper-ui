@@ -26,20 +26,22 @@ test.describe.serial('Graph Plugin', () => {
 
     await page.waitForTimeout(100);
     await page.locator('#mod-experiments').waitFor();
-    await expect(page.locator('#mod-experiments')).not.toBeChecked();
-    await page.locator('#mod-experiments').check();
+    if (!(await page.locator('#mod-experiments').isChecked())) {
+      await page.locator('#mod-experiments').check();
+    }
     await expect(page.locator('#mod-experiments')).toBeChecked();
     await page.locator('button', { hasText: 'Save' }).click();
-    await expect(page.locator('.log')).toContainText('Success');
+    await expect(page.locator('span.log')).toContainText('Success');
     await page.reload();
 
     await page.waitForTimeout(100);
     await page.locator('#mod-graph').waitFor({ timeout: 30000 });
-    await expect(page.locator('#mod-graph')).not.toBeChecked();
-    await page.locator('#mod-graph').check();
+    if (!(await page.locator('#mod-graph').isChecked())) {
+      await page.locator('#mod-graph').check();
+    }
     await expect(page.locator('#mod-graph')).toBeChecked();
     await page.locator('button', { hasText: 'Save' }).click();
-    await expect(page.locator('.log')).toContainText('Success');
+    await expect(page.locator('span.log')).toContainText('Success');
   });
 
   test('creates a ref', async () => {

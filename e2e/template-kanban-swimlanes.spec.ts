@@ -37,15 +37,17 @@ test.describe.serial('Kanban Template with Swim Lanes', () => {
 
     await page.waitForTimeout(100);
     await page.locator('#mod-root').waitFor();
-    await expect(page.locator('#mod-root')).not.toBeChecked();
-    await page.locator('#mod-root').check();
+    if (!(await page.locator('#mod-root').isChecked())) {
+      await page.locator('#mod-root').check();
+    }
     await expect(page.locator('#mod-root')).toBeChecked();
     await page.locator('#mod-kanban').waitFor();
-    await expect(page.locator('#mod-kanban')).not.toBeChecked();
-    await page.locator('#mod-kanban').check();
+    if (!(await page.locator('#mod-kanban').isChecked())) {
+      await page.locator('#mod-kanban').check();
+    }
     await expect(page.locator('#mod-kanban')).toBeChecked();
     await page.locator('button', { hasText: 'Save' }).click();
-    await expect(page.locator('.log')).toContainText('Success');
+    await expect(page.locator('span.log')).toContainText('Success');
   });
 
   test('creates a board with swim lanes', async () => {

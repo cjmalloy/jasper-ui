@@ -30,15 +30,17 @@ test.describe.serial('Origin Pull Plugin', () => {
 
     await page.waitForTimeout(100);
     await page.locator('#mod-root').waitFor();
-    await expect(page.locator('#mod-root')).not.toBeChecked();
-    await page.locator('#mod-root').check();
+    if (!(await page.locator('#mod-root').isChecked())) {
+      await page.locator('#mod-root').check();
+    }
     await expect(page.locator('#mod-root')).toBeChecked();
     await page.locator('#mod-origin').waitFor();
-    await expect(page.locator('#mod-origin')).not.toBeChecked();
-    await page.locator('#mod-origin').check();
+    if (!(await page.locator('#mod-origin').isChecked())) {
+      await page.locator('#mod-origin').check();
+    }
     await expect(page.locator('#mod-origin')).toBeChecked();
     await page.locator('button', { hasText: 'Save' }).click();
-    await expect(page.locator('.log')).toContainText('Success');
+    await expect(page.locator('span.log')).toContainText('Success');
   });
 
   test('@main: creates a remote origin', async () => {

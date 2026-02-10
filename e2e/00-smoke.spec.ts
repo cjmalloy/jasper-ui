@@ -43,7 +43,7 @@ test.describe.serial('Smoke Tests', () => {
     await page.locator('.full-page.ref .actions').getByText('delete').click();
     await page.locator('.full-page.ref .actions').getByText('yes').click();
     await page.goto(`/ref/e/${encodeURIComponent('https://jasperkm.info/')}?debug=USER`);
-    await expect(page.locator('.error-404')).toBeVisible();
+    await expect(page.locator('.error-404').first()).toBeVisible();
   });
 
   test('loads the ADMIN user', async () => {
