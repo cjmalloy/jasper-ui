@@ -172,7 +172,7 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
     await expect(ref.locator('.user.tag', { hasText: 'bob' })).toBeVisible();
   });
 
-  test.skip('@main: check ref was pulled', async () => {
+  test('@main: check ref was pulled', async () => {
     const notificationsPromise = page.waitForResponse(resp => resp.url().includes('/api/v1/ref/count'));
     await page.goto('/?debug=USER&tag=alice');
     await notificationsPromise;
@@ -183,7 +183,7 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
     await expect(ref.locator('.user.tag', { hasText: 'bob' })).toBeVisible();
   });
 
-  test.skip('@main: reply to remote message', async () => {
+  test('@main: reply to remote message', async () => {
     const notificationsPromise = page.waitForResponse(resp => resp.url().includes('/api/v1/ref/count'));
     await page.goto('/?debug=USER&tag=alice');
     await notificationsPromise;
@@ -198,7 +198,7 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
     await page.waitForTimeout(3000);
   });
 
-  test.skip('@repl: check reply was pulled', async () => {
+  test('@repl: check reply was pulled', async () => {
     const notificationsPromise = page.waitForResponse(resp => resp.url().includes('/api/v1/ref/count'));
     await page.goto(replUrl + '/?debug=ADMIN&tag=bob');
     await notificationsPromise;
