@@ -58,7 +58,7 @@ test.describe.serial('Wiki Plugin', () => {
   test('turn on wiki config', async () => {
     await page.goto('/?debug=ADMIN');
     await page.locator('.settings a', { hasText: 'settings' }).click();
-    await page.locator('.tabs').getByText('setup').click();
+    await page.locator('.tabs a').getByText('setup').click();
 
     await page.waitForTimeout(100);
     await page.locator('#mod-wiki').waitFor();
@@ -72,7 +72,7 @@ test.describe.serial('Wiki Plugin', () => {
   test('set external wiki', async () => {
     await page.goto('/?debug=ADMIN');
     await page.locator('.settings a', { hasText: 'settings' }).click();
-    await page.locator('.tabs').getByText('template').click();
+    await page.locator('.tabs a').getByText('template').click();
     const fileContent = JSON.stringify({ tag: 'config/wiki', config: { prefix: 'https://externalwiki/', external: true }});
     const buffer = Buffer.from(fileContent);
     await page.locator('input.upload').setInputFiles({

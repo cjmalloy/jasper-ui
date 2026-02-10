@@ -24,7 +24,7 @@ test.describe.serial('User Page', () => {
   test('enable user plugin', async () => {
     await page.goto('/?debug=ADMIN');
     await page.locator('.settings a', { hasText: 'settings' }).click();
-    await page.locator('.tabs').getByText('setup').click();
+    await page.locator('.tabs a').getByText('setup').click();
 
     await page.waitForTimeout(100);
     await page.locator('#mod-user').waitFor();

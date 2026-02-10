@@ -26,7 +26,7 @@ test.describe.serial('Origin Pull Plugin', () => {
   test('@main: turn on pull', async () => {
     await page.goto('/?debug=ADMIN');
     await page.locator('.settings a', { hasText: 'settings' }).click();
-    await page.locator('.tabs').getByText('setup').click();
+    await page.locator('.tabs a').getByText('setup').click();
 
     await page.waitForTimeout(100);
     await page.locator('#mod-root').waitFor();
@@ -44,7 +44,7 @@ test.describe.serial('Origin Pull Plugin', () => {
   test('@main: creates a remote origin', async () => {
     await page.goto('/?debug=ADMIN');
     await page.locator('.settings a', { hasText: 'settings' }).click();
-    await page.locator('.tabs').getByText('origin').click();
+    await page.locator('.tabs a').getByText('origin').click();
     await openSidebar(page);
     await page.getByText('Submit', { exact: true }).click();
     await page.locator('#url').fill(replApiProxy);
@@ -89,7 +89,7 @@ test.describe.serial('Origin Pull Plugin', () => {
   test('@main: delete remote @repl', async () => {
     await page.goto('/?debug=ADMIN');
     await page.locator('.settings a', { hasText: 'settings' }).click();
-    await page.locator('.tabs').getByText('origin').click();
+    await page.locator('.tabs a').getByText('origin').click();
     await openSidebar(page);
     await page.locator('input[type=search]').fill(replApiProxy);
     await page.locator('input[type=search]').press('Enter');

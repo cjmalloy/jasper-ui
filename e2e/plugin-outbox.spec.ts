@@ -29,7 +29,7 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
   test('@main: turn on inbox, outbox and remote origins', async () => {
     await page.goto('/?debug=ADMIN');
     await page.locator('.settings a', { hasText: 'settings' }).click();
-    await page.locator('.tabs').getByText('setup').click();
+    await page.locator('.tabs a').getByText('setup').click();
 
     await page.waitForTimeout(100);
     await page.locator('#mod-comment').waitFor();
@@ -59,7 +59,7 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
   test('@main: replicate @repl', async () => {
     await page.goto('/?debug=ADMIN');
     await page.locator('.settings a', { hasText: 'settings' }).click();
-    await page.locator('.tabs').getByText('origin').click();
+    await page.locator('.tabs a').getByText('origin').click();
     await openSidebar(page);
     await page.getByText('Submit', { exact: true }).click();
     await page.locator('#url').fill(replApi);
@@ -86,7 +86,7 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
   test('@repl: turn on outbox and remote origins', async () => {
     await page.goto(replUrl + '/?debug=ADMIN');
     await page.locator('.settings a', { hasText: 'settings' }).click();
-    await page.locator('.tabs').getByText('setup').click();
+    await page.locator('.tabs a').getByText('setup').click();
 
     await page.waitForTimeout(100);
     await page.locator('#mod-comment').waitFor();
@@ -128,7 +128,7 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
   test('@repl: replicate @main', async () => {
     await page.goto(replUrl + '/?debug=ADMIN');
     await page.locator('.settings a', { hasText: 'settings' }).click();
-    await page.locator('.tabs').getByText('origin').click();
+    await page.locator('.tabs a').getByText('origin').click();
     await openSidebar(page);
     await page.getByText('Submit', { exact: true }).click();
     await page.locator('#url').fill(mainApi);
@@ -167,7 +167,7 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
     await notificationsPromise;
     await page.waitForTimeout(100);
     await page.locator('.settings .notification').click();
-    await page.locator('.tabs').getByText('all').click();
+    await page.locator('.tabs a').getByText('all').click();
     const ref = page.locator('.ref-list .link:not(.remote)', { hasText: 'Ref from other' }).locator('..').locator('..').locator('..');
     await expect(ref.locator('.user.tag', { hasText: 'bob' })).toBeVisible();
   });
@@ -178,7 +178,7 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
     await notificationsPromise;
     await page.waitForTimeout(100);
     await page.locator('.settings .notification').click();
-    await page.locator('.tabs').getByText('all').click();
+    await page.locator('.tabs a').getByText('all').click();
     const ref = page.locator('.ref-list .link.remote', { hasText: 'Ref from other' }).locator('..').locator('..').locator('..');
     await expect(ref.locator('.user.tag', { hasText: 'bob' })).toBeVisible();
   });
@@ -189,7 +189,7 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
     await notificationsPromise;
     await page.waitForTimeout(100);
     await page.locator('.settings .inbox').click();
-    await page.locator('.tabs').getByText('all').click();
+    await page.locator('.tabs a').getByText('all').click();
     const ref = page.locator('.ref-list .link.remote', { hasText: 'Ref from other' }).locator('..').locator('..').locator('..');
     await ref.locator('.actions').getByText('permalink').click();
     await page.locator('.comment-reply textarea').fill('Doing well, thanks!');
@@ -204,7 +204,7 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
     await notificationsPromise;
     await page.waitForTimeout(100);
     await page.locator('.settings .notification').click();
-    await page.locator('.tabs').getByText('all').click();
+    await page.locator('.tabs a').getByText('all').click();
     const ref = page.locator('.ref-list .link.remote', { hasText: 'Doing well, thanks!' }).locator('..').locator('..').locator('..');
     await expect(ref.locator('.user.tag', { hasText: 'alice' })).toBeVisible();
   });
@@ -216,7 +216,7 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
     await notificationsPromise;
     await page.waitForTimeout(100);
     await page.locator('.settings .notification').click();
-    await page.locator('.tabs').getByText('all').click();
+    await page.locator('.tabs a').getByText('all').click();
     const ref = page.locator('.ref-list .link.remote', { hasText: 'Doing well, thanks!' }).locator('..').locator('..').locator('..');
     await expect(ref.locator('.user.tag', { hasText: 'alice' })).toBeVisible();
   });
@@ -224,7 +224,7 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
   test('@main: delete remote @repl', async () => {
     await page.goto('/?debug=ADMIN');
     await page.locator('.settings a', { hasText: 'settings' }).click();
-    await page.locator('.tabs').getByText('origin').click();
+    await page.locator('.tabs a').getByText('origin').click();
     await openSidebar(page);
     await page.locator('input[type=search]').fill(replApi);
     await page.locator('input[type=search]').press('Enter');
@@ -236,7 +236,7 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
   test('@repl: delete remote @main', async () => {
     await page.goto(replUrl + '/?debug=ADMIN');
     await page.locator('.settings a', { hasText: 'settings' }).click();
-    await page.locator('.tabs').getByText('origin').click();
+    await page.locator('.tabs a').getByText('origin').click();
     await openSidebar(page);
     await page.locator('input[type=search]').fill(mainApi);
     await page.locator('input[type=search]').press('Enter');

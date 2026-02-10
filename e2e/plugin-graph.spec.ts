@@ -59,7 +59,7 @@ test.describe.serial('Graph Plugin', () => {
     await page.locator('.full-page .actions').getByText('edit').click();
     const url = await page.locator('[name=url]').inputValue();
     await page.goto('/tag/@*?search=' + url + '&debug=USER');
-    await page.locator('.tabs').getByText('graph').click();
+    await page.locator('.tabs a').getByText('graph').click();
     await expect(page.locator('figure')).toContainText('Title');
   });
 
@@ -71,7 +71,7 @@ test.describe.serial('Graph Plugin', () => {
     await replyPromise;
     await page.waitForTimeout(1000);
     await page.locator('.ref .actions').getByText('permalink').click();
-    await page.locator('.tabs').getByText('responses').click();
+    await page.locator('.tabs a').getByText('responses').click();
     await page.locator('.ref-list-item.ref .actions').getByText('permalink').click();
     await expect(page.locator('.full-page.ref .link a')).toHaveText('Reply');
   });
@@ -80,7 +80,7 @@ test.describe.serial('Graph Plugin', () => {
     await page.locator('.full-page .actions').getByText('edit').click();
     const url = await page.locator('[name=url]').inputValue();
     await page.goto('/tag/@*?search=' + url + '&debug=USER');
-    await page.locator('.tabs').getByText('graph').click();
+    await page.locator('.tabs a').getByText('graph').click();
     await expect(page.locator('figure')).toContainText('Reply');
     await page.getByText('load more').click();
     await page.locator('figure').click({ button: 'right' });

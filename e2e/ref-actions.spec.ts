@@ -45,14 +45,14 @@ test.describe.serial('Ref Actions', () => {
   });
 
   test('adds tag inline (this breaks loading "1 citation" text)', async () => {
-    await page.locator('.actions').getByText('tag').click();
+    await page.locator('.full-page.ref .actions').getByText('tag').click();
     await page.locator('.inline-tagging input').fill('cool');
     await page.locator('.inline-tagging input').press('Enter');
     await expect(page.locator('.full-page.ref .tag:not(.user)', { hasText: 'cool' })).toBeVisible();
   });
 
   test('creates reply', async () => {
-    await page.locator('.actions').getByText('reply').click();
+    await page.locator('.full-page.ref .actions').getByText('reply').click();
     await page.locator('.full-page.ref .comment-reply textarea').fill('Reply');
     await page.locator('.full-page.ref button', { hasText: 'reply' }).click();
     await page.locator('.full-page.ref .actions').getByText('1 citation').click();
@@ -67,7 +67,7 @@ test.describe.serial('Ref Actions', () => {
   });
 
   test('adds tag inline', async () => {
-    await page.locator('.actions').getByText('tag').click();
+    await page.locator('.full-page.ref .actions').getByText('tag').click();
     await page.locator('.inline-tagging input').fill('cool');
     await page.locator('.inline-tagging input').press('Enter');
     await expect(page.locator('.full-page.ref .tag:not(.user)', { hasText: 'cool' })).toBeVisible();
@@ -121,7 +121,7 @@ test.describe.serial('Ref Actions', () => {
       await page.waitForTimeout(1000);
 
       // Navigate back to the ref using the "view" tab
-      await page.locator('.tabs').getByText('view').click();
+      await page.locator('.tabs a').getByText('view').click();
       await page.waitForTimeout(500);
 
       // Add another comment with API intercept
