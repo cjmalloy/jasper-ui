@@ -139,17 +139,17 @@ jobs:
           <body>
             <h1>Test Reports</h1>
             <div class='report'>
-              <a href='$(basename $latest_playwright)/' target='_blank'>Latest Playwright Report</a>
+              <a href='$(basename $latest_playwright)/'>Latest Playwright Report</a>
             </div>
             <div class='report'>
-              <a href='$(basename $latest_vitest)/' target='_blank'>Latest Vitest Report</a>
+              <a href='$(basename $latest_vitest)/'>Latest Vitest Report</a>
             </div>
             <h2>All Reports</h2>
             <div id="reports">
               $(for d in _site/reports/*/; do
                 name=$(basename "$d")
                 if [[ ! "$name" =~ ^latest-.*$ ]]; then
-                  echo "<div class='report'><a href='$name/' target='_blank'>$name</a></div>"
+                  echo "<div class='report'><a href='$name/'>$name</a></div>"
                 fi
               done)
             </div>
