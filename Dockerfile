@@ -1,6 +1,6 @@
 FROM node:24.13.0 AS builder
 WORKDIR /app
-RUN npm i -g @angular/cli
+RUN npm i -g @angular/cli@20.3.15
 COPY package.json package-lock.json ./
 COPY patches ./patches/
 RUN npm ci
@@ -30,7 +30,7 @@ RUN apt-get update && apt-get install -y \
 	&& apt-get purge --auto-remove -y curl gnupg \
 	&& rm -rf /var/lib/apt/lists/*
 WORKDIR /app
-RUN npm i -g @angular/cli
+RUN npm i -g @angular/cli@20.3.15
 COPY --from=builder /app ./
 SHELL ["/bin/bash", "-c"]
 CMD mkdir -p /report && \
