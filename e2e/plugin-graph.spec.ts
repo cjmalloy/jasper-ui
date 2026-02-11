@@ -18,7 +18,6 @@ test.describe.serial('Graph Plugin', () => {
 
   test('turn on graphing', async () => {
     await page.goto('/settings/setup?debug=ADMIN');
-
     await page.waitForTimeout(100);
     await page.locator('#mod-experiments').waitFor();
     if (!(await page.locator('#mod-experiments').isChecked())) {
