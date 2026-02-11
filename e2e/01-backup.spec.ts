@@ -28,6 +28,7 @@ test.describe('Backup / Restore', () => {
     await expect(page.locator('.popup button', { hasText: '+ backup' })).toBeVisible();
     // Click backup button to create backup with default options
     await page.locator('.popup button', { hasText: '+ backup' }).click();
+    await page.waitForTimeout(1000);
   });
 
   test('deletes ref', async ({ page }) => {
