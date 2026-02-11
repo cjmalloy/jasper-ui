@@ -1,4 +1,4 @@
-import { test, expect, type Page } from '@playwright/test';
+import { expect, type Page, test } from '@playwright/test';
 import { clearMods, deleteOrigin, openSidebar } from './setup';
 
 test.describe.serial('Origin Push Plugin', () => {
@@ -27,17 +27,8 @@ test.describe.serial('Origin Push Plugin', () => {
     await page.locator('.settings a', { hasText: 'settings' }).click();
     await page.locator('.tabs a', { hasText: 'setup' }).first().click();
 
-    await page.waitForTimeout(100);
-    await page.locator('#mod-root').waitFor();
-    if (!(await page.locator('#mod-root').isChecked())) {
-      await page.locator('#mod-root').check();
-    }
-    await expect(page.locator('#mod-root')).toBeChecked();
-    await page.locator('#mod-origin').waitFor();
-    if (!(await page.locator('#mod-origin').isChecked())) {
-      await page.locator('#mod-origin').check();
-    }
-    await expect(page.locator('#mod-origin')).toBeChecked();
+    await page.locator('#mod-root').check();
+    await page.locator('#mod-origin').check();
     await page.locator('button', { hasText: 'Save' }).click();
     await page.locator('.log div', { hasText: 'Success.' }).first().waitFor({ timeout: 15_000, state: 'attached' });
   });

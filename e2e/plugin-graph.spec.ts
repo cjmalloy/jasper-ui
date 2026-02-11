@@ -28,12 +28,7 @@ test.describe.serial('Graph Plugin', () => {
     await page.locator('.log div', { hasText: 'Success.' }).first().waitFor({ timeout: 15_000, state: 'attached' });
     await page.reload();
 
-    await page.waitForTimeout(100);
-    await page.locator('#mod-graph').waitFor({ timeout: 30000 });
-    if (!(await page.locator('#mod-graph').isChecked())) {
-      await page.locator('#mod-graph').check();
-    }
-    await expect(page.locator('#mod-graph')).toBeChecked();
+    await page.locator('#mod-graph').check();
     await page.locator('button', { hasText: 'Save' }).click();
     await page.locator('.log div', { hasText: 'Success.' }).first().waitFor({ timeout: 15_000, state: 'attached' });
   });

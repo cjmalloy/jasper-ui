@@ -21,12 +21,7 @@ test.describe.serial('User Page', () => {
     await page.locator('.settings a', { hasText: 'settings' }).click();
     await page.locator('.tabs a', { hasText: 'setup' }).first().click();
 
-    await page.waitForTimeout(100);
-    await page.locator('#mod-user').waitFor();
-    if (!(await page.locator('#mod-user').isChecked())) {
-      await page.locator('#mod-user').check();
-    }
-    await expect(page.locator('#mod-user')).toBeChecked();
+    await page.locator('#mod-user').check();
     await page.locator('button', { hasText: 'Save' }).click();
     await page.locator('.log div', { hasText: 'Success.' }).first().waitFor({ timeout: 15_000, state: 'attached' });
   });

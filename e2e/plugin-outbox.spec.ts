@@ -26,32 +26,11 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
     await page.locator('.settings a', { hasText: 'settings' }).click();
     await page.locator('.tabs a', { hasText: 'setup' }).first().click();
 
-    await page.waitForTimeout(100);
-    await page.locator('#mod-comment').waitFor();
-    if (!(await page.locator('#mod-comment').isChecked())) {
-      await page.locator('#mod-comment').check();
-    }
-    await expect(page.locator('#mod-comment')).toBeChecked();
-    await page.locator('#mod-mailbox').waitFor();
-    if (!(await page.locator('#mod-mailbox').isChecked())) {
-      await page.locator('#mod-mailbox').check();
-    }
-    await expect(page.locator('#mod-mailbox')).toBeChecked();
-    await page.locator('#mod-root').waitFor();
-    if (!(await page.locator('#mod-root').isChecked())) {
-      await page.locator('#mod-root').check();
-    }
-    await expect(page.locator('#mod-root')).toBeChecked();
-    await page.locator('#mod-origin').waitFor();
-    if (!(await page.locator('#mod-origin').isChecked())) {
-      await page.locator('#mod-origin').check();
-    }
-    await expect(page.locator('#mod-origin')).toBeChecked();
-    await page.locator('#mod-user').waitFor();
-    if (!(await page.locator('#mod-user').isChecked())) {
-      await page.locator('#mod-user').check();
-    }
-    await expect(page.locator('#mod-user')).toBeChecked();
+    await page.locator('#mod-comment').check();
+    await page.locator('#mod-mailbox').check();
+    await page.locator('#mod-root').check();
+    await page.locator('#mod-origin').check();
+    await page.locator('#mod-user').check();
     await page.locator('button', { hasText: 'Save' }).click();
     await page.locator('.log div', { hasText: 'Success.' }).first().waitFor({ timeout: 15_000, state: 'attached' });
   });
@@ -96,44 +75,11 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
     await page.locator('.settings a', { hasText: 'settings' }).click();
     await page.locator('.tabs a', { hasText: 'setup' }).first().click();
 
-    await page.waitForTimeout(100);
-    await page.locator('#mod-comment').waitFor();
-    if (!(await page.locator('#mod-comment').isChecked())) {
-      await page.locator('#mod-comment').check();
-    }
-    await expect(page.locator('#mod-comment')).toBeChecked();
-    await page.locator('button', { hasText: 'Save' }).click();
-    await page.locator('.log div', { hasText: 'Success.' }).first().waitFor({ timeout: 15_000, state: 'attached' });
-
-    await page.waitForTimeout(100);
-    await page.locator('#mod-mailbox').waitFor();
-    if (!(await page.locator('#mod-mailbox').isChecked())) {
-      await page.locator('#mod-mailbox').check();
-    }
-    await expect(page.locator('#mod-mailbox')).toBeChecked();
-    await page.locator('button', { hasText: 'Save' }).click();
-    await page.locator('.log div', { hasText: 'Success.' }).first().waitFor({ timeout: 15_000, state: 'attached' });
-
-    await page.waitForTimeout(100);
-    await page.locator('#mod-root').waitFor();
-    if (!(await page.locator('#mod-root').isChecked())) {
-      await page.locator('#mod-root').check();
-    }
-    await expect(page.locator('#mod-root')).toBeChecked();
-    await page.locator('#mod-origin').waitFor();
-    if (!(await page.locator('#mod-origin').isChecked())) {
-      await page.locator('#mod-origin').check();
-    }
-    await expect(page.locator('#mod-origin')).toBeChecked();
-    await page.locator('button', { hasText: 'Save' }).click();
-    await page.locator('.log div', { hasText: 'Success.' }).first().waitFor({ timeout: 15_000, state: 'attached' });
-
-    await page.waitForTimeout(100);
-    await page.locator('#mod-user').waitFor();
-    if (!(await page.locator('#mod-user').isChecked())) {
-      await page.locator('#mod-user').check();
-    }
-    await expect(page.locator('#mod-user')).toBeChecked();
+    await page.locator('#mod-comment').check();
+    await page.locator('#mod-mailbox').check();
+    await page.locator('#mod-root').check();
+    await page.locator('#mod-origin').check();
+    await page.locator('#mod-user').check();
     await page.locator('button', { hasText: 'Save' }).click();
     await page.locator('.log div', { hasText: 'Success.' }).first().waitFor({ timeout: 15_000, state: 'attached' });
   });
