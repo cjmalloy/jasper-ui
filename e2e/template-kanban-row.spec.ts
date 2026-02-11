@@ -56,8 +56,10 @@ test.describe.serial('Kanban Template No Swimlanes', () => {
     await page.locator('.columns button').first().click();
     const colInput1 = page.locator('.columns input').first();
     await colInput1.waitFor({ state: 'attached'});
+    await page.waitForTimeout(1000);
     await colInput1.pressSequentially('doing', { delay: 100 });
     await colInput1.press('Enter');
+    await page.waitForTimeout(1000);
     const colInput2 = page.locator('.columns input').nth(1);
     await colInput2.waitFor({ state: 'attached'});
     await colInput2.pressSequentially('done', { delay: 100 });
