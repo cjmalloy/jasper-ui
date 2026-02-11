@@ -201,8 +201,13 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
   });
 
   test('@\u{ff20}repl : local user notified', async () => {
-    await page.goto(replUrl + '/?debug=USER&tag=charlie');
-    await page.waitForLoadState('networkidle');
+    // Notification may take time to be delivered; retry with reload
+    for (let attempt = 0; attempt < 5; attempt++) {
+      await page.goto(replUrl + '/?debug=USER&tag=charlie');
+      await page.waitForLoadState('networkidle');
+      if (await page.locator('.settings .notification').isVisible({ timeout: 3_000 }).catch(() => false)) break;
+      await page.waitForTimeout(2_000);
+    }
     await page.locator('.settings .notification').click();
     await page.locator('.tabs a', { hasText: 'all' }).first().click();
     const ref = page.locator('.ref-list .link:not(.remote)', { hasText: 'Ref from other' }).locator('..').locator('..').locator('..');
