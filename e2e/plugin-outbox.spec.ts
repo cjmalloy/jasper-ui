@@ -57,8 +57,9 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
   });
 
   test('@\u{ff20}main : create users', async () => {
-    await page.goto('/?debug=USER&tag=alice');
+    await page.goto('/ext/+user/alice?debug=USER&tag=alice');
     await page.waitForLoadState('networkidle');
+    await expect(page.locator('button', {hasText: 'Delete'})).toBeVisible();
   });
 
   test('@\u{ff20}main : replicate \u{ff20}repl', async () => {
@@ -147,10 +148,12 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
   });
 
   test('@\u{ff20}repl : create users', async () => {
-    await page.goto(replUrl + '/?debug=USER&tag=bob');
+    await page.goto(replUrl + '/ext/+user/bob?debug=USER&tag=bob');
     await page.waitForLoadState('networkidle');
-    await page.goto(replUrl + '/?debug=ADMIN&tag=charlie');
+    await expect(page.locator('button', {hasText: 'Delete'})).toBeVisible();
+    await page.goto(replUrl + '/ext/+user/charlie?debug=ADMIN&tag=charlie');
     await page.waitForLoadState('networkidle');
+    await expect(page.locator('button', {hasText: 'Delete'})).toBeVisible();
   });
 
   test('@\u{ff20}repl : replicate \u{ff20}main', async () => {
@@ -201,13 +204,8 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
   });
 
   test('@\u{ff20}repl : local user notified', async () => {
-    // Notification may take time to be delivered; retry with reload
-    for (let attempt = 0; attempt < 5; attempt++) {
-      await page.goto(replUrl + '/?debug=USER&tag=charlie');
-      await page.waitForLoadState('networkidle');
-      if (await page.locator('.settings .notification').isVisible({ timeout: 3_000 }).catch(() => false)) break;
-      await page.waitForTimeout(2_000);
-    }
+    await page.goto(replUrl + '/?debug=USER&tag=charlie');
+    await page.waitForLoadState('networkidle');
     await page.locator('.settings .notification').click();
     await page.locator('.tabs a', { hasText: 'all' }).first().click();
     const ref = page.locator('.ref-list .link:not(.remote)', { hasText: 'Ref from other' }).locator('..').locator('..').locator('..');

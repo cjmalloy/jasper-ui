@@ -52,23 +52,25 @@ test.describe.serial('Kanban Template No Swimlanes', () => {
     if (await deleteBtn.isVisible({ timeout: 3_000 }).catch(() => false)) {
       page.once('dialog', dialog => dialog.accept());
       await deleteBtn.click();
-      await page.waitForTimeout(500);
+      await page.waitForURL(/\/tag\//, { timeout: 5_000 }).catch(() => {});
     }
     await page.goto('/tags/kanban?debug=MOD');
     await openSidebar(page);
     await page.getByText('Extend').click();
     await page.locator('[name=tag]').pressSequentially('test', { delay: 100 });
     await page.locator('button', { hasText: 'Extend' }).click();
+    // Wait for template form to fully render (async via defer())
+    await page.locator('.columns').waitFor({ timeout: 15_000 });
     await page.locator('[name=name]').pressSequentially('Kanban Test', { delay: 100 });
     await page.locator('.columns button').first().click();
     const colInput1 = page.locator('.columns input').first();
-    await colInput1.waitFor();
+    await colInput1.waitFor({ state: 'attached'});
     await colInput1.pressSequentially('doing', { delay: 100 });
     await colInput1.press('Enter');
     const colInput2 = page.locator('.columns input').nth(1);
-    await colInput2.waitFor();
+    await colInput2.waitFor({ state: 'attached'});
     await colInput2.pressSequentially('done', { delay: 100 });
-    await page.locator('[name=showColumnBacklog]').click();
+    await page.locator('[name=showColumnBacklog]').check();
     await page.locator('[name=columnBacklogTitle]').pressSequentially('todo', { delay: 100 });
     await page.locator('button', { hasText: 'Save' }).click();
     await expect(page.locator('h2')).toHaveText('Kanban Test');

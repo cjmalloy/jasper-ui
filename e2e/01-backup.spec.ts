@@ -12,7 +12,7 @@ test.describe('Backup / Restore', () => {
     await page.close();
   });
 
-  test('@\u{ff20}main : clear mods', async () => {
+  test('clear mods', async () => {
     await clearMods(page);
   });
   test('creates a ref', async () => {

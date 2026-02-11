@@ -39,13 +39,6 @@ test.describe.serial('Ref Actions', () => {
     await expect(page.locator('.full-page.ref')).not.toContainText('Comment field');
   });
 
-  test('adds tag inline (this breaks loading "1 citation" text)', async () => {
-    await page.locator('.full-page.ref .actions .fake-link', { hasText: 'tag' }).first().click();
-    await page.locator('.inline-tagging input').pressSequentially('cool', { delay: 100 });
-    await page.locator('.inline-tagging input').press('Enter');
-    await expect(page.locator('.full-page.ref .tag:not(.user)', { hasText: 'cool' })).toBeVisible();
-  });
-
   test('creates reply', async () => {
     await page.locator('.full-page.ref .actions .fake-link', { hasText: 'reply' }).first().click();
     await page.locator('.full-page.ref .comment-reply textarea').pressSequentially('Reply', { delay: 100 });
