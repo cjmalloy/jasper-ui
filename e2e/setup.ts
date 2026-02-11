@@ -26,6 +26,16 @@ export async function clearMods(page: Page, base = '') {
   }
 }
 
+export async function clearAll(page: Page, base = '') {
+  await page.goto(base + '/settings/backup?debug=ADMIN');
+  await page.waitForLoadState('networkidle');
+  await page.locator('form select').selectOption('');
+  page.on('dialog', dialog => dialog.accept('default'));
+  await page.locator('button', { hasText: '– delete' }).click();
+  await page.reload();
+  await clearMods(page, base);
+}
+
 export async function deleteRef(page: Page, url: string, base = '') {
   await page.goto(base + `/ref/e/${encodeURIComponent(url)}?debug=ADMIN`);
   const deleteBtn = page.locator('.full-page.ref .actions .fake-link', { hasText: 'delete' });

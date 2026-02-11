@@ -1,5 +1,5 @@
 import { expect, type Page, test } from '@playwright/test';
-import { clearMods, closeSidebar, openSidebar } from './setup';
+import { clearAll, closeSidebar, openSidebar } from './setup';
 import { addToBoard, dragCol } from './template-kanban';
 
 async function loadBoard(page: Page) {
@@ -12,8 +12,8 @@ async function loadBoard(page: Page) {
 
 test.describe.serial('Kanban Template No Swimlanes', () => {
 
-  test('clear mods', async ({ page }) => {
-    await clearMods(page);
+  test('clear all', async ({ page }) => {
+    await clearAll(page);
   });
 
   test('turn on kanban', async ({ page }) => {
