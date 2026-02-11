@@ -1,5 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
-import { clearMods, openSidebar } from './setup';
+import { clearMods, deleteOrigin, openSidebar } from './setup';
 
 test.describe.serial('Origin Push Plugin', () => {
   const replUrl = process.env.REPL_URL || 'http://localhost:8082';
@@ -43,6 +43,8 @@ test.describe.serial('Origin Push Plugin', () => {
   });
 
   test('@\u{ff20}main : creates a remote origin', async () => {
+    // Clean up any existing origin from a previous failed run/retry
+    await deleteOrigin(page, replApiProxy, '@repl');
     await page.goto('/?debug=ADMIN');
     await page.locator('.settings a', { hasText: 'settings' }).click();
     await page.locator('.tabs a', { hasText: 'origin' }).first().click();

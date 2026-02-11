@@ -1,5 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
-import { clearMods, openSidebar } from './setup';
+import { clearMods, deleteRef, openSidebar } from './setup';
 
 test.describe.serial('Smoke Tests', () => {
   let page: Page;
@@ -27,6 +27,8 @@ test.describe.serial('Smoke Tests', () => {
   });
 
   test('creates a ref', async () => {
+    // Clean up any existing ref from a previous failed run/retry
+    await deleteRef(page, 'https://jasperkm.info/');
     await page.goto('/?debug=ADMIN');
     await openSidebar(page);
     await page.locator('.sidebar .submit-button', { hasText: 'Submit' }).first().click();

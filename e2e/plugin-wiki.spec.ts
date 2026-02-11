@@ -1,5 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
-import { clearMods, openSidebar } from './setup';
+import { clearMods, deleteRef, openSidebar } from './setup';
 
 test.describe.serial('Wiki Plugin', () => {
   let page: Page;
@@ -17,6 +17,8 @@ test.describe.serial('Wiki Plugin', () => {
   });
 
   test('creates a wiki', async () => {
+    // Clean up any existing wiki from a previous failed run/retry
+    await deleteRef(page, 'wiki:Wiki_test');
     await page.goto('/?debug=USER');
     await openSidebar(page);
     await page.locator('.sidebar .submit-button', { hasText: 'Submit' }).first().click();

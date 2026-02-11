@@ -1,5 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
-import { clearMods, openSidebar } from './setup';
+import { clearMods, deleteRef, openSidebar } from './setup';
 
 test.describe.serial('Ref Actions', () => {
   let page: Page;
@@ -17,6 +17,17 @@ test.describe.serial('Ref Actions', () => {
   });
 
   test('creates a ref', async () => {
+    // Clean up any existing ref from a previous failed run/retry
+    // Text refs get auto-generated URLs, so search by title and delete
+    await page.goto('/tag/@*?search=Title&debug=ADMIN');
+    for (let i = 0; i < 5; i++) {
+      const ref = page.locator('.ref-list .ref .actions .fake-link', { hasText: 'delete' }).first();
+      if (!(await ref.isVisible({ timeout: 2_000 }).catch(() => false))) break;
+      await ref.click();
+      await page.locator('.ref-list .ref .actions .fake-link', { hasText: 'yes' }).first().click();
+      await page.waitForTimeout(500);
+      await page.reload();
+    }
     await page.goto('/?debug=MOD');
     await openSidebar(page);
     await page.locator('.sidebar .submit-button', { hasText: 'Submit' }).first().click();
@@ -83,6 +94,16 @@ test.describe.serial('Ref Actions', () => {
     });
 
     test('should create a ref with comments enabled', async () => {
+      // Clean up any existing ref from a previous failed run/retry
+      await page.goto('/tag/@*?search=Test+Ref+for+New+Indicators&debug=ADMIN');
+      for (let i = 0; i < 5; i++) {
+        const ref = page.locator('.ref-list .ref .actions .fake-link', { hasText: 'delete' }).first();
+        if (!(await ref.isVisible({ timeout: 2_000 }).catch(() => false))) break;
+        await ref.click();
+        await page.locator('.ref-list .ref .actions .fake-link', { hasText: 'yes' }).first().click();
+        await page.waitForTimeout(500);
+        await page.reload();
+      }
       await page.goto('/?debug=MOD');
       await openSidebar(page);
       await page.locator('.sidebar .submit-button', { hasText: 'Submit' }).first().click();
