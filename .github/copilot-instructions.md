@@ -35,7 +35,7 @@ This Angular client (jasper-ui) provides the reference implementation for intera
 ## Quick Start
 
 - **CRITICAL**: Debugging requires the Jasper server backend running
-- Install Node.js 22: `curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash - && sudo apt-get install -y nodejs`
+- Install Node.js 24: `curl -fsSL https://deb.nodesource.com/setup_24.x | sudo -E bash - && sudo apt-get install -y nodejs`
 - Install dependencies: `npm ci` (use `CYPRESS_INSTALL_BINARY=0 npm ci` if network blocks Cypress)
 
 ## Development Commands

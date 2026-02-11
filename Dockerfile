@@ -1,15 +1,15 @@
-FROM node:22.22.0 AS builder
+FROM node:24.13.0 AS builder
 WORKDIR /app
-RUN npm i -g @angular/cli
+RUN npm i -g @angular/cli@20.3.15
 COPY package.json package-lock.json ./
 COPY patches ./patches/
 RUN npm ci
 COPY . ./
 RUN npm run build
 
-FROM node:22.22.0 AS test
+FROM node:24.13.0 AS test
 WORKDIR /app
-RUN npm i -g @angular/cli
+RUN npm i -g @angular/cli@20.3.15
 COPY --from=builder /app ./
 SHELL ["/bin/bash", "-c"]
 CMD mkdir -p /report && \
@@ -17,8 +17,8 @@ CMD mkdir -p /report && \
     (if [ -d html ]; then cp -r html/* /report/ 2>/dev/null || true; fi) && \
     exit $(cat /report/exit-code.txt)
 
-FROM nginx:1.27-alpine3.19-slim AS deploy
-RUN apk add jq moreutils
+FROM nginx:1.29.5-alpine3.23-slim AS deploy
+RUN apk add --no-cache jq moreutils
 WORKDIR /var/lib/jasper/
 COPY --from=builder /app/dist/jasper-ui/browser ./
 ARG BASE_HREF="/"
