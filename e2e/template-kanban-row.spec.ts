@@ -46,6 +46,14 @@ test.describe.serial('Kanban Template No Swimlanes', () => {
   });
 
   test('creates a board', async () => {
+    // Clean up any existing board from a previous failed run/retry
+    await page.goto('/ext/kanban/test?debug=MOD');
+    const deleteBtn = page.locator('button', { hasText: 'Delete' });
+    if (await deleteBtn.isVisible({ timeout: 3_000 }).catch(() => false)) {
+      page.once('dialog', dialog => dialog.accept());
+      await deleteBtn.click();
+      await page.waitForTimeout(500);
+    }
     await page.goto('/tags/kanban?debug=MOD');
     await openSidebar(page);
     await page.getByText('Extend').click();
@@ -53,9 +61,13 @@ test.describe.serial('Kanban Template No Swimlanes', () => {
     await page.locator('button', { hasText: 'Extend' }).click();
     await page.locator('[name=name]').pressSequentially('Kanban Test', { delay: 100 });
     await page.locator('.columns button').first().click();
-    await page.keyboard.type('doing', { delay: 100 });
-    await page.keyboard.press('Enter');
-    await page.keyboard.type('done', { delay: 100 });
+    const colInput1 = page.locator('.columns input').first();
+    await colInput1.waitFor();
+    await colInput1.pressSequentially('doing', { delay: 100 });
+    await colInput1.press('Enter');
+    const colInput2 = page.locator('.columns input').nth(1);
+    await colInput2.waitFor();
+    await colInput2.pressSequentially('done', { delay: 100 });
     await page.locator('[name=showColumnBacklog]').click();
     await page.locator('[name=columnBacklogTitle]').pressSequentially('todo', { delay: 100 });
     await page.locator('button', { hasText: 'Save' }).click();

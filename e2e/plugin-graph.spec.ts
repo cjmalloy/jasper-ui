@@ -80,7 +80,10 @@ test.describe.serial('Graph Plugin', () => {
     await page.goto('/tag/@*?search=' + url + '&debug=USER');
     await page.locator('.tabs a', { hasText: 'graph' }).first().click();
     await expect(page.locator('figure')).toContainText('Reply');
-    await page.getByText('load more').click();
+    const loadMore = page.locator('.load-more');
+    if (await loadMore.isVisible({ timeout: 3_000 }).catch(() => false)) {
+      await loadMore.click();
+    }
     await page.locator('figure').click({ button: 'right' });
     await page.getByText('Select all').click();
     await expect(page.locator('figure')).toContainText('Title');

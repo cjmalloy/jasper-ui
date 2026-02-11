@@ -66,6 +66,17 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
     await page.locator('.settings a', { hasText: 'settings' }).click();
     await page.locator('.tabs a', { hasText: 'origin' }).first().click();
     await openSidebar(page);
+    // Clean up existing origin from a previous failed run/retry
+    await page.locator('input[type=search]').pressSequentially(replApi, { delay: 100 });
+    await page.locator('input[type=search]').press('Enter');
+    const existing = page.locator('.link:not(.remote)', { hasText: '@repl' }).locator('..').locator('..').locator('..');
+    if (await existing.isVisible({ timeout: 3_000 }).catch(() => false)) {
+      await existing.locator('.actions .fake-link', { hasText: 'delete' }).first().click();
+      await existing.locator('.actions .fake-link', { hasText: 'yes' }).first().click();
+      await page.waitForTimeout(500);
+    }
+    await page.locator('input[type=search]').clear();
+    await page.locator('input[type=search]').press('Enter');
     await page.locator('.sidebar .submit-button', { hasText: 'Submit' }).first().click();
     await page.locator('#url').pressSequentially(replApi, { delay: 100 });
     await page.locator('#url').blur();
@@ -147,6 +158,17 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
     await page.locator('.settings a', { hasText: 'settings' }).click();
     await page.locator('.tabs a', { hasText: 'origin' }).first().click();
     await openSidebar(page);
+    // Clean up existing origin from a previous failed run/retry
+    await page.locator('input[type=search]').pressSequentially(mainApi, { delay: 100 });
+    await page.locator('input[type=search]').press('Enter');
+    const existing = page.locator('.link:not(.remote)', { hasText: '@main' }).locator('..').locator('..').locator('..');
+    if (await existing.isVisible({ timeout: 3_000 }).catch(() => false)) {
+      await existing.locator('.actions .fake-link', { hasText: 'delete' }).first().click();
+      await existing.locator('.actions .fake-link', { hasText: 'yes' }).first().click();
+      await page.waitForTimeout(500);
+    }
+    await page.locator('input[type=search]').clear();
+    await page.locator('input[type=search]').press('Enter');
     await page.locator('.sidebar .submit-button', { hasText: 'Submit' }).first().click();
     await page.locator('#url').pressSequentially(mainApi, { delay: 100 });
     await page.locator('#url').blur();

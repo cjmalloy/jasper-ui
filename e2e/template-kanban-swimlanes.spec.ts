@@ -46,6 +46,14 @@ test.describe.serial('Kanban Template with Swim Lanes', () => {
   });
 
   test('creates a board with swim lanes', async () => {
+    // Clean up any existing board from a previous failed run/retry
+    await page.goto('/ext/kanban/sl?debug=MOD');
+    const deleteBtn = page.locator('button', { hasText: 'Delete' });
+    if (await deleteBtn.isVisible({ timeout: 3_000 }).catch(() => false)) {
+      page.once('dialog', dialog => dialog.accept());
+      await deleteBtn.click();
+      await page.waitForTimeout(500);
+    }
     await page.goto('/tags/kanban?debug=MOD');
     await openSidebar(page);
     await page.getByText('Extend').click();
@@ -53,17 +61,23 @@ test.describe.serial('Kanban Template with Swim Lanes', () => {
     await page.locator('button', { hasText: 'Extend' }).click();
     await page.locator('[name=name]').pressSequentially('Kanban Swim Lane Test', { delay: 100 });
     await page.locator('.columns button').first().click();
-    await page.waitForTimeout(100);
-    await page.keyboard.type('doing', { delay: 100 });
-    await page.keyboard.press('Enter', { delay: 100 });
-    await page.keyboard.type('done', { delay: 100 });
+    const colInput1 = page.locator('.columns input').first();
+    await colInput1.waitFor();
+    await colInput1.pressSequentially('doing', { delay: 100 });
+    await colInput1.press('Enter');
+    const colInput2 = page.locator('.columns input').nth(1);
+    await colInput2.waitFor();
+    await colInput2.pressSequentially('done', { delay: 100 });
     await page.locator('[name=showColumnBacklog]').click();
     await page.locator('[name=columnBacklogTitle]').pressSequentially('todo', { delay: 100 });
     await page.locator('.swim-lanes button').first().click();
-    await page.waitForTimeout(100);
-    await page.keyboard.type('alice', { delay: 100 });
-    await page.keyboard.press('Enter', { delay: 100 });
-    await page.keyboard.type('bob', { delay: 100 });
+    const laneInput1 = page.locator('.swim-lanes input').first();
+    await laneInput1.waitFor();
+    await laneInput1.pressSequentially('alice', { delay: 100 });
+    await laneInput1.press('Enter');
+    const laneInput2 = page.locator('.swim-lanes input').nth(1);
+    await laneInput2.waitFor();
+    await laneInput2.pressSequentially('bob', { delay: 100 });
     await page.locator('[name=showSwimLaneBacklog]').click();
     await page.locator('button', { hasText: 'Save' }).click();
     await expect(page.locator('h2')).toHaveText('Kanban Swim Lane Test');
