@@ -36,23 +36,6 @@ export async function deleteRef(page: Page, url: string, base = '') {
   }
 }
 
-export async function deleteOrigin(page: Page, apiProxy: string, originName: string, base = '') {
-  await page.goto(base + '/?debug=ADMIN');
-  await page.locator('.settings a', { hasText: 'settings' }).click();
-  await page.locator('.tabs a', { hasText: 'origin' }).first().click();
-  await openSidebar(page);
-  await page.locator('input[type=search]').pressSequentially(apiProxy, { delay: 100 });
-  await page.locator('input[type=search]').press('Enter');
-  const existing = page.locator('.link:not(.remote)', { hasText: originName }).locator('..').locator('..').locator('..');
-  if (await existing.isVisible({ timeout: 3_000 }).catch(() => false)) {
-    await existing.locator('.actions .fake-link', { hasText: 'delete' }).first().click();
-    await existing.locator('.actions .fake-link', { hasText: 'yes' }).first().click();
-    await page.waitForTimeout(500);
-  }
-  await page.locator('input[type=search]').clear();
-  await page.locator('input[type=search]').press('Enter');
-}
-
 export async function openSidebar(page: Page) {
   await page.locator('.sidebar').waitFor();
   const sidebar = page.locator('.sidebar');

@@ -1,5 +1,5 @@
-import { test, expect, type Page } from '@playwright/test';
-import { clearMods, deleteRef, openSidebar } from './setup';
+import { expect, type Page, test } from '@playwright/test';
+import { clearMods, openSidebar } from './setup';
 
 test.describe.serial('Ref Actions', () => {
   let page: Page;

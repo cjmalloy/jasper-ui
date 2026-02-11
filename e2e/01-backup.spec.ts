@@ -1,21 +1,11 @@
-import { test, expect, type Page } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 import { clearMods, deleteRef, openSidebar } from './setup';
 
 test.describe('Backup / Restore', () => {
-  let page: Page;
-
-  test.beforeAll(async ({ browser }) => {
-    page = await browser.newPage();
-  });
-
-  test.afterAll(async () => {
-    await page.close();
-  });
-
-  test('clear mods', async () => {
+  test('clear mods', async ({ page }) => {
     await clearMods(page);
   });
-  test('creates a ref', async () => {
+  test('creates a ref', async ({ page }) => {
     // Clean up any existing ref from a previous failed run/retry
     await deleteRef(page, 'test:backup');
     await page.goto('/?debug=ADMIN');
@@ -31,7 +21,7 @@ test.describe('Backup / Restore', () => {
     await expect(page.locator('.full-page.ref .link a')).toHaveText('Backup Test');
   });
 
-  test('creates backup', async () => {
+  test('creates backup', async ({ page }) => {
     await page.goto('/settings/backup?debug=ADMIN');
     await page.locator('.backup.buttons button', { hasText: '+ backup' }).click();
     // Wait for overlay to appear
@@ -40,7 +30,7 @@ test.describe('Backup / Restore', () => {
     await page.locator('.popup button', { hasText: '+ backup' }).click();
   });
 
-  test('deletes ref', async () => {
+  test('deletes ref', async ({ page }) => {
     await page.goto(`/ref/e/${encodeURIComponent('test:backup')}?debug=ADMIN`);
     await page.locator('.full-page.ref .actions .fake-link', { hasText: 'delete' }).first().click();
     await page.locator('.full-page.ref .actions .fake-link', { hasText: 'yes' }).first().click();
@@ -48,7 +38,7 @@ test.describe('Backup / Restore', () => {
     await expect(page.locator('.error-404', { hasText: 'Not Found' })).toBeVisible();
   });
 
-  test('restores backup', async () => {
+  test('restores backup', async ({ page }) => {
     await page.goto('/settings/backup?debug=ADMIN');
     await page.locator('.backup .actions .fake-link', { hasText: 'restore' }).first().click();
     // Wait for confirmation dialog and click yes
@@ -63,7 +53,7 @@ test.describe('Backup / Restore', () => {
     await expect(page.locator('.full-page.ref .link a')).toHaveText('Backup Test');
   });
 
-  test('deletes ref after restore', async () => {
+  test('deletes ref after restore', async ({ page }) => {
     await page.goto(`/ref/e/${encodeURIComponent('test:backup')}?debug=ADMIN`);
     await page.locator('.full-page.ref .actions .fake-link', { hasText: 'delete' }).first().click();
     await page.locator('.full-page.ref .actions .fake-link', { hasText: 'yes' }).first().click();

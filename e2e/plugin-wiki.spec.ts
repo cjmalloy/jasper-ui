@@ -1,22 +1,13 @@
-import { test, expect, type Page } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 import { clearMods, deleteRef, openSidebar } from './setup';
 
 test.describe.serial('Wiki Plugin', () => {
-  let page: Page;
 
-  test.beforeAll(async ({ browser }) => {
-    page = await browser.newPage();
-  });
-
-  test.afterAll(async () => {
-    await page.close();
-  });
-
-  test('clear mods', async () => {
+  test('clear mods', async ({ page }) => {
     await clearMods(page);
   });
 
-  test('creates a wiki', async () => {
+  test('creates a wiki', async ({ page }) => {
     // Clean up any existing wiki from a previous failed run/retry
     await deleteRef(page, 'wiki:Wiki_test');
     await page.goto('/?debug=USER');
@@ -32,17 +23,18 @@ test.describe.serial('Wiki Plugin', () => {
     await expect(page.locator('.full-page.ref .link a')).toHaveText('Wiki test');
   });
 
-  test('should rename page for URL', async () => {
+  test('should rename page for URL', async ({ page }) => {
     await page.goto('/ref/e/wiki:Wiki_test?debug=USER');
     await expect(page.locator('.full-page.ref .link a')).toHaveText('Wiki test');
   });
 
-  test('should have internal wiki link', async () => {
+  test('should have internal wiki link', async ({ page }) => {
+    await page.goto('/ref/e/wiki:Wiki_test?debug=USER');
     await expect(page.locator('a', { hasText: 'Other WIKI' })).toHaveAttribute('href', '/ref/wiki:Other_wiki');
     await expect(page.locator('a', { hasText: 'Other WIKI' })).not.toHaveAttribute('target');
   });
 
-  test('click wiki link', async () => {
+  test('click wiki link', async ({ page }) => {
     await page.locator('a', { hasText: 'Other WIKI' }).click();
     const url = page.url().replace('/ref/', '/ref/e/') + '?debug=USER';
     await page.goto(url);
@@ -52,7 +44,7 @@ test.describe.serial('Wiki Plugin', () => {
     await expect(page.locator('[name=title]')).toHaveValue('Other wiki');
   });
 
-  test('turn on wiki config', async () => {
+  test('turn on wiki config', async ({ page }) => {
     await page.goto('/?debug=ADMIN');
     await page.locator('.settings a', { hasText: 'settings' }).click();
     await page.locator('.tabs a', { hasText: 'setup' }).first().click();
@@ -62,7 +54,7 @@ test.describe.serial('Wiki Plugin', () => {
     await page.locator('.log div', { hasText: 'Success.' }).first().waitFor({ timeout: 15_000, state: 'attached' });
   });
 
-  test('set external wiki', async () => {
+  test('set external wiki', async ({ page }) => {
     await page.goto('/?debug=ADMIN');
     await page.locator('.settings a', { hasText: 'settings' }).click();
     await page.locator('.tabs a', { hasText: 'template' }).first().click();
@@ -75,20 +67,20 @@ test.describe.serial('Wiki Plugin', () => {
     });
   });
 
-  test('submit wiki button removed', async () => {
+  test('submit wiki button removed', async ({ page }) => {
     await page.goto('/?debug=USER');
     await openSidebar(page);
     await page.locator('.sidebar .submit-button', { hasText: 'Submit' }).first().click();
     await expect(page.locator('.tabs')).not.toContainText('wiki');
   });
 
-  test('wiki link opens external', async () => {
+  test('wiki link opens external', async ({ page }) => {
     await page.goto('/ref/e/wiki:Wiki_test?debug=USER');
     await expect(page.locator('a', { hasText: 'Other WIKI' })).toHaveAttribute('href', 'https://externalwiki/Other_wiki');
     await expect(page.locator('a', { hasText: 'Other WIKI' })).toHaveAttribute('target', '_blank');
   });
 
-  test('delete wiki', async () => {
+  test('delete wiki', async ({ page }) => {
     await page.goto('/ref/e/wiki:Wiki_test?debug=USER');
     await page.locator('.full-page.ref .actions .fake-link', { hasText: 'delete' }).first().click();
     await page.locator('.full-page.ref .actions .fake-link', { hasText: 'yes' }).first().click();

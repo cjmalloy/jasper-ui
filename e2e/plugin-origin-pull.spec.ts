@@ -1,24 +1,15 @@
-import { test, expect, type Page } from '@playwright/test';
-import { clearMods, deleteOrigin, openSidebar } from './setup';
+import { expect, test } from '@playwright/test';
+import { clearMods, openSidebar } from './setup';
 
 test.describe.serial('Origin Pull Plugin', () => {
   const replUrl = process.env.REPL_URL || 'http://localhost:8082';
   const replApiProxy = process.env.REPL_API_PROXY || 'http://repl-web';
-  let page: Page;
 
-  test.beforeAll(async ({ browser }) => {
-    page = await browser.newPage();
-  });
-
-  test.afterAll(async () => {
-    await page.close();
-  });
-
-  test('@\u{ff20}main : clear mods', async () => {
+  test('@\u{ff20}main : clear mods', async ({ page }) => {
     await clearMods(page);
   });
 
-  test('@\u{ff20}main : turn on pull', async () => {
+  test('@\u{ff20}main : turn on pull', async ({ page }) => {
     await page.goto('/?debug=ADMIN');
     await page.locator('.settings a', { hasText: 'settings' }).click();
     await page.locator('.tabs a', { hasText: 'setup' }).first().click();
@@ -29,9 +20,7 @@ test.describe.serial('Origin Pull Plugin', () => {
     await page.locator('.log div', { hasText: 'Success.' }).first().waitFor({ timeout: 15_000, state: 'attached' });
   });
 
-  test('@\u{ff20}main : creates a remote origin', async () => {
-    // Clean up any existing origin from a previous failed run/retry
-    await deleteOrigin(page, replApiProxy, '@repl');
+  test('@\u{ff20}main : creates a remote origin', async ({ page }) => {
     await page.goto('/?debug=ADMIN');
     await page.locator('.settings a', { hasText: 'settings' }).click();
     await page.locator('.tabs a', { hasText: 'origin' }).first().click();
@@ -52,11 +41,11 @@ test.describe.serial('Origin Pull Plugin', () => {
     await page.locator('.full-page.ref .actions .fake-link', { hasText: 'enable' }).first().click();
   });
 
-  test('@\u{ff20}repl : clear mods', async () => {
+  test('@\u{ff20}repl : clear mods', async ({ page }) => {
     await clearMods(page, replUrl);
   });
 
-  test('@\u{ff20}repl : creates ref on remote', async () => {
+  test('@\u{ff20}repl : creates ref on remote', async ({ page }) => {
     await page.goto(replUrl + '/?debug=USER&tag=bob');
     await openSidebar(page);
     await page.locator('.sidebar .submit-button', { hasText: 'Submit' }).first().click();
@@ -70,13 +59,13 @@ test.describe.serial('Origin Pull Plugin', () => {
     await expect(page.locator('.full-page.ref .link a')).toHaveText('Pull Test');
   });
 
-  test('@\u{ff20}main : check ref was pulled', async () => {
+  test('@\u{ff20}main : check ref was pulled', async ({ page }) => {
     await page.goto('/tag/@repl?debug=USER');
     const ref = page.locator('.ref-list .link.remote', { hasText: 'Pull Test' }).locator('..').locator('..').locator('..');
     await expect(ref.locator('.user.tag', { hasText: 'bob' }).first()).toBeVisible();
   });
 
-  test('@\u{ff20}main : delete remote \u{ff20}repl', async () => {
+  test('@\u{ff20}main : delete remote \u{ff20}repl', async ({ page }) => {
     await page.goto('/?debug=ADMIN');
     await page.locator('.settings a', { hasText: 'settings' }).click();
     await page.locator('.tabs a', { hasText: 'origin' }).first().click();

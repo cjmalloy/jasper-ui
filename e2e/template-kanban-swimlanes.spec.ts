@@ -1,6 +1,6 @@
-import { test, expect, type Page } from '@playwright/test';
-import { addToBoard, dragCol } from './template-kanban';
+import { expect, type Page, test } from '@playwright/test';
 import { clearMods, closeSidebar, openSidebar } from './setup';
+import { addToBoard, dragCol } from './template-kanban';
 
 async function loadBoard(page: Page) {
   const pagePromises = Array.from({ length: 9 }, () =>
@@ -11,21 +11,12 @@ async function loadBoard(page: Page) {
 }
 
 test.describe.serial('Kanban Template with Swim Lanes', () => {
-  let page: Page;
 
-  test.beforeAll(async ({ browser }) => {
-    page = await browser.newPage();
-  });
-
-  test.afterAll(async () => {
-    await page.close();
-  });
-
-  test('clear mods', async () => {
+  test('clear mods', async ({ page }) => {
     await clearMods(page);
   });
 
-  test('turn on kanban', async () => {
+  test('turn on kanban', async ({ page }) => {
     await page.goto('/?debug=ADMIN');
     await page.locator('.settings a', { hasText: 'settings' }).click();
     await page.locator('.tabs a', { hasText: 'setup' }).first().click();
@@ -36,9 +27,10 @@ test.describe.serial('Kanban Template with Swim Lanes', () => {
     await page.locator('.log div', { hasText: 'Success.' }).first().waitFor({ timeout: 15_000, state: 'attached' });
   });
 
-  test('creates a board with swim lanes', async () => {
+  test('creates a board with swim lanes', async ({ page }) => {
     // Clean up any existing board from a previous failed run/retry
     await page.goto('/ext/kanban/sl?debug=MOD');
+    await page.waitForLoadState('networkidle');
     const deleteBtn = page.locator('button', { hasText: 'Delete' });
     if (await deleteBtn.isVisible({ timeout: 3_000 }).catch(() => false)) {
       page.once('dialog', dialog => dialog.accept());
@@ -54,33 +46,29 @@ test.describe.serial('Kanban Template with Swim Lanes', () => {
     await page.locator('.columns').waitFor({ timeout: 15_000 });
     await page.locator('[name=name]').pressSequentially('Kanban Swim Lane Test', { delay: 100 });
     await page.locator('.columns button').first().click();
-    const colInput1 = page.locator('.columns input').first();
+    const colInput1 = page.locator('.columns input').last();
     await colInput1.waitFor({ state: 'attached'});
-    await page.waitForTimeout(1000);
     await colInput1.pressSequentially('doing', { delay: 100 });
     await colInput1.press('Enter');
-    const colInput2 = page.locator('.columns input').nth(1);
+    const colInput2 = page.locator('.columns input').last();
     await colInput2.waitFor({ state: 'attached'});
-    await page.waitForTimeout(1000);
     await colInput2.pressSequentially('done', { delay: 100 });
     await page.locator('[name=showColumnBacklog]').check();
     await page.locator('[name=columnBacklogTitle]').pressSequentially('todo', { delay: 100 });
     await page.locator('.swim-lanes button').first().click();
-    const laneInput1 = page.locator('.swim-lanes input').first();
+    const laneInput1 = page.locator('.swim-lanes input').last();
     await laneInput1.waitFor({ state: 'attached'});
-    await page.waitForTimeout(1000);
     await laneInput1.pressSequentially('alice', { delay: 100 });
     await laneInput1.press('Enter');
-    const laneInput2 = page.locator('.swim-lanes input').nth(1);
+    const laneInput2 = page.locator('.swim-lanes input').last();
     await laneInput2.waitFor({ state: 'attached'});
-    await page.waitForTimeout(1000);
     await laneInput2.pressSequentially('bob', { delay: 100 });
     await page.locator('[name=showSwimLaneBacklog]').check();
     await page.locator('button', { hasText: 'Save' }).click();
     await expect(page.locator('h2')).toHaveText('Kanban Swim Lane Test');
   });
 
-  test('add to board', async () => {
+  test('add to board', async ({ page }) => {
     await page.goto('/tag/kanban/sl?debug=MOD');
     await closeSidebar(page);
     await loadBoard(page);
@@ -94,7 +82,7 @@ test.describe.serial('Kanban Template with Swim Lanes', () => {
     await expect(page.locator('.full-page.ref .tag:not(.user)', { hasText: 'done' })).toHaveCount(0);
   });
 
-  test('move to doing', async () => {
+  test('move to doing', async ({ page }) => {
     await page.goto('/tag/kanban/sl?debug=MOD');
     await loadBoard(page);
     await dragCol(page, 7, 8);
@@ -106,7 +94,7 @@ test.describe.serial('Kanban Template with Swim Lanes', () => {
     await expect(page.locator('.full-page.ref .tag:not(.user)', { hasText: 'done' })).toHaveCount(0);
   });
 
-  test('move to done', async () => {
+  test('move to done', async ({ page }) => {
     await page.goto('/tag/kanban/sl?debug=MOD');
     await loadBoard(page);
     await dragCol(page, 8, 9);
@@ -118,7 +106,7 @@ test.describe.serial('Kanban Template with Swim Lanes', () => {
     await expect(page.locator('.full-page.ref .tag:not(.user)', { hasText: 'done' })).toBeVisible();
   });
 
-  test('move to untagged col', async () => {
+  test('move to untagged col', async ({ page }) => {
     await page.goto('/tag/kanban/sl?debug=MOD');
     await loadBoard(page);
     await dragCol(page, 9, 7);
@@ -130,7 +118,7 @@ test.describe.serial('Kanban Template with Swim Lanes', () => {
     await expect(page.locator('.full-page.ref .tag:not(.user)', { hasText: 'done' })).toHaveCount(0);
   });
 
-  test('assign to alice', async () => {
+  test('assign to alice', async ({ page }) => {
     await page.goto('/tag/kanban/sl?debug=MOD');
     await loadBoard(page);
     await dragCol(page, 7, 1);
@@ -142,7 +130,7 @@ test.describe.serial('Kanban Template with Swim Lanes', () => {
     await expect(page.locator('.full-page.ref .tag:not(.user)', { hasText: 'done' })).toHaveCount(0);
   });
 
-  test('move to alice doing', async () => {
+  test('move to alice doing', async ({ page }) => {
     await page.goto('/tag/kanban/sl?debug=MOD');
     await loadBoard(page);
     await dragCol(page, 1, 2);
@@ -154,7 +142,7 @@ test.describe.serial('Kanban Template with Swim Lanes', () => {
     await expect(page.locator('.full-page.ref .tag:not(.user)', { hasText: 'done' })).toHaveCount(0);
   });
 
-  test('move to alice done', async () => {
+  test('move to alice done', async ({ page }) => {
     await page.goto('/tag/kanban/sl?debug=MOD');
     await loadBoard(page);
     await dragCol(page, 2, 3);
@@ -166,7 +154,7 @@ test.describe.serial('Kanban Template with Swim Lanes', () => {
     await expect(page.locator('.full-page.ref .tag:not(.user)', { hasText: 'done' })).toBeVisible();
   });
 
-  test('move to alice todo', async () => {
+  test('move to alice todo', async ({ page }) => {
     await page.goto('/tag/kanban/sl?debug=MOD');
     await loadBoard(page);
     await dragCol(page, 3, 1);
@@ -178,7 +166,7 @@ test.describe.serial('Kanban Template with Swim Lanes', () => {
     await expect(page.locator('.full-page.ref .tag:not(.user)', { hasText: 'done' })).toHaveCount(0);
   });
 
-  test('move to alice doing again', async () => {
+  test('move to alice doing again', async ({ page }) => {
     await page.goto('/tag/kanban/sl?debug=MOD');
     await loadBoard(page);
     await dragCol(page, 1, 2);
@@ -190,7 +178,7 @@ test.describe.serial('Kanban Template with Swim Lanes', () => {
     await expect(page.locator('.full-page.ref .tag:not(.user)', { hasText: 'done' })).toHaveCount(0);
   });
 
-  test('assign to bob', async () => {
+  test('assign to bob', async ({ page }) => {
     await page.goto('/tag/kanban/sl?debug=MOD');
     await loadBoard(page);
     await dragCol(page, 2, 4);
@@ -202,7 +190,7 @@ test.describe.serial('Kanban Template with Swim Lanes', () => {
     await expect(page.locator('.full-page.ref .tag:not(.user)', { hasText: 'done' })).toHaveCount(0);
   });
 
-  test('move to bob doing', async () => {
+  test('move to bob doing', async ({ page }) => {
     await page.goto('/tag/kanban/sl?debug=MOD');
     await loadBoard(page);
     await dragCol(page, 4, 5);
@@ -214,7 +202,7 @@ test.describe.serial('Kanban Template with Swim Lanes', () => {
     await expect(page.locator('.full-page.ref .tag:not(.user)', { hasText: 'done' })).toHaveCount(0);
   });
 
-  test('move to bob done', async () => {
+  test('move to bob done', async ({ page }) => {
     await page.goto('/tag/kanban/sl?debug=MOD');
     await loadBoard(page);
     await dragCol(page, 5, 6);
@@ -226,7 +214,7 @@ test.describe.serial('Kanban Template with Swim Lanes', () => {
     await expect(page.locator('.full-page.ref .tag:not(.user)', { hasText: 'done' })).toBeVisible();
   });
 
-  test('move to trash', async () => {
+  test('move to trash', async ({ page }) => {
     await page.goto('/tag/kanban/sl?debug=MOD');
     await loadBoard(page);
     await dragCol(page, 6);
@@ -234,7 +222,7 @@ test.describe.serial('Kanban Template with Swim Lanes', () => {
     await expect(page.locator('.kanban-column', { hasText: 'first step' })).toHaveCount(0);
   });
 
-  test('add to alice doing', async () => {
+  test('add to alice doing', async ({ page }) => {
     await page.goto('/tag/kanban/sl?debug=MOD');
     await loadBoard(page);
     await addToBoard(page, 2, 'second step');
@@ -246,7 +234,7 @@ test.describe.serial('Kanban Template with Swim Lanes', () => {
     await expect(page.locator('.full-page.ref .tag:not(.user)', { hasText: 'done' })).toHaveCount(0);
   });
 
-  test('move to trash again', async () => {
+  test('move to trash again', async ({ page }) => {
     await page.goto('/tag/kanban/sl?debug=MOD');
     await loadBoard(page);
     await dragCol(page, 2);
@@ -254,7 +242,7 @@ test.describe.serial('Kanban Template with Swim Lanes', () => {
     await expect(page.locator('.kanban-column', { hasText: 'second step' })).toHaveCount(0);
   });
 
-  test('deletes board', async () => {
+  test('deletes board', async ({ page }) => {
     await page.goto('/ext/kanban/sl?debug=MOD');
     page.on('dialog', async dialog => await dialog.accept());
     await page.locator('button', { hasText: 'Delete' }).click();
