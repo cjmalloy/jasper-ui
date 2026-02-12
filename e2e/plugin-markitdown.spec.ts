@@ -80,7 +80,7 @@ test.describe.serial('MarkItDown Plugin', () => {
     await page.locator('.tabs a', { hasText: 'all' }).first().click();
     await page.locator('.ref', { hasText: 'Markdown:' }).first().locator('a').first().click();
     await page.waitForLoadState('networkidle');
-    await expect(page.locator('.full-page.ref .md')).toContainText('PDF BOOKMARK SAMPLE');
+    await expect(page.locator('.full-page.ref .md')).toContainText('Test Word Doc');
   });
 
   test('creates a public ref for visibility test', async ({ page }) => {
