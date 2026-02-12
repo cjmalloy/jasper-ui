@@ -102,3 +102,17 @@ export async function upload(page: Page, file: string) {
   await expect(page.locator('.full-page.ref .link a')).toContainText(file.substring(file.lastIndexOf('/') + 1));
   return page.url().replace('/ref/', '/ref/e/');
 }
+
+export async function pollNotifications(page: Page, user = 'debug', role = 'USER') {
+  await pollRemoteNotifications(page, '', user, role);
+}
+
+export async function pollRemoteNotifications(page: Page, base = '', user = 'debug', role = 'USER') {
+  const path = base + `/?debug=${role}&tag=${user}`;
+  await page.goto(path, { waitUntil: 'networkidle' });
+  await expect.poll(async () => {
+    await page.reload({ waitUntil: 'networkidle' });
+    await page.goto(path, { waitUntil: 'networkidle' });
+    return await page.locator('.settings .notification').isVisible();
+  }, { timeout: 60_000 }).toBe(true);
+}

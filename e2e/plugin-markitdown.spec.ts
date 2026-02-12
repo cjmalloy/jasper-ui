@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { mod, openSidebar, upload } from './setup';
+import { mod, openSidebar, pollNotifications, upload } from './setup';
 
 test.describe.serial('MarkItDown Plugin', () => {
   let url = '';
@@ -38,10 +38,7 @@ test.describe.serial('MarkItDown Plugin', () => {
     await page.goto(url + '?debug=USER', { waitUntil: 'networkidle' });
     await page.locator('.full-page.ref .actions .fake-link', { hasText: 'markdown' }).click();
     // Wait for the conversion to complete by checking notifications
-    await expect.poll(async () => {
-      await page.reload({ waitUntil: 'networkidle'});
-      return await page.locator('.settings .notification').isVisible();
-    }, { timeout: 60_000 }).toBe(true);
+    await pollNotifications(page);
     await page.locator('.settings .notification').click();
     await page.locator('.tabs a', { hasText: 'all' }).first().click();
     await page.locator('.ref', { hasText: 'Markdown:' }).first().locator('a').first().click();
@@ -105,10 +102,7 @@ test.describe.serial('MarkItDown Plugin', () => {
     await page.goto(url + '?debug=USER', { waitUntil: 'networkidle' });
     await page.locator('.full-page.ref .actions .fake-link', { hasText: 'markdown' }).click();
     // Wait for the conversion to complete by checking notifications
-    await expect.poll(async () => {
-      await page.reload({ waitUntil: 'networkidle'});
-      return await page.locator('.settings .notification').isVisible();
-    }).toBe(true);
+    await pollNotifications(page);
     await page.locator('.settings .notification').click();
     await page.locator('.tabs a', { hasText: 'all' }).first().click();
     await page.locator('.ref', { hasText: 'Markdown:' }).first().locator('a').first().click();
@@ -130,10 +124,7 @@ test.describe.serial('MarkItDown Plugin', () => {
     await page.goto(url + '?debug=USER', { waitUntil: 'networkidle' });
     await page.locator('.full-page.ref .actions .fake-link', { hasText: 'markdown' }).click();
     // Wait for the conversion to complete by checking notifications
-    await expect.poll(async () => {
-      await page.reload({ waitUntil: 'networkidle'});
-      return await page.locator('.settings .notification').isVisible();
-    }).toBe(true);
+    await pollNotifications(page);
     await page.locator('.settings .notification').click();
     await page.locator('.tabs a', { hasText: 'all' }).first().click();
     await page.locator('.ref', { hasText: 'Markdown:' }).first().locator('a').first().click();
