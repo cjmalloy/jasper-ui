@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { clearMods, convertToMarkdown, mod, openSidebar, upload } from './setup';
+import { clearMods, mod, openSidebar, upload } from './setup';
 
 test.describe.serial('MarkItDown Plugin', () => {
   let url = '';
@@ -35,7 +35,27 @@ test.describe.serial('MarkItDown Plugin', () => {
   });
 
   test('should convert PDF to markdown', async ({ page }) => {
-    const markdownUrl = await convertToMarkdown(page, url);
+    // Navigate to the ref page and trigger conversion
+    await page.goto(url + '?debug=USER');
+    await page.waitForLoadState('networkidle');
+    await page.locator('.full-page.ref .actions .fake-link', { hasText: 'markdown' }).click();
+    
+    // Wait for the conversion to complete by checking notifications
+    await page.goto('/?debug=USER');
+    await page.waitForLoadState('networkidle');
+    await page.locator('.settings .notification').click();
+    await page.waitForLoadState('networkidle');
+    
+    // Wait for the markdown response to appear in notifications (up to 60 seconds for slow conversions)
+    await expect(page.locator('.ref', { hasText: 'Markdown:' }).first()).toBeVisible({ timeout: 60_000 });
+    
+    // Get the URL of the markdown result
+    const markdownRefLink = page.locator('.ref', { hasText: 'Markdown:' }).first().locator('a').first();
+    const markdownUrl = await markdownRefLink.getAttribute('href');
+    
+    if (!markdownUrl) {
+      throw new Error('Failed to retrieve markdown conversion result URL');
+    }
     
     // Navigate to the markdown result
     await page.goto(markdownUrl + '?debug=USER');
@@ -74,7 +94,27 @@ test.describe.serial('MarkItDown Plugin', () => {
   });
 
   test('should convert DOC to markdown', async ({ page }) => {
-    const markdownUrl = await convertToMarkdown(page, url);
+    // Navigate to the ref page and trigger conversion
+    await page.goto(url + '?debug=USER');
+    await page.waitForLoadState('networkidle');
+    await page.locator('.full-page.ref .actions .fake-link', { hasText: 'markdown' }).click();
+    
+    // Wait for the conversion to complete by checking notifications
+    await page.goto('/?debug=USER');
+    await page.waitForLoadState('networkidle');
+    await page.locator('.settings .notification').click();
+    await page.waitForLoadState('networkidle');
+    
+    // Wait for the markdown response to appear in notifications (up to 60 seconds for slow conversions)
+    await expect(page.locator('.ref', { hasText: 'Markdown:' }).first()).toBeVisible({ timeout: 60_000 });
+    
+    // Get the URL of the markdown result
+    const markdownRefLink = page.locator('.ref', { hasText: 'Markdown:' }).first().locator('a').first();
+    const markdownUrl = await markdownRefLink.getAttribute('href');
+    
+    if (!markdownUrl) {
+      throw new Error('Failed to retrieve markdown conversion result URL');
+    }
     
     // Navigate to the markdown result
     await page.goto(markdownUrl + '?debug=USER');
@@ -156,7 +196,27 @@ test.describe.serial('MarkItDown Plugin', () => {
   });
 
   test('should convert DOCX to markdown', async ({ page }) => {
-    const markdownUrl = await convertToMarkdown(page, url);
+    // Navigate to the ref page and trigger conversion
+    await page.goto(url + '?debug=USER');
+    await page.waitForLoadState('networkidle');
+    await page.locator('.full-page.ref .actions .fake-link', { hasText: 'markdown' }).click();
+    
+    // Wait for the conversion to complete by checking notifications
+    await page.goto('/?debug=USER');
+    await page.waitForLoadState('networkidle');
+    await page.locator('.settings .notification').click();
+    await page.waitForLoadState('networkidle');
+    
+    // Wait for the markdown response to appear in notifications (up to 60 seconds for slow conversions)
+    await expect(page.locator('.ref', { hasText: 'Markdown:' }).first()).toBeVisible({ timeout: 60_000 });
+    
+    // Get the URL of the markdown result
+    const markdownRefLink = page.locator('.ref', { hasText: 'Markdown:' }).first().locator('a').first();
+    const markdownUrl = await markdownRefLink.getAttribute('href');
+    
+    if (!markdownUrl) {
+      throw new Error('Failed to retrieve markdown conversion result URL');
+    }
     
     await page.goto(markdownUrl + '?debug=USER');
     await page.waitForLoadState('networkidle');
@@ -183,7 +243,27 @@ test.describe.serial('MarkItDown Plugin', () => {
   });
 
   test('should convert XLS to markdown', async ({ page }) => {
-    const markdownUrl = await convertToMarkdown(page, url);
+    // Navigate to the ref page and trigger conversion
+    await page.goto(url + '?debug=USER');
+    await page.waitForLoadState('networkidle');
+    await page.locator('.full-page.ref .actions .fake-link', { hasText: 'markdown' }).click();
+    
+    // Wait for the conversion to complete by checking notifications
+    await page.goto('/?debug=USER');
+    await page.waitForLoadState('networkidle');
+    await page.locator('.settings .notification').click();
+    await page.waitForLoadState('networkidle');
+    
+    // Wait for the markdown response to appear in notifications (up to 60 seconds for slow conversions)
+    await expect(page.locator('.ref', { hasText: 'Markdown:' }).first()).toBeVisible({ timeout: 60_000 });
+    
+    // Get the URL of the markdown result
+    const markdownRefLink = page.locator('.ref', { hasText: 'Markdown:' }).first().locator('a').first();
+    const markdownUrl = await markdownRefLink.getAttribute('href');
+    
+    if (!markdownUrl) {
+      throw new Error('Failed to retrieve markdown conversion result URL');
+    }
     
     await page.goto(markdownUrl + '?debug=USER');
     await page.waitForLoadState('networkidle');
@@ -210,7 +290,27 @@ test.describe.serial('MarkItDown Plugin', () => {
   });
 
   test('should convert JPEG image to markdown with OCR', async ({ page }) => {
-    const markdownUrl = await convertToMarkdown(page, url);
+    // Navigate to the ref page and trigger conversion
+    await page.goto(url + '?debug=USER');
+    await page.waitForLoadState('networkidle');
+    await page.locator('.full-page.ref .actions .fake-link', { hasText: 'markdown' }).click();
+    
+    // Wait for the conversion to complete by checking notifications
+    await page.goto('/?debug=USER');
+    await page.waitForLoadState('networkidle');
+    await page.locator('.settings .notification').click();
+    await page.waitForLoadState('networkidle');
+    
+    // Wait for the markdown response to appear in notifications (up to 60 seconds for slow conversions)
+    await expect(page.locator('.ref', { hasText: 'Markdown:' }).first()).toBeVisible({ timeout: 60_000 });
+    
+    // Get the URL of the markdown result
+    const markdownRefLink = page.locator('.ref', { hasText: 'Markdown:' }).first().locator('a').first();
+    const markdownUrl = await markdownRefLink.getAttribute('href');
+    
+    if (!markdownUrl) {
+      throw new Error('Failed to retrieve markdown conversion result URL');
+    }
     
     await page.goto(markdownUrl + '?debug=USER');
     await page.waitForLoadState('networkidle');
@@ -234,7 +334,27 @@ test.describe.serial('MarkItDown Plugin', () => {
   });
 
   test('should convert PNG image to markdown with OCR', async ({ page }) => {
-    const markdownUrl = await convertToMarkdown(page, url);
+    // Navigate to the ref page and trigger conversion
+    await page.goto(url + '?debug=USER');
+    await page.waitForLoadState('networkidle');
+    await page.locator('.full-page.ref .actions .fake-link', { hasText: 'markdown' }).click();
+    
+    // Wait for the conversion to complete by checking notifications
+    await page.goto('/?debug=USER');
+    await page.waitForLoadState('networkidle');
+    await page.locator('.settings .notification').click();
+    await page.waitForLoadState('networkidle');
+    
+    // Wait for the markdown response to appear in notifications (up to 60 seconds for slow conversions)
+    await expect(page.locator('.ref', { hasText: 'Markdown:' }).first()).toBeVisible({ timeout: 60_000 });
+    
+    // Get the URL of the markdown result
+    const markdownRefLink = page.locator('.ref', { hasText: 'Markdown:' }).first().locator('a').first();
+    const markdownUrl = await markdownRefLink.getAttribute('href');
+    
+    if (!markdownUrl) {
+      throw new Error('Failed to retrieve markdown conversion result URL');
+    }
     
     await page.goto(markdownUrl + '?debug=USER');
     await page.waitForLoadState('networkidle');
@@ -258,7 +378,27 @@ test.describe.serial('MarkItDown Plugin', () => {
   });
 
   test('should convert WebP image to markdown with OCR', async ({ page }) => {
-    const markdownUrl = await convertToMarkdown(page, url);
+    // Navigate to the ref page and trigger conversion
+    await page.goto(url + '?debug=USER');
+    await page.waitForLoadState('networkidle');
+    await page.locator('.full-page.ref .actions .fake-link', { hasText: 'markdown' }).click();
+    
+    // Wait for the conversion to complete by checking notifications
+    await page.goto('/?debug=USER');
+    await page.waitForLoadState('networkidle');
+    await page.locator('.settings .notification').click();
+    await page.waitForLoadState('networkidle');
+    
+    // Wait for the markdown response to appear in notifications (up to 60 seconds for slow conversions)
+    await expect(page.locator('.ref', { hasText: 'Markdown:' }).first()).toBeVisible({ timeout: 60_000 });
+    
+    // Get the URL of the markdown result
+    const markdownRefLink = page.locator('.ref', { hasText: 'Markdown:' }).first().locator('a').first();
+    const markdownUrl = await markdownRefLink.getAttribute('href');
+    
+    if (!markdownUrl) {
+      throw new Error('Failed to retrieve markdown conversion result URL');
+    }
     
     await page.goto(markdownUrl + '?debug=USER');
     await page.waitForLoadState('networkidle');
