@@ -27,7 +27,7 @@ jobs:
         run: npm run pw:ci
       - name: Patch HTML Report (merge files by default)
         if: always()
-        run: sed -i 's/mergeFiles",!1/mergeFiles",!0/g' e2e/reports/html/index.html
+        run: sudo sed -i 's/mergeFiles",!1/mergeFiles",!0/g' e2e/reports/html/index.html
       - name: Generate Test Summary
         if: always()
         uses: actions/github-script@v8
