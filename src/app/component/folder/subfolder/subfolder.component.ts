@@ -1,4 +1,4 @@
-import { Component, HostBinding, Input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, HostBinding, inject, input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Ext } from '../../../model/ext';
 import { Action, Icon } from '../../../model/tag';
@@ -7,6 +7,7 @@ import { QueryStore } from '../../../store/query';
 import { Store } from '../../../store/store';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-subfolder',
   templateUrl: './subfolder.component.html',
   styleUrls: ['./subfolder.component.scss'],
@@ -14,24 +15,19 @@ import { Store } from '../../../store/store';
   imports: [RouterLink]
 })
 export class SubfolderComponent {
+  admin = inject(AdminService);
+  store = inject(Store);
+  private query = inject(QueryStore);
+
   @HostBinding('attr.tabindex') tabIndex = 0;
 
-  @Input()
-  ext?: Ext;
-  @Input()
-  name?: string;
-  @Input()
-  dragging = false;
+  readonly ext = input<Ext>();
+  readonly name = input<string>();
+  readonly dragging = input(false);
 
   submitted = false;
   icons: Icon[] = [];
   actions: Action[] = [];
-
-  constructor(
-    public admin: AdminService,
-    public store: Store,
-    private query: QueryStore,
-  ) { }
 
   get thumbnail() {
     // TODO: Thumbnail in config

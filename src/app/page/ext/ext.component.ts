@@ -1,5 +1,15 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, HostBinding, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  effect,
+  HostBinding,
+  inject,
+  Injector,
+  OnDestroy,
+  OnInit,
+  viewChild
+} from '@angular/core';
 import {
   ReactiveFormsModule,
   UntypedFormBuilder,
@@ -9,8 +19,7 @@ import {
 } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { defer, isObject } from 'lodash-es';
-import { autorun, IReactionDisposer, runInAction } from 'mobx';
-import { MobxAngularModule } from 'mobx-angular';
+
 import { catchError, of, Subscription, switchMap, throwError } from 'rxjs';
 import { LoadingComponent } from '../../component/loading/loading.component';
 import { SelectTemplateComponent } from '../../component/select-template/select-template.component';
@@ -30,11 +39,11 @@ import { printError } from '../../util/http';
 import { access, hasPrefix, localTag, prefix } from '../../util/tag';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-ext-page',
   templateUrl: './ext.component.html',
   styleUrls: ['./ext.component.scss'],
   imports: [
-    MobxAngularModule,
     RouterLink,
     SettingsComponent,
     ReactiveFormsModule,
@@ -45,11 +54,18 @@ import { access, hasPrefix, localTag, prefix } from '../../util/tag';
   ],
 })
 export class ExtPage implements OnInit, OnDestroy, HasChanges {
-  private disposers: IReactionDisposer[] = [];
+  private injector = inject(Injector);
+  private mod = inject(ModService);
+  private admin = inject(AdminService);
+  router = inject(Router);
+  store = inject(Store);
+  private exts = inject(ExtService);
+  private fb = inject(UntypedFormBuilder);
+
+
   @HostBinding('class') css = 'full-page-form';
 
-  @ViewChild('form')
-  form?: ExtFormComponent;
+  readonly form = viewChild<ExtFormComponent>('form');
 
   template = '';
   created = false;
@@ -69,46 +85,42 @@ export class ExtPage implements OnInit, OnDestroy, HasChanges {
 
   private overwrittenModified? = '';
 
-  constructor(
-    private mod: ModService,
-    private admin: AdminService,
-    public router: Router,
-    public store: Store,
-    private exts: ExtService,
-    private fb: UntypedFormBuilder,
-  ) {
+  constructor() {
+    const mod = this.mod;
+    const fb = this.fb;
+
     mod.setTitle($localize`Edit Tag`);
     this.extForm = fb.group({
       tag: ['', [Validators.pattern(TAG_SUFFIX_REGEX)]],
     });
   }
 
-  saveChanges() {
-    return !this.editForm?.dirty;
-  }
-
   ngOnInit(): void {
-    this.disposers.push(autorun(() => {
+    effect(() => {
       if (!this.store.view.tag) {
         this.template = '';
         this.tag.setValue('');
-        runInAction(() => this.store.view.exts = []);
+        this.store.view.exts = [];
       } else {
         const tag = this.store.view.localTag + this.store.account.origin;
         this.exts.get(tag).pipe(
           catchError(() => of(undefined)),
         ).subscribe(ext => this.setExt(tag, ext));
       }
-    }));
+    }, { injector: this.injector });
+  }
+
+  saveChanges() {
+    return !this.editForm?.dirty;
   }
 
   setExt(tag: string, ext?: Ext) {
     tag = localTag(tag);
-    runInAction(() => this.store.view.exts = ext ? [ext] : []);
+    this.store.view.exts = ext ? [ext] : [];
     if (ext) {
       this.editForm = extForm(this.fb, ext, this.admin, true);
       this.editForm.patchValue(ext);
-      defer(() => this.form!.setValue(ext));
+      defer(() => this.form()!.setValue(ext));
     } else {
       for (const t of this.templates) {
         if (hasPrefix(tag, t.tag)) {
@@ -132,8 +144,6 @@ export class ExtPage implements OnInit, OnDestroy, HasChanges {
   }
 
   ngOnDestroy() {
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
   }
 
   get tag() {

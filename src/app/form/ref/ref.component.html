@@ -96,7 +96,7 @@
                          [hitArea]="config.mobile ? 48 : 20"></ngx-monaco-editor>
     </div>
   } @else {
-    <label [for]="ed.id" class="editor-label">{{ editorLabel }}:</label><!-- TODO: Let plugins change comment label -->
+    <label [for]="ed.id()" class="editor-label">{{ editorLabel }}:</label><!-- TODO: Let plugins change comment label -->
     <div #fill class="fill-editor">
       <app-editor #ed
                   class="bubble"
@@ -116,6 +116,6 @@
     </div>
   }
 
-  <app-tags #tagsFormComponent [group]="group" [origin]="origin"></app-tags>
+  <app-tags #tagsFormComponent [group]="group" [origin]="origin()"></app-tags>
 
 </ng-container>

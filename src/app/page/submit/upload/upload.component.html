@@ -1,128 +1,126 @@
-<ng-container *mobxAutorun>
-  <div class="padded list-container max-form-width">
-    <span><!-- Title --></span>
-    <h2 i18n>Upload</h2>
-    <span><!-- Description --></span>
-    <p i18n>
-      Upload Refs, Exts, images, audio, video, spreadsheets, bookmarks (XML or HTML), and PDFs.
-      <span>View your <a [routerLink]="['/tag', store.account.tag]" [queryParams]="{ filter: 'query/plugin/file' }">files here</a>.</span>
-      @if (store.account.admin) {
-        <span>Visit the <a routerLink="/settings/setup">setup</a> settings page to manage mods.</span>
-      }
-    </p>
+<div class="padded list-container max-form-width">
+  <span><!-- Title --></span>
+  <h2 i18n>Upload</h2>
+  <span><!-- Description --></span>
+  <p i18n>
+    Upload Refs, Exts, images, audio, video, spreadsheets, bookmarks (XML or HTML), and PDFs.
+    <span>View your <a [routerLink]="['/tag', store.account.tag]" [queryParams]="{ filter: 'query/plugin/file' }">files here</a>.</span>
+    @if (store.account.admin) {
+      <span>Visit the <a routerLink="/settings/setup">setup</a> settings page to manage mods.</span>
+    }
+  </p>
 
-    <span><!-- Tags --></span>
-    <div class="form-array right">
-      <formly-form class="form"
-                   [model]="store.submit.tags"
-                   (modelChange)="bookmarks.tags = $event"
-                   [fields]="[{ type: 'tags'}]"></formly-form>
+  <span><!-- Tags --></span>
+  <div class="form-array right">
+    <formly-form class="form"
+                 [model]="store.submit.tags"
+                 (modelChange)="bookmarks.tags = $event"
+                 [fields]="[{ type: 'tags'}]"></formly-form>
+  </div>
+
+  <span><!-- Default upload --></span>
+  <div>
+    <div class="padded form-array">
+      <span i18n>drop files anywhere to </span>
+      <button type="button" (click)="upload.click()" i18n-title title="Upload Refs and Exts" i18n>+ add</button>
+      <span i18n>Refs and Exts</span>
+      <input #upload type="file"
+             accept=".json,.zip,.png,.jpg,.jpeg,.gif,.svg,.webp,.3gp,.mpg,.mpeg,.mp4,.m4v,.m4p,.webm,.ogv,.m3u8,.mov,.mp3,.aac,.flac,.m4a,.ogg,.wav,.xls,.xlsx,.csv,.odx,.txt,.pdf"
+             (change)="readUploads($any(upload.files))"
+             multiple/>
     </div>
 
-    <span><!-- Default upload --></span>
-    <div>
+    @if (fileCache) {
       <div class="padded form-array">
-        <span i18n>drop files anywhere to </span>
-        <button type="button" (click)="upload.click()" i18n-title title="Upload Refs and Exts" i18n>+ add</button>
-        <span i18n>Refs and Exts</span>
-        <input #upload type="file"
-               accept=".json,.zip,.png,.jpg,.jpeg,.gif,.svg,.webp,.3gp,.mpg,.mpeg,.mp4,.m4v,.m4p,.webm,.ogv,.m3u8,.mov,.mp3,.aac,.flac,.m4a,.ogg,.wav,.xls,.xlsx,.csv,.odx,.txt,.pdf"
-               (change)="readUploads($any(upload.files))"
+        <span i18n>or </span>
+        <button type="button" (click)="fileUpload.click()" i18n-title title="Cache Files" i18n>+ cache</button>
+        <span i18n>any kind of file</span>
+        <input #fileUpload type="file"
+               accept="*"
+               (change)="readUploads($any(fileUpload.files), true)"
                multiple/>
       </div>
-
-      @if (fileCache) {
-        <div class="padded form-array">
-          <span i18n>or </span>
-          <button type="button" (click)="fileUpload.click()" i18n-title title="Cache Files" i18n>+ cache</button>
-          <span i18n>any kind of file</span>
-          <input #fileUpload type="file"
-                 accept="*"
-                 (change)="readUploads($any(fileUpload.files), true)"
-                 multiple/>
-        </div>
-      }
-    </div>
-
-    @for (c of store.submit.uploads; track c) {
-      <span><!-- Uploading --></span>
-      <div>Uploading {{ c.name }} <progress max="100" [value]="c.progress"></progress></div>
-    }
-
-    @if (!store.submit.empty) {
-      <span></span>
-      <div>
-        <hr>
-        <div class="padded form-array">
-          <button type="button" (click)="push()" i18n>upload all</button>
-          <div><input id="overwrite" type="checkbox" [checked]="store.submit.overwrite" (input)="overwrite = !store.submit.overwrite"></div>
-          <label for="overwrite" i18n>Overwrite existing</label>
-          <div class="buttons right">
-            <button type="button" (click)="download()" i18n>download all</button>
-            <button type="button" (click)="clear(upload)" i18n>clear</button>
-          </div>
-        </div>
-      </div>
-
-      <span></span>
-      <div class="padded form-array">
-        <input #tagInput
-               id="add-tag"
-               i18n-placeholder placeholder="Tag All"
-               (keydown)="$event.key === 'Enter' && tagAll(tagInput) || true"
-               type="text"
-               inputmode="email"
-               [pattern]="tagRegex"
-               autocorrect="off"
-               autocapitalize="none"
-               appAutofocus>
-        <button type="button" (click)="tagAll(tagInput)" i18n>+</button>
-      </div>
-
-      <span></span>
-      <div>
-        @if (processing) {
-          <app-loading></app-loading>
-        }
-      </div>
-    }
-
-    @if (store.submit.huge) {
-      <span></span>
-      <span class="warning">
-        * Preview disabled for huge archives
-        <button type="button" (click)="store.submit.overrideHuge()" i18n>show anyway</button>
-      </span>
-      @if (store.submit.exts.length) {
-        <span>Exts: </span>
-        <span>{{ store.submit.exts.length }}</span>
-      }
-      @if (store.submit.refs.length) {
-        <span>Refs: </span>
-        <span>{{ store.submit.refs.length }}</span>
-      }
-    } @else {
-      @if (store.submit.exts.length) {
-        <span class="upload-label">Exts: </span>
-        <span></span>
-        @for (ext of store.submit.exts; track ext; let i = $index) {
-          <div class="list-number">{{ i + 1 }}</div>
-          <app-ext [ext]="ext"></app-ext>
-        }
-      }
-      @if (store.submit.refs.length) {
-        <span class="upload-label">Refs: </span>
-        <span></span>
-        @for (ref of store.submit.refs; track ref; let i = $index) {
-          <div class="list-number">{{ i + 1 }}</div>
-          <app-ref [ref]="ref" [showToggle]="true" [scrollToLatest]="true"></app-ref>
-        }
-      }
     }
   </div>
 
-  @for (e of serverErrors; track e) {
-    <span><!-- Unexpected Error --></span>
-    <div class="error">{{ e }}</div>
+  @for (c of store.submit.uploads; track c) {
+    <span><!-- Uploading --></span>
+    <div>Uploading {{ c.name }} <progress max="100" [value]="c.progress"></progress></div>
   }
-</ng-container>
+
+  @if (!store.submit.empty) {
+    <span></span>
+    <div>
+      <hr>
+      <div class="padded form-array">
+        <button type="button" (click)="push()" i18n>upload all</button>
+        <div><input id="overwrite" type="checkbox" [checked]="store.submit.overwrite" (input)="overwrite = !store.submit.overwrite"></div>
+        <label for="overwrite" i18n>Overwrite existing</label>
+        <div class="buttons right">
+          <button type="button" (click)="download()" i18n>download all</button>
+          <button type="button" (click)="clear(upload)" i18n>clear</button>
+        </div>
+      </div>
+    </div>
+
+    <span></span>
+    <div class="padded form-array">
+      <input #tagInput
+             id="add-tag"
+             i18n-placeholder placeholder="Tag All"
+             (keydown)="$event.key === 'Enter' && tagAll(tagInput) || true"
+             type="text"
+             inputmode="email"
+             [pattern]="tagRegex"
+             autocorrect="off"
+             autocapitalize="none"
+             appAutofocus>
+      <button type="button" (click)="tagAll(tagInput)" i18n>+</button>
+    </div>
+
+    <span></span>
+    <div>
+      @if (processing) {
+        <app-loading></app-loading>
+      }
+    </div>
+  }
+
+  @if (store.submit.huge) {
+    <span></span>
+    <span class="warning">
+        &ast; Preview disabled for huge archives
+        <button type="button" (click)="store.submit.overrideHuge()" i18n>show anyway</button>
+      </span>
+    @if (store.submit.exts.length) {
+      <span>Exts: </span>
+      <span>{{ store.submit.exts.length }}</span>
+    }
+    @if (store.submit.refs.length) {
+      <span>Refs: </span>
+      <span>{{ store.submit.refs.length }}</span>
+    }
+  } @else {
+    @if (store.submit.exts.length) {
+      <span class="upload-label">Exts: </span>
+      <span></span>
+      @for (ext of store.submit.exts; track ext; let i = $index) {
+        <div class="list-number">{{ i + 1 }}</div>
+        <app-ext [ext]="ext"></app-ext>
+      }
+    }
+    @if (store.submit.refs.length) {
+      <span class="upload-label">Refs: </span>
+      <span></span>
+      @for (ref of store.submit.refs; track ref; let i = $index) {
+        <div class="list-number">{{ i + 1 }}</div>
+        <app-ref [ref]="ref" [showToggle]="true" [scrollToLatest]="true"></app-ref>
+      }
+    }
+  }
+</div>
+
+@for (e of serverErrors; track e) {
+  <span><!-- Unexpected Error --></span>
+  <div class="error">{{ e }}</div>
+}

@@ -1,7 +1,15 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  effect,
+  inject,
+  Injector,
+  OnDestroy,
+  OnInit,
+  viewChild
+} from '@angular/core';
 import { defer } from 'lodash-es';
-import { autorun, IReactionDisposer } from 'mobx';
 import { catchError, switchMap, throwError } from 'rxjs';
 import { PluginListComponent } from '../../../component/plugin/plugin-list/plugin-list.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
@@ -15,37 +23,36 @@ import { getTagFilter } from '../../../util/query';
 import { getModels, getZipOrTextFile } from '../../../util/zip';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-settings-plugin-page',
   templateUrl: './plugin.component.html',
   styleUrls: ['./plugin.component.scss'],
   imports: [PluginListComponent],
 })
 export class SettingsPluginPage implements OnInit, OnDestroy, HasChanges {
+  private injector = inject(Injector);
+  private mod = inject(ModService);
+  store = inject(Store);
+  query = inject(PluginStore);
+  private plugins = inject(PluginService);
+
 
   serverError: string[] = [];
 
-  @ViewChild('list')
-  list?: PluginListComponent;
+  readonly list = viewChild<PluginListComponent>('list');
 
-  private disposers: IReactionDisposer[] = [];
+  constructor() {
+    const mod = this.mod;
+    const store = this.store;
+    const query = this.query;
 
-  constructor(
-    private mod: ModService,
-    public store: Store,
-    public query: PluginStore,
-    private plugins: PluginService,
-  ) {
     mod.setTitle($localize`Settings: Plugins`);
     store.view.clear(['tag:len', 'tag'], ['tag:len', 'tag']);
     query.clear();
   }
 
-  saveChanges() {
-    return !this.list || this.list.saveChanges();
-  }
-
   ngOnInit(): void {
-    this.disposers.push(autorun(() => {
+    effect(() => {
       const args = {
         query: this.store.view.showRemotes ? '@*' : (this.store.account.origin || '*'),
         search: this.store.view.search,
@@ -55,13 +62,16 @@ export class SettingsPluginPage implements OnInit, OnDestroy, HasChanges {
         ...getTagFilter(this.store.view.filter),
       };
       defer(() => this.query.setArgs(args));
-    }));
+    }, { injector: this.injector });
+  }
+
+  saveChanges() {
+    const list = this.list();
+    return !list || list.saveChanges();
   }
 
   ngOnDestroy() {
     this.query.close();
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
   }
 
   upload(files?: FileList) {

@@ -1,12 +1,10 @@
 import { HttpErrorResponse, HttpEventType } from '@angular/common/http';
-import { Component, OnDestroy } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, forwardRef, inject } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { FormlyForm } from '@ngx-formly/core';
 import { pick, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
-import { autorun, IReactionDisposer, runInAction, toJS } from 'mobx';
-import { MobxAngularModule } from 'mobx-angular';
+
 import { catchError, concat, last, lastValueFrom, map, of, switchMap, throwError } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import * as XLSX from 'xlsx';
@@ -14,6 +12,7 @@ import { ExtComponent } from '../../../component/ext/ext.component';
 import { LoadingComponent } from '../../../component/loading/loading.component';
 import { RefComponent } from '../../../component/ref/ref.component';
 import { AutofocusDirective } from '../../../directive/autofocus.directive';
+import { JasperFormlyModule } from '../../../formly/formly.module';
 import { Ext, mapExt } from '../../../model/ext';
 import { mapRef, Ref } from '../../../model/ref';
 import { AdminService } from '../../../service/admin.service';
@@ -30,23 +29,32 @@ import { printError } from '../../../util/http';
 import { FilteredModels, filterModels, getModels, getTextFile, unzip, zippedFile } from '../../../util/zip';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-upload',
   templateUrl: './upload.component.html',
   styleUrls: ['./upload.component.scss'],
   host: { 'class': 'full-page-upload' },
   imports: [
-    ExtComponent,
-    RefComponent,
-    MobxAngularModule,
+    forwardRef(() => RefComponent),
+    forwardRef(() => ExtComponent),
     RouterLink,
     ReactiveFormsModule,
     AutofocusDirective,
     LoadingComponent,
-    FormlyForm,
+    JasperFormlyModule,
   ]
 })
-export class UploadPage implements OnDestroy {
-  private disposers: IReactionDisposer[] = [];
+export class UploadPage {
+  store = inject(Store);
+  bookmarks = inject(BookmarkService);
+  private mod = inject(ModService);
+  private admin = inject(AdminService);
+  private refs = inject(RefService);
+  private exts = inject(ExtService);
+  private proxy = inject(ProxyService);
+  private auth = inject(AuthzService);
+  private router = inject(Router);
+
   tagRegex = TAGS_REGEX.source;
 
   erroredExts: Ext[] = [];
@@ -55,31 +63,15 @@ export class UploadPage implements OnDestroy {
   processing = false;
   fileCache = this.admin.getPlugin('plugin/file');
 
-  constructor(
-    public store: Store,
-    public bookmarks: BookmarkService,
-    private mod: ModService,
-    private admin: AdminService,
-    private refs: RefService,
-    private exts: ExtService,
-    private proxy: ProxyService,
-    private auth: AuthzService,
-    private router: Router,
-  ) {
-    mod.setTitle($localize`Submit: Upload`);
-    this.disposers.push(autorun(() => {
-      this.readUploads(this.store.submit.files);
-      runInAction(() => this.store.submit.clearFiles());
-    }));
-    this.disposers.push(autorun(() => {
-      console.log(this.store.submit.uploads.length);
-    }));
-    this.store.submit.clearOverride();
-  }
+  constructor() {
+    const mod = this.mod;
 
-  ngOnDestroy() {
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
+    mod.setTitle($localize`Submit: Upload`);
+    effect(() => {
+      this.readUploads(this.store.submit.files);
+      this.store.submit.clearFiles();
+    });
+    this.store.submit.clearOverride();
   }
 
   readUploads(uploads?: File[], forceCache = false) {
@@ -184,9 +176,7 @@ export class UploadPage implements OnDestroy {
     if (!files) return;
     for (let i = 0; i < files?.length; i++) {
       const file = files[i];
-      runInAction(() => {
-        this.store.submit.caching.set(file, { name: file.name, progress: 0 });
-      });
+      this.store.submit.caching.set(file, { name: file.name, progress: 0 });
       this.proxy.save(file, this.store.account.origin).pipe(
         map(event => {
           switch (event.type) {
@@ -194,9 +184,7 @@ export class UploadPage implements OnDestroy {
               return event.body;
             case HttpEventType.UploadProgress:
               const percentDone = event.total ? Math.round(100 * event.loaded / event.total) : 0;
-              runInAction(() => {
-                this.store.submit.caching.set(file, { name: file.name, progress: percentDone });
-              });
+              this.store.submit.caching.set(file, { name: file.name, progress: percentDone });
               return null;
           }
           return null;
@@ -209,10 +197,10 @@ export class UploadPage implements OnDestroy {
           ref!.tags = uniq([...ref!.tags || [], tag, ...extraTags.filter(t => !!t)]);
           return ref!;
         }),
-      ).subscribe(ref => runInAction(() => {
+      ).subscribe(ref => {
         this.store.submit.caching.delete(file);
         this.store.submit.addRefs({ ...ref, upload: true, exists: true });
-      }));
+      });
     }
   }
 
@@ -221,14 +209,14 @@ export class UploadPage implements OnDestroy {
     for (let i = 0; i < files?.length; i++) {
       const file = files[i];
       const reader = new FileReader();
-      reader.onload = () => runInAction(() => this.store.submit.addRefs({
+      reader.onload = () => this.store.submit.addRefs({
         upload: true,
         url: 'internal:' + uuid(),
         title: file.name,
         tags: uniq(['public', tag, ...extraTags.filter(t => !!t)]),
         plugins: { [tag]: { url: reader.result as string } },
         published: DateTime.now(),
-      }));
+      });
       reader.readAsDataURL(file);
     }
   }
@@ -238,14 +226,14 @@ export class UploadPage implements OnDestroy {
     for (let i = 0; i < files?.length; i++) {
       const file = files[i];
       const reader = new FileReader();
-      reader.onload = () => runInAction(() => this.store.submit.addRefs({
+      reader.onload = () => this.store.submit.addRefs({
         upload: true,
         url: 'internal:' + uuid(),
         title: file.name,
         tags: uniq(['public', ...extraTags.filter(t => !!t)]),
         comment: reader.result as string,
         published: DateTime.now(),
-      }));
+      });
       reader.readAsText(file);
     }
   }
@@ -255,7 +243,7 @@ export class UploadPage implements OnDestroy {
     for (let i = 0; i < files?.length; i++) {
       const file = files[i];
       const reader = new FileReader();
-      reader.onload = () => runInAction(() => {
+      reader.onload = () => {
         const html = reader.result as string;
         const links = new DOMParser().parseFromString(html, 'text/html').documentElement.getElementsByTagName('a');
         for (let i = 0; i < links.length; i++) {
@@ -268,7 +256,7 @@ export class UploadPage implements OnDestroy {
             published: DateTime.now(),
           });
         }
-      });
+      };
       reader.readAsText(file);
     }
   }
@@ -278,7 +266,7 @@ export class UploadPage implements OnDestroy {
     for (let i = 0; i < files?.length; i++) {
       const file = files[i];
       const reader = new FileReader();
-      reader.onload = () => runInAction(() => {
+      reader.onload = () => {
         const xml = reader.result as string;
         const locs = new DOMParser().parseFromString(xml, 'application/xml').documentElement.getElementsByTagName('loc');
         for (let i = 0; i < locs.length; i++) {
@@ -291,7 +279,7 @@ export class UploadPage implements OnDestroy {
             published: DateTime.now(),
           });
         }
-      });
+      };
       reader.readAsText(file);
     }
   }
@@ -301,7 +289,7 @@ export class UploadPage implements OnDestroy {
     for (let i = 0; i < files?.length; i++) {
       const file = files[i];
       const reader = new FileReader();
-      reader.onload = () => runInAction(() => {
+      reader.onload = () => {
         const wb = XLSX.read(reader.result);
         for (const sheet of wb.SheetNames) {
           const title = wb.SheetNames.length === 1 ? file.name : `${file.name} [${sheet}]`;
@@ -315,7 +303,7 @@ export class UploadPage implements OnDestroy {
             published: DateTime.now(),
           });
         }
-      });
+      };
       reader.readAsArrayBuffer(file);
     }
   }
@@ -350,7 +338,7 @@ export class UploadPage implements OnDestroy {
   }
 
   uploadRef$(ref: Ref) {
-    ref = toJS(ref);
+    ref = { ...ref };
     ref.origin = this.store.account.origin;
     ref.tags = ref.tags?.filter(t => this.auth.canAddTag(t));
     ref.plugins = pick(ref.plugins, ref.tags || []);
@@ -388,7 +376,7 @@ export class UploadPage implements OnDestroy {
   }
 
   uploadExt$(ext: Ext) {
-    ext = toJS(ext);
+    ext = { ...ext };
     ext.origin = this.store.account.origin;
     return (ext.exists
       ? this.exts.update(ext)
@@ -433,7 +421,7 @@ export class UploadPage implements OnDestroy {
   }
 
   set overwrite(value: boolean) {
-    runInAction(() => this.store.submit.overwrite = value);
+    this.store.submit.overwrite = value;
   }
 
   private getModels(file: File): Promise<FilteredModels> {

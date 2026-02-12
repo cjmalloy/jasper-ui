@@ -1,4 +1,4 @@
-import { Component, HostBinding, Input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, HostBinding, inject, Input, input } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { delay } from 'lodash-es';
@@ -7,6 +7,7 @@ import { BookmarkService } from '../../service/bookmark.service';
 import { Store } from '../../store/store';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-page-controls',
   templateUrl: './page-controls.component.html',
   styleUrls: ['./page-controls.component.scss'],
@@ -19,24 +20,19 @@ import { Store } from '../../store/store';
   ]
 })
 export class PageControlsComponent {
+  store = inject(Store);
+  private bookmarks = inject(BookmarkService);
+
 
   @Input()
   page?: Page<any>;
-  @Input()
-  showPageLast = true;
-  @Input()
-  hideCols = false;
-  @Input()
-  showPrev = true;
+  readonly showPageLast = input(true);
+  readonly hideCols = input(false);
+  readonly showPrev = input(true);
 
   pageSizes = [6, 24, 48, 96, 480];
   colSizes = [1, 2, 3, 4, 5, 6];
   colsChanged = false;
-
-  constructor(
-    public store: Store,
-    private bookmarks: BookmarkService,
-  ) { }
 
   @HostBinding('class.print-hide')
   get fullResults() {

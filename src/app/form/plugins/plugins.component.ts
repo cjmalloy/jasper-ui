@@ -1,17 +1,17 @@
 import {
   AfterViewInit,
+  ChangeDetectionStrategy,
   Component,
-  EventEmitter,
+  inject,
   Input,
+  input,
   OnChanges,
-  Output,
-  QueryList,
+  output,
   SimpleChanges,
-  ViewChildren
+  viewChildren
 } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormArray, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { defer } from 'lodash-es';
-import { toJS } from 'mobx';
 import { Subject, takeUntil } from 'rxjs';
 import { TitleDirective } from '../../directive/title.directive';
 import { Plugin } from '../../model/plugin';
@@ -22,6 +22,7 @@ import { addAllHierarchicalTags, hasTag } from '../../util/tag';
 import { GenFormComponent } from './gen/gen.component';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-form-plugins',
   templateUrl: './plugins.component.html',
   styleUrls: ['./plugins.component.scss'],
@@ -29,28 +30,28 @@ import { GenFormComponent } from './gen/gen.component';
   imports: [ReactiveFormsModule, TitleDirective, GenFormComponent]
 })
 export class PluginsFormComponent implements OnChanges, AfterViewInit {
+  admin = inject(AdminService);
+  private fb = inject(UntypedFormBuilder);
+
   private destroy$ = new Subject<void>();
 
-  @ViewChildren('gen')
-  gens?: QueryList<GenFormComponent>;
+  readonly gens = viewChildren<GenFormComponent>('gen');
 
-  @Input()
-  fieldName = 'plugins';
+  readonly fieldName = input('plugins');
   @Input()
   group: UntypedFormGroup;
-  @Output()
-  togglePlugin = new EventEmitter<string>();
+  readonly togglePlugin = output<string>();
 
   icons: Icon[] = [];
   forms: Plugin[] = [];
 
-  constructor(
-    public admin: AdminService,
-    private fb: UntypedFormBuilder,
-  ) {
+  constructor() {
+    const admin = this.admin;
+    const fb = this.fb;
+
     this.group = fb.group({
       tags: fb.array([]),
-      [this.fieldName]: pluginsForm(fb, admin, []),
+      [this.fieldName()]: pluginsForm(fb, admin, []),
     });
   }
 
@@ -63,7 +64,7 @@ export class PluginsFormComponent implements OnChanges, AfterViewInit {
       }
     }
     if (!this.plugins) {
-      this.group.addControl(this.fieldName, pluginsForm(this.fb, this.admin, this.allTags));
+      this.group.addControl(this.fieldName(), pluginsForm(this.fb, this.admin, this.allTags));
     } else if (this.allTags) {
       for (const t of this.allTags) {
         if (!this.plugins.contains(t)) {
@@ -106,7 +107,7 @@ export class PluginsFormComponent implements OnChanges, AfterViewInit {
   }
 
   get plugins() {
-    return this.group.get(this.fieldName) as UntypedFormGroup;
+    return this.group.get(this.fieldName()) as UntypedFormGroup;
   }
 
   get empty() {
@@ -114,10 +115,9 @@ export class PluginsFormComponent implements OnChanges, AfterViewInit {
   }
 
   setValue(value: any) {
-    value = toJS(value);
     defer(() => {
       this.plugins.patchValue(value);
-      this.gens!.forEach(g => g.setValue(value))
+      this.gens()!.forEach(g => g.setValue(value))
     });
   }
 

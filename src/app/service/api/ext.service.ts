@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { delay } from 'lodash-es';
 import { catchError, concat, map, Observable, of, shareReplay, Subject, switchMap, toArray } from 'rxjs';
 import { tap } from 'rxjs/operators';
@@ -9,7 +9,7 @@ import { latest, TagPageArgs, TagQueryArgs } from '../../model/tag';
 import { Store } from '../../store/store';
 import { params } from '../../util/http';
 import { OpPatch } from '../../util/json-patch';
-import { defaultOrigin, hasPrefix, isQuery, localTag, protectedTag, removePrefix, tagOrigin } from '../../util/tag';
+import { hasPrefix, isQuery, localTag, protectedTag, removePrefix, tagOrigin } from '../../util/tag';
 import { ConfigService } from '../config.service';
 import { LoginService } from '../login.service';
 
@@ -21,17 +21,15 @@ export const EXT_BATCH_SIZE = 50;
   providedIn: 'root',
 })
 export class ExtService {
+  private http = inject(HttpClient);
+  private config = inject(ConfigService);
+  private login = inject(LoginService);
+  private store = inject(Store);
+
 
   private _cache = new Map<string, Observable<Ext>>();
   private _batchQueue: Array<{ key: string; tag: string; origin?: string; subject: Subject<Ext> }> = [];
   private _batchTimer?: any;
-
-  constructor(
-    private http: HttpClient,
-    private config: ConfigService,
-    private login: LoginService,
-    private store: Store,
-  ) { }
 
   private get base() {
     return this.config.api + '/api/v1/ext';
@@ -124,7 +122,7 @@ export class ExtService {
 
     // Take up to EXT_BATCH_SIZE items from the queue
     const batch = this._batchQueue.splice(0, EXT_BATCH_SIZE);
-    
+
     // Build query string for all tags in the batch
     const queries: string[] = [];
     for (const item of batch) {
@@ -147,7 +145,7 @@ export class ExtService {
       for (const item of batch) {
         const tag = localTag(item.tag);
         const origin = tagOrigin(item.tag) || item.origin;
-        
+
         let ext: Ext | undefined;
         if (tagOrigin(item.tag)) {
           ext = result.content.find(x => x.tag === tag && x.origin === tagOrigin(item.tag));
@@ -161,15 +159,15 @@ export class ExtService {
         }
 
         const resolvedExt = ext || this.defaultExt(item.tag, origin);
-        
+
         // Update cache with the resolved ext using the same logic as prefillCache()
         this.prefillCache(resolvedExt);
-        
+
         // Emit the result to the subject
         item.subject.next(resolvedExt);
         item.subject.complete();
       }
-      
+
       this.store.local.loadExt([...this._cache.keys()]);
     });
 
@@ -188,12 +186,12 @@ export class ExtService {
 
   getCachedExt(tag: string, origin?: string) {
     const key = tag + ':' + (origin || '');
-    
+
     // Return immediately if cached
     if (this._cache.has(key)) {
       return this._cache.get(key)!;
     }
-    
+
     // For queries or empty tags, return default immediately
     if (!tag || isQuery(tag)) {
       const value = of(this.defaultExt(tag, origin));
@@ -201,27 +199,27 @@ export class ExtService {
       this.store.local.loadExt([...this._cache.keys()]);
       return value;
     }
-    
+
     // For uncached exts, use batching mechanism
     const subject = new Subject<Ext>();
     const value = subject.asObservable().pipe(
       shareReplay(1),
     );
     this._cache.set(key, value);
-    
+
     // Add to batch queue
     this._batchQueue.push({ key, tag, origin, subject });
-    
+
     // Schedule batch processing if not already scheduled
     if (!this._batchTimer) {
       this._batchTimer = setTimeout(() => this.processBatch(), EXT_BATCH_THROTTLE_MS);
     }
-    
+
     // Set cache expiration
     delay(() => {
       if (this._cache.get(key) === value) this._cache.delete(key);
     }, EXT_CACHE_MS);
-    
+
     this.store.local.loadExt([...this._cache.keys()]);
     return value;
   }

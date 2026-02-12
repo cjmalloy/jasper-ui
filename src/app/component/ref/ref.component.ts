@@ -2,26 +2,28 @@ import { AsyncPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
   AfterViewInit,
+  ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
+  effect,
   ElementRef,
-  EventEmitter,
   HostBinding,
   HostListener,
+  inject,
   Input,
+  input,
   OnChanges,
   OnDestroy,
-  Output,
-  QueryList,
+  output,
   SimpleChanges,
   ViewChild,
-  ViewChildren
+  viewChildren,
+  viewChild
 } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { cloneDeep, defer, delay, groupBy, pick, throttle, uniq, without } from 'lodash-es';
 import { DateTime } from 'luxon';
-import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { catchError, map, of, Subject, Subscription, switchMap, takeUntil, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { TitleDirective } from '../../directive/title.directive';
@@ -87,6 +89,7 @@ import { NavComponent } from '../nav/nav.component';
 import { ViewerComponent } from '../viewer/viewer.component';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-ref',
   templateUrl: './ref.component.html',
   styleUrls: ['./ref.component.scss'],
@@ -111,45 +114,48 @@ import { ViewerComponent } from '../viewer/viewer.component';
   ],
 })
 export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasChanges {
+  config = inject(ConfigService);
+  accounts = inject(AccountService);
+  admin = inject(AdminService);
+  store = inject(Store);
+  private auth = inject(AuthzService);
+  private editor = inject(EditorService);
+  private refs = inject(RefService);
+  private exts = inject(ExtService);
+  private bookmarks = inject(BookmarkService);
+  private proxy = inject(ProxyService);
+  private ts = inject(TaggingService);
+  private router = inject(Router);
+  private fb = inject(UntypedFormBuilder);
+  private el = inject<ElementRef<HTMLDivElement>>(ElementRef);
+  private cd = inject(ChangeDetectorRef);
+
   css = 'ref list-item';
   @HostBinding('class')
   allCss = this.getPluginClasses();
-  private disposers: IReactionDisposer[] = [];
   private destroy$ = new Subject<void>();
 
-  @ViewChildren('action')
-  actionComponents?: QueryList<ActionComponent>;
-  @ViewChild('refForm')
-  refForm?: RefFormComponent;
-  @ViewChild('reply')
-  reply?: CommentReplyComponent;
-  @ViewChild('diffEditor')
-  diffEditor?: any;
+  readonly actionComponents = viewChildren<ActionComponent>('action');
+  readonly refForm = viewChild<RefFormComponent>('refForm');
+  readonly reply = viewChild<CommentReplyComponent>('reply');
+  readonly diffEditor = viewChild<any>('diffEditor');
 
   @Input()
   ref!: Ref;
   @Input()
   expanded = false;
-  @Input()
-  plugins?: string[];
+  readonly plugins = input<string[]>();
   @Input()
   expandInline = false;
   @Input()
   showToggle = false;
-  @Input()
-  scrollToLatest = false;
-  @Input()
-  hideEdit = false;
-  @Input()
-  disableResize = false;
-  @Input()
-  showAlarm = true;
-  @Input()
-  showObsolete = true;
-  @Input()
-  fetchRepost = true;
-  @Output()
-  copied = new EventEmitter<string>();
+  readonly scrollToLatest = input(false);
+  readonly hideEdit = input(false);
+  readonly disableResize = input(false);
+  readonly showAlarm = input(true);
+  readonly showObsolete = input(true);
+  readonly fetchRepost = input(true);
+  readonly copied = output<string>();
 
   repostRef?: Ref;
   editForm: UntypedFormGroup;
@@ -191,23 +197,10 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   private closeOffFullscreen = false;
   private _expanded = false;
 
-  constructor(
-    public config: ConfigService,
-    public accounts: AccountService,
-    public admin: AdminService,
-    public store: Store,
-    private auth: AuthzService,
-    private editor: EditorService,
-    private refs: RefService,
-    private exts: ExtService,
-    private bookmarks: BookmarkService,
-    private proxy: ProxyService,
-    private ts: TaggingService,
-    private router: Router,
-    private fb: UntypedFormBuilder,
-    private el: ElementRef<HTMLDivElement>,
-    private cd: ChangeDetectorRef,
-  ) {
+  constructor() {
+    const fb = this.fb;
+    const cd = this.cd;
+
     this.editForm = refForm(fb);
     this.editForm.valueChanges.pipe(
       takeUntil(this.destroy$),
@@ -224,7 +217,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
       this.initFields({ ...this.ref, ...value });
       cd.detectChanges();
     }, 400, { leading: true, trailing: true }));
-    this.disposers.push(autorun(() => {
+    effect(() => {
       if (this.store.eventBus.event === 'refresh') {
         if (this.editing || this.viewSource) {
           // TODO: show somewhere
@@ -256,12 +249,13 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
       if (this.store.eventBus.event === 'toggle-all-closed') {
         this.expanded = false;
       }
-    }));
+    });
   }
 
   saveChanges() {
+    const reply = this.reply();
     return (!this.editing || !this.editForm.dirty)
-      && (!this.reply || this.reply.saveChanges());
+      && (!reply || reply.saveChanges());
   }
 
   init() {
@@ -274,7 +268,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     this.deleted = false;
     this.editing = false;
     this.viewSource = false;
-    this.actionComponents?.forEach(c => c.reset());
+    this.actionComponents()?.forEach(c => c.reset());
     if (this.ref?.upload) this.editForm.get('url')!.enable();
     this.writeAccess = this.auth.writeAccess(this.ref);
     this.taggingAccess = this.auth.taggingAccess(this.ref);
@@ -283,7 +277,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     this.initFields(this.ref);
 
     this.expandPlugins = this.admin.getEmbeds(this.ref);
-    if (this.repost && this.ref && this.fetchRepost && this.repostRef?.url != repost(this.ref)) {
+    if (this.repost && this.ref && this.fetchRepost() && this.repostRef?.url != repost(this.ref)) {
       (this.store.view.top?.url === this.ref.sources![0]
           ? of(this.store.view.top)
           : this.refs.getCurrent(this.url)
@@ -332,8 +326,6 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
     if (this.lastSelected) {
       this.store.view.clearLastSelected();
     }
@@ -356,7 +348,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
 
   @HostBinding('class.last-selected')
   get lastSelected() {
-    return this.scrollToLatest && this.store.view.lastSelected?.url === this.ref.url;
+    return this.scrollToLatest() && this.store.view.lastSelected?.url === this.ref.url;
   }
 
   @HostBinding('class.upload')
@@ -463,8 +455,9 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
 
   syncEditor() {
     if (!this.editing && !this.viewSource) return;
-    if (this.refForm) {
-      this.refForm.setRef(cloneDeep(this.ref));
+    const refFormValue = this.refForm();
+    if (refFormValue) {
+      refFormValue.setRef(cloneDeep(this.ref));
       if (this.editing) this.editor.syncEditor(this.fb, this.editForm, this.ref.comment);
     } else {
       defer(() => this.syncEditor());
@@ -983,16 +976,14 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
 
   tag$ = (tag: string) => {
     if (this.ref.upload) {
-      runInAction(() => {
-        this.ref.tags ||= [];
-        for (const t of tag.split(' ').filter(t => !!t.trim())) {
-          if (t.startsWith('-')) {
-            this.ref.tags = this.ref.tags.filter(r => expandedTagsInclude(r, t.substring(1)));
-          } else if (!hasTag(t, this.ref)) {
-            this.ref.tags.push(t);
-          }
+      this.ref.tags ||= [];
+      for (const t of tag.split(' ').filter(t => !!t.trim())) {
+        if (t.startsWith('-')) {
+          this.ref.tags = this.ref.tags.filter(r => expandedTagsInclude(r, t.substring(1)));
+        } else if (!hasTag(t, this.ref)) {
+          this.ref.tags.push(t);
         }
-      });
+      }
       this.init();
       return of(null);
     } else {
@@ -1214,7 +1205,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   }
 
   saveDiff() {
-    const ref = this.diffEditor?.getModifiedContent();
+    const ref = this.diffEditor()?.getModifiedContent();
     if (!ref) return;
     ref.modifiedString = this.overwrite ? this.overwrittenModified : this.ref.modifiedString;
     this.submitting = this.store.eventBus.runAndReload(this.refs.update(ref).pipe(

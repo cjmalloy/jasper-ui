@@ -1,13 +1,15 @@
 import { CdkDropListGroup } from '@angular/cdk/drag-drop';
 import {
+  ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
   ElementRef,
-  EventEmitter,
+  inject,
   Input,
+  input,
   OnDestroy,
-  Output,
-  ViewChild
+  output,
+  viewChild
 } from '@angular/core';
 import {
   FormArray,
@@ -40,6 +42,7 @@ import { linksForm } from '../links/links.component';
 import { themesForm, ThemesFormComponent } from '../themes/themes.component';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-ext-form',
   templateUrl: './ext.component.html',
   styleUrls: ['./ext.component.scss'],
@@ -56,25 +59,24 @@ import { themesForm, ThemesFormComponent } from '../themes/themes.component';
   ],
 })
 export class ExtFormComponent implements OnDestroy {
+  admin = inject(AdminService);
+  store = inject(Store);
+  private refs = inject(RefService);
+  private cd = inject(ChangeDetectorRef);
+
   private destroy$ = new Subject<void>();
   allSorts = this.admin.refSorts.map(convertSort);
   allFilters = this.admin.filters.map(convertFilter);
 
   @Input()
   group!: UntypedFormGroup;
-  @Input()
-  showClear = false;
-  @Output()
-  clear = new EventEmitter<void>();
+  readonly showClear = input(false);
+  readonly clear = output<void>();
 
-  @ViewChild('fillPopover')
-  fillPopover?: ElementRef;
-  @ViewChild('fillSidebar')
-  fillSidebar?: ElementRef;
-  @ViewChild('mainFormlyForm')
-  mainFormlyForm?: FormlyForm;
-  @ViewChild('advancedFormlyForm')
-  advancedFormlyForm?: FormlyForm;
+  readonly fillPopover = viewChild<ElementRef>('fillPopover');
+  readonly fillSidebar = viewChild<ElementRef>('fillSidebar');
+  readonly mainFormlyForm = viewChild<FormlyForm>('mainFormlyForm');
+  readonly advancedFormlyForm = viewChild<FormlyForm>('advancedFormlyForm');
 
   id = 'ext-' + uuid();
   form?: FormlyFieldConfig[];
@@ -90,13 +92,6 @@ export class ExtFormComponent implements OnDestroy {
   };
 
   private tag?: string;
-
-  constructor(
-    public admin: AdminService,
-    public store: Store,
-    private refs: RefService,
-    private cd: ChangeDetectorRef,
-  ) { }
 
   ngOnDestroy() {
     this.destroy$.next();
@@ -218,22 +213,24 @@ export class ExtFormComponent implements OnDestroy {
   }
 
   private setModel(ext: Ext) {
-    if (!this.mainFormlyForm || !this.advancedFormlyForm) {
+    const mainFormlyForm = this.mainFormlyForm();
+    const advancedFormlyForm = this.advancedFormlyForm();
+    if (!mainFormlyForm || !advancedFormlyForm) {
       this.cd.markForCheck();
       defer(() => this.setModel(ext));
       return;
     }
     this.group!.patchValue(ext);
     this.options.formState.config = ext.config;
-    this.mainFormlyForm!.model = ext.config;
+    mainFormlyForm!.model = ext.config;
     // TODO: Why aren't changed being detected?
     // @ts-ignore
-    this.mainFormlyForm.builder.build(this.mainFormlyForm.field);
-    if (this.advancedFormlyForm) {
-      this.advancedFormlyForm!.model = ext.config;
+    mainFormlyForm.builder.build(mainFormlyForm.field);
+    if (advancedFormlyForm) {
+      advancedFormlyForm!.model = ext.config;
       // TODO: Why aren't changed being detected?
       // @ts-ignore
-      this.advancedFormlyForm.builder.build(this.advancedFormlyForm.field);
+      advancedFormlyForm.builder.build(advancedFormlyForm.field);
     }
     this.config.valueChanges.pipe(
       takeUntil(this.destroy$),

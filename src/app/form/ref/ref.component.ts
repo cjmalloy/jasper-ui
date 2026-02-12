@@ -1,15 +1,17 @@
 import { CdkDropListGroup } from '@angular/cdk/drag-drop';
 import {
+  ChangeDetectionStrategy,
   Component,
   ElementRef,
-  EventEmitter,
   HostBinding,
   HostListener,
+  inject,
   Input,
+  input,
   OnChanges,
-  Output,
+  output,
   SimpleChanges,
-  ViewChild
+  viewChild
 } from '@angular/core';
 import {
   ReactiveFormsModule,
@@ -44,6 +46,7 @@ import { PluginsFormComponent } from '../plugins/plugins.component';
 import { TagsFormComponent } from '../tags/tags.component';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-ref-form',
   templateUrl: './ref.component.html',
   styleUrls: ['./ref.component.scss'],
@@ -63,26 +66,26 @@ import { TagsFormComponent } from '../tags/tags.component';
   ],
 })
 export class RefFormComponent implements OnChanges {
+  config = inject(ConfigService);
+  admin = inject(AdminService);
+  private editor = inject(EditorService);
+  private scrape = inject(ScrapeService);
+  private oembeds = inject(OembedStore);
+  private store = inject(Store);
+  private fb = inject(UntypedFormBuilder);
 
-  @Input()
-  origin? = '';
+
+  readonly origin = input<string | undefined>('');
   @Input()
   group!: UntypedFormGroup;
-  @Output()
-  toggleTag = new EventEmitter<string>();
+  readonly toggleTag = output<string>();
 
-  @ViewChild('tagsFormComponent')
-  tagsFormComponent!: TagsFormComponent;
-  @ViewChild('sources')
-  sourcesFormComponent!: LinksFormComponent;
-  @ViewChild('alts')
-  altsFormComponent!: LinksFormComponent;
-  @ViewChild('pluginsFormComponent')
-  pluginsFormComponent!: PluginsFormComponent;
-  @ViewChild('fill')
-  fill?: ElementRef;
-  @ViewChild('ed')
-  editorComponent?: EditorComponent;
+  readonly tagsFormComponent = viewChild.required<TagsFormComponent>('tagsFormComponent');
+  readonly sourcesFormComponent = viewChild.required<LinksFormComponent>('sources');
+  readonly altsFormComponent = viewChild.required<LinksFormComponent>('alts');
+  readonly pluginsFormComponent = viewChild.required<PluginsFormComponent>('pluginsFormComponent');
+  readonly fill = viewChild<ElementRef>('fill');
+  readonly editorComponent = viewChild<EditorComponent>('ed');
 
   @HostBinding('class.show-drops')
   dropping = false;
@@ -95,16 +98,6 @@ export class RefFormComponent implements OnChanges {
   scrapingPublished = false;
   scrapingAll = false;
   completedUploads: Ref[] = [];
-
-  constructor(
-    public config: ConfigService,
-    public admin: AdminService,
-    private editor: EditorService,
-    private scrape: ScrapeService,
-    private oembeds: OembedStore,
-    private store: Store,
-    private fb: UntypedFormBuilder,
-  ) { }
 
   ngOnChanges(changes: SimpleChanges) {
     MemoCache.clear(this);
@@ -144,12 +137,13 @@ export class RefFormComponent implements OnChanges {
   }
 
   setTags(value: string[]) {
-    if (!this.tagsFormComponent?.tags) {
+    const tagsFormComponent = this.tagsFormComponent();
+    if (!tagsFormComponent?.tags) {
       defer(() => this.setTags(value));
       return;
     }
     MemoCache.clear(this);
-    this.tagsFormComponent.setTags(value);
+    tagsFormComponent.setTags(value);
   }
 
   get editorLabel() {
@@ -311,7 +305,7 @@ export class RefFormComponent implements OnChanges {
           if (!hasTag(t, this.tags.value)) this.togglePlugin(t);
         }
         defer(() => {
-          this.pluginsFormComponent.setValue({
+          this.pluginsFormComponent().setValue({
             ...this.group.value.plugins || {},
             ...s.plugins || {},
           });
@@ -330,12 +324,12 @@ export class RefFormComponent implements OnChanges {
 
   togglePlugin(tag: string) {
     MemoCache.clear(this);
-    this.toggleTag.next(tag);
+    this.toggleTag.emit(tag);
     if (tag) {
       if (hasTag(tag, this.tags.value)) {
-        this.tagsFormComponent.removeTagAndChildren(tag);
+        this.tagsFormComponent().removeTagAndChildren(tag);
       } else {
-        this.tagsFormComponent.addTag(tag);
+        this.tagsFormComponent().addTag(tag);
       }
     }
   }
@@ -347,10 +341,10 @@ export class RefFormComponent implements OnChanges {
       published: ref.published ? ref.published.toFormat("yyyy-MM-dd'T'TT") : undefined,
     });
     defer(() => {
-      this.sourcesFormComponent.setLinks(ref.sources || []);
-      this.altsFormComponent.setLinks(ref.alternateUrls || []);
-      this.tagsFormComponent.setTags(ref.tags || []);
-      this.pluginsFormComponent.setValue(ref.plugins);
+      this.sourcesFormComponent().setLinks(ref.sources || []);
+      this.altsFormComponent().setLinks(ref.alternateUrls || []);
+      this.tagsFormComponent().setTags(ref.tags || []);
+      this.pluginsFormComponent().setValue(ref.plugins);
       MemoCache.clear(this);
     });
   }

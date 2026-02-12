@@ -8,8 +8,8 @@
               (blur)="edit()"
               [appAutofocus]="true"></textarea>
   } @else if (text) {
-    <app-md [origin]="origin"
-            [plugins]="plugins"
+    <app-md [origin]="origin()"
+            [plugins]="plugins()"
             [text]="text"
             tabindex="0"
             (mouseover)="hovering = true"

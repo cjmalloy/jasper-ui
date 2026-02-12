@@ -1,8 +1,16 @@
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  effect,
+  inject,
+  Injector,
+  OnDestroy,
+  OnInit,
+  viewChild
+} from '@angular/core';
 import { Router } from '@angular/router';
 import { defer } from 'lodash-es';
-import { autorun, IReactionDisposer } from 'mobx';
-import { MobxAngularModule } from 'mobx-angular';
+
 import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { AdminService } from '../../../service/admin.service';
@@ -12,40 +20,40 @@ import { Store } from '../../../store/store';
 import { getArgs } from '../../../util/query';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-inbox-all',
   templateUrl: './all.component.html',
   styleUrls: ['./all.component.scss'],
   host: { 'class': 'inbox-all' },
-  imports: [MobxAngularModule, RefListComponent]
+  imports: [ RefListComponent]
 })
 export class InboxAllPage implements OnInit, OnDestroy, HasChanges {
+  private injector = inject(Injector);
+  private mod = inject(ModService);
+  admin = inject(AdminService);
+  store = inject(Store);
+  query = inject(QueryStore);
+  private router = inject(Router);
 
-  private disposers: IReactionDisposer[] = [];
 
-  @ViewChild('list')
-  list?: RefListComponent;
+  readonly list = viewChild<RefListComponent>('list');
 
-  constructor(
-    private mod: ModService,
-    public admin: AdminService,
-    public store: Store,
-    public query: QueryStore,
-    private router: Router,
-  ) {
+  constructor() {
+    const mod = this.mod;
+    const store = this.store;
+    const query = this.query;
+
     mod.setTitle($localize`Inbox: All`);
     store.view.clear(['modified']);
     query.clear();
-  }
 
-  saveChanges() {
-    return !this.list || this.list.saveChanges();
-  }
-
-  ngOnInit(): void {
     if (!this.store.view.filter.length) {
       this.router.navigate([], { queryParams: { filter: ['query/!(dm)'] }, replaceUrl: true });
     }
-    this.disposers.push(autorun(() => {
+  }
+
+  ngOnInit(): void {
+    effect(() => {
       const args = getArgs(
         this.store.account.inboxQuery,
         this.store.view.sort,
@@ -55,12 +63,15 @@ export class InboxAllPage implements OnInit, OnDestroy, HasChanges {
         this.store.view.pageSize,
       );
       defer(() => this.query.setArgs(args));
-    }));
+    }, { injector: this.injector });
+  }
+
+  saveChanges() {
+    const list = this.list();
+    return !list || list.saveChanges();
   }
 
   ngOnDestroy() {
     this.query.close();
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
   }
 }

@@ -1,16 +1,18 @@
 import {
+  ChangeDetectionStrategy,
   Component,
+  effect,
   forwardRef,
+  inject,
   Input,
+  input,
   OnChanges,
   OnDestroy,
   OnInit,
-  QueryList,
   SimpleChanges,
-  ViewChildren
+  viewChildren
 } from '@angular/core';
-import { autorun, IReactionDisposer } from 'mobx';
-import { MobxAngularModule } from 'mobx-angular';
+
 import { Observable, Subject, takeUntil } from 'rxjs';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Ref } from '../../../model/ref';
@@ -19,55 +21,53 @@ import { ThreadStore } from '../../../store/thread';
 import { CommentComponent } from '../comment.component';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-comment-thread',
   templateUrl: './comment-thread.component.html',
   styleUrls: ['./comment-thread.component.scss'],
   host: { 'class': 'comment-thread' },
   imports: [
     forwardRef(() => CommentComponent),
-    MobxAngularModule,
+
   ],
 })
 export class CommentThreadComponent implements OnInit, OnChanges, OnDestroy, HasChanges {
-  private destroy$ = new Subject<void>();
-  private disposers: IReactionDisposer[] = [];
+  store = inject(Store);
+  thread = inject(ThreadStore);
 
-  @Input()
-  source = '';
-  @Input()
-  scrollToLatest = false;
+  private destroy$ = new Subject<void>();
+
+  readonly source = input('');
+  readonly scrollToLatest = input(false);
   @Input()
   depth = 7;
-  @Input()
-  pageSize?: number;
-  @Input()
-  context = 0;
+  readonly pageSize = input<number>();
+  readonly context = input(0);
   @Input()
   newComments$!: Observable<Ref | undefined>;
 
-  @ViewChildren('comment')
-  list?: QueryList<CommentComponent>;
+  readonly list = viewChildren<CommentComponent>('comment');
 
   comments?: Ref[] = [];
   newComments: Ref[] = [];
 
-  constructor(
-    public store: Store,
-    public thread: ThreadStore,
-  ) {
-    this.disposers.push(autorun(() => {
+  constructor() {
+    const thread = this.thread;
+
+    effect(() => {
       if (thread.latest.length) {
-        this.comments = thread.cache.get(this.source);
-        if (this.comments && this.pageSize) {
+        this.comments = thread.cache.get(this.source());
+        const pageSize = this.pageSize();
+        if (this.comments && pageSize) {
           this.comments = [...this.comments!];
-          this.comments.length = this.pageSize;
+          this.comments.length = pageSize;
         }
       }
-    }));
+    });
   }
 
   saveChanges(): boolean {
-    return !!this.list?.filter(t => t.saveChanges()).length;
+    return !!this.list()?.filter(t => t.saveChanges()).length;
   }
 
   ngOnInit(): void {
@@ -79,10 +79,11 @@ export class CommentThreadComponent implements OnInit, OnChanges, OnDestroy, Has
   ngOnChanges(changes: SimpleChanges) {
     if (changes.source || changes.pageSize) {
       this.newComments = [];
-      this.comments = this.thread.cache.get(this.source);
-      if (this.comments && this.pageSize) {
+      this.comments = this.thread.cache.get(this.source());
+      const pageSize = this.pageSize();
+      if (this.comments && pageSize) {
         this.comments = [...this.comments!];
-        this.comments.length = this.pageSize;
+        this.comments.length = pageSize;
       }
     }
   }
@@ -90,8 +91,5 @@ export class CommentThreadComponent implements OnInit, OnChanges, OnDestroy, Has
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
   }
-
 }

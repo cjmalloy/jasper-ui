@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, input } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { debounce } from 'lodash-es';
 import { catchError, forkJoin, map, Observable, of, Subscription, switchMap } from 'rxjs';
@@ -14,6 +14,7 @@ import { LoadingComponent } from '../../loading/loading.component';
 import { ActionComponent } from '../action.component';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-inline-tag',
   templateUrl: './inline-tag.component.html',
   styleUrls: ['./inline-tag.component.scss'],
@@ -21,10 +22,14 @@ import { ActionComponent } from '../action.component';
   imports: [ReactiveFormsModule, AutofocusDirective, LoadingComponent]
 })
 export class InlineTagComponent extends ActionComponent {
+  private store = inject(Store);
+  private admin = inject(AdminService);
+  private editor = inject(EditorService);
+  private exts = inject(ExtService);
+
   tagsRegex = TAGS_REGEX.source;
 
-  @Input()
-  action: (tag: string) => Observable<any|never> = () => of(null);
+  readonly action = input<(tag: string) => Observable<any | never>>(() => of(null));
 
   editing = false;
   acting = false;
@@ -32,15 +37,6 @@ export class InlineTagComponent extends ActionComponent {
   autocomplete: { value: string; label: string }[] = [];
 
   private searching?: Subscription;
-
-  constructor(
-    private store: Store,
-    private admin: AdminService,
-    private editor: EditorService,
-    private exts: ExtService,
-  ) {
-    super();
-  }
 
 
   override reset() {
@@ -65,7 +61,7 @@ export class InlineTagComponent extends ActionComponent {
     }
     this.editing = false;
     this.acting = true;
-    this.action((field.value || '').toLowerCase().trim()).pipe(
+    this.action()((field.value || '').toLowerCase().trim()).pipe(
       catchError(() => of(null)),
     ).subscribe(() => this.acting = false);
   }

@@ -2,11 +2,12 @@ import { CdkDrag } from '@angular/cdk/drag-drop';
 import { HttpEventType } from '@angular/common/http';
 import {
   AfterViewInit,
+  ChangeDetectionStrategy,
   Component,
   HostBinding,
   HostListener,
-  Input,
-  NgZone,
+  inject,
+  input,
   OnChanges,
   OnDestroy,
   SimpleChanges
@@ -46,6 +47,7 @@ interface PendingUpload {
 }
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-kanban-column',
   templateUrl: './kanban-column.component.html',
   styleUrls: ['./kanban-column.component.scss'],
@@ -58,26 +60,26 @@ interface PendingUpload {
   ],
 })
 export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestroy, HasChanges {
+  config = inject(ConfigService);
+  private accounts = inject(AccountService);
+  private admin = inject(AdminService);
+  private store = inject(Store);
+  private oembeds = inject(OembedStore);
+  private refs = inject(RefService);
+  private tags = inject(TaggingService);
+  private proxy = inject(ProxyService);
+
   private destroy$ = new Subject<void>();
 
-  @Input()
-  query = '';
-  @Input()
-  hideSwimLanes = true;
-  @Input()
-  updates?: Observable<KanbanDrag>;
-  @Input()
-  addTags: string[] = [];
-  @Input()
-  ext?: Ext;
-  @Input()
-  size = 8;
-  @Input()
-  sort: RefSort[] = [];
-  @Input()
-  filter: UrlFilter[] = [];
-  @Input()
-  search = '';
+  readonly query = input('');
+  readonly hideSwimLanes = input(true);
+  readonly updates = input<Observable<KanbanDrag>>();
+  readonly addTags = input<string[]>([]);
+  readonly ext = input<Ext>();
+  readonly size = input(8);
+  readonly sort = input<RefSort[]>([]);
+  readonly filter = input<UrlFilter[]>([]);
+  readonly search = input('');
 
   page?: Page<Ref>;
   mutated = false;
@@ -94,24 +96,16 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
   private _sort: RefSort[] = [];
   private _filter: UrlFilter[] = [];
 
-  constructor(
-    public config: ConfigService,
-    private accounts: AccountService,
-    private admin: AdminService,
-    private store: Store,
-    private oembeds: OembedStore,
-    private refs: RefService,
-    private tags: TaggingService,
-    private zone: NgZone,
-    private proxy: ProxyService,
-  ) {
+  constructor() {
+    const config = this.config;
+
     if (config.mobile) {
       this.pressToUnlock = true;
     }
   }
 
   ngAfterViewInit(): void {
-    this.updates?.pipe(
+    this.updates()?.pipe(
       takeUntil(this.destroy$),
     ).subscribe(event => this.update(event));
   }
@@ -150,7 +144,7 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
 
   @HostListener('touchstart', ['$event'])
   touchstart(e: TouchEvent) {
-    this.zone.run(() => this.pressToUnlock = true);
+    this.pressToUnlock = true;
   }
 
   @HostListener('contextmenu', ['$event'])
@@ -159,16 +153,16 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
   }
 
   clear(removeCurrent = true) {
-    this._sort = [...this.sort];
-    this._filter = [...this.filter];
+    this._sort = [...this.sort()];
+    this._filter = [...this.filter()];
     if (removeCurrent) delete this.page;
     const args = getArgs(
-      this.query,
-      this.sort,
-      this.filter,
-      this.search,
+      this.query(),
+      this.sort(),
+      this.filter(),
+      this.search(),
       0,
-      this.size,
+      this.size(),
     );
     this.currentRequest?.unsubscribe();
     this.currentRequest = this.refs.page(args).pipe(
@@ -206,14 +200,15 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
 
   update(event: KanbanDrag) {
     if (!this.page) return;
-    if (event.from === this.query) {
+    const query = this.query();
+    if (event.from === query) {
       if (this.page.content.includes(event.ref)) {
         this.mutated ||= event.from !== event.to;
         this.page.page.totalElements--;
         this.page.content.splice(this.page.content.indexOf(event.ref), 1);
       }
     }
-    if (event.to === this.query) {
+    if (event.to === query) {
       this.mutated ||= event.from !== event.to;
       this.page.page.totalElements++;
       this.page.content.splice(Math.min(event.index, this.page.content.length - 1), 0, event.ref);
@@ -302,7 +297,7 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
         }
         if (err.status === 409) {
           // Ref already exists, just tag it
-          return this.tags.patch(this.addTags, ref.url, ref.origin).pipe(
+          return this.tags.patch(this.addTags(), ref.url, ref.origin).pipe(
             catchError(err => {
               if (err.status === 403) {
                 // Can't edit Ref, repost it
@@ -347,9 +342,10 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
   }
 
   private getTagsWithAuthor(): string[] {
-    return uniq(!hasTag(this.store.account.localTag, this.addTags)
-      ? [...this.addTags, this.store.account.localTag]
-      : this.addTags).filter(t => !!t);
+    const addTags = this.addTags();
+    return uniq(!hasTag(this.store.account.localTag, addTags)
+      ? [...addTags, this.store.account.localTag]
+      : addTags).filter(t => !!t);
   }
 
   handlePaste(event: ClipboardEvent) {
@@ -523,16 +519,16 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
 
   private refreshPage(i: number, pinned?: Ref[]) {
     this.refs.page(getArgs(
-      this.query,
-      this.sort,
-      this.filter,
-      this.search,
+      this.query(),
+      this.sort(),
+      this.filter(),
+      this.search(),
       i,
-      this.size
+      this.size()
     )).pipe(
       takeUntil(this.destroy$)
     ).subscribe(page => {
-      const pageOffset = i * this.size;
+      const pageOffset = i * this.size();
       this.page!.page.number = page.page.number;
       for (let offset = 0; offset < page.content.length; offset++) {
         this.page!.content[pageOffset + offset] = page.content[offset];

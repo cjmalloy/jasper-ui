@@ -1,10 +1,9 @@
 import { Location } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, isDevMode, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, isDevMode, ViewChild } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, UntypedFormGroup } from '@angular/forms';
-import { cloneDeep, defer } from 'lodash-es';
-import { runInAction } from 'mobx';
-import { MobxAngularModule } from 'mobx-angular';
+import { cloneDeep } from 'lodash-es';
+
 import { catchError, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { LoadingComponent } from '../../../component/loading/loading.component';
@@ -21,16 +20,28 @@ import { scrollToFirstInvalid } from '../../../util/form';
 import { printError } from '../../../util/http';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-settings-me-page',
   templateUrl: './me.component.html',
   styleUrls: ['./me.component.scss'],
   host: { 'class': 'full-page-form' },
-  imports: [MobxAngularModule, ReactiveFormsModule, LimitWidthDirective, UserTagSelectorComponent, ExtFormComponent, LoadingComponent]
+  imports: [
+    ReactiveFormsModule,
+    LimitWidthDirective,
+    UserTagSelectorComponent,
+    ExtFormComponent,
+    LoadingComponent,
+  ]
 })
 export class SettingsMePage implements HasChanges {
+  config = inject(ConfigService);
+  store = inject(Store);
+  private exts = inject(ExtService);
+  private accounts = inject(AccountService);
+  private admin = inject(AdminService);
+  private fb = inject(FormBuilder);
+  private location = inject(Location);
 
-  @ViewChild('form')
-  form?: ExtFormComponent;
 
   submitted = false;
   editForm!: UntypedFormGroup;
@@ -38,19 +49,19 @@ export class SettingsMePage implements HasChanges {
 
   editing?: Subscription;
 
-  constructor(
-    public config: ConfigService,
-    public store: Store,
-    private exts: ExtService,
-    private accounts: AccountService,
-    private admin: AdminService,
-    private fb: FormBuilder,
-    private location: Location,
-  ) {
+  constructor() {
+    const store = this.store;
+    const fb = this.fb;
+
     const ext = cloneDeep(store.account.ext!);
     this.editForm = extForm(fb, ext, this.admin, true);
     this.editForm.patchValue(ext);
-    defer(() => this.form!.setValue(ext));
+  }
+
+  @ViewChild('form')
+  set form(value: ExtFormComponent) {
+    if (!value) return;
+    value.setValue(this.editForm.value);
   }
 
   saveChanges() {
@@ -75,7 +86,7 @@ export class SettingsMePage implements HasChanges {
         ...this.editForm.value.config,
       },
     }).pipe(
-      tap(() => runInAction(() => this.accounts.clearCache())),
+      tap(() => this.accounts.clearCache()),
       switchMap(() => this.accounts.initExt$),
       catchError((res: HttpErrorResponse) => {
         delete this.editing;

@@ -1,8 +1,16 @@
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  effect,
+  inject,
+  Injector,
+  OnDestroy,
+  OnInit,
+  viewChild
+} from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { defer } from 'lodash-es';
-import { autorun, IReactionDisposer } from 'mobx';
-import { MobxAngularModule } from 'mobx-angular';
+
 import { ExtListComponent } from '../../component/ext/ext-list/ext-list.component';
 import { SidebarComponent } from '../../component/sidebar/sidebar.component';
 import { TabsComponent } from '../../component/tabs/tabs.component';
@@ -17,46 +25,44 @@ import { getTagFilter, getTagQueryFilter } from '../../util/query';
 import { braces, getPrefixes, hasPrefix, publicTag } from '../../util/tag';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-tags-page',
   templateUrl: './tags.component.html',
   styleUrls: ['./tags.component.scss'],
   imports: [
     ExtListComponent,
-    MobxAngularModule,
     TabsComponent,
     RouterLink,
     SidebarComponent,
   ]
 })
 export class TagsPage implements OnInit, OnDestroy, HasChanges {
+  private injector = inject(Injector);
+  private mod = inject(ModService);
+  admin = inject(AdminService);
+  store = inject(Store);
+  query = inject(ExtStore);
+  private auth = inject(AuthzService);
+  private exts = inject(ExtService);
 
-  private disposers: IReactionDisposer[] = [];
 
   title = '';
   templates = this.admin.tmplSubmit.filter(t => t.config?.view);
 
-  @ViewChild('list')
-  list?: ExtListComponent;
+  readonly list = viewChild<ExtListComponent>('list');
 
-  constructor(
-    private mod: ModService,
-    public admin: AdminService,
-    public store: Store,
-    public query: ExtStore,
-    private auth: AuthzService,
-    private exts: ExtService,
-  ) {
+  constructor() {
+    const mod = this.mod;
+    const store = this.store;
+    const query = this.query;
+
     mod.setTitle($localize`Tags`);
     store.view.clear(['tag:len', 'tag'], ['tag:len', 'tag']);
     query.clear();
   }
 
-  saveChanges() {
-    return !this.list || this.list.saveChanges();
-  }
-
   ngOnInit(): void {
-    this.disposers.push(autorun(() => {
+    effect(() => {
       this.title = this.store.view.template && this.admin.getTemplate(this.store.view.template)?.name || this.store.view.ext?.name || this.store.view.template || '';
       this.exts.getCachedExt(this.store.view.template)
         .subscribe(ext => this.title = ext.name || this.title);
@@ -79,13 +85,16 @@ export class TagsPage implements OnInit, OnDestroy, HasChanges {
         ...getTagFilter(this.store.view.filter),
       };
       defer(() => this.query.setArgs(args));
-    }));
+    }, { injector: this.injector });
+  }
+
+  saveChanges() {
+    const list = this.list();
+    return !list || list.saveChanges();
   }
 
   ngOnDestroy() {
     this.query.close();
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
   }
 
   templateIs(tag: string): boolean {

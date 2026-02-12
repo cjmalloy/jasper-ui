@@ -6,54 +6,54 @@
     <app-ref class="pinned ref-list-item"
              [ref]="ref"
              [scrollToLatest]="true"
-             [plugins]="plugins"
+             [plugins]="plugins()"
              [hideEdit]="ext?.config?.hideEdit"
              [disableResize]="ext?.config?.disableResize"
-             [showToggle]="showToggle"
+             [showToggle]="showToggle()"
              [expanded]="expanded"
-             [expandInline]="expandInline"></app-ref>
+             [expandInline]="expandInline()"></app-ref>
   }
-  @if (insertNewAtTop) {
+  @if (insertNewAtTop()) {
     @for (ref of newRefs; track ref.origin + '@' + ref.url) {
       <div class="list-number">&bullet;</div>
       <app-ref class="ref-list-item"
                [ref]="ref"
                [scrollToLatest]="true"
-               [plugins]="plugins"
+               [plugins]="plugins()"
                [hideEdit]="ext?.config?.hideEdit"
                [disableResize]="ext?.config?.disableResize"
-               [showToggle]="showToggle"
+               [showToggle]="showToggle()"
                [expanded]="expanded"
-               [expandInline]="expandInline"></app-ref>
+               [expandInline]="expandInline()"></app-ref>
     }
   }
   @for (ref of page?.content; track ref.origin + '@' + ref.url; let i = $index) {
-    @if (!hide?.includes($any(ref.modified?.valueOf()) || 0)) {
+    @if (!hide()?.includes($any(ref.modified?.valueOf()) || 0)) {
       <div class="list-number">{{ getNumber(i) }}</div>
       <app-ref class="ref-list-item"
                [ref]="ref"
                [scrollToLatest]="true"
-               [plugins]="plugins"
+               [plugins]="plugins()"
                [hideEdit]="ext?.config?.hideEdit"
                [disableResize]="ext?.config?.disableResize"
-               [showAlarm]="showAlarm"
-               [showToggle]="showToggle"
+               [showAlarm]="showAlarm()"
+               [showToggle]="showToggle()"
                [expanded]="expanded"
-               [expandInline]="expandInline"></app-ref>
+               [expandInline]="expandInline()"></app-ref>
     }
   }
-  @if (!insertNewAtTop) {
+  @if (!insertNewAtTop()) {
     @for (ref of newRefs; track ref.origin + '@' + ref.url; let i = $index) {
       <div class="list-number">{{ getNumber(i + (page?.content?.length || 0)) }}</div>
       <app-ref class="ref-list-item"
                [ref]="ref"
                [scrollToLatest]="true"
-               [plugins]="plugins"
+               [plugins]="plugins()"
                [hideEdit]="ext?.config?.hideEdit"
                [disableResize]="ext?.config?.disableResize"
-               [showToggle]="showToggle"
+               [showToggle]="showToggle()"
                [expanded]="expanded"
-               [expandInline]="expandInline"></app-ref>
+               [expandInline]="expandInline()"></app-ref>
     }
   }
 </div>
@@ -62,11 +62,11 @@
     @if (!newRefs.length && emptyMessage) {
       <p class="no-results">{{ emptyMessage }}</p>
     }
-  } @else if (pageControls) {
-    <app-page-controls [showPageLast]="showPageLast"
+  } @else if (pageControls()) {
+    <app-page-controls [showPageLast]="showPageLast()"
                        [page]="page"
                        [defaultCols]="cols"
-                       [showPrev]="showPrev"></app-page-controls>
+                       [showPrev]="showPrev()"></app-page-controls>
   }
 } @else {
   <app-loading></app-loading>

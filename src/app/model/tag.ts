@@ -4,7 +4,7 @@ import * as Handlebars from 'handlebars/dist/cjs/handlebars';
 import { Schema } from 'jtd';
 import { defer, isEqual, omitBy, uniqWith } from 'lodash-es';
 import { DateTime, Duration } from 'luxon';
-import { toJS } from 'mobx';
+
 import { v4 as uuid } from 'uuid';
 import { interestingTags } from '../util/format';
 import { hasAnyResponse, hasResponse, hasTag, prefix } from '../util/tag';
@@ -519,8 +519,8 @@ export function hydrate(config: any, field: string, model: any): string {
 
 export function emitModels(action: EmitAction, ref?: Ref, user?: string) {
   const hydrated = hydrate(action, 'emit', {
-    action: toJS(action),
-    ref: toJS(ref),
+    action: action,
+    ref: ref,
     user: user,
   });
   return filterModels(JSON.parse(hydrated));

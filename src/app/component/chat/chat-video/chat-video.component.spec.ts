@@ -26,9 +26,9 @@ describe('ChatVideoComponent', () => {
     mockAdminService = {
       getPlugin: vi.fn().mockReturnValue({
         config: {
-          gumConfig: { 
-            audio: true, 
-            video: { width: { ideal: 640 }, height: { ideal: 640 } } 
+          gumConfig: {
+            audio: true,
+            video: { width: { ideal: 640 }, height: { ideal: 640 } }
           }
         }
       })

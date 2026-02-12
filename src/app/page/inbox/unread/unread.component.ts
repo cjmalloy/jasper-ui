@@ -1,9 +1,8 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, inject, Injector, OnDestroy, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { defer } from 'lodash-es';
 import { DateTime } from 'luxon';
-import { autorun, IReactionDisposer } from 'mobx';
-import { MobxAngularModule } from 'mobx-angular';
+
 import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
 import { RefPageArgs } from '../../../model/ref';
 import { newest } from '../../../mods/mailbox';
@@ -13,31 +12,35 @@ import { QueryStore } from '../../../store/query';
 import { Store } from '../../../store/store';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-unread',
   templateUrl: './unread.component.html',
   styleUrls: ['./unread.component.scss'],
   host: { 'class': 'unread' },
-  imports: [MobxAngularModule, RefListComponent]
+  imports: [ RefListComponent]
 })
 export class InboxUnreadPage implements OnInit, OnDestroy {
+  private injector = inject(Injector);
+  private mod = inject(ModService);
+  store = inject(Store);
+  query = inject(QueryStore);
+  private account = inject(AccountService);
+  private router = inject(Router);
 
-  private disposers: IReactionDisposer[] = [];
   private lastNotified?: DateTime;
 
-  constructor(
-    private mod: ModService,
-    public store: Store,
-    public query: QueryStore,
-    private account: AccountService,
-    private router: Router,
-  ) {
+  constructor() {
+    const mod = this.mod;
+    const store = this.store;
+    const query = this.query;
+
     mod.setTitle($localize`Inbox: Unread`);
     store.view.clear(['modified']);
     query.clear();
   }
 
   ngOnInit(): void {
-    this.disposers.push(autorun(() => {
+    effect(() => {
       if (this.store.view.pageNumber) {
         this.router.navigate([], {
           queryParams: { pageNumber: null },
@@ -55,21 +58,19 @@ export class InboxUnreadPage implements OnInit, OnDestroy {
         size: this.store.view.pageSize,
       };
       defer(() => this.query.setArgs(args));
-    }));
-    this.disposers.push(autorun(() => {
+    }, { injector: this.injector });
+
+    effect(() => {
       if (this.query.page && this.query.page!.content.length) {
         this.lastNotified = newest(this.query.page!.content)!.modified!;
       }
-    }));
+    }, { injector: this.injector });
   }
 
   ngOnDestroy() {
     this.query.close();
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
     if (this.lastNotified) {
       this.account.clearNotifications(this.lastNotified);
     }
   }
-
 }

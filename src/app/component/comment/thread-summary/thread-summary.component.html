@@ -1,9 +1,22 @@
-<ng-container *mobxAutorun>
-  @for (ref of newRefs; track ref) {
-    @if (commentView) {
+@for (ref of newRefs; track ref) {
+  @if (commentView()) {
+    <app-comment [ref]="ref"
+                 [depth]="depth"
+                 [context]="context()"></app-comment>
+  } @else {
+    <app-ref [ref]="ref"
+             [class.thread]="true"
+             [showToggle]="false"
+             [expanded]="true"
+             [expandInline]="true"></app-ref>
+  }
+}
+@if (depth > 0) {
+  @for (ref of list; track ref) {
+    @if (commentView()) {
       <app-comment [ref]="ref"
                    [depth]="depth"
-                   [context]="context"></app-comment>
+                   [context]="context()"></app-comment>
     } @else {
       <app-ref [ref]="ref"
                [class.thread]="true"
@@ -12,19 +25,4 @@
                [expandInline]="true"></app-ref>
     }
   }
-  @if (depth > 0) {
-    @for (ref of list; track ref) {
-      @if (commentView) {
-        <app-comment [ref]="ref"
-                     [depth]="depth"
-                     [context]="context"></app-comment>
-      } @else {
-        <app-ref [ref]="ref"
-                 [class.thread]="true"
-                 [showToggle]="false"
-                 [expanded]="true"
-                 [expandInline]="true"></app-ref>
-      }
-    }
-  }
-</ng-container>
+}

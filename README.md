@@ -238,7 +238,17 @@ Run `ng build` to build the project. The build artifacts will be stored in the
 
 ### Running unit tests
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
+Run `npm test` to execute the unit tests via [Vitest](https://vitest.dev/).
+
+**Note:** Running the full test suite requires at least 16GB of available RAM. You can adjust this by setting the `TEST_HEAP_SIZE` environment variable (in MB):
+```bash
+TEST_HEAP_SIZE=8192 npm test  # Use 8GB instead of default 16GB
+```
+
+On Windows (non-WSL), use:
+```cmd
+set TEST_HEAP_SIZE=8192 && npm test
+```
 
 ### Running end-to-end tests
 

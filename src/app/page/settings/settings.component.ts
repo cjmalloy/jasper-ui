@@ -1,7 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
-import { runInAction } from 'mobx';
-import { MobxAngularModule } from 'mobx-angular';
+
 import { SidebarComponent } from '../../component/sidebar/sidebar.component';
 import { TabsComponent } from '../../component/tabs/tabs.component';
 import { AdminService } from '../../service/admin.service';
@@ -10,12 +9,12 @@ import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-settings-page',
   templateUrl: './settings.component.html',
   styleUrls: ['./settings.component.scss'],
   host: { 'class': 'settings' },
   imports: [
-    MobxAngularModule,
     TabsComponent,
     RouterLink,
     RouterLinkActive,
@@ -23,21 +22,16 @@ import { Store } from '../../store/store';
     RouterOutlet,
   ],
 })
-export class SettingsPage implements OnInit {
+export class SettingsPage {
+  admin = inject(AdminService);
+  config = inject(ConfigService);
+  private auth = inject(AuthzService);
+  store = inject(Store);
 
-  constructor(
-    public admin: AdminService,
-    public config: ConfigService,
-    private auth: AuthzService,
-    public store: Store,
-  ) { }
 
-  ngOnInit(): void {
+  constructor() {
     if (!this.store.view.settingsTabs.length) {
-      runInAction(() => {
-        this.store.view.settingsTabs = this.admin.settings.filter(p => this.auth.tagReadAccess(p.tag));
-      });
+      this.store.view.settingsTabs = this.admin.settings.filter(p => this.auth.tagReadAccess(p.tag));
     }
   }
-
 }

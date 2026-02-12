@@ -1,22 +1,24 @@
 import { AsyncPipe } from '@angular/common';
 import {
   AfterViewInit,
+  ChangeDetectionStrategy,
   Component,
+  effect,
   ElementRef,
   HostBinding,
+  inject,
   Input,
+  input,
   OnChanges,
   OnDestroy,
   OnInit,
-  QueryList,
   SimpleChanges,
-  ViewChild,
-  ViewChildren
+  viewChildren,
+  viewChild
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { delay, groupBy, uniq, without } from 'lodash-es';
-import { autorun, IReactionDisposer, runInAction } from 'mobx';
-import { MobxAngularModule } from 'mobx-angular';
+
 import { Subject, takeUntil } from 'rxjs';
 import { TitleDirective } from '../../directive/title.directive';
 import { HasChanges } from '../../guard/pending-changes.guard';
@@ -58,6 +60,7 @@ import { CommentReplyComponent } from './comment-reply/comment-reply.component';
 import { CommentThreadComponent } from './comment-thread/comment-thread.component';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-comment',
   templateUrl: './comment.component.html',
   styleUrls: ['./comment.component.scss'],
@@ -65,7 +68,6 @@ import { CommentThreadComponent } from './comment-thread/comment-thread.componen
   imports: [
     CommentThreadComponent,
     ViewerComponent,
-    MobxAngularModule,
     RouterLink,
     TitleDirective,
     CommentEditComponent,
@@ -77,29 +79,33 @@ import { CommentThreadComponent } from './comment-thread/comment-thread.componen
   ],
 })
 export class CommentComponent implements OnInit, AfterViewInit, OnChanges, OnDestroy, HasChanges {
+  admin = inject(AdminService);
+  store = inject(Store);
+  thread = inject(ThreadStore);
+  private auth = inject(AuthzService);
+  private refs = inject(RefService);
+  private exts = inject(ExtService);
+  private editor = inject(EditorService);
+  private ts = inject(TaggingService);
+  private bookmarks = inject(BookmarkService);
+  private el = inject<ElementRef<HTMLDivElement>>(ElementRef);
+
   @HostBinding('attr.tabindex') tabIndex = 0;
   private destroy$ = new Subject<void>();
-  private disposers: IReactionDisposer[] = [];
 
   maxContext = 20;
 
-  @ViewChildren('action')
-  actionComponents?: QueryList<ActionComponent>;
-  @ViewChild('replyComponent')
-  replyComponent?: CommentReplyComponent;
-  @ViewChild('editComponent')
-  editComponent?: CommentEditComponent;
-  @ViewChild('threadComponent')
-  threadComponent?: CommentThreadComponent;
+  readonly actionComponents = viewChildren<ActionComponent>('action');
+  readonly replyComponent = viewChild<CommentReplyComponent>('replyComponent');
+  readonly editComponent = viewChild<CommentEditComponent>('editComponent');
+  readonly threadComponent = viewChild<CommentThreadComponent>('threadComponent');
 
   @Input()
   ref!: Ref;
-  @Input()
-  scrollToLatest = false;
+  readonly scrollToLatest = input(false);
   @Input()
   depth?: number | null = 7;
-  @Input()
-  context = 0
+  readonly context = input(0);
 
   commentEdited$ = new Subject<Ref>();
   newComments = 0;
@@ -115,19 +121,8 @@ export class CommentComponent implements OnInit, AfterViewInit, OnChanges, OnDes
   deleteAccess = false;
   serverError: string[] = [];
 
-  constructor(
-    public admin: AdminService,
-    public store: Store,
-    public thread: ThreadStore,
-    private auth: AuthzService,
-    private refs: RefService,
-    private exts: ExtService,
-    private editor: EditorService,
-    private ts: TaggingService,
-    private bookmarks: BookmarkService,
-    private el: ElementRef<HTMLDivElement>,
-  ) {
-    this.disposers.push(autorun(() => {
+  constructor() {
+    effect(() => {
       if (this.store.eventBus.event === 'refresh') {
         if (this.ref?.url && this.store.eventBus.isRef(this.ref)) {
           this.ref = this.store.eventBus.ref!;
@@ -139,13 +134,16 @@ export class CommentComponent implements OnInit, AfterViewInit, OnChanges, OnDes
           this.serverError = this.store.eventBus.errors;
         }
       }
-    }));
+    });
   }
 
   saveChanges() {
-    return (!this.editComponent || this.editComponent.saveChanges())
-      && (!this.replyComponent || this.replyComponent.saveChanges())
-      && (!this.threadComponent || this.threadComponent.saveChanges());
+    const editComponent = this.editComponent();
+    const replyComponent = this.replyComponent();
+    const threadComponent = this.threadComponent();
+    return (!editComponent || editComponent.saveChanges())
+      && (!replyComponent || replyComponent.saveChanges())
+      && (!threadComponent || threadComponent.saveChanges());
   }
 
   ngOnInit(): void {
@@ -172,7 +170,7 @@ export class CommentComponent implements OnInit, AfterViewInit, OnChanges, OnDes
   }
 
   ngAfterViewInit(): void {
-    if (this.scrollToLatest && this.lastSelected) {
+    if (this.scrollToLatest() && this.lastSelected) {
       delay(() => scrollTo({ left: 0, top: this.el.nativeElement.getBoundingClientRect().top - 20, behavior: 'smooth' }), 400);
     }
   }
@@ -180,7 +178,7 @@ export class CommentComponent implements OnInit, AfterViewInit, OnChanges, OnDes
   init() {
     MemoCache.clear(this);
     this.editing = false;
-    this.actionComponents?.forEach(c => c.reset());
+    this.actionComponents()?.forEach(c => c.reset());
     this.collapsed = !this.store.local.isRefToggled('comment:' + this.ref.url, true);
     this.writeAccess = this.auth.writeAccess(this.ref);
     this.taggingAccess = this.auth.taggingAccess(this.ref);
@@ -201,8 +199,6 @@ export class CommentComponent implements OnInit, AfterViewInit, OnChanges, OnDes
     this.newComments$.complete();
     this.destroy$.next();
     this.destroy$.complete();
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
   }
 
   @HostBinding('class.last-selected')
@@ -427,8 +423,6 @@ export class CommentComponent implements OnInit, AfterViewInit, OnChanges, OnDes
   loadMore() {
     this.depth ||= 0;
     this.depth++;
-    runInAction(() => {
-      this.thread.loadAdHoc(this.ref?.url);
-    });
+    this.thread.loadAdHoc(this.ref?.url);
   }
 }

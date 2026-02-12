@@ -1,44 +1,42 @@
-<ng-container *mobxAutorun>
-  <span class="back-button" (click)="back()">🔙️</span>
-  <div class="subs">
-    <a [routerLink]="['/tags', store.view.noQuery || '@*']" [class.current-page]="store.view.tags" [queryParams]="{ home: store.view.current === 'home' || null }" i18n>tags</a>
-    @if (admin.getTemplate('config/home')) {
-      &bullet; <a routerLink="/home" [class.current-page]="store.view.current === 'home' && !store.view.forYou" i18n>home</a>
-      @if (admin.getTemplate('user') && store.account.signedIn) {
-        &bullet; <a routerLink="/home" [queryParams]="{ forYou : true }" routerLinkActive="current-page" i18n>for you</a>
-      }
+<span class="back-button" (click)="back()">🔙️</span>
+<div class="subs">
+  <a [routerLink]="['/tags', store.view.noQuery || '@*']" [class.current-page]="store.view.tags" [queryParams]="{ home: store.view.current === 'home' || null }" i18n>tags</a>
+  @if (admin.getTemplate('config/home')) {
+    &bullet; <a routerLink="/home" [class.current-page]="store.view.current === 'home' && !store.view.forYou" i18n>home</a>
+    @if (admin.getTemplate('user') && store.account.signedIn) {
+      &bullet; <a routerLink="/home" [queryParams]="{ forYou : true }" routerLinkActive="current-page" i18n>for you</a>
     }
-    @if (admin.getPlugin('+plugin/origin') && store.account.signedIn) {
-      &bullet; <a [routerLink]="'/tag/' + (store.account.origin || '*')" routerLinkActive="current-page" i18n>local</a>
+  }
+  @if (admin.getPlugin('+plugin/origin') && store.account.signedIn) {
+    &bullet; <a [routerLink]="'/tag/' + (store.account.origin || '*')" routerLinkActive="current-page" i18n>local</a>
+  }
+  &bullet; <a routerLink="/tag/@*" routerLinkActive="current-page" i18n>all</a>
+  @if (bookmarks.length) {
+    @for (b of bookmarks; track i; let i = $index) {
+      &bullet; <a [routerLink]="['/tag', store.account.bookmarks[i]]" [appTitle]="b" routerLinkActive="current-page">{{ b.name || store.account.bookmarks[i] }}</a>
     }
-    &bullet; <a routerLink="/tag/@*" routerLinkActive="current-page" i18n>all</a>
-    @if (bookmarks.length) {
-      @for (b of bookmarks; track i; let i = $index) {
-        &bullet; <a [routerLink]="['/tag', store.account.bookmarks[i]]" [appTitle]="b" routerLinkActive="current-page">{{ b.name || store.account.bookmarks[i] }}</a>
+  } @else {
+    @for (t of store.account.bookmarks; track t) {
+      &bullet; <a [routerLink]="['/tag', t]" routerLinkActive="current-page">{{ t }}</a>
+    }
+  }
+  @if (admin.getTemplate('config/home')) {
+    @if (subs.length) {
+      @for (sub of subs; track i; let i = $index) {
+        &bullet; <a [routerLink]="['/tag', store.account.subs[i]]" [appTitle]="sub" routerLinkActive="current-page">{{ sub.name || store.account.subs[i] }}</a>
       }
     } @else {
-      @for (t of store.account.bookmarks; track t) {
+      @for (t of store.account.subs; track t) {
         &bullet; <a [routerLink]="['/tag', t]" routerLinkActive="current-page">{{ t }}</a>
       }
     }
-    @if (admin.getTemplate('config/home')) {
-      @if (subs.length) {
-        @for (sub of subs; track i; let i = $index) {
-          &bullet; <a [routerLink]="['/tag', store.account.subs[i]]" [appTitle]="sub" routerLinkActive="current-page">{{ sub.name || store.account.subs[i] }}</a>
-        }
-      } @else {
-        @for (t of store.account.subs; track t) {
-          &bullet; <a [routerLink]="['/tag', t]" routerLinkActive="current-page">{{ t }}</a>
-        }
-      }
-    }
-  </div>
-  @if (!store.submit.empty) {
-    <span class="drafts" routerLink="/submit/upload" i18n-title title="Unsaved Drafts" i18n>🗂️</span>
   }
-  <div class="light-toggle"
+</div>
+@if (!store.submit.empty) {
+  <span class="drafts" routerLink="/submit/upload" i18n-title title="Unsaved Drafts" i18n>🗂️</span>
+}
+<div class="light-toggle"
      (click)="themes.toggle(store.hotkey)">
-    <div class="moon" [class.lights-on]="!store.darkTheme" [class.lights-off]="store.darkTheme" i18n>🌙️</div>
-    <div class="light" [class.lights-on]="!store.darkTheme" [class.lights-off]="store.darkTheme" i18n>💡️</div>
-  </div>
-</ng-container>
+  <div class="moon" [class.lights-on]="!store.darkTheme" [class.lights-off]="store.darkTheme" i18n>🌙️</div>
+  <div class="light" [class.lights-on]="!store.darkTheme" [class.lights-off]="store.darkTheme" i18n>💡️</div>
+</div>

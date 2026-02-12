@@ -1,5 +1,5 @@
 import { HttpEventType } from '@angular/common/http';
-import { Component, EventEmitter, Output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, output } from '@angular/core';
 import { catchError, last, map } from 'rxjs';
 import { Ref } from '../../model/ref';
 import { ProxyService } from '../../service/api/proxy.service';
@@ -8,26 +8,24 @@ import { Saving } from '../../store/submit';
 import { readFileAsDataURL } from '../../util/async';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-audio-upload',
   templateUrl: './audio-upload.component.html',
   styleUrls: ['./audio-upload.component.scss'],
   host: { 'class': 'form-array' }
 })
 export class AudioUploadComponent {
+  private store = inject(Store);
+  private proxy = inject(ProxyService);
 
-  @Output()
-  data = new EventEmitter<Saving | undefined | string>();
 
-  constructor(
-    private store: Store,
-    private proxy: ProxyService,
-  ) { }
+  readonly data = output<Saving | undefined | string>();
 
   readAudio(files?: FileList) {
-    this.data.next(undefined)
+    this.data.emit(undefined)
     if (!files || !files.length) return;
     const file = files[0]!;
-    this.data.next({ name: file.name });
+    this.data.emit({ name: file.name });
     this.proxy.save(file, this.store.account.origin).pipe(
       map(event => {
         switch (event.type) {
@@ -35,7 +33,7 @@ export class AudioUploadComponent {
             return event.body;
           case HttpEventType.UploadProgress:
             const percentDone = event.total ? Math.round(100 * event.loaded / event.total) : 0;
-            this.data.next({ name: file.name, progress: percentDone });
+            this.data.emit({ name: file.name, progress: percentDone });
             return null;
         }
         return null;
@@ -43,6 +41,6 @@ export class AudioUploadComponent {
       last(),
       map((ref: Ref | null) => ref?.url),
       catchError(err => readFileAsDataURL(file)) // base64
-    ).subscribe(url => this.data.next({ url, name: file.name }));
+    ).subscribe(url => this.data.emit({ url, name: file.name }));
   }
 }

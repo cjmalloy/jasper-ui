@@ -1,9 +1,22 @@
 import { AsyncPipe } from '@angular/common';
-import { Component, ElementRef, HostBinding, Input, OnChanges, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  effect,
+  ElementRef,
+  HostBinding,
+  inject,
+  Injector,
+  Input,
+  input,
+  OnChanges,
+  OnDestroy,
+  OnInit,
+  SimpleChanges
+} from '@angular/core';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { uniq, uniqBy } from 'lodash-es';
-import { autorun, IReactionDisposer, runInAction } from 'mobx';
-import { MobxAngularModule } from 'mobx-angular';
+
 import { catchError, filter, forkJoin, map, of, Subject } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { Ext } from '../../model/ext';
@@ -37,6 +50,7 @@ import { SearchComponent } from '../search/search.component';
 import { SortComponent } from '../sort/sort.component';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-sidebar',
   templateUrl: './sidebar.component.html',
   styleUrls: ['./sidebar.component.scss'],
@@ -44,7 +58,6 @@ import { SortComponent } from '../sort/sort.component';
   imports: [
     ExtComponent,
     MdComponent,
-    MobxAngularModule,
     SearchComponent,
     QueryComponent,
     FilterComponent,
@@ -60,17 +73,26 @@ import { SortComponent } from '../sort/sort.component';
   ]
 })
 export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
-  private disposers: IReactionDisposer[] = [];
+  private injector = inject(Injector);
+  router = inject(Router);
+  admin = inject(AdminService);
+  store = inject(Store);
+  query = inject(QueryStore);
+  config = inject(ConfigService);
+  private auth = inject(AuthzService);
+  private account = inject(AccountService);
+  ts = inject(TaggingService);
+  private exts = inject(ExtService);
+  private templates = inject(TemplateService);
+  private el = inject(ElementRef);
+
   private destroy$ = new Subject<void>();
 
   @Input()
   tag = '';
-  @Input()
-  activeExts: Ext[] = [];
-  @Input()
-  showToggle = true;
-  @Input()
-  home = false;
+  readonly activeExts = input<Ext[]>([]);
+  readonly showToggle = input(true);
+  readonly home = input(false);
   @Input()
   @HostBinding('class.floating')
   floating = true;
@@ -92,19 +114,9 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
   private _ext?: Ext;
   private lastView = this.store.view.current;
 
-  constructor(
-    public router: Router,
-    public admin: AdminService,
-    public store: Store,
-    public query: QueryStore,
-    public config: ConfigService,
-    private auth: AuthzService,
-    private account: AccountService,
-    public ts: TaggingService,
-    private exts: ExtService,
-    private templates: TemplateService,
-    private el: ElementRef,
-  ) {
+  constructor() {
+    const router = this.router;
+
     if (localStorage.getItem('sidebar-expanded') !== null) {
       this.expanded = localStorage.getItem('sidebar-expanded') !== 'false';
     } else {
@@ -124,15 +136,15 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.disposers.push(autorun(() => {
+    effect(() => {
       this.expanded = this.store.view.sidebarExpanded;
-    }));
-    this.disposers.push(autorun(() => {
+    }, { injector: this.injector });
+    effect(() => {
       if (this.store.view.ref) {
         MemoCache.clear(this);
       }
-    }));
-    this.disposers.push(autorun(() => {
+    }, { injector: this.injector });
+    effect(() => {
       if (!this.store.view.template) {
         this.template = undefined;
       } else if (!isQuery(this.store.view.template) && this.template?.tag !== this.store.view.template) {
@@ -140,7 +152,7 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
           catchError(() => of(undefined))
         ).subscribe(t => this.template = t);
       }
-    }));
+    }, { injector: this.injector });
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -159,7 +171,7 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
       if (this.tag) {
         this.localTag = localTag(this.tag);
         this.plugin = this.admin.getPlugin(this.tag);
-        if (this.home) {
+        if (this.home()) {
           this.addTags = this.rootConfig?.addTags || this.plugin?.config?.reply || ['public'];
         } else if (this.plugin) {
           this.addTags = uniq([
@@ -189,8 +201,6 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
   }
 
   @memo
@@ -205,7 +215,7 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
   @Input()
   set ext(value: Ext | undefined) {
     this._ext = value;
-    runInAction(() => this.store.view.floatingSidebar = !value?.config?.noFloatingSidebar && value?.config?.defaultCols === undefined);
+    this.store.view.floatingSidebar = !value?.config?.noFloatingSidebar && value?.config?.defaultCols === undefined;
   }
 
   get existing() {
@@ -221,7 +231,7 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
   set expanded(value: boolean) {
     localStorage.setItem('sidebar-expanded', ''+value);
     this._expanded = value;
-    runInAction(() => this.store.view.sidebarExpanded = value);
+    this.store.view.sidebarExpanded = value;
   }
 
   @memo
@@ -285,7 +295,7 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
 
   @memo
   get userConfig() {
-    if (!this.user && !this.home) return null;
+    if (!this.user && !this.home()) return null;
     return this.store.account.ext?.config as UserConfig;
   }
 
@@ -349,7 +359,7 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
 
   @memo
   get homeWriteAccess() {
-    return this.home && this.admin.getTemplate('config/home') && this.auth.tagWriteAccess('config/home');
+    return this.home() && this.admin.getTemplate('config/home') && this.auth.tagWriteAccess('config/home');
   }
 
   @memo
@@ -399,7 +409,7 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   startChat() {
-    runInAction(() => this.store.view.ref?.tags?.push('plugin/chat'));
+    this.store.view.ref?.tags?.push('plugin/chat');
     this.ts.create('plugin/chat', this.store.view.ref!.url, this.store.account.origin).subscribe();
   }
 }

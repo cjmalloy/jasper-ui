@@ -1,47 +1,43 @@
-import { Component, OnDestroy } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, inject } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { NavigationEnd, Router } from '@angular/router';
 import { debounce } from 'lodash-es';
-import { autorun, IReactionDisposer, toJS } from 'mobx';
-import { MobxAngularModule } from 'mobx-angular';
+
 import { filter } from 'rxjs';
 import { AdminService } from '../../service/admin.service';
 import { Store } from '../../store/store';
 import { View } from '../../store/view';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-search',
   templateUrl: './search.component.html',
   styleUrls: ['./search.component.scss'],
   host: { 'class': 'search form-group' },
-  imports: [MobxAngularModule, ReactiveFormsModule]
+  imports: [ ReactiveFormsModule]
 })
-export class SearchComponent implements OnDestroy {
+export class SearchComponent {
+  router = inject(Router);
+  store = inject(Store);
+  admin = inject(AdminService);
 
-  private disposers: IReactionDisposer[] = [];
 
   searchValue = '';
   replace = false;
 
   private searchEvent = false;
 
-  constructor(
-    public router: Router,
-    public store: Store,
-    public admin: AdminService,
-  ) {
-    this.disposers.push(autorun(() => {
-      this.searchValue = toJS(this.store.view.search) || '';
-    }));
+  constructor() {
+    const router = this.router;
+
+    effect(() => {
+      this.searchValue = this.store.view.search || '';
+    });
     router.events.pipe(
       filter(event => event instanceof NavigationEnd),
     ).subscribe(() => this.replace = false);
   }
 
-  ngOnDestroy() {
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
-  }
 
   change(target: HTMLInputElement) {
     this.searchValue = target.value || '';

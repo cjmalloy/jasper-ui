@@ -2,11 +2,9 @@ import { DragDropModule } from '@angular/cdk/drag-drop';
 import { OverlayModule } from '@angular/cdk/overlay';
 import { NgModule } from '@angular/core';
 import { AbstractControl, ReactiveFormsModule } from '@angular/forms';
-import { BrowserModule } from '@angular/platform-browser';
-import { FormlyExtension, FormlyFieldConfig, FormlyModule } from '@ngx-formly/core';
+import { FormlyExtension, FormlyFieldConfig, FormlyForm, FormlyModule } from '@ngx-formly/core';
 import { FormlySelectModule } from '@ngx-formly/core/select';
 import { v4 as uuid } from 'uuid';
-import { AppRoutingModule } from '../app-routing.module';
 import {
   ORIGIN_REGEX,
   PLUGIN_REGEX,
@@ -56,6 +54,7 @@ export class IdPrefixExtension implements FormlyExtension {
 
 @NgModule({
   exports: [
+    FormlyForm,
     QrScannerComponent,
     AudioUploadComponent,
     VideoUploadComponent,
@@ -63,9 +62,8 @@ export class IdPrefixExtension implements FormlyExtension {
     PdfUploadComponent,
   ],
   imports: [
-    BrowserModule,
+    FormlyForm,
     ReactiveFormsModule,
-    AppRoutingModule,
     DragDropModule,
     OverlayModule,
     FormlySelectModule,

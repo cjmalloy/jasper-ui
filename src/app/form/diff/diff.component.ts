@@ -1,5 +1,4 @@
-import { Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
-import { autorun, IReactionDisposer } from 'mobx';
+import { ChangeDetectionStrategy, Component, effect, inject, Input, input, OnInit, output } from '@angular/core';
 import { DiffEditorModel, MonacoEditorModule } from 'ngx-monaco-editor';
 import { ResizeHandleDirective } from '../../directive/resize-handle.directive';
 import { Ref } from '../../model/ref';
@@ -8,23 +7,24 @@ import { Store } from '../../store/store';
 import { formatRefForDiff } from '../../util/diff';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-diff',
   templateUrl: './diff.component.html',
   styleUrl: './diff.component.scss',
   host: { 'class': 'diff-editor' },
   imports: [MonacoEditorModule, ResizeHandleDirective]
 })
-export class DiffComponent implements OnInit, OnDestroy {
-  private disposers: IReactionDisposer[] = [];
+export class DiffComponent implements OnInit {
+  config = inject(ConfigService);
+  private store = inject(Store);
+
 
   @Input()
   original!: Ref;
   @Input()
   modified!: Ref;
-  @Input()
-  readOnly = false;
-  @Output()
-  modifiedChange = new EventEmitter<Ref>();
+  readonly readOnly = input(false);
+  readonly modifiedChange = output<Ref>();
 
   originalModel: DiffEditorModel = { code: '', language: 'json' };
   modifiedModel: DiffEditorModel = { code: '', language: 'json' };
@@ -35,17 +35,16 @@ export class DiffComponent implements OnInit, OnDestroy {
     renderSideBySide: !this.config.mobile,
   };
 
-  constructor(
-    public config: ConfigService,
-    private store: Store,
-  ) {
-    this.disposers.push(autorun(() => {
+  constructor() {
+    const store = this.store;
+
+    effect(() => {
       this.options = {
         ...this.options,
         theme: store.darkTheme ? 'vs-dark' : 'vs',
-        readOnly: this.readOnly,
+        readOnly: this.readOnly(),
       }
-    }));
+    });
   }
 
   ngOnInit() {
@@ -57,11 +56,6 @@ export class DiffComponent implements OnInit, OnDestroy {
       code: formatRefForDiff(this.modified),
       language: 'json'
     };
-  }
-
-  ngOnDestroy() {
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
   }
 
   initEditor(editor: any) {

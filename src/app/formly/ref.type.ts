@@ -1,5 +1,5 @@
 import { HttpEventType } from '@angular/common/http';
-import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, OnDestroy } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { FieldType, FieldTypeConfig, FormlyAttributes, FormlyConfig } from '@ngx-formly/core';
 import { debounce, defer, isString, uniqBy } from 'lodash-es';
@@ -23,6 +23,7 @@ import { QrScannerComponent } from './qr-scanner/qr-scanner.component';
 import { VideoUploadComponent } from './video-upload/video-upload.component';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'formly-field-ref-input',
   host: { 'class': 'field' },
   template: `
@@ -68,7 +69,6 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
       }
     </div>
   `,
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     ReactiveFormsModule,
     QrScannerComponent,
@@ -80,6 +80,15 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
   ],
 })
 export class FormlyFieldRefInput extends FieldType<FieldTypeConfig> implements AfterViewInit, OnDestroy {
+  private configs = inject(ConfigService);
+  store = inject(Store);
+  private config = inject(FormlyConfig);
+  private refs = inject(RefService);
+  private editor = inject(EditorService);
+  private proxy = inject(ProxyService);
+  private admin = inject(AdminService);
+  private cd = inject(ChangeDetectorRef);
+
 
   listId = 'list-' + uuid();
   previewUrl = '';
@@ -94,19 +103,6 @@ export class FormlyFieldRefInput extends FieldType<FieldTypeConfig> implements A
   private previewing?: Subscription;
   private searching?: Subscription;
   private formChanges?: Subscription;
-
-  constructor(
-    private configs: ConfigService,
-    public store: Store,
-    private config: FormlyConfig,
-    private refs: RefService,
-    private editor: EditorService,
-    private proxy: ProxyService,
-    private admin: AdminService,
-    private cd: ChangeDetectorRef,
-  ) {
-    super();
-  }
 
   ngAfterViewInit() {
     if (this.model) this.getPreview(this.model[this.key as any]);

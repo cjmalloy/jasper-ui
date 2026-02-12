@@ -1,53 +1,51 @@
-<ng-container *mobxAutorun>
-  <app-tabs>
-    <a class="logo" routerLink="/"></a>
-    @if (!title || title === '@*') {
-      @if (store.view.noTemplate) {
-        <h5 class="fake-link" routerLink="." i18n>🔖️ Simple Tags</h5>
-      } @else {
-        <h5 class="fake-link" routerLink="." i18n>🏷️ All Tags</h5>
-      }
+<app-tabs>
+  <a class="logo" routerLink="/"></a>
+  @if (!title || title === '@*') {
+    @if (store.view.noTemplate) {
+      <h5 class="fake-link" routerLink="." i18n>🔖️ Simple Tags</h5>
     } @else {
-      <h5 class="fake-link" routerLink=".">{{ title }}</h5>
+      <h5 class="fake-link" routerLink="." i18n>🏷️ All Tags</h5>
     }
-    @if (admin.getTemplate('config/home')) {
-      <a routerLink="/tags"
-         [queryParams]="{ noTemplate: null, home: true }"
-         [class.current-tab]="store.view.home"
-         queryParamsHandling="merge"
-         i18n-title title="🏡️️ Subscribed Tags"
-         i18n>home</a>
-    }
-    <a routerLink="/tags"
-       [queryParams]="{ noTemplate: null, home: null }"
-       [class.current-tab]="!store.view.noTemplate && !store.view.home && !templateExists"
-       queryParamsHandling="merge"
-       i18n-title title="🏷️ All Tags"
-       i18n>all</a>
-    <a routerLink="/tags"
-       [queryParams]="{ noTemplate: true, home: null }"
-       [class.current-tab]="store.view.noTemplate"
-       queryParamsHandling="merge"
-       i18n-title title="🔖️ Simple Tags"
-       i18n>🏷️</a>
-    @for (tmpl of templates; track tmpl.tag) {
-      <a [routerLink]="['/tags', tmpl.tag]"
-         [queryParams]="{ noTemplate: null, home: null }"
-         [class.current-tab]="templateIs(tmpl.tag)"
-         queryParamsHandling="merge"
-         [title]="tmpl.name">{{ tmpl.config!.view }}</a>
-    }
-    <a routerLink="/tags/user"
-       [queryParams]="{ noTemplate: null, home: null }"
-       [class.current-tab]="templateIs('user')"
-       queryParamsHandling="merge"
-       i18n-title title="🧑️ User"
-       i18n>🧑️</a>
-  </app-tabs>
-  <app-sidebar [tag]="store.view.home ? '' : store.view.template"></app-sidebar>
-  @if (query.error?.status !== 403) {
-    <app-ext-list #list [page]="query.page"></app-ext-list>
   } @else {
-    <div class="error-403" i18n>Access Denied</div>
+    <h5 class="fake-link" routerLink=".">{{ title }}</h5>
   }
-</ng-container>
+  @if (admin.getTemplate('config/home')) {
+    <a routerLink="/tags"
+       [queryParams]="{ noTemplate: null, home: true }"
+       [class.current-tab]="store.view.home"
+       queryParamsHandling="merge"
+       i18n-title title="🏡️️ Subscribed Tags"
+       i18n>home</a>
+  }
+  <a routerLink="/tags"
+     [queryParams]="{ noTemplate: null, home: null }"
+     [class.current-tab]="!store.view.noTemplate && !store.view.home && !templateExists"
+     queryParamsHandling="merge"
+     i18n-title title="🏷️ All Tags"
+     i18n>all</a>
+  <a routerLink="/tags"
+     [queryParams]="{ noTemplate: true, home: null }"
+     [class.current-tab]="store.view.noTemplate"
+     queryParamsHandling="merge"
+     i18n-title title="🔖️ Simple Tags"
+     i18n>🏷️</a>
+  @for (tmpl of templates; track tmpl.tag) {
+    <a [routerLink]="['/tags', tmpl.tag]"
+       [queryParams]="{ noTemplate: null, home: null }"
+       [class.current-tab]="templateIs(tmpl.tag)"
+       queryParamsHandling="merge"
+       [title]="tmpl.name">{{ tmpl.config!.view }}</a>
+  }
+  <a routerLink="/tags/user"
+     [queryParams]="{ noTemplate: null, home: null }"
+     [class.current-tab]="templateIs('user')"
+     queryParamsHandling="merge"
+     i18n-title title="🧑️ User"
+     i18n>🧑️</a>
+</app-tabs>
+<app-sidebar [tag]="store.view.home ? '' : store.view.template"></app-sidebar>
+@if (query.error?.status !== 403) {
+  <app-ext-list #list [page]="query.page"></app-ext-list>
+} @else {
+  <div class="error-403" i18n>Access Denied</div>
+}

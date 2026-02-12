@@ -2,6 +2,20 @@
         #figure
         (click)="store.graph.clearSelection()"
         (contextmenu)="contextMenu(null, $event)"></figure>
+@if (store.graph.unloaded.length) {
+  <a class="load-more fake-link no-select" (click)="drawMore()" i18n>load more</a>
+}
+<div class="loading-container">
+  @if (store.graph.loading.length) {
+    <app-loading></app-loading>
+  }
+</div>
+<label class="graph-selected no-select" i18n>Selected:</label>
+<app-ref-list #list [page]="store.graph.selectedPage"
+              i18n-emptyMessage
+              emptyMessage="Empty selection"
+              [pageControls]="false"></app-ref-list>
+
 <ng-template #nodeMenu let-ref>
   <div class="context-menu" (click)="$event.stopPropagation()">
     @if (ref) {
@@ -55,18 +69,4 @@
     <div (click)="fullscreen()" i18n>Fullscreen</div>
   </div>
 </ng-template>
-<ng-container *mobxAutorun>
-  @if (store.graph.unloaded.length) {
-    <a class="load-more fake-link no-select" (click)="drawMore()" i18n>load more</a>
-  }
-  <div class="loading-container">
-    @if (store.graph.loading.length) {
-      <app-loading></app-loading>
-    }
-  </div>
-  <label class="graph-selected no-select" i18n>Selected:</label>
-  <app-ref-list #list [page]="store.graph.selectedPage"
-                i18n-emptyMessage
-                emptyMessage="Empty selection"
-                [pageControls]="false"></app-ref-list>
-</ng-container>
+

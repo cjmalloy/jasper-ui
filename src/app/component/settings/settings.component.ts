@@ -1,26 +1,31 @@
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { MobxAngularModule } from 'mobx-angular';
+
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-settings',
   templateUrl: './settings.component.html',
   styleUrls: ['./settings.component.scss'],
   host: { 'class': 'settings' },
-  imports: [MobxAngularModule, RouterLink]
+  imports: [ RouterLink]
 })
 export class SettingsComponent {
+  admin = inject(AdminService);
+  config = inject(ConfigService);
+  store = inject(Store);
+  account = inject(AccountService);
 
-  constructor(
-    public admin: AdminService,
-    public config: ConfigService,
-    public store: Store,
-    public account: AccountService,
-  ) {
+
+  constructor() {
+    const admin = this.admin;
+    const store = this.store;
+    const account = this.account;
+
     if (admin.getTemplate('user') && admin.getPlugin('plugin/inbox') && store.account.signedIn) {
       account.checkNotifications();
     }

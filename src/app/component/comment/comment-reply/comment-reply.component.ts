@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, EventEmitter, forwardRef, Input, Output, ViewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, forwardRef, inject, Input, input, output, viewChild } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { pickBy, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
@@ -22,6 +22,7 @@ import { getVisibilityTags, hasTag, removeTag } from '../../../util/tag';
 import { LoadingComponent } from '../../loading/loading.component';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-comment-reply',
   templateUrl: './comment-reply.component.html',
   styleUrls: ['./comment-reply.component.scss'],
@@ -33,22 +34,23 @@ import { LoadingComponent } from '../../loading/loading.component';
   ]
 })
 export class CommentReplyComponent implements HasChanges {
+  admin = inject(AdminService);
+  store = inject(Store);
+  private refs = inject(RefService);
+  private ts = inject(TaggingService);
+  private fb = inject(FormBuilder);
+
 
   @Input()
   to!: Ref;
-  @Input()
-  selectResponseType = false;
+  readonly selectResponseType = input(false);
   @Input()
   tags: string[] = [];
-  @Input()
-  showCancel = false;
-  @Input()
-  autofocus = false;
-  @Output()
-  save = new EventEmitter<Ref|undefined>();
+  readonly showCancel = input(false);
+  readonly autofocus = input(false);
+  readonly save = output<Ref | undefined>();
 
-  @ViewChild('editor')
-  editor?: EditorComponent
+  readonly editor = viewChild<EditorComponent>('editor');
 
   editorTags: string[] = [];
   editorSources: string[] = [];
@@ -59,13 +61,9 @@ export class CommentReplyComponent implements HasChanges {
   serverError: string[] = [];
   config = this.admin.getPlugin('plugin/comment')?.config || commentPlugin.config!;
 
-  constructor(
-    public admin: AdminService,
-    public store: Store,
-    private refs: RefService,
-    private ts: TaggingService,
-    private fb: FormBuilder,
-  ) {
+  constructor() {
+    const fb = this.fb;
+
     this.commentForm = fb.group({
       comment: [''],
     });
@@ -157,7 +155,7 @@ export class CommentReplyComponent implements HasChanges {
       this.tags = [...this.tags];
       this.completedUploads = [];
 
-      this.editor?.syncText('');
+      this.editor()?.syncText('');
       const update = {
         ...ref,
         created: DateTime.now(),

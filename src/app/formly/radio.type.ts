@@ -5,6 +5,7 @@ import { FieldType, FieldTypeConfig, FormlyAttributes } from '@ngx-formly/core';
 import { FormlySelectModule } from '@ngx-formly/core/select';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'formly-field-radio',
   template: `
     @for (option of props.options | formlySelectOptions: field | async; track option.value; let i = $index) {
@@ -19,7 +20,6 @@ import { FormlySelectModule } from '@ngx-formly/core/select';
       <label [for]="id + '_' + i">{{ option.label }}</label>
     }
   `,
-  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     ReactiveFormsModule,
     AsyncPipe,

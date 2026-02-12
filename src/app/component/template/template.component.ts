@@ -1,5 +1,14 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, HostBinding, Input, OnChanges, QueryList, SimpleChanges, ViewChildren } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  HostBinding,
+  inject,
+  Input,
+  OnChanges,
+  SimpleChanges,
+  viewChildren
+} from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { catchError, of, Subscription, switchMap, throwError } from 'rxjs';
@@ -20,17 +29,22 @@ import { InlineButtonComponent } from '../action/inline-button/inline-button.com
 import { LoadingComponent } from '../loading/loading.component';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-template',
   templateUrl: './template.component.html',
   styleUrls: ['./template.component.scss'],
   imports: [RouterLink, ConfirmActionComponent, InlineButtonComponent, ReactiveFormsModule, TemplateFormComponent, LoadingComponent]
 })
 export class TemplateComponent implements OnChanges, HasChanges {
+  admin = inject(AdminService);
+  store = inject(Store);
+  private templates = inject(TemplateService);
+  private fb = inject(UntypedFormBuilder);
+
   css = 'template list-item';
   @HostBinding('attr.tabindex') tabIndex = 0;
 
-  @ViewChildren('action')
-  actionComponents?: QueryList<ActionComponent>;
+  readonly actionComponents = viewChildren<ActionComponent>('action');
 
   @Input()
   template!: Template;
@@ -47,12 +61,9 @@ export class TemplateComponent implements OnChanges, HasChanges {
   schemaErrors: string[] = [];
   saving?: Subscription;
 
-  constructor(
-    public admin: AdminService,
-    public store: Store,
-    private templates: TemplateService,
-    private fb: UntypedFormBuilder,
-  ) {
+  constructor() {
+    const fb = this.fb;
+
     this.editForm = templateForm(fb);
   }
 
@@ -61,7 +72,7 @@ export class TemplateComponent implements OnChanges, HasChanges {
   }
 
   init(): void {
-    this.actionComponents?.forEach(c => c.reset());
+    this.actionComponents()?.forEach(c => c.reset());
     this.editForm.patchValue({
       ...this.template,
       config: this.template.config ? JSON.stringify(this.template.config, null, 2) : undefined,

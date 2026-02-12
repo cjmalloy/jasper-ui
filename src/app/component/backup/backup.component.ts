@@ -1,7 +1,18 @@
 import { Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { TemplatePortal } from '@angular/cdk/portal';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, ElementRef, HostBinding, Input, TemplateRef, ViewChild, ViewContainerRef } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  HostBinding,
+  inject,
+  Input,
+  input,
+  TemplateRef,
+  ViewContainerRef,
+  viewChild
+} from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { catchError, Observable, of, throwError } from 'rxjs';
@@ -15,24 +26,28 @@ import { printError } from '../../util/http';
 import { ConfirmActionComponent } from '../action/confirm-action/confirm-action.component';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-backup',
   templateUrl: './backup.component.html',
   styleUrls: ['./backup.component.scss'],
   imports: [RouterLink, ConfirmActionComponent, ReactiveFormsModule]
 })
 export class BackupComponent {
+  admin = inject(AdminService);
+  backups = inject(BackupService);
+  store = inject(Store);
+  private fb = inject(UntypedFormBuilder);
+  private overlay = inject(Overlay);
+  private viewContainerRef = inject(ViewContainerRef);
+
 
   @Input()
   id!: string;
-  @Input()
-  size? = 0;
-  @Input()
-  origin = '';
+  readonly size = input<number | undefined>(0);
+  readonly origin = input('');
 
-  @ViewChild('restoreButton', { read: ElementRef })
-  restoreButton?: ElementRef<HTMLElement>;
-  @ViewChild('restoreOptions')
-  restoreOptionsTemplate!: TemplateRef<any>;
+  readonly restoreButton = viewChild('restoreButton', { read: ElementRef });
+  readonly restoreOptionsTemplate = viewChild.required<TemplateRef<any>>('restoreOptions');
 
   @HostBinding('class.deleted')
   deleted = false;
@@ -42,14 +57,10 @@ export class BackupComponent {
 
   private backupKey = '';
 
-  constructor(
-    public admin: AdminService,
-    public backups: BackupService,
-    public store: Store,
-    private fb: UntypedFormBuilder,
-    private overlay: Overlay,
-    private viewContainerRef: ViewContainerRef,
-  ) {
+  constructor() {
+    const backups = this.backups;
+    const fb = this.fb;
+
     backups.getDownloadKey()
       .subscribe(key => this.backupKey = key);
     this.restoreOptionsForm = fb.group({
@@ -68,7 +79,7 @@ export class BackupComponent {
   }
 
   get fileSize() {
-    return readableBytes(this.size || 0);
+    return readableBytes(this.size() || 0);
   }
 
   get downloadLink() {
@@ -76,18 +87,20 @@ export class BackupComponent {
     if (link.startsWith('//')) link = location.protocol + link;
     if (link.startsWith("_")) link = link.substring(1);
     if (!link.endsWith(".zip")) link = link + '.zip';
-    if (this.origin) link += '?origin=' + encodeURIComponent(this.origin)
+    const origin = this.origin();
+    if (origin) link += '?origin=' + encodeURIComponent(origin)
     return link;
   }
 
   get downloadLinkAuth() {
-    return this.downloadLink + (this.origin ? '&' : '?') + 'p=' + encodeURIComponent(this.backupKey);
+    return this.downloadLink + (this.origin() ? '&' : '?') + 'p=' + encodeURIComponent(this.backupKey);
   }
 
   showRestoreOptions() {
-    if (this.restoreOptionsRef || !this.restoreButton) return;
+    const restoreButton = this.restoreButton();
+    if (this.restoreOptionsRef || !restoreButton) return;
     const positionStrategy = this.overlay.position()
-      .flexibleConnectedTo(this.restoreButton)
+      .flexibleConnectedTo(restoreButton)
       .withPositions([{
         originX: 'start',
         originY: 'bottom',
@@ -100,7 +113,7 @@ export class BackupComponent {
       positionStrategy,
       scrollStrategy: this.overlay.scrollStrategies.reposition()
     });
-    this.restoreOptionsRef.attach(new TemplatePortal(this.restoreOptionsTemplate, this.viewContainerRef));
+    this.restoreOptionsRef.attach(new TemplatePortal(this.restoreOptionsTemplate(), this.viewContainerRef));
   }
 
   restore$ = () => {
@@ -120,7 +133,7 @@ export class BackupComponent {
       newerThan: this.restoreOptionsForm.value.newerThan || undefined,
     };
     this.closeRestoreOptions();
-    this.backups.restore(this.origin, this.id, options).pipe(
+    this.backups.restore(this.origin(), this.id, options).pipe(
       catchError((err: HttpErrorResponse) => {
         this.serverError = printError(err);
         return throwError(() => err);
@@ -142,7 +155,7 @@ export class BackupComponent {
   }
 
   delete$ = () => {
-    return this.backups.delete(this.origin, this.id).pipe(
+    return this.backups.delete(this.origin(), this.id).pipe(
       catchError((err: HttpErrorResponse) => {
         this.serverError = printError(err);
         return throwError(() => err);

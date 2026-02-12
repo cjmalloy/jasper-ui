@@ -1,5 +1,15 @@
 /// <reference types="vitest/globals" />
-import { defaultDesc, getArgs, getFilter, getFilters, getFiltersQuery, negate, negatable, toggle, UrlFilter } from './query';
+import {
+  defaultDesc,
+  getArgs,
+  getFilter,
+  getFilters,
+  getFiltersQuery,
+  negatable,
+  negate,
+  toggle,
+  UrlFilter
+} from './query';
 
 describe('Query Utils', () => {
   describe('defaultDesc', () => {

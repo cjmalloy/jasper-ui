@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, OnDestroy } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject, OnDestroy } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { debounce, uniqBy } from 'lodash-es';
 import { forkJoin, map, Observable, of, Subscription, switchMap } from 'rxjs';
@@ -9,12 +9,20 @@ import { EditorService } from '../../service/editor.service';
 import { Store } from '../../store/store';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-user-tag-selector',
   templateUrl: './user-tag-selector.component.html',
   styleUrls: ['./user-tag-selector.component.scss'],
   imports: [ReactiveFormsModule]
 })
 export class UserTagSelectorComponent implements OnDestroy {
+  private configs = inject(ConfigService);
+  private admin = inject(AdminService);
+  private editor = inject(EditorService);
+  private exts = inject(ExtService);
+  store = inject(Store);
+  private cd = inject(ChangeDetectorRef);
+
 
   preview = '';
   editing = false;
@@ -23,14 +31,7 @@ export class UserTagSelectorComponent implements OnDestroy {
   private previewing?: Subscription;
   private searching?: Subscription;
 
-  constructor(
-    private configs: ConfigService,
-    private admin: AdminService,
-    private editor: EditorService,
-    private exts: ExtService,
-    public store: Store,
-    private cd: ChangeDetectorRef,
-  ) {
+  constructor() {
     this.getPreview(this.store.local.selectedUserTag);
   }
 

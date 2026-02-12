@@ -1,57 +1,55 @@
-<ng-container *mobxAutorun>
-  @if (!store.account.signedIn) {
-    @if (config.login) {
-      <a [href]="config.loginLink" i18n>login</a>
-      @if (config.signup) {
-        <span i18n> or </span>
-      }
-    }
+@if (!store.account.signedIn) {
+  @if (config.login) {
+    <a [href]="config.loginLink" i18n>login</a>
     @if (config.signup) {
-      <a [href]="config.signup" i18n>sign up</a>
-    }
-    @if (config.login || config.signup) {
-      <span> | </span>
-    }
-    <a routerLink="/settings" i18n>settings</a>
-  } @else {
-    @if (store.account.localTag) {
-      <a class="author"
-         [title]="fullUserTagAndRole"
-         [routerLink]="['/tag', store.account.tag]">{{ store.account.ext?.name || shortUserTag }}</a>
-      @if (admin.getTemplate('dm') || admin.inbox.length || (admin.getTemplate('user') && store.account.userTag)) {
-        @if (admin.getTemplate('user') && store.account.userTag && store.account.notifications) {
-          | {{ (store.account.notifications - store.account.alarmCount) || '' }}
-          @if (store.hotkey) {
-            <a class="fake-link inbox notification filter-toggle"
-               (click)="account.clearNotifications()"
-               i18n-title title="Clear Notifications">✉️</a>
-          } @else {
-            <a class="inbox notification"
-               [class.filter-toggle]="store.hotkey"
-               i18n-title title="Unread"
-               routerLink="/inbox/unread">✉️</a>
-          }
-          @if (store.account.alarmCount) {
-            <span i18n-title title="{{ store.account.alarmCount }} Alarms">🔔️</span>
-          }
-        } @else {
-          | <a class="inbox"
-               i18n-title title="Inbox"
-               routerLink="/inbox">✉️</a>
-        }
-      }
-      |
-    }
-    <a routerLink="/settings" i18n>settings</a>
-    @if (store.view.updates) {
-      <a routerLink="/settings/setup"
-         i18n-title title="Updates available in setup" i18n>🌟️</a>
-    }
-    @if (config.logout) {
-      | <a [href]="config.logout" i18n>logout</a>
-    }
-    @if (config.support) {
-      | <a routerLink="/submit/dm" [queryParams]="{ to: config.support }" i18n>help</a>
+      <span i18n> or </span>
     }
   }
-</ng-container>
+  @if (config.signup) {
+    <a [href]="config.signup" i18n>sign up</a>
+  }
+  @if (config.login || config.signup) {
+    <span> | </span>
+  }
+  <a routerLink="/settings" i18n>settings</a>
+} @else {
+  @if (store.account.localTag) {
+    <a class="author"
+       [title]="fullUserTagAndRole"
+       [routerLink]="['/tag', store.account.tag]">{{ store.account.ext?.name || shortUserTag }}</a>
+    @if (admin.getTemplate('dm') || admin.inbox.length || (admin.getTemplate('user') && store.account.userTag)) {
+      @if (admin.getTemplate('user') && store.account.userTag && store.account.notifications) {
+        | {{ (store.account.notifications - store.account.alarmCount) || '' }}
+        @if (store.hotkey) {
+          <a class="fake-link inbox notification filter-toggle"
+             (click)="account.clearNotifications()"
+             i18n-title title="Clear Notifications">✉️</a>
+        } @else {
+          <a class="inbox notification"
+             [class.filter-toggle]="store.hotkey"
+             i18n-title title="Unread"
+             routerLink="/inbox/unread">✉️</a>
+        }
+        @if (store.account.alarmCount) {
+          <span i18n-title title="{{ store.account.alarmCount }} Alarms">🔔️</span>
+        }
+      } @else {
+        | <a class="inbox"
+             i18n-title title="Inbox"
+             routerLink="/inbox">✉️</a>
+      }
+    }
+    |
+  }
+  <a routerLink="/settings" i18n>settings</a>
+  @if (store.view.updates) {
+    <a routerLink="/settings/setup"
+       i18n-title title="Updates available in setup" i18n>🌟️</a>
+  }
+  @if (config.logout) {
+    | <a [href]="config.logout" i18n>logout</a>
+  }
+  @if (config.support) {
+    | <a routerLink="/submit/dm" [queryParams]="{ to: config.support }" i18n>help</a>
+  }
+}

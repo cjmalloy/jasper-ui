@@ -1,8 +1,17 @@
-import { Component, OnDestroy, OnInit, QueryList, ViewChild, ViewChildren } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  effect,
+  inject,
+  Injector,
+  OnDestroy,
+  OnInit,
+  viewChild,
+  viewChildren
+} from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { defer, uniq } from 'lodash-es';
-import { autorun, IReactionDisposer, runInAction } from 'mobx';
-import { MobxAngularModule } from 'mobx-angular';
+
 import { Subject } from 'rxjs';
 import { CommentReplyComponent } from '../../../component/comment/comment-reply/comment-reply.component';
 import { CommentThreadComponent } from '../../../component/comment/comment-thread/comment-thread.component';
@@ -25,57 +34,61 @@ import { getArgs } from '../../../util/query';
 import { hasTag, removeTag, top, updateMetadata } from '../../../util/tag';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-ref-summary',
   templateUrl: './summary.component.html',
   styleUrls: ['./summary.component.scss'],
-  imports: [MobxAngularModule, CommentReplyComponent, RouterLink, ThreadSummaryComponent, RefListComponent, LoadingComponent]
+  imports: [ CommentReplyComponent, RouterLink, ThreadSummaryComponent, RefListComponent, LoadingComponent]
 })
 export class RefSummaryComponent implements OnInit, OnDestroy, HasChanges {
-  private disposers: IReactionDisposer[] = [];
+  private injector = inject(Injector);
+  private mod = inject(ModService);
+  admin = inject(AdminService);
+  refs = inject(RefService);
+  store = inject(Store);
+  thread = inject(ThreadStore);
+  query = inject(QueryStore);
+
   newResp$ = new Subject<Ref | undefined>();
   newComment$ = new Subject<Ref | undefined>();
   newThread$ = new Subject<Ref | undefined>();
 
   summaryItems = 5;
 
-  @ViewChild('reply')
-  reply?: CommentReplyComponent;
-  @ViewChildren(CommentThreadComponent)
-  threadComponents?: QueryList<CommentThreadComponent>;
-  @ViewChild('list')
-  list?: RefListComponent;
+  readonly reply = viewChild<CommentReplyComponent>('reply');
+  readonly threadComponents = viewChildren(CommentThreadComponent);
+  readonly list = viewChild<RefListComponent>('list');
 
-  constructor(
-    private mod: ModService,
-    public admin: AdminService,
-    public refs: RefService,
-    public store: Store,
-    public thread: ThreadStore,
-    public query: QueryStore,
-  ) {
+  constructor() {
+    const store = this.store;
+    const thread = this.thread;
+    const query = this.query;
+
     query.clear();
     thread.clear();
-    runInAction(() => store.view.defaultSort = ['modified,DESC']);
+    store.view.defaultSort = ['modified,DESC'];
   }
 
   saveChanges() {
-    return (!this.reply || this.reply.saveChanges())
-      && (!this.list || this.list.saveChanges())
-      && !this.threadComponents?.find(t => !t.saveChanges());
+    const reply = this.reply();
+    const list = this.list();
+    return (!reply || reply.saveChanges())
+      && (!list || list.saveChanges())
+      && !this.threadComponents()?.find(t => !t.saveChanges());
   }
 
   ngOnInit(): void {
     // TODO: set title for bare reposts
-    this.disposers.push(autorun(() => this.mod.setTitle(getTitle(this.store.view.ref))));
-    this.disposers.push(autorun(() => {
+    effect(() => this.mod.setTitle(getTitle(this.store.view.ref)), { injector: this.injector });
+    effect(() => {
       MemoCache.clear(this);
       const top = this.store.view.url;
       const sort = this.store.view.sort;
       const filter = this.store.view.filter;
       const search = this.store.view.search;
-      runInAction(() => this.thread.setArgs(top, sort, filter, search));
-    }));
-    this.disposers.push(autorun(() => {
+      this.thread.setArgs(top, sort, filter, search);
+    }, { injector: this.injector });
+    effect(() => {
       const args = getArgs(
         '',
         this.store.view.sort,
@@ -86,13 +99,11 @@ export class RefSummaryComponent implements OnInit, OnDestroy, HasChanges {
       );
       args.responses = this.store.view.url;
       defer(() => this.query.setArgs(args));
-    }));
+    }, { injector: this.injector });
   }
 
   ngOnDestroy() {
     this.query.close();
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
     this.newResp$.complete();
     this.newComment$.complete();
     this.newThread$.complete();
@@ -152,12 +163,10 @@ export class RefSummaryComponent implements OnInit, OnDestroy, HasChanges {
   }
 
   onReply(ref?: Ref) {
-    runInAction(() => {
-      if (ref && this.store.view.ref) {
-        MemoCache.clear(this);
-        runInAction(() => updateMetadata(this.store.view.ref!, ref));
-      }
-    });
+    if (ref && this.store.view.ref) {
+      MemoCache.clear(this);
+      updateMetadata(this.store.view.ref!, ref);
+    }
     this.store.eventBus.reload(ref);
     if (hasTag('plugin/comment', ref)) {
       this.newComment$?.next(ref);

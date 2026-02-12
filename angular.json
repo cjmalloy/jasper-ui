@@ -173,6 +173,7 @@
           "options": {
             "tsConfig": "tsconfig.spec.json",
             "runner": "vitest",
+            "runnerConfig": "vitest.config.ts",
             "buildTarget": "jasper-ui:build:development"
           }
         }

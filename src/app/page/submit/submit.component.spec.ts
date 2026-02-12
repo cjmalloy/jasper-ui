@@ -16,8 +16,8 @@ describe('SubmitPage', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [
-        ReactiveFormsModule,
         forwardRef(() => SubmitPage),
+        ReactiveFormsModule,
       ],
       providers: [
         provideHttpClient(withInterceptorsFromDi()),

@@ -1,97 +1,94 @@
-<ng-container *mobxAutorun>
-  <form class="form"
-        [formGroup]="textForm"
-        (ngSubmit)="submit()"
-        [appLimitWidth]="advancedForm?.fill?.nativeElement || fill?.nativeElement"
-        [limitSibling]="true">
+<form class="form"
+      [formGroup]="textForm"
+      (ngSubmit)="submit()"
+      [appLimitWidth]="advancedForm?.fill()?.nativeElement || (fill() || fillCustom())?.nativeElement"
+      [limitSibling]="true">
 
-    @if (defaults?.url || loadingDefaults.length) {
-      <span></span>
-      <div>
-        <span i18n>Loading defaults for <app-nav [url]="defaults?.url || ('tag:/' + loadingDefaults[0].tag)"></app-nav></span>
-        @if (!defaults) {
-          <app-loading [inline]="true"></app-loading>
-        }
+  @if (defaults?.url || loadingDefaults.length) {
+    <span></span>
+    <div>
+      <span i18n>Loading defaults for <app-nav [url]="defaults?.url || ('tag:/' + loadingDefaults[0].tag)"></app-nav></span>
+      @if (!defaults) {
+        <app-loading [inline]="true"></app-loading>
+      }
+    </div>
+  }
+  @if (!advanced) {
+    @if (store.submit.wiki) {
+      <label for="title" i18n>Wiki:</label>
+    } @else {
+      <label for="title" i18n>Title:</label>
+    }
+    <input id="title"
+           name="title"
+           type="text"
+           [formControl]="title"
+           (blur)="validate($any($event.target))">
+
+    <app-select-plugin #pluginSelect
+                       class="shrink"
+                       [text]="true"
+                       i18n-title title="Add Plugin"
+                       (pluginChange)="bookmarks.toggleTag($event); pluginSelect.plugin = ''"></app-select-plugin>
+    <app-form-plugins #plugins id="plugins" [group]="textForm"></app-form-plugins>
+
+    @if (customEditor) {
+      <span><!-- Editor --></span>
+      <div #fillCustom class="fill-editor">
+        <ngx-monaco-editor [formControl]="comment"
+                           [options]="codeOptions"
+                           [style.width]="'min(900px, 50vw)'"
+                           [style.height]="'min(200px, 90vh)'"
+                           [appFillWidth]="fillCustom"
+                           appResizeHandle
+                           [hitArea]="config.mobile ? 48 : 20"></ngx-monaco-editor>
+      </div>
+    } @else {
+      @if (store.submit.wiki) {
+        <label [for]="ed.id()" class="editor-label" i18n>Entry:</label>
+      } @else {
+        <label [for]="ed.id()" class="editor-label" i18n>Comment:</label>
+      }
+      <div #fill class="fill-editor">
+        <app-editor #ed
+                    class="bubble"
+                    [control]="comment"
+                    (syncEditor)="syncEditor()"
+                    [tags]="tags"
+                    (syncTags)="setTags($event)"
+                    (addSource)="addSource($event)"
+                    (uploadCompleted)="completedUploads.push($event)"
+                    [fillWidth]="fill"
+                    [autoFocus]="true"></app-editor>
       </div>
     }
-    @if (!advanced) {
-      @if (store.submit.wiki) {
-        <label for="title" i18n>Wiki:</label>
-      } @else {
-        <label for="title" i18n>Title:</label>
-      }
-      <input id="title"
-             name="title"
-             type="text"
-             [formControl]="title"
-             (blur)="validate($any($event.target))">
 
-      <app-select-plugin #pluginSelect
-                         class="shrink"
-                         [text]="true"
-                         i18n-title title="Add Plugin"
-                         (pluginChange)="bookmarks.toggleTag($event); pluginSelect.plugin = ''"></app-select-plugin>
-      <app-form-plugins #plugins id="plugins" [group]="textForm"></app-form-plugins>
+    <app-tags #tagsFormComponent [group]="textForm"></app-tags>
 
-      @if (customEditor) {
-        <span><!-- Editor --></span>
-        <div #fill class="fill-editor">
-          <ngx-monaco-editor #ed
-                             [formControl]="comment"
-                             [options]="codeOptions"
-                             [style.width]="'min(900px, 50vw)'"
-                             [style.height]="'min(200px, 90vh)'"
-                             [appFillWidth]="fill"
-                             appResizeHandle
-                             [hitArea]="config.mobile ? 48 : 20"></ngx-monaco-editor>
-        </div>
-      } @else {
-        @if (store.submit.wiki) {
-          <label [for]="ed.id" class="editor-label" i18n>Entry:</label>
-        } @else {
-          <label [for]="ed.id" class="editor-label" i18n>Comment:</label>
-        }
-        <div #fill class="fill-editor">
-          <app-editor #ed
-                      class="bubble"
-                      [control]="comment"
-                      (syncEditor)="syncEditor()"
-                      [tags]="tags"
-                      (syncTags)="setTags($event)"
-                      (addSource)="addSource($event)"
-                      (uploadCompleted)="completedUploads.push($event)"
-                      [fillWidth]="fill"
-                      [autoFocus]="true"></app-editor>
-        </div>
-      }
+    <span><!-- Advanced --></span>
+    <a class="fake-link no-select" (click)="showAdvanced()" i18n>show advanced</a>
+  } @else {
+    <app-ref-form #advancedForm
+                  [group]="textForm"
+                  (toggleTag)="bookmarks.toggleTag($event)"></app-ref-form>
+  }
 
-      <app-tags #tagsFormComponent [group]="textForm"></app-tags>
+  @for (e of serverError; track e) {
+    <span><!-- Unexpected Error --></span>
+    <div class="error">{{ e }}</div>
+  }
 
-      <span><!-- Advanced --></span>
-      <a class="fake-link no-select" (click)="showAdvanced()" i18n>show advanced</a>
-    } @else {
-      <app-ref-form #advancedForm
-                    [group]="textForm"
-                    (toggleTag)="bookmarks.toggleTag($event)"></app-ref-form>
-    }
-
-    @for (e of serverError; track e) {
-      <span><!-- Unexpected Error --></span>
-      <div class="error">{{ e }}</div>
-    }
-
-    <span><!-- Buttons --></span>
-    <span class="buttons right">
+  <span><!-- Buttons --></span>
+  <span class="buttons right">
       @if (randomURL && (addAnother || store.hotkey)) {
         <div class="add-more" i18n-title title="Will not clear form to all another Ref.">
           <input id="addAnother" type="checkbox" [checked]="addAnother" (input)="addAnother = !addAnother">
           <label for="addAnother" i18n>Add another</label>
         </div>
       }
-      @if (submitting) {
-        <app-loading [inline]="true"></app-loading>
-      }
-      <button type="submit" [disabled]="submitting || submitted && !textForm.valid" i18n>Submit</button>
+    @if (submitting) {
+      <app-loading [inline]="true"></app-loading>
+    }
+    <button type="submit" [disabled]="submitting || submitted && !textForm.valid" i18n>Submit</button>
     </span>
-  </form>
-</ng-container>
+</form>

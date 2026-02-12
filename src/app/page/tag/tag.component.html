@@ -1,65 +1,63 @@
-<ng-container *mobxAutorun>
-  <app-tabs>
-    <a class="logo" routerLink="/"></a>
-    <h5 class="fake-link" routerLink="." [queryParams]="{}">{{ store.view.name }}</h5>
-    @if (store.view.activeTemplates.length) {
-      <a routerLink="./"
-         [class.current-tab]="store.view.noView"
-         [queryParams]="{view: null}"
-         [title]="store.view.activeTemplates[0].name"
-         queryParamsHandling="merge" i18n>{{ store.view.activeTemplates[0].config?.view || store.view.activeTemplates[0].name || store.view.activeTemplates[0].tag }}</a>
-      @for (x of store.view.activeTemplates; track x; let i = $index) {
-        @if (x.tag !== store.view.activeTemplates[0].tag) {
-          <a routerLink="./"
-             [class.current-tab]="store.view.viewTag === x.tag"
-             [queryParams]="{view: i === 0 ? null : x.tag}"
-             [title]="x.name"
-             queryParamsHandling="merge" i18n>{{ x.config?.view || x.name || x.tag }}</a>
-        }
+<app-tabs>
+  <a class="logo" routerLink="/"></a>
+  <h5 class="fake-link" routerLink="." [queryParams]="{}">{{ store.view.name }}</h5>
+  @if (store.view.activeTemplates.length) {
+    <a routerLink="./"
+       [class.current-tab]="store.view.noView"
+       [queryParams]="{view: null}"
+       [title]="store.view.activeTemplates[0].name"
+       queryParamsHandling="merge" i18n>{{ store.view.activeTemplates[0].config?.view || store.view.activeTemplates[0].name || store.view.activeTemplates[0].tag }}</a>
+    @for (x of store.view.activeTemplates; track x; let i = $index) {
+      @if (x.tag !== store.view.activeTemplates[0].tag) {
+        <a routerLink="./"
+           [class.current-tab]="store.view.viewTag === x.tag"
+           [queryParams]="{view: i === 0 ? null : x.tag}"
+           [title]="x.name"
+           queryParamsHandling="merge" i18n>{{ x.config?.view || x.name || x.tag }}</a>
       }
-      <a routerLink="./"
-         [class.current-tab]="store.view.list"
-         [queryParams]="{view: 'list'}"
-         i18n-title title="☰ List"
-         queryParamsHandling="merge" i18n>list</a>
-    } @else {
-      <a routerLink="./"
-         [class.current-tab]="store.view.noView"
-         [queryParams]="{view: null}"
-         i18n-title title="☰ List"
-         queryParamsHandling="merge" i18n>list</a>
     }
-    @for (x of store.view.globalExts; track x.tag) {
-      <a routerLink="./"
-         [class.current-tab]="store.view.view === x.tag"
-         [queryParams]="{view: x.tag}"
-         [title]="x.name"
-         queryParamsHandling="merge" i18n>{{ x.config?.view || x.name || x.tag }}</a>
-    }
-  </app-tabs>
-  @if (!loading) {
-    <app-sidebar [floating]="store.view.floatingSidebar"
-                 [ext]="store.view.viewExt"
-                 [tag]="store.view.tag"
-                 [activeExts]="store.view.activeExts"></app-sidebar>
-  }
-  @if (query.error?.status !== 403) {
-    @if (!loading) {
-      <app-lens #lens [page]="query.page"
-                [showAlarm]="!store.view.alarm"
-                [showVotes]="store.view.isVoteSorted"
-                [tag]="store.view.tag"
-                [ext]="store.view.viewExt"
-                [fullPage]="true"
-                [size]="store.view.pageSize"
-                [cols]="store.view.cols"
-                [sort]="store.view.sort"
-                [filter]="store.view.filter"
-                [search]="store.view.search"></app-lens>
-    } @else {
-      <app-loading></app-loading>
-    }
+    <a routerLink="./"
+       [class.current-tab]="store.view.list"
+       [queryParams]="{view: 'list'}"
+       i18n-title title="☰ List"
+       queryParamsHandling="merge" i18n>list</a>
   } @else {
-    <div class="error-403" i18n>Access Denied</div>
+    <a routerLink="./"
+       [class.current-tab]="store.view.noView"
+       [queryParams]="{view: null}"
+       i18n-title title="☰ List"
+       queryParamsHandling="merge" i18n>list</a>
   }
-</ng-container>
+  @for (x of store.view.globalExts; track x.tag) {
+    <a routerLink="./"
+       [class.current-tab]="store.view.view === x.tag"
+       [queryParams]="{view: x.tag}"
+       [title]="x.name"
+       queryParamsHandling="merge" i18n>{{ x.config?.view || x.name || x.tag }}</a>
+  }
+</app-tabs>
+@if (!loading) {
+  <app-sidebar [floating]="store.view.floatingSidebar"
+               [ext]="store.view.viewExt"
+               [tag]="store.view.tag"
+               [activeExts]="store.view.activeExts"></app-sidebar>
+}
+@if (query.error?.status !== 403) {
+  @if (!loading) {
+    <app-lens #lens [page]="query.page"
+              [showAlarm]="!store.view.alarm"
+              [showVotes]="store.view.isVoteSorted"
+              [tag]="store.view.tag"
+              [ext]="store.view.viewExt"
+              [fullPage]="true"
+              [size]="store.view.pageSize"
+              [cols]="store.view.cols"
+              [sort]="store.view.sort"
+              [filter]="store.view.filter"
+              [search]="store.view.search"></app-lens>
+  } @else {
+    <app-loading></app-loading>
+  }
+} @else {
+  <div class="error-403" i18n>Access Denied</div>
+}

@@ -1,6 +1,14 @@
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  effect,
+  inject,
+  Injector,
+  OnDestroy,
+  OnInit,
+  viewChild
+} from '@angular/core';
 import { defer } from 'lodash-es';
-import { autorun, IReactionDisposer } from 'mobx';
 import { UserListComponent } from '../../../component/user/user-list/user-list.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { UserService } from '../../../service/api/user.service';
@@ -12,48 +20,48 @@ import { UserStore } from '../../../store/user';
 import { getTagFilter } from '../../../util/query';
 
 @Component({
+  changeDetection: ChangeDetectionStrategy.OnPush,
   selector: 'app-settings-user-page',
   templateUrl: './user.component.html',
   styleUrls: ['./user.component.scss'],
   imports: [UserListComponent],
 })
 export class SettingsUserPage implements OnInit, OnDestroy, HasChanges {
+  private injector = inject(Injector);
+  private mod = inject(ModService);
+  config = inject(ConfigService);
+  store = inject(Store);
+  users = inject(UserService);
+  scim = inject(ProfileStore);
+  query = inject(UserStore);
 
-  private disposers: IReactionDisposer[] = [];
 
-  @ViewChild('list')
-  list?: UserListComponent;
+  readonly list = viewChild<UserListComponent>('list');
 
-  constructor(
-    private mod: ModService,
-    public config: ConfigService,
-    public store: Store,
-    public users: UserService,
-    public scim: ProfileStore,
-    public query: UserStore,
-  ) {
+  constructor() {
+    const mod = this.mod;
+    const store = this.store;
+    const scim = this.scim;
+    const query = this.query;
+
     mod.setTitle($localize`Settings: User Profiles`);
     store.view.clear(['tag:len', 'tag'], ['tag:len', 'tag']);
     scim.clear();
     query.clear();
   }
 
-  saveChanges() {
-    return !this.list || this.list.saveChanges();
-  }
-
   ngOnInit(): void {
     if (this.config.scim) {
       // TODO: better way to find unattached profiles
-      this.disposers.push(autorun(() => {
+      effect(() => {
         const args = {
           page: this.store.view.pageNumber,
           size: this.store.view.pageSize,
         };
         defer(() => this.scim.setArgs(args));
-      }));
+      }, { injector: this.injector });
     }
-    this.disposers.push(autorun(() => {
+    effect(() => {
       const args = {
         query: this.store.view.showRemotes ? '@*' : (this.store.account.origin || '*'),
         search: this.store.view.search,
@@ -63,12 +71,15 @@ export class SettingsUserPage implements OnInit, OnDestroy, HasChanges {
         ...getTagFilter(this.store.view.filter),
       };
       defer(() => this.query.setArgs(args));
-    }));
+    }, { injector: this.injector });
+  }
+
+  saveChanges() {
+    const list = this.list();
+    return !list || list.saveChanges();
   }
 
   ngOnDestroy() {
     this.query.close();
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
   }
 }
