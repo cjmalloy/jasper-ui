@@ -13,7 +13,10 @@ test.describe.serial('MarkItDown Plugin', () => {
   });
 
   test('creates a ref with plugin/pdf tag', async ({ page }) => {
+    // Wait for backend API to be fully ready before attempting file upload
+    const refListResponse = page.waitForResponse(resp => resp.url().includes('/api/v1/ref') && resp.status() === 200, { timeout: 30_000 });
     await page.goto('/?debug=USER');
+    await refListResponse; // Ensure backend proxy service is operational
     await openSidebar(page);
     await page.locator('.sidebar .submit-button', { hasText: 'Submit' }).first().click();
     
