@@ -39,6 +39,7 @@ Resources are fetched through the Jasper proxy API.`,
     timeoutMs: 600_000,
     requirements: `
       markitdown[all]
+      pytesseract
       requests
     `,
     language: 'python',
