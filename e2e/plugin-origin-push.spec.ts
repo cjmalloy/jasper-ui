@@ -41,7 +41,6 @@ test.describe.serial('Origin Push Plugin', () => {
     await openSidebar(page);
     await page.locator('.sidebar .submit-button', { hasText: 'Submit' }).first().click();
     await page.locator('.tabs a', { hasText: 'text' }).first().click();
-    await page.waitForTimeout(1000);
     await page.locator('[name=title]').fill('Push Test');
     await page.locator('button', { hasText: 'Submit' }).click({ force: true });
     await page.waitForTimeout(1000);

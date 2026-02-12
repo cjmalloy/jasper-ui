@@ -96,7 +96,6 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
     await page.locator('.editor textarea').blur();
     await page.locator('button', { hasText: 'Submit' }).click({ force: true });
     await expect(page.locator('.full-page.ref .link a')).toHaveText('Ref from other');
-    await page.waitForTimeout(1000);
   });
 
   test('@\u{ff20}repl : local user notified', async ({ page }) => {

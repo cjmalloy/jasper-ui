@@ -15,7 +15,6 @@ test.describe('Backup / Restore', () => {
     await page.locator('.sidebar .submit-button', { hasText: 'Submit' }).first().click();
     await page.locator('#url').fill('test:backup');
     await page.getByText('Next').click();
-    await page.waitForTimeout(1000); // First part of title getting truncated
     await page.locator('[name=title]').fill('Backup Test');
     const submitPromise = page.waitForResponse(resp => resp.url().includes('/api/v1/ref'));
     await page.locator('button', { hasText: 'Submit' }).click();

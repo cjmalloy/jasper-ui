@@ -44,7 +44,6 @@ test.describe.serial('Origin Pull Plugin', () => {
     await openSidebar(page);
     await page.locator('.sidebar .submit-button', { hasText: 'Submit' }).first().click();
     await page.locator('.tabs a', { hasText: 'text' }).first().click();
-    await page.waitForTimeout(400);
     await page.locator('[name=title]').fill('Pull Test');
     const submitPromise = page.waitForResponse(resp => resp.url().includes('/api/v1/ref'));
     await page.locator('button', { hasText: 'Submit' }).click();
