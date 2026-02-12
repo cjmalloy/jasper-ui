@@ -160,7 +160,7 @@ test.describe.serial('MarkItDown Plugin', () => {
     await expect(page.locator('.full-page.ref .actions .fake-link', { hasText: 'markdown' })).toHaveCount(1);
   });
 
-  test('should convert JPEG image to markdown (OCR unavailable)', async ({ page }) => {
+  test('should convert JPEG image to markdown with OCR', async ({ page }) => {
     // Navigate to the ref page and trigger conversion
     await page.goto(url + '?debug=USER');
     await page.waitForLoadState('networkidle');
@@ -173,8 +173,8 @@ test.describe.serial('MarkItDown Plugin', () => {
     await page.locator('.tabs a', { hasText: 'all' }).first().click();
     await page.locator('.ref', { hasText: 'Markdown:' }).first().locator('a').first().click();
     await page.waitForLoadState('networkidle');
-    // Without Tesseract-OCR, images return a fallback message
-    await expect(page.locator('.full-page.ref .md')).toContainText('No text content could be extracted from plugin/image');
+    // With Tesseract-OCR installed, images should extract text
+    await expect(page.locator('.full-page.ref .md')).toContainText('OCR and Barcode Recognition');
   });
 
   test('creates a ref with plugin/image tag (png)', async ({ page }) => {
@@ -186,7 +186,7 @@ test.describe.serial('MarkItDown Plugin', () => {
     await expect(page.locator('.full-page.ref .actions .fake-link', { hasText: 'markdown' })).toHaveCount(1);
   });
 
-  test('should convert PNG image to markdown (OCR unavailable)', async ({ page }) => {
+  test('should convert PNG image to markdown with OCR', async ({ page }) => {
     // Navigate to the ref page and trigger conversion
     await page.goto(url + '?debug=USER');
     await page.waitForLoadState('networkidle');
@@ -199,8 +199,8 @@ test.describe.serial('MarkItDown Plugin', () => {
     await page.locator('.tabs a', { hasText: 'all' }).first().click();
     await page.locator('.ref', { hasText: 'Markdown:' }).first().locator('a').first().click();
     await page.waitForLoadState('networkidle');
-    // Without Tesseract-OCR, images return a fallback message
-    await expect(page.locator('.full-page.ref .md')).toContainText('No text content could be extracted from plugin/image');
+    // With Tesseract-OCR installed, images should extract text
+    await expect(page.locator('.full-page.ref .md')).toContainText('OCR and Barcode Recognition');
   });
 
   test('creates a ref with plugin/image tag (webp)', async ({ page }) => {
@@ -212,7 +212,7 @@ test.describe.serial('MarkItDown Plugin', () => {
     await expect(page.locator('.full-page.ref .actions .fake-link', { hasText: 'markdown' })).toHaveCount(1);
   });
 
-  test('should convert WebP image to markdown (OCR unavailable)', async ({ page }) => {
+  test('should convert WebP image to markdown with OCR', async ({ page }) => {
     // Navigate to the ref page and trigger conversion
     await page.goto(url + '?debug=USER');
     await page.waitForLoadState('networkidle');
@@ -225,7 +225,7 @@ test.describe.serial('MarkItDown Plugin', () => {
     await page.locator('.tabs a', { hasText: 'all' }).first().click();
     await page.locator('.ref', { hasText: 'Markdown:' }).first().locator('a').first().click();
     await page.waitForLoadState('networkidle');
-    // Without Tesseract-OCR, images return a fallback message
-    await expect(page.locator('.full-page.ref .md')).toContainText('No text content could be extracted from plugin/image');
+    // With Tesseract-OCR installed, images should extract text
+    await expect(page.locator('.full-page.ref .md')).toContainText('OCR and Barcode Recognition');
   });
 });
