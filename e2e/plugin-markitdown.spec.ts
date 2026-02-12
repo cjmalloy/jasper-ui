@@ -23,8 +23,8 @@ test.describe.serial('MarkItDown Plugin', () => {
     // Upload the PDF file using cache input (second file input)
     // Wait for the cache file input to be visible (requires filecache mod to be loaded)
     const fileInput = page.locator('input[type="file"]').nth(1);
-    await fileInput.waitFor({ state: 'visible', timeout: 10_000 });
-    await fileInput.setInputFiles('e2e/fixtures/test.pdf');
+    // No need to wait for visibility - file inputs are often hidden
+    await fileInput.setInputFiles('e2e/fixtures/test.pdf', { force: true });
     
     // Wait for "upload all" button to appear (when store.submit.empty is false)
     // This happens after the file is uploaded to cache and ref is fetched
@@ -74,8 +74,8 @@ test.describe.serial('MarkItDown Plugin', () => {
     // Upload the DOC file using cache input (second file input)
     // Wait for the cache file input to be visible (requires filecache mod to be loaded)
     const fileInput = page.locator('input[type="file"]').nth(1);
-    await fileInput.waitFor({ state: 'visible', timeout: 10_000 });
-    await fileInput.setInputFiles('e2e/fixtures/test.doc');
+    // No need to wait for visibility - file inputs are often hidden
+    await fileInput.setInputFiles('e2e/fixtures/test.doc', { force: true });
     
     // Wait for "upload all" button to appear
     await expect(page.locator('button', { hasText: 'upload all' })).toBeVisible({ timeout: 60_000 });
@@ -106,8 +106,8 @@ test.describe.serial('MarkItDown Plugin', () => {
     // Upload the PDF file using cache input (second file input)
     // Wait for the cache file input to be visible (requires filecache mod to be loaded)
     const fileInput = page.locator('input[type="file"]').nth(1);
-    await fileInput.waitFor({ state: 'visible', timeout: 10_000 });
-    await fileInput.setInputFiles('e2e/fixtures/test.pdf');
+    // No need to wait for visibility - file inputs are often hidden
+    await fileInput.setInputFiles('e2e/fixtures/test.pdf', { force: true });
     
     // Wait for "upload all" button to appear
     await expect(page.locator('button', { hasText: 'upload all' })).toBeVisible({ timeout: 60_000 });
@@ -157,8 +157,8 @@ test.describe.serial('MarkItDown Plugin', () => {
     // Upload the PDF file using cache input (second file input)
     // Wait for the cache file input to be visible (requires filecache mod to be loaded)
     const fileInput = page.locator('input[type="file"]').nth(1);
-    await fileInput.waitFor({ state: 'visible', timeout: 10_000 });
-    await fileInput.setInputFiles('e2e/fixtures/test.pdf');
+    // No need to wait for visibility - file inputs are often hidden
+    await fileInput.setInputFiles('e2e/fixtures/test.pdf', { force: true });
     
     // Wait for "upload all" button to appear
     await expect(page.locator('button', { hasText: 'upload all' })).toBeVisible({ timeout: 60_000 });
