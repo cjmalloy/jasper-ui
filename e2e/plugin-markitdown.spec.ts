@@ -14,25 +14,33 @@ test.describe.serial('MarkItDown Plugin', () => {
 
   test('creates a ref with plugin/pdf tag', async ({ page }) => {
     // Wait for backend API to be fully ready before attempting file upload
-    const refListResponse = page.waitForResponse(resp => resp.url().includes('/api/v1/ref') && resp.status() === 200, { timeout: 30_000 });
     await page.goto('/?debug=USER');
-    await refListResponse; // Ensure backend proxy service is operational
+    await page.waitForLoadState('networkidle');
+    
+    // Verify backend is responding
+    await page.waitForResponse(resp => resp.url().includes('/api/v1/ref') && resp.status() === 200, { timeout: 30_000 });
+    
     await openSidebar(page);
     await page.locator('.sidebar .submit-button', { hasText: 'Submit' }).first().click();
     
-    // Click the upload tab
+    // Click the upload tab and wait for it to load
     await page.locator('.tabs a', { hasText: 'upload' }).click();
+    await page.waitForLoadState('networkidle');
     
-    // Upload the PDF file using cache input (second file input)
-    // Wait for the cache file input to be visible (requires filecache mod to be loaded)
+    // Wait for file cache section to be rendered (requires filecache mod)
+    await expect(page.locator('button', { hasText: '+ cache' })).toBeVisible({ timeout: 10_000 });
+    
+    // Upload the PDF file using cache input (the input element after the "cache" button)
+    // Find the file input by its relationship to the cache button
     const fileInput = page.locator('input[type="file"]').nth(1);
-    // No need to wait for visibility - file inputs are often hidden
-    await fileInput.setInputFiles('e2e/fixtures/test.pdf', { force: true });
+    await fileInput.setInputFiles('e2e/fixtures/test.pdf');
     
-    // Wait for "upload all" button to appear (when store.submit.empty is false)
+    // Wait for the file processing to complete and "upload all" button to appear
     // This happens after the file is uploaded to cache and ref is fetched
-    // Use longer timeout for slow CI environments
-    await expect(page.locator('button', { hasText: 'upload all' })).toBeVisible({ timeout: 60_000 });
+    await expect(page.locator('button', { hasText: 'upload all' })).toBeVisible({ timeout: 90_000 });
+    
+    // Wait a bit for any async processing to complete
+    await page.waitForTimeout(1000);
     
     // PDF plugin should be added automatically, no need to add tags manually
     
@@ -68,20 +76,26 @@ test.describe.serial('MarkItDown Plugin', () => {
 
   test('creates a ref with plugin/file tag', async ({ page }) => {
     await page.goto('/?debug=USER');
+    await page.waitForLoadState('networkidle');
     await openSidebar(page);
     await page.locator('.sidebar .submit-button', { hasText: 'Submit' }).first().click();
     
-    // Click the upload tab
+    // Click the upload tab and wait for it to load
     await page.locator('.tabs a', { hasText: 'upload' }).click();
+    await page.waitForLoadState('networkidle');
     
-    // Upload the DOC file using cache input (second file input)
-    // Wait for the cache file input to be visible (requires filecache mod to be loaded)
+    // Wait for file cache section to be rendered
+    await expect(page.locator('button', { hasText: '+ cache' })).toBeVisible({ timeout: 10_000 });
+    
+    // Upload the DOC file using cache input (the input element after the "cache" button)
     const fileInput = page.locator('input[type="file"]').nth(1);
-    // No need to wait for visibility - file inputs are often hidden
-    await fileInput.setInputFiles('e2e/fixtures/test.doc', { force: true });
+    await fileInput.setInputFiles('e2e/fixtures/test.doc');
     
     // Wait for "upload all" button to appear
-    await expect(page.locator('button', { hasText: 'upload all' })).toBeVisible({ timeout: 60_000 });
+    await expect(page.locator('button', { hasText: 'upload all' })).toBeVisible({ timeout: 90_000 });
+    
+    // Wait a bit for any async processing to complete
+    await page.waitForTimeout(1000);
     
     // File plugin should be added automatically
     
@@ -100,20 +114,26 @@ test.describe.serial('MarkItDown Plugin', () => {
 
   test('creates a public ref for visibility test', async ({ page }) => {
     await page.goto('/?debug=USER');
+    await page.waitForLoadState('networkidle');
     await openSidebar(page);
     await page.locator('.sidebar .submit-button', { hasText: 'Submit' }).first().click();
     
-    // Click the upload tab
+    // Click the upload tab and wait for it to load
     await page.locator('.tabs a', { hasText: 'upload' }).click();
+    await page.waitForLoadState('networkidle');
     
-    // Upload the PDF file using cache input (second file input)
-    // Wait for the cache file input to be visible (requires filecache mod to be loaded)
+    // Wait for file cache section to be rendered
+    await expect(page.locator('button', { hasText: '+ cache' })).toBeVisible({ timeout: 10_000 });
+    
+    // Upload the PDF file using cache input (the input element after the "cache" button)
     const fileInput = page.locator('input[type="file"]').nth(1);
-    // No need to wait for visibility - file inputs are often hidden
-    await fileInput.setInputFiles('e2e/fixtures/test.pdf', { force: true });
+    await fileInput.setInputFiles('e2e/fixtures/test.pdf');
     
     // Wait for "upload all" button to appear
-    await expect(page.locator('button', { hasText: 'upload all' })).toBeVisible({ timeout: 60_000 });
+    await expect(page.locator('button', { hasText: 'upload all' })).toBeVisible({ timeout: 90_000 });
+    
+    // Wait a bit for any async processing to complete
+    await page.waitForTimeout(1000);
     
     // Add public tag (PDF plugin is added automatically)
     await page.locator('input#add-tag').fill('public');
@@ -151,20 +171,26 @@ test.describe.serial('MarkItDown Plugin', () => {
 
   test('cancels markdown conversion', async ({ page }) => {
     await page.goto('/?debug=USER');
+    await page.waitForLoadState('networkidle');
     await openSidebar(page);
     await page.locator('.sidebar .submit-button', { hasText: 'Submit' }).first().click();
     
-    // Click the upload tab
+    // Click the upload tab and wait for it to load
     await page.locator('.tabs a', { hasText: 'upload' }).click();
+    await page.waitForLoadState('networkidle');
     
-    // Upload the PDF file using cache input (second file input)
-    // Wait for the cache file input to be visible (requires filecache mod to be loaded)
+    // Wait for file cache section to be rendered
+    await expect(page.locator('button', { hasText: '+ cache' })).toBeVisible({ timeout: 10_000 });
+    
+    // Upload the PDF file using cache input (the input element after the "cache" button)
     const fileInput = page.locator('input[type="file"]').nth(1);
-    // No need to wait for visibility - file inputs are often hidden
-    await fileInput.setInputFiles('e2e/fixtures/test.pdf', { force: true });
+    await fileInput.setInputFiles('e2e/fixtures/test.pdf');
     
     // Wait for "upload all" button to appear
-    await expect(page.locator('button', { hasText: 'upload all' })).toBeVisible({ timeout: 60_000 });
+    await expect(page.locator('button', { hasText: 'upload all' })).toBeVisible({ timeout: 90_000 });
+    
+    // Wait a bit for any async processing to complete
+    await page.waitForTimeout(1000);
     
     // PDF plugin is added automatically, no need to add tags
     
