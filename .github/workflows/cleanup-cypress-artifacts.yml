@@ -15,7 +15,7 @@ jobs:
         with:
           # language=JavaScript
           script: |
-            const dryRun = true;
+            const dryRun = false;
             let page = 1;
             let deleted = 0;
             while (true) {
