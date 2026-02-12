@@ -6235,10 +6235,6 @@ PDF、Word、Excel、PowerPoint、画像（OCR付き）、音声（文字起こ�
         <source>Cancel MarkItDown conversion.</source>
         <target>MarkItDown変換をキャンセルします。</target>
       </trans-unit>
-      <trans-unit id="5823834902091884994" datatype="html">
-        <source>📝️ MarkItDown Result</source>
-        <target>📝️ MarkItDown結果</target>
-      </trans-unit>
       <trans-unit id="137212084026101929" datatype="html">
         <source>Signature tag for documents converted to Markdown using Microsoft MarkItDown.
 Each response contains the converted Markdown from a specific source format.</source>
