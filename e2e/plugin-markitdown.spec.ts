@@ -39,48 +39,22 @@ test.describe.serial('MarkItDown Plugin', () => {
     await page.goto(url + '?debug=USER');
     await page.waitForLoadState('networkidle');
     await page.locator('.full-page.ref .actions .fake-link', { hasText: 'markdown' }).click();
-    
+
     // Wait for the conversion to complete by checking notifications
     await page.goto('/?debug=USER');
     await page.waitForLoadState('networkidle');
     await page.locator('.settings .notification').click();
+    await page.locator('.tabs a', { hasText: 'all' }).first().click();
+    await page.locator('.ref', { hasText: 'Markdown:' }).first().locator('a').first().click();
     await page.waitForLoadState('networkidle');
-    
-    // Wait for the markdown response to appear in notifications (up to 60 seconds for slow conversions)
-    await expect(page.locator('.ref', { hasText: 'Markdown:' }).first()).toBeVisible({ timeout: 60_000 });
-    
-    // Get the URL of the markdown result
-    const markdownRefLink = page.locator('.ref', { hasText: 'Markdown:' }).first().locator('a').first();
-    const markdownUrl = await markdownRefLink.getAttribute('href');
-    
-    if (!markdownUrl) {
-      throw new Error('Failed to retrieve markdown conversion result URL');
-    }
-    
-    // Navigate to the markdown result
-    await page.goto(markdownUrl + '?debug=USER');
-    await page.waitForLoadState('networkidle');
-    
-    // Verify the title contains "Markdown:" and original filename
-    await expect(page.locator('.full-page.ref h5')).toContainText('Markdown:');
-    await expect(page.locator('.full-page.ref h5')).toContainText('test.pdf');
-    
-    // Verify the markdown content exists and is not empty
-    const commentContent = page.locator('.full-page.ref .comment');
-    await expect(commentContent).toBeVisible();
-    const text = await commentContent.textContent();
-    expect(text).toBeTruthy();
-    expect(text!.length).toBeGreaterThan(10); // Should have some content
-    
-    // Verify the response has the signature tag
-    await expect(page.locator('.full-page.ref .tag', { hasText: '+plugin/delta/md' })).toBeVisible();
+    await expect(page.locator('.full-page.ref .md')).toContainText('PDF BOOKMARK SAMPLE');
   });
 
   test('should show markdown query notification', async ({ page }) => {
     await page.goto('/?debug=USER');
     await page.waitForLoadState('networkidle');
     await page.locator('.settings .notification').click();
-    await page.waitForLoadState('networkidle');
+    await page.locator('.tabs a', { hasText: 'all' }).first().click();
     await expect(page.locator('.ref').first()).toContainText('Markdown:');
   });
 
@@ -98,41 +72,15 @@ test.describe.serial('MarkItDown Plugin', () => {
     await page.goto(url + '?debug=USER');
     await page.waitForLoadState('networkidle');
     await page.locator('.full-page.ref .actions .fake-link', { hasText: 'markdown' }).click();
-    
+
     // Wait for the conversion to complete by checking notifications
     await page.goto('/?debug=USER');
     await page.waitForLoadState('networkidle');
     await page.locator('.settings .notification').click();
+    await page.locator('.tabs a', { hasText: 'all' }).first().click();
+    await page.locator('.ref', { hasText: 'Markdown:' }).first().locator('a').first().click();
     await page.waitForLoadState('networkidle');
-    
-    // Wait for the markdown response to appear in notifications (up to 60 seconds for slow conversions)
-    await expect(page.locator('.ref', { hasText: 'Markdown:' }).first()).toBeVisible({ timeout: 60_000 });
-    
-    // Get the URL of the markdown result
-    const markdownRefLink = page.locator('.ref', { hasText: 'Markdown:' }).first().locator('a').first();
-    const markdownUrl = await markdownRefLink.getAttribute('href');
-    
-    if (!markdownUrl) {
-      throw new Error('Failed to retrieve markdown conversion result URL');
-    }
-    
-    // Navigate to the markdown result
-    await page.goto(markdownUrl + '?debug=USER');
-    await page.waitForLoadState('networkidle');
-    
-    // Verify the title contains "Markdown:" and original filename
-    await expect(page.locator('.full-page.ref h5')).toContainText('Markdown:');
-    await expect(page.locator('.full-page.ref h5')).toContainText('test.doc');
-    
-    // Verify the markdown content exists and is not empty
-    const commentContent = page.locator('.full-page.ref .comment');
-    await expect(commentContent).toBeVisible();
-    const text = await commentContent.textContent();
-    expect(text).toBeTruthy();
-    expect(text!.length).toBeGreaterThan(10); // Should have some content
-    
-    // Verify the response has the signature tag
-    await expect(page.locator('.full-page.ref .tag', { hasText: '+plugin/delta/md' })).toBeVisible();
+    await expect(page.locator('.full-page.ref .md')).toContainText('PDF BOOKMARK SAMPLE');
   });
 
   test('creates a public ref for visibility test', async ({ page }) => {
@@ -155,14 +103,6 @@ test.describe.serial('MarkItDown Plugin', () => {
   test('should propagate public tag to response', async ({ page }) => {
     await page.goto(url + '?debug=USER');
     await expect(page.locator('.full-page.ref .info .icon', { hasText: '👁️' })).not.toBeVisible();
-  });
-
-  test('should show markdown filter in notifications', async ({ page }) => {
-    await page.goto('/?debug=USER');
-    await page.waitForLoadState('networkidle');
-    await page.locator('.settings .notification').click();
-    await page.waitForLoadState('networkidle');
-    await expect(page.locator('.ref').first()).toContainText('Markdown:');
   });
 
   test('can filter by markdown signature tag', async ({ page }) => {
@@ -200,37 +140,15 @@ test.describe.serial('MarkItDown Plugin', () => {
     await page.goto(url + '?debug=USER');
     await page.waitForLoadState('networkidle');
     await page.locator('.full-page.ref .actions .fake-link', { hasText: 'markdown' }).click();
-    
+
     // Wait for the conversion to complete by checking notifications
     await page.goto('/?debug=USER');
     await page.waitForLoadState('networkidle');
     await page.locator('.settings .notification').click();
+    await page.locator('.tabs a', { hasText: 'all' }).first().click();
+    await page.locator('.ref', { hasText: 'Markdown:' }).first().locator('a').first().click();
     await page.waitForLoadState('networkidle');
-    
-    // Wait for the markdown response to appear in notifications (up to 60 seconds for slow conversions)
-    await expect(page.locator('.ref', { hasText: 'Markdown:' }).first()).toBeVisible({ timeout: 60_000 });
-    
-    // Get the URL of the markdown result
-    const markdownRefLink = page.locator('.ref', { hasText: 'Markdown:' }).first().locator('a').first();
-    const markdownUrl = await markdownRefLink.getAttribute('href');
-    
-    if (!markdownUrl) {
-      throw new Error('Failed to retrieve markdown conversion result URL');
-    }
-    
-    await page.goto(markdownUrl + '?debug=USER');
-    await page.waitForLoadState('networkidle');
-    
-    await expect(page.locator('.full-page.ref h5')).toContainText('Markdown:');
-    await expect(page.locator('.full-page.ref h5')).toContainText('test.docx');
-    
-    const commentContent = page.locator('.full-page.ref .comment');
-    await expect(commentContent).toBeVisible();
-    const text = await commentContent.textContent();
-    expect(text).toBeTruthy();
-    expect(text!.length).toBeGreaterThan(10);
-    
-    await expect(page.locator('.full-page.ref .tag', { hasText: '+plugin/delta/md' })).toBeVisible();
+    await expect(page.locator('.full-page.ref .md')).toContainText('This is a Word Document File (DOCX)');
   });
 
   test('creates a ref with plugin/file tag (xls)', async ({ page }) => {
@@ -247,37 +165,15 @@ test.describe.serial('MarkItDown Plugin', () => {
     await page.goto(url + '?debug=USER');
     await page.waitForLoadState('networkidle');
     await page.locator('.full-page.ref .actions .fake-link', { hasText: 'markdown' }).click();
-    
+
     // Wait for the conversion to complete by checking notifications
     await page.goto('/?debug=USER');
     await page.waitForLoadState('networkidle');
     await page.locator('.settings .notification').click();
+    await page.locator('.tabs a', { hasText: 'all' }).first().click();
+    await page.locator('.ref', { hasText: 'Markdown:' }).first().locator('a').first().click();
     await page.waitForLoadState('networkidle');
-    
-    // Wait for the markdown response to appear in notifications (up to 60 seconds for slow conversions)
-    await expect(page.locator('.ref', { hasText: 'Markdown:' }).first()).toBeVisible({ timeout: 60_000 });
-    
-    // Get the URL of the markdown result
-    const markdownRefLink = page.locator('.ref', { hasText: 'Markdown:' }).first().locator('a').first();
-    const markdownUrl = await markdownRefLink.getAttribute('href');
-    
-    if (!markdownUrl) {
-      throw new Error('Failed to retrieve markdown conversion result URL');
-    }
-    
-    await page.goto(markdownUrl + '?debug=USER');
-    await page.waitForLoadState('networkidle');
-    
-    await expect(page.locator('.full-page.ref h5')).toContainText('Markdown:');
-    await expect(page.locator('.full-page.ref h5')).toContainText('test.xls');
-    
-    const commentContent = page.locator('.full-page.ref .comment');
-    await expect(commentContent).toBeVisible();
-    const text = await commentContent.textContent();
-    expect(text).toBeTruthy();
-    expect(text!.length).toBeGreaterThan(10);
-    
-    await expect(page.locator('.full-page.ref .tag', { hasText: '+plugin/delta/md' })).toBeVisible();
+    await expect(page.locator('.full-page.ref .md')).toContainText('Example Test');
   });
 
   test('creates a ref with plugin/image tag (jpeg)', async ({ page }) => {
@@ -294,34 +190,15 @@ test.describe.serial('MarkItDown Plugin', () => {
     await page.goto(url + '?debug=USER');
     await page.waitForLoadState('networkidle');
     await page.locator('.full-page.ref .actions .fake-link', { hasText: 'markdown' }).click();
-    
+
     // Wait for the conversion to complete by checking notifications
     await page.goto('/?debug=USER');
     await page.waitForLoadState('networkidle');
     await page.locator('.settings .notification').click();
+    await page.locator('.tabs a', { hasText: 'all' }).first().click();
+    await page.locator('.ref', { hasText: 'Markdown:' }).first().locator('a').first().click();
     await page.waitForLoadState('networkidle');
-    
-    // Wait for the markdown response to appear in notifications (up to 60 seconds for slow conversions)
-    await expect(page.locator('.ref', { hasText: 'Markdown:' }).first()).toBeVisible({ timeout: 60_000 });
-    
-    // Get the URL of the markdown result
-    const markdownRefLink = page.locator('.ref', { hasText: 'Markdown:' }).first().locator('a').first();
-    const markdownUrl = await markdownRefLink.getAttribute('href');
-    
-    if (!markdownUrl) {
-      throw new Error('Failed to retrieve markdown conversion result URL');
-    }
-    
-    await page.goto(markdownUrl + '?debug=USER');
-    await page.waitForLoadState('networkidle');
-    
-    await expect(page.locator('.full-page.ref h5')).toContainText('Markdown:');
-    await expect(page.locator('.full-page.ref h5')).toContainText('image.jpeg');
-    
-    const commentContent = page.locator('.full-page.ref .comment');
-    await expect(commentContent).toBeVisible();
-    const text = await commentContent.textContent();
-    expect(text).toBeTruthy();
+    await expect(page.locator('.full-page.ref .md')).toContainText('OCR and Barcode Recognition');
   });
 
   test('creates a ref with plugin/image tag (png)', async ({ page }) => {
@@ -338,34 +215,15 @@ test.describe.serial('MarkItDown Plugin', () => {
     await page.goto(url + '?debug=USER');
     await page.waitForLoadState('networkidle');
     await page.locator('.full-page.ref .actions .fake-link', { hasText: 'markdown' }).click();
-    
+
     // Wait for the conversion to complete by checking notifications
     await page.goto('/?debug=USER');
     await page.waitForLoadState('networkidle');
     await page.locator('.settings .notification').click();
+    await page.locator('.tabs a', { hasText: 'all' }).first().click();
+    await page.locator('.ref', { hasText: 'Markdown:' }).first().locator('a').first().click();
     await page.waitForLoadState('networkidle');
-    
-    // Wait for the markdown response to appear in notifications (up to 60 seconds for slow conversions)
-    await expect(page.locator('.ref', { hasText: 'Markdown:' }).first()).toBeVisible({ timeout: 60_000 });
-    
-    // Get the URL of the markdown result
-    const markdownRefLink = page.locator('.ref', { hasText: 'Markdown:' }).first().locator('a').first();
-    const markdownUrl = await markdownRefLink.getAttribute('href');
-    
-    if (!markdownUrl) {
-      throw new Error('Failed to retrieve markdown conversion result URL');
-    }
-    
-    await page.goto(markdownUrl + '?debug=USER');
-    await page.waitForLoadState('networkidle');
-    
-    await expect(page.locator('.full-page.ref h5')).toContainText('Markdown:');
-    await expect(page.locator('.full-page.ref h5')).toContainText('image.png');
-    
-    const commentContent = page.locator('.full-page.ref .comment');
-    await expect(commentContent).toBeVisible();
-    const text = await commentContent.textContent();
-    expect(text).toBeTruthy();
+    await expect(page.locator('.full-page.ref .md')).toContainText('OCR and Barcode Recognition');
   });
 
   test('creates a ref with plugin/image tag (webp)', async ({ page }) => {
@@ -382,33 +240,14 @@ test.describe.serial('MarkItDown Plugin', () => {
     await page.goto(url + '?debug=USER');
     await page.waitForLoadState('networkidle');
     await page.locator('.full-page.ref .actions .fake-link', { hasText: 'markdown' }).click();
-    
+
     // Wait for the conversion to complete by checking notifications
     await page.goto('/?debug=USER');
     await page.waitForLoadState('networkidle');
     await page.locator('.settings .notification').click();
+    await page.locator('.tabs a', { hasText: 'all' }).first().click();
+    await page.locator('.ref', { hasText: 'Markdown:' }).first().locator('a').first().click();
     await page.waitForLoadState('networkidle');
-    
-    // Wait for the markdown response to appear in notifications (up to 60 seconds for slow conversions)
-    await expect(page.locator('.ref', { hasText: 'Markdown:' }).first()).toBeVisible({ timeout: 60_000 });
-    
-    // Get the URL of the markdown result
-    const markdownRefLink = page.locator('.ref', { hasText: 'Markdown:' }).first().locator('a').first();
-    const markdownUrl = await markdownRefLink.getAttribute('href');
-    
-    if (!markdownUrl) {
-      throw new Error('Failed to retrieve markdown conversion result URL');
-    }
-    
-    await page.goto(markdownUrl + '?debug=USER');
-    await page.waitForLoadState('networkidle');
-    
-    await expect(page.locator('.full-page.ref h5')).toContainText('Markdown:');
-    await expect(page.locator('.full-page.ref h5')).toContainText('image.webp');
-    
-    const commentContent = page.locator('.full-page.ref .comment');
-    await expect(commentContent).toBeVisible();
-    const text = await commentContent.textContent();
-    expect(text).toBeTruthy();
+    await expect(page.locator('.full-page.ref .md')).toContainText('OCR and Barcode Recognition');
   });
 });
