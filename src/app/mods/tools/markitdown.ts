@@ -28,7 +28,7 @@ Supported formats (detected by plugin tags):
 The plugin creates one response Ref per supported format found on the source Ref.
 Each response contains the converted Markdown in its comment field.
 Resources are fetched through the Jasper proxy API.`,
-    icons: [{ label: $localize`⬇️💭️`, order: 2 }],
+    icons: [{ label: $localize`⬇️💭️`, order: -1 }],
     filters: [
       { query: 'plugin/delta/md', label: $localize`⬇️💭️ markdown query`, title: $localize`Convert to Markdown`, group: $localize`Notifications ✉️` },
     ],
