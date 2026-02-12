@@ -98,8 +98,10 @@ export async function upload(page: Page, file: string) {
   const fileInput = page.locator('input[type="file"]').nth(1);
   await fileInput.setInputFiles(file);
   await page.locator('.ref .actions .fake-link', { hasText: 'upload' }).click();
-  await page.waitForTimeout(1_000);
-  await expect(page.locator('.full-page.ref .link a')).toContainText(file.substring(file.lastIndexOf('/') + 1));
+  await expect(page.locator('.full-page.ref .link a')).toContainText(
+    file.substring(file.lastIndexOf('/') + 1),
+    { timeout: 10_000 },
+  );
   return page.url().replace('/ref/', '/ref/e/');
 }
 
