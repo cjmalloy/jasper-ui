@@ -3,8 +3,7 @@ import { clearMods, deleteRef, openSidebar } from './setup';
 
 test.describe.serial('Smoke Tests', () => {
   test('loads the page', async ({ page }) => {
-    await page.goto('/?debug=USER');
-    await page.waitForLoadState('networkidle');
+    await page.goto('/?debug=USER', { waitUntil: 'networkidle' });
     await expect(page.getByText('Powered by Jasper')).toBeVisible();
   });
 

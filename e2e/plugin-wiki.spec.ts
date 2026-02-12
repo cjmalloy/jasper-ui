@@ -60,6 +60,7 @@ test.describe.serial('Wiki Plugin', () => {
       mimeType: 'application/json',
       buffer,
     });
+    await page.waitForLoadState('networkidle');
   });
 
   test('submit wiki button removed', async ({ page }) => {

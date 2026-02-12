@@ -22,8 +22,7 @@ test.describe.serial('Kanban Template with Swim Lanes', () => {
 
   test('creates a board with swim lanes', async ({ page }) => {
     // Clean up any existing board from a previous failed run/retry
-    await page.goto('/ext/kanban/sl?debug=MOD');
-    await page.waitForLoadState('networkidle');
+    await page.goto('/ext/kanban/sl?debug=MOD', { waitUntil: 'networkidle' });
     const deleteBtn = page.locator('button', { hasText: 'Delete' });
     if (await deleteBtn.isVisible({ timeout: 3_000 }).catch(() => false)) {
       page.once('dialog', dialog => dialog.accept());

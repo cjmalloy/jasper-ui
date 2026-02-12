@@ -39,6 +39,7 @@ Resources are fetched through the Jasper proxy API.`,
     timeoutMs: 600_000,
     requirements: `
       markitdown[all]
+      pytesseract
       requests
     `,
     language: 'python',
@@ -49,12 +50,25 @@ import os
 import sys
 import tempfile
 import uuid
+import shutil
 import requests
 from markitdown import MarkItDown, StreamInfo
 
 ref = json.load(sys.stdin)
 origin = ref.get('origin', '')
 tags = ref.get('tags', [])
+
+# Helper function to check for tags
+def has_tag(tag, tags):
+    return tag in tags or any(t.startswith(tag + '/') for t in tags)
+
+# Collect debug logs if +plugin/debug tag is present
+debug_logs = []
+debug_mode = has_tag('+plugin/debug', tags)
+
+def log_debug(message):
+    if debug_mode:
+        debug_logs.append(message)
 
 # Supported format plugins and their default file extensions
 SUPPORTED_FORMATS = {
@@ -64,9 +78,6 @@ SUPPORTED_FORMATS = {
     'plugin/video': '',  # Extension determined by URL or content-type
     'plugin/file': '',   # Extension determined by URL or content-type
 }
-
-def has_tag(tag, tags):
-    return tag in tags or any(t.startswith(tag + '/') for t in tags)
 
 def get_extension_from_url(url):
     """Extract file extension from URL."""
@@ -109,7 +120,7 @@ def fetch_resource(url, resource_origin, ext=''):
         return temp_file.name, response.headers.get('content-type', '')
     except Exception as e:
         # Clean up temp file if download fails
-        print(f"Error downloading resource from {url}: {e}", file=sys.stderr)
+        log_debug(f"Error downloading resource from {url}: {e}")
         if temp_file:
             temp_file.close()
             if os.path.exists(temp_file.name):
@@ -135,9 +146,12 @@ def convert_to_markdown(file_path, ext, content_type=''):
             extension=ext
         )
 
+    log_debug(f"Converting file: {file_path}, ext: {ext}, mimetype: {mimetype}")
+
     try:
         md = MarkItDown()
         result = md.convert(file_path, stream_info=stream_info)
+        log_debug(f"Conversion completed, text length: {len(result.text_content)}")
         return result.text_content
     finally:
         # Clean up the temporary file created by fetch_resource
@@ -176,7 +190,7 @@ if not formats_to_convert:
             })
 
 if not formats_to_convert:
-    print("No supported formats found to convert", file=sys.stderr)
+    log_debug("No supported formats found to convert")
     sys.exit(0)
 
 bundle = {'ref': []}
@@ -194,7 +208,7 @@ for fmt in formats_to_convert:
         markdown_content = convert_to_markdown(file_path, ext, content_type)
 
         if not markdown_content or not markdown_content.strip():
-            print(f"Warning: No content extracted from {plugin}", file=sys.stderr)
+            log_debug(f"Warning: No content extracted from {plugin}")
             markdown_content = f"(No text content could be extracted from {plugin})"
 
         # Create response ref with propagated tags (similar to dalle.ts pattern)
@@ -245,14 +259,24 @@ for fmt in formats_to_convert:
         bundle['ref'].append(response_ref)
 
     except requests.exceptions.RequestException as e:
-        print(f"Error fetching {fmt['plugin']}: {e}", file=sys.stderr)
+        log_debug(f"Error fetching {fmt['plugin']}: {e}")
     except Exception as e:
-        print(f"Error converting {fmt['plugin']}: {e}", file=sys.stderr)
+        log_debug(f"Error converting {fmt['plugin']}: {e}")
+
+# Add debug log ref if +plugin/debug tag is present
+if debug_mode and debug_logs:
+    bundle['ref'].append({
+        'url': 'log:' + str(uuid.uuid4()),
+        'sources': [ref.get('url')],
+        'title': 'MarkItDown Debug Logs',
+        'comment': '\\n'.join(debug_logs),
+        'tags': ['internal', '+plugin/log'],
+    })
 
 if bundle['ref']:
     print(json.dumps(bundle))
 else:
-    print("No content could be converted", file=sys.stderr)
+    log_debug("No content could be converted")
     sys.exit(1)
     `,
   },

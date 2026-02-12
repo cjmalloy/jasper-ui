@@ -1,8 +1,7 @@
 import { expect, type Page } from '@playwright/test';
 
 export async function clearMods(page: Page, base = '') {
-  await page.goto(base + '/settings/plugin?debug=ADMIN&pageSize=2000');
-  await page.waitForLoadState('networkidle');
+  await page.goto(base + '/settings/plugin?debug=ADMIN&pageSize=2000', { waitUntil: 'networkidle' });
   const plugins = page.locator('.list-container .plugin:not(.deleted)');
   const pluginCount = await plugins.count();
   for (let i = 0; i < pluginCount; i++) {
@@ -12,8 +11,7 @@ export async function clearMods(page: Page, base = '') {
     await plugins.first().locator('.action .fake-link', { hasText: 'yes' }).click();
     await deletePromise;
   }
-  await page.goto(base + '/settings/template?debug=ADMIN&pageSize=2000');
-  await page.waitForLoadState('networkidle');
+  await page.goto(base + '/settings/template?debug=ADMIN&pageSize=2000', { waitUntil: 'networkidle' });
   const templates = page.locator('.list-container .template:not(.deleted):not(.config_index):not(.config_server)');
   let templateCount = await templates.count();
   for (let i = 0; i < templateCount; i++) {
@@ -26,8 +24,7 @@ export async function clearMods(page: Page, base = '') {
 }
 
 export async function clearAll(page: Page, base = '', origin  = '') {
-  await page.goto(base + '/settings/backup?debug=ADMIN');
-  await page.waitForLoadState('networkidle');
+  await page.goto(base + '/settings/backup?debug=ADMIN', { waitUntil: 'networkidle' });
   if (await page.locator('form select').locator('option', { hasText: origin || 'default'}).count() === 0) return;
   await page.locator('form select').selectOption(origin);
   page.once('dialog', dialog => dialog.accept(origin || 'default'));
@@ -53,8 +50,7 @@ export async function mod(page: Page, ...mods: string[]) {
 
 export async function modRemote(page: Page, base = '', ...mods: string[]) {
   await clearMods(page, base);
-  await page.goto(base + '/?debug=ADMIN');
-  await page.waitForLoadState('networkidle');
+  await page.goto(base + '/?debug=ADMIN', { waitUntil: 'networkidle' });
   await page.locator('.settings a', { hasText: 'settings' }).click();
   await page.locator('.tabs a', { hasText: 'setup' }).first().click();
   if (mods.includes('#mod-experiments')) {
@@ -62,8 +58,7 @@ export async function modRemote(page: Page, base = '', ...mods: string[]) {
     await page.locator('#mod-experiments').check();
     await page.locator('button', { hasText: 'Save' }).click();
     await page.locator('.log div', { hasText: 'Success.' }).first().waitFor({ timeout: 15_000, state: 'attached' });
-    await page.goto(base + '/settings/setup?debug=ADMIN');
-    await page.waitForLoadState('networkidle');
+    await page.goto(base + '/settings/setup?debug=ADMIN', { waitUntil: 'networkidle' });
   }
   for (const mod of mods) {
     if (mod === '#mod-experiments') continue;
@@ -72,8 +67,7 @@ export async function modRemote(page: Page, base = '', ...mods: string[]) {
   }
   await page.locator('button', { hasText: 'Save' }).click();
   await page.locator('.log div', { hasText: 'Success.' }).first().waitFor({ timeout: 15_000, state: 'attached' });
-  await page.goto(base + '/settings/setup?debug=ADMIN');
-  await page.waitForLoadState('networkidle');
+  await page.goto(base + '/settings/setup?debug=ADMIN', { waitUntil: 'networkidle' });
   for (const mod of mods) {
     await expect(page.locator(mod)).toBeChecked();
   }
@@ -96,8 +90,7 @@ export async function closeSidebar(page: Page) {
 }
 
 export async function upload(page: Page, file: string) {
-  await page.goto('/?debug=USER');
-  await page.waitForLoadState('networkidle');
+  await page.goto('/?debug=USER', { waitUntil: 'networkidle' });
   await openSidebar(page);
   await page.locator('.sidebar .submit-button', { hasText: 'Submit' }).first().click();
   await page.locator('.tabs a', { hasText: 'upload' }).click();
@@ -108,4 +101,18 @@ export async function upload(page: Page, file: string) {
   await page.waitForTimeout(1_000);
   await expect(page.locator('.full-page.ref .link a')).toContainText(file.substring(file.lastIndexOf('/') + 1));
   return page.url().replace('/ref/', '/ref/e/');
+}
+
+export async function pollNotifications(page: Page, user = 'debug', role = 'USER') {
+  await pollRemoteNotifications(page, '', user, role);
+}
+
+export async function pollRemoteNotifications(page: Page, base = '', user = 'debug', role = 'USER') {
+  const path = base + `/?debug=${role}&tag=${user}`;
+  await page.goto(path, { waitUntil: 'networkidle' });
+  await expect.poll(async () => {
+    await page.reload({ waitUntil: 'networkidle' });
+    await page.goto(path, { waitUntil: 'networkidle' });
+    return await page.locator('.settings .notification').isVisible();
+  }, { timeout: 60_000 }).toBe(true);
 }

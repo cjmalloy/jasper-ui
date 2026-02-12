@@ -272,8 +272,7 @@ test.describe.serial('Feature Name', () => {
   });
 
   test('does something', async ({ page }) => {
-    await page.goto('/?debug=ADMIN');
-    await page.waitForLoadState('networkidle');
+    await page.goto('/?debug=ADMIN', { waitUntil: 'networkidle' });
     // ... test actions and assertions
   });
 });
@@ -293,18 +292,6 @@ When writing a new test, use the MCP server to find the right selectors:
 2. Take a snapshot: `browser_snapshot` to see all interactive elements
 3. Try clicking elements: `browser_click` to verify the correct element is targeted
 4. Check results: `browser_snapshot` again to verify state changes
-
-Prefer these selector strategies (in order):
-1. Role + text: `page.locator('button', { hasText: 'Submit' })`
-2. CSS class + text: `page.locator('.actions .fake-link', { hasText: 'delete' })`
-3. ID: `page.locator('#mod-wiki')`
-4. Test-specific: `page.locator('[name=title]')`
-
-#### Waiting Strategies
-- `page.waitForLoadState('networkidle')` - Wait for API calls to finish
-- `page.waitForResponse(resp => resp.url().includes('/api/v1/ref'))` - Wait for a specific API response
-- `page.locator('.element').waitFor({ timeout: 15_000, state: 'attached' })` - Wait for an element
-- Avoid `page.waitForTimeout()` unless absolutely necessary
 
 ### Debugging Failing Tests
 
