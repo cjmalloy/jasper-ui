@@ -46,7 +46,7 @@ services:
       test: "curl -f http://localhost/management/health/readiness"
     environment:
       SPRING_LOGGING_LEVEL_ROOT: WARN
-      SPRING_PROFILES_ACTIVE: prod,jwt,storage,file-cache
+      SPRING_PROFILES_ACTIVE: prod,jwt,storage,file-cache,scripts
       SPRING_DATASOURCE_URL: jdbc:postgresql://db/jasper
       SPRING_DATASOURCE_USERNAME: jasper
       SPRING_DATASOURCE_PASSWORD: jasper
@@ -61,6 +61,7 @@ services:
       JASPER_OVERRIDE_SECURITY_CLIENT_ID: ''
       JASPER_OVERRIDE_SECURITY_BASE64_SECRET: 'MjY0ZWY2ZTZhYmJhMTkyMmE5MTAxMTg3Zjc2ZDlmZWUwYjk0MDgzODA0MDJiOTgyNTk4MmNjYmQ4Yjg3MmVhYjk0MmE0OGFmNzE2YTQ5ZjliMTEyN2NlMWQ4MjA5OTczYjU2NzAxYTc4YThkMzYxNzdmOTk5MTIxODZhMTkwMDM='
       JASPER_HEAP: 256m
+      JASPER_CACHE_API: http://web
     depends_on:
       - db
   db:

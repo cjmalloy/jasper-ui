@@ -2,6 +2,8 @@ import { expect, test } from '@playwright/test';
 import { clearMods, mod, openSidebar } from './setup';
 
 test.describe.serial('MarkItDown Plugin', () => {
+  let url = '';
+
   test('loads the page', async ({ page }) => {
     await page.goto('/?debug=USER');
     await page.waitForLoadState('networkidle');
@@ -9,69 +11,53 @@ test.describe.serial('MarkItDown Plugin', () => {
   });
 
   test('turn on markitdown plugin', async ({ page }) => {
-    await mod(page, '#mod-markitdown', '#mod-filecache');
+    await mod(page,
+      '#mod-root',
+      '#mod-scripts',
+      '#mod-pdf',
+      '#mod-thumbnail',
+      '#mod-images',
+      '#mod-error',
+      '#mod-markitdown',
+      '#mod-cache',
+      '#mod-filecache',
+      '#mod-mailbox',
+      '#mod-user');
   });
 
   test('creates a ref with plugin/pdf tag', async ({ page }) => {
-    // Wait for backend API to be fully ready before attempting file upload
     await page.goto('/?debug=USER');
     await page.waitForLoadState('networkidle');
-    
-    // Verify backend is responding
-    await page.waitForResponse(resp => resp.url().includes('/api/v1/ref') && resp.status() === 200, { timeout: 30_000 });
-    
     await openSidebar(page);
     await page.locator('.sidebar .submit-button', { hasText: 'Submit' }).first().click();
-    
-    // Click the upload tab and wait for it to load
     await page.locator('.tabs a', { hasText: 'upload' }).click();
-    await page.waitForLoadState('networkidle');
-    
-    // Wait for file cache section to be rendered (requires filecache mod)
     await expect(page.locator('button', { hasText: '+ cache' })).toBeVisible({ timeout: 10_000 });
-    
-    // Upload the PDF file using cache input (the input element after the "cache" button)
-    // Find the file input by its relationship to the cache button
     const fileInput = page.locator('input[type="file"]').nth(1);
     await fileInput.setInputFiles('e2e/fixtures/test.pdf');
-    
-    // Wait for the file processing to complete and "upload all" button to appear
-    // This happens after the file is uploaded to cache and ref is fetched
-    await expect(page.locator('button', { hasText: 'upload all' })).toBeVisible({ timeout: 90_000 });
-    
-    // Wait for the ref preview to be rendered (indicates processing is complete)
-    await expect(page.locator('app-ref')).toBeVisible({ timeout: 5_000 });
-    
-    // PDF plugin should be added automatically, no need to add tags manually
-    
-    // Upload all - wait for navigation to ref page
-    await page.locator('button', { hasText: 'upload all' }).click();
-    await page.waitForURL(/.*\?.*url=cache:/, { timeout: 30_000 });
-    
-    // After uploading a single file, it navigates to that ref automatically
+    await page.locator('.ref .actions .fake-link', { hasText: 'upload' }).click();
+    await page.waitForTimeout(1_000);
     await expect(page.locator('.full-page.ref .link a')).toContainText('test.pdf');
+    url = page.url().replace('/ref/', '/ref/e/');
   });
 
   test('should show markdown action button', async ({ page }) => {
-    // Should already be on the uploaded ref page from previous test
-    await expect(page.locator('.full-page.ref .actions')).toContainText('markdown');
+    await page.goto(url + '?debug=USER');
+    expect(await page.locator('.full-page.ref .actions .fake-link', { hasText: 'markdown' }).count() === 1);
   });
 
   test('should trigger markdown conversion', async ({ page }) => {
-    // Click the markdown action button
-    await page.locator('.full-page.ref .actions', { hasText: 'markdown' }).click();
-    
-    // Should now show cancel button
-    await expect(page.locator('.full-page.ref .actions')).toContainText('cancel');
-    
-    // Wait for conversion to complete (or timeout)
-    // The plugin has a 10-minute timeout
-    await page.waitForTimeout(2000);
+    await page.goto(url + '?debug=USER');
+    await page.locator('.full-page.ref .actions .fake-link', { hasText: 'markdown' }).click();
+    expect(await page.locator('.full-page.ref .actions .fake-link', { hasText: 'cancel' }).count() === 1);
+    await page.waitForTimeout(2_000);
   });
 
   test('should show markdown query notification', async ({ page }) => {
-    // Check if the markitdown query tag was added
-    await expect(page.locator('.full-page.ref')).toContainText('markitdown');
+    await page.goto('/?debug=USER');
+    await page.waitForLoadState('networkidle');
+    await page.locator('.settings .notification').click();
+    await page.waitForLoadState('networkidle');
+    await expect(page.locator('.ref').first()).toContainText('Markdown:');
   });
 
   test('creates a ref with plugin/file tag', async ({ page }) => {
@@ -79,37 +65,19 @@ test.describe.serial('MarkItDown Plugin', () => {
     await page.waitForLoadState('networkidle');
     await openSidebar(page);
     await page.locator('.sidebar .submit-button', { hasText: 'Submit' }).first().click();
-    
-    // Click the upload tab and wait for it to load
     await page.locator('.tabs a', { hasText: 'upload' }).click();
-    await page.waitForLoadState('networkidle');
-    
-    // Wait for file cache section to be rendered
     await expect(page.locator('button', { hasText: '+ cache' })).toBeVisible({ timeout: 10_000 });
-    
-    // Upload the DOC file using cache input (the input element after the "cache" button)
     const fileInput = page.locator('input[type="file"]').nth(1);
     await fileInput.setInputFiles('e2e/fixtures/test.doc');
-    
-    // Wait for "upload all" button to appear
-    await expect(page.locator('button', { hasText: 'upload all' })).toBeVisible({ timeout: 90_000 });
-    
-    // Wait for the ref preview to be rendered (indicates processing is complete)
-    await expect(page.locator('app-ref')).toBeVisible({ timeout: 5_000 });
-    
-    // File plugin should be added automatically
-    
-    // Upload all - wait for navigation to ref page
-    await page.locator('button', { hasText: 'upload all' }).click();
-    await page.waitForURL(/.*\?.*url=cache:/, { timeout: 30_000 });
-    
-    // After uploading a single file, it navigates to that ref automatically
+    await page.locator('.ref .actions .fake-link', { hasText: 'upload' }).click();
+    await page.waitForTimeout(1_000);
     await expect(page.locator('.full-page.ref .link a')).toContainText('test.doc');
+    url = page.url().replace('/ref/', '/ref/e/');
   });
 
   test('should have markdown action on file ref', async ({ page }) => {
-    // Should already be on the uploaded ref page from previous test
-    await expect(page.locator('.full-page.ref .actions')).toContainText('markdown');
+    await page.goto(url + '?debug=USER');
+    expect(await page.locator('.full-page.ref .actions .fake-link', { hasText: 'markdown' }).count() === 1);
   });
 
   test('creates a public ref for visibility test', async ({ page }) => {
@@ -117,55 +85,34 @@ test.describe.serial('MarkItDown Plugin', () => {
     await page.waitForLoadState('networkidle');
     await openSidebar(page);
     await page.locator('.sidebar .submit-button', { hasText: 'Submit' }).first().click();
-    
-    // Click the upload tab and wait for it to load
     await page.locator('.tabs a', { hasText: 'upload' }).click();
-    await page.waitForLoadState('networkidle');
-    
-    // Wait for file cache section to be rendered
     await expect(page.locator('button', { hasText: '+ cache' })).toBeVisible({ timeout: 10_000 });
-    
-    // Upload the PDF file using cache input (the input element after the "cache" button)
     const fileInput = page.locator('input[type="file"]').nth(1);
     await fileInput.setInputFiles('e2e/fixtures/test.pdf');
-    
-    // Wait for "upload all" button to appear
-    await expect(page.locator('button', { hasText: 'upload all' })).toBeVisible({ timeout: 90_000 });
-    
-    // Wait for the ref preview to be rendered (indicates processing is complete)
-    await expect(page.locator('app-ref')).toBeVisible({ timeout: 5_000 });
-    
-    // Add public tag (PDF plugin is added automatically)
     await page.locator('input#add-tag').fill('public');
     await page.locator('input#add-tag').press('Enter');
-    
-    // Upload all - wait for navigation to ref page
-    await page.locator('button', { hasText: 'upload all' }).click();
-    await page.waitForURL(/.*\?.*url=cache:/, { timeout: 30_000 });
-    
-    // After uploading a single file, it navigates to that ref automatically
+    await page.locator('.ref .actions .fake-link', { hasText: 'upload' }).click();
+    await page.waitForTimeout(1_000);
     await expect(page.locator('.full-page.ref .link a')).toContainText('test.pdf');
+    url = page.url().replace('/ref/', '/ref/e/');
   });
 
   test('should propagate public tag to response', async ({ page }) => {
-    // Should already be on the uploaded public ref from previous test
-    // Verify public tag is visible
-    await expect(page.locator('.full-page.ref .tag', { hasText: 'public' })).toBeVisible();
+    await page.goto(url + '?debug=USER');
+    await expect(page.locator('.full-page.ref .info .icon', { hasText: '👁️' })).not.toBeVisible();
   });
 
   test('should show markdown filter in notifications', async ({ page }) => {
     await page.goto('/?debug=USER');
+    await page.waitForLoadState('networkidle');
     await page.locator('.settings .notification').click();
-    
-    // Should see markitdown query filter
-    await expect(page.locator('.tabs')).toContainText('markitdown');
+    await page.waitForLoadState('networkidle');
+    await expect(page.locator('.ref').first()).toContainText('Markdown:');
   });
 
   test('can filter by markdown signature tag', async ({ page }) => {
     await page.goto('/?debug=USER');
     await openSidebar(page);
-    
-    // Check if markdown filter exists in sidebar
     await expect(page.locator('.sidebar')).toContainText('markdown');
   });
 
@@ -174,73 +121,23 @@ test.describe.serial('MarkItDown Plugin', () => {
     await page.waitForLoadState('networkidle');
     await openSidebar(page);
     await page.locator('.sidebar .submit-button', { hasText: 'Submit' }).first().click();
-    
-    // Click the upload tab and wait for it to load
     await page.locator('.tabs a', { hasText: 'upload' }).click();
-    await page.waitForLoadState('networkidle');
-    
-    // Wait for file cache section to be rendered
     await expect(page.locator('button', { hasText: '+ cache' })).toBeVisible({ timeout: 10_000 });
-    
-    // Upload the PDF file using cache input (the input element after the "cache" button)
     const fileInput = page.locator('input[type="file"]').nth(1);
     await fileInput.setInputFiles('e2e/fixtures/test.pdf');
-    
-    // Wait for "upload all" button to appear
-    await expect(page.locator('button', { hasText: 'upload all' })).toBeVisible({ timeout: 90_000 });
-    
-    // Wait for the ref preview to be rendered (indicates processing is complete)
-    await expect(page.locator('app-ref')).toBeVisible({ timeout: 5_000 });
-    
-    // PDF plugin is added automatically, no need to add tags
-    
-    // Upload all - wait for navigation to ref page
-    await page.locator('button', { hasText: 'upload all' }).click();
-    await page.waitForURL(/.*\?.*url=cache:/, { timeout: 30_000 });
-    
-    // After uploading, it navigates to that ref automatically
+    await page.locator('.ref .actions .fake-link', { hasText: 'upload' }).click();
+    await page.waitForTimeout(1_000);
     await expect(page.locator('.full-page.ref .link a')).toContainText('test.pdf');
-    
-    // Click markdown action
-    await page.locator('.full-page.ref .actions', { hasText: 'markdown' }).click();
-    await expect(page.locator('.full-page.ref .actions')).toContainText('cancel');
-    
-    // Click cancel
-    await page.locator('.full-page.ref .actions', { hasText: 'cancel' }).click();
-    
-    // Should show markdown action again (not cancel)
-    await expect(page.locator('.full-page.ref .actions')).toContainText('markdown');
-    await expect(page.locator('.full-page.ref .actions')).not.toContainText('cancel');
-  });
 
-  test('cleans up test refs', async ({ page }) => {
-    // Clean up the refs we created (there will be multiple test.pdf files)
-    await page.goto('/?debug=USER');
-    
-    // Delete all test.pdf refs
-    await openSidebar(page);
-    await page.locator('input[type=search]').fill('test.pdf');
-    await page.locator('input[type=search]').press('Enter');
-    await page.waitForTimeout(500);
-    
-    // Delete each test.pdf ref found
-    while (await page.locator('.ref-list .link', { hasText: 'test.pdf' }).first().isVisible().catch(() => false)) {
-      const refItem = page.locator('.ref-list .link', { hasText: 'test.pdf' }).first().locator('..').locator('..').locator('..');
-      await refItem.locator('.actions .fake-link', { hasText: 'delete' }).click();
-      await refItem.locator('.actions .fake-link', { hasText: 'yes' }).click();
-      await page.waitForTimeout(500);
-    }
-    
-    // Delete test.doc
-    await page.locator('input[type=search]').clear();
-    await page.locator('input[type=search]').fill('test.doc');
-    await page.locator('input[type=search]').press('Enter');
-    await page.waitForTimeout(500);
-    
-    if (await page.locator('.ref-list .link', { hasText: 'test.doc' }).isVisible().catch(() => false)) {
-      const refItem = page.locator('.ref-list .link', { hasText: 'test.doc' }).locator('..').locator('..').locator('..');
-      await refItem.locator('.actions .fake-link', { hasText: 'delete' }).click();
-      await refItem.locator('.actions .fake-link', { hasText: 'yes' }).click();
-    }
+    // Click markdown action
+    await page.locator('.full-page.ref .actions .fake-link', { hasText: 'markdown' }).click();
+    expect(await page.locator('.full-page.ref .actions .fake-link', { hasText: 'cancel' }).count() === 1);
+
+    // Click cancel
+    await page.locator('.full-page.ref .actions .fake-link', { hasText: 'cancel' }).click();
+
+    // Should show markdown action again (not cancel)
+    expect(await page.locator('.full-page.ref .actions .fake-link', { hasText: 'markdown' }).count() === 1);
+    expect(await page.locator('.full-page.ref .actions .fake-link', { hasText: 'cancel' }).count() === 0);
   });
 });

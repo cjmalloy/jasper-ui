@@ -71,9 +71,6 @@ export class UploadPage implements OnDestroy {
       this.readUploads(this.store.submit.files);
       runInAction(() => this.store.submit.clearFiles());
     }));
-    this.disposers.push(autorun(() => {
-      console.log(this.store.submit.uploads.length);
-    }));
     this.store.submit.clearOverride();
   }
 
@@ -208,6 +205,11 @@ export class UploadPage implements OnDestroy {
           ref!.title = file.name;
           ref!.tags = uniq([...ref!.tags || [], tag, ...extraTags.filter(t => !!t)]);
           return ref!;
+        }),
+        catchError((res: HttpErrorResponse) => {
+          this.store.submit.caching.delete(file);
+          this.serverErrors.push(...printError(res));
+          return throwError(() => res);
         }),
       ).subscribe(ref => runInAction(() => {
         this.store.submit.caching.delete(file);
