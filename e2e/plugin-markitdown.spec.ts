@@ -21,7 +21,9 @@ test.describe.serial('MarkItDown Plugin', () => {
     await page.locator('.tabs a', { hasText: 'upload' }).click();
     
     // Upload the PDF file using cache input (second file input)
+    // Wait for the cache file input to be visible (requires filecache mod to be loaded)
     const fileInput = page.locator('input[type="file"]').nth(1);
+    await fileInput.waitFor({ state: 'visible', timeout: 10_000 });
     await fileInput.setInputFiles('e2e/fixtures/test.pdf');
     
     // Wait for "upload all" button to appear (when store.submit.empty is false)
@@ -70,7 +72,9 @@ test.describe.serial('MarkItDown Plugin', () => {
     await page.locator('.tabs a', { hasText: 'upload' }).click();
     
     // Upload the DOC file using cache input (second file input)
+    // Wait for the cache file input to be visible (requires filecache mod to be loaded)
     const fileInput = page.locator('input[type="file"]').nth(1);
+    await fileInput.waitFor({ state: 'visible', timeout: 10_000 });
     await fileInput.setInputFiles('e2e/fixtures/test.doc');
     
     // Wait for "upload all" button to appear
@@ -100,7 +104,9 @@ test.describe.serial('MarkItDown Plugin', () => {
     await page.locator('.tabs a', { hasText: 'upload' }).click();
     
     // Upload the PDF file using cache input (second file input)
+    // Wait for the cache file input to be visible (requires filecache mod to be loaded)
     const fileInput = page.locator('input[type="file"]').nth(1);
+    await fileInput.waitFor({ state: 'visible', timeout: 10_000 });
     await fileInput.setInputFiles('e2e/fixtures/test.pdf');
     
     // Wait for "upload all" button to appear
@@ -149,7 +155,9 @@ test.describe.serial('MarkItDown Plugin', () => {
     await page.locator('.tabs a', { hasText: 'upload' }).click();
     
     // Upload the PDF file using cache input (second file input)
+    // Wait for the cache file input to be visible (requires filecache mod to be loaded)
     const fileInput = page.locator('input[type="file"]').nth(1);
+    await fileInput.waitFor({ state: 'visible', timeout: 10_000 });
     await fileInput.setInputFiles('e2e/fixtures/test.pdf');
     
     // Wait for "upload all" button to appear
