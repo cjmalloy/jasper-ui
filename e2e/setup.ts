@@ -94,3 +94,18 @@ export async function closeSidebar(page: Page) {
     await sidebar.locator('.row .toggle').click();
   }
 }
+
+export async function upload(page: Page, file: string) {
+  await page.goto('/?debug=USER');
+  await page.waitForLoadState('networkidle');
+  await openSidebar(page);
+  await page.locator('.sidebar .submit-button', { hasText: 'Submit' }).first().click();
+  await page.locator('.tabs a', { hasText: 'upload' }).click();
+  await expect(page.locator('button', { hasText: '+ cache' })).toBeVisible({ timeout: 10_000 });
+  const fileInput = page.locator('input[type="file"]').nth(1);
+  await fileInput.setInputFiles(file);
+  await page.locator('.ref .actions .fake-link', { hasText: 'upload' }).click();
+  await page.waitForTimeout(1_000);
+  await expect(page.locator('.full-page.ref .link a')).toContainText(file.substring(file.lastIndexOf('/') + 1));
+  return page.url().replace('/ref/', '/ref/e/');
+}

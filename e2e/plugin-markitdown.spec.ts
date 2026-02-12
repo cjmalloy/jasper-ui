@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { clearMods, mod, openSidebar } from './setup';
+import { clearMods, mod, openSidebar, upload } from './setup';
 
 test.describe.serial('MarkItDown Plugin', () => {
   let url = '';
@@ -26,18 +26,7 @@ test.describe.serial('MarkItDown Plugin', () => {
   });
 
   test('creates a ref with plugin/pdf tag', async ({ page }) => {
-    await page.goto('/?debug=USER');
-    await page.waitForLoadState('networkidle');
-    await openSidebar(page);
-    await page.locator('.sidebar .submit-button', { hasText: 'Submit' }).first().click();
-    await page.locator('.tabs a', { hasText: 'upload' }).click();
-    await expect(page.locator('button', { hasText: '+ cache' })).toBeVisible({ timeout: 10_000 });
-    const fileInput = page.locator('input[type="file"]').nth(1);
-    await fileInput.setInputFiles('e2e/fixtures/test.pdf');
-    await page.locator('.ref .actions .fake-link', { hasText: 'upload' }).click();
-    await page.waitForTimeout(1_000);
-    await expect(page.locator('.full-page.ref .link a')).toContainText('test.pdf');
-    url = page.url().replace('/ref/', '/ref/e/');
+    url = await upload(page, 'e2e/fixtures/test.pdf');
   });
 
   test('should show markdown action button', async ({ page }) => {
@@ -61,18 +50,7 @@ test.describe.serial('MarkItDown Plugin', () => {
   });
 
   test('creates a ref with plugin/file tag', async ({ page }) => {
-    await page.goto('/?debug=USER');
-    await page.waitForLoadState('networkidle');
-    await openSidebar(page);
-    await page.locator('.sidebar .submit-button', { hasText: 'Submit' }).first().click();
-    await page.locator('.tabs a', { hasText: 'upload' }).click();
-    await expect(page.locator('button', { hasText: '+ cache' })).toBeVisible({ timeout: 10_000 });
-    const fileInput = page.locator('input[type="file"]').nth(1);
-    await fileInput.setInputFiles('e2e/fixtures/test.doc');
-    await page.locator('.ref .actions .fake-link', { hasText: 'upload' }).click();
-    await page.waitForTimeout(1_000);
-    await expect(page.locator('.full-page.ref .link a')).toContainText('test.doc');
-    url = page.url().replace('/ref/', '/ref/e/');
+    url = await upload(page, 'e2e/fixtures/test.doc');
   });
 
   test('should have markdown action on file ref', async ({ page }) => {
@@ -117,17 +95,7 @@ test.describe.serial('MarkItDown Plugin', () => {
   });
 
   test('cancels markdown conversion', async ({ page }) => {
-    await page.goto('/?debug=USER');
-    await page.waitForLoadState('networkidle');
-    await openSidebar(page);
-    await page.locator('.sidebar .submit-button', { hasText: 'Submit' }).first().click();
-    await page.locator('.tabs a', { hasText: 'upload' }).click();
-    await expect(page.locator('button', { hasText: '+ cache' })).toBeVisible({ timeout: 10_000 });
-    const fileInput = page.locator('input[type="file"]').nth(1);
-    await fileInput.setInputFiles('e2e/fixtures/test.pdf');
-    await page.locator('.ref .actions .fake-link', { hasText: 'upload' }).click();
-    await page.waitForTimeout(1_000);
-    await expect(page.locator('.full-page.ref .link a')).toContainText('test.pdf');
+    await upload(page, 'e2e/fixtures/test.pdf');
 
     // Click markdown action
     await page.locator('.full-page.ref .actions .fake-link', { hasText: 'markdown' }).click();
