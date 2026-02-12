@@ -1,6 +1,6 @@
 <ng-container *mobxAutorun>
   @if (store.view.ref) {
-    <app-comment-reply [to]="store.view.ref"
+    <app-comment-reply #reply [to]="store.view.ref"
                        quote=""
                        [tags]="replyTags"
                        (save)="newComments$.next($event)"></app-comment-reply>

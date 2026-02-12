@@ -1,4 +1,4 @@
-<app-editor [control]="comment"
+<app-editor #editor [control]="comment"
             [createdTags]="ref.tags || []"
             (syncTags)="editorTags = $event"
             (addSource)="sources.push($event)"

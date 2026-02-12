@@ -15,7 +15,7 @@
       </div>
     }
 
-    <app-ref-form [group]="webForm"
+    <app-ref-form #refForm [group]="webForm"
                   (toggleTag)="bookmarks.toggleTag($event)"></app-ref-form>
 
     @for (e of serverError; track e) {

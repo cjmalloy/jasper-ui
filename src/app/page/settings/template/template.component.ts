@@ -24,7 +24,7 @@ export class SettingsTemplatePage implements OnInit, OnDestroy, HasChanges {
 
   serverError: string[] = [];
 
-  @ViewChild(TemplateListComponent)
+  @ViewChild('list')
   list?: TemplateListComponent;
 
   private disposers: IReactionDisposer[] = [];

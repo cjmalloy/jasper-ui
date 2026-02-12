@@ -38,11 +38,11 @@ export class RefSummaryComponent implements OnInit, OnDestroy, HasChanges {
 
   summaryItems = 5;
 
-  @ViewChild(CommentReplyComponent)
+  @ViewChild('reply')
   reply?: CommentReplyComponent;
   @ViewChildren(CommentThreadComponent)
   threadComponents?: QueryList<CommentThreadComponent>;
-  @ViewChild(RefListComponent)
+  @ViewChild('list')
   list?: RefListComponent;
 
   constructor(

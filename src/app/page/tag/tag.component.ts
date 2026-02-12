@@ -36,7 +36,7 @@ export class TagPage implements OnInit, OnDestroy, HasChanges {
 
   loading = true;
 
-  @ViewChild(LensComponent)
+  @ViewChild('lens')
   lens?: LensComponent;
 
   constructor(

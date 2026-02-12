@@ -220,7 +220,7 @@ export class BlogEntryComponent implements OnChanges, OnDestroy, HasChanges {
     return comment.substring(0, 140);
   }
 
-  @ViewChild(RefFormComponent)
+  @ViewChild('refForm')
   set refForm(value: RefFormComponent) {
     defer(() => {
       value?.setRef(this.ref);

@@ -109,7 +109,7 @@
           }
         </div>
         @if (editing) {
-          <app-comment-edit [ref]="ref"
+          <app-comment-edit #editComponent [ref]="ref"
                             [commentEdited$]="commentEdited$"></app-comment-edit>
         } @else {
           <app-viewer class="comment-body"
@@ -163,7 +163,7 @@
     }
   </div>
   @if (replying) {
-    <app-comment-reply [autofocus]="true"
+    <app-comment-reply #replyComponent [autofocus]="true"
                        [to]="ref"
                        [showCancel]="true"
                        [tags]="replyTags"
@@ -171,7 +171,7 @@
   }
   <div class="comment-children"
        [class.hidden-without-removing]="collapsed">
-    <app-comment-thread [source]="ref.url"
+    <app-comment-thread #threadComponent [source]="ref.url"
                         [scrollToLatest]="scrollToLatest"
                         [depth]="depth! - 1"
                         [context]="context + 1"

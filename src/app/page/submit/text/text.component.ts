@@ -80,9 +80,9 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
   @ViewChild('ed')
   editorComponent?: EditorComponent;
 
-  @ViewChild(TagsFormComponent)
+  @ViewChild('tagsFormComponent')
   tagsFormComponent!: TagsFormComponent;
-  @ViewChild(PluginsFormComponent)
+  @ViewChild('plugins')
   plugins!: PluginsFormComponent;
 
   submitting?: Subscription;

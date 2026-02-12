@@ -37,10 +37,11 @@ yarn-error.log
 testem.log
 /typings
 
-# Cypress
-/cypress/reports
-/cypress/videos
-/cypress/screenshots
+# Playwright
+/e2e/reports
+/e2e/test-results
+/playwright-report
+/test-results
 
 # System files
 .DS_Store

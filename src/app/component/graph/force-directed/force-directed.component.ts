@@ -99,7 +99,7 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy, HasChan
   figure!: ElementRef;
   @ViewChild('nodeMenu')
   nodeMenu!: TemplateRef<any>;
-  @ViewChild(RefListComponent)
+  @ViewChild('list')
   list?: RefListComponent;
 
   overlayRef?: OverlayRef;

@@ -46,7 +46,7 @@
   </app-tabs>
   <app-sidebar [tag]="store.view.home ? '' : store.view.template"></app-sidebar>
   @if (query.error?.status !== 403) {
-    <app-ext-list [page]="query.page"></app-ext-list>
+    <app-ext-list #list [page]="query.page"></app-ext-list>
   } @else {
     <div class="error-403" i18n>Access Denied</div>
   }

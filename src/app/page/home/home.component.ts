@@ -30,7 +30,7 @@ import { getArgs } from '../../util/query';
 export class HomePage implements OnInit, OnDestroy, HasChanges {
   private disposers: IReactionDisposer[] = [];
 
-  @ViewChild(LensComponent)
+  @ViewChild('lens')
   lens?: LensComponent;
 
   constructor(

@@ -9,9 +9,10 @@
                      [ext]="ext"
                      (copied)="copy($event)"></app-kanban-card>
   }
-  @for (text of adding; track text) {
-    <app-kanban-card [ref]="{ url: '', title: text }"
-                     [ext]="ext"></app-kanban-card>
+  @for (upload of adding; track upload.id) {
+    <app-kanban-card [ref]="{ url: '', title: upload.name }"
+                     [ext]="ext"
+                     [progress]="upload.progress"></app-kanban-card>
   }
   @for (failedItem of failed; track failedItem.text) {
     <div class="failed-item">
@@ -47,6 +48,7 @@
        placeholder="Add..."
        [value]="addText"
        (input)="addText = $any($event.target).value"
+       (paste)="handlePaste($event)"
        [style.display]="addText ? 'block' : 'none'"
        (keydown)="$event.key === 'Enter' && add() || true"
        (blur)="add()">

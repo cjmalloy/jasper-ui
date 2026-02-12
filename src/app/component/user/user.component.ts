@@ -105,7 +105,7 @@ export class UserComponent implements OnChanges, HasChanges {
     }
   }
 
-  @ViewChild(UserFormComponent)
+  @ViewChild('refForm')
   set refForm(value: UserFormComponent) {
     if (this.user) defer(() => value?.setUser(this.user!));
   }

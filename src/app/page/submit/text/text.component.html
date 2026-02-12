@@ -31,7 +31,7 @@
                          [text]="true"
                          i18n-title title="Add Plugin"
                          (pluginChange)="bookmarks.toggleTag($event); pluginSelect.plugin = ''"></app-select-plugin>
-      <app-form-plugins id="plugins" [group]="textForm"></app-form-plugins>
+      <app-form-plugins #plugins id="plugins" [group]="textForm"></app-form-plugins>
 
       @if (customEditor) {
         <span><!-- Editor --></span>
@@ -65,7 +65,7 @@
         </div>
       }
 
-      <app-tags [group]="textForm"></app-tags>
+      <app-tags #tagsFormComponent [group]="textForm"></app-tags>
 
       <span><!-- Advanced --></span>
       <a class="fake-link no-select" (click)="showAdvanced()" i18n>show advanced</a>

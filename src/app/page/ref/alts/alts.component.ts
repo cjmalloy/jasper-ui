@@ -23,7 +23,7 @@ export class RefAltsComponent implements OnInit, OnDestroy, HasChanges {
 
   private disposers: IReactionDisposer[] = [];
 
-  @ViewChild(RefListComponent)
+  @ViewChild('list')
   list?: RefListComponent;
 
   page: Page<Ref> = Page.of([]);

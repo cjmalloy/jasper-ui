@@ -77,7 +77,7 @@ export class SubmitDmPage implements AfterViewInit, OnChanges, OnDestroy, HasCha
   @ViewChild('ed')
   editorComponent?: EditorComponent;
 
-  @ViewChild(TagsFormComponent)
+  @ViewChild('tagsFormComponent')
   tagsFormComponent?: TagsFormComponent;
 
   preview = '';

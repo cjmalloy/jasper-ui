@@ -45,7 +45,7 @@
   }
   @if (query.error?.status !== 403) {
     @if (!loading) {
-      <app-lens [page]="query.page"
+      <app-lens #lens [page]="query.page"
                 [showAlarm]="!store.view.alarm"
                 [showVotes]="store.view.isVoteSorted"
                 [tag]="store.view.tag"

@@ -88,7 +88,7 @@
         <span class="parent-link fake-link print-hide" [routerLink]="['/ref', store.view.top.url]" (click)="store.view.preloadRef(store.view.top)" i18n>parent</span>
       }
     }
-    <app-ref class="full-page"
+    <app-ref #ref class="full-page"
              [class.thread]="thread"
              [ref]="store.view.ref"
              [showToggle]="!thread"

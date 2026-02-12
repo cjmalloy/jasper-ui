@@ -4,7 +4,7 @@
 @if (messages && !loadingPrev) {
   <a class="load-more fake-link" (click)="loadPrev()">load prev</a>
 }
-<cdk-virtual-scroll-viewport class="messages"
+<cdk-virtual-scroll-viewport #viewport class="messages"
                              [class.scroll-lock]="scrollLock"
                              [itemSize]="itemSize"
                              [style.height.px]="containerHeight"

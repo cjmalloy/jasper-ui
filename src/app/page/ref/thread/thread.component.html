@@ -1,6 +1,6 @@
 <ng-container *mobxAutorun>
   @if (query.page) {
-    <app-ref-list [page]="query.page"
+    <app-ref-list #list [page]="query.page"
                   [newRefs$]="newRefs$"
                   emptyMessage=""
                   [showToggle]="false"
@@ -10,7 +10,7 @@
     <app-loading></app-loading>
   }
   @if (store.view.ref) {
-    <app-comment-reply [to]="to"
+    <app-comment-reply #reply [to]="to"
                        quote=""
                        [tags]="replyTags"
                        (save)="newRefs$.next($event)"></app-comment-reply>
