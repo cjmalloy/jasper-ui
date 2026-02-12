@@ -1,5 +1,5 @@
 services:
-  cypress:
+  playwright:
     build: .
     profiles:
       - ci
@@ -14,18 +14,13 @@ services:
         condition: service_healthy
     network_mode: host
     environment:
-      CYPRESS_DEFAULT_COMMAND_TIMEOUT: 30000
-      CYPRESS_REQUEST_TIMEOUT: 10000
-      CYPRESS_baseUrl: http://localhost:8080
-      CYPRESS_mainApi: http://localhost:8081
-      CYPRESS_mainApiProxy: http://web
-      CYPRESS_replUrl: http://localhost:8082
-      CYPRESS_replApi: http://localhost:8083
-      CYPRESS_replApiProxy: http://repl-web
-      CYPRESS_reporter: cypress-mochawesome-reporter
-      CYPRESS_reporterOptions_saveJson: true
-      CYPRESS_video: true
-#      ELECTRON_ENABLE_LOGGING: 1
+      BASE_URL: http://localhost:8080
+      MAIN_API: http://localhost:8081
+      MAIN_API_PROXY: http://web
+      REPL_URL: http://localhost:8082
+      REPL_API: http://localhost:8083
+      REPL_API_PROXY: http://repl-web
+      CI: true
     working_dir: /e2e
     volumes:
       - ../:/e2e
@@ -39,7 +34,7 @@ services:
       JASPER_API: http://localhost:8081
       CSP_DEFAULT_SRC: http://localhost:8081 ws://localhost:8081
       CSP_CONNECT_SRC: http://localhost:8081 ws://localhost:8081
-      JASPER_TITLE: CYPRESS
+      JASPER_TITLE: PLAYWRIGHT
     depends_on:
       - web
   web:
@@ -110,6 +105,7 @@ services:
       JASPER_LOCAL_ORIGIN: '@repl'
       JASPER_DEFAULT_ROLE: ROLE_ADMIN # TODO: create remote user instead
       JASPER_OVERRIDE_SERVER_WEB_ORIGINS: '@repl'
+      JASPER_OVERRIDE_SERVER_SSH_ORIGINS: '@repl'
       JASPER_OVERRIDE_SECURITY_MODE: 'jwt'
       JASPER_OVERRIDE_SECURITY_CLIENT_ID: ''
       JASPER_OVERRIDE_SECURITY_BASE64_SECRET: 'MjY0ZWY2ZTZhYmJhMTkyMmE5MTAxMTg3Zjc2ZDlmZWUwYjk0MDgzODA0MDJiOTgyNTk4MmNjYmQ4Yjg3MmVhYjk0MmE0OGFmNzE2YTQ5ZjliMTEyN2NlMWQ4MjA5OTczYjU2NzAxYTc4YThkMzYxNzdmOTk5MTIxODZhMTkwMDM='

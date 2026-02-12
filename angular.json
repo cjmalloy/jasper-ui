@@ -175,37 +175,6 @@
             "runner": "vitest",
             "buildTarget": "jasper-ui:build:development"
           }
-        },
-        "cypress-run": {
-          "builder": "@cypress/schematic:cypress",
-          "options": {
-            "devServerTarget": "jasper-ui:serve"
-          },
-          "configurations": {
-            "production": {
-              "devServerTarget": "jasper-ui:serve:production"
-            }
-          }
-        },
-        "cypress-open": {
-          "builder": "@cypress/schematic:cypress",
-          "options": {
-            "watch": true,
-            "headless": false
-          }
-        },
-        "e2e": {
-          "builder": "@cypress/schematic:cypress",
-          "options": {
-            "devServerTarget": "jasper-ui:serve",
-            "watch": true,
-            "headless": false
-          },
-          "configurations": {
-            "production": {
-              "devServerTarget": "jasper-ui:serve:production"
-            }
-          }
         }
       }
     }
