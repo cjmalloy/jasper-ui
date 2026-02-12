@@ -1,4 +1,4 @@
-import { type Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
 
 export async function clearMods(page: Page, base = '') {
   await page.goto(base + '/settings/plugin?debug=ADMIN&pageSize=2000');
@@ -26,11 +26,12 @@ export async function clearMods(page: Page, base = '') {
   }
 }
 
-export async function clearAll(page: Page, base = '') {
+export async function clearAll(page: Page, base = '', origin  = '') {
   await page.goto(base + '/settings/backup?debug=ADMIN');
   await page.waitForLoadState('networkidle');
-  await page.locator('form select').selectOption('');
-  page.on('dialog', dialog => dialog.accept('default'));
+  if (await page.locator('form select').locator('option', { hasText: origin || 'default'}).count() === 0) return;
+  await page.locator('form select').selectOption(origin);
+  page.once('dialog', dialog => dialog.accept(origin || 'default'));
   await page.locator('button', { hasText: '– delete' }).click();
   await page.reload();
   await clearMods(page, base);
@@ -44,6 +45,37 @@ export async function deleteRef(page: Page, url: string, base = '') {
     await deleteBtn.first().click();
     await page.locator('.full-page.ref .actions .fake-link', { hasText: 'yes' }).first().click();
     await page.waitForTimeout(500);
+  }
+}
+
+export async function mod(page: Page, ...mods: string[]) {
+  await modRemote(page, '', ...mods);
+}
+
+export async function modRemote(page: Page, base = '', ...mods: string[]) {
+  await clearMods(page, base);
+  await page.goto(base + '/?debug=ADMIN');
+  await page.waitForLoadState('networkidle');
+  await page.locator('.settings a', { hasText: 'settings' }).click();
+  await page.locator('.tabs a', { hasText: 'setup' }).first().click();
+  if (mods.includes('#mod-experiments')) {
+    await expect(page.locator('#mod-experiments')).toBeChecked({ checked: false });
+    await page.locator('#mod-experiments').check();
+    await page.locator('button', { hasText: 'Save' }).click();
+    await page.locator('.log div', { hasText: 'Success.' }).first().waitFor({ timeout: 15_000, state: 'attached' });
+    await page.goto(base + '/settings/setup?debug=ADMIN');
+    await page.waitForLoadState('networkidle');
+  }
+  for (const mod of mods) {
+    await expect(page.locator(mod)).toBeChecked({ checked: false });
+    await page.locator(mod).check();
+  }
+  await page.locator('button', { hasText: 'Save' }).click();
+  await page.locator('.log div', { hasText: 'Success.' }).first().waitFor({ timeout: 15_000, state: 'attached' });
+  await page.goto(base + '/settings/setup?debug=ADMIN');
+  await page.waitForLoadState('networkidle');
+  for (const mod of mods) {
+    await expect(page.locator(mod)).toBeChecked();
   }
 }
 

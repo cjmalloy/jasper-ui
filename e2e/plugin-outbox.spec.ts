@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { clearMods, openSidebar } from './setup';
+import { clearAll, mod, modRemote, openSidebar } from './setup';
 
 test.describe.serial('Outbox Plugin: Remote Notifications', () => {
   const mainApi = process.env.MAIN_API || 'http://localhost:8081';
@@ -8,22 +8,22 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
   const replApi = process.env.REPL_API || 'http://localhost:8083';
   const replApiProxy = process.env.REPL_API_PROXY || 'http://repl-web';
 
-  test('@\u{ff20}main : clear mods', async ({ page }) => {
-    await clearMods(page);
+  test('@\u{ff20}main : clear all', async ({ page }) => {
+    await clearAll(page);
+    await clearAll(page, '', '@repl');
   });
 
-  test('@\u{ff20}main : turn on inbox, outbox and remote origins', async ({ page }) => {
-    await page.goto('/?debug=ADMIN');
-    await page.locator('.settings a', { hasText: 'settings' }).click();
-    await page.locator('.tabs a', { hasText: 'setup' }).first().click();
+  test('@\u{ff20}repl : clear all', async ({ page }) => {
+    await clearAll(page, replUrl, '@repl');
+    await clearAll(page, replUrl, '@repl.main');
+  });
 
-    await page.locator('#mod-comment').check();
-    await page.locator('#mod-mailbox').check();
-    await page.locator('#mod-root').check();
-    await page.locator('#mod-origin').check();
-    await page.locator('#mod-user').check();
-    await page.locator('button', { hasText: 'Save' }).click();
-    await page.locator('.log div', { hasText: 'Success.' }).first().waitFor({ timeout: 15_000, state: 'attached' });
+  test('@\u{ff20}main : turn on outbox and remote origins', async ({ page }) => {
+    await mod(page, '#mod-root', '#mod-origin', '#mod-user', '#mod-comment', '#mod-mailbox');
+  });
+
+  test('@\u{ff20}repl : turn on outbox and remote origins', async ({ page }) => {
+    await modRemote(page, replUrl, '#mod-root', '#mod-origin', '#mod-user', '#mod-comment', '#mod-mailbox');
   });
 
   test('@\u{ff20}main : create users', async ({ page }) => {
@@ -55,24 +55,6 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
     await page.locator('.full-page.ref .actions .fake-link', { hasText: 'enable' }).first().click();
   });
 
-  test('@\u{ff20}repl : clear mods', async ({ page }) => {
-    await clearMods(page, replUrl);
-  });
-
-  test('@\u{ff20}repl : turn on outbox and remote origins', async ({ page }) => {
-    await page.goto(replUrl + '/?debug=ADMIN');
-    await page.locator('.settings a', { hasText: 'settings' }).click();
-    await page.locator('.tabs a', { hasText: 'setup' }).first().click();
-
-    await page.locator('#mod-comment').check();
-    await page.locator('#mod-mailbox').check();
-    await page.locator('#mod-root').check();
-    await page.locator('#mod-origin').check();
-    await page.locator('#mod-user').check();
-    await page.locator('button', { hasText: 'Save' }).click();
-    await page.locator('.log div', { hasText: 'Success.' }).first().waitFor({ timeout: 15_000, state: 'attached' });
-  });
-
   test('@\u{ff20}repl : create users', async ({ page }) => {
     await page.goto(replUrl + '/ext/+user/bob?debug=USER&tag=bob');
     await page.waitForLoadState('networkidle');
@@ -91,7 +73,6 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
     await page.locator('#url').fill(mainApi);
     await page.locator('#url').blur();
     await page.getByText('Next').click();
-    await page.waitForTimeout(1000); // First part of text is missing
     await page.locator('.floating-ribbons .plugin_origin_pull').click();
     await page.locator('[name=local]').fill('@main');
     await page.locator('.plugins-form details.plugin_origin.advanced summary').click();

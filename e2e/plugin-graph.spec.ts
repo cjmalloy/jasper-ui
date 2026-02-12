@@ -1,5 +1,5 @@
 import { expect, type Page, test } from '@playwright/test';
-import { clearMods, openSidebar } from './setup';
+import { clearMods, mod, openSidebar } from './setup';
 
 test.describe.serial('Graph Plugin', () => {
   let page: Page;
@@ -12,25 +12,8 @@ test.describe.serial('Graph Plugin', () => {
     await page.close();
   });
 
-  test('clear mods', async () => {
-    await clearMods(page);
-  });
-
   test('turn on graphing', async () => {
-    await page.goto('/settings/setup?debug=ADMIN');
-    await page.waitForTimeout(100);
-    await page.locator('#mod-experiments').waitFor();
-    if (!(await page.locator('#mod-experiments').isChecked())) {
-      await page.locator('#mod-experiments').check();
-    }
-    await expect(page.locator('#mod-experiments')).toBeChecked();
-    await page.locator('button', { hasText: 'Save' }).click();
-    await page.locator('.log div', { hasText: 'Success.' }).first().waitFor({ timeout: 15_000, state: 'attached' });
-    await page.reload();
-
-    await page.locator('#mod-graph').check();
-    await page.locator('button', { hasText: 'Save' }).click();
-    await page.locator('.log div', { hasText: 'Success.' }).first().waitFor({ timeout: 15_000, state: 'attached' });
+    await mod(page, '#mod-experiments', '#mod-graph');
   });
 
   test('creates a ref', async () => {

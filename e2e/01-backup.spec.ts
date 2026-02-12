@@ -2,9 +2,11 @@ import { expect, test } from '@playwright/test';
 import { clearMods, deleteRef, openSidebar } from './setup';
 
 test.describe('Backup / Restore', () => {
+
   test('clear mods', async ({ page }) => {
     await clearMods(page);
   });
+
   test('creates a ref', async ({ page }) => {
     // Clean up any existing ref from a previous failed run/retry
     await deleteRef(page, 'test:backup');

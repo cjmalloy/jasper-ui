@@ -6,6 +6,8 @@
 coverage/
 e2e/
 dist/
+playwright-report/
+test-results/
 node_modules/
 quickstart/
 .DS_Store

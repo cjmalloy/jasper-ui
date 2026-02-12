@@ -1,5 +1,5 @@
 import { expect, type Page, test } from '@playwright/test';
-import { clearAll, closeSidebar, openSidebar } from './setup';
+import { clearAll, closeSidebar, mod, openSidebar } from './setup';
 import { addToBoard, dragCol } from './template-kanban';
 
 async function loadBoard(page: Page) {
@@ -17,14 +17,7 @@ test.describe.serial('Kanban Template No Swimlanes', () => {
   });
 
   test('turn on kanban', async ({ page }) => {
-    await page.goto('/?debug=ADMIN');
-    await page.locator('.settings a', { hasText: 'settings' }).click();
-    await page.locator('.tabs a', { hasText: 'setup' }).first().click();
-
-    await page.locator('#mod-root').check();
-    await page.locator('#mod-kanban').check();
-    await page.locator('button', { hasText: 'Save' }).click();
-    await page.locator('.log div', { hasText: 'Success.' }).first().waitFor({ timeout: 15_000, state: 'attached' });
+    await mod(page, '#mod-root', '#mod-kanban');
   });
 
   test('creates a board', async ({ page }) => {
@@ -110,7 +103,7 @@ test.describe.serial('Kanban Template No Swimlanes', () => {
 
   test('deletes board', async ({ page }) => {
     await page.goto('/ext/kanban/test?debug=MOD');
-    page.on('dialog', async dialog => await dialog.accept());
+    page.once('dialog', async dialog => await dialog.accept());
     await page.locator('button', { hasText: 'Delete' }).click();
   });
 });

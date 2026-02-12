@@ -1,20 +1,10 @@
 import { expect, test } from '@playwright/test';
-import { clearMods } from './setup';
+import { clearMods, mod } from './setup';
 
 test.describe.serial('User Page', () => {
 
   test('clear mods', async ({ page }) => {
-    await clearMods(page);
-  });
-
-  test('enable user plugin', async ({ page }) => {
-    await page.goto('/?debug=ADMIN');
-    await page.locator('.settings a', { hasText: 'settings' }).click();
-    await page.locator('.tabs a', { hasText: 'setup' }).first().click();
-
-    await page.locator('#mod-user').check();
-    await page.locator('button', { hasText: 'Save' }).click();
-    await page.locator('.log div', { hasText: 'Success.' }).first().waitFor({ timeout: 15_000, state: 'attached' });
+    await mod(page, '#mod-user');
   });
 
   test('displays inbox and outbox navigation buttons on user page', async ({ page }) => {

@@ -85,7 +85,6 @@ export class SettingsSetupPage {
     const _ = (msg?: string) => this.installMessages.push(msg!);
     if (!deletes.length && !installs.length) {
       this.submitted = true;
-      this.reset();
       _($localize`Success.`);
       return;
     }

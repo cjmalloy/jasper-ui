@@ -1,27 +1,20 @@
 import { expect, test } from '@playwright/test';
-import { clearMods, openSidebar } from './setup';
+import { clearAll, mod, openSidebar } from './setup';
 
 test.describe.serial('Origin Push Plugin', () => {
   const replUrl = process.env.REPL_URL || 'http://localhost:8082';
   const replApiProxy = process.env.REPL_API_PROXY || 'http://repl-web';
 
-  test('@\u{ff20}main : clear mods', async ({ page }) => {
-    await clearMods(page);
+  test('@\u{ff20}main : clear all', async ({ page }) => {
+    await clearAll(page);
   });
 
-  test('@\u{ff20}repl : clear mods', async ({ page }) => {
-    await clearMods(page, replUrl);
+  test('@\u{ff20}repl : clear all', async ({ page }) => {
+    await clearAll(page, replUrl);
   });
 
   test('@\u{ff20}main : turn on push', async ({ page }) => {
-    await page.goto('/?debug=ADMIN');
-    await page.locator('.settings a', { hasText: 'settings' }).click();
-    await page.locator('.tabs a', { hasText: 'setup' }).first().click();
-
-    await page.locator('#mod-root').check();
-    await page.locator('#mod-origin').check();
-    await page.locator('button', { hasText: 'Save' }).click();
-    await page.locator('.log div', { hasText: 'Success.' }).first().waitFor({ timeout: 15_000, state: 'attached' });
+    await mod(page, '#mod-root', '#mod-origin');
   });
 
   test('@\u{ff20}main : creates a remote origin', async ({ page }) => {
