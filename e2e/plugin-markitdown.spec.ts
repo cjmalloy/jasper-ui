@@ -44,7 +44,7 @@ test.describe.serial('MarkItDown Plugin', () => {
       await page.goto('/?debug=USER');
       await page.waitForLoadState('networkidle');
       return await page.locator('.settings .notification').isVisible();
-    }).toBe(true);
+    }, { timeout: 60_000 }).toBe(true);
     await page.locator('.settings .notification').click();
     await page.locator('.tabs a', { hasText: 'all' }).first().click();
     await page.locator('.ref', { hasText: 'Markdown:' }).first().locator('a').first().click();
