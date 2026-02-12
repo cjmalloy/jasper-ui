@@ -93,7 +93,9 @@ def fetch_resource(url, resource_origin, ext=''):
         ext = '.' + ext
 
     proxy_url = f"{os.environ['JASPER_API']}/api/v1/proxy"
-    response = requests.get(
+    
+    # Use context manager to ensure response is properly closed
+    with requests.get(
         proxy_url,
         headers={
             'Local-Origin': origin or 'default',
@@ -105,27 +107,27 @@ def fetch_resource(url, resource_origin, ext=''):
         },
         timeout=120,
         stream=True  # Enable streaming to avoid loading entire file into memory
-    )
-    response.raise_for_status()
+    ) as response:
+        response.raise_for_status()
 
-    # Stream download to temporary file in chunks
-    temp_file = None
-    try:
-        temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=ext if ext else '')
-        for chunk in response.iter_content(chunk_size=8192):
-            if chunk:  # Filter out keep-alive chunks
-                temp_file.write(chunk)
-        temp_file.flush()  # Ensure all buffered data is written to disk
-        temp_file.close()
-        return temp_file.name, response.headers.get('content-type', '')
-    except Exception as e:
-        # Clean up temp file if download fails
-        log_debug(f"Error downloading resource from {url}: {e}")
-        if temp_file:
+        # Stream download to temporary file in chunks
+        temp_file = None
+        try:
+            temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=ext if ext else '')
+            for chunk in response.iter_content(chunk_size=8192):
+                if chunk:  # Filter out keep-alive chunks
+                    temp_file.write(chunk)
+            temp_file.flush()  # Ensure all buffered data is written to disk
             temp_file.close()
-            if os.path.exists(temp_file.name):
-                os.remove(temp_file.name)
-        raise
+            return temp_file.name, response.headers.get('content-type', '')
+        except Exception as e:
+            # Clean up temp file if download fails
+            log_debug(f"Error downloading resource from {url}: {e}")
+            if temp_file:
+                temp_file.close()
+                if os.path.exists(temp_file.name):
+                    os.remove(temp_file.name)
+            raise
 
 def convert_to_markdown(file_path, ext, content_type=''):
     """Convert file to markdown using MarkItDown."""
