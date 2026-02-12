@@ -34,6 +34,7 @@ export async function clearAll(page: Page, base = '') {
   await page.locator('button', { hasText: '– delete' }).click();
   await page.reload();
   await clearMods(page, base);
+  await page.reload();
 }
 
 export async function deleteRef(page: Page, url: string, base = '') {

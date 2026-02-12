@@ -26,14 +26,14 @@ test.describe.serial('Origin Pull Plugin', () => {
     await page.locator('.tabs a', { hasText: 'origin' }).first().click();
     await openSidebar(page);
     await page.locator('.sidebar .submit-button', { hasText: 'Submit' }).first().click();
-    await page.locator('#url').pressSequentially(replApiProxy, { delay: 100 });
+    await page.locator('#url').fill(replApiProxy);
     await page.waitForTimeout(400);
     await page.getByText('Next').click();
     await page.waitForTimeout(400);
     await page.locator('.floating-ribbons .plugin_origin_pull').click();
-    await page.locator('[name=local]').pressSequentially('@repl', { delay: 100 });
-    await page.locator('[name=remote]').pressSequentially('@repl', { delay: 100 });
-    await page.locator('[name=title]').pressSequentially('Testing Remote @repl', { delay: 100 });
+    await page.locator('[name=local]').fill('@repl');
+    await page.locator('[name=remote]').fill('@repl');
+    await page.locator('[name=title]').fill('Testing Remote @repl');
     const submitPromise = page.waitForResponse(resp => resp.url().includes('/api/v1/ref'));
     await page.locator('button', { hasText: 'Submit' }).click();
     await submitPromise;
@@ -51,7 +51,7 @@ test.describe.serial('Origin Pull Plugin', () => {
     await page.locator('.sidebar .submit-button', { hasText: 'Submit' }).first().click();
     await page.locator('.tabs a', { hasText: 'text' }).first().click();
     await page.waitForTimeout(400);
-    await page.locator('[name=title]').pressSequentially('Pull Test', { delay: 100 });
+    await page.locator('[name=title]').fill('Pull Test');
     const submitPromise = page.waitForResponse(resp => resp.url().includes('/api/v1/ref'));
     await page.locator('button', { hasText: 'Submit' }).click();
     await submitPromise;
@@ -70,7 +70,7 @@ test.describe.serial('Origin Pull Plugin', () => {
     await page.locator('.settings a', { hasText: 'settings' }).click();
     await page.locator('.tabs a', { hasText: 'origin' }).first().click();
     await openSidebar(page);
-    await page.locator('input[type=search]').pressSequentially(replApiProxy, { delay: 100 });
+    await page.locator('input[type=search]').fill(replApiProxy);
     await page.locator('input[type=search]').press('Enter');
     const repl = page.locator('.link:not(.remote)', { hasText: '@repl' }).locator('..').locator('..').locator('..');
     await repl.locator('.actions .fake-link', { hasText: 'delete' }).first().click();

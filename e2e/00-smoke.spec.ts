@@ -22,10 +22,10 @@ test.describe.serial('Smoke Tests', () => {
     await page.goto('/?debug=ADMIN');
     await openSidebar(page);
     await page.locator('.sidebar .submit-button', { hasText: 'Submit' }).first().click();
-    await page.locator('#url').pressSequentially('https://jasperkm.info/', { delay: 100 });
+    await page.locator('#url').fill('https://jasperkm.info/');
     await page.getByText('Next').click();
     await page.waitForTimeout(1000); // First part of 'Title' getting truncated
-    await page.locator('[name=title]').pressSequentially('Title', { delay: 100 });
+    await page.locator('[name=title]').fill('Title');
     const submitPromise = page.waitForResponse(resp => resp.url().includes('/api/v1/ref'));
     await page.locator('button', { hasText: 'Submit' }).click();
     await submitPromise;

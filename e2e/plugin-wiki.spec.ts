@@ -14,9 +14,9 @@ test.describe.serial('Wiki Plugin', () => {
     await openSidebar(page);
     await page.locator('.sidebar .submit-button', { hasText: 'Submit' }).first().click();
     await page.locator('.tabs a', { hasText: 'wiki' }).first().click();
-    await page.locator('#url').pressSequentially('WIKI TEST', { delay: 100 });
+    await page.locator('#url').fill('WIKI TEST');
     await page.locator('button', { hasText: 'Next' }).click();
-    await page.locator('.editor textarea').pressSequentially('Link to [[Other WIKI]].', { delay: 100 });
+    await page.locator('.editor textarea').fill('Link to [[Other WIKI]].');
     const submitPromise = page.waitForResponse(resp => resp.url().includes('/api/v1/ref'));
     await page.locator('button', { hasText: 'Submit' }).click();
     await submitPromise;

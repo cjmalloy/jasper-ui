@@ -6,7 +6,7 @@ export async function addToBoard(page: Page, col: number, text: string) {
   await page.locator(`.kanban-column:nth-of-type(${col})`).hover();
   const input = page.locator(`.kanban-column:nth-of-type(${col})`).first().locator('input');
   await input.focus();
-  await input.pressSequentially(text, { delay: 100 });
+  await input.fill(text);
   await input.press('Enter');
   await addPromise;
 }

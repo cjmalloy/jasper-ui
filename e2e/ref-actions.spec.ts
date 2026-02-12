@@ -32,9 +32,9 @@ test.describe.serial('Ref Actions', () => {
     await openSidebar(page);
     await page.locator('.sidebar .submit-button', { hasText: 'Submit' }).first().click();
     await page.locator('.tabs a', { hasText: 'text' }).first().click();
-    await page.locator('[name=title]').pressSequentially('Title', { delay: 100 });
+    await page.locator('[name=title]').fill('Title');
     await page.getByText('show advanced').click();
-    await page.locator('[name=published]').pressSequentially('2020-01-01T00:00', { delay: 100 });
+    await page.locator('[name=published]').fill('2020-01-01T00:00');
     await page.locator('[name=published]').blur();
     await page.locator('button', { hasText: 'Submit' }).click({ force: true });
     await expect(page.locator('.full-page.ref .link a')).toHaveText('Title');
@@ -43,7 +43,7 @@ test.describe.serial('Ref Actions', () => {
   test('edits comments field', async () => {
     await page.locator('.full-page.ref .actions .fake-link', { hasText: 'edit' }).first().click();
     await page.locator('button', { hasText: '+ Add abstract' }).click();
-    await page.locator('.full-page.ref .editor textarea').pressSequentially('Comment field', { delay: 100 });
+    await page.locator('.full-page.ref .editor textarea').fill('Comment field');
     await page.locator('button', { hasText: 'save' }).click();
     await expect(page.locator('.full-page.ref')).toContainText('Comment field');
     await page.locator('.full-page.ref .toggle-x').click();
@@ -52,7 +52,7 @@ test.describe.serial('Ref Actions', () => {
 
   test('creates reply', async () => {
     await page.locator('.full-page.ref .actions .fake-link', { hasText: 'reply' }).first().click();
-    await page.locator('.full-page.ref .comment-reply textarea').pressSequentially('Reply', { delay: 100 });
+    await page.locator('.full-page.ref .comment-reply textarea').fill('Reply');
     const replyPromise = page.waitForResponse(resp => resp.url().includes('/api/v1/ref') && resp.request().method() === 'POST');
     await page.locator('.full-page.ref button', { hasText: 'reply' }).click();
     await replyPromise;
@@ -69,7 +69,7 @@ test.describe.serial('Ref Actions', () => {
 
   test('adds tag inline', async () => {
     await page.locator('.full-page.ref .actions .fake-link', { hasText: 'tag' }).first().click();
-    await page.locator('.inline-tagging input').pressSequentially('cool', { delay: 100 });
+    await page.locator('.inline-tagging input').fill('cool');
     await page.locator('.inline-tagging input').press('Enter');
     await expect(page.locator('.full-page.ref .tag:not(.user)', { hasText: 'cool' })).toBeVisible();
   });
@@ -108,9 +108,9 @@ test.describe.serial('Ref Actions', () => {
       await openSidebar(page);
       await page.locator('.sidebar .submit-button', { hasText: 'Submit' }).first().click();
       await page.locator('.tabs a', { hasText: 'text' }).first().click();
-      await page.locator('[name=title]').pressSequentially('Test Ref for New Indicators', { delay: 100 });
+      await page.locator('[name=title]').fill('Test Ref for New Indicators');
       await page.getByText('show advanced').click();
-      await page.locator('[name=published]').pressSequentially('2020-02-01T00:00', { delay: 100 });
+      await page.locator('[name=published]').fill('2020-02-01T00:00');
       await page.locator('[name=published]').blur();
       await page.locator('button', { hasText: 'Submit' }).click({ force: true });
       await expect(page.locator('.full-page.ref .link a')).toHaveText('Test Ref for New Indicators');
@@ -120,7 +120,7 @@ test.describe.serial('Ref Actions', () => {
       // Add a comment with API intercept
       const createCommentPromise = page.waitForResponse(resp => resp.url().includes('/api/v1/ref') && resp.request().method() === 'POST');
       await page.locator('.full-page.ref .actions .fake-link', { hasText: 'reply' }).first().click();
-      await page.locator('.full-page.ref .comment-reply textarea').pressSequentially('First comment', { delay: 100 });
+      await page.locator('.full-page.ref .comment-reply textarea').fill('First comment');
       await page.locator('.full-page.ref button', { hasText: 'reply' }).click();
 
       // Wait for comment to be created
@@ -138,7 +138,7 @@ test.describe.serial('Ref Actions', () => {
       // Add another comment with API intercept
       const createComment2Promise = page.waitForResponse(resp => resp.url().includes('/api/v1/ref') && resp.request().method() === 'POST');
       await page.locator('.full-page.ref .actions .fake-link', { hasText: 'reply' }).first().click();
-      await page.locator('.full-page.ref .comment-reply textarea').pressSequentially('Second comment', { delay: 100 });
+      await page.locator('.full-page.ref .comment-reply textarea').fill('Second comment');
       await page.locator('.full-page.ref button', { hasText: 'reply' }).click();
       await createComment2Promise;
       await page.waitForTimeout(1000);
@@ -178,7 +178,7 @@ test.describe.serial('Ref Actions', () => {
       // We're already on the ref page, add third comment with API intercept
       const createComment3Promise = page.waitForResponse(resp => resp.url().includes('/api/v1/ref') && resp.request().method() === 'POST');
       await page.locator('.full-page.ref .actions .fake-link', { hasText: 'reply' }).first().click();
-      await page.locator('.full-page.ref .comment-reply textarea').pressSequentially('Third comment', { delay: 100 });
+      await page.locator('.full-page.ref .comment-reply textarea').fill('Third comment');
       await page.locator('.full-page.ref button', { hasText: 'reply' }).click();
       await createComment3Promise;
       await page.waitForTimeout(1000);
@@ -186,7 +186,7 @@ test.describe.serial('Ref Actions', () => {
       // Add fourth comment with API intercept
       const createComment4Promise = page.waitForResponse(resp => resp.url().includes('/api/v1/ref') && resp.request().method() === 'POST');
       await page.locator('.full-page.ref .actions .fake-link', { hasText: 'reply' }).first().click();
-      await page.locator('.full-page.ref .comment-reply textarea').pressSequentially('Fourth comment', { delay: 100 });
+      await page.locator('.full-page.ref .comment-reply textarea').fill('Fourth comment');
       await page.locator('.full-page.ref button', { hasText: 'reply' }).click();
       await createComment4Promise;
       await page.waitForTimeout(1000);

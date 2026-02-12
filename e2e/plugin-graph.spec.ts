@@ -48,9 +48,9 @@ test.describe.serial('Graph Plugin', () => {
     await openSidebar(page);
     await page.locator('.sidebar .submit-button', { hasText: 'Submit' }).first().click();
     await page.locator('.tabs a', { hasText: 'text' }).first().click();
-    await page.locator('[name=title]').pressSequentially('Title', { delay: 100 });
+    await page.locator('[name=title]').fill('Title');
     await page.getByText('show advanced').click();
-    await page.locator('[name=published]').pressSequentially('2020-01-01T00:00', { delay: 100 });
+    await page.locator('[name=published]').fill('2020-01-01T00:00');
     const submitPromise = page.waitForResponse(resp => resp.url().includes('/api/v1/ref'));
     await page.locator('button', { hasText: 'Submit' }).click();
     await submitPromise;
@@ -67,7 +67,7 @@ test.describe.serial('Graph Plugin', () => {
 
   test('creates reply', async () => {
     await page.locator('.ref .actions .fake-link', { hasText: 'reply' }).first().click();
-    await page.locator('.comment-reply textarea').pressSequentially('Reply', { delay: 100 });
+    await page.locator('.comment-reply textarea').fill('Reply');
     const replyPromise = page.waitForResponse(resp => resp.url().includes('/api/v1/ref'));
     await page.locator('button', { hasText: 'reply' }).click();
     await replyPromise;
