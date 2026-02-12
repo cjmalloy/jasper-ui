@@ -116,7 +116,7 @@ export class SettingsBackupPage {
       hasBackdrop: true,
       backdropClass: 'hide',
       positionStrategy,
-      scrollStrategy: this.overlay.scrollStrategies.close()
+      scrollStrategy: this.overlay.scrollStrategies.reposition()
     });
     this.backupOptionsRef.attach(new TemplatePortal(this.backupOptionsTemplate(), this.viewContainerRef));
     this.backupOptionsRef.backdropClick().subscribe(() => this.cancelBackup());
@@ -159,10 +159,6 @@ export class SettingsBackupPage {
     });
   }
 
-  onBackupCancelled() {
-    // Nothing to do when cancelled
-  }
-
   upload(files?: FileList) {
     this.serverError = [];
     if (!files || !files.length) return;
@@ -201,7 +197,7 @@ export class SettingsBackupPage {
     }
     const confirmation = prompt($localize`Are you sure you want totally delete everything in ${this.origin || 'default'}?\n\nEnter the origin to confirm:`);
     if (confirmation === null) return;
-    if (confirmation !== (this.origin || 'default')){
+    if (confirmation !== (this.origin || 'default')) {
       alert($localize`Origin did not match ${this.origin || 'default'}, aborting.`)
       return;
     }

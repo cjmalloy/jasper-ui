@@ -7,10 +7,10 @@
     "start": "ng serve",
     "build": "ng build --configuration production --source-map --localize",
     "watch": "ng build --watch --configuration development",
-    "test": "NODE_OPTIONS=\"--max-old-space-size=${TEST_HEAP_SIZE:-16384} --expose-gc\" ng test",
-    "e2e": "ng e2e",
-    "cy:open": "(cd cypress; docker compose pull && docker compose up --build -d) && cypress open && (cd cypress; docker compose down)",
-    "cy:ci": "docker compose --profile ci -f 'cypress/docker-compose.yaml' up --build --exit-code-from cypress"
+    "test": "ng test",
+    "e2e": "npx playwright test",
+    "pw:open": "(cd e2e; docker compose pull && docker compose up --build -d) && npx playwright test --ui && (cd e2e; docker compose down)",
+    "pw:ci": "docker compose --profile ci -f 'e2e/docker-compose.yaml' up --build --exit-code-from playwright"
   },
   "private": true,
   "dependencies": {
@@ -64,6 +64,7 @@
     "@angular/compiler-cli": "^21.1.2",
     "@cypress/schematic": "^5.0.0",
     "@ngx-formly/schematics": "7.0.0",
+    "@playwright/test": "^1.58.2",
     "@types/chess.js": "^0.13.7",
     "@types/d3": "^7.4.3",
     "@types/file-saver": "^2.0.7",
@@ -73,9 +74,6 @@
     "@types/luxon": "^3.7.1",
     "@types/qrcode": "^1.5.6",
     "@vitest/ui": "^4.0.8",
-    "cypress": "^15.10.0",
-    "cypress-mochawesome-reporter": "^4.0.2",
-    "cypress-real-events": "^1.15.0",
     "jsdom": "^28.0.0",
     "patch-package": "^8.0.1",
     "raw-loader": "^4.0.2",
@@ -91,8 +89,7 @@
     "uuid": "$uuid",
     "rxjs": "$rxjs",
     "monaco-editor": "$monaco-editor",
-    "d3": "$d3",
-    "cypress": "$cypress"
+    "d3": "$d3"
   },
   "browser": {
     "fs": false,

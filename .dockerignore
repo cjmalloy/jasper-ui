@@ -4,8 +4,10 @@
 .idea/
 .vscode/
 coverage/
-cypress/
+e2e/
 dist/
+playwright-report/
+test-results/
 node_modules/
 quickstart/
 .DS_Store
@@ -21,8 +23,7 @@ LICENSE
 .gitignore
 .editorconfig
 _config.yml
-cypress.config.ts
-cypress.config.js
+playwright.config.ts
 
 # Scripts and local dev files
 set-debug-ip.sh

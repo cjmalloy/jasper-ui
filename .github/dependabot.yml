@@ -8,7 +8,7 @@ updates:
 - package-ecosystem: docker
   directories:
     - "/"
-    - "/cypress"
+    - "/e2e"
   schedule:
     interval: daily
     timezone: America/Halifax
@@ -38,10 +38,9 @@ updates:
         - "jasmine*"
         - "karma*"
         - "@ngx-formly/*"
-    cypress:
+    playwright:
       patterns:
-        - "@cypress/schematic"
-        - "cypress*"
+        - "@playwright/*"
 - package-ecosystem: github-actions
   directory: /
   schedule:

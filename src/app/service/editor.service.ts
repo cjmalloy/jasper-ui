@@ -206,7 +206,9 @@ export class EditorService {
     if (url.startsWith('unsafe:')) url = url.substring('unsafe:'.length);
     const tagPrefix = this.config.base + 'tag/';
     let ending = '';
-    if (url.startsWith(tagPrefix)) {
+    if (url.startsWith('tag:/')) {
+      ending = url.substring('tag:/'.length);
+    } else if (url.startsWith(tagPrefix)) {
       ending = url.substring(tagPrefix.length);
     } else {
       const relTagPrefix = getPath(tagPrefix)!;

@@ -56,7 +56,7 @@ export class VideoService {
   }
 
   get connecting() {
-    return !this.store.video.peers.size || !!this.store.video.peers.values().find(p => p.connectionState !== 'connected');
+    return !this.store.video.peers.size || !!Array.from(this.store.video.peers.values()).find(p => p.connectionState !== 'connected');
   }
 
   call(url: string, stream: MediaStream) {

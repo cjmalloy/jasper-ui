@@ -1,4 +1,4 @@
-name: Cypress
+name: Playwright
 
 on:
   push:
@@ -12,19 +12,19 @@ permissions:
   pull-requests: write
 
 jobs:
-  cypress-run:
+  playwright-run:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
         with:
-          node-version: 22
+          node-version: 24
           cache: 'npm'
       - name: Install lockfile
         run: npm ci
-      - name: Run Cypress Tests
-        id: cypress
-        run: npm run cy:ci
+      - name: Run Playwright Tests
+        id: playwright
+        run: npm run pw:ci
       - name: Generate Test Summary
         if: always()
         uses: actions/github-script@v8
@@ -33,39 +33,54 @@ jobs:
           script: |
             const fs = require('fs');
 
-            // Parse Cypress mochawesome JSON output
-            function parseCypressResults(jsonContent) {
+            // Parse Playwright JSON output
+            function parsePlaywrightResults(jsonContent) {
               const data = JSON.parse(jsonContent);
-              const stats = data.stats || {};
+              const suites = data.suites || [];
+
+              let tests = 0, passes = 0, failures = 0, skipped = 0;
+              function countSpecs(suite) {
+                for (const spec of (suite.specs || [])) {
+                  for (const test of (spec.tests || [])) {
+                    tests++;
+                    const status = test.status || (test.results && test.results[0] && test.results[0].status);
+                    if (status === 'expected' || status === 'passed') passes++;
+                    else if (status === 'skipped') skipped++;
+                    else failures++;
+                  }
+                }
+                for (const child of (suite.suites || [])) {
+                  countSpecs(child);
+                }
+              }
+              for (const suite of suites) {
+                countSpecs(suite);
+              }
 
               return {
-                suites: stats.suites || 0,
-                tests: stats.tests || 0,
-                passes: stats.passes || 0,
-                failures: stats.failures || 0,
-                pending: stats.pending || 0,
-                skipped: stats.skipped || 0,
-                passPercent: stats.passPercent || 0,
+                suites: suites.length,
+                tests,
+                passes,
+                failures,
+                skipped,
+                passPercent: tests > 0 ? (passes / tests) * 100 : 0,
               };
             }
 
-            let summary = '## 🧪 Cypress Test Results\n\n';
+            let summary = '## 🧪 Playwright Test Results\n\n';
 
             try {
-              const jsonPath = 'cypress/reports/html/index.json';
+              const jsonPath = 'e2e/reports/results.json';
 
               if (fs.existsSync(jsonPath)) {
                 const jsonContent = fs.readFileSync(jsonPath, 'utf8');
-                const results = parseCypressResults(jsonContent);
+                const results = parsePlaywrightResults(jsonContent);
 
                 if (results.tests > 0) {
                   const emoji = results.failures === 0 ? '✅' : '⚠️';
 
                   summary += `${emoji} **Test Suites:** ${results.suites} total\n\n`;
                   summary += `${emoji} **Tests:** ${results.failures} failed | ${results.passes} passed`;
-                  if (results.pending > 0) {
-                    summary += ` | ${results.pending} pending`;
-                  }
                   if (results.skipped > 0) {
                     summary += ` | ${results.skipped} skipped`;
                   }
@@ -93,20 +108,20 @@ jobs:
               .write();
 
             // Store summary for use in PR comment
-            fs.writeFileSync('cypress-summary.md', summary);
+            fs.writeFileSync('playwright-summary.md', summary);
       - name: Upload PR Report
         if: github.event_name == 'pull_request' && always()
         uses: actions/upload-artifact@v6
         with:
-          name: cypress-reports-pr-${{ github.event.pull_request.number }}
-          path: cypress/reports/html
+          name: playwright-reports-pr-${{ github.event.pull_request.number }}
+          path: e2e/reports/html
           retention-days: 7
       - name: Upload Reports
         if: github.event_name != 'pull_request' && always()
         uses: actions/upload-artifact@v6
         with:
-          name: cypress-reports-${{ github.ref_name }}-${{ github.run_number }}
-          path: cypress/reports/html
+          name: playwright-reports-${{ github.ref_name }}-${{ github.run_number }}
+          path: e2e/reports/html
           retention-days: 30
       - name: Comment on PR
         if: github.event_name == 'pull_request' && always()
@@ -118,16 +133,16 @@ jobs:
 
             let summary = '';
             try {
-              summary = fs.readFileSync('cypress-summary.md', 'utf8');
+              summary = fs.readFileSync('playwright-summary.md', 'utf8');
             } catch (error) {
               summary = '⚠️ Could not read test summary.';
             }
 
-            const reportUrl = `https://${context.repo.owner}.github.io/${context.repo.repo}/reports/cypress-reports-pr-${context.issue.number}/`;
+            const reportUrl = `https://${context.repo.owner}.github.io/${context.repo.repo}/reports/playwright-reports-pr-${context.issue.number}/`;
             summary += `\n\n📊 [View detailed HTML report](${reportUrl})`;
 
             // Add HTML comment marker for identification
-            const body = `<!-- cypress-results-comment -->\n${summary}`;
+            const body = `<!-- playwright-results-comment -->\n${summary}`;
 
             // Find existing comment (with pagination)
             const comments = await github.paginate(github.rest.issues.listComments, {
@@ -137,7 +152,7 @@ jobs:
             });
 
             const botComment = comments.find(comment =>
-              comment.body.includes('<!-- cypress-results-comment -->')
+              comment.body.includes('<!-- playwright-results-comment -->')
             );
 
             if (botComment) {
@@ -159,7 +174,7 @@ jobs:
             }
 
   clean:
-    needs: cypress-run
+    needs: playwright-run
     if: always()
     runs-on: ubuntu-latest
     permissions:
@@ -178,7 +193,7 @@ jobs:
               per_page: 100
             });
             const artifacts = response.data.artifacts
-              .filter(artifact => artifact.name.startsWith('cypress-reports-' + '${{ github.ref_name }}'));
+              .filter(artifact => artifact.name.startsWith('playwright-reports-' + '${{ github.ref_name }}'));
             if (artifacts.length > maxVersions) {
               // Sort by created_at descending
               artifacts.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));

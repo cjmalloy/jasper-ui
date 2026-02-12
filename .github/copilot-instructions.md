@@ -35,8 +35,6 @@ This Angular client (jasper-ui) provides the reference implementation for intera
 ## Quick Start
 
 - **CRITICAL**: Debugging requires the Jasper server backend running
-- Install Node.js 22: `curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash - && sudo apt-get install -y nodejs`
-- Install dependencies: `npm ci` (use `CYPRESS_INSTALL_BINARY=0 npm ci` if network blocks Cypress)
 
 ## Development Commands
 
@@ -64,19 +62,28 @@ docker compose up --build  # Everything on http://localhost:8082/
 ## Build & Test
 
 - Build: `npm run build` (~100s, NEVER CANCEL, timeout 180+s)
-- Unit tests: `npm test -- --watch=false --browsers=ChromeHeadless` (~55s, NEVER CANCEL, timeout 120+s) - runs Angular test suite
+- Unit tests: `npm test -- --watch=false` (~55s, NEVER CANCEL, timeout 120+s) - runs Vitest via Angular CLI
 - Docker tests: `docker build . --target test -t jasper-ui-test && docker run --rm jasper-ui-test`
-- E2E tests: `npm run cy:ci` (10-20 min, NEVER CANCEL, timeout 30+ min)
+- E2E tests: `npm run pw:ci` (10-20 min, NEVER CANCEL, timeout 30+ min)
 - Stop services: `docker compose down`
 
-**IMPORTANT**: When making UI changes that affect user interactions (buttons, overlays, dialogs, etc.), **ALWAYS** update the corresponding Cypress E2E tests in `cypress/e2e/`. This is a critical step that should not be forgotten.
+**IMPORTANT**: When making UI changes that affect user interactions (buttons, overlays, dialogs, etc.), **ALWAYS** update the corresponding Playwright E2E tests in `e2e/`. This is a critical step that should not be forgotten.
 
 ## Project Structure
 
-- `src/app/mods/` - Plugin features (80+ files)
 - `src/app/component/` - Reusable UI components
+- `src/app/directive/` - Custom directives
+- `src/app/form/` - Form components
+- `src/app/formly/` - Formly form integration
+- `src/app/guard/` - Route guards
+- `src/app/http/` - HTTP interceptors
+- `src/app/model/` - Data models (Ref, Ext, User, Plugin, Template)
+- `src/app/mods/` - Plugin features (70+ files)
+- `src/app/page/` - Page components
+- `src/app/pipe/` - Custom pipes
 - `src/app/service/` - API and data services
 - `src/app/store/` - MobX state management
+- `src/app/util/` - Utility functions
 - `docker-compose.yaml` - Development Docker setup
 - `src/assets/config.json` - **DO NOT** edit API URL, use Docker env vars
 
@@ -175,10 +182,10 @@ Translation locales are configured in `angular.json` under `projects.jasper-ui.i
 
 ## Key Info
 
-- Angular 20 + TypeScript + MobX
+- Angular 20 + TypeScript + MobX + Vitest
 - API configured via Docker `JASPER_API` environment variable
 - Use `ng generate component|service|pipe|directive name` for new features
-- Network issues: Use `CYPRESS_INSTALL_BINARY=0` flag
+- Network issues: Playwright browsers are bundled, no separate install needed
 - Backend connection issues: Ensure `docker compose --profile server up --build` is healthy
 
 ## Theming
@@ -191,6 +198,13 @@ Theme-specific CSS variables are defined in:
 - `src/theme/common.scss` - Default/base theme variables
 - `src/theme/light.scss` - Light theme overrides (body.light-theme)
 - `src/theme/dark.scss` - Dark theme overrides (body.dark-theme)
+- `src/theme/light-highlight.scss` - Light theme syntax highlighting
+- `src/theme/dark-highlight.scss` - Dark theme syntax highlighting
+- `src/theme/mobile.scss` - Mobile-specific styles
+- `src/theme/print.scss` - Print styles
+- `src/theme/android.scss` - Android platform styles
+- `src/theme/electron.scss` - Electron platform styles
+- `src/theme/mac.scss` - macOS platform styles
 
 ### Using Themes in Components
 

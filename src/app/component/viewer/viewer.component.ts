@@ -144,7 +144,7 @@ export class ViewerComponent implements OnChanges {
         takeUntil(this.destroy$),
       ).subscribe(ref => this.repost = ref);
     }
-    const queryUrl = this.ref?.plugins?.['plugin/lens']?.url || this.ref?.url;
+    const queryUrl = this.ref?.plugins?.['plugin/lens']?.url || (hasTag('plugin/repost', this.ref) ? this.ref?.sources?.[0] : this.ref?.url);
     if (queryUrl && hasTag('plugin/lens', this.ref)) {
       this.embeds.loadQuery$(queryUrl)
         .pipe(takeUntil(this.destroy$))
