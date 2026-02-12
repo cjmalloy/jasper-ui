@@ -7,14 +7,14 @@ import { catchError, forkJoin, map, Observable, of, Subscription, switchMap } fr
 import { Ext } from '../model/ext';
 import { Oembed } from '../model/oembed';
 import { Page } from '../model/page';
-import { Ref } from '../model/ref';
+import { Ref, RefSort } from '../model/ref';
 import { wikiUriFormat } from '../mods/org/wiki';
 import { OembedStore } from '../store/oembed';
 import { Store } from '../store/store';
 import { delay } from '../util/async';
 import { createEmbed, createLens, createLink, createRef, embedUrl, parseSrc } from '../util/embed';
-import { parseParams } from '../util/http';
-import { getFilters, getFiltersQuery, parseArgs } from '../util/query';
+import { getArray, parseParams } from '../util/http';
+import { getArgs, getFilters, UrlFilter } from '../util/query';
 import { isQuery, localTag, queryPrefix, tagOrigin, topAnds } from '../util/tag';
 import { AdminService } from './admin.service';
 import { ExtService } from './api/ext.service';
@@ -688,12 +688,9 @@ export class EmbedService {
     const query = this.editor.getQuery(url);
     const params = parseParams(url);
     const view: string = params.view;
-    const filterQuery = getFiltersQuery(params.filter);
-    const fullQuery = query && filterQuery ? query + ':' + filterQuery : query || filterQuery || '';
-    const args = parseArgs(params);
     return forkJoin({
       params: of(params),
-      page: this.refs.page({query: fullQuery, ...args}),
+      page: this.refs.page(getArgs(query, getArray(params.sort) as RefSort[], getArray(params.filter) as UrlFilter[], params.search, params.pageNumber, params.pageSize)),
       ext: this.exts.getCachedExts(uniq([
         ...topAnds(query),
         ...topAnds(query).map(queryPrefix),
