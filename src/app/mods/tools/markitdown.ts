@@ -50,8 +50,41 @@ import os
 import sys
 import tempfile
 import uuid
+import shutil
 import requests
 from markitdown import MarkItDown, StreamInfo
+
+# Configure Tesseract OCR
+# pytesseract needs to know where tesseract executable is located
+try:
+    import pytesseract
+    # Check if TESSERACT_CMD environment variable is set
+    tesseract_cmd = os.environ.get('TESSERACT_CMD')
+    if tesseract_cmd and os.path.exists(tesseract_cmd):
+        pytesseract.pytesseract.tesseract_cmd = tesseract_cmd
+        print(f"Using Tesseract from TESSERACT_CMD: {tesseract_cmd}", file=sys.stderr)
+    else:
+        # Try to find tesseract in PATH using shutil.which
+        tesseract_path = shutil.which('tesseract')
+        if tesseract_path:
+            pytesseract.pytesseract.tesseract_cmd = tesseract_path
+            print(f"Found Tesseract in PATH: {tesseract_path}", file=sys.stderr)
+        else:
+            # Try common installation paths as fallback
+            common_paths = [
+                '/usr/bin/tesseract',
+                '/usr/local/bin/tesseract',
+                '/opt/homebrew/bin/tesseract',
+            ]
+            for path in common_paths:
+                if os.path.exists(path):
+                    pytesseract.pytesseract.tesseract_cmd = path
+                    print(f"Found Tesseract at: {path}", file=sys.stderr)
+                    break
+            else:
+                print("Warning: Tesseract executable not found. OCR will not work.", file=sys.stderr)
+except ImportError:
+    print("Warning: pytesseract not installed. OCR will not work.", file=sys.stderr)
 
 ref = json.load(sys.stdin)
 origin = ref.get('origin', '')
@@ -135,10 +168,13 @@ def convert_to_markdown(file_path, ext, content_type=''):
             mimetype=mimetype,
             extension=ext
         )
+    
+    print(f"Converting file: {file_path}, ext: {ext}, mimetype: {mimetype}", file=sys.stderr)
 
     try:
         md = MarkItDown()
         result = md.convert(file_path, stream_info=stream_info)
+        print(f"Conversion completed, text length: {len(result.text_content)}", file=sys.stderr)
         return result.text_content
     finally:
         # Clean up the temporary file created by fetch_resource
