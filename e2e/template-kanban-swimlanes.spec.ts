@@ -43,6 +43,7 @@ test.describe.serial('Kanban Template with Swim Lanes', () => {
     await colInput1.waitFor({ state: 'attached'});
     await colInput1.fill('doing');
     await colInput1.press('Enter');
+    await page.waitForTimeout(1000);
     const colInput2 = page.locator('.columns input').last();
     await colInput2.waitFor({ state: 'attached'});
     await colInput2.fill('done');
@@ -53,6 +54,7 @@ test.describe.serial('Kanban Template with Swim Lanes', () => {
     await laneInput1.waitFor({ state: 'attached'});
     await laneInput1.fill('alice');
     await laneInput1.press('Enter');
+    await page.waitForTimeout(1000);
     const laneInput2 = page.locator('.swim-lanes input').last();
     await laneInput2.waitFor({ state: 'attached'});
     await laneInput2.fill('bob');
