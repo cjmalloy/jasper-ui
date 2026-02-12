@@ -39,23 +39,17 @@ test.describe.serial('MarkItDown Plugin', () => {
     await page.goto(url + '?debug=USER');
     await page.waitForLoadState('networkidle');
     await page.locator('.full-page.ref .actions .fake-link', { hasText: 'markdown' }).click();
-
     // Wait for the conversion to complete by checking notifications
-    await page.goto('/?debug=USER');
-    await page.waitForLoadState('networkidle');
+    await expect.poll(async () => {
+      await page.goto('/?debug=USER');
+      await page.waitForLoadState('networkidle');
+      return await page.locator('.settings .notification').isVisible();
+    }).toBe(true);
     await page.locator('.settings .notification').click();
     await page.locator('.tabs a', { hasText: 'all' }).first().click();
     await page.locator('.ref', { hasText: 'Markdown:' }).first().locator('a').first().click();
     await page.waitForLoadState('networkidle');
     await expect(page.locator('.full-page.ref .md')).toContainText('PDF BOOKMARK SAMPLE');
-  });
-
-  test('should show markdown query notification', async ({ page }) => {
-    await page.goto('/?debug=USER');
-    await page.waitForLoadState('networkidle');
-    await page.locator('.settings .notification').click();
-    await page.locator('.tabs a', { hasText: 'all' }).first().click();
-    await expect(page.locator('.ref').first()).toContainText('Markdown:');
   });
 
   test('creates a public ref for visibility test', async ({ page }) => {
@@ -115,10 +109,13 @@ test.describe.serial('MarkItDown Plugin', () => {
     await page.goto(url + '?debug=USER');
     await page.waitForLoadState('networkidle');
     await page.locator('.full-page.ref .actions .fake-link', { hasText: 'markdown' }).click();
-
     // Wait for the conversion to complete by checking notifications
-    await page.goto('/?debug=USER');
     await page.waitForLoadState('networkidle');
+    await expect.poll(async () => {
+      await page.goto('/?debug=USER');
+      await page.waitForLoadState('networkidle');
+      return await page.locator('.settings .notification').isVisible();
+    }).toBe(true);
     await page.locator('.settings .notification').click();
     await page.locator('.tabs a', { hasText: 'all' }).first().click();
     await page.locator('.ref', { hasText: 'Markdown:' }).first().locator('a').first().click();
@@ -140,10 +137,13 @@ test.describe.serial('MarkItDown Plugin', () => {
     await page.goto(url + '?debug=USER');
     await page.waitForLoadState('networkidle');
     await page.locator('.full-page.ref .actions .fake-link', { hasText: 'markdown' }).click();
-
     // Wait for the conversion to complete by checking notifications
-    await page.goto('/?debug=USER');
     await page.waitForLoadState('networkidle');
+    await expect.poll(async () => {
+      await page.goto('/?debug=USER');
+      await page.waitForLoadState('networkidle');
+      return await page.locator('.settings .notification').isVisible();
+    }).toBe(true);
     await page.locator('.settings .notification').click();
     await page.locator('.tabs a', { hasText: 'all' }).first().click();
     await page.locator('.ref', { hasText: 'Markdown:' }).first().locator('a').first().click();
