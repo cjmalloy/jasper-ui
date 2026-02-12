@@ -90,6 +90,9 @@ test.describe.serial('MarkItDown Plugin', () => {
     const text = await commentContent.textContent();
     expect(text).toBeTruthy();
     expect(text!.length).toBeGreaterThan(10); // Should have some content
+    
+    // Verify the response has the signature tag
+    await expect(page.locator('.full-page.ref .tag', { hasText: '+plugin/delta/md' })).toBeVisible();
   });
 
   test('creates a public ref for visibility test', async ({ page }) => {
@@ -166,6 +169,8 @@ test.describe.serial('MarkItDown Plugin', () => {
     const text = await commentContent.textContent();
     expect(text).toBeTruthy();
     expect(text!.length).toBeGreaterThan(10);
+    
+    await expect(page.locator('.full-page.ref .tag', { hasText: '+plugin/delta/md' })).toBeVisible();
   });
 
   test('creates a ref with plugin/file tag (xls)', async ({ page }) => {
@@ -191,6 +196,8 @@ test.describe.serial('MarkItDown Plugin', () => {
     const text = await commentContent.textContent();
     expect(text).toBeTruthy();
     expect(text!.length).toBeGreaterThan(10);
+    
+    await expect(page.locator('.full-page.ref .tag', { hasText: '+plugin/delta/md' })).toBeVisible();
   });
 
   test('creates a ref with plugin/image tag (jpeg)', async ({ page }) => {
