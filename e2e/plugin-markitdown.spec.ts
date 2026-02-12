@@ -31,7 +31,7 @@ test.describe.serial('MarkItDown Plugin', () => {
 
   test('should show markdown action button', async ({ page }) => {
     await page.goto(url + '?debug=USER');
-    expect(await page.locator('.full-page.ref .actions .fake-link', { hasText: 'markdown' }).count()).toBe(1);
+    await expect(page.locator('.full-page.ref .actions .fake-link', { hasText: 'markdown' })).toHaveCount(1);
   });
 
   test('should convert PDF to markdown', async ({ page }) => {
@@ -70,7 +70,7 @@ test.describe.serial('MarkItDown Plugin', () => {
 
   test('should have markdown action on file ref', async ({ page }) => {
     await page.goto(url + '?debug=USER');
-    expect(await page.locator('.full-page.ref .actions .fake-link', { hasText: 'markdown' }).count()).toBe(1);
+    await expect(page.locator('.full-page.ref .actions .fake-link', { hasText: 'markdown' })).toHaveCount(1);
   });
 
   test('should convert DOC to markdown', async ({ page }) => {
@@ -136,14 +136,14 @@ test.describe.serial('MarkItDown Plugin', () => {
 
     // Click markdown action
     await page.locator('.full-page.ref .actions .fake-link', { hasText: 'markdown' }).click();
-    expect(await page.locator('.full-page.ref .actions .fake-link', { hasText: 'cancel' }).count() === 1);
+    await expect(page.locator('.full-page.ref .actions .fake-link', { hasText: 'cancel' })).toHaveCount(1);
 
     // Click cancel
     await page.locator('.full-page.ref .actions .fake-link', { hasText: 'cancel' }).click();
 
     // Should show markdown action again (not cancel)
-    expect(await page.locator('.full-page.ref .actions .fake-link', { hasText: 'markdown' }).count() === 1);
-    expect(await page.locator('.full-page.ref .actions .fake-link', { hasText: 'cancel' }).count() === 0);
+    await expect(page.locator('.full-page.ref .actions .fake-link', { hasText: 'markdown' })).toHaveCount(1);
+    await expect(page.locator('.full-page.ref .actions .fake-link', { hasText: 'cancel' })).toHaveCount(0);
   });
 
   test('creates a ref with plugin/file tag (docx)', async ({ page }) => {
@@ -152,7 +152,7 @@ test.describe.serial('MarkItDown Plugin', () => {
 
   test('should have markdown action on docx file ref', async ({ page }) => {
     await page.goto(url + '?debug=USER');
-    expect(await page.locator('.full-page.ref .actions .fake-link', { hasText: 'markdown' }).count()).toBe(1);
+    await expect(page.locator('.full-page.ref .actions .fake-link', { hasText: 'markdown' })).toHaveCount(1);
   });
 
   test('should convert DOCX to markdown', async ({ page }) => {
@@ -179,7 +179,7 @@ test.describe.serial('MarkItDown Plugin', () => {
 
   test('should have markdown action on xls file ref', async ({ page }) => {
     await page.goto(url + '?debug=USER');
-    expect(await page.locator('.full-page.ref .actions .fake-link', { hasText: 'markdown' }).count()).toBe(1);
+    await expect(page.locator('.full-page.ref .actions .fake-link', { hasText: 'markdown' })).toHaveCount(1);
   });
 
   test('should convert XLS to markdown', async ({ page }) => {
@@ -206,7 +206,7 @@ test.describe.serial('MarkItDown Plugin', () => {
 
   test('should have markdown action on jpeg image ref', async ({ page }) => {
     await page.goto(url + '?debug=USER');
-    expect(await page.locator('.full-page.ref .actions .fake-link', { hasText: 'markdown' }).count()).toBe(1);
+    await expect(page.locator('.full-page.ref .actions .fake-link', { hasText: 'markdown' })).toHaveCount(1);
   });
 
   test('should convert JPEG image to markdown with OCR', async ({ page }) => {
@@ -230,7 +230,7 @@ test.describe.serial('MarkItDown Plugin', () => {
 
   test('should have markdown action on png image ref', async ({ page }) => {
     await page.goto(url + '?debug=USER');
-    expect(await page.locator('.full-page.ref .actions .fake-link', { hasText: 'markdown' }).count()).toBe(1);
+    await expect(page.locator('.full-page.ref .actions .fake-link', { hasText: 'markdown' })).toHaveCount(1);
   });
 
   test('should convert PNG image to markdown with OCR', async ({ page }) => {
@@ -254,7 +254,7 @@ test.describe.serial('MarkItDown Plugin', () => {
 
   test('should have markdown action on webp image ref', async ({ page }) => {
     await page.goto(url + '?debug=USER');
-    expect(await page.locator('.full-page.ref .actions .fake-link', { hasText: 'markdown' }).count()).toBe(1);
+    await expect(page.locator('.full-page.ref .actions .fake-link', { hasText: 'markdown' })).toHaveCount(1);
   });
 
   test('should convert WebP image to markdown with OCR', async ({ page }) => {
