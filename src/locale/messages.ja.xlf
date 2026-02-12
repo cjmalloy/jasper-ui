@@ -6259,7 +6259,6 @@ Each response contains the converted Markdown from a specific source format.</so
       </trans-unit>
       <trans-unit id="4339537312758352578" datatype="html">
         <source>📝️ markdown</source>
-        <target>📝️ markdown</target>
       </trans-unit>
       <trans-unit id="7451719878296732001" datatype="html">
         <source>Converted to Markdown</source>
