@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { clearMods, mod, openSidebar, upload } from './setup';
+import { mod, openSidebar, upload } from './setup';
 
 test.describe.serial('MarkItDown Plugin', () => {
   let url = '';
