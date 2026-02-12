@@ -47,7 +47,7 @@
                [ext]="store.view.ext"
                [activeExts]="store.view.activeExts"></app-sidebar>
   @if (query.error?.status !== 403) {
-    <app-lens [page]="query.page"
+    <app-lens #lens [page]="query.page"
               [showVotes]="store.view.isVoteSorted"
               [tag]="store.view.tag || 'config/home'"
               [ext]="store.view.viewExt"

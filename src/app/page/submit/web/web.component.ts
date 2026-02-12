@@ -220,7 +220,7 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
     return this._refForm!;
   }
 
-  @ViewChild(RefFormComponent)
+  @ViewChild('refForm')
   set refForm(value: RefFormComponent) {
     this._refForm = value;
     defer(() => this.limitWidth = value?.fill?.nativeElement);

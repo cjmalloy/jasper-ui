@@ -21,7 +21,7 @@ export class SettingsUserPage implements OnInit, OnDestroy, HasChanges {
 
   private disposers: IReactionDisposer[] = [];
 
-  @ViewChild(UserListComponent)
+  @ViewChild('list')
   list?: UserListComponent;
 
   constructor(

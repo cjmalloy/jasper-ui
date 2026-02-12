@@ -4,9 +4,10 @@ on:
   push:
     branches: [ master ]
   workflow_run:
-    workflows: ["Test", "Cypress"]
+    workflows: ["Test", "Playwright"]
     types:
       - completed
+    branches: [ '**' ]
   workflow_dispatch:
 
 permissions:
@@ -50,27 +51,27 @@ jobs:
 
           # Download only the latest 10 reports for each type to save space
           gh run list --workflow test.yml --branch master --limit 10 --json databaseId --jq '.[].databaseId' | while read run_id; do
-            gh run download "$run_id" --pattern "karma-reports-*" --dir _site/reports 2>/dev/null || true
+            gh run download "$run_id" --pattern "vitest-reports-*" --dir _site/reports 2>/dev/null || true
           done
 
-          gh run list --workflow cypress.yml --branch master --limit 10 --json databaseId --jq '.[].databaseId' | while read run_id; do
-            gh run download "$run_id" --pattern "cypress-reports-*" --dir _site/reports 2>/dev/null || true
+          gh run list --workflow playwright.yml --branch master --limit 10 --json databaseId --jq '.[].databaseId' | while read run_id; do
+            gh run download "$run_id" --pattern "playwright-reports-*" --dir _site/reports 2>/dev/null || true
           done
 
           # Download PR reports
           gh run download --pattern "*-reports-pr-*" --dir _site/reports 2>/dev/null || true
 
-          latest_karma=$(ls -dv _site/reports/karma-reports-master-* 2>/dev/null | tail -1)
-          echo "Creating latest Karma $latest_karma"
-          if [ -n "$latest_karma" ] && [ -d "$latest_karma" ]; then
-            mkdir -p _site/reports/latest-karma
-            cp -r "$latest_karma/." _site/reports/latest-karma/
+          latest_vitest=$(ls -dv _site/reports/vitest-reports-master-* 2>/dev/null | tail -1)
+          echo "Creating latest Vitest $latest_vitest"
+          if [ -n "$latest_vitest" ] && [ -d "$latest_vitest" ]; then
+            mkdir -p _site/reports/latest-vitest
+            cp -r "$latest_vitest/." _site/reports/latest-vitest/
           fi
-          latest_cypress=$(ls -dv _site/reports/cypress-reports-master-* 2>/dev/null | tail -1)
-          echo "Creating latest Cypress $latest_cypress"
-          if [ -n "$latest_cypress" ] && [ -d "$latest_cypress" ]; then
-            mkdir -p _site/reports/latest-cypress
-            cp -r "$latest_cypress/." _site/reports/latest-cypress/
+          latest_playwright=$(ls -dv _site/reports/playwright-reports-master-* 2>/dev/null | tail -1)
+          echo "Creating latest Playwright $latest_playwright"
+          if [ -n "$latest_playwright" ] && [ -d "$latest_playwright" ]; then
+            mkdir -p _site/reports/latest-playwright
+            cp -r "$latest_playwright/." _site/reports/latest-playwright/
           fi
           cat > _site/reports/index.html << EOF
           <!DOCTYPE html>
@@ -79,28 +80,28 @@ jobs:
             <title>Test Reports</title>
             <style>
               :root {
-                /* Light mode variables */
-                --heading-color: #2c3e50;
-                --border-color: #eee;
-                --report-bg: #f8f9fa;
-                --link-color: #3498db;
-                --latest-bg: #e8f5e9;
-                --latest-border: #4caf50;
-                --text-color: #000;
-                --bg-color: #fff;
+                /* Solarized Light */
+                --heading-color: #586e75;
+                --border-color: #eee8d5;
+                --report-bg: #eee8d5;
+                --link-color: #268bd2;
+                --latest-bg: #eee8d5;
+                --latest-border: #859900;
+                --text-color: #657b83;
+                --bg-color: #fdf6e3;
               }
               @media (prefers-color-scheme: dark) {
                 :root {
                   color-scheme: dark;
-                  /* Dark mode variables */
-                  --heading-color: #89a7c3;
-                  --border-color: #333;
-                  --report-bg: #2a2a2a;
-                  --link-color: #5dade2;
-                  --latest-bg: #1b3320;
-                  --latest-border: #2d6a31;
-                  --text-color: #fff;
-                  --bg-color: #1a1a1a;
+                  /* Solarized Dark */
+                  --heading-color: #93a1a1;
+                  --border-color: #073642;
+                  --report-bg: #073642;
+                  --link-color: #268bd2;
+                  --latest-bg: #073642;
+                  --latest-border: #859900;
+                  --text-color: #839496;
+                  --bg-color: #002b36;
                 }
               }
               body {
@@ -138,10 +139,10 @@ jobs:
           <body>
             <h1>Test Reports</h1>
             <div class='report'>
-              <a href='$(basename $latest_cypress)/'>Latest Cypress Report</a>
+              <a href='$(basename $latest_playwright)/'>Latest Playwright Report</a>
             </div>
             <div class='report'>
-              <a href='$(basename $latest_karma)/'>Latest Karma Report</a>
+              <a href='$(basename $latest_vitest)/'>Latest Vitest Report</a>
             </div>
             <h2>All Reports</h2>
             <div id="reports">

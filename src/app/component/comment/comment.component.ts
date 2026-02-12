@@ -85,11 +85,11 @@ export class CommentComponent implements OnInit, AfterViewInit, OnChanges, OnDes
 
   @ViewChildren('action')
   actionComponents?: QueryList<ActionComponent>;
-  @ViewChild(CommentReplyComponent)
+  @ViewChild('replyComponent')
   replyComponent?: CommentReplyComponent;
-  @ViewChild(CommentEditComponent)
+  @ViewChild('editComponent')
   editComponent?: CommentEditComponent;
-  @ViewChild(CommentThreadComponent)
+  @ViewChild('threadComponent')
   threadComponent?: CommentThreadComponent;
 
   @Input()

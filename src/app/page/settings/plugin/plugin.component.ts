@@ -24,7 +24,7 @@ export class SettingsPluginPage implements OnInit, OnDestroy, HasChanges {
 
   serverError: string[] = [];
 
-  @ViewChild(PluginListComponent)
+  @ViewChild('list')
   list?: PluginListComponent;
 
   private disposers: IReactionDisposer[] = [];

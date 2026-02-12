@@ -139,7 +139,7 @@ export class ExtComponent implements OnChanges, HasChanges {
     return this.ext.exists;
   }
 
-  @ViewChild(ExtFormComponent)
+  @ViewChild('extForm')
   set extForm(value: ExtFormComponent) {
     value?.setValue(toJS(this.ext));
   }
