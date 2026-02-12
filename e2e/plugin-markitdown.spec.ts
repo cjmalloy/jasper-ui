@@ -22,8 +22,15 @@ test.describe.serial('MarkItDown Plugin', () => {
     
     // Upload the PDF file using cache input (second file input)
     // Set up promises to wait for cache upload before selecting file
-    const cacheUploadPromise = page.waitForResponse(resp => resp.url().includes('/api/v1/cache') && resp.request().method() === 'POST');
-    const refFetchPromise = page.waitForResponse(resp => resp.url().includes('/api/v1/ref') && resp.request().method() === 'GET');
+    // Increase timeout for cache operations which can be slow in CI
+    const cacheUploadPromise = page.waitForResponse(
+      resp => resp.url().includes('/api/v1/cache') && resp.request().method() === 'POST',
+      { timeout: 30_000 }
+    );
+    const refFetchPromise = page.waitForResponse(
+      resp => resp.url().includes('/api/v1/ref') && resp.request().method() === 'GET',
+      { timeout: 30_000 }
+    );
     
     const fileInput = page.locator('input[type="file"]').nth(1);
     await fileInput.setInputFiles('e2e/fixtures/test.pdf');
@@ -80,8 +87,15 @@ test.describe.serial('MarkItDown Plugin', () => {
     
     // Upload the DOC file using cache input (second file input)
     // Set up promises to wait for cache upload before selecting file
-    const cacheUploadPromise = page.waitForResponse(resp => resp.url().includes('/api/v1/cache') && resp.request().method() === 'POST');
-    const refFetchPromise = page.waitForResponse(resp => resp.url().includes('/api/v1/ref') && resp.request().method() === 'GET');
+    // Increase timeout for cache operations which can be slow in CI
+    const cacheUploadPromise = page.waitForResponse(
+      resp => resp.url().includes('/api/v1/cache') && resp.request().method() === 'POST',
+      { timeout: 30_000 }
+    );
+    const refFetchPromise = page.waitForResponse(
+      resp => resp.url().includes('/api/v1/ref') && resp.request().method() === 'GET',
+      { timeout: 30_000 }
+    );
     
     const fileInput = page.locator('input[type="file"]').nth(1);
     await fileInput.setInputFiles('e2e/fixtures/test.doc');
@@ -121,8 +135,15 @@ test.describe.serial('MarkItDown Plugin', () => {
     
     // Upload the PDF file using cache input (second file input)
     // Set up promises to wait for cache upload before selecting file
-    const cacheUploadPromise = page.waitForResponse(resp => resp.url().includes('/api/v1/cache') && resp.request().method() === 'POST');
-    const refFetchPromise = page.waitForResponse(resp => resp.url().includes('/api/v1/ref') && resp.request().method() === 'GET');
+    // Increase timeout for cache operations which can be slow in CI
+    const cacheUploadPromise = page.waitForResponse(
+      resp => resp.url().includes('/api/v1/cache') && resp.request().method() === 'POST',
+      { timeout: 30_000 }
+    );
+    const refFetchPromise = page.waitForResponse(
+      resp => resp.url().includes('/api/v1/ref') && resp.request().method() === 'GET',
+      { timeout: 30_000 }
+    );
     
     const fileInput = page.locator('input[type="file"]').nth(1);
     await fileInput.setInputFiles('e2e/fixtures/test.pdf');
@@ -181,8 +202,15 @@ test.describe.serial('MarkItDown Plugin', () => {
     
     // Upload the PDF file using cache input (second file input)
     // Set up promises to wait for cache upload before selecting file
-    const cacheUploadPromise = page.waitForResponse(resp => resp.url().includes('/api/v1/cache') && resp.request().method() === 'POST');
-    const refFetchPromise = page.waitForResponse(resp => resp.url().includes('/api/v1/ref') && resp.request().method() === 'GET');
+    // Increase timeout for cache operations which can be slow in CI
+    const cacheUploadPromise = page.waitForResponse(
+      resp => resp.url().includes('/api/v1/cache') && resp.request().method() === 'POST',
+      { timeout: 30_000 }
+    );
+    const refFetchPromise = page.waitForResponse(
+      resp => resp.url().includes('/api/v1/ref') && resp.request().method() === 'GET',
+      { timeout: 30_000 }
+    );
     
     const fileInput = page.locator('input[type="file"]').nth(1);
     await fileInput.setInputFiles('e2e/fixtures/test.pdf');
