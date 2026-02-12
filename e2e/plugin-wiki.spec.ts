@@ -1,10 +1,10 @@
 import { expect, test } from '@playwright/test';
-import { clearMods, deleteRef, mod, openSidebar } from './setup';
+import { clearAll, deleteRef, mod, openSidebar } from './setup';
 
 test.describe.serial('Wiki Plugin', () => {
 
-  test('clear mods', async ({ page }) => {
-    await clearMods(page);
+  test('clear all', async ({ page }) => {
+    await clearAll(page);
   });
 
   test('creates a wiki', async ({ page }) => {
