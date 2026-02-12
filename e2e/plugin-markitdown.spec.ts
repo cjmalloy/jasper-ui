@@ -39,8 +39,8 @@ test.describe.serial('MarkItDown Plugin', () => {
     // This happens after the file is uploaded to cache and ref is fetched
     await expect(page.locator('button', { hasText: 'upload all' })).toBeVisible({ timeout: 90_000 });
     
-    // Wait a bit for any async processing to complete
-    await page.waitForTimeout(1000);
+    // Wait for the ref preview to be rendered (indicates processing is complete)
+    await expect(page.locator('app-ref')).toBeVisible({ timeout: 5_000 });
     
     // PDF plugin should be added automatically, no need to add tags manually
     
@@ -94,8 +94,8 @@ test.describe.serial('MarkItDown Plugin', () => {
     // Wait for "upload all" button to appear
     await expect(page.locator('button', { hasText: 'upload all' })).toBeVisible({ timeout: 90_000 });
     
-    // Wait a bit for any async processing to complete
-    await page.waitForTimeout(1000);
+    // Wait for the ref preview to be rendered (indicates processing is complete)
+    await expect(page.locator('app-ref')).toBeVisible({ timeout: 5_000 });
     
     // File plugin should be added automatically
     
@@ -132,8 +132,8 @@ test.describe.serial('MarkItDown Plugin', () => {
     // Wait for "upload all" button to appear
     await expect(page.locator('button', { hasText: 'upload all' })).toBeVisible({ timeout: 90_000 });
     
-    // Wait a bit for any async processing to complete
-    await page.waitForTimeout(1000);
+    // Wait for the ref preview to be rendered (indicates processing is complete)
+    await expect(page.locator('app-ref')).toBeVisible({ timeout: 5_000 });
     
     // Add public tag (PDF plugin is added automatically)
     await page.locator('input#add-tag').fill('public');
@@ -189,8 +189,8 @@ test.describe.serial('MarkItDown Plugin', () => {
     // Wait for "upload all" button to appear
     await expect(page.locator('button', { hasText: 'upload all' })).toBeVisible({ timeout: 90_000 });
     
-    // Wait a bit for any async processing to complete
-    await page.waitForTimeout(1000);
+    // Wait for the ref preview to be rendered (indicates processing is complete)
+    await expect(page.locator('app-ref')).toBeVisible({ timeout: 5_000 });
     
     // PDF plugin is added automatically, no need to add tags
     
