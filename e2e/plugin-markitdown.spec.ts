@@ -220,7 +220,6 @@ test.describe.serial('MarkItDown Plugin', () => {
     
     const commentContent = page.locator('.full-page.ref .comment');
     await expect(commentContent).toBeVisible();
-    // OCR results may vary, just check content exists
     const text = await commentContent.textContent();
     expect(text).toBeTruthy();
   });

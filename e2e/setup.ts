@@ -132,5 +132,9 @@ export async function convertToMarkdown(page: Page, refUrl: string) {
   const markdownRefLink = page.locator('.ref', { hasText: 'Markdown:' }).first().locator('a').first();
   const markdownUrl = await markdownRefLink.getAttribute('href');
   
-  return markdownUrl || '';
+  if (!markdownUrl) {
+    throw new Error('Failed to retrieve markdown conversion result URL');
+  }
+  
+  return markdownUrl;
 }
