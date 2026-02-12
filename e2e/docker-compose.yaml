@@ -91,7 +91,7 @@ services:
       test: "curl -f http://localhost/management/health/readiness"
     environment:
       SPRING_LOGGING_LEVEL_ROOT: WARN
-      SPRING_PROFILES_ACTIVE: prod,jwt,storage,file-cache
+      SPRING_PROFILES_ACTIVE: prod,jwt
       SPRING_DATASOURCE_URL: jdbc:postgresql://repl-db/jasper
       SPRING_DATASOURCE_USERNAME: jasper
       SPRING_DATASOURCE_PASSWORD: jasper
