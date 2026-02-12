@@ -21,21 +21,28 @@ test.describe.serial('MarkItDown Plugin', () => {
     await page.locator('.tabs a', { hasText: 'upload' }).click();
     
     // Upload the PDF file using cache input (second file input)
+    // Set up promises to wait for cache upload before selecting file
+    const cacheUploadPromise = page.waitForResponse(resp => resp.url().includes('/api/v1/cache') && resp.request().method() === 'POST');
+    const refFetchPromise = page.waitForResponse(resp => resp.url().includes('/api/v1/ref') && resp.request().method() === 'GET');
+    
     const fileInput = page.locator('input[type="file"]').nth(1);
     await fileInput.setInputFiles('e2e/fixtures/test.pdf');
     
-    // Wait for file to be uploaded to cache and ref to be created
-    // The "upload all" button only appears when store.submit.empty is false (refs are ready)
-    await expect(page.locator('button', { hasText: 'upload all' })).toBeVisible({ timeout: 15_000 });
+    // Wait for file to be uploaded to cache and ref to be fetched
+    await cacheUploadPromise;
+    await refFetchPromise;
+    
+    // Now the "upload all" button should appear (when store.submit.empty is false)
+    await expect(page.locator('button', { hasText: 'upload all' })).toBeVisible({ timeout: 5_000 });
     
     // PDF plugin should be added automatically, no need to add tags manually
     
-    // Upload all - wait for cache POST then ref GET
-    const cachePromise = page.waitForResponse(resp => resp.url().includes('/api/v1/cache') && resp.request().method() === 'POST');
-    const refPromise = page.waitForResponse(resp => resp.url().includes('/api/v1/ref') && resp.request().method() === 'GET');
+    // Upload all - wait for submission
+    const submitCachePromise = page.waitForResponse(resp => resp.url().includes('/api/v1/cache') && resp.request().method() === 'POST');
+    const submitRefPromise = page.waitForResponse(resp => resp.url().includes('/api/v1/ref') && resp.request().method() === 'GET');
     await page.locator('button', { hasText: 'upload all' }).click();
-    await cachePromise;
-    await refPromise;
+    await submitCachePromise;
+    await submitRefPromise;
     
     // After uploading a single file, it navigates to that ref automatically
     await expect(page.locator('.full-page.ref .link a')).toContainText('test.pdf');
@@ -72,21 +79,28 @@ test.describe.serial('MarkItDown Plugin', () => {
     await page.locator('.tabs a', { hasText: 'upload' }).click();
     
     // Upload the DOC file using cache input (second file input)
+    // Set up promises to wait for cache upload before selecting file
+    const cacheUploadPromise = page.waitForResponse(resp => resp.url().includes('/api/v1/cache') && resp.request().method() === 'POST');
+    const refFetchPromise = page.waitForResponse(resp => resp.url().includes('/api/v1/ref') && resp.request().method() === 'GET');
+    
     const fileInput = page.locator('input[type="file"]').nth(1);
     await fileInput.setInputFiles('e2e/fixtures/test.doc');
     
-    // Wait for file to be uploaded to cache and ref to be created
-    // The "upload all" button only appears when store.submit.empty is false (refs are ready)
-    await expect(page.locator('button', { hasText: 'upload all' })).toBeVisible({ timeout: 15_000 });
+    // Wait for file to be uploaded to cache and ref to be fetched
+    await cacheUploadPromise;
+    await refFetchPromise;
+    
+    // Now the "upload all" button should appear (when store.submit.empty is false)
+    await expect(page.locator('button', { hasText: 'upload all' })).toBeVisible({ timeout: 5_000 });
     
     // File plugin should be added automatically
     
-    // Upload all - wait for cache POST then ref GET
-    const cachePromise = page.waitForResponse(resp => resp.url().includes('/api/v1/cache') && resp.request().method() === 'POST');
-    const refPromise = page.waitForResponse(resp => resp.url().includes('/api/v1/ref') && resp.request().method() === 'GET');
+    // Upload all - wait for submission
+    const submitCachePromise = page.waitForResponse(resp => resp.url().includes('/api/v1/cache') && resp.request().method() === 'POST');
+    const submitRefPromise = page.waitForResponse(resp => resp.url().includes('/api/v1/ref') && resp.request().method() === 'GET');
     await page.locator('button', { hasText: 'upload all' }).click();
-    await cachePromise;
-    await refPromise;
+    await submitCachePromise;
+    await submitRefPromise;
     
     // After uploading a single file, it navigates to that ref automatically
     await expect(page.locator('.full-page.ref .link a')).toContainText('test.doc');
@@ -106,23 +120,30 @@ test.describe.serial('MarkItDown Plugin', () => {
     await page.locator('.tabs a', { hasText: 'upload' }).click();
     
     // Upload the PDF file using cache input (second file input)
+    // Set up promises to wait for cache upload before selecting file
+    const cacheUploadPromise = page.waitForResponse(resp => resp.url().includes('/api/v1/cache') && resp.request().method() === 'POST');
+    const refFetchPromise = page.waitForResponse(resp => resp.url().includes('/api/v1/ref') && resp.request().method() === 'GET');
+    
     const fileInput = page.locator('input[type="file"]').nth(1);
     await fileInput.setInputFiles('e2e/fixtures/test.pdf');
     
-    // Wait for file to be uploaded to cache and ref to be created
-    // The "upload all" button only appears when store.submit.empty is false (refs are ready)
-    await expect(page.locator('button', { hasText: 'upload all' })).toBeVisible({ timeout: 15_000 });
+    // Wait for file to be uploaded to cache and ref to be fetched
+    await cacheUploadPromise;
+    await refFetchPromise;
+    
+    // Now the "upload all" button should appear (when store.submit.empty is false)
+    await expect(page.locator('button', { hasText: 'upload all' })).toBeVisible({ timeout: 5_000 });
     
     // Add public tag (PDF plugin is added automatically)
     await page.locator('input#add-tag').fill('public');
     await page.locator('input#add-tag').press('Enter');
     
-    // Upload all - wait for cache POST then ref GET
-    const cachePromise = page.waitForResponse(resp => resp.url().includes('/api/v1/cache') && resp.request().method() === 'POST');
-    const refPromise = page.waitForResponse(resp => resp.url().includes('/api/v1/ref') && resp.request().method() === 'GET');
+    // Upload all - wait for submission
+    const submitCachePromise = page.waitForResponse(resp => resp.url().includes('/api/v1/cache') && resp.request().method() === 'POST');
+    const submitRefPromise = page.waitForResponse(resp => resp.url().includes('/api/v1/ref') && resp.request().method() === 'GET');
     await page.locator('button', { hasText: 'upload all' }).click();
-    await cachePromise;
-    await refPromise;
+    await submitCachePromise;
+    await submitRefPromise;
     
     // After uploading a single file, it navigates to that ref automatically
     await expect(page.locator('.full-page.ref .link a')).toContainText('test.pdf');
@@ -159,21 +180,28 @@ test.describe.serial('MarkItDown Plugin', () => {
     await page.locator('.tabs a', { hasText: 'upload' }).click();
     
     // Upload the PDF file using cache input (second file input)
+    // Set up promises to wait for cache upload before selecting file
+    const cacheUploadPromise = page.waitForResponse(resp => resp.url().includes('/api/v1/cache') && resp.request().method() === 'POST');
+    const refFetchPromise = page.waitForResponse(resp => resp.url().includes('/api/v1/ref') && resp.request().method() === 'GET');
+    
     const fileInput = page.locator('input[type="file"]').nth(1);
     await fileInput.setInputFiles('e2e/fixtures/test.pdf');
     
-    // Wait for file to be uploaded to cache and ref to be created
-    // The "upload all" button only appears when store.submit.empty is false (refs are ready)
-    await expect(page.locator('button', { hasText: 'upload all' })).toBeVisible({ timeout: 15_000 });
+    // Wait for file to be uploaded to cache and ref to be fetched
+    await cacheUploadPromise;
+    await refFetchPromise;
+    
+    // Now the "upload all" button should appear (when store.submit.empty is false)
+    await expect(page.locator('button', { hasText: 'upload all' })).toBeVisible({ timeout: 5_000 });
     
     // PDF plugin is added automatically, no need to add tags
     
-    // Upload all - wait for cache POST then ref GET
-    const cachePromise = page.waitForResponse(resp => resp.url().includes('/api/v1/cache') && resp.request().method() === 'POST');
-    const refPromise = page.waitForResponse(resp => resp.url().includes('/api/v1/ref') && resp.request().method() === 'GET');
+    // Upload all - wait for submission
+    const submitCachePromise = page.waitForResponse(resp => resp.url().includes('/api/v1/cache') && resp.request().method() === 'POST');
+    const submitRefPromise = page.waitForResponse(resp => resp.url().includes('/api/v1/ref') && resp.request().method() === 'GET');
     await page.locator('button', { hasText: 'upload all' }).click();
-    await cachePromise;
-    await refPromise;
+    await submitCachePromise;
+    await submitRefPromise;
     
     // After uploading, it navigates to that ref automatically
     await expect(page.locator('.full-page.ref .link a')).toContainText('test.pdf');
