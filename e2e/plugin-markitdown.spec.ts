@@ -5,8 +5,7 @@ test.describe.serial('MarkItDown Plugin', () => {
   let url = '';
 
   test('loads the page', async ({ page }) => {
-    await page.goto('/?debug=USER');
-    await page.waitForLoadState('networkidle');
+    await page.goto('/?debug=USER', { waitUntil: 'networkidle' });
     await expect(page.getByText('Powered by Jasper')).toBeVisible({ timeout: 60_000 });
   });
 
@@ -36,13 +35,11 @@ test.describe.serial('MarkItDown Plugin', () => {
 
   test('should convert PDF to markdown', async ({ page }) => {
     // Navigate to the ref page and trigger conversion
-    await page.goto(url + '?debug=USER');
-    await page.waitForLoadState('networkidle');
+    await page.goto(url + '?debug=USER', { waitUntil: 'networkidle' });
     await page.locator('.full-page.ref .actions .fake-link', { hasText: 'markdown' }).click();
     // Wait for the conversion to complete by checking notifications
     await expect.poll(async () => {
-      await page.goto('/?debug=USER');
-      await page.waitForLoadState('networkidle');
+      await page.reload({ waitUntil: 'networkidle'});
       return await page.locator('.settings .notification').isVisible();
     }, { timeout: 60_000 }).toBe(true);
     await page.locator('.settings .notification').click();
@@ -53,8 +50,7 @@ test.describe.serial('MarkItDown Plugin', () => {
   });
 
   test('creates a public ref for visibility test', async ({ page }) => {
-    await page.goto('/?debug=USER');
-    await page.waitForLoadState('networkidle');
+    await page.goto('/?debug=USER', { waitUntil: 'networkidle' });
     await openSidebar(page);
     await page.locator('.sidebar .submit-button', { hasText: 'Submit' }).first().click();
     await page.locator('.tabs a', { hasText: 'upload' }).click();
@@ -106,14 +102,11 @@ test.describe.serial('MarkItDown Plugin', () => {
 
   test('should convert DOCX to markdown', async ({ page }) => {
     // Navigate to the ref page and trigger conversion
-    await page.goto(url + '?debug=USER');
-    await page.waitForLoadState('networkidle');
+    await page.goto(url + '?debug=USER', { waitUntil: 'networkidle' });
     await page.locator('.full-page.ref .actions .fake-link', { hasText: 'markdown' }).click();
     // Wait for the conversion to complete by checking notifications
-    await page.waitForLoadState('networkidle');
     await expect.poll(async () => {
-      await page.goto('/?debug=USER');
-      await page.waitForLoadState('networkidle');
+      await page.reload({ waitUntil: 'networkidle'});
       return await page.locator('.settings .notification').isVisible();
     }).toBe(true);
     await page.locator('.settings .notification').click();
@@ -134,14 +127,11 @@ test.describe.serial('MarkItDown Plugin', () => {
 
   test('should convert XLS to markdown', async ({ page }) => {
     // Navigate to the ref page and trigger conversion
-    await page.goto(url + '?debug=USER');
-    await page.waitForLoadState('networkidle');
+    await page.goto(url + '?debug=USER', { waitUntil: 'networkidle' });
     await page.locator('.full-page.ref .actions .fake-link', { hasText: 'markdown' }).click();
     // Wait for the conversion to complete by checking notifications
-    await page.waitForLoadState('networkidle');
     await expect.poll(async () => {
-      await page.goto('/?debug=USER');
-      await page.waitForLoadState('networkidle');
+      await page.reload({ waitUntil: 'networkidle'});
       return await page.locator('.settings .notification').isVisible();
     }).toBe(true);
     await page.locator('.settings .notification').click();
