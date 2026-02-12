@@ -7,7 +7,7 @@ test.describe.serial('Origin Pull Plugin', () => {
 
   test('@\u{ff20}main : clear all', async ({ page }) => {
     await clearAll(page);
-    await clearAll(page,'@repl');
+    await clearAll(page,'', '@repl');
   });
 
   test('@\u{ff20}main : turn on pull', async ({ page }) => {

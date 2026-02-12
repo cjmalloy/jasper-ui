@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { clearMods, mod } from './setup';
+import { mod } from './setup';
 
 test.describe.serial('User Page', () => {
 

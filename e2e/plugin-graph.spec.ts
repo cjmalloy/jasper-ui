@@ -1,5 +1,5 @@
 import { expect, type Page, test } from '@playwright/test';
-import { clearMods, mod, openSidebar } from './setup';
+import { mod, openSidebar } from './setup';
 
 test.describe.serial('Graph Plugin', () => {
   let page: Page;

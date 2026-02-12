@@ -6,7 +6,6 @@ export async function clearMods(page: Page, base = '') {
   const plugins = page.locator('.list-container .plugin:not(.deleted)');
   const pluginCount = await plugins.count();
   for (let i = 0; i < pluginCount; i++) {
-    const p = plugins.first();
     const deletePromise = page.waitForResponse(resp => resp.url().includes('/api/v1/plugin') && resp.request().method() === 'DELETE');
     await plugins.first().locator('.action .fake-link', { hasText: 'delete' }).click();
     await page.waitForLoadState('networkidle');
