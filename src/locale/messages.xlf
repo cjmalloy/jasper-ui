@@ -8249,29 +8249,6 @@ Private tags start with an underscore.
           <context context-type="linenumber">68</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="3943396075593320243" datatype="html">
-        <source>📝️ MarkItDown</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/mods/markitdown.ts</context>
-          <context context-type="linenumber">7</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/mods/markitdown.ts</context>
-          <context context-type="linenumber">9</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/mods/markitdown.ts</context>
-          <context context-type="linenumber">249</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="4482966957981976743" datatype="html">
-        <source>Convert documents to Markdown using Microsoft MarkItDown.
-Supports PDF, Word, Excel, PowerPoint, images (with OCR), audio (transcription), HTML, and more.
-Creates one response per supported format found.</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/mods/markitdown.ts</context>
-          <context context-type="linenumber">15,17</context>
-        </context-group>
       </trans-unit>
       <trans-unit id="3708536625756871474" datatype="html">
         <source>📝️💭️ markitdown query</source>
