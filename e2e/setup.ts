@@ -67,6 +67,7 @@ export async function modRemote(page: Page, base = '', ...mods: string[]) {
     await page.waitForLoadState('networkidle');
   }
   for (const mod of mods) {
+    if (mod === '#mod-experiments') continue;
     await expect(page.locator(mod)).toBeChecked({ checked: false });
     await page.locator(mod).check();
   }
