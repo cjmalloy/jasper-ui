@@ -35,6 +35,7 @@ test.describe.serial('Wiki Plugin', () => {
   });
 
   test('click wiki link', async ({ page }) => {
+    await page.goto('/ref/e/wiki:Wiki_test?debug=USER');
     await page.locator('a', { hasText: 'Other WIKI' }).click();
     const url = page.url().replace('/ref/', '/ref/e/') + '?debug=USER';
     await page.goto(url);
