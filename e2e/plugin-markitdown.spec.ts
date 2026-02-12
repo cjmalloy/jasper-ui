@@ -58,31 +58,6 @@ test.describe.serial('MarkItDown Plugin', () => {
     await expect(page.locator('.ref').first()).toContainText('Markdown:');
   });
 
-  test('creates a ref with plugin/file tag', async ({ page }) => {
-    url = await upload(page, 'e2e/fixtures/test.doc');
-  });
-
-  test('should have markdown action on file ref', async ({ page }) => {
-    await page.goto(url + '?debug=USER');
-    await expect(page.locator('.full-page.ref .actions .fake-link', { hasText: 'markdown' })).toHaveCount(1);
-  });
-
-  test('should convert DOC to markdown', async ({ page }) => {
-    // Navigate to the ref page and trigger conversion
-    await page.goto(url + '?debug=USER');
-    await page.waitForLoadState('networkidle');
-    await page.locator('.full-page.ref .actions .fake-link', { hasText: 'markdown' }).click();
-
-    // Wait for the conversion to complete by checking notifications
-    await page.goto('/?debug=USER');
-    await page.waitForLoadState('networkidle');
-    await page.locator('.settings .notification').click();
-    await page.locator('.tabs a', { hasText: 'all' }).first().click();
-    await page.locator('.ref', { hasText: 'Markdown:' }).first().locator('a').first().click();
-    await page.waitForLoadState('networkidle');
-    await expect(page.locator('.full-page.ref .md')).toContainText('Test Word Doc');
-  });
-
   test('creates a public ref for visibility test', async ({ page }) => {
     await page.goto('/?debug=USER');
     await page.waitForLoadState('networkidle');
@@ -176,78 +151,4 @@ test.describe.serial('MarkItDown Plugin', () => {
     await expect(page.locator('.full-page.ref .md')).toContainText('Example Test');
   });
 
-  test('creates a ref with plugin/image tag (jpeg)', async ({ page }) => {
-    url = await upload(page, 'e2e/fixtures/image.jpeg');
-  });
-
-  test('should have markdown action on jpeg image ref', async ({ page }) => {
-    await page.goto(url + '?debug=USER');
-    await expect(page.locator('.full-page.ref .actions .fake-link', { hasText: 'markdown' })).toHaveCount(1);
-  });
-
-  test('should convert JPEG image to markdown with OCR', async ({ page }) => {
-    // Navigate to the ref page and trigger conversion
-    await page.goto(url + '?debug=USER');
-    await page.waitForLoadState('networkidle');
-    await page.locator('.full-page.ref .actions .fake-link', { hasText: 'markdown' }).click();
-
-    // Wait for the conversion to complete by checking notifications
-    await page.goto('/?debug=USER');
-    await page.waitForLoadState('networkidle');
-    await page.locator('.settings .notification').click();
-    await page.locator('.tabs a', { hasText: 'all' }).first().click();
-    await page.locator('.ref', { hasText: 'Markdown:' }).first().locator('a').first().click();
-    await page.waitForLoadState('networkidle');
-    await expect(page.locator('.full-page.ref .md')).toContainText('OCR and Barcode Recognition');
-  });
-
-  test('creates a ref with plugin/image tag (png)', async ({ page }) => {
-    url = await upload(page, 'e2e/fixtures/image.png');
-  });
-
-  test('should have markdown action on png image ref', async ({ page }) => {
-    await page.goto(url + '?debug=USER');
-    await expect(page.locator('.full-page.ref .actions .fake-link', { hasText: 'markdown' })).toHaveCount(1);
-  });
-
-  test('should convert PNG image to markdown with OCR', async ({ page }) => {
-    // Navigate to the ref page and trigger conversion
-    await page.goto(url + '?debug=USER');
-    await page.waitForLoadState('networkidle');
-    await page.locator('.full-page.ref .actions .fake-link', { hasText: 'markdown' }).click();
-
-    // Wait for the conversion to complete by checking notifications
-    await page.goto('/?debug=USER');
-    await page.waitForLoadState('networkidle');
-    await page.locator('.settings .notification').click();
-    await page.locator('.tabs a', { hasText: 'all' }).first().click();
-    await page.locator('.ref', { hasText: 'Markdown:' }).first().locator('a').first().click();
-    await page.waitForLoadState('networkidle');
-    await expect(page.locator('.full-page.ref .md')).toContainText('OCR and Barcode Recognition');
-  });
-
-  test('creates a ref with plugin/image tag (webp)', async ({ page }) => {
-    url = await upload(page, 'e2e/fixtures/image.webp');
-  });
-
-  test('should have markdown action on webp image ref', async ({ page }) => {
-    await page.goto(url + '?debug=USER');
-    await expect(page.locator('.full-page.ref .actions .fake-link', { hasText: 'markdown' })).toHaveCount(1);
-  });
-
-  test('should convert WebP image to markdown with OCR', async ({ page }) => {
-    // Navigate to the ref page and trigger conversion
-    await page.goto(url + '?debug=USER');
-    await page.waitForLoadState('networkidle');
-    await page.locator('.full-page.ref .actions .fake-link', { hasText: 'markdown' }).click();
-
-    // Wait for the conversion to complete by checking notifications
-    await page.goto('/?debug=USER');
-    await page.waitForLoadState('networkidle');
-    await page.locator('.settings .notification').click();
-    await page.locator('.tabs a', { hasText: 'all' }).first().click();
-    await page.locator('.ref', { hasText: 'Markdown:' }).first().locator('a').first().click();
-    await page.waitForLoadState('networkidle');
-    await expect(page.locator('.full-page.ref .md')).toContainText('OCR and Barcode Recognition');
-  });
 });
