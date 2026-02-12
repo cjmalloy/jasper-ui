@@ -1,0 +1,42 @@
+name: Cleanup Cypress Artifacts
+
+on:
+  workflow_dispatch:
+
+jobs:
+  cleanup:
+    permissions:
+      actions: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete cypress artifacts
+        uses: actions/github-script@v8
+        with:
+          # language=JavaScript
+          script: |
+            const dryRun = true;
+            let page = 1;
+            let deleted = 0;
+            while (true) {
+              const response = await github.rest.actions.listArtifactsForRepo({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                per_page: 100,
+                page: page++
+              });
+              const artifacts = response.data.artifacts
+                .filter(a => a.name.startsWith('cypress-'));
+              if (response.data.artifacts.length === 0) break;
+              for (const artifact of artifacts) {
+                console.log(`${dryRun ? '[DRY RUN] Would delete' : 'Deleting'}: ${artifact.name} (id: ${artifact.id}, created: ${artifact.created_at}, size: ${artifact.size_in_bytes} bytes)`);
+                if (!dryRun) {
+                  await github.rest.actions.deleteArtifact({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    artifact_id: artifact.id
+                  });
+                }
+                deleted++;
+              }
+            }
+            console.log(`\n${dryRun ? '[DRY RUN] Would delete' : 'Deleted'} ${deleted} cypress artifact(s).`);
