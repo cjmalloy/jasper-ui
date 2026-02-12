@@ -35,6 +35,7 @@ This Angular client (jasper-ui) provides the reference implementation for intera
 ## Quick Start
 
 - **CRITICAL**: Debugging requires the Jasper server backend running
+- Add screenshots to your comments using playwrite for UI changes in both light and dark mode
 
 ## Development Commands
 

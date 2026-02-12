@@ -1,5 +1,5 @@
 import { HttpErrorResponse, HttpParameterCodec, HttpParams } from '@angular/common/http';
-import { isArray, isObject } from 'lodash-es';
+import { flatten, isArray, isObject } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { Problem } from '../model/problem';
 import { banlistConfig } from '../mods/system/banlist';
@@ -166,6 +166,11 @@ export function parseParams(url: string): any {
     params[key] = p.getAll(key).length > 1 ? p.getAll(key) : p.get(key)
   }
   return params;
+}
+
+export function getArray(value?: string | string[] | undefined | null) {
+  if (!value) return undefined;
+  return flatten([value]);
 }
 
 export function getUrl(url: string): URL | null {
