@@ -108,4 +108,49 @@ test.describe.serial('MarkItDown Plugin', () => {
     expect(await page.locator('.full-page.ref .actions .fake-link', { hasText: 'markdown' }).count() === 1);
     expect(await page.locator('.full-page.ref .actions .fake-link', { hasText: 'cancel' }).count() === 0);
   });
+
+  test('creates a ref with plugin/file tag (docx)', async ({ page }) => {
+    url = await upload(page, 'e2e/fixtures/test.docx');
+  });
+
+  test('should have markdown action on docx file ref', async ({ page }) => {
+    await page.goto(url + '?debug=USER');
+    expect(await page.locator('.full-page.ref .actions .fake-link', { hasText: 'markdown' }).count() === 1);
+  });
+
+  test('creates a ref with plugin/file tag (xls)', async ({ page }) => {
+    url = await upload(page, 'e2e/fixtures/test.xls');
+  });
+
+  test('should have markdown action on xls file ref', async ({ page }) => {
+    await page.goto(url + '?debug=USER');
+    expect(await page.locator('.full-page.ref .actions .fake-link', { hasText: 'markdown' }).count() === 1);
+  });
+
+  test('creates a ref with plugin/image tag (jpeg)', async ({ page }) => {
+    url = await upload(page, 'e2e/fixtures/image.jpeg');
+  });
+
+  test('should have markdown action on jpeg image ref', async ({ page }) => {
+    await page.goto(url + '?debug=USER');
+    expect(await page.locator('.full-page.ref .actions .fake-link', { hasText: 'markdown' }).count() === 1);
+  });
+
+  test('creates a ref with plugin/image tag (png)', async ({ page }) => {
+    url = await upload(page, 'e2e/fixtures/image.png');
+  });
+
+  test('should have markdown action on png image ref', async ({ page }) => {
+    await page.goto(url + '?debug=USER');
+    expect(await page.locator('.full-page.ref .actions .fake-link', { hasText: 'markdown' }).count() === 1);
+  });
+
+  test('creates a ref with plugin/image tag (webp)', async ({ page }) => {
+    url = await upload(page, 'e2e/fixtures/image.webp');
+  });
+
+  test('should have markdown action on webp image ref', async ({ page }) => {
+    await page.goto(url + '?debug=USER');
+    expect(await page.locator('.full-page.ref .actions .fake-link', { hasText: 'markdown' }).count() === 1);
+  });
 });
