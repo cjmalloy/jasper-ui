@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { clearMods, mod, openSidebar, upload } from './setup';
+import { clearMods, convertToMarkdown, mod, openSidebar, upload } from './setup';
 
 test.describe.serial('MarkItDown Plugin', () => {
   let url = '';
@@ -31,14 +31,29 @@ test.describe.serial('MarkItDown Plugin', () => {
 
   test('should show markdown action button', async ({ page }) => {
     await page.goto(url + '?debug=USER');
-    expect(await page.locator('.full-page.ref .actions .fake-link', { hasText: 'markdown' }).count() === 1);
+    expect(await page.locator('.full-page.ref .actions .fake-link', { hasText: 'markdown' }).count()).toBe(1);
   });
 
-  test('should trigger markdown conversion', async ({ page }) => {
-    await page.goto(url + '?debug=USER');
-    await page.locator('.full-page.ref .actions .fake-link', { hasText: 'markdown' }).click();
-    expect(await page.locator('.full-page.ref .actions .fake-link', { hasText: 'cancel' }).count() === 1);
-    await page.waitForTimeout(2_000);
+  test('should convert PDF to markdown', async ({ page }) => {
+    const markdownUrl = await convertToMarkdown(page, url);
+    
+    // Navigate to the markdown result
+    await page.goto(markdownUrl + '?debug=USER');
+    await page.waitForLoadState('networkidle');
+    
+    // Verify the title contains "Markdown:" and original filename
+    await expect(page.locator('.full-page.ref h5')).toContainText('Markdown:');
+    await expect(page.locator('.full-page.ref h5')).toContainText('test.pdf');
+    
+    // Verify the markdown content exists and is not empty
+    const commentContent = page.locator('.full-page.ref .comment');
+    await expect(commentContent).toBeVisible();
+    const text = await commentContent.textContent();
+    expect(text).toBeTruthy();
+    expect(text!.length).toBeGreaterThan(10); // Should have some content
+    
+    // Verify the response has the signature tag
+    await expect(page.locator('.full-page.ref .tag', { hasText: '+plugin/delta/md' })).toBeVisible();
   });
 
   test('should show markdown query notification', async ({ page }) => {
@@ -55,7 +70,26 @@ test.describe.serial('MarkItDown Plugin', () => {
 
   test('should have markdown action on file ref', async ({ page }) => {
     await page.goto(url + '?debug=USER');
-    expect(await page.locator('.full-page.ref .actions .fake-link', { hasText: 'markdown' }).count() === 1);
+    expect(await page.locator('.full-page.ref .actions .fake-link', { hasText: 'markdown' }).count()).toBe(1);
+  });
+
+  test('should convert DOC to markdown', async ({ page }) => {
+    const markdownUrl = await convertToMarkdown(page, url);
+    
+    // Navigate to the markdown result
+    await page.goto(markdownUrl + '?debug=USER');
+    await page.waitForLoadState('networkidle');
+    
+    // Verify the title contains "Markdown:" and original filename
+    await expect(page.locator('.full-page.ref h5')).toContainText('Markdown:');
+    await expect(page.locator('.full-page.ref h5')).toContainText('test.doc');
+    
+    // Verify the markdown content exists and is not empty
+    const commentContent = page.locator('.full-page.ref .comment');
+    await expect(commentContent).toBeVisible();
+    const text = await commentContent.textContent();
+    expect(text).toBeTruthy();
+    expect(text!.length).toBeGreaterThan(10); // Should have some content
   });
 
   test('creates a public ref for visibility test', async ({ page }) => {
@@ -115,7 +149,23 @@ test.describe.serial('MarkItDown Plugin', () => {
 
   test('should have markdown action on docx file ref', async ({ page }) => {
     await page.goto(url + '?debug=USER');
-    expect(await page.locator('.full-page.ref .actions .fake-link', { hasText: 'markdown' }).count() === 1);
+    expect(await page.locator('.full-page.ref .actions .fake-link', { hasText: 'markdown' }).count()).toBe(1);
+  });
+
+  test('should convert DOCX to markdown', async ({ page }) => {
+    const markdownUrl = await convertToMarkdown(page, url);
+    
+    await page.goto(markdownUrl + '?debug=USER');
+    await page.waitForLoadState('networkidle');
+    
+    await expect(page.locator('.full-page.ref h5')).toContainText('Markdown:');
+    await expect(page.locator('.full-page.ref h5')).toContainText('test.docx');
+    
+    const commentContent = page.locator('.full-page.ref .comment');
+    await expect(commentContent).toBeVisible();
+    const text = await commentContent.textContent();
+    expect(text).toBeTruthy();
+    expect(text!.length).toBeGreaterThan(10);
   });
 
   test('creates a ref with plugin/file tag (xls)', async ({ page }) => {
@@ -124,7 +174,23 @@ test.describe.serial('MarkItDown Plugin', () => {
 
   test('should have markdown action on xls file ref', async ({ page }) => {
     await page.goto(url + '?debug=USER');
-    expect(await page.locator('.full-page.ref .actions .fake-link', { hasText: 'markdown' }).count() === 1);
+    expect(await page.locator('.full-page.ref .actions .fake-link', { hasText: 'markdown' }).count()).toBe(1);
+  });
+
+  test('should convert XLS to markdown', async ({ page }) => {
+    const markdownUrl = await convertToMarkdown(page, url);
+    
+    await page.goto(markdownUrl + '?debug=USER');
+    await page.waitForLoadState('networkidle');
+    
+    await expect(page.locator('.full-page.ref h5')).toContainText('Markdown:');
+    await expect(page.locator('.full-page.ref h5')).toContainText('test.xls');
+    
+    const commentContent = page.locator('.full-page.ref .comment');
+    await expect(commentContent).toBeVisible();
+    const text = await commentContent.textContent();
+    expect(text).toBeTruthy();
+    expect(text!.length).toBeGreaterThan(10);
   });
 
   test('creates a ref with plugin/image tag (jpeg)', async ({ page }) => {
@@ -133,7 +199,23 @@ test.describe.serial('MarkItDown Plugin', () => {
 
   test('should have markdown action on jpeg image ref', async ({ page }) => {
     await page.goto(url + '?debug=USER');
-    expect(await page.locator('.full-page.ref .actions .fake-link', { hasText: 'markdown' }).count() === 1);
+    expect(await page.locator('.full-page.ref .actions .fake-link', { hasText: 'markdown' }).count()).toBe(1);
+  });
+
+  test('should convert JPEG image to markdown with OCR', async ({ page }) => {
+    const markdownUrl = await convertToMarkdown(page, url);
+    
+    await page.goto(markdownUrl + '?debug=USER');
+    await page.waitForLoadState('networkidle');
+    
+    await expect(page.locator('.full-page.ref h5')).toContainText('Markdown:');
+    await expect(page.locator('.full-page.ref h5')).toContainText('image.jpeg');
+    
+    const commentContent = page.locator('.full-page.ref .comment');
+    await expect(commentContent).toBeVisible();
+    // OCR results may vary, just check content exists
+    const text = await commentContent.textContent();
+    expect(text).toBeTruthy();
   });
 
   test('creates a ref with plugin/image tag (png)', async ({ page }) => {
@@ -142,7 +224,22 @@ test.describe.serial('MarkItDown Plugin', () => {
 
   test('should have markdown action on png image ref', async ({ page }) => {
     await page.goto(url + '?debug=USER');
-    expect(await page.locator('.full-page.ref .actions .fake-link', { hasText: 'markdown' }).count() === 1);
+    expect(await page.locator('.full-page.ref .actions .fake-link', { hasText: 'markdown' }).count()).toBe(1);
+  });
+
+  test('should convert PNG image to markdown with OCR', async ({ page }) => {
+    const markdownUrl = await convertToMarkdown(page, url);
+    
+    await page.goto(markdownUrl + '?debug=USER');
+    await page.waitForLoadState('networkidle');
+    
+    await expect(page.locator('.full-page.ref h5')).toContainText('Markdown:');
+    await expect(page.locator('.full-page.ref h5')).toContainText('image.png');
+    
+    const commentContent = page.locator('.full-page.ref .comment');
+    await expect(commentContent).toBeVisible();
+    const text = await commentContent.textContent();
+    expect(text).toBeTruthy();
   });
 
   test('creates a ref with plugin/image tag (webp)', async ({ page }) => {
@@ -151,6 +248,21 @@ test.describe.serial('MarkItDown Plugin', () => {
 
   test('should have markdown action on webp image ref', async ({ page }) => {
     await page.goto(url + '?debug=USER');
-    expect(await page.locator('.full-page.ref .actions .fake-link', { hasText: 'markdown' }).count() === 1);
+    expect(await page.locator('.full-page.ref .actions .fake-link', { hasText: 'markdown' }).count()).toBe(1);
+  });
+
+  test('should convert WebP image to markdown with OCR', async ({ page }) => {
+    const markdownUrl = await convertToMarkdown(page, url);
+    
+    await page.goto(markdownUrl + '?debug=USER');
+    await page.waitForLoadState('networkidle');
+    
+    await expect(page.locator('.full-page.ref h5')).toContainText('Markdown:');
+    await expect(page.locator('.full-page.ref h5')).toContainText('image.webp');
+    
+    const commentContent = page.locator('.full-page.ref .comment');
+    await expect(commentContent).toBeVisible();
+    const text = await commentContent.textContent();
+    expect(text).toBeTruthy();
   });
 });

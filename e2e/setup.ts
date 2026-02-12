@@ -109,3 +109,28 @@ export async function upload(page: Page, file: string) {
   await expect(page.locator('.full-page.ref .link a')).toContainText(file.substring(file.lastIndexOf('/') + 1));
   return page.url().replace('/ref/', '/ref/e/');
 }
+
+export async function convertToMarkdown(page: Page, refUrl: string) {
+  // Navigate to the ref page
+  await page.goto(refUrl + '?debug=USER');
+  await page.waitForLoadState('networkidle');
+  
+  // Click the markdown action button
+  await page.locator('.full-page.ref .actions .fake-link', { hasText: 'markdown' }).click();
+  
+  // Wait for the conversion to complete by checking notifications
+  // The conversion creates a response ref with title "Markdown: ..."
+  await page.goto('/?debug=USER');
+  await page.waitForLoadState('networkidle');
+  await page.locator('.settings .notification').click();
+  await page.waitForLoadState('networkidle');
+  
+  // Wait for the markdown response to appear in notifications (up to 60 seconds for slow conversions)
+  await expect(page.locator('.ref', { hasText: 'Markdown:' }).first()).toBeVisible({ timeout: 60_000 });
+  
+  // Get the URL of the markdown result
+  const markdownRefLink = page.locator('.ref', { hasText: 'Markdown:' }).first().locator('a').first();
+  const markdownUrl = await markdownRefLink.getAttribute('href');
+  
+  return markdownUrl || '';
+}
