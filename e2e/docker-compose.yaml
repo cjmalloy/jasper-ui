@@ -38,7 +38,7 @@ services:
     depends_on:
       - web
   web:
-    image: ghcr.io/cjmalloy/jasper:pr-568
+    image: ghcr.io/cjmalloy/jasper:master
 #    build: ../../jasper
     ports:
       - 8081:80

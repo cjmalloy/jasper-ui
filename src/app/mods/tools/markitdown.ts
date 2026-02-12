@@ -70,38 +70,6 @@ def log_debug(message):
     if debug_mode:
         debug_logs.append(message)
 
-# Configure Tesseract OCR
-# pytesseract needs to know where tesseract executable is located
-try:
-    import pytesseract
-    # Check if TESSERACT_CMD environment variable is set
-    tesseract_cmd = os.environ.get('TESSERACT_CMD')
-    if tesseract_cmd and os.path.exists(tesseract_cmd):
-        pytesseract.pytesseract.tesseract_cmd = tesseract_cmd
-        log_debug(f"Using Tesseract from TESSERACT_CMD: {tesseract_cmd}")
-    else:
-        # Try to find tesseract in PATH using shutil.which
-        tesseract_path = shutil.which('tesseract')
-        if tesseract_path:
-            pytesseract.pytesseract.tesseract_cmd = tesseract_path
-            log_debug(f"Found Tesseract in PATH: {tesseract_path}")
-        else:
-            # Try common installation paths as fallback
-            common_paths = [
-                '/usr/bin/tesseract',
-                '/usr/local/bin/tesseract',
-                '/opt/homebrew/bin/tesseract',
-            ]
-            for path in common_paths:
-                if os.path.exists(path):
-                    pytesseract.pytesseract.tesseract_cmd = path
-                    log_debug(f"Found Tesseract at: {path}")
-                    break
-            else:
-                log_debug("Warning: Tesseract executable not found. OCR will not work.")
-except ImportError:
-    log_debug("Warning: pytesseract not installed. OCR will not work.")
-
 # Supported format plugins and their default file extensions
 SUPPORTED_FORMATS = {
     'plugin/pdf': '.pdf',
@@ -177,7 +145,7 @@ def convert_to_markdown(file_path, ext, content_type=''):
             mimetype=mimetype,
             extension=ext
         )
-    
+
     log_debug(f"Converting file: {file_path}, ext: {ext}, mimetype: {mimetype}")
 
     try:
