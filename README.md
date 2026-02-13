@@ -77,7 +77,7 @@ Markdown editor with support for rendering both markdown and HTML.
 see them on a personalized dashboard.
 4. **Inbox:** Enables notifications when installed. You receive a notification when someone posts a
 response to yours. Activates the envelope icon button in the settings area of the client.
-When posting a response the client will add (for
+Requires the inbox field in the user template. When posting a response the client will add (for
 example with `+user/charlie`) `plugin/inbox/user/charlie` to the tags. This will cause it to show up
 in `+user/charlie`'s notifications. Users also receive notifications for all tags they have write
 access to (tag modmail). This tag is also the convention by which you may address a Ref "To:"
