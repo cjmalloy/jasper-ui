@@ -180,8 +180,7 @@ customizable player names.
 template to hold votes. This adds two new sort fields to the UI: Top and Hot. Top sorts by vote
 total, and Hot applies an exponential time decay when sorting. If the inbox plugin is enabled
 there is a tab on the index page to view the refs you voted on. Can be configured to allow
-positive or both positive and negative votes. Voting on a Ref adds it to a list in your user
-extension. Does not add data to a Ref.
+positive or both positive and negative votes. Does not add data to a Ref.
 2. **Graph:** Create and visualize relationship graphs to show connections and hierarchies
 between items.
 3. **Folder:** Desktop-like file browser interface where you can arrange files and subfolders
