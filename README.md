@@ -107,74 +107,72 @@ will be used.
 12. **Embed:** Enables the iframe embed when installed. When the `plugin/embed` is applied to a Ref,
 the Ref has a URL that can be used in an iframe. The iframe is shown when the embed toggle is
 pressed. Adds optional URL field to the Ref to use for the iframe, if this is unspecified the
-URL of the Ref will be used. Currently implemented for:
-    1. YouTube
-    2. X/Twitter
-    3. BitChute
-13. **Audio:** Enables the audio embed when installed. When the `plugin/audio` is applied to a Ref,
+URL of the Ref will be used. Will check [public oembed servers](https://oembed.com/providers.json)
+by default.
+14. **Audio:** Enables the audio embed when installed. When the `plugin/audio` is applied to a Ref,
 the Ref has a URL that points to an audio file. The audio player is shown when the embed toggle
 is pressed. Adds optional URL field to the Ref to use for the audio file, if this is unspecified
 the URL of the Ref will be used. This plugin will be suggested when
 you submit a link ending in an audio file extension.
-14. **Video:** Enables the video embed when installed. When the `plugin/video` is applied to a Ref,
+15. **Video:** Enables the video embed when installed. When the `plugin/video` is applied to a Ref,
 the Ref has a URL that points to a video file. The video player is shown when the embed toggle
 is pressed. Adds optional URL field to the Ref to use for the video file, if this is unspecified
 the URL of the Ref will be used. This plugin will be suggested when
 you submit a link ending in a video file extension.
-15. **Image:** Enables the image embed when installed. When the `plugin/image` is applied to a Ref,
+16. **Image:** Enables the image embed when installed. When the `plugin/image` is applied to a Ref,
 the Ref has a URL that points to an image file. The image is shown when the embed toggle is
 pressed. Adds optional URL field to the Ref to use for the image file, if this is unspecified
 the URL of the Ref will be used. Also provides an image gallery template with a responsive grid
 layout. This plugin will be suggested when you submit a link ending in an image file extension.
-16. **PDF:** Adds an action button to open the PDF version of a Ref.
-17. **Playlist:** Create a playlist from the list of sources on a Ref.
-18. **File:** Allow storing user files on the server using a file cache.
-19. **Wiki:** Enables adding Wiki Refs when installed. When creating a wiki the URL will be
+17. **PDF:** Adds an action button to open the PDF version of a Ref.
+18. **Playlist:** Create a playlist from the list of sources on a Ref.
+19. **File:** Allow storing user files on the server using a file cache.
+20. **Wiki:** Enables adding Wiki Refs when installed. When creating a wiki the URL will be
 `wiki://Page_name`. You can link to a Wiki page using the double `[[bracket syntax]]` in all
 markdown fields. Does not add data to the Ref.
-20. **Blog:** View and organize collections of blog posts with tag-based filtering and
+21. **Blog:** View and organize collections of blog posts with tag-based filtering and
 title/body formatting.
-21. **Chat:** Real-time chat rooms where multiple users can message each other. Includes chatroom
+22. **Chat:** Real-time chat rooms where multiple users can message each other. Includes chatroom
 embeds, a user lobby for tracking online users, and optional video call support.
-22. **Kanban:** Organize tasks on a visual board with customizable columns (To Do, In Progress,
+23. **Kanban:** Organize tasks on a visual board with customizable columns (To Do, In Progress,
 Done), swim lanes (by team or owner), and priority badges with drag-and-drop between lanes.
-23. **Lens:** Embed query results as visual cards in a grid layout. Can be used to display
+24. **Lens:** Embed query results as visual cards in a grid layout. Can be used to display
 related content directly inside a Ref.
-24. **Person:** Adds filtering and stylizing to support people-oriented content semantics.
-25. **Repost:** Re-submit a URL which has already been submitted by another user. The first
+25. **Person:** Adds filtering and stylizing to support people-oriented content semantics.
+26. **Repost:** Re-submit a URL which has already been submitted by another user. The first
 source of this Ref is the URL to be reposted.
-26. **Hide:** Mark Refs as hidden for the current user.
-27. **Save:** Save Refs to a personal list for the current user.
-28. **Mark as Read:** Track read status for Refs across multiple sessions.
-29. **AI:** Send Refs to an AI for responses. Includes support for DALL·E image generation,
+27. **Hide:** Mark Refs as hidden for the current user.
+28. **Save:** Save Refs to a personal list for the current user.
+29. **Mark as Read:** Track read status for Refs across multiple sessions.
+30. **AI:** Send Refs to an AI for responses. Includes support for DALL·E image generation,
 a Navi chat assistant, automatic summarization, and translation. Configurable LLM settings
 with optional web search context.
-30. **Delta:** Apply server-side scripts to transform Refs. Includes a scheduler for running
+31. **Delta:** Apply server-side scripts to transform Refs. Includes a scheduler for running
 scripts on configurable intervals.
-31. **RSS/Atom Feed:** Import entries from an RSS or Atom feed. The feed will be scraped on an
+32. **RSS/Atom Feed:** Import entries from an RSS or Atom feed. The feed will be scraped on an
 interval you specify.
-32. **Remote Origin:** Replicate a remote Jasper instance. The remote origin will be scraped
+33. **Remote Origin:** Replicate a remote Jasper instance. The remote origin will be scraped
 on an interval you specify. If the remote is also set up to replicate from this instance, you
 may communicate with remote users. Supports push and pull modes.
-33. **Scrape:** Configure CSS selectors for scraping websites.
-34. **Email:** Render e-mail specific formatting in Refs.
-35. **Cache:** Cache remote resources locally. Includes recycle bin support: if you delete a Ref
+34. **Scrape:** Configure CSS selectors for scraping websites.
+35. **Email:** Render e-mail specific formatting in Refs.
+36. **Cache:** Cache remote resources locally. Includes recycle bin support: if you delete a Ref
 its cached file will not be removed from storage right away, and restoring the Ref before the
 cache is cleared also recovers the cached file.
-36. **YT-DLP:** Download and cache videos using YT-DLP.
-37. **MarkItDown:** Convert documents to Markdown using Microsoft MarkItDown. Supports PDF,
+37. **YT-DLP:** Download and cache videos using YT-DLP.
+38. **MarkItDown:** Convert documents to Markdown using Microsoft MarkItDown. Supports PDF,
 Word, Excel, PowerPoint, images (with OCR), audio (transcription), HTML, and more.
-38. **HTML to Markdown:** Add a button to the editor to convert HTML content into Markdown.
-39. **Mod Store:** Install and share mods with other users.
-40. **Mod Tools:** Moderate content with approval workflows, NSFW tagging, and user reporting.
+39. **HTML to Markdown:** Add a button to the editor to convert HTML content into Markdown.
+40. **Mod Store:** Install and share mods with other users.
+41. **Mod Tools:** Moderate content with approval workflows, NSFW tagging, and user reporting.
 Adds a modlist tab to the inbox for reviewing unmoderated posts.
-41. **Themes:** Add custom themes to the global theme list. Includes Terminal and Night themes.
-42. **Fullscreen:** Fullscreen the viewer when an embed is shown.
-43. **Seamless:** Remove the white border from the comment markdown for a cleaner display.
-44. **GDPR:** Activates a GDPR-compliant cookie consent banner.
-45. **Chess:** Play chess games with move tracking, board flip, and an AI opponent. Includes an
+42. **Themes:** Add custom themes to the global theme list. Includes Terminal and Night themes.
+43. **Fullscreen:** Fullscreen the viewer when an embed is shown.
+44. **Seamless:** Remove the white border from the comment markdown for a cleaner display.
+45. **GDPR:** Activates a GDPR-compliant cookie consent banner.
+46. **Chess:** Play chess games with move tracking, board flip, and an AI opponent. Includes an
 integrated chatroom for game commentary.
-46. **Backgammon:** Play backgammon with piece dragging, dice rolling, game replay controls, and
+47. **Backgammon:** Play backgammon with piece dragging, dice rolling, game replay controls, and
 customizable player names.
 
 ## Coming Soon
