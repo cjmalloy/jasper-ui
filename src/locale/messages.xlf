@@ -8249,39 +8249,38 @@ Private tags start with an underscore.
           <context context-type="linenumber">68</context>
         </context-group>
       </trans-unit>
-      </trans-unit>
       <trans-unit id="3708536625756871474" datatype="html">
-        <source>📝️💭️ markitdown query</source>
+        <source>⬇️💭️ markitdown query</source>
         <context-group purpose="location">
-          <context context-type="sourcefile">src/app/mods/markitdown.ts</context>
+          <context context-type="sourcefile">src/app/mods/tools/markitdown.ts</context>
           <context context-type="linenumber">34</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4605873401590629136" datatype="html">
         <source>Convert to Markdown</source>
         <context-group purpose="location">
-          <context context-type="sourcefile">src/app/mods/markitdown.ts</context>
+          <context context-type="sourcefile">src/app/mods/tools/markitdown.ts</context>
           <context context-type="linenumber">34</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2998229675870911678" datatype="html">
         <source>markdown</source>
         <context-group purpose="location">
-          <context context-type="sourcefile">src/app/mods/markitdown.ts</context>
+          <context context-type="sourcefile">src/app/mods/tools/markitdown.ts</context>
           <context context-type="linenumber">37</context>
         </context-group>
       </trans-unit>
       <trans-unit id="5872989223865369131" datatype="html">
         <source>Convert document to Markdown using MarkItDown</source>
         <context-group purpose="location">
-          <context context-type="sourcefile">src/app/mods/markitdown.ts</context>
+          <context context-type="sourcefile">src/app/mods/tools/markitdown.ts</context>
           <context context-type="linenumber">37</context>
         </context-group>
       </trans-unit>
       <trans-unit id="5723091485366213365" datatype="html">
         <source>Cancel MarkItDown conversion.</source>
         <context-group purpose="location">
-          <context context-type="sourcefile">src/app/mods/markitdown.ts</context>
+          <context context-type="sourcefile">src/app/mods/tools/markitdown.ts</context>
           <context context-type="linenumber">38</context>
         </context-group>
       </trans-unit>
