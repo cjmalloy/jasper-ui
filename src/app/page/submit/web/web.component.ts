@@ -6,7 +6,19 @@ import { defer, uniq, without } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { autorun, IReactionDisposer } from 'mobx';
 import { MobxAngularModule } from 'mobx-angular';
-import { catchError, forkJoin, map, of, Subscription, switchMap, throwError } from 'rxjs';
+import {
+  catchError,
+  firstValueFrom,
+  forkJoin,
+  interval,
+  map,
+  of,
+  Subject,
+  Subscription,
+  switchMap,
+  takeUntil,
+  throwError
+} from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
 import { LoadingComponent } from '../../../component/loading/loading.component';
@@ -49,6 +61,7 @@ import { getVisibilityTags } from '../../../util/tag';
 export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
 
   private disposers: IReactionDisposer[] = [];
+  private destroy$ = new Subject<void>();
 
   submitted = false;
   title = '';
@@ -62,6 +75,7 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
 
   private oldSubmit: string[] = [];
   private _refForm?: RefFormComponent;
+  private cursor?: string;
 
   constructor(
     private mod: ModService,
@@ -79,10 +93,23 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
   ) {
     this.setTitle($localize`Submit: Web Link`);
     this.webForm = refForm(fb);
+    if (this.admin.editing) {
+      interval(5_000).pipe(
+        takeUntil(this.destroy$),
+      ).subscribe(() => {
+        if (this.webForm.dirty) {
+          this.refs.saveEdit(this.writeRef(), this.cursor)
+            .subscribe(cursor => this.cursor = cursor);
+        }
+      });
+    }
   }
 
-  saveChanges() {
-    // TODO: Just save in drafts
+  async saveChanges() {
+    if (this.admin.editing) {
+      return firstValueFrom(this.refs.saveEdit(this.writeRef(), this.cursor)
+        .pipe(map(() => true), catchError(() => of(false))));
+    }
     return !this.webForm?.dirty;
   }
 
@@ -214,6 +241,8 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
   ngOnDestroy() {
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   get refForm(): RefFormComponent {
@@ -292,6 +321,16 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
     this.editor.syncEditor(this.fb, this.webForm);
   }
 
+  writeRef(publish = false) {
+    return {
+      ...this.webForm.value,
+      url: this.url, // Need to pull separately since control is locked
+      origin: this.store.account.origin,
+      published: this.webForm.value.published ? DateTime.fromISO(this.webForm.value.published) : publish ? DateTime.now() : undefined,
+      plugins: writePlugins(this.webForm.value.tags, this.webForm.value.plugins),
+    };
+  }
+
   submit() {
     this.serverError = [];
     this.submitted = true;
@@ -302,14 +341,9 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
       return;
     }
     const published = this.webForm.value.published ? DateTime.fromISO(this.webForm.value.published) : DateTime.now();
-    const finalTags = this.webForm.value.tags;
-    this.submitting = this.refs.create({
-      ...this.webForm.value,
-      url: this.url, // Need to pull separately since control is locked
-      origin: this.store.account.origin,
-      published,
-      plugins: writePlugins(this.webForm.value.tags, this.webForm.value.plugins),
-    }).pipe(
+    const ref = this.writeRef(true);
+    const finalTags = ref.tags;
+    this.submitting = (this.cursor ? this.refs.update({ ...ref, modifiedString: this.cursor }) : this.refs.create(ref)).pipe(
       tap(() => {
         if (this.admin.getPlugin('plugin/user/vote/up')) {
           this.ts.createResponse('plugin/user/vote/up', this.url).subscribe();
