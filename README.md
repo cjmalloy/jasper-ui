@@ -200,8 +200,9 @@ response for each poll option.
 9. **Archive:** Archive Refs for long-term storage.
 10. **HTML Editor:** Format Ref comments as HTML instead of Markdown.
 11. **Origin Tunnel:** Create an SSH tunnel for remote origin connections.
-12. **Geo:** Display GeoJSON features on interactive maps. Supports Point, LineString, Polygon,
-and multi-geometry types.
+12. **Geo:** Display GeoJSON and GeoPackage data on interactive maps. Supports Point, LineString,
+Polygon, and multi-geometry types for GeoJSON. For GeoPackage, the map is shown when the embed
+toggle is pressed.
 13. **Chart:** Render tabular data as a graph in the embed viewer. When the `plugin/chart` is
 applied to a Ref, add fields to define the chart type, labels, and data location. Adds an
 optional field to the Ref to use for the tabular data, if this is unspecified the URL of the
@@ -209,10 +210,6 @@ Ref will be used to point to a TSV file.
 14. **Analytics:** Enables engagement tracking when installed. Reports links clicked, Refs expanded,
 Ref action taken, Refs viewed, and queries searched. Adds data to the Ref to override analytic
 tracking for that ref.
-15. **GeoPackage:** Display GeoPackage data on interactive maps. When a Ref is tagged
-`plugin/geopackage`, the map is shown when the embed toggle is pressed. Adds an optional field
-to the Ref to use for the GeoPackage, if this is unspecified the URL of the Ref will be used
-to point to a GeoPackage file.
 
 ## Deployment
 Jasper-UI is available in the following distributions:
