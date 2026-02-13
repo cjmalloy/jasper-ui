@@ -105,12 +105,12 @@ export async function upload(page: Page, file: string) {
   return page.url().replace('/ref/', '/ref/e/');
 }
 
-export async function pollNotifications(page: Page, user = 'debug', role = 'USER') {
-  await pollRemoteNotifications(page, '', user, role);
+export async function pollNotifications(page: Page, user = 'debug') {
+  await pollRemoteNotifications(page, '', user);
 }
 
-export async function pollRemoteNotifications(page: Page, base = '', user = 'debug', role = 'USER') {
-  const path = base + `/?debug=${role}&tag=${user}`;
+export async function pollRemoteNotifications(page: Page, base = '', user = 'debug') {
+  const path = base + `/?debug=ADMIN&tag=${user}`;
   await page.goto(path, { waitUntil: 'networkidle' });
   await expect.poll(async () => {
     await page.reload({ waitUntil: 'networkidle' });
