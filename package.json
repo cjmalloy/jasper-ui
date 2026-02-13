@@ -86,6 +86,7 @@
     "@angular/core": "$@angular/core",
     "@angular/cdk": "$@angular/cdk",
     "@angular/platform-browser": "$@angular/platform-browser",
+    "lodash-es": "$lodash-es",
     "marked": "$marked",
     "mermaid": "$mermaid",
     "uuid": "$uuid",
