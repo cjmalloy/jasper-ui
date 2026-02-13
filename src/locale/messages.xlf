@@ -112,7 +112,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/page/submit/upload/upload.component.ts</context>
-          <context context-type="linenumber">420,425</context>
+          <context context-type="linenumber">422,427</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4046446611860328467" datatype="html">
@@ -560,11 +560,82 @@ Please Reload.</source>
           <context context-type="linenumber">108,109</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="503445309622982213" datatype="html">
+        <source>cancel</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/component/backup/backup.component.html</context>
+          <context context-type="linenumber">76,77</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/component/blog/blog-entry/blog-entry.component.html</context>
+          <context context-type="linenumber">120,121</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/component/comment/comment-edit/comment-edit.component.html</context>
+          <context context-type="linenumber">15,16</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/component/comment/comment-reply/comment-reply.component.html</context>
+          <context context-type="linenumber">18,19</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/component/ext/ext.component.html</context>
+          <context context-type="linenumber">84,85</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/component/plugin/plugin.component.html</context>
+          <context context-type="linenumber">56,57</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/component/ref/ref.component.html</context>
+          <context context-type="linenumber">351,352</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/component/ref/ref.component.html</context>
+          <context context-type="linenumber">379,380</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/component/template/template.component.html</context>
+          <context context-type="linenumber">61,62</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/component/user/user.component.html</context>
+          <context context-type="linenumber">81,82</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/sync/feed.ts</context>
+          <context context-type="linenumber">42</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/sync/origin.ts</context>
+          <context context-type="linenumber">76</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/sync/origin.ts</context>
+          <context context-type="linenumber">212</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/sync/scrape.ts</context>
+          <context context-type="linenumber">547</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/system/cache.ts</context>
+          <context context-type="linenumber">108</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/tools/markitdown.ts</context>
+          <context context-type="linenumber">37</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/ytdlp.ts</context>
+          <context context-type="linenumber">14</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="3347932678307141902" datatype="html">
         <source>restore</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/backup/backup.component.html</context>
-          <context context-type="linenumber">76,77</context>
+          <context context-type="linenumber">77,78</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4936024166764234896" datatype="html">
@@ -935,73 +1006,6 @@ Please Reload.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/org/save.ts</context>
           <context context-type="linenumber">15</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="503445309622982213" datatype="html">
-        <source>cancel</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/component/blog/blog-entry/blog-entry.component.html</context>
-          <context context-type="linenumber">120,121</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/component/comment/comment-edit/comment-edit.component.html</context>
-          <context context-type="linenumber">15,16</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/component/comment/comment-reply/comment-reply.component.html</context>
-          <context context-type="linenumber">18,19</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/component/ext/ext.component.html</context>
-          <context context-type="linenumber">84,85</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/component/plugin/plugin.component.html</context>
-          <context context-type="linenumber">56,57</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/component/ref/ref.component.html</context>
-          <context context-type="linenumber">351,352</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/component/ref/ref.component.html</context>
-          <context context-type="linenumber">379,380</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/component/template/template.component.html</context>
-          <context context-type="linenumber">61,62</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/component/user/user.component.html</context>
-          <context context-type="linenumber">81,82</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/mods/markitdown.ts</context>
-          <context context-type="linenumber">38</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/mods/sync/feed.ts</context>
-          <context context-type="linenumber">42</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/mods/sync/origin.ts</context>
-          <context context-type="linenumber">76</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/mods/sync/origin.ts</context>
-          <context context-type="linenumber">212</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/mods/sync/scrape.ts</context>
-          <context context-type="linenumber">547</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/mods/system/cache.ts</context>
-          <context context-type="linenumber">108</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/mods/ytdlp.ts</context>
-          <context context-type="linenumber">14</context>
         </context-group>
       </trans-unit>
       <trans-unit id="5489274708723223734" datatype="html">
@@ -1910,8 +1914,8 @@ Please Reload.</source>
           <context context-type="linenumber">131</context>
         </context-group>
         <context-group purpose="location">
-          <context context-type="sourcefile">src/app/mods/markitdown.ts</context>
-          <context context-type="linenumber">258</context>
+          <context context-type="sourcefile">src/app/mods/tools/markitdown.ts</context>
+          <context context-type="linenumber">299</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7187397620187440559" datatype="html">
@@ -2061,7 +2065,7 @@ Please Reload.</source>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/thumbnail.ts</context>
-          <context context-type="linenumber">33</context>
+          <context context-type="linenumber">34</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/tools/archive.ts</context>
@@ -2279,7 +2283,7 @@ Please Reload.</source>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/ref/ref.component.ts</context>
-          <context context-type="linenumber">765</context>
+          <context context-type="linenumber">770</context>
         </context-group>
       </trans-unit>
       <trans-unit id="5743757503664322992" datatype="html">
@@ -2826,7 +2830,7 @@ Please Reload.</source>
         <source>Untitled</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/ref/ref.component.ts</context>
-          <context context-type="linenumber">632</context>
+          <context context-type="linenumber">637</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/viewer/viewer.component.ts</context>
@@ -2837,7 +2841,7 @@ Please Reload.</source>
         <source>Untitled Audio</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/ref/ref.component.ts</context>
-          <context context-type="linenumber">644</context>
+          <context context-type="linenumber">649</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/viewer/viewer.component.ts</context>
@@ -2848,7 +2852,7 @@ Please Reload.</source>
         <source>Untitled Video</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/ref/ref.component.ts</context>
-          <context context-type="linenumber">647</context>
+          <context context-type="linenumber">652</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/viewer/viewer.component.ts</context>
@@ -2859,7 +2863,7 @@ Please Reload.</source>
         <source>Untitled Image</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/ref/ref.component.ts</context>
-          <context context-type="linenumber">650</context>
+          <context context-type="linenumber">655</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/viewer/viewer.component.ts</context>
@@ -3287,14 +3291,6 @@ Please Reload.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/mailbox.ts</context>
           <context context-type="linenumber">36</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/mods/markitdown.ts</context>
-          <context context-type="linenumber">32</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/mods/markitdown.ts</context>
-          <context context-type="linenumber">256</context>
         </context-group>
       </trans-unit>
       <trans-unit id="5103771186922966213" datatype="html">
@@ -4455,7 +4451,7 @@ Please Reload.</source>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/thumbnail.ts</context>
-          <context context-type="linenumber">41</context>
+          <context context-type="linenumber">42</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/tools/archive.ts</context>
@@ -5685,14 +5681,6 @@ Private tags start with an underscore.
           <context context-type="linenumber">64</context>
         </context-group>
         <context-group purpose="location">
-          <context context-type="sourcefile">src/app/mods/markitdown.ts</context>
-          <context context-type="linenumber">14</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/mods/markitdown.ts</context>
-          <context context-type="linenumber">253</context>
-        </context-group>
-        <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/media/audio.ts</context>
           <context context-type="linenumber">14</context>
         </context-group>
@@ -5974,7 +5962,7 @@ Private tags start with an underscore.
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/thumbnail.ts</context>
-          <context context-type="linenumber">15</context>
+          <context context-type="linenumber">16</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/tools/archive.ts</context>
@@ -5983,6 +5971,14 @@ Private tags start with an underscore.
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/tools/htmlToMarkdown.ts</context>
           <context context-type="linenumber">10</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/tools/markitdown.ts</context>
+          <context context-type="linenumber">13</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/tools/markitdown.ts</context>
+          <context context-type="linenumber">294</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/tools/ninga-triangle.ts</context>
@@ -6360,8 +6356,8 @@ Private tags start with an underscore.
           <context context-type="linenumber">18</context>
         </context-group>
         <context-group purpose="location">
-          <context context-type="sourcefile">src/app/mods/markitdown.ts</context>
-          <context context-type="linenumber">34</context>
+          <context context-type="sourcefile">src/app/mods/tools/markitdown.ts</context>
+          <context context-type="linenumber">33</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2927867218205699575" datatype="html">
@@ -8249,92 +8245,6 @@ Private tags start with an underscore.
           <context context-type="linenumber">68</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="3708536625756871474" datatype="html">
-        <source>⬇️💭️ markitdown query</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/mods/tools/markitdown.ts</context>
-          <context context-type="linenumber">34</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="4605873401590629136" datatype="html">
-        <source>Convert to Markdown</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/mods/tools/markitdown.ts</context>
-          <context context-type="linenumber">34</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="2998229675870911678" datatype="html">
-        <source>markdown</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/mods/tools/markitdown.ts</context>
-          <context context-type="linenumber">37</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="5872989223865369131" datatype="html">
-        <source>Convert document to Markdown using MarkItDown</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/mods/tools/markitdown.ts</context>
-          <context context-type="linenumber">37</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="5723091485366213365" datatype="html">
-        <source>Cancel MarkItDown conversion.</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/mods/tools/markitdown.ts</context>
-          <context context-type="linenumber">38</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="5823834902091884994" datatype="html">
-        <source>📝️ MarkItDown Result</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/mods/markitdown.ts</context>
-          <context context-type="linenumber">247</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="137212084026101929" datatype="html">
-        <source>Signature tag for documents converted to Markdown using Microsoft MarkItDown.
-Each response contains the converted Markdown from a specific source format.</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/mods/markitdown.ts</context>
-          <context context-type="linenumber">254,255</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="4339537312758352578" datatype="html">
-        <source>📝️ markdown</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/mods/markitdown.ts</context>
-          <context context-type="linenumber">258</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="7451719878296732001" datatype="html">
-        <source>Converted to Markdown</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/mods/markitdown.ts</context>
-          <context context-type="linenumber">258</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="8111454443106685389" datatype="html">
-        <source>reconvert</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/mods/markitdown.ts</context>
-          <context context-type="linenumber">261</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/mods/markitdown.ts</context>
-          <context context-type="linenumber">262</context>
-        </context-group>
-      </trans-unit>
-      <trans-unit id="8128305518628119950" datatype="html">
-        <source>Reconvert document to Markdown</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/mods/markitdown.ts</context>
-          <context context-type="linenumber">261</context>
-        </context-group>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/mods/markitdown.ts</context>
-          <context context-type="linenumber">262</context>
-        </context-group>
-      </trans-unit>
       <trans-unit id="2539428835252382237" datatype="html">
         <source>📻️ Audio</source>
         <context-group purpose="location">
@@ -10006,7 +9916,7 @@ Each response contains the converted Markdown from a specific source format.</so
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/editor.service.ts</context>
-          <context context-type="linenumber">261</context>
+          <context context-type="linenumber">263</context>
         </context-group>
       </trans-unit>
       <trans-unit id="9188679011383576247" datatype="html">
@@ -10789,7 +10699,7 @@ Each response contains the converted Markdown from a specific source format.</so
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/thumbnail.ts</context>
-          <context context-type="linenumber">47</context>
+          <context context-type="linenumber">48</context>
         </context-group>
       </trans-unit>
       <trans-unit id="288432566632457641" datatype="html">
@@ -10800,7 +10710,7 @@ Each response contains the converted Markdown from a specific source format.</so
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/thumbnail.ts</context>
-          <context context-type="linenumber">53</context>
+          <context context-type="linenumber">54</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2792307758361249438" datatype="html">
@@ -10811,7 +10721,7 @@ Each response contains the converted Markdown from a specific source format.</so
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/thumbnail.ts</context>
-          <context context-type="linenumber">60</context>
+          <context context-type="linenumber">61</context>
         </context-group>
       </trans-unit>
       <trans-unit id="8741502160226854483" datatype="html">
@@ -12512,26 +12422,30 @@ Are you sure you want to purge deleted files from storage?</source>
           <context context-type="sourcefile">src/app/mods/thumbnail.ts</context>
           <context context-type="linenumber">9</context>
         </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/thumbnail.ts</context>
+          <context context-type="linenumber">11</context>
+        </context-group>
       </trans-unit>
       <trans-unit id="214146495851415082" datatype="html">
         <source>Activates built-in thumbnail support and allows users to add thumbnails to Refs.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/thumbnail.ts</context>
-          <context context-type="linenumber">16</context>
+          <context context-type="linenumber">17</context>
         </context-group>
       </trans-unit>
       <trans-unit id="9147117067732990281" datatype="html">
         <source>⭕️ thumbnail</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/thumbnail.ts</context>
-          <context context-type="linenumber">33</context>
+          <context context-type="linenumber">34</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7393081255634331730" datatype="html">
         <source>Has Thumbnail</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/thumbnail.ts</context>
-          <context context-type="linenumber">33</context>
+          <context context-type="linenumber">34</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4106488714641772798" datatype="html">
@@ -12593,12 +12507,136 @@ Are you sure you want to purge deleted files from storage?</source>
           <context context-type="sourcefile">src/app/mods/tools/htmlToMarkdown.ts</context>
           <context context-type="linenumber">13</context>
         </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/tools/markitdown.ts</context>
+          <context context-type="linenumber">297</context>
+        </context-group>
       </trans-unit>
       <trans-unit id="7466307034110439603" datatype="html">
         <source>Convert HTML to Markdown</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/tools/htmlToMarkdown.ts</context>
           <context context-type="linenumber">13</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="4648464056700800353" datatype="html">
+        <source>⬇️ MarkItDown Query</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/tools/markitdown.ts</context>
+          <context context-type="linenumber">7</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="5037331719260611753" datatype="html">
+        <source>⬇️ MarkItDown</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/tools/markitdown.ts</context>
+          <context context-type="linenumber">9</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/tools/markitdown.ts</context>
+          <context context-type="linenumber">291</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="4482966957981976743" datatype="html">
+        <source>Convert documents to Markdown using Microsoft MarkItDown.
+Supports PDF, Word, Excel, PowerPoint, images (with OCR), audio (transcription), HTML, and more.
+Creates one response per supported format found.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/tools/markitdown.ts</context>
+          <context context-type="linenumber">14,16</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="482571384536094525" datatype="html">
+        <source>⬇️💭️</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/tools/markitdown.ts</context>
+          <context context-type="linenumber">31</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="1593994334287230818" datatype="html">
+        <source>⬇️💭️ markdown query</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/tools/markitdown.ts</context>
+          <context context-type="linenumber">33</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="4605873401590629136" datatype="html">
+        <source>Convert to Markdown</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/tools/markitdown.ts</context>
+          <context context-type="linenumber">33</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="2998229675870911678" datatype="html">
+        <source>markdown</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/tools/markitdown.ts</context>
+          <context context-type="linenumber">36</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="5872989223865369131" datatype="html">
+        <source>Convert document to Markdown using MarkItDown</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/tools/markitdown.ts</context>
+          <context context-type="linenumber">36</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="5723091485366213365" datatype="html">
+        <source>Cancel MarkItDown conversion.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/tools/markitdown.ts</context>
+          <context context-type="linenumber">37</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="7922104456571061261" datatype="html">
+        <source>⬇️ MarkItDown Result</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/tools/markitdown.ts</context>
+          <context context-type="linenumber">289</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="137212084026101929" datatype="html">
+        <source>Signature tag for documents converted to Markdown using Microsoft MarkItDown.
+Each response contains the converted Markdown from a specific source format.</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/tools/markitdown.ts</context>
+          <context context-type="linenumber">295,296</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="3516699313538888395" datatype="html">
+        <source>⬇️ markdown</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/tools/markitdown.ts</context>
+          <context context-type="linenumber">299</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="7451719878296732001" datatype="html">
+        <source>Converted to Markdown</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/tools/markitdown.ts</context>
+          <context context-type="linenumber">299</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="8111454443106685389" datatype="html">
+        <source>reconvert</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/tools/markitdown.ts</context>
+          <context context-type="linenumber">302</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/tools/markitdown.ts</context>
+          <context context-type="linenumber">303</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="8128305518628119950" datatype="html">
+        <source>Reconvert document to Markdown</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/tools/markitdown.ts</context>
+          <context context-type="linenumber">302</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/tools/markitdown.ts</context>
+          <context context-type="linenumber">303</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3305475457108143824" datatype="html">
@@ -13699,7 +13737,7 @@ Are you sure you want to purge deleted files from storage?</source>
         <source>Are you sure you want totally regenerate metadata<x id="PH" equiv-text="this.origin ? &apos; in &apos; + this.origin : &apos;&apos;"/>?</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/page/settings/backup/backup.component.ts</context>
-          <context context-type="linenumber">175</context>
+          <context context-type="linenumber">171</context>
         </context-group>
       </trans-unit>
       <trans-unit id="634947648499843911" datatype="html">
@@ -13708,14 +13746,14 @@ Are you sure you want to purge deleted files from storage?</source>
 Enter the origin to confirm:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/page/settings/backup/backup.component.ts</context>
-          <context context-type="linenumber">191</context>
+          <context context-type="linenumber">187</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6858804327619005655" datatype="html">
         <source>Origin did not match <x id="PH" equiv-text="this.origin || &apos;default&apos;"/>, aborting.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/page/settings/backup/backup.component.ts</context>
-          <context context-type="linenumber">194</context>
+          <context context-type="linenumber">190</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7533350102090981030" datatype="html">
@@ -14073,11 +14111,15 @@ Enter the origin to confirm:</source>
         <source>Success.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/page/settings/setup/setup.component.ts</context>
-          <context context-type="linenumber">98</context>
+          <context context-type="linenumber">88</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/page/settings/setup/setup.component.ts</context>
-          <context context-type="linenumber">136</context>
+          <context context-type="linenumber">103</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/page/settings/setup/setup.component.ts</context>
+          <context context-type="linenumber">141</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6235431486532542678" datatype="html">
@@ -14771,7 +14813,7 @@ Enter the origin to confirm:</source>
         <source>🥷 Root</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/editor.service.ts</context>
-          <context context-type="linenumber">262</context>
+          <context context-type="linenumber">264</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4272296016036632982" datatype="html">
