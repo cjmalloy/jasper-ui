@@ -197,7 +197,7 @@ disputed, paid).
 7. **Table:** Create and edit spreadsheet-style tables with CSV data in Refs.
 8. **Poll:** Create multiple-choice polls and view results. Voting is done by adding a Ref
 response for each poll option.
-9. **Archive:** Archive Refs for long-term storage.
+9. **Archive:** Generate and use external archive/unpaywalled links (e.g., archive.ph, 12ft.io) for Refs.
 10. **HTML Editor:** Format Ref comments as HTML instead of Markdown.
 11. **Origin Tunnel:** Create an SSH tunnel for remote origin connections.
 12. **Geo:** Display GeoJSON and GeoPackage data on interactive maps. Supports Point, LineString,
