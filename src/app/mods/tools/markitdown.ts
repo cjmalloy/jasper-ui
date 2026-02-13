@@ -33,8 +33,10 @@ Resources are fetched through the Jasper proxy API.`,
       { query: 'plugin/delta/md', label: $localize`⬇️💭️ markdown query`, title: $localize`Convert to Markdown`, group: $localize`Notifications ✉️` },
     ],
     actions: [
-      { tag: 'plugin/delta/md', labelOff: $localize`markdown`, title: $localize`Convert document to Markdown using MarkItDown`, global: true },
       { tag: 'plugin/delta/md', labelOn: $localize`cancel`, title: $localize`Cancel MarkItDown conversion.` },
+    ],
+    advancedActions: [
+      { tag: 'plugin/delta/md', labelOff: $localize`markdown`, title: $localize`Convert document to Markdown using MarkItDown`, global: true },
     ],
     timeoutMs: 600_000,
     requirements: `
@@ -93,7 +95,7 @@ def fetch_resource(url, resource_origin, ext=''):
         ext = '.' + ext
 
     proxy_url = f"{os.environ['JASPER_API']}/api/v1/proxy"
-    
+
     # Use context manager to ensure response is properly closed
     with requests.get(
         proxy_url,
