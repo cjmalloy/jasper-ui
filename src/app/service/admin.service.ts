@@ -628,13 +628,13 @@ export class AdminService {
   getEmbeds(ref?: Ref | null) {
     if (!ref) return [];
     const tags = ref.tags || [];
-    return tagIntersection([
+    return uniq(tagIntersection([
       'plugin',
       ...tags,
       ...this.getPluginsForUrl(ref.url).map(p => p.tag),
       ...this.getPluginsForCache(ref),
       ...(ref.alternateUrls || []).flatMap(url => this.getPluginsForUrl(url).map(p => p.tag)),
-    ], this.embeddable) as string[];
+    ], this.embeddable) as string[]);
   }
 
   getPluginsForUrl(url: string) {
