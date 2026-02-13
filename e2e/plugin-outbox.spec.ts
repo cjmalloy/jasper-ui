@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { clearAll, mod, modRemote, openSidebar } from './setup';
+import { clearAll, mod, modRemote, openSidebar, pollNotifications, pollRemoteNotifications } from './setup';
 
 test.describe.serial('Outbox Plugin: Remote Notifications', () => {
   const mainApi = process.env.MAIN_API || 'http://localhost:8081';
@@ -27,8 +27,7 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
   });
 
   test('@\u{ff20}main : create users', async ({ page }) => {
-    await page.goto('/ext/+user/alice?debug=USER&tag=alice');
-    await page.waitForLoadState('networkidle');
+    await page.goto('/ext/+user/alice?debug=USER&tag=alice', { waitUntil: 'networkidle' });
     await expect(page.locator('button', {hasText: 'Delete'})).toBeVisible();
   });
 
@@ -56,11 +55,9 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
   });
 
   test('@\u{ff20}repl : create users', async ({ page }) => {
-    await page.goto(replUrl + '/ext/+user/bob?debug=USER&tag=bob');
-    await page.waitForLoadState('networkidle');
+    await page.goto(replUrl + '/ext/+user/bob?debug=USER&tag=bob', { waitUntil: 'networkidle' });
     await expect(page.locator('button', {hasText: 'Delete'})).toBeVisible();
-    await page.goto(replUrl + '/ext/+user/charlie?debug=ADMIN&tag=charlie');
-    await page.waitForLoadState('networkidle');
+    await page.goto(replUrl + '/ext/+user/charlie?debug=ADMIN&tag=charlie', { waitUntil: 'networkidle' });
     await expect(page.locator('button', {hasText: 'Delete'})).toBeVisible();
   });
 
@@ -99,8 +96,7 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
   });
 
   test('@\u{ff20}repl : local user notified', async ({ page }) => {
-    await page.goto(replUrl + '/?debug=USER&tag=charlie');
-    await page.waitForLoadState('networkidle');
+    await pollRemoteNotifications(page, replUrl, 'charlie');
     await page.locator('.settings .notification').click();
     await page.locator('.tabs a', { hasText: 'all' }).first().click();
     const ref = page.locator('.ref-list .link:not(.remote)', { hasText: 'Ref from other' }).locator('..').locator('..').locator('..');
@@ -108,8 +104,7 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
   });
 
   test('@\u{ff20}main : check ref was pulled', async ({ page }) => {
-    await page.goto('/?debug=USER&tag=alice');
-    await page.waitForLoadState('networkidle');
+    await pollNotifications(page, 'alice');
     await page.locator('.settings .notification').click();
     await page.locator('.tabs a', { hasText: 'all' }).first().click();
     const ref = page.locator('.ref-list .link.remote', { hasText: 'Ref from other' }).locator('..').locator('..').locator('..');
@@ -117,8 +112,7 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
   });
 
   test('@\u{ff20}main : reply to remote message', async ({ page }) => {
-    await page.goto('/?debug=USER&tag=alice');
-    await page.waitForLoadState('networkidle');
+    await page.goto('/?debug=USER&tag=alice', { waitUntil: 'networkidle' });
     await page.locator('.settings .inbox').click();
     await page.locator('.tabs a', { hasText: 'all' }).first().click();
     const ref = page.locator('.ref-list .link.remote', { hasText: 'Ref from other' }).locator('..').locator('..').locator('..');
@@ -130,8 +124,7 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
   });
 
   test('@\u{ff20}repl : check reply was pulled', async ({ page }) => {
-    await page.goto(replUrl + '/?debug=ADMIN&tag=bob');
-    await page.waitForLoadState('networkidle');
+    await pollRemoteNotifications(page, replUrl, 'bob');
     await page.locator('.settings .notification').click();
     await page.locator('.tabs a', { hasText: 'all' }).first().click();
     const ref = page.locator('.ref-list .link.remote', { hasText: 'Doing well, thanks!' }).locator('..').locator('..').locator('..');
@@ -139,8 +132,7 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
   });
 
   test('@\u{ff20}repl : check inbox was converted to outbox', async ({ page }) => {
-    await page.goto(replUrl + '/?debug=ADMIN&tag=charlie');
-    await page.waitForLoadState('networkidle');
+    await pollRemoteNotifications(page, replUrl, 'charlie');
     await page.locator('.settings .notification').click();
     await page.locator('.tabs a', { hasText: 'all' }).first().click();
     const ref = page.locator('.ref-list .link.remote', { hasText: 'Doing well, thanks!' }).locator('..').locator('..').locator('..');
