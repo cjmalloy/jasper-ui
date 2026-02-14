@@ -8,6 +8,6 @@ services:
   repl-web:
     environment:
       SPRING_PROFILES_ACTIVE: prod,jwt,sqlite
-      SPRING_DATASOURCE_URL: jdbc:sqlite:/var/lib/jasper/db.sqlite
+      SPRING_DATASOURCE_URL: jdbc:sqlite:file:jasper-test?mode=memory&cache=shared
       SPRING_DATASOURCE_USERNAME: ''
       SPRING_DATASOURCE_PASSWORD: ''
