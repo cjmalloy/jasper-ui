@@ -2,6 +2,12 @@ services:
   web:
     environment:
       SPRING_PROFILES_ACTIVE: prod,jwt,storage,file-cache,scripts,sqlite
+      SPRING_DATASOURCE_URL: jdbc:sqlite:/var/lib/jasper/db.sqlite
+      SPRING_DATASOURCE_USERNAME: ''
+      SPRING_DATASOURCE_PASSWORD: ''
   repl-web:
     environment:
       SPRING_PROFILES_ACTIVE: prod,jwt,sqlite
+      SPRING_DATASOURCE_URL: jdbc:sqlite:/var/lib/jasper/db.sqlite
+      SPRING_DATASOURCE_USERNAME: ''
+      SPRING_DATASOURCE_PASSWORD: ''
