@@ -58,6 +58,10 @@ export class CommentThreadComponent implements OnInit, OnChanges, OnDestroy, Has
     this.disposers.push(autorun(() => {
       if (thread.latest.length) {
         this.comments = thread.cache.get(this.source);
+        if (this.comments && this.newComments.length) {
+          const newUrls = new Set(this.newComments.map(c => c.url));
+          this.comments = this.comments.filter(c => !newUrls.has(c.url));
+        }
         if (this.comments && this.pageSize) {
           this.comments = [...this.comments!];
           this.comments.length = this.pageSize;
