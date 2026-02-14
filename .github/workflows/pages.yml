@@ -72,6 +72,8 @@ jobs:
           if [ -n "$latest_playwright_postgres" ] && [ -d "$latest_playwright_postgres" ]; then
             mkdir -p _site/reports/latest-playwright-postgres
             cp -r "$latest_playwright_postgres/." _site/reports/latest-playwright-postgres/
+            mkdir -p _site/reports/latest-playwright
+            cp -r "$latest_playwright_postgres/." _site/reports/latest-playwright/
           fi
           latest_playwright_sqlite=$(ls -dv _site/reports/playwright-reports-sqlite-master-* 2>/dev/null | tail -1)
           echo "Creating latest Playwright (sqlite) $latest_playwright_sqlite"
