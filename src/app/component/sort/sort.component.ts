@@ -43,6 +43,9 @@ export class SortComponent implements OnChanges, OnDestroy {
       this.sorts = toJS(this.store.view.sort);
       if (!Array.isArray(this.sorts)) this.sorts = [this.sorts];
     }));
+    this.disposers.push(autorun(() => {
+      this.rebuildSorts(this.store.view.isSearch);
+    }));
     router.events.pipe(
       filter(event => event instanceof NavigationEnd),
     ).subscribe(() => this.replace = false);
@@ -50,14 +53,18 @@ export class SortComponent implements OnChanges, OnDestroy {
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes.type) {
-      if (this.type === 'ref') {
-        this.allSorts = [...this.allRefSorts];
-        if (this.store.view.search) {
-          this.allSorts.unshift({ value: 'rank', label: $localize`🔍️ relevance`, title: $localize`Search rank` });
-        }
-      } else {
-        this.allSorts = [...this.allTagSorts];
+      this.rebuildSorts(this.store.view.isSearch);
+    }
+  }
+
+  private rebuildSorts(isSearch: boolean) {
+    if (this.type === 'ref') {
+      this.allSorts = [...this.allRefSorts];
+      if (isSearch) {
+        this.allSorts.unshift({ value: 'rank', label: $localize`🔍️ relevance`, title: $localize`Search rank` });
       }
+    } else {
+      this.allSorts = [...this.allTagSorts];
     }
   }
 
