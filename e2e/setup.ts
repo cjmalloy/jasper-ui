@@ -3,23 +3,23 @@ import { expect, type Page } from '@playwright/test';
 export async function clearMods(page: Page, base = '') {
   await page.goto(base + '/settings/plugin?debug=ADMIN&pageSize=2000', { waitUntil: 'networkidle' });
   const plugins = page.locator('.list-container .plugin:not(.deleted)');
-  const pluginCount = await plugins.count();
-  for (let i = 0; i < pluginCount; i++) {
+  while (await plugins.count() > 0) {
     const deletePromise = page.waitForResponse(resp => resp.url().includes('/api/v1/plugin') && resp.request().method() === 'DELETE');
     await plugins.first().locator('.action .fake-link', { hasText: 'delete' }).click();
     await page.waitForLoadState('networkidle');
     await plugins.first().locator('.action .fake-link', { hasText: 'yes' }).click();
     await deletePromise;
+    await page.waitForLoadState('networkidle');
   }
   await page.goto(base + '/settings/template?debug=ADMIN&pageSize=2000', { waitUntil: 'networkidle' });
   const templates = page.locator('.list-container .template:not(.deleted):not(.config_index):not(.config_server)');
-  let templateCount = await templates.count();
-  for (let i = 0; i < templateCount; i++) {
-   const deletePromise = page.waitForResponse(resp => resp.url().includes('/api/v1/template') && resp.request().method() === 'DELETE');
+  while (await templates.count() > 0) {
+    const deletePromise = page.waitForResponse(resp => resp.url().includes('/api/v1/template') && resp.request().method() === 'DELETE');
     await templates.first().locator('.action .fake-link', { hasText: 'delete' }).click();
     await page.waitForLoadState('networkidle');
     await templates.first().locator('.action .fake-link', { hasText: 'yes' }).click();
     await deletePromise;
+    await page.waitForLoadState('networkidle');
   }
 }
 
