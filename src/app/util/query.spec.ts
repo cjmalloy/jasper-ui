@@ -177,7 +177,7 @@ describe('Query Utils', () => {
       ];
       const args = getArgs('science', undefined, filters);
       expect(args.modifiedBefore).toBe('2024-01-01');
-      expect(args.modifiedAfter).toBe('2023-01-01');
+      expect(args.modifiedAfter).toBe('2023-01-01T00:00:00.000+00:00');
     });
 
     it('should extract source filters', () => {
