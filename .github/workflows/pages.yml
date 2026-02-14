@@ -67,11 +67,17 @@ jobs:
             mkdir -p _site/reports/latest-vitest
             cp -r "$latest_vitest/." _site/reports/latest-vitest/
           fi
-          latest_playwright=$(ls -dv _site/reports/playwright-reports-master-* 2>/dev/null | tail -1)
-          echo "Creating latest Playwright $latest_playwright"
-          if [ -n "$latest_playwright" ] && [ -d "$latest_playwright" ]; then
-            mkdir -p _site/reports/latest-playwright
-            cp -r "$latest_playwright/." _site/reports/latest-playwright/
+          latest_playwright_postgres=$(ls -dv _site/reports/playwright-reports-postgres-master-* 2>/dev/null | tail -1)
+          echo "Creating latest Playwright (postgres) $latest_playwright_postgres"
+          if [ -n "$latest_playwright_postgres" ] && [ -d "$latest_playwright_postgres" ]; then
+            mkdir -p _site/reports/latest-playwright-postgres
+            cp -r "$latest_playwright_postgres/." _site/reports/latest-playwright-postgres/
+          fi
+          latest_playwright_sqlite=$(ls -dv _site/reports/playwright-reports-sqlite-master-* 2>/dev/null | tail -1)
+          echo "Creating latest Playwright (sqlite) $latest_playwright_sqlite"
+          if [ -n "$latest_playwright_sqlite" ] && [ -d "$latest_playwright_sqlite" ]; then
+            mkdir -p _site/reports/latest-playwright-sqlite
+            cp -r "$latest_playwright_sqlite/." _site/reports/latest-playwright-sqlite/
           fi
           cat > _site/reports/index.html << EOF
           <!DOCTYPE html>
@@ -139,7 +145,10 @@ jobs:
           <body>
             <h1>Test Reports</h1>
             <div class='report'>
-              <a href='$(basename $latest_playwright)/'>Latest Playwright Report</a>
+              <a href='latest-playwright-postgres/'>Latest Playwright Report (postgres)</a>
+            </div>
+            <div class='report'>
+              <a href='latest-playwright-sqlite/'>Latest Playwright Report (sqlite)</a>
             </div>
             <div class='report'>
               <a href='$(basename $latest_vitest)/'>Latest Vitest Report</a>
