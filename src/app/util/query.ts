@@ -240,7 +240,7 @@ function getRefFilter(filter?: UrlFilter[]): RefFilter {
 }
 
 export function fixDateTime(t: string) {
-  return DateTime.fromISO(t).toISO()!;
+  return DateTime.fromISO(t).toUTC().toISO()!;
 }
 
 export function getTagFilter(filter?: UrlFilter[]): TagQueryArgs {
