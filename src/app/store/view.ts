@@ -423,6 +423,10 @@ export class ViewStore {
     return this.route.routeSnapshot?.queryParams['search'];
   }
 
+  get isSearch() {
+    return !!this.search;
+  }
+
   get pageNumber() {
     return this.route.routeSnapshot?.queryParams['pageNumber'] || this.defaultPageNumber;
   }
