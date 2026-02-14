@@ -30,13 +30,15 @@ test.describe.serial('MarkItDown Plugin', () => {
 
   test('should show markdown action button', async ({ page }) => {
     await page.goto(url + '?debug=USER');
-    await expect(page.locator('.full-page.ref .actions .fake-link', { hasText: 'markdown' })).toHaveCount(1);
+    await page.locator('.full-page.ref .actions .show-more').click();
+    await expect(page.locator('.advanced-actions .fake-link', { hasText: 'markdown' })).toHaveCount(1);
   });
 
   test('should convert PDF to markdown', async ({ page }) => {
     // Navigate to the ref page and trigger conversion
     await page.goto(url + '?debug=USER', { waitUntil: 'networkidle' });
-    await page.locator('.full-page.ref .actions .fake-link', { hasText: 'markdown' }).click();
+    await page.locator('.full-page.ref .actions .show-more').click();
+    await page.locator('.advanced-actions .fake-link', { hasText: 'markdown' }).click();
     // Wait for the conversion to complete by checking notifications
     await pollNotifications(page);
     await page.locator('.settings .notification').click();
@@ -76,15 +78,17 @@ test.describe.serial('MarkItDown Plugin', () => {
   test('cancels markdown conversion', async ({ page }) => {
     await upload(page, 'e2e/fixtures/test.pdf');
 
-    // Click markdown action
-    await page.locator('.full-page.ref .actions .fake-link', { hasText: 'markdown' }).click();
+    // Click markdown action in advanced menu
+    await page.locator('.full-page.ref .actions .show-more').click();
+    await page.locator('.advanced-actions .fake-link', { hasText: 'markdown' }).click();
     await expect(page.locator('.full-page.ref .actions .fake-link', { hasText: 'cancel' })).toHaveCount(1);
 
     // Click cancel
     await page.locator('.full-page.ref .actions .fake-link', { hasText: 'cancel' }).click();
 
-    // Should show markdown action again (not cancel)
-    await expect(page.locator('.full-page.ref .actions .fake-link', { hasText: 'markdown' })).toHaveCount(1);
+    // Should show markdown action again in advanced menu (not cancel)
+    await page.locator('.full-page.ref .actions .show-more').click();
+    await expect(page.locator('.advanced-actions .fake-link', { hasText: 'markdown' })).toHaveCount(1);
     await expect(page.locator('.full-page.ref .actions .fake-link', { hasText: 'cancel' })).toHaveCount(0);
   });
 
@@ -94,13 +98,15 @@ test.describe.serial('MarkItDown Plugin', () => {
 
   test('should have markdown action on docx file ref', async ({ page }) => {
     await page.goto(url + '?debug=USER');
-    await expect(page.locator('.full-page.ref .actions .fake-link', { hasText: 'markdown' })).toHaveCount(1);
+    await page.locator('.full-page.ref .actions .show-more').click();
+    await expect(page.locator('.advanced-actions .fake-link', { hasText: 'markdown' })).toHaveCount(1);
   });
 
   test('should convert DOCX to markdown', async ({ page }) => {
     // Navigate to the ref page and trigger conversion
     await page.goto(url + '?debug=USER', { waitUntil: 'networkidle' });
-    await page.locator('.full-page.ref .actions .fake-link', { hasText: 'markdown' }).click();
+    await page.locator('.full-page.ref .actions .show-more').click();
+    await page.locator('.advanced-actions .fake-link', { hasText: 'markdown' }).click();
     // Wait for the conversion to complete by checking notifications
     await pollNotifications(page);
     await page.locator('.settings .notification').click();
@@ -116,13 +122,15 @@ test.describe.serial('MarkItDown Plugin', () => {
 
   test('should have markdown action on xls file ref', async ({ page }) => {
     await page.goto(url + '?debug=USER');
-    await expect(page.locator('.full-page.ref .actions .fake-link', { hasText: 'markdown' })).toHaveCount(1);
+    await page.locator('.full-page.ref .actions .show-more').click();
+    await expect(page.locator('.advanced-actions .fake-link', { hasText: 'markdown' })).toHaveCount(1);
   });
 
   test('should convert XLS to markdown', async ({ page }) => {
     // Navigate to the ref page and trigger conversion
     await page.goto(url + '?debug=USER', { waitUntil: 'networkidle' });
-    await page.locator('.full-page.ref .actions .fake-link', { hasText: 'markdown' }).click();
+    await page.locator('.full-page.ref .actions .show-more').click();
+    await page.locator('.advanced-actions .fake-link', { hasText: 'markdown' }).click();
     // Wait for the conversion to complete by checking notifications
     await pollNotifications(page);
     await page.locator('.settings .notification').click();
