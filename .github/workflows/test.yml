@@ -23,7 +23,7 @@ jobs:
         with:
           context: .
           load: true
-          tags: ${{ github.repository }}:latest
+          tags: build
           cache-from: type=gha,scope=build
           cache-to: type=gha,mode=max,scope=build
 
