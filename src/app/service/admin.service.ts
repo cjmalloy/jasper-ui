@@ -25,6 +25,7 @@ import { htmlMod, latexMod } from '../mods/editor';
 import { experimentsMod } from '../mods/experiments';
 import { backgammonMod } from '../mods/games/backgammon';
 import { chessMod } from '../mods/games/chess';
+import { helpMod } from '../mods/help';
 import { homeMod } from '../mods/home';
 import { lensMod } from '../mods/lens';
 import { mailboxMod } from '../mods/mailbox';
@@ -127,6 +128,7 @@ export class AdminService {
 
     // Configs
     experimentsMod,
+    helpMod,
     wikiMod,
     graphMod,
     modlistMod,
@@ -509,6 +511,10 @@ export class AdminService {
 
   get settings() {
     return this.pluginConfigProperty('settings');
+  }
+
+  get settingsExt() {
+    return this.settings;
   }
 
   get submitSettings() {
