@@ -1,13 +1,13 @@
 services:
   web:
-    image: ghcr.io/cjmalloy/jasper:pr-572
+    image: ghcr.io/cjmalloy/jasper:pr-580
     environment:
       SPRING_PROFILES_ACTIVE: prod,jwt,storage,file-cache,scripts,sqlite
       SPRING_DATASOURCE_URL: jdbc:sqlite:/var/lib/jasper/db.sqlite
       SPRING_DATASOURCE_USERNAME: ''
       SPRING_DATASOURCE_PASSWORD: ''
   repl-web:
-    image: ghcr.io/cjmalloy/jasper:pr-572
+    image: ghcr.io/cjmalloy/jasper:pr-580
     environment:
       SPRING_PROFILES_ACTIVE: prod,jwt,sqlite
       SPRING_DATASOURCE_URL: jdbc:sqlite:file:jasper-test?mode=memory&cache=shared
