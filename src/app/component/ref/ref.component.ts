@@ -240,6 +240,14 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
           }
         }
       }
+      if (this.ref.upload && this.store.eventBus.event === 'refresh:uploads') {
+        if (this.editing || this.viewSource) {
+          // TODO: show somewhere
+          console.warn('Ignoring Ref edit.');
+          return;
+        }
+        this.init();
+      }
       if (this.store.eventBus.event === 'error') {
         if (this.ref?.url && this.store.eventBus.isRef(this.ref)) {
           this.serverError = this.store.eventBus.errors;

@@ -11,13 +11,30 @@
       }
     </p>
 
-    <span><!-- Tags --></span>
-    <div class="form-array right">
-      <formly-form class="form"
-                   [model]="store.submit.tags"
-                   (modelChange)="bookmarks.tags = $event"
-                   [fields]="[{ type: 'tags'}]"></formly-form>
+    <span><!-- Add Tags --></span>
+    <div class="padded form-array">
+      <input #tagInput
+             id="add-tag"
+             i18n-placeholder placeholder="Tag All"
+             (keydown)="$event.key === 'Enter' && tagAll(tagInput) || true"
+             type="text"
+             inputmode="email"
+             [pattern]="tagRegex"
+             autocorrect="off"
+             autocapitalize="none"
+             appAutofocus>
+      <button type="button" (click)="tagAll(tagInput)" i18n>+</button>
     </div>
+
+    @if (store.submit.tags.length) {
+      <span><!-- Tags --></span>
+      <div class="tag-list form-array right">
+        <span i18n>Tagging:</span>
+        @for (p of store.submit.tags | tagPreview | async; track p.tag) {
+          <a class="tag" [routerLink]="['/tag', p.tag]">{{ p.name || '#' + p.tag }}</a>
+        }
+      </div>
+    }
 
     <span><!-- Default upload --></span>
     <div>
@@ -62,21 +79,6 @@
             <button type="button" (click)="clear(upload)" i18n>clear</button>
           </div>
         </div>
-      </div>
-
-      <span></span>
-      <div class="padded form-array">
-        <input #tagInput
-               id="add-tag"
-               i18n-placeholder placeholder="Tag All"
-               (keydown)="$event.key === 'Enter' && tagAll(tagInput) || true"
-               type="text"
-               inputmode="email"
-               [pattern]="tagRegex"
-               autocorrect="off"
-               autocapitalize="none"
-               appAutofocus>
-        <button type="button" (click)="tagAll(tagInput)" i18n>+</button>
       </div>
 
       <span></span>
