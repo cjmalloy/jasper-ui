@@ -196,7 +196,8 @@ import { getErrorMessage } from './errors';
         </select>
         @for (filter of filters; track filter; let i = $index) {
           <div class="controls" [title]="filter">
-            <select [ngModel]="filter" (ngModelChange)="setFilter(i, $event)">
+            <select [ngModel]="filterBase(filter)" (ngModelChange)="setFilter(i, $event)"
+                    [class.negated]="isNegatedFilter(filter)">
               @for (g of allFilters; track g.label) {
                 @if (g.filters.length) {
                   <optgroup [label]="g.label">
@@ -555,6 +556,14 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> impleme
 
   negatable(filter: string) {
     return negatable(filter);
+  }
+
+  isNegatedFilter(filter: string): boolean {
+    return filter.startsWith('!') || filter.startsWith('query/!(') || filter.startsWith('user/!');
+  }
+
+  filterBase(filter: string): string {
+    return this.isNegatedFilter(filter) ? toggle(filter as UrlFilter) as string : filter;
   }
 
   // Search management
