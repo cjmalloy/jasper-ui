@@ -262,7 +262,7 @@ Map MCP interactions to Playwright test assertions and actions:
 A project goal is to have a **very simple and easy to navigate CSS tree**. Follow these rules when adding or changing components:
 
 - **Always add descriptive `class` attributes** to interactive and structurally significant elements so E2E tests can target them without relying on tag names or brittle nth-child selectors.
-- **Never rely on tag names** (e.g., `select`, `div`, `span`) as primary selectors in E2E tests — use CSS classes instead.
+- **Never use custom component tag names** (e.g., `app-ref`, `formly-field-bookmark-input`) as selectors in E2E tests — standard HTML tags like `select`, `div`, `span` are acceptable, but prefer CSS classes for clarity.
 - **Use clear, semantic class names** that describe the element's role in the UI, not its appearance or implementation. Examples:
   - `.filter-toggle` — the button/element that opens the filter/params panel
   - `.filter-preview` — the inline summary shown when params are set
