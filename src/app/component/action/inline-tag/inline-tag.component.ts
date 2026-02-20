@@ -26,6 +26,9 @@ export class InlineTagComponent extends ActionComponent {
   @Input()
   action: (tag: string) => Observable<any|never> = () => of(null);
 
+  @Input()
+  tags: string[] = [];
+
   editing = false;
   acting = false;
   id = 'tag-' + uuid();
@@ -85,6 +88,13 @@ export class InlineTagComponent extends ActionComponent {
     const getPlugins = (text: string) => this.admin.searchPlugins(text).slice(0, 1).map(toEntry);
     const getTemplates = (text: string) => this.admin.searchTemplates(text).slice(0, 1).map(toEntry);
     this.searching?.unsubscribe();
+    if (remove) {
+      this.autocomplete = this.tags
+        .filter(t => t.startsWith(tag))
+        .slice(0, 5)
+        .map(t => ({ value: prefix + remove + t, label: remove + t }));
+      return;
+    }
     this.searching = this.exts.page({
       search: tag,
       sort: ['origin:len', 'tag:len'],
