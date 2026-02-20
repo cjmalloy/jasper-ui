@@ -400,13 +400,20 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> impleme
     this.searchText = params.get('search') || '';
   }
 
+  private encodeParam(v: string): string {
+    // Encode only chars that would break query-string parsing; leave /:|()+_ readable
+    return encodeURIComponent(v).replace(/%2C/gi, ',').replace(/%2F/gi, '/').replace(/%3A/gi, ':')
+      .replace(/%7C/gi, '|').replace(/%28/gi, '(').replace(/%29/gi, ')').replace(/%2B/gi, '+')
+      .replace(/%5F/gi, '_');
+  }
+
   private buildParamsString(): string {
-    const params = new URLSearchParams();
+    const pairs: string[] = [];
     // Skip empty or incomplete sorts (e.g. ',ASC' before column is selected)
-    this.sorts.filter(s => !!s && !s.startsWith(',')).forEach(s => params.append('sort', s));
-    this.filters.filter(f => !!f).forEach(f => params.append('filter', f));
-    if (this.searchText) params.set('search', this.searchText);
-    return params.toString();
+    this.sorts.filter(s => !!s && !s.startsWith(',')).forEach(s => pairs.push(`sort=${this.encodeParam(s)}`));
+    this.filters.filter(f => !!f).forEach(f => pairs.push(`filter=${this.encodeParam(f)}`));
+    if (this.searchText) pairs.push(`search=${this.encodeParam(this.searchText)}`);
+    return pairs.join('&');
   }
 
   private updateFormValue() {
