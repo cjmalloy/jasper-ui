@@ -4,6 +4,7 @@ import { Ext } from '../model/ext';
 import { Roles, User } from '../model/user';
 import { getMailbox } from '../mods/mailbox';
 import { defaultSubs, UserConfig } from '../mods/user';
+import { parseParams } from '../util/http';
 import { braces, defaultOrigin, hasPrefix, localTag, prefix, setPublic, tagOrigin } from '../util/tag';
 import { OriginStore } from './origin';
 
@@ -148,6 +149,14 @@ export class AccountStore {
 
   get bookmarks() {
     return this.config.bookmarks || [];
+  }
+
+  get bookmarkQueries() {
+    return this.bookmarks.map(b => b.includes('?') ? b.substring(0, b.indexOf('?')) : b);
+  }
+
+  get bookmarkParams() {
+    return this.bookmarks.map(b => parseParams(b.includes('?') ? b.substring(b.indexOf('?')) : b));
   }
 
   get alarms(): string[] {
