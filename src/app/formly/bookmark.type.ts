@@ -40,31 +40,44 @@ import { getErrorMessage } from './errors';
     .breadcrumbs {
       position: absolute;
       box-sizing: border-box;
-      width: calc(100% - 28px);
+      width: 100%;
       height: 100%;
       overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
       padding-block: 2px;
       padding-inline: 8px;
+      display: flex;
+      align-items: center;
       * {
         color: var(--text);
         text-decoration: none;
         cursor: text;
       }
+      .crumbs-left {
+        flex: 1;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
       .op {
         font-family: KaTeX_Main, "Times New Roman", serif;
       }
       .param {
+        flex-shrink: 0;
         color: var(--active);
         font-size: 0.85em;
         margin-inline-start: 4px;
+        cursor: pointer !important;
       }
-    }
-    .params-btn {
-      flex-shrink: 0;
-      padding: 0 4px;
-      cursor: pointer;
+      .wand {
+        flex-shrink: 0;
+        margin-inline-start: 4px;
+        opacity: 0.35;
+        cursor: pointer !important;
+        &:hover {
+          opacity: 1;
+        }
+      }
     }
     .params-panel {
       background: var(--card);
@@ -98,20 +111,22 @@ import { getErrorMessage } from './errors';
       <div #div
            class="breadcrumbs"
            [title]="queryPart"
-           [style.display]="preview ? 'block' : 'none'"
+           [style.display]="preview ? 'flex' : 'none'"
            (click)="$event.target === div && edit(input, false)">
-        @for (breadcrumb of breadcrumbs; track breadcrumb) {
-          <span class="crumb">
-            @if (breadcrumb.tag) {
-              <a class="tag" [routerLink]="['/tag', breadcrumb.tag]" queryParamsHandling="merge"><span (click)="clickPreview(input, $event, breadcrumb)">{{ breadcrumb.text }}</span></a>
-            } @else {
-              <span class="op" (click)="edit(input, breadcrumb)">{{ breadcrumb.text }}</span>
-            }
-          </span>
-        }
-        @if (paramSummary) {
-          <span class="param">{{ paramSummary }}</span>
-        }
+        <span class="crumbs-left">
+          @for (breadcrumb of breadcrumbs; track breadcrumb) {
+            <span class="crumb">
+              @if (breadcrumb.tag) {
+                <a class="tag" [routerLink]="['/tag', breadcrumb.tag]" queryParamsHandling="merge"><span (click)="clickPreview(input, $event, breadcrumb)">{{ breadcrumb.text }}</span></a>
+              } @else {
+                <span class="op" (click)="edit(input, breadcrumb)">{{ breadcrumb.text }}</span>
+              }
+            </span>
+          }
+        </span>
+        <span #paramAnchor
+              [class]="hasParams ? 'param' : 'wand'"
+              (click)="toggleParams(); $event.stopPropagation()">{{ hasParams ? paramSummary : '🪄️' }}</span>
       </div>
       <datalist [id]="listId">
         @for (o of autocomplete; track o.value) {
@@ -134,12 +149,6 @@ import { getErrorMessage } from './errors';
              (focusout)="getPreview(queryPart)"
              [formlyAttributes]="field"
              [class.is-invalid]="showError">
-      <button #paramsButton
-              type="button"
-              class="params-btn"
-              i18n-title
-              title="Configure search, sort and filters"
-              (click)="toggleParams()">🪄️</button>
     </div>
     <ng-template #paramsPanel>
       <div class="params-panel form-group" (click)="$event.stopPropagation()">
@@ -214,8 +223,8 @@ import { getErrorMessage } from './errors';
 })
 export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> implements AfterViewInit, OnDestroy {
 
-  @ViewChild('paramsButton')
-  paramsButton!: ElementRef<HTMLButtonElement>;
+  @ViewChild('paramAnchor')
+  paramAnchor!: ElementRef<HTMLSpanElement>;
 
   @ViewChild('paramsPanel')
   paramsPanel!: TemplateRef<any>;
@@ -306,10 +315,20 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> impleme
     return idx === -1 ? '' : v.substring(idx + 1);
   }
 
+  get hasParams(): boolean {
+    return this.sorts.filter(s => !!s && !s.startsWith(',')).length > 0
+      || this.filters.filter(f => !!f).length > 0
+      || !!this.searchText;
+  }
+
   get paramSummary(): string {
     const parts: string[] = [];
     if (this.sorts.length) {
-      parts.push('🔼️ ' + this.sortCol(this.sorts[0]));
+      const col = this.sortCol(this.sorts[0]);
+      const dir = this.sortDir(this.sorts[0]);
+      const dirEmoji = dir === 'DESC' ? '🔽️' : '🔼️';
+      const label = this.allSorts.find(s => s.value === col)?.label || col;
+      parts.push(dirEmoji + ' ' + label);
       if (this.sorts.length > 1) parts.push(`+${this.sorts.length - 1}`);
     }
     if (this.searchText) {
@@ -538,7 +557,7 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> impleme
     this.closeParams();
     defer(() => {
       const positionStrategy = this.overlay.position()
-        .flexibleConnectedTo(this.paramsButton)
+        .flexibleConnectedTo(this.paramAnchor)
         .withPositions([{
           originX: 'end',
           originY: 'bottom',
