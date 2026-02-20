@@ -131,9 +131,9 @@ test.describe.serial('Bookmark Formly Type', () => {
     // close popup
     await page.locator('label', { hasText: 'Bookmarks' }).first().click();
     await expect(page.locator('.params-panel')).not.toBeVisible();
-    // focus input to check full value
+    // click breadcrumbs to enter edit mode (breadcrumbs overlay the input in preview mode)
+    await bookmarkField.locator('.crumbs-left').click();
     const textInput = bookmarkField.locator('input.grow:not(.preview)');
-    await textInput.click();
     const value = await textInput.inputValue();
     expect(value).toMatch(/science\?sort=published/);
   });
@@ -146,9 +146,9 @@ test.describe.serial('Bookmark Formly Type', () => {
     // close popup
     await page.locator('label', { hasText: 'Bookmarks' }).first().click();
     await expect(page.locator('.params-panel')).not.toBeVisible();
-    // focus input to check full value
+    // click breadcrumbs to enter edit mode (breadcrumbs overlay the input in preview mode)
+    await bookmarkField.locator('.crumbs-left').click();
     const textInput = bookmarkField.locator('input.grow:not(.preview)');
-    await textInput.click();
     const value = await textInput.inputValue();
     expect(value).toContain('filter=obsolete');
     expect(value).not.toContain('%3D');
