@@ -26,6 +26,11 @@ describe('HTTP Utils', () => {
       expect(encodeBookmarkParams('/tag/science?pageSize=20&cols=3')).toBe('');
     });
 
+    it('should preserve view param', () => {
+      const qs = encodeBookmarkParams('/tag/science?sort=published,DESC&view=kanban&pageSize=20');
+      expect(qs).toBe('sort=published,DESC&view=kanban');
+    });
+
     it('should re-encode & in URL-valued filters', () => {
       const qs = encodeBookmarkParams('?filter=sources/https://example.com?a=1%26b=2');
       expect(qs).toBe('filter=sources/https://example.com?a=1%26b=2');
@@ -107,6 +112,20 @@ describe('HTTP Utils', () => {
 
     it('should return empty object for empty string', () => {
       expect(parseBookmarkParams('')).toEqual({});
+    });
+
+    it('should parse a full relative URL by extracting query string', () => {
+      const params = parseBookmarkParams('/tag/science?filter=+plugin/delete&sort=published,DESC');
+      expect(params.filter).toBe('+plugin/delete');
+      expect(params.sort).toBe('published,DESC');
+    });
+
+    it('should parse pageNumber and pageSize alongside bookmark params', () => {
+      const params = parseBookmarkParams('?sort=published,DESC&filter=+plugin/delete&pageNumber=2&pageSize=10');
+      expect(params.sort).toBe('published,DESC');
+      expect(params.filter).toBe('+plugin/delete');
+      expect(params.pageNumber).toBe('2');
+      expect(params.pageSize).toBe('10');
     });
   });
 

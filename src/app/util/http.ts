@@ -195,6 +195,7 @@ export function encodeBookmarkParams(input: string | Record<string, string | str
     if (parsed['sort']) p['sort'] = parsed['sort'];
     if (parsed['filter']) p['filter'] = parsed['filter'];
     if (parsed['search']) p['search'] = parsed['search'];
+    if (parsed['view']) p['view'] = parsed['view'];
     return encodeBookmarkParams(p);
   }
   const pairs: string[] = [];
@@ -215,7 +216,10 @@ export function encodeBookmarkParams(input: string | Record<string, string | str
  */
 export function parseBookmarkParams(qs: string): any {
   const params: any = {};
-  const raw = qs.startsWith('?') ? qs.substring(1) : qs;
+  const qIdx = qs.indexOf('?');
+  // Strip path/host if this looks like a full URL (a '?' is present but no '=' appears before it)
+  const isFullUrl = qIdx !== -1 && !qs.substring(0, qIdx).includes('=');
+  const raw = isFullUrl ? qs.substring(qIdx + 1) : qs;
   if (!raw) return params;
   for (const pair of raw.split('&')) {
     const eqIdx = pair.indexOf('=');
