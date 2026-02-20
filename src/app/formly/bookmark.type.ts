@@ -29,7 +29,7 @@ import { getErrorMessage } from './errors';
 
 @Component({
   selector: 'formly-field-bookmark-input',
-  host: { 'class': 'field' },
+  host: { 'class': 'field bookmark-field' },
   styles: `
     .form-array {
       position: relative;
@@ -62,14 +62,14 @@ import { getErrorMessage } from './errors';
       .op {
         font-family: KaTeX_Main, "Times New Roman", serif;
       }
-      .param {
+      .filter-preview {
         flex-shrink: 0;
         color: var(--active);
         font-size: 0.85em;
         margin-inline-start: 4px;
         cursor: pointer !important;
       }
-      .wand {
+      .wand, .filter-toggle {
         flex-shrink: 0;
         margin-inline-start: 4px;
         opacity: 0.35;
@@ -125,7 +125,7 @@ import { getErrorMessage } from './errors';
           }
         </span>
         <span #paramAnchor
-              [class]="hasParams ? 'param' : 'wand'"
+              [class]="hasParams ? 'filter-preview' : 'filter-toggle'"
               (click)="toggleParams(); $event.stopPropagation()">{{ hasParams ? paramSummary : '🪄️' }}</span>
       </div>
       <datalist [id]="listId">
