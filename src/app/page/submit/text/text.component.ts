@@ -122,6 +122,7 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
   }
 
   saveForLater(leave = false) {
+    const savedValue = JSON.stringify(this.textForm.value);
     this.saving = this.refs.saveEdit(this.writeRef(), this.cursor)
       .pipe(catchError(err => {
         delete this.saving;
@@ -130,7 +131,7 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
       .subscribe(cursor => {
         delete this.saving;
         this.cursor = cursor;
-        this.textForm.markAsPristine();
+        if (JSON.stringify(this.textForm.value) === savedValue) this.textForm.markAsPristine();
         if (leave) this.router.navigate(['/inbox/ref', 'plugin/editing']);
       });
   }

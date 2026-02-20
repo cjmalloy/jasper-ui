@@ -108,6 +108,7 @@ export class SubmitInvoicePage implements OnDestroy, HasChanges {
   }
 
   saveForLater(leave = false) {
+    const savedValue = JSON.stringify(this.invoiceForm.value);
     this.saving = this.refs.saveEdit(this.writeRef(), this.cursor)
       .pipe(catchError(err => {
         delete this.saving;
@@ -116,7 +117,7 @@ export class SubmitInvoicePage implements OnDestroy, HasChanges {
       .subscribe(cursor => {
         delete this.saving;
         this.cursor = cursor;
-        this.invoiceForm.markAsPristine();
+        if (JSON.stringify(this.invoiceForm.value) === savedValue) this.invoiceForm.markAsPristine();
         if (leave) this.router.navigate(['/inbox/ref', 'plugin/editing']);
       });
   }
