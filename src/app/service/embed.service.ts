@@ -13,7 +13,7 @@ import { OembedStore } from '../store/oembed';
 import { Store } from '../store/store';
 import { delay } from '../util/async';
 import { createEmbed, createLens, createLink, createRef, embedUrl, parseSrc } from '../util/embed';
-import { getArray, parseParams } from '../util/http';
+import { getArray, parseBookmarkParams } from '../util/http';
 import { getArgs, getFilters, UrlFilter } from '../util/query';
 import { isQuery, localTag, queryPrefix, tagOrigin, topAnds } from '../util/tag';
 import { AdminService } from './admin.service';
@@ -686,7 +686,8 @@ export class EmbedService {
 
   loadQuery$(url: string):  Observable<{params: any, page: Page<Ref>, ext?: Ext}> {
     const query = this.editor.getQuery(url);
-    const params = parseParams(url);
+    const qIdx = url.indexOf('?');
+    const params = parseBookmarkParams(qIdx !== -1 ? url.substring(qIdx) : '');
     const view: string = params.view;
     return forkJoin({
       params: of(params),

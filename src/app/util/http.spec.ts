@@ -113,6 +113,22 @@ describe('HTTP Utils', () => {
     it('should return empty object for empty string', () => {
       expect(parseBookmarkParams('')).toEqual({});
     });
+
+    it('should parse a full relative URL by extracting query string', () => {
+      const url = '/tag/science?filter=+plugin/delete&sort=published,DESC';
+      const qIdx = url.indexOf('?');
+      const params = parseBookmarkParams(qIdx !== -1 ? url.substring(qIdx) : '');
+      expect(params.filter).toBe('+plugin/delete');
+      expect(params.sort).toBe('published,DESC');
+    });
+
+    it('should parse pageNumber and pageSize alongside bookmark params', () => {
+      const params = parseBookmarkParams('?sort=published,DESC&filter=+plugin/delete&pageNumber=2&pageSize=10');
+      expect(params.sort).toBe('published,DESC');
+      expect(params.filter).toBe('+plugin/delete');
+      expect(params.pageNumber).toBe('2');
+      expect(params.pageSize).toBe('10');
+    });
   });
 
   describe('getTitleFromFilename', () => {
