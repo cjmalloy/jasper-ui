@@ -86,8 +86,8 @@ export class InlineTagComponent extends ActionComponent {
     const remove = value.startsWith('-') ? '-' : '';
     const tag = value.replace(/[^_+a-z0-9./]/, '').toLowerCase();
     const toEntry = (p: Config) => ({ value: prefix + remove + p.tag, label: remove + (p.name || '#' + p.tag) });
-    const getPlugins = (text: string) => this.admin.searchPlugins(text).slice(0, 1).map(toEntry);
-    const getTemplates = (text: string) => this.admin.searchTemplates(text).slice(0, 1).map(toEntry);
+    const getPlugins = (text: string) => this.admin.searchPlugins(text).filter(p => !hasTag(p.tag, this.tags)).slice(0, 1).map(toEntry);
+    const getTemplates = (text: string) => this.admin.searchTemplates(text).filter(p => !hasTag(p.tag, this.tags)).slice(0, 1).map(toEntry);
     this.searching?.unsubscribe();
     this.searching = this.exts.page({
       search: tag,
@@ -96,7 +96,7 @@ export class InlineTagComponent extends ActionComponent {
     }).pipe(
       switchMap(page => page.page.totalElements ? forkJoin(page.content.map(x => this.preview$(x.tag + x.origin))) : of([])),
       map(xs => xs.filter(x => !!x) as { name?: string, tag: string }[]),
-      map(xs => remove ? xs.filter(x => hasTag(x.tag, this.tags)) : xs),
+      map(xs => remove ? xs.filter(x => hasTag(x.tag, this.tags)) : xs.filter(x => !hasTag(x.tag, this.tags))),
     ).subscribe(xs => {
       this.autocomplete = xs.map(x => ({ value: prefix + remove + x.tag, label: remove + (x.name || '#' + x.tag) }));
       if (!remove && this.autocomplete.length < 3) this.autocomplete.push(...getPlugins(tag));
