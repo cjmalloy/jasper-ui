@@ -21,6 +21,7 @@ import { blogMod } from '../mods/blog';
 import { chatMod } from '../mods/chat';
 import { commentMod } from '../mods/comment';
 import { deleteMod, tagDeleteNotice } from '../mods/delete';
+import { draftMod } from '../mods/draft';
 import { htmlMod, latexMod } from '../mods/editor';
 import { experimentsMod } from '../mods/experiments';
 import { backgammonMod } from '../mods/games/backgammon';
@@ -74,6 +75,7 @@ import { threadMod } from '../mods/thread';
 import { thumbnailMod } from '../mods/thumbnail';
 import { archiveMod } from '../mods/tools/archive';
 import { htmlToMarkdownMod } from '../mods/tools/htmlToMarkdown';
+import { markitdownMod } from '../mods/tools/markitdown';
 import { ninjaTriangleMod } from '../mods/tools/ninga-triangle';
 import { pollMod } from '../mods/tools/poll';
 import { qrMod } from '../mods/tools/qr';
@@ -81,7 +83,6 @@ import { thanksMod } from '../mods/tools/thanks';
 import { userMod } from '../mods/user';
 import { voteMod } from '../mods/vote';
 import { ytdlpMod } from '../mods/ytdlp';
-import { markitdownMod } from '../mods/tools/markitdown';
 import { progress } from '../store/bus';
 import { Store } from '../store/store';
 import { modId } from '../util/format';
@@ -121,6 +122,7 @@ export class AdminService {
     hideMod,
     saveMod,
     readMod,
+    draftMod,
 
     // Themes
     themesMod,
@@ -459,6 +461,10 @@ export class AdminService {
     // @ts-ignore
     if (!documentPictureInPicture) return false;
     return this.getPlugin('plugin/pip');
+  }
+
+  get editing() {
+    return this.getPlugin('plugin/editing');
   }
 
   get defaultPlugins() {

@@ -148,6 +148,7 @@
           @if (taggingAccess) {
             <app-inline-tag #action
                             [action]="tag$"
+                            [tags]="ref.tags"
                             i18n>tag</app-inline-tag>
           }
           @if (canInvoice) {

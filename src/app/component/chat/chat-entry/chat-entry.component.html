@@ -75,7 +75,7 @@
                             [action]="store.hotkey ? forceDelete$ : delete$" i18n>delete</app-confirm-action>
       }
       @if (taggingAccess) {
-        <app-inline-tag #action [action]="tag$" i18n>tag</app-inline-tag>
+        <app-inline-tag #action [action]="tag$" [tags]="ref.tags" i18n>tag</app-inline-tag>
       }
       @if (!ref.origin && store.account.mod && !approved && !locked) {
         <a class="fake-link" (click)="approve()" i18n>approve</a>

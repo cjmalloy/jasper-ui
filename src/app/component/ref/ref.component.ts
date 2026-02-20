@@ -798,6 +798,23 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   }
 
   @memo
+  get editingLink() {
+    if (!hasTag('plugin/editing', this.ref)) return undefined;
+    if (this.url.startsWith('comment:')) {
+      return { routerLink: ['/submit/text'], queryParams: { url: this.url } };
+    }
+    return { routerLink: ['/submit/web'], queryParams: { url: this.url } };
+  }
+
+  @memo
+  get submitRoute() {
+    if (this.url.startsWith('comment:')) {
+      return { routerLink: ['/submit/text'], queryParams: { url: this.url } };
+    }
+    return { routerLink: ['/submit/web'], queryParams: { url: this.url } };
+  }
+
+  @memo
   get clickableLink() {
     if (this.file) return true;
     return clickableLink(this.url);
@@ -805,6 +822,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
 
   @memo
   get redundantLink() {
+    if (this.editingLink) return true;
     if (!this.clickableLink) return true;
     return this.expandPlugins.length;
   }
