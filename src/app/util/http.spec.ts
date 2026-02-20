@@ -2,35 +2,33 @@ import { encodeBookmarkParams, getTitleFromFilename, parseBookmarkParams } from 
 
 describe('HTTP Utils', () => {
   describe('encodeBookmarkParams (string overload)', () => {
-    it('should leave + readable', () => {
-      expect(encodeBookmarkParams('+plugin/delete')).toBe('+plugin/delete');
+    it('should extract sort, filter, search from a full URL', () => {
+      const qs = encodeBookmarkParams('/tag/science?sort=published,DESC&filter=+plugin/delete&pageSize=20');
+      expect(qs).toBe('sort=published,DESC&filter=+plugin/delete');
     });
 
-    it('should leave tag characters readable', () => {
-      expect(encodeBookmarkParams('query/science:math|fun')).toBe('query/science:math|fun');
+    it('should strip unknown params', () => {
+      const qs = encodeBookmarkParams('?sort=created&pageNumber=2&search=hello&cols=3');
+      expect(qs).toBe('sort=created&search=hello');
     });
 
-    it('should leave sort operators readable', () => {
-      expect(encodeBookmarkParams('metadata->field,DESC')).toBe('metadata->field,DESC');
+    it('should handle multiple filter values', () => {
+      const qs = encodeBookmarkParams('?filter=+plugin/delete&filter=obsolete');
+      expect(qs).toBe('filter=+plugin/delete&filter=obsolete');
     });
 
-    it('should leave spaces readable (search text)', () => {
-      expect(encodeBookmarkParams('hello world')).toBe('hello world');
+    it('should preserve + in filter tags', () => {
+      const qs = encodeBookmarkParams('?filter=+plugin/delete');
+      expect(qs).toBe('filter=+plugin/delete');
     });
 
-    it('should encode & to prevent pair splitting', () => {
-      expect(encodeBookmarkParams('sources/https://example.com?a=1&b=2'))
-        .toBe('sources/https://example.com?a=1%26b=2');
+    it('should return empty string when no relevant params', () => {
+      expect(encodeBookmarkParams('/tag/science?pageSize=20&cols=3')).toBe('');
     });
 
-    it('should encode # to prevent fragment interpretation', () => {
-      expect(encodeBookmarkParams('sources/https://example.com#section'))
-        .toBe('sources/https://example.com%23section');
-    });
-
-    it('should encode % to prevent double-decode', () => {
-      expect(encodeBookmarkParams('sources/https://example.com/path%20here'))
-        .toBe('sources/https://example.com/path%2520here');
+    it('should re-encode & in URL-valued filters', () => {
+      const qs = encodeBookmarkParams('?filter=sources/https://example.com?a=1%26b=2');
+      expect(qs).toBe('filter=sources/https://example.com?a=1%26b=2');
     });
   });
 

@@ -168,35 +168,40 @@ export function parseParams(url: string): any {
   return params;
 }
 
-/** Filter prefixes whose payload is a URL and needs full percent-encoding. */
-const URL_FILTER_PREFIXES = ['sources/', 'noSources/', 'responses/', 'noResponses/'];
+/** Minimal per-value encoding for bookmark params. Only encodes %, &, # */
+function encodeBookmarkValue(v: string): string {
+  return v.replace(/%/g, '%25').replace(/&/g, '%26').replace(/#/g, '%23');
+}
 
 /**
- * Encode a single bookmark query-string value with minimal encoding.
- * Only encodes characters that would break query-string parsing or cause
- * double-decoding problems:
- *   %  →  %25  (prevent double-decode by parseBookmarkParams)
- *   &  →  %26  (would split key=value pairs)
- *   #  →  %23  (would be treated as fragment start)
- * Everything else — tag chars (+, /, :, |, etc.), sort operators (->, ,),
- * ISO dates, spaces in search text — is left readable.
+ * Extract only sort/filter/search from a URL or query string, re-encode them
+ * with minimal encoding, and return the resulting query string.
+ * All other query params are stripped.
  */
-export function encodeBookmarkParams(v: string): string;
+export function encodeBookmarkParams(url: string): string;
 /**
- * Build a bookmark query string from a params object.
+ * Build a bookmark query string from a params record.
  * Multi-value keys (arrays) produce repeated key=value pairs.
  * All values use minimal encoding (only %, &, # are encoded).
  */
 export function encodeBookmarkParams(params: Record<string, string | string[]>): string;
 export function encodeBookmarkParams(input: string | Record<string, string | string[]>): string {
   if (typeof input === 'string') {
-    return input.replace(/%/g, '%25').replace(/&/g, '%26').replace(/#/g, '%23');
+    // Extract query string from full URL if present
+    const qIdx = input.indexOf('?');
+    const qs = qIdx !== -1 ? input.substring(qIdx + 1) : input;
+    const parsed = parseBookmarkParams(qs);
+    const p: Record<string, string | string[]> = {};
+    if (parsed['sort']) p['sort'] = parsed['sort'];
+    if (parsed['filter']) p['filter'] = parsed['filter'];
+    if (parsed['search']) p['search'] = parsed['search'];
+    return encodeBookmarkParams(p);
   }
   const pairs: string[] = [];
   for (const key of Object.keys(input)) {
     const values = Array.isArray(input[key]) ? input[key] as string[] : [input[key] as string];
     for (const v of values) {
-      if (v) pairs.push(`${key}=${encodeBookmarkParams(v)}`);
+      if (v) pairs.push(`${key}=${encodeBookmarkValue(v)}`);
     }
   }
   return pairs.join('&');
