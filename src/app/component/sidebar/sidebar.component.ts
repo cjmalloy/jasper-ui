@@ -367,7 +367,14 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   bookmark() {
-    this.account.addBookmark(this.tag!);
+    const tree = this.router.parseUrl(this.router.url);
+    const qp = tree.queryParams;
+    const params = new URLSearchParams();
+    [qp['sort']].flat().filter(Boolean).forEach((s: string) => params.append('sort', s));
+    [qp['filter']].flat().filter(Boolean).forEach((f: string) => params.append('filter', f));
+    if (qp['search']) params.set('search', qp['search']);
+    const qs = params.toString();
+    this.account.addBookmark(qs ? `${this.tag}?${qs}` : this.tag!);
   }
 
   removeBookmark() {

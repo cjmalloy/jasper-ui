@@ -159,6 +159,16 @@ describe('Query Utils', () => {
       expect(args.sort).toContain('rank,DESC');
     });
 
+    it('should add DESC for metadata-> prefix sorts', () => {
+      const args = getArgs('science', 'metadata->field');
+      expect(args.sort).toContain('metadata->field,DESC');
+    });
+
+    it('should preserve explicit direction for metadata-> sorts', () => {
+      const args = getArgs('science', 'metadata->field,ASC');
+      expect(args.sort).toContain('metadata->field,ASC');
+    });
+
     it('should include pagination', () => {
       const args = getArgs('science', undefined, undefined, undefined, 2, 25);
       expect(args.page).toBe(2);

@@ -168,6 +168,30 @@ export function parseParams(url: string): any {
   return params;
 }
 
+/**
+ * Parse a bookmark query string without treating '+' as a space.
+ * Uses decodeURIComponent so '%2B' decodes to '+' and a literal '+' stays '+'.
+ * Only URL values (e.g. sources/responses filters) and search text use
+ * percent-encoding; tag-based values keep '+' readable as a tag-prefix character.
+ */
+export function parseBookmarkParams(qs: string): any {
+  const params: any = {};
+  const raw = qs.startsWith('?') ? qs.substring(1) : qs;
+  if (!raw) return params;
+  for (const pair of raw.split('&')) {
+    const eqIdx = pair.indexOf('=');
+    if (eqIdx === -1) continue;
+    const key = decodeURIComponent(pair.substring(0, eqIdx));
+    const val = decodeURIComponent(pair.substring(eqIdx + 1));
+    if (key in params) {
+      params[key] = Array.isArray(params[key]) ? [...params[key], val] : [params[key], val];
+    } else {
+      params[key] = val;
+    }
+  }
+  return params;
+}
+
 export function getArray(value?: string | string[] | undefined | null) {
   if (!value) return undefined;
   return flatten([value]);

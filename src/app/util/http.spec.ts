@@ -1,6 +1,43 @@
-import { getTitleFromFilename } from './http';
+import { getTitleFromFilename, parseBookmarkParams } from './http';
 
 describe('HTTP Utils', () => {
+  describe('parseBookmarkParams', () => {
+    it('should not decode literal + as space', () => {
+      const params = parseBookmarkParams('filter=+plugin%2Fdelete');
+      expect(params.filter).toBe('+plugin/delete');
+    });
+
+    it('should decode %2B as + (not space)', () => {
+      const params = parseBookmarkParams('filter=%2Bplugin%2Fdelete');
+      expect(params.filter).toBe('+plugin/delete');
+    });
+
+    it('should parse -> in sort values correctly', () => {
+      const params = parseBookmarkParams('sort=metadata->field,DESC');
+      expect(params.sort).toBe('metadata->field,DESC');
+    });
+
+    it('should return multiple values as array', () => {
+      const params = parseBookmarkParams('filter=+plugin%2Fdelete&filter=obsolete');
+      expect(params.filter).toEqual(['+plugin/delete', 'obsolete']);
+    });
+
+    it('should decode percent-encoded search text', () => {
+      const params = parseBookmarkParams('search=hello%20world');
+      expect(params.search).toBe('hello world');
+    });
+
+    it('should handle leading ? in query string', () => {
+      const params = parseBookmarkParams('?filter=obsolete&sort=created');
+      expect(params.filter).toBe('obsolete');
+      expect(params.sort).toBe('created');
+    });
+
+    it('should return empty object for empty string', () => {
+      expect(parseBookmarkParams('')).toEqual({});
+    });
+  });
+
   describe('getTitleFromFilename', () => {
     it('should extract filename from URL', () => {
       const title = getTitleFromFilename('https://example.com/document.pdf');
