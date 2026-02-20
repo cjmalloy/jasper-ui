@@ -49,7 +49,8 @@
        i18n>local</a>
   </app-tabs>
   @if (store.view.type) {
-    <app-sidebar [tag]="store.view.settingsTag"></app-sidebar>
+    <app-sidebar [tag]="store.view.settingsTag"
+                 [ext]="$any(store.view.settingsExt)"></app-sidebar>
   }
   <router-outlet></router-outlet>
 </ng-container>
