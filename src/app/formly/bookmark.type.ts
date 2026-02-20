@@ -14,7 +14,7 @@ import {
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { FieldType, FieldTypeConfig, FormlyAttributes, FormlyConfig } from '@ngx-formly/core';
-import { debounce, defer, uniqBy } from 'lodash-es';
+import { debounce, defer, find, uniqBy } from 'lodash-es';
 import { forkJoin, map, Observable, of, Subscription, switchMap } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { Crumb } from '../component/query/query.component';
@@ -23,7 +23,7 @@ import { AdminService } from '../service/admin.service';
 import { ExtService } from '../service/api/ext.service';
 import { EditorService } from '../service/editor.service';
 import { Store } from '../store/store';
-import { convertSort, defaultDesc, SortItem } from '../util/query';
+import { convertFilter, convertSort, defaultDesc, FilterGroup, FilterItem, SortItem, UrlFilter } from '../util/query';
 import { access, fixClientQuery, getStrictPrefix, localTag, tagOrigin } from '../util/tag';
 import { getErrorMessage } from './errors';
 
@@ -72,28 +72,14 @@ import { getErrorMessage } from './errors';
       padding: 8px;
       min-width: 260px;
       max-width: 400px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
       z-index: 1000;
-    }
-    .params-panel .section-label {
-      font-size: 0.85em;
-      color: var(--active);
-      font-weight: bold;
-    }
-    .params-panel .row {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-    .params-panel input[type=text] {
-      flex: 1;
-      min-width: 0;
-    }
-    .params-panel select {
-      flex: 1;
-      min-width: 0;
+      select {
+        display: block;
+        width: 100%;
+      }
+      .unselected {
+        text-align: center;
+      }
     }
   `,
   template: `
@@ -148,49 +134,67 @@ import { getErrorMessage } from './errors';
               (click)="toggleParams()">🪄️</button>
     </div>
     <ng-template #paramsPanel>
-      <div class="params-panel" (click)="$event.stopPropagation()">
-        <div class="section-label" i18n>🔍️ Search</div>
-        <div class="row">
-          <input type="text"
-                 [ngModel]="searchText"
-                 (ngModelChange)="setSearch($event)"
-                 i18n-placeholder
-                 placeholder="Search text…">
-        </div>
-        <div class="section-label" i18n>🔼️ Sort</div>
-        <select (change)="addSort($any($event.target).value); $any($event.target).selectedIndex = 0">
-          <option value="" i18n>+ Add sort…</option>
+      <div class="params-panel form-group" (click)="$event.stopPropagation()">
+        <input type="search"
+               [ngModel]="searchText"
+               (ngModelChange)="setSearch($event)"
+               i18n-placeholder
+               placeholder="Search text…">
+        <select class="big"
+                (input)="addSort($any($event.target).value); $any($event.target).selectedIndex = 0"
+                i18n-title title="Sort">
+          <option class="unselected" i18n>🔼️ sort</option>
           @for (s of allSorts; track s.value) {
-            <option [value]="s.value">{{ s.label }}</option>
+            <option [value]="s.value" [title]="s.title || ''">{{ s.label }}</option>
           }
         </select>
         @for (sort of sorts; track sort; let i = $index) {
-          <div class="row">
+          <span class="controls">
             <select [ngModel]="sortCol(sort)" (ngModelChange)="setSortCol(i, $event)">
               @for (s of allSorts; track s.value) {
                 <option [value]="s.value">{{ s.label }}</option>
               }
             </select>
-            <button type="button"
-                    (click)="setSortDir(i, sortDir(sort) === 'ASC' ? 'DESC' : 'ASC')"
-                    [title]="sortDir(sort)">
-              {{ sortDir(sort) === 'DESC' ? '🔽️' : '🔼️' }}
-            </button>
-            <button type="button" (click)="removeSort(i)" i18n>–</button>
+            @if (sortDir(sort) === 'DESC') {
+              <button type="button" (click)="setSortDir(i, 'ASC')" i18n-title title="Descending" i18n>🔽️</button>
+            } @else {
+              <button type="button" (click)="setSortDir(i, 'DESC')" i18n-title title="Ascending" i18n>🔼️</button>
+            }
+            @if (sorts.length > 1) {
+              <button type="button" (click)="removeSort(i)" i18n>&ndash;</button>
+            }
+          </span>
+        }
+        <select class="big"
+                (input)="addFilter($any($event.target).value); $any($event.target).selectedIndex = 0"
+                i18n-title title="Filter">
+          <option class="unselected" i18n>🪄️ filter</option>
+          @for (g of allFilters; track g.label) {
+            @if (g.filters.length) {
+              <optgroup [label]="g.label">
+                @for (f of g.filters; track f.filter) {
+                  <option [value]="f.filter" [title]="f.title || ''">{{ f.label || f.filter }}</option>
+                }
+              </optgroup>
+            }
+          }
+        </select>
+        @for (filter of filters; track filter; let i = $index) {
+          <div class="controls" [title]="filter">
+            <select [ngModel]="filter" (ngModelChange)="setFilter(i, $event)">
+              @for (g of allFilters; track g.label) {
+                @if (g.filters.length) {
+                  <optgroup [label]="g.label">
+                    @for (f of g.filters; track f.filter) {
+                      <option [value]="f.filter" [title]="f.title || ''">{{ f.label || f.filter }}</option>
+                    }
+                  </optgroup>
+                }
+              }
+            </select>
+            <button type="button" (click)="removeFilter(i)" i18n>&ndash;</button>
           </div>
         }
-        <div class="section-label" i18n>⚙️ Filters</div>
-        @for (f of filters; track f; let i = $index) {
-          <div class="row">
-            <input type="text"
-                   [ngModel]="f"
-                   (ngModelChange)="setFilter(i, $event)"
-                   i18n-placeholder
-                   placeholder="e.g. obsolete, query/science">
-            <button type="button" (click)="removeFilter(i)" i18n>–</button>
-          </div>
-        }
-        <button type="button" (click)="addFilter()" i18n>+ Add filter</button>
       </div>
     </ng-template>
   `,
@@ -309,6 +313,33 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> impleme
       parts.push('⚙️' + this.filters.filter(f => !!f).length);
     }
     return parts.join(' ');
+  }
+
+  get allFilters(): FilterGroup[] {
+    const groups: FilterGroup[] = [];
+    for (const f of this.admin.filters) {
+      const group = find(groups, g => g.label === (f.group || ''));
+      if (group) {
+        group.filters.push(convertFilter(f));
+      } else {
+        groups.push({ label: f.group || '', filters: [convertFilter(f)] });
+      }
+    }
+    const coreFilters: FilterItem[] = [
+      { filter: 'obsolete' as UrlFilter, label: $localize`⏮️ obsolete`, title: $localize`Show older versions` },
+    ];
+    if (this.admin.getPlugin('plugin/delete')) {
+      coreFilters.push({ filter: 'plugin/delete' as UrlFilter, label: $localize`🗑️ deleted` });
+    }
+    groups.push({ label: $localize`Filters 🕵️️`, filters: coreFilters });
+    const originFilters = this.store.origins.list.map(o => ({
+      filter: ('query/' + (o || '*')) as UrlFilter,
+      label: !o ? $localize`✴️ local` : $localize`🏛️ ${o}`,
+    }));
+    if (originFilters.length) {
+      groups.push({ label: $localize`Origins 🏛️`, filters: originFilters });
+    }
+    return groups.filter(g => g.filters.length > 0);
   }
 
   get allSorts(): SortItem[] {
@@ -460,9 +491,10 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> impleme
   }
 
   // Filter management
-  addFilter() {
-    this.filters.push('');
-    this.cd.detectChanges();
+  addFilter(value: string) {
+    if (!value) return;
+    this.filters.push(value);
+    this.updateFormValue();
   }
 
   setFilter(index: number, value: string) {
