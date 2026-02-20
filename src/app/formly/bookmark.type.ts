@@ -196,8 +196,7 @@ import { getErrorMessage } from './errors';
         </select>
         @for (filter of filters; track filter; let i = $index) {
           <div class="controls" [title]="filter">
-            <select [ngModel]="filterBase(filter)" (ngModelChange)="setFilter(i, $event)"
-                    [class.negated]="isNegatedFilter(filter)">
+            <select [ngModel]="filter" (ngModelChange)="setFilter(i, $event)">
               @for (g of allFilters; track g.label) {
                 @if (g.filters.length) {
                   <optgroup [label]="g.label">
@@ -241,6 +240,7 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> impleme
   sorts: string[] = [];
   filters: string[] = [];
   searchText = '';
+  allFilters: FilterGroup[] = [];
 
   private overlayRef?: OverlayRef;
   private overlayEvents?: Subscription;
@@ -268,6 +268,8 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> impleme
     if (v) {
       this.syncParams(v);
       this.getPreview(this.extractQuery(v));
+    } else {
+      this.buildAllFilters();
     }
     this.formChanges?.unsubscribe();
     this.formChanges = this.formControl.valueChanges.subscribe(value => {
@@ -281,6 +283,7 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> impleme
           this.sorts = [];
           this.filters = [];
           this.searchText = '';
+          this.buildAllFilters();
         }
       }
     });
@@ -344,7 +347,26 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> impleme
     return parts.join(' ');
   }
 
-  get allFilters(): FilterGroup[] {
+  get allSorts(): SortItem[] {
+    const base: SortItem[] = [
+      { value: 'published', label: $localize`📅️ published` },
+      { value: 'created', label: $localize`✨️ created` },
+      { value: 'modified', label: $localize`🕓️ modified` },
+      { value: 'rank', label: $localize`🔍️ relevance` },
+      { value: 'title', label: $localize`🔤️ title` },
+      { value: 'url', label: $localize`🔗️ url` },
+      { value: 'origin:len', label: $localize`🪆 nesting` },
+    ];
+    return [...base, ...this.admin.refSorts.map(convertSort)];
+  }
+
+  private extractQuery(value: string): string {
+    if (!value) return '';
+    const idx = value.indexOf('?');
+    return idx === -1 ? value : value.substring(0, idx);
+  }
+
+  private buildAllFilters(): void {
     const groups: FilterGroup[] = [];
     for (const f of this.admin.filters) {
       const group = find(groups, g => g.label === (f.group || ''));
@@ -368,26 +390,33 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> impleme
     if (originFilters.length) {
       groups.push({ label: $localize`Origins 🏛️`, filters: originFilters });
     }
-    return groups.filter(g => g.filters.length > 0);
+    this.allFilters = groups.filter(g => g.filters.length > 0);
+    this.syncFilterOptions();
   }
 
-  get allSorts(): SortItem[] {
-    const base: SortItem[] = [
-      { value: 'published', label: $localize`📅️ published` },
-      { value: 'created', label: $localize`✨️ created` },
-      { value: 'modified', label: $localize`🕓️ modified` },
-      { value: 'rank', label: $localize`🔍️ relevance` },
-      { value: 'title', label: $localize`🔤️ title` },
-      { value: 'url', label: $localize`🔗️ url` },
-      { value: 'origin:len', label: $localize`🪆 nesting` },
-    ];
-    return [...base, ...this.admin.refSorts.map(convertSort)];
-  }
-
-  private extractQuery(value: string): string {
-    if (!value) return '';
-    const idx = value.indexOf('?');
-    return idx === -1 ? value : value.substring(0, idx);
+  /** Mirror filter.component.ts sync(): mutate allFilters options to show ! prefix for negated filters */
+  private syncFilterOptions(): void {
+    for (const f of this.filters) {
+      const toggled = toggle(f as UrlFilter);
+      if (!toggled) continue;
+      const sets = this.allFilters.filter(g => g.filters.find(i => i.filter === toggled));
+      sets.forEach(g => {
+        const target = g.filters.find(i => i.filter === toggled);
+        if (target) {
+          target.filter = f as UrlFilter;
+          const sym = this.store.account.querySymbol('!');
+          if (f.startsWith('!') || f.startsWith('user/!') || f.startsWith('query/!(')) {
+            if (!(target.label || '').startsWith(sym)) {
+              target.label = sym + (target.label || '');
+            }
+          } else {
+            if ((target.label || '').startsWith(sym)) {
+              target.label = (target.label || '').substring(sym.length);
+            }
+          }
+        }
+      });
+    }
   }
 
   private syncParams(value: string) {
@@ -396,12 +425,14 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> impleme
       this.sorts = [];
       this.filters = [];
       this.searchText = '';
+      this.buildAllFilters();
       return;
     }
     const params = new URLSearchParams(value.substring(idx + 1));
     this.sorts = params.getAll('sort');
     this.filters = params.getAll('filter');
     this.searchText = params.get('search') || '';
+    this.buildAllFilters();
   }
 
   private encodeParam(v: string): string {
@@ -536,34 +567,30 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> impleme
   addFilter(value: string) {
     if (!value) return;
     this.filters.push(value);
+    this.buildAllFilters();
     this.updateFormValue();
   }
 
   setFilter(index: number, value: string) {
     this.filters[index] = value;
+    this.buildAllFilters();
     this.updateFormValue();
   }
 
   removeFilter(index: number) {
     this.filters.splice(index, 1);
+    this.buildAllFilters();
     this.updateFormValue();
   }
 
   toggleFilter(index: number) {
     this.filters[index] = toggle(this.filters[index] as UrlFilter)!;
+    this.buildAllFilters();
     this.updateFormValue();
   }
 
   negatable(filter: string) {
     return negatable(filter);
-  }
-
-  isNegatedFilter(filter: string): boolean {
-    return filter.startsWith('!') || filter.startsWith('query/!(') || filter.startsWith('user/!');
-  }
-
-  filterBase(filter: string): string {
-    return this.isNegatedFilter(filter) ? toggle(filter as UrlFilter) as string : filter;
   }
 
   // Search management
