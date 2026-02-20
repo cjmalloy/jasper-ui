@@ -181,21 +181,22 @@ const URL_FILTER_PREFIXES = ['sources/', 'noSources/', 'responses/', 'noResponse
  * Everything else — tag chars (+, /, :, |, etc.), sort operators (->, ,),
  * ISO dates, spaces in search text — is left readable.
  */
-export function encodeBookmarkParam(v: string): string {
-  return v.replace(/%/g, '%25').replace(/&/g, '%26').replace(/#/g, '%23');
-}
-
+export function encodeBookmarkParams(v: string): string;
 /**
  * Build a bookmark query string from a params object.
  * Multi-value keys (arrays) produce repeated key=value pairs.
- * All values use encodeBookmarkParam (minimal encoding).
+ * All values use minimal encoding (only %, &, # are encoded).
  */
-export function encodeBookmarkParams(params: Record<string, string | string[]>): string {
+export function encodeBookmarkParams(params: Record<string, string | string[]>): string;
+export function encodeBookmarkParams(input: string | Record<string, string | string[]>): string {
+  if (typeof input === 'string') {
+    return input.replace(/%/g, '%25').replace(/&/g, '%26').replace(/#/g, '%23');
+  }
   const pairs: string[] = [];
-  for (const key of Object.keys(params)) {
-    const values = Array.isArray(params[key]) ? params[key] as string[] : [params[key] as string];
+  for (const key of Object.keys(input)) {
+    const values = Array.isArray(input[key]) ? input[key] as string[] : [input[key] as string];
     for (const v of values) {
-      if (v) pairs.push(`${key}=${encodeBookmarkParam(v)}`);
+      if (v) pairs.push(`${key}=${encodeBookmarkParams(v)}`);
     }
   }
   return pairs.join('&');

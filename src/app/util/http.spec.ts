@@ -1,40 +1,40 @@
-import { encodeBookmarkParam, encodeBookmarkParams, getTitleFromFilename, parseBookmarkParams } from './http';
+import { encodeBookmarkParams, getTitleFromFilename, parseBookmarkParams } from './http';
 
 describe('HTTP Utils', () => {
-  describe('encodeBookmarkParam', () => {
+  describe('encodeBookmarkParams (string overload)', () => {
     it('should leave + readable', () => {
-      expect(encodeBookmarkParam('+plugin/delete')).toBe('+plugin/delete');
+      expect(encodeBookmarkParams('+plugin/delete')).toBe('+plugin/delete');
     });
 
     it('should leave tag characters readable', () => {
-      expect(encodeBookmarkParam('query/science:math|fun')).toBe('query/science:math|fun');
+      expect(encodeBookmarkParams('query/science:math|fun')).toBe('query/science:math|fun');
     });
 
     it('should leave sort operators readable', () => {
-      expect(encodeBookmarkParam('metadata->field,DESC')).toBe('metadata->field,DESC');
+      expect(encodeBookmarkParams('metadata->field,DESC')).toBe('metadata->field,DESC');
     });
 
     it('should leave spaces readable (search text)', () => {
-      expect(encodeBookmarkParam('hello world')).toBe('hello world');
+      expect(encodeBookmarkParams('hello world')).toBe('hello world');
     });
 
     it('should encode & to prevent pair splitting', () => {
-      expect(encodeBookmarkParam('sources/https://example.com?a=1&b=2'))
+      expect(encodeBookmarkParams('sources/https://example.com?a=1&b=2'))
         .toBe('sources/https://example.com?a=1%26b=2');
     });
 
     it('should encode # to prevent fragment interpretation', () => {
-      expect(encodeBookmarkParam('sources/https://example.com#section'))
+      expect(encodeBookmarkParams('sources/https://example.com#section'))
         .toBe('sources/https://example.com%23section');
     });
 
     it('should encode % to prevent double-decode', () => {
-      expect(encodeBookmarkParam('sources/https://example.com/path%20here'))
+      expect(encodeBookmarkParams('sources/https://example.com/path%20here'))
         .toBe('sources/https://example.com/path%2520here');
     });
   });
 
-  describe('encodeBookmarkParams', () => {
+  describe('encodeBookmarkParams (record overload)', () => {
     it('should encode sort with readable characters', () => {
       expect(encodeBookmarkParams({ sort: 'published,DESC' })).toBe('sort=published,DESC');
     });

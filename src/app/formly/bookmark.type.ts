@@ -26,7 +26,7 @@ import { EditorService } from '../service/editor.service';
 import { Store } from '../store/store';
 import { convertFilter, convertSort, defaultDesc, FilterGroup, FilterItem, negatable, SortItem, toggle, UrlFilter } from '../util/query';
 import { access, fixClientQuery, getStrictPrefix, hasPrefix, localTag, tagOrigin } from '../util/tag';
-import { encodeBookmarkParam, parseBookmarkParams } from '../util/http';
+import { encodeBookmarkParams, parseBookmarkParams } from '../util/http';
 import { getErrorMessage } from './errors';
 
 @Component({
@@ -501,12 +501,13 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> impleme
   }
 
   private buildParamsString(): string {
-    const pairs: string[] = [];
-    // Skip empty or incomplete sorts (e.g. ',ASC' before column is selected)
-    this.sorts.filter(s => !!s && !s.startsWith(',')).forEach(s => pairs.push(`sort=${encodeBookmarkParam(s)}`));
-    this.filters.filter(f => !!f).forEach(f => pairs.push(`filter=${encodeBookmarkParam(f)}`));
-    if (this.searchText) pairs.push(`search=${encodeBookmarkParam(this.searchText)}`);
-    return pairs.join('&');
+    const p: Record<string, string | string[]> = {};
+    const sorts = this.sorts.filter(s => !!s && !s.startsWith(','));
+    const filters = this.filters.filter(f => !!f);
+    if (sorts.length) p['sort'] = sorts;
+    if (filters.length) p['filter'] = filters;
+    if (this.searchText) p['search'] = this.searchText;
+    return encodeBookmarkParams(p);
   }
 
   private updateFormValue() {
