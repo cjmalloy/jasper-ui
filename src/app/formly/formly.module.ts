@@ -613,6 +613,18 @@ Private tags start with an underscore.
           },
         },
       }, {
+        name: 'bookmarks',
+        extends: 'selectors',
+        defaultOptions: {
+          props: {
+            label: $localize`Bookmarks: `,
+            addText: $localize`+ Add another bookmark`,
+          },
+          fieldArray: {
+            type: 'bookmark',
+          },
+        },
+      }, {
         name: 'textarea',
         component: FormlyFieldTextArea,
         wrappers: ['form-field'],
