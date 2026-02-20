@@ -371,12 +371,12 @@ export const aiQueryPlugin: Plugin = {
         },
         gemini: {
           init(config) {
-            config.model ||= 'gemini-3-pro-preview';
-            config.pdf = ['gemini-3-pro-preview', 'gemini-2.5-pro'].includes(config.model);
+            config.model ||= 'gemini-3.1-pro-preview-customtools';
+            config.pdf = ['gemini-3.1-pro-preview', 'gemini-3.1-pro-preview-customtools', 'gemini-3-pro-preview', 'gemini-2.5-pro'].includes(config.model);
             config.image = true;
             config.audio = true;
             config.video = true;
-            config.embed = config.url && ['gemini-3-pro-preview', 'gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.5-flash-lite', 'gemini-live-2.5-flash-preview'].includes(config.model);
+            config.embed = config.url && ['gemini-3.1-pro-preview', 'gemini-3.1-pro-preview-customtools', 'gemini-3-pro-preview', 'gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.5-flash-lite', 'gemini-live-2.5-flash-preview'].includes(config.model);
           },
           loadMessage(source, plugins = {}) {
             const message = {};
