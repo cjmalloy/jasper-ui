@@ -13,7 +13,7 @@ import { DateTime } from 'luxon';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { MobxAngularModule } from 'mobx-angular';
 import { MonacoEditorModule } from 'ngx-monaco-editor';
-import { catchError, forkJoin, map, of, Subscription, switchMap, throwError } from 'rxjs';
+import { catchError, firstValueFrom, forkJoin, map, of, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
 import { LoadingComponent } from '../../../component/loading/loading.component';
@@ -86,12 +86,14 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
   plugins!: PluginsFormComponent;
 
   submitting?: Subscription;
+  saving?: Subscription;
   addAnother = false;
   defaults?: { url: string, ref: Partial<Ref> };
   loadingDefaults: Ext[] = [];
   completedUploads: Ref[] = [];
   private oldSubmit: string[] = [];
   private savedRef?: Ref;
+  private cursor?: string;
 
   constructor(
     public config: ConfigService,
@@ -111,9 +113,26 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
     runInAction(() => store.submit.wikiPrefix = admin.getWikiPrefix());
   }
 
-  saveChanges() {
-    // TODO: Just save in drafts
+  async saveChanges() {
+    if (this.admin.editing && this.textForm.dirty) {
+      return firstValueFrom(this.refs.saveEdit(this.writeRef(), this.cursor)
+        .pipe(map(() => true), catchError(() => of(false))));
+    }
     return !this.textForm?.dirty;
+  }
+
+  saveForLater(leave = false) {
+    this.saving = this.refs.saveEdit(this.writeRef(), this.cursor)
+      .pipe(catchError(err => {
+        delete this.saving;
+        return throwError(() => err);
+      }))
+      .subscribe(cursor => {
+        delete this.saving;
+        this.cursor = cursor;
+        this.textForm.markAsPristine();
+        if (leave) this.router.navigate(['/tag', this.store.account.tag], { queryParams: { filter: 'query/plugin/editing' }});
+      });
   }
 
   ngAfterViewInit() {
@@ -291,6 +310,18 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
     this.editor.syncEditor(this.fb, this.textForm);
   }
 
+  writeRef(publish = false) {
+    return <Ref> {
+      ...this.textForm.value,
+      url: this.url.value, // Need to pull separately since control is locked
+      title: this.title.value, // Need to pull separately if disabled by wiki mode
+      origin: this.store.account.origin,
+      published: this.textForm.value.published ? DateTime.fromISO(this.textForm.value.published) : publish ? DateTime.now() : undefined,
+      tags: uniq(this.textForm.value.tags),
+      plugins: writePlugins(this.textForm.value.tags, this.textForm.value.plugins),
+    };
+  }
+
   submit() {
     this.serverError = [];
     this.submitted = true;
@@ -300,17 +331,9 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
       scrollToFirstInvalid();
       return;
     }
-    const tags = uniq(this.textForm.value.tags) as string[];
-    const published = this.textForm.value.published ? DateTime.fromISO(this.textForm.value.published) : DateTime.now();
-    const ref = {
-      ...this.textForm.value,
-      url: this.url.value, // Need to pull separately since control is locked
-      title: this.title.value, // Need to pull separately if disabled by wiki mode
-      origin: this.store.account.origin,
-      published,
-      tags,
-      plugins: writePlugins(this.textForm.value.tags, this.textForm.value.plugins),
-    };
+    const ref = this.writeRef(true);
+    const tags = ref.tags;
+    const published = ref.published;
     this.submitting = this.refs.create(ref).pipe(
       tap(() => {
         if (this.admin.getPlugin('plugin/user/vote/up')) {

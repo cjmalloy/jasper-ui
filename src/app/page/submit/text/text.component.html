@@ -88,8 +88,11 @@
           <label for="addAnother" i18n>Add another</label>
         </div>
       }
-      @if (submitting) {
+      @if (submitting || saving) {
         <app-loading [inline]="true"></app-loading>
+      }
+      @if (admin.getPlugin('plugin/editing')) {
+        <button type="button" [disabled]="submitting || saving || submitted || textForm.pristine" (click)="saveForLater(true)" i18n>Save for later</button>
       }
       <button type="submit" [disabled]="submitting || submitted && !textForm.valid" i18n>Submit</button>
     </span>

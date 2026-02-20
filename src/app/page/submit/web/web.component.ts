@@ -70,6 +70,7 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
 
   limitWidth?: HTMLElement;
   submitting?: Subscription;
+  saving?: Subscription;
   defaults?: { url: string, ref: Partial<Ref> };
   loadingDefaults: Ext[] = [];
 
@@ -79,7 +80,7 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
 
   constructor(
     private mod: ModService,
-    private admin: AdminService,
+    public admin: AdminService,
     private router: Router,
     private store: Store,
     private editor: EditorService,
@@ -97,20 +98,31 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
       interval(5_000).pipe(
         takeUntil(this.destroy$),
       ).subscribe(() => {
-        if (this.webForm.dirty) {
-          this.refs.saveEdit(this.writeRef(), this.cursor)
-            .subscribe(cursor => this.cursor = cursor);
-        }
+        if (this.webForm.dirty) this.saveForLater();
       });
     }
   }
 
   async saveChanges() {
-    if (this.admin.editing) {
+    if (this.admin.editing && this.webForm.dirty) {
       return firstValueFrom(this.refs.saveEdit(this.writeRef(), this.cursor)
         .pipe(map(() => true), catchError(() => of(false))));
     }
     return !this.webForm?.dirty;
+  }
+
+  saveForLater(leave = false) {
+    this.saving = this.refs.saveEdit(this.writeRef(), this.cursor)
+      .pipe(catchError(err => {
+        delete this.saving;
+        return throwError(() => err);
+      }))
+      .subscribe(cursor => {
+        delete this.saving;
+        this.cursor = cursor;
+        this.webForm.markAsPristine();
+        if (leave) this.router.navigate(['/tag', this.store.account.tag], { queryParams: { filter: 'query/plugin/editing' }});
+      });
   }
 
   ngAfterViewInit(): void {
