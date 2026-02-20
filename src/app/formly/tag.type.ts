@@ -11,6 +11,7 @@ import { ConfigService } from '../service/config.service';
 import { EditorService } from '../service/editor.service';
 import { Store } from '../store/store';
 import { getErrorMessage } from './errors';
+import { hasTag } from '../util/tag';
 
 @Component({
   selector: 'formly-field-tag-input',
@@ -147,9 +148,10 @@ export class FormlyFieldTagInput extends FieldType<FieldTypeConfig> implements A
   }
 
   search = debounce((value: string) => {
+    const siblings = (this.formControl.parent?.value as string[] || []).filter(t => t && t !== this.formControl.value);
     const toEntry = (p: Config) => ({ value: p.tag, label: p.name || p.tag });
-    const getPlugins = (text: string, size = 5) => this.admin.searchPlugins(text).slice(0, size).map(toEntry);
-    const getTemplates = (text: string, size = 5) => this.admin.searchTemplates(text).slice(0, size).map(toEntry);
+    const getPlugins = (text: string, size = 5) => this.admin.searchPlugins(text).filter(p => !hasTag(p.tag, siblings)).slice(0, size).map(toEntry);
+    const getTemplates = (text: string, size = 5) => this.admin.searchTemplates(text).filter(p => !hasTag(p.tag, siblings)).slice(0, size).map(toEntry);
     if (this.field.type === 'plugin') {
       this.autocomplete = getPlugins(value);
       this.cd.detectChanges();
@@ -166,6 +168,7 @@ export class FormlyFieldTagInput extends FieldType<FieldTypeConfig> implements A
       }).pipe(
         switchMap(page => page.page.totalElements ? forkJoin(page.content.map(x => this.preview$(x.tag + x.origin))) : of([])),
         map(xs => xs.filter(x => !!x) as { name?: string, tag: string }[]),
+        map(xs => xs.filter(x => !hasTag(x.tag, siblings))),
       ).subscribe(xs => {
         this.autocomplete = xs.map(x => ({ value: x.tag, label: x.name || x.tag }));
         if (this.autocomplete.length < 5) this.autocomplete.push(...getPlugins(value, 5 - this.autocomplete.length));
