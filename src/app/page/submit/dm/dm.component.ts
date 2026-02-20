@@ -141,7 +141,7 @@ export class SubmitDmPage implements AfterViewInit, OnChanges, OnDestroy, HasCha
         delete this.saving;
         this.cursor = cursor;
         this.dmForm.markAsPristine();
-        if (leave) this.router.navigate(['/tag', this.store.account.tag], { queryParams: { filter: 'query/plugin/editing' }});
+        if (leave) this.router.navigate(['/inbox/ref', 'plugin/editing']);
       });
   }
 

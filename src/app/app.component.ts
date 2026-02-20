@@ -108,17 +108,6 @@ export class AppComponent implements AfterViewInit {
         }
       });
     }
-    autorun(() => {
-      if (this.store.eventBus.event === 'edit') {
-        const url = this.store.eventBus.ref?.url;
-        if (!url) return;
-        if (url.startsWith('comment:')) {
-          this.router.navigate(['/submit/text'], { queryParams: { url } });
-        } else {
-          this.router.navigate(['/submit/web'], { queryParams: { url } });
-        }
-      }
-    });
 
     window.visualViewport?.addEventListener('resize', event => {
       const vv = event?.target as VisualViewport;

@@ -117,7 +117,7 @@ export class SubmitInvoicePage implements OnDestroy, HasChanges {
         delete this.saving;
         this.cursor = cursor;
         this.invoiceForm.markAsPristine();
-        if (leave) this.router.navigate(['/tag', this.store.account.tag], { queryParams: { filter: 'query/plugin/editing' }});
+        if (leave) this.router.navigate(['/inbox/ref', 'plugin/editing']);
       });
   }
 
