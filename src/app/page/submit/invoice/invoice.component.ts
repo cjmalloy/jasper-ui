@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, ViewChild } from '@angular/core';
+import { Component, OnDestroy, ViewChild } from '@angular/core';
 import {
   ReactiveFormsModule,
   UntypedFormBuilder,
@@ -10,7 +10,7 @@ import {
 import { ActivatedRoute, Router } from '@angular/router';
 import { flatten, uniq, without } from 'lodash-es';
 import { DateTime } from 'luxon';
-import { catchError, forkJoin, map, of, Subscription, switchMap, throwError } from 'rxjs';
+import { catchError, firstValueFrom, forkJoin, interval, map, of, Subject, Subscription, switchMap, takeUntil, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { LoadingComponent } from '../../../component/loading/loading.component';
 import { LimitWidthDirective } from '../../../directive/limit-width.directive';
@@ -45,7 +45,9 @@ import { getVisibilityTags, prefix } from '../../../util/tag';
     LoadingComponent,
   ]
 })
-export class SubmitInvoicePage implements HasChanges {
+export class SubmitInvoicePage implements OnDestroy, HasChanges {
+
+  private destroy$ = new Subject<void>();
 
   submitted = false;
   invoiceForm: UntypedFormGroup;
@@ -60,6 +62,8 @@ export class SubmitInvoicePage implements HasChanges {
   completedUploads: Ref[] = [];
 
   submitting?: Subscription;
+  saving?: Subscription;
+  private cursor?: string;
 
   constructor(
     private mod: ModService,
@@ -79,6 +83,13 @@ export class SubmitInvoicePage implements HasChanges {
       title: ['', [Validators.required]],
       comment: [''],
     });
+    if (this.admin.editing) {
+      interval(5_000).pipe(
+        takeUntil(this.destroy$),
+      ).subscribe(() => {
+        if (this.invoiceForm.dirty) this.saveForLater();
+      });
+    }
     this.ref$.pipe(
       // TODO: support multiple valid queues
     ).subscribe(ref => {
@@ -88,9 +99,38 @@ export class SubmitInvoicePage implements HasChanges {
     });
   }
 
-  saveChanges() {
-    // TODO: Just save in drafts
+  async saveChanges() {
+    if (this.admin.editing && this.invoiceForm.dirty) {
+      return firstValueFrom(this.refs.saveEdit(this.writeRef(), this.cursor)
+        .pipe(map(() => true), catchError(() => of(false))));
+    }
     return !this.invoiceForm?.dirty;
+  }
+
+  saveForLater(leave = false) {
+    this.saving = this.refs.saveEdit(this.writeRef(), this.cursor)
+      .pipe(catchError(err => {
+        delete this.saving;
+        return throwError(() => err);
+      }))
+      .subscribe(cursor => {
+        delete this.saving;
+        this.cursor = cursor;
+        this.invoiceForm.markAsPristine();
+        if (leave) this.router.navigate(['/tag', this.store.account.tag], { queryParams: { filter: 'query/plugin/editing' }});
+      });
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  writeRef() {
+    return <Ref> {
+      ...this.invoiceForm.value,
+      origin: this.store.account.origin,
+    };
   }
 
   checkUrl() {
@@ -175,13 +215,14 @@ export class SubmitInvoicePage implements HasChanges {
     this.submitting = this.exts.getCachedExt(this.queue!).pipe(
       switchMap(queueExt => {
         const finalTags = this.getTags(queueExt);
-        return this.refs.create({
+        const ref = {
           ...this.invoiceForm.value,
           origin: this.store.account.origin,
           published,
           tags: finalTags,
           sources: flatten([this.refUrl]),
-        }).pipe(
+        };
+        return (this.cursor ? this.refs.update({ ...ref, modifiedString: this.cursor }) : this.refs.create(ref)).pipe(
           switchMap(res => {
             const finalVisibilityTags = getVisibilityTags(finalTags);
             if (!finalVisibilityTags.length) return of(res);

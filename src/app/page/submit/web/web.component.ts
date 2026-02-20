@@ -127,6 +127,13 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
 
   ngAfterViewInit(): void {
     this.url = this.store.submit.url?.trim();
+    if (this.admin.editing && this.url) {
+      this.refs.getEditing(this.url).subscribe(draft => {
+        if (!draft) return;
+        this.cursor = draft.modifiedString;
+        this.refForm.setRef(draft.plugins?.['plugin/editing'] || {});
+      });
+    }
     const allTags = [...this.store.submit.tags, ...(this.store.account.localTag ? [this.store.account.localTag] : [])];
     this.exts.getCachedExts(allTags).pipe(
       map(xs => xs.filter(x => x.config?.defaults) as Ext[]),

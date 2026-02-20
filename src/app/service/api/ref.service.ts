@@ -128,6 +128,19 @@ export class RefService {
     );
   }
 
+  getEditing(url: string): Observable<Ref | undefined> {
+    if (!this.store.account.localTag) return of(undefined);
+    return this.page({
+      url,
+      query: this.store.account.localTag + ':plugin/editing',
+      size: 1,
+      obsolete: null,
+    }).pipe(
+      map(page => page.content[0]),
+      catchError(() => of(undefined)),
+    );
+  }
+
   startEditing(ref: Ref) {
     return this.create({
       url: ref.url,
