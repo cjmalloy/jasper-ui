@@ -807,6 +807,14 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   }
 
   @memo
+  get submitRoute() {
+    if (this.url.startsWith('comment:')) {
+      return { routerLink: ['/submit/text'], queryParams: { url: this.url } };
+    }
+    return { routerLink: ['/submit/web'], queryParams: { url: this.url } };
+  }
+
+  @memo
   get clickableLink() {
     if (this.file) return true;
     return clickableLink(this.url);

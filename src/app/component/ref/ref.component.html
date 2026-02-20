@@ -188,7 +188,7 @@
              [class.expanded]="actionsExpanded"
              [class.not-expanded]="actionsExpanded === false">
           @if (store.account.user && !ref.created && !ref.upload) {
-            <a routerLink="/submit" [queryParams]="{ url: ref.url }" i18n>submit</a>
+            <a [routerLink]="submitRoute.routerLink" [queryParams]="submitRoute.queryParams" i18n>submit</a>
           }
           @if (ref.created && !ref.upload) {
             @if (thread) {
