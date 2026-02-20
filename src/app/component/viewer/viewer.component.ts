@@ -23,7 +23,7 @@ import { Ext } from '../../model/ext';
 import { Oembed } from '../../model/oembed';
 import { Page } from '../../model/page';
 import { getPluginScope, PluginApi } from '../../model/plugin';
-import { Ref, RefSort, RefUpdates } from '../../model/ref';
+import { mapRef, Ref, RefSort, RefUpdates } from '../../model/ref';
 import { EmitAction, hydrate } from '../../model/tag';
 import { pdfUrl } from '../../mods/media/pdf';
 import { ActionService } from '../../service/action.service';
@@ -316,7 +316,9 @@ export class ViewerComponent implements OnChanges {
     if (!hasTag('plugin/editing', this.currentTags)) return undefined;
     const data = this.ref?.plugins?.['plugin/editing'];
     if (!data) return undefined;
-    return { ...data, url: this.ref?.url, origin: this.ref?.origin };
+    const result = mapRef({ ...data, url: this.ref?.url, origin: this.ref?.origin });
+    if (!result.created) result.created = this.ref?.created;
+    return result;
   }
 
   @memo
