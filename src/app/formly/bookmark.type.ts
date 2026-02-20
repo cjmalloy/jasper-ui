@@ -430,17 +430,6 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> impleme
     }
   }
 
-  private pushFilter(...fgs: FilterGroup[]) {
-    for (const fg of fgs) {
-      let group = find(this.allFilters, f => f.label === (fg.label || ''));
-      if (group) {
-        group.filters.push(...fg.filters);
-      } else {
-        this.allFilters.push(fg);
-      }
-    }
-  }
-
   /** Mirror filter.component.ts sync(): mutate allFilters options to show ! prefix for negated filters,
    *  and add missing filters so they appear in the dropdown. */
   private syncFilterOptions(): void {
