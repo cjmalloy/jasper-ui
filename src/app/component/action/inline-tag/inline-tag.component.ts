@@ -88,13 +88,6 @@ export class InlineTagComponent extends ActionComponent {
     const getPlugins = (text: string) => this.admin.searchPlugins(text).slice(0, 1).map(toEntry);
     const getTemplates = (text: string) => this.admin.searchTemplates(text).slice(0, 1).map(toEntry);
     this.searching?.unsubscribe();
-    if (remove) {
-      this.autocomplete = this.tags
-        .filter(t => t.startsWith(tag))
-        .slice(0, 5)
-        .map(t => ({ value: prefix + remove + t, label: remove + t }));
-      return;
-    }
     this.searching = this.exts.page({
       search: tag,
       sort: ['origin:len', 'tag:len'],
@@ -102,10 +95,11 @@ export class InlineTagComponent extends ActionComponent {
     }).pipe(
       switchMap(page => page.page.totalElements ? forkJoin(page.content.map(x => this.preview$(x.tag + x.origin))) : of([])),
       map(xs => xs.filter(x => !!x) as { name?: string, tag: string }[]),
+      map(xs => remove ? xs.filter(x => this.tags.includes(x.tag)) : xs),
     ).subscribe(xs => {
       this.autocomplete = xs.map(x => ({ value: prefix + remove + x.tag, label: remove + (x.name || '#' + x.tag) }));
-      if (this.autocomplete.length < 3) this.autocomplete.push(...getPlugins(tag));
-      if (this.autocomplete.length < 3) this.autocomplete.push(...getTemplates(tag));
+      if (!remove && this.autocomplete.length < 3) this.autocomplete.push(...getPlugins(tag));
+      if (!remove && this.autocomplete.length < 3) this.autocomplete.push(...getTemplates(tag));
     });
   }, 400);
 
