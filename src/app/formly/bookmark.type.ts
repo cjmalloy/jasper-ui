@@ -67,12 +67,20 @@ import { getErrorMessage } from './errors';
       cursor: pointer;
     }
     .params-panel {
-      background: var(--bg);
-      border: 1px solid var(--border);
+      background: var(--card);
+      border-radius: 2px;
+      box-shadow: 0 5px 5px -3px rgba(0, 0, 0, 0.2),
+                  0 8px 10px 1px rgba(0, 0, 0, 0.14),
+                  0 3px 14px 2px rgba(0, 0, 0, 0.12);
       padding: 8px;
       min-width: 260px;
       max-width: 400px;
       z-index: 1000;
+      input[type=search] {
+        display: block;
+        width: 100%;
+        box-sizing: border-box;
+      }
       select {
         display: block;
         width: 100%;
@@ -118,7 +126,7 @@ import { getErrorMessage } from './errors';
              autocapitalize="none"
              [attr.list]="listId"
              [class.hidden-without-removing]="preview"
-             [value]="queryPart"
+             [value]="formControl.value || ''"
              (input)="onQueryInput(input.value)"
              (blur)="blur(input)"
              (focusin)="edit(input, false)"
@@ -308,7 +316,7 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> impleme
       parts.push('🔍️ ' + this.searchText);
     }
     if (this.filters.filter(f => !!f).length) {
-      parts.push('⚙️' + this.filters.filter(f => !!f).length);
+      parts.push('🪄️' + this.filters.filter(f => !!f).length);
     }
     return parts.join(' ');
   }
@@ -392,10 +400,16 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> impleme
 
   onQueryInput(value: string) {
     this.editing = true;
-    const paramsStr = this.paramsString;
-    this.formControl.setValue(paramsStr ? `${value}?${paramsStr}` : value);
+    // If user typed a ? directly, sync params from it and store as-is
+    if (value.includes('?')) {
+      this.syncParams(value);
+      this.formControl.setValue(value);
+    } else {
+      const paramsStr = this.paramsString;
+      this.formControl.setValue(paramsStr ? `${value}?${paramsStr}` : value);
+    }
     this.formControl.markAsDirty();
-    this.search(value);
+    this.search(value.split('?')[0]);
   }
 
   validate(input: HTMLInputElement) {
@@ -412,7 +426,7 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> impleme
       defer(() => this.validate(input));
     } else {
       this.showedError = false;
-      this.getPreview(input.value);
+      this.getPreview(this.queryPart);
     }
   }
 
