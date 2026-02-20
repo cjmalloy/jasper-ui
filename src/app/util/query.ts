@@ -1,4 +1,5 @@
 import { isArray, uniq, without } from 'lodash-es';
+import { DateTime } from 'luxon';
 import { Filter, RefFilter, RefPageArgs, RefSort } from '../model/ref';
 import { FilterConfig, TagQueryArgs, TagSort } from '../model/tag';
 import { braces, fixClientQuery, hasPrefix } from './tag';
@@ -212,21 +213,21 @@ function getRefFilter(filter?: UrlFilter[]): RefFilter {
       result.noPluginResponse ||= [];
       result.noPluginResponse.push(f.substring(1));
     } else if (f.startsWith('modified/before/')) {
-      result.modifiedBefore = f.substring('modified/before/'.length);
+      result.modifiedBefore = fixDateTime(f.substring('modified/before/'.length));
     } else if (f.startsWith('modified/after/')) {
-      result.modifiedAfter = f.substring('modified/after/'.length);
+      result.modifiedAfter = fixDateTime(f.substring('modified/after/'.length));
     } else if (f.startsWith('published/before/')) {
-      result.publishedBefore = f.substring('published/before/'.length);
+      result.publishedBefore = fixDateTime(f.substring('published/before/'.length));
     } else if (f.startsWith('published/after/')) {
-      result.publishedAfter = f.substring('published/after/'.length);
+      result.publishedAfter = fixDateTime(f.substring('published/after/'.length));
     } else if (f.startsWith('created/before/')) {
-      result.createdBefore = f.substring('created/before/'.length);
+      result.createdBefore = fixDateTime(f.substring('created/before/'.length));
     } else if (f.startsWith('created/after/')) {
-      result.createdAfter = f.substring('created/after/'.length);
+      result.createdAfter = fixDateTime(f.substring('created/after/'.length));
     } else if (f.startsWith('response/before/')) {
-      result.responseBefore = f.substring('response/before/'.length);
+      result.responseBefore = fixDateTime(f.substring('response/before/'.length));
     } else if (f.startsWith('response/after/')) {
-      result.responseAfter = f.substring('response/after/'.length);
+      result.responseAfter = fixDateTime(f.substring('response/after/'.length));
     } else if (f === '!obsolete') {
       result['obsolete'] = null as any;
     } else if (f.startsWith('!')) {
@@ -236,6 +237,10 @@ function getRefFilter(filter?: UrlFilter[]): RefFilter {
     }
   }
   return result;
+}
+
+export function fixDateTime(t: string) {
+  return DateTime.fromISO(t).toUTC().toISO()!;
 }
 
 export function getTagFilter(filter?: UrlFilter[]): TagQueryArgs {

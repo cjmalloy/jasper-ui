@@ -141,6 +141,7 @@ export class SubmitStore {
   }
 
   get withoutGenId() {
+    if (!this.submitGenId.length) return this.tags;
     return without(this.tags, ...this.submitGenId.map(p => p.tag));
   }
 

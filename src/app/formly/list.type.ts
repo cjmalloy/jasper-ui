@@ -87,6 +87,7 @@ export class ListTypeComponent extends FieldArrayType {
       case 'selector':
       case 'plugin':
       case 'template':
+      case 'bookmark':
         return 'tag';
     }
     // @ts-ignore

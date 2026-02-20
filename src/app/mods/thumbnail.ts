@@ -8,6 +8,7 @@ export const thumbnailPlugin: Plugin = {
   tag: 'plugin/thumbnail',
   name: $localize`⭕️ Thumbnail`,
   config: {
+    mod: $localize`⭕️ Thumbnail`,
     type: 'plugin',
     default: true,
     proxy: true,

@@ -16,15 +16,32 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+      - name: Setup Docker buildx
+        uses: docker/setup-buildx-action@v3
       - name: Build the Docker image
-        run: docker build . -t ${{ github.repository }}:$(date +%s)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          load: true
+          tags: build
+          cache-from: type=gha,scope=build
+          cache-to: type=gha,mode=max,scope=build
 
   test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+      - name: Setup Docker buildx
+        uses: docker/setup-buildx-action@v3
       - name: Build the testing image
-        run: docker build . --file Dockerfile --target test --tag test
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          load: true
+          target: test
+          tags: test
+          cache-from: type=gha,scope=test
+          cache-to: type=gha,mode=max,scope=test
       - name: Run the test container
         run: docker run --name test test
       - name: Copy test reports from container
@@ -206,6 +223,33 @@ jobs:
             });
             const artifacts = response.data.artifacts
               .filter(artifact => artifact.name.startsWith('vitest-reports-' + '${{ github.ref_name }}'));
+            if (artifacts.length > maxVersions) {
+              // Sort by created_at descending
+              artifacts.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+              // Delete all but the latest maxVersions
+              for (const artifact of artifacts.slice(maxVersions)) {
+                console.log('Deleting artifact:', artifact.name);
+                await github.rest.actions.deleteArtifact({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  artifact_id: artifact.id
+                });
+              }
+            }
+      - name: Cleanup old PR artifacts
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v8
+        with:
+          # language=JavaScript
+          script: |
+            const maxVersions = 1;
+            const response = await github.rest.actions.listArtifactsForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              per_page: 100
+            });
+            const artifacts = response.data.artifacts
+              .filter(artifact => artifact.name === 'vitest-reports-pr-${{ github.event.pull_request.number }}');
             if (artifacts.length > maxVersions) {
               // Sort by created_at descending
               artifacts.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));

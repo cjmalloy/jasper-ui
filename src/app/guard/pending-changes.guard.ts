@@ -1,10 +1,10 @@
 import { CanDeactivateFn } from '@angular/router';
 
 export interface HasChanges {
-  saveChanges: () => boolean;
+  saveChanges: () => Promise<boolean> | boolean;
 }
 
-export const pendingChangesGuard: CanDeactivateFn<HasChanges> = (component, currentRoute, currentState, nextState) => {
-  if (!component?.saveChanges || component.saveChanges()) return true;
+export const pendingChangesGuard: CanDeactivateFn<HasChanges> = async (component, currentRoute, currentState, nextState) => {
+  if (!component?.saveChanges || await component.saveChanges()) return true;
   return confirm($localize`Discard draft?`);
 };

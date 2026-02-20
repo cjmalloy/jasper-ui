@@ -6,19 +6,30 @@
              [expandInline]="true"
              [ref]="repost"></app-ref>
   }
+  @if (editingRef) {
+    <app-ref class="expand"
+             [fetchRepost]="false"
+             [showToggle]="true"
+             [expandInline]="true"
+             [ref]="editingRef"></app-ref>
+  }
   @if (playlist) {
     <app-playlist [ref]="ref"></app-playlist>
   }
-  @if (page) {
-    <app-lens [page]="page"
-              [pageControls]="false"
-              [tag]="lensQuery"
-              [ext]="ext"
-              [size]="lensSize"
-              [cols]="lensCols"
-              [sort]="lensSort"
-              [filter]="lensFilter"
-              [search]="lensSearch"></app-lens>
+  @if (lens) {
+    @if (lensPage) {
+      <app-lens [page]="lensPage"
+                [pageControls]="false"
+                [tag]="lensQuery"
+                [ext]="ext"
+                [size]="lensSize"
+                [cols]="lensCols"
+                [sort]="lensSort"
+                [filter]="lensFilter"
+                [search]="lensSearch"></app-lens>
+    } @else {
+      <app-loading></app-loading>
+    }
   }
   @if (this.embedIframe) {
     <div class="embed-container"

@@ -38,7 +38,7 @@ export class SubscriptionBarComponent implements AfterViewInit, OnDestroy {
     private el: ElementRef,
     private help: HelpService,
   ) {
-    this.disposers.push(autorun(() => this.editor.getTagsPreview(this.store.account.bookmarks, this.store.account.origin)
+    this.disposers.push(autorun(() => this.editor.getBookmarksPreview(this.store.account.bookmarks, this.store.account.origin)
       .subscribe(xs => this.bookmarks = xs)));
     this.disposers.push(autorun(() => this.exts.getCachedExts(this.store.account.subs)
       .subscribe(xs => this.subs = xs)));

@@ -256,6 +256,14 @@ button {
   min-height: 22px !important;
 }
 
+.tag-list {
+  flex-wrap: wrap;
+  max-width: 100%;
+  a {
+    line-height: 18px !important;
+  }
+}
+
 .form-array, .buttons {
   & > button {
     min-width: 32px !important;

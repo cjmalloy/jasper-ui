@@ -240,6 +240,14 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
           }
         }
       }
+      if (this.ref.upload && this.store.eventBus.event === 'refresh:uploads') {
+        if (this.editing || this.viewSource) {
+          // TODO: show somewhere
+          console.warn('Ignoring Ref edit.');
+          return;
+        }
+        this.init();
+      }
       if (this.store.eventBus.event === 'error') {
         if (this.ref?.url && this.store.eventBus.isRef(this.ref)) {
           this.serverError = this.store.eventBus.errors;
@@ -283,6 +291,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     this.initFields(this.ref);
 
     this.expandPlugins = this.admin.getEmbeds(this.ref);
+    MemoCache.clear(this);
     if (this.repost && this.ref && this.fetchRepost && this.repostRef?.url != repost(this.ref)) {
       (this.store.view.top?.url === this.ref.sources![0]
           ? of(this.store.view.top)
@@ -789,6 +798,23 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   }
 
   @memo
+  get editingLink() {
+    if (!hasTag('plugin/editing', this.ref)) return undefined;
+    if (this.url.startsWith('comment:')) {
+      return { routerLink: ['/submit/text'], queryParams: { url: this.url } };
+    }
+    return { routerLink: ['/submit/web'], queryParams: { url: this.url } };
+  }
+
+  @memo
+  get submitRoute() {
+    if (this.url.startsWith('comment:')) {
+      return { routerLink: ['/submit/text'], queryParams: { url: this.url } };
+    }
+    return { routerLink: ['/submit/web'], queryParams: { url: this.url } };
+  }
+
+  @memo
   get clickableLink() {
     if (this.file) return true;
     return clickableLink(this.url);
@@ -796,6 +822,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
 
   @memo
   get redundantLink() {
+    if (this.editingLink) return true;
     if (!this.clickableLink) return true;
     return this.expandPlugins.length;
   }

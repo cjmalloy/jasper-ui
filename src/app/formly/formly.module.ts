@@ -29,6 +29,7 @@ import { ListTypeComponent } from './list.type';
 import { FormlyFieldMultiCheckbox } from './multicheckbox.type';
 import { PdfUploadComponent } from './pdf-upload/pdf-upload.component';
 import { QrScannerComponent } from './qr-scanner/qr-scanner.component';
+import { FormlyFieldBookmarkInput } from './bookmark.type';
 import { FormlyFieldQueryInput } from './query.type';
 import { FormlyFieldRadio } from './radio.type';
 import { FormlyFieldRange } from './range.type';
@@ -74,6 +75,7 @@ export class IdPrefixExtension implements FormlyExtension {
     FormlyFieldRange,
     FormlyFieldTagInput,
     FormlyFieldQueryInput,
+    FormlyFieldBookmarkInput,
     FormlyFieldRefInput,
     FormlyFieldTextArea,
     FormlyFieldCheckbox,
@@ -569,6 +571,36 @@ Private tags start with an underscore.
           },
         },
       }, {
+        name: 'bookmark',
+        component: FormlyFieldBookmarkInput,
+        wrappers: ['form-field'],
+        defaultOptions: {
+          props: {
+            label: $localize`Bookmark: `,
+          },
+          validators: {
+            pattern: {
+              expression: (c: AbstractControl) => {
+                if (!c.value) return true;
+                const query = c.value.split('?')[0];
+                return !query || QUERY_REGEX.test(query);
+              },
+              message: $localize`Queries support AND (:), OR (|), NOT (!) and grouping qualified tags (parentheses).
+Tags must be lower case letters, numbers, periods and forward slashes.
+Must not start with a forward slash or period.
+Must not or contain two forward slashes or periods in a row.
+Use the local wildcard (*) to match all tags with a local origin.
+Tags may be qualified with an origin, or a wildcard origin (@*).
+Origins must start with an at sign (@) and contain only lowercase letters, numbers, and periods.
+Use an origin without a tag to match all tags at that origin.
+The wildcard origin (@*) by itself will match everything.
+Protected tags start with a plus sign.
+Private tags start with an underscore.
+(i.e. "science:news", "science@origin science@other" "your/tag my/tag", "!cool", or "news:_my/private/tag")`,
+            }
+          },
+        },
+      }, {
         name: 'queries',
         extends: 'selectors',
         defaultOptions: {
@@ -578,6 +610,18 @@ Private tags start with an underscore.
           },
           fieldArray: {
             type: 'query',
+          },
+        },
+      }, {
+        name: 'bookmarks',
+        extends: 'selectors',
+        defaultOptions: {
+          props: {
+            label: $localize`Bookmarks: `,
+            addText: $localize`+ Add another bookmark`,
+          },
+          fieldArray: {
+            type: 'bookmark',
           },
         },
       }, {

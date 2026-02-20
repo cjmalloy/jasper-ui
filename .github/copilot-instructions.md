@@ -35,6 +35,7 @@ This Angular client (jasper-ui) provides the reference implementation for intera
 ## Quick Start
 
 - **CRITICAL**: Debugging requires the Jasper server backend running
+- Add screenshots to your comments using playwrite for UI changes in both light and dark mode
 
 ## Development Commands
 
@@ -68,6 +69,8 @@ docker compose up --build  # Everything on http://localhost:8082/
 - Stop services: `docker compose down`
 
 **IMPORTANT**: When making UI changes that affect user interactions (buttons, overlays, dialogs, etc.), **ALWAYS** update the corresponding Playwright E2E tests in `e2e/`. This is a critical step that should not be forgotten.
+
+**IMPORTANT**: When adding new E2E tests that are not designed to expose an existing bug, you **MUST** run the tests to confirm they pass before submitting. Use `npx playwright test <spec-file>` against the running e2e services. Do not submit E2E tests that have not been verified to pass.
 
 ## Project Structure
 
@@ -179,6 +182,149 @@ Translation locales are configured in `angular.json` under `projects.jasper-ui.i
   "ja": "src/locale/messages.ja.xlf"
 }
 ```
+
+## E2E Testing with Playwright
+
+### Overview
+
+E2E tests live in `e2e/` and use Playwright. The test environment requires Docker services running (main app on `http://localhost:8080`, replica on `http://localhost:8082`).
+
+### Environment Setup
+
+Start the e2e Docker services before running or debugging tests:
+```bash
+cd e2e && docker compose pull && docker compose up --build -d
+```
+Wait for services to be healthy, then run tests:
+```bash
+npx playwright test                  # Run all tests headless
+npx playwright test 00-smoke.spec.ts # Run a single test file
+npx playwright test --ui             # Interactive UI mode
+```
+Stop services when done:
+```bash
+cd e2e && docker compose down
+```
+
+### Debug Users
+
+The app supports debug query parameters to simulate different user roles without authentication:
+- `?debug=ADMIN` - Full admin access
+- `?debug=MOD` - Moderator access
+- `?debug=EDITOR` - Editor access
+- `?debug=USER` - Standard user access
+- `?debug=VIEWER` - Read-only access
+- `?debug=ANON` - Anonymous/unauthenticated access
+
+Always append the appropriate debug parameter when navigating in tests:
+```typescript
+await page.goto('/?debug=ADMIN');
+await page.goto('/settings/setup?debug=ADMIN');
+```
+
+### Using the Playwright MCP Server for Debugging
+
+The Playwright MCP server allows interactive browser automation to debug and write e2e tests. Use these tools in the following workflow:
+
+#### Step 1: Start Services and Navigate
+```
+navigate to http://localhost:8080/?debug=ADMIN
+```
+Use `browser_navigate` to load the page under test with the appropriate debug user.
+
+#### Step 2: Inspect the Page
+Use `browser_snapshot` to capture an accessibility snapshot of the current page. This returns a structured tree of all visible elements with their roles, names, and unique `ref` attributes. The snapshot is more reliable than screenshots for identifying interactive elements and building selectors.
+
+Use `browser_take_screenshot` to capture a visual screenshot when you need to verify layout, styling, or visual state.
+
+#### Step 3: Interact with Elements
+Use the element `ref` from the snapshot to interact with the page:
+- `browser_click` - Click buttons, links, checkboxes
+- `browser_type` - Type into text fields
+- `browser_fill_form` - Fill multiple form fields at once
+- `browser_select_option` - Select dropdown options
+- `browser_hover` - Hover over elements to reveal tooltips or menus
+
+#### Step 4: Translate to Test Code
+Map MCP interactions to Playwright test assertions and actions:
+
+| MCP Tool | Playwright Equivalent |
+|---|---|
+| `browser_navigate` | `page.goto(url)` |
+| `browser_snapshot` | Use to discover selectors for `page.locator()` |
+| `browser_click` (by selector) | `page.locator('button', { hasText: 'Submit' }).click()` |
+| `browser_click` (by text) | `page.getByText('Submit').click()` |
+| `browser_type` | `page.locator('#url').fill('value')` |
+| `browser_take_screenshot` | `expect(page.locator('.element')).toBeVisible()` |
+
+### CSS Selector Guidelines
+
+A project goal is to have a **very simple and easy to navigate CSS tree**. Follow these rules when adding or changing components:
+
+- **Always add descriptive `class` attributes** to interactive and structurally significant elements so E2E tests can target them without relying on tag names or brittle nth-child selectors.
+- **Never use custom component tag names** (e.g., `app-ref`, `formly-field-bookmark-input`) as selectors in E2E tests — standard HTML tags like `select`, `div`, `span` are acceptable, but prefer CSS classes for clarity.
+- **Use clear, semantic class names** that describe the element's role in the UI, not its appearance or implementation. Examples:
+  - `.filter-toggle` — the button/element that opens the filter/params panel
+  - `.filter-preview` — the inline summary shown when params are set
+  - `.bookmark-field` — the host element for a bookmark formly field
+  - `.params-panel` — the overlay popup panel
+- **Add host classes** to formly field components (`host: { 'class': 'field my-field-type' }`) so tests can scope to that component type without using its tag name.
+- When creating new interactive UI elements (buttons, overlays, toggles), always give them a descriptive class before writing E2E tests for them.
+
+### Writing New E2E Tests
+
+#### File Naming Convention
+Test files are numbered for execution order: `00-smoke.spec.ts`, `01-backup.spec.ts`, etc. Plugin tests use `plugin-<name>.spec.ts`, template tests use `template-<name>.spec.ts`.
+
+#### Test Structure
+```typescript
+import { expect, test } from '@playwright/test';
+import { clearMods, mod, openSidebar, deleteRef } from './setup';
+
+test.describe.serial('Feature Name', () => {
+  // Always clear/set mods first if the test requires specific plugins
+  test('clear mods', async ({ page }) => {
+    await mod(page, '#mod-feature');
+  });
+
+  test('does something', async ({ page }) => {
+    await page.goto('/?debug=ADMIN', { waitUntil: 'networkidle' });
+    // ... test actions and assertions
+  });
+});
+```
+
+#### Setup Helpers (`e2e/setup.ts`)
+- `clearMods(page, base?)` - Remove all plugins and templates
+- `clearAll(page, base?, origin?)` - Delete all data for an origin and clear mods
+- `deleteRef(page, url, base?)` - Delete a specific ref by URL
+- `mod(page, ...mods)` - Clear mods then enable specified mods (e.g., `'#mod-wiki'`, `'#mod-graph'`)
+- `modRemote(page, base, ...mods)` - Same as `mod` but for a remote instance
+- `openSidebar(page)` / `closeSidebar(page)` - Toggle the sidebar
+
+#### Using MCP to Discover Selectors
+When writing a new test, use the MCP server to find the right selectors:
+1. Navigate to the page: `browser_navigate` to `http://localhost:8080/?debug=ADMIN`
+2. Take a snapshot: `browser_snapshot` to see all interactive elements
+3. Try clicking elements: `browser_click` to verify the correct element is targeted
+4. Check results: `browser_snapshot` again to verify state changes
+
+### Debugging Failing Tests
+
+#### Using MCP Server to Reproduce Failures
+1. Start the Docker services and navigate to the same URL the failing test uses
+2. Use `browser_snapshot` to inspect the current page state
+3. Replay the test steps one at a time using MCP tools (`browser_click`, `browser_type`, etc.)
+4. After each step, use `browser_snapshot` to compare actual vs expected state
+5. Use `browser_take_screenshot` if the visual layout is relevant to the failure
+6. Use `browser_console_messages` to check for JavaScript errors
+7. Use `browser_network_requests` to inspect API call failures
+
+#### Common Issues
+- **Element not found**: Use `browser_snapshot` to find the actual element structure; selectors may have changed
+- **Timing issues**: Add `waitForLoadState('networkidle')` or `waitForResponse()` before assertions
+- **State pollution**: Tests run serially in one worker; a prior test may have left unexpected state. Use `clearMods` or `clearAll` in setup
+- **Mobile layout triggered**: Viewport is set to 1280x720 in `playwright.config.ts` to prevent mobile layout; verify `browser_resize` matches if testing interactively
 
 ## Key Info
 

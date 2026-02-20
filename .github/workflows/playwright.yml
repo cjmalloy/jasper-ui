@@ -14,6 +14,10 @@ permissions:
 jobs:
   playwright-run:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        database: [postgres, sqlite]
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
@@ -24,7 +28,15 @@ jobs:
         run: npm ci
       - name: Run Playwright Tests
         id: playwright
-        run: npm run pw:ci
+        run: |
+          if [ "${{ matrix.database }}" = "sqlite" ]; then
+            docker compose --profile ci -f 'e2e/docker-compose.yaml' -f 'e2e/docker-compose.sqlite.yaml' up --build --exit-code-from playwright
+          else
+            npm run pw:ci
+          fi
+      - name: Patch HTML Report (merge files by default)
+        if: always()
+        run: sudo sed -i 's/mergeFiles",!1/mergeFiles",!0/g' e2e/reports/html/index.html
       - name: Generate Test Summary
         if: always()
         uses: actions/github-script@v8
@@ -67,7 +79,7 @@ jobs:
               };
             }
 
-            let summary = '## 🧪 Playwright Test Results\n\n';
+            let summary = '## 🧪 Playwright Test Results (${{ matrix.database }})\n\n';
 
             try {
               const jsonPath = 'e2e/reports/results.json';
@@ -113,14 +125,14 @@ jobs:
         if: github.event_name == 'pull_request' && always()
         uses: actions/upload-artifact@v6
         with:
-          name: playwright-reports-pr-${{ github.event.pull_request.number }}
+          name: playwright-reports-${{ matrix.database }}-pr-${{ github.event.pull_request.number }}
           path: e2e/reports/html
           retention-days: 7
       - name: Upload Reports
         if: github.event_name != 'pull_request' && always()
         uses: actions/upload-artifact@v6
         with:
-          name: playwright-reports-${{ github.ref_name }}-${{ github.run_number }}
+          name: playwright-reports-${{ matrix.database }}-${{ github.ref_name }}-${{ github.run_number }}
           path: e2e/reports/html
           retention-days: 30
       - name: Comment on PR
@@ -138,11 +150,11 @@ jobs:
               summary = '⚠️ Could not read test summary.';
             }
 
-            const reportUrl = `https://${context.repo.owner}.github.io/${context.repo.repo}/reports/playwright-reports-pr-${context.issue.number}/`;
+            const reportUrl = `https://${context.repo.owner}.github.io/${context.repo.repo}/reports/playwright-reports-${{ matrix.database }}-pr-${context.issue.number}/`;
             summary += `\n\n📊 [View detailed HTML report](${reportUrl})`;
 
-            // Add HTML comment marker for identification
-            const body = `<!-- playwright-results-comment -->\n${summary}`;
+            // Add HTML comment marker for identification (unique per database)
+            const body = `<!-- playwright-results-${{ matrix.database }}-comment -->\n${summary}`;
 
             // Find existing comment (with pagination)
             const comments = await github.paginate(github.rest.issues.listComments, {
@@ -152,7 +164,7 @@ jobs:
             });
 
             const botComment = comments.find(comment =>
-              comment.body.includes('<!-- playwright-results-comment -->')
+              comment.body.includes('<!-- playwright-results-${{ matrix.database }}-comment -->')
             );
 
             if (botComment) {
@@ -193,7 +205,34 @@ jobs:
               per_page: 100
             });
             const artifacts = response.data.artifacts
-              .filter(artifact => artifact.name.startsWith('playwright-reports-' + '${{ github.ref_name }}'));
+              .filter(artifact => artifact.name.startsWith('playwright-reports-') && artifact.name.includes('${{ github.ref_name }}'));
+            if (artifacts.length > maxVersions) {
+              // Sort by created_at descending
+              artifacts.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+              // Delete all but the latest maxVersions
+              for (const artifact of artifacts.slice(maxVersions)) {
+                console.log('Deleting artifact:', artifact.name);
+                await github.rest.actions.deleteArtifact({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  artifact_id: artifact.id
+                });
+              }
+            }
+      - name: Cleanup old PR artifacts
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v8
+        with:
+          # language=JavaScript
+          script: |
+            const maxVersions = 2;
+            const response = await github.rest.actions.listArtifactsForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              per_page: 100
+            });
+            const artifacts = response.data.artifacts
+              .filter(artifact => artifact.name.startsWith('playwright-reports-') && artifact.name.endsWith('-pr-${{ github.event.pull_request.number }}'));
             if (artifacts.length > maxVersions) {
               // Sort by created_at descending
               artifacts.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));

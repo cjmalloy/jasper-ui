@@ -2,6 +2,7 @@
 .angular/
 .github/
 .idea/
+.junie/
 .vscode/
 coverage/
 e2e/

@@ -140,7 +140,7 @@
         }
 
         <span><!-- Tags --></span>
-        <div class="form-array right">
+        <div class="tag-list form-array right">
           @for (p of store.submit.tags | tagPreview | async; track p.tag) {
             <a class="tag" [routerLink]="['/tag', p.tag]">{{ p.name || '#' + p.tag }}</a>
           }

@@ -6216,6 +6216,115 @@ Enter the origin to confirm:</source>
         <source>💾 Local Storage</source>
         <target>💾 ローカルストレージ</target>
       </trans-unit>
+      <trans-unit id="4482966957981976743" datatype="html">
+        <source>Convert documents to Markdown using Microsoft MarkItDown.
+Supports PDF, Word, Excel, PowerPoint, images (with OCR), audio (transcription), HTML, and more.
+Creates one response per supported format found.</source>
+        <target>Microsoft MarkItDownを使用してドキュメントをMarkdownに変換します。
+PDF、Word、Excel、PowerPoint、画像（OCR付き）、音声（文字起こし）、HTMLなどをサポートしています。
+検出されたサポート対象の形式ごとに1つの応答を作成します。</target>
+      </trans-unit>
+      <trans-unit id="5872989223865369131" datatype="html">
+        <source>Convert document to Markdown using MarkItDown</source>
+        <target>MarkItDownを使用してドキュメントをMarkdownに変換</target>
+      </trans-unit>
+      <trans-unit id="5723091485366213365" datatype="html">
+        <source>Cancel MarkItDown conversion.</source>
+        <target>MarkItDown変換をキャンセルします。</target>
+      </trans-unit>
+      <trans-unit id="137212084026101929" datatype="html">
+        <source>Signature tag for documents converted to Markdown using Microsoft MarkItDown.
+Each response contains the converted Markdown from a specific source format.</source>
+        <target>Microsoft MarkItDownを使用してMarkdownに変換されたドキュメントの署名タグ。
+各応答には、特定のソース形式から変換されたMarkdownが含まれます。</target>
+      </trans-unit>
+      <trans-unit id="4605873401590629136" datatype="html">
+        <source>Convert to Markdown</source>
+        <target>Markdownに変換</target>
+      </trans-unit>
+      <trans-unit id="2998229675870911678" datatype="html">
+        <source>markdown</source>
+      </trans-unit>
+      <trans-unit id="7451719878296732001" datatype="html">
+        <source>Converted to Markdown</source>
+        <target>Markdownに変換済み</target>
+      </trans-unit>
+      <trans-unit id="8111454443106685389" datatype="html">
+        <source>reconvert</source>
+        <target>再変換</target>
+      </trans-unit>
+      <trans-unit id="8128305518628119950" datatype="html">
+        <source>Reconvert document to Markdown</source>
+        <target>ドキュメントをMarkdownに再変換</target>
+      </trans-unit>
+      <trans-unit id="482571384536094525" datatype="html">
+        <source>⬇️💭️</source>
+      </trans-unit>
+      <trans-unit id="5037331719260611753" datatype="html">
+        <source>⬇️ MarkItDown</source>
+      </trans-unit>
+      <trans-unit id="3516699313538888395" datatype="html">
+        <source>⬇️ markdown</source>
+      </trans-unit>
+      <trans-unit id="1593994334287230818" datatype="html">
+        <source>⬇️💭️ markdown query</source>
+        <target>⬇️💭️ markdown検索</target>
+      </trans-unit>
+      <trans-unit id="4648464056700800353" datatype="html">
+        <source>⬇️ MarkItDown Query</source>
+        <target>⬇️ MarkItDownクエリ</target>
+      </trans-unit>
+      <trans-unit id="7922104456571061261" datatype="html">
+        <source>⬇️ MarkItDown Result</source>
+        <target>⬇️ MarkItDown結果</target>
+      </trans-unit>
+      <trans-unit id="6701554262923388914" datatype="html">
+        <source>Bookmark: </source>
+        <target>ブックマーク: </target>
+      </trans-unit>
+      <trans-unit id="2454675159545031879" datatype="html">
+        <source>Bookmarks: </source>
+        <target>ブックマーク: </target>
+      </trans-unit>
+      <trans-unit id="5595653752345611410" datatype="html">
+        <source>Configure search, sort and filters</source>
+        <target>検索・並び替え・フィルターを設定</target>
+      </trans-unit>
+      <trans-unit id="3446720722197729338" datatype="html">
+        <source>🔍️ Search</source>
+        <target>🔍️ 検索</target>
+      </trans-unit>
+      <trans-unit id="1952562229620562171" datatype="html">
+        <source>Search text…</source>
+        <target>検索テキスト…</target>
+      </trans-unit>
+      <trans-unit id="1155460432605427252" datatype="html">
+        <source>🔼️ Sort</source>
+        <target>🔼️ 並び替え</target>
+      </trans-unit>
+      <trans-unit id="1602447240300033767" datatype="html">
+        <source>+ Add sort…</source>
+        <target>+ 並び替えを追加…</target>
+      </trans-unit>
+      <trans-unit id="1898874052258139852" datatype="html">
+        <source>⚙️ Filters</source>
+        <target>⚙️ フィルター</target>
+      </trans-unit>
+      <trans-unit id="6952049093546172035" datatype="html">
+        <source>e.g. obsolete, query/science</source>
+      </trans-unit>
+      <trans-unit id="8857746354382606226" datatype="html">
+        <source>+ Add filter</source>
+        <target>+ フィルターを追加</target>
+      </trans-unit>
+      <trans-unit id="4435787240530424068" datatype="html">
+        <source>✨️ created</source>
+        <target>✨️ 作成日</target>
+      </trans-unit>
+      <trans-unit id="140875962077692817" datatype="html">
+        <source>🔤️ title</source>
+        <target>🔤️ タイトル</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

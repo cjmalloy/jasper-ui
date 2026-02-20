@@ -21,6 +21,7 @@ import { blogMod } from '../mods/blog';
 import { chatMod } from '../mods/chat';
 import { commentMod } from '../mods/comment';
 import { deleteMod, tagDeleteNotice } from '../mods/delete';
+import { draftMod } from '../mods/draft';
 import { htmlMod, latexMod } from '../mods/editor';
 import { experimentsMod } from '../mods/experiments';
 import { backgammonMod } from '../mods/games/backgammon';
@@ -75,6 +76,7 @@ import { threadMod } from '../mods/thread';
 import { thumbnailMod } from '../mods/thumbnail';
 import { archiveMod } from '../mods/tools/archive';
 import { htmlToMarkdownMod } from '../mods/tools/htmlToMarkdown';
+import { markitdownMod } from '../mods/tools/markitdown';
 import { ninjaTriangleMod } from '../mods/tools/ninga-triangle';
 import { pollMod } from '../mods/tools/poll';
 import { qrMod } from '../mods/tools/qr';
@@ -121,6 +123,7 @@ export class AdminService {
     hideMod,
     saveMod,
     readMod,
+    draftMod,
 
     // Themes
     themesMod,
@@ -177,6 +180,7 @@ export class AdminService {
     audioMod,
     videoMod,
     ytdlpMod,
+    markitdownMod,
     voteMod,
     imageMod,
     lensMod,
@@ -461,6 +465,10 @@ export class AdminService {
     return this.getPlugin('plugin/pip');
   }
 
+  get editing() {
+    return this.getPlugin('plugin/editing');
+  }
+
   get defaultPlugins() {
     return Object.values(this.def.plugins).filter(p => p?.config?.default) as Plugin[];
   }
@@ -632,13 +640,13 @@ export class AdminService {
   getEmbeds(ref?: Ref | null) {
     if (!ref) return [];
     const tags = ref.tags || [];
-    return tagIntersection([
+    return uniq(tagIntersection([
       'plugin',
       ...tags,
       ...this.getPluginsForUrl(ref.url).map(p => p.tag),
       ...this.getPluginsForCache(ref),
       ...(ref.alternateUrls || []).flatMap(url => this.getPluginsForUrl(url).map(p => p.tag)),
-    ], this.embeddable) as string[];
+    ], this.embeddable) as string[]);
   }
 
   getPluginsForUrl(url: string) {

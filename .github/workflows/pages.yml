@@ -59,7 +59,9 @@ jobs:
           done
 
           # Download PR reports
-          gh run download --pattern "*-reports-pr-*" --dir _site/reports 2>/dev/null || true
+          gh run list --workflow playwright.yml --limit 20 --json databaseId --jq '.[].databaseId' | while read run_id; do
+            gh run download "$run_id" --pattern "*-reports-pr-*" --dir _site/reports 2>/dev/null || true
+          done
 
           latest_vitest=$(ls -dv _site/reports/vitest-reports-master-* 2>/dev/null | tail -1)
           echo "Creating latest Vitest $latest_vitest"
@@ -67,11 +69,19 @@ jobs:
             mkdir -p _site/reports/latest-vitest
             cp -r "$latest_vitest/." _site/reports/latest-vitest/
           fi
-          latest_playwright=$(ls -dv _site/reports/playwright-reports-master-* 2>/dev/null | tail -1)
-          echo "Creating latest Playwright $latest_playwright"
-          if [ -n "$latest_playwright" ] && [ -d "$latest_playwright" ]; then
+          latest_playwright_postgres=$(ls -dv _site/reports/playwright-reports-postgres-master-* 2>/dev/null | tail -1)
+          echo "Creating latest Playwright (postgres) $latest_playwright_postgres"
+          if [ -n "$latest_playwright_postgres" ] && [ -d "$latest_playwright_postgres" ]; then
+            mkdir -p _site/reports/latest-playwright-postgres
+            cp -r "$latest_playwright_postgres/." _site/reports/latest-playwright-postgres/
             mkdir -p _site/reports/latest-playwright
-            cp -r "$latest_playwright/." _site/reports/latest-playwright/
+            cp -r "$latest_playwright_postgres/." _site/reports/latest-playwright/
+          fi
+          latest_playwright_sqlite=$(ls -dv _site/reports/playwright-reports-sqlite-master-* 2>/dev/null | tail -1)
+          echo "Creating latest Playwright (sqlite) $latest_playwright_sqlite"
+          if [ -n "$latest_playwright_sqlite" ] && [ -d "$latest_playwright_sqlite" ]; then
+            mkdir -p _site/reports/latest-playwright-sqlite
+            cp -r "$latest_playwright_sqlite/." _site/reports/latest-playwright-sqlite/
           fi
           cat > _site/reports/index.html << EOF
           <!DOCTYPE html>
@@ -80,28 +90,28 @@ jobs:
             <title>Test Reports</title>
             <style>
               :root {
-                /* Solarized Light */
-                --heading-color: #586e75;
-                --border-color: #eee8d5;
-                --report-bg: #eee8d5;
-                --link-color: #268bd2;
-                --latest-bg: #eee8d5;
-                --latest-border: #859900;
-                --text-color: #657b83;
-                --bg-color: #fdf6e3;
+                /* Light mode variables */
+                --heading-color: #2c3e50;
+                --border-color: #eee;
+                --report-bg: #f8f9fa;
+                --link-color: #3498db;
+                --latest-bg: #e8f5e9;
+                --latest-border: #4caf50;
+                --text-color: #000;
+                --bg-color: #fff;
               }
               @media (prefers-color-scheme: dark) {
                 :root {
                   color-scheme: dark;
-                  /* Solarized Dark */
-                  --heading-color: #93a1a1;
-                  --border-color: #073642;
-                  --report-bg: #073642;
-                  --link-color: #268bd2;
-                  --latest-bg: #073642;
-                  --latest-border: #859900;
-                  --text-color: #839496;
-                  --bg-color: #002b36;
+                  /* Dark mode variables */
+                  --heading-color: #89a7c3;
+                  --border-color: #333;
+                  --report-bg: #2a2a2a;
+                  --link-color: #5dade2;
+                  --latest-bg: #1b3320;
+                  --latest-border: #2d6a31;
+                  --text-color: #fff;
+                  --bg-color: #1a1a1a;
                 }
               }
               body {
@@ -139,7 +149,10 @@ jobs:
           <body>
             <h1>Test Reports</h1>
             <div class='report'>
-              <a href='$(basename $latest_playwright)/'>Latest Playwright Report</a>
+              <a href='latest-playwright-postgres/'>Latest Playwright Report (postgres)</a>
+            </div>
+            <div class='report'>
+              <a href='latest-playwright-sqlite/'>Latest Playwright Report (sqlite)</a>
             </div>
             <div class='report'>
               <a href='$(basename $latest_vitest)/'>Latest Vitest Report</a>

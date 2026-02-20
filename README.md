@@ -74,102 +74,139 @@ Markdown editor with support for rendering both markdown and HTML.
    3. Themes: (optional) Override the theme for the entire site. Will cause custom tag themes
    to be ignored.
 3. **Home Page:** Enables a home page where you can subscribe to various tags or queries and
-see them there. Adds a for **Requires user mod**
+see them on a personalized dashboard.
 4. **Inbox:** Enables notifications when installed. You receive a notification when someone posts a
 response to yours. Activates the envelope icon button in the settings area of the client.
 Requires the inbox field in the user template. When posting a response the client will add (for
 example with `+user/charlie`) `plugin/inbox/user/charlie` to the tags. This will cause it to show up
 in `+user/charlie`'s notifications. Users also receive notifications for all tags they have write
 access to (tag modmail). This tag is also the convention by which you may address a Ref "To:"
-another user. Does not add data to a Ref.
+another user. Also includes an outbox plugin for remote notifications and a DM template for
+private direct messages.
 5. **Comment:** Enables comments and comment threads when installed. Allows sorting Refs by number
 of comments. Comments are created with `plugin/comment` and `internal` tags. (the `internal` tag
 prevents the comment from showing up on `@*`). Adds a deleted field to the ref to mark the
 comment as deleted. This is used to prevent breaking a comment thread by actually removing a
 node when a comment is deleted.
-6. **Thumbnail:** Enables the Ref thumbnail when installed. When a Ref is tagged `plugin/thumbnail`,
+6. **Thread:** Merges similar Refs tagged `plugin/thread` into discussion threads.
+7. **Delete Notice:** Marks Refs as deleted without actually removing them, preserving comment
+thread structure.
+8. **Thumbnail:** Enables the Ref thumbnail when installed. When a Ref is tagged `plugin/thumbnail`,
 the Ref has an image that can be used as a thumbnail. Adds optional url, width, height, and time
 fields to the Ref. If the url field is not specified, the url of the Ref will be the image
 thumbnail.
-7. **Latex:** Enables KaTeX processing on the Ref comment markdown. Does not add data to a Ref.
-KaTeX support for sidebar content is always enabled if this plugin
-is installed.
-8. **Graph:** Enable the knowledge graph tab in the client UI when this is installed. Adds data
-to refs to override how they are graphed.
-9. **QR:** Enables the QR embed when installed. When the `plugin/qr` is applied to a Ref, the Ref has
+9. **LaTeX:** Enables KaTeX processing on the Ref comment markdown. Use `$` for inline math
+and `$$` for block math. KaTeX support for sidebar content is always enabled if this plugin
+is installed. Does not add data to a Ref.
+10. **Code:** Edit and view code with syntax highlighting using the Monaco editor (the same
+editor as VS Code), supporting multiple programming languages.
+11. **QR:** Enables the QR embed when installed. When the `plugin/qr` is applied to a Ref, the Ref has
 a URL to be converted into a QR code. The QR code is shown when the embed toggle is pressed. Adds
 optional URL field to the Ref to use for the QR code, if this is unspecified the URL of the Ref
 will be used.
-10. **Embed:** Enables the iframe embed when installed. When the plugin/embed is applied to a Ref,
+12. **Embed:** Enables the iframe embed when installed. When the `plugin/embed` is applied to a Ref,
 the Ref has a URL that can be used in an iframe. The iframe is shown when the embed toggle is
 pressed. Adds optional URL field to the Ref to use for the iframe, if this is unspecified the
-URL of the Ref will be used. Currently implemented for:
-    1. YouTube
-    2. X/Twitter
-    3. BitChute
-11. **Audio:** Enables the audio embed when installed. When the `plugin/audio` is applied to a Ref,
+URL of the Ref will be used. Will check [public oembed servers](https://oembed.com/providers.json)
+by default.
+14. **Audio:** Enables the audio embed when installed. When the `plugin/audio` is applied to a Ref,
 the Ref has a URL that points to an audio file. The audio player is shown when the embed toggle
 is pressed. Adds optional URL field to the Ref to use for the audio file, if this is unspecified
 the URL of the Ref will be used. This plugin will be suggested when
 you submit a link ending in an audio file extension.
-12. **Video:** Enables the video embed when installed. When the `plugin/video` is applied to a Ref,
+15. **Video:** Enables the video embed when installed. When the `plugin/video` is applied to a Ref,
 the Ref has a URL that points to a video file. The video player is shown when the embed toggle
 is pressed. Adds optional URL field to the Ref to use for the video file, if this is unspecified
 the URL of the Ref will be used. This plugin will be suggested when
 you submit a link ending in a video file extension.
-13. **Image:** Enables the image embed when installed. When the `plugin/image` is applied to a Ref,
+16. **Image:** Enables the image embed when installed. When the `plugin/image` is applied to a Ref,
 the Ref has a URL that points to an image file. The image is shown when the embed toggle is
 pressed. Adds optional URL field to the Ref to use for the image file, if this is unspecified
-the URL of the Ref will be used. This plugin will be suggested when
-you submit a link ending in an image file extension.
-14. **Wiki:** Enables adding Wiki Refs when installed. When creating a wiki the URL will be
+the URL of the Ref will be used. Also provides an image gallery template with a responsive grid
+layout. This plugin will be suggested when you submit a link ending in an image file extension.
+17. **PDF:** Adds an action button to open the PDF version of a Ref.
+18. **Playlist:** Create a playlist from the list of sources on a Ref.
+19. **File:** Allow storing user files on the server using a file cache.
+20. **Wiki:** Enables adding Wiki Refs when installed. When creating a wiki the URL will be
 `wiki://Page_name`. You can link to a Wiki page using the double `[[bracket syntax]]` in all
 markdown fields. Does not add data to the Ref.
-15. **Poll:** Enables polls in the embeds when installed. When a Ref is tagged `plugin/poll` data is
-added to specify the options and their description text. Voting is done by adding a Ref response
-tagged with `plugin/poll/response/tag` and the response field, with tag being the response to the
-poll.
+21. **Blog:** View and organize collections of blog posts with tag-based filtering and
+title/body formatting.
+22. **Chat:** Real-time chat rooms where multiple users can message each other. Includes chatroom
+embeds, a user lobby for tracking online users, and optional video call support.
+23. **Kanban:** Organize tasks on a visual board with customizable columns (To Do, In Progress,
+Done), swim lanes (by team or owner), and priority badges with drag-and-drop between lanes.
+24. **Lens:** Embed query results as visual cards in a grid layout. Can be used to display
+related content directly inside a Ref.
+25. **Person:** Adds filtering and stylizing to support people-oriented content semantics.
+26. **Repost:** Re-submit a URL which has already been submitted by another user. The first
+source of this Ref is the URL to be reposted.
+27. **Hide:** Mark Refs as hidden for the current user.
+28. **Save:** Save Refs to a personal list for the current user.
+29. **Mark as Read:** Track read status for Refs across multiple sessions.
+30. **AI:** Send Refs to an AI for responses. Includes support for DALL·E image generation,
+a Navi chat assistant, automatic summarization, and translation. Configurable LLM settings
+with optional web search context.
+31. **Delta:** Apply server-side scripts to transform Refs. Includes a scheduler for running
+scripts on configurable intervals.
+32. **RSS/Atom Feed:** Import entries from an RSS or Atom feed. The feed will be scraped on an
+interval you specify.
+33. **Remote Origin:** Replicate a remote Jasper instance. The remote origin will be scraped
+on an interval you specify. If the remote is also set up to replicate from this instance, you
+may communicate with remote users. Supports push and pull modes.
+34. **Scrape:** Configure CSS selectors for scraping websites.
+35. **Email:** Render e-mail specific formatting in Refs.
+36. **Cache:** Cache remote resources locally. Includes recycle bin support: if you delete a Ref
+its cached file will not be removed from storage right away, and restoring the Ref before the
+cache is cleared also recovers the cached file.
+37. **YT-DLP:** Download and cache videos using YT-DLP.
+38. **MarkItDown:** Convert documents to Markdown using Microsoft MarkItDown. Supports PDF,
+Word, Excel, PowerPoint, images (with OCR), audio (transcription), HTML, and more.
+39. **HTML to Markdown:** Add a button to the editor to convert HTML content into Markdown.
+40. **Mod Store:** Install and share mods with other users.
+41. **Mod Tools:** Moderate content with approval workflows, NSFW tagging, and user reporting.
+Adds a modlist tab to the inbox for reviewing unmoderated posts.
+42. **Themes:** Add custom themes to the global theme list. Includes Terminal and Night themes.
+43. **Fullscreen:** Fullscreen the viewer when an embed is shown.
+44. **Seamless:** Remove the white border from the comment markdown for a cleaner display.
+45. **GDPR:** Activates a GDPR-compliant cookie consent banner.
+46. **Chess:** Play chess games with move tracking, board flip, and an AI opponent. Includes an
+integrated chatroom for game commentary.
+47. **Backgammon:** Play backgammon with piece dragging, dice rolling, game replay controls, and
+customizable player names.
 
 ## Coming Soon
-1. **Delta:** (matches `delta/`) Apply a server side script to transform this Ref into a new Ref.
-Adds data to the tag Ext to contain the code or service reference and config.
-2. Queue: (matches `queue/`) Work Queue for assigning or tracking work and paying workers. Requires
-the invoice plugin to pay workers. Adds data:
-   1. Approvers: list of user tags to send invoices to
-   2. Bounty: (optional) payment for responses to items in the queue.
-   3. Max Age: (optional) max age Refs in the queue to be considered active. Refs in the queue
-   older than this will have an expired icon when viewed from the queue tag page.
-3. **Table:** Enabled the table embed when installed. When the `plugin/table` is applied to a Ref,
-the Ref contains tabular data. The tabular data is shown when the embed toggle is pressed. Adds
-an optional field to the Ref to use for the tabular data, if this is unspecified the URL of the
-Ref will be used to point to a TSV file.
-4. **Chart:** Enabled the graph embed when installed. When the `plugin/chart` is applied to a Ref, the
-Ref contains tabular data. The tabular data rendered in a graph is shown when the embed toggle is
-pressed. Adds fields to the ref for defining the chart type, labels, and location of the data in
-the table. Adds an optional field to the Ref to use for the tabular data, if this is unspecified
-the URL of the Ref will be used to point to a TSV file.
-5. **Voting:** Enables voting and sorting by vote when installed. Requires additions to the user
+1. **Voting:** Enables voting and sorting by vote when installed. Requires additions to the user
 template to hold votes. This adds two new sort fields to the UI: Top and Hot. Top sorts by vote
 total, and Hot applies an exponential time decay when sorting. If the inbox plugin is enabled
 there is a tab on the index page to view the refs you voted on. Can be configured to allow
-positive or both positive and negative votes. Voting on a Ref adds it to a list in your user
-extension. Does not add data to a Ref.
-6. **Analytics:** Enables engagement tracking when installed. Reports links clicked, Refs expanded,
+positive or both positive and negative votes. Does not add data to a Ref.
+2. **Graph:** Create and visualize relationship graphs to show connections and hierarchies
+between items.
+3. **Folder:** Desktop-like file browser interface where you can arrange files and subfolders
+freely on a canvas with drag-and-drop positioning.
+4. **Notebook:** Keep private notes in a notebook with column layouts and priority badges
+(Reminder, Important).
+5. **Work Queue:** Manage workflows with task assignment, tracking, and invoicing. Includes
+invoice support for paying workers with QR invoices and workflow status tracking (rejected,
+disputed, paid).
+6. **To Do List:** Create and manage to-do lists with checkable items.
+7. **Table:** Create and edit spreadsheet-style tables with CSV data in Refs.
+8. **Poll:** Create multiple-choice polls and view results. Voting is done by adding a Ref
+response for each poll option.
+9. **Archive:** Generate and use external archive/unpaywalled links (e.g., archive.ph, 12ft.io) for Refs.
+10. **HTML Editor:** Format Ref comments as HTML instead of Markdown.
+11. **Origin Tunnel:** Create an SSH tunnel for remote origin connections.
+12. **Geo:** Display GeoJSON and GeoPackage data on interactive maps. Supports Point, LineString,
+Polygon, and multi-geometry types for GeoJSON. For GeoPackage, the map is shown when the embed
+toggle is pressed.
+13. **Chart:** Render tabular data as a graph in the embed viewer. When the `plugin/chart` is
+applied to a Ref, add fields to define the chart type, labels, and data location. Adds an
+optional field to the Ref to use for the tabular data, if this is unspecified the URL of the
+Ref will be used to point to a TSV file.
+14. **Analytics:** Enables engagement tracking when installed. Reports links clicked, Refs expanded,
 Ref action taken, Refs viewed, and queries searched. Adds data to the Ref to override analytic
 tracking for that ref.
-7. **Geo:** Enables a map in the embeds that displays GeoJson when installed. When a Ref is tagged
-`plugin/geo`, the Ref includes some GeoJson. The map is shown when the embed toggle is pressed.
-Adds an optional field to the Ref to use for the GeoJson, if this is unspecified the URL of the
-Ref will be used to point to a GeoJson file.
-8. **GeoPackage:** Enables a map in the embeds that displays GeoPackage when installed. When a
-Ref is tagged `plugin/geopackage`, the Ref includes some GeoPackage. The map is shown when the
-embed toggle is pressed. Adds an optional field to the Ref to use for the GeoPackage, if this
-is unspecified the URL of the Ref will be used to point to a GeoPackage file.
-9. **Invoice:** Enables invoice support in the client when installed. When invoices are created they
-will be tagged `plugin/invoice`. When the inbox plugin is installed there is a tab on the inbox
-page to show invoices addressed to you. Requires the QR plugin to send QR invoices. If the Work
-Queue template is installed, any invoices can include a Work Queue to address the invoice to all
-work queue approvers. Does not add data to a Ref.
 
 ## Deployment
 Jasper-UI is available in the following distributions:

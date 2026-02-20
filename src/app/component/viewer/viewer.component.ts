@@ -23,7 +23,7 @@ import { Ext } from '../../model/ext';
 import { Oembed } from '../../model/oembed';
 import { Page } from '../../model/page';
 import { getPluginScope, PluginApi } from '../../model/plugin';
-import { Ref, RefSort, RefUpdates } from '../../model/ref';
+import { mapRef, Ref, RefSort, RefUpdates } from '../../model/ref';
 import { EmitAction, hydrate } from '../../model/tag';
 import { pdfUrl } from '../../mods/media/pdf';
 import { ActionService } from '../../service/action.service';
@@ -44,6 +44,7 @@ import { hasPrefix, hasTag } from '../../util/tag';
 import { BackgammonComponent } from '../backgammon/backgammon.component';
 import { ChessComponent } from '../chess/chess.component';
 import { LensComponent } from '../lens/lens.component';
+import { LoadingComponent } from '../loading/loading.component';
 import { MdComponent } from '../md/md.component';
 import { ModComponent } from '../mod/mod.component';
 import { PlaylistComponent } from '../playlist/playlist.component';
@@ -68,6 +69,7 @@ import { TodoComponent } from '../todo/todo.component';
     BackgammonComponent,
     ChessComponent,
     ResizeHandleDirective,
+    LoadingComponent,
   ],
 })
 export class ViewerComponent implements OnChanges {
@@ -103,7 +105,8 @@ export class ViewerComponent implements OnChanges {
   copied = new EventEmitter<string>();
 
   repost?: Ref;
-  page?: Page<Ref>;
+  lens?: boolean;
+  lensPage?: Page<Ref>;
   ext?: Ext;
   lensQuery = '';
   lensSize = 24;
@@ -153,10 +156,11 @@ export class ViewerComponent implements OnChanges {
     }
     const queryUrl = this.ref?.plugins?.['plugin/lens']?.url || (hasTag('plugin/repost', this.ref) ? this.ref?.sources?.[0] : this.ref?.url);
     if (queryUrl && hasTag('plugin/lens', this.ref)) {
+      this.lens = true;
       this.embeds.loadQuery$(queryUrl)
         .pipe(takeUntil(this.destroy$))
         .subscribe(({params, page, ext}) => {
-          this.page = page;
+          this.lensPage = page;
           this.ext = ext;
           this.lensQuery = this.editor.getQuery(queryUrl);
           this.lensSize = params.size;
@@ -305,6 +309,16 @@ export class ViewerComponent implements OnChanges {
   @memo
   get editingViewer() {
     return some(this.admin.editingViewer, t => hasTag(t.tag, this.currentTags));
+  }
+
+  @memo
+  get editingRef(): Ref | undefined {
+    if (!hasTag('plugin/editing', this.currentTags)) return undefined;
+    const data = this.ref?.plugins?.['plugin/editing'];
+    if (!data) return undefined;
+    const result = mapRef({ ...data, url: this.ref?.url, origin: this.ref?.origin });
+    if (!result.created) result.created = this.ref?.created;
+    return result;
   }
 
   @memo

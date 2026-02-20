@@ -14,11 +14,11 @@
     &bullet; <a routerLink="/tag/@*" routerLinkActive="current-page" i18n>all</a>
     @if (bookmarks.length) {
       @for (b of bookmarks; track i; let i = $index) {
-        &bullet; <a [routerLink]="['/tag', store.account.bookmarks[i]]" [appTitle]="b" routerLinkActive="current-page">{{ b.name || store.account.bookmarks[i] }}</a>
+        &bullet; <a [routerLink]="['/tag', store.account.bookmarkQueries[i]]" [queryParams]="store.account.bookmarkParams[i]" [appTitle]="b" routerLinkActive="current-page">{{ b.name || store.account.bookmarkQueries[i] }}</a>
       }
     } @else {
-      @for (t of store.account.bookmarks; track t) {
-        &bullet; <a [routerLink]="['/tag', t]" routerLinkActive="current-page">{{ t }}</a>
+      @for (b of store.account.bookmarks; track i; let i = $index) {
+        &bullet; <a  [routerLink]="['/tag', store.account.bookmarkQueries[i]]" [queryParams]="store.account.bookmarkParams[i]" routerLinkActive="current-page">{{ store.account.bookmarkQueries[i] }}</a>
       }
     }
     @if (admin.getTemplate('config/home')) {
