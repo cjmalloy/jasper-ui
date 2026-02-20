@@ -70,6 +70,8 @@ docker compose up --build  # Everything on http://localhost:8082/
 
 **IMPORTANT**: When making UI changes that affect user interactions (buttons, overlays, dialogs, etc.), **ALWAYS** update the corresponding Playwright E2E tests in `e2e/`. This is a critical step that should not be forgotten.
 
+**IMPORTANT**: When adding new E2E tests that are not designed to expose an existing bug, you **MUST** run the tests to confirm they pass before submitting. Use `npx playwright test <spec-file>` against the running e2e services. Do not submit E2E tests that have not been verified to pass.
+
 ## Project Structure
 
 - `src/app/component/` - Reusable UI components
@@ -254,6 +256,20 @@ Map MCP interactions to Playwright test assertions and actions:
 | `browser_click` (by text) | `page.getByText('Submit').click()` |
 | `browser_type` | `page.locator('#url').fill('value')` |
 | `browser_take_screenshot` | `expect(page.locator('.element')).toBeVisible()` |
+
+### CSS Selector Guidelines
+
+A project goal is to have a **very simple and easy to navigate CSS tree**. Follow these rules when adding or changing components:
+
+- **Always add descriptive `class` attributes** to interactive and structurally significant elements so E2E tests can target them without relying on tag names or brittle nth-child selectors.
+- **Never use custom component tag names** (e.g., `app-ref`, `formly-field-bookmark-input`) as selectors in E2E tests — standard HTML tags like `select`, `div`, `span` are acceptable, but prefer CSS classes for clarity.
+- **Use clear, semantic class names** that describe the element's role in the UI, not its appearance or implementation. Examples:
+  - `.filter-toggle` — the button/element that opens the filter/params panel
+  - `.filter-preview` — the inline summary shown when params are set
+  - `.bookmark-field` — the host element for a bookmark formly field
+  - `.params-panel` — the overlay popup panel
+- **Add host classes** to formly field components (`host: { 'class': 'field my-field-type' }`) so tests can scope to that component type without using its tag name.
+- When creating new interactive UI elements (buttons, overlays, toggles), always give them a descriptive class before writing E2E tests for them.
 
 ### Writing New E2E Tests
 

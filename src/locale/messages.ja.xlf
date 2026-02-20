@@ -6278,6 +6278,53 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>⬇️ MarkItDown Result</source>
         <target>⬇️ MarkItDown結果</target>
       </trans-unit>
+      <trans-unit id="6701554262923388914" datatype="html">
+        <source>Bookmark: </source>
+        <target>ブックマーク: </target>
+      </trans-unit>
+      <trans-unit id="2454675159545031879" datatype="html">
+        <source>Bookmarks: </source>
+        <target>ブックマーク: </target>
+      </trans-unit>
+      <trans-unit id="5595653752345611410" datatype="html">
+        <source>Configure search, sort and filters</source>
+        <target>検索・並び替え・フィルターを設定</target>
+      </trans-unit>
+      <trans-unit id="3446720722197729338" datatype="html">
+        <source>🔍️ Search</source>
+        <target>🔍️ 検索</target>
+      </trans-unit>
+      <trans-unit id="1952562229620562171" datatype="html">
+        <source>Search text…</source>
+        <target>検索テキスト…</target>
+      </trans-unit>
+      <trans-unit id="1155460432605427252" datatype="html">
+        <source>🔼️ Sort</source>
+        <target>🔼️ 並び替え</target>
+      </trans-unit>
+      <trans-unit id="1602447240300033767" datatype="html">
+        <source>+ Add sort…</source>
+        <target>+ 並び替えを追加…</target>
+      </trans-unit>
+      <trans-unit id="1898874052258139852" datatype="html">
+        <source>⚙️ Filters</source>
+        <target>⚙️ フィルター</target>
+      </trans-unit>
+      <trans-unit id="6952049093546172035" datatype="html">
+        <source>e.g. obsolete, query/science</source>
+      </trans-unit>
+      <trans-unit id="8857746354382606226" datatype="html">
+        <source>+ Add filter</source>
+        <target>+ フィルターを追加</target>
+      </trans-unit>
+      <trans-unit id="4435787240530424068" datatype="html">
+        <source>✨️ created</source>
+        <target>✨️ 作成日</target>
+      </trans-unit>
+      <trans-unit id="140875962077692817" datatype="html">
+        <source>🔤️ title</source>
+        <target>🔤️ タイトル</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

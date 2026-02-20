@@ -54,7 +54,7 @@ export const userTemplate: Template = {
       },
     }, {
       key: 'bookmarks',
-      type: 'queries',
+      type: 'bookmarks',
       props: {
         label: $localize`Bookmarks:`,
         addText: $localize`+ Add another bookmark`,
