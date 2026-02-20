@@ -113,7 +113,7 @@ import { getErrorMessage } from './errors';
            [title]="queryPart"
            [style.display]="preview ? 'flex' : 'none'"
            (click)="$event.target === div && edit(input, false)">
-        <span class="crumbs-left">
+        <span class="crumbs-left" (click)="edit(input, false)">
           @for (breadcrumb of breadcrumbs; track breadcrumb) {
             <span class="crumb">
               @if (breadcrumb.tag) {
