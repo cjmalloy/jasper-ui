@@ -115,9 +115,7 @@ describe('HTTP Utils', () => {
     });
 
     it('should parse a full relative URL by extracting query string', () => {
-      const url = '/tag/science?filter=+plugin/delete&sort=published,DESC';
-      const qIdx = url.indexOf('?');
-      const params = parseBookmarkParams(qIdx !== -1 ? url.substring(qIdx) : '');
+      const params = parseBookmarkParams('/tag/science?filter=+plugin/delete&sort=published,DESC');
       expect(params.filter).toBe('+plugin/delete');
       expect(params.sort).toBe('published,DESC');
     });

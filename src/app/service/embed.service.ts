@@ -686,8 +686,7 @@ export class EmbedService {
 
   loadQuery$(url: string):  Observable<{params: any, page: Page<Ref>, ext?: Ext}> {
     const query = this.editor.getQuery(url);
-    const qIdx = url.indexOf('?');
-    const params = parseBookmarkParams(qIdx !== -1 ? url.substring(qIdx) : '');
+    const params = parseBookmarkParams(url);
     const view: string = params.view;
     return forkJoin({
       params: of(params),
