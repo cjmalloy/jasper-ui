@@ -26,6 +26,11 @@ describe('HTTP Utils', () => {
       expect(encodeBookmarkParams('/tag/science?pageSize=20&cols=3')).toBe('');
     });
 
+    it('should preserve view param', () => {
+      const qs = encodeBookmarkParams('/tag/science?sort=published,DESC&view=kanban&pageSize=20');
+      expect(qs).toBe('sort=published,DESC&view=kanban');
+    });
+
     it('should re-encode & in URL-valued filters', () => {
       const qs = encodeBookmarkParams('?filter=sources/https://example.com?a=1%26b=2');
       expect(qs).toBe('filter=sources/https://example.com?a=1%26b=2');

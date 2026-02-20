@@ -195,6 +195,7 @@ export function encodeBookmarkParams(input: string | Record<string, string | str
     if (parsed['sort']) p['sort'] = parsed['sort'];
     if (parsed['filter']) p['filter'] = parsed['filter'];
     if (parsed['search']) p['search'] = parsed['search'];
+    if (parsed['view']) p['view'] = parsed['view'];
     return encodeBookmarkParams(p);
   }
   const pairs: string[] = [];
