@@ -70,6 +70,8 @@ docker compose up --build  # Everything on http://localhost:8082/
 
 **IMPORTANT**: When making UI changes that affect user interactions (buttons, overlays, dialogs, etc.), **ALWAYS** update the corresponding Playwright E2E tests in `e2e/`. This is a critical step that should not be forgotten.
 
+**IMPORTANT**: When adding new E2E tests that are not designed to expose an existing bug, you **MUST** run the tests to confirm they pass before submitting. Use `npx playwright test <spec-file>` against the running e2e services. Do not submit E2E tests that have not been verified to pass.
+
 ## Project Structure
 
 - `src/app/component/` - Reusable UI components
