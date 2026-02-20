@@ -10,6 +10,7 @@ import { ExtService } from '../../../service/api/ext.service';
 import { EditorService } from '../../../service/editor.service';
 import { Store } from '../../../store/store';
 import { TAGS_REGEX } from '../../../util/format';
+import { hasTag } from '../../../util/tag';
 import { LoadingComponent } from '../../loading/loading.component';
 import { ActionComponent } from '../action.component';
 
@@ -95,7 +96,7 @@ export class InlineTagComponent extends ActionComponent {
     }).pipe(
       switchMap(page => page.page.totalElements ? forkJoin(page.content.map(x => this.preview$(x.tag + x.origin))) : of([])),
       map(xs => xs.filter(x => !!x) as { name?: string, tag: string }[]),
-      map(xs => remove ? xs.filter(x => this.tags.includes(x.tag)) : xs),
+      map(xs => remove ? xs.filter(x => hasTag(x.tag, this.tags)) : xs),
     ).subscribe(xs => {
       this.autocomplete = xs.map(x => ({ value: prefix + remove + x.tag, label: remove + (x.name || '#' + x.tag) }));
       if (!remove && this.autocomplete.length < 3) this.autocomplete.push(...getPlugins(tag));
