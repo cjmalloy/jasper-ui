@@ -132,6 +132,7 @@ export class SubmitDmPage implements AfterViewInit, OnChanges, OnDestroy, HasCha
   }
 
   saveForLater(leave = false) {
+    const savedValue = JSON.stringify(this.dmForm.value);
     this.saving = this.refs.saveEdit(this.writeRef(), this.cursor)
       .pipe(catchError(err => {
         delete this.saving;
@@ -140,7 +141,7 @@ export class SubmitDmPage implements AfterViewInit, OnChanges, OnDestroy, HasCha
       .subscribe(cursor => {
         delete this.saving;
         this.cursor = cursor;
-        this.dmForm.markAsPristine();
+        if (JSON.stringify(this.dmForm.value) === savedValue) this.dmForm.markAsPristine();
         if (leave) this.router.navigate(['/inbox/ref', 'plugin/editing']);
       });
   }

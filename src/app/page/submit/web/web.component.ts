@@ -112,6 +112,7 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
   }
 
   saveForLater(leave = false) {
+    const savedValue = JSON.stringify(this.webForm.value);
     this.saving = this.refs.saveEdit(this.writeRef(), this.cursor)
       .pipe(catchError(err => {
         delete this.saving;
@@ -120,7 +121,7 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
       .subscribe(cursor => {
         delete this.saving;
         this.cursor = cursor;
-        this.webForm.markAsPristine();
+        if (JSON.stringify(this.webForm.value) === savedValue) this.webForm.markAsPristine();
         if (leave) this.router.navigate(['/inbox/ref', 'plugin/editing']);
       });
   }
