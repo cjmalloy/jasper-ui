@@ -7,8 +7,9 @@ test.describe.serial('Bookmark Formly Type', () => {
     await mod(page, '#mod-user');
   });
 
-  /** Helper: add a bookmark, blur the input so breadcrumbs/filter-toggle are visible. */
-  async function addBookmark(page: any, query = '') {
+  /** Helper: add a bookmark, blur the input so breadcrumbs/filter-toggle are visible.
+   *  A non-empty query is required so the field enters preview mode after blur. */
+  async function addBookmark(page: any, query = 'science') {
     await page.locator('button', { hasText: '+ Add another bookmark' }).click();
     const bookmarkField = page.locator('.bookmark-field').last();
     const textInput = bookmarkField.locator('input.grow:not(.preview)');
