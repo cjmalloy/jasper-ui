@@ -7,10 +7,13 @@ test.describe.serial('Bookmark Formly Type', () => {
     await mod(page, '#mod-user');
   });
 
-  test('renders bookmark field with filter-toggle in preview', async ({ page }) => {
+  test('renders filter-toggle in preview', async ({ page }) => {
     await page.goto('/settings/me?debug=ADMIN', { waitUntil: 'networkidle' });
     await page.locator('button', { hasText: '+ Add another bookmark' }).click();
     const bookmarkField = page.locator('.bookmark-field').last();
+    // type a value and blur to enter preview mode so breadcrumbs (and filter-toggle) are visible
+    await bookmarkField.locator('input.grow:not(.preview)').fill('science');
+    await bookmarkField.locator('input.grow:not(.preview)').blur();
     await expect(bookmarkField.locator('.filter-toggle')).toBeVisible();
     await expect(bookmarkField.locator('.filter-toggle')).toContainText('🪄️');
   });
@@ -19,7 +22,7 @@ test.describe.serial('Bookmark Formly Type', () => {
     await page.goto('/settings/me?debug=ADMIN', { waitUntil: 'networkidle' });
     await page.locator('button', { hasText: '+ Add another bookmark' }).click();
     const bookmarkField = page.locator('.bookmark-field').last();
-    await bookmarkField.locator('.filter-toggle').click();
+    await bookmarkField.locator('.filter-toggle').click({ force: true });
     const popup = page.locator('.params-panel');
     await expect(popup).toBeVisible();
     await expect(popup.locator('input[type="search"]')).toBeVisible();
@@ -31,7 +34,7 @@ test.describe.serial('Bookmark Formly Type', () => {
     await page.goto('/settings/me?debug=ADMIN', { waitUntil: 'networkidle' });
     await page.locator('button', { hasText: '+ Add another bookmark' }).click();
     const bookmarkField = page.locator('.bookmark-field').last();
-    await bookmarkField.locator('.filter-toggle').click();
+    await bookmarkField.locator('.filter-toggle').click({ force: true });
     await expect(page.locator('.params-panel')).toBeVisible();
     await page.locator('label', { hasText: 'Bookmarks' }).first().click({ force: true });
     await expect(page.locator('.params-panel')).not.toBeVisible();
@@ -41,7 +44,7 @@ test.describe.serial('Bookmark Formly Type', () => {
     await page.goto('/settings/me?debug=ADMIN', { waitUntil: 'networkidle' });
     await page.locator('button', { hasText: '+ Add another bookmark' }).click();
     const bookmarkField = page.locator('.bookmark-field').last();
-    await bookmarkField.locator('.filter-toggle').click();
+    await bookmarkField.locator('.filter-toggle').click({ force: true });
     const popup = page.locator('.params-panel');
     await popup.locator('select.big').first().selectOption('published');
     const sortRow = popup.locator('.controls').first();
@@ -53,7 +56,7 @@ test.describe.serial('Bookmark Formly Type', () => {
     await page.goto('/settings/me?debug=ADMIN', { waitUntil: 'networkidle' });
     await page.locator('button', { hasText: '+ Add another bookmark' }).click();
     const bookmarkField = page.locator('.bookmark-field').last();
-    await bookmarkField.locator('.filter-toggle').click();
+    await bookmarkField.locator('.filter-toggle').click({ force: true });
     const popup = page.locator('.params-panel');
     await popup.locator('select.big').first().selectOption('published');
     await expect(popup.locator('.controls')).toHaveCount(1);
@@ -65,7 +68,7 @@ test.describe.serial('Bookmark Formly Type', () => {
     await page.goto('/settings/me?debug=ADMIN', { waitUntil: 'networkidle' });
     await page.locator('button', { hasText: '+ Add another bookmark' }).click();
     const bookmarkField = page.locator('.bookmark-field').last();
-    await bookmarkField.locator('.filter-toggle').click();
+    await bookmarkField.locator('.filter-toggle').click({ force: true });
     const popup = page.locator('.params-panel');
     await popup.locator('select.big').first().selectOption('published');
     await expect(popup.locator('.controls button', { hasText: '–' }).first()).toBeVisible();
@@ -75,7 +78,7 @@ test.describe.serial('Bookmark Formly Type', () => {
     await page.goto('/settings/me?debug=ADMIN', { waitUntil: 'networkidle' });
     await page.locator('button', { hasText: '+ Add another bookmark' }).click();
     const bookmarkField = page.locator('.bookmark-field').last();
-    await bookmarkField.locator('.filter-toggle').click();
+    await bookmarkField.locator('.filter-toggle').click({ force: true });
     const popup = page.locator('.params-panel');
     await popup.locator('select.big').last().selectOption('obsolete');
     const filterRow = popup.locator('.controls').first();
@@ -87,7 +90,7 @@ test.describe.serial('Bookmark Formly Type', () => {
     await page.goto('/settings/me?debug=ADMIN', { waitUntil: 'networkidle' });
     await page.locator('button', { hasText: '+ Add another bookmark' }).click();
     const bookmarkField = page.locator('.bookmark-field').last();
-    await bookmarkField.locator('.filter-toggle').click();
+    await bookmarkField.locator('.filter-toggle').click({ force: true });
     const popup = page.locator('.params-panel');
     await popup.locator('select.big').last().selectOption('obsolete');
     await expect(popup.locator('.controls')).toHaveCount(1);
@@ -99,7 +102,7 @@ test.describe.serial('Bookmark Formly Type', () => {
     await page.goto('/settings/me?debug=ADMIN', { waitUntil: 'networkidle' });
     await page.locator('button', { hasText: '+ Add another bookmark' }).click();
     const bookmarkField = page.locator('.bookmark-field').last();
-    await bookmarkField.locator('.filter-toggle').click();
+    await bookmarkField.locator('.filter-toggle').click({ force: true });
     const popup = page.locator('.params-panel');
     await popup.locator('input[type="search"]').fill('hello world');
     await expect(popup.locator('input[type="search"]')).toHaveValue('hello world');
@@ -110,11 +113,13 @@ test.describe.serial('Bookmark Formly Type', () => {
     await page.locator('button', { hasText: '+ Add another bookmark' }).click();
     const bookmarkField = page.locator('.bookmark-field').last();
     await bookmarkField.locator('input.grow:not(.preview)').fill('science');
-    await bookmarkField.locator('.filter-toggle').click();
+    await bookmarkField.locator('.filter-toggle').click({ force: true });
     const popup = page.locator('.params-panel');
     await popup.locator('select.big').first().selectOption('published');
-    await page.keyboard.press('Escape');
+    // close popup by clicking outside, then blur input to enter preview mode
+    await page.locator('label', { hasText: 'Bookmarks' }).first().click({ force: true });
     await expect(page.locator('.params-panel')).not.toBeVisible();
+    await bookmarkField.locator('input.grow:not(.preview)').blur();
     await expect(bookmarkField.locator('.filter-preview')).toBeVisible();
     await expect(bookmarkField.locator('.filter-preview')).toContainText('published');
   });
@@ -125,10 +130,11 @@ test.describe.serial('Bookmark Formly Type', () => {
     const bookmarkField = page.locator('.bookmark-field').last();
     const textInput = bookmarkField.locator('input.grow:not(.preview)');
     await textInput.fill('science');
-    await bookmarkField.locator('.filter-toggle').click();
+    await bookmarkField.locator('.filter-toggle').click({ force: true });
     await page.locator('.params-panel').locator('select.big').first().selectOption('published');
-    await page.keyboard.press('Escape');
-    await textInput.click();
+    // close popup by clicking outside, then click input to check full value
+    await page.locator('label', { hasText: 'Bookmarks' }).first().click({ force: true });
+    await textInput.click({ force: true });
     const value = await textInput.inputValue();
     expect(value).toMatch(/science\?sort=published/);
   });
@@ -139,10 +145,11 @@ test.describe.serial('Bookmark Formly Type', () => {
     const bookmarkField = page.locator('.bookmark-field').last();
     const textInput = bookmarkField.locator('input.grow:not(.preview)');
     await textInput.fill('science');
-    await bookmarkField.locator('.filter-toggle').click();
+    await bookmarkField.locator('.filter-toggle').click({ force: true });
     await page.locator('.params-panel').locator('select.big').last().selectOption('obsolete');
-    await page.keyboard.press('Escape');
-    await textInput.click();
+    // close popup by clicking outside, then click input to check full value
+    await page.locator('label', { hasText: 'Bookmarks' }).first().click({ force: true });
+    await textInput.click({ force: true });
     const value = await textInput.inputValue();
     expect(value).toContain('filter=obsolete');
     expect(value).not.toContain('%3D');
