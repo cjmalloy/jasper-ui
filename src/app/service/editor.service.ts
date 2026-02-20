@@ -304,10 +304,36 @@ export class EditorService {
   }
 
   getBookmarksPreview(bookmarks: string[], defaultOrigin = ''): Observable<TagPreview[]> {
-    return forkJoin(bookmarks.map(b => this.getTagPreview(b.includes('?') ? b.substring(0, b.indexOf('?')) : b, defaultOrigin).pipe(
-      map(x => ({ ...x, bookmark: b })),
-    ))).pipe(
+    return forkJoin(bookmarks.map(b => {
+      const query = b.includes('?') ? b.substring(0, b.indexOf('?')) : b;
+      return this.getQueryPreviewName(query, defaultOrigin).pipe(
+        map(name => ({ name, tag: query, bookmark: b })),
+      );
+    })).pipe(
       map(xs => xs.filter(x => !!x)),
     ) as Observable<TagPreview[]>;
+  }
+
+  /** Build a display name for a query by replacing each tag token with its ext preview name. */
+  getQueryPreviewName(query: string, defaultOrigin = ''): Observable<string | undefined> {
+    const tokens = query.split(/([:|()])/g).filter(t => !!t);
+    const ops = new Set([':', '|', '(', ')']);
+    const tagIndices = tokens.reduce<number[]>((acc, t, i) => ops.has(t) ? acc : [...acc, i], []);
+    if (tagIndices.length === 0) return of(undefined);
+    return forkJoin(tagIndices.map(i => {
+      const token = tokens[i];
+      const bareTag = token.startsWith('!') ? token.substring(1) : token;
+      return this.getTagPreview(bareTag, defaultOrigin).pipe(
+        map(x => {
+          const name = x?.name || bareTag;
+          return token.startsWith('!') ? '!' + name : name;
+        }),
+      );
+    })).pipe(
+      map(names => {
+        let idx = 0;
+        return tokens.map(t => ops.has(t) ? t : names[idx++]).join('');
+      }),
+    );
   }
 }

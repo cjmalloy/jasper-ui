@@ -23,6 +23,7 @@ import { ConfigService } from '../../service/config.service';
 import { QueryStore } from '../../store/query';
 import { Store } from '../../store/store';
 import { memo, MemoCache } from '../../util/memo';
+import { encodeBookmarkParams } from '../../util/http';
 import { hasPrefix, hasTag, isQuery, localTag, setProtected, setPublic, topAnds } from '../../util/tag';
 import { BulkComponent } from '../bulk/bulk.component';
 import { ChatVideoComponent } from '../chat/chat-video/chat-video.component';
@@ -367,7 +368,8 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   bookmark() {
-    this.account.addBookmark(this.tag!);
+    const qs = encodeBookmarkParams(this.router.url);
+    this.account.addBookmark(qs ? `${this.tag}?${qs}` : this.tag!);
   }
 
   removeBookmark() {

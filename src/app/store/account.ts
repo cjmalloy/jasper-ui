@@ -4,7 +4,7 @@ import { Ext } from '../model/ext';
 import { Roles, User } from '../model/user';
 import { getMailbox } from '../mods/mailbox';
 import { defaultSubs, UserConfig } from '../mods/user';
-import { parseParams } from '../util/http';
+import { parseBookmarkParams, parseParams } from '../util/http';
 import { braces, defaultOrigin, hasPrefix, localTag, prefix, setPublic, tagOrigin } from '../util/tag';
 import { OriginStore } from './origin';
 
@@ -156,7 +156,7 @@ export class AccountStore {
   }
 
   get bookmarkParams() {
-    return this.bookmarks.map(b => parseParams(b.includes('?') ? b.substring(b.indexOf('?')) : b));
+    return this.bookmarks.map(b => parseBookmarkParams(b.includes('?') ? b.substring(b.indexOf('?')) : b));
   }
 
   get alarms(): string[] {

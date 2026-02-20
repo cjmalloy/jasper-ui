@@ -14,17 +14,19 @@ import {
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { FieldType, FieldTypeConfig, FormlyAttributes, FormlyConfig } from '@ngx-formly/core';
-import { debounce, defer, find, uniqBy } from 'lodash-es';
+import { debounce, defer, find, uniq, uniqBy } from 'lodash-es';
 import { forkJoin, map, Observable, of, Subscription, switchMap } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { Crumb } from '../component/query/query.component';
-import { Config } from '../model/tag';
+import { Config, FilterConfig } from '../model/tag';
+import { KanbanConfig } from '../mods/org/kanban';
 import { AdminService } from '../service/admin.service';
 import { ExtService } from '../service/api/ext.service';
 import { EditorService } from '../service/editor.service';
 import { Store } from '../store/store';
 import { convertFilter, convertSort, defaultDesc, FilterGroup, FilterItem, negatable, SortItem, toggle, UrlFilter } from '../util/query';
-import { access, fixClientQuery, getStrictPrefix, localTag, tagOrigin } from '../util/tag';
+import { access, fixClientQuery, getStrictPrefix, hasPrefix, localTag, tagOrigin } from '../util/tag';
+import { encodeBookmarkParams, parseBookmarkParams } from '../util/http';
 import { getErrorMessage } from './errors';
 
 @Component({
@@ -391,31 +393,83 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> impleme
       groups.push({ label: $localize`Origins 🏛️`, filters: originFilters });
     }
     this.allFilters = groups.filter(g => g.filters.length > 0);
+    // Add kanban column/badge/swimlane filters from active exts
+    if (this.admin.getTemplate('kanban')) {
+      for (const e of this.store.view.activeExts.filter(x => hasPrefix(x.tag, 'kanban') && x.config)) {
+        const group = $localize`Kanban 📋️`;
+        const k = e.config as KanbanConfig;
+        if (k.columns?.length) {
+          this.allFilters.push({ label: group, filters: [] });
+          const kanbanTags = uniq([...k.columns, ...k.swimLanes || [], ...k.badges || []]);
+          this.editor.getTagsPreview(kanbanTags, e.origin || '').subscribe(ps => {
+            for (const p of ps) {
+              this.loadFilter({ group, label: p.name || '#' + p.tag, query: p.tag });
+            }
+            if (k.columns?.length && k.showColumnBacklog) {
+              this.loadFilter({ group, label: k.columnBacklogTitle || $localize`🚫️ no column`, query: (k.columns || []).map(t => '!' + t).join(':') });
+            }
+            if (k.swimLanes?.length && k.showSwimLaneBacklog) {
+              this.loadFilter({ group, label: k.swimLaneBacklogTitle || $localize`🚫️ no swim lane`, query: k.swimLanes!.map(t => '!' + t).join(':') });
+            }
+            if (k.badges?.length) {
+              this.loadFilter({ group, label: $localize`🚫️ no badges`, query: k.badges.map(t => '!' + t).join(':') });
+            }
+          });
+        }
+      }
+    }
     this.syncFilterOptions();
   }
 
-  /** Mirror filter.component.ts sync(): mutate allFilters options to show ! prefix for negated filters */
+  private loadFilter(filter: FilterConfig) {
+    let group = find(this.allFilters, f => f.label === (filter.group || ''));
+    if (group) {
+      group.filters.push(convertFilter(filter));
+    } else {
+      this.allFilters.push({ label: filter.group || '', filters: [convertFilter(filter)] });
+    }
+  }
+
+  /** Mirror filter.component.ts sync(): mutate allFilters options to show ! prefix for negated filters,
+   *  and add missing filters so they appear in the dropdown. */
   private syncFilterOptions(): void {
     for (const f of this.filters) {
       const toggled = toggle(f as UrlFilter);
       if (!toggled) continue;
       const sets = this.allFilters.filter(g => g.filters.find(i => i.filter === toggled));
-      sets.forEach(g => {
-        const target = g.filters.find(i => i.filter === toggled);
-        if (target) {
-          target.filter = f as UrlFilter;
-          const sym = this.store.account.querySymbol('!');
-          if (f.startsWith('!') || f.startsWith('user/!') || f.startsWith('query/!(')) {
-            if (!(target.label || '').startsWith(sym)) {
-              target.label = sym + (target.label || '');
-            }
-          } else {
-            if ((target.label || '').startsWith(sym)) {
-              target.label = (target.label || '').substring(sym.length);
+      if (sets.length) {
+        sets.forEach(g => {
+          const target = g.filters.find(i => i.filter === toggled);
+          if (target) {
+            target.filter = f as UrlFilter;
+            const sym = this.store.account.querySymbol('!');
+            if (f.startsWith('!') || f.startsWith('user/!') || f.startsWith('query/!(')) {
+              if (!(target.label || '').startsWith(sym)) {
+                target.label = sym + (target.label || '');
+              }
+            } else {
+              if ((target.label || '').startsWith(sym)) {
+                target.label = (target.label || '').substring(sym.length);
+              }
             }
           }
+        });
+      } else if (!this.allFilters.find(g => g.filters.find(i => i.filter === f))) {
+        // Filter not found — add it as a fallback so the dropdown shows the current value
+        if (f.startsWith('!') || hasPrefix(f, 'plugin')) {
+          this.loadFilter({ group: $localize`Plugins 🧰️`, response: f as any });
+        } else if (f.startsWith('user/')) {
+          this.loadFilter({ group: $localize`Filters 🕵️️`, user: f.substring('user/'.length) as any });
+        } else if (f.startsWith('scheme/')) {
+          this.loadFilter({ group: $localize`Filters 🕵️️`, scheme: f.substring('scheme/'.length) });
+        } else if (f.startsWith('sources/')) {
+          this.loadFilter({ group: $localize`Filters 🕵️️`, label: $localize`Sources ⤴️`, sources: f.substring('sources/'.length) });
+        } else if (f.startsWith('responses/')) {
+          this.loadFilter({ group: $localize`Filters 🕵️️`, label: $localize`Responses ⤵️`, responses: f.substring('responses/'.length) });
+        } else if (f.startsWith('query/')) {
+          this.loadFilter({ group: $localize`Queries 🔎️️`, query: f.substring('query/'.length) });
         }
-      });
+      }
     }
   }
 
@@ -428,27 +482,21 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> impleme
       this.buildAllFilters();
       return;
     }
-    const params = new URLSearchParams(value.substring(idx + 1));
-    this.sorts = params.getAll('sort');
-    this.filters = params.getAll('filter');
-    this.searchText = params.get('search') || '';
+    const params = parseBookmarkParams(value.substring(idx + 1));
+    this.sorts = [params['sort']].flat().filter(Boolean);
+    this.filters = [params['filter']].flat().filter(Boolean);
+    this.searchText = params['search'] || '';
     this.buildAllFilters();
   }
 
-  private encodeParam(v: string): string {
-    // Encode only chars that would break query-string parsing; leave /:|()+_ readable
-    return encodeURIComponent(v).replace(/%2C/gi, ',').replace(/%2F/gi, '/').replace(/%3A/gi, ':')
-      .replace(/%7C/gi, '|').replace(/%28/gi, '(').replace(/%29/gi, ')').replace(/%2B/gi, '+')
-      .replace(/%5F/gi, '_');
-  }
-
   private buildParamsString(): string {
-    const pairs: string[] = [];
-    // Skip empty or incomplete sorts (e.g. ',ASC' before column is selected)
-    this.sorts.filter(s => !!s && !s.startsWith(',')).forEach(s => pairs.push(`sort=${this.encodeParam(s)}`));
-    this.filters.filter(f => !!f).forEach(f => pairs.push(`filter=${this.encodeParam(f)}`));
-    if (this.searchText) pairs.push(`search=${this.encodeParam(this.searchText)}`);
-    return pairs.join('&');
+    const p: Record<string, string | string[]> = {};
+    const sorts = this.sorts.filter(s => !!s && !s.startsWith(','));
+    const filters = this.filters.filter(f => !!f);
+    if (sorts.length) p['sort'] = sorts;
+    if (filters.length) p['filter'] = filters;
+    if (this.searchText) p['search'] = this.searchText;
+    return encodeBookmarkParams(p);
   }
 
   private updateFormValue() {
