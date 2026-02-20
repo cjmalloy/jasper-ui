@@ -226,7 +226,7 @@
               }
             }
             @if (taggingAccess) {
-              <app-inline-tag [action]="tag$" [tags]="ref.tags || []" i18n>tag</app-inline-tag>
+              <app-inline-tag [action]="tag$" [tags]="ref.tags" i18n>tag</app-inline-tag>
             }
             @if (store.account.user && !local) {
               <app-inline-button #action [action]="copy$" i18n>copy</app-inline-button>
@@ -262,7 +262,7 @@
                 <a routerLink="/submit/dm" [queryParams]="{source: replySources, sourceTitle: ref.title, tag: replyTags, to: replyTo}" i18n>reply</a>
               }
               @if (taggingAccess) {
-                <app-inline-tag #action [action]="tag$" [tags]="ref.tags || []" i18n>tag</app-inline-tag>
+                <app-inline-tag #action [action]="tag$" [tags]="ref.tags" i18n>tag</app-inline-tag>
               }
               <a class="fake-link" (click)="editing = !editing" i18n>@if (editForm.dirty) {*edit*} @else {edit}</a>
             }

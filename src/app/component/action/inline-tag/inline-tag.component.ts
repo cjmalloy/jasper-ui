@@ -28,7 +28,7 @@ export class InlineTagComponent extends ActionComponent {
   action: (tag: string) => Observable<any|never> = () => of(null);
 
   @Input()
-  tags: string[] = [];
+  tags?: string[];
 
   editing = false;
   acting = false;
@@ -97,7 +97,7 @@ export class InlineTagComponent extends ActionComponent {
       switchMap(page => page.page.totalElements ? forkJoin(page.content.map(x => this.preview$(x.tag + x.origin))) : of([])),
       map(xs => xs.filter(x => !!x) as { name?: string, tag: string }[]),
       map(xs => remove ? xs.filter(x => hasTag(x.tag, this.tags)) : xs.filter(x => !hasTag(x.tag, this.tags))),
-      map(xs => remove && !xs.length ? this.tags.filter(t => hasTag(tag, [t])).map(t => ({ tag: t } as { name?: string, tag: string })) : xs),
+      map(xs => remove && !xs.length ? (this.tags || []).filter(t => hasTag(tag, [t])).map(t => ({ tag: t } as { name?: string, tag: string })) : xs),
     ).subscribe(xs => {
       this.autocomplete = xs.map(x => ({ value: prefix + remove + x.tag, label: remove + (x.name || '#' + x.tag) }));
       if (!remove && this.autocomplete.length < 3) this.autocomplete.push(...getPlugins(tag));
