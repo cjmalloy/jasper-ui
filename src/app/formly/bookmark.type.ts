@@ -160,9 +160,7 @@ import { getErrorMessage } from './errors';
             } @else {
               <button type="button" (click)="setSortDir(i, 'DESC')" i18n-title title="Ascending" i18n>🔼️</button>
             }
-            @if (sorts.length > 1) {
-              <button type="button" (click)="removeSort(i)" i18n>&ndash;</button>
-            }
+            <button type="button" (click)="removeSort(i)" i18n>&ndash;</button>
           </span>
         }
         <select class="big"
