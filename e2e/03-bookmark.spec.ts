@@ -130,6 +130,7 @@ test.describe.serial('Bookmark Formly Type', () => {
     await page.locator('.params-panel').locator('select.big').first().selectOption('published');
     // close popup
     await page.locator('label', { hasText: 'Bookmarks' }).first().click();
+    await expect(page.locator('.params-panel')).not.toBeVisible();
     // focus input to check full value
     const textInput = bookmarkField.locator('input.grow:not(.preview)');
     await textInput.click();
@@ -144,6 +145,7 @@ test.describe.serial('Bookmark Formly Type', () => {
     await page.locator('.params-panel').locator('select.big').last().selectOption('obsolete');
     // close popup
     await page.locator('label', { hasText: 'Bookmarks' }).first().click();
+    await expect(page.locator('.params-panel')).not.toBeVisible();
     // focus input to check full value
     const textInput = bookmarkField.locator('input.grow:not(.preview)');
     await textInput.click();
