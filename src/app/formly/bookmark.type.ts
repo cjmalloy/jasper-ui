@@ -26,7 +26,7 @@ import { EditorService } from '../service/editor.service';
 import { Store } from '../store/store';
 import { convertFilter, convertSort, defaultDesc, FilterGroup, FilterItem, negatable, SortItem, toggle, UrlFilter } from '../util/query';
 import { access, fixClientQuery, getStrictPrefix, hasPrefix, localTag, tagOrigin } from '../util/tag';
-import { parseBookmarkParams } from '../util/http';
+import { encodeBookmarkParam, parseBookmarkParams } from '../util/http';
 import { getErrorMessage } from './errors';
 
 @Component({
@@ -500,20 +500,12 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> impleme
     this.buildAllFilters();
   }
 
-  private encodeParam(v: string): string {
-    // Encode only chars that would break query-string parsing; leave /:|()+_ readable.
-    // Use parseBookmarkParams (not URLSearchParams) to decode — it keeps '+' literal, not space.
-    return encodeURIComponent(v).replace(/%2C/gi, ',').replace(/%2F/gi, '/').replace(/%3A/gi, ':')
-      .replace(/%7C/gi, '|').replace(/%28/gi, '(').replace(/%29/gi, ')').replace(/%2B/gi, '+')
-      .replace(/%5F/gi, '_');
-  }
-
   private buildParamsString(): string {
     const pairs: string[] = [];
     // Skip empty or incomplete sorts (e.g. ',ASC' before column is selected)
-    this.sorts.filter(s => !!s && !s.startsWith(',')).forEach(s => pairs.push(`sort=${this.encodeParam(s)}`));
-    this.filters.filter(f => !!f).forEach(f => pairs.push(`filter=${this.encodeParam(f)}`));
-    if (this.searchText) pairs.push(`search=${this.encodeParam(this.searchText)}`);
+    this.sorts.filter(s => !!s && !s.startsWith(',')).forEach(s => pairs.push(`sort=${encodeBookmarkParam(s)}`));
+    this.filters.filter(f => !!f).forEach(f => pairs.push(`filter=${encodeBookmarkParam(f)}`));
+    if (this.searchText) pairs.push(`search=${encodeBookmarkParam(this.searchText)}`);
     return pairs.join('&');
   }
 

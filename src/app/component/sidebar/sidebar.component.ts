@@ -23,6 +23,7 @@ import { ConfigService } from '../../service/config.service';
 import { QueryStore } from '../../store/query';
 import { Store } from '../../store/store';
 import { memo, MemoCache } from '../../util/memo';
+import { encodeBookmarkParams } from '../../util/http';
 import { hasPrefix, hasTag, isQuery, localTag, setProtected, setPublic, topAnds } from '../../util/tag';
 import { BulkComponent } from '../bulk/bulk.component';
 import { ChatVideoComponent } from '../chat/chat-video/chat-video.component';
@@ -369,11 +370,13 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
   bookmark() {
     const tree = this.router.parseUrl(this.router.url);
     const qp = tree.queryParams;
-    const params = new URLSearchParams();
-    [qp['sort']].flat().filter(Boolean).forEach((s: string) => params.append('sort', s));
-    [qp['filter']].flat().filter(Boolean).forEach((f: string) => params.append('filter', f));
-    if (qp['search']) params.set('search', qp['search']);
-    const qs = params.toString();
+    const p: Record<string, string | string[]> = {};
+    const sorts = [qp['sort']].flat().filter(Boolean);
+    const filters = [qp['filter']].flat().filter(Boolean);
+    if (sorts.length) p['sort'] = sorts;
+    if (filters.length) p['filter'] = filters;
+    if (qp['search']) p['search'] = qp['search'];
+    const qs = encodeBookmarkParams(p);
     this.account.addBookmark(qs ? `${this.tag}?${qs}` : this.tag!);
   }
 

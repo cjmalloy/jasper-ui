@@ -1,6 +1,80 @@
-import { getTitleFromFilename, parseBookmarkParams } from './http';
+import { encodeBookmarkParam, encodeBookmarkParams, getTitleFromFilename, parseBookmarkParams } from './http';
 
 describe('HTTP Utils', () => {
+  describe('encodeBookmarkParam', () => {
+    it('should leave + readable', () => {
+      expect(encodeBookmarkParam('+plugin/delete')).toBe('+plugin/delete');
+    });
+
+    it('should leave tag characters readable', () => {
+      expect(encodeBookmarkParam('query/science:math|fun')).toBe('query/science:math|fun');
+    });
+
+    it('should leave sort operators readable', () => {
+      expect(encodeBookmarkParam('metadata->field,DESC')).toBe('metadata->field,DESC');
+    });
+
+    it('should leave spaces readable (search text)', () => {
+      expect(encodeBookmarkParam('hello world')).toBe('hello world');
+    });
+
+    it('should encode & to prevent pair splitting', () => {
+      expect(encodeBookmarkParam('sources/https://example.com?a=1&b=2'))
+        .toBe('sources/https://example.com?a=1%26b=2');
+    });
+
+    it('should encode # to prevent fragment interpretation', () => {
+      expect(encodeBookmarkParam('sources/https://example.com#section'))
+        .toBe('sources/https://example.com%23section');
+    });
+
+    it('should encode % to prevent double-decode', () => {
+      expect(encodeBookmarkParam('sources/https://example.com/path%20here'))
+        .toBe('sources/https://example.com/path%2520here');
+    });
+  });
+
+  describe('encodeBookmarkParams', () => {
+    it('should encode sort with readable characters', () => {
+      expect(encodeBookmarkParams({ sort: 'published,DESC' })).toBe('sort=published,DESC');
+    });
+
+    it('should encode metadata-> sort correctly', () => {
+      expect(encodeBookmarkParams({ sort: 'metadata->field,DESC' })).toBe('sort=metadata->field,DESC');
+    });
+
+    it('should encode + filter correctly', () => {
+      expect(encodeBookmarkParams({ filter: '+plugin/delete' })).toBe('filter=+plugin/delete');
+    });
+
+    it('should encode multiple filter values', () => {
+      expect(encodeBookmarkParams({ filter: ['+plugin/delete', 'obsolete'] }))
+        .toBe('filter=+plugin/delete&filter=obsolete');
+    });
+
+    it('should encode URL in sources filter (only & and #)', () => {
+      expect(encodeBookmarkParams({ filter: 'sources/https://example.com?a=1&b=2' }))
+        .toBe('filter=sources/https://example.com?a=1%26b=2');
+    });
+
+    it('should leave search text readable', () => {
+      expect(encodeBookmarkParams({ search: 'hello world' })).toBe('search=hello world');
+    });
+
+    it('should skip empty values', () => {
+      expect(encodeBookmarkParams({ sort: '', filter: 'obsolete' })).toBe('filter=obsolete');
+    });
+
+    it('round-trips with parseBookmarkParams', () => {
+      const original = { sort: ['metadata->field,DESC'], filter: ['+plugin/delete', 'obsolete'], search: 'hello world' };
+      const encoded = encodeBookmarkParams(original);
+      const decoded = parseBookmarkParams(encoded);
+      expect(decoded.sort).toBe(original.sort[0]);
+      expect(decoded.filter).toEqual(original.filter);
+      expect(decoded.search).toBe(original.search);
+    });
+  });
+
   describe('parseBookmarkParams', () => {
     it('should not decode literal + as space', () => {
       const params = parseBookmarkParams('filter=+plugin%2Fdelete');

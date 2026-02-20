@@ -168,6 +168,39 @@ export function parseParams(url: string): any {
   return params;
 }
 
+/** Filter prefixes whose payload is a URL and needs full percent-encoding. */
+const URL_FILTER_PREFIXES = ['sources/', 'noSources/', 'responses/', 'noResponses/'];
+
+/**
+ * Encode a single bookmark query-string value with minimal encoding.
+ * Only encodes characters that would break query-string parsing or cause
+ * double-decoding problems:
+ *   %  →  %25  (prevent double-decode by parseBookmarkParams)
+ *   &  →  %26  (would split key=value pairs)
+ *   #  →  %23  (would be treated as fragment start)
+ * Everything else — tag chars (+, /, :, |, etc.), sort operators (->, ,),
+ * ISO dates, spaces in search text — is left readable.
+ */
+export function encodeBookmarkParam(v: string): string {
+  return v.replace(/%/g, '%25').replace(/&/g, '%26').replace(/#/g, '%23');
+}
+
+/**
+ * Build a bookmark query string from a params object.
+ * Multi-value keys (arrays) produce repeated key=value pairs.
+ * All values use encodeBookmarkParam (minimal encoding).
+ */
+export function encodeBookmarkParams(params: Record<string, string | string[]>): string {
+  const pairs: string[] = [];
+  for (const key of Object.keys(params)) {
+    const values = Array.isArray(params[key]) ? params[key] as string[] : [params[key] as string];
+    for (const v of values) {
+      if (v) pairs.push(`${key}=${encodeBookmarkParam(v)}`);
+    }
+  }
+  return pairs.join('&');
+}
+
 /**
  * Parse a bookmark query string without treating '+' as a space.
  * Uses decodeURIComponent so '%2B' decodes to '+' and a literal '+' stays '+'.
