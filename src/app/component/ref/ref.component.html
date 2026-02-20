@@ -35,6 +35,8 @@
          [attr.title]="altText">
       @if (tagLink) {
         <app-nav [url]="url" [text]="title"></app-nav>
+      } @else if (editingLink) {
+        <a [routerLink]="editingLink.routerLink" [queryParams]="editingLink.queryParams">{{ title }}</a><wbr>
       } @else if (clickableLink) {
         <app-nav [url]="link" [text]="title" [external]="true"></app-nav>
       } @else {

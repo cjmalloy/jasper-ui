@@ -17,6 +17,7 @@ export const editingPlugin: Plugin = {
       { query: 'plugin/editing', label: $localize`📝️ editing`, title: $localize`Drafts`, group: $localize`Plugins 🧰️` },
     ],
     actions: [
+      { tag: 'plugin/editing', event: 'edit', label: $localize`edit`, title: $localize`Resume editing this Ref` },
       { tag: 'plugin/editing', labelOn: $localize`revert`, title: $localize`Revert pending edits to this Ref`, confirm: $localize`Are you sure?` },
       { tag: 'plugin/delta/commit', labelOff: $localize`commit`, title: $localize`Save pending edits to this Ref`, confirm: $localize`Are you sure?` },
     ],

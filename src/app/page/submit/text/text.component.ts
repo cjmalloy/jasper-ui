@@ -136,6 +136,15 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
   }
 
   ngAfterViewInit() {
+    if (this.admin.editing && this.store.submit.url) {
+      this.refs.getEditing(this.store.submit.url).subscribe(draft => {
+        if (!draft) return;
+        this.cursor = draft.modifiedString;
+        const edit = draft.plugins?.['plugin/editing'] || {};
+        if (edit.comment) this.comment.setValue(edit.comment);
+        if (edit.title) this.title.setValue(edit.title);
+      });
+    }
     const allTags = [...this.store.submit.tags, ...(this.store.account.localTag ? [this.store.account.localTag] : [])];
     this.exts.getCachedExts(allTags).pipe(
       map(xs => xs.filter(x => x.config?.defaults) as Ext[]),
