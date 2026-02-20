@@ -6282,6 +6282,10 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>Bookmark: </source>
         <target>ブックマーク: </target>
       </trans-unit>
+      <trans-unit id="2454675159545031879" datatype="html">
+        <source>Bookmarks: </source>
+        <target>ブックマーク: </target>
+      </trans-unit>
       <trans-unit id="5595653752345611410" datatype="html">
         <source>Configure search, sort and filters</source>
         <target>検索・並び替え・フィルターを設定</target>

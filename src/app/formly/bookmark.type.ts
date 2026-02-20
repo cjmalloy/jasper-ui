@@ -145,7 +145,7 @@ import { getErrorMessage } from './errors';
               class="params-btn"
               i18n-title
               title="Configure search, sort and filters"
-              (click)="toggleParams()">⚙️</button>
+              (click)="toggleParams()">🪄️</button>
     </div>
     <ng-template #paramsPanel>
       <div class="params-panel" (click)="$event.stopPropagation()">
