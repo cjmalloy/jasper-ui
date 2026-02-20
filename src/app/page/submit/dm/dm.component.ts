@@ -14,7 +14,7 @@ import { DateTime } from 'luxon';
 import { autorun, IReactionDisposer } from 'mobx';
 import { MobxAngularModule } from 'mobx-angular';
 import { MonacoEditorModule } from 'ngx-monaco-editor';
-import { catchError, forkJoin, map, Observable, of, Subscription, switchMap, throwError } from 'rxjs';
+import { catchError, firstValueFrom, forkJoin, interval, map, Observable, of, Subject, Subscription, switchMap, takeUntil, throwError } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { LoadingComponent } from '../../../component/loading/loading.component';
 import { SelectPluginComponent } from '../../../component/select-plugin/select-plugin.component';
@@ -66,6 +66,8 @@ import { getVisibilityTags, hasPrefix, hasTag, localTag } from '../../../util/ta
 })
 export class SubmitDmPage implements AfterViewInit, OnChanges, OnDestroy, HasChanges {
   private disposers: IReactionDisposer[] = [];
+  private destroy$ = new Subject<void>();
+  private _url = 'comment:' + uuid();
 
   submitted = false;
   dmForm: UntypedFormGroup;
@@ -84,7 +86,9 @@ export class SubmitDmPage implements AfterViewInit, OnChanges, OnDestroy, HasCha
   editing = false;
   autocomplete: { value: string, label: string }[] = [];
   submitting?: Subscription;
+  saving?: Subscription;
   completedUploads: Ref[] = [];
+  private cursor?: string;
   private showedError = false;
   private addedMailboxes: string[] = [];
   private searching?: Subscription;
@@ -110,11 +114,48 @@ export class SubmitDmPage implements AfterViewInit, OnChanges, OnDestroy, HasCha
       comment: [''],
       tags: fb.array([]),
     });
+    if (this.admin.editing) {
+      interval(5_000).pipe(
+        takeUntil(this.destroy$),
+      ).subscribe(() => {
+        if (this.dmForm.dirty) this.saveForLater();
+      });
+    }
   }
 
-  saveChanges() {
-    // TODO: Just save in drafts
-    return !this.dmForm.dirty;
+  async saveChanges() {
+    if (this.admin.editing && this.dmForm.dirty) {
+      return firstValueFrom(this.refs.saveEdit(this.writeRef(), this.cursor)
+        .pipe(map(() => true), catchError(() => of(false))));
+    }
+    return !this.dmForm?.dirty;
+  }
+
+  saveForLater(leave = false) {
+    const savedValue = JSON.stringify(this.dmForm.value);
+    this.saving = this.refs.saveEdit(this.writeRef(), this.cursor)
+      .pipe(catchError(err => {
+        delete this.saving;
+        return throwError(() => err);
+      }))
+      .subscribe(cursor => {
+        delete this.saving;
+        this.cursor = cursor;
+        if (JSON.stringify(this.dmForm.value) === savedValue) this.dmForm.markAsPristine();
+        if (leave) this.router.navigate(['/inbox/ref', 'plugin/editing']);
+      });
+  }
+
+  writeRef() {
+    return <Ref> {
+      url: this._url,
+      origin: this.store.account.origin,
+      title: this.dmForm.value.title,
+      comment: this.dmForm.value.comment,
+      sources: this.dmForm.value.sources,
+      tags: this.dmForm.value.tags,
+      plugins: writePlugins(this.dmForm.value.tags, this.dmForm.value.plugins),
+    };
   }
 
   ngAfterViewInit() {
@@ -137,6 +178,8 @@ export class SubmitDmPage implements AfterViewInit, OnChanges, OnDestroy, HasCha
   ngOnDestroy() {
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   get to() {
@@ -322,12 +365,12 @@ export class SubmitDmPage implements AfterViewInit, OnChanges, OnDestroy, HasCha
       scrollToFirstInvalid();
       return;
     }
-    const url = 'comment:' + uuid();
+    const url = this._url;
     const published = this.dmForm.value.published ? DateTime.fromISO(this.dmForm.value.published) : DateTime.now();
     let sources = [url, ...uniq([url, ...this.store.submit.sources, ...this.dmForm.value.sources])];
     if (sources.length === 2) sources = [];
     const finalTags = this.dmForm.value.tags;
-    this.submitting = this.refs.create({
+    const ref = {
       url,
       origin: this.store.account.origin,
       title: this.dmForm.value.title,
@@ -336,7 +379,8 @@ export class SubmitDmPage implements AfterViewInit, OnChanges, OnDestroy, HasCha
       published,
       tags: finalTags,
       plugins: writePlugins(this.dmForm.value.tags, this.dmForm.value.plugins),
-    }).pipe(
+    };
+    this.submitting = (this.cursor ? this.refs.update({ ...ref, modifiedString: this.cursor }) : this.refs.create(ref)).pipe(
       switchMap(res => {
         const finalVisibilityTags = getVisibilityTags(finalTags);
         if (!finalVisibilityTags.length) return of(res);

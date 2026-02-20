@@ -164,6 +164,13 @@ export function writeRef(ref: Ref): Ref {
   return result;
 }
 
+export function writeEdit(ref: Ref): Ref {
+  const result = writeRef(ref);
+  delete result.origin;
+  delete result.modified;
+  return result;
+}
+
 /**
  * Find URL in alts with file extension.
  */

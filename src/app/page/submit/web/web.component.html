@@ -24,8 +24,11 @@
     }
     <span><!-- Buttons --></span>
     <span class="buttons right">
-      @if (submitting) {
+      @if (submitting || saving) {
         <app-loading [inline]="true"></app-loading>
+      }
+      @if (admin.getPlugin('plugin/editing')) {
+        <button type="button" [disabled]="submitting || saving || submitted || webForm.pristine" (click)="saveForLater(true)" i18n>Save for later</button>
       }
       <button type="submit" [disabled]="submitting || submitted && !webForm.valid" i18n>Submit</button>
     </span>
