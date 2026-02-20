@@ -312,6 +312,14 @@ export class ViewerComponent implements OnChanges {
   }
 
   @memo
+  get editingRef(): Ref | undefined {
+    if (!hasTag('plugin/editing', this.currentTags)) return undefined;
+    const data = this.ref?.plugins?.['plugin/editing'];
+    if (!data) return undefined;
+    return { ...data, url: this.ref?.url, origin: this.ref?.origin };
+  }
+
+  @memo
   get hideComment() {
     if (this.ref?.tags?.includes('plugin/alt') || this.tags?.includes('plugin/alt')) return true;
     if (this.admin.getPlugin('plugin/table') && hasTag('plugin/table', this.currentTags)) return false;

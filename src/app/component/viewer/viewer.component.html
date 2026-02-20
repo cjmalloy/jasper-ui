@@ -6,6 +6,13 @@
              [expandInline]="true"
              [ref]="repost"></app-ref>
   }
+  @if (editingRef) {
+    <app-ref class="expand"
+             [fetchRepost]="false"
+             [showToggle]="true"
+             [expandInline]="true"
+             [ref]="editingRef"></app-ref>
+  }
   @if (playlist) {
     <app-playlist [ref]="ref"></app-playlist>
   }
