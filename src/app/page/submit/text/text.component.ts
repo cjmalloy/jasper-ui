@@ -334,7 +334,7 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
     const ref = this.writeRef(true);
     const tags = ref.tags;
     const published = ref.published;
-    this.submitting = this.refs.create(ref).pipe(
+    this.submitting = (this.cursor ? this.refs.update({ ...ref, modifiedString: this.cursor }) : this.refs.create(ref)).pipe(
       tap(() => {
         if (this.admin.getPlugin('plugin/user/vote/up')) {
           this.ts.createResponse('plugin/user/vote/up', this.url.value).subscribe();
