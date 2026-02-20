@@ -23,7 +23,7 @@ import { AdminService } from '../service/admin.service';
 import { ExtService } from '../service/api/ext.service';
 import { EditorService } from '../service/editor.service';
 import { Store } from '../store/store';
-import { convertFilter, convertSort, defaultDesc, FilterGroup, FilterItem, SortItem, UrlFilter } from '../util/query';
+import { convertFilter, convertSort, defaultDesc, FilterGroup, FilterItem, negatable, SortItem, toggle, UrlFilter } from '../util/query';
 import { access, fixClientQuery, getStrictPrefix, localTag, tagOrigin } from '../util/tag';
 import { getErrorMessage } from './errors';
 
@@ -207,6 +207,9 @@ import { getErrorMessage } from './errors';
                 }
               }
             </select>
+            @if (negatable(filter)) {
+              <button type="button" (click)="toggleFilter(i)">{{ store.account.querySymbol('!') }}</button>
+            }
             <button type="button" (click)="removeFilter(i)" i18n>&ndash;</button>
           </div>
         }
@@ -543,6 +546,15 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> impleme
   removeFilter(index: number) {
     this.filters.splice(index, 1);
     this.updateFormValue();
+  }
+
+  toggleFilter(index: number) {
+    this.filters[index] = toggle(this.filters[index] as UrlFilter)!;
+    this.updateFormValue();
+  }
+
+  negatable(filter: string) {
+    return negatable(filter);
   }
 
   // Search management
