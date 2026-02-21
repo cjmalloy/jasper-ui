@@ -7,7 +7,7 @@ import { TaggingService } from '../../service/api/tagging.service';
 import { ConfigService } from '../../service/config.service';
 import { EditorService } from '../../service/editor.service';
 import { VisibilityService } from '../../service/visibility.service';
-import { getPath, parseParams } from '../../util/http';
+import { getPath, parseBookmarkParams } from '../../util/http';
 import { hasPrefix } from '../../util/tag';
 
 @Component({
@@ -91,7 +91,7 @@ export class NavComponent implements OnInit, OnDestroy {
   }
 
   get query() {
-    return parseParams(this.url);
+    return parseBookmarkParams(this.url);
   }
 
   get localUrl() {
