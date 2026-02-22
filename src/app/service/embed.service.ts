@@ -173,18 +173,19 @@ export class EmbedService {
       level: 'inline',
       start: (src: string) => src.match(/#/)?.index,
       tokenizer(src: string, tokens: any): any {
-        const rule = /^#([+_]?[a-z0-9]+([./][a-z0-9]+)*)/;
+        const rule = /^#([+_]?[a-z0-9]+([./][a-z0-9]+)*)(\?[^\s)#]*)?/;
         const match = rule.exec(src);
         if (match) {
-          const text = match[0];
+          const tag = '#' + match[1];
           // Don't link simple numbers
-          if (/^#[0-9]+$/.exec(text)) return undefined;
+          if (/^#[0-9]+$/.exec(tag)) return undefined;
+          const qs = match[3] || '';
           return {
             type: 'hashTag',
-            href: '/tag/' + match[1],
-            text,
-            title: text,
-            raw: text,
+            href: '/tag/' + match[1] + qs,
+            text: tag,
+            title: tag,
+            raw: match[0],
             tokens: [],
           };
         }
