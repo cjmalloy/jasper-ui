@@ -94,6 +94,24 @@
   margin: 8px;
 }
 
+.messages-container {
+  position: relative;
+}
+
+.scroll-to-bottom {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px 4px 0 0;
+  padding: 4px 12px;
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+
 .fake-link {
   display: block;
   text-align: center;
