@@ -4,22 +4,20 @@
 @if (messages && !loadingPrev) {
   <a class="load-more fake-link" (click)="loadPrev()">load prev</a>
 }
-<div class="messages-container">
-  <cdk-virtual-scroll-viewport #viewport class="messages"
-                               [class.scroll-lock]="scrollLock"
-                               [itemSize]="itemSize"
-                               [style.height.px]="containerHeight"
-                               (scrolledIndexChange)="onScroll($event)">
-    <app-chat-entry *cdkVirtualFor="let ref of messages; let index = index; let odd = odd"
-                    [ref]="ref"
-                    [class.odd]="odd"
-                    (click)="scrollLock = index"
-                    [focused]="scrollLock === index"></app-chat-entry>
-  </cdk-virtual-scroll-viewport>
-  @if (notAtBottom) {
-    <div class="scroll-to-bottom" (click)="scrollLock = undefined; scrollDown()" i18n>More messages below</div>
-  }
-</div>
+<cdk-virtual-scroll-viewport #viewport class="messages"
+                             [class.scroll-lock]="scrollLock"
+                             [itemSize]="itemSize"
+                             [style.height.px]="containerHeight"
+                             (scrolledIndexChange)="onScroll($event)">
+  <app-chat-entry *cdkVirtualFor="let ref of messages; let index = index; let odd = odd"
+                  [ref]="ref"
+                  [class.odd]="odd"
+                  (click)="scrollLock = index"
+                  [focused]="scrollLock === index"></app-chat-entry>
+</cdk-virtual-scroll-viewport>
+@if (notAtBottom) {
+  <div class="scroll-to-bottom" (click)="scrollLock = undefined; scrollDown()" i18n>More messages below</div>
+}
 <div class="spacer"></div>
 <div class="input-box"
      [class.dropping]="dropping"
