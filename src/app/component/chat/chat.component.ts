@@ -87,6 +87,7 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
   sending: Ref[] = [];
   errored: Ref[] = [];
   scrollLock?: number;
+  notAtBottom = false;
   uploads: ChatUpload[] = [];
   dropping = false;
 
@@ -405,6 +406,7 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
   }
 
   onScroll(index: number) {
+    this.notAtBottom = this.viewport.measureScrollOffset('bottom') > this.itemSize;
     if (!this.scrollLock) return;
     // TODO: count height in rows
     const diff = this.scrollLock - index;
