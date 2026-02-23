@@ -269,6 +269,10 @@ Please Reload.</source>
         <source>Repost</source>
         <target>再投稿</target>
       </trans-unit>
+      <trans-unit id="742407678016029816" datatype="html">
+        <source>More messages below</source>
+        <target>以下にメッセージがあります</target>
+      </trans-unit>
       <trans-unit id="8329683052939776403" datatype="html">
         <source>🔄</source>
       </trans-unit>
