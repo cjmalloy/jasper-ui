@@ -204,6 +204,10 @@ export class SubmitInvoicePage implements OnDestroy, HasChanges {
   }
 
   submit() {
+    if (this.saving) {
+      this.saving.add(() => this.submit());
+      return;
+    }
     this.serverError = [];
     this.submitted = true;
     this.invoiceForm.markAllAsTouched();
