@@ -94,15 +94,12 @@
   margin: 8px;
 }
 
-.messages-container {
-  position: relative;
-}
-
 .scroll-to-bottom {
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
+  display: block;
+  position: relative;
+  margin-top: calc(-1em - 10px);
+  text-align: center;
+  z-index: 1;
   background: var(--bg);
   border: 1px solid var(--border);
   border-radius: 4px 4px 0 0;
@@ -110,6 +107,9 @@
   cursor: pointer;
   user-select: none;
   white-space: nowrap;
+  width: fit-content;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .fake-link {
