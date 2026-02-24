@@ -13,8 +13,6 @@ export const durationPlugin: Plugin = {
     description: $localize`Stores media duration in the tag itself (e.g., plugin/duration/pt15m).`,
     infoUi: `{{#if (duration ref.tags)}}<span class="info-tag" title="Duration">⏱️ {{duration ref.tags}}</span>{{/if}}`,
   },
-  defaults: {},
-  schema: {},
 };
 
 export const durationMod: Mod = {
