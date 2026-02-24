@@ -491,6 +491,15 @@ Handlebars.registerHelper('defer', (el: Element, fn: () => {}) => {
 });
 Handlebars.registerHelper('fromNow', (value: string) => DateTime.fromISO(value).toRelative());
 Handlebars.registerHelper('formatInterval', (value: string) => Duration.fromISO(value).toHuman());
+Handlebars.registerHelper('duration', (tags: string[]) => {
+  const t = tags?.find(t => t.startsWith('plugin/duration/') && t.length > 16);
+  if (!t) return '';
+  try {
+    return Duration.fromISO(t.substring(16).toUpperCase()).toHuman();
+  } catch (e) {
+    return '';
+  }
+});
 Handlebars.registerHelper('plugins', (ref: Ref, plugin: string) => ref.metadata?.plugins?.[plugin]);
 Handlebars.registerHelper('response', (ref: Ref, value: string) => ref.metadata?.userUrls?.includes(value));
 Handlebars.registerHelper('includes', (array: string[], value: string) => array?.includes(value));

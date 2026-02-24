@@ -31,6 +31,7 @@ import { lensMod } from '../mods/lens';
 import { mailboxMod } from '../mods/mailbox';
 import { audioMod } from '../mods/media/audio';
 import { codeMod } from '../mods/media/code';
+import { durationMod } from '../mods/media/duration';
 import { embedMod } from '../mods/media/embed';
 import { fileMod } from '../mods/media/file';
 import { imageMod } from '../mods/media/image';
@@ -38,6 +39,7 @@ import { pdfMod } from '../mods/media/pdf';
 import { playlistMod } from '../mods/media/playlist';
 import { tableMod } from '../mods/media/table';
 import { videoMod } from '../mods/media/video';
+import { ytInfoMod } from '../mods/media/yt-meta';
 import { modMod } from '../mods/mod';
 import { modlistMod } from '../mods/modlist';
 import { folderMod } from '../mods/org/folder';
@@ -156,6 +158,7 @@ export class AdminService {
     threadMod,
     notesMod,
     emailMod,
+    durationMod,
     fullscreenMod,
     seamlessMod,
     thumbnailMod,
@@ -178,6 +181,7 @@ export class AdminService {
     audioMod,
     videoMod,
     ytdlpMod,
+    ytInfoMod,
     markitdownMod,
     voteMod,
     imageMod,
