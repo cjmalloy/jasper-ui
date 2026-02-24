@@ -19,7 +19,10 @@
            [style.border-radius.px]="thumbnailRadius">{{ thumbnailEmoji }}</div>
     } @else if (thumbnail) {
       <div class="thumbnail"
-           [style.background-image]="thumbnailRefs | thumbnail: true | async | cssUrl"
+           [style.background-image]="storyboardBgImage || (thumbnailRefs | thumbnail: true | async | cssUrl)"
+           [style.background-size]="storyboardBgSize"
+           [style.background-position]="storyboard ? '0% 0%' : null"
+           [style.animation]="storyboardAnimation"
            [style.border-radius.px]="thumbnailRadius">{{ thumbnailEmoji }}</div>
     } @else if (thumbnailEmojiDefaults) {
       <div class="thumbnail">{{ thumbnailEmojiDefaults }}</div>

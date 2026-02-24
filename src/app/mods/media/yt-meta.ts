@@ -66,8 +66,8 @@ if storyboards:
             'url': sb_url,
             'width': spec.get('width', 160),
             'height': spec.get('height', 90),
-            'x': 0,
-            'y': 0
+            'rows': spec.get('rows', 1),
+            'cols': spec.get('cols', 1)
         }
 
 ref['plugins'] = plugins

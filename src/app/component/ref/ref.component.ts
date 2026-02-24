@@ -615,6 +615,30 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     return this.ref?.plugins?.['plugin/thumbnail']?.radius || this.repostRef?.plugins?.['plugin/thumbnail']?.radius || 0;
   }
 
+  get storyboard() {
+    if (!this.admin.getPlugin('plugin/thumbnail/storyboard')) return null;
+    return this.ref?.plugins?.['plugin/thumbnail/storyboard'] || this.repostRef?.plugins?.['plugin/thumbnail/storyboard'] || null;
+  }
+
+  get storyboardBgImage() {
+    const sb = this.storyboard;
+    if (sb?.url) return `url(${sb.url})`;
+    return null;
+  }
+
+  get storyboardBgSize() {
+    const sb = this.storyboard;
+    if (!sb?.cols || !sb?.rows) return null;
+    return `${sb.cols * 100}% ${sb.rows * 100}%`;
+  }
+
+  get storyboardAnimation() {
+    const sb = this.storyboard;
+    if (!sb?.cols || sb.cols < 2) return null;
+    const frameDurationS = 0.15;
+    return `storyboard-slide ${(sb.cols * frameDurationS).toFixed(2)}s steps(${sb.cols}, jump-none) infinite paused`;
+  }
+
   @memo
   get file() {
     return this.admin.getPlugin('plugin/file') &&
