@@ -15,8 +15,6 @@ export const ytDeltaPlugin: Plugin = {
     script: `
 import json
 import sys
-import urllib.request
-import os
 import yt_dlp
 
 ref = json.load(sys.stdin)
@@ -59,27 +57,17 @@ if duration:
 # Storyboard handling
 plugins = ref.get('plugins', {})
 if storyboards:
-    storage_dir = os.path.join('/var/lib/jasper', 'storyboards', video_id)
-    os.makedirs(storage_dir, exist_ok=True)
-
     # Target the best available storyboard spec
     spec = storyboards[-1]
     sb_url = spec.get('url')
     if sb_url:
-        try:
-            filename = f"{video_id}_storyboard.jpg"
-            local_path = os.path.join(storage_dir, filename)
-            urllib.request.urlretrieve(sb_url, local_path)
-
-            plugins['plugin/thumbnail/storyboard'] = {
-                'url': f'/storyboards/{video_id}/{filename}',
-                'width': spec.get('width', 160),
-                'height': spec.get('height', 90),
-                'x': 0,
-                'y': 0
-            }
-        except Exception as e:
-            print(json.dumps({'error': str(e)}), file=sys.stderr)
+        plugins['plugin/thumbnail/storyboard'] = {
+            'url': sb_url,
+            'width': spec.get('width', 160),
+            'height': spec.get('height', 90),
+            'x': 0,
+            'y': 0
+        }
 
 ref['plugins'] = plugins
 
