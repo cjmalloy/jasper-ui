@@ -66,11 +66,15 @@ if storyboards:
     if sb_url:
         plugins['plugin/thumbnail/storyboard'] = {
             'url': sb_url,
-            'width': spec.get('width', 160),
-            'height': spec.get('height', 90),
-            'rows': spec.get('rows', 1),
-            'cols': spec.get('columns', 1)
+            'width': int(spec.get('width', 160)),
+            'height': int(spec.get('height', 90)),
+            'rows': int(spec.get('rows', 1)),
+            'cols': int(spec.get('columns', 1))
         }
+        tags = ref.get('tags', [])
+        if 'plugin/thumbnail/storyboard' not in tags:
+            tags.append('plugin/thumbnail/storyboard')
+            ref['tags'] = tags
 
 ref['plugins'] = plugins
 
