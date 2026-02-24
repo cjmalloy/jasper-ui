@@ -180,9 +180,6 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   diffModified?: Ref;
   fullscreen = false;
 
-  storyboardFrame = 0;
-  storyboardActive = false;
-
   submitting?: Subscription;
   private refreshTap?: () => void;
   private _editing = false;
@@ -190,7 +187,6 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   private _diffing = false;
   private overwrittenModified? = '';
   private diffSubscription?: Subscription;
-  private storyboardInterval?: ReturnType<typeof setInterval>;
   private _viewer?: ViewerComponent;
   private closeOffFullscreen = false;
   private _expanded = false;
@@ -349,9 +345,6 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     this.disposers.length = 0;
     if (this.lastSelected) {
       this.store.view.clearLastSelected();
-    }
-    if (this.storyboardInterval) {
-      clearInterval(this.storyboardInterval);
     }
   }
 
@@ -627,41 +620,23 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     return this.ref?.plugins?.['plugin/thumbnail/storyboard'] || this.repostRef?.plugins?.['plugin/thumbnail/storyboard'] || null;
   }
 
+  get storyboardBgImage() {
+    const sb = this.storyboard;
+    if (sb?.url) return `url(${sb.url})`;
+    return null;
+  }
+
   get storyboardBgSize() {
     const sb = this.storyboard;
-    if (!sb?.cols || !sb?.rows) return undefined;
+    if (!sb?.cols || !sb?.rows) return null;
     return `${sb.cols * 100}% ${sb.rows * 100}%`;
   }
 
-  get storyboardBgPosition() {
+  get storyboardAnimation() {
     const sb = this.storyboard;
-    if (!sb?.cols || !sb?.rows) return undefined;
-    const col = this.storyboardFrame % sb.cols;
-    const row = Math.floor(this.storyboardFrame / sb.cols);
-    const x = sb.cols > 1 ? (col * 100 / (sb.cols - 1)) : 0;
-    const y = sb.rows > 1 ? (row * 100 / (sb.rows - 1)) : 0;
-    return `${x}% ${y}%`;
-  }
-
-  onThumbnailEnter() {
-    const sb = this.storyboard;
-    if (!sb?.url || !sb?.cols || !sb?.rows) return;
-    const total = sb.cols * sb.rows;
-    this.storyboardFrame = 0;
-    this.storyboardActive = true;
-    this.storyboardInterval = setInterval(() => {
-      this.storyboardFrame = (this.storyboardFrame + 1) % total;
-      this.cd.markForCheck();
-    }, 200);
-  }
-
-  onThumbnailLeave() {
-    if (this.storyboardInterval) {
-      clearInterval(this.storyboardInterval);
-      this.storyboardInterval = undefined;
-    }
-    this.storyboardFrame = 0;
-    this.storyboardActive = false;
+    if (!sb?.cols || sb.cols < 2) return null;
+    const frameDurationS = 0.15;
+    return `storyboard-slide ${(sb.cols * frameDurationS).toFixed(2)}s steps(${sb.cols}, jump-none) infinite paused`;
   }
 
   @memo
