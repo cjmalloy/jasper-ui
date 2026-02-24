@@ -333,6 +333,10 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
   }
 
   submit() {
+    if (this.saving) {
+      this.saving.add(() => this.submit());
+      return;
+    }
     this.serverError = [];
     this.submitted = true;
     this.textForm.markAllAsTouched();
