@@ -221,6 +221,10 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
       MemoCache.clear(this, 'thumbnailColor');
       MemoCache.clear(this, 'thumbnailEmoji');
       MemoCache.clear(this, 'thumbnailEmojiDefaults');
+      MemoCache.clear(this, 'storyboard');
+      MemoCache.clear(this, 'storyboardBgImage');
+      MemoCache.clear(this, 'storyboardBgSize');
+      MemoCache.clear(this, 'storyboardAnimation');
       this.initFields({ ...this.ref, ...value });
       cd.detectChanges();
     }, 400, { leading: true, trailing: true }));
@@ -615,11 +619,14 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     return this.ref?.plugins?.['plugin/thumbnail']?.radius || this.repostRef?.plugins?.['plugin/thumbnail']?.radius || 0;
   }
 
+  @memo
   get storyboard() {
     if (!this.admin.getPlugin('plugin/thumbnail/storyboard')) return null;
+    if (this.editing) return this.editForm.value.plugins?.['plugin/thumbnail/storyboard'] || null;
     return this.ref?.plugins?.['plugin/thumbnail/storyboard'] || this.repostRef?.plugins?.['plugin/thumbnail/storyboard'] || null;
   }
 
+  @memo
   get storyboardBgImage() {
     const sb = this.storyboard;
     if (sb?.url) {
@@ -630,12 +637,14 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     return null;
   }
 
+  @memo
   get storyboardBgSize() {
     const sb = this.storyboard;
     if (!sb?.cols || !sb?.rows) return null;
     return `${sb.cols * 100}% ${sb.rows * 100}%`;
   }
 
+  @memo
   get storyboardAnimation() {
     const sb = this.storyboard;
     if (!sb?.cols || sb.cols < 2) return null;
