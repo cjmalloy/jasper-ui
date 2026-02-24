@@ -16,7 +16,7 @@
                   [focused]="scrollLock === index"></app-chat-entry>
 </cdk-virtual-scroll-viewport>
 @if (notAtBottom) {
-  <div class="scroll-to-bottom" (click)="scrollLock = undefined; scrollDown()" i18n>More messages below</div>
+  <div class="scroll-to-bottom" tabindex="0" (click)="scrollLock = undefined; scrollDown()" i18n>More messages below</div>
 }
 <div class="spacer"></div>
 <div class="input-box"
