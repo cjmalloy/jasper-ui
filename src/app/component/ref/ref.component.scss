@@ -8,8 +8,8 @@
   transition: opacity 0.1s ease-in-out;
 }
 
-.thumbnail:hover {
-  animation-play-state: running !important;
+.thumbnail--storyboard:hover {
+  animation-play-state: running;
 }
 
 .actions:hover {
