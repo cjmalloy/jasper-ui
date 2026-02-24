@@ -622,7 +622,11 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
 
   get storyboardBgImage() {
     const sb = this.storyboard;
-    if (sb?.url) return `url(${sb.url})`;
+    if (sb?.url) {
+      const rawUrl = String(sb.url);
+      const escapedUrl = rawUrl.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+      return `url("${escapedUrl}")`;
+    }
     return null;
   }
 
