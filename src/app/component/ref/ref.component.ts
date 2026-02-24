@@ -647,9 +647,12 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   @memo
   get storyboardAnimation() {
     const sb = this.storyboard;
-    if (!sb?.cols || sb.cols < 2) return null;
+    if (!sb?.cols || !sb?.rows) return null;
+    const totalFrames = sb.cols * sb.rows;
+    if (totalFrames < 2) return null;
     const frameDurationS = 0.15;
-    return `storyboard-slide ${(sb.cols * frameDurationS).toFixed(2)}s steps(${sb.cols}, jump-none) infinite paused`;
+    const totalDurationS = totalFrames * frameDurationS;
+    return `storyboard-slide ${totalDurationS.toFixed(2)}s steps(${totalFrames}, jump-none) infinite paused`;
   }
 
   @memo
