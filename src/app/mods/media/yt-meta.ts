@@ -75,7 +75,7 @@ if storyboards:
 ref['plugins'] = plugins
 
 # Remove the yt trigger tag so it doesn't infinitely loop
-ref['tags'] = [t for t in ref.get('tags', []) if t != '_plugin/delta/yt']
+ref['tags'] = [t for t in ref.get('tags', []) if not (t + '/').startswith('_plugin/delta/yt/')]
 
 print(json.dumps({'ref': [ref]}))
 `
