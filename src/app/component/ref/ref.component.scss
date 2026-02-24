@@ -9,6 +9,9 @@
 }
 
 .thumbnail--storyboard:hover {
+  background-image: var(--storyboard-url) !important;
+  background-size: var(--storyboard-size) !important;
+  background-position: 0% 0%;
   animation-play-state: running;
 }
 
