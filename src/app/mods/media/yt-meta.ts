@@ -19,87 +19,74 @@ import urllib.request
 import os
 import yt_dlp
 
-def main():
-    stdin = sys.stdin.read()
-    if not stdin:
-        return sys.exit(1)
+ref = json.load(sys.stdin)
+url = ref.get('url')
 
-    payload = json.loads(stdin)
-    refs = payload.get('ref', [])
-    if not refs:
-        return sys.exit(0)
+ydl_opts = {
+    'quiet': True,
+    'skip_download': True,
+}
 
-    ref = refs[0]
-    url = ref.get('url')
+try:
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        info = ydl.extract_info(url, download=False)
+except Exception as e:
+    print(json.dumps({'error': str(e)}), file=sys.stderr)
+    sys.exit(1)
 
-    ydl_opts = {
-        'quiet': True,
-        'skip_download': True,
-    }
+duration = info.get('duration')
+storyboards = info.get('storyboards', [])
+video_id = info.get('id', 'unknown_id')
 
-    try:
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            info = ydl.extract_info(url, download=False)
-    except Exception as e:
-        print(json.dumps({'error': str(e)}))
-        return sys.exit(1)
+# Duration handling via tag (plugin/duration/...)
+if duration:
+    m, s = divmod(duration, 60)
+    h, m = divmod(m, 60)
+    iso_dur = 'pt'
+    if h > 0: iso_dur += f'{int(h)}h'
+    if m > 0: iso_dur += f'{int(m)}m'
+    iso_dur += f'{int(s)}s'
 
-    duration = info.get('duration')
-    storyboards = info.get('storyboards', [])
-    video_id = info.get('id', 'unknown_id')
+    tags = ref.get('tags', [])
+    if 'plugin/duration' not in tags:
+        tags.append('plugin/duration')
 
-    # Duration handling via tag (plugin/duration/...)
-    if duration:
-        m, s = divmod(duration, 60)
-        h, m = divmod(m, 60)
-        iso_dur = 'pt'
-        if h > 0: iso_dur += f'{int(h)}h'
-        if m > 0: iso_dur += f'{int(m)}m'
-        iso_dur += f'{int(s)}s'
+    # Filter out old durations and add the newly fetched one
+    tags = [t for t in tags if not t.startswith('plugin/duration/')]
+    tags.append(f'plugin/duration/{iso_dur}')
+    ref['tags'] = tags
 
-        tags = ref.get('tags', [])
-        if 'plugin/duration' not in tags:
-            tags.append('plugin/duration')
+# Storyboard handling
+plugins = ref.get('plugins', {})
+if storyboards:
+    storage_dir = os.path.join('/var/lib/jasper', 'storyboards', video_id)
+    os.makedirs(storage_dir, exist_ok=True)
 
-        # Filter out old durations and add the newly fetched one
-        tags = [t for t in tags if not t.startswith('plugin/duration/')]
-        tags.append(f'plugin/duration/{iso_dur}')
-        ref['tags'] = tags
+    # Target the best available storyboard spec
+    spec = storyboards[-1]
+    sb_url = spec.get('url')
+    if sb_url:
+        try:
+            filename = f"{video_id}_storyboard.jpg"
+            local_path = os.path.join(storage_dir, filename)
+            urllib.request.urlretrieve(sb_url, local_path)
 
-    # Storyboard handling
-    plugins = ref.get('plugins', {})
-    if storyboards:
-        storage_dir = os.path.join('/var/lib/jasper', 'storyboards', video_id)
-        os.makedirs(storage_dir, exist_ok=True)
+            plugins['plugin/thumbnail/storyboard'] = {
+                'url': f'/storyboards/{video_id}/{filename}',
+                'width': spec.get('width', 160),
+                'height': spec.get('height', 90),
+                'x': 0,
+                'y': 0
+            }
+        except Exception as e:
+            print(json.dumps({'error': str(e)}), file=sys.stderr)
 
-        # Target the best available storyboard spec
-        spec = storyboards[-1]
-        sb_url = spec.get('url')
-        if sb_url:
-            try:
-                filename = f"{video_id}_storyboard.jpg"
-                local_path = os.path.join(storage_dir, filename)
-                urllib.request.urlretrieve(sb_url, local_path)
+ref['plugins'] = plugins
 
-                plugins['plugin/thumbnail/storyboard'] = {
-                    'url': f'/storyboards/{video_id}/{filename}',
-                    'width': spec.get('width', 160),
-                    'height': spec.get('height', 90),
-                    'x': 0,
-                    'y': 0
-                }
-            except Exception as e:
-                pass
+# Remove the yt trigger tag so it doesn't infinitely loop
+ref['tags'] = [t for t in ref.get('tags', []) if t != '_plugin/delta/yt']
 
-    ref['plugins'] = plugins
-
-    # Remove the yt trigger tag so it doesn't infinitely loop
-    ref['tags'] = [t for t in ref.get('tags', []) if t != '_plugin/delta/yt']
-
-    print(json.dumps({'ref': [ref]}))
-
-if __name__ == '__main__':
-    main()
+print(json.dumps({'ref': [ref]}))
 `
   },
   defaults: {},
