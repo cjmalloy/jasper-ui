@@ -90,8 +90,6 @@ export const storyboardPlugin: Plugin = {
       url: { type: 'string' },
       width: { type: 'int32' },
       height: { type: 'int32' },
-      x: { type: 'int32' },
-      y: { type: 'int32' },
     },
   },
 };
