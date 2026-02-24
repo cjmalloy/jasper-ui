@@ -77,8 +77,6 @@ ref['tags'] = [t for t in ref.get('tags', []) if t != '_plugin/delta/yt']
 print(json.dumps({'ref': [ref]}))
 `
   },
-  defaults: {},
-  schema: {},
 };
 
 export const ytInfoMod: Mod = {
