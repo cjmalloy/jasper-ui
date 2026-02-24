@@ -49,9 +49,6 @@ if duration:
     iso_dur += f'{int(s)}s'
 
     tags = ref.get('tags', [])
-    if 'plugin/duration' not in tags:
-        tags.append('plugin/duration')
-
     # Filter out old durations and add the newly fetched one
     tags = [t for t in tags if not t.startswith('plugin/duration/')]
     tags.append(f'plugin/duration/{iso_dur}')
