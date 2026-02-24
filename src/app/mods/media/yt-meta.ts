@@ -21,7 +21,9 @@ import sys
 import yt_dlp
 
 ref = json.load(sys.stdin)
-url = ref.get('url')
+plugins = ref.get('plugins', {})
+embed = plugins.get('plugin/embed', {})
+url = embed.get('url') or ref.get('url')
 
 ydl_opts = {
     'quiet': True,
