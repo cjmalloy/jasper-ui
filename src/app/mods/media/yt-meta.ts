@@ -74,6 +74,7 @@ ref['plugins'] = plugins
 # Remove the yt trigger tag so it doesn't infinitely loop
 ref['tags'] = [t for t in ref.get('tags', []) if not (t + '/').startswith('_plugin/delta/yt/')]
 
+ref.pop('metadata', None)
 print(json.dumps({'ref': [ref]}))
 `
   },
