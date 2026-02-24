@@ -38,7 +38,7 @@ except Exception as e:
     sys.exit(1)
 
 duration = info.get('duration')
-storyboards = info.get('storyboards', [])
+storyboards = [f for f in info.get('formats', []) if f.get('format_note') == 'storyboard']
 
 # Duration handling via tag (plugin/duration/...)
 if duration:
@@ -59,15 +59,17 @@ if duration:
 plugins = ref.get('plugins', {})
 if storyboards:
     # Target the best available storyboard spec
-    spec = storyboards[-1]
-    sb_url = spec.get('url')
+    # Pick the storyboard with the highest individual frame resolution
+    spec = max(storyboards, key=lambda f: f.get('width', 0) * f.get('height', 0))
+    # URL contains $M placeholder for fragment index; use fragment 0
+    sb_url = spec.get('url', '').replace('$M', '0')
     if sb_url:
         plugins['plugin/thumbnail/storyboard'] = {
             'url': sb_url,
             'width': spec.get('width', 160),
             'height': spec.get('height', 90),
             'rows': spec.get('rows', 1),
-            'cols': spec.get('cols', 1)
+            'cols': spec.get('columns', 1)
         }
 
 ref['plugins'] = plugins
