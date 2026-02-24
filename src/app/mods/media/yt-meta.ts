@@ -37,7 +37,6 @@ except Exception as e:
 
 duration = info.get('duration')
 storyboards = info.get('storyboards', [])
-video_id = info.get('id', 'unknown_id')
 
 # Duration handling via tag (plugin/duration/...)
 if duration:
