@@ -1,18 +1,6 @@
-@keyframes storyboard-slide {
-  from { background-position-x: 0% }
-  to { background-position-x: 100% }
-}
-
 .show-more {
   opacity: 0;
   transition: opacity 0.1s ease-in-out;
-}
-
-.thumbnail--storyboard:hover {
-  background-image: var(--storyboard-url) !important;
-  background-size: var(--storyboard-size) !important;
-  background-position: 0% 0%;
-  animation-play-state: running;
 }
 
 .actions:hover {
