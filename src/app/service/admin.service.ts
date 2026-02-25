@@ -39,7 +39,6 @@ import { pdfMod } from '../mods/media/pdf';
 import { playlistMod } from '../mods/media/playlist';
 import { tableMod } from '../mods/media/table';
 import { videoMod } from '../mods/media/video';
-import { ytInfoMod } from '../mods/media/yt-meta';
 import { modMod } from '../mods/mod';
 import { modlistMod } from '../mods/modlist';
 import { folderMod } from '../mods/org/folder';
@@ -84,7 +83,7 @@ import { qrMod } from '../mods/tools/qr';
 import { thanksMod } from '../mods/tools/thanks';
 import { userMod } from '../mods/user';
 import { voteMod } from '../mods/vote';
-import { ytdlpMod } from '../mods/ytdlp';
+import { ytdlpMod } from '../mods/media/ytdlp';
 import { progress } from '../store/bus';
 import { Store } from '../store/store';
 import { modId } from '../util/format';
@@ -181,7 +180,6 @@ export class AdminService {
     audioMod,
     videoMod,
     ytdlpMod,
-    ytInfoMod,
     markitdownMod,
     voteMod,
     imageMod,
