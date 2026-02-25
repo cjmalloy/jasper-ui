@@ -1,8 +1,8 @@
 import { Directive, ElementRef, Input, OnChanges } from '@angular/core';
-import { Ref } from '../../model/ref';
-import { AdminService } from '../../service/admin.service';
-import { ProxyService } from '../../service/api/proxy.service';
-import { getExtension } from '../../util/http';
+import { Ref } from '../model/ref';
+import { AdminService } from '../service/admin.service';
+import { ProxyService } from '../service/api/proxy.service';
+import { getExtension } from '../util/http';
 
 function generateStoryboardKeyframes(name: string, cols: number, rows: number): string {
   // Guard against invalid grid sizes that would cause division by zero

@@ -85,7 +85,7 @@ import { LoadingComponent } from '../loading/loading.component';
 import { MdComponent } from '../md/md.component';
 import { NavComponent } from '../nav/nav.component';
 import { ViewerComponent } from '../viewer/viewer.component';
-import { StoryboardDirective } from '../../mods/media/storyboard.directive';
+import { StoryboardDirective } from '../../directive/storyboard.directive';
 
 @Component({
   selector: 'app-ref',
