@@ -85,21 +85,7 @@ import { LoadingComponent } from '../loading/loading.component';
 import { MdComponent } from '../md/md.component';
 import { NavComponent } from '../nav/nav.component';
 import { ViewerComponent } from '../viewer/viewer.component';
-
-function generateStoryboardKeyframes(name: string, cols: number, rows: number): string {
-  const totalFrames = cols * rows;
-  const lines: string[] = [`@keyframes ${name} {`];
-  for (let i = 0; i < totalFrames; i++) {
-    const col = i % cols;
-    const row = Math.floor(i / cols);
-    const pct = ((i / totalFrames) * 100).toFixed(4);
-    const x = `${col / (cols - 1) * 100}%`;
-    const y = `${row / (rows - 1) * 100}%`;
-    lines.push(`  ${pct}% { background-position: ${x} ${y}; animation-timing-function: step-end; }`);
-  }
-  lines.push('}');
-  return lines.join('\n');
-}
+import { StoryboardDirective } from '../../mods/media/storyboard.directive';
 
 @Component({
   selector: 'app-ref',
@@ -123,6 +109,7 @@ function generateStoryboardKeyframes(name: string, cols: number, rows: number): 
     AsyncPipe,
     ThumbnailPipe,
     CssUrlPipe,
+    StoryboardDirective,
   ],
 })
 export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasChanges {
@@ -236,10 +223,6 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
       MemoCache.clear(this, 'thumbnailColor');
       MemoCache.clear(this, 'thumbnailEmoji');
       MemoCache.clear(this, 'thumbnailEmojiDefaults');
-      MemoCache.clear(this, 'storyboard');
-      MemoCache.clear(this, 'storyboardBgImage');
-      MemoCache.clear(this, 'storyboardBgSize');
-      MemoCache.clear(this, 'storyboardAnimation');
       this.initFields({ ...this.ref, ...value });
       cd.detectChanges();
     }, 400, { leading: true, trailing: true }));
@@ -632,73 +615,6 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   get thumbnailRadius() {
     if (this.editing) return this.editForm.value.plugins?.['plugin/thumbnail']?.radius || 0;
     return this.ref?.plugins?.['plugin/thumbnail']?.radius || this.repostRef?.plugins?.['plugin/thumbnail']?.radius || 0;
-  }
-
-  @memo
-  get storyboard() {
-    if (!this.admin.getPlugin('plugin/thumbnail/storyboard')) return null;
-    if (this.editing) return this.editForm.value.plugins?.['plugin/thumbnail/storyboard'] || null;
-    return this.ref?.plugins?.['plugin/thumbnail/storyboard'] || this.repostRef?.plugins?.['plugin/thumbnail/storyboard'] || null;
-  }
-
-  @memo
-  get storyboardBgImage() {
-    const sb = this.storyboard;
-    if (sb?.url) {
-      const rawUrl = String(sb.url);
-      const origin = this.ref?.origin || this.repostRef?.origin || '';
-      let resolvedUrl: string;
-      if (rawUrl.startsWith('cache:') || this.admin.getPlugin('plugin/thumbnail')?.config?.proxy) {
-        const ext = getExtension(rawUrl) || '';
-        const title = this.ref?.title || 'storyboard';
-        resolvedUrl = this.proxy.getFetch(rawUrl, origin, title + (title.endsWith(ext) ? '' : ext), true);
-      } else {
-        resolvedUrl = rawUrl;
-      }
-      const escapedUrl = resolvedUrl.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
-      return `url("${escapedUrl}")`;
-    }
-    return null;
-  }
-
-  @memo
-  get storyboardBgSize() {
-    const sb = this.storyboard;
-    if (!sb?.cols || !sb?.rows) return null;
-    return `${sb.cols * 100}% ${sb.rows * 100}%`;
-  }
-
-  @memo
-  get storyboardMargin() {
-    const sb = this.storyboard;
-    if (!sb?.cols || !sb?.rows) return null;
-    return ((48 - (48 * sb.height / sb.width)) / 2) + 'px';
-  }
-
-  @memo
-  get storyboardHeight() {
-    const sb = this.storyboard;
-    if (!sb?.cols || !sb?.rows) return null;
-    return (48 * sb.height / sb.width) + 'px';
-  }
-
-  @memo
-  get storyboardAnimation() {
-    const sb = this.storyboard;
-    if (!sb?.cols || !sb?.rows) return null;
-    const totalFrames = sb.cols * sb.rows;
-    if (totalFrames < 2) return null;
-    const frameDurationS = 1;
-    const totalDurationS = totalFrames * frameDurationS;
-    const name = `storyboard-slide-${sb.cols}x${sb.rows}`;
-    const styleId = `style-${name}`;
-    if (!document.getElementById(styleId)) {
-      const style = document.createElement('style');
-      style.id = styleId;
-      style.textContent = generateStoryboardKeyframes(name, sb.cols, sb.rows);
-      document.head.appendChild(style);
-    }
-    return `${name} ${totalDurationS.toFixed(2)}s linear infinite`;
   }
 
   @memo
