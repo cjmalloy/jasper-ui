@@ -491,23 +491,27 @@ Handlebars.registerHelper('defer', (el: Element, fn: () => {}) => {
 });
 Handlebars.registerHelper('fromNow', (value: string) => DateTime.fromISO(value).toRelative());
 Handlebars.registerHelper('formatInterval', (value: string) => Duration.fromISO(value).toHuman());
-Handlebars.registerHelper('tagValue', (ref: Ref, tag: string, index = -1) => {
+Handlebars.registerHelper('duration', (ref: Ref, tag: string, indexOrOptions: any) => {
+  const index = typeof indexOrOptions === 'number' ? indexOrOptions : -1;
   const p = tag + '/';
   const t = ref?.tags?.find(t => t.startsWith(p));
   if (!t) return undefined;
   const result = t.substring(p.length);
-  if (index === -1) return result;
-  return result.split('/')[index];
+  const value = index === -1 ? result : result.split('/')[index];
+  const d = Duration.fromISO(value.toUpperCase());
+  return d.isValid ? d : undefined;
 });
-Handlebars.registerHelper('humanDuration', (value: string) => {
+Handlebars.registerHelper('human', (value: any) => {
   if (!value) return '';
-  try {
-    return Duration.fromISO(value.toUpperCase()).toHuman();
-  } catch (e) {}
-  try {
-    return DateTime.fromISO(value).toRelative() ?? '';
-  } catch (e) {}
-  return '';
+  if (Duration.isDuration(value)) return value.toHuman();
+  if (DateTime.isDateTime(value)) return value.toRelative() ?? '';
+  if (typeof value === 'string') {
+    const d = Duration.fromISO(value.toUpperCase());
+    if (d.isValid) return d.toHuman();
+    const dt = DateTime.fromISO(value);
+    if (dt.isValid) return dt.toRelative() ?? '';
+  }
+  return String(value);
 });
 Handlebars.registerHelper('plugins', (ref: Ref, plugin: string) => ref.metadata?.plugins?.[plugin]);
 Handlebars.registerHelper('response', (ref: Ref, value: string) => ref.metadata?.userUrls?.includes(value));
