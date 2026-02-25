@@ -86,7 +86,7 @@ export const storyboardPlugin: Plugin = {
     description: $localize`Storyboard thumbnail data for hover-triggered slideshows.`,
     // language=CSS
     css: `
-      .ref.plugin_thumbnail_storyboard .has-storyboard-default .thumbnail,
+      .ref.plugin_thumbnail_storyboard.has-storyboard-default .thumbnail,
       .ref.plugin_thumbnail_storyboard:hover .thumbnail {
         height: var(--storyboard-height) !important;
         margin-top: var(--storyboard-margin) !important;

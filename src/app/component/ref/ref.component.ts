@@ -91,6 +91,7 @@ import { StoryboardDirective } from '../../directive/storyboard.directive';
   selector: 'app-ref',
   templateUrl: './ref.component.html',
   styleUrls: ['./ref.component.scss'],
+  hostDirectives: [StoryboardDirective],
   imports: [
     ViewerComponent,
     RefFormComponent,
@@ -109,7 +110,6 @@ import { StoryboardDirective } from '../../directive/storyboard.directive';
     AsyncPipe,
     ThumbnailPipe,
     CssUrlPipe,
-    StoryboardDirective,
   ],
 })
 export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasChanges {
@@ -209,6 +209,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     private fb: UntypedFormBuilder,
     private el: ElementRef<HTMLDivElement>,
     private cd: ChangeDetectorRef,
+    private storyboard: StoryboardDirective,
   ) {
     this.editForm = refForm(fb);
     this.editForm.valueChanges.pipe(
@@ -224,6 +225,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
       MemoCache.clear(this, 'thumbnailEmoji');
       MemoCache.clear(this, 'thumbnailEmojiDefaults');
       this.initFields({ ...this.ref, ...value });
+      this.syncStoryboard();
       cd.detectChanges();
     }, 400, { leading: true, trailing: true }));
     this.disposers.push(autorun(() => {
@@ -294,6 +296,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
 
     this.expandPlugins = this.admin.getEmbeds(this.ref);
     MemoCache.clear(this);
+    this.syncStoryboard();
     if (this.repost && this.ref && this.fetchRepost && this.repostRef?.url != repost(this.ref)) {
       (this.store.view.top?.url === this.ref.sources![0]
           ? of(this.store.view.top)
@@ -311,8 +314,16 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
         } else {
           this.expandPlugins.push('plugin/repost');
         }
+        this.syncStoryboard();
       });
     }
+  }
+
+  private syncStoryboard() {
+    this.storyboard.ref = this.ref;
+    this.storyboard.storyboardRepost = this.repostRef;
+    this.storyboard.storyboardEditValue = this.editing ? this.editForm.value : null;
+    this.storyboard.apply();
   }
 
   initFields(ref: Ref) {
@@ -467,6 +478,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     this._editing = value;
     if (value) {
       this.syncEditor();
+      this.syncStoryboard();
     } else {
       defer(() => {
         MemoCache.clear(this);

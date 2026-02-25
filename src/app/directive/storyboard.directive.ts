@@ -55,7 +55,7 @@ export class StoryboardDirective implements OnChanges {
       || null;
   }
 
-  private apply() {
+  apply() {
     const el = this.el.nativeElement;
     const sb = this.storyboard;
 
