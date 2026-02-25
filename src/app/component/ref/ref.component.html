@@ -19,7 +19,6 @@
            [style.border-radius.px]="thumbnailRadius">{{ thumbnailEmoji }}</div>
     } @else if (thumbnail) {
       <div class="thumbnail"
-           [class.thumbnail--storyboard]="!!storyboard"
            [style.background-image]="thumbnailRefs | thumbnail: true | async | cssUrl"
            [style.--storyboard-url]="storyboardBgImage"
            [style.--storyboard-size]="storyboardBgSize"

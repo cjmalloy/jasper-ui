@@ -91,11 +91,11 @@ export const storyboardPlugin: Plugin = {
         to { background-position-x: 100% }
       }
 
-      .ref.plugin_thumbnail_storyboard .thumbnail--storyboard:hover {
+      .ref.plugin_thumbnail_storyboard .thumbnail:hover {
         background-image: var(--storyboard-url) !important;
         background-size: var(--storyboard-size) !important;
         background-position: 0% 0%;
-        animation-play-state: running;
+        animation-play-state: running !important;
       }
     `,
   },
