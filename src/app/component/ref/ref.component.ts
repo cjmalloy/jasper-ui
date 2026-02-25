@@ -85,13 +85,10 @@ import { LoadingComponent } from '../loading/loading.component';
 import { MdComponent } from '../md/md.component';
 import { NavComponent } from '../nav/nav.component';
 import { ViewerComponent } from '../viewer/viewer.component';
-import { StoryboardDirective } from '../../directive/storyboard.directive';
-
-@Component({
+import { generateStoryboardKeyframes } from '../../mods/thumbnail';@Component({
   selector: 'app-ref',
   templateUrl: './ref.component.html',
   styleUrls: ['./ref.component.scss'],
-  hostDirectives: [StoryboardDirective],
   imports: [
     ViewerComponent,
     RefFormComponent,
@@ -209,7 +206,6 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     private fb: UntypedFormBuilder,
     private el: ElementRef<HTMLDivElement>,
     private cd: ChangeDetectorRef,
-    private storyboard: StoryboardDirective,
   ) {
     this.editForm = refForm(fb);
     this.editForm.valueChanges.pipe(
@@ -320,10 +316,78 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   }
 
   private syncStoryboard() {
-    this.storyboard.ref = this.ref;
-    this.storyboard.storyboardRepost = this.repostRef;
-    this.storyboard.storyboardEditValue = this.editing ? this.editForm.value : null;
-    this.storyboard.apply();
+    const el = this.el.nativeElement;
+    const editValue = this.editing ? this.editForm.value : null;
+    let sb: any = null;
+    if (this.admin.getPlugin('plugin/thumbnail/storyboard')) {
+      if (editValue !== null) {
+        sb = editValue?.plugins?.['plugin/thumbnail/storyboard'] || null;
+      } else {
+        sb = this.ref?.plugins?.['plugin/thumbnail/storyboard']
+          || this.repostRef?.plugins?.['plugin/thumbnail/storyboard']
+          || null;
+      }
+    }
+
+    if (sb?.url) {
+      const rawUrl = String(sb.url);
+      const origin = this.ref?.origin || this.repostRef?.origin || '';
+      let resolvedUrl: string;
+      if (rawUrl.startsWith('cache:') || this.admin.getPlugin('plugin/thumbnail')?.config?.proxy) {
+        const ext = getExtension(rawUrl) || '';
+        const title = this.ref?.title || 'storyboard';
+        resolvedUrl = this.proxy.getFetch(rawUrl, origin, title + (title.endsWith(ext) ? '' : ext), true);
+      } else {
+        resolvedUrl = rawUrl;
+      }
+      const escapedUrl = resolvedUrl.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+      el.style.setProperty('--storyboard-url', `url("${escapedUrl}")`);
+    } else {
+      el.style.removeProperty('--storyboard-url');
+    }
+
+    if (sb?.cols && sb?.rows) {
+      const cols = Math.trunc(Number(sb.cols));
+      const rows = Math.trunc(Number(sb.rows));
+      const totalFrames = cols * rows;
+      if (cols > 0 && rows > 0 && totalFrames <= 10_000) {
+        el.style.setProperty('--storyboard-size', `${cols * 100}% ${rows * 100}%`);
+        if (sb.width && sb.width > 0 && sb.height && sb.height > 0) {
+          el.style.setProperty('--storyboard-margin', ((48 - (48 * sb.height / sb.width)) / 2) + 'px');
+          el.style.setProperty('--storyboard-height', (48 * sb.height / sb.width) + 'px');
+        } else {
+          el.style.removeProperty('--storyboard-margin');
+          el.style.removeProperty('--storyboard-height');
+        }
+        if (totalFrames >= 2) {
+          const name = `storyboard-slide-${cols}x${rows}`;
+          const styleId = `style-${name}`;
+          if (!document.getElementById(styleId)) {
+            const style = document.createElement('style');
+            style.id = styleId;
+            style.textContent = generateStoryboardKeyframes(name, cols, rows);
+            document.head.appendChild(style);
+          }
+          el.style.setProperty('--storyboard-animation', `${name} ${(totalFrames).toFixed(2)}s linear infinite`);
+        } else {
+          el.style.removeProperty('--storyboard-animation');
+        }
+      } else {
+        el.style.removeProperty('--storyboard-size');
+        el.style.removeProperty('--storyboard-margin');
+        el.style.removeProperty('--storyboard-height');
+        el.style.removeProperty('--storyboard-animation');
+      }
+    } else {
+      el.style.removeProperty('--storyboard-size');
+      el.style.removeProperty('--storyboard-margin');
+      el.style.removeProperty('--storyboard-height');
+      el.style.removeProperty('--storyboard-animation');
+    }
+
+    const thumbPlugins = editValue !== null ? editValue?.plugins : (this.ref?.plugins || this.repostRef?.plugins);
+    const thumbData = thumbPlugins?.['plugin/thumbnail'];
+    el.classList.toggle('has-storyboard-default', !!sb && !(thumbData?.url || thumbData?.emoji || thumbData?.color));
   }
 
   initFields(ref: Ref) {

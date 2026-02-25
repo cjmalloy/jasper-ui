@@ -116,3 +116,19 @@ export const thumbnailMod: Mod = {
     storyboardPlugin,
   ]
 };
+
+export function generateStoryboardKeyframes(name: string, cols: number, rows: number): string {
+  if (cols <= 0 || rows <= 0) return '';
+  const totalFrames = cols * rows;
+  const lines: string[] = [`@keyframes ${name} {`];
+  for (let i = 0; i < totalFrames; i++) {
+    const col = i % cols;
+    const row = Math.floor(i / cols);
+    const pct = ((i / totalFrames) * 100).toFixed(4);
+    const x = cols === 1 ? '0%' : `${(col / (cols - 1)) * 100}%`;
+    const y = rows === 1 ? '0%' : `${(row / (rows - 1)) * 100}%`;
+    lines.push(`  ${pct}% { background-position: ${x} ${y}; animation-timing-function: step-end; }`);
+  }
+  lines.push('}');
+  return lines.join('\n');
+}
