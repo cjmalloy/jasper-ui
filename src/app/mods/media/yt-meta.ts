@@ -64,12 +64,14 @@ if storyboards:
     # URL contains $M placeholder for fragment index; use fragment 0
     sb_url = spec.get('url', '').replace('$M', '0')
     if sb_url:
+        sb_rows = int(spec.get('rows', 1))
+        sb_cols = int(spec.get('columns', 1))
         plugins['plugin/thumbnail/storyboard'] = {
             'url': sb_url,
-            'width': int(spec.get('width', 160)),
-            'height': int(spec.get('height', 90)),
-            'rows': int(spec.get('rows', 1)),
-            'cols': int(spec.get('columns', 1))
+            'rows': sb_rows,
+            'cols': sb_cols,
+            'frame_width': int(spec.get('width', 160)) // sb_cols,
+            'frame_height': int(spec.get('height', 90)) // sb_rows,
         }
         tags = ref.get('tags', [])
         if 'plugin/thumbnail/storyboard' not in tags:
