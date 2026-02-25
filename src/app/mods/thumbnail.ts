@@ -96,14 +96,15 @@ export const storyboardPlugin: Plugin = {
         background-size: var(--storyboard-size) !important;
         background-position: 0% 0%;
         animation-play-state: running !important;
+        clip-path: var(--storyboard-clip-path, none);
       }
     `,
   },
   schema: {
     optionalProperties: {
       url: { type: 'string' },
-      width: { type: 'int32' },
-      height: { type: 'int32' },
+      frame_width: { type: 'int32' },
+      frame_height: { type: 'int32' },
       rows: { type: 'int32' },
       cols: { type: 'int32' },
     },
