@@ -491,6 +491,27 @@ Handlebars.registerHelper('defer', (el: Element, fn: () => {}) => {
 });
 Handlebars.registerHelper('fromNow', (value: string) => DateTime.fromISO(value).toRelative());
 Handlebars.registerHelper('formatInterval', (value: string) => Duration.fromISO(value).toHuman());
+Handlebars.registerHelper('duration', (ref: Ref, tag: string) => {
+  const p = tag + '/';
+  const t = ref?.tags?.find(t => t.startsWith(p));
+  if (!t) return undefined;
+  const result = t.substring(p.length);
+  const value = result.split('/')[0];
+  const d = Duration.fromISO(value.toUpperCase());
+  return d.isValid ? d : undefined;
+});
+Handlebars.registerHelper('human', (value: any) => {
+  if (!value) return '';
+  if (Duration.isDuration(value)) return value.toHuman();
+  if (DateTime.isDateTime(value)) return value.toRelative() ?? '';
+  if (typeof value === 'string') {
+    const d = Duration.fromISO(value.toUpperCase());
+    if (d.isValid) return d.toHuman();
+    const dt = DateTime.fromISO(value);
+    if (dt.isValid) return dt.toRelative() ?? '';
+  }
+  return String(value);
+});
 Handlebars.registerHelper('plugins', (ref: Ref, plugin: string) => ref.metadata?.plugins?.[plugin]);
 Handlebars.registerHelper('response', (ref: Ref, value: string) => ref.metadata?.userUrls?.includes(value));
 Handlebars.registerHelper('includes', (array: string[], value: string) => array?.includes(value));
