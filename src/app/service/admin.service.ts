@@ -462,8 +462,7 @@ export class AdminService {
   }
 
   get pip() {
-    // @ts-ignore
-    if (!documentPictureInPicture) return false;
+    if (!('documentPictureInPicture' in window)) return false;
     return this.getPlugin('plugin/pip');
   }
 
