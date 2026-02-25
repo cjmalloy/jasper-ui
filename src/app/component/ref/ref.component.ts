@@ -220,8 +220,13 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
       MemoCache.clear(this, 'thumbnailColor');
       MemoCache.clear(this, 'thumbnailEmoji');
       MemoCache.clear(this, 'thumbnailEmojiDefaults');
+      MemoCache.clear(this, 'storyboardUrl');
+      MemoCache.clear(this, 'storyboardSize');
+      MemoCache.clear(this, 'storyboardMargin');
+      MemoCache.clear(this, 'storyboardHeight');
+      MemoCache.clear(this, 'storyboardAnimation');
+      MemoCache.clear(this, 'hasStoryboardDefault');
       this.initFields({ ...this.ref, ...value });
-      this.syncStoryboard();
       cd.detectChanges();
     }, 400, { leading: true, trailing: true }));
     this.disposers.push(autorun(() => {
@@ -292,7 +297,6 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
 
     this.expandPlugins = this.admin.getEmbeds(this.ref);
     MemoCache.clear(this);
-    this.syncStoryboard();
     if (this.repost && this.ref && this.fetchRepost && this.repostRef?.url != repost(this.ref)) {
       (this.store.view.top?.url === this.ref.sources![0]
           ? of(this.store.view.top)
@@ -310,84 +314,8 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
         } else {
           this.expandPlugins.push('plugin/repost');
         }
-        this.syncStoryboard();
       });
     }
-  }
-
-  private syncStoryboard() {
-    const el = this.el.nativeElement;
-    const editValue = this.editing ? this.editForm.value : null;
-    let sb: any = null;
-    if (this.admin.getPlugin('plugin/thumbnail/storyboard')) {
-      if (editValue !== null) {
-        sb = editValue?.plugins?.['plugin/thumbnail/storyboard'] || null;
-      } else {
-        sb = this.ref?.plugins?.['plugin/thumbnail/storyboard']
-          || this.repostRef?.plugins?.['plugin/thumbnail/storyboard']
-          || null;
-      }
-    }
-
-    if (sb?.url) {
-      const rawUrl = String(sb.url);
-      const origin = this.ref?.origin || this.repostRef?.origin || '';
-      let resolvedUrl: string;
-      if (rawUrl.startsWith('cache:') || this.admin.getPlugin('plugin/thumbnail')?.config?.proxy) {
-        const ext = getExtension(rawUrl) || '';
-        const title = this.ref?.title || 'storyboard';
-        resolvedUrl = this.proxy.getFetch(rawUrl, origin, title + (title.endsWith(ext) ? '' : ext), true);
-      } else {
-        resolvedUrl = rawUrl;
-      }
-      const escapedUrl = resolvedUrl.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
-      el.style.setProperty('--storyboard-url', `url("${escapedUrl}")`);
-    } else {
-      el.style.removeProperty('--storyboard-url');
-    }
-
-    if (sb?.cols && sb?.rows) {
-      const cols = Math.trunc(Number(sb.cols));
-      const rows = Math.trunc(Number(sb.rows));
-      const totalFrames = cols * rows;
-      if (cols > 0 && rows > 0 && totalFrames <= 10_000) {
-        el.style.setProperty('--storyboard-size', `${cols * 100}% ${rows * 100}%`);
-        if (sb.width && sb.width > 0 && sb.height && sb.height > 0) {
-          el.style.setProperty('--storyboard-margin', ((48 - (48 * sb.height / sb.width)) / 2) + 'px');
-          el.style.setProperty('--storyboard-height', (48 * sb.height / sb.width) + 'px');
-        } else {
-          el.style.removeProperty('--storyboard-margin');
-          el.style.removeProperty('--storyboard-height');
-        }
-        if (totalFrames >= 2) {
-          const name = `storyboard-slide-${cols}x${rows}`;
-          const styleId = `style-${name}`;
-          if (!document.getElementById(styleId)) {
-            const style = document.createElement('style');
-            style.id = styleId;
-            style.textContent = generateStoryboardKeyframes(name, cols, rows);
-            document.head.appendChild(style);
-          }
-          el.style.setProperty('--storyboard-animation', `${name} ${(totalFrames).toFixed(2)}s linear infinite`);
-        } else {
-          el.style.removeProperty('--storyboard-animation');
-        }
-      } else {
-        el.style.removeProperty('--storyboard-size');
-        el.style.removeProperty('--storyboard-margin');
-        el.style.removeProperty('--storyboard-height');
-        el.style.removeProperty('--storyboard-animation');
-      }
-    } else {
-      el.style.removeProperty('--storyboard-size');
-      el.style.removeProperty('--storyboard-margin');
-      el.style.removeProperty('--storyboard-height');
-      el.style.removeProperty('--storyboard-animation');
-    }
-
-    const thumbPlugins = editValue !== null ? editValue?.plugins : (this.ref?.plugins || this.repostRef?.plugins);
-    const thumbData = thumbPlugins?.['plugin/thumbnail'];
-    el.classList.toggle('has-storyboard-default', !!sb && !(thumbData?.url || thumbData?.emoji || thumbData?.color));
   }
 
   initFields(ref: Ref) {
@@ -462,6 +390,99 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   @HostBinding('class.outdated')
   get modifiedFile() {
     return this.ref.outdated;
+  }
+
+  private get storyboardData() {
+    if (!this.admin.getPlugin('plugin/thumbnail/storyboard')) return null;
+    if (this.editing) {
+      return this.editForm.value?.plugins?.['plugin/thumbnail/storyboard'] || null;
+    }
+    return this.ref?.plugins?.['plugin/thumbnail/storyboard']
+      || this.repostRef?.plugins?.['plugin/thumbnail/storyboard']
+      || null;
+  }
+
+  @memo
+  @HostBinding('style.--storyboard-url')
+  get storyboardUrl(): string | null {
+    const sb = this.storyboardData;
+    if (!sb?.url) return null;
+    const rawUrl = String(sb.url);
+    const origin = this.ref?.origin || this.repostRef?.origin || '';
+    let resolvedUrl: string;
+    if (rawUrl.startsWith('cache:') || this.admin.getPlugin('plugin/thumbnail')?.config?.proxy) {
+      const ext = getExtension(rawUrl) || '';
+      const title = this.ref?.title || 'storyboard';
+      resolvedUrl = this.proxy.getFetch(rawUrl, origin, title + (title.endsWith(ext) ? '' : ext), true);
+    } else {
+      resolvedUrl = rawUrl;
+    }
+    const escapedUrl = resolvedUrl.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+    return `url("${escapedUrl}")`;
+  }
+
+  @memo
+  @HostBinding('style.--storyboard-size')
+  get storyboardSize(): string | null {
+    const sb = this.storyboardData;
+    if (!sb?.cols || !sb?.rows) return null;
+    const cols = Math.trunc(Number(sb.cols));
+    const rows = Math.trunc(Number(sb.rows));
+    if (cols <= 0 || rows <= 0 || cols * rows > 10_000) return null;
+    return `${cols * 100}% ${rows * 100}%`;
+  }
+
+  @memo
+  @HostBinding('style.--storyboard-margin')
+  get storyboardMargin(): string | null {
+    const sb = this.storyboardData;
+    if (!sb?.cols || !sb?.rows) return null;
+    const cols = Math.trunc(Number(sb.cols));
+    const rows = Math.trunc(Number(sb.rows));
+    if (cols <= 0 || rows <= 0 || cols * rows > 10_000) return null;
+    if (!sb.width || sb.width <= 0 || !sb.height || sb.height <= 0) return null;
+    return ((48 - (48 * sb.height / sb.width)) / 2) + 'px';
+  }
+
+  @memo
+  @HostBinding('style.--storyboard-height')
+  get storyboardHeight(): string | null {
+    const sb = this.storyboardData;
+    if (!sb?.cols || !sb?.rows) return null;
+    const cols = Math.trunc(Number(sb.cols));
+    const rows = Math.trunc(Number(sb.rows));
+    if (cols <= 0 || rows <= 0 || cols * rows > 10_000) return null;
+    if (!sb.width || sb.width <= 0 || !sb.height || sb.height <= 0) return null;
+    return (48 * sb.height / sb.width) + 'px';
+  }
+
+  @memo
+  @HostBinding('style.--storyboard-animation')
+  get storyboardAnimation(): string | null {
+    const sb = this.storyboardData;
+    if (!sb?.cols || !sb?.rows) return null;
+    const cols = Math.trunc(Number(sb.cols));
+    const rows = Math.trunc(Number(sb.rows));
+    const totalFrames = cols * rows;
+    if (cols <= 0 || rows <= 0 || totalFrames > 10_000 || totalFrames < 2) return null;
+    const name = `storyboard-slide-${cols}x${rows}`;
+    const styleId = `style-${name}`;
+    if (!document.getElementById(styleId)) {
+      const style = document.createElement('style');
+      style.id = styleId;
+      style.textContent = generateStoryboardKeyframes(name, cols, rows);
+      document.head.appendChild(style);
+    }
+    return `${name} ${totalFrames.toFixed(2)}s linear infinite`;
+  }
+
+  @memo
+  @HostBinding('class.has-storyboard-default')
+  get hasStoryboardDefault(): boolean {
+    const sb = this.storyboardData;
+    const thumbPlugins = this.editing ? this.editForm.value?.plugins : (this.ref?.plugins || this.repostRef?.plugins);
+    const thumbData = thumbPlugins?.['plugin/thumbnail'];
+    return !!sb && !(thumbData?.url || thumbData?.emoji || thumbData?.color);
   }
 
   get obsoleteOrigin() {
@@ -542,7 +563,12 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     this._editing = value;
     if (value) {
       this.syncEditor();
-      this.syncStoryboard();
+      MemoCache.clear(this, 'storyboardUrl');
+      MemoCache.clear(this, 'storyboardSize');
+      MemoCache.clear(this, 'storyboardMargin');
+      MemoCache.clear(this, 'storyboardHeight');
+      MemoCache.clear(this, 'storyboardAnimation');
+      MemoCache.clear(this, 'hasStoryboardDefault');
     } else {
       defer(() => {
         MemoCache.clear(this);
