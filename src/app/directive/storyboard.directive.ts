@@ -77,29 +77,38 @@ export class StoryboardDirective implements OnChanges {
     }
 
     if (sb?.cols && sb?.rows) {
-      el.style.setProperty('--storyboard-size', `${sb.cols * 100}% ${sb.rows * 100}%`);
-      if (sb.width && sb.width > 0 && sb.height && sb.height > 0) {
-        el.style.setProperty('--storyboard-margin', ((48 - (48 * sb.height / sb.width)) / 2) + 'px');
-        el.style.setProperty('--storyboard-height', (48 * sb.height / sb.width) + 'px');
+      const cols = Math.trunc(Number(sb.cols));
+      const rows = Math.trunc(Number(sb.rows));
+      const totalFrames = cols * rows;
+      if (cols > 0 && rows > 0 && totalFrames <= 10_000) {
+        el.style.setProperty('--storyboard-size', `${cols * 100}% ${rows * 100}%`);
+        if (sb.width && sb.width > 0 && sb.height && sb.height > 0) {
+          el.style.setProperty('--storyboard-margin', ((48 - (48 * sb.height / sb.width)) / 2) + 'px');
+          el.style.setProperty('--storyboard-height', (48 * sb.height / sb.width) + 'px');
+        } else {
+          el.style.removeProperty('--storyboard-margin');
+          el.style.removeProperty('--storyboard-height');
+        }
+
+        if (totalFrames >= 2) {
+          const frameDurationS = 1;
+          const totalDurationS = totalFrames * frameDurationS;
+          const name = `storyboard-slide-${cols}x${rows}`;
+          const styleId = `style-${name}`;
+          if (!document.getElementById(styleId)) {
+            const style = document.createElement('style');
+            style.id = styleId;
+            style.textContent = generateStoryboardKeyframes(name, cols, rows);
+            document.head.appendChild(style);
+          }
+          el.style.setProperty('--storyboard-animation', `${name} ${totalDurationS.toFixed(2)}s linear infinite`);
+        } else {
+          el.style.removeProperty('--storyboard-animation');
+        }
       } else {
+        el.style.removeProperty('--storyboard-size');
         el.style.removeProperty('--storyboard-margin');
         el.style.removeProperty('--storyboard-height');
-      }
-
-      const totalFrames = sb.cols * sb.rows;
-      if (totalFrames >= 2) {
-        const frameDurationS = 1;
-        const totalDurationS = totalFrames * frameDurationS;
-        const name = `storyboard-slide-${sb.cols}x${sb.rows}`;
-        const styleId = `style-${name}`;
-        if (!document.getElementById(styleId)) {
-          const style = document.createElement('style');
-          style.id = styleId;
-          style.textContent = generateStoryboardKeyframes(name, sb.cols, sb.rows);
-          document.head.appendChild(style);
-        }
-        el.style.setProperty('--storyboard-animation', `${name} ${totalDurationS.toFixed(2)}s linear infinite`);
-      } else {
         el.style.removeProperty('--storyboard-animation');
       }
     } else {

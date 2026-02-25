@@ -84,6 +84,79 @@ describe('StoryboardDirective', () => {
     expect(mockStyle.setProperty).toHaveBeenCalledWith('--storyboard-height', expect.any(String));
   });
 
+  it('should clear storyboard CSS properties when cols is negative', () => {
+    mockAdmin.getPlugin.mockImplementation((tag: string) => {
+      if (tag === 'plugin/thumbnail/storyboard') return { config: {} };
+      return null;
+    });
+    const directive = new StoryboardDirective(mockEl, mockAdmin as any, mockProxy as any);
+    directive.ref = {
+      url: 'https://example.com',
+      origin: '',
+      plugins: {
+        'plugin/thumbnail/storyboard': { url: 'https://img.com', cols: -4, rows: 3 },
+      },
+    } as any;
+    directive.ngOnChanges();
+    expect(mockStyle.removeProperty).toHaveBeenCalledWith('--storyboard-size');
+    expect(mockStyle.removeProperty).toHaveBeenCalledWith('--storyboard-animation');
+    expect(mockStyle.setProperty).not.toHaveBeenCalledWith('--storyboard-size', expect.any(String));
+  });
+
+  it('should clear storyboard CSS properties when rows is negative', () => {
+    mockAdmin.getPlugin.mockImplementation((tag: string) => {
+      if (tag === 'plugin/thumbnail/storyboard') return { config: {} };
+      return null;
+    });
+    const directive = new StoryboardDirective(mockEl, mockAdmin as any, mockProxy as any);
+    directive.ref = {
+      url: 'https://example.com',
+      origin: '',
+      plugins: {
+        'plugin/thumbnail/storyboard': { url: 'https://img.com', cols: 4, rows: -3 },
+      },
+    } as any;
+    directive.ngOnChanges();
+    expect(mockStyle.removeProperty).toHaveBeenCalledWith('--storyboard-size');
+    expect(mockStyle.setProperty).not.toHaveBeenCalledWith('--storyboard-size', expect.any(String));
+  });
+
+  it('should coerce non-integer cols/rows to integers', () => {
+    mockAdmin.getPlugin.mockImplementation((tag: string) => {
+      if (tag === 'plugin/thumbnail/storyboard') return { config: {} };
+      return null;
+    });
+    const directive = new StoryboardDirective(mockEl, mockAdmin as any, mockProxy as any);
+    directive.ref = {
+      url: 'https://example.com',
+      origin: '',
+      plugins: {
+        'plugin/thumbnail/storyboard': { url: 'https://img.com', cols: 4.9, rows: 3.1 },
+      },
+    } as any;
+    directive.ngOnChanges();
+    expect(mockStyle.setProperty).toHaveBeenCalledWith('--storyboard-size', '400% 300%');
+  });
+
+  it('should clear storyboard CSS properties when totalFrames exceeds 10000', () => {
+    mockAdmin.getPlugin.mockImplementation((tag: string) => {
+      if (tag === 'plugin/thumbnail/storyboard') return { config: {} };
+      return null;
+    });
+    const directive = new StoryboardDirective(mockEl, mockAdmin as any, mockProxy as any);
+    directive.ref = {
+      url: 'https://example.com',
+      origin: '',
+      plugins: {
+        'plugin/thumbnail/storyboard': { url: 'https://img.com', cols: 200, rows: 200 },
+      },
+    } as any;
+    directive.ngOnChanges();
+    expect(mockStyle.removeProperty).toHaveBeenCalledWith('--storyboard-size');
+    expect(mockStyle.removeProperty).toHaveBeenCalledWith('--storyboard-animation');
+    expect(mockStyle.setProperty).not.toHaveBeenCalledWith('--storyboard-size', expect.any(String));
+  });
+
   it('should set has-storyboard-default class when storyboard exists and no thumbnail data', () => {
     mockAdmin.getPlugin.mockImplementation((tag: string) => {
       if (tag === 'plugin/thumbnail/storyboard') return { config: {} };
