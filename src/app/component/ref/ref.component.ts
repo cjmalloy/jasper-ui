@@ -443,7 +443,23 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     const rows = Math.trunc(Number(sb.rows));
     if (cols <= 0 || rows <= 0 || cols * rows > 10_000) return null;
     if (!sb.width || sb.width <= 0 || !sb.height || sb.height <= 0) return null;
-    return ((48 - (48 * sb.height / sb.width)) / 2) + 'px';
+    if (sb.width > sb.height) return ((48 - (48 * sb.height / sb.width)) / 2) + 'px 0 0 0';
+    const margin = ((48 - (48 * sb.width / sb.height)) / 2);
+    return '0 ' + (margin + 10) + 'px 0 ' + margin + 'px';
+  }
+
+  @memo
+  @HostBinding('style.--storyboard-width')
+  get storyboardWidth(): string | null {
+    const sb = this.storyboardData;
+    if (!sb?.cols || !sb?.rows) return null;
+    const cols = Math.trunc(Number(sb.cols));
+    const rows = Math.trunc(Number(sb.rows));
+    if (cols <= 0 || rows <= 0 || cols * rows > 10_000) return null;
+    if (!sb.width || sb.width <= 0 || !sb.height || sb.height <= 0) return null;
+    if (sb.width > sb.height) return '48px';
+    return (48 * sb.width / sb.height) + 'px';
+
   }
 
   @memo
@@ -455,7 +471,8 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     const rows = Math.trunc(Number(sb.rows));
     if (cols <= 0 || rows <= 0 || cols * rows > 10_000) return null;
     if (!sb.width || sb.width <= 0 || !sb.height || sb.height <= 0) return null;
-    return (48 * sb.height / sb.width) + 'px';
+    if (sb.width > sb.height) return (48 * sb.height / sb.width) + 'px';
+    return '48px';
   }
 
   @memo

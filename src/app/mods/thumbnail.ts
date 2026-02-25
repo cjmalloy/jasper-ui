@@ -88,8 +88,9 @@ export const storyboardPlugin: Plugin = {
     css: `
       .ref.plugin_thumbnail_storyboard.has-storyboard-default .thumbnail,
       .ref.plugin_thumbnail_storyboard:hover .thumbnail {
+        width: var(--storyboard-width) !important;
         height: var(--storyboard-height) !important;
-        margin-top: var(--storyboard-margin) !important;
+        margin: var(--storyboard-margin) !important;
         background-image: var(--storyboard-url) !important;
         background-size: var(--storyboard-size) !important;
         background-position: 0% 0%;
