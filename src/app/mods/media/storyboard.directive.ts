@@ -99,5 +99,12 @@ export class StoryboardDirective implements OnChanges {
       el.style.removeProperty('--storyboard-height');
       el.style.removeProperty('--storyboard-animation');
     }
+
+    const thumbPlugins = this.storyboardEditValue !== null && this.storyboardEditValue !== undefined
+      ? this.storyboardEditValue.plugins
+      : (this.ref?.plugins || this.storyboardRepost?.plugins);
+    const thumbData = thumbPlugins?.['plugin/thumbnail'];
+    const hasThumbData = !!(thumbData?.url || thumbData?.emoji || thumbData?.color);
+    el.classList.toggle('has-storyboard-default', !!sb && !hasThumbData);
   }
 }
