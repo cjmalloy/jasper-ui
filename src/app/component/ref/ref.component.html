@@ -1,7 +1,4 @@
-<div class="row"
-     [appStoryboard]="ref"
-     [storyboardRepost]="repostRef"
-     [storyboardEditValue]="editing ? editForm.value : null">
+<div class="row">
   @if (store.view.isVoteSorted && store.account.user && admin.getPlugin('plugin/user/vote/up')) {
     <div class="voting">
       <div class="vote-up"

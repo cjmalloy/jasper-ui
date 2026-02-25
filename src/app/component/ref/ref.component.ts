@@ -85,9 +85,7 @@ import { LoadingComponent } from '../loading/loading.component';
 import { MdComponent } from '../md/md.component';
 import { NavComponent } from '../nav/nav.component';
 import { ViewerComponent } from '../viewer/viewer.component';
-import { StoryboardDirective } from '../../directive/storyboard.directive';
-
-@Component({
+import { generateStoryboardKeyframes } from '../../mods/thumbnail';@Component({
   selector: 'app-ref',
   templateUrl: './ref.component.html',
   styleUrls: ['./ref.component.scss'],
@@ -109,7 +107,6 @@ import { StoryboardDirective } from '../../directive/storyboard.directive';
     AsyncPipe,
     ThumbnailPipe,
     CssUrlPipe,
-    StoryboardDirective,
   ],
 })
 export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasChanges {
@@ -223,6 +220,12 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
       MemoCache.clear(this, 'thumbnailColor');
       MemoCache.clear(this, 'thumbnailEmoji');
       MemoCache.clear(this, 'thumbnailEmojiDefaults');
+      MemoCache.clear(this, 'storyboardUrl');
+      MemoCache.clear(this, 'storyboardSize');
+      MemoCache.clear(this, 'storyboardMargin');
+      MemoCache.clear(this, 'storyboardHeight');
+      MemoCache.clear(this, 'storyboardAnimation');
+      MemoCache.clear(this, 'hasStoryboardDefault');
       this.initFields({ ...this.ref, ...value });
       cd.detectChanges();
     }, 400, { leading: true, trailing: true }));
@@ -389,6 +392,99 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     return this.ref.outdated;
   }
 
+  private get storyboardData() {
+    if (!this.admin.getPlugin('plugin/thumbnail/storyboard')) return null;
+    if (this.editing) {
+      return this.editForm.value?.plugins?.['plugin/thumbnail/storyboard'] || null;
+    }
+    return this.ref?.plugins?.['plugin/thumbnail/storyboard']
+      || this.repostRef?.plugins?.['plugin/thumbnail/storyboard']
+      || null;
+  }
+
+  @memo
+  @HostBinding('style.--storyboard-url')
+  get storyboardUrl(): string | null {
+    const sb = this.storyboardData;
+    if (!sb?.url) return null;
+    const rawUrl = String(sb.url);
+    const origin = this.ref?.origin || this.repostRef?.origin || '';
+    let resolvedUrl: string;
+    if (rawUrl.startsWith('cache:') || this.admin.getPlugin('plugin/thumbnail')?.config?.proxy) {
+      const ext = getExtension(rawUrl) || '';
+      const title = this.ref?.title || 'storyboard';
+      resolvedUrl = this.proxy.getFetch(rawUrl, origin, title + (title.endsWith(ext) ? '' : ext), true);
+    } else {
+      resolvedUrl = rawUrl;
+    }
+    const escapedUrl = resolvedUrl.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+    return `url("${escapedUrl}")`;
+  }
+
+  @memo
+  @HostBinding('style.--storyboard-size')
+  get storyboardSize(): string | null {
+    const sb = this.storyboardData;
+    if (!sb?.cols || !sb?.rows) return null;
+    const cols = Math.trunc(Number(sb.cols));
+    const rows = Math.trunc(Number(sb.rows));
+    if (cols <= 0 || rows <= 0 || cols * rows > 10_000) return null;
+    return `${cols * 100}% ${rows * 100}%`;
+  }
+
+  @memo
+  @HostBinding('style.--storyboard-margin')
+  get storyboardMargin(): string | null {
+    const sb = this.storyboardData;
+    if (!sb?.cols || !sb?.rows) return null;
+    const cols = Math.trunc(Number(sb.cols));
+    const rows = Math.trunc(Number(sb.rows));
+    if (cols <= 0 || rows <= 0 || cols * rows > 10_000) return null;
+    if (!sb.width || sb.width <= 0 || !sb.height || sb.height <= 0) return null;
+    return ((48 - (48 * sb.height / sb.width)) / 2) + 'px';
+  }
+
+  @memo
+  @HostBinding('style.--storyboard-height')
+  get storyboardHeight(): string | null {
+    const sb = this.storyboardData;
+    if (!sb?.cols || !sb?.rows) return null;
+    const cols = Math.trunc(Number(sb.cols));
+    const rows = Math.trunc(Number(sb.rows));
+    if (cols <= 0 || rows <= 0 || cols * rows > 10_000) return null;
+    if (!sb.width || sb.width <= 0 || !sb.height || sb.height <= 0) return null;
+    return (48 * sb.height / sb.width) + 'px';
+  }
+
+  @memo
+  @HostBinding('style.--storyboard-animation')
+  get storyboardAnimation(): string | null {
+    const sb = this.storyboardData;
+    if (!sb?.cols || !sb?.rows) return null;
+    const cols = Math.trunc(Number(sb.cols));
+    const rows = Math.trunc(Number(sb.rows));
+    const totalFrames = cols * rows;
+    if (cols <= 0 || rows <= 0 || totalFrames > 10_000 || totalFrames < 2) return null;
+    const name = `storyboard-slide-${cols}x${rows}`;
+    const styleId = `style-${name}`;
+    if (!document.getElementById(styleId)) {
+      const style = document.createElement('style');
+      style.id = styleId;
+      style.textContent = generateStoryboardKeyframes(name, cols, rows);
+      document.head.appendChild(style);
+    }
+    return `${name} ${totalFrames.toFixed(2)}s linear infinite`;
+  }
+
+  @memo
+  @HostBinding('class.has-storyboard-default')
+  get hasStoryboardDefault(): boolean {
+    const sb = this.storyboardData;
+    const thumbPlugins = this.editing ? this.editForm.value?.plugins : (this.ref?.plugins || this.repostRef?.plugins);
+    const thumbData = thumbPlugins?.['plugin/thumbnail'];
+    return !!sb && !(thumbData?.url || thumbData?.emoji || thumbData?.color);
+  }
+
   get obsoleteOrigin() {
     if (this.ref.metadata?.obsolete) return this.ref.origin;
     return undefined;
@@ -467,6 +563,12 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     this._editing = value;
     if (value) {
       this.syncEditor();
+      MemoCache.clear(this, 'storyboardUrl');
+      MemoCache.clear(this, 'storyboardSize');
+      MemoCache.clear(this, 'storyboardMargin');
+      MemoCache.clear(this, 'storyboardHeight');
+      MemoCache.clear(this, 'storyboardAnimation');
+      MemoCache.clear(this, 'hasStoryboardDefault');
     } else {
       defer(() => {
         MemoCache.clear(this);
