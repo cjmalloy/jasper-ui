@@ -86,27 +86,17 @@ import { MdComponent } from '../md/md.component';
 import { NavComponent } from '../nav/nav.component';
 import { ViewerComponent } from '../viewer/viewer.component';
 
-/** Default storyboard frame width used as fallback when sprite dimensions are not stored. */
-const DEFAULT_STORYBOARD_FRAME_WIDTH = 160;
-/** Default storyboard frame height used as fallback when sprite dimensions are not stored. */
-const DEFAULT_STORYBOARD_FRAME_HEIGHT = 90;
+const THUMBNAIL_SIZE = 48; // px
 
-function generateStoryboardKeyframes(name: string, cols: number, rows: number, frameWidth: number, frameHeight: number): string {
+function generateStoryboardKeyframes(name: string, cols: number, rows: number): string {
   const totalFrames = cols * rows;
-  // bgSize is set to "${cols*100}% auto", so bgWidth = cols * containerWidth.
-  // Use pixel offsets so that each row preserves the frame's natural aspect ratio.
-  // containerWidth is the standard thumbnail size (48px).
-  const containerW = 48;
-  const bgW = cols * containerW;
-  const bgH = frameWidth > 0 ? bgW * frameHeight / frameWidth : rows * containerW;
-  const displayFrameH = bgH / rows;
   const lines: string[] = [`@keyframes ${name} {`];
   for (let i = 0; i < totalFrames; i++) {
     const col = i % cols;
     const row = Math.floor(i / cols);
     const pct = ((i / totalFrames) * 100).toFixed(4);
-    const x = `${(-col * containerW).toFixed(2)}px`;
-    const y = `${(-row * displayFrameH).toFixed(2)}px`;
+    const x = `${-col * THUMBNAIL_SIZE}px`;
+    const y = `${-row * THUMBNAIL_SIZE}px`;
     lines.push(`  ${pct}% { background-position: ${x} ${y}; animation-timing-function: step-end; }`);
   }
   lines.push('}');
@@ -252,7 +242,6 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
       MemoCache.clear(this, 'storyboardBgImage');
       MemoCache.clear(this, 'storyboardBgSize');
       MemoCache.clear(this, 'storyboardAnimation');
-      MemoCache.clear(this, 'storyboardClipPath');
       this.initFields({ ...this.ref, ...value });
       cd.detectChanges();
     }, 400, { leading: true, trailing: true }));
@@ -659,7 +648,16 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     const sb = this.storyboard;
     if (sb?.url) {
       const rawUrl = String(sb.url);
-      const escapedUrl = rawUrl.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+      const origin = this.ref?.origin || this.repostRef?.origin || '';
+      let resolvedUrl: string;
+      if (rawUrl.startsWith('cache:') || this.admin.getPlugin('plugin/thumbnail/storyboard')?.config?.proxy) {
+        const ext = getExtension(rawUrl) || '';
+        const title = this.ref?.title || 'storyboard';
+        resolvedUrl = this.proxy.getFetch(rawUrl, origin, title + (title.endsWith(ext) ? '' : ext), true);
+      } else {
+        resolvedUrl = rawUrl;
+      }
+      const escapedUrl = resolvedUrl.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
       return `url("${escapedUrl}")`;
     }
     return null;
@@ -669,8 +667,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   get storyboardBgSize() {
     const sb = this.storyboard;
     if (!sb?.cols || !sb?.rows) return null;
-    // Use auto height so the sprite sheet preserves the frame's natural aspect ratio.
-    return `${sb.cols * 100}% auto`;
+    return `${sb.cols * THUMBNAIL_SIZE}px ${sb.rows * THUMBNAIL_SIZE}px`;
   }
 
   @memo
@@ -681,37 +678,15 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     if (totalFrames < 2) return null;
     const frameDurationS = 0.15;
     const totalDurationS = totalFrames * frameDurationS;
-    if (sb.rows === 1) {
-      return `storyboard-slide ${totalDurationS.toFixed(2)}s steps(${totalFrames}, jump-none) infinite paused`;
-    }
-    const frameW = sb.frame_width || DEFAULT_STORYBOARD_FRAME_WIDTH;
-    const frameH = sb.frame_height || DEFAULT_STORYBOARD_FRAME_HEIGHT;
     const name = `storyboard-slide-${sb.cols}x${sb.rows}`;
-    const styleId = `style-${name}-${frameW}x${frameH}`;
+    const styleId = `style-${name}`;
     if (!document.getElementById(styleId)) {
       const style = document.createElement('style');
       style.id = styleId;
-      style.textContent = generateStoryboardKeyframes(name, sb.cols, sb.rows, frameW, frameH);
+      style.textContent = generateStoryboardKeyframes(name, sb.cols, sb.rows);
       document.head.appendChild(style);
     }
-    return `${name} ${totalDurationS.toFixed(2)}s linear infinite paused`;
-  }
-
-  @memo
-  get storyboardClipPath() {
-    const sb = this.storyboard;
-    if (!sb?.cols || !sb?.rows || sb.rows === 1) return null;
-    const containerH = 48;
-    const frameW = sb.frame_width || DEFAULT_STORYBOARD_FRAME_WIDTH;
-    const frameH = sb.frame_height || DEFAULT_STORYBOARD_FRAME_HEIGHT;
-    if (frameW <= 0) return null;
-    const displayFrameH = containerH * frameH / frameW;
-    if (displayFrameH >= containerH) return null;
-    const clipBottom = containerH - displayFrameH;
-    const radius = this.thumbnailRadius;
-    return radius
-      ? `inset(0 0 ${clipBottom.toFixed(2)}px 0 round ${radius}px)`
-      : `inset(0 0 ${clipBottom.toFixed(2)}px 0)`;
+    return `${name} ${totalDurationS.toFixed(2)}s linear infinite`;
   }
 
   @memo
