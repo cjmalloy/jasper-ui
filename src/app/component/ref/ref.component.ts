@@ -307,6 +307,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
         MemoCache.clear(this);
         if (this.bareRepost) {
           this.expandPlugins = this.admin.getEmbeds(ref);
+          this.allCss = this.getPluginClasses();
         } else {
           this.expandPlugins.push('plugin/repost');
         }
@@ -358,8 +359,11 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
 
   getPluginClasses() {
     if (!this.ref) return this.css;
+    const tags = this.bareRepost
+      ? uniq([...(this.ref.tags || []), ...(this.repostRef?.tags || [])])
+      : this.ref.tags;
     return this.css + ' ' + [
-      ...templates(this.ref.tags, 'plugin'),
+      ...templates(tags, 'plugin'),
       ...Object.keys(this.ref.metadata?.plugins || {}).map(p => 'response-' + p),
       ...(this.ref.metadata?.userUrls || []).map(p => 'user-response-' + p)
     ].map(t => t.replace(/[+_]/g, '').replace(/\//g, '_').replace(/\./g, '-')).join(' ');
