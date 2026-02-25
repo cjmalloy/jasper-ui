@@ -491,14 +491,21 @@ Handlebars.registerHelper('defer', (el: Element, fn: () => {}) => {
 });
 Handlebars.registerHelper('fromNow', (value: string) => DateTime.fromISO(value).toRelative());
 Handlebars.registerHelper('formatInterval', (value: string) => Duration.fromISO(value).toHuman());
-Handlebars.registerHelper('duration', (tags: string[]) => {
-  const t = tags?.find(t => t.startsWith('plugin/duration/') && t.length > 16);
-  if (!t) return '';
+Handlebars.registerHelper('tagValue', (ref: Ref, tag: string) => {
+  const p = tag + '/';
+  const t = ref?.tags?.find(t => t.startsWith(p));
+  if (!t) return undefined;
+  return t.substring(p.length);
+});
+Handlebars.registerHelper('humanDuration', (value: string) => {
+  if (!value) return '';
   try {
-    return Duration.fromISO(t.substring(16).toUpperCase()).toHuman();
-  } catch (e) {
-    return '';
-  }
+    return Duration.fromISO(value.toUpperCase()).toHuman();
+  } catch (e) {}
+  try {
+    return DateTime.fromISO(value).toRelative() ?? '';
+  } catch (e) {}
+  return '';
 });
 Handlebars.registerHelper('plugins', (ref: Ref, plugin: string) => ref.metadata?.plugins?.[plugin]);
 Handlebars.registerHelper('response', (ref: Ref, value: string) => ref.metadata?.userUrls?.includes(value));
