@@ -1,4 +1,9 @@
-<div class="row">
+<div class="row"
+     [style.--storyboard-url]="storyboardBgImage"
+     [style.--storyboard-size]="storyboardBgSize"
+     [style.--storyboard-margin]="storyboardMargin"
+     [style.--storyboard-height]="storyboardHeight"
+     [style.--storyboard-animation]="storyboardAnimation">
   @if (store.view.isVoteSorted && store.account.user && admin.getPlugin('plugin/user/vote/up')) {
     <div class="voting">
       <div class="vote-up"
@@ -20,9 +25,6 @@
     } @else if (thumbnail) {
       <div class="thumbnail"
            [style.background-image]="thumbnailRefs | thumbnail: true | async | cssUrl"
-           [style.--storyboard-url]="storyboardBgImage"
-           [style.--storyboard-size]="storyboardBgSize"
-           [style.--storyboard-animation]="storyboardAnimation"
            [style.border-radius.px]="thumbnailRadius">{{ thumbnailEmoji }}</div>
     } @else if (thumbnailEmojiDefaults) {
       <div class="thumbnail">{{ thumbnailEmojiDefaults }}</div>

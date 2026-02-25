@@ -86,7 +86,9 @@ export const storyboardPlugin: Plugin = {
     description: $localize`Storyboard thumbnail data for hover-triggered slideshows.`,
     // language=CSS
     css: `
-      .ref.plugin_thumbnail_storyboard .thumbnail:hover {
+      .ref.plugin_thumbnail_storyboard:hover .thumbnail {
+        height: var(--storyboard-height) !important;
+        margin-top: var(--storyboard-margin) !important;
         background-image: var(--storyboard-url) !important;
         background-size: var(--storyboard-size) !important;
         animation: var(--storyboard-animation) !important;
@@ -96,8 +98,8 @@ export const storyboardPlugin: Plugin = {
   schema: {
     optionalProperties: {
       url: { type: 'string' },
-      frame_width: { type: 'int32' },
-      frame_height: { type: 'int32' },
+      width: { type: 'int32' },
+      height: { type: 'int32' },
       rows: { type: 'int32' },
       cols: { type: 'int32' },
     },

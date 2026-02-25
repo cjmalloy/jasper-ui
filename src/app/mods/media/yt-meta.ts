@@ -70,8 +70,8 @@ if storyboards:
             'url': sb_url,
             'rows': sb_rows,
             'cols': sb_cols,
-            'frame_width': int(spec.get('width', 160)) // sb_cols,
-            'frame_height': int(spec.get('height', 90)) // sb_rows,
+            'width': int(spec.get('width', 0)),
+            'height': int(spec.get('height', 0)),
         }
         tags = ref.get('tags', [])
         if 'plugin/thumbnail/storyboard' not in tags:

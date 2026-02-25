@@ -86,8 +86,6 @@ import { MdComponent } from '../md/md.component';
 import { NavComponent } from '../nav/nav.component';
 import { ViewerComponent } from '../viewer/viewer.component';
 
-const THUMBNAIL_SIZE = 48; // px
-
 function generateStoryboardKeyframes(name: string, cols: number, rows: number): string {
   const totalFrames = cols * rows;
   const lines: string[] = [`@keyframes ${name} {`];
@@ -95,8 +93,8 @@ function generateStoryboardKeyframes(name: string, cols: number, rows: number): 
     const col = i % cols;
     const row = Math.floor(i / cols);
     const pct = ((i / totalFrames) * 100).toFixed(4);
-    const x = `${-col * THUMBNAIL_SIZE}px`;
-    const y = `${-row * THUMBNAIL_SIZE}px`;
+    const x = `${col / (cols - 1) * 100}%`;
+    const y = `${row / (rows - 1) * 100}%`;
     lines.push(`  ${pct}% { background-position: ${x} ${y}; animation-timing-function: step-end; }`);
   }
   lines.push('}');
@@ -650,7 +648,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
       const rawUrl = String(sb.url);
       const origin = this.ref?.origin || this.repostRef?.origin || '';
       let resolvedUrl: string;
-      if (rawUrl.startsWith('cache:') || this.admin.getPlugin('plugin/thumbnail/storyboard')?.config?.proxy) {
+      if (rawUrl.startsWith('cache:') || this.admin.getPlugin('plugin/thumbnail')?.config?.proxy) {
         const ext = getExtension(rawUrl) || '';
         const title = this.ref?.title || 'storyboard';
         resolvedUrl = this.proxy.getFetch(rawUrl, origin, title + (title.endsWith(ext) ? '' : ext), true);
@@ -667,7 +665,21 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   get storyboardBgSize() {
     const sb = this.storyboard;
     if (!sb?.cols || !sb?.rows) return null;
-    return `${sb.cols * THUMBNAIL_SIZE}px ${sb.rows * THUMBNAIL_SIZE}px`;
+    return `${sb.cols * 100}% ${sb.rows * 100}%`;
+  }
+
+  @memo
+  get storyboardMargin() {
+    const sb = this.storyboard;
+    if (!sb?.cols || !sb?.rows) return null;
+    return ((48 - (48 * sb.height / sb.width)) / 2) + 'px';
+  }
+
+  @memo
+  get storyboardHeight() {
+    const sb = this.storyboard;
+    if (!sb?.cols || !sb?.rows) return null;
+    return (48 * sb.height / sb.width) + 'px';
   }
 
   @memo
@@ -676,7 +688,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     if (!sb?.cols || !sb?.rows) return null;
     const totalFrames = sb.cols * sb.rows;
     if (totalFrames < 2) return null;
-    const frameDurationS = 0.15;
+    const frameDurationS = 1;
     const totalDurationS = totalFrames * frameDurationS;
     const name = `storyboard-slide-${sb.cols}x${sb.rows}`;
     const styleId = `style-${name}`;
