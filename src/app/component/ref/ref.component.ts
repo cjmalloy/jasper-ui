@@ -34,6 +34,7 @@ import { equalsRef, isRef, Ref } from '../../model/ref';
 import { Action, active, hydrate, Icon, sortOrder, uniqueConfigs, visible } from '../../model/tag';
 import { deleteNotice } from '../../mods/delete';
 import { addressedTo, getMailbox, mailboxes } from '../../mods/mailbox';
+import { generateStoryboardKeyframes } from '../../mods/thumbnail';
 import { CssUrlPipe } from '../../pipe/css-url.pipe';
 import { ThumbnailPipe } from '../../pipe/thumbnail.pipe';
 import { AccountService } from '../../service/account.service';
@@ -85,7 +86,6 @@ import { LoadingComponent } from '../loading/loading.component';
 import { MdComponent } from '../md/md.component';
 import { NavComponent } from '../nav/nav.component';
 import { ViewerComponent } from '../viewer/viewer.component';
-import { generateStoryboardKeyframes } from '../../mods/thumbnail';
 
 @Component({
   selector: 'app-ref',
