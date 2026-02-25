@@ -491,13 +491,12 @@ Handlebars.registerHelper('defer', (el: Element, fn: () => {}) => {
 });
 Handlebars.registerHelper('fromNow', (value: string) => DateTime.fromISO(value).toRelative());
 Handlebars.registerHelper('formatInterval', (value: string) => Duration.fromISO(value).toHuman());
-Handlebars.registerHelper('duration', (ref: Ref, tag: string, indexOrOptions: any) => {
-  const index = typeof indexOrOptions === 'number' ? indexOrOptions : -1;
+Handlebars.registerHelper('duration', (ref: Ref, tag: string, index = 0) => {
   const p = tag + '/';
   const t = ref?.tags?.find(t => t.startsWith(p));
   if (!t) return undefined;
   const result = t.substring(p.length);
-  const value = index === -1 ? result : result.split('/')[index];
+  const value = result.split('/')[index];
   const d = Duration.fromISO(value.toUpperCase());
   return d.isValid ? d : undefined;
 });
