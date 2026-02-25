@@ -491,11 +491,13 @@ Handlebars.registerHelper('defer', (el: Element, fn: () => {}) => {
 });
 Handlebars.registerHelper('fromNow', (value: string) => DateTime.fromISO(value).toRelative());
 Handlebars.registerHelper('formatInterval', (value: string) => Duration.fromISO(value).toHuman());
-Handlebars.registerHelper('tagValue', (ref: Ref, tag: string) => {
+Handlebars.registerHelper('tagValue', (ref: Ref, tag: string, index = -1) => {
   const p = tag + '/';
   const t = ref?.tags?.find(t => t.startsWith(p));
   if (!t) return undefined;
-  return t.substring(p.length);
+  const result = t.substring(p.length);
+  if (index === -1) return result;
+  return result.split('/')[index];
 });
 Handlebars.registerHelper('humanDuration', (value: string) => {
   if (!value) return '';
