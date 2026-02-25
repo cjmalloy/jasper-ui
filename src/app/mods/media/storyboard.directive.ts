@@ -78,8 +78,13 @@ export class StoryboardDirective implements OnChanges {
 
     if (sb?.cols && sb?.rows) {
       el.style.setProperty('--storyboard-size', `${sb.cols * 100}% ${sb.rows * 100}%`);
-      el.style.setProperty('--storyboard-margin', ((48 - (48 * sb.height / sb.width)) / 2) + 'px');
-      el.style.setProperty('--storyboard-height', (48 * sb.height / sb.width) + 'px');
+      if (sb.width && sb.width > 0 && sb.height && sb.height > 0) {
+        el.style.setProperty('--storyboard-margin', ((48 - (48 * sb.height / sb.width)) / 2) + 'px');
+        el.style.setProperty('--storyboard-height', (48 * sb.height / sb.width) + 'px');
+      } else {
+        el.style.removeProperty('--storyboard-margin');
+        el.style.removeProperty('--storyboard-height');
+      }
 
       const totalFrames = sb.cols * sb.rows;
       if (totalFrames >= 2) {
