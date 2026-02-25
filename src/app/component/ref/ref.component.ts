@@ -85,7 +85,9 @@ import { LoadingComponent } from '../loading/loading.component';
 import { MdComponent } from '../md/md.component';
 import { NavComponent } from '../nav/nav.component';
 import { ViewerComponent } from '../viewer/viewer.component';
-import { generateStoryboardKeyframes } from '../../mods/thumbnail';@Component({
+import { generateStoryboardKeyframes } from '../../mods/thumbnail';
+
+@Component({
   selector: 'app-ref',
   templateUrl: './ref.component.html',
   styleUrls: ['./ref.component.scss'],
