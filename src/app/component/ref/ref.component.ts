@@ -86,6 +86,21 @@ import { MdComponent } from '../md/md.component';
 import { NavComponent } from '../nav/nav.component';
 import { ViewerComponent } from '../viewer/viewer.component';
 
+function generateStoryboardKeyframes(name: string, cols: number, rows: number): string {
+  const totalFrames = cols * rows;
+  const lines: string[] = [`@keyframes ${name} {`];
+  for (let i = 0; i < totalFrames; i++) {
+    const col = i % cols;
+    const row = Math.floor(i / cols);
+    const pct = ((i / totalFrames) * 100).toFixed(4);
+    const x = cols > 1 ? ((col / (cols - 1)) * 100).toFixed(4) + '%' : '0%';
+    const y = rows > 1 ? ((row / (rows - 1)) * 100).toFixed(4) + '%' : '0%';
+    lines.push(`  ${pct}% { background-position: ${x} ${y}; animation-timing-function: step-end; }`);
+  }
+  lines.push('}');
+  return lines.join('\n');
+}
+
 @Component({
   selector: 'app-ref',
   templateUrl: './ref.component.html',
@@ -652,7 +667,17 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     if (totalFrames < 2) return null;
     const frameDurationS = 0.15;
     const totalDurationS = totalFrames * frameDurationS;
-    return `storyboard-slide ${totalDurationS.toFixed(2)}s steps(${totalFrames}, jump-none) infinite paused`;
+    if (sb.rows === 1) {
+      return `storyboard-slide ${totalDurationS.toFixed(2)}s steps(${totalFrames}, jump-none) infinite paused`;
+    }
+    const name = `storyboard-slide-${sb.cols}x${sb.rows}`;
+    if (!document.getElementById(`style-${name}`)) {
+      const style = document.createElement('style');
+      style.id = `style-${name}`;
+      style.textContent = generateStoryboardKeyframes(name, sb.cols, sb.rows);
+      document.head.appendChild(style);
+    }
+    return `${name} ${totalDurationS.toFixed(2)}s linear infinite paused`;
   }
 
   @memo
