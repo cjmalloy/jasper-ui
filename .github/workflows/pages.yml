@@ -60,7 +60,11 @@ jobs:
 
           # Download PR reports
           gh run list --workflow playwright.yml --limit 20 --json databaseId --jq '.[].databaseId' | while read run_id; do
-            gh run download "$run_id" --pattern "*-reports-pr-*" --dir _site/reports 2>/dev/null || true
+            gh run download "$run_id" --pattern "playwright-reports-*-pr-*" --dir _site/reports 2>/dev/null || true
+          done
+
+          gh run list --workflow test.yml --limit 20 --json databaseId --jq '.[].databaseId' | while read run_id; do
+            gh run download "$run_id" --pattern "vitest-reports-pr-*" --dir _site/reports 2>/dev/null || true
           done
 
           latest_vitest=$(ls -dv _site/reports/vitest-reports-master-* 2>/dev/null | tail -1)
