@@ -50,7 +50,7 @@ export class SettingsMePage implements HasChanges {
     const ext = cloneDeep(store.account.ext!);
     this.editForm = extForm(fb, ext, this.admin, true);
     this.editForm.patchValue(ext);
-    defer(() => this.form!.setValue(ext));
+    if (ext) defer(() => this.form!.setValue(ext));
   }
 
   saveChanges() {

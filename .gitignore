@@ -43,6 +43,7 @@ testem.log
 /e2e/test-results
 /playwright-report
 /test-results
+/html
 
 # System files
 .DS_Store
