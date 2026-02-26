@@ -75,7 +75,7 @@ import { ViewerComponent } from '../../viewer/viewer.component';
     InlineTagComponent,
     ActionListComponent,
     ReactiveFormsModule,
-    RefFormComponent,
+    forwardRef(() => RefFormComponent),
     LoadingComponent,
     AsyncPipe,
   ],

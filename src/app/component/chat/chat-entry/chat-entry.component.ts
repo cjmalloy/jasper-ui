@@ -44,7 +44,7 @@ import { ViewerComponent } from '../../viewer/viewer.component';
   host: { 'class': 'chat-entry' },
   imports: [
     forwardRef(() => ViewerComponent),
-    MdComponent,
+    forwardRef(() => MdComponent),
     RouterLink,
     TitleDirective,
     LoadingComponent,
