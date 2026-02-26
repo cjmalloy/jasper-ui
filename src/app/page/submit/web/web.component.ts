@@ -111,21 +111,6 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
     return !this.webForm?.dirty;
   }
 
-  saveForLater(leave = false) {
-    const savedValue = JSON.stringify(this.webForm.value);
-    this.saving = this.refs.saveEdit(this.writeRef(), this.cursor)
-      .pipe(catchError(err => {
-        delete this.saving;
-        return throwError(() => err);
-      }))
-      .subscribe(cursor => {
-        delete this.saving;
-        this.cursor = cursor;
-        if (JSON.stringify(this.webForm.value) === savedValue) this.webForm.markAsPristine();
-        if (leave) this.router.navigate(['/inbox/ref', 'plugin/editing']);
-      });
-  }
-
   ngAfterViewInit(): void {
     this.url = this.store.submit.url?.trim();
     if (this.admin.editing && this.url) {
@@ -297,6 +282,21 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
 
   get url() {
     return this.webForm.get('url')?.value;
+  }
+
+  saveForLater(leave = false) {
+    const savedValue = JSON.stringify(this.webForm.value);
+    this.saving = this.refs.saveEdit(this.writeRef(), this.cursor)
+      .pipe(catchError(err => {
+        delete this.saving;
+        return throwError(() => err);
+      }))
+      .subscribe(cursor => {
+        delete this.saving;
+        this.cursor = cursor;
+        if (JSON.stringify(this.webForm.value) === savedValue) this.webForm.markAsPristine();
+        if (leave) this.router.navigate(['/inbox/ref', 'plugin/editing']);
+      });
   }
 
   setTitle(title: string) {

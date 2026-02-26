@@ -74,8 +74,15 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
   advanced = false;
   serverError: string[] = [];
 
+  limitWidth?: HTMLElement;
+
   @ViewChild('fill')
-  fill?: ElementRef;
+  set fill(value: ElementRef | undefined) {
+    this._fill = value;
+    defer(() => this.limitWidth = this._advancedFill?.nativeElement || value?.nativeElement);
+  }
+  private _fill?: ElementRef;
+  private _advancedFill?: ElementRef;
 
   @ViewChild('ed')
   editorComponent?: EditorComponent;
@@ -119,21 +126,6 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
         .pipe(map(() => true), catchError(() => of(false))));
     }
     return !this.textForm?.dirty;
-  }
-
-  saveForLater(leave = false) {
-    const savedValue = JSON.stringify(this.textForm.value);
-    this.saving = this.refs.saveEdit(this.writeRef(), this.cursor)
-      .pipe(catchError(err => {
-        delete this.saving;
-        return throwError(() => err);
-      }))
-      .subscribe(cursor => {
-        delete this.saving;
-        this.cursor = cursor;
-        if (JSON.stringify(this.textForm.value) === savedValue) this.textForm.markAsPristine();
-        if (leave) this.router.navigate(['/inbox/ref', 'plugin/editing']);
-      });
   }
 
   ngAfterViewInit() {
@@ -216,6 +208,21 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
     return !this.store.submit.url && (this.admin.isWikiExternal() || !this.store.submit.wiki) ;
   }
 
+  saveForLater(leave = false) {
+    const savedValue = JSON.stringify(this.textForm.value);
+    this.saving = this.refs.saveEdit(this.writeRef(), this.cursor)
+      .pipe(catchError(err => {
+        delete this.saving;
+        return throwError(() => err);
+      }))
+      .subscribe(cursor => {
+        delete this.saving;
+        this.cursor = cursor;
+        if (JSON.stringify(this.textForm.value) === savedValue) this.textForm.markAsPristine();
+        if (leave) this.router.navigate(['/inbox/ref', 'plugin/editing']);
+      });
+  }
+
   showAdvanced() {
     const tags = uniq(this.textForm.value.tags);
     const published = this.textForm.value.published ? DateTime.fromISO(this.textForm.value.published) : DateTime.now();
@@ -237,6 +244,8 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
       value.setRef(this.savedRef);
       delete this.savedRef;
     }
+    this._advancedFill = value?.fill;
+    defer(() => this.limitWidth = value?.fill?.nativeElement || this._fill?.nativeElement);
   }
 
   get url() {
