@@ -436,7 +436,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     if (rawUrl.startsWith('cache:') || this.admin.getPlugin('plugin/thumbnail')?.config?.proxy) {
       const ext = getExtension(rawUrl) || '';
       const title = this.ref?.title || 'storyboard';
-      return this.proxy.getFetch(rawUrl, origin, title + (title.endsWith(ext) ? '' : ext), true);
+      return this.proxy.getFetch(rawUrl, origin, title + (title.endsWith(ext) ? '' : ext));
     } else {
       return rawUrl;
     }
