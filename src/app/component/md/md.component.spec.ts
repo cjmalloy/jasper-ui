@@ -3,6 +3,7 @@ import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http'
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
 import { MarkdownModule } from 'ngx-markdown';
 
 import { MdComponent } from './md.component';
@@ -60,9 +61,10 @@ describe('MdComponent', () => {
 
   it('should block object tags in mixed markdown content', async () => {
     // Set markdown content with text and an object tag
+    const ready = firstValueFrom(component.postProcessMarkdown);
     component.text = 'This is some text\n\n<object data="malicious.swf" type="application/x-shockwave-flash"></object>\n\nMore text';
     fixture.detectChanges();
-    await fixture.whenStable();
+    await ready;
 
     const element = fixture.nativeElement;
     const objectTags = element.querySelectorAll('object');
@@ -77,9 +79,10 @@ describe('MdComponent', () => {
 
   it('should block embed tags in mixed markdown content', async () => {
     // Set markdown content with text and an embed tag
+    const ready = firstValueFrom(component.postProcessMarkdown);
     component.text = '# Heading\n\n<embed src="dangerous.swf" type="application/x-shockwave-flash">\n\nSafe paragraph';
     fixture.detectChanges();
-    await fixture.whenStable();
+    await ready;
 
     const element = fixture.nativeElement;
     const embedTags = element.querySelectorAll('embed');

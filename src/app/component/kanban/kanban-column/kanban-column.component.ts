@@ -37,7 +37,7 @@ import { getArgs, UrlFilter } from '../../../util/query';
 import { hasTag } from '../../../util/tag';
 import { LoadingComponent } from '../../loading/loading.component';
 import { KanbanCardComponent } from '../kanban-card/kanban-card.component';
-import { KanbanDrag } from '../kanban.component';
+import type { KanbanDrag } from '../kanban.component';
 
 interface PendingUpload {
   id: string;

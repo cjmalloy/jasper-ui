@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { AfterViewInit, Component, OnDestroy, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, forwardRef, OnDestroy, ViewChild } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
 import { defer, uniq, without } from 'lodash-es';
@@ -55,7 +55,7 @@ import { getVisibilityTags } from '../../../util/tag';
     LimitWidthDirective,
     NavComponent,
     LoadingComponent,
-    RefFormComponent,
+    forwardRef(() => RefFormComponent),
   ],
 })
 export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
@@ -109,21 +109,6 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
         .pipe(map(() => true), catchError(() => of(false))));
     }
     return !this.webForm?.dirty;
-  }
-
-  saveForLater(leave = false) {
-    const savedValue = JSON.stringify(this.webForm.value);
-    this.saving = this.refs.saveEdit(this.writeRef(), this.cursor)
-      .pipe(catchError(err => {
-        delete this.saving;
-        return throwError(() => err);
-      }))
-      .subscribe(cursor => {
-        delete this.saving;
-        this.cursor = cursor;
-        if (JSON.stringify(this.webForm.value) === savedValue) this.webForm.markAsPristine();
-        if (leave) this.router.navigate(['/inbox/ref', 'plugin/editing']);
-      });
   }
 
   ngAfterViewInit(): void {
@@ -297,6 +282,21 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
 
   get url() {
     return this.webForm.get('url')?.value;
+  }
+
+  saveForLater(leave = false) {
+    const savedValue = JSON.stringify(this.webForm.value);
+    this.saving = this.refs.saveEdit(this.writeRef(), this.cursor)
+      .pipe(catchError(err => {
+        delete this.saving;
+        return throwError(() => err);
+      }))
+      .subscribe(cursor => {
+        delete this.saving;
+        this.cursor = cursor;
+        if (JSON.stringify(this.webForm.value) === savedValue) this.webForm.markAsPristine();
+        if (leave) this.router.navigate(['/inbox/ref', 'plugin/editing']);
+      });
   }
 
   setTitle(title: string) {

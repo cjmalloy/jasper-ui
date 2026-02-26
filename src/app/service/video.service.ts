@@ -49,9 +49,9 @@ export class VideoService {
   ) {
     if (isDevMode()) timer(3_000, 30_000).pipe(
       mergeMap(() => this.store.video.peers.entries()),
-      map(([user, peer]) => ({ user, stats: peer.getStats() })),
+      map(([user, peer]) => ({ user, stats: peer.getStats?.() })),
     ).subscribe(({ user, stats }) => {
-      stats.then(s => s.forEach((v, k) => console.log(user, k, v)));
+      stats?.then(s => s.forEach((v, k) => console.log(user, k, v)));
     });
   }
 
