@@ -6,7 +6,6 @@ import { BrowserModule } from '@angular/platform-browser';
 import { FormlyExtension, FormlyFieldConfig, FormlyModule } from '@ngx-formly/core';
 import { FormlySelectModule } from '@ngx-formly/core/select';
 import { v4 as uuid } from 'uuid';
-import { AppRoutingModule } from '../app-routing.module';
 import {
   ORIGIN_REGEX,
   PLUGIN_REGEX,
@@ -66,7 +65,6 @@ export class IdPrefixExtension implements FormlyExtension {
   imports: [
     BrowserModule,
     ReactiveFormsModule,
-    AppRoutingModule,
     DragDropModule,
     OverlayModule,
     FormlySelectModule,
