@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { AfterViewInit, Component, ElementRef, OnChanges, OnDestroy, SimpleChanges, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, forwardRef, OnChanges, OnDestroy, SimpleChanges, ViewChild } from '@angular/core';
 import {
   ReactiveFormsModule,
   UntypedFormArray,
@@ -51,7 +51,7 @@ import { getVisibilityTags, hasPrefix, hasTag } from '../../../util/tag';
   styleUrls: ['./text.component.scss'],
   host: { 'class': 'full-page-form' },
   imports: [
-    EditorComponent,
+    forwardRef(() => EditorComponent),
     MobxAngularModule,
     ReactiveFormsModule,
     LimitWidthDirective,
@@ -63,7 +63,7 @@ import { getVisibilityTags, hasPrefix, hasTag } from '../../../util/tag';
     ResizeHandleDirective,
     FillWidthDirective,
     TagsFormComponent,
-    RefFormComponent,
+    forwardRef(() => RefFormComponent),
   ],
 })
 export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasChanges {

@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { AfterViewInit, Component, ElementRef, OnChanges, OnDestroy, SimpleChanges, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, forwardRef, OnChanges, OnDestroy, SimpleChanges, ViewChild } from '@angular/core';
 import {
   ReactiveFormsModule,
   UntypedFormArray,
@@ -50,7 +50,7 @@ import { getVisibilityTags, hasPrefix, hasTag, localTag } from '../../../util/ta
   styleUrls: ['./dm.component.scss'],
   host: { 'class': 'full-page-form' },
   imports: [
-    EditorComponent,
+    forwardRef(() => EditorComponent),
     MobxAngularModule,
     ReactiveFormsModule,
     LimitWidthDirective,
