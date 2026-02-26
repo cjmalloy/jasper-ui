@@ -484,6 +484,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     const rows = Math.trunc(Number(sb.rows));
     const totalFrames = cols * rows;
     if (cols <= 0 || rows <= 0 || totalFrames > 10_000 || totalFrames < 2) return null;
+    const duration = 0.4;
     const name = `storyboard-slide-${cols}x${rows}`;
     const styleId = `style-${name}`;
     if (!document.getElementById(styleId)) {
@@ -492,7 +493,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
       style.textContent = generateStoryboardKeyframes(name, cols, rows);
       document.head.appendChild(style);
     }
-    return `${name} ${totalFrames.toFixed(2)}s linear infinite`;
+    return `${name} ${(totalFrames * duration).toFixed(2)}s linear infinite`;
   }
 
   @memo
