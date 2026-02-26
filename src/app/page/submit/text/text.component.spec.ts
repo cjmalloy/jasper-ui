@@ -31,7 +31,6 @@ describe('SubmitTextPage', () => {
     fixture = TestBed.createComponent(SubmitTextPage);
     component = fixture.componentInstance;
     fixture.detectChanges();
-    fixture.detectChanges();
   });
 
   it('should create', () => {
