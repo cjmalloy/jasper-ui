@@ -194,6 +194,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   private _viewer?: ViewerComponent;
   private closeOffFullscreen = false;
   private _expanded = false;
+  private preloadingUrl = '';
 
   constructor(
     public config: ConfigService,
@@ -294,6 +295,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     this.editing = false;
     this.viewSource = false;
     this.storyboardLoaded = false;
+    this.preloadingUrl = '';
     this.actionComponents?.forEach(c => c.reset());
     if (this.ref?.upload) this.editForm.get('url')!.enable();
     this.writeAccess = this.auth.writeAccess(this.ref);
@@ -331,8 +333,11 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     if (this.hasStoryboardDefault) return;
     const url = this.storyboardRawUrl;
     if (!url) return;
+    this.preloadingUrl = url;
     this.imgs.getImage(url).then(() => {
-      this.storyboardLoaded = true;
+      if (this.preloadingUrl === url) {
+        this.storyboardLoaded = true;
+      }
     }).catch(() => {
       // If preloading fails, storyboard-ready class is never set and hover shows original thumbnail
     });
