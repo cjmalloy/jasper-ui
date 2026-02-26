@@ -63,6 +63,7 @@ describe('MdComponent', () => {
     component.text = 'This is some text\n\n<object data="malicious.swf" type="application/x-shockwave-flash"></object>\n\nMore text';
     fixture.detectChanges();
     await fixture.whenStable();
+    fixture.detectChanges();
 
     const element = fixture.nativeElement;
     const objectTags = element.querySelectorAll('object');
@@ -80,6 +81,7 @@ describe('MdComponent', () => {
     component.text = '# Heading\n\n<embed src="dangerous.swf" type="application/x-shockwave-flash">\n\nSafe paragraph';
     fixture.detectChanges();
     await fixture.whenStable();
+    fixture.detectChanges();
 
     const element = fixture.nativeElement;
     const embedTags = element.querySelectorAll('embed');

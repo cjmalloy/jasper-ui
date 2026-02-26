@@ -29,7 +29,6 @@ describe('SubmitDmPage', () => {
     fixture = TestBed.createComponent(SubmitDmPage);
     component = fixture.componentInstance;
     fixture.detectChanges();
-    fixture.detectChanges();
   });
 
   it('should create', () => {
