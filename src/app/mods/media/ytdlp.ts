@@ -43,10 +43,16 @@ try:
   }
   saveStdout = sys.stdout
   sys.stdout = sys.stderr
-  with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-    info = ydl.extract_info(url, download=True)
-    ext = info.get('ext', 'mp4')
-  sys.stdout = saveStdout
+  try:
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+      info = ydl.extract_info(url, download=True)
+      ext = info.get('ext', 'mp4')
+  except Exception as e:
+    if 'This live event will begin in' in str(e):
+      sys.exit(0)
+    raise
+  finally:
+    sys.stdout = saveStdout
 
   # Find the actual downloaded file
   downloaded_file = f'{base_name}.{ext}'
@@ -135,6 +141,8 @@ try:
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         info = ydl.extract_info(url, download=False)
 except Exception as e:
+    if 'This live event will begin in' in str(e):
+        sys.exit(0)
     print(json.dumps({'error': str(e)}), file=sys.stderr)
     sys.exit(1)
 
