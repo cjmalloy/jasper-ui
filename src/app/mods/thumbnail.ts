@@ -87,7 +87,7 @@ export const storyboardPlugin: Plugin = {
     // language=CSS
     css: `
       .ref.plugin_thumbnail_storyboard.has-storyboard-default .thumbnail,
-      .ref.plugin_thumbnail_storyboard:hover .thumbnail {
+      .ref.plugin_thumbnail_storyboard.storyboard-ready:hover .thumbnail {
         width: var(--storyboard-width) !important;
         height: var(--storyboard-height) !important;
         margin: var(--storyboard-margin) !important;
@@ -95,7 +95,7 @@ export const storyboardPlugin: Plugin = {
         background-size: var(--storyboard-size) !important;
         background-position: 0% 0%;
       }
-      .ref.plugin_thumbnail_storyboard:hover .thumbnail {
+      .ref.plugin_thumbnail_storyboard.storyboard-ready:hover .thumbnail {
         animation: var(--storyboard-animation) !important;
       }
     `,

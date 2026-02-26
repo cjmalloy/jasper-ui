@@ -48,6 +48,7 @@ import { AuthzService } from '../../service/authz.service';
 import { BookmarkService } from '../../service/bookmark.service';
 import { ConfigService } from '../../service/config.service';
 import { EditorService } from '../../service/editor.service';
+import { ImageService } from '../../service/image.service';
 import { Store } from '../../store/store';
 import { scrollToFirstInvalid } from '../../util/form';
 import {
@@ -171,6 +172,8 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   deleted = false;
   @HostBinding('class.mobile-unlock')
   mobileUnlock = false;
+  @HostBinding('class.storyboard-ready')
+  storyboardLoaded = false;
   actionsExpanded?: boolean;
   replying = false;
   writeAccess = false;
@@ -192,6 +195,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   private _viewer?: ViewerComponent;
   private closeOffFullscreen = false;
   private _expanded = false;
+  private preloadingUrl = '';
 
   constructor(
     public config: ConfigService,
@@ -209,6 +213,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     private fb: UntypedFormBuilder,
     private el: ElementRef<HTMLDivElement>,
     private cd: ChangeDetectorRef,
+    private imgs: ImageService,
   ) {
     this.editForm = refForm(fb);
     this.editForm.valueChanges.pipe(
@@ -290,6 +295,8 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     this.deleted = false;
     this.editing = false;
     this.viewSource = false;
+    this.storyboardLoaded = false;
+    this.preloadingUrl = '';
     this.actionComponents?.forEach(c => c.reset());
     if (this.ref?.upload) this.editForm.get('url')!.enable();
     this.writeAccess = this.auth.writeAccess(this.ref);
@@ -317,8 +324,24 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
         } else {
           this.expandPlugins.push('plugin/repost');
         }
+        this.preloadStoryboard();
       });
     }
+    this.preloadStoryboard();
+  }
+
+  private preloadStoryboard() {
+    if (this.hasStoryboardDefault) return;
+    const url = this.storyboardRawUrl;
+    if (!url) return;
+    this.preloadingUrl = url;
+    this.imgs.getImage(url).then(() => {
+      if (this.preloadingUrl === url) {
+        this.storyboardLoaded = true;
+      }
+    }).catch(() => {
+      // If preloading fails, storyboard-ready class is never set and hover shows original thumbnail
+    });
   }
 
   initFields(ref: Ref) {
@@ -405,21 +428,25 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
       || null;
   }
 
-  @memo
-  @HostBinding('style.--storyboard-url')
-  get storyboardUrl(): string | null {
+  private get storyboardRawUrl(): string | null {
     const sb = this.storyboardData;
     if (!sb?.url) return null;
     const rawUrl = String(sb.url);
     const origin = this.ref?.origin || this.repostRef?.origin || '';
-    let resolvedUrl: string;
     if (rawUrl.startsWith('cache:') || this.admin.getPlugin('plugin/thumbnail')?.config?.proxy) {
       const ext = getExtension(rawUrl) || '';
       const title = this.ref?.title || 'storyboard';
-      resolvedUrl = this.proxy.getFetch(rawUrl, origin, title + (title.endsWith(ext) ? '' : ext), true);
+      return this.proxy.getFetch(rawUrl, origin, title + (title.endsWith(ext) ? '' : ext), true);
     } else {
-      resolvedUrl = rawUrl;
+      return rawUrl;
     }
+  }
+
+  @memo
+  @HostBinding('style.--storyboard-url')
+  get storyboardUrl(): string | null {
+    const resolvedUrl = this.storyboardRawUrl;
+    if (!resolvedUrl) return null;
     const escapedUrl = resolvedUrl.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
     return `url("${escapedUrl}")`;
   }
