@@ -6,6 +6,7 @@ import {
   Component,
   ElementRef,
   EventEmitter,
+  forwardRef,
   HostBinding,
   HostListener,
   Input,
@@ -59,7 +60,7 @@ export interface EditorUpload {
   styleUrls: ['./editor.component.scss'],
   host: { 'class': 'editor' },
   imports: [
-    MdComponent,
+    forwardRef(() => MdComponent),
     LoadingComponent,
     ReactiveFormsModule,
     FillWidthDirective,
