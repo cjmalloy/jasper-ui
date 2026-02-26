@@ -37,7 +37,7 @@ export class StompService extends RxStomp {
       reconnectDelay: 2000,
     };
     if (isDevMode()) {
-      this.stompConfig.debug = msg => console.debug('📶️  '+ msg);
+      this.stompConfig.debug = (msg: string) => console.debug('📶️  '+ msg);
     }
     this.configure(this.stompConfig);
     if (this.config.websockets && !isTestEnvironment()) this.activate();
