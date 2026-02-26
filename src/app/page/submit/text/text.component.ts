@@ -74,8 +74,15 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
   advanced = false;
   serverError: string[] = [];
 
+  limitWidth?: HTMLElement;
+
   @ViewChild('fill')
-  fill?: ElementRef;
+  set fill(value: ElementRef | undefined) {
+    this._fill = value;
+    defer(() => this.limitWidth = this._advancedFill?.nativeElement || value?.nativeElement);
+  }
+  private _fill?: ElementRef;
+  private _advancedFill?: ElementRef;
 
   @ViewChild('ed')
   editorComponent?: EditorComponent;
@@ -237,6 +244,8 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
       value.setRef(this.savedRef);
       delete this.savedRef;
     }
+    this._advancedFill = value?.fill;
+    defer(() => this.limitWidth = value?.fill?.nativeElement || this._fill?.nativeElement);
   }
 
   get url() {

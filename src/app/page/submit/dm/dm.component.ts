@@ -73,8 +73,12 @@ export class SubmitDmPage implements AfterViewInit, OnChanges, OnDestroy, HasCha
   dmForm: UntypedFormGroup;
   serverError: string[] = [];
 
+  limitWidth?: HTMLElement;
+
   @ViewChild('fill')
-  fill?: ElementRef;
+  set fill(value: ElementRef | undefined) {
+    defer(() => this.limitWidth = value?.nativeElement);
+  }
 
   @ViewChild('ed')
   editorComponent?: EditorComponent;
@@ -160,14 +164,20 @@ export class SubmitDmPage implements AfterViewInit, OnChanges, OnDestroy, HasCha
 
   ngAfterViewInit() {
     this.disposers.push(autorun(() => {
-      if (this.store.submit.dmPlugin) {
-        this.setTo(this.store.submit.dmPlugin);
-      } if (this.store.submit.to.length) {
-        this.setTo(this.store.submit.to.join(' '));
-      } else {
-        this.setTo('');
-      }
-      this.addTags([...this.store.submit.tags, ...(this.store.account.localTag ? [this.store.account.localTag] : [])]);
+      const dmPlugin = this.store.submit.dmPlugin;
+      const to = this.store.submit.to.slice();
+      const tags = this.store.submit.tags.slice();
+      const localTag = this.store.account.localTag;
+      defer(() => {
+        if (dmPlugin) {
+          this.setTo(dmPlugin);
+        } else if (to.length) {
+          this.setTo(to.join(' '));
+        } else {
+          this.setTo('');
+        }
+        this.addTags([...tags, ...(localTag ? [localTag] : [])]);
+      });
     }));
   }
 
