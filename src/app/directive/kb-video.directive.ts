@@ -5,6 +5,12 @@ export class KbVideoDirective {
 
   constructor(private el: ElementRef<HTMLVideoElement>) { }
 
+  private seekEnd(video: HTMLVideoElement): number | undefined {
+    if (isFinite(video.duration)) return video.duration;
+    if (video.seekable.length) return video.seekable.end(video.seekable.length - 1);
+    return undefined;
+  }
+
   @HostListener('keydown', ['$event'])
   onKeydown(event: KeyboardEvent) {
     const video = this.el.nativeElement;
@@ -12,8 +18,13 @@ export class KbVideoDirective {
       case ' ':
       case 'k':
       case 'K':
+        if (event.repeat) break;
         event.preventDefault();
-        video.paused ? video.play() : video.pause();
+        if (video.paused) {
+          void video.play().catch(() => {});
+        } else {
+          video.pause();
+        }
         break;
       case 'j':
       case 'J':
@@ -21,18 +32,22 @@ export class KbVideoDirective {
         video.currentTime = Math.max(0, video.currentTime - 10);
         break;
       case 'l':
-      case 'L':
+      case 'L': {
         event.preventDefault();
-        if (isFinite(video.duration)) video.currentTime = Math.min(video.duration, video.currentTime + 10);
+        const end = this.seekEnd(video);
+        if (end !== undefined) video.currentTime = Math.min(end, video.currentTime + 10);
         break;
+      }
       case 'ArrowLeft':
         event.preventDefault();
         video.currentTime = Math.max(0, video.currentTime - 5);
         break;
-      case 'ArrowRight':
+      case 'ArrowRight': {
         event.preventDefault();
-        if (isFinite(video.duration)) video.currentTime = Math.min(video.duration, video.currentTime + 5);
+        const end = this.seekEnd(video);
+        if (end !== undefined) video.currentTime = Math.min(end, video.currentTime + 5);
         break;
+      }
       case 'ArrowUp':
         event.preventDefault();
         video.volume = Math.min(1, video.volume + 0.05);
@@ -43,15 +58,17 @@ export class KbVideoDirective {
         break;
       case 'f':
       case 'F':
+        if (event.repeat) break;
         event.preventDefault();
         if (document.fullscreenElement) {
-          document.exitFullscreen();
+          document.exitFullscreen?.().catch(() => {});
         } else {
-          video.requestFullscreen();
+          video.requestFullscreen?.().catch(() => {});
         }
         break;
       case 'm':
       case 'M':
+        if (event.repeat) break;
         event.preventDefault();
         video.muted = !video.muted;
         break;
@@ -59,14 +76,17 @@ export class KbVideoDirective {
         event.preventDefault();
         video.currentTime = 0;
         break;
-      case 'End':
+      case 'End': {
         event.preventDefault();
-        if (isFinite(video.duration)) video.currentTime = video.duration;
+        const end = this.seekEnd(video);
+        if (end !== undefined) video.currentTime = end;
         break;
+      }
       default:
         if (event.key >= '0' && event.key <= '9') {
           event.preventDefault();
-          if (isFinite(video.duration)) video.currentTime = video.duration * parseInt(event.key, 10) / 10;
+          const end = this.seekEnd(video);
+          if (end !== undefined) video.currentTime = end * parseInt(event.key, 10) / 10;
         }
         break;
     }

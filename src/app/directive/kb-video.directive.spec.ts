@@ -10,8 +10,10 @@ function makeDirective() {
   return { directive, video };
 }
 
-function key(directive: KbVideoDirective, k: string) {
-  const event = new KeyboardEvent('keydown', { key: k, bubbles: true });
+function key(directive: KbVideoDirective, k: string, repeat = false) {
+  // cancelable: true is required for event.preventDefault() to take effect in tests
+  const event = new KeyboardEvent('keydown', { key: k, bubbles: true, cancelable: true });
+  Object.defineProperty(event, 'repeat', { value: repeat });
   directive.onKeydown(event);
 }
 
@@ -86,6 +88,13 @@ describe('KbVideoDirective', () => {
     expect(video.muted).toBe(false);
   });
 
+  it('should not toggle mute on repeated M keydown', () => {
+    const { directive, video } = makeDirective();
+    video.muted = false;
+    key(directive, 'm', true);
+    expect(video.muted).toBe(false);
+  });
+
   it('should seek to start on Home', () => {
     const { directive, video } = makeDirective();
     video.currentTime = 50;
@@ -110,7 +119,7 @@ describe('KbVideoDirective', () => {
     expect(video.currentTime).toBe(90);
   });
 
-  it('should not seek when duration is NaN', () => {
+  it('should not seek when duration is NaN and no seekable range', () => {
     const { directive, video } = makeDirective();
     Object.defineProperty(video, 'duration', { value: NaN, configurable: true });
     video.currentTime = 50;
@@ -119,5 +128,17 @@ describe('KbVideoDirective', () => {
     key(directive, 'End');
     key(directive, '5');
     expect(video.currentTime).toBe(50);
+  });
+
+  it('should use seekable range end when duration is Infinity (HLS/live)', () => {
+    const { directive, video } = makeDirective();
+    Object.defineProperty(video, 'duration', { value: Infinity, configurable: true });
+    const mockSeekable = { length: 1, end: (_i: number) => 200 } as TimeRanges;
+    Object.defineProperty(video, 'seekable', { value: mockSeekable, configurable: true });
+    video.currentTime = 190;
+    key(directive, 'ArrowRight');
+    expect(video.currentTime).toBe(195);
+    key(directive, 'l');
+    expect(video.currentTime).toBe(200);
   });
 });
