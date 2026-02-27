@@ -11,9 +11,10 @@ export class KbVideoDirective {
     return undefined;
   }
 
-  @HostListener('keydown', ['$event'])
+  @HostListener('document:keydown', ['$event'])
   onKeydown(event: KeyboardEvent) {
     const video = this.el.nativeElement;
+    if (document.activeElement !== video) return;
     switch (event.key) {
       case ' ':
       case 'k':
