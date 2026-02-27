@@ -3,6 +3,8 @@ import { KbVideoDirective } from './kb-video.directive';
 
 function makeDirective() {
   const video = document.createElement('video');
+  video.tabIndex = 0;
+  document.body.appendChild(video);
   Object.defineProperty(video, 'duration', { value: 100, configurable: true });
   video.volume = 0.5;
   video.currentTime = 50;
@@ -11,6 +13,7 @@ function makeDirective() {
 }
 
 function key(directive: KbVideoDirective, k: string, repeat = false) {
+  (directive as any).el.nativeElement.focus();
   // cancelable: true is required for event.preventDefault() to take effect in tests
   const event = new KeyboardEvent('keydown', { key: k, bubbles: true, cancelable: true });
   Object.defineProperty(event, 'repeat', { value: repeat });
@@ -18,6 +21,10 @@ function key(directive: KbVideoDirective, k: string, repeat = false) {
 }
 
 describe('KbVideoDirective', () => {
+  afterEach(() => {
+    document.querySelectorAll('video').forEach(v => v.remove());
+  });
+
   it('should create an instance', () => {
     const directive = new KbVideoDirective({ nativeElement: document.createElement('video') } as any);
     expect(directive).toBeTruthy();
