@@ -72,6 +72,19 @@ export function handleVideoKeydown(event: KeyboardEvent, video: HTMLVideoElement
       event.stopPropagation();
       video.muted = !video.muted;
       break;
+    case ',':
+      event.preventDefault();
+      event.stopPropagation();
+      if (video.paused) video.currentTime = Math.max(0, video.currentTime - 0.04);
+      break;
+    case '.':
+      event.preventDefault();
+      event.stopPropagation();
+      if (video.paused && 'requestVideoFrameCallback' in video) {
+        (video as any).requestVideoFrameCallback(() => video.pause());
+        void video.play().catch(() => {});
+      }
+      break;
     case 'Home':
       event.preventDefault();
       event.stopPropagation();
