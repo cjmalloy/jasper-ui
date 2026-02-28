@@ -14,7 +14,6 @@ import { ScrapeService } from './service/api/scrape.service';
 import { ConfigService } from './service/config.service';
 import { Store } from './store/store';
 import { createPip } from './util/embed';
-import { handleVideoKeydown } from './util/keyboard';
 import { memo } from './util/memo';
 
 @Component({
@@ -64,11 +63,6 @@ export class AppComponent implements AfterViewInit {
       if (this.store.hotkey !== hotkey) {
         runInAction(() => this.store.hotkey = hotkey);
         document.body.classList.toggle('hotkey', hotkey);
-      }
-      if (document.activeElement instanceof HTMLVideoElement) {
-        handleVideoKeydown(event, document.activeElement);
-      } else if (document.activeElement?.querySelectorAll('video')?.[0]) {
-        handleVideoKeydown(event, document.activeElement.querySelectorAll('video')[0]);
       }
     }, { capture: true });
     window.addEventListener('pointerenter', event => {

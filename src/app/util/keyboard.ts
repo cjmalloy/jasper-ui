@@ -75,7 +75,13 @@ export function handleVideoKeydown(event: KeyboardEvent, video: HTMLVideoElement
     case ',':
       event.preventDefault();
       event.stopPropagation();
-      if (video.paused) video.currentTime = Math.max(0, video.currentTime - 0.04);
+      if (video.paused && 'requestVideoFrameCallback' in video) {
+        (video as any).requestVideoFrameCallback((_: DOMHighResTimeStamp, metadata: any) => {
+          video.currentTime = Math.max(0, metadata.mediaTime - 0.001);
+        });
+        // Re-assign to trigger a seek, which composites a frame and fires the callback
+        video.currentTime = video.currentTime;
+      }
       break;
     case '.':
       event.preventDefault();

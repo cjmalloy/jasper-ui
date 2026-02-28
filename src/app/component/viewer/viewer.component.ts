@@ -38,6 +38,7 @@ import { Store } from '../../store/store';
 import { embedUrl } from '../../util/embed';
 import { hasComment, templates } from '../../util/format';
 import { getExtension } from '../../util/http';
+import { handleVideoKeydown } from '../../util/keyboard';
 import { memo, MemoCache } from '../../util/memo';
 import { UrlFilter } from '../../util/query';
 import { hasPrefix, hasTag } from '../../util/tag';
@@ -138,7 +139,12 @@ export class ViewerComponent implements OnChanges {
     private refs: RefService,
     private store: Store,
     public el: ElementRef,
-  ) { }
+  ) {
+    el.nativeElement.addEventListener('keydown', (event: KeyboardEvent) => {
+      const video = el.nativeElement.querySelector('video') as HTMLVideoElement;
+      if (video) handleVideoKeydown(event, video);
+    }, { capture: true });
+  }
 
   init() {
     MemoCache.clear(this);
