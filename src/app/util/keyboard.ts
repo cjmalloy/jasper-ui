@@ -91,7 +91,12 @@ export function handleMediaKeydown(event: KeyboardEvent, media: HTMLMediaElement
       event.preventDefault();
       event.stopPropagation();
       if (media.paused && 'requestVideoFrameCallback' in media) {
-        (media as any).requestVideoFrameCallback(() => media.pause());
+        const wasMuted = media.muted;
+        media.muted = true;
+        (media as any).requestVideoFrameCallback(() => {
+          media.pause();
+          media.muted = wasMuted;
+        });
         void media.play().catch(() => {});
       }
       break;
