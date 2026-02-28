@@ -9,7 +9,7 @@ import { Ext } from '../model/ext';
 import { Page } from '../model/page';
 import { Ref } from '../model/ref';
 import { PipWindowConfig } from '../mods/system/pip';
-import { handleVideoKeydown } from './keyboard';
+import { handleMediaKeydown, handleVideoKeydown } from './keyboard';
 import { hasTag } from './tag';
 
 export function parseSrc(html: string) {
@@ -122,7 +122,12 @@ export async function createPip(vc: ViewContainerRef, ref: Ref, config: PipWindo
   pipWindow.document.body.append(createEmbed(vc, ref, true).location.nativeElement);
   pipWindow.document.addEventListener('keydown', (event: KeyboardEvent) => {
     const video = pipWindow.document.querySelector('video');
-    if (video) handleVideoKeydown(event, video);
+    if (video) {
+      handleVideoKeydown(event, video);
+      return;
+    }
+    const audio = pipWindow.document.querySelector('audio');
+    if (audio) handleMediaKeydown(event, audio);
   }, { capture: true });
 }
 
