@@ -67,6 +67,8 @@ export class AppComponent implements AfterViewInit {
       }
       if (document.activeElement instanceof HTMLVideoElement) {
         handleVideoKeydown(event, document.activeElement);
+      } else if (document.activeElement?.querySelectorAll('video')?.[0]) {
+        handleVideoKeydown(event, document.activeElement.querySelectorAll('video')[0]);
       }
     }, { capture: true });
     window.addEventListener('pointerenter', event => {
