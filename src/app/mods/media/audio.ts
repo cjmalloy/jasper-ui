@@ -18,7 +18,16 @@ export const audioPlugin: Plugin = {
       { query: 'plugin/audio', label: $localize`📻️ audio`, title: $localize`Audio`, group: $localize`Media 🎬️` },
     ],
     extensions: ['.mp3', '.aac', '.flac', '.m4a', '.ogg', '.wav'],
-    description: $localize`Play audio in an audio player.`,
+    description: $localize`Play audio in an audio player.
+
+Keyboard shortcuts (when viewer is focused):
+Space / K: Play/pause
+J / L: Seek ±10s
+← / →: Seek ±5s
+↑ / ↓: Volume ±5%
+M: Mute toggle
+Home / End: Jump to start/end
+0–9: Percentage seek`,
     advancedForm: [{
       key: 'url',
       type: 'audio',

@@ -2489,9 +2489,27 @@ Private tags start with an underscore.
       <trans-unit id="1861478264609306464" datatype="html">
         <source>📻️</source>
       </trans-unit>
-      <trans-unit id="6916316455059648338" datatype="html">
-        <source>Play audio in an audio player.</source>
-        <target>音声プレーヤーで音声を再生します。</target>
+      <trans-unit id="62591677327932621" datatype="html">
+        <source>Play audio in an audio player.
+
+Keyboard shortcuts (when viewer is focused):
+Space / K: Play/pause
+J / L: Seek ±10s
+← / →: Seek ±5s
+↑ / ↓: Volume ±5%
+M: Mute toggle
+Home / End: Jump to start/end
+0–9: Percentage seek</source>
+        <target>音声プレーヤーで音声を再生します。
+
+キーボードショートカット（ビューアーにフォーカス時）：
+Space / K: 再生/一時停止
+J / L: ±10秒シーク
+← / →: ±5秒シーク
+↑ / ↓: 音量±5%
+M: ミュート切替
+Home / End: 先頭/末尾へ移動
+0–9: パーセント位置へシーク</target>
       </trans-unit>
       <trans-unit id="8895169310763196393" datatype="html">
         <source>🎲️ Backgammon</source>
@@ -5000,9 +5018,31 @@ Refのみが削除されたファイルはまだ回復できますが、この�
         <source>Videos</source>
         <target>ビデオ</target>
       </trans-unit>
-      <trans-unit id="8644323855433567783" datatype="html">
-        <source>Play in a video player.</source>
-        <target>ビデオプレーヤーで再生します。</target>
+      <trans-unit id="6897436555177338686" datatype="html">
+        <source>Play in a video player.
+
+Keyboard shortcuts (when viewer is focused):
+Space / K: Play/pause
+J / L: Seek ±10s
+← / →: Seek ±5s
+↑ / ↓: Volume ±5%
+M: Mute toggle
+Home / End: Jump to start/end
+0–9: Percentage seek
+F: Fullscreen toggle
+, / .: Frame step back/forward (while paused)</source>
+        <target>ビデオプレーヤーで再生します。
+
+キーボードショートカット（ビューアーにフォーカス時）：
+Space / K: 再生/一時停止
+J / L: ±10秒シーク
+← / →: ±5秒シーク
+↑ / ↓: 音量±5%
+M: ミュート切替
+Home / End: 先頭/末尾へ移動
+0–9: パーセント位置へシーク
+F: フルスクリーン切替
+, / .: フレーム送り/戻し（一時停止中）</target>
       </trans-unit>
       <trans-unit id="1692567510025797462" datatype="html">
         <source>Activates built-in voting support and allows users to upvote Refs.</source>
