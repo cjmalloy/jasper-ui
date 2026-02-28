@@ -17,7 +17,6 @@ import { defer, isEqual, some, without } from 'lodash-es';
 import { runInAction } from 'mobx';
 import { BehaviorSubject, catchError, of, Subject, takeUntil, throwError } from 'rxjs';
 import { ImageDirective } from '../../directive/image.directive';
-import { KbVideoDirective } from '../../directive/kb-video.directive';
 import { ResizeHandleDirective } from '../../directive/resize-handle.directive';
 import { ResizeDirective } from '../../directive/resize.directive';
 import { Ext } from '../../model/ext';
@@ -64,7 +63,6 @@ import { TodoComponent } from '../todo/todo.component';
     forwardRef(() => ModComponent),
     forwardRef(() => MdComponent),
     ImageDirective,
-    KbVideoDirective,
     ResizeDirective,
     QrComponent,
     TodoComponent,
