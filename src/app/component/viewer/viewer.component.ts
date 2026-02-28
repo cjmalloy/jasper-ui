@@ -38,7 +38,7 @@ import { Store } from '../../store/store';
 import { embedUrl } from '../../util/embed';
 import { hasComment, templates } from '../../util/format';
 import { getExtension } from '../../util/http';
-import { handleVideoKeydown } from '../../util/keyboard';
+import { handleMediaKeydown, handleVideoKeydown } from '../../util/keyboard';
 import { memo, MemoCache } from '../../util/memo';
 import { UrlFilter } from '../../util/query';
 import { hasPrefix, hasTag } from '../../util/tag';
@@ -142,7 +142,12 @@ export class ViewerComponent implements OnChanges {
   ) {
     el.nativeElement.addEventListener('keydown', (event: KeyboardEvent) => {
       const video = el.nativeElement.querySelector('video') as HTMLVideoElement;
-      if (video) handleVideoKeydown(event, video);
+      if (video) {
+        handleVideoKeydown(event, video);
+        return;
+      }
+      const audio = el.nativeElement.querySelector('audio') as HTMLAudioElement;
+      if (audio) handleMediaKeydown(event, audio);
     }, { capture: true });
   }
 

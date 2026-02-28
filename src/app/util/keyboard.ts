@@ -1,10 +1,11 @@
-export function seekEnd(video: HTMLVideoElement): number | undefined {
-  if (isFinite(video.duration)) return video.duration;
-  if (video.seekable.length) return video.seekable.end(video.seekable.length - 1);
+export function seekEnd(media: HTMLMediaElement): number | undefined {
+  if (isFinite(media.duration)) return media.duration;
+  if (media.seekable.length) return media.seekable.end(media.seekable.length - 1);
   return undefined;
 }
 
-export function handleVideoKeydown(event: KeyboardEvent, video: HTMLVideoElement) {
+export function handleMediaKeydown(event: KeyboardEvent, media: HTMLMediaElement) {
+  const isVideo = media instanceof HTMLVideoElement;
   switch (event.key) {
     case ' ':
     case 'k':
@@ -12,57 +13,58 @@ export function handleVideoKeydown(event: KeyboardEvent, video: HTMLVideoElement
       if (event.repeat) return;
       event.preventDefault();
       event.stopPropagation();
-      if (video.paused) {
-        void video.play().catch(() => {});
+      if (media.paused) {
+        void media.play().catch(() => {});
       } else {
-        video.pause();
+        media.pause();
       }
       break;
     case 'j':
     case 'J':
       event.preventDefault();
       event.stopPropagation();
-      video.currentTime = Math.max(0, video.currentTime - 10);
+      media.currentTime = Math.max(0, media.currentTime - 10);
       break;
     case 'l':
     case 'L': {
       event.preventDefault();
       event.stopPropagation();
-      const end = seekEnd(video);
-      if (end !== undefined) video.currentTime = Math.min(end, video.currentTime + 10);
+      const end = seekEnd(media);
+      if (end !== undefined) media.currentTime = Math.min(end, media.currentTime + 10);
       break;
     }
     case 'ArrowLeft':
       event.preventDefault();
       event.stopPropagation();
-      video.currentTime = Math.max(0, video.currentTime - 5);
+      media.currentTime = Math.max(0, media.currentTime - 5);
       break;
     case 'ArrowRight': {
       event.preventDefault();
       event.stopPropagation();
-      const end = seekEnd(video);
-      if (end !== undefined) video.currentTime = Math.min(end, video.currentTime + 5);
+      const end = seekEnd(media);
+      if (end !== undefined) media.currentTime = Math.min(end, media.currentTime + 5);
       break;
     }
     case 'ArrowUp':
       event.preventDefault();
       event.stopPropagation();
-      video.volume = Math.min(1, video.volume + 0.05);
+      media.volume = Math.min(1, media.volume + 0.05);
       break;
     case 'ArrowDown':
       event.preventDefault();
       event.stopPropagation();
-      video.volume = Math.max(0, video.volume - 0.05);
+      media.volume = Math.max(0, media.volume - 0.05);
       break;
     case 'f':
     case 'F':
+      if (!isVideo) return;
       if (event.repeat) return;
       event.preventDefault();
       event.stopPropagation();
       if (document.fullscreenElement) {
         document.exitFullscreen?.().catch(() => {});
       } else {
-        video.requestFullscreen?.().catch(() => {});
+        (media as HTMLVideoElement).requestFullscreen?.().catch(() => {});
       }
       break;
     case 'm':
@@ -70,46 +72,52 @@ export function handleVideoKeydown(event: KeyboardEvent, video: HTMLVideoElement
       if (event.repeat) return;
       event.preventDefault();
       event.stopPropagation();
-      video.muted = !video.muted;
+      media.muted = !media.muted;
       break;
     case ',':
+      if (!isVideo) return;
       event.preventDefault();
       event.stopPropagation();
-      if (video.paused && 'requestVideoFrameCallback' in video) {
-        (video as any).requestVideoFrameCallback((_: DOMHighResTimeStamp, metadata: any) => {
-          video.currentTime = Math.max(0, metadata.mediaTime - 0.001);
+      if (media.paused && 'requestVideoFrameCallback' in media) {
+        (media as any).requestVideoFrameCallback((_: DOMHighResTimeStamp, metadata: any) => {
+          media.currentTime = Math.max(0, metadata.mediaTime - 0.001);
         });
         // Re-assign to trigger a seek, which composites a frame and fires the callback
-        video.currentTime = video.currentTime;
+        media.currentTime = media.currentTime;
       }
       break;
     case '.':
+      if (!isVideo) return;
       event.preventDefault();
       event.stopPropagation();
-      if (video.paused && 'requestVideoFrameCallback' in video) {
-        (video as any).requestVideoFrameCallback(() => video.pause());
-        void video.play().catch(() => {});
+      if (media.paused && 'requestVideoFrameCallback' in media) {
+        (media as any).requestVideoFrameCallback(() => media.pause());
+        void media.play().catch(() => {});
       }
       break;
     case 'Home':
       event.preventDefault();
       event.stopPropagation();
-      video.currentTime = 0;
+      media.currentTime = 0;
       break;
     case 'End': {
       event.preventDefault();
       event.stopPropagation();
-      const end = seekEnd(video);
-      if (end !== undefined) video.currentTime = end;
+      const end = seekEnd(media);
+      if (end !== undefined) media.currentTime = end;
       break;
     }
     default:
       if (event.key >= '0' && event.key <= '9') {
         event.preventDefault();
         event.stopPropagation();
-        const end = seekEnd(video);
-        if (end !== undefined) video.currentTime = end * parseInt(event.key, 10) / 10;
+        const end = seekEnd(media);
+        if (end !== undefined) media.currentTime = end * parseInt(event.key, 10) / 10;
       }
       break;
   }
+}
+
+export function handleVideoKeydown(event: KeyboardEvent, video: HTMLVideoElement) {
+  handleMediaKeydown(event, video);
 }
