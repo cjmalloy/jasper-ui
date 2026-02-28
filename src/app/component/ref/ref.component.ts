@@ -195,6 +195,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   private _viewer?: ViewerComponent;
   private closeOffFullscreen = false;
   private _expanded = false;
+  private focusViewer = false;
   private preloadingUrl = '';
 
   constructor(
@@ -572,6 +573,11 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
           if (this.closeOffFullscreen) this.expanded = false;
         });
       }
+      if (this.focusViewer) {
+        this.focusViewer = false;
+        // Defer to ensure the viewer's DOM is fully rendered before focusing
+        defer(() => value.el.nativeElement.focus());
+      }
     }
   }
 
@@ -584,9 +590,12 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   }
 
   set viewSource(value: boolean) {
+    if (this._viewSource === value) return;
     this._viewSource = value;
     if (value) {
       this.syncEditor();
+    } else {
+      if (this.expanded) this.focusViewer = true;
     }
   }
 
@@ -618,6 +627,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
       MemoCache.clear(this, 'storyboardAnimation');
       MemoCache.clear(this, 'hasStoryboardDefault');
     } else {
+      if (this.expanded) this.focusViewer = true;
       defer(() => {
         MemoCache.clear(this);
         this.init();
@@ -1121,6 +1131,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
             console.warn('Could not make fullscreen.');
           });
         }
+        this.focusViewer = true;
         this.expanded = true;
         this.cd.detectChanges();
       } else if (this.pipRequired) {
@@ -1128,6 +1139,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
         read = true;
       } else {
         this.expanded = !this.expanded;
+        if (this.expanded) this.focusViewer = true;
         this.store.local.setRefToggled(this.ref.url, this.expanded);
       }
       // Mark as read

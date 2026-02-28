@@ -2,6 +2,9 @@
   scroll-padding: 20px;
   outline: none;
 }
+video:focus, video:focus-visible {
+  outline: none;
+}
 * {
   display: block;
 }

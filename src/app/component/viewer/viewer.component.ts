@@ -4,6 +4,7 @@ import {
   EventEmitter,
   forwardRef,
   HostBinding,
+  HostListener,
   Input,
   OnChanges,
   Output,
@@ -38,6 +39,7 @@ import { Store } from '../../store/store';
 import { embedUrl } from '../../util/embed';
 import { hasComment, templates } from '../../util/format';
 import { getExtension } from '../../util/http';
+import { handleMediaKeydown, handleVideoKeydown } from '../../util/keyboard';
 import { memo, MemoCache } from '../../util/memo';
 import { UrlFilter } from '../../util/query';
 import { hasPrefix, hasTag } from '../../util/tag';
@@ -139,6 +141,17 @@ export class ViewerComponent implements OnChanges {
     private store: Store,
     public el: ElementRef,
   ) { }
+
+  @HostListener('keydown', ['$event'])
+  onKeydown(event: KeyboardEvent) {
+    const video = this.el.nativeElement.querySelector('video') as HTMLVideoElement;
+    if (video) {
+      handleVideoKeydown(event, video);
+      return;
+    }
+    const audio = this.el.nativeElement.querySelector('audio') as HTMLAudioElement;
+    if (audio) handleMediaKeydown(event, audio);
+  }
 
   init() {
     MemoCache.clear(this);

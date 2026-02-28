@@ -18,7 +18,18 @@ export const videoPlugin: Plugin = {
       { query: 'plugin/video', label: $localize`🎞️ video`, title: $localize`Videos`, group: $localize`Media 🎬️` },
     ],
     extensions: ['.3gp', '.mpg', '.mpeg', '.mp4', '.m4v', '.m4p', '.webm', '.ogv', '.m3u8', '.mov'],
-    description: $localize`Play in a video player.`,
+    description: $localize`Play in a video player.
+
+Keyboard shortcuts (when viewer is focused):
+Space / K: Play/pause
+J / L: Seek ±10s
+← / →: Seek ±5s
+↑ / ↓: Volume ±5%
+M: Mute toggle
+Home / End: Jump to start/end
+0–9: Percentage seek
+F: Fullscreen toggle
+, / .: Frame step back/forward (while paused)`,
     advancedForm: [{
       key: 'url',
       type: 'video',
