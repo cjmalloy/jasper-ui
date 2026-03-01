@@ -114,10 +114,10 @@ describe('VideoService', () => {
     };
 
     // Mock RTCPeerConnection constructor
-    vi.stubGlobal('RTCPeerConnection', vi.fn(() => mockPeerConnection));
+    vi.stubGlobal('RTCPeerConnection', vi.fn(function() { return mockPeerConnection; }));
 
     // Mock RTCSessionDescription constructor
-    vi.stubGlobal('RTCSessionDescription', vi.fn((init: any) => init));
+    vi.stubGlobal('RTCSessionDescription', vi.fn(function(init: any) { return init; }));
 
     TestBed.configureTestingModule({
       providers: [

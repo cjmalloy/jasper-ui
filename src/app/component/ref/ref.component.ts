@@ -6,6 +6,7 @@ import {
   Component,
   ElementRef,
   EventEmitter,
+  forwardRef,
   HostBinding,
   HostListener,
   Input,
@@ -34,6 +35,7 @@ import { equalsRef, isRef, Ref } from '../../model/ref';
 import { Action, active, hydrate, Icon, sortOrder, uniqueConfigs, visible } from '../../model/tag';
 import { deleteNotice } from '../../mods/delete';
 import { addressedTo, getMailbox, mailboxes } from '../../mods/mailbox';
+import { generateStoryboardKeyframes } from '../../mods/thumbnail';
 import { CssUrlPipe } from '../../pipe/css-url.pipe';
 import { ThumbnailPipe } from '../../pipe/thumbnail.pipe';
 import { AccountService } from '../../service/account.service';
@@ -46,6 +48,7 @@ import { AuthzService } from '../../service/authz.service';
 import { BookmarkService } from '../../service/bookmark.service';
 import { ConfigService } from '../../service/config.service';
 import { EditorService } from '../../service/editor.service';
+import { ImageService } from '../../service/image.service';
 import { Store } from '../../store/store';
 import { scrollToFirstInvalid } from '../../util/form';
 import {
@@ -91,9 +94,9 @@ import { ViewerComponent } from '../viewer/viewer.component';
   templateUrl: './ref.component.html',
   styleUrls: ['./ref.component.scss'],
   imports: [
-    ViewerComponent,
-    RefFormComponent,
-    MdComponent,
+    forwardRef(() => ViewerComponent),
+    forwardRef(() => RefFormComponent),
+    forwardRef(() => MdComponent),
     NavComponent,
     RouterLink,
     TitleDirective,
@@ -169,6 +172,8 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   deleted = false;
   @HostBinding('class.mobile-unlock')
   mobileUnlock = false;
+  @HostBinding('class.storyboard-ready')
+  storyboardLoaded = false;
   actionsExpanded?: boolean;
   replying = false;
   writeAccess = false;
@@ -190,6 +195,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   private _viewer?: ViewerComponent;
   private closeOffFullscreen = false;
   private _expanded = false;
+  private preloadingUrl = '';
 
   constructor(
     public config: ConfigService,
@@ -207,6 +213,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     private fb: UntypedFormBuilder,
     private el: ElementRef<HTMLDivElement>,
     private cd: ChangeDetectorRef,
+    private imgs: ImageService,
   ) {
     this.editForm = refForm(fb);
     this.editForm.valueChanges.pipe(
@@ -221,6 +228,12 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
       MemoCache.clear(this, 'thumbnailColor');
       MemoCache.clear(this, 'thumbnailEmoji');
       MemoCache.clear(this, 'thumbnailEmojiDefaults');
+      MemoCache.clear(this, 'storyboardUrl');
+      MemoCache.clear(this, 'storyboardSize');
+      MemoCache.clear(this, 'storyboardMargin');
+      MemoCache.clear(this, 'storyboardHeight');
+      MemoCache.clear(this, 'storyboardAnimation');
+      MemoCache.clear(this, 'hasStoryboardDefault');
       this.initFields({ ...this.ref, ...value });
       cd.detectChanges();
     }, 400, { leading: true, trailing: true }));
@@ -282,6 +295,8 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     this.deleted = false;
     this.editing = false;
     this.viewSource = false;
+    this.storyboardLoaded = false;
+    this.preloadingUrl = '';
     this.actionComponents?.forEach(c => c.reset());
     if (this.ref?.upload) this.editForm.get('url')!.enable();
     this.writeAccess = this.auth.writeAccess(this.ref);
@@ -305,11 +320,28 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
         MemoCache.clear(this);
         if (this.bareRepost) {
           this.expandPlugins = this.admin.getEmbeds(ref);
+          this.allCss = this.getPluginClasses();
         } else {
           this.expandPlugins.push('plugin/repost');
         }
+        this.preloadStoryboard();
       });
     }
+    this.preloadStoryboard();
+  }
+
+  private preloadStoryboard() {
+    if (this.hasStoryboardDefault) return;
+    const url = this.storyboardRawUrl;
+    if (!url) return;
+    this.preloadingUrl = url;
+    this.imgs.getImage(url).then(() => {
+      if (this.preloadingUrl === url) {
+        this.storyboardLoaded = true;
+      }
+    }).catch(() => {
+      // If preloading fails, storyboard-ready class is never set and hover shows original thumbnail
+    });
   }
 
   initFields(ref: Ref) {
@@ -356,8 +388,11 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
 
   getPluginClasses() {
     if (!this.ref) return this.css;
+    const tags = this.bareRepost
+      ? uniq([...(this.ref.tags || []), ...(this.repostRef?.tags || [])])
+      : this.ref.tags;
     return this.css + ' ' + [
-      ...templates(this.ref.tags, 'plugin'),
+      ...templates(tags, 'plugin'),
       ...Object.keys(this.ref.metadata?.plugins || {}).map(p => 'response-' + p),
       ...(this.ref.metadata?.userUrls || []).map(p => 'user-response-' + p)
     ].map(t => t.replace(/[+_]/g, '').replace(/\//g, '_').replace(/\./g, '-')).join(' ');
@@ -381,6 +416,121 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   @HostBinding('class.outdated')
   get modifiedFile() {
     return this.ref.outdated;
+  }
+
+  private get storyboardData() {
+    if (!this.admin.getPlugin('plugin/thumbnail/storyboard')) return null;
+    if (this.editing) {
+      return this.editForm.value?.plugins?.['plugin/thumbnail/storyboard'] || null;
+    }
+    return this.ref?.plugins?.['plugin/thumbnail/storyboard']
+      || this.repostRef?.plugins?.['plugin/thumbnail/storyboard']
+      || null;
+  }
+
+  private get storyboardRawUrl(): string | null {
+    const sb = this.storyboardData;
+    if (!sb?.url) return null;
+    const rawUrl = String(sb.url);
+    const origin = this.ref?.origin || this.repostRef?.origin || '';
+    if (rawUrl.startsWith('cache:') || this.admin.getPlugin('plugin/thumbnail')?.config?.proxy) {
+      const ext = getExtension(rawUrl) || '';
+      const title = this.ref?.title || 'storyboard';
+      return this.proxy.getFetch(rawUrl, origin, title + (title.endsWith(ext) ? '' : ext));
+    } else {
+      return rawUrl;
+    }
+  }
+
+  @memo
+  @HostBinding('style.--storyboard-url')
+  get storyboardUrl(): string | null {
+    const resolvedUrl = this.storyboardRawUrl;
+    if (!resolvedUrl) return null;
+    const escapedUrl = resolvedUrl.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+    return `url("${escapedUrl}")`;
+  }
+
+  @memo
+  @HostBinding('style.--storyboard-size')
+  get storyboardSize(): string | null {
+    const sb = this.storyboardData;
+    if (!sb?.cols || !sb?.rows) return null;
+    const cols = Math.trunc(Number(sb.cols));
+    const rows = Math.trunc(Number(sb.rows));
+    if (cols <= 0 || rows <= 0 || cols * rows > 10_000) return null;
+    return `${cols * 100}% ${rows * 100}%`;
+  }
+
+  @memo
+  @HostBinding('style.--storyboard-margin')
+  get storyboardMargin(): string | null {
+    const sb = this.storyboardData;
+    if (!sb?.cols || !sb?.rows) return null;
+    const cols = Math.trunc(Number(sb.cols));
+    const rows = Math.trunc(Number(sb.rows));
+    if (cols <= 0 || rows <= 0 || cols * rows > 10_000) return null;
+    if (!sb.width || sb.width <= 0 || !sb.height || sb.height <= 0) return null;
+    if (sb.width > sb.height) return ((48 - (48 * sb.height / sb.width)) / 2) + 'px 10px 0 0';
+    const margin = ((48 - (48 * sb.width / sb.height)) / 2);
+    return '0 ' + (margin + 10) + 'px 0 ' + margin + 'px';
+  }
+
+  @memo
+  @HostBinding('style.--storyboard-width')
+  get storyboardWidth(): string | null {
+    const sb = this.storyboardData;
+    if (!sb?.cols || !sb?.rows) return null;
+    const cols = Math.trunc(Number(sb.cols));
+    const rows = Math.trunc(Number(sb.rows));
+    if (cols <= 0 || rows <= 0 || cols * rows > 10_000) return null;
+    if (!sb.width || sb.width <= 0 || !sb.height || sb.height <= 0) return null;
+    if (sb.width > sb.height) return '48px';
+    return (48 * sb.width / sb.height) + 'px';
+
+  }
+
+  @memo
+  @HostBinding('style.--storyboard-height')
+  get storyboardHeight(): string | null {
+    const sb = this.storyboardData;
+    if (!sb?.cols || !sb?.rows) return null;
+    const cols = Math.trunc(Number(sb.cols));
+    const rows = Math.trunc(Number(sb.rows));
+    if (cols <= 0 || rows <= 0 || cols * rows > 10_000) return null;
+    if (!sb.width || sb.width <= 0 || !sb.height || sb.height <= 0) return null;
+    if (sb.width > sb.height) return (48 * sb.height / sb.width) + 'px';
+    return '48px';
+  }
+
+  @memo
+  @HostBinding('style.--storyboard-animation')
+  get storyboardAnimation(): string | null {
+    const sb = this.storyboardData;
+    if (!sb?.cols || !sb?.rows) return null;
+    const cols = Math.trunc(Number(sb.cols));
+    const rows = Math.trunc(Number(sb.rows));
+    const totalFrames = cols * rows;
+    if (cols <= 0 || rows <= 0 || totalFrames > 10_000 || totalFrames < 2) return null;
+    const duration = 0.4;
+    const name = `storyboard-slide-${cols}x${rows}`;
+    const styleId = `style-${name}`;
+    if (!document.getElementById(styleId)) {
+      const style = document.createElement('style');
+      style.id = styleId;
+      style.textContent = generateStoryboardKeyframes(name, cols, rows);
+      document.head.appendChild(style);
+    }
+    return `${name} ${(totalFrames * duration).toFixed(2)}s linear infinite`;
+  }
+
+  @memo
+  @HostBinding('class.has-storyboard-default')
+  get hasStoryboardDefault(): boolean {
+    const sb = this.storyboardData;
+    const thumbPlugins = this.editing ? this.editForm.value?.plugins : (this.ref?.plugins || this.repostRef?.plugins);
+    const thumbData = thumbPlugins?.['plugin/thumbnail'];
+    return !!sb && !(thumbData?.url || thumbData?.emoji || thumbData?.color);
   }
 
   get obsoleteOrigin() {
@@ -461,6 +611,12 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     this._editing = value;
     if (value) {
       this.syncEditor();
+      MemoCache.clear(this, 'storyboardUrl');
+      MemoCache.clear(this, 'storyboardSize');
+      MemoCache.clear(this, 'storyboardMargin');
+      MemoCache.clear(this, 'storyboardHeight');
+      MemoCache.clear(this, 'storyboardAnimation');
+      MemoCache.clear(this, 'hasStoryboardDefault');
     } else {
       defer(() => {
         MemoCache.clear(this);

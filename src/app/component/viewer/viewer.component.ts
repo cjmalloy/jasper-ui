@@ -61,7 +61,7 @@ import { TodoComponent } from '../todo/todo.component';
     forwardRef(() => PlaylistComponent),
     forwardRef(() => LensComponent),
     forwardRef(() => ModComponent),
-    MdComponent,
+    forwardRef(() => MdComponent),
     ImageDirective,
     ResizeDirective,
     QrComponent,

@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { action, makeAutoObservable, observable, runInAction } from 'mobx';
-import { catchError, Subscription, throwError } from 'rxjs';
+import { catchError, EMPTY, Subscription } from 'rxjs';
 import { Page } from '../model/page';
 import { Ref, RefPageArgs, RefSort } from '../model/ref';
 import { RefService } from '../service/api/ref.service';
@@ -84,7 +84,7 @@ export class ThreadStore {
     this.loading = this.refs.page(this.args).pipe(
       catchError((err: HttpErrorResponse) => {
         runInAction(() => this.error = err);
-        return throwError(() => err);
+        return EMPTY;
       }),
     ).subscribe(page => runInAction(() => this.addPage(page)));
   }
@@ -102,7 +102,7 @@ export class ThreadStore {
     this.loading = this.refs.page(args).pipe(
       catchError((err: HttpErrorResponse) => {
         runInAction(() => this.error = err);
-        return throwError(() => err);
+        return EMPTY;
       }),
     ).subscribe(page => runInAction(() => {
       if (source) {

@@ -3,6 +3,7 @@ import { CdkScrollable } from '@angular/cdk/scrolling';
 import { AsyncPipe } from '@angular/common';
 import {
   Component,
+  forwardRef,
   HostListener,
   Input,
   OnChanges,
@@ -48,7 +49,7 @@ export interface KanbanDrag {
   styleUrls: ['./kanban.component.scss'],
   host: { 'class': 'kanban ext' },
   imports: [
-    KanbanColumnComponent,
+    forwardRef(() => KanbanColumnComponent),
     MobxAngularModule,
     LoadingComponent,
     CdkDropListGroup,

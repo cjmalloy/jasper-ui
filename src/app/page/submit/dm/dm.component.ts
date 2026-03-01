@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { AfterViewInit, Component, ElementRef, OnChanges, OnDestroy, SimpleChanges, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, forwardRef, OnChanges, OnDestroy, SimpleChanges, ViewChild } from '@angular/core';
 import {
   ReactiveFormsModule,
   UntypedFormArray,
@@ -50,7 +50,7 @@ import { getVisibilityTags, hasPrefix, hasTag, localTag } from '../../../util/ta
   styleUrls: ['./dm.component.scss'],
   host: { 'class': 'full-page-form' },
   imports: [
-    EditorComponent,
+    forwardRef(() => EditorComponent),
     MobxAngularModule,
     ReactiveFormsModule,
     LimitWidthDirective,
@@ -73,8 +73,12 @@ export class SubmitDmPage implements AfterViewInit, OnChanges, OnDestroy, HasCha
   dmForm: UntypedFormGroup;
   serverError: string[] = [];
 
+  limitWidth?: HTMLElement;
+
   @ViewChild('fill')
-  fill?: ElementRef;
+  set fill(value: ElementRef | undefined) {
+    defer(() => this.limitWidth = value?.nativeElement);
+  }
 
   @ViewChild('ed')
   editorComponent?: EditorComponent;
@@ -131,44 +135,19 @@ export class SubmitDmPage implements AfterViewInit, OnChanges, OnDestroy, HasCha
     return !this.dmForm?.dirty;
   }
 
-  saveForLater(leave = false) {
-    const savedValue = JSON.stringify(this.dmForm.value);
-    this.saving = this.refs.saveEdit(this.writeRef(), this.cursor)
-      .pipe(catchError(err => {
-        delete this.saving;
-        return throwError(() => err);
-      }))
-      .subscribe(cursor => {
-        delete this.saving;
-        this.cursor = cursor;
-        if (JSON.stringify(this.dmForm.value) === savedValue) this.dmForm.markAsPristine();
-        if (leave) this.router.navigate(['/inbox/ref', 'plugin/editing']);
-      });
-  }
-
-  writeRef() {
-    return <Ref> {
-      url: this._url,
-      origin: this.store.account.origin,
-      title: this.dmForm.value.title,
-      comment: this.dmForm.value.comment,
-      sources: this.dmForm.value.sources,
-      tags: this.dmForm.value.tags,
-      plugins: writePlugins(this.dmForm.value.tags, this.dmForm.value.plugins),
-    };
-  }
-
   ngAfterViewInit() {
-    this.disposers.push(autorun(() => {
-      if (this.store.submit.dmPlugin) {
-        this.setTo(this.store.submit.dmPlugin);
-      } if (this.store.submit.to.length) {
-        this.setTo(this.store.submit.to.join(' '));
-      } else {
-        this.setTo('');
-      }
-      this.addTags([...this.store.submit.tags, ...(this.store.account.localTag ? [this.store.account.localTag] : [])]);
-    }));
+    defer(() => {
+      this.disposers.push(autorun(() => {
+        if (this.store.submit.dmPlugin) {
+          this.setTo(this.store.submit.dmPlugin);
+        } if (this.store.submit.to.length) {
+          this.setTo(this.store.submit.to.join(' '));
+        } else {
+          this.setTo('');
+        }
+        this.addTags([...this.store.submit.tags, ...(this.store.account.localTag ? [this.store.account.localTag] : [])]);
+      }));
+    });
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -204,6 +183,33 @@ export class SubmitDmPage implements AfterViewInit, OnChanges, OnDestroy, HasCha
 
   get notes() {
     return !this.to.value || this.to.value === this.store.account.tag;
+  }
+
+  saveForLater(leave = false) {
+    const savedValue = JSON.stringify(this.dmForm.value);
+    this.saving = this.refs.saveEdit(this.writeRef(), this.cursor)
+      .pipe(catchError(err => {
+        delete this.saving;
+        return throwError(() => err);
+      }))
+      .subscribe(cursor => {
+        delete this.saving;
+        this.cursor = cursor;
+        if (JSON.stringify(this.dmForm.value) === savedValue) this.dmForm.markAsPristine();
+        if (leave) this.router.navigate(['/inbox/ref', 'plugin/editing']);
+      });
+  }
+
+  writeRef() {
+    return <Ref> {
+      url: this._url,
+      origin: this.store.account.origin,
+      title: this.dmForm.value.title,
+      comment: this.dmForm.value.comment,
+      sources: this.dmForm.value.sources,
+      tags: this.dmForm.value.tags,
+      plugins: writePlugins(this.dmForm.value.tags, this.dmForm.value.plugins),
+    };
   }
 
   addTags(value: string[]) {

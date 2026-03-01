@@ -1,6 +1,6 @@
 <ng-container *mobxAutorun>
   <form class="form" [formGroup]="dmForm" (ngSubmit)="submit()"
-        [appLimitWidth]="fill?.nativeElement" [limitSibling]="true">
+        [appLimitWidth]="limitWidth" [limitSibling]="true">
     @if (!store.submit.dmPlugin) {
       <label for="to" i18n>To:</label>
       <div class="form-array skip-margin">

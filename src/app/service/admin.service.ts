@@ -31,6 +31,7 @@ import { lensMod } from '../mods/lens';
 import { mailboxMod } from '../mods/mailbox';
 import { audioMod } from '../mods/media/audio';
 import { codeMod } from '../mods/media/code';
+import { durationMod } from '../mods/media/duration';
 import { embedMod } from '../mods/media/embed';
 import { fileMod } from '../mods/media/file';
 import { imageMod } from '../mods/media/image';
@@ -38,6 +39,7 @@ import { pdfMod } from '../mods/media/pdf';
 import { playlistMod } from '../mods/media/playlist';
 import { tableMod } from '../mods/media/table';
 import { videoMod } from '../mods/media/video';
+import { ytdlpMod } from '../mods/media/ytdlp';
 import { modMod } from '../mods/mod';
 import { modlistMod } from '../mods/modlist';
 import { folderMod } from '../mods/org/folder';
@@ -82,7 +84,6 @@ import { qrMod } from '../mods/tools/qr';
 import { thanksMod } from '../mods/tools/thanks';
 import { userMod } from '../mods/user';
 import { voteMod } from '../mods/vote';
-import { ytdlpMod } from '../mods/ytdlp';
 import { progress } from '../store/bus';
 import { Store } from '../store/store';
 import { modId } from '../util/format';
@@ -156,6 +157,7 @@ export class AdminService {
     threadMod,
     notesMod,
     emailMod,
+    durationMod,
     fullscreenMod,
     seamlessMod,
     thumbnailMod,
@@ -458,8 +460,7 @@ export class AdminService {
   }
 
   get pip() {
-    // @ts-ignore
-    if (!documentPictureInPicture) return false;
+    if (!('documentPictureInPicture' in window)) return false;
     return this.getPlugin('plugin/pip');
   }
 

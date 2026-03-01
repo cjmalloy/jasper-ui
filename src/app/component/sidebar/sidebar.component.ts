@@ -1,5 +1,5 @@
 import { AsyncPipe } from '@angular/common';
-import { Component, ElementRef, HostBinding, Input, OnChanges, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
+import { Component, ElementRef, forwardRef, HostBinding, Input, OnChanges, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { uniq, uniqBy } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
@@ -44,7 +44,7 @@ import { SortComponent } from '../sort/sort.component';
   host: { 'class': 'sidebar' },
   imports: [
     ExtComponent,
-    MdComponent,
+    forwardRef(() => MdComponent),
     MobxAngularModule,
     SearchComponent,
     QueryComponent,
