@@ -124,6 +124,7 @@ export const ytdlpMetaDeltaPlugin: Plugin = {
     // language=python
     script: `
 import json
+import os
 import sys
 import yt_dlp
 
@@ -134,6 +135,8 @@ url = embed.get('url') or ref.get('url')
 
 ydl_opts = {
     'quiet': True,
+    'remote_components': ['ejs:github'],
+    'js_runtimes': {'bun': {'path': os.environ['JASPER_NODE']}},
     'skip_download': True,
 }
 
