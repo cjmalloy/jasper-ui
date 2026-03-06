@@ -2,6 +2,7 @@ import { Component, Input } from '@angular/core';
 import { Router } from '@angular/router';
 import { AgGridModule } from 'ag-grid-angular';
 import { ColDef } from 'ag-grid-community';
+import { DateTime } from 'luxon';
 import { Ext } from '../../model/ext';
 import { Page } from '../../model/page';
 import { Ref } from '../../model/ref';
@@ -37,7 +38,7 @@ export class GridComponent {
     { headerName: $localize`Tags`, field: 'tags' },
     { headerName: $localize`Responses`, field: 'metadata.responses' },
     { headerName: $localize`Comments`,  field: 'metadata.comments' },
-    { headerName: $localize`Published`,  field: 'published' },
+    { headerName: $localize`Published`,  field: 'published', filter: 'agDateColumnFilter', valueFormatter: params => params.value instanceof DateTime ? params.value.toLocaleString(DateTime.DATETIME_SHORT) : '' },
   ];
 
   private _page?: Page<Ref>;
