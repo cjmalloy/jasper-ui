@@ -38,7 +38,7 @@ export class GridComponent {
     { headerName: $localize`Tags`, field: 'tags' },
     { headerName: $localize`Responses`, field: 'metadata.responses' },
     { headerName: $localize`Comments`,  field: 'metadata.comments' },
-    { headerName: $localize`Published`,  field: 'published', filter: 'agDateColumnFilter', valueFormatter: params => params.value instanceof DateTime ? params.value.toLocaleString(DateTime.DATETIME_SHORT) : '' },
+    { headerName: $localize`Published`,  field: 'published', filter: 'agDateColumnFilter', valueFormatter: params => this.formatDate(params.value) },
   ];
 
   private _page?: Page<Ref>;
@@ -49,6 +49,10 @@ export class GridComponent {
     private admin: AdminService,
     private router: Router,
   ) { }
+
+  formatDate(value: unknown): string {
+    return value instanceof DateTime ? value.toLocaleString(DateTime.DATETIME_SHORT) : '';
+  }
 
   get page(): Page<Ref> | undefined {
     return this._page;
