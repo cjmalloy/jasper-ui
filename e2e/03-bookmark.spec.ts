@@ -157,7 +157,7 @@ test.describe.serial('Bookmark Formly Type', () => {
 
 test.describe.serial('Sidebar bookmark toggle', () => {
 
-  test('setup: enable user mod', async ({ page }) => {
+  test('enable user mod', async ({ page }) => {
     await mod(page, '#mod-user');
   });
 
