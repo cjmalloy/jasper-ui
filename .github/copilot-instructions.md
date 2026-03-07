@@ -68,6 +68,14 @@ docker compose up --build  # Everything on http://localhost:8082/
 - E2E tests: `npm run pw:ci` (10-20 min, NEVER CANCEL, timeout 30+ min)
 - Stop services: `docker compose down`
 
+### Dependency Management
+
+**CRITICAL**: **Never run `npm install` without arguments** — this regenerates `package-lock.json` and breaks CI. CI uses `npm ci`, which requires the lockfile to exactly match `package.json`. A modified lockfile will cause the build to fail.
+
+- To install dependencies before building/testing, always use: `npm ci`
+- To add a new package: `npm install <package>` (intentionally updates the lockfile — only do this when explicitly adding a dependency)
+- **Never commit an unintentionally modified `package-lock.json`**. If you ran `npm install` by accident, restore the lockfile with `git checkout -- package-lock.json` before committing.
+
 **IMPORTANT**: When making UI changes that affect user interactions (buttons, overlays, dialogs, etc.), **ALWAYS** update the corresponding Playwright E2E tests in `e2e/`. This is a critical step that should not be forgotten.
 
 **IMPORTANT**: When adding new E2E tests that are not designed to expose an existing bug, you **MUST** run the tests to confirm they pass before submitting. Use `npx playwright test <spec-file>` against the running e2e services. Do not submit E2E tests that have not been verified to pass.
