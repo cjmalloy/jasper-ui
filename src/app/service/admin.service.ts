@@ -1073,6 +1073,7 @@ export class AdminService {
       if (def.config.version !== status.config.version) {
         return def.config.version > status.config.version;
       }
+      return false;
     }
     return !isEqual(clear(def), clear(status));
   }
