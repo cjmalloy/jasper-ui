@@ -174,11 +174,13 @@
             <button type="button"
                     class="bookmark"
                     i18n-title title="Remove from top bar"
+                    [disabled]="savingBookmark"
                     (click)="removeBookmark()" i18n>&ndash; bookmark</button>
           } @else {
             <button type="button"
-                    (click)="bookmark()"
+                    (click)="addBookmark()"
                     i18n-title title="Add to top bar"
+                    [disabled]="savingBookmark"
                     class="bookmark" i18n>+ bookmark</button>
           }
           @if (admin.getTemplate('config/home')) {
@@ -187,11 +189,13 @@
                 <button type="button"
                         class="subscribe"
                         i18n-title title="Remove from home screen"
+                        [disabled]="savingSub"
                         (click)="unsubscribe()" i18n>&ndash; unfollow</button>
               } @else {
                 <button type="button"
                         (click)="subscribe()"
                         i18n-title title="Add to home screen"
+                        [disabled]="savingSub"
                         class="subscribe" i18n>+ follow</button>
               }
             } @else {
@@ -199,11 +203,13 @@
                 <button type="button"
                         class="subscribe"
                         i18n-title title="Remove from home screen"
+                        [disabled]="savingSub"
                         (click)="unsubscribe()" i18n>&ndash; unsubscribe</button>
               } @else {
                 <button type="button"
                         (click)="subscribe()"
                         i18n-title title="Add to home screen"
+                        [disabled]="savingSub"
                         class="subscribe" i18n>+ subscribe</button>
               }
             }
@@ -212,11 +218,13 @@
             <button type="button"
                     class="alarm"
                     i18n-title title="Remove alarm"
+                    [disabled]="savingAlarm"
                     (click)="removeAlarm()" i18n>🔇</button>
           } @else {
             <button type="button"
                     (click)="addAlarm()"
                     i18n-title title="Add alarm"
+                    [disabled]="savingAlarm"
                     class="alarm" i18n>🔔</button>
           }
         </div>
