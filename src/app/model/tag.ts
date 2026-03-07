@@ -574,7 +574,6 @@ export function clear<T extends Config>(c: T) {
   delete c.config!.generated;
   delete c.config!.mod;
   delete c.config!._parent;
-  delete c.defaults;
   delete c.type;
   delete c.origin;
   delete c.modified;

@@ -7,6 +7,7 @@ export const codePlugin: Plugin = {
   name: $localize`🗒️ Code`,
   config: {
     type: 'editor',
+    version: 1,
     default: true,
     add: true,
     submit: $localize`🗒️ code`,

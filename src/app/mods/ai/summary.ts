@@ -5,9 +5,10 @@ import { Mod } from '../../model/tag';
 
 export const summaryQueryPlugin: Plugin = {
   tag: 'plugin/delta/ai/summary',
-  name: '✂️️💭️ Summarize',
+  name: $localize`✂️️💭️ Summarize`,
   config: {
     mod: $localize`✂️ Summarize`,
+    version: 1,
     type: 'tool',
     default: false,
     add: true,
@@ -84,9 +85,10 @@ export const summaryQueryPlugin: Plugin = {
 
 export const summaryPlugin: Plugin = {
   tag: '+plugin/delta/ai/summary',
-  name: '✂️️ Summary',
+  name: $localize`✂️️ Summary`,
   config: {
     mod: $localize`✂️ Summarize`,
+    version: 1,
     type: 'tool',
     default: false,
     signature: '+plugin/delta/ai/summary',

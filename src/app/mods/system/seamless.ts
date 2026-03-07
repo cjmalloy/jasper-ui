@@ -6,6 +6,7 @@ export const seamlessPlugin: Plugin = {
   tag: 'plugin/seamless',
   name: $localize`🪡 Seamless`,
   config: {
+    version: 1,
     type: 'plugin',
     default: true,
     add: true,

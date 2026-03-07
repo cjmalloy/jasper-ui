@@ -6,6 +6,7 @@ export const repostPlugin: Plugin = {
   tag: 'plugin/repost',
   name: $localize`↪️ Repost`,
   config: {
+    version: 1,
     type: 'semantic',
     default: true,
     add: true,

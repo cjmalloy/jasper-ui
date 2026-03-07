@@ -7,6 +7,7 @@ export const dalleQueryPlugin: Plugin = {
   name: $localize`👨️‍🎨️💭️ Ask DALL·E`,
   config: {
     mod: $localize`👨️‍🎨️ DALL·E Chat`,
+    version: 1,
     type: 'tool',
     default: false,
     add: true,
@@ -290,6 +291,7 @@ export const dallePlugin: Plugin = {
   name: $localize`👨️‍🎨️ DALL·E`,
   config: {
     mod: $localize`👨️‍🎨️ DALL·E Chat`,
+    version: 1,
     type: 'tool',
     default: false,
     genId: true,

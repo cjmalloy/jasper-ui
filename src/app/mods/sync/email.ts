@@ -6,6 +6,7 @@ export const emailPlugin: Plugin = {
   tag: 'plugin/email',
   name: $localize`📧️ Email`,
   config: {
+    version: 1,
     type: 'plugin',
     default: true,
     add: true,

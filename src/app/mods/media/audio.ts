@@ -7,6 +7,7 @@ export const audioPlugin: Plugin = {
   name: $localize`📻️ Audio`,
   config: {
     type: 'plugin',
+    version: 1,
     default: true,
     proxy: true,
     add: true,
