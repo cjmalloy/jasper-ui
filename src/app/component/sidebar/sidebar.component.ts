@@ -292,7 +292,7 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
 
   @memo
   get bookmarks$() {
-    return this.exts.getCachedExts(this.userConfig?.bookmarks || []).pipe(this.admin.extFallbacks);
+    return this.exts.getCachedExts(this.userConfig?.bookmarks?.map(x => x.includes('?') ? x.substring(0, x.indexOf('?')) : x) || []).pipe(this.admin.extFallbacks);
   }
 
   @memo
@@ -367,13 +367,12 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
     this.account.removeSub(this.tag!);
   }
 
-  bookmark() {
-    const qs = encodeBookmarkParams(this.router.url);
-    this.account.addBookmark(qs ? `${this.tag}?${qs}` : this.tag!);
+  addBookmark() {
+    this.account.addBookmark(this.bookmark);
   }
 
   removeBookmark() {
-    this.account.removeBookmark(this.tag!);
+    this.account.removeBookmark(this.bookmark);
   }
 
   addAlarm() {
@@ -388,8 +387,13 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
     return this.store.account.subs.includes(this.tag!);
   }
 
+  get bookmark() {
+    const qs = encodeBookmarkParams(this.router.url);
+    return qs ? `${this.tag}?${qs}` : this.tag!;
+  }
+
   get inBookmarks() {
-    return this.store.account.bookmarks.includes(this.tag!);
+    return this.store.account.bookmarks.includes(this.bookmark);
   }
 
   get inAlarms() {
