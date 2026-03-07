@@ -6286,36 +6286,9 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>Bookmarks: </source>
         <target>ブックマーク: </target>
       </trans-unit>
-      <trans-unit id="5595653752345611410" datatype="html">
-        <source>Configure search, sort and filters</source>
-        <target>検索・並び替え・フィルターを設定</target>
-      </trans-unit>
-      <trans-unit id="3446720722197729338" datatype="html">
-        <source>🔍️ Search</source>
-        <target>🔍️ 検索</target>
-      </trans-unit>
       <trans-unit id="1952562229620562171" datatype="html">
         <source>Search text…</source>
         <target>検索テキスト…</target>
-      </trans-unit>
-      <trans-unit id="1155460432605427252" datatype="html">
-        <source>🔼️ Sort</source>
-        <target>🔼️ 並び替え</target>
-      </trans-unit>
-      <trans-unit id="1602447240300033767" datatype="html">
-        <source>+ Add sort…</source>
-        <target>+ 並び替えを追加…</target>
-      </trans-unit>
-      <trans-unit id="1898874052258139852" datatype="html">
-        <source>⚙️ Filters</source>
-        <target>⚙️ フィルター</target>
-      </trans-unit>
-      <trans-unit id="6952049093546172035" datatype="html">
-        <source>e.g. obsolete, query/science</source>
-      </trans-unit>
-      <trans-unit id="8857746354382606226" datatype="html">
-        <source>+ Add filter</source>
-        <target>+ フィルターを追加</target>
       </trans-unit>
       <trans-unit id="4435787240530424068" datatype="html">
         <source>✨️ created</source>
@@ -6324,6 +6297,117 @@ Each response contains the converted Markdown from a specific source format.</so
       <trans-unit id="140875962077692817" datatype="html">
         <source>🔤️ title</source>
         <target>🔤️ タイトル</target>
+      </trans-unit>
+      <trans-unit id="100920588329896213" datatype="html">
+        <source>⬆️ Vote Up</source>
+        <target>⬆️ 賛成票</target>
+      </trans-unit>
+      <trans-unit id="368239463093599453" datatype="html">
+        <source>📦️</source>
+      </trans-unit>
+      <trans-unit id="654860185026958105" datatype="html">
+        <source>▶️ Get Video</source>
+        <target>▶️ 動画を取得</target>
+      </trans-unit>
+      <trans-unit id="709575926456734430" datatype="html">
+        <source>⏱️ Duration</source>
+        <target>⏱️ 時間</target>
+      </trans-unit>
+      <trans-unit id="1036445405904558237" datatype="html">
+        <source>⬆️ Voting</source>
+        <target>⬆️ 投票</target>
+      </trans-unit>
+      <trans-unit id="1085734637220360624" datatype="html">
+        <source>Cancel committing edits to this Ref</source>
+        <target>このRefへの編集コミットをキャンセル</target>
+      </trans-unit>
+      <trans-unit id="1334587264094503022" datatype="html">
+        <source>Stores media duration in the tag itself (e.g., plugin/duration/pt15m).</source>
+        <target>メディアの長さをタグ自体に保存します（例：plugin/duration/pt15m）。</target>
+      </trans-unit>
+      <trans-unit id="1551265135026146665" datatype="html">
+        <source>Tagging:</source>
+        <target>タグ付け：</target>
+      </trans-unit>
+      <trans-unit id="1603140112190676387" datatype="html">
+        <source>revert</source>
+        <target>元に戻す</target>
+      </trans-unit>
+      <trans-unit id="2533255747959679470" datatype="html">
+        <source>📝️ Editing</source>
+        <target>📝️ 編集中</target>
+      </trans-unit>
+      <trans-unit id="2764383170911692714" datatype="html">
+        <source>Storyboard thumbnail data for hover-triggered slideshows.</source>
+        <target>ホバーで起動するスライドショー用のストーリーボードサムネイルデータ。</target>
+      </trans-unit>
+      <trans-unit id="3050349564780106403" datatype="html">
+        <source>📽️ Storyboard</source>
+        <target>📽️ ストーリーボード</target>
+      </trans-unit>
+      <trans-unit id="3274838778100477697" datatype="html">
+        <source>📝️ editing</source>
+        <target>📝️ 編集</target>
+      </trans-unit>
+      <trans-unit id="3303309848473560795" datatype="html">
+        <source>Save pending edits to this Ref</source>
+        <target>このRefへの保留中の編集を保存</target>
+      </trans-unit>
+      <trans-unit id="3547506037713171588" datatype="html">
+        <source>Save for later</source>
+        <target>後で保存</target>
+      </trans-unit>
+      <trans-unit id="3574610753396068348" datatype="html">
+        <source>🐢️ Commit</source>
+        <target>🐢️ コミット</target>
+      </trans-unit>
+      <trans-unit id="3878402000029890468" datatype="html">
+        <source>📮️ Mailbox</source>
+        <target>📮️ メールボックス</target>
+      </trans-unit>
+      <trans-unit id="4905852834653587822" datatype="html">
+        <source>Revert pending edits to this Ref</source>
+        <target>このRefへの保留中の編集を元に戻す</target>
+      </trans-unit>
+      <trans-unit id="4935276744880938831" datatype="html">
+        <source>drafts</source>
+        <target>下書き</target>
+      </trans-unit>
+      <trans-unit id="5641773084383976698" datatype="html">
+        <source>Drafts</source>
+        <target>下書き</target>
+      </trans-unit>
+      <trans-unit id="5707251684727781993" datatype="html">
+        <source>⬇️ Vote Down</source>
+        <target>⬇️ 反対票</target>
+      </trans-unit>
+      <trans-unit id="7333004363361680955" datatype="html">
+        <source>🪄️ filter</source>
+        <target>🪄️ フィルター</target>
+      </trans-unit>
+      <trans-unit id="7450842941324523438" datatype="html">
+        <source>commit</source>
+        <target>コミット</target>
+      </trans-unit>
+      <trans-unit id="7477361753451496804" datatype="html">
+        <source>Fetches metadata and storyboards using yt-dlp.</source>
+        <target>yt-dlpを使用してメタデータとストーリーボードを取得します。</target>
+      </trans-unit>
+      <trans-unit id="7515883357904500238" datatype="html">
+        <source>Are you sure?</source>
+        <target>よろしいですか？</target>
+      </trans-unit>
+      <trans-unit id="8046183166643945650" datatype="html">
+        <source>🎬️ Drafts</source>
+        <target>🎬️ 下書き</target>
+      </trans-unit>
+      <trans-unit id="8287165281641315955" datatype="html">
+        <source>Save edits to a plugin before publishing.</source>
+        <target>公開前にプラグインへの編集を保存します。</target>
+      </trans-unit>
+      <trans-unit id="8502965473072606811" datatype="html">
+        <source>🔍️ Get Metadata</source>
+        <target>🔍️ メタデータを取得</target>
       </trans-unit>
     </body>
   </file>
