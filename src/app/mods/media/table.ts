@@ -4,7 +4,7 @@ import { Mod } from '../../model/tag';
 
 export const tablePlugin: Plugin = {
   tag: 'plugin/table',
-  name: '📏️ Table',
+  name: $localize`📏️ Table`,
   config: {
     type: 'plugin',
     experimental: true,

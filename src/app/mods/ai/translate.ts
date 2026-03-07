@@ -114,7 +114,7 @@ export const translateQueryPlugin: Plugin = {
 
 export const translatePlugin: Plugin = {
   tag: '+plugin/delta/ai/translate',
-  name: '🔡️️ Translation',
+  name: $localize`🔡️️ Translation`,
   config: {
     mod: $localize`🔡️ Translate`,
     version: 1,
