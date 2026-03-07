@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { mod } from './setup';
+import { mod, openSidebar } from './setup';
 
 test.describe.serial('Bookmark Formly Type', () => {
 
@@ -152,5 +152,27 @@ test.describe.serial('Bookmark Formly Type', () => {
     const value = await textInput.inputValue();
     expect(value).toContain('filter=obsolete');
     expect(value).not.toContain('%3D');
+  });
+});
+
+test.describe.serial('Sidebar bookmark toggle', () => {
+
+  test('setup: enable user mod', async ({ page }) => {
+    await mod(page, '#mod-user');
+  });
+
+  test('+ bookmark on tag page with sort adds entry to top bar', async ({ page }) => {
+    await page.goto('/tag/science?sort=published&debug=ADMIN', { waitUntil: 'networkidle' });
+    await openSidebar(page);
+    await page.locator('.sidebar button.bookmark', { hasText: '+ bookmark' }).click();
+    await expect(page.locator('.subscription-bar a', { hasText: 'science' })).toBeVisible();
+  });
+
+  test('\u2013 bookmark on tag page with sort removes entry from top bar', async ({ page }) => {
+    await page.goto('/tag/science?sort=published&debug=ADMIN', { waitUntil: 'networkidle' });
+    await openSidebar(page);
+    await expect(page.locator('.sidebar button.bookmark')).toContainText('\u2013 bookmark');
+    await page.locator('.sidebar button.bookmark').click();
+    await expect(page.locator('.subscription-bar a', { hasText: 'science' })).not.toBeVisible();
   });
 });
