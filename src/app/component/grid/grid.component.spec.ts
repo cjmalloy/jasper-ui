@@ -51,4 +51,42 @@ describe('GridComponent', () => {
       expect(component.formatDate(12345)).toBe('');
     });
   });
+
+  describe('applyFormatters', () => {
+    it('should add valueFormatter and filter to a published column', () => {
+      const cols = [{ headerName: 'Published', field: 'published' }];
+      const result = component.applyFormatters(cols);
+      expect(result[0].filter).toBe('agDateColumnFilter');
+      expect(typeof result[0].valueFormatter).toBe('function');
+    });
+
+    it('should not modify non-published columns', () => {
+      const cols = [{ headerName: 'Title', field: 'title' }];
+      const result = component.applyFormatters(cols);
+      expect(result[0].valueFormatter).toBeUndefined();
+      expect(result[0].filter).toBeUndefined();
+    });
+
+    it('should preserve existing filter on published column', () => {
+      const cols = [{ headerName: 'Published', field: 'published', filter: 'myFilter' }];
+      const result = component.applyFormatters(cols);
+      expect(result[0].filter).toBe('myFilter');
+    });
+  });
+
+  describe('columnDefs', () => {
+    it('should return formatted column defs from defaultCols', () => {
+      const defs = component.columnDefs;
+      const published = defs.find(c => c.field === 'published');
+      expect(published).toBeTruthy();
+      expect(published?.filter).toBe('agDateColumnFilter');
+      expect(typeof published?.valueFormatter).toBe('function');
+    });
+
+    it('should apply formatters to ext config columnDefs when provided', () => {
+      component.ext = { tag: 'grid', config: { columnDefs: [{ headerName: 'Published', field: 'published' }] } } as any;
+      const defs = component.columnDefs;
+      expect(typeof defs[0].valueFormatter).toBe('function');
+    });
+  });
 });

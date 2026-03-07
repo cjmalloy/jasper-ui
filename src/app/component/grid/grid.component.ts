@@ -38,7 +38,7 @@ export class GridComponent {
     { headerName: $localize`Tags`, field: 'tags' },
     { headerName: $localize`Responses`, field: 'metadata.responses' },
     { headerName: $localize`Comments`,  field: 'metadata.comments' },
-    { headerName: $localize`Published`,  field: 'published', filter: 'agDateColumnFilter', valueFormatter: params => this.formatDate(params.value) },
+    { headerName: $localize`Published`,  field: 'published' },
   ];
 
   private _page?: Page<Ref>;
@@ -49,6 +49,16 @@ export class GridComponent {
     private admin: AdminService,
     private router: Router,
   ) { }
+
+  get columnDefs(): ColDef[] {
+    return this.applyFormatters(this.ext?.config?.columnDefs || this.defaultCols);
+  }
+
+  applyFormatters(cols: ColDef[]): ColDef[] {
+    return cols.map(col => col.field === 'published'
+      ? { ...col, filter: col.filter || 'agDateColumnFilter', valueFormatter: params => this.formatDate(params.value) }
+      : col);
+  }
 
   formatDate(value: unknown): string {
     return value instanceof DateTime ? value.toLocaleString(DateTime.DATETIME_SHORT) : '';
