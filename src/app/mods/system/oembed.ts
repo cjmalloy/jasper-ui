@@ -4,7 +4,7 @@ import { Mod } from '../../model/tag';
 
 export const oEmbedPlugin: Plugin = {
   tag: '+plugin/oembed',
-  name: '📡️ oEmbed',
+  name: $localize`📡️ oEmbed`,
   config: {
     version: 1,
     default: true,

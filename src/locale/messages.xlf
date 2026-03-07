@@ -6927,6 +6927,13 @@ Private tags start with an underscore.
           <context context-type="linenumber">1370</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="2606966465436601505" datatype="html">
+        <source>✂️️💭️ Summarize</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/ai/summary.ts</context>
+          <context context-type="linenumber">8</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="2117985341150244588" datatype="html">
         <source>✂️ Summarize</source>
         <context-group purpose="location">
@@ -6964,6 +6971,13 @@ Private tags start with an underscore.
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/ai/summary.ts</context>
           <context context-type="linenumber">22</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="1231387031814144089" datatype="html">
+        <source>✂️️ Summary</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/ai/summary.ts</context>
+          <context context-type="linenumber">88</context>
         </context-group>
       </trans-unit>
       <trans-unit id="157375002281556191" datatype="html">
@@ -7018,6 +7032,13 @@ Private tags start with an underscore.
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/ai/summary.ts</context>
           <context context-type="linenumber">113</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="102286496297455516" datatype="html">
+        <source>🔡️️💭️ Translate</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/ai/translate.ts</context>
+          <context context-type="linenumber">8</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6692173006645614189" datatype="html">
@@ -7113,6 +7134,13 @@ Private tags start with an underscore.
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/ai/translate.ts</context>
           <context context-type="linenumber">100</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="1888461630799576538" datatype="html">
+        <source>🔡️️ Translation</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/ai/translate.ts</context>
+          <context context-type="linenumber">117</context>
         </context-group>
       </trans-unit>
       <trans-unit id="1037914648700221230" datatype="html">
@@ -9004,6 +9032,13 @@ Private tags start with an underscore.
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/media/playlist.ts</context>
           <context context-type="linenumber">20</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="1549935433569766088" datatype="html">
+        <source>📏️ Table</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/media/table.ts</context>
+          <context context-type="linenumber">7</context>
         </context-group>
       </trans-unit>
       <trans-unit id="5850198001406919971" datatype="html">
@@ -12415,6 +12450,13 @@ Are you sure you want to purge deleted files from storage?</source>
           <context context-type="linenumber">12</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="3143506612853189381" datatype="html">
+        <source>📡️ oEmbed</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/system/oembed.ts</context>
+          <context context-type="linenumber">7</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="6287485712480428796" datatype="html">
         <source>oembed</source>
         <context-group purpose="location">
@@ -12499,6 +12541,13 @@ Are you sure you want to purge deleted files from storage?</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/system/oembed.ts</context>
           <context context-type="linenumber">62</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="2559135662224111057" datatype="html">
+        <source>🪟 Picture in Picture</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/system/pip.ts</context>
+          <context context-type="linenumber">7</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2731421450678265265" datatype="html">
