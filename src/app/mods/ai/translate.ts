@@ -8,6 +8,7 @@ export const translateQueryPlugin: Plugin = {
   name: '🔡️️💭️ Translate',
   config: {
     mod: $localize`🔡️ Translate`,
+    version: 1,
     type: 'tool',
     default: false,
     add: true,
@@ -116,6 +117,7 @@ export const translatePlugin: Plugin = {
   name: '🔡️️ Translation',
   config: {
     mod: $localize`🔡️ Translate`,
+    version: 1,
     type: 'tool',
     default: false,
     genId: true,

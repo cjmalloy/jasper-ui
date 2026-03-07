@@ -9,6 +9,7 @@ export const editingPlugin: Plugin = {
   name: $localize`📝️ Editing`,
   config: {
     mod: $localize`🎬️ Drafts`,
+    version: 1,
     type: 'plugin',
     default: true,
     view: $localize`📝️`,
@@ -33,6 +34,7 @@ export const commitPlugin: Plugin = {
   name: $localize`🐢️ Commit`,
   config: {
     mod: $localize`🎬️ Drafts`,
+    version: 1,
     type: 'plugin',
     default: true,
     actions: [

@@ -7,6 +7,7 @@ export const embedPlugin: Plugin = {
   name: $localize`🔭️ Embed`,
   config: {
     type: 'plugin',
+    version: 1,
     default: true,
     add: true,
     embeddable: true,

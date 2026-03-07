@@ -8,6 +8,7 @@ export const summaryQueryPlugin: Plugin = {
   name: '✂️️💭️ Summarize',
   config: {
     mod: $localize`✂️ Summarize`,
+    version: 1,
     type: 'tool',
     default: false,
     add: true,
@@ -87,6 +88,7 @@ export const summaryPlugin: Plugin = {
   name: '✂️️ Summary',
   config: {
     mod: $localize`✂️ Summarize`,
+    version: 1,
     type: 'tool',
     default: false,
     signature: '+plugin/delta/ai/summary',

@@ -6,6 +6,7 @@ export const pipPlugin: Plugin = {
   tag: 'plugin/pip',
   name: '🪟 Picture in Picture',
   config: {
+    version: 1,
     type: 'plugin',
     default: true,
     add: true,

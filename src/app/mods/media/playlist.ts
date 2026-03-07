@@ -8,6 +8,7 @@ export const playlistPlugin: Plugin = {
   name: $localize`⏭️ Playlist`,
   config: {
     name: $localize`⏭️ Playlist`,
+    version: 1,
     type: 'semantic',
     default: true,
     add: true,

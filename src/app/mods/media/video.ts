@@ -6,6 +6,7 @@ export const videoPlugin: Plugin = {
   tag: 'plugin/video',
   name: $localize`🎞️ Video`,
   config: {
+    version: 1,
     type: 'plugin',
     default: true,
     proxy: true,
