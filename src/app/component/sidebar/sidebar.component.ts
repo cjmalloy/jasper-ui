@@ -292,7 +292,7 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
 
   @memo
   get bookmarks$() {
-    return this.exts.getCachedExts(this.userConfig?.bookmarks?.map(x => x.includes('?') ? x.substring(0, x.indexOf('?')) : x) || []).pipe(this.admin.extFallbacks);
+    return this.exts.getCachedExts(this.store.account.bookmarkQueries).pipe(this.admin.extFallbacks);
   }
 
   @memo
