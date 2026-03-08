@@ -121,10 +121,14 @@ export class GridCellComponent implements ICellRendererAngularComp {
   }
 
   tagUrl(tag: string) {
-    return 'tag:/' + tag;
+    return `tag:/${tag}`;
   }
 
   viewerRef(tag: string, url: string): Ref {
-    return { url, tags: [tag] } as Ref;
+    return {
+      url,
+      origin: '',
+      tags: [tag],
+    };
   }
 }

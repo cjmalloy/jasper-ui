@@ -10,6 +10,7 @@ import { AdminService } from '../../service/admin.service';
 import { Store } from '../../store/store';
 import { LoadingComponent } from '../loading/loading.component';
 import { PageControlsComponent } from '../page-controls/page-controls.component';
+import { GRID_AUTO_HEIGHT_COLUMN_TYPES, GRID_CUSTOM_COLUMN_TYPES } from './grid-column-types';
 import { GridCellComponent } from './grid-cell.component';
 
 @Component({
@@ -24,8 +25,8 @@ import { GridCellComponent } from './grid-cell.component';
   ],
 })
 export class GridComponent {
-  private customTypes = new Set(['url', 'tag', 'tags', 'sources', 'image', 'lens', 'markdown', 'embed']);
-  private autoHeightTypes = new Set(['tags', 'sources', 'image', 'lens', 'markdown', 'embed']);
+  private customTypes = new Set<string>(GRID_CUSTOM_COLUMN_TYPES);
+  private autoHeightTypes = new Set<string>(GRID_AUTO_HEIGHT_COLUMN_TYPES);
 
   @Input()
   tag = '';

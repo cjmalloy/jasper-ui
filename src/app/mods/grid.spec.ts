@@ -1,5 +1,6 @@
 /// <reference types="vitest/globals" />
 import { FormlyFieldConfig } from '@ngx-formly/core';
+import { GRID_CUSTOM_COLUMN_TYPES } from '../component/grid/grid-column-types';
 import { gridTemplate } from './grid';
 
 describe('gridTemplate', () => {
@@ -9,16 +10,16 @@ describe('gridTemplate', () => {
     const typeField = fieldArray?.fieldGroup?.find((field: FormlyFieldConfig) => field.key === 'type');
     const options = (typeField?.props?.options as { value: string }[] | undefined)?.map(option => option.value);
 
-    expect(options).toEqual(expect.arrayContaining([
+    expect(options).toEqual([
       '',
-      'url',
-      'tag',
-      'tags',
-      'sources',
-      'image',
-      'lens',
-      'markdown',
-      'embed',
-    ]));
+      'text',
+      'number',
+      'boolean',
+      'date',
+      'dateString',
+      'dateTime',
+      'dateTimeString',
+      ...GRID_CUSTOM_COLUMN_TYPES,
+    ]);
   });
 });
