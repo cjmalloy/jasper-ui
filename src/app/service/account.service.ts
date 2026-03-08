@@ -75,13 +75,17 @@ export class AccountService {
     if (!this.admin.getTemplate('user')) return of(undefined);
     return this.userExt$.pipe(
       catchError(() => of(undefined)),
-      switchMap(ext => ext ? of(ext) : this.exts.create({ tag: this.store.account.localTag, origin: this.store.account.origin }).pipe(
-        switchMap(() => {
-          this.clearCache();
-          return this.userExt$;
-        }),
-      )),
+      switchMap(ext => ext ? of(ext) : this.createUserExt$),
       map(() => {}),
+    );
+  }
+
+  private get createUserExt$() {
+    return this.exts.create({ tag: this.store.account.localTag, origin: this.store.account.origin }).pipe(
+      switchMap(() => {
+        this.clearCache();
+        return this.userExt$;
+      }),
     );
   }
 
