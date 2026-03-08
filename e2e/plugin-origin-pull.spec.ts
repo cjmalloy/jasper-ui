@@ -53,7 +53,11 @@ test.describe.serial('Origin Pull Plugin', () => {
   });
 
   test('@\u{ff20}main : check ref was pulled', async ({ page }) => {
-    await page.goto('/tag/@repl?debug=USER');
+    const path = '/tag/@repl?debug=USER';
+    await expect.poll(async () => {
+      await page.goto(path, { waitUntil: 'networkidle' });
+      return await page.locator('.ref-list .link.remote', { hasText: 'Pull Test' }).count();
+    }, { timeout: 60_000 }).toBeGreaterThan(0);
     const ref = page.locator('.ref-list .link.remote', { hasText: 'Pull Test' }).locator('..').locator('..').locator('..');
     await expect(ref.locator('.user.tag', { hasText: 'bob' }).first()).toBeVisible();
   });

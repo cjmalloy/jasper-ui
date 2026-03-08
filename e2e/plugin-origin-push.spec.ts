@@ -48,7 +48,11 @@ test.describe.serial('Origin Push Plugin', () => {
   });
 
   test('@\u{ff20}repl : check ref was pushed', async ({ page }) => {
-    await page.goto(replUrl + '/tag/@repl?debug=ADMIN');
+    const path = replUrl + '/tag/@repl?debug=ADMIN';
+    await expect.poll(async () => {
+      await page.goto(path, { waitUntil: 'networkidle' });
+      return await page.locator('.ref-list .link', { hasText: 'Push Test' }).count();
+    }, { timeout: 60_000 }).toBeGreaterThan(0);
     const ref = page.locator('.ref-list .link', { hasText: 'Push Test' }).locator('..').locator('..').locator('..');
     await expect(ref.locator('.user.tag', { hasText: 'bob' }).first()).toBeVisible();
   });
