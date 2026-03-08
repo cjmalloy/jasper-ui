@@ -52,6 +52,14 @@ export const gridTemplate: Template = {
               { value: 'dateString', label: $localize`Date (String)` },
               { value: 'dateTime', label: $localize`Date Time` },
               { value: 'dateTimeString', label: $localize`Date Time (String)` },
+              { value: 'url', label: $localize`URL` },
+              { value: 'tag', label: $localize`Tag` },
+              { value: 'tags', label: $localize`Tags` },
+              { value: 'sources', label: $localize`Sources` },
+              { value: 'image', label: $localize`Image` },
+              { value: 'lens', label: $localize`Lens` },
+              { value: 'markdown', label: $localize`Markdown` },
+              { value: 'embed', label: $localize`Embed` },
             ],
           }
         }]

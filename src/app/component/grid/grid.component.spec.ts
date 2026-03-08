@@ -4,7 +4,9 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { DateTime } from 'luxon';
+import { MarkdownModule } from 'ngx-markdown';
 
+import { GridCellComponent } from './grid-cell.component';
 import { GridComponent } from './grid.component';
 
 describe('GridComponent', () => {
@@ -13,7 +15,7 @@ describe('GridComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [GridComponent],
+      imports: [GridComponent, MarkdownModule.forRoot()],
       providers: [
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),
@@ -117,6 +119,21 @@ describe('GridComponent', () => {
       const result = component.applyFormatters(cols);
       expect(result[0].valueFormatter).toBeUndefined();
       expect(result[0].filter).toBeUndefined();
+    });
+
+    it('should add the custom grid cell renderer to a url column', () => {
+      const cols = [{ headerName: 'Url', field: 'url', type: 'url' }];
+      const result = component.applyFormatters(cols);
+      expect(result[0].cellRenderer).toBe(GridCellComponent);
+      expect(result[0].autoHeight).toBe(false);
+    });
+
+    it('should add the custom grid cell renderer and auto height to rich content columns', () => {
+      const cols = [{ headerName: 'Comment', field: 'comment', type: 'markdown' }];
+      const result = component.applyFormatters(cols);
+      expect(result[0].cellRenderer).toBe(GridCellComponent);
+      expect(result[0].autoHeight).toBe(true);
+      expect(result[0].wrapText).toBe(true);
     });
 
     it('should preserve existing filter on date type column', () => {

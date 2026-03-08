@@ -10,6 +10,7 @@ import { AdminService } from '../../service/admin.service';
 import { Store } from '../../store/store';
 import { LoadingComponent } from '../loading/loading.component';
 import { PageControlsComponent } from '../page-controls/page-controls.component';
+import { GridCellComponent } from './grid-cell.component';
 
 @Component({
   selector: 'app-grid',
@@ -23,6 +24,8 @@ import { PageControlsComponent } from '../page-controls/page-controls.component'
   ],
 })
 export class GridComponent {
+  private customTypes = new Set(['url', 'tag', 'tags', 'sources', 'image', 'lens', 'markdown', 'embed']);
+  private autoHeightTypes = new Set(['tags', 'sources', 'image', 'lens', 'markdown', 'embed']);
 
   @Input()
   tag = '';
@@ -58,6 +61,14 @@ export class GridComponent {
   applyFormatters(cols: ColDef[]): ColDef[] {
     return cols.map(col => {
       const type = col.type as string | undefined;
+      if (type && this.customTypes.has(type)) {
+        return {
+          ...col,
+          cellRenderer: col.cellRenderer || GridCellComponent,
+          autoHeight: col.autoHeight ?? this.autoHeightTypes.has(type),
+          wrapText: col.wrapText ?? this.autoHeightTypes.has(type),
+        };
+      }
       if (type === 'date') {
         return { ...col, filter: col.filter || 'agDateColumnFilter', valueFormatter: params => this.formatDate(params.value, DateTime.DATE_SHORT) };
       }
