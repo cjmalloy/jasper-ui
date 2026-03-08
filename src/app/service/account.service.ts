@@ -163,7 +163,7 @@ export class AccountService {
     );
   }
 
-  addSub(tag: string): Observable<any> {
+  addSub$(tag: string): Observable<any> {
     if (!this.store.account.signedIn) throw 'Not signed in';
     if (!this.admin.getTemplate('user')) throw 'User template not installed';
     return this.addConfigArray$('subscriptions', tag).pipe(
@@ -172,7 +172,7 @@ export class AccountService {
     );
   }
 
-  removeSub(tag: string): Observable<any> {
+  removeSub$(tag: string): Observable<any> {
     if (!this.store.account.signedIn) throw 'Not signed in';
     if (!this.admin.getTemplate('user')) throw 'User template not installed';
     return this.subscriptions$.pipe(
@@ -182,7 +182,7 @@ export class AccountService {
     );
   }
 
-  addBookmark(tag: string): Observable<any> {
+  addBookmark$(tag: string): Observable<any> {
     if (!this.store.account.signedIn) throw 'Not signed in';
     if (!this.admin.getTemplate('user')) throw 'User template not installed';
     return this.addConfigArray$('bookmarks', tag).pipe(
@@ -191,7 +191,7 @@ export class AccountService {
     );
   }
 
-  removeBookmark(tag: string): Observable<any> {
+  removeBookmark$(tag: string): Observable<any> {
     if (!this.store.account.signedIn) throw 'Not signed in';
     if (!this.admin.getTemplate('user')) throw 'User template not installed';
     return this.bookmarks$.pipe(
@@ -201,7 +201,7 @@ export class AccountService {
     );
   }
 
-  addAlarm(tag: string): Observable<any> {
+  addAlarm$(tag: string): Observable<any> {
     if (!this.store.account.signedIn) throw 'Not signed in';
     if (!this.admin.getTemplate('user')) throw 'User template not installed';
     return this.addConfigArray$('alarms', tag).pipe(
@@ -210,7 +210,7 @@ export class AccountService {
     );
   }
 
-  removeAlarm(tag: string): Observable<any> {
+  removeAlarm$(tag: string): Observable<any> {
     if (!this.store.account.signedIn) throw 'Not signed in';
     if (!this.admin.getTemplate('user')) throw 'User template not installed';
     return this.alarms$.pipe(

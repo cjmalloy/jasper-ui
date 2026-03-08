@@ -367,42 +367,42 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
 
   subscribe() {
     this.savingSub = true;
-    this.account.addSub(this.tag!).pipe(
+    this.account.addSub$(this.tag!).pipe(
       catchError(() => of(null)),
     ).subscribe(() => this.savingSub = false);
   }
 
   unsubscribe() {
     this.savingSub = true;
-    this.account.removeSub(this.tag!).pipe(
+    this.account.removeSub$(this.tag!).pipe(
       catchError(() => of(null)),
     ).subscribe(() => this.savingSub = false);
   }
 
   addBookmark() {
     this.savingBookmark = true;
-    this.account.addBookmark(this.bookmark).pipe(
+    this.account.addBookmark$(this.bookmark).pipe(
       catchError(() => of(null)),
     ).subscribe(() => this.savingBookmark = false);
   }
 
   removeBookmark() {
     this.savingBookmark = true;
-    this.account.removeBookmark(this.bookmark).pipe(
+    this.account.removeBookmark$(this.bookmark).pipe(
       catchError(() => of(null)),
     ).subscribe(() => this.savingBookmark = false);
   }
 
   addAlarm() {
     this.savingAlarm = true;
-    this.account.addAlarm(this.tag!).pipe(
+    this.account.addAlarm$(this.tag!).pipe(
       catchError(() => of(null)),
     ).subscribe(() => this.savingAlarm = false);
   }
 
   removeAlarm() {
     this.savingAlarm = true;
-    this.account.removeAlarm(this.tag!).pipe(
+    this.account.removeAlarm$(this.tag!).pipe(
       catchError(() => of(null)),
     ).subscribe(() => this.savingAlarm = false);
   }
