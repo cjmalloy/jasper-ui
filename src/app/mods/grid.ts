@@ -38,7 +38,7 @@ export const gridTemplate: Template = {
     columnDefs: [
       { headerName: $localize`Title`, field: 'title' },
       { headerName: $localize`Comment`, field: 'comment' },
-      { headerName: $localize`Published`, field: 'published' },
+    { headerName: $localize`Published`, field: 'published', type: 'dateTime' },
     ],
   }
 };
