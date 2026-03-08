@@ -38,7 +38,7 @@ export class GridComponent {
     { headerName: $localize`Tags`, field: 'tags' },
     { headerName: $localize`Responses`, field: 'metadata.responses' },
     { headerName: $localize`Comments`,  field: 'metadata.comments' },
-    { headerName: $localize`Published`,  field: 'published' },
+    { headerName: $localize`Published`, field: 'published', type: 'dateTime' },
   ];
 
   private _page?: Page<Ref>;
@@ -55,13 +55,32 @@ export class GridComponent {
   }
 
   applyFormatters(cols: ColDef[]): ColDef[] {
-    return cols.map(col => col.field === 'published'
-      ? { ...col, filter: col.filter || 'agDateColumnFilter', valueFormatter: params => this.formatDate(params.value) }
-      : col);
+    return cols.map(col => {
+      const type = col.type as string | undefined;
+      if (type === 'date') {
+        return { ...col, filter: col.filter || 'agDateColumnFilter', valueFormatter: params => this.formatDate(params.value, DateTime.DATE_SHORT) };
+      }
+      if (type === 'dateTime') {
+        return { ...col, filter: col.filter || 'agDateColumnFilter', valueFormatter: params => this.formatDate(params.value, DateTime.DATETIME_SHORT) };
+      }
+      if (type === 'dateString') {
+        return { ...col, filter: col.filter || 'agDateColumnFilter', valueFormatter: params => this.formatDateString(params.value, DateTime.DATE_SHORT) };
+      }
+      if (type === 'dateTimeString') {
+        return { ...col, filter: col.filter || 'agDateColumnFilter', valueFormatter: params => this.formatDateString(params.value, DateTime.DATETIME_SHORT) };
+      }
+      return col;
+    });
   }
 
-  formatDate(value: unknown): string {
-    return value instanceof DateTime ? value.toLocaleString(DateTime.DATETIME_SHORT) : '';
+  formatDate(value: unknown, format: Intl.DateTimeFormatOptions = DateTime.DATETIME_SHORT): string {
+    return value instanceof DateTime ? value.toLocaleString(format) : '';
+  }
+
+  formatDateString(value: unknown, format: Intl.DateTimeFormatOptions = DateTime.DATETIME_SHORT): string {
+    if (typeof value !== 'string') return '';
+    const dt = DateTime.fromISO(value);
+    return dt.isValid ? dt.toLocaleString(format) : '';
   }
 
   get page(): Page<Ref> | undefined {
