@@ -31,6 +31,7 @@ import { ChatComponent } from '../chat/chat.component';
 import { DebugComponent } from '../debug/debug.component';
 import { ExtComponent } from '../ext/ext.component';
 import { FilterComponent } from '../filter/filter.component';
+import { LoadingComponent } from '../loading/loading.component';
 import { MdComponent } from '../md/md.component';
 import { NavComponent } from '../nav/nav.component';
 import { QueryComponent } from '../query/query.component';
@@ -58,6 +59,7 @@ import { SortComponent } from '../sort/sort.component';
     NavComponent,
     RouterLinkActive,
     ChatVideoComponent,
+    LoadingComponent,
   ]
 })
 export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
@@ -88,6 +90,10 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
   bookmarkExts: Ext[] = [];
   tagSubExts: Ext[] = [];
   userSubExts: Ext[] = [];
+
+  savingBookmark = false;
+  savingSub = false;
+  savingAlarm = false;
 
   private _expanded = false;
   private _ext?: Ext;
@@ -360,27 +366,45 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   subscribe() {
-    this.account.addSub(this.tag!);
+    this.savingSub = true;
+    this.account.addSub(this.tag!).pipe(
+      catchError(() => of(null)),
+    ).subscribe(() => this.savingSub = false);
   }
 
   unsubscribe() {
-    this.account.removeSub(this.tag!);
+    this.savingSub = true;
+    this.account.removeSub(this.tag!).pipe(
+      catchError(() => of(null)),
+    ).subscribe(() => this.savingSub = false);
   }
 
   addBookmark() {
-    this.account.addBookmark(this.bookmark);
+    this.savingBookmark = true;
+    this.account.addBookmark(this.bookmark).pipe(
+      catchError(() => of(null)),
+    ).subscribe(() => this.savingBookmark = false);
   }
 
   removeBookmark() {
-    this.account.removeBookmark(this.bookmark);
+    this.savingBookmark = true;
+    this.account.removeBookmark(this.bookmark).pipe(
+      catchError(() => of(null)),
+    ).subscribe(() => this.savingBookmark = false);
   }
 
   addAlarm() {
-    this.account.addAlarm(this.tag!);
+    this.savingAlarm = true;
+    this.account.addAlarm(this.tag!).pipe(
+      catchError(() => of(null)),
+    ).subscribe(() => this.savingAlarm = false);
   }
 
   removeAlarm() {
-    this.account.removeAlarm(this.tag!);
+    this.savingAlarm = true;
+    this.account.removeAlarm(this.tag!).pipe(
+      catchError(() => of(null)),
+    ).subscribe(() => this.savingAlarm = false);
   }
 
   get inSubs() {

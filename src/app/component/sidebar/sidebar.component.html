@@ -170,7 +170,9 @@
       }
       @if (store.account.signedIn && tag && tag !== '@*' && tag != '*' && admin.getTemplate('user')) {
         <div class="row center">
-          @if (inBookmarks) {
+          @if (savingBookmark) {
+            <app-loading [inline]="true"></app-loading>
+          } @else if (inBookmarks) {
             <button type="button"
                     class="bookmark"
                     i18n-title title="Remove from top bar"
@@ -182,7 +184,9 @@
                     class="bookmark" i18n>+ bookmark</button>
           }
           @if (admin.getTemplate('config/home')) {
-            @if (user) {
+            @if (savingSub) {
+              <app-loading [inline]="true"></app-loading>
+            } @else if (user) {
               @if (inSubs) {
                 <button type="button"
                         class="subscribe"
@@ -208,7 +212,9 @@
               }
             }
           }
-          @if (inAlarms) {
+          @if (savingAlarm) {
+            <app-loading [inline]="true"></app-loading>
+          } @else if (inAlarms) {
             <button type="button"
                     class="alarm"
                     i18n-title title="Remove alarm"
