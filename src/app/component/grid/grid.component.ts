@@ -2,6 +2,7 @@ import { Component, Input } from '@angular/core';
 import { Router } from '@angular/router';
 import { AgGridModule } from 'ag-grid-angular';
 import { ColDef } from 'ag-grid-community';
+import { DateTime } from 'luxon';
 import { Ext } from '../../model/ext';
 import { Page } from '../../model/page';
 import { Ref } from '../../model/ref';
@@ -48,6 +49,20 @@ export class GridComponent {
     private admin: AdminService,
     private router: Router,
   ) { }
+
+  get columnDefs(): ColDef[] {
+    return this.applyFormatters(this.ext?.config?.columnDefs || this.defaultCols);
+  }
+
+  applyFormatters(cols: ColDef[]): ColDef[] {
+    return cols.map(col => col.field === 'published'
+      ? { ...col, filter: col.filter || 'agDateColumnFilter', valueFormatter: params => this.formatDate(params.value) }
+      : col);
+  }
+
+  formatDate(value: unknown): string {
+    return value instanceof DateTime ? value.toLocaleString(DateTime.DATETIME_SHORT) : '';
+  }
 
   get page(): Page<Ref> | undefined {
     return this._page;
