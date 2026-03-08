@@ -38,6 +38,13 @@ describe('GridComponent', () => {
       expect(typeof result).toBe('string');
     });
 
+    it('should format a Luxon DateTime with a custom format', () => {
+      const dt = DateTime.fromISO('2024-06-15T10:30:00.000Z');
+      const result = component.formatDate(dt, DateTime.DATE_SHORT);
+      expect(result).toBeTruthy();
+      expect(typeof result).toBe('string');
+    });
+
     it('should return empty string for null', () => {
       expect(component.formatDate(null)).toBe('');
     });
@@ -52,23 +59,68 @@ describe('GridComponent', () => {
     });
   });
 
+  describe('formatDateString', () => {
+    it('should format a valid ISO date string', () => {
+      const result = component.formatDateString('2024-06-15T10:30:00.000Z');
+      expect(result).toBeTruthy();
+      expect(typeof result).toBe('string');
+    });
+
+    it('should format a valid ISO date string with a custom format', () => {
+      const result = component.formatDateString('2024-06-15T10:30:00.000Z', DateTime.DATE_SHORT);
+      expect(result).toBeTruthy();
+      expect(typeof result).toBe('string');
+    });
+
+    it('should return empty string for an invalid ISO string', () => {
+      expect(component.formatDateString('not-a-date')).toBe('');
+    });
+
+    it('should return empty string for non-string values', () => {
+      expect(component.formatDateString(null)).toBe('');
+      expect(component.formatDateString(undefined)).toBe('');
+      expect(component.formatDateString(12345)).toBe('');
+    });
+  });
+
   describe('applyFormatters', () => {
-    it('should add valueFormatter and filter to a published column', () => {
-      const cols = [{ headerName: 'Published', field: 'published' }];
+    it('should add valueFormatter and filter to a dateTime column', () => {
+      const cols = [{ headerName: 'Published', field: 'published', type: 'dateTime' }];
       const result = component.applyFormatters(cols);
       expect(result[0].filter).toBe('agDateColumnFilter');
       expect(typeof result[0].valueFormatter).toBe('function');
     });
 
-    it('should not modify non-published columns', () => {
+    it('should add valueFormatter and filter to a date column', () => {
+      const cols = [{ headerName: 'Date', field: 'someDate', type: 'date' }];
+      const result = component.applyFormatters(cols);
+      expect(result[0].filter).toBe('agDateColumnFilter');
+      expect(typeof result[0].valueFormatter).toBe('function');
+    });
+
+    it('should add valueFormatter and filter to a dateTimeString column', () => {
+      const cols = [{ headerName: 'Created', field: 'plugin/custom.created', type: 'dateTimeString' }];
+      const result = component.applyFormatters(cols);
+      expect(result[0].filter).toBe('agDateColumnFilter');
+      expect(typeof result[0].valueFormatter).toBe('function');
+    });
+
+    it('should add valueFormatter and filter to a dateString column', () => {
+      const cols = [{ headerName: 'Date', field: 'plugin/custom.date', type: 'dateString' }];
+      const result = component.applyFormatters(cols);
+      expect(result[0].filter).toBe('agDateColumnFilter');
+      expect(typeof result[0].valueFormatter).toBe('function');
+    });
+
+    it('should not modify columns without a date type', () => {
       const cols = [{ headerName: 'Title', field: 'title' }];
       const result = component.applyFormatters(cols);
       expect(result[0].valueFormatter).toBeUndefined();
       expect(result[0].filter).toBeUndefined();
     });
 
-    it('should preserve existing filter on published column', () => {
-      const cols = [{ headerName: 'Published', field: 'published', filter: 'myFilter' }];
+    it('should preserve existing filter on date type column', () => {
+      const cols = [{ headerName: 'Published', field: 'published', type: 'dateTime', filter: 'myFilter' }];
       const result = component.applyFormatters(cols);
       expect(result[0].filter).toBe('myFilter');
     });
@@ -84,7 +136,7 @@ describe('GridComponent', () => {
     });
 
     it('should apply formatters to ext config columnDefs when provided', () => {
-      component.ext = { tag: 'grid', config: { columnDefs: [{ headerName: 'Published', field: 'published' }] } } as any;
+      component.ext = { tag: 'grid', config: { columnDefs: [{ headerName: 'Published', field: 'published', type: 'dateTime' }] } } as any;
       const defs = component.columnDefs;
       expect(typeof defs[0].valueFormatter).toBe('function');
     });
