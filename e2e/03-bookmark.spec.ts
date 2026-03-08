@@ -157,6 +157,17 @@ test.describe.serial('Bookmark Formly Type', () => {
 
 test.describe.serial('Sidebar bookmark toggle', () => {
 
+  async function setBookmarkState(page: any, bookmarked: boolean) {
+    const button = page.locator('.sidebar button.bookmark');
+    const label = bookmarked ? '– bookmark' : '+ bookmark';
+    await expect(button).toBeVisible();
+    if ((await button.textContent())?.includes(label)) return;
+    const patchDone = page.waitForResponse(resp => resp.url().includes('/api/v1/ext') && resp.request().method() === 'PATCH');
+    await button.click();
+    await patchDone;
+    await expect(button).toContainText(label);
+  }
+
   test('enable user mod', async ({ page }) => {
     await mod(page, '#mod-user');
   });
@@ -164,15 +175,11 @@ test.describe.serial('Sidebar bookmark toggle', () => {
   test('+ bookmark on tag page with sort adds entry with query params to top bar', async ({ page }) => {
     await page.goto('/tag/science?sort=published&debug=ADMIN', { waitUntil: 'networkidle' });
     await openSidebar(page);
-    // Ensure clean state: remove bookmark if already present from a previous retry
-    if (await page.locator('.sidebar button.bookmark').textContent().then(t => t?.includes('–')).catch(() => false)) {
-      const removeDone = page.waitForResponse(resp => resp.url().includes('/api/v1/ext') && resp.request().method() === 'PATCH');
-      await page.locator('.sidebar button.bookmark').click();
-      await removeDone;
-    }
+    await setBookmarkState(page, false);
     const patchDone = page.waitForResponse(resp => resp.url().includes('/api/v1/ext') && resp.request().method() === 'PATCH');
     await page.locator('.sidebar button.bookmark', { hasText: '+ bookmark' }).click();
     await patchDone;
+    await expect(page.locator('.sidebar button.bookmark')).toContainText('– bookmark');
     const link = page.locator('.subscription-bar a', { hasText: 'science' });
     await expect(link).toBeVisible();
     await expect(link).toHaveAttribute('href', /\/tag\/science\?.*sort=published/);
@@ -181,25 +188,22 @@ test.describe.serial('Sidebar bookmark toggle', () => {
   test('\u2013 bookmark on tag page with sort removes entry from top bar', async ({ page }) => {
     await page.goto('/tag/science?sort=published&debug=ADMIN', { waitUntil: 'networkidle' });
     await openSidebar(page);
-    await expect(page.locator('.sidebar button.bookmark')).toContainText('\u2013 bookmark');
+    await setBookmarkState(page, true);
     const patchDone = page.waitForResponse(resp => resp.url().includes('/api/v1/ext') && resp.request().method() === 'PATCH');
     await page.locator('.sidebar button.bookmark').click();
     await patchDone;
+    await expect(page.locator('.sidebar button.bookmark')).toContainText('+ bookmark');
     await expect(page.locator('.subscription-bar a', { hasText: 'science' })).not.toBeVisible();
   });
 
   test('+ bookmark with multiple params (sort + filter + search) adds entry with all query params', async ({ page }) => {
     await page.goto('/tag/science?sort=published&filter=obsolete&search=hello&debug=ADMIN', { waitUntil: 'networkidle' });
     await openSidebar(page);
-    // Ensure clean state: remove bookmark if already present from a previous retry
-    if (await page.locator('.sidebar button.bookmark').textContent().then(t => t?.includes('–')).catch(() => false)) {
-      const removeDone = page.waitForResponse(resp => resp.url().includes('/api/v1/ext') && resp.request().method() === 'PATCH');
-      await page.locator('.sidebar button.bookmark').click();
-      await removeDone;
-    }
+    await setBookmarkState(page, false);
     const patchDone = page.waitForResponse(resp => resp.url().includes('/api/v1/ext') && resp.request().method() === 'PATCH');
     await page.locator('.sidebar button.bookmark', { hasText: '+ bookmark' }).click();
     await patchDone;
+    await expect(page.locator('.sidebar button.bookmark')).toContainText('– bookmark');
     const link = page.locator('.subscription-bar a', { hasText: 'science' });
     await expect(link).toBeVisible();
     const href = await link.getAttribute('href');
@@ -212,10 +216,11 @@ test.describe.serial('Sidebar bookmark toggle', () => {
   test('\u2013 bookmark with multiple params removes entry from top bar', async ({ page }) => {
     await page.goto('/tag/science?sort=published&filter=obsolete&search=hello&debug=ADMIN', { waitUntil: 'networkidle' });
     await openSidebar(page);
-    await expect(page.locator('.sidebar button.bookmark')).toContainText('\u2013 bookmark');
+    await setBookmarkState(page, true);
     const patchDone = page.waitForResponse(resp => resp.url().includes('/api/v1/ext') && resp.request().method() === 'PATCH');
     await page.locator('.sidebar button.bookmark').click();
     await patchDone;
+    await expect(page.locator('.sidebar button.bookmark')).toContainText('+ bookmark');
     await expect(page.locator('.subscription-bar a', { hasText: 'science' })).not.toBeVisible();
   });
 });
