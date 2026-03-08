@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 import { mod, openSidebar } from './setup';
 
 test.describe.serial('Bookmark Formly Type', () => {
@@ -9,7 +9,7 @@ test.describe.serial('Bookmark Formly Type', () => {
 
   /** Helper: add a bookmark, blur the input so breadcrumbs/filter-toggle are visible.
    *  A non-empty query is required so the field enters preview mode after blur. */
-  async function addBookmark(page: any, query = 'science') {
+  async function addBookmark(page: Page, query = 'science') {
     await page.locator('button', { hasText: '+ Add another bookmark' }).click();
     const bookmarkField = page.locator('.bookmark-field').last();
     const textInput = bookmarkField.locator('input.grow:not(.preview)');
@@ -157,11 +157,11 @@ test.describe.serial('Bookmark Formly Type', () => {
 
 test.describe.serial('Sidebar bookmark toggle', () => {
 
-  async function setBookmarkState(page: any, bookmarked: boolean) {
+  async function setBookmarkState(page: Page, bookmarked: boolean) {
     const button = page.locator('.sidebar button.bookmark');
     const label = bookmarked ? '– bookmark' : '+ bookmark';
     await expect(button).toBeVisible();
-    if ((await button.textContent())?.includes(label)) return;
+    if ((await button.textContent() ?? '').includes(label)) return;
     const patchDone = page.waitForResponse(resp => resp.url().includes('/api/v1/ext') && resp.request().method() === 'PATCH');
     await button.click();
     await patchDone;
