@@ -75,7 +75,12 @@ export class AccountService {
     if (!this.admin.getTemplate('user')) return of(undefined);
     return this.userExt$.pipe(
       catchError(() => of(undefined)),
-      switchMap(ext => ext ? of(ext) : this.exts.create({ tag: this.store.account.localTag, origin: this.store.account.origin })),
+      switchMap(ext => ext ? of(ext) : this.exts.create({ tag: this.store.account.localTag, origin: this.store.account.origin }).pipe(
+        switchMap(() => {
+          this.clearCache();
+          return this.userExt$;
+        }),
+      )),
       map(() => {}),
     );
   }
@@ -311,8 +316,9 @@ export class AccountService {
 
   addConfigArray$(name: keyof UserConfig, value: any) {
     let path = name;
+    let patchValue = value;
     if (!this.store.account.config[name]) {
-      value = [value];
+      patchValue = [value];
     } else {
       if ((this.store.account.config[name] as any[]).includes(value)) return of();
       path += '/-';
@@ -320,7 +326,7 @@ export class AccountService {
     return this.exts.patch(this.store.account.tag, this.store.account.ext!.modifiedString!, [{
         op: 'add',
         path: '/config/' + path,
-        value: value,
+        value: patchValue,
       }]).pipe(tap(cursor => runInAction(() => {
         this.store.account.ext = <Ext> {
           ...this.store.account.ext,
@@ -328,7 +334,7 @@ export class AccountService {
             ...this.store.account.config,
             [name]: [
               ...(this.store.account.config[name] as any[] || []),
-              value
+              value,
             ],
           },
           modified: DateTime.fromISO(cursor),
