@@ -75,12 +75,12 @@ export class AccountService {
     if (!this.admin.getTemplate('user')) return of(undefined);
     return this.userExt$.pipe(
       catchError(() => of(undefined)),
-      switchMap(ext => ext ? of(ext) : this.createUserExt$),
+      switchMap(ext => ext ? of(ext) : this.createUserExt$()),
       map(() => {}),
     );
   }
 
-  private get createUserExt$() {
+  private createUserExt$(): Observable<Ext> {
     return this.exts.create({ tag: this.store.account.localTag, origin: this.store.account.origin }).pipe(
       switchMap(() => {
         this.clearCache();
