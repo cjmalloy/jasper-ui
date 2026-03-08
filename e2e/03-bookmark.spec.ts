@@ -157,6 +157,12 @@ test.describe.serial('Bookmark Formly Type', () => {
 
 test.describe.serial('Sidebar bookmark toggle', () => {
 
+  async function getSubscriptionBarHrefs(page: Page) {
+    return page.locator('.subscription-bar a').evaluateAll(links =>
+      links.map(link => link.getAttribute('href') || '')
+    );
+  }
+
   async function setBookmarkState(page: Page, bookmarked: boolean) {
     const button = page.locator('.sidebar button.bookmark');
     const label = bookmarked ? '– bookmark' : '+ bookmark';
@@ -166,6 +172,23 @@ test.describe.serial('Sidebar bookmark toggle', () => {
     await button.click();
     await patchDone;
     await expect(button).toContainText(label);
+  }
+
+  async function expectBookmarkHref(page: Page, hrefPattern: RegExp) {
+    await expect.poll(async () => getSubscriptionBarHrefs(page), { timeout: 15000 })
+      .toContainEqual(expect.stringMatching(hrefPattern));
+
+    const hrefs = await getSubscriptionBarHrefs(page);
+    const href = hrefs.find(value => hrefPattern.test(value));
+    if (!href) throw new Error(`Expected bookmark href matching ${hrefPattern}, got: ${hrefs.join(', ')}`);
+    return href;
+  }
+
+  async function expectNoBookmarkLink(page: Page, hrefPattern: RegExp) {
+    await expect.poll(async () => {
+      const hrefs = await getSubscriptionBarHrefs(page);
+      return hrefs.some(href => hrefPattern.test(href));
+    }, { timeout: 15000 }).toBe(false);
   }
 
   test('enable user mod', async ({ page }) => {
@@ -180,9 +203,8 @@ test.describe.serial('Sidebar bookmark toggle', () => {
     await page.locator('.sidebar button.bookmark', { hasText: '+ bookmark' }).click();
     await patchDone;
     await expect(page.locator('.sidebar button.bookmark')).toContainText('– bookmark');
-    const link = page.locator('.subscription-bar a', { hasText: 'science' });
-    await expect(link).toBeVisible();
-    await expect(link).toHaveAttribute('href', /\/tag\/science\?.*sort=published/);
+    await page.reload({ waitUntil: 'networkidle' });
+    await expectBookmarkHref(page, /\/tag\/science\?.*sort=published/);
   });
 
   test('\u2013 bookmark on tag page with sort removes entry from top bar', async ({ page }) => {
@@ -193,7 +215,8 @@ test.describe.serial('Sidebar bookmark toggle', () => {
     await page.locator('.sidebar button.bookmark').click();
     await patchDone;
     await expect(page.locator('.sidebar button.bookmark')).toContainText('+ bookmark');
-    await expect(page.locator('.subscription-bar a', { hasText: 'science' })).not.toBeVisible();
+    await page.reload({ waitUntil: 'networkidle' });
+    await expectNoBookmarkLink(page, /\/tag\/science\?sort=published/);
   });
 
   test('+ bookmark with multiple params (sort + filter + search) adds entry with all query params', async ({ page }) => {
@@ -204,9 +227,11 @@ test.describe.serial('Sidebar bookmark toggle', () => {
     await page.locator('.sidebar button.bookmark', { hasText: '+ bookmark' }).click();
     await patchDone;
     await expect(page.locator('.sidebar button.bookmark')).toContainText('– bookmark');
-    const link = page.locator('.subscription-bar a', { hasText: 'science' });
-    await expect(link).toBeVisible();
-    const href = await link.getAttribute('href');
+    await page.reload({ waitUntil: 'networkidle' });
+    const href = await expectBookmarkHref(
+      page,
+      /\/tag\/science\?(?=.*sort=published)(?=.*filter=obsolete)(?=.*search=hello)/
+    );
     expect(href, 'path should be /tag/science').toMatch(/\/tag\/science/);
     expect(href, 'sort param should be preserved').toMatch(/sort=published/);
     expect(href, 'filter param should be preserved').toMatch(/filter=obsolete/);
@@ -221,6 +246,7 @@ test.describe.serial('Sidebar bookmark toggle', () => {
     await page.locator('.sidebar button.bookmark').click();
     await patchDone;
     await expect(page.locator('.sidebar button.bookmark')).toContainText('+ bookmark');
-    await expect(page.locator('.subscription-bar a', { hasText: 'science' })).not.toBeVisible();
+    await page.reload({ waitUntil: 'networkidle' });
+    await expectNoBookmarkLink(page, /\/tag\/science\?(?=.*sort=published)(?=.*filter=obsolete)(?=.*search=hello)/);
   });
 });
