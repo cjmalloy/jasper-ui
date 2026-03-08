@@ -17,6 +17,46 @@ export const gridTemplate: Template = {
     filters: [
       { query: 'grid', label: $localize`☰ grid`, group: $localize`Templates 🎨️` },
     ],
+    form: [{
+      key: 'columnDefs',
+      type: 'list',
+      props: {
+        label: $localize`Columns:`,
+        addText: $localize`+ Add another column`,
+      },
+      fieldArray: {
+        fieldGroup: [{
+          key: 'headerName',
+          type: 'string',
+          props: {
+            label: $localize`Header Name:`,
+          },
+        }, {
+          key: 'field',
+          type: 'string',
+          props: {
+            label: $localize`Field:`,
+          },
+        }, {
+          key: 'type',
+          type: 'select',
+          defaultValue: '',
+          props: {
+            label: $localize`Type:`,
+            options: [
+              { value: '' },
+              { value: 'text', label: $localize`Text` },
+              { value: 'number', label: $localize`Number` },
+              { value: 'boolean', label: $localize`Boolean` },
+              { value: 'date', label: $localize`Date` },
+              { value: 'dateString', label: $localize`Date (String)` },
+              { value: 'dateTime', label: $localize`Date Time` },
+              { value: 'dateTimeString', label: $localize`Date Time (String)` },
+            ],
+          }
+        }]
+      },
+    }]
   },
   schema: {
     optionalProperties: {
@@ -32,13 +72,12 @@ export const gridTemplate: Template = {
     }
   },
   defaults: {
-    hideEdit: true,
-    disableResize: true,
+    submitText: true,
     noFloatingSidebar: true,
     columnDefs: [
       { headerName: $localize`Title`, field: 'title' },
       { headerName: $localize`Comment`, field: 'comment' },
-    { headerName: $localize`Published`, field: 'published', type: 'dateTime' },
+      { headerName: $localize`Published`, field: 'published', type: 'dateTime' },
     ],
   }
 };

@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
 import { Router } from '@angular/router';
 import { AgGridModule } from 'ag-grid-angular';
 import { ColDef } from 'ag-grid-community';
@@ -15,6 +15,7 @@ import { PageControlsComponent } from '../page-controls/page-controls.component'
   selector: 'app-grid',
   templateUrl: './grid.component.html',
   styleUrl: './grid.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     AgGridModule,
     PageControlsComponent,
