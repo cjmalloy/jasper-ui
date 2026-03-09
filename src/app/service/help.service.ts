@@ -183,7 +183,12 @@ export class HelpService {
     const backdrop = this.overlayRef?.backdropElement;
     if (!backdrop) return;
     const rect = element.getBoundingClientRect();
-    const p = 4;
-    backdrop.style.clipPath = `polygon(evenodd, 0 0, 100% 0, 100% 100%, 0 100%, ${rect.left - p}px ${rect.top - p}px, ${rect.right + p}px ${rect.top - p}px, ${rect.right + p}px ${rect.bottom + p}px, ${rect.left - p}px ${rect.bottom + p}px)`;
+    const padding = 4;
+    const left = rect.left - padding;
+    const top = rect.top - padding;
+    const right = rect.right + padding;
+    const bottom = rect.bottom + padding;
+    // Outer rectangle covers the full viewport; inner rectangle (hole) uses evenodd fill rule
+    backdrop.style.clipPath = `polygon(evenodd, 0 0, 100% 0, 100% 100%, 0 100%, ${left}px ${top}px, ${right}px ${top}px, ${right}px ${bottom}px, ${left}px ${bottom}px)`;
   }
 }
