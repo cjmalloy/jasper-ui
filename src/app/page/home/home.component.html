@@ -7,7 +7,7 @@
          [class.current-tab]="store.view.noView"
          [queryParams]="{view: null}"
          [title]="store.view.extTemplate.name"
-         queryParamsHandling="merge" i18n>{{ store.view.extTemplate.config?.view || store.view.extTemplate.tag }}</a>
+         queryParamsHandling="merge" i18n>{{ store.view.extTemplate.config?.tab || store.view.extTemplate.config?.view || store.view.extTemplate.tag }}</a>
       <a routerLink="./"
          [class.current-tab]="store.view.list"
          [queryParams]="{view: 'list'}"
@@ -20,7 +20,7 @@
            [queryParams]="{view: i === 0 ? null : x.tag}"
            queryParamsHandling="merge"
            [title]="x.name"
-           i18n>{{ x.config?.view || x.name || x.tag }}</a>
+           i18n>{{ x.config?.tab || x.config?.view || x.name || x.tag }}</a>
       }
       <a routerLink="./"
          [class.current-tab]="store.view.list"
@@ -39,7 +39,7 @@
          [class.current-tab]="store.view.view === x.tag"
          [queryParams]="{view: x.tag}"
          [title]="x.name"
-         queryParamsHandling="merge" i18n>{{ x.config?.view || x.name || x.tag }}</a>
+         queryParamsHandling="merge" i18n>{{ x.config?.tab || x.config?.view || x.name || x.tag }}</a>
     }
   </app-tabs>
   <app-sidebar [home]="true"
