@@ -8,31 +8,91 @@
   max-width: 300px;
   box-sizing: border-box;
   min-width: 300px;
-  &::before {
-    content: '';
-    position: absolute;
-    width: 0;
-    height: 0;
-    border-style: solid;
-    // Adjust based on position strategy
-    top: 50%;
-    left: -10px; // Example for right side of target
-    margin-top: -5px; // Half of border size for vertical centering
-    border-width: 5px 10px 5px 0; // Pointing left
-    border-color: transparent var(--border) transparent transparent; // Match border color
+
+  // Arrow pointing left (popup is to the right of the target element)
+  &.arrow-left {
+    &::before, &::after {
+      content: '';
+      position: absolute;
+      width: 0;
+      height: 0;
+      border-style: solid;
+      top: 50%;
+      margin-top: -5px;
+      border-width: 5px 10px 5px 0;
+    }
+    &::before {
+      left: -10px;
+      border-color: transparent var(--border) transparent transparent;
+    }
+    &::after {
+      left: -9px;
+      border-color: transparent var(--bg) transparent transparent;
+    }
   }
-  &::after {
-    content: '';
-    position: absolute;
-    width: 0;
-    height: 0;
-    border-style: solid;
-    // Adjust based on position strategy
-    top: 50%;
-    left: -9px; // Example for right side of target
-    margin-top: -5px; // Half of border size for vertical centering
-    border-width: 5px 10px 5px 0; // Pointing left
-    border-color: transparent var(--bg) transparent transparent; // Match background color
+
+  // Arrow pointing right (popup is to the left of the target element)
+  &.arrow-right {
+    &::before, &::after {
+      content: '';
+      position: absolute;
+      width: 0;
+      height: 0;
+      border-style: solid;
+      top: 50%;
+      margin-top: -5px;
+      border-width: 5px 0 5px 10px;
+    }
+    &::before {
+      right: -10px;
+      border-color: transparent transparent transparent var(--border);
+    }
+    &::after {
+      right: -9px;
+      border-color: transparent transparent transparent var(--bg);
+    }
+  }
+
+  // Arrow pointing up (popup is below the target element)
+  &.arrow-top {
+    &::before, &::after {
+      content: '';
+      position: absolute;
+      width: 0;
+      height: 0;
+      border-style: solid;
+      left: 20px;
+      border-width: 0 5px 10px 5px;
+    }
+    &::before {
+      top: -10px;
+      border-color: transparent transparent var(--border) transparent;
+    }
+    &::after {
+      top: -9px;
+      border-color: transparent transparent var(--bg) transparent;
+    }
+  }
+
+  // Arrow pointing down (popup is above the target element)
+  &.arrow-bottom {
+    &::before, &::after {
+      content: '';
+      position: absolute;
+      width: 0;
+      height: 0;
+      border-style: solid;
+      left: 20px;
+      border-width: 10px 5px 0 5px;
+    }
+    &::before {
+      bottom: -10px;
+      border-color: var(--border) transparent transparent transparent;
+    }
+    &::after {
+      bottom: -9px;
+      border-color: var(--bg) transparent transparent transparent;
+    }
   }
 }
 
