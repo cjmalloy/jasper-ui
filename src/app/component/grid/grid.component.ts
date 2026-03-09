@@ -18,6 +18,7 @@ import { GridCellComponent } from './grid-cell/grid-cell.component';
   templateUrl: './grid.component.html',
   styleUrl: './grid.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { 'class': 'grid ext' },
   imports: [
     AgGridModule,
     PageControlsComponent,
