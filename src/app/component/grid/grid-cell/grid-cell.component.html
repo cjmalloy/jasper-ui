@@ -1,0 +1,42 @@
+<div class="grid-cell">
+  @if (type === 'url' && textValue) {
+    <app-nav class="grid-link"
+             [url]="textValue"
+             [text]="textValue"></app-nav>
+  } @else if (type === 'tag' && textValue) {
+    <app-nav class="grid-tag"
+             [url]="tagUrl(textValue)"></app-nav>
+  } @else if (type === 'tags' && listValue.length) {
+    <div class="tag-list grid-list">
+      @for (tag of listValue; track tag) {
+        <app-nav class="grid-tag"
+                 [url]="tagUrl(tag)"></app-nav>
+      }
+    </div>
+  } @else if (type === 'sources' && listValue.length) {
+    <div class="tag-list grid-list">
+      @for (source of listValue; track source) {
+        <app-nav class="grid-link"
+                 [url]="source"
+                 [text]="source"></app-nav>
+      }
+    </div>
+  } @else if (type === 'image' && textValue) {
+    <img class="grid-image" [src]="textValue" alt="">
+  } @else if (type === 'lens' && textValue) {
+    <app-viewer class="grid-viewer"
+                [ref]="viewerRef('plugin/lens', tagUrl(textValue))"
+                [disableResize]="true"></app-viewer>
+  } @else if (type === 'markdown' && textValue) {
+    <app-md class="grid-markdown"
+            [text]="textValue"
+            [clipboard]="false"
+            [mermaid]="false"></app-md>
+  } @else if (type === 'embed' && textValue) {
+    <app-viewer class="grid-viewer"
+                [ref]="viewerRef('plugin/embed', textValue)"
+                [disableResize]="true"></app-viewer>
+  } @else {
+    {{ displayValue }}
+  }
+</div>

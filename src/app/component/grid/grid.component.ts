@@ -1,8 +1,9 @@
-import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { AgGridModule } from 'ag-grid-angular';
 import { ColDef } from 'ag-grid-community';
 import { DateTime } from 'luxon';
+import { autorun, IReactionDisposer } from 'mobx';
 import { Ext } from '../../model/ext';
 import { Page } from '../../model/page';
 import { Ref } from '../../model/ref';
@@ -10,6 +11,7 @@ import { AdminService } from '../../service/admin.service';
 import { Store } from '../../store/store';
 import { LoadingComponent } from '../loading/loading.component';
 import { PageControlsComponent } from '../page-controls/page-controls.component';
+import { GridCellComponent } from './grid-cell/grid-cell.component';
 
 @Component({
   selector: 'app-grid',
@@ -22,7 +24,10 @@ import { PageControlsComponent } from '../page-controls/page-controls.component'
     LoadingComponent,
   ],
 })
-export class GridComponent {
+export class GridComponent implements OnDestroy {
+  private customTypes = new Set<string>(['url', 'tag', 'tags', 'sources', 'image', 'lens', 'markdown', 'embed']);
+  private autoHeightTypes = new Set<string>(['tags', 'sources', 'image', 'lens', 'markdown', 'embed']);
+  private disposers: IReactionDisposer[] = [];
 
   @Input()
   tag = '';
@@ -49,7 +54,19 @@ export class GridComponent {
     public store: Store,
     private admin: AdminService,
     private router: Router,
-  ) { }
+    private cd: ChangeDetectorRef,
+  ) {
+    this.disposers.push(autorun(() => {
+      // Access the observable to subscribe
+      this.store.darkTheme;
+      this.cd.markForCheck();
+    }));
+  }
+
+  ngOnDestroy() {
+    for (const dispose of this.disposers) dispose();
+    this.disposers.length = 0;
+  }
 
   get columnDefs(): ColDef[] {
     return this.applyFormatters(this.ext?.config?.columnDefs || this.defaultCols);
@@ -58,6 +75,14 @@ export class GridComponent {
   applyFormatters(cols: ColDef[]): ColDef[] {
     return cols.map(col => {
       const type = col.type as string | undefined;
+      if (type && this.customTypes.has(type)) {
+        return {
+          ...col,
+          cellRenderer: col.cellRenderer || GridCellComponent,
+          autoHeight: col.autoHeight ?? this.autoHeightTypes.has(type),
+          wrapText: col.wrapText ?? this.autoHeightTypes.has(type),
+        };
+      }
       if (type === 'date') {
         return { ...col, filter: col.filter || 'agDateColumnFilter', valueFormatter: params => this.formatDate(params.value, DateTime.DATE_SHORT) };
       }

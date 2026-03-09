@@ -52,6 +52,14 @@ export const gridTemplate: Template = {
               { value: 'dateString', label: $localize`Date (String)` },
               { value: 'dateTime', label: $localize`Date Time` },
               { value: 'dateTimeString', label: $localize`Date Time (String)` },
+              { value: 'url', label: $localize`URL` },
+              { value: 'tag', label: $localize`Tag` },
+              { value: 'tags', label: $localize`Tag List` },
+              { value: 'sources', label: $localize`Sources` },
+              { value: 'image', label: $localize`Image` },
+              { value: 'lens', label: $localize`Lens` },
+              { value: 'markdown', label: $localize`Markdown` },
+              { value: 'embed', label: $localize`Embed` },
             ],
           }
         }]
@@ -75,8 +83,11 @@ export const gridTemplate: Template = {
     submitText: true,
     noFloatingSidebar: true,
     columnDefs: [
-      { headerName: $localize`Title`, field: 'title' },
-      { headerName: $localize`Comment`, field: 'comment' },
+      { headerName: $localize`Thumbnail`, field: 'plugins.plugin/thumbnail.url', type: 'image' },
+      { headerName: $localize`Title`, field: 'title', type: 'text' },
+      { headerName: $localize`Url`, field: 'url', type: 'url' },
+      { headerName: $localize`Tags`, field: 'tags', type: 'tags' },
+      { headerName: $localize`Comment`, field: 'comment', type: 'markdown' },
       { headerName: $localize`Published`, field: 'published', type: 'dateTime' },
     ],
   }
