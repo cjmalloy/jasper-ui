@@ -82,6 +82,7 @@ export class ViewerComponent implements OnChanges, OnDestroy {
   private videoKeydownHandler?: (event: KeyboardEvent) => void;
   private audioKeydownHandler?: (event: KeyboardEvent) => void;
   private fullscreenKeydownHandler?: (event: KeyboardEvent) => void;
+  private fullscreenChangeHandler?: () => void;
   private currentVideo?: HTMLVideoElement;
   private currentAudio?: HTMLAudioElement;
 
@@ -259,6 +260,15 @@ export class ViewerComponent implements OnChanges, OnDestroy {
       }
     };
     document.addEventListener('keydown', this.fullscreenKeydownHandler, { capture: true });
+    // Refocus the viewer when exiting native fullscreen so keyboard shortcuts
+    // continue to work via the @HostListener and video capture-phase listener
+    this.removeFullscreenChangeListener();
+    this.fullscreenChangeHandler = () => {
+      if (!document.fullscreenElement && this.currentVideo) {
+        this.el.nativeElement.focus();
+      }
+    };
+    document.addEventListener('fullscreenchange', this.fullscreenChangeHandler);
     if (video.canPlayType('application/vnd.apple.mpegurl')) return;
     if (Hls.isSupported() && this.hls) {
       const hls = new Hls();
@@ -595,6 +605,7 @@ export class ViewerComponent implements OnChanges, OnDestroy {
     this.currentVideo = undefined;
     this.videoKeydownHandler = undefined;
     this.removeFullscreenKeydownListener();
+    this.removeFullscreenChangeListener();
   }
 
   private removeFullscreenKeydownListener() {
@@ -602,6 +613,13 @@ export class ViewerComponent implements OnChanges, OnDestroy {
       document.removeEventListener('keydown', this.fullscreenKeydownHandler, { capture: true });
     }
     this.fullscreenKeydownHandler = undefined;
+  }
+
+  private removeFullscreenChangeListener() {
+    if (this.fullscreenChangeHandler) {
+      document.removeEventListener('fullscreenchange', this.fullscreenChangeHandler);
+    }
+    this.fullscreenChangeHandler = undefined;
   }
 
   private removeAudioListener() {
