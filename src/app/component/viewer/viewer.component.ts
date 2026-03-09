@@ -199,6 +199,14 @@ export class ViewerComponent implements OnChanges, OnDestroy {
   @HostListener('keydown', ['$event'])
   onKeydown(event: KeyboardEvent) {
     if (event.defaultPrevented) return;
+    if (this.currentVideo) {
+      handleVideoKeydown(event, this.currentVideo);
+      return;
+    }
+    if (this.currentAudio) {
+      handleMediaKeydown(event, this.currentAudio);
+      return;
+    }
     const video = this.el.nativeElement.querySelector('video') as HTMLVideoElement;
     if (video) {
       handleVideoKeydown(event, video);
