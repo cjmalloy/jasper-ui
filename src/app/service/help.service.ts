@@ -1,7 +1,7 @@
 import { FlexibleConnectedPositionStrategy, Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { ComponentPortal } from '@angular/cdk/portal';
 import { Injectable, NgZone } from '@angular/core';
-import { delay } from 'lodash-es';
+import { defer, delay } from 'lodash-es';
 import { runInAction } from 'mobx';
 import { takeUntil } from 'rxjs/operators';
 import { HelpPopupComponent } from '../component/help-popup/help-popup.component';
@@ -158,6 +158,7 @@ export class HelpService {
         }
       });
     });
+    defer(() => positionStrategy.reapplyLastPosition());
 
     popupRef.instance.nextClick.pipe(takeUntil(detach$)).subscribe(() => this.nextStep());
     popupRef.instance.previousClick.pipe(takeUntil(detach$)).subscribe(() => this.previousStep());
