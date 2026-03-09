@@ -10,8 +10,7 @@ import { AdminService } from '../../service/admin.service';
 import { Store } from '../../store/store';
 import { LoadingComponent } from '../loading/loading.component';
 import { PageControlsComponent } from '../page-controls/page-controls.component';
-import { GRID_AUTO_HEIGHT_COLUMN_TYPES, GRID_CUSTOM_COLUMN_TYPES } from './grid-column-types';
-import { GridCellComponent } from './grid-cell.component';
+import { GridCellComponent } from './grid-cell/grid-cell.component';
 
 @Component({
   selector: 'app-grid',
@@ -22,11 +21,12 @@ import { GridCellComponent } from './grid-cell.component';
     AgGridModule,
     PageControlsComponent,
     LoadingComponent,
+    GridCellComponent,
   ],
 })
 export class GridComponent {
-  private customTypes = new Set<string>(GRID_CUSTOM_COLUMN_TYPES);
-  private autoHeightTypes = new Set<string>(GRID_AUTO_HEIGHT_COLUMN_TYPES);
+  private customTypes = new Set<string>(['url', 'tag', 'tags', 'sources', 'image', 'lens', 'markdown', 'embed']);
+  private autoHeightTypes = new Set<string>(['tags', 'sources', 'image', 'lens', 'markdown', 'embed']);
 
   @Input()
   tag = '';

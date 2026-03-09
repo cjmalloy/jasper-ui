@@ -6,7 +6,7 @@ import { provideRouter } from '@angular/router';
 import { DateTime } from 'luxon';
 import { MarkdownModule } from 'ngx-markdown';
 
-import { GridCellComponent } from './grid-cell.component';
+import { GridCellComponent } from './grid-cell/grid-cell.component';
 import { GridComponent } from './grid.component';
 
 describe('GridComponent', () => {
