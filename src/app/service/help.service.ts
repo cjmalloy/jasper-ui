@@ -122,6 +122,7 @@ export class HelpService {
         .withPush(true), // Allow the overlay to push other elements
       scrollStrategy: this.overlay.scrollStrategies.reposition(), // Reposition on scroll
       hasBackdrop: true,
+      backdropClass: 'help-backdrop',
     });
 
     // Create a portal for the help popup component
@@ -129,6 +130,9 @@ export class HelpService {
 
     // Attach the portal to the overlay
     const popupRef = this.overlayRef.attach(popupPortal);
+
+    // Cut a spotlight hole in the backdrop so the help element is not blurred
+    this.applyBackdropSpotlight(element);
 
     // Pass data and connect events to the popup component instance
     popupRef.instance.text = currentStep.text;
@@ -173,5 +177,13 @@ export class HelpService {
       this.overlayRef.dispose();
       this.overlayRef = null;
     }
+  }
+
+  private applyBackdropSpotlight(element: HTMLElement): void {
+    const backdrop = this.overlayRef?.backdropElement;
+    if (!backdrop) return;
+    const rect = element.getBoundingClientRect();
+    const p = 4;
+    backdrop.style.clipPath = `polygon(evenodd, 0 0, 100% 0, 100% 100%, 0 100%, ${rect.left - p}px ${rect.top - p}px, ${rect.right + p}px ${rect.top - p}px, ${rect.right + p}px ${rect.bottom + p}px, ${rect.left - p}px ${rect.bottom + p}px)`;
   }
 }
