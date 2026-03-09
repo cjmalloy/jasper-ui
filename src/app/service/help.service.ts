@@ -1,6 +1,6 @@
-import { Overlay, OverlayRef } from '@angular/cdk/overlay';
+import { FlexibleConnectedPositionStrategy, Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { ComponentPortal } from '@angular/cdk/portal';
-import { Injectable } from '@angular/core';
+import { Injectable, NgZone } from '@angular/core';
 import { delay } from 'lodash-es';
 import { runInAction } from 'mobx';
 import { takeUntil } from 'rxjs/operators';
@@ -22,6 +22,7 @@ export class HelpService {
     private store: Store,
     private overlay: Overlay,
     private admin: AdminService,
+    private ngZone: NgZone,
   ) {}
 
   /**
@@ -138,6 +139,26 @@ export class HelpService {
     popupRef.instance.text = currentStep.text;
 
     const detach$ = this.overlayRef.detachments();
+
+    // Update arrow direction when the CDK position strategy settles on a position.
+    // The cast is always safe here because we create the overlay with a
+    // FlexibleConnectedPositionStrategy via overlay.position().flexibleConnectedTo().
+    const positionStrategy = this.overlayRef.getConfig().positionStrategy as FlexibleConnectedPositionStrategy;
+    positionStrategy.positionChanges.pipe(takeUntil(detach$)).subscribe(change => {
+      this.ngZone.run(() => {
+        const pair = change.connectionPair;
+        if (pair.overlayX === 'start' && pair.overlayY === 'center') {
+          popupRef.instance.arrowPosition = 'left';
+        } else if (pair.overlayX === 'end' && pair.overlayY === 'center') {
+          popupRef.instance.arrowPosition = 'right';
+        } else if (pair.overlayY === 'top') {
+          popupRef.instance.arrowPosition = 'top';
+        } else if (pair.overlayY === 'bottom') {
+          popupRef.instance.arrowPosition = 'bottom';
+        }
+      });
+    });
+
     popupRef.instance.nextClick.pipe(takeUntil(detach$)).subscribe(() => this.nextStep());
     popupRef.instance.previousClick.pipe(takeUntil(detach$)).subscribe(() => this.previousStep());
     popupRef.instance.doneClick.pipe(takeUntil(detach$)).subscribe(() => this.endTour());

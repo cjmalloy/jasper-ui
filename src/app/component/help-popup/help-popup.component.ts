@@ -13,6 +13,9 @@ export class HelpPopupComponent {
   @Input()
   text!: string;
 
+  @Input()
+  arrowPosition: 'left' | 'right' | 'top' | 'bottom' = 'left';
+
   @Output()
   nextClick = new EventEmitter<void>();
   @Output()
