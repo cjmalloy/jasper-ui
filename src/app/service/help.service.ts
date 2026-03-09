@@ -96,20 +96,13 @@ export class HelpService {
       this.endTour();
       return;
     }
-
-    // Track the maximum index reached
     if (this.store.helpStepIndex > this.maxIndexReached) {
       this.maxIndexReached = this.store.helpStepIndex;
     }
-
-    // Dismiss the current overlay if it exists
     this.dismissOverlay();
-
     const currentStep = this.steps[this.store.helpStepIndex];
     const element = currentStep.el;
     element.classList.add('help-element');
-
-    // Create an overlay that attaches to the element
     this.overlayRef = this.overlay.create({
       positionStrategy: this.overlay
         .position()
@@ -125,27 +118,15 @@ export class HelpService {
       scrollStrategy: this.overlay.scrollStrategies.reposition(), // Reposition on scroll
       hasBackdrop: true,
     });
-
-    // Create a portal for the help popup component
     const popupPortal = new ComponentPortal(HelpPopupComponent);
-
-    // Attach the portal to the overlay
     const popupRef = this.overlayRef.attach(popupPortal);
-
-    // Cut a spotlight hole in the backdrop so the help element is not blurred
-    this.applyBackdropSpotlight(element);
-
-    // Pass data and connect events to the popup component instance
     popupRef.instance.text = currentStep.text;
-
     const detach$ = this.overlayRef.detachments();
-
-    // Update arrow direction when the CDK position strategy settles on a position.
-    // The cast is always safe here because we create the overlay with a
-    // FlexibleConnectedPositionStrategy via overlay.position().flexibleConnectedTo().
     const positionStrategy = this.overlayRef.getConfig().positionStrategy as FlexibleConnectedPositionStrategy;
     positionStrategy.positionChanges.pipe(takeUntil(detach$)).subscribe(change => {
       this.ngZone.run(() => {
+        // Cut a spotlight hole in the backdrop so the help element is not blurred
+        this.applyBackdropSpotlight(element);
         const pair = change.connectionPair;
         if (pair.overlayX === 'start' && pair.overlayY === 'center') {
           popupRef.instance.arrowPosition = 'left';
@@ -159,12 +140,9 @@ export class HelpService {
       });
     });
     defer(() => positionStrategy.reapplyLastPosition());
-
     popupRef.instance.nextClick.pipe(takeUntil(detach$)).subscribe(() => this.nextStep());
     popupRef.instance.previousClick.pipe(takeUntil(detach$)).subscribe(() => this.previousStep());
     popupRef.instance.doneClick.pipe(takeUntil(detach$)).subscribe(() => this.endTour());
-
-    // Dismiss overlay when backdrop is clicked
     this.overlayRef.backdropClick().pipe(takeUntil(detach$)).subscribe(() => this.endTour());
   }
 
