@@ -34,7 +34,7 @@ import { Type } from '../../store/view';
 import { downloadPage } from '../../util/download';
 import { getScheme, printError } from '../../util/http';
 import { memo, MemoCache } from '../../util/memo';
-import { addAllHierarchicalTags, expandedTagsInclude, hasTag, isAuthorTag, subOrigin } from '../../util/tag';
+import { expandedTagsInclude, hasTag, isAuthorTag, subOrigin } from '../../util/tag';
 import { ConfirmActionComponent } from '../action/confirm-action/confirm-action.component';
 import { InlineButtonComponent } from '../action/inline-button/inline-button.component';
 import { InlinePluginComponent } from '../action/inline-plugin/inline-plugin.component';
@@ -288,10 +288,10 @@ export class BulkComponent implements OnChanges, OnDestroy {
   copy$ = () => {
     return this.batch$<Ref>(ref => {
       if (ref.origin === this.store.account.origin) return of(null);
-      const tags = uniq(addAllHierarchicalTags([
+      const tags = uniq([
         ...(this.store.account.localTag ? [this.store.account.localTag] : []),
         ...(ref.tags || []).filter(t => this.auth.canAddTag(t))
-      ]).filter(t => !expandedTagsInclude(t, '+plugin/origin/push')
+      ].filter(t => !expandedTagsInclude(t, '+plugin/origin/push')
         && !expandedTagsInclude(t, 'plugin/delta')
         && !expandedTagsInclude(t, '+plugin/delta')
         && !expandedTagsInclude(t, '+plugin/cron')));
