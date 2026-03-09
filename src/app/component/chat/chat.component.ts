@@ -283,6 +283,13 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
     });
   }
 
+  scrollToBottom() {
+    this.scrollLock = undefined;
+    this.viewport.scrollTo({ bottom: 0, behavior: 'smooth' })
+    this.viewport.checkViewportSize();
+    delay(() => this.viewport.scrollToIndex(this.messages!.length - 1, 'smooth'), 400);
+  }
+
   fetch() {
     if (!this.watch) {
       this.setPoll(false);
