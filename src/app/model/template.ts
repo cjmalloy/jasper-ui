@@ -17,6 +17,10 @@ export interface Template extends Config {
      */
     view?: string,
     /**
+     * Override the view text used in a tab.
+     */
+    tab?: string,
+    /**
      * Always use fully qualified tag when creating web links.
      */
     local?: boolean,
