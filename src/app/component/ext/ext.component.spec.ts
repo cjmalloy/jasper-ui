@@ -6,6 +6,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { provideRouter } from '@angular/router';
 
+import { ExtService } from '../../service/api/ext.service';
 import { ExtComponent } from './ext.component';
 
 describe('ExtComponent', () => {
@@ -29,6 +30,12 @@ describe('ExtComponent', () => {
     component = fixture.componentInstance;
     component.ext = { tag: 'ext' };
     fixture.detectChanges();
+  });
+
+  afterEach(() => {
+    const extService = TestBed.inject(ExtService);
+    clearTimeout(extService['_batchTimer']);
+    fixture.destroy();
   });
 
   it('should create', () => {
