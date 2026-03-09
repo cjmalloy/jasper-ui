@@ -67,7 +67,8 @@
     </video>
   }
   @if (audioUrl) {
-    <audio class="no-resize audio-expand"
+    <audio #audio
+           class="no-resize audio-expand"
            [autoplay]="autoplay"
            controls>
       <source [src]="audioUrl">
