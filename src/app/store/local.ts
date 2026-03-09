@@ -1,3 +1,16 @@
+/**
+ * Convert a cache key (e.g. `tag:@origin`, `tag@origin:@default`, `tag@origin:`, `tag:`)
+ * to a proper tag with origin format (`tag@origin`).
+ * Removes the `:` separator and uses whichever origin comes first.
+ */
+export function cacheKeyToTag(key: string): string {
+  const colonIndex = key.indexOf(':');
+  if (colonIndex === -1) return key;
+  const beforeColon = key.substring(0, colonIndex);
+  const afterColon = key.substring(colonIndex + 1);
+  if (beforeColon.includes('@')) return beforeColon;
+  return beforeColon + afterColon;
+}
 
 export class LocalStore {
   private _extPrefetch?: string[];
@@ -145,6 +158,8 @@ export class LocalStore {
 
   /**
    * Get all Ext-related localStorage keys.
+   * Cache keys are stored in formats like `tag:@origin` or `tag@origin:`.
+   * Convert to proper `tag@origin` format for display and routing.
    */
   getExtKeys(): { key: string, tag: string, value: string }[] {
     const results: { key: string, tag: string, value: string }[] = [];
@@ -153,8 +168,8 @@ export class LocalStore {
       const tags = loadedExt.split(',').filter(k => !!k);
       for (const tag of tags) {
         results.push({
-          key: 'loaded:ext',
-          tag,
+          key: tag,
+          tag: cacheKeyToTag(tag),
           value: 'cached'
         });
       }
