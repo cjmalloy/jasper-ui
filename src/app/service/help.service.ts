@@ -3,6 +3,7 @@ import { ComponentPortal } from '@angular/cdk/portal';
 import { Injectable } from '@angular/core';
 import { delay } from 'lodash-es';
 import { runInAction } from 'mobx';
+import { takeUntil } from 'rxjs/operators';
 import { HelpPopupComponent } from '../component/help-popup/help-popup.component';
 import { Store } from '../store/store';
 import { AdminService } from './admin.service';
@@ -137,12 +138,13 @@ export class HelpService {
     // Pass data and connect events to the popup component instance
     popupRef.instance.text = currentStep.text;
 
-    popupRef.instance.nextClick.subscribe(() => this.nextStep());
-    popupRef.instance.previousClick.subscribe(() => this.previousStep());
-    popupRef.instance.doneClick.subscribe(() => this.endTour());
+    const detach$ = this.overlayRef.detachments();
+    popupRef.instance.nextClick.pipe(takeUntil(detach$)).subscribe(() => this.nextStep());
+    popupRef.instance.previousClick.pipe(takeUntil(detach$)).subscribe(() => this.previousStep());
+    popupRef.instance.doneClick.pipe(takeUntil(detach$)).subscribe(() => this.endTour());
 
     // Dismiss overlay when backdrop is clicked
-    this.overlayRef.backdropClick().subscribe(() => this.endTour());
+    this.overlayRef.backdropClick().pipe(takeUntil(detach$)).subscribe(() => this.endTour());
   }
 
   /**
