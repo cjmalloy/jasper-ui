@@ -122,6 +122,7 @@ export class HelpService {
         .withPush(true), // Allow the overlay to push other elements
       scrollStrategy: this.overlay.scrollStrategies.reposition(), // Reposition on scroll
       hasBackdrop: true,
+      backdropClass: 'help-backdrop',
     });
 
     // Create a portal for the help popup component
@@ -129,6 +130,9 @@ export class HelpService {
 
     // Attach the portal to the overlay
     const popupRef = this.overlayRef.attach(popupPortal);
+
+    // Cut a spotlight hole in the backdrop so the help element is not blurred
+    this.applyBackdropSpotlight(element);
 
     // Pass data and connect events to the popup component instance
     popupRef.instance.text = currentStep.text;
@@ -155,7 +159,7 @@ export class HelpService {
       }
     }
     // Remove shown steps (up to max index reached) but keep undisplayed ones
-    const undisplayedSteps = this.maxIndexReached >= 0 
+    const undisplayedSteps = this.maxIndexReached >= 0
       ? this.steps.slice(this.maxIndexReached + 1)
       : this.steps;
     this.steps = undisplayedSteps;
@@ -174,4 +178,23 @@ export class HelpService {
       this.overlayRef = null;
     }
   }
+
+  private applyBackdropSpotlight(element: HTMLElement): void {
+    const backdrop = this.overlayRef?.backdropElement;
+    if (!backdrop) return;
+    const rect = element.getBoundingClientRect();
+    const padding = 2;
+    const left = rect.left - padding;
+    const top = rect.top - padding;
+    const right = rect.right + padding;
+    const bottom = rect.bottom + padding;
+    // Outer rectangle covers the full viewport; inner rectangle (hole) uses evenodd fill rule.
+    // We close the outer loop at 0% 0%, then draw the inner loop and close it.
+    backdrop.style.clipPath = `polygon(
+      evenodd,
+      0% 0%, 100% 0%, 100% 100%, 0% 100%, 0% 0%,
+      ${left}px 0%, ${left}px ${top}px, ${right}px ${top}px, ${right}px ${bottom}px, ${left}px ${bottom}px, ${left}px ${top}px, ${left}px 0%
+    )`;
+  }
+
 }
