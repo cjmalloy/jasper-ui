@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, forwardRef } from '@angular/core';
 import { ICellRendererAngularComp } from 'ag-grid-angular';
 import { ICellRendererParams } from 'ag-grid-community';
 import { Ref } from '../../../model/ref';
@@ -12,9 +12,9 @@ import { ViewerComponent } from '../../viewer/viewer.component';
   styleUrl: './grid-cell.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    MdComponent,
-    NavComponent,
-    ViewerComponent,
+    forwardRef(() => MdComponent),
+    forwardRef(() => NavComponent),
+    forwardRef(() => ViewerComponent),
   ],
 })
 export class GridCellComponent implements ICellRendererAngularComp {

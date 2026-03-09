@@ -4,7 +4,6 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { DateTime } from 'luxon';
-import { MarkdownModule } from 'ngx-markdown';
 
 import { GridCellComponent } from './grid-cell/grid-cell.component';
 import { GridComponent } from './grid.component';
@@ -15,7 +14,7 @@ describe('GridComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [GridComponent, MarkdownModule.forRoot()],
+      imports: [GridComponent],
       providers: [
         provideHttpClient(withInterceptorsFromDi()),
         provideHttpClientTesting(),

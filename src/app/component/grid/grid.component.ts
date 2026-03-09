@@ -21,7 +21,6 @@ import { GridCellComponent } from './grid-cell/grid-cell.component';
     AgGridModule,
     PageControlsComponent,
     LoadingComponent,
-    GridCellComponent,
   ],
 })
 export class GridComponent {

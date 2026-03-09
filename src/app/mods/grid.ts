@@ -55,7 +55,7 @@ export const gridTemplate: Template = {
               { value: 'url', label: $localize`URL` },
               { value: 'tag', label: $localize`Tag` },
               { value: 'tags', label: $localize`Tag List` },
-              { value: 'urls', label: $localize`Url List` },
+              { value: 'sources', label: $localize`Sources` },
               { value: 'image', label: $localize`Image` },
               { value: 'lens', label: $localize`Lens` },
               { value: 'markdown', label: $localize`Markdown` },

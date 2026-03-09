@@ -1,6 +1,5 @@
 /// <reference types="vitest/globals" />
 import { FormlyFieldConfig } from '@ngx-formly/core';
-import { GRID_CUSTOM_COLUMN_TYPES } from '../component/grid/grid-column-types';
 import { gridTemplate } from './grid';
 
 describe('gridTemplate', () => {
@@ -19,7 +18,14 @@ describe('gridTemplate', () => {
       'dateString',
       'dateTime',
       'dateTimeString',
-      ...GRID_CUSTOM_COLUMN_TYPES,
+      'url',
+      'tag',
+      'tags',
+      'sources',
+      'image',
+      'lens',
+      'markdown',
+      'embed',
     ]);
   });
 });

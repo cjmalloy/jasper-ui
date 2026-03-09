@@ -154,6 +154,10 @@ Please Reload.</source>
         <source>Embed</source>
         <target>埋め込み</target>
       </trans-unit>
+      <trans-unit id="1117460492841715210" datatype="html">
+        <source>Tag List</source>
+        <target>タグリスト</target>
+      </trans-unit>
       <trans-unit id="7290417644239030193" datatype="html">
         <source>Refs</source>
       </trans-unit>
