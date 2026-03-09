@@ -22,7 +22,7 @@
       }
     </div>
   } @else if (type === 'image' && textValue) {
-    <img class="grid-image" [src]="textValue" alt="">
+    <img class="grid-image" [src]="imageUrl" alt="">
   } @else if (type === 'lens' && textValue) {
     <app-viewer class="grid-viewer"
                 [ref]="viewerRef('plugin/lens', tagUrl(textValue))"
