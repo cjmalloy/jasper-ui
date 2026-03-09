@@ -7,6 +7,7 @@ import { autorun, IReactionDisposer } from 'mobx';
 import { Ext } from '../../model/ext';
 import { Page } from '../../model/page';
 import { Ref } from '../../model/ref';
+import { gridTemplate } from '../../mods/org/grid';
 import { AdminService } from '../../service/admin.service';
 import { Store } from '../../store/store';
 import { LoadingComponent } from '../loading/loading.component';
@@ -39,14 +40,7 @@ export class GridComponent implements OnDestroy {
   @Input()
   emptyMessage = 'No results found';
 
-  defaultCols: ColDef[] = this.admin.getTemplate('grid')?.defaults?.columnDefs || [
-    // { checkboxSelection: true },
-    { headerName: $localize`Title`, field: 'title', editable: true },
-    { headerName: $localize`Tags`, field: 'tags' },
-    { headerName: $localize`Responses`, field: 'metadata.responses' },
-    { headerName: $localize`Comments`,  field: 'metadata.comments' },
-    { headerName: $localize`Published`, field: 'published', type: 'dateTime' },
-  ];
+  defaultCols: ColDef[] = this.admin.getTemplate('grid')?.defaults?.columnDefs || gridTemplate.defaults.columnDefs;
 
   private _page?: Page<Ref>;
   private _cols = 0;
