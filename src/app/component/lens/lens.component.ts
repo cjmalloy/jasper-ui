@@ -14,6 +14,7 @@ import { FolderComponent } from '../folder/folder.component';
 import { ForceDirectedComponent } from '../graph/force-directed/force-directed.component';
 import { GridComponent } from '../grid/grid.component';
 import { KanbanComponent } from '../kanban/kanban.component';
+import { LoadingComponent } from '../loading/loading.component';
 import { NotebookComponent } from '../notebook/notebook.component';
 import { RefListComponent } from '../ref/ref-list/ref-list.component';
 import { RefComponent } from '../ref/ref.component';
@@ -32,6 +33,7 @@ import { RefComponent } from '../ref/ref.component';
     forwardRef(() => KanbanComponent),
     forwardRef(() => NotebookComponent),
     forwardRef(() => GridComponent),
+    LoadingComponent,
   ],
 })
 export class LensComponent implements OnChanges, HasChanges {

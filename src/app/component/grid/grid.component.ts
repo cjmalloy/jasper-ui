@@ -17,9 +17,7 @@ import { GridCellComponent } from './grid-cell/grid-cell.component';
 @Component({
   selector: 'app-grid',
   templateUrl: './grid.component.html',
-  styleUrls: [
-    './grid.component.scss',
-  ],
+  styleUrl: './grid.component.scss',
   encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { 'class': 'grid ext' },
