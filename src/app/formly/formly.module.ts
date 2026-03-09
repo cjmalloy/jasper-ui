@@ -22,6 +22,7 @@ import { DurationInputAccessor, FormlyFieldDuration } from './duration.type';
 import { FormlyWrapperFormField } from './form-field.wrapper';
 import { FormlyWrapperFormGroup } from './form-group.wrapper';
 import { ImageUploadComponent } from './image-upload/image-upload.component';
+import { FormlyFieldLocation } from './location.type';
 import { FormlyFieldInput } from './input.type';
 import { ListTypeComponent } from './list.type';
 import { FormlyFieldMultiCheckbox } from './multicheckbox.type';
@@ -68,6 +69,7 @@ export class IdPrefixExtension implements FormlyExtension {
     FormlySelectModule,
     FormlyWrapperFormField,
     FormlyFieldInput,
+    FormlyFieldLocation,
     FormlyFieldRange,
     FormlyFieldTagInput,
     FormlyFieldQueryInput,
@@ -646,6 +648,15 @@ Private tags start with an underscore.
       }, {
         name: 'enum',
         extends: 'select',
+      }, {
+        name: 'location',
+        component: FormlyFieldLocation,
+        wrappers: ['form-field'],
+        defaultOptions: {
+          props: {
+            label: $localize`Location: `,
+          },
+        },
       }],
     }),
   ],
