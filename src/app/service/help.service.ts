@@ -1,6 +1,6 @@
 import { Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { ComponentPortal } from '@angular/cdk/portal';
-import { ElementRef, Injectable } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { delay } from 'lodash-es';
 import { runInAction } from 'mobx';
 import { HelpPopupComponent } from '../component/help-popup/help-popup.component';
