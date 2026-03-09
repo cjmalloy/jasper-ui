@@ -408,7 +408,7 @@ export class ViewStore {
 
   get filter(): UrlFilter[] {
     const filter = this.route.routeSnapshot?.queryParams['filter'];
-    if (!filter) return this.viewExtFilter || [];
+    if (!filter) return [];
     if (!Array.isArray(filter)) return [filter]
     return filter;
   }
