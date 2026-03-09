@@ -37,6 +37,8 @@ describe('HelpService', () => {
     let mockElement3: HTMLElement;
 
     beforeEach(() => {
+      vi.useFakeTimers();
+
       // Create mock elements
       mockElement1 = document.createElement('div');
       mockElement2 = document.createElement('div');
@@ -47,7 +49,7 @@ describe('HelpService', () => {
 
       // Mock admin service to return true for config/help
       vi.spyOn(adminService, 'getTemplate').mockReturnValue({} as any);
-      
+
       // Clear localStorage
       localStorage.clear();
     });
@@ -58,6 +60,7 @@ describe('HelpService', () => {
       document.body.removeChild(mockElement2);
       document.body.removeChild(mockElement3);
       localStorage.clear();
+      vi.useRealTimers();
     });
 
     it('should preserve undisplayed steps after endTour on first step', async () => {
@@ -66,8 +69,8 @@ describe('HelpService', () => {
       await service.pushStep(mockElement2, 'Step 2');
       await service.pushStep(mockElement3, 'Step 3');
 
-      // Wait for tour to start and show first step
-      await new Promise(resolve => setTimeout(resolve, 1100));
+      // Advance timers to trigger showCurrentStep
+      await vi.advanceTimersByTimeAsync(1000);
 
       // Verify we're on the first step
       expect(store.helpStepIndex).toBe(0);
@@ -88,11 +91,10 @@ describe('HelpService', () => {
       await service.pushStep(mockElement3, 'Step 3');
 
       // Wait for tour to start
-      await new Promise(resolve => setTimeout(resolve, 1100));
+      await vi.advanceTimersByTimeAsync(1000);
 
       // Navigate to second step
       service.nextStep();
-      await new Promise(resolve => setTimeout(resolve, 100));
 
       // Verify we're on the second step
       expect(store.helpStepIndex).toBe(1);
@@ -112,20 +114,17 @@ describe('HelpService', () => {
       await service.pushStep(mockElement3, 'Step 3');
 
       // Wait for tour to start
-      await new Promise(resolve => setTimeout(resolve, 1100));
+      await vi.advanceTimersByTimeAsync(1000);
 
       // Navigate forward twice
       service.nextStep();
-      await new Promise(resolve => setTimeout(resolve, 100));
       service.nextStep();
-      await new Promise(resolve => setTimeout(resolve, 100));
 
       // Now on step 2 (index 2)
       expect(store.helpStepIndex).toBe(2);
 
       // Navigate back to step 1
       service.previousStep();
-      await new Promise(resolve => setTimeout(resolve, 100));
       expect(store.helpStepIndex).toBe(1);
 
       // End tour while on step 1 (but we've seen step 2)
@@ -139,7 +138,7 @@ describe('HelpService', () => {
     it('should reset maxIndexReached when starting a new tour', async () => {
       // Add and complete first tour
       await service.pushStep(mockElement1, 'Step 1');
-      await new Promise(resolve => setTimeout(resolve, 1100));
+      await vi.advanceTimersByTimeAsync(1000);
       service.nextStep();
 
       // Add new steps for second tour
@@ -148,7 +147,7 @@ describe('HelpService', () => {
 
       // Start new tour
       service.startTour();
-      await new Promise(resolve => setTimeout(resolve, 1100));
+      await vi.advanceTimersByTimeAsync(1000);
 
       // Should be on first step of new tour
       expect(store.helpStepIndex).toBe(0);
@@ -180,11 +179,10 @@ describe('HelpService', () => {
       await service.pushStep(mockElement2, 'Step 2');
 
       // Wait for tour to start
-      await new Promise(resolve => setTimeout(resolve, 1100));
+      await vi.advanceTimersByTimeAsync(1000);
 
       // Complete tour by clicking Next through all steps
       service.nextStep(); // Dismiss step 0, move to step 1
-      await new Promise(resolve => setTimeout(resolve, 100));
       service.nextStep(); // Dismiss step 1, call endTour
 
       // Verify all steps dismissed
