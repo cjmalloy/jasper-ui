@@ -13,7 +13,6 @@ import { OriginService } from './service/api/origin.service';
 import { ProxyService } from './service/api/proxy.service';
 import { ScrapeService } from './service/api/scrape.service';
 import { ConfigService } from './service/config.service';
-import { HelpService } from './service/help.service';
 import { Store } from './store/store';
 import { createPip } from './util/embed';
 import { memo } from './util/memo';
