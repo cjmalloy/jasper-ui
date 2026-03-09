@@ -4,6 +4,7 @@ import {
   EventEmitter,
   forwardRef,
   HostBinding,
+  HostListener,
   Input,
   OnChanges,
   OnDestroy,
@@ -78,15 +79,10 @@ export class ViewerComponent implements OnChanges, OnDestroy {
   @HostBinding('class') css = 'embed print-images';
   @HostBinding('tabindex') tabIndex = 0;
   private destroy$ = new Subject<void>();
-  private keydownHandler = (event: KeyboardEvent) => {
-    const video = this.el.nativeElement.querySelector('video') as HTMLVideoElement;
-    if (video) {
-      handleVideoKeydown(event, video);
-      return;
-    }
-    const audio = this.el.nativeElement.querySelector('audio') as HTMLAudioElement;
-    if (audio) handleMediaKeydown(event, audio);
-  };
+  private videoKeydownHandler?: (event: KeyboardEvent) => void;
+  private audioKeydownHandler?: (event: KeyboardEvent) => void;
+  private currentVideo?: HTMLVideoElement;
+  private currentAudio?: HTMLAudioElement;
 
   @ViewChild('iframe')
   iframe!: ElementRef;
@@ -149,9 +145,7 @@ export class ViewerComponent implements OnChanges, OnDestroy {
     private refs: RefService,
     private store: Store,
     public el: ElementRef,
-  ) {
-    el.nativeElement.addEventListener('keydown', this.keydownHandler, { capture: true });
-  }
+  ) { }
 
   init() {
     MemoCache.clear(this);
@@ -202,8 +196,20 @@ export class ViewerComponent implements OnChanges, OnDestroy {
     }
   }
 
+  @HostListener('keydown', ['$event'])
+  onKeydown(event: KeyboardEvent) {
+    if (event.defaultPrevented) return;
+    const video = this.el.nativeElement.querySelector('video') as HTMLVideoElement;
+    if (video) {
+      handleVideoKeydown(event, video);
+      return;
+    }
+    const audio = this.el.nativeElement.querySelector('audio') as HTMLAudioElement;
+    if (audio) handleMediaKeydown(event, audio);
+  }
+
   ngOnDestroy() {
-    this.el.nativeElement.removeEventListener('keydown', this.keydownHandler, { capture: true });
+    this.removeMediaListeners();
     this.destroy$.next();
     this.destroy$.complete();
   }
@@ -229,12 +235,28 @@ export class ViewerComponent implements OnChanges, OnDestroy {
   set video(value: ElementRef<HTMLVideoElement>) {
     if (!value) return;
     const video = value.nativeElement;
+    // Add capture-phase listener directly on the video element so it fires
+    // even when focus is inside the native controls' shadow DOM or in fullscreen
+    this.removeVideoListener();
+    this.currentVideo = video;
+    this.videoKeydownHandler = (e: KeyboardEvent) => handleVideoKeydown(e, video);
+    video.addEventListener('keydown', this.videoKeydownHandler, { capture: true });
     if (video.canPlayType('application/vnd.apple.mpegurl')) return;
     if (Hls.isSupported() && this.hls) {
       const hls = new Hls();
       hls.loadSource(this.videoUrl);
       hls.attachMedia(video);
     }
+  }
+
+  @ViewChild('audio')
+  set audio(value: ElementRef<HTMLAudioElement>) {
+    if (!value) return;
+    const audio = value.nativeElement;
+    this.removeAudioListener();
+    this.currentAudio = audio;
+    this.audioKeydownHandler = (e: KeyboardEvent) => handleMediaKeydown(e, audio);
+    audio.addEventListener('keydown', this.audioKeydownHandler, { capture: true });
   }
 
   @ViewChild('pdfIframe')
@@ -546,5 +568,26 @@ export class ViewerComponent implements OnChanges, OnDestroy {
   @memo
   get refOrDefault() {
     return this.ref || { url: '', comment: this.text, tags: this.tags };
+  }
+
+  private removeVideoListener() {
+    if (this.currentVideo && this.videoKeydownHandler) {
+      this.currentVideo.removeEventListener('keydown', this.videoKeydownHandler, { capture: true });
+    }
+    this.currentVideo = undefined;
+    this.videoKeydownHandler = undefined;
+  }
+
+  private removeAudioListener() {
+    if (this.currentAudio && this.audioKeydownHandler) {
+      this.currentAudio.removeEventListener('keydown', this.audioKeydownHandler, { capture: true });
+    }
+    this.currentAudio = undefined;
+    this.audioKeydownHandler = undefined;
+  }
+
+  private removeMediaListeners() {
+    this.removeVideoListener();
+    this.removeAudioListener();
   }
 }
