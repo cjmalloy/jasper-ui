@@ -54,16 +54,8 @@ hr {
 
 .stepper-controls button {
   padding: 5px 10px;
-  border: 1px solid var(--tag);
-  border-radius: 4px;
-  background-color: var(--tag);
-  color: white;
   cursor: pointer;
   font-size: 0.9em;
-}
-
-.stepper-controls button:hover {
-  background-color: var(--tag-accent);
 }
 
 .stepper-controls span {
