@@ -151,7 +151,7 @@
     <div class="context-menu" (click)="$event.stopPropagation()">
       @for (link of helpLinks; track link.url) {
         <div (click)="toggleHelp()">
-          <a target="_blank" [href]="link.url">{{ link.label }}</a>
+          <a target="_blank" rel="noopener noreferrer" [href]="link.url">{{ link.label }}</a>
         </div>
       }
     </div>
