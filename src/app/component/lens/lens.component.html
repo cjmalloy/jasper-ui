@@ -27,6 +27,8 @@
               [page]="page"
               [pageControls]="pageControls"
               [cols]="cols"></app-grid>
+  } @placeholder {
+    <app-loading></app-loading>
   }
 } @else if (isTemplate('notes')) {
   <app-notebook #lens
