@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, ViewEncapsulation } from '@angular/core';
 import { Router } from '@angular/router';
 import { AgGridModule } from 'ag-grid-angular';
 import { ColDef } from 'ag-grid-community';
@@ -17,7 +17,10 @@ import { GridCellComponent } from './grid-cell/grid-cell.component';
 @Component({
   selector: 'app-grid',
   templateUrl: './grid.component.html',
-  styleUrl: './grid.component.scss',
+  styleUrls: [
+    './grid.component.scss',
+  ],
+  encapsulation: ViewEncapsulation.None,
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { 'class': 'grid ext' },
   imports: [

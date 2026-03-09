@@ -56,9 +56,7 @@
             ],
             "styles": [
               "src/styles.scss",
-              "node_modules/katex/dist/katex.min.css",
-              "node_modules/ag-grid-community/styles/ag-grid.css",
-              "node_modules/ag-grid-community/styles/ag-theme-quartz.css"
+              "node_modules/katex/dist/katex.min.css"
             ],
             "scripts": [
               "node_modules/mermaid/dist/mermaid.min.js",
@@ -120,7 +118,7 @@
                 {
                   "type": "anyComponentStyle",
                   "maximumWarning": "3kb",
-                  "maximumError": "20kb"
+                  "maximumError": "300kb"
                 }
               ],
               "fileReplacements": [
