@@ -142,6 +142,22 @@ Please Reload.</source>
         <source>Cache</source>
         <target>キャッシュ</target>
       </trans-unit>
+      <trans-unit id="3012906865384504293" datatype="html">
+        <source>Image</source>
+        <target>画像</target>
+      </trans-unit>
+      <trans-unit id="7153255681393081191" datatype="html">
+        <source>Markdown</source>
+        <target>Markdown</target>
+      </trans-unit>
+      <trans-unit id="8151017381798767627" datatype="html">
+        <source>Embed</source>
+        <target>埋め込み</target>
+      </trans-unit>
+      <trans-unit id="1117460492841715210" datatype="html">
+        <source>Tag List</source>
+        <target>タグリスト</target>
+      </trans-unit>
       <trans-unit id="7290417644239030193" datatype="html">
         <source>Refs</source>
       </trans-unit>

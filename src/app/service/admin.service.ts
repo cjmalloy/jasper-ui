@@ -26,6 +26,7 @@ import { htmlMod, latexMod } from '../mods/editor';
 import { experimentsMod } from '../mods/experiments';
 import { backgammonMod } from '../mods/games/backgammon';
 import { chessMod } from '../mods/games/chess';
+import { gridMod } from '../mods/org/grid';
 import { homeMod } from '../mods/home';
 import { lensMod } from '../mods/lens';
 import { mailboxMod } from '../mods/mailbox';
@@ -155,6 +156,7 @@ export class AdminService {
     modlistMod,
     commentMod,
     threadMod,
+    gridMod,
     notesMod,
     emailMod,
     durationMod,
