@@ -87,6 +87,7 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
   sending: Ref[] = [];
   errored: Ref[] = [];
   scrollLock?: number;
+  notAtBottom = false;
   uploads: ChatUpload[] = [];
   dropping = false;
 
@@ -282,6 +283,13 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
     });
   }
 
+  scrollToBottom() {
+    this.scrollLock = undefined;
+    this.viewport.scrollTo({ bottom: 0, behavior: 'smooth' })
+    this.viewport.checkViewportSize();
+    delay(() => this.viewport.scrollToIndex(this.messages!.length - 1, 'smooth'), 400);
+  }
+
   fetch() {
     if (!this.watch) {
       this.setPoll(false);
@@ -405,6 +413,7 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
   }
 
   onScroll(index: number) {
+    this.notAtBottom = this.viewport.measureScrollOffset('bottom') > this.itemSize;
     if (!this.scrollLock) return;
     // TODO: count height in rows
     const diff = this.scrollLock - index;
