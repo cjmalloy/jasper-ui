@@ -31,9 +31,19 @@ test.describe.serial('Chat Template', () => {
     const viewport = page.locator('.chat .messages');
     await expect(viewport).toBeVisible();
 
+    // Wait for messages to be fetched from server (component polls ~1s after last send)
+    // and rendered in the virtual scroll viewport
+    await expect(page.locator('.chat .messages app-chat-entry').first()).toBeVisible({ timeout: 15_000 });
+
+    // Ensure the viewport has scrollable content by waiting for enough messages
+    await page.waitForFunction(() => {
+      const el = document.querySelector('.chat .messages');
+      return el && el.scrollHeight > el.clientHeight;
+    }, { timeout: 15_000 });
+
     // Scroll to the top of the messages viewport to trigger "More messages below"
     await viewport.evaluate(el => el.scrollTop = 0);
-    await page.waitForTimeout(300);
+    await page.waitForTimeout(500);
 
     // The floating bar should now be visible
     const bar = page.locator('.chat .scroll-to-bottom');
