@@ -56,6 +56,7 @@ export class GridCellComponent implements ICellRendererAngularComp {
       url,
       origin: '',
       tags: [tag],
+      modifiedString: url,
     };
   }
 }
