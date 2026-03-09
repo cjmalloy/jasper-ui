@@ -74,7 +74,7 @@
       </tr>
       </thead>
       <tbody>
-        @for (entry of extEntries; track entry.tag) {
+        @for (entry of extEntries; track entry.key) {
           <tr>
             <td class="tag-cell">
               <a [routerLink]="['/tag', entry.tag]">{{ entry.tag }}</a>
@@ -82,7 +82,7 @@
             <td>{{ entry.value }}</td>
             <td>
               <button type="button"
-                      (click)="clearExtEntry(entry.tag)"
+                      (click)="clearExtEntry(entry.key)"
                       i18n-title title="Remove this entry"
                       i18n>🗑️</button>
             </td>
