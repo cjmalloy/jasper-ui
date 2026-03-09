@@ -45,4 +45,18 @@ export class SettingsLocalPage {
       this.store.local.clearAllExts();
     }
   }
+
+  get helpEntries() {
+    return this.store.local.getHelpKeys();
+  }
+
+  clearHelpEntry(key: string) {
+    this.store.local.clearHelpEntry(key);
+  }
+
+  clearAllHelp() {
+    if (confirm($localize`Are you sure you want to clear all help message history from local storage?`)) {
+      this.store.local.clearAllHelp();
+    }
+  }
 }
