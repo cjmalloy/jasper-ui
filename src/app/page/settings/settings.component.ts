@@ -1,6 +1,5 @@
 import { Component, OnInit } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
-import { isEqual } from 'lodash-es';
 import { runInAction } from 'mobx';
 import { MobxAngularModule } from 'mobx-angular';
 import { SidebarComponent } from '../../component/sidebar/sidebar.component';
