@@ -81,6 +81,7 @@ export class ViewerComponent implements OnChanges, OnDestroy {
   private destroy$ = new Subject<void>();
   private videoKeydownHandler?: (event: KeyboardEvent) => void;
   private audioKeydownHandler?: (event: KeyboardEvent) => void;
+  private fullscreenKeydownHandler?: (event: KeyboardEvent) => void;
   private currentVideo?: HTMLVideoElement;
   private currentAudio?: HTMLAudioElement;
 
@@ -244,11 +245,20 @@ export class ViewerComponent implements OnChanges, OnDestroy {
     if (!value) return;
     const video = value.nativeElement;
     // Add capture-phase listener directly on the video element so it fires
-    // even when focus is inside the native controls' shadow DOM or in fullscreen
+    // even when focus is inside the native controls' shadow DOM
     this.removeVideoListener();
     this.currentVideo = video;
     this.videoKeydownHandler = (e: KeyboardEvent) => handleVideoKeydown(e, video);
     video.addEventListener('keydown', this.videoKeydownHandler, { capture: true });
+    // Document-level capture listener for native fullscreen mode where events
+    // may not propagate through the video element's regular event path
+    this.removeFullscreenKeydownListener();
+    this.fullscreenKeydownHandler = (e: KeyboardEvent) => {
+      if (document.fullscreenElement === video && !e.defaultPrevented) {
+        handleVideoKeydown(e, video);
+      }
+    };
+    document.addEventListener('keydown', this.fullscreenKeydownHandler, { capture: true });
     if (video.canPlayType('application/vnd.apple.mpegurl')) return;
     if (Hls.isSupported() && this.hls) {
       const hls = new Hls();
@@ -584,6 +594,14 @@ export class ViewerComponent implements OnChanges, OnDestroy {
     }
     this.currentVideo = undefined;
     this.videoKeydownHandler = undefined;
+    this.removeFullscreenKeydownListener();
+  }
+
+  private removeFullscreenKeydownListener() {
+    if (this.fullscreenKeydownHandler) {
+      document.removeEventListener('keydown', this.fullscreenKeydownHandler, { capture: true });
+    }
+    this.fullscreenKeydownHandler = undefined;
   }
 
   private removeAudioListener() {
