@@ -116,10 +116,10 @@ export class HelpService {
         .flexibleConnectedTo(element)
         .withPositions([
           // Define preferred positions (e.g., below, above, right, left)
-          { originX: 'start', originY: 'bottom', overlayX: 'start', overlayY: 'top' },
-          { originX: 'start', originY: 'top', overlayX: 'start', overlayY: 'bottom' },
-          { originX: 'end', originY: 'center', overlayX: 'start', overlayY: 'center' },
-          { originX: 'start', originY: 'center', overlayX: 'end', overlayY: 'center' },
+          { originX: 'start', originY: 'bottom', overlayX: 'start', overlayY: 'top', offsetY: 6 },
+          { originX: 'start', originY: 'top', overlayX: 'start', overlayY: 'bottom', offsetY: -6 },
+          { originX: 'end', originY: 'center', overlayX: 'start', overlayY: 'center', offsetX: 6 },
+          { originX: 'start', originY: 'center', overlayX: 'end', overlayY: 'center', offsetX: -6 },
         ])
         .withPush(true), // Allow the overlay to push other elements
       scrollStrategy: this.overlay.scrollStrategies.reposition(), // Reposition on scroll
@@ -206,7 +206,7 @@ export class HelpService {
     const backdrop = this.overlayRef?.backdropElement;
     if (!backdrop) return;
     const rect = element.getBoundingClientRect();
-    const padding = 2;
+    const padding = 0;
     const left = rect.left - padding;
     const top = rect.top - padding;
     const right = rect.right + padding;
