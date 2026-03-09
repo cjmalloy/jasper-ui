@@ -122,7 +122,6 @@ export class HelpService {
         .withPush(true), // Allow the overlay to push other elements
       scrollStrategy: this.overlay.scrollStrategies.reposition(), // Reposition on scroll
       hasBackdrop: true,
-      backdropClass: 'help-backdrop',
     });
 
     // Create a portal for the help popup component
