@@ -17,12 +17,17 @@
   </div>
 }
 @if (isTemplate('graph')) {
-  <app-force-directed #lens
-                      [tag]="tag"
-                      [content]="page?.content || []"></app-force-directed>
+  @defer {
+    <app-force-directed #lens
+                        [tag]="tag"
+                        [content]="page?.content || []"></app-force-directed>
+  } @placeholder {
+    <app-loading></app-loading>
+  }
 } @else if (isTemplate('grid')) {
   @defer {
-    <app-grid [tag]="tag"
+    <app-grid #lens
+              [tag]="tag"
               [ext]="ext!"
               [page]="page"
               [pageControls]="pageControls"

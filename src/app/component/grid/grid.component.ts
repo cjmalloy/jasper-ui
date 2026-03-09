@@ -1,9 +1,17 @@
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy, ViewEncapsulation } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  Input,
+  OnDestroy,
+  ViewEncapsulation
+} from '@angular/core';
 import { Router } from '@angular/router';
 import { AgGridModule } from 'ag-grid-angular';
 import { ColDef } from 'ag-grid-community';
 import { DateTime } from 'luxon';
 import { autorun, IReactionDisposer } from 'mobx';
+import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ext } from '../../model/ext';
 import { Page } from '../../model/page';
 import { Ref } from '../../model/ref';
@@ -27,7 +35,7 @@ import { GridCellComponent } from './grid-cell/grid-cell.component';
     LoadingComponent,
   ],
 })
-export class GridComponent implements OnDestroy {
+export class GridComponent implements OnDestroy, HasChanges {
   private customTypes = new Set<string>(['url', 'tag', 'tags', 'sources', 'image', 'lens', 'markdown', 'embed']);
   private autoHeightTypes = new Set<string>(['tags', 'sources', 'image', 'lens', 'markdown', 'embed']);
   private disposers: IReactionDisposer[] = [];
@@ -57,6 +65,10 @@ export class GridComponent implements OnDestroy {
       this.store.darkTheme;
       this.cd.markForCheck();
     }));
+  }
+
+  saveChanges() {
+    return true;
   }
 
   ngOnDestroy() {
