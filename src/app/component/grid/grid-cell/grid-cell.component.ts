@@ -2,6 +2,8 @@ import { ChangeDetectionStrategy, Component, forwardRef } from '@angular/core';
 import { ICellRendererAngularComp } from 'ag-grid-angular';
 import { ICellRendererParams } from 'ag-grid-community';
 import { Ref } from '../../../model/ref';
+import { AdminService } from '../../../service/admin.service';
+import { ProxyService } from '../../../service/api/proxy.service';
 import { MdComponent } from '../../md/md.component';
 import { NavComponent } from '../../nav/nav.component';
 import { ViewerComponent } from '../../viewer/viewer.component';
@@ -20,9 +22,16 @@ import { ViewerComponent } from '../../viewer/viewer.component';
 export class GridCellComponent implements ICellRendererAngularComp {
   type = '';
   value?: unknown;
+  private data?: Ref;
+
+  constructor(
+    private admin: AdminService,
+    private proxy: ProxyService,
+  ) {}
 
   agInit(params: ICellRendererParams): void {
     this.value = params.value;
+    this.data = params.data;
     const type = params.colDef?.type;
     this.type = typeof type === 'string' ? type : '';
   }
@@ -45,6 +54,15 @@ export class GridCellComponent implements ICellRendererAngularComp {
       return this.listValue.join(', ');
     }
     return this.textValue;
+  }
+
+  get imageUrl() {
+    const url = this.textValue;
+    if (!url) return '';
+    if (url.startsWith('cache:') || this.admin.getPlugin('plugin/image')?.config?.proxy) {
+      return this.proxy.getFetch(url, this.data?.origin || '', this.data?.title || $localize`Untitled Image`);
+    }
+    return url;
   }
 
   tagUrl(tag: string) {
