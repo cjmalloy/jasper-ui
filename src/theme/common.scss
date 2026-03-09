@@ -2346,3 +2346,8 @@ ngx-monaco-diff-editor {
     background: var(--vscode-editor-background);
   }
 }
+
+.help-element {
+  position: relative;
+  z-index: 1001;
+}

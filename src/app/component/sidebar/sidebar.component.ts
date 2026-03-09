@@ -1,5 +1,6 @@
 import { AsyncPipe } from '@angular/common';
 import {
+  AfterViewInit,
   Component,
   ElementRef,
   forwardRef,
@@ -30,6 +31,7 @@ import { TaggingService } from '../../service/api/tagging.service';
 import { TemplateService } from '../../service/api/template.service';
 import { AuthzService } from '../../service/authz.service';
 import { ConfigService } from '../../service/config.service';
+import { HelpService } from '../../service/help.service';
 import { QueryStore } from '../../store/query';
 import { Store } from '../../store/store';
 import { encodeBookmarkParams } from '../../util/http';
@@ -70,7 +72,7 @@ import { SortComponent } from '../sort/sort.component';
     ChatVideoComponent,
   ]
 })
-export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
+export class SidebarComponent implements OnInit, AfterViewInit, OnChanges, OnDestroy {
   private disposers: IReactionDisposer[] = [];
   private destroy$ = new Subject<void>();
 
@@ -119,6 +121,7 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
     private exts: ExtService,
     private templates: TemplateService,
     private el: ElementRef,
+    private help: HelpService,
   ) {
     if (localStorage.getItem('sidebar-expanded') !== null) {
       this.expanded = localStorage.getItem('sidebar-expanded') !== 'false';
@@ -158,6 +161,18 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
     }));
   }
 
+  ngAfterViewInit() {
+    if (this.ext?.config.searchHelp) {
+      this.help.pushStep(this.el.nativeElement.querySelector('app-search'), this.ext.config.searchHelp);
+    }
+    if (this.ext?.config.filterHelp) {
+      this.help.pushStep(this.el.nativeElement.querySelector('app-filter'), this.ext.config.filterHelp);
+    }
+    if (this.ext?.config.sortHelp) {
+      this.help.pushStep(this.el.nativeElement.querySelector('app-sort'), this.ext.config.sortHelp);
+    }
+  }
+
   ngOnChanges(changes: SimpleChanges) {
     if (changes.home || changes.tag || changes.ext) {
       MemoCache.clear(this);
@@ -166,6 +181,15 @@ export class SidebarComponent implements OnInit, OnChanges, OnDestroy {
         this.tagSubs$.subscribe(xs => this.tagSubExts = xs);
         this.userSubs$.subscribe(xs => this.userSubExts = xs);
         this.tag ||= this.ext.tag || '';
+        if (this.ext.config.searchHelp) {
+          this.help.pushStep(this.el.nativeElement.querySelector('app-search'), this.ext.config.searchHelp);
+        }
+        if (this.ext.config.filterHelp) {
+          this.help.pushStep(this.el.nativeElement.querySelector('app-filter'), this.ext.config.filterHelp);
+        }
+        if (this.ext.config.sortHelp) {
+          this.help.pushStep(this.el.nativeElement.querySelector('app-sort'), this.ext.config.sortHelp);
+        }
       } else {
         this.bookmarkExts = [];
         this.tagSubExts = [];

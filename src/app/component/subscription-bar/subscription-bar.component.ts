@@ -1,5 +1,5 @@
 import { Location } from '@angular/common';
-import { Component, OnDestroy } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, OnDestroy } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { autorun, IReactionDisposer } from 'mobx';
 import { MobxAngularModule } from 'mobx-angular';
@@ -8,6 +8,7 @@ import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
 import { ConfigService } from '../../service/config.service';
 import { EditorService, TagPreview } from '../../service/editor.service';
+import { HelpService } from '../../service/help.service';
 import { ModService } from '../../service/mod.service';
 import { Store } from '../../store/store';
 
@@ -18,7 +19,7 @@ import { Store } from '../../store/store';
   host: { 'class': 'subscription-bar' },
   imports: [MobxAngularModule, RouterLink, RouterLinkActive, TitleDirective]
 })
-export class SubscriptionBarComponent implements OnDestroy {
+export class SubscriptionBarComponent implements AfterViewInit, OnDestroy {
   private disposers: IReactionDisposer[] = [];
 
   bookmarks: TagPreview[] = [];
@@ -34,11 +35,17 @@ export class SubscriptionBarComponent implements OnDestroy {
     private editor: EditorService,
     private exts: ExtService,
     public location: Location,
+    private el: ElementRef,
+    private help: HelpService,
   ) {
     this.disposers.push(autorun(() => this.editor.getBookmarksPreview(this.store.account.bookmarks, this.store.account.origin)
       .subscribe(xs => this.bookmarks = xs)));
     this.disposers.push(autorun(() => this.exts.getCachedExts(this.store.account.subs)
       .subscribe(xs => this.subs = xs)));
+  }
+
+  ngAfterViewInit() {
+    this.help.pushStep(this.el?.nativeElement, $localize`The top bar holds bookmarks and subscriptions.`);
   }
 
   ngOnDestroy() {

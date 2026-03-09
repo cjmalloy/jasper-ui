@@ -200,6 +200,10 @@ export class ViewStore {
     return this.childTag;
   }
 
+  get settingsExt() {
+    return this.settingsTabs.find(t => t.tag === this.settingsTag) as Ext;
+  }
+
   get inbox() {
     const s = this.route.routeSnapshot?.firstChild;
     return s?.routeConfig?.path === 'inbox';
