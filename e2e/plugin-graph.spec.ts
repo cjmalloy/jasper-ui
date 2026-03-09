@@ -43,7 +43,7 @@ test.describe.serial('Graph Plugin', () => {
   test('shows graph', async () => {
     await page.locator('.full-page .actions .fake-link', { hasText: 'edit' }).first().click();
     const url = await page.locator('[name=url]').inputValue();
-    await page.goto('/tag/@*?search=' + url + '&debug=USER');
+    await page.goto('/tag/@*?search=' + url + '&debug=USER', { waitUntil: 'networkidle' });
     await page.locator('.tabs a', { hasText: 'graph' }).first().click();
     await expect(page.locator('figure')).toContainText('Title');
   });
@@ -64,7 +64,7 @@ test.describe.serial('Graph Plugin', () => {
   test('graphs reply', async () => {
     await page.locator('.full-page .actions .fake-link', { hasText: 'edit' }).first().click();
     const url = await page.locator('[name=url]').inputValue();
-    await page.goto('/tag/@*?search=' + url + '&debug=USER');
+    await page.goto('/tag/@*?search=' + url + '&debug=USER', { waitUntil: 'networkidle' });
     await page.locator('.tabs a', { hasText: 'graph' }).first().click();
     await expect(page.locator('figure')).toContainText('Reply');
     const loadMore = page.locator('.load-more');
