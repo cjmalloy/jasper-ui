@@ -94,4 +94,43 @@
     <span></span>
     <p class="empty" i18n>No Ext data stored in local storage.</p>
   }
+
+  <h3 i18n>Help Messages</h3>
+  <p i18n>Dismissed help messages stored so they won't be shown again.</p>
+  <span></span>
+  <div class="buttons">
+    <button type="button"
+            [disabled]="!helpEntries.length"
+            (click)="clearAllHelp()"
+            i18n-title title="Clear all help message history from local storage"
+            i18n>🗑️ clear all help</button>
+  </div>
+
+  @if (helpEntries.length) {
+    <span></span>
+    <table class="local-storage-table">
+      <thead>
+      <tr>
+        <th i18n>ID</th>
+        <th></th>
+      </tr>
+      </thead>
+      <tbody>
+        @for (entry of helpEntries; track entry.key) {
+          <tr>
+            <td class="id-cell">{{ entry.id }}</td>
+            <td>
+              <button type="button"
+                      (click)="clearHelpEntry(entry.key)"
+                      i18n-title title="Remove this entry"
+                      i18n>🗑️</button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  } @else {
+    <span></span>
+    <p class="empty" i18n>No help message history stored in local storage.</p>
+  }
 </div>

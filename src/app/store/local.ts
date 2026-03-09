@@ -225,4 +225,35 @@ export class LocalStore {
   dismissHelpPopup(id: string) {
     localStorage.setItem('help:' + id, 'true');
   }
+
+  /**
+   * Get all help-related localStorage keys.
+   */
+  getHelpKeys(): { key: string, id: string }[] {
+    const results: { key: string, id: string }[] = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key?.startsWith('help:')) {
+        results.push({ key, id: key.slice('help:'.length) });
+      }
+    }
+    return results;
+  }
+
+  /**
+   * Clear a specific help entry from localStorage.
+   */
+  clearHelpEntry(key: string): void {
+    localStorage.removeItem(key);
+  }
+
+  /**
+   * Clear all help entries from localStorage.
+   */
+  clearAllHelp(): void {
+    const keys = this.getHelpKeys().map(h => h.key);
+    for (const key of keys) {
+      localStorage.removeItem(key);
+    }
+  }
 }
