@@ -44,7 +44,7 @@
   </app-tabs>
   <app-sidebar [home]="true"
                [floating]="store.view.floatingSidebar"
-               [ext]="store.view.ext"
+               [ext]="store.view.homeExt"
                [activeExts]="store.view.activeExts"></app-sidebar>
   @if (query.error?.status !== 403) {
     <app-lens #lens [page]="query.page"

@@ -330,6 +330,17 @@ export class ViewStore {
     return this.viewTag && [...this.activeExts, ...this.globalExts].find(x => hasPrefix(x.tag, this.viewTag)) || this.exts[0];
   }
 
+  get homeExt() {
+    if (this.list) return this.ext;
+    return {
+      ...this.ext,
+      config: {
+        ...this.ext.config,
+        noFloatingSidebar: this.viewExt?.config?.noFloatingSidebar ?? this.ext.config?.noFloatingSidebar,
+      },
+    };
+  }
+
   get template(): string {
     return this.route.routeSnapshot?.firstChild?.params['template'] || '';
   }
