@@ -1,8 +1,9 @@
-import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { AgGridModule } from 'ag-grid-angular';
 import { ColDef } from 'ag-grid-community';
 import { DateTime } from 'luxon';
+import { autorun, IReactionDisposer } from 'mobx';
 import { Ext } from '../../model/ext';
 import { Page } from '../../model/page';
 import { Ref } from '../../model/ref';
@@ -23,9 +24,10 @@ import { GridCellComponent } from './grid-cell/grid-cell.component';
     LoadingComponent,
   ],
 })
-export class GridComponent {
+export class GridComponent implements OnDestroy {
   private customTypes = new Set<string>(['url', 'tag', 'tags', 'sources', 'image', 'lens', 'markdown', 'embed']);
   private autoHeightTypes = new Set<string>(['tags', 'sources', 'image', 'lens', 'markdown', 'embed']);
+  private disposers: IReactionDisposer[] = [];
 
   @Input()
   tag = '';
@@ -52,7 +54,19 @@ export class GridComponent {
     public store: Store,
     private admin: AdminService,
     private router: Router,
-  ) { }
+    private cd: ChangeDetectorRef,
+  ) {
+    this.disposers.push(autorun(() => {
+      // Access the observable to subscribe
+      this.store.darkTheme;
+      this.cd.markForCheck();
+    }));
+  }
+
+  ngOnDestroy() {
+    for (const dispose of this.disposers) dispose();
+    this.disposers.length = 0;
+  }
 
   get columnDefs(): ColDef[] {
     return this.applyFormatters(this.ext?.config?.columnDefs || this.defaultCols);
