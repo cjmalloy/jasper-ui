@@ -7,6 +7,11 @@
   padding-block: 0.25rem;
 }
 
+.grid-list {
+  display: flex;
+  gap: 4px;
+}
+
 .grid-link,
 .grid-tag {
   overflow-wrap: anywhere;

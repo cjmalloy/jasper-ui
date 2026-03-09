@@ -7,14 +7,14 @@
     <app-nav class="grid-tag"
              [url]="tagUrl(textValue)"></app-nav>
   } @else if (type === 'tags' && listValue.length) {
-    <div class="tag-list form-array">
+    <div class="tag-list grid-list">
       @for (tag of listValue; track tag) {
         <app-nav class="grid-tag"
                  [url]="tagUrl(tag)"></app-nav>
       }
     </div>
   } @else if (type === 'sources' && listValue.length) {
-    <div class="tag-list form-array">
+    <div class="tag-list grid-list">
       @for (source of listValue; track source) {
         <app-nav class="grid-link"
                  [url]="source"
