@@ -201,7 +201,7 @@ export class ViewStore {
   }
 
   get settingsExt() {
-    return this.settingsTabs.find(t => t.tag === this.settingsTag);
+    return this.settingsTabs.find(t => t.tag === this.settingsTag) as Ext;
   }
 
   get inbox() {
