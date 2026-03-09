@@ -4,9 +4,9 @@ import {
   EventEmitter,
   forwardRef,
   HostBinding,
-  HostListener,
   Input,
   OnChanges,
+  OnDestroy,
   Output,
   SimpleChanges,
   ViewChild
@@ -74,10 +74,19 @@ import { TodoComponent } from '../todo/todo.component';
     LoadingComponent,
   ],
 })
-export class ViewerComponent implements OnChanges {
+export class ViewerComponent implements OnChanges, OnDestroy {
   @HostBinding('class') css = 'embed print-images';
   @HostBinding('tabindex') tabIndex = 0;
   private destroy$ = new Subject<void>();
+  private keydownHandler = (event: KeyboardEvent) => {
+    const video = this.el.nativeElement.querySelector('video') as HTMLVideoElement;
+    if (video) {
+      handleVideoKeydown(event, video);
+      return;
+    }
+    const audio = this.el.nativeElement.querySelector('audio') as HTMLAudioElement;
+    if (audio) handleMediaKeydown(event, audio);
+  };
 
   @ViewChild('iframe')
   iframe!: ElementRef;
@@ -140,17 +149,8 @@ export class ViewerComponent implements OnChanges {
     private refs: RefService,
     private store: Store,
     public el: ElementRef,
-  ) { }
-
-  @HostListener('keydown', ['$event'])
-  onKeydown(event: KeyboardEvent) {
-    const video = this.el.nativeElement.querySelector('video') as HTMLVideoElement;
-    if (video) {
-      handleVideoKeydown(event, video);
-      return;
-    }
-    const audio = this.el.nativeElement.querySelector('audio') as HTMLAudioElement;
-    if (audio) handleMediaKeydown(event, audio);
+  ) {
+    el.nativeElement.addEventListener('keydown', this.keydownHandler, { capture: true });
   }
 
   init() {
@@ -203,6 +203,7 @@ export class ViewerComponent implements OnChanges {
   }
 
   ngOnDestroy() {
+    this.el.nativeElement.removeEventListener('keydown', this.keydownHandler, { capture: true });
     this.destroy$.next();
     this.destroy$.complete();
   }
