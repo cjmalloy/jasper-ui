@@ -148,7 +148,7 @@ export class ViewStore {
         .flatMap(t => {
           const exts = this.exts.filter(x => x.modifiedString && hasPrefix(x.tag, t.tag));
           if (exts.length) return exts;
-          return [{ tag: t.tag, origin: t.origin, name: t.name, config: { ...t.defaults, view: t?.config?.view} }];
+          return [{ tag: t.tag, origin: t.origin, name: t.name, config: { ...t.defaults, tab: t?.config?.tab, view: t?.config?.view } }];
         })
         .filter(x => !!x));
   }
@@ -163,7 +163,7 @@ export class ViewStore {
             // Already an active ext so ignore global
             return [];
           }
-          return [{ tag: t.tag, origin: t.origin, name: t.name, config: { ...t.defaults, view: t.config?.view } }];
+          return [{ tag: t.tag, origin: t.origin, name: t.name, config: { ...t.defaults, tab: t.config?.tab, view: t.config?.view } }];
         })
         .filter(x => !!x));
   }
