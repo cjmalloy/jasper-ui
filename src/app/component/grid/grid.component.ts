@@ -101,7 +101,7 @@ export class GridComponent implements OnDestroy {
   }
 
   formatDate(value: unknown, format: Intl.DateTimeFormatOptions = DateTime.DATETIME_SHORT): string {
-    return value instanceof DateTime ? value.toLocaleString(format) : '';
+    return DateTime.isDateTime(value) ? value.toLocaleString(format) : '';
   }
 
   formatDateString(value: unknown, format: Intl.DateTimeFormatOptions = DateTime.DATETIME_SHORT): string {
