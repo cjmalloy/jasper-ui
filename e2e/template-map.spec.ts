@@ -43,8 +43,10 @@ test.describe.serial('Map Template', () => {
     await submitPromise;
     await expect(page.locator('.full-page.ref .link a')).toHaveText('Map Test Ref');
 
-    // Navigate to the map view
-    await page.goto('/?view=map&debug=ADMIN', { waitUntil: 'networkidle' });
+    // Navigate to the tag page and click the map tab to switch to the map lens
+    await page.goto('/tag/@*?debug=ADMIN', { waitUntil: 'domcontentloaded' });
+    await page.locator('.tabs a', { hasText: 'map' }).first().click();
+    await expect(page).toHaveURL(/view=map/);
 
     // mgl-map should render when refs are present (tile errors are acceptable)
     await expect(page.locator('.maplibregl-map')).toBeVisible({ timeout: 15_000 });
