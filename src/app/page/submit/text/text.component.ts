@@ -325,9 +325,14 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
   }
 
   private ensureUrl() {
-    let url = this.url.value || this.store.submit.url || this.generatedUrl;
-    if (!this.admin.isWikiExternal() && this.store.submit.wiki) {
-      url = wikiUriFormat(url, this.admin.getWikiPrefix());
+    const routeUrl = this.store.submit.url;
+    const currentUrl = this.url.value;
+    const wiki = this.store.submit.wiki;
+    const wikiPrefix = this.admin.getWikiPrefix();
+    const useRouteUrl = !!routeUrl && (!wiki || routeUrl !== wikiPrefix);
+    let url = useRouteUrl ? routeUrl : currentUrl || this.generatedUrl;
+    if (!this.admin.isWikiExternal() && wiki) {
+      url = wikiUriFormat(url, wikiPrefix);
     }
     if (this.url.value !== url) this.url.setValue(url);
     this.url.disable();
