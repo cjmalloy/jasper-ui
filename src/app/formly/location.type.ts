@@ -27,10 +27,13 @@ import { getErrorMessage } from './errors';
              min="-90"
              max="90"
              step="any"
+             [id]="field.id + '-lat'"
+             [name]="(field.name || field.id) + '-lat'"
+             aria-label="Latitude"
+             i18n-aria-label
              [value]="lat"
              (input)="setLat($any($event.target).value)"
              (blur)="blur($any($event.target))"
-             [formlyAttributes]="field"
              [class.is-invalid]="showError">
       <button type="button"
               title="Use current location"
