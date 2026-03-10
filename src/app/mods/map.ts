@@ -517,7 +517,7 @@ const geoMultiPointPlugin: Plugin = {
     type: 'Feature',
     geometry: {
       type: 'MultiPoint',
-      coordinates: [[]],
+      coordinates: [],
     }
   },
   schema: {
