@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
-import { FieldType, FieldTypeConfig, FormlyConfig } from '@ngx-formly/core';
+import { FieldType, FieldTypeConfig, FormlyAttributes, FormlyConfig } from '@ngx-formly/core';
 import { getErrorMessage } from './errors';
 
 @Component({
@@ -18,6 +18,7 @@ import { getErrorMessage } from './errors';
              [value]="lng"
              (input)="setLng($any($event.target).value)"
              (blur)="blur($any($event.target))"
+             [formlyAttributes]="field"
              [class.is-invalid]="showError">
       <input type="number"
              class="grow"
@@ -29,6 +30,7 @@ import { getErrorMessage } from './errors';
              [value]="lat"
              (input)="setLat($any($event.target).value)"
              (blur)="blur($any($event.target))"
+             [formlyAttributes]="field"
              [class.is-invalid]="showError">
       <button type="button"
               title="Use current location"
@@ -40,6 +42,7 @@ import { getErrorMessage } from './errors';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     ReactiveFormsModule,
+    FormlyAttributes,
   ],
 })
 export class FormlyFieldLocation extends FieldType<FieldTypeConfig> {
