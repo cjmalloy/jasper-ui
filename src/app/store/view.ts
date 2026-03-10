@@ -333,10 +333,10 @@ export class ViewStore {
   get homeExt() {
     if (this.list) return this.ext;
     return {
-      ...this.ext,
+      ...this.ext || {},
       config: {
         ...this.ext?.config || {},
-        noFloatingSidebar: this.viewExt?.config?.noFloatingSidebar ?? this.ext.config?.noFloatingSidebar,
+        noFloatingSidebar: this.viewExt?.config?.noFloatingSidebar ?? this.ext?.config?.noFloatingSidebar,
       },
     };
   }
