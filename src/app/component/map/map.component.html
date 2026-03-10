@@ -2,9 +2,7 @@
   @if (emptyMessage && !page.content.length) {
     <p class="no-results">{{ emptyMessage }}</p>
   } @else{
-    <mgl-map [mapStyle]="'https://demotiles.maplibre.org/style.json'"
-             [zoom]="[6]"
-             [center]="[-64, 45]"
+    <mgl-map [mapStyle]="mapStyle"
              (mapLoad)="mapLoaded($event)">
       <mgl-control mglNavigation
                    position="top-left"

@@ -1,13 +1,13 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
-import { FieldType, FieldTypeConfig, FormlyAttributes, FormlyConfig } from '@ngx-formly/core';
+import { FieldType, FieldTypeConfig, FormlyConfig } from '@ngx-formly/core';
 import { getErrorMessage } from './errors';
 
 @Component({
   selector: 'formly-field-location',
   host: { 'class': 'field location-field' },
   template: `
-    <div class="form-array skip-margin">
+    <div class="form-array">
       <input type="number"
              class="grow"
              placeholder="Longitude"
@@ -40,7 +40,6 @@ import { getErrorMessage } from './errors';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     ReactiveFormsModule,
-    FormlyAttributes,
   ],
 })
 export class FormlyFieldLocation extends FieldType<FieldTypeConfig> {
