@@ -6224,9 +6224,9 @@ Enter the origin to confirm:</source>
         <source>Local Storage</source>
         <target>ローカルストレージ</target>
       </trans-unit>
-      <trans-unit id="5369408705351652088" datatype="html">
-        <source>This page shows data stored in your browser&apos;s local storage for Refs and Exts.</source>
-        <target>このページには、RefとExtのブラウザのローカルストレージに保存されたデータが表示されます。</target>
+      <trans-unit id="7256771627855544401" datatype="html">
+        <source>This page shows data stored in your browser&apos;s local storage for Refs and Exts.<x id="LINE_BREAK" ctype="lb" equiv-text="&lt;br&gt;"/><x id="LINE_BREAK" ctype="lb" equiv-text="&lt;br&gt;"/></source>
+        <target>このページには、RefとExtのブラウザのローカルストレージに保存されたデータが表示されます。<x id="LINE_BREAK" ctype="lb" equiv-text="&lt;br&gt;"/><x id="LINE_BREAK" ctype="lb" equiv-text="&lt;br&gt;"/></target>
       </trans-unit>
       <trans-unit id="645613494611190618" datatype="html">
         <source>Stored toggle states and last seen counts for Refs.</source>
@@ -6255,9 +6255,9 @@ Enter the origin to confirm:</source>
         <source>Remove this entry</source>
         <target>このエントリーを削除</target>
       </trans-unit>
-      <trans-unit id="905011290352238500" datatype="html">
-        <source>No Ref data stored in local storage.</source>
-        <target>ローカルストレージにRefデータはありません。</target>
+      <trans-unit id="7491709467319273269" datatype="html">
+        <source>No Ref data stored in local storage.<x id="LINE_BREAK" ctype="lb" equiv-text="&lt;br&gt;"/><x id="LINE_BREAK" ctype="lb" equiv-text="&lt;br&gt;"/></source>
+        <target>ローカルストレージにRefデータはありません。<x id="LINE_BREAK" ctype="lb" equiv-text="&lt;br&gt;"/><x id="LINE_BREAK" ctype="lb" equiv-text="&lt;br&gt;"/></target>
       </trans-unit>
       <trans-unit id="2415006858105878220" datatype="html">
         <source>Cached Ext tags for faster loading.</source>
@@ -6279,9 +6279,9 @@ Enter the origin to confirm:</source>
         <source>Status</source>
         <target>ステータス</target>
       </trans-unit>
-      <trans-unit id="7340424146325569311" datatype="html">
-        <source>No Ext data stored in local storage.</source>
-        <target>ローカルストレージにExtデータはありません。</target>
+      <trans-unit id="371500033155101429" datatype="html">
+        <source>No Ext data stored in local storage.<x id="LINE_BREAK" ctype="lb" equiv-text="&lt;br&gt;"/><x id="LINE_BREAK" ctype="lb" equiv-text="&lt;br&gt;"/></source>
+        <target>ローカルストレージにExtデータはありません。<x id="LINE_BREAK" ctype="lb" equiv-text="&lt;br&gt;"/><x id="LINE_BREAK" ctype="lb" equiv-text="&lt;br&gt;"/></target>
       </trans-unit>
       <trans-unit id="6875977898191706862" datatype="html">
         <source>Settings: Local Storage</source>
@@ -6561,6 +6561,227 @@ Each response contains the converted Markdown from a specific source format.</so
       <trans-unit id="969459137986754249" datatype="html">
         <source>Boolean</source>
         <target>ブーリアン</target>
+      </trans-unit>
+      <trans-unit id="1107902142041847629" datatype="html">
+        <source>Activates built-in map mode for viewing Refs on a map.</source>
+        <target>マップ上でRefを閲覧するための組み込みマップモードを有効にします。</target>
+      </trans-unit>
+      <trans-unit id="1148070139385865383" datatype="html">
+        <source>📌️📌️</source>
+      </trans-unit>
+      <trans-unit id="1273958037222279236" datatype="html">
+        <source>Lines:</source>
+        <target>ライン:</target>
+      </trans-unit>
+      <trans-unit id="1595683553076871827" datatype="html">
+        <source>graph</source>
+      </trans-unit>
+      <trans-unit id="1634079419998908383" datatype="html">
+        <source>❓️ Help Popups</source>
+        <target>❓️ ヘルプポップアップ</target>
+      </trans-unit>
+      <trans-unit id="1697495701518401160" datatype="html">
+        <source>Sort by cache size.</source>
+        <target>キャッシュサイズで並び替えます。</target>
+      </trans-unit>
+      <trans-unit id="1736771431945546774" datatype="html">
+        <source>🗑️ clear all help</source>
+        <target>🗑️ ヘルプをすべてクリア</target>
+      </trans-unit>
+      <trans-unit id="2126348027366311980" datatype="html">
+        <source>The top bar holds bookmarks and subscriptions.</source>
+        <target>トップバーにはブックマークとサブスクリプションが含まれます。</target>
+      </trans-unit>
+      <trans-unit id="2218320403848242937" datatype="html">
+        <source>🌐️📌️📌️📌️ Geo Multi Line String</source>
+      </trans-unit>
+      <trans-unit id="2275170855711102720" datatype="html">
+        <source>A GeoJSON LineString.</source>
+        <target>GeoJSON LineStringです。</target>
+      </trans-unit>
+      <trans-unit id="2369299916921473892" datatype="html">
+        <source>Help Messages</source>
+        <target>ヘルプメッセージ</target>
+      </trans-unit>
+      <trans-unit id="2437882215285639632" datatype="html">
+        <source>A GeoJSON Polygon.</source>
+        <target>GeoJSON Polygonです。</target>
+      </trans-unit>
+      <trans-unit id="2736239733031148962" datatype="html">
+        <source>A GeoJSON Feature.</source>
+        <target>GeoJSON Featureです。</target>
+      </trans-unit>
+      <trans-unit id="3277324395816403788" datatype="html">
+        <source>LaTeX plugin</source>
+      </trans-unit>
+      <trans-unit id="3282489484471071411" datatype="html">
+        <source>Enable help popups that guide users through different parts of the application.</source>
+        <target>アプリケーションのさまざまな部分でユーザーをガイドするヘルプポップアップを有効にします。</target>
+      </trans-unit>
+      <trans-unit id="3322548436035043583" datatype="html">
+        <source>Dismissed help messages stored so they won&apos;t be shown again.</source>
+        <target>非表示にしたヘルプメッセージが保存されており、再度表示されません。</target>
+      </trans-unit>
+      <trans-unit id="3611339914230167844" datatype="html">
+        <source>Center: </source>
+        <target>中心: </target>
+      </trans-unit>
+      <trans-unit id="3756736517696790696" datatype="html">
+        <source>🌐️📌️📌️ Geo Line String</source>
+      </trans-unit>
+      <trans-unit id="3854602051337754678" datatype="html">
+        <source>📍️</source>
+      </trans-unit>
+      <trans-unit id="3885497195825665706" datatype="html">
+        <source>Next</source>
+        <target>次へ</target>
+      </trans-unit>
+      <trans-unit id="397098723873502323" datatype="html">
+        <source>Done</source>
+        <target>完了</target>
+      </trans-unit>
+      <trans-unit id="4071222469431073252" datatype="html">
+        <source>Location: </source>
+        <target>位置: </target>
+      </trans-unit>
+      <trans-unit id="4159797487492582314" datatype="html">
+        <source>Points:</source>
+        <target>ポイント:</target>
+      </trans-unit>
+      <trans-unit id="4322442265667757327" datatype="html">
+        <source>📌️📌️📌️</source>
+      </trans-unit>
+      <trans-unit id="4322913822633731185" datatype="html">
+        <source>+ Add Line</source>
+        <target>+ ラインを追加</target>
+      </trans-unit>
+      <trans-unit id="4358855504501393916" datatype="html">
+        <source>Zoom: </source>
+        <target>ズーム: </target>
+      </trans-unit>
+      <trans-unit id="4452427314943113135" datatype="html">
+        <source>Previous</source>
+        <target>前へ</target>
+      </trans-unit>
+      <trans-unit id="4458905666152084558" datatype="html">
+        <source>📍️ geo</source>
+      </trans-unit>
+      <trans-unit id="4526554089625866000" datatype="html">
+        <source>❓️ Help</source>
+        <target>❓️ ヘルプ</target>
+      </trans-unit>
+      <trans-unit id="4618841297300497077" datatype="html">
+        <source>🗺️ map</source>
+      </trans-unit>
+      <trans-unit id="466033600260461898" datatype="html">
+        <source>+ Add Polygon</source>
+        <target>+ ポリゴンを追加</target>
+      </trans-unit>
+      <trans-unit id="4772721104824624055" datatype="html">
+        <source>Use current location</source>
+        <target>現在地を使用</target>
+      </trans-unit>
+      <trans-unit id="5108307496874736610" datatype="html">
+        <source>🔷️</source>
+      </trans-unit>
+      <trans-unit id="5174359152122758396" datatype="html">
+        <source>Longitude</source>
+        <target>経度</target>
+      </trans-unit>
+      <trans-unit id="5231479276861303044" datatype="html">
+        <source>🌐️ Geo</source>
+      </trans-unit>
+      <trans-unit id="5239780618560637490" datatype="html">
+        <source>🗺️ map/</source>
+      </trans-unit>
+      <trans-unit id="5536817899547820022" datatype="html">
+        <source>map</source>
+      </trans-unit>
+      <trans-unit id="5814826884170349322" datatype="html">
+        <source>A GeoJSON MultiLineString.</source>
+        <target>GeoJSON MultiLineStringです。</target>
+      </trans-unit>
+      <trans-unit id="5924755327148998770" datatype="html">
+        <source>🗺️ Map</source>
+      </trans-unit>
+      <trans-unit id="5992934744685158197" datatype="html">
+        <source>Change your settings.</source>
+        <target>設定を変更します。</target>
+      </trans-unit>
+      <trans-unit id="652135918438392190" datatype="html">
+        <source>🔷️🔷️</source>
+      </trans-unit>
+      <trans-unit id="6798041317963843512" datatype="html">
+        <source>🌐️📍️📍️ Geo Multi Point</source>
+      </trans-unit>
+      <trans-unit id="6867401253427970093" datatype="html">
+        <source>Are you sure you want to clear all help message history from local storage?</source>
+        <target>ローカルストレージからすべてのヘルプメッセージ履歴をクリアしてもよろしいですか？</target>
+      </trans-unit>
+      <trans-unit id="6919425810484171273" datatype="html">
+        <source>+ Add Ring</source>
+        <target>+ リングを追加</target>
+      </trans-unit>
+      <trans-unit id="6928296171977781888" datatype="html">
+        <source>Rings:</source>
+        <target>リング:</target>
+      </trans-unit>
+      <trans-unit id="709085108453851716" datatype="html">
+        <source>A GeoJSON MultiPolygon.</source>
+        <target>GeoJSON MultiPolygonです。</target>
+      </trans-unit>
+      <trans-unit id="7252221742577175872" datatype="html">
+        <source>🌐️🔷️ Geo Polygon</source>
+      </trans-unit>
+      <trans-unit id="7463670461469835424" datatype="html">
+        <source>+ Add Point</source>
+        <target>+ ポイントを追加</target>
+      </trans-unit>
+      <trans-unit id="7555460108901779611" datatype="html">
+        <source>Bulk actions will only affect all Refs in the current page.</source>
+        <target>一括操作は現在のページのすべてのRefにのみ影響します。</target>
+      </trans-unit>
+      <trans-unit id="7906934084797865975" datatype="html">
+        <source>Clear all help message history from local storage</source>
+        <target>ローカルストレージからすべてのヘルプメッセージ履歴をクリア</target>
+      </trans-unit>
+      <trans-unit id="8024668856698413084" datatype="html">
+        <source>A GeoJSON MultiPoint.</source>
+        <target>GeoJSON MultiPointです。</target>
+      </trans-unit>
+      <trans-unit id="8029759513718323145" datatype="html">
+        <source>🗺️</source>
+      </trans-unit>
+      <trans-unit id="8040881171107393560" datatype="html">
+        <source>ID</source>
+      </trans-unit>
+      <trans-unit id="8089182682824252913" datatype="html">
+        <source>🌐️📍️ Geo Point</source>
+      </trans-unit>
+      <trans-unit id="8124131715541625326" datatype="html">
+        <source>No help message history stored in local storage.</source>
+        <target>ローカルストレージにヘルプメッセージ履歴はありません。</target>
+      </trans-unit>
+      <trans-unit id="8125356120008798189" datatype="html">
+        <source>Polygons:</source>
+        <target>ポリゴン:</target>
+      </trans-unit>
+      <trans-unit id="8314090883669143391" datatype="html">
+        <source>Latitude</source>
+        <target>緯度</target>
+      </trans-unit>
+      <trans-unit id="8614748388674615931" datatype="html">
+        <source>A GeoJSON Point.</source>
+        <target>GeoJSON Pointです。</target>
+      </trans-unit>
+      <trans-unit id="8710431222875127328" datatype="html">
+        <source>📍️📍️</source>
+      </trans-unit>
+      <trans-unit id="8749927369293789617" datatype="html">
+        <source>🌐️🔷️🔷️ Geo Multi Polygon</source>
+      </trans-unit>
+      <trans-unit id="946077791002604877" datatype="html">
+        <source>grid</source>
       </trans-unit>
     </body>
   </file>
