@@ -47,6 +47,7 @@ describe('SubmitTextPage', () => {
     const ref = component.writeRef();
 
     expect(ref.url).toMatch(/^comment:/);
+    expect(ref.url).toBe(component['generatedUrl']);
     expect(component.url.value).toBe(ref.url);
   });
 });

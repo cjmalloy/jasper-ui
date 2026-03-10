@@ -68,6 +68,7 @@ import { getVisibilityTags, hasPrefix, hasTag } from '../../../util/tag';
 })
 export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasChanges {
   private disposers: IReactionDisposer[] = [];
+  private generatedUrl = 'comment:' + uuid();
 
   submitted = false;
   textForm: UntypedFormGroup;
@@ -324,7 +325,7 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
   }
 
   private ensureUrl() {
-    let url = this.url.value || this.store.submit.url || 'comment:' + uuid();
+    let url = this.url.value || this.store.submit.url || this.generatedUrl;
     if (!this.admin.isWikiExternal() && this.store.submit.wiki) {
       url = wikiUriFormat(url, this.admin.getWikiPrefix());
     }
