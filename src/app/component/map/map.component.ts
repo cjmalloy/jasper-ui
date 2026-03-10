@@ -51,6 +51,7 @@ export class MapComponent implements AfterViewInit, HasChanges {
   private _page?: Page<Ref>;
   private map?: Map;
   private markers: Marker[] = [];
+  private onStyleData?: () => void;
 
   constructor(
     private store: Store,
@@ -75,6 +76,9 @@ export class MapComponent implements AfterViewInit, HasChanges {
   }
 
   ngOnDestroy() {
+    if (this.map && this.onStyleData) {
+      this.map.off('styledata', this.onStyleData);
+    }
     this.clearMarkers();
   }
 
@@ -84,7 +88,7 @@ export class MapComponent implements AfterViewInit, HasChanges {
 
   @Input()
   set page(value: Page<Ref> | undefined) {
-    MemoCache.clear(this);
+    MemoCache.clear(this, 'geoData');
     this._page = value;
     if (this.map) {
       this.updateMapData();
@@ -113,6 +117,16 @@ export class MapComponent implements AfterViewInit, HasChanges {
 
   mapLoaded(map: Map) {
     this.map = map;
+    this.addGeoLayers(map);
+    this.onStyleData = () => {
+      if (!map.getSource('geo-features')) {
+        this.addGeoLayers(map);
+      }
+    };
+    map.on('styledata', this.onStyleData);
+  }
+
+  private addGeoLayers(map: Map) {
     map.addSource('geo-features', { type: 'geojson', data: this.geoData });
     // Line layer for LineString and MultiLineString
     map.addLayer({
@@ -158,6 +172,7 @@ export class MapComponent implements AfterViewInit, HasChanges {
         'circle-color': '#4264fb',
       },
     });
+    this.clearMarkers();
     this.addMarkers(map);
   }
 
