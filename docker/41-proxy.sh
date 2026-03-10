@@ -3,8 +3,6 @@ if [ -n "$JASPER_API_PROXY" ]; then
   config="
     location ^~ /api/ {
       port_in_redirect off;
-      resolver 127.0.0.11 ipv6=off valid=30s;
-      set \$jasper_api_proxy $JASPER_API_PROXY;
 
       client_max_body_size                    2g;
 
@@ -61,7 +59,7 @@ if [ -n "$JASPER_API_PROXY" ]; then
       proxy_next_upstream_tries               3;
 
       include /etc/nginx/security-headers.conf;
-      proxy_pass \$jasper_api_proxy;
+      proxy_pass $JASPER_API_PROXY;
 
       proxy_redirect                          off;
     }
