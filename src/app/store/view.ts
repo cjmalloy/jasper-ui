@@ -335,7 +335,7 @@ export class ViewStore {
     return {
       ...this.ext,
       config: {
-        ...this.ext.config,
+        ...this.ext.config || {},
         noFloatingSidebar: this.viewExt?.config?.noFloatingSidebar ?? this.ext.config?.noFloatingSidebar,
       },
     };
