@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, Input, OnChanges, SimpleChanges, ViewEncapsulation } from '@angular/core';
+import { AfterViewInit, Component, Input, OnChanges, OnDestroy, SimpleChanges, ViewEncapsulation } from '@angular/core';
 import { Router } from '@angular/router';
 import {
   ControlComponent,
@@ -35,7 +35,7 @@ import { PageControlsComponent } from '../page-controls/page-controls.component'
     PageControlsComponent
   ]
 })
-export class MapComponent implements AfterViewInit, OnChanges, HasChanges {
+export class MapComponent implements AfterViewInit, OnChanges, OnDestroy, HasChanges {
 
   @Input()
   tag = '';
@@ -84,6 +84,8 @@ export class MapComponent implements AfterViewInit, OnChanges, HasChanges {
 
   ngOnDestroy() {
     this.clearMarkers();
+    this.map?.remove();
+    this.map = undefined;
   }
 
   get page(): Page<Ref> | undefined {
