@@ -17,7 +17,8 @@ describe('CommentReplyComponent', () => {
       providers: [
         { provide: AdminService, useValue: {
             getPlugin: () => null,
-            getEditorButtons: () => []
+            getEditorButtons: () => [],
+            getTemplate: () => null,
           }
         },
         provideHttpClient(withInterceptorsFromDi()),
