@@ -118,6 +118,38 @@ describe('RateLimitInterceptor', () => {
     vi.useRealTimers();
   });
 
+  it('should retry on 504 status with Retry-After header', async () => {
+    vi.useFakeTimers();
+
+    const testData = { message: 'success' };
+    let attemptCount = 0;
+
+    const promise = new Promise<void>((resolve) => {
+      httpClient.get('/test').subscribe(data => {
+        expect(data).toEqual(testData);
+        expect(attemptCount).toBe(2); // Initial request + 1 retry
+        resolve();
+      });
+    });
+
+    const req1 = httpTestingController.expectOne('/test');
+    attemptCount++;
+    req1.flush(null, {
+      status: 504,
+      statusText: 'Gateway Timeout',
+      headers: { 'Retry-After': '1' }
+    });
+
+    await vi.advanceTimersByTimeAsync(1000);
+
+    const req2 = httpTestingController.expectOne('/test');
+    attemptCount++;
+    req2.flush(testData);
+
+    await promise;
+    vi.useRealTimers();
+  });
+
   it('should give up after max retries', async () => {
     vi.useFakeTimers();
 
@@ -238,6 +270,37 @@ describe('RateLimitInterceptor', () => {
     const req3 = httpTestingController.expectOne('/test');
     attemptCount++;
     req3.flush(testData);
+
+    await promise;
+    vi.useRealTimers();
+  });
+
+  it('should retry on 408 status with exponential backoff when header is missing', async () => {
+    vi.useFakeTimers();
+
+    const testData = { message: 'success' };
+    let attemptCount = 0;
+
+    const promise = new Promise<void>((resolve) => {
+      httpClient.get('/test').subscribe(data => {
+        expect(data).toEqual(testData);
+        expect(attemptCount).toBe(2); // Initial request + 1 retry
+        resolve();
+      });
+    });
+
+    const req1 = httpTestingController.expectOne('/test');
+    attemptCount++;
+    req1.flush(null, {
+      status: 408,
+      statusText: 'Request Timeout'
+    });
+
+    await vi.advanceTimersByTimeAsync(1000);
+
+    const req2 = httpTestingController.expectOne('/test');
+    attemptCount++;
+    req2.flush(testData);
 
     await promise;
     vi.useRealTimers();
