@@ -38,10 +38,9 @@ updates:
         - "ag-grid-community"
     tests:
       patterns:
-        - "@types/jasmine"
-        - "jasmine*"
-        - "karma*"
-        - "@ngx-formly/*"
+        - "@vitest/*"
+        - "vitest"
+        - "jsdom"
     playwright:
       patterns:
         - "@playwright/*"
