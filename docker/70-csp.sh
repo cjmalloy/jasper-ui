@@ -29,10 +29,10 @@ else
 fi
 
 if [ -n "$CSP_IMAGE_SRC" ]; then
-  sed -i "s;image-src;image-src $CSP_IMAGE_SRC;" /etc/nginx/security-headers.conf
-  echo "Added $CSP_IMAGE_SRC to CSP image-src"
+  sed -i "s;img-src;img-src $CSP_IMAGE_SRC;" /etc/nginx/security-headers.conf
+  echo "Added $CSP_IMAGE_SRC to CSP img-src"
 else
-  echo "No changed to CSP image-src"
+  echo "No changed to CSP img-src"
 fi
 
 if [ -n "$CSP_FONT_SRC" ]; then
