@@ -8,7 +8,7 @@ import {
 } from '@angular/core';
 import { Router } from '@angular/router';
 import { AgGridModule } from 'ag-grid-angular';
-import { ColDef } from 'ag-grid-community';
+import { AllCommunityModule, ColDef, ModuleRegistry } from 'ag-grid-community';
 import { DateTime } from 'luxon';
 import { autorun, IReactionDisposer } from 'mobx';
 import { HasChanges } from '../../guard/pending-changes.guard';
@@ -60,6 +60,7 @@ export class GridComponent implements OnDestroy, HasChanges {
     private router: Router,
     private cd: ChangeDetectorRef,
   ) {
+    ModuleRegistry.registerModules([ AllCommunityModule ]);
     this.disposers.push(autorun(() => {
       // Access the observable to subscribe
       this.store.darkTheme;
