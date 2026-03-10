@@ -34,12 +34,14 @@ import { getErrorMessage } from './errors';
              aria-label="Latitude"
              i18n-aria-label
              [value]="lat"
+             [disabled]="formControl.disabled"
              (input)="setLat($any($event.target).value)"
              (blur)="blur($any($event.target))"
              [class.is-invalid]="showError">
       <button type="button"
               title="Use current location"
               i18n-title
+              [disabled]="formControl.disabled"
               (click)="detectLocation()"
               i18n>📍️</button>
     </div>
