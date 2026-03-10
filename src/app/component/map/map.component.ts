@@ -171,8 +171,6 @@ export class MapComponent implements AfterViewInit, OnChanges, OnDestroy, HasCha
         'circle-color': '#4264fb',
       },
     });
-    this.clearMarkers();
-    this.addMarkers(map);
     this.updateMapData();
   }
 
