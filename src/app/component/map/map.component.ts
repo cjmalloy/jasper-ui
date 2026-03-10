@@ -170,7 +170,7 @@ export class MapComponent implements AfterViewInit, HasChanges {
 
   private updateMapData() {
     if (!this.map) return;
-    const source = this.map.getSource('features') as GeoJSONSource | undefined;
+    const source = this.map.getSource('geo-features') as GeoJSONSource | undefined;
     if (source) {
       source.setData(this.geoData);
     }
