@@ -15,6 +15,8 @@ import { getErrorMessage } from './errors';
              min="-180"
              max="180"
              step="any"
+             aria-label="Longitude"
+             i18n-aria-label
              [value]="lng"
              (input)="setLng($any($event.target).value)"
              (blur)="blur($any($event.target))"
