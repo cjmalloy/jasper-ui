@@ -365,7 +365,7 @@ const geoPointPlugin: Plugin = {
   },
   schema: {
     optionalProperties: {
-      bb: { elements: { type: 'float64' } } ,
+      bbox: { elements: { type: 'float64' } } ,
     },
     properties: {
       type: { enum: ['Feature'] },
@@ -415,7 +415,7 @@ const geoLineStringPlugin: Plugin = {
   },
   schema: {
     optionalProperties: {
-      bb: { elements: { type: 'float64' } } ,
+      bbox: { elements: { type: 'float64' } } ,
     },
     properties: {
       type: { enum: ['Feature'] },
@@ -473,7 +473,7 @@ const geoPolygonPlugin: Plugin = {
   },
   schema: {
     optionalProperties: {
-      bb: { elements: { type: 'float64' } } ,
+      bbox: { elements: { type: 'float64' } } ,
     },
     properties: {
       type: { enum: ['Feature'] },
@@ -523,7 +523,7 @@ const geoMultiPointPlugin: Plugin = {
   },
   schema: {
     optionalProperties: {
-      bb: { elements: { type: 'float64' } } ,
+      bbox: { elements: { type: 'float64' } } ,
     },
     properties: {
       type: { enum: ['Feature'] },
@@ -580,7 +580,7 @@ const geoMultiLineStringPlugin: Plugin = {
   },
   schema: {
     optionalProperties: {
-      bb: { elements: { type: 'float64' } } ,
+      bbox: { elements: { type: 'float64' } } ,
     },
     properties: {
       type: { enum: ['Feature'] },
@@ -644,7 +644,7 @@ const geoMultiPolygonPlugin: Plugin = {
   },
   schema: {
     optionalProperties: {
-      bb: { elements: { type: 'float64' } } ,
+      bbox: { elements: { type: 'float64' } } ,
     },
     properties: {
       type: { enum: ['Feature'] },
