@@ -1,3 +1,4 @@
+import { type StyleSpecification } from '@maplibre/maplibre-gl-style-spec';
 import { Feature } from 'geojson';
 import { DateTime } from 'luxon';
 import { Plugin } from '../model/plugin';
@@ -21,6 +22,128 @@ export const mapTemplate: Template = {
     filters: [
       { query: 'map', label: $localize`🗺️ map`, group: $localize`Templates 🎨️` },
     ],
+    mapStyle: <StyleSpecification> {
+      version: 8,
+      sources: {
+        satellite: {
+          tileSize: 512,
+          type: 'raster',
+          url: 'https://api.maptiler.com/tiles/satellite-v2/tiles.json?key=get_your_own'
+        }
+      },
+      layers: [
+        {
+          id: 'satellite',
+          layout: {
+            visibility: 'visible'
+          },
+          minzoom: 0,
+          paint: {
+            'raster-opacity': 1
+          },
+          source: 'satellite',
+          type: 'raster'
+        }
+      ],
+      center: [-64, 45],
+      zoom: 6,
+      bearing: 0,
+      pitch: 0,
+      roll: 0,
+      elevation: 0,
+      // Constraints
+      minZoom: 0,
+      maxZoom: 22,
+      minPitch: 0,
+      maxPitch: 60,
+      // Interaction options
+      interactive: true,
+      hash: false,
+      bearingSnap: 7,
+      zoomSnap: 0,
+      clickTolerance: 3,
+      scrollZoom: true,
+      boxZoom: true,
+      dragRotate: true,
+      dragPan: true,
+      keyboard: true,
+      doubleClickZoom: true,
+      touchZoomRotate: true,
+      touchPitch: true,
+      cooperativeGestures: false,
+      pitchWithRotate: true,
+      rollEnabled: false,
+      // Display options
+      renderWorldCopies: true,
+      trackResize: true,
+      // Performance options
+      refreshExpiredTiles: true,
+      fadeDuration: 300,
+      crossSourceCollisions: true,
+      collectResourceTiming: false,
+      maxTileCacheZoomLevels: 5,
+      anisotropicFilterPitch: 20,
+      mapLibreLogo: false,
+    },
+  },
+  schema: {
+    optionalProperties: {
+      mapStyle: {
+        optionalProperties: {
+          version: { type: 'uint8' },
+          name: { type: 'string' },
+          metadata: {},
+          // Style-level camera properties
+          center: { elements: { type: 'float64' } },
+          centerAltitude: { type: 'float64' },
+          zoom: { type: 'float64' },
+          bearing: { type: 'float64' },
+          pitch: { type: 'float64' },
+          roll: { type: 'float64' },
+          // Style sources, layers, etc.
+          sources: {},
+          layers: {},
+          sprite: {},
+          glyphs: { type: 'string' },
+          light: {},
+          sky: {},
+          projection: {},
+          terrain: {},
+          transition: {},
+          state: {},
+          // Map constructor options (can also be in style)
+          minZoom: { type: 'float64' },
+          maxZoom: { type: 'float64' },
+          minPitch: { type: 'float64' },
+          maxPitch: { type: 'float64' },
+          maxBounds: { elements: { elements: { type: 'float64' } } },
+          interactive: { type: 'boolean' },
+          hash: { type: 'boolean' },
+          bearingSnap: { type: 'float64' },
+          zoomSnap: { type: 'float64' },
+          clickTolerance: { type: 'float64' },
+          scrollZoom: { type: 'boolean' },
+          boxZoom: { type: 'boolean' },
+          dragRotate: { type: 'boolean' },
+          dragPan: { type: 'boolean' },
+          keyboard: { type: 'boolean' },
+          doubleClickZoom: { type: 'boolean' },
+          touchZoomRotate: { type: 'boolean' },
+          touchPitch: { type: 'boolean' },
+          cooperativeGestures: { type: 'boolean' },
+          pitchWithRotate: { type: 'boolean' },
+          rollEnabled: { type: 'boolean' },
+          renderWorldCopies: { type: 'boolean' },
+          trackResize: { type: 'boolean' },
+          refreshExpiredTiles: { type: 'boolean' },
+          fadeDuration: { type: 'float64' },
+          crossSourceCollisions: { type: 'boolean' },
+          collectResourceTiming: { type: 'boolean' },
+          maxTileCacheZoomLevels: { type: 'float64' },
+          anisotropicFilterPitch: { type: 'float64' },
+        }
+      },
+    }
   },
 };
 

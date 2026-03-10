@@ -12,8 +12,10 @@ import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ext } from '../../model/ext';
 import { Page } from '../../model/page';
 import { Ref } from '../../model/ref';
-import { features } from '../../mods/map';
+import { features, mapTemplate } from '../../mods/map';
+import { AdminService } from '../../service/admin.service';
 import { Store } from '../../store/store';
+import { memo, MemoCache } from '../../util/memo';
 import { LoadingComponent } from '../loading/loading.component';
 import { PageControlsComponent } from '../page-controls/page-controls.component';
 
@@ -44,31 +46,6 @@ export class MapComponent implements AfterViewInit, HasChanges {
   emptyMessage = 'No results found';
 
   error: any;
-  style = {
-    version: 8,
-    sources: {
-      satellite: {
-        tileSize: 512,
-        type: 'raster',
-        url:
-          'https://api.maptiler.com/tiles/satellite-v2/tiles.json?key=get_your_own_OpIi9ZULNHzrESv6T2vL'
-      }
-    },
-    layers: [
-      {
-        id: 'satellite',
-        layout: {
-          visibility: 'visible'
-        },
-        minzoom: 0,
-        paint: {
-          'raster-opacity': 1
-        },
-        source: 'satellite',
-        type: 'raster'
-      }
-    ]
-  };
 
   private _page?: Page<Ref>;
   private map?: Map;
@@ -76,7 +53,16 @@ export class MapComponent implements AfterViewInit, HasChanges {
   constructor(
     private store: Store,
     private router: Router,
+    private admin: AdminService,
   ) { }
+
+  @memo
+  get mapStyle() {
+    return {
+      ...this.ext?.config.mapStyle || this.admin.getTemplate('map')?.defaults?.mapStyle || mapTemplate.defaults?.mapStyle || {},
+      ...this.admin.getTemplate('map')?.config?.mapStyle || {},
+    };
+  }
 
   saveChanges() {
     return true;
@@ -94,6 +80,7 @@ export class MapComponent implements AfterViewInit, HasChanges {
 
   @Input()
   set page(value: Page<Ref> | undefined) {
+    MemoCache.clear(this);
     this._page = value;
     if (this._page) {
       if (this._page.page.number > 0 && this._page.page.number >= this._page.page.totalPages) {
