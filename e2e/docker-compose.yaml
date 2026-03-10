@@ -12,13 +12,12 @@ services:
         condition: service_healthy
       repl-web:
         condition: service_healthy
-    network_mode: host
     environment:
-      BASE_URL: http://localhost:8080
-      MAIN_API: http://localhost:8081
+      BASE_URL: http://client
+      MAIN_API: http://web
       MAIN_API_PROXY: http://web
-      REPL_URL: http://localhost:8082
-      REPL_API: http://localhost:8083
+      REPL_URL: http://repl-client
+      REPL_API: http://repl-web
       REPL_API_PROXY: http://repl-web
       CI: true
     working_dir: /e2e
@@ -31,9 +30,7 @@ services:
       - 8080:80
     environment:
       NGINX_ENTRYPOINT_QUIET_LOGS: 1
-      JASPER_API: http://localhost:8081
-      CSP_DEFAULT_SRC: http://localhost:8081 ws://localhost:8081
-      CSP_CONNECT_SRC: http://localhost:8081 ws://localhost:8081
+      JASPER_API_PROXY: http://web
       JASPER_TITLE: PLAYWRIGHT
     depends_on:
       - web
@@ -77,9 +74,7 @@ services:
       - 8082:80
     environment:
       NGINX_ENTRYPOINT_QUIET_LOGS: 1
-      JASPER_API: http://localhost:8083
-      CSP_DEFAULT_SRC: http://localhost:8083 ws://localhost:8083
-      CSP_CONNECT_SRC: http://localhost:8083 ws://localhost:8083
+      JASPER_API_PROXY: http://repl-web
       JASPER_TITLE: REPL
     depends_on:
       - repl-web
