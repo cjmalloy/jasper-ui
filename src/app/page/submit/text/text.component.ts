@@ -117,6 +117,7 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
   ) {
     mod.setTitle($localize`Submit: Text Post`);
     this.textForm = refForm(fb);
+    this.ensureUrl();
     runInAction(() => store.submit.wikiPrefix = admin.getWikiPrefix());
   }
 
@@ -160,17 +161,14 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
       if (this.store.account.localTag) this.addTag(this.store.account.localTag);
       this.disposers.push(autorun(() => {
         MemoCache.clear(this);
-        let url = this.store.submit.url || 'comment:' + uuid();
+        const url = this.ensureUrl();
         if (!this.admin.isWikiExternal() && this.store.submit.wiki) {
-          url = wikiUriFormat(url, this.admin.getWikiPrefix());
           this.mod.setTitle($localize`Submit: Wiki`);
           this.title.setValue(wikiTitleFormat(url, this.admin.getWikiPrefix()));
           this.title.disable();
         } else if (this.store.submit.title) {
           this.title.setValue(this.store.submit.title);
         }
-        this.url.setValue(url);
-        this.url.disable();
         const tags = [...this.store.submit.tags, ...(this.store.account.localTag ? [this.store.account.localTag] : [])];
         const added = without(tags, ...this.oldSubmit);
         const removed = without(this.oldSubmit, ...tags);
@@ -325,14 +323,25 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
     this.submitted = false;
   }
 
+  private ensureUrl() {
+    let url = this.url.value || this.store.submit.url || 'comment:' + uuid();
+    if (!this.admin.isWikiExternal() && this.store.submit.wiki) {
+      url = wikiUriFormat(url, this.admin.getWikiPrefix());
+    }
+    if (this.url.value !== url) this.url.setValue(url);
+    this.url.disable();
+    return url;
+  }
+
   syncEditor() {
     this.editor.syncEditor(this.fb, this.textForm);
   }
 
   writeRef(publish = false) {
+    const url = this.ensureUrl();
     return <Ref> {
       ...this.textForm.value,
-      url: this.url.value, // Need to pull separately since control is locked
+      url, // Need to pull separately since control is locked
       title: this.title.value, // Need to pull separately if disabled by wiki mode
       origin: this.store.account.origin,
       published: this.textForm.value.published ? DateTime.fromISO(this.textForm.value.published) : publish ? DateTime.now() : undefined,

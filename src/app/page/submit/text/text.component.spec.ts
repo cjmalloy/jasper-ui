@@ -36,4 +36,17 @@ describe('SubmitTextPage', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it('should initialize a generated url for text posts', () => {
+    expect(component.url.value).toMatch(/^comment:/);
+  });
+
+  it('should regenerate a missing url before writing a ref', () => {
+    component.url.setValue('');
+
+    const ref = component.writeRef();
+
+    expect(ref.url).toMatch(/^comment:/);
+    expect(component.url.value).toBe(ref.url);
+  });
 });
