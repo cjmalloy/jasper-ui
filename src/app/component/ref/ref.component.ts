@@ -194,7 +194,6 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   private diffSubscription?: Subscription;
   private _viewer?: ViewerComponent;
   private closeOffFullscreen = false;
-  private _expanded = false;
   private focusViewer = false;
   private preloadingUrl = '';
 
@@ -576,7 +575,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
       if (this.focusViewer) {
         this.focusViewer = false;
         // Defer to ensure the viewer's DOM is fully rendered before focusing
-        defer(() => value.el.nativeElement.focus());
+        defer(() => value.el.nativeElement.focus({ preventScroll: true }));
       }
     }
   }
