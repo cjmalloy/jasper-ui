@@ -195,6 +195,24 @@ export const mapTemplate: Template = {
         minzoom: 2,
         'source-layer': 'centroids'
       }],
+    },
+    form: [{
+      key: 'mapStyle.center',
+      type: 'location',
+      props: {
+        label: $localize`Center: `,
+      },
+    }, {
+      key: 'mapStyle.zoom',
+      type: 'number',
+      defaultValue: 6,
+      props: {
+        label: $localize`Zoom: `,
+      },
+    }]
+  },
+  defaults: {
+    mapStyle: {
       center: [-64, 45],
       zoom: 6,
       bearing: 0,
@@ -233,7 +251,7 @@ export const mapTemplate: Template = {
       collectResourceTiming: false,
       maxTileCacheZoomLevels: 5,
       anisotropicFilterPitch: 20,
-    },
+    }
   },
   schema: {
     optionalProperties: {
@@ -249,6 +267,7 @@ export const mapTemplate: Template = {
           bearing: { type: 'float64' },
           pitch: { type: 'float64' },
           roll: { type: 'float64' },
+          elevation: { type: 'float64' },
           // Style sources, layers, etc.
           sources: {},
           layers: {},
@@ -345,14 +364,14 @@ const geoPointPlugin: Plugin = {
   },
   schema: {
     optionalProperties: {
-      bb: { elements: { type: 'int32' } } ,
+      bb: { elements: { type: 'float64' } } ,
     },
     properties: {
       type: { enum: ['Feature'] },
       geometry: {
         properties: {
           type: { enum: ['Point'] },
-          coordinates: { elements: { type: 'int32' } },
+          coordinates: { elements: { type: 'float64' } },
         },
       }
     },
@@ -395,14 +414,14 @@ const geoLineStringPlugin: Plugin = {
   },
   schema: {
     optionalProperties: {
-      bb: { elements: { type: 'int32' } } ,
+      bb: { elements: { type: 'float64' } } ,
     },
     properties: {
       type: { enum: ['Feature'] },
       geometry: {
         properties: {
           type: { enum: ['LineString'] },
-          coordinates: { elements: { elements: { type: 'int32' } } },
+          coordinates: { elements: { elements: { type: 'float64' } } },
         },
       }
     },
@@ -453,14 +472,14 @@ const geoPolygonPlugin: Plugin = {
   },
   schema: {
     optionalProperties: {
-      bb: { elements: { type: 'int32' } } ,
+      bb: { elements: { type: 'float64' } } ,
     },
     properties: {
       type: { enum: ['Feature'] },
       geometry: {
         properties: {
           type: { enum: ['Polygon'] },
-          coordinates: { elements: { elements: { elements: { type: 'int32' } } } },
+          coordinates: { elements: { elements: { elements: { type: 'float64' } } } },
         },
       }
     },
@@ -503,14 +522,14 @@ const geoMultiPointPlugin: Plugin = {
   },
   schema: {
     optionalProperties: {
-      bb: { elements: { type: 'int32' } } ,
+      bb: { elements: { type: 'float64' } } ,
     },
     properties: {
       type: { enum: ['Feature'] },
       geometry: {
         properties: {
           type: { enum: ['MultiPoint'] },
-          coordinates: { elements: { elements: { type: 'int32' } } },
+          coordinates: { elements: { elements: { type: 'float64' } } },
         },
       }
     },
@@ -560,14 +579,14 @@ const geoMultiLineStringPlugin: Plugin = {
   },
   schema: {
     optionalProperties: {
-      bb: { elements: { type: 'int32' } } ,
+      bb: { elements: { type: 'float64' } } ,
     },
     properties: {
       type: { enum: ['Feature'] },
       geometry: {
         properties: {
           type: { enum: ['MultiLineString'] },
-          coordinates: { elements: { elements: { elements: { type: 'int32' } } } },
+          coordinates: { elements: { elements: { elements: { type: 'float64' } } } },
         },
       }
     },
@@ -624,14 +643,14 @@ const geoMultiPolygonPlugin: Plugin = {
   },
   schema: {
     optionalProperties: {
-      bb: { elements: { type: 'int32' } } ,
+      bb: { elements: { type: 'float64' } } ,
     },
     properties: {
       type: { enum: ['Feature'] },
       geometry: {
         properties: {
           type: { enum: ['MultiPolygon'] },
-          coordinates: { elements: { elements: { elements: { elements: { type: 'int32' } } } } },
+          coordinates: { elements: { elements: { elements: { elements: { type: 'float64' } } } } },
         },
       }
     },
