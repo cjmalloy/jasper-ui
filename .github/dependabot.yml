@@ -32,6 +32,10 @@ updates:
     formly:
       patterns:
         - "@ngx-formly/*"
+    ag-grid:
+      patterns:
+        - "ag-grid-angular"
+        - "ag-grid-community"
     tests:
       patterns:
         - "@types/jasmine"
