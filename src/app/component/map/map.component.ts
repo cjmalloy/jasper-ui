@@ -217,6 +217,7 @@ export class MapComponent implements AfterViewInit, OnChanges, OnDestroy, HasCha
         : thumbnailPlugin.url;
       el.style.backgroundImage = `url(${url})`;
     }
+    el.addEventListener('click', () => this.router.navigate(['/ref', ref.url]));
     return el;
   }
 }
