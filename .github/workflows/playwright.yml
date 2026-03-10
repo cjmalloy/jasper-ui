@@ -30,7 +30,7 @@ jobs:
         id: playwright
         run: |
           if [ "${{ matrix.database }}" = "sqlite" ]; then
-            docker compose --profile ci -f 'e2e/docker-compose.yaml' -f 'e2e/docker-compose.sqlite.yaml' up --build --exit-code-from playwright
+            npm run pw:ci:sqlite
           else
             npm run pw:ci
           fi

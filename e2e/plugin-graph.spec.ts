@@ -37,7 +37,7 @@ test.describe.serial('Graph Plugin', () => {
     const submitPromise = page.waitForResponse(resp => resp.url().includes('/api/v1/ref'));
     await page.locator('button', { hasText: 'Submit' }).click();
     await submitPromise;
-    await expect(page.locator('.full-page.ref .link a')).toHaveText('Title');
+    await expect(page.locator('.full-page.ref .link a').first()).toHaveText('Title');
   });
 
   test('shows graph', async () => {
@@ -45,7 +45,7 @@ test.describe.serial('Graph Plugin', () => {
     const url = await page.locator('[name=url]').inputValue();
     await page.goto('/tag/@*?search=' + url + '&debug=USER', { waitUntil: 'networkidle' });
     await page.locator('.tabs a', { hasText: 'graph' }).first().click();
-    await expect(page.locator('figure')).toContainText('Title');
+    await expect(page.locator('.ref-list .link a').first()).toContainText('Title');
   });
 
   test('creates reply', async () => {
@@ -58,7 +58,7 @@ test.describe.serial('Graph Plugin', () => {
     await page.locator('.ref .actions a', { hasText: 'permalink' }).first().click();
     await page.locator('.tabs a', { hasText: 'responses' }).first().click();
     await page.locator('.ref-list-item.ref .actions a', { hasText: 'permalink' }).first().click();
-    await expect(page.locator('.full-page.ref .link a')).toHaveText('Reply');
+    await expect(page.locator('.full-page.ref .link a').first()).toHaveText('Reply');
   });
 
   test('graphs reply', async () => {
@@ -66,13 +66,13 @@ test.describe.serial('Graph Plugin', () => {
     const url = await page.locator('[name=url]').inputValue();
     await page.goto('/tag/@*?search=' + url + '&debug=USER', { waitUntil: 'networkidle' });
     await page.locator('.tabs a', { hasText: 'graph' }).first().click();
-    await expect(page.locator('figure')).toContainText('Reply');
+    await expect(page.locator('.ref-list .link a')).toContainText('Reply');
     const loadMore = page.locator('.load-more');
     if (await loadMore.isVisible({ timeout: 3_000 }).catch(() => false)) {
       await loadMore.click();
     }
     await page.locator('figure').click({ button: 'right' });
     await page.getByText('Select all').click();
-    await expect(page.locator('figure')).toContainText('Title');
+    await expect(page.locator('.ref-list .link a', { hasText: 'Title' }).first()).toContainText('Title');
   });
 });
