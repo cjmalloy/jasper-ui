@@ -101,6 +101,7 @@ export class MapComponent implements AfterViewInit, HasChanges {
     }
   }
 
+  @memo
   get geoData(): FeatureCollection {
     return {
       type: 'FeatureCollection',

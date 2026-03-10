@@ -83,7 +83,6 @@ export const mapTemplate: Template = {
       collectResourceTiming: false,
       maxTileCacheZoomLevels: 5,
       anisotropicFilterPitch: 20,
-      mapLibreLogo: false,
     },
   },
   schema: {
@@ -174,6 +173,10 @@ const geoPointPlugin: Plugin = {
     icons: [{ label: $localize`📍️` }],
     description: $localize`A GeoJSON Point.`,
     form: [{
+      key: 'type',
+    }, {
+      key: 'geometry.type',
+    }, {
       key: 'geometry.coordinates',
       type: 'location',
       props: {
@@ -214,6 +217,10 @@ const geoLineStringPlugin: Plugin = {
     icons: [{ label: $localize`📌️📌️` }],
     description: $localize`A GeoJSON LineString.`,
     form: [{
+      key: 'type',
+    }, {
+      key: 'geometry.type',
+    }, {
       key: 'geometry.coordinates',
       type: 'list',
       props: {
@@ -259,6 +266,10 @@ const geoPolygonPlugin: Plugin = {
     icons: [{ label: $localize`🔷️` }],
     description: $localize`A GeoJSON Polygon.`,
     form: [{
+      key: 'type',
+    }, {
+      key: 'geometry.type',
+    }, {
       key: 'geometry.coordinates',
       type: 'list',
       props: {
@@ -310,6 +321,10 @@ const geoMultiPointPlugin: Plugin = {
     icons: [{ label: $localize`📍️📍️` }],
     description: $localize`A GeoJSON MultiPoint.`,
     form: [{
+      key: 'type',
+    }, {
+      key: 'geometry.type',
+    }, {
       key: 'geometry.coordinates',
       type: 'list',
       props: {
@@ -354,6 +369,10 @@ const geoMultiLineStringPlugin: Plugin = {
     icons: [{ label: $localize`📌️📌️📌️` }],
     description: $localize`A GeoJSON MultiLineString.`,
     form: [{
+      key: 'type',
+    }, {
+      key: 'geometry.type',
+    }, {
       key: 'geometry.coordinates',
       type: 'list',
       props: {
@@ -405,6 +424,10 @@ const geoMultiPolygonPlugin: Plugin = {
     icons: [{ label: $localize`🔷️🔷️` }],
     description: $localize`A GeoJSON MultiPolygon.`,
     form: [{
+      key: 'type',
+    }, {
+      key: 'geometry.type',
+    }, {
       key: 'geometry.coordinates',
       type: 'list',
       props: {
