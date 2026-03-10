@@ -93,7 +93,7 @@
       @if (admin.getPlugin('plugin/editing')) {
         <button type="button" [disabled]="submitting || saving || submitted || dmForm.pristine" (click)="saveForLater(true)" i18n>Save for later</button>
       }
-      <button type="submit" [disabled]="submitting || saving || (submitted && !dmForm.valid)" i18n>Send</button>
+      <button type="submit" [disabled]="submitting || (submitted && !dmForm.valid)" i18n>Send</button>
     </span>
   </form>
 </ng-container>
