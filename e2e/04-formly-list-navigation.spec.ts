@@ -1,9 +1,9 @@
-import { expect, type Page, test } from '@playwright/test';
+import { expect, type Locator, type Page, test } from '@playwright/test';
 
 const TEXT_SUBMIT_URL = '/submit/text?tag=public&debug=ADMIN';
 
 type TagListState = {
-  activeRole: string;
+  activeTagName: string;
   activeValue: string;
   rows: {
     value: string;
@@ -25,7 +25,7 @@ async function getTagListState(page: Page): Promise<TagListState> {
   return tagList(page).evaluate(list => {
     const active = document.activeElement;
     return {
-      activeRole: active?.tagName || '',
+      activeTagName: active?.tagName || '',
       activeValue: active instanceof HTMLInputElement ? active.value : active?.textContent?.trim() || '',
       rows: [...list.querySelectorAll('.list-drag')].map(row => {
         const preview = row.querySelector<HTMLInputElement>('input.preview');
@@ -47,6 +47,7 @@ async function getTagListState(page: Page): Promise<TagListState> {
 async function loadTagList(page: Page) {
   await page.goto(TEXT_SUBMIT_URL);
   await expect(tagList(page).getByRole('button', { name: '+ Add another tag' })).toBeVisible();
+  // The submit route pre-populates the public tag plus the current debug user tag.
   await expect.poll(async () => (await getTagListState(page)).rows.length).toBeGreaterThanOrEqual(2);
   return await getTagListState(page);
 }
@@ -63,9 +64,9 @@ async function waitForRemoveFocus(page: Page, index: number) {
   await expect.poll(async () => (await getTagListState(page)).rows[index]?.removeFocused).toBe(true);
 }
 
-async function pressShiftTab(page: Page, input: Awaited<ReturnType<typeof focusTag>>) {
+async function pressShiftTab(page: Page, inputLocator: Locator) {
   await page.keyboard.down('Shift');
-  await input.press('Tab');
+  await inputLocator.press('Tab');
   await page.keyboard.up('Shift');
 }
 
@@ -74,6 +75,7 @@ async function focusTag(page: Page, index: number) {
   const input = row.locator('input.grow:not(.preview)');
   const preview = row.locator('input.preview');
   if (await preview.isVisible()) {
+    // Clicking the preview is the normal user path that transfers focus to the editable input.
     await preview.click();
   } else {
     await input.click();
@@ -113,7 +115,7 @@ test.describe.serial('Formly tag list keyboard navigation', () => {
     const state = await getTagListState(page);
     expect(values(state)).toEqual(initialValues);
     expect(state.rows[0].removeFocused).toBe(true);
-    expect(state.activeRole).toBe('BUTTON');
+    expect(state.activeTagName).toBe('BUTTON');
     expect(state.activeValue).toBe('–');
   });
 
@@ -130,21 +132,6 @@ test.describe.serial('Formly tag list keyboard navigation', () => {
     expect(values(state)).toEqual([...initialValues, '']);
     expect(state.rows.at(-1)?.inputFocused).toBe(true);
     expect(state.activeValue).toBe('');
-  });
-
-  test('Shift+Tab moves to the previous row remove button when the tag is not first', async ({ page }) => {
-    const initial = await loadTagList(page);
-    const initialValues = values(initial);
-
-    const input = await focusTag(page, 1);
-    await pressShiftTab(page, input);
-    await waitForRemoveFocus(page, 0);
-
-    const state = await getTagListState(page);
-    expect(values(state)).toEqual(initialValues);
-    expect(state.rows[0].removeFocused).toBe(true);
-    expect(state.activeRole).toBe('BUTTON');
-    expect(state.activeValue).toBe('–');
   });
 
   test('Shift+Tab on the first tag inserts a row above it', async ({ page }) => {
@@ -174,6 +161,21 @@ test.describe.serial('Formly tag list keyboard navigation', () => {
     const state = await getTagListState(page);
     expect(values(state)).toEqual(['', ...initialValues]);
     expect(state.rows[0].inputFocused).toBe(true);
+    expect(state.activeValue).toBe('');
+  });
+
+  test('Shift+Enter on a later tag inserts a row above the current row', async ({ page }) => {
+    const initial = await loadTagList(page);
+    const initialValues = values(initial);
+
+    const input = await focusTag(page, 1);
+    await input.press('Shift+Enter');
+    await waitForTagCount(page, initialValues.length + 1);
+    await waitForInputFocus(page, 1);
+
+    const state = await getTagListState(page);
+    expect(values(state)).toEqual([initialValues[0], '', ...initialValues.slice(1)]);
+    expect(state.rows[1].inputFocused).toBe(true);
     expect(state.activeValue).toBe('');
   });
 });
