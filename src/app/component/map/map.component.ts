@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, Input, ViewEncapsulation } from '@angular/core';
+import { AfterViewInit, Component, Input, OnChanges, SimpleChanges, ViewEncapsulation } from '@angular/core';
 import { Router } from '@angular/router';
 import {
   ControlComponent,
@@ -35,7 +35,7 @@ import { PageControlsComponent } from '../page-controls/page-controls.component'
     PageControlsComponent
   ]
 })
-export class MapComponent implements AfterViewInit, HasChanges {
+export class MapComponent implements AfterViewInit, OnChanges, HasChanges {
 
   @Input()
   tag = '';
@@ -71,6 +71,12 @@ export class MapComponent implements AfterViewInit, HasChanges {
 
   saveChanges() {
     return true;
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['ext']) {
+      MemoCache.clear(this);
+    }
   }
 
   ngAfterViewInit(): void {
