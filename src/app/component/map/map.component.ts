@@ -7,7 +7,7 @@ import {
   ScaleControlDirective
 } from '@maplibre/ngx-maplibre-gl';
 import { FeatureCollection } from 'geojson';
-import { GeoJSONSource, Map, Marker } from 'maplibre-gl';
+import { GeoJSONSource, Map, Marker, setWorkerUrl } from 'maplibre-gl';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ext } from '../../model/ext';
 import { Page } from '../../model/page';
@@ -51,14 +51,15 @@ export class MapComponent implements AfterViewInit, HasChanges {
   private _page?: Page<Ref>;
   private map?: Map;
   private markers: Marker[] = [];
-  private onStyleData?: () => void;
 
   constructor(
     private store: Store,
     private router: Router,
     private admin: AdminService,
     private proxy: ProxyService,
-  ) { }
+  ) {
+    setWorkerUrl('/assets/maplibre-gl-csp-worker.js');
+  }
 
   @memo
   get mapStyle() {
@@ -76,9 +77,6 @@ export class MapComponent implements AfterViewInit, HasChanges {
   }
 
   ngOnDestroy() {
-    if (this.map && this.onStyleData) {
-      this.map.off('styledata', this.onStyleData);
-    }
     this.clearMarkers();
   }
 
@@ -88,7 +86,7 @@ export class MapComponent implements AfterViewInit, HasChanges {
 
   @Input()
   set page(value: Page<Ref> | undefined) {
-    MemoCache.clear(this, 'geoData');
+    MemoCache.clear(this);
     this._page = value;
     if (this.map) {
       this.updateMapData();
@@ -114,19 +112,12 @@ export class MapComponent implements AfterViewInit, HasChanges {
       ) || [],
     };
   }
+  onMapError(event: any) {
+    console.error('MapLibre Engine Error:', event.error);
+  }
 
   mapLoaded(map: Map) {
     this.map = map;
-    this.addGeoLayers(map);
-    this.onStyleData = () => {
-      if (!map.getSource('geo-features')) {
-        this.addGeoLayers(map);
-      }
-    };
-    map.on('styledata', this.onStyleData);
-  }
-
-  private addGeoLayers(map: Map) {
     map.addSource('geo-features', { type: 'geojson', data: this.geoData });
     // Line layer for LineString and MultiLineString
     map.addLayer({
@@ -174,11 +165,12 @@ export class MapComponent implements AfterViewInit, HasChanges {
     });
     this.clearMarkers();
     this.addMarkers(map);
+    this.updateMapData();
   }
 
   private updateMapData() {
     if (!this.map) return;
-    const source = this.map.getSource('geo-features') as GeoJSONSource | undefined;
+    const source = this.map.getSource('features') as GeoJSONSource | undefined;
     if (source) {
       source.setData(this.geoData);
     }

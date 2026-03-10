@@ -3,6 +3,7 @@
     <p class="no-results">{{ emptyMessage }}</p>
   } @else{
     <mgl-map [mapStyle]="mapStyle"
+             (mapError)="onMapError($event)"
              (mapLoad)="mapLoaded($event)">
       <mgl-control mglNavigation
                    position="top-left"

@@ -52,7 +52,15 @@
               "src/favicon.ico",
               "src/assets",
               "src/manifest.webmanifest",
-              { "glob": "**/*", "input": "node_modules/monaco-editor", "output": "assets/monaco-editor" }
+              {
+                "glob": "**/*",
+                "input": "node_modules/monaco-editor",
+                "output": "assets/monaco-editor"
+              }, {
+                "glob": "maplibre-gl-csp-worker.js",
+                "input": "./node_modules/maplibre-gl/dist/",
+                "output": "./assets/"
+              }
             ],
             "styles": [
               "src/styles.scss",

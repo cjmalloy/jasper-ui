@@ -29,22 +29,20 @@ export const mapTemplate: Template = {
           tileSize: 512,
           type: 'raster',
           url: 'https://api.maptiler.com/tiles/satellite-v2/tiles.json?key=get_your_own'
-        }
+        },
       },
-      layers: [
-        {
-          id: 'satellite',
-          layout: {
-            visibility: 'visible'
-          },
-          minzoom: 0,
-          paint: {
-            'raster-opacity': 1
-          },
-          source: 'satellite',
-          type: 'raster'
-        }
-      ],
+      layers: [{
+        id: 'satellite',
+        layout: {
+          visibility: 'visible'
+        },
+        minzoom: 0,
+        paint: {
+          'raster-opacity': 1
+        },
+        source: 'satellite',
+        type: 'raster'
+      }],
       center: [-64, 45],
       zoom: 6,
       bearing: 0,
@@ -174,8 +172,10 @@ const geoPointPlugin: Plugin = {
     description: $localize`A GeoJSON Point.`,
     form: [{
       key: 'type',
+      defaultValue: 'Feature',
     }, {
       key: 'geometry.type',
+      defaultValue: 'Point',
     }, {
       key: 'geometry.coordinates',
       type: 'location',
@@ -218,8 +218,10 @@ const geoLineStringPlugin: Plugin = {
     description: $localize`A GeoJSON LineString.`,
     form: [{
       key: 'type',
+      defaultValue: 'Feature',
     }, {
       key: 'geometry.type',
+      defaultValue: 'LineString',
     }, {
       key: 'geometry.coordinates',
       type: 'list',
@@ -267,8 +269,10 @@ const geoPolygonPlugin: Plugin = {
     description: $localize`A GeoJSON Polygon.`,
     form: [{
       key: 'type',
+      defaultValue: 'Feature',
     }, {
       key: 'geometry.type',
+      defaultValue: 'Polygon',
     }, {
       key: 'geometry.coordinates',
       type: 'list',
@@ -322,8 +326,10 @@ const geoMultiPointPlugin: Plugin = {
     description: $localize`A GeoJSON MultiPoint.`,
     form: [{
       key: 'type',
+      defaultValue: 'Feature',
     }, {
       key: 'geometry.type',
+      defaultValue: 'MultiPoint',
     }, {
       key: 'geometry.coordinates',
       type: 'list',
@@ -370,8 +376,10 @@ const geoMultiLineStringPlugin: Plugin = {
     description: $localize`A GeoJSON MultiLineString.`,
     form: [{
       key: 'type',
+      defaultValue: 'Feature',
     }, {
       key: 'geometry.type',
+      defaultValue: 'MultiLineString',
     }, {
       key: 'geometry.coordinates',
       type: 'list',
@@ -425,8 +433,10 @@ const geoMultiPolygonPlugin: Plugin = {
     description: $localize`A GeoJSON MultiPolygon.`,
     form: [{
       key: 'type',
+      defaultValue: 'Feature',
     }, {
       key: 'geometry.type',
+      defaultValue: 'MultiPolygon',
     }, {
       key: 'geometry.coordinates',
       type: 'list',
