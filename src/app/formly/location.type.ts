@@ -41,6 +41,8 @@ import { getErrorMessage } from './errors';
       <button type="button"
               title="Use current location"
               i18n-title
+              aria-label="Use current location"
+              i18n-aria-label
               [disabled]="formControl.disabled"
               (click)="detectLocation()"
               i18n>📍️</button>
