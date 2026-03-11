@@ -197,7 +197,24 @@ export const mapTemplate: Template = {
         'source-layer': 'centroids'
       }],
     },
-    form: [
+    form: [{
+      key: 'mapStyle.center',
+      type: 'location',
+      props: {
+        label: $localize`Center: `,
+      },
+    }, {
+      key: 'mapStyle.zoom',
+      type: 'range',
+      defaultValue: 6,
+      props: {
+        label: $localize`Zoom: `,
+        min: 0,
+        max: 22,
+        step: 1,
+      },
+    }],
+    advancedForm: [
       // Hidden placeholders: complex objects preserved but not editable via form
       { key: 'mapStyle.version' },
       { key: 'mapStyle.metadata' },
@@ -225,26 +242,11 @@ export const mapTemplate: Template = {
           label: $localize`Glyphs URL: `,
           placeholder: 'https://example.com/{fontstack}/{range}.pbf',
         },
-      },
-      // Camera
-      {
-        key: 'mapStyle.center',
-        type: 'location',
-        props: {
-          label: $localize`Center: `,
-        },
       }, {
         key: 'mapStyle.centerAltitude',
         type: 'number',
         props: {
           label: $localize`Center Altitude: `,
-        },
-      }, {
-        key: 'mapStyle.zoom',
-        type: 'number',
-        defaultValue: 6,
-        props: {
-          label: $localize`Zoom: `,
         },
       }, {
         key: 'mapStyle.bearing',
@@ -479,7 +481,7 @@ export const mapTemplate: Template = {
           label: $localize`Anisotropic Filter Pitch: `,
         },
       },
-    ]
+    ],
   },
   defaults: {
     mapStyle: {
