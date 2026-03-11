@@ -18,6 +18,7 @@ import { getErrorMessage } from './errors';
              aria-label="Longitude"
              i18n-aria-label
              [value]="lng"
+             [disabled]="formControl.disabled"
              (input)="setLng($any($event.target).value)"
              (blur)="blur($any($event.target))"
              [formlyAttributes]="field"
