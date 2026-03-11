@@ -36,6 +36,10 @@ updates:
       patterns:
         - "ag-grid-angular"
         - "ag-grid-community"
+    maplibre-gl:
+      patterns:
+        - "@maplibre/*"
+        - "maplibre-gl"
     tests:
       patterns:
         - "@vitest/*"

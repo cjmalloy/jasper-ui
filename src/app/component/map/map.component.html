@@ -1,0 +1,24 @@
+@if (page) {
+  @if (emptyMessage && !page.content.length) {
+    <p class="no-results">{{ emptyMessage }}</p>
+  } @else{
+    <mgl-map [mapStyle]="mapStyle"
+             (mapError)="onMapError($event)"
+             (mapLoad)="mapLoaded($event)">
+      <mgl-control mglNavigation
+                   position="top-left"
+                   [visualizePitch]="true"
+                   [visualizeRoll]="true"
+                   [showCompass]="true"
+                   [showZoom]="true"></mgl-control>
+      <mgl-control mglScale
+                   position="bottom-left"
+                   unit="imperial"></mgl-control>
+    </mgl-map>
+    @if (pageControls) {
+      <app-page-controls [page]="page"></app-page-controls>
+    }
+  }
+} @else {
+  <app-loading></app-loading>
+}

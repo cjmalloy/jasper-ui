@@ -52,7 +52,15 @@
               "src/favicon.ico",
               "src/assets",
               "src/manifest.webmanifest",
-              { "glob": "**/*", "input": "node_modules/monaco-editor", "output": "assets/monaco-editor" }
+              {
+                "glob": "**/*",
+                "input": "node_modules/monaco-editor",
+                "output": "assets/monaco-editor"
+              }, {
+                "glob": "maplibre-gl-csp-worker.js",
+                "input": "node_modules/maplibre-gl/dist",
+                "output": "assets"
+              }
             ],
             "styles": [
               "src/styles.scss",
@@ -156,7 +164,7 @@
             },
             "development": {
               "headers": {
-                "Content-Security-Policy": "default-src 'self' ws://localhost:8081 http://localhost:8081 blob:; frame-src * data: blob:; worker-src 'self' blob:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://storage.googleapis.com https://platform.twitter.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' http://cdn.jsdelivr.net; media-src * data: blob:; img-src * data: blob:; font-src 'self' data:"
+                "Content-Security-Policy": "default-src 'self' ws://localhost:8081 http://localhost:8081 https://api.maptiler.com https://demotiles.maplibre.org blob:; frame-src * data: blob:; worker-src 'self' blob:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://storage.googleapis.com https://platform.twitter.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' http://cdn.jsdelivr.net; media-src * data: blob:; img-src * data: blob:; font-src 'self' data:"
               },
               "buildTarget": "jasper-ui:build:development"
             }
