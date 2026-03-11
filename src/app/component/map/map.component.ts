@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, Input, OnChanges, OnDestroy, SimpleChanges, ViewEncapsulation } from '@angular/core';
+import { Component, Input, OnChanges, OnDestroy, SimpleChanges, ViewEncapsulation } from '@angular/core';
 import { Router } from '@angular/router';
 import {
   ControlComponent,
@@ -16,7 +16,6 @@ import { Ref } from '../../model/ref';
 import { features, mapTemplate } from '../../mods/map';
 import { AdminService } from '../../service/admin.service';
 import { ProxyService } from '../../service/api/proxy.service';
-import { Store } from '../../store/store';
 import { memo, MemoCache } from '../../util/memo';
 import { LoadingComponent } from '../loading/loading.component';
 import { PageControlsComponent } from '../page-controls/page-controls.component';
@@ -36,7 +35,7 @@ import { PageControlsComponent } from '../page-controls/page-controls.component'
     PageControlsComponent
   ]
 })
-export class MapComponent implements AfterViewInit, OnChanges, OnDestroy, HasChanges {
+export class MapComponent implements OnChanges, OnDestroy, HasChanges {
 
   @Input()
   tag = '';
@@ -54,7 +53,6 @@ export class MapComponent implements AfterViewInit, OnChanges, OnDestroy, HasCha
   private markers: Marker[] = [];
 
   constructor(
-    private store: Store,
     private router: Router,
     private admin: AdminService,
     private proxy: ProxyService,
@@ -78,9 +76,6 @@ export class MapComponent implements AfterViewInit, OnChanges, OnDestroy, HasCha
     if (changes['ext']) {
       MemoCache.clear(this);
     }
-  }
-
-  ngAfterViewInit(): void {
   }
 
   ngOnDestroy() {
