@@ -6,7 +6,7 @@ import {
   NavigationControlDirective,
   ScaleControlDirective
 } from '@maplibre/ngx-maplibre-gl';
-import { FeatureCollection } from 'geojson';
+import type { FeatureCollection } from 'geojson';
 import type { GeoJSONSource } from 'maplibre-gl';
 import { Map, Marker, setWorkerUrl } from 'maplibre-gl';
 import { HasChanges } from '../../guard/pending-changes.guard';
