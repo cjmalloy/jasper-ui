@@ -59,7 +59,7 @@ export class MapComponent implements AfterViewInit, OnChanges, OnDestroy, HasCha
     private admin: AdminService,
     private proxy: ProxyService,
   ) {
-    setWorkerUrl('/assets/maplibre-gl-csp-worker.js');
+    setWorkerUrl('assets/maplibre-gl-csp-worker.js');
   }
 
   @memo
