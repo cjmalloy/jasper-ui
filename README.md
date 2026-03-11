@@ -153,7 +153,7 @@ scripts on configurable intervals.
 interval you specify.
 33. **Remote Origin:** Replicate a remote Jasper instance. The remote origin will be scraped
 on an interval you specify. If the remote is also set up to replicate from this instance, you
-may communicate with remote users. Supports push and pull modes.
+may communicate with remote users. Supports push and pull modes, plus optional SSH tunnels.
 34. **Scrape:** Configure CSS selectors for scraping websites.
 35. **Email:** Render e-mail specific formatting in Refs.
 36. **Cache:** Cache remote resources locally. Includes recycle bin support: if you delete a Ref
@@ -203,12 +203,11 @@ disputed, paid).
 response for each poll option.
 9. **Archive:** Generate and use external archive/unpaywalled links (e.g., archive.ph, 12ft.io) for Refs.
 10. **HTML Editor:** Format Ref comments as HTML instead of Markdown.
-11. **Origin Tunnel:** Create an SSH tunnel for remote origin connections.
-12. **Chart:** Render tabular data as a graph in the embed viewer. When the `plugin/chart` is
+11. **Chart:** Render tabular data as a graph in the embed viewer. When the `plugin/chart` is
 applied to a Ref, add fields to define the chart type, labels, and data location. Adds an
 optional field to the Ref to use for the tabular data, if this is unspecified the URL of the
 Ref will be used to point to a TSV file.
-13. **Analytics:** Enables engagement tracking when installed. Reports links clicked, Refs expanded,
+12. **Analytics:** Enables engagement tracking when installed. Reports links clicked, Refs expanded,
 Ref action taken, Refs viewed, and queries searched. Adds data to the Ref to override analytic
 tracking for that ref.
 
