@@ -248,6 +248,7 @@ file will be generated from environment variables:
 |                  | `CSP_STYLE_SRC`          | Additional URLS to add to the style-src content security policy.                                  |                                                                                                         |
 |                  | `CSP_CONNECT_SRC`        | Additional URLS to add to the connect-src content security policy.                                |                                                                                                         |
 |                  | `CSP_FONT_SRC`           | Additional URLS to add to the font-src content security policy.                                   |                                                                                                         |
+|                  | `CSP_IMG_SRC`            | Additional URLS to add to the img-src content security policy.                                    |                                                                                                         |
 
 ## Developing
 This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 13.3.0.
