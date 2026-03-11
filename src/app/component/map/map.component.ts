@@ -7,7 +7,8 @@ import {
   ScaleControlDirective
 } from '@maplibre/ngx-maplibre-gl';
 import { FeatureCollection } from 'geojson';
-import { GeoJSONSource, Map, Marker, setWorkerUrl } from 'maplibre-gl';
+import type { GeoJSONSource } from 'maplibre-gl';
+import { Map, Marker, setWorkerUrl } from 'maplibre-gl';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ext } from '../../model/ext';
 import { Page } from '../../model/page';
