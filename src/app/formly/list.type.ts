@@ -98,7 +98,6 @@ export class ListTypeComponent extends FieldArrayType {
     // @ts-ignore
     this.field.fieldArray.focus = index === undefined && !initialModel;
     super.add(...arguments);
-    this.formControl.patchValue(this.field.model, { emitEvent: true });
   }
 
   keydown(event: KeyboardEvent, index: number) {

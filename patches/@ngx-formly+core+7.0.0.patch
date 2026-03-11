@@ -1,0 +1,21 @@
+diff --git a/node_modules/@ngx-formly/core/fesm2022/ngx-formly-core.mjs b/node_modules/@ngx-formly/core/fesm2022/ngx-formly-core.mjs
+index a64aeb3..5313972 100644
+--- a/node_modules/@ngx-formly/core/fesm2022/ngx-formly-core.mjs
++++ b/node_modules/@ngx-formly/core/fesm2022/ngx-formly-core.mjs
+@@ -398,7 +398,7 @@ function registerControl(field, control, emitEvent = false) {
+     const paths = getKeyPath(field);
+     const value = getFieldValue(field);
+     if (!(isNil(control.value) && isNil(value)) && control.value !== value && control instanceof FormControl) {
+-        control.patchValue(value);
++        control.patchValue(value, { emitEvent });
+     }
+     for (let i = 0; i < paths.length - 1; i++) {
+         const path = paths[i];
+@@ -2308,6 +2308,7 @@ class FieldArrayType extends FieldType {
+         this.model.splice(i, 0, initialModel ? clone(initialModel) : undefined);
+         this.markFieldForCheck(this.field.fieldGroup[i]);
+         this._build();
++        this.formControl.patchValue(this.model, { emitEvent: true });
+     }
+     remove(i, { markAsDirty } = { markAsDirty: true }) {
+         markAsDirty && this.formControl.markAsDirty();
