@@ -152,8 +152,8 @@ scripts on configurable intervals.
 32. **RSS/Atom Feed:** Import entries from an RSS or Atom feed. The feed will be scraped on an
 interval you specify.
 33. **Remote Origin:** Replicate a remote Jasper instance. The remote origin will be scraped
-on an interval you specify. If the remote is also set up to replicate from this instance, you
-may communicate with remote users. Supports push and pull modes.
+ on an interval you specify. If the remote is also set up to replicate from this instance, you
+ may communicate with remote users. Supports push and pull modes, plus optional SSH tunnels.
 34. **Scrape:** Configure CSS selectors for scraping websites.
 35. **Email:** Render e-mail specific formatting in Refs.
 36. **Cache:** Cache remote resources locally. Includes recycle bin support: if you delete a Ref
@@ -174,37 +174,38 @@ Adds a modlist tab to the inbox for reviewing unmoderated posts.
 integrated chatroom for game commentary.
 47. **Backgammon:** Play backgammon with piece dragging, dice rolling, game replay controls, and
 customizable player names.
+48. **Voting:** Enables voting and sorting by vote when installed. Adds Top, Hot, and Score sort
+options, and can be configured for upvotes only or both upvotes and downvotes.
+49. **Graph:** Create and visualize relationship graphs to show connections and hierarchies
+between items.
+50. **Folder:** Desktop-like file browser interface where you can arrange files and subfolders
+freely on a canvas with drag-and-drop positioning.
+51. **Grid:** View query results in a configurable multi-column grid.
+52. **Notebook:** Keep private notes in a notebook with configurable columns, badges, and query
+filters.
+53. **Work Queue:** Manage workflows with task assignment, tracking, and invoicing. Includes
+invoice support for rejected, disputed, and paid workflow states.
+54. **To Do List:** Create and manage to-do lists with checkable, reorderable items.
+55. **Table:** Create and edit spreadsheet-style tables with CSV data in Refs.
+56. **Poll:** Create multiple-choice polls and view results. Voting is done with per-option
+responses.
+57. **Archive:** Generate and use external archive/unpaywalled links (e.g., archive.ph, 12ft.io)
+for Refs.
+58. **HTML Editor:** Format Ref comments as HTML instead of Markdown.
+59. **Map:** View Refs on an interactive map. Includes GeoJSON and GeoPackage support for point,
+line, polygon, and multi-geometry data.
+60. **Drafts:** Save edits to a Ref before publishing, then commit or revert them later.
+61. **Duration:** Store media duration metadata in a tag and display it in the Ref info area.
+62. **Picture in Picture:** Open embeds in a picture-in-picture window.
+63. **Thanks:** Add a quick reply action that posts a "Thanks!" comment on a Ref.
+64. **Ninja Triangle:** Create Japanese triangle puzzles and show the longest ninja path.
 
 ## Coming Soon
-1. **Voting:** Enables voting and sorting by vote when installed. Requires additions to the user
-template to hold votes. This adds two new sort fields to the UI: Top and Hot. Top sorts by vote
-total, and Hot applies an exponential time decay when sorting. If the inbox plugin is enabled
-there is a tab on the index page to view the refs you voted on. Can be configured to allow
-positive or both positive and negative votes. Does not add data to a Ref.
-2. **Graph:** Create and visualize relationship graphs to show connections and hierarchies
-between items.
-3. **Folder:** Desktop-like file browser interface where you can arrange files and subfolders
-freely on a canvas with drag-and-drop positioning.
-4. **Notebook:** Keep private notes in a notebook with column layouts and priority badges
-(Reminder, Important).
-5. **Work Queue:** Manage workflows with task assignment, tracking, and invoicing. Includes
-invoice support for paying workers with QR invoices and workflow status tracking (rejected,
-disputed, paid).
-6. **To Do List:** Create and manage to-do lists with checkable items.
-7. **Table:** Create and edit spreadsheet-style tables with CSV data in Refs.
-8. **Poll:** Create multiple-choice polls and view results. Voting is done by adding a Ref
-response for each poll option.
-9. **Archive:** Generate and use external archive/unpaywalled links (e.g., archive.ph, 12ft.io) for Refs.
-10. **HTML Editor:** Format Ref comments as HTML instead of Markdown.
-11. **Origin Tunnel:** Create an SSH tunnel for remote origin connections.
-12. **Geo:** Display GeoJSON and GeoPackage data on interactive maps. Supports Point, LineString,
-Polygon, and multi-geometry types for GeoJSON. For GeoPackage, the map is shown when the embed
-toggle is pressed.
-13. **Chart:** Render tabular data as a graph in the embed viewer. When the `plugin/chart` is
+1. **Chart:** Render tabular data as a graph in the embed viewer. When the `plugin/chart` is
 applied to a Ref, add fields to define the chart type, labels, and data location. Adds an
 optional field to the Ref to use for the tabular data, if this is unspecified the URL of the
 Ref will be used to point to a TSV file.
-14. **Analytics:** Enables engagement tracking when installed. Reports links clicked, Refs expanded,
+2. **Analytics:** Enables engagement tracking when installed. Reports links clicked, Refs expanded,
 Ref action taken, Refs viewed, and queries searched. Adds data to the Ref to override analytic
 tracking for that ref.
 
