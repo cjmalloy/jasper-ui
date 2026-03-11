@@ -198,7 +198,9 @@ export class MapComponent implements AfterViewInit, OnChanges, OnDestroy, HasCha
       if (pointFeature?.geometry?.type === 'Point' && pointFeature.geometry?.coordinates.length >= 2) {
         const el = this.createMarkerElement(ref);
         const marker = el ? new Marker({ element: el }) : new Marker();
+        marker.addClassName('map-thumbnail');
         marker.setLngLat(pointFeature.geometry.coordinates).addTo(map);
+        marker.on('click', () => this.router.navigate(['/ref', ref.url]));
         this.markers.push(marker);
       }
     });
@@ -209,7 +211,7 @@ export class MapComponent implements AfterViewInit, OnChanges, OnDestroy, HasCha
     const thumbnailPlugin = ref.plugins?.['plugin/thumbnail'];
     if (!thumbnailPlugin) return undefined;
     const el = document.createElement('div');
-    el.className = 'thumbnail map-thumbnail';
+    el.className = 'thumbnail';
     if (thumbnailPlugin.color) el.style.backgroundColor = thumbnailPlugin.color;
     if (thumbnailPlugin.radius) el.style.borderRadius = thumbnailPlugin.radius + 'px';
     if (thumbnailPlugin.emoji) el.textContent = thumbnailPlugin.emoji;
@@ -220,7 +222,6 @@ export class MapComponent implements AfterViewInit, OnChanges, OnDestroy, HasCha
         : thumbnailPlugin.url;
       el.style.backgroundImage = `url(${url})`;
     }
-    el.addEventListener('click', () => this.router.navigate(['/ref', ref.url]));
     return el;
   }
 }
