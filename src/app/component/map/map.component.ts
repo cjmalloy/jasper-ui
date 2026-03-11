@@ -46,8 +46,6 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
   @Input()
   emptyMessage = 'No results found';
 
-  error: any;
-
   private _page?: Page<Ref>;
   private map?: Map;
   private markers: Marker[] = [];
