@@ -182,21 +182,7 @@ export const mapTemplate: Template = {
           'text-size': {
             'stops': [[2, 10], [4, 12], [6, 16]]
           },
-          'text-field': ['step', ['zoom'],
-            ['get', 'ABBREV'],
-            4, ['match',
-              // The MapLibre demo tiles (Natural Earth data) have a known encoding
-              // issue where some country names with non-ASCII characters are
-              // double-encoded (UTF-8 bytes stored as Latin-1). We correct these
-              // using ADM0_A3 codes from the centroids layer.
-              ['get', 'ADM0_A3'],
-              'CUW', 'Curaçao',
-              'REU', 'Réunion',
-              'CIV', "Côte d'Ivoire",
-              'STP', 'São Tomé and Príncipe',
-              ['get', 'NAME']
-            ]
-          ] as any,
+          'text-field': ['step', ['zoom'], ['get', 'ABBREV'], 4, ['get', 'NAME']] as any,
           visibility: 'visible',
           'text-max-width': 10,
           'text-transform': {
