@@ -181,7 +181,9 @@ export const mapTemplate: Template = {
           'text-size': {
             'stops': [[2, 10], [4, 12], [6, 16]]
           },
-          'text-field': ['step', ['zoom'], ['get', 'ABBREV'], 4, ['get', 'NAME']] as any,
+          'text-field': {
+            'stops': [[2, '{ABBREV}'], [4, '{NAME}']]
+          },
           visibility: 'visible',
           'text-max-width': 10,
           'text-transform': {
