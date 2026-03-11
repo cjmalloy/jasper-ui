@@ -19,6 +19,7 @@ import { ProxyService } from '../../service/api/proxy.service';
 import { memo, MemoCache } from '../../util/memo';
 import { LoadingComponent } from '../loading/loading.component';
 import { PageControlsComponent } from '../page-controls/page-controls.component';
+import { ResizeHandleDirective } from "../../directive/resize-handle.directive";
 
 @Component({
   selector: 'app-map',
@@ -32,7 +33,8 @@ import { PageControlsComponent } from '../page-controls/page-controls.component'
     NavigationControlDirective,
     ScaleControlDirective,
     LoadingComponent,
-    PageControlsComponent
+    PageControlsComponent,
+    ResizeHandleDirective
   ]
 })
 export class MapComponent implements OnChanges, OnDestroy, HasChanges {

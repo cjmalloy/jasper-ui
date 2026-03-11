@@ -4,7 +4,8 @@
   } @else{
     <mgl-map [mapStyle]="mapStyle"
              (mapError)="onMapError($event)"
-             (mapLoad)="mapLoaded($event)">
+             (mapLoad)="mapLoaded($event)"
+             appResizeHandle>
       <mgl-control mglNavigation
                    position="top-left"
                    [visualizePitch]="true"
