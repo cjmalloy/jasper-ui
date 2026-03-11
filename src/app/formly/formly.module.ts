@@ -653,6 +653,7 @@ Private tags start with an underscore.
         component: FormlyFieldLocation,
         wrappers: ['form-field'],
         defaultOptions: {
+          defaultValue: [0, 0],
           props: {
             label: $localize`Location: `,
           },
