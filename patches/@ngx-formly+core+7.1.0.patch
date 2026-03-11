@@ -1,0 +1,24 @@
+diff --git a/node_modules/@ngx-formly/core/esm2022/lib/templates/field-array.type.mjs b/node_modules/@ngx-formly/core/esm2022/lib/templates/field-array.type.mjs
+index 20f9e32..797863d 100644
+--- a/node_modules/@ngx-formly/core/esm2022/lib/templates/field-array.type.mjs
++++ b/node_modules/@ngx-formly/core/esm2022/lib/templates/field-array.type.mjs
+@@ -35,6 +35,7 @@ export class FieldArrayType extends FieldType {
+         this.model.splice(i, 0, initialModel ? clone(initialModel) : undefined);
+         this.markFieldForCheck(this.field.fieldGroup[i]);
+         this._build();
++        this.formControl.patchValue(this.model, { emitEvent: true });
+     }
+     remove(i, { markAsDirty } = { markAsDirty: true }) {
+         markAsDirty && this.formControl.markAsDirty();
+diff --git a/node_modules/@ngx-formly/core/fesm2022/ngx-formly-core.mjs b/node_modules/@ngx-formly/core/fesm2022/ngx-formly-core.mjs
+index 720b5a7..fbea07b 100644
+--- a/node_modules/@ngx-formly/core/fesm2022/ngx-formly-core.mjs
++++ b/node_modules/@ngx-formly/core/fesm2022/ngx-formly-core.mjs
+@@ -2823,6 +2823,7 @@ class FieldArrayType extends FieldType {
+         this.model.splice(i, 0, initialModel ? clone(initialModel) : undefined);
+         this.markFieldForCheck(this.field.fieldGroup[i]);
+         this._build();
++        this.formControl.patchValue(this.model, { emitEvent: true });
+     }
+     remove(i, { markAsDirty } = { markAsDirty: true }) {
+         markAsDirty && this.formControl.markAsDirty();
