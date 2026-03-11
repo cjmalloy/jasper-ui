@@ -96,10 +96,16 @@ test.describe.serial('Formly tag list keyboard navigation', () => {
     const input = await focusTag(page, 0);
     await input.press('Enter');
     await waitForTagCount(page, initialValues.length + 1);
-    await waitForInputFocus(page, 1);
 
+    // Without the patchValue fix the blank is appended at the bottom and the
+    // tag below the cursor is not shifted down ("overwritten"). Poll for the
+    // correct ordering immediately after the new row appears so the assertion
+    // fires before focus-arrival can mask a wrong arrangement.
+    const expected = [initialValues[0], '', ...initialValues.slice(1)];
+    await expect.poll(async () => values(await getTagListState(page))).toEqual(expected);
+
+    await waitForInputFocus(page, 1);
     const state = await getTagListState(page);
-    expect(values(state)).toEqual([initialValues[0], '', ...initialValues.slice(1)]);
     expect(state.rows[1].inputFocused).toBe(true);
     expect(state.activeValue).toBe('');
   });
