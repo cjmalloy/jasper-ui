@@ -174,6 +174,13 @@ Adds a modlist tab to the inbox for reviewing unmoderated posts.
 integrated chatroom for game commentary.
 47. **Backgammon:** Play backgammon with piece dragging, dice rolling, game replay controls, and
 customizable player names.
+48. **Help Popups:** Enable contextual help popups that guide users through different parts of
+the application.
+49. **Map:** View Refs on an interactive map. Includes GeoJSON and GeoPackage support for point,
+line, polygon, and multi-geometry data.
+50. **Drafts:** Save edits to a Ref before publishing, then commit or revert them later.
+51. **Duration:** Store media duration metadata in a tag and display it in the Ref info area.
+52. **Grid:** View query results in a configurable multi-column grid.
 
 ## Coming Soon
 1. **Voting:** Enables voting and sorting by vote when installed. Requires additions to the user
@@ -197,14 +204,11 @@ response for each poll option.
 9. **Archive:** Generate and use external archive/unpaywalled links (e.g., archive.ph, 12ft.io) for Refs.
 10. **HTML Editor:** Format Ref comments as HTML instead of Markdown.
 11. **Origin Tunnel:** Create an SSH tunnel for remote origin connections.
-12. **Geo:** Display GeoJSON and GeoPackage data on interactive maps. Supports Point, LineString,
-Polygon, and multi-geometry types for GeoJSON. For GeoPackage, the map is shown when the embed
-toggle is pressed.
-13. **Chart:** Render tabular data as a graph in the embed viewer. When the `plugin/chart` is
+12. **Chart:** Render tabular data as a graph in the embed viewer. When the `plugin/chart` is
 applied to a Ref, add fields to define the chart type, labels, and data location. Adds an
 optional field to the Ref to use for the tabular data, if this is unspecified the URL of the
 Ref will be used to point to a TSV file.
-14. **Analytics:** Enables engagement tracking when installed. Reports links clicked, Refs expanded,
+13. **Analytics:** Enables engagement tracking when installed. Reports links clicked, Refs expanded,
 Ref action taken, Refs viewed, and queries searched. Adds data to the Ref to override analytic
 tracking for that ref.
 
