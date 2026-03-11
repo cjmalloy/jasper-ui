@@ -84,7 +84,9 @@ export class MapComponent implements AfterViewInit, OnChanges, OnDestroy, HasCha
 
   ngOnDestroy() {
     this.clearMarkers();
-    this.map?.remove();
+    try {
+      this.map?.remove();
+    } catch (ignored) { }
     this.map = undefined;
   }
 
