@@ -4,5 +4,12 @@ export default defineConfig({
   test: {
     retry: 2,
     isolate: true,
+    deps: {
+      optimizer: {
+        web: {
+          include: ['@maplibre/ngx-maplibre-gl', 'maplibre-gl']
+        }
+      }
+    }
   },
 });
