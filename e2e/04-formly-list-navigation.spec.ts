@@ -96,17 +96,14 @@ test.describe.serial('Formly tag list keyboard navigation', () => {
     const input = await focusTag(page, 0);
     await input.press('Enter');
     await waitForTagCount(page, initialValues.length + 1);
-    await waitForInputFocus(page, 1);
 
-    // Without the patchValue fix the blank is appended at the bottom and focus
-    // lands on the pre-existing 'user/admin' row rather than the new blank.
-    // Confirm the correct position by typing a marker character: if focus is on
-    // the new blank (correct) it appears at position 1; if focus is on the
-    // displaced 'user/admin' value (broken), the character is appended there
-    // and the expected ordering does not match.
-    await page.keyboard.type('x');
-    await expect.poll(async () => values(await getTagListState(page)))
-      .toEqual([initialValues[0], 'x', ...initialValues.slice(1)]);
+    const expected = [initialValues[0], '', ...initialValues.slice(1)];
+    await expect.poll(async () => values(await getTagListState(page))).toEqual(expected);
+
+    await waitForInputFocus(page, 1);
+    const state = await getTagListState(page);
+    expect(state.rows[1].inputFocused).toBe(true);
+    expect(state.activeValue).toBe('');
   });
 
   test('Tab moves to the current row remove button when the tag is not last', async ({ page }) => {
