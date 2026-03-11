@@ -1,5 +1,5 @@
 import { type StyleSpecification } from '@maplibre/maplibre-gl-style-spec';
-import { Feature } from 'geojson';
+import type { Feature } from 'geojson';
 import { DateTime } from 'luxon';
 import { Plugin } from '../model/plugin';
 import { Ref } from '../model/ref';
