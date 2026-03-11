@@ -197,20 +197,289 @@ export const mapTemplate: Template = {
         'source-layer': 'centroids'
       }],
     },
-    form: [{
-      key: 'mapStyle.center',
-      type: 'location',
-      props: {
-        label: $localize`Center: `,
+    form: [
+      // Hidden placeholders: complex objects preserved but not editable via form
+      { key: 'mapStyle.version' },
+      { key: 'mapStyle.metadata' },
+      { key: 'mapStyle.sources' },
+      { key: 'mapStyle.layers' },
+      { key: 'mapStyle.sprite' },
+      { key: 'mapStyle.light' },
+      { key: 'mapStyle.sky' },
+      { key: 'mapStyle.projection' },
+      { key: 'mapStyle.terrain' },
+      { key: 'mapStyle.transition' },
+      { key: 'mapStyle.state' },
+      { key: 'mapStyle.maxBounds' },
+      // Style info
+      {
+        key: 'mapStyle.name',
+        type: 'string',
+        props: {
+          label: $localize`Style Name: `,
+        },
+      }, {
+        key: 'mapStyle.glyphs',
+        type: 'string',
+        props: {
+          label: $localize`Glyphs URL: `,
+          placeholder: 'https://example.com/{fontstack}/{range}.pbf',
+        },
       },
-    }, {
-      key: 'mapStyle.zoom',
-      type: 'number',
-      defaultValue: 6,
-      props: {
-        label: $localize`Zoom: `,
+      // Camera
+      {
+        key: 'mapStyle.center',
+        type: 'location',
+        props: {
+          label: $localize`Center: `,
+        },
+      }, {
+        key: 'mapStyle.centerAltitude',
+        type: 'number',
+        props: {
+          label: $localize`Center Altitude: `,
+        },
+      }, {
+        key: 'mapStyle.zoom',
+        type: 'number',
+        defaultValue: 6,
+        props: {
+          label: $localize`Zoom: `,
+        },
+      }, {
+        key: 'mapStyle.bearing',
+        type: 'number',
+        defaultValue: 0,
+        props: {
+          label: $localize`Bearing: `,
+        },
+      }, {
+        key: 'mapStyle.pitch',
+        type: 'number',
+        defaultValue: 0,
+        props: {
+          label: $localize`Pitch: `,
+        },
+      }, {
+        key: 'mapStyle.roll',
+        type: 'number',
+        defaultValue: 0,
+        props: {
+          label: $localize`Roll: `,
+        },
+      }, {
+        key: 'mapStyle.elevation',
+        type: 'number',
+        defaultValue: 0,
+        props: {
+          label: $localize`Elevation: `,
+        },
       },
-    }]
+      // Constraints
+      {
+        key: 'mapStyle.minZoom',
+        type: 'number',
+        defaultValue: 0,
+        props: {
+          label: $localize`Min Zoom: `,
+        },
+      }, {
+        key: 'mapStyle.maxZoom',
+        type: 'number',
+        defaultValue: 22,
+        props: {
+          label: $localize`Max Zoom: `,
+        },
+      }, {
+        key: 'mapStyle.minPitch',
+        type: 'number',
+        defaultValue: 0,
+        props: {
+          label: $localize`Min Pitch: `,
+        },
+      }, {
+        key: 'mapStyle.maxPitch',
+        type: 'number',
+        defaultValue: 60,
+        props: {
+          label: $localize`Max Pitch: `,
+        },
+      },
+      // Interaction options
+      {
+        key: 'mapStyle.interactive',
+        type: 'boolean',
+        defaultValue: true,
+        props: {
+          label: $localize`Interactive: `,
+        },
+      }, {
+        key: 'mapStyle.hash',
+        type: 'boolean',
+        defaultValue: false,
+        props: {
+          label: $localize`Hash: `,
+        },
+      }, {
+        key: 'mapStyle.bearingSnap',
+        type: 'number',
+        defaultValue: 7,
+        props: {
+          label: $localize`Bearing Snap: `,
+        },
+      }, {
+        key: 'mapStyle.zoomSnap',
+        type: 'number',
+        defaultValue: 0,
+        props: {
+          label: $localize`Zoom Snap: `,
+        },
+      }, {
+        key: 'mapStyle.clickTolerance',
+        type: 'number',
+        defaultValue: 3,
+        props: {
+          label: $localize`Click Tolerance: `,
+        },
+      }, {
+        key: 'mapStyle.scrollZoom',
+        type: 'boolean',
+        defaultValue: true,
+        props: {
+          label: $localize`Scroll Zoom: `,
+        },
+      }, {
+        key: 'mapStyle.boxZoom',
+        type: 'boolean',
+        defaultValue: true,
+        props: {
+          label: $localize`Box Zoom: `,
+        },
+      }, {
+        key: 'mapStyle.dragRotate',
+        type: 'boolean',
+        defaultValue: true,
+        props: {
+          label: $localize`Drag Rotate: `,
+        },
+      }, {
+        key: 'mapStyle.dragPan',
+        type: 'boolean',
+        defaultValue: true,
+        props: {
+          label: $localize`Drag Pan: `,
+        },
+      }, {
+        key: 'mapStyle.keyboard',
+        type: 'boolean',
+        defaultValue: true,
+        props: {
+          label: $localize`Keyboard: `,
+        },
+      }, {
+        key: 'mapStyle.doubleClickZoom',
+        type: 'boolean',
+        defaultValue: true,
+        props: {
+          label: $localize`Double Click Zoom: `,
+        },
+      }, {
+        key: 'mapStyle.touchZoomRotate',
+        type: 'boolean',
+        defaultValue: true,
+        props: {
+          label: $localize`Touch Zoom Rotate: `,
+        },
+      }, {
+        key: 'mapStyle.touchPitch',
+        type: 'boolean',
+        defaultValue: true,
+        props: {
+          label: $localize`Touch Pitch: `,
+        },
+      }, {
+        key: 'mapStyle.cooperativeGestures',
+        type: 'boolean',
+        defaultValue: false,
+        props: {
+          label: $localize`Cooperative Gestures: `,
+        },
+      }, {
+        key: 'mapStyle.pitchWithRotate',
+        type: 'boolean',
+        defaultValue: true,
+        props: {
+          label: $localize`Pitch With Rotate: `,
+        },
+      }, {
+        key: 'mapStyle.rollEnabled',
+        type: 'boolean',
+        defaultValue: false,
+        props: {
+          label: $localize`Roll Enabled: `,
+        },
+      },
+      // Display options
+      {
+        key: 'mapStyle.renderWorldCopies',
+        type: 'boolean',
+        defaultValue: true,
+        props: {
+          label: $localize`Render World Copies: `,
+        },
+      }, {
+        key: 'mapStyle.trackResize',
+        type: 'boolean',
+        defaultValue: true,
+        props: {
+          label: $localize`Track Resize: `,
+        },
+      },
+      // Performance options
+      {
+        key: 'mapStyle.refreshExpiredTiles',
+        type: 'boolean',
+        defaultValue: true,
+        props: {
+          label: $localize`Refresh Expired Tiles: `,
+        },
+      }, {
+        key: 'mapStyle.fadeDuration',
+        type: 'number',
+        defaultValue: 300,
+        props: {
+          label: $localize`Fade Duration: `,
+        },
+      }, {
+        key: 'mapStyle.crossSourceCollisions',
+        type: 'boolean',
+        defaultValue: true,
+        props: {
+          label: $localize`Cross Source Collisions: `,
+        },
+      }, {
+        key: 'mapStyle.collectResourceTiming',
+        type: 'boolean',
+        defaultValue: false,
+        props: {
+          label: $localize`Collect Resource Timing: `,
+        },
+      }, {
+        key: 'mapStyle.maxTileCacheZoomLevels',
+        type: 'number',
+        defaultValue: 5,
+        props: {
+          label: $localize`Max Tile Cache Zoom Levels: `,
+        },
+      }, {
+        key: 'mapStyle.anisotropicFilterPitch',
+        type: 'number',
+        defaultValue: 20,
+        props: {
+          label: $localize`Anisotropic Filter Pitch: `,
+        },
+      },
+    ]
   },
   defaults: {
     mapStyle: {

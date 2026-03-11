@@ -2075,7 +2075,7 @@ Please Reload.</source>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/map.ts</context>
-          <context context-type="linenumber">328</context>
+          <context context-type="linenumber">597</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/mod.ts</context>
@@ -2233,7 +2233,7 @@ Please Reload.</source>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/map.ts</context>
-          <context context-type="linenumber">23</context>
+          <context context-type="linenumber">24</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/org/folder.ts</context>
@@ -5734,7 +5734,7 @@ Private tags start with an underscore.
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/map.ts</context>
-          <context context-type="linenumber">354</context>
+          <context context-type="linenumber">623</context>
         </context-group>
       </trans-unit>
       <trans-unit id="5295240943453887750" datatype="html">
@@ -5761,30 +5761,38 @@ Private tags start with an underscore.
           <context context-type="sourcefile">src/app/formly/location.type.ts</context>
           <context context-type="linenumber">13,14</context>
         </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/formly/location.type.ts</context>
+          <context context-type="linenumber">18,19</context>
+        </context-group>
       </trans-unit>
       <trans-unit id="8314090883669143391" datatype="html">
         <source>Latitude</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/formly/location.type.ts</context>
-          <context context-type="linenumber">24,25</context>
+          <context context-type="linenumber">27,28</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/formly/location.type.ts</context>
+          <context context-type="linenumber">34,35</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4772721104824624055" datatype="html">
         <source>Use current location</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/formly/location.type.ts</context>
-          <context context-type="linenumber">34,35</context>
+          <context context-type="linenumber">42,43</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3854602051337754678" datatype="html">
         <source>📍️</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/formly/location.type.ts</context>
-          <context context-type="linenumber">37,38</context>
+          <context context-type="linenumber">46,47</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/map.ts</context>
-          <context context-type="linenumber">342</context>
+          <context context-type="linenumber">611</context>
         </context-group>
       </trans-unit>
       <trans-unit id="8531478208997019445" datatype="html">
@@ -6053,35 +6061,35 @@ Private tags start with an underscore.
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/map.ts</context>
-          <context context-type="linenumber">16</context>
+          <context context-type="linenumber">17</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/map.ts</context>
-          <context context-type="linenumber">325</context>
+          <context context-type="linenumber">594</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/map.ts</context>
-          <context context-type="linenumber">341</context>
+          <context context-type="linenumber">610</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/map.ts</context>
-          <context context-type="linenumber">387</context>
+          <context context-type="linenumber">656</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/map.ts</context>
-          <context context-type="linenumber">438</context>
+          <context context-type="linenumber">707</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/map.ts</context>
-          <context context-type="linenumber">495</context>
+          <context context-type="linenumber">764</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/map.ts</context>
-          <context context-type="linenumber">545</context>
+          <context context-type="linenumber">814</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/map.ts</context>
-          <context context-type="linenumber">602</context>
+          <context context-type="linenumber">871</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/media/audio.ts</context>
@@ -8881,324 +8889,569 @@ Private tags start with an underscore.
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/map.ts</context>
-          <context context-type="linenumber">14</context>
+          <context context-type="linenumber">13</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/map.ts</context>
-          <context context-type="linenumber">323</context>
+          <context context-type="linenumber">591</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/map.ts</context>
-          <context context-type="linenumber">339</context>
+          <context context-type="linenumber">607</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/map.ts</context>
-          <context context-type="linenumber">386</context>
+          <context context-type="linenumber">654</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/map.ts</context>
-          <context context-type="linenumber">436</context>
+          <context context-type="linenumber">704</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/map.ts</context>
-          <context context-type="linenumber">494</context>
+          <context context-type="linenumber">762</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/map.ts</context>
-          <context context-type="linenumber">544</context>
+          <context context-type="linenumber">812</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/map.ts</context>
-          <context context-type="linenumber">601</context>
+          <context context-type="linenumber">869</context>
         </context-group>
       </trans-unit>
       <trans-unit id="5239780618560637490" datatype="html">
         <source>🗺️ map/</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/map.ts</context>
-          <context context-type="linenumber">18</context>
+          <context context-type="linenumber">19</context>
         </context-group>
       </trans-unit>
       <trans-unit id="8029759513718323145" datatype="html">
         <source>🗺️</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/map.ts</context>
-          <context context-type="linenumber">19</context>
+          <context context-type="linenumber">20</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/map.ts</context>
-          <context context-type="linenumber">326</context>
+          <context context-type="linenumber">595</context>
         </context-group>
       </trans-unit>
       <trans-unit id="5536817899547820022" datatype="html">
         <source>map</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/map.ts</context>
-          <context context-type="linenumber">20</context>
+          <context context-type="linenumber">21</context>
         </context-group>
       </trans-unit>
       <trans-unit id="1107902142041847629" datatype="html">
         <source>Activates built-in map mode for viewing Refs on a map.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/map.ts</context>
-          <context context-type="linenumber">21</context>
+          <context context-type="linenumber">22</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4618841297300497077" datatype="html">
         <source>🗺️ map</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/map.ts</context>
-          <context context-type="linenumber">23</context>
+          <context context-type="linenumber">24</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="4526837202924630522" datatype="html">
+        <source>Style Name: </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/map.ts</context>
+          <context context-type="linenumber">219</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="3577961636066306123" datatype="html">
+        <source>Glyphs URL: </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/map.ts</context>
+          <context context-type="linenumber">225</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3611339914230167844" datatype="html">
         <source>Center: </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/map.ts</context>
-          <context context-type="linenumber">203</context>
+          <context context-type="linenumber">233</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="2417300315270471466" datatype="html">
+        <source>Center Altitude: </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/map.ts</context>
+          <context context-type="linenumber">239</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4358855504501393916" datatype="html">
         <source>Zoom: </source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/map.ts</context>
-          <context context-type="linenumber">210</context>
+          <context context-type="linenumber">246</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="2996350895016790563" datatype="html">
+        <source>Bearing: </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/map.ts</context>
+          <context context-type="linenumber">253</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="5111263731809061603" datatype="html">
+        <source>Pitch: </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/map.ts</context>
+          <context context-type="linenumber">260</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="4969739734161273526" datatype="html">
+        <source>Roll: </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/map.ts</context>
+          <context context-type="linenumber">267</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="8993492177456575482" datatype="html">
+        <source>Elevation: </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/map.ts</context>
+          <context context-type="linenumber">274</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="3730134160592464553" datatype="html">
+        <source>Min Zoom: </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/map.ts</context>
+          <context context-type="linenumber">283</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="7901561285930645901" datatype="html">
+        <source>Max Zoom: </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/map.ts</context>
+          <context context-type="linenumber">290</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="9118166851108617176" datatype="html">
+        <source>Min Pitch: </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/map.ts</context>
+          <context context-type="linenumber">297</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="739168788980573139" datatype="html">
+        <source>Max Pitch: </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/map.ts</context>
+          <context context-type="linenumber">304</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="3851237806721842282" datatype="html">
+        <source>Interactive: </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/map.ts</context>
+          <context context-type="linenumber">313</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="6536787942512620238" datatype="html">
+        <source>Hash: </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/map.ts</context>
+          <context context-type="linenumber">320</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="829282878089167698" datatype="html">
+        <source>Bearing Snap: </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/map.ts</context>
+          <context context-type="linenumber">327</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="1201230282070868022" datatype="html">
+        <source>Zoom Snap: </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/map.ts</context>
+          <context context-type="linenumber">334</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="8984752866176391475" datatype="html">
+        <source>Click Tolerance: </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/map.ts</context>
+          <context context-type="linenumber">341</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="2111531079970294153" datatype="html">
+        <source>Scroll Zoom: </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/map.ts</context>
+          <context context-type="linenumber">348</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="6779105826682388618" datatype="html">
+        <source>Box Zoom: </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/map.ts</context>
+          <context context-type="linenumber">355</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="2855784922774268645" datatype="html">
+        <source>Drag Rotate: </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/map.ts</context>
+          <context context-type="linenumber">362</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="5685691919339864803" datatype="html">
+        <source>Drag Pan: </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/map.ts</context>
+          <context context-type="linenumber">369</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="1812649079682147823" datatype="html">
+        <source>Keyboard: </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/map.ts</context>
+          <context context-type="linenumber">376</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="5949355722067529062" datatype="html">
+        <source>Double Click Zoom: </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/map.ts</context>
+          <context context-type="linenumber">383</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="5619588291369994667" datatype="html">
+        <source>Touch Zoom Rotate: </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/map.ts</context>
+          <context context-type="linenumber">390</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="5171141015730482937" datatype="html">
+        <source>Touch Pitch: </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/map.ts</context>
+          <context context-type="linenumber">397</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="4329875893667803951" datatype="html">
+        <source>Cooperative Gestures: </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/map.ts</context>
+          <context context-type="linenumber">404</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="7510984161388752319" datatype="html">
+        <source>Pitch With Rotate: </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/map.ts</context>
+          <context context-type="linenumber">411</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="345212221654006084" datatype="html">
+        <source>Roll Enabled: </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/map.ts</context>
+          <context context-type="linenumber">418</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="988079253759353461" datatype="html">
+        <source>Render World Copies: </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/map.ts</context>
+          <context context-type="linenumber">427</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="3813160504162043654" datatype="html">
+        <source>Track Resize: </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/map.ts</context>
+          <context context-type="linenumber">434</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="7620498616161081140" datatype="html">
+        <source>Refresh Expired Tiles: </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/map.ts</context>
+          <context context-type="linenumber">443</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="1868219676841406104" datatype="html">
+        <source>Fade Duration: </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/map.ts</context>
+          <context context-type="linenumber">450</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="308029191013552980" datatype="html">
+        <source>Cross Source Collisions: </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/map.ts</context>
+          <context context-type="linenumber">457</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="586454061923129330" datatype="html">
+        <source>Collect Resource Timing: </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/map.ts</context>
+          <context context-type="linenumber">464</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="7343081601365958962" datatype="html">
+        <source>Max Tile Cache Zoom Levels: </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/map.ts</context>
+          <context context-type="linenumber">471</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="5070762585960328239" datatype="html">
+        <source>Anisotropic Filter Pitch: </source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/map.ts</context>
+          <context context-type="linenumber">478</context>
         </context-group>
       </trans-unit>
       <trans-unit id="5231479276861303044" datatype="html">
         <source>🌐️ Geo</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/map.ts</context>
-          <context context-type="linenumber">320</context>
+          <context context-type="linenumber">589</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4458905666152084558" datatype="html">
         <source>📍️ geo</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/map.ts</context>
-          <context context-type="linenumber">328</context>
+          <context context-type="linenumber">597</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2736239733031148962" datatype="html">
         <source>A GeoJSON Feature.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/map.ts</context>
-          <context context-type="linenumber">330</context>
+          <context context-type="linenumber">599</context>
         </context-group>
       </trans-unit>
       <trans-unit id="8089182682824252913" datatype="html">
         <source>🌐️📍️ Geo Point</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/map.ts</context>
-          <context context-type="linenumber">336</context>
+          <context context-type="linenumber">605</context>
         </context-group>
       </trans-unit>
       <trans-unit id="8614748388674615931" datatype="html">
         <source>A GeoJSON Point.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/map.ts</context>
-          <context context-type="linenumber">343</context>
+          <context context-type="linenumber">612</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3756736517696790696" datatype="html">
         <source>🌐️📌️📌️ Geo Line String</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/map.ts</context>
-          <context context-type="linenumber">383</context>
+          <context context-type="linenumber">652</context>
         </context-group>
       </trans-unit>
       <trans-unit id="1148070139385865383" datatype="html">
         <source>📌️📌️</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/map.ts</context>
-          <context context-type="linenumber">388</context>
+          <context context-type="linenumber">657</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2275170855711102720" datatype="html">
         <source>A GeoJSON LineString.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/map.ts</context>
-          <context context-type="linenumber">389</context>
+          <context context-type="linenumber">658</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4159797487492582314" datatype="html">
         <source>Points:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/map.ts</context>
-          <context context-type="linenumber">400</context>
+          <context context-type="linenumber">669</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/map.ts</context>
-          <context context-type="linenumber">457</context>
+          <context context-type="linenumber">726</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/map.ts</context>
-          <context context-type="linenumber">508</context>
+          <context context-type="linenumber">777</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/map.ts</context>
-          <context context-type="linenumber">564</context>
+          <context context-type="linenumber">833</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/map.ts</context>
-          <context context-type="linenumber">627</context>
+          <context context-type="linenumber">896</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7463670461469835424" datatype="html">
         <source>+ Add Point</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/map.ts</context>
-          <context context-type="linenumber">401</context>
+          <context context-type="linenumber">670</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/map.ts</context>
-          <context context-type="linenumber">458</context>
+          <context context-type="linenumber">727</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/map.ts</context>
-          <context context-type="linenumber">509</context>
+          <context context-type="linenumber">778</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/map.ts</context>
-          <context context-type="linenumber">565</context>
+          <context context-type="linenumber">834</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/map.ts</context>
-          <context context-type="linenumber">628</context>
+          <context context-type="linenumber">897</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7252221742577175872" datatype="html">
         <source>🌐️🔷️ Geo Polygon</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/map.ts</context>
-          <context context-type="linenumber">433</context>
+          <context context-type="linenumber">702</context>
         </context-group>
       </trans-unit>
       <trans-unit id="5108307496874736610" datatype="html">
         <source>🔷️</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/map.ts</context>
-          <context context-type="linenumber">439</context>
+          <context context-type="linenumber">708</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2437882215285639632" datatype="html">
         <source>A GeoJSON Polygon.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/map.ts</context>
-          <context context-type="linenumber">440</context>
+          <context context-type="linenumber">709</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6928296171977781888" datatype="html">
         <source>Rings:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/map.ts</context>
-          <context context-type="linenumber">451</context>
+          <context context-type="linenumber">720</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/map.ts</context>
-          <context context-type="linenumber">621</context>
+          <context context-type="linenumber">890</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6919425810484171273" datatype="html">
         <source>+ Add Ring</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/map.ts</context>
-          <context context-type="linenumber">452</context>
+          <context context-type="linenumber">721</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/map.ts</context>
-          <context context-type="linenumber">622</context>
+          <context context-type="linenumber">891</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6798041317963843512" datatype="html">
         <source>🌐️📍️📍️ Geo Multi Point</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/map.ts</context>
-          <context context-type="linenumber">491</context>
+          <context context-type="linenumber">760</context>
         </context-group>
       </trans-unit>
       <trans-unit id="8710431222875127328" datatype="html">
         <source>📍️📍️</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/map.ts</context>
-          <context context-type="linenumber">496</context>
+          <context context-type="linenumber">765</context>
         </context-group>
       </trans-unit>
       <trans-unit id="8024668856698413084" datatype="html">
         <source>A GeoJSON MultiPoint.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/map.ts</context>
-          <context context-type="linenumber">497</context>
+          <context context-type="linenumber">766</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2218320403848242937" datatype="html">
         <source>🌐️📌️📌️📌️ Geo Multi Line String</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/map.ts</context>
-          <context context-type="linenumber">541</context>
+          <context context-type="linenumber">810</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4322442265667757327" datatype="html">
         <source>📌️📌️📌️</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/map.ts</context>
-          <context context-type="linenumber">546</context>
+          <context context-type="linenumber">815</context>
         </context-group>
       </trans-unit>
       <trans-unit id="5814826884170349322" datatype="html">
         <source>A GeoJSON MultiLineString.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/map.ts</context>
-          <context context-type="linenumber">547</context>
+          <context context-type="linenumber">816</context>
         </context-group>
       </trans-unit>
       <trans-unit id="1273958037222279236" datatype="html">
         <source>Lines:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/map.ts</context>
-          <context context-type="linenumber">558</context>
+          <context context-type="linenumber">827</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4322913822633731185" datatype="html">
         <source>+ Add Line</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/map.ts</context>
-          <context context-type="linenumber">559</context>
+          <context context-type="linenumber">828</context>
         </context-group>
       </trans-unit>
       <trans-unit id="8749927369293789617" datatype="html">
         <source>🌐️🔷️🔷️ Geo Multi Polygon</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/map.ts</context>
-          <context context-type="linenumber">598</context>
+          <context context-type="linenumber">867</context>
         </context-group>
       </trans-unit>
       <trans-unit id="652135918438392190" datatype="html">
         <source>🔷️🔷️</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/map.ts</context>
-          <context context-type="linenumber">603</context>
+          <context context-type="linenumber">872</context>
         </context-group>
       </trans-unit>
       <trans-unit id="709085108453851716" datatype="html">
         <source>A GeoJSON MultiPolygon.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/map.ts</context>
-          <context context-type="linenumber">604</context>
+          <context context-type="linenumber">873</context>
         </context-group>
       </trans-unit>
       <trans-unit id="8125356120008798189" datatype="html">
         <source>Polygons:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/map.ts</context>
-          <context context-type="linenumber">615</context>
+          <context context-type="linenumber">884</context>
         </context-group>
       </trans-unit>
       <trans-unit id="466033600260461898" datatype="html">
         <source>+ Add Polygon</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/map.ts</context>
-          <context context-type="linenumber">616</context>
+          <context context-type="linenumber">885</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2539428835252382237" datatype="html">

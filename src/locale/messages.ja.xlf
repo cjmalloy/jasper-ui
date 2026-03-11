@@ -6659,6 +6659,146 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>Zoom: </source>
         <target>ズーム: </target>
       </trans-unit>
+      <trans-unit id="4526837202924630522" datatype="html">
+        <source>Style Name: </source>
+        <target>スタイル名: </target>
+      </trans-unit>
+      <trans-unit id="3577961636066306123" datatype="html">
+        <source>Glyphs URL: </source>
+        <target>グリフURL: </target>
+      </trans-unit>
+      <trans-unit id="2417300315270471466" datatype="html">
+        <source>Center Altitude: </source>
+        <target>中心高度: </target>
+      </trans-unit>
+      <trans-unit id="2996350895016790563" datatype="html">
+        <source>Bearing: </source>
+        <target>方位: </target>
+      </trans-unit>
+      <trans-unit id="5111263731809061603" datatype="html">
+        <source>Pitch: </source>
+        <target>ピッチ: </target>
+      </trans-unit>
+      <trans-unit id="4969739734161273526" datatype="html">
+        <source>Roll: </source>
+        <target>ロール: </target>
+      </trans-unit>
+      <trans-unit id="8993492177456575482" datatype="html">
+        <source>Elevation: </source>
+        <target>標高: </target>
+      </trans-unit>
+      <trans-unit id="3730134160592464553" datatype="html">
+        <source>Min Zoom: </source>
+        <target>最小ズーム: </target>
+      </trans-unit>
+      <trans-unit id="7901561285930645901" datatype="html">
+        <source>Max Zoom: </source>
+        <target>最大ズーム: </target>
+      </trans-unit>
+      <trans-unit id="9118166851108617176" datatype="html">
+        <source>Min Pitch: </source>
+        <target>最小ピッチ: </target>
+      </trans-unit>
+      <trans-unit id="739168788980573139" datatype="html">
+        <source>Max Pitch: </source>
+        <target>最大ピッチ: </target>
+      </trans-unit>
+      <trans-unit id="3851237806721842282" datatype="html">
+        <source>Interactive: </source>
+        <target>インタラクティブ: </target>
+      </trans-unit>
+      <trans-unit id="6536787942512620238" datatype="html">
+        <source>Hash: </source>
+        <target>ハッシュ: </target>
+      </trans-unit>
+      <trans-unit id="829282878089167698" datatype="html">
+        <source>Bearing Snap: </source>
+        <target>方位スナップ: </target>
+      </trans-unit>
+      <trans-unit id="1201230282070868022" datatype="html">
+        <source>Zoom Snap: </source>
+        <target>ズームスナップ: </target>
+      </trans-unit>
+      <trans-unit id="8984752866176391475" datatype="html">
+        <source>Click Tolerance: </source>
+        <target>クリック許容誤差: </target>
+      </trans-unit>
+      <trans-unit id="2111531079970294153" datatype="html">
+        <source>Scroll Zoom: </source>
+        <target>スクロールズーム: </target>
+      </trans-unit>
+      <trans-unit id="6779105826682388618" datatype="html">
+        <source>Box Zoom: </source>
+        <target>ボックスズーム: </target>
+      </trans-unit>
+      <trans-unit id="2855784922774268645" datatype="html">
+        <source>Drag Rotate: </source>
+        <target>ドラッグ回転: </target>
+      </trans-unit>
+      <trans-unit id="5685691919339864803" datatype="html">
+        <source>Drag Pan: </source>
+        <target>ドラッグパン: </target>
+      </trans-unit>
+      <trans-unit id="1812649079682147823" datatype="html">
+        <source>Keyboard: </source>
+        <target>キーボード: </target>
+      </trans-unit>
+      <trans-unit id="5949355722067529062" datatype="html">
+        <source>Double Click Zoom: </source>
+        <target>ダブルクリックズーム: </target>
+      </trans-unit>
+      <trans-unit id="5619588291369994667" datatype="html">
+        <source>Touch Zoom Rotate: </source>
+        <target>タッチズーム回転: </target>
+      </trans-unit>
+      <trans-unit id="5171141015730482937" datatype="html">
+        <source>Touch Pitch: </source>
+        <target>タッチピッチ: </target>
+      </trans-unit>
+      <trans-unit id="4329875893667803951" datatype="html">
+        <source>Cooperative Gestures: </source>
+        <target>協調ジェスチャー: </target>
+      </trans-unit>
+      <trans-unit id="7510984161388752319" datatype="html">
+        <source>Pitch With Rotate: </source>
+        <target>回転時ピッチ: </target>
+      </trans-unit>
+      <trans-unit id="345212221654006084" datatype="html">
+        <source>Roll Enabled: </source>
+        <target>ロール有効: </target>
+      </trans-unit>
+      <trans-unit id="988079253759353461" datatype="html">
+        <source>Render World Copies: </source>
+        <target>ワールドコピー描画: </target>
+      </trans-unit>
+      <trans-unit id="3813160504162043654" datatype="html">
+        <source>Track Resize: </source>
+        <target>リサイズ追跡: </target>
+      </trans-unit>
+      <trans-unit id="7620498616161081140" datatype="html">
+        <source>Refresh Expired Tiles: </source>
+        <target>期限切れタイル更新: </target>
+      </trans-unit>
+      <trans-unit id="1868219676841406104" datatype="html">
+        <source>Fade Duration: </source>
+        <target>フェード時間: </target>
+      </trans-unit>
+      <trans-unit id="308029191013552980" datatype="html">
+        <source>Cross Source Collisions: </source>
+        <target>クロスソース衝突: </target>
+      </trans-unit>
+      <trans-unit id="586454061923129330" datatype="html">
+        <source>Collect Resource Timing: </source>
+        <target>リソースタイミング収集: </target>
+      </trans-unit>
+      <trans-unit id="7343081601365958962" datatype="html">
+        <source>Max Tile Cache Zoom Levels: </source>
+        <target>最大タイルキャッシュズームレベル: </target>
+      </trans-unit>
+      <trans-unit id="5070762585960328239" datatype="html">
+        <source>Anisotropic Filter Pitch: </source>
+        <target>異方性フィルタピッチ: </target>
+      </trans-unit>
       <trans-unit id="4452427314943113135" datatype="html">
         <source>Previous</source>
         <target>前へ</target>
