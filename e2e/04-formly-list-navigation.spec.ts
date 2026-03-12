@@ -218,3 +218,37 @@ test.describe.serial('Formly list keyboard navigation in edit forms', () => {
     expect(pageErrors.join('\n')).not.toContain("Cannot read properties of undefined (reading '_fields')");
   });
 });
+
+test.describe.serial('Formly list keyboard navigation in ref edit forms', () => {
+  test('Enter in ref sources inserts a row without blanking the next source', async ({ page }) => {
+    const pageErrors: string[] = [];
+    page.on('pageerror', error => pageErrors.push(error.message));
+
+    await page.goto('/submit?debug=ADMIN', { waitUntil: 'networkidle' });
+    await page.getByPlaceholder('URL...').fill('https://example.com');
+    await page.getByRole('button', { name: 'Next' }).click();
+
+    await page.getByRole('button', { name: '📜️' }).click();
+    const submitSources = page.locator('app-links').first().locator('input');
+    await submitSources.nth(0).fill('https://source.example');
+    await submitSources.nth(0).press('Enter');
+    await submitSources.nth(1).fill('https://second.example');
+    await page.getByRole('button', { name: 'Submit' }).click();
+
+    await page.getByText('edit').click();
+
+    const editSources = page.locator('app-links').first().locator('input');
+    await expect(editSources).toHaveCount(2);
+    await expect(editSources.nth(0)).toHaveValue('https://source.example');
+    await expect(editSources.nth(1)).toHaveValue('https://second.example');
+
+    await editSources.nth(0).click();
+    await editSources.nth(0).press('Enter');
+
+    await expect(editSources).toHaveCount(3);
+    await expect(editSources.nth(0)).toHaveValue('https://source.example');
+    await expect(editSources.nth(1)).toHaveValue('');
+    await expect(editSources.nth(2)).toHaveValue('https://second.example');
+    expect(pageErrors.join('\n')).not.toContain("Cannot read properties of undefined (reading '_fields')");
+  });
+});

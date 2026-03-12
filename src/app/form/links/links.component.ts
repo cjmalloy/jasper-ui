@@ -77,22 +77,24 @@ export class LinksFormComponent {
   }
 
   setLinks(values: string[]) {
-    this.model = values;
+    const next = [...values];
+    this.model = next;
     if (!this.links) return;
-    while (this.links.length > values.length) this.links.removeAt(this.links.length - 1, { emitEvent: false });
-    while (this.links.length < values.length) this.links.push(this.fb.control(''), { emitEvent: false });
-    this.links.setValue(values);
+    while (this.links.length > next.length) this.links.removeAt(this.links.length - 1, { emitEvent: false });
+    while (this.links.length < next.length) this.links.push(this.fb.control(''), { emitEvent: false });
+    this.links.setValue(next);
   }
 
   addLink(...values: string[]) {
     if (!values.length) return;
-    this.model = this.links!.value;
+    const current = [...(this.links?.value || this.model)];
     this.field.fieldArray.focus = true;
     for (const value of values) {
       if (value) this.field.fieldArray.focus = false;
-      if (value && value !== 'placeholder' && this.model.includes(value)) return;
-      this.model.push(value);
+      if (value && value !== 'placeholder' && current.includes(value)) return;
+      current.push(value);
     }
+    this.setLinks(current);
   }
 
   removeLink(index: number) {
