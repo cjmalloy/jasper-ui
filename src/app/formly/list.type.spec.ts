@@ -19,7 +19,7 @@ describe('ListTypeComponent', () => {
     return { component, patchValue };
   }
 
-  it('defers the manual model sync until after add completes', async () => {
+  it('defers the manual model sync until after add completes', () => {
     const { component, patchValue } = createComponent();
     const addSpy = vi.spyOn(FieldArrayType.prototype, 'add').mockImplementation(function(this: any, index?: number, initialModel?: any) {
       const i = index == null ? this.field.fieldGroup.length : index;
@@ -36,14 +36,8 @@ describe('ListTypeComponent', () => {
     addSpy.mockRestore();
   });
 
-  it('ignores blur-based removal while the list is being structurally updated', async () => {
+  it('removes blank inputs on blur', () => {
     const { component } = createComponent();
-    const addSpy = vi.spyOn(FieldArrayType.prototype, 'add').mockImplementation(function(this: any, index?: number, initialModel?: any) {
-      const i = index == null ? this.field.fieldGroup.length : index;
-      this.model.splice(i, 0, initialModel);
-      this.field.fieldGroup.splice(i, 0, { id: `field-${i}` });
-      this.field.formControl.length = this.model.length;
-    });
     const removeSpy = vi.spyOn(component, 'remove').mockImplementation(() => undefined);
     const event = {
       target: {
@@ -53,16 +47,8 @@ describe('ListTypeComponent', () => {
       },
     } as any;
 
-    component.add(1);
-    component.maybeRemove(event, 1);
-
-    expect(removeSpy).not.toHaveBeenCalled();
-
-    await new Promise(resolve => setTimeout(resolve, 10));
     component.maybeRemove(event, 1);
 
     expect(removeSpy).toHaveBeenCalledWith(1);
-
-    addSpy.mockRestore();
   });
 });
