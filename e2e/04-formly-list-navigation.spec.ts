@@ -220,35 +220,27 @@ test.describe.serial('Formly list keyboard navigation in edit forms', () => {
 });
 
 test.describe.serial('Formly list keyboard navigation in ref edit forms', () => {
-  test('Enter in ref sources inserts a row without blanking the next source', async ({ page }) => {
+  test('Enter in ref tags inserts a row without blanking the next tag', async ({ page }) => {
     const pageErrors: string[] = [];
     page.on('pageerror', error => pageErrors.push(error.message));
 
-    await page.goto('/submit?debug=ADMIN', { waitUntil: 'networkidle' });
-    await page.getByPlaceholder('URL...').fill('https://example.com');
-    await page.getByRole('button', { name: 'Next' }).click();
-
-    await page.getByRole('button', { name: '📜️' }).click();
-    const submitSources = page.locator('app-links').first().locator('input');
-    await submitSources.nth(0).fill('https://source.example');
-    await submitSources.nth(0).press('Enter');
-    await submitSources.nth(1).fill('https://second.example');
+    await page.goto('/submit/text?debug=ADMIN', { waitUntil: 'networkidle' });
+    await page.getByRole('textbox', { name: 'Title:' }).fill('Tag enter repro');
+    await page.getByRole('textbox', { name: 'Comment:' }).fill('Testing enter in edited ref tags');
+    await page.getByRole('button', { name: '+ Add another tag' }).click();
+    const submitTags = tagList(page).locator('input.grow:not(.preview)');
+    await submitTags.nth(1).fill('public');
     await page.getByRole('button', { name: 'Submit' }).click();
 
-    await page.getByText('edit').click();
+    await page.getByText('edit', { exact: true }).click();
 
-    const editSources = page.locator('app-links').first().locator('input');
-    await expect(editSources).toHaveCount(2);
-    await expect(editSources.nth(0)).toHaveValue('https://source.example');
-    await expect(editSources.nth(1)).toHaveValue('https://second.example');
+    const firstInput = await focusTag(page, 0);
+    await expect.poll(async () => values(await getTagListState(page))).toEqual(['+user/debug', 'public']);
+    await firstInput.press('Enter');
 
-    await editSources.nth(0).click();
-    await editSources.nth(0).press('Enter');
-
-    await expect(editSources).toHaveCount(3);
-    await expect(editSources.nth(0)).toHaveValue('https://source.example');
-    await expect(editSources.nth(1)).toHaveValue('');
-    await expect(editSources.nth(2)).toHaveValue('https://second.example');
+    await waitForTagCount(page, 3);
+    await waitForInputFocus(page, 1);
+    await expect.poll(async () => values(await getTagListState(page))).toEqual(['+user/debug', '', 'public']);
     expect(pageErrors.join('\n')).not.toContain("Cannot read properties of undefined (reading '_fields')");
   });
 });
