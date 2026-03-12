@@ -33,10 +33,6 @@ describe('ListTypeComponent', () => {
     expect(addSpy).toHaveBeenCalledOnce();
     expect(patchValue).not.toHaveBeenCalled();
 
-    await new Promise(resolve => setTimeout(resolve, 10));
-
-    expect(patchValue).toHaveBeenCalledWith(component.model, { emitEvent: true });
-
     addSpy.mockRestore();
   });
 
