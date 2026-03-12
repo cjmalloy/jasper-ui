@@ -201,7 +201,7 @@ export const kanbanTemplate: Template = {
         label: $localize`Column Backlog Title:`
       },
       expressions: {
-        hide: '!field.parent.model.showColumnBacklog'
+        hide: (field) => !field.parent?.model?.showColumnBacklog,
       },
     }, {
       key: 'swimLanes',
@@ -218,7 +218,7 @@ export const kanbanTemplate: Template = {
         label: $localize`Show Swim Lane Backlog:`
       },
       expressions: {
-        hide: '!model.swimLanes || !model.swimLanes[0]'
+        hide: (field) => !field.model?.swimLanes?.[0],
       },
     }, {
       key: 'swimLaneBacklogTitle',
@@ -227,7 +227,7 @@ export const kanbanTemplate: Template = {
         label: $localize`Swim Lane Backlog Title:`
       },
       expressions: {
-        hide: '!model.swimLanes || !model.swimLanes[0] || !model.showSwimLaneBacklog'
+        hide: (field) => !field.model?.swimLanes?.[0] || !field.model?.showSwimLaneBacklog,
       },
     }, {
       key: 'hideSwimLanes',
@@ -236,7 +236,7 @@ export const kanbanTemplate: Template = {
         label: $localize`Hide Swim Lanes by Default:`
       },
       expressions: {
-        hide: '!model.swimLanes || !model.swimLanes[0]'
+        hide: (field) => !field.model?.swimLanes?.[0],
       },
     }, {
       key: 'badges',

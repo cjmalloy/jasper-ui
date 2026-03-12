@@ -115,7 +115,7 @@ export const originPullPlugin: Plugin = {
         label: $localize`Prefetch Proxy:`,
       },
       expressions: {
-        hide: '!model.cacheProxy',
+        hide: (field) => !field.model?.cacheProxy,
       },
     }],
     advancedForm: [{
@@ -151,7 +151,7 @@ export const originPullPlugin: Plugin = {
         label: $localize`Strip Invalid Plugins:`,
       },
       expressions: {
-        hide: '!model.validatePlugins',
+        hide: (field) => !field.model?.validatePlugins,
       },
     }, {
       key: 'validateTemplates',
@@ -166,7 +166,7 @@ export const originPullPlugin: Plugin = {
         label: $localize`Strip Invalid Templates:`,
       },
       expressions: {
-        hide: '!model.validateTemplates',
+        hide: (field) => !field.model?.validateTemplates,
       },
     }],
   },

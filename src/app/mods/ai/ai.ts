@@ -908,7 +908,7 @@ export const llmPlugin: Plugin = {
       type: 'boolean',
       defaultValue: false,
       expressions: {
-        hide: '!model.json',
+        hide: (field) => !field.model?.json,
       },
       props: {
         label: $localize`Any Response:`,

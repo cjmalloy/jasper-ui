@@ -57,7 +57,7 @@ export const blogTemplate: Template = {
       key: 'tags',
       type: 'qtags',
       expressions: {
-        hide: '!field.parent.model.filterTags'
+        hide: (field) => !field.parent?.model?.filterTags,
       },
     }]
   },

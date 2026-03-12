@@ -88,7 +88,7 @@ export const scrapePlugin: Plugin = {
         }
       },
       expressions: {
-        hide: '!field.parent.model.text',
+        hide: (field) => !field.parent?.model?.text,
       },
     }, {
       key: 'publishedSelectors',

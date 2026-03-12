@@ -98,6 +98,7 @@ export class ListTypeComponent extends FieldArrayType {
     // @ts-ignore
     this.field.fieldArray.focus = index === undefined && !initialModel;
     super.add(...arguments);
+    this.formControl.patchValue(this.model, { emitEvent: true });
   }
 
   keydown(event: KeyboardEvent, index: number) {
@@ -214,7 +215,7 @@ export class ListTypeComponent extends FieldArrayType {
     } else if (event.previousContainer.data.type === 'tag' && event.container.data.type === 'ref') {
       value = 'tag:/' + value;
     }
-    super.add(event.currentIndex, value);
+    this.add(event.currentIndex, value);
   }
 
   dnd(event: DragEvent) {
