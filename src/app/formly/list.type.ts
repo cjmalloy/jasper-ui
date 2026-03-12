@@ -51,6 +51,7 @@ import { getPath } from '../util/http';
 export class ListTypeComponent extends FieldArrayType {
 
   dropping = false;
+  private structuralChanges = 0;
 
   constructor(
     private store: Store,
@@ -97,8 +98,14 @@ export class ListTypeComponent extends FieldArrayType {
   override add(index?: number, initialModel?: any) {
     // @ts-ignore
     this.field.fieldArray.focus = index === undefined && !initialModel;
+    this.beginStructuralChange();
     super.add(...arguments);
-    this.formControl.patchValue(this.model, { emitEvent: true });
+    this.syncModel();
+  }
+
+  override remove(index: number, options?: { markAsDirty: boolean }) {
+    this.beginStructuralChange();
+    super.remove(index, options);
   }
 
   keydown(event: KeyboardEvent, index: number) {
@@ -164,10 +171,38 @@ export class ListTypeComponent extends FieldArrayType {
    */
   maybeRemove(event: FocusEvent, i: number) {
     if (this.groupArray) return;
+    if (this.structuralChanges) return;
     const input = event.target as HTMLInputElement;
     if (input.tagName !== 'INPUT') return;
     if (input.classList.contains('preview')) return;
     if (!input.value) this.remove(i);
+  }
+
+  /**
+   * Temporarily suppress blur-driven auto-removal while Formly is rebuilding
+   * list controls after an add/remove operation.
+   */
+  private beginStructuralChange() {
+    this.structuralChanges++;
+    defer(() => {
+      this.structuralChanges = Math.max(0, this.structuralChanges - 1);
+    });
+  }
+
+  /**
+   * Re-sync array control values after Formly has rebuilt the inserted row.
+   * If the FormArray length is still stale, retry on the next tick a few times
+   * and then stop without forcing another mid-rebuild patch.
+   */
+  private syncModel(retries = 5) {
+    defer(() => {
+      if (!Array.isArray(this.model)) return;
+      if (this.formControl.length !== this.model.length) {
+        if (retries > 0) this.syncModel(retries - 1);
+        return;
+      }
+      this.formControl.patchValue(this.model, { emitEvent: true });
+    });
   }
 
   focus(index?: number, select = false) {
