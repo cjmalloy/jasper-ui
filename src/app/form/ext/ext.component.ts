@@ -86,7 +86,6 @@ export class ExtFormComponent implements OnDestroy {
   options: FormlyFormOptions = {
     formState: {
       admin: this.admin,
-      hasHomeTemplate: !!this.admin.getTemplate('config/home'),
       config: { }
     }
   };
@@ -288,7 +287,7 @@ export function extForm(fb: UntypedFormBuilder, ext: Ext | undefined, admin: Adm
       theme: [''],
     };
   }
-  if (admin.getTemplate('config/home') && hasPrefix(ext?.tag, 'config/home')) {
+  if (admin.home && hasPrefix(ext?.tag, 'config/home')) {
     configControls = {
       ...configControls,
       defaultSort: [[]],

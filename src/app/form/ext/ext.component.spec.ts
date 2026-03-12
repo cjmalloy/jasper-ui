@@ -42,6 +42,6 @@ describe('ExtFormComponent', () => {
   });
 
   it('should expose serializable form state for config/home checks', () => {
-    expect(component.options.formState?.hasHomeTemplate).toBeTypeOf('boolean');
+    expect(component.options.formState?.admin.home).toBeTypeOf('boolean');
   });
 });
