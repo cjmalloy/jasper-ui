@@ -42,7 +42,7 @@ export const userTemplate: Template = {
       key: 'subscriptions',
       type: 'queries',
       expressions: {
-        hide: (field) => !field.options?.formState?.admin?.getTemplate('config/home'),
+        hide: '!formState.hasHomeTemplate',
       },
       props: {
         label: $localize`Subscriptions:`,

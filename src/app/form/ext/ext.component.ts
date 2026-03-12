@@ -86,6 +86,7 @@ export class ExtFormComponent implements OnDestroy {
   options: FormlyFormOptions = {
     formState: {
       admin: this.admin,
+      hasHomeTemplate: !!this.admin.getTemplate('config/home'),
       config: { }
     }
   };
