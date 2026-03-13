@@ -935,10 +935,10 @@ export class AdminService {
     );
   }
 
-  private installModRef$(mod: string, bundle: Mod, _: progress) {
+  private installModRef$(mod: string, bundle: Mod, progressCallback: progress) {
     const url = this.getModUrl(mod, bundle);
     return of(null).pipe(
-      tap(() => _('\u00A0'.repeat(4) + $localize`Installing ${mod || url} ref...`)),
+      tap(() => progressCallback('\u00A0'.repeat(4) + $localize`Installing ${mod || url} ref...`)),
       switchMap(() => this.refs.create({
         url,
         origin: this.store.account.origin,
@@ -948,12 +948,12 @@ export class AdminService {
       })),
       catchError(err => {
         if (err.status === 409) {
-          _('\u00A0'.repeat(4) + $localize`Ref ${mod || url} already exists...`);
+          progressCallback('\u00A0'.repeat(4) + $localize`Ref ${mod || url} already exists...`);
           return of(null);
         }
         return throwError(() => err);
       }),
-      tap(() => _('', 1)),
+      tap(() => progressCallback('', 1)),
     );
   }
 
@@ -1112,7 +1112,9 @@ export class AdminService {
   }
 
   private getModUrl(mod: string, bundle: Mod) {
-    const id = bundle.plugin?.[0]?.tag || bundle.template?.[0]?.tag || bundle.ext?.[0]?.tag || bundle.user?.[0]?.tag;
+    const id = [bundle.plugin, bundle.template, bundle.ext, bundle.user]
+      .map(entries => entries?.[0]?.tag)
+      .find(tag => !!tag);
     return 'mod:' + (id || encodeURIComponent(mod || uuid()));
   }
 }
