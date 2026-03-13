@@ -221,7 +221,7 @@ export class AdminService {
     autorun(() => {
       const mod = this.store.eventBus.ref?.plugins?.['plugin/mod'];
       if (this.store.eventBus.event === 'install') {
-        store.eventBus.clearProgress(bundleSize(mod));
+        store.eventBus.clearProgress(bundleSize(mod) + (mod ? 1 : 0));
         this.install$(this.store.eventBus.ref?.title || '', mod, (msg, p = 0) => store.eventBus.progress(msg, p))
           .subscribe(mod => {
             this.pluginToStatus(mod.plugin || []);
@@ -935,6 +935,28 @@ export class AdminService {
     );
   }
 
+  private installModRef$(mod: string, bundle: Mod, _: progress) {
+    const url = this.getModUrl(mod, bundle);
+    return of(null).pipe(
+      tap(() => _('\u00A0'.repeat(4) + $localize`Installing ${mod || url} ref...`)),
+      switchMap(() => this.refs.create({
+        url,
+        origin: this.store.account.origin,
+        title: mod || url.substring('mod:'.length),
+        tags: ['public', 'plugin/mod'],
+        plugins: { 'plugin/mod': bundle },
+      })),
+      catchError(err => {
+        if (err.status === 409) {
+          _('\u00A0'.repeat(4) + $localize`Ref ${mod || url} already exists...`);
+          return of(null);
+        }
+        return throwError(() => err);
+      }),
+      tap(() => _('', 1)),
+    );
+  }
+
   installExt$(def: Ext, _: progress) {
     return of(null).pipe(
       tap(() => _('\u00A0'.repeat(4) + $localize`Installing ${def.name || def.tag} ext...`)),
@@ -1019,6 +1041,7 @@ export class AdminService {
     if (!bundle) return of(null);
     return concat(...[
       of(null).pipe(tap(() => _($localize`Installing ${mod} mod...`))),
+      this.installModRef$(mod, bundle, _),
       ...(bundle.ref || []).map(p => this.installRef$(p, _)),
       ...(bundle.ext || []).map(p => this.installExt$(p, _)),
       ...(bundle.user || []).map(p => this.installUser$(p, _)),
@@ -1086,6 +1109,11 @@ export class AdminService {
       return false;
     }
     return !isEqual(clear(def), clear(status));
+  }
+
+  private getModUrl(mod: string, bundle: Mod) {
+    const id = bundle.plugin?.[0]?.tag || bundle.template?.[0]?.tag || bundle.ext?.[0]?.tag || bundle.user?.[0]?.tag;
+    return 'mod:' + (id || encodeURIComponent(mod || uuid()));
   }
 }
 
