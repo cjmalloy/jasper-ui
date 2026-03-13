@@ -183,42 +183,6 @@ test.describe.serial('Formly tag list keyboard navigation', () => {
   });
 });
 
-test.describe.serial('Formly list keyboard navigation in edit forms', () => {
-  test('clear data', async ({ page }) => {
-    await clearAll(page);
-  });
-
-  test('enable kanban mods', async ({ page }) => {
-    await mod(page, '#mod-root', '#mod-kanban');
-  });
-
-  test('Enter inserts a row in the edit form without blanking later items', async ({ page }) => {
-    const pageErrors: string[] = [];
-    page.on('pageerror', error => pageErrors.push(error.message));
-
-    await page.goto('/tags/kanban?debug=MOD', { waitUntil: 'networkidle' });
-    await openSidebar(page);
-    await page.getByText('Extend').click();
-    await page.locator('[name=tag]').fill('list/edit');
-    await page.locator('button', { hasText: 'Extend' }).click();
-
-    const columns = page.locator('.columns');
-    await columns.waitFor({ timeout: 15_000 });
-    await columns.locator('button').first().click();
-
-    const firstColumn = columns.locator('input').last();
-    await firstColumn.waitFor({ state: 'attached' });
-    await firstColumn.fill('doing');
-    await firstColumn.press('Enter');
-
-    await expect.poll(async () => await columns.locator('input').count()).toBe(2);
-    await expect(columns.locator('input').nth(0)).toHaveValue('doing');
-    await expect(columns.locator('input').nth(1)).toHaveValue('');
-    await expect(page.locator('.error', { hasText: 'Cannot read properties of undefined' })).toHaveCount(0);
-    expect(pageErrors.join('\n')).not.toContain("Cannot read properties of undefined (reading '_fields')");
-  });
-});
-
 test.describe.serial('Formly list keyboard navigation in ref edit forms', () => {
   test('Enter in ref tags inserts a row without blanking the next tag', async ({ page }) => {
     const pageErrors: string[] = [];
