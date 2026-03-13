@@ -33,7 +33,7 @@
       <a class="fake-link" (click)="viewSource = !viewSource" i18n>source</a>
     }
     @if (canReset) {
-      <app-inline-button #action [action]="reset$">reset</app-inline-button>
+      <app-inline-button #action [action]="reset$" i18n>reset</app-inline-button>
     }
     <a class="fake-link" (click)="download()" i18n>download</a>
     @if (created && store.account.admin) {
