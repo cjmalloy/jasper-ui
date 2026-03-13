@@ -1061,7 +1061,7 @@ export class AdminService {
     const ref = this.status.modRefs[mod];
     if (!ref) return of(null);
     return of(null).pipe(
-      tap(() => _('\u00A0'.repeat(4) + `Deleting ${mod} ref...`)),
+      tap(() => _('\u00A0'.repeat(4) + $localize`Deleting ${mod} ref...`)),
       switchMap(() => this.refs.delete(ref.url, ref.origin)),
       tap(() => delete this.status.modRefs[mod]),
       tap(() => _('', 1)),
