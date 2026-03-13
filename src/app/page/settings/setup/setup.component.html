@@ -63,9 +63,9 @@
       <div class="merge-panel">
         <label class="merge-title">{{ mergeState.mod }}</label>
         @if (mergeState.conflict) {
-          <div class="warning">Unable to merge automatically. Review the mod diff or overwrite your local changes.</div>
+          <div class="warning" i18n>Unable to merge automatically. Review the mod diff or overwrite your local changes.</div>
         } @else {
-          <div class="warning">Review the merged mod before saving or overwrite your local changes.</div>
+          <div class="warning" i18n>Review the merged mod before saving or overwrite your local changes.</div>
         }
         <app-diff #mergeDiff
                   class="mod-merge-diff"
