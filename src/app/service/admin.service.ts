@@ -1039,10 +1039,10 @@ export class AdminService {
     );
   }
 
-  private installModRef$(mod: string, bundle: Mod, progressCallback: progress) {
+  private installModRef$(mod: string, bundle: Mod, progress: progress) {
     const ref = this.getModRef(mod, bundle);
     return of(null).pipe(
-      tap(() => progressCallback('\u00A0'.repeat(4) + $localize`Installing ${mod || ref.url} ref...`)),
+      tap(() => progress('\u00A0'.repeat(4) + $localize`Installing ${mod || ref.url} ref...`)),
       switchMap(() => this.refs.get(ref.url, ref.origin).pipe(
         switchMap(existing => this.refs.update({
           ...ref,
@@ -1053,7 +1053,7 @@ export class AdminService {
           : throwError(() => err)),
       )),
       tap(() => this.status.modRefs[mod] = ref),
-      tap(() => progressCallback('', 1)),
+      tap(() => progress('', 1)),
     );
   }
 
