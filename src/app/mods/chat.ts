@@ -7,7 +7,7 @@ export const chatTemplate: Template = {
   tag: 'chat',
   name: $localize`🗨️ Chat`,
   config: {
-    version: 1,
+    version: 2,
     type: 'lens',
     mod: $localize`🗨️ Chat`,
     genId: true,
