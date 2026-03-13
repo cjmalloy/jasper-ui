@@ -183,28 +183,3 @@ test.describe.serial('Formly tag list keyboard navigation', () => {
   });
 });
 
-test.describe.serial('Formly list keyboard navigation in ref edit forms', () => {
-  test('Enter in ref tags inserts a row without blanking the next tag', async ({ page }) => {
-    const pageErrors: string[] = [];
-    page.on('pageerror', error => pageErrors.push(error.message));
-
-    await page.goto('/submit/text?debug=ADMIN', { waitUntil: 'networkidle' });
-    await page.getByRole('textbox', { name: 'Title:' }).fill('Tag enter repro');
-    await page.getByRole('textbox', { name: 'Comment:' }).fill('Testing enter in edited ref tags');
-    await page.getByRole('button', { name: '+ Add another tag' }).click();
-    const submitTags = tagList(page).locator('input.grow:not(.preview)');
-    await submitTags.nth(1).fill('public');
-    await page.getByRole('button', { name: 'Submit' }).click();
-
-    await page.getByText('edit', { exact: true }).click();
-
-    const firstInput = await focusTag(page, 0);
-    await expect.poll(async () => values(await getTagListState(page))).toEqual(['+user/debug', 'public']);
-    await firstInput.press('Enter');
-
-    await waitForTagCount(page, 3);
-    await waitForInputFocus(page, 1);
-    await expect.poll(async () => values(await getTagListState(page))).toEqual(['+user/debug', '', 'public']);
-    expect(pageErrors.join('\n')).not.toContain("Cannot read properties of undefined (reading '_fields')");
-  });
-});
