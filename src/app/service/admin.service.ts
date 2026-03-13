@@ -7,10 +7,10 @@ import { catchError, concat, forkJoin, map, Observable, of, retry, switchMap, th
 import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
 import { Ext } from '../model/ext';
-import { Plugin } from '../model/plugin';
+import { Plugin, writePlugin } from '../model/plugin';
 import { Ref } from '../model/ref';
 import { bundleSize, clear, condition, Config, EditorButton, Mod } from '../model/tag';
-import { Template } from '../model/template';
+import { Template, writeTemplate } from '../model/template';
 import { User } from '../model/user';
 import { aiMod } from '../mods/ai/ai';
 import { dalleMod } from '../mods/ai/dalle';
@@ -92,6 +92,7 @@ import { Store } from '../store/store';
 import { modId } from '../util/format';
 import { getExtension, getHost } from '../util/http';
 import { memo, MemoCache } from '../util/memo';
+import { formatValueForDiff, merge3 } from '../util/diff';
 import { addHierarchicalTags, directChild, hasPrefix, hasTag, tagIntersection, test } from '../util/tag';
 import { ExtService } from './api/ext.service';
 import { PluginService } from './api/plugin.service';
@@ -100,6 +101,16 @@ import { TemplateService } from './api/template.service';
 import { UserService } from './api/user.service';
 import { AuthzService } from './authz.service';
 import { ConfigService } from './config.service';
+
+export interface ModUpdatePreview {
+  mod: string;
+  current: Mod;
+  target: Mod;
+  proposed: Mod;
+  needsReview: boolean;
+  conflict: boolean;
+  reason?: 'conflict' | 'missing-base' | 'requested';
+}
 
 @Injectable({
   providedIn: 'root',
@@ -111,6 +122,7 @@ export class AdminService {
     disabledPlugins: <Record<string, Plugin>> {},
     templates: <Record<string, Template>> {},
     disabledTemplates: <Record<string, Template>> {},
+    modRefs: <Record<string, Ref>> {},
   };
 
   mods: Mod[] = [
@@ -239,7 +251,8 @@ export class AdminService {
     this.status.disabledPlugins = {};
     this.status.templates = {};
     this.status.disabledTemplates = {};
-    return forkJoin([this.loadPlugins$(), this.loadTemplates$()]).pipe(
+    this.status.modRefs = {};
+    return forkJoin([this.loadPlugins$(), this.loadTemplates$(), this.loadModRefs$()]).pipe(
       switchMap(() => this.firstRun$),
       tap(() => this.updates),
       catchError(() => of(null)),
@@ -322,6 +335,17 @@ export class AdminService {
       retry(10),
       tap(batch => this.templateToStatus(batch.content)),
       switchMap(batch => page + 1 < batch.page.totalPages ? this.loadTemplates$(page + 1) : of(null)),
+    );
+  }
+
+  private loadModRefs$(page = 0): Observable<null> {
+    return this.refs.page({ query: 'plugin/mod', page, size: this.config.fetchBatch }).pipe(
+      retry(10),
+      tap(batch => batch.content
+        .filter(ref => ref.origin === this.store.account.origin && ref.url.startsWith('mod:') && ref.plugins?.['plugin/mod'])
+        .forEach(ref => this.status.modRefs[this.getModIdFromUrl(ref.url)] = ref)),
+      switchMap(batch => page + 1 < batch.page.totalPages ? this.loadModRefs$(page + 1) : of(null)),
+      catchError(() => of(null)),
     );
   }
 
@@ -916,6 +940,86 @@ export class AdminService {
     );
   }
 
+  getInstalledMod(mod: string) {
+    return cloneMod(this.status.modRefs[mod]?.plugins?.['plugin/mod']);
+  }
+
+  getCurrentMod(mod: string) {
+    const base = this.getInstalledMod(mod) || cloneMod(this.getMod(mod)) || {};
+    return {
+      ...base,
+      plugin: this.getStatusPlugins(mod),
+      template: this.getStatusTemplates(mod),
+    } as Mod;
+  }
+
+  isModModified(mod: string) {
+    const current = this.getCurrentMod(mod);
+    const base = this.getInstalledMod(mod);
+    if (base) return !equalBundle(current, base);
+    const target = this.getMod(mod);
+    if (!target) return false;
+    return !equalBundle(current, target);
+  }
+
+  getInstalledPlugin(mod: string, tag: string) {
+    return this.getInstalledMod(mod)?.plugin?.find(plugin => plugin.tag === tag);
+  }
+
+  getInstalledTemplate(mod: string, tag: string) {
+    return this.getInstalledMod(mod)?.template?.find(template => template.tag === tag);
+  }
+
+  getModUpdatePreview(mod: string, requested = false): ModUpdatePreview | undefined {
+    const target = cloneMod(this.getMod(mod));
+    if (!target) return undefined;
+    const current = this.getCurrentMod(mod);
+    const base = this.getInstalledMod(mod);
+    if (base && !equalBundle(current, base)) {
+      const merged = merge3(formatValueForDiff(current), formatValueForDiff(base), formatValueForDiff(target));
+      if (!merged.mergedComment || merged.conflict) {
+        return {
+          mod,
+          current,
+          target,
+          proposed: target,
+          needsReview: true,
+          conflict: true,
+          reason: 'conflict',
+        };
+      }
+      return {
+        mod,
+        current,
+        target,
+        proposed: JSON.parse(merged.mergedComment),
+        needsReview: requested,
+        conflict: false,
+        reason: requested ? 'requested' : undefined,
+      };
+    }
+    if (!base && !equalBundle(current, target)) {
+      return {
+        mod,
+        current,
+        target,
+        proposed: target,
+        needsReview: true,
+        conflict: true,
+        reason: 'missing-base',
+      };
+    }
+    return {
+      mod,
+      current,
+      target,
+      proposed: target,
+      needsReview: requested,
+      conflict: false,
+      reason: requested ? 'requested' : undefined,
+    };
+  }
+
   installRef$(def: Ref, _: progress) {
     return of(null).pipe(
       tap(() => _('\u00A0'.repeat(4) + $localize`Installing ${def.title || def.url} ref...`)),
@@ -936,24 +1040,31 @@ export class AdminService {
   }
 
   private installModRef$(mod: string, bundle: Mod, progressCallback: progress) {
-    const url = this.getModUrl(mod, bundle);
+    const ref = this.getModRef(mod, bundle);
     return of(null).pipe(
-      tap(() => progressCallback('\u00A0'.repeat(4) + $localize`Installing ${mod || url} ref...`)),
-      switchMap(() => this.refs.create({
-        url,
-        origin: this.store.account.origin,
-        title: mod || url.substring('mod:'.length),
-        tags: ['public', 'plugin/mod'],
-        plugins: { 'plugin/mod': bundle },
-      })),
-      catchError(err => {
-        if (err.status === 409) {
-          progressCallback('\u00A0'.repeat(4) + $localize`Ref ${mod || url} already exists...`);
-          return of(null);
-        }
-        return throwError(() => err);
-      }),
+      tap(() => progressCallback('\u00A0'.repeat(4) + $localize`Installing ${mod || ref.url} ref...`)),
+      switchMap(() => this.refs.get(ref.url, ref.origin).pipe(
+        switchMap(existing => this.refs.update({
+          ...ref,
+          modifiedString: existing.modifiedString,
+        })),
+        catchError(err => err.status === 404
+          ? this.refs.create(ref)
+          : throwError(() => err)),
+      )),
+      tap(() => this.status.modRefs[mod] = ref),
       tap(() => progressCallback('', 1)),
+    );
+  }
+
+  private deleteModRef$(mod: string, _: progress) {
+    const ref = this.status.modRefs[mod];
+    if (!ref) return of(null);
+    return of(null).pipe(
+      tap(() => _('\u00A0'.repeat(4) + `Deleting ${mod} ref...`)),
+      switchMap(() => this.refs.delete(ref.url, ref.origin)),
+      tap(() => delete this.status.modRefs[mod]),
+      tap(() => _('', 1)),
     );
   }
 
@@ -1041,12 +1152,12 @@ export class AdminService {
     if (!bundle) return of(null);
     return concat(...[
       of(null).pipe(tap(() => _($localize`Installing ${mod} mod...`))),
-      this.installModRef$(mod, bundle, _),
       ...(bundle.ref || []).map(p => this.installRef$(p, _)),
       ...(bundle.ext || []).map(p => this.installExt$(p, _)),
       ...(bundle.user || []).map(p => this.installUser$(p, _)),
       ...(bundle.plugin || []).map(p => this.installPlugin$(p, _)),
       ...(bundle.template || []).map(t => this.installTemplate$(t, _)),
+      this.installModRef$(mod, bundle, _),
     ]).pipe(toArray());
   }
 
@@ -1054,29 +1165,66 @@ export class AdminService {
     return this.install$(mod, this.getMod(mod)!, _);
   }
 
-  update$(mod: string, bundle: Mod, _: progress): Observable<any> {
-    if (!bundle) return of(null);
-    return concat(...[
-      of(null).pipe(tap(() => _($localize`Installing ${mod} mod...`))),
-      ...(bundle.plugin || []).map(p => this.updatePlugin$(p, _)),
-      ...(bundle.template || []).map(t => this.updateTemplate$(t, _)),
-    ]).pipe(toArray());
-  }
-
   updateMod$(mod: string, _: progress): Observable<any> {
-    return this.update$(mod, this.getMod(mod)!, _);
+    const preview = this.getModUpdatePreview(mod);
+    if (!preview) return of(null);
+    if (preview.needsReview) return throwError(() => ({ preview }));
+    return this.applyModUpdate$(mod, preview.proposed, preview.target, _);
   }
 
   deleteMod$(mod: string, _: progress): Observable<any> {
     return concat(...[
       of(null).pipe(tap(() => _($localize`Deleting ${mod} mod...`))),
       ...Object.values(this.status.plugins)
-        .filter(p => modId(p) === mod)
+        .filter(p => p && modId(p) === mod)
+        .map(p => this.deletePlugin$(p!, _)),
+      ...Object.values(this.status.disabledPlugins)
+        .filter(p => p && modId(p) === mod)
         .map(p => this.deletePlugin$(p!, _)),
       ...Object.values(this.status.templates)
-        .filter(t => modId(t) === mod)
+        .filter(t => t && modId(t) === mod)
         .map(t => this.deleteTemplate$(t!, _)),
+      ...Object.values(this.status.disabledTemplates)
+        .filter(t => t && modId(t) === mod)
+        .map(t => this.deleteTemplate$(t!, _)),
+      this.deleteModRef$(mod, _),
     ]).pipe(toArray());
+  }
+
+  applyModUpdate$(mod: string, bundle: Mod, cleanBundle: Mod, _: progress): Observable<any> {
+    if (!bundle) return of(null);
+    const currentPlugins = this.getStatusEntries(this.status.plugins, this.status.disabledPlugins, mod);
+    const currentTemplates = this.getStatusEntries(this.status.templates, this.status.disabledTemplates, mod);
+    const nextPlugins = bundle.plugin || [];
+    const nextTemplates = bundle.template || [];
+    return concat(...[
+      of(null).pipe(tap(() => _($localize`Installing ${mod} mod...`))),
+      ...currentPlugins
+        .filter(current => !nextPlugins.find(next => next.tag === current.tag))
+        .map(current => this.deletePlugin$(current, _)),
+      ...currentTemplates
+        .filter(current => !nextTemplates.find(next => next.tag === current.tag))
+        .map(current => this.deleteTemplate$(current, _)),
+      ...nextPlugins.map(plugin => (currentPlugins.find(current => current.tag === plugin.tag)
+        ? this.updatePlugin$(plugin, _)
+        : this.installPlugin$(plugin, _))),
+      ...nextTemplates.map(template => (currentTemplates.find(current => current.tag === template.tag)
+        ? this.updateTemplate$(template, _)
+        : this.installTemplate$(template, _))),
+      this.installModRef$(mod, cleanBundle, _),
+    ]).pipe(toArray());
+  }
+
+  resetPlugin$(plugin: Plugin, _: progress) {
+    const restored = this.getInstalledPlugin(modId(plugin), plugin.tag);
+    if (!restored) return of(null);
+    return this.updatePlugin$(restored, _);
+  }
+
+  resetTemplate$(template: Template, _: progress) {
+    const restored = this.getInstalledTemplate(modId(template), template.tag);
+    if (!restored) return of(null);
+    return this.updateTemplate$(restored, _);
   }
 
   updatePlugin$(def: Plugin, _: progress) {
@@ -1111,11 +1259,43 @@ export class AdminService {
     return !isEqual(clear(def), clear(status));
   }
 
-  private getModUrl(mod: string, bundle: Mod) {
-    const id = [bundle.plugin, bundle.template, bundle.ext, bundle.user]
-      .map(entries => entries?.[0]?.tag)
-      .find(tag => !!tag);
-    return 'mod:' + (id || encodeURIComponent(mod || uuid()));
+  private getModRef(mod: string, bundle: Mod): Ref {
+    const url = this.getModUrl(mod);
+    return {
+      url,
+      origin: this.store.account.origin,
+      title: mod || this.getModIdFromUrl(url),
+      tags: ['public', 'plugin/mod'],
+      plugins: { 'plugin/mod': cloneMod(bundle) },
+    };
+  }
+
+  private getModUrl(mod: string) {
+    return 'mod:' + encodeURIComponent(mod || uuid());
+  }
+
+  private getModIdFromUrl(url: string) {
+    const id = url.substring('mod:'.length);
+    try {
+      return decodeURIComponent(id);
+    } catch {
+      return id;
+    }
+  }
+
+  private getStatusPlugins(mod: string) {
+    return this.getStatusEntries(this.status.plugins, this.status.disabledPlugins, mod)
+      .map(plugin => deepClone(writePlugin({ ...plugin, origin: '' })));
+  }
+
+  private getStatusTemplates(mod: string) {
+    return this.getStatusEntries(this.status.templates, this.status.disabledTemplates, mod)
+      .map(template => deepClone(writeTemplate({ ...template, origin: '' })));
+  }
+
+  private getStatusEntries<T extends Config & { tag: string }>(active: Record<string, T>, disabled: Record<string, T>, mod: string) {
+    return [...Object.values(active), ...Object.values(disabled)]
+      .filter((entry): entry is T => !!entry && modId(entry) === mod);
   }
 }
 
@@ -1124,4 +1304,35 @@ function addParent(c: Config) {
     a._parent = c;
     return a;
   };
+}
+
+function cloneConfig<T extends Config>(config: T) {
+  return clear(deepClone(config));
+}
+
+function cloneMod(mod?: Mod) {
+  if (!mod) return undefined;
+  return deepClone(mod);
+}
+
+function normalizeBundle(mod?: Mod) {
+  return {
+    ref: (mod?.ref || []).map(ref => deepClone(ref)),
+    ext: (mod?.ext || []).map(ext => deepClone(ext)),
+    user: (mod?.user || []).map(user => deepClone(user)),
+    plugin: (mod?.plugin || [])
+      .map(plugin => cloneConfig(writePlugin({ ...plugin, origin: '' })))
+      .sort((a, b) => a.tag.localeCompare(b.tag)),
+    template: (mod?.template || [])
+      .map(template => cloneConfig(writeTemplate({ ...template, origin: '' })))
+      .sort((a, b) => a.tag.localeCompare(b.tag)),
+  } as Mod;
+}
+
+function equalBundle(a?: Mod, b?: Mod) {
+  return isEqual(normalizeBundle(a), normalizeBundle(b));
+}
+
+function deepClone<T>(value: T): T {
+  return JSON.parse(JSON.stringify(value));
 }
