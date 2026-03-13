@@ -3,6 +3,15 @@
   font-size: 80%;
 }
 
+.mod-diff-link {
+  margin-left: 8px;
+}
+
+.modified-indicator {
+  color: var(--error);
+  margin-left: 2px;
+}
+
 label {
   margin-top: 16px;
 }
@@ -10,4 +19,16 @@ label {
 .log {
   flex: 1;
   margin: 10px;
+}
+
+.merge-panel {
+  margin-top: 20px;
+}
+
+.merge-title {
+  display: block;
+}
+
+.merge-buttons {
+  margin-top: 10px;
 }

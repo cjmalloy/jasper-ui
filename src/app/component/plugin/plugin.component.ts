@@ -14,6 +14,7 @@ import { ModService } from '../../service/mod.service';
 import { Store } from '../../store/store';
 import { downloadPluginExport, downloadTag } from '../../util/download';
 import { scrollToFirstInvalid } from '../../util/form';
+import { modId } from '../../util/format';
 import { printError } from '../../util/http';
 import { ActionComponent } from '../action/action.component';
 import { ConfirmActionComponent } from '../action/confirm-action/confirm-action.component';
@@ -178,6 +179,21 @@ export class PluginComponent implements OnChanges, HasChanges {
         return throwError(() => err);
       }),
     );
+  }
+
+  get canReset() {
+    return this.created && this.local && this.store.account.admin &&
+      !!this.admin.getInstalledPlugin(modId(this.plugin), this.plugin.tag);
+  }
+
+  reset$ = () => {
+    const current = this.plugin;
+    const restored = this.admin.getInstalledPlugin(modId(this.plugin), this.plugin.tag);
+    if (restored) this.plugin = { ...this.plugin, ...restored, origin: this.store.account.origin };
+    this.serverError = [];
+    this.editing = false;
+    this.init();
+    return this.admin.resetPlugin$(current, () => {});
   }
 
   download = () => {

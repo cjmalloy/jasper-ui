@@ -33,6 +33,22 @@ export function formatRefForDiff(ref: Ref): string {
   return JSON.stringify(ordered, null, 2);
 }
 
+function sortJson(value: any): any {
+  if (Array.isArray(value)) return value.map(sortJson);
+  if (!value || typeof value !== 'object') return value;
+  return Object.keys(value).sort().reduce((result, key) => {
+    result[key] = sortJson(value[key]);
+    return result;
+  }, {} as any);
+}
+
+export function formatValueForDiff(value: unknown): string {
+  if (value && typeof value === 'object' && 'url' in (value as any)) {
+    return formatRefForDiff(value as Ref);
+  }
+  return JSON.stringify(sortJson(value), null, 2);
+}
+
 export type Merge = { mergedComment?: string, conflict?: MergeRegion<string>[] };
 
 export function merge3(ours: string, base: string, theirs: string, delimiter = '\n'): Merge {

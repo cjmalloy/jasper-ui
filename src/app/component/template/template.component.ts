@@ -13,6 +13,7 @@ import { TemplateService } from '../../service/api/template.service';
 import { Store } from '../../store/store';
 import { downloadTag } from '../../util/download';
 import { scrollToFirstInvalid } from '../../util/form';
+import { modId } from '../../util/format';
 import { printError } from '../../util/http';
 import { ActionComponent } from '../action/action.component';
 import { ConfirmActionComponent } from '../action/confirm-action/confirm-action.component';
@@ -176,6 +177,21 @@ export class TemplateComponent implements OnChanges, HasChanges {
         return throwError(() => err);
       }),
     );
+  }
+
+  get canReset() {
+    return this.created && this.local && this.store.account.admin &&
+      !!this.admin.getInstalledTemplate(modId(this.template), this.template.tag);
+  }
+
+  reset$ = () => {
+    const current = this.template;
+    const restored = this.admin.getInstalledTemplate(modId(this.template), this.template.tag);
+    if (restored) this.template = { ...this.template, ...restored, origin: this.store.account.origin };
+    this.serverError = [];
+    this.editing = false;
+    this.init();
+    return this.admin.resetTemplate$(current, () => {});
   }
 
   download() {
