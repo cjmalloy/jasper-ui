@@ -115,7 +115,7 @@ describe('AdminService', () => {
     service.status.plugins['plugin/wiki'] = {
       tag: 'plugin/wiki',
       origin: '@local',
-      config: { mod: 'Wiki', version: 1, description: 'edited' },
+      config: { mod: 'Wiki', version: 1, description: 'edited', generated: true, _parent: { test: true } },
     } as any;
 
     expect(service.isModModified('Wiki')).toBe(false);
@@ -128,7 +128,7 @@ describe('AdminService', () => {
     service.status.plugins['plugin/wiki'] = {
       tag: 'plugin/wiki',
       origin: '@local',
-      config: { mod: 'Wiki', version: 1, description: 'edited' },
+      config: { mod: 'Wiki', version: 1, description: 'edited', generated: true, _parent: { test: true } },
     } as any;
 
     expect(service.getModUpdatePreview('Wiki')).toEqual(expect.objectContaining({
@@ -164,6 +164,8 @@ describe('AdminService', () => {
         plugin: [expect.objectContaining({ tag: 'plugin/wiki', config: { mod: 'Wiki', version: 2, description: 'edited' } })],
       }),
     }));
+    expect(service.getModUpdatePreview('Wiki')?.proposed.plugin?.[0].config?.generated).toBeUndefined();
+    expect(service.getModUpdatePreview('Wiki')?.proposed.plugin?.[0].config?._parent).toBeUndefined();
   });
 
   it('should reconcile plugin and template changes when applying a mod update', () => {
@@ -187,5 +189,40 @@ describe('AdminService', () => {
 
     expect(deletePlugin).toHaveBeenCalled();
     expect(installTemplate).toHaveBeenCalled();
+  });
+
+  it('should restore cleared config fields before applying an edited mod diff', () => {
+    service.status.plugins['plugin/wiki'] = {
+      tag: 'plugin/wiki',
+      origin: '@local',
+      config: { mod: 'Wiki', version: 1 },
+    } as any;
+    const updatePlugin = vi.spyOn(service, 'updatePlugin$').mockReturnValue(of(null));
+
+    service.applyModUpdate$('Wiki', {
+      plugin: [{ tag: 'plugin/wiki', config: { description: 'edited' } } as any],
+    }, {
+      plugin: [{ tag: 'plugin/wiki', config: { mod: 'Wiki', version: 2, generated: true, _parent: { test: true } } } as any],
+    }, () => {}).subscribe();
+
+    expect(updatePlugin).toHaveBeenCalledWith(expect.objectContaining({
+      tag: 'plugin/wiki',
+      config: { mod: 'Wiki', version: 2, generated: true, _parent: { test: true }, description: 'edited' },
+    }), expect.any(Function));
+  });
+
+  it('should install new plugins from an edited mod diff without target metadata', () => {
+    const installPlugin = vi.spyOn(service, 'installPlugin$').mockReturnValue(of(null));
+
+    service.applyModUpdate$('Wiki', {
+      plugin: [{ tag: 'plugin/new', config: { description: 'new plugin' } } as any],
+    }, {
+      plugin: [{ tag: 'plugin/wiki', config: { mod: 'Wiki', version: 2 } } as any],
+    }, () => {}).subscribe();
+
+    expect(installPlugin).toHaveBeenCalledWith(expect.objectContaining({
+      tag: 'plugin/new',
+      config: { description: 'new plugin' },
+    }), expect.any(Function));
   });
 });

@@ -1,7 +1,8 @@
 /// <reference types="vitest/globals" />
 import { DateTime } from 'luxon';
 import { Ref } from '../model/ref';
-import { formatRefForDiff, merge3 } from './diff';
+import { Mod } from '../model/tag';
+import { formatRefForDiff, formatValueForDiff, merge3 } from './diff';
 
 describe('Diff Utils', () => {
   describe('formatRefForDiff', () => {
@@ -64,6 +65,35 @@ describe('Diff Utils', () => {
       const pluginKeys = Object.keys(parsed.plugins);
 
       expect(pluginKeys).toEqual(['alpha', 'beta', 'zebra']);
+    });
+  });
+
+  describe('formatValueForDiff', () => {
+    it('should clear plugin and template configs in mod bundles', () => {
+      const bundle: Mod = {
+        plugin: [{
+          tag: 'plugin/wiki',
+          origin: '@local',
+          type: 'plugin',
+          config: {
+            mod: 'Wiki',
+            version: 2,
+            description: 'edited',
+            generated: true,
+            _parent: { anything: true },
+          },
+        } as any],
+      };
+
+      const parsed = JSON.parse(formatValueForDiff(bundle));
+
+      expect(parsed.plugin).toEqual([{
+        tag: 'plugin/wiki',
+        config: {
+          description: 'edited',
+          version: 2,
+        },
+      }]);
     });
   });
 
