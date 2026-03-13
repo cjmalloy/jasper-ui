@@ -138,14 +138,14 @@ export class SettingsSetupPage {
     }
     concat(...uniq(mods).map(mod => this.admin.updateMod$(mod, _)))
       .pipe(last())
-      .subscribe({
-        next: () => {
+      .subscribe(
+        () => {
           this.submitted = true;
           this.reset();
           _($localize`Success.`);
         },
-        error: (res: HttpErrorResponse | { preview?: ModUpdatePreview }) => this.handleUpdateError(res),
-      });
+        (res: HttpErrorResponse | { preview?: ModUpdatePreview }) => this.handleUpdateError(res),
+      );
   }
 
   selectAll() {
@@ -158,10 +158,10 @@ export class SettingsSetupPage {
     this.serverError = [];
     this.mergeState = undefined;
     const _ = (msg?: string) => this.installMessages.push(msg!);
-    this.admin.updateMod$(modId(config), _).subscribe({
-      next: () => this.reset(),
-      error: (res: HttpErrorResponse | { preview?: ModUpdatePreview }) => this.handleUpdateError(res),
-    });
+    this.admin.updateMod$(modId(config), _).subscribe(
+      () => this.reset(),
+      (res: HttpErrorResponse | { preview?: ModUpdatePreview }) => this.handleUpdateError(res),
+    );
   }
 
   diffMod(config: Config) {
@@ -173,14 +173,14 @@ export class SettingsSetupPage {
     if (!this.mergeState || !bundle) return;
     this.serverError = [];
     const _ = (msg?: string) => this.installMessages.push(msg!);
-    this.admin.applyModUpdate$(this.mergeState.mod, bundle, this.mergeState.target, _).subscribe({
-      next: () => {
+    this.admin.applyModUpdate$(this.mergeState.mod, bundle, this.mergeState.target, _).subscribe(
+      () => {
         this.mergeState = undefined;
         this.reset();
         _($localize`Success.`);
       },
-      error: (res: HttpErrorResponse) => this.serverError = printError(res),
-    });
+      (res: HttpErrorResponse) => this.serverError = printError(res),
+    );
   }
 
   overwriteMerge() {
