@@ -988,7 +988,7 @@ export class AdminService {
         mod,
         current,
         target,
-        proposed: JSON.parse(merged.mergedComment),
+        proposed: restoreBundle(target, JSON.parse(merged.mergedComment)),
         needsReview: requested,
         conflict: false,
         reason: requested ? 'requested' : undefined,
@@ -1189,6 +1189,7 @@ export class AdminService {
 
   applyModUpdate$(mod: string, bundle: Mod, cleanBundle: Mod, _: progress): Observable<any> {
     if (!bundle) return of(null);
+    bundle = restoreBundle(cleanBundle, bundle);
     const currentPlugins = this.getStatusEntries(this.status.plugins, this.status.disabledPlugins, mod);
     const currentTemplates = this.getStatusEntries(this.status.templates, this.status.disabledTemplates, mod);
     const nextPlugins = bundle.plugin || [];
@@ -1325,6 +1326,31 @@ function normalizeBundle(mod?: Mod) {
 
 function equalBundle(a?: Mod, b?: Mod) {
   return isEqual(normalizeBundle(a), normalizeBundle(b));
+}
+
+function restoreBundle(target: Mod, merged: Mod) {
+  return {
+    ...cloneMod(target),
+    ...merged,
+    plugin: restoreConfigEntries(target.plugin, merged.plugin),
+    template: restoreConfigEntries(target.template, merged.template),
+  } as Mod;
+}
+
+function restoreConfigEntries<Entry extends Config & { tag: string }>(target: Entry[] | undefined, merged: Entry[] | undefined) {
+  const targetByTag = new Map((target || []).map(entry => [entry.tag, entry]));
+  return (merged || []).map(entry => {
+    const existing = targetByTag.get(entry.tag);
+    if (!existing) return entry;
+    return {
+      ...deepClone(existing),
+      ...entry,
+      config: {
+        ...deepClone(existing.config || {}),
+        ...entry.config,
+      },
+    };
+  });
 }
 
 function deepClone<T>(value: T): T {

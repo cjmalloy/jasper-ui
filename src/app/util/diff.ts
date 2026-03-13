@@ -1,5 +1,8 @@
 import { diff3Merge, MergeRegion } from 'node-diff3';
+import { Plugin, writePlugin } from '../model/plugin';
 import { Ref, writeRef } from '../model/ref';
+import { Mod, clear } from '../model/tag';
+import { Template, writeTemplate } from '../model/template';
 
 /**
  * Format ref for diff display:
@@ -42,9 +45,32 @@ function sortJson(value: any): any {
   }, {} as any);
 }
 
+function stripInternalFields<T extends Plugin | Template>(entity: T): T {
+  return clear(JSON.parse(JSON.stringify(entity)));
+}
+
+function formatModForDiff(mod: Mod): string {
+  return JSON.stringify(sortJson({
+    ref: mod.ref || [],
+    ext: mod.ext || [],
+    user: mod.user || [],
+    plugin: (mod.plugin || [])
+      .map(plugin => stripInternalFields(writePlugin({ ...plugin, origin: '' } as Plugin)))
+      .sort((a, b) => a.tag.localeCompare(b.tag)),
+    template: (mod.template || [])
+      .map(template => stripInternalFields(writeTemplate({ ...template, origin: '' } as Template)))
+      .sort((a, b) => a.tag.localeCompare(b.tag)),
+  }), null, 2);
+}
+
 export function formatValueForDiff(value: unknown): string {
   if (value && typeof value === 'object' && 'url' in (value as any)) {
     return formatRefForDiff(value as Ref);
+  }
+  if (value && typeof value === 'object' &&
+    ('ref' in (value as any) || 'ext' in (value as any) || 'user' in (value as any) ||
+      'plugin' in (value as any) || 'template' in (value as any))) {
+    return formatModForDiff(value as Mod);
   }
   return JSON.stringify(sortJson(value), null, 2);
 }
