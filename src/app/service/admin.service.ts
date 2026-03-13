@@ -1039,10 +1039,10 @@ export class AdminService {
     );
   }
 
-  private installModRef$(mod: string, bundle: Mod, logModReciept: progress) {
+  private logModReceipt$(mod: string, bundle: Mod, _: progress) {
     const ref = this.getModRef(mod, bundle);
     return of(null).pipe(
-      tap(() => logModReciept('\u00A0'.repeat(4) + $localize`Installing ${mod || ref.url} ref...`)),
+      tap(() => _('\u00A0'.repeat(4) + $localize`Installing ${mod || ref.url} ref...`)),
       switchMap(() => this.refs.get(ref.url, ref.origin).pipe(
         switchMap(existing => this.refs.update({
           ...ref,
@@ -1053,11 +1053,11 @@ export class AdminService {
           : throwError(() => err)),
       )),
       tap(() => this.status.modRefs[mod] = ref),
-      tap(() => logModReciept('', 1)),
+      tap(() => _('', 1)),
     );
   }
 
-  private deleteModRef$(mod: string, _: progress) {
+  private clearModReceipt$(mod: string, _: progress) {
     const ref = this.status.modRefs[mod];
     if (!ref) return of(null);
     return of(null).pipe(
@@ -1157,7 +1157,7 @@ export class AdminService {
       ...(bundle.user || []).map(p => this.installUser$(p, _)),
       ...(bundle.plugin || []).map(p => this.installPlugin$(p, _)),
       ...(bundle.template || []).map(t => this.installTemplate$(t, _)),
-      this.installModRef$(mod, bundle, _),
+      this.logModReceipt$(mod, bundle, _),
     ]).pipe(toArray());
   }
 
@@ -1187,7 +1187,7 @@ export class AdminService {
       ...Object.values(this.status.disabledTemplates)
         .filter(t => t && modId(t) === mod)
         .map(t => this.deleteTemplate$(t!, _)),
-      this.deleteModRef$(mod, _),
+      this.clearModReceipt$(mod, _),
     ]).pipe(toArray());
   }
 
@@ -1211,7 +1211,7 @@ export class AdminService {
       ...nextTemplates.map(template => (currentTemplates.find(current => current.tag === template.tag)
         ? this.updateTemplate$(template, _)
         : this.installTemplate$(template, _))),
-      this.installModRef$(mod, cleanBundle, _),
+      this.logModReceipt$(mod, cleanBundle, _),
     ]).pipe(toArray());
   }
 
@@ -1228,7 +1228,6 @@ export class AdminService {
   }
 
   updatePlugin$(def: Plugin, _: progress) {
-    // TODO: diff
     return of(null).pipe(
       tap(() => _('\u00A0'.repeat(4) + $localize`Updating ${def.name || def.tag} plugin...`)),
       switchMap(() => this.plugins.delete(def.tag + this.store.account.origin)),
@@ -1238,7 +1237,6 @@ export class AdminService {
   }
 
   updateTemplate$(def: Template, _: progress) {
-    // TODO: diff
     return of(null).pipe(
       tap(() => _('\u00A0'.repeat(4) + $localize`Updating ${def.name || def.tag} template...`)),
       switchMap(() => this.templates.delete(def.tag + this.store.account.origin)),
