@@ -183,7 +183,7 @@
                     [disabled]="savingBookmark"
                     class="bookmark" i18n>+ bookmark</button>
           }
-          @if (admin.getTemplate('config/home')) {
+          @if (admin.home) {
             @if (user) {
               @if (inSubs) {
                 <button type="button"

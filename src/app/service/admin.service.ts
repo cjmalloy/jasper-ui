@@ -474,6 +474,10 @@ export class AdminService {
     return this.getPlugin('plugin/editing');
   }
 
+  get home() {
+    return this.getTemplate('config/home');
+  }
+
   get defaultPlugins() {
     return Object.values(this.def.plugins).filter(p => p?.config?.default) as Plugin[];
   }

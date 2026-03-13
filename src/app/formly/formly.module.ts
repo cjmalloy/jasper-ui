@@ -2,7 +2,7 @@ import { DragDropModule } from '@angular/cdk/drag-drop';
 import { OverlayModule } from '@angular/cdk/overlay';
 import { NgModule } from '@angular/core';
 import { AbstractControl, ReactiveFormsModule } from '@angular/forms';
-import { FormlyExtension, FormlyFieldConfig, FormlyModule } from '@ngx-formly/core';
+import { FormlyExtension, FormlyFieldConfig, FormlyModule, withFormlyFieldExpression } from '@ngx-formly/core';
 import { FormlySelectModule } from '@ngx-formly/core/select';
 import { v4 as uuid } from 'uuid';
 import {
@@ -54,6 +54,8 @@ export class IdPrefixExtension implements FormlyExtension {
   }
 }
 
+const formlyFieldExpressionConfig = withFormlyFieldExpression();
+
 @NgModule({
   exports: [
     QrScannerComponent,
@@ -89,7 +91,10 @@ export class IdPrefixExtension implements FormlyExtension {
     PdfUploadComponent,
     ListTypeComponent,
     FormlyModule.forRoot({
-      extensions: [{ name: 'id-prefix', extension: new IdPrefixExtension() }],
+      extensions: [
+        ...(formlyFieldExpressionConfig.extensions || []),
+        { name: 'id-prefix', extension: new IdPrefixExtension() },
+      ],
       validationMessages: [
         { name: 'required', message: 'This field is required' },
       ],

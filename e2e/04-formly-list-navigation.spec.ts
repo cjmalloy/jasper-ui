@@ -1,4 +1,5 @@
 import { expect, type Locator, type Page, test } from '@playwright/test';
+import { clearAll, mod, openSidebar } from './setup';
 
 const TEXT_SUBMIT_URL = '/submit/text?tag=public&debug=ADMIN';
 
@@ -181,3 +182,4 @@ test.describe.serial('Formly tag list keyboard navigation', () => {
     expect(state.activeValue).toBe('');
   });
 });
+

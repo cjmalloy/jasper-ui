@@ -171,7 +171,7 @@ export const videoPlugin: Plugin = {
     }, {
       key: 'offer',
       wrappers: ['form-group'],
-      props: {
+      expressions: {
         hide: '!field.parent.model.offer',
       },
       fieldGroup: [{
@@ -190,7 +190,7 @@ export const videoPlugin: Plugin = {
     }, {
       key: 'answer',
       wrappers: ['form-group'],
-      props: {
+      expressions: {
         hide: '!field.parent.model.answer',
       },
       fieldGroup: [{

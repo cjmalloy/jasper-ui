@@ -287,7 +287,7 @@ export function extForm(fb: UntypedFormBuilder, ext: Ext | undefined, admin: Adm
       theme: [''],
     };
   }
-  if (admin.getTemplate('config/home') && hasPrefix(ext?.tag, 'config/home')) {
+  if (admin.home && hasPrefix(ext?.tag, 'config/home')) {
     configControls = {
       ...configControls,
       defaultSort: [[]],
