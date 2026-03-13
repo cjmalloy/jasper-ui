@@ -388,7 +388,7 @@ export class SidebarComponent implements OnInit, AfterViewInit, OnChanges, OnDes
 
   @memo
   get homeWriteAccess() {
-    return this.home && this.admin.getTemplate('config/home') && this.auth.tagWriteAccess('config/home');
+    return this.home && this.admin.home && this.auth.tagWriteAccess('config/home');
   }
 
   @memo

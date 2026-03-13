@@ -234,8 +234,11 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
       MemoCache.clear(this, 'storyboardHeight');
       MemoCache.clear(this, 'storyboardAnimation');
       MemoCache.clear(this, 'hasStoryboardDefault');
-      this.initFields({ ...this.ref, ...value });
-      cd.detectChanges();
+      defer(() => {
+        // Let Formly finish rebuilding tag rows before derived Ref UI state reacts.
+        this.initFields({ ...this.ref, ...value });
+        cd.detectChanges();
+      });
     }, 400, { leading: true, trailing: true }));
     this.disposers.push(autorun(() => {
       if (this.store.eventBus.event === 'refresh') {

@@ -568,11 +568,18 @@ Handlebars.registerHelper('or', function() {
   return Array.prototype.slice.call(arguments, 0, arguments.length - 1).some(Boolean);
 });
 
+let hydrateError = false;
 export function hydrate(config: any, field: string, model: any): string {
   if (!config[field]) return '';
   config._cache ||= {};
   config._cache[field] ||= Handlebars.compile(config[field]);
-  return config._cache[field](model);
+  try {
+    return config._cache[field](model);
+  } catch (e) {
+    if (!hydrateError) console.error('hydrate error', config, field, model, e);
+    hydrateError = true;
+    return '';
+  }
 }
 
 export function emitModels(action: EmitAction, ref?: Ref, user?: string) {
