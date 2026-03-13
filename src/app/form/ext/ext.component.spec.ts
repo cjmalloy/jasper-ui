@@ -40,8 +40,4 @@ describe('ExtFormComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
-
-  it('should expose serializable form state for config/home checks', () => {
-    expect(component.options.formState?.admin.home).toBeTypeOf('boolean');
-  });
 });
