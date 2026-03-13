@@ -954,12 +954,8 @@ export class AdminService {
   }
 
   isModModified(mod: string) {
-    const current = this.getCurrentMod(mod);
     const base = this.getInstalledMod(mod);
-    if (base) return !equalBundle(current, base);
-    const target = this.getMod(mod);
-    if (!target) return false;
-    return !equalBundle(current, target);
+    return !!base && !equalBundle(this.getCurrentMod(mod), base);
   }
 
   getInstalledPlugin(mod: string, tag: string) {

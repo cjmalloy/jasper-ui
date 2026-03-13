@@ -108,6 +108,19 @@ describe('AdminService', () => {
     expect(service.isModModified('Wiki')).toBe(false);
   });
 
+  it('should treat mods without an installed mod ref as unmodified in setup status', () => {
+    service.mods.unshift({
+      plugin: [{ tag: 'plugin/wiki', config: { mod: 'Wiki', version: 2 } } as any],
+    });
+    service.status.plugins['plugin/wiki'] = {
+      tag: 'plugin/wiki',
+      origin: '@local',
+      config: { mod: 'Wiki', version: 1, description: 'edited' },
+    } as any;
+
+    expect(service.isModModified('Wiki')).toBe(false);
+  });
+
   it('should require review when local edits exist without a stored mod ref', () => {
     service.mods.unshift({
       plugin: [{ tag: 'plugin/wiki', config: { mod: 'Wiki', version: 2 } } as any],
