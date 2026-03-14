@@ -1,17 +1,17 @@
 import { Injectable } from '@angular/core';
 import { FormlyFieldConfig } from '@ngx-formly/core';
 import { Schema, validate } from 'jtd';
-import { identity, isEqual, reduce, uniq } from 'lodash-es';
+import { identity, isEmpty, isEqual, reduce, uniq } from 'lodash-es';
 import { autorun, runInAction } from 'mobx';
 import { catchError, concat, forkJoin, map, Observable, of, retry, switchMap, throwError, toArray } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
-import { Ext } from '../model/ext';
-import { Plugin } from '../model/plugin';
-import { Ref } from '../model/ref';
+import { Ext, writeExt } from '../model/ext';
+import { Plugin, writePlugin } from '../model/plugin';
+import { Ref, writeRef } from '../model/ref';
 import { bundleSize, clear, condition, Config, EditorButton, Mod } from '../model/tag';
-import { Template } from '../model/template';
-import { User } from '../model/user';
+import { Template, writeTemplate } from '../model/template';
+import { User, writeUser } from '../model/user';
 import { aiMod } from '../mods/ai/ai';
 import { dalleMod } from '../mods/ai/dalle';
 import { naviMod } from '../mods/ai/navi';
@@ -913,18 +913,18 @@ export class AdminService {
     return this.getTemplate('config/wiki')?.config?.prefix || DEFAULT_WIKI_PREFIX;
   }
 
-  getMod(mod: String) {
+  getMod(mod: String): Mod | undefined {
     const bundle = this.mods.find(m =>
       m.plugin?.find(p => modId(p) === mod) ||
       m.template?.find(t => modId(t) === mod)
     );
-    if (bundle) return bundle;
+    if (bundle) return clearMod(bundle);
     const modPlugins = Object.values(this.status.plugins).filter(p => modId(p) === mod).map(p => p.tag);
     const modTemplates = Object.values(this.status.templates).filter(p => modId(p) === mod).map(t => t.tag);
-    return this.mods.find(m =>
+    return clearMod(this.mods.find(m =>
       m.plugin?.find(p => modPlugins.includes(p.tag)) ||
       m.template?.find(t => modTemplates.includes(t.tag))
-    );
+    ));
   }
 
   getInstalledPlugin(mod: string, tag: string) {
@@ -933,6 +933,19 @@ export class AdminService {
 
   getInstalledTemplate(mod: string, tag: string) {
     return this.status.modRefs[mod]?.plugins?.['plugin/mod']?.template?.find((template: Template) => template.tag === tag);
+  }
+
+  getInstalledMod(mod: string) {
+    return clearMod(this.status.modRefs[mod]?.plugins?.['plugin/mod']);
+  }
+
+  getCurrentMod(mod: string) {
+    const base = this.getInstalledMod(mod) || this.getMod(mod) || {};
+    return clearMod(<Mod> {
+      ...base,
+      plugin: this.getStatusPlugins(mod),
+      template: this.getStatusTemplates(mod),
+    });
   }
 
   installRef$(def: Ref, _: progress) {
@@ -955,7 +968,13 @@ export class AdminService {
   }
 
   logModReceipt$(mod: string, bundle: Mod, _: progress) {
-    const ref = this.getModRef(mod, bundle);
+    const ref = {
+      url: 'mod:' + encodeURIComponent(mod.replaceAll(/\s+/g, '-').replaceAll(/\W/g, '')),
+      origin: this.store.account.origin,
+      title: mod,
+      tags: ['internal', 'plugin/mod/receipt'],
+      plugins: { 'plugin/mod': bundle },
+    };
     return of(null).pipe(
       tap(() => _('\u00A0'.repeat(4) + $localize`Installing ${mod || ref.url} ref...`)),
       switchMap(() => this.refs.get(ref.url, ref.origin).pipe(
@@ -1080,6 +1099,46 @@ export class AdminService {
     return this.install$(mod, this.getMod(mod)!, _);
   }
 
+  updateMod$(mod: string, bundle: Mod, cleanBundle: Mod, _: progress): Observable<any> {
+    if (!bundle) return of(null);
+    bundle = restoreBundle(cleanBundle, bundle);
+    const currentPlugins = this.getStatusEntries(this.status.plugins, this.status.disabledPlugins, mod);
+    const currentTemplates = this.getStatusEntries(this.status.templates, this.status.disabledTemplates, mod);
+    const nextPlugins = bundle.plugin || [];
+    const nextTemplates = bundle.template || [];
+    return concat(...[
+      of(null).pipe(tap(() => _($localize`Installing ${mod} mod...`))),
+      ...currentPlugins
+        .filter(current => !nextPlugins.find(next => next.tag === current.tag))
+        .map(current => this.deletePlugin$(current, _)),
+      ...currentTemplates
+        .filter(current => !nextTemplates.find(next => next.tag === current.tag))
+        .map(current => this.deleteTemplate$(current, _)),
+      ...nextPlugins.map(plugin => (currentPlugins.find(current => current.tag === plugin.tag)
+        ? this.updatePlugin$(plugin, _)
+        : this.installPlugin$(plugin, _))),
+      ...nextTemplates.map(template => (currentTemplates.find(current => current.tag === template.tag)
+        ? this.updateTemplate$(template, _)
+        : this.installTemplate$(template, _))),
+      this.logModReceipt$(mod, cleanBundle, _),
+    ]).pipe(toArray());
+  }
+
+  private getStatusPlugins(mod: string) {
+    return this.getStatusEntries(this.status.plugins, this.status.disabledPlugins, mod)
+      .map(plugin => writePlugin({ ...plugin, origin: '' }));
+  }
+
+  private getStatusTemplates(mod: string) {
+    return this.getStatusEntries(this.status.templates, this.status.disabledTemplates, mod)
+      .map(template => writeTemplate({ ...template, origin: '' }));
+  }
+
+  private getStatusEntries<T extends Config & { tag: string }>(active: Record<string, T>, disabled: Record<string, T>, mod: string) {
+    return [...Object.values(active), ...Object.values(disabled)]
+      .filter((entry): entry is T => !!entry && modId(entry) === mod);
+  }
+
   deleteMod$(mod: string, _: progress): Observable<any> {
     return concat(...[
       of(null).pipe(tap(() => _($localize`Deleting ${mod} mod...`))),
@@ -1138,22 +1197,7 @@ export class AdminService {
       }
       return false;
     }
-    return !isEqual(clear(def), clear(status));
-  }
-
-  private getModRef(mod: string, bundle: Mod): Ref {
-    const url = this.getModUrl(mod);
-    return {
-      url,
-      origin: this.store.account.origin,
-      title: mod || this.getModIdFromUrl(url),
-      tags: ['public', 'plugin/mod'],
-      plugins: { 'plugin/mod': bundle },
-    };
-  }
-
-  private getModUrl(mod: string) {
-    return 'mod:' + encodeURIComponent(mod || uuid());
+    return !isEqual(clearConfig(def, false), clearConfig(status, false));
   }
 
   private getModIdFromUrl(url: string) {
@@ -1171,4 +1215,60 @@ function addParent(c: Config) {
     a._parent = c;
     return a;
   };
+}
+
+export function restoreBundle(target: Mod, merged: Mod) {
+  return {
+    ...target,
+    ...merged,
+    plugin: restoreConfigEntries(target.plugin, merged.plugin),
+    template: restoreConfigEntries(target.template, merged.template),
+  } as Mod;
+}
+
+function restoreConfigEntries<Entry extends Config & { tag: string }>(target: Entry[] | undefined, merged: Entry[] | undefined) {
+  const targetByTag = new Map((target || []).map(entry => [entry.tag, entry]));
+  return (merged || []).map(entry => {
+    const existing = targetByTag.get(entry.tag);
+    if (!existing) return entry;
+    return {
+      ...existing,
+      ...entry,
+      config: {
+        ...existing.config || {},
+        ...entry.config,
+      },
+    };
+  });
+}
+
+function clearMod<T extends Mod | undefined>(mod: T, strict = true): T {
+  if (!mod) return mod;
+  const result = { ...mod } as any;
+  if (!isEmpty(mod.ref)) result.ref = mod.ref!.map((r: Ref) => writeRef(r));
+  if (!isEmpty(mod.ext)) result.ext = mod.ext!.map((e: Ext) => writeExt(e));
+  if (!isEmpty(mod.user)) result.user = mod.user!.map((u: User) => writeUser(u));
+  if (!isEmpty(mod.plugin)) result.plugin = mod.plugin!.map((p: Plugin) => clearConfig(writePlugin(p), strict));
+  if (!isEmpty(mod.template)) result.template = mod.template!.map((t: Template) => clearConfig(writeTemplate(t), strict));
+  return result;
+}
+
+function clearConfig<T extends Config>(config: T, strict = false): T {
+  const result = {
+    ...config,
+    config: config.config && { ...config.config },
+  } as any;
+  if (isEmpty(result.defaults)) delete result.defaults;
+  if (result.schema === null) delete result.schema;
+  if (!strict) {
+    delete result.config?.version;
+    delete result.config?.generated;
+  }
+  delete result.origin;
+  return clear(result);
+}
+
+export function equalBundle(a?: Mod, b?: Mod) {
+  if (!a || !b) return false;
+  return isEqual(clearMod(a, false), clearMod(b, false));
 }

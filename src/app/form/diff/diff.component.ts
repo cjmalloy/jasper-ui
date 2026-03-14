@@ -4,7 +4,13 @@ import { DiffEditorModel, MonacoEditorModule } from 'ngx-monaco-editor';
 import { ResizeHandleDirective } from '../../directive/resize-handle.directive';
 import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
-import { formatDiff } from '../../util/diff';
+import { formatBundleDiff, formatDiff } from '../../util/diff';
+import { Ref } from '../../model/ref';
+import { Ext } from '../../model/ext';
+import { User } from '../../model/user';
+import { Plugin } from '../../model/plugin';
+import { Template } from '../../model/template';
+import { Mod } from '../../model/tag';
 
 @Component({
   selector: 'app-diff',
@@ -13,7 +19,7 @@ import { formatDiff } from '../../util/diff';
   host: { 'class': 'diff-editor' },
   imports: [MonacoEditorModule, ResizeHandleDirective]
 })
-export class DiffComponent<T extends Record<string, any>> implements OnInit, OnDestroy {
+export class DiffComponent<T extends Ref | Ext | User | Plugin | Template | Mod> implements OnInit, OnDestroy {
   private disposers: IReactionDisposer[] = [];
 
   @Input()
@@ -52,12 +58,13 @@ export class DiffComponent<T extends Record<string, any>> implements OnInit, OnD
   }
 
   ngOnInit() {
+    const entity = this.original.hasOwnProperty('url') || this.original.hasOwnProperty('url');
     this.originalModel = {
-      code: formatDiff(this.original),
+      code: (entity ? formatDiff : formatBundleDiff)(this.original as any),
       language: 'json'
     };
     this.modifiedModel = {
-      code: formatDiff(this.modified),
+      code: (entity ? formatDiff : formatBundleDiff)(this.modified as any),
       language: 'json'
     };
   }

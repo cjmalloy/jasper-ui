@@ -61,10 +61,10 @@
   </form>
   @if (serverError.length || installMessages.length) {
     <span class="log mobile-hide">
-      @for (e of serverError; track e) {
+      @for (e of serverError; track $index) {
         <div class="error">{{ e }}</div>
       }
-      @for (i of installMessages; track i) {
+      @for (i of installMessages; track $index) {
         <div>{{ i }}</div>
       }
     </span>
