@@ -8,7 +8,6 @@ import { llmPlugin } from '../mods/ai/ai';
 import { blogTemplate } from '../mods/blog';
 import { scrapePlugin } from '../mods/sync/scrape';
 import { userTemplate } from '../mods/user';
-import { PluginService } from './api/plugin.service';
 import { RefService } from './api/ref.service';
 import { AdminService } from './admin.service';
 import { Store } from '../store/store';
@@ -41,15 +40,12 @@ describe('AdminService', () => {
 
   it('should create a mod ref containing the installed bundle', () => {
     const refs = TestBed.inject(RefService);
-    const plugins = TestBed.inject(PluginService);
     const store = TestBed.inject(Store);
     store.account.origin = '@local';
     vi.spyOn(refs, 'get').mockReturnValue(throwError(() => ({ status: 404 })));
     const create = vi.spyOn(refs, 'create').mockReturnValue(of('ok'));
-    vi.spyOn(plugins, 'delete').mockReturnValue(of(undefined));
-    vi.spyOn(plugins, 'create').mockReturnValue(of(undefined));
 
-    service.install$('Wiki', {
+    service.logModReceipt$('Wiki', {
       plugin: [{ tag: 'plugin/wiki', name: 'Wiki' } as any],
     }, () => {}).subscribe();
 
@@ -57,7 +53,7 @@ describe('AdminService', () => {
       url: 'mod:Wiki',
       origin: '@local',
       title: 'Wiki',
-      tags: ['public', 'plugin/mod'],
+      tags: ['internal', 'plugin/mod/receipt'],
       plugins: {
         'plugin/mod': {
           plugin: [{ tag: 'plugin/wiki', name: 'Wiki' }],
