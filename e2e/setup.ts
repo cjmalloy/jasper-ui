@@ -131,6 +131,6 @@ export async function expectRefAuthor(page: Page, path: string, title: string, a
 export async function expectRefPage(page: Page, title: string) {
   await expect.poll(async () => {
     if (!/\/ref\//.test(page.url())) return false;
-    return (await page.locator('.full-page.ref .link a').first().textContent().catch(() => '')) === title;
+    return (await page.locator('.full-page.ref .link a').allTextContents())[0] === title;
   }, { timeout: e2eTimeout }).toBe(true);
 }

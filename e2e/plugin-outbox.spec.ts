@@ -19,14 +19,14 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
     await expectRefAuthor(page, `${base}/inbox/all?debug=ADMIN&tag=${user}`, title, author, remote);
   }
 
-  async function pullOrigin(page: Page, base: string, apiUrl: string, title: string) {
+  async function pullOrigin(page: Page, base: string, apiUrl: string, originTag: string) {
     await page.goto(`${base}/?debug=ADMIN`);
     await page.locator('.settings a', { hasText: 'settings' }).click();
     await page.locator('.tabs a', { hasText: 'origin' }).first().click();
     await openSidebar(page);
     await page.locator('input[type=search]').fill(apiUrl);
     await page.locator('input[type=search]').press('Enter');
-    const remote = refListItem(page, title);
+    const remote = refListItem(page, originTag);
     await expect(remote).toBeVisible();
     await remote.locator('.actions .show-more').click();
     await page.locator('.advanced-actions .fake-link', { hasText: 'pull' }).first().click();
