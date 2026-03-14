@@ -8,6 +8,12 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
   const replApi = process.env.REPL_API || 'http://localhost:8083';
   const replApiProxy = process.env.REPL_API_PROXY || 'http://repl-web';
 
+  function refListItem(page: Page, title: string, remote = false) {
+    return page.locator('.ref-list .ref', {
+      has: page.locator(`.link${remote ? '.remote' : ':not(.remote)'}`, { hasText: title }),
+    }).first();
+  }
+
   async function expectInboxRefAuthor(page: Page, base: string, user: string, title: string, author: string, remote = false) {
     await expectRefAuthor(page, `${base}/inbox/all?debug=ADMIN&tag=${user}`, title, author, remote);
   }
@@ -115,7 +121,7 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
     await page.goto('/?debug=USER&tag=alice', { waitUntil: 'networkidle' });
     await page.locator('.settings .inbox').click();
     await page.locator('.tabs a', { hasText: 'all' }).first().click();
-    const ref = page.locator('.ref-list .link.remote', { hasText: 'Ref from other' }).locator('..').locator('..').locator('..');
+    const ref = refListItem(page, 'Ref from other', true);
     await ref.locator('.actions a', { hasText: 'permalink'}).first().click();
     await page.locator('.comment-reply textarea').fill('Doing well, thanks!');
     await page.locator('.comment-reply textarea').blur();
@@ -142,7 +148,7 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
     await openSidebar(page);
     await page.locator('input[type=search]').fill(replApi);
     await page.locator('input[type=search]').press('Enter');
-    const repl = page.locator('.link:not(.remote)', { hasText: '@repl' }).locator('..').locator('..').locator('..');
+    const repl = refListItem(page, '@repl');
     await repl.locator('.actions .fake-link', { hasText: 'delete' }).first().click();
     await repl.locator('.actions .fake-link', { hasText: 'yes' }).first().click();
   });
@@ -154,7 +160,7 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
     await openSidebar(page);
     await page.locator('input[type=search]').fill(mainApi);
     await page.locator('input[type=search]').press('Enter');
-    const main = page.locator('.link:not(.remote)', { hasText: '@main' }).locator('..').locator('..').locator('..');
+    const main = refListItem(page, '@main');
     await main.locator('.actions .fake-link', { hasText: 'delete' }).first().click();
     await main.locator('.actions .fake-link', { hasText: 'yes' }).first().click();
   });
