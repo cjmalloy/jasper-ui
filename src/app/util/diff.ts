@@ -1,8 +1,5 @@
 import { diff3Merge, MergeRegion } from 'node-diff3';
-import { Plugin, writePlugin } from '../model/plugin';
-import { Ref, writeRef } from '../model/ref';
-import { Mod, clear } from '../model/tag';
-import { Template, writeTemplate } from '../model/template';
+import { isObject } from 'lodash-es';
 
 /**
  * Format ref for diff display:
@@ -10,19 +7,18 @@ import { Template, writeTemplate } from '../model/template';
  * - Fixed order for top-level fields
  * - Alphabetically sorted plugin keys
  */
-export function formatRefForDiff(ref: Ref): string {
-  const written = writeRef(ref);
-  const { modified, created, ...rest } = written as any;
+export function formatDiff(obj: Record<string, any>): string {
+  const { modified, created, ...rest } = obj as any;
   const ordered: any = {};
-  const fieldOrder = ['url', 'origin', 'title', 'comment', 'tags', 'sources', 'alternateUrls', 'published', 'plugins'];
+  const fieldOrder = ['tag', 'config', 'defaults', 'schema', 'url', 'origin', 'title', 'comment', 'tags', 'sources', 'alternateUrls', 'published', 'plugins'];
   for (const field of fieldOrder) {
     if (rest[field] !== undefined) {
-      if (field === 'plugins' && rest.plugins) {
-        const sortedPlugins: any = {};
-        Object.keys(rest.plugins).sort().forEach(key => {
-          sortedPlugins[key] = rest.plugins[key];
+      if (isObject(field) && rest[field]) {
+        const sorted: any = {};
+        Object.keys(rest[field]).sort().forEach(key => {
+          sorted[key] = rest[field][key];
         });
-        ordered.plugins = sortedPlugins;
+        ordered[field] = sorted;
       } else {
         ordered[field] = rest[field];
       }
@@ -34,45 +30,6 @@ export function formatRefForDiff(ref: Ref): string {
     }
   }
   return JSON.stringify(ordered, null, 2);
-}
-
-function sortJson(value: any): any {
-  if (Array.isArray(value)) return value.map(sortJson);
-  if (!value || typeof value !== 'object') return value;
-  return Object.keys(value).sort().reduce((result, key) => {
-    result[key] = sortJson(value[key]);
-    return result;
-  }, {} as any);
-}
-
-function stripInternalFields<T extends Plugin | Template>(entity: T): T {
-  return clear(JSON.parse(JSON.stringify(entity)));
-}
-
-function formatModForDiff(mod: Mod): string {
-  return JSON.stringify(sortJson({
-    ref: mod.ref || [],
-    ext: mod.ext || [],
-    user: mod.user || [],
-    plugin: (mod.plugin || [])
-      .map(plugin => stripInternalFields(writePlugin({ ...plugin, origin: '' } as Plugin)))
-      .sort((a, b) => a.tag.localeCompare(b.tag)),
-    template: (mod.template || [])
-      .map(template => stripInternalFields(writeTemplate({ ...template, origin: '' } as Template)))
-      .sort((a, b) => a.tag.localeCompare(b.tag)),
-  }), null, 2);
-}
-
-export function formatValueForDiff(value: unknown): string {
-  if (value && typeof value === 'object' && 'url' in (value as any)) {
-    return formatRefForDiff(value as Ref);
-  }
-  if (value && typeof value === 'object' &&
-    ('ref' in (value as any) || 'ext' in (value as any) || 'user' in (value as any) ||
-      'plugin' in (value as any) || 'template' in (value as any))) {
-    return formatModForDiff(value as Mod);
-  }
-  return JSON.stringify(sortJson(value), null, 2);
 }
 
 export type Merge = { mergedComment?: string, conflict?: MergeRegion<string>[] };

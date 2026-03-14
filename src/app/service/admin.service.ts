@@ -6,12 +6,12 @@ import { autorun, runInAction } from 'mobx';
 import { catchError, concat, forkJoin, map, Observable, of, retry, switchMap, throwError, toArray } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
-import { Ext } from '../model/ext';
+import { Ext, writeExt } from '../model/ext';
 import { Plugin, writePlugin } from '../model/plugin';
-import { Ref } from '../model/ref';
+import { Ref, writeRef } from '../model/ref';
 import { bundleSize, clear, condition, Config, EditorButton, Mod } from '../model/tag';
 import { Template, writeTemplate } from '../model/template';
-import { User } from '../model/user';
+import { User, writeUser } from '../model/user';
 import { aiMod } from '../mods/ai/ai';
 import { dalleMod } from '../mods/ai/dalle';
 import { naviMod } from '../mods/ai/navi';
@@ -92,7 +92,7 @@ import { Store } from '../store/store';
 import { modId } from '../util/format';
 import { getExtension, getHost } from '../util/http';
 import { memo, MemoCache } from '../util/memo';
-import { formatValueForDiff, merge3 } from '../util/diff';
+import { formatDiff, merge3 } from '../util/diff';
 import { addHierarchicalTags, directChild, hasPrefix, hasTag, tagIntersection, test } from '../util/tag';
 import { ExtService } from './api/ext.service';
 import { PluginService } from './api/plugin.service';
@@ -941,11 +941,11 @@ export class AdminService {
   }
 
   getInstalledMod(mod: string) {
-    return cloneMod(this.status.modRefs[mod]?.plugins?.['plugin/mod']);
+    return this.status.modRefs[mod]?.plugins?.['plugin/mod'];
   }
 
   getCurrentMod(mod: string) {
-    const base = this.getInstalledMod(mod) || cloneMod(this.getMod(mod)) || {};
+    const base = this.getInstalledMod(mod) || this.getMod(mod) || {};
     return {
       ...base,
       plugin: this.getStatusPlugins(mod),
@@ -959,20 +959,20 @@ export class AdminService {
   }
 
   getInstalledPlugin(mod: string, tag: string) {
-    return this.getInstalledMod(mod)?.plugin?.find(plugin => plugin.tag === tag);
+    return this.getInstalledMod(mod)?.plugin?.find((plugin: Plugin) => plugin.tag === tag);
   }
 
   getInstalledTemplate(mod: string, tag: string) {
-    return this.getInstalledMod(mod)?.template?.find(template => template.tag === tag);
+    return this.getInstalledMod(mod)?.template?.find((template: Template) => template.tag === tag);
   }
 
   getModUpdatePreview(mod: string, requested = false): ModUpdatePreview | undefined {
-    const target = cloneMod(this.getMod(mod));
+    const target = this.getMod(mod);
     if (!target) return undefined;
     const current = this.getCurrentMod(mod);
     const base = this.getInstalledMod(mod);
     if (base && !equalBundle(current, base)) {
-      const merged = merge3(formatValueForDiff(current), formatValueForDiff(base), formatValueForDiff(target));
+      const merged = merge3(formatDiff(current), formatDiff(base), formatDiff(target));
       if (!merged.mergedComment || merged.conflict) {
         return {
           mod,
@@ -1261,7 +1261,7 @@ export class AdminService {
       origin: this.store.account.origin,
       title: mod || this.getModIdFromUrl(url),
       tags: ['public', 'plugin/mod'],
-      plugins: { 'plugin/mod': cloneMod(bundle) },
+      plugins: { 'plugin/mod': bundle },
     };
   }
 
@@ -1280,12 +1280,12 @@ export class AdminService {
 
   private getStatusPlugins(mod: string) {
     return this.getStatusEntries(this.status.plugins, this.status.disabledPlugins, mod)
-      .map(plugin => deepClone(writePlugin({ ...plugin, origin: '' })));
+      .map(plugin => writePlugin({ ...plugin, origin: '' }));
   }
 
   private getStatusTemplates(mod: string) {
     return this.getStatusEntries(this.status.templates, this.status.disabledTemplates, mod)
-      .map(template => deepClone(writeTemplate({ ...template, origin: '' })));
+      .map(template => writeTemplate({ ...template, origin: '' }));
   }
 
   private getStatusEntries<T extends Config & { tag: string }>(active: Record<string, T>, disabled: Record<string, T>, mod: string) {
@@ -1301,36 +1301,33 @@ function addParent(c: Config) {
   };
 }
 
-function cloneConfig<T extends Config>(config: T) {
-  return clear(deepClone(config));
+function clearConfig<T extends Config>(config: T): T {
+  const result = { ...config } as any;
+  if (result.config) {
+    delete result.config.generated;
+    delete result.config.needsUpdate;
+  }
+  return result;
 }
 
-function cloneMod(mod?: Mod) {
-  if (!mod) return undefined;
-  return deepClone(mod);
-}
-
-function normalizeBundle(mod?: Mod) {
-  return {
-    ref: (mod?.ref || []).map(ref => deepClone(ref)),
-    ext: (mod?.ext || []).map(ext => deepClone(ext)),
-    user: (mod?.user || []).map(user => deepClone(user)),
-    plugin: (mod?.plugin || [])
-      .map(plugin => cloneConfig(writePlugin({ ...plugin, origin: '' })))
-      .sort((a, b) => a.tag.localeCompare(b.tag)),
-    template: (mod?.template || [])
-      .map(template => cloneConfig(writeTemplate({ ...template, origin: '' })))
-      .sort((a, b) => a.tag.localeCompare(b.tag)),
-  } as Mod;
+function clearMod(mod: Mod): Mod {
+  const result = { ...mod } as any;
+  if (mod.ref) mod.ref = mod.ref.map((r: Ref) => writeRef(r));
+  if (mod.ext) mod.ext = mod.ext.map((e: Ext) => writeExt(e));
+  if (mod.user) mod.user = mod.user?.map((u: User) => writeUser(u));
+  if (mod.plugin) mod.plugin = mod.plugin.map((p: Plugin) => clearConfig(writePlugin(p)));
+  if (mod.template) mod.template = mod.template.map((t: Template) => clearConfig(writeTemplate(t)));
+  return result;
 }
 
 function equalBundle(a?: Mod, b?: Mod) {
-  return isEqual(normalizeBundle(a), normalizeBundle(b));
+  if (!a || !b) return false;
+  return isEqual(clearMod(a), clearMod(b));
 }
 
 function restoreBundle(target: Mod, merged: Mod) {
   return {
-    ...cloneMod(target),
+    ...target,
     ...merged,
     plugin: restoreConfigEntries(target.plugin, merged.plugin),
     template: restoreConfigEntries(target.template, merged.template),
@@ -1343,16 +1340,12 @@ function restoreConfigEntries<Entry extends Config & { tag: string }>(target: En
     const existing = targetByTag.get(entry.tag);
     if (!existing) return entry;
     return {
-      ...deepClone(existing),
+      ...existing,
       ...entry,
       config: {
-        ...deepClone(existing.config || {}),
+        ...existing.config || {},
         ...entry.config,
       },
     };
   });
-}
-
-function deepClone<T>(value: T): T {
-  return JSON.parse(JSON.stringify(value));
 }
