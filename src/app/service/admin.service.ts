@@ -1307,6 +1307,7 @@ function clearConfig<T extends Config>(config: T): T {
     config: config.config && { ...config.config },
   } as any;
   if (result.config) {
+    delete result.config.version;
     delete result.config.generated;
     delete result.config.needsUpdate;
   }
