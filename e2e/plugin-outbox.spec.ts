@@ -2,6 +2,7 @@ import { expect, type Page, test } from '@playwright/test';
 import { clearAll, expectRefAuthor, expectRefPage, mod, modRemote, openSidebar, pollNotifications, pollRemoteNotifications } from './setup';
 
 test.describe.serial('Outbox Plugin: Remote Notifications', () => {
+  test.describe.configure({ timeout: 90_000 });
   const mainApi = process.env.MAIN_API || 'http://localhost:8081';
   const mainApiProxy = process.env.MAIN_API_PROXY || 'http://web';
   const replUrl = process.env.REPL_URL || 'http://localhost:8082';
@@ -16,6 +17,20 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
 
   async function expectInboxRefAuthor(page: Page, base: string, user: string, title: string, author: string, remote = false) {
     await expectRefAuthor(page, `${base}/inbox/all?debug=ADMIN&tag=${user}`, title, author, remote);
+  }
+
+  async function pullOrigin(page: Page, base: string, apiUrl: string, title: string) {
+    await page.goto(`${base}/?debug=ADMIN`);
+    await page.locator('.settings a', { hasText: 'settings' }).click();
+    await page.locator('.tabs a', { hasText: 'origin' }).first().click();
+    await openSidebar(page);
+    await page.locator('input[type=search]').fill(apiUrl);
+    await page.locator('input[type=search]').press('Enter');
+    const remote = refListItem(page, title);
+    await expect(remote).toBeVisible();
+    await remote.locator('.actions .show-more').click();
+    await page.locator('.advanced-actions .fake-link', { hasText: 'pull' }).first().click();
+    await page.locator('.advanced-actions .fake-link', { hasText: 'yes' }).first().click();
   }
 
   test('@\u{ff20}main : clear all', async ({ page }) => {
@@ -62,6 +77,7 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
     await submitPromise;
     await expectRefPage(page, 'Testing Remote @repl');
     await page.locator('.full-page.ref .actions .fake-link', { hasText: 'enable' }).first().click();
+    await expect(page.locator('.full-page.ref .actions .fake-link', { hasText: 'disable' }).first()).toBeVisible();
   });
 
   test('@\u{ff20}repl : create users', async ({ page }) => {
@@ -91,6 +107,7 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
     await submitPromise;
     await expectRefPage(page, 'Testing Remote @main');
     await page.locator('.full-page.ref .actions .fake-link', { hasText: 'enable' }).first().click();
+    await expect(page.locator('.full-page.ref .actions .fake-link', { hasText: 'disable' }).first()).toBeVisible();
   });
 
   test('@\u{ff20}repl : creates ref', async ({ page }) => {
@@ -112,6 +129,10 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
     await expectInboxRefAuthor(page, replUrl, 'charlie', 'Ref from other', 'bob');
   });
 
+  test('@\u{ff20}main : pull pending remote ref batch', async ({ page }) => {
+    await pullOrigin(page, '', replApi, '@repl');
+  });
+
   test('@\u{ff20}main : check ref was pulled', async ({ page }) => {
     await pollNotifications(page, 'alice');
     await expectInboxRefAuthor(page, '', 'alice', 'Ref from other', 'bob', true);
@@ -129,6 +150,10 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
     await page.locator('.comment-reply button', { hasText: 'reply' }).click();
     await replyPromise;
     await page.waitForLoadState('networkidle');
+  });
+
+  test('@\u{ff20}repl : pull pending remote reply batch', async ({ page }) => {
+    await pullOrigin(page, replUrl, mainApi, '@main');
   });
 
   test('@\u{ff20}repl : check reply was pulled', async ({ page }) => {

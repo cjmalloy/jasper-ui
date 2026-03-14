@@ -129,6 +129,8 @@ export async function expectRefAuthor(page: Page, path: string, title: string, a
 }
 
 export async function expectRefPage(page: Page, title: string) {
-  await page.waitForURL(/\/ref\//, { timeout: e2eTimeout });
-  await expect(page.locator('.full-page.ref .link a')).toHaveText(title, { timeout: e2eTimeout });
+  await expect.poll(async () => {
+    if (!/\/ref\//.test(page.url())) return false;
+    return (await page.locator('.full-page.ref .link a').first().textContent().catch(() => '')) === title;
+  }, { timeout: e2eTimeout }).toBe(true);
 }

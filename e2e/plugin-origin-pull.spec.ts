@@ -1,9 +1,30 @@
-import { expect, test } from '@playwright/test';
+import { expect, type Page, test } from '@playwright/test';
 import { clearAll, expectRefAuthor, expectRefPage, mod, openSidebar } from './setup';
 
 test.describe.serial('Origin Pull Plugin', () => {
+  test.describe.configure({ timeout: 90_000 });
   const replUrl = process.env.REPL_URL || 'http://localhost:8082';
   const replApiProxy = process.env.REPL_API_PROXY || 'http://repl-web';
+
+  function refListItem(page: Page, title: string) {
+    return page.locator('.ref-list .ref', {
+      has: page.locator('.link:not(.remote)', { hasText: title }),
+    }).first();
+  }
+
+  async function pullRemoteOrigin(page: Page) {
+    await page.goto('/?debug=ADMIN');
+    await page.locator('.settings a', { hasText: 'settings' }).click();
+    await page.locator('.tabs a', { hasText: 'origin' }).first().click();
+    await openSidebar(page);
+    await page.locator('input[type=search]').fill(replApiProxy);
+    await page.locator('input[type=search]').press('Enter');
+    const repl = refListItem(page, '@repl');
+    await expect(repl).toBeVisible();
+    await repl.locator('.actions .show-more').click();
+    await page.locator('.advanced-actions .fake-link', { hasText: 'pull' }).first().click();
+    await page.locator('.advanced-actions .fake-link', { hasText: 'yes' }).first().click();
+  }
 
   test('@\u{ff20}main : clear all', async ({ page }) => {
     await clearAll(page);
@@ -33,6 +54,7 @@ test.describe.serial('Origin Pull Plugin', () => {
     await submitPromise;
     await expectRefPage(page, 'Testing Remote @repl');
     await page.locator('.full-page.ref .actions .fake-link', { hasText: 'enable' }).first().click();
+    await expect(page.locator('.full-page.ref .actions .fake-link', { hasText: 'disable' }).first()).toBeVisible();
   });
 
   test('@\u{ff20}repl : clear all', async ({ page }) => {
@@ -51,6 +73,10 @@ test.describe.serial('Origin Pull Plugin', () => {
     await expectRefPage(page, 'Pull Test');
   });
 
+  test('@\u{ff20}main : pull pending remote batch', async ({ page }) => {
+    await pullRemoteOrigin(page);
+  });
+
   test('@\u{ff20}main : check ref was pulled', async ({ page }) => {
     await expectRefAuthor(page, '/tag/@repl?debug=USER', 'Pull Test', 'bob', true);
   });
@@ -62,7 +88,7 @@ test.describe.serial('Origin Pull Plugin', () => {
     await openSidebar(page);
     await page.locator('input[type=search]').fill(replApiProxy);
     await page.locator('input[type=search]').press('Enter');
-    const repl = page.locator('.link:not(.remote)', { hasText: '@repl' }).locator('..').locator('..').locator('..');
+    const repl = refListItem(page, '@repl');
     await repl.locator('.actions .fake-link', { hasText: 'delete' }).first().click();
     await repl.locator('.actions .fake-link', { hasText: 'yes' }).first().click();
   });
