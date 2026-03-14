@@ -202,6 +202,7 @@ export interface Config extends Tag {
    * Cache for compiled templates.
    */
   _cache?: any;
+  _needsUpdate?: boolean;
 }
 
 

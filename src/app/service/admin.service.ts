@@ -260,8 +260,8 @@ export class AdminService {
   }
 
   get updates() {
-    for (const p of Object.values(this.status.plugins)) if (p?.config?.needsUpdate) return this.store.view.updateNotify();
-    for (const t of Object.values(this.status.templates)) if (t?.config?.needsUpdate) return this.store.view.updateNotify();
+    for (const p of Object.values(this.status.plugins)) if (p?._needsUpdate) return this.store.view.updateNotify();
+    for (const t of Object.values(this.status.templates)) if (t?._needsUpdate) return this.store.view.updateNotify();
     return false;
   }
 
@@ -357,9 +357,8 @@ export class AdminService {
         this.status.plugins[p.tag] = p;
         this.def.plugins[p.tag] ||= clear(p);
       }
-      p.config ||= {};
-      p.config.needsUpdate ||= this.needsUpdate(this.def.plugins[p.tag], p);
-      if (p.config.needsUpdate) {
+      p._needsUpdate ||= this.needsUpdate(this.def.plugins[p.tag], p);
+      if (p._needsUpdate) {
         console.log(p.tag + ' needs update');
       }
     }
@@ -373,9 +372,8 @@ export class AdminService {
         this.status.templates[t.tag] = t;
         this.def.templates[t.tag] ||= t;
       }
-      t.config ||= {};
-      t.config.needsUpdate ||= this.needsUpdate(this.def.templates[t.tag], t);
-      if (t.config.needsUpdate) {
+      t._needsUpdate ||= this.needsUpdate(this.def.templates[t.tag], t);
+      if (t._needsUpdate) {
         console.log((t.tag || 'Root template') + ' needs update');
       }
     }
@@ -946,11 +944,11 @@ export class AdminService {
 
   getCurrentMod(mod: string) {
     const base = this.getInstalledMod(mod) || this.getMod(mod) || {};
-    return {
+    return clearMod(<Mod> {
       ...base,
       plugin: this.getStatusPlugins(mod),
       template: this.getStatusTemplates(mod),
-    } as Mod;
+    });
   }
 
   isModModified(mod: string) {
@@ -1309,8 +1307,8 @@ function clearConfig<T extends Config>(config: T): T {
   if (result.config) {
     delete result.config.version;
     delete result.config.generated;
-    delete result.config.needsUpdate;
   }
+  delete result._needsUpdate;
   return result;
 }
 
