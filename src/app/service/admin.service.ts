@@ -1302,7 +1302,10 @@ function addParent(c: Config) {
 }
 
 function clearConfig<T extends Config>(config: T): T {
-  const result = { ...config } as any;
+  const result = {
+    ...config,
+    config: config.config && { ...config.config },
+  } as any;
   if (result.config) {
     delete result.config.generated;
     delete result.config.needsUpdate;
@@ -1312,11 +1315,11 @@ function clearConfig<T extends Config>(config: T): T {
 
 function clearMod(mod: Mod): Mod {
   const result = { ...mod } as any;
-  if (mod.ref) mod.ref = mod.ref.map((r: Ref) => writeRef(r));
-  if (mod.ext) mod.ext = mod.ext.map((e: Ext) => writeExt(e));
-  if (mod.user) mod.user = mod.user?.map((u: User) => writeUser(u));
-  if (mod.plugin) mod.plugin = mod.plugin.map((p: Plugin) => clearConfig(writePlugin(p)));
-  if (mod.template) mod.template = mod.template.map((t: Template) => clearConfig(writeTemplate(t)));
+  if (mod.ref) result.ref = mod.ref.map((r: Ref) => writeRef(r));
+  if (mod.ext) result.ext = mod.ext.map((e: Ext) => writeExt(e));
+  if (mod.user) result.user = mod.user?.map((u: User) => writeUser(u));
+  if (mod.plugin) result.plugin = mod.plugin.map((p: Plugin) => clearConfig(writePlugin(p)));
+  if (mod.template) result.template = mod.template.map((t: Template) => clearConfig(writeTemplate(t)));
   return result;
 }
 
