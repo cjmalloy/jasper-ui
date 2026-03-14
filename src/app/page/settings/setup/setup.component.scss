@@ -45,6 +45,14 @@ label {
   margin: 12px 0;
 }
 
+.mod-merge-diff {
+  display: block;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
 .merge-buttons {
+  align-items: center;
+  flex: none;
   margin-top: 10px;
 }

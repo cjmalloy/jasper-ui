@@ -24,6 +24,8 @@ export class DiffComponent<T extends Record<string, any>> implements OnInit, OnD
   readOnly = false;
   @Input()
   resizable = true;
+  @Input()
+  fullHeight = false;
   @Output()
   modifiedChange = new EventEmitter<T>();
 
