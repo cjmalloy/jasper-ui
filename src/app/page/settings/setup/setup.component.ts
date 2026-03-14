@@ -139,11 +139,11 @@ export class SettingsSetupPage implements OnDestroy {
     const mods: string[] = [];
     for (const plugin in this.admin.status.plugins) {
       const status = this.admin.status.plugins[plugin];
-      if (this.needsUpdate(status)) mods.push(modId(status));
+      if (status?._needsUpdate) mods.push(modId(status));
     }
     for (const template in this.admin.status.templates) {
       const status = this.admin.status.templates[template];
-      if (this.needsUpdate(status)) mods.push(modId(status));
+      if (status?._needsUpdate) mods.push(modId(status));
     }
     concat(...uniq(mods).map(mod => this.admin.updateMod$(mod, _)))
       .pipe(last())
@@ -192,22 +192,14 @@ export class SettingsSetupPage implements OnDestroy {
     );
   }
 
-  overwriteMerge() {
-    this.applyMerge(this.mergeState?.target);
-  }
-
   cancelMerge() {
     this.setMergeState();
   }
 
-  needsUpdate(mod?: Config) {
-    return mod?.config?.needsUpdate;
-  }
-
   needsModUpdate(config: Config) {
     const mod = modId(config);
-    return Object.values(this.admin.status.plugins).find(p => p && mod === modId(p) && p.config?.needsUpdate) ||
-      Object.values(this.admin.status.templates).find(t => t && mod === modId(t) && t.config?.needsUpdate);
+    return Object.values(this.admin.status.plugins).find(p => p && mod === modId(p) && p._needsUpdate) ||
+      Object.values(this.admin.status.templates).find(t => t && mod === modId(t) && t._needsUpdate);
   }
 
   modModified(config: Config) {

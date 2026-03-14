@@ -174,7 +174,8 @@ describe('AdminService', () => {
     service.status.plugins['plugin/wiki'] = {
       tag: 'plugin/wiki',
       origin: '@local',
-      config: { mod: 'Wiki', version: 1, needsUpdate: true },
+      config: { mod: 'Wiki', version: 1 },
+      _needsUpdate: true,
     } as any;
     service.status.modRefs.Wiki = {
       url: 'mod:Wiki',
@@ -188,7 +189,7 @@ describe('AdminService', () => {
 
     service.getModUpdatePreview('Wiki', true);
 
-    expect(service.status.plugins['plugin/wiki'].config?.needsUpdate).toBe(true);
+    expect(service.status.plugins['plugin/wiki']._needsUpdate).toBe(true);
     expect(service.status.plugins['plugin/wiki'].config?.mod).toBe('Wiki');
   });
 
