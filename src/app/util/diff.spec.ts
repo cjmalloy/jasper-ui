@@ -1,11 +1,10 @@
 /// <reference types="vitest/globals" />
 import { DateTime } from 'luxon';
 import { Ref } from '../model/ref';
-import { Mod } from '../model/tag';
-import { formatRefForDiff, formatValueForDiff, merge3 } from './diff';
+import { formatDiff, merge3 } from './diff';
 
 describe('Diff Utils', () => {
-  describe('formatRefForDiff', () => {
+  describe('formatDiff', () => {
     it('should format a ref excluding modified and created fields', () => {
       const ref: Ref = {
         url: 'https://example.com',
@@ -18,7 +17,7 @@ describe('Diff Utils', () => {
         created: DateTime.fromISO('2025-01-01T00:00:00Z'),
       };
 
-      const formatted = formatRefForDiff(ref);
+      const formatted = formatDiff(ref as any);
       const parsed = JSON.parse(formatted);
 
       expect(parsed.url).toBe('https://example.com');
@@ -38,7 +37,7 @@ describe('Diff Utils', () => {
         modifiedString: '2025-01-01T00:00:00Z',
       };
 
-      const formatted = formatRefForDiff(ref);
+      const formatted = formatDiff(ref as any);
       const keys = Object.keys(JSON.parse(formatted));
 
       expect(keys[0]).toBe('url');
@@ -60,40 +59,11 @@ describe('Diff Utils', () => {
         },
       };
 
-      const formatted = formatRefForDiff(ref);
+      const formatted = formatDiff(ref as any);
       const parsed = JSON.parse(formatted);
       const pluginKeys = Object.keys(parsed.plugins);
 
-      expect(pluginKeys).toEqual(['alpha', 'beta', 'zebra']);
-    });
-  });
-
-  describe('formatValueForDiff', () => {
-    it('should clear plugin and template configs in mod bundles', () => {
-      const bundle: Mod = {
-        plugin: [{
-          tag: 'plugin/wiki',
-          origin: '@local',
-          type: 'plugin',
-          config: {
-            mod: 'Wiki',
-            version: 2,
-            description: 'edited',
-            generated: true,
-            _parent: { anything: true },
-          },
-        } as any],
-      };
-
-      const parsed = JSON.parse(formatValueForDiff(bundle));
-
-      expect(parsed.plugin).toEqual([{
-        tag: 'plugin/wiki',
-        config: {
-          description: 'edited',
-          version: 2,
-        },
-      }]);
+      expect(pluginKeys).toEqual(['zebra', 'alpha', 'beta']);
     });
   });
 

@@ -21,12 +21,28 @@ label {
   margin: 10px;
 }
 
-.merge-panel {
-  margin-top: 20px;
-}
-
 .merge-title {
   display: block;
+}
+
+.merge-popup {
+  background: var(--bg);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 16px;
+}
+
+.merge-popup-header {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+}
+
+.merge-warning {
+  margin: 12px 0;
 }
 
 .merge-buttons {
