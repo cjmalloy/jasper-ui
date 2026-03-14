@@ -603,6 +603,7 @@ export function clear<T extends Config>(c: T) {
   delete c.modified;
   delete c.modifiedString;
   delete c._cache;
+  delete c._needsUpdate;
   return c;
 }
 
