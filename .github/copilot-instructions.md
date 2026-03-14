@@ -81,6 +81,12 @@ docker compose up --build  # Everything on http://localhost:8082/
 - E2E tests: `npm run pw:ci` (10-20 min, NEVER CANCEL, timeout 30+ min)
 - Stop services: `docker compose down`
 
+### RxJS Subscribe Style
+
+- **Never** pass an observer object to `subscribe()`.
+- **Never** pass multiple callback parameters to `subscribe()`.
+- Always prefer a single callback form such as `observable.subscribe(value => { ... })`.
+
 ### Dependency Management
 
 **CRITICAL**: **Never run `npm install` without arguments** — this regenerates `package-lock.json` and breaks CI. CI uses `npm ci`, which requires the lockfile to exactly match `package.json`. A modified lockfile will cause the build to fail.

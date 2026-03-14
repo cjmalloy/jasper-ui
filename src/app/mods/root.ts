@@ -392,7 +392,7 @@ export const privateTemplate: Template = {
 };
 
 export const diffTemplate: Template = {
-  tag: 'diff',
+  tag: 'config/diff',
   name: $localize`🔀 Diff`,
   config: {
     mod: $localize`⚓️ Root`,
