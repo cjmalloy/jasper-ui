@@ -63,6 +63,18 @@ describe('DiffComponent', () => {
     expect(component.options.automaticLayout).toBe(true);
   });
 
+  it('should disable the resize handle when resizable is false', () => {
+    fixture.destroy();
+    fixture = TestBed.createComponent(DiffComponent);
+    component = fixture.componentInstance;
+    component.original = { url: 'http://test.com', origin: '', title: 'Original' };
+    component.modified = { url: 'http://test.com', origin: '', title: 'Modified' };
+    component.resizable = false;
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('.resize-handle')).toBeFalsy();
+  });
+
   it('should return parsed JSON from getModifiedContent', () => {
     component.modifiedModel.code = '{"url":"http://test.com","title":"Test"}';
     const content = component.getModifiedContent();

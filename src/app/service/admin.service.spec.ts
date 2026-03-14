@@ -167,6 +167,31 @@ describe('AdminService', () => {
     }));
   });
 
+  it('should preserve needsUpdate metadata after opening a mod diff preview', () => {
+    service.mods.unshift({
+      plugin: [{ tag: 'plugin/wiki', config: { mod: 'Wiki', version: 2 } } as any],
+    });
+    service.status.plugins['plugin/wiki'] = {
+      tag: 'plugin/wiki',
+      origin: '@local',
+      config: { mod: 'Wiki', version: 1, needsUpdate: true },
+    } as any;
+    service.status.modRefs.Wiki = {
+      url: 'mod:Wiki',
+      origin: '@local',
+      plugins: {
+        'plugin/mod': {
+          plugin: [{ tag: 'plugin/wiki', config: { mod: 'Wiki', version: 1 } }],
+        },
+      },
+    } as any;
+
+    service.getModUpdatePreview('Wiki', true);
+
+    expect(service.status.plugins['plugin/wiki'].config?.needsUpdate).toBe(true);
+    expect(service.status.plugins['plugin/wiki'].config?.mod).toBe('Wiki');
+  });
+
   it('should reconcile plugin and template changes when applying a mod update', () => {
     const refs = TestBed.inject(RefService);
     const templates = TestBed.inject(TemplateService);
