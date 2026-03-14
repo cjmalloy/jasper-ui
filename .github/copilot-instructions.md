@@ -30,6 +30,19 @@ Jasper is an open source knowledge management (KM) system. Unlike a CMS, Jasper 
   - `(science|math):funny`: Refs with (`science` OR `math`) AND `funny`
   - `music:people/murray`: Matches hierarchical tags like `people/murray/anne`
 
+**Common Jasper gotchas from the server README:**
+- Jasper is a generic knowledge-management platform, not just a bookmark app. The same model can support research, BI, journalism, forums, wikis, task management, libraries, support, collaborative writing, PKM, and e-mail.
+- Refs point to external resources. The URL scheme defines the resource type, so Jasper may use `https:`, `isbn:`, `comment:`, `wiki:`, `cache:`, or other valid URI schemes. Do not assume content always lives directly in Jasper.
+- Tags are plain hierarchical strings, not standalone entities. `Ext`, `User`, `Plugin`, and `Template` are tag-like entities keyed by `(tag, origin)`, but a tag itself does not need a pre-existing entity to be used on a Ref.
+- There are effectively two entity families: Refs and tag-like entities. A Ref is keyed by `(url, origin)` and tag-like entities are keyed by `(tag, origin)`. The local origin is the empty string, while `(origin, modified)` also acts as the replication cursor.
+- Querying is origin-aware. Queries may contain tags, origins, or fully qualified tags like `tag@origin`. The special origin `@` matches the default empty origin, unqualified tags match wildcard origins, and query groups are currently not nested.
+- Jasper's four model layers matter when reasoning about validation: identity (storage/replication), indexing (tags/query/sort), validation (full entity plus schema validation), and modding (client-only customization).
+- Plugins and templates inherit differently: plugins stack on Refs, while templates merge down the tag hierarchy on Exts/config.
+- Modding is intentionally client-side. New plugins, templates, and custom clients should usually not require server restarts or server code changes.
+- Replication is pull-based and eventually consistent. Remote origins are typically ingested by polling for entities after the last stored modified cursor, so unique modified timestamps matter.
+- Access control combines hierarchical roles with TBAC. Protected tags can be queried but not freely added; private tags cannot be used without permission and are stripped from server responses if access is missing.
+- Special URL behavior matters: `tag:/...` Refs follow tag access rules rather than ordinary tagging rules, and user-setting Refs commonly use tag URLs like `tag:/+user/<name>`.
+
 This Angular client (jasper-ui) provides the reference implementation for interacting with the Jasper knowledge management server.
 
 ## Quick Start
