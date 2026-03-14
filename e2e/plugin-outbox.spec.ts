@@ -1,5 +1,5 @@
 import { expect, type Page, test } from '@playwright/test';
-import { clearAll, expectRefAuthor, expectRefPage, mod, modRemote, openSidebar, pollNotifications, pollRemoteNotifications } from './setup';
+import { clearAll, expectRefAuthor, expectRefPage, mod, modRemote, openSidebar, pollNotifications, pollRemoteNotifications, refListItem } from './setup';
 
 test.describe.serial('Outbox Plugin: Remote Notifications', () => {
   test.describe.configure({ timeout: 90_000 });
@@ -8,12 +8,6 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
   const replUrl = process.env.REPL_URL || 'http://localhost:8082';
   const replApi = process.env.REPL_API || 'http://localhost:8083';
   const replApiProxy = process.env.REPL_API_PROXY || 'http://repl-web';
-
-  function refListItem(page: Page, title: string, remote = false) {
-    return page.locator('.ref-list .ref', {
-      has: page.locator(`.link${remote ? '.remote' : ':not(.remote)'}`, { hasText: title }),
-    }).first();
-  }
 
   async function expectInboxRefAuthor(page: Page, base: string, user: string, title: string, author: string, remote = false) {
     await expectRefAuthor(page, `${base}/inbox/all?debug=ADMIN&tag=${user}`, title, author, remote);
@@ -26,7 +20,7 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
     await openSidebar(page);
     await page.locator('input[type=search]').fill(apiUrl);
     await page.locator('input[type=search]').press('Enter');
-    const remote = refListItem(page, originTag);
+    const remote = refListItem(page, originTag, false);
     await expect(remote).toBeVisible();
     await remote.locator('.actions .show-more').click();
     await page.locator('.advanced-actions .fake-link', { hasText: 'pull' }).first().click();
@@ -173,7 +167,7 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
     await openSidebar(page);
     await page.locator('input[type=search]').fill(replApi);
     await page.locator('input[type=search]').press('Enter');
-    const repl = refListItem(page, '@repl');
+    const repl = refListItem(page, '@repl', false);
     await repl.locator('.actions .fake-link', { hasText: 'delete' }).first().click();
     await repl.locator('.actions .fake-link', { hasText: 'yes' }).first().click();
   });
@@ -185,7 +179,7 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
     await openSidebar(page);
     await page.locator('input[type=search]').fill(mainApi);
     await page.locator('input[type=search]').press('Enter');
-    const main = refListItem(page, '@main');
+    const main = refListItem(page, '@main', false);
     await main.locator('.actions .fake-link', { hasText: 'delete' }).first().click();
     await main.locator('.actions .fake-link', { hasText: 'yes' }).first().click();
   });

@@ -1,25 +1,19 @@
 import { expect, type Page, test } from '@playwright/test';
-import { clearAll, expectRefAuthor, expectRefPage, mod, openSidebar } from './setup';
+import { clearAll, expectRefAuthor, expectRefPage, mod, openSidebar, refListItem } from './setup';
 
 test.describe.serial('Origin Pull Plugin', () => {
   test.describe.configure({ timeout: 90_000 });
   const replUrl = process.env.REPL_URL || 'http://localhost:8082';
   const replApiProxy = process.env.REPL_API_PROXY || 'http://repl-web';
 
-  function refListItem(page: Page, title: string) {
-    return page.locator('.ref-list .ref', {
-      has: page.locator('.link:not(.remote)', { hasText: title }),
-    }).first();
-  }
-
-  async function pullRemoteOrigin(page: Page) {
+  async function pullRemoteOrigin(page: Page, apiUrl: string, originTag: string) {
     await page.goto('/?debug=ADMIN');
     await page.locator('.settings a', { hasText: 'settings' }).click();
     await page.locator('.tabs a', { hasText: 'origin' }).first().click();
     await openSidebar(page);
-    await page.locator('input[type=search]').fill(replApiProxy);
+    await page.locator('input[type=search]').fill(apiUrl);
     await page.locator('input[type=search]').press('Enter');
-    const repl = refListItem(page, '@repl');
+    const repl = refListItem(page, originTag, false);
     await expect(repl).toBeVisible();
     await repl.locator('.actions .show-more').click();
     await page.locator('.advanced-actions .fake-link', { hasText: 'pull' }).first().click();
@@ -74,7 +68,7 @@ test.describe.serial('Origin Pull Plugin', () => {
   });
 
   test('@\u{ff20}main : pull pending remote batch', async ({ page }) => {
-    await pullRemoteOrigin(page);
+    await pullRemoteOrigin(page, replApiProxy, '@repl');
   });
 
   test('@\u{ff20}main : check ref was pulled', async ({ page }) => {
@@ -88,7 +82,7 @@ test.describe.serial('Origin Pull Plugin', () => {
     await openSidebar(page);
     await page.locator('input[type=search]').fill(replApiProxy);
     await page.locator('input[type=search]').press('Enter');
-    const repl = refListItem(page, '@repl');
+    const repl = refListItem(page, '@repl', false);
     await repl.locator('.actions .fake-link', { hasText: 'delete' }).first().click();
     await repl.locator('.actions .fake-link', { hasText: 'yes' }).first().click();
   });

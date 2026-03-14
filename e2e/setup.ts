@@ -118,14 +118,18 @@ export async function pollRemoteNotifications(page: Page, base = '', user = 'deb
 export async function expectRefAuthor(page: Page, path: string, title: string, author: string, remote?: boolean) {
   await expect.poll(async () => {
     await page.goto(path, { waitUntil: 'networkidle' });
-    const linkSelector = remote === undefined
-      ? '.ref-list .link'
-      : `.ref-list .link${remote ? '.remote' : ':not(.remote)'}`;
-    const ref = page.locator('.ref-list .ref', {
-      has: page.locator(linkSelector, { hasText: title }),
-    }).first();
+    const ref = refListItem(page, title, remote);
     return await ref.locator('.user.tag', { hasText: author }).first().isVisible().catch(() => false);
   }, { timeout: e2eTimeout }).toBe(true);
+}
+
+export function refListItem(page: Page, title: string, remote?: boolean) {
+  const linkSelector = remote === undefined
+    ? '.ref-list .link'
+    : `.ref-list .link${remote ? '.remote' : ':not(.remote)'}`;
+  return page.locator('.ref-list .ref', {
+    has: page.locator(linkSelector, { hasText: title }),
+  }).first();
 }
 
 export async function expectRefPage(page: Page, title: string) {
