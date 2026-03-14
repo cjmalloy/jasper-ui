@@ -5,16 +5,33 @@ import { TemplatePortal } from '@angular/cdk/portal';
 import { Component, OnDestroy, TemplateRef, ViewChild, ViewContainerRef } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { forOwn, uniq } from 'lodash-es';
-import { concat, last, Subscription } from 'rxjs';
+import { forOwn, isEqual, uniq } from 'lodash-es';
+import { EMPTY, catchError, concat, last, Observable, of, Subscription, tap, throwError, toArray } from 'rxjs';
+import { Ext, writeExt } from '../../../model/ext';
+import { Plugin, writePlugin } from '../../../model/plugin';
+import { Ref, writeRef } from '../../../model/ref';
 import { Config, Mod } from '../../../model/tag';
-import { AdminService, ModUpdatePreview } from '../../../service/admin.service';
+import { Template, writeTemplate } from '../../../model/template';
+import { User, writeUser } from '../../../model/user';
+import { AdminService } from '../../../service/admin.service';
 import { ModService } from '../../../service/mod.service';
+import { progress } from '../../../store/bus';
 import { Store } from '../../../store/store';
+import { formatDiff, merge3 } from '../../../util/diff';
 import { scrollToFirstInvalid } from '../../../util/form';
 import { configGroups, formSafeNames, modId } from '../../../util/format';
 import { printError } from '../../../util/http';
 import { DiffComponent } from '../../../form/diff/diff.component';
+
+export interface ModUpdatePreview {
+  mod: string;
+  current: Mod;
+  target: Mod;
+  proposed: Mod;
+  needsReview: boolean;
+  conflict: boolean;
+  reason?: 'conflict' | 'missing-base' | 'requested';
+}
 
 @Component({
   selector: 'app-settings-setup-page',
@@ -106,14 +123,15 @@ export class SettingsSetupPage implements OnDestroy {
       ...uniq(installs).map(m => this.admin.installMod$(m, _))
     ).pipe(
       last(),
-    ).subscribe({
-      next: () => {
+      catchError((res: HttpErrorResponse) => {
+        this.serverError = printError(res);
+        return EMPTY;
+      }),
+    ).subscribe(() => {
         this.submitted = true;
         this.reset();
         _($localize`Success.`);
-      },
-      error: (res: HttpErrorResponse) => this.serverError = printError(res),
-    });
+      });
   }
 
   reset() {
@@ -145,16 +163,16 @@ export class SettingsSetupPage implements OnDestroy {
       const status = this.admin.status.templates[template];
       if (status?._needsUpdate) mods.push(modId(status));
     }
-    concat(...uniq(mods).map(mod => this.admin.updateMod$(mod, _)))
-      .pipe(last())
-      .subscribe(
-        () => {
+    concat(...uniq(mods).map(mod => this.updateMod$(mod, _)))
+      .pipe(last(), catchError((res: HttpErrorResponse | { preview?: ModUpdatePreview }) => {
+        this.handleUpdateError(res);
+        return EMPTY;
+      }))
+      .subscribe(() => {
           this.submitted = true;
           this.reset();
           _($localize`Success.`);
-        },
-        (res: HttpErrorResponse | { preview?: ModUpdatePreview }) => this.handleUpdateError(res),
-      );
+        });
   }
 
   selectAll() {
@@ -167,29 +185,33 @@ export class SettingsSetupPage implements OnDestroy {
     this.serverError = [];
     this.setMergeState();
     const _ = (msg?: string) => this.installMessages.push(msg!);
-    this.admin.updateMod$(modId(config), _).subscribe(
-      () => this.reset(),
-      (res: HttpErrorResponse | { preview?: ModUpdatePreview }) => this.handleUpdateError(res),
-    );
+    this.updateMod$(modId(config), _)
+      .pipe(catchError((res: HttpErrorResponse | { preview?: ModUpdatePreview }) => {
+        this.handleUpdateError(res);
+        return EMPTY;
+      }))
+      .subscribe(() => this.reset());
   }
 
   diffMod(config: Config) {
     this.serverError = [];
-    this.setMergeState(this.admin.getModUpdatePreview(modId(config), true));
+    this.setMergeState(this.getModUpdatePreview(modId(config), true));
   }
 
   applyMerge(bundle: Mod | null | undefined) {
     if (!this.mergeState || !bundle) return;
     this.serverError = [];
     const _ = (msg?: string) => this.installMessages.push(msg!);
-    this.admin.applyModUpdate$(this.mergeState.mod, bundle, this.mergeState.target, _).subscribe(
-      () => {
+    this.applyModUpdate$(this.mergeState.mod, bundle, this.mergeState.target, _)
+      .pipe(catchError((res: HttpErrorResponse) => {
+        this.serverError = printError(res);
+        return EMPTY;
+      }))
+      .subscribe(() => {
         this.setMergeState();
         this.reset();
         _($localize`Success.`);
-      },
-      (res: HttpErrorResponse) => this.serverError = printError(res),
-    );
+      });
   }
 
   cancelMerge() {
@@ -203,7 +225,9 @@ export class SettingsSetupPage implements OnDestroy {
   }
 
   modModified(config: Config) {
-    return this.admin.isModModified(modId(config));
+    const mod = modId(config);
+    const base = this.getInstalledMod(mod);
+    return !!base && !equalBundle(this.getCurrentMod(mod), base);
   }
 
   installed(config: Config) {
@@ -274,4 +298,167 @@ export class SettingsSetupPage implements OnDestroy {
       ? window.visualViewport.height + 'px'
       : '100vh';
   }
+
+  private getInstalledMod(mod: string) {
+    return this.admin.status.modRefs[mod]?.plugins?.['plugin/mod'];
+  }
+
+  private getCurrentMod(mod: string) {
+    const base = this.getInstalledMod(mod) || this.admin.getMod(mod) || {};
+    return clearMod(<Mod> {
+      ...base,
+      plugin: this.getStatusPlugins(mod),
+      template: this.getStatusTemplates(mod),
+    });
+  }
+
+  private getModUpdatePreview(mod: string, requested = false): ModUpdatePreview | undefined {
+    const target = this.admin.getMod(mod);
+    if (!target) return undefined;
+    const current = this.getCurrentMod(mod);
+    const base = this.getInstalledMod(mod);
+    if (base && !equalBundle(current, base)) {
+      const merged = merge3(formatDiff(current), formatDiff(base), formatDiff(target));
+      if (!merged.mergedComment || merged.conflict) {
+        return {
+          mod,
+          current,
+          target,
+          proposed: target,
+          needsReview: true,
+          conflict: true,
+          reason: 'conflict',
+        };
+      }
+      return {
+        mod,
+        current,
+        target,
+        proposed: restoreBundle(target, JSON.parse(merged.mergedComment)),
+        needsReview: requested,
+        conflict: false,
+        reason: requested ? 'requested' : undefined,
+      };
+    }
+    if (!base && !equalBundle(current, target)) {
+      return {
+        mod,
+        current,
+        target,
+        proposed: target,
+        needsReview: true,
+        conflict: true,
+        reason: 'missing-base',
+      };
+    }
+    return {
+      mod,
+      current,
+      target,
+      proposed: target,
+      needsReview: requested,
+      conflict: false,
+      reason: requested ? 'requested' : undefined,
+    };
+  }
+
+  private updateMod$(mod: string, _: progress): Observable<any> {
+    const preview = this.getModUpdatePreview(mod);
+    if (!preview) return of(null);
+    if (preview.needsReview) return throwError(() => ({ preview }));
+    return this.applyModUpdate$(mod, preview.proposed, preview.target, _);
+  }
+
+  private applyModUpdate$(mod: string, bundle: Mod, cleanBundle: Mod, _: progress): Observable<any> {
+    if (!bundle) return of(null);
+    bundle = restoreBundle(cleanBundle, bundle);
+    const currentPlugins = this.getStatusEntries(this.admin.status.plugins, this.admin.status.disabledPlugins, mod);
+    const currentTemplates = this.getStatusEntries(this.admin.status.templates, this.admin.status.disabledTemplates, mod);
+    const nextPlugins = bundle.plugin || [];
+    const nextTemplates = bundle.template || [];
+    return concat(...[
+      of(null).pipe(tap(() => _($localize`Installing ${mod} mod...`))),
+      ...currentPlugins
+        .filter(current => !nextPlugins.find(next => next.tag === current.tag))
+        .map(current => this.admin.deletePlugin$(current, _)),
+      ...currentTemplates
+        .filter(current => !nextTemplates.find(next => next.tag === current.tag))
+        .map(current => this.admin.deleteTemplate$(current, _)),
+      ...nextPlugins.map(plugin => (currentPlugins.find(current => current.tag === plugin.tag)
+        ? this.admin.updatePlugin$(plugin, _)
+        : this.admin.installPlugin$(plugin, _))),
+      ...nextTemplates.map(template => (currentTemplates.find(current => current.tag === template.tag)
+        ? this.admin.updateTemplate$(template, _)
+        : this.admin.installTemplate$(template, _))),
+      this.admin.logModReceipt$(mod, cleanBundle, _),
+    ]).pipe(toArray());
+  }
+
+  private getStatusPlugins(mod: string) {
+    return this.getStatusEntries(this.admin.status.plugins, this.admin.status.disabledPlugins, mod)
+      .map(plugin => writePlugin({ ...plugin, origin: '' }));
+  }
+
+  private getStatusTemplates(mod: string) {
+    return this.getStatusEntries(this.admin.status.templates, this.admin.status.disabledTemplates, mod)
+      .map(template => writeTemplate({ ...template, origin: '' }));
+  }
+
+  private getStatusEntries<T extends Config & { tag: string }>(active: Record<string, T>, disabled: Record<string, T>, mod: string) {
+    return [...Object.values(active), ...Object.values(disabled)]
+      .filter((entry): entry is T => !!entry && modId(entry) === mod);
+  }
+}
+
+function clearConfig<T extends Config>(config: T): T {
+  const result = {
+    ...config,
+    config: config.config && { ...config.config },
+  } as any;
+  if (result.config) {
+    delete result.config.version;
+    delete result.config.generated;
+  }
+  delete result._needsUpdate;
+  return result;
+}
+
+function clearMod(mod: Mod): Mod {
+  const result = { ...mod } as any;
+  if (mod.ref) result.ref = mod.ref.map((r: Ref) => writeRef(r));
+  if (mod.ext) result.ext = mod.ext.map((e: Ext) => writeExt(e));
+  if (mod.user) result.user = mod.user?.map((u: User) => writeUser(u));
+  if (mod.plugin) result.plugin = mod.plugin.map((p: Plugin) => clearConfig(writePlugin(p)));
+  if (mod.template) result.template = mod.template.map((t: Template) => clearConfig(writeTemplate(t)));
+  return result;
+}
+
+function equalBundle(a?: Mod, b?: Mod) {
+  if (!a || !b) return false;
+  return isEqual(clearMod(a), clearMod(b));
+}
+
+function restoreBundle(target: Mod, merged: Mod) {
+  return {
+    ...target,
+    ...merged,
+    plugin: restoreConfigEntries(target.plugin, merged.plugin),
+    template: restoreConfigEntries(target.template, merged.template),
+  } as Mod;
+}
+
+function restoreConfigEntries<Entry extends Config & { tag: string }>(target: Entry[] | undefined, merged: Entry[] | undefined) {
+  const targetByTag = new Map((target || []).map(entry => [entry.tag, entry]));
+  return (merged || []).map(entry => {
+    const existing = targetByTag.get(entry.tag);
+    if (!existing) return entry;
+    return {
+      ...existing,
+      ...entry,
+      config: {
+        ...existing.config || {},
+        ...entry.config,
+      },
+    };
+  });
 }

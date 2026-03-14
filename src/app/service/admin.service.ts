@@ -6,12 +6,12 @@ import { autorun, runInAction } from 'mobx';
 import { catchError, concat, forkJoin, map, Observable, of, retry, switchMap, throwError, toArray } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
-import { Ext, writeExt } from '../model/ext';
-import { Plugin, writePlugin } from '../model/plugin';
-import { Ref, writeRef } from '../model/ref';
+import { Ext } from '../model/ext';
+import { Plugin } from '../model/plugin';
+import { Ref } from '../model/ref';
 import { bundleSize, clear, condition, Config, EditorButton, Mod } from '../model/tag';
-import { Template, writeTemplate } from '../model/template';
-import { User, writeUser } from '../model/user';
+import { Template } from '../model/template';
+import { User } from '../model/user';
 import { aiMod } from '../mods/ai/ai';
 import { dalleMod } from '../mods/ai/dalle';
 import { naviMod } from '../mods/ai/navi';
@@ -92,7 +92,6 @@ import { Store } from '../store/store';
 import { modId } from '../util/format';
 import { getExtension, getHost } from '../util/http';
 import { memo, MemoCache } from '../util/memo';
-import { formatDiff, merge3 } from '../util/diff';
 import { addHierarchicalTags, directChild, hasPrefix, hasTag, tagIntersection, test } from '../util/tag';
 import { ExtService } from './api/ext.service';
 import { PluginService } from './api/plugin.service';
@@ -101,16 +100,6 @@ import { TemplateService } from './api/template.service';
 import { UserService } from './api/user.service';
 import { AuthzService } from './authz.service';
 import { ConfigService } from './config.service';
-
-export interface ModUpdatePreview {
-  mod: string;
-  current: Mod;
-  target: Mod;
-  proposed: Mod;
-  needsReview: boolean;
-  conflict: boolean;
-  reason?: 'conflict' | 'missing-base' | 'requested';
-}
 
 @Injectable({
   providedIn: 'root',
@@ -938,80 +927,12 @@ export class AdminService {
     );
   }
 
-  getInstalledMod(mod: string) {
-    return this.status.modRefs[mod]?.plugins?.['plugin/mod'];
-  }
-
-  getCurrentMod(mod: string) {
-    const base = this.getInstalledMod(mod) || this.getMod(mod) || {};
-    return clearMod(<Mod> {
-      ...base,
-      plugin: this.getStatusPlugins(mod),
-      template: this.getStatusTemplates(mod),
-    });
-  }
-
-  isModModified(mod: string) {
-    const base = this.getInstalledMod(mod);
-    return !!base && !equalBundle(this.getCurrentMod(mod), base);
-  }
-
   getInstalledPlugin(mod: string, tag: string) {
-    return this.getInstalledMod(mod)?.plugin?.find((plugin: Plugin) => plugin.tag === tag);
+    return this.status.modRefs[mod]?.plugins?.['plugin/mod']?.plugin?.find((plugin: Plugin) => plugin.tag === tag);
   }
 
   getInstalledTemplate(mod: string, tag: string) {
-    return this.getInstalledMod(mod)?.template?.find((template: Template) => template.tag === tag);
-  }
-
-  getModUpdatePreview(mod: string, requested = false): ModUpdatePreview | undefined {
-    const target = this.getMod(mod);
-    if (!target) return undefined;
-    const current = this.getCurrentMod(mod);
-    const base = this.getInstalledMod(mod);
-    if (base && !equalBundle(current, base)) {
-      const merged = merge3(formatDiff(current), formatDiff(base), formatDiff(target));
-      if (!merged.mergedComment || merged.conflict) {
-        return {
-          mod,
-          current,
-          target,
-          proposed: target,
-          needsReview: true,
-          conflict: true,
-          reason: 'conflict',
-        };
-      }
-      return {
-        mod,
-        current,
-        target,
-        proposed: restoreBundle(target, JSON.parse(merged.mergedComment)),
-        needsReview: requested,
-        conflict: false,
-        reason: requested ? 'requested' : undefined,
-      };
-    }
-    if (!base && !equalBundle(current, target)) {
-      return {
-        mod,
-        current,
-        target,
-        proposed: target,
-        needsReview: true,
-        conflict: true,
-        reason: 'missing-base',
-      };
-    }
-    return {
-      mod,
-      current,
-      target,
-      proposed: target,
-      needsReview: requested,
-      conflict: false,
-      reason: requested ? 'requested' : undefined,
-    };
+    return this.status.modRefs[mod]?.plugins?.['plugin/mod']?.template?.find((template: Template) => template.tag === tag);
   }
 
   installRef$(def: Ref, _: progress) {
@@ -1033,7 +954,7 @@ export class AdminService {
     );
   }
 
-  private logModReceipt$(mod: string, bundle: Mod, _: progress) {
+  logModReceipt$(mod: string, bundle: Mod, _: progress) {
     const ref = this.getModRef(mod, bundle);
     return of(null).pipe(
       tap(() => _('\u00A0'.repeat(4) + $localize`Installing ${mod || ref.url} ref...`)),
@@ -1159,13 +1080,6 @@ export class AdminService {
     return this.install$(mod, this.getMod(mod)!, _);
   }
 
-  updateMod$(mod: string, _: progress): Observable<any> {
-    const preview = this.getModUpdatePreview(mod);
-    if (!preview) return of(null);
-    if (preview.needsReview) return throwError(() => ({ preview }));
-    return this.applyModUpdate$(mod, preview.proposed, preview.target, _);
-  }
-
   deleteMod$(mod: string, _: progress): Observable<any> {
     return concat(...[
       of(null).pipe(tap(() => _($localize`Deleting ${mod} mod...`))),
@@ -1182,31 +1096,6 @@ export class AdminService {
         .filter(t => t && modId(t) === mod)
         .map(t => this.deleteTemplate$(t!, _)),
       this.clearModReceipt$(mod, _),
-    ]).pipe(toArray());
-  }
-
-  applyModUpdate$(mod: string, bundle: Mod, cleanBundle: Mod, _: progress): Observable<any> {
-    if (!bundle) return of(null);
-    bundle = restoreBundle(cleanBundle, bundle);
-    const currentPlugins = this.getStatusEntries(this.status.plugins, this.status.disabledPlugins, mod);
-    const currentTemplates = this.getStatusEntries(this.status.templates, this.status.disabledTemplates, mod);
-    const nextPlugins = bundle.plugin || [];
-    const nextTemplates = bundle.template || [];
-    return concat(...[
-      of(null).pipe(tap(() => _($localize`Installing ${mod} mod...`))),
-      ...currentPlugins
-        .filter(current => !nextPlugins.find(next => next.tag === current.tag))
-        .map(current => this.deletePlugin$(current, _)),
-      ...currentTemplates
-        .filter(current => !nextTemplates.find(next => next.tag === current.tag))
-        .map(current => this.deleteTemplate$(current, _)),
-      ...nextPlugins.map(plugin => (currentPlugins.find(current => current.tag === plugin.tag)
-        ? this.updatePlugin$(plugin, _)
-        : this.installPlugin$(plugin, _))),
-      ...nextTemplates.map(template => (currentTemplates.find(current => current.tag === template.tag)
-        ? this.updateTemplate$(template, _)
-        : this.installTemplate$(template, _))),
-      this.logModReceipt$(mod, cleanBundle, _),
     ]).pipe(toArray());
   }
 
@@ -1275,21 +1164,6 @@ export class AdminService {
       return id;
     }
   }
-
-  private getStatusPlugins(mod: string) {
-    return this.getStatusEntries(this.status.plugins, this.status.disabledPlugins, mod)
-      .map(plugin => writePlugin({ ...plugin, origin: '' }));
-  }
-
-  private getStatusTemplates(mod: string) {
-    return this.getStatusEntries(this.status.templates, this.status.disabledTemplates, mod)
-      .map(template => writeTemplate({ ...template, origin: '' }));
-  }
-
-  private getStatusEntries<T extends Config & { tag: string }>(active: Record<string, T>, disabled: Record<string, T>, mod: string) {
-    return [...Object.values(active), ...Object.values(disabled)]
-      .filter((entry): entry is T => !!entry && modId(entry) === mod);
-  }
 }
 
 function addParent(c: Config) {
@@ -1297,57 +1171,4 @@ function addParent(c: Config) {
     a._parent = c;
     return a;
   };
-}
-
-function clearConfig<T extends Config>(config: T): T {
-  const result = {
-    ...config,
-    config: config.config && { ...config.config },
-  } as any;
-  if (result.config) {
-    delete result.config.version;
-    delete result.config.generated;
-  }
-  delete result._needsUpdate;
-  return result;
-}
-
-function clearMod(mod: Mod): Mod {
-  const result = { ...mod } as any;
-  if (mod.ref) result.ref = mod.ref.map((r: Ref) => writeRef(r));
-  if (mod.ext) result.ext = mod.ext.map((e: Ext) => writeExt(e));
-  if (mod.user) result.user = mod.user?.map((u: User) => writeUser(u));
-  if (mod.plugin) result.plugin = mod.plugin.map((p: Plugin) => clearConfig(writePlugin(p)));
-  if (mod.template) result.template = mod.template.map((t: Template) => clearConfig(writeTemplate(t)));
-  return result;
-}
-
-function equalBundle(a?: Mod, b?: Mod) {
-  if (!a || !b) return false;
-  return isEqual(clearMod(a), clearMod(b));
-}
-
-function restoreBundle(target: Mod, merged: Mod) {
-  return {
-    ...target,
-    ...merged,
-    plugin: restoreConfigEntries(target.plugin, merged.plugin),
-    template: restoreConfigEntries(target.template, merged.template),
-  } as Mod;
-}
-
-function restoreConfigEntries<Entry extends Config & { tag: string }>(target: Entry[] | undefined, merged: Entry[] | undefined) {
-  const targetByTag = new Map((target || []).map(entry => [entry.tag, entry]));
-  return (merged || []).map(entry => {
-    const existing = targetByTag.get(entry.tag);
-    if (!existing) return entry;
-    return {
-      ...existing,
-      ...entry,
-      config: {
-        ...existing.config || {},
-        ...entry.config,
-      },
-    };
-  });
 }
