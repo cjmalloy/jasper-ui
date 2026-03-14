@@ -8,8 +8,8 @@ import { ConfigService } from '../../service/config.service';
 import { DiffComponent } from './diff.component';
 
 describe('DiffComponent', () => {
-  let component: DiffComponent;
-  let fixture: ComponentFixture<DiffComponent>;
+  let component: DiffComponent<any>;
+  let fixture: ComponentFixture<DiffComponent<any>>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({

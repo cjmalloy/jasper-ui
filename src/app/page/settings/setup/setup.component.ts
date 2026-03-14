@@ -1,10 +1,12 @@
 import { KeyValuePipe } from '@angular/common';
+import { Overlay, OverlayModule, OverlayRef } from '@angular/cdk/overlay';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component } from '@angular/core';
+import { TemplatePortal } from '@angular/cdk/portal';
+import { Component, OnDestroy, TemplateRef, ViewChild, ViewContainerRef } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { forOwn, uniq } from 'lodash-es';
-import { concat, last } from 'rxjs';
+import { concat, last, Subscription } from 'rxjs';
 import { Config, Mod } from '../../../model/tag';
 import { AdminService, ModUpdatePreview } from '../../../service/admin.service';
 import { ModService } from '../../../service/mod.service';
@@ -23,9 +25,12 @@ import { DiffComponent } from '../../../form/diff/diff.component';
     RouterLink,
     KeyValuePipe,
     DiffComponent,
+    OverlayModule,
   ],
 })
-export class SettingsSetupPage {
+export class SettingsSetupPage implements OnDestroy {
+  @ViewChild('mergePopup')
+  mergePopup?: TemplateRef<unknown>;
 
   experiments = !!this.admin.getTemplate('config/experiments');
   selectAllToggle = false;
@@ -34,6 +39,8 @@ export class SettingsSetupPage {
   serverError: string[] = [];
   installMessages: string[] = [];
   mergeState?: ModUpdatePreview;
+  mergePopupRef?: OverlayRef;
+  mergePopupSub = new Subscription();
   modGroups = configGroups({
     ...this.admin.status.disabledPlugins, ...this.admin.status.disabledTemplates,
     ...this.admin.status.plugins, ...this.admin.status.templates,
@@ -44,6 +51,8 @@ export class SettingsSetupPage {
     private mod: ModService,
     public store: Store,
     private fb: UntypedFormBuilder,
+    private overlay: Overlay,
+    private viewContainerRef: ViewContainerRef,
   ) {
     mod.setTitle($localize`Settings: Setup`);
     this.adminForm = fb.group({
@@ -55,7 +64,7 @@ export class SettingsSetupPage {
   install() {
     this.serverError = [];
     this.installMessages = [];
-    this.mergeState = undefined;
+    this.setMergeState();
     this.submitted = true;
     this.adminForm.markAllAsTouched();
     if (!this.adminForm.valid) {
@@ -108,7 +117,7 @@ export class SettingsSetupPage {
   }
 
   reset() {
-    this.mergeState = undefined;
+    this.setMergeState();
     this.admin.init$.subscribe(() => this.clear());
   }
 
@@ -125,7 +134,7 @@ export class SettingsSetupPage {
 
   updateAll() {
     this.serverError = [];
-    this.mergeState = undefined;
+    this.setMergeState();
     const _ = (msg?: string) => this.installMessages.push(msg!);
     const mods: string[] = [];
     for (const plugin in this.admin.status.plugins) {
@@ -156,7 +165,7 @@ export class SettingsSetupPage {
 
   updateMod(config: Config) {
     this.serverError = [];
-    this.mergeState = undefined;
+    this.setMergeState();
     const _ = (msg?: string) => this.installMessages.push(msg!);
     this.admin.updateMod$(modId(config), _).subscribe(
       () => this.reset(),
@@ -166,7 +175,7 @@ export class SettingsSetupPage {
 
   diffMod(config: Config) {
     this.serverError = [];
-    this.mergeState = this.admin.getModUpdatePreview(modId(config), true);
+    this.setMergeState(this.admin.getModUpdatePreview(modId(config), true));
   }
 
   applyMerge(bundle: Mod | null | undefined) {
@@ -175,7 +184,7 @@ export class SettingsSetupPage {
     const _ = (msg?: string) => this.installMessages.push(msg!);
     this.admin.applyModUpdate$(this.mergeState.mod, bundle, this.mergeState.target, _).subscribe(
       () => {
-        this.mergeState = undefined;
+        this.setMergeState();
         this.reset();
         _($localize`Success.`);
       },
@@ -188,7 +197,7 @@ export class SettingsSetupPage {
   }
 
   cancelMerge() {
-    this.mergeState = undefined;
+    this.setMergeState();
   }
 
   needsUpdate(mod?: Config) {
@@ -223,9 +232,54 @@ export class SettingsSetupPage {
 
   private handleUpdateError(res: HttpErrorResponse | { preview?: ModUpdatePreview }) {
     if ('preview' in res && res.preview) {
-      this.mergeState = res.preview;
+      this.setMergeState(res.preview);
       return;
     }
     this.serverError = printError(res as HttpErrorResponse);
+  }
+
+  ngOnDestroy() {
+    this.closeMergePopup();
+  }
+
+  private setMergeState(preview?: ModUpdatePreview) {
+    this.mergeState = preview;
+    if (preview) {
+      this.openMergePopup();
+    } else {
+      this.closeMergePopup();
+    }
+  }
+
+  private openMergePopup() {
+    if (!this.mergePopup || this.mergePopupRef?.hasAttached()) return;
+    this.mergePopupRef = this.overlay.create({
+      height: this.getOverlayHeight(),
+      width: '100vw',
+      hasBackdrop: true,
+      positionStrategy: this.overlay.position()
+        .global()
+        .centerHorizontally()
+        .top('0'),
+      scrollStrategy: this.overlay.scrollStrategies.block(),
+    });
+    this.mergePopupRef.attach(new TemplatePortal(this.mergePopup, this.viewContainerRef));
+    this.mergePopupSub.add(this.mergePopupRef.backdropClick().subscribe(() => this.cancelMerge()));
+    this.mergePopupSub.add(this.mergePopupRef.keydownEvents().subscribe(event => {
+      if (event.key === 'Escape') this.cancelMerge();
+    }));
+  }
+
+  private closeMergePopup() {
+    this.mergePopupSub.unsubscribe();
+    this.mergePopupSub = new Subscription();
+    this.mergePopupRef?.dispose();
+    this.mergePopupRef = undefined;
+  }
+
+  private getOverlayHeight() {
+    return window.visualViewport?.height
+      ? window.visualViewport.height + 'px'
+      : '100vh';
   }
 }

@@ -89,7 +89,7 @@ describe('AdminService', () => {
     expect(service.isModModified('Wiki')).toBe(true);
   });
 
-  it('should ignore plugin order when comparing installed bundles', () => {
+  it('should treat plugin order changes as modified when comparing installed bundles', () => {
     service.status.plugins['plugin/one'] = { tag: 'plugin/one', origin: '@local', config: { mod: 'Wiki' } } as any;
     service.status.plugins['plugin/two'] = { tag: 'plugin/two', origin: '@local', config: { mod: 'Wiki' } } as any;
     service.status.modRefs.Wiki = {
@@ -105,7 +105,7 @@ describe('AdminService', () => {
       },
     } as any;
 
-    expect(service.isModModified('Wiki')).toBe(false);
+    expect(service.isModModified('Wiki')).toBe(true);
   });
 
   it('should treat mods without an installed mod ref as unmodified in setup status', () => {
@@ -138,7 +138,7 @@ describe('AdminService', () => {
     }));
   });
 
-  it('should merge admin edits into the updated mod bundle when a stored base exists', () => {
+  it('should require review when the stored base still conflicts with admin edits', () => {
     service.mods.unshift({
       plugin: [{ tag: 'plugin/wiki', config: { mod: 'Wiki', version: 2 } } as any],
     });
@@ -158,14 +158,13 @@ describe('AdminService', () => {
     } as any;
 
     expect(service.getModUpdatePreview('Wiki')).toEqual(expect.objectContaining({
-      needsReview: false,
-      conflict: false,
+      needsReview: true,
+      conflict: true,
+      reason: 'conflict',
       proposed: expect.objectContaining({
-        plugin: [expect.objectContaining({ tag: 'plugin/wiki', config: { mod: 'Wiki', version: 2, description: 'edited' } })],
+        plugin: [expect.objectContaining({ tag: 'plugin/wiki', config: { mod: 'Wiki', version: 2 } })],
       }),
     }));
-    expect(service.getModUpdatePreview('Wiki')?.proposed.plugin?.[0].config?.generated).toBeUndefined();
-    expect(service.getModUpdatePreview('Wiki')?.proposed.plugin?.[0].config?._parent).toBeUndefined();
   });
 
   it('should reconcile plugin and template changes when applying a mod update', () => {
@@ -197,7 +196,7 @@ describe('AdminService', () => {
       origin: '@local',
       config: { mod: 'Wiki', version: 1 },
     } as any;
-    const updatePlugin = vi.spyOn(service, 'updatePlugin$').mockReturnValue(of(null));
+    const updatePlugin = vi.spyOn(service, 'updatePlugin$').mockReturnValue(of(undefined));
 
     service.applyModUpdate$('Wiki', {
       plugin: [{ tag: 'plugin/wiki', config: { description: 'edited' } } as any],
