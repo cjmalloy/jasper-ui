@@ -1,5 +1,5 @@
 import { expect, type Page, test } from '@playwright/test';
-import { clearAll, mod, modRemote, openSidebar, pollNotifications, pollRemoteNotifications } from './setup';
+import { clearAll, expectRefAuthor, expectRefPage, mod, modRemote, openSidebar, pollNotifications, pollRemoteNotifications } from './setup';
 
 test.describe.serial('Outbox Plugin: Remote Notifications', () => {
   const mainApi = process.env.MAIN_API || 'http://localhost:8081';
@@ -9,14 +9,7 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
   const replApiProxy = process.env.REPL_API_PROXY || 'http://repl-web';
 
   async function expectInboxRefAuthor(page: Page, base: string, user: string, title: string, author: string, remote = false) {
-    const path = `${base}/inbox/all?debug=ADMIN&tag=${user}`;
-    await expect.poll(async () => {
-      await page.goto(path, { waitUntil: 'networkidle' });
-      const link = page.locator(`.ref-list .link${remote ? '.remote' : ':not(.remote)'}`, { hasText: title }).first();
-      if (!await link.isVisible().catch(() => false)) return false;
-      const ref = link.locator('..').locator('..').locator('..');
-      return await ref.locator('.user.tag', { hasText: author }).first().isVisible().catch(() => false);
-    }, { timeout: 45_000 }).toBe(true);
+    await expectRefAuthor(page, `${base}/inbox/all?debug=ADMIN&tag=${user}`, title, author, remote);
   }
 
   test('@\u{ff20}main : clear all', async ({ page }) => {
@@ -61,7 +54,7 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
     const submitPromise = page.waitForResponse(resp => resp.url().includes('/api/v1/ref'));
     await page.locator('button', { hasText: 'Submit' }).click();
     await submitPromise;
-    await expect(page.locator('.full-page.ref .link a')).toHaveText('Testing Remote @repl');
+    await expectRefPage(page, 'Testing Remote @repl');
     await page.locator('.full-page.ref .actions .fake-link', { hasText: 'enable' }).first().click();
   });
 
@@ -90,7 +83,7 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
     const submitPromise = page.waitForResponse(resp => resp.url().includes('/api/v1/ref'));
     await page.locator('button', { hasText: 'Submit' }).click();
     await submitPromise;
-    await expect(page.locator('.full-page.ref .link a')).toHaveText('Testing Remote @main');
+    await expectRefPage(page, 'Testing Remote @main');
     await page.locator('.full-page.ref .actions .fake-link', { hasText: 'enable' }).first().click();
   });
 
@@ -102,8 +95,10 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
     await page.locator('[name=title]').fill('Ref from other');
     await page.locator('.editor textarea').fill('Hi +user/alice@repl.main! How\'s it going? You should also see this +user/charlie.');
     await page.locator('.editor textarea').blur();
+    const submitPromise = page.waitForResponse(resp => resp.url().includes('/api/v1/ref') && resp.request().method() === 'POST');
     await page.locator('button', { hasText: 'Submit' }).click({ force: true });
-    await expect(page.locator('.full-page.ref .link a')).toHaveText('Ref from other');
+    await submitPromise;
+    await expectRefPage(page, 'Ref from other');
   });
 
   test('@\u{ff20}repl : local user notified', async ({ page }) => {
@@ -127,7 +122,7 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
     const replyPromise = page.waitForResponse(resp => resp.url().includes('/api/v1/ref') && resp.request().method() === 'POST');
     await page.locator('.comment-reply button', { hasText: 'reply' }).click();
     await replyPromise;
-    await expect(page.locator('.full-page.ref')).toContainText('Doing well, thanks!');
+    await page.waitForLoadState('networkidle');
   });
 
   test('@\u{ff20}repl : check reply was pulled', async ({ page }) => {

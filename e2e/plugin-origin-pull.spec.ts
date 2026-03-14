@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { clearAll, mod, openSidebar } from './setup';
+import { clearAll, expectRefAuthor, expectRefPage, mod, openSidebar } from './setup';
 
 test.describe.serial('Origin Pull Plugin', () => {
   const replUrl = process.env.REPL_URL || 'http://localhost:8082';
@@ -21,9 +21,9 @@ test.describe.serial('Origin Pull Plugin', () => {
     await openSidebar(page);
     await page.locator('.sidebar .submit-button', { hasText: 'Submit' }).first().click();
     await page.locator('#url').fill(replApiProxy);
-    await page.waitForTimeout(400);
+    await page.locator('#url').blur();
     await page.getByText('Next').click();
-    await page.waitForTimeout(400);
+    await expect(page.locator('.floating-ribbons .plugin_origin_pull')).toBeVisible();
     await page.locator('.floating-ribbons .plugin_origin_pull').click();
     await page.locator('[name=local]').fill('@repl');
     await page.locator('[name=remote]').fill('@repl');
@@ -31,7 +31,7 @@ test.describe.serial('Origin Pull Plugin', () => {
     const submitPromise = page.waitForResponse(resp => resp.url().includes('/api/v1/ref'));
     await page.locator('button', { hasText: 'Submit' }).click();
     await submitPromise;
-    await expect(page.locator('.full-page.ref .link a')).toHaveText('Testing Remote @repl');
+    await expectRefPage(page, 'Testing Remote @repl');
     await page.locator('.full-page.ref .actions .fake-link', { hasText: 'enable' }).first().click();
   });
 
@@ -45,21 +45,14 @@ test.describe.serial('Origin Pull Plugin', () => {
     await page.locator('.sidebar .submit-button', { hasText: 'Submit' }).first().click();
     await page.locator('.tabs a', { hasText: 'text' }).first().click();
     await page.locator('[name=title]').fill('Pull Test');
-    const submitPromise = page.waitForResponse(resp => resp.url().includes('/api/v1/ref'));
+    const submitPromise = page.waitForResponse(resp => resp.url().includes('/api/v1/ref') && resp.request().method() === 'POST');
     await page.locator('button', { hasText: 'Submit' }).click();
     await submitPromise;
-    await page.waitForTimeout(1000);
-    await expect(page.locator('.full-page.ref .link a')).toHaveText('Pull Test');
+    await expectRefPage(page, 'Pull Test');
   });
 
   test('@\u{ff20}main : check ref was pulled', async ({ page }) => {
-    const path = '/tag/@repl?debug=USER';
-    await expect.poll(async () => {
-      await page.goto(path, { waitUntil: 'networkidle' });
-      return await page.locator('.ref-list .link.remote', { hasText: 'Pull Test' }).count();
-    }, { timeout: 60_000 }).toBeGreaterThan(0);
-    const ref = page.locator('.ref-list .link.remote', { hasText: 'Pull Test' }).locator('..').locator('..').locator('..');
-    await expect(ref.locator('.user.tag', { hasText: 'bob' }).first()).toBeVisible();
+    await expectRefAuthor(page, '/tag/@repl?debug=USER', 'Pull Test', 'bob', true);
   });
 
   test('@\u{ff20}main : delete remote \u{ff20}repl', async ({ page }) => {

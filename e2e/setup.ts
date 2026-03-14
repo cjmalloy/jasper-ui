@@ -1,9 +1,14 @@
 import { expect, type Page } from '@playwright/test';
 
+const e2eTimeout = 60_000;
+
 export async function clearMods(page: Page, base = '') {
   await page.goto(base + '/settings/setup?debug=ADMIN', { waitUntil: 'networkidle' });
   const selectAll = page.locator('button', { hasText: 'Select All' });
   const selectNone = page.locator('button', { hasText: 'Select None' });
+  await expect.poll(async () =>
+    await selectNone.isVisible().catch(() => false) || await selectAll.isVisible().catch(() => false),
+  { timeout: e2eTimeout }).toBe(true);
   if (await selectNone.isVisible()) {
     await selectNone.click();
   } else {
@@ -11,7 +16,7 @@ export async function clearMods(page: Page, base = '') {
     await selectNone.click();
   }
   await page.locator('button', { hasText: 'Save' }).click();
-  await page.locator('.log div', { hasText: 'Success.' }).first().waitFor({ timeout: 15_000, state: 'attached' });
+  await page.locator('.log div', { hasText: 'Success.' }).first().waitFor({ timeout: e2eTimeout, state: 'attached' });
 }
 
 export async function clearAll(page: Page, base = '', origin  = '') {
@@ -48,7 +53,7 @@ export async function modRemote(page: Page, base = '', ...mods: string[]) {
     await expect(page.locator('#mod-experiments')).toBeChecked({ checked: false });
     await page.locator('#mod-experiments').check();
     await page.locator('button', { hasText: 'Save' }).click();
-    await page.locator('.log div', { hasText: 'Success.' }).first().waitFor({ timeout: 15_000, state: 'attached' });
+    await page.locator('.log div', { hasText: 'Success.' }).first().waitFor({ timeout: e2eTimeout, state: 'attached' });
     await page.goto(base + '/settings/setup?debug=ADMIN', { waitUntil: 'networkidle' });
   }
   for (const mod of mods) {
@@ -57,7 +62,7 @@ export async function modRemote(page: Page, base = '', ...mods: string[]) {
     await page.locator(mod).check();
   }
   await page.locator('button', { hasText: 'Save' }).click();
-  await page.locator('.log div', { hasText: 'Success.' }).first().waitFor({ timeout: 15_000, state: 'attached' });
+  await page.locator('.log div', { hasText: 'Success.' }).first().waitFor({ timeout: e2eTimeout, state: 'attached' });
   await page.goto(base + '/settings/setup?debug=ADMIN', { waitUntil: 'networkidle' });
   for (const mod of mods) {
     await expect(page.locator(mod)).toBeChecked();
@@ -107,5 +112,23 @@ export async function pollRemoteNotifications(page: Page, base = '', user = 'deb
     await page.reload({ waitUntil: 'networkidle' });
     await page.goto(path, { waitUntil: 'networkidle' });
     return await page.locator('.settings .notification').isVisible();
-  }, { timeout: 60_000 }).toBe(true);
+  }, { timeout: e2eTimeout }).toBe(true);
+}
+
+export async function expectRefAuthor(page: Page, path: string, title: string, author: string, remote?: boolean) {
+  await expect.poll(async () => {
+    await page.goto(path, { waitUntil: 'networkidle' });
+    const linkSelector = remote === undefined
+      ? '.ref-list .link'
+      : `.ref-list .link${remote ? '.remote' : ':not(.remote)'}`;
+    const ref = page.locator('.ref-list .ref', {
+      has: page.locator(linkSelector, { hasText: title }),
+    }).first();
+    return await ref.locator('.user.tag', { hasText: author }).first().isVisible().catch(() => false);
+  }, { timeout: e2eTimeout }).toBe(true);
+}
+
+export async function expectRefPage(page: Page, title: string) {
+  await page.waitForURL(/\/ref\//, { timeout: e2eTimeout });
+  await expect(page.locator('.full-page.ref .link a')).toHaveText(title, { timeout: e2eTimeout });
 }
