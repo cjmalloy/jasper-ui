@@ -294,6 +294,9 @@ A project goal is to have a **very simple and easy to navigate CSS tree**. Follo
 
 ### Writing New E2E Tests
 
+#### Principle of Locality
+Prefer the principle of locality when writing tests. Keep reusable test code to a minimum, and default to keeping setup, selectors, helpers, and assertions close to the spec or individual test that uses them. Only extract shared helpers into `e2e/setup.ts` or other shared utilities when the reuse is clear, the abstraction stays simple, and locality would otherwise make the tests harder to understand or maintain.
+
 #### File Naming Convention
 Test files are numbered for execution order: `00-smoke.spec.ts`, `01-backup.spec.ts`, etc. Plugin tests use `plugin-<name>.spec.ts`, template tests use `template-<name>.spec.ts`.
 
