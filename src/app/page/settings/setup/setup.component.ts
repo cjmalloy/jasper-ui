@@ -112,9 +112,16 @@ export class SettingsSetupPage implements OnDestroy {
       _($localize`Success.`);
       return;
     }
+    const installIds = uniq(installs);
     concat(
       ...uniq(deletes).map(m => this.admin.deleteMod$(m, _)),
-      ...uniq(installs).map(m => this.admin.installMod$(m, _))
+      ...installIds.map(m => this.admin.installMod$(m, _, false)),
+      ...(this.canWriteReceiptsAfterInstall(installIds)
+        ? installIds
+          .map(m => ({ mod: m, bundle: this.admin.getMod(m) }))
+          .filter((entry): entry is { mod: string, bundle: Mod } => !!entry.bundle)
+          .map(entry => this.admin.logModReceipt$(entry.mod, entry.bundle, _))
+        : [])
     ).pipe(
       last(),
       catchError((res: HttpErrorResponse) => {
@@ -196,6 +203,7 @@ export class SettingsSetupPage implements OnDestroy {
   }
 
   diffMod(config: Config) {
+    if (!this.canDiffMod(config)) return;
     this.serverError = [];
     this.setMergeState(this.getModUpdatePreview(modId(config), true));
   }
@@ -248,6 +256,12 @@ export class SettingsSetupPage implements OnDestroy {
     return (e.config?.mod?.replace(/\W/g, '') || tag).toLowerCase();
   }
 
+  canDiffMod(config: Config) {
+    return !!this.needsModUpdate(config) &&
+      !!this.admin.getPlugin('plugin/mod') &&
+      !!this.admin.getTemplate('config/diff');
+  }
+
   ngOnDestroy() {
     this.closeMergePopup();
   }
@@ -297,6 +311,16 @@ export class SettingsSetupPage implements OnDestroy {
     const target = this.admin.getMod(mod);
     if (!target) return undefined;
     const current = this.admin.getCurrentMod(mod);
+    if (!this.admin.getPlugin('plugin/mod')) {
+      return {
+        mod,
+        current,
+        target,
+        proposed: target,
+        needsReview: false,
+        conflict: false,
+      };
+    }
     const base = this.admin.getInstalledMod(mod);
     if (base && !equalBundle(current, base)) {
       const merged = merge3(formatBundleDiff(current), formatBundleDiff(base), formatBundleDiff(target));
@@ -341,5 +365,9 @@ export class SettingsSetupPage implements OnDestroy {
       conflict: false,
       reason: requested ? 'requested' : undefined,
     };
+  }
+
+  private canWriteReceiptsAfterInstall(installs: string[]) {
+    return !!this.admin.getPlugin('plugin/mod') || installs.includes(modId(this.admin.def.plugins['plugin/mod']));
   }
 }

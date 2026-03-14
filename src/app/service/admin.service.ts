@@ -223,8 +223,14 @@ export class AdminService {
       const mod = this.store.eventBus.ref?.plugins?.['plugin/mod'];
       if (this.store.eventBus.event === 'install') {
         store.eventBus.clearProgress(bundleSize(mod) + (mod ? 1 : 0));
-        this.install$(this.store.eventBus.ref?.title || '', mod, (msg, p = 0) => store.eventBus.progress(msg, p))
-          .subscribe(mod => {
+        const title = this.store.eventBus.ref?.title || '';
+        const progress = (msg?: string, p = 0) => store.eventBus.progress(msg, p);
+        concat(...[
+          this.install$(title, mod, progress),
+          ...((this.getPlugin('plugin/mod') || mod?.plugin?.find((p: Plugin) => p.tag === 'plugin/mod'))
+            ? [this.logModReceipt$(title, mod, progress)]
+            : []),
+        ]).subscribe(() => {
             this.pluginToStatus(mod.plugin || []);
             this.templateToStatus(mod.template || []);
           });
@@ -328,7 +334,7 @@ export class AdminService {
   }
 
   private loadModRefs$(page = 0): Observable<null> {
-    return this.refs.page({ query: 'plugin/mod', page, size: this.config.fetchBatch }).pipe(
+    return this.refs.page({ query: 'plugin/mod/receipt', page, size: this.config.fetchBatch }).pipe(
       retry(10),
       tap(batch => batch.content
         .filter(ref => ref.origin === this.store.account.origin && ref.url.startsWith('mod:') && ref.plugins?.['plugin/mod'])
@@ -1091,12 +1097,15 @@ export class AdminService {
       ...(bundle.user || []).map(p => this.installUser$(p, _)),
       ...(bundle.plugin || []).map(p => this.installPlugin$(p, _)),
       ...(bundle.template || []).map(t => this.installTemplate$(t, _)),
-      this.logModReceipt$(mod, bundle, _),
     ]).pipe(toArray());
   }
 
-  installMod$(mod: string, _: progress): Observable<any> {
-    return this.install$(mod, this.getMod(mod)!, _);
+  installMod$(mod: string, _: progress, receipt = true): Observable<any> {
+    const bundle = this.getMod(mod)!;
+    return concat(...[
+      this.install$(mod, bundle, _),
+      ...(receipt && this.getPlugin('plugin/mod') ? [this.logModReceipt$(mod, bundle, _)] : []),
+    ]).pipe(toArray());
   }
 
   updateMod$(mod: string, bundle: Mod, cleanBundle: Mod, _: progress): Observable<any> {
@@ -1120,7 +1129,7 @@ export class AdminService {
       ...nextTemplates.map(template => (currentTemplates.find(current => current.tag === template.tag)
         ? this.updateTemplate$(template, _)
         : this.installTemplate$(template, _))),
-      this.logModReceipt$(mod, cleanBundle, _),
+      ...(this.getPlugin('plugin/mod') ? [this.logModReceipt$(mod, cleanBundle, _)] : []),
     ]).pipe(toArray());
   }
 

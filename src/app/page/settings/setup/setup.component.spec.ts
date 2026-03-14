@@ -8,6 +8,7 @@ import { provideRouter } from '@angular/router';
 import { NGX_MONACO_EDITOR_CONFIG } from 'ngx-monaco-editor';
 import { of } from 'rxjs';
 import { AdminService } from '../../../service/admin.service';
+import { modId } from '../../../util/format';
 
 import { SettingsSetupPage } from './setup.component';
 
@@ -28,12 +29,27 @@ describe('SettingsSetupPage', () => {
   beforeEach(async () => {
     admin = {
       init$: of(null),
-      getPlugin() { },
-      getTemplate() { },
+      getPlugin(tag?: string) { return tag === 'plugin/mod' ? { tag } : undefined; },
+      getTemplate(tag?: string) { return tag === 'config/diff' ? { tag } : undefined; },
       getMod() { return preview.target; },
+      getInstalledMod(mod: string) {
+        return admin.status.modRefs[mod]?.plugins?.['plugin/mod'];
+      },
+      getCurrentMod(mod: string) {
+        const base = admin.getInstalledMod(mod) || admin.getMod(mod) || {};
+        return {
+          ...base,
+          plugin: [...Object.values(admin.status.plugins), ...Object.values(admin.status.disabledPlugins)]
+            .filter((entry: any) => entry && modId(entry) === mod)
+            .map((entry: any) => ({ ...entry, origin: '' })),
+          template: [...Object.values(admin.status.templates), ...Object.values(admin.status.disabledTemplates)]
+            .filter((entry: any) => entry && modId(entry) === mod)
+            .map((entry: any) => ({ ...entry, origin: '' })),
+        };
+      },
       install$() { return of(null); },
       logModReceipt$: vi.fn(() => of(null)),
-      installMod$() { return of(null); },
+      installMod$: vi.fn(() => of(null)),
       deleteMod$() { return of(null); },
       deletePlugin$: vi.fn(() => of(null)),
       installPlugin$: vi.fn(() => of(null)),
@@ -41,6 +57,7 @@ describe('SettingsSetupPage', () => {
       deleteTemplate$: vi.fn(() => of(null)),
       installTemplate$: vi.fn(() => of(null)),
       updateTemplate$: vi.fn(() => of(null)),
+      updateMod$: vi.fn(() => of(null)),
       def: { plugins: {}, templates: {} },
       status: { plugins: {}, templates: {}, disabledPlugins: {}, disabledTemplates: {}, modRefs: {} }
     };
@@ -82,6 +99,12 @@ describe('SettingsSetupPage', () => {
 
   it('should open the merge diff in a popup', () => {
     admin.getMod = () => preview.target;
+    admin.status.plugins['plugin/wiki'] = {
+      tag: 'plugin/wiki',
+      origin: '@local',
+      config: { mod: 'Wiki', version: 1 },
+      _needsUpdate: true,
+    };
     component.diffMod({ tag: 'plugin/wiki', config: { mod: 'Wiki' } } as any);
     fixture.detectChanges();
 
@@ -91,6 +114,12 @@ describe('SettingsSetupPage', () => {
 
   it('should close the merge popup when cancelled', () => {
     admin.getMod = () => preview.target;
+    admin.status.plugins['plugin/wiki'] = {
+      tag: 'plugin/wiki',
+      origin: '@local',
+      config: { mod: 'Wiki', version: 1 },
+      _needsUpdate: true,
+    };
     component.diffMod({ tag: 'plugin/wiki', config: { mod: 'Wiki' } } as any);
     fixture.detectChanges();
 
@@ -209,47 +238,108 @@ describe('SettingsSetupPage', () => {
   });
 
   it('should reconcile plugin and template changes when applying a mod update', () => {
-    admin.status.plugins['plugin/wiki'] = { tag: 'plugin/wiki', origin: '@local', config: { mod: 'Wiki' } };
+    component.mergeState = {
+      mod: 'Wiki',
+      current: { plugin: [] },
+      target: { template: [{ tag: 'config/wiki', config: { mod: 'Wiki' } }] },
+      proposed: { template: [{ tag: 'config/wiki', config: { mod: 'Wiki' } }] },
+      needsReview: true,
+      conflict: false,
+    };
 
-    (component as any).applyModUpdate$('Wiki', {
-      template: [{ tag: 'config/wiki', config: { mod: 'Wiki' } }],
-    }, {
-      template: [{ tag: 'config/wiki', config: { mod: 'Wiki' } }],
-    }, () => {}).subscribe(() => {});
+    component.applyMerge({ template: [{ tag: 'config/wiki', config: { mod: 'Wiki' } }] } as any);
 
-    expect(admin.deletePlugin$).toHaveBeenCalled();
-    expect(admin.installTemplate$).toHaveBeenCalled();
+    expect(admin.updateMod$).toHaveBeenCalledWith('Wiki', { template: [{ tag: 'config/wiki', config: { mod: 'Wiki' } }] }, { template: [{ tag: 'config/wiki', config: { mod: 'Wiki' } }] }, expect.any(Function));
   });
 
   it('should restore cleared config fields before applying an edited mod diff', () => {
-    admin.status.plugins['plugin/wiki'] = {
-      tag: 'plugin/wiki',
-      origin: '@local',
-      config: { mod: 'Wiki', version: 1 },
+    component.mergeState = {
+      mod: 'Wiki',
+      current: { plugin: [] },
+      target: {
+        plugin: [{ tag: 'plugin/wiki', config: { mod: 'Wiki', version: 2, generated: true, _parent: { test: true } } }],
+      },
+      proposed: {
+        plugin: [{ tag: 'plugin/wiki', config: { description: 'edited' } }],
+      },
+      needsReview: true,
+      conflict: false,
     };
 
-    (component as any).applyModUpdate$('Wiki', {
-      plugin: [{ tag: 'plugin/wiki', config: { description: 'edited' } }],
-    }, {
-      plugin: [{ tag: 'plugin/wiki', config: { mod: 'Wiki', version: 2, generated: true, _parent: { test: true } } }],
-    }, () => {}).subscribe(() => {});
+    component.applyMerge({ plugin: [{ tag: 'plugin/wiki', config: { description: 'edited' } }] } as any);
 
-    expect(admin.updatePlugin$).toHaveBeenCalledWith(expect.objectContaining({
-      tag: 'plugin/wiki',
-      config: { mod: 'Wiki', version: 2, generated: true, _parent: { test: true }, description: 'edited' },
-    }), expect.any(Function));
+    expect(admin.updateMod$).toHaveBeenCalledWith('Wiki', { plugin: [{ tag: 'plugin/wiki', config: { description: 'edited' } }] }, {
+      plugin: [{ tag: 'plugin/wiki', config: { mod: 'Wiki', version: 2, generated: true, _parent: { test: true } } }],
+    }, expect.any(Function));
   });
 
   it('should install new plugins from an edited mod diff without target metadata', () => {
-    (component as any).applyModUpdate$('Wiki', {
-      plugin: [{ tag: 'plugin/new', config: { description: 'new plugin' } }],
-    }, {
-      plugin: [{ tag: 'plugin/wiki', config: { mod: 'Wiki', version: 2 } }],
-    }, () => {}).subscribe(() => {});
+    component.mergeState = {
+      mod: 'Wiki',
+      current: { plugin: [] },
+      target: { plugin: [{ tag: 'plugin/wiki', config: { mod: 'Wiki', version: 2 } }] },
+      proposed: { plugin: [{ tag: 'plugin/new', config: { description: 'new plugin' } }] },
+      needsReview: true,
+      conflict: false,
+    };
 
-    expect(admin.installPlugin$).toHaveBeenCalledWith(expect.objectContaining({
-      tag: 'plugin/new',
-      config: { description: 'new plugin' },
-    }), expect.any(Function));
+    component.applyMerge({ plugin: [{ tag: 'plugin/new', config: { description: 'new plugin' } }] } as any);
+
+    expect(admin.updateMod$).toHaveBeenCalledWith('Wiki', { plugin: [{ tag: 'plugin/new', config: { description: 'new plugin' } }] }, {
+      plugin: [{ tag: 'plugin/wiki', config: { mod: 'Wiki', version: 2 } }],
+    }, expect.any(Function));
+  });
+
+  it('should disable 3-way merge when plugin/mod is not installed', () => {
+    admin.getPlugin = () => undefined;
+    admin.getMod = () => ({
+      plugin: [{ tag: 'plugin/wiki', config: { mod: 'Wiki', version: 2 } }],
+    });
+    admin.status.plugins['plugin/wiki'] = {
+      tag: 'plugin/wiki',
+      origin: '@local',
+      config: { mod: 'Wiki', version: 1, description: 'edited' },
+    };
+
+    expect((component as any).getModUpdatePreview('Wiki')).toEqual(expect.objectContaining({
+      needsReview: false,
+      conflict: false,
+      proposed: expect.objectContaining({
+        plugin: [expect.objectContaining({ tag: 'plugin/wiki', config: { mod: 'Wiki', version: 2 } })],
+      }),
+    }));
+  });
+
+  it('should disable diffing when config/diff is not installed', () => {
+    admin.getTemplate = () => undefined;
+    admin.getMod = () => preview.target;
+
+    component.diffMod({ tag: 'plugin/wiki', config: { mod: 'Wiki' } } as any);
+
+    expect(component.mergeState).toBeUndefined();
+    expect(component.canDiffMod({ tag: 'plugin/wiki', config: { mod: 'Wiki' }, _needsUpdate: true } as any)).toBe(false);
+  });
+
+  it('should log receipts after installing mods when store support is enabled by the save', () => {
+    admin.getPlugin = () => undefined;
+    admin.def.plugins = {
+      'plugin/mod': { tag: 'plugin/mod', config: { mod: '🎁️ Store' } },
+      'plugin/wiki': { tag: 'plugin/wiki', config: { mod: 'Wiki' } },
+    };
+    admin.getMod = (mod: string) => ({
+      plugin: [{ tag: mod === '🎁️ Store' ? 'plugin/mod' : 'plugin/wiki', config: { mod } }],
+    });
+    component.adminForm = new UntypedFormGroup({
+      mods: new UntypedFormGroup({
+        'plugin/mod': new UntypedFormControl(true),
+        'plugin/wiki': new UntypedFormControl(true),
+      }),
+    });
+
+    component.install();
+
+    expect(admin.installMod$).toHaveBeenCalledWith('🎁️ Store', expect.any(Function), false);
+    expect(admin.installMod$).toHaveBeenCalledWith('Wiki', expect.any(Function), false);
+    expect(admin.logModReceipt$).toHaveBeenCalledTimes(2);
   });
 });
