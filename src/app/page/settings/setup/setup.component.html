@@ -72,29 +72,27 @@
 </div>
 
 <ng-template #mergePopup>
-  @if (mergeState) {
-    <div class="merge-popup">
-      <div class="merge-popup-header">
-        <label class="merge-title">{{ mergeState.mod }}</label>
-        <button type="button" class="merge-close" (click)="cancelMerge()" i18n>close</button>
-      </div>
-      @if (mergeState.conflict) {
-        <div class="warning merge-warning" i18n>Unable to merge automatically. Review the mod diff or overwrite your local changes.</div>
-      } @else {
-        <div class="warning merge-warning" i18n>Review the merged mod before saving or overwrite your local changes.</div>
-      }
-      <app-diff #mergeDiff
-                class="mod-merge-diff"
-                [original]="mergeState.current"
-                [modified]="mergeState.proposed"
-                [resizable]="false">
-      </app-diff>
-      <span><!-- Buttons --></span>
-      <span class="buttons right merge-buttons">
-        <button type="button" (click)="applyMerge(mergeDiff.getModifiedContent())" i18n>save</button>
-        <button type="button" (click)="overwriteMerge()" i18n>Overwrite</button>
-        <button type="button" (click)="cancelMerge()" i18n>cancel</button>
-      </span>
+  <div class="merge-popup">
+    <div class="merge-popup-header">
+      <label class="merge-title">{{ mergeState!.mod }}</label>
+      <button type="button" class="merge-close" (click)="cancelMerge()" i18n>close</button>
     </div>
-  }
+    @if (mergeState!.conflict) {
+      <div class="warning merge-warning" i18n>Unable to merge automatically. Review the mod diff or overwrite your local changes.</div>
+    } @else {
+      <div class="warning merge-warning" i18n>Review the merged mod before saving or overwrite your local changes.</div>
+    }
+    <app-diff #mergeDiff
+              class="mod-merge-diff"
+              [original]="mergeState!.current"
+              [modified]="mergeState!.proposed"
+              [resizable]="false">
+    </app-diff>
+    <span><!-- Buttons --></span>
+    <span class="buttons right merge-buttons">
+      <button type="button" (click)="applyMerge(mergeDiff.getModifiedContent())" i18n>save</button>
+      <button type="button" (click)="overwriteMerge()" i18n>Overwrite</button>
+      <button type="button" (click)="cancelMerge()" i18n>cancel</button>
+    </span>
+  </div>
 </ng-template>
