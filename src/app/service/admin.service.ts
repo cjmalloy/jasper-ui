@@ -982,7 +982,7 @@ export class AdminService {
       plugins: { 'plugin/mod': bundle },
     };
     return of(null).pipe(
-      tap(() => _('\u00A0'.repeat(4) + $localize`Installing ${mod || ref.url} ref...`)),
+      tap(() => _('\u00A0'.repeat(4) + $localize`Logging ${mod || ref.url} receipt...`)),
       switchMap(() => this.refs.get(ref.url, ref.origin).pipe(
         switchMap(existing => this.refs.update({
           ...ref,

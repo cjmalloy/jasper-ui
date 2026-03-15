@@ -6,7 +6,7 @@ import { Component, OnDestroy, TemplateRef, ViewChild, ViewContainerRef } from '
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { forOwn, uniq } from 'lodash-es';
-import { catchError, concat, EMPTY, last, of, Subscription, tap } from 'rxjs';
+import { catchError, concat, EMPTY, last, of, Subscription, tap, throwError } from 'rxjs';
 import { Config, Mod } from '../../../model/tag';
 import { AdminService, equalBundle, restoreBundle } from '../../../service/admin.service';
 import { ModService } from '../../../service/mod.service';
@@ -126,7 +126,7 @@ export class SettingsSetupPage implements OnDestroy {
       last(),
       catchError((res: HttpErrorResponse) => {
         this.serverError = printError(res);
-        return EMPTY;
+        return throwError(() => res);
       }),
     ).subscribe(() => {
         this.submitted = true;
