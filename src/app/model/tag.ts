@@ -593,7 +593,9 @@ export function emitModels(action: EmitAction, ref?: Ref, user?: string) {
 }
 
 export function clear<T extends Config>(c: T) {
+  const { tag } = c;
   c = omitBy(c, i => !i) as any;
+  if (tag !== undefined) c.tag = tag;
   c.config = omitBy(c.config, i => !i);
   delete c.config!.generated;
   delete c.config!.mod;

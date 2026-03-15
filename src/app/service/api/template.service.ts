@@ -25,7 +25,8 @@ export class TemplateService {
   }
 
   create(template: Template): Observable<void> {
-    template = { ...template, tag: (template.tag || '').replace(/^\//, '') };
+    template = { ...template, tag: template.tag || '' };
+    if (template.tag.startsWith('/')) template.tag = template.tag.substring(1);
     return this.http.post<void>(this.base, writeTemplate(template)).pipe(
       catchError(err => this.login.handleHttpError(err)),
     );

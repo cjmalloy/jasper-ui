@@ -24,21 +24,31 @@ test.describe.serial('Mod Merge', () => {
 
   test('shows the merge popup for a locally edited wiki mod', async ({ page }) => {
     test.setTimeout(120_000);
-    await page.goto('/?debug=ADMIN', { waitUntil: 'networkidle' });
-    await page.locator('.settings a', { hasText: 'settings' }).click();
-    await page.locator('.tabs a', { hasText: 'template' }).first().click();
-    await page.locator('input.upload').setInputFiles({
-      name: 'config-diff.json',
-      mimeType: 'application/json',
-      buffer: Buffer.from(JSON.stringify({
-        tag: 'config/diff',
-        config: {
-          mod: '⚓️ Root',
-          version: 1,
-        },
-      })),
-    });
-    await page.waitForLoadState('networkidle');
+    await page.goto('/settings/template?debug=ADMIN', { waitUntil: 'networkidle' });
+    const uploadTemplate = async (name: string, buffer: Buffer) => {
+      const saved = page.waitForResponse(resp =>
+        resp.url().includes('/api/v1/template') &&
+        resp.request().method() === 'POST' &&
+        resp.status() === 201);
+      const refreshed = page.waitForResponse(resp =>
+        resp.url().includes('/api/v1/template/page') &&
+        resp.status() === 200);
+      await page.locator('input.upload').setInputFiles({
+        name,
+        mimeType: 'application/json',
+        buffer,
+      });
+      await saved;
+      await refreshed;
+    };
+
+    await uploadTemplate('config-diff.json', Buffer.from(JSON.stringify({
+      tag: 'config/diff',
+      config: {
+        mod: '⚓️ Root',
+        version: 1,
+      },
+    })));
     const fileContent = JSON.stringify({
       tag: 'config/wiki',
       config: {
@@ -48,12 +58,7 @@ test.describe.serial('Mod Merge', () => {
         external: true,
       },
     });
-    await page.locator('input.upload').setInputFiles({
-      name: 'config.json',
-      mimeType: 'application/json',
-      buffer: Buffer.from(fileContent),
-    });
-    await page.waitForLoadState('networkidle');
+    await uploadTemplate('config.json', Buffer.from(fileContent));
 
     await page.goto('/settings/setup?debug=ADMIN', { waitUntil: 'networkidle' });
     await expect(page.locator('.mod-diff-link').first()).toBeVisible();
