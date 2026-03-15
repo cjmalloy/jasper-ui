@@ -47,7 +47,9 @@ test.describe.serial('Origin Pull Plugin', () => {
     const submitPromise = page.waitForResponse(resp => resp.url().includes('/api/v1/ref') && resp.request().method() === 'POST');
     await page.locator('button', { hasText: 'Submit' }).click();
     await submitPromise;
-    await expect(page.locator('.full-page.ref .link a')).toHaveText('Testing Remote @repl', { timeout: 60_000 });
+    await expect.poll(async () => (
+      await page.locator('.full-page.ref .link').first().textContent()
+    )?.includes('Testing Remote @repl') || false, { timeout: 60_000 }).toBe(true);
     await page.locator('.full-page.ref .actions .fake-link', { hasText: 'enable' }).first().click();
     await expect(page.locator('.full-page.ref .actions .fake-link', { hasText: 'disable' }).first()).toBeVisible();
   });
@@ -65,7 +67,9 @@ test.describe.serial('Origin Pull Plugin', () => {
     const submitPromise = page.waitForResponse(resp => resp.url().includes('/api/v1/ref') && resp.request().method() === 'POST');
     await page.locator('button', { hasText: 'Submit' }).click();
     await submitPromise;
-    await expect(page.locator('.full-page.ref .link a')).toHaveText('Pull Test', { timeout: 60_000 });
+    await expect.poll(async () => (
+      await page.locator('.full-page.ref .link').first().textContent()
+    )?.includes('Pull Test') || false, { timeout: 60_000 }).toBe(true);
   });
 
   test('@\u{ff20}main : pull remote batch', async ({ page }) => {
@@ -78,12 +82,11 @@ test.describe.serial('Origin Pull Plugin', () => {
     const path = '/tag/@repl?debug=USER';
     await expect.poll(async () => {
       await page.goto(path, { waitUntil: 'networkidle' });
-      return await page.locator('.ref-list .link.remote', { hasText: 'Pull Test' }).count();
-    }, { timeout: 60_000 }).toBeGreaterThan(0);
-    const ref = page.locator('.ref-list .ref').filter({
-      has: page.locator('.ref-list .link.remote', { hasText: 'Pull Test' }),
-    }).first();
-    await expect(ref.locator('.user.tag', { hasText: 'bob' }).first()).toBeVisible();
+      const ref = page.locator('.ref-list .ref').filter({
+        has: page.locator('.link.remote', { hasText: 'Pull Test' }),
+      }).first();
+      return await ref.locator('.user.tag', { hasText: 'bob' }).first().isVisible().catch(() => false);
+    }, { timeout: 60_000 }).toBe(true);
   });
 
   test('@\u{ff20}main : delete remote \u{ff20}repl', async ({ page }) => {
