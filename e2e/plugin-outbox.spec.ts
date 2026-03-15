@@ -16,7 +16,9 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
     await page.locator('input[type=search]').fill(apiUrl);
     await page.locator('input[type=search]').press('Enter');
     await expect(page.locator('.link:not(.remote)', { hasText: originTag }).first()).toBeVisible();
-    const origin = page.locator('.link:not(.remote)', { hasText: originTag }).locator('..').locator('..').locator('..');
+    const origin = page.locator('.ref-list .ref').filter({
+      has: page.locator('.link:not(.remote)', { hasText: originTag }),
+    }).first();
     await origin.locator('.actions .show-more').click();
     await page.locator('.advanced-actions .fake-link', { hasText: 'pull' }).first().click();
     await page.locator('.advanced-actions .fake-link', { hasText: 'yes' }).first().click();
@@ -119,7 +121,9 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
     await pollRemoteNotifications(page, replUrl, 'charlie');
     await page.locator('.settings .notification').click();
     await page.locator('.tabs a', { hasText: 'all' }).first().click();
-    const ref = page.locator('.ref-list .link:not(.remote)', { hasText: 'Ref from other' }).locator('..').locator('..').locator('..');
+    const ref = page.locator('.ref-list .ref').filter({
+      has: page.locator('.ref-list .link:not(.remote)', { hasText: 'Ref from other' }),
+    }).first();
     await expect(ref.locator('.user.tag', { hasText: 'bob' }).first()).toBeVisible();
   });
 
@@ -129,7 +133,9 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
     await pollNotifications(page, 'alice');
     await page.locator('.settings .notification').click();
     await page.locator('.tabs a', { hasText: 'all' }).first().click();
-    const ref = page.locator('.ref-list .link.remote', { hasText: 'Ref from other' }).locator('..').locator('..').locator('..');
+    const ref = page.locator('.ref-list .ref').filter({
+      has: page.locator('.ref-list .link.remote', { hasText: 'Ref from other' }),
+    }).first();
     await expect(ref.locator('.user.tag', { hasText: 'bob' }).first()).toBeVisible();
   });
 
@@ -137,7 +143,9 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
     await page.goto('/?debug=USER&tag=alice', { waitUntil: 'networkidle' });
     await page.locator('.settings .inbox').click();
     await page.locator('.tabs a', { hasText: 'all' }).first().click();
-    const ref = page.locator('.ref-list .link.remote', { hasText: 'Ref from other' }).locator('..').locator('..').locator('..');
+    const ref = page.locator('.ref-list .ref').filter({
+      has: page.locator('.ref-list .link.remote', { hasText: 'Ref from other' }),
+    }).first();
     await ref.locator('.actions a', { hasText: 'permalink'}).first().click();
     await page.locator('.comment-reply textarea').fill('Doing well, thanks!');
     await page.locator('.comment-reply textarea').blur();
@@ -153,7 +161,9 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
     await pollRemoteNotifications(page, replUrl, 'bob');
     await page.locator('.settings .notification').click();
     await page.locator('.tabs a', { hasText: 'all' }).first().click();
-    const ref = page.locator('.ref-list .link.remote', { hasText: 'Doing well, thanks!' }).locator('..').locator('..').locator('..');
+    const ref = page.locator('.ref-list .ref').filter({
+      has: page.locator('.ref-list .link.remote', { hasText: 'Doing well, thanks!' }),
+    }).first();
     await expect(ref.locator('.user.tag', { hasText: 'alice' }).first()).toBeVisible();
   });
 
@@ -162,7 +172,9 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
     await pollRemoteNotifications(page, replUrl, 'charlie');
     await page.locator('.settings .notification').click();
     await page.locator('.tabs a', { hasText: 'all' }).first().click();
-    const ref = page.locator('.ref-list .link.remote', { hasText: 'Doing well, thanks!' }).locator('..').locator('..').locator('..');
+    const ref = page.locator('.ref-list .ref').filter({
+      has: page.locator('.ref-list .link.remote', { hasText: 'Doing well, thanks!' }),
+    }).first();
     await expect(ref.locator('.user.tag', { hasText: 'alice' }).first()).toBeVisible();
   });
 
@@ -173,7 +185,9 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
     await openSidebar(page);
     await page.locator('input[type=search]').fill(replApi);
     await page.locator('input[type=search]').press('Enter');
-    const repl = page.locator('.link:not(.remote)', { hasText: '@repl' }).locator('..').locator('..').locator('..');
+    const repl = page.locator('.ref-list .ref').filter({
+      has: page.locator('.link:not(.remote)', { hasText: '@repl' }),
+    }).first();
     await repl.locator('.actions .fake-link', { hasText: 'delete' }).first().click();
     await repl.locator('.actions .fake-link', { hasText: 'yes' }).first().click();
   });
@@ -185,7 +199,9 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
     await openSidebar(page);
     await page.locator('input[type=search]').fill(mainApi);
     await page.locator('input[type=search]').press('Enter');
-    const main = page.locator('.link:not(.remote)', { hasText: '@main' }).locator('..').locator('..').locator('..');
+    const main = page.locator('.ref-list .ref').filter({
+      has: page.locator('.link:not(.remote)', { hasText: '@main' }),
+    }).first();
     await main.locator('.actions .fake-link', { hasText: 'delete' }).first().click();
     await main.locator('.actions .fake-link', { hasText: 'yes' }).first().click();
   });
