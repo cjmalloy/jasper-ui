@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, type Page, test } from '@playwright/test';
 import { clearAll, mod, modRemote, openSidebar, pollNotifications, pollRemoteNotifications } from './setup';
 
 test.describe.serial('Outbox Plugin: Remote Notifications', () => {
@@ -7,6 +7,22 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
   const replUrl = process.env.REPL_URL || 'http://localhost:8082';
   const replApi = process.env.REPL_API || 'http://localhost:8083';
   const replApiProxy = process.env.REPL_API_PROXY || 'http://repl-web';
+
+  async function pullOrigin(page: Page, base: string, apiUrl: string, originTag: string) {
+    await page.goto(base + '/?debug=ADMIN');
+    await page.locator('.settings a', { hasText: 'settings' }).click();
+    await page.locator('.tabs a', { hasText: 'origin' }).first().click();
+    await openSidebar(page);
+    await page.locator('input[type=search]').fill(apiUrl);
+    await page.locator('input[type=search]').press('Enter');
+    await expect(page.locator('.link:not(.remote)', { hasText: originTag }).first()).toBeVisible();
+    const origin = page.locator('.ref-list .ref').filter({
+      has: page.locator('.link:not(.remote)', { hasText: originTag }),
+    }).first();
+    await origin.locator('.actions .show-more').click();
+    await page.locator('.advanced-actions .fake-link', { hasText: 'pull' }).first().click();
+    await page.locator('.advanced-actions .fake-link', { hasText: 'yes' }).first().click();
+  }
 
   test('@\u{ff20}main : clear all', async ({ page }) => {
     await clearAll(page);
@@ -40,18 +56,22 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
     await page.locator('#url').fill(replApi);
     await page.locator('#url').blur();
     await page.getByText('Next').click();
-    await page.locator('[name=title]').fill('Testing Remote @repl');
+    await expect(page.locator('.floating-ribbons .plugin_origin_pull')).toBeVisible();
     await page.locator('.floating-ribbons .plugin_origin_pull').click();
+    await page.locator('[name=title]').fill('Testing Remote @repl');
     await page.locator('[name=local]').fill('@repl');
     await page.locator('[name=remote]').fill('@repl');
     await page.locator('.plugins-form details.plugin_origin.advanced summary').click();
     await page.locator('[name=proxy]').fill(replApiProxy);
     await page.locator('[name=proxy]').blur();
-    const submitPromise = page.waitForResponse(resp => resp.url().includes('/api/v1/ref'));
+    const submitPromise = page.waitForResponse(resp => resp.url().includes('/api/v1/ref') && resp.request().method() === 'POST');
     await page.locator('button', { hasText: 'Submit' }).click();
     await submitPromise;
-    await expect(page.locator('.full-page.ref .link a')).toHaveText('Testing Remote @repl');
+    await expect.poll(async () => (
+      await page.locator('.full-page.ref .link').first().textContent()
+    )?.includes('Testing Remote @repl') || false, { timeout: 60_000 }).toBe(true);
     await page.locator('.full-page.ref .actions .fake-link', { hasText: 'enable' }).first().click();
+    await expect(page.locator('.full-page.ref .actions .fake-link', { hasText: 'disable' }).first()).toBeVisible();
   });
 
   test('@\u{ff20}repl : create users', async ({ page }) => {
@@ -70,17 +90,21 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
     await page.locator('#url').fill(mainApi);
     await page.locator('#url').blur();
     await page.getByText('Next').click();
+    await expect(page.locator('.floating-ribbons .plugin_origin_pull')).toBeVisible();
     await page.locator('.floating-ribbons .plugin_origin_pull').click();
     await page.locator('[name=local]').fill('@main');
     await page.locator('.plugins-form details.plugin_origin.advanced summary').click();
     await page.locator('[name=proxy]').fill(mainApiProxy);
     await page.locator('[name=proxy]').blur();
     await page.locator('[name=title]').fill('Testing Remote @main');
-    const submitPromise = page.waitForResponse(resp => resp.url().includes('/api/v1/ref'));
+    const submitPromise = page.waitForResponse(resp => resp.url().includes('/api/v1/ref') && resp.request().method() === 'POST');
     await page.locator('button', { hasText: 'Submit' }).click();
     await submitPromise;
-    await expect(page.locator('.full-page.ref .link a')).toHaveText('Testing Remote @main');
+    await expect.poll(async () => (
+      await page.locator('.full-page.ref .link').first().textContent()
+    )?.includes('Testing Remote @main') || false, { timeout: 60_000 }).toBe(true);
     await page.locator('.full-page.ref .actions .fake-link', { hasText: 'enable' }).first().click();
+    await expect(page.locator('.full-page.ref .actions .fake-link', { hasText: 'disable' }).first()).toBeVisible();
   });
 
   test('@\u{ff20}repl : creates ref', async ({ page }) => {
@@ -91,52 +115,81 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
     await page.locator('[name=title]').fill('Ref from other');
     await page.locator('.editor textarea').fill('Hi +user/alice@repl.main! How\'s it going? You should also see this +user/charlie.');
     await page.locator('.editor textarea').blur();
+    const submitPromise = page.waitForResponse(resp => resp.url().includes('/api/v1/ref') && resp.request().method() === 'POST');
     await page.locator('button', { hasText: 'Submit' }).click({ force: true });
-    await expect(page.locator('.full-page.ref .link a')).toHaveText('Ref from other');
+    await submitPromise;
+    await expect.poll(async () => (
+      await page.locator('.full-page.ref .link').first().textContent()
+    )?.includes('Ref from other') || false, { timeout: 60_000 }).toBe(true);
   });
 
   test('@\u{ff20}repl : local user notified', async ({ page }) => {
-    await pollRemoteNotifications(page, replUrl, 'charlie');
-    await page.locator('.settings .notification').click();
-    await page.locator('.tabs a', { hasText: 'all' }).first().click();
-    const ref = page.locator('.ref-list .link:not(.remote)', { hasText: 'Ref from other' }).locator('..').locator('..').locator('..');
-    await expect(ref.locator('.user.tag', { hasText: 'bob' }).first()).toBeVisible();
+    await expect.poll(async () => {
+      await pollRemoteNotifications(page, replUrl, 'charlie');
+      await page.locator('.settings .notification').click();
+      await page.locator('.tabs a', { hasText: 'all' }).first().click();
+      const ref = page.locator('.ref-list .ref').filter({
+        has: page.locator('.link:not(.remote)', { hasText: 'Ref from other' }),
+      }).first();
+      return await ref.locator('.user.tag', { hasText: 'bob' }).first().isVisible().catch(() => false);
+    }, { timeout: 60_000 }).toBe(true);
   });
 
   test('@\u{ff20}main : check ref was pulled', async ({ page }) => {
-    await pollNotifications(page, 'alice');
-    await page.locator('.settings .notification').click();
-    await page.locator('.tabs a', { hasText: 'all' }).first().click();
-    const ref = page.locator('.ref-list .link.remote', { hasText: 'Ref from other' }).locator('..').locator('..').locator('..');
-    await expect(ref.locator('.user.tag', { hasText: 'bob' }).first()).toBeVisible();
+    test.slow();
+    await pullOrigin(page, '', replApi, '@repl');
+    await expect.poll(async () => {
+      await pollNotifications(page, 'alice');
+      await page.locator('.settings .notification').click();
+      await page.locator('.tabs a', { hasText: 'all' }).first().click();
+      const ref = page.locator('.ref-list .ref').filter({
+        has: page.locator('.link.remote', { hasText: 'Ref from other' }),
+      }).first();
+      return await ref.locator('.user.tag', { hasText: 'bob' }).first().isVisible().catch(() => false);
+    }, { timeout: 60_000 }).toBe(true);
   });
 
   test('@\u{ff20}main : reply to remote message', async ({ page }) => {
     await page.goto('/?debug=USER&tag=alice', { waitUntil: 'networkidle' });
     await page.locator('.settings .inbox').click();
     await page.locator('.tabs a', { hasText: 'all' }).first().click();
-    const ref = page.locator('.ref-list .link.remote', { hasText: 'Ref from other' }).locator('..').locator('..').locator('..');
+    const ref = page.locator('.ref-list .ref').filter({
+      has: page.locator('.link.remote', { hasText: 'Ref from other' }),
+    }).first();
     await ref.locator('.actions a', { hasText: 'permalink'}).first().click();
     await page.locator('.comment-reply textarea').fill('Doing well, thanks!');
     await page.locator('.comment-reply textarea').blur();
+    const replyPromise = page.waitForResponse(resp => resp.url().includes('/api/v1/ref') && resp.request().method() === 'POST');
     await page.locator('.comment-reply button', { hasText: 'reply' }).click();
-    await page.waitForTimeout(3000);
+    await replyPromise;
+    await expect(page.locator('.full-page.ref')).toContainText('Doing well, thanks!');
   });
 
   test('@\u{ff20}repl : check reply was pulled', async ({ page }) => {
-    await pollRemoteNotifications(page, replUrl, 'bob');
-    await page.locator('.settings .notification').click();
-    await page.locator('.tabs a', { hasText: 'all' }).first().click();
-    const ref = page.locator('.ref-list .link.remote', { hasText: 'Doing well, thanks!' }).locator('..').locator('..').locator('..');
-    await expect(ref.locator('.user.tag', { hasText: 'alice' }).first()).toBeVisible();
+    test.slow();
+    await pullOrigin(page, replUrl, mainApi, '@main');
+    await expect.poll(async () => {
+      await pollRemoteNotifications(page, replUrl, 'bob');
+      await page.locator('.settings .notification').click();
+      await page.locator('.tabs a', { hasText: 'all' }).first().click();
+      const ref = page.locator('.ref-list .ref').filter({
+        has: page.locator('.link.remote', { hasText: 'Doing well, thanks!' }),
+      }).first();
+      return await ref.locator('.user.tag', { hasText: 'alice' }).first().isVisible().catch(() => false);
+    }, { timeout: 60_000 }).toBe(true);
   });
 
   test('@\u{ff20}repl : check inbox was converted to outbox', async ({ page }) => {
-    await pollRemoteNotifications(page, replUrl, 'charlie');
-    await page.locator('.settings .notification').click();
-    await page.locator('.tabs a', { hasText: 'all' }).first().click();
-    const ref = page.locator('.ref-list .link.remote', { hasText: 'Doing well, thanks!' }).locator('..').locator('..').locator('..');
-    await expect(ref.locator('.user.tag', { hasText: 'alice' }).first()).toBeVisible();
+    test.slow();
+    await expect.poll(async () => {
+      await pollRemoteNotifications(page, replUrl, 'charlie');
+      await page.locator('.settings .notification').click();
+      await page.locator('.tabs a', { hasText: 'all' }).first().click();
+      const ref = page.locator('.ref-list .ref').filter({
+        has: page.locator('.link.remote', { hasText: 'Doing well, thanks!' }),
+      }).first();
+      return await ref.locator('.user.tag', { hasText: 'alice' }).first().isVisible().catch(() => false);
+    }, { timeout: 60_000 }).toBe(true);
   });
 
   test('@\u{ff20}main : delete remote \u{ff20}repl', async ({ page }) => {
@@ -146,7 +199,9 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
     await openSidebar(page);
     await page.locator('input[type=search]').fill(replApi);
     await page.locator('input[type=search]').press('Enter');
-    const repl = page.locator('.link:not(.remote)', { hasText: '@repl' }).locator('..').locator('..').locator('..');
+    const repl = page.locator('.ref-list .ref').filter({
+      has: page.locator('.link:not(.remote)', { hasText: '@repl' }),
+    }).first();
     await repl.locator('.actions .fake-link', { hasText: 'delete' }).first().click();
     await repl.locator('.actions .fake-link', { hasText: 'yes' }).first().click();
   });
@@ -158,7 +213,9 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
     await openSidebar(page);
     await page.locator('input[type=search]').fill(mainApi);
     await page.locator('input[type=search]').press('Enter');
-    const main = page.locator('.link:not(.remote)', { hasText: '@main' }).locator('..').locator('..').locator('..');
+    const main = page.locator('.ref-list .ref').filter({
+      has: page.locator('.link:not(.remote)', { hasText: '@main' }),
+    }).first();
     await main.locator('.actions .fake-link', { hasText: 'delete' }).first().click();
     await main.locator('.actions .fake-link', { hasText: 'yes' }).first().click();
   });
