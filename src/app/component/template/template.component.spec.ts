@@ -64,6 +64,30 @@ describe('TemplateComponent', () => {
 
     component.save();
 
+    expect(templates.update).toHaveBeenCalledWith(expect.objectContaining({
+      tag: 'template',
+      name: 'Template',
+      config: { mod: 'Wiki', description: 'edited' },
+    }));
     expect(admin.status.templates.template).toEqual({ tag: 'template', config: { description: 'edited' } });
+  });
+
+  it('should move disabled templates into disabled status after save', () => {
+    templates.get.mockReturnValueOnce(of({ tag: 'template', config: { disabled: true, description: 'edited' } }));
+    component.template = { tag: 'template', name: 'Template', config: { mod: 'Wiki' } };
+    component.init();
+    component.editForm.patchValue({
+      tag: 'template',
+      name: 'Template',
+      config: JSON.stringify({ mod: 'Wiki', disabled: true, description: 'edited' }),
+    });
+
+    component.save();
+
+    expect(admin.status.templates.template).toBeUndefined();
+    expect(admin.status.disabledTemplates.template).toEqual({
+      tag: 'template',
+      config: { disabled: true, description: 'edited' }
+    });
   });
 });

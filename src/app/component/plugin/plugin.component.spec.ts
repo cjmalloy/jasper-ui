@@ -64,6 +64,30 @@ describe('PluginComponent', () => {
 
     component.save();
 
+    expect(plugins.update).toHaveBeenCalledWith(expect.objectContaining({
+      tag: 'plugin/test',
+      name: 'Plugin',
+      config: { mod: 'Wiki', description: 'edited' },
+    }));
     expect(admin.status.plugins['plugin/test']).toEqual({ tag: 'plugin/test', config: { description: 'edited' } });
+  });
+
+  it('should move disabled plugins into disabled status after save', () => {
+    plugins.get.mockReturnValueOnce(of({ tag: 'plugin/test', config: { disabled: true, description: 'edited' } }));
+    component.plugin = { tag: 'plugin/test', name: 'Plugin', config: { mod: 'Wiki' } };
+    component.init();
+    component.editForm.patchValue({
+      tag: 'plugin/test',
+      name: 'Plugin',
+      config: JSON.stringify({ mod: 'Wiki', disabled: true, description: 'edited' }),
+    });
+
+    component.save();
+
+    expect(admin.status.plugins['plugin/test']).toBeUndefined();
+    expect(admin.status.disabledPlugins['plugin/test']).toEqual({
+      tag: 'plugin/test',
+      config: { disabled: true, description: 'edited' }
+    });
   });
 });
