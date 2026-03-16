@@ -83,6 +83,33 @@ describe('AdminService', () => {
     }));
   });
 
+  it('should ignore extra live entries that share a mod id but are not in the installed receipt', () => {
+    service.status.plugins['plugin/wiki'] = {
+      tag: 'plugin/wiki',
+      origin: '@local',
+      config: { mod: 'Wiki', version: 1 },
+    } as any;
+    service.status.plugins['plugin/wiki-extra'] = {
+      tag: 'plugin/wiki-extra',
+      origin: '@local',
+      config: { mod: 'Wiki', version: 1 },
+    } as any;
+    service.status.modRefs.Wiki = {
+      url: 'mod:Wiki',
+      origin: '@local',
+      plugins: {
+        'plugin/mod': {
+          plugin: [{
+            tag: 'plugin/wiki',
+            config: { mod: 'Wiki', version: 1 },
+          }],
+        },
+      },
+    } as any;
+
+    expect(service.getCurrentMod('Wiki').plugin?.map(plugin => plugin.tag)).toEqual(['plugin/wiki']);
+  });
+
   it('should clear loaded mod refs found by title when deleting a mod', () => {
     const refs = TestBed.inject(RefService);
     const remove = vi.spyOn(refs, 'delete').mockReturnValue(of(void 0));

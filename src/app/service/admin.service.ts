@@ -1152,7 +1152,11 @@ export class AdminService {
   ) {
     const tagSet = new Set(tags);
     return [...Object.values(active), ...Object.values(disabled)]
-      .filter((entry): entry is T => !!entry && (modId(entry) === mod || tagSet.has(entry.tag)));
+      .filter((entry): entry is T => !!entry && (
+        tagSet.size
+          ? tagSet.has(entry.tag)
+          : modId(entry) === mod
+      ));
   }
 
   private getInstalledModRefEntry(mod: string) {
