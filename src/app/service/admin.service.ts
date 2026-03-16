@@ -1156,9 +1156,7 @@ export class AdminService {
 
   private getInstalledModRef(mod: string) {
     return this.status.modRefs[mod] || Object.values(this.status.modRefs).find(ref =>
-      ref.title === mod ||
-      ref.plugins?.['plugin/mod']?.plugin?.some((plugin: Plugin) => modId(plugin) === mod) ||
-      ref.plugins?.['plugin/mod']?.template?.some((template: Template) => modId(template) === mod)
+      ref.title === mod
     );
   }
 
