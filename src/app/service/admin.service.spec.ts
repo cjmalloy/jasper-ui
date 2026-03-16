@@ -83,4 +83,20 @@ describe('AdminService', () => {
     }));
   });
 
+  it('should clear loaded mod refs found by title when deleting a mod', () => {
+    const refs = TestBed.inject(RefService);
+    const remove = vi.spyOn(refs, 'delete').mockReturnValue(of(void 0));
+    service.status.modRefs['Wiki-Receipt'] = {
+      url: 'mod:Wiki-Receipt',
+      title: '📔️ Wiki',
+      origin: '@local',
+      plugins: { 'plugin/mod': { template: [{ tag: 'config/wiki', config: { mod: '📔️ Wiki' } }] } },
+    } as any;
+
+    service.deleteMod$('📔️ Wiki', () => {}).subscribe();
+
+    expect(remove).toHaveBeenCalledWith('mod:Wiki-Receipt', '@local');
+    expect(service.status.modRefs['Wiki-Receipt']).toBeUndefined();
+  });
+
 });

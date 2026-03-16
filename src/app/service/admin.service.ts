@@ -998,12 +998,13 @@ export class AdminService {
   }
 
   private clearModReceipt$(mod: string, _: progress) {
-    const ref = this.status.modRefs[mod];
-    if (!ref) return of(null);
+    const receipt = this.getInstalledModRefEntry(mod);
+    if (!receipt) return of(null);
+    const [key, ref] = receipt;
     return of(null).pipe(
       tap(() => _('\u00A0'.repeat(4) + $localize`Deleting ${mod} ref...`)),
       switchMap(() => this.refs.delete(ref.url, ref.origin)),
-      tap(() => delete this.status.modRefs[mod]),
+      tap(() => delete this.status.modRefs[key]),
       tap(() => _('', 1)),
     );
   }
@@ -1154,10 +1155,14 @@ export class AdminService {
       .filter((entry): entry is T => !!entry && (modId(entry) === mod || tagSet.has(entry.tag)));
   }
 
-  private getInstalledModRef(mod: string) {
-    return this.status.modRefs[mod] || Object.values(this.status.modRefs).find(ref =>
-      ref.title === mod
+  private getInstalledModRefEntry(mod: string) {
+    return Object.entries(this.status.modRefs).find(([key, ref]) =>
+      key === mod || ref.title === mod
     );
+  }
+
+  private getInstalledModRef(mod: string) {
+    return this.getInstalledModRefEntry(mod)?.[1];
   }
 
   deleteMod$(mod: string, _: progress): Observable<any> {
