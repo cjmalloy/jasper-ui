@@ -598,7 +598,6 @@ export function clear<T extends Config>(c: T) {
   if (tag !== undefined) c.tag = tag;
   c.config = omitBy(c.config, i => !i);
   delete c.config!.generated;
-  delete c.config!.mod;
   delete c.config!._parent;
   delete c.type;
   delete c.origin;

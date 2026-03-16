@@ -12,5 +12,18 @@ describe('Tag Model', () => {
 
       expect(cleared.tag).toBe('');
     });
+
+    it('should preserve config.mod', () => {
+      const cleared = clear({
+        tag: 'plugin/wiki',
+        config: {
+          mod: '📔️ Wiki',
+          generated: 'generated',
+        },
+      } as any);
+
+      expect(cleared.config?.mod).toBe('📔️ Wiki');
+      expect(cleared.config?.generated).toBeUndefined();
+    });
   });
 });
