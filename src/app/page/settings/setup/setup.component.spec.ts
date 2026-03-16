@@ -37,13 +37,15 @@ describe('SettingsSetupPage', () => {
       },
       getCurrentMod(mod: string) {
         const base = admin.getInstalledMod(mod) || admin.getMod(mod) || {};
+        const basePluginTags = new Set((base.plugin || []).map((entry: any) => entry.tag));
+        const baseTemplateTags = new Set((base.template || []).map((entry: any) => entry.tag));
         return {
           ...base,
           plugin: [...Object.values(admin.status.plugins), ...Object.values(admin.status.disabledPlugins)]
-            .filter((entry: any) => entry && modId(entry) === mod)
+            .filter((entry: any) => entry && (modId(entry) === mod || basePluginTags.has(entry.tag)))
             .map((entry: any) => ({ ...entry, origin: '' })),
           template: [...Object.values(admin.status.templates), ...Object.values(admin.status.disabledTemplates)]
-            .filter((entry: any) => entry && modId(entry) === mod)
+            .filter((entry: any) => entry && (modId(entry) === mod || baseTemplateTags.has(entry.tag)))
             .map((entry: any) => ({ ...entry, origin: '' })),
         };
       },
@@ -150,6 +152,28 @@ describe('SettingsSetupPage', () => {
     };
 
     expect(component.modModified({ tag: 'plugin/wiki', config: { mod: 'Wiki' } } as any)).toBe(true);
+  });
+
+  it('should flag locally edited mods when an edited template no longer carries config.mod', () => {
+    admin.status.templates['config/wiki'] = {
+      tag: 'config/wiki',
+      origin: '@local',
+      config: { description: 'edited' },
+    };
+    admin.status.modRefs.Wiki = {
+      url: 'mod:Wiki',
+      origin: '@local',
+      plugins: {
+        'plugin/mod': {
+          template: [{
+            tag: 'config/wiki',
+            config: { mod: 'Wiki', version: 1 },
+          }],
+        },
+      },
+    };
+
+    expect(component.modModified({ tag: 'config/wiki', config: { mod: 'Wiki' } } as any)).toBe(true);
   });
 
   it('should treat mods without an installed mod ref as unmodified in setup status', () => {

@@ -149,6 +149,13 @@ export class PluginComponent implements OnChanges, HasChanges {
       this.serverError = [];
       this.editing = false;
       this.plugin = tag;
+      delete this.admin.status.plugins[tag.tag];
+      delete this.admin.status.disabledPlugins[tag.tag];
+      if (tag.config?.disabled) {
+        this.admin.status.disabledPlugins[tag.tag] = tag;
+      } else {
+        this.admin.status.plugins[tag.tag] = tag;
+      }
     });
   }
 

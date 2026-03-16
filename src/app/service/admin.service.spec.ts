@@ -62,4 +62,26 @@ describe('AdminService', () => {
     }));
   });
 
+  it('should key loaded mod refs by title when available', () => {
+    const refs = TestBed.inject(RefService);
+    const store = TestBed.inject(Store);
+    store.account.origin = '@local';
+    vi.spyOn(refs, 'page').mockReturnValue(of({
+      content: [{
+        url: 'mod:Wiki',
+        origin: '@local',
+        title: '📔️ Wiki',
+        plugins: { 'plugin/mod': { template: [{ tag: 'config/wiki', config: { mod: '📔️ Wiki' } }] } },
+      }],
+      page: { totalPages: 1 },
+    } as any));
+
+    (service as any).loadModRefs$().subscribe();
+
+    expect(service.status.modRefs['📔️ Wiki']).toEqual(expect.objectContaining({
+      url: 'mod:Wiki',
+      title: '📔️ Wiki',
+    }));
+  });
+
 });

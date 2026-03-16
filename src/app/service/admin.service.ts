@@ -338,7 +338,7 @@ export class AdminService {
       retry(10),
       tap(batch => batch.content
         .filter(ref => ref.origin === this.store.account.origin && ref.url.startsWith('mod:') && ref.plugins?.['plugin/mod'])
-        .forEach(ref => this.status.modRefs[this.getModIdFromUrl(ref.url)] = ref)),
+        .forEach(ref => this.status.modRefs[ref.title || this.getModIdFromUrl(ref.url)] = ref)),
       switchMap(batch => page + 1 < batch.page.totalPages ? this.loadModRefs$(page + 1) : of(null)),
       catchError(() => of(null)),
     );
@@ -949,8 +949,8 @@ export class AdminService {
     const base = this.getInstalledMod(mod) || this.getMod(mod) || {};
     return clearMod(<Mod> {
       ...base,
-      plugin: this.getStatusPlugins(mod),
-      template: this.getStatusTemplates(mod),
+      plugin: this.getStatusPlugins(mod, base.plugin?.map((plugin: Plugin) => plugin.tag)),
+      template: this.getStatusTemplates(mod, base.template?.map((template: Template) => template.tag)),
     });
   }
 
@@ -1133,19 +1133,24 @@ export class AdminService {
     ]).pipe(toArray());
   }
 
-  private getStatusPlugins(mod: string) {
-    return this.getStatusEntries(this.status.plugins, this.status.disabledPlugins, mod)
+  private getStatusPlugins(mod: string, tags: string[] = []) {
+    return this.getStatusEntries(this.status.plugins, this.status.disabledPlugins, mod, tags)
       .map(plugin => writePlugin({ ...plugin, origin: '' }));
   }
 
-  private getStatusTemplates(mod: string) {
-    return this.getStatusEntries(this.status.templates, this.status.disabledTemplates, mod)
+  private getStatusTemplates(mod: string, tags: string[] = []) {
+    return this.getStatusEntries(this.status.templates, this.status.disabledTemplates, mod, tags)
       .map(template => writeTemplate({ ...template, origin: '' }));
   }
 
-  private getStatusEntries<T extends Config & { tag: string }>(active: Record<string, T>, disabled: Record<string, T>, mod: string) {
+  private getStatusEntries<T extends Config & { tag: string }>(
+    active: Record<string, T>,
+    disabled: Record<string, T>,
+    mod: string,
+    tags: string[] = [],
+  ) {
     return [...Object.values(active), ...Object.values(disabled)]
-      .filter((entry): entry is T => !!entry && modId(entry) === mod);
+      .filter((entry): entry is T => !!entry && (modId(entry) === mod || tags.includes(entry.tag)));
   }
 
   deleteMod$(mod: string, _: progress): Observable<any> {
