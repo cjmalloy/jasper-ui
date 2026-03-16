@@ -9,7 +9,7 @@ import { blogTemplate } from '../mods/blog';
 import { scrapePlugin } from '../mods/sync/scrape';
 import { userTemplate } from '../mods/user';
 import { RefService } from './api/ref.service';
-import { AdminService } from './admin.service';
+import { AdminService, equalBundle } from './admin.service';
 import { Store } from '../store/store';
 
 describe('AdminService', () => {
@@ -108,6 +108,30 @@ describe('AdminService', () => {
     } as any;
 
     expect(service.getCurrentMod('Wiki').plugin?.map(plugin => plugin.tag)).toEqual(['plugin/wiki']);
+  });
+
+  it('should compare plugin-only receipts without treating empty template arrays as modifications', () => {
+    const bundle = {
+      plugin: [{
+        tag: 'plugin/mod',
+        name: '🎁️ Mod',
+        config: { mod: '🎁️ Store', version: 1 },
+      }],
+    };
+    service.status.plugins['plugin/mod'] = {
+      tag: 'plugin/mod',
+      origin: '@local',
+      name: '🎁️ Mod',
+      config: { mod: '🎁️ Store', version: 1 },
+    } as any;
+    service.status.modRefs['🎁️ Store'] = {
+      url: 'mod:%F0%9F%8E%81%EF%B8%8F-Store',
+      title: '🎁️ Store',
+      origin: '@local',
+      plugins: { 'plugin/mod': bundle },
+    } as any;
+
+    expect(equalBundle(service.getCurrentMod('🎁️ Store'), service.getInstalledMod('🎁️ Store'))).toBe(true);
   });
 
   it('should clear loaded mod refs found by title when deleting a mod', () => {

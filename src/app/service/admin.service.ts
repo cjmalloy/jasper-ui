@@ -1275,10 +1275,15 @@ function restoreConfigEntries<Entry extends Config & { tag: string }>(target: En
 function clearMod<T extends Mod | undefined>(mod: T, strict = true): T {
   if (!mod) return mod;
   const result = { ...mod } as any;
+  if (isEmpty(mod.ref)) delete result.ref;
   if (!isEmpty(mod.ref)) result.ref = mod.ref!.map((r: Ref) => writeRef(r));
+  if (isEmpty(mod.ext)) delete result.ext;
   if (!isEmpty(mod.ext)) result.ext = mod.ext!.map((e: Ext) => writeExt(e));
+  if (isEmpty(mod.user)) delete result.user;
   if (!isEmpty(mod.user)) result.user = mod.user!.map((u: User) => writeUser(u));
+  if (isEmpty(mod.plugin)) delete result.plugin;
   if (!isEmpty(mod.plugin)) result.plugin = mod.plugin!.map((p: Plugin) => clearConfig(writePlugin(p), strict));
+  if (isEmpty(mod.template)) delete result.template;
   if (!isEmpty(mod.template)) result.template = mod.template!.map((t: Template) => clearConfig(writeTemplate(t), strict));
   return result;
 }
