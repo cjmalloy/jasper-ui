@@ -62,7 +62,7 @@ describe('AdminService', () => {
     }));
   });
 
-  it('should key loaded mod refs by title when available', () => {
+  it('should find loaded mod refs by title when url ids are sanitized', () => {
     const refs = TestBed.inject(RefService);
     const store = TestBed.inject(Store);
     store.account.origin = '@local';
@@ -78,9 +78,8 @@ describe('AdminService', () => {
 
     (service as any).loadModRefs$().subscribe();
 
-    expect(service.status.modRefs['📔️ Wiki']).toEqual(expect.objectContaining({
-      url: 'mod:Wiki',
-      title: '📔️ Wiki',
+    expect(service.getInstalledMod('📔️ Wiki')).toEqual(expect.objectContaining({
+      template: [{ tag: 'config/wiki', config: { mod: '📔️ Wiki' } }],
     }));
   });
 

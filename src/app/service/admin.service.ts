@@ -338,7 +338,7 @@ export class AdminService {
       retry(10),
       tap(batch => batch.content
         .filter(ref => ref.origin === this.store.account.origin && ref.url.startsWith('mod:') && ref.plugins?.['plugin/mod'])
-        .forEach(ref => this.status.modRefs[ref.title || this.getModIdFromUrl(ref.url)] = ref)),
+        .forEach(ref => this.status.modRefs[this.getModIdFromUrl(ref.url)] = ref)),
       switchMap(batch => page + 1 < batch.page.totalPages ? this.loadModRefs$(page + 1) : of(null)),
       catchError(() => of(null)),
     );
@@ -934,15 +934,15 @@ export class AdminService {
   }
 
   getInstalledPlugin(mod: string, tag: string) {
-    return this.status.modRefs[mod]?.plugins?.['plugin/mod']?.plugin?.find((plugin: Plugin) => plugin.tag === tag);
+    return this.getInstalledModRef(mod)?.plugins?.['plugin/mod']?.plugin?.find((plugin: Plugin) => plugin.tag === tag);
   }
 
   getInstalledTemplate(mod: string, tag: string) {
-    return this.status.modRefs[mod]?.plugins?.['plugin/mod']?.template?.find((template: Template) => template.tag === tag);
+    return this.getInstalledModRef(mod)?.plugins?.['plugin/mod']?.template?.find((template: Template) => template.tag === tag);
   }
 
   getInstalledMod(mod: string) {
-    return clearMod(this.status.modRefs[mod]?.plugins?.['plugin/mod']);
+    return clearMod(this.getInstalledModRef(mod)?.plugins?.['plugin/mod']);
   }
 
   getCurrentMod(mod: string) {
@@ -1149,8 +1149,17 @@ export class AdminService {
     mod: string,
     tags: string[] = [],
   ) {
+    const tagSet = new Set(tags);
     return [...Object.values(active), ...Object.values(disabled)]
-      .filter((entry): entry is T => !!entry && (modId(entry) === mod || tags.includes(entry.tag)));
+      .filter((entry): entry is T => !!entry && (modId(entry) === mod || tagSet.has(entry.tag)));
+  }
+
+  private getInstalledModRef(mod: string) {
+    return this.status.modRefs[mod] || Object.values(this.status.modRefs).find(ref =>
+      ref.title === mod ||
+      ref.plugins?.['plugin/mod']?.plugin?.some((plugin: Plugin) => modId(plugin) === mod) ||
+      ref.plugins?.['plugin/mod']?.template?.some((template: Template) => modId(template) === mod)
+    );
   }
 
   deleteMod$(mod: string, _: progress): Observable<any> {
