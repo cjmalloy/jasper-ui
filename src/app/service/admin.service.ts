@@ -338,9 +338,10 @@ export class AdminService {
   }
 
   private loadModRefs$(mod: string): Observable<null> {
+    const origin = this.store.account.origin;
     const query = this.getModReceiptTag(mod);
-    if (!query) return of(null);
-    return this.refs.page({ query: this.store.account.origin + ':' + query, size: 1, sort: ['modified,DESC'] }).pipe(
+    if (!origin || !query) return of(null);
+    return this.refs.page({ query: `${origin}:${query}`, size: 1, sort: ['modified,DESC'] }).pipe(
       retry(10),
       tap(batch => batch.content
         .filter(ref => ref.origin === this.store.account.origin &&
@@ -1180,18 +1181,26 @@ export class AdminService {
   }
 
   private getModReceiptTag(mod: string, bundle?: Mod) {
-    const tag = bundle?.plugin?.[0]?.tag ||
-      bundle?.template?.[0]?.tag ||
-      this.getMod(mod)?.plugin?.[0]?.tag ||
-      this.getMod(mod)?.template?.[0]?.tag ||
-      this.getStatusEntries(this.status.plugins, this.status.disabledPlugins, mod)[0]?.tag ||
-      this.getStatusEntries(this.status.templates, this.status.disabledTemplates, mod)[0]?.tag;
+    const tag = this.getModReceiptSourceTagFor(mod, bundle);
     return tag ? prefix('plugin/mod/receipt', tag) : undefined;
   }
 
+  private getModReceiptSourceTag(bundle?: Mod) {
+    return bundle?.plugin?.[0]?.tag || bundle?.template?.[0]?.tag;
+  }
+
+  private getModReceiptSourceTagFor(mod: string, bundle?: Mod) {
+    return this.getModReceiptSourceTag(bundle) ||
+      this.getModReceiptSourceTag(this.getMod(mod)) ||
+      this.getStatusEntries(this.status.plugins, this.status.disabledPlugins, mod)[0]?.tag ||
+      this.getStatusEntries(this.status.templates, this.status.disabledTemplates, mod)[0]?.tag;
+  }
+
   private ensureModRefsLoaded(mod: string) {
-    if (!this.store.account.origin || this.getInstalledModRefEntry(mod) ||
-      this.modRefsLoaded.has(mod) || this.modRefsLoading.has(mod)) return;
+    if (!this.store.account.origin) return;
+    if (this.modRefsLoaded.has(mod)) return;
+    if (this.getInstalledModRefEntry(mod)) return;
+    if (this.modRefsLoading.has(mod)) return;
     this.modRefsLoading.add(mod);
     this.loadModRefs$(mod).pipe(
       tap(() => this.modRefsLoaded.add(mod)),
