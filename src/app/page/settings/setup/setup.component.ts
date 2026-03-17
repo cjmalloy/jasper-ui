@@ -52,6 +52,7 @@ export class SettingsSetupPage implements OnDestroy {
   mergeState?: ModUpdatePreview;
   mergePopupRef?: OverlayRef;
   mergePopupSub = new Subscription();
+  loadModRefsSub = new Subscription();
   modGroups = configGroups({
     ...this.admin.status.disabledPlugins, ...this.admin.status.disabledTemplates,
     ...this.admin.status.plugins, ...this.admin.status.templates,
@@ -70,6 +71,7 @@ export class SettingsSetupPage implements OnDestroy {
       mods: fb.group(formSafeNames({...this.admin.def.plugins, ...this.admin.def.templates })),
     });
     this.clear();
+    this.loadModRefs();
   }
 
   install() {
@@ -137,7 +139,7 @@ export class SettingsSetupPage implements OnDestroy {
 
   reset() {
     this.setMergeState();
-    this.admin.init$.subscribe(() => this.clear());
+    this.admin.init$.subscribe(() => this.loadModRefs());
   }
 
   clear() {
@@ -266,6 +268,7 @@ export class SettingsSetupPage implements OnDestroy {
   }
 
   ngOnDestroy() {
+    this.loadModRefsSub.unsubscribe();
     this.closeMergePopup();
   }
 
@@ -308,6 +311,17 @@ export class SettingsSetupPage implements OnDestroy {
     return window.visualViewport?.height
       ? window.visualViewport.height + 'px'
       : '100vh';
+  }
+
+  private loadModRefs() {
+    this.loadModRefsSub.add(this.loadModRefs$().subscribe(() => this.clear()));
+  }
+
+  private loadModRefs$() {
+    return this.admin.loadModRefsFor$([
+      ...Object.values(this.admin.status.plugins).map(plugin => modId(plugin)),
+      ...Object.values(this.admin.status.templates).map(template => modId(template)),
+    ]);
   }
 
   private getModUpdatePreview(mod: string, requested = false): ModUpdatePreview | undefined {

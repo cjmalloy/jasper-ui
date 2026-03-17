@@ -49,6 +49,7 @@ describe('SettingsSetupPage', () => {
             .map((entry: any) => ({ ...entry, origin: '' })),
         };
       },
+      loadModRefsFor$: vi.fn(() => of(null)),
       install$() { return of(null); },
       logModReceipt$: vi.fn(() => of(null)),
       installMod$: vi.fn(() => of(null)),
@@ -97,6 +98,24 @@ describe('SettingsSetupPage', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('should preload installed mod receipts for active setup mods', async () => {
+    admin.def.plugins['plugin/wiki'] = {
+      tag: 'plugin/wiki',
+      config: { mod: 'Wiki' },
+    };
+    admin.status.plugins['plugin/wiki'] = {
+      tag: 'plugin/wiki',
+      origin: '@local',
+      config: { mod: 'Wiki' },
+    };
+
+    fixture = TestBed.createComponent(SettingsSetupPage);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    expect(admin.loadModRefsFor$).toHaveBeenCalledWith(['Wiki']);
   });
 
   it('should open the merge diff in a popup', () => {

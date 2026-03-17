@@ -107,6 +107,57 @@ describe('AdminService', () => {
     expect(refs.page).toHaveBeenCalledTimes(1);
   });
 
+  it('should batch load recent receipt refs for active mods on setup', () => {
+    const refs = TestBed.inject(RefService);
+    const store = TestBed.inject(Store);
+    store.account.origin = '@local';
+    service.status.plugins['plugin/wiki'] = {
+      tag: 'plugin/wiki',
+      origin: '@local',
+      config: { mod: '📔️ Wiki' },
+    } as any;
+    service.status.templates['config/chat'] = {
+      tag: 'config/chat',
+      origin: '@local',
+      config: { mod: '💬 Chat' },
+    } as any;
+    const page = vi.spyOn(refs, 'page').mockReturnValue(of({
+      content: [
+        {
+          url: 'internal:11111111-1111-4111-8111-111111111111',
+          origin: '@local',
+          title: '📔️ Wiki',
+          plugins: { 'plugin/mod': { plugin: [{ tag: 'plugin/wiki', config: { mod: '📔️ Wiki' } }] } },
+        },
+        {
+          url: 'internal:22222222-2222-4222-8222-222222222222',
+          origin: '@local',
+          title: 'Obsolete',
+          plugins: { 'plugin/mod': { plugin: [{ tag: 'plugin/obsolete', config: { mod: 'Obsolete' } }] } },
+        },
+        {
+          url: 'internal:33333333-3333-4333-8333-333333333333',
+          origin: '@local',
+          title: '💬 Chat',
+          plugins: { 'plugin/mod': { template: [{ tag: 'config/chat', config: { mod: '💬 Chat' } }] } },
+        },
+      ],
+      page: { totalPages: 1 },
+    } as any));
+
+    service.loadModRefsFor$(['📔️ Wiki', '💬 Chat']).subscribe();
+
+    expect(page).toHaveBeenCalledWith({
+      query: '@local:plugin/mod/receipt',
+      page: 0,
+      size: expect.any(Number),
+      sort: ['modified,DESC'],
+    });
+    expect(service.status.modRefs['📔️ Wiki']).toEqual(expect.objectContaining({ title: '📔️ Wiki' }));
+    expect(service.status.modRefs['💬 Chat']).toEqual(expect.objectContaining({ title: '💬 Chat' }));
+    expect(service.status.modRefs.Obsolete).toBeUndefined();
+  });
+
   it('should ignore extra live entries that share a mod id but are not in the installed receipt', () => {
     service.status.plugins['plugin/wiki'] = {
       tag: 'plugin/wiki',

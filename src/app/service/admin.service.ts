@@ -101,6 +101,8 @@ import { UserService } from './api/user.service';
 import { AuthzService } from './authz.service';
 import { ConfigService } from './config.service';
 
+const MOD_RECEIPT_SCAN_MULTIPLIER = 3;
+
 @Injectable({
   providedIn: 'root',
 })
@@ -351,6 +353,35 @@ export class AdminService {
           if (ref.title) this.status.modRefs[ref.title] = ref;
         })),
       map(() => null),
+      catchError(() => of(null)),
+    );
+  }
+
+  /**
+   * Scan recent mod receipt refs in bounded pages and keep only receipts for the requested mods.
+   * `remaining` caps how many recent refs we inspect so setup does not walk every obsolete receipt.
+   * `mods` is a Set so we can remove matches as we find them and stop early once all targets are found.
+   */
+  private loadRecentModRefs$(mods: Set<string>, remaining: number, page = 0): Observable<null> {
+    if (!this.store.account.origin || !mods.size || remaining <= 0) return of(null);
+    const size = Math.min(this.config.fetchBatch, remaining);
+    return this.refs.page({ query: `${this.localOriginQuery}:plugin/mod/receipt`, page, size, sort: ['modified,DESC'] }).pipe(
+      retry(10),
+      tap(batch => batch.content
+        .filter(ref => ref.origin === this.store.account.origin &&
+          ref.url.startsWith('internal:') &&
+          ref.plugins?.['plugin/mod'] &&
+          !!ref.title &&
+          mods.has(ref.title))
+        .forEach(ref => {
+          const title = ref.title!;
+          if (this.status.modRefs[title]) return;
+          this.status.modRefs[title] = ref;
+          mods.delete(title);
+        })),
+      switchMap(batch => mods.size && page + 1 < batch.page.totalPages && remaining - batch.content.length > 0
+        ? this.loadRecentModRefs$(mods, remaining - batch.content.length, page + 1)
+        : of(null)),
       catchError(() => of(null)),
     );
   }
@@ -954,6 +985,23 @@ export class AdminService {
 
   getInstalledMod(mod: string) {
     return clearMod(this.getInstalledModRef(mod)?.plugins?.['plugin/mod']);
+  }
+
+  loadModRefsFor$(mods: string[]) {
+    const pending = uniq(mods)
+      .filter(mod => !!mod)
+      .filter(mod => !this.modRefsLoaded.has(mod))
+      .filter(mod => !this.getInstalledModRefEntry(mod))
+      .filter(mod => !this.modRefsLoading.has(mod))
+      .filter(mod => !!this.getModReceiptSourceTagFor(mod));
+    if (!this.store.account.origin || !pending.length) return of(null);
+    pending.forEach(mod => this.modRefsLoading.add(mod));
+    return this.loadRecentModRefs$(new Set(pending), Math.max(this.config.fetchBatch, pending.length * MOD_RECEIPT_SCAN_MULTIPLIER)).pipe(
+      tap(() => pending
+        .filter(mod => !!this.getInstalledModRefEntry(mod))
+        .forEach(mod => this.modRefsLoaded.add(mod))),
+      finalize(() => pending.forEach(mod => this.modRefsLoading.delete(mod))),
+    );
   }
 
   getCurrentMod(mod: string) {
