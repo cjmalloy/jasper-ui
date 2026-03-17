@@ -92,7 +92,7 @@ import { Store } from '../store/store';
 import { modId } from '../util/format';
 import { getExtension, getHost } from '../util/http';
 import { memo, MemoCache } from '../util/memo';
-import { addHierarchicalTags, directChild, hasPrefix, hasTag, prefix, tagIntersection, test } from '../util/tag';
+import { access, addHierarchicalTags, directChild, hasPrefix, hasTag, localTag, prefix, setPublic, tagIntersection, test } from '../util/tag';
 import { ExtService } from './api/ext.service';
 import { PluginService } from './api/plugin.service';
 import { RefService } from './api/ref.service';
@@ -1182,7 +1182,8 @@ export class AdminService {
 
   private getModReceiptTag(mod: string, bundle?: Mod) {
     const tag = this.getModReceiptSourceTagFor(mod, bundle);
-    return tag ? prefix('plugin/mod/receipt', tag) : undefined;
+    if (!tag) return undefined;
+    return prefix('plugin/mod/receipt', this.getModReceiptVisibility(tag), localTag(setPublic(tag)));
   }
 
   private getModReceiptSourceTag(bundle?: Mod) {
@@ -1194,6 +1195,17 @@ export class AdminService {
       this.getModReceiptSourceTag(this.getMod(mod)) ||
       this.getStatusEntries(this.status.plugins, this.status.disabledPlugins, mod)[0]?.tag ||
       this.getStatusEntries(this.status.templates, this.status.disabledTemplates, mod)[0]?.tag;
+  }
+
+  private getModReceiptVisibility(tag: string) {
+    switch (access(tag)) {
+      case '+':
+        return 'protected';
+      case '_':
+        return 'private';
+      default:
+        return 'public';
+    }
   }
 
   private ensureModRefsLoaded(mod: string) {

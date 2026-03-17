@@ -39,7 +39,7 @@ describe('AdminService', () => {
     expect(scrapePlugin.config?.form?.find(f => f.key === 'textSelectors')?.expressions?.hide).toBe('!field.parent.model.text');
   });
 
-  it('should create a mod ref containing the installed bundle with a receipt tag derived from the mod tag', () => {
+  it('should create a mod ref containing the installed bundle with a receipt tag derived from the mod tag visibility', () => {
     const refs = TestBed.inject(RefService);
     const store = TestBed.inject(Store);
     store.account.origin = '@local';
@@ -54,7 +54,7 @@ describe('AdminService', () => {
       url: expect.stringMatching(/^internal:[0-9a-f-]{36}$/),
       origin: '@local',
       title: 'Wiki',
-      tags: ['internal', prefix('plugin/mod/receipt', '+config/wiki')],
+      tags: ['internal', prefix('plugin/mod/receipt', 'protected', 'config/wiki')],
       plugins: {
         'plugin/mod': {
           template: [{ tag: '+config/wiki', name: 'Wiki' }],
@@ -98,7 +98,7 @@ describe('AdminService', () => {
       template: [{ tag: 'config/wiki', config: { mod: '📔️ Wiki' } }],
     }));
     expect(refs.page).toHaveBeenCalledWith({
-      query: '@local:' + prefix('plugin/mod/receipt', 'config/wiki'),
+      query: '@local:' + prefix('plugin/mod/receipt', 'public', 'config/wiki'),
       size: 1,
       sort: ['modified,DESC'],
     });
