@@ -191,7 +191,7 @@ describe('SettingsSetupPage', () => {
 
   it('should ignore stale installed mod receipts when the mod is not currently installed', () => {
     admin.status.modRefs.Wiki = {
-      url: 'internal:mod/Wiki',
+      url: 'internal:55555555-5555-4555-8555-555555555555',
       origin: '@local',
       plugins: {
         'plugin/mod': {

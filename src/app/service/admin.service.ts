@@ -3,7 +3,7 @@ import { FormlyFieldConfig } from '@ngx-formly/core';
 import { Schema, validate } from 'jtd';
 import { identity, isEmpty, isEqual, reduce, uniq } from 'lodash-es';
 import { autorun, runInAction } from 'mobx';
-import { catchError, concat, forkJoin, map, Observable, of, retry, switchMap, throwError, toArray } from 'rxjs';
+import { catchError, concat, finalize, forkJoin, map, Observable, of, retry, switchMap, throwError, toArray } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
 import { Ext, writeExt } from '../model/ext';
@@ -208,6 +208,8 @@ export class AdminService {
 
   _cache = new Map<string, any>();
   private firstRun = false;
+  private modRefsLoaded = false;
+  private modRefsLoading = false;
 
   constructor(
     private config: ConfigService,
@@ -247,7 +249,9 @@ export class AdminService {
     this.status.templates = {};
     this.status.disabledTemplates = {};
     this.status.modRefs = {};
-    return forkJoin([this.loadPlugins$(), this.loadTemplates$(), this.loadModRefs$()]).pipe(
+    this.modRefsLoaded = false;
+    this.modRefsLoading = false;
+    return forkJoin([this.loadPlugins$(), this.loadTemplates$()]).pipe(
       switchMap(() => this.firstRun$),
       tap(() => this.updates),
       catchError(() => of(null)),
@@ -338,9 +342,11 @@ export class AdminService {
       retry(10),
       tap(batch => batch.content
         .filter(ref => ref.origin === this.store.account.origin &&
-          (ref.url.startsWith('internal:mod/') || ref.url.startsWith('mod:')) &&
+          ref.url.startsWith('internal:') &&
           ref.plugins?.['plugin/mod'])
-        .forEach(ref => this.status.modRefs[this.getModIdFromUrl(ref.url)] = ref)),
+        .forEach(ref => {
+          if (ref.title) this.status.modRefs[ref.title] = ref;
+        })),
       switchMap(batch => page + 1 < batch.page.totalPages ? this.loadModRefs$(page + 1) : of(null)),
       catchError(() => of(null)),
     );
@@ -977,7 +983,7 @@ export class AdminService {
 
   logModReceipt$(mod: string, bundle: Mod, _: progress) {
     const ref = {
-      url: 'internal:mod/' + encodeURIComponent(mod),
+      url: 'internal:' + uuid(),
       origin: this.store.account.origin,
       title: mod,
       tags: ['internal', 'plugin/mod/receipt'],
@@ -1162,12 +1168,21 @@ export class AdminService {
   }
 
   private getInstalledModRefEntry(mod: string) {
-    return Object.entries(this.status.modRefs).find(([key]) => key === mod) ||
-      Object.entries(this.status.modRefs).find(([, ref]) => ref.title === mod);
+    return Object.entries(this.status.modRefs).find(([key]) => key === mod);
   }
 
   private getInstalledModRef(mod: string) {
+    this.ensureModRefsLoaded();
     return this.getInstalledModRefEntry(mod)?.[1];
+  }
+
+  private ensureModRefsLoaded() {
+    if (this.modRefsLoaded || this.modRefsLoading || !this.store.account.origin) return;
+    this.modRefsLoading = true;
+    this.loadModRefs$().pipe(
+      tap(() => this.modRefsLoaded = true),
+      finalize(() => this.modRefsLoading = false),
+    ).subscribe(() => {});
   }
 
   deleteMod$(mod: string, _: progress): Observable<any> {
@@ -1229,17 +1244,6 @@ export class AdminService {
       return false;
     }
     return !isEqual(clearConfig(def, false), clearConfig(status, false));
-  }
-
-  private getModIdFromUrl(url: string) {
-    const id = url.startsWith('internal:mod/')
-      ? url.substring('internal:mod/'.length)
-      : url.substring('mod:'.length);
-    try {
-      return decodeURIComponent(id);
-    } catch {
-      return id;
-    }
   }
 }
 

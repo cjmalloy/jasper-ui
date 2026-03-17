@@ -50,7 +50,7 @@ describe('AdminService', () => {
     }, () => {}).subscribe();
 
     expect(create).toHaveBeenCalledWith(expect.objectContaining({
-      url: 'internal:mod/Wiki',
+      url: expect.stringMatching(/^internal:[0-9a-f-]{36}$/),
       origin: '@local',
       title: 'Wiki',
       tags: ['internal', 'plugin/mod/receipt'],
@@ -62,13 +62,25 @@ describe('AdminService', () => {
     }));
   });
 
-  it('should find loaded mod refs by title when url ids are sanitized', () => {
+  it('should not preload mod refs during init', () => {
+    const loadPlugins = vi.spyOn(service as any, 'loadPlugins$').mockReturnValue(of(null));
+    const loadTemplates = vi.spyOn(service as any, 'loadTemplates$').mockReturnValue(of(null));
+    const loadModRefs = vi.spyOn(service as any, 'loadModRefs$').mockReturnValue(of(null));
+
+    service.init$.subscribe();
+
+    expect(loadPlugins).toHaveBeenCalled();
+    expect(loadTemplates).toHaveBeenCalled();
+    expect(loadModRefs).not.toHaveBeenCalled();
+  });
+
+  it('should lazy load internal mod refs by title when installed mods are requested', () => {
     const refs = TestBed.inject(RefService);
     const store = TestBed.inject(Store);
     store.account.origin = '@local';
     vi.spyOn(refs, 'page').mockReturnValue(of({
       content: [{
-        url: 'mod:Wiki',
+        url: 'internal:11111111-1111-4111-8111-111111111111',
         origin: '@local',
         title: '📔️ Wiki',
         plugins: { 'plugin/mod': { template: [{ tag: 'config/wiki', config: { mod: '📔️ Wiki' } }] } },
@@ -76,11 +88,12 @@ describe('AdminService', () => {
       page: { totalPages: 1 },
     } as any));
 
-    (service as any).loadModRefs$().subscribe();
-
     expect(service.getInstalledMod('📔️ Wiki')).toEqual(expect.objectContaining({
       template: [{ tag: 'config/wiki', config: { mod: '📔️ Wiki' } }],
     }));
+    expect(refs.page).toHaveBeenCalledTimes(1);
+    service.getInstalledMod('📔️ Wiki');
+    expect(refs.page).toHaveBeenCalledTimes(1);
   });
 
   it('should ignore extra live entries that share a mod id but are not in the installed receipt', () => {
@@ -95,7 +108,7 @@ describe('AdminService', () => {
       config: { mod: 'Wiki', version: 1 },
     } as any;
     service.status.modRefs.Wiki = {
-      url: 'mod:Wiki',
+      url: 'internal:22222222-2222-4222-8222-222222222222',
       origin: '@local',
       plugins: {
         'plugin/mod': {
@@ -108,25 +121,6 @@ describe('AdminService', () => {
     } as any;
 
     expect(service.getCurrentMod('Wiki').plugin?.map(plugin => plugin.tag)).toEqual(['plugin/wiki']);
-  });
-
-  it('should prefer exact internal receipt ids over legacy title matches', () => {
-    service.status.modRefs['Wiki-Legacy'] = {
-      url: 'mod:Wiki-Legacy',
-      title: 'Wiki',
-      origin: '@local',
-      plugins: { 'plugin/mod': { plugin: [{ tag: 'plugin/wiki-legacy', config: { mod: 'Wiki' } }] } },
-    } as any;
-    service.status.modRefs.Wiki = {
-      url: 'internal:mod/Wiki',
-      title: 'Wiki',
-      origin: '@local',
-      plugins: { 'plugin/mod': { plugin: [{ tag: 'plugin/wiki', config: { mod: 'Wiki' } }] } },
-    } as any;
-
-    expect(service.getInstalledMod('Wiki')).toEqual(expect.objectContaining({
-      plugin: [{ tag: 'plugin/wiki', config: { mod: 'Wiki' } }],
-    }));
   });
 
   it('should compare plugin-only receipts without treating empty template arrays as modifications', () => {
@@ -144,7 +138,7 @@ describe('AdminService', () => {
       config: { mod: '🎁️ Store', version: 1 },
     } as any;
     service.status.modRefs['🎁️ Store'] = {
-      url: 'internal:mod/%F0%9F%8E%81%EF%B8%8F%20Store',
+      url: 'internal:33333333-3333-4333-8333-333333333333',
       title: '🎁️ Store',
       origin: '@local',
       plugins: { 'plugin/mod': bundle },
@@ -153,11 +147,11 @@ describe('AdminService', () => {
     expect(equalBundle(service.getCurrentMod('🎁️ Store'), service.getInstalledMod('🎁️ Store'))).toBe(true);
   });
 
-  it('should clear loaded mod refs found by title when deleting a mod', () => {
+  it('should clear loaded mod refs by exact mod id when deleting a mod', () => {
     const refs = TestBed.inject(RefService);
     const remove = vi.spyOn(refs, 'delete').mockReturnValue(of(void 0));
-    service.status.modRefs['Wiki-Receipt'] = {
-      url: 'internal:mod/Wiki-Receipt',
+    service.status.modRefs['📔️ Wiki'] = {
+      url: 'internal:44444444-4444-4444-8444-444444444444',
       title: '📔️ Wiki',
       origin: '@local',
       plugins: { 'plugin/mod': { template: [{ tag: 'config/wiki', config: { mod: '📔️ Wiki' } }] } },
@@ -165,8 +159,8 @@ describe('AdminService', () => {
 
     service.deleteMod$('📔️ Wiki', () => {}).subscribe();
 
-    expect(remove).toHaveBeenCalledWith('internal:mod/Wiki-Receipt', '@local');
-    expect(service.status.modRefs['Wiki-Receipt']).toBeUndefined();
+    expect(remove).toHaveBeenCalledWith('internal:44444444-4444-4444-8444-444444444444', '@local');
+    expect(service.status.modRefs['📔️ Wiki']).toBeUndefined();
   });
 
 });
