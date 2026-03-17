@@ -194,7 +194,10 @@ export class TemplateComponent implements OnChanges, HasChanges {
   reset$ = () => {
     const current = this.template;
     const restored = this.admin.getInstalledTemplate(modId(this.template), this.template.tag);
-    if (restored) this.template = { ...this.template, ...restored, origin: this.store.account.origin };
+    if (restored) {
+      this.template = { ...this.template, ...restored, origin: this.store.account.origin };
+      this.updateTemplateStatus(this.template);
+    }
     this.serverError = [];
     this.editing = false;
     this.init();
@@ -219,5 +222,15 @@ export class TemplateComponent implements OnChanges, HasChanges {
     delete result.config?.generated;
     delete result.config?._parent;
     return result;
+  }
+
+  private updateTemplateStatus(template: Template) {
+    delete this.admin.status.templates[template.tag];
+    delete this.admin.status.disabledTemplates[template.tag];
+    if (template.config?.disabled) {
+      this.admin.status.disabledTemplates[template.tag] = template;
+    } else {
+      this.admin.status.templates[template.tag] = template;
+    }
   }
 }

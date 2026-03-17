@@ -4,7 +4,7 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { provideRouter } from '@angular/router';
-import { of } from 'rxjs';
+import { of, Subject } from 'rxjs';
 import { AdminService } from '../../service/admin.service';
 import { PluginService } from '../../service/api/plugin.service';
 
@@ -149,5 +149,41 @@ describe('PluginComponent', () => {
       config: expect.objectContaining({ description: 'edited' }),
     }));
     expect(admin.resetPlugin$.mock.calls[0]?.[1]).toEqual(expect.any(Function));
+  });
+
+  it('should hide reset immediately and update plugin status after resetting', () => {
+    const reset$ = new Subject<null>();
+    component.store.account.admin = true;
+    admin.resetPlugin$.mockReturnValue(reset$);
+    admin.status.plugins['plugin/test'] = {
+      tag: 'plugin/test',
+      origin: component.store.account.origin,
+      modified,
+      config: { mod: 'Wiki', version: 1, description: 'edited' },
+    };
+    admin.getInstalledPlugin.mockReturnValue({
+      tag: 'plugin/test',
+      config: { mod: 'Wiki', version: 1 },
+    });
+    fixture.componentRef.setInput('plugin', {
+      tag: 'plugin/test',
+      origin: component.store.account.origin,
+      modified,
+      config: { mod: 'Wiki', version: 1, description: 'edited' },
+    });
+    fixture.detectChanges();
+
+    const request$ = component.reset$() as any;
+    request$.subscribe();
+
+    expect(component.canReset).toBe(false);
+    expect(admin.status.plugins['plugin/test']).toEqual(expect.objectContaining({
+      tag: 'plugin/test',
+      origin: component.store.account.origin,
+      config: { mod: 'Wiki', version: 1 },
+    }));
+
+    reset$.next(null);
+    reset$.complete();
   });
 });

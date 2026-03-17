@@ -196,7 +196,10 @@ export class PluginComponent implements OnChanges, HasChanges {
   reset$ = () => {
     const current = this.plugin;
     const restored = this.admin.getInstalledPlugin(modId(this.plugin), this.plugin.tag);
-    if (restored) this.plugin = { ...this.plugin, ...restored, origin: this.store.account.origin };
+    if (restored) {
+      this.plugin = { ...this.plugin, ...restored, origin: this.store.account.origin };
+      this.updatePluginStatus(this.plugin);
+    }
     this.serverError = [];
     this.editing = false;
     this.init();
@@ -225,5 +228,15 @@ export class PluginComponent implements OnChanges, HasChanges {
     delete result.config?.generated;
     delete result.config?._parent;
     return result;
+  }
+
+  private updatePluginStatus(plugin: Plugin) {
+    delete this.admin.status.plugins[plugin.tag];
+    delete this.admin.status.disabledPlugins[plugin.tag];
+    if (plugin.config?.disabled) {
+      this.admin.status.disabledPlugins[plugin.tag] = plugin;
+    } else {
+      this.admin.status.plugins[plugin.tag] = plugin;
+    }
   }
 }

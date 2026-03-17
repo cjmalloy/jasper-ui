@@ -15,6 +15,9 @@
       @if (store.view.updates) {
         <button type="button" (click)="updateAll()" i18n>🌟️ Update All</button>
       }
+      @if (canResetAll) {
+        <app-confirm-action [action]="resetAll$" i18n>reset</app-confirm-action>
+      }
       @if (selectAllToggle) {
         <button type="button" (click)="selectAll()" i18n>Select None</button>
       } @else {

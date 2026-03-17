@@ -4,7 +4,7 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { provideRouter } from '@angular/router';
-import { of } from 'rxjs';
+import { of, Subject } from 'rxjs';
 import { AdminService } from '../../service/admin.service';
 import { TemplateService } from '../../service/api/template.service';
 
@@ -149,5 +149,41 @@ describe('TemplateComponent', () => {
       config: expect.objectContaining({ description: 'edited' }),
     }));
     expect(admin.resetTemplate$.mock.calls[0]?.[1]).toEqual(expect.any(Function));
+  });
+
+  it('should hide reset immediately and update template status after resetting', () => {
+    const reset$ = new Subject<null>();
+    component.store.account.admin = true;
+    admin.resetTemplate$.mockReturnValue(reset$);
+    admin.status.templates.template = {
+      tag: 'template',
+      origin: component.store.account.origin,
+      modified,
+      config: { mod: 'Wiki', version: 1, description: 'edited' },
+    };
+    admin.getInstalledTemplate.mockReturnValue({
+      tag: 'template',
+      config: { mod: 'Wiki', version: 1 },
+    });
+    fixture.componentRef.setInput('template', {
+      tag: 'template',
+      origin: component.store.account.origin,
+      modified,
+      config: { mod: 'Wiki', version: 1, description: 'edited' },
+    });
+    fixture.detectChanges();
+
+    const request$ = component.reset$() as any;
+    request$.subscribe();
+
+    expect(component.canReset).toBe(false);
+    expect(admin.status.templates.template).toEqual(expect.objectContaining({
+      tag: 'template',
+      origin: component.store.account.origin,
+      config: { mod: 'Wiki', version: 1 },
+    }));
+
+    reset$.next(null);
+    reset$.complete();
   });
 });

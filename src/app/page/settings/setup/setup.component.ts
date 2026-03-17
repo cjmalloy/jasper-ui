@@ -18,6 +18,7 @@ import { scrollToFirstInvalid } from '../../../util/form';
 import { configGroups, formSafeNames, modId } from '../../../util/format';
 import { printError } from '../../../util/http';
 import { DiffComponent } from '../../../form/diff/diff.component';
+import { ConfirmActionComponent } from '../../../component/action/confirm-action/confirm-action.component';
 
 interface ModUpdatePreview {
   mod: string;
@@ -39,6 +40,7 @@ interface ModUpdatePreview {
     KeyValuePipe,
     DiffComponent,
     OverlayModule,
+    ConfirmActionComponent,
   ],
 })
 export class SettingsSetupPage implements OnDestroy {
@@ -56,10 +58,7 @@ export class SettingsSetupPage implements OnDestroy {
   mergePopupSub = new Subscription();
   loadModRefsSub = new Subscription();
   loggedModifiedMods = new Set<string>();
-  modGroups = configGroups({
-    ...this.admin.status.disabledPlugins, ...this.admin.status.disabledTemplates,
-    ...this.admin.status.plugins, ...this.admin.status.templates,
-    ...this.admin.def.plugins, ...this.admin.def.templates });
+  modGroups = this.buildModGroups();
 
   constructor(
     public admin: AdminService,
@@ -75,6 +74,10 @@ export class SettingsSetupPage implements OnDestroy {
     });
     this.clear();
     this.loadModRefs();
+  }
+
+  get canResetAll() {
+    return this.modifiedMods.length > 0;
   }
 
   install() {
@@ -147,6 +150,7 @@ export class SettingsSetupPage implements OnDestroy {
 
   clear() {
     this.loggedModifiedMods.clear();
+    this.modGroups = this.buildModGroups();
     this.adminForm.reset({
       mods: formSafeNames({
         ...this.admin.status.plugins,
@@ -185,6 +189,33 @@ export class SettingsSetupPage implements OnDestroy {
       this.reset();
       _($localize`Success.`);
     });
+  }
+
+  resetAll$ = () => {
+    this.serverError = [];
+    this.installMessages = [];
+    this.setMergeState();
+    const _ = (msg?: string) => this.installMessages.push(msg!);
+    const mods = this.modifiedMods;
+    if (!mods.length) {
+      _($localize`Success.`);
+      return of(null);
+    }
+    return concat(...mods.map(mod => {
+      const restored = this.admin.getInstalledMod(mod);
+      return restored ? this.admin.updateMod$(mod, restored, restored, _) : of(null);
+    })).pipe(
+      last(),
+      tap(() => {
+        this.submitted = true;
+        this.reset();
+        _($localize`Success.`);
+      }),
+      catchError((res: HttpErrorResponse) => {
+        this.serverError = printError(res);
+        return throwError(() => res);
+      }),
+    );
   }
 
   selectAll() {
@@ -235,38 +266,33 @@ export class SettingsSetupPage implements OnDestroy {
   }
 
   needsModUpdate(config: Config) {
-    const mod = modId(config);
+    const mod = this.getResolvedModId(config);
     return Object.values(this.admin.status.plugins).find(p => p && mod === modId(p) && p._needsUpdate) ||
       Object.values(this.admin.status.templates).find(t => t && mod === modId(t) && t._needsUpdate);
   }
 
   modModified(config: Config) {
-    const mod = modId(config);
-    if (!this.installed(config)) {
-      this.loggedModifiedMods.delete(mod);
+    const state = this.getModModification(config);
+    if (!state?.mod || !state.modified) {
+      if (state?.mod) this.loggedModifiedMods.delete(state.mod);
       return false;
     }
-    const base = this.admin.getInstalledMod(mod);
-    const current = this.admin.getCurrentMod(mod);
-    const modified = !!current && !!base && this.hasCustomConfigChanges(current, base);
-    if (modified) {
-      this.logModifiedIndicator(mod, current, base);
-    } else {
-      this.loggedModifiedMods.delete(mod);
-    }
-    return modified;
+    this.logModifiedIndicator(state.mod, state.current, state.base);
+    return true;
   }
 
   installed(config: Config) {
-    const exact = this.admin.status.plugins[config.tag] || this.admin.status.templates[config.tag];
+    const exact = this.getCurrentConfig(config);
     if (exact) return exact;
-    const mod = modId(config);
+    const mod = this.getResolvedModId(config);
     return Object.values(this.admin.status.plugins).find(p => p && mod === modId(p)) ||
       Object.values(this.admin.status.templates).find(t => t && mod === modId(t));
   }
 
   disabled(config: Config) {
-    const mod = modId(config);
+    const exact = this.getDisabledConfig(config);
+    if (exact) return exact;
+    const mod = this.getResolvedModId(config);
     return Object.values(this.admin.status.disabledPlugins).find(p => p && mod === modId(p)) ||
       Object.values(this.admin.status.disabledTemplates).find(t => t && mod === modId(t));
   }
@@ -334,6 +360,63 @@ export class SettingsSetupPage implements OnDestroy {
   private loadModRefs$() {
     return this.admin.loadModRefsFor$(Object.values(this.modGroups)
       .flatMap(group => group.map(([, config]) => modId(config))));
+  }
+
+  private buildModGroups() {
+    return configGroups({
+      ...this.admin.status.disabledPlugins, ...this.admin.status.disabledTemplates,
+      ...this.admin.status.plugins, ...this.admin.status.templates,
+      ...this.admin.def.plugins, ...this.admin.def.templates,
+    });
+  }
+
+  private get modifiedMods() {
+    return uniq(Object.values(this.buildModGroups())
+      .flatMap(group => group.map(([, config]) => this.getModModification(config)))
+      .filter((state): state is { mod: string, current: Mod, base: Mod, modified: true } => !!state?.modified)
+      .map(state => state.mod));
+  }
+
+  private getModModification(config: Config) {
+    const currentConfig = this.getCurrentConfig(config) || this.disabled(config) || config;
+    const mod = this.getResolvedModId(config);
+    if (!mod || !this.installed(currentConfig)) return undefined;
+    const base = this.admin.getInstalledMod(mod);
+    const current = this.admin.getCurrentMod(mod);
+    if (!current || !base) return undefined;
+    return {
+      mod,
+      current,
+      base,
+      modified: this.hasCustomConfigChanges(current, base) as true | false,
+    };
+  }
+
+  private getCurrentConfig(config: Config) {
+    return this.admin.status.plugins[config.tag] ||
+      this.admin.status.templates[config.tag];
+  }
+
+  private getDisabledConfig(config: Config) {
+    return this.admin.status.disabledPlugins[config.tag] ||
+      this.admin.status.disabledTemplates[config.tag];
+  }
+
+  private getResolvedModId(config: Config) {
+    return config.config?.mod ||
+      this.getCurrentConfig(config)?.config?.mod ||
+      this.getDisabledConfig(config)?.config?.mod ||
+      this.getInstalledModIdFor(config.tag) ||
+      config.name ||
+      config.tag ||
+      '';
+  }
+
+  private getInstalledModIdFor(tag: string) {
+    return Object.entries(this.admin.status.modRefs).find(([, ref]) =>
+      ref?.plugins?.['plugin/mod']?.plugin?.some((plugin: Plugin) => plugin.tag === tag) ||
+      ref?.plugins?.['plugin/mod']?.template?.some((template: Template) => template.tag === tag)
+    )?.[0];
   }
 
   private logModifiedIndicator(mod: string, current: Mod, base?: Mod) {
