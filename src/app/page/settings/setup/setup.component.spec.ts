@@ -239,6 +239,35 @@ describe('SettingsSetupPage', () => {
     }));
   });
 
+  it('should re-log modified indicators after setup state is reloaded', () => {
+    const log = vi.spyOn(console, 'log').mockImplementation(() => {});
+    const wikiConfig = { tag: 'plugin/wiki', config: { mod: 'Wiki' } } as any;
+    admin.status.plugins['plugin/wiki'] = {
+      tag: 'plugin/wiki',
+      origin: '@local',
+      config: { mod: 'Wiki', version: 2, description: 'edited' },
+    };
+    admin.status.modRefs.Wiki = {
+      url: 'mod:Wiki',
+      origin: '@local',
+      plugins: {
+        'plugin/mod': {
+          plugin: [{
+            tag: 'plugin/wiki',
+            config: { mod: 'Wiki', version: 2 },
+          }],
+        },
+      },
+    };
+
+    expect(component.modModified(wikiConfig)).toBe(true);
+
+    component.clear();
+
+    expect(component.modModified(wikiConfig)).toBe(true);
+    expect(log).toHaveBeenCalledTimes(2);
+  });
+
   it('should flag locally edited mods when an edited template no longer carries config.mod', () => {
     admin.status.templates['config/wiki'] = {
       tag: 'config/wiki',

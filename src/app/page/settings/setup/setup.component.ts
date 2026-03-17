@@ -146,6 +146,7 @@ export class SettingsSetupPage implements OnDestroy {
   }
 
   clear() {
+    this.loggedModifiedMods.clear();
     this.adminForm.reset({
       mods: formSafeNames({
         ...this.admin.status.plugins,

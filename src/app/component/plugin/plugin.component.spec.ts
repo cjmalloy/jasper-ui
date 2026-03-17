@@ -15,6 +15,10 @@ describe('PluginComponent', () => {
   let fixture: ComponentFixture<PluginComponent>;
   let admin: any;
   let plugins: any;
+  const modified = {
+    toISO: () => '2024-01-01T00:00:00Z',
+    toRelative: () => 'now',
+  };
 
   beforeEach(async () => {
     admin = {
@@ -89,5 +93,61 @@ describe('PluginComponent', () => {
       tag: 'plugin/test',
       config: { disabled: true, description: 'edited' }
     });
+  });
+
+  it('should hide reset when the local plugin matches the installed version', () => {
+    component.store.account.admin = true;
+    admin.getInstalledPlugin.mockReturnValue({
+      tag: 'plugin/test',
+      config: { mod: 'Wiki', version: 1, description: 'same' },
+    });
+    fixture.componentRef.setInput('plugin', {
+      tag: 'plugin/test',
+      origin: component.store.account.origin,
+      modified,
+      config: { mod: 'Wiki', version: 1, description: 'same' },
+    });
+
+    fixture.detectChanges();
+
+    expect(component.canReset).toBe(false);
+    expect(fixture.nativeElement.textContent).not.toContain('reset');
+  });
+
+  it('should confirm before resetting a changed local plugin', () => {
+    component.store.account.admin = true;
+    admin.getInstalledPlugin.mockReturnValue({
+      tag: 'plugin/test',
+      config: { mod: 'Wiki', version: 1 },
+    });
+    fixture.componentRef.setInput('plugin', {
+      tag: 'plugin/test',
+      origin: component.store.account.origin,
+      modified,
+      config: { mod: 'Wiki', version: 1, description: 'edited' },
+    });
+
+    fixture.detectChanges();
+
+    const reset = [...fixture.nativeElement.querySelectorAll('.actions .fake-link')]
+      .find((element: HTMLElement) => element.textContent?.trim() === 'reset') as HTMLElement;
+    expect(reset).toBeTruthy();
+
+    reset.click();
+    fixture.detectChanges();
+
+    expect(admin.resetPlugin$).not.toHaveBeenCalled();
+    expect(fixture.nativeElement.textContent).toContain('are you sure?');
+
+    const yes = [...fixture.nativeElement.querySelectorAll('.actions .fake-link')]
+      .find((element: HTMLElement) => element.textContent?.trim() === 'yes') as HTMLElement;
+    yes.click();
+
+    expect(admin.resetPlugin$).toHaveBeenCalledTimes(1);
+    expect(admin.resetPlugin$.mock.calls[0]?.[0]).toEqual(expect.objectContaining({
+      tag: 'plugin/test',
+      config: expect.objectContaining({ description: 'edited' }),
+    }));
+    expect(admin.resetPlugin$.mock.calls[0]?.[1]).toEqual(expect.any(Function));
   });
 });

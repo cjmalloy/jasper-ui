@@ -2,6 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostBinding, Input, OnChanges, QueryList, SimpleChanges, ViewChildren } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { isEqual } from 'lodash-es';
 import { catchError, of, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { templateForm, TemplateFormComponent } from '../../form/template/template.component';
@@ -187,8 +188,7 @@ export class TemplateComponent implements OnChanges, HasChanges {
   }
 
   get canReset() {
-    return this.created && this.local && this.store.account.admin &&
-      !!this.admin.getInstalledTemplate(modId(this.template), this.template.tag);
+    return this.created && this.local && this.store.account.admin && this.hasCustomChanges;
   }
 
   reset$ = () => {
@@ -203,5 +203,21 @@ export class TemplateComponent implements OnChanges, HasChanges {
 
   download() {
     downloadTag(writeTemplate(this.template));
+  }
+
+  private get hasCustomChanges() {
+    const installed = this.admin.getInstalledTemplate(modId(this.template), this.template.tag);
+    return !!installed && !isEqual(this.normalizeTemplate(this.template), this.normalizeTemplate(installed));
+  }
+
+  private normalizeTemplate(template: Template) {
+    const result = writeTemplate({ ...template, origin: '' }) as Template & { config?: Record<string, unknown> };
+    result.config &&= { ...result.config };
+    delete (result as Template & { modified?: unknown, modifiedString?: unknown }).modified;
+    delete (result as Template & { modified?: unknown, modifiedString?: unknown }).modifiedString;
+    delete result.config?.version;
+    delete result.config?.generated;
+    delete result.config?._parent;
+    return result;
   }
 }

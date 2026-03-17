@@ -2,6 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostBinding, Input, OnChanges, QueryList, SimpleChanges, ViewChildren } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { isEqual } from 'lodash-es';
 import { catchError, of, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { pluginForm, PluginFormComponent } from '../../form/plugin/plugin.component';
@@ -189,8 +190,7 @@ export class PluginComponent implements OnChanges, HasChanges {
   }
 
   get canReset() {
-    return this.created && this.local && this.store.account.admin &&
-      !!this.admin.getInstalledPlugin(modId(this.plugin), this.plugin.tag);
+    return this.created && this.local && this.store.account.admin && this.hasCustomChanges;
   }
 
   reset$ = () => {
@@ -209,5 +209,21 @@ export class PluginComponent implements OnChanges, HasChanges {
 
   export() {
     downloadPluginExport(this.plugin, this.mod.exportHtml(this.plugin));
+  }
+
+  private get hasCustomChanges() {
+    const installed = this.admin.getInstalledPlugin(modId(this.plugin), this.plugin.tag);
+    return !!installed && !isEqual(this.normalizePlugin(this.plugin), this.normalizePlugin(installed));
+  }
+
+  private normalizePlugin(plugin: Plugin) {
+    const result = writePlugin({ ...plugin, origin: '' }) as Plugin & { config?: Record<string, unknown> };
+    result.config &&= { ...result.config };
+    delete (result as Plugin & { modified?: unknown, modifiedString?: unknown }).modified;
+    delete (result as Plugin & { modified?: unknown, modifiedString?: unknown }).modifiedString;
+    delete result.config?.version;
+    delete result.config?.generated;
+    delete result.config?._parent;
+    return result;
   }
 }

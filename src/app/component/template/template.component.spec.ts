@@ -15,6 +15,10 @@ describe('TemplateComponent', () => {
   let fixture: ComponentFixture<TemplateComponent>;
   let admin: any;
   let templates: any;
+  const modified = {
+    toISO: () => '2024-01-01T00:00:00Z',
+    toRelative: () => 'now',
+  };
 
   beforeEach(async () => {
     admin = {
@@ -89,5 +93,61 @@ describe('TemplateComponent', () => {
       tag: 'template',
       config: { disabled: true, description: 'edited' }
     });
+  });
+
+  it('should hide reset when the local template matches the installed version', () => {
+    component.store.account.admin = true;
+    admin.getInstalledTemplate.mockReturnValue({
+      tag: 'template',
+      config: { mod: 'Wiki', version: 1, description: 'same' },
+    });
+    fixture.componentRef.setInput('template', {
+      tag: 'template',
+      origin: component.store.account.origin,
+      modified,
+      config: { mod: 'Wiki', version: 1, description: 'same' },
+    });
+
+    fixture.detectChanges();
+
+    expect(component.canReset).toBe(false);
+    expect(fixture.nativeElement.textContent).not.toContain('reset');
+  });
+
+  it('should confirm before resetting a changed local template', () => {
+    component.store.account.admin = true;
+    admin.getInstalledTemplate.mockReturnValue({
+      tag: 'template',
+      config: { mod: 'Wiki', version: 1 },
+    });
+    fixture.componentRef.setInput('template', {
+      tag: 'template',
+      origin: component.store.account.origin,
+      modified,
+      config: { mod: 'Wiki', version: 1, description: 'edited' },
+    });
+
+    fixture.detectChanges();
+
+    const reset = [...fixture.nativeElement.querySelectorAll('.actions .fake-link')]
+      .find((element: HTMLElement) => element.textContent?.trim() === 'reset') as HTMLElement;
+    expect(reset).toBeTruthy();
+
+    reset.click();
+    fixture.detectChanges();
+
+    expect(admin.resetTemplate$).not.toHaveBeenCalled();
+    expect(fixture.nativeElement.textContent).toContain('are you sure?');
+
+    const yes = [...fixture.nativeElement.querySelectorAll('.actions .fake-link')]
+      .find((element: HTMLElement) => element.textContent?.trim() === 'yes') as HTMLElement;
+    yes.click();
+
+    expect(admin.resetTemplate$).toHaveBeenCalledTimes(1);
+    expect(admin.resetTemplate$.mock.calls[0]?.[0]).toEqual(expect.objectContaining({
+      tag: 'template',
+      config: expect.objectContaining({ description: 'edited' }),
+    }));
+    expect(admin.resetTemplate$.mock.calls[0]?.[1]).toEqual(expect.any(Function));
   });
 });
