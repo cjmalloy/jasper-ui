@@ -337,7 +337,9 @@ export class AdminService {
     return this.refs.page({ query: 'plugin/mod/receipt', page, size: this.config.fetchBatch }).pipe(
       retry(10),
       tap(batch => batch.content
-        .filter(ref => ref.origin === this.store.account.origin && ref.url.startsWith('mod:') && ref.plugins?.['plugin/mod'])
+        .filter(ref => ref.origin === this.store.account.origin &&
+          (ref.url.startsWith('internal:mod/') || ref.url.startsWith('mod:')) &&
+          ref.plugins?.['plugin/mod'])
         .forEach(ref => this.status.modRefs[this.getModIdFromUrl(ref.url)] = ref)),
       switchMap(batch => page + 1 < batch.page.totalPages ? this.loadModRefs$(page + 1) : of(null)),
       catchError(() => of(null)),
@@ -975,7 +977,7 @@ export class AdminService {
 
   logModReceipt$(mod: string, bundle: Mod, _: progress) {
     const ref = {
-      url: 'mod:' + encodeURIComponent(mod.replaceAll(/\s+/g, '-').replaceAll(/\W/g, '')),
+      url: 'internal:mod/' + encodeURIComponent(mod),
       origin: this.store.account.origin,
       title: mod,
       tags: ['internal', 'plugin/mod/receipt'],
@@ -1160,9 +1162,8 @@ export class AdminService {
   }
 
   private getInstalledModRefEntry(mod: string) {
-    return Object.entries(this.status.modRefs).find(([key, ref]) =>
-      key === mod || ref.title === mod
-    );
+    return Object.entries(this.status.modRefs).find(([key]) => key === mod) ||
+      Object.entries(this.status.modRefs).find(([, ref]) => ref.title === mod);
   }
 
   private getInstalledModRef(mod: string) {
@@ -1231,7 +1232,9 @@ export class AdminService {
   }
 
   private getModIdFromUrl(url: string) {
-    const id = url.substring('mod:'.length);
+    const id = url.startsWith('internal:mod/')
+      ? url.substring('internal:mod/'.length)
+      : url.substring('mod:'.length);
     try {
       return decodeURIComponent(id);
     } catch {

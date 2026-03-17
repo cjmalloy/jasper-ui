@@ -189,6 +189,23 @@ describe('SettingsSetupPage', () => {
     expect(component.modModified({ tag: 'plugin/wiki', config: { mod: 'Wiki' } } as any)).toBe(false);
   });
 
+  it('should ignore stale installed mod receipts when the mod is not currently installed', () => {
+    admin.status.modRefs.Wiki = {
+      url: 'internal:mod/Wiki',
+      origin: '@local',
+      plugins: {
+        'plugin/mod': {
+          plugin: [{
+            tag: 'plugin/wiki',
+            config: { mod: 'Wiki', version: 1 },
+          }],
+        },
+      },
+    };
+
+    expect(component.modModified({ tag: 'plugin/wiki', config: { mod: 'Wiki' } } as any)).toBe(false);
+  });
+
   it('should require review when local edits exist without a stored mod ref', () => {
     admin.getMod = () => ({
       plugin: [{ tag: 'plugin/wiki', config: { mod: 'Wiki', version: 2 } }],

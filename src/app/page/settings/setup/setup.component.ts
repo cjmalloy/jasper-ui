@@ -235,12 +235,15 @@ export class SettingsSetupPage implements OnDestroy {
   }
 
   modModified(config: Config) {
+    if (!this.installed(config)) return false;
     const mod = modId(config);
     const base = this.admin.getInstalledMod(mod);
     return !!base && !equalBundle(this.admin.getCurrentMod(mod), base);
   }
 
   installed(config: Config) {
+    const exact = this.admin.status.plugins[config.tag] || this.admin.status.templates[config.tag];
+    if (exact) return exact;
     const mod = modId(config);
     return Object.values(this.admin.status.plugins).find(p => p && mod === modId(p)) ||
       Object.values(this.admin.status.templates).find(t => t && mod === modId(t));

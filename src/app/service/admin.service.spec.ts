@@ -50,7 +50,7 @@ describe('AdminService', () => {
     }, () => {}).subscribe();
 
     expect(create).toHaveBeenCalledWith(expect.objectContaining({
-      url: 'mod:Wiki',
+      url: 'internal:mod/Wiki',
       origin: '@local',
       title: 'Wiki',
       tags: ['internal', 'plugin/mod/receipt'],
@@ -110,6 +110,25 @@ describe('AdminService', () => {
     expect(service.getCurrentMod('Wiki').plugin?.map(plugin => plugin.tag)).toEqual(['plugin/wiki']);
   });
 
+  it('should prefer exact internal receipt ids over legacy title matches', () => {
+    service.status.modRefs['Wiki-Legacy'] = {
+      url: 'mod:Wiki-Legacy',
+      title: 'Wiki',
+      origin: '@local',
+      plugins: { 'plugin/mod': { plugin: [{ tag: 'plugin/wiki-legacy', config: { mod: 'Wiki' } }] } },
+    } as any;
+    service.status.modRefs.Wiki = {
+      url: 'internal:mod/Wiki',
+      title: 'Wiki',
+      origin: '@local',
+      plugins: { 'plugin/mod': { plugin: [{ tag: 'plugin/wiki', config: { mod: 'Wiki' } }] } },
+    } as any;
+
+    expect(service.getInstalledMod('Wiki')).toEqual(expect.objectContaining({
+      plugin: [{ tag: 'plugin/wiki', config: { mod: 'Wiki' } }],
+    }));
+  });
+
   it('should compare plugin-only receipts without treating empty template arrays as modifications', () => {
     const bundle = {
       plugin: [{
@@ -125,7 +144,7 @@ describe('AdminService', () => {
       config: { mod: '🎁️ Store', version: 1 },
     } as any;
     service.status.modRefs['🎁️ Store'] = {
-      url: 'mod:%F0%9F%8E%81%EF%B8%8F-Store',
+      url: 'internal:mod/%F0%9F%8E%81%EF%B8%8F%20Store',
       title: '🎁️ Store',
       origin: '@local',
       plugins: { 'plugin/mod': bundle },
@@ -138,7 +157,7 @@ describe('AdminService', () => {
     const refs = TestBed.inject(RefService);
     const remove = vi.spyOn(refs, 'delete').mockReturnValue(of(void 0));
     service.status.modRefs['Wiki-Receipt'] = {
-      url: 'mod:Wiki-Receipt',
+      url: 'internal:mod/Wiki-Receipt',
       title: '📔️ Wiki',
       origin: '@local',
       plugins: { 'plugin/mod': { template: [{ tag: 'config/wiki', config: { mod: '📔️ Wiki' } }] } },
@@ -146,7 +165,7 @@ describe('AdminService', () => {
 
     service.deleteMod$('📔️ Wiki', () => {}).subscribe();
 
-    expect(remove).toHaveBeenCalledWith('mod:Wiki-Receipt', '@local');
+    expect(remove).toHaveBeenCalledWith('internal:mod/Wiki-Receipt', '@local');
     expect(service.status.modRefs['Wiki-Receipt']).toBeUndefined();
   });
 
