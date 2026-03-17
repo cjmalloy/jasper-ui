@@ -96,6 +96,10 @@ describe('SettingsSetupPage', () => {
     fixture.detectChanges();
   });
 
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it('should create', () => {
     expect(component).toBeTruthy();
   });
@@ -191,6 +195,45 @@ describe('SettingsSetupPage', () => {
     expect(component.modModified({ tag: 'plugin/wiki', config: { mod: 'Wiki' } } as any)).toBe(true);
   });
 
+  it('should log the plugin/template causes once when the modified indicator is shown', () => {
+    const log = vi.spyOn(console, 'log').mockImplementation(() => {});
+    admin.status.plugins['plugin/wiki'] = {
+      tag: 'plugin/wiki',
+      origin: '@local',
+      config: { mod: 'Wiki', version: 2, description: 'edited' },
+    };
+    admin.status.templates['config/wiki'] = {
+      tag: 'config/wiki',
+      origin: '@local',
+      config: { mod: 'Wiki', description: 'edited template' },
+    };
+    admin.status.modRefs.Wiki = {
+      url: 'mod:Wiki',
+      origin: '@local',
+      plugins: {
+        'plugin/mod': {
+          plugin: [{
+            tag: 'plugin/wiki',
+            config: { mod: 'Wiki', version: 2 },
+          }],
+          template: [{
+            tag: 'config/wiki',
+            config: { mod: 'Wiki' },
+          }],
+        },
+      },
+    };
+
+    expect(component.modModified({ tag: 'plugin/wiki', config: { mod: 'Wiki' } } as any)).toBe(true);
+    expect(component.modModified({ tag: 'plugin/wiki', config: { mod: 'Wiki' } } as any)).toBe(true);
+
+    expect(log).toHaveBeenCalledTimes(1);
+    expect(log).toHaveBeenCalledWith(expect.stringContaining('"event":"setup-modified-indicator"'));
+    expect(log).toHaveBeenCalledWith(expect.stringContaining('"mod":"Wiki"'));
+    expect(log).toHaveBeenCalledWith(expect.stringContaining('"tag":"plugin/wiki"'));
+    expect(log).toHaveBeenCalledWith(expect.stringContaining('"tag":"config/wiki"'));
+  });
+
   it('should flag locally edited mods when an edited template no longer carries config.mod', () => {
     admin.status.templates['config/wiki'] = {
       tag: 'config/wiki',
@@ -224,6 +267,30 @@ describe('SettingsSetupPage', () => {
     };
 
     expect(component.modModified({ tag: 'plugin/wiki', config: { mod: 'Wiki' } } as any)).toBe(false);
+  });
+
+  it('should not log when the modified indicator is not shown', () => {
+    const log = vi.spyOn(console, 'log').mockImplementation(() => {});
+    admin.status.plugins['plugin/wiki'] = {
+      tag: 'plugin/wiki',
+      origin: '@local',
+      config: { mod: 'Wiki', version: 1 },
+    };
+    admin.status.modRefs.Wiki = {
+      url: 'mod:Wiki',
+      origin: '@local',
+      plugins: {
+        'plugin/mod': {
+          plugin: [{
+            tag: 'plugin/wiki',
+            config: { mod: 'Wiki', version: 1 },
+          }],
+        },
+      },
+    };
+
+    expect(component.modModified({ tag: 'plugin/wiki', config: { mod: 'Wiki' } } as any)).toBe(false);
+    expect(log).not.toHaveBeenCalled();
   });
 
   it('should ignore stale installed mod receipts when the mod is not currently installed', () => {

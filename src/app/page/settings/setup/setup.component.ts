@@ -5,9 +5,11 @@ import { TemplatePortal } from '@angular/cdk/portal';
 import { Component, OnDestroy, TemplateRef, ViewChild, ViewContainerRef } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { forOwn, uniq } from 'lodash-es';
+import { forOwn, isEqual, uniq } from 'lodash-es';
 import { catchError, concat, EMPTY, last, of, Subscription, tap, throwError } from 'rxjs';
+import { Plugin, writePlugin } from '../../../model/plugin';
 import { Config, Mod } from '../../../model/tag';
+import { Template, writeTemplate } from '../../../model/template';
 import { AdminService, equalBundle, restoreBundle } from '../../../service/admin.service';
 import { ModService } from '../../../service/mod.service';
 import { Store } from '../../../store/store';
@@ -53,6 +55,7 @@ export class SettingsSetupPage implements OnDestroy {
   mergePopupRef?: OverlayRef;
   mergePopupSub = new Subscription();
   loadModRefsSub = new Subscription();
+  loggedModifiedMods = new Set<string>();
   modGroups = configGroups({
     ...this.admin.status.disabledPlugins, ...this.admin.status.disabledTemplates,
     ...this.admin.status.plugins, ...this.admin.status.templates,
@@ -237,10 +240,20 @@ export class SettingsSetupPage implements OnDestroy {
   }
 
   modModified(config: Config) {
-    if (!this.installed(config)) return false;
     const mod = modId(config);
+    if (!this.installed(config)) {
+      this.loggedModifiedMods.delete(mod);
+      return false;
+    }
     const base = this.admin.getInstalledMod(mod);
-    return !!base && !equalBundle(this.admin.getCurrentMod(mod), base);
+    const current = this.admin.getCurrentMod(mod);
+    const modified = !!base && !equalBundle(current, base);
+    if (modified) {
+      this.logModifiedIndicator(mod, current, base);
+    } else {
+      this.loggedModifiedMods.delete(mod);
+    }
+    return modified;
   }
 
   installed(config: Config) {
@@ -320,6 +333,59 @@ export class SettingsSetupPage implements OnDestroy {
   private loadModRefs$() {
     return this.admin.loadModRefsFor$(Object.values(this.modGroups)
       .flatMap(group => group.map(([, config]) => modId(config))));
+  }
+
+  private logModifiedIndicator(mod: string, current: Mod, base?: Mod) {
+    if (!base || this.loggedModifiedMods.has(mod)) return;
+    this.loggedModifiedMods.add(mod);
+    console.log(JSON.stringify({
+      event: 'setup-modified-indicator',
+      mod,
+      plugin: this.describeConfigChanges(current.plugin, base.plugin, plugin => this.normalizePlugin(plugin)),
+      template: this.describeConfigChanges(current.template, base.template, template => this.normalizeTemplate(template)),
+    }));
+  }
+
+  private describeConfigChanges<T extends Config>(
+    current: T[] | undefined,
+    base: T[] | undefined,
+    normalize: (entry: T) => object,
+  ) {
+    const currentMap = new Map((current || []).map(entry => [entry.tag, entry]));
+    const baseMap = new Map((base || []).map(entry => [entry.tag, entry]));
+    return uniq([...baseMap.keys(), ...currentMap.keys()])
+      .map(tag => {
+        const currentEntry = currentMap.get(tag);
+        const baseEntry = baseMap.get(tag);
+        const status = !baseEntry ? 'added'
+          : !currentEntry ? 'removed'
+          : isEqual(normalize(currentEntry), normalize(baseEntry)) ? 'unchanged'
+          : 'changed';
+        return {
+          tag,
+          status,
+          current: currentEntry && normalize(currentEntry),
+          base: baseEntry && normalize(baseEntry),
+        };
+      })
+      .filter(entry => entry.status !== 'unchanged');
+  }
+
+  private normalizePlugin(plugin: Plugin) {
+    return this.normalizeConfig(plugin, writePlugin);
+  }
+
+  private normalizeTemplate(template: Template) {
+    return this.normalizeConfig(template, writeTemplate);
+  }
+
+  private normalizeConfig<T extends Config>(config: T, write: (config: T) => T) {
+    const result = write({ ...config, origin: '' } as T) as T & { config?: Record<string, unknown> };
+    result.config &&= { ...result.config };
+    delete result.config?.version;
+    delete result.config?.generated;
+    delete result.config?._parent;
+    return result;
   }
 
   private getModUpdatePreview(mod: string, requested = false): ModUpdatePreview | undefined {
