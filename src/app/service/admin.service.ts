@@ -92,7 +92,7 @@ import { Store } from '../store/store';
 import { modId } from '../util/format';
 import { getExtension, getHost } from '../util/http';
 import { memo, MemoCache } from '../util/memo';
-import { addHierarchicalTags, directChild, hasPrefix, hasTag, tagIntersection, test } from '../util/tag';
+import { addHierarchicalTags, directChild, hasPrefix, hasTag, prefix, tagIntersection, test } from '../util/tag';
 import { ExtService } from './api/ext.service';
 import { PluginService } from './api/plugin.service';
 import { RefService } from './api/ref.service';
@@ -208,8 +208,8 @@ export class AdminService {
 
   _cache = new Map<string, any>();
   private firstRun = false;
-  private modRefsLoaded = false;
-  private modRefsLoading = false;
+  private modRefsLoaded = new Set<string>();
+  private modRefsLoading = new Set<string>();
 
   constructor(
     private config: ConfigService,
@@ -249,8 +249,8 @@ export class AdminService {
     this.status.templates = {};
     this.status.disabledTemplates = {};
     this.status.modRefs = {};
-    this.modRefsLoaded = false;
-    this.modRefsLoading = false;
+    this.modRefsLoaded.clear();
+    this.modRefsLoading.clear();
     return forkJoin([this.loadPlugins$(), this.loadTemplates$()]).pipe(
       switchMap(() => this.firstRun$),
       tap(() => this.updates),
@@ -337,8 +337,10 @@ export class AdminService {
     );
   }
 
-  private loadModRefs$(page = 0): Observable<null> {
-    return this.refs.page({ query: 'plugin/mod/receipt', page, size: this.config.fetchBatch }).pipe(
+  private loadModRefs$(mod: string): Observable<null> {
+    const query = this.getModReceiptTag(mod);
+    if (!query) return of(null);
+    return this.refs.page({ query: this.store.account.origin + ':' + query, size: 1, sort: ['modified,DESC'] }).pipe(
       retry(10),
       tap(batch => batch.content
         .filter(ref => ref.origin === this.store.account.origin &&
@@ -347,7 +349,7 @@ export class AdminService {
         .forEach(ref => {
           if (ref.title) this.status.modRefs[ref.title] = ref;
         })),
-      switchMap(batch => page + 1 < batch.page.totalPages ? this.loadModRefs$(page + 1) : of(null)),
+      map(() => null),
       catchError(() => of(null)),
     );
   }
@@ -982,11 +984,12 @@ export class AdminService {
   }
 
   logModReceipt$(mod: string, bundle: Mod, _: progress) {
+    const receiptTag = this.getModReceiptTag(mod, bundle);
     const ref = {
       url: 'internal:' + uuid(),
       origin: this.store.account.origin,
       title: mod,
-      tags: ['internal', 'plugin/mod/receipt'],
+      tags: ['internal', ...(receiptTag ? [receiptTag] : [])],
       plugins: { 'plugin/mod': bundle },
     };
     return of(null).pipe(
@@ -1172,16 +1175,27 @@ export class AdminService {
   }
 
   private getInstalledModRef(mod: string) {
-    this.ensureModRefsLoaded();
+    this.ensureModRefsLoaded(mod);
     return this.getInstalledModRefEntry(mod)?.[1];
   }
 
-  private ensureModRefsLoaded() {
-    if (this.modRefsLoaded || this.modRefsLoading || !this.store.account.origin) return;
-    this.modRefsLoading = true;
-    this.loadModRefs$().pipe(
-      tap(() => this.modRefsLoaded = true),
-      finalize(() => this.modRefsLoading = false),
+  private getModReceiptTag(mod: string, bundle?: Mod) {
+    const tag = bundle?.plugin?.[0]?.tag ||
+      bundle?.template?.[0]?.tag ||
+      this.getMod(mod)?.plugin?.[0]?.tag ||
+      this.getMod(mod)?.template?.[0]?.tag ||
+      this.getStatusEntries(this.status.plugins, this.status.disabledPlugins, mod)[0]?.tag ||
+      this.getStatusEntries(this.status.templates, this.status.disabledTemplates, mod)[0]?.tag;
+    return tag ? prefix('plugin/mod/receipt', tag) : undefined;
+  }
+
+  private ensureModRefsLoaded(mod: string) {
+    if (!this.store.account.origin || this.getInstalledModRefEntry(mod) ||
+      this.modRefsLoaded.has(mod) || this.modRefsLoading.has(mod)) return;
+    this.modRefsLoading.add(mod);
+    this.loadModRefs$(mod).pipe(
+      tap(() => this.modRefsLoaded.add(mod)),
+      finalize(() => this.modRefsLoading.delete(mod)),
     ).subscribe(() => {});
   }
 

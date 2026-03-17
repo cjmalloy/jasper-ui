@@ -11,6 +11,7 @@ import { userTemplate } from '../mods/user';
 import { RefService } from './api/ref.service';
 import { AdminService, equalBundle } from './admin.service';
 import { Store } from '../store/store';
+import { prefix } from '../util/tag';
 
 describe('AdminService', () => {
   let service: AdminService;
@@ -38,7 +39,7 @@ describe('AdminService', () => {
     expect(scrapePlugin.config?.form?.find(f => f.key === 'textSelectors')?.expressions?.hide).toBe('!field.parent.model.text');
   });
 
-  it('should create a mod ref containing the installed bundle', () => {
+  it('should create a mod ref containing the installed bundle with a receipt tag derived from the mod tag', () => {
     const refs = TestBed.inject(RefService);
     const store = TestBed.inject(Store);
     store.account.origin = '@local';
@@ -46,17 +47,17 @@ describe('AdminService', () => {
     const create = vi.spyOn(refs, 'create').mockReturnValue(of('ok'));
 
     service.logModReceipt$('Wiki', {
-      plugin: [{ tag: 'plugin/wiki', name: 'Wiki' } as any],
+      template: [{ tag: '+config/wiki', name: 'Wiki' } as any],
     }, () => {}).subscribe();
 
     expect(create).toHaveBeenCalledWith(expect.objectContaining({
       url: expect.stringMatching(/^internal:[0-9a-f-]{36}$/),
       origin: '@local',
       title: 'Wiki',
-      tags: ['internal', 'plugin/mod/receipt'],
+      tags: ['internal', prefix('plugin/mod/receipt', '+config/wiki')],
       plugins: {
         'plugin/mod': {
-          plugin: [{ tag: 'plugin/wiki', name: 'Wiki' }],
+          template: [{ tag: '+config/wiki', name: 'Wiki' }],
         },
       },
     }));
@@ -78,6 +79,11 @@ describe('AdminService', () => {
     const refs = TestBed.inject(RefService);
     const store = TestBed.inject(Store);
     store.account.origin = '@local';
+    service.status.templates['config/wiki'] = {
+      tag: 'config/wiki',
+      origin: '@local',
+      config: { mod: '📔️ Wiki' },
+    } as any;
     vi.spyOn(refs, 'page').mockReturnValue(of({
       content: [{
         url: 'internal:11111111-1111-4111-8111-111111111111',
@@ -91,6 +97,11 @@ describe('AdminService', () => {
     expect(service.getInstalledMod('📔️ Wiki')).toEqual(expect.objectContaining({
       template: [{ tag: 'config/wiki', config: { mod: '📔️ Wiki' } }],
     }));
+    expect(refs.page).toHaveBeenCalledWith({
+      query: '@local:' + prefix('plugin/mod/receipt', 'config/wiki'),
+      size: 1,
+      sort: ['modified,DESC'],
+    });
     expect(refs.page).toHaveBeenCalledTimes(1);
     service.getInstalledMod('📔️ Wiki');
     expect(refs.page).toHaveBeenCalledTimes(1);
