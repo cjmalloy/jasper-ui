@@ -318,10 +318,8 @@ export class SettingsSetupPage implements OnDestroy {
   }
 
   private loadModRefs$() {
-    return this.admin.loadModRefsFor$([
-      ...Object.values(this.admin.status.plugins).map(plugin => modId(plugin)),
-      ...Object.values(this.admin.status.templates).map(template => modId(template)),
-    ]);
+    return this.admin.loadModRefsFor$(Object.values(this.modGroups)
+      .flatMap(group => group.map(([, config]) => modId(config))));
   }
 
   private getModUpdatePreview(mod: string, requested = false): ModUpdatePreview | undefined {

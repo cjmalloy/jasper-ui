@@ -107,6 +107,33 @@ describe('AdminService', () => {
     expect(refs.page).toHaveBeenCalledTimes(1);
   });
 
+  it('should lazy load internal mod refs for the default local origin', () => {
+    const refs = TestBed.inject(RefService);
+    service.status.templates['config/wiki'] = {
+      tag: 'config/wiki',
+      origin: '',
+      config: { mod: '📔️ Wiki' },
+    } as any;
+    vi.spyOn(refs, 'page').mockReturnValue(of({
+      content: [{
+        url: 'internal:11111111-1111-4111-8111-111111111111',
+        origin: '',
+        title: '📔️ Wiki',
+        plugins: { 'plugin/mod': { template: [{ tag: 'config/wiki', config: { mod: '📔️ Wiki' } }] } },
+      }],
+      page: { totalPages: 1 },
+    } as any));
+
+    expect(service.getInstalledMod('📔️ Wiki')).toEqual(expect.objectContaining({
+      template: [{ tag: 'config/wiki', config: { mod: '📔️ Wiki' } }],
+    }));
+    expect(refs.page).toHaveBeenCalledWith({
+      query: '*:' + prefix('plugin/mod/receipt', 'public', 'config/wiki'),
+      size: 1,
+      sort: ['modified,DESC'],
+    });
+  });
+
   it('should batch load recent receipt refs for active mods on setup', () => {
     const refs = TestBed.inject(RefService);
     const store = TestBed.inject(Store);
@@ -156,6 +183,34 @@ describe('AdminService', () => {
     expect(service.status.modRefs['📔️ Wiki']).toEqual(expect.objectContaining({ title: '📔️ Wiki' }));
     expect(service.status.modRefs['💬 Chat']).toEqual(expect.objectContaining({ title: '💬 Chat' }));
     expect(service.status.modRefs.Obsolete).toBeUndefined();
+  });
+
+  it('should batch load recent receipt refs for setup when using the default local origin', () => {
+    const refs = TestBed.inject(RefService);
+    service.status.templates['config/wiki'] = {
+      tag: 'config/wiki',
+      origin: '',
+      config: { mod: 'Wiki' },
+    } as any;
+    const page = vi.spyOn(refs, 'page').mockReturnValue(of({
+      content: [{
+        url: 'internal:11111111-1111-4111-8111-111111111111',
+        origin: '',
+        title: 'Wiki',
+        plugins: { 'plugin/mod': { template: [{ tag: 'config/wiki', config: { mod: 'Wiki' } }] } },
+      }],
+      page: { totalPages: 1 },
+    } as any));
+
+    service.loadModRefsFor$(['Wiki']).subscribe();
+
+    expect(page).toHaveBeenCalledWith({
+      query: '*:plugin/mod/receipt',
+      page: 0,
+      size: expect.any(Number),
+      sort: ['modified,DESC'],
+    });
+    expect(service.status.modRefs.Wiki).toEqual(expect.objectContaining({ title: 'Wiki' }));
   });
 
   it('should ignore extra live entries that share a mod id but are not in the installed receipt', () => {

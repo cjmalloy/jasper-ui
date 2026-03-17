@@ -118,6 +118,24 @@ describe('SettingsSetupPage', () => {
     expect(admin.loadModRefsFor$).toHaveBeenCalledWith(['Wiki']);
   });
 
+  it('should preload mod receipts using setup definitions when an edited template loses config.mod', async () => {
+    admin.def.templates['config/wiki'] = {
+      tag: 'config/wiki',
+      config: { mod: 'Wiki' },
+    };
+    admin.status.templates['config/wiki'] = {
+      tag: 'config/wiki',
+      origin: '@local',
+      config: { description: 'edited' },
+    };
+
+    fixture = TestBed.createComponent(SettingsSetupPage);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    expect(admin.loadModRefsFor$).toHaveBeenCalledWith(['Wiki']);
+  });
+
   it('should open the merge diff in a popup', () => {
     admin.getMod = () => preview.target;
     admin.status.plugins['plugin/wiki'] = {

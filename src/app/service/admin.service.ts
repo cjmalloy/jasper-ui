@@ -340,10 +340,9 @@ export class AdminService {
   }
 
   private loadModRefs$(mod: string): Observable<null> {
-    const origin = this.store.account.origin;
     const query = this.getModReceiptTag(mod);
-    if (!origin || !query) return of(null);
-    return this.refs.page({ query: `${origin}:${query}`, size: 1, sort: ['modified,DESC'] }).pipe(
+    if (!query) return of(null);
+    return this.refs.page({ query: `${this.localOriginQuery}:${query}`, size: 1, sort: ['modified,DESC'] }).pipe(
       retry(10),
       tap(batch => batch.content
         .filter(ref => ref.origin === this.store.account.origin &&
@@ -363,7 +362,7 @@ export class AdminService {
    * `mods` is a Set so we can remove matches as we find them and stop early once all targets are found.
    */
   private loadRecentModRefs$(mods: Set<string>, remaining: number, page = 0): Observable<null> {
-    if (!this.store.account.origin || !mods.size || remaining <= 0) return of(null);
+    if (!mods.size || remaining <= 0) return of(null);
     const size = Math.min(this.config.fetchBatch, remaining);
     return this.refs.page({ query: `${this.localOriginQuery}:plugin/mod/receipt`, page, size, sort: ['modified,DESC'] }).pipe(
       retry(10),
@@ -994,7 +993,7 @@ export class AdminService {
       .filter(mod => !this.getInstalledModRefEntry(mod))
       .filter(mod => !this.modRefsLoading.has(mod))
       .filter(mod => !!this.getModReceiptSourceTagFor(mod));
-    if (!this.store.account.origin || !pending.length) return of(null);
+    if (!pending.length) return of(null);
     pending.forEach(mod => this.modRefsLoading.add(mod));
     return this.loadRecentModRefs$(new Set(pending), Math.max(this.config.fetchBatch, pending.length * MOD_RECEIPT_SCAN_MULTIPLIER)).pipe(
       tap(() => pending
@@ -1257,7 +1256,6 @@ export class AdminService {
   }
 
   private ensureModRefsLoaded(mod: string) {
-    if (!this.store.account.origin) return;
     if (this.modRefsLoaded.has(mod)) return;
     if (this.getInstalledModRefEntry(mod)) return;
     if (this.modRefsLoading.has(mod)) return;
