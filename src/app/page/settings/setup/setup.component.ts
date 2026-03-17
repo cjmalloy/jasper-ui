@@ -247,7 +247,7 @@ export class SettingsSetupPage implements OnDestroy {
     }
     const base = this.admin.getInstalledMod(mod);
     const current = this.admin.getCurrentMod(mod);
-    const modified = !!base && !equalBundle(current, base);
+    const modified = !!current && !!base && this.hasCustomConfigChanges(current, base);
     if (modified) {
       this.logModifiedIndicator(mod, current, base);
     } else {
@@ -337,13 +337,21 @@ export class SettingsSetupPage implements OnDestroy {
 
   private logModifiedIndicator(mod: string, current: Mod, base?: Mod) {
     if (!base || this.loggedModifiedMods.has(mod)) return;
-    const changes = [
+    const changes = this.getConfigChanges(current, base);
+    if (!changes.length) return;
+    this.loggedModifiedMods.add(mod);
+    changes.forEach(change => console.log('Has custom changes:', change));
+  }
+
+  private hasCustomConfigChanges(current?: Mod, base?: Mod) {
+    return !!current && !!base && this.getConfigChanges(current, base).length > 0;
+  }
+
+  private getConfigChanges(current: Mod, base: Mod) {
+    return [
       ...this.getChangedConfigs(current.plugin, base.plugin, plugin => this.normalizePlugin(plugin)),
       ...this.getChangedConfigs(current.template, base.template, template => this.normalizeTemplate(template)),
     ];
-    if (!changes.length) return;
-    this.loggedModifiedMods.add(mod);
-    changes.forEach(change => console.log('Has custom changes:', change.tag));
   }
 
   private getChangedConfigs<T extends Config>(

@@ -298,7 +298,7 @@ describe('SettingsSetupPage', () => {
     expect(log).not.toHaveBeenCalled();
   });
 
-  it('should not log empty plugin/template changes when a mod differs for another reason', () => {
+  it('should not mark a mod modified when only non-plugin/template bundle data differs', () => {
     const log = vi.spyOn(console, 'log').mockImplementation(() => {});
     admin.status.plugins['plugin/wiki'] = {
       tag: 'plugin/wiki',
@@ -313,7 +313,7 @@ describe('SettingsSetupPage', () => {
       ref: [{ url: 'https://example.com', origin: '' }],
     });
 
-    expect(component.modModified({ tag: 'plugin/wiki', config: { mod: 'Wiki' } } as any)).toBe(true);
+    expect(component.modModified({ tag: 'plugin/wiki', config: { mod: 'Wiki' } } as any)).toBe(false);
     expect(log).not.toHaveBeenCalled();
   });
 
