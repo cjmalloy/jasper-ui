@@ -337,16 +337,16 @@ export class SettingsSetupPage implements OnDestroy {
 
   private logModifiedIndicator(mod: string, current: Mod, base?: Mod) {
     if (!base || this.loggedModifiedMods.has(mod)) return;
+    const changes = [
+      ...this.getChangedConfigs(current.plugin, base.plugin, plugin => this.normalizePlugin(plugin)),
+      ...this.getChangedConfigs(current.template, base.template, template => this.normalizeTemplate(template)),
+    ];
+    if (!changes.length) return;
     this.loggedModifiedMods.add(mod);
-    console.log(JSON.stringify({
-      event: 'setup-modified-indicator',
-      mod,
-      plugin: this.describeConfigChanges(current.plugin, base.plugin, plugin => this.normalizePlugin(plugin)),
-      template: this.describeConfigChanges(current.template, base.template, template => this.normalizeTemplate(template)),
-    }));
+    changes.forEach(change => console.log('Has custom changes:', change));
   }
 
-  private describeConfigChanges<T extends Config>(
+  private getChangedConfigs<T extends Config>(
     current: T[] | undefined,
     base: T[] | undefined,
     normalize: (entry: T) => object,
@@ -357,18 +357,11 @@ export class SettingsSetupPage implements OnDestroy {
       .map(tag => {
         const currentEntry = currentMap.get(tag);
         const baseEntry = baseMap.get(tag);
-        const status = !baseEntry ? 'added'
-          : !currentEntry ? 'removed'
-          : isEqual(normalize(currentEntry), normalize(baseEntry)) ? 'unchanged'
-          : 'changed';
-        return {
-          tag,
-          status,
-          current: currentEntry && normalize(currentEntry),
-          base: baseEntry && normalize(baseEntry),
-        };
+        if (!baseEntry) return currentEntry;
+        if (!currentEntry) return baseEntry;
+        return isEqual(normalize(currentEntry), normalize(baseEntry)) ? undefined : currentEntry;
       })
-      .filter(entry => entry.status !== 'unchanged');
+      .filter((entry): entry is T => !!entry);
   }
 
   private normalizePlugin(plugin: Plugin) {
