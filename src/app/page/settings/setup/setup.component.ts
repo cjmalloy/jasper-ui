@@ -343,7 +343,7 @@ export class SettingsSetupPage implements OnDestroy {
     ];
     if (!changes.length) return;
     this.loggedModifiedMods.add(mod);
-    changes.forEach(change => console.log('Has custom changes:', change));
+    changes.forEach(change => console.log('Has custom changes:', change.tag));
   }
 
   private getChangedConfigs<T extends Config>(
