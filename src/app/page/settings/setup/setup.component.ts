@@ -384,6 +384,8 @@ export class SettingsSetupPage implements OnDestroy {
   private normalizeConfig<T extends Config>(config: T, write: (config: T) => T) {
     const result = write({ ...config, origin: '' } as T) as T & { config?: Record<string, unknown> };
     result.config &&= { ...result.config };
+    delete (result as T & { modified?: unknown, modifiedString?: unknown }).modified;
+    delete (result as T & { modified?: unknown, modifiedString?: unknown }).modifiedString;
     delete result.config?.version;
     delete result.config?.generated;
     delete result.config?._parent;

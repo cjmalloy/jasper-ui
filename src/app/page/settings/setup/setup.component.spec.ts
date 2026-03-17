@@ -229,14 +229,8 @@ describe('SettingsSetupPage', () => {
     expect(component.modModified(wikiConfig)).toBe(true);
 
     expect(log).toHaveBeenCalledTimes(2);
-    expect(log).toHaveBeenNthCalledWith(1, 'Has custom changes:', expect.objectContaining({
-      tag: 'plugin/wiki',
-      config: expect.objectContaining({ description: 'edited' }),
-    }));
-    expect(log).toHaveBeenNthCalledWith(2, 'Has custom changes:', expect.objectContaining({
-      tag: 'config/wiki',
-      config: expect.objectContaining({ description: 'edited template' }),
-    }));
+    expect(log).toHaveBeenNthCalledWith(1, 'Has custom changes:', 'plugin/wiki');
+    expect(log).toHaveBeenNthCalledWith(2, 'Has custom changes:', 'config/wiki');
   });
 
   it('should re-log modified indicators after setup state is reloaded', () => {
@@ -344,6 +338,32 @@ describe('SettingsSetupPage', () => {
 
     expect(component.modModified({ tag: 'plugin/wiki', config: { mod: 'Wiki' } } as any)).toBe(false);
     expect(log).not.toHaveBeenCalled();
+  });
+
+  it('should not mark a mod modified when only config metadata fields differ after change detection', () => {
+    admin.status.plugins['plugin/wiki'] = {
+      tag: 'plugin/wiki',
+      origin: '@local',
+      modified: { toISO: () => '2024-01-02T00:00:00Z' },
+      modifiedString: '2024-01-02T00:00:00Z',
+      config: { mod: 'Wiki', version: 1 },
+    };
+    admin.status.modRefs.Wiki = {
+      url: 'mod:Wiki',
+      origin: '@local',
+      plugins: {
+        'plugin/mod': {
+          plugin: [{
+            tag: 'plugin/wiki',
+            modified: { toISO: () => '2024-01-01T00:00:00Z' },
+            modifiedString: '2024-01-01T00:00:00Z',
+            config: { mod: 'Wiki', version: 1 },
+          }],
+        },
+      },
+    };
+
+    expect(component.modModified({ tag: 'plugin/wiki', config: { mod: 'Wiki' } } as any)).toBe(false);
   });
 
   it('should ignore stale installed mod receipts when the mod is not currently installed', () => {
