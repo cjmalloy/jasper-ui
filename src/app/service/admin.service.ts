@@ -101,8 +101,6 @@ import { UserService } from './api/user.service';
 import { AuthzService } from './authz.service';
 import { ConfigService } from './config.service';
 
-const MOD_RECEIPT_SCAN_MULTIPLIER = 3;
-
 @Injectable({
   providedIn: 'root',
 })
@@ -210,8 +208,6 @@ export class AdminService {
 
   _cache = new Map<string, any>();
   private firstRun = false;
-  private modRefsLoaded = new Set<string>();
-  private modRefsLoading = new Set<string>();
 
   constructor(
     private config: ConfigService,
@@ -251,8 +247,6 @@ export class AdminService {
     this.status.templates = {};
     this.status.disabledTemplates = {};
     this.status.modRefs = {};
-    this.modRefsLoaded.clear();
-    this.modRefsLoading.clear();
     return forkJoin([this.loadPlugins$(), this.loadTemplates$()]).pipe(
       switchMap(() => this.firstRun$),
       tap(() => this.updates),
@@ -339,47 +333,20 @@ export class AdminService {
     );
   }
 
-  private loadModRefs$(mod: string): Observable<null> {
-    const query = this.getModReceiptTag(mod);
-    if (!query) return of(null);
-    return this.refs.page({ query: `${this.localOriginQuery}:${query}`, size: 1, sort: ['modified,DESC'] }).pipe(
-      retry(10),
-      tap(batch => batch.content
-        .filter(ref => ref.origin === this.store.account.origin &&
-          ref.url.startsWith('internal:') &&
-          ref.plugins?.['plugin/mod'])
-        .forEach(ref => {
-          if (ref.title) this.status.modRefs[ref.title] = ref;
-        })),
-      map(() => null),
-      catchError(() => of(null)),
-    );
-  }
 
-  /**
-   * Scan recent mod receipt refs in bounded pages and keep only receipts for the requested mods.
-   * `remaining` caps how many recent refs we inspect so setup does not walk every obsolete receipt.
-   * `mods` is a Set so we can remove matches as we find them and stop early once all targets are found.
-   */
-  private loadRecentModRefs$(mods: Set<string>, remaining: number, page = 0): Observable<null> {
-    if (!mods.size || remaining <= 0) return of(null);
-    const size = Math.min(this.config.fetchBatch, remaining);
-    return this.refs.page({ query: `${this.localOriginQuery}:plugin/mod/receipt`, page, size, sort: ['modified,DESC'] }).pipe(
+  loadAllModRefs$(page = 0): Observable<null> {
+    return this.refs.page({ query: `${this.localOriginQuery}:plugin/mod/receipt`, page, size: this.config.fetchBatch, sort: ['modified,DESC'] }).pipe(
       retry(10),
       tap(batch => batch.content
-        .filter(ref => ref.origin === this.store.account.origin &&
-          ref.url.startsWith('internal:') &&
+        .filter(ref => ref.url.startsWith('internal:') &&
           ref.plugins?.['plugin/mod'] &&
-          !!ref.title &&
-          mods.has(ref.title))
+          !!ref.title)
         .forEach(ref => {
-          const title = ref.title!;
-          if (this.status.modRefs[title]) return;
-          this.status.modRefs[title] = ref;
-          mods.delete(title);
+          // Results are sorted by modified DESC; keep only the most recent receipt per mod
+          if (!this.status.modRefs[ref.title!]) this.status.modRefs[ref.title!] = ref;
         })),
-      switchMap(batch => mods.size && page + 1 < batch.page.totalPages && remaining - batch.content.length > 0
-        ? this.loadRecentModRefs$(mods, remaining - batch.content.length, page + 1)
+      switchMap(batch => page + 1 < batch.page.totalPages
+        ? this.loadAllModRefs$(page + 1)
         : of(null)),
       catchError(() => of(null)),
     );
@@ -960,7 +927,7 @@ export class AdminService {
     return this.getTemplate('config/wiki')?.config?.prefix || DEFAULT_WIKI_PREFIX;
   }
 
-  getMod(mod: String): Mod | undefined {
+  getMod(mod: string): Mod | undefined {
     const bundle = this.mods.find(m =>
       m.plugin?.find(p => modId(p) === mod) ||
       m.template?.find(t => modId(t) === mod)
@@ -986,21 +953,6 @@ export class AdminService {
     return clearMod(this.getInstalledModRef(mod)?.plugins?.['plugin/mod']);
   }
 
-  loadModRefsFor$(mods: string[]) {
-    const pending = uniq(mods)
-      .filter(mod => !!mod)
-      .filter(mod => !this.modRefsLoaded.has(mod))
-      .filter(mod => !this.getInstalledModRefEntry(mod))
-      .filter(mod => !this.modRefsLoading.has(mod));
-    if (!pending.length) return of(null);
-    pending.forEach(mod => this.modRefsLoading.add(mod));
-    return this.loadRecentModRefs$(new Set(pending), Math.max(this.config.fetchBatch, pending.length * MOD_RECEIPT_SCAN_MULTIPLIER)).pipe(
-      tap(() => pending
-        .filter(mod => !!this.getInstalledModRefEntry(mod))
-        .forEach(mod => this.modRefsLoaded.add(mod))),
-      finalize(() => pending.forEach(mod => this.modRefsLoading.delete(mod))),
-    );
-  }
 
   getCurrentMod(mod: string) {
     const base = this.getInstalledMod(mod) || this.getMod(mod) || {};
@@ -1033,9 +985,10 @@ export class AdminService {
   }
 
   logModReceipt$(mod: string, bundle: Mod, _: progress) {
-    const receiptTag = this.getModReceiptTag(mod, bundle);
+    const receiptTag = this.getModReceiptTag(mod);
+    const sanitized = receiptTag?.replace('plugin/mod/receipt/', '');
     const ref = {
-      url: 'internal:' + uuid(),
+      url: sanitized ? `internal:mod-receipt/${sanitized}` : `internal:${uuid()}`,
       origin: this.store.account.origin,
       title: mod,
       tags: ['internal', ...(receiptTag ? [receiptTag] : [])],
@@ -1224,11 +1177,10 @@ export class AdminService {
   }
 
   private getInstalledModRef(mod: string) {
-    this.ensureModRefsLoaded(mod);
     return this.getInstalledModRefEntry(mod)?.[1];
   }
 
-  private getModReceiptTag(mod: string, bundle?: Mod) {
+  private getModReceiptTag(mod: string) {
     const sanitized = localTag(setPublic(mod))
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '.')
@@ -1236,17 +1188,6 @@ export class AdminService {
       .replace(/[./]{2,}/g, '.');
     if (!sanitized) return undefined;
     return prefix('plugin/mod/receipt', sanitized);
-  }
-
-  private ensureModRefsLoaded(mod: string) {
-    if (this.modRefsLoaded.has(mod)) return;
-    if (this.getInstalledModRefEntry(mod)) return;
-    if (this.modRefsLoading.has(mod)) return;
-    this.modRefsLoading.add(mod);
-    this.loadModRefs$(mod).pipe(
-      tap(() => this.modRefsLoaded.add(mod)),
-      finalize(() => this.modRefsLoading.delete(mod)),
-    ).subscribe(() => {});
   }
 
   deleteMod$(mod: string, _: progress): Observable<any> {
