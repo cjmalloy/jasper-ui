@@ -85,7 +85,7 @@
     }
     <app-diff #mergeDiff
               class="mod-merge-diff"
-              [original]="mergeState!.target"
+              [original]="mergeState!.diffBase"
               [modified]="mergeState!.proposed"
               [fullHeight]="true"
               [resizable]="false">

@@ -24,6 +24,7 @@ interface ModUpdatePreview {
   current: Mod;
   target: Mod;
   proposed: Mod;
+  diffBase: Mod;
   needsReview: boolean;
   conflict: boolean;
   reason?: 'conflict' | 'requested';
@@ -463,6 +464,7 @@ export class SettingsSetupPage implements OnDestroy {
         current,
         target,
         proposed: target,
+        diffBase: current,
         needsReview: false,
         conflict: false,
       };
@@ -475,7 +477,8 @@ export class SettingsSetupPage implements OnDestroy {
           mod,
           current,
           target,
-          proposed: target,
+          proposed: current,
+          diffBase: target,
           needsReview: true,
           conflict: true,
           reason: 'conflict',
@@ -486,6 +489,7 @@ export class SettingsSetupPage implements OnDestroy {
         current,
         target,
         proposed: restoreBundle(target, JSON.parse(merged.mergedComment)),
+        diffBase: target,
         needsReview: requested,
         conflict: false,
         reason: requested ? 'requested' : undefined,
@@ -497,6 +501,7 @@ export class SettingsSetupPage implements OnDestroy {
         current,
         target,
         proposed: target,
+        diffBase: current,
         needsReview: requested,
         conflict: false,
       };
@@ -506,6 +511,7 @@ export class SettingsSetupPage implements OnDestroy {
       current,
       target,
       proposed: target,
+      diffBase: current,
       needsReview: requested,
       conflict: false,
       reason: requested ? 'requested' : undefined,
