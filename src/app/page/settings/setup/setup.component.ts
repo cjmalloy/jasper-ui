@@ -6,7 +6,7 @@ import { Component, OnDestroy, TemplateRef, ViewChild, ViewContainerRef } from '
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { forOwn, isEqual, uniq } from 'lodash-es';
-import { catchError, concat, EMPTY, last, of, Subscription, tap, throwError } from 'rxjs';
+import { catchError, concat, EMPTY, last, Subscription, throwError } from 'rxjs';
 import { Plugin, writePlugin } from '../../../model/plugin';
 import { Config, Mod } from '../../../model/tag';
 import { Template, writeTemplate } from '../../../model/template';
@@ -337,8 +337,7 @@ export class SettingsSetupPage implements OnDestroy {
   }
 
   private loadModRefs$() {
-    return this.admin.loadModRefsFor$(Object.values(this.modGroups)
-      .flatMap(group => group.map(([, config]) => modId(config))));
+    return this.admin.loadAllModRefs$();
   }
 
   private buildModGroups() {
@@ -347,13 +346,6 @@ export class SettingsSetupPage implements OnDestroy {
       ...this.admin.status.plugins, ...this.admin.status.templates,
       ...this.admin.def.plugins, ...this.admin.def.templates,
     });
-  }
-
-  private get modifiedMods() {
-    return uniq(Object.values(this.buildModGroups())
-      .flatMap(group => group.map(([, config]) => this.getModModification(config)))
-      .filter((state): state is { mod: string, current: Mod, base: Mod, modified: true } => !!state?.modified)
-      .map(state => state.mod));
   }
 
   private getModModification(config: Config) {

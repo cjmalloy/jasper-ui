@@ -49,7 +49,7 @@ describe('SettingsSetupPage', () => {
             .map((entry: any) => ({ ...entry, origin: '' })),
         };
       },
-      loadModRefsFor$: vi.fn(() => of(null)),
+      loadAllModRefs$: vi.fn(() => of(null)),
       install$() { return of(null); },
       logModReceipt$: vi.fn(() => of(null)),
       installMod$: vi.fn(() => of(null)),
@@ -104,7 +104,7 @@ describe('SettingsSetupPage', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should preload installed mod receipts for active setup mods', async () => {
+  it('should preload installed mod receipts on setup page load', async () => {
     admin.def.plugins['plugin/wiki'] = {
       tag: 'plugin/wiki',
       config: { mod: 'Wiki' },
@@ -119,10 +119,10 @@ describe('SettingsSetupPage', () => {
     component = fixture.componentInstance;
     fixture.detectChanges();
 
-    expect(admin.loadModRefsFor$).toHaveBeenCalledWith(['Wiki']);
+    expect(admin.loadAllModRefs$).toHaveBeenCalled();
   });
 
-  it('should preload installed mod receipts for active setup mods with special-character mod ids', async () => {
+  it('should preload installed mod receipts on setup page load with special-character mod ids', async () => {
     admin.def.plugins['plugin/mod'] = {
       tag: 'plugin/mod',
       config: { mod: '🎁️ Store' },
@@ -137,10 +137,10 @@ describe('SettingsSetupPage', () => {
     component = fixture.componentInstance;
     fixture.detectChanges();
 
-    expect(admin.loadModRefsFor$).toHaveBeenCalledWith(['🎁️ Store']);
+    expect(admin.loadAllModRefs$).toHaveBeenCalled();
   });
 
-  it('should preload mod receipts using setup definitions when an edited template loses config.mod', async () => {
+  it('should preload mod receipts on setup page load when an edited template loses config.mod', async () => {
     admin.def.templates['config/wiki'] = {
       tag: 'config/wiki',
       config: { mod: 'Wiki' },
@@ -155,7 +155,7 @@ describe('SettingsSetupPage', () => {
     component = fixture.componentInstance;
     fixture.detectChanges();
 
-    expect(admin.loadModRefsFor$).toHaveBeenCalledWith(['Wiki']);
+    expect(admin.loadAllModRefs$).toHaveBeenCalled();
   });
 
   it('should open the merge diff in a popup', () => {

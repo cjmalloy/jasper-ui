@@ -51,7 +51,7 @@ describe('AdminService', () => {
     }, () => {}).subscribe();
 
     expect(create).toHaveBeenCalledWith(expect.objectContaining({
-      url: expect.stringMatching(/^internal:[0-9a-f-]{36}$/),
+      url: 'internal:mod-receipt/wiki',
       origin: '@local',
       title: 'Wiki',
       tags: ['internal', prefix('plugin/mod/receipt', 'wiki')],
@@ -66,13 +66,13 @@ describe('AdminService', () => {
   it('should not preload mod refs during init', () => {
     const loadPlugins = vi.spyOn(service as any, 'loadPlugins$').mockReturnValue(of(null));
     const loadTemplates = vi.spyOn(service as any, 'loadTemplates$').mockReturnValue(of(null));
-    const loadModRefs = vi.spyOn(service as any, 'loadModRefs$').mockReturnValue(of(null));
+    const loadAllModRefs = vi.spyOn(service, 'loadAllModRefs$').mockReturnValue(of(null));
 
     service.init$.subscribe();
 
     expect(loadPlugins).toHaveBeenCalled();
     expect(loadTemplates).toHaveBeenCalled();
-    expect(loadModRefs).not.toHaveBeenCalled();
+    expect(loadAllModRefs).not.toHaveBeenCalled();
   });
 
   it('should sanitize mod ids when generating receipt tags', () => {
@@ -82,79 +82,10 @@ describe('AdminService', () => {
     expect((service as any).getModReceiptTag('!!!')).toBeUndefined();
   });
 
-  it('should lazy load internal mod refs by title when installed mods are requested', () => {
+  it('should load all receipt refs in pages on setup', () => {
     const refs = TestBed.inject(RefService);
     const store = TestBed.inject(Store);
     store.account.origin = '@local';
-    service.status.templates['config/wiki'] = {
-      tag: 'config/wiki',
-      origin: '@local',
-      config: { mod: '📔️ Wiki' },
-    } as any;
-    vi.spyOn(refs, 'page').mockReturnValue(of({
-      content: [{
-        url: 'internal:11111111-1111-4111-8111-111111111111',
-        origin: '@local',
-        title: '📔️ Wiki',
-        plugins: { 'plugin/mod': { template: [{ tag: 'config/wiki', config: { mod: '📔️ Wiki' } }] } },
-      }],
-      page: { totalPages: 1 },
-    } as any));
-
-    expect(service.getInstalledMod('📔️ Wiki')).toEqual(expect.objectContaining({
-      template: [{ tag: 'config/wiki', config: { mod: '📔️ Wiki' } }],
-    }));
-    expect(refs.page).toHaveBeenCalledWith({
-      query: '@local:' + prefix('plugin/mod/receipt', 'wiki'),
-      size: 1,
-      sort: ['modified,DESC'],
-    });
-    expect(refs.page).toHaveBeenCalledTimes(1);
-    service.getInstalledMod('📔️ Wiki');
-    expect(refs.page).toHaveBeenCalledTimes(1);
-  });
-
-  it('should lazy load internal mod refs for the default local origin', () => {
-    const refs = TestBed.inject(RefService);
-    service.status.templates['config/wiki'] = {
-      tag: 'config/wiki',
-      origin: '',
-      config: { mod: '📔️ Wiki' },
-    } as any;
-    vi.spyOn(refs, 'page').mockReturnValue(of({
-      content: [{
-        url: 'internal:11111111-1111-4111-8111-111111111111',
-        origin: '',
-        title: '📔️ Wiki',
-        plugins: { 'plugin/mod': { template: [{ tag: 'config/wiki', config: { mod: '📔️ Wiki' } }] } },
-      }],
-      page: { totalPages: 1 },
-    } as any));
-
-    expect(service.getInstalledMod('📔️ Wiki')).toEqual(expect.objectContaining({
-      template: [{ tag: 'config/wiki', config: { mod: '📔️ Wiki' } }],
-    }));
-    expect(refs.page).toHaveBeenCalledWith({
-      query: '*:' + prefix('plugin/mod/receipt', 'wiki'),
-      size: 1,
-      sort: ['modified,DESC'],
-    });
-  });
-
-  it('should batch load recent receipt refs for active mods on setup', () => {
-    const refs = TestBed.inject(RefService);
-    const store = TestBed.inject(Store);
-    store.account.origin = '@local';
-    service.status.plugins['plugin/wiki'] = {
-      tag: 'plugin/wiki',
-      origin: '@local',
-      config: { mod: '📔️ Wiki' },
-    } as any;
-    service.status.templates['config/chat'] = {
-      tag: 'config/chat',
-      origin: '@local',
-      config: { mod: '💬 Chat' },
-    } as any;
     const page = vi.spyOn(refs, 'page').mockReturnValue(of({
       content: [
         {
@@ -179,7 +110,7 @@ describe('AdminService', () => {
       page: { totalPages: 1 },
     } as any));
 
-    service.loadModRefsFor$(['📔️ Wiki', '💬 Chat']).subscribe();
+    service.loadAllModRefs$().subscribe();
 
     expect(page).toHaveBeenCalledWith({
       query: '@local:plugin/mod/receipt',
@@ -189,46 +120,12 @@ describe('AdminService', () => {
     });
     expect(service.status.modRefs['📔️ Wiki']).toEqual(expect.objectContaining({ title: '📔️ Wiki' }));
     expect(service.status.modRefs['💬 Chat']).toEqual(expect.objectContaining({ title: '💬 Chat' }));
-    expect(service.status.modRefs.Obsolete).toBeUndefined();
+    // All receipts are loaded (including ones for mods that are no longer active)
+    expect(service.status.modRefs.Obsolete).toEqual(expect.objectContaining({ title: 'Obsolete' }));
   });
 
-  it('should batch load recent receipt refs for setup even when a mod id has no sanitized receipt suffix', () => {
+  it('should load all receipt refs in pages for the default local origin', () => {
     const refs = TestBed.inject(RefService);
-    const store = TestBed.inject(Store);
-    store.account.origin = '@local';
-    service.status.plugins['plugin/mod'] = {
-      tag: 'plugin/mod',
-      origin: '@local',
-      config: { mod: '🎁️ Store' },
-    } as any;
-    const page = vi.spyOn(refs, 'page').mockReturnValue(of({
-      content: [{
-        url: 'internal:44444444-4444-4444-8444-444444444444',
-        origin: '@local',
-        title: '🎁️ Store',
-        plugins: { 'plugin/mod': { plugin: [{ tag: 'plugin/mod', config: { mod: '🎁️ Store' } }] } },
-      }],
-      page: { totalPages: 1 },
-    } as any));
-
-    service.loadModRefsFor$(['🎁️ Store']).subscribe();
-
-    expect(page).toHaveBeenCalledWith({
-      query: '@local:plugin/mod/receipt',
-      page: 0,
-      size: expect.any(Number),
-      sort: ['modified,DESC'],
-    });
-    expect(service.status.modRefs['🎁️ Store']).toEqual(expect.objectContaining({ title: '🎁️ Store' }));
-  });
-
-  it('should batch load recent receipt refs for setup when using the default local origin', () => {
-    const refs = TestBed.inject(RefService);
-    service.status.templates['config/wiki'] = {
-      tag: 'config/wiki',
-      origin: '',
-      config: { mod: 'Wiki' },
-    } as any;
     const page = vi.spyOn(refs, 'page').mockReturnValue(of({
       content: [{
         url: 'internal:11111111-1111-4111-8111-111111111111',
@@ -239,7 +136,7 @@ describe('AdminService', () => {
       page: { totalPages: 1 },
     } as any));
 
-    service.loadModRefsFor$(['Wiki']).subscribe();
+    service.loadAllModRefs$().subscribe();
 
     expect(page).toHaveBeenCalledWith({
       query: '*:plugin/mod/receipt',
