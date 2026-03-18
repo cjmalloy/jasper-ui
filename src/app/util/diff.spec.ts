@@ -63,7 +63,7 @@ describe('Diff Utils', () => {
       const parsed = JSON.parse(formatted);
       const pluginKeys = Object.keys(parsed.plugins);
 
-      expect(pluginKeys).toEqual(['zebra', 'alpha', 'beta']);
+      expect(pluginKeys).toEqual(['alpha', 'beta', 'zebra']);
     });
   });
 

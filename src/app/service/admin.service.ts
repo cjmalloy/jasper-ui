@@ -1301,7 +1301,8 @@ export class AdminService {
   needsUpdate(def: Config, status: Config) {
     if (!this.store.account.admin) return false;
     if (def.config?.noUpdate || status.config?.noUpdate) return false;
-    if (def.config?.version && status.config?.version) {
+    if (def.config?.version !== undefined) {
+      if (status.config?.version === undefined) return true;
       if (def.config.version !== status.config.version) {
         return def.config.version > status.config.version;
       }
