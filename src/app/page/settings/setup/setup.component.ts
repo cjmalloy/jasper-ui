@@ -76,10 +76,6 @@ export class SettingsSetupPage implements OnDestroy {
     this.loadModRefs();
   }
 
-  get canResetAll() {
-    return this.modifiedMods.length > 0;
-  }
-
   install() {
     this.serverError = [];
     this.installMessages = [];
