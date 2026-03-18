@@ -18,7 +18,6 @@ import { scrollToFirstInvalid } from '../../../util/form';
 import { configGroups, formSafeNames, modId } from '../../../util/format';
 import { printError } from '../../../util/http';
 import { DiffComponent } from '../../../form/diff/diff.component';
-import { ConfirmActionComponent } from '../../../component/action/confirm-action/confirm-action.component';
 
 interface ModUpdatePreview {
   mod: string;
@@ -40,7 +39,6 @@ interface ModUpdatePreview {
     KeyValuePipe,
     DiffComponent,
     OverlayModule,
-    ConfirmActionComponent,
   ],
 })
 export class SettingsSetupPage implements OnDestroy {
