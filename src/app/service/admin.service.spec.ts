@@ -192,6 +192,36 @@ describe('AdminService', () => {
     expect(service.status.modRefs.Obsolete).toBeUndefined();
   });
 
+  it('should batch load recent receipt refs for setup even when a mod id has no sanitized receipt suffix', () => {
+    const refs = TestBed.inject(RefService);
+    const store = TestBed.inject(Store);
+    store.account.origin = '@local';
+    service.status.plugins['plugin/mod'] = {
+      tag: 'plugin/mod',
+      origin: '@local',
+      config: { mod: '🎁️ Store' },
+    } as any;
+    const page = vi.spyOn(refs, 'page').mockReturnValue(of({
+      content: [{
+        url: 'internal:44444444-4444-4444-8444-444444444444',
+        origin: '@local',
+        title: '🎁️ Store',
+        plugins: { 'plugin/mod': { plugin: [{ tag: 'plugin/mod', config: { mod: '🎁️ Store' } }] } },
+      }],
+      page: { totalPages: 1 },
+    } as any));
+
+    service.loadModRefsFor$(['🎁️ Store']).subscribe();
+
+    expect(page).toHaveBeenCalledWith({
+      query: '@local:plugin/mod/receipt',
+      page: 0,
+      size: expect.any(Number),
+      sort: ['modified,DESC'],
+    });
+    expect(service.status.modRefs['🎁️ Store']).toEqual(expect.objectContaining({ title: '🎁️ Store' }));
+  });
+
   it('should batch load recent receipt refs for setup when using the default local origin', () => {
     const refs = TestBed.inject(RefService);
     service.status.templates['config/wiki'] = {

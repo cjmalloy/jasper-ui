@@ -991,8 +991,7 @@ export class AdminService {
       .filter(mod => !!mod)
       .filter(mod => !this.modRefsLoaded.has(mod))
       .filter(mod => !this.getInstalledModRefEntry(mod))
-      .filter(mod => !this.modRefsLoading.has(mod))
-      .filter(mod => !!this.getModReceiptTag(mod));
+      .filter(mod => !this.modRefsLoading.has(mod));
     if (!pending.length) return of(null);
     pending.forEach(mod => this.modRefsLoading.add(mod));
     return this.loadRecentModRefs$(new Set(pending), Math.max(this.config.fetchBatch, pending.length * MOD_RECEIPT_SCAN_MULTIPLIER)).pipe(

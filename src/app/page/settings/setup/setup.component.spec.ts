@@ -122,6 +122,24 @@ describe('SettingsSetupPage', () => {
     expect(admin.loadModRefsFor$).toHaveBeenCalledWith(['Wiki']);
   });
 
+  it('should preload installed mod receipts for active setup mods with special-character mod ids', async () => {
+    admin.def.plugins['plugin/mod'] = {
+      tag: 'plugin/mod',
+      config: { mod: '🎁️ Store' },
+    };
+    admin.status.plugins['plugin/mod'] = {
+      tag: 'plugin/mod',
+      origin: '@local',
+      config: { mod: '🎁️ Store' },
+    };
+
+    fixture = TestBed.createComponent(SettingsSetupPage);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    expect(admin.loadModRefsFor$).toHaveBeenCalledWith(['🎁️ Store']);
+  });
+
   it('should preload mod receipts using setup definitions when an edited template loses config.mod', async () => {
     admin.def.templates['config/wiki'] = {
       tag: 'config/wiki',
