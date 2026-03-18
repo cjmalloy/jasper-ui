@@ -196,37 +196,6 @@ export class SettingsSetupPage implements OnDestroy {
     });
   }
 
-  get canResetAll() {
-    return this.modifiedMods.length > 0;
-  }
-
-  resetAll$ = () => {
-    this.serverError = [];
-    this.installMessages = [];
-    this.setMergeState();
-    const _ = (msg?: string) => this.installMessages.push(msg!);
-    const mods = this.modifiedMods;
-    if (!mods.length) {
-      _($localize`Success.`);
-      return of(null);
-    }
-    return concat(...mods.map(mod => {
-      const restored = this.admin.getInstalledMod(mod);
-      return restored ? this.admin.updateMod$(mod, restored, restored, _) : of(null);
-    })).pipe(
-      last(),
-      tap(() => {
-        this.submitted = true;
-        this.reset();
-        _($localize`Success.`);
-      }),
-      catchError((res: HttpErrorResponse) => {
-        this.serverError = printError(res);
-        return throwError(() => res);
-      }),
-    );
-  }
-
   selectAll() {
     this.selectAllToggle = !this.selectAllToggle;
     const sa = (fg: UntypedFormGroup) => forOwn(fg.controls, c => c.setValue(this.selectAllToggle));
