@@ -63,7 +63,7 @@ export function formatBundleDiff(mod: Mod): string {
     user: isEmpty(mod.user) ? undefined : mod.user!.map(sortEntity),
     plugin: isEmpty(mod.plugin) ? undefined : mod.plugin!.map(sortEntity),
     template: isEmpty(mod.template) ? undefined : mod.template!.map(sortEntity),
-  }, null, 2);
+  }, (key, value) => key === '_parent' ? undefined : value, 2);
 }
 
 export type Merge = { mergedComment?: string, conflict?: MergeRegion<string>[] };
