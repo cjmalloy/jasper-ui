@@ -92,7 +92,7 @@ import { Store } from '../store/store';
 import { modId } from '../util/format';
 import { getExtension, getHost } from '../util/http';
 import { memo, MemoCache } from '../util/memo';
-import { access, addHierarchicalTags, directChild, hasPrefix, hasTag, localTag, prefix, setPublic, tagIntersection, test } from '../util/tag';
+import { addHierarchicalTags, directChild, hasPrefix, hasTag, localTag, prefix, setPublic, tagIntersection, test } from '../util/tag';
 import { ExtService } from './api/ext.service';
 import { PluginService } from './api/plugin.service';
 import { RefService } from './api/ref.service';
@@ -992,7 +992,7 @@ export class AdminService {
       .filter(mod => !this.modRefsLoaded.has(mod))
       .filter(mod => !this.getInstalledModRefEntry(mod))
       .filter(mod => !this.modRefsLoading.has(mod))
-      .filter(mod => !!this.getModReceiptSourceTagFor(mod));
+      .filter(mod => !!this.getModReceiptTag(mod));
     if (!pending.length) return of(null);
     pending.forEach(mod => this.modRefsLoading.add(mod));
     return this.loadRecentModRefs$(new Set(pending), Math.max(this.config.fetchBatch, pending.length * MOD_RECEIPT_SCAN_MULTIPLIER)).pipe(
@@ -1228,31 +1228,13 @@ export class AdminService {
   }
 
   private getModReceiptTag(mod: string, bundle?: Mod) {
-    const tag = this.getModReceiptSourceTagFor(mod, bundle);
-    if (!tag) return undefined;
-    return prefix('plugin/mod/receipt', this.getModReceiptVisibility(tag), localTag(setPublic(tag)));
-  }
-
-  private getModReceiptSourceTag(bundle?: Mod) {
-    return bundle?.plugin?.[0]?.tag || bundle?.template?.[0]?.tag;
-  }
-
-  private getModReceiptSourceTagFor(mod: string, bundle?: Mod) {
-    return this.getModReceiptSourceTag(bundle) ||
-      this.getModReceiptSourceTag(this.getMod(mod)) ||
-      this.getStatusEntries(this.status.plugins, this.status.disabledPlugins, mod)[0]?.tag ||
-      this.getStatusEntries(this.status.templates, this.status.disabledTemplates, mod)[0]?.tag;
-  }
-
-  private getModReceiptVisibility(tag: string) {
-    switch (access(tag)) {
-      case '+':
-        return 'protected';
-      case '_':
-        return 'private';
-      default:
-        return 'public';
-    }
+    const sanitized = localTag(setPublic(mod))
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '.')
+      .replace(/^[./]+|[./]+$/g, '')
+      .replace(/[./]{2,}/g, '.');
+    if (!sanitized) return undefined;
+    return prefix('plugin/mod/receipt', sanitized);
   }
 
   private ensureModRefsLoaded(mod: string) {

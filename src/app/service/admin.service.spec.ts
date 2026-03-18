@@ -39,7 +39,7 @@ describe('AdminService', () => {
     expect(scrapePlugin.config?.form?.find(f => f.key === 'textSelectors')?.expressions?.hide).toBe('!field.parent.model.text');
   });
 
-  it('should create a mod ref containing the installed bundle with a receipt tag derived from the mod tag visibility', () => {
+  it('should create a mod ref containing the installed bundle with a receipt tag derived from the sanitized mod id', () => {
     const refs = TestBed.inject(RefService);
     const store = TestBed.inject(Store);
     store.account.origin = '@local';
@@ -54,7 +54,7 @@ describe('AdminService', () => {
       url: expect.stringMatching(/^internal:[0-9a-f-]{36}$/),
       origin: '@local',
       title: 'Wiki',
-      tags: ['internal', prefix('plugin/mod/receipt', 'protected', 'config/wiki')],
+      tags: ['internal', prefix('plugin/mod/receipt', 'wiki')],
       plugins: {
         'plugin/mod': {
           template: [{ tag: '+config/wiki', name: 'Wiki' }],
@@ -73,6 +73,13 @@ describe('AdminService', () => {
     expect(loadPlugins).toHaveBeenCalled();
     expect(loadTemplates).toHaveBeenCalled();
     expect(loadModRefs).not.toHaveBeenCalled();
+  });
+
+  it('should sanitize mod ids when generating receipt tags', () => {
+    expect((service as any).getModReceiptTag('📔️ Wiki')).toBe('plugin/mod/receipt/wiki');
+    expect((service as any).getModReceiptTag('AI Tools')).toBe('plugin/mod/receipt/ai.tools');
+    expect((service as any).getModReceiptTag('Feature/API v2')).toBe('plugin/mod/receipt/feature.api.v2');
+    expect((service as any).getModReceiptTag('!!!')).toBeUndefined();
   });
 
   it('should lazy load internal mod refs by title when installed mods are requested', () => {
@@ -98,7 +105,7 @@ describe('AdminService', () => {
       template: [{ tag: 'config/wiki', config: { mod: '📔️ Wiki' } }],
     }));
     expect(refs.page).toHaveBeenCalledWith({
-      query: '@local:' + prefix('plugin/mod/receipt', 'public', 'config/wiki'),
+      query: '@local:' + prefix('plugin/mod/receipt', 'wiki'),
       size: 1,
       sort: ['modified,DESC'],
     });
@@ -128,7 +135,7 @@ describe('AdminService', () => {
       template: [{ tag: 'config/wiki', config: { mod: '📔️ Wiki' } }],
     }));
     expect(refs.page).toHaveBeenCalledWith({
-      query: '*:' + prefix('plugin/mod/receipt', 'public', 'config/wiki'),
+      query: '*:' + prefix('plugin/mod/receipt', 'wiki'),
       size: 1,
       sort: ['modified,DESC'],
     });
