@@ -427,6 +427,29 @@ describe('SettingsSetupPage', () => {
     expect(component.modModified({ tag: 'plugin/wiki', config: { mod: 'Wiki' } } as any)).toBe(false);
   });
 
+  it('should not mark a mod modified when only _needsUpdate flag differs', () => {
+    admin.status.plugins['plugin/wiki'] = {
+      tag: 'plugin/wiki',
+      origin: '@local',
+      config: { mod: 'Wiki', version: 1 },
+      _needsUpdate: true,
+    };
+    admin.status.modRefs.Wiki = {
+      url: 'mod:Wiki',
+      origin: '@local',
+      plugins: {
+        'plugin/mod': {
+          plugin: [{
+            tag: 'plugin/wiki',
+            config: { mod: 'Wiki', version: 1 },
+          }],
+        },
+      },
+    };
+
+    expect(component.modModified({ tag: 'plugin/wiki', config: { mod: 'Wiki' } } as any)).toBe(false);
+  });
+
   it('should show bulk reset when setup has modified mods and reset them to the installed bundle', () => {
     admin.status.plugins['plugin/wiki'] = {
       tag: 'plugin/wiki',
