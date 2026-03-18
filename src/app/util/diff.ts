@@ -31,7 +31,7 @@ export function sortEntity(entity: Record<string, any>): Record<string, any> {
 
 export function sortObj(entity: Record<string, any>): Record<string, any> {
   const ordered: any = {};
-  const fieldOrder = ['version', 'mod', ''];
+  const fieldOrder = ['version', 'mod'];
   for (const field of fieldOrder) {
     if (entity[field] !== undefined) {
       if (isArray(entity[field])) {
