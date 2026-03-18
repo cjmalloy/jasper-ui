@@ -2,6 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostBinding, Input, OnChanges, QueryList, SimpleChanges, ViewChildren } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { isEqual } from 'lodash-es';
 import { catchError, of, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { pluginForm, PluginFormComponent } from '../../form/plugin/plugin.component';
@@ -14,6 +15,7 @@ import { ModService } from '../../service/mod.service';
 import { Store } from '../../store/store';
 import { downloadPluginExport, downloadTag } from '../../util/download';
 import { scrollToFirstInvalid } from '../../util/form';
+import { modId } from '../../util/format';
 import { printError } from '../../util/http';
 import { ActionComponent } from '../action/action.component';
 import { ConfirmActionComponent } from '../action/confirm-action/confirm-action.component';
@@ -148,6 +150,13 @@ export class PluginComponent implements OnChanges, HasChanges {
       this.serverError = [];
       this.editing = false;
       this.plugin = tag;
+      delete this.admin.status.plugins[tag.tag];
+      delete this.admin.status.disabledPlugins[tag.tag];
+      if (tag.config?.disabled) {
+        this.admin.status.disabledPlugins[tag.tag] = tag;
+      } else {
+        this.admin.status.plugins[tag.tag] = tag;
+      }
     });
   }
 
@@ -180,11 +189,54 @@ export class PluginComponent implements OnChanges, HasChanges {
     );
   }
 
+  get canReset() {
+    return this.created && this.local && this.store.account.admin && this.hasCustomChanges;
+  }
+
+  reset$ = () => {
+    const current = this.plugin;
+    const restored = this.admin.getInstalledPlugin(modId(this.plugin), this.plugin.tag);
+    if (restored) {
+      this.plugin = { ...this.plugin, ...restored, origin: this.store.account.origin };
+      this.updatePluginStatus(this.plugin);
+    }
+    this.serverError = [];
+    this.editing = false;
+    this.init();
+    return this.admin.resetPlugin$(current, () => {});
+  }
+
   download = () => {
     downloadTag(writePlugin(this.plugin));
   }
 
   export() {
     downloadPluginExport(this.plugin, this.mod.exportHtml(this.plugin));
+  }
+
+  private get hasCustomChanges() {
+    const installed = this.admin.getInstalledPlugin(modId(this.plugin), this.plugin.tag);
+    return !!installed && !isEqual(this.normalizePlugin(this.plugin), this.normalizePlugin(installed));
+  }
+
+  private normalizePlugin(plugin: Plugin) {
+    const result = writePlugin({ ...plugin, origin: '' }) as Plugin & { config?: Record<string, unknown> };
+    result.config &&= { ...result.config };
+    delete (result as Plugin & { modified?: unknown, modifiedString?: unknown }).modified;
+    delete (result as Plugin & { modified?: unknown, modifiedString?: unknown }).modifiedString;
+    delete result.config?.version;
+    delete result.config?.generated;
+    delete result.config?._parent;
+    return result;
+  }
+
+  private updatePluginStatus(plugin: Plugin) {
+    delete this.admin.status.plugins[plugin.tag];
+    delete this.admin.status.disabledPlugins[plugin.tag];
+    if (plugin.config?.disabled) {
+      this.admin.status.disabledPlugins[plugin.tag] = plugin;
+    } else {
+      this.admin.status.plugins[plugin.tag] = plugin;
+    }
   }
 }

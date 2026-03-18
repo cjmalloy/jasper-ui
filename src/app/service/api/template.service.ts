@@ -25,6 +25,7 @@ export class TemplateService {
   }
 
   create(template: Template): Observable<void> {
+    template = { ...template, tag: template.tag || '' };
     if (template.tag.startsWith('/')) template.tag = template.tag.substring(1);
     return this.http.post<void>(this.base, writeTemplate(template)).pipe(
       catchError(err => this.login.handleHttpError(err)),
@@ -51,6 +52,7 @@ export class TemplateService {
   }
 
   update(template: Template): Observable<void> {
+    template = { ...template, tag: template.tag || '' };
     return this.http.put<void>(this.base, writeTemplate(template)).pipe(
       catchError(err => this.login.handleHttpError(err)),
     );

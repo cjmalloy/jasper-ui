@@ -1,17 +1,17 @@
 import { Injectable } from '@angular/core';
 import { FormlyFieldConfig } from '@ngx-formly/core';
 import { Schema, validate } from 'jtd';
-import { identity, isEqual, reduce, uniq } from 'lodash-es';
+import { identity, isEmpty, isEqual, reduce, uniq } from 'lodash-es';
 import { autorun, runInAction } from 'mobx';
-import { catchError, concat, forkJoin, map, Observable, of, retry, switchMap, throwError, toArray } from 'rxjs';
+import { catchError, concat, finalize, forkJoin, map, Observable, of, retry, switchMap, throwError, toArray } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
-import { Ext } from '../model/ext';
-import { Plugin } from '../model/plugin';
-import { Ref } from '../model/ref';
+import { Ext, writeExt } from '../model/ext';
+import { Plugin, writePlugin } from '../model/plugin';
+import { Ref, writeRef } from '../model/ref';
 import { bundleSize, clear, condition, Config, EditorButton, Mod } from '../model/tag';
-import { Template } from '../model/template';
-import { User } from '../model/user';
+import { Template, writeTemplate } from '../model/template';
+import { User, writeUser } from '../model/user';
 import { aiMod } from '../mods/ai/ai';
 import { dalleMod } from '../mods/ai/dalle';
 import { naviMod } from '../mods/ai/navi';
@@ -92,7 +92,7 @@ import { Store } from '../store/store';
 import { modId } from '../util/format';
 import { getExtension, getHost } from '../util/http';
 import { memo, MemoCache } from '../util/memo';
-import { addHierarchicalTags, directChild, hasPrefix, hasTag, tagIntersection, test } from '../util/tag';
+import { addHierarchicalTags, directChild, hasPrefix, hasTag, localTag, prefix, setPublic, tagIntersection, test } from '../util/tag';
 import { ExtService } from './api/ext.service';
 import { PluginService } from './api/plugin.service';
 import { RefService } from './api/ref.service';
@@ -100,6 +100,8 @@ import { TemplateService } from './api/template.service';
 import { UserService } from './api/user.service';
 import { AuthzService } from './authz.service';
 import { ConfigService } from './config.service';
+
+const MOD_RECEIPT_SCAN_MULTIPLIER = 3;
 
 @Injectable({
   providedIn: 'root',
@@ -111,6 +113,7 @@ export class AdminService {
     disabledPlugins: <Record<string, Plugin>> {},
     templates: <Record<string, Template>> {},
     disabledTemplates: <Record<string, Template>> {},
+    modRefs: <Record<string, Ref>> {},
   };
 
   mods: Mod[] = [
@@ -207,6 +210,8 @@ export class AdminService {
 
   _cache = new Map<string, any>();
   private firstRun = false;
+  private modRefsLoaded = new Set<string>();
+  private modRefsLoading = new Set<string>();
 
   constructor(
     private config: ConfigService,
@@ -221,9 +226,15 @@ export class AdminService {
     autorun(() => {
       const mod = this.store.eventBus.ref?.plugins?.['plugin/mod'];
       if (this.store.eventBus.event === 'install') {
-        store.eventBus.clearProgress(bundleSize(mod));
-        this.install$(this.store.eventBus.ref?.title || '', mod, (msg, p = 0) => store.eventBus.progress(msg, p))
-          .subscribe(mod => {
+        store.eventBus.clearProgress(bundleSize(mod) + (mod ? 1 : 0));
+        const title = this.store.eventBus.ref?.title || '';
+        const progress = (msg?: string, p = 0) => store.eventBus.progress(msg, p);
+        concat(...[
+          this.install$(title, mod, progress),
+          ...((this.getPlugin('plugin/mod') || mod?.plugin?.find((p: Plugin) => p.tag === 'plugin/mod'))
+            ? [this.logModReceipt$(title, mod, progress)]
+            : []),
+        ]).subscribe(() => {
             this.pluginToStatus(mod.plugin || []);
             this.templateToStatus(mod.template || []);
           });
@@ -239,6 +250,9 @@ export class AdminService {
     this.status.disabledPlugins = {};
     this.status.templates = {};
     this.status.disabledTemplates = {};
+    this.status.modRefs = {};
+    this.modRefsLoaded.clear();
+    this.modRefsLoading.clear();
     return forkJoin([this.loadPlugins$(), this.loadTemplates$()]).pipe(
       switchMap(() => this.firstRun$),
       tap(() => this.updates),
@@ -247,8 +261,8 @@ export class AdminService {
   }
 
   get updates() {
-    for (const p of Object.values(this.status.plugins)) if (p?.config?.needsUpdate) return this.store.view.updateNotify();
-    for (const t of Object.values(this.status.templates)) if (t?.config?.needsUpdate) return this.store.view.updateNotify();
+    for (const p of Object.values(this.status.plugins)) if (p?._needsUpdate) return this.store.view.updateNotify();
+    for (const t of Object.values(this.status.templates)) if (t?._needsUpdate) return this.store.view.updateNotify();
     return false;
   }
 
@@ -325,6 +339,52 @@ export class AdminService {
     );
   }
 
+  private loadModRefs$(mod: string): Observable<null> {
+    const query = this.getModReceiptTag(mod);
+    if (!query) return of(null);
+    return this.refs.page({ query: `${this.localOriginQuery}:${query}`, size: 1, sort: ['modified,DESC'] }).pipe(
+      retry(10),
+      tap(batch => batch.content
+        .filter(ref => ref.origin === this.store.account.origin &&
+          ref.url.startsWith('internal:') &&
+          ref.plugins?.['plugin/mod'])
+        .forEach(ref => {
+          if (ref.title) this.status.modRefs[ref.title] = ref;
+        })),
+      map(() => null),
+      catchError(() => of(null)),
+    );
+  }
+
+  /**
+   * Scan recent mod receipt refs in bounded pages and keep only receipts for the requested mods.
+   * `remaining` caps how many recent refs we inspect so setup does not walk every obsolete receipt.
+   * `mods` is a Set so we can remove matches as we find them and stop early once all targets are found.
+   */
+  private loadRecentModRefs$(mods: Set<string>, remaining: number, page = 0): Observable<null> {
+    if (!mods.size || remaining <= 0) return of(null);
+    const size = Math.min(this.config.fetchBatch, remaining);
+    return this.refs.page({ query: `${this.localOriginQuery}:plugin/mod/receipt`, page, size, sort: ['modified,DESC'] }).pipe(
+      retry(10),
+      tap(batch => batch.content
+        .filter(ref => ref.origin === this.store.account.origin &&
+          ref.url.startsWith('internal:') &&
+          ref.plugins?.['plugin/mod'] &&
+          !!ref.title &&
+          mods.has(ref.title))
+        .forEach(ref => {
+          const title = ref.title!;
+          if (this.status.modRefs[title]) return;
+          this.status.modRefs[title] = ref;
+          mods.delete(title);
+        })),
+      switchMap(batch => mods.size && page + 1 < batch.page.totalPages && remaining - batch.content.length > 0
+        ? this.loadRecentModRefs$(mods, remaining - batch.content.length, page + 1)
+        : of(null)),
+      catchError(() => of(null)),
+    );
+  }
+
   private pluginToStatus(list: Plugin[]) {
     for (const p of list) {
       if (p.config?.disabled) {
@@ -333,9 +393,8 @@ export class AdminService {
         this.status.plugins[p.tag] = p;
         this.def.plugins[p.tag] ||= clear(p);
       }
-      p.config ||= {};
-      p.config.needsUpdate ||= this.needsUpdate(this.def.plugins[p.tag], p);
-      if (p.config.needsUpdate) {
+      p._needsUpdate ||= this.needsUpdate(this.def.plugins[p.tag], p);
+      if (p._needsUpdate) {
         console.log(p.tag + ' needs update');
       }
     }
@@ -349,9 +408,8 @@ export class AdminService {
         this.status.templates[t.tag] = t;
         this.def.templates[t.tag] ||= t;
       }
-      t.config ||= {};
-      t.config.needsUpdate ||= this.needsUpdate(this.def.templates[t.tag], t);
-      if (t.config.needsUpdate) {
+      t._needsUpdate ||= this.needsUpdate(this.def.templates[t.tag], t);
+      if (t._needsUpdate) {
         console.log((t.tag || 'Root template') + ' needs update');
       }
     }
@@ -902,18 +960,57 @@ export class AdminService {
     return this.getTemplate('config/wiki')?.config?.prefix || DEFAULT_WIKI_PREFIX;
   }
 
-  getMod(mod: String) {
+  getMod(mod: String): Mod | undefined {
     const bundle = this.mods.find(m =>
       m.plugin?.find(p => modId(p) === mod) ||
       m.template?.find(t => modId(t) === mod)
     );
-    if (bundle) return bundle;
+    if (bundle) return clearMod(bundle);
     const modPlugins = Object.values(this.status.plugins).filter(p => modId(p) === mod).map(p => p.tag);
     const modTemplates = Object.values(this.status.templates).filter(p => modId(p) === mod).map(t => t.tag);
-    return this.mods.find(m =>
+    return clearMod(this.mods.find(m =>
       m.plugin?.find(p => modPlugins.includes(p.tag)) ||
       m.template?.find(t => modTemplates.includes(t.tag))
+    ));
+  }
+
+  getInstalledPlugin(mod: string, tag: string) {
+    return this.getInstalledModRef(mod)?.plugins?.['plugin/mod']?.plugin?.find((plugin: Plugin) => plugin.tag === tag);
+  }
+
+  getInstalledTemplate(mod: string, tag: string) {
+    return this.getInstalledModRef(mod)?.plugins?.['plugin/mod']?.template?.find((template: Template) => template.tag === tag);
+  }
+
+  getInstalledMod(mod: string) {
+    return clearMod(this.getInstalledModRef(mod)?.plugins?.['plugin/mod']);
+  }
+
+  loadModRefsFor$(mods: string[]) {
+    const pending = uniq(mods)
+      .filter(mod => !!mod)
+      .filter(mod => !this.modRefsLoaded.has(mod))
+      .filter(mod => !this.getInstalledModRefEntry(mod))
+      .filter(mod => !this.modRefsLoading.has(mod));
+    if (!pending.length) return of(null);
+    pending.forEach(mod => this.modRefsLoading.add(mod));
+    return this.loadRecentModRefs$(new Set(pending), Math.max(this.config.fetchBatch, pending.length * MOD_RECEIPT_SCAN_MULTIPLIER)).pipe(
+      tap(() => pending
+        .filter(mod => !!this.getInstalledModRefEntry(mod))
+        .forEach(mod => this.modRefsLoaded.add(mod))),
+      finalize(() => pending.forEach(mod => this.modRefsLoading.delete(mod))),
     );
+  }
+
+  getCurrentMod(mod: string) {
+    const base = this.getInstalledMod(mod) || this.getMod(mod) || {};
+    const plugins = this.getStatusPlugins(mod, base.plugin?.map((plugin: Plugin) => plugin.tag));
+    const templates = this.getStatusTemplates(mod, base.template?.map((template: Template) => template.tag));
+    return clearMod(<Mod> {
+      ...base,
+      plugin: restoreConfigEntries(base.plugin, plugins),
+      template: restoreConfigEntries(base.template, templates),
+    });
   }
 
   installRef$(def: Ref, _: progress) {
@@ -931,6 +1028,43 @@ export class AdminService {
         }
         return throwError(() => err);
       }),
+      tap(() => _('', 1)),
+    );
+  }
+
+  logModReceipt$(mod: string, bundle: Mod, _: progress) {
+    const receiptTag = this.getModReceiptTag(mod, bundle);
+    const ref = {
+      url: 'internal:' + uuid(),
+      origin: this.store.account.origin,
+      title: mod,
+      tags: ['internal', ...(receiptTag ? [receiptTag] : [])],
+      plugins: { 'plugin/mod': bundle },
+    };
+    return of(null).pipe(
+      tap(() => _('\u00A0'.repeat(4) + $localize`Logging ${mod || ref.url} receipt...`)),
+      switchMap(() => this.refs.get(ref.url, ref.origin).pipe(
+        switchMap(existing => this.refs.update({
+          ...ref,
+          modifiedString: existing.modifiedString,
+        })),
+        catchError(err => err.status === 404
+          ? this.refs.create(ref)
+          : throwError(() => err)),
+      )),
+      tap(() => this.status.modRefs[mod] = ref),
+      tap(() => _('', 1)),
+    );
+  }
+
+  private clearModReceipt$(mod: string, _: progress) {
+    const receipt = this.getInstalledModRefEntry(mod);
+    if (!receipt) return of(null);
+    const [key, ref] = receipt;
+    return of(null).pipe(
+      tap(() => _('\u00A0'.repeat(4) + $localize`Deleting ${mod} ref...`)),
+      switchMap(() => this.refs.delete(ref.url, ref.origin)),
+      tap(() => delete this.status.modRefs[key]),
       tap(() => _('', 1)),
     );
   }
@@ -1027,37 +1161,126 @@ export class AdminService {
     ]).pipe(toArray());
   }
 
-  installMod$(mod: string, _: progress): Observable<any> {
-    return this.install$(mod, this.getMod(mod)!, _);
-  }
-
-  update$(mod: string, bundle: Mod, _: progress): Observable<any> {
-    if (!bundle) return of(null);
+  installMod$(mod: string, _: progress, receipt = true): Observable<any> {
+    const bundle = this.getMod(mod)!;
     return concat(...[
-      of(null).pipe(tap(() => _($localize`Installing ${mod} mod...`))),
-      ...(bundle.plugin || []).map(p => this.updatePlugin$(p, _)),
-      ...(bundle.template || []).map(t => this.updateTemplate$(t, _)),
+      this.install$(mod, bundle, _),
+      ...(receipt && this.getPlugin('plugin/mod') ? [this.logModReceipt$(mod, bundle, _)] : []),
     ]).pipe(toArray());
   }
 
-  updateMod$(mod: string, _: progress): Observable<any> {
-    return this.update$(mod, this.getMod(mod)!, _);
+  updateMod$(mod: string, bundle: Mod, cleanBundle: Mod, _: progress): Observable<any> {
+    if (!bundle) return of(null);
+    bundle = restoreBundle(cleanBundle, bundle);
+    const currentPlugins = this.getStatusEntries(this.status.plugins, this.status.disabledPlugins, mod);
+    const currentTemplates = this.getStatusEntries(this.status.templates, this.status.disabledTemplates, mod);
+    const nextPlugins = bundle.plugin || [];
+    const nextTemplates = bundle.template || [];
+    return concat(...[
+      of(null).pipe(tap(() => _($localize`Installing ${mod} mod...`))),
+      ...currentPlugins
+        .filter(current => !nextPlugins.find(next => next.tag === current.tag))
+        .map(current => this.deletePlugin$(current, _)),
+      ...currentTemplates
+        .filter(current => !nextTemplates.find(next => next.tag === current.tag))
+        .map(current => this.deleteTemplate$(current, _)),
+      ...nextPlugins.map(plugin => (currentPlugins.find(current => current.tag === plugin.tag)
+        ? this.updatePlugin$(plugin, _)
+        : this.installPlugin$(plugin, _))),
+      ...nextTemplates.map(template => (currentTemplates.find(current => current.tag === template.tag)
+        ? this.updateTemplate$(template, _)
+        : this.installTemplate$(template, _))),
+      ...(this.getPlugin('plugin/mod') ? [this.logModReceipt$(mod, cleanBundle, _)] : []),
+    ]).pipe(toArray());
+  }
+
+  private getStatusPlugins(mod: string, tags: string[] = []) {
+    return this.getStatusEntries(this.status.plugins, this.status.disabledPlugins, mod, tags)
+      .map(plugin => writePlugin({ ...plugin, origin: '' }));
+  }
+
+  private getStatusTemplates(mod: string, tags: string[] = []) {
+    return this.getStatusEntries(this.status.templates, this.status.disabledTemplates, mod, tags)
+      .map(template => writeTemplate({ ...template, origin: '' }));
+  }
+
+  private getStatusEntries<T extends Config & { tag: string }>(
+    active: Record<string, T>,
+    disabled: Record<string, T>,
+    mod: string,
+    tags: string[] = [],
+  ) {
+    const tagSet = new Set(tags);
+    return [...Object.values(active), ...Object.values(disabled)]
+      .filter((entry): entry is T => !!entry && (
+        tagSet.size
+          ? tagSet.has(entry.tag)
+          : modId(entry) === mod
+      ));
+  }
+
+  private getInstalledModRefEntry(mod: string) {
+    return Object.entries(this.status.modRefs).find(([key]) => key === mod);
+  }
+
+  private getInstalledModRef(mod: string) {
+    this.ensureModRefsLoaded(mod);
+    return this.getInstalledModRefEntry(mod)?.[1];
+  }
+
+  private getModReceiptTag(mod: string, bundle?: Mod) {
+    const sanitized = localTag(setPublic(mod))
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '.')
+      .replace(/^[./]+|[./]+$/g, '')
+      .replace(/[./]{2,}/g, '.');
+    if (!sanitized) return undefined;
+    return prefix('plugin/mod/receipt', sanitized);
+  }
+
+  private ensureModRefsLoaded(mod: string) {
+    if (this.modRefsLoaded.has(mod)) return;
+    if (this.getInstalledModRefEntry(mod)) return;
+    if (this.modRefsLoading.has(mod)) return;
+    this.modRefsLoading.add(mod);
+    this.loadModRefs$(mod).pipe(
+      tap(() => this.modRefsLoaded.add(mod)),
+      finalize(() => this.modRefsLoading.delete(mod)),
+    ).subscribe(() => {});
   }
 
   deleteMod$(mod: string, _: progress): Observable<any> {
     return concat(...[
       of(null).pipe(tap(() => _($localize`Deleting ${mod} mod...`))),
       ...Object.values(this.status.plugins)
-        .filter(p => modId(p) === mod)
+        .filter(p => p && modId(p) === mod)
+        .map(p => this.deletePlugin$(p!, _)),
+      ...Object.values(this.status.disabledPlugins)
+        .filter(p => p && modId(p) === mod)
         .map(p => this.deletePlugin$(p!, _)),
       ...Object.values(this.status.templates)
-        .filter(t => modId(t) === mod)
+        .filter(t => t && modId(t) === mod)
         .map(t => this.deleteTemplate$(t!, _)),
+      ...Object.values(this.status.disabledTemplates)
+        .filter(t => t && modId(t) === mod)
+        .map(t => this.deleteTemplate$(t!, _)),
+      this.clearModReceipt$(mod, _),
     ]).pipe(toArray());
   }
 
+  resetPlugin$(plugin: Plugin, _: progress) {
+    const restored = this.getInstalledPlugin(modId(plugin), plugin.tag);
+    if (!restored) return of(null);
+    return this.updatePlugin$(restored, _);
+  }
+
+  resetTemplate$(template: Template, _: progress) {
+    const restored = this.getInstalledTemplate(modId(template), template.tag);
+    if (!restored) return of(null);
+    return this.updateTemplate$(restored, _);
+  }
+
   updatePlugin$(def: Plugin, _: progress) {
-    // TODO: diff
     return of(null).pipe(
       tap(() => _('\u00A0'.repeat(4) + $localize`Updating ${def.name || def.tag} plugin...`)),
       switchMap(() => this.plugins.delete(def.tag + this.store.account.origin)),
@@ -1067,7 +1290,6 @@ export class AdminService {
   }
 
   updateTemplate$(def: Template, _: progress) {
-    // TODO: diff
     return of(null).pipe(
       tap(() => _('\u00A0'.repeat(4) + $localize`Updating ${def.name || def.tag} template...`)),
       switchMap(() => this.templates.delete(def.tag + this.store.account.origin)),
@@ -1085,7 +1307,7 @@ export class AdminService {
       }
       return false;
     }
-    return !isEqual(clear(def), clear(status));
+    return !isEqual(clearConfig(def, false), clearConfig(status, false));
   }
 }
 
@@ -1094,4 +1316,60 @@ function addParent(c: Config) {
     a._parent = c;
     return a;
   };
+}
+
+export function restoreBundle(target: Mod, merged: Mod) {
+  return {
+    ...target,
+    ...merged,
+    plugin: restoreConfigEntries(target.plugin, merged.plugin),
+    template: restoreConfigEntries(target.template, merged.template),
+  } as Mod;
+}
+
+function restoreConfigEntries<Entry extends Config & { tag: string }>(target: Entry[] | undefined, merged: Entry[] | undefined) {
+  const targetByTag = new Map((target || []).map(entry => [entry.tag, entry]));
+  return (merged || []).map(entry => {
+    const existing = targetByTag.get(entry.tag);
+    if (!existing) return entry;
+    return {
+      ...existing,
+      ...entry,
+      config: {
+        ...existing.config || {},
+        ...entry.config,
+      },
+    };
+  });
+}
+
+function clearMod<T extends Mod | undefined>(mod: T, strict = true): T {
+  if (!mod) return mod;
+  const result = { } as any;
+  if (!isEmpty(mod.ref)) result.ref = mod.ref!.map((r: Ref) => writeRef(r));
+  if (!isEmpty(mod.ext)) result.ext = mod.ext!.map((e: Ext) => writeExt(e));
+  if (!isEmpty(mod.user)) result.user = mod.user!.map((u: User) => writeUser(u));
+  if (!isEmpty(mod.plugin)) result.plugin = mod.plugin!.map((p: Plugin) => clearConfig(writePlugin(p), strict));
+  if (!isEmpty(mod.template)) result.template = mod.template!.map((t: Template) => clearConfig(writeTemplate(t), strict));
+  return result;
+}
+
+function clearConfig<T extends Config>(config: T, strict = false): T {
+  const result = {
+    ...config,
+    config: config.config && { ...config.config },
+  } as any;
+  if (isEmpty(result.defaults)) delete result.defaults;
+  if (result.schema === null) delete result.schema;
+  if (!strict) {
+    delete result.config?.version;
+    delete result.config?.generated;
+  }
+  delete result.origin;
+  return clear(result);
+}
+
+export function equalBundle(a?: Mod, b?: Mod) {
+  if (!a || !b) return false;
+  return isEqual(clearMod(a, false), clearMod(b, false));
 }
