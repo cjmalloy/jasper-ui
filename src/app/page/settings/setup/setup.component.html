@@ -46,16 +46,14 @@
               @if (e[1].config?.experimental) {
                 <span>🧪️</span>
               }
-              @if (needsModUpdate(e[1])) {
+              @if (needsModUpdate(e[1]) || canDiffMod(e[1])) {
                 <span class="update">
-                  <span class="fake-link no-select" (click)="updateMod(e[1])" i18n>🌟️ update</span>
+                  @if (needsModUpdate(e[1])) {
+                    <span class="fake-link no-select" (click)="updateMod(e[1])" i18n>🌟️ update</span>
+                  }
                   @if (canDiffMod(e[1])) {
                     <span class="fake-link no-select mod-diff-link" (click)="diffMod(e[1])" i18n>🔀 diff</span>
                   }
-                </span>
-              } @else if (canDiffMod(e[1])) {
-                <span class="update">
-                  <span class="fake-link no-select mod-diff-link" (click)="diffMod(e[1])" i18n>🔀 diff</span>
                 </span>
               }
             </div>
