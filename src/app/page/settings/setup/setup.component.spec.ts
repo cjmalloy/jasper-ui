@@ -498,7 +498,7 @@ describe('SettingsSetupPage', () => {
     expect(component.modModified({ tag: 'plugin/wiki', config: { mod: 'Wiki' } } as any)).toBe(false);
   });
 
-  it('should require review when local edits exist without a stored mod ref', () => {
+  it('should auto-apply target when local edits exist without a stored mod ref', () => {
     admin.getMod = () => ({
       plugin: [{ tag: 'plugin/wiki', config: { mod: 'Wiki', version: 2 } }],
     });
@@ -509,9 +509,8 @@ describe('SettingsSetupPage', () => {
     };
 
     expect((component as any).getModUpdatePreview('Wiki')).toEqual(expect.objectContaining({
-      needsReview: true,
-      conflict: true,
-      reason: 'missing-base',
+      needsReview: false,
+      conflict: false,
     }));
   });
 

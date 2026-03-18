@@ -27,7 +27,7 @@ interface ModUpdatePreview {
   proposed: Mod;
   needsReview: boolean;
   conflict: boolean;
-  reason?: 'conflict' | 'missing-base' | 'requested';
+  reason?: 'conflict' | 'requested';
 }
 
 @Component({
@@ -161,30 +161,43 @@ export class SettingsSetupPage implements OnDestroy {
     this.serverError = [];
     this.setMergeState();
     const _ = (msg?: string) => this.installMessages.push(msg!);
-    const mods: string[] = [];
-    for (const plugin in this.admin.status.plugins) {
-      const status = this.admin.status.plugins[plugin];
-      if (status?._needsUpdate) mods.push(modId(status));
-    }
-    for (const template in this.admin.status.templates) {
-      const status = this.admin.status.templates[template];
-      if (status?._needsUpdate) mods.push(modId(status));
-    }
-    concat(...uniq(mods).map(mod => {
+    const allMods = uniq([
+      ...Object.values(this.admin.status.plugins).filter(p => p?._needsUpdate).map(p => modId(p!)),
+      ...Object.values(this.admin.status.templates).filter(t => t?._needsUpdate).map(t => modId(t!)),
+    ]);
+    const modsToUpdate: { mod: string, preview: ModUpdatePreview }[] = [];
+    for (const mod of allMods) {
       const preview = this.getModUpdatePreview(mod);
-      if (!preview) return of(null);
+      if (!preview) continue;
       if (preview.needsReview) {
         this.setMergeState(preview);
-        return of(null);
+        return;
       }
-      return this.admin.updateMod$(mod, preview.proposed, preview.target, _);
-    })).pipe(
+      modsToUpdate.push({ mod, preview });
+    }
+    if (!modsToUpdate.length) {
+      this.submitted = true;
+      this.reset();
+      _($localize`Success.`);
+      return;
+    }
+    concat(...modsToUpdate.map(({ mod, preview }) =>
+      this.admin.updateMod$(mod, preview.proposed, preview.target, _)
+    )).pipe(
       last(),
+      catchError((res: HttpErrorResponse) => {
+        this.serverError = printError(res);
+        return throwError(() => res);
+      }),
     ).subscribe(() => {
       this.submitted = true;
       this.reset();
       _($localize`Success.`);
     });
+  }
+
+  get canResetAll() {
+    return this.modifiedMods.length > 0;
   }
 
   resetAll$ = () => {
@@ -350,7 +363,8 @@ export class SettingsSetupPage implements OnDestroy {
   }
 
   private loadModRefs() {
-    this.loadModRefsSub.add(this.loadModRefs$().subscribe(() => this.clear()));
+    this.loadModRefsSub.unsubscribe();
+    this.loadModRefsSub = this.loadModRefs$().subscribe(() => this.clear());
   }
 
   private loadModRefs$() {
@@ -516,9 +530,8 @@ export class SettingsSetupPage implements OnDestroy {
         current,
         target,
         proposed: target,
-        needsReview: true,
-        conflict: true,
-        reason: 'missing-base',
+        needsReview: requested,
+        conflict: false,
       };
     }
     return {
