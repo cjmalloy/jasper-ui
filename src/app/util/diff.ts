@@ -20,10 +20,11 @@ export function sortEntity(entity: Record<string, any>): Record<string, any> {
       }
     }
   }
-  for (const key in rest) {
-    if (!fieldOrder.includes(key)) {
-      ordered[key] = rest[key];
-    }
+  const remainingKeys = Object.keys(rest)
+    .filter((key) => !fieldOrder.includes(key))
+    .sort();
+  for (const key of remainingKeys) {
+    ordered[key] = rest[key];
   }
   return ordered;
 }
@@ -42,10 +43,11 @@ export function sortObj(entity: Record<string, any>): Record<string, any> {
       }
     }
   }
-  for (const key in entity) {
-    if (!fieldOrder.includes(key)) {
-      ordered[key] = entity[key];
-    }
+  const remainingKeys = Object.keys(entity)
+    .filter((key) => !fieldOrder.includes(key))
+    .sort();
+  for (const key of remainingKeys) {
+    ordered[key] = entity[key];
   }
   return ordered;
 }
