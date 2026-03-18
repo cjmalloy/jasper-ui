@@ -1015,7 +1015,7 @@ export class AdminService {
     if (!receipt) return of(null);
     const [key, ref] = receipt;
     return of(null).pipe(
-      tap(() => _('\u00A0'.repeat(4) + $localize`Deleting ${mod} ref...`)),
+      tap(() => _('\u00A0'.repeat(4) + $localize`Deleting ${mod} receipt...`)),
       switchMap(() => this.refs.delete(ref.url, ref.origin)),
       tap(() => delete this.status.modRefs[key]),
       tap(() => _('', 1)),
