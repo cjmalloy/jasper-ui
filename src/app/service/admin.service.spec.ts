@@ -282,6 +282,7 @@ describe('AdminService', () => {
       plugin: [{
         tag: 'plugin/mod',
         name: '🎁️ Mod',
+        schema: { optionalProperties: { tag: { type: 'string' } } },
         config: { mod: '🎁️ Store', version: 1 },
       }],
     };
@@ -298,6 +299,40 @@ describe('AdminService', () => {
       plugins: { 'plugin/mod': bundle },
     } as any;
 
+    expect(equalBundle(service.getCurrentMod('🎁️ Store'), service.getInstalledMod('🎁️ Store'))).toBe(true);
+  });
+
+  it('should preserve installed plugin fields when current status only contains live editable data', () => {
+    service.status.plugins['plugin/mod'] = {
+      tag: 'plugin/mod',
+      origin: '@local',
+      name: '🎁️ Mod',
+      config: { mod: '🎁️ Store', version: 1 },
+    } as any;
+    service.status.modRefs['🎁️ Store'] = {
+      url: 'internal:55555555-5555-4555-8555-555555555555',
+      title: '🎁️ Store',
+      origin: '@local',
+      plugins: {
+        'plugin/mod': {
+          plugin: [{
+            tag: 'plugin/mod',
+            name: '🎁️ Mod',
+            schema: { optionalProperties: { tag: { type: 'string' } } },
+            defaults: { demo: true },
+            config: { mod: '🎁️ Store', version: 1 },
+          }],
+        },
+      },
+    } as any;
+
+    expect(service.getCurrentMod('🎁️ Store')).toEqual(expect.objectContaining({
+      plugin: [expect.objectContaining({
+        tag: 'plugin/mod',
+        schema: { optionalProperties: { tag: { type: 'string' } } },
+        defaults: { demo: true },
+      })],
+    }));
     expect(equalBundle(service.getCurrentMod('🎁️ Store'), service.getInstalledMod('🎁️ Store'))).toBe(true);
   });
 

@@ -1004,10 +1004,12 @@ export class AdminService {
 
   getCurrentMod(mod: string) {
     const base = this.getInstalledMod(mod) || this.getMod(mod) || {};
+    const plugins = this.getStatusPlugins(mod, base.plugin?.map((plugin: Plugin) => plugin.tag));
+    const templates = this.getStatusTemplates(mod, base.template?.map((template: Template) => template.tag));
     return clearMod(<Mod> {
       ...base,
-      plugin: this.getStatusPlugins(mod, base.plugin?.map((plugin: Plugin) => plugin.tag)),
-      template: this.getStatusTemplates(mod, base.template?.map((template: Template) => template.tag)),
+      plugin: restoreConfigEntries(base.plugin, plugins),
+      template: restoreConfigEntries(base.template, templates),
     });
   }
 
