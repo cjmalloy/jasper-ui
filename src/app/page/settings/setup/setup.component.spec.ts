@@ -507,6 +507,9 @@ describe('SettingsSetupPage', () => {
       needsReview: true,
       conflict: true,
       reason: 'conflict',
+      diffBase: expect.objectContaining({
+        plugin: [expect.objectContaining({ tag: 'plugin/wiki', config: { mod: 'Wiki', version: 2 } })],
+      }),
       proposed: expect.objectContaining({
         plugin: [expect.objectContaining({ tag: 'plugin/wiki', config: { mod: 'Wiki', version: 1, description: 'edited' } })],
       }),
@@ -545,7 +548,7 @@ describe('SettingsSetupPage', () => {
       current: { plugin: [] },
       target: { template: [{ tag: 'config/wiki', config: { mod: 'Wiki' } }] },
       proposed: { template: [{ tag: 'config/wiki', config: { mod: 'Wiki' } }] },
-      diffBase: { template: [{ tag: 'config/wiki', config: { mod: 'Wiki' } }] },
+      diffBase: { plugin: [] },
       needsReview: true,
       conflict: false,
     };
