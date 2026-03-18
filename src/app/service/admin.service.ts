@@ -1313,10 +1313,7 @@ export class AdminService {
 }
 
 function addParent(c: Config) {
-  return (a: any) => {
-    a._parent = c;
-    return a;
-  };
+  return (a: any) => ({ ...a, _parent: c });
 }
 
 export function restoreBundle(target: Mod, merged: Mod) {
