@@ -186,4 +186,24 @@ describe('PluginComponent', () => {
     reset$.next(null);
     reset$.complete();
   });
+
+  it('should hide reset when the local plugin only differs by _needsUpdate flag', () => {
+    component.store.account.admin = true;
+    admin.getInstalledPlugin.mockReturnValue({
+      tag: 'plugin/test',
+      config: { mod: 'Wiki', version: 1 },
+    });
+    fixture.componentRef.setInput('plugin', {
+      tag: 'plugin/test',
+      origin: component.store.account.origin,
+      modified,
+      config: { mod: 'Wiki', version: 1 },
+      _needsUpdate: true,
+    });
+
+    fixture.detectChanges();
+
+    expect(component.canReset).toBe(false);
+    expect(fixture.nativeElement.textContent).not.toContain('reset');
+  });
 });

@@ -218,6 +218,7 @@ export class TemplateComponent implements OnChanges, HasChanges {
     result.config &&= { ...result.config };
     delete (result as Template & { modified?: unknown, modifiedString?: unknown }).modified;
     delete (result as Template & { modified?: unknown, modifiedString?: unknown }).modifiedString;
+    delete (result as Template & { _needsUpdate?: unknown })._needsUpdate;
     delete result.config?.version;
     delete result.config?.generated;
     delete result.config?._parent;

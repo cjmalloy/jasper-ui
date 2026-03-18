@@ -469,6 +469,7 @@ export class SettingsSetupPage implements OnDestroy {
     result.config &&= { ...result.config };
     delete (result as T & { modified?: unknown, modifiedString?: unknown }).modified;
     delete (result as T & { modified?: unknown, modifiedString?: unknown }).modifiedString;
+    delete (result as T & { _needsUpdate?: unknown })._needsUpdate;
     delete result.config?.version;
     delete result.config?.generated;
     delete result.config?._parent;

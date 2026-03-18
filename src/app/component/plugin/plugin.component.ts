@@ -224,6 +224,7 @@ export class PluginComponent implements OnChanges, HasChanges {
     result.config &&= { ...result.config };
     delete (result as Plugin & { modified?: unknown, modifiedString?: unknown }).modified;
     delete (result as Plugin & { modified?: unknown, modifiedString?: unknown }).modifiedString;
+    delete (result as Plugin & { _needsUpdate?: unknown })._needsUpdate;
     delete result.config?.version;
     delete result.config?.generated;
     delete result.config?._parent;
