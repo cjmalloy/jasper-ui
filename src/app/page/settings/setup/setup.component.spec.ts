@@ -507,8 +507,11 @@ describe('SettingsSetupPage', () => {
       needsReview: true,
       conflict: true,
       reason: 'conflict',
-      proposed: expect.objectContaining({
+      diffBase: expect.objectContaining({
         plugin: [expect.objectContaining({ tag: 'plugin/wiki', config: { mod: 'Wiki', version: 2 } })],
+      }),
+      proposed: expect.objectContaining({
+        plugin: [expect.objectContaining({ tag: 'plugin/wiki', config: { mod: 'Wiki', version: 1, description: 'edited' } })],
       }),
     }));
   });
@@ -545,6 +548,7 @@ describe('SettingsSetupPage', () => {
       current: { plugin: [] },
       target: { template: [{ tag: 'config/wiki', config: { mod: 'Wiki' } }] },
       proposed: { template: [{ tag: 'config/wiki', config: { mod: 'Wiki' } }] },
+      diffBase: { plugin: [] },
       needsReview: true,
       conflict: false,
     };
@@ -564,6 +568,9 @@ describe('SettingsSetupPage', () => {
       proposed: {
         plugin: [{ tag: 'plugin/wiki', config: { description: 'edited' } }],
       },
+      diffBase: {
+        plugin: [{ tag: 'plugin/wiki', config: { mod: 'Wiki', version: 2, generated: true, _parent: { test: true } } }],
+      },
       needsReview: true,
       conflict: false,
     };
@@ -581,6 +588,7 @@ describe('SettingsSetupPage', () => {
       current: { plugin: [] },
       target: { plugin: [{ tag: 'plugin/wiki', config: { mod: 'Wiki', version: 2 } }] },
       proposed: { plugin: [{ tag: 'plugin/new', config: { description: 'new plugin' } }] },
+      diffBase: { plugin: [{ tag: 'plugin/wiki', config: { mod: 'Wiki', version: 2 } }] },
       needsReview: true,
       conflict: false,
     };
