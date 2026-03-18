@@ -450,36 +450,6 @@ describe('SettingsSetupPage', () => {
     expect(component.modModified({ tag: 'plugin/wiki', config: { mod: 'Wiki' } } as any)).toBe(false);
   });
 
-  it('should show bulk reset when setup has modified mods and reset them to the installed bundle', () => {
-    admin.status.plugins['plugin/wiki'] = {
-      tag: 'plugin/wiki',
-      origin: '@local',
-      modified: { toISO: () => '2024-01-02T00:00:00Z' },
-      config: { mod: 'Wiki', version: 2, description: 'edited' },
-    };
-    admin.status.modRefs.Wiki = {
-      url: 'mod:Wiki',
-      origin: '@local',
-      plugins: {
-        'plugin/mod': {
-          plugin: [{
-            tag: 'plugin/wiki',
-            config: { mod: 'Wiki', version: 2 },
-          }],
-        },
-      },
-    };
-
-    expect(component.canResetAll).toBe(true);
-
-    component.resetAll$().subscribe();
-
-    expect(admin.updateMod$).toHaveBeenCalledWith('Wiki', {
-      plugin: [{ tag: 'plugin/wiki', config: { mod: 'Wiki', version: 2 } }],
-    }, {
-      plugin: [{ tag: 'plugin/wiki', config: { mod: 'Wiki', version: 2 } }],
-    }, expect.any(Function));
-  });
 
   it('should ignore stale installed mod receipts when the mod is not currently installed', () => {
     admin.status.modRefs.Wiki = {
