@@ -58,7 +58,7 @@ export class DiffComponent<T extends Ref | Ext | User | Plugin | Template | Mod>
   }
 
   ngOnInit() {
-    const entity = this.original.hasOwnProperty('url') || this.original.hasOwnProperty('url');
+    const entity = this.original && (this.original.hasOwnProperty('url') || this.original.hasOwnProperty('tag'));
     this.originalModel = {
       code: (entity ? formatDiff : formatBundleDiff)(this.original as any),
       language: 'json'
