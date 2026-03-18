@@ -51,7 +51,7 @@
     "katex": "^0.16.38",
     "lodash-es": "^4.17.23",
     "luxon": "^3.7.2",
-    "maplibre-gl": "^5.20.1",
+    "maplibre-gl": "^5.20.2",
     "marked": "^17.0.4",
     "mermaid": "^11.13.0",
     "mobx": "^6.15.0",
