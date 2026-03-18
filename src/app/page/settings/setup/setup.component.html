@@ -53,6 +53,10 @@
                     <span class="fake-link no-select mod-diff-link" (click)="diffMod(e[1])" i18n>🔀 diff</span>
                   }
                 </span>
+              } @else if (canDiffMod(e[1])) {
+                <span class="update">
+                  <span class="fake-link no-select mod-diff-link" (click)="diffMod(e[1])" i18n>🔀 diff</span>
+                </span>
               }
             </div>
           }

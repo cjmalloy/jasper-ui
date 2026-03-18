@@ -279,7 +279,8 @@ export class SettingsSetupPage implements OnDestroy {
   }
 
   canDiffMod(config: Config) {
-    return !!this.needsModUpdate(config) &&
+    const hasCustomChanges = !!this.getModModification(config)?.modified;
+    return (!!this.needsModUpdate(config) || hasCustomChanges) &&
       !!this.admin.getPlugin('plugin/mod') &&
       !!this.admin.getTemplate('config/diff');
   }
