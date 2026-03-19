@@ -345,7 +345,7 @@ describe('SettingsSetupPage', () => {
     expect(component.modModified({ tag: 'config/wiki', config: { mod: 'Wiki' } } as any)).toBe(true);
   });
 
-  it('should treat mods without an installed mod ref as unmodified in setup status', () => {
+  it('should flag versioned mods without an installed mod ref as modified in setup status', () => {
     admin.getMod = () => ({
       plugin: [{ tag: 'plugin/wiki', config: { mod: 'Wiki', version: 2 } }],
     });
@@ -355,7 +355,22 @@ describe('SettingsSetupPage', () => {
       config: { mod: 'Wiki', version: 1, description: 'edited', generated: true, _parent: { test: true } },
     };
 
+    expect(component.modModified({ tag: 'plugin/wiki', config: { mod: 'Wiki', version: 1 } } as any)).toBe(true);
+    expect(component.canDiffMod({ tag: 'plugin/wiki', config: { mod: 'Wiki', version: 1 } } as any)).toBe(true);
+  });
+
+  it('should ignore unversioned mods without an installed mod ref in setup status', () => {
+    admin.getMod = () => ({
+      plugin: [{ tag: 'plugin/wiki', config: { mod: 'Wiki', version: 2 } }],
+    });
+    admin.status.plugins['plugin/wiki'] = {
+      tag: 'plugin/wiki',
+      origin: '@local',
+      config: { mod: 'Wiki', description: 'edited' },
+    };
+
     expect(component.modModified({ tag: 'plugin/wiki', config: { mod: 'Wiki' } } as any)).toBe(false);
+    expect(component.canDiffMod({ tag: 'plugin/wiki', config: { mod: 'Wiki' } } as any)).toBe(false);
   });
 
   it('should not log when the modified indicator is not shown', () => {

@@ -359,7 +359,7 @@ export class SettingsSetupPage implements OnDestroy {
     const currentConfig = this.getCurrentConfig(config) || this.disabled(config) || config;
     const mod = this.getResolvedModId(config);
     if (!mod || !this.installed(currentConfig)) return undefined;
-    const base = this.admin.getInstalledMod(mod);
+    const base = this.getModComparisonBase(mod, currentConfig);
     const current = this.admin.getCurrentMod(mod);
     if (!current || !base) return undefined;
     return {
@@ -395,6 +395,11 @@ export class SettingsSetupPage implements OnDestroy {
       ref?.plugins?.['plugin/mod']?.plugin?.some((plugin: Plugin) => plugin.tag === tag) ||
       ref?.plugins?.['plugin/mod']?.template?.some((template: Template) => template.tag === tag)
     )?.[0];
+  }
+
+  private getModComparisonBase(mod: string, config: Config) {
+    return this.admin.getInstalledMod(mod) ||
+      (config.config?.version !== undefined ? this.admin.getMod(mod) : undefined);
   }
 
   private logModifiedIndicator(mod: string, current: Mod, base?: Mod) {
