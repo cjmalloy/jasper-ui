@@ -62,6 +62,7 @@ export class SettingsSetupPage implements OnDestroy {
   loggedModifiedMods = new Set<string>();
   modGroups = this.buildModGroups();
   pendingMods: string[] = [];
+  _customChanges = new Map<string, boolean>();
 
   constructor(
     public admin: AdminService,
@@ -150,6 +151,7 @@ export class SettingsSetupPage implements OnDestroy {
   clear() {
     this.loggedModifiedMods.clear();
     this.modGroups = this.buildModGroups();
+    this.computeCustomChanges();
     this.pendingMods = this.getModsNeedingUpdate();
     this.adminForm.reset({
       mods: formSafeNames({
@@ -355,6 +357,18 @@ export class SettingsSetupPage implements OnDestroy {
 
   private loadModRefs$() {
     return this.admin.loadAllModRefs$();
+  }
+
+  private computeCustomChanges() {
+    this._customChanges.clear();
+    for (const configs of Object.values(this.modGroups)) {
+      for (const [, config] of configs) {
+        if (!this._customChanges.has(config.tag)) {
+          const state = this.getModModification(config);
+          this._customChanges.set(config.tag, !!state?.modified);
+        }
+      }
+    }
   }
 
   private buildModGroups() {
