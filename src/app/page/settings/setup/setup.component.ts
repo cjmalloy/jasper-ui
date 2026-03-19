@@ -75,7 +75,7 @@ export class SettingsSetupPage implements OnDestroy {
       mods: fb.group(formSafeNames({...this.admin.def.plugins, ...this.admin.def.templates })),
     });
     this.clear();
-    this.admin.init$.subscribe(() => this.loadModRefs());
+    this.loadModRefs();
   }
 
   install() {
