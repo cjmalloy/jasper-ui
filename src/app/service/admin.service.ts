@@ -299,8 +299,24 @@ export class AdminService {
     }).pipe(
       tap(() => this.store.eventBus.fire('*:defaults')),
       switchMap(() => concat(...installs)),
-      switchMap(() => this.init$)
+      switchMap(() => this.init$),
+      switchMap(() => this.logDefaultReceipts$()),
     );
+  }
+
+  private logDefaultReceipts$(): Observable<any> {
+    if (!this.getPlugin('plugin/mod')) return of(null);
+    const noProgress: progress = () => {};
+    const modIds = uniq([
+      ...this.defaultPlugins.map(p => modId(p)),
+      ...this.defaultTemplates.map(t => modId(t)),
+    ]).filter(Boolean);
+    const receipts = modIds
+      .map(m => ({ mod: m, bundle: this.getMod(m) }))
+      .filter((entry): entry is { mod: string; bundle: Mod } => !!entry.bundle)
+      .map(entry => this.logModReceipt$(entry.mod, entry.bundle, noProgress));
+    if (!receipts.length) return of(null);
+    return concat(...receipts).pipe(toArray());
   }
 
   get localOriginQuery() {
