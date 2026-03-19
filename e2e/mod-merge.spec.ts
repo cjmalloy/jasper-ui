@@ -61,10 +61,12 @@ test.describe.serial('Mod Merge', () => {
     await uploadTemplate('config.json', Buffer.from(fileContent));
 
     await page.goto('/settings/setup?debug=ADMIN', { waitUntil: 'networkidle' });
-    await expect(page.locator('.mod-diff-link').first()).toBeVisible();
-    await page.locator('.mod-diff-link').first().click();
+    const wikiModRow = page.locator('.mod-row', { hasText: '📔️ Wiki' });
+    await expect(wikiModRow.locator('.mod-update-link')).toHaveCount(0);
+    await expect(wikiModRow.locator('.mod-diff-link')).toBeVisible();
+    await wikiModRow.locator('.mod-diff-link').click();
     await expect(page.locator('.merge-popup')).toContainText('Wiki');
-    await expect(page.locator('.merge-warning')).toContainText('Unable to merge automatically');
+    await expect(page.locator('.merge-warning')).toContainText('Review the merged mod before saving');
     await page.locator('.merge-buttons button', { hasText: 'cancel' }).click();
     await expect(page.locator('.merge-popup')).toBeHidden();
   });

@@ -61,6 +61,7 @@ export class SettingsSetupPage implements OnDestroy {
   loadModRefsSub = new Subscription();
   loggedModifiedMods = new Set<string>();
   modGroups = this.buildModGroups();
+  pendingMods: string[] = [];
 
   constructor(
     public admin: AdminService,
@@ -149,6 +150,7 @@ export class SettingsSetupPage implements OnDestroy {
   clear() {
     this.loggedModifiedMods.clear();
     this.modGroups = this.buildModGroups();
+    this.pendingMods = this.getModsNeedingUpdate();
     this.adminForm.reset({
       mods: formSafeNames({
         ...this.admin.status.plugins,
@@ -163,10 +165,7 @@ export class SettingsSetupPage implements OnDestroy {
     this.serverError = [];
     this.setMergeState();
     const _ = (msg?: string) => this.installMessages.push(msg!);
-    const allMods = uniq([
-      ...Object.values(this.admin.status.plugins).filter(p => p?._needsUpdate).map(p => modId(p!)),
-      ...Object.values(this.admin.status.templates).filter(t => t?._needsUpdate).map(t => modId(t!)),
-    ]);
+    const allMods = this.pendingMods;
     const modsToUpdate: { mod: string, preview: ModUpdatePreview }[] = [];
     for (const mod of allMods) {
       const preview = this.getModUpdatePreview(mod);
@@ -255,6 +254,17 @@ export class SettingsSetupPage implements OnDestroy {
       Object.values(this.admin.status.templates).find(t => t && mod === modId(t) && t._needsUpdate);
   }
 
+  /** Filters status-level update flags with the installed receipt so custom-only edits don't show as pending upgrades. */
+  hasPendingModUpdate(config: Config) {
+    if (!this.needsModUpdate(config)) return false;
+    const mod = this.getResolvedModId(config);
+    return !mod || !this.admin.getInstalledMod(mod) || this.hasPendingInstalledModUpdate(mod);
+  }
+
+  hasPendingUpdates() {
+    return this.pendingMods.length > 0;
+  }
+
   modModified(config: Config) {
     const state = this.getModModification(config);
     if (!state?.mod || !state.modified) {
@@ -287,7 +297,7 @@ export class SettingsSetupPage implements OnDestroy {
 
   canDiffMod(config: Config) {
     const hasCustomChanges = !!this.getModModification(config)?.modified;
-    return (!!this.needsModUpdate(config) || hasCustomChanges) &&
+    return (!!this.hasPendingModUpdate(config) || hasCustomChanges) &&
       !!this.admin.getPlugin('plugin/mod') &&
       !!this.admin.getTemplate('config/diff');
   }
@@ -423,6 +433,22 @@ export class SettingsSetupPage implements OnDestroy {
     ];
   }
 
+  private hasPendingInstalledModUpdate(mod: string) {
+    const installed = this.admin.getInstalledMod(mod);
+    const target = this.admin.getMod(mod);
+    if (!installed) return !!target;
+    if (!target) return false;
+    return this.hasPendingConfigUpdates(
+      target.plugin,
+      installed.plugin,
+      plugin => this.normalizePendingUpdateConfig(writePlugin(plugin)),
+    ) || this.hasPendingConfigUpdates(
+      target.template,
+      installed.template,
+      template => this.normalizePendingUpdateConfig(writeTemplate(template)),
+    );
+  }
+
   private getChangedConfigs<T extends Config>(
     current: T[] | undefined,
     base: T[] | undefined,
@@ -441,14 +467,38 @@ export class SettingsSetupPage implements OnDestroy {
       .filter((entry): entry is T => !!entry);
   }
 
+  /** Compares the bundled target with the installed receipt so only real upstream changes count as pending updates. */
+  private hasPendingConfigUpdates<T extends Config>(
+    target: T[] | undefined,
+    installed: T[] | undefined,
+    normalize: (entry: T) => object,
+  ) {
+    const targetMap = new Map((target || []).map(entry => [entry.tag, entry]));
+    const installedMap = new Map((installed || []).map(entry => [entry.tag, entry]));
+    return uniq([...targetMap.keys(), ...installedMap.keys()]).some(tag => {
+      const targetEntry = targetMap.get(tag);
+      const installedEntry = installedMap.get(tag);
+      if (!targetEntry || !installedEntry) {
+        return !isEqual(targetEntry && normalize(targetEntry), installedEntry && normalize(installedEntry));
+      }
+      return this.admin.needsUpdate(targetEntry, installedEntry) ||
+        !isEqual(normalize(targetEntry), normalize(installedEntry));
+    });
+  }
+
   private normalizeConfig<T extends Config>(config: T) {
+    const result = this.normalizePendingUpdateConfig(config);
+    delete result.config?.version;
+    return result;
+  }
+
+  private normalizePendingUpdateConfig<T extends Config>(config: T) {
     const result = { ...config } as any;
     result.config &&= { ...result.config };
     delete result.origin;
     delete result.modified;
     delete result.modifiedString;
     delete result._needsUpdate;
-    delete result.config?.version;
     delete result.config?.generated;
     delete result.config?._parent;
     return result;
@@ -520,5 +570,16 @@ export class SettingsSetupPage implements OnDestroy {
 
   private canWriteReceiptsAfterInstall(installs: string[]) {
     return !!this.admin.getPlugin('plugin/mod') || installs.includes(modId(this.admin.def.plugins['plugin/mod']));
+  }
+
+  private getModsNeedingUpdate() {
+    return uniq([
+      ...Object.values(this.admin.status.plugins)
+        .filter(plugin => !!plugin && this.hasPendingModUpdate(plugin))
+        .map(plugin => modId(plugin!)),
+      ...Object.values(this.admin.status.templates)
+        .filter(template => !!template && this.hasPendingModUpdate(template))
+        .map(template => modId(template!)),
+    ]);
   }
 }
