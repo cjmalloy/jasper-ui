@@ -29,7 +29,7 @@
         @for (e of serverError; track e) {
           <div class="error">{{ e }}</div>
         }
-        @for (i of installMessages; track i) {
+        @for (i of installMessages; track $index) {
           <div>{{ i }}</div>
         }
       </div>
@@ -42,13 +42,18 @@
           @if (experiments || !e[1].config?.experimental || installed(e[1])) {
             <div [title]="e[1].config?.description || ''" class="nowrap" [class.deleted]="disabled(e[1])">
               <input id="mod-{{ modLabel(e) }}" type="checkbox" [formControlName]="e[0]">
-              <label for="mod-{{ modLabel(e) }}" [title]="e[1].config?.description || ''">{{ e[1].config?.mod || e[1].name || e[1].tag || 'root' }}</label>
+              <label for="mod-{{ modLabel(e) }}" [title]="e[1].config?.description || ''">{{ e[1].config?.mod || e[1].name || e[1].tag || 'root' }}@if (modModified(e[1])) {<span class="modified-indicator">*</span>}</label>
               @if (e[1].config?.experimental) {
                 <span>🧪️</span>
               }
-              @if (needsModUpdate(e[1])) {
+              @if (needsModUpdate(e[1]) || canDiffMod(e[1])) {
                 <span class="update">
-                  <span class="fake-link no-select" (click)="updateMod(e[1])" i18n>🌟️ update</span>
+                  @if (needsModUpdate(e[1])) {
+                    <span class="fake-link no-select" (click)="updateMod(e[1])" i18n>🌟️ update</span>
+                  }
+                  @if (canDiffMod(e[1])) {
+                    <span class="fake-link no-select mod-diff-link" (click)="diffMod(e[1])" i18n>🔀 diff</span>
+                  }
                 </span>
               }
             </div>
@@ -56,15 +61,44 @@
         }
       </div>
     }
+
   </form>
   @if (serverError.length || installMessages.length) {
     <span class="log mobile-hide">
-      @for (e of serverError; track e) {
+      @for (e of serverError; track $index) {
         <div class="error">{{ e }}</div>
       }
-      @for (i of installMessages; track i) {
+      @for (i of installMessages; track $index) {
         <div>{{ i }}</div>
       }
     </span>
   }
 </div>
+
+<ng-template #mergePopup>
+  <div class="merge-popup">
+    <div class="merge-popup-header">
+      <label class="merge-title">{{ mergeState!.mod }}</label>
+    </div>
+    @if (mergeState!.conflict) {
+      <div class="warning merge-warning" i18n>Unable to merge automatically. Review the mod diff or overwrite your local changes.</div>
+    } @else {
+      <div class="warning merge-warning" i18n>Review the merged mod before saving or overwrite your local changes.</div>
+    }
+    <app-diff #mergeDiff
+              class="mod-merge-diff"
+              [original]="mergeState!.diffBase"
+              [modified]="mergeState!.proposed"
+              [fullHeight]="true"
+              [resizable]="false">
+    </app-diff>
+    <span><!-- Buttons --></span>
+    <span class="buttons right merge-buttons">
+      @if (mergeSaving) {
+        <app-loading [inline]="true"></app-loading>
+      }
+      <button type="button" [disabled]="mergeSaving" (click)="applyMerge(mergeDiff.getModifiedContent())" i18n>save</button>
+      <button type="button" [disabled]="mergeSaving" (click)="cancelMerge()" i18n>cancel</button>
+    </span>
+  </div>
+</ng-template>

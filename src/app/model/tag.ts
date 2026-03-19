@@ -202,6 +202,7 @@ export interface Config extends Tag {
    * Cache for compiled templates.
    */
   _cache?: any;
+  _needsUpdate?: boolean;
 }
 
 
@@ -592,16 +593,18 @@ export function emitModels(action: EmitAction, ref?: Ref, user?: string) {
 }
 
 export function clear<T extends Config>(c: T) {
+  const { tag } = c;
   c = omitBy(c, i => !i) as any;
+  if (tag !== undefined) c.tag = tag;
   c.config = omitBy(c.config, i => !i);
   delete c.config!.generated;
-  delete c.config!.mod;
   delete c.config!._parent;
   delete c.type;
   delete c.origin;
   delete c.modified;
   delete c.modifiedString;
   delete c._cache;
+  delete c._needsUpdate;
   return c;
 }
 

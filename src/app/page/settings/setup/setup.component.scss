@@ -3,6 +3,15 @@
   font-size: 80%;
 }
 
+.mod-diff-link {
+  margin-left: 8px;
+}
+
+.modified-indicator {
+  color: var(--warning);
+  margin-left: 2px;
+}
+
 label {
   margin-top: 16px;
 }
@@ -10,4 +19,41 @@ label {
 .log {
   flex: 1;
   margin: 10px;
+}
+
+.merge-title {
+  display: block;
+}
+
+.merge-popup {
+  background: var(--bg);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  padding: 16px;
+}
+
+.merge-popup-header {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+}
+
+.merge-warning {
+  margin: 12px 0;
+}
+
+.mod-merge-diff {
+  display: block;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.merge-buttons {
+  align-items: center;
+  flex: none;
+  margin-top: 10px;
 }
