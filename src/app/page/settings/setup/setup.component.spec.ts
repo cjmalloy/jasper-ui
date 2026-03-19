@@ -599,34 +599,26 @@ describe('SettingsSetupPage', () => {
     expect(admin.status.plugins['plugin/wiki']._customChanges).toBe(false);
   });
 
-  it('should recompute _customChanges on each clear() so a stale false from the first clear does not persist', () => {
-    // Scenario: edited template that lost config.mod — getResolvedModId() needs modRefs to resolve the mod.
-    // First clear() before modRefs load: can't resolve mod, _customChanges = false.
-    admin.status.templates['config/wiki'] = {
-      tag: 'config/wiki',
-      origin: '@local',
-      config: { description: 'edited' },  // no config.mod — depends on modRefs to resolve
+  it('should compute _customChanges once (??=) and not overwrite after the first clear()', () => {
+    // _customChanges uses ??= so it is set once on first clear() and never overwritten.
+    admin.status.plugins['plugin/wiki'] = {
+      tag: 'plugin/wiki',
+      origin: '',
+      config: { mod: 'Wiki', version: 2 },
     };
-    admin.getMod = (mod: string) => mod === 'Wiki' ? {
-      template: [{ tag: 'config/wiki', config: { mod: 'Wiki' } }],
-    } : undefined;
-
-    component.clear();
-    expect(admin.status.templates['config/wiki']._customChanges).toBe(false);
-
-    // modRefs load — second clear() must recompute (not keep the cached false)
-    admin.status.modRefs.Wiki = {
-      url: 'mod:Wiki',
-      origin: '@local',
-      plugins: {
-        'plugin/mod': {
-          template: [{ tag: 'config/wiki', config: { mod: 'Wiki' } }],
-        },
-      },
+    admin.def.plugins['plugin/wiki'] = {
+      tag: 'plugin/wiki',
+      origin: '',
+      config: { mod: 'Wiki', version: 1 },  // differs from status → modified
     };
 
     component.clear();
-    expect(admin.status.templates['config/wiki']._customChanges).toBe(true);
+    expect(admin.status.plugins['plugin/wiki']._customChanges).toBe(true);
+
+    // Even if def is updated to match, ??= keeps the first computed value.
+    admin.def.plugins['plugin/wiki'].config = { mod: 'Wiki', version: 2 };
+    component.clear();
+    expect(admin.status.plugins['plugin/wiki']._customChanges).toBe(true);
   });
 
   it('should auto-apply target when local edits exist without a stored mod ref', () => {

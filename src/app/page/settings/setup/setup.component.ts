@@ -369,7 +369,7 @@ export class SettingsSetupPage implements OnDestroy {
     ];
     for (const config of allConfigs) {
       if (!config) continue;
-      config._customChanges = !!this.getModModification(config)?.modified;
+      config._customChanges ??= !!this.getModModification(config)?.modified;
     }
   }
 
