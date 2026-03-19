@@ -58,11 +58,11 @@ export function formatDiff(obj: Ref | Ext | User | Plugin | Template): string {
 
 export function formatBundleDiff(mod: Mod): string {
   return JSON.stringify({
-    ref: isEmpty(mod.ref) ? undefined : mod.ref!.map(sortEntity),
-    ext: isEmpty(mod.ext) ? undefined : mod.ext!.map(sortEntity),
-    user: isEmpty(mod.user) ? undefined : mod.user!.map(sortEntity),
-    plugin: isEmpty(mod.plugin) ? undefined : mod.plugin!.map(sortEntity),
-    template: isEmpty(mod.template) ? undefined : mod.template!.map(sortEntity),
+    ref: isEmpty(mod.ref) ? undefined : sortBy(mod.ref!, 'url').map(sortEntity),
+    ext: isEmpty(mod.ext) ? undefined : sortBy(mod.ext!, 'tag').map(sortEntity),
+    user: isEmpty(mod.user) ? undefined : sortBy(mod.user!, 'tag').map(sortEntity),
+    plugin: isEmpty(mod.plugin) ? undefined : sortBy(mod.plugin!, 'tag').map(sortEntity),
+    template: isEmpty(mod.template) ? undefined : sortBy(mod.template!, 'tag').map(sortEntity),
   }, (key, value) => key === '_parent' ? undefined : value, 2);
 }
 
