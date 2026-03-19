@@ -32,9 +32,6 @@
     } @else {
       <a class="fake-link" (click)="viewSource = !viewSource" i18n>source</a>
     }
-    @if (canReset) {
-      <app-confirm-action #action [action]="reset$" i18n>reset</app-confirm-action>
-    }
     <a class="fake-link" (click)="download()" i18n>download</a>
     @if (created && store.account.admin) {
       <app-confirm-action #action [action]="delete$" i18n>delete</app-confirm-action>
