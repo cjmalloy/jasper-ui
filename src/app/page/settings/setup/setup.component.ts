@@ -359,24 +359,24 @@ export class SettingsSetupPage implements OnDestroy {
   }
 
   private computeCustomChanges() {
-    for (const configs of Object.values(this.modGroups)) {
-      for (const [, config] of configs) {
-        config._customChanges = !!this.getModModification(config)?.modified;
-      }
+    const allConfigs = [
+      ...Object.values(this.admin.status.plugins),
+      ...Object.values(this.admin.status.disabledPlugins),
+      ...Object.values(this.admin.status.templates),
+      ...Object.values(this.admin.status.disabledTemplates),
+      ...Object.values(this.admin.def.plugins),
+      ...Object.values(this.admin.def.templates),
+    ];
+    for (const config of allConfigs) {
+      if (config) config._customChanges ??= !!this.getModModification(config)?.modified;
     }
   }
 
   private buildModGroups() {
-    const shallowCopy = (obj: Record<string, Config | undefined>) =>
-      Object.fromEntries(
-        Object.entries(obj)
-          .filter((entry): entry is [string, Config] => !!entry[1])
-          .map(([k, v]) => [k, { ...v }])
-      );
     return configGroups({
-      ...shallowCopy(this.admin.status.disabledPlugins), ...shallowCopy(this.admin.status.disabledTemplates),
-      ...shallowCopy(this.admin.status.plugins), ...shallowCopy(this.admin.status.templates),
-      ...shallowCopy(this.admin.def.plugins), ...shallowCopy(this.admin.def.templates),
+      ...this.admin.status.disabledPlugins, ...this.admin.status.disabledTemplates,
+      ...this.admin.status.plugins, ...this.admin.status.templates,
+      ...this.admin.def.plugins, ...this.admin.def.templates,
     });
   }
 
