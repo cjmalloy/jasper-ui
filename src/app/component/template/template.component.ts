@@ -146,13 +146,6 @@ export class TemplateComponent implements OnChanges, HasChanges {
       this.serverError = [];
       this.editing = false;
       this.template = template;
-      delete this.admin.status.templates[template.tag];
-      delete this.admin.status.disabledTemplates[template.tag];
-      if (template.config?.disabled) {
-        this.admin.status.disabledTemplates[template.tag] = template;
-      } else {
-        this.admin.status.templates[template.tag] = template;
-      }
     });
   }
 
