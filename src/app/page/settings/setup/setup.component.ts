@@ -368,7 +368,8 @@ export class SettingsSetupPage implements OnDestroy {
       ...Object.values(this.admin.def.templates),
     ];
     for (const config of allConfigs) {
-      if (config) config._customChanges ??= !!this.getModModification(config)?.modified;
+      if (!config) continue;
+      config._customChanges = !!this.getModModification(config)?.modified;
     }
   }
 
