@@ -95,7 +95,7 @@ export class LensComponent implements OnChanges, HasChanges {
   }
 
   isTemplate(template: string) {
-    return hasPrefix(this.ext?.tag, template);
+    return this.admin.getTemplate(template) && hasPrefix(this.ext?.tag, template);
   }
 
   cssClass(tag?: string) {
