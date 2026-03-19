@@ -7,7 +7,7 @@ export const modPlugin: Plugin = {
   name: $localize`🎁️ Mod`,
   config: {
     mod: $localize`🎁️ Store`,
-    version: 1,
+    version: 2,
     default: true,
     embeddable: true,
     settings: $localize`store`,
@@ -19,7 +19,7 @@ export const modPlugin: Plugin = {
     filters: [
       { query: 'plugin/mod', label: $localize`🎁️ mod`, title: $localize`Mod`, group: $localize`Plugins 🧰️` },
     ],
-    actions: [{ event: 'install', label: $localize`install`, title: $localize`Install this mod`, confirm: $localize`Are you sure you want to install this mod?` }],
+    actions: [{ event: 'install', label: $localize`install`, title: $localize`Install this mod`, role: 'ROLE_ADMIN', confirm: $localize`Are you sure you want to install this mod?` }],
   },
   schema: modSchema,
 };

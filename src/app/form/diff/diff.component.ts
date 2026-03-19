@@ -2,10 +2,15 @@ import { Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angu
 import { autorun, IReactionDisposer } from 'mobx';
 import { DiffEditorModel, MonacoEditorModule } from 'ngx-monaco-editor';
 import { ResizeHandleDirective } from '../../directive/resize-handle.directive';
-import { Ref } from '../../model/ref';
 import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
-import { formatRefForDiff } from '../../util/diff';
+import { formatBundleDiff, formatDiff } from '../../util/diff';
+import { Ref } from '../../model/ref';
+import { Ext } from '../../model/ext';
+import { User } from '../../model/user';
+import { Plugin } from '../../model/plugin';
+import { Template } from '../../model/template';
+import { Mod } from '../../model/tag';
 
 @Component({
   selector: 'app-diff',
@@ -14,17 +19,21 @@ import { formatRefForDiff } from '../../util/diff';
   host: { 'class': 'diff-editor' },
   imports: [MonacoEditorModule, ResizeHandleDirective]
 })
-export class DiffComponent implements OnInit, OnDestroy {
+export class DiffComponent<T extends Ref | Ext | User | Plugin | Template | Mod> implements OnInit, OnDestroy {
   private disposers: IReactionDisposer[] = [];
 
   @Input()
-  original!: Ref;
+  original!: T;
   @Input()
-  modified!: Ref;
+  modified!: T;
   @Input()
   readOnly = false;
+  @Input()
+  resizable = true;
+  @Input()
+  fullHeight = false;
   @Output()
-  modifiedChange = new EventEmitter<Ref>();
+  modifiedChange = new EventEmitter<T>();
 
   originalModel: DiffEditorModel = { code: '', language: 'json' };
   modifiedModel: DiffEditorModel = { code: '', language: 'json' };
@@ -49,12 +58,13 @@ export class DiffComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
+    const entity = this.original && (this.original.hasOwnProperty('url') || this.original.hasOwnProperty('tag'));
     this.originalModel = {
-      code: formatRefForDiff(this.original),
+      code: (entity ? formatDiff : formatBundleDiff)(this.original as any),
       language: 'json'
     };
     this.modifiedModel = {
-      code: formatRefForDiff(this.modified),
+      code: (entity ? formatDiff : formatBundleDiff)(this.modified as any),
       language: 'json'
     };
   }
