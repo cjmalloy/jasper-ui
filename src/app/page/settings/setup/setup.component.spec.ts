@@ -213,6 +213,45 @@ describe('SettingsSetupPage', () => {
     expect(component.modModified({ tag: 'plugin/wiki', config: { mod: 'Wiki' } } as any)).toBe(true);
   });
 
+  it('should show an asterisk on setup page load for an edited installed versioned plugin/mod plugin', () => {
+    admin.def.plugins['plugin/mod'] = {
+      tag: 'plugin/mod',
+      name: '🎁️ Mod',
+      config: { mod: '🎁️ Store', version: 1 },
+    };
+    admin.status.plugins['plugin/mod'] = {
+      tag: 'plugin/mod',
+      name: '🎁️ Mod',
+      origin: '@local',
+      schema: { optionalProperties: { tag: { type: 'string' } } },
+      defaults: { demo: true },
+      config: { mod: '🎁️ Store', version: 1, description: 'edited' },
+    };
+    admin.status.modRefs['🎁️ Store'] = {
+      url: 'internal:mod-receipt/store',
+      title: '🎁️ Store',
+      origin: '@local',
+      plugins: {
+        'plugin/mod': {
+          plugin: [{
+            tag: 'plugin/mod',
+            name: '🎁️ Mod',
+            schema: { optionalProperties: { tag: { type: 'string' } } },
+            defaults: { demo: true },
+            config: { mod: '🎁️ Store', version: 1 },
+          }],
+        },
+      },
+    };
+
+    fixture = TestBed.createComponent(SettingsSetupPage);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
+
+    expect(component.modModified({ tag: 'plugin/mod', config: { mod: '🎁️ Store' } } as any)).toBe(true);
+    expect(fixture.nativeElement.querySelector('.modified-indicator')?.textContent).toBe('*');
+  });
+
   it('should log each changed plugin/template once when the modified indicator is shown', () => {
     const log = vi.spyOn(console, 'log').mockImplementation(() => {});
     const wikiConfig = { tag: 'plugin/wiki', config: { mod: 'Wiki' } } as any;
