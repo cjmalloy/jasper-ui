@@ -345,7 +345,7 @@ describe('SettingsSetupPage', () => {
     expect(component.modModified({ tag: 'config/wiki', config: { mod: 'Wiki' } } as any)).toBe(true);
   });
 
-  it('should flag versioned mods without an installed mod ref as modified in setup status', () => {
+  it('should flag versioned mods without a receipt when setup falls back to a 2-way merge', () => {
     admin.getMod = () => ({
       plugin: [{ tag: 'plugin/wiki', config: { mod: 'Wiki', version: 2 } }],
     });
@@ -357,6 +357,12 @@ describe('SettingsSetupPage', () => {
 
     expect(component.modModified({ tag: 'plugin/wiki', config: { mod: 'Wiki', version: 1 } } as any)).toBe(true);
     expect(component.canDiffMod({ tag: 'plugin/wiki', config: { mod: 'Wiki', version: 1 } } as any)).toBe(true);
+    component.diffMod({ tag: 'plugin/wiki', config: { mod: 'Wiki', version: 1 } } as any);
+    expect(component.mergeState).toEqual(expect.objectContaining({
+      mod: 'Wiki',
+      needsReview: true,
+      conflict: false,
+    }));
   });
 
   it('should ignore unversioned mods without an installed mod ref in setup status', () => {
