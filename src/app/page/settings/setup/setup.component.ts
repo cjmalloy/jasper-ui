@@ -297,9 +297,9 @@ export class SettingsSetupPage implements OnDestroy {
 
   canDiffMod(config: Config) {
     const hasCustomChanges = !!this.getModModification(config)?.modified;
-    return (!!this.hasPendingModUpdate(config) || hasCustomChanges) &&
-      !!this.admin.getPlugin('plugin/mod') &&
-      !!this.admin.getTemplate('config/diff');
+    return (this.hasPendingModUpdate(config) || hasCustomChanges)
+      && !!this.admin.getPlugin('plugin/mod')
+      && !!this.admin.getTemplate('config/diff');
   }
 
   ngOnDestroy() {
