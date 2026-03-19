@@ -203,6 +203,7 @@ export interface Config extends Tag {
    */
   _cache?: any;
   _needsUpdate?: boolean;
+  _customChanges?: boolean;
 }
 
 
@@ -605,6 +606,7 @@ export function clear<T extends Config>(c: T) {
   delete c.modifiedString;
   delete c._cache;
   delete c._needsUpdate;
+  delete c._customChanges;
   return c;
 }
 

@@ -285,7 +285,7 @@ describe('SettingsSetupPage', () => {
 
     expect(component.modModified(wikiConfig)).toBe(true);
 
-    component.clear();
+    component.init();
 
     expect(component.modModified(wikiConfig)).toBe(true);
     expect(log).toHaveBeenCalledTimes(2);
@@ -555,6 +555,70 @@ describe('SettingsSetupPage', () => {
     };
 
     expect(component.modModified({ tag: 'plugin/wiki', config: { mod: 'Wiki' } } as any)).toBe(false);
+  });
+
+  it('should set _customChanges=true on status config when the plugin has local edits', () => {
+    admin.status.plugins['plugin/wiki'] = {
+      tag: 'plugin/wiki',
+      origin: '@local',
+      config: { mod: 'Wiki', version: 2, description: 'edited' },
+    };
+    admin.status.modRefs.Wiki = {
+      url: 'mod:Wiki',
+      origin: '@local',
+      plugins: {
+        'plugin/mod': {
+          plugin: [{ tag: 'plugin/wiki', config: { mod: 'Wiki', version: 2 } }],
+        },
+      },
+    };
+
+    component.init();
+
+    expect(admin.status.plugins['plugin/wiki']._customChanges).toBe(true);
+  });
+
+  it('should set _customChanges=false on status config when there are no local edits', () => {
+    admin.status.plugins['plugin/wiki'] = {
+      tag: 'plugin/wiki',
+      origin: '@local',
+      config: { mod: 'Wiki', version: 2 },
+    };
+    admin.status.modRefs.Wiki = {
+      url: 'mod:Wiki',
+      origin: '@local',
+      plugins: {
+        'plugin/mod': {
+          plugin: [{ tag: 'plugin/wiki', config: { mod: 'Wiki', version: 2 } }],
+        },
+      },
+    };
+
+    component.init();
+
+    expect(admin.status.plugins['plugin/wiki']._customChanges).toBe(false);
+  });
+
+  it('should compute _customChanges once (??=) and not overwrite after the first clear()', () => {
+    // _customChanges uses ??= so it is set once on first clear() and never overwritten.
+    admin.status.plugins['plugin/wiki'] = {
+      tag: 'plugin/wiki',
+      origin: '',
+      config: { mod: 'Wiki', version: 2 },
+    };
+    admin.def.plugins['plugin/wiki'] = {
+      tag: 'plugin/wiki',
+      origin: '',
+      config: { mod: 'Wiki', version: 1 },  // differs from status → modified
+    };
+
+    component.init();
+    expect(admin.status.plugins['plugin/wiki']._customChanges).toBe(true);
+
+    // Even if def is updated to match, ??= keeps the first computed value.
+    admin.def.plugins['plugin/wiki'].config = { mod: 'Wiki', version: 2 };
+    component.init();
+    expect(admin.status.plugins['plugin/wiki']._customChanges).toBe(true);
   });
 
   it('should auto-apply target when local edits exist without a stored mod ref', () => {
