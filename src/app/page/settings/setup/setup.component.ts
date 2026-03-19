@@ -18,6 +18,7 @@ import { scrollToFirstInvalid } from '../../../util/form';
 import { configGroups, formSafeNames, modId } from '../../../util/format';
 import { printError } from '../../../util/http';
 import { DiffComponent } from '../../../form/diff/diff.component';
+import { LoadingComponent } from '../../../component/loading/loading.component';
 
 interface ModUpdatePreview {
   mod: string;
@@ -40,6 +41,7 @@ interface ModUpdatePreview {
     KeyValuePipe,
     DiffComponent,
     OverlayModule,
+    LoadingComponent,
   ],
 })
 export class SettingsSetupPage implements OnDestroy {
@@ -53,6 +55,7 @@ export class SettingsSetupPage implements OnDestroy {
   serverError: string[] = [];
   installMessages: string[] = [];
   mergeState?: ModUpdatePreview;
+  mergeSaving = false;
   mergePopupRef?: OverlayRef;
   mergePopupSub = new Subscription();
   loadModRefsSub = new Subscription();
@@ -225,13 +228,16 @@ export class SettingsSetupPage implements OnDestroy {
   applyMerge(bundle: Mod | null | undefined) {
     if (!this.mergeState || !bundle) return;
     this.serverError = [];
+    this.mergeSaving = true;
     const _ = (msg?: string) => this.installMessages.push(msg!);
     this.admin.updateMod$(this.mergeState.mod, bundle, this.mergeState.target, _)
       .pipe(catchError((res: HttpErrorResponse) => {
+        this.mergeSaving = false;
         this.serverError = printError(res);
         return EMPTY;
       }))
       .subscribe(() => {
+        this.mergeSaving = false;
         this.setMergeState();
         this.reset();
         _($localize`Success.`);
@@ -239,6 +245,7 @@ export class SettingsSetupPage implements OnDestroy {
   }
 
   cancelMerge() {
+    if (this.mergeSaving) return;
     this.setMergeState();
   }
 

@@ -24,9 +24,6 @@
     } @else {
       <a class="fake-link" (click)="viewSource = !viewSource" i18n>source</a>
     }
-    @if (canReset) {
-      <app-confirm-action #action [action]="reset$" i18n>reset</app-confirm-action>
-    }
     <a class="fake-link" (click)="download()" i18n>download</a>
     @if (plugin.config?.export) {
       <a class="fake-link" (click)="export()" i18n>export</a>
