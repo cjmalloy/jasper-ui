@@ -575,7 +575,7 @@ describe('SettingsSetupPage', () => {
 
   it('should require review when the stored base still conflicts with admin edits', () => {
     admin.getMod = () => ({
-      plugin: [{ tag: 'plugin/wiki', config: { mod: 'Wiki', version: 2 } }],
+      plugin: [{ tag: 'plugin/wiki', config: { mod: 'Wiki', version: 2, description: 'upstream' } }],
     });
     admin.status.plugins['plugin/wiki'] = {
       tag: 'plugin/wiki',
@@ -597,7 +597,7 @@ describe('SettingsSetupPage', () => {
       conflict: true,
       reason: 'conflict',
       diffBase: expect.objectContaining({
-        plugin: [expect.objectContaining({ tag: 'plugin/wiki', config: { mod: 'Wiki', version: 2 } })],
+        plugin: [expect.objectContaining({ tag: 'plugin/wiki', config: { mod: 'Wiki', version: 2, description: 'upstream' } })],
       }),
       proposed: expect.objectContaining({
         plugin: [expect.objectContaining({ tag: 'plugin/wiki', config: { mod: 'Wiki', version: 1, description: 'edited' } })],

@@ -1,5 +1,5 @@
 import { diff3Merge, MergeRegion } from 'node-diff3';
-import { isArray, isEmpty, isObject, sortBy } from 'lodash-es';
+import { isArray, isEmpty, isObject } from 'lodash-es';
 import { Ref } from '../model/ref';
 import { Ext } from '../model/ext';
 import { User } from '../model/user';
@@ -9,45 +9,20 @@ import { Mod } from '../model/tag';
 
 export function sortEntity(entity: Record<string, any>): Record<string, any> {
   const { modified, created, ...rest } = entity as any;
-  const ordered: any = {};
-  const fieldOrder = ['url', 'origin', 'tag', 'name', 'config', 'defaults', 'schema', 'title', 'comment', 'tags', 'sources', 'alternateUrls', 'published', 'plugins'];
-  for (const field of fieldOrder) {
-    if (rest[field] !== undefined) {
-      if (isObject(rest[field]) && !isArray(rest[field])) {
-        ordered[field] = sortObj(rest[field]);
-      } else {
-        ordered[field] = rest[field];
-      }
-    }
-  }
-  const remainingKeys = Object.keys(rest)
-    .filter((key) => !fieldOrder.includes(key))
-    .sort();
-  for (const key of remainingKeys) {
-    ordered[key] = rest[key];
-  }
-  return ordered;
+  return sortObj(rest);
 }
 
 export function sortObj(entity: Record<string, any>): Record<string, any> {
   const ordered: any = {};
-  const fieldOrder = ['version', 'mod'];
-  for (const field of fieldOrder) {
-    if (entity[field] !== undefined) {
-      if (isArray(entity[field])) {
-        ordered[field] = sortBy(entity[field], 'tag');
-      } else if (isObject(entity[field])) {
-        ordered[field] = sortObj(entity[field]);
-      } else {
-        ordered[field] = entity[field];
-      }
+  for (const key of Object.keys(entity).sort()) {
+    const value = entity[key];
+    if (isArray(value)) {
+      ordered[key] = value.map((item: any) => isObject(item) ? sortObj(item) : item);
+    } else if (isObject(value)) {
+      ordered[key] = sortObj(value);
+    } else {
+      ordered[key] = value;
     }
-  }
-  const remainingKeys = Object.keys(entity)
-    .filter((key) => !fieldOrder.includes(key))
-    .sort();
-  for (const key of remainingKeys) {
-    ordered[key] = entity[key];
   }
   return ordered;
 }
