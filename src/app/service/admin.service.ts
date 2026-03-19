@@ -92,7 +92,17 @@ import { Store } from '../store/store';
 import { modId } from '../util/format';
 import { getExtension, getHost } from '../util/http';
 import { memo, MemoCache } from '../util/memo';
-import { addHierarchicalTags, directChild, hasPrefix, hasTag, localTag, prefix, setPublic, tagIntersection, test } from '../util/tag';
+import {
+  addHierarchicalTags,
+  directChild,
+  hasPrefix,
+  hasTag,
+  localTag,
+  prefix,
+  setPublic,
+  tagIntersection,
+  test
+} from '../util/tag';
 import { ExtService } from './api/ext.service';
 import { PluginService } from './api/plugin.service';
 import { RefService } from './api/ref.service';
