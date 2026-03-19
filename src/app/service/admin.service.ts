@@ -3,7 +3,7 @@ import { FormlyFieldConfig } from '@ngx-formly/core';
 import { Schema, validate } from 'jtd';
 import { identity, isEmpty, isEqual, reduce, uniq } from 'lodash-es';
 import { autorun, runInAction } from 'mobx';
-import { catchError, concat, finalize, forkJoin, map, Observable, of, retry, switchMap, throwError, toArray } from 'rxjs';
+import { catchError, concat, forkJoin, map, Observable, of, retry, switchMap, throwError, toArray } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
 import { Ext, writeExt } from '../model/ext';
@@ -298,7 +298,7 @@ export class AdminService {
       origin: this.store.account.origin,
     }).pipe(
       tap(() => this.store.eventBus.fire('*:defaults')),
-      switchMap(() => concat(...installs)),
+      switchMap(() => concat(...installs).pipe(toArray())),
       switchMap(() => this.init$),
       switchMap(() => this.logDefaultReceipts$()),
     );

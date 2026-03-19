@@ -8,7 +8,10 @@ import { llmPlugin } from '../mods/ai/ai';
 import { blogTemplate } from '../mods/blog';
 import { scrapePlugin } from '../mods/sync/scrape';
 import { userTemplate } from '../mods/user';
+import { ExtService } from './api/ext.service';
+import { PluginService } from './api/plugin.service';
 import { RefService } from './api/ref.service';
+import { TemplateService } from './api/template.service';
 import { AdminService, equalBundle } from './admin.service';
 import { Store } from '../store/store';
 import { prefix } from '../util/tag';
@@ -247,6 +250,38 @@ describe('AdminService', () => {
 
     expect(remove).toHaveBeenCalledWith('internal:44444444-4444-4444-8444-444444444444', '@local');
     expect(service.status.modRefs['📔️ Wiki']).toBeUndefined();
+  });
+
+  it('should call init$ and logDefaultReceipts$ exactly once even with multiple default plugin installs', () => {
+    const store = TestBed.inject(Store);
+    const exts = TestBed.inject(ExtService);
+    const plugins = TestBed.inject(PluginService);
+    const templates = TestBed.inject(TemplateService);
+
+    // Set up first-run conditions: admin user, no existing ext, no installed plugins/templates
+    store.account.admin = true;
+    store.account.ext = undefined;
+
+    // Mock the API calls so no HTTP requests are made
+    vi.spyOn(exts, 'create').mockReturnValue(of({} as any));
+    vi.spyOn(plugins, 'create').mockReturnValue(of({} as any));
+    vi.spyOn(templates, 'create').mockReturnValue(of({} as any));
+
+    // Spy on the private helpers that init$ delegates to, to count invocations
+    const loadPlugins = vi.spyOn(service as any, 'loadPlugins$').mockReturnValue(of(null));
+    const loadTemplates = vi.spyOn(service as any, 'loadTemplates$').mockReturnValue(of(null));
+    const logDefaultReceipts = vi.spyOn(service as any, 'logDefaultReceipts$').mockReturnValue(of(null));
+
+    // Confirm there are multiple default plugins/templates to install (makes the regression meaningful)
+    expect(service.defaultPlugins.length).toBeGreaterThan(1);
+
+    service.firstRun$.subscribe();
+
+    // init$ (and therefore loadPlugins$/loadTemplates$) must be invoked exactly once
+    expect(loadPlugins).toHaveBeenCalledTimes(1);
+    expect(loadTemplates).toHaveBeenCalledTimes(1);
+    // logDefaultReceipts$ must also be invoked exactly once
+    expect(logDefaultReceipts).toHaveBeenCalledTimes(1);
   });
 
 });
