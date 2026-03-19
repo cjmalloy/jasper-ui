@@ -285,7 +285,7 @@ describe('SettingsSetupPage', () => {
 
     expect(component.modModified(wikiConfig)).toBe(true);
 
-    component.clear();
+    component.init();
 
     expect(component.modModified(wikiConfig)).toBe(true);
     expect(log).toHaveBeenCalledTimes(2);
@@ -573,7 +573,7 @@ describe('SettingsSetupPage', () => {
       },
     };
 
-    component.clear();
+    component.init();
 
     expect(admin.status.plugins['plugin/wiki']._customChanges).toBe(true);
   });
@@ -594,7 +594,7 @@ describe('SettingsSetupPage', () => {
       },
     };
 
-    component.clear();
+    component.init();
 
     expect(admin.status.plugins['plugin/wiki']._customChanges).toBe(false);
   });
@@ -612,12 +612,12 @@ describe('SettingsSetupPage', () => {
       config: { mod: 'Wiki', version: 1 },  // differs from status → modified
     };
 
-    component.clear();
+    component.init();
     expect(admin.status.plugins['plugin/wiki']._customChanges).toBe(true);
 
     // Even if def is updated to match, ??= keeps the first computed value.
     admin.def.plugins['plugin/wiki'].config = { mod: 'Wiki', version: 2 };
-    component.clear();
+    component.init();
     expect(admin.status.plugins['plugin/wiki']._customChanges).toBe(true);
   });
 

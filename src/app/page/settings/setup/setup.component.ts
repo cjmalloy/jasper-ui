@@ -75,7 +75,7 @@ export class SettingsSetupPage implements OnDestroy {
     this.adminForm = fb.group({
       mods: fb.group(formSafeNames({...this.admin.def.plugins, ...this.admin.def.templates })),
     });
-    this.clear();
+    this.init();
     this.loadModRefs();
   }
 
@@ -147,7 +147,7 @@ export class SettingsSetupPage implements OnDestroy {
     this.admin.init$.subscribe(() => this.loadModRefs());
   }
 
-  clear() {
+  init() {
     this.loggedModifiedMods.clear();
     this.modGroups = this.buildModGroups();
     this.computeCustomChanges();
@@ -351,7 +351,7 @@ export class SettingsSetupPage implements OnDestroy {
 
   private loadModRefs() {
     this.loadModRefsSub.unsubscribe();
-    this.loadModRefsSub = this.loadModRefs$().subscribe(() => this.clear());
+    this.loadModRefsSub = this.loadModRefs$().subscribe(() => this.init());
   }
 
   private loadModRefs$() {
