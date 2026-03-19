@@ -32,6 +32,16 @@ describe('SettingsSetupPage', () => {
       getPlugin(tag?: string) { return tag === 'plugin/mod' ? { tag } : undefined; },
       getTemplate(tag?: string) { return tag === 'config/diff' ? { tag } : undefined; },
       getMod() { return preview.target; },
+      needsUpdate(def: any, status: any) {
+        if (def?.config?.version !== undefined) {
+          if (status?.config?.version === undefined) return true;
+          if (def.config.version !== status.config.version) {
+            return def.config.version > status.config.version;
+          }
+          return false;
+        }
+        return JSON.stringify(def?.config || {}) !== JSON.stringify(status?.config || {});
+      },
       getInstalledMod(mod: string) {
         return admin.status.modRefs[mod]?.plugins?.['plugin/mod'];
       },
@@ -377,6 +387,63 @@ describe('SettingsSetupPage', () => {
 
     expect(component.modModified({ tag: 'plugin/wiki', config: { mod: 'Wiki' } } as any)).toBe(false);
     expect(component.canDiffMod({ tag: 'plugin/wiki', config: { mod: 'Wiki' } } as any)).toBe(false);
+  });
+
+  it('should hide the update action for unversioned mods with receipts when only local custom changes remain', () => {
+    admin.getMod = () => ({
+      plugin: [{ tag: 'plugin/wiki', config: { mod: 'Wiki', version: 2 } }],
+    });
+    admin.status.plugins['plugin/wiki'] = {
+      tag: 'plugin/wiki',
+      origin: '@local',
+      config: { mod: 'Wiki', description: 'edited' },
+      _needsUpdate: true,
+    };
+    admin.status.modRefs.Wiki = {
+      url: 'mod:Wiki',
+      origin: '@local',
+      plugins: {
+        'plugin/mod': {
+          plugin: [{
+            tag: 'plugin/wiki',
+            config: { mod: 'Wiki', version: 2 },
+          }],
+        },
+      },
+    };
+
+    expect(component.modModified({ tag: 'plugin/wiki', config: { mod: 'Wiki' } } as any)).toBe(true);
+    expect(component.hasPendingModUpdate({ tag: 'plugin/wiki', config: { mod: 'Wiki' } } as any)).toBe(false);
+    expect(component.canDiffMod({ tag: 'plugin/wiki', config: { mod: 'Wiki' } } as any)).toBe(true);
+  });
+
+  it('should skip custom-only unversioned receipt mods during update all', () => {
+    admin.getMod = () => ({
+      plugin: [{ tag: 'plugin/wiki', config: { mod: 'Wiki', version: 2 } }],
+    });
+    admin.status.plugins['plugin/wiki'] = {
+      tag: 'plugin/wiki',
+      origin: '@local',
+      config: { mod: 'Wiki', description: 'edited' },
+      _needsUpdate: true,
+    };
+    admin.status.modRefs.Wiki = {
+      url: 'mod:Wiki',
+      origin: '@local',
+      plugins: {
+        'plugin/mod': {
+          plugin: [{
+            tag: 'plugin/wiki',
+            config: { mod: 'Wiki', version: 2 },
+          }],
+        },
+      },
+    };
+
+    component.updateAll();
+
+    expect(admin.updateMod$).not.toHaveBeenCalled();
+    expect(component.submitted).toBe(true);
   });
 
   it('should not log when the modified indicator is not shown', () => {
