@@ -367,10 +367,16 @@ export class SettingsSetupPage implements OnDestroy {
   }
 
   private buildModGroups() {
+    const shallowCopy = (obj: Record<string, Config | undefined>) =>
+      Object.fromEntries(
+        Object.entries(obj)
+          .filter((entry): entry is [string, Config] => !!entry[1])
+          .map(([k, v]) => [k, { ...v }])
+      );
     return configGroups({
-      ...this.admin.status.disabledPlugins, ...this.admin.status.disabledTemplates,
-      ...this.admin.status.plugins, ...this.admin.status.templates,
-      ...this.admin.def.plugins, ...this.admin.def.templates,
+      ...shallowCopy(this.admin.status.disabledPlugins), ...shallowCopy(this.admin.status.disabledTemplates),
+      ...shallowCopy(this.admin.status.plugins), ...shallowCopy(this.admin.status.templates),
+      ...shallowCopy(this.admin.def.plugins), ...shallowCopy(this.admin.def.templates),
     });
   }
 
