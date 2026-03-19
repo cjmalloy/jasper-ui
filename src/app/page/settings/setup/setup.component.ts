@@ -254,6 +254,7 @@ export class SettingsSetupPage implements OnDestroy {
       Object.values(this.admin.status.templates).find(t => t && mod === modId(t) && t._needsUpdate);
   }
 
+  /** Filters status-level update flags with the installed receipt so custom-only edits don't show as pending upgrades. */
   hasPendingModUpdate(config: Config) {
     if (!this.needsModUpdate(config)) return false;
     const mod = this.getResolvedModId(config);
@@ -437,8 +438,15 @@ export class SettingsSetupPage implements OnDestroy {
     const target = this.admin.getMod(mod);
     if (!installed) return !!target;
     if (!target) return false;
-    return this.hasPendingConfigUpdates(target.plugin, installed.plugin, plugin => this.normalizePendingUpdateConfig(writePlugin(plugin))) ||
-      this.hasPendingConfigUpdates(target.template, installed.template, template => this.normalizePendingUpdateConfig(writeTemplate(template)));
+    return this.hasPendingConfigUpdates(
+      target.plugin,
+      installed.plugin,
+      plugin => this.normalizePendingUpdateConfig(writePlugin(plugin)),
+    ) || this.hasPendingConfigUpdates(
+      target.template,
+      installed.template,
+      template => this.normalizePendingUpdateConfig(writeTemplate(template)),
+    );
   }
 
   private getChangedConfigs<T extends Config>(
@@ -459,6 +467,7 @@ export class SettingsSetupPage implements OnDestroy {
       .filter((entry): entry is T => !!entry);
   }
 
+  /** Compares the bundled target with the installed receipt so only real upstream changes count as pending updates. */
   private hasPendingConfigUpdates<T extends Config>(
     target: T[] | undefined,
     installed: T[] | undefined,
@@ -478,15 +487,8 @@ export class SettingsSetupPage implements OnDestroy {
   }
 
   private normalizeConfig<T extends Config>(config: T) {
-    const result = { ...config } as any;
-    result.config &&= { ...result.config };
-    delete result.origin;
-    delete result.modified;
-    delete result.modifiedString;
-    delete result._needsUpdate;
+    const result = this.normalizePendingUpdateConfig(config);
     delete result.config?.version;
-    delete result.config?.generated;
-    delete result.config?._parent;
     return result;
   }
 

@@ -5,6 +5,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { OverlayContainer } from '@angular/cdk/overlay';
 import { ReactiveFormsModule, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { provideRouter } from '@angular/router';
+import { isEqual } from 'lodash-es';
 import { NGX_MONACO_EDITOR_CONFIG } from 'ngx-monaco-editor';
 import { of } from 'rxjs';
 import { AdminService } from '../../../service/admin.service';
@@ -40,7 +41,7 @@ describe('SettingsSetupPage', () => {
           }
           return false;
         }
-        return JSON.stringify(def?.config || {}) !== JSON.stringify(status?.config || {});
+        return !isEqual(def?.config || {}, status?.config || {});
       },
       getInstalledMod(mod: string) {
         return admin.status.modRefs[mod]?.plugins?.['plugin/mod'];
