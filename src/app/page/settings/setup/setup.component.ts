@@ -411,8 +411,8 @@ export class SettingsSetupPage implements OnDestroy {
 
   private getConfigChanges(current: Mod, base: Mod) {
     return [
-      ...this.getChangedConfigs(current.plugin, base.plugin, plugin => this.normalizePlugin(plugin)),
-      ...this.getChangedConfigs(current.template, base.template, template => this.normalizeTemplate(template)),
+      ...this.getChangedConfigs(current.plugin, base.plugin, plugin => this.normalizeConfig(writePlugin(plugin))),
+      ...this.getChangedConfigs(current.template, base.template, template => this.normalizeConfig(writeTemplate(template))),
     ];
   }
 
@@ -434,20 +434,13 @@ export class SettingsSetupPage implements OnDestroy {
       .filter((entry): entry is T => !!entry);
   }
 
-  private normalizePlugin(plugin: Plugin) {
-    return this.normalizeConfig(plugin, writePlugin);
-  }
-
-  private normalizeTemplate(template: Template) {
-    return this.normalizeConfig(template, writeTemplate);
-  }
-
-  private normalizeConfig<T extends Config>(config: T, write: (config: T) => T) {
-    const result = write({ ...config, origin: '' } as T) as T & { config?: Record<string, unknown> };
+  private normalizeConfig<T extends Config>(config: T) {
+    const result = { ...config } as any;
     result.config &&= { ...result.config };
-    delete (result as T & { modified?: unknown, modifiedString?: unknown }).modified;
-    delete (result as T & { modified?: unknown, modifiedString?: unknown }).modifiedString;
-    delete (result as T & { _needsUpdate?: unknown })._needsUpdate;
+    delete result.origin;
+    delete result.modified;
+    delete result.modifiedString;
+    delete result._needsUpdate;
     delete result.config?.version;
     delete result.config?.generated;
     delete result.config?._parent;

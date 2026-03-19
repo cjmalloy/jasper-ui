@@ -2,7 +2,6 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, HostBinding, Input, OnChanges, QueryList, SimpleChanges, ViewChildren } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { isEqual } from 'lodash-es';
 import { catchError, of, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { templateForm, TemplateFormComponent } from '../../form/template/template.component';
@@ -14,7 +13,6 @@ import { TemplateService } from '../../service/api/template.service';
 import { Store } from '../../store/store';
 import { downloadTag } from '../../util/download';
 import { scrollToFirstInvalid } from '../../util/form';
-import { modId } from '../../util/format';
 import { printError } from '../../util/http';
 import { ActionComponent } from '../action/action.component';
 import { ConfirmActionComponent } from '../action/confirm-action/confirm-action.component';
@@ -148,13 +146,6 @@ export class TemplateComponent implements OnChanges, HasChanges {
       this.serverError = [];
       this.editing = false;
       this.template = template;
-      delete this.admin.status.templates[template.tag];
-      delete this.admin.status.disabledTemplates[template.tag];
-      if (template.config?.disabled) {
-        this.admin.status.disabledTemplates[template.tag] = template;
-      } else {
-        this.admin.status.templates[template.tag] = template;
-      }
     });
   }
 
@@ -187,51 +178,7 @@ export class TemplateComponent implements OnChanges, HasChanges {
     );
   }
 
-  get canReset() {
-    return this.created && this.local && this.store.account.admin && this.hasCustomChanges;
-  }
-
-  reset$ = () => {
-    const current = this.template;
-    const restored = this.admin.getInstalledTemplate(modId(this.template), this.template.tag);
-    if (restored) {
-      this.template = { ...this.template, ...restored, origin: this.store.account.origin };
-      this.updateTemplateStatus(this.template);
-    }
-    this.serverError = [];
-    this.editing = false;
-    this.init();
-    return this.admin.resetTemplate$(current, () => {});
-  }
-
   download() {
     downloadTag(writeTemplate(this.template));
-  }
-
-  private get hasCustomChanges() {
-    const installed = this.admin.getInstalledTemplate(modId(this.template), this.template.tag);
-    return !!installed && !isEqual(this.normalizeTemplate(this.template), this.normalizeTemplate(installed));
-  }
-
-  private normalizeTemplate(template: Template) {
-    const result = writeTemplate({ ...template, origin: '' }) as Template & { config?: Record<string, unknown> };
-    result.config &&= { ...result.config };
-    delete (result as Template & { modified?: unknown, modifiedString?: unknown }).modified;
-    delete (result as Template & { modified?: unknown, modifiedString?: unknown }).modifiedString;
-    delete (result as Template & { _needsUpdate?: unknown })._needsUpdate;
-    delete result.config?.version;
-    delete result.config?.generated;
-    delete result.config?._parent;
-    return result;
-  }
-
-  private updateTemplateStatus(template: Template) {
-    delete this.admin.status.templates[template.tag];
-    delete this.admin.status.disabledTemplates[template.tag];
-    if (template.config?.disabled) {
-      this.admin.status.disabledTemplates[template.tag] = template;
-    } else {
-      this.admin.status.templates[template.tag] = template;
-    }
   }
 }
