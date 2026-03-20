@@ -6,7 +6,7 @@ export const modPlugin: Plugin = {
   tag: 'plugin/mod',
   name: $localize`🎁️ Mod`,
   config: {
-    mod: $localize`🎁️ Mod Store`,
+    mod: $localize`🎁️ Store`,
     version: 2,
     default: true,
     embeddable: true,
