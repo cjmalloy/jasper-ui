@@ -5529,6 +5529,18 @@ Enter the origin to confirm:</source>
         <source>🌟️ update</source>
         <target>🌟️ 更新</target>
       </trans-unit>
+      <trans-unit id="5330242595937013307" datatype="html">
+        <source>🔀 diff</source>
+        <target>🔀 差分</target>
+      </trans-unit>
+      <trans-unit id="8961752191581686674" datatype="html">
+        <source>Unable to merge automatically. Review the mod diff or overwrite your local changes.</source>
+        <target>自動的にマージできません。MODの差分を確認するか、ローカルの変更を上書きしてください。</target>
+      </trans-unit>
+      <trans-unit id="6448703453936278950" datatype="html">
+        <source>Review the merged mod before saving or overwrite your local changes.</source>
+        <target>保存する前にマージされたMODを確認するか、ローカルの変更を上書きしてください。</target>
+      </trans-unit>
       <trans-unit id="6121766057800725904" datatype="html">
         <source>Settings: Setup</source>
         <target>設定: セットアップ</target>
@@ -5856,6 +5868,14 @@ Enter the origin to confirm:</source>
         <source>Ref <x id="PH" equiv-text="def.title || def.url"/> already exists...</source>
         <target>Ref <x id="PH" equiv-text="def.title || def.url"/> は既に存在します...</target>
       </trans-unit>
+      <trans-unit id="612983901370848355" datatype="html">
+        <source>Logging <x id="PH" equiv-text="mod || ref.url"/> receipt...</source>
+        <target><x id="PH" equiv-text="mod || ref.url"/> の受領記録を保存中...</target>
+      </trans-unit>
+      <trans-unit id="7690218130804512634" datatype="html">
+        <source>Deleting <x id="PH" equiv-text="mod"/> receipt...</source>
+        <target><x id="PH" equiv-text="mod"/> の受領記録を削除中...</target>
+      </trans-unit>
       <trans-unit id="3630868986759354735" datatype="html">
         <source>Installing <x id="PH" equiv-text="def.name || def.tag"/> ext...</source>
         <target><x id="PH" equiv-text="def.name || def.tag"/> Extをインストール中...</target>
@@ -6122,10 +6142,6 @@ Enter the origin to confirm:</source>
       <trans-unit id="2379451542832432168" datatype="html">
         <source>🎁️ Store</source>
         <target>🎁️ ストア</target>
-      </trans-unit>
-      <trans-unit id="5005008742279266572" datatype="html">
-        <source>store</source>
-        <target>ストア</target>
       </trans-unit>
       <trans-unit id="384506774397975875" datatype="html">
         <source>Install and share mods.</source>
