@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { clearAll } from './setup';
+import { clearAll, mod } from './setup';
 
 test.describe.serial('Mod Merge', () => {
   test('clear all', async ({ page }) => {
@@ -7,19 +7,7 @@ test.describe.serial('Mod Merge', () => {
   });
 
   test('install store and wiki mods', async ({ page }) => {
-    test.setTimeout(120_000);
-    await page.goto('/settings/setup?debug=ADMIN', { waitUntil: 'networkidle' });
-    for (const selector of ['#mod-root', '#mod-store', '#mod-wiki']) {
-      if (!await page.locator(selector).isChecked()) {
-        await page.locator(selector).check();
-      }
-    }
-    await page.locator('button', { hasText: 'Save' }).click();
-    await page.waitForLoadState('networkidle', { timeout: 60_000 });
-    await page.goto('/settings/setup?debug=ADMIN', { waitUntil: 'networkidle' });
-    await expect(page.locator('#mod-root')).toBeChecked();
-    await expect(page.locator('#mod-store')).toBeChecked();
-    await expect(page.locator('#mod-wiki')).toBeChecked();
+    await mod(page, '#mod-root', '#mod-store', '#mod-wiki');
   });
 
   test('shows the merge popup for a locally edited wiki mod', async ({ page }) => {
