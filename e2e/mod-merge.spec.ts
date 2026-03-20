@@ -1,7 +1,10 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 import { clearAll } from './setup';
 
 test.describe.serial('Mod Merge', () => {
+  const modCheckbox = (page: Page, modName: string) =>
+    page.locator('.mod-row', { hasText: modName }).locator('input[type="checkbox"]');
+
   test('clear all', async ({ page }) => {
     await clearAll(page);
   });
@@ -9,17 +12,18 @@ test.describe.serial('Mod Merge', () => {
   test('install store and wiki mods', async ({ page }) => {
     test.setTimeout(120_000);
     await page.goto('/settings/setup?debug=ADMIN', { waitUntil: 'networkidle' });
-    for (const selector of ['#mod-root', '#mod-store', '#mod-wiki']) {
-      if (!await page.locator(selector).isChecked()) {
-        await page.locator(selector).check();
+    for (const name of ['Root', 'Store', 'Wiki']) {
+      const checkbox = modCheckbox(page, name);
+      if (!await checkbox.isChecked()) {
+        await checkbox.check();
       }
     }
     await page.locator('button', { hasText: 'Save' }).click();
     await page.waitForLoadState('networkidle', { timeout: 60_000 });
     await page.goto('/settings/setup?debug=ADMIN', { waitUntil: 'networkidle' });
-    await expect(page.locator('#mod-root')).toBeChecked();
-    await expect(page.locator('#mod-store')).toBeChecked();
-    await expect(page.locator('#mod-wiki')).toBeChecked();
+    await expect(modCheckbox(page, 'Root')).toBeChecked();
+    await expect(modCheckbox(page, 'Store')).toBeChecked();
+    await expect(modCheckbox(page, 'Wiki')).toBeChecked();
   });
 
   test('shows the merge popup for a locally edited wiki mod', async ({ page }) => {

@@ -41,10 +41,9 @@ describe('Diff Utils', () => {
       const keys = Object.keys(JSON.parse(formatted));
 
       expect(keys[0]).toBe('url');
-      expect(keys[1]).toBe('origin');
-      expect(keys[2]).toBe('title');
-      expect(keys[3]).toBe('comment');
-      expect(keys[4]).toBe('tags');
+      expect(keys[1]).toBe('title');
+      expect(keys[2]).toBe('comment');
+      expect(keys[3]).toBe('tags');
     });
 
     it('should sort plugin keys alphabetically', () => {
