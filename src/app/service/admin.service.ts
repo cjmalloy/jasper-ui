@@ -1011,13 +1011,11 @@ export class AdminService {
   }
 
   logModReceipt$(mod: string, bundle: Mod, _: progress) {
-    const receiptTag = this.getModReceiptTag(mod);
-    const sanitized = receiptTag?.replace('plugin/mod/receipt/', '');
     const ref = {
-      url: sanitized ? `internal:mod-receipt/${sanitized}` : `internal:${uuid()}`,
+      url: `internal:${uuid()}`,
       origin: this.store.account.origin,
       title: mod,
-      tags: ['internal', ...(receiptTag ? [receiptTag] : [])],
+      tags: ['internal', 'plugin/mod/receipt'],
       plugins: { 'plugin/mod': bundle },
     };
     return of(null).pipe(
@@ -1207,16 +1205,6 @@ export class AdminService {
     return this.getInstalledModRefEntry(mod)?.[1];
   }
 
-  private getModReceiptTag(mod: string) {
-    const sanitized = localTag(setPublic(mod))
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '.')
-      .replace(/^[./]+|[./]+$/g, '')
-      .replace(/[./]{2,}/g, '.');
-    if (!sanitized) return undefined;
-    return prefix('plugin/mod/receipt', sanitized);
-  }
-
   deleteMod$(mod: string, _: progress): Observable<any> {
     return concat(...[
       of(null).pipe(tap(() => _($localize`Deleting ${mod} mod...`))),
@@ -1234,18 +1222,6 @@ export class AdminService {
         .map(t => this.deleteTemplate$(t!, _)),
       this.clearModReceipt$(mod, _),
     ]).pipe(toArray());
-  }
-
-  resetPlugin$(plugin: Plugin, _: progress) {
-    const restored = this.getInstalledPlugin(modId(plugin), plugin.tag);
-    if (!restored) return of(null);
-    return this.updatePlugin$(restored, _);
-  }
-
-  resetTemplate$(template: Template, _: progress) {
-    const restored = this.getInstalledTemplate(modId(template), template.tag);
-    if (!restored) return of(null);
-    return this.updateTemplate$(restored, _);
   }
 
   updatePlugin$(def: Plugin, _: progress) {
