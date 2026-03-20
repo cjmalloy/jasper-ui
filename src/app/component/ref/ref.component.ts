@@ -1413,6 +1413,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   saveDiff() {
     const ref = this.diffEditor?.getModifiedContent();
     if (!ref) return;
+    ref.origin = this.store.account.origin;
     ref.modifiedString = this.overwrite ? this.overwrittenModified : this.ref.modifiedString;
     this.submitting = this.store.eventBus.runAndReload(this.refs.update(ref).pipe(
       tap(cursor => {

@@ -6,6 +6,7 @@ import { User } from '../model/user';
 import { Template } from '../model/template';
 import { Plugin } from '../model/plugin';
 import { Mod } from '../model/tag';
+import { DateTime } from 'luxon';
 
 export function sortEntity(entity: Record<string, any>): Record<string, any> {
   const { origin, modified, metadata, created, modifiedString, ...rest } = entity as any;
@@ -13,7 +14,7 @@ export function sortEntity(entity: Record<string, any>): Record<string, any> {
   const fieldOrder = ['url', 'tag', 'name', 'config', 'defaults', 'schema', 'title', 'comment', 'tags', 'sources', 'alternateUrls', 'published', 'plugins'];
   for (const field of fieldOrder) {
     if (rest[field] !== undefined) {
-      if (isObject(rest[field]) && !isArray(rest[field])) {
+      if (isObject(rest[field]) && !isArray(rest[field]) && !DateTime.isDateTime(rest[field])) {
         ordered[field] = sortObj(rest[field]);
       } else {
         ordered[field] = rest[field];
@@ -36,7 +37,7 @@ export function sortObj(entity: Record<string, any>): Record<string, any> {
     if (entity[field] !== undefined) {
       if (isArray(entity[field])) {
         ordered[field] = sortBy(entity[field], 'tag');
-      } else if (isObject(entity[field])) {
+      } else if (isObject(entity[field]) && !DateTime.isDateTime(entity[field])) {
         ordered[field] = sortObj(entity[field]);
       } else {
         ordered[field] = entity[field];
