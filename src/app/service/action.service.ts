@@ -202,11 +202,11 @@ export class ActionService {
               // Fetch the current version from server
               return this.refs.get(ref.url, this.store.account.origin).pipe(
                 switchMap(remote => {
-                  const { mergedComment, conflict } = merge3(comment, baseComment, remote.comment || '', delimiter);
+                  const { result, conflict } = merge3(comment, baseComment, remote.comment || '', delimiter);
                   cursor = remote.modifiedString!;
                   baseComment = remote.comment || '';
                   if (conflict) return throwError(() => ({ conflict }));
-                  return inner.comment$(mergedComment || '');
+                  return inner.comment$(result || '');
                 }),
               );
             }

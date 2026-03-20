@@ -121,10 +121,10 @@ describe('AdminService', () => {
       size: expect.any(Number),
       sort: ['modified,DESC'],
     });
-    expect(service.status.modRefs['📔️ Wiki']).toEqual(expect.objectContaining({ title: '📔️ Wiki' }));
-    expect(service.status.modRefs['💬 Chat']).toEqual(expect.objectContaining({ title: '💬 Chat' }));
+    expect(service.status.receipts['📔️ Wiki']).toEqual(expect.objectContaining({ title: '📔️ Wiki' }));
+    expect(service.status.receipts['💬 Chat']).toEqual(expect.objectContaining({ title: '💬 Chat' }));
     // All receipts are loaded (including ones for mods that are no longer active)
-    expect(service.status.modRefs.Obsolete).toEqual(expect.objectContaining({ title: 'Obsolete' }));
+    expect(service.status.receipts.Obsolete).toEqual(expect.objectContaining({ title: 'Obsolete' }));
   });
 
   it('should load all receipt refs in pages for the default local origin', () => {
@@ -147,7 +147,7 @@ describe('AdminService', () => {
       size: expect.any(Number),
       sort: ['modified,DESC'],
     });
-    expect(service.status.modRefs.Wiki).toEqual(expect.objectContaining({ title: 'Wiki' }));
+    expect(service.status.receipts.Wiki).toEqual(expect.objectContaining({ title: 'Wiki' }));
   });
 
   it('should ignore extra live entries that share a mod id but are not in the installed receipt', () => {
@@ -161,7 +161,7 @@ describe('AdminService', () => {
       origin: '@local',
       config: { mod: 'Wiki', version: 1 },
     } as any;
-    service.status.modRefs.Wiki = {
+    service.status.receipts.Wiki = {
       url: 'internal:22222222-2222-4222-8222-222222222222',
       origin: '@local',
       plugins: {
@@ -192,7 +192,7 @@ describe('AdminService', () => {
       name: '🎁️ Mod',
       config: { mod: '🎁️ Store', version: 1 },
     } as any;
-    service.status.modRefs['🎁️ Store'] = {
+    service.status.receipts['🎁️ Store'] = {
       url: 'internal:33333333-3333-4333-8333-333333333333',
       title: '🎁️ Store',
       origin: '@local',
@@ -209,7 +209,7 @@ describe('AdminService', () => {
       name: '🎁️ Mod',
       config: { mod: '🎁️ Store', version: 1 },
     } as any;
-    service.status.modRefs['🎁️ Store'] = {
+    service.status.receipts['🎁️ Store'] = {
       url: 'internal:55555555-5555-4555-8555-555555555555',
       title: '🎁️ Store',
       origin: '@local',
@@ -239,7 +239,7 @@ describe('AdminService', () => {
   it('should clear loaded mod refs by exact mod id when deleting a mod', () => {
     const refs = TestBed.inject(RefService);
     const remove = vi.spyOn(refs, 'delete').mockReturnValue(of(void 0));
-    service.status.modRefs['📔️ Wiki'] = {
+    service.status.receipts['📔️ Wiki'] = {
       url: 'internal:44444444-4444-4444-8444-444444444444',
       title: '📔️ Wiki',
       origin: '@local',
@@ -249,7 +249,7 @@ describe('AdminService', () => {
     service.deleteMod$('📔️ Wiki', () => {}).subscribe();
 
     expect(remove).toHaveBeenCalledWith('internal:44444444-4444-4444-8444-444444444444', '@local');
-    expect(service.status.modRefs['📔️ Wiki']).toBeUndefined();
+    expect(service.status.receipts['📔️ Wiki']).toBeUndefined();
   });
 
   it('should call init$ and logDefaultReceipts$ exactly once even with multiple default plugin installs', () => {

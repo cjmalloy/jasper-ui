@@ -1,11 +1,11 @@
 import { diff3Merge, MergeRegion } from 'node-diff3';
-import { isArray, isEmpty, isObject, sortBy } from 'lodash-es';
-import { Ref } from '../model/ref';
-import { Ext } from '../model/ext';
-import { User } from '../model/user';
-import { Template } from '../model/template';
-import { Plugin } from '../model/plugin';
-import { Mod } from '../model/tag';
+import { isArray, isEmpty, isEqual, isObject, sortBy } from 'lodash-es';
+import { Ref, writeRef } from '../model/ref';
+import { Ext, writeExt } from '../model/ext';
+import { User, writeUser } from '../model/user';
+import { Template, writeTemplate } from '../model/template';
+import { Plugin, writePlugin } from '../model/plugin';
+import { clear, Config, Mod } from '../model/tag';
 import { DateTime } from 'luxon';
 
 export function sortEntity(entity: Record<string, any>): Record<string, any> {
@@ -57,7 +57,40 @@ export function formatDiff(obj: Ref | Ext | User | Plugin | Template): string {
   return JSON.stringify(sortEntity(obj), null, 2);
 }
 
+export function equalBundle(a?: Mod, b?: Mod) {
+  if (!a || !b) return false;
+  return isEqual(clearMod(a, false), clearMod(b, false));
+}
+
+export function clearMod<T extends Mod | undefined>(mod: T, strict = true): T {
+  if (!mod) return mod;
+  const result = { } as any;
+  if (!isEmpty(mod.ref)) result.ref = mod.ref!.map((r: Ref) => writeRef(r));
+  if (!isEmpty(mod.ext)) result.ext = mod.ext!.map((e: Ext) => writeExt(e));
+  if (!isEmpty(mod.user)) result.user = mod.user!.map((u: User) => writeUser(u));
+  if (!isEmpty(mod.plugin)) result.plugin = mod.plugin!.map((p: Plugin) => clearConfig(writePlugin(p), strict));
+  if (!isEmpty(mod.template)) result.template = mod.template!.map((t: Template) => clearConfig(writeTemplate(t), strict));
+  return result;
+}
+
+function clearConfig<T extends Config>(e: T, strict = false): T {
+  const result = {
+    ...e,
+    config: e.config && { ...e.config },
+  } as any;
+  if (isEmpty(result.defaults)) delete result.defaults;
+  if (result.schema === null) delete result.schema;
+  if (!strict) {
+    delete result.config?.version;
+    delete result.config?.generated;
+  }
+  delete result.origin;
+  return clear(result);
+}
+
+
 export function formatBundleDiff(mod: Mod): string {
+  mod = clearMod(mod);
   return JSON.stringify({
     ref: isEmpty(mod.ref) ? undefined : sortBy(mod.ref!, 'url').map(sortEntity),
     ext: isEmpty(mod.ext) ? undefined : sortBy(mod.ext!, 'tag').map(sortEntity),
@@ -67,7 +100,7 @@ export function formatBundleDiff(mod: Mod): string {
   }, (key, value) => key === '_parent' ? undefined : value, 2);
 }
 
-export type Merge = { mergedComment?: string, conflict?: MergeRegion<string>[] };
+export type Merge = { result?: string, conflict?: MergeRegion<string>[] };
 
 export function merge3(ours: string, base: string, theirs: string, delimiter = '\n'): Merge {
   const result = diff3Merge<string>(ours, base, theirs, { stringSeparator: delimiter });
@@ -79,5 +112,5 @@ export function merge3(ours: string, base: string, theirs: string, delimiter = '
       mergedLines.push(...chunk.ok);
     }
   }
-  return { mergedComment: mergedLines.join(delimiter) };
+  return { result: mergedLines.join(delimiter) };
 }
