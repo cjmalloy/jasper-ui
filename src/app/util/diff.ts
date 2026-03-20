@@ -8,9 +8,9 @@ import { Plugin } from '../model/plugin';
 import { Mod } from '../model/tag';
 
 export function sortEntity(entity: Record<string, any>): Record<string, any> {
-  const { modified, created, ...rest } = entity as any;
+  const { origin, modified, metadata, created, modifiedString, ...rest } = entity as any;
   const ordered: any = {};
-  const fieldOrder = ['url', 'origin', 'tag', 'name', 'config', 'defaults', 'schema', 'title', 'comment', 'tags', 'sources', 'alternateUrls', 'published', 'plugins'];
+  const fieldOrder = ['url', 'tag', 'name', 'config', 'defaults', 'schema', 'title', 'comment', 'tags', 'sources', 'alternateUrls', 'published', 'plugins'];
   for (const field of fieldOrder) {
     if (rest[field] !== undefined) {
       if (isObject(rest[field]) && !isArray(rest[field])) {
