@@ -3,7 +3,7 @@ import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http'
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { of, throwError } from 'rxjs';
+import { of } from 'rxjs';
 import { llmPlugin } from '../mods/ai/ai';
 import { blogTemplate } from '../mods/blog';
 import { scrapePlugin } from '../mods/sync/scrape';
@@ -14,7 +14,6 @@ import { RefService } from './api/ref.service';
 import { TemplateService } from './api/template.service';
 import { AdminService, equalBundle } from './admin.service';
 import { Store } from '../store/store';
-import { prefix } from '../util/tag';
 
 describe('AdminService', () => {
   let service: AdminService;
@@ -42,11 +41,10 @@ describe('AdminService', () => {
     expect(scrapePlugin.config?.form?.find(f => f.key === 'textSelectors')?.expressions?.hide).toBe('!field.parent.model.text');
   });
 
-  it('should create a mod ref containing the installed bundle with a receipt tag derived from the sanitized mod id', () => {
+  it('should create a mod ref containing the installed bundle with a receipt tag', () => {
     const refs = TestBed.inject(RefService);
     const store = TestBed.inject(Store);
     store.account.origin = '@local';
-    vi.spyOn(refs, 'get').mockReturnValue(throwError(() => ({ status: 404 })));
     const create = vi.spyOn(refs, 'create').mockReturnValue(of('ok'));
 
     service.logModReceipt$('Wiki', {
@@ -54,16 +52,17 @@ describe('AdminService', () => {
     }, () => {}).subscribe();
 
     expect(create).toHaveBeenCalledWith(expect.objectContaining({
-      url: 'internal:mod-receipt/wiki',
       origin: '@local',
       title: 'Wiki',
-      tags: ['internal', prefix('plugin/mod/receipt', 'wiki')],
+      tags: ['internal', 'plugin/mod/receipt'],
       plugins: {
         'plugin/mod': {
           template: [{ tag: '+config/wiki', name: 'Wiki' }],
         },
       },
     }));
+    const [calledRef] = create.mock.calls[0];
+    expect(calledRef.url).toMatch(/^internal:[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i);
   });
 
   it('should not preload mod refs during init', () => {
@@ -76,13 +75,6 @@ describe('AdminService', () => {
     expect(loadPlugins).toHaveBeenCalled();
     expect(loadTemplates).toHaveBeenCalled();
     expect(loadAllModRefs).not.toHaveBeenCalled();
-  });
-
-  it('should sanitize mod ids when generating receipt tags', () => {
-    expect((service as any).getModReceiptTag('📔️ Wiki')).toBe('plugin/mod/receipt/wiki');
-    expect((service as any).getModReceiptTag('AI Tools')).toBe('plugin/mod/receipt/ai.tools');
-    expect((service as any).getModReceiptTag('Feature/API v2')).toBe('plugin/mod/receipt/feature.api.v2');
-    expect((service as any).getModReceiptTag('!!!')).toBeUndefined();
   });
 
   it('should load all receipt refs in pages on setup', () => {

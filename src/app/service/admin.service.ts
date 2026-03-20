@@ -1020,16 +1020,7 @@ export class AdminService {
     };
     return of(null).pipe(
       tap(() => _('\u00A0'.repeat(4) + $localize`Logging ${mod || ref.url} receipt...`)),
-      switchMap(() => this.refs.create(ref).pipe(
-        catchError(err => err.status === 409
-          ? this.refs.get(ref.url, ref.origin).pipe(
-              switchMap(existing => this.refs.update({
-                ...ref,
-                modifiedString: existing.modifiedString,
-              })),
-            )
-          : throwError(() => err)),
-      )),
+      switchMap(() => this.refs.create(ref)),
       tap(() => this.status.modRefs[mod] = ref),
       tap(() => _('', 1)),
     );
