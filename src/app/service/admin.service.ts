@@ -1017,7 +1017,7 @@ export class AdminService {
       url: sanitized ? `internal:mod-receipt/${sanitized}` : `internal:${uuid()}`,
       origin: this.store.account.origin,
       title: mod,
-      tags: ['internal', ...(receiptTag ? [receiptTag] : [])],
+      tags: ['internal', 'plugin/mod/receipt', ...(receiptTag ? [receiptTag] : [])],
       plugins: { 'plugin/mod': bundle },
     };
     return of(null).pipe(
