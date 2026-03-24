@@ -250,8 +250,8 @@ export class AdminService {
   }
 
   get updates() {
-    for (const p of Object.values(this.status.plugins)) if (p?.config?.needsUpdate) return this.store.view.updateNotify();
-    for (const t of Object.values(this.status.templates)) if (t?.config?.needsUpdate) return this.store.view.updateNotify();
+    for (const p of Object.values(this.status.plugins)) if (p?._needsUpdate) return this.store.view.updateNotify();
+    for (const t of Object.values(this.status.templates)) if (t?._needsUpdate) return this.store.view.updateNotify();
     return false;
   }
 

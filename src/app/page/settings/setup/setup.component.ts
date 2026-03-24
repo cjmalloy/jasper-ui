@@ -224,8 +224,8 @@ export class SettingsSetupPage implements OnDestroy {
     if (!this.admin.getPlugin('plugin/mod/receipt')) {
       return {
         mod,
-        proposed: JSON.parse(formatBundleDiff(target)),
-        diffBase: JSON.parse(formatBundleDiff(current)),
+        proposed: target,
+        diffBase: current,
         conflict: false,
       };
     }
@@ -235,22 +235,22 @@ export class SettingsSetupPage implements OnDestroy {
       if (!merged.result || merged.conflict) {
         return {
           mod,
-          proposed: JSON.parse(formatBundleDiff(current)),
-          diffBase: JSON.parse(formatBundleDiff(target)),
+          proposed: current,
+          diffBase: target,
           conflict: true,
         };
       }
       return {
         mod,
         proposed: JSON.parse(merged.result),
-        diffBase: JSON.parse(formatBundleDiff(target)),
+        diffBase: target,
         conflict: false,
       };
     }
     return {
       mod,
-      proposed: JSON.parse(formatBundleDiff(target)),
-      diffBase: JSON.parse(formatBundleDiff(current)),
+      proposed: target,
+      diffBase: current,
       conflict: false,
     };
   }
