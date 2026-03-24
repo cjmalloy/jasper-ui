@@ -101,6 +101,7 @@ import { UserService } from './api/user.service';
 import { AuthzService } from './authz.service';
 import { ConfigService } from './config.service';
 import { equalBundle } from '../util/diff';
+export { equalBundle };
 
 @Injectable({
   providedIn: 'root',
@@ -242,7 +243,7 @@ export class AdminService {
     this.status.templates = {};
     this.status.disabledTemplates = {};
     this.status.receipts = {};
-    return forkJoin([this.loadPlugins$(), this.loadTemplates$(), this.loadReceipts$()]).pipe(
+    return forkJoin([this.loadPlugins$(), this.loadTemplates$()]).pipe(
       switchMap(() => this.firstRun$),
       tap(() => this.updates),
       catchError(() => of(null)),
@@ -344,6 +345,19 @@ export class AdminService {
     );
   }
 
+  loadAllModRefs$(page = 0): Observable<null> {
+    const alreadyLoaded = page * this.config.fetchBatch;
+    if (alreadyLoaded >= this.config.maxTemplates + this.config.maxPlugins) {
+      console.error(`Too many receipts to load, only loaded ${alreadyLoaded}. Increase maxTemplates or maxPlugins to load more.`);
+      return of(null);
+    }
+    return this.refs.page({query: this.localOriginQuery + ':plugin/mod/receipt', page, size: this.config.fetchBatch, sort: ['modified,DESC']}).pipe(
+      retry(10),
+      tap(batch => this.receiptToStatus(batch.content)),
+      switchMap(batch => page + 1 < batch.page.totalPages ? this.loadAllModRefs$(page + 1) : of(null)),
+    );
+  }
+
   private loadReceipts$(page = 0): Observable<null> {
     if (!this.store.account.admin) return of(null);
     const alreadyLoaded = page * this.config.fetchBatch;
@@ -390,9 +404,14 @@ export class AdminService {
 
   private receiptToStatus(list: Ref[]) {
     for (const r of list) {
-      const mod = r.title!
+      const mod = r.title!;
+      const receiptBundle = r.plugins?.['plugin/mod'];
+      const liveBundle = {
+        plugin: Object.values(this.status.plugins).filter(p => modId(p) === mod),
+        template: Object.values(this.status.templates).filter(t => modId(t) === mod),
+      };
       this.status.receipts[mod] = r;
-      if (!equalBundle(this.getInstalledMod(mod), r.plugins?.['plugin/mod'])) {
+      if (!equalBundle(liveBundle, receiptBundle)) {
         for (const p of Object.values(this.status.plugins)) {
           if (p?.config?.mod === mod) p._customChanges = true;
         }
@@ -963,11 +982,34 @@ export class AdminService {
   }
 
   getInstalledMod(mod: string) {
+    const receipt = this.status.receipts[mod]?.plugins?.['plugin/mod'];
+    if (receipt) return receipt;
     return {
       ...this.getMod(mod) || {}, // Refs, Exts, Users
       plugin: Object.values(this.status.plugins).filter(p => modId(p) === mod),
       template: Object.values(this.status.templates).filter(t => modId(t) === mod),
-    }
+    };
+  }
+
+  getCurrentMod(mod: string): Mod {
+    const receipt = this.status.receipts[mod]?.plugins?.['plugin/mod'];
+    const base = receipt || this.getMod(mod) || {};
+    const basePluginTags = new Set((base.plugin || []).map((p: Plugin) => p.tag));
+    const baseTemplateTags = new Set((base.template || []).map((t: Template) => t.tag));
+    const hasReceipt = !!receipt;
+    return {
+      ...base,
+      plugin: [
+        ...Object.values(this.status.plugins),
+        ...Object.values(this.status.disabledPlugins),
+      ].filter(p => p && (hasReceipt ? basePluginTags.has(p.tag) : modId(p) === mod))
+        .map(p => ({ ...(receipt?.plugin?.find((rp: Plugin) => rp.tag === p.tag) || {}), ...p, origin: '' })),
+      template: [
+        ...Object.values(this.status.templates),
+        ...Object.values(this.status.disabledTemplates),
+      ].filter(t => t && (hasReceipt ? baseTemplateTags.has(t.tag) : modId(t) === mod))
+        .map(t => ({ ...(receipt?.template?.find((rt: Template) => rt.tag === t.tag) || {}), ...t, origin: '' })),
+    };
   }
 
   installRef$(def: Ref, _: progress) {
@@ -1087,7 +1129,7 @@ export class AdminService {
     );
   }
 
-  installMod$(mod: string, _: progress): Observable<any> {
+  installMod$(mod: string, _: progress, logReceipt = true): Observable<any> {
     return this.install$(mod, this.getMod(mod)!, _);
   }
 
@@ -1107,6 +1149,7 @@ export class AdminService {
   }
 
   deleteMod$(mod: string, _: progress): Observable<any> {
+    const receipt = this.status.receipts[mod];
     return concat(...[
       of(null).pipe(tap(() => _($localize`Deleting ${mod} mod...`))),
       ...Object.values(this.status.plugins)
@@ -1115,6 +1158,11 @@ export class AdminService {
       ...Object.values(this.status.templates)
         .filter(t => modId(t) === mod)
         .map(t => this.deleteTemplate$(t!, _)),
+      ...(receipt ? [of(null).pipe(
+        switchMap(() => this.refs.delete(receipt.url, receipt.origin)),
+        tap(() => delete this.status.receipts[mod]),
+        catchError(() => of(null)),
+      )] : []),
     ]).pipe(toArray());
   }
 
@@ -1149,19 +1197,35 @@ export class AdminService {
     return !isEqual(clear(def), clear(status));
   }
 
-  logModReceipt$(mod: string, bundle: Mod, _: progress) {
+  private getModReceiptTag(mod: string): string | undefined {
+    const sanitized = mod
+      .replace(/[^a-zA-Z0-9 /]/g, '')
+      .replace(/[ /]+/g, '.')
+      .replace(/\.+/g, '.')
+      .replace(/^\.+|\.+$/g, '')
+      .toLowerCase();
+    if (!sanitized) return undefined;
+    return 'plugin/mod/receipt/' + sanitized;
+  }
+
+  logModReceipt$(mod: string, bundle: Mod, _: progress): Observable<any> {
+    const receiptTag = this.getModReceiptTag(mod);
+    if (!receiptTag) return of(null);
+    const sanitizedId = receiptTag.replace('plugin/mod/receipt/', '');
     const ref = {
-      url: `mod-receipt:${mod}`,
+      url: `internal:mod-receipt/${sanitizedId}`,
       origin: this.store.account.origin,
       title: mod,
-      tags: ['internal', 'plugin/mod/receipt'],
+      tags: ['internal', receiptTag],
       plugins: { 'plugin/mod': bundle },
     };
     return of(null).pipe(
       tap(() => _('\u00A0'.repeat(4) + $localize`Logging ${mod || ref.url} receipt...`)),
-      switchMap(() => this.refs.delete(ref.url, ref.origin)),
-      switchMap(() => this.refs.create(ref)),
-      tap(() => this.status.receipts[mod] = ref),
+      switchMap(() => this.refs.get(ref.url, ref.origin).pipe(
+        switchMap(existing => this.refs.update({ ...existing, ...ref, modified: existing.modified })),
+        catchError(err => err.status === 404 ? this.refs.create(ref) : throwError(() => err)),
+      )),
+      tap(() => this.status.receipts[mod] = ref as Ref),
       tap(() => _('', 1)),
     );
   }

@@ -4,13 +4,13 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnDestroy, TemplateRef, ViewChild, ViewContainerRef } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { forOwn, uniq } from 'lodash-es';
+import { forOwn, isEmpty, uniq } from 'lodash-es';
 import { catchError, concat, last, of, Subscription, throwError } from 'rxjs';
 import { Config, Mod } from '../../../model/tag';
-import { AdminService } from '../../../service/admin.service';
+import { AdminService, equalBundle } from '../../../service/admin.service';
 import { ModService } from '../../../service/mod.service';
 import { Store } from '../../../store/store';
-import { equalBundle, formatBundleDiff, merge3 } from '../../../util/diff';
+import { formatBundleDiff, merge3 } from '../../../util/diff';
 import { scrollToFirstInvalid } from '../../../util/form';
 import { configGroups, formSafeNames, modId } from '../../../util/format';
 import { printError } from '../../../util/http';
@@ -20,9 +20,13 @@ import { TemplatePortal } from '@angular/cdk/portal';
 
 interface ModUpdatePreview {
   mod: string;
+  current: Mod;
+  target: Mod;
   proposed: Mod;
   diffBase: Mod;
+  needsReview: boolean;
   conflict: boolean;
+  reason?: string;
 }
 
 @Component({
@@ -58,6 +62,7 @@ export class SettingsSetupPage implements OnDestroy {
     ...this.admin.def.plugins, ...this.admin.def.templates });
 
   private mergePopupRef?: OverlayRef;
+  private _loggedCustomChanges = new Set<string>();
 
   constructor(
     public admin: AdminService,
@@ -72,6 +77,7 @@ export class SettingsSetupPage implements OnDestroy {
       mods: fb.group(formSafeNames({...this.admin.def.plugins, ...this.admin.def.templates })),
     });
     this.clear();
+    this.admin.loadAllModRefs$().subscribe();
   }
 
   ngOnDestroy() {
@@ -119,7 +125,8 @@ export class SettingsSetupPage implements OnDestroy {
     }
     concat(
       ...uniq(deletes).map(m => this.admin.deleteMod$(m, _)),
-      ...uniq(installs).map(m => this.admin.installMod$(m, _))
+      ...uniq(installs).map(m => this.admin.installMod$(m, _, false)),
+      ...uniq(installs).map(m => this.admin.logModReceipt$(m, this.admin.getMod(m)!, _)),
     ).pipe(
       catchError((res: HttpErrorResponse) => {
         this.serverError = printError(res);
@@ -160,11 +167,12 @@ export class SettingsSetupPage implements OnDestroy {
       if (status._needsUpdate) mods.push(modId(status));
     }
     concat(...uniq(mods).map(mod => {
+      if (!this.hasPendingModUpdate({ config: { mod } } as any)) return of(null);
       const receipt = this.admin.getMod(mod)!;
       if (!this.admin.getTemplate('config/diff') || !this.hasCustomChangesMod(mod)) {
         return this.admin.updateMod$(mod, receipt, receipt, _);
       }
-      this.mergeState = this.getModDiff(mod);
+      this.mergeState = this.getModUpdatePreview(mod);
       if (this.mergeState?.conflict) {
         // skip
         return of(null)
@@ -201,7 +209,7 @@ export class SettingsSetupPage implements OnDestroy {
       });
       return;
     }
-    this.mergeState = this.getModDiff(modId(config));
+    this.mergeState = this.getModUpdatePreview(modId(config));
     if (this.mergeState?.conflict) {
       this.openMergePopup();
     } else {
@@ -214,43 +222,145 @@ export class SettingsSetupPage implements OnDestroy {
 
   diffMod(config: Config) {
     this.serverError = [];
-    this.mergeState = this.getModDiff(modId(config));
+    this.mergeState = this.getModUpdatePreview(modId(config));
     this.openMergePopup();
   }
 
-  private getModDiff(mod: string): ModUpdatePreview {
+  init() {
+    this._loggedCustomChanges.clear();
+    const processedMods = new Set<string>();
+    const computeCustomChanges = (mod: string) => {
+      if (processedMods.has(mod)) return;
+      processedMods.add(mod);
+      const current = this.admin.getCurrentMod(mod);
+      const installed = this.admin.getInstalledMod(mod);
+      const changed = !equalBundle(
+        { plugin: current.plugin, template: current.template },
+        installed ? { plugin: (installed as Mod).plugin, template: (installed as Mod).template } : undefined,
+      );
+      const allPlugins = [...Object.values(this.admin.status.plugins), ...Object.values(this.admin.status.disabledPlugins)];
+      const allTemplates = [...Object.values(this.admin.status.templates), ...Object.values(this.admin.status.disabledTemplates)];
+      const currentPluginTags = new Set((current.plugin || []).map(p => p.tag));
+      const currentTemplateTags = new Set((current.template || []).map(t => t.tag));
+      for (const p of allPlugins) {
+        if (p && currentPluginTags.has(p.tag)) (p as any)._customChanges ??= changed;
+      }
+      for (const t of allTemplates) {
+        if (t && currentTemplateTags.has(t.tag)) (t as any)._customChanges ??= changed;
+      }
+    };
+    for (const p of Object.values(this.admin.status.plugins)) {
+      if (p) { const m = modId(p); if (m) computeCustomChanges(m); }
+    }
+    for (const t of Object.values(this.admin.status.templates)) {
+      if (t) { const m = modId(t); if (m) computeCustomChanges(m); }
+    }
+    // Also process mods from receipts (templates may have lost their mod field)
+    for (const mod of Object.keys(this.admin.status.receipts)) {
+      computeCustomChanges(mod);
+    }
+  }
+
+  modModified(config: Config): boolean {
+    const mod = modId(config);
+    if (!mod) return false;
+    const currentMod = this.admin.getCurrentMod(mod);
+    if (isEmpty(currentMod.plugin) && isEmpty(currentMod.template)) return false;
+    if (!this.admin.status.receipts[mod] && config.config?.version === undefined) return false;
+    const current = this.admin.getCurrentMod(mod);
+    const installed = this.admin.getInstalledMod(mod);
+    const changed = !equalBundle(
+      { plugin: current.plugin, template: current.template },
+      installed ? { plugin: (installed as Mod).plugin, template: (installed as Mod).template } : undefined,
+    );
+    const allPlugins = [...Object.values(this.admin.status.plugins), ...Object.values(this.admin.status.disabledPlugins)];
+    const allTemplates = [...Object.values(this.admin.status.templates), ...Object.values(this.admin.status.disabledTemplates)];
+    const currentPluginTags = new Set((current.plugin || []).map(p => p.tag));
+    const currentTemplateTags = new Set((current.template || []).map(t => t.tag));
+    let result = false;
+    for (const p of allPlugins) {
+      if (!p || !currentPluginTags.has(p.tag)) continue;
+      if ((p as any)._customChanges === undefined) (p as any)._customChanges = changed;
+      if ((p as any)._customChanges) {
+        if (!this._loggedCustomChanges.has(p.tag)) {
+          this._loggedCustomChanges.add(p.tag);
+          console.log('Has custom changes:', p.tag);
+        }
+        result = true;
+      }
+    }
+    for (const t of allTemplates) {
+      if (!t || !currentTemplateTags.has(t.tag)) continue;
+      if ((t as any)._customChanges === undefined) (t as any)._customChanges = changed;
+      if ((t as any)._customChanges) {
+        if (!this._loggedCustomChanges.has(t.tag)) {
+          this._loggedCustomChanges.add(t.tag);
+          console.log('Has custom changes:', t.tag);
+        }
+        result = true;
+      }
+    }
+    return result;
+  }
+
+  hasPendingModUpdate(config: Config): boolean {
+    if (!this.needsModUpdate(config)) return false;
+    const mod = modId(config);
+    return !!(
+      Object.values(this.admin.status.plugins).find(p => p && modId(p) === mod && p.config?.version !== undefined) ||
+      Object.values(this.admin.status.templates).find(t => t && modId(t) === mod && t.config?.version !== undefined)
+    );
+  }
+
+  private getModUpdatePreview(mod: string): ModUpdatePreview {
     const target = this.admin.getMod(mod)!;
-    const current = this.admin.getInstalledMod(mod);
-    if (!this.admin.getPlugin('plugin/mod/receipt')) {
+    const current = this.admin.getCurrentMod(mod);
+    const base = this.admin.getInstalledMod(mod);
+    if (!this.admin.getPlugin('plugin/mod/receipt') || !base) {
       return {
         mod,
+        current,
+        target,
         proposed: JSON.parse(formatBundleDiff(target)),
         diffBase: JSON.parse(formatBundleDiff(current)),
+        needsReview: !!this.hasCustomChangesMod(mod),
         conflict: false,
       };
     }
-    const base = this.admin.status.receipts[mod]?.plugins?.['plugin/mod'];
-    if (base && !equalBundle(current, base)) {
-      const merged = merge3(formatBundleDiff(current), formatBundleDiff(base), formatBundleDiff(target));
+    if (!equalBundle(
+      { plugin: current.plugin, template: current.template },
+      { plugin: (base as Mod).plugin, template: (base as Mod).template },
+    )) {
+      const merged = merge3(formatBundleDiff(current), formatBundleDiff(base as Mod), formatBundleDiff(target));
       if (!merged.result || merged.conflict) {
         return {
           mod,
+          current,
+          target,
           proposed: JSON.parse(formatBundleDiff(current)),
           diffBase: JSON.parse(formatBundleDiff(target)),
+          needsReview: true,
           conflict: true,
+          reason: 'conflict',
         };
       }
       return {
         mod,
+        current,
+        target,
         proposed: JSON.parse(merged.result),
         diffBase: JSON.parse(formatBundleDiff(target)),
+        needsReview: false,
         conflict: false,
       };
     }
     return {
       mod,
+      current,
+      target,
       proposed: JSON.parse(formatBundleDiff(target)),
       diffBase: JSON.parse(formatBundleDiff(current)),
+      needsReview: false,
       conflict: false,
     };
   }
@@ -273,8 +383,8 @@ export class SettingsSetupPage implements OnDestroy {
   }
 
   canDiffMod(config: Config) {
-    if (!this.admin.getTemplate('config/diff')) return;
-    return this.needsModUpdate(config) || this.hasCustomChanges(config);
+    if (!this.admin.getTemplate('config/diff')) return false;
+    return !!(this.needsModUpdate(config) || this.hasCustomChanges(config) || this.modModified(config));
   }
 
   private openMergePopup() {
@@ -316,7 +426,7 @@ export class SettingsSetupPage implements OnDestroy {
     if (!this.mergeState || !bundle) return;
     this.serverError = [];
     const _ = (msg?: string) => this.installMessages.push(msg!);
-    this.mergeSaving = this.admin.updateMod$(this.mergeState.mod, bundle, this.admin.getMod(this.mergeState.mod)!, _)
+    this.mergeSaving = this.admin.updateMod$(this.mergeState.mod, bundle, this.mergeState.target!, _)
       .pipe(catchError((res: HttpErrorResponse) => {
         delete this.mergeSaving;
         return throwError(() => res);

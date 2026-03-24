@@ -44,7 +44,7 @@ describe('SettingsSetupPage', () => {
         return !isEqual(def?.config || {}, status?.config || {});
       },
       getInstalledMod(mod: string) {
-        return admin.status.modRefs[mod]?.plugins?.['plugin/mod'];
+        return admin.status.receipts[mod]?.plugins?.['plugin/mod'];
       },
       getCurrentMod(mod: string) {
         const base = admin.getInstalledMod(mod) || admin.getMod(mod) || {};
@@ -73,7 +73,7 @@ describe('SettingsSetupPage', () => {
       updateTemplate$: vi.fn(() => of(null)),
       updateMod$: vi.fn(() => of(null)),
       def: { plugins: {}, templates: {} },
-      status: { plugins: {}, templates: {}, disabledPlugins: {}, disabledTemplates: {}, modRefs: {} }
+      status: { plugins: {}, templates: {}, disabledPlugins: {}, disabledTemplates: {}, receipts: {} }
     };
     await TestBed.configureTestingModule({
       imports: [
@@ -208,7 +208,7 @@ describe('SettingsSetupPage', () => {
       origin: '@local',
       config: { mod: 'Wiki', version: 2, description: 'edited' },
     };
-    admin.status.modRefs.Wiki = {
+    admin.status.receipts.Wiki = {
       url: 'mod:Wiki',
       origin: '@local',
       plugins: {
@@ -237,7 +237,7 @@ describe('SettingsSetupPage', () => {
       origin: '@local',
       config: { mod: 'Wiki', description: 'edited template' },
     };
-    admin.status.modRefs.Wiki = {
+    admin.status.receipts.Wiki = {
       url: 'mod:Wiki',
       origin: '@local',
       plugins: {
@@ -270,7 +270,7 @@ describe('SettingsSetupPage', () => {
       origin: '@local',
       config: { mod: 'Wiki', version: 2, description: 'edited' },
     };
-    admin.status.modRefs.Wiki = {
+    admin.status.receipts.Wiki = {
       url: 'mod:Wiki',
       origin: '@local',
       plugins: {
@@ -298,7 +298,7 @@ describe('SettingsSetupPage', () => {
       origin: '@local',
       config: { mod: 'Wiki', version: 2, description: 'edited' },
     };
-    admin.status.modRefs.Wiki = {
+    admin.status.receipts.Wiki = {
       url: 'mod:Wiki',
       origin: '@local',
       plugins: {
@@ -318,7 +318,7 @@ describe('SettingsSetupPage', () => {
       origin: '@local',
       config: { mod: 'Other', version: 1, description: 'edited' },
     };
-    admin.status.modRefs.Other = {
+    admin.status.receipts.Other = {
       url: 'mod:Other',
       origin: '@local',
       plugins: {
@@ -340,7 +340,7 @@ describe('SettingsSetupPage', () => {
       origin: '@local',
       config: { description: 'edited' },
     };
-    admin.status.modRefs.Wiki = {
+    admin.status.receipts.Wiki = {
       url: 'mod:Wiki',
       origin: '@local',
       plugins: {
@@ -400,7 +400,7 @@ describe('SettingsSetupPage', () => {
       config: { mod: 'Wiki', description: 'edited' },
       _needsUpdate: true,
     };
-    admin.status.modRefs.Wiki = {
+    admin.status.receipts.Wiki = {
       url: 'mod:Wiki',
       origin: '@local',
       plugins: {
@@ -428,7 +428,7 @@ describe('SettingsSetupPage', () => {
       config: { mod: 'Wiki', description: 'edited' },
       _needsUpdate: true,
     };
-    admin.status.modRefs.Wiki = {
+    admin.status.receipts.Wiki = {
       url: 'mod:Wiki',
       origin: '@local',
       plugins: {
@@ -454,7 +454,7 @@ describe('SettingsSetupPage', () => {
       origin: '@local',
       config: { mod: 'Wiki', version: 1 },
     };
-    admin.status.modRefs.Wiki = {
+    admin.status.receipts.Wiki = {
       url: 'mod:Wiki',
       origin: '@local',
       plugins: {
@@ -498,7 +498,7 @@ describe('SettingsSetupPage', () => {
       modifiedString: '2024-01-02T00:00:00Z',
       config: { mod: 'Wiki', version: 1 },
     };
-    admin.status.modRefs.Wiki = {
+    admin.status.receipts.Wiki = {
       url: 'mod:Wiki',
       origin: '@local',
       plugins: {
@@ -523,7 +523,7 @@ describe('SettingsSetupPage', () => {
       config: { mod: 'Wiki', version: 1 },
       _needsUpdate: true,
     };
-    admin.status.modRefs.Wiki = {
+    admin.status.receipts.Wiki = {
       url: 'mod:Wiki',
       origin: '@local',
       plugins: {
@@ -541,7 +541,7 @@ describe('SettingsSetupPage', () => {
 
 
   it('should ignore stale installed mod receipts when the mod is not currently installed', () => {
-    admin.status.modRefs.Wiki = {
+    admin.status.receipts.Wiki = {
       url: 'internal:55555555-5555-4555-8555-555555555555',
       origin: '@local',
       plugins: {
@@ -563,7 +563,7 @@ describe('SettingsSetupPage', () => {
       origin: '@local',
       config: { mod: 'Wiki', version: 2, description: 'edited' },
     };
-    admin.status.modRefs.Wiki = {
+    admin.status.receipts.Wiki = {
       url: 'mod:Wiki',
       origin: '@local',
       plugins: {
@@ -584,7 +584,7 @@ describe('SettingsSetupPage', () => {
       origin: '@local',
       config: { mod: 'Wiki', version: 2 },
     };
-    admin.status.modRefs.Wiki = {
+    admin.status.receipts.Wiki = {
       url: 'mod:Wiki',
       origin: '@local',
       plugins: {
@@ -646,7 +646,7 @@ describe('SettingsSetupPage', () => {
       origin: '@local',
       config: { mod: 'Wiki', version: 1, description: 'edited' },
     };
-    admin.status.modRefs.Wiki = {
+    admin.status.receipts.Wiki = {
       url: 'mod:Wiki',
       origin: '@local',
       plugins: {
@@ -679,7 +679,7 @@ describe('SettingsSetupPage', () => {
       config: { mod: 'Wiki', version: 1 },
       _needsUpdate: true,
     };
-    admin.status.modRefs.Wiki = {
+    admin.status.receipts.Wiki = {
       url: 'mod:Wiki',
       origin: '@local',
       plugins: {
