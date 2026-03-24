@@ -115,6 +115,48 @@ describe('SettingsSetupPage', () => {
     expect(component).toBeTruthy();
   });
 
+  it('should select only visible mods when experiments are disabled', () => {
+    component.modGroups = {
+      plugin: [
+        ['plugin/wiki', { tag: 'plugin/wiki', config: { mod: 'Wiki' } }],
+        ['plugin/lab', { tag: 'plugin/lab', config: { mod: 'Lab', experimental: true } }],
+      ],
+    } as any;
+    component.adminForm = new UntypedFormGroup({
+      mods: new UntypedFormGroup({
+        'plugin/wiki': new UntypedFormControl(false),
+        'plugin/lab': new UntypedFormControl(false),
+      }),
+    });
+
+    component.selectAll();
+
+    expect(component.adminForm.value.mods['plugin/wiki']).toBe(true);
+    expect(component.adminForm.value.mods['plugin/lab']).toBe(false);
+  });
+
+  it('should select installed experimental mods even when experiments are disabled', () => {
+    admin.status.plugins['plugin/lab'] = {
+      tag: 'plugin/lab',
+      origin: '@local',
+      config: { mod: 'Lab', experimental: true },
+    };
+    component.modGroups = {
+      plugin: [
+        ['plugin/lab', { tag: 'plugin/lab', config: { mod: 'Lab', experimental: true } }],
+      ],
+    } as any;
+    component.adminForm = new UntypedFormGroup({
+      mods: new UntypedFormGroup({
+        'plugin/lab': new UntypedFormControl(false),
+      }),
+    });
+
+    component.selectAll();
+
+    expect(component.adminForm.value.mods['plugin/lab']).toBe(true);
+  });
+
   it('should preload installed mod receipts on setup page load', async () => {
     admin.def.plugins['plugin/wiki'] = {
       tag: 'plugin/wiki',

@@ -5,7 +5,7 @@ import { TemplatePortal } from '@angular/cdk/portal';
 import { Component, OnDestroy, TemplateRef, ViewChild, ViewContainerRef } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { forOwn, isEqual, uniq } from 'lodash-es';
+import { isEqual, uniq } from 'lodash-es';
 import { catchError, concat, EMPTY, last, Subscription, throwError } from 'rxjs';
 import { Plugin, writePlugin } from '../../../model/plugin';
 import { Config, Mod } from '../../../model/tag';
@@ -200,8 +200,8 @@ export class SettingsSetupPage implements OnDestroy {
 
   selectAll() {
     this.selectAllToggle = !this.selectAllToggle;
-    const sa = (fg: UntypedFormGroup) => forOwn(fg.controls, c => c.setValue(this.selectAllToggle));
-    sa(this.adminForm.get('mods') as UntypedFormGroup);
+    const mods = this.adminForm.get('mods') as UntypedFormGroup;
+    this.getVisibleModFormNames().forEach(formName => mods.get(formName)?.setValue(this.selectAllToggle));
   }
 
   updateMod(config: Config) {
@@ -379,6 +379,17 @@ export class SettingsSetupPage implements OnDestroy {
       ...this.admin.status.plugins, ...this.admin.status.templates,
       ...this.admin.def.plugins, ...this.admin.def.templates,
     });
+  }
+
+  private getVisibleModFormNames() {
+    return Object.values(this.modGroups)
+      .flatMap(group => group
+        .filter(([, mod]) => this.isVisibleMod(mod))
+        .map(([formName]) => formName));
+  }
+
+  private isVisibleMod(config: Config) {
+    return this.experiments || !config.config?.experimental || !!this.installed(config);
   }
 
   private getModModification(config: Config) {
