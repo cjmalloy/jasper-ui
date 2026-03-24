@@ -12,7 +12,7 @@
 
     <span><!-- Buttons --></span>
     <span class="buttons right">
-      @if (hasPendingUpdates()) {
+      @if (store.view.updates) {
         <button type="button" (click)="updateAll()" i18n>🌟️ Update All</button>
       }
       @if (selectAllToggle) {
@@ -39,22 +39,22 @@
       <label [style.text-transform]="'capitalize'" i18n>{{ group.key }}</label>
       <div formGroupName="mods" class="bubble">
         @for (e of group.value; track e[0]) {
-          @let formName = e[0];
-          @let mod = e[1];
-          @if (experiments || !mod.config?.experimental || installed(mod)) {
-            <div [title]="mod.config?.description || ''" class="mod-row nowrap" [class.deleted]="disabled(mod)">
-              <input id="mod-{{ modLabel(e) }}" type="checkbox" [formControlName]="formName">
-              <label for="mod-{{ modLabel(e) }}" [title]="mod.config?.description || ''">{{ mod.config?.mod || mod.name || mod.tag || 'root' }}@if (mod._customChanges) {<span class="modified-indicator">*</span>}</label>
-              @if (mod.config?.experimental) {
+          @let key = e[0];
+          @let c = e[1];
+          @if (experiments || !c.config?.experimental || installed(c)) {
+            <div [title]="c.config?.description || ''" class="mod-row nowrap" [class.deleted]="disabled(c)">
+              <input id="mod-{{ modLabel(e) }}" type="checkbox" [formControlName]="key">
+              <label for="mod-{{ modLabel(e) }}" [title]="c.config?.description || ''">{{ c.config?.mod || c.name || c.tag || 'root' }}@if (hasCustomChanges(c)) {<span class="modified-indicator">*</span>}</label>
+              @if (c.config?.experimental) {
                 <span>🧪️</span>
               }
-              @if (hasPendingModUpdate(mod) || canDiffMod(mod)) {
+              @if (needsModUpdate(c) || canDiffMod(c)) {
                 <span class="update">
-                  @if (hasPendingModUpdate(mod)) {
-                    <span class="fake-link no-select mod-update-link" (click)="updateMod(mod)" i18n>🌟️ update</span>
+                  @if (needsModUpdate(c)) {
+                    <span class="fake-link no-select mod-update-link" (click)="updateMod(c)" i18n>🌟️ update</span>
                   }
-                  @if (canDiffMod(mod)) {
-                    <span class="fake-link no-select mod-diff-link" (click)="diffMod(mod)" i18n>🔀 diff</span>
+                  @if (canDiffMod(c)) {
+                    <span class="fake-link no-select mod-diff-link" (click)="diffMod(c)" i18n>🔀 diff</span>
                   }
                 </span>
               }

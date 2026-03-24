@@ -80,7 +80,7 @@ export class DiffComponent<T extends Ref | Ext | User | Plugin | Template | Mod>
     });
   }
 
-  getModifiedContent(): any | null {
+  getModifiedContent(): T | null {
     try {
       return JSON.parse(this.modifiedModel.code);
     } catch (e) {
