@@ -81,7 +81,7 @@
     "@types/lodash-es": "^4.17.12",
     "@types/luxon": "^3.7.1",
     "@types/qrcode": "^1.5.6",
-    "@vitest/ui": "^4.1.1",
+    "@vitest/ui": "^4.1.2",
     "jsdom": "^29.0.1",
     "patch-package": "^8.0.1",
     "raw-loader": "^4.0.2",
