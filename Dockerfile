@@ -17,7 +17,7 @@ CMD mkdir -p /report && \
     (if [ -d html ]; then cp -r html/* /report/ 2>/dev/null || true; fi) && \
     exit $(cat /report/exit-code.txt)
 
-FROM nginx:1.29.6-alpine3.23-slim AS deploy
+FROM nginx:1.29.7-alpine3.23-slim AS deploy
 RUN apk add --no-cache jq moreutils
 WORKDIR /var/lib/jasper/
 COPY --from=builder /app/dist/jasper-ui/browser ./
