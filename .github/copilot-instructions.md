@@ -202,6 +202,9 @@ npm run build
 - There should be NO "No translation found" warnings if all source-only entries are included
 - Verify there are no errors for entries that should have translations
 
+#### Step 7: Bump versions
+If a versioned plugin or template was affected, bump the version number.
+
 ### Configuration
 Translation locales are configured in `angular.json` under `projects.jasper-ui.i18n.locales`. The format is:
 ```json
