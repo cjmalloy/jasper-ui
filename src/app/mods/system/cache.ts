@@ -24,7 +24,7 @@ export const cachePlugin: Plugin = {
       { scheme: 'cache:', label: $localize`cache:`, group: $localize`Schemes 🏳️️`},
     ],
     sorts: [
-      { sort: 'plugins->_plugin/cache->contentLength:num', label: '🗜️ size', title: $localize`Cache size` },
+      { sort: 'plugins->_plugin/cache->contentLength:num', label: $localize`🗜️ size`, title: $localize`Cache size` },
     ],
     sortHelp: $localize`Sort by cache size.`,
     description: $localize`Cache remote resources locally.
