@@ -2645,6 +2645,10 @@ Home / End: 先頭/末尾へ移動
         <source>🗜️ cache</source>
         <target>🗜️ キャッシュ</target>
       </trans-unit>
+      <trans-unit id="5342816773508411906" datatype="html">
+        <source>🗜️ size</source>
+        <target>🗜️ サイズ</target>
+      </trans-unit>
       <trans-unit id="455557898720507154" datatype="html">
         <source>🗜️</source>
       </trans-unit>
