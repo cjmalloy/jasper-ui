@@ -161,7 +161,7 @@ export class TabsComponent implements AfterViewInit {
   get visible() {
     const current = this.currentTabWidth;
     if (!current) return this.options.length;
-    if (this.floatingTabs) return 0;
+    if (this.config.mini) return 0;
     const el = this.el.nativeElement;
     const width = el.offsetWidth - 2;
     let result = 1;
@@ -174,7 +174,7 @@ export class TabsComponent implements AfterViewInit {
         continue;
       }
       childWidth += w;
-      if (childWidth < width) {
+      if (childWidth + current < width) {
         result++;
       } else {
         return result;
