@@ -430,6 +430,7 @@ select {
     }
     & > button {
       min-width: 28px;
+      line-height: 24px;
     }
     label {
       border: 1px dashed var(--border) !important;
