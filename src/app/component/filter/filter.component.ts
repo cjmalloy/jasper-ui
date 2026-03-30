@@ -82,6 +82,8 @@ export class FilterComponent implements OnChanges, OnDestroy {
         this.pushFilter({
           label: $localize`Queries 🔎️️`, filters: [],
         }, {
+          label: $localize`Lists ☰`, filters: [],
+        }, {
           label: $localize`Media 🎬️`, filters: [],
         }, {
           label: $localize`Games 🕹️`, filters: [],

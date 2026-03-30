@@ -16,6 +16,9 @@ export const voteUpPlugin: Plugin = {
       { sort: 'plugins->plugin/user/vote:top', label: '❤️ top', title: $localize`Total activity` },
       { sort: 'plugins->plugin/user/vote:decay', label: '🔥️ hot', title: $localize`Decaying score` },
     ],
+    filters: [
+      { user: 'plugin/user/vote', label: $localize`⬆️ voted`, title: $localize`My voted Refs`, group: $localize`Lists ☰` },
+    ],
     // language=CSS
     css: `.voting {
       display: flex;
