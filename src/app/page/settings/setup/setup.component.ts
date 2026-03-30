@@ -326,6 +326,8 @@ export class SettingsSetupPage implements OnDestroy {
 
   cancelMerge() {
     delete this.mergeState;
+    this.mergeSaving?.unsubscribe();
+    delete this.mergeSaving;
     this.mergePopupSub.unsubscribe();
     this.mergePopupSub = new Subscription();
     this.mergePopupRef?.dispose();
