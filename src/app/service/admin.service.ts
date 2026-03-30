@@ -405,7 +405,9 @@ export class AdminService {
       if (this.store.view.modChanges.has(mod)) continue;
       const current = this.getInstalledMod(mod);
       if (!current) continue;
-      runInAction(() => this.store.view.modChanges.set(mod, !equalBundle(current, this.getMod(mod))));
+      const target = this.getMod(mod);
+      if (!target) continue;
+      runInAction(() => this.store.view.modChanges.set(mod, !equalBundle(current, target)));
     }
   }
 
