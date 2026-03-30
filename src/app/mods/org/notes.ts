@@ -72,8 +72,8 @@ export const notesTemplate: Template = {
     defaultCols: 0, // Leave to CSS screen size detection, but show cols dropdown
     badges: ['reminder', 'important'],
     queryFilters: [
-      { query: 'reminder', label: $localize`🎗️ Reminder` },
-      { query: 'important', label: $localize`‼️ Important` },
+      { query: 'reminder', label: $localize`🎗️ reminder` },
+      { query: 'important', label: $localize`‼️ important` },
     ],
     defaultSort: ['modified'],
     addTags: [],
