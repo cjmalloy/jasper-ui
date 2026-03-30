@@ -65,11 +65,11 @@ export function equalBundle(a?: Mod, b?: Mod) {
 export function clearMod<T extends Mod | undefined>(mod: T, strict = true): T {
   if (!mod) return mod;
   const result = { } as any;
-  if (!isEmpty(mod.ref)) result.ref = mod.ref!.map((r: Ref) => writeRef(r));
-  if (!isEmpty(mod.ext)) result.ext = mod.ext!.map((e: Ext) => writeExt(e));
-  if (!isEmpty(mod.user)) result.user = mod.user!.map((u: User) => writeUser(u));
-  if (!isEmpty(mod.plugin)) result.plugin = mod.plugin!.map((p: Plugin) => clearConfig(writePlugin(p), strict));
-  if (!isEmpty(mod.template)) result.template = mod.template!.map((t: Template) => clearConfig(writeTemplate(t), strict));
+  if (!isEmpty(mod.ref)) result.ref = sortBy(mod.ref!.map((r: Ref) => writeRef(r)), 'url');
+  if (!isEmpty(mod.ext)) result.ext = sortBy(mod.ext!.map((e: Ext) => writeExt(e)), 'tag');
+  if (!isEmpty(mod.user)) result.user = sortBy(mod.user!.map((u: User) => writeUser(u)), 'tag');
+  if (!isEmpty(mod.plugin)) result.plugin = sortBy(mod.plugin!.map((p: Plugin) => clearConfig(writePlugin(p), strict)), 'tag');
+  if (!isEmpty(mod.template)) result.template = sortBy(mod.template!.map((t: Template) => clearConfig(writeTemplate(t), strict)), 'tag');
   return result;
 }
 

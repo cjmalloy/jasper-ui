@@ -44,7 +44,8 @@ export class ViewStore {
   exts: Ext[] = [];
   extTemplates: Template[] = [];
   selectedUser?: User = {} as any;
-  updates = false;
+  modChanges = new Map<string, boolean>();
+  modUpdates = new Set<string>();
   inboxTabs: Plugin[] = [];
   settingsTabs: Plugin[] = [];
 
@@ -481,9 +482,5 @@ export class ViewStore {
 
   get repost() {
     return this.ref?.sources?.[0] && hasTag('plugin/repost', this.ref);
-  }
-
-  updateNotify() {
-    return this.updates = true;
   }
 }

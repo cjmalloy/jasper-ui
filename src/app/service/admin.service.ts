@@ -236,23 +236,21 @@ export class AdminService {
   get init$() {
     this._cache.clear();
     MemoCache.clear(this);
-    runInAction(() => this.store.view.updates = false);
+    runInAction(() => {
+      this.store.view.modChanges.clear();
+      this.store.view.modUpdates.clear();
+    });
     this.status.plugins = {};
     this.status.disabledPlugins = {};
     this.status.templates = {};
     this.status.disabledTemplates = {};
     this.status.receipts = {};
-    return forkJoin([this.loadPlugins$(), this.loadTemplates$(), this.loadReceipts$()]).pipe(
+    return forkJoin([this.loadPlugins$(), this.loadTemplates$()]).pipe(
       switchMap(() => this.firstRun$),
-      tap(() => this.updates),
+      switchMap(() => this.loadReceipts$()),
+      tap(() => this.checkMissingReceipts()),
       catchError(() => of(null)),
     );
-  }
-
-  get updates() {
-    for (const p of Object.values(this.status.plugins)) if (p?._needsUpdate) return this.store.view.updateNotify();
-    for (const t of Object.values(this.status.templates)) if (t?._needsUpdate) return this.store.view.updateNotify();
-    return false;
   }
 
   get firstRun$(): Observable<any> {
@@ -366,9 +364,9 @@ export class AdminService {
         this.status.plugins[p.tag] = p;
         this.def.plugins[p.tag] ||= clear(p);
       }
-      p._needsUpdate ||= this.needsUpdate(this.def.plugins[p.tag], p);
-      if (p._needsUpdate) {
+      if (this.needsUpdate(this.def.plugins[p.tag], p)) {
         console.log(p.tag + ' needs update');
+        runInAction(() => this.store.view.modUpdates.add(modId(p)));
       }
     }
   }
@@ -381,9 +379,9 @@ export class AdminService {
         this.status.templates[t.tag] = t;
         this.def.templates[t.tag] ||= t;
       }
-      t._needsUpdate ||= this.needsUpdate(this.def.templates[t.tag], t);
-      if (t._needsUpdate) {
+      if (this.needsUpdate(this.def.templates[t.tag], t)) {
         console.log((t.tag || 'Root template') + ' needs update');
+        runInAction(() => this.store.view.modUpdates.add(modId(t)));
       }
     }
   }
@@ -391,15 +389,23 @@ export class AdminService {
   private receiptToStatus(list: Ref[]) {
     for (const r of list) {
       const mod = r.title!
+      if (this.store.view.modChanges.has(mod)) continue;
+      const current = this.getInstalledMod(mod);
+      if (!current) continue;
       this.status.receipts[mod] = r;
-      if (!equalBundle(this.getInstalledMod(mod), r.plugins?.['plugin/mod'])) {
-        for (const p of Object.values(this.status.plugins)) {
-          if (p?.config?.mod === mod) p._customChanges = true;
-        }
-        for (const t of Object.values(this.status.templates)) {
-          if (t?.config?.mod === mod) t._customChanges = true;
-        }
-      }
+      runInAction(() => this.store.view.modChanges.set(mod, !equalBundle(current, r.plugins?.['plugin/mod'])));
+    }
+  }
+
+  private checkMissingReceipts() {
+    for (const mod of uniq([
+      ...Object.values(this.status.plugins).map(p => modId(p)),
+      ...Object.values(this.status.templates).map(t => modId(t)),
+    ])) {
+      if (this.store.view.modChanges.has(mod)) continue;
+      const current = this.getInstalledMod(mod);
+      if (!current) continue;
+      runInAction(() => this.store.view.modChanges.set(mod, !equalBundle(current, this.getMod(mod))));
     }
   }
 
@@ -963,11 +969,15 @@ export class AdminService {
   }
 
   getInstalledMod(mod: string) {
-    return {
-      ...this.getMod(mod) || {}, // Refs, Exts, Users
+    const result =  {
       plugin: Object.values(this.status.plugins).filter(p => modId(p) === mod),
       template: Object.values(this.status.templates).filter(t => modId(t) === mod),
-    }
+    };
+    if (!result.plugin.length && !result.template.length) return undefined;
+    return {
+      ...this.getMod(mod) || {}, // Refs, Exts, Users
+      ...result
+    };
   }
 
   installRef$(def: Ref, _: progress) {

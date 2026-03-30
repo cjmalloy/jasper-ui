@@ -152,12 +152,12 @@ export class SettingsSetupPage implements OnDestroy {
     const _ = (msg?: string) => this.installMessages.push(msg!);
     const mods: string[] = [];
     for (const plugin in this.admin.status.plugins) {
-      const status = this.admin.status.plugins[plugin];
-      if (status._needsUpdate) mods.push(modId(status));
+      const m = modId(this.admin.status.plugins[plugin]);
+      if (this.store.view.modUpdates.has(m)) mods.push(m);
     }
     for (const template in this.admin.status.templates) {
-      const status = this.admin.status.templates[template];
-      if (status._needsUpdate) mods.push(modId(status));
+      const m = modId(this.admin.status.templates[template]);
+      if (this.store.view.modUpdates.has(m)) mods.push(m);
     }
     concat(...uniq(mods).map(mod => {
       const receipt = this.admin.getMod(mod)!;
@@ -219,8 +219,9 @@ export class SettingsSetupPage implements OnDestroy {
   }
 
   private getModDiff(mod: string): ModUpdatePreview {
-    const target = this.admin.getMod(mod)!;
     const current = this.admin.getInstalledMod(mod);
+    if (!current) throw new Error(`Mod ${mod} not installed`);
+    const target = this.admin.getMod(mod)!;
     if (!this.admin.getPlugin('plugin/mod/receipt')) {
       return {
         mod,
@@ -256,20 +257,15 @@ export class SettingsSetupPage implements OnDestroy {
   }
 
   needsModUpdate(config: Config) {
-    const mod = modId(config);
-    return Object.values(this.admin.status.plugins).find(p => p && mod === modId(p) && p._needsUpdate) ||
-      Object.values(this.admin.status.templates).find(t => t && mod === modId(t) && t._needsUpdate);
+    return this.store.view.modUpdates.has(modId(config));
   }
 
   hasCustomChanges(config: Config) {
-    const mod = modId(config);
-    return Object.values(this.admin.status.plugins).find(p => p && mod === modId(p) && p._customChanges) ||
-      Object.values(this.admin.status.templates).find(t => t && mod === modId(t) && t._customChanges);
+    return this.store.view.modChanges.get(modId(config));
   }
 
   hasCustomChangesMod(mod: string) {
-    return Object.values(this.admin.status.plugins).find(p => p && mod === modId(p) && p._customChanges) ||
-      Object.values(this.admin.status.templates).find(t => t && mod === modId(t) && t._customChanges);
+    return this.store.view.modChanges.get(mod);
   }
 
   canDiffMod(config: Config) {
