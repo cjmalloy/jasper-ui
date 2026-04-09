@@ -21,7 +21,7 @@ function debugToken(role: string) {
 }
 
 test.describe.serial('Markdown multi action chooser', () => {
-  let url = '';
+  let title = '';
 
   test('turn on markdown mods', async ({ page }) => {
     await mod(page,
@@ -41,14 +41,28 @@ test.describe.serial('Markdown multi action chooser', () => {
 
   test('creates a pdf ref', async ({ page }) => {
     const pdfUrl = `https://example.com/test-${Date.now()}.pdf`;
+    title = `test-${Date.now()}.pdf`;
+    const authHeaders = {
+      Authorization: `Bearer ${debugToken('ROLE_USER')}`,
+    };
+    const csrfResponse = await page.request.get('http://localhost:8081/api/v1/user/whoami', {
+      headers: authHeaders,
+    });
+    const csrf = csrfResponse.headers()['set-cookie']?.match(/XSRF-TOKEN=([^;]+)/)?.[1];
+
+    expect(csrfResponse.ok()).toBeTruthy();
+    expect(csrf).toBeTruthy();
+
     const response = await page.request.post('http://localhost:8081/api/v1/ref', {
       headers: {
-        Authorization: `Bearer ${debugToken('ROLE_USER')}`,
+        ...authHeaders,
+        'X-XSRF-TOKEN': csrf!,
+        Cookie: `XSRF-TOKEN=${csrf}`,
       },
       data: {
         url: pdfUrl,
         origin: '',
-        title: 'test.pdf',
+        title,
         published: new Date().toISOString(),
         tags: ['public', '+user/debug', 'plugin/pdf'],
         plugins: {
@@ -60,11 +74,12 @@ test.describe.serial('Markdown multi action chooser', () => {
     });
 
     expect(response.ok()).toBeTruthy();
-    url = `/ref/e/${encodeURIComponent(pdfUrl)}`;
   });
 
   test('shows choices and remembers the selection', async ({ page }) => {
-    await page.goto(url + '?debug=USER', { waitUntil: 'networkidle' });
+    await page.goto('/?debug=USER', { waitUntil: 'networkidle' });
+    await page.locator('.ref', { hasText: title }).first().locator('a', { hasText: 'permalink' }).click();
+    await expect(page.locator('.full-page.ref .actions')).toBeVisible({ timeout: 15_000 });
 
     await page.locator('.full-page.ref .actions .show-more').click();
     await page.locator('.advanced-actions .multi-action-trigger', { hasText: 'markdown' }).click();

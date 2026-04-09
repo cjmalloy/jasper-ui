@@ -157,9 +157,13 @@ export class ActionListComponent implements AfterViewInit, OnChanges {
 
   triggerActions(event: MouseEvent, label: string, actions: Action[]) {
     const remembered = this.rememberedMultiAction(label, actions);
-    if (remembered) return this.applySingle$(remembered)();
+    if (remembered) {
+      this.applySingle$(remembered)().subscribe(() => {});
+      return false;
+    }
     if (this.showMulti(actions)) return this.showMultiActions(event, label, actions);
-    return this.apply$(actions)();
+    this.apply$(actions)().subscribe(() => {});
+    return false;
   }
 
   multiActionSource(action: Action) {
