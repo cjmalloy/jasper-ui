@@ -63,7 +63,7 @@ jobs:
           retention-days: 30
       - name: Generate Test Summary
         if: always()
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           # language=JavaScript
           script: |
@@ -154,7 +154,7 @@ jobs:
             fs.writeFileSync('test-summary.md', summary);
       - name: Comment on PR
         if: github.event_name == 'pull_request' && always()
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           # language=JavaScript
           script: |
@@ -211,7 +211,7 @@ jobs:
     steps:
       - name: Cleanup old artifacts
         if: github.event_name != 'pull_request'
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           # language=JavaScript
           script: |
@@ -238,7 +238,7 @@ jobs:
             }
       - name: Cleanup old PR artifacts
         if: github.event_name == 'pull_request'
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           # language=JavaScript
           script: |
