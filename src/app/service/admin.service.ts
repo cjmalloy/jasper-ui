@@ -80,6 +80,7 @@ import { threadMod } from '../mods/thread';
 import { thumbnailMod } from '../mods/thumbnail';
 import { archiveMod } from '../mods/tools/archive';
 import { htmlToMarkdownMod } from '../mods/tools/htmlToMarkdown';
+import { markerPdfMod } from '../mods/tools/markerPdf';
 import { markitdownMod } from '../mods/tools/markitdown';
 import { ninjaTriangleMod } from '../mods/tools/ninga-triangle';
 import { pollMod } from '../mods/tools/poll';
@@ -188,6 +189,7 @@ export class AdminService {
     audioMod,
     videoMod,
     ytdlpMod,
+    markerPdfMod,
     markitdownMod,
     voteMod,
     imageMod,

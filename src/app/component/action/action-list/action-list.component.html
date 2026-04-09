@@ -1,6 +1,10 @@
 @for (a of groupedActions | keyvalue; track a.key; let i = $index) {
   @if (i < actions - hiddenActions) {
-    @if (a.value[0].confirm) {
+    @if (showMulti(a.value)) {
+      <span class="fake-link multi-action-trigger"
+            (click)="triggerActions($event, a.key, a.value)"
+            [appTitle]="a.value">{{ a.key }}</span>
+    } @else if (a.value[0].confirm) {
       <app-confirm-action [action]="apply$(a.value)"
                           [appTitle]="a.value">{{ a.key }}</app-confirm-action>
     } @else {
@@ -17,7 +21,11 @@
       @if (hiddenActions) {
         @for (a of groupedActions | keyvalue; track a.key; let i = $index) {
           @if (i >= actions - hiddenActions) {
-            @if (a.value[0].confirm) {
+            @if (showMulti(a.value)) {
+              <span class="fake-link multi-action-trigger"
+                    (click)="triggerActions($event, a.key, a.value)"
+                    [appTitle]="a.value">{{ a.key }}</span>
+            } @else if (a.value[0].confirm) {
               <app-confirm-action [action]="apply$(a.value)"
                                   [appTitle]="a.value">{{ a.key }}</app-confirm-action>
             } @else {
@@ -37,7 +45,11 @@
       }
       @if (groupedAdvancedActions) {
         @for (a of groupedAdvancedActions | keyvalue; track a.key) {
-          @if (a.value[0].confirm) {
+          @if (showMulti(a.value)) {
+            <span class="fake-link multi-action-trigger"
+                  (click)="triggerActions($event, a.key, a.value)"
+                  [appTitle]="a.value">{{ a.key }}</span>
+          } @else if (a.value[0].confirm) {
             <app-confirm-action [message]="a.value[0].confirm!"
                                 [action]="apply$(a.value)"
                                 [appTitle]="a.value">{{ a.key }}</app-confirm-action>
@@ -47,6 +59,29 @@
           }
         }
       }
+    </div>
+  </ng-template>
+  <ng-template #multiActionsMenu>
+    <div class="context-menu multi-actions-menu" (click)="$event.stopPropagation()">
+      <div class="multi-actions-heading">{{ multiActionsLabel }}</div>
+      @for (action of multiActions; track multiActionSource(action)) {
+        @if (action.confirm) {
+          <app-confirm-action class="multi-action-option"
+                              [message]="action.confirm!"
+                              [action]="applySingle$(action)"
+                              [appTitle]="[action]">{{ multiActionSource(action) }}</app-confirm-action>
+        } @else {
+          <app-inline-button class="multi-action-option"
+                             [action]="applySingle$(action)"
+                             [appTitle]="[action]">{{ multiActionSource(action) }}</app-inline-button>
+        }
+      }
+      <label class="multi-actions-remember">
+        <input type="checkbox"
+               [checked]="rememberMultiAction"
+               (change)="rememberMultiAction = $any($event.target).checked">
+        <span i18n>remember</span>
+      </label>
     </div>
   </ng-template>
 } @else if (showDownload) {
