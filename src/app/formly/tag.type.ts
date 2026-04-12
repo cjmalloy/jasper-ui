@@ -15,7 +15,7 @@ import { getErrorMessage } from './errors';
 
 @Component({
   selector: 'formly-field-tag-input',
-  host: { 'class': 'field' },
+  host: { 'class': 'field tag-field' },
   template: `
     <div class="form-array skip-margin">
       <input class="preview grow"
@@ -165,7 +165,8 @@ export class FormlyFieldTagInput extends FieldType<FieldTypeConfig> implements A
   }
 
   search = debounce((value: string) => {
-    const siblings = (this.formControl.parent?.value as string[] || []).filter(t => t && t !== this.formControl.value);
+    const parentValue = this.formControl.parent?.value;
+    const siblings = (Array.isArray(parentValue) ? parentValue : []).filter(t => t && t !== this.formControl.value);
     const derank = (xs: { value: string, label: string, model?: string }[]) =>
       [...xs.filter(x => !siblings.includes(x.model || x.value)), ...xs.filter(x => siblings.includes(x.model || x.value))];
     const toEntry = (p: Config) => ({ value: suffixTagInput(this.props.prefix, p.tag), label: p.name || p.tag, model: p.tag });

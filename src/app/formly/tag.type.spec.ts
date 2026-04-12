@@ -18,22 +18,26 @@ describe('FormlyFieldTagInput', () => {
       { detectChanges: vi.fn() } as any,
     );
     const setValue = vi.fn();
+    const formControl = {
+      value: '',
+      setValue,
+      valueChanges: of(''),
+      markAsDirty: vi.fn(),
+      markAsTouched: vi.fn(),
+    };
     component.field = {
       type: 'tag',
       props: prefix ? { prefix } : {},
-      formControl: {
-        value: '',
-        setValue,
-        valueChanges: of(''),
-      },
+      formControl,
     } as any;
-    return { component, editor, setValue };
+    Object.defineProperty(component, 'showError', { get: () => false });
+    return { component, editor, formControl, setValue };
   }
 
   it('shows the suffix when the model value already includes the prefix', () => {
-    const { component } = createComponent('a/b');
+    const { component, formControl } = createComponent('a/b');
 
-    component.field.formControl.value = 'a/b/c';
+    formControl.value = 'a/b/c';
 
     expect(component.inputValue).toBe('c');
   });

@@ -227,15 +227,22 @@ export function prefix(prefix: string, ...rest: string[]) {
     .replace(/\/$/, '') + origin;
 }
 
+function hasLocalPrefix(prefixValue?: string, value?: string) {
+  if (!prefixValue || !value) return false;
+  const prefixLocal = localTag(setPublic(prefixValue));
+  const valueLocal = localTag(setPublic(value));
+  return valueLocal === prefixLocal || valueLocal.startsWith(prefixLocal + '/');
+}
+
 export function prefixTagInput(prefixValue?: string, value?: string) {
   if (!value) return value || '';
-  if (!prefixValue || hasPrefix(value, prefixValue)) return value;
+  if (!prefixValue || hasLocalPrefix(prefixValue, value)) return value;
   return prefix(prefixValue, value);
 }
 
 export function suffixTagInput(prefixValue?: string, value?: string) {
   if (!value) return value || '';
-  if (!prefixValue || !hasPrefix(value, prefixValue)) return value;
+  if (!prefixValue || !hasLocalPrefix(prefixValue, value)) return value;
   const prefixLocal = localTag(setPublic(prefixValue));
   const suffix = localTag(setPublic(value)).substring(prefixLocal.length).replace(/^\//, '');
   const origin = tagOrigin(value);
