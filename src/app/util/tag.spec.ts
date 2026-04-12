@@ -1,4 +1,4 @@
-import { removeTag, setPrivate, setProtected } from './tag';
+import { prefixTagInput, removeTag, setPrivate, setProtected, suffixTagInput } from './tag';
 
 describe('Tag Utils', () => {
   describe('removeTag', () => {
@@ -234,6 +234,34 @@ describe('Tag Utils', () => {
     it('should handle nested tags', () => {
       const result = setProtected('a/b/c/d/e');
       expect(result).toEqual('+a/b/c/d/e');
+    });
+  });
+
+  describe('prefixTagInput', () => {
+    it('should prefix suffix input before storing it', () => {
+      expect(prefixTagInput('a/b', 'c')).toEqual('a/b/c');
+    });
+
+    it('should preserve an already prefixed tag', () => {
+      expect(prefixTagInput('a/b', 'a/b/c')).toEqual('a/b/c');
+    });
+
+    it('should inherit access from the configured prefix', () => {
+      expect(prefixTagInput('+plugin/secret', 'openai')).toEqual('+plugin/secret/openai');
+    });
+  });
+
+  describe('suffixTagInput', () => {
+    it('should show only the suffix for a prefixed model value', () => {
+      expect(suffixTagInput('a/b', 'a/b/c')).toEqual('c');
+    });
+
+    it('should hide the configured access and origin when they match the prefix', () => {
+      expect(suffixTagInput('+plugin/secret@local', '+plugin/secret/openai@local')).toEqual('openai');
+    });
+
+    it('should keep a different origin on the visible suffix', () => {
+      expect(suffixTagInput('a/b@local', 'a/b/c@remote')).toEqual('c@remote');
     });
   });
 });

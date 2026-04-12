@@ -227,6 +227,21 @@ export function prefix(prefix: string, ...rest: string[]) {
     .replace(/\/$/, '') + origin;
 }
 
+export function prefixTagInput(prefixValue?: string, value?: string) {
+  if (!value) return value || '';
+  if (!prefixValue || hasPrefix(value, prefixValue)) return value;
+  return prefix(prefixValue, value);
+}
+
+export function suffixTagInput(prefixValue?: string, value?: string) {
+  if (!value) return value || '';
+  if (!prefixValue || !hasPrefix(value, prefixValue)) return value;
+  const prefixLocal = localTag(setPublic(prefixValue));
+  const suffix = localTag(setPublic(value)).substring(prefixLocal.length).replace(/^\//, '');
+  const origin = tagOrigin(value);
+  return suffix + (origin && origin !== tagOrigin(prefixValue) ? origin : '');
+}
+
 export function hasPrefix(tag?: string, prefix?: string) {
   if (!tag) return false;
   if (!prefix) return true;

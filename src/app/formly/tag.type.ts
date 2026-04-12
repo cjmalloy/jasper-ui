@@ -10,6 +10,7 @@ import { ExtService } from '../service/api/ext.service';
 import { ConfigService } from '../service/config.service';
 import { EditorService } from '../service/editor.service';
 import { Store } from '../store/store';
+import { prefixTagInput, suffixTagInput } from '../util/tag';
 import { getErrorMessage } from './errors';
 
 @Component({
@@ -20,7 +21,7 @@ import { getErrorMessage } from './errors';
       <input class="preview grow"
              type="text"
              [value]="preview"
-             [title]="input.value"
+             [title]="tagValue"
              [style.display]="preview ? 'block' : 'none'"
              (focus)="clickPreview(input)">
       <datalist [id]="listId">
@@ -31,18 +32,19 @@ import { getErrorMessage } from './errors';
       <input #input
              class="grow"
              type="text"
+             [value]="inputValue"
+             [disabled]="formControl.disabled"
              inputmode="email"
              enterkeyhint="enter"
              autocorrect="off"
              autocapitalize="none"
              [attr.list]="listId"
              [class.hidden-without-removing]="preview"
-             (input)="search(input.value)"
+             (input)="onInput(input.value)"
              (blur)="blur(input)"
              (focusin)="edit(input)"
              (focus)="edit(input)"
              (focusout)="getPreview(input.value)"
-             [formControl]="formControl"
              [formlyAttributes]="field"
              [class.is-invalid]="showError">
     </div>
@@ -58,7 +60,7 @@ export class FormlyFieldTagInput extends FieldType<FieldTypeConfig> implements A
   listId = 'list-' + uuid();
   preview = '';
   editing = false;
-  autocomplete: { value: string, label: string }[] = [];
+  autocomplete: { value: string, label: string, model?: string }[] = [];
 
   private showedError = false;
   private previewing?: Subscription;
@@ -95,6 +97,14 @@ export class FormlyFieldTagInput extends FieldType<FieldTypeConfig> implements A
     this.formChanges?.unsubscribe();
   }
 
+  get tagValue() {
+    return this.formControl.value || '';
+  }
+
+  get inputValue() {
+    return suffixTagInput(this.props.prefix, this.tagValue);
+  }
+
   validate(input: HTMLInputElement) {
     if (this.showError) {
       input.setCustomValidity(getErrorMessage(this.field, this.config));
@@ -102,8 +112,15 @@ export class FormlyFieldTagInput extends FieldType<FieldTypeConfig> implements A
     }
   }
 
+  onInput(value: string) {
+    this.formControl.markAsDirty();
+    this.formControl.setValue(prefixTagInput(this.props.prefix, value));
+    this.search(value);
+  }
+
   blur(input: HTMLInputElement) {
     this.editing = false;
+    this.formControl.markAsTouched();
     if (this.showError && !this.showedError) {
       this.showedError = true;
       defer(() => this.validate(input));
@@ -114,6 +131,7 @@ export class FormlyFieldTagInput extends FieldType<FieldTypeConfig> implements A
   }
 
   getPreview(value: string) {
+    value = prefixTagInput(this.props.prefix, value);
     if (!value) return;
     if (this.showError) return;
     this.previewing?.unsubscribe();
@@ -140,7 +158,7 @@ export class FormlyFieldTagInput extends FieldType<FieldTypeConfig> implements A
 
   clickPreview(input: HTMLInputElement) {
     if (this.store.hotkey) {
-      window.open(this.configs.base + 'tag/' + input.value);
+      window.open(this.configs.base + 'tag/' + this.tagValue);
     } else {
       this.edit(input);
     }
@@ -148,9 +166,9 @@ export class FormlyFieldTagInput extends FieldType<FieldTypeConfig> implements A
 
   search = debounce((value: string) => {
     const siblings = (this.formControl.parent?.value as string[] || []).filter(t => t && t !== this.formControl.value);
-    const derank = (xs: { value: string, label: string }[]) =>
-      [...xs.filter(x => !siblings.includes(x.value)), ...xs.filter(x => siblings.includes(x.value))];
-    const toEntry = (p: Config) => ({ value: p.tag, label: p.name || p.tag });
+    const derank = (xs: { value: string, label: string, model?: string }[]) =>
+      [...xs.filter(x => !siblings.includes(x.model || x.value)), ...xs.filter(x => siblings.includes(x.model || x.value))];
+    const toEntry = (p: Config) => ({ value: suffixTagInput(this.props.prefix, p.tag), label: p.name || p.tag, model: p.tag });
     const getPlugins = (text: string, size = 5) => this.admin.searchPlugins(text).slice(0, size).map(toEntry);
     const getTemplates = (text: string, size = 5) => this.admin.searchTemplates(text).slice(0, size).map(toEntry);
     if (this.field.type === 'plugin') {
@@ -170,7 +188,7 @@ export class FormlyFieldTagInput extends FieldType<FieldTypeConfig> implements A
         switchMap(page => page.page.totalElements ? forkJoin(page.content.map(x => this.preview$(x.tag + x.origin))) : of([])),
         map(xs => xs.filter(x => !!x) as { name?: string, tag: string }[]),
       ).subscribe(xs => {
-        this.autocomplete = xs.map(x => ({ value: x.tag, label: x.name || x.tag }));
+        this.autocomplete = xs.map(x => ({ value: suffixTagInput(this.props.prefix, x.tag), label: x.name || x.tag, model: x.tag }));
         if (this.autocomplete.length < 5) this.autocomplete.push(...getPlugins(value, 5 - this.autocomplete.length));
         if (this.autocomplete.length < 5) this.autocomplete.push(...getTemplates(value, 5 - this.autocomplete.length));
         this.autocomplete = derank(uniqBy(this.autocomplete, 'value'));
