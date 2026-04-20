@@ -2060,6 +2060,7 @@ formly-field-radio, formly-field-multicheckbox {
 }
 
 .expand {
+  display: block;
   border-radius: 4px;
   margin: 2px;
   padding: 8px;
@@ -2127,6 +2128,10 @@ formly-field-radio, formly-field-multicheckbox {
   to {
     box-shadow: inset 0 0 5px grey;
   }
+}
+
+.fullscreen > .lens-expand {
+  overflow: hidden;
 }
 
 .embed-expand {
