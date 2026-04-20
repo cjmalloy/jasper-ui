@@ -2081,6 +2081,7 @@ formly-field-radio, formly-field-multicheckbox {
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
+  border-radius: 4px;
 }
 
 .loading {
@@ -2128,8 +2129,18 @@ formly-field-radio, formly-field-multicheckbox {
   }
 }
 
-.video-expand {
+.embed-expand {
+  border-radius: 4px;
+}
+
+.video-expand:not(:fullscreen) {
   height: 240px;
+  border-radius: 4px;
+}
+
+.fullscreen > .video-expand,
+.video-expand:fullscreen {
+  border-radius: 0;
 }
 
 .audio-expand {
@@ -2339,7 +2350,11 @@ footer {
 ngx-monaco-editor,
 ngx-monaco-diff-editor {
   position: relative;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-accent);
+  border-radius: 4px;
+  .overflow-guard, .monaco-editor {
+    border-radius: 4px;
+  }
   .editor-container {
     height: 100% !important;
   }
