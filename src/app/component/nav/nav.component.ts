@@ -110,8 +110,9 @@ export class NavComponent implements OnInit, OnDestroy {
     return this.text != this.url;
   }
 
-  markRead() {
+  markRead(event: MouseEvent) {
     if (!this.admin.getPlugin('plugin/user/read')) return;
+    if (event.button !== 0 && event.button !== 1) return;
     this.ts.createResponse('plugin/user/read', this.url).subscribe();
   }
 
