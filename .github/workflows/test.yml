@@ -172,11 +172,11 @@ jobs:
               const coverage = parseCoverageSummary(coveragePath);
 
               if (coverage) {
-                const linesPct = Number(coverage.lines?.pct ?? 0);
+                const linesPct = formatPercent(coverage.lines?.pct);
                 const statementsPct = formatPercent(coverage.statements?.pct);
                 const functionsPct = formatPercent(coverage.functions?.pct);
                 const branchesPct = formatPercent(coverage.branches?.pct);
-                summary += `📈 **Coverage:** Lines ${formatPercent(linesPct)}% | `;
+                summary += `📈 **Coverage:** Lines ${linesPct}% | `;
                 summary += `Statements ${statementsPct}% | `;
                 summary += `Functions ${functionsPct}% | `;
                 summary += `Branches ${branchesPct}%\n\n`;
@@ -184,8 +184,8 @@ jobs:
                 const badge = {
                   schemaVersion: 1,
                   label: 'coverage',
-                  message: `${formatPercent(linesPct)}%`,
-                  color: coverageColor(linesPct),
+                  message: `${linesPct}%`,
+                  color: coverageColor(Number(linesPct)),
                 };
                 fs.writeFileSync(path.join('report', 'coverage', 'badge.json'), JSON.stringify(badge, null, 2));
               } else {
