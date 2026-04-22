@@ -91,9 +91,9 @@ jobs:
             mkdir -p _site/reports/latest-playwright-sqlite
             cp -r "$latest_playwright_sqlite/." _site/reports/latest-playwright-sqlite/
           fi
-          latest_coverage_badge=
+          latest_coverage_message=
           if [ -f "_site/reports/latest-coverage/badge.json" ]; then
-            latest_coverage_badge=$(jq -r '.message // empty' _site/reports/latest-coverage/badge.json)
+            latest_coverage_message=$(jq -r '.message // empty' _site/reports/latest-coverage/badge.json)
           fi
           cat > _site/reports/index.html << EOF
           <!DOCTYPE html>
@@ -179,7 +179,7 @@ jobs:
               <a href='latest-vitest/'>Latest Vitest Report</a>
             </div>
             <div class='report latest'>
-              <a href='latest-coverage/'>Latest Coverage Report</a>$(if [ -n "$latest_coverage_badge" ]; then echo " <span class='metric'>$latest_coverage_badge</span>"; fi)
+              <a href='latest-coverage/'>Latest Coverage Report</a>$(if [ -n "$latest_coverage_message" ]; then echo " <span class='metric'>$latest_coverage_message</span>"; fi)
             </div>
             <h2>All Reports</h2>
             <div id="reports">

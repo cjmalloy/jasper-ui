@@ -13,7 +13,14 @@ RUN npm i -g @angular/cli@20.3.15
 COPY --from=builder /app ./
 SHELL ["/bin/bash", "-c"]
 CMD mkdir -p /report && \
-    (NO_COLOR=1 ng test --watch=false --coverage --coverage-reporters=html --coverage-reporters=json-summary --coverage-reporters=text-summary --reporters=default --reporters=html 2>&1 | tee /report/test-output.log; echo ${PIPESTATUS[0]} > /report/exit-code.txt) && \
+    (NO_COLOR=1 ng test --watch=false \
+      --coverage \
+      --coverage-reporters=html \
+      --coverage-reporters=json-summary \
+      --coverage-reporters=text-summary \
+      --reporters=default \
+      --reporters=html \
+      2>&1 | tee /report/test-output.log; echo ${PIPESTATUS[0]} > /report/exit-code.txt) && \
     (if [ -d html ]; then cp -r html/. /report/ 2>/dev/null || true; fi) && \
     (if [ -d coverage ]; then mkdir -p /report/coverage && cp -r coverage/. /report/coverage/ 2>/dev/null || true; fi) && \
     exit $(cat /report/exit-code.txt)

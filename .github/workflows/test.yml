@@ -130,6 +130,10 @@ jobs:
               if (percent >= 50) return 'orange';
               return 'red';
             }
+
+            function formatPercent(value) {
+              return Number(value ?? 0).toFixed(1);
+            }
              
             let summary = '## 🧪 Test Results\n\n';
              
@@ -169,12 +173,18 @@ jobs:
 
               if (coverage) {
                 const linesPct = Number(coverage.lines?.pct ?? 0);
-                summary += `📈 **Coverage:** Lines ${linesPct.toFixed(1)}% | Statements ${Number(coverage.statements?.pct ?? 0).toFixed(1)}% | Functions ${Number(coverage.functions?.pct ?? 0).toFixed(1)}% | Branches ${Number(coverage.branches?.pct ?? 0).toFixed(1)}%\n\n`;
+                const statementsPct = formatPercent(coverage.statements?.pct);
+                const functionsPct = formatPercent(coverage.functions?.pct);
+                const branchesPct = formatPercent(coverage.branches?.pct);
+                summary += `📈 **Coverage:** Lines ${formatPercent(linesPct)}% | `;
+                summary += `Statements ${statementsPct}% | `;
+                summary += `Functions ${functionsPct}% | `;
+                summary += `Branches ${branchesPct}%\n\n`;
 
                 const badge = {
                   schemaVersion: 1,
                   label: 'coverage',
-                  message: `${linesPct.toFixed(1)}%`,
+                  message: `${formatPercent(linesPct)}%`,
                   color: coverageColor(linesPct),
                 };
                 fs.writeFileSync(path.join('report', 'coverage', 'badge.json'), JSON.stringify(badge, null, 2));
