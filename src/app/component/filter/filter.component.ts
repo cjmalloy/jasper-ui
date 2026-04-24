@@ -81,9 +81,13 @@ export class FilterComponent implements OnChanges, OnDestroy {
         }
         this.pushFilter({
           label: $localize`Queries 🔎️️`, filters: [],
-        }, {
-          label: $localize`Lists ☰`, filters: [],
-        }, {
+        });
+        if (this.auth.hasRole('ROLE_USER')) {
+          this.pushFilter({
+            label: $localize`Lists ☰`, filters: [],
+          });
+        }
+        this.pushFilter({
           label: $localize`Media 🎬️`, filters: [],
         }, {
           label: $localize`Games 🕹️`, filters: [],
