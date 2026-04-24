@@ -1234,6 +1234,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
       if (a.tag && hasTag(a.tag, this.ref) && !this.writeAccess) return false;
     }
     if ('tag' in a || 'response' in a) {
+      if (!this.auth.hasRole('ROLE_USER')) return false;
       if (active(this.ref, a) && !a.labelOn) return false;
       if (!active(this.ref, a) && !a.labelOff) return false;
     } else {
