@@ -83,10 +83,11 @@ import { getErrorMessage } from './errors';
     }
     .params-panel {
       background: var(--card);
-      border-radius: 2px;
+      border: 1px dashed var(--border);
+      border-radius: 8px;
       box-shadow: 0 5px 5px -3px rgba(0, 0, 0, 0.2),
-                  0 8px 10px 1px rgba(0, 0, 0, 0.14),
-                  0 3px 14px 2px rgba(0, 0, 0, 0.12);
+                  0 8px 10px 1px rgba(0, 0, 0, 0.1),
+                  0 3px 14px 2px rgba(0, 0, 0, 0.3);
       padding: 8px;
       min-width: 260px;
       max-width: 400px;
