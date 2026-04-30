@@ -32,8 +32,9 @@ test.describe.serial('Origin Push Plugin', () => {
     await page.locator('.sidebar .submit-button', { hasText: 'Submit' }).first().click();
     await page.locator('.tabs a', { hasText: 'text' }).first().click();
     await page.locator('[name=title]').fill(title);
+    const submitPromise = page.waitForResponse(resp => resp.url().includes('/api/v1/ref'));
     await page.locator('button', { hasText: 'Submit' }).click({ force: true });
-    await page.waitForTimeout(1000);
+    await submitPromise;
     await expect(page.locator('.full-page.ref .link a')).toHaveText(title);
   }
 

@@ -37,7 +37,6 @@ test.describe.serial('Origin Pull Plugin', () => {
     const submitPromise = page.waitForResponse(resp => resp.url().includes('/api/v1/ref'));
     await page.locator('button', { hasText: 'Submit' }).click();
     await submitPromise;
-    await page.waitForTimeout(1000);
     await expect(page.locator('.full-page.ref .link a')).toHaveText(title);
   }
 
