@@ -29,6 +29,8 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
   test('@\u{ff20}main : create users', async ({ page }) => {
     await page.goto('/ext/+user/alice?debug=USER&tag=alice', { waitUntil: 'networkidle' });
     await expect(page.locator('button', {hasText: 'Delete'})).toBeVisible();
+    await page.goto('/ext/+user/bob?debug=USER&tag=bob', { waitUntil: 'networkidle' });
+    await expect(page.locator('button', {hasText: 'Delete'})).toBeVisible();
   });
 
   test('@\u{ff20}main : replicate \u{ff20}repl', async ({ page }) => {
@@ -109,6 +111,14 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
     await page.locator('.tabs a', { hasText: 'all' }).first().click();
     const ref = page.locator('.ref-list .link.remote', { hasText: 'Ref from other' }).locator('..').locator('..').locator('..');
     await expect(ref.locator('.user.tag', { hasText: 'bob' }).first()).toBeVisible();
+  });
+
+  test('@\u{ff20}main : local bob is different from remote bob', async ({ page }) => {
+    await page.goto('/?debug=USER&tag=bob', { waitUntil: 'networkidle' });
+    await page.waitForTimeout(1000);
+    await expect(page.locator('.settings .notification')).toBeHidden();
+    await page.goto('/tag/plugin/inbox/user/bob?debug=ADMIN', { waitUntil: 'networkidle' });
+    await expect(page.locator('.ref-list .link', { hasText: 'Ref from other' })).toHaveCount(0);
   });
 
   test('@\u{ff20}main : reply to remote message', async ({ page }) => {
