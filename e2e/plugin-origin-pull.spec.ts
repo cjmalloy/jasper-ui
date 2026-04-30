@@ -12,9 +12,9 @@ test.describe.serial('Origin Pull Plugin', () => {
     await openSidebar(page);
     await page.locator('.sidebar .submit-button', { hasText: 'Submit' }).first().click();
     await page.locator('#url').fill(replApiProxy);
-    await page.waitForTimeout(400);
+    await expect(page.getByText('Next')).toBeEnabled();
     await page.getByText('Next').click();
-    await page.waitForTimeout(400);
+    await expect(page.locator('.floating-ribbons .plugin_origin_pull')).toBeVisible();
     await page.locator('.floating-ribbons .plugin_origin_pull').click();
     if (!streamUpdates) {
       await page.locator('[name=websocket]').uncheck();

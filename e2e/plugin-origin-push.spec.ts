@@ -12,8 +12,9 @@ test.describe.serial('Origin Push Plugin', () => {
     await openSidebar(page);
     await page.locator('.sidebar .submit-button', { hasText: 'Submit' }).first().click();
     await page.locator('#url').fill(replApiProxy);
+    await expect(page.getByText('Next')).toBeEnabled();
     await page.getByText('Next').click();
-    await page.waitForTimeout(400);
+    await expect(page.locator('.floating-ribbons .plugin_origin_push')).toBeVisible();
     await page.locator('.floating-ribbons .plugin_origin_push').click();
     if (!enablePushOnChange) {
       await page.locator('[name=pushOnChange]').uncheck();
