@@ -115,7 +115,6 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
 
   test('@\u{ff20}main : local bob is different from remote bob', async ({ page }) => {
     await page.goto('/?debug=USER&tag=bob', { waitUntil: 'networkidle' });
-    await page.waitForTimeout(1000);
     await expect(page.locator('.settings .notification')).toBeHidden();
     await page.goto('/tag/plugin/inbox/user/bob?debug=ADMIN', { waitUntil: 'networkidle' });
     await expect(page.locator('.ref-list .link', { hasText: 'Ref from other' })).toHaveCount(0);

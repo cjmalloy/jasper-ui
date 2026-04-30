@@ -57,7 +57,7 @@ test.describe.serial('Origin Pull Plugin', () => {
     const menu = page.locator('.advanced-actions');
     await menu.locator('.fake-link', { hasText: 'pull' }).click();
     await menu.locator('.fake-link', { hasText: 'yes' }).click();
-    await page.waitForTimeout(3000);
+    await expect(menu).toBeHidden();
   }
 
   test('@\u{ff20}main : clear all', async ({ page }) => {
