@@ -1,9 +1,16 @@
-import { expect, type Page, test } from '@playwright/test';
+import { expect, type Page, type Response, test } from '@playwright/test';
 import { clearAll, mod, openSidebar } from './setup';
 
 test.describe.serial('Origin Pull Plugin', () => {
   const replUrl = process.env.REPL_URL || 'http://localhost:8082';
   const replApiProxy = process.env.REPL_API_PROXY || 'http://repl-web';
+  const runId = Date.now().toString(36);
+  const pullTestTitle = `Pull Test ${runId}`;
+  const manualPullTestTitle = `Manual Pull Test ${runId}`;
+
+  function isRefPost(resp: Response) {
+    return resp.url().includes('/api/v1/ref') && resp.request().method() === 'POST' && resp.ok();
+  }
 
   async function createRemoteOrigin(page: Page, title: string, streamUpdates: boolean) {
     await page.goto('/?debug=ADMIN');
@@ -22,7 +29,7 @@ test.describe.serial('Origin Pull Plugin', () => {
     await page.locator('[name=local]').fill('@repl');
     await page.locator('[name=remote]').fill('@repl');
     await page.locator('[name=title]').fill(title);
-    const submitPromise = page.waitForResponse(resp => resp.url().includes('/api/v1/ref'));
+    const submitPromise = page.waitForResponse(isRefPost);
     await page.locator('button', { hasText: 'Submit' }).click();
     await submitPromise;
     await expect(page.locator('.full-page.ref .link a')).toHaveText(title);
@@ -34,7 +41,7 @@ test.describe.serial('Origin Pull Plugin', () => {
     await page.locator('.sidebar .submit-button', { hasText: 'Submit' }).first().click();
     await page.locator('.tabs a', { hasText: 'text' }).first().click();
     await page.locator('[name=title]').fill(title);
-    const submitPromise = page.waitForResponse(resp => resp.url().includes('/api/v1/ref'));
+    const submitPromise = page.waitForResponse(isRefPost);
     await page.locator('button', { hasText: 'Submit' }).click();
     await submitPromise;
     await expect(page.locator('.full-page.ref .link a')).toHaveText(title);
@@ -78,11 +85,11 @@ test.describe.serial('Origin Pull Plugin', () => {
   });
 
   test('@\u{ff20}repl : creates ref on remote for streaming pull', async ({ page }) => {
-    await createRemoteTextRef(page, 'Pull Test');
+    await createRemoteTextRef(page, pullTestTitle);
   });
 
   test('@\u{ff20}main : check ref was pulled with streaming updates', async ({ page }) => {
-    await expectPulled(page, 'Pull Test');
+    await expectPulled(page, pullTestTitle);
   });
 
   test('@\u{ff20}main : delete remote \u{ff20}repl', async ({ page }) => {
@@ -102,7 +109,7 @@ test.describe.serial('Origin Pull Plugin', () => {
   });
 
   test('@\u{ff20}repl : creates ref on remote for manual pull', async ({ page }) => {
-    await createRemoteTextRef(page, 'Manual Pull Test');
+    await createRemoteTextRef(page, manualPullTestTitle);
   });
 
   test('@\u{ff20}main : manually pulls ref', async ({ page }) => {
@@ -110,6 +117,6 @@ test.describe.serial('Origin Pull Plugin', () => {
   });
 
   test('@\u{ff20}main : check ref was manually pulled', async ({ page }) => {
-    await expectPulled(page, 'Manual Pull Test');
+    await expectPulled(page, manualPullTestTitle);
   });
 });

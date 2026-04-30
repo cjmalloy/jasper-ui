@@ -1,9 +1,16 @@
-import { expect, type Page, test } from '@playwright/test';
+import { expect, type Page, type Response, test } from '@playwright/test';
 import { clearAll, mod, openSidebar } from './setup';
 
 test.describe.serial('Origin Push Plugin', () => {
   const replUrl = process.env.REPL_URL || 'http://localhost:8082';
   const replApiProxy = process.env.REPL_API_PROXY || 'http://repl-web';
+  const runId = Date.now().toString(36);
+  const pushTestTitle = `Push Test ${runId}`;
+  const manualPushTestTitle = `Manual Push Test ${runId}`;
+
+  function isRefPost(resp: Response) {
+    return resp.url().includes('/api/v1/ref') && resp.request().method() === 'POST' && resp.ok();
+  }
 
   async function createRemoteOrigin(page: Page, title: string, enablePushOnChange: boolean) {
     await page.goto('/?debug=ADMIN');
@@ -21,7 +28,7 @@ test.describe.serial('Origin Push Plugin', () => {
     }
     await page.locator('[name=remote]').fill('@repl');
     await page.locator('[name=title]').fill(title);
-    const submitPromise = page.waitForResponse(resp => resp.url().includes('/api/v1/ref'));
+    const submitPromise = page.waitForResponse(isRefPost);
     await page.locator('button', { hasText: 'Submit' }).click();
     await submitPromise;
     await expect(page.locator('.full-page.ref .link a')).toHaveText(title);
@@ -33,7 +40,7 @@ test.describe.serial('Origin Push Plugin', () => {
     await page.locator('.sidebar .submit-button', { hasText: 'Submit' }).first().click();
     await page.locator('.tabs a', { hasText: 'text' }).first().click();
     await page.locator('[name=title]').fill(title);
-    const submitPromise = page.waitForResponse(resp => resp.url().includes('/api/v1/ref'));
+    const submitPromise = page.waitForResponse(isRefPost);
     await page.locator('button', { hasText: 'Submit' }).click({ force: true });
     await submitPromise;
     await expect(page.locator('.full-page.ref .link a')).toHaveText(title);
@@ -63,7 +70,7 @@ test.describe.serial('Origin Push Plugin', () => {
   });
 
   test('@\u{ff20}repl : clear all', async ({ page }) => {
-    await clearAll(page, replUrl);
+    await clearAll(page, replUrl, '@repl');
   });
 
   test('@\u{ff20}main : turn on push', async ({ page }) => {
@@ -76,11 +83,11 @@ test.describe.serial('Origin Push Plugin', () => {
   });
 
   test('@\u{ff20}main : creates ref for push on change', async ({ page }) => {
-    await createTextRef(page, 'Push Test');
+    await createTextRef(page, pushTestTitle);
   });
 
   test('@\u{ff20}repl : check ref was pushed on change', async ({ page }) => {
-    await expectPushed(page, 'Push Test');
+    await expectPushed(page, pushTestTitle);
   });
 
   test('@\u{ff20}main : delete remote \u{ff20}repl', async ({ page }) => {
@@ -100,7 +107,7 @@ test.describe.serial('Origin Push Plugin', () => {
   });
 
   test('@\u{ff20}main : creates ref for manual push', async ({ page }) => {
-    await createTextRef(page, 'Manual Push Test');
+    await createTextRef(page, manualPushTestTitle);
   });
 
   test('@\u{ff20}main : manually pushes ref', async ({ page }) => {
@@ -108,6 +115,6 @@ test.describe.serial('Origin Push Plugin', () => {
   });
 
   test('@\u{ff20}repl : check ref was manually pushed', async ({ page }) => {
-    await expectPushed(page, 'Manual Push Test');
+    await expectPushed(page, manualPushTestTitle);
   });
 });
