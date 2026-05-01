@@ -1,5 +1,5 @@
 import { expect, type Page, type Response, test } from '@playwright/test';
-import { clearAll, mod, openSidebar } from './setup';
+import { clearAll, clearOrigin, mod, openSidebar } from './setup';
 
 test.describe.serial('Origin Pull Plugin', () => {
   const replUrl = process.env.REPL_URL || 'http://localhost:8082';
@@ -84,11 +84,10 @@ test.describe.serial('Origin Pull Plugin', () => {
     await clearAll(page, replUrl, '@repl');
   });
 
-  test('@\u{ff20}repl : creates ref on remote for streaming pull', async ({ page }) => {
+  test('@\u{ff20}repl : creates ref and streams pull', async ({ page }) => {
+    await clearOrigin(page, '', '@repl');
+    await clearOrigin(page, replUrl, '@repl');
     await createRemoteTextRef(page, pullTestTitle);
-  });
-
-  test('@\u{ff20}main : check ref was pulled with streaming updates', async ({ page }) => {
     await expectPulled(page, pullTestTitle);
   });
 
@@ -108,15 +107,11 @@ test.describe.serial('Origin Pull Plugin', () => {
     await createRemoteOrigin(page, 'Testing Manual Remote @repl', false);
   });
 
-  test('@\u{ff20}repl : creates ref on remote for manual pull', async ({ page }) => {
+  test('@\u{ff20}repl : creates ref and manually pulls', async ({ page }) => {
+    await clearOrigin(page, '', '@repl');
+    await clearOrigin(page, replUrl, '@repl');
     await createRemoteTextRef(page, manualPullTestTitle);
-  });
-
-  test('@\u{ff20}main : manually pulls ref', async ({ page }) => {
     await runManualPull(page);
-  });
-
-  test('@\u{ff20}main : check ref was manually pulled', async ({ page }) => {
     await expectPulled(page, manualPullTestTitle);
   });
 });

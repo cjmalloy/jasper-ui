@@ -1,5 +1,5 @@
 import { expect, type Page, type Response, test } from '@playwright/test';
-import { clearAll, mod, openSidebar } from './setup';
+import { clearAll, clearOrigin, mod, openSidebar } from './setup';
 
 test.describe.serial('Origin Push Plugin', () => {
   const replUrl = process.env.REPL_URL || 'http://localhost:8082';
@@ -82,11 +82,9 @@ test.describe.serial('Origin Push Plugin', () => {
     await page.locator('.full-page.ref .actions .fake-link', { hasText: 'enable' }).first().click();
   });
 
-  test('@\u{ff20}main : creates ref for push on change', async ({ page }) => {
+  test('@\u{ff20}main : creates ref and pushes on change', async ({ page }) => {
+    await clearOrigin(page, replUrl, '@repl');
     await createTextRef(page, pushTestTitle);
-  });
-
-  test('@\u{ff20}repl : check ref was pushed on change', async ({ page }) => {
     await expectPushed(page, pushTestTitle);
   });
 
@@ -106,15 +104,10 @@ test.describe.serial('Origin Push Plugin', () => {
     await createRemoteOrigin(page, 'Testing Manual Remote @repl', false);
   });
 
-  test('@\u{ff20}main : creates ref for manual push', async ({ page }) => {
+  test('@\u{ff20}main : creates ref and manually pushes', async ({ page }) => {
+    await clearOrigin(page, replUrl, '@repl');
     await createTextRef(page, manualPushTestTitle);
-  });
-
-  test('@\u{ff20}main : manually pushes ref', async ({ page }) => {
     await runManualPush(page);
-  });
-
-  test('@\u{ff20}repl : check ref was manually pushed', async ({ page }) => {
     await expectPushed(page, manualPushTestTitle);
   });
 });

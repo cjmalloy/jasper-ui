@@ -14,13 +14,22 @@ export async function clearMods(page: Page, base = '') {
   await page.locator('.log div', { hasText: 'Success.' }).first().waitFor({ timeout: 15_000, state: 'attached' });
 }
 
-export async function clearAll(page: Page, base = '', origin  = '') {
+export async function clearOrigin(page: Page, base = '', origin  = '') {
   await page.goto(base + '/settings/backup?debug=ADMIN', { waitUntil: 'networkidle' });
-  if (await page.locator('form select').locator('option', { hasText: origin || 'default'}).count() === 0) return;
+  if (await page.locator('form select').locator('option', { hasText: origin || 'default'}).count() === 0) return false;
   await page.locator('form select').selectOption(origin);
   page.once('dialog', dialog => dialog.accept(origin || 'default'));
+  const deletePromise = page.waitForResponse(resp => (
+    resp.url().includes('/api/v1/origin') && resp.request().method() === 'DELETE' && resp.ok()
+  ));
   await page.locator('button', { hasText: '– delete' }).click();
+  await deletePromise;
   await page.reload();
+  return true;
+}
+
+export async function clearAll(page: Page, base = '', origin  = '') {
+  if (!await clearOrigin(page, base, origin)) return;
   await clearMods(page, base);
   await page.reload();
 }
