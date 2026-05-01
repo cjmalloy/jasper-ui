@@ -66,6 +66,15 @@ test.describe.serial('Origin Pull Plugin', () => {
     await expect(menu).toBeHidden();
   }
 
+  async function clearReplicatedOrigin(page: Page) {
+    await test.step('clear local replicated origin', async () => {
+      await clearOrigin(page, '', '@repl');
+    });
+    await test.step('clear remote source origin', async () => {
+      await clearOrigin(page, replUrl, '@repl');
+    });
+  }
+
   test('@\u{ff20}main : clear all', async ({ page }) => {
     await clearAll(page);
     await clearAll(page,'', '@repl');
@@ -85,10 +94,13 @@ test.describe.serial('Origin Pull Plugin', () => {
   });
 
   test('@\u{ff20}repl : creates ref and streams pull', async ({ page }) => {
-    await clearOrigin(page, '', '@repl');
-    await clearOrigin(page, replUrl, '@repl');
-    await createRemoteTextRef(page, pullTestTitle);
-    await expectPulled(page, pullTestTitle);
+    await clearReplicatedOrigin(page);
+    await test.step('create remote source ref', async () => {
+      await createRemoteTextRef(page, pullTestTitle);
+    });
+    await test.step('expect pulled ref', async () => {
+      await expectPulled(page, pullTestTitle);
+    });
   });
 
   test('@\u{ff20}main : delete remote \u{ff20}repl', async ({ page }) => {
@@ -108,10 +120,15 @@ test.describe.serial('Origin Pull Plugin', () => {
   });
 
   test('@\u{ff20}repl : creates ref and manually pulls', async ({ page }) => {
-    await clearOrigin(page, '', '@repl');
-    await clearOrigin(page, replUrl, '@repl');
-    await createRemoteTextRef(page, manualPullTestTitle);
-    await runManualPull(page);
-    await expectPulled(page, manualPullTestTitle);
+    await clearReplicatedOrigin(page);
+    await test.step('create remote source ref', async () => {
+      await createRemoteTextRef(page, manualPullTestTitle);
+    });
+    await test.step('run manual pull', async () => {
+      await runManualPull(page);
+    });
+    await test.step('expect pulled ref', async () => {
+      await expectPulled(page, manualPullTestTitle);
+    });
   });
 });

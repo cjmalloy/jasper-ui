@@ -83,9 +83,15 @@ test.describe.serial('Origin Push Plugin', () => {
   });
 
   test('@\u{ff20}main : creates ref and pushes on change', async ({ page }) => {
-    await clearOrigin(page, replUrl, '@repl');
-    await createTextRef(page, pushTestTitle);
-    await expectPushed(page, pushTestTitle);
+    await test.step('clear remote origin', async () => {
+      await clearOrigin(page, replUrl, '@repl');
+    });
+    await test.step('create source ref', async () => {
+      await createTextRef(page, pushTestTitle);
+    });
+    await test.step('expect pushed ref', async () => {
+      await expectPushed(page, pushTestTitle);
+    });
   });
 
   test('@\u{ff20}main : delete remote \u{ff20}repl', async ({ page }) => {
@@ -105,9 +111,17 @@ test.describe.serial('Origin Push Plugin', () => {
   });
 
   test('@\u{ff20}main : creates ref and manually pushes', async ({ page }) => {
-    await clearOrigin(page, replUrl, '@repl');
-    await createTextRef(page, manualPushTestTitle);
-    await runManualPush(page);
-    await expectPushed(page, manualPushTestTitle);
+    await test.step('clear remote origin', async () => {
+      await clearOrigin(page, replUrl, '@repl');
+    });
+    await test.step('create source ref', async () => {
+      await createTextRef(page, manualPushTestTitle);
+    });
+    await test.step('run manual push', async () => {
+      await runManualPush(page);
+    });
+    await test.step('expect pushed ref', async () => {
+      await expectPushed(page, manualPushTestTitle);
+    });
   });
 });
