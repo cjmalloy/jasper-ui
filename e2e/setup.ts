@@ -16,7 +16,8 @@ export async function clearMods(page: Page, base = '') {
 
 export async function clearOrigin(page: Page, base = '', origin  = '') {
   await page.goto(base + '/settings/backup?debug=ADMIN', { waitUntil: 'networkidle' });
-  if (await page.locator('form select').locator('option', { hasText: origin || 'default' }).count() === 0) return false;
+  const exists = await page.locator('form select option', { hasText: origin || 'default' }).count() > 0;
+  if (!exists) return false;
   await page.locator('form select').selectOption(origin);
   page.once('dialog', dialog => dialog.accept(origin || 'default'));
   const deletePromise = page.waitForResponse(resp => (
