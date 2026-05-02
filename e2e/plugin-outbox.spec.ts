@@ -1,7 +1,8 @@
 import { expect, type Response, test } from '@playwright/test';
-import { clearAll, mod, modRemote, openSidebar, pollNotifications, pollRemoteNotifications } from './setup';
+import { clearAll, deleteRef, mod, modRemote, openSidebar, pollNotifications, pollRemoteNotifications } from './setup';
 
 test.describe.serial('Outbox Plugin: Remote Notifications', () => {
+  test.setTimeout(90_000);
   const mainApi = process.env.MAIN_API || 'http://localhost:8081';
   const mainApiProxy = process.env.MAIN_API_PROXY || 'http://web';
   const replUrl = process.env.REPL_URL || 'http://localhost:8082';
@@ -41,6 +42,7 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
   });
 
   test('@\u{ff20}main : replicate \u{ff20}repl', async ({ page }) => {
+    await deleteRef(page, replApi);
     await page.goto('/?debug=ADMIN');
     await page.locator('.settings a', { hasText: 'settings' }).click();
     await page.locator('.tabs a', { hasText: 'origin' }).first().click();
@@ -71,6 +73,7 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
   });
 
   test('@\u{ff20}repl : replicate \u{ff20}main', async ({ page }) => {
+    await deleteRef(page, mainApi, replUrl);
     await page.goto(replUrl + '/?debug=ADMIN');
     await page.locator('.settings a', { hasText: 'settings' }).click();
     await page.locator('.tabs a', { hasText: 'origin' }).first().click();

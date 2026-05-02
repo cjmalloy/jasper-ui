@@ -16,9 +16,19 @@ export async function clearMods(page: Page, base = '') {
 
 export async function clearOrigin(page: Page, base = '', origin  = '') {
   await page.goto(base + '/settings/backup?debug=ADMIN', { waitUntil: 'networkidle' });
-  if (!await page.locator('form select option', { hasText: origin || 'default' }).count()) return false;
-  await page.locator('form select').selectOption(origin);
-  page.once('dialog', dialog => dialog.accept(origin || 'default'));
+  const select = page.locator('form select');
+  const targetValue = origin;
+  const targetLabel = origin || 'default';
+  const hasExactOrigin = await select.locator('option').evaluateAll((options, target) => (
+    options.some(option => (
+      option.getAttribute('value') === target.value ||
+      (option as HTMLOptionElement).label === target.label ||
+      option.textContent?.trim() === target.label
+    ))
+  ), { value: targetValue, label: targetLabel });
+  if (!hasExactOrigin) return false;
+  await select.selectOption(targetValue);
+  page.once('dialog', dialog => dialog.accept(targetLabel));
   const deletePromise = page.waitForResponse(resp => (
     resp.url().includes('/api/v1/origin') && resp.request().method() === 'DELETE' && resp.ok()
   ));

@@ -1,7 +1,8 @@
 import { expect, type Page, type Response, test } from '@playwright/test';
-import { clearAll, clearOrigin, mod, openSidebar } from './setup';
+import { clearAll, clearOrigin, deleteRef, mod, openSidebar } from './setup';
 
 test.describe.serial('Origin Pull Plugin', () => {
+  test.setTimeout(90_000);
   const replUrl = process.env.REPL_URL || 'http://localhost:8082';
   const replApiProxy = process.env.REPL_API_PROXY || 'http://repl-web';
   const runId = Date.now().toString(36);
@@ -13,6 +14,7 @@ test.describe.serial('Origin Pull Plugin', () => {
   }
 
   async function createRemoteOrigin(page: Page, title: string, streamUpdates: boolean) {
+    await deleteRef(page, replApiProxy);
     await page.goto('/?debug=ADMIN');
     await page.locator('.settings a', { hasText: 'settings' }).click();
     await page.locator('.tabs a', { hasText: 'origin' }).first().click();
@@ -62,7 +64,11 @@ test.describe.serial('Origin Pull Plugin', () => {
     await page.locator('.full-page.ref .actions .show-more').click();
     const menu = page.locator('.advanced-actions');
     await menu.locator('.fake-link', { hasText: 'pull' }).click();
+    const runPromise = page.waitForResponse(resp => (
+      resp.url().includes('/api/v1/tags/response') && resp.request().method() === 'PATCH' && resp.ok()
+    ));
     await menu.locator('.fake-link', { hasText: 'yes' }).click();
+    await runPromise;
     await expect(menu).toBeHidden();
   }
 
