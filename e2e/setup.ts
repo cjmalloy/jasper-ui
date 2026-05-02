@@ -19,6 +19,7 @@ export async function clearOrigin(page: Page, base = '', origin  = '') {
   const select = page.locator('form select');
   const targetValue = origin;
   const targetLabel = origin || 'default';
+  // Match the exact option value or displayed label so @repl does not match @repl.main.
   const hasExactOrigin = await select.locator('option').evaluateAll((options, target) => (
     options.some(option => (
       option.getAttribute('value') === target.value ||
@@ -52,6 +53,12 @@ export async function deleteRef(page: Page, url: string, base = '') {
     await page.locator('.full-page.ref .actions .fake-link', { hasText: 'yes' }).first().click();
     await page.waitForTimeout(500);
   }
+}
+
+export function waitForUserActionResponse(page: Page) {
+  return page.waitForResponse(resp => (
+    resp.url().includes('/api/v1/tags/response') && resp.request().method() === 'PATCH' && resp.ok()
+  ));
 }
 
 export async function mod(page: Page, ...mods: string[]) {

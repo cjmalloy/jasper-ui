@@ -1,5 +1,5 @@
 import { expect, type Page, type Response, test } from '@playwright/test';
-import { clearAll, clearOrigin, deleteRef, mod, openSidebar } from './setup';
+import { clearAll, clearOrigin, deleteRef, mod, openSidebar, waitForUserActionResponse } from './setup';
 
 test.describe.serial('Origin Push Plugin', () => {
   test.setTimeout(90_000);
@@ -63,9 +63,7 @@ test.describe.serial('Origin Push Plugin', () => {
     await page.locator('.full-page.ref .actions .show-more').click();
     const menu = page.locator('.advanced-actions');
     await menu.locator('.fake-link', { hasText: 'push' }).click();
-    const runPromise = page.waitForResponse(resp => (
-      resp.url().includes('/api/v1/tags/response') && resp.request().method() === 'PATCH' && resp.ok()
-    ));
+    const runPromise = waitForUserActionResponse(page);
     await menu.locator('.fake-link', { hasText: 'yes' }).click();
     await runPromise;
     await expect(menu).toBeHidden();
