@@ -20,8 +20,8 @@ export async function clearOrigin(page: Page, base = '', origin  = '') {
   const targetValue = origin;
   const targetLabel = origin || 'default';
   // Match the exact option value or displayed text so @repl does not match @repl.main.
-  const hasExactOrigin = await select.locator('option').evaluateAll((options, target) => (
-    options.some(option => (
+  const hasExactOrigin = await select.locator('option').evaluateAll((optionElements, target) => (
+    optionElements.some(option => (
       option.getAttribute('value') === target.value ||
       option.textContent?.trim() === target.label
     ))
@@ -54,6 +54,9 @@ export async function deleteRef(page: Page, url: string, base = '') {
   }
 }
 
+/**
+ * Wait for manual ref actions such as origin push/pull to confirm their user-run response.
+ */
 export function waitForUserActionResponse(page: Page) {
   return page.waitForResponse(resp => (
     resp.url().includes('/api/v1/tags/response') && resp.request().method() === 'PATCH' && resp.ok()
