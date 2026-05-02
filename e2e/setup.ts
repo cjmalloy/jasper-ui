@@ -19,11 +19,10 @@ export async function clearOrigin(page: Page, base = '', origin  = '') {
   const select = page.locator('form select');
   const targetValue = origin;
   const targetLabel = origin || 'default';
-  // Match the exact option value or displayed label so @repl does not match @repl.main.
+  // Match the exact option value or displayed text so @repl does not match @repl.main.
   const hasExactOrigin = await select.locator('option').evaluateAll((options, target) => (
     options.some(option => (
       option.getAttribute('value') === target.value ||
-      (option as HTMLOptionElement).label === target.label ||
       option.textContent?.trim() === target.label
     ))
   ), { value: targetValue, label: targetLabel });
