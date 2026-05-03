@@ -1,4 +1,4 @@
-import { type Dialog, expect, type Page, test } from '@playwright/test';
+import { expect, type Page, test } from '@playwright/test';
 import { mod, openSidebar } from './setup';
 
 test.describe.serial('Bookmark Formly Type', () => {
@@ -23,9 +23,10 @@ test.describe.serial('Bookmark Formly Type', () => {
     await page.goto('/ext/kanban/bookmark-filter?debug=MOD', { waitUntil: 'networkidle' });
     const deleteBtn = page.locator('button', { hasText: 'Delete' });
     if (await deleteBtn.isVisible({ timeout: 3_000 }).catch(() => false)) {
-      page.once('dialog', (dialog: Dialog) => dialog.accept());
+      page.once('dialog', dialog => dialog.accept());
       await deleteBtn.click();
-      await page.waitForURL(/\/tag\//, { timeout: 5_000 }).catch(() => {});
+      await page.waitForURL(/\/tag\//, { timeout: 5_000 })
+        .catch(err => console.log('Navigation timeout after deleting existing board:', err.message));
     }
     await page.goto('/tags/kanban?debug=MOD', { waitUntil: 'networkidle' });
     await openSidebar(page);
@@ -70,7 +71,7 @@ test.describe.serial('Bookmark Formly Type', () => {
     const filterSelect = page.locator('.params-panel').locator('select.big').last();
     await expect(filterSelect.locator('option[value="query/doing"]')).toHaveText(/doing/);
     await expect(filterSelect.locator('option[value="query/done"]')).toHaveText(/done/);
-    await expect(filterSelect.locator('option[value="query/!doing:!done"]')).toHaveText('todo');
+    await expect(filterSelect.locator('option[value="query/!doing:!done"]')).toHaveText(/todo/);
   });
 
   test('clicking outside popup closes it', async ({ page }) => {
