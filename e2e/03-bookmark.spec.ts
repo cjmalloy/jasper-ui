@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { type Dialog, expect, test } from '@playwright/test';
 import { mod, openSidebar } from './setup';
 
 test.describe.serial('Bookmark Formly Type', () => {
@@ -23,7 +23,7 @@ test.describe.serial('Bookmark Formly Type', () => {
     await page.goto('/ext/kanban/bookmark-filter?debug=MOD', { waitUntil: 'networkidle' });
     const deleteBtn = page.locator('button', { hasText: 'Delete' });
     if (await deleteBtn.isVisible({ timeout: 3_000 }).catch(() => false)) {
-      page.once('dialog', (dialog: any) => dialog.accept());
+      page.once('dialog', (dialog: Dialog) => dialog.accept());
       await deleteBtn.click();
       await page.waitForURL(/\/tag\//, { timeout: 5_000 }).catch(() => {});
     }
