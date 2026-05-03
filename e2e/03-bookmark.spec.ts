@@ -1,4 +1,4 @@
-import { type Dialog, expect, test } from '@playwright/test';
+import { type Dialog, expect, type Page, test } from '@playwright/test';
 import { mod, openSidebar } from './setup';
 
 test.describe.serial('Bookmark Formly Type', () => {
@@ -9,7 +9,7 @@ test.describe.serial('Bookmark Formly Type', () => {
 
   /** Helper: add a bookmark, blur the input so breadcrumbs/filter-toggle are visible.
    *  A non-empty query is required so the field enters preview mode after blur. */
-  async function addBookmark(page: any, query = 'science') {
+  async function addBookmark(page: Page, query = 'science') {
     await page.locator('button', { hasText: '+ Add another bookmark' }).click();
     const bookmarkField = page.locator('.bookmark-field').last();
     const textInput = bookmarkField.locator('input.grow:not(.preview)');
@@ -19,7 +19,7 @@ test.describe.serial('Bookmark Formly Type', () => {
     return bookmarkField;
   }
 
-  async function createKanbanBoard(page: any) {
+  async function createKanbanBoard(page: Page) {
     await page.goto('/ext/kanban/bookmark-filter?debug=MOD', { waitUntil: 'networkidle' });
     const deleteBtn = page.locator('button', { hasText: 'Delete' });
     if (await deleteBtn.isVisible({ timeout: 3_000 }).catch(() => false)) {

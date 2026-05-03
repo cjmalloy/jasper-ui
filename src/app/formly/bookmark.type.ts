@@ -20,6 +20,7 @@ import { v4 as uuid } from 'uuid';
 import { Crumb } from '../component/query/query.component';
 import { Ext } from '../model/ext';
 import { Config, FilterConfig } from '../model/tag';
+import { Template } from '../model/template';
 import { KanbanConfig } from '../mods/org/kanban';
 import { AdminService } from '../service/admin.service';
 import { ExtService } from '../service/api/ext.service';
@@ -409,14 +410,14 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> impleme
   }
 
   private getQueryActiveExts(query: string): Observable<Ext[]> {
-    const queryTags = uniq(topAnds(query)
+    const queryPrefixes = uniq(topAnds(query)
       .map(queryPrefix)
       .filter(t => t && !isQuery(t)));
-    const templates = uniq(queryTags
-      .map(tag => this.admin.view.find(t => hasPrefix(tag, t.tag))!)
-      .filter(t => !!t));
+    const templates = uniq(queryPrefixes
+      .map(tag => this.admin.view.find(t => hasPrefix(tag, t.tag)))
+      .filter((t): t is Template => !!t));
     if (!templates.length) return of([]);
-    return this.exts.getCachedExts(queryTags).pipe(
+    return this.exts.getCachedExts(queryPrefixes).pipe(
       this.admin.extFallbacks,
       map(exts => uniq(templates.flatMap(t => {
         const matchingExts = exts.filter(x => x.modifiedString && hasPrefix(x.tag, t.tag));
