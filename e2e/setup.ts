@@ -15,7 +15,7 @@ export async function clearMods(page: Page, base = '') {
 }
 
 export async function clearOrigin(page: Page, base = '', origin  = '') {
-  await page.goto(base + '/settings/backup?debug=ADMIN', { waitUntil: 'networkidle' });
+  await page.goto(base + `/settings/backup?debug=ADMIN&origin=${encodeURIComponent(origin)}`, { waitUntil: 'networkidle' });
   const select = page.locator('form select');
   const targetValue = origin;
   const targetLabel = origin || 'default';
@@ -45,13 +45,15 @@ export async function clearAll(page: Page, base = '', origin  = '') {
 }
 
 export async function deleteRef(page: Page, url: string, base = '') {
-  await page.goto(base + `/ref/e/${encodeURIComponent(url)}?debug=ADMIN`);
+  await page.goto(base + `/ref/e/${encodeURIComponent(url)}?debug=ADMIN`, { waitUntil: 'networkidle' });
   const deleteBtn = page.locator('.full-page.ref .actions .fake-link', { hasText: 'delete' });
-  if (await deleteBtn.isVisible({ timeout: 3_000 }).catch(() => false)) {
-    await deleteBtn.first().click();
-    await page.locator('.full-page.ref .actions .fake-link', { hasText: 'yes' }).first().click();
-    await page.waitForTimeout(500);
-  }
+  if (!(await deleteBtn.isVisible({ timeout: 10_000 }).catch(() => false))) return;
+  const deletePromise = page.waitForResponse(resp => (
+    resp.url().includes('/api/v1/ref') && resp.request().method() === 'DELETE' && resp.ok()
+  ));
+  await deleteBtn.first().click();
+  await page.locator('.full-page.ref .actions .fake-link', { hasText: 'yes' }).first().click();
+  await deletePromise;
 }
 
 /**
