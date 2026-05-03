@@ -1,10 +1,10 @@
 import { expect, test } from '@playwright/test';
-import { mod } from './setup';
+import { mod, openSidebar } from './setup';
 
 test.describe.serial('Bookmark Formly Type', () => {
 
   test('enable user mod', async ({ page }) => {
-    await mod(page, '#mod-user');
+    await mod(page, '#mod-root', '#mod-user', '#mod-kanban');
   });
 
   /** Helper: add a bookmark, blur the input so breadcrumbs/filter-toggle are visible.
@@ -17,6 +17,31 @@ test.describe.serial('Bookmark Formly Type', () => {
     // blur to enter preview mode so .breadcrumbs (and .filter-toggle) become visible
     await textInput.blur();
     return bookmarkField;
+  }
+
+  async function createKanbanBoard(page: any) {
+    await page.goto('/ext/kanban/bookmark-filter?debug=MOD', { waitUntil: 'networkidle' });
+    const deleteBtn = page.locator('button', { hasText: 'Delete' });
+    if (await deleteBtn.isVisible({ timeout: 3_000 }).catch(() => false)) {
+      page.once('dialog', (dialog: any) => dialog.accept());
+      await deleteBtn.click();
+      await page.waitForURL(/\/tag\//, { timeout: 5_000 }).catch(() => {});
+    }
+    await page.goto('/tags/kanban?debug=MOD', { waitUntil: 'networkidle' });
+    await openSidebar(page);
+    await page.getByText('Extend').click();
+    await page.locator('[name=tag]').fill('bookmark-filter');
+    await page.locator('button', { hasText: 'Extend' }).click();
+    await page.locator('.columns').waitFor({ timeout: 15_000 });
+    await page.locator('[name=name]').fill('Bookmark Filter Kanban');
+    await page.locator('.columns button').first().click();
+    await page.locator('.columns input').last().fill('doing');
+    await page.locator('.columns input').last().press('Enter');
+    await page.locator('.columns input').last().fill('done');
+    await page.locator('[name=showColumnBacklog]').check();
+    await page.locator('[name=columnBacklogTitle]').fill('todo');
+    await page.locator('button', { hasText: 'Save' }).click();
+    await expect(page.locator('h2')).toHaveText('Bookmark Filter Kanban');
   }
 
   test('renders filter-toggle in preview', async ({ page }) => {
@@ -35,6 +60,17 @@ test.describe.serial('Bookmark Formly Type', () => {
     await expect(popup.locator('input[type="search"]')).toBeVisible();
     await expect(popup.locator('select.big').first()).toContainText('🔼️ sort');
     await expect(popup.locator('select.big').last()).toContainText('🪄️ filter');
+  });
+
+  test('shows kanban filters for bookmark query top-level and', async ({ page }) => {
+    await createKanbanBoard(page);
+    await page.goto('/settings/me?debug=ADMIN', { waitUntil: 'networkidle' });
+    const bookmarkField = await addBookmark(page, 'public:kanban/bookmark-filter');
+    await bookmarkField.locator('.filter-toggle').click();
+    const filterSelect = page.locator('.params-panel').locator('select.big').last();
+    await expect(filterSelect.locator('option[value="query/doing"]')).toHaveText(/doing/);
+    await expect(filterSelect.locator('option[value="query/done"]')).toHaveText(/done/);
+    await expect(filterSelect.locator('option[value="query/!doing:!done"]')).toHaveText('todo');
   });
 
   test('clicking outside popup closes it', async ({ page }) => {

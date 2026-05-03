@@ -18,6 +18,7 @@ import { debounce, defer, find, uniq, uniqBy } from 'lodash-es';
 import { forkJoin, map, Observable, of, Subscription, switchMap } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { Crumb } from '../component/query/query.component';
+import { Ext } from '../model/ext';
 import { Config, FilterConfig } from '../model/tag';
 import { KanbanConfig } from '../mods/org/kanban';
 import { AdminService } from '../service/admin.service';
@@ -25,7 +26,7 @@ import { ExtService } from '../service/api/ext.service';
 import { EditorService } from '../service/editor.service';
 import { Store } from '../store/store';
 import { convertFilter, convertSort, defaultDesc, FilterGroup, FilterItem, negatable, SortItem, toggle, UrlFilter } from '../util/query';
-import { access, fixClientQuery, getStrictPrefix, hasPrefix, localTag, tagOrigin } from '../util/tag';
+import { access, fixClientQuery, getStrictPrefix, hasPrefix, isQuery, localTag, queryPrefix, tagOrigin, topAnds } from '../util/tag';
 import { encodeBookmarkParams, parseBookmarkParams } from '../util/http';
 import { getErrorMessage } from './errors';
 
@@ -250,6 +251,7 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> impleme
   private showedError = false;
   private searching?: Subscription;
   private formChanges?: Subscription;
+  private filterOptions?: Subscription;
   private _query = '';
 
   constructor(
@@ -295,6 +297,7 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> impleme
   ngOnDestroy() {
     this.searching?.unsubscribe();
     this.formChanges?.unsubscribe();
+    this.filterOptions?.unsubscribe();
     this.closeParams();
   }
 
@@ -370,6 +373,8 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> impleme
   }
 
   private buildAllFilters(): void {
+    const query = this.queryPart;
+    this.filterOptions?.unsubscribe();
     const groups: FilterGroup[] = [];
     for (const f of this.admin.filters) {
       const group = find(groups, g => g.label === (f.group || ''));
@@ -394,15 +399,57 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> impleme
       groups.push({ label: $localize`Origins 🏛️`, filters: originFilters });
     }
     this.allFilters = groups.filter(g => g.filters.length > 0);
-    // Add kanban column/badge/swimlane filters from active exts
+    this.filterOptions = this.getQueryActiveExts(query).subscribe(exts => {
+      if (query !== this.queryPart) return;
+      this.loadActiveExtFilters(exts, query);
+      this.syncFilterOptions();
+      this.cd.detectChanges();
+    });
+    this.syncFilterOptions();
+  }
+
+  private getQueryActiveExts(query: string): Observable<Ext[]> {
+    const queryTags = uniq(topAnds(query)
+      .map(queryPrefix)
+      .filter(t => t && !isQuery(t)));
+    const templates = uniq(queryTags
+      .map(tag => this.admin.view.find(t => hasPrefix(tag, t.tag))!)
+      .filter(t => !!t));
+    if (!templates.length) return of([]);
+    return this.exts.getCachedExts(queryTags).pipe(
+      this.admin.extFallbacks,
+      map(exts => uniq(templates.flatMap(t => {
+        const matchingExts = exts.filter(x => x.modifiedString && hasPrefix(x.tag, t.tag));
+        if (matchingExts.length) return matchingExts;
+        return [{
+          tag: t.tag,
+          origin: t.origin,
+          name: t.name,
+          config: { ...t.defaults, tab: t.config?.tab, view: t.config?.view },
+        } as Ext];
+      }).filter(x => !!x))),
+    );
+  }
+
+  private loadActiveExtFilters(activeExts: Ext[], query: string): void {
+    for (const ext of activeExts) {
+      for (const f of [...ext.config?.queryFilters || [], ...ext.config?.responseFilters || []]) {
+        this.loadFilter({
+          group: ext.name || this.admin.getPlugin(ext.tag)?.name || this.admin.getTemplate(ext.tag)?.name || '#' + ext.tag,
+          ...f,
+        });
+      }
+    }
+    // Add kanban column/badge/swimlane filters from bookmark query active exts.
     if (this.admin.getTemplate('kanban')) {
-      for (const e of this.store.view.activeExts.filter(x => hasPrefix(x.tag, 'kanban') && x.config)) {
+      for (const e of activeExts.filter(x => hasPrefix(x.tag, 'kanban') && x.config)) {
         const group = $localize`Kanban 📋️`;
         const k = e.config as KanbanConfig;
         if (k.columns?.length) {
           this.allFilters.push({ label: group, filters: [] });
           const kanbanTags = uniq([...k.columns, ...k.swimLanes || [], ...k.badges || []]);
           this.editor.getTagsPreview(kanbanTags, e.origin || '').subscribe(ps => {
+            if (query !== this.queryPart) return;
             for (const p of ps) {
               this.loadFilter({ group, label: p.name || '#' + p.tag, query: p.tag });
             }
@@ -415,11 +462,12 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> impleme
             if (k.badges?.length) {
               this.loadFilter({ group, label: $localize`🚫️ no badges`, query: k.badges.map(t => '!' + t).join(':') });
             }
+            this.syncFilterOptions();
+            this.cd.detectChanges();
           });
         }
       }
     }
-    this.syncFilterOptions();
   }
 
   private loadFilter(filter: FilterConfig) {
