@@ -8,6 +8,13 @@ import { StompService } from '../../service/api/stomp.service';
 import { Store } from '../../store/store';
 
 const PLUGIN_TAG = 'plugin/user/clipboard';
+const BUBBLE_START_X = 12;
+const BUBBLE_START_Y = 72;
+const BUBBLE_SPACING = 56;
+const BUBBLE_WIDTH_OFFSET = 80;
+const BUBBLE_HEIGHT_OFFSET = 40;
+const MAX_PREVIEW_LENGTH = 48;
+const PREVIEW_TRUNCATE_AT = 45;
 
 interface ClipboardItem {
   id: string;
@@ -89,7 +96,11 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
 
   preview(item: ClipboardItem) {
     const text = item.text.replace(/\s+/g, ' ').trim();
-    return text.length > 48 ? text.substring(0, 45) + '…' : text || '∅';
+    return text.length > MAX_PREVIEW_LENGTH ? text.substring(0, PREVIEW_TRUNCATE_AT) + '…' : text || '∅';
+  }
+
+  previewLabel(item: ClipboardItem) {
+    return $localize`Clipboard item: ${this.preview(item)}`;
   }
 
   select(item: ClipboardItem) {
@@ -132,8 +143,8 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
 
   pointerMove(event: PointerEvent) {
     if (!this.drag) return;
-    const x = Math.max(0, Math.min(window.innerWidth - 80, event.clientX - this.drag.offsetX));
-    const y = Math.max(0, Math.min(window.innerHeight - 40, event.clientY - this.drag.offsetY));
+    const x = Math.max(0, Math.min(window.innerWidth - BUBBLE_WIDTH_OFFSET, event.clientX - this.drag.offsetX));
+    const y = Math.max(0, Math.min(window.innerHeight - BUBBLE_HEIGHT_OFFSET, event.clientY - this.drag.offsetY));
     if (Math.abs(x - this.drag.item.x) > 3 || Math.abs(y - this.drag.item.y) > 3) this.drag.moved = true;
     this.drag.item.x = x;
     this.drag.item.y = y;
@@ -170,14 +181,14 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   }
 
   private addText(text: string) {
-    const y = 72 + this.items.length * 56;
+    const y = BUBBLE_START_Y + this.items.length * BUBBLE_SPACING;
     this.items = [
       ...this.items,
       {
         id: crypto.randomUUID(),
         text,
         created: new Date().toISOString(),
-        x: 12,
+        x: BUBBLE_START_X,
         y,
       },
     ];
@@ -262,8 +273,8 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
         id: item.id,
         text: item.text,
         created: typeof item.created === 'string' ? item.created : new Date().toISOString(),
-        x: typeof item.x === 'number' ? item.x : 12,
-        y: typeof item.y === 'number' ? item.y : 72 + index * 56,
+        x: typeof item.x === 'number' ? item.x : BUBBLE_START_X,
+        y: typeof item.y === 'number' ? item.y : BUBBLE_START_Y + index * BUBBLE_SPACING,
         hold: !!item.hold,
         selected: !!item.selected,
       }));
