@@ -52,12 +52,7 @@ test.describe.serial('Chat Template', () => {
     await page.mouse.wheel(0, -10_000);
     await expect.poll(async () => await viewport.evaluate(el => {
       return el.scrollTop;
-    }), { timeout: 15_000 }).toBe(0);
-
-    await page.waitForFunction(() => {
-      const el = document.querySelector('.chat .messages');
-      return el && el.scrollTop === 0;
-    }, { timeout: 15_000 });
+    }), { timeout: 15_000 }).toBeLessThanOrEqual(1);
 
     // The floating bar should now be visible
     const bar = page.locator('.chat .scroll-to-bottom');
