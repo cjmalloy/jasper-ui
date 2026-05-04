@@ -1,5 +1,5 @@
 import { expect, type Page, type Response, test } from '@playwright/test';
-import { clearAll, clearOrigin, deleteRef, mod, openSidebar, waitForUserActionResponse } from './setup';
+import { clearAll, clearOrigin, deleteRef, mod, openSidebar, waitForCronToggleResponse, waitForUserActionResponse } from './setup';
 
 test.describe.serial('Origin Push Plugin', () => {
   test.setTimeout(90_000);
@@ -83,7 +83,10 @@ test.describe.serial('Origin Push Plugin', () => {
 
   test('@\u{ff20}main : creates a remote origin', async ({ page }) => {
     await createRemoteOrigin(page, 'Testing Remote @repl', true);
+    const enablePromise = waitForCronToggleResponse(page);
     await page.locator('.full-page.ref .actions .fake-link', { hasText: 'enable' }).first().click();
+    await enablePromise;
+    await expect(page.locator('.full-page.ref .actions .fake-link', { hasText: 'disable' }).first()).toBeVisible();
   });
 
   test('@\u{ff20}main : creates ref and pushes on change', async ({ page }) => {

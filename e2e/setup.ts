@@ -15,7 +15,12 @@ export async function clearMods(page: Page, base = '') {
 }
 
 export async function clearOrigin(page: Page, base = '', origin  = '') {
+  const originsPromise = page.waitForResponse(resp => (
+    resp.url().includes('/api/v1/origin') && resp.request().method() === 'GET' && resp.ok()
+  )).then(resp => resp.json() as Promise<string[]>);
   await page.goto(base + `/settings/backup?debug=ADMIN&origin=${encodeURIComponent(origin)}`, { waitUntil: 'networkidle' });
+  const backupOrigins = await originsPromise;
+  if (origin && !backupOrigins.includes(origin)) return false;
   const select = page.locator('form select');
   const targetValue = origin;
   const targetLabel = origin || 'default';
@@ -63,6 +68,13 @@ export function waitForUserActionResponse(page: Page) {
   return page.waitForResponse(resp => (
     resp.url().includes('/api/v1/tags/response') && resp.request().method() === 'PATCH' && resp.ok()
   ));
+}
+
+export function waitForCronToggleResponse(page: Page) {
+  return page.waitForResponse(resp => {
+    if (!resp.url().includes('/api/v1/tags') || resp.request().method() !== 'POST' || !resp.ok()) return false;
+    return new URL(resp.url()).searchParams.get('tag') === '+plugin/cron';
+  });
 }
 
 export async function mod(page: Page, ...mods: string[]) {
