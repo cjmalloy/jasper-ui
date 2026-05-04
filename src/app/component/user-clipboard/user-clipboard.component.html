@@ -10,7 +10,7 @@
            (pointerdown)="pointerDown($event, item)"
            (pointermove)="pointerMove($event)"
            (pointerup)="pointerUp()">
-        <button type="button" class="clipboard-preview" [title]="item.text">{{ preview(item) }}</button>
+        <button type="button" class="clipboard-preview" [title]="item.text" [attr.aria-label]="'Clipboard item: ' + preview(item)">{{ preview(item) }}</button>
         @if (item.selected) {
           <div class="clipboard-actions">
             <button type="button" class="clipboard-clear" (click)="clear(item, $event)" i18n>clear</button>

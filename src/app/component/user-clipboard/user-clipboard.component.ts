@@ -204,7 +204,14 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
       return true;
     }
     if (target.isContentEditable) {
-      document.execCommand('insertText', false, text);
+      const selection = window.getSelection();
+      if (!selection?.rangeCount) return false;
+      const range = selection.getRangeAt(0);
+      range.deleteContents();
+      range.insertNode(document.createTextNode(text));
+      range.collapse(false);
+      selection.removeAllRanges();
+      selection.addRange(range);
       target.dispatchEvent(new Event('input', { bubbles: true }));
       return true;
     }
@@ -270,12 +277,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   private persistLocal() {
     try {
       localStorage.setItem(this.storageKey, JSON.stringify(this.items.map(item => ({
-        id: item.id,
-        text: item.text,
-        created: item.created,
-        x: item.x,
-        y: item.y,
-        hold: item.hold || undefined,
+        ...this.serialize(item),
       }))));
     } catch {
       // Local storage is best-effort.
@@ -293,14 +295,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
       plugins: {
         ...(this.remote?.plugins || {}),
         [PLUGIN_TAG]: {
-          items: this.items.map(item => ({
-            id: item.id,
-            text: item.text,
-            created: item.created,
-            x: item.x,
-            y: item.y,
-            hold: item.hold || undefined,
-          })),
+          items: this.items.map(item => this.serialize(item)),
         },
       },
     };
@@ -316,5 +311,16 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
         };
       }
     });
+  }
+
+  private serialize(item: ClipboardItem) {
+    return {
+      id: item.id,
+      text: item.text,
+      created: item.created,
+      x: item.x,
+      y: item.y,
+      ...(item.hold ? { hold: true } : {}),
+    };
   }
 }
