@@ -3,7 +3,7 @@ import { mod, openSidebar } from './setup';
 
 test.describe.serial('Bookmark Formly Type', () => {
 
-  test('enable user mod', async ({ page }) => {
+  test('enable bookmark form mods', async ({ page }) => {
     await mod(page, '#mod-root', '#mod-user', '#mod-kanban');
   });
 
@@ -25,8 +25,7 @@ test.describe.serial('Bookmark Formly Type', () => {
     if (await deleteBtn.isVisible({ timeout: 3_000 }).catch(() => false)) {
       page.once('dialog', dialog => dialog.accept());
       await deleteBtn.click();
-      await page.waitForURL(/\/tag\//, { timeout: 5_000 })
-        .catch(err => console.log('Navigation timeout after deleting existing board:', err.message));
+      await page.waitForURL(/\/tag\//, { timeout: 5_000 });
     }
     await page.goto('/tags/kanban?debug=MOD', { waitUntil: 'networkidle' });
     await openSidebar(page);
@@ -36,9 +35,12 @@ test.describe.serial('Bookmark Formly Type', () => {
     await page.locator('.columns').waitFor({ timeout: 15_000 });
     await page.locator('[name=name]').fill('Bookmark Filter Kanban');
     await page.locator('.columns button').first().click();
+    const initialColumnInputs = await page.locator('.columns input').count();
     await page.locator('.columns input').last().fill('doing');
     await page.locator('.columns input').last().press('Enter');
+    await expect(page.locator('.columns input')).toHaveCount(initialColumnInputs + 1);
     await page.locator('.columns input').last().fill('done');
+    await page.locator('.columns input').last().press('Enter');
     await page.locator('[name=showColumnBacklog]').check();
     await page.locator('[name=columnBacklogTitle]').fill('todo');
     await page.locator('button', { hasText: 'Save' }).click();

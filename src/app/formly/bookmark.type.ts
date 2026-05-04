@@ -400,13 +400,14 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> impleme
       groups.push({ label: $localize`Origins 🏛️`, filters: originFilters });
     }
     this.allFilters = groups.filter(g => g.filters.length > 0);
-    this.filterOptions = this.getQueryActiveExts(query).subscribe(exts => {
+    this.filterOptions = this.getQueryActiveExts(query).pipe(
+      switchMap(exts => query === this.queryPart ? this.loadActiveExtFilters(exts, query) : of(undefined)),
+    ).subscribe(() => {
       if (query !== this.queryPart) return;
-      this.loadActiveExtFilters(exts, query);
       this.syncFilterOptions();
       this.cd.detectChanges();
     });
-    this.syncFilterOptions();
+    this.syncFilterOptions(false);
   }
 
   private getQueryActiveExts(query: string): Observable<Ext[]> {
@@ -436,7 +437,7 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> impleme
     );
   }
 
-  private loadActiveExtFilters(activeExts: Ext[], query: string): void {
+  private loadActiveExtFilters(activeExts: Ext[], query: string): Observable<undefined> {
     for (const ext of activeExts) {
       for (const f of [...ext.config?.queryFilters || [], ...ext.config?.responseFilters || []]) {
         this.loadFilter({
@@ -445,15 +446,18 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> impleme
         });
       }
     }
+    const previews: Observable<unknown>[] = [];
     // Add kanban column/badge/swimlane filters from bookmark query active exts.
     if (this.admin.getTemplate('kanban')) {
+      const group = $localize`Kanban 📋️`;
       for (const e of activeExts.filter(x => hasPrefix(x.tag, 'kanban') && x.config)) {
-        const group = $localize`Kanban 📋️`;
         const k = e.config as KanbanConfig;
         if (k.columns?.length) {
-          this.allFilters.push({ label: group, filters: [] });
+          if (!find(this.allFilters, f => f.label === group)) {
+            this.allFilters.push({ label: group, filters: [] });
+          }
           const kanbanTags = uniq([...k.columns, ...k.swimLanes || [], ...k.badges || []]);
-          this.editor.getTagsPreview(kanbanTags, e.origin || '').subscribe(ps => {
+          previews.push(this.editor.getTagsPreview(kanbanTags, e.origin || '').pipe(map(ps => {
             if (query !== this.queryPart) return;
             for (const p of ps) {
               this.loadFilter({ group, label: p.name || '#' + p.tag, query: p.tag });
@@ -467,12 +471,11 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> impleme
             if (k.badges?.length) {
               this.loadFilter({ group, label: $localize`🚫️ no badges`, query: k.badges.map(t => '!' + t).join(':') });
             }
-            this.syncFilterOptions();
-            this.cd.detectChanges();
-          });
+          })));
         }
       }
     }
+    return previews.length ? forkJoin(previews).pipe(map(() => undefined)) : of(undefined);
   }
 
   private loadFilter(filter: FilterConfig) {
@@ -486,7 +489,7 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> impleme
 
   /** Mirror filter.component.ts sync(): mutate allFilters options to show ! prefix for negated filters,
    *  and add missing filters so they appear in the dropdown. */
-  private syncFilterOptions(): void {
+  private syncFilterOptions(addMissing = true): void {
     for (const f of this.filters) {
       const toggled = toggle(f as UrlFilter);
       if (!toggled) continue;
@@ -508,7 +511,7 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> impleme
             }
           }
         });
-      } else if (!this.allFilters.find(g => g.filters.find(i => i.filter === f))) {
+      } else if (addMissing && !this.allFilters.find(g => g.filters.find(i => i.filter === f))) {
         // Filter not found — add it as a fallback so the dropdown shows the current value
         if (f.startsWith('!') || hasPrefix(f, 'plugin')) {
           this.loadFilter({ group: $localize`Plugins 🧰️`, response: f as any });
