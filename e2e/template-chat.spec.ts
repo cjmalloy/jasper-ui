@@ -33,17 +33,31 @@ test.describe.serial('Chat Template', () => {
 
     // Wait for messages to be fetched from server (component polls ~1s after last send)
     // and rendered in the virtual scroll viewport
-    await expect(page.locator('.chat .messages app-chat-entry').first()).toBeVisible({ timeout: 15_000 });
+    await expect(page.locator('.chat .messages app-chat-entry', { hasText: 'Message 25' })).toBeVisible({ timeout: 15_000 });
 
     // Ensure the viewport has scrollable content by waiting for enough messages
-    await page.waitForFunction(() => {
-      const el = document.querySelector('.chat .messages');
-      return el && el.scrollHeight > el.clientHeight;
-    }, { timeout: 15_000 });
+    await expect.poll(async () => await viewport.evaluate(el => {
+      return el.scrollHeight > el.clientHeight;
+    }), { timeout: 15_000 }).toBe(true);
+
+    // Start from the bottom so scrolling up changes the virtual-scroll index and
+    // triggers the component's "not at bottom" state.
+    await viewport.hover();
+    await page.mouse.wheel(0, 10_000);
+    await expect.poll(async () => await viewport.evaluate(el => {
+      return Math.ceil(el.scrollTop + el.clientHeight) >= el.scrollHeight - 1;
+    }), { timeout: 15_000 }).toBe(true);
 
     // Scroll to the top of the messages viewport to trigger "More messages below"
-    await viewport.evaluate(el => el.scrollTop = 0);
-    await page.waitForTimeout(500);
+    await page.mouse.wheel(0, -10_000);
+    await expect.poll(async () => await viewport.evaluate(el => {
+      return el.scrollTop;
+    }), { timeout: 15_000 }).toBe(0);
+
+    await page.waitForFunction(() => {
+      const el = document.querySelector('.chat .messages');
+      return el && el.scrollTop === 0;
+    }, { timeout: 15_000 });
 
     // The floating bar should now be visible
     const bar = page.locator('.chat .scroll-to-bottom');
@@ -52,7 +66,6 @@ test.describe.serial('Chat Template', () => {
 
     // Clicking the bar should scroll to bottom and hide the bar
     await bar.click();
-    await page.waitForTimeout(600);
     await expect(bar).not.toBeVisible();
   });
 
