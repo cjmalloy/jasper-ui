@@ -231,7 +231,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
 
   private selectedText(target: HTMLElement | null) {
     if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) {
-      return target.value.substring(target.selectionStart ?? 0, target.selectionEnd ?? 0);
+      return target.value.substring(target.selectionStart ?? 0, target.selectionEnd ?? target.value.length);
     }
     return window.getSelection()?.toString() || '';
   }
@@ -297,21 +297,43 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
 
   private persistRemote() {
     if (!this.store.account.signedIn) return;
+    const ref = this.clipboardRef(this.remote);
+    this.save?.unsubscribe();
+    if (!this.remote) {
+      this.save = this.refs.get(this.refUrl, this.store.account.origin).pipe(
+        catchError(() => of(undefined)),
+      ).subscribe(existing => {
+        if (existing) {
+          this.remote = existing;
+          this.sendRemote(this.clipboardRef(existing), true);
+        } else {
+          this.sendRemote(ref, false);
+        }
+      });
+      return;
+    }
+    this.sendRemote(ref, true);
+  }
+
+  private clipboardRef(remote?: Ref): Ref {
     const ref: Ref = {
-      ...(this.remote || {}),
+      ...(remote || {}),
       url: this.refUrl,
       origin: this.store.account.origin,
       title: 'Clipboard',
       tags: [this.store.account.localTag, PLUGIN_TAG, 'internal'],
       plugins: {
-        ...(this.remote?.plugins || {}),
+        ...(remote?.plugins || {}),
         [PLUGIN_TAG]: {
           items: this.items.map(item => this.serialize(item)),
         },
       },
     };
-    const request = this.remote ? this.refs.update(ref) : this.refs.create(ref);
-    this.save?.unsubscribe();
+    return ref;
+  }
+
+  private sendRemote(ref: Ref, update: boolean) {
+    const request = update ? this.refs.update(ref) : this.refs.create(ref);
     this.save = request.pipe(
       catchError(() => of(undefined)),
     ).subscribe(cursor => {

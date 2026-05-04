@@ -25,10 +25,10 @@ test.describe.serial('User Clipboard Plugin', () => {
 
     await page.locator('body').evaluate(() => {
       const input = document.createElement('input');
-      input.className = 'clipboard-e2e-target';
+      input.className = 'e2e-test-input';
       document.body.appendChild(input);
     });
-    await page.locator('.clipboard-e2e-target').focus();
-    await expect(page.locator('.clipboard-e2e-target')).toHaveValue('Clipboard paste text');
+    await page.locator('.e2e-test-input').focus();
+    await expect(page.locator('.e2e-test-input')).toHaveValue('Clipboard paste text');
   });
 });

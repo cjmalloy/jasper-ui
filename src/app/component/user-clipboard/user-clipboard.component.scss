@@ -3,6 +3,8 @@
   inset: 0;
   z-index: 20;
   pointer-events: none;
+  --clipboard-bg: color-mix(in srgb, var(--card), transparent 8%);
+  --clipboard-active: color-mix(in srgb, var(--active), transparent 8%);
 }
 
 .clipboard-bubbles {

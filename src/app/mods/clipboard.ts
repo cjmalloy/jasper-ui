@@ -27,13 +27,6 @@ export const userClipboardPlugin: Plugin = {
         title: $localize`Send paste commands from the Jasper clipboard instead of the system clipboard.`,
       },
     }],
-    // language=CSS
-    css: `
-      .user-clipboard {
-        --clipboard-bg: color-mix(in srgb, var(--card), transparent 8%);
-        --clipboard-active: color-mix(in srgb, var(--active), transparent 8%);
-      }
-    `,
   },
   defaults: {
     interceptCopy: false,
