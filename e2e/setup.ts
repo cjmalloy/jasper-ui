@@ -16,9 +16,9 @@ export async function clearMods(page: Page, base = '') {
 
 /**
  * Clears the requested origin through the backup UI.
- * Returns false when a non-default origin is not present.
+ * Returns true after the delete request completes, or false when a non-default origin is not present.
  */
-export async function clearOrigin(page: Page, base = '', origin  = '') {
+export async function clearOrigin(page: Page, base = '', origin = '') {
   const originsPromise = page.waitForResponse(resp => (
     resp.url().includes('/api/v1/origin') && resp.request().method() === 'GET' && resp.ok()
   )).then(resp => resp.json() as Promise<string[]>);
@@ -47,7 +47,7 @@ export async function clearOrigin(page: Page, base = '', origin  = '') {
   return true;
 }
 
-export async function clearAll(page: Page, base = '', origin  = '') {
+export async function clearAll(page: Page, base = '', origin = '') {
   if (!await clearOrigin(page, base, origin)) return;
   await clearMods(page, base);
   await page.reload();
