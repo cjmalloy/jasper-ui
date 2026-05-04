@@ -14,6 +14,10 @@ export async function clearMods(page: Page, base = '') {
   await page.locator('.log div', { hasText: 'Success.' }).first().waitFor({ timeout: 15_000, state: 'attached' });
 }
 
+/**
+ * Clears the requested origin through the backup UI.
+ * Returns false when a non-default origin is not present.
+ */
 export async function clearOrigin(page: Page, base = '', origin  = '') {
   const originsPromise = page.waitForResponse(resp => (
     resp.url().includes('/api/v1/origin') && resp.request().method() === 'GET' && resp.ok()
@@ -70,6 +74,9 @@ export function waitForUserActionResponse(page: Page) {
   ));
 }
 
+/**
+ * Waits for the +plugin/cron tag update used to enable/disable origin sync.
+ */
 export function waitForCronToggleResponse(page: Page) {
   return page.waitForResponse(resp => {
     if (!resp.url().includes('/api/v1/tags') || resp.request().method() !== 'POST' || !resp.ok()) return false;
