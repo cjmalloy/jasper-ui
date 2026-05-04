@@ -10,6 +10,9 @@
     <app-login-popup></app-login-popup>
   }
   <app-subscription-bar></app-subscription-bar>
+  @if (userClipboardPlugin) {
+    <app-user-clipboard></app-user-clipboard>
+  }
   <router-outlet></router-outlet>
   @if (store.account.banned) {
     <div class="ban-message">

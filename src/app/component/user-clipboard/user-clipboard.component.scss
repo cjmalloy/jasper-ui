@@ -1,0 +1,68 @@
+:host {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  pointer-events: none;
+}
+
+.clipboard-bubbles {
+  pointer-events: none;
+}
+
+.clipboard-bubble {
+  position: fixed;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  max-width: min(360px, 70vw);
+  min-height: 40px;
+  padding: 4px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--clipboard-bg, var(--card));
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(4px);
+  cursor: grab;
+  pointer-events: auto;
+  user-select: none;
+}
+
+.clipboard-bubble.selected {
+  background: var(--clipboard-active, var(--active));
+}
+
+.clipboard-bubble:active {
+  cursor: grabbing;
+}
+
+.clipboard-preview,
+.clipboard-actions button {
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  font: inherit;
+}
+
+.clipboard-preview {
+  overflow: hidden;
+  max-width: 180px;
+  padding: 6px 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.clipboard-actions {
+  display: flex;
+  gap: 2px;
+}
+
+.clipboard-actions button {
+  padding: 4px 8px;
+  background: color-mix(in srgb, var(--bg), transparent 25%);
+}
+
+.clipboard-actions button.active {
+  outline: 1px solid var(--text);
+}

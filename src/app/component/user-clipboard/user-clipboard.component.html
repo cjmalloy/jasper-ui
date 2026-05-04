@@ -1,0 +1,24 @@
+@if (store.account.signedIn && items.length) {
+  <div class="clipboard-bubbles" aria-label="Clipboard items" i18n-aria-label>
+    @for (item of items; track item.id) {
+      <div class="clipboard-bubble"
+           [class.selected]="item.selected"
+           [class.hold]="item.hold"
+           [style.left.px]="item.x"
+           [style.top.px]="item.y"
+           (click)="select(item)"
+           (pointerdown)="pointerDown($event, item)"
+           (pointermove)="pointerMove($event)"
+           (pointerup)="pointerUp()">
+        <button type="button" class="clipboard-preview" [title]="item.text">{{ preview(item) }}</button>
+        @if (item.selected) {
+          <div class="clipboard-actions">
+            <button type="button" class="clipboard-clear" (click)="clear(item, $event)" i18n>clear</button>
+            <button type="button" class="clipboard-hold" [class.active]="item.hold" (click)="hold(item, $event)" i18n>hold</button>
+            <button type="button" class="clipboard-reset" (click)="reset(item, $event)" i18n>reset</button>
+          </div>
+        }
+      </div>
+    }
+  </div>
+}

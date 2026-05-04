@@ -19,6 +19,7 @@ import { summaryMod } from '../mods/ai/summary';
 import { translateMod } from '../mods/ai/translate';
 import { blogMod } from '../mods/blog';
 import { chatMod } from '../mods/chat';
+import { clipboardMod } from '../mods/clipboard';
 import { commentMod } from '../mods/comment';
 import { deleteMod, tagDeleteNotice } from '../mods/delete';
 import { draftMod } from '../mods/draft';
@@ -125,6 +126,7 @@ export class AdminService {
     blogMod,
     mapMod,
     chatMod,
+    clipboardMod,
     mailboxMod,
     hideMod,
     saveMod,
