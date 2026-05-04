@@ -13,9 +13,32 @@
         <button type="button" class="clipboard-preview" [title]="item.text" [attr.aria-label]="previewLabel(item)">{{ preview(item) }}</button>
         @if (item.selected) {
           <div class="clipboard-actions">
+            @if (canEdit(item)) {
+              <button type="button" class="clipboard-edit" [class.active]="item.editing" (click)="edit(item, $event)" i18n>edit</button>
+            }
             <button type="button" class="clipboard-clear" (click)="clear(item, $event)" i18n>clear</button>
             <button type="button" class="clipboard-hold" [class.active]="item.hold" (click)="hold(item, $event)" i18n>hold</button>
             <button type="button" class="clipboard-reset" (click)="reset(item, $event)" i18n>reset</button>
+          </div>
+        }
+        @if (item.editing) {
+          <div class="clipboard-edit-panel" (click)="$event.stopPropagation()">
+            @if (item.text !== undefined) {
+              <textarea class="clipboard-text-edit"
+                        [value]="item.text"
+                        (input)="updateText(item, $any($event.target).value)"
+                        i18n-aria-label aria-label="Clipboard text"></textarea>
+            }
+            @if (item.ref) {
+              <input class="clipboard-ref-title-edit"
+                     [value]="item.ref.title || ''"
+                     (input)="updateRefTitle(item, $any($event.target).value)"
+                     i18n-aria-label aria-label="Ref title">
+              <input class="clipboard-ref-url-edit"
+                     [value]="item.ref.url"
+                     (input)="updateRefUrl(item, $any($event.target).value)"
+                     i18n-aria-label aria-label="Ref URL">
+            }
           </div>
         }
       </div>

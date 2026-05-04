@@ -15,6 +15,7 @@
   position: fixed;
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 4px;
   max-width: min(360px, 70vw);
   min-height: 40px;
@@ -67,4 +68,16 @@
 
 .clipboard-actions button.active {
   outline: 1px solid var(--text);
+}
+
+.clipboard-edit-panel {
+  width: 100%;
+  padding: 4px 8px 8px;
+}
+
+.clipboard-edit-panel textarea,
+.clipboard-edit-panel input {
+  box-sizing: border-box;
+  width: 100%;
+  margin-top: 4px;
 }

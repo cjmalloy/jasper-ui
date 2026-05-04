@@ -1,4 +1,5 @@
 import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
+import DOMPurify from 'dompurify';
 import { catchError, of, Subscription } from 'rxjs';
 import { Plugin } from '../../model/plugin';
 import { Ref, RefUpdates } from '../../model/ref';
@@ -18,12 +19,22 @@ const PREVIEW_TRUNCATE_AT = 45;
 
 interface ClipboardItem {
   id: string;
-  text: string;
   created: string;
+  text?: string;
+  html?: string;
+  image?: string;
+  ref?: ClipboardRef;
   x: number;
   y: number;
   selected?: boolean;
   hold?: boolean;
+  editing?: boolean;
+}
+
+interface ClipboardRef {
+  url: string;
+  origin?: string;
+  title?: string;
 }
 
 interface DragState {
@@ -95,7 +106,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   }
 
   preview(item: ClipboardItem) {
-    const text = item.text.replace(/\s+/g, ' ').trim();
+    const text = (item.text || item.ref?.title || item.ref?.url || (item.image ? $localize`Image` : item.html ? $localize`HTML` : '')).replace(/\s+/g, ' ').trim();
     return text.length > MAX_PREVIEW_LENGTH ? text.substring(0, PREVIEW_TRUNCATE_AT) + '…' : text || '∅';
   }
 
@@ -126,7 +137,35 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     event?.stopPropagation();
     item.selected = false;
     item.hold = false;
+    item.editing = false;
     this.persist();
+  }
+
+  edit(item: ClipboardItem, event?: Event) {
+    event?.stopPropagation();
+    item.editing = !item.editing;
+    this.persist(false);
+  }
+
+  updateText(item: ClipboardItem, text: string) {
+    item.text = text;
+    this.persist();
+  }
+
+  updateRefTitle(item: ClipboardItem, title: string) {
+    if (!item.ref) return;
+    item.ref = { ...item.ref, title };
+    this.persist();
+  }
+
+  updateRefUrl(item: ClipboardItem, url: string) {
+    if (!item.ref) return;
+    item.ref = { ...item.ref, url };
+    this.persist();
+  }
+
+  canEdit(item: ClipboardItem) {
+    return item.text !== undefined || !!item.ref;
   }
 
   pointerDown(event: PointerEvent, item: ClipboardItem) {
@@ -160,18 +199,21 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   @HostListener('document:copy', ['$event'])
   copy(event: ClipboardEvent) {
     if (!this.interceptCopy) return;
-    const text = this.selectedText(event.target as HTMLElement);
-    if (!text) return;
+    const item = this.clipboardItem(event.target as HTMLElement);
+    if (!item) return;
     event.preventDefault();
-    this.addText(text);
+    this.addItem(item);
   }
 
   @HostListener('document:paste', ['$event'])
   paste(event: ClipboardEvent) {
     if (!this.interceptPaste) return;
-    if (!this.items.length) return;
     event.preventDefault();
-    this.pasteInto(event.target as HTMLElement);
+    if (this.pendingPaste) {
+      this.pasteInto(event.target as HTMLElement);
+      return;
+    }
+    this.addFromClipboardData(event.clipboardData);
   }
 
   @HostListener('document:focusin', ['$event'])
@@ -180,16 +222,16 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     this.pasteInto(event.target as HTMLElement);
   }
 
-  private addText(text: string) {
+  private addItem(item: Omit<ClipboardItem, 'id' | 'created' | 'x' | 'y'>) {
     const y = BUBBLE_START_Y + this.items.length * BUBBLE_SPACING;
     this.items = [
       ...this.items,
       {
         id: crypto.randomUUID(),
-        text,
         created: new Date().toISOString(),
         x: BUBBLE_START_X,
         y,
+        ...item,
       },
     ];
     this.persist();
@@ -198,16 +240,16 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   private pasteInto(target: HTMLElement | null) {
     const items = this.items.filter(item => item.selected);
     if (!target || !items.length) return;
-    const text = items.map(item => item.text).join('');
-    if (!this.insertText(target, text)) return;
+    if (!this.insertItems(target, items)) return;
     for (const item of items) {
       if (!item.hold) item.selected = false;
     }
     this.persist();
   }
 
-  private insertText(target: HTMLElement, text: string) {
+  private insertItems(target: HTMLElement, items: ClipboardItem[]) {
     if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) {
+      const text = items.map(item => this.plainText(item)).join('');
       const start = target.selectionStart ?? target.value.length;
       const end = target.selectionEnd ?? target.value.length;
       target.setRangeText(text, start, end, 'end');
@@ -219,7 +261,11 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
       if (!selection?.rangeCount) return false;
       const range = selection.getRangeAt(0);
       range.deleteContents();
-      range.insertNode(document.createTextNode(text));
+      const fragment = document.createDocumentFragment();
+      for (const item of items) {
+        fragment.append(...this.richNodes(item));
+      }
+      range.insertNode(fragment);
       range.collapse(false);
       selection.removeAllRanges();
       selection.addRange(range);
@@ -229,11 +275,83 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     return false;
   }
 
+  private plainText(item: ClipboardItem) {
+    return item.text || item.ref?.url || (item.html ? this.stripHtml(item.html) : item.image || '');
+  }
+
+  private richNodes(item: ClipboardItem) {
+    if (item.html) {
+      const template = document.createElement('template');
+      template.innerHTML = DOMPurify.sanitize(item.html);
+      return Array.from(template.content.childNodes);
+    }
+    if (item.image) {
+      const image = document.createElement('img');
+      image.src = item.image;
+      image.alt = item.text || item.ref?.title || item.ref?.url || $localize`Clipboard image`;
+      return [image];
+    }
+    return [document.createTextNode(this.plainText(item))];
+  }
+
+  private clipboardItem(target: HTMLElement | null): Omit<ClipboardItem, 'id' | 'created' | 'x' | 'y'> | undefined {
+    const text = this.selectedText(target);
+    const html = this.selectedHtml();
+    const ref = this.selectedRef(target);
+    if (!text && !html && !ref) return undefined;
+    return { text: text || undefined, html: html || undefined, ref };
+  }
+
   private selectedText(target: HTMLElement | null) {
     if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) {
       return target.value.substring(target.selectionStart ?? 0, target.selectionEnd ?? target.value.length);
     }
     return window.getSelection()?.toString() || '';
+  }
+
+  private selectedHtml() {
+    const selection = window.getSelection();
+    if (!selection?.rangeCount) return '';
+    const fragment = selection.getRangeAt(0).cloneContents();
+    const container = document.createElement('div');
+    container.appendChild(fragment);
+    return container.innerHTML;
+  }
+
+  private selectedRef(target: HTMLElement | null): ClipboardRef | undefined {
+    const refEl = target?.closest('.ref[data-ref-url]') as HTMLElement | null;
+    const url = refEl?.dataset['refUrl'];
+    if (!url) return undefined;
+    return {
+      url,
+      origin: refEl.dataset['refOrigin'] || undefined,
+      title: refEl.dataset['refTitle'] || undefined,
+    };
+  }
+
+  private addFromClipboardData(data: DataTransfer | null) {
+    if (!data) return;
+    const text = data.getData('text/plain') || undefined;
+    const html = data.getData('text/html') || undefined;
+    const imageItem = Array.from(data.items || []).find(item => item.kind === 'file' && item.type.startsWith('image/'));
+    if (!imageItem) {
+      if (text || html) this.addItem({ text, html });
+      return;
+    }
+    const file = imageItem.getAsFile();
+    if (!file) {
+      if (text || html) this.addItem({ text, html });
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => this.addItem({ text, html, image: reader.result as string });
+    reader.readAsDataURL(file);
+  }
+
+  private stripHtml(html: string) {
+    const template = document.createElement('template');
+    template.innerHTML = DOMPurify.sanitize(html);
+    return template.content.textContent || '';
   }
 
   private loadLocal() {
@@ -262,22 +380,43 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   private applyRemote(ref: Ref | RefUpdates) {
     const remoteItems = ref.plugins?.[PLUGIN_TAG]?.items;
     if (!Array.isArray(remoteItems)) return;
-    this.items = this.sanitise(remoteItems);
+    this.items = this.sanitise(remoteItems, this.items, false);
     this.persistLocal();
   }
 
-  private sanitise(items: any[]): ClipboardItem[] {
+  private sanitise(items: any[], previous: ClipboardItem[] = [], includeItemState = true): ClipboardItem[] {
+    const localState = new Map(previous.map(item => [item.id, item]));
     return items
-      .filter(item => typeof item?.id === 'string' && typeof item?.text === 'string')
+      .filter(item => typeof item?.id === 'string' && this.hasContent(item))
       .map((item, index) => ({
         id: item.id,
-        text: item.text,
+        text: typeof item.text === 'string' ? item.text : undefined,
+        html: typeof item.html === 'string' ? item.html : undefined,
+        image: typeof item.image === 'string' ? item.image : undefined,
+        ref: this.sanitiseRef(item.ref),
         created: typeof item.created === 'string' ? item.created : new Date().toISOString(),
-        x: typeof item.x === 'number' ? item.x : BUBBLE_START_X,
-        y: typeof item.y === 'number' ? item.y : BUBBLE_START_Y + index * BUBBLE_SPACING,
-        hold: !!item.hold,
-        selected: !!item.selected,
+        x: includeItemState && typeof item.x === 'number' ? item.x : localState.get(item.id)?.x ?? BUBBLE_START_X,
+        y: includeItemState && typeof item.y === 'number' ? item.y : localState.get(item.id)?.y ?? BUBBLE_START_Y + index * BUBBLE_SPACING,
+        hold: includeItemState && !!item.hold || localState.get(item.id)?.hold,
+        selected: localState.get(item.id)?.selected,
+        editing: localState.get(item.id)?.editing,
       }));
+  }
+
+  private hasContent(item: any) {
+    return typeof item?.text === 'string' ||
+      typeof item?.html === 'string' ||
+      typeof item?.image === 'string' ||
+      !!this.sanitiseRef(item?.ref);
+  }
+
+  private sanitiseRef(ref: any): ClipboardRef | undefined {
+    if (!ref || typeof ref.url !== 'string') return undefined;
+    return {
+      url: ref.url,
+      origin: typeof ref.origin === 'string' ? ref.origin : undefined,
+      title: typeof ref.title === 'string' ? ref.title : undefined,
+    };
   }
 
   private persist(remote = true) {
@@ -288,7 +427,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   private persistLocal() {
     try {
       localStorage.setItem(this.storageKey, JSON.stringify(this.items.map(item => ({
-        ...this.serialize(item),
+        ...this.serializeLocal(item),
       }))));
     } catch {
       // Local storage is best-effort.
@@ -325,7 +464,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
       plugins: {
         ...(remote?.plugins || {}),
         [PLUGIN_TAG]: {
-          items: this.items.map(item => this.serialize(item)),
+          items: this.items.map(item => this.serializeRemote(item)),
         },
       },
     };
@@ -346,11 +485,20 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     });
   }
 
-  private serialize(item: ClipboardItem) {
+  private serializeRemote(item: ClipboardItem) {
     return {
       id: item.id,
-      text: item.text,
       created: item.created,
+      ...(item.text !== undefined ? { text: item.text } : {}),
+      ...(item.html !== undefined ? { html: item.html } : {}),
+      ...(item.image !== undefined ? { image: item.image } : {}),
+      ...(item.ref ? { ref: item.ref } : {}),
+    };
+  }
+
+  private serializeLocal(item: ClipboardItem) {
+    return {
+      ...this.serializeRemote(item),
       x: item.x,
       y: item.y,
       ...(item.hold ? { hold: true } : {}),

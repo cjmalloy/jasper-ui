@@ -40,13 +40,21 @@ export const userClipboardPlugin: Plugin = {
         elements: {
           properties: {
             id: { type: 'string' },
-            text: { type: 'string' },
             created: { type: 'string' },
-            x: { type: 'float64' },
-            y: { type: 'float64' },
           },
           optionalProperties: {
-            hold: { type: 'boolean' },
+            text: { type: 'string' },
+            html: { type: 'string' },
+            image: { type: 'string' },
+            ref: {
+              properties: {
+                url: { type: 'string' },
+              },
+              optionalProperties: {
+                origin: { type: 'string' },
+                title: { type: 'string' },
+              },
+            },
           },
         },
       },

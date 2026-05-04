@@ -117,6 +117,18 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   css = 'ref list-item';
   @HostBinding('class')
   allCss = this.getPluginClasses();
+  @HostBinding('attr.data-ref-url')
+  get refUrlAttr() {
+    return this.ref?.url;
+  }
+  @HostBinding('attr.data-ref-origin')
+  get refOriginAttr() {
+    return this.ref?.origin || undefined;
+  }
+  @HostBinding('attr.data-ref-title')
+  get refTitleAttr() {
+    return this.ref?.title || undefined;
+  }
   private disposers: IReactionDisposer[] = [];
   private destroy$ = new Subject<void>();
 
