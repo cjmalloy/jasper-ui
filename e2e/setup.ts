@@ -14,25 +14,74 @@ export async function clearMods(page: Page, base = '') {
   await page.locator('.log div', { hasText: 'Success.' }).first().waitFor({ timeout: 15_000, state: 'attached' });
 }
 
-export async function clearAll(page: Page, base = '', origin  = '') {
-  await page.goto(base + '/settings/backup?debug=ADMIN', { waitUntil: 'networkidle' });
-  if (await page.locator('form select').locator('option', { hasText: origin || 'default'}).count() === 0) return;
-  await page.locator('form select').selectOption(origin);
-  page.once('dialog', dialog => dialog.accept(origin || 'default'));
+/**
+ * Clears the requested origin through the backup UI.
+ * Returns true after the delete request completes, or false when a non-default origin is not present.
+ */
+export async function clearOrigin(page: Page, base = '', origin = '') {
+  const originsPromise = page.waitForResponse(resp => (
+    resp.url().includes('/api/v1/origin') && resp.request().method() === 'GET' && resp.ok()
+  )).then(resp => resp.json() as Promise<string[]>);
+  await page.goto(base + `/settings/backup?debug=ADMIN&origin=${encodeURIComponent(origin)}`, { waitUntil: 'networkidle' });
+  const backupOrigins = await originsPromise;
+  if (origin && !backupOrigins.includes(origin)) return false;
+  const select = page.locator('form select');
+  const targetValue = origin;
+  const targetLabel = origin || 'default';
+  // Match the exact option value or displayed text so @repl does not match @repl.main.
+  const hasExactOrigin = await select.locator('option').evaluateAll((optionElements, target) => (
+    optionElements.some(option => (
+      option.getAttribute('value') === target.value ||
+      option.textContent?.trim() === target.label
+    ))
+  ), { value: targetValue, label: targetLabel });
+  if (!hasExactOrigin) return false;
+  await select.selectOption(targetValue);
+  page.once('dialog', dialog => dialog.accept(targetLabel));
+  const deletePromise = page.waitForResponse(resp => (
+    resp.url().includes('/api/v1/origin') && resp.request().method() === 'DELETE' && resp.ok()
+  ));
   await page.locator('button', { hasText: '– delete' }).click();
+  await deletePromise;
   await page.reload();
+  return true;
+}
+
+export async function clearAll(page: Page, base = '', origin = '') {
+  if (!await clearOrigin(page, base, origin)) return;
   await clearMods(page, base);
   await page.reload();
 }
 
 export async function deleteRef(page: Page, url: string, base = '') {
-  await page.goto(base + `/ref/e/${encodeURIComponent(url)}?debug=ADMIN`);
+  await page.goto(base + `/ref/e/${encodeURIComponent(url)}?debug=ADMIN`, { waitUntil: 'networkidle' });
   const deleteBtn = page.locator('.full-page.ref .actions .fake-link', { hasText: 'delete' });
-  if (await deleteBtn.isVisible({ timeout: 3_000 }).catch(() => false)) {
-    await deleteBtn.first().click();
-    await page.locator('.full-page.ref .actions .fake-link', { hasText: 'yes' }).first().click();
-    await page.waitForTimeout(500);
-  }
+  if (!(await deleteBtn.isVisible({ timeout: 10_000 }).catch(() => false))) return;
+  const deletePromise = page.waitForResponse(resp => (
+    resp.url().includes('/api/v1/ref') && resp.request().method() === 'DELETE' && resp.ok()
+  ));
+  await deleteBtn.first().click();
+  await page.locator('.full-page.ref .actions .fake-link', { hasText: 'yes' }).first().click();
+  await deletePromise;
+}
+
+/**
+ * Wait for manual ref actions such as origin push/pull to confirm their user-run response.
+ */
+export function waitForUserActionResponse(page: Page) {
+  return page.waitForResponse(resp => (
+    resp.url().includes('/api/v1/tags/response') && resp.request().method() === 'PATCH' && resp.ok()
+  ));
+}
+
+/**
+ * Waits for the +plugin/cron tag update used to enable/disable origin sync.
+ */
+export function waitForCronToggleResponse(page: Page) {
+  return page.waitForResponse(resp => {
+    if (!resp.url().includes('/api/v1/tags') || resp.request().method() !== 'POST' || !resp.ok()) return false;
+    return new URL(resp.url()).searchParams.get('tag') === '+plugin/cron';
+  });
 }
 
 export async function mod(page: Page, ...mods: string[]) {
