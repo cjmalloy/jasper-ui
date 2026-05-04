@@ -16,6 +16,7 @@ const BUBBLE_WIDTH_OFFSET = 80;
 const BUBBLE_HEIGHT_OFFSET = 40;
 const MAX_PREVIEW_LENGTH = 48;
 const PREVIEW_TRUNCATE_AT = 45;
+const SKIP_REMOTE_PERSIST = false;
 
 interface ClipboardItem {
   id: string;
@@ -106,7 +107,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   }
 
   preview(item: ClipboardItem) {
-    const text = (item.text || item.ref?.title || item.ref?.url || (item.image ? $localize`Image` : item.html ? $localize`HTML` : '')).replace(/\s+/g, ' ').trim();
+    const text = this.previewText(item).replace(/\s+/g, ' ').trim();
     return text.length > MAX_PREVIEW_LENGTH ? text.substring(0, PREVIEW_TRUNCATE_AT) + '…' : text || '∅';
   }
 
@@ -114,10 +115,19 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     return $localize`Clipboard item: ${this.preview(item)}`;
   }
 
+  previewText(item: ClipboardItem) {
+    if (item.text) return item.text;
+    if (item.ref?.title) return item.ref.title;
+    if (item.ref?.url) return item.ref.url;
+    if (item.image) return $localize`Image`;
+    if (item.html) return $localize`HTML`;
+    return '';
+  }
+
   select(item: ClipboardItem) {
     if (this.drag?.moved) return;
     item.selected = true;
-    this.persist(false);
+    this.persist(SKIP_REMOTE_PERSIST);
   }
 
   clear(item: ClipboardItem, event?: Event) {
@@ -144,7 +154,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   edit(item: ClipboardItem, event?: Event) {
     event?.stopPropagation();
     item.editing = !item.editing;
-    this.persist(false);
+    this.persist(SKIP_REMOTE_PERSIST);
   }
 
   updateText(item: ClipboardItem, text: string) {
@@ -288,7 +298,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     if (item.image) {
       const image = document.createElement('img');
       image.src = item.image;
-      image.alt = item.text || item.ref?.title || item.ref?.url || $localize`Clipboard image`;
+      image.alt = this.previewText(item) || $localize`Clipboard image`;
       return [image];
     }
     return [document.createTextNode(this.plainText(item))];
@@ -395,12 +405,18 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
         image: typeof item.image === 'string' ? item.image : undefined,
         ref: this.sanitiseRef(item.ref),
         created: typeof item.created === 'string' ? item.created : new Date().toISOString(),
-        x: includeItemState && typeof item.x === 'number' ? item.x : localState.get(item.id)?.x ?? BUBBLE_START_X,
-        y: includeItemState && typeof item.y === 'number' ? item.y : localState.get(item.id)?.y ?? BUBBLE_START_Y + index * BUBBLE_SPACING,
-        hold: includeItemState && !!item.hold || localState.get(item.id)?.hold,
-        selected: localState.get(item.id)?.selected,
-        editing: localState.get(item.id)?.editing,
+        ...this.mergeItemState(item, localState.get(item.id), index, includeItemState),
       }));
+  }
+
+  private mergeItemState(item: any, local: ClipboardItem | undefined, index: number, includeItemState: boolean) {
+    return {
+      x: includeItemState && typeof item.x === 'number' ? item.x : local?.x ?? BUBBLE_START_X,
+      y: includeItemState && typeof item.y === 'number' ? item.y : local?.y ?? BUBBLE_START_Y + index * BUBBLE_SPACING,
+      hold: includeItemState && !!item.hold || local?.hold,
+      selected: local?.selected,
+      editing: local?.editing,
+    };
   }
 
   private hasContent(item: any) {
