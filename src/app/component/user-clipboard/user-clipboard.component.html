@@ -10,7 +10,7 @@
            (pointerdown)="pointerDown($event, item)"
            (pointermove)="pointerMove($event)"
            (pointerup)="pointerUp()">
-        <button type="button" class="clipboard-preview" [title]="preview(item)" [attr.aria-label]="previewLabel(item)">{{ preview(item) }}</button>
+        <button type="button" class="clipboard-preview" [title]="previewText(item)" [attr.aria-label]="previewLabel(item)">{{ preview(item) }}</button>
         @if (item.selected) {
           <div class="clipboard-actions">
             @if (canEdit(item)) {

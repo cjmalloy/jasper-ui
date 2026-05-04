@@ -16,7 +16,6 @@ const BUBBLE_WIDTH_OFFSET = 80;
 const BUBBLE_HEIGHT_OFFSET = 40;
 const MAX_PREVIEW_LENGTH = 48;
 const PREVIEW_TRUNCATE_AT = 45;
-const SKIP_REMOTE_PERSIST = false;
 
 interface ClipboardItem {
   id: string;
@@ -94,7 +93,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     return !!this.plugin?.config?.interceptPaste;
   }
 
-  get pendingPaste() {
+  hasPendingPaste() {
     return this.items.find(item => item.selected);
   }
 
@@ -127,7 +126,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   select(item: ClipboardItem) {
     if (this.drag?.moved) return;
     item.selected = true;
-    this.persist(SKIP_REMOTE_PERSIST);
+    this.persistLocalOnly();
   }
 
   clear(item: ClipboardItem, event?: Event) {
@@ -154,7 +153,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   edit(item: ClipboardItem, event?: Event) {
     event?.stopPropagation();
     item.editing = !item.editing;
-    this.persist(SKIP_REMOTE_PERSIST);
+    this.persistLocalOnly();
   }
 
   updateText(item: ClipboardItem, text: string) {
@@ -219,7 +218,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   paste(event: ClipboardEvent) {
     if (!this.interceptPaste) return;
     event.preventDefault();
-    if (this.pendingPaste) {
+    if (this.hasPendingPaste()) {
       this.pasteInto(event.target as HTMLElement);
       return;
     }
@@ -228,7 +227,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
 
   @HostListener('document:focusin', ['$event'])
   focusIn(event: FocusEvent) {
-    if (!this.pendingPaste) return;
+    if (!this.hasPendingPaste()) return;
     this.pasteInto(event.target as HTMLElement);
   }
 
@@ -413,7 +412,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     return {
       x: includeItemState && typeof item.x === 'number' ? item.x : local?.x ?? BUBBLE_START_X,
       y: includeItemState && typeof item.y === 'number' ? item.y : local?.y ?? BUBBLE_START_Y + index * BUBBLE_SPACING,
-      hold: includeItemState && !!item.hold || local?.hold,
+      hold: includeItemState ? !!item.hold : local?.hold,
       selected: local?.selected,
       editing: local?.editing,
     };
@@ -438,6 +437,10 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   private persist(remote = true) {
     this.persistLocal();
     if (remote && !this.loading) this.persistRemote();
+  }
+
+  private persistLocalOnly() {
+    this.persistLocal();
   }
 
   private persistLocal() {
