@@ -16,6 +16,12 @@ const BUBBLE_WIDTH_OFFSET = 80;
 const BUBBLE_HEIGHT_OFFSET = 40;
 const MAX_PREVIEW_LENGTH = 48;
 const PREVIEW_TRUNCATE_AT = 45;
+const IMAGE_DATA_URL_PATTERN = /^data:image\/(?:png|jpeg|jpg|gif|webp|bmp);base64,/i;
+const SANITIZE_CONFIG = {
+  ALLOWED_TAGS: ['a', 'b', 'blockquote', 'br', 'code', 'div', 'em', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'i', 'li', 'ol', 'p', 'pre', 's', 'span', 'strong', 'table', 'tbody', 'td', 'th', 'thead', 'tr', 'u', 'ul'],
+  ALLOWED_ATTR: ['alt', 'href', 'title'],
+  ALLOW_DATA_ATTR: false,
+};
 
 interface ClipboardItem {
   id: string;
@@ -291,10 +297,11 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   private richNodes(item: ClipboardItem) {
     if (item.html) {
       const template = document.createElement('template');
-      template.innerHTML = DOMPurify.sanitize(item.html);
+      template.innerHTML = DOMPurify.sanitize(item.html, SANITIZE_CONFIG);
       return Array.from(template.content.childNodes);
     }
     if (item.image) {
+      if (!this.safeImage(item.image)) return [document.createTextNode(this.plainText(item))];
       const image = document.createElement('img');
       image.src = item.image;
       image.alt = this.previewText(item) || $localize`Clipboard image`;
@@ -353,14 +360,28 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
       return;
     }
     const reader = new FileReader();
-    reader.onload = () => this.addItem({ text, html, image: reader.result as string });
+    reader.onload = () => {
+      const image = reader.result as string;
+      if (this.safeImage(image)) {
+        this.addItem({ text, html, image });
+      } else if (text || html) {
+        this.addItem({ text, html });
+      }
+    };
+    reader.onerror = () => {
+      if (text || html) this.addItem({ text, html });
+    };
     reader.readAsDataURL(file);
   }
 
   private stripHtml(html: string) {
     const template = document.createElement('template');
-    template.innerHTML = DOMPurify.sanitize(html);
+    template.innerHTML = DOMPurify.sanitize(html, SANITIZE_CONFIG);
     return template.content.textContent || '';
+  }
+
+  private safeImage(image: string) {
+    return IMAGE_DATA_URL_PATTERN.test(image);
   }
 
   private loadLocal() {
@@ -412,7 +433,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     return {
       x: includeItemState && typeof item.x === 'number' ? item.x : local?.x ?? BUBBLE_START_X,
       y: includeItemState && typeof item.y === 'number' ? item.y : local?.y ?? BUBBLE_START_Y + index * BUBBLE_SPACING,
-      hold: includeItemState ? !!item.hold : local?.hold,
+      hold: includeItemState ? !!item.hold : local?.hold ?? false,
       selected: local?.selected,
       editing: local?.editing,
     };
