@@ -9,7 +9,7 @@ test.describe.serial('User Clipboard Plugin', () => {
   test('shows bubbles and pastes selected clipboard item', async ({ page }) => {
     await page.goto('/?debug=ADMIN', { waitUntil: 'networkidle' });
     await page.evaluate(() => {
-      localStorage.setItem('jasper.clipboard.+user/admin@', JSON.stringify([{
+      localStorage.setItem('jasper.clipboard.+user/debug@', JSON.stringify([{
         id: 'e2e-clipboard-item',
         text: 'Clipboard paste text',
         created: new Date().toISOString(),
