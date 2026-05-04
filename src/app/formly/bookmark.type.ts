@@ -446,18 +446,18 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> impleme
         });
       }
     }
-    const previews: Observable<unknown>[] = [];
+    const kanbanFilterLoaders: Observable<unknown>[] = [];
     // Add kanban column/badge/swimlane filters from bookmark query active exts.
     if (this.admin.getTemplate('kanban')) {
-      const group = $localize`Kanban 📋️`;
       for (const e of activeExts.filter(x => hasPrefix(x.tag, 'kanban') && x.config)) {
+        const group = $localize`Kanban 📋️`;
         const k = e.config as KanbanConfig;
         if (k.columns?.length) {
           if (!find(this.allFilters, f => f.label === group)) {
             this.allFilters.push({ label: group, filters: [] });
           }
           const kanbanTags = uniq([...k.columns, ...k.swimLanes || [], ...k.badges || []]);
-          previews.push(this.editor.getTagsPreview(kanbanTags, e.origin || '').pipe(map(ps => {
+          kanbanFilterLoaders.push(this.editor.getTagsPreview(kanbanTags, e.origin || '').pipe(map(ps => {
             if (query !== this.queryPart) return;
             for (const p of ps) {
               this.loadFilter({ group, label: p.name || '#' + p.tag, query: p.tag });
@@ -475,7 +475,7 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> impleme
         }
       }
     }
-    return previews.length ? forkJoin(previews).pipe(map(() => undefined)) : of(undefined);
+    return kanbanFilterLoaders.length ? forkJoin(kanbanFilterLoaders).pipe(map(() => undefined)) : of(undefined);
   }
 
   private loadFilter(filter: FilterConfig) {
