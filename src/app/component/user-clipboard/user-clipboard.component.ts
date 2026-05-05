@@ -426,11 +426,12 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   private refFromDataTransfer(data: DataTransfer, html?: string, text?: string): ClipboardRef | undefined {
     const uri = data.getData('text/uri-list').split('\n').find(line => !!line && !line.startsWith('#'));
     const htmlRef = html ? this.refFromHtml(html) : undefined;
-    const url = uri || htmlRef?.url || (text && this.isUrl(text) ? text : '');
+    const textIsUrl = !!text && this.isUrl(text);
+    const url = uri || htmlRef?.url || (textIsUrl ? text : '');
     if (!url) return undefined;
     return {
       url,
-      title: htmlRef?.title || text,
+      title: htmlRef?.title || (textIsUrl ? undefined : text),
     };
   }
 
@@ -440,7 +441,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     const link = template.content.querySelector('a[href]') as HTMLAnchorElement | null;
     if (link) return { url: link.href, title: link.textContent?.trim() || link.title || undefined };
     const image = template.content.querySelector('img[src]') as HTMLImageElement | null;
-    if (image?.src && !this.safeImage(image.src)) return { url: image.src, title: image.alt || image.title || undefined };
+    if (image?.src && this.safeImage(image.src)) return { url: image.src, title: image.alt || image.title || undefined };
     return undefined;
   }
 
