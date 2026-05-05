@@ -426,12 +426,12 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   private refFromDataTransfer(data: DataTransfer, html?: string, text?: string): ClipboardRef | undefined {
     const uri = data.getData('text/uri-list').split('\n').find(line => !!line && !line.startsWith('#'));
     const htmlRef = html ? this.refFromHtml(html) : undefined;
-    const textIsUri = !!text && this.isUri(text);
-    const url = uri || htmlRef?.url || (textIsUri ? text : '');
+    const textUri = text && this.isUri(text) ? text : undefined;
+    const url = uri || htmlRef?.url || textUri;
     if (!url) return undefined;
     return {
       url,
-      title: htmlRef?.title || this.titleFromDroppedText(text, textIsUri),
+      title: htmlRef?.title || this.titleFromDroppedText(text, !!textUri),
     };
   }
 
@@ -443,10 +443,14 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     const template = document.createElement('template');
     template.innerHTML = DOMPurify.sanitize(html, SANITIZE_CONFIG);
     const link = template.content.querySelector('a[href]') as HTMLAnchorElement | null;
-    if (link) return { url: link.href, title: link.textContent?.trim() || link.title || undefined };
+    if (link) return { url: link.href, title: this.cleanTitle(link.textContent, link.title) };
     const image = template.content.querySelector('img[src]') as HTMLImageElement | null;
-    if (image?.src && this.safeImage(image.src)) return { url: image.src, title: image.alt || image.title || undefined };
+    if (image?.src && this.safeImage(image.src)) return { url: image.src, title: this.cleanTitle(image.alt, image.title) };
     return undefined;
+  }
+
+  private cleanTitle(...values: Array<string | null | undefined>) {
+    return values.map(value => value?.trim()).find(value => !!value) || undefined;
   }
 
   private isUri(text: string) {
@@ -551,7 +555,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   private pluginSetting(key: 'interceptCopy' | 'interceptPaste') {
     const value = this.plugin?.config?.[key];
     const fallback = this.plugin?.defaults?.[key];
-    return typeof value === 'boolean' ? value : typeof fallback === 'boolean' && fallback;
+    return typeof value === 'boolean' ? value : (typeof fallback === 'boolean' ? fallback : false);
   }
 
   private persistLocal() {
