@@ -432,11 +432,11 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   }
 
   private escapeMarkdownText(text: string) {
-    return text.replace(/([\\[\]])/g, '\\$1');
+    return text.replace(/([\\[\]()])/g, '\\$1');
   }
 
   private escapeMarkdownUrl(url: string) {
-    return url.replace(/[()\\\s]/g, value => encodeURIComponent(value));
+    return url.replace(/[()\s]/g, value => encodeURIComponent(value));
   }
 
   private richNodes(item: ClipboardItem) {
@@ -496,7 +496,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
 
   private addFromDataTransfer(data: DataTransfer | null) {
     if (!data) return;
-    const text = this.normalizeDroppedText(data.getData('text/plain')) || undefined;
+    const text = this.normalizeDroppedTextUri(data.getData('text/plain')) || undefined;
     const html = data.getData('text/html') || undefined;
     const ref = this.refFromDataTransfer(data, html, text);
     const imageItem = Array.from(data.items || []).find(item => item.kind === 'file' && item.type.startsWith('image/'));
@@ -584,7 +584,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     return this.safeImage(text) || /^https?:\/\/\S+\.(?:png|jpe?g|gif|webp|bmp)(?:[?#]\S*)?$/i.test(text);
   }
 
-  private normalizeDroppedText(text: string) {
+  private normalizeDroppedTextUri(text: string) {
     const trimmed = text.trim();
     if (!this.isUri(trimmed)) return text;
     return this.normalizeDroppedUrl(trimmed) || text;

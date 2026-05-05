@@ -1,9 +1,9 @@
 import { expect, test } from '@playwright/test';
 import { deleteRef, mod, openSidebar } from './setup';
 
-const DRAG_START_OFFSET = 8;
-const DRAG_END_X_OFFSET = 88;
-const DRAG_END_Y_OFFSET = 48;
+const DRAG_START_OFFSET = 8; // Start inside the preview so preview-origin drags are covered.
+const DRAG_END_X_OFFSET = 88; // Move far enough horizontally to exceed the click threshold.
+const DRAG_END_Y_OFFSET = 48; // Move far enough vertically to exceed the click threshold.
 
 test.describe.serial('User Clipboard Plugin', () => {
   test('enable clipboard mod', async ({ page }) => {
