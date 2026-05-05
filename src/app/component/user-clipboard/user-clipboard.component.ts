@@ -718,6 +718,8 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     if (this.loading || this.savingRemote || !this.pendingRemotePersist) return;
     this.pendingRemotePersist = false;
     this.savingRemote = true;
+    // Keep the in-flight save alive; this guard serializes remote writes and
+    // the pending flag schedules one follow-up write with the newest snapshot.
     const ref = this.clipboardRef(this.remote);
     if (!this.remote) {
       this.save = this.refs.get(this.refUrl, this.store.account.origin).pipe(
@@ -759,7 +761,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
       finalize(() => {
         this.savingRemote = false;
         this.save = undefined;
-        if (this.pendingRemotePersist) queueMicrotask(() => this.persistRemote());
+        if (this.pendingRemotePersist) window.setTimeout(() => this.persistRemote(), 0);
       }),
     ).subscribe(cursor => {
       if (cursor) {

@@ -104,7 +104,7 @@ test.describe.serial('User Clipboard Plugin', () => {
         },
       });
       const json = await ref.json();
-      return json.plugins['plugin/user/clipboard'].items.map((item: { text?: string }) => item.text);
+      return json.plugins?.['plugin/user/clipboard']?.items?.map((item: { text?: string }) => item.text) || [];
     }).toContain('Dropped clipboard text');
 
     await dropZone.evaluate(element => {
