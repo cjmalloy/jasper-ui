@@ -11,7 +11,7 @@ import { AgGridModule } from 'ag-grid-angular';
 import { AllCommunityModule, ColDef, ModuleRegistry } from 'ag-grid-community';
 import { DateTime } from 'luxon';
 import { autorun, IReactionDisposer } from 'mobx';
-import { catchError, forkJoin, of, Subject, takeUntil } from 'rxjs';
+import { catchError, forkJoin, of, Subject, switchMap, takeUntil } from 'rxjs';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ext } from '../../model/ext';
 import { Page } from '../../model/page';
@@ -43,7 +43,7 @@ export class GridComponent implements OnDestroy, HasChanges {
   private autoHeightTypes = new Set<string>(['tags', 'sources', 'image', 'lens', 'markdown', 'embed']);
   private disposers: IReactionDisposer[] = [];
   private destroy$ = new Subject<void>();
-  private rowDataVersion = 0;
+  private rowDataUpdates$ = new Subject<Ref[]>();
 
   @Input()
   tag = '';
@@ -73,6 +73,17 @@ export class GridComponent implements OnDestroy, HasChanges {
       this.store.darkTheme;
       this.cd.markForCheck();
     }));
+    this.rowDataUpdates$.pipe(
+      switchMap(content => {
+        this.rowData = content;
+        if (!content.some(ref => this.isBareRepost(ref))) return of(content);
+        return forkJoin(content.map(ref => this.getBareRepost(ref)));
+      }),
+      takeUntil(this.destroy$),
+    ).subscribe(rowData => {
+      this.rowData = rowData;
+      this.cd.markForCheck();
+    });
   }
 
   saveChanges() {
@@ -82,6 +93,7 @@ export class GridComponent implements OnDestroy, HasChanges {
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
+    this.rowDataUpdates$.complete();
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
   }
@@ -134,7 +146,7 @@ export class GridComponent implements OnDestroy, HasChanges {
   @Input()
   set page(value: Page<Ref> | undefined) {
     this._page = value;
-    this.updateRowData(value?.content || []);
+    this.rowDataUpdates$.next(value?.content || []);
     if (this._page) {
       if (this._page.page.number > 0 && this._page.page.number >= this._page.page.totalPages) {
         this.router.navigate([], {
@@ -145,20 +157,6 @@ export class GridComponent implements OnDestroy, HasChanges {
         });
       }
     }
-  }
-
-  private updateRowData(content: Ref[]) {
-    const version = ++this.rowDataVersion;
-    this.rowData = content;
-    if (!content.some(ref => this.isBareRepost(ref))) return;
-    const fetches = content.map(ref => this.getBareRepost(ref));
-    forkJoin(fetches).pipe(
-      takeUntil(this.destroy$),
-    ).subscribe(rowData => {
-      if (version !== this.rowDataVersion) return;
-      this.rowData = rowData;
-      this.cd.markForCheck();
-    });
   }
 
   private getBareRepost(ref: Ref) {

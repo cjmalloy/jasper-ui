@@ -229,5 +229,46 @@ describe('GridComponent', () => {
 
       expect(component.rowData).toEqual([repostRef]);
     });
+
+    it('should cancel previous bare repost source fetches when page changes', () => {
+      const firstRepost: Ref = {
+        url: 'tag:/repost/1',
+        origin: '',
+        tags: ['plugin/repost'],
+        sources: ['https://example.com/first'],
+      };
+      const secondRepost: Ref = {
+        url: 'tag:/repost/2',
+        origin: '',
+        tags: ['plugin/repost'],
+        sources: ['https://example.com/second'],
+      };
+      const secondSource: Ref = {
+        url: 'https://example.com/second',
+        origin: '',
+        tags: ['article'],
+        title: 'Second original',
+      };
+
+      component.page = Page.of([firstRepost]);
+      const firstReq = http.expectOne(request =>
+        request.url.endsWith('/api/v1/ref/page')
+        && request.params.get('url') === firstRepost.sources![0]
+      );
+
+      component.page = Page.of([secondRepost]);
+
+      expect(firstReq.cancelled).toBe(true);
+      const secondReq = http.expectOne(request =>
+        request.url.endsWith('/api/v1/ref/page')
+        && request.params.get('url') === secondRepost.sources![0]
+      );
+      secondReq.flush(Page.of([secondSource]));
+
+      expect(component.rowData).toEqual([expect.objectContaining({
+        url: secondSource.url,
+        title: secondSource.title,
+      })]);
+    });
   });
 });
