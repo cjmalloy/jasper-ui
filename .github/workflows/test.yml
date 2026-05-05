@@ -47,20 +47,6 @@ jobs:
       - name: Copy test reports from container
         if: always()
         run: docker cp test:/report report
-      - name: Upload PR Report
-        if: github.event_name == 'pull_request' && always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: vitest-reports-pr-${{ github.event.pull_request.number }}
-          path: report
-          retention-days: 7
-      - name: Upload Reports
-        if: github.event_name != 'pull_request' && always()
-        uses: actions/upload-artifact@v7
-        with:
-          name: vitest-reports-${{ github.ref_name }}-${{ github.run_number }}
-          path: report
-          retention-days: 30
       - name: Generate Test Summary
         if: always()
         uses: actions/github-script@v9
@@ -112,9 +98,31 @@ jobs:
                 testsFailed
               };
             }
-            
+
+            function parseCoverageSummary(summaryPath) {
+              if (!fs.existsSync(summaryPath)) {
+                return null;
+              }
+
+              const data = JSON.parse(fs.readFileSync(summaryPath, 'utf8'));
+              return data.total || null;
+            }
+
+            function coverageColor(percent) {
+              if (percent >= 90) return 'brightgreen';
+              if (percent >= 80) return 'green';
+              if (percent >= 70) return 'yellowgreen';
+              if (percent >= 60) return 'yellow';
+              if (percent >= 50) return 'orange';
+              return 'red';
+            }
+
+            function formatPercent(value) {
+              return Number(value ?? 0).toFixed(1);
+            }
+             
             let summary = '## 🧪 Test Results\n\n';
-            
+             
             try {
               const logPath = 'report/test-output.log';
               if (fs.existsSync(logPath)) {
@@ -144,7 +152,35 @@ jobs:
             } catch (error) {
               summary += `⚠️ Error parsing test results: ${error.message}\n\n`;
             }
-            
+
+            try {
+              const coveragePath = path.join('report', 'coverage', 'coverage-summary.json');
+              const coverage = parseCoverageSummary(coveragePath);
+
+              if (coverage) {
+                const linesPct = formatPercent(coverage.lines?.pct);
+                const statementsPct = formatPercent(coverage.statements?.pct);
+                const functionsPct = formatPercent(coverage.functions?.pct);
+                const branchesPct = formatPercent(coverage.branches?.pct);
+                summary += `📈 **Coverage:** Lines ${linesPct}% | `;
+                summary += `Statements ${statementsPct}% | `;
+                summary += `Functions ${functionsPct}% | `;
+                summary += `Branches ${branchesPct}%\n\n`;
+
+                const badge = {
+                  schemaVersion: 1,
+                  label: 'coverage',
+                  message: `${linesPct}%`,
+                  color: coverageColor(Number(linesPct)),
+                };
+                fs.writeFileSync(path.join('report', 'coverage', 'badge.json'), JSON.stringify(badge, null, 2));
+              } else {
+                summary += '⚠️ Coverage summary not found.\n\n';
+              }
+            } catch (error) {
+              summary += `⚠️ Error parsing coverage results: ${error.message}\n\n`;
+            }
+             
             // Write summary to GitHub Step Summary
             await core.summary
               .addRaw(summary)
@@ -152,6 +188,20 @@ jobs:
             
             // Store summary for use in PR comment
             fs.writeFileSync('test-summary.md', summary);
+      - name: Upload PR Report
+        if: github.event_name == 'pull_request' && always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: vitest-reports-pr-${{ github.event.pull_request.number }}
+          path: report
+          retention-days: 7
+      - name: Upload Reports
+        if: github.event_name != 'pull_request' && always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: vitest-reports-${{ github.ref_name }}-${{ github.run_number }}
+          path: report
+          retention-days: 30
       - name: Comment on PR
         if: github.event_name == 'pull_request' && always()
         uses: actions/github-script@v9
@@ -165,11 +215,12 @@ jobs:
               summary = fs.readFileSync('test-summary.md', 'utf8');
             } catch (error) {
               summary = '⚠️ Could not read test summary.';
-            }
-            
-            const reportUrl = `https://${context.repo.owner}.github.io/${context.repo.repo}/reports/vitest-reports-pr-${context.issue.number}/`;
-            summary += `\n\n📊 [View detailed HTML report](${reportUrl})`;
-            
+             }
+             
+            const baseUrl = `https://${context.repo.owner}.github.io/${context.repo.repo}/reports/vitest-reports-pr-${context.issue.number}/`;
+            summary += `\n\n📊 [View detailed HTML report](${baseUrl})`;
+            summary += `\n📈 [View coverage report](${baseUrl}coverage/)`;
+             
             // Add HTML comment marker for identification
             const body = `<!-- test-results-comment -->\n${summary}`;
             

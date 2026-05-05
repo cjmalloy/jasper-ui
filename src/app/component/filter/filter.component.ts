@@ -81,9 +81,13 @@ export class FilterComponent implements OnChanges, OnDestroy {
         }
         this.pushFilter({
           label: $localize`Queries 🔎️️`, filters: [],
-        }, {
-          label: $localize`Lists ☰`, filters: [],
-        }, {
+        });
+        if (this.auth.hasRole('ROLE_USER')) {
+          this.pushFilter({
+            label: $localize`Lists ☰`, filters: [],
+          });
+        }
+        this.pushFilter({
           label: $localize`Media 🎬️`, filters: [],
         }, {
           label: $localize`Games 🕹️`, filters: [],
@@ -269,7 +273,7 @@ export class FilterComponent implements OnChanges, OnDestroy {
           const target = g.filters.find(i => i.filter === toggle(f));
           if (target) {
             target.filter = f;
-            if (f.startsWith('!') || f.startsWith('user/!') || f.startsWith('query/!(')) {
+            if (!target.label.startsWith(this.store.account.querySymbol('!'))) {
               target.label = this.store.account.querySymbol('!') + target.label;
             } else {
               target.label = target.label.substring(this.store.account.querySymbol('!').length);
