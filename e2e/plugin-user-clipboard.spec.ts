@@ -96,6 +96,16 @@ test.describe.serial('User Clipboard Plugin', () => {
       element.dispatchEvent(new DragEvent('drop', { bubbles: true, cancelable: true, dataTransfer: data }));
     });
     await expect(page.locator('.clipboard-bubble').filter({ hasText: 'Dropped clipboard text' })).toBeVisible();
+    await expect.poll(async () => {
+      const ref = await page.request.get('/api/v1/ref', {
+        params: {
+          url: 'tag:/+user/debug?url=tag:/plugin/user/clipboard',
+          origin: '',
+        },
+      });
+      const json = await ref.json();
+      return json.plugins['plugin/user/clipboard'].items.map((item: { text?: string }) => item.text);
+    }).toContain('Dropped clipboard text');
 
     await dropZone.evaluate(element => {
       const tagPage = `${location.origin}/tag/plugin/editing`;
@@ -109,6 +119,9 @@ test.describe.serial('User Clipboard Plugin', () => {
     await expect(tagBubble).toBeVisible();
     await tagBubble.click();
     await tagBubble.locator('.clipboard-edit').click();
+    await expect(tagBubble.locator('.clipboard-ref-url-edit')).toHaveValue('tag:/plugin/editing');
+    await page.locator('.clipboard-bubble').filter({ hasText: 'Dropped clipboard text' }).click();
+    await tagBubble.locator('.clipboard-ref-url-edit').focus();
     await expect(tagBubble.locator('.clipboard-ref-url-edit')).toHaveValue('tag:/plugin/editing');
   });
 

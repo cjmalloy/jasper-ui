@@ -1,7 +1,7 @@
 import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
 import DOMPurify from 'dompurify';
 import { autorun, IReactionDisposer } from 'mobx';
-import { catchError, of, Subscription } from 'rxjs';
+import { catchError, finalize, of, Subscription } from 'rxjs';
 import { Plugin } from '../../model/plugin';
 import { Ref, RefUpdates } from '../../model/ref';
 import { AdminService } from '../../service/admin.service';
@@ -67,6 +67,8 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   private save?: Subscription;
   private drag?: DragState;
   private suppressedSelect?: ClipboardItem;
+  private pendingRemotePersist = false;
+  private savingRemote = false;
   private disposers: IReactionDisposer[] = [];
   private loading = true;
   dropActive = false;
@@ -162,7 +164,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     event?.stopPropagation();
     item.hold = !item.hold;
     item.selected = true;
-    this.persist();
+    this.persistLocalOnly();
   }
 
   reset(item: ClipboardItem, event?: Event) {
@@ -170,7 +172,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     item.selected = false;
     item.hold = false;
     item.editing = false;
-    this.persist();
+    this.persistLocalOnly();
   }
 
   edit(item: ClipboardItem, event?: Event) {
@@ -246,7 +248,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     this.drag = undefined;
     if (moved) {
       this.suppressedSelect = item;
-      this.persist();
+      this.persistLocalOnly();
     }
   }
 
@@ -262,6 +264,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   @HostListener('document:paste', ['$event'])
   paste(event: ClipboardEvent) {
     if (!this.interceptPaste) return;
+    if (this.isClipboardEditTarget(event.target as HTMLElement | null)) return;
     event.preventDefault();
     if (this.hasPendingPaste()) {
       this.pasteInto(event.target as HTMLElement);
@@ -273,6 +276,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   @HostListener('document:focusin', ['$event'])
   focusIn(event: FocusEvent) {
     if (!this.hasPendingPaste()) return;
+    if (this.isClipboardEditTarget(event.target as HTMLElement | null)) return;
     this.pasteInto(event.target as HTMLElement);
   }
 
@@ -308,7 +312,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     for (const item of items) {
       if (!item.hold) item.selected = false;
     }
-    this.persist();
+    this.persistLocalOnly();
   }
 
   private insertItems(target: HTMLElement, items: ClipboardItem[]) {
@@ -372,6 +376,10 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   private isInteractive(target: HTMLElement | null) {
     if (target?.closest('.clipboard-preview')) return false;
     return !!target?.closest('.clipboard-actions, .clipboard-edit-panel, input, textarea, select, a, [contenteditable="true"], [role="button"], [role="link"]');
+  }
+
+  private isClipboardEditTarget(target: HTMLElement | null) {
+    return !!target?.closest('.clipboard-edit-panel');
   }
 
   private isTagField(target?: HTMLElement) {
@@ -615,11 +623,13 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     ).subscribe(ref => {
       this.loading = false;
       if (!ref) {
-        this.persist();
+        this.pendingRemotePersist = true;
+        this.persistRemote();
         return;
       }
       this.remote = ref;
-      this.applyRemote(ref);
+      if (!this.pendingRemotePersist) this.applyRemote(ref);
+      this.persistRemote();
     });
   }
 
@@ -673,7 +683,9 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
 
   private persist(remote = true) {
     this.persistLocal();
-    if (remote && !this.loading) this.persistRemote();
+    if (!remote) return;
+    this.pendingRemotePersist = true;
+    this.persistRemote();
   }
 
   private persistLocalOnly() {
@@ -697,9 +709,14 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   }
 
   private persistRemote() {
-    if (!this.store.account.signedIn) return;
+    if (!this.store.account.signedIn) {
+      this.pendingRemotePersist = false;
+      return;
+    }
+    if (this.loading || this.savingRemote || !this.pendingRemotePersist) return;
+    this.pendingRemotePersist = false;
+    this.savingRemote = true;
     const ref = this.clipboardRef(this.remote);
-    this.save?.unsubscribe();
     if (!this.remote) {
       this.save = this.refs.get(this.refUrl, this.store.account.origin).pipe(
         catchError(() => of(undefined)),
@@ -737,6 +754,10 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     const request = update ? this.refs.update(ref) : this.refs.create(ref);
     this.save = request.pipe(
       catchError(() => of(undefined)),
+      finalize(() => {
+        this.savingRemote = false;
+        this.persistRemote();
+      }),
     ).subscribe(cursor => {
       if (cursor) {
         this.remote = {
