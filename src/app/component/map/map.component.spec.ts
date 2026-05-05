@@ -78,7 +78,6 @@ describe('MapComponent', () => {
         }),
         repostRef,
       ]]);
-      expect((component as any).mapLinkUrl(component.mapData[0])).toBe(repostRef.url);
     });
 
     it('should keep repost geo data when resolving a bare repost source ref', () => {
@@ -132,7 +131,7 @@ describe('MapComponent', () => {
       expect(ref.plugins?.['plugin/thumbnail']).toEqual(sourceRef.plugins!['plugin/thumbnail']);
     });
 
-    it('should use the ref URL for non-bare repost map entries', () => {
+    it('should keep non-bare repost map entries unchanged', () => {
       const repostRef: Ref = {
         url: 'tag:/repost/1',
         origin: '',
@@ -151,7 +150,6 @@ describe('MapComponent', () => {
       component.page = Page.of([repostRef]);
 
       expect(component.mapData).toEqual([[repostRef]]);
-      expect((component as any).mapLinkUrl(component.mapData[0])).toBe(repostRef.url);
     });
 
     it('should cancel previous bare repost source fetches when page changes', () => {

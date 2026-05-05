@@ -219,7 +219,7 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
         const marker = el ? new Marker({ element: el }) : new Marker();
         marker.addClassName('map-thumbnail');
         marker.setLngLat(pointFeature.geometry.coordinates).addTo(map);
-        marker.on('click', () => this.router.navigate(['/ref', this.mapLinkUrl(entry)]));
+        marker.on('click', () => this.router.navigate(['/ref', ref.url]));
         this.markers.push(marker);
       }
     });
@@ -258,10 +258,6 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
 
   private isBareRepost(ref: Ref) {
     return !!ref.sources?.[0] && hasTag('plugin/repost', ref) && !ref.title && !ref.comment;
-  }
-
-  private mapLinkUrl([ref, bareRepost]: MapEntry) {
-    return bareRepost?.url || ref.url;
   }
 
   private withRepostGeo(repostRef: Ref, sourceRef: Ref) {
