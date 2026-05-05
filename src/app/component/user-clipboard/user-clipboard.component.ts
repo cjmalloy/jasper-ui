@@ -341,48 +341,26 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   }
 
   private insertListItems(target: HTMLInputElement | HTMLTextAreaElement, items: ClipboardItem[]) {
+    const values = items.map(item => this.plainText(item, target));
     const listEditor = target.closest('app-list-editor') as HTMLElement | null;
     if (listEditor) {
+      const event = new CustomEvent('jasperClipboardPaste', { bubbles: true, cancelable: true, detail: values });
+      listEditor.dispatchEvent(event);
+      if (event.defaultPrevented) return true;
       const input = listEditor.querySelector('input') as HTMLInputElement | null;
       const add = listEditor.querySelector('button') as HTMLButtonElement | null;
       if (!input || !add) return false;
-      for (const item of items) {
-        this.setInputValue(input, this.plainText(item, target));
+      for (const value of values) {
+        this.setInputValue(input, value);
         add.click();
       }
       return true;
     }
 
     const formlyList = target.closest('formly-list-section') as HTMLElement | null;
-    const add = formlyList?.querySelector('.form-group > button') as HTMLButtonElement | null;
-    if (!formlyList || !add) return false;
-
-    this.setInputValue(target, this.plainText(items[0], target));
-    this.insertFormlyListItems(formlyList, add, items.slice(1));
+    if (!formlyList) return false;
+    formlyList.dispatchEvent(new CustomEvent('jasperClipboardPaste', { bubbles: true, cancelable: true, detail: values }));
     return true;
-  }
-
-  private insertFormlyListItems(formlyList: HTMLElement, add: HTMLButtonElement, items: ClipboardItem[]) {
-    let queue = Promise.resolve();
-    for (const item of items) {
-      queue = queue.then(() => new Promise<void>(resolve => {
-        const before = this.formlyListInputs(formlyList).length;
-        const observer = new MutationObserver(() => {
-          const inputs = this.formlyListInputs(formlyList);
-          if (inputs.length <= before) return;
-          observer.disconnect();
-          const input = inputs[inputs.length - 1];
-          this.setInputValue(input, this.plainText(item, input));
-          resolve();
-        });
-        observer.observe(formlyList, { childList: true, subtree: true });
-        add.click();
-      }));
-    }
-  }
-
-  private formlyListInputs(formlyList: HTMLElement) {
-    return Array.from(formlyList.querySelectorAll('input:not(.preview), textarea')) as Array<HTMLInputElement | HTMLTextAreaElement>;
   }
 
   private setInputValue(target: HTMLInputElement | HTMLTextAreaElement, value: string) {
@@ -391,7 +369,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   }
 
   private isInteractive(target: HTMLElement | null) {
-    return !!target?.closest('button, input, textarea, select, a');
+    return !!target?.closest('button, input, textarea, select, a, [contenteditable="true"], [role="button"], [role="link"]');
   }
 
   private isTagField(target?: HTMLElement) {

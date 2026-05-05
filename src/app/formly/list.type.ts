@@ -1,6 +1,6 @@
 import { CdkDrag, CdkDragDrop, CdkDragHandle, CdkDropList } from '@angular/cdk/drag-drop';
 import { CdkScrollable } from '@angular/cdk/scrolling';
-import { Component, HostBinding } from '@angular/core';
+import { Component, HostBinding, HostListener } from '@angular/core';
 import { FieldArrayType, FormlyField } from '@ngx-formly/core';
 import { defer } from 'lodash-es';
 import { Store } from '../store/store';
@@ -190,6 +190,15 @@ export class ListTypeComponent extends FieldArrayType {
       const el = document.querySelector(selector) as HTMLInputElement;
       el.blur();
     });
+  }
+
+  @HostListener('jasperClipboardPaste', ['$event'])
+  clipboardPaste(event: CustomEvent<string[]>) {
+    event.preventDefault();
+    event.stopPropagation();
+    for (const value of event.detail || []) {
+      this.add(undefined, value);
+    }
   }
 
   drop(event: CdkDragDrop<ListTypeComponent>) {

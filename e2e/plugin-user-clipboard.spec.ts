@@ -50,6 +50,7 @@ test.describe.serial('User Clipboard Plugin', () => {
     });
     await page.locator('.clipboard-clear').click();
     await expect(bubble).toBeHidden();
+    await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem('jasper.clipboard.+user/debug@') || '[]').length)).toBe(0);
   });
 
   test('clips refs and accepts dropped text', async ({ page }) => {
