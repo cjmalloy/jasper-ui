@@ -380,7 +380,8 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> impleme
     this.filterOptions = this.getQueryActiveExts(query).pipe(
       switchMap(exts => {
         if (query !== this.queryPart) return of(undefined);
-        return this.buildFilterGroups(exts, query);
+        this.buildFilterGroups(exts);
+        return this.loadActiveKanbanFilters(exts, query);
       }),
     ).subscribe(() => {
       if (query !== this.queryPart) return;
@@ -390,9 +391,11 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> impleme
     this.syncFilterOptions(false);
   }
 
-  private buildFilterGroups(activeExts: Ext[] = [], query = this.queryPart): Observable<undefined> {
+  private buildFilterGroups(activeExts: Ext[] = []): void {
     this.allFilters = [];
     this.loadActiveExtFilters(activeExts);
+    // Match filter.component.ts group order. Empty placeholders are merged by pushFilter()
+    // so later admin/core/query-scoped filters appear in the same order.
     this.pushFilter({
       label: $localize`Queries 🔎️️`, filters: [],
     }, {
@@ -410,8 +413,9 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> impleme
     }, {
       label: $localize`Mod Tools 🛡️`, filters: [],
     });
-    const kanbanFilterLoader = this.loadActiveKanbanFilters(activeExts, query);
     this.pushFilter({
+      label: $localize`Kanban 📋️`, filters: [],
+    }, {
       label: $localize`Plugins 🧰️`, filters: [],
     }, {
       label: $localize`Schemes 🏳️️`, filters: [],
@@ -431,7 +435,6 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> impleme
       label: !o ? $localize`✴️ local` : $localize`🏛️ ${o}`,
     }));
     this.pushFilter({ label: $localize`Origins 🏛️`, filters: originFilters });
-    return kanbanFilterLoader;
   }
 
   private getQueryActiveExts(query: string): Observable<Ext[]> {
