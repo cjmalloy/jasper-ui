@@ -261,7 +261,7 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
   }
 
   private withRepostGeo(repostRef: Ref, sourceRef: Ref) {
-    if (!hasTag('plugin/geo', repostRef)) return { ...sourceRef };
+    if (!hasTag('plugin/geo', repostRef)) return { ...sourceRef, url: repostRef.url };
     const tags = [
       ...(sourceRef.tags || []).filter(tag => !hasPrefix(tag, 'plugin/geo')),
       ...(repostRef.tags || []).filter(tag => hasPrefix(tag, 'plugin/geo')),
@@ -272,6 +272,7 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
     };
     return {
       ...sourceRef,
+      url: repostRef.url,
       tags: [...new Set(tags)],
       plugins: Object.keys(plugins).length ? plugins : undefined,
     };

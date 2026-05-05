@@ -72,7 +72,7 @@ describe('MapComponent', () => {
 
       expect(component.mapData).toEqual([[
         expect.objectContaining({
-          url: sourceRef.url,
+          url: repostRef.url,
           title: sourceRef.title,
           sources: sourceRef.sources,
         }),
@@ -121,7 +121,7 @@ describe('MapComponent', () => {
 
       const [ref, bareRepost] = component.mapData[0];
       expect(ref).toEqual(expect.objectContaining({
-        url: sourceRef.url,
+        url: repostRef.url,
         title: sourceRef.title,
       }));
       expect(bareRepost).toBe(repostRef);
@@ -196,7 +196,7 @@ describe('MapComponent', () => {
 
       expect(component.mapData).toEqual([[
         expect.objectContaining({
-          url: secondSource.url,
+          url: secondRepost.url,
           title: secondSource.title,
         }),
         secondRepost,
