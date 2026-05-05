@@ -262,12 +262,12 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
     return {
       ...ref,
       tags: [...new Set([...(ref.tags || []), 'plugin/repost'])],
-      sources: [repostRef.url],
+      sources: [repostRef.url, ...(ref.sources || [])],
     };
   }
 
   private mapLinkUrl(ref: Ref) {
-    return (hasTag('plugin/repost', ref) && ref.sources?.[0]) || ref.url;
+    return hasTag('plugin/repost', ref) ? (ref.sources?.[0] || ref.url) : ref.url;
   }
 
   private withRepostGeo(repostRef: Ref, sourceRef: Ref) {
