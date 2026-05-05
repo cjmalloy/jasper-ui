@@ -74,7 +74,7 @@ test.describe.serial('Bookmark Formly Type', () => {
     await expect(filterSelect.locator('option[value="query/doing"]')).toHaveText(/doing/);
     await expect(filterSelect.locator('option[value="query/done"]')).toHaveText(/done/);
     await expect(filterSelect.locator('option[value="query/!doing:!done"]')).toHaveText(/todo/);
-    const groups = await filterSelect.locator('optgroup').evaluateAll(options => options.map(o => o.getAttribute('label')));
+    const groups = await filterSelect.locator('optgroup').evaluateAll(optgroups => optgroups.map(g => g.getAttribute('label')));
     expect(groups.indexOf('Filters 🕵️️')).toBeLessThan(groups.indexOf('Kanban 📋️'));
     expect(groups.indexOf('Kanban 📋️')).toBeLessThan(groups.indexOf('Origins 🏛️'));
   });

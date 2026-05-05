@@ -376,7 +376,7 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> impleme
   private buildAllFilters(): void {
     const query = this.queryPart;
     this.filterOptions?.unsubscribe();
-    this.buildFilterGroups();
+    this.allFilters = [];
     this.filterOptions = this.getQueryActiveExts(query).pipe(
       switchMap(exts => {
         if (query !== this.queryPart) return of(undefined);
@@ -393,7 +393,7 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> impleme
 
   private buildFilterGroups(activeExts: Ext[] = []): void {
     this.allFilters = [];
-    this.loadActiveExtFilters(activeExts);
+    this.loadActiveExtQueryFilters(activeExts);
     // Match filter.component.ts group order. Empty placeholders are merged by pushFilter()
     // so later admin/core/query-scoped filters appear in the same order.
     this.pushFilter({
@@ -464,7 +464,7 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> impleme
     );
   }
 
-  private loadActiveExtFilters(activeExts: Ext[]): void {
+  private loadActiveExtQueryFilters(activeExts: Ext[]): void {
     for (const ext of activeExts) {
       for (const f of [...ext.config?.queryFilters || [], ...ext.config?.responseFilters || []]) {
         this.loadFilter({
