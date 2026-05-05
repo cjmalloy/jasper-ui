@@ -25,6 +25,8 @@ import { LoadingComponent } from '../loading/loading.component';
 import { PageControlsComponent } from '../page-controls/page-controls.component';
 import { ResizeHandleDirective } from "../../directive/resize-handle.directive";
 
+type MapEntry = [ref: Ref, repost?: Ref];
+
 @Component({
   selector: 'app-map',
   templateUrl: './map.component.html',
@@ -57,7 +59,7 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
   private markers: Marker[] = [];
   private destroy$ = new Subject<void>();
   private mapDataUpdates$ = new Subject<Ref[]>();
-  mapData: Ref[] = [];
+  mapData: MapEntry[] = [];
 
   constructor(
     private router: Router,
@@ -69,7 +71,7 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
     setWorkerUrl('assets/maplibre-gl-csp-worker.js');
     this.mapDataUpdates$.pipe(
       switchMap(content => {
-        if (!content.some(ref => this.isBareRepost(ref))) return of(content);
+        if (!content.some(ref => this.isBareRepost(ref))) return of(content.map(ref => [ref] as MapEntry));
         return forkJoin(content.map(ref => this.getBareRepost(ref)));
       }),
       takeUntil(this.destroy$),
@@ -134,7 +136,7 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
   get geoData(): FeatureCollection {
     return {
       type: 'FeatureCollection',
-      features: this.mapData.flatMap(features).filter(f =>
+      features: this.mapData.flatMap(([ref]) => features(ref)).filter(f =>
         f.type === 'Feature' && f.geometry != null && f.geometry.type !== 'Point'
       ) || [],
     };
@@ -209,14 +211,15 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
   }
 
   private addMarkers(map: Map) {
-    this.mapData.forEach(ref => {
+    this.mapData.forEach(entry => {
+      const [ref] = entry;
       const pointFeature = ref.plugins?.['plugin/geo/point'];
       if (pointFeature?.geometry?.type === 'Point' && pointFeature.geometry?.coordinates.length >= 2) {
         const el = this.createMarkerElement(ref);
         const marker = el ? new Marker({ element: el }) : new Marker();
         marker.addClassName('map-thumbnail');
         marker.setLngLat(pointFeature.geometry.coordinates).addTo(map);
-        marker.on('click', () => this.router.navigate(['/ref', this.mapLinkUrl(ref)]));
+        marker.on('click', () => this.router.navigate(['/ref', this.mapLinkUrl(entry)]));
         this.markers.push(marker);
       }
     });
@@ -242,14 +245,14 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
   }
 
   private getBareRepost(ref: Ref) {
-    if (!this.isBareRepost(ref)) return of(ref);
+    if (!this.isBareRepost(ref)) return of([ref] as MapEntry);
     const source = repost(ref);
     return (this.store.view.top?.url === source
         ? of(this.store.view.top)
         : this.refs.getCurrent(source)
     ).pipe(
-      rxMap(sourceRef => this.withRepostLink(ref, sourceRef)),
-      catchError(() => of(ref)),
+      rxMap(sourceRef => [this.withRepostGeo(ref, sourceRef), ref] as MapEntry),
+      catchError(() => of([ref] as MapEntry)),
     );
   }
 
@@ -257,17 +260,8 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
     return !!ref.sources?.[0] && hasTag('plugin/repost', ref) && !ref.title && !ref.comment;
   }
 
-  private withRepostLink(repostRef: Ref, sourceRef: Ref) {
-    const ref = this.withRepostGeo(repostRef, sourceRef);
-    return {
-      ...ref,
-      tags: hasTag('plugin/repost', ref) ? ref.tags : [...(ref.tags || []), 'plugin/repost'],
-      sources: [repostRef.url, ...(ref.sources || [])],
-    };
-  }
-
-  private mapLinkUrl(ref: Ref) {
-    return hasTag('plugin/repost', ref) ? (ref.sources?.[0] || ref.url) : ref.url;
+  private mapLinkUrl([ref, repost]: MapEntry) {
+    return repost?.url || ref.url;
   }
 
   private withRepostGeo(repostRef: Ref, sourceRef: Ref) {

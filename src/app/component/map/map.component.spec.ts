@@ -51,6 +51,7 @@ describe('MapComponent', () => {
         origin: '',
         tags: ['plugin/geo', 'plugin/geo/point'],
         title: 'Original title',
+        sources: ['https://example.com/source-source'],
         plugins: {
           'plugin/geo/point': {
             type: 'Feature',
@@ -69,10 +70,14 @@ describe('MapComponent', () => {
       );
       req.flush(Page.of([sourceRef]));
 
-      expect(component.mapData).toEqual([expect.objectContaining({
-        url: sourceRef.url,
-        title: sourceRef.title,
-      })]);
+      expect(component.mapData).toEqual([[
+        expect.objectContaining({
+          url: sourceRef.url,
+          title: sourceRef.title,
+          sources: sourceRef.sources,
+        }),
+        repostRef,
+      ]]);
       expect((component as any).mapLinkUrl(component.mapData[0])).toBe(repostRef.url);
     });
 
@@ -115,14 +120,38 @@ describe('MapComponent', () => {
       );
       req.flush(Page.of([sourceRef]));
 
-      expect(component.mapData[0]).toEqual(expect.objectContaining({
+      const [ref, repost] = component.mapData[0];
+      expect(ref).toEqual(expect.objectContaining({
         url: sourceRef.url,
         title: sourceRef.title,
       }));
-      expect(component.mapData[0].tags).toEqual(expect.arrayContaining(['article', 'plugin/geo', 'plugin/geo/point']));
-      expect(component.mapData[0].tags).not.toContain('plugin/geo/polygon');
-      expect(component.mapData[0].plugins?.['plugin/geo/point']).toBe(repostPoint);
-      expect(component.mapData[0].plugins?.['plugin/thumbnail']).toEqual(sourceRef.plugins!['plugin/thumbnail']);
+      expect(repost).toBe(repostRef);
+      expect(ref.tags).toEqual(expect.arrayContaining(['article', 'plugin/geo', 'plugin/geo/point']));
+      expect(ref.tags).not.toContain('plugin/geo/polygon');
+      expect(ref.plugins?.['plugin/geo/point']).toBe(repostPoint);
+      expect(ref.plugins?.['plugin/thumbnail']).toEqual(sourceRef.plugins!['plugin/thumbnail']);
+    });
+
+    it('should use the ref URL for non-bare repost map entries', () => {
+      const repostRef: Ref = {
+        url: 'tag:/repost/1',
+        origin: '',
+        tags: ['plugin/repost', 'plugin/geo', 'plugin/geo/point'],
+        sources: ['https://example.com/original'],
+        title: 'Repost title',
+        plugins: {
+          'plugin/geo/point': {
+            type: 'Feature',
+            geometry: { type: 'Point', coordinates: [1, 2] },
+            properties: {},
+          },
+        },
+      };
+
+      component.page = Page.of([repostRef]);
+
+      expect(component.mapData).toEqual([[repostRef]]);
+      expect((component as any).mapLinkUrl(component.mapData[0])).toBe(repostRef.url);
     });
 
     it('should cancel previous bare repost source fetches when page changes', () => {
@@ -167,11 +196,14 @@ describe('MapComponent', () => {
       );
       secondReq.flush(Page.of([secondSource]));
 
-      expect(component.mapData).toEqual([expect.objectContaining({
-        url: secondSource.url,
-        title: secondSource.title,
-      })]);
-      expect(component.mapData.some(ref => ref.url === firstRepost.sources![0])).toBe(false);
+      expect(component.mapData).toEqual([[
+        expect.objectContaining({
+          url: secondSource.url,
+          title: secondSource.title,
+        }),
+        secondRepost,
+      ]]);
+      expect(component.mapData.some(([ref]) => ref.url === firstRepost.sources![0])).toBe(false);
     });
   });
 });
