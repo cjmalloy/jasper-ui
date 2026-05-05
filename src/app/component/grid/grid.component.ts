@@ -150,8 +150,8 @@ export class GridComponent implements OnDestroy, HasChanges {
   private updateRowData(content: Ref[]) {
     const version = ++this.rowDataVersion;
     this.rowData = content;
+    if (!content.some(ref => this.isBareRepost(ref))) return;
     const fetches = content.map(ref => this.getBareRepost(ref));
-    if (!fetches.some((fetch, index) => fetch !== content[index])) return;
     forkJoin(fetches).pipe(
       takeUntil(this.destroy$),
     ).subscribe(rowData => {
