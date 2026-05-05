@@ -57,7 +57,6 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
   private markers: Marker[] = [];
   private destroy$ = new Subject<void>();
   private mapDataUpdates$ = new Subject<Ref[]>();
-  private mapLinkUrls = new WeakMap<Ref, string>();
   mapData: Ref[] = [];
 
   constructor(
@@ -260,12 +259,15 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
 
   private withRepostLink(repostRef: Ref, sourceRef: Ref) {
     const ref = this.withRepostGeo(repostRef, sourceRef);
-    this.mapLinkUrls.set(ref, repostRef.url);
-    return ref;
+    return {
+      ...ref,
+      tags: [...new Set([...(ref.tags || []), 'plugin/repost'])],
+      sources: [repostRef.url],
+    };
   }
 
   private mapLinkUrl(ref: Ref) {
-    return this.mapLinkUrls.get(ref) || ref.url;
+    return hasTag('plugin/repost', ref) && ref.sources?.[0] || ref.url;
   }
 
   private withRepostGeo(repostRef: Ref, sourceRef: Ref) {
