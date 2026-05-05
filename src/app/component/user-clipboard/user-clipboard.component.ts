@@ -628,6 +628,8 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
         return;
       }
       this.remote = ref;
+      // Local clipboard edits made before the initial load completes win and are
+      // flushed after the current save, rather than being overwritten here.
       if (!this.pendingRemotePersist) this.applyRemote(ref);
       this.persistRemote();
     });
@@ -756,7 +758,8 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
       catchError(() => of(undefined)),
       finalize(() => {
         this.savingRemote = false;
-        this.persistRemote();
+        this.save = undefined;
+        if (this.pendingRemotePersist) queueMicrotask(() => this.persistRemote());
       }),
     ).subscribe(cursor => {
       if (cursor) {
