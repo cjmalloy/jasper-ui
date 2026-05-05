@@ -269,6 +269,7 @@ describe('GridComponent', () => {
         url: secondSource.url,
         title: secondSource.title,
       })]);
+      expect(component.rowData.some(ref => ref.url === firstRepost.sources![0])).toBe(false);
     });
   });
 });

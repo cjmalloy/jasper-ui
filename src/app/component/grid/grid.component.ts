@@ -75,7 +75,6 @@ export class GridComponent implements OnDestroy, HasChanges {
     }));
     this.rowDataUpdates$.pipe(
       switchMap(content => {
-        this.rowData = content;
         if (!content.some(ref => this.isBareRepost(ref))) return of(content);
         return forkJoin(content.map(ref => this.getBareRepost(ref)));
       }),
