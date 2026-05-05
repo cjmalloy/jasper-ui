@@ -1,10 +1,13 @@
-import { Component, EventEmitter, HostBinding, HostListener, Input, Output } from '@angular/core';
+import { Component, EventEmitter, HostBinding, Input, Output } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-list-editor',
   templateUrl: './list-editor.component.html',
   styleUrls: ['./list-editor.component.scss'],
+  host: {
+    '(jasper-clipboard-paste)': 'clipboardPaste($any($event))',
+  },
   imports: [ReactiveFormsModule]
 })
 export class ListEditorComponent{
@@ -62,15 +65,18 @@ export class ListEditorComponent{
     }
   }
 
-  @HostListener('jasperClipboardPaste', ['$event'])
-  clipboardPaste(event: CustomEvent<string[]>) {
+  clipboardPaste(event: Event) {
     event.preventDefault();
     event.stopPropagation();
-    for (const value of event.detail || []) {
+    for (const value of this.clipboardPasteValues(event)) {
       if (!value || this.list.includes(value)) continue;
       this.list.push(value);
       this.onAdd.emit(value);
     }
     this.select(this.list.length - 1);
+  }
+
+  private clipboardPasteValues(event: Event) {
+    return event instanceof CustomEvent && Array.isArray(event.detail) ? event.detail as string[] : [];
   }
 }

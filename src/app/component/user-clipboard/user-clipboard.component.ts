@@ -344,9 +344,10 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     const values = items.map(item => this.plainText(item, target));
     const listEditor = target.closest('app-list-editor') as HTMLElement | null;
     if (listEditor) {
-      const event = new CustomEvent('jasperClipboardPaste', { bubbles: true, cancelable: true, detail: values });
-      listEditor.dispatchEvent(event);
+      const event = new CustomEvent('jasper-clipboard-paste', { bubbles: true, cancelable: true, detail: values });
+      const handled = !listEditor.dispatchEvent(event);
       if (event.defaultPrevented) return true;
+      if (handled) return true;
       const input = listEditor.querySelector('input') as HTMLInputElement | null;
       const add = listEditor.querySelector('button') as HTMLButtonElement | null;
       if (!input || !add) return false;
@@ -359,8 +360,8 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
 
     const formlyList = target.closest('formly-list-section') as HTMLElement | null;
     if (!formlyList) return false;
-    formlyList.dispatchEvent(new CustomEvent('jasperClipboardPaste', { bubbles: true, cancelable: true, detail: values }));
-    return true;
+    const event = new CustomEvent('jasper-clipboard-paste', { bubbles: true, cancelable: true, detail: values });
+    return !formlyList.dispatchEvent(event) || event.defaultPrevented;
   }
 
   private setInputValue(target: HTMLInputElement | HTMLTextAreaElement, value: string) {
