@@ -360,7 +360,8 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     const formlyList = target.closest('formly-list-section') as HTMLElement | null;
     if (!formlyList) return false;
     const event = new CustomEvent('jasper-clipboard-paste', { bubbles: true, cancelable: true, detail: values });
-    return !formlyList.dispatchEvent(event);
+    formlyList.dispatchEvent(event);
+    return event.defaultPrevented;
   }
 
   private setInputValue(target: HTMLInputElement | HTMLTextAreaElement, value: string) {
