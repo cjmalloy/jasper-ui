@@ -11,7 +11,7 @@ import { AgGridModule } from 'ag-grid-angular';
 import { AllCommunityModule, ColDef, ModuleRegistry } from 'ag-grid-community';
 import { DateTime } from 'luxon';
 import { autorun, IReactionDisposer } from 'mobx';
-import { catchError, forkJoin, of, Subject, takeUntil, throwError } from 'rxjs';
+import { catchError, forkJoin, of, Subject, takeUntil } from 'rxjs';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ext } from '../../model/ext';
 import { Page } from '../../model/page';
@@ -168,7 +168,7 @@ export class GridComponent implements OnDestroy, HasChanges {
         ? of(this.store.view.top)
         : this.refs.getCurrent(source)
     ).pipe(
-      catchError(err => err.status === 404 ? of(ref) : throwError(() => err)),
+      catchError(() => of(ref)),
     );
   }
 

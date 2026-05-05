@@ -210,5 +210,24 @@ describe('GridComponent', () => {
       http.expectNone(request => request.url.endsWith('/api/v1/ref/page'));
       expect(component.rowData).toEqual([repostRef]);
     });
+
+    it('should keep bare repost rows when source refs fail to load', () => {
+      const repostRef: Ref = {
+        url: 'tag:/repost/1',
+        origin: '',
+        tags: ['plugin/repost'],
+        sources: ['https://example.com/original'],
+      };
+
+      component.page = Page.of([repostRef]);
+
+      const req = http.expectOne(request =>
+        request.url.endsWith('/api/v1/ref/page')
+        && request.params.get('url') === repostRef.sources![0]
+      );
+      req.flush('server error', { status: 500, statusText: 'Server Error' });
+
+      expect(component.rowData).toEqual([repostRef]);
+    });
   });
 });
