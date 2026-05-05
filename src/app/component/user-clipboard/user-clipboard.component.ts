@@ -179,11 +179,6 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     this.persistLocalOnly();
   }
 
-  updateText(item: ClipboardItem, text: string) {
-    item.text = text;
-    this.persist();
-  }
-
   updateRefTitle(item: ClipboardItem, title: string) {
     if (!item.ref) return;
     item.ref = { ...item.ref, title };
@@ -249,7 +244,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     this.drag = undefined;
     if (moved) {
       this.suppressSelect = true;
-      window.setTimeout(() => this.suppressSelect = false);
+      window.setTimeout(() => this.suppressSelect = false, 0);
       this.persist();
     }
   }
@@ -369,8 +364,8 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
           const inputs = Array.from(formlyList.querySelectorAll('input:not(.preview), textarea')) as Array<HTMLInputElement | HTMLTextAreaElement>;
           const input = inputs[inputs.length - 1];
           if (input) this.setInputValue(input, this.plainText(item, input));
-        });
-      }, index);
+        }, 10);
+      }, index * 50);
     });
     return true;
   }

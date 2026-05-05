@@ -32,12 +32,6 @@
           }
           @if (item.editing) {
             <div class="clipboard-edit-panel" (click)="$event.stopPropagation()">
-              @if (item.text !== undefined) {
-                <textarea class="clipboard-text-edit"
-                          [value]="item.text"
-                          (input)="updateText(item, $any($event.target).value)"
-                          i18n-aria-label aria-label="Clipboard text"></textarea>
-              }
               @if (item.ref) {
                 <input class="clipboard-ref-title-edit"
                        [value]="item.ref.title || ''"
