@@ -11,6 +11,35 @@
   pointer-events: none;
 }
 
+.clipboard-drop-zone {
+  position: fixed;
+  top: 16px;
+  left: -22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--clipboard-bg, var(--card));
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+  opacity: 0.85;
+  pointer-events: auto;
+  transition: left 120ms ease, width 120ms ease, opacity 120ms ease;
+}
+
+.clipboard-drop-zone.active,
+.clipboard-drop-zone.filled {
+  left: 12px;
+  width: 96px;
+  opacity: 1;
+}
+
+.clipboard-drop-zone.active {
+  background: var(--clipboard-active, var(--active));
+}
+
 .clipboard-bubble {
   position: fixed;
   display: flex;

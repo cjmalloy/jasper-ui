@@ -1,5 +1,6 @@
 import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
 import DOMPurify from 'dompurify';
+import { autorun, IReactionDisposer } from 'mobx';
 import { catchError, of, Subscription } from 'rxjs';
 import { Plugin } from '../../model/plugin';
 import { Ref, RefUpdates } from '../../model/ref';
@@ -37,6 +38,8 @@ interface ClipboardItem {
   editing?: boolean;
 }
 
+type ClipboardItemContent = Omit<ClipboardItem, 'id' | 'created' | 'x' | 'y'>;
+
 interface ClipboardRef {
   url: string;
   origin?: string;
@@ -63,7 +66,10 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   private watch?: Subscription;
   private save?: Subscription;
   private drag?: DragState;
+  private disposers: IReactionDisposer[] = [];
   private loading = true;
+  dropActive = false;
+  dropFilled = false;
 
   constructor(
     public store: Store,
@@ -75,6 +81,11 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.loadLocal();
     this.loadRemote();
+    this.disposers.push(autorun(() => {
+      if (this.store.eventBus.event === 'clip' && this.store.eventBus.ref?.url) {
+        this.addRef(this.store.eventBus.ref);
+      }
+    }));
     this.watch = this.stomp.watchRef(this.refUrl).pipe(
       catchError(() => of(undefined)),
     ).subscribe(ref => {
@@ -85,6 +96,8 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     this.watch?.unsubscribe();
     this.save?.unsubscribe();
+    for (const dispose of this.disposers) dispose();
+    this.disposers.length = 0;
   }
 
   get plugin(): Plugin | undefined {
@@ -92,11 +105,11 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   }
 
   get interceptCopy() {
-    return !!this.plugin?.config?.interceptCopy;
+    return !!this.pluginSetting('interceptCopy');
   }
 
   get interceptPaste() {
-    return !!this.plugin?.config?.interceptPaste;
+    return !!this.pluginSetting('interceptPaste');
   }
 
   hasPendingPaste() {
@@ -183,6 +196,27 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     return item.text !== undefined || !!item.ref;
   }
 
+  dragOver(event: DragEvent) {
+    event.preventDefault();
+    event.stopPropagation();
+    this.dropActive = true;
+  }
+
+  dragLeave(event: DragEvent) {
+    event.preventDefault();
+    event.stopPropagation();
+    this.dropActive = false;
+  }
+
+  drop(event: DragEvent) {
+    event.preventDefault();
+    event.stopPropagation();
+    this.dropActive = false;
+    this.dropFilled = true;
+    this.addFromDataTransfer(event.dataTransfer);
+    window.setTimeout(() => this.dropFilled = false, 800);
+  }
+
   pointerDown(event: PointerEvent, item: ClipboardItem) {
     if (event.button !== 0) return;
     const target = event.currentTarget as HTMLElement;
@@ -237,7 +271,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     this.pasteInto(event.target as HTMLElement);
   }
 
-  private addItem(item: Omit<ClipboardItem, 'id' | 'created' | 'x' | 'y'>) {
+  private addItem(item: ClipboardItemContent) {
     const y = BUBBLE_START_Y + this.items.length * BUBBLE_SPACING;
     this.items = [
       ...this.items,
@@ -250,6 +284,16 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
       },
     ];
     this.persist();
+  }
+
+  private addRef(ref: Ref) {
+    this.addItem({
+      ref: {
+        url: ref.url,
+        origin: ref.origin,
+        title: ref.title,
+      },
+    });
   }
 
   private pasteInto(target: HTMLElement | null) {
@@ -310,7 +354,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     return [document.createTextNode(this.plainText(item))];
   }
 
-  private clipboardItem(target: HTMLElement | null): Omit<ClipboardItem, 'id' | 'created' | 'x' | 'y'> | undefined {
+  private clipboardItem(target: HTMLElement | null): ClipboardItemContent | undefined {
     const text = this.selectedText(target);
     const html = this.selectedHtml();
     const ref = this.selectedRef(target);
@@ -346,32 +390,67 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   }
 
   private addFromClipboardData(data: DataTransfer | null) {
+    this.addFromDataTransfer(data);
+  }
+
+  private addFromDataTransfer(data: DataTransfer | null) {
     if (!data) return;
     const text = data.getData('text/plain') || undefined;
     const html = data.getData('text/html') || undefined;
+    const ref = this.refFromDataTransfer(data, html, text);
     const imageItem = Array.from(data.items || []).find(item => item.kind === 'file' && item.type.startsWith('image/'));
     if (!imageItem) {
-      if (text || html) this.addItem({ text, html });
+      if (text || html || ref) this.addItem({ text, html, ref });
       return;
     }
     const file = imageItem.getAsFile();
     if (!file) {
-      if (text || html) this.addItem({ text, html });
+      if (text || html || ref) this.addItem({ text, html, ref });
       return;
     }
     const reader = new FileReader();
     reader.onload = () => {
       const image = reader.result as string;
       if (this.safeImage(image)) {
-        this.addItem({ text, html, image });
-      } else if (text || html) {
-        this.addItem({ text, html });
+        this.addItem({ text, html, image, ref });
+      } else if (text || html || ref) {
+        this.addItem({ text, html, ref });
       }
     };
     reader.onerror = () => {
-      if (text || html) this.addItem({ text, html });
+      if (text || html || ref) this.addItem({ text, html, ref });
     };
     reader.readAsDataURL(file);
+  }
+
+  private refFromDataTransfer(data: DataTransfer, html?: string, text?: string): ClipboardRef | undefined {
+    const uri = data.getData('text/uri-list').split('\n').find(line => !!line && !line.startsWith('#'));
+    const htmlRef = html ? this.refFromHtml(html) : undefined;
+    const url = uri || htmlRef?.url || (text && this.isUrl(text) ? text : '');
+    if (!url) return undefined;
+    return {
+      url,
+      title: htmlRef?.title || text,
+    };
+  }
+
+  private refFromHtml(html: string): ClipboardRef | undefined {
+    const template = document.createElement('template');
+    template.innerHTML = DOMPurify.sanitize(html, SANITIZE_CONFIG);
+    const link = template.content.querySelector('a[href]') as HTMLAnchorElement | null;
+    if (link) return { url: link.href, title: link.textContent?.trim() || link.title || undefined };
+    const image = template.content.querySelector('img[src]') as HTMLImageElement | null;
+    if (image?.src && !this.safeImage(image.src)) return { url: image.src, title: image.alt || image.title || undefined };
+    return undefined;
+  }
+
+  private isUrl(text: string) {
+    try {
+      new URL(text);
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   private stripHtml(html: string) {
@@ -462,6 +541,11 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
 
   private persistLocalOnly() {
     this.persistLocal();
+  }
+
+  private pluginSetting(key: 'interceptCopy' | 'interceptPaste') {
+    const value = this.plugin?.config?.[key];
+    return typeof value === 'boolean' ? value : this.plugin?.defaults?.[key];
   }
 
   private persistLocal() {

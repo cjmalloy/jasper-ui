@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { mod } from './setup';
+import { deleteRef, mod, openSidebar } from './setup';
 
 test.describe.serial('User Clipboard Plugin', () => {
   test('enable clipboard mod', async ({ page }) => {
@@ -48,5 +48,33 @@ test.describe.serial('User Clipboard Plugin', () => {
       html: '<strong>Clipboard paste text</strong>',
       created: expect.any(String),
     });
+  });
+
+  test('clips refs and accepts dropped text', async ({ page }) => {
+    const url = 'https://jasperkm.info/clipboard-e2e';
+    await deleteRef(page, url);
+    await page.goto('/?debug=ADMIN', { waitUntil: 'networkidle' });
+    await page.evaluate(() => localStorage.removeItem('jasper.clipboard.+user/debug@'));
+    await openSidebar(page);
+    await page.locator('.sidebar .submit-button', { hasText: 'Submit' }).first().click();
+    await page.locator('#url').fill(url);
+    await page.getByText('Next').click();
+    await page.locator('[name=title]').fill('Clipboard E2E Ref');
+    const submitPromise = page.waitForResponse(resp => resp.url().includes('/api/v1/ref'));
+    await page.locator('button', { hasText: 'Submit' }).click();
+    await submitPromise;
+
+    await page.locator('.full-page.ref .actions .fake-link', { hasText: 'clip' }).first().click();
+    await expect(page.locator('.clipboard-bubble').filter({ hasText: 'Clipboard E2E Ref' })).toBeVisible();
+
+    const dropZone = page.locator('.clipboard-drop-zone');
+    await expect(dropZone).toBeVisible();
+    await dropZone.evaluate(element => {
+      const data = new DataTransfer();
+      data.setData('text/plain', 'Dropped clipboard text');
+      element.dispatchEvent(new DragEvent('dragover', { bubbles: true, cancelable: true, dataTransfer: data }));
+      element.dispatchEvent(new DragEvent('drop', { bubbles: true, cancelable: true, dataTransfer: data }));
+    });
+    await expect(page.locator('.clipboard-bubble').filter({ hasText: 'Dropped clipboard text' })).toBeVisible();
   });
 });
