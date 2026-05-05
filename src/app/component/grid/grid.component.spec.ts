@@ -1,16 +1,19 @@
 /// <reference types="vitest/globals" />
 import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
-import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { DateTime } from 'luxon';
 
+import { Page } from '../../model/page';
+import { Ref } from '../../model/ref';
 import { GridCellComponent } from './grid-cell/grid-cell.component';
 import { GridComponent } from './grid.component';
 
 describe('GridComponent', () => {
   let component: GridComponent;
   let fixture: ComponentFixture<GridComponent>;
+  let http: HttpTestingController;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
@@ -24,7 +27,12 @@ describe('GridComponent', () => {
 
     fixture = TestBed.createComponent(GridComponent);
     component = fixture.componentInstance;
+    http = TestBed.inject(HttpTestingController);
     fixture.detectChanges();
+  });
+
+  afterEach(() => {
+    http.verify();
   });
 
   it('should create', () => {
@@ -155,6 +163,52 @@ describe('GridComponent', () => {
       component.ext = { tag: 'grid', config: { columnDefs: [{ headerName: 'Published', field: 'published', type: 'dateTime' }] } } as any;
       const defs = component.columnDefs;
       expect(typeof defs[0].valueFormatter).toBe('function');
+    });
+  });
+
+  describe('page', () => {
+    it('should fetch source refs for bare repost rows', () => {
+      const repostRef: Ref = {
+        url: 'tag:/repost/1',
+        origin: '',
+        tags: ['plugin/repost'],
+        sources: ['https://example.com/original'],
+      };
+      const sourceRef: Ref = {
+        url: 'https://example.com/original',
+        origin: '',
+        tags: ['article'],
+        title: 'Original title',
+      };
+
+      component.page = Page.of([repostRef]);
+
+      const req = http.expectOne(request =>
+        request.url.endsWith('/api/v1/ref/page')
+        && request.params.get('url') === sourceRef.url
+        && request.params.get('size') === '1'
+      );
+      req.flush(Page.of([sourceRef]));
+
+      expect(component.rowData).toEqual([expect.objectContaining({
+        url: sourceRef.url,
+        title: sourceRef.title,
+      })]);
+    });
+
+    it('should not fetch source refs for repost rows with their own content', () => {
+      const repostRef: Ref = {
+        url: 'tag:/repost/1',
+        origin: '',
+        tags: ['plugin/repost'],
+        sources: ['https://example.com/original'],
+        title: 'Repost title',
+      };
+
+      component.page = Page.of([repostRef]);
+
+      http.expectNone(request => request.url.endsWith('/api/v1/ref/page'));
+      expect(component.rowData).toEqual([repostRef]);
     });
   });
 });

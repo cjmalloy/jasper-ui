@@ -2,7 +2,7 @@
                  [class.ag-theme-quartz-dark]="store.darkTheme"
                  theme="legacy"
                  [style.height.vh]="90"
-                 [rowData]="page?.content"
+                 [rowData]="rowData"
                  [columnDefs]="columnDefs"></ag-grid-angular>
 @if (page) {
   @if (emptyMessage && !page.content.length) {
