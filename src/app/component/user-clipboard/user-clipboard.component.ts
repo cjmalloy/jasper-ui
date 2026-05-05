@@ -66,6 +66,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   private watch?: Subscription;
   private save?: Subscription;
   private drag?: DragState;
+  private suppressSelect = false;
   private disposers: IReactionDisposer[] = [];
   private loading = true;
   dropActive = false;
@@ -143,7 +144,10 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   }
 
   select(item: ClipboardItem) {
-    if (this.drag?.moved) return;
+    if (this.suppressSelect || this.drag?.moved) {
+      this.suppressSelect = false;
+      return;
+    }
     item.selected = true;
     this.persistLocalOnly();
   }
@@ -193,7 +197,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   }
 
   canEdit(item: ClipboardItem) {
-    return item.text !== undefined || !!item.ref;
+    return !!item.ref;
   }
 
   dragOver(event: DragEvent) {
@@ -219,6 +223,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
 
   pointerDown(event: PointerEvent, item: ClipboardItem) {
     if (event.button !== 0) return;
+    if (this.isInteractive(event.target as HTMLElement | null)) return;
     const target = event.currentTarget as HTMLElement;
     target.setPointerCapture(event.pointerId);
     this.drag = {
@@ -242,7 +247,11 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     if (!this.drag) return;
     const moved = this.drag.moved;
     this.drag = undefined;
-    if (moved) this.persist();
+    if (moved) {
+      this.suppressSelect = true;
+      window.setTimeout(() => this.suppressSelect = false);
+      this.persist();
+    }
   }
 
   @HostListener('document:copy', ['$event'])
@@ -308,7 +317,8 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
 
   private insertItems(target: HTMLElement, items: ClipboardItem[]) {
     if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) {
-      const text = items.map(item => this.plainText(item)).join('');
+      if (this.insertListItems(target, items)) return true;
+      const text = items.map(item => this.plainText(item, target)).join('');
       const start = target.selectionStart ?? target.value.length;
       const end = target.selectionEnd ?? target.value.length;
       target.setRangeText(text, start, end, 'end');
@@ -334,8 +344,66 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     return false;
   }
 
-  private plainText(item: ClipboardItem) {
-    return item.text || item.ref?.url || (item.html ? this.stripHtml(item.html) : item.image || '');
+  private insertListItems(target: HTMLInputElement | HTMLTextAreaElement, items: ClipboardItem[]) {
+    const listEditor = target.closest('app-list-editor') as HTMLElement | null;
+    if (listEditor) {
+      const input = listEditor.querySelector('input') as HTMLInputElement | null;
+      const add = listEditor.querySelector('button') as HTMLButtonElement | null;
+      if (!input || !add) return false;
+      for (const item of items) {
+        this.setInputValue(input, this.plainText(item, target));
+        add.click();
+      }
+      return true;
+    }
+
+    const formlyList = target.closest('formly-list-section') as HTMLElement | null;
+    const add = formlyList?.querySelector('.form-group > button') as HTMLButtonElement | null;
+    if (!formlyList || !add) return false;
+
+    this.setInputValue(target, this.plainText(items[0], target));
+    items.slice(1).forEach((item, index) => {
+      window.setTimeout(() => {
+        add.click();
+        window.setTimeout(() => {
+          const inputs = Array.from(formlyList.querySelectorAll('input:not(.preview), textarea')) as Array<HTMLInputElement | HTMLTextAreaElement>;
+          const input = inputs[inputs.length - 1];
+          if (input) this.setInputValue(input, this.plainText(item, input));
+        });
+      }, index);
+    });
+    return true;
+  }
+
+  private setInputValue(target: HTMLInputElement | HTMLTextAreaElement, value: string) {
+    target.value = value;
+    target.dispatchEvent(new Event('input', { bubbles: true }));
+  }
+
+  private isInteractive(target: HTMLElement | null) {
+    return !!target?.closest('button, input, textarea, select, a');
+  }
+
+  private isTagField(target?: HTMLElement) {
+    return !!target?.closest('formly-field-tag-input');
+  }
+
+  private isEditorField(target?: HTMLElement) {
+    return !!target?.closest('app-editor');
+  }
+
+  private formatTagText(text: string, prefix: string) {
+    if (text.startsWith('tag:/')) {
+      return prefix + text.substring('tag:/'.length);
+    }
+    return text;
+  }
+
+  private plainText(item: ClipboardItem, target?: HTMLElement) {
+    const text = item.text || item.ref?.url || (item.html ? this.stripHtml(item.html) : item.image || '');
+    if (this.isTagField(target)) return this.formatTagText(text, '');
+    if (this.isEditorField(target)) return this.formatTagText(text, '#');
+    return text;
   }
 
   private richNodes(item: ClipboardItem) {

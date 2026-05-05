@@ -24,7 +24,7 @@ test.describe.serial('User Clipboard Plugin', () => {
     const bubble = page.locator('.clipboard-bubble').filter({ hasText: 'Clipboard paste text' });
     await expect(bubble).toBeVisible();
     await bubble.click();
-    await expect(page.locator('.clipboard-edit')).toBeVisible();
+    await expect(page.locator('.clipboard-edit')).toBeHidden();
 
     await page.locator('body').evaluate(() => {
       const input = document.createElement('input');
@@ -48,6 +48,8 @@ test.describe.serial('User Clipboard Plugin', () => {
       html: '<strong>Clipboard paste text</strong>',
       created: expect.any(String),
     });
+    await page.locator('.clipboard-clear').click();
+    await expect(bubble).toBeHidden();
   });
 
   test('clips refs and accepts dropped text', async ({ page }) => {
@@ -65,7 +67,11 @@ test.describe.serial('User Clipboard Plugin', () => {
     await submitPromise;
 
     await page.locator('.full-page.ref .actions .fake-link', { hasText: 'clip' }).first().click();
-    await expect(page.locator('.clipboard-bubble').filter({ hasText: 'Clipboard E2E Ref' })).toBeVisible();
+    const refBubble = page.locator('.clipboard-bubble').filter({ hasText: 'Clipboard E2E Ref' });
+    await expect(refBubble).toBeVisible();
+    await refBubble.click();
+    await page.locator('.clipboard-edit').click();
+    await expect(page.locator('.clipboard-ref-url-edit')).toHaveValue(url);
 
     const dropZone = page.locator('.clipboard-drop-zone');
     await expect(dropZone).toBeVisible();
@@ -76,5 +82,61 @@ test.describe.serial('User Clipboard Plugin', () => {
       element.dispatchEvent(new DragEvent('drop', { bubbles: true, cancelable: true, dataTransfer: data }));
     });
     await expect(page.locator('.clipboard-bubble').filter({ hasText: 'Dropped clipboard text' })).toBeVisible();
+  });
+
+  test('formats tag pastes and splits list items', async ({ page }) => {
+    await page.goto('/?debug=ADMIN', { waitUntil: 'networkidle' });
+    const dropText = async (text: string) => page.locator('.clipboard-drop-zone').evaluate((element, value) => {
+      const data = new DataTransfer();
+      data.setData('text/plain', value);
+      element.dispatchEvent(new DragEvent('drop', { bubbles: true, cancelable: true, dataTransfer: data }));
+    }, text);
+    await dropText('tag:/topic/one');
+    await dropText('List item one');
+    await dropText('List item two');
+
+    await page.locator('.clipboard-bubble').filter({ hasText: 'tag:/topic/one' }).last().click();
+    await page.locator('body').evaluate(() => {
+      const field = document.createElement('formly-field-tag-input');
+      const input = document.createElement('input');
+      input.className = 'e2e-tag-input';
+      field.appendChild(input);
+      document.body.appendChild(field);
+    });
+    await page.locator('.e2e-tag-input').focus();
+    await expect(page.locator('.e2e-tag-input')).toHaveValue('topic/one');
+
+    await page.locator('.clipboard-bubble').filter({ hasText: 'tag:/topic/one' }).last().click();
+    await page.locator('body').evaluate(() => {
+      const editor = document.createElement('app-editor');
+      const textarea = document.createElement('textarea');
+      textarea.className = 'e2e-editor';
+      editor.appendChild(textarea);
+      document.body.appendChild(editor);
+    });
+    await page.locator('.e2e-editor').focus();
+    await expect(page.locator('.e2e-editor')).toHaveValue('#topic/one');
+
+    await page.locator('.clipboard-bubble').filter({ hasText: 'List item one' }).last().click();
+    await page.locator('.clipboard-bubble').filter({ hasText: 'List item two' }).last().click();
+    await page.locator('body').evaluate(() => {
+      const list = document.createElement('app-list-editor');
+      const input = document.createElement('input');
+      input.className = 'e2e-list-input';
+      const button = document.createElement('button');
+      const entries: string[] = [];
+      button.addEventListener('click', () => {
+        entries.push(input.value);
+        list.dataset['entries'] = JSON.stringify(entries);
+        input.value = '';
+      });
+      list.append(input, button);
+      document.body.appendChild(list);
+    });
+    await page.locator('.e2e-list-input').focus();
+    await expect.poll(() => page.locator('app-list-editor').evaluate(el => el.getAttribute('data-entries'))).toBe(JSON.stringify([
+      'List item one',
+      'List item two',
+    ]));
   });
 });
