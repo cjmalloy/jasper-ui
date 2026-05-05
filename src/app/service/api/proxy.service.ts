@@ -58,7 +58,7 @@ export class ProxyService {
 
   fetch(url: string, origin = '', filename = 'file', thumbnail?: boolean): Observable<Resource> {
     this.cacheList.add(origin + url);
-    return this.http.get(`${this.base}/${sanitizePath(filename)}`, {
+    return this.http.get(thumbnail ? this.base : `${this.base}/${sanitizePath(filename)}`, {
       params: params({ url, origin, thumbnail }),
       observe: 'response',
       responseType: 'arraybuffer',
@@ -92,7 +92,7 @@ export class ProxyService {
     if (!url) return '';
     if (url.startsWith('data:')) return url;
     if (this.config.prefetch && this.store.account.user) this.prefetch(url, origin, filename);
-    if (thumbnail) return `${this.base}/${sanitizePath(filename.trim())}?thumbnail=true&url=${encodeURIComponent(url)}&origin=${origin}`;
+    if (thumbnail) return `${this.base}?thumbnail=true&url=${encodeURIComponent(url)}&origin=${origin}`;
     return `${this.base}/${sanitizePath(filename.trim())}?url=${encodeURIComponent(url)}&origin=${origin}`;
   }
 

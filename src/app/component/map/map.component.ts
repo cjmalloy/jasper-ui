@@ -237,7 +237,7 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
     if (thumbnailPlugin.url) {
       const isProxy = this.admin.getPlugin('plugin/thumbnail')?.config?.proxy;
       const url = isProxy
-        ? this.proxy.getFetch(thumbnailPlugin.url, ref.origin, ref.title || 'thumbnail', true)
+        ? this.proxy.getFetch(thumbnailPlugin.url, ref.origin, 'thumbnail', true)
         : thumbnailPlugin.url;
       el.style.backgroundImage = `url(${url})`;
     }
