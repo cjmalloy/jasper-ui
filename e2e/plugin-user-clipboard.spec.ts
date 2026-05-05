@@ -27,13 +27,14 @@ test.describe.serial('User Clipboard Plugin', () => {
 
     const bubble = page.locator('.clipboard-bubble').filter({ hasText: 'Clipboard paste text' });
     await expect(bubble).toBeVisible();
+    const initialLeft = await bubble.evaluate(element => getComputedStyle(element).left);
     const previewBox = await bubble.locator('.clipboard-preview').boundingBox();
     expect(previewBox).toBeTruthy();
     await page.mouse.move(previewBox!.x + DRAG_START_OFFSET, previewBox!.y + DRAG_START_OFFSET);
     await page.mouse.down();
     await page.mouse.move(previewBox!.x + DRAG_END_X_OFFSET, previewBox!.y + DRAG_END_Y_OFFSET);
     await page.mouse.up();
-    await expect.poll(() => bubble.evaluate(element => getComputedStyle(element).left)).not.toBe('12px');
+    await expect.poll(() => bubble.evaluate(element => getComputedStyle(element).left)).not.toBe(initialLeft);
     await expect(bubble).not.toHaveClass(/selected/);
     await bubble.click();
     await expect(page.locator('.clipboard-edit')).toBeHidden();
@@ -166,7 +167,7 @@ test.describe.serial('User Clipboard Plugin', () => {
   });
 
   test('formats editor links and embeds', async ({ page }) => {
-    const image = 'data:image/png;base64,iVBORw0KGgo=';
+    const image = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
     await page.goto('/?debug=ADMIN', { waitUntil: 'networkidle' });
     await page.evaluate(image => {
       localStorage.setItem('jasper.clipboard.+user/debug@', JSON.stringify([{

@@ -402,13 +402,14 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
    */
   private editorText(item: ClipboardItem, text: string) {
     if (text.startsWith('tag:/')) return this.formatTagText(text, '#');
-    if (item.image && this.safeImage(item.image)) return `![](${item.image})`;
+    if (item.image && this.safeImage(item.image)) return `![](${this.escapeMarkdownUrl(item.image)})`;
     const url = this.markdownUrl(item, text);
     if (url) {
       if (url.startsWith('tag:/')) return this.formatTagText(url, '#');
-      if (this.isImageUrl(url)) return `![](${url})`;
-      if (this.isRefEmbedItem(item)) return `![=](${url})`;
-      return `[${this.markdownLinkTitle(item) || url}](${url})`;
+      const markdownUrl = this.escapeMarkdownUrl(url);
+      if (this.isImageUrl(url)) return `![](${markdownUrl})`;
+      if (this.isRefEmbedItem(item)) return `![=](${markdownUrl})`;
+      return `[${this.escapeMarkdownText(this.markdownLinkTitle(item) || url)}](${markdownUrl})`;
     }
     return text;
   }
@@ -428,6 +429,14 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
 
   private markdownLinkTitle(item: ClipboardItem) {
     return item.ref?.title || (item.html ? this.stripHtml(item.html).trim() : '');
+  }
+
+  private escapeMarkdownText(text: string) {
+    return text.replace(/([\\[\]])/g, '\\$1');
+  }
+
+  private escapeMarkdownUrl(url: string) {
+    return url.replace(/[()\\\s]/g, value => encodeURIComponent(value));
   }
 
   private richNodes(item: ClipboardItem) {
