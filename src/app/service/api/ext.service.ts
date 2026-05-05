@@ -1,6 +1,5 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { delay } from 'lodash-es';
 import {
   catchError,
   concat,
@@ -8,7 +7,6 @@ import {
   Observable,
   of,
   shareReplay,
-  Subscription,
   switchMap,
   throwError,
   toArray
@@ -126,7 +124,7 @@ export class ExtService {
     for (const key of keys) {
       this._cache.set(key, value);
     }
-    let timerId = 0;
+    let timerId: ReturnType<typeof setTimeout> | undefined;
     const sub = this.stomp.watchExt(ext.tag + ext.origin).subscribe(x => {
       value = of(x);
       for (const key of keys) {
@@ -140,7 +138,7 @@ export class ExtService {
       sub.unsubscribe();
       clearTimeout(timerId);
     };
-    timerId = delay(clear, EXT_CACHE_MS);
+    timerId = setTimeout(clear, EXT_CACHE_MS);
   }
 
   getCachedExts(tags: string[], origin?: string): Observable<Ext[]> {
@@ -155,8 +153,6 @@ export class ExtService {
       if (!tag || isQuery(tag)) {
         this._cache.set(key, value = of(this.defaultExt(tag, origin)));
       } else {
-        let sub: Subscription;
-        let update: Ext;
         this._cache.set(key, value = this.get(defaultOrigin(tag, this.store.account.origin)).pipe(
           catchError(err => {
             if (origin === undefined) throw throwError(() => err);
@@ -171,30 +167,13 @@ export class ExtService {
           catchError(err => of(null)),
           map(x => x ? x : this.defaultExt(tag, origin)),
           tap(x => {
-            update = x;
-            value = of(x);
-            const key2 = x.tag + x.origin + ':';
-            sub = this.stomp.watchExt(x.tag + x.origin).subscribe(u => {
-              update = u;
-              value = of(u);
-              this._cache.set(key, value);
-              if (key2 !== key) this._cache.set(key2, value);
-            });
-            this._cache.set(key, value);
-            if (key2 !== key) this._cache.set(key2, value);
             this.store.local.loadExt([...this._cache.keys()]);
           }),
           shareReplay(1),
         ));
-        let timerId = 0;
-        const clear = () => {
-          const key2 = update?.tag + update?.origin + ':';
+        setTimeout(() => {
           if (this._cache.get(key) === value) this._cache.delete(key);
-          if (update && key !== key2 && this._cache.get(key2) === value) this._cache.delete(key2);
-          sub?.unsubscribe();
-          clearTimeout(timerId);
-        };
-        timerId = delay(clear, EXT_CACHE_MS);
+        }, EXT_CACHE_MS);
       }
       this.store.local.loadExt([...this._cache.keys()]);
     }
