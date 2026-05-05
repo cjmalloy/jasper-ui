@@ -57,6 +57,7 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
   private markers: Marker[] = [];
   private destroy$ = new Subject<void>();
   private mapDataUpdates$ = new Subject<Ref[]>();
+  private mapLinkUrls = new WeakMap<Ref, string>();
   mapData: Ref[] = [];
 
   constructor(
@@ -216,7 +217,7 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
         const marker = el ? new Marker({ element: el }) : new Marker();
         marker.addClassName('map-thumbnail');
         marker.setLngLat(pointFeature.geometry.coordinates).addTo(map);
-        marker.on('click', () => this.router.navigate(['/ref', ref.url]));
+        marker.on('click', () => this.router.navigate(['/ref', this.mapLinkUrl(ref)]));
         this.markers.push(marker);
       }
     });
@@ -248,7 +249,7 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
         ? of(this.store.view.top)
         : this.refs.getCurrent(source)
     ).pipe(
-      rxMap(sourceRef => this.withRepostGeo(ref, sourceRef)),
+      rxMap(sourceRef => this.withRepostLink(ref, sourceRef)),
       catchError(() => of(ref)),
     );
   }
@@ -257,8 +258,18 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
     return !!ref.sources?.[0] && hasTag('plugin/repost', ref) && !ref.title && !ref.comment;
   }
 
+  private withRepostLink(repostRef: Ref, sourceRef: Ref) {
+    const ref = this.withRepostGeo(repostRef, sourceRef);
+    this.mapLinkUrls.set(ref, repostRef.url);
+    return ref;
+  }
+
+  private mapLinkUrl(ref: Ref) {
+    return this.mapLinkUrls.get(ref) || ref.url;
+  }
+
   private withRepostGeo(repostRef: Ref, sourceRef: Ref) {
-    if (!hasTag('plugin/geo', repostRef)) return sourceRef;
+    if (!hasTag('plugin/geo', repostRef)) return { ...sourceRef };
     const tags = [
       ...(sourceRef.tags || []).filter(tag => !hasPrefix(tag, 'plugin/geo')),
       ...(repostRef.tags || []).filter(tag => hasPrefix(tag, 'plugin/geo')),

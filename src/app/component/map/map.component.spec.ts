@@ -73,6 +73,7 @@ describe('MapComponent', () => {
         url: sourceRef.url,
         title: sourceRef.title,
       })]);
+      expect((component as any).mapLinkUrl(component.mapData[0])).toBe(repostRef.url);
     });
 
     it('should keep repost geo data when resolving a bare repost source ref', () => {
