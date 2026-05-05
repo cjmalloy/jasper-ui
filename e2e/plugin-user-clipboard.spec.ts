@@ -1,6 +1,10 @@
 import { expect, test } from '@playwright/test';
 import { deleteRef, mod, openSidebar } from './setup';
 
+const DRAG_START_OFFSET = 8;
+const DRAG_END_X_OFFSET = 88;
+const DRAG_END_Y_OFFSET = 48;
+
 test.describe.serial('User Clipboard Plugin', () => {
   test('enable clipboard mod', async ({ page }) => {
     await mod(page, '#mod-clipboard');
@@ -25,9 +29,9 @@ test.describe.serial('User Clipboard Plugin', () => {
     await expect(bubble).toBeVisible();
     const previewBox = await bubble.locator('.clipboard-preview').boundingBox();
     expect(previewBox).toBeTruthy();
-    await page.mouse.move(previewBox!.x + 8, previewBox!.y + 8);
+    await page.mouse.move(previewBox!.x + DRAG_START_OFFSET, previewBox!.y + DRAG_START_OFFSET);
     await page.mouse.down();
-    await page.mouse.move(previewBox!.x + 88, previewBox!.y + 48);
+    await page.mouse.move(previewBox!.x + DRAG_END_X_OFFSET, previewBox!.y + DRAG_END_Y_OFFSET);
     await page.mouse.up();
     await expect.poll(() => bubble.evaluate(element => getComputedStyle(element).left)).not.toBe('12px');
     await expect(bubble).not.toHaveClass(/selected/);

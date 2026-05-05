@@ -396,6 +396,10 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     return text;
   }
 
+  /**
+   * Editor pastes prefer markdown: tags become hashtags, images become image
+   * embeds, ref-only items become Jasper ref embeds, and other URLs become links.
+   */
   private editorText(item: ClipboardItem, text: string) {
     if (text.startsWith('tag:/')) return this.formatTagText(text, '#');
     if (item.image && this.safeImage(item.image)) return `![](${item.image})`;
@@ -414,6 +418,10 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     return this.isUri(text) ? text : undefined;
   }
 
+  /**
+   * Ref-only items come from Jasper Ref actions/copies, while dropped links carry
+   * text/html too and should paste as ordinary markdown links.
+   */
   private isRefEmbedItem(item: ClipboardItem) {
     return !!item.ref?.url && item.text === undefined && item.html === undefined;
   }
@@ -533,6 +541,9 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     return undefined;
   }
 
+  /**
+   * In-app tag links are dragged as page URLs; store them as canonical tag URIs.
+   */
   private normalizeDroppedUrl(url?: string) {
     if (!url) return undefined;
     try {
