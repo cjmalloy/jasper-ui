@@ -261,7 +261,7 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
     const ref = this.withRepostGeo(repostRef, sourceRef);
     return {
       ...ref,
-      tags: [...new Set([...(ref.tags || []), 'plugin/repost'])],
+      tags: hasTag('plugin/repost', ref) ? ref.tags : [...(ref.tags || []), 'plugin/repost'],
       sources: [repostRef.url, ...(ref.sources || [])],
     };
   }
