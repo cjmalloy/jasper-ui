@@ -384,6 +384,7 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> impleme
         return this.loadActiveKanbanFilters(exts, query);
       }),
     ).subscribe(() => {
+      // Query can change while kanban tag previews are loading.
       if (query !== this.queryPart) return;
       this.syncFilterOptions();
       this.cd.detectChanges();
@@ -517,13 +518,13 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> impleme
     }
   }
 
-  private pushFilter(...fgs: FilterGroup[]) {
-    for (const fg of fgs) {
-      const group = find(this.allFilters, f => f.label === (fg.label || ''));
+  private pushFilter(...filterGroups: FilterGroup[]) {
+    for (const filterGroup of filterGroups) {
+      const group = find(this.allFilters, f => f.label === (filterGroup.label || ''));
       if (group) {
-        group.filters.push(...fg.filters);
+        group.filters.push(...filterGroup.filters);
       } else {
-        this.allFilters.push(fg);
+        this.allFilters.push(filterGroup);
       }
     }
   }
