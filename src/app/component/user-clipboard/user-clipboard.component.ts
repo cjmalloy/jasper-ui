@@ -345,9 +345,8 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     const listEditor = target.closest('app-list-editor') as HTMLElement | null;
     if (listEditor) {
       const event = new CustomEvent('jasper-clipboard-paste', { bubbles: true, cancelable: true, detail: values });
-      const handled = !listEditor.dispatchEvent(event);
+      listEditor.dispatchEvent(event);
       if (event.defaultPrevented) return true;
-      if (handled) return true;
       const input = listEditor.querySelector('input') as HTMLInputElement | null;
       const add = listEditor.querySelector('button') as HTMLButtonElement | null;
       if (!input || !add) return false;

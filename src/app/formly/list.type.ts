@@ -4,6 +4,7 @@ import { Component, HostBinding } from '@angular/core';
 import { FieldArrayType, FormlyField } from '@ngx-formly/core';
 import { defer } from 'lodash-es';
 import { Store } from '../store/store';
+import { clipboardPasteValues } from '../util/clipboard';
 import { getPath } from '../util/http';
 
 @Component({
@@ -198,13 +199,9 @@ export class ListTypeComponent extends FieldArrayType {
   clipboardPaste(event: Event) {
     event.preventDefault();
     event.stopPropagation();
-    for (const value of this.clipboardPasteValues(event)) {
+    for (const value of clipboardPasteValues(event)) {
       this.add(undefined, value);
     }
-  }
-
-  private clipboardPasteValues(event: Event) {
-    return event instanceof CustomEvent && Array.isArray(event.detail) ? event.detail as string[] : [];
   }
 
   drop(event: CdkDragDrop<ListTypeComponent>) {

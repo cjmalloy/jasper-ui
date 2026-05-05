@@ -1,5 +1,6 @@
 import { Component, EventEmitter, HostBinding, Input, Output } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
+import { clipboardPasteValues } from '../../util/clipboard';
 
 @Component({
   selector: 'app-list-editor',
@@ -68,15 +69,11 @@ export class ListEditorComponent{
   clipboardPaste(event: Event) {
     event.preventDefault();
     event.stopPropagation();
-    for (const value of this.clipboardPasteValues(event)) {
+    for (const value of clipboardPasteValues(event)) {
       if (!value || this.list.includes(value)) continue;
       this.list.push(value);
       this.onAdd.emit(value);
     }
     this.select(this.list.length - 1);
-  }
-
-  private clipboardPasteValues(event: Event) {
-    return event instanceof CustomEvent && Array.isArray(event.detail) ? event.detail as string[] : [];
   }
 }
