@@ -120,12 +120,12 @@ describe('MapComponent', () => {
       );
       req.flush(Page.of([sourceRef]));
 
-      const [ref, repost] = component.mapData[0];
+      const [ref, bareRepost] = component.mapData[0];
       expect(ref).toEqual(expect.objectContaining({
         url: sourceRef.url,
         title: sourceRef.title,
       }));
-      expect(repost).toBe(repostRef);
+      expect(bareRepost).toBe(repostRef);
       expect(ref.tags).toEqual(expect.arrayContaining(['article', 'plugin/geo', 'plugin/geo/point']));
       expect(ref.tags).not.toContain('plugin/geo/polygon');
       expect(ref.plugins?.['plugin/geo/point']).toBe(repostPoint);

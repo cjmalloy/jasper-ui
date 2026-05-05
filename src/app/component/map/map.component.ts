@@ -25,7 +25,7 @@ import { LoadingComponent } from '../loading/loading.component';
 import { PageControlsComponent } from '../page-controls/page-controls.component';
 import { ResizeHandleDirective } from "../../directive/resize-handle.directive";
 
-type MapEntry = [ref: Ref, repost?: Ref];
+type MapEntry = [ref: Ref, bareRepost?: Ref];
 
 @Component({
   selector: 'app-map',
@@ -260,8 +260,8 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
     return !!ref.sources?.[0] && hasTag('plugin/repost', ref) && !ref.title && !ref.comment;
   }
 
-  private mapLinkUrl([ref, repost]: MapEntry) {
-    return repost?.url || ref.url;
+  private mapLinkUrl([ref, bareRepost]: MapEntry) {
+    return bareRepost?.url || ref.url;
   }
 
   private withRepostGeo(repostRef: Ref, sourceRef: Ref) {
