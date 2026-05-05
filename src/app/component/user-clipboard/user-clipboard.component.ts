@@ -370,7 +370,8 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   }
 
   private isInteractive(target: HTMLElement | null) {
-    return !!target?.closest('button, input, textarea, select, a, [contenteditable="true"], [role="button"], [role="link"]');
+    if (target?.closest('.clipboard-preview')) return false;
+    return !!target?.closest('.clipboard-actions, .clipboard-edit-panel, input, textarea, select, a, [contenteditable="true"], [role="button"], [role="link"]');
   }
 
   private isTagField(target?: HTMLElement) {
@@ -391,8 +392,34 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   private plainText(item: ClipboardItem, target?: HTMLElement) {
     const text = item.text || item.ref?.url || (item.html ? this.stripHtml(item.html) : item.image || '');
     if (this.isTagField(target)) return this.formatTagText(text, '');
-    if (this.isEditorField(target)) return this.formatTagText(text, '#');
+    if (this.isEditorField(target)) return this.editorText(item, text);
     return text;
+  }
+
+  private editorText(item: ClipboardItem, text: string) {
+    if (text.startsWith('tag:/')) return this.formatTagText(text, '#');
+    if (item.image && this.safeImage(item.image)) return `![](${item.image})`;
+    const url = this.markdownUrl(item, text);
+    if (url) {
+      if (url.startsWith('tag:/')) return this.formatTagText(url, '#');
+      if (this.isImageUrl(url)) return `![](${url})`;
+      if (this.isRefEmbedItem(item)) return `![=](${url})`;
+      return `[${this.markdownLinkTitle(item) || url}](${url})`;
+    }
+    return text;
+  }
+
+  private markdownUrl(item: ClipboardItem, text: string) {
+    if (item.ref?.url) return this.normalizeDroppedUrl(item.ref.url);
+    return this.isUri(text) ? text : undefined;
+  }
+
+  private isRefEmbedItem(item: ClipboardItem) {
+    return !!item.ref?.url && item.text === undefined && item.html === undefined;
+  }
+
+  private markdownLinkTitle(item: ClipboardItem) {
+    return item.ref?.title || (item.html ? this.stripHtml(item.html).trim() : '');
   }
 
   private richNodes(item: ClipboardItem) {
@@ -452,7 +479,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
 
   private addFromDataTransfer(data: DataTransfer | null) {
     if (!data) return;
-    const text = data.getData('text/plain') || undefined;
+    const text = this.normalizeDroppedText(data.getData('text/plain')) || undefined;
     const html = data.getData('text/html') || undefined;
     const ref = this.refFromDataTransfer(data, html, text);
     const imageItem = Array.from(data.items || []).find(item => item.kind === 'file' && item.type.startsWith('image/'));
@@ -484,7 +511,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     const uri = data.getData('text/uri-list').split('\n').find(line => !!line && !line.startsWith('#'));
     const htmlRef = html ? this.refFromHtml(html) : undefined;
     const textUri = text && this.isUri(text) ? text : undefined;
-    const url = uri || htmlRef?.url || textUri;
+    const url = this.normalizeDroppedUrl(uri || htmlRef?.url || textUri);
     if (!url) return undefined;
     return {
       url,
@@ -500,10 +527,24 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     const template = document.createElement('template');
     template.innerHTML = DOMPurify.sanitize(html, SANITIZE_CONFIG);
     const link = template.content.querySelector('a[href]') as HTMLAnchorElement | null;
-    if (link) return { url: link.href, title: this.cleanTitle(link.textContent, link.title) };
+    if (link) return { url: this.normalizeDroppedUrl(link.href) || link.href, title: this.cleanTitle(link.textContent, link.title) };
     const image = template.content.querySelector('img[src]') as HTMLImageElement | null;
     if (image?.src && this.safeImage(image.src)) return { url: image.src, title: this.cleanTitle(image.alt, image.title) };
     return undefined;
+  }
+
+  private normalizeDroppedUrl(url?: string) {
+    if (!url) return undefined;
+    try {
+      const parsed = new URL(url, window.location.href);
+      if (parsed.origin === window.location.origin && parsed.pathname.startsWith('/tag/')) {
+        const tag = decodeURIComponent(parsed.pathname.substring('/tag/'.length));
+        return `tag:/${tag}${parsed.search}`;
+      }
+    } catch {
+      return url;
+    }
+    return url;
   }
 
   private cleanTitle(...values: Array<string | null | undefined>) {
@@ -517,6 +558,16 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     } catch {
       return false;
     }
+  }
+
+  private isImageUrl(text: string) {
+    return this.safeImage(text) || /^https?:\/\/\S+\.(?:png|jpe?g|gif|webp|bmp)(?:[?#]\S*)?$/i.test(text);
+  }
+
+  private normalizeDroppedText(text: string) {
+    const trimmed = text.trim();
+    if (!this.isUri(trimmed)) return text;
+    return this.normalizeDroppedUrl(trimmed) || text;
   }
 
   private stripHtml(html: string) {

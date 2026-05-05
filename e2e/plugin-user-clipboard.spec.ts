@@ -23,6 +23,14 @@ test.describe.serial('User Clipboard Plugin', () => {
 
     const bubble = page.locator('.clipboard-bubble').filter({ hasText: 'Clipboard paste text' });
     await expect(bubble).toBeVisible();
+    const previewBox = await bubble.locator('.clipboard-preview').boundingBox();
+    expect(previewBox).toBeTruthy();
+    await page.mouse.move(previewBox!.x + 8, previewBox!.y + 8);
+    await page.mouse.down();
+    await page.mouse.move(previewBox!.x + 88, previewBox!.y + 48);
+    await page.mouse.up();
+    await expect.poll(() => bubble.evaluate(element => getComputedStyle(element).left)).not.toBe('12px');
+    await expect(bubble).not.toHaveClass(/selected/);
     await bubble.click();
     await expect(page.locator('.clipboard-edit')).toBeHidden();
 
@@ -83,6 +91,20 @@ test.describe.serial('User Clipboard Plugin', () => {
       element.dispatchEvent(new DragEvent('drop', { bubbles: true, cancelable: true, dataTransfer: data }));
     });
     await expect(page.locator('.clipboard-bubble').filter({ hasText: 'Dropped clipboard text' })).toBeVisible();
+
+    await dropZone.evaluate(element => {
+      const tagPage = `${location.origin}/tag/plugin/editing`;
+      const data = new DataTransfer();
+      data.setData('text/plain', tagPage);
+      data.setData('text/uri-list', tagPage);
+      data.setData('text/html', `<a href="${tagPage}">plugin/editing</a>`);
+      element.dispatchEvent(new DragEvent('drop', { bubbles: true, cancelable: true, dataTransfer: data }));
+    });
+    const tagBubble = page.locator('.clipboard-bubble').filter({ hasText: 'tag:/plugin/editing' }).last();
+    await expect(tagBubble).toBeVisible();
+    await tagBubble.click();
+    await tagBubble.locator('.clipboard-edit').click();
+    await expect(tagBubble.locator('.clipboard-ref-url-edit')).toHaveValue('tag:/plugin/editing');
   });
 
   test('formats tag pastes and splits list items', async ({ page }) => {
@@ -137,5 +159,59 @@ test.describe.serial('User Clipboard Plugin', () => {
     });
     await page.locator('.e2e-list-input').focus();
     await expect(page.locator('.e2e-list-entry')).toHaveText(['List item one', 'List item two']);
+  });
+
+  test('formats editor links and embeds', async ({ page }) => {
+    const image = 'data:image/png;base64,iVBORw0KGgo=';
+    await page.goto('/?debug=ADMIN', { waitUntil: 'networkidle' });
+    await page.evaluate(image => {
+      localStorage.setItem('jasper.clipboard.+user/debug@', JSON.stringify([{
+        id: 'e2e-clipboard-link',
+        text: 'https://jasperkm.info/plain',
+        created: new Date().toISOString(),
+        x: 12,
+        y: 72,
+      }, {
+        id: 'e2e-clipboard-ref',
+        ref: {
+          url: 'https://jasperkm.info/ref',
+          title: 'Jasper Ref',
+        },
+        created: new Date().toISOString(),
+        x: 12,
+        y: 128,
+      }, {
+        id: 'e2e-clipboard-image',
+        image,
+        created: new Date().toISOString(),
+        x: 12,
+        y: 184,
+      }]));
+    }, image);
+    await page.reload({ waitUntil: 'networkidle' });
+
+    const focusEditor = async (className: string) => {
+      await page.locator('body').evaluate(name => {
+        const editor = document.createElement('app-editor');
+        const textarea = document.createElement('textarea');
+        textarea.className = name;
+        editor.appendChild(textarea);
+        document.body.appendChild(editor);
+      }, className);
+      await page.locator(`.${className}`).focus();
+      return page.locator(`.${className}`);
+    };
+
+    await page.locator('.clipboard-bubble').filter({ hasText: 'https://jasperkm.info/plain' }).click();
+    const linkEditor = await focusEditor('e2e-editor-link');
+    await expect(linkEditor).toHaveValue('[https://jasperkm.info/plain](https://jasperkm.info/plain)');
+
+    await page.locator('.clipboard-bubble').filter({ hasText: 'Jasper Ref' }).click();
+    const refEditor = await focusEditor('e2e-editor-ref');
+    await expect(refEditor).toHaveValue('![=](https://jasperkm.info/ref)');
+
+    await page.locator('.clipboard-bubble').filter({ hasText: 'Image' }).click();
+    const imageEditor = await focusEditor('e2e-editor-image');
+    await expect(imageEditor).toHaveValue(`![](${image})`);
   });
 });
