@@ -678,7 +678,8 @@ export class AdminService {
 
   get filters() {
     return this.configProperty('filters')
-      .flatMap(p => p.config?.filters!);
+      .flatMap(p => p.config?.filters!)
+      .filter(f => !f.user || this.auth.hasRole('ROLE_USER'));
   }
 
   get refSorts() {

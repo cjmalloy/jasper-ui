@@ -18,14 +18,16 @@ import { debounce, defer, find, uniq, uniqBy } from 'lodash-es';
 import { forkJoin, map, Observable, of, Subscription, switchMap } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { Crumb } from '../component/query/query.component';
+import { Ext } from '../model/ext';
 import { Config, FilterConfig } from '../model/tag';
+import { type Template } from '../model/template';
 import { KanbanConfig } from '../mods/org/kanban';
 import { AdminService } from '../service/admin.service';
 import { ExtService } from '../service/api/ext.service';
 import { EditorService } from '../service/editor.service';
 import { Store } from '../store/store';
 import { convertFilter, convertSort, defaultDesc, FilterGroup, FilterItem, negatable, SortItem, toggle, UrlFilter } from '../util/query';
-import { access, fixClientQuery, getStrictPrefix, hasPrefix, localTag, tagOrigin } from '../util/tag';
+import { access, fixClientQuery, getStrictPrefix, hasPrefix, isQuery, localTag, queryPrefix, tagOrigin, topAnds } from '../util/tag';
 import { encodeBookmarkParams, parseBookmarkParams } from '../util/http';
 import { getErrorMessage } from './errors';
 
@@ -83,10 +85,11 @@ import { getErrorMessage } from './errors';
     }
     .params-panel {
       background: var(--card);
-      border-radius: 2px;
+      border: 1px dashed var(--border);
+      border-radius: 8px;
       box-shadow: 0 5px 5px -3px rgba(0, 0, 0, 0.2),
-                  0 8px 10px 1px rgba(0, 0, 0, 0.14),
-                  0 3px 14px 2px rgba(0, 0, 0, 0.12);
+                  0 8px 10px 1px rgba(0, 0, 0, 0.1),
+                  0 3px 14px 2px rgba(0, 0, 0, 0.3);
       padding: 8px;
       min-width: 260px;
       max-width: 400px;
@@ -249,6 +252,7 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> impleme
   private showedError = false;
   private searching?: Subscription;
   private formChanges?: Subscription;
+  private filterOptions?: Subscription;
   private _query = '';
 
   constructor(
@@ -294,6 +298,7 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> impleme
   ngOnDestroy() {
     this.searching?.unsubscribe();
     this.formChanges?.unsubscribe();
+    this.filterOptions?.unsubscribe();
     this.closeParams();
   }
 
@@ -369,39 +374,122 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> impleme
   }
 
   private buildAllFilters(): void {
-    const groups: FilterGroup[] = [];
-    for (const f of this.admin.filters) {
-      const group = find(groups, g => g.label === (f.group || ''));
-      if (group) {
-        group.filters.push(convertFilter(f));
-      } else {
-        groups.push({ label: f.group || '', filters: [convertFilter(f)] });
-      }
-    }
+    const query = this.queryPart;
+    this.filterOptions?.unsubscribe();
+    this.allFilters = [];
+    this.filterOptions = this.getQueryActiveExts(query).pipe(
+      switchMap(exts => {
+        if (query !== this.queryPart) return of(undefined);
+        this.buildFilterGroups(exts);
+        return this.loadActiveKanbanFilters(exts, query);
+      }),
+    ).subscribe(() => {
+      // Query can change while kanban tag previews are loading.
+      if (query !== this.queryPart) return;
+      this.syncFilterOptions();
+      this.cd.detectChanges();
+    });
+    this.syncFilterOptions(false);
+  }
+
+  private buildFilterGroups(activeExts: Ext[] = []): void {
+    this.allFilters = [];
+    this.loadActiveExtQueryFilters(activeExts);
+    // Match filter.component.ts group order. Empty placeholders are merged by pushFilter()
+    // so later admin/core/query-scoped filters appear in the same order.
+    this.pushFilter({
+      label: $localize`Queries 🔎️️`, filters: [],
+    }, {
+      label: $localize`Lists ☰`, filters: [],
+    }, {
+      label: $localize`Media 🎬️`, filters: [],
+    }, {
+      label: $localize`Games 🕹️`, filters: [],
+    }, {
+      label: $localize`Time ⏱️`, filters: [],
+    }, {
+      label: $localize`Filters 🕵️️`, filters: [],
+    }, {
+      label: $localize`Delta Δ`, filters: [],
+    }, {
+      label: $localize`Mod Tools 🛡️`, filters: [],
+    });
+    this.pushFilter({
+      label: $localize`Kanban 📋️`, filters: [],
+    }, {
+      label: $localize`Plugins 🧰️`, filters: [],
+    }, {
+      label: $localize`Schemes 🏳️️`, filters: [],
+    }, {
+      label: $localize`Templates 🎨️`, filters: [],
+    });
+    for (const f of this.admin.filters) this.loadFilter(f);
     const coreFilters: FilterItem[] = [
       { filter: 'obsolete' as UrlFilter, label: $localize`⏮️ obsolete`, title: $localize`Show older versions` },
     ];
     if (this.admin.getPlugin('plugin/delete')) {
       coreFilters.push({ filter: 'plugin/delete' as UrlFilter, label: $localize`🗑️ deleted` });
     }
-    groups.push({ label: $localize`Filters 🕵️️`, filters: coreFilters });
+    this.pushFilter({ label: $localize`Filters 🕵️️`, filters: coreFilters });
     const originFilters = this.store.origins.list.map(o => ({
       filter: ('query/' + (o || '*')) as UrlFilter,
       label: !o ? $localize`✴️ local` : $localize`🏛️ ${o}`,
     }));
-    if (originFilters.length) {
-      groups.push({ label: $localize`Origins 🏛️`, filters: originFilters });
+    this.pushFilter({ label: $localize`Origins 🏛️`, filters: originFilters });
+  }
+
+  private getQueryActiveExts(query: string): Observable<Ext[]> {
+    const topLevelPrefixes = topAnds(query).map(queryPrefix);
+    const queryPrefixes = uniq(topLevelPrefixes
+      .filter(t => t && !isQuery(t)));
+    const templates = uniq(queryPrefixes
+      .map(tag => this.admin.view.find(t => hasPrefix(tag, t.tag)))
+      .filter((t): t is Template => !!t));
+    if (!templates.length) return of([]);
+    return this.exts.getCachedExts(queryPrefixes).pipe(
+      this.admin.extFallbacks,
+      map(exts => uniq(templates.flatMap(t => {
+        const persistedExts = exts.filter(x => x.modifiedString && hasPrefix(x.tag, t.tag));
+        if (persistedExts.length) return persistedExts;
+        return [{
+          tag: t.tag,
+          origin: t.origin,
+          name: t.name,
+          config: {
+            ...t.defaults,
+            ...(t.config?.tab !== undefined ? { tab: t.config.tab } : {}),
+            ...(t.config?.view !== undefined ? { view: t.config.view } : {}),
+          },
+        } as Ext];
+      }).filter(x => !!x))),
+    );
+  }
+
+  private loadActiveExtQueryFilters(activeExts: Ext[]): void {
+    for (const ext of activeExts) {
+      for (const f of [...ext.config?.queryFilters || [], ...ext.config?.responseFilters || []]) {
+        this.loadFilter({
+          group: ext.name || this.admin.getPlugin(ext.tag)?.name || this.admin.getTemplate(ext.tag)?.name || '#' + ext.tag,
+          ...f,
+        });
+      }
     }
-    this.allFilters = groups.filter(g => g.filters.length > 0);
-    // Add kanban column/badge/swimlane filters from active exts
+  }
+
+  private loadActiveKanbanFilters(activeExts: Ext[], query: string): Observable<undefined> {
+    const kanbanFilterLoaders: Observable<unknown>[] = [];
+    // Add kanban column/badge/swimlane filters from bookmark query active exts.
     if (this.admin.getTemplate('kanban')) {
-      for (const e of this.store.view.activeExts.filter(x => hasPrefix(x.tag, 'kanban') && x.config)) {
+      for (const e of activeExts.filter(x => hasPrefix(x.tag, 'kanban') && x.config)) {
         const group = $localize`Kanban 📋️`;
         const k = e.config as KanbanConfig;
         if (k.columns?.length) {
-          this.allFilters.push({ label: group, filters: [] });
+          if (!find(this.allFilters, f => f.label === group)) {
+            this.allFilters.push({ label: group, filters: [] });
+          }
           const kanbanTags = uniq([...k.columns, ...k.swimLanes || [], ...k.badges || []]);
-          this.editor.getTagsPreview(kanbanTags, e.origin || '').subscribe(ps => {
+          kanbanFilterLoaders.push(this.editor.getTagsPreview(kanbanTags, e.origin || '').pipe(map(ps => {
+            if (query !== this.queryPart) return;
             for (const p of ps) {
               this.loadFilter({ group, label: p.name || '#' + p.tag, query: p.tag });
             }
@@ -414,11 +502,11 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> impleme
             if (k.badges?.length) {
               this.loadFilter({ group, label: $localize`🚫️ no badges`, query: k.badges.map(t => '!' + t).join(':') });
             }
-          });
+          })));
         }
       }
     }
-    this.syncFilterOptions();
+    return kanbanFilterLoaders.length ? forkJoin(kanbanFilterLoaders).pipe(map(() => undefined)) : of(undefined);
   }
 
   private loadFilter(filter: FilterConfig) {
@@ -430,9 +518,20 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> impleme
     }
   }
 
+  private pushFilter(...filterGroups: FilterGroup[]) {
+    for (const filterGroup of filterGroups) {
+      const group = find(this.allFilters, f => f.label === (filterGroup.label || ''));
+      if (group) {
+        group.filters.push(...filterGroup.filters);
+      } else {
+        this.allFilters.push(filterGroup);
+      }
+    }
+  }
+
   /** Mirror filter.component.ts sync(): mutate allFilters options to show ! prefix for negated filters,
    *  and add missing filters so they appear in the dropdown. */
-  private syncFilterOptions(): void {
+  private syncFilterOptions(addMissing = true): void {
     for (const f of this.filters) {
       const toggled = toggle(f as UrlFilter);
       if (!toggled) continue;
@@ -454,7 +553,7 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> impleme
             }
           }
         });
-      } else if (!this.allFilters.find(g => g.filters.find(i => i.filter === f))) {
+      } else if (addMissing && !this.allFilters.find(g => g.filters.find(i => i.filter === f))) {
         // Filter not found — add it as a fallback so the dropdown shows the current value
         if (f.startsWith('!') || hasPrefix(f, 'plugin')) {
           this.loadFilter({ group: $localize`Plugins 🧰️`, response: f as any });

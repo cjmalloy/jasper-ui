@@ -437,9 +437,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     const rawUrl = String(sb.url);
     const origin = this.ref?.origin || this.repostRef?.origin || '';
     if (rawUrl.startsWith('cache:') || this.admin.getPlugin('plugin/thumbnail')?.config?.proxy) {
-      const ext = getExtension(rawUrl) || '';
-      const title = this.ref?.title || 'storyboard';
-      return this.proxy.getFetch(rawUrl, origin, title + (title.endsWith(ext) ? '' : ext));
+      return this.proxy.getFetch(rawUrl, origin, 'storyboard');
     } else {
       return rawUrl;
     }
@@ -1234,6 +1232,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
       if (a.tag && hasTag(a.tag, this.ref) && !this.writeAccess) return false;
     }
     if ('tag' in a || 'response' in a) {
+      if (!this.auth.hasRole('ROLE_USER')) return false;
       if (active(this.ref, a) && !a.labelOn) return false;
       if (!active(this.ref, a) && !a.labelOff) return false;
     } else {

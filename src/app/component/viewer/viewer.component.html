@@ -18,7 +18,8 @@
   }
   @if (lens) {
     @if (lensPage) {
-      <app-lens [page]="lensPage"
+      <app-lens class="lens-expand"
+                [page]="lensPage"
                 [pageControls]="false"
                 [tag]="lensQuery"
                 [ext]="ext"
@@ -31,7 +32,7 @@
       <app-loading></app-loading>
     }
   }
-  @if (this.embedIframe) {
+  @if (embedIframe) {
     <div class="embed-container"
          [class.loading]="!embedReady"
          [class.twitter]="twitter"
