@@ -66,7 +66,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   private watch?: Subscription;
   private save?: Subscription;
   private drag?: DragState;
-  private suppressSelect = false;
+  private suppressedSelect?: ClipboardItem;
   private disposers: IReactionDisposer[] = [];
   private loading = true;
   dropActive = false;
@@ -144,8 +144,8 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   }
 
   select(item: ClipboardItem) {
-    if (this.suppressSelect || this.drag?.moved) {
-      this.suppressSelect = false;
+    if (this.suppressedSelect === item || this.drag?.moved) {
+      this.suppressedSelect = undefined;
       return;
     }
     item.selected = true;
@@ -219,6 +219,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   pointerDown(event: PointerEvent, item: ClipboardItem) {
     if (event.button !== 0) return;
     if (this.isInteractive(event.target as HTMLElement | null)) return;
+    this.suppressedSelect = undefined;
     const target = event.currentTarget as HTMLElement;
     target.setPointerCapture(event.pointerId);
     this.drag = {
@@ -241,10 +242,10 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   pointerUp() {
     if (!this.drag) return;
     const moved = this.drag.moved;
+    const item = this.drag.item;
     this.drag = undefined;
     if (moved) {
-      this.suppressSelect = true;
-      window.setTimeout(() => this.suppressSelect = false, 0);
+      this.suppressedSelect = item;
       this.persist();
     }
   }
@@ -357,17 +358,31 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     if (!formlyList || !add) return false;
 
     this.setInputValue(target, this.plainText(items[0], target));
-    items.slice(1).forEach((item, index) => {
-      window.setTimeout(() => {
-        add.click();
-        window.setTimeout(() => {
-          const inputs = Array.from(formlyList.querySelectorAll('input:not(.preview), textarea')) as Array<HTMLInputElement | HTMLTextAreaElement>;
-          const input = inputs[inputs.length - 1];
-          if (input) this.setInputValue(input, this.plainText(item, input));
-        }, 10);
-      }, index * 50);
-    });
+    this.insertFormlyListItems(formlyList, add, items.slice(1));
     return true;
+  }
+
+  private insertFormlyListItems(formlyList: HTMLElement, add: HTMLButtonElement, items: ClipboardItem[]) {
+    let queue = Promise.resolve();
+    for (const item of items) {
+      queue = queue.then(() => new Promise<void>(resolve => {
+        const before = this.formlyListInputs(formlyList).length;
+        const observer = new MutationObserver(() => {
+          const inputs = this.formlyListInputs(formlyList);
+          if (inputs.length <= before) return;
+          observer.disconnect();
+          const input = inputs[inputs.length - 1];
+          this.setInputValue(input, this.plainText(item, input));
+          resolve();
+        });
+        observer.observe(formlyList, { childList: true, subtree: true });
+        add.click();
+      }));
+    }
+  }
+
+  private formlyListInputs(formlyList: HTMLElement) {
+    return Array.from(formlyList.querySelectorAll('input:not(.preview), textarea')) as Array<HTMLInputElement | HTMLTextAreaElement>;
   }
 
   private setInputValue(target: HTMLInputElement | HTMLTextAreaElement, value: string) {

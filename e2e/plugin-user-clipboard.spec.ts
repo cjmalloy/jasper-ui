@@ -124,19 +124,17 @@ test.describe.serial('User Clipboard Plugin', () => {
       const input = document.createElement('input');
       input.className = 'e2e-list-input';
       const button = document.createElement('button');
-      const entries: string[] = [];
       button.addEventListener('click', () => {
-        entries.push(input.value);
-        list.dataset['entries'] = JSON.stringify(entries);
+        const entry = document.createElement('span');
+        entry.className = 'e2e-list-entry';
+        entry.textContent = input.value;
+        list.appendChild(entry);
         input.value = '';
       });
       list.append(input, button);
       document.body.appendChild(list);
     });
     await page.locator('.e2e-list-input').focus();
-    await expect.poll(() => page.locator('app-list-editor').evaluate(el => el.getAttribute('data-entries'))).toBe(JSON.stringify([
-      'List item one',
-      'List item two',
-    ]));
+    await expect(page.locator('.e2e-list-entry')).toHaveText(['List item one', 'List item two']);
   });
 });
