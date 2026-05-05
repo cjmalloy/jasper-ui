@@ -426,13 +426,17 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   private refFromDataTransfer(data: DataTransfer, html?: string, text?: string): ClipboardRef | undefined {
     const uri = data.getData('text/uri-list').split('\n').find(line => !!line && !line.startsWith('#'));
     const htmlRef = html ? this.refFromHtml(html) : undefined;
-    const textIsUrl = !!text && this.isUrl(text);
-    const url = uri || htmlRef?.url || (textIsUrl ? text : '');
+    const textIsUri = !!text && this.isUri(text);
+    const url = uri || htmlRef?.url || (textIsUri ? text : '');
     if (!url) return undefined;
     return {
       url,
-      title: htmlRef?.title || (textIsUrl ? undefined : text),
+      title: htmlRef?.title || this.titleFromDroppedText(text, textIsUri),
     };
+  }
+
+  private titleFromDroppedText(text: string | undefined, textIsUri: boolean) {
+    return textIsUri ? undefined : text;
   }
 
   private refFromHtml(html: string): ClipboardRef | undefined {
@@ -445,7 +449,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     return undefined;
   }
 
-  private isUrl(text: string) {
+  private isUri(text: string) {
     try {
       new URL(text);
       return true;
@@ -546,7 +550,8 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
 
   private pluginSetting(key: 'interceptCopy' | 'interceptPaste') {
     const value = this.plugin?.config?.[key];
-    return typeof value === 'boolean' ? value : this.plugin?.defaults?.[key];
+    const fallback = this.plugin?.defaults?.[key];
+    return typeof value === 'boolean' ? value : typeof fallback === 'boolean' && fallback;
   }
 
   private persistLocal() {
