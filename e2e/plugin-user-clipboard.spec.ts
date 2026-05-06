@@ -222,29 +222,14 @@ test.describe.serial('User Clipboard Plugin', () => {
     await page.locator('.query-edit-button:visible').first().click();
     await expect(page.locator('.query-editor:visible').first()).toHaveValue('topic/one|topic/two');
 
+    await page.goto('/settings/me?debug=ADMIN', { waitUntil: 'networkidle' });
     await page.locator('.clipboard-bubble').filter({ hasText: 'tag:/topic/one' }).last().click();
     await page.locator('.clipboard-bubble').filter({ hasText: 'tag:/topic/two' }).last().click();
-    await page.locator('body').evaluate(() => {
-      const list = document.createElement('formly-list-section');
-      const query = document.createElement('formly-field-query-input');
-      const input = document.createElement('input');
-      input.className = 'e2e-query-list-input';
-      list.addEventListener('jasper-clipboard-paste', event => {
-        event.preventDefault();
-        for (const value of (event as CustomEvent<string[]>).detail) {
-          const entry = document.createElement('span');
-          entry.className = 'e2e-query-list-entry';
-          entry.textContent = value;
-          list.appendChild(entry);
-        }
-      });
-      query.appendChild(input);
-      list.appendChild(query);
-      document.body.appendChild(list);
-    });
-    await page.locator('.e2e-query-list-input').focus();
-    await expect(page.locator('.e2e-query-list-entry')).toHaveText('topic/one|topic/two');
-    await expect(page.locator('.e2e-query-list-input')).not.toBeFocused();
+    await page.getByRole('button', { name: '+ Add another subscription' }).click();
+    const subscriptionInput = page.locator('.query-field input.grow').last();
+    await subscriptionInput.focus();
+    await expect(page.locator('.query-field input.grow').last()).toHaveValue('topic/one|topic/two');
+    await expect(subscriptionInput).not.toBeFocused();
 
     await page.locator('.clipboard-bubble').filter({ hasText: 'List item one' }).last().click();
     await page.locator('.clipboard-bubble').filter({ hasText: 'List item two' }).last().click();
