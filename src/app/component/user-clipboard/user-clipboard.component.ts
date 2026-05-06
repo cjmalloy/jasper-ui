@@ -89,7 +89,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   private pendingRemotePersist = false;
   private savingRemote = false;
   private disposers: IReactionDisposer[] = [];
-  private loading = true;
+  private loading = false;
   dropVisible = false;
   dropActive = false;
   dropFilled = false;
@@ -718,6 +718,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   }
 
   private loadRemote() {
+    if (this.loading) return;
     if (!this.store.account.signedIn) {
       this.loading = false;
       return;
