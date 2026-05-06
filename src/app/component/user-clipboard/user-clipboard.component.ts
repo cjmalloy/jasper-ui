@@ -458,8 +458,9 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     this.dropActive = false;
   }
 
-  private isDropZoneTarget(target: HTMLElement | null) {
-    return !!target?.closest('.clipboard-drop-zone');
+  private isDropZoneTarget(target: EventTarget | null) {
+    if (!(target instanceof Element)) return false;
+    return !!target.closest('.clipboard-drop-zone');
   }
 
   private isTagField(target?: HTMLElement) {
