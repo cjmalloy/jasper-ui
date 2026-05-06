@@ -20,6 +20,7 @@ const BUBBLE_WIDTH_OFFSET = 80;
 const BUBBLE_HEIGHT_OFFSET = 40;
 const MAX_PREVIEW_LENGTH = 48;
 const PREVIEW_TRUNCATE_AT = 45;
+const TAG_URL_PREFIX = 'tag:/';
 const IMAGE_DATA_URL_PATTERN = /^data:image\/(?:png|jpeg|jpg|gif|webp|bmp);base64,/i;
 const SANITIZE_CONFIG = {
   ALLOWED_TAGS: ['a', 'b', 'blockquote', 'br', 'code', 'div', 'em', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'i', 'li', 'ol', 'p', 'pre', 's', 'span', 'strong', 'table', 'tbody', 'td', 'th', 'thead', 'tr', 'u', 'ul'],
@@ -159,7 +160,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   }
 
   previewText(item: ClipboardItem) {
-    if (this.isTagRef(item) && item.ref?.title) return item.ref.title;
+    if (this.isTagUrl(item.ref?.url) && item.ref?.title) return item.ref.title;
     if (item.text) return item.text;
     if (item.ref?.title) return item.ref.title;
     if (item.ref?.url) return item.ref.url;
@@ -484,7 +485,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
 
   private queryValue(item: ClipboardItem) {
     const text = item.text || item.ref?.url || (item.html ? this.stripHtml(item.html) : item.image || '');
-    if (text.startsWith('tag:/')) return { text: text.substring('tag:/'.length), tag: true };
+    if (text.startsWith(TAG_URL_PREFIX)) return { text: text.substring(TAG_URL_PREFIX.length), tag: true };
     return { text, tag: false };
   }
 
@@ -493,8 +494,8 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   }
 
   private formatTagText(text: string, prefix: string) {
-    if (text.startsWith('tag:/')) {
-      return prefix + text.substring('tag:/'.length);
+    if (text.startsWith(TAG_URL_PREFIX)) {
+      return prefix + text.substring(TAG_URL_PREFIX.length);
     }
     return text;
   }
@@ -507,7 +508,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   }
 
   private itemText(item: ClipboardItem) {
-    if (this.isTagRef(item)) return item.ref!.url;
+    if (this.isTagUrl(item.ref?.url)) return item.ref?.url || '';
     return item.text || item.ref?.url || (item.html ? this.stripHtml(item.html) : item.image || '');
   }
 
@@ -516,11 +517,11 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
    * embeds, ref-only items become Jasper ref embeds, and other URLs become links.
    */
   private editorText(item: ClipboardItem, text: string) {
-    if (text.startsWith('tag:/')) return this.formatTagText(text, '#');
+    if (text.startsWith(TAG_URL_PREFIX)) return this.formatTagText(text, '#');
     if (item.image && this.safeImage(item.image)) return `![](${this.escapeMarkdownUrl(item.image)})`;
     const url = this.markdownUrl(item, text);
     if (url) {
-      if (url.startsWith('tag:/')) return this.formatTagText(url, '#');
+      if (url.startsWith(TAG_URL_PREFIX)) return this.formatTagText(url, '#');
       const markdownUrl = this.escapeMarkdownUrl(url);
       if (this.isImageUrl(url)) return `![](${markdownUrl})`;
       if (this.isRefEmbedItem(item)) return `![=](${markdownUrl})`;
@@ -575,7 +576,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     const html = this.selectedHtml();
     const ref = this.refFromTarget(target) || (html ? this.refFromHtml(html) : undefined);
     if (!text && !html && !ref) return undefined;
-    const itemText = this.isTagUrl(ref?.url) ? ref!.url : text;
+    const itemText = this.isTagUrl(ref?.url) ? ref?.url : text;
     return { text: itemText || undefined, html: html || undefined, ref };
   }
 
@@ -612,7 +613,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     if (!this.isTagUrl(url)) return undefined;
     return {
       url,
-      title: this.cleanTitle(tagLink?.textContent, tagLink?.title, url.substring('tag:/'.length)),
+      title: this.cleanTitle(tagLink?.textContent, tagLink?.title, url.substring(TAG_URL_PREFIX.length)),
     };
   }
 
@@ -703,12 +704,8 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     return values.map(value => value?.trim()).find(value => !!value) || undefined;
   }
 
-  private isTagRef(item: ClipboardItem) {
-    return this.isTagUrl(item.ref?.url);
-  }
-
   private isTagUrl(url?: string) {
-    return !!url?.startsWith('tag:/');
+    return !!url?.startsWith(TAG_URL_PREFIX);
   }
 
   private isUri(text: string) {
