@@ -1,9 +1,17 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 import { deleteRef, mod, openSidebar } from './setup';
 
 const DRAG_START_OFFSET = 8; // Start inside the preview so preview-origin drags are covered.
 const DRAG_END_X_OFFSET = 88; // Move far enough horizontally to exceed the click threshold.
 const DRAG_END_Y_OFFSET = 48; // Move far enough vertically to exceed the click threshold.
+
+async function showDropZone(page: Page) {
+  await page.evaluate(() => {
+    const data = new DataTransfer();
+    document.dispatchEvent(new DragEvent('dragenter', { bubbles: true, cancelable: true, dataTransfer: data }));
+  });
+  return page.locator('.clipboard-drop-zone');
+}
 
 test.describe.serial('User Clipboard Plugin', () => {
   test('enable clipboard mod', async ({ page }) => {
@@ -36,8 +44,15 @@ test.describe.serial('User Clipboard Plugin', () => {
     await page.mouse.up();
     await expect.poll(() => bubble.evaluate(element => getComputedStyle(element).left)).not.toBe(initialLeft);
     await expect(bubble).not.toHaveClass(/selected/);
+    await expect(bubble.locator('.clipboard-hold')).toBeHidden();
     await bubble.click();
     await expect(bubble).toHaveClass(/selected/);
+    await expect(bubble.locator('.clipboard-hold span')).toBeHidden();
+    await expect(bubble.locator('.clipboard-hold input')).toBeChecked();
+    await bubble.locator('.clipboard-hold input').uncheck();
+    await expect(bubble.locator('.clipboard-hold input')).not.toBeChecked();
+    await bubble.locator('.clipboard-hold input').check();
+    await expect(bubble.locator('.clipboard-hold input')).toBeChecked();
     await expect(page.locator('.clipboard-edit')).toBeHidden();
 
     await page.locator('body').evaluate(() => {
@@ -72,6 +87,7 @@ test.describe.serial('User Clipboard Plugin', () => {
     await deleteRef(page, url);
     await page.goto('/?debug=ADMIN', { waitUntil: 'networkidle' });
     await page.evaluate(() => localStorage.removeItem('jasper.clipboard.+user/debug@'));
+    await expect(page.locator('.clipboard-drop-zone')).toBeHidden();
     await openSidebar(page);
     await page.locator('.sidebar .submit-button', { hasText: 'Submit' }).first().click();
     await page.locator('#url').fill(url);
@@ -94,6 +110,7 @@ test.describe.serial('User Clipboard Plugin', () => {
     await refBubble.locator('.clipboard-clear').click();
     await expect(refBubble).toBeHidden();
 
+    await showDropZone(page);
     await page.locator('.full-page.ref .link a').first().evaluate((link, refUrl) => {
       const data = new DataTransfer();
       data.setData('text/plain', refUrl as string);
@@ -103,8 +120,10 @@ test.describe.serial('User Clipboard Plugin', () => {
     }, url);
     await expect(refBubble).toBeVisible();
 
-    const dropZone = page.locator('.clipboard-drop-zone');
+    const dropZone = await showDropZone(page);
     await expect(dropZone).toBeVisible();
+    await expect.poll(async () => (await dropZone.boundingBox())?.width || 0).toBeGreaterThanOrEqual(88);
+    await expect.poll(async () => (await dropZone.boundingBox())?.height || 0).toBeGreaterThanOrEqual(88);
     await dropZone.evaluate(element => {
       const data = new DataTransfer();
       data.setData('text/plain', 'Dropped clipboard text');
@@ -123,6 +142,7 @@ test.describe.serial('User Clipboard Plugin', () => {
       return json.plugins?.['plugin/user/clipboard']?.items?.map((item: { text?: string }) => item.text) || [];
     }).toContain('Dropped clipboard text');
 
+    await showDropZone(page);
     await dropZone.evaluate(element => {
       const tagPage = `${location.origin}/tag/plugin/editing`;
       const data = new DataTransfer();
@@ -145,7 +165,7 @@ test.describe.serial('User Clipboard Plugin', () => {
 
   test('formats tag pastes and splits list items', async ({ page }) => {
     await page.goto('/?debug=ADMIN', { waitUntil: 'networkidle' });
-    const dropText = async (text: string) => page.locator('.clipboard-drop-zone').evaluate((element, value) => {
+    const dropText = async (text: string) => (await showDropZone(page)).evaluate((element, value) => {
       const data = new DataTransfer();
       data.setData('text/plain', value);
       element.dispatchEvent(new DragEvent('drop', { bubbles: true, cancelable: true, dataTransfer: data }));

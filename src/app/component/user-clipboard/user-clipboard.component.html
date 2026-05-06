@@ -1,12 +1,14 @@
 @if (store.account.signedIn) {
-  <div class="clipboard-drop-zone"
-       [class.active]="dropActive"
-       [class.filled]="dropFilled"
-       (dragover)="dragOver($event)"
-       (dragleave)="dragLeave($event)"
-       (drop)="drop($event)"
-       aria-label="Drop to clipboard"
-       i18n-aria-label>📋️</div>
+  @if (dropVisible || dropActive || dropFilled) {
+    <div class="clipboard-drop-zone"
+         [class.active]="dropActive"
+         [class.filled]="dropFilled"
+         (dragover)="dragOver($event)"
+         (dragleave)="dragLeave($event)"
+         (drop)="drop($event)"
+         aria-label="Drop to clipboard"
+         i18n-aria-label>📋️</div>
+  }
   @if (items.length) {
     <div class="clipboard-bubbles" aria-label="Clipboard items" i18n-aria-label>
       @for (item of items; track item.id) {
@@ -22,15 +24,16 @@
              (pointerdown)="pointerDown($event, item)"
              (pointermove)="pointerMove($event)"
              (pointerup)="pointerUp()">
-           <label class="clipboard-hold"
-                  i18n-title title="Keep selected after paste"
-                  (click)="$event.stopPropagation()">
-             <input #holdCheckbox
-                    type="checkbox"
-                    [checked]="item.hold"
-                    (change)="setHold(item, holdCheckbox.checked, $event)">
-             <span i18n>hold</span>
-           </label>
+           @if (item.selected) {
+             <label class="clipboard-hold"
+                    i18n-title title="Keep selected after paste"
+                    (click)="$event.stopPropagation()">
+               <input #holdCheckbox
+                      type="checkbox"
+                      [checked]="item.hold"
+                      (change)="setHold(item, holdCheckbox.checked, $event)">
+             </label>
+           }
            <button type="button" class="clipboard-preview" [title]="previewText(item)" [attr.aria-label]="previewLabel(item)">{{ preview(item) }}</button>
            @if (item.selected) {
              <button type="button"

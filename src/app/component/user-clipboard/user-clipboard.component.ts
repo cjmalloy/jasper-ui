@@ -91,6 +91,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   private savingRemote = false;
   private disposers: IReactionDisposer[] = [];
   private loading = true;
+  dropVisible = false;
   dropActive = false;
   dropFilled = false;
 
@@ -186,8 +187,18 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   setHold(item: ClipboardItem, checked: boolean, event?: Event) {
     event?.stopPropagation();
     item.hold = checked;
-    item.selected = checked;
     this.persistLocalOnly();
+  }
+
+  @HostListener('document:dragenter')
+  dragEnter() {
+    this.dropVisible = true;
+  }
+
+  @HostListener('document:drop')
+  documentDrop() {
+    this.dropVisible = false;
+    this.dropActive = false;
   }
 
   openEdit(item: ClipboardItem, event: Event) {
@@ -229,6 +240,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   drop(event: DragEvent) {
     event.preventDefault();
     event.stopPropagation();
+    this.dropVisible = false;
     this.dropActive = false;
     this.dropFilled = true;
     this.addFromDataTransfer(event.dataTransfer);
@@ -243,6 +255,8 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
 
   @HostListener('document:dragend')
   dragEnd() {
+    this.dropVisible = false;
+    this.dropActive = false;
     this.draggedRef = undefined;
   }
 
@@ -407,7 +421,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
 
   private isInteractive(target: HTMLElement | null) {
     if (target?.closest('.clipboard-preview')) return false;
-    return !!target?.closest('.clipboard-actions, .clipboard-hold, .clipboard-edit-popup, input, textarea, select, a, [contenteditable="true"], [role="button"], [role="link"]');
+    return !!target?.closest('.clipboard-actions, .clipboard-hold, .clipboard-edit-popup, button, input, textarea, select, a, [contenteditable="true"], [role="button"], [role="link"]');
   }
 
   private moveBubble(element: HTMLElement, x: number, y: number) {
