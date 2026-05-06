@@ -409,7 +409,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   }
 
   private insertListItems(target: HTMLInputElement | HTMLTextAreaElement, items: ClipboardItem[]) {
-    const values = items.map(item => this.plainText(item, target));
+    const values = this.listPasteValues(target, items);
     const listEditor = target.closest('app-list-editor') as HTMLElement | null;
     if (listEditor) {
       const event = new CustomEvent('jasper-clipboard-paste', { bubbles: true, cancelable: true, detail: values });
@@ -435,6 +435,14 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     formlyList.dispatchEvent(event);
     if (event.defaultPrevented) target.blur();
     return event.defaultPrevented;
+  }
+
+  private listPasteValues(target: HTMLInputElement | HTMLTextAreaElement, items: ClipboardItem[]) {
+    if (this.isQueryField(target)) {
+      const values = items.map(item => this.queryValue(item));
+      return [values.map(value => value.text).join(this.querySeparator(values))];
+    }
+    return items.map(item => this.plainText(item, target));
   }
 
   private insertQueryItems(target: HTMLInputElement | HTMLTextAreaElement, items: ClipboardItem[]) {
@@ -493,11 +501,11 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   }
 
   private isQueryField(target?: HTMLElement) {
-    return !!target?.closest('app-query');
+    return !!target?.closest('app-query, formly-field-query-input');
   }
 
   private queryValue(item: ClipboardItem) {
-    const text = item.text || item.ref?.url || (item.html ? this.stripHtml(item.html) : item.image || '');
+    const text = this.itemText(item);
     if (text.startsWith(TAG_URL_PREFIX)) return { text: text.substring(TAG_URL_PREFIX.length), tag: true };
     return { text, tag: false };
   }
