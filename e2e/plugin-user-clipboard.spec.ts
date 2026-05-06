@@ -18,7 +18,7 @@ async function showDropZone(page: Page) {
 
 test.describe.serial('User Clipboard Plugin', () => {
   test('enable clipboard mod', async ({ page }) => {
-    await mod(page, '#mod-clipboard');
+    await mod(page, '#mod-experiments', '#mod-clipboard');
   });
 
   test('shows bubbles and pastes selected clipboard item', async ({ page }) => {
