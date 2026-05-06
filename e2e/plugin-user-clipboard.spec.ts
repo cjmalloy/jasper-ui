@@ -191,6 +191,13 @@ test.describe.serial('User Clipboard Plugin', () => {
     }, text);
     await dropText('tag:/topic/one');
     await dropText('tag:/topic/two');
+    await (await showDropZone(page)).evaluate(element => {
+      const tagPage = `${location.origin}/tag/topic/filtered?filter=query/old&search=hello&sort=created,desc`;
+      const data = new DataTransfer();
+      data.setData('text/plain', tagPage);
+      data.setData('text/uri-list', tagPage);
+      element.dispatchEvent(new DragEvent('drop', { bubbles: true, cancelable: true, dataTransfer: data }));
+    });
     await dropText('List item one');
     await dropText('List item two');
 
@@ -204,6 +211,29 @@ test.describe.serial('User Clipboard Plugin', () => {
     });
     await page.locator('.e2e-tag-input').focus();
     await expect(page.locator('.e2e-tag-input')).toHaveValue('topic/one');
+
+    await page.locator('.clipboard-bubble').filter({ hasText: 'topic/filtered' }).last().click();
+    await page.locator('body').evaluate(() => {
+      const field = document.createElement('formly-field-tag-input');
+      const input = document.createElement('input');
+      input.className = 'e2e-filtered-tag-input';
+      field.appendChild(input);
+      document.body.appendChild(field);
+    });
+    await page.locator('.e2e-filtered-tag-input').focus();
+    await expect(page.locator('.e2e-filtered-tag-input')).toHaveValue('topic/filtered');
+
+    await page.locator('.clipboard-bubble').filter({ hasText: 'topic/filtered' }).last().click();
+    await page.locator('body').evaluate(() => {
+      const field = document.createElement('div');
+      field.className = 'query-field';
+      const input = document.createElement('input');
+      input.className = 'e2e-filtered-query-input';
+      field.appendChild(input);
+      document.body.appendChild(field);
+    });
+    await page.locator('.e2e-filtered-query-input').focus();
+    await expect(page.locator('.e2e-filtered-query-input')).toHaveValue('topic/filtered');
 
     await page.locator('.clipboard-bubble').filter({ hasText: 'tag:/topic/one' }).last().click();
     await page.locator('body').evaluate(() => {

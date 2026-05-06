@@ -502,7 +502,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   }
 
   private queryValue(item: ClipboardItem) {
-    const text = this.itemText(item);
+    const text = this.tagOrQueryText(item);
     if (text.startsWith(TAG_URL_PREFIX)) return { text: text.substring(TAG_URL_PREFIX.length), tag: true };
     return { text, tag: false };
   }
@@ -520,9 +520,14 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
 
   private plainText(item: ClipboardItem, target?: HTMLElement) {
     const text = this.itemText(item);
-    if (this.isTagField(target)) return this.formatTagText(text, '');
+    if (this.isTagField(target)) return this.formatTagText(this.tagOrQueryText(item), '');
     if (this.isEditorField(target)) return this.editorText(item, text);
     return text;
+  }
+
+  private tagOrQueryText(item: ClipboardItem) {
+    const text = this.itemText(item);
+    return this.stripViewParams(this.normalizeDroppedUrl(item.ref?.url) || this.normalizeDroppedUrl(text) || text);
   }
 
   private itemText(item: ClipboardItem) {
@@ -718,6 +723,18 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
       return url;
     }
     return url;
+  }
+
+  private stripViewParams(text: string) {
+    try {
+      const parsed = new URL(text);
+      for (const name of ['filter', 'search', 'sort']) {
+        parsed.searchParams.delete(name);
+      }
+      return parsed.toString();
+    } catch {
+      return text;
+    }
   }
 
   private cleanTitle(...values: Array<string | null | undefined>) {
