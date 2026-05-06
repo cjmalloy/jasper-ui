@@ -9,6 +9,7 @@ import {
 import type { FeatureCollection } from 'geojson';
 import type { GeoJSONSource } from 'maplibre-gl';
 import { Map, Marker, setWorkerUrl } from 'maplibre-gl';
+import { catchError, forkJoin, map as rxMap, of, Subject, switchMap, takeUntil } from 'rxjs';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ext } from '../../model/ext';
 import { Page } from '../../model/page';
@@ -16,10 +17,15 @@ import { Ref } from '../../model/ref';
 import { features, mapTemplate } from '../../mods/map';
 import { AdminService } from '../../service/admin.service';
 import { ProxyService } from '../../service/api/proxy.service';
+import { RefService } from '../../service/api/ref.service';
+import { Store } from '../../store/store';
 import { memo, MemoCache } from '../../util/memo';
+import { hasPrefix, hasTag, repost } from '../../util/tag';
 import { LoadingComponent } from '../loading/loading.component';
 import { PageControlsComponent } from '../page-controls/page-controls.component';
 import { ResizeHandleDirective } from "../../directive/resize-handle.directive";
+
+type MapEntry = [ref: Ref, bareRepost?: Ref];
 
 @Component({
   selector: 'app-map',
@@ -51,13 +57,29 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
   private _page?: Page<Ref>;
   private map?: Map;
   private markers: Marker[] = [];
+  private destroy$ = new Subject<void>();
+  private mapDataUpdates$ = new Subject<Ref[]>();
+  mapData: MapEntry[] = [];
 
   constructor(
     private router: Router,
     private admin: AdminService,
     private proxy: ProxyService,
+    private refs: RefService,
+    private store: Store,
   ) {
     setWorkerUrl('assets/maplibre-gl-csp-worker.js');
+    this.mapDataUpdates$.pipe(
+      switchMap(content => {
+        if (!content.some(ref => this.isBareRepost(ref))) return of(content.map(ref => [ref] as MapEntry));
+        return forkJoin(content.map(ref => this.getBareRepost(ref)));
+      }),
+      takeUntil(this.destroy$),
+    ).subscribe(mapData => {
+      this.mapData = mapData;
+      MemoCache.clear(this);
+      this.updateMapData();
+    });
   }
 
   @memo
@@ -79,6 +101,9 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
   }
 
   ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+    this.mapDataUpdates$.complete();
     this.clearMarkers();
     try {
       this.map?.remove();
@@ -94,9 +119,7 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
   set page(value: Page<Ref> | undefined) {
     MemoCache.clear(this);
     this._page = value;
-    if (this.map) {
-      this.updateMapData();
-    }
+    this.mapDataUpdates$.next(value?.content || []);
     if (this._page) {
       if (this._page.page.number > 0 && this._page.page.number >= this._page.page.totalPages) {
         this.router.navigate([], {
@@ -113,7 +136,7 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
   get geoData(): FeatureCollection {
     return {
       type: 'FeatureCollection',
-      features: this._page?.content.flatMap(features).filter(f =>
+      features: this.mapData.flatMap(([ref]) => features(ref)).filter(f =>
         f.type === 'Feature' && f.geometry != null && f.geometry.type !== 'Point'
       ) || [],
     };
@@ -188,7 +211,8 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
   }
 
   private addMarkers(map: Map) {
-    this._page?.content.forEach(ref => {
+    this.mapData.forEach(entry => {
+      const [ref] = entry;
       const pointFeature = ref.plugins?.['plugin/geo/point'];
       if (pointFeature?.geometry?.type === 'Point' && pointFeature.geometry?.coordinates.length >= 2) {
         const el = this.createMarkerElement(ref);
@@ -218,5 +242,43 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
       el.style.backgroundImage = `url(${url})`;
     }
     return el;
+  }
+
+  private getBareRepost(ref: Ref) {
+    if (!this.isBareRepost(ref)) return of([ref] as MapEntry);
+    const source = repost(ref);
+    return (this.store.view.top?.url === source
+        ? of(this.store.view.top)
+        : this.refs.getCurrent(source)
+    ).pipe(
+      rxMap(sourceRef => [this.withRepostGeo(ref, sourceRef), ref] as MapEntry),
+      catchError(() => of([ref] as MapEntry)),
+    );
+  }
+
+  private isBareRepost(ref: Ref) {
+    return !!ref.sources?.[0] && hasTag('plugin/repost', ref) && !ref.title && !ref.comment;
+  }
+
+  private withRepostGeo(repostRef: Ref, sourceRef: Ref) {
+    if (!hasTag('plugin/geo', repostRef)) return { ...sourceRef, url: repostRef.url };
+    const tags = [
+      ...(sourceRef.tags || []).filter(tag => !hasPrefix(tag, 'plugin/geo')),
+      ...(repostRef.tags || []).filter(tag => hasPrefix(tag, 'plugin/geo')),
+    ];
+    const plugins = {
+      ...this.filterPlugins(sourceRef.plugins, false),
+      ...this.filterPlugins(repostRef.plugins, true),
+    };
+    return {
+      ...sourceRef,
+      url: repostRef.url,
+      tags: [...new Set(tags)],
+      plugins: Object.keys(plugins).length ? plugins : undefined,
+    };
+  }
+
+  private filterPlugins(plugins: Ref['plugins'], geo: boolean) {
+    return Object.fromEntries(Object.entries(plugins || {}).filter(([key]) => key.startsWith('plugin/geo/') === geo));
   }
 }

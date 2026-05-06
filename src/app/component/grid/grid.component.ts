@@ -11,13 +11,16 @@ import { AgGridModule } from 'ag-grid-angular';
 import { AllCommunityModule, ColDef, ModuleRegistry } from 'ag-grid-community';
 import { DateTime } from 'luxon';
 import { autorun, IReactionDisposer } from 'mobx';
+import { catchError, forkJoin, of, Subject, switchMap, takeUntil } from 'rxjs';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ext } from '../../model/ext';
 import { Page } from '../../model/page';
 import { Ref } from '../../model/ref';
 import { gridTemplate } from '../../mods/org/grid';
 import { AdminService } from '../../service/admin.service';
+import { RefService } from '../../service/api/ref.service';
 import { Store } from '../../store/store';
+import { hasTag, repost } from '../../util/tag';
 import { LoadingComponent } from '../loading/loading.component';
 import { PageControlsComponent } from '../page-controls/page-controls.component';
 import { GridCellComponent } from './grid-cell/grid-cell.component';
@@ -39,6 +42,8 @@ export class GridComponent implements OnDestroy, HasChanges {
   private customTypes = new Set<string>(['url', 'tag', 'tags', 'sources', 'image', 'lens', 'markdown', 'embed']);
   private autoHeightTypes = new Set<string>(['tags', 'sources', 'image', 'lens', 'markdown', 'embed']);
   private disposers: IReactionDisposer[] = [];
+  private destroy$ = new Subject<void>();
+  private rowDataUpdates$ = new Subject<Ref[]>();
 
   @Input()
   tag = '';
@@ -50,6 +55,7 @@ export class GridComponent implements OnDestroy, HasChanges {
   emptyMessage = 'No results found';
 
   defaultCols: ColDef[] = this.admin.getTemplate('grid')?.defaults?.columnDefs || gridTemplate.defaults.columnDefs;
+  rowData: Ref[] = [];
 
   private _page?: Page<Ref>;
   private _cols = 0;
@@ -57,6 +63,7 @@ export class GridComponent implements OnDestroy, HasChanges {
   constructor(
     public store: Store,
     private admin: AdminService,
+    private refs: RefService,
     private router: Router,
     private cd: ChangeDetectorRef,
   ) {
@@ -66,6 +73,16 @@ export class GridComponent implements OnDestroy, HasChanges {
       this.store.darkTheme;
       this.cd.markForCheck();
     }));
+    this.rowDataUpdates$.pipe(
+      switchMap(content => {
+        if (!content.some(ref => this.isBareRepost(ref))) return of(content);
+        return forkJoin(content.map(ref => this.getBareRepost(ref)));
+      }),
+      takeUntil(this.destroy$),
+    ).subscribe(rowData => {
+      this.rowData = rowData;
+      this.cd.markForCheck();
+    });
   }
 
   saveChanges() {
@@ -73,6 +90,9 @@ export class GridComponent implements OnDestroy, HasChanges {
   }
 
   ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+    this.rowDataUpdates$.complete();
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
   }
@@ -125,6 +145,7 @@ export class GridComponent implements OnDestroy, HasChanges {
   @Input()
   set page(value: Page<Ref> | undefined) {
     this._page = value;
+    this.rowDataUpdates$.next(value?.content || []);
     if (this._page) {
       if (this._page.page.number > 0 && this._page.page.number >= this._page.page.totalPages) {
         this.router.navigate([], {
@@ -135,6 +156,21 @@ export class GridComponent implements OnDestroy, HasChanges {
         });
       }
     }
+  }
+
+  private getBareRepost(ref: Ref) {
+    if (!this.isBareRepost(ref)) return of(ref);
+    const source = repost(ref);
+    return (this.store.view.top?.url === source
+        ? of(this.store.view.top)
+        : this.refs.getCurrent(source)
+    ).pipe(
+      catchError(() => of(ref)),
+    );
+  }
+
+  private isBareRepost(ref: Ref) {
+    return !!ref.sources?.[0] && hasTag('plugin/repost', ref) && !ref.title && !ref.comment;
   }
 
   @Input()
