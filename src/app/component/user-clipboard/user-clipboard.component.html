@@ -11,41 +11,61 @@
     <div class="clipboard-bubbles" aria-label="Clipboard items" i18n-aria-label>
       @for (item of items; track item.id) {
         <div class="clipboard-bubble"
+             cdkOverlayOrigin
+             #bubbleOrigin="cdkOverlayOrigin"
              [class.selected]="item.selected"
              [class.hold]="item.hold"
              [style.left.px]="item.x"
              [style.top.px]="item.y"
              (click)="select(item)"
+             (contextmenu)="openEdit(item, $event)"
              (pointerdown)="pointerDown($event, item)"
              (pointermove)="pointerMove($event)"
              (pointerup)="pointerUp()">
-          <button type="button" class="clipboard-preview" [title]="previewText(item)" [attr.aria-label]="previewLabel(item)">{{ preview(item) }}</button>
-          @if (item.selected) {
-            <div class="clipboard-actions">
-              @if (canEdit(item)) {
-                <button type="button" class="clipboard-edit" [class.active]="item.editing" (click)="edit(item, $event)" i18n>edit</button>
-              }
-              <button type="button" class="clipboard-clear" (click)="clear(item, $event)" i18n>clear</button>
-              <button type="button" class="clipboard-hold" [class.active]="item.hold" (click)="hold(item, $event)" i18n>hold</button>
-              <button type="button" class="clipboard-reset" (click)="reset(item, $event)" i18n>reset</button>
-            </div>
-          }
-          @if (item.editing) {
-            <div class="clipboard-edit-panel" (click)="$event.stopPropagation()">
-              @if (item.ref) {
-                <input class="clipboard-ref-title-edit"
-                       [value]="item.ref.title || ''"
-                       (input)="updateRefTitle(item, $any($event.target).value)"
-                       i18n-aria-label aria-label="Ref title">
-                <input class="clipboard-ref-url-edit"
-                       [value]="item.ref.url"
-                       (input)="updateRefUrl(item, $any($event.target).value)"
-                       i18n-aria-label aria-label="Ref URL">
-              }
-            </div>
-          }
-        </div>
-      }
-    </div>
+           <label class="clipboard-hold"
+                  i18n-title title="Keep selected after paste"
+                  (click)="$event.stopPropagation()">
+             <input type="checkbox"
+                    [checked]="item.hold"
+                    (change)="hold(item, $event)">
+             <span i18n>hold</span>
+           </label>
+           <button type="button" class="clipboard-preview" [title]="previewText(item)" [attr.aria-label]="previewLabel(item)">{{ preview(item) }}</button>
+           @if (item.selected) {
+             <button type="button"
+                     class="clipboard-clear"
+                     (click)="clear(item, $event)"
+                     aria-label="Clear clipboard item"
+                     i18n-aria-label>×</button>
+           }
+           <ng-template cdkConnectedOverlay
+                        [cdkConnectedOverlayOrigin]="bubbleOrigin"
+                        [cdkConnectedOverlayOpen]="editingItem === item"
+                        [cdkConnectedOverlayHasBackdrop]="true"
+                        [cdkConnectedOverlayPanelClass]="'clipboard-edit-overlay-panel'"
+                        (backdropClick)="closeEdit()">
+             <form class="clipboard-edit-popup"
+                   [formGroup]="editForm"
+                   (click)="$event.stopPropagation()"
+                   (contextmenu)="$event.stopPropagation()"
+                   (ngSubmit)="saveEdit($event)">
+               <div class="clipboard-edit-header">
+                 <h2 i18n>Edit clipboard Ref</h2>
+                 <button type="button"
+                         class="clipboard-edit-close"
+                         (click)="closeEdit($event)"
+                         aria-label="Close clipboard Ref editor"
+                         i18n-aria-label>×</button>
+               </div>
+               <app-ref-form class="clipboard-ref-form" [group]="editForm"></app-ref-form>
+               <div class="clipboard-edit-buttons">
+                 <button type="submit" i18n>save</button>
+                 <button type="button" class="clipboard-edit-cancel" (click)="closeEdit($event)" i18n>cancel</button>
+               </div>
+             </form>
+           </ng-template>
+         </div>
+       }
+     </div>
   }
 }

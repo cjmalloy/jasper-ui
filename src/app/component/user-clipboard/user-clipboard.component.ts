@@ -1,7 +1,10 @@
+import { OverlayModule } from '@angular/cdk/overlay';
 import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
+import { ReactiveFormsModule, UntypedFormArray, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import DOMPurify from 'dompurify';
 import { autorun, IReactionDisposer } from 'mobx';
 import { catchError, finalize, of, Subscription } from 'rxjs';
+import { refForm, RefFormComponent } from '../../form/ref/ref.component';
 import { Plugin } from '../../model/plugin';
 import { Ref, RefUpdates } from '../../model/ref';
 import { AdminService } from '../../service/admin.service';
@@ -35,7 +38,6 @@ interface ClipboardItem {
   y: number;
   selected?: boolean;
   hold?: boolean;
-  editing?: boolean;
 }
 
 type ClipboardItemContent = Omit<ClipboardItem, 'id' | 'created' | 'x' | 'y'>;
@@ -44,6 +46,13 @@ interface ClipboardRef {
   url: string;
   origin?: string;
   title?: string;
+  comment?: string;
+  published?: string;
+  modifiedString?: string;
+  tags?: string[];
+  sources?: string[];
+  alternateUrls?: string[];
+  plugins?: Record<string, unknown>;
 }
 
 interface DragState {
@@ -61,14 +70,22 @@ interface DragState {
   templateUrl: './user-clipboard.component.html',
   styleUrls: ['./user-clipboard.component.scss'],
   host: { 'class': 'user-clipboard' },
+  imports: [
+    OverlayModule,
+    ReactiveFormsModule,
+    RefFormComponent,
+  ],
 })
 export class UserClipboardComponent implements OnInit, OnDestroy {
 
   items: ClipboardItem[] = [];
+  editingItem?: ClipboardItem;
+  editForm: UntypedFormGroup;
   private remote?: Ref;
   private watch?: Subscription;
   private save?: Subscription;
   private drag?: DragState;
+  private draggedRef?: ClipboardRef;
   private suppressedSelect?: ClipboardItem;
   private pendingRemotePersist = false;
   private savingRemote = false;
@@ -82,7 +99,10 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     private admin: AdminService,
     private refs: RefService,
     private stomp: StompService,
-  ) { }
+    private fb: UntypedFormBuilder,
+  ) {
+    this.editForm = this.refEditForm();
+  }
 
   ngOnInit() {
     this.loadLocal();
@@ -153,7 +173,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
       this.suppressedSelect = undefined;
       return;
     }
-    item.selected = true;
+    item.selected = !item.selected;
     this.persistLocalOnly();
   }
 
@@ -165,39 +185,33 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
 
   hold(item: ClipboardItem, event?: Event) {
     event?.stopPropagation();
-    item.hold = !item.hold;
+    item.hold = event?.target instanceof HTMLInputElement ? event.target.checked : !item.hold;
+    if (item.hold) item.selected = true;
+    this.persistLocalOnly();
+  }
+
+  openEdit(item: ClipboardItem, event: Event) {
+    if (!item.ref) return;
+    event.preventDefault();
+    event?.stopPropagation();
     item.selected = true;
+    this.editingItem = item;
+    this.editForm = this.refEditForm(item.ref);
     this.persistLocalOnly();
   }
 
-  reset(item: ClipboardItem, event?: Event) {
+  closeEdit(event?: Event) {
     event?.stopPropagation();
-    item.selected = false;
-    item.hold = false;
-    item.editing = false;
-    this.persistLocalOnly();
+    this.editingItem = undefined;
   }
 
-  edit(item: ClipboardItem, event?: Event) {
+  saveEdit(event?: Event) {
+    event?.preventDefault();
     event?.stopPropagation();
-    item.editing = !item.editing;
-    this.persistLocalOnly();
-  }
-
-  updateRefTitle(item: ClipboardItem, title: string) {
-    if (!item.ref) return;
-    item.ref = { ...item.ref, title };
+    if (!this.editingItem?.ref) return;
+    this.editingItem.ref = this.refFromEditForm(this.editingItem.ref);
+    this.editingItem = undefined;
     this.persist();
-  }
-
-  updateRefUrl(item: ClipboardItem, url: string) {
-    if (!item.ref) return;
-    item.ref = { ...item.ref, url };
-    this.persist();
-  }
-
-  canEdit(item: ClipboardItem) {
-    return !!item.ref;
   }
 
   dragOver(event: DragEvent) {
@@ -218,7 +232,18 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     this.dropActive = false;
     this.dropFilled = true;
     this.addFromDataTransfer(event.dataTransfer);
+    this.draggedRef = undefined;
     window.setTimeout(() => this.dropFilled = false, 800);
+  }
+
+  @HostListener('document:dragstart', ['$event'])
+  dragStart(event: DragEvent) {
+    this.draggedRef = this.selectedRef(event.target as HTMLElement | null);
+  }
+
+  @HostListener('document:dragend')
+  dragEnd() {
+    this.draggedRef = undefined;
   }
 
   pointerDown(event: PointerEvent, item: ClipboardItem) {
@@ -382,7 +407,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
 
   private isInteractive(target: HTMLElement | null) {
     if (target?.closest('.clipboard-preview')) return false;
-    return !!target?.closest('.clipboard-actions, .clipboard-edit-panel, input, textarea, select, a, [contenteditable="true"], [role="button"], [role="link"]');
+    return !!target?.closest('.clipboard-actions, .clipboard-hold, .clipboard-edit-popup, input, textarea, select, a, [contenteditable="true"], [role="button"], [role="link"]');
   }
 
   private moveBubble(element: HTMLElement, x: number, y: number) {
@@ -391,7 +416,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   }
 
   private isClipboardEditTarget(target: HTMLElement | null) {
-    return !!target?.closest('.clipboard-edit-panel');
+    return !!target?.closest('.clipboard-edit-popup');
   }
 
   private isTagField(target?: HTMLElement) {
@@ -519,6 +544,11 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     const text = this.normalizeDroppedTextUri(data.getData('text/plain')) || undefined;
     const html = data.getData('text/html') || undefined;
     const ref = this.refFromDataTransfer(data, html, text);
+    const refOnly = !!this.draggedRef && !!ref;
+    if (refOnly) {
+      this.addItem({ ref });
+      return;
+    }
     const imageItem = Array.from(data.items || []).find(item => item.kind === 'file' && item.type.startsWith('image/'));
     if (!imageItem) {
       if (text || html || ref) this.addItem({ text, html, ref });
@@ -545,6 +575,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   }
 
   private refFromDataTransfer(data: DataTransfer, html?: string, text?: string): ClipboardRef | undefined {
+    if (this.draggedRef) return this.draggedRef;
     const uri = data.getData('text/uri-list').split('\n').find(line => !!line && !line.startsWith('#'));
     const htmlRef = html ? this.refFromHtml(html) : undefined;
     const textUri = text && this.isUri(text) ? text : undefined;
@@ -675,7 +706,6 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
       y: includeItemState && typeof item.y === 'number' ? item.y : local?.y ?? BUBBLE_START_Y + index * BUBBLE_SPACING,
       hold: includeItemState ? !!item.hold : local?.hold ?? false,
       selected: local?.selected,
-      editing: local?.editing,
     };
   }
 
@@ -692,7 +722,19 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
       url: ref.url,
       origin: typeof ref.origin === 'string' ? ref.origin : undefined,
       title: typeof ref.title === 'string' ? ref.title : undefined,
+      comment: typeof ref.comment === 'string' ? ref.comment : undefined,
+      published: typeof ref.published === 'string' ? ref.published : undefined,
+      modifiedString: typeof ref.modifiedString === 'string' ? ref.modifiedString : undefined,
+      tags: this.sanitiseStringArray(ref.tags),
+      sources: this.sanitiseStringArray(ref.sources),
+      alternateUrls: this.sanitiseStringArray(ref.alternateUrls),
+      plugins: ref.plugins && typeof ref.plugins === 'object' && !Array.isArray(ref.plugins) ? ref.plugins : undefined,
     };
+  }
+
+  private sanitiseStringArray(values: any) {
+    if (!Array.isArray(values)) return undefined;
+    return values.filter(value => typeof value === 'string');
   }
 
   private persist(remote = true) {
@@ -710,6 +752,52 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     const value = this.plugin?.config?.[key];
     const fallback = this.plugin?.defaults?.[key];
     return typeof value === 'boolean' ? value : (typeof fallback === 'boolean' ? fallback : false);
+  }
+
+  private refEditForm(ref?: ClipboardRef) {
+    const form = refForm(this.fb);
+    form.get('url')?.enable();
+    if (!ref) return form;
+    form.patchValue({
+      url: ref.url,
+      title: ref.title || '',
+      comment: ref.comment || '',
+      published: ref.published || '',
+      modifiedString: ref.modifiedString || '',
+      plugins: ref.plugins || {},
+    });
+    this.setArray(form.get('tags') as UntypedFormArray, ref.tags || []);
+    this.setArray(form.get('sources') as UntypedFormArray, ref.sources || []);
+    this.setArray(form.get('alternateUrls') as UntypedFormArray, ref.alternateUrls || []);
+    return form;
+  }
+
+  private setArray(array: UntypedFormArray, values: string[]) {
+    array.clear();
+    for (const value of values) array.push(this.fb.control(value));
+  }
+
+  private refFromEditForm(existing: ClipboardRef) {
+    const value = this.editForm.getRawValue();
+    const ref: ClipboardRef = {
+      ...existing,
+      url: value.url,
+      title: value.title || undefined,
+      comment: value.comment || undefined,
+      published: value.published || undefined,
+      modifiedString: value.modifiedString || undefined,
+      tags: this.nonEmptyStrings(value.tags),
+      sources: this.nonEmptyStrings(value.sources),
+      alternateUrls: this.nonEmptyStrings(value.alternateUrls),
+      plugins: value.plugins && Object.keys(value.plugins).length ? value.plugins : undefined,
+    };
+    return ref;
+  }
+
+  private nonEmptyStrings(values: unknown) {
+    if (!Array.isArray(values)) return undefined;
+    const strings = values.filter(value => typeof value === 'string' && value.trim());
+    return strings.length ? strings : undefined;
   }
 
   private persistLocal() {

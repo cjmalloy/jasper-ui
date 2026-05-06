@@ -37,6 +37,10 @@ test.describe.serial('User Clipboard Plugin', () => {
     await expect.poll(() => bubble.evaluate(element => getComputedStyle(element).left)).not.toBe(initialLeft);
     await expect(bubble).not.toHaveClass(/selected/);
     await bubble.click();
+    await expect(bubble).toHaveClass(/selected/);
+    await bubble.click();
+    await expect(bubble).not.toHaveClass(/selected/);
+    await bubble.click();
     await expect(page.locator('.clipboard-edit')).toBeHidden();
 
     await page.locator('body').evaluate(() => {
@@ -61,7 +65,7 @@ test.describe.serial('User Clipboard Plugin', () => {
       html: '<strong>Clipboard paste text</strong>',
       created: expect.any(String),
     });
-    await page.locator('.clipboard-clear').click();
+    await bubble.locator('.clipboard-clear').click();
     await expect(bubble).toBeHidden();
     await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem('jasper.clipboard.+user/debug@') || '[]').length)).toBe(0);
   });
@@ -84,8 +88,20 @@ test.describe.serial('User Clipboard Plugin', () => {
     const refBubble = page.locator('.clipboard-bubble').filter({ hasText: 'Clipboard E2E Ref' });
     await expect(refBubble).toBeVisible();
     await refBubble.click();
-    await page.locator('.clipboard-edit').click();
-    await expect(page.locator('.clipboard-ref-url-edit')).toHaveValue(url);
+    await refBubble.click({ button: 'right' });
+    await expect(page.locator('.clipboard-edit-popup input[name=url]')).toHaveValue(url);
+    await page.locator('.clipboard-edit-cancel').click();
+    await refBubble.locator('.clipboard-clear').click();
+    await expect(refBubble).toBeHidden();
+
+    await page.locator('.full-page.ref .link a').first().evaluate((link, refUrl) => {
+      const data = new DataTransfer();
+      data.setData('text/plain', refUrl as string);
+      data.setData('text/uri-list', refUrl as string);
+      link.dispatchEvent(new DragEvent('dragstart', { bubbles: true, cancelable: true, dataTransfer: data }));
+      document.querySelector('.clipboard-drop-zone')!.dispatchEvent(new DragEvent('drop', { bubbles: true, cancelable: true, dataTransfer: data }));
+    }, url);
+    await expect(refBubble).toBeVisible();
 
     const dropZone = page.locator('.clipboard-drop-zone');
     await expect(dropZone).toBeVisible();
@@ -118,11 +134,13 @@ test.describe.serial('User Clipboard Plugin', () => {
     const tagBubble = page.locator('.clipboard-bubble').filter({ hasText: 'tag:/plugin/editing' }).last();
     await expect(tagBubble).toBeVisible();
     await tagBubble.click();
-    await tagBubble.locator('.clipboard-edit').click();
-    await expect(tagBubble.locator('.clipboard-ref-url-edit')).toHaveValue('tag:/plugin/editing');
+    await tagBubble.click({ button: 'right' });
+    await expect(page.locator('.clipboard-edit-popup input[name=url]')).toHaveValue('tag:/plugin/editing');
+    await page.locator('.clipboard-edit-cancel').click();
     await page.locator('.clipboard-bubble').filter({ hasText: 'Dropped clipboard text' }).click();
-    await tagBubble.locator('.clipboard-ref-url-edit').focus();
-    await expect(tagBubble.locator('.clipboard-ref-url-edit')).toHaveValue('tag:/plugin/editing');
+    await tagBubble.click({ button: 'right' });
+    await page.locator('.clipboard-edit-popup input[name=url]').focus();
+    await expect(page.locator('.clipboard-edit-popup input[name=url]')).toHaveValue('tag:/plugin/editing');
   });
 
   test('formats tag pastes and splits list items', async ({ page }) => {
