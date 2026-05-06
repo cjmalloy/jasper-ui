@@ -501,7 +501,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   }
 
   private isQueryField(target?: HTMLElement) {
-    return !!target?.closest('app-query, formly-field-query-input');
+    return !!target?.closest('.query-editor, .query-field');
   }
 
   private queryValue(item: ClipboardItem) {
