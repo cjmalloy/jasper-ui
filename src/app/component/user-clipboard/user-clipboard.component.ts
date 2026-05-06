@@ -333,6 +333,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     if (!this.interceptPaste) return;
     if (this.isClipboardEditTarget(event.target as HTMLElement | null)) return;
     event.preventDefault();
+    event.stopPropagation();
     if (this.hasPendingPaste()) {
       this.pasteInto(event.target as HTMLElement);
       return;
