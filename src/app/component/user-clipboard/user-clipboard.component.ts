@@ -423,7 +423,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   private insertQueryItems(target: HTMLInputElement | HTMLTextAreaElement, items: ClipboardItem[]) {
     if (!this.isQueryField(target)) return false;
     const values = items.map(item => this.queryValue(item));
-    const separator = values.length > 1 && values.every(value => value.tag) ? '|' : '';
+    const separator = this.querySeparator(values);
     this.insertText(target, values.map(value => value.text).join(separator), target.dataset.jasperClipboardReplace === 'true');
     delete target.dataset.jasperClipboardReplace;
     target.dispatchEvent(new CustomEvent('jasper-clipboard-query-paste', { bubbles: true }));
@@ -482,6 +482,10 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     const text = item.text || item.ref?.url || (item.html ? this.stripHtml(item.html) : item.image || '');
     if (text.startsWith('tag:/')) return { text: text.substring('tag:/'.length), tag: true };
     return { text, tag: false };
+  }
+
+  private querySeparator(values: { text: string; tag: boolean }[]) {
+    return values.length > 1 && values.every(value => value.tag) ? '|' : '';
   }
 
   private formatTagText(text: string, prefix: string) {

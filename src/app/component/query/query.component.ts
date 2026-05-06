@@ -69,7 +69,7 @@ export class QueryComponent {
   }
 
   edit(select: boolean | Crumb[]) {
-    this.replaceOnClipboardPaste = !this.editing;
+    if (!this.editing) this.replaceOnClipboardPaste = true;
     this.editing = true;
     if (select) {
       this.select = select;

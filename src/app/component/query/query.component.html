@@ -1,5 +1,6 @@
 @if (editing || !query) {
   <input #editor
+         class="query-editor"
          type="text"
          autocorrect="off"
          autocapitalize="none"
@@ -10,9 +11,9 @@
          (blur)="blur(editor.value)"
          (jasper-clipboard-query-paste)="replaceOnClipboardPaste = false"
          (keydown)="$event.key === 'Enter' && search(editor.value) || true">
-  <button type="button" (click)="search(editor.value)">🔎️</button>
+  <button type="button" class="query-search-button" (click)="search(editor.value)">🔎️</button>
 } @else {
-  <div #div class="breadcrumbs" (click)="$event.target === div && edit(false)">
+  <div #div class="breadcrumbs query-breadcrumbs" (click)="$event.target === div && edit(false)">
     @for (breadcrumb of breadcrumbs; track breadcrumb) {
       <span class="crumb">
         @if (breadcrumb.tag) {
@@ -23,5 +24,5 @@
       </span>
     }
   </div>
-  <button type="button" (click)="edit(true)">✏️</button>
+  <button type="button" class="query-edit-button" (click)="edit(true)">✏️</button>
 }

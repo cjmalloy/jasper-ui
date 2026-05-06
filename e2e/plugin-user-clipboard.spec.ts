@@ -203,19 +203,11 @@ test.describe.serial('User Clipboard Plugin', () => {
     await page.locator('.e2e-editor').focus();
     await expect(page.locator('.e2e-editor')).toHaveValue('#topic/one');
 
+    await page.goto('/tag/old/query?debug=ADMIN', { waitUntil: 'networkidle' });
     await page.locator('.clipboard-bubble').filter({ hasText: 'tag:/topic/one' }).last().click();
     await page.locator('.clipboard-bubble').filter({ hasText: 'tag:/topic/two' }).last().click();
-    await page.locator('body').evaluate(() => {
-      const query = document.createElement('app-query');
-      const input = document.createElement('input');
-      input.className = 'e2e-query-input';
-      input.value = 'old:query';
-      input.dataset.jasperClipboardReplace = 'true';
-      query.appendChild(input);
-      document.body.appendChild(query);
-    });
-    await page.locator('.e2e-query-input').focus();
-    await expect(page.locator('.e2e-query-input')).toHaveValue('topic/one|topic/two');
+    await page.locator('.query-edit-button:visible').first().click();
+    await expect(page.locator('.query-editor:visible').first()).toHaveValue('topic/one|topic/two');
 
     await page.locator('.clipboard-bubble').filter({ hasText: 'List item one' }).last().click();
     await page.locator('.clipboard-bubble').filter({ hasText: 'List item two' }).last().click();
