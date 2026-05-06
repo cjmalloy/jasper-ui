@@ -12,7 +12,6 @@ import { RefService } from '../../service/api/ref.service';
 import { StompService } from '../../service/api/stomp.service';
 import { Store } from '../../store/store';
 
-const PLUGIN_TAG = 'plugin/user/clipboard';
 const BUBBLE_START_X = 12;
 const BUBBLE_START_Y = 72;
 const BUBBLE_SPACING = 56;
@@ -129,7 +128,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   }
 
   get plugin(): Plugin | undefined {
-    return this.admin.getPlugin(PLUGIN_TAG);
+    return this.admin.getPlugin('plugin/user/clipboard');
   }
 
   get interceptCopy() {
@@ -145,7 +144,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   }
 
   get refUrl() {
-    return `tag:/${this.store.account.localTag}?url=tag:/${PLUGIN_TAG}`;
+    return `tag:/${this.store.account.localTag}?url=tag:/plugin/user/clipboard`;
   }
 
   get storageKey() {
@@ -740,7 +739,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   }
 
   private applyRemote(ref: Ref | RefUpdates) {
-    const remoteItems = ref.plugins?.[PLUGIN_TAG]?.items;
+    const remoteItems = ref.plugins?.['plugin/user/clipboard']?.items;
     if (!Array.isArray(remoteItems)) return;
     this.items = this.sanitise(remoteItems, this.items, false);
     this.persistLocal();
@@ -906,10 +905,10 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
       url: this.refUrl,
       origin: this.store.account.origin,
       title: 'Clipboard',
-      tags: [this.store.account.localTag, PLUGIN_TAG, 'internal'],
+      tags: [this.store.account.localTag, 'plugin/user/clipboard', 'internal'],
       plugins: {
         ...(remote?.plugins || {}),
-        [PLUGIN_TAG]: {
+        'plugin/user/clipboard': {
           items: this.items.map(item => this.serializeRemote(item)),
         },
       },
