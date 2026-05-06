@@ -85,6 +85,9 @@ test.describe.serial('User Clipboard Plugin', () => {
     const refBubble = page.locator('.clipboard-bubble').filter({ hasText: 'Clipboard E2E Ref' });
     await expect(refBubble).toBeVisible();
     await refBubble.click();
+    await expect(refBubble).toHaveClass(/selected/);
+    await refBubble.click();
+    await expect(refBubble).not.toHaveClass(/selected/);
     await refBubble.click({ button: 'right' });
     await expect(page.locator('.clipboard-edit-popup input[name=url]')).toHaveValue(url);
     await page.locator('.clipboard-edit-cancel').click();

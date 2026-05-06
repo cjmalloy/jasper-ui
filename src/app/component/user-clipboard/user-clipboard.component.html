@@ -25,9 +25,10 @@
            <label class="clipboard-hold"
                   i18n-title title="Keep selected after paste"
                   (click)="$event.stopPropagation()">
-             <input type="checkbox"
+             <input #holdCheckbox
+                    type="checkbox"
                     [checked]="item.hold"
-                    (change)="setHold(item, $any($event.target).checked, $event)">
+                    (change)="setHold(item, holdCheckbox.checked, $event)">
              <span i18n>hold</span>
            </label>
            <button type="button" class="clipboard-preview" [title]="previewText(item)" [attr.aria-label]="previewLabel(item)">{{ preview(item) }}</button>

@@ -186,7 +186,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   setHold(item: ClipboardItem, checked: boolean, event?: Event) {
     event?.stopPropagation();
     item.hold = checked;
-    if (item.hold) item.selected = true;
+    item.selected = checked;
     this.persistLocalOnly();
   }
 
@@ -238,7 +238,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
 
   @HostListener('document:dragstart', ['$event'])
   dragStart(event: DragEvent) {
-    this.draggedRef = this.selectedRef(event.target as HTMLElement | null);
+    this.draggedRef = this.refFromTarget(event.target as HTMLElement | null);
   }
 
   @HostListener('document:dragend')
@@ -503,7 +503,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   private clipboardItem(target: HTMLElement | null): ClipboardItemContent | undefined {
     const text = this.selectedText(target);
     const html = this.selectedHtml();
-    const ref = this.selectedRef(target);
+    const ref = this.refFromTarget(target);
     if (!text && !html && !ref) return undefined;
     return { text: text || undefined, html: html || undefined, ref };
   }
@@ -524,7 +524,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     return container.innerHTML;
   }
 
-  private selectedRef(target: HTMLElement | null): ClipboardRef | undefined {
+  private refFromTarget(target: HTMLElement | null): ClipboardRef | undefined {
     const refEl = target?.closest('.ref[data-ref-url]') as HTMLElement | null;
     const url = refEl?.dataset['refUrl'];
     if (!url) return undefined;
