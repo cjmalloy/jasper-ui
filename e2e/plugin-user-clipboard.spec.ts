@@ -155,8 +155,9 @@ test.describe.serial('User Clipboard Plugin', () => {
       data.setData('text/html', `<a href="${tagPage}">plugin/editing</a>`);
       element.dispatchEvent(new DragEvent('drop', { bubbles: true, cancelable: true, dataTransfer: data }));
     });
-    const tagBubble = page.locator('.clipboard-bubble').filter({ hasText: 'tag:/plugin/editing' }).last();
+    const tagBubble = page.locator('.clipboard-bubble').filter({ hasText: 'plugin/editing' }).last();
     await expect(tagBubble).toBeVisible();
+    await expect(tagBubble.locator('.clipboard-preview')).toHaveText('plugin/editing');
     await tagBubble.click();
     await tagBubble.click({ button: 'right' });
     await expect(page.locator('.clipboard-edit-popup input[name=url]')).toHaveValue('tag:/plugin/editing');
@@ -226,6 +227,7 @@ test.describe.serial('User Clipboard Plugin', () => {
     });
     await page.locator('.e2e-list-input').focus();
     await expect(page.locator('.e2e-list-entry')).toHaveText(['List item one', 'List item two']);
+    await expect(page.locator('.e2e-list-input')).not.toBeFocused();
   });
 
   test('formats editor links and embeds', async ({ page }) => {
