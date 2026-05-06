@@ -19,6 +19,7 @@ export type Crumb = { text: string, tag?: string, pos: number, len: number };
 export class QueryComponent {
 
   editing = false;
+  replaceOnClipboardPaste = false;
   select: boolean | Crumb[] = false;
   breadcrumbs: Crumb[] = [];
 
@@ -68,6 +69,7 @@ export class QueryComponent {
   }
 
   edit(select: boolean | Crumb[]) {
+    this.replaceOnClipboardPaste = !this.editing;
     this.editing = true;
     if (select) {
       this.select = select;
@@ -228,9 +230,9 @@ export class QueryComponent {
   }
 
   blur(value: string) {
+    this.replaceOnClipboardPaste = false;
     if (value === this.query) {
       this.editing = false;
     }
   }
 }
-

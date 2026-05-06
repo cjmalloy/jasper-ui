@@ -373,11 +373,8 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   private insertItems(target: HTMLElement, items: ClipboardItem[]) {
     if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) {
       if (this.insertListItems(target, items)) return true;
-      const text = items.map(item => this.plainText(item, target)).join('');
-      const start = target.selectionStart ?? target.value.length;
-      const end = target.selectionEnd ?? target.value.length;
-      target.setRangeText(text, start, end, 'end');
-      target.dispatchEvent(new Event('input', { bubbles: true }));
+      if (this.insertQueryItems(target, items)) return true;
+      this.insertText(target, items.map(item => this.plainText(item, target)).join(''));
       return true;
     }
     if (target.isContentEditable) {
@@ -423,6 +420,23 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     return event.defaultPrevented;
   }
 
+  private insertQueryItems(target: HTMLInputElement | HTMLTextAreaElement, items: ClipboardItem[]) {
+    if (!this.isQueryField(target)) return false;
+    const values = items.map(item => this.queryValue(item));
+    const separator = values.length > 1 && values.every(value => value.tag) ? '|' : '';
+    this.insertText(target, values.map(value => value.text).join(separator), target.dataset.jasperClipboardReplace === 'true');
+    delete target.dataset.jasperClipboardReplace;
+    target.dispatchEvent(new CustomEvent('jasper-clipboard-query-paste', { bubbles: true }));
+    return true;
+  }
+
+  private insertText(target: HTMLInputElement | HTMLTextAreaElement, text: string, replace = false) {
+    const start = replace ? 0 : (target.selectionStart ?? target.value.length);
+    const end = replace ? target.value.length : (target.selectionEnd ?? target.value.length);
+    target.setRangeText(text, start, end, 'end');
+    target.dispatchEvent(new Event('input', { bubbles: true }));
+  }
+
   private setInputValue(target: HTMLInputElement | HTMLTextAreaElement, value: string) {
     target.value = value;
     target.dispatchEvent(new Event('input', { bubbles: true }));
@@ -458,6 +472,16 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
 
   private isEditorField(target?: HTMLElement) {
     return !!target?.closest('app-editor');
+  }
+
+  private isQueryField(target?: HTMLElement) {
+    return !!target?.closest('app-query');
+  }
+
+  private queryValue(item: ClipboardItem) {
+    const text = item.text || item.ref?.url || (item.html ? this.stripHtml(item.html) : item.image || '');
+    if (text.startsWith('tag:/')) return { text: text.substring('tag:/'.length), tag: true };
+    return { text, tag: false };
   }
 
   private formatTagText(text: string, prefix: string) {
