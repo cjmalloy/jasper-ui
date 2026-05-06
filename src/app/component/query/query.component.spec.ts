@@ -44,6 +44,7 @@ describe('QueryComponent', () => {
 
   it('marks input to replace on clipboard paste when entering edit mode', () => {
     component.query = 'old:query';
+    fixture.detectChanges();
     component.edit(true);
     fixture.detectChanges();
 
