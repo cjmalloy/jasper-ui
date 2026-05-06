@@ -20,7 +20,7 @@ test.describe.serial('Bookmark Formly Type', () => {
   }
 
   async function createKanbanBoard(page: Page) {
-    await page.goto('/ext/kanban/bookmark-filter?debug=MOD', { waitUntil: 'networkidle' });
+    await page.goto('/ext/kanban/bookmark/filter?debug=MOD', { waitUntil: 'networkidle' });
     const deleteBtn = page.locator('button', { hasText: 'Delete' });
     if (await deleteBtn.isVisible({ timeout: 3_000 }).catch(() => false)) {
       page.once('dialog', dialog => dialog.accept());
@@ -30,9 +30,9 @@ test.describe.serial('Bookmark Formly Type', () => {
     await page.goto('/tags/kanban?debug=MOD', { waitUntil: 'networkidle' });
     await openSidebar(page);
     await page.getByText('Extend').click();
-    await page.locator('[name=tag]').fill('bookmark-filter');
+    await page.locator('[name=tag]').fill('bookmark/filter');
     await page.locator('button', { hasText: 'Extend' }).click();
-    await page.locator('.columns').waitFor({ timeout: 15_000 });
+    await expect(page.locator('.columns')).toBeVisible({ timeout: 15_000 });
     await page.locator('[name=name]').fill('Bookmark Filter Kanban');
     await page.locator('.columns button').first().click();
     const initialColumnInputs = await page.locator('.columns input').count();
@@ -68,7 +68,7 @@ test.describe.serial('Bookmark Formly Type', () => {
   test('shows kanban filters for bookmark query top-level and', async ({ page }) => {
     await createKanbanBoard(page);
     await page.goto('/settings/me?debug=ADMIN', { waitUntil: 'networkidle' });
-    const bookmarkField = await addBookmark(page, 'public:kanban/bookmark-filter');
+    const bookmarkField = await addBookmark(page, 'public:kanban/bookmark/filter');
     await bookmarkField.locator('.filter-toggle').click();
     const filterSelect = page.locator('.params-panel').locator('select.big').last();
     await expect(filterSelect.locator('option[value="query/doing"]')).toHaveText(/doing/);
