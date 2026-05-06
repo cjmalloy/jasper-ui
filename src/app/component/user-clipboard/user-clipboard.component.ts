@@ -490,7 +490,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   }
 
   private isTagField(target?: HTMLElement) {
-    return !!target?.closest('formly-field-tag-input');
+    return !!target?.closest('.tag-field');
   }
 
   private isEditorField(target?: HTMLElement) {

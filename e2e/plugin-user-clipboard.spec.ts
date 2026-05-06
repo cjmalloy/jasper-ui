@@ -203,7 +203,8 @@ test.describe.serial('User Clipboard Plugin', () => {
 
     await page.locator('.clipboard-bubble').filter({ hasText: 'tag:/topic/one' }).last().click();
     await page.locator('body').evaluate(() => {
-      const field = document.createElement('formly-field-tag-input');
+      const field = document.createElement('div');
+      field.className = 'tag-field';
       const input = document.createElement('input');
       input.className = 'e2e-tag-input';
       field.appendChild(input);
@@ -214,7 +215,8 @@ test.describe.serial('User Clipboard Plugin', () => {
 
     await page.locator('.clipboard-bubble').filter({ hasText: 'topic/filtered' }).last().click();
     await page.locator('body').evaluate(() => {
-      const field = document.createElement('formly-field-tag-input');
+      const field = document.createElement('div');
+      field.className = 'tag-field';
       const input = document.createElement('input');
       input.className = 'e2e-filtered-tag-input';
       field.appendChild(input);
