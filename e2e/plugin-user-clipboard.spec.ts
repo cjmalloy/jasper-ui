@@ -47,9 +47,12 @@ test.describe.serial('User Clipboard Plugin', () => {
     await expect(bubble.locator('.clipboard-hold')).toBeHidden();
     await bubble.click();
     await expect(bubble).toHaveClass(/selected/);
-    await expect(bubble.locator('.clipboard-hold span')).toBeHidden();
     await expect(bubble.locator('.clipboard-hold input')).toBeChecked();
     await bubble.locator('.clipboard-hold input').uncheck();
+    await expect(bubble).not.toHaveClass(/selected/);
+    await expect(bubble.locator('.clipboard-hold')).toBeHidden();
+    await bubble.click();
+    await expect(bubble).toHaveClass(/selected/);
     await expect(bubble.locator('.clipboard-hold input')).not.toBeChecked();
     await bubble.locator('.clipboard-hold input').check();
     await expect(bubble.locator('.clipboard-hold input')).toBeChecked();

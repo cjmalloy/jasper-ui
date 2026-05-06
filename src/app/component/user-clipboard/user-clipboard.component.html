@@ -31,7 +31,9 @@
                <input #holdCheckbox
                       type="checkbox"
                       [checked]="item.hold"
-                      (change)="setHold(item, holdCheckbox.checked, $event)">
+                      (change)="setHold(item, holdCheckbox.checked, $event)"
+                      aria-label="Keep selected after paste"
+                      i18n-aria-label>
              </label>
            }
            <button type="button" class="clipboard-preview" [title]="previewText(item)" [attr.aria-label]="previewLabel(item)">{{ preview(item) }}</button>

@@ -187,6 +187,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   setHold(item: ClipboardItem, checked: boolean, event?: Event) {
     event?.stopPropagation();
     item.hold = checked;
+    item.selected = checked;
     this.persistLocalOnly();
   }
 
