@@ -49,10 +49,11 @@ test.describe.serial('User Clipboard Plugin', () => {
     await expect(bubble).not.toHaveClass(/selected/);
     await expect(bubble.locator('.clipboard-hold')).toBeHidden();
     await bubble.evaluate(element => {
+      let captured = false;
       Object.defineProperties(element, {
-        setPointerCapture: { value: () => undefined, configurable: true },
-        hasPointerCapture: { value: () => false, configurable: true },
-        releasePointerCapture: { value: () => undefined, configurable: true },
+        setPointerCapture: { value: () => { captured = true; }, configurable: true },
+        hasPointerCapture: { value: () => captured, configurable: true },
+        releasePointerCapture: { value: () => { captured = false; }, configurable: true },
       });
       element.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, button: 0, pointerId: 7, clientX: 20, clientY: 80 }));
       element.dispatchEvent(new PointerEvent('pointermove', { bubbles: true, pointerId: 7, clientX: 60, clientY: 120 }));
