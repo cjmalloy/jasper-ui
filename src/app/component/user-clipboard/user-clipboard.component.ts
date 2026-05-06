@@ -718,11 +718,11 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   }
 
   private loadRemote() {
-    this.loading = true;
     if (!this.store.account.signedIn) {
       this.loading = false;
       return;
     }
+    this.loading = true;
     this.tags.getResponse(this.refUrl).pipe(
       catchError(() => of(undefined)),
     ).subscribe(ref => {
