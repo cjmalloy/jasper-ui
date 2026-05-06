@@ -11,7 +11,9 @@ async function showDropZone(page: Page) {
     const data = new DataTransfer();
     document.dispatchEvent(new DragEvent('dragenter', { bubbles: true, cancelable: true, dataTransfer: data }));
   });
-  return page.locator('.clipboard-drop-zone');
+  const dropZone = page.locator('.clipboard-drop-zone');
+  await expect(dropZone).toBeVisible();
+  return dropZone;
 }
 
 test.describe.serial('User Clipboard Plugin', () => {

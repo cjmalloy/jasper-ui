@@ -86,6 +86,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   private save?: Subscription;
   private drag?: DragState;
   private draggedRef?: ClipboardRef;
+  private dropDragDepth = 0;
   private suppressedSelect?: ClipboardItem;
   private pendingRemotePersist = false;
   private savingRemote = false;
@@ -191,13 +192,23 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     this.persistLocalOnly();
   }
 
-  @HostListener('document:dragenter')
-  dragEnter() {
+  @HostListener('document:dragenter', ['$event'])
+  dragEnter(event: DragEvent) {
+    if (this.isDropZoneTarget(event.target as HTMLElement | null)) return;
+    this.dropDragDepth++;
     this.dropVisible = true;
   }
 
-  @HostListener('document:drop')
-  documentDrop() {
+  @HostListener('document:dragleave', ['$event'])
+  documentDragLeave(event: DragEvent) {
+    if (this.isDropZoneTarget(event.target as HTMLElement | null)) return;
+    this.dropDragDepth = Math.max(0, this.dropDragDepth - 1);
+    if (!this.dropDragDepth) this.resetDropState();
+  }
+
+  @HostListener('document:drop', ['$event'])
+  documentDrop(event: DragEvent) {
+    if (this.isDropZoneTarget(event.target as HTMLElement | null)) return;
     this.resetDropState();
   }
 
@@ -240,8 +251,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   drop(event: DragEvent) {
     event.preventDefault();
     event.stopPropagation();
-    this.dropVisible = false;
-    this.dropActive = false;
+    this.resetDropState();
     this.dropFilled = true;
     this.addFromDataTransfer(event.dataTransfer);
     this.draggedRef = undefined;
@@ -433,8 +443,13 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   }
 
   private resetDropState() {
+    this.dropDragDepth = 0;
     this.dropVisible = false;
     this.dropActive = false;
+  }
+
+  private isDropZoneTarget(target: HTMLElement | null) {
+    return !!target?.closest('.clipboard-drop-zone');
   }
 
   private isTagField(target?: HTMLElement) {
