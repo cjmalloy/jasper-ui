@@ -732,7 +732,8 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     };
   }
 
-  private sanitiseStringArray(values: any) {
+  // Keep only string entries when loading optional Ref array fields.
+  private sanitiseStringArray(values: unknown) {
     if (!Array.isArray(values)) return undefined;
     return values.filter(value => typeof value === 'string');
   }
@@ -794,6 +795,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     return ref;
   }
 
+  // Persist non-empty form array strings, omitting empty arrays from the Ref.
   private nonEmptyStrings(values: unknown) {
     if (!Array.isArray(values)) return undefined;
     const strings = values.filter(value => typeof value === 'string' && value.trim());
