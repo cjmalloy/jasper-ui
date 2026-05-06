@@ -45,10 +45,7 @@ test.describe.serial('User Clipboard Plugin', () => {
     await page.mouse.down();
     await page.mouse.move(previewBox!.x + DRAG_END_X_OFFSET, previewBox!.y + DRAG_END_Y_OFFSET);
     await page.mouse.up();
-    await expect.poll(() => bubble.evaluate(element => getComputedStyle(element).left)).not.toBe(initialLeft);
-    await expect(bubble).not.toHaveClass(/selected/);
-    await expect(bubble.locator('.clipboard-hold')).toBeHidden();
-    await bubble.evaluate(element => {
+    const interruptBubbleDrag = async (eventType: 'pointercancel' | 'lostpointercapture') => bubble.evaluate((element, type) => {
       let captured = false;
       Object.defineProperties(element, {
         setPointerCapture: { value: () => { captured = true; }, configurable: true },
@@ -57,14 +54,20 @@ test.describe.serial('User Clipboard Plugin', () => {
       });
       element.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, button: 0, pointerId: 7, clientX: 20, clientY: 80 }));
       element.dispatchEvent(new PointerEvent('pointermove', { bubbles: true, pointerId: 7, clientX: 60, clientY: 120 }));
-      element.dispatchEvent(new PointerEvent('pointercancel', { bubbles: true, pointerId: 7 }));
-    });
+      element.dispatchEvent(new PointerEvent(type, { bubbles: true, pointerId: 7 }));
+    }, eventType);
+
+    await expect.poll(() => bubble.evaluate(element => getComputedStyle(element).left)).not.toBe(initialLeft);
+    await expect(bubble).not.toHaveClass(/selected/);
+    await expect(bubble.locator('.clipboard-hold')).toBeHidden();
+    await interruptBubbleDrag('pointercancel');
     await bubble.click();
     await expect(bubble).toHaveClass(/selected/);
     await expect(bubble.locator('.clipboard-hold input')).toBeChecked();
     await bubble.locator('.clipboard-hold input').uncheck();
     await expect(bubble).not.toHaveClass(/selected/);
     await expect(bubble.locator('.clipboard-hold')).toBeHidden();
+    await interruptBubbleDrag('lostpointercapture');
     await bubble.click();
     await expect(bubble).toHaveClass(/selected/);
     await expect(bubble.locator('.clipboard-hold input')).not.toBeChecked();
