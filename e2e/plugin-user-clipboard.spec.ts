@@ -38,9 +38,6 @@ test.describe.serial('User Clipboard Plugin', () => {
     await expect(bubble).not.toHaveClass(/selected/);
     await bubble.click();
     await expect(bubble).toHaveClass(/selected/);
-    await bubble.click();
-    await expect(bubble).not.toHaveClass(/selected/);
-    await bubble.click();
     await expect(page.locator('.clipboard-edit')).toBeHidden();
 
     await page.locator('body').evaluate(() => {

@@ -27,7 +27,7 @@
                   (click)="$event.stopPropagation()">
              <input type="checkbox"
                     [checked]="item.hold"
-                    (change)="hold(item, $event)">
+                    (change)="setHold(item, $any($event.target).checked, $event)">
              <span i18n>hold</span>
            </label>
            <button type="button" class="clipboard-preview" [title]="previewText(item)" [attr.aria-label]="previewLabel(item)">{{ preview(item) }}</button>
@@ -48,6 +48,7 @@
                    [formGroup]="editForm"
                    (click)="$event.stopPropagation()"
                    (contextmenu)="$event.stopPropagation()"
+                   (keydown.escape)="closeEdit($event)"
                    (ngSubmit)="saveEdit($event)">
                <div class="clipboard-edit-header">
                  <h2 i18n>Edit clipboard Ref</h2>
