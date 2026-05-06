@@ -3,7 +3,7 @@ import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormArray, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import DOMPurify from 'dompurify';
 import { autorun, IReactionDisposer } from 'mobx';
-import { catchError, finalize, of, Subscription, switchMap } from 'rxjs';
+import { catchError, finalize, of, Subscription } from 'rxjs';
 import { refForm, RefFormComponent } from '../../form/ref/ref.component';
 import { Plugin } from '../../model/plugin';
 import { Ref, RefUpdates } from '../../model/ref';
@@ -88,7 +88,6 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   private suppressedSelect?: ClipboardItem;
   private pendingRemotePersist = false;
   private savingRemote = false;
-  private remoteInitialized = false;
   private disposers: IReactionDisposer[] = [];
   private loading = false;
   dropVisible = false;
@@ -734,7 +733,6 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
         this.persistRemote();
         return;
       }
-      this.remoteInitialized = true;
       // Local clipboard edits made before the initial load completes win and are
       // flushed after the current save, rather than being overwritten here.
       if (!this.pendingRemotePersist) this.applyRemote(ref);
@@ -886,18 +884,11 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     this.savingRemote = true;
     // Remote writes are serialized by savingRemote; keep the in-flight request
     // alive and let the pending flag schedule one save with the newest snapshot.
-    const save = () => this.tags.mergeResponse(['plugin/user/clipboard'], this.refUrl, {
+    this.save = this.tags.mergeResponse(['plugin/user/clipboard'], this.refUrl, {
       'plugin/user/clipboard': {
         items: this.items.map(item => this.serializeRemote(item)),
       },
-    });
-    const request = this.remoteInitialized ? save() : this.tags.respond(['plugin/user/clipboard'], this.refUrl).pipe(
-      switchMap(() => {
-        this.remoteInitialized = true;
-        return save();
-      }),
-    );
-    this.save = request.pipe(
+    }).pipe(
       catchError(() => of(undefined)),
       finalize(() => {
         this.savingRemote = false;
@@ -929,6 +920,8 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     };
   }
 
+  // Remote plugin data must match refSchema, so omit cursor/local fields such
+  // as origin and modifiedString while keeping them in local storage.
   private serializeRemoteRef(ref: ClipboardRef) {
     return {
       url: ref.url,
