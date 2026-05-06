@@ -493,6 +493,10 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     return !!target?.closest('.tag-field');
   }
 
+  private isBookmarkField(target?: HTMLElement) {
+    return !!target?.closest('.bookmark-field');
+  }
+
   private isEditorField(target?: HTMLElement) {
     return !!target?.closest('app-editor');
   }
@@ -521,8 +525,15 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   private plainText(item: ClipboardItem, target?: HTMLElement) {
     const text = this.itemText(item);
     if (this.isTagField(target)) return this.formatTagText(this.tagOrQueryText(item), '');
+    if (this.isBookmarkField(target)) return this.bookmarkText(item);
     if (this.isEditorField(target)) return this.editorText(item, text);
     return text;
+  }
+
+  private bookmarkText(item: ClipboardItem) {
+    const text = this.itemText(item);
+    const normalized = this.normalizeDroppedUrl(item.ref?.url) || this.normalizeDroppedUrl(text) || text;
+    return this.formatTagText(normalized, '');
   }
 
   private tagOrQueryText(item: ClipboardItem) {

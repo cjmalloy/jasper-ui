@@ -237,6 +237,18 @@ test.describe.serial('User Clipboard Plugin', () => {
     await page.locator('.e2e-filtered-query-input').focus();
     await expect(page.locator('.e2e-filtered-query-input')).toHaveValue('topic/filtered');
 
+    await page.locator('.clipboard-bubble').filter({ hasText: 'topic/filtered' }).last().click();
+    await page.locator('body').evaluate(() => {
+      const field = document.createElement('div');
+      field.className = 'bookmark-field';
+      const input = document.createElement('input');
+      input.className = 'e2e-filtered-bookmark-input';
+      field.appendChild(input);
+      document.body.appendChild(field);
+    });
+    await page.locator('.e2e-filtered-bookmark-input').focus();
+    await expect(page.locator('.e2e-filtered-bookmark-input')).toHaveValue('topic/filtered?filter=query/old&search=hello&sort=created,desc');
+
     await page.locator('.clipboard-bubble').filter({ hasText: 'tag:/topic/one' }).last().click();
     await page.locator('body').evaluate(() => {
       const editor = document.createElement('app-editor');
