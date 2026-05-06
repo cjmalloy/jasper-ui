@@ -295,15 +295,26 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     this.moveBubble(this.drag.element, x, y);
   }
 
-  pointerUp() {
+  pointerUp(event: PointerEvent) {
     if (!this.drag) return;
-    const moved = this.drag.moved;
-    const item = this.drag.item;
+    const { element, item, moved } = this.drag;
+    this.clearPointerCapture(element, event.pointerId);
     this.drag = undefined;
     if (moved) {
       this.suppressedSelect = item;
       this.persistLocalOnly();
     }
+  }
+
+  cancelPointerDrag(event: PointerEvent) {
+    if (!this.drag || event.currentTarget !== this.drag.element) return;
+    this.clearPointerCapture(this.drag.element, event.pointerId);
+    this.drag = undefined;
+    this.suppressedSelect = undefined;
+  }
+
+  private clearPointerCapture(element: HTMLElement, pointerId: number) {
+    if (element.hasPointerCapture(pointerId)) element.releasePointerCapture(pointerId);
   }
 
   @HostListener('document:copy', ['$event'])

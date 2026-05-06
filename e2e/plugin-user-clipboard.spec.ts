@@ -48,6 +48,16 @@ test.describe.serial('User Clipboard Plugin', () => {
     await expect.poll(() => bubble.evaluate(element => getComputedStyle(element).left)).not.toBe(initialLeft);
     await expect(bubble).not.toHaveClass(/selected/);
     await expect(bubble.locator('.clipboard-hold')).toBeHidden();
+    await bubble.evaluate(element => {
+      Object.defineProperties(element, {
+        setPointerCapture: { value: () => undefined, configurable: true },
+        hasPointerCapture: { value: () => false, configurable: true },
+        releasePointerCapture: { value: () => undefined, configurable: true },
+      });
+      element.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, button: 0, pointerId: 7, clientX: 20, clientY: 80 }));
+      element.dispatchEvent(new PointerEvent('pointermove', { bubbles: true, pointerId: 7, clientX: 60, clientY: 120 }));
+      element.dispatchEvent(new PointerEvent('pointercancel', { bubbles: true, pointerId: 7 }));
+    });
     await bubble.click();
     await expect(bubble).toHaveClass(/selected/);
     await expect(bubble.locator('.clipboard-hold input')).toBeChecked();

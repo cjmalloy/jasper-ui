@@ -20,10 +20,12 @@
              [style.left.px]="item.x"
              [style.top.px]="item.y"
              (click)="select(item)"
-             (contextmenu)="openEdit(item, $event)"
-             (pointerdown)="pointerDown($event, item)"
-             (pointermove)="pointerMove($event)"
-             (pointerup)="pointerUp()">
+              (contextmenu)="openEdit(item, $event)"
+              (pointerdown)="pointerDown($event, item)"
+              (pointermove)="pointerMove($event)"
+              (pointerup)="pointerUp($event)"
+              (pointercancel)="cancelPointerDrag($event)"
+              (lostpointercapture)="cancelPointerDrag($event)">
            @if (item.selected) {
              <label class="clipboard-hold"
                     i18n-title title="Keep selected after paste"
