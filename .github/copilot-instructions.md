@@ -30,13 +30,25 @@ Jasper is an open source knowledge management (KM) system. Unlike a CMS, Jasper 
   - `(science|math):funny`: Refs with (`science` OR `math`) AND `funny`
   - `music:people/murray`: Matches hierarchical tags like `people/murray/anne`
 
+**Common Jasper gotchas from the server README:**
+- Jasper is a generic knowledge-management platform, not just a bookmark app. The same model can support research, BI, journalism, forums, wikis, task management, libraries, support, collaborative writing, PKM, and e-mail.
+- Refs point to external resources. The URL scheme defines the resource type, so Jasper may use `https:`, `isbn:`, `comment:`, `wiki:`, `cache:`, or other valid URI schemes. Do not assume content always lives directly in Jasper.
+- Tags are plain hierarchical strings, not standalone entities. `Ext`, `User`, `Plugin`, and `Template` are tag-like entities keyed by `(tag, origin)`, but a tag itself does not need a pre-existing entity to be used on a Ref.
+- There are effectively two entity families: Refs and tag-like entities. A Ref is keyed by `(url, origin)` and tag-like entities are keyed by `(tag, origin)`. The local origin is the empty string, while `(origin, modified)` also acts as the replication cursor.
+- Querying is origin-aware. Queries may contain tags, origins, or fully qualified tags like `tag@origin`. The special origin `@` matches the default empty origin, unqualified tags match wildcard origins, and query groups are currently not nested.
+- Jasper's four model layers matter when reasoning about validation: identity (storage/replication), indexing (tags/query/sort), validation (full entity plus schema validation), and modding (client-only customization).
+- Plugins and templates inherit differently: plugins stack on Refs, while templates merge down the tag hierarchy on Exts/config.
+- Modding is intentionally client-side. New plugins, templates, and custom clients should usually not require server restarts or server code changes.
+- Replication is pull-based and eventually consistent. Remote origins are typically ingested by polling for entities after the last stored modified cursor, so unique modified timestamps matter.
+- Access control combines hierarchical roles with TBAC. Protected tags can be queried but not freely added; private tags cannot be used without permission and are stripped from server responses if access is missing.
+- Special URL behavior matters: `tag:/...` Refs follow tag access rules rather than ordinary tagging rules, and user-setting Refs commonly use tag URLs like `tag:/+user/<name>`.
+
 This Angular client (jasper-ui) provides the reference implementation for interacting with the Jasper knowledge management server.
 
 ## Quick Start
 
 - **CRITICAL**: Debugging requires the Jasper server backend running
-- Install Node.js 22: `curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash - && sudo apt-get install -y nodejs`
-- Install dependencies: `npm ci` (use `CYPRESS_INSTALL_BINARY=0 npm ci` if network blocks Cypress)
+- Add screenshots to your comments using playwrite for UI changes in both light and dark mode
 
 ## Development Commands
 
@@ -64,19 +76,44 @@ docker compose up --build  # Everything on http://localhost:8082/
 ## Build & Test
 
 - Build: `npm run build` (~100s, NEVER CANCEL, timeout 180+s)
-- Unit tests: `npm test -- --watch=false --browsers=ChromeHeadless` (~55s, NEVER CANCEL, timeout 120+s) - runs Angular test suite
+- Unit tests: `npm test -- --watch=false` (~55s, NEVER CANCEL, timeout 120+s) - runs Vitest via Angular CLI
 - Docker tests: `docker build . --target test -t jasper-ui-test && docker run --rm jasper-ui-test`
-- E2E tests: `npm run cy:ci` (10-20 min, NEVER CANCEL, timeout 30+ min)
+- E2E tests: `npm run pw:ci` (10-20 min, NEVER CANCEL, timeout 30+ min)
 - Stop services: `docker compose down`
 
-**IMPORTANT**: When making UI changes that affect user interactions (buttons, overlays, dialogs, etc.), **ALWAYS** update the corresponding Cypress E2E tests in `cypress/e2e/`. This is a critical step that should not be forgotten.
+### RxJS Subscribe Style
+
+- **Never** pass an observer object to `subscribe()`.
+- **Never** pass multiple callback parameters to `subscribe()`.
+- Always prefer a single callback form such as `observable.subscribe(value => { ... })`.
+
+### Dependency Management
+
+**CRITICAL**: **Never run `npm install` without arguments** — this regenerates `package-lock.json` and breaks CI. CI uses `npm ci`, which requires the lockfile to exactly match `package.json`. A modified lockfile will cause the build to fail.
+
+- To install dependencies before building/testing, always use: `npm ci`
+- To add a new package: `npm install <package>` (intentionally updates the lockfile — only do this when explicitly adding a dependency)
+- **Never commit an unintentionally modified `package-lock.json`**. If you ran `npm install` by accident, restore the lockfile with `git checkout -- package-lock.json` before committing.
+
+**IMPORTANT**: When making UI changes that affect user interactions (buttons, overlays, dialogs, etc.), **ALWAYS** update the corresponding Playwright E2E tests in `e2e/`. This is a critical step that should not be forgotten.
+
+**IMPORTANT**: When adding new E2E tests that are not designed to expose an existing bug, you **MUST** run the tests to confirm they pass before submitting. Use `npx playwright test <spec-file>` against the running e2e services. Do not submit E2E tests that have not been verified to pass.
 
 ## Project Structure
 
-- `src/app/mods/` - Plugin features (80+ files)
 - `src/app/component/` - Reusable UI components
+- `src/app/directive/` - Custom directives
+- `src/app/form/` - Form components
+- `src/app/formly/` - Formly form integration
+- `src/app/guard/` - Route guards
+- `src/app/http/` - HTTP interceptors
+- `src/app/model/` - Data models (Ref, Ext, User, Plugin, Template)
+- `src/app/mods/` - Plugin features (70+ files)
+- `src/app/page/` - Page components
+- `src/app/pipe/` - Custom pipes
 - `src/app/service/` - API and data services
 - `src/app/store/` - MobX state management
+- `src/app/util/` - Utility functions
 - `docker-compose.yaml` - Development Docker setup
 - `src/assets/config.json` - **DO NOT** edit API URL, use Docker env vars
 
@@ -165,6 +202,9 @@ npm run build
 - There should be NO "No translation found" warnings if all source-only entries are included
 - Verify there are no errors for entries that should have translations
 
+#### Step 7: Bump versions
+If a versioned plugin or template was affected, bump the version number.
+
 ### Configuration
 Translation locales are configured in `angular.json` under `projects.jasper-ui.i18n.locales`. The format is:
 ```json
@@ -173,12 +213,155 @@ Translation locales are configured in `angular.json` under `projects.jasper-ui.i
 }
 ```
 
+## E2E Testing with Playwright
+
+### Overview
+
+E2E tests live in `e2e/` and use Playwright. The test environment requires Docker services running (main app on `http://localhost:8080`, replica on `http://localhost:8082`).
+
+### Environment Setup
+
+Start the e2e Docker services before running or debugging tests:
+```bash
+cd e2e && docker compose pull && docker compose up --build -d
+```
+Wait for services to be healthy, then run tests:
+```bash
+npx playwright test                  # Run all tests headless
+npx playwright test 00-smoke.spec.ts # Run a single test file
+npx playwright test --ui             # Interactive UI mode
+```
+Stop services when done:
+```bash
+cd e2e && docker compose down
+```
+
+### Debug Users
+
+The app supports debug query parameters to simulate different user roles without authentication:
+- `?debug=ADMIN` - Full admin access
+- `?debug=MOD` - Moderator access
+- `?debug=EDITOR` - Editor access
+- `?debug=USER` - Standard user access
+- `?debug=VIEWER` - Read-only access
+- `?debug=ANON` - Anonymous/unauthenticated access
+
+Always append the appropriate debug parameter when navigating in tests:
+```typescript
+await page.goto('/?debug=ADMIN');
+await page.goto('/settings/setup?debug=ADMIN');
+```
+
+### Using the Playwright MCP Server for Debugging
+
+The Playwright MCP server allows interactive browser automation to debug and write e2e tests. Use these tools in the following workflow:
+
+#### Step 1: Start Services and Navigate
+```
+navigate to http://localhost:8080/?debug=ADMIN
+```
+Use `browser_navigate` to load the page under test with the appropriate debug user.
+
+#### Step 2: Inspect the Page
+Use `browser_snapshot` to capture an accessibility snapshot of the current page. This returns a structured tree of all visible elements with their roles, names, and unique `ref` attributes. The snapshot is more reliable than screenshots for identifying interactive elements and building selectors.
+
+Use `browser_take_screenshot` to capture a visual screenshot when you need to verify layout, styling, or visual state.
+
+#### Step 3: Interact with Elements
+Use the element `ref` from the snapshot to interact with the page:
+- `browser_click` - Click buttons, links, checkboxes
+- `browser_type` - Type into text fields
+- `browser_fill_form` - Fill multiple form fields at once
+- `browser_select_option` - Select dropdown options
+- `browser_hover` - Hover over elements to reveal tooltips or menus
+
+#### Step 4: Translate to Test Code
+Map MCP interactions to Playwright test assertions and actions:
+
+| MCP Tool | Playwright Equivalent |
+|---|---|
+| `browser_navigate` | `page.goto(url)` |
+| `browser_snapshot` | Use to discover selectors for `page.locator()` |
+| `browser_click` (by selector) | `page.locator('button', { hasText: 'Submit' }).click()` |
+| `browser_click` (by text) | `page.getByText('Submit').click()` |
+| `browser_type` | `page.locator('#url').fill('value')` |
+| `browser_take_screenshot` | `expect(page.locator('.element')).toBeVisible()` |
+
+### CSS Selector Guidelines
+
+A project goal is to have a **very simple and easy to navigate CSS tree**. Follow these rules when adding or changing components:
+
+- **Always add descriptive `class` attributes** to interactive and structurally significant elements so E2E tests can target them without relying on tag names or brittle nth-child selectors.
+- **Never use custom component tag names** (e.g., `app-ref`, `formly-field-bookmark-input`) as selectors in E2E tests — standard HTML tags like `select`, `div`, `span` are acceptable, but prefer CSS classes for clarity.
+- **Use clear, semantic class names** that describe the element's role in the UI, not its appearance or implementation. Examples:
+  - `.filter-toggle` — the button/element that opens the filter/params panel
+  - `.filter-preview` — the inline summary shown when params are set
+  - `.bookmark-field` — the host element for a bookmark formly field
+  - `.params-panel` — the overlay popup panel
+- **Add host classes** to formly field components (`host: { 'class': 'field my-field-type' }`) so tests can scope to that component type without using its tag name.
+- When creating new interactive UI elements (buttons, overlays, toggles), always give them a descriptive class before writing E2E tests for them.
+
+### Writing New E2E Tests
+
+#### File Naming Convention
+Test files are numbered for execution order: `00-smoke.spec.ts`, `01-backup.spec.ts`, etc. Plugin tests use `plugin-<name>.spec.ts`, template tests use `template-<name>.spec.ts`.
+
+#### Test Structure
+```typescript
+import { expect, test } from '@playwright/test';
+import { clearMods, mod, openSidebar, deleteRef } from './setup';
+
+test.describe.serial('Feature Name', () => {
+  // Always clear/set mods first if the test requires specific plugins
+  test('clear mods', async ({ page }) => {
+    await mod(page, '#mod-feature');
+  });
+
+  test('does something', async ({ page }) => {
+    await page.goto('/?debug=ADMIN', { waitUntil: 'networkidle' });
+    // ... test actions and assertions
+  });
+});
+```
+
+#### Setup Helpers (`e2e/setup.ts`)
+- `clearMods(page, base?)` - Remove all plugins and templates
+- `clearAll(page, base?, origin?)` - Delete all data for an origin and clear mods
+- `deleteRef(page, url, base?)` - Delete a specific ref by URL
+- `mod(page, ...mods)` - Clear mods then enable specified mods (e.g., `'#mod-wiki'`, `'#mod-graph'`)
+- `modRemote(page, base, ...mods)` - Same as `mod` but for a remote instance
+- `openSidebar(page)` / `closeSidebar(page)` - Toggle the sidebar
+
+#### Using MCP to Discover Selectors
+When writing a new test, use the MCP server to find the right selectors:
+1. Navigate to the page: `browser_navigate` to `http://localhost:8080/?debug=ADMIN`
+2. Take a snapshot: `browser_snapshot` to see all interactive elements
+3. Try clicking elements: `browser_click` to verify the correct element is targeted
+4. Check results: `browser_snapshot` again to verify state changes
+
+### Debugging Failing Tests
+
+#### Using MCP Server to Reproduce Failures
+1. Start the Docker services and navigate to the same URL the failing test uses
+2. Use `browser_snapshot` to inspect the current page state
+3. Replay the test steps one at a time using MCP tools (`browser_click`, `browser_type`, etc.)
+4. After each step, use `browser_snapshot` to compare actual vs expected state
+5. Use `browser_take_screenshot` if the visual layout is relevant to the failure
+6. Use `browser_console_messages` to check for JavaScript errors
+7. Use `browser_network_requests` to inspect API call failures
+
+#### Common Issues
+- **Element not found**: Use `browser_snapshot` to find the actual element structure; selectors may have changed
+- **Timing issues**: Add `waitForLoadState('networkidle')` or `waitForResponse()` before assertions
+- **State pollution**: Tests run serially in one worker; a prior test may have left unexpected state. Use `clearMods` or `clearAll` in setup
+- **Mobile layout triggered**: Viewport is set to 1280x720 in `playwright.config.ts` to prevent mobile layout; verify `browser_resize` matches if testing interactively
+
 ## Key Info
 
-- Angular 20 + TypeScript + MobX
+- Angular 20 + TypeScript + MobX + Vitest
 - API configured via Docker `JASPER_API` environment variable
 - Use `ng generate component|service|pipe|directive name` for new features
-- Network issues: Use `CYPRESS_INSTALL_BINARY=0` flag
+- Network issues: Playwright browsers are bundled, no separate install needed
 - Backend connection issues: Ensure `docker compose --profile server up --build` is healthy
 
 ## Theming
@@ -191,6 +374,13 @@ Theme-specific CSS variables are defined in:
 - `src/theme/common.scss` - Default/base theme variables
 - `src/theme/light.scss` - Light theme overrides (body.light-theme)
 - `src/theme/dark.scss` - Dark theme overrides (body.dark-theme)
+- `src/theme/light-highlight.scss` - Light theme syntax highlighting
+- `src/theme/dark-highlight.scss` - Dark theme syntax highlighting
+- `src/theme/mobile.scss` - Mobile-specific styles
+- `src/theme/print.scss` - Print styles
+- `src/theme/android.scss` - Android platform styles
+- `src/theme/electron.scss` - Electron platform styles
+- `src/theme/mac.scss` - macOS platform styles
 
 ### Using Themes in Components
 

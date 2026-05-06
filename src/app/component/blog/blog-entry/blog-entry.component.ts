@@ -36,8 +36,8 @@ import {
   Visibility,
   visible
 } from '../../../model/tag';
-import { findArchive } from '../../../mods/archive';
 import { deleteNotice } from '../../../mods/delete';
+import { findArchive } from '../../../mods/tools/archive';
 import { AdminService } from '../../../service/admin.service';
 import { ExtService } from '../../../service/api/ext.service';
 import { RefService } from '../../../service/api/ref.service';
@@ -75,7 +75,7 @@ import { ViewerComponent } from '../../viewer/viewer.component';
     InlineTagComponent,
     ActionListComponent,
     ReactiveFormsModule,
-    RefFormComponent,
+    forwardRef(() => RefFormComponent),
     LoadingComponent,
     AsyncPipe,
   ],
@@ -220,7 +220,7 @@ export class BlogEntryComponent implements OnChanges, OnDestroy, HasChanges {
     return comment.substring(0, 140);
   }
 
-  @ViewChild(RefFormComponent)
+  @ViewChild('refForm')
   set refForm(value: RefFormComponent) {
     defer(() => {
       value?.setRef(this.ref);
@@ -355,7 +355,7 @@ export class BlogEntryComponent implements OnChanges, OnDestroy, HasChanges {
   }
 
   visible(v: Visibility) {
-    return visible(v, this.isAuthor, this.isRecipient);
+    return visible(this.ref, v, this.isAuthor, this.isRecipient);
   }
 
   label(a: Action) {

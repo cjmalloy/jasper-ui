@@ -87,6 +87,7 @@ export class ListTypeComponent extends FieldArrayType {
       case 'selector':
       case 'plugin':
       case 'template':
+      case 'bookmark':
         return 'tag';
     }
     // @ts-ignore
@@ -213,7 +214,7 @@ export class ListTypeComponent extends FieldArrayType {
     } else if (event.previousContainer.data.type === 'tag' && event.container.data.type === 'ref') {
       value = 'tag:/' + value;
     }
-    super.add(event.currentIndex, value);
+    this.add(event.currentIndex, value);
   }
 
   dnd(event: DragEvent) {

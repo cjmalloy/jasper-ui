@@ -2,7 +2,6 @@ import { Component, HostBinding } from '@angular/core';
 import { FieldWrapper, FormlyFieldConfig } from '@ngx-formly/core';
 
 @Component({
-  standalone: false,
   selector: 'formly-wrapper-form-field',
   template: `
     <div>

@@ -12,7 +12,7 @@ import { SidebarComponent } from '../../component/sidebar/sidebar.component';
 import { TabsComponent } from '../../component/tabs/tabs.component';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ref } from '../../model/ref';
-import { isWiki } from '../../mods/wiki';
+import { isWiki } from '../../mods/org/wiki';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
 import { StompService } from '../../service/api/stomp.service';
@@ -20,6 +20,7 @@ import { TaggingService } from '../../service/api/tagging.service';
 import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
 import { memo, MemoCache } from '../../util/memo';
+import { markRead } from '../../util/response';
 import { hasTag, privateTag, top } from '../../util/tag';
 
 @Component({
@@ -41,7 +42,7 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
   private disposers: IReactionDisposer[] = [];
   private destroy$ = new Subject<void>();
 
-  @ViewChild(RefComponent)
+  @ViewChild('ref')
   ref?: RefComponent;
 
   newResponses = 0;
@@ -165,14 +166,13 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
       catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
       map(ref => ref || { url }),
       tap(ref => this.markRead(ref)),
-      switchMap(ref => !fetchTop(ref)
-        ? of([ref, undefined])
+      switchMap(ref => !fetchTop(ref) ? of([ref, undefined])
         : top(ref) === url ? of([ref, ref])
-          : top(ref) === this.store.view.top?.url ? of([ref, this.store.view.top])
-            : this.refs.getCurrent(top(ref)).pipe(
-              catchError(err => err.status === 404 ? of([ref, undefined]) : throwError(() => err)),
-              map(top => [ref, top] as [Ref, Ref]),
-            )),
+        : top(ref) === this.store.view.top?.url ? of([ref, this.store.view.top])
+        : this.refs.getCurrent(top(ref)).pipe(
+          map(top => [ref, top]),
+          catchError(err => err.status === 404 ? of([ref, undefined]) : throwError(() => err)),
+        )),
       tap(([ref, top]) => runInAction(() => this.store.view.setRef(ref, top))),
       takeUntil(this.destroy$),
     ).subscribe(() => MemoCache.clear(this));
@@ -229,8 +229,6 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
   }
 
   markRead(ref: Ref) {
-    if (!this.admin.getPlugin('plugin/user/read')) return;
-    if (ref.metadata?.userUrls?.includes('plugin/user/read')) return;
-    this.ts.createResponse('plugin/user/read', ref.url).subscribe();
+    markRead(this.admin, this.ts, ref);
   }
 }

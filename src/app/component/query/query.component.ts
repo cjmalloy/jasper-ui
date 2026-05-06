@@ -5,6 +5,7 @@ import { defer } from 'lodash-es';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
 import { Store } from '../../store/store';
+import { getEl } from '../../util/html';
 import { access, fixClientQuery, getStrictPrefix, localTag, tagOrigin } from '../../util/tag';
 
 export type Crumb = { text: string, tag?: string, pos: number, len: number };
@@ -18,7 +19,7 @@ export type Crumb = { text: string, tag?: string, pos: number, len: number };
 export class QueryComponent {
 
   editing = false;
-  select: boolean | Crumb = false;
+  select: boolean | Crumb[] = false;
   breadcrumbs: Crumb[] = [];
 
   private _query = '';
@@ -53,7 +54,7 @@ export class QueryComponent {
       if (this.select === true) {
         el.select();
       } else if (this.select) {
-        el.setSelectionRange(this.select.pos, this.select.pos + this.select.len);
+        el.setSelectionRange(this.select[0].pos, this.select[1].pos + this.select[1].len);
       }
     });
   }
@@ -62,13 +63,39 @@ export class QueryComponent {
     if (!this.store.hotkey) return true;
     event.preventDefault();
     event.stopImmediatePropagation();
-    this.edit(breadcrumb);
+    this.edit([breadcrumb, breadcrumb]);
     return false;
   }
 
-  edit(select: boolean | Crumb) {
+  edit(select: boolean | Crumb[]) {
     this.editing = true;
-    this.select = select;
+    if (select) {
+      this.select = select;
+    } else {
+      this.select = false;
+      const selection = document.getSelection();
+      if (selection && selection.rangeCount > 0 && selection.toString()) {
+        const range = selection.getRangeAt(0);
+        const startCrumb = this.findCrumbFromNode(getEl(range.startContainer));
+        const endCrumb = this.findCrumbFromNode(getEl(range.endContainer));
+        if (startCrumb && endCrumb) {
+          this.select = [startCrumb, endCrumb];
+        }
+      }
+    }
+  }
+
+  private findCrumbFromNode(el: Element | null): Crumb | undefined {
+    while (el) {
+      if (el.classList.contains('crumb')) {
+        const index = Array.from(el.parentElement?.children || []).indexOf(el);
+        if (index >= 0 && index < this.breadcrumbs.length) {
+          return this.breadcrumbs[index];
+        }
+      }
+      el = el.parentElement;
+    }
+    return undefined;
   }
 
   search(query: string) {

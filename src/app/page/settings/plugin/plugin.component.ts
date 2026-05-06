@@ -24,7 +24,7 @@ export class SettingsPluginPage implements OnInit, OnDestroy, HasChanges {
 
   serverError: string[] = [];
 
-  @ViewChild(PluginListComponent)
+  @ViewChild('list')
   list?: PluginListComponent;
 
   private disposers: IReactionDisposer[] = [];
@@ -36,7 +36,7 @@ export class SettingsPluginPage implements OnInit, OnDestroy, HasChanges {
     private plugins: PluginService,
   ) {
     mod.setTitle($localize`Settings: Plugins`);
-    store.view.clear(['levels', 'tag'], ['levels', 'tag']);
+    store.view.clear(['tag:len', 'tag'], ['tag:len', 'tag']);
     query.clear();
   }
 

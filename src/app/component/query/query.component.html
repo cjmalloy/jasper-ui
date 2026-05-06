@@ -16,7 +16,7 @@
         @if (breadcrumb.tag) {
           <a class="tag" [routerLink]="['../', breadcrumb.tag]" queryParamsHandling="merge"><span (click)="click($event, breadcrumb)">{{ breadcrumb.text }}</span></a>
         } @else {
-          <span class="op" (click)="edit(breadcrumb)">{{ breadcrumb.text }}</span>
+          <span class="op" (click)="edit([breadcrumb, breadcrumb])">{{ breadcrumb.text }}</span>
         }
       </span>
     }

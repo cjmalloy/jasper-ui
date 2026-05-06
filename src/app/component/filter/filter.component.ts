@@ -6,7 +6,7 @@ import { DateTime } from 'luxon';
 import { autorun, IReactionDisposer, toJS } from 'mobx';
 import { Ext } from '../../model/ext';
 import { FilterConfig } from '../../model/tag';
-import { KanbanConfig } from '../../mods/kanban';
+import { KanbanConfig } from '../../mods/org/kanban';
 import { RootConfig } from '../../mods/root';
 import { UserConfig } from '../../mods/user';
 import { AdminService } from '../../service/admin.service';
@@ -81,7 +81,13 @@ export class FilterComponent implements OnChanges, OnDestroy {
         }
         this.pushFilter({
           label: $localize`Queries 🔎️️`, filters: [],
-        }, {
+        });
+        if (this.auth.hasRole('ROLE_USER')) {
+          this.pushFilter({
+            label: $localize`Lists ☰`, filters: [],
+          });
+        }
+        this.pushFilter({
           label: $localize`Media 🎬️`, filters: [],
         }, {
           label: $localize`Games 🕹️`, filters: [],
@@ -162,9 +168,6 @@ export class FilterComponent implements OnChanges, OnDestroy {
           filters: [
             { filter: 'obsolete', label: $localize`⏮️ obsolete`, title: $localize`Show older versions` },
             { filter: 'query/_plugin:!+user', label: $localize`📟️ system`, title: $localize`System configs` },
-            { filter: 'untagged', label: $localize`🚫️🏷️ untagged` },
-            { filter: 'uncited', label: $localize`🚫️💌️ uncited` },
-            { filter: 'unsourced', label: $localize`🚫️📜️ unsourced` },
           ],
         });
       } else {
@@ -270,7 +273,7 @@ export class FilterComponent implements OnChanges, OnDestroy {
           const target = g.filters.find(i => i.filter === toggle(f));
           if (target) {
             target.filter = f;
-            if (f.startsWith('!') || f.startsWith('user/!') || f.startsWith('query/!(')) {
+            if (!target.label.startsWith(this.store.account.querySymbol('!'))) {
               target.label = this.store.account.querySymbol('!') + target.label;
             } else {
               target.label = target.label.substring(this.store.account.querySymbol('!').length);

@@ -1,0 +1,248 @@
+name: Playwright
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ '**' ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  playwright-run:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        database: [postgres, sqlite]
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: 'npm'
+      - name: Install lockfile
+        run: npm ci
+      - name: Run Playwright Tests
+        id: playwright
+        run: |
+          if [ "${{ matrix.database }}" = "sqlite" ]; then
+            npm run pw:ci:sqlite
+          else
+            npm run pw:ci
+          fi
+      - name: Patch HTML Report (merge files by default)
+        if: always()
+        run: sudo sed -i 's/mergeFiles",!1/mergeFiles",!0/g' e2e/reports/html/index.html
+      - name: Generate Test Summary
+        if: always()
+        uses: actions/github-script@v9
+        with:
+          # language=JavaScript
+          script: |
+            const fs = require('fs');
+
+            // Parse Playwright JSON output
+            function parsePlaywrightResults(jsonContent) {
+              const data = JSON.parse(jsonContent);
+              const suites = data.suites || [];
+
+              let tests = 0, passes = 0, failures = 0, skipped = 0;
+              function countSpecs(suite) {
+                for (const spec of (suite.specs || [])) {
+                  for (const test of (spec.tests || [])) {
+                    tests++;
+                    const status = test.status || (test.results && test.results[0] && test.results[0].status);
+                    if (status === 'expected' || status === 'passed') passes++;
+                    else if (status === 'skipped') skipped++;
+                    else failures++;
+                  }
+                }
+                for (const child of (suite.suites || [])) {
+                  countSpecs(child);
+                }
+              }
+              for (const suite of suites) {
+                countSpecs(suite);
+              }
+
+              return {
+                suites: suites.length,
+                tests,
+                passes,
+                failures,
+                skipped,
+                passPercent: tests > 0 ? (passes / tests) * 100 : 0,
+              };
+            }
+
+            let summary = '## 🧪 Playwright Test Results (${{ matrix.database }})\n\n';
+
+            try {
+              const jsonPath = 'e2e/reports/results.json';
+
+              if (fs.existsSync(jsonPath)) {
+                const jsonContent = fs.readFileSync(jsonPath, 'utf8');
+                const results = parsePlaywrightResults(jsonContent);
+
+                if (results.tests > 0) {
+                  const emoji = results.failures === 0 ? '✅' : '⚠️';
+
+                  summary += `${emoji} **Test Suites:** ${results.suites} total\n\n`;
+                  summary += `${emoji} **Tests:** ${results.failures} failed | ${results.passes} passed`;
+                  if (results.skipped > 0) {
+                    summary += ` | ${results.skipped} skipped`;
+                  }
+                  summary += ` (${results.tests})\n\n`;
+
+                  if (results.failures === 0) {
+                    summary += '🎉 All tests passed!\n\n';
+                  } else {
+                    const passRate = (results.passPercent || 0).toFixed(1);
+                    summary += `📊 **Pass Rate:** ${passRate}%\n\n`;
+                  }
+                } else {
+                  summary += '⚠️ No test results found in JSON output.\n\n';
+                }
+              } else {
+                summary += '⚠️ Test results JSON not found.\n\n';
+              }
+            } catch (error) {
+              summary += `⚠️ Error parsing test results: ${error.message}\n\n`;
+            }
+
+            // Write summary to GitHub Step Summary
+            await core.summary
+              .addRaw(summary)
+              .write();
+
+            // Store summary for use in PR comment
+            fs.writeFileSync('playwright-summary.md', summary);
+      - name: Upload PR Report
+        if: github.event_name == 'pull_request' && always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-reports-${{ matrix.database }}-pr-${{ github.event.pull_request.number }}
+          path: e2e/reports/html
+          retention-days: 7
+      - name: Upload Reports
+        if: github.event_name != 'pull_request' && always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-reports-${{ matrix.database }}-${{ github.ref_name }}-${{ github.run_number }}
+          path: e2e/reports/html
+          retention-days: 30
+      - name: Comment on PR
+        if: github.event_name == 'pull_request' && always()
+        uses: actions/github-script@v9
+        with:
+          # language=JavaScript
+          script: |
+            const fs = require('fs');
+
+            let summary = '';
+            try {
+              summary = fs.readFileSync('playwright-summary.md', 'utf8');
+            } catch (error) {
+              summary = '⚠️ Could not read test summary.';
+            }
+
+            const reportUrl = `https://${context.repo.owner}.github.io/${context.repo.repo}/reports/playwright-reports-${{ matrix.database }}-pr-${context.issue.number}/`;
+            summary += `\n\n📊 [View detailed HTML report](${reportUrl})`;
+
+            // Add HTML comment marker for identification (unique per database)
+            const body = `<!-- playwright-results-${{ matrix.database }}-comment -->\n${summary}`;
+
+            // Find existing comment (with pagination)
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+            });
+
+            const botComment = comments.find(comment =>
+              comment.body.includes('<!-- playwright-results-${{ matrix.database }}-comment -->')
+            );
+
+            if (botComment) {
+              // Update existing comment
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: body
+              });
+            } else {
+              // Create new comment
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: body
+              });
+            }
+
+  clean:
+    needs: playwright-run
+    if: always()
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    steps:
+      - name: Cleanup old artifacts
+        if: github.event_name != 'pull_request'
+        uses: actions/github-script@v9
+        with:
+          # language=JavaScript
+          script: |
+            const maxVersions = 3;
+            const response = await github.rest.actions.listArtifactsForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              per_page: 100
+            });
+            const artifacts = response.data.artifacts
+              .filter(artifact => artifact.name.startsWith('playwright-reports-') && artifact.name.includes('${{ github.ref_name }}'));
+            if (artifacts.length > maxVersions) {
+              // Sort by created_at descending
+              artifacts.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+              // Delete all but the latest maxVersions
+              for (const artifact of artifacts.slice(maxVersions)) {
+                console.log('Deleting artifact:', artifact.name);
+                await github.rest.actions.deleteArtifact({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  artifact_id: artifact.id
+                });
+              }
+            }
+      - name: Cleanup old PR artifacts
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v9
+        with:
+          # language=JavaScript
+          script: |
+            const maxVersions = 2;
+            const response = await github.rest.actions.listArtifactsForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              per_page: 100
+            });
+            const artifacts = response.data.artifacts
+              .filter(artifact => artifact.name.startsWith('playwright-reports-') && artifact.name.endsWith('-pr-${{ github.event.pull_request.number }}'));
+            if (artifacts.length > maxVersions) {
+              // Sort by created_at descending
+              artifacts.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+              // Delete all but the latest maxVersions
+              for (const artifact of artifacts.slice(maxVersions)) {
+                console.log('Deleting artifact:', artifact.name);
+                await github.rest.actions.deleteArtifact({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  artifact_id: artifact.id
+                });
+              }
+            }

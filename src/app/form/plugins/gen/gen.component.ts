@@ -27,9 +27,6 @@ export class GenFormComponent implements OnInit, OnChanges {
   @Output()
   togglePlugin = new EventEmitter<string>();
 
-  @ViewChild(FormlyForm)
-  formlyForm?: FormlyForm;
-
   model: any;
   options: FormlyFormOptions = {
     formState: {

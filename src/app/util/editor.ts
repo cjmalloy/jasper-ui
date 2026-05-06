@@ -2,7 +2,7 @@ import * as he from 'he';
 import { difference, uniq } from 'lodash-es';
 import { marked } from 'marked';
 import { getMailbox } from '../mods/mailbox';
-import { wikiUriFormat } from '../mods/wiki';
+import { wikiUriFormat } from '../mods/org/wiki';
 import { QUALIFIED_USER_REGEX, TAG_REGEX } from './format';
 
 export function getMailboxes(markdown: string, origin = '') {

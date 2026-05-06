@@ -1,0 +1,124 @@
+.help-popup {
+  position: relative;
+  background: var(--bg);
+  border: 1px dashed var(--border);
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  max-width: 300px;
+  box-sizing: border-box;
+  min-width: 300px;
+
+  // Arrow pointing left (popup is to the right of the target element)
+  &.arrow-left {
+    &::before, &::after {
+      content: '';
+      position: absolute;
+      width: 0;
+      height: 0;
+      border-style: solid;
+      top: 50%;
+      margin-top: -5px;
+      border-width: 5px 10px 5px 0;
+    }
+    &::before {
+      left: -10px;
+      border-color: transparent var(--border) transparent transparent;
+    }
+    &::after {
+      left: -9px;
+      border-color: transparent var(--bg) transparent transparent;
+    }
+  }
+
+  // Arrow pointing right (popup is to the left of the target element)
+  &.arrow-right {
+    &::before, &::after {
+      content: '';
+      position: absolute;
+      width: 0;
+      height: 0;
+      border-style: solid;
+      top: 50%;
+      margin-top: -5px;
+      border-width: 5px 0 5px 10px;
+    }
+    &::before {
+      right: -10px;
+      border-color: transparent transparent transparent var(--border);
+    }
+    &::after {
+      right: -9px;
+      border-color: transparent transparent transparent var(--bg);
+    }
+  }
+
+  // Arrow pointing up (popup is below the target element)
+  &.arrow-top {
+    &::before, &::after {
+      content: '';
+      position: absolute;
+      width: 0;
+      height: 0;
+      border-style: solid;
+      left: 20px;
+      border-width: 0 5px 10px 5px;
+    }
+    &::before {
+      top: -10px;
+      border-color: transparent transparent var(--border) transparent;
+    }
+    &::after {
+      top: -9px;
+      border-color: transparent transparent var(--bg) transparent;
+    }
+  }
+
+  // Arrow pointing down (popup is above the target element)
+  &.arrow-bottom {
+    &::before, &::after {
+      content: '';
+      position: absolute;
+      width: 0;
+      height: 0;
+      border-style: solid;
+      left: 20px;
+      border-width: 10px 5px 0 5px;
+    }
+    &::before {
+      bottom: -10px;
+      border-color: var(--border) transparent transparent transparent;
+    }
+    &::after {
+      bottom: -9px;
+      border-color: var(--bg) transparent transparent transparent;
+    }
+  }
+}
+
+.help-text {
+  margin-bottom: 10px;
+}
+
+hr {
+  border: none;
+  border-top: 0.5px dotted var(--border);
+  margin: 10px 0;
+}
+
+.stepper-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.stepper-controls button {
+  padding: 5px 10px;
+  cursor: pointer;
+  font-size: 0.9em;
+}
+
+.stepper-controls span {
+  font-size: 0.9em;
+  color: var(--info);
+}

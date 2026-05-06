@@ -35,6 +35,8 @@
          [attr.title]="altText">
       @if (tagLink) {
         <app-nav [url]="url" [text]="title"></app-nav>
+      } @else if (editingLink) {
+        <a [routerLink]="editingLink.routerLink" [queryParams]="editingLink.queryParams">{{ title }}</a><wbr>
       } @else if (clickableLink) {
         <app-nav [url]="link" [text]="title" [external]="true"></app-nav>
       } @else {
@@ -46,11 +48,13 @@
     </div>
     <div class="link-below">
       @if (showToggle && (thread || commentNoTitle || expandPlugins.length)) {
-        <button type="button" class="toggle" (click)="toggle(store.hotkey)">
-          @if (editing || viewSource || diffing || expanded) {
+        <button type="button" class="toggle" (click)="toggle()" (contextmenu)="pip($event)">
+          @if (editing || viewSource || diffing) {
             <span class="toggle-x">✕</span>
           } @else if (fullscreen || store.hotkey && admin.getPlugin('plugin/fullscreen')) {
             <span class="toggle-fullscreen">⛶</span>
+          } @else if (expanded) {
+            <span class="toggle-x">✕</span>
           } @else {
             <span class="toggle-plus">＋</span>
           }
@@ -172,10 +176,11 @@
           }
         </div>
         @if (expanded && expandInline && !editing && !viewSource) {
-          <app-viewer class="viewer-inline"
+          <app-viewer #viewer class="viewer-inline"
                       [ref]="bareRef"
                       [tags]="plugins || currentTags"
                       [disableResize]="disableResize"
+                      [fullscreen]="fullscreen"
                       (contextmenu)="unlockViewer($event)"
                       (copied)="copied.emit($event)"></app-viewer>
         }
@@ -183,7 +188,7 @@
              [class.expanded]="actionsExpanded"
              [class.not-expanded]="actionsExpanded === false">
           @if (store.account.user && !ref.created && !ref.upload) {
-            <a routerLink="/submit" [queryParams]="{ url: ref.url }" i18n>submit</a>
+            <a [routerLink]="submitRoute.routerLink" [queryParams]="submitRoute.queryParams" i18n>submit</a>
           }
           @if (ref.created && !ref.upload) {
             @if (thread) {
@@ -206,12 +211,12 @@
               <a [routerLink]="['/ref', ref.url, 'errors']" [queryParams]="{ origin: obsoleteOrigin }" (click)="saveRef()" i18n>{errors, plural, =1 {1&thinsp;error} other {{{ errors }}&thinsp;errors}}</a>
             }
             @if (comments) {
-              <a [routerLink]="['/ref', ref.url, 'comments']" [queryParams]="{ origin: obsoleteOrigin }" (click)="saveRef()" i18n>{comments, plural, =1 {1&thinsp;comment} other {{{ comments }}&thinsp;comments}}</a>
+              <a [routerLink]="['/ref', ref.url, 'comments']" [queryParams]="{ origin: obsoleteOrigin }" (click)="saveRef()" i18n>{comments, plural, =1 {1&thinsp;comment} other {{{ comments }}&thinsp;comments}}@if (newCommentsCount > 0) {<span class="new-resp">&nbsp;({{ newCommentsCount }} new)</span>}</a>
             } @else if (threads) {
-              <a [routerLink]="['/ref', ref.url, 'thread']" [queryParams]="{ origin: obsoleteOrigin }" (click)="saveRef()" i18n>{threads, plural, =1 {1&thinsp;reply} other {{{ threads }}&thinsp;replies}}</a>
+              <a [routerLink]="['/ref', ref.url, 'thread']" [queryParams]="{ origin: obsoleteOrigin }" (click)="saveRef()" i18n>{threads, plural, =1 {1&thinsp;reply} other {{{ threads }}&thinsp;replies}}@if (newThreadsCount > 0) {<span class="new-resp">&nbsp;({{ newThreadsCount }} new)</span>}</a>
             }
             @if (responses) {
-              <a [routerLink]="['/ref', ref.url, 'responses']" [queryParams]="{ origin: obsoleteOrigin }" (click)="saveRef()" i18n>{feed, select, true {{{ responses }}&thinsp;scraped} false {{responses, plural, =1 {1&thinsp;citation} other {{{ responses }}&thinsp;citations}}}}</a>
+              <a [routerLink]="['/ref', ref.url, 'responses']" [queryParams]="{ origin: obsoleteOrigin }" (click)="saveRef()" i18n>{feed, select, true {{{ responses }}&thinsp;scraped} false {{responses, plural, =1 {1&thinsp;citation} other {{{ responses }}&thinsp;citations}}}}@if (newResponsesCount > 0) {<span class="new-resp">&nbsp;({{ newResponsesCount }} new)</span>}</a>
             }
             @if (parentComment) {
               <a [routerLink]="['/ref', parentComment, 'comments']" [queryParams]="{ origin: obsoleteOrigin }" i18n>parent</a>
@@ -223,7 +228,7 @@
               }
             }
             @if (taggingAccess) {
-              <app-inline-tag [action]="tag$" i18n>tag</app-inline-tag>
+              <app-inline-tag [action]="tag$" [tags]="ref.tags" i18n>tag</app-inline-tag>
             }
             @if (store.account.user && !local) {
               <app-inline-button #action [action]="copy$" i18n>copy</app-inline-button>
@@ -259,7 +264,7 @@
                 <a routerLink="/submit/dm" [queryParams]="{source: replySources, sourceTitle: ref.title, tag: replyTags, to: replyTo}" i18n>reply</a>
               }
               @if (taggingAccess) {
-                <app-inline-tag #action [action]="tag$" i18n>tag</app-inline-tag>
+                <app-inline-tag #action [action]="tag$" [tags]="ref.tags" i18n>tag</app-inline-tag>
               }
               <a class="fake-link" (click)="editing = !editing" i18n>@if (editForm.dirty) {*edit*} @else {edit}</a>
             }
@@ -306,7 +311,7 @@
 </div>
 
 @if (replying) {
-  <app-comment-reply [autofocus]="true"
+  <app-comment-reply #reply [autofocus]="true"
                      [to]="ref"
                      [showCancel]="true"
                      [selectResponseType]="!thread && !comment && !dm"
@@ -314,10 +319,11 @@
                      (save)="onReply($event)"></app-comment-reply>
 }
 @if (expanded && !expandInline && !editing && !viewSource) {
-  <app-viewer class="viewer-below"
+  <app-viewer #viewer class="viewer-below"
               [ref]="bareRef"
               [tags]="plugins || currentTags"
               [disableResize]="disableResize"
+              [fullscreen]="fullscreen"
               (contextmenu)="unlockViewer($event)"
               (copied)="copied.emit($event)"></app-viewer>
 }
@@ -325,7 +331,7 @@
 @if (editing) {
   <form class="form" [formGroup]="editForm" (ngSubmit)="save()">
 
-    <app-ref-form [group]="editForm"></app-ref-form>
+    <app-ref-form #refForm [group]="editForm"></app-ref-form>
 
     @for (e of serverError; track e) {
       <span><!-- Unexpected Error --></span>
@@ -349,7 +355,7 @@
   </form>
 } @else if (viewSource) {
   <form class="form" [formGroup]="editForm">
-    <app-ref-form [group]="editForm" [origin]="origin"></app-ref-form>
+    <app-ref-form #refForm [group]="editForm" [origin]="origin"></app-ref-form>
   </form>
 } @else if (diffing && diffOriginal && diffModified) {
   <div class="diff-view form">

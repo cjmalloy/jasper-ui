@@ -79,7 +79,7 @@
                        i18n-title title="Add Plugin"
                        (pluginChange)="togglePlugin($event); pluginSelect.plugin = ''"></app-select-plugin>
   </div>
-  <app-form-plugins id="plugins"
+  <app-form-plugins #pluginsFormComponent id="plugins"
                     (togglePlugin)="togglePlugin($event)"
                     [group]="group"></app-form-plugins>
 
@@ -111,7 +111,8 @@
                   [scraping]="scrapingAll"
                   (syncEditor)="syncEditor()"
                   (syncTags)="setTags($event)"
-                  (addSource)="addSource($event)"></app-editor>
+                  (addSource)="addSource($event)"
+                  (uploadCompleted)="completedUploads.push($event)"></app-editor>
     </div>
   }
 

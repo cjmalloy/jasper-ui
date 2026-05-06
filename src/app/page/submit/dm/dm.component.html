@@ -1,6 +1,6 @@
 <ng-container *mobxAutorun>
   <form class="form" [formGroup]="dmForm" (ngSubmit)="submit()"
-        [appLimitWidth]="fill?.nativeElement" [limitSibling]="true">
+        [appLimitWidth]="limitWidth" [limitSibling]="true">
     @if (!store.submit.dmPlugin) {
       <label for="to" i18n>To:</label>
       <div class="form-array skip-margin">
@@ -73,11 +73,12 @@
                     [tags]="tags"
                     (syncTags)="setTags($event)"
                     (addSource)="addSource($event)"
+                    (uploadCompleted)="completedUploads.push($event)"
                     [autoFocus]="!!store.submit.dmPlugin || !!store.submit.to.length"></app-editor>
       </div>
     }
 
-    <app-tags [group]="dmForm"></app-tags>
+    <app-tags #tagsFormComponent [group]="dmForm"></app-tags>
 
     @for (e of serverError; track e) {
       <span><!-- Unexpected Error --></span>
@@ -86,10 +87,13 @@
 
     <span><!-- Buttons --></span>
     <span class="buttons right">
-      @if (submitting) {
+      @if (submitting || saving) {
         <app-loading [inline]="true"></app-loading>
       }
-      <button type="submit" [disabled]="submitting || submitted && !dmForm.valid" i18n>Send</button>
+      @if (admin.getPlugin('plugin/editing')) {
+        <button type="button" [disabled]="submitting || saving || submitted || dmForm.pristine" (click)="saveForLater(true)" i18n>Save for later</button>
+      }
+      <button type="submit" [disabled]="submitting || (submitted && !dmForm.valid)" i18n>Send</button>
     </span>
   </form>
 </ng-container>

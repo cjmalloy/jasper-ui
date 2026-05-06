@@ -3,6 +3,7 @@ import { TemplatePortal } from '@angular/cdk/portal';
 import {
   AfterViewInit,
   ChangeDetectionStrategy,
+  ChangeDetectorRef,
   Component,
   ElementRef,
   forwardRef,
@@ -99,7 +100,7 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy, HasChan
   figure!: ElementRef;
   @ViewChild('nodeMenu')
   nodeMenu!: TemplateRef<any>;
-  @ViewChild(RefListComponent)
+  @ViewChild('list')
   list?: RefListComponent;
 
   overlayRef?: OverlayRef;
@@ -120,11 +121,13 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy, HasChan
     private graphs: GraphService,
     private overlay: Overlay,
     private viewContainerRef: ViewContainerRef,
+    private cd: ChangeDetectorRef,
   ) {
     this.disposers.push(autorun(() => {
       this.selectedStroke = store.darkTheme ? this.selectedStrokeDarkTheme : this.selectedStrokeLightTheme;
       this.linkStroke = store.darkTheme ? this.linkStrokeDarkTheme : this.linkStrokeLightTheme;
       this.update();
+      this.cd.markForCheck();
     }));
   }
 
@@ -152,10 +155,12 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy, HasChan
             if (this.figure) {
               this.update()
             }
+            this.cd.markForCheck();
           });
         } else if (this.figure) {
           this.update();
         }
+        this.cd.markForCheck();
       });
   }
 
@@ -164,13 +169,13 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy, HasChan
     this.update();
   }
 
-  @HostListener('window:resize', ['$event'])
+  @HostListener('window:resize')
   onResize() {
     this.simulation?.alpha(0.3);
     this.update();
   }
 
-  @HostListener('window:click', ['$event'])
+  @HostListener('window:click')
   onWindowClick() {
     this.close();
   }
@@ -199,6 +204,7 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy, HasChan
         this.simulation?.alpha(0.1);
         this.update();
       }
+      this.cd.markForCheck();
     });
   }
 
@@ -302,6 +308,7 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy, HasChan
         this.simulation?.alpha(0.1);
         this.update();
       }
+      this.cd.markForCheck();
     });
     this.close();
   }
@@ -312,6 +319,7 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy, HasChan
         this.simulation?.alpha(0.1);
         this.update();
       }
+      this.cd.markForCheck();
     });
     this.close();
   }
@@ -324,6 +332,7 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy, HasChan
         this.simulation?.alpha(0.1);
         this.update();
       }
+      this.cd.markForCheck();
     });
     this.close();
   }

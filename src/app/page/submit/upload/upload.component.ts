@@ -1,9 +1,9 @@
+import { AsyncPipe } from '@angular/common';
 import { HttpErrorResponse, HttpEventType } from '@angular/common/http';
 import { Component, OnDestroy } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { FormlyForm } from '@ngx-formly/core';
-import { pick, uniq } from 'lodash-es';
+import { pick, uniq, without } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { autorun, IReactionDisposer, runInAction, toJS } from 'mobx';
 import { MobxAngularModule } from 'mobx-angular';
@@ -16,6 +16,7 @@ import { RefComponent } from '../../../component/ref/ref.component';
 import { AutofocusDirective } from '../../../directive/autofocus.directive';
 import { Ext, mapExt } from '../../../model/ext';
 import { mapRef, Ref } from '../../../model/ref';
+import { TagPreviewPipe } from '../../../pipe/tag-preview.pipe';
 import { AdminService } from '../../../service/admin.service';
 import { ExtService } from '../../../service/api/ext.service';
 import { ProxyService } from '../../../service/api/proxy.service';
@@ -42,7 +43,8 @@ import { FilteredModels, filterModels, getModels, getTextFile, unzip, zippedFile
     ReactiveFormsModule,
     AutofocusDirective,
     LoadingComponent,
-    FormlyForm,
+    AsyncPipe,
+    TagPreviewPipe,
   ]
 })
 export class UploadPage implements OnDestroy {
@@ -71,9 +73,6 @@ export class UploadPage implements OnDestroy {
       this.readUploads(this.store.submit.files);
       runInAction(() => this.store.submit.clearFiles());
     }));
-    this.disposers.push(autorun(() => {
-      console.log(this.store.submit.uploads.length);
-    }));
     this.store.submit.clearOverride();
   }
 
@@ -84,7 +83,7 @@ export class UploadPage implements OnDestroy {
 
   readUploads(uploads?: File[], forceCache = false) {
     // TODO: process sequentially and show indicator
-    if (!uploads) return;
+    if (!uploads?.length) return;
     // Refs and Exts
     const files: File[] = [];
     const tables: File[] = [];
@@ -208,6 +207,11 @@ export class UploadPage implements OnDestroy {
           ref!.title = file.name;
           ref!.tags = uniq([...ref!.tags || [], tag, ...extraTags.filter(t => !!t)]);
           return ref!;
+        }),
+        catchError((res: HttpErrorResponse) => {
+          this.store.submit.caching.delete(file);
+          this.serverErrors.push(...printError(res));
+          return throwError(() => res);
         }),
       ).subscribe(ref => runInAction(() => {
         this.store.submit.caching.delete(file);
@@ -427,7 +431,11 @@ export class UploadPage implements OnDestroy {
       return;
     }
     if (field.value) {
+      this.bookmarks.tags = field.value.startsWith('-')
+        ? without(this.bookmarks.tags, field.value.substring(1))
+        : uniq([...this.bookmarks.tags, field.value]);
       this.store.submit.tagRefs(field.value.toLowerCase().trim().split(/\s+/));
+      this.store.eventBus.fire('refresh:uploads');
       field.value = '';
     }
   }

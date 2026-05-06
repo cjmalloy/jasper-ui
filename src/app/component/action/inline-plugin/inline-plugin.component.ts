@@ -39,7 +39,7 @@ export class InlinePluginComponent extends ActionComponent {
     super();
   }
 
-  @ViewChild(GenFormComponent)
+  @ViewChild('gen')
   set gen(c: GenFormComponent) {
     if (!c) return;
     this.group = this.fb.group({

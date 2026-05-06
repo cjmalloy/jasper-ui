@@ -21,7 +21,7 @@ export class SettingsUserPage implements OnInit, OnDestroy, HasChanges {
 
   private disposers: IReactionDisposer[] = [];
 
-  @ViewChild(UserListComponent)
+  @ViewChild('list')
   list?: UserListComponent;
 
   constructor(
@@ -33,7 +33,7 @@ export class SettingsUserPage implements OnInit, OnDestroy, HasChanges {
     public query: UserStore,
   ) {
     mod.setTitle($localize`Settings: User Profiles`);
-    store.view.clear(['levels', 'tag'], ['levels', 'tag']);
+    store.view.clear(['tag:len', 'tag'], ['tag:len', 'tag']);
     scim.clear();
     query.clear();
   }

@@ -7,6 +7,17 @@ import { Store } from '../../store/store';
 import { isSubOrigin, localTag, tagOrigin } from '../../util/tag';
 import { ConfigService } from '../config.service';
 
+
+function isTestEnvironment(): boolean {
+  // Check for Vitest/Jest test environment
+  // @ts-ignore
+  if (typeof globalThis !== 'undefined' && (globalThis.__vitest_worker__ || globalThis.jest)) return true;
+  // Check for Zone.js test zone (Angular TestBed)
+  // @ts-ignore
+  if (typeof Zone !== 'undefined' && Zone.current?.name === 'ProxyZone') return true;
+  return false;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -26,10 +37,10 @@ export class StompService extends RxStomp {
       reconnectDelay: 2000,
     };
     if (isDevMode()) {
-      this.stompConfig.debug = msg => console.debug('📶️  '+ msg);
+      this.stompConfig.debug = (msg: string) => console.debug('📶️  '+ msg);
     }
     this.configure(this.stompConfig);
-    if (this.config.websockets) this.activate();
+    if (this.config.websockets && !isTestEnvironment()) this.activate();
   }
 
   get headers() {
@@ -43,12 +54,13 @@ export class StompService extends RxStomp {
   }
 
   get hostUrl() {
-    var proto = this.getWsProtocol(this.config.api);
-    if (this.config.api === '.' || this.config.api === '/' || this.config.api === './') return proto + location.host;
-    if (this.config.api.startsWith('//')) return proto + this.config.api.substring('//'.length);
-    if (this.config.api.startsWith('https://')) return proto + this.config.api.substring('https://'.length);
-    if (this.config.api.startsWith('http://')) return proto + this.config.api.substring('http://'.length);
-    return proto + this.config.api;
+    const api = this.config.api || '.';
+    var proto = this.getWsProtocol(api);
+    if (api === '.' || api === '/' || api === './') return proto + location.host;
+    if (api.startsWith('//')) return proto + api.substring('//'.length);
+    if (api.startsWith('https://')) return proto + api.substring('https://'.length);
+    if (api.startsWith('http://')) return proto + api.substring('http://'.length);
+    return proto + api;
   }
 
   getWsProtocol(url = '') {

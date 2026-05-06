@@ -3,6 +3,7 @@ import {
   AfterViewInit,
   Component,
   ElementRef,
+  forwardRef,
   HostBinding,
   Input,
   OnChanges,
@@ -64,7 +65,7 @@ import { CommentThreadComponent } from './comment-thread/comment-thread.componen
   host: { 'class': 'comment' },
   imports: [
     CommentThreadComponent,
-    ViewerComponent,
+    forwardRef(() => ViewerComponent),
     MobxAngularModule,
     RouterLink,
     TitleDirective,
@@ -85,11 +86,11 @@ export class CommentComponent implements OnInit, AfterViewInit, OnChanges, OnDes
 
   @ViewChildren('action')
   actionComponents?: QueryList<ActionComponent>;
-  @ViewChild(CommentReplyComponent)
+  @ViewChild('replyComponent')
   replyComponent?: CommentReplyComponent;
-  @ViewChild(CommentEditComponent)
+  @ViewChild('editComponent')
   editComponent?: CommentEditComponent;
-  @ViewChild(CommentThreadComponent)
+  @ViewChild('threadComponent')
   threadComponent?: CommentThreadComponent;
 
   @Input()
@@ -332,7 +333,7 @@ export class CommentComponent implements OnInit, AfterViewInit, OnChanges, OnDes
   }
 
   visible(v: Visibility) {
-    return visible(v, this.isAuthor, this.isRecipient);
+    return visible(this.ref, v, this.isAuthor, this.isRecipient);
   }
 
   label(a: Action) {

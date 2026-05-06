@@ -6,7 +6,8 @@ import {
   AfterViewInit,
   Component,
   ElementRef,
-  EventEmitter, forwardRef,
+  EventEmitter,
+  forwardRef,
   HostBinding,
   HostListener,
   Input,
@@ -76,6 +77,8 @@ export class KanbanCardComponent implements OnChanges, AfterViewInit, OnDestroy 
   hideSwimLanes = true;
   @Input()
   ext?: Ext;
+  @Input()
+  progress?: number;
 
   @Output()
   copied = new EventEmitter<Ref>();

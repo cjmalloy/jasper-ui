@@ -2,7 +2,7 @@
   <form class="form"
         [formGroup]="textForm"
         (ngSubmit)="submit()"
-        [appLimitWidth]="advancedForm?.fill?.nativeElement || fill?.nativeElement"
+        [appLimitWidth]="limitWidth"
         [limitSibling]="true">
 
     @if (defaults?.url || loadingDefaults.length) {
@@ -31,7 +31,7 @@
                          [text]="true"
                          i18n-title title="Add Plugin"
                          (pluginChange)="bookmarks.toggleTag($event); pluginSelect.plugin = ''"></app-select-plugin>
-      <app-form-plugins id="plugins" [group]="textForm"></app-form-plugins>
+      <app-form-plugins #plugins id="plugins" [group]="textForm"></app-form-plugins>
 
       @if (customEditor) {
         <span><!-- Editor --></span>
@@ -59,12 +59,13 @@
                       [tags]="tags"
                       (syncTags)="setTags($event)"
                       (addSource)="addSource($event)"
+                      (uploadCompleted)="completedUploads.push($event)"
                       [fillWidth]="fill"
                       [autoFocus]="true"></app-editor>
         </div>
       }
 
-      <app-tags [group]="textForm"></app-tags>
+      <app-tags #tagsFormComponent [group]="textForm"></app-tags>
 
       <span><!-- Advanced --></span>
       <a class="fake-link no-select" (click)="showAdvanced()" i18n>show advanced</a>
@@ -87,8 +88,11 @@
           <label for="addAnother" i18n>Add another</label>
         </div>
       }
-      @if (submitting) {
+      @if (submitting || saving) {
         <app-loading [inline]="true"></app-loading>
+      }
+      @if (admin.getPlugin('plugin/editing')) {
+        <button type="button" [disabled]="submitting || saving || submitted || textForm.pristine" (click)="saveForLater(true)" i18n>Save for later</button>
       }
       <button type="submit" [disabled]="submitting || submitted && !textForm.valid" i18n>Submit</button>
     </span>

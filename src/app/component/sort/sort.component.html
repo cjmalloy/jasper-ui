@@ -14,10 +14,12 @@
         <option [value]="s.value" [title]="s.title || ''">{{ s.label || s.value }}</option>
       }
     </select>
-    @if (sortDir(sort) === 'DESC') {
-      <button type="button" (click)="setSortDir(i, 'ASC')" i18n-title title="Descending" i18n>🔽️</button>
-    } @else {
-      <button type="button" (click)="setSortDir(i, 'DESC')" i18n-title title="Ascending" i18n>🔼️</button>
+    @if (sortCol(sort) !== 'rank') {
+      @if (sortDir(sort) === 'DESC') {
+        <button type="button" (click)="setSortDir(i, 'ASC')" i18n-title title="Descending" i18n>🔽️</button>
+      } @else {
+        <button type="button" (click)="setSortDir(i, 'DESC')" i18n-title title="Ascending" i18n>🔼️</button>
+      }
     }
     @if (sorts.length > 1) {
       <button type="button" (click)="removeSort(i)" i18n>&ndash;</button>

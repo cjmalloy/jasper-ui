@@ -24,7 +24,7 @@ export class SettingsRefPage implements OnInit, OnDestroy, HasChanges {
   plugin?: Plugin;
   writeAccess = false;
 
-  @ViewChild(RefListComponent)
+  @ViewChild('list')
   list?: RefListComponent;
 
   constructor(
@@ -35,7 +35,7 @@ export class SettingsRefPage implements OnInit, OnDestroy, HasChanges {
     public query: QueryStore,
   ) {
     mod.setTitle($localize`Settings: `);
-    store.view.clear(['metadataModified']);
+    store.view.clear(['metadata->modified']);
     query.clear();
   }
 

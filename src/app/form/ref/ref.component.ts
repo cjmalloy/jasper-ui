@@ -3,6 +3,7 @@ import {
   Component,
   ElementRef,
   EventEmitter,
+  forwardRef,
   HostBinding,
   HostListener,
   Input,
@@ -49,7 +50,7 @@ import { TagsFormComponent } from '../tags/tags.component';
   styleUrls: ['./ref.component.scss'],
   host: { 'class': 'nested-form' },
   imports: [
-    EditorComponent,
+    forwardRef(() => EditorComponent),
     CdkDropListGroup,
     ReactiveFormsModule,
     LinksFormComponent,
@@ -71,16 +72,18 @@ export class RefFormComponent implements OnChanges {
   @Output()
   toggleTag = new EventEmitter<string>();
 
-  @ViewChild(TagsFormComponent)
+  @ViewChild('tagsFormComponent')
   tagsFormComponent!: TagsFormComponent;
   @ViewChild('sources')
   sourcesFormComponent!: LinksFormComponent;
   @ViewChild('alts')
   altsFormComponent!: LinksFormComponent;
-  @ViewChild(PluginsFormComponent)
+  @ViewChild('pluginsFormComponent')
   pluginsFormComponent!: PluginsFormComponent;
   @ViewChild('fill')
   fill?: ElementRef;
+  @ViewChild('ed')
+  editorComponent?: EditorComponent;
 
   @HostBinding('class.show-drops')
   dropping = false;
@@ -92,6 +95,7 @@ export class RefFormComponent implements OnChanges {
   scrapingTitle = false;
   scrapingPublished = false;
   scrapingAll = false;
+  completedUploads: Ref[] = [];
 
   constructor(
     public config: ConfigService,

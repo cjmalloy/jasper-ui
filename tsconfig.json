@@ -8,6 +8,7 @@
     "esModuleInterop": true,
     "strict": true,
     "noImplicitOverride": true,
+    "allowSyntheticDefaultImports": true,
     "noPropertyAccessFromIndexSignature": false,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
@@ -15,14 +16,10 @@
     "declaration": false,
     "experimentalDecorators": true,
     "skipLibCheck": true,
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "importHelpers": true,
     "target": "ES2022",
     "module": "esnext",
-    "lib": [
-      "es2020",
-      "dom"
-    ],
     "useDefineForClassFields": false
   },
   "angularCompilerOptions": {
@@ -34,5 +31,5 @@
   "include": [
     "src/**/*.ts"
   ],
-  "exclude": ["cypress"]
+  "exclude": ["e2e"]
 }

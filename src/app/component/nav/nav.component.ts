@@ -7,7 +7,7 @@ import { TaggingService } from '../../service/api/tagging.service';
 import { ConfigService } from '../../service/config.service';
 import { EditorService } from '../../service/editor.service';
 import { VisibilityService } from '../../service/visibility.service';
-import { getPath, parseParams } from '../../util/http';
+import { getPath, parseBookmarkParams } from '../../util/http';
 import { hasPrefix } from '../../util/tag';
 
 @Component({
@@ -91,7 +91,7 @@ export class NavComponent implements OnInit, OnDestroy {
   }
 
   get query() {
-    return parseParams(this.url);
+    return parseBookmarkParams(this.url);
   }
 
   get localUrl() {
@@ -110,8 +110,9 @@ export class NavComponent implements OnInit, OnDestroy {
     return this.text != this.url;
   }
 
-  markRead() {
+  markRead(event: MouseEvent) {
     if (!this.admin.getPlugin('plugin/user/read')) return;
+    if (event.button !== 0 && event.button !== 1) return;
     this.ts.createResponse('plugin/user/read', this.url).subscribe();
   }
 

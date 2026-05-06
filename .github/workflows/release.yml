@@ -22,7 +22,8 @@ jobs:
       - name: Install Node.js, NPM and Yarn
         uses: actions/setup-node@v6
         with:
-          node-version: 22
+          node-version: 24
+          cache: 'npm'
 
       - name: Build
         run: npm ci && npm run build

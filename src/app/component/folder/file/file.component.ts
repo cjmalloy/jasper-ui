@@ -198,7 +198,7 @@ export class FileComponent implements OnChanges, OnDestroy {
   }
 
   visible(v: Visibility) {
-    return visible(v, this.isAuthor, this.isRecipient);
+    return visible(this.ref, v, this.isAuthor, this.isRecipient);
   }
 
   active(a: TagAction | ResponseAction | Icon) {

@@ -34,9 +34,9 @@ export class RefThreadComponent implements HasChanges {
   private disposers: IReactionDisposer[] = [];
   private destroy$ = new Subject<void>();
 
-  @ViewChild(CommentReplyComponent)
+  @ViewChild('reply')
   reply?: CommentReplyComponent;
-  @ViewChild(RefListComponent)
+  @ViewChild('list')
   list?: RefListComponent;
 
   newRefs$ = new Subject<Ref | undefined>();
@@ -98,6 +98,10 @@ export class RefThreadComponent implements HasChanges {
     this.disposers.push(autorun(() => this.mod.setTitle($localize`Thread: ` + getTitle(this.store.view.ref))));
     this.disposers.push(autorun(() => {
       MemoCache.clear(this);
+      if (this.store.view.ref) {
+        const threadCount = this.store.view.ref.metadata?.plugins?.['plugin/thread'] || 0;
+        this.store.local.setLastSeenCount(this.store.view.url, 'threads', threadCount);
+      }
       if (this.store.view.ref && this.config.websockets) {
         const topUrl = top(this.store.view.ref);
         if (this.watchUrl !== topUrl) {

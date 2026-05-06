@@ -92,7 +92,7 @@ describe('KanbanColumnComponent', () => {
     });
 
     it('should prevent navigation when items are being added', () => {
-      component.adding = ['test item'];
+      component.adding = [{ id: 'test-id', name: 'test item' }];
       component.failed = [];
 
       expect(component.saveChanges()).toBe(false);
@@ -106,7 +106,7 @@ describe('KanbanColumnComponent', () => {
     });
 
     it('should prevent navigation when both adding and failed items exist', () => {
-      component.adding = ['adding item'];
+      component.adding = [{ id: 'test-id', name: 'adding item' }];
       component.failed = [{ text: 'failed item', error: 'error' }];
 
       expect(component.saveChanges()).toBe(false);

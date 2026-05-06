@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { AfterViewInit, Component, ElementRef, OnChanges, OnDestroy, SimpleChanges, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, forwardRef, OnChanges, OnDestroy, SimpleChanges, ViewChild } from '@angular/core';
 import {
   ReactiveFormsModule,
   UntypedFormArray,
@@ -14,7 +14,7 @@ import { DateTime } from 'luxon';
 import { autorun, IReactionDisposer } from 'mobx';
 import { MobxAngularModule } from 'mobx-angular';
 import { MonacoEditorModule } from 'ngx-monaco-editor';
-import { catchError, forkJoin, map, Observable, of, Subscription, switchMap, throwError } from 'rxjs';
+import { catchError, firstValueFrom, forkJoin, interval, map, Observable, of, Subject, Subscription, switchMap, takeUntil, throwError } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { LoadingComponent } from '../../../component/loading/loading.component';
 import { SelectPluginComponent } from '../../../component/select-plugin/select-plugin.component';
@@ -27,10 +27,12 @@ import { LinksFormComponent } from '../../../form/links/links.component';
 import { PluginsFormComponent, writePlugins } from '../../../form/plugins/plugins.component';
 import { TagsFormComponent } from '../../../form/tags/tags.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
+import { Ref } from '../../../model/ref';
 import { getMailbox } from '../../../mods/mailbox';
 import { AdminService } from '../../../service/admin.service';
 import { ExtService } from '../../../service/api/ext.service';
 import { RefService } from '../../../service/api/ref.service';
+import { TaggingService } from '../../../service/api/tagging.service';
 import { BookmarkService } from '../../../service/bookmark.service';
 import { ConfigService } from '../../../service/config.service';
 import { EditorService } from '../../../service/editor.service';
@@ -40,7 +42,7 @@ import { scrollToFirstInvalid } from '../../../util/form';
 import { QUALIFIED_TAGS_REGEX } from '../../../util/format';
 import { printError } from '../../../util/http';
 import { memo, MemoCache } from '../../../util/memo';
-import { hasPrefix, hasTag } from '../../../util/tag';
+import { getVisibilityTags, hasPrefix, hasTag, localTag } from '../../../util/tag';
 
 @Component({
   selector: 'app-submit-dm',
@@ -48,7 +50,7 @@ import { hasPrefix, hasTag } from '../../../util/tag';
   styleUrls: ['./dm.component.scss'],
   host: { 'class': 'full-page-form' },
   imports: [
-    EditorComponent,
+    forwardRef(() => EditorComponent),
     MobxAngularModule,
     ReactiveFormsModule,
     LimitWidthDirective,
@@ -64,21 +66,33 @@ import { hasPrefix, hasTag } from '../../../util/tag';
 })
 export class SubmitDmPage implements AfterViewInit, OnChanges, OnDestroy, HasChanges {
   private disposers: IReactionDisposer[] = [];
+  private destroy$ = new Subject<void>();
+  private _url = 'comment:' + uuid();
 
   submitted = false;
   dmForm: UntypedFormGroup;
   serverError: string[] = [];
 
-  @ViewChild('fill')
-  fill?: ElementRef;
+  limitWidth?: HTMLElement;
 
-  @ViewChild(TagsFormComponent)
+  @ViewChild('fill')
+  set fill(value: ElementRef | undefined) {
+    defer(() => this.limitWidth = value?.nativeElement);
+  }
+
+  @ViewChild('ed')
+  editorComponent?: EditorComponent;
+
+  @ViewChild('tagsFormComponent')
   tagsFormComponent?: TagsFormComponent;
 
   preview = '';
   editing = false;
   autocomplete: { value: string, label: string }[] = [];
   submitting?: Subscription;
+  saving?: Subscription;
+  completedUploads: Ref[] = [];
+  private cursor?: string;
   private showedError = false;
   private addedMailboxes: string[] = [];
   private searching?: Subscription;
@@ -92,6 +106,7 @@ export class SubmitDmPage implements AfterViewInit, OnChanges, OnDestroy, HasCha
     public bookmarks: BookmarkService,
     private refs: RefService,
     private exts: ExtService,
+    private ts: TaggingService,
     private editor: EditorService,
     private fb: UntypedFormBuilder,
   ) {
@@ -103,24 +118,36 @@ export class SubmitDmPage implements AfterViewInit, OnChanges, OnDestroy, HasCha
       comment: [''],
       tags: fb.array([]),
     });
+    if (this.admin.editing) {
+      interval(5_000).pipe(
+        takeUntil(this.destroy$),
+      ).subscribe(() => {
+        if (this.dmForm.dirty) this.saveForLater();
+      });
+    }
   }
 
-  saveChanges() {
-    // TODO: Just save in drafts
-    return !this.dmForm.dirty;
+  async saveChanges() {
+    if (this.admin.editing && this.dmForm.dirty) {
+      return firstValueFrom(this.refs.saveEdit(this.writeRef(), this.cursor)
+        .pipe(map(() => true), catchError(() => of(false))));
+    }
+    return !this.dmForm?.dirty;
   }
 
   ngAfterViewInit() {
-    this.disposers.push(autorun(() => {
-      if (this.store.submit.dmPlugin) {
-        this.setTo(this.store.submit.dmPlugin);
-      } if (this.store.submit.to.length) {
-        this.setTo(this.store.submit.to.join(' '));
-      } else {
-        this.setTo('');
-      }
-      this.addTags([...this.store.submit.tags, ...(this.store.account.localTag ? [this.store.account.localTag] : [])]);
-    }));
+    defer(() => {
+      this.disposers.push(autorun(() => {
+        if (this.store.submit.dmPlugin) {
+          this.setTo(this.store.submit.dmPlugin);
+        } if (this.store.submit.to.length) {
+          this.setTo(this.store.submit.to.join(' '));
+        } else {
+          this.setTo('');
+        }
+        this.addTags([...this.store.submit.tags, ...(this.store.account.localTag ? [this.store.account.localTag] : [])]);
+      }));
+    });
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -130,6 +157,8 @@ export class SubmitDmPage implements AfterViewInit, OnChanges, OnDestroy, HasCha
   ngOnDestroy() {
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   get to() {
@@ -154,6 +183,33 @@ export class SubmitDmPage implements AfterViewInit, OnChanges, OnDestroy, HasCha
 
   get notes() {
     return !this.to.value || this.to.value === this.store.account.tag;
+  }
+
+  saveForLater(leave = false) {
+    const savedValue = JSON.stringify(this.dmForm.value);
+    this.saving = this.refs.saveEdit(this.writeRef(), this.cursor)
+      .pipe(catchError(err => {
+        delete this.saving;
+        return throwError(() => err);
+      }))
+      .subscribe(cursor => {
+        delete this.saving;
+        this.cursor = cursor;
+        if (JSON.stringify(this.dmForm.value) === savedValue) this.dmForm.markAsPristine();
+        if (leave) this.router.navigate(['/inbox/ref', 'plugin/editing']);
+      });
+  }
+
+  writeRef() {
+    return <Ref> {
+      url: this._url,
+      origin: this.store.account.origin,
+      title: this.dmForm.value.title,
+      comment: this.dmForm.value.comment,
+      sources: this.dmForm.value.sources,
+      tags: this.dmForm.value.tags,
+      plugins: writePlugins(this.dmForm.value.tags, this.dmForm.value.plugins),
+    };
   }
 
   addTags(value: string[]) {
@@ -270,7 +326,7 @@ export class SubmitDmPage implements AfterViewInit, OnChanges, OnDestroy, HasCha
   }
 
   getMailboxes(tag: string): string[] {
-    return this.admin.getPlugin(tag)?.config?.reply || [ getMailbox(tag, this.store.account.origin) ];
+    return this.admin.getPlugin(tag)?.config?.reply || [ getMailbox(tag, this.store.account.origin), ...hasPrefix(tag, '+user') ? [localTag(tag).substring(1)] : [] ];
   }
 
   @memo
@@ -308,6 +364,10 @@ export class SubmitDmPage implements AfterViewInit, OnChanges, OnDestroy, HasCha
   }
 
   submit() {
+    if (this.saving) {
+      this.saving.add(() => this.submit());
+      return;
+    }
     this.serverError = [];
     this.submitted = true;
     this.dmForm.markAllAsTouched();
@@ -315,20 +375,30 @@ export class SubmitDmPage implements AfterViewInit, OnChanges, OnDestroy, HasCha
       scrollToFirstInvalid();
       return;
     }
-    const url = 'comment:' + uuid();
+    const url = this._url;
     const published = this.dmForm.value.published ? DateTime.fromISO(this.dmForm.value.published) : DateTime.now();
     let sources = [url, ...uniq([url, ...this.store.submit.sources, ...this.dmForm.value.sources])];
     if (sources.length === 2) sources = [];
-    this.submitting = this.refs.create({
+    const finalTags = this.dmForm.value.tags;
+    const ref = {
       url,
       origin: this.store.account.origin,
       title: this.dmForm.value.title,
       comment: this.dmForm.value.comment,
       sources,
       published,
-      tags: this.dmForm.value.tags,
+      tags: finalTags,
       plugins: writePlugins(this.dmForm.value.tags, this.dmForm.value.plugins),
-    }).pipe(
+    };
+    this.submitting = (this.cursor ? this.refs.update({ ...ref, modifiedString: this.cursor }) : this.refs.create(ref)).pipe(
+      switchMap(res => {
+        const finalVisibilityTags = getVisibilityTags(finalTags);
+        if (!finalVisibilityTags.length) return of(res);
+        const taggingOps = this.completedUploads
+          .map(upload => this.ts.patch(finalVisibilityTags, upload.url, upload.origin));
+        if (!taggingOps.length) return of(res);
+        return forkJoin(taggingOps).pipe(map(() => res));
+      }),
       catchError((res: HttpErrorResponse) => {
         delete this.submitting;
         this.serverError = printError(res);
@@ -337,6 +407,8 @@ export class SubmitDmPage implements AfterViewInit, OnChanges, OnDestroy, HasCha
     ).subscribe(() => {
       delete this.submitting;
       this.dmForm.markAsPristine();
+      this.completedUploads = [];
+
       this.router.navigate(['/ref', url, 'thread'], { queryParams: { published }, replaceUrl: true});
     });
   }

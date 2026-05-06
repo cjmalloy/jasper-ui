@@ -28,6 +28,7 @@ import { RefSummaryComponent } from './page/ref/summary/summary.component';
 import { RefThreadComponent } from './page/ref/thread/thread.component';
 import { RefVersionsComponent } from './page/ref/versions/versions.component';
 import { SettingsBackupPage } from './page/settings/backup/backup.component';
+import { SettingsLocalPage } from './page/settings/local/local.component';
 import { SettingsMePage } from './page/settings/me/me.component';
 import { SettingsPasswordPage } from './page/settings/password/password.component';
 import { SettingsPluginPage } from './page/settings/plugin/plugin.component';
@@ -69,6 +70,11 @@ export class CustomUrlSerializer implements UrlSerializer {
     return this.getSearch(search) + hash;
   }
 
+  getHash(url: string) {
+    let [_, __, hash] = parts(url);
+    return hash;
+  }
+
   getSearch(search: string) {
     return search
       .replace(/%2F/g, '/')
@@ -103,14 +109,14 @@ export class CustomUrlSerializer implements UrlSerializer {
   serialize(tree: UrlTree) {
     const url = dus.serialize(tree);
     if (tree.root.children.primary?.segments[0]?.path === 'ref' && tree.root.children.primary.segments.length === 2) {
-      if (!this.getExtras(url)) {
+      if (!this.getExtras(url) && !this.getHash(tree.root.children.primary.segments[1].path)) {
         return '/ref/' + tree.root.children.primary.segments[1].path;
       } else {
         return '/ref/e/' + encodeURIComponent(tree.root.children.primary.segments[1].path) + this.getExtras(url);
       }
     }
     if (tree.root.children.primary?.segments[0]?.path === 'ref' && tree.root.children.primary.segments.length === 3) {
-      if (!this.getExtras(url)) {
+      if (!this.getExtras(url) && !this.getHash(tree.root.children.primary.segments[1].path)) {
         return '/ref/' + tree.root.children.primary.segments[2].path + '/' + tree.root.children.primary.segments[1].path;
       } else {
         return '/ref/' + tree.root.children.primary.segments[2].path + '/e/' + encodeURIComponent(tree.root.children.primary.segments[1].path) + this.getExtras(url);
@@ -151,7 +157,7 @@ Location.prototype.normalize = function(url) {
 
 const routes: Routes = [
   { path: '', redirectTo: 'home', pathMatch: 'full' },
-  { path: 'home', component: HomePage, canActivate: [installedModGuard('home', ['../all'])], canDeactivate: [pendingChangesGuard, clearLastSelected], runGuardsAndResolvers: 'always' },
+  { path: 'home', component: HomePage, canActivate: [installedModGuard('config/home', ['../all'])], canDeactivate: [pendingChangesGuard, clearLastSelected], runGuardsAndResolvers: 'always' },
   { path: 'login', component: LoginPage },
   { path: 'all', redirectTo: 'tag/@*', pathMatch: 'full' },
   { path: 'tag', redirectTo: 'tag/@*', pathMatch: 'full' },
@@ -213,6 +219,7 @@ const routes: Routes = [
       { path: 'template', component: SettingsTemplatePage, canDeactivate: [pendingChangesGuard], runGuardsAndResolvers: 'always' },
       { path: 'password', component: SettingsPasswordPage },
       { path: 'backup', component: SettingsBackupPage },
+      { path: 'local', component: SettingsLocalPage },
     ],
   },
 ];

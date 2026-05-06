@@ -2,6 +2,9 @@
   scroll-padding: 20px;
   outline: none;
 }
+video:focus, video:focus-visible {
+  outline: none;
+}
 * {
   display: block;
 }
@@ -24,17 +27,5 @@ iframe {
       margin-top: -10px;
       margin-bottom: -10px;
     }
-  }
-}
-
-:host:fullscreen {
-  &,
-  & .embed-container iframe {
-    margin: 0 !important;
-    width: 100vw !important;
-    height: 100vw !important;
-  }
-  & > * {
-    margin: auto;
   }
 }

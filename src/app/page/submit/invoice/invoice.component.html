@@ -34,7 +34,8 @@
 
   <span><!-- Message --></span>
   <div #fill class="fill-editor">
-    <app-editor class="bubble"
+    <app-editor #editor
+                class="bubble"
                 [control]="comment"
                 [addButton]="true"
                 i18n-addCommentTitle addCommentTitle="Add message"
@@ -42,7 +43,8 @@
                 [fillWidth]="fill"
                 (syncEditor)="syncEditor()"
                 [tags]="$any(invoiceForm.value).tags"
-                (syncTags)="editorTags = $event"></app-editor>
+                (syncTags)="editorTags = $event"
+                (uploadCompleted)="completedUploads.push($event)"></app-editor>
   </div>
 
   @for (e of serverError; track e) {
