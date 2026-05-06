@@ -114,7 +114,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
         this.addRef(this.store.eventBus.ref);
       }
     }));
-    this.watch = this.stomp.watchResponse(this.refUrl).pipe(
+    this.watch = this.stomp.watchResponse('tag:plugin/user/clipboard').pipe(
       catchError(() => of(undefined)),
     ).subscribe(() => this.loadRemote());
   }
@@ -140,10 +140,6 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
 
   hasPendingPaste() {
     return this.items.find(item => item.selected);
-  }
-
-  get refUrl() {
-    return 'tag:plugin/user/clipboard';
   }
 
   get storageKey() {
@@ -777,7 +773,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
       return;
     }
     this.loading = true;
-    this.tags.getResponse(this.refUrl).pipe(
+    this.tags.getResponse('tag:plugin/user/clipboard').pipe(
       catchError(() => of(undefined)),
     ).subscribe(ref => {
       this.loading = false;
@@ -937,7 +933,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     this.savingRemote = true;
     // Remote writes are serialized by savingRemote; keep the in-flight request
     // alive and let the pending flag schedule one save with the newest snapshot.
-    this.save = this.tags.mergeResponse(['plugin/user/clipboard'], this.refUrl, {
+    this.save = this.tags.mergeResponse(['plugin/user/clipboard'], 'tag:plugin/user/clipboard', {
       'plugin/user/clipboard': {
         items: this.items.map(item => this.serializeRemote(item)),
       },
