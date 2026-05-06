@@ -227,7 +227,7 @@ test.describe.serial('User Clipboard Plugin', () => {
     await page.locator('.clipboard-bubble').filter({ hasText: 'tag:/topic/two' }).last().click();
     await page.getByRole('button', { name: '+ Add another subscription' }).click();
     const subscriptionInput = page.locator('.query-field input.grow').last();
-    await subscriptionInput.focus();
+    await subscriptionInput.click();
     await expect(subscriptionInput).toHaveValue('topic/one|topic/two');
     await expect(subscriptionInput).not.toBeFocused();
 
