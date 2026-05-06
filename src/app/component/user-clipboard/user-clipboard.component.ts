@@ -4,6 +4,7 @@ import { ReactiveFormsModule, UntypedFormArray, UntypedFormBuilder, UntypedFormG
 import DOMPurify from 'dompurify';
 import { autorun, IReactionDisposer } from 'mobx';
 import { catchError, finalize, of, Subscription } from 'rxjs';
+import { v4 as uuid } from 'uuid';
 import { refForm, RefFormComponent } from '../../form/ref/ref.component';
 import { Plugin } from '../../model/plugin';
 import { Ref, RefUpdates } from '../../model/ref';
@@ -336,7 +337,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     this.items = [
       ...this.items,
       {
-        id: crypto.randomUUID(),
+        id: uuid(),
         created: new Date().toISOString(),
         x: BUBBLE_START_X,
         y,
