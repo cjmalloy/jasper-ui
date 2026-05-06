@@ -45,7 +45,7 @@ test.describe.serial('User Clipboard Plugin', () => {
     await page.mouse.down();
     await page.mouse.move(previewBox!.x + DRAG_END_X_OFFSET, previewBox!.y + DRAG_END_Y_OFFSET);
     await page.mouse.up();
-    const interruptBubbleDrag = async (eventType: 'pointercancel' | 'lostpointercapture') => bubble.evaluate((element, type) => {
+    const interruptBubbleDrag = async (eventType: 'pointercancel' | 'lostpointercapture') => bubble.evaluate((element, pointerEventType) => {
       let captured = false;
       Object.defineProperties(element, {
         setPointerCapture: { value: () => { captured = true; }, configurable: true },
@@ -54,7 +54,7 @@ test.describe.serial('User Clipboard Plugin', () => {
       });
       element.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, button: 0, pointerId: 7, clientX: 20, clientY: 80 }));
       element.dispatchEvent(new PointerEvent('pointermove', { bubbles: true, pointerId: 7, clientX: 60, clientY: 120 }));
-      element.dispatchEvent(new PointerEvent(type, { bubbles: true, pointerId: 7 }));
+      element.dispatchEvent(new PointerEvent(pointerEventType, { bubbles: true, pointerId: 7 }));
     }, eventType);
 
     await expect.poll(() => bubble.evaluate(element => getComputedStyle(element).left)).not.toBe(initialLeft);

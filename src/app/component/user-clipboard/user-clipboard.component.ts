@@ -307,7 +307,8 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   }
 
   cancelPointerDrag(event: PointerEvent) {
-    if (!this.drag || event.currentTarget !== this.drag.element) return;
+    const target = event.currentTarget;
+    if (!this.drag || !(target instanceof HTMLElement) || target !== this.drag.element) return;
     const moved = this.drag.moved;
     this.clearPointerCapture(this.drag.element, event.pointerId);
     this.drag = undefined;
