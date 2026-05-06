@@ -198,8 +198,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
 
   @HostListener('document:drop')
   documentDrop() {
-    this.dropVisible = false;
-    this.dropActive = false;
+    this.resetDropState();
   }
 
   openEdit(item: ClipboardItem, event: Event) {
@@ -256,8 +255,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
 
   @HostListener('document:dragend')
   dragEnd() {
-    this.dropVisible = false;
-    this.dropActive = false;
+    this.resetDropState();
     this.draggedRef = undefined;
   }
 
@@ -432,6 +430,11 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
 
   private isClipboardEditTarget(target: HTMLElement | null) {
     return !!target?.closest('.clipboard-edit-popup');
+  }
+
+  private resetDropState() {
+    this.dropVisible = false;
+    this.dropActive = false;
   }
 
   private isTagField(target?: HTMLElement) {

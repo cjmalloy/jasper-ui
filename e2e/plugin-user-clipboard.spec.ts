@@ -1,4 +1,5 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test } from '@playwright/test';
+import type { Page } from '@playwright/test';
 import { deleteRef, mod, openSidebar } from './setup';
 
 const DRAG_START_OFFSET = 8; // Start inside the preview so preview-origin drags are covered.

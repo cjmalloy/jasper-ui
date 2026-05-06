@@ -30,6 +30,8 @@
                     (click)="$event.stopPropagation()">
                <input #holdCheckbox
                       type="checkbox"
+                      title="Keep selected after paste"
+                      i18n-title
                       [checked]="item.hold"
                       (change)="setHold(item, holdCheckbox.checked, $event)"
                       aria-label="Keep selected after paste"
