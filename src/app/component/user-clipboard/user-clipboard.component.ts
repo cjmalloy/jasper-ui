@@ -160,7 +160,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   }
 
   previewText(item: ClipboardItem) {
-    if (this.isTagUrl(item.ref?.url) && item.ref?.title) return item.ref.title;
+    if (this.isTagUrl(item.ref?.url)) return item.ref?.title || item.ref?.url?.substring(TAG_URL_PREFIX.length) || '';
     if (item.text) return item.text;
     if (item.ref?.title) return item.ref.title;
     if (item.ref?.url) return item.ref.url;
@@ -574,6 +574,8 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   private clipboardItem(target: HTMLElement | null): ClipboardItemContent | undefined {
     const text = this.selectedText(target);
     const html = this.selectedHtml();
+    // Copy events may target a container while the selected HTML contains the
+    // actual tag/link anchor, so parse the selection as a fallback.
     const ref = this.refFromTarget(target) || (html ? this.refFromHtml(html) : undefined);
     if (!text && !html && !ref) return undefined;
     const itemText = this.isTagUrl(ref?.url) ? ref?.url : text;
@@ -610,7 +612,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   private tagRefFromTarget(target: HTMLElement | null): ClipboardRef | undefined {
     const tagLink = target?.closest('a[href]') as HTMLAnchorElement | null;
     const url = this.normalizeDroppedUrl(tagLink?.href);
-    if (!this.isTagUrl(url)) return undefined;
+    if (!url || !this.isTagUrl(url)) return undefined;
     return {
       url,
       title: this.cleanTitle(tagLink?.textContent, tagLink?.title, url.substring(TAG_URL_PREFIX.length)),
