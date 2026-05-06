@@ -641,7 +641,11 @@ export class FormlyFieldBookmarkInput extends FieldType<FieldTypeConfig> impleme
   getPreview(value: string) {
     if (!value) return;
     if (this.showError) return;
+    const queryChanged = this._query !== value;
     this.query = value;
+    if (queryChanged) {
+      this.buildAllFilters();
+    }
   }
 
   preview$(value: string): Observable<{ name?: string, tag: string } | undefined> {
