@@ -401,7 +401,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
       const event = new CustomEvent('jasper-clipboard-paste', { bubbles: true, cancelable: true, detail: values });
       listEditor.dispatchEvent(event);
       if (event.defaultPrevented) {
-        this.blurListInput(target);
+        target.blur();
         return true;
       }
       const input = listEditor.querySelector('input') as HTMLInputElement | null;
@@ -411,7 +411,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
         this.setInputValue(input, value);
         add.click();
       }
-      this.blurListInput(input);
+      input.blur();
       return true;
     }
 
@@ -419,7 +419,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     if (!formlyList) return false;
     const event = new CustomEvent('jasper-clipboard-paste', { bubbles: true, cancelable: true, detail: values });
     formlyList.dispatchEvent(event);
-    if (event.defaultPrevented) this.blurListInput(target);
+    if (event.defaultPrevented) target.blur();
     return event.defaultPrevented;
   }
 
@@ -443,10 +443,6 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   private setInputValue(target: HTMLInputElement | HTMLTextAreaElement, value: string) {
     target.value = value;
     target.dispatchEvent(new Event('input', { bubbles: true }));
-  }
-
-  private blurListInput(target: HTMLInputElement | HTMLTextAreaElement) {
-    target.blur();
   }
 
   private isInteractive(target: HTMLElement | null) {
@@ -579,7 +575,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     const html = this.selectedHtml();
     const ref = this.refFromTarget(target) || (html ? this.refFromHtml(html) : undefined);
     if (!text && !html && !ref) return undefined;
-    const itemText = ref?.url.startsWith('tag:/') ? ref.url : text;
+    const itemText = this.isTagUrl(ref?.url) ? ref!.url : text;
     return { text: itemText || undefined, html: html || undefined, ref };
   }
 
@@ -613,7 +609,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   private tagRefFromTarget(target: HTMLElement | null): ClipboardRef | undefined {
     const tagLink = target?.closest('a[href]') as HTMLAnchorElement | null;
     const url = this.normalizeDroppedUrl(tagLink?.href);
-    if (!url?.startsWith('tag:/')) return undefined;
+    if (!this.isTagUrl(url)) return undefined;
     return {
       url,
       title: this.cleanTitle(tagLink?.textContent, tagLink?.title, url.substring('tag:/'.length)),
@@ -708,7 +704,11 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   }
 
   private isTagRef(item: ClipboardItem) {
-    return !!item.ref?.url.startsWith('tag:/');
+    return this.isTagUrl(item.ref?.url);
+  }
+
+  private isTagUrl(url?: string) {
+    return !!url?.startsWith('tag:/');
   }
 
   private isUri(text: string) {
