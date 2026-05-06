@@ -8,8 +8,8 @@ import { refForm, RefFormComponent } from '../../form/ref/ref.component';
 import { Plugin } from '../../model/plugin';
 import { Ref, RefUpdates } from '../../model/ref';
 import { AdminService } from '../../service/admin.service';
-import { RefService } from '../../service/api/ref.service';
 import { StompService } from '../../service/api/stomp.service';
+import { TaggingService } from '../../service/api/tagging.service';
 import { Store } from '../../store/store';
 
 const BUBBLE_START_X = 12;
@@ -80,7 +80,6 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   items: ClipboardItem[] = [];
   editingItem?: ClipboardItem;
   editForm: UntypedFormGroup;
-  private remote?: Ref;
   private watch?: Subscription;
   private save?: Subscription;
   private drag?: DragState;
@@ -98,7 +97,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   constructor(
     public store: Store,
     private admin: AdminService,
-    private refs: RefService,
+    private tags: TaggingService,
     private stomp: StompService,
     private fb: UntypedFormBuilder,
   ) {
@@ -113,11 +112,9 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
         this.addRef(this.store.eventBus.ref);
       }
     }));
-    this.watch = this.stomp.watchRef(this.refUrl).pipe(
+    this.watch = this.stomp.watchResponse(this.refUrl).pipe(
       catchError(() => of(undefined)),
-    ).subscribe(ref => {
-      if (ref) this.applyRemote(ref);
-    });
+    ).subscribe(() => this.loadRemote());
   }
 
   ngOnDestroy() {
@@ -144,7 +141,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   }
 
   get refUrl() {
-    return `tag:/${this.store.account.localTag}?url=tag:/plugin/user/clipboard`;
+    return 'tag:plugin/user/clipboard';
   }
 
   get storageKey() {
@@ -721,7 +718,11 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   }
 
   private loadRemote() {
-    this.refs.get(this.refUrl, this.store.account.origin).pipe(
+    if (!this.store.account.signedIn) {
+      this.loading = false;
+      return;
+    }
+    this.tags.getResponse(this.refUrl).pipe(
       catchError(() => of(undefined)),
     ).subscribe(ref => {
       this.loading = false;
@@ -730,7 +731,6 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
         this.persistRemote();
         return;
       }
-      this.remote = ref;
       // Local clipboard edits made before the initial load completes win and are
       // flushed after the current save, rather than being overwritten here.
       if (!this.pendingRemotePersist) this.applyRemote(ref);
@@ -882,43 +882,11 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     this.savingRemote = true;
     // Remote writes are serialized by savingRemote; keep the in-flight request
     // alive and let the pending flag schedule one save with the newest snapshot.
-    const ref = this.clipboardRef(this.remote);
-    if (!this.remote) {
-      this.save = this.refs.get(this.refUrl, this.store.account.origin).pipe(
-        catchError(() => of(undefined)),
-      ).subscribe(existing => {
-        if (existing) {
-          this.remote = existing;
-          this.sendRemote(this.clipboardRef(existing), true);
-        } else {
-          this.sendRemote(ref, false);
-        }
-      });
-      return;
-    }
-    this.sendRemote(ref, true);
-  }
-
-  private clipboardRef(remote?: Ref): Ref {
-    const ref: Ref = {
-      ...(remote || {}),
-      url: this.refUrl,
-      origin: this.store.account.origin,
-      title: 'Clipboard',
-      tags: [this.store.account.localTag, 'plugin/user/clipboard', 'internal'],
-      plugins: {
-        ...(remote?.plugins || {}),
-        'plugin/user/clipboard': {
-          items: this.items.map(item => this.serializeRemote(item)),
-        },
+    this.save = this.tags.mergeResponse(['plugin/user/clipboard'], this.refUrl, {
+      'plugin/user/clipboard': {
+        items: this.items.map(item => this.serializeRemote(item)),
       },
-    };
-    return ref;
-  }
-
-  private sendRemote(ref: Ref, update: boolean) {
-    const request = update ? this.refs.update(ref) : this.refs.create(ref);
-    this.save = request.pipe(
+    }).pipe(
       catchError(() => of(undefined)),
       finalize(() => {
         this.savingRemote = false;
@@ -926,14 +894,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
         // Leave finalize's call stack before starting the queued save.
         if (this.pendingRemotePersist) window.setTimeout(() => this.persistRemote(), 0);
       }),
-    ).subscribe(cursor => {
-      if (cursor) {
-        this.remote = {
-          ...ref,
-          modifiedString: cursor,
-        };
-      }
-    });
+    ).subscribe();
   }
 
   private serializeRemote(item: ClipboardItem) {

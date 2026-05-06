@@ -69,10 +69,9 @@ test.describe.serial('User Clipboard Plugin', () => {
     await page.locator('.e2e-test-input').focus();
     await expect(page.locator('.e2e-test-input')).toHaveValue('Clipboard paste text');
     await expect.poll(async () => {
-      const ref = await page.request.get('/api/v1/ref', {
+      const ref = await page.request.get('/api/v1/tags/response', {
         params: {
-          url: 'tag:/+user/debug?url=tag:/plugin/user/clipboard',
-          origin: '',
+          url: 'tag:plugin/user/clipboard',
         },
       });
       const json = await ref.json();
@@ -138,10 +137,9 @@ test.describe.serial('User Clipboard Plugin', () => {
     });
     await expect(page.locator('.clipboard-bubble').filter({ hasText: 'Dropped clipboard text' })).toBeVisible();
     await expect.poll(async () => {
-      const ref = await page.request.get('/api/v1/ref', {
+      const ref = await page.request.get('/api/v1/tags/response', {
         params: {
-          url: 'tag:/+user/debug?url=tag:/plugin/user/clipboard',
-          origin: '',
+          url: 'tag:plugin/user/clipboard',
         },
       });
       const json = await ref.json();
