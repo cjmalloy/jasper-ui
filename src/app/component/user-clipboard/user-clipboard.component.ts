@@ -48,6 +48,9 @@ interface ClipboardRef {
 
 interface DragState {
   item: ClipboardItem;
+  element: HTMLElement;
+  startX: number;
+  startY: number;
   offsetX: number;
   offsetY: number;
   moved: boolean;
@@ -226,6 +229,9 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     target.setPointerCapture(event.pointerId);
     this.drag = {
       item,
+      element: target,
+      startX: item.x,
+      startY: item.y,
       offsetX: event.clientX - item.x,
       offsetY: event.clientY - item.y,
       moved: false,
@@ -236,9 +242,10 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     if (!this.drag) return;
     const x = Math.max(0, Math.min(window.innerWidth - BUBBLE_WIDTH_OFFSET, event.clientX - this.drag.offsetX));
     const y = Math.max(0, Math.min(window.innerHeight - BUBBLE_HEIGHT_OFFSET, event.clientY - this.drag.offsetY));
-    if (Math.abs(x - this.drag.item.x) > 3 || Math.abs(y - this.drag.item.y) > 3) this.drag.moved = true;
+    if (Math.abs(x - this.drag.startX) > 3 || Math.abs(y - this.drag.startY) > 3) this.drag.moved = true;
     this.drag.item.x = x;
     this.drag.item.y = y;
+    this.moveBubble(this.drag.element, x, y);
   }
 
   pointerUp() {
@@ -376,6 +383,11 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   private isInteractive(target: HTMLElement | null) {
     if (target?.closest('.clipboard-preview')) return false;
     return !!target?.closest('.clipboard-actions, .clipboard-edit-panel, input, textarea, select, a, [contenteditable="true"], [role="button"], [role="link"]');
+  }
+
+  private moveBubble(element: HTMLElement, x: number, y: number) {
+    element.style.left = `${x}px`;
+    element.style.top = `${y}px`;
   }
 
   private isClipboardEditTarget(target: HTMLElement | null) {
