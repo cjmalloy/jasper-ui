@@ -69,8 +69,7 @@
 }
 
 .clipboard-preview,
-.clipboard-clear,
-.clipboard-edit-close {
+.clipboard-clear {
   border: 0;
   border-radius: 999px;
   background: transparent;
@@ -142,52 +141,6 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
 }
 
-.clipboard-clear:hover,
-.clipboard-edit-close:hover {
+.clipboard-clear:hover {
   background: color-mix(in srgb, var(--deleting), transparent 20%);
-}
-
-.clipboard-edit-popup {
-  position: fixed;
-  inset: 16px;
-  overflow: auto;
-  box-sizing: border-box;
-  max-width: min(1000px, calc(100vw - 32px));
-  margin: 0 auto;
-  padding: 16px;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: var(--bg);
-  color: var(--text);
-  box-shadow: 0 8px 36px rgba(0, 0, 0, 0.35);
-  pointer-events: auto;
-}
-
-.clipboard-edit-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-}
-
-.clipboard-edit-header h2 {
-  margin: 0 0 12px;
-}
-
-.clipboard-edit-close {
-  width: 32px;
-  height: 32px;
-  padding: 0;
-  background: color-mix(in srgb, var(--card), transparent 10%);
-}
-
-.clipboard-ref-form {
-  display: block;
-}
-
-.clipboard-edit-buttons {
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-  margin-top: 12px;
 }

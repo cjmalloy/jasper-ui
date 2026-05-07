@@ -1,13 +1,9 @@
-import { OverlayModule } from '@angular/cdk/overlay';
 import { AsyncPipe } from '@angular/common';
-import { Component, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { ReactiveFormsModule, UntypedFormArray, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
+import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
 import DOMPurify from 'dompurify';
 import { autorun, IReactionDisposer } from 'mobx';
 import { catchError, finalize, of, Subscription } from 'rxjs';
 import { v4 as uuid } from 'uuid';
-import { refForm, RefFormComponent } from '../../form/ref/ref.component';
-import { pluginsForm, writePlugins } from '../../form/plugins/plugins.component';
 import { Plugin } from '../../model/plugin';
 import { Ref, RefUpdates } from '../../model/ref';
 import { active, Icon, sortOrder, uniqueConfigs } from '../../model/tag';
@@ -81,11 +77,8 @@ interface DragState {
   styleUrls: ['./user-clipboard.component.scss'],
   host: { 'class': 'user-clipboard' },
   imports: [
-    OverlayModule,
     AsyncPipe,
     CssUrlPipe,
-    ReactiveFormsModule,
-    RefFormComponent,
     ThumbnailPipe,
   ],
 })
@@ -93,13 +86,6 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
 
   remote?: Ref;
   items: ClipboardItem[] = [];
-  editingItem?: ClipboardItem;
-  editForm: UntypedFormGroup;
-  @ViewChild('editRefForm')
-  set editRefForm(value: RefFormComponent | undefined) {
-    this._editRefForm = value;
-    this.loadPendingEditPlugins();
-  }
   private watch?: Subscription;
   private save?: Subscription;
   private drag?: DragState;
@@ -114,8 +100,6 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   private defaultThumbnailEmojiCache = new WeakMap<object, string>();
   private resizeClamp?: number;
   private loading = false;
-  private pendingEditPlugins?: Record<string, unknown>;
-  private _editRefForm?: RefFormComponent;
   dropVisible = false;
   dropActive = false;
   dropFilled = false;
@@ -125,10 +109,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     private admin: AdminService,
     private tags: TaggingService,
     private stomp: StompService,
-    private fb: UntypedFormBuilder,
-  ) {
-    this.editForm = this.refEditForm();
-  }
+  ) {}
 
   ngOnInit() {
     this.loadLocal();
@@ -268,31 +249,6 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     this.resetDropState();
   }
 
-  openEdit(item: ClipboardItem, event: Event) {
-    event.preventDefault();
-    event?.stopPropagation();
-    if (!item.ref) return;
-    this.editingItem = item;
-    this.editForm = this.refEditForm(item.ref);
-    this.pendingEditPlugins = item.ref.plugins || {};
-    this.loadPendingEditPlugins();
-    this.persistLocal();
-  }
-
-  closeEdit(event?: Event) {
-    event?.stopPropagation();
-    this.editingItem = undefined;
-  }
-
-  saveEdit(event?: Event) {
-    event?.preventDefault();
-    event?.stopPropagation();
-    if (!this.editingItem?.ref) return;
-    this.editingItem.ref = this.refFromEditForm(this.editingItem.ref);
-    this.editingItem = undefined;
-    this.persist();
-  }
-
   dragOver(event: DragEvent) {
     event.preventDefault();
     event.stopPropagation();
@@ -403,7 +359,6 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   @HostListener('document:copy', ['$event'])
   copy(event: ClipboardEvent) {
     if (!this.interceptCopy) return;
-    if (this.isClipboardEditTarget(event.target)) return;
     const item = this.clipboardItem(event.target, false);
     if (!item) return;
     event.preventDefault();
@@ -420,7 +375,6 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   @HostListener('document:focusin', ['$event'])
   focusIn(event: FocusEvent) {
     if (!this.hasPendingPaste()) return;
-    if (this.isClipboardEditTarget(event.target)) return;
     this.pasteInto(event.target as HTMLElement);
   }
 
@@ -542,7 +496,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   private isInteractive(target: EventTarget | null) {
     if (!(target instanceof Element)) return false;
     if (target.closest('.clipboard-preview')) return false;
-    return !!target.closest('.clipboard-actions, .clipboard-hold, .clipboard-edit-popup, button, input, textarea, select, a, [contenteditable="true"], [role="button"], [role="link"]');
+    return !!target.closest('.clipboard-actions, .clipboard-hold, button, input, textarea, select, a, [contenteditable="true"], [role="button"], [role="link"]');
   }
 
   private moveBubble(element: HTMLElement, x: number, y: number) {
@@ -578,10 +532,6 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
 
   private maxBubbleY() {
     return Math.max(0, window.innerHeight - BUBBLE_HEIGHT_OFFSET);
-  }
-
-  private isClipboardEditTarget(target: EventTarget | null) {
-    return target instanceof Element && !!target.closest('.clipboard-edit-popup');
   }
 
   private resetDropState() {
@@ -1169,91 +1119,6 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     } catch {
       // Local storage is best-effort.
     }
-  }
-
-  private refEditForm(ref?: ClipboardRef) {
-    const form = refForm(this.fb);
-    form.get('url')?.enable();
-    if (!ref) return form;
-    const tags = ref.tags || [];
-    this.setArray(form.get('tags') as UntypedFormArray, tags);
-    form.removeControl('plugins');
-    form.addControl('plugins', pluginsForm(this.fb, this.admin, tags));
-    form.patchValue({
-      url: ref.url,
-      title: ref.title || '',
-      comment: ref.comment || '',
-      published: ref.published || '',
-      modifiedString: ref.modifiedString || '',
-      plugins: ref.plugins || {},
-    });
-    this.setArray(form.get('sources') as UntypedFormArray, ref.sources || []);
-    this.setArray(form.get('alternateUrls') as UntypedFormArray, ref.alternateUrls || []);
-    return form;
-  }
-
-  private setArray(array: UntypedFormArray, values: string[]) {
-    array.clear();
-    for (const value of values) array.push(this.fb.control(value));
-  }
-
-  private refFromEditForm(existing: ClipboardRef) {
-    const value = this.editForm.getRawValue();
-    const ref: ClipboardRef = {
-      ...existing,
-      url: value.url,
-      title: value.title || undefined,
-      comment: value.comment || undefined,
-      published: value.published || undefined,
-      modifiedString: value.modifiedString || undefined,
-      tags: this.nonEmptyStrings(value.tags),
-      sources: this.nonEmptyStrings(value.sources),
-      alternateUrls: this.nonEmptyStrings(value.alternateUrls),
-      plugins: writePlugins(value.tags, this.mergePlugins(existing.plugins, value.plugins)),
-    };
-    return ref;
-  }
-
-  private mergePlugins(existing: Record<string, unknown> | undefined, updated: Record<string, unknown> | undefined) {
-    const plugins: Record<string, unknown> = { ...existing };
-    for (const [tag, value] of Object.entries(updated || {})) {
-      const existingValue = plugins[tag];
-      const existingObject = this.objectRecord(existingValue);
-      const valueObject = this.objectRecord(value);
-      if (existingObject && valueObject) {
-        plugins[tag] = this.mergeObjectRecords(existingObject, valueObject);
-      } else {
-        plugins[tag] = value;
-      }
-    }
-    return plugins;
-  }
-
-  private mergeObjectRecords(existing: Record<string, unknown>, updated: Record<string, unknown>) {
-    const result: Record<string, unknown> = { ...existing };
-    for (const [key, value] of Object.entries(updated)) {
-      const existingObject = this.objectRecord(result[key]);
-      const valueObject = this.objectRecord(value);
-      result[key] = existingObject && valueObject ? this.mergeObjectRecords(existingObject, valueObject) : value;
-    }
-    return result;
-  }
-
-  private objectRecord(value: unknown) {
-    return value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : undefined;
-  }
-
-  private loadPendingEditPlugins() {
-    if (!this.pendingEditPlugins || !this._editRefForm?.pluginsFormComponent) return;
-    this._editRefForm.pluginsFormComponent.setValue(this.pendingEditPlugins);
-    this.pendingEditPlugins = undefined;
-  }
-
-  // Persist non-empty form array strings, omitting empty arrays from the Ref.
-  private nonEmptyStrings(values: unknown) {
-    if (!Array.isArray(values)) return undefined;
-    const strings = values.filter(value => typeof value === 'string' && value.trim());
-    return strings.length ? strings : undefined;
   }
 
   private persistRemote() {

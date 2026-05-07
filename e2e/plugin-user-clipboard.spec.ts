@@ -159,10 +159,6 @@ test.describe.serial('User Clipboard Plugin', () => {
     await expect(bubble.locator('.clipboard-thumbnail-image')).toHaveCSS('background-image', /clipboard-thumbnail\.png/);
     await expect(bubble.locator('.clipboard-thumbnail-emoji')).toBeVisible();
     await expect(bubble.locator('.clipboard-thumbnail-emoji')).toHaveText('📋️');
-    await bubble.click({ button: 'right' });
-    await expect(page.locator('.clipboard-edit-popup input[name=url]')).toHaveValue('https://jasperkm.info/clipboard-thumbnail-ref');
-    await page.locator('.clipboard-edit-popup button', { hasText: 'save' }).click();
-    await expect(page.locator('.clipboard-edit-popup')).toBeHidden();
     await expect.poll(() => page.evaluate(key => JSON.parse(localStorage.getItem(key) || '[]')[0]?.ref?.plugins, CLIPBOARD_STORAGE_KEY)).toEqual({
       'plugin/thumbnail': expect.objectContaining({
         url: 'https://jasperkm.info/clipboard-thumbnail.png',
@@ -214,7 +210,7 @@ test.describe.serial('User Clipboard Plugin', () => {
     await expect(bubble.locator('.clipboard-hold input')).not.toBeChecked();
     await bubble.locator('.clipboard-hold input').check();
     await expect(bubble.locator('.clipboard-hold input')).toBeChecked();
-    await expect(page.locator('.clipboard-edit-popup')).toBeHidden();
+    await expect(page.locator('.clipboard-edit-popup')).toHaveCount(0);
 
     await page.locator('body').evaluate(() => {
       const input = document.createElement('input');
@@ -284,9 +280,8 @@ test.describe.serial('User Clipboard Plugin', () => {
     await expect(refBubble).toHaveClass(/selected/);
     await refBubble.click();
     await expect(refBubble).not.toHaveClass(/selected/);
-    await refBubble.click({ button: 'right' });
-    await expect(page.locator('.clipboard-edit-popup input[name=url]')).toHaveValue(url);
-    await page.locator('.clipboard-edit-cancel').click();
+    await refBubble.dispatchEvent('contextmenu');
+    await expect(page.locator('.clipboard-edit-popup')).toHaveCount(0);
     await refBubble.locator('.clipboard-clear').click();
     await expect(refBubble).toBeHidden();
 
@@ -334,13 +329,13 @@ test.describe.serial('User Clipboard Plugin', () => {
     await expect(tagBubble).toBeVisible();
     await expect(tagBubble.locator('.clipboard-preview')).toHaveText('plugin/editing');
     await tagBubble.click();
-    await tagBubble.click({ button: 'right' });
-    await expect(page.locator('.clipboard-edit-popup input[name=url]')).toHaveValue('tag:/plugin/editing');
-    await page.locator('.clipboard-edit-cancel').click();
     await page.locator('.clipboard-bubble').filter({ hasText: 'Dropped clipboard text' }).click();
-    await tagBubble.click({ button: 'right' });
-    await page.locator('.clipboard-edit-popup input[name=url]').focus();
-    await expect(page.locator('.clipboard-edit-popup input[name=url]')).toHaveValue('tag:/plugin/editing');
+    await tagBubble.dispatchEvent('contextmenu');
+    await expect(page.locator('.clipboard-edit-popup')).toHaveCount(0);
+    await expect.poll(() => page.evaluate(key => {
+      const items = JSON.parse(localStorage.getItem(key) || '[]') as { ref?: { url?: string } }[];
+      return items.find(item => item.ref?.url === 'tag:/plugin/editing')?.ref?.url;
+    }, CLIPBOARD_STORAGE_KEY)).toBe('tag:/plugin/editing');
   });
 
   test('copies tag query and bookmark links as tag refs', async ({ page }) => {
@@ -376,12 +371,14 @@ test.describe.serial('User Clipboard Plugin', () => {
     await expect(tagBubble).toBeVisible();
     await expect(queryBubble).toBeVisible();
     await expect(bookmarkBubble).toBeVisible();
-    await tagBubble.click({ button: 'right' });
-    await expect(page.locator('.clipboard-edit-popup input[name=url]')).toHaveValue('tag:/copied/tag');
-    await page.locator('.clipboard-edit-cancel').click();
-    await queryBubble.click({ button: 'right' });
-    await expect(page.locator('.clipboard-edit-popup input[name=url]')).toHaveValue('tag:/copied/query?filter=query/old&search=hello&sort=created,desc');
-    await page.locator('.clipboard-edit-cancel').click();
+    await expect.poll(() => page.evaluate(key => {
+      const items = JSON.parse(localStorage.getItem(key) || '[]') as { ref?: { url?: string } }[];
+      return items.map(item => item.ref?.url).filter(Boolean);
+    }, CLIPBOARD_STORAGE_KEY)).toEqual(expect.arrayContaining([
+      'tag:/copied/tag',
+      'tag:/copied/query?filter=query/old&search=hello&sort=created,desc',
+      'tag:/copied/bookmark?filter=query/new&search=saved&sort=modified,asc',
+    ]));
 
     await queryBubble.click();
     await page.locator('body').evaluate(() => {
