@@ -319,6 +319,50 @@ test.describe.serial('User Clipboard Plugin', () => {
     await expect(page.locator('.clipboard-edit-popup input[name=url]')).toHaveValue('tag:/plugin/editing');
   });
 
+  test('keeps image data local-only during remote sync', async ({ page }) => {
+    await page.goto('/?debug=ADMIN', { waitUntil: 'networkidle' });
+    await clearClipboard(page);
+    const dropImage = async (text?: string) => {
+      const dropZone = await showDropZone(page);
+      await dropZone.evaluate((element, value) => {
+        const bytes = Uint8Array.from(atob('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAFgwJ/lY99NwAAAABJRU5ErkJggg=='), char => char.charCodeAt(0));
+        const data = new DataTransfer();
+        data.items.add(new File([bytes], 'clipboard.png', { type: 'image/png' }));
+        if (value) data.setData('text/plain', value);
+        element.dispatchEvent(new DragEvent('drop', { bubbles: true, cancelable: true, dataTransfer: data }));
+      }, text);
+    };
+
+    await dropImage();
+    await dropImage('Text with local image');
+
+    await expect(page.locator('.clipboard-bubble').filter({ hasText: 'Image' })).toBeVisible();
+    await expect(page.locator('.clipboard-bubble').filter({ hasText: 'Text with local image' })).toBeVisible();
+    await expect.poll(() => page.evaluate(key => JSON.parse(localStorage.getItem(key) || '[]').length, CLIPBOARD_STORAGE_KEY)).toBe(2);
+    await expect.poll(() => page.evaluate(key => JSON.parse(localStorage.getItem(key) || '[]'), CLIPBOARD_STORAGE_KEY)).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        image: expect.stringMatching(/^data:image\/png;base64,/),
+      }),
+      expect.objectContaining({
+        text: 'Text with local image',
+        image: expect.stringMatching(/^data:image\/png;base64,/),
+      }),
+    ]));
+    await expect.poll(async () => {
+      const ref = await page.request.get('/api/v1/tags/response', {
+        params: {
+          url: 'tag:plugin/user/clipboard',
+        },
+      });
+      const json = await ref.json();
+      return json.plugins['plugin/user/clipboard'].items;
+    }).toEqual([{
+      id: expect.any(String),
+      text: 'Text with local image',
+      created: expect.any(String),
+    }]);
+  });
+
   test('formats tag pastes and splits list items', async ({ page }) => {
     await page.goto('/?debug=ADMIN', { waitUntil: 'networkidle' });
     const dropText = async (text: string) => (await showDropZone(page)).evaluate((element, value) => {

@@ -939,19 +939,25 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   private applyRemote(ref: Ref | RefUpdates) {
     const remoteItems = ref.plugins?.['plugin/user/clipboard']?.items;
     if (!Array.isArray(remoteItems)) return;
-    this.items = this.sanitise(remoteItems, this.items, false);
+    const remoteIds = new Set(remoteItems.map(item => item?.id).filter(id => typeof id === 'string'));
+    this.items = [
+      ...this.sanitise(remoteItems, this.items, false),
+      ...this.items.filter(item => !remoteIds.has(item.id) && this.isLocalOnlyImageItem(item)),
+    ];
     this.persistLocal();
   }
 
   private sanitise(items: any[], previous: ClipboardItem[] = [], includeItemState = true): ClipboardItem[] {
     const localState = new Map(previous.map(item => [item.id, item]));
     return items
-      .filter(item => typeof item?.id === 'string' && this.hasContent(item))
+      .filter(item => typeof item?.id === 'string' && (
+        includeItemState ? this.hasContent(item) : this.hasRemoteContent(item) || typeof localState.get(item.id)?.image === 'string'
+      ))
       .map((item, index) => ({
         id: item.id,
         text: typeof item.text === 'string' ? item.text : undefined,
         html: typeof item.html === 'string' ? item.html : undefined,
-        image: typeof item.image === 'string' ? item.image : undefined,
+        image: includeItemState && typeof item.image === 'string' ? item.image : localState.get(item.id)?.image,
         ref: this.preserveRefOrigin(this.sanitiseRef(item.ref), localState.get(item.id)?.ref),
         created: typeof item.created === 'string' ? item.created : new Date().toISOString(),
         ...this.mergeItemState(item, localState.get(item.id), index, includeItemState),
@@ -985,6 +991,16 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
       typeof item?.html === 'string' ||
       typeof item?.image === 'string' ||
       !!this.sanitiseRef(item?.ref);
+  }
+
+  private hasRemoteContent(item: any) {
+    return typeof item?.text === 'string' ||
+      typeof item?.html === 'string' ||
+      !!this.sanitiseRef(item?.ref);
+  }
+
+  private isLocalOnlyImageItem(item: ClipboardItem) {
+    return typeof item.image === 'string' && !this.hasRemoteContent(item);
   }
 
   private sanitiseRef(ref: any): ClipboardRef | undefined {
@@ -1205,9 +1221,13 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     this.savingRemote = true;
     // Remote writes are serialized by savingRemote; keep the in-flight request
     // alive and let the pending flag schedule one save with the newest snapshot.
+    const items = this.items.flatMap(item => {
+      const remote = this.serializeRemote(item);
+      return remote ? [remote] : [];
+    });
     this.save = this.tags.mergeResponse(['plugin/user/clipboard'], 'tag:plugin/user/clipboard', {
       'plugin/user/clipboard': {
-        items: this.items.map(item => this.serializeRemote(item)),
+        items,
       },
     }).pipe(
       catchError(() => of(undefined)),
@@ -1221,19 +1241,23 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   }
 
   private serializeRemote(item: ClipboardItem) {
-    return {
+    const remote = {
       id: item.id,
       created: item.created,
       ...(item.text !== undefined ? { text: item.text } : {}),
       ...(item.html !== undefined ? { html: item.html } : {}),
-      ...(item.image !== undefined ? { image: item.image } : {}),
       ...(item.ref ? { ref: this.serializeRemoteRef(item.ref) } : {}),
     };
+    return this.hasRemoteContent(remote) ? remote : undefined;
   }
 
   private serializeLocal(item: ClipboardItem) {
     return {
-      ...this.serializeRemote(item),
+      ...(this.serializeRemote(item) ?? {
+        id: item.id,
+        created: item.created,
+      }),
+      ...(item.image !== undefined ? { image: item.image } : {}),
       ...(item.ref ? { ref: item.ref } : {}),
       x: item.x,
       y: item.y,
