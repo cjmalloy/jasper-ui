@@ -775,8 +775,14 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   @memo
   get thumbnail() {
     if (!this.admin.getPlugin('plugin/thumbnail')) return false;
-    if (this.editing) return hasTag('plugin/thumbnail', this.editForm.value);
-    return hasTag('plugin/thumbnail', this.ref) || hasTag('plugin/thumbnail', this.repostRef);
+    if (this.editing) {
+      if (hasTag('plugin/thumbnail', this.editForm.value)) return true;
+      if (!this.admin.getPlugin('plugin/image')) return false;
+      return hasTag('plugin/image', this.editForm.value);
+    }
+    if (hasTag('plugin/thumbnail', this.ref) || hasTag('plugin/thumbnail', this.repostRef)) return true;
+    if (!this.admin.getPlugin('plugin/image')) return false;
+    return hasTag('plugin/image', this.ref) || hasTag('plugin/image', this.repostRef);
   }
 
   @memo
