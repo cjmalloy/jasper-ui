@@ -539,7 +539,8 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   }
 
   private bubblePosition(index: number) {
-    const rows = Math.max(1, Math.floor((this.maxBubbleY() - BUBBLE_START_Y) / BUBBLE_SPACING) + 1);
+    const maxY = this.maxBubbleY();
+    const rows = maxY <= BUBBLE_START_Y ? 1 : Math.floor((maxY - BUBBLE_START_Y) / BUBBLE_SPACING) + 1;
     const column = Math.floor(index / rows);
     const row = index % rows;
     return this.clampBubblePosition({

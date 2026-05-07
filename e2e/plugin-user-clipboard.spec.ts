@@ -6,6 +6,9 @@ const DRAG_START_OFFSET = 8; // Start inside the preview so preview-origin drags
 const DRAG_END_X_OFFSET = 88; // Move far enough horizontally to exceed the click threshold.
 const DRAG_END_Y_OFFSET = 48; // Move far enough vertically to exceed the click threshold.
 const TEST_IMAGE_THUMBNAIL_DATA_URL = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAFgwJ/lY99NwAAAABJRU5ErkJggg==';
+const TEST_BUBBLE_START_Y = 72;
+const TEST_BUBBLE_SPACING = 56;
+const TEST_BUBBLE_HEIGHT_OFFSET = 48;
 
 async function showDropZone(page: Page) {
   await page.evaluate(() => {
@@ -41,10 +44,12 @@ test.describe.serial('User Clipboard Plugin', () => {
   test('keeps many bubbles on screen in columns', async ({ page }) => {
     await page.goto('/?debug=ADMIN', { waitUntil: 'networkidle' });
     await clearClipboard(page);
-    await page.evaluate(() => {
+    const viewportHeight = page.viewportSize()?.height ?? 720;
+    const rowsBeforeWrap = Math.max(1, Math.floor((viewportHeight - TEST_BUBBLE_HEIGHT_OFFSET - TEST_BUBBLE_START_Y) / TEST_BUBBLE_SPACING) + 1);
+    await page.evaluate(({ overflowCount }) => {
       const now = new Date().toISOString();
       localStorage.setItem('jasper.clipboard.+user/debug@', JSON.stringify([
-        ...Array.from({ length: 14 }, (_, index) => ({
+        ...Array.from({ length: overflowCount }, (_, index) => ({
           id: `e2e-overflow-${index}`,
           text: `Overflow clipboard item ${index}`,
           created: now,
@@ -57,11 +62,11 @@ test.describe.serial('User Clipboard Plugin', () => {
           y: 9999,
         },
       ]));
-    });
+    }, { overflowCount: rowsBeforeWrap + 3 });
     await page.reload({ waitUntil: 'networkidle' });
 
     const first = page.locator('.clipboard-bubble').filter({ hasText: 'Overflow clipboard item 0' });
-    const nextColumn = page.locator('.clipboard-bubble').filter({ hasText: 'Overflow clipboard item 11' });
+    const nextColumn = page.locator('.clipboard-bubble').filter({ hasText: `Overflow clipboard item ${rowsBeforeWrap}` });
     await expect(first).toBeVisible();
     await expect(nextColumn).toBeVisible();
     const firstBox = await first.boundingBox();
