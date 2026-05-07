@@ -240,6 +240,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   documentDragLeave(event: DragEvent) {
     if (this.isDropZoneTarget(event.target as HTMLElement | null)) return;
     this.dropDragDepth = Math.max(0, this.dropDragDepth - 1);
+    if (this.dropActive) return;
     if (!this.dropDragDepth) this.resetDropState();
   }
 
@@ -258,7 +259,6 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   dragLeave(event: DragEvent) {
     event.preventDefault();
     event.stopPropagation();
-    this.dropActive = false;
   }
 
   drop(event: DragEvent) {

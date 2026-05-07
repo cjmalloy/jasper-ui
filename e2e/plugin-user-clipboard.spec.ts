@@ -311,6 +311,14 @@ test.describe.serial('User Clipboard Plugin', () => {
     await expect.poll(async () => (await dropZone.boundingBox())?.height || 0).toBeGreaterThanOrEqual(88);
     await dropZone.evaluate(element => {
       const data = new DataTransfer();
+      element.dispatchEvent(new DragEvent('dragover', { bubbles: true, cancelable: true, dataTransfer: data }));
+      element.dispatchEvent(new DragEvent('dragleave', { bubbles: true, cancelable: true, dataTransfer: data }));
+      document.dispatchEvent(new DragEvent('dragleave', { bubbles: true, cancelable: true, dataTransfer: data }));
+    });
+    await expect(dropZone).toHaveClass(/active/);
+    await expect.poll(async () => (await dropZone.boundingBox())?.width || 0).toBeGreaterThanOrEqual(192);
+    await dropZone.evaluate(element => {
+      const data = new DataTransfer();
       data.setData('text/plain', 'Dropped clipboard text');
       element.dispatchEvent(new DragEvent('dragover', { bubbles: true, cancelable: true, dataTransfer: data }));
       element.dispatchEvent(new DragEvent('drop', { bubbles: true, cancelable: true, dataTransfer: data }));
