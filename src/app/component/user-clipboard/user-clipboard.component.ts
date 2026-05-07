@@ -900,7 +900,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
       return;
     }
     this.loading = true;
-    this.tags.getResponse('tag:plugin/user/clipboard').pipe(
+    this.tags.getResponse('tag:/plugin/user/clipboard').pipe(
       catchError(() => of(undefined)),
     ).subscribe(ref => {
       this.loading = false;
@@ -1149,7 +1149,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
       const remote = this.serializeRemote(item);
       return remote ? [remote] : [];
     });
-    this.save = this.tags.mergeResponse(['plugin/user/clipboard'], 'tag:plugin/user/clipboard', {
+    this.save = this.tags.mergeResponse(['plugin/user/clipboard'], 'tag:/plugin/user/clipboard', {
       'plugin/user/clipboard': {
         items,
       },

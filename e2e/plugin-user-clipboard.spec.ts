@@ -39,7 +39,7 @@ async function clearClipboard(page: Page) {
   await page.request.patch('/api/v1/tags/response', {
     params: {
       tags: 'plugin/user/clipboard',
-      url: 'tag:plugin/user/clipboard',
+      url: 'tag:/plugin/user/clipboard',
     },
     headers: { 'Content-Type': 'application/merge-patch+json' },
     data: {
@@ -70,7 +70,7 @@ async function setClipboardItems(page: Page, items: ClipboardFixtureItem[]) {
   await page.request.patch('/api/v1/tags/response', {
     params: {
       tags: 'plugin/user/clipboard',
-      url: 'tag:plugin/user/clipboard',
+      url: 'tag:/plugin/user/clipboard',
     },
     headers: { 'Content-Type': 'application/merge-patch+json' },
     data: {
@@ -271,7 +271,7 @@ test.describe.serial('User Clipboard Plugin', () => {
     await expect.poll(async () => {
       const ref = await page.request.get('/api/v1/tags/response', {
         params: {
-          url: 'tag:plugin/user/clipboard',
+          url: 'tag:/plugin/user/clipboard',
         },
       });
       const json = await ref.json();
@@ -373,7 +373,7 @@ test.describe.serial('User Clipboard Plugin', () => {
     await expect.poll(async () => {
       const ref = await page.request.get('/api/v1/tags/response', {
         params: {
-          url: 'tag:plugin/user/clipboard',
+          url: 'tag:/plugin/user/clipboard',
         },
       });
       const json = await ref.json();
@@ -513,7 +513,7 @@ test.describe.serial('User Clipboard Plugin', () => {
     await expect.poll(async () => {
       const ref = await page.request.get('/api/v1/tags/response', {
         params: {
-          url: 'tag:plugin/user/clipboard',
+          url: 'tag:/plugin/user/clipboard',
         },
       });
       const json = await ref.json();
