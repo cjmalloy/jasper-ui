@@ -127,7 +127,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   }
   @HostBinding('attr.data-ref-title')
   get refTitleAttr() {
-    return this.ref?.title || undefined;
+    return this.title || undefined;
   }
   @HostBinding('attr.data-ref-thumbnail-url')
   get refThumbnailUrlAttr() {

@@ -16,6 +16,7 @@ import { AdminService } from '../../service/admin.service';
 import { StompService } from '../../service/api/stomp.service';
 import { TaggingService } from '../../service/api/tagging.service';
 import { Store } from '../../store/store';
+import { getTitle } from '../../util/format';
 import { getScheme } from '../../util/http';
 
 const BUBBLE_START_X = 12;
@@ -211,8 +212,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   previewText(item: ClipboardItem) {
     if (this.isTagUrl(item.ref?.url)) return item.ref?.title || item.ref?.url?.substring(TAG_URL_PREFIX.length) || '';
     if (item.text) return item.text;
-    if (item.ref?.title) return item.ref.title;
-    if (item.ref?.url) return item.ref.url;
+    if (item.ref) return getTitle(this.thumbnailRef(item.ref));
     if (item.image) return $localize`Image`;
     if (item.html) return $localize`HTML`;
     return '';
@@ -1023,7 +1023,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     return {
       url: ref.url,
       origin: ref.origin,
-      title: ref.title,
+      title: getTitle(ref) || undefined,
       tags: this.thumbnailTags(ref),
       plugins: this.thumbnailPlugins(ref),
     };

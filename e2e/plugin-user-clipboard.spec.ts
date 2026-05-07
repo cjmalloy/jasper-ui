@@ -139,6 +139,15 @@ test.describe.serial('User Clipboard Plugin', () => {
         created: new Date().toISOString(),
         x: 12,
         y: 184,
+      }, {
+        id: 'e2e-clipboard-comment-title-item',
+        ref: {
+          url: 'https://jasperkm.info/clipboard-comment-title-ref',
+          comment: 'Clipboard comment title\n\nExtra body text',
+        },
+        created: new Date().toISOString(),
+        x: 12,
+        y: 240,
       }]));
     }, CLIPBOARD_STORAGE_KEY);
     await page.reload({ waitUntil: 'networkidle' });
@@ -157,6 +166,8 @@ test.describe.serial('User Clipboard Plugin', () => {
     const defaultEmojiBubble = page.locator('.clipboard-bubble').filter({ hasText: 'Clipboard image default emoji' });
     await expect(defaultEmojiBubble).toBeVisible();
     await expect(defaultEmojiBubble.locator('.clipboard-thumbnail-emoji')).toHaveText('🖼️');
+    const commentTitleBubble = page.locator('.clipboard-bubble').filter({ hasText: 'Clipboard comment title' });
+    await expect(commentTitleBubble).toBeVisible();
     const initialLeft = await bubble.evaluate(element => getComputedStyle(element).left);
     const previewBox = await bubble.locator('.clipboard-preview').boundingBox();
     expect(previewBox).toBeTruthy();
@@ -235,6 +246,8 @@ test.describe.serial('User Clipboard Plugin', () => {
     await expect(imageBubble).toBeHidden();
     await defaultEmojiBubble.locator('.clipboard-clear').click();
     await expect(defaultEmojiBubble).toBeHidden();
+    await commentTitleBubble.locator('.clipboard-clear').click();
+    await expect(commentTitleBubble).toBeHidden();
     await expect.poll(() => page.evaluate(key => JSON.parse(localStorage.getItem(key) || '[]').length, CLIPBOARD_STORAGE_KEY)).toBe(0);
   });
 
