@@ -1163,9 +1163,10 @@ export class UserClipboardComponent implements OnInit, AfterViewChecked, OnDestr
     const form = refForm(this.fb);
     form.get('url')?.enable();
     if (!ref) return form;
-    this.setArray(form.get('tags') as UntypedFormArray, ref.tags || []);
+    const tags = ref.tags || [];
+    this.setArray(form.get('tags') as UntypedFormArray, tags);
     form.removeControl('plugins');
-    form.addControl('plugins', pluginsForm(this.fb, this.admin, ref.tags || []));
+    form.addControl('plugins', pluginsForm(this.fb, this.admin, tags));
     form.patchValue({
       url: ref.url,
       title: ref.title || '',
@@ -1205,16 +1206,22 @@ export class UserClipboardComponent implements OnInit, AfterViewChecked, OnDestr
     const plugins: Record<string, unknown> = { ...existing };
     for (const [tag, value] of Object.entries(updated || {})) {
       const existingValue = plugins[tag];
-      if (this.thumbnailObject(existingValue) && this.thumbnailObject(value)) {
+      const existingObject = this.objectRecord(existingValue);
+      const valueObject = this.objectRecord(value);
+      if (existingObject && valueObject) {
         plugins[tag] = {
-          ...this.thumbnailObject(existingValue),
-          ...this.thumbnailObject(value),
+          ...existingObject,
+          ...valueObject,
         };
       } else {
         plugins[tag] = value;
       }
     }
     return plugins;
+  }
+
+  private objectRecord(value: unknown) {
+    return value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : undefined;
   }
 
   // Persist non-empty form array strings, omitting empty arrays from the Ref.
