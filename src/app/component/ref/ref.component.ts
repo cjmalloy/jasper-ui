@@ -131,7 +131,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   }
   @HostBinding('attr.data-ref-thumbnail-url')
   get refThumbnailUrlAttr() {
-    return this.refThumbnailString('url') || undefined;
+    return this.refThumbnailString('url') || this.refThumbnailPluginUrl('plugin/image') || this.refThumbnailPluginUrl('plugin/video') || undefined;
   }
   @HostBinding('attr.data-ref-thumbnail-color')
   get refThumbnailColorAttr() {
@@ -139,7 +139,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   }
   @HostBinding('attr.data-ref-thumbnail-emoji')
   get refThumbnailEmojiAttr() {
-    return this.refThumbnailString('emoji') || undefined;
+    return this.refThumbnailString('emoji') || this.thumbnailEmojiDefaults || undefined;
   }
   @HostBinding('attr.data-ref-thumbnail-radius')
   get refThumbnailRadiusAttr() {
@@ -791,6 +791,11 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
 
   refThumbnailString(key: 'url' | 'color' | 'emoji') {
     const value = this.refThumbnailPlugin?.[key];
+    return typeof value === 'string' ? value : '';
+  }
+
+  refThumbnailPluginUrl(plugin: 'plugin/image' | 'plugin/video') {
+    const value = this.ref?.plugins?.[plugin]?.url || this.repostRef?.plugins?.[plugin]?.url;
     return typeof value === 'string' ? value : '';
   }
 

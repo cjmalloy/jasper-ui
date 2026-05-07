@@ -9,12 +9,14 @@ import { v4 as uuid } from 'uuid';
 import { refForm, RefFormComponent } from '../../form/ref/ref.component';
 import { Plugin } from '../../model/plugin';
 import { Ref, RefUpdates } from '../../model/ref';
+import { active, sortOrder, uniqueConfigs } from '../../model/tag';
 import { CssUrlPipe } from '../../pipe/css-url.pipe';
 import { ThumbnailPipe } from '../../pipe/thumbnail.pipe';
 import { AdminService } from '../../service/admin.service';
 import { StompService } from '../../service/api/stomp.service';
 import { TaggingService } from '../../service/api/tagging.service';
 import { Store } from '../../store/store';
+import { getScheme } from '../../util/http';
 
 const BUBBLE_START_X = 12;
 const BUBBLE_START_Y = 72;
@@ -98,6 +100,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   private pendingRemotePersist = false;
   private savingRemote = false;
   private disposers: IReactionDisposer[] = [];
+  private thumbnailRefsCache = new WeakMap<ClipboardRef, ClipboardRef[]>();
   private loading = false;
   dropVisible = false;
   dropActive = false;
@@ -165,6 +168,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   thumbnailVisible(item: ClipboardItem) {
     return !!item.ref && (
       !!this.thumbnailPlugin(item) ||
+      !!this.thumbnailEmoji(item) ||
       !!item.ref.plugins?.['plugin/image'] ||
       !!item.ref.plugins?.['plugin/video'] ||
       !!item.ref.tags?.includes('plugin/thumbnail')
@@ -172,7 +176,13 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   }
 
   thumbnailRefs(item: ClipboardItem) {
-    return item.ref ? [item.ref] : [];
+    if (!item.ref) return [];
+    let refs = this.thumbnailRefsCache.get(item.ref);
+    if (!refs) {
+      refs = [item.ref];
+      this.thumbnailRefsCache.set(item.ref, refs);
+    }
+    return refs;
   }
 
   thumbnailForce(item: ClipboardItem) {
@@ -184,7 +194,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   }
 
   thumbnailEmoji(item: ClipboardItem) {
-    return this.thumbnailString(item, 'emoji');
+    return this.thumbnailString(item, 'emoji') || this.thumbnailDefaultEmoji(item);
   }
 
   thumbnailLabel(item: ClipboardItem) {
@@ -887,7 +897,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
         text: typeof item.text === 'string' ? item.text : undefined,
         html: typeof item.html === 'string' ? item.html : undefined,
         image: typeof item.image === 'string' ? item.image : undefined,
-        ref: this.sanitiseRef(item.ref),
+        ref: this.mergeRefState(this.sanitiseRef(item.ref), localState.get(item.id)?.ref),
         created: typeof item.created === 'string' ? item.created : new Date().toISOString(),
         ...this.mergeItemState(item, localState.get(item.id), index, includeItemState),
       }));
@@ -899,6 +909,14 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
       y: includeItemState && typeof item.y === 'number' ? item.y : local?.y ?? BUBBLE_START_Y + index * BUBBLE_SPACING,
       hold: includeItemState ? !!item.hold : local?.hold ?? false,
       selected: local?.selected,
+    };
+  }
+
+  private mergeRefState(ref: ClipboardRef | undefined, local: ClipboardRef | undefined) {
+    if (!ref) return undefined;
+    return {
+      ...ref,
+      origin: ref.origin ?? local?.origin,
     };
   }
 
@@ -945,11 +963,37 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
       if (ref.plugins?.[plugin]) result[plugin] = ref.plugins[plugin];
       return result;
     }, {} as Record<string, unknown>);
+    const defaultEmoji = this.defaultThumbnailEmoji(ref);
+    if (defaultEmoji) {
+      const thumbnail = this.thumbnailObject(plugins['plugin/thumbnail']) || {};
+      if (typeof thumbnail['emoji'] !== 'string') {
+        plugins['plugin/thumbnail'] = {
+          ...thumbnail,
+          emoji: defaultEmoji,
+        };
+      }
+    }
     return Object.keys(plugins).length ? plugins : undefined;
   }
 
   private thumbnailPlugin(item: ClipboardItem) {
     return this.thumbnailObject(item.ref?.plugins?.['plugin/thumbnail']);
+  }
+
+  private thumbnailDefaultEmoji(item: ClipboardItem) {
+    const ref = this.thumbnailRef(item);
+    return ref ? this.defaultThumbnailEmoji(ref) : '';
+  }
+
+  private defaultThumbnailEmoji(ref: Ref) {
+    if (!ref) return '';
+    const icon = uniqueConfigs(sortOrder(this.admin.getIcons(ref.tags, ref.plugins, getScheme(ref.url))))
+      .find(icon => (icon.thumbnail || (icon.label && (icon.order || 0) >= 0)) && active(ref, icon));
+    return icon?.label || icon?.thumbnail || '';
+  }
+
+  private thumbnailRef(item: ClipboardItem): Ref | undefined {
+    return item.ref ? item.ref as Ref : undefined;
   }
 
   private thumbnailString(item: ClipboardItem, key: 'color' | 'emoji') {
