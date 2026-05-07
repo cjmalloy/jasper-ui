@@ -20,6 +20,7 @@ services:
       REPL_URL: http://localhost:8082
       REPL_API: http://localhost:8083
       REPL_API_PROXY: http://repl-web
+      JASPER_E2E_DATABASE: postgres
       CI: true
     working_dir: /e2e
     volumes:
