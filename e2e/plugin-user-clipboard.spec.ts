@@ -21,6 +21,10 @@ type ClipboardFixtureItem = {
   hold?: boolean;
 };
 
+function hasRemoteClipboardContent(item: ClipboardFixtureItem) {
+  return item.text !== undefined || item.html !== undefined || item.ref;
+}
+
 async function showDropZone(page: Page) {
   await page.evaluate(() => {
     const data = new DataTransfer();
@@ -49,7 +53,7 @@ async function clearClipboard(page: Page) {
 
 async function setClipboardItems(page: Page, items: ClipboardFixtureItem[]) {
   const remoteItems = items
-    .filter(item => item.text !== undefined || item.html !== undefined || item.ref)
+    .filter(hasRemoteClipboardContent)
     .map(({ id, created, text, html, ref }) => ({
       id,
       created,
@@ -57,6 +61,7 @@ async function setClipboardItems(page: Page, items: ClipboardFixtureItem[]) {
       ...(html !== undefined ? { html } : {}),
       ...(ref ? { ref } : {}),
     }));
+  // Signed-in clipboard reloads merge localStorage with the remote response ref.
   await page.request.patch('/api/v1/tags/response', {
     params: {
       tags: 'plugin/user/clipboard',
