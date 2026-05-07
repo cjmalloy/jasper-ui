@@ -403,8 +403,8 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   @HostListener('document:copy', ['$event'])
   copy(event: ClipboardEvent) {
     if (!this.interceptCopy) return;
-    if (this.isClipboardEditTarget(event.target as HTMLElement | null)) return;
-    const item = this.clipboardItem(event.target as HTMLElement, false);
+    if (this.isClipboardEditTarget(event.target)) return;
+    const item = this.clipboardItem(event.target, false);
     if (!item) return;
     event.preventDefault();
     this.addItem(item);
@@ -420,7 +420,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   @HostListener('document:focusin', ['$event'])
   focusIn(event: FocusEvent) {
     if (!this.hasPendingPaste()) return;
-    if (this.isClipboardEditTarget(event.target as HTMLElement | null)) return;
+    if (this.isClipboardEditTarget(event.target)) return;
     this.pasteInto(event.target as HTMLElement);
   }
 
@@ -539,9 +539,10 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     target.dispatchEvent(new Event('input', { bubbles: true }));
   }
 
-  private isInteractive(target: HTMLElement | null) {
-    if (target?.closest('.clipboard-preview')) return false;
-    return !!target?.closest('.clipboard-actions, .clipboard-hold, .clipboard-edit-popup, button, input, textarea, select, a, [contenteditable="true"], [role="button"], [role="link"]');
+  private isInteractive(target: EventTarget | null) {
+    if (!(target instanceof Element)) return false;
+    if (target.closest('.clipboard-preview')) return false;
+    return !!target.closest('.clipboard-actions, .clipboard-hold, .clipboard-edit-popup, button, input, textarea, select, a, [contenteditable="true"], [role="button"], [role="link"]');
   }
 
   private moveBubble(element: HTMLElement, x: number, y: number) {
@@ -579,8 +580,8 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     return Math.max(0, window.innerHeight - BUBBLE_HEIGHT_OFFSET);
   }
 
-  private isClipboardEditTarget(target: HTMLElement | null) {
-    return !!target?.closest('.clipboard-edit-popup');
+  private isClipboardEditTarget(target: EventTarget | null) {
+    return target instanceof Element && !!target.closest('.clipboard-edit-popup');
   }
 
   private resetDropState() {
@@ -710,18 +711,20 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     return [document.createTextNode(this.plainText(item))];
   }
 
-  private clipboardItem(target: HTMLElement | null, getRef = true): ClipboardItemContent | undefined {
+  private clipboardItem(target: EventTarget | null, getRef = true): ClipboardItemContent | undefined {
     const text = this.selectedText(target);
     const html = this.selectedHtml();
+    const targetRef = getRef ? this.refFromTarget(target) : this.tagRefFromTarget(target);
+    const textRef = text && this.isUri(text) ? this.tagRefFromUrl(text) : undefined;
     // Copy events may target a container while the selected HTML contains the
     // actual tag/link anchor, so parse the selection as a fallback.
-    const ref = getRef && this.refFromTarget(target) || (html ? this.refFromHtml(html) : undefined);
+    const ref = targetRef || (html ? this.refFromHtml(html) : undefined) || textRef;
     if (!text && !html && !ref) return undefined;
     const itemText = this.isTagUrl(ref?.url) ? ref?.url : text;
     return { text: itemText || undefined, html: html || undefined, ref };
   }
 
-  private selectedText(target: HTMLElement | null) {
+  private selectedText(target: EventTarget | null) {
     if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) {
       return target.value.substring(target.selectionStart ?? 0, target.selectionEnd ?? target.value.length);
     }
@@ -737,8 +740,9 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     return container.innerHTML;
   }
 
-  private refFromTarget(target: HTMLElement | null): ClipboardRef | undefined {
-    const refEl = target?.closest('.ref[data-ref-url]') as HTMLElement | null;
+  private refFromTarget(target: EventTarget | null): ClipboardRef | undefined {
+    const element = target instanceof Element ? target : null;
+    const refEl = element?.closest('.ref[data-ref-url]') as HTMLElement | null;
     const url = refEl?.dataset['refUrl'];
     if (!url) return this.tagRefFromTarget(target);
     const thumbnail = this.thumbnailFromTarget(refEl);
@@ -765,13 +769,18 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     return Object.keys(thumbnail).length ? thumbnail : undefined;
   }
 
-  private tagRefFromTarget(target: HTMLElement | null): ClipboardRef | undefined {
-    const tagLink = target?.closest('a[href]') as HTMLAnchorElement | null;
-    const url = this.normalizeDroppedUrl(tagLink?.href);
+  private tagRefFromTarget(target: EventTarget | null): ClipboardRef | undefined {
+    if (!(target instanceof Element)) return undefined;
+    const tagLink = target.closest('a[href]') as HTMLAnchorElement | null;
+    return this.tagRefFromUrl(tagLink?.href, tagLink?.textContent, tagLink?.title);
+  }
+
+  private tagRefFromUrl(value?: string, ...titles: Array<string | null | undefined>): ClipboardRef | undefined {
+    const url = this.normalizeDroppedUrl(value);
     if (!url || !this.isTagUrl(url)) return undefined;
     return {
       url,
-      title: this.cleanTitle(tagLink?.textContent, tagLink?.title, url.substring(TAG_URL_PREFIX.length)),
+      title: this.cleanTitle(...titles, this.tagUrlPreview(url)),
     };
   }
 
@@ -872,6 +881,10 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
 
   private cleanTitle(...values: Array<string | null | undefined>) {
     return values.map(value => value?.trim()).find(value => !!value) || undefined;
+  }
+
+  private tagUrlPreview(url: string) {
+    return this.stripViewParams(url).substring(TAG_URL_PREFIX.length);
   }
 
   private isTagUrl(url?: string) {

@@ -343,6 +343,76 @@ test.describe.serial('User Clipboard Plugin', () => {
     await expect(page.locator('.clipboard-edit-popup input[name=url]')).toHaveValue('tag:/plugin/editing');
   });
 
+  test('copies tag query and bookmark links as tag refs', async ({ page }) => {
+    await page.goto('/?debug=ADMIN', { waitUntil: 'networkidle' });
+    await clearClipboard(page);
+    await page.locator('body').evaluate(() => {
+      const links = [{
+        className: 'e2e-copied-tag-link',
+        href: '/tag/copied/tag',
+        text: 'Copied tag',
+      }, {
+        className: 'e2e-copied-query-link',
+        href: '/tag/copied/query?filter=query/old&search=hello&sort=created,desc',
+        text: 'Copied query',
+      }, {
+        className: 'e2e-copied-bookmark-link',
+        href: '/tag/copied/bookmark?filter=query/new&search=saved&sort=modified,asc',
+        text: 'Copied bookmark',
+      }];
+      for (const config of links) {
+        const link = document.createElement('a');
+        link.className = config.className;
+        link.href = config.href;
+        link.textContent = config.text;
+        document.body.appendChild(link);
+        link.dispatchEvent(new ClipboardEvent('copy', { bubbles: true, cancelable: true }));
+      }
+    });
+
+    const tagBubble = page.locator('.clipboard-bubble').filter({ hasText: 'Copied tag' });
+    const queryBubble = page.locator('.clipboard-bubble').filter({ hasText: 'Copied query' });
+    const bookmarkBubble = page.locator('.clipboard-bubble').filter({ hasText: 'Copied bookmark' });
+    await expect(tagBubble).toBeVisible();
+    await expect(queryBubble).toBeVisible();
+    await expect(bookmarkBubble).toBeVisible();
+    await tagBubble.click({ button: 'right' });
+    await expect(page.locator('.clipboard-edit-popup input[name=url]')).toHaveValue('tag:/copied/tag');
+    await page.locator('.clipboard-edit-cancel').click();
+    await queryBubble.click({ button: 'right' });
+    await expect(page.locator('.clipboard-edit-popup input[name=url]')).toHaveValue('tag:/copied/query?filter=query/old&search=hello&sort=created,desc');
+    await page.locator('.clipboard-edit-cancel').click();
+
+    await queryBubble.click();
+    await page.locator('body').evaluate(() => {
+      const field = document.createElement('div');
+      field.className = 'tag-field';
+      const input = document.createElement('input');
+      input.className = 'e2e-copied-query-tag-input';
+      field.appendChild(input);
+      document.body.appendChild(field);
+    });
+    await page.locator('.e2e-copied-query-tag-input').focus();
+    await expect(page.locator('.e2e-copied-query-tag-input')).toHaveValue('copied/query');
+
+    await bookmarkBubble.click();
+    await page.locator('body').evaluate(() => {
+      const field = document.createElement('div');
+      field.className = 'bookmark-field';
+      const input = document.createElement('input');
+      input.className = 'e2e-copied-bookmark-input';
+      field.appendChild(input);
+      document.body.appendChild(field);
+    });
+    await page.locator('.e2e-copied-bookmark-input').focus();
+    await expect(page.locator('.e2e-copied-bookmark-input')).toHaveValue('copied/bookmark?filter=query/new&search=saved&sort=modified,asc');
+    await expect.poll(() => page.evaluate(key => JSON.parse(localStorage.getItem(key) || '[]').map((item: { ref?: { url?: string } }) => item.ref?.url), CLIPBOARD_STORAGE_KEY)).toEqual([
+      'tag:/copied/tag',
+      'tag:/copied/query?filter=query/old&search=hello&sort=created,desc',
+      'tag:/copied/bookmark?filter=query/new&search=saved&sort=modified,asc',
+    ]);
+  });
+
   test('keeps image data local-only during remote sync', async ({ page }) => {
     await page.goto('/?debug=ADMIN', { waitUntil: 'networkidle' });
     await clearClipboard(page);
