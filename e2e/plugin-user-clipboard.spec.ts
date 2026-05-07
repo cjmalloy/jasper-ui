@@ -48,15 +48,15 @@ async function clearClipboard(page: Page) {
 }
 
 async function setClipboardItems(page: Page, items: ClipboardFixtureItem[]) {
-  const remoteItems = items.flatMap(({ id, created, text, html, ref }) => (
-    text !== undefined || html !== undefined || ref ? [{
+  const remoteItems = items
+    .filter(item => item.text !== undefined || item.html !== undefined || item.ref)
+    .map(({ id, created, text, html, ref }) => ({
       id,
       created,
       ...(text !== undefined ? { text } : {}),
       ...(html !== undefined ? { html } : {}),
       ...(ref ? { ref } : {}),
-    }] : []
-  ));
+    }));
   await page.request.patch('/api/v1/tags/response', {
     params: {
       tags: 'plugin/user/clipboard',
@@ -69,6 +69,7 @@ async function setClipboardItems(page: Page, items: ClipboardFixtureItem[]) {
       },
     },
   });
+  // The component keeps images and bubble positions in localStorage only.
   await page.evaluate(({ storageKey, entries }) => {
     localStorage.setItem(storageKey, JSON.stringify(entries));
   }, { storageKey: CLIPBOARD_STORAGE_KEY, entries: items });
