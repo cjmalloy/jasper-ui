@@ -37,7 +37,7 @@ async function clearClipboard(page: Page) {
 
 test.describe.serial('User Clipboard Plugin', () => {
   test('enable clipboard mod', async ({ page }) => {
-    await mod(page, '#mod-experiments', '#mod-clipboard', '#mod-image');
+    await mod(page, '#mod-experiments', '#mod-clipboard', '#mod-images');
   });
 
   test('keeps many bubbles on screen in columns', async ({ page }) => {
