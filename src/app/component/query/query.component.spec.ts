@@ -41,4 +41,17 @@ describe('QueryComponent', () => {
     // The actual cleaning keeps ! and @ characters, removes # and spaces become +
     expect(navigateCall[0]).toEqual(['/tag', 'test+query!+withspecial@characters']);
   });
+
+  it('marks input to replace on clipboard paste when entering edit mode', () => {
+    fixture.componentRef.setInput('query', 'old:query');
+    fixture.detectChanges();
+    const editButton = fixture.nativeElement.querySelector('.query-edit-button') as HTMLButtonElement;
+    editButton.click();
+    fixture.detectChanges();
+
+    const input = fixture.nativeElement.querySelector('input') as HTMLInputElement;
+    expect(input.dataset['jasperClipboardReplace']).toBe('true');
+    input.dispatchEvent(new CustomEvent('jasper-clipboard-query-paste', { bubbles: true }));
+    expect(component.replaceOnClipboardPaste).toBe(false);
+  });
 });

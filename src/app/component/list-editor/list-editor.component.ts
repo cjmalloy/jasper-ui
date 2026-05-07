@@ -7,7 +7,7 @@ import { ReactiveFormsModule } from '@angular/forms';
   styleUrls: ['./list-editor.component.scss'],
   imports: [ReactiveFormsModule]
 })
-export class ListEditorComponent{
+export class ListEditorComponent {
   @HostBinding('class') css = 'listbox form-group';
 
   @Input()

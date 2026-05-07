@@ -14,7 +14,7 @@ import { getErrorMessage } from './errors';
 
 @Component({
   selector: 'formly-field-tag-input',
-  host: { 'class': 'field' },
+  host: { 'class': 'field tag-field' },
   template: `
     <div class="form-array skip-margin">
       <input class="preview grow"

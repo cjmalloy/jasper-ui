@@ -16,7 +16,7 @@ import { getErrorMessage } from './errors';
 
 @Component({
   selector: 'formly-field-query-input',
-  host: { 'class': 'field' },
+  host: { 'class': 'field query-field' },
   styles: `
     .form-array {
       position: relative;
