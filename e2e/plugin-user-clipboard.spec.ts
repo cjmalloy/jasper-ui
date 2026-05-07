@@ -86,8 +86,42 @@ async function setClipboardItems(page: Page, items: ClipboardFixtureItem[]) {
 }
 
 test.describe.serial('User Clipboard Plugin', () => {
-  test('enable clipboard mod', async ({ page }) => {
+  test('does not show thumbnails without thumbnail mod', async ({ page }) => {
     await mod(page, '#mod-experiments', '#mod-clipboard', '#mod-images');
+    await page.goto('/?debug=ADMIN', { waitUntil: 'networkidle' });
+    await clearClipboard(page);
+    await setClipboardItems(page, [{
+      id: 'e2e-no-thumbnail-plugin-item',
+      text: 'No thumbnail plugin clipboard item',
+      ref: {
+        url: 'https://jasperkm.info/clipboard-no-thumbnail-plugin-ref',
+        title: 'No thumbnail plugin clipboard item',
+        tags: ['plugin/thumbnail', 'plugin/image'],
+        plugins: {
+          'plugin/thumbnail': {
+            url: 'https://jasperkm.info/clipboard-thumbnail.png',
+            color: '#123456',
+            emoji: '📋️',
+          },
+          'plugin/image': {
+            url: TEST_IMAGE_THUMBNAIL_DATA_URL,
+          },
+        },
+      },
+      created: new Date().toISOString(),
+      x: 12,
+      y: 72,
+    }]);
+    await page.reload({ waitUntil: 'networkidle' });
+
+    const bubble = page.locator('.clipboard-bubble').filter({ hasText: 'No thumbnail plugin clipboard item' });
+    await expect(bubble).toBeVisible();
+    await expect(bubble.locator('.clipboard-thumbnail')).toBeHidden();
+    await clearClipboard(page);
+  });
+
+  test('enable clipboard mod', async ({ page }) => {
+    await mod(page, '#mod-experiments', '#mod-clipboard', '#mod-images', '#mod-thumbnail');
   });
 
   test('keeps many bubbles on screen in columns', async ({ page }) => {

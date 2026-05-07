@@ -164,7 +164,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   }
 
   thumbnailVisible(item: ClipboardItem) {
-    return !!item.ref && (
+    return this.thumbnailEnabled() && !!item.ref && (
       this.hasThumbnail(item) ||
       !!this.thumbnailEmoji(item) ||
       !!this.thumbnailColor(item)
@@ -709,7 +709,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     const refEl = element?.closest('.ref[data-ref-url]') as HTMLElement | null;
     const url = refEl?.dataset['refUrl'];
     if (!url) return this.tagRefFromTarget(target);
-    const thumbnail = this.thumbnailFromTarget(refEl);
+    const thumbnail = this.thumbnailEnabled() ? this.thumbnailFromTarget(refEl) : undefined;
     return {
       url,
       origin: refEl.dataset['refOrigin'] || undefined,
@@ -1011,11 +1011,13 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   }
 
   private thumbnailTags(ref: Ref) {
+    if (!this.thumbnailEnabled()) return undefined;
     const tags = ref.tags?.filter(tag => THUMBNAIL_PLUGIN_TAGS.includes(tag));
     return tags?.length ? tags : undefined;
   }
 
   private thumbnailPlugins(ref: Ref) {
+    if (!this.thumbnailEnabled()) return undefined;
     const plugins = THUMBNAIL_PLUGIN_TAGS.reduce((result, plugin) => {
       if (ref.plugins?.[plugin]) result[plugin] = ref.plugins[plugin];
       return result;
@@ -1034,11 +1036,12 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   }
 
   private thumbnailPlugin(item: ClipboardItem) {
+    if (!this.thumbnailEnabled()) return undefined;
     return this.thumbnailObject(item.ref?.plugins?.['plugin/thumbnail']);
   }
 
   private hasThumbnail(item: ClipboardItem) {
-    return !!item.ref && this.hasRefThumbnail(this.thumbnailRef(item.ref), item.ref.plugins);
+    return this.thumbnailEnabled() && !!item.ref && this.hasRefThumbnail(this.thumbnailRef(item.ref), item.ref.plugins);
   }
 
   private hasRefThumbnail(ref: Ref, plugins = ref.plugins) {
@@ -1062,7 +1065,11 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   }
 
   private thumbnailDefaultEmoji(item: ClipboardItem) {
-    return item.ref ? this.defaultThumbnailEmoji(this.thumbnailRef(item.ref)) : '';
+    return this.thumbnailEnabled() && item.ref ? this.defaultThumbnailEmoji(this.thumbnailRef(item.ref)) : '';
+  }
+
+  private thumbnailEnabled() {
+    return !!this.admin.getPlugin('plugin/thumbnail');
   }
 
   private defaultThumbnailEmoji(ref: Ref) {

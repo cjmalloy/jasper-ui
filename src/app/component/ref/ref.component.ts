@@ -131,18 +131,19 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   }
   @HostBinding('attr.data-ref-thumbnail-url')
   get refThumbnailUrlAttr() {
-    return this.refThumbnailUrl() || undefined;
+    return this.thumbnail ? this.refThumbnailUrl() || undefined : undefined;
   }
   @HostBinding('attr.data-ref-thumbnail-color')
   get refThumbnailColorAttr() {
-    return this.refThumbnailString('color') || undefined;
+    return this.thumbnail ? this.refThumbnailString('color') || undefined : undefined;
   }
   @HostBinding('attr.data-ref-thumbnail-emoji')
   get refThumbnailEmojiAttr() {
-    return this.refThumbnailString('emoji') || this.thumbnailEmojiDefaults || undefined;
+    return this.thumbnail ? this.refThumbnailString('emoji') || this.thumbnailEmojiDefaults || undefined : undefined;
   }
   @HostBinding('attr.data-ref-thumbnail-radius')
   get refThumbnailRadiusAttr() {
+    if (!this.thumbnail) return undefined;
     const radius = Number(this.refThumbnailPlugin?.['radius']);
     return Number.isFinite(radius) ? `${radius}` : undefined;
   }
