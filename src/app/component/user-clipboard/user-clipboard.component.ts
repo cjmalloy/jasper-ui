@@ -1,6 +1,6 @@
 import { OverlayModule } from '@angular/cdk/overlay';
 import { AsyncPipe } from '@angular/common';
-import { Component, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { AfterViewChecked, Component, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormArray, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import DOMPurify from 'dompurify';
 import { autorun, IReactionDisposer } from 'mobx';
@@ -89,7 +89,7 @@ interface DragState {
     ThumbnailPipe,
   ],
 })
-export class UserClipboardComponent implements OnInit, OnDestroy {
+export class UserClipboardComponent implements OnInit, AfterViewChecked, OnDestroy {
 
   remote?: Ref;
   items: ClipboardItem[] = [];
@@ -111,6 +111,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   private defaultThumbnailEmojiCache = new WeakMap<object, string>();
   private resizeClamp?: number;
   private loading = false;
+  private pendingEditPlugins?: Record<string, unknown>;
   dropVisible = false;
   dropActive = false;
   dropFilled = false;
@@ -144,6 +145,12 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     if (this.resizeClamp) window.clearTimeout(this.resizeClamp);
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
+  }
+
+  ngAfterViewChecked() {
+    if (!this.pendingEditPlugins || !this.editRefForm?.pluginsFormComponent) return;
+    this.editRefForm.pluginsFormComponent.setValue(this.pendingEditPlugins);
+    this.pendingEditPlugins = undefined;
   }
 
   get plugin(): Plugin | undefined {
@@ -269,8 +276,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     if (!item.ref) return;
     this.editingItem = item;
     this.editForm = this.refEditForm(item.ref);
-    const plugins = item.ref.plugins || {};
-    window.setTimeout(() => this.editRefForm?.pluginsFormComponent?.setValue(plugins), 0);
+    this.pendingEditPlugins = item.ref.plugins || {};
     this.persistLocal();
   }
 
@@ -1190,12 +1196,25 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
       tags: this.nonEmptyStrings(value.tags),
       sources: this.nonEmptyStrings(value.sources),
       alternateUrls: this.nonEmptyStrings(value.alternateUrls),
-      plugins: writePlugins(value.tags, {
-        ...existing.plugins,
-        ...value.plugins,
-      }),
+      plugins: writePlugins(value.tags, this.mergePlugins(existing.plugins, value.plugins)),
     };
     return ref;
+  }
+
+  private mergePlugins(existing: Record<string, unknown> | undefined, updated: Record<string, unknown> | undefined) {
+    const plugins: Record<string, unknown> = { ...existing };
+    for (const [tag, value] of Object.entries(updated || {})) {
+      const existingValue = plugins[tag];
+      if (this.thumbnailObject(existingValue) && this.thumbnailObject(value)) {
+        plugins[tag] = {
+          ...this.thumbnailObject(existingValue),
+          ...this.thumbnailObject(value),
+        };
+      } else {
+        plugins[tag] = value;
+      }
+    }
+    return plugins;
   }
 
   // Persist non-empty form array strings, omitting empty arrays from the Ref.
