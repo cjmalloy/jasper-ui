@@ -171,7 +171,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   }
 
   thumbnailRefs(item: ClipboardItem) {
-    return item.ref ? [item.ref as unknown as Ref] : [];
+    return item.ref ? [item.ref] : [];
   }
 
   thumbnailForce(item: ClipboardItem) {
@@ -682,7 +682,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   }
 
   private thumbnailFromTarget(refEl: HTMLElement | null) {
-    const radius = Number(refEl?.dataset['refThumbnailRadius']);
+    const radius = refEl?.dataset['refThumbnailRadius'] ? Number(refEl.dataset['refThumbnailRadius']) : undefined;
     const thumbnail = {
       ...(refEl?.dataset['refThumbnailUrl'] ? { url: refEl.dataset['refThumbnailUrl'] } : {}),
       ...(refEl?.dataset['refThumbnailColor'] ? { color: refEl.dataset['refThumbnailColor'] } : {}),
@@ -925,13 +925,22 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
       url: ref.url,
       origin: ref.origin,
       title: ref.title,
-      comment: ref.comment,
-      published: ref.published?.toISO(),
-      tags: ref.tags,
-      sources: ref.sources,
-      alternateUrls: ref.alternateUrls,
-      plugins: ref.plugins,
+      tags: this.thumbnailTags(ref),
+      plugins: this.thumbnailPlugins(ref),
     };
+  }
+
+  private thumbnailTags(ref: Ref) {
+    const tags = ref.tags?.filter(tag => ['plugin/thumbnail', 'plugin/image', 'plugin/video'].includes(tag));
+    return tags?.length ? tags : undefined;
+  }
+
+  private thumbnailPlugins(ref: Ref) {
+    const plugins = ['plugin/thumbnail', 'plugin/image', 'plugin/video'].reduce((result, plugin) => {
+      if (ref.plugins?.[plugin]) result[plugin] = ref.plugins[plugin];
+      return result;
+    }, {} as Record<string, unknown>);
+    return Object.keys(plugins).length ? plugins : undefined;
   }
 
   private thumbnailPlugin(item: ClipboardItem) {

@@ -143,8 +143,8 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   }
   @HostBinding('attr.data-ref-thumbnail-radius')
   get refThumbnailRadiusAttr() {
-    const radius = this.refThumbnailPlugin?.['radius'];
-    return typeof radius === 'number' || typeof radius === 'string' ? `${radius}` : undefined;
+    const radius = Number(this.refThumbnailPlugin?.['radius']);
+    return Number.isFinite(radius) ? `${radius}` : undefined;
   }
   private disposers: IReactionDisposer[] = [];
   private destroy$ = new Subject<void>();
