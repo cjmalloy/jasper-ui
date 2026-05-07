@@ -1,7 +1,7 @@
 services:
   playwright:
     environment:
-      JASPER_E2E_DATABASE: sqlite
+      JASPER_E2E_WEBSOCKET_PULL: false
   web:
     environment:
       SPRING_PROFILES_ACTIVE: prod,jwt,storage,file-cache,scripts,sqlite

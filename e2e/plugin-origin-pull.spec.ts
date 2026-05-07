@@ -5,7 +5,7 @@ test.describe.serial('Origin Pull Plugin', () => {
   test.setTimeout(90_000);
   const replUrl = process.env.REPL_URL || 'http://localhost:8082';
   const replApiProxy = process.env.REPL_API_PROXY || 'http://repl-web';
-  const isSqlite = process.env.JASPER_E2E_DATABASE === 'sqlite';
+  const supportsWebsocketPull = process.env.JASPER_E2E_WEBSOCKET_PULL !== 'false';
   const runId = Date.now().toString(36);
   const pullTestTitle = `Pull Test ${runId}`;
   const manualPullTestTitle = `Manual Pull Test ${runId}`;
@@ -102,7 +102,7 @@ test.describe.serial('Origin Pull Plugin', () => {
   });
 
   test('@\u{ff20}repl : creates ref and streams pull', async ({ page }) => {
-    test.skip(isSqlite, 'SQLite does not provide the server change notifications used by streaming origin pull.');
+    test.skip(!supportsWebsocketPull, 'Websocket streaming origin pull is disabled for this e2e environment.');
     await clearReplicatedOrigin(page);
     await test.step('create remote source ref', async () => {
       await createRemoteTextRef(page, pullTestTitle);
