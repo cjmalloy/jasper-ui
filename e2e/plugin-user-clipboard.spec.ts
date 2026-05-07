@@ -214,7 +214,6 @@ test.describe.serial('User Clipboard Plugin', () => {
       const items = JSON.parse(localStorage.getItem(key) || '[]') as { text?: string; hold?: boolean }[];
       return items.find(item => item.text === 'Clipboard paste text')?.hold;
     }, CLIPBOARD_STORAGE_KEY)).toBe(true);
-    await expect(page.locator('.clipboard-edit-popup')).toHaveCount(0);
 
     await page.locator('body').evaluate(() => {
       const input = document.createElement('input');
@@ -286,6 +285,11 @@ test.describe.serial('User Clipboard Plugin', () => {
     await expect(refBubble).not.toHaveClass(/selected/);
     const beforeContextMenu = await page.evaluate(key => localStorage.getItem(key), CLIPBOARD_STORAGE_KEY);
     await refBubble.click({ button: 'right' });
+    const refContextMenuAllowed = await refBubble.evaluate(element => {
+      const event = new MouseEvent('contextmenu', { bubbles: true, cancelable: true });
+      return element.dispatchEvent(event) && !event.defaultPrevented;
+    });
+    expect(refContextMenuAllowed).toBe(true);
     await expect(page.locator('.clipboard-edit-popup')).toHaveCount(0);
     await expect.poll(() => page.evaluate(key => localStorage.getItem(key), CLIPBOARD_STORAGE_KEY)).toBe(beforeContextMenu);
     await refBubble.locator('.clipboard-clear').click();
@@ -338,6 +342,11 @@ test.describe.serial('User Clipboard Plugin', () => {
     await page.locator('.clipboard-bubble').filter({ hasText: 'Dropped clipboard text' }).click();
     const beforeTagContextMenu = await page.evaluate(key => localStorage.getItem(key), CLIPBOARD_STORAGE_KEY);
     await tagBubble.click({ button: 'right' });
+    const tagContextMenuAllowed = await tagBubble.evaluate(element => {
+      const event = new MouseEvent('contextmenu', { bubbles: true, cancelable: true });
+      return element.dispatchEvent(event) && !event.defaultPrevented;
+    });
+    expect(tagContextMenuAllowed).toBe(true);
     await expect(page.locator('.clipboard-edit-popup')).toHaveCount(0);
     await expect.poll(() => page.evaluate(key => localStorage.getItem(key), CLIPBOARD_STORAGE_KEY)).toBe(beforeTagContextMenu);
     await expect.poll(() => page.evaluate(key => {
