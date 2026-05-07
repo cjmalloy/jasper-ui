@@ -40,11 +40,16 @@
             }
             @if (thumbnailVisible(item)) {
               <span class="clipboard-thumbnail"
-                    [style.background-image]="thumbnailRefs(item) | thumbnail: thumbnailForce(item) | async | cssUrl"
                     [style.background-color]="thumbnailColor(item)"
                     [style.border-radius.px]="thumbnailRadius(item)"
                     role="img"
-                    [attr.aria-label]="thumbnailLabel(item)">{{ thumbnailEmoji(item) }}</span>
+                    [attr.aria-label]="thumbnailLabel(item)">
+                <span class="clipboard-thumbnail-image"
+                      [style.background-image]="thumbnailRefs(item) | thumbnail: thumbnailForce(item) | async | cssUrl"></span>
+                @if (thumbnailEmoji(item)) {
+                  <span class="clipboard-thumbnail-emoji">{{ thumbnailEmoji(item) }}</span>
+                }
+              </span>
             }
             <button type="button" class="clipboard-preview" [title]="previewText(item)" [attr.aria-label]="previewLabel(item)">{{ preview(item) }}</button>
             @if (item.selected) {

@@ -35,6 +35,7 @@ test.describe.serial('User Clipboard Plugin', () => {
           plugins: {
             'plugin/thumbnail': {
               url: 'https://jasperkm.info/clipboard-thumbnail.png',
+              color: '#123456',
               emoji: '📋️',
             },
           },
@@ -50,8 +51,10 @@ test.describe.serial('User Clipboard Plugin', () => {
     const bubble = page.locator('.clipboard-bubble').filter({ hasText: 'Clipboard paste text' });
     await expect(bubble).toBeVisible();
     await expect(bubble.locator('.clipboard-thumbnail')).toBeVisible();
-    await expect(bubble.locator('.clipboard-thumbnail')).toHaveText('📋️');
-    await expect(bubble.locator('.clipboard-thumbnail')).toHaveCSS('background-image', /clipboard-thumbnail\.png/);
+    await expect(bubble.locator('.clipboard-thumbnail')).toHaveCSS('background-color', 'rgb(18, 52, 86)');
+    await expect(bubble.locator('.clipboard-thumbnail-image')).toHaveCSS('background-image', /clipboard-thumbnail\.png/);
+    await expect(bubble.locator('.clipboard-thumbnail-emoji')).toBeVisible();
+    await expect(bubble.locator('.clipboard-thumbnail-emoji')).toHaveText('📋️');
     const initialLeft = await bubble.evaluate(element => getComputedStyle(element).left);
     const previewBox = await bubble.locator('.clipboard-preview').boundingBox();
     expect(previewBox).toBeTruthy();
@@ -115,6 +118,7 @@ test.describe.serial('User Clipboard Plugin', () => {
         plugins: {
           'plugin/thumbnail': {
             url: 'https://jasperkm.info/clipboard-thumbnail.png',
+            color: '#123456',
             emoji: '📋️',
           },
         },

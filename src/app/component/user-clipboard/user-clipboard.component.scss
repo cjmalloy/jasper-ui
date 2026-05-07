@@ -88,6 +88,7 @@
 }
 
 .clipboard-thumbnail {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -97,9 +98,23 @@
   width: 32px;
   height: 32px;
   border-radius: 999px;
+}
+
+.clipboard-thumbnail-image {
+  position: absolute;
+  inset: 0;
   background-position: center;
-  background-size: cover;
+  background-size: contain;
+  background-repeat: no-repeat;
+  z-index: 1;
+}
+
+.clipboard-thumbnail-emoji {
+  position: relative;
+  z-index: 2;
+  color: white;
   font-size: 1.2rem;
+  line-height: 1;
 }
 
 .clipboard-hold {
