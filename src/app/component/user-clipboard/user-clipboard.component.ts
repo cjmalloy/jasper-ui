@@ -172,11 +172,9 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
 
   thumbnailVisible(item: ClipboardItem) {
     return !!item.ref && (
-      !!this.thumbnailPlugin(item) ||
+      this.hasThumbnail(item) ||
       !!this.thumbnailEmoji(item) ||
-      !!item.ref.plugins?.['plugin/image'] ||
-      !!item.ref.plugins?.['plugin/video'] ||
-      !!item.ref.tags?.includes('plugin/thumbnail')
+      !!this.thumbnailColor(item)
     );
   }
 
@@ -199,7 +197,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   }
 
   thumbnailEmoji(item: ClipboardItem) {
-    return this.thumbnailString(item, 'emoji') || this.thumbnailDefaultEmoji(item);
+    return this.thumbnailString(item, 'emoji') || (this.hasThumbnail(item) ? '' : this.thumbnailDefaultEmoji(item));
   }
 
   thumbnailLabel(item: ClipboardItem) {
@@ -1025,7 +1023,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
       if (ref.plugins?.[plugin]) result[plugin] = ref.plugins[plugin];
       return result;
     }, {} as Record<string, unknown>);
-    const defaultEmoji = this.defaultThumbnailEmoji(ref);
+    const defaultEmoji = this.hasRefThumbnail(ref, plugins) ? '' : this.defaultThumbnailEmoji(ref);
     if (defaultEmoji) {
       const thumbnail = this.thumbnailObject(plugins['plugin/thumbnail']) || {};
       if (typeof thumbnail['emoji'] !== 'string') {
@@ -1040,6 +1038,30 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
 
   private thumbnailPlugin(item: ClipboardItem) {
     return this.thumbnailObject(item.ref?.plugins?.['plugin/thumbnail']);
+  }
+
+  private hasThumbnail(item: ClipboardItem) {
+    return !!item.ref && this.hasRefThumbnail(this.thumbnailRef(item.ref), item.ref.plugins);
+  }
+
+  private hasRefThumbnail(ref: Ref, plugins = ref.plugins) {
+    const thumbnail = this.thumbnailObject(plugins?.['plugin/thumbnail']);
+    return !!ref.tags?.includes('plugin/thumbnail') ||
+      this.hasThumbnailValue(thumbnail, 'url') ||
+      this.hasThumbnailValue(thumbnail, 'color') ||
+      this.hasThumbnailValue(thumbnail, 'emoji') ||
+      this.hasPluginThumbnailUrl(plugins, 'plugin/image') ||
+      this.hasPluginThumbnailUrl(plugins, 'plugin/video');
+  }
+
+  private hasPluginThumbnailUrl(plugins: Record<string, unknown> | undefined, plugin: 'plugin/image' | 'plugin/video') {
+    const value = this.thumbnailObject(plugins?.[plugin])?.['url'];
+    return typeof value === 'string' && !!value;
+  }
+
+  private hasThumbnailValue(thumbnail: Record<string, unknown> | undefined, key: 'url' | 'color' | 'emoji') {
+    const value = thumbnail?.[key];
+    return typeof value === 'string' && !!value;
   }
 
   private thumbnailDefaultEmoji(item: ClipboardItem) {

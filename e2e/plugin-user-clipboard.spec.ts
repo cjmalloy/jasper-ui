@@ -113,11 +113,11 @@ test.describe.serial('User Clipboard Plugin', () => {
         y: 72,
         hold: true,
       }, {
-        id: 'e2e-clipboard-image-default-item',
-        text: 'Clipboard image default emoji',
+        id: 'e2e-clipboard-image-thumbnail-item',
+        text: 'Clipboard image thumbnail',
         ref: {
           url: 'https://jasperkm.info/clipboard-image-default-ref',
-          title: 'Clipboard image default emoji',
+          title: 'Clipboard image thumbnail',
           tags: ['plugin/image'],
           plugins: {
             'plugin/image': {
@@ -128,6 +128,17 @@ test.describe.serial('User Clipboard Plugin', () => {
         created: new Date().toISOString(),
         x: 12,
         y: 128,
+      }, {
+        id: 'e2e-clipboard-image-default-item',
+        text: 'Clipboard image default emoji',
+        ref: {
+          url: 'https://jasperkm.info/clipboard-image-default-ref',
+          title: 'Clipboard image default emoji',
+          tags: ['plugin/image'],
+        },
+        created: new Date().toISOString(),
+        x: 12,
+        y: 184,
       }]));
     }, CLIPBOARD_STORAGE_KEY);
     await page.reload({ waitUntil: 'networkidle' });
@@ -139,10 +150,13 @@ test.describe.serial('User Clipboard Plugin', () => {
     await expect(bubble.locator('.clipboard-thumbnail-image')).toHaveCSS('background-image', /clipboard-thumbnail\.png/);
     await expect(bubble.locator('.clipboard-thumbnail-emoji')).toBeVisible();
     await expect(bubble.locator('.clipboard-thumbnail-emoji')).toHaveText('📋️');
-    const imageBubble = page.locator('.clipboard-bubble').filter({ hasText: 'Clipboard image default emoji' });
+    const imageBubble = page.locator('.clipboard-bubble').filter({ hasText: 'Clipboard image thumbnail' });
     await expect(imageBubble).toBeVisible();
     await expect(imageBubble.locator('.clipboard-thumbnail-image')).toHaveCSS('background-image', /data:image\/png/);
-    await expect(imageBubble.locator('.clipboard-thumbnail-emoji')).toHaveText('🖼️');
+    await expect(imageBubble.locator('.clipboard-thumbnail-emoji')).toBeHidden();
+    const defaultEmojiBubble = page.locator('.clipboard-bubble').filter({ hasText: 'Clipboard image default emoji' });
+    await expect(defaultEmojiBubble).toBeVisible();
+    await expect(defaultEmojiBubble.locator('.clipboard-thumbnail-emoji')).toHaveText('🖼️');
     const initialLeft = await bubble.evaluate(element => getComputedStyle(element).left);
     const previewBox = await bubble.locator('.clipboard-preview').boundingBox();
     expect(previewBox).toBeTruthy();
@@ -214,11 +228,13 @@ test.describe.serial('User Clipboard Plugin', () => {
       created: expect.any(String),
     });
     await expect(imageBubble.locator('.clipboard-thumbnail-image')).toHaveCSS('background-image', /data:image\/png/);
-    await expect(imageBubble.locator('.clipboard-thumbnail-emoji')).toHaveText('🖼️');
+    await expect(imageBubble.locator('.clipboard-thumbnail-emoji')).toBeHidden();
     await bubble.locator('.clipboard-clear').click();
     await expect(bubble).toBeHidden();
     await imageBubble.locator('.clipboard-clear').click();
     await expect(imageBubble).toBeHidden();
+    await defaultEmojiBubble.locator('.clipboard-clear').click();
+    await expect(defaultEmojiBubble).toBeHidden();
     await expect.poll(() => page.evaluate(key => JSON.parse(localStorage.getItem(key) || '[]').length, CLIPBOARD_STORAGE_KEY)).toBe(0);
   });
 
