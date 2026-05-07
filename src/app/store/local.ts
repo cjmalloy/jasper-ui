@@ -12,63 +12,33 @@ export function cacheKeyToTag(key: string): string {
   return beforeColon + afterColon;
 }
 
-type StorageLike = Pick<Storage, 'getItem' | 'setItem' | 'removeItem' | 'key' | 'length'>;
-
-const memoryStorage = new Map<string, string>();
-const fallbackStorage: StorageLike = {
-  get length() {
-    return memoryStorage.size;
-  },
-  getItem(key: string) {
-    return memoryStorage.get(key) ?? null;
-  },
-  key(index: number) {
-    return Array.from(memoryStorage.keys())[index] ?? null;
-  },
-  removeItem(key: string) {
-    memoryStorage.delete(key);
-  },
-  setItem(key: string, value: string) {
-    memoryStorage.set(key, value);
-  }
-};
-
-function storage(): StorageLike {
-  try {
-    if (globalThis.localStorage) return globalThis.localStorage;
-  } catch {
-    // Fall back when storage access is blocked, e.g. in private or non-browser contexts.
-  }
-  return fallbackStorage;
-}
-
 export class LocalStore {
   private _extPrefetch?: string[];
 
   inCall() {
-    return storage().getItem('video') === 'true';
+    return localStorage.getItem('video') === 'true';
   }
 
   setInCall(value: boolean) {
-    storage().setItem('video', value ? 'true' : 'false');
+    localStorage.setItem('video', value ? 'true' : 'false');
   }
 
   isRefToggled(url: string, defaultValue = false) {
-    const value = storage().getItem(`toggled:${url}`);
+    const value = localStorage.getItem(`toggled:${url}`);
     if (value === null) return defaultValue;
     return value === 'true';
   }
 
-  setRefToggled(url: string, value = true) {
-    storage().setItem(`toggled:${url}`, ''+value);
+  setRefToggled(url: string, value= true) {
+    localStorage.setItem(`toggled:${url}`, ''+value);
   }
 
   set editorStacked(value: boolean) {
-    storage().setItem('editorStacked', ''+value);
+    localStorage.setItem('editorStacked', ''+value);
   }
 
   get editorStacked() {
-    const result = storage().getItem('editorStacked');
+    const result = localStorage.getItem('editorStacked');
     if (result === null) return this.defaultEditorStacked;
     return result !== 'false';
   }
@@ -79,11 +49,11 @@ export class LocalStore {
   }
 
   set showFullscreenPreview(value: boolean) {
-    storage().setItem('showFullscreenPreview', ''+value);
+    localStorage.setItem('showFullscreenPreview', ''+value);
   }
 
   get showFullscreenPreview() {
-    const result = storage().getItem('showFullscreenPreview');
+    const result = localStorage.getItem('showFullscreenPreview');
     if (result === null) return this.defaultShowFullscreenPreview;
     return result !== 'false';
   }
@@ -94,11 +64,11 @@ export class LocalStore {
   }
 
   set showPreview(value: boolean) {
-    storage().setItem('showPreview', ''+value);
+    localStorage.setItem('showPreview', ''+value);
   }
 
   get showPreview() {
-    return storage().getItem('showPreview') === 'true';
+    return localStorage.getItem('showPreview') === 'true';
   }
 
   /**
@@ -107,12 +77,12 @@ export class LocalStore {
    */
   loadExt(keys: string[]) {
     this._extPrefetch ||= this.extPrefetch;
-    storage().setItem(`loaded:ext`, keys.join(','));
+    localStorage.setItem(`loaded:ext`, keys.join(','));
   }
 
   get extPrefetch() {
     return this._extPrefetch
-      || storage().getItem(`loaded:ext`)
+      || localStorage.getItem(`loaded:ext`)
         ?.split(',')
         ?.filter(k => !!k && !k.startsWith(':') && !k.startsWith('@'))
       || [];
@@ -124,19 +94,19 @@ export class LocalStore {
   _selectedUserTag?: string;
   set selectedUserTag(value: string) {
     this._selectedUserTag = value
-    storage().setItem('selectedUserTag', value);
+    localStorage.setItem('selectedUserTag', value);
   }
 
   get selectedUserTag() {
     if (this._selectedUserTag !== undefined) return this._selectedUserTag;
-    return this._selectedUserTag = storage().getItem('selectedUserTag') || '';
+    return this._selectedUserTag = localStorage.getItem('selectedUserTag') || '';
   }
 
   /**
    * Get the last seen count for a specific type (comments, threads, replies) on a URL.
    */
   getLastSeenCount(url: string, type: 'comments' | 'threads' | 'replies'): number {
-    const value = storage().getItem(`lastSeen:${type}:${url}`);
+    const value = localStorage.getItem(`lastSeen:${type}:${url}`);
     return value ? (parseInt(value, 10) || 0) : 0;
   }
 
@@ -147,9 +117,9 @@ export class LocalStore {
   setLastSeenCount(url: string, type: 'comments' | 'threads' | 'replies', count: number): void {
     const key = `lastSeen:${type}:${url}`;
     if (count) {
-      storage().setItem(key, count.toString());
+      localStorage.setItem(key, count.toString());
     } else {
-      storage().removeItem(key);
+      localStorage.removeItem(key);
     }
   }
 
@@ -159,7 +129,6 @@ export class LocalStore {
    */
   getRefKeys(): { key: string, url: string, type: string, value: string }[] {
     const results: { key: string, url: string, type: string, value: string }[] = [];
-    const localStorage = storage();
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
       if (!key) continue;
@@ -194,7 +163,7 @@ export class LocalStore {
    */
   getExtKeys(): { key: string, tag: string, value: string }[] {
     const results: { key: string, tag: string, value: string }[] = [];
-    const loadedExt = storage().getItem('loaded:ext');
+    const loadedExt = localStorage.getItem('loaded:ext');
     if (loadedExt) {
       const tags = loadedExt.split(',').filter(k => !!k);
       for (const tag of tags) {
@@ -212,7 +181,7 @@ export class LocalStore {
    * Clear a specific Ref entry from localStorage.
    */
   clearRefEntry(key: string): void {
-    storage().removeItem(key);
+    localStorage.removeItem(key);
   }
 
   /**
@@ -220,7 +189,6 @@ export class LocalStore {
    */
   clearAllRefs(): void {
     const keys = this.getRefKeys().map(r => r.key);
-    const localStorage = storage();
     for (const key of keys) {
       localStorage.removeItem(key);
     }
@@ -231,14 +199,13 @@ export class LocalStore {
    */
   clearAllExts(): void {
     this._extPrefetch = undefined;
-    storage().removeItem('loaded:ext');
+    localStorage.removeItem('loaded:ext');
   }
 
   /**
    * Remove a specific tag from the loaded:ext list.
    */
   clearExtEntry(tag: string): void {
-    const localStorage = storage();
     const loadedExt = localStorage.getItem('loaded:ext');
     if (loadedExt) {
       const tags = loadedExt.split(',').filter(k => !!k && k !== tag);
@@ -252,11 +219,11 @@ export class LocalStore {
   }
 
   shownHelpPopup(id: string) {
-    return storage().getItem('help:' + id);
+    return localStorage.getItem('help:' + id);
   }
 
   dismissHelpPopup(id: string) {
-    storage().setItem('help:' + id, 'true');
+    localStorage.setItem('help:' + id, 'true');
   }
 
   /**
@@ -264,7 +231,6 @@ export class LocalStore {
    */
   getHelpKeys(): { key: string, id: string }[] {
     const results: { key: string, id: string }[] = [];
-    const localStorage = storage();
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
       if (key?.startsWith('help:')) {
@@ -278,7 +244,7 @@ export class LocalStore {
    * Clear a specific help entry from localStorage.
    */
   clearHelpEntry(key: string): void {
-    storage().removeItem(key);
+    localStorage.removeItem(key);
   }
 
   /**
@@ -286,7 +252,6 @@ export class LocalStore {
    */
   clearAllHelp(): void {
     const keys = this.getHelpKeys().map(h => h.key);
-    const localStorage = storage();
     for (const key of keys) {
       localStorage.removeItem(key);
     }

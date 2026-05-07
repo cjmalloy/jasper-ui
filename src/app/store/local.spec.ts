@@ -1,5 +1,5 @@
 /// <reference types="vitest/globals" />
-import { cacheKeyToTag, LocalStore } from './local';
+import { cacheKeyToTag } from './local';
 
 describe('cacheKeyToTag', () => {
   it('should return tag as-is when no colon present', () => {
@@ -32,24 +32,5 @@ describe('cacheKeyToTag', () => {
 
   it('should handle hierarchical tag@origin with default', () => {
     expect(cacheKeyToTag('people/murray@origin1:@default')).toBe('people/murray@origin1');
-  });
-});
-
-describe('LocalStore', () => {
-  const originalLocalStorage = Object.getOwnPropertyDescriptor(globalThis, 'localStorage');
-
-  afterEach(() => {
-    if (originalLocalStorage) {
-      Object.defineProperty(globalThis, 'localStorage', originalLocalStorage);
-    }
-  });
-
-  it('should fall back when localStorage is unavailable', () => {
-    Object.defineProperty(globalThis, 'localStorage', { value: undefined, configurable: true });
-
-    const store = new LocalStore();
-
-    expect(() => store.setInCall(true)).not.toThrow();
-    expect(store.inCall()).toBe(true);
   });
 });
