@@ -78,6 +78,7 @@ docker compose up --build  # Everything on http://localhost:8082/
 - Build: `npm run build` (~100s, NEVER CANCEL, timeout 180+s)
 - Unit tests: `npm test -- --watch=false` (~55s, NEVER CANCEL, timeout 120+s) - runs Vitest via Angular CLI
 - Docker tests: `docker build . --target test -t jasper-ui-test && docker run --rm jasper-ui-test`
+- If the first Docker build in the Copilot agent environment fails during `apk add` with TLS certificate errors, temporarily change Alpine package repository URLs from `https://` to `http://` before running `apk add`, then restore the original `https://` URLs afterward.
 - E2E tests: `npm run pw:ci` (10-20 min, NEVER CANCEL, timeout 30+ min)
 - Stop services: `docker compose down`
 
