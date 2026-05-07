@@ -26,21 +26,28 @@
              (pointerup)="pointerUp($event)"
              (pointercancel)="cancelPointerDrag($event)"
              (lostpointercapture)="cancelPointerDrag($event)">
-           @if (item.selected) {
-             <label class="clipboard-hold"
-                    i18n-title title="Keep selected after paste"
-                    (click)="$event.stopPropagation()">
-               <input #holdCheckbox
-                      type="checkbox"
-                      [checked]="item.hold"
-                      (change)="setHold(item, holdCheckbox.checked, $event)"
-                      aria-label="Keep selected after paste"
-                      i18n-aria-label>
-             </label>
-           }
-           <button type="button" class="clipboard-preview" [title]="previewText(item)" [attr.aria-label]="previewLabel(item)">{{ preview(item) }}</button>
-           @if (item.selected) {
-             <button type="button"
+            @if (item.selected) {
+              <label class="clipboard-hold"
+                     i18n-title title="Keep selected after paste"
+                     (click)="$event.stopPropagation()">
+                <input #holdCheckbox
+                       type="checkbox"
+                       [checked]="item.hold"
+                       (change)="setHold(item, holdCheckbox.checked, $event)"
+                       aria-label="Keep selected after paste"
+                       i18n-aria-label>
+              </label>
+            }
+            @if (thumbnailVisible(item)) {
+              <span class="clipboard-thumbnail"
+                    [style.background-image]="thumbnailRefs(item) | thumbnail: thumbnailForce(item) | async | cssUrl"
+                    [style.background-color]="thumbnailColor(item)"
+                    [style.border-radius.px]="thumbnailRadius(item)"
+                    aria-hidden="true">{{ thumbnailEmoji(item) }}</span>
+            }
+            <button type="button" class="clipboard-preview" [title]="previewText(item)" [attr.aria-label]="previewLabel(item)">{{ preview(item) }}</button>
+            @if (item.selected) {
+              <button type="button"
                      class="clipboard-clear"
                      (click)="clear(item, $event)"
                      aria-label="Clear clipboard item"

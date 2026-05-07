@@ -28,6 +28,17 @@ test.describe.serial('User Clipboard Plugin', () => {
         id: 'e2e-clipboard-item',
         text: 'Clipboard paste text',
         html: '<strong>Clipboard paste text</strong>',
+        ref: {
+          url: 'https://jasperkm.info/clipboard-thumbnail-ref',
+          title: 'Clipboard paste text',
+          tags: ['plugin/thumbnail'],
+          plugins: {
+            'plugin/thumbnail': {
+              url: 'https://jasperkm.info/clipboard-thumbnail.png',
+              emoji: '📋️',
+            },
+          },
+        },
         created: new Date().toISOString(),
         x: 12,
         y: 72,
@@ -38,6 +49,9 @@ test.describe.serial('User Clipboard Plugin', () => {
 
     const bubble = page.locator('.clipboard-bubble').filter({ hasText: 'Clipboard paste text' });
     await expect(bubble).toBeVisible();
+    await expect(bubble.locator('.clipboard-thumbnail')).toBeVisible();
+    await expect(bubble.locator('.clipboard-thumbnail')).toHaveText('📋️');
+    await expect.poll(() => bubble.locator('.clipboard-thumbnail').evaluate(element => getComputedStyle(element).backgroundImage)).toContain('clipboard-thumbnail.png');
     const initialLeft = await bubble.evaluate(element => getComputedStyle(element).left);
     const previewBox = await bubble.locator('.clipboard-preview').boundingBox();
     expect(previewBox).toBeTruthy();
@@ -94,6 +108,17 @@ test.describe.serial('User Clipboard Plugin', () => {
       id: 'e2e-clipboard-item',
       text: 'Clipboard paste text',
       html: '<strong>Clipboard paste text</strong>',
+      ref: {
+        url: 'https://jasperkm.info/clipboard-thumbnail-ref',
+        title: 'Clipboard paste text',
+        tags: ['plugin/thumbnail'],
+        plugins: {
+          'plugin/thumbnail': {
+            url: 'https://jasperkm.info/clipboard-thumbnail.png',
+            emoji: '📋️',
+          },
+        },
+      },
       created: expect.any(String),
     });
     await bubble.locator('.clipboard-clear').click();

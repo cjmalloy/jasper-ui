@@ -129,6 +129,23 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   get refTitleAttr() {
     return this.ref?.title || undefined;
   }
+  @HostBinding('attr.data-ref-thumbnail-url')
+  get refThumbnailUrlAttr() {
+    return this.refThumbnailString('url') || undefined;
+  }
+  @HostBinding('attr.data-ref-thumbnail-color')
+  get refThumbnailColorAttr() {
+    return this.refThumbnailString('color') || undefined;
+  }
+  @HostBinding('attr.data-ref-thumbnail-emoji')
+  get refThumbnailEmojiAttr() {
+    return this.refThumbnailString('emoji') || undefined;
+  }
+  @HostBinding('attr.data-ref-thumbnail-radius')
+  get refThumbnailRadiusAttr() {
+    const radius = this.refThumbnailPlugin?.['radius'];
+    return typeof radius === 'number' || typeof radius === 'string' ? `${radius}` : undefined;
+  }
   private disposers: IReactionDisposer[] = [];
   private destroy$ = new Subject<void>();
 
@@ -765,6 +782,16 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   @memo
   get thumbnailRefs() {
     return this.editing ? [{ ...this.editForm.value, origin: this.ref.origin }] : [this.repostRef, this.ref];
+  }
+
+  get refThumbnailPlugin() {
+    const plugin = this.ref?.plugins?.['plugin/thumbnail'] || this.repostRef?.plugins?.['plugin/thumbnail'];
+    return plugin && typeof plugin === 'object' && !Array.isArray(plugin) ? plugin : undefined;
+  }
+
+  refThumbnailString(key: 'url' | 'color' | 'emoji') {
+    const value = this.refThumbnailPlugin?.[key];
+    return typeof value === 'string' ? value : '';
   }
 
   @memo

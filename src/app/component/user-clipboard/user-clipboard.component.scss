@@ -87,6 +87,21 @@
   white-space: nowrap;
 }
 
+.clipboard-thumbnail {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex: 0 0 32px;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background-position: center;
+  background-size: cover;
+  font-size: 1.2rem;
+}
+
 .clipboard-hold {
   display: flex;
   align-items: center;

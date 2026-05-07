@@ -1,4 +1,5 @@
 import { OverlayModule } from '@angular/cdk/overlay';
+import { AsyncPipe } from '@angular/common';
 import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormArray, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import DOMPurify from 'dompurify';
@@ -8,6 +9,8 @@ import { v4 as uuid } from 'uuid';
 import { refForm, RefFormComponent } from '../../form/ref/ref.component';
 import { Plugin } from '../../model/plugin';
 import { Ref, RefUpdates } from '../../model/ref';
+import { CssUrlPipe } from '../../pipe/css-url.pipe';
+import { ThumbnailPipe } from '../../pipe/thumbnail.pipe';
 import { AdminService } from '../../service/admin.service';
 import { StompService } from '../../service/api/stomp.service';
 import { TaggingService } from '../../service/api/tagging.service';
@@ -73,8 +76,11 @@ interface DragState {
   host: { 'class': 'user-clipboard' },
   imports: [
     OverlayModule,
+    AsyncPipe,
+    CssUrlPipe,
     ReactiveFormsModule,
     RefFormComponent,
+    ThumbnailPipe,
   ],
 })
 export class UserClipboardComponent implements OnInit, OnDestroy {
@@ -153,6 +159,36 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
 
   previewLabel(item: ClipboardItem) {
     return $localize`Clipboard item: ${this.preview(item)}`;
+  }
+
+  thumbnailVisible(item: ClipboardItem) {
+    return !!item.ref && (
+      !!this.thumbnailPlugin(item) ||
+      !!item.ref.plugins?.['plugin/image'] ||
+      !!item.ref.plugins?.['plugin/video'] ||
+      !!item.ref.tags?.includes('plugin/thumbnail')
+    );
+  }
+
+  thumbnailRefs(item: ClipboardItem) {
+    return item.ref ? [item.ref as unknown as Ref] : [];
+  }
+
+  thumbnailForce(item: ClipboardItem) {
+    return !!item.ref?.tags?.includes('plugin/thumbnail') && !this.thumbnailPlugin(item);
+  }
+
+  thumbnailColor(item: ClipboardItem) {
+    return this.thumbnailString(item, 'color');
+  }
+
+  thumbnailEmoji(item: ClipboardItem) {
+    return this.thumbnailString(item, 'emoji');
+  }
+
+  thumbnailRadius(item: ClipboardItem) {
+    const radius = this.thumbnailPlugin(item)?.['radius'];
+    return typeof radius === 'number' ? radius : 0;
   }
 
   previewText(item: ClipboardItem) {
@@ -362,11 +398,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
 
   private addRef(ref: Ref) {
     this.addItem({
-      ref: {
-        url: ref.url,
-        origin: ref.origin,
-        title: ref.title,
-      },
+      ref: this.clipboardRef(ref),
     });
   }
 
@@ -637,11 +669,27 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     const refEl = target?.closest('.ref[data-ref-url]') as HTMLElement | null;
     const url = refEl?.dataset['refUrl'];
     if (!url) return this.tagRefFromTarget(target);
+    const thumbnail = this.thumbnailFromTarget(refEl);
     return {
       url,
       origin: refEl.dataset['refOrigin'] || undefined,
       title: refEl.dataset['refTitle'] || undefined,
+      ...(thumbnail ? {
+        tags: ['plugin/thumbnail'],
+        plugins: { 'plugin/thumbnail': thumbnail },
+      } : {}),
     };
+  }
+
+  private thumbnailFromTarget(refEl: HTMLElement | null) {
+    const radius = Number(refEl?.dataset['refThumbnailRadius']);
+    const thumbnail = {
+      ...(refEl?.dataset['refThumbnailUrl'] ? { url: refEl.dataset['refThumbnailUrl'] } : {}),
+      ...(refEl?.dataset['refThumbnailColor'] ? { color: refEl.dataset['refThumbnailColor'] } : {}),
+      ...(refEl?.dataset['refThumbnailEmoji'] ? { emoji: refEl.dataset['refThumbnailEmoji'] } : {}),
+      ...(Number.isFinite(radius) ? { radius } : {}),
+    };
+    return Object.keys(thumbnail).length ? thumbnail : undefined;
   }
 
   private tagRefFromTarget(target: HTMLElement | null): ClipboardRef | undefined {
@@ -870,6 +918,30 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
       alternateUrls: this.sanitiseStringArray(ref.alternateUrls),
       plugins: ref.plugins && typeof ref.plugins === 'object' && !Array.isArray(ref.plugins) ? ref.plugins : undefined,
     };
+  }
+
+  private clipboardRef(ref: Ref): ClipboardRef {
+    return {
+      url: ref.url,
+      origin: ref.origin,
+      title: ref.title,
+      comment: ref.comment,
+      published: ref.published?.toISO(),
+      tags: ref.tags,
+      sources: ref.sources,
+      alternateUrls: ref.alternateUrls,
+      plugins: ref.plugins,
+    };
+  }
+
+  private thumbnailPlugin(item: ClipboardItem) {
+    const plugin = item.ref?.plugins?.['plugin/thumbnail'];
+    return plugin && typeof plugin === 'object' && !Array.isArray(plugin) ? plugin as Record<string, unknown> : undefined;
+  }
+
+  private thumbnailString(item: ClipboardItem, key: 'color' | 'emoji') {
+    const value = this.thumbnailPlugin(item)?.[key];
+    return typeof value === 'string' ? value : '';
   }
 
   // Keep only string entries when loading optional Ref array fields.
