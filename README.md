@@ -210,6 +210,8 @@ Ref will be used to point to a TSV file.
 12. **Analytics:** Enables engagement tracking when installed. Reports links clicked, Refs expanded,
 Ref action taken, Refs viewed, and queries searched. Adds data to the Ref to override analytic
 tracking for that ref.
+13. **Clipboard:** Manage in-browser clipboard bubbles for copied Refs, tags, queries, bookmarks,
+and local-only images.
 
 ## Deployment
 Jasper-UI is available in the following distributions:
