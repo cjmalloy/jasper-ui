@@ -37,6 +37,7 @@ function storage(): StorageLike {
   try {
     if (globalThis.localStorage) return globalThis.localStorage;
   } catch {
+    // Fall back when storage access is blocked, e.g. in private or non-browser contexts.
   }
   return fallbackStorage;
 }
@@ -58,7 +59,7 @@ export class LocalStore {
     return value === 'true';
   }
 
-  setRefToggled(url: string, value= true) {
+  setRefToggled(url: string, value = true) {
     storage().setItem(`toggled:${url}`, ''+value);
   }
 
