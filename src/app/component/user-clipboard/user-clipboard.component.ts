@@ -90,6 +90,7 @@ interface DragState {
 })
 export class UserClipboardComponent implements OnInit, OnDestroy {
 
+  remote?: Ref;
   items: ClipboardItem[] = [];
   editingItem?: ClipboardItem;
   editForm: UntypedFormGroup;
@@ -129,7 +130,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
         this.addRef(this.store.eventBus.ref);
       }
     }));
-    this.watch = this.stomp.watchResponse('tag:plugin/user/clipboard').pipe(
+    this.watch = this.stomp.watchResponse('tag:/plugin/user/clipboard').pipe(
       catchError(() => of(undefined)),
     ).subscribe(() => this.loadRemote());
   }
@@ -147,11 +148,9 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   }
 
   get interceptCopy() {
-    return !!this.pluginSetting('interceptCopy');
-  }
-
-  get interceptPaste() {
-    return !!this.pluginSetting('interceptPaste');
+    const value = this.remote?.plugins?.['plugin/user/clipboard']?.interceptCopy;
+    if (value !== undefined) return value;
+    return this.plugin?.defaults?.interceptCopy;
   }
 
   hasPendingPaste() {
@@ -218,13 +217,14 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     return '';
   }
 
-  select(item: ClipboardItem) {
+  select(item: ClipboardItem, event: MouseEvent) {
+    if (event.button) return;
     if (this.suppressedSelect === item || this.drag?.moved) {
       this.suppressedSelect = undefined;
       return;
     }
     item.selected = !item.selected;
-    this.persistLocalOnly();
+    this.persistLocal();
   }
 
   clear(item: ClipboardItem, event?: Event) {
@@ -237,7 +237,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     event?.stopPropagation();
     item.hold = checked;
     item.selected = checked;
-    this.persistLocalOnly();
+    this.persistLocal();
   }
 
   @HostListener('document:dragenter', ['$event'])
@@ -261,13 +261,12 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   }
 
   openEdit(item: ClipboardItem, event: Event) {
-    if (!item.ref) return;
     event.preventDefault();
     event?.stopPropagation();
-    item.selected = true;
+    if (!item.ref) return;
     this.editingItem = item;
     this.editForm = this.refEditForm(item.ref);
-    this.persistLocalOnly();
+    this.persistLocal();
   }
 
   closeEdit(event?: Event) {
@@ -329,7 +328,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
       item.y = position.y;
       changed = true;
     }
-    if (changed) this.persistLocalOnly();
+    if (changed) this.persistLocal();
   }
 
   @HostListener('document:dragend')
@@ -374,7 +373,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     this.drag = undefined;
     if (moved) {
       this.suppressedSelect = item;
-      this.persistLocalOnly();
+      this.persistLocal();
     }
   }
 
@@ -395,7 +394,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   copy(event: ClipboardEvent) {
     if (!this.interceptCopy) return;
     if (this.isClipboardEditTarget(event.target as HTMLElement | null)) return;
-    const item = this.clipboardItem(event.target as HTMLElement);
+    const item = this.clipboardItem(event.target as HTMLElement, false);
     if (!item) return;
     event.preventDefault();
     this.addItem(item);
@@ -403,15 +402,9 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
 
   @HostListener('document:paste', ['$event'])
   paste(event: ClipboardEvent) {
-    if (!this.interceptPaste) return;
-    if (this.isClipboardEditTarget(event.target as HTMLElement | null)) return;
+    if (!this.interceptCopy) return;
     event.preventDefault();
     event.stopPropagation();
-    if (this.hasPendingPaste()) {
-      this.pasteInto(event.target as HTMLElement);
-      return;
-    }
-    this.addFromClipboardData(event.clipboardData);
   }
 
   @HostListener('document:focusin', ['$event'])
@@ -448,7 +441,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     for (const item of items) {
       if (!item.hold) item.selected = false;
     }
-    this.persistLocalOnly();
+    this.persistLocal();
   }
 
   private insertItems(target: HTMLElement, items: ClipboardItem[]) {
@@ -707,12 +700,12 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     return [document.createTextNode(this.plainText(item))];
   }
 
-  private clipboardItem(target: HTMLElement | null): ClipboardItemContent | undefined {
+  private clipboardItem(target: HTMLElement | null, getRef = true): ClipboardItemContent | undefined {
     const text = this.selectedText(target);
     const html = this.selectedHtml();
     // Copy events may target a container while the selected HTML contains the
     // actual tag/link anchor, so parse the selection as a fallback.
-    const ref = this.refFromTarget(target) || (html ? this.refFromHtml(html) : undefined);
+    const ref = getRef && this.refFromTarget(target) || (html ? this.refFromHtml(html) : undefined);
     if (!text && !html && !ref) return undefined;
     const itemText = this.isTagUrl(ref?.url) ? ref?.url : text;
     return { text: itemText || undefined, html: html || undefined, ref };
@@ -937,6 +930,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   }
 
   private applyRemote(ref: Ref | RefUpdates) {
+    this.remote = ref;
     const remoteItems = ref.plugins?.['plugin/user/clipboard']?.items;
     if (!Array.isArray(remoteItems)) return;
     const remoteIds = new Set(remoteItems.map(item => item?.id).filter(id => typeof id === 'string'));
@@ -1144,14 +1138,14 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     this.persistRemote();
   }
 
-  private persistLocalOnly() {
-    this.persistLocal();
-  }
-
-  private pluginSetting(key: 'interceptCopy' | 'interceptPaste') {
-    const value = this.plugin?.config?.[key];
-    const fallback = this.plugin?.defaults?.[key];
-    return typeof value === 'boolean' ? value : (typeof fallback === 'boolean' ? fallback : false);
+  private persistLocal() {
+    try {
+      localStorage.setItem(this.storageKey, JSON.stringify(this.items.map(item => ({
+        ...this.serializeLocal(item),
+      }))));
+    } catch {
+      // Local storage is best-effort.
+    }
   }
 
   private refEditForm(ref?: ClipboardRef) {
@@ -1199,16 +1193,6 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     if (!Array.isArray(values)) return undefined;
     const strings = values.filter(value => typeof value === 'string' && value.trim());
     return strings.length ? strings : undefined;
-  }
-
-  private persistLocal() {
-    try {
-      localStorage.setItem(this.storageKey, JSON.stringify(this.items.map(item => ({
-        ...this.serializeLocal(item),
-      }))));
-    } catch {
-      // Local storage is best-effort.
-    }
   }
 
   private persistRemote() {

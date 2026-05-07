@@ -7,7 +7,7 @@
          (dragleave)="dragLeave($event)"
          (drop)="drop($event)"
          aria-label="Drop to clipboard"
-         i18n-aria-label>📋️</div>
+         i18n-aria-label>🎨️</div>
   }
   @if (items.length) {
     <div class="clipboard-bubbles" aria-label="Clipboard items" i18n-aria-label>
@@ -19,7 +19,7 @@
              [class.hold]="item.hold"
              [style.left.px]="item.x"
              [style.top.px]="item.y"
-             (click)="select(item)"
+             (click)="select(item, $event)"
              (contextmenu)="openEdit(item, $event)"
              (pointerdown)="pointerDown($event, item)"
              (pointermove)="pointerMove($event)"
