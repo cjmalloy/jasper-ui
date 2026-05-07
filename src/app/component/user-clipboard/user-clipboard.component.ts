@@ -187,6 +187,10 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     return this.thumbnailString(item, 'emoji');
   }
 
+  thumbnailLabel(item: ClipboardItem) {
+    return $localize`Thumbnail for ${this.preview(item)}`;
+  }
+
   thumbnailRadius(item: ClipboardItem) {
     const radius = this.thumbnailPlugin(item)?.['radius'];
     return typeof radius === 'number' ? radius : 0;
@@ -684,12 +688,12 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
 
   private thumbnailFromTarget(refEl: HTMLElement | null) {
     const radiusValue = refEl?.dataset['refThumbnailRadius'];
-    const radius = radiusValue ? Number(radiusValue) : undefined;
+    const radius = radiusValue === undefined ? undefined : Number(radiusValue);
     const thumbnail = {
       ...(refEl?.dataset['refThumbnailUrl'] ? { url: refEl.dataset['refThumbnailUrl'] } : {}),
       ...(refEl?.dataset['refThumbnailColor'] ? { color: refEl.dataset['refThumbnailColor'] } : {}),
       ...(refEl?.dataset['refThumbnailEmoji'] ? { emoji: refEl.dataset['refThumbnailEmoji'] } : {}),
-      ...(Number.isFinite(radius) ? { radius } : {}),
+      ...(radius !== undefined && Number.isFinite(radius) ? { radius } : {}),
     };
     return Object.keys(thumbnail).length ? thumbnail : undefined;
   }
