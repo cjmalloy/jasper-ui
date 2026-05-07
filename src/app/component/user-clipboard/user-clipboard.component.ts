@@ -17,6 +17,7 @@ import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
 import { getTitle } from '../../util/format';
 import { getScheme } from '../../util/http';
+import { EditorService } from '../../service/editor.service';
 
 const BUBBLE_START_X = 12;
 const BUBBLE_START_Y = 72;
@@ -107,11 +108,12 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   dropFilled = false;
 
   constructor(
+    private config: ConfigService,
     public store: Store,
     private admin: AdminService,
     private tags: TaggingService,
+    private editor: EditorService,
     private stomp: StompService,
-    private configs: ConfigService,
     private router: Router,
   ) {}
 
@@ -216,7 +218,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     const path = this.router.serializeUrl(this.router.createUrlTree(
       this.isTagUrl(url) ? ['/tag', url.substring(TAG_URL_PREFIX.length)] : ['/ref', url],
     ));
-    return this.configs.base + (path.startsWith('/') ? path.substring(1) : path);
+    return this.config.base + (path.startsWith('/') ? path.substring(1) : path);
   }
 
   select(item: ClipboardItem, event: MouseEvent) {
@@ -819,15 +821,9 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
    */
   private normalizeDroppedUrl(url?: string) {
     if (!url) return undefined;
-    try {
-      const parsed = new URL(url, window.location.href);
-      if (parsed.origin === window.location.origin && parsed.pathname.startsWith('/tag/')) {
-        const tag = decodeURIComponent(parsed.pathname.substring('/tag/'.length));
-        return `tag:/${tag}${parsed.search}`;
-      }
-    } catch {
-      return url;
-    }
+    const type = this.editor.getUrlType(url);
+    if (type === 'tag') return 'tag:/' + this.editor.getQuery(url);
+    if (type === 'ref') return this.editor.getRefUrl(url);
     return url;
   }
 
