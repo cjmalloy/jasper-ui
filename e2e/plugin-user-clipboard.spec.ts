@@ -22,7 +22,7 @@ type ClipboardFixtureItem = {
 };
 
 function hasRemoteClipboardContent(item: ClipboardFixtureItem) {
-  return item.text !== undefined || item.html !== undefined || item.ref;
+  return item.text !== undefined || item.html !== undefined || item.ref !== undefined;
 }
 
 async function showDropZone(page: Page) {
@@ -51,6 +51,11 @@ async function clearClipboard(page: Page) {
   await page.evaluate(key => localStorage.removeItem(key), CLIPBOARD_STORAGE_KEY);
 }
 
+/**
+ * Seeds clipboard fixtures in both places the signed-in component reads from:
+ * remote response refs for syncable text/ref data, and localStorage for local
+ * image payloads plus bubble positions.
+ */
 async function setClipboardItems(page: Page, items: ClipboardFixtureItem[]) {
   const remoteItems = items
     .filter(hasRemoteClipboardContent)
