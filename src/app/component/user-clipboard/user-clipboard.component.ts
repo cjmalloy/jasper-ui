@@ -101,6 +101,8 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   private savingRemote = false;
   private disposers: IReactionDisposer[] = [];
   private thumbnailRefsCache = new WeakMap<ClipboardRef, ClipboardRef[]>();
+  private thumbnailRefCache = new WeakMap<ClipboardRef, Ref>();
+  private defaultThumbnailEmojiCache = new WeakMap<object, string>();
   private loading = false;
   dropVisible = false;
   dropActive = false;
@@ -985,9 +987,12 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   }
 
   private defaultThumbnailEmoji(ref: Ref) {
+    if (this.defaultThumbnailEmojiCache.has(ref)) return this.defaultThumbnailEmojiCache.get(ref) || '';
     const icon = uniqueConfigs(sortOrder(this.admin.getIcons(ref.tags, ref.plugins, getScheme(ref.url))))
       .find(icon => this.isDefaultThumbnailIcon(icon) && active(ref, icon));
-    return icon?.label || icon?.thumbnail || '';
+    const emoji = icon?.label || icon?.thumbnail || '';
+    this.defaultThumbnailEmojiCache.set(ref, emoji);
+    return emoji;
   }
 
   private isDefaultThumbnailIcon(icon: Icon) {
@@ -995,8 +1000,10 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   }
 
   private thumbnailRef(ref: ClipboardRef): Ref {
+    const cached = this.thumbnailRefCache.get(ref);
+    if (cached) return cached;
     // Build only Ref-compatible fields; ClipboardRef date fields are serialized strings.
-    return {
+    const thumbnailRef = {
       url: ref.url,
       origin: ref.origin,
       title: ref.title,
@@ -1007,6 +1014,8 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
       alternateUrls: ref.alternateUrls,
       plugins: ref.plugins,
     };
+    this.thumbnailRefCache.set(ref, thumbnailRef);
+    return thumbnailRef;
   }
 
   private thumbnailString(item: ClipboardItem, key: 'color' | 'emoji') {
