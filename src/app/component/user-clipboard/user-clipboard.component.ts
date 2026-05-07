@@ -21,8 +21,9 @@ import { getScheme } from '../../util/http';
 const BUBBLE_START_X = 12;
 const BUBBLE_START_Y = 72;
 const BUBBLE_SPACING = 56;
-const BUBBLE_WIDTH_OFFSET = 80;
-const BUBBLE_HEIGHT_OFFSET = 40;
+const BUBBLE_COLUMN_SPACING = 288;
+const BUBBLE_WIDTH_OFFSET = 320;
+const BUBBLE_HEIGHT_OFFSET = 48;
 const MAX_PREVIEW_LENGTH = 48;
 const PREVIEW_TRUNCATE_AT = 45;
 const TAG_URL_PREFIX = 'tag:/';
@@ -310,6 +311,19 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     this.draggedRef = this.refFromTarget(event.target as HTMLElement | null);
   }
 
+  @HostListener('window:resize')
+  resize() {
+    let changed = false;
+    for (const item of this.items) {
+      const position = this.clampBubblePosition(item);
+      if (position.x === item.x && position.y === item.y) continue;
+      item.x = position.x;
+      item.y = position.y;
+      changed = true;
+    }
+    if (changed) this.persistLocalOnly();
+  }
+
   @HostListener('document:dragend')
   dragEnd() {
     this.resetDropState();
@@ -335,8 +349,10 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
 
   pointerMove(event: PointerEvent) {
     if (!this.drag) return;
-    const x = Math.max(0, Math.min(window.innerWidth - BUBBLE_WIDTH_OFFSET, event.clientX - this.drag.offsetX));
-    const y = Math.max(0, Math.min(window.innerHeight - BUBBLE_HEIGHT_OFFSET, event.clientY - this.drag.offsetY));
+    const { x, y } = this.clampBubblePosition({
+      x: event.clientX - this.drag.offsetX,
+      y: event.clientY - this.drag.offsetY,
+    });
     if (Math.abs(x - this.drag.startX) > 3 || Math.abs(y - this.drag.startY) > 3) this.drag.moved = true;
     this.drag.item.x = x;
     this.drag.item.y = y;
@@ -398,14 +414,13 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   }
 
   private addItem(item: ClipboardItemContent) {
-    const y = BUBBLE_START_Y + this.items.length * BUBBLE_SPACING;
+    const position = this.bubblePosition(this.items.length);
     this.items = [
       ...this.items,
       {
         id: uuid(),
         created: new Date().toISOString(),
-        x: BUBBLE_START_X,
-        y,
+        ...position,
         ...item,
       },
     ];
@@ -521,6 +536,31 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   private moveBubble(element: HTMLElement, x: number, y: number) {
     element.style.left = `${x}px`;
     element.style.top = `${y}px`;
+  }
+
+  private bubblePosition(index: number) {
+    const rows = Math.max(1, Math.floor((this.maxBubbleY() - BUBBLE_START_Y) / BUBBLE_SPACING) + 1);
+    const column = Math.floor(index / rows);
+    const row = index % rows;
+    return this.clampBubblePosition({
+      x: BUBBLE_START_X + column * BUBBLE_COLUMN_SPACING,
+      y: BUBBLE_START_Y + row * BUBBLE_SPACING,
+    });
+  }
+
+  private clampBubblePosition(position: Pick<ClipboardItem, 'x' | 'y'>) {
+    return {
+      x: Math.max(0, Math.min(this.maxBubbleX(), position.x)),
+      y: Math.max(0, Math.min(this.maxBubbleY(), position.y)),
+    };
+  }
+
+  private maxBubbleX() {
+    return Math.max(0, window.innerWidth - BUBBLE_WIDTH_OFFSET);
+  }
+
+  private maxBubbleY() {
+    return Math.max(0, window.innerHeight - BUBBLE_HEIGHT_OFFSET);
   }
 
   private isClipboardEditTarget(target: HTMLElement | null) {
@@ -906,9 +946,14 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   }
 
   private mergeItemState(item: any, local: ClipboardItem | undefined, index: number, includeItemState: boolean) {
+    const fallback = local ? { x: local.x, y: local.y } : this.bubblePosition(index);
+    const position = this.clampBubblePosition({
+      x: includeItemState && typeof item.x === 'number' ? item.x : fallback.x,
+      y: includeItemState && typeof item.y === 'number' ? item.y : fallback.y,
+    });
     return {
-      x: includeItemState && typeof item.x === 'number' ? item.x : local?.x ?? BUBBLE_START_X,
-      y: includeItemState && typeof item.y === 'number' ? item.y : local?.y ?? BUBBLE_START_Y + index * BUBBLE_SPACING,
+      x: position.x,
+      y: position.y,
       hold: includeItemState ? !!item.hold : local?.hold ?? false,
       selected: local?.selected,
     };

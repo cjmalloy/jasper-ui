@@ -17,13 +17,74 @@ async function showDropZone(page: Page) {
   return dropZone;
 }
 
+async function clearClipboard(page: Page) {
+  await page.request.patch('/api/v1/tags/response', {
+    params: {
+      tags: 'plugin/user/clipboard',
+      url: 'tag:plugin/user/clipboard',
+    },
+    headers: { 'Content-Type': 'application/merge-patch+json' },
+    data: {
+      'plugin/user/clipboard': {
+        items: [],
+      },
+    },
+  });
+  await page.evaluate(() => localStorage.removeItem('jasper.clipboard.+user/debug@'));
+}
+
 test.describe.serial('User Clipboard Plugin', () => {
   test('enable clipboard mod', async ({ page }) => {
     await mod(page, '#mod-experiments', '#mod-clipboard', '#mod-image');
   });
 
+  test('keeps many bubbles on screen in columns', async ({ page }) => {
+    await page.goto('/?debug=ADMIN', { waitUntil: 'networkidle' });
+    await clearClipboard(page);
+    await page.evaluate(() => {
+      const now = new Date().toISOString();
+      localStorage.setItem('jasper.clipboard.+user/debug@', JSON.stringify([
+        ...Array.from({ length: 14 }, (_, index) => ({
+          id: `e2e-overflow-${index}`,
+          text: `Overflow clipboard item ${index}`,
+          created: now,
+        })),
+        {
+          id: 'e2e-offscreen',
+          text: 'Offscreen clipboard item',
+          created: now,
+          x: -240,
+          y: 9999,
+        },
+      ]));
+    });
+    await page.reload({ waitUntil: 'networkidle' });
+
+    const first = page.locator('.clipboard-bubble').filter({ hasText: 'Overflow clipboard item 0' });
+    const nextColumn = page.locator('.clipboard-bubble').filter({ hasText: 'Overflow clipboard item 11' });
+    await expect(first).toBeVisible();
+    await expect(nextColumn).toBeVisible();
+    const firstBox = await first.boundingBox();
+    const nextColumnBox = await nextColumn.boundingBox();
+    expect(firstBox).toBeTruthy();
+    expect(nextColumnBox).toBeTruthy();
+    expect(nextColumnBox!.x).toBeGreaterThan(firstBox!.x);
+    expect(Math.abs(nextColumnBox!.y - firstBox!.y)).toBeLessThan(2);
+    await expect(page.locator('.clipboard-bubble').filter({ hasText: 'Offscreen clipboard item' })).toBeInViewport();
+    await expect.poll(() => page.locator('.clipboard-bubble').evaluateAll(elements => {
+      const { innerWidth, innerHeight } = window;
+      return elements.every(element => {
+        const box = element.getBoundingClientRect();
+        return box.left >= 0 && box.top >= 0 && box.right <= innerWidth && box.bottom <= innerHeight;
+      });
+    })).toBe(true);
+
+    await clearClipboard(page);
+  });
+
   test('shows bubbles and pastes selected clipboard item', async ({ page }) => {
     await page.goto('/?debug=ADMIN', { waitUntil: 'networkidle' });
+    await clearClipboard(page);
     await page.evaluate(() => {
       localStorage.setItem('jasper.clipboard.+user/debug@', JSON.stringify([{
         id: 'e2e-clipboard-item',
