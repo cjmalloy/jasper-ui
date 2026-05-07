@@ -45,7 +45,8 @@
                     role="img"
                     [attr.aria-label]="thumbnailLabel(item)">
                 <span class="clipboard-thumbnail-image"
-                      [style.background-image]="thumbnailRefs(item) | thumbnail: thumbnailForce(item) | async | cssUrl"></span>
+                      [style.background-image]="thumbnailRefs(item) | thumbnail: thumbnailForce(item) | async | cssUrl"
+                      aria-hidden="true"></span>
                 @if (thumbnailEmoji(item); as emoji) {
                   <span class="clipboard-thumbnail-emoji">{{ emoji }}</span>
                 }
