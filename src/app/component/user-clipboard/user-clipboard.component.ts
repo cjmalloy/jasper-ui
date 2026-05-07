@@ -1,5 +1,6 @@
 import { AsyncPipe } from '@angular/common';
 import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import DOMPurify from 'dompurify';
 import { autorun, IReactionDisposer } from 'mobx';
 import { catchError, finalize, of, Subscription } from 'rxjs';
@@ -111,6 +112,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     private tags: TaggingService,
     private stomp: StompService,
     private configs: ConfigService,
+    private router: Router,
   ) {}
 
   ngOnInit() {
@@ -211,8 +213,10 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   previewLink(item: ClipboardItem) {
     const url = item.ref?.url;
     if (!url) return '';
-    if (this.isTagUrl(url)) return this.configs.base + 'tag/' + url.substring(TAG_URL_PREFIX.length);
-    return this.configs.base + 'ref/' + url;
+    const path = this.router.serializeUrl(this.router.createUrlTree(
+      this.isTagUrl(url) ? ['/tag', url.substring(TAG_URL_PREFIX.length)] : ['/ref', url],
+    ));
+    return this.configs.base + (path.startsWith('/') ? path.substring(1) : path);
   }
 
   select(item: ClipboardItem, event: MouseEvent) {

@@ -54,7 +54,8 @@
                  [href]="link"
                  [title]="previewText(item)"
                  [attr.aria-label]="previewLabel(item)"
-                 (click)="$event.stopPropagation()">{{ preview(item) }}</a>
+                 (click)="$event.stopPropagation()"
+                 (keydown)="$event.stopPropagation()">{{ preview(item) }}</a>
             } @else {
               <button type="button" class="clipboard-preview" [title]="previewText(item)" [attr.aria-label]="previewLabel(item)">{{ preview(item) }}</button>
             }
