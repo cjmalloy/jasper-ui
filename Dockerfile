@@ -13,7 +13,7 @@ RUN npm i -g @angular/cli@20.3.15
 COPY --from=builder /app ./
 SHELL ["/bin/bash", "-c"]
 CMD mkdir -p /report && \
-    (NO_COLOR=1 ng test --watch=false \
+    (NO_COLOR=1 node --localstorage-file=/tmp/jasper-ui-test-localstorage.json ./node_modules/@angular/cli/bin/ng test --watch=false \
       --coverage \
       --coverage-reporters=html \
       --coverage-reporters=json-summary \
