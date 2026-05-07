@@ -1,6 +1,6 @@
 import { OverlayModule } from '@angular/cdk/overlay';
 import { AsyncPipe } from '@angular/common';
-import { AfterViewChecked, Component, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormArray, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import DOMPurify from 'dompurify';
 import { autorun, IReactionDisposer } from 'mobx';
@@ -89,14 +89,17 @@ interface DragState {
     ThumbnailPipe,
   ],
 })
-export class UserClipboardComponent implements OnInit, AfterViewChecked, OnDestroy {
+export class UserClipboardComponent implements OnInit, OnDestroy {
 
   remote?: Ref;
   items: ClipboardItem[] = [];
   editingItem?: ClipboardItem;
   editForm: UntypedFormGroup;
   @ViewChild('editRefForm')
-  private editRefForm?: RefFormComponent;
+  set editRefForm(value: RefFormComponent | undefined) {
+    this._editRefForm = value;
+    this.loadPendingEditPlugins();
+  }
   private watch?: Subscription;
   private save?: Subscription;
   private drag?: DragState;
@@ -112,6 +115,7 @@ export class UserClipboardComponent implements OnInit, AfterViewChecked, OnDestr
   private resizeClamp?: number;
   private loading = false;
   private pendingEditPlugins?: Record<string, unknown>;
+  private _editRefForm?: RefFormComponent;
   dropVisible = false;
   dropActive = false;
   dropFilled = false;
@@ -145,12 +149,6 @@ export class UserClipboardComponent implements OnInit, AfterViewChecked, OnDestr
     if (this.resizeClamp) window.clearTimeout(this.resizeClamp);
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
-  }
-
-  ngAfterViewChecked() {
-    if (!this.pendingEditPlugins || !this.editRefForm?.pluginsFormComponent) return;
-    this.editRefForm.pluginsFormComponent.setValue(this.pendingEditPlugins);
-    this.pendingEditPlugins = undefined;
   }
 
   get plugin(): Plugin | undefined {
@@ -277,6 +275,7 @@ export class UserClipboardComponent implements OnInit, AfterViewChecked, OnDestr
     this.editingItem = item;
     this.editForm = this.refEditForm(item.ref);
     this.pendingEditPlugins = item.ref.plugins || {};
+    this.loadPendingEditPlugins();
     this.persistLocal();
   }
 
@@ -1209,10 +1208,7 @@ export class UserClipboardComponent implements OnInit, AfterViewChecked, OnDestr
       const existingObject = this.objectRecord(existingValue);
       const valueObject = this.objectRecord(value);
       if (existingObject && valueObject) {
-        plugins[tag] = {
-          ...existingObject,
-          ...valueObject,
-        };
+        plugins[tag] = this.mergeObjectRecords(existingObject, valueObject);
       } else {
         plugins[tag] = value;
       }
@@ -1220,8 +1216,24 @@ export class UserClipboardComponent implements OnInit, AfterViewChecked, OnDestr
     return plugins;
   }
 
+  private mergeObjectRecords(existing: Record<string, unknown>, updated: Record<string, unknown>) {
+    const result: Record<string, unknown> = { ...existing };
+    for (const [key, value] of Object.entries(updated)) {
+      const existingObject = this.objectRecord(result[key]);
+      const valueObject = this.objectRecord(value);
+      result[key] = existingObject && valueObject ? this.mergeObjectRecords(existingObject, valueObject) : value;
+    }
+    return result;
+  }
+
   private objectRecord(value: unknown) {
     return value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : undefined;
+  }
+
+  private loadPendingEditPlugins() {
+    if (!this.pendingEditPlugins || !this._editRefForm?.pluginsFormComponent) return;
+    this._editRefForm.pluginsFormComponent.setValue(this.pendingEditPlugins);
+    this.pendingEditPlugins = undefined;
   }
 
   // Persist non-empty form array strings, omitting empty arrays from the Ref.
