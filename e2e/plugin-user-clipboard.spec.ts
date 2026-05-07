@@ -649,4 +649,48 @@ test.describe.serial('User Clipboard Plugin', () => {
     const imageEditor = await focusEditor('e2e-editor-image');
     await expect(imageEditor).toHaveValue(`![](${image})`);
   });
+
+  test('turns tag and ref bubbles into links while hotkey is active', async ({ page }) => {
+    await page.goto('/?debug=ADMIN', { waitUntil: 'networkidle' });
+    await page.evaluate(storageKey => {
+      const now = new Date().toISOString();
+      localStorage.setItem(storageKey, JSON.stringify([{
+        id: 'e2e-clipboard-hotkey-tag',
+        text: 'tag:/topic/hotkey',
+        ref: {
+          url: 'tag:/topic/hotkey',
+          title: 'topic/hotkey',
+        },
+        created: now,
+        x: 12,
+        y: 72,
+      }, {
+        id: 'e2e-clipboard-hotkey-ref',
+        ref: {
+          url: 'https://jasperkm.info/hotkey-ref',
+          title: 'Hotkey Ref',
+        },
+        created: now,
+        x: 12,
+        y: 128,
+      }, {
+        id: 'e2e-clipboard-hotkey-text',
+        text: 'Plain hotkey text',
+        created: now,
+        x: 12,
+        y: 184,
+      }]));
+    }, CLIPBOARD_STORAGE_KEY);
+    await page.reload({ waitUntil: 'networkidle' });
+
+    await page.keyboard.down('Control');
+    const tagBubble = page.locator('.clipboard-bubble').filter({ hasText: 'topic/hotkey' });
+    const refBubble = page.locator('.clipboard-bubble').filter({ hasText: 'Hotkey Ref' });
+    const textBubble = page.locator('.clipboard-bubble').filter({ hasText: 'Plain hotkey text' });
+    await expect(tagBubble.locator('a.clipboard-preview')).toHaveAttribute('href', /\/tag\/topic\/hotkey$/);
+    await expect(refBubble.locator('a.clipboard-preview')).toHaveAttribute('href', /\/ref\/https:\/\/jasperkm\.info\/hotkey-ref$/);
+    await expect(textBubble.locator('a.clipboard-preview')).toHaveCount(0);
+    await expect(textBubble.locator('button.clipboard-preview')).toBeVisible();
+    await page.keyboard.up('Control');
+  });
 });

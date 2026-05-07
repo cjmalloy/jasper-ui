@@ -12,6 +12,7 @@ import { ThumbnailPipe } from '../../pipe/thumbnail.pipe';
 import { AdminService } from '../../service/admin.service';
 import { StompService } from '../../service/api/stomp.service';
 import { TaggingService } from '../../service/api/tagging.service';
+import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
 import { getTitle } from '../../util/format';
 import { getScheme } from '../../util/http';
@@ -109,6 +110,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     private admin: AdminService,
     private tags: TaggingService,
     private stomp: StompService,
+    private configs: ConfigService,
   ) {}
 
   ngOnInit() {
@@ -204,6 +206,13 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     if (item.image) return $localize`Image`;
     if (item.html) return $localize`HTML`;
     return '';
+  }
+
+  previewLink(item: ClipboardItem) {
+    const url = item.ref?.url;
+    if (!url) return '';
+    if (this.isTagUrl(url)) return this.configs.base + 'tag/' + url.substring(TAG_URL_PREFIX.length);
+    return this.configs.base + 'ref/' + url;
   }
 
   select(item: ClipboardItem, event: MouseEvent) {
@@ -495,6 +504,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
 
   private isInteractive(target: EventTarget | null) {
     if (!(target instanceof Element)) return false;
+    if (this.store.hotkey && target.closest('a.clipboard-preview')) return true;
     if (target.closest('.clipboard-preview')) return false;
     return !!target.closest('.clipboard-actions, .clipboard-hold, button, input, textarea, select, a, [contenteditable="true"], [role="button"], [role="link"]');
   }

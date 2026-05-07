@@ -49,7 +49,15 @@
                 }
               </span>
             }
-            <button type="button" class="clipboard-preview" [title]="previewText(item)" [attr.aria-label]="previewLabel(item)">{{ preview(item) }}</button>
+            @if (store.hotkey && previewLink(item); as link) {
+              <a class="clipboard-preview"
+                 [href]="link"
+                 [title]="previewText(item)"
+                 [attr.aria-label]="previewLabel(item)"
+                 (click)="$event.stopPropagation()">{{ preview(item) }}</a>
+            } @else {
+              <button type="button" class="clipboard-preview" [title]="previewText(item)" [attr.aria-label]="previewLabel(item)">{{ preview(item) }}</button>
+            }
              @if (item.selected) {
                <button type="button"
                       class="clipboard-clear"
