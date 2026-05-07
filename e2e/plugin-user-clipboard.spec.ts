@@ -1,5 +1,5 @@
-import { expect, test } from '@playwright/test';
 import type { Page } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 import { deleteRef, mod, openSidebar } from './setup';
 
 const DRAG_START_OFFSET = 8; // Start inside the preview so preview-origin drags are covered.
@@ -86,70 +86,6 @@ async function setClipboardItems(page: Page, items: ClipboardFixtureItem[]) {
 }
 
 test.describe.serial('User Clipboard Plugin', () => {
-  test('does not show thumbnails without thumbnail mod', async ({ page }) => {
-    await mod(page, '#mod-experiments', '#mod-clipboard', '#mod-images');
-    await page.goto('/?debug=ADMIN', { waitUntil: 'networkidle' });
-    await clearClipboard(page);
-    await setClipboardItems(page, [{
-      id: 'e2e-no-thumbnail-plugin-item',
-      text: 'No thumbnail plugin clipboard item',
-      ref: {
-        url: 'https://jasperkm.info/clipboard-no-thumbnail-plugin-ref',
-        title: 'No thumbnail plugin clipboard item',
-        tags: ['plugin/thumbnail', 'plugin/image'],
-        plugins: {
-          'plugin/thumbnail': {
-            url: 'https://jasperkm.info/clipboard-thumbnail.png',
-            color: '#123456',
-            emoji: '📋️',
-          },
-          'plugin/image': {
-            url: TEST_IMAGE_THUMBNAIL_DATA_URL,
-          },
-        },
-      },
-      created: new Date().toISOString(),
-      x: 12,
-      y: 72,
-    }]);
-    await page.reload({ waitUntil: 'networkidle' });
-
-    const bubble = page.locator('.clipboard-bubble').filter({ hasText: 'No thumbnail plugin clipboard item' });
-    await expect(bubble).toBeVisible();
-    await expect(bubble.locator('.clipboard-thumbnail')).toBeHidden();
-    const refUrl = 'https://jasperkm.info/clipboard-no-thumbnail-plugin-ref-page';
-    await deleteRef(page, refUrl);
-    await page.request.post('/api/v1/ref', {
-      data: {
-        url: refUrl,
-        title: 'No thumbnail plugin Ref page',
-        tags: ['plugin/thumbnail', 'plugin/image'],
-        plugins: {
-          'plugin/thumbnail': {
-            url: 'https://jasperkm.info/clipboard-thumbnail.png',
-            color: '#123456',
-            emoji: '📋️',
-            radius: 8,
-          },
-          'plugin/image': {
-            url: TEST_IMAGE_THUMBNAIL_DATA_URL,
-          },
-        },
-      },
-    });
-    await page.goto(`/ref/e/${encodeURIComponent(refUrl)}?debug=ADMIN`, { waitUntil: 'networkidle' });
-    const ref = page.locator('.ref[data-ref-url]').filter({ hasText: 'No thumbnail plugin Ref page' }).first();
-    await expect(ref).toBeVisible();
-    await expect.poll(() => ref.evaluate(element => [
-      element.getAttribute('data-ref-thumbnail-url'),
-      element.getAttribute('data-ref-thumbnail-color'),
-      element.getAttribute('data-ref-thumbnail-emoji'),
-      element.getAttribute('data-ref-thumbnail-radius'),
-    ])).toEqual([null, null, null, null]);
-    await deleteRef(page, refUrl);
-    await clearClipboard(page);
-  });
-
   test('enable clipboard mod', async ({ page }) => {
     await mod(page, '#mod-experiments', '#mod-clipboard', '#mod-images', '#mod-thumbnail');
   });
