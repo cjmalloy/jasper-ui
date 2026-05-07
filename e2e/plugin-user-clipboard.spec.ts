@@ -280,8 +280,10 @@ test.describe.serial('User Clipboard Plugin', () => {
     await expect(refBubble).toHaveClass(/selected/);
     await refBubble.click();
     await expect(refBubble).not.toHaveClass(/selected/);
+    const beforeContextMenu = await page.evaluate(key => localStorage.getItem(key), CLIPBOARD_STORAGE_KEY);
     await refBubble.dispatchEvent('contextmenu');
     await expect(page.locator('.clipboard-edit-popup')).toHaveCount(0);
+    await expect.poll(() => page.evaluate(key => localStorage.getItem(key), CLIPBOARD_STORAGE_KEY)).toBe(beforeContextMenu);
     await refBubble.locator('.clipboard-clear').click();
     await expect(refBubble).toBeHidden();
 
@@ -330,8 +332,10 @@ test.describe.serial('User Clipboard Plugin', () => {
     await expect(tagBubble.locator('.clipboard-preview')).toHaveText('plugin/editing');
     await tagBubble.click();
     await page.locator('.clipboard-bubble').filter({ hasText: 'Dropped clipboard text' }).click();
+    const beforeTagContextMenu = await page.evaluate(key => localStorage.getItem(key), CLIPBOARD_STORAGE_KEY);
     await tagBubble.dispatchEvent('contextmenu');
     await expect(page.locator('.clipboard-edit-popup')).toHaveCount(0);
+    await expect.poll(() => page.evaluate(key => localStorage.getItem(key), CLIPBOARD_STORAGE_KEY)).toBe(beforeTagContextMenu);
     await expect.poll(() => page.evaluate(key => {
       const items = JSON.parse(localStorage.getItem(key) || '[]') as { ref?: { url?: string } }[];
       return items.find(item => item.ref?.url === 'tag:/plugin/editing')?.ref?.url;
