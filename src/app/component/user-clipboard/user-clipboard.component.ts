@@ -779,7 +779,15 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   private normalizeDroppedUrl(url?: string) {
     if (!url) return undefined;
     const type = this.editor.getUrlType(url);
-    if (type === 'tag') return 'tag:/' + this.editor.getQuery(url);
+    if (type === 'tag') {
+      try {
+        const parsed = new URL(url);
+        const normalized = parsed.origin + parsed.pathname;
+        return 'tag:/' + this.editor.getQuery(normalized) + parsed.search;
+      } catch {
+        return 'tag:/' + this.editor.getQuery(url);
+      }
+    }
     if (type === 'ref') return this.editor.getRefUrl(url);
     return url;
   }
