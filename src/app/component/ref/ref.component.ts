@@ -131,7 +131,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   }
   @HostBinding('attr.data-ref-thumbnail-url')
   get refThumbnailUrlAttr() {
-    return this.refThumbnailString('url') || this.refThumbnailPluginUrl('plugin/image') || this.refThumbnailPluginUrl('plugin/video') || undefined;
+    return this.refThumbnailUrl() || undefined;
   }
   @HostBinding('attr.data-ref-thumbnail-color')
   get refThumbnailColorAttr() {
@@ -792,6 +792,10 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   refThumbnailString(key: 'url' | 'color' | 'emoji') {
     const value = this.refThumbnailPlugin?.[key];
     return typeof value === 'string' ? value : '';
+  }
+
+  refThumbnailUrl() {
+    return this.refThumbnailString('url') || this.refThumbnailPluginUrl('plugin/image') || this.refThumbnailPluginUrl('plugin/video');
   }
 
   refThumbnailPluginUrl(plugin: 'plugin/image' | 'plugin/video') {

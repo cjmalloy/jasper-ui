@@ -995,7 +995,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   }
 
   private thumbnailRef(ref: ClipboardRef): Ref {
-    // ClipboardRef stores published as a string for serialization, while Ref expects DateTime.
+    // Build only Ref-compatible fields; ClipboardRef date fields are serialized strings.
     return {
       url: ref.url,
       origin: ref.origin,
