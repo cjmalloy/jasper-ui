@@ -273,10 +273,10 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   }
 
   drop(event: DragEvent) {
-    if (Array.from(event.dataTransfer?.items || []).find(item => item.kind === 'file')) return;
+    const file  =Array.from(event.dataTransfer?.items || []).find(item => item.kind === 'file');
     this.resetDropState();
     this.dropFilled = true;
-    if (event.dataTransfer) {
+    if (!file && event.dataTransfer) {
       event.preventDefault();
       event.stopPropagation();
       const text = this.normalizeDroppedTextUri(event.dataTransfer.getData('text/plain')) || undefined;
