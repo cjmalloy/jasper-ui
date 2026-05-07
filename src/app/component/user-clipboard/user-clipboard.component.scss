@@ -3,8 +3,8 @@
   inset: 0;
   z-index: 20;
   pointer-events: none;
-  --clipboard-bg: color-mix(in srgb, var(--card), transparent 8%);
-  --clipboard-active: color-mix(in srgb, var(--active), transparent 8%);
+  --clipboard-bg: color-mix(in srgb, var(--card), transparent 50%);
+  --clipboard-active: color-mix(in srgb, var(--card-dragging), transparent 8%);
 }
 
 .clipboard-bubbles {
@@ -38,7 +38,7 @@
 }
 
 .clipboard-drop-zone.active {
-  background: var(--clipboard-active, var(--active));
+  background: var(--clipboard-active, var(--card-dragging));
 }
 
 .clipboard-bubble {
@@ -49,7 +49,7 @@
   max-width: min(360px, 70vw);
   min-height: 40px;
   padding: 4px;
-  border: 1px solid var(--border);
+  border: 1px dashed var(--border);
   border-radius: 999px;
   background: var(--clipboard-bg, var(--card));
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
@@ -60,7 +60,8 @@
 }
 
 .clipboard-bubble.selected {
-  background: var(--clipboard-active, var(--active));
+  border: 1px solid var(--active);
+  background: var(--clipboard-active, var(--card-dragging));
 }
 
 .clipboard-bubble:active {
@@ -69,8 +70,7 @@
 
 .clipboard-preview,
 .clipboard-clear,
-.clipboard-edit-close,
-.clipboard-edit-buttons button {
+.clipboard-edit-close {
   border: 0;
   border-radius: 999px;
   background: transparent;
@@ -93,7 +93,7 @@
   align-self: stretch;
   gap: 4px;
   padding: 0 8px 0 6px;
-  border-right: 1px solid var(--border);
+  border-right: 1px dotted var(--border);
   cursor: pointer;
 }
 
@@ -113,9 +113,8 @@
 }
 
 .clipboard-clear:hover,
-.clipboard-edit-close:hover,
-.clipboard-edit-buttons button:hover {
-  background: color-mix(in srgb, var(--active), transparent 20%);
+.clipboard-edit-close:hover {
+  background: color-mix(in srgb, var(--deleting), transparent 20%);
 }
 
 .clipboard-edit-popup {
@@ -161,9 +160,4 @@
   justify-content: flex-end;
   gap: 8px;
   margin-top: 12px;
-}
-
-.clipboard-edit-buttons button {
-  padding: 6px 12px;
-  background: color-mix(in srgb, var(--card), transparent 10%);
 }
