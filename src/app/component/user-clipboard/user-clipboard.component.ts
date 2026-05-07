@@ -27,8 +27,6 @@ const BUBBLE_WIDTH_OFFSET = 320;
 const BUBBLE_HEIGHT_OFFSET = 48;
 const MAX_PREVIEW_LENGTH = 48;
 const PREVIEW_TRUNCATE_AT = 45;
-const TAG_URL_PREFIX = 'tag:/';
-const IMAGE_DATA_URL_PATTERN = /^data:image\/(?:png|jpeg|jpg|gif|webp|bmp);base64,/i;
 const THUMBNAIL_PLUGIN_TAGS = ['plugin/thumbnail', 'plugin/image', 'plugin/video'];
 const SANITIZE_CONFIG = {
   ALLOWED_TAGS: ['a', 'b', 'blockquote', 'br', 'code', 'div', 'em', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'i', 'li', 'ol', 'p', 'pre', 's', 'span', 'strong', 'table', 'tbody', 'td', 'th', 'thead', 'tr', 'u', 'ul'],
@@ -41,7 +39,6 @@ interface ClipboardItem {
   created: string;
   text?: string;
   html?: string;
-  image?: string;
   ref?: ClipboardRef;
   x: number;
   y: number;
@@ -204,10 +201,9 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   }
 
   previewText(item: ClipboardItem) {
-    if (this.isTagUrl(item.ref?.url)) return item.ref?.title || item.ref?.url?.substring(TAG_URL_PREFIX.length) || '';
+    if (this.isTagUrl(item.ref?.url)) return item.ref?.title || item.ref?.url?.substring('tag:/'.length) || '';
     if (item.text) return item.text;
     if (item.ref) return getTitle(this.thumbnailRef(item.ref));
-    if (item.image) return $localize`Image`;
     if (item.html) return $localize`HTML`;
     return '';
   }
@@ -216,7 +212,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     const url = item.ref?.url;
     if (!url) return '';
     const path = this.router.serializeUrl(this.router.createUrlTree(
-      this.isTagUrl(url) ? ['/tag', url.substring(TAG_URL_PREFIX.length)] : ['/ref', url],
+      this.isTagUrl(url) ? ['/tag', url.substring('tag:/'.length)] : ['/ref', url],
     ));
     return this.config.base + (path.startsWith('/') ? path.substring(1) : path);
   }
@@ -277,11 +273,22 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   }
 
   drop(event: DragEvent) {
-    event.preventDefault();
-    event.stopPropagation();
+    if (Array.from(event.dataTransfer?.items || []).find(item => item.kind === 'file')) return;
     this.resetDropState();
     this.dropFilled = true;
-    this.addFromDataTransfer(event.dataTransfer);
+    if (event.dataTransfer) {
+      event.preventDefault();
+      event.stopPropagation();
+      const text = this.normalizeDroppedTextUri(event.dataTransfer.getData('text/plain')) || undefined;
+      const html = event.dataTransfer.getData('text/html') || undefined;
+      const ref = this.refFromDataTransfer(event.dataTransfer, html, text);
+      const refOnly = !!this.draggedRef && !!ref;
+      if (refOnly) {
+        this.addItem({ ref });
+      } else if (text || html || ref) {
+        this.addItem({ text, html, ref });
+      }
+    }
     this.draggedRef = undefined;
     window.setTimeout(() => this.dropFilled = false, 800);
   }
@@ -579,7 +586,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
 
   private queryValue(item: ClipboardItem) {
     const text = this.tagOrQueryText(item);
-    if (text.startsWith(TAG_URL_PREFIX)) return { text: text.substring(TAG_URL_PREFIX.length), tag: true };
+    if (text.startsWith('tag:/')) return { text: text.substring('tag:/'.length), tag: true };
     return { text, tag: false };
   }
 
@@ -588,8 +595,8 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   }
 
   private formatTagText(text: string, prefix: string) {
-    if (text.startsWith(TAG_URL_PREFIX)) {
-      return prefix + text.substring(TAG_URL_PREFIX.length);
+    if (text.startsWith('tag:/')) {
+      return prefix + text.substring('tag:/'.length);
     }
     return text;
   }
@@ -615,7 +622,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
 
   private itemText(item: ClipboardItem) {
     if (this.isTagUrl(item.ref?.url)) return item.ref?.url || '';
-    return item.text || item.ref?.url || (item.html ? this.stripHtml(item.html) : item.image || '');
+    return item.text || item.ref?.url || (item.html ? this.stripHtml(item.html) : '');
   }
 
   /**
@@ -623,13 +630,11 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
    * embeds, ref-only items become Jasper ref embeds, and other URLs become links.
    */
   private editorText(item: ClipboardItem, text: string) {
-    if (text.startsWith(TAG_URL_PREFIX)) return this.formatTagText(text, '#');
-    if (item.image && this.safeImage(item.image)) return `![](${this.escapeMarkdownUrl(item.image)})`;
+    if (text.startsWith('tag:/')) return this.formatTagText(text, '#');
     const url = this.markdownUrl(item, text);
     if (url) {
-      if (url.startsWith(TAG_URL_PREFIX)) return this.formatTagText(url, '#');
+      if (url.startsWith('tag:/')) return this.formatTagText(url, '#');
       const markdownUrl = this.escapeMarkdownUrl(url);
-      if (this.isImageUrl(url)) return `![](${markdownUrl})`;
       if (this.isRefEmbedItem(item)) return `![=](${markdownUrl})`;
       return `[${this.escapeMarkdownText(this.markdownLinkTitle(item) || url)}](${markdownUrl})`;
     }
@@ -666,13 +671,6 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
       const template = document.createElement('template');
       template.innerHTML = DOMPurify.sanitize(item.html, SANITIZE_CONFIG);
       return Array.from(template.content.childNodes);
-    }
-    if (item.image) {
-      if (!this.safeImage(item.image)) return [document.createTextNode(this.plainText(item))];
-      const image = document.createElement('img');
-      image.src = item.image;
-      image.alt = this.previewText(item) || $localize`Clipboard image`;
-      return [image];
     }
     return [document.createTextNode(this.plainText(item))];
   }
@@ -750,45 +748,6 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     };
   }
 
-  private addFromClipboardData(data: DataTransfer | null) {
-    this.addFromDataTransfer(data);
-  }
-
-  private addFromDataTransfer(data: DataTransfer | null) {
-    if (!data) return;
-    const text = this.normalizeDroppedTextUri(data.getData('text/plain')) || undefined;
-    const html = data.getData('text/html') || undefined;
-    const ref = this.refFromDataTransfer(data, html, text);
-    const refOnly = !!this.draggedRef && !!ref;
-    if (refOnly) {
-      this.addItem({ ref });
-      return;
-    }
-    const imageItem = Array.from(data.items || []).find(item => item.kind === 'file' && item.type.startsWith('image/'));
-    if (!imageItem) {
-      if (text || html || ref) this.addItem({ text, html, ref });
-      return;
-    }
-    const file = imageItem.getAsFile();
-    if (!file) {
-      if (text || html || ref) this.addItem({ text, html, ref });
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = () => {
-      const image = reader.result as string;
-      if (this.safeImage(image)) {
-        this.addItem({ text, html, image, ref });
-      } else if (text || html || ref) {
-        this.addItem({ text, html, ref });
-      }
-    };
-    reader.onerror = () => {
-      if (text || html || ref) this.addItem({ text, html, ref });
-    };
-    reader.readAsDataURL(file);
-  }
-
   private refFromDataTransfer(data: DataTransfer, html?: string, text?: string): ClipboardRef | undefined {
     if (this.draggedRef) return this.draggedRef;
     const uri = data.getData('text/uri-list').split('\n').find(line => !!line && !line.startsWith('#'));
@@ -811,8 +770,6 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     template.innerHTML = DOMPurify.sanitize(html, SANITIZE_CONFIG);
     const link = template.content.querySelector('a[href]') as HTMLAnchorElement | null;
     if (link) return { url: this.normalizeDroppedUrl(link.href) || link.href, title: this.cleanTitle(link.textContent, link.title) };
-    const image = template.content.querySelector('img[src]') as HTMLImageElement | null;
-    if (image?.src && this.safeImage(image.src)) return { url: image.src, title: this.cleanTitle(image.alt, image.title) };
     return undefined;
   }
 
@@ -844,11 +801,11 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   }
 
   private tagUrlPreview(url: string) {
-    return this.stripViewParams(url).substring(TAG_URL_PREFIX.length);
+    return this.stripViewParams(url).substring('tag:/'.length);
   }
 
   private isTagUrl(url?: string) {
-    return !!url?.startsWith(TAG_URL_PREFIX);
+    return !!url?.startsWith('tag:/');
   }
 
   private isUri(text: string) {
@@ -858,10 +815,6 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     } catch {
       return false;
     }
-  }
-
-  private isImageUrl(text: string) {
-    return this.safeImage(text) || /^https?:\/\/\S+\.(?:png|jpe?g|gif|webp|bmp)(?:[?#]\S*)?$/i.test(text);
   }
 
   private normalizeDroppedTextUri(text: string) {
@@ -874,10 +827,6 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     const template = document.createElement('template');
     template.innerHTML = DOMPurify.sanitize(html, SANITIZE_CONFIG);
     return template.content.textContent || '';
-  }
-
-  private safeImage(image: string) {
-    return IMAGE_DATA_URL_PATTERN.test(image);
   }
 
   private loadLocal() {
@@ -916,10 +865,8 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     this.remote = ref;
     const remoteItems = ref.plugins?.['plugin/user/clipboard']?.items;
     if (!Array.isArray(remoteItems)) return;
-    const remoteIds = new Set(remoteItems.map(item => item?.id).filter(id => typeof id === 'string'));
     this.items = [
       ...this.sanitise(remoteItems, this.items, false),
-      ...this.items.filter(item => !remoteIds.has(item.id) && this.isLocalOnlyImageItem(item)),
     ];
     this.persistLocal();
   }
@@ -928,13 +875,12 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     const localState = new Map(previous.map(item => [item.id, item]));
     return items
       .filter(item => typeof item?.id === 'string' && (
-        includeItemState ? this.hasContent(item) : this.hasRemoteContent(item) || typeof localState.get(item.id)?.image === 'string'
+        includeItemState ? this.hasContent(item) : this.hasRemoteContent(item)
       ))
       .map((item, index) => ({
         id: item.id,
         text: typeof item.text === 'string' ? item.text : undefined,
         html: typeof item.html === 'string' ? item.html : undefined,
-        image: includeItemState && typeof item.image === 'string' ? item.image : localState.get(item.id)?.image,
         ref: this.preserveRefOrigin(this.sanitiseRef(item.ref), localState.get(item.id)?.ref),
         created: typeof item.created === 'string' ? item.created : new Date().toISOString(),
         ...this.mergeItemState(item, localState.get(item.id), index, includeItemState),
@@ -974,10 +920,6 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     return typeof item?.text === 'string' ||
       typeof item?.html === 'string' ||
       !!this.sanitiseRef(item?.ref);
-  }
-
-  private isLocalOnlyImageItem(item: ClipboardItem) {
-    return typeof item.image === 'string' && !this.hasRemoteContent(item);
   }
 
   private sanitiseRef(ref: any): ClipboardRef | undefined {
@@ -1184,7 +1126,6 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
         id: item.id,
         created: item.created,
       }),
-      ...(item.image !== undefined ? { image: item.image } : {}),
       ...(item.ref ? { ref: item.ref } : {}),
       x: item.x,
       y: item.y,
