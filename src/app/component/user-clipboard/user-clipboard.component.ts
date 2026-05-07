@@ -192,8 +192,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   }
 
   thumbnailRadius(item: ClipboardItem) {
-    const radius = this.thumbnailPlugin(item)?.['radius'];
-    return typeof radius === 'number' ? radius : 0;
+    return this.thumbnailRadiusValue(this.thumbnailPlugin(item)?.['radius']) ?? 0;
   }
 
   previewText(item: ClipboardItem) {
@@ -688,7 +687,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
 
   private thumbnailFromTarget(refEl: HTMLElement | null) {
     const radiusValue = refEl?.dataset['refThumbnailRadius'];
-    const radius = radiusValue === undefined ? undefined : Number(radiusValue);
+    const radius = this.thumbnailRadiusValue(radiusValue);
     const thumbnail = {
       ...(refEl?.dataset['refThumbnailUrl'] ? { url: refEl.dataset['refThumbnailUrl'] } : {}),
       ...(refEl?.dataset['refThumbnailColor'] ? { color: refEl.dataset['refThumbnailColor'] } : {}),
@@ -950,13 +949,22 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   }
 
   private thumbnailPlugin(item: ClipboardItem) {
-    const plugin = item.ref?.plugins?.['plugin/thumbnail'];
-    return plugin && typeof plugin === 'object' && !Array.isArray(plugin) ? plugin as Record<string, unknown> : undefined;
+    return this.thumbnailObject(item.ref?.plugins?.['plugin/thumbnail']);
   }
 
   private thumbnailString(item: ClipboardItem, key: 'color' | 'emoji') {
     const value = this.thumbnailPlugin(item)?.[key];
     return typeof value === 'string' ? value : '';
+  }
+
+  private thumbnailObject(value: unknown) {
+    return value && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : undefined;
+  }
+
+  private thumbnailRadiusValue(value: unknown) {
+    if (value === undefined || value === null || value === '') return undefined;
+    const radius = Number(value);
+    return Number.isFinite(radius) ? radius : undefined;
   }
 
   // Keep only string entries when loading optional Ref array fields.
