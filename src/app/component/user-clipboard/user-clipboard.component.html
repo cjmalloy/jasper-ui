@@ -80,7 +80,7 @@
                          aria-label="Close clipboard Ref editor"
                          i18n-aria-label>×</button>
                </div>
-               <app-ref-form class="clipboard-ref-form" [group]="editForm"></app-ref-form>
+               <app-ref-form #editRefForm class="clipboard-ref-form" [group]="editForm"></app-ref-form>
                <div class="clipboard-edit-buttons">
                  <button type="submit" i18n>save</button>
                  <button type="button" class="clipboard-edit-cancel" (click)="closeEdit($event)" i18n>cancel</button>

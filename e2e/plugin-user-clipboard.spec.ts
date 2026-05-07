@@ -159,6 +159,17 @@ test.describe.serial('User Clipboard Plugin', () => {
     await expect(bubble.locator('.clipboard-thumbnail-image')).toHaveCSS('background-image', /clipboard-thumbnail\.png/);
     await expect(bubble.locator('.clipboard-thumbnail-emoji')).toBeVisible();
     await expect(bubble.locator('.clipboard-thumbnail-emoji')).toHaveText('📋️');
+    await bubble.click({ button: 'right' });
+    await expect(page.locator('.clipboard-edit-popup input[name=url]')).toHaveValue('https://jasperkm.info/clipboard-thumbnail-ref');
+    await page.locator('.clipboard-edit-popup button', { hasText: 'save' }).click();
+    await expect(page.locator('.clipboard-edit-popup')).toBeHidden();
+    await expect.poll(() => page.evaluate(key => JSON.parse(localStorage.getItem(key) || '[]')[0]?.ref?.plugins, CLIPBOARD_STORAGE_KEY)).toEqual({
+      'plugin/thumbnail': expect.objectContaining({
+        url: 'https://jasperkm.info/clipboard-thumbnail.png',
+        color: '#123456',
+        emoji: '📋️',
+      }),
+    });
     const imageBubble = page.locator('.clipboard-bubble').filter({ hasText: 'Clipboard image thumbnail' });
     await expect(imageBubble).toBeVisible();
     await expect(imageBubble.locator('.clipboard-thumbnail-image')).toHaveCSS('background-image', /data:image\/png/);

@@ -1,12 +1,13 @@
 import { OverlayModule } from '@angular/cdk/overlay';
 import { AsyncPipe } from '@angular/common';
-import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
+import { Component, HostListener, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormArray, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import DOMPurify from 'dompurify';
 import { autorun, IReactionDisposer } from 'mobx';
 import { catchError, finalize, of, Subscription } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { refForm, RefFormComponent } from '../../form/ref/ref.component';
+import { pluginsForm, writePlugins } from '../../form/plugins/plugins.component';
 import { Plugin } from '../../model/plugin';
 import { Ref, RefUpdates } from '../../model/ref';
 import { active, Icon, sortOrder, uniqueConfigs } from '../../model/tag';
@@ -94,6 +95,8 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   items: ClipboardItem[] = [];
   editingItem?: ClipboardItem;
   editForm: UntypedFormGroup;
+  @ViewChild('editRefForm')
+  private editRefForm?: RefFormComponent;
   private watch?: Subscription;
   private save?: Subscription;
   private drag?: DragState;
@@ -266,6 +269,8 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     if (!item.ref) return;
     this.editingItem = item;
     this.editForm = this.refEditForm(item.ref);
+    const plugins = item.ref.plugins || {};
+    window.setTimeout(() => this.editRefForm?.pluginsFormComponent?.setValue(plugins), 0);
     this.persistLocal();
   }
 
@@ -1152,6 +1157,9 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     const form = refForm(this.fb);
     form.get('url')?.enable();
     if (!ref) return form;
+    this.setArray(form.get('tags') as UntypedFormArray, ref.tags || []);
+    form.removeControl('plugins');
+    form.addControl('plugins', pluginsForm(this.fb, this.admin, ref.tags || []));
     form.patchValue({
       url: ref.url,
       title: ref.title || '',
@@ -1160,7 +1168,6 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
       modifiedString: ref.modifiedString || '',
       plugins: ref.plugins || {},
     });
-    this.setArray(form.get('tags') as UntypedFormArray, ref.tags || []);
     this.setArray(form.get('sources') as UntypedFormArray, ref.sources || []);
     this.setArray(form.get('alternateUrls') as UntypedFormArray, ref.alternateUrls || []);
     return form;
@@ -1183,7 +1190,10 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
       tags: this.nonEmptyStrings(value.tags),
       sources: this.nonEmptyStrings(value.sources),
       alternateUrls: this.nonEmptyStrings(value.alternateUrls),
-      plugins: value.plugins && Object.keys(value.plugins).length ? value.plugins : undefined,
+      plugins: writePlugins(value.tags, {
+        ...existing.plugins,
+        ...value.plugins,
+      }),
     };
     return ref;
   }
