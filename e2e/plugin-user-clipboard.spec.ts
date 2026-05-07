@@ -210,6 +210,10 @@ test.describe.serial('User Clipboard Plugin', () => {
     await expect(bubble.locator('.clipboard-hold input')).not.toBeChecked();
     await bubble.locator('.clipboard-hold input').check();
     await expect(bubble.locator('.clipboard-hold input')).toBeChecked();
+    await expect.poll(() => page.evaluate(key => {
+      const items = JSON.parse(localStorage.getItem(key) || '[]') as { text?: string; hold?: boolean }[];
+      return items.find(item => item.text === 'Clipboard paste text')?.hold;
+    }, CLIPBOARD_STORAGE_KEY)).toBe(true);
     await expect(page.locator('.clipboard-edit-popup')).toHaveCount(0);
 
     await page.locator('body').evaluate(() => {
@@ -281,7 +285,7 @@ test.describe.serial('User Clipboard Plugin', () => {
     await refBubble.click();
     await expect(refBubble).not.toHaveClass(/selected/);
     const beforeContextMenu = await page.evaluate(key => localStorage.getItem(key), CLIPBOARD_STORAGE_KEY);
-    await refBubble.dispatchEvent('contextmenu');
+    await refBubble.click({ button: 'right' });
     await expect(page.locator('.clipboard-edit-popup')).toHaveCount(0);
     await expect.poll(() => page.evaluate(key => localStorage.getItem(key), CLIPBOARD_STORAGE_KEY)).toBe(beforeContextMenu);
     await refBubble.locator('.clipboard-clear').click();
@@ -333,7 +337,7 @@ test.describe.serial('User Clipboard Plugin', () => {
     await tagBubble.click();
     await page.locator('.clipboard-bubble').filter({ hasText: 'Dropped clipboard text' }).click();
     const beforeTagContextMenu = await page.evaluate(key => localStorage.getItem(key), CLIPBOARD_STORAGE_KEY);
-    await tagBubble.dispatchEvent('contextmenu');
+    await tagBubble.click({ button: 'right' });
     await expect(page.locator('.clipboard-edit-popup')).toHaveCount(0);
     await expect.poll(() => page.evaluate(key => localStorage.getItem(key), CLIPBOARD_STORAGE_KEY)).toBe(beforeTagContextMenu);
     await expect.poll(() => page.evaluate(key => {
