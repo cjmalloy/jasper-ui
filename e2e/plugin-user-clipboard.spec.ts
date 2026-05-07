@@ -338,7 +338,9 @@ test.describe.serial('User Clipboard Plugin', () => {
     await dropText('List item one');
     await dropText('List item two');
 
-    await page.locator('.clipboard-bubble').filter({ hasText: 'tag:/topic/one' }).last().click();
+    await page.locator('.clipboard-bubble').filter({
+      has: page.locator('.clipboard-preview', { hasText: 'topic/one' }),
+    }).last().click();
     await page.locator('body').evaluate(() => {
       const field = document.createElement('div');
       field.className = 'tag-field';
