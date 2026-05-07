@@ -43,9 +43,10 @@ describe('QueryComponent', () => {
   });
 
   it('marks input to replace on clipboard paste when entering edit mode', () => {
-    component.query = 'old:query';
+    fixture.componentRef.setInput('query', 'old:query');
     fixture.detectChanges();
-    component.edit(true);
+    const editButton = fixture.nativeElement.querySelector('.query-edit-button') as HTMLButtonElement;
+    editButton.click();
     fixture.detectChanges();
 
     const input = fixture.nativeElement.querySelector('input') as HTMLInputElement;

@@ -10,7 +10,7 @@
     <app-login-popup></app-login-popup>
   }
   <app-subscription-bar></app-subscription-bar>
-  @if (userClipboardPlugin) {
+  @if (store.account.signedIn && userClipboardPlugin) {
     <app-user-clipboard></app-user-clipboard>
   }
   <router-outlet></router-outlet>

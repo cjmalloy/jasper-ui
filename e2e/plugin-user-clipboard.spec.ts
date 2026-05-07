@@ -73,7 +73,7 @@ test.describe.serial('User Clipboard Plugin', () => {
     await expect(bubble.locator('.clipboard-hold input')).not.toBeChecked();
     await bubble.locator('.clipboard-hold input').check();
     await expect(bubble.locator('.clipboard-hold input')).toBeChecked();
-    await expect(page.locator('.clipboard-edit')).toBeHidden();
+    await expect(page.locator('.clipboard-edit-popup')).toBeHidden();
 
     await page.locator('body').evaluate(() => {
       const input = document.createElement('input');

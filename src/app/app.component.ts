@@ -40,7 +40,9 @@ export class AppComponent implements AfterViewInit {
   pdfPlugin = this.admin.getPlugin('plugin/pdf') as typeof pdfPlugin || undefined;
   archivePlugin = this.admin.getPlugin('plugin/archive') as typeof archivePlugin || undefined;
   pipPlugin = this.admin.getPlugin('plugin/pip') as typeof pipPlugin || undefined;
-  userClipboardPlugin = this.admin.getPlugin('plugin/user/clipboard');
+  get userClipboardPlugin() {
+    return this.admin.getPlugin('plugin/user/clipboard');
+  }
 
   constructor(
     public config: ConfigService,

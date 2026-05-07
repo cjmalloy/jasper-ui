@@ -318,6 +318,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   @HostListener('document:copy', ['$event'])
   copy(event: ClipboardEvent) {
     if (!this.interceptCopy) return;
+    if (this.isClipboardEditTarget(event.target as HTMLElement | null)) return;
     const item = this.clipboardItem(event.target as HTMLElement);
     if (!item) return;
     event.preventDefault();
