@@ -14,7 +14,6 @@ type ClipboardFixtureItem = {
   created: string;
   text?: string;
   html?: string;
-  image?: string;
   ref?: Record<string, unknown>;
   x?: number;
   y?: number;
@@ -116,8 +115,8 @@ async function setLocalClipboardItems(page: Page, items: ClipboardFixtureItem[])
 
 /**
  * Seeds clipboard fixtures in both places the signed-in component reads from:
- * remote response refs for syncable text/ref data, and localStorage for local
- * image payloads plus bubble positions.
+ * remote response refs for syncable text/ref data, and localStorage for
+ * bubble positions.
  */
 async function setClipboardItems(page: Page, items: ClipboardFixtureItem[]) {
   const remoteItems = items
@@ -501,10 +500,10 @@ test.describe.serial('User Clipboard Plugin', () => {
     ]);
   });
 
-  test('keeps image data local-only during remote sync', async ({ page }) => {
+  test('ignores file drops', async ({ page }) => {
     await page.goto('/?debug=ADMIN', { waitUntil: 'networkidle' });
     await clearClipboard(page);
-    const dropImage = async (text?: string) => {
+    const dropFile = async (text?: string) => {
       const dropZone = await showDropZone(page);
       await dropZone.evaluate((element, value) => {
         const bytes = Uint8Array.from(atob('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAFgwJ/lY99NwAAAABJRU5ErkJggg=='), char => char.charCodeAt(0));
@@ -515,36 +514,11 @@ test.describe.serial('User Clipboard Plugin', () => {
       }, text);
     };
 
-    await dropImage();
-    await dropImage('Text with local image');
+    await dropFile();
+    await dropFile('Text with file');
 
-    await expect(page.locator('.clipboard-bubble').filter({ hasText: 'Image' })).toBeVisible();
-    await expect(page.locator('.clipboard-bubble').filter({ hasText: 'Text with local image' })).toBeVisible();
-    await expect.poll(() => page.evaluate(key => JSON.parse(localStorage.getItem(key) || '[]').length, CLIPBOARD_STORAGE_KEY)).toBe(2);
-    await expect.poll(() => page.evaluate(key => JSON.parse(localStorage.getItem(key) || '[]'), CLIPBOARD_STORAGE_KEY)).toEqual(expect.arrayContaining([
-      expect.objectContaining({
-        image: expect.stringMatching(/^data:image\/png;base64,/),
-      }),
-      expect.objectContaining({
-        text: 'Text with local image',
-        image: expect.stringMatching(/^data:image\/png;base64,/),
-      }),
-    ]));
-    const clipboardResponse = await apiRequest(page, '/api/v1/tags/response');
-    await expect.poll(async () => {
-      const ref = await page.request.get(clipboardResponse.url, {
-        params: {
-          url: 'tag:/plugin/user/clipboard',
-        },
-        headers: clipboardResponse.headers,
-      });
-      const json = await ref.json();
-      return json.plugins['plugin/user/clipboard'].items;
-    }).toEqual([{
-      id: expect.any(String),
-      text: 'Text with local image',
-      created: expect.any(String),
-    }]);
+    await expect(page.locator('.clipboard-bubble')).toHaveCount(0);
+    await expect.poll(() => page.evaluate(key => JSON.parse(localStorage.getItem(key) || '[]').length, CLIPBOARD_STORAGE_KEY)).toBe(0);
   });
 
   test('formats tag pastes and splits list items', async ({ page }) => {
@@ -665,7 +639,6 @@ test.describe.serial('User Clipboard Plugin', () => {
   });
 
   test('formats editor links and embeds', async ({ page }) => {
-    const image = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
     await page.goto('/?debug=ADMIN', { waitUntil: 'networkidle' });
     await setClipboardItems(page, [{
       id: 'e2e-clipboard-link',
@@ -682,12 +655,6 @@ test.describe.serial('User Clipboard Plugin', () => {
       created: new Date().toISOString(),
       x: 12,
       y: 128,
-    }, {
-      id: 'e2e-clipboard-image',
-      image,
-      created: new Date().toISOString(),
-      x: 12,
-      y: 184,
     }]);
 
     const focusEditor = async (className: string) => {
@@ -709,10 +676,6 @@ test.describe.serial('User Clipboard Plugin', () => {
     await page.locator('.clipboard-bubble').filter({ hasText: 'Jasper Ref' }).click();
     const refEditor = await focusEditor('e2e-editor-ref');
     await expect(refEditor).toHaveValue('![=](https://jasperkm.info/ref)');
-
-    await page.locator('.clipboard-bubble').filter({ hasText: 'Image' }).click();
-    const imageEditor = await focusEditor('e2e-editor-image');
-    await expect(imageEditor).toHaveValue(`![](${image})`);
   });
 
   test('turns tag and ref bubbles into links while hotkey is active', async ({ page }) => {
