@@ -60,7 +60,7 @@
 }
 
 .clipboard-bubble.selected {
-  border: 1px solid var(--active);
+  border: 2px solid var(--active);
   background: var(--clipboard-active, var(--card-dragging));
 }
 
