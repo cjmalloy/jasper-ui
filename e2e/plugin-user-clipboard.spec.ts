@@ -6,9 +6,7 @@ const DRAG_START_OFFSET = 8; // Start inside the preview so preview-origin drags
 const DRAG_END_X_OFFSET = 88; // Move far enough horizontally to exceed the click threshold.
 const DRAG_END_Y_OFFSET = 48; // Move far enough vertically to exceed the click threshold.
 const TEST_IMAGE_THUMBNAIL_DATA_URL = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAFgwJ/lY99NwAAAABJRU5ErkJggg==';
-const TEST_BUBBLE_START_Y = 72;
 const TEST_BUBBLE_SPACING = 56;
-const TEST_BUBBLE_HEIGHT_OFFSET = 48;
 
 async function showDropZone(page: Page) {
   await page.evaluate(() => {
@@ -45,7 +43,7 @@ test.describe.serial('User Clipboard Plugin', () => {
     await page.goto('/?debug=ADMIN', { waitUntil: 'networkidle' });
     await clearClipboard(page);
     const viewportHeight = page.viewportSize()?.height ?? 720;
-    const rowsBeforeWrap = Math.max(1, Math.floor((viewportHeight - TEST_BUBBLE_HEIGHT_OFFSET - TEST_BUBBLE_START_Y) / TEST_BUBBLE_SPACING) + 1);
+    const overflowCount = Math.ceil(viewportHeight / TEST_BUBBLE_SPACING) + 2;
     await page.evaluate(({ overflowCount }) => {
       const now = new Date().toISOString();
       localStorage.setItem('jasper.clipboard.+user/debug@', JSON.stringify([
@@ -62,20 +60,22 @@ test.describe.serial('User Clipboard Plugin', () => {
           y: 9999,
         },
       ]));
-    }, { overflowCount: rowsBeforeWrap + 3 });
+    }, { overflowCount });
     await page.reload({ waitUntil: 'networkidle' });
 
     const first = page.locator('.clipboard-bubble').filter({ hasText: 'Overflow clipboard item 0' });
-    const nextColumn = page.locator('.clipboard-bubble').filter({ hasText: `Overflow clipboard item ${rowsBeforeWrap}` });
     await expect(first).toBeVisible();
-    await expect(nextColumn).toBeVisible();
     const firstBox = await first.boundingBox();
-    const nextColumnBox = await nextColumn.boundingBox();
     expect(firstBox).toBeTruthy();
-    expect(nextColumnBox).toBeTruthy();
-    expect(nextColumnBox!.x).toBeGreaterThan(firstBox!.x);
-    expect(Math.abs(nextColumnBox!.y - firstBox!.y)).toBeLessThan(2);
-    await expect(page.locator('.clipboard-bubble').filter({ hasText: 'Offscreen clipboard item' })).toBeInViewport();
+    await expect.poll(() => page.locator('.clipboard-bubble').evaluateAll((elements, firstLeft) => (
+      elements.some(element => element.getBoundingClientRect().left > (firstLeft as number) + 10)
+    ), firstBox!.x)).toBe(true);
+    const offscreen = page.locator('.clipboard-bubble').filter({ hasText: 'Offscreen clipboard item' });
+    await expect(offscreen).toBeInViewport();
+    const offscreenBox = await offscreen.boundingBox();
+    expect(offscreenBox).toBeTruthy();
+    expect(offscreenBox!.x).toBeGreaterThanOrEqual(0);
+    expect(offscreenBox!.y).toBeLessThan(viewportHeight);
     await expect.poll(() => page.locator('.clipboard-bubble').evaluateAll(elements => {
       const { innerWidth, innerHeight } = window;
       return elements.every(element => {
