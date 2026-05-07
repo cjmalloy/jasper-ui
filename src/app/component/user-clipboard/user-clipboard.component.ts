@@ -104,6 +104,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   private thumbnailRefsCache = new WeakMap<ClipboardRef, ClipboardRef[]>();
   private thumbnailRefCache = new WeakMap<ClipboardRef, Ref>();
   private defaultThumbnailEmojiCache = new WeakMap<object, string>();
+  private resizeClamp?: number;
   private loading = false;
   dropVisible = false;
   dropActive = false;
@@ -135,6 +136,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   ngOnDestroy() {
     this.watch?.unsubscribe();
     this.save?.unsubscribe();
+    if (this.resizeClamp) window.clearTimeout(this.resizeClamp);
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
   }
@@ -313,6 +315,14 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
 
   @HostListener('window:resize')
   resize() {
+    if (this.resizeClamp) window.clearTimeout(this.resizeClamp);
+    this.resizeClamp = window.setTimeout(() => {
+      this.resizeClamp = undefined;
+      this.clampBubblePositions();
+    }, 100);
+  }
+
+  private clampBubblePositions() {
     let changed = false;
     for (const item of this.items) {
       const position = this.clampBubblePosition(item);

@@ -7,6 +7,7 @@ const DRAG_END_X_OFFSET = 88; // Move far enough horizontally to exceed the clic
 const DRAG_END_Y_OFFSET = 48; // Move far enough vertically to exceed the click threshold.
 const TEST_IMAGE_THUMBNAIL_DATA_URL = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAFgwJ/lY99NwAAAABJRU5ErkJggg==';
 const TEST_BUBBLE_SPACING = 56;
+const CLIPBOARD_STORAGE_KEY = 'jasper.clipboard.+user/debug@';
 
 async function showDropZone(page: Page) {
   await page.evaluate(() => {
@@ -31,7 +32,7 @@ async function clearClipboard(page: Page) {
       },
     },
   });
-  await page.evaluate(() => localStorage.removeItem('jasper.clipboard.+user/debug@'));
+  await page.evaluate(key => localStorage.removeItem(key), CLIPBOARD_STORAGE_KEY);
 }
 
 test.describe.serial('User Clipboard Plugin', () => {
@@ -44,9 +45,9 @@ test.describe.serial('User Clipboard Plugin', () => {
     await clearClipboard(page);
     const viewportHeight = page.viewportSize()?.height ?? 720;
     const overflowCount = Math.ceil(viewportHeight / TEST_BUBBLE_SPACING) + 2;
-    await page.evaluate(({ overflowCount }) => {
+    await page.evaluate(({ overflowCount, storageKey }) => {
       const now = new Date().toISOString();
-      localStorage.setItem('jasper.clipboard.+user/debug@', JSON.stringify([
+      localStorage.setItem(storageKey, JSON.stringify([
         ...Array.from({ length: overflowCount }, (_, index) => ({
           id: `e2e-overflow-${index}`,
           text: `Overflow clipboard item ${index}`,
@@ -60,7 +61,7 @@ test.describe.serial('User Clipboard Plugin', () => {
           y: 9999,
         },
       ]));
-    }, { overflowCount });
+    }, { overflowCount, storageKey: CLIPBOARD_STORAGE_KEY });
     await page.reload({ waitUntil: 'networkidle' });
 
     const first = page.locator('.clipboard-bubble').filter({ hasText: 'Overflow clipboard item 0' });
@@ -90,8 +91,8 @@ test.describe.serial('User Clipboard Plugin', () => {
   test('shows bubbles and pastes selected clipboard item', async ({ page }) => {
     await page.goto('/?debug=ADMIN', { waitUntil: 'networkidle' });
     await clearClipboard(page);
-    await page.evaluate(() => {
-      localStorage.setItem('jasper.clipboard.+user/debug@', JSON.stringify([{
+    await page.evaluate(storageKey => {
+      localStorage.setItem(storageKey, JSON.stringify([{
         id: 'e2e-clipboard-item',
         text: 'Clipboard paste text',
         html: '<strong>Clipboard paste text</strong>',
@@ -128,7 +129,7 @@ test.describe.serial('User Clipboard Plugin', () => {
         x: 12,
         y: 128,
       }]));
-    });
+    }, CLIPBOARD_STORAGE_KEY);
     await page.reload({ waitUntil: 'networkidle' });
 
     const bubble = page.locator('.clipboard-bubble').filter({ hasText: 'Clipboard paste text' });
@@ -218,14 +219,14 @@ test.describe.serial('User Clipboard Plugin', () => {
     await expect(bubble).toBeHidden();
     await imageBubble.locator('.clipboard-clear').click();
     await expect(imageBubble).toBeHidden();
-    await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem('jasper.clipboard.+user/debug@') || '[]').length)).toBe(0);
+    await expect.poll(() => page.evaluate(key => JSON.parse(localStorage.getItem(key) || '[]').length, CLIPBOARD_STORAGE_KEY)).toBe(0);
   });
 
   test('clips refs and accepts dropped text', async ({ page }) => {
     const url = 'https://jasperkm.info/clipboard-e2e';
     await deleteRef(page, url);
     await page.goto('/?debug=ADMIN', { waitUntil: 'networkidle' });
-    await page.evaluate(() => localStorage.removeItem('jasper.clipboard.+user/debug@'));
+    await page.evaluate(key => localStorage.removeItem(key), CLIPBOARD_STORAGE_KEY);
     await expect(page.locator('.clipboard-drop-zone')).toBeHidden();
     await openSidebar(page);
     await page.locator('.sidebar .submit-button', { hasText: 'Submit' }).first().click();
@@ -420,8 +421,8 @@ test.describe.serial('User Clipboard Plugin', () => {
   test('formats editor links and embeds', async ({ page }) => {
     const image = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
     await page.goto('/?debug=ADMIN', { waitUntil: 'networkidle' });
-    await page.evaluate(image => {
-      localStorage.setItem('jasper.clipboard.+user/debug@', JSON.stringify([{
+    await page.evaluate(({ image, storageKey }) => {
+      localStorage.setItem(storageKey, JSON.stringify([{
         id: 'e2e-clipboard-link',
         text: 'https://jasperkm.info/plain',
         created: new Date().toISOString(),
@@ -443,7 +444,7 @@ test.describe.serial('User Clipboard Plugin', () => {
         x: 12,
         y: 184,
       }]));
-    }, image);
+    }, { image, storageKey: CLIPBOARD_STORAGE_KEY });
     await page.reload({ waitUntil: 'networkidle' });
 
     const focusEditor = async (className: string) => {
