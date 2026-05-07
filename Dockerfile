@@ -26,7 +26,7 @@ CMD mkdir -p /report && \
     exit $(cat /report/exit-code.txt)
 
 FROM nginx:1.29.8-alpine3.23-slim AS deploy
-RUN apk add --no-cache jq moreutils
+RUN apk --no-cache upgrade && apk --no-cache add jq moreutils
 WORKDIR /var/lib/jasper/
 COPY --from=builder /app/dist/jasper-ui/browser ./
 ARG BASE_HREF="/"
