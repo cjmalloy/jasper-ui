@@ -9,6 +9,18 @@ const TEST_IMAGE_THUMBNAIL_DATA_URL = 'data:image/png;base64,iVBORw0KGgoAAAANSUh
 const TEST_BUBBLE_SPACING = 56;
 const CLIPBOARD_STORAGE_KEY = 'jasper.clipboard.+user/debug@';
 
+type ClipboardFixtureItem = {
+  id: string;
+  created: string;
+  text?: string;
+  html?: string;
+  image?: string;
+  ref?: Record<string, unknown>;
+  x?: number;
+  y?: number;
+  hold?: boolean;
+};
+
 async function showDropZone(page: Page) {
   await page.evaluate(() => {
     const data = new DataTransfer();
@@ -35,6 +47,33 @@ async function clearClipboard(page: Page) {
   await page.evaluate(key => localStorage.removeItem(key), CLIPBOARD_STORAGE_KEY);
 }
 
+async function setClipboardItems(page: Page, items: ClipboardFixtureItem[]) {
+  const remoteItems = items.flatMap(({ id, created, text, html, ref }) => (
+    text !== undefined || html !== undefined || ref ? [{
+      id,
+      created,
+      ...(text !== undefined ? { text } : {}),
+      ...(html !== undefined ? { html } : {}),
+      ...(ref ? { ref } : {}),
+    }] : []
+  ));
+  await page.request.patch('/api/v1/tags/response', {
+    params: {
+      tags: 'plugin/user/clipboard',
+      url: 'tag:plugin/user/clipboard',
+    },
+    headers: { 'Content-Type': 'application/merge-patch+json' },
+    data: {
+      'plugin/user/clipboard': {
+        items: remoteItems,
+      },
+    },
+  });
+  await page.evaluate(({ storageKey, entries }) => {
+    localStorage.setItem(storageKey, JSON.stringify(entries));
+  }, { storageKey: CLIPBOARD_STORAGE_KEY, entries: items });
+}
+
 test.describe.serial('User Clipboard Plugin', () => {
   test('enable clipboard mod', async ({ page }) => {
     await mod(page, '#mod-experiments', '#mod-clipboard', '#mod-images');
@@ -45,23 +84,21 @@ test.describe.serial('User Clipboard Plugin', () => {
     await clearClipboard(page);
     const viewportHeight = page.viewportSize()?.height ?? 720;
     const overflowCount = Math.ceil(viewportHeight / TEST_BUBBLE_SPACING) + 2;
-    await page.evaluate(({ overflowCount, storageKey }) => {
-      const now = new Date().toISOString();
-      localStorage.setItem(storageKey, JSON.stringify([
-        ...Array.from({ length: overflowCount }, (_, index) => ({
-          id: `e2e-overflow-${index}`,
-          text: `Overflow clipboard item ${index}`,
-          created: now,
-        })),
-        {
-          id: 'e2e-offscreen',
-          text: 'Offscreen clipboard item',
-          created: now,
-          x: -240,
-          y: 9999,
-        },
-      ]));
-    }, { overflowCount, storageKey: CLIPBOARD_STORAGE_KEY });
+    const now = new Date().toISOString();
+    await setClipboardItems(page, [
+      ...Array.from({ length: overflowCount }, (_, index) => ({
+        id: `e2e-overflow-${index}`,
+        text: `Overflow clipboard item ${index}`,
+        created: now,
+      })),
+      {
+        id: 'e2e-offscreen',
+        text: 'Offscreen clipboard item',
+        created: now,
+        x: -240,
+        y: 9999,
+      },
+    ]);
     await page.reload({ waitUntil: 'networkidle' });
 
     const first = page.locator('.clipboard-bubble').filter({ hasText: 'Overflow clipboard item 0' });
@@ -91,65 +128,63 @@ test.describe.serial('User Clipboard Plugin', () => {
   test('shows bubbles and pastes selected clipboard item', async ({ page }) => {
     await page.goto('/?debug=ADMIN', { waitUntil: 'networkidle' });
     await clearClipboard(page);
-    await page.evaluate(storageKey => {
-      localStorage.setItem(storageKey, JSON.stringify([{
-        id: 'e2e-clipboard-item',
-        text: 'Clipboard paste text',
-        html: '<strong>Clipboard paste text</strong>',
-        ref: {
-          url: 'https://jasperkm.info/clipboard-thumbnail-ref',
-          title: 'Clipboard paste text',
-          tags: ['plugin/thumbnail'],
-          plugins: {
-            'plugin/thumbnail': {
-              url: 'https://jasperkm.info/clipboard-thumbnail.png',
-              color: '#123456',
-              emoji: '📋️',
-            },
+    await setClipboardItems(page, [{
+      id: 'e2e-clipboard-item',
+      text: 'Clipboard paste text',
+      html: '<strong>Clipboard paste text</strong>',
+      ref: {
+        url: 'https://jasperkm.info/clipboard-thumbnail-ref',
+        title: 'Clipboard paste text',
+        tags: ['plugin/thumbnail'],
+        plugins: {
+          'plugin/thumbnail': {
+            url: 'https://jasperkm.info/clipboard-thumbnail.png',
+            color: '#123456',
+            emoji: '📋️',
           },
         },
-        created: new Date().toISOString(),
-        x: 12,
-        y: 72,
-        hold: true,
-      }, {
-        id: 'e2e-clipboard-image-thumbnail-item',
-        text: 'Clipboard image thumbnail',
-        ref: {
-          url: 'https://jasperkm.info/clipboard-image-default-ref',
-          title: 'Clipboard image thumbnail',
-          tags: ['plugin/image'],
-          plugins: {
-            'plugin/image': {
-              url: TEST_IMAGE_THUMBNAIL_DATA_URL,
-            },
+      },
+      created: new Date().toISOString(),
+      x: 12,
+      y: 72,
+      hold: true,
+    }, {
+      id: 'e2e-clipboard-image-thumbnail-item',
+      text: 'Clipboard image thumbnail',
+      ref: {
+        url: 'https://jasperkm.info/clipboard-image-default-ref',
+        title: 'Clipboard image thumbnail',
+        tags: ['plugin/image'],
+        plugins: {
+          'plugin/image': {
+            url: TEST_IMAGE_THUMBNAIL_DATA_URL,
           },
         },
-        created: new Date().toISOString(),
-        x: 12,
-        y: 128,
-      }, {
-        id: 'e2e-clipboard-image-default-item',
-        text: 'Clipboard image default emoji',
-        ref: {
-          url: 'https://jasperkm.info/clipboard-image-default-ref',
-          title: 'Clipboard image default emoji',
-          tags: ['plugin/image'],
-        },
-        created: new Date().toISOString(),
-        x: 12,
-        y: 184,
-      }, {
-        id: 'e2e-clipboard-comment-title-item',
-        ref: {
-          url: 'https://jasperkm.info/clipboard-comment-title-ref',
-          comment: 'Clipboard comment title\n\nExtra body text',
-        },
-        created: new Date().toISOString(),
-        x: 12,
-        y: 240,
-      }]));
-    }, CLIPBOARD_STORAGE_KEY);
+      },
+      created: new Date().toISOString(),
+      x: 12,
+      y: 128,
+    }, {
+      id: 'e2e-clipboard-image-default-item',
+      text: 'Clipboard image default emoji',
+      ref: {
+        url: 'https://jasperkm.info/clipboard-image-default-ref',
+        title: 'Clipboard image default emoji',
+        tags: ['plugin/image'],
+      },
+      created: new Date().toISOString(),
+      x: 12,
+      y: 184,
+    }, {
+      id: 'e2e-clipboard-comment-title-item',
+      ref: {
+        url: 'https://jasperkm.info/clipboard-comment-title-ref',
+        comment: 'Clipboard comment title\n\nExtra body text',
+      },
+      created: new Date().toISOString(),
+      x: 12,
+      y: 240,
+    }]);
     await page.reload({ waitUntil: 'networkidle' });
 
     const bubble = page.locator('.clipboard-bubble').filter({ hasText: 'Clipboard paste text' });
@@ -599,30 +634,28 @@ test.describe.serial('User Clipboard Plugin', () => {
   test('formats editor links and embeds', async ({ page }) => {
     const image = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
     await page.goto('/?debug=ADMIN', { waitUntil: 'networkidle' });
-    await page.evaluate(({ image, storageKey }) => {
-      localStorage.setItem(storageKey, JSON.stringify([{
-        id: 'e2e-clipboard-link',
-        text: 'https://jasperkm.info/plain',
-        created: new Date().toISOString(),
-        x: 12,
-        y: 72,
-      }, {
-        id: 'e2e-clipboard-ref',
-        ref: {
-          url: 'https://jasperkm.info/ref',
-          title: 'Jasper Ref',
-        },
-        created: new Date().toISOString(),
-        x: 12,
-        y: 128,
-      }, {
-        id: 'e2e-clipboard-image',
-        image,
-        created: new Date().toISOString(),
-        x: 12,
-        y: 184,
-      }]));
-    }, { image, storageKey: CLIPBOARD_STORAGE_KEY });
+    await setClipboardItems(page, [{
+      id: 'e2e-clipboard-link',
+      text: 'https://jasperkm.info/plain',
+      created: new Date().toISOString(),
+      x: 12,
+      y: 72,
+    }, {
+      id: 'e2e-clipboard-ref',
+      ref: {
+        url: 'https://jasperkm.info/ref',
+        title: 'Jasper Ref',
+      },
+      created: new Date().toISOString(),
+      x: 12,
+      y: 128,
+    }, {
+      id: 'e2e-clipboard-image',
+      image,
+      created: new Date().toISOString(),
+      x: 12,
+      y: 184,
+    }]);
     await page.reload({ waitUntil: 'networkidle' });
 
     const focusEditor = async (className: string) => {
@@ -652,35 +685,33 @@ test.describe.serial('User Clipboard Plugin', () => {
 
   test('turns tag and ref bubbles into links while hotkey is active', async ({ page }) => {
     await page.goto('/?debug=ADMIN', { waitUntil: 'networkidle' });
-    await page.evaluate(storageKey => {
-      const now = new Date().toISOString();
-      localStorage.setItem(storageKey, JSON.stringify([{
-        id: 'e2e-clipboard-hotkey-tag',
-        text: 'tag:/topic/hotkey',
-        ref: {
-          url: 'tag:/topic/hotkey',
-          title: 'topic/hotkey',
-        },
-        created: now,
-        x: 12,
-        y: 72,
-      }, {
-        id: 'e2e-clipboard-hotkey-ref',
-        ref: {
-          url: 'https://jasperkm.info/hotkey-ref',
-          title: 'Hotkey Ref',
-        },
-        created: now,
-        x: 12,
-        y: 128,
-      }, {
-        id: 'e2e-clipboard-hotkey-text',
-        text: 'Plain hotkey text',
-        created: now,
-        x: 12,
-        y: 184,
-      }]));
-    }, CLIPBOARD_STORAGE_KEY);
+    const now = new Date().toISOString();
+    await setClipboardItems(page, [{
+      id: 'e2e-clipboard-hotkey-tag',
+      text: 'tag:/topic/hotkey',
+      ref: {
+        url: 'tag:/topic/hotkey',
+        title: 'topic/hotkey',
+      },
+      created: now,
+      x: 12,
+      y: 72,
+    }, {
+      id: 'e2e-clipboard-hotkey-ref',
+      ref: {
+        url: 'https://jasperkm.info/hotkey-ref',
+        title: 'Hotkey Ref',
+      },
+      created: now,
+      x: 12,
+      y: 128,
+    }, {
+      id: 'e2e-clipboard-hotkey-text',
+      text: 'Plain hotkey text',
+      created: now,
+      x: 12,
+      y: 184,
+    }]);
     await page.reload({ waitUntil: 'networkidle' });
 
     await page.keyboard.down('Control');
