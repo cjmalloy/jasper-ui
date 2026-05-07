@@ -51,7 +51,7 @@ test.describe.serial('User Clipboard Plugin', () => {
     await expect(bubble).toBeVisible();
     await expect(bubble.locator('.clipboard-thumbnail')).toBeVisible();
     await expect(bubble.locator('.clipboard-thumbnail')).toHaveText('📋️');
-    await expect.poll(() => bubble.locator('.clipboard-thumbnail').evaluate(element => getComputedStyle(element).backgroundImage)).toContain('clipboard-thumbnail.png');
+    await expect(bubble.locator('.clipboard-thumbnail')).toHaveCSS('background-image', /clipboard-thumbnail\.png/);
     const initialLeft = await bubble.evaluate(element => getComputedStyle(element).left);
     const previewBox = await bubble.locator('.clipboard-preview').boundingBox();
     expect(previewBox).toBeTruthy();

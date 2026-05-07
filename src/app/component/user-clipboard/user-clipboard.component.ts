@@ -25,6 +25,7 @@ const MAX_PREVIEW_LENGTH = 48;
 const PREVIEW_TRUNCATE_AT = 45;
 const TAG_URL_PREFIX = 'tag:/';
 const IMAGE_DATA_URL_PATTERN = /^data:image\/(?:png|jpeg|jpg|gif|webp|bmp);base64,/i;
+const THUMBNAIL_PLUGIN_TAGS = ['plugin/thumbnail', 'plugin/image', 'plugin/video'];
 const SANITIZE_CONFIG = {
   ALLOWED_TAGS: ['a', 'b', 'blockquote', 'br', 'code', 'div', 'em', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'i', 'li', 'ol', 'p', 'pre', 's', 'span', 'strong', 'table', 'tbody', 'td', 'th', 'thead', 'tr', 'u', 'ul'],
   ALLOWED_ATTR: ['alt', 'href', 'title'],
@@ -682,7 +683,8 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   }
 
   private thumbnailFromTarget(refEl: HTMLElement | null) {
-    const radius = refEl?.dataset['refThumbnailRadius'] ? Number(refEl.dataset['refThumbnailRadius']) : undefined;
+    const radiusValue = refEl?.dataset['refThumbnailRadius'];
+    const radius = radiusValue ? Number(radiusValue) : undefined;
     const thumbnail = {
       ...(refEl?.dataset['refThumbnailUrl'] ? { url: refEl.dataset['refThumbnailUrl'] } : {}),
       ...(refEl?.dataset['refThumbnailColor'] ? { color: refEl.dataset['refThumbnailColor'] } : {}),
@@ -931,12 +933,12 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   }
 
   private thumbnailTags(ref: Ref) {
-    const tags = ref.tags?.filter(tag => ['plugin/thumbnail', 'plugin/image', 'plugin/video'].includes(tag));
+    const tags = ref.tags?.filter(tag => THUMBNAIL_PLUGIN_TAGS.includes(tag));
     return tags?.length ? tags : undefined;
   }
 
   private thumbnailPlugins(ref: Ref) {
-    const plugins = ['plugin/thumbnail', 'plugin/image', 'plugin/video'].reduce((result, plugin) => {
+    const plugins = THUMBNAIL_PLUGIN_TAGS.reduce((result, plugin) => {
       if (ref.plugins?.[plugin]) result[plugin] = ref.plugins[plugin];
       return result;
     }, {} as Record<string, unknown>);
