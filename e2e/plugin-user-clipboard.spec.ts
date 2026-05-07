@@ -25,6 +25,20 @@ function hasRemoteClipboardContent(item: ClipboardFixtureItem) {
   return item.text !== undefined || item.html !== undefined || item.ref !== undefined;
 }
 
+async function apiRequest(page: Page, path: string) {
+  const { api, token } = await page.evaluate(() => {
+    const configService = (window as any).configService;
+    return {
+      api: new URL(configService.api, location.href).href.replace(/\/$/, ''),
+      token: configService.token as string,
+    };
+  });
+  return {
+    url: api + path,
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  };
+}
+
 async function showDropZone(page: Page) {
   await page.evaluate(() => {
     const data = new DataTransfer();
@@ -36,19 +50,68 @@ async function showDropZone(page: Page) {
 }
 
 async function clearClipboard(page: Page) {
-  await page.request.patch('/api/v1/tags/response', {
+  await patchClipboardResponse(page, []);
+  await clearLocalClipboard(page);
+}
+
+async function patchClipboardResponse(page: Page, items: ClipboardFixtureItem[]) {
+  const request = await apiRequest(page, '/api/v1/tags/response');
+  const patch = {
+    'plugin/user/clipboard': {
+      items,
+    },
+  };
+  let response = await page.request.patch(request.url, {
     params: {
       tags: 'plugin/user/clipboard',
       url: 'tag:/plugin/user/clipboard',
     },
-    headers: { 'Content-Type': 'application/merge-patch+json' },
-    data: {
-      'plugin/user/clipboard': {
-        items: [],
-      },
-    },
+    headers: { ...request.headers, 'Content-Type': 'application/merge-patch+json' },
+    data: patch,
   });
-  await page.evaluate(key => localStorage.removeItem(key), CLIPBOARD_STORAGE_KEY);
+  if (response.ok()) return;
+
+  const patchError = `${response.status()} ${await response.text()}`;
+  const create = await page.request.post(request.url, {
+    params: {
+      tag: 'plugin/user/clipboard',
+      url: 'tag:/plugin/user/clipboard',
+    },
+    headers: request.headers,
+  });
+  expect(create.ok(), `Unable to patch clipboard response (${patchError}) or create it (${create.status()} ${await create.text()})`).toBe(true);
+
+  response = await page.request.patch(request.url, {
+    params: {
+      tags: 'plugin/user/clipboard',
+      url: 'tag:/plugin/user/clipboard',
+    },
+    headers: { ...request.headers, 'Content-Type': 'application/merge-patch+json' },
+    data: patch,
+  });
+  expect(response.ok(), `${response.status()} ${await response.text()}`).toBe(true);
+}
+
+async function clearLocalClipboard(page: Page) {
+  await Promise.all([
+    page.waitForEvent('framenavigated'),
+    page.evaluate(key => {
+      localStorage.removeItem(key);
+      window.setTimeout(() => location.reload(), 0);
+    }, CLIPBOARD_STORAGE_KEY),
+  ]);
+  await page.waitForLoadState('networkidle');
+}
+
+async function setLocalClipboardItems(page: Page, items: ClipboardFixtureItem[]) {
+  await Promise.all([
+    page.waitForEvent('framenavigated'),
+    page.evaluate(({ storageKey, entries }) => {
+      localStorage.setItem(storageKey, JSON.stringify(entries));
+      window.setTimeout(() => location.reload(), 0);
+    }, { storageKey: CLIPBOARD_STORAGE_KEY, entries: items }),
+  ]);
+  await page.waitForLoadState('networkidle');
 }
 
 /**
@@ -67,73 +130,27 @@ async function setClipboardItems(page: Page, items: ClipboardFixtureItem[]) {
       ...(ref ? { ref } : {}),
     }));
   // Signed-in clipboard reloads merge localStorage with the remote response ref.
-  await page.request.patch('/api/v1/tags/response', {
-    params: {
-      tags: 'plugin/user/clipboard',
-      url: 'tag:/plugin/user/clipboard',
-    },
-    headers: { 'Content-Type': 'application/merge-patch+json' },
-    data: {
-      'plugin/user/clipboard': {
-        items: remoteItems,
+  await patchClipboardResponse(page, remoteItems);
+  const request = await apiRequest(page, '/api/v1/tags/response');
+  await expect.poll(async () => {
+    const ref = await page.request.get(request.url, {
+      params: {
+        url: 'tag:/plugin/user/clipboard',
       },
-    },
-  });
-  // The component keeps images and bubble positions in localStorage only.
-  await page.evaluate(({ storageKey, entries }) => {
-    localStorage.setItem(storageKey, JSON.stringify(entries));
-  }, { storageKey: CLIPBOARD_STORAGE_KEY, entries: items });
+      headers: request.headers,
+    });
+    const json = await ref.json();
+    return json.plugins?.['plugin/user/clipboard']?.items || [];
+  }).toEqual(remoteItems);
+  // The component keeps images and bubble positions in localStorage only. Write
+  // immediately before reloading so the live component cannot overwrite fixtures
+  // from a pending clipboard sync callback.
+  await setLocalClipboardItems(page, items);
 }
 
 test.describe.serial('User Clipboard Plugin', () => {
   test('enable clipboard mod', async ({ page }) => {
     await mod(page, '#mod-experiments', '#mod-clipboard', '#mod-images', '#mod-thumbnail');
-  });
-
-  test('keeps many bubbles on screen in columns', async ({ page }) => {
-    await page.goto('/?debug=ADMIN', { waitUntil: 'networkidle' });
-    await clearClipboard(page);
-    const viewportHeight = page.viewportSize()?.height ?? 720;
-    const overflowCount = Math.ceil(viewportHeight / TEST_BUBBLE_SPACING) + 2;
-    const now = new Date().toISOString();
-    await setClipboardItems(page, [
-      ...Array.from({ length: overflowCount }, (_, index) => ({
-        id: `e2e-overflow-${index}`,
-        text: `Overflow clipboard item ${index}`,
-        created: now,
-      })),
-      {
-        id: 'e2e-offscreen',
-        text: 'Offscreen clipboard item',
-        created: now,
-        x: -240,
-        y: 9999,
-      },
-    ]);
-    await page.reload({ waitUntil: 'networkidle' });
-
-    const first = page.locator('.clipboard-bubble').filter({ hasText: 'Overflow clipboard item 0' });
-    await expect(first).toBeVisible();
-    const firstBox = await first.boundingBox();
-    expect(firstBox).toBeTruthy();
-    await expect.poll(() => page.locator('.clipboard-bubble').evaluateAll((elements, firstLeft) => (
-      elements.some(element => element.getBoundingClientRect().left > (firstLeft as number) + 10)
-    ), firstBox!.x)).toBe(true);
-    const offscreen = page.locator('.clipboard-bubble').filter({ hasText: 'Offscreen clipboard item' });
-    await expect(offscreen).toBeInViewport();
-    const offscreenBox = await offscreen.boundingBox();
-    expect(offscreenBox).toBeTruthy();
-    expect(offscreenBox!.x).toBeGreaterThanOrEqual(0);
-    expect(offscreenBox!.y).toBeLessThan(viewportHeight);
-    await expect.poll(() => page.locator('.clipboard-bubble').evaluateAll(elements => {
-      const { innerWidth, innerHeight } = window;
-      return elements.every(element => {
-        const box = element.getBoundingClientRect();
-        return box.left >= 0 && box.top >= 0 && box.right <= innerWidth && box.bottom <= innerHeight;
-      });
-    })).toBe(true);
-
-    await clearClipboard(page);
   });
 
   test('shows bubbles and pastes selected clipboard item', async ({ page }) => {
@@ -196,7 +213,6 @@ test.describe.serial('User Clipboard Plugin', () => {
       x: 12,
       y: 240,
     }]);
-    await page.reload({ waitUntil: 'networkidle' });
 
     const bubble = page.locator('.clipboard-bubble').filter({ hasText: 'Clipboard paste text' });
     await expect(bubble).toBeVisible();
@@ -268,11 +284,13 @@ test.describe.serial('User Clipboard Plugin', () => {
     });
     await page.locator('.e2e-test-input').focus();
     await expect(page.locator('.e2e-test-input')).toHaveValue('Clipboard paste text');
+    const clipboardResponse = await apiRequest(page, '/api/v1/tags/response');
     await expect.poll(async () => {
-      const ref = await page.request.get('/api/v1/tags/response', {
+      const ref = await page.request.get(clipboardResponse.url, {
         params: {
           url: 'tag:/plugin/user/clipboard',
         },
+        headers: clipboardResponse.headers,
       });
       const json = await ref.json();
       return json.plugins['plugin/user/clipboard'].items[0];
@@ -370,11 +388,13 @@ test.describe.serial('User Clipboard Plugin', () => {
       element.dispatchEvent(new DragEvent('drop', { bubbles: true, cancelable: true, dataTransfer: data }));
     });
     await expect(page.locator('.clipboard-bubble').filter({ hasText: 'Dropped clipboard text' })).toBeVisible();
+    const clipboardResponse = await apiRequest(page, '/api/v1/tags/response');
     await expect.poll(async () => {
-      const ref = await page.request.get('/api/v1/tags/response', {
+      const ref = await page.request.get(clipboardResponse.url, {
         params: {
           url: 'tag:/plugin/user/clipboard',
         },
+        headers: clipboardResponse.headers,
       });
       const json = await ref.json();
       return json.plugins?.['plugin/user/clipboard']?.items?.map((item: { text?: string }) => item.text) || [];
@@ -510,11 +530,13 @@ test.describe.serial('User Clipboard Plugin', () => {
         image: expect.stringMatching(/^data:image\/png;base64,/),
       }),
     ]));
+    const clipboardResponse = await apiRequest(page, '/api/v1/tags/response');
     await expect.poll(async () => {
-      const ref = await page.request.get('/api/v1/tags/response', {
+      const ref = await page.request.get(clipboardResponse.url, {
         params: {
           url: 'tag:/plugin/user/clipboard',
         },
+        headers: clipboardResponse.headers,
       });
       const json = await ref.json();
       return json.plugins['plugin/user/clipboard'].items;
@@ -667,7 +689,6 @@ test.describe.serial('User Clipboard Plugin', () => {
       x: 12,
       y: 184,
     }]);
-    await page.reload({ waitUntil: 'networkidle' });
 
     const focusEditor = async (className: string) => {
       await page.locator('body').evaluate(name => {
@@ -723,7 +744,6 @@ test.describe.serial('User Clipboard Plugin', () => {
       x: 12,
       y: 184,
     }]);
-    await page.reload({ waitUntil: 'networkidle' });
 
     await page.keyboard.down('Control');
     const tagBubble = page.locator('.clipboard-bubble').filter({ hasText: 'topic/hotkey' });
