@@ -9,7 +9,7 @@ import { v4 as uuid } from 'uuid';
 import { refForm, RefFormComponent } from '../../form/ref/ref.component';
 import { Plugin } from '../../model/plugin';
 import { Ref, RefUpdates } from '../../model/ref';
-import { active, sortOrder, uniqueConfigs } from '../../model/tag';
+import { active, Icon, sortOrder, uniqueConfigs } from '../../model/tag';
 import { CssUrlPipe } from '../../pipe/css-url.pipe';
 import { ThumbnailPipe } from '../../pipe/thumbnail.pipe';
 import { AdminService } from '../../service/admin.service';
@@ -981,19 +981,31 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   }
 
   private thumbnailDefaultEmoji(item: ClipboardItem) {
-    const ref = this.thumbnailRef(item);
-    return ref ? this.defaultThumbnailEmoji(ref) : '';
+    return item.ref ? this.defaultThumbnailEmoji(this.thumbnailRef(item.ref)) : '';
   }
 
   private defaultThumbnailEmoji(ref: Ref) {
-    if (!ref) return '';
     const icon = uniqueConfigs(sortOrder(this.admin.getIcons(ref.tags, ref.plugins, getScheme(ref.url))))
-      .find(icon => (icon.thumbnail || (icon.label && (icon.order || 0) >= 0)) && active(ref, icon));
+      .find(icon => this.isDefaultThumbnailIcon(icon) && active(ref, icon));
     return icon?.label || icon?.thumbnail || '';
   }
 
-  private thumbnailRef(item: ClipboardItem): Ref | undefined {
-    return item.ref ? item.ref as Ref : undefined;
+  private isDefaultThumbnailIcon(icon: Icon) {
+    return !!icon.thumbnail || !!icon.label && (icon.order || 0) >= 0;
+  }
+
+  private thumbnailRef(ref: ClipboardRef): Ref {
+    return {
+      url: ref.url,
+      origin: ref.origin,
+      title: ref.title,
+      comment: ref.comment,
+      modifiedString: ref.modifiedString,
+      tags: ref.tags,
+      sources: ref.sources,
+      alternateUrls: ref.alternateUrls,
+      plugins: ref.plugins,
+    };
   }
 
   private thumbnailString(item: ClipboardItem, key: 'color' | 'emoji') {

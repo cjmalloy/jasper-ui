@@ -5,6 +5,7 @@ import { deleteRef, mod, openSidebar } from './setup';
 const DRAG_START_OFFSET = 8; // Start inside the preview so preview-origin drags are covered.
 const DRAG_END_X_OFFSET = 88; // Move far enough horizontally to exceed the click threshold.
 const DRAG_END_Y_OFFSET = 48; // Move far enough vertically to exceed the click threshold.
+const TEST_IMAGE_THUMBNAIL_DATA_URL = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAFgwJ/lY99NwAAAABJRU5ErkJggg==';
 
 async function showDropZone(page: Page) {
   await page.evaluate(() => {
@@ -53,7 +54,7 @@ test.describe.serial('User Clipboard Plugin', () => {
           tags: ['plugin/image'],
           plugins: {
             'plugin/image': {
-              url: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAFgwJ/lY99NwAAAABJRU5ErkJggg==',
+              url: TEST_IMAGE_THUMBNAIL_DATA_URL,
             },
           },
         },
