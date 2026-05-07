@@ -164,7 +164,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   }
 
   thumbnailVisible(item: ClipboardItem) {
-    return this.thumbnailEnabled() && !!item.ref && (
+    return !!item.ref && (
       this.hasThumbnail(item) ||
       !!this.thumbnailEmoji(item) ||
       !!this.thumbnailColor(item)
