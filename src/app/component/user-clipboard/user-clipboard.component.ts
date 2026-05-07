@@ -897,7 +897,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
         text: typeof item.text === 'string' ? item.text : undefined,
         html: typeof item.html === 'string' ? item.html : undefined,
         image: typeof item.image === 'string' ? item.image : undefined,
-        ref: this.mergeRefState(this.sanitiseRef(item.ref), localState.get(item.id)?.ref),
+        ref: this.preserveRefOrigin(this.sanitiseRef(item.ref), localState.get(item.id)?.ref),
         created: typeof item.created === 'string' ? item.created : new Date().toISOString(),
         ...this.mergeItemState(item, localState.get(item.id), index, includeItemState),
       }));
@@ -912,7 +912,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     };
   }
 
-  private mergeRefState(ref: ClipboardRef | undefined, local: ClipboardRef | undefined) {
+  private preserveRefOrigin(ref: ClipboardRef | undefined, local: ClipboardRef | undefined) {
     if (!ref) return undefined;
     return {
       ...ref,
@@ -991,10 +991,11 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   }
 
   private isDefaultThumbnailIcon(icon: Icon) {
-    return !!icon.thumbnail || !!icon.label && (icon.order || 0) >= 0;
+    return !!icon.thumbnail || (!!icon.label && (icon.order || 0) >= 0);
   }
 
   private thumbnailRef(ref: ClipboardRef): Ref {
+    // ClipboardRef stores published as a string for serialization, while Ref expects DateTime.
     return {
       url: ref.url,
       origin: ref.origin,
