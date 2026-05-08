@@ -91,6 +91,15 @@ async function patchClipboardResponse(page: Page, items: ClipboardFixtureItem[])
   expect(response.ok(), `${response.status()} ${await response.text()}`).toBe(true);
 }
 
+async function createRef(page: Page, ref: Record<string, unknown>) {
+  const request = await apiRequest(page, '/api/v1/ref');
+  const response = await page.request.post(request.url, {
+    headers: { ...request.headers, 'Content-Type': 'application/json' },
+    data: ref,
+  });
+  expect(response.ok(), `${response.status()} ${await response.text()}`).toBe(true);
+}
+
 async function clearLocalClipboard(page: Page) {
   await Promise.all([
     page.waitForEvent('framenavigated'),
@@ -322,6 +331,44 @@ test.describe.serial('User Clipboard Plugin', () => {
     await commentTitleBubble.locator('.clipboard-clear').click();
     await expect(commentTitleBubble).toBeHidden();
     await expect.poll(() => page.evaluate(key => JSON.parse(localStorage.getItem(key) || '[]').length, CLIPBOARD_STORAGE_KEY)).toBe(0);
+  });
+
+  test('opens clipped image refs with thumbnails in another tab', async ({ page }) => {
+    const url = 'https://jasperkm.info/clipboard-second-tab-thumbnail-ref';
+    await page.goto('/?debug=ADMIN', { waitUntil: 'networkidle' });
+    await deleteRef(page, url);
+    await clearClipboard(page);
+    await createRef(page, {
+      url,
+      title: 'Clipboard second tab thumbnail',
+      tags: ['plugin/image'],
+      plugins: {
+        'plugin/image': {
+          url: TEST_IMAGE_THUMBNAIL_DATA_URL,
+        },
+      },
+    });
+    await page.goto(`/ref/e/${encodeURIComponent(url)}?debug=ADMIN`, { waitUntil: 'networkidle' });
+    await page.locator('.full-page.ref .actions .fake-link', { hasText: 'clip' }).first().click();
+    const clipboardResponse = await apiRequest(page, '/api/v1/tags/response');
+    await expect.poll(async () => {
+      const ref = await page.request.get(clipboardResponse.url, {
+        params: {
+          url: 'tag:/plugin/user/clipboard',
+        },
+        headers: clipboardResponse.headers,
+      });
+      const json = await ref.json();
+      return json.plugins?.['plugin/user/clipboard']?.items?.[0]?.ref?.plugins?.['plugin/image']?.url;
+    }).toBe(TEST_IMAGE_THUMBNAIL_DATA_URL);
+    await page.evaluate(key => localStorage.removeItem(key), CLIPBOARD_STORAGE_KEY);
+
+    const secondTab = await page.context().newPage();
+    await secondTab.goto('/?debug=ADMIN', { waitUntil: 'networkidle' });
+    const imageBubble = secondTab.locator('.clipboard-bubble').filter({ hasText: 'Clipboard second tab thumbnail' });
+    await expect(imageBubble).toBeVisible();
+    await expect(imageBubble.locator('.clipboard-thumbnail-image')).toHaveCSS('background-image', /data:image\/png/);
+    await secondTab.close();
   });
 
   test('clips refs and accepts dropped text', async ({ page }) => {

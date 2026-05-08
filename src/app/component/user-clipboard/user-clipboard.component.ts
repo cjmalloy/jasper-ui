@@ -947,34 +947,14 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
       url: ref.url,
       origin: ref.origin,
       title: getTitle(ref) || undefined,
-      tags: this.thumbnailTags(ref),
-      plugins: this.thumbnailPlugins(ref),
+      comment: ref.comment,
+      published: ref.published?.toUTC().toISO() || undefined,
+      modifiedString: ref.modifiedString,
+      tags: ref.tags,
+      sources: ref.sources,
+      alternateUrls: ref.alternateUrls,
+      plugins: ref.plugins,
     };
-  }
-
-  private thumbnailTags(ref: Ref) {
-    if (!this.thumbnailEnabled()) return undefined;
-    const tags = ref.tags?.filter(tag => THUMBNAIL_PLUGIN_TAGS.includes(tag));
-    return tags?.length ? tags : undefined;
-  }
-
-  private thumbnailPlugins(ref: Ref) {
-    if (!this.thumbnailEnabled()) return undefined;
-    const plugins = THUMBNAIL_PLUGIN_TAGS.reduce((result, plugin) => {
-      if (ref.plugins?.[plugin]) result[plugin] = ref.plugins[plugin];
-      return result;
-    }, {} as Record<string, unknown>);
-    const defaultEmoji = this.hasRefThumbnail(ref, plugins) ? '' : this.defaultThumbnailEmoji(ref);
-    if (defaultEmoji) {
-      const thumbnail = this.thumbnailObject(plugins['plugin/thumbnail']) || {};
-      if (typeof thumbnail['emoji'] !== 'string') {
-        plugins['plugin/thumbnail'] = {
-          ...thumbnail,
-          emoji: defaultEmoji,
-        };
-      }
-    }
-    return Object.keys(plugins).length ? plugins : undefined;
   }
 
   private thumbnailPlugin(item: ClipboardItem) {
