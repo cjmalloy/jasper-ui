@@ -215,6 +215,7 @@ test.describe.serial('User Clipboard Plugin', () => {
 
     const bubble = page.locator('.clipboard-bubble').filter({ hasText: 'Clipboard paste text' });
     await expect(bubble).toBeVisible();
+    await expect(bubble).toHaveCSS('touch-action', 'none');
     await expect(bubble.locator('.clipboard-thumbnail')).toBeVisible();
     await expect(bubble.locator('.clipboard-thumbnail')).toHaveCSS('background-color', 'rgb(18, 52, 86)');
     await expect(bubble.locator('.clipboard-thumbnail-image')).toHaveCSS('background-image', /clipboard-thumbnail\.png/);
