@@ -1,3 +1,4 @@
+
 <div class="row">
   <div class="stack">
     <h2 class="link blog-title" [class.remote]="!local">
@@ -143,14 +144,13 @@
 <div class="summary-box" [class.hidden-without-removing]="!comments">
   <app-thread-summary query="plugin/comment:!plugin/delete"
                       [commentView]="true"
+                      [showLoadMore]="false"
                       [source]="ref.url"
                       [depth]="1"
                       [pageSize]="summaryItems"></app-thread-summary>
-  @if (moreComments) {
-    <a routerLink="./comments" queryParamsHandling="merge" class="load-more" i18n>
-      more comments
-    </a>
-  }
+  <a class="load-more" [routerLink]="['/ref', ref.url, 'comments']" [queryParams]="{ origin: nonLocalOrigin }" i18n>
+    more comments
+  </a>
 </div>
 <app-comment-reply [to]="ref"
                    [tags]="replyTags"

@@ -179,7 +179,7 @@
                         [context]="context + 1"
                         [newComments$]="newComments$"></app-comment-thread>
   </div>
-  @if (!collapsed && ((depth === 1 && comments) || moreComments)) {
+  @if (showLoadMore && !collapsed && ((depth === 1 && comments) || moreComments)) {
     @if (context < maxContext) {
       <span class="fake-link load-more no-select"
             (click)="loadMore()" i18n>
