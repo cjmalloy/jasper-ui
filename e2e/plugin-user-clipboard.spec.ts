@@ -30,7 +30,7 @@ async function apiRequest(page: Page, path: string) {
     const csrfCookie = document.cookie.split('; ').find(row => row.startsWith('XSRF-TOKEN='));
     return {
       api: new URL(configService.api, location.href).href.replace(/\/$/, ''),
-      csrfToken: csrfCookie?.substring('XSRF-TOKEN='.length) || '',
+      csrfToken: csrfCookie ? decodeURIComponent(csrfCookie.substring('XSRF-TOKEN='.length)) : '',
       token: configService.token as string,
     };
   });
