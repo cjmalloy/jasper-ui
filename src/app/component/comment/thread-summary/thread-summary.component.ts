@@ -7,7 +7,6 @@ import { Store } from '../../../store/store';
 import { getArgs } from '../../../util/query';
 import { RefComponent } from '../../ref/ref.component';
 import { CommentComponent } from '../comment.component';
-import { ThreadStore } from '../../../store/thread';
 
 @Component({
   selector: 'app-thread-summary',
