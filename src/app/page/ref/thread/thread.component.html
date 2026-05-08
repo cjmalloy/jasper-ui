@@ -10,8 +10,8 @@
     <app-loading></app-loading>
   }
   @if (store.view.ref) {
-    <app-comment-reply #reply [to]="to"
-                       quote=""
+    <app-comment-reply #reply
+                       [to]="to"
                        [tags]="replyTags"
                        (save)="newRefs$.next($event)"></app-comment-reply>
   }

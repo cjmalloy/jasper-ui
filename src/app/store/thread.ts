@@ -61,6 +61,7 @@ export class ThreadStore {
   }
 
   add(ref: Ref) {
+    if (!ref.sources?.[0]) return;
     if (this.cache.has(ref.sources?.[0])) {
       const arr = this.cache.get(ref.sources?.[0])!;
       if (!arr.find(x => x.url === ref.url)) arr.push(ref);

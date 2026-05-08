@@ -101,7 +101,7 @@
           @if (tags.length) {
             <span i18n> tagged
               @if (tagExts$ | async; as xs) {
-                @for (x of xs; track x.tag) {
+                @for (x of xs; track x) {
                   <a class="tag"
                      [routerLink]="['/tag', x.tag]"
                      [appTitle]="'#' + x.tag">{{ x.name || '#' + x.tag }}</a>
@@ -311,7 +311,8 @@
 </div>
 
 @if (replying) {
-  <app-comment-reply #reply [autofocus]="true"
+  <app-comment-reply #reply
+                     [autofocus]="true"
                      [to]="ref"
                      [showCancel]="true"
                      [selectResponseType]="!thread && !comment && !dm"

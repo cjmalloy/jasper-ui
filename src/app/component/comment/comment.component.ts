@@ -101,6 +101,8 @@ export class CommentComponent implements OnInit, AfterViewInit, OnChanges, OnDes
   depth?: number | null = 7;
   @Input()
   context = 0
+  @Input()
+  showLoadMore = true;
 
   commentEdited$ = new Subject<Ref>();
   newComments = 0;
