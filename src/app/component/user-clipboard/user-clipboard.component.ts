@@ -885,7 +885,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
         id: item.id,
         text: typeof item.text === 'string' ? item.text : undefined,
         html: typeof item.html === 'string' ? item.html : undefined,
-        ref: this.preserveRefOrigin(this.sanitiseRef(item.ref), localState.get(item.id)?.ref),
+        ref: this.preserveLocalRefMetadata(this.sanitiseRef(item.ref), localState.get(item.id)?.ref),
         created: typeof item.created === 'string' ? item.created : new Date().toISOString(),
         ...this.mergeItemState(item, localState.get(item.id), index, includeItemState),
       }));
@@ -905,12 +905,42 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     };
   }
 
-  private preserveRefOrigin(ref: ClipboardRef | undefined, local: ClipboardRef | undefined) {
+  private preserveLocalRefMetadata(ref: ClipboardRef | undefined, local: ClipboardRef | undefined) {
     if (!ref) return undefined;
+    if (!local || local.url !== ref.url) {
+      return {
+        ...ref,
+        origin: ref.origin ?? local?.origin,
+      };
+    }
+    const plugins = this.preserveThumbnailPlugins(ref.plugins, local.plugins);
+    const tags = this.preserveThumbnailTags(ref.tags, local.tags);
     return {
       ...ref,
       origin: ref.origin ?? local?.origin,
+      tags,
+      plugins,
     };
+  }
+
+  private preserveThumbnailPlugins(remote: Record<string, unknown> | undefined, local: Record<string, unknown> | undefined) {
+    let plugins = remote ? { ...remote } : undefined;
+    for (const tag of THUMBNAIL_PLUGIN_TAGS) {
+      if (plugins?.[tag] || !local?.[tag]) continue;
+      plugins = plugins || {};
+      plugins[tag] = local[tag];
+    }
+    return plugins;
+  }
+
+  private preserveThumbnailTags(remote: string[] | undefined, local: string[] | undefined) {
+    let tags = remote ? [...remote] : undefined;
+    for (const tag of THUMBNAIL_PLUGIN_TAGS) {
+      if (tags?.includes(tag) || !local?.includes(tag)) continue;
+      tags = tags || [];
+      tags.push(tag);
+    }
+    return tags;
   }
 
   private hasContent(item: any) {

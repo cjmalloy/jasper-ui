@@ -324,6 +324,44 @@ test.describe.serial('User Clipboard Plugin', () => {
     await expect.poll(() => page.evaluate(key => JSON.parse(localStorage.getItem(key) || '[]').length, CLIPBOARD_STORAGE_KEY)).toBe(0);
   });
 
+  test('keeps locally cached image thumbnail metadata after remote reload', async ({ page }) => {
+    await page.goto('/?debug=ADMIN', { waitUntil: 'networkidle' });
+    await clearClipboard(page);
+    const created = new Date().toISOString();
+    const remoteItem = {
+      id: 'e2e-clipboard-stale-image-thumbnail-item',
+      text: 'Clipboard stale image thumbnail',
+      ref: {
+        url: 'https://jasperkm.info/clipboard-stale-image-thumbnail-ref',
+        title: 'Clipboard stale image thumbnail',
+        tags: ['plugin/image'],
+      },
+      created,
+    };
+    await patchClipboardResponse(page, [remoteItem]);
+    await setLocalClipboardItems(page, [{
+      ...remoteItem,
+      ref: {
+        ...remoteItem.ref,
+        plugins: {
+          'plugin/image': {
+            url: TEST_IMAGE_THUMBNAIL_DATA_URL,
+          },
+        },
+      },
+      x: 12,
+      y: 72,
+    }]);
+
+    const imageBubble = page.locator('.clipboard-bubble').filter({ hasText: 'Clipboard stale image thumbnail' });
+    await expect(imageBubble).toBeVisible();
+    await expect.poll(() => page.evaluate(key => {
+      const items = JSON.parse(localStorage.getItem(key) || '[]') as { ref?: { plugins?: Record<string, { url?: string }> } }[];
+      return items[0]?.ref?.plugins?.['plugin/image']?.url;
+    }, CLIPBOARD_STORAGE_KEY)).toBe(TEST_IMAGE_THUMBNAIL_DATA_URL);
+    await expect(imageBubble.locator('.clipboard-thumbnail-image')).toHaveCSS('background-image', /data:image\/png/);
+  });
+
   test('clips refs and accepts dropped text', async ({ page }) => {
     const url = 'https://jasperkm.info/clipboard-e2e';
     await deleteRef(page, url);
