@@ -103,7 +103,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     this.loadRemote();
     this.disposers.push(autorun(() => {
       if (this.store.eventBus.event === 'clip' && this.store.eventBus.ref?.url) {
-        this.addRef(this.store.eventBus.ref);
+        this.addItem({ ref: this.store.eventBus.ref });
       }
     }));
     this.watch = this.stomp.watchResponse('tag:/plugin/user/clipboard').pipe(
@@ -393,10 +393,6 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
       },
     ];
     this.persist();
-  }
-
-  private addRef(ref: Ref) {
-    this.addItem({ ref });
   }
 
   private pasteInto(target: HTMLElement | null) {
@@ -975,8 +971,6 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     if (this.loading || this.savingRemote || !this.pendingRemotePersist) return;
     this.pendingRemotePersist = false;
     this.savingRemote = true;
-    // Remote writes are serialized by savingRemote; keep the in-flight request
-    // alive and let the pending flag schedule one save with the newest snapshot.
     const items = this.items.flatMap(item => {
       const remote = this.serializeRemote(item);
       return remote ? [remote] : [];
@@ -1002,28 +996,23 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
       created: item.created,
       ...(item.text ? { text: item.text } : {}),
       ...(item.html ? { html: item.html } : {}),
-      ...(item.ref ? { ref: this.serializeRemoteRef(item.ref) } : {}),
+      ...(item.ref ? { ref: this.serializeRef(item.ref) } : {}),
     };
   }
 
   private serializeLocal(item: ClipboardItem) {
     return {
-      ...(this.serializeRemote(item) ?? {
-        id: item.id,
-        created: item.created,
-      }),
-      ...(item.ref ? { ref: item.ref } : {}),
+      ...(this.serializeRemote(item)),
       x: item.x,
       y: item.y,
       ...(item.hold ? { hold: true } : {}),
     };
   }
 
-  // Remote plugin data must match refSchema, so omit cursor/local fields such
-  // as origin and modifiedString while keeping them in local storage.
-  private serializeRemoteRef(ref: Ref) {
+  private serializeRef(ref: Ref) {
     return {
       url: ref.url,
+      origin: ref.origin,
       ...(ref.title ? { title: ref.title } : {}),
       ...(ref.comment ? { comment: ref.comment } : {}),
       ...(ref.published ? { published: ref.published.toISO() } : {}),
@@ -1031,6 +1020,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
       ...(ref.sources ? { sources: ref.sources } : {}),
       ...(ref.alternateUrls ? { alternateUrls: ref.alternateUrls } : {}),
       ...(ref.plugins ? { plugins: ref.plugins } : {}),
+      ...(ref.metadata ? { metadata: ref.metadata } : {}),
     };
   }
 }

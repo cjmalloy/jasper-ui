@@ -1,7 +1,7 @@
 import { DateTime } from 'luxon';
 import { Plugin } from '../model/plugin';
 import { Mod } from '../model/tag';
-import { refSchema } from '../model/ref';
+import { refViewSchema } from '../model/ref';
 
 export const userClipboardPlugin: Plugin = {
   tag: 'plugin/user/clipboard',
@@ -41,7 +41,7 @@ export const userClipboardPlugin: Plugin = {
             text: { type: 'string' },
             html: { type: 'string' },
             image: { type: 'string' },
-            ref: refSchema,
+            ref: refViewSchema,
           },
         },
       },
