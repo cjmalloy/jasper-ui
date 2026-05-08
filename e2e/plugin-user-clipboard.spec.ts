@@ -91,6 +91,15 @@ async function patchClipboardResponse(page: Page, items: ClipboardFixtureItem[])
   expect(response.ok(), `${response.status()} ${await response.text()}`).toBe(true);
 }
 
+async function createRef(page: Page, ref: Record<string, unknown>) {
+  const request = await apiRequest(page, '/api/v1/ref');
+  const response = await page.request.post(request.url, {
+    headers: { ...request.headers, 'Content-Type': 'application/json' },
+    data: ref,
+  });
+  expect(response.ok(), `${response.status()} ${await response.text()}`).toBe(true);
+}
+
 async function clearLocalClipboard(page: Page) {
   await Promise.all([
     page.waitForEvent('framenavigated'),
@@ -324,42 +333,42 @@ test.describe.serial('User Clipboard Plugin', () => {
     await expect.poll(() => page.evaluate(key => JSON.parse(localStorage.getItem(key) || '[]').length, CLIPBOARD_STORAGE_KEY)).toBe(0);
   });
 
-  test('keeps locally cached image thumbnail metadata after remote reload', async ({ page }) => {
+  test('opens clipped image refs with thumbnails in another tab', async ({ page }) => {
+    const url = 'https://jasperkm.info/clipboard-second-tab-thumbnail-ref';
     await page.goto('/?debug=ADMIN', { waitUntil: 'networkidle' });
+    await deleteRef(page, url);
     await clearClipboard(page);
-    const created = new Date().toISOString();
-    const remoteItem = {
-      id: 'e2e-clipboard-stale-image-thumbnail-item',
-      text: 'Clipboard stale image thumbnail',
-      ref: {
-        url: 'https://jasperkm.info/clipboard-stale-image-thumbnail-ref',
-        title: 'Clipboard stale image thumbnail',
-        tags: ['plugin/image'],
-      },
-      created,
-    };
-    await patchClipboardResponse(page, [remoteItem]);
-    await setLocalClipboardItems(page, [{
-      ...remoteItem,
-      ref: {
-        ...remoteItem.ref,
-        plugins: {
-          'plugin/image': {
-            url: TEST_IMAGE_THUMBNAIL_DATA_URL,
-          },
+    await createRef(page, {
+      url,
+      title: 'Clipboard second tab thumbnail',
+      tags: ['plugin/image'],
+      plugins: {
+        'plugin/image': {
+          url: TEST_IMAGE_THUMBNAIL_DATA_URL,
         },
       },
-      x: 12,
-      y: 72,
-    }]);
+    });
+    await page.goto(`/ref/e/${encodeURIComponent(url)}?debug=ADMIN`, { waitUntil: 'networkidle' });
+    await page.locator('.full-page.ref .actions .fake-link', { hasText: 'clip' }).first().click();
+    const clipboardResponse = await apiRequest(page, '/api/v1/tags/response');
+    await expect.poll(async () => {
+      const ref = await page.request.get(clipboardResponse.url, {
+        params: {
+          url: 'tag:/plugin/user/clipboard',
+        },
+        headers: clipboardResponse.headers,
+      });
+      const json = await ref.json();
+      return json.plugins?.['plugin/user/clipboard']?.items?.[0]?.ref?.plugins?.['plugin/image']?.url;
+    }).toBe(TEST_IMAGE_THUMBNAIL_DATA_URL);
+    await page.evaluate(key => localStorage.removeItem(key), CLIPBOARD_STORAGE_KEY);
 
-    const imageBubble = page.locator('.clipboard-bubble').filter({ hasText: 'Clipboard stale image thumbnail' });
+    const secondTab = await page.context().newPage();
+    await secondTab.goto('/?debug=ADMIN', { waitUntil: 'networkidle' });
+    const imageBubble = secondTab.locator('.clipboard-bubble').filter({ hasText: 'Clipboard second tab thumbnail' });
     await expect(imageBubble).toBeVisible();
-    await expect.poll(() => page.evaluate(key => {
-      const items = JSON.parse(localStorage.getItem(key) || '[]') as { ref?: { plugins?: Record<string, { url?: string }> } }[];
-      return items[0]?.ref?.plugins?.['plugin/image']?.url;
-    }, CLIPBOARD_STORAGE_KEY)).toBe(TEST_IMAGE_THUMBNAIL_DATA_URL);
     await expect(imageBubble.locator('.clipboard-thumbnail-image')).toHaveCSS('background-image', /data:image\/png/);
+    await secondTab.close();
   });
 
   test('clips refs and accepts dropped text', async ({ page }) => {
