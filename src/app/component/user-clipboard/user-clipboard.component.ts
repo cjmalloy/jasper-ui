@@ -23,7 +23,7 @@ const BUBBLE_START_X = 12;
 const BUBBLE_START_Y = 72;
 const BUBBLE_SPACING = 56;
 const BUBBLE_COLUMN_SPACING = 288;
-const BUBBLE_WIDTH_OFFSET = 320;
+const BUBBLE_WIDTH_OFFSET = 64;
 const BUBBLE_HEIGHT_OFFSET = 48;
 const MAX_PREVIEW_LENGTH = 48;
 const PREVIEW_TRUNCATE_AT = 45;
@@ -351,7 +351,8 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     if (Math.abs(x - this.drag.startX) > 3 || Math.abs(y - this.drag.startY) > 3) this.drag.moved = true;
     this.drag.item.x = x;
     this.drag.item.y = y;
-    this.moveBubble(this.drag.element, x, y);
+    this.drag.element.style.left = `${x}px`;
+    this.drag.element.style.top = `${y}px`;
   }
 
   pointerUp(event: PointerEvent) {
@@ -520,11 +521,6 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     if (this.store.hotkey && target.closest('a.clipboard-preview')) return true;
     if (target.closest('.clipboard-preview')) return false;
     return !!target.closest('.clipboard-actions, .clipboard-hold, button, input, textarea, select, a, [contenteditable="true"], [role="button"], [role="link"]');
-  }
-
-  private moveBubble(element: HTMLElement, x: number, y: number) {
-    element.style.left = `${x}px`;
-    element.style.top = `${y}px`;
   }
 
   private bubblePosition(index: number) {

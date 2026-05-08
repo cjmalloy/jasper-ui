@@ -57,6 +57,7 @@
   cursor: grab;
   pointer-events: auto;
   user-select: none;
+  touch-action: none;
 }
 
 .clipboard-bubble.selected {
