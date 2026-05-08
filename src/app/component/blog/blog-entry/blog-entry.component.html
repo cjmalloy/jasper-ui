@@ -64,7 +64,7 @@
         <div class="actions">
           <a [routerLink]="['/ref', ref.url]" [queryParams]="{ origin: nonLocalOrigin }" (click)="saveRef()" i18n>permalink</a>
           @if (store.account.user) {
-            <a routerLink="/submit" [queryParams]="{source: ref.url}" i18n>reply</a>
+            <a class="fake-link" (click)="replying = !replying" i18n>reply</a>
           }
           @if (comments) {
             <a [routerLink]="['/ref', ref.url, 'comments']" [queryParams]="{ origin: nonLocalOrigin }" (click)="saveRef()" i18n>{comments, plural, =1 {1&thinsp;comment} other {{{ comments }}&thinsp;comments}}</a>
@@ -101,6 +101,14 @@
     </div>
   </div>
 </div>
+@if (replying) {
+  <app-comment-reply #reply
+                     [autofocus]="true"
+                     [to]="ref"
+                     [showCancel]="true"
+                     [tags]="replyTags"
+                     (save)="goToComments()"></app-comment-reply>
+}
 @if (editing) {
   <form class="form" [formGroup]="editForm" (ngSubmit)="save()">
 
@@ -145,7 +153,6 @@
   }
 </div>
 <app-comment-reply [to]="ref"
-                   quote=""
                    [tags]="replyTags"
                    (save)="goToComments()"></app-comment-reply>
 <hr>

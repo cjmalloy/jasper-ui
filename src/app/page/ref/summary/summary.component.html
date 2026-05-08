@@ -1,7 +1,7 @@
 <ng-container *mobxAutorun>
   @if (store.view.ref) {
-    <app-comment-reply #reply [to]="store.view.ref"
-                       quote=""
+    <app-comment-reply #reply
+                       [to]="store.view.ref"
                        [tags]="replyTags"
                        [selectResponseType]="!responseSet"
                        (save)="onReply($event)"></app-comment-reply>

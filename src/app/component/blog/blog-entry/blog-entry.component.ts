@@ -112,6 +112,7 @@ export class BlogEntryComponent implements OnChanges, OnDestroy, HasChanges {
   writeAccess = false;
   taggingAccess = false;
   deleteAccess = false;
+  replying = false;
   serverError: string[] = [];
 
   submitting?: Subscription;
