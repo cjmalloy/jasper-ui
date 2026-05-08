@@ -25,16 +25,21 @@ function hasRemoteClipboardContent(item: ClipboardFixtureItem) {
 }
 
 async function apiRequest(page: Page, path: string) {
-  const { api, token } = await page.evaluate(() => {
+  const { api, csrfToken, token } = await page.evaluate(() => {
     const configService = (window as any).configService;
+    const csrfCookie = document.cookie.split('; ').find(row => row.startsWith('XSRF-TOKEN='));
     return {
       api: new URL(configService.api, location.href).href.replace(/\/$/, ''),
+      csrfToken: csrfCookie?.substring('XSRF-TOKEN='.length) || '',
       token: configService.token as string,
     };
   });
+  const headers: Record<string, string> = {};
+  if (csrfToken) headers['X-XSRF-TOKEN'] = csrfToken;
+  if (token) headers.Authorization = `Bearer ${token}`;
   return {
     url: api + path,
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    headers,
   };
 }
 
