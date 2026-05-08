@@ -30,6 +30,24 @@ export const refSchema: Schema = {
   }
 };
 
+export const refViewSchema: Schema = {
+  optionalProperties: {
+    url: { type: 'string' },
+    origin: { type: 'string' },
+    tags: { elements: { type: 'string' } },
+    title: { type: 'string' },
+    comment: { type: 'string' },
+    sources: { elements: { type: 'string' } },
+    alternateUrls: { elements: { type: 'string' } },
+    plugins: {},
+    metadata: {},
+    published: { type: 'string' },
+    modified: { type: 'string' },
+    modifiedString: { type: 'string' },
+    created: { type: 'string' },
+  }
+};
+
 /**
  * Sent in response to websocket subscription.
  *
