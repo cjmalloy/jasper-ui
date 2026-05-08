@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
+import { Component, forwardRef, Input, OnChanges, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
 import { MobxAngularModule } from 'mobx-angular';
 import { Observable, Subject, takeUntil } from 'rxjs';
 import { Ref } from '../../../model/ref';
@@ -14,8 +14,8 @@ import { CommentComponent } from '../comment.component';
   styleUrls: ['./thread-summary.component.scss'],
   host: { 'class': 'thread-summary' },
   imports: [
-    CommentComponent,
-    RefComponent,
+    forwardRef(() => CommentComponent),
+    forwardRef(() => RefComponent),
     MobxAngularModule,
   ]
 })
@@ -37,7 +37,7 @@ export class ThreadSummaryComponent implements OnInit, OnChanges, OnDestroy {
   @Input()
   showLoadMore = true;
   @Input()
-  newRefs$!: Observable<Ref | undefined>;
+  newRefs$?: Observable<Ref | undefined>;
 
   newRefs: Ref[] = [];
   list: Ref[] = [];
@@ -48,7 +48,7 @@ export class ThreadSummaryComponent implements OnInit, OnChanges, OnDestroy {
   ) { }
 
   ngOnInit(): void {
-    this.newRefs$.pipe(
+    this.newRefs$?.pipe(
       takeUntil(this.destroy$),
     ).subscribe(comment => {
       if (comment) this.newRefs = [comment, ...this.newRefs];

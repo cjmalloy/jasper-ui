@@ -145,6 +145,12 @@ export class RefSummaryComponent implements OnInit, OnDestroy, HasChanges {
     return removeTag(getMailbox(this.store.account.tag, this.store.account.origin), uniq(tags));
   }
 
+  @memo
+  get nonLocalOrigin() {
+    if (this.store.view.ref?.origin === this.store.account.origin) return undefined;
+    return this.store.view.ref?.origin || '';
+  }
+
   get moreComments() {
     const topComments = this.thread.cache.get(this.top);
     if (!topComments) return false;

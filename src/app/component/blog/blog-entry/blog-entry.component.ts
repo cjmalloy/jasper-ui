@@ -13,7 +13,7 @@ import {
   ViewChildren
 } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { defer, groupBy, intersection, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { autorun, IReactionDisposer } from 'mobx';
@@ -52,7 +52,7 @@ import { scrollToFirstInvalid } from '../../../util/form';
 import { authors, clickableLink, formatAuthor, interestingTags } from '../../../util/format';
 import { getScheme, printError } from '../../../util/http';
 import { memo, MemoCache } from '../../../util/memo';
-import { hasTag, isAuthorTag, localTag, repost, tagOrigin } from '../../../util/tag';
+import { hasTag, isAuthorTag, localTag, removeTag, repost, tagOrigin, top } from '../../../util/tag';
 import { ActionListComponent } from '../../action/action-list/action-list.component';
 import { ActionComponent } from '../../action/action.component';
 import { ConfirmActionComponent } from '../../action/confirm-action/confirm-action.component';
@@ -60,6 +60,10 @@ import { InlineTagComponent } from '../../action/inline-tag/inline-tag.component
 import { LoadingComponent } from '../../loading/loading.component';
 import { NavComponent } from '../../nav/nav.component';
 import { ViewerComponent } from '../../viewer/viewer.component';
+import { CommentReplyComponent } from '../../comment/comment-reply/comment-reply.component';
+import { getMailbox, mailboxes } from '../../../mods/mailbox';
+import { ThreadSummaryComponent } from '../../comment/thread-summary/thread-summary.component';
+import { ThreadStore } from '../../../store/thread';
 
 @Component({
   selector: 'app-blog-entry',
@@ -68,6 +72,9 @@ import { ViewerComponent } from '../../viewer/viewer.component';
   host: { 'class': 'blog-entry' },
   imports: [
     forwardRef(() => ViewerComponent),
+    forwardRef(() => RefFormComponent),
+    forwardRef(() => CommentReplyComponent),
+    forwardRef(() => ThreadSummaryComponent),
     NavComponent,
     RouterLink,
     TitleDirective,
@@ -75,7 +82,6 @@ import { ViewerComponent } from '../../viewer/viewer.component';
     InlineTagComponent,
     ActionListComponent,
     ReactiveFormsModule,
-    forwardRef(() => RefFormComponent),
     LoadingComponent,
     AsyncPipe,
   ],
@@ -110,16 +116,20 @@ export class BlogEntryComponent implements OnChanges, OnDestroy, HasChanges {
 
   submitting?: Subscription;
 
+  summaryItems = 5;
+
   constructor(
     private config: ConfigService,
     public admin: AdminService,
     public store: Store,
+    public thread: ThreadStore,
     private auth: AuthzService,
     private editor: EditorService,
     private refs: RefService,
     private exts: ExtService,
     private bookmarks: BookmarkService,
     private ts: TaggingService,
+    private router: Router,
     private fb: UntypedFormBuilder,
   ) {
     this.editForm = refForm(fb);
@@ -341,6 +351,28 @@ export class BlogEntryComponent implements OnChanges, OnDestroy, HasChanges {
     return formatAuthor(user);
   }
 
+  @memo
+  get mailboxes() {
+    return mailboxes(this.ref, this.store.account.tag, this.store.origins.originMap);
+  }
+
+  @memo
+  get replyTags(): string[] {
+    const tags = [
+      'plugin/comment',
+      'internal',
+      ...this.admin.reply.filter(p => hasTag(p.tag, this.ref)).flatMap(p => p.config!.reply as string[]),
+      ...this.mailboxes,
+    ];
+    return removeTag(getMailbox(this.store.account.tag, this.store.account.origin), uniq(tags));
+  }
+
+  get moreComments() {
+    const topComments = this.thread.cache.get(top(this.ref));
+    if (!topComments) return false;
+    return topComments.length > this.summaryItems;
+  }
+
   saveRef() {
     this.store.view.preloadRef(this.ref, this.repostRef);
   }
@@ -458,5 +490,9 @@ export class BlogEntryComponent implements OnChanges, OnDestroy, HasChanges {
         return throwError(() => err);
       }),
     );
+  }
+
+  protected goToComments() {
+    this.router.navigate(['/ref', this.ref.url, 'comments'], { queryParams: { origin: this.nonLocalOrigin } });
   }
 }
