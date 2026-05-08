@@ -16,7 +16,7 @@
             <ng-container i18n>
               by
               @if (authorExts$ | async; as xs) {
-                @for (x of xs; track x.tag) {
+                @for (x of xs; track x) {
                   <a class="user tag"
                      [title]="formatAuthor(x.tag + x.origin)"
                      [routerLink]="['/tag', x.tag + x.origin]"
@@ -35,7 +35,7 @@
             <ng-container i18n>
               tagged
               @if (tagExts$ | async; as xs) {
-                @for (x of xs; track x.tag) {
+                @for (x of xs; track x) {
                   <a class="tag" [routerLink]="['/tag', x.tag]" [appTitle]="x.tag">{{ x.name || '#' + x.tag }}</a>
                 }
               } @else {
@@ -45,7 +45,7 @@
               }
             </ng-container>
           }
-          @for (icon of icons; track icon.tag) {
+          @for (icon of icons; track icon) {
             @if (showIcon(icon)) {
               <span class="icon"
                     [class.filter-toggle]="icon.tag"
