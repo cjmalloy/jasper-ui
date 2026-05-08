@@ -6,7 +6,7 @@ import { autorun, IReactionDisposer } from 'mobx';
 import { catchError, finalize, of, Subscription } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { Plugin } from '../../model/plugin';
-import { Ref, RefUpdates } from '../../model/ref';
+import { mapRef, Ref, RefUpdates, writeRef } from '../../model/ref';
 import { active, Icon, sortOrder, uniqueConfigs } from '../../model/tag';
 import { CssUrlPipe } from '../../pipe/css-url.pipe';
 import { ThumbnailPipe } from '../../pipe/thumbnail.pipe';
@@ -18,6 +18,7 @@ import { Store } from '../../store/store';
 import { getTitle } from '../../util/format';
 import { getScheme } from '../../util/http';
 import { EditorService } from '../../service/editor.service';
+import { DateTime } from 'luxon';
 
 const BUBBLE_START_X = 12;
 const BUBBLE_START_Y = 72;
@@ -27,7 +28,6 @@ const BUBBLE_WIDTH_OFFSET = 64;
 const BUBBLE_HEIGHT_OFFSET = 48;
 const MAX_PREVIEW_LENGTH = 48;
 const PREVIEW_TRUNCATE_AT = 45;
-const THUMBNAIL_PLUGIN_TAGS = ['plugin/thumbnail', 'plugin/image', 'plugin/video'];
 const SANITIZE_CONFIG = {
   ALLOWED_TAGS: ['a', 'b', 'blockquote', 'br', 'code', 'div', 'em', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'i', 'li', 'ol', 'p', 'pre', 's', 'span', 'strong', 'table', 'tbody', 'td', 'th', 'thead', 'tr', 'u', 'ul'],
   ALLOWED_ATTR: ['alt', 'href', 'title'],
@@ -39,7 +39,7 @@ interface ClipboardItem {
   created: string;
   text?: string;
   html?: string;
-  ref?: ClipboardRef;
+  ref?: Ref;
   x: number;
   y: number;
   selected?: boolean;
@@ -47,19 +47,6 @@ interface ClipboardItem {
 }
 
 type ClipboardItemContent = Omit<ClipboardItem, 'id' | 'created' | 'x' | 'y'>;
-
-interface ClipboardRef {
-  url: string;
-  origin?: string;
-  title?: string;
-  comment?: string;
-  published?: string;
-  modifiedString?: string;
-  tags?: string[];
-  sources?: string[];
-  alternateUrls?: string[];
-  plugins?: Record<string, unknown>;
-}
 
 interface DragState {
   item: ClipboardItem;
@@ -89,15 +76,12 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   private watch?: Subscription;
   private save?: Subscription;
   private drag?: DragState;
-  private draggedRef?: ClipboardRef;
+  private draggedRef?: Ref;
   private dropDragDepth = 0;
   private suppressedSelect?: ClipboardItem;
   private pendingRemotePersist = false;
   private savingRemote = false;
   private disposers: IReactionDisposer[] = [];
-  private thumbnailRefsCache = new WeakMap<ClipboardRef, ClipboardRef[]>();
-  private thumbnailRefCache = new WeakMap<ClipboardRef, Ref>();
-  private defaultThumbnailEmojiCache = new WeakMap<object, string>();
   private resizeClamp?: number;
   private loading = false;
   dropVisible = false;
@@ -172,12 +156,8 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
 
   thumbnailRefs(item: ClipboardItem) {
     if (!item.ref) return [];
-    let refs = this.thumbnailRefsCache.get(item.ref);
-    if (!refs) {
-      refs = [item.ref];
-      this.thumbnailRefsCache.set(item.ref, refs);
-    }
-    return refs;
+    // TODO: Bare reposts
+    return [item.ref];
   }
 
   thumbnailForce(item: ClipboardItem) {
@@ -203,7 +183,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   previewText(item: ClipboardItem) {
     if (this.isTagUrl(item.ref?.url)) return item.ref?.title || item.ref?.url?.substring('tag:/'.length) || '';
     if (item.text) return item.text;
-    if (item.ref) return getTitle(this.thumbnailRef(item.ref));
+    if (item.ref) return getTitle(item.ref);
     if (item.html) return $localize`HTML`;
     return '';
   }
@@ -407,7 +387,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
       ...this.items,
       {
         id: uuid(),
-        created: new Date().toISOString(),
+        created: DateTime.now().toISO(),
         ...position,
         ...item,
       },
@@ -416,9 +396,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   }
 
   private addRef(ref: Ref) {
-    this.addItem({
-      ref: this.clipboardRef(ref),
-    });
+    this.addItem({ ref });
   }
 
   private pasteInto(target: HTMLElement | null) {
@@ -700,7 +678,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     return container.innerHTML;
   }
 
-  private refFromTarget(target: EventTarget | null): ClipboardRef | undefined {
+  private refFromTarget(target: EventTarget | null): Ref | undefined {
     const element = target instanceof Element ? target : null;
     const refEl = element?.closest('.ref[data-ref-url]') as HTMLElement | null;
     const url = refEl?.dataset['refUrl'];
@@ -729,13 +707,13 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     return Object.keys(thumbnail).length ? thumbnail : undefined;
   }
 
-  private tagRefFromTarget(target: EventTarget | null): ClipboardRef | undefined {
+  private tagRefFromTarget(target: EventTarget | null): Ref | undefined {
     if (!(target instanceof Element)) return undefined;
     const tagLink = target.closest('a[href]') as HTMLAnchorElement | null;
     return this.tagRefFromUrl(tagLink?.href, tagLink?.textContent, tagLink?.title);
   }
 
-  private tagRefFromUrl(value?: string, ...titles: Array<string | null | undefined>): ClipboardRef | undefined {
+  private tagRefFromUrl(value?: string, ...titles: Array<string | null | undefined>): Ref | undefined {
     const url = this.normalizeDroppedUrl(value);
     if (!url || !this.isTagUrl(url)) return undefined;
     return {
@@ -744,7 +722,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     };
   }
 
-  private refFromDataTransfer(data: DataTransfer, html?: string, text?: string): ClipboardRef | undefined {
+  private refFromDataTransfer(data: DataTransfer, html?: string, text?: string): Ref | undefined {
     if (this.draggedRef) return this.draggedRef;
     const uri = data.getData('text/uri-list').split('\n').find(line => !!line && !line.startsWith('#'));
     const htmlRef = html ? this.refFromHtml(html) : undefined;
@@ -761,7 +739,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     return textIsUri ? undefined : text;
   }
 
-  private refFromHtml(html: string): ClipboardRef | undefined {
+  private refFromHtml(html: string): Ref | undefined {
     const template = document.createElement('template');
     template.innerHTML = DOMPurify.sanitize(html, SANITIZE_CONFIG);
     const link = template.content.querySelector('a[href]') as HTMLAnchorElement | null;
@@ -878,15 +856,12 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   private sanitise(items: any[], previous: ClipboardItem[] = [], includeItemState = true): ClipboardItem[] {
     const localState = new Map(previous.map(item => [item.id, item]));
     return items
-      .filter(item => typeof item?.id === 'string' && (
-        includeItemState ? this.hasContent(item) : this.hasRemoteContent(item)
-      ))
       .map((item, index) => ({
         id: item.id,
-        text: typeof item.text === 'string' ? item.text : undefined,
-        html: typeof item.html === 'string' ? item.html : undefined,
-        ref: this.preserveRefOrigin(this.sanitiseRef(item.ref), localState.get(item.id)?.ref),
-        created: typeof item.created === 'string' ? item.created : new Date().toISOString(),
+        text: item.text,
+        html: item.html,
+        ref: this.preserveRefOrigin(mapRef(item.ref), localState.get(item.id)?.ref),
+        created: item.created || DateTime.now().toISO(),
         ...this.mergeItemState(item, localState.get(item.id), index, includeItemState),
       }));
   }
@@ -905,55 +880,11 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     };
   }
 
-  private preserveRefOrigin(ref: ClipboardRef | undefined, local: ClipboardRef | undefined) {
+  private preserveRefOrigin(ref: Ref | undefined, local: Ref | undefined) {
     if (!ref) return undefined;
     return {
       ...ref,
       origin: ref.origin ?? local?.origin,
-    };
-  }
-
-  private hasContent(item: any) {
-    return typeof item?.text === 'string' ||
-      typeof item?.html === 'string' ||
-      typeof item?.image === 'string' ||
-      !!this.sanitiseRef(item?.ref);
-  }
-
-  private hasRemoteContent(item: any) {
-    return typeof item?.text === 'string' ||
-      typeof item?.html === 'string' ||
-      !!this.sanitiseRef(item?.ref);
-  }
-
-  private sanitiseRef(ref: any): ClipboardRef | undefined {
-    if (!ref || typeof ref.url !== 'string') return undefined;
-    return {
-      url: ref.url,
-      origin: typeof ref.origin === 'string' ? ref.origin : undefined,
-      title: typeof ref.title === 'string' ? ref.title : undefined,
-      comment: typeof ref.comment === 'string' ? ref.comment : undefined,
-      published: typeof ref.published === 'string' ? ref.published : undefined,
-      modifiedString: typeof ref.modifiedString === 'string' ? ref.modifiedString : undefined,
-      tags: this.sanitiseStringArray(ref.tags),
-      sources: this.sanitiseStringArray(ref.sources),
-      alternateUrls: this.sanitiseStringArray(ref.alternateUrls),
-      plugins: ref.plugins && typeof ref.plugins === 'object' && !Array.isArray(ref.plugins) ? ref.plugins : undefined,
-    };
-  }
-
-  private clipboardRef(ref: Ref): ClipboardRef {
-    return {
-      url: ref.url,
-      origin: ref.origin,
-      title: getTitle(ref) || undefined,
-      comment: ref.comment,
-      published: ref.published?.toUTC().toISO() || undefined,
-      modifiedString: ref.modifiedString,
-      tags: ref.tags,
-      sources: ref.sources,
-      alternateUrls: ref.alternateUrls,
-      plugins: ref.plugins,
     };
   }
 
@@ -963,7 +894,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   }
 
   private hasThumbnail(item: ClipboardItem) {
-    return this.thumbnailEnabled() && !!item.ref && this.hasRefThumbnail(this.thumbnailRef(item.ref), item.ref.plugins);
+    return this.thumbnailEnabled() && !!item.ref && this.hasRefThumbnail(item.ref, item.ref.plugins);
   }
 
   private hasRefThumbnail(ref: Ref, plugins = ref.plugins) {
@@ -987,7 +918,7 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   }
 
   private thumbnailDefaultEmoji(item: ClipboardItem) {
-    return this.thumbnailEnabled() && item.ref ? this.defaultThumbnailEmoji(this.thumbnailRef(item.ref)) : '';
+    return this.thumbnailEnabled() && item.ref ? this.defaultThumbnailEmoji(item.ref) : '';
   }
 
   private thumbnailEnabled() {
@@ -995,35 +926,13 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   }
 
   private defaultThumbnailEmoji(ref: Ref) {
-    if (this.defaultThumbnailEmojiCache.has(ref)) return this.defaultThumbnailEmojiCache.get(ref) || '';
     const icon = uniqueConfigs(sortOrder(this.admin.getIcons(ref.tags, ref.plugins, getScheme(ref.url))))
       .find(icon => this.isDefaultThumbnailIcon(icon) && active(ref, icon));
-    const emoji = icon?.label || icon?.thumbnail || '';
-    this.defaultThumbnailEmojiCache.set(ref, emoji);
-    return emoji;
+    return icon?.label || icon?.thumbnail || '';
   }
 
   private isDefaultThumbnailIcon(icon: Icon) {
     return !!icon.thumbnail || (!!icon.label && (icon.order || 0) >= 0);
-  }
-
-  private thumbnailRef(ref: ClipboardRef): Ref {
-    const cached = this.thumbnailRefCache.get(ref);
-    if (cached) return cached;
-    // Build only Ref-compatible fields; ClipboardRef date fields are serialized strings.
-    const thumbnailRef = {
-      url: ref.url,
-      origin: ref.origin,
-      title: ref.title,
-      comment: ref.comment,
-      modifiedString: ref.modifiedString,
-      tags: ref.tags,
-      sources: ref.sources,
-      alternateUrls: ref.alternateUrls,
-      plugins: ref.plugins,
-    };
-    this.thumbnailRefCache.set(ref, thumbnailRef);
-    return thumbnailRef;
   }
 
   private thumbnailString(item: ClipboardItem, key: 'color' | 'emoji') {
@@ -1039,12 +948,6 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     if (value === undefined || value === null || value === '') return undefined;
     const radius = Number(value);
     return Number.isFinite(radius) ? radius : undefined;
-  }
-
-  // Keep only string entries when loading optional Ref array fields.
-  private sanitiseStringArray(values: unknown) {
-    if (!Array.isArray(values)) return undefined;
-    return values.filter(value => typeof value === 'string');
   }
 
   private persist(remote = true) {
@@ -1094,14 +997,13 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   }
 
   private serializeRemote(item: ClipboardItem) {
-    const remote = {
+    return {
       id: item.id,
       created: item.created,
-      ...(item.text !== undefined ? { text: item.text } : {}),
-      ...(item.html !== undefined ? { html: item.html } : {}),
+      ...(item.text ? { text: item.text } : {}),
+      ...(item.html ? { html: item.html } : {}),
       ...(item.ref ? { ref: this.serializeRemoteRef(item.ref) } : {}),
     };
-    return this.hasRemoteContent(remote) ? remote : undefined;
   }
 
   private serializeLocal(item: ClipboardItem) {
@@ -1119,16 +1021,16 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
 
   // Remote plugin data must match refSchema, so omit cursor/local fields such
   // as origin and modifiedString while keeping them in local storage.
-  private serializeRemoteRef(ref: ClipboardRef) {
+  private serializeRemoteRef(ref: Ref) {
     return {
       url: ref.url,
-      ...(ref.title !== undefined ? { title: ref.title } : {}),
-      ...(ref.comment !== undefined ? { comment: ref.comment } : {}),
-      ...(ref.published !== undefined ? { published: ref.published } : {}),
-      ...(ref.tags !== undefined ? { tags: ref.tags } : {}),
-      ...(ref.sources !== undefined ? { sources: ref.sources } : {}),
-      ...(ref.alternateUrls !== undefined ? { alternateUrls: ref.alternateUrls } : {}),
-      ...(ref.plugins !== undefined ? { plugins: ref.plugins } : {}),
+      ...(ref.title ? { title: ref.title } : {}),
+      ...(ref.comment ? { comment: ref.comment } : {}),
+      ...(ref.published ? { published: ref.published.toISO() } : {}),
+      ...(ref.tags ? { tags: ref.tags } : {}),
+      ...(ref.sources ? { sources: ref.sources } : {}),
+      ...(ref.alternateUrls ? { alternateUrls: ref.alternateUrls } : {}),
+      ...(ref.plugins ? { plugins: ref.plugins } : {}),
     };
   }
 }
