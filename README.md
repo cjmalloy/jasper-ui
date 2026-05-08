@@ -55,12 +55,16 @@ Markdown editor with support for rendering both markdown and HTML.
   of the Ref if it exists, or attempt to show the content directly if it is an image, audio, video, and embeddable
   sites.
 * Links of the form `![](/tag/query)` will add results of a tag query inline.
+
+
 ### Tag Query Page
 * Perform any tag query while performing a full text search and multi-column sort
 * Displays title from tag Ext if present
 * Displays sidebar markdown from tag Ext if present
 * Displays pinned Refs from tag Ext if present
 * Adds Modmail button that sends a DM to `plugin/inbox/tag`
+
+
 ### Mods
 1. **Root Mod:**
    1. **Pinned links:** Display these links at the top of this tag's page.
@@ -71,8 +75,7 @@ Markdown editor with support for rendering both markdown and HTML.
 2. **User:** (matches `user/`) Store user generated data:
    1. Inbox: last notified time (for use with the inbox plugin)
    2. Subscriptions: List of tags to show on your home page
-   3. Themes: (optional) Override the theme for the entire site. Will cause custom tag themes
-   to be ignored.
+   3. Themes: (optional) Override the theme for the entire site. Will cause custom tag themes to be ignored.
 3. **Home Page:** Enables a home page where you can subscribe to various tags or queries and
 see them on a personalized dashboard.
 4. **Inbox:** Enables notifications when installed. You receive a notification when someone posts a
