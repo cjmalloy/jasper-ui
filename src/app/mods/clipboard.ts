@@ -28,6 +28,9 @@ export const userClipboardPlugin: Plugin = {
       },
     }],
   },
+  defaults: {
+    interceptCopy: true,
+  },
   schema: {
     optionalProperties: {
       interceptCopy: { type: 'boolean' },
