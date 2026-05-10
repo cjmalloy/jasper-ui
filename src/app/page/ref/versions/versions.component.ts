@@ -49,7 +49,7 @@ export class RefVersionsComponent implements OnInit, OnDestroy, HasChanges {
         this.store.view.pageSize,
       );
       args.url = this.store.view.url;
-      args.obsolete = this.store.view.ref?.metadata?.obsolete ? null : true;
+      args.obsolete = null;
       defer(() => this.query.setArgs(args));
     }));
     // TODO: set title for bare reposts

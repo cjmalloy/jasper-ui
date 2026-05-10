@@ -29,4 +29,41 @@ describe('RefVersionsComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it('should include current and obsolete refs in version results', () => {
+    const mod = { setTitle: vi.fn() };
+    const store = {
+      view: {
+        defaultSort: [],
+        sort: ['published'],
+        filter: [],
+        search: '',
+        pageNumber: 0,
+        pageSize: 24,
+        url: 'https://example.com/ref',
+        ref: {
+          url: 'https://example.com/ref',
+          origin: '@remote',
+        },
+      },
+    };
+    const query = {
+      clear: vi.fn(),
+      close: vi.fn(),
+      setArgs: vi.fn(),
+    };
+
+    vi.useFakeTimers();
+    const directComponent = new RefVersionsComponent(mod as any, {} as any, store as any, query as any);
+    directComponent.ngOnInit();
+    vi.runOnlyPendingTimers();
+
+    expect(query.setArgs).toHaveBeenCalledWith(expect.objectContaining({
+      url: 'https://example.com/ref',
+      obsolete: null,
+    }));
+
+    directComponent.ngOnDestroy();
+    vi.useRealTimers();
+  });
 });

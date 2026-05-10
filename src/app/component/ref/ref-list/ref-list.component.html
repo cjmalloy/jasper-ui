@@ -1,7 +1,7 @@
 <div class="list-container"
      [class.hide-numbers]="colStyle"
      [style.grid-template-columns]="colStyle">
-  @for (ref of pinned; track ref.origin + '@' + ref.url) {
+  @for (ref of pinned; track ref.origin + '@' + ref.url + '@' + ref.modifiedString) {
     <div class="list-number">&bullet;</div>
     <app-ref class="pinned ref-list-item"
              [ref]="ref"
@@ -14,7 +14,7 @@
              [expandInline]="expandInline"></app-ref>
   }
   @if (insertNewAtTop) {
-    @for (ref of newRefs; track ref.origin + '@' + ref.url) {
+    @for (ref of newRefs; track ref.origin + '@' + ref.url + '@' + ref.modifiedString) {
       <div class="list-number">&bullet;</div>
       <app-ref class="ref-list-item"
                [ref]="ref"
@@ -27,7 +27,7 @@
                [expandInline]="expandInline"></app-ref>
     }
   }
-  @for (ref of page?.content; track ref.origin + '@' + ref.url; let i = $index) {
+  @for (ref of page?.content; track ref.origin + '@' + ref.url + '@' + ref.modifiedString; let i = $index) {
     @if (!hide?.includes($any(ref.modified?.valueOf()) || 0)) {
       <div class="list-number">{{ getNumber(i) }}</div>
       <app-ref class="ref-list-item"
@@ -43,7 +43,7 @@
     }
   }
   @if (!insertNewAtTop) {
-    @for (ref of newRefs; track ref.origin + '@' + ref.url; let i = $index) {
+    @for (ref of newRefs; track ref.origin + '@' + ref.url + '@' + ref.modifiedString; let i = $index) {
       <div class="list-number">{{ getNumber(i + (page?.content?.length || 0)) }}</div>
       <app-ref class="ref-list-item"
                [ref]="ref"
