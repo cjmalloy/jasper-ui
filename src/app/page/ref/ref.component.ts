@@ -47,6 +47,7 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
 
   newResponses = 0;
   private url = '';
+  private origin?: string;
   private watchSelf?: Subscription;
   private watchUrl = '';
   private watchResponses?: Subscription;
@@ -68,13 +69,16 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
 
   ngOnInit(): void {
     this.url = this.store.view.url;
-    if (this.url) this.reload(this.url);
+    this.origin = this.store.view.origin;
+    if (this.url) this.reload(this.url, this.origin);
     this.disposers.push(autorun(() => {
       const url = this.store.view.url;
+      const origin = this.store.view.origin;
       if (!url) return;
-      if (url === this.url) return;
+      if (url === this.url && origin === this.origin) return;
       this.url = url;
-      this.reload(url);
+      this.origin = origin;
+      this.reload(url, origin);
     }));
   }
 
@@ -149,18 +153,22 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
     return this.store.view.ref?.alternateUrls?.length || 0;
   }
 
-  reload(url?: string) {
+  reload(url?: string, originParam?: string) {
     url ||= this.url || '';
     if (!url) {
       this.store.view.clear();
       return;
     }
+    const hasOrigin = originParam !== undefined;
+    const origin = originParam === '@' ? '' : originParam || '';
     this.newResponses = 0;
     this.refs.count({ url, obsolete: true }).subscribe(count => runInAction(() =>
       this.store.view.versions = count));
     const fetchTop = (ref: Ref) => hasTag('plugin/thread', ref) || hasTag('plugin/comment', ref);
-    (url === this.store.view.ref?.url
+    (url === this.store.view.ref?.url && (!hasOrigin || origin === (this.store.view.ref.origin || ''))
         ? of(this.store.view.ref)
+        : hasOrigin
+        ? this.refs.get(url, origin)
         : this.refs.getCurrent(url)
     ).pipe(
       catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),

@@ -568,7 +568,8 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   }
 
   get obsoleteOrigin() {
-    if (this.ref.metadata?.obsolete) return this.ref.origin;
+    const origin = this.ref.origin || '';
+    if (this.ref.metadata?.obsolete || origin !== (this.store.account.origin || '')) return origin || '@';
     return undefined;
   }
 
