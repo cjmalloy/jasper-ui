@@ -49,9 +49,14 @@ export class ActionListComponent implements AfterViewInit, OnChanges {
 
   @ViewChild('actionsMenu')
   actionsMenu!: TemplateRef<any>;
+  @ViewChild('multiActionsMenu')
+  multiActionsMenu!: TemplateRef<any>;
 
   hiddenActions = 0;
   overlayRef?: OverlayRef;
+  multiActionsLabel = '';
+  multiActions: Action[] = [];
+  rememberMultiAction = false;
 
   private overlayEvents?: Subscription;
   private overlayResizeObserver? = window.ResizeObserver && new ResizeObserver(() => this.overlayRef?.updatePosition()) || undefined;
@@ -83,6 +88,12 @@ export class ActionListComponent implements AfterViewInit, OnChanges {
   apply$ = (actions: Action[]) => () => {
     this.closeAdvanced();
     return this.acts.apply$(actions, this.ref, this.repostRef);
+  }
+
+  applySingle$ = (action: Action) => () => {
+    this.persistMultiSelection(action);
+    this.closeAdvanced();
+    return this.acts.apply$(action, this.ref, this.repostRef);
   }
 
   download() {
@@ -140,34 +151,48 @@ export class ActionListComponent implements AfterViewInit, OnChanges {
     return result;
   }
 
+  showMulti(actions: Action[]) {
+    return actions.length > 1 && actions.some(action => action.multi);
+  }
+
+  triggerActions(event: MouseEvent, label: string, actions: Action[]) {
+    const remembered = this.rememberedMultiAction(label, actions);
+    if (remembered) {
+      this.applySingle$(remembered)().subscribe(() => {});
+      return false;
+    }
+    if (this.showMulti(actions)) return this.showMultiActions(event, label, actions);
+    this.apply$(actions)().subscribe(() => {});
+    return false;
+  }
+
+  multiActionSource(action: Action) {
+    return action._parent?.config?.mod || action._parent?.name || action.title || action._parent?.tag || 'Action';
+  }
+
+  rememberedMultiAction(label: string, actions: Action[]) {
+    if (!this.showMulti(actions)) return undefined;
+    const remembered = this.storage?.getItem(this.multiActionStorageKey(label, actions));
+    if (!remembered) return undefined;
+    const action = actions.find(candidate => this.multiActionId(candidate) === remembered);
+    if (action) return action;
+    this.storage?.removeItem(this.multiActionStorageKey(label, actions));
+    return undefined;
+  }
+
   showAdvanced(event: MouseEvent) {
     this.closeAdvanced();
     defer(() => {
-      const positionStrategy = this.overlay.position()
-        .flexibleConnectedTo({x: event.x, y: event.y})
-        .withPositions([{
-          originX: 'center',
-          originY: 'center',
-          overlayX: 'start',
-          overlayY: 'top',
-        }]);
-      this.overlayRef = this.overlay.create({
-        positionStrategy,
-        scrollStrategy: this.overlay.scrollStrategies.close(),
-      });
-      this.overlayRef.attach(new TemplatePortal(this.actionsMenu, this.viewContainerRef));
-      this.overlayEvents = this.overlayRef.outsidePointerEvents().subscribe((event: MouseEvent) => {
-        switch (event.type) {
-          case 'click':
-          case 'pointerdown':
-          case 'touchstart':
-          case 'mousedown':
-          case 'contextmenu':
-            this.zone.run(() => this.closeAdvanced());
-        }
-      });
-      this.overlayResizeObserver?.observe(this.overlayRef.overlayElement);
+      this.openMenu(event, this.actionsMenu);
     });
+  }
+
+  showMultiActions(event: MouseEvent, label: string, actions: Action[]) {
+    this.multiActionsLabel = label;
+    this.multiActions = actions;
+    this.rememberMultiAction = false;
+    this.closeAdvanced();
+    defer(() => this.openMenu(event, this.multiActionsMenu));
   }
 
   closeAdvanced() {
@@ -177,5 +202,63 @@ export class ActionListComponent implements AfterViewInit, OnChanges {
     this.overlayRef = undefined;
     this.overlayEvents = undefined;
     return false;
+  }
+
+  private openMenu(event: MouseEvent, template: TemplateRef<any>) {
+    const positionStrategy = this.overlay.position()
+      .flexibleConnectedTo({ x: event.x, y: event.y })
+      .withPositions([{
+        originX: 'center',
+        originY: 'center',
+        overlayX: 'start',
+        overlayY: 'top',
+      }]);
+    this.overlayRef = this.overlay.create({
+      positionStrategy,
+      scrollStrategy: this.overlay.scrollStrategies.close(),
+    });
+    this.overlayRef.attach(new TemplatePortal(template, this.viewContainerRef));
+    this.overlayEvents = this.overlayRef.outsidePointerEvents().subscribe((outsideEvent: MouseEvent) => {
+      switch (outsideEvent.type) {
+        case 'click':
+        case 'pointerdown':
+        case 'touchstart':
+        case 'mousedown':
+        case 'contextmenu':
+          this.zone.run(() => this.closeAdvanced());
+      }
+    });
+    this.overlayResizeObserver?.observe(this.overlayRef.overlayElement);
+  }
+
+  private persistMultiSelection(action: Action) {
+    if (!this.multiActionsLabel || !this.multiActions.length) return;
+    const key = this.multiActionStorageKey(this.multiActionsLabel, this.multiActions);
+    if (this.rememberMultiAction) {
+      this.storage?.setItem(key, this.multiActionId(action));
+    } else {
+      this.storage?.removeItem(key);
+    }
+  }
+
+  private multiActionStorageKey(label: string, actions: Action[]) {
+    return `multi-action:${label}:${actions.map(action => this.multiActionId(action)).sort().join('|')}`;
+  }
+
+  private multiActionId(action: Action) {
+    return JSON.stringify({
+      parent: action._parent?.tag,
+      tag: 'tag' in action ? action.tag : undefined,
+      response: 'response' in action ? action.response : undefined,
+      event: 'event' in action ? action.event : undefined,
+      emit: 'emit' in action ? action.emit : undefined,
+      label: 'label' in action ? action.label : undefined,
+      labelOn: 'labelOn' in action ? action.labelOn : undefined,
+      labelOff: 'labelOff' in action ? action.labelOff : undefined,
+    });
+  }
+
+  private get storage() {
+    return typeof localStorage === 'undefined' ? undefined : localStorage;
   }
 }
