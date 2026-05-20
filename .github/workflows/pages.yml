@@ -13,6 +13,7 @@ on:
 permissions:
   contents: read
   pages: write
+  pull-requests: read
   id-token: write
 
 concurrency:
@@ -48,6 +49,28 @@ jobs:
         run: |
           mkdir -p "_site/reports"
           gh auth login --with-token <<< "${{ github.token }}"
+
+          dependabot_message="current"
+          dependabot_color="brightgreen"
+          if [ ! -f ".github/dependabot.yml" ]; then
+            dependabot_message="cannot run"
+            dependabot_color="red"
+          elif ! dependabot_pr_count=$(gh pr list --state open --author "dependabot[bot]" --json number --jq 'length' 2>/dev/null); then
+            dependabot_message="cannot run"
+            dependabot_color="red"
+          elif [ "$dependabot_pr_count" -gt 0 ]; then
+            dependabot_message="$dependabot_pr_count updates"
+            if [ "$dependabot_pr_count" -eq 1 ]; then
+              dependabot_message="1 update"
+            fi
+            dependabot_color="yellow"
+          fi
+          jq -n \
+            --arg label "dependabot" \
+            --arg message "$dependabot_message" \
+            --arg color "$dependabot_color" \
+            '{schemaVersion: 1, label: $label, message: $message, color: $color}' \
+            > _site/reports/dependabot-badge.json
 
           # Download only the latest 10 reports for each type to save space
           gh run list --workflow test.yml --branch master --limit 10 --json databaseId --jq '.[].databaseId' | while read run_id; do
