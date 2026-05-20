@@ -10,6 +10,9 @@ on:
     branches: [ '**' ]
   workflow_dispatch:
 
+env:
+  DEPENDABOT_RUN_LOOKBACK_DAYS: 7
+
 permissions:
   actions: read
   contents: read
@@ -53,7 +56,6 @@ jobs:
 
           dependabot_message="current"
           dependabot_color="brightgreen"
-          DEPENDABOT_RUN_LOOKBACK_DAYS="${DEPENDABOT_RUN_LOOKBACK_DAYS:-30}"
           # Limit failed run checks to recent history so one old failure does not keep the badge red forever.
           dependabot_runs_since=$(date -u -d "${DEPENDABOT_RUN_LOOKBACK_DAYS} days ago" +%Y-%m-%dT%H:%M:%SZ)
           if [ ! -f ".github/dependabot.yml" ]; then
