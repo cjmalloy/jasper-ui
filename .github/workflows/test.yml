@@ -108,15 +108,6 @@ jobs:
               return data.total || null;
             }
 
-            function coverageColor(percent) {
-              if (percent >= 70) return 'brightgreen';
-              if (percent >= 60) return 'green';
-              if (percent >= 50) return 'yellowgreen';
-              if (percent >= 40) return 'yellow';
-              if (percent >= 20) return 'orange';
-              return 'red';
-            }
-
             function formatPercent(value) {
               return Number(value ?? 0).toFixed(1);
             }
@@ -166,14 +157,6 @@ jobs:
                 summary += `Statements ${statementsPct}% | `;
                 summary += `Functions ${functionsPct}% | `;
                 summary += `Branches ${branchesPct}%\n\n`;
-
-                const badge = {
-                  schemaVersion: 1,
-                  label: 'coverage',
-                  message: `${linesPct}%`,
-                  color: coverageColor(Number(linesPct)),
-                };
-                fs.writeFileSync(path.join('report', 'coverage', 'badge.json'), JSON.stringify(badge, null, 2));
               } else {
                 summary += '⚠️ Coverage summary not found.\n\n';
               }

@@ -100,6 +100,28 @@ jobs:
               cp -r "$latest_vitest/coverage/." _site/reports/latest-coverage/
             fi
           fi
+          if [ -f "_site/reports/latest-coverage/coverage-summary.json" ]; then
+            lines_pct=$(jq -r '(.total.lines.pct // 0) | tonumber' _site/reports/latest-coverage/coverage-summary.json)
+            coverage_message=$(printf "%.1f%%" "$lines_pct")
+            coverage_color="red"
+            if (( $(awk "BEGIN { print ($lines_pct >= 70) }") )); then
+              coverage_color="brightgreen"
+            elif (( $(awk "BEGIN { print ($lines_pct >= 60) }") )); then
+              coverage_color="green"
+            elif (( $(awk "BEGIN { print ($lines_pct >= 50) }") )); then
+              coverage_color="yellowgreen"
+            elif (( $(awk "BEGIN { print ($lines_pct >= 40) }") )); then
+              coverage_color="yellow"
+            elif (( $(awk "BEGIN { print ($lines_pct >= 20) }") )); then
+              coverage_color="orange"
+            fi
+            jq -n \
+              --arg label "coverage" \
+              --arg message "$coverage_message" \
+              --arg color "$coverage_color" \
+              '{schemaVersion: 1, label: $label, message: $message, color: $color}' \
+              > _site/reports/latest-coverage/badge.json
+          fi
           latest_playwright_postgres=$(ls -dv _site/reports/playwright-reports-postgres-master-* 2>/dev/null | tail -1)
           echo "Creating latest Playwright (postgres) $latest_playwright_postgres"
           if [ -n "$latest_playwright_postgres" ] && [ -d "$latest_playwright_postgres" ]; then
