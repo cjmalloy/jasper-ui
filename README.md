@@ -4,6 +4,7 @@ Reference client for Jasper KM.
 [![Build & Test](https://github.com/cjmalloy/jasper-ui/actions/workflows/test.yml/badge.svg)](https://cjmalloy.github.io/jasper-ui/reports/latest-vitest)
 [![Coverage](https://img.shields.io/endpoint?url=https://cjmalloy.github.io/jasper-ui/reports/latest-coverage/badge.json)](https://cjmalloy.github.io/jasper-ui/reports/latest-coverage/)
 [![Playwright](https://github.com/cjmalloy/jasper-ui/actions/workflows/playwright.yml/badge.svg)](https://cjmalloy.github.io/jasper-ui/reports/latest-playwright)
+[![Dependabot](https://img.shields.io/endpoint?url=https://cjmalloy.github.io/jasper-ui/reports/dependabot-badge.json)](https://github.com/cjmalloy/jasper-ui/security/dependabot)
 [![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/jasper)](https://artifacthub.io/packages/helm/jasper/jasper-ui)
 
 Jasper-UI is the reference client for the
