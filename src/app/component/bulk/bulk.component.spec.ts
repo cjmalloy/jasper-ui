@@ -42,7 +42,7 @@ describe('BulkComponent', () => {
     expect(component.urls).toEqual(['checked']);
   });
 
-  it('runs batch actions only on checked refs', (done) => {
+  it('runs batch actions only on checked refs', () => {
     const checked = { url: 'checked', origin: 'origin' } as Ref;
     const unchecked = { url: 'unchecked', origin: 'origin' } as Ref;
     const urls: string[] = [];
@@ -53,9 +53,8 @@ describe('BulkComponent', () => {
     component.batch$<Ref>(ref => {
       urls.push(ref.url);
       return of(null);
-    }).subscribe(() => {
-      expect(urls).toEqual(['checked']);
-      done();
-    });
+    }).subscribe();
+
+    expect(urls).toEqual(['checked']);
   });
 });
