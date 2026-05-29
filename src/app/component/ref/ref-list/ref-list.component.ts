@@ -9,6 +9,7 @@ import { Ref } from '../../../model/ref';
 import { score } from '../../../mods/vote';
 import { AccountService } from '../../../service/account.service';
 import { RefService } from '../../../service/api/ref.service';
+import { QueryStore } from '../../../store/query';
 import { Store } from '../../../store/store';
 import { LoadingComponent } from '../../loading/loading.component';
 import { PageControlsComponent } from '../../page-controls/page-controls.component';
@@ -70,6 +71,7 @@ export class RefListComponent implements OnInit, OnDestroy, HasChanges {
     private accounts: AccountService,
     private router: Router,
     private store: Store,
+    public query: QueryStore,
     private refs: RefService,
   ) { }
 

@@ -39,7 +39,10 @@
                [showAlarm]="showAlarm"
                [showToggle]="showToggle"
                [expanded]="expanded"
-               [expandInline]="expandInline"></app-ref>
+               [expandInline]="expandInline"
+               [selectable]="query.bulkToolsOpen"
+               [selected]="query.isBulkSelected(ref)"
+               (selectedChange)="query.setBulkSelected(ref, $event)"></app-ref>
     }
   }
   @if (!insertNewAtTop) {
