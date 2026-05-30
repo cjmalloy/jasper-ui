@@ -4,7 +4,7 @@
   @for (ref of pinned; track ref.origin + '@' + ref.url) {
     <div class="list-number">&bullet;</div>
     @if (query.bulkToolsOpen) {
-     <div class="bulk-select-cell"></div>
+      <div class="bulk-select-cell"></div>
     }
     <app-ref class="pinned ref-list-item"
              [ref]="ref"
