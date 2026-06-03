@@ -21,7 +21,7 @@
       @if (store.view.isVoteSorted && admin.getPlugin('plugin/user/vote/up')) {
         <span class="vote-score" i18n>{{ score }} points&nbsp;</span>
       }
-      <span [title]="$safeNavigationMigration(ref.created?.toISO())">{{ ref.created?.toRelative() }}</span>
+      <span [title]="ref.created?.toISO()">{{ ref.created?.toRelative() }}</span>
       @if (!modifiedIsSubmitted) {
         <span [title]="ref.modified!.toRelative()">* </span>
       }
@@ -79,7 +79,7 @@
           @if (admin.getPlugin('plugin/user/vote/up')) {
             <span class="vote-score" i18n>{{ score }} points&nbsp;</span>
           }
-          <span [title]="$safeNavigationMigration(ref.created?.toISO())">{{ ref.created?.toRelative() }}</span>
+          <span [title]="ref.created?.toISO()">{{ ref.created?.toRelative() }}</span>
           @if (!modifiedIsSubmitted) {
             <span [title]="'last edited ' + ref.modified!.toRelative()">* </span>
           }

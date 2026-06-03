@@ -8,7 +8,7 @@
 </div>
 <div class="stack">
   <div class="info">
-    <span [title]="$safeNavigationMigration(plugin.modified?.toISO())" i18n>modified {{ plugin.modified?.toRelative() }}</span>
+    <span [title]="plugin.modified?.toISO()" i18n>modified {{ plugin.modified?.toRelative() }}</span>
     @if (!local) {
       &nbsp;<span i18n>on</span>&nbsp;<a [routerLink]="['/tag', plugin.origin]">{{ plugin.origin }}</a>
     }

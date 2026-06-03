@@ -74,7 +74,7 @@
                (pointerup)="toggleBadge(x.tag, $event)">
             <input [id]="x.tag"
                    type="checkbox"
-                   [checked]="$safeNavigationMigration(ref.tags?.includes(x.tag))">
+                   [checked]="ref.tags?.includes(x.tag)">
             <label [for]="x.tag"
                    [title]="x.name && x.tag" i18n>{{ x.name || x.tag }}</label>
           </div>
@@ -86,7 +86,7 @@
                (pointerup)="toggleBadge(b, $event)">
             <input [id]="b"
                    type="checkbox"
-                   [checked]="$safeNavigationMigration(ref.tags?.includes(b))">
+                   [checked]="ref.tags?.includes(b)">
             <label [for]="b" i18n>{{ b }}</label>
           </div>
         }

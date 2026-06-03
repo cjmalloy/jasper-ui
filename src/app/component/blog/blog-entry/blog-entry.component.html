@@ -55,7 +55,7 @@
                     [ref]="ref">{{ icon.label }}</span>
             }
           }
-          <span [title]="$safeNavigationMigration(ref.published?.toISO())">{{ ref.published?.toRelative() }}</span>
+          <span [title]="ref.published?.toISO()">{{ ref.published?.toRelative() }}</span>
           @if (!authors.length && ref.created && !local) {
             <ng-container i18n>
               on <a class="origin tag" [routerLink]="['/tag', ref.origin]">{{ ref.origin }}</a>

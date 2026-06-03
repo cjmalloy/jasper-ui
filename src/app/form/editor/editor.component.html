@@ -121,8 +121,8 @@
               [class.dropping]="dropping"
               (dragenter)="dropping = true"
               (dragleave)="dragLeave(editor, $any($event.target))"
-              (drop)="drop($event, $safeNavigationMigration($event.dataTransfer?.items))"
-              (paste)="drop($event, $safeNavigationMigration($event.clipboardData?.items))"
+              (drop)="drop($event, $event.dataTransfer?.items)"
+              (paste)="drop($event, $event.clipboardData?.items)"
               [appFillWidth]="fillWidth"
               [padding]="padding"
               [appAutofocus]="autoFocus"></textarea>

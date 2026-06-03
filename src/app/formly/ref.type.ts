@@ -36,8 +36,8 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
                [title]="input.value"
                [style.display]="preview ? 'block' : 'none'"
                (focus)="clickPreview(input)"
-               (drop)="upload($event, $safeNavigationMigration($event.dataTransfer?.items))"
-               (paste)="upload($event, $safeNavigationMigration($event.clipboardData?.items))">
+               (drop)="upload($event, $event.dataTransfer?.items)"
+               (paste)="upload($event, $event.clipboardData?.items)">
         <datalist [id]="listId">
           @for (o of autocomplete; track o.value) {
             <option [value]="o.value">{{ o.label }}</option>
@@ -53,8 +53,8 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
                (focusin)="edit(input)"
                (focus)="edit(input)"
                (focusout)="getPreview(input.value)"
-               (drop)="upload($event, $safeNavigationMigration($event.dataTransfer?.items))"
-               (paste)="upload($event, $safeNavigationMigration($event.clipboardData?.items))"
+               (drop)="upload($event, $event.dataTransfer?.items)"
+               (paste)="upload($event, $event.clipboardData?.items)"
                [formControl]="formControl"
                [formlyAttributes]="field"
                [class.is-invalid]="showError">

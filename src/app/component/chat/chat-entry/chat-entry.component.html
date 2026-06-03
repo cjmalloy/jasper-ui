@@ -18,7 +18,7 @@
            [routerLink]="['/tag', t]">{{ formatAuthor(t) }}</a>
       }
     }
-    <span class="timestamp" [title]="$safeNavigationMigration(ref.modified?.toISO())">{{ ref.modified?.toRelative() }}</span>
+    <span class="timestamp" [title]="ref.modified?.toISO()">{{ ref.modified?.toRelative() }}</span>
     &nbsp;|&nbsp;
   </span>
 } @else if (loading) {

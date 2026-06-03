@@ -53,8 +53,8 @@
     <div class="image-expand"
          [appImage]="imageUrl"
          [ref]="ref"
-         [defaultWidth]="$safeNavigationMigration(ref?.plugins?.['plugin/image']?.width)"
-         [defaultHeight]="$safeNavigationMigration(ref?.plugins?.['plugin/image']?.height)"
+         [defaultWidth]="ref?.plugins?.['plugin/image']?.width"
+         [defaultHeight]="ref?.plugins?.['plugin/image']?.height"
          [grid]="disableResize"
          [appResize]="!disableResize"></div>
   }

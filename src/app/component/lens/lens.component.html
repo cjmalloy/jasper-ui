@@ -37,7 +37,7 @@
   }
 } @else if (isTemplate('notes')) {
   <app-notebook #lens
-                [class]="cssClass($safeNavigationMigration(ext?.tag))"
+                [class]="cssClass(ext?.tag)"
                 [ext]="ext"
                 [page]="page"
                 [pageControls]="pageControls"
@@ -80,7 +80,7 @@
 } @else {
   <app-ref-list #lens
                 class="expand"
-                [class]="cssClass($safeNavigationMigration(ext?.tag))"
+                [class]="cssClass(ext?.tag)"
                 [ext]="ext"
                 [page]="page"
                 [pageControls]="pageControls"

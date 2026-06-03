@@ -1,6 +1,6 @@
 <div class="todo-list-container"
      cdkDropList
-     [cdkDropListData]="$safeNavigationMigration(ref?.url)"
+     [cdkDropListData]="ref?.url"
      (cdkDropListDropped)="drop($any($event))">
   @for (line of lines; let i = $index; track line) {
     <app-todo-item cdkDrag
