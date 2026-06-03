@@ -1,5 +1,5 @@
 /// <reference types="vitest/globals" />
-import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
@@ -10,7 +10,7 @@ describe('CsrfInterceptor', () => {
   beforeEach(async () => await TestBed.configureTestingModule({
     providers: [
       AuthInterceptor,
-      provideHttpClient(withInterceptorsFromDi()),
+      provideHttpClient(withXhr(), withInterceptorsFromDi()),
       provideHttpClientTesting(),
       provideRouter([]),
     ],

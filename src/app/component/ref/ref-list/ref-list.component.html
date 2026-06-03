@@ -7,8 +7,8 @@
              [ref]="ref"
              [scrollToLatest]="true"
              [plugins]="plugins"
-             [hideEdit]="ext?.config?.hideEdit"
-             [disableResize]="ext?.config?.disableResize"
+             [hideEdit]="$safeNavigationMigration(ext?.config?.hideEdit)"
+             [disableResize]="$safeNavigationMigration(ext?.config?.disableResize)"
              [showToggle]="showToggle"
              [expanded]="expanded"
              [expandInline]="expandInline"></app-ref>
@@ -20,22 +20,22 @@
                [ref]="ref"
                [scrollToLatest]="true"
                [plugins]="plugins"
-               [hideEdit]="ext?.config?.hideEdit"
-               [disableResize]="ext?.config?.disableResize"
+               [hideEdit]="$safeNavigationMigration(ext?.config?.hideEdit)"
+               [disableResize]="$safeNavigationMigration(ext?.config?.disableResize)"
                [showToggle]="showToggle"
                [expanded]="expanded"
                [expandInline]="expandInline"></app-ref>
     }
   }
   @for (ref of page?.content; track ref.origin + '@' + ref.url; let i = $index) {
-    @if (!hide?.includes($any(ref.modified?.valueOf()) || 0)) {
+    @if (!hide?.includes($any($safeNavigationMigration(ref.modified?.valueOf())) || 0)) {
       <div class="list-number">{{ getNumber(i) }}</div>
       <app-ref class="ref-list-item"
                [ref]="ref"
                [scrollToLatest]="true"
                [plugins]="plugins"
-               [hideEdit]="ext?.config?.hideEdit"
-               [disableResize]="ext?.config?.disableResize"
+               [hideEdit]="$safeNavigationMigration(ext?.config?.hideEdit)"
+               [disableResize]="$safeNavigationMigration(ext?.config?.disableResize)"
                [showAlarm]="showAlarm"
                [showToggle]="showToggle"
                [expanded]="expanded"
@@ -49,8 +49,8 @@
                [ref]="ref"
                [scrollToLatest]="true"
                [plugins]="plugins"
-               [hideEdit]="ext?.config?.hideEdit"
-               [disableResize]="ext?.config?.disableResize"
+               [hideEdit]="$safeNavigationMigration(ext?.config?.hideEdit)"
+               [disableResize]="$safeNavigationMigration(ext?.config?.disableResize)"
                [showToggle]="showToggle"
                [expanded]="expanded"
                [expandInline]="expandInline"></app-ref>

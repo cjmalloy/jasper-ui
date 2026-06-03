@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, OnDestroy, SimpleChanges, ViewEncapsulation } from '@angular/core';
+import { Component, Input, OnChanges, OnDestroy, SimpleChanges, ViewEncapsulation, ChangeDetectionStrategy } from '@angular/core';
 import { Router } from '@angular/router';
 import {
   ControlComponent,
@@ -33,6 +33,7 @@ type MapEntry = [ref: Ref, bareRepost?: Ref];
   styleUrls: ['./map.component.scss'],
   encapsulation: ViewEncapsulation.None,
   host: { 'class': 'map ext' },
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     MglComponent,
     ControlComponent,

@@ -1,8 +1,9 @@
-import { Component, HostBinding } from '@angular/core';
+import { Component, HostBinding, ChangeDetectionStrategy } from '@angular/core';
 import { FieldWrapper, FormlyFieldConfig } from '@ngx-formly/core';
 
 @Component({
   selector: 'formly-wrapper-form-field',
+  changeDetection: ChangeDetectionStrategy.Eager,
   template: `
     <div>
       <!-- Label -->

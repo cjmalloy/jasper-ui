@@ -16,7 +16,8 @@ import {
   SimpleChanges,
   TemplateRef,
   ViewChild,
-  ViewContainerRef
+  ViewContainerRef,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, UntypedFormArray, UntypedFormControl } from '@angular/forms';
 import { NavigationEnd, Router } from '@angular/router';
@@ -59,6 +60,7 @@ export interface EditorUpload {
   templateUrl: './editor.component.html',
   styleUrls: ['./editor.component.scss'],
   host: { 'class': 'editor' },
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     forwardRef(() => MdComponent),
     LoadingComponent,

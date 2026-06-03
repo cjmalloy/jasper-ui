@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, HostBinding, HostListener, isDevMode, ViewContainerRef } from '@angular/core';
+import { AfterViewInit, Component, HostBinding, HostListener, isDevMode, ViewContainerRef, ChangeDetectionStrategy } from '@angular/core';
 import { Router, RouterOutlet } from '@angular/router';
 import { autorun, runInAction } from 'mobx';
 import { MobxAngularModule } from 'mobx-angular';
@@ -22,6 +22,7 @@ import { userClipboardPlugin } from './mods/clipboard';
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     MobxAngularModule,
     LoginPopupComponent,

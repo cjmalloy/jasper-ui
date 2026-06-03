@@ -11,7 +11,8 @@ import {
   OnDestroy,
   OnInit,
   Output,
-  SimpleChanges
+  SimpleChanges,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import { cloneDeep, defer, delay, filter, range, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
@@ -510,6 +511,7 @@ function loadMove(state: GameState, p: Piece, from: number, to: number) {
   styleUrls: ['./backgammon.component.scss'],
   hostDirectives: [CdkDropListGroup],
   host: { 'class': 'backgammon-board' },
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [CdkDropList, CdkDrag]
 })
 export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, OnDestroy {

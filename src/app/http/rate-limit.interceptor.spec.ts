@@ -1,5 +1,5 @@
 /// <reference types="vitest/globals" />
-import { HTTP_INTERCEPTORS, HttpClient, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { HTTP_INTERCEPTORS, HttpClient, provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { RateLimitInterceptor } from './rate-limit.interceptor';
@@ -13,7 +13,7 @@ describe('RateLimitInterceptor', () => {
       imports: [],
       providers: [
         RateLimitInterceptor,
-        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClient(withXhr(), withInterceptorsFromDi()),
         provideHttpClientTesting(),
         { provide: HTTP_INTERCEPTORS, useClass: RateLimitInterceptor, multi: true },
       ]

@@ -1,4 +1,4 @@
-import { Component, OnDestroy } from '@angular/core';
+import { Component, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { NavigationEnd, Router } from '@angular/router';
 import { debounce } from 'lodash-es';
@@ -14,6 +14,7 @@ import { View } from '../../store/view';
   templateUrl: './search.component.html',
   styleUrls: ['./search.component.scss'],
   host: { 'class': 'search form-group' },
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [MobxAngularModule, ReactiveFormsModule]
 })
 export class SearchComponent implements OnDestroy {

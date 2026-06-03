@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnDestroy, ViewChild } from '@angular/core';
+import { Component, OnDestroy, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import {
   ReactiveFormsModule,
   UntypedFormBuilder,
@@ -37,6 +37,7 @@ import { getVisibilityTags, prefix } from '../../../util/tag';
   templateUrl: './invoice.component.html',
   styleUrls: ['./invoice.component.scss'],
   host: { 'class': 'full-page-form' },
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     EditorComponent,
     ReactiveFormsModule,

@@ -10,7 +10,8 @@ import {
   OnChanges,
   Output,
   SimpleChanges,
-  ViewChild
+  ViewChild,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import {
   ReactiveFormsModule,
@@ -49,6 +50,7 @@ import { TagsFormComponent } from '../tags/tags.component';
   templateUrl: './ref.component.html',
   styleUrls: ['./ref.component.scss'],
   host: { 'class': 'nested-form' },
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     forwardRef(() => EditorComponent),
     CdkDropListGroup,

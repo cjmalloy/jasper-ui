@@ -16,7 +16,7 @@
 </div>
 <div class="stack">
   <div class="info">
-    <span [title]="template.modified?.toISO()" i18n>modified {{ template.modified?.toRelative() }}</span>
+    <span [title]="$safeNavigationMigration(template.modified?.toISO())" i18n>modified {{ template.modified?.toRelative() }}</span>
     @if (!local) {
       &nbsp;<span i18n>on</span>&nbsp;<a [routerLink]="['/tag', template.origin]">{{ template.origin }}</a>
     }

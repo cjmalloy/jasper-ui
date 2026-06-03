@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { AfterViewInit, Component, forwardRef, OnDestroy, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, forwardRef, OnDestroy, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
 import { defer, uniq, without } from 'lodash-es';
@@ -49,6 +49,7 @@ import { getVisibilityTags } from '../../../util/tag';
   templateUrl: './web.component.html',
   styleUrls: ['./web.component.scss'],
   host: { 'class': 'full-page-form' },
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     MobxAngularModule,
     ReactiveFormsModule,

@@ -9,7 +9,8 @@ import {
   OnDestroy,
   QueryList,
   SimpleChanges,
-  ViewChildren
+  ViewChildren,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { defer, uniq } from 'lodash-es';
@@ -42,6 +43,7 @@ import { ViewerComponent } from '../../viewer/viewer.component';
   templateUrl: './chat-entry.component.html',
   styleUrls: ['./chat-entry.component.scss'],
   host: { 'class': 'chat-entry' },
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     forwardRef(() => ViewerComponent),
     forwardRef(() => MdComponent),

@@ -10,7 +10,8 @@ import {
   QueryList,
   SimpleChanges,
   ViewChild,
-  ViewChildren
+  ViewChildren,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -69,6 +70,7 @@ import { ThreadSummaryComponent } from '../../comment/thread-summary/thread-summ
   templateUrl: './blog-entry.component.html',
   styleUrls: ['./blog-entry.component.scss'],
   host: { 'class': 'blog-entry' },
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     forwardRef(() => ViewerComponent),
     forwardRef(() => RefFormComponent),

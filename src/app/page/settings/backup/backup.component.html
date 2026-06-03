@@ -48,7 +48,7 @@
   <input #uploadFile
          type="file"
          class="upload"
-         (change)="upload(uploadFile?.files!)">
+         (change)="upload($safeNavigationMigration(uploadFile?.files)!)">
 
   @if (store.account.mod) {
     <button type="button"

@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { defer } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import { MobxAngularModule } from 'mobx-angular';
@@ -15,6 +15,7 @@ import { getArgs } from '../../../util/query';
   templateUrl: './alarms.component.html',
   styleUrls: ['./alarms.component.scss'],
   host: { 'class': 'alarms' },
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [MobxAngularModule, RefListComponent]
 })
 export class InboxAlarmsPage implements OnInit, OnDestroy, HasChanges {

@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ModService } from '../../../service/mod.service';
 import { Store } from '../../../store/store';
@@ -7,6 +7,7 @@ import { Store } from '../../../store/store';
   selector: 'app-settings-local-page',
   templateUrl: './local.component.html',
   styleUrls: ['./local.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [RouterLink],
 })
 export class SettingsLocalPage {

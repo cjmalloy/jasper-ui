@@ -6,7 +6,7 @@
   </div>
 
   <form class="form" [formGroup]="profileForm" (ngSubmit)="save()"
-        [appLimitWidth]="form?.fill?.nativeElement" [limitSibling]="true">
+        [appLimitWidth]="$safeNavigationMigration(form?.fill?.nativeElement)" [limitSibling]="true">
 
     <app-user-form #form
                    [group]="user"
