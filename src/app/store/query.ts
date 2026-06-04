@@ -17,6 +17,8 @@ export class QueryStore {
   responseOf?: Ref = {} as any;
   page?: Page<Ref> = {} as any;
   error?: HttpErrorResponse = {} as any;
+  bulkToolsOpen = false;
+  bulkDeselectedRefKeys = new Set<string>();
 
   private running?: Subscription;
   private runningSources?: Subscription;
@@ -39,9 +41,39 @@ export class QueryStore {
     this.error = undefined;
     this.sourcesOf = undefined;
     this.responseOf = undefined;
+    this.setBulkToolsOpen(false);
     this.running?.unsubscribe();
     this.runningSources?.unsubscribe();
     this.runningResponses?.unsubscribe();
+  }
+
+  bulkRefKey(ref: Ref) {
+    return `${ref.origin || ''}@${ref.url}`;
+  }
+
+  setBulkToolsOpen(open: boolean) {
+    this.bulkToolsOpen = open;
+    this.bulkDeselectedRefKeys = new Set<string>();
+  }
+
+  setBulkSelected(ref: Ref, selected: boolean) {
+    const keys = new Set(this.bulkDeselectedRefKeys);
+    if (selected) {
+      keys.delete(this.bulkRefKey(ref));
+    } else {
+      keys.add(this.bulkRefKey(ref));
+    }
+    this.bulkDeselectedRefKeys = keys;
+  }
+
+  isBulkSelected(ref: Ref) {
+    return !this.bulkDeselectedRefKeys.has(this.bulkRefKey(ref));
+  }
+
+  get bulkSelectedContent() {
+    if (!this.page?.content) return [];
+    if (!this.bulkToolsOpen) return this.page.content;
+    return this.page.content.filter(ref => this.isBulkSelected(ref));
   }
 
   close() {

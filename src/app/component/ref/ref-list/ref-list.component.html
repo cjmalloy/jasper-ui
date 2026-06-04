@@ -1,8 +1,11 @@
 <div class="list-container"
      [class.hide-numbers]="colStyle"
-     [style.grid-template-columns]="colStyle">
+     [style.grid-template-columns]="gridTemplateColumns">
   @for (ref of pinned; track ref.origin + '@' + ref.url) {
     <div class="list-number">&bullet;</div>
+    @if (query.bulkToolsOpen) {
+      <div class="bulk-select-cell"></div>
+    }
     <app-ref class="pinned ref-list-item"
              [ref]="ref"
              [scrollToLatest]="true"
@@ -16,6 +19,9 @@
   @if (insertNewAtTop) {
     @for (ref of newRefs; track ref.origin + '@' + ref.url) {
       <div class="list-number">&bullet;</div>
+      @if (query.bulkToolsOpen) {
+        <div class="bulk-select-cell"></div>
+      }
       <app-ref class="ref-list-item"
                [ref]="ref"
                [scrollToLatest]="true"
@@ -30,6 +36,13 @@
   @for (ref of page?.content; track ref.origin + '@' + ref.url; let i = $index) {
     @if (!hide?.includes($any(ref.modified?.valueOf()) || 0)) {
       <div class="list-number">{{ getNumber(i) }}</div>
+      @if (query.bulkToolsOpen) {
+        <input class="bulk-select-cell bulk-select"
+               type="checkbox"
+               [checked]="query.isBulkSelected(ref)"
+               [attr.aria-label]="'Select ' + (ref.title || ref.url)"
+               (change)="query.setBulkSelected(ref, $any($event.target).checked)">
+      }
       <app-ref class="ref-list-item"
                [ref]="ref"
                [scrollToLatest]="true"
@@ -45,6 +58,9 @@
   @if (!insertNewAtTop) {
     @for (ref of newRefs; track ref.origin + '@' + ref.url; let i = $index) {
       <div class="list-number">{{ getNumber(i + (page?.content?.length || 0)) }}</div>
+      @if (query.bulkToolsOpen) {
+        <div class="bulk-select-cell"></div>
+      }
       <app-ref class="ref-list-item"
                [ref]="ref"
                [scrollToLatest]="true"
