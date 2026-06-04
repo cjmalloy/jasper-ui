@@ -55,7 +55,7 @@
     "maplibre-gl": "^5.24.0",
     "marked": "^18.0.4",
     "mermaid": "^11.15.0",
-    "mobx": "^6.15.4",
+    "mobx": "^6.16.0",
     "mobx-angular": "^4.8.0",
     "monaco-editor": "^0.55.1",
     "ngx-markdown": "^21.3.0",
