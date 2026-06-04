@@ -266,7 +266,6 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
       MemoCache.clear(this, 'storyboardMargin');
       MemoCache.clear(this, 'storyboardHeight');
       MemoCache.clear(this, 'storyboardAnimation');
-      MemoCache.clear(this, 'hasStoryboardDefault');
       defer(() => {
         // Let Formly finish rebuilding tag rows before derived Ref UI state reacts.
         this.initFields({ ...this.ref, ...value });
@@ -648,7 +647,6 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
       MemoCache.clear(this, 'storyboardMargin');
       MemoCache.clear(this, 'storyboardHeight');
       MemoCache.clear(this, 'storyboardAnimation');
-      MemoCache.clear(this, 'hasStoryboardDefault');
     } else {
       if (this.expanded) this.focusViewer = true;
       defer(() => {
