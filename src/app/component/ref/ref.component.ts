@@ -367,7 +367,6 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   }
 
   private preloadStoryboard() {
-    if (this.hasStoryboardDefault) return;
     const url = this.storyboardRawUrl;
     if (!url) return;
     this.preloadingUrl = url;
@@ -454,7 +453,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     return this.ref.outdated;
   }
 
-  private get storyboardData() {
+  get storyboardData() {
     if (!this.admin.getPlugin('plugin/thumbnail/storyboard')) return null;
     if (this.editing) {
       return this.editForm.value?.plugins?.['plugin/thumbnail/storyboard'] || null;
@@ -556,15 +555,6 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
       document.head.appendChild(style);
     }
     return `${name} ${(totalFrames * duration).toFixed(2)}s linear infinite`;
-  }
-
-  @memo
-  @HostBinding('class.has-storyboard-default')
-  get hasStoryboardDefault(): boolean {
-    const sb = this.storyboardData;
-    const thumbPlugins = this.editing ? this.editForm.value?.plugins : (this.ref?.plugins || this.repostRef?.plugins);
-    const thumbData = thumbPlugins?.['plugin/thumbnail'];
-    return !!sb && !(thumbData?.url || thumbData?.emoji || thumbData?.color);
   }
 
   get obsoleteOrigin() {
