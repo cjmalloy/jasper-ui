@@ -29,7 +29,7 @@ config="
   \"fetchBatch\": ${JASPER_FETCH_BATCH-0},
   \"token\": \"${JASPER_TOKEN}\",
   \"prefetch\": ${JASPER_PREFETCH-false},
-  \"pwa\": ${JASPER_PWA-true}
+  \"pwa\": ${JASPER_PWA-false}
 }
 "
 echo "$config"

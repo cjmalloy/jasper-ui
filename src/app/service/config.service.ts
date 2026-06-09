@@ -20,6 +20,7 @@ export class ConfigService {
   logout = '';
   login = '';
   signup = '';
+  pwa = false;
   scim = false;
   websockets = true;
   support = '+support';
@@ -40,7 +41,6 @@ export class ConfigService {
    * Workaround for non-cookie based auth to scrape images before fetching.
    */
   prefetch = isDevMode();
-  pwa = true;
 
   miniWidth = 380;
   mobileWidth = 740;

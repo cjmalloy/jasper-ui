@@ -2,7 +2,7 @@ echo "Writing Jasper Config to Service Worker"
 
 nsgw="/usr/share/nginx/html/ngsw.json"
 
-if [[ $JASPER_PWA = false ]]; then
+if [[ $JASPER_PWA != true ]]; then
     echo "PWA disabled."
     rm -f "$nsgw" /usr/share/nginx/html/ngsw-worker.js /usr/share/nginx/html/safety-worker.js /usr/share/nginx/html/worker-basic.min.js
     sed -i '/rel="manifest"/d' /usr/share/nginx/html/index.html
