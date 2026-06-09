@@ -28,7 +28,8 @@ config="
   \"maxOrigins\": ${JASPER_MAX_ORIGINS-0},
   \"fetchBatch\": ${JASPER_FETCH_BATCH-0},
   \"token\": \"${JASPER_TOKEN}\",
-  \"prefetch\": ${JASPER_PREFETCH-false}
+  \"prefetch\": ${JASPER_PREFETCH-false},
+  \"pwa\": ${JASPER_PWA-true}
 }
 "
 echo "$config"
