@@ -30,7 +30,7 @@ import { RateLimitInterceptor } from './app/http/rate-limit.interceptor';
 import { AccountService } from './app/service/account.service';
 import { AdminService } from './app/service/admin.service';
 import { ExtService } from './app/service/api/ext.service';
-import { ConfigService } from './app/service/config.service';
+import { config, ConfigService } from './app/service/config.service';
 import { DebugService } from './app/service/debug.service';
 import { ModService } from './app/service/mod.service';
 import { OriginMapService } from './app/service/origin-map.service';
@@ -43,6 +43,20 @@ import 'hammerjs';
 const loadFactory = (config: ConfigService, debug: DebugService, admin: AdminService, account: AccountService, origins: OriginMapService, mods: ModService, exts: ExtService) => () =>
   config.load$.pipe(
     tap(() => console.log('-{1}- Loading Jasper')),
+    tap(() => {
+      if (!config.pwa) {
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.getRegistration()
+            .then(registration => registration?.unregister())
+            .catch(err => console.error(err));
+        }
+        if ('caches' in window) {
+          caches.keys()
+            .then(keys => keys.filter(key => key.startsWith('ngsw:')).forEach(key => caches.delete(key)))
+            .catch(err => console.error(err));
+        }
+      }
+    }),
     tap(() => Settings.defaultLocale = document.documentElement.lang),
     switchMap(() => debug.init$),
     tap(() => console.log('-{2}- Authorizing')),
@@ -89,7 +103,9 @@ bootstrapApplication(AppComponent, {
       JasperFormlyModule,
       ServiceWorkerModule.register('ngsw-worker.js', {
         scope: '.',
-        enabled: !isDevMode() && location.hostname != 'localhost',
+        get enabled() {
+          return !isDevMode() && location.hostname != 'localhost' && config().pwa;
+        },
         // Register the ServiceWorker as soon as the application is stable
         // or after 30 seconds (whichever comes first).
         registrationStrategy: 'registerWhenStable:30000'
