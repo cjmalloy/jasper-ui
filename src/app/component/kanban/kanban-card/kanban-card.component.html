@@ -51,6 +51,7 @@
       <div class="thumbnail"
            [style.background-image]="[repostRef, ref] | thumbnail | async | cssUrl"
            [style.background-color]="thumbnailColor"
+           [style.background-size]="thumbnailRadius ? 'cover' : 'contain'"
            [style.border-radius]="thumbnailRadius">{{ thumbnailEmoji }}</div>
     }
     <a class="card-title grow" [routerLink]="['/ref', ref.url]" (click)="saveRef()">{{ title }}</a>
