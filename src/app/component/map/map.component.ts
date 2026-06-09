@@ -85,7 +85,7 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
   @memo
   get mapStyle() {
     return {
-      ...this.ext?.config.mapStyle || this.admin.getTemplate('map')?.defaults?.mapStyle || mapTemplate.defaults?.mapStyle || {},
+      ...this.ext?.config?.mapStyle || this.admin.getTemplate('map')?.defaults?.mapStyle || mapTemplate.defaults?.mapStyle || {},
       ...this.admin.getTemplate('map')?.config?.mapStyle || {},
     };
   }
