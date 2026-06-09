@@ -101,6 +101,7 @@
     "maplibre-gl": "$maplibre-gl",
     "marked": "$marked",
     "mermaid": "$mermaid",
+    "katex": "$katex",
     "uuid": "$uuid",
     "zone.js": "$zone.js",
     "mobx": "$mobx",
