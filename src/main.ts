@@ -46,8 +46,8 @@ const loadFactory = (config: ConfigService, debug: DebugService, admin: AdminSer
     tap(() => {
       if (!config.pwa) {
         if ('serviceWorker' in navigator) {
-          navigator.serviceWorker.getRegistrations()
-            .then(registrations => registrations.forEach(registration => registration.unregister()))
+          navigator.serviceWorker.getRegistration()
+            .then(registration => registration?.unregister())
             .catch(err => console.error(err));
         }
         if ('caches' in window) {
