@@ -89,7 +89,7 @@ export class FolderComponent implements OnChanges, HasChanges {
     if (changes.ext) {
       this.files = {};
       this.subfolders = {};
-      this.flatten = this.ext?.config.flatten;
+      this.flatten = this.ext?.config?.flatten;
       if (!this.ext) return;
       this.cursor = this.ext.modifiedString!;
       this.files = mapValues(toJS(this.ext.config.files) || {}, p => this.transform(p));

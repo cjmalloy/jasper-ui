@@ -7,9 +7,7 @@ on:
     tags: [ 'v*.*.*' ]
 
 env:
-  # Use docker.io for Docker Hub if empty
   REGISTRY: ghcr.io
-  # github.repository as <account>/<repo>
   RELEASE_FILE: jasper-ui-${{ github.ref_name }}.zip
 
 jobs:
