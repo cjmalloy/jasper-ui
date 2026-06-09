@@ -24,7 +24,9 @@
     } @else if (thumbnailEmojiDefaults) {
       <div class="thumbnail">{{ thumbnailEmojiDefaults }}</div>
     } @else {
-      <div class="thumbnail" [class.default-thumbnail]="true"></div>
+      <div class="thumbnail"
+           [class.default-thumbnail]="true"
+           [class.has-storyboard-default]="storyboardData"></div>
     }
   }
   <div class="stack">
