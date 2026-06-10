@@ -70,7 +70,7 @@ jobs:
               -f "created=>=${dependabot_runs_since}" \
               -f 'per_page=100' \
               2>/dev/null \
-              | jq -s '[.[] | (.workflow_runs // [])[] | select(.path == "dynamic/dependabot/dependabot-updates") | select(.conclusion == "failure" or .conclusion == "cancelled")] | length' \
+              | jq -s '[.[] | (.workflow_runs // [])[] | select(.path == "dynamic/dependabot/dependabot-updates") | select(.conclusion == "failure")] | length' \
            ); then
             dependabot_message="cannot run"
             dependabot_color="red"
