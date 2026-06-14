@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnDestroy, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnDestroy, OnInit, Output, ChangeDetectionStrategy } from '@angular/core';
 import { autorun, IReactionDisposer } from 'mobx';
 import { DiffEditorModel, MonacoEditorModule } from 'ngx-monaco-editor';
 import { ResizeHandleDirective } from '../../directive/resize-handle.directive';
@@ -17,6 +17,7 @@ import { Mod } from '../../model/tag';
   templateUrl: './diff.component.html',
   styleUrl: './diff.component.scss',
   host: { 'class': 'diff-editor' },
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [MonacoEditorModule, ResizeHandleDirective]
 })
 export class DiffComponent<T extends Ref | Ext | User | Plugin | Template | Mod> implements OnInit, OnDestroy {

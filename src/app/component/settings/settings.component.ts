@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, ChangeDetectionStrategy } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { MobxAngularModule } from 'mobx-angular';
 import { AccountService } from '../../service/account.service';
@@ -12,6 +12,7 @@ import { Store } from '../../store/store';
   templateUrl: './settings.component.html',
   styleUrls: ['./settings.component.scss'],
   host: { 'class': 'settings' },
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [MobxAngularModule, RouterLink]
 })
 export class SettingsComponent implements AfterViewInit {

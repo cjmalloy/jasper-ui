@@ -7,7 +7,8 @@ import {
   HostListener,
   Input,
   NgZone,
-  Output
+  Output,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import { AutofocusDirective } from '../../../directive/autofocus.directive';
 import { ConfigService } from '../../../service/config.service';
@@ -19,6 +20,7 @@ import { MdComponent } from '../../md/md.component';
   templateUrl: './item.component.html',
   styleUrls: ['./item.component.scss'],
   host: { 'class': 'todo-item' },
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     AutofocusDirective,
     forwardRef(() => MdComponent),

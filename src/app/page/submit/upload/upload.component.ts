@@ -1,6 +1,6 @@
 import { AsyncPipe } from '@angular/common';
 import { HttpErrorResponse, HttpEventType } from '@angular/common/http';
-import { Component, OnDestroy } from '@angular/core';
+import { Component, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { pick, uniq, without } from 'lodash-es';
@@ -35,6 +35,7 @@ import { FilteredModels, filterModels, getModels, getTextFile, unzip, zippedFile
   templateUrl: './upload.component.html',
   styleUrls: ['./upload.component.scss'],
   host: { 'class': 'full-page-upload' },
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     ExtComponent,
     RefComponent,

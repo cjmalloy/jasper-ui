@@ -1,4 +1,4 @@
-import { Component, HostBinding, Input } from '@angular/core';
+import { Component, HostBinding, Input, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { delay } from 'lodash-es';
@@ -11,6 +11,7 @@ import { Store } from '../../store/store';
   templateUrl: './page-controls.component.html',
   styleUrls: ['./page-controls.component.scss'],
   host: { 'class': 'page-controls' },
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     RouterLink,
     RouterLinkActive,

@@ -18,7 +18,8 @@ import {
   SimpleChanges,
   TemplateRef,
   ViewChild,
-  ViewContainerRef
+  ViewContainerRef,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { defer, delay, difference, intersection, uniq } from 'lodash-es';
@@ -49,6 +50,7 @@ import { TodoComponent } from '../../todo/todo.component';
   templateUrl: './note.component.html',
   styleUrls: ['./note.component.scss'],
   host: { 'class': 'note' },
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     forwardRef(() => MdComponent),
     LoadingComponent,

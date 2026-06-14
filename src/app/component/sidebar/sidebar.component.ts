@@ -9,7 +9,8 @@ import {
   OnChanges,
   OnDestroy,
   OnInit,
-  SimpleChanges
+  SimpleChanges,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { uniq, uniqBy } from 'lodash-es';
@@ -54,6 +55,7 @@ import { SortComponent } from '../sort/sort.component';
   templateUrl: './sidebar.component.html',
   styleUrls: ['./sidebar.component.scss'],
   host: { 'class': 'sidebar' },
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     ExtComponent,
     forwardRef(() => MdComponent),

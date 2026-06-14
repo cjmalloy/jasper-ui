@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 import {
   ReactiveFormsModule,
   UntypedFormBuilder,
@@ -14,6 +14,7 @@ import { JsonComponent } from '../json/json.component';
   templateUrl: './plugin.component.html',
   styleUrls: ['./plugin.component.scss'],
   host: { 'class': 'nested-form' },
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [ReactiveFormsModule, JsonComponent]
 })
 export class PluginFormComponent {
