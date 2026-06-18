@@ -25,7 +25,7 @@ CMD mkdir -p /report && \
     (if [ -d coverage ]; then mkdir -p /report/coverage && cp -r coverage/. /report/coverage/ 2>/dev/null || true; fi) && \
     exit $(cat /report/exit-code.txt)
 
-FROM nginx:1.31.1-alpine3.23-slim AS deploy
+FROM nginx:1.31.2-alpine3.23-slim AS deploy
 RUN apk --no-cache upgrade && apk --no-cache add jq moreutils
 WORKDIR /var/lib/jasper/
 COPY --from=builder /app/dist/jasper-ui/browser ./
