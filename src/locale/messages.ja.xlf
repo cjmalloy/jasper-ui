@@ -6955,6 +6955,45 @@ Each response contains the converted Markdown from a specific source format.</so
       <trans-unit id="946077791002604877" datatype="html">
         <source>grid</source>
       </trans-unit>
+      <trans-unit id="92453344319318635" datatype="html">
+        <source>remember</source>
+      </trans-unit>
+      <trans-unit id="1745742394251239829" datatype="html">
+        <source>⬇️ Marker PDF Query</source>
+      </trans-unit>
+      <trans-unit id="8094771231370590505" datatype="html">
+        <source>⬇️ Marker PDF</source>
+      </trans-unit>
+      <trans-unit id="7427310020076054136" datatype="html">
+        <source>Convert PDF documents to Markdown using Marker PDF.</source>
+      </trans-unit>
+      <trans-unit id="5550289753177350771" datatype="html">
+        <source>⬇️💭️ marker markdown query</source>
+      </trans-unit>
+      <trans-unit id="8425754794936417330" datatype="html">
+        <source>Convert PDF to Markdown with Marker PDF</source>
+      </trans-unit>
+      <trans-unit id="5373270575540158021" datatype="html">
+        <source>Cancel Marker PDF conversion.</source>
+      </trans-unit>
+      <trans-unit id="1127327332983757556" datatype="html">
+        <source>Convert PDF to Markdown using Marker PDF</source>
+      </trans-unit>
+      <trans-unit id="3044391178619781114" datatype="html">
+        <source>⬇️ Marker PDF Result</source>
+      </trans-unit>
+      <trans-unit id="2621156290138115420" datatype="html">
+        <source>Signature tag for documents converted to Markdown using Marker PDF.</source>
+      </trans-unit>
+      <trans-unit id="2244878794012418622" datatype="html">
+        <source>⬇️ marker markdown</source>
+      </trans-unit>
+      <trans-unit id="4566589419569250276" datatype="html">
+        <source>Converted to Markdown with Marker PDF</source>
+      </trans-unit>
+      <trans-unit id="8950238488293227806" datatype="html">
+        <source>Reconvert PDF to Markdown using Marker PDF</source>
+      </trans-unit>
     </body>
   </file>
 </xliff>
