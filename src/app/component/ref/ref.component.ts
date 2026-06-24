@@ -186,8 +186,14 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   showObsolete = true;
   @Input()
   fetchRepost = true;
+  @Input()
+  selectable = false;
+  @Input()
+  selected = true;
   @Output()
   copied = new EventEmitter<string>();
+  @Output()
+  selectedChange = new EventEmitter<boolean>();
 
   repostRef?: Ref;
   editForm: UntypedFormGroup;

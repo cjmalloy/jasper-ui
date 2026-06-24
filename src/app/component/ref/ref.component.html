@@ -1,4 +1,11 @@
 <div class="row">
+  @if (selectable) {
+    <input class="bulk-select"
+           type="checkbox"
+           [checked]="selected"
+           [attr.aria-label]="'Select ' + title"
+           (change)="selectedChange.emit($any($event.target).checked)">
+  }
   @if (store.view.isVoteSorted && store.account.user && admin.getPlugin('plugin/user/vote/up')) {
     <div class="voting">
       <div class="vote-up"

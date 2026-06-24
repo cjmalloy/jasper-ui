@@ -90,7 +90,7 @@ export class BulkComponent implements AfterViewInit, OnChanges, OnDestroy {
   ) {
     this.disposers.push(autorun(() => {
       MemoCache.clear(this);
-      const commonTags = intersection(...map(this.query.page?.content, ref => ref.tags || []));
+      const commonTags = intersection(...map(this.type === 'ref' ? this.query.bulkSelectedContent : this.query.page?.content, ref => ref.tags || []));
       this.forms = this.admin.bulkForm;
       this.actions = uniqueConfigs([
         ...sortOrder(this.admin.getActions(commonTags).filter(a => !('tag' in a) || this.auth.canAddTag(a.tag))),
@@ -113,21 +113,25 @@ export class BulkComponent implements AfterViewInit, OnChanges, OnDestroy {
   }
 
   ngOnDestroy() {
+    this.query.setBulkToolsOpen(false);
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
   }
 
-  @memo
   get urls() {
-    if (!this.query.page?.content.length) return [];
-    return uniq(this.query.page!.content.map(ref => ref.url));
+    return uniq(this.query.bulkSelectedContent.map(ref => ref.url));
   }
 
   batch$<T>(fn: (e: T) => Observable<any> | void) {
     if (this.batchRunning) return of(null);
     this.serverError = [];
     this.batchRunning = true;
-    return concat(...this.queryStore.page!.content.map(c => (fn(c as T) || of(null)).pipe(
+    const content = this.type === 'ref' ? this.query.bulkSelectedContent : this.queryStore.page!.content;
+    if (!content.length) {
+      this.batchRunning = false;
+      return of(null);
+    }
+    return concat(...content.map(c => (fn(c as T) || of(null)).pipe(
       catchError(err => {
         if (err instanceof HttpErrorResponse) {
           this.serverError.push(...printError(err));
@@ -209,12 +213,14 @@ export class BulkComponent implements AfterViewInit, OnChanges, OnDestroy {
 
   get items() {
     let result = this.queryStore.page!;
-    if (this.type === 'ref' && this.store.view.ref) {
-      result = {...result};
-      result.content = [...result.content] as any;
-      result.content.unshift(this.store.view.ref as any);
+    if (this.type === 'ref') {
+      result = {...result, content: this.query.bulkSelectedContent as any};
     }
     return result;
+  }
+
+  setBulkToolsOpen(event: Event) {
+    this.query.setBulkToolsOpen(this.type === 'ref' && (event.target as HTMLDetailsElement).open);
   }
 
   plugin$ = (value: any) => {
