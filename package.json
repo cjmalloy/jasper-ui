@@ -18,7 +18,7 @@
   "private": true,
   "dependencies": {
     "@angular/animations": "^22.0.4",
-    "@angular/cdk": "^22.0.2",
+    "@angular/cdk": "^22.0.3",
     "@angular/common": "^22.0.4",
     "@angular/compiler": "^22.0.4",
     "@angular/core": "^22.0.4",
@@ -70,8 +70,8 @@
     "zone.js": "~0.16.2"
   },
   "devDependencies": {
-    "@angular/build": "^22.0.4",
-    "@angular/cli": "^22.0.4",
+    "@angular/build": "^22.0.5",
+    "@angular/cli": "^22.0.5",
     "@angular/compiler-cli": "^22.0.0",
     "@ngx-formly/schematics": "7.1.0",
     "@playwright/test": "^1.61.1",
