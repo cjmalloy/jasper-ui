@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
 import { catchError, throwError } from 'rxjs';
@@ -13,6 +13,7 @@ import { printError } from '../../../util/http';
   selector: 'app-settings-password-page',
   templateUrl: './password.component.html',
   styleUrls: ['./password.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [ReactiveFormsModule]
 })
 export class SettingsPasswordPage {

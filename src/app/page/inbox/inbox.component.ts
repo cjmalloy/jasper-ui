@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { runInAction } from 'mobx';
 import { MobxAngularModule } from 'mobx-angular';
@@ -13,6 +13,7 @@ import { Store } from '../../store/store';
   templateUrl: './inbox.component.html',
   styleUrls: ['./inbox.component.scss'],
   host: { 'class': 'inbox' },
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [MobxAngularModule, TabsComponent, RouterLink, RouterLinkActive, SidebarComponent, RouterOutlet]
 })
 export class InboxPage implements OnInit {

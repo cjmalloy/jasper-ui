@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { defer } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import { MobxAngularModule } from 'mobx-angular';
@@ -15,6 +15,7 @@ import { getArgs } from '../../../util/query';
   templateUrl: './dms.component.html',
   styleUrls: ['./dms.component.scss'],
   host: { 'class': 'dms' },
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [MobxAngularModule, RefListComponent]
 })
 export class InboxDmsPage implements OnInit, OnDestroy, HasChanges {

@@ -1,5 +1,5 @@
 /// <reference types="vitest/globals" />
-import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
@@ -12,7 +12,7 @@ describe('DebugService', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       providers: [
-        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClient(withXhr(), withInterceptorsFromDi()),
         provideHttpClientTesting(),
         provideRouter([]),
       ],
@@ -23,5 +23,17 @@ describe('DebugService', () => {
 
   it('should be created', () => {
     expect(service).toBeTruthy();
+  });
+
+  it('generates debug JWTs without an empty audience claim', async () => {
+    const token = await (service as any).getDebugToken('', 'ROLE_ADMIN');
+    const payload = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+
+    expect(payload).toMatchObject({
+      verified_email: true,
+      sub: 'debug',
+      auth: 'ROLE_ADMIN',
+    });
+    expect(payload).not.toHaveProperty('aud');
   });
 });

@@ -1,4 +1,4 @@
-import { Component, ElementRef, Input, Output } from '@angular/core';
+import { Component, ElementRef, Input, Output, ChangeDetectionStrategy } from '@angular/core';
 import { MermaidConfig } from 'mermaid';
 import { MarkdownComponent, MermaidAPI } from 'ngx-markdown';
 import { Subject } from 'rxjs';
@@ -11,6 +11,7 @@ import { Store } from '../../store/store';
   selector: 'app-md',
   templateUrl: './md.component.html',
   styleUrls: ['./md.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     MarkdownComponent,
     MdPostDirective,

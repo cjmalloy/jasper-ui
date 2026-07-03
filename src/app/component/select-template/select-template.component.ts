@@ -1,4 +1,4 @@
-import { Component, ElementRef, EventEmitter, Input, Output, ViewChild } from '@angular/core';
+import { Component, ElementRef, EventEmitter, Input, Output, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { defer } from 'lodash-es';
 import { Template } from '../../model/template';
@@ -11,6 +11,7 @@ import { access } from '../../util/tag';
   templateUrl: './select-template.component.html',
   styleUrls: ['./select-template.component.scss'],
   host: { 'class': 'select-template' },
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [ReactiveFormsModule]
 })
 export class SelectTemplateComponent {

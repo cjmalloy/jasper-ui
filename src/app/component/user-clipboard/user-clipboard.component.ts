@@ -1,5 +1,5 @@
 import { AsyncPipe } from '@angular/common';
-import { Component, HostListener, OnDestroy, OnInit } from '@angular/core';
+import { Component, HostListener, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { Router } from '@angular/router';
 import DOMPurify from 'dompurify';
 import { autorun, IReactionDisposer } from 'mobx';
@@ -63,6 +63,7 @@ interface DragState {
   templateUrl: './user-clipboard.component.html',
   styleUrls: ['./user-clipboard.component.scss'],
   host: { 'class': 'user-clipboard' },
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     AsyncPipe,
     CssUrlPipe,

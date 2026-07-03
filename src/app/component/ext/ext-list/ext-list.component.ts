@@ -1,4 +1,4 @@
-import { Component, Input, QueryList, ViewChildren } from '@angular/core';
+import { Component, Input, QueryList, ViewChildren, ChangeDetectionStrategy } from '@angular/core';
 import { Router } from '@angular/router';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Ext } from '../../../model/ext';
@@ -12,6 +12,7 @@ import { ExtComponent } from '../ext.component';
   templateUrl: './ext-list.component.html',
   styleUrls: ['./ext-list.component.scss'],
   host: { 'class': 'ext-list' },
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     ExtComponent,
     PageControlsComponent,

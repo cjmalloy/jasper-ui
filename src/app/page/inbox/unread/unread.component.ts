@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { Router } from '@angular/router';
 import { defer } from 'lodash-es';
 import { DateTime } from 'luxon';
@@ -17,6 +17,7 @@ import { Store } from '../../../store/store';
   templateUrl: './unread.component.html',
   styleUrls: ['./unread.component.scss'],
   host: { 'class': 'unread' },
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [MobxAngularModule, RefListComponent]
 })
 export class InboxUnreadPage implements OnInit, OnDestroy {

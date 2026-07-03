@@ -23,15 +23,19 @@
       <div class="thumbnail"
            [style.background-image]="thumbnailRefs | thumbnail | async | cssUrl"
            [style.background-color]="thumbnailColor"
+           [style.background-size]="thumbnailRadius ? 'cover' : 'contain'"
            [style.border-radius.px]="thumbnailRadius">{{ thumbnailEmoji }}</div>
     } @else if (thumbnail) {
       <div class="thumbnail"
            [style.background-image]="thumbnailRefs | thumbnail: true | async | cssUrl"
+           [style.background-size]="thumbnailRadius ? 'cover' : 'contain'"
            [style.border-radius.px]="thumbnailRadius">{{ thumbnailEmoji }}</div>
     } @else if (thumbnailEmojiDefaults) {
       <div class="thumbnail">{{ thumbnailEmojiDefaults }}</div>
     } @else {
-      <div class="thumbnail" [class.default-thumbnail]="true"></div>
+      <div class="thumbnail"
+           [class.default-thumbnail]="true"
+           [class.has-storyboard-default]="storyboardData"></div>
     }
   }
   <div class="stack">

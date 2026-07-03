@@ -12,7 +12,8 @@ import {
   QueryList,
   SimpleChanges,
   ViewChild,
-  ViewChildren
+  ViewChildren,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { delay, groupBy, uniq, without } from 'lodash-es';
@@ -63,6 +64,7 @@ import { CommentThreadComponent } from './comment-thread/comment-thread.componen
   templateUrl: './comment.component.html',
   styleUrls: ['./comment.component.scss'],
   host: { 'class': 'comment' },
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     CommentThreadComponent,
     forwardRef(() => ViewerComponent),

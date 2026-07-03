@@ -16,7 +16,8 @@ import {
   QueryList,
   SimpleChanges,
   ViewChild,
-  ViewChildren
+  ViewChildren,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -93,6 +94,7 @@ import { ViewerComponent } from '../viewer/viewer.component';
   selector: 'app-ref',
   templateUrl: './ref.component.html',
   styleUrls: ['./ref.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     forwardRef(() => ViewerComponent),
     forwardRef(() => RefFormComponent),
@@ -272,7 +274,6 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
       MemoCache.clear(this, 'storyboardMargin');
       MemoCache.clear(this, 'storyboardHeight');
       MemoCache.clear(this, 'storyboardAnimation');
-      MemoCache.clear(this, 'hasStoryboardDefault');
       defer(() => {
         // Let Formly finish rebuilding tag rows before derived Ref UI state reacts.
         this.initFields({ ...this.ref, ...value });
@@ -373,7 +374,6 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   }
 
   private preloadStoryboard() {
-    if (this.hasStoryboardDefault) return;
     const url = this.storyboardRawUrl;
     if (!url) return;
     this.preloadingUrl = url;
@@ -460,7 +460,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     return this.ref.outdated;
   }
 
-  private get storyboardData() {
+  get storyboardData() {
     if (!this.admin.getPlugin('plugin/thumbnail/storyboard')) return null;
     if (this.editing) {
       return this.editForm.value?.plugins?.['plugin/thumbnail/storyboard'] || null;
@@ -564,15 +564,6 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     return `${name} ${(totalFrames * duration).toFixed(2)}s linear infinite`;
   }
 
-  @memo
-  @HostBinding('class.has-storyboard-default')
-  get hasStoryboardDefault(): boolean {
-    const sb = this.storyboardData;
-    const thumbPlugins = this.editing ? this.editForm.value?.plugins : (this.ref?.plugins || this.repostRef?.plugins);
-    const thumbData = thumbPlugins?.['plugin/thumbnail'];
-    return !!sb && !(thumbData?.url || thumbData?.emoji || thumbData?.color);
-  }
-
   get obsoleteOrigin() {
     if (this.ref.metadata?.obsolete) return this.ref.origin;
     return undefined;
@@ -664,7 +655,6 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
       MemoCache.clear(this, 'storyboardMargin');
       MemoCache.clear(this, 'storyboardHeight');
       MemoCache.clear(this, 'storyboardAnimation');
-      MemoCache.clear(this, 'hasStoryboardDefault');
     } else {
       if (this.expanded) this.focusViewer = true;
       defer(() => {

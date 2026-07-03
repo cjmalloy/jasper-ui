@@ -1,4 +1,4 @@
-import { Component, ElementRef, Input, ViewChild } from '@angular/core';
+import { Component, ElementRef, Input, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { defer } from 'lodash-es';
@@ -14,6 +14,7 @@ export type Crumb = { text: string, tag?: string, pos: number, len: number };
   selector: 'app-query',
   templateUrl: './query.component.html',
   styleUrls: ['./query.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [ReactiveFormsModule, RouterLink]
 })
 export class QueryComponent {

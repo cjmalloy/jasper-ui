@@ -8,7 +8,8 @@ import {
   Input,
   OnDestroy,
   Output,
-  ViewChild
+  ViewChild,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import {
   FormArray,
@@ -45,6 +46,7 @@ import { themesForm, ThemesFormComponent } from '../themes/themes.component';
   templateUrl: './ext.component.html',
   styleUrls: ['./ext.component.scss'],
   host: { 'class': 'nested-form' },
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     forwardRef(() => RefComponent),
     forwardRef(() => EditorComponent),

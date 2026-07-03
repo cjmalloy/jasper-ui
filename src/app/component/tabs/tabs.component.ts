@@ -6,7 +6,8 @@ import {
   ElementRef,
   HostBinding,
   HostListener,
-  QueryList
+  QueryList,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -20,6 +21,7 @@ import { SettingsComponent } from '../settings/settings.component';
   templateUrl: './tabs.component.html',
   styleUrl: './tabs.component.scss',
   host: { 'class': 'tabs' },
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [ReactiveFormsModule, SettingsComponent]
 })
 export class TabsComponent implements AfterViewInit {

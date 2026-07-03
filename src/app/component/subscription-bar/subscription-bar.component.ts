@@ -1,5 +1,5 @@
 import { Location } from '@angular/common';
-import { AfterViewInit, Component, ElementRef, OnDestroy } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { autorun, IReactionDisposer } from 'mobx';
 import { MobxAngularModule } from 'mobx-angular';
@@ -17,6 +17,7 @@ import { Store } from '../../store/store';
   templateUrl: './subscription-bar.component.html',
   styleUrls: ['./subscription-bar.component.scss'],
   host: { 'class': 'subscription-bar' },
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [MobxAngularModule, RouterLink, RouterLinkActive, TitleDirective]
 })
 export class SubscriptionBarComponent implements AfterViewInit, OnDestroy {

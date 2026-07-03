@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { defer } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import { catchError, switchMap, throwError } from 'rxjs';
@@ -18,6 +18,7 @@ import { getModels, getZipOrTextFile } from '../../../util/zip';
   selector: 'app-settings-plugin-page',
   templateUrl: './plugin.component.html',
   styleUrls: ['./plugin.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [PluginListComponent],
 })
 export class SettingsPluginPage implements OnInit, OnDestroy, HasChanges {

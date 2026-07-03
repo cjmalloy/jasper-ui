@@ -1,4 +1,4 @@
-import { Component, HostBinding, Input } from '@angular/core';
+import { Component, HostBinding, Input, ChangeDetectionStrategy } from '@angular/core';
 import {
   FormBuilder,
   ReactiveFormsModule,
@@ -15,6 +15,7 @@ import { URI_REGEX } from '../../util/format';
   selector: 'app-links',
   templateUrl: './links.component.html',
   styleUrls: ['./links.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [ReactiveFormsModule, FormlyForm]
 })
 export class LinksFormComponent {

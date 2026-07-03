@@ -10,7 +10,8 @@ import {
   OnDestroy,
   QueryList,
   SimpleChanges,
-  ViewChildren
+  ViewChildren,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -48,6 +49,7 @@ export interface KanbanDrag {
   templateUrl: './kanban.component.html',
   styleUrls: ['./kanban.component.scss'],
   host: { 'class': 'kanban ext' },
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     forwardRef(() => KanbanColumnComponent),
     MobxAngularModule,

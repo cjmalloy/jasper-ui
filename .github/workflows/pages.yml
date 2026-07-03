@@ -11,7 +11,8 @@ on:
   workflow_dispatch:
 
 env:
-  DEPENDABOT_RUN_LOOKBACK_DAYS: 7
+  # Runs created within this window of the newest run are considered part of the same set.
+  DEPENDABOT_RUN_SET_WINDOW_SECONDS: 1800
 
 permissions:
   actions: read
@@ -28,7 +29,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: actions/configure-pages@v6
 
       # Create site directory
@@ -57,20 +58,27 @@ jobs:
 
           dependabot_message="current"
           dependabot_color="brightgreen"
-          # Limit failed run checks to recent history so one old failure does not keep the badge red forever.
-          dependabot_runs_since=$(date -u -d "${DEPENDABOT_RUN_LOOKBACK_DAYS} days ago" +%Y-%m-%dT%H:%M:%SZ)
           if [ ! -f ".github/dependabot.yml" ]; then
             dependabot_message="cannot run"
             dependabot_color="red"
+          # Only check the most recent set of runs so old failures do not keep the badge red forever.
           elif ! failed_dependabot_run_count=$( \
             set -o pipefail; \
-            gh api --method GET --paginate "/repos/${GITHUB_REPOSITORY}/actions/runs" \
-              -f 'actor=dependabot[bot]' \
-              -f 'status=completed' \
-              -f "created=>=${dependabot_runs_since}" \
-              -f 'per_page=100' \
-              2>/dev/null \
-              | jq -s '[.[] | (.workflow_runs // [])[] | select(.path == "dynamic/dependabot/dependabot-updates") | select(.conclusion == "failure" or .conclusion == "cancelled")] | length' \
+            dependabot_workflow_id=$( \
+              gh api --method GET --paginate "/repos/${GITHUB_REPOSITORY}/actions/workflows" \
+                -f 'per_page=100' \
+                2>/dev/null \
+                | jq -s -r '[.[] | (.workflows // [])[] | select(.path == "dynamic/dependabot/dependabot-updates")] | first | .id // empty' \
+            ) || exit 1; \
+            if [ -z "$dependabot_workflow_id" ]; then \
+              echo 0; \
+            else \
+              gh api --method GET "/repos/${GITHUB_REPOSITORY}/actions/workflows/${dependabot_workflow_id}/runs" \
+                -f 'status=completed' \
+                -f 'per_page=100' \
+                2>/dev/null \
+                | jq --argjson window "${DEPENDABOT_RUN_SET_WINDOW_SECONDS}" '((.workflow_runs // []) | sort_by(.created_at) | reverse) as $runs | if ($runs | length) == 0 then 0 else (($runs[0].created_at | fromdateiso8601) - $window) as $cutoff | [$runs[] | select((.created_at | fromdateiso8601) >= $cutoff) | select(.conclusion == "failure")] | length end'; \
+            fi \
            ); then
             dependabot_message="cannot run"
             dependabot_color="red"

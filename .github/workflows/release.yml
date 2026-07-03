@@ -7,9 +7,7 @@ on:
     tags: [ 'v*.*.*' ]
 
 env:
-  # Use docker.io for Docker Hub if empty
   REGISTRY: ghcr.io
-  # github.repository as <account>/<repo>
   RELEASE_FILE: jasper-ui-${{ github.ref_name }}.zip
 
 jobs:
@@ -17,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out Git repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Install Node.js, NPM and Yarn
         uses: actions/setup-node@v6

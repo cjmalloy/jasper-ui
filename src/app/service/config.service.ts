@@ -20,6 +20,7 @@ export class ConfigService {
   logout = '';
   login = '';
   signup = '';
+  pwa = false;
   scim = false;
   websockets = true;
   support = '+support';

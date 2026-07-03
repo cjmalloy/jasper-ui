@@ -9,7 +9,8 @@ import {
   NgZone,
   OnChanges,
   OnDestroy,
-  SimpleChanges
+  SimpleChanges,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { isEqual, uniq } from 'lodash-es';
@@ -50,6 +51,7 @@ interface PendingUpload {
   templateUrl: './kanban-column.component.html',
   styleUrls: ['./kanban-column.component.scss'],
   host: { 'class': 'kanban-column' },
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     KanbanCardComponent,
     CdkDrag,

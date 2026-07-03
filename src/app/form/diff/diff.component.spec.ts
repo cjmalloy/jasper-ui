@@ -1,6 +1,6 @@
 /// <reference types="vitest/globals" />
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideRouter } from '@angular/router';
 import { NGX_MONACO_EDITOR_CONFIG } from 'ngx-monaco-editor';
@@ -15,7 +15,7 @@ describe('DiffComponent', () => {
     await TestBed.configureTestingModule({
       imports: [DiffComponent],
       providers: [
-        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClient(withXhr(), withInterceptorsFromDi()),
         provideHttpClientTesting(),
         provideRouter([]),
         {

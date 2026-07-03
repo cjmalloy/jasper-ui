@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { defer } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
@@ -20,6 +20,7 @@ import { braces, getPrefixes, hasPrefix, publicTag } from '../../util/tag';
   selector: 'app-tags-page',
   templateUrl: './tags.component.html',
   styleUrls: ['./tags.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     ExtListComponent,
     MobxAngularModule,

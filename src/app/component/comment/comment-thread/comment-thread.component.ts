@@ -7,7 +7,8 @@ import {
   OnInit,
   QueryList,
   SimpleChanges,
-  ViewChildren
+  ViewChildren,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import { autorun, IReactionDisposer } from 'mobx';
 import { MobxAngularModule } from 'mobx-angular';
@@ -23,6 +24,7 @@ import { CommentComponent } from '../comment.component';
   templateUrl: './comment-thread.component.html',
   styleUrls: ['./comment-thread.component.scss'],
   host: { 'class': 'comment-thread' },
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     forwardRef(() => CommentComponent),
     MobxAngularModule,

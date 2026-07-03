@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { debounce } from 'lodash-es';
 import { catchError, forkJoin, map, Observable, of, Subscription, switchMap } from 'rxjs';
@@ -19,6 +19,7 @@ import { ActionComponent } from '../action.component';
   templateUrl: './inline-tag.component.html',
   styleUrls: ['./inline-tag.component.scss'],
   host: { 'class': 'action' },
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [ReactiveFormsModule, AutofocusDirective, LoadingComponent]
 })
 export class InlineTagComponent extends ActionComponent {
