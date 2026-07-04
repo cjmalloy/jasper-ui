@@ -415,6 +415,11 @@ export type Action = (TagAction | ResponseAction | EmitAction | EventAction) & {
    * Display confirm message.
    */
   confirm?: string;
+  /**
+   * When combined with same-labeled actions, open a chooser popup instead of
+   * running the whole group.
+   */
+  multi?: boolean;
 };
 
 export interface TagAction extends Visibility {
