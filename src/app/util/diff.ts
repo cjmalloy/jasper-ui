@@ -14,18 +14,14 @@ export function sortEntity(entity: Record<string, any>): Record<string, any> {
   const fieldOrder = ['url', 'tag', 'name', 'config', 'defaults', 'schema', 'title', 'comment', 'tags', 'sources', 'alternateUrls', 'published', 'plugins'];
   for (const field of fieldOrder) {
     if (rest[field] !== undefined) {
-      if (isObject(rest[field]) && !isArray(rest[field]) && !DateTime.isDateTime(rest[field])) {
-        ordered[field] = sortObj(rest[field]);
-      } else {
-        ordered[field] = rest[field];
-      }
+      ordered[field] = sortValue(rest[field]);
     }
   }
   const remainingKeys = Object.keys(rest)
     .filter((key) => !fieldOrder.includes(key))
     .sort();
   for (const key of remainingKeys) {
-    ordered[key] = rest[key];
+    ordered[key] = sortValue(rest[key]);
   }
   return ordered;
 }
@@ -35,22 +31,22 @@ export function sortObj(entity: Record<string, any>): Record<string, any> {
   const fieldOrder = ['version', 'mod'];
   for (const field of fieldOrder) {
     if (entity[field] !== undefined) {
-      if (isArray(entity[field])) {
-        ordered[field] = sortBy(entity[field], 'tag');
-      } else if (isObject(entity[field]) && !DateTime.isDateTime(entity[field])) {
-        ordered[field] = sortObj(entity[field]);
-      } else {
-        ordered[field] = entity[field];
-      }
+      ordered[field] = sortValue(entity[field]);
     }
   }
   const remainingKeys = Object.keys(entity)
     .filter((key) => !fieldOrder.includes(key))
     .sort();
   for (const key of remainingKeys) {
-    ordered[key] = entity[key];
+    ordered[key] = sortValue(entity[key]);
   }
   return ordered;
+}
+
+function sortValue(value: any): any {
+  if (isArray(value)) return value.map(sortValue);
+  if (isObject(value) && !DateTime.isDateTime(value)) return sortObj(value);
+  return value;
 }
 
 export function formatDiff(obj: Ref | Ext | User | Plugin | Template): string {
@@ -65,12 +61,19 @@ export function equalBundle(a?: Mod, b?: Mod) {
 export function clearMod<T extends Mod | undefined>(mod: T, strict = true): T {
   if (!mod) return mod;
   const result = { } as any;
-  if (!isEmpty(mod.ref)) result.ref = sortBy(mod.ref!.map((r: Ref) => writeRef(r)), 'url');
-  if (!isEmpty(mod.ext)) result.ext = sortBy(mod.ext!.map((e: Ext) => writeExt(e)), 'tag');
-  if (!isEmpty(mod.user)) result.user = sortBy(mod.user!.map((u: User) => writeUser(u)), 'tag');
-  if (!isEmpty(mod.plugin)) result.plugin = sortBy(mod.plugin!.map((p: Plugin) => clearConfig(writePlugin(p), strict)), 'tag');
-  if (!isEmpty(mod.template)) result.template = sortBy(mod.template!.map((t: Template) => clearConfig(writeTemplate(t), strict)), 'tag');
+  if (!isEmpty(mod.ref)) result.ref = sortBy(mod.ref!.map((r: Ref) => clearInternalFields(writeRef(r))), 'url');
+  if (!isEmpty(mod.ext)) result.ext = sortBy(mod.ext!.map((e: Ext) => clearInternalFields(writeExt(copyConfig(e)))), 'tag');
+  if (!isEmpty(mod.user)) result.user = sortBy(mod.user!.map((u: User) => clearInternalFields(writeUser(u))), 'tag');
+  if (!isEmpty(mod.plugin)) result.plugin = sortBy(mod.plugin!.map((p: Plugin) => clearConfig(writePlugin(copyConfig(p)), strict)), 'tag');
+  if (!isEmpty(mod.template)) result.template = sortBy(mod.template!.map((t: Template) => clearConfig(writeTemplate(copyConfig(t)), strict)), 'tag');
   return result;
+}
+
+function copyConfig<T extends { config?: any }>(e: T): T {
+  return {
+    ...e,
+    config: e.config && { ...e.config },
+  };
 }
 
 function clearConfig<T extends Config>(e: T, strict = false): T {
@@ -85,7 +88,17 @@ function clearConfig<T extends Config>(e: T, strict = false): T {
     delete result.config?.generated;
   }
   delete result.origin;
-  return clear(result);
+  return clearInternalFields(clear(result));
+}
+
+function clearInternalFields<T>(value: T): T {
+  if (isArray(value)) return value.map(clearInternalFields) as T;
+  if (!isObject(value) || DateTime.isDateTime(value)) return value;
+  return Object.fromEntries(
+    Object.entries(value)
+      .filter(([key]) => !key.startsWith('_'))
+      .map(([key, nested]) => [key, clearInternalFields(nested)])
+  ) as T;
 }
 
 
