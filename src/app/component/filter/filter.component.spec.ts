@@ -37,6 +37,10 @@ describe('FilterComponent', () => {
       vi.spyOn(DateTime, 'now').mockReturnValue(now);
     });
 
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
     it('parses now case-insensitively', () => {
       expect(component.toDate('published/before/NoW')).toBe('2026-07-09T23:36');
     });
