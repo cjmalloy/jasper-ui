@@ -128,24 +128,15 @@ describe('Diff Utils', () => {
     });
 
     it('should preserve title fields when comparing bundles', () => {
-      const plugin: Plugin = {
-        tag: 'plugin/test',
-        config: {
-          field: {
-            title: undefined,
-          },
-        },
+      const original = {
+        ref: [{ url: 'https://example.com', title: 'Keep me' }],
       };
-      const pluginWithoutTitle: Plugin = {
-        tag: 'plugin/test',
-        config: {
-          field: {},
-        },
+      const modified = {
+        ref: [{ url: 'https://example.com' }],
       };
-      const original = { plugin: [plugin] };
-      const modified = { plugin: [pluginWithoutTitle] };
 
-      expect(formatBundleDiff(original)).toBe(formatBundleDiff(modified));
+      expect(JSON.parse(formatBundleDiff(original)).ref[0].title).toBe('Keep me');
+      expect(JSON.parse(formatBundleDiff(modified)).ref[0].title).toBeUndefined();
       expect(equalBundle(original, modified)).toBe(false);
     });
   });
