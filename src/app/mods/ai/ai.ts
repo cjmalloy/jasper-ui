@@ -886,7 +886,7 @@ export const llmPlugin: Plugin = {
       { tag: '+plugin/placeholder', label: $localize`⏳️`, title: $localize`Responding...` },
     ],
     // language=Handlebars
-    infoUi: `{{#if usage}}<span style="user-select:none;cursor:zoom-in" title="{{model}} ({{usage.totalTokens}})\nInput: {{usage.promptTokens}} + {{usage.cacheReadTokens}} cached + {{usage.cacheCreationTokens}} written\nOutput: {{usage.completionTokens}}">ℹ️</span>{{/if}}`,
+    infoUi: `{{#if usage}}<span style="user-select:none;cursor:zoom-in" title="{{model}} ({{usage.totalTokens}})\nInput: {{usage.promptTokens}}{{#if usage.cacheReadTokens}} + {{usage.cacheReadTokens}} cached{{/if}}{{#if usage.cacheCreationTokens}} + {{usage.cacheCreationTokens}} written{{/if}}\nOutput: {{usage.completionTokens}}">ℹ️</span>{{/if}}`,
     form: [{
       key: 'provider',
       type: 'select',
