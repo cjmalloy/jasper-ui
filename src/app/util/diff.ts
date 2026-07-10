@@ -96,7 +96,7 @@ function clearInternalFields<T>(value: T): T {
   if (!isObject(value) || DateTime.isDateTime(value)) return value;
   return Object.fromEntries(
     Object.entries(value)
-      .filter(([key]) => key !== '_cache' && key !== '_parent')
+      .filter(([key]) => !key.startsWith('_'))
       .map(([key, nested]) => [key, clearInternalFields(nested)])
   ) as T;
 }

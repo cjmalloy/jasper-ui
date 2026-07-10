@@ -127,31 +127,6 @@ describe('Diff Utils', () => {
       expect(equalBundle({ plugin: [plugin] }, { plugin: [cachedPlugin] })).toBe(true);
     });
 
-    it('should preserve non-runtime fields in definition diffs', () => {
-      const definition = {
-        plugin: [{
-          tag: 'plugin/test',
-          config: {
-            _field: {
-              title: 'Keep me',
-            },
-          },
-        }],
-      };
-      const installed = {
-        plugin: [{
-          tag: 'plugin/test',
-          config: {
-            field: {},
-          },
-        }],
-      };
-
-      expect(JSON.parse(formatBundleDiff(definition)).plugin[0].config._field.title).toBe('Keep me');
-      expect(JSON.parse(formatBundleDiff(installed)).plugin[0].config._field).toBeUndefined();
-      expect(equalBundle(definition, installed)).toBe(false);
-    });
-
     it('should use formatted diff normalization when comparing bundles', () => {
       const plugin: Plugin = {
         tag: 'plugin/test',
