@@ -251,7 +251,6 @@ export interface Visibility {
 
   //cache
   _parent?: Config;
-  _on?: boolean;
 }
 
 export function visible(ref: Ref, v: Visibility, isAuthor: boolean, isRecipient: boolean) {
