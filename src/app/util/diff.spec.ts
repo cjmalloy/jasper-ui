@@ -126,6 +126,27 @@ describe('Diff Utils', () => {
 
       expect(equalBundle({ plugin: [plugin] }, { plugin: [cachedPlugin] })).toBe(true);
     });
+
+    it('should use formatted diff normalization when comparing bundles', () => {
+      const plugin: Plugin = {
+        tag: 'plugin/test',
+        config: {
+          value: true,
+        },
+      };
+      const pluginWithUndefined: Plugin = {
+        tag: 'plugin/test',
+        config: {
+          value: true,
+          optional: undefined,
+        },
+      };
+      const original = { plugin: [plugin] };
+      const modified = { plugin: [pluginWithUndefined] };
+
+      expect(formatBundleDiff(original)).toBe(formatBundleDiff(modified));
+      expect(equalBundle(original, modified)).toBe(true);
+    });
   });
 
   describe('tryMergeRefComment', () => {
