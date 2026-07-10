@@ -1345,8 +1345,8 @@ You could respond:
     }],
     "ext": []
 }
-Also, when using a chat template, do not use notifications (starting with plugin/inbox/user/bob) to instead tag
-with the current chat (starting with chat/)
+Also, when using a chat template, do not use notification tags (starting with plugin/inbox/user/bob); instead, tag
+with the current chat (starting with chat/).
 All date times are ISO format Zulu time like: "2023-04-22T20:38:19.480464Z"
 Always add the "+plugin/delta/ai/navi" tag, as that is your signature.
 Never include a tag like "+user/chris", as that is impersonation.
