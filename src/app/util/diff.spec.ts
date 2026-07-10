@@ -127,17 +127,50 @@ describe('Diff Utils', () => {
       expect(equalBundle({ plugin: [plugin] }, { plugin: [cachedPlugin] })).toBe(true);
     });
 
-    it('should preserve title fields when comparing bundles', () => {
-      const original = {
-        ref: [{ url: 'https://example.com', title: 'Keep me' }],
+    it('should preserve non-runtime fields in definition diffs', () => {
+      const definition = {
+        plugin: [{
+          tag: 'plugin/test',
+          config: {
+            _field: {
+              title: 'Keep me',
+            },
+          },
+        }],
       };
-      const modified = {
-        ref: [{ url: 'https://example.com' }],
+      const installed = {
+        plugin: [{
+          tag: 'plugin/test',
+          config: {
+            field: {},
+          },
+        }],
       };
 
-      expect(JSON.parse(formatBundleDiff(original)).ref[0].title).toBe('Keep me');
-      expect(JSON.parse(formatBundleDiff(modified)).ref[0].title).toBeUndefined();
-      expect(equalBundle(original, modified)).toBe(false);
+      expect(JSON.parse(formatBundleDiff(definition)).plugin[0].config._field.title).toBe('Keep me');
+      expect(JSON.parse(formatBundleDiff(installed)).plugin[0].config._field).toBeUndefined();
+      expect(equalBundle(definition, installed)).toBe(false);
+    });
+
+    it('should use formatted diff normalization when comparing bundles', () => {
+      const plugin: Plugin = {
+        tag: 'plugin/test',
+        config: {
+          value: true,
+        },
+      };
+      const pluginWithUndefined: Plugin = {
+        tag: 'plugin/test',
+        config: {
+          value: true,
+          optional: undefined,
+        },
+      };
+      const original = { plugin: [plugin] };
+      const modified = { plugin: [pluginWithUndefined] };
+
+      expect(formatBundleDiff(original)).toBe(formatBundleDiff(modified));
+      expect(equalBundle(original, modified)).toBe(true);
     });
   });
 
