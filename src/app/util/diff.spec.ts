@@ -1,7 +1,8 @@
 /// <reference types="vitest/globals" />
 import { DateTime } from 'luxon';
+import { Plugin } from '../model/plugin';
 import { Ref } from '../model/ref';
-import { formatDiff, merge3 } from './diff';
+import { equalBundle, formatBundleDiff, formatDiff, merge3 } from './diff';
 
 describe('Diff Utils', () => {
   describe('formatDiff', () => {
@@ -63,6 +64,67 @@ describe('Diff Utils', () => {
       const pluginKeys = Object.keys(parsed.plugins);
 
       expect(pluginKeys).toEqual(['alpha', 'beta', 'zebra']);
+    });
+  });
+
+  describe('formatBundleDiff', () => {
+    it('should recursively sort fields', () => {
+      const plugin: Plugin = {
+        tag: 'plugin/test',
+        config: {
+          zebra: {
+            last: true,
+            first: true,
+          },
+          alpha: true,
+          mod: 'Test',
+          version: 1,
+        },
+      };
+
+      const formatted = JSON.parse(formatBundleDiff({ plugin: [plugin] }));
+      const config = formatted.plugin[0].config;
+
+      expect(Object.keys(config)).toEqual(['version', 'mod', 'alpha', 'zebra']);
+      expect(Object.keys(config.zebra)).toEqual(['first', 'last']);
+    });
+
+    it('should clear internal fields without mutating the mod', () => {
+      const cache = { compiled: () => true };
+      const plugin: Plugin = {
+        tag: 'plugin/test',
+        config: {
+          _cache: cache,
+          nested: {
+            _parent: { tag: 'plugin/parent' },
+            value: true,
+          },
+        },
+      };
+
+      const formatted = JSON.parse(formatBundleDiff({ plugin: [plugin] }));
+
+      expect(formatted.plugin[0].config).toEqual({ nested: { value: true } });
+      expect(plugin.config?._cache).toBe(cache);
+      expect((plugin.config?.nested as any)._parent).toEqual({ tag: 'plugin/parent' });
+    });
+
+    it('should ignore internal fields when comparing bundles', () => {
+      const plugin: Plugin = {
+        tag: 'plugin/test',
+        config: {
+          value: true,
+        },
+      };
+      const cachedPlugin: Plugin = {
+        tag: 'plugin/test',
+        config: {
+          value: true,
+          _cache: { compiled: () => true },
+        },
+      };
+
+      expect(equalBundle({ plugin: [plugin] }, { plugin: [cachedPlugin] })).toBe(true);
     });
   });
 
