@@ -1,5 +1,5 @@
 import { diff3Merge, MergeRegion } from 'node-diff3';
-import { isArray, isEmpty, isEqual, isObject, sortBy } from 'lodash-es';
+import { isArray, isEmpty, isObject, sortBy } from 'lodash-es';
 import { Ref, writeRef } from '../model/ref';
 import { Ext, writeExt } from '../model/ext';
 import { User, writeUser } from '../model/user';
@@ -55,7 +55,7 @@ export function formatDiff(obj: Ref | Ext | User | Plugin | Template): string {
 
 export function equalBundle(a?: Mod, b?: Mod) {
   if (!a || !b) return false;
-  return isEqual(clearMod(a, false), clearMod(b, false));
+  return formatBundleDiff(a, false) === formatBundleDiff(b, false);
 }
 
 export function clearMod<T extends Mod | undefined>(mod: T, strict = true): T {
@@ -102,8 +102,8 @@ function clearInternalFields<T>(value: T): T {
 }
 
 
-export function formatBundleDiff(mod: Mod): string {
-  mod = clearMod(mod);
+export function formatBundleDiff(mod: Mod, strict = true): string {
+  mod = clearMod(mod, strict);
   return JSON.stringify({
     ref: isEmpty(mod.ref) ? undefined : sortBy(mod.ref!, 'url').map(sortEntity),
     ext: isEmpty(mod.ext) ? undefined : sortBy(mod.ext!, 'tag').map(sortEntity),
