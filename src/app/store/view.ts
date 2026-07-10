@@ -393,13 +393,14 @@ export class ViewStore {
   }
 
   get viewExtSort() {
-    if (!['tag', 'home'].includes(this.current!)) return undefined;
+    if (this.current === 'home') return this.ext?.config?.defaultSort;
+    if (this.current !== 'tag') return undefined;
     return this.viewExt?.config?.defaultSort;
   }
 
   get viewExtFilter() {
-    if (!['tag', 'home'].includes(this.current!)) return undefined;
-    return this.viewExt?.config?.defaultFilter;
+    if (this.current !== 'home') return undefined;
+    return this.ext?.config?.defaultFilter;
   }
 
   get sort() {
@@ -424,7 +425,7 @@ export class ViewStore {
 
   get filter(): UrlFilter[] {
     const filter = this.route.routeSnapshot?.queryParams['filter'];
-    if (!filter) return [];
+    if (!filter) return this.viewExtFilter || [];
     if (!Array.isArray(filter)) return [filter]
     return filter;
   }

@@ -1443,9 +1443,17 @@ Please Reload.</source>
         <source>Default Sort:</source>
         <target>デフォルトの並べ替え:</target>
       </trans-unit>
+      <trans-unit id="2747727333672411601" datatype="html">
+        <source>+ Add sort</source>
+        <target>+ 並べ替えを追加</target>
+      </trans-unit>
       <trans-unit id="6519772743037214910" datatype="html">
         <source>Default Filter:</source>
         <target>デフォルトの絞り込み:</target>
+      </trans-unit>
+      <trans-unit id="8857746354382606226" datatype="html">
+        <source>+ Add filter</source>
+        <target>+ 絞り込みを追加</target>
       </trans-unit>
       <trans-unit id="176203672608630030" datatype="html">
         <source>Enable Modmail:</source>
