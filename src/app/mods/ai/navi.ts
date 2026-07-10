@@ -8,7 +8,7 @@ export const naviQueryPlugin: Plugin = {
   name: $localize`👻️💭️ Ask Navi`,
   config: {
     mod: $localize`👻️ Navi Chat`,
-    version: 3,
+    version: 2,
     type: 'tool',
     default: false,
     add: true,
