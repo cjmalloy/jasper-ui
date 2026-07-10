@@ -2,7 +2,7 @@ import { Component, ElementRef, Input, OnChanges, OnDestroy, SimpleChanges, View
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { filter, find, pullAll, uniq } from 'lodash-es';
-import { DateTime } from 'luxon';
+import { DateTime, Duration } from 'luxon';
 import { autorun, IReactionDisposer, toJS } from 'mobx';
 import { Ext } from '../../model/ext';
 import { FilterConfig } from '../../model/tag';
@@ -389,7 +389,17 @@ export class FilterComponent implements OnChanges, OnDestroy {
 
   toDate(filter: string) {
     if (filter.includes('/')) filter = filter.substring(filter.lastIndexOf('/') + 1);
-    return DateTime.fromISO(filter).toFormat("yyyy-MM-dd'T'T");
+    let dt: DateTime;
+    if (filter.toLowerCase() === 'now') {
+      dt = DateTime.now();
+    } else if (filter.toUpperCase().startsWith('P')) {
+      const duration = Duration.fromISO(filter.toUpperCase());
+      if (!duration.isValid) return '';
+      dt = DateTime.now().minus(duration);
+    } else {
+      dt = DateTime.fromISO(filter);
+    }
+    return dt.isValid ? dt.toFormat("yyyy-MM-dd'T'T") : '';
   }
 
 }
