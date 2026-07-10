@@ -3,7 +3,6 @@ import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/com
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { DateTime } from 'luxon';
 
 import { FilterComponent } from './filter.component';
 
@@ -31,14 +30,13 @@ describe('FilterComponent', () => {
   });
 
   describe('toDate', () => {
-    const now = DateTime.fromISO('2026-07-09T23:36:00Z');
-
     beforeEach(() => {
-      vi.spyOn(DateTime, 'now').mockReturnValue(now);
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date('2026-07-09T23:36:00Z'));
     });
 
     afterEach(() => {
-      vi.restoreAllMocks();
+      vi.useRealTimers();
     });
 
     it('parses now case-insensitively', () => {
