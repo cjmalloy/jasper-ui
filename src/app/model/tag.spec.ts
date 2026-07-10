@@ -1,4 +1,4 @@
-import { clear } from './tag';
+import { clear, uniqueConfigs, Visibility } from './tag';
 
 describe('Tag Model', () => {
   describe('clear', () => {
@@ -24,6 +24,17 @@ describe('Tag Model', () => {
 
       expect(cleared.config?.mod).toBe('📔️ Wiki');
       expect(cleared.config?.generated).toBeUndefined();
+    });
+  });
+
+  describe('uniqueConfigs', () => {
+    it('should ignore cached visibility state', () => {
+      const configs: Visibility[] = [
+        { if: 'tag', _on: true },
+        { if: 'tag', _on: false },
+      ];
+
+      expect(uniqueConfigs(configs)).toHaveLength(1);
     });
   });
 });
