@@ -8,7 +8,7 @@ export const naviQueryPlugin: Plugin = {
   name: $localize`👻️💭️ Ask Navi`,
   config: {
     mod: $localize`👻️ Navi Chat`,
-    version: 1,
+    version: 2,
     type: 'tool',
     default: false,
     add: true,
@@ -26,7 +26,7 @@ export const naviQueryPlugin: Plugin = {
       { ribbon: true, order: -2, label: $localize`✨️`,   title: $localize`Configure AI`, toggle: 'plugin/llm', remember: true },
       { ribbon: true, order: -1, label: $localize`🔎️🌐️`, title: $localize`Web Context`, toggle: 'plugin/llm/search', query: 'plugin/delta/ai/navi:plugin/llm' },
     ],
-    timeoutMs: 30_000,
+    timeoutMs: 300_000,
     language: 'javascript',
     // language=JavaScript
     script: `
@@ -46,7 +46,7 @@ export const naviQueryPlugin: Plugin = {
           'User-Tag': authors[0] || '',
         },
         params: {
-          query: '+plugin/placeholder:!+plugin/delta:' + authors.map(a => a.substring(1)).join(':') + ':' + (origin || '@'),
+          query: '+plugin/placeholder:!+plugin/delta:' + (authors.length ? authors.map(a => a.substring(1)).join(':') : '+plugin/followup') + ':' + (origin || '@'),
           responses: ref.url,
           size: 1,
         },
@@ -76,8 +76,10 @@ export const naviQueryPlugin: Plugin = {
       parents.forEach(p => context.set(p.url, p));
       for (let i = 0; i < config.maxContext; i++) {
         if (!parents.length) break;
-        const grandParents = parents.flatMap(async p => await getSources(p.url));
-        parents = grandParents.filter(g => !context.has(g.url));
+        const fetched = await Promise.all(parents.map(p => getSources(p.url)));
+        const grandParents = fetched.flat().filter(g => g && g.url);
+        parents = grandParents.filter(g => !context.has(g.url))
+          .filter((v, i, a) => a.findIndex(x => x.url === v.url) === i);
         if (context.size + parents.length > config.maxSources) {
           parents.length = config.maxSources - context.size;
         }
@@ -92,7 +94,9 @@ export const naviQueryPlugin: Plugin = {
         thread.forEach(t => context.set(t.url, t));
       }
       const tags = new Set(ref.tags);
-      for (const p of context.values()) await tags.add(...p?.tags || []);
+      for (const p of context.values()) {
+        for (const t of p?.tags || []) tags.add(t);
+      }
       const pluginCursor = (await axios.get(process.env.JASPER_API + '/pub/api/v1/repl/plugin/cursor', {
         headers: {
           'Local-Origin': origin || 'default',
@@ -153,7 +157,7 @@ export const naviQueryPlugin: Plugin = {
         }
       };
       bundle.ref.push(response);
-      response.tags.push(...authors.map(a => a.startsWith('+') || a.startsWith('_') ? a.substring(1) : a));
+      response.tags.push(...(authors.length ? authors.map(a => a.startsWith('+') || a.startsWith('_') ? a.substring(1) : a) : ['+plugin/followup']));
       if (ref.tags.includes('public')) response.tags.push('public');
       if (ref.tags.includes('internal')) response.tags.push('internal');
       if (ref.tags.includes('dm')) response.tags.push('dm', 'internal', 'plugin/thread');
@@ -228,27 +232,30 @@ the [quickstart](https://github.com/cjmalloy/jasper-ui/blob/master/quickstart/do
 docker compose file. See [Jasper App](https://github.com/cjmalloy/jasper-app) for an installable
 electron wrapper.
 
-## Knowledge Management
-
-Jasper is an open source knowledge management (KM) system. A KM system is similar to a Content Management
-System (CMS), but it does not store any content. Instead, a KM stores links to content. This means
-that adding a KM to your internal tools is quick and easy. It will create an overlay database,
-which is a small and fast index of all your content sources. Extend functionality with custom plugins,
-or embed existing dashboard panels directly to create your central business intelligence dashboard.
-
 See [Jasper-UI](https://github.com/cjmalloy/jasper-ui) for documentation on the reference client.
 
-### Centralized Business Intelligence
+## Knowledge Management
 
-Dumping all department-level data into a central data lake to perform analytics on is a massive undertaking
-with dubious potential benefit. Instead, empower departments to run their own analytics and formalize the
-reporting format to allow centralized aggregation.
+Jasper is an open source knowledge management system. It provides a generic set of tools for dealing
+with knowledge management style problems. Knowledge management type problems include:
 
-Build a Business Intelligence (BI) dashboard without building a data lake. Business departments can use
-both a push or pull model to publish their analytics, reports, results, KPIs, graphs, metrics, or alerts.
-Jasper standardises the transport, storage, searching, indexing, and retrieval of data while allowing you
-to use your existing data structures and formats. Stitch together department-level resources to create
-a central overview that explicitly describes dependencies.
+* Business Intelligence
+* Scientific Research
+* Journalism
+* Web Forums
+* Wiki (Encyclopedia)
+* Task Management
+* Libraries
+* Customer Support
+* Collaborative Writing
+* Personal Knowledge Management
+* E-mail
+
+Jasper can be configured to host all these products, individually or in combination.
+Run it as an app or a website and connect them together to build a networked system.
+Prevent data loss by having full or partial replication of data across the network.
+Safely ingest external data sources with one-way replication.
+Enforce conformity with a flexible data model, or simply collate unstructured reports.
 
 ### Security
 
@@ -258,7 +265,7 @@ in a [small, readable file](https://github.com/cjmalloy/jasper/blob/master/src/m
 
 ### Build your own client
 
-Connect to Jasper with a custom client to give users a streamlined user experience (UX). Frontend
+Connect to Jasper with a custom client to give users a streamlined user experience. Frontend
 developers can create a bespoke interface without needing to make any server side changes. Create custom
 plugins and templates and ensure data shape with [JTD](https://jsontypedef.com/docs/jtd-in-5-minutes/)
 schemas. Fork [the reference client](https://github.com/cjmalloy/jasper-ui) or use the
@@ -290,10 +297,9 @@ usually a UUID
 
 Like the [OSI model](https://en.wikipedia.org/wiki/OSI_model), Jasper's data model is defined in layers:
 
-1. **Identity Layer** - Structure and Persistence of entities
-2. **Indexing Layer** - Defining optional fields used to query, sort, filter, and transport
-3. **Validation Layer** - plugins and templates are validated
-4. **Modding Layer** - custom plugins, templates, and clients
+1. **Identity Layer** - persistence of individual entities
+2. **Indexing Layer** - query and transport of entities
+3. **Application Layer** - custom modifications
 
 ## Tagging
 
@@ -382,7 +388,7 @@ stored in Ext entities and similarly validated according to their schema.
 
 See [Jasper-UI](https://github.com/cjmalloy/jasper-ui) for examples of Plugins and Templates, such as:
 
-* \`plugin/thumbanail\`: [This plugin](https://github.com/cjmalloy/jasper-ui/blob/master/src/app/mods/thumbnail.ts)
+* \`plugin/thumbnail\`: [This plugin](https://github.com/cjmalloy/jasper-ui/blob/master/src/app/mods/thumbnail.ts)
   allows a Ref to include a URL to a thumbnail image.
 * \`user\` Template:
   [This template](https://github.com/cjmalloy/jasper-ui/blob/master/src/app/mods/user.ts)
@@ -561,7 +567,8 @@ Implementations may also make the modified date part of the composite primary ke
 **Origin:** The Origin this Plugin was replicated from, or the empty string for local.
 **Name:** The display name of this Ext. Used to customise the page title for the Tag page.
 **Config:** Arbitrary JSON.
-**Defaults:** Default plugin data if creating a new Ref with empty plugin data.
+**Defaults:** Default plugin data if creating a new Ref with empty plugin data. May be any JSON value (object, array, or
+scalar).
 **Schema:** Json Type Def (JTD) schema used to validate plugin data in Ref.
 **Modified:** Last modified date of this Plugin.
 
@@ -1338,7 +1345,7 @@ You could respond:
     }],
     "ext": []
 }
-Also, when using a chat template, do not notifications (starting with plugin/inbox/user/bob) to instead tag
+Also, when using a chat template, do not use notifications (starting with plugin/inbox/user/bob) to instead tag
 with the current chat (starting with chat/)
 All date times are ISO format Zulu time like: "2023-04-22T20:38:19.480464Z"
 Always add the "+plugin/delta/ai/navi" tag, as that is your signature.
