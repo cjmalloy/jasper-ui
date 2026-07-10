@@ -32,7 +32,7 @@ export const aiQueryPlugin: Plugin = {
           'User-Tag': authors[0] || '',
         },
         params: {
-          query: '+plugin/placeholder:!+plugin/delta:' + (authors.length ? authors.map(a => a.substring(1)).join(':') : '+plugin/followup') + ':' + (origin || '@'),
+          query: '+plugin/placeholder:!+plugin/delta:' + (origin || '@'),
           responses: ref.url,
           size: 1,
         },
