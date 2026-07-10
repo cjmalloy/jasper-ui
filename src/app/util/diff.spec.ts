@@ -127,25 +127,26 @@ describe('Diff Utils', () => {
       expect(equalBundle({ plugin: [plugin] }, { plugin: [cachedPlugin] })).toBe(true);
     });
 
-    it('should use formatted diff normalization when comparing bundles', () => {
+    it('should preserve title fields when comparing bundles', () => {
       const plugin: Plugin = {
         tag: 'plugin/test',
         config: {
-          value: true,
+          field: {
+            title: undefined,
+          },
         },
       };
-      const pluginWithUndefined: Plugin = {
+      const pluginWithoutTitle: Plugin = {
         tag: 'plugin/test',
         config: {
-          value: true,
-          optional: undefined,
+          field: {},
         },
       };
       const original = { plugin: [plugin] };
-      const modified = { plugin: [pluginWithUndefined] };
+      const modified = { plugin: [pluginWithoutTitle] };
 
       expect(formatBundleDiff(original)).toBe(formatBundleDiff(modified));
-      expect(equalBundle(original, modified)).toBe(true);
+      expect(equalBundle(original, modified)).toBe(false);
     });
   });
 
