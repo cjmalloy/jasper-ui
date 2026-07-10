@@ -8,7 +8,7 @@ export const naviQueryPlugin: Plugin = {
   name: $localize`👻️💭️ Ask Navi`,
   config: {
     mod: $localize`👻️ Navi Chat`,
-    version: 2,
+    version: 3,
     type: 'tool',
     default: false,
     add: true,
@@ -75,15 +75,20 @@ export const naviQueryPlugin: Plugin = {
       let parents = await getSources(ref.url);
       parents.forEach(p => context.set(p.url, p));
       for (let i = 0; i < config.maxContext; i++) {
-        if (!parents.length) break;
-        const fetched = await Promise.all(parents.map(p => getSources(p.url)));
-        const grandParents = fetched.flat().filter(g => g && g.url);
-        parents = grandParents.filter(g => !context.has(g.url))
-          .filter((v, i, a) => a.findIndex(x => x.url === v.url) === i);
-        if (context.size + parents.length > config.maxSources) {
-          parents.length = config.maxSources - context.size;
+        if (!parents.length || context.size >= config.maxSources) break;
+        const grandParents = [];
+        for (const parent of parents) {
+          if (context.size >= config.maxSources) break;
+          const fetched = await getSources(parent.url);
+          for (const grandParent of fetched) {
+            if (grandParent?.url && !context.has(grandParent.url)) {
+              grandParents.push(grandParent);
+              context.set(grandParent.url, grandParent);
+              if (context.size >= config.maxSources) break;
+            }
+          }
         }
-        parents.forEach(p => context.set(p.url, p));
+        parents = grandParents;
       }
       if (ref.sources?.length && context.size < config.maxSources && ref.tags.includes('plugin/thread')) {
         const source =  ref.sources[ref.sources.length === 1 ? 0 : 1];
