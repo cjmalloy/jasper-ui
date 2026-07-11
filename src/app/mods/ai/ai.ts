@@ -24,6 +24,7 @@ export const aiQueryPlugin: Plugin = {
       const origin = ref.origin || '';
       const matchesTag = (prefix, tag) => prefix === tag || tag.startsWith(prefix + '/');
       const hasTag = (tag, ref) => ref.tags?.find(t => matchesTag(tag, t));
+      const uniq = (v, i, a) => a.indexOf(v) === i;
       const followup = hasTag('+plugin/delta/ai', ref);
       const authors = ref.tags.filter(tag => tag === '+user' || tag === '_user' || tag.startsWith('+user/') || tag.startsWith('_user/'));
       const response = (await axios.get(process.env.JASPER_API + '/api/v1/ref/page', {
@@ -644,74 +645,81 @@ export const aiQueryPlugin: Plugin = {
           console.error(e.response.data);
           throw new Error(e);
         })).data.content;
+      const mediaLogs = [];
+      const attachMediaLog = (source, comment) => {
+        const tags = ['internal', '+plugin/log'];
+        if (hasTag('public', source)) tags.push('public');
+        if ((source.origin || '') === origin) {
+          tags.push(...(source.tags || []).filter(t => matchesTag('_user', t)).map(t => t.substring(1)));
+        }
+        mediaLogs.push({
+          url: 'error:' + uuid.v4(),
+          sources: [source.url],
+          title: 'AI media ingestion',
+          comment,
+          tags: tags.filter(uniq),
+        });
+      };
+      const mediaTypes = [
+        { plugin: 'plugin/pdf', config: 'pdf' },
+        { plugin: 'plugin/image', config: 'image' },
+        { plugin: 'plugin/audio', config: 'audio' },
+        { plugin: 'plugin/video', config: 'video' },
+        { plugin: 'plugin/file', config: null },
+      ];
+      const mediaMessages = [];
       for (const c of sources) {
         if (config.ignoreThread && ref.sources && c.url === ref.sources[1] && ref.sources[0] !== ref.sources[1]) continue;
         const plugins = {};
         if (config.embed && hasTag('plugin/embed', c)) {
           plugins['plugin/embed'] = c.plugins?.['plugin/embed']?.url || c.url;
         }
-        if (config.pdf && hasTag('plugin/pdf', c)) {
-          const url = c.plugins?.['plugin/pdf']?.url || c.url;
-          plugins['plugin/pdf'] = await axios.get(process.env.JASPER_API + '/pub/api/v1/repl/cache', {
-            responseType: 'arraybuffer',
-            headers: {
-              'Local-Origin': origin || 'default',
-              'User-Tag': authors[0] || '',
-            },
-            params: { url, origin: c.origin || '' },
-          }).catch(e => {
-          console.error(e.response.data);
-          throw new Error(e);
-        });
+        for (const media of mediaTypes) {
+          if (!hasTag(media.plugin, c)) continue;
+          if (!media.config || !config[media.config]) {
+            attachMediaLog(c, config.provider + ' (' + config.model + ') does not support ' + media.plugin + ' input.');
+            continue;
+          }
+          const url = c.plugins?.[media.plugin]?.url || c.url;
+          try {
+            plugins[media.plugin] = await axios.get(process.env.JASPER_API + '/pub/api/v1/repl/cache', {
+              responseType: 'arraybuffer',
+              headers: {
+                'Local-Origin': origin || 'default',
+                'User-Tag': authors[0] || '',
+              },
+              params: { url, origin: c.origin || '' },
+            });
+          } catch (e) {
+            console.error(e.response?.data || e.message);
+            attachMediaLog(c, 'Could not load ' + media.plugin + ' input from ' + url + '.');
+          }
         }
-        if (config.image && hasTag('plugin/image', c)) {
-          const url = c.plugins?.['plugin/image']?.url || c.url;
-          plugins['plugin/image'] = await axios.get(process.env.JASPER_API + '/pub/api/v1/repl/cache', {
-            responseType: 'arraybuffer',
-            headers: {
-              'Local-Origin': origin || 'default',
-              'User-Tag': authors[0] || '',
-            },
-            params: { url, origin: c.origin || '' },
-          }).catch(e => {
-          console.error(e.response.data);
-          throw new Error(e);
-        });
-        }
-        if (config.audio && hasTag('plugin/audio', c)) {
-          const url = c.plugins?.['plugin/audio']?.url || c.url;
-          plugins['plugin/audio'] = await axios.get(process.env.JASPER_API + '/pub/api/v1/repl/cache', {
-            responseType: 'arraybuffer',
-            headers: {
-              'Local-Origin': origin || 'default',
-              'User-Tag': authors[0] || '',
-            },
-            params: { url, origin: c.origin || '' },
-          }).catch(e => {
-          console.error(e.response.data);
-          throw new Error(e);
-        });
-        }
-        if (config.video && hasTag('plugin/video', c)) {
-          const url = c.plugins?.['plugin/video']?.url || c.url;
-          plugins['plugin/video'] = await axios.get(process.env.JASPER_API + '/pub/api/v1/repl/cache', {
-            responseType: 'arraybuffer',
-            headers: {
-              'Local-Origin': origin || 'default',
-              'User-Tag': authors[0] || '',
-            },
-            params: { url, origin: c.origin || '' },
-          }).catch(e => {
-          console.error(e.response.data);
-          throw new Error(e);
-        });
+        if (Object.keys(plugins).some(plugin => plugin !== 'plugin/embed')) {
+          mediaMessages.push({ index: messages.length, source: c });
         }
         messages.push({
           role: hasTag('+plugin/delta/ai', c) ? 'assistant' : 'user',
           ...provider.loadMessage(c, plugins),
         });
       }
-      let { completion, files, usage, res } = await provider.generate(messages, config);
+      let generated;
+      try {
+        generated = await provider.generate(messages, config);
+      } catch (e) {
+        const status = e.status || e.response?.status;
+        if (!mediaMessages.length || ![400, 415, 422].includes(status)) throw e;
+        console.error(e.response?.data || e.message);
+        for (const media of mediaMessages) {
+          messages[media.index] = {
+            role: hasTag('+plugin/delta/ai', media.source) ? 'assistant' : 'user',
+            ...provider.loadMessage(media.source),
+          };
+          attachMediaLog(media.source, config.provider + ' (' + config.model + ') rejected the media input.');
+        }
+        generated = await provider.generate(messages, config);
+      }
+      let { completion, files, usage, res } = generated;
       usage = {
         ...usage,
         prompt_tokens: usage?.prompt_tokens ?? 0,
@@ -808,7 +816,6 @@ export const aiQueryPlugin: Plugin = {
         response.tags.push(...mailboxes, ...authors.map(tag => 'plugin/inbox/' + tag.substring(1)));
       }
       response.tags.push(...ref.tags.filter(t => matchesTag('plugin/delta/ai', t)).map(t => '+' + t));
-      const uniq = (v, i, a) => a.indexOf(v) === i;
       response.tags = [...response.tags, ...completionRef.tags || [], '+plugin/delta/ai'].filter(uniq).filter(t => t !== '+plugin/placeholder');
       if (followup && hasTag('plugin/delta/ai', response)) {
         // Only allow one cycle of follow-ups
@@ -870,6 +877,7 @@ export const aiQueryPlugin: Plugin = {
           }
         }
       }
+      bundle.ref.push(...mediaLogs);
       if (hasTag('+plugin/debug', ref)) {
         // console.error('\`\`\`json\\n' + debugJson + '\\n\`\`\`');
         bundle.ref.push({
