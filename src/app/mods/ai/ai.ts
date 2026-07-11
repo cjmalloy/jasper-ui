@@ -891,7 +891,7 @@ export const aiQueryPlugin: Plugin = {
             r.tags.push(plugin);
           }
         } else {
-          if (oldUrl && !oldUrl.startsWith('add:')) continue;
+          if (i !== 0 && oldUrl && !oldUrl.startsWith('add:')) continue;
           newUrl = i === 0 ? r.url : r.url = 'ai:' + uuid.v4();
         }
         if (!oldUrl) continue;
