@@ -24,6 +24,14 @@ export const aiQueryPlugin: Plugin = {
       const origin = ref.origin || '';
       const matchesTag = (prefix, tag) => prefix === tag || tag.startsWith(prefix + '/');
       const hasTag = (tag, ref) => ref.tags?.find(t => matchesTag(tag, t));
+      const isPublicTag = tag => !tag.startsWith('_') && !tag.startsWith('+');
+      const publicTag = tag => isPublicTag(tag) ? tag : tag.substring(1);
+      const capturesDownwards = (upper, lower) => {
+        if (matchesTag(upper, lower)) return true;
+        if (isPublicTag(upper)) return false;
+        if (upper.startsWith('_')) return matchesTag(publicTag(upper), publicTag(lower));
+        return matchesTag(publicTag(upper), lower);
+      };
       const uniq = (v, i, a) => a.indexOf(v) === i;
       const followup = hasTag('+plugin/delta/ai', ref);
       const authors = ref.tags.filter(tag => tag === '+user' || tag === '_user' || tag.startsWith('+user/') || tag.startsWith('_user/'));
@@ -650,7 +658,7 @@ export const aiQueryPlugin: Plugin = {
         const tags = ['internal', '+plugin/log'];
         if (hasTag('public', source)) tags.push('public');
         if ((source.origin || '') === origin) {
-          tags.push(...(source.tags || []).filter(t => matchesTag('_user', t)).map(t => t.substring(1)));
+          tags.push(...(source.tags || []).filter(t => capturesDownwards('_user', t)).map(publicTag));
         }
         mediaLogs.push({
           url: 'error:' + uuid.v4(),
