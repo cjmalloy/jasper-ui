@@ -231,6 +231,7 @@ export const aiQueryPlugin: Plugin = {
             const message = providers['openai'].loadMessage(source, plugins);
             for (const plugin of ['plugin/pdf', 'plugin/file']) {
               if (!plugins[plugin]) continue;
+              if (plugin === 'plugin/file' && ['plugin/pdf', 'plugin/image', 'plugin/audio', 'plugin/video'].some(p => hasTag(p, source))) continue;
               const url = source.plugins?.[plugin]?.url || source.url || '';
               message.content.push({
                 type: 'xai_file',
@@ -742,7 +743,7 @@ export const aiQueryPlugin: Plugin = {
         generated = await provider.generate(messages, config);
       } catch (e) {
         const status = e.status || e.response?.status;
-        if (!mediaMessages.length || ![400, 415, 422].includes(status)) throw e;
+        if (!mediaMessages.length || ![400, 413, 415, 422].includes(status)) throw e;
         console.error(e.response?.data || e.message);
         for (const media of mediaMessages) {
           messages[media.index] = {
