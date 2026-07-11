@@ -7,6 +7,7 @@ export const dalleQueryPlugin: Plugin = {
   name: $localize`👨️‍🎨️💭️ Ask DALL·E`,
   config: {
     mod: $localize`👨️‍🎨️ DALL·E Chat`,
+    version: 1,
     type: 'tool',
     default: false,
     add: true,
@@ -135,7 +136,10 @@ export const dalleQueryPlugin: Plugin = {
           'User-Role': 'ROLE_ADMIN',
         },
         params: { query: (config?.apiKeyTag || '+plugin/secret/openai') + origin },
-      })).data.content[0].comment;
+      }).catch(e => {
+          console.error(e.response.data);
+          throw new Error(e);
+        })).data.content[0].comment;
       const openai = new OpenAi({ apiKey });
       const gen = await openai.images.generate({
         model: config?.model || 'dall-e-3',
@@ -187,6 +191,9 @@ export const dalleQueryPlugin: Plugin = {
             'Content-Type': 'image/png',
           },
           params: { origin, mime: 'image/png' },
+        }).catch(e => {
+          console.error(e.response.data);
+          throw new Error(e);
         })).data;
         delete cache.metadata;
         console.log(JSON.stringify({
@@ -284,6 +291,7 @@ export const dallePlugin: Plugin = {
   name: $localize`👨️‍🎨️ DALL·E`,
   config: {
     mod: $localize`👨️‍🎨️ DALL·E Chat`,
+    version: 1,
     type: 'tool',
     default: false,
     genId: true,

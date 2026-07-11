@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, concat, concatMap, generate, last, Observable, of } from 'rxjs';
 import { tap } from 'rxjs/operators';
@@ -21,6 +21,7 @@ import { LoadingComponent } from '../loading/loading.component';
   templateUrl: './debug.component.html',
   styleUrls: ['./debug.component.scss'],
   host: { 'class': 'debug actions' },
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [LoadingComponent]
 })
 export class DebugComponent {

@@ -4,7 +4,7 @@ import { runInAction } from 'mobx';
 import { catchError, Observable, of, switchMap } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Ref } from '../model/ref';
-import { isPushing, isReplicating } from '../mods/origin';
+import { isPushing, isReplicating } from '../mods/sync/origin';
 import { Store } from '../store/store';
 import { defaultOrigin, subOrigin } from '../util/tag';
 import { AdminService } from './admin.service';

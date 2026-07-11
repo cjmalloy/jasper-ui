@@ -1,5 +1,5 @@
 import { AsyncPipe } from '@angular/common';
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import {
   AbstractControl,
   AsyncValidatorFn,
@@ -29,7 +29,7 @@ import { VideoUploadComponent } from '../../formly/video-upload/video-upload.com
 import { Page } from '../../model/page';
 import { Plugin } from '../../model/plugin';
 import { Ref } from '../../model/ref';
-import { isWiki, wikiUriFormat } from '../../mods/wiki';
+import { isWiki, wikiUriFormat } from '../../mods/org/wiki';
 import { TagPreviewPipe } from '../../pipe/tag-preview.pipe';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
@@ -47,6 +47,7 @@ type Validation = { test: (url: string) => Observable<any>; name: string; passed
   selector: 'app-submit-page',
   templateUrl: './submit.component.html',
   styleUrls: ['./submit.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     RefComponent,
     MobxAngularModule,

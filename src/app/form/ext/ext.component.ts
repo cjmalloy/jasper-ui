@@ -4,10 +4,12 @@ import {
   Component,
   ElementRef,
   EventEmitter,
+  forwardRef,
   Input,
   OnDestroy,
   Output,
-  ViewChild
+  ViewChild,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import {
   FormArray,
@@ -44,9 +46,10 @@ import { themesForm, ThemesFormComponent } from '../themes/themes.component';
   templateUrl: './ext.component.html',
   styleUrls: ['./ext.component.scss'],
   host: { 'class': 'nested-form' },
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
-    RefComponent,
-    EditorComponent,
+    forwardRef(() => RefComponent),
+    forwardRef(() => EditorComponent),
     ReactiveFormsModule,
     FormlyForm,
     CdkDropListGroup,
@@ -273,13 +276,25 @@ export class ExtFormComponent implements OnDestroy {
 
 export function extForm(fb: UntypedFormBuilder, ext: Ext | undefined, admin: AdminService, locked: boolean) {
   let configControls = {};
-  if (admin.getTemplate('')) {
+  if (admin.getTemplate('') && !hasPrefix(ext?.tag, 'config')) {
     configControls = {
       ...configControls,
       defaultSort: [[]],
       defaultFilter: [[]],
       sidebar: [''],
       popover: [''],
+      modmail: [false],
+      pinned: linksForm(fb, ext?.config?.pinned || []),
+      themes: themesForm(fb, ext?.config?.themes || []),
+      theme: [''],
+    };
+  }
+  if (admin.home && hasPrefix(ext?.tag, 'config/home')) {
+    configControls = {
+      ...configControls,
+      defaultSort: [[]],
+      defaultFilter: [[]],
+      sidebar: [''],
       modmail: [false],
       pinned: linksForm(fb, ext?.config?.pinned || []),
       themes: themesForm(fb, ext?.config?.themes || []),

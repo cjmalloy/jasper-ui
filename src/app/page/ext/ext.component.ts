@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, HostBinding, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, HostBinding, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import {
   ReactiveFormsModule,
   UntypedFormBuilder,
@@ -33,6 +33,7 @@ import { access, hasPrefix, localTag, prefix } from '../../util/tag';
   selector: 'app-ext-page',
   templateUrl: './ext.component.html',
   styleUrls: ['./ext.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     MobxAngularModule,
     RouterLink,
@@ -237,7 +238,7 @@ export class ExtPage implements OnInit, OnDestroy, HasChanges {
     ).subscribe(() => {
       delete this.editing;
       this.editForm.markAsPristine();
-      if (ext.tag === 'config/home' && this.admin.getTemplate('config/home')) {
+      if (ext.tag === 'config/home' && this.admin.home) {
         this.router.navigate(['/home']);
       } else {
         this.router.navigate(['/tag', ext.tag]);

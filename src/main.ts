@@ -3,7 +3,7 @@
 import { DragDropModule } from '@angular/cdk/drag-drop';
 import { FullscreenOverlayContainer, OverlayContainer, OverlayModule } from '@angular/cdk/overlay';
 import { ScrollingModule } from '@angular/cdk/scrolling';
-import { HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
 import {
   APP_INITIALIZER,
   enableProdMode,
@@ -12,7 +12,7 @@ import {
   provideZoneChangeDetection
 } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
-import { bootstrapApplication, BrowserModule, HAMMER_GESTURE_CONFIG, HammerModule } from '@angular/platform-browser';
+import { bootstrapApplication, BrowserModule } from '@angular/platform-browser';
 import { ServiceWorkerModule } from '@angular/service-worker';
 import { Settings } from 'luxon';
 import { MobxAngularModule } from 'mobx-angular';
@@ -23,14 +23,13 @@ import { tap } from 'rxjs/operators';
 import { AppRoutingModule } from './app/app-routing.module';
 import { AppComponent } from './app/app.component';
 import { JasperFormlyModule } from './app/formly/formly.module';
-import { HammerConfig } from './app/hammer.config';
 import { AuthInterceptor } from './app/http/auth.interceptor';
 import { CsrfInterceptor } from './app/http/csrf.interceptor';
 import { RateLimitInterceptor } from './app/http/rate-limit.interceptor';
 import { AccountService } from './app/service/account.service';
 import { AdminService } from './app/service/admin.service';
 import { ExtService } from './app/service/api/ext.service';
-import { ConfigService } from './app/service/config.service';
+import { config, ConfigService } from './app/service/config.service';
 import { DebugService } from './app/service/debug.service';
 import { ModService } from './app/service/mod.service';
 import { OriginMapService } from './app/service/origin-map.service';
@@ -38,11 +37,23 @@ import { OriginMapService } from './app/service/origin-map.service';
 
 import { environment } from './environments/environment';
 
-import 'hammerjs';
-
 const loadFactory = (config: ConfigService, debug: DebugService, admin: AdminService, account: AccountService, origins: OriginMapService, mods: ModService, exts: ExtService) => () =>
   config.load$.pipe(
     tap(() => console.log('-{1}- Loading Jasper')),
+    tap(() => {
+      if (!config.pwa) {
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.getRegistration()
+            .then(registration => registration?.unregister())
+            .catch(err => console.error(err));
+        }
+        if ('caches' in window) {
+          caches.keys()
+            .then(keys => keys.filter(key => key.startsWith('ngsw:')).forEach(key => caches.delete(key)))
+            .catch(err => console.error(err));
+        }
+      }
+    }),
     tap(() => Settings.defaultLocale = document.documentElement.lang),
     switchMap(() => debug.init$),
     tap(() => console.log('-{2}- Authorizing')),
@@ -77,7 +88,6 @@ bootstrapApplication(AppComponent, {
     provideZoneChangeDetection({ eventCoalescing: true, runCoalescing: true }),
     importProvidersFrom(
       BrowserModule,
-      HammerModule,
       AppRoutingModule,
       ReactiveFormsModule,
       MobxAngularModule,
@@ -89,17 +99,18 @@ bootstrapApplication(AppComponent, {
       JasperFormlyModule,
       ServiceWorkerModule.register('ngsw-worker.js', {
         scope: '.',
-        enabled: !isDevMode() && location.hostname != 'localhost',
+        get enabled() {
+          return !isDevMode() && location.hostname != 'localhost' && config().pwa;
+        },
         // Register the ServiceWorker as soon as the application is stable
         // or after 30 seconds (whichever comes first).
         registrationStrategy: 'registerWhenStable:30000'
       })),
-    provideHttpClient(withInterceptorsFromDi()),
+    provideHttpClient(withXhr(), withInterceptorsFromDi()),
     { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptor, multi: true },
     { provide: HTTP_INTERCEPTORS, useClass: CsrfInterceptor, multi: true },
     { provide: HTTP_INTERCEPTORS, useClass: RateLimitInterceptor, multi: true },
     { provide: OverlayContainer, useClass: FullscreenOverlayContainer },
-    { provide: HAMMER_GESTURE_CONFIG, useClass: HammerConfig },
     {
       provide: APP_INITIALIZER,
       useFactory: loadFactory,

@@ -1,6 +1,6 @@
 /// <reference types="vitest/globals" />
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideRouter } from '@angular/router';
 import { NGX_MONACO_EDITOR_CONFIG } from 'ngx-monaco-editor';
@@ -8,14 +8,14 @@ import { ConfigService } from '../../service/config.service';
 import { DiffComponent } from './diff.component';
 
 describe('DiffComponent', () => {
-  let component: DiffComponent;
-  let fixture: ComponentFixture<DiffComponent>;
+  let component: DiffComponent<any>;
+  let fixture: ComponentFixture<DiffComponent<any>>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [DiffComponent],
       providers: [
-        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClient(withXhr(), withInterceptorsFromDi()),
         provideHttpClientTesting(),
         provideRouter([]),
         {
@@ -61,6 +61,18 @@ describe('DiffComponent', () => {
 
   it('should have automaticLayout enabled', () => {
     expect(component.options.automaticLayout).toBe(true);
+  });
+
+  it('should disable the resize handle when resizable is false', () => {
+    fixture.destroy();
+    fixture = TestBed.createComponent(DiffComponent);
+    component = fixture.componentInstance;
+    component.original = { url: 'http://test.com', origin: '', title: 'Original' };
+    component.modified = { url: 'http://test.com', origin: '', title: 'Modified' };
+    component.resizable = false;
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('.resize-handle')).toBeFalsy();
   });
 
   it('should return parsed JSON from getModifiedContent', () => {

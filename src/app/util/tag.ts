@@ -150,6 +150,7 @@ export function isAuthorTag(tag: string, ref?: Ref) {
 }
 
 export function isOwnerTag(tag: string, ref?: Ref) {
+  if (publicTag(tag)) return false;
   if (ref?.origin !== tagOrigin(tag)) return false;
   return hasDownwardsTag(localTag(tag), ref);
 }

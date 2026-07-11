@@ -1,10 +1,10 @@
 import { Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { TemplatePortal } from '@angular/cdk/portal';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, ElementRef, HostBinding, Input, TemplateRef, ViewChild, ViewContainerRef } from '@angular/core';
+import { Component, ElementRef, HostBinding, Input, TemplateRef, ViewChild, ViewContainerRef, ChangeDetectionStrategy } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { catchError, Observable, throwError } from 'rxjs';
+import { catchError, Observable, of, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { BackupOptions } from '../../model/backup';
 import { AdminService } from '../../service/admin.service';
@@ -18,6 +18,7 @@ import { ConfirmActionComponent } from '../action/confirm-action/confirm-action.
   selector: 'app-backup',
   templateUrl: './backup.component.html',
   styleUrls: ['./backup.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [RouterLink, ConfirmActionComponent, ReactiveFormsModule]
 })
 export class BackupComponent {
@@ -96,26 +97,18 @@ export class BackupComponent {
         offsetY: 4,
       }]);
     this.restoreOptionsRef = this.overlay.create({
-      hasBackdrop: true,
-      backdropClass: 'hide',
+      hasBackdrop: false,
       positionStrategy,
-      scrollStrategy: this.overlay.scrollStrategies.close()
+      scrollStrategy: this.overlay.scrollStrategies.reposition()
     });
     this.restoreOptionsRef.attach(new TemplatePortal(this.restoreOptionsTemplate, this.viewContainerRef));
-    this.restoreOptionsRef.backdropClick().subscribe(() => this.cancelRestore());
   }
 
   restore$ = () => {
-    // Show options popup
-    this.showRestoreOptions();
-    // Return an observable that will be resolved when user clicks OK
-    return new Observable(observer => {
-      // Store the observer so we can complete it later
-      this.restoreObserver = observer;
-    });
+    return of(null).pipe(
+      tap(() => this.showRestoreOptions()),
+    );
   }
-
-  private restoreObserver: any = null;
 
   confirmRestore() {
     const options: BackupOptions = {
@@ -131,29 +124,16 @@ export class BackupComponent {
     this.backups.restore(this.origin, this.id, options).pipe(
       catchError((err: HttpErrorResponse) => {
         this.serverError = printError(err);
-        if (this.restoreObserver) {
-          this.restoreObserver.error(err);
-          this.restoreObserver = null;
-        }
         return throwError(() => err);
       }),
       tap(() => {
         this.serverError = [];
-        if (this.restoreObserver) {
-          this.restoreObserver.next();
-          this.restoreObserver.complete();
-          this.restoreObserver = null;
-        }
       }),
     ).subscribe();
   }
 
   cancelRestore() {
     this.closeRestoreOptions();
-    if (this.restoreObserver) {
-      this.restoreObserver.error(new Error('cancelled'));
-      this.restoreObserver = null;
-    }
   }
 
   closeRestoreOptions() {

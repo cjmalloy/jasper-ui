@@ -3,11 +3,13 @@
   "compileOnSave": false,
   "compilerOptions": {
     "baseUrl": "./",
+    "ignoreDeprecations": "6.0",
     "outDir": "./dist/out-tsc",
     "forceConsistentCasingInFileNames": true,
     "esModuleInterop": true,
     "strict": true,
     "noImplicitOverride": true,
+    "allowSyntheticDefaultImports": true,
     "noPropertyAccessFromIndexSignature": false,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
@@ -19,10 +21,6 @@
     "importHelpers": true,
     "target": "ES2022",
     "module": "esnext",
-    "lib": [
-      "es2020",
-      "dom"
-    ],
     "useDefineForClassFields": false
   },
   "angularCompilerOptions": {
@@ -34,5 +32,5 @@
   "include": [
     "src/**/*.ts"
   ],
-  "exclude": ["cypress"]
+  "exclude": ["e2e"]
 }

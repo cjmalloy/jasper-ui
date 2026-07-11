@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { Router } from '@angular/router';
 import { defer } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
@@ -16,13 +16,14 @@ import { getArgs } from '../../../util/query';
   templateUrl: './modlist.component.html',
   styleUrls: ['./modlist.component.scss'],
   host: { 'class': 'modlist' },
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [MobxAngularModule, RefListComponent]
 })
 export class InboxModlistPage implements OnInit, OnDestroy, HasChanges {
 
   private disposers: IReactionDisposer[] = [];
 
-  @ViewChild(RefListComponent)
+  @ViewChild('list')
   list?: RefListComponent;
 
   constructor(

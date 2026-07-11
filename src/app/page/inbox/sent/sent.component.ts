@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { defer } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import { MobxAngularModule } from 'mobx-angular';
@@ -15,13 +15,14 @@ import { getArgs } from '../../../util/query';
   templateUrl: './sent.component.html',
   styleUrls: ['./sent.component.scss'],
   host: { 'class': 'inbox-sent' },
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [MobxAngularModule, RefListComponent]
 })
 export class InboxSentPage implements OnInit, OnDestroy, HasChanges {
 
   private disposers: IReactionDisposer[] = [];
 
-  @ViewChild(RefListComponent)
+  @ViewChild('list')
   list?: RefListComponent;
 
   constructor(

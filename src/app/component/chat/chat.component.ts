@@ -1,6 +1,6 @@
 import { CdkFixedSizeVirtualScroll, CdkVirtualForOf, CdkVirtualScrollViewport } from '@angular/cdk/scrolling';
 import { HttpEventType } from '@angular/common/http';
-import { Component, Input, OnChanges, OnDestroy, SimpleChanges, ViewChild } from '@angular/core';
+import { Component, Input, OnChanges, OnDestroy, SimpleChanges, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { debounce, defer, delay, pull, pullAllWith, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
@@ -22,7 +22,7 @@ import { AutofocusDirective } from '../../directive/autofocus.directive';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ref } from '../../model/ref';
 import { EditorButton, sortOrder } from '../../model/tag';
-import { mimeToCode } from '../../mods/code';
+import { mimeToCode } from '../../mods/media/code';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { ProxyService } from '../../service/api/proxy.service';
@@ -36,7 +36,7 @@ import { Store } from '../../store/store';
 import { readFileAsDataURL, readFileAsString } from '../../util/async';
 import { URI_REGEX } from '../../util/format';
 import { getArgs } from '../../util/query';
-import { braces, tagOrigin } from '../../util/tag';
+import { braces, hasTag, tagOrigin } from '../../util/tag';
 import { LoadingComponent } from '../loading/loading.component';
 import { ChatEntryComponent } from './chat-entry/chat-entry.component';
 
@@ -55,6 +55,7 @@ export interface ChatUpload {
   templateUrl: './chat.component.html',
   styleUrls: ['./chat.component.scss'],
   host: { 'class': 'chat ext' },
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     ChatEntryComponent,
     LoadingComponent,
@@ -74,7 +75,7 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
   @Input()
   responseOf?: Ref;
 
-  @ViewChild(CdkVirtualScrollViewport)
+  @ViewChild('viewport')
   viewport!: CdkVirtualScrollViewport;
 
   cursors = new Map<string, string | undefined>();
@@ -87,6 +88,7 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
   sending: Ref[] = [];
   errored: Ref[] = [];
   scrollLock?: number;
+  notAtBottom = false;
   uploads: ChatUpload[] = [];
   dropping = false;
 
@@ -210,7 +212,7 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
       this.setPoll(!page.content.length);
       this.messages ||= [];
       if (!page.content.length) return;
-      this.messages = [...this.messages, ...page.content];
+      this.messages = [...this.messages, ...page.content.filter(r => !hasTag('+plugin/placeholder', r))];
       const last = page.content[page.content.length - 1];
       this.cursors.set(origin, last?.modifiedString);
       // TODO: verify read before clearing?
@@ -255,7 +257,7 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
           this.cursors.set(ref.origin!, ref.modifiedString);
         }
       }
-      this.messages = [...page.content.reverse(), ...this.messages];
+      this.messages = [...page.content.reverse().filter(r => !hasTag('+plugin/placeholder', r)), ...this.messages];
       pullAllWith(this.sending, page.content, (a, b) => a.url === b.url);
       defer(() => this.viewport.checkViewportSize());
       if (scrollDown) {
@@ -280,6 +282,13 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
         delay(() => this.viewport.scrollToIndex(this.lastScrolled, 'smooth'), wait);
       }
     });
+  }
+
+  scrollToBottom() {
+    this.scrollLock = undefined;
+    this.viewport.scrollTo({ bottom: 0, behavior: 'smooth' })
+    this.viewport.checkViewportSize();
+    delay(() => this.viewport.scrollToIndex(this.messages!.length - 1, 'smooth'), 400);
   }
 
   fetch() {
@@ -405,6 +414,7 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
   }
 
   onScroll(index: number) {
+    this.notAtBottom = this.viewport.measureScrollOffset('bottom') > this.itemSize;
     if (!this.scrollLock) return;
     // TODO: count height in rows
     const diff = this.scrollLock - index;

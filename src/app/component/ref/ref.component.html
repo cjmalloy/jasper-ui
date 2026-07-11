@@ -16,15 +16,19 @@
       <div class="thumbnail"
            [style.background-image]="thumbnailRefs | thumbnail | async | cssUrl"
            [style.background-color]="thumbnailColor"
+           [style.background-size]="thumbnailRadius ? 'cover' : 'contain'"
            [style.border-radius.px]="thumbnailRadius">{{ thumbnailEmoji }}</div>
     } @else if (thumbnail) {
       <div class="thumbnail"
            [style.background-image]="thumbnailRefs | thumbnail: true | async | cssUrl"
+           [style.background-size]="thumbnailRadius ? 'cover' : 'contain'"
            [style.border-radius.px]="thumbnailRadius">{{ thumbnailEmoji }}</div>
     } @else if (thumbnailEmojiDefaults) {
       <div class="thumbnail">{{ thumbnailEmojiDefaults }}</div>
     } @else {
-      <div class="thumbnail" [class.default-thumbnail]="true"></div>
+      <div class="thumbnail"
+           [class.default-thumbnail]="true"
+           [class.has-storyboard-default]="storyboardData"></div>
     }
   }
   <div class="stack">
@@ -35,6 +39,8 @@
          [attr.title]="altText">
       @if (tagLink) {
         <app-nav [url]="url" [text]="title"></app-nav>
+      } @else if (editingLink) {
+        <a [routerLink]="editingLink.routerLink" [queryParams]="editingLink.queryParams">{{ title }}</a><wbr>
       } @else if (clickableLink) {
         <app-nav [url]="link" [text]="title" [external]="true"></app-nav>
       } @else {
@@ -99,7 +105,7 @@
           @if (tags.length) {
             <span i18n> tagged
               @if (tagExts$ | async; as xs) {
-                @for (x of xs; track x.tag) {
+                @for (x of xs; track x) {
                   <a class="tag"
                      [routerLink]="['/tag', x.tag]"
                      [appTitle]="'#' + x.tag">{{ x.name || '#' + x.tag }}</a>
@@ -174,7 +180,7 @@
           }
         </div>
         @if (expanded && expandInline && !editing && !viewSource) {
-          <app-viewer class="viewer-inline"
+          <app-viewer #viewer class="viewer-inline"
                       [ref]="bareRef"
                       [tags]="plugins || currentTags"
                       [disableResize]="disableResize"
@@ -186,7 +192,7 @@
              [class.expanded]="actionsExpanded"
              [class.not-expanded]="actionsExpanded === false">
           @if (store.account.user && !ref.created && !ref.upload) {
-            <a routerLink="/submit" [queryParams]="{ url: ref.url }" i18n>submit</a>
+            <a [routerLink]="submitRoute.routerLink" [queryParams]="submitRoute.queryParams" i18n>submit</a>
           }
           @if (ref.created && !ref.upload) {
             @if (thread) {
@@ -226,7 +232,7 @@
               }
             }
             @if (taggingAccess) {
-              <app-inline-tag [action]="tag$" i18n>tag</app-inline-tag>
+              <app-inline-tag [action]="tag$" [tags]="ref.tags" i18n>tag</app-inline-tag>
             }
             @if (store.account.user && !local) {
               <app-inline-button #action [action]="copy$" i18n>copy</app-inline-button>
@@ -262,7 +268,7 @@
                 <a routerLink="/submit/dm" [queryParams]="{source: replySources, sourceTitle: ref.title, tag: replyTags, to: replyTo}" i18n>reply</a>
               }
               @if (taggingAccess) {
-                <app-inline-tag #action [action]="tag$" i18n>tag</app-inline-tag>
+                <app-inline-tag #action [action]="tag$" [tags]="ref.tags" i18n>tag</app-inline-tag>
               }
               <a class="fake-link" (click)="editing = !editing" i18n>@if (editForm.dirty) {*edit*} @else {edit}</a>
             }
@@ -309,7 +315,8 @@
 </div>
 
 @if (replying) {
-  <app-comment-reply [autofocus]="true"
+  <app-comment-reply #reply
+                     [autofocus]="true"
                      [to]="ref"
                      [showCancel]="true"
                      [selectResponseType]="!thread && !comment && !dm"
@@ -317,7 +324,7 @@
                      (save)="onReply($event)"></app-comment-reply>
 }
 @if (expanded && !expandInline && !editing && !viewSource) {
-  <app-viewer class="viewer-below"
+  <app-viewer #viewer class="viewer-below"
               [ref]="bareRef"
               [tags]="plugins || currentTags"
               [disableResize]="disableResize"
@@ -329,7 +336,7 @@
 @if (editing) {
   <form class="form" [formGroup]="editForm" (ngSubmit)="save()">
 
-    <app-ref-form [group]="editForm"></app-ref-form>
+    <app-ref-form #refForm [group]="editForm"></app-ref-form>
 
     @for (e of serverError; track e) {
       <span><!-- Unexpected Error --></span>
@@ -353,7 +360,7 @@
   </form>
 } @else if (viewSource) {
   <form class="form" [formGroup]="editForm">
-    <app-ref-form [group]="editForm" [origin]="origin"></app-ref-form>
+    <app-ref-form #refForm [group]="editForm" [origin]="origin"></app-ref-form>
   </form>
 } @else if (diffing && diffOriginal && diffModified) {
   <div class="diff-view form">

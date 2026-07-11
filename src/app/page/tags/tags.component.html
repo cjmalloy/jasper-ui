@@ -10,7 +10,7 @@
     } @else {
       <h5 class="fake-link" routerLink=".">{{ title }}</h5>
     }
-    @if (admin.getTemplate('config/home')) {
+    @if (admin.home) {
       <a routerLink="/tags"
          [queryParams]="{ noTemplate: null, home: true }"
          [class.current-tab]="store.view.home"
@@ -46,7 +46,7 @@
   </app-tabs>
   <app-sidebar [tag]="store.view.home ? '' : store.view.template"></app-sidebar>
   @if (query.error?.status !== 403) {
-    <app-ext-list [page]="query.page"></app-ext-list>
+    <app-ext-list #list [page]="query.page"></app-ext-list>
   } @else {
     <div class="error-403" i18n>Access Denied</div>
   }

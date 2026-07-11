@@ -10,7 +10,8 @@ import {
   OnDestroy,
   OnInit,
   Output,
-  SimpleChanges
+  SimpleChanges,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import { Chess, Square } from 'chess.js';
 import { defer, delay, flatten, without } from 'lodash-es';
@@ -33,6 +34,7 @@ type AnimationState = { from: Square; to: Square; capture?: { square: Square; pi
   styleUrls: ['./chess.component.scss'],
   hostDirectives: [CdkDropListGroup],
   host: { 'class': 'chess-board' },
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [CdkDropList, CdkDrag]
 })
 export class ChessComponent implements OnInit, OnChanges, OnDestroy {

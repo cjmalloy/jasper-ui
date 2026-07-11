@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { pickBy, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
@@ -12,7 +12,7 @@ import { SidebarComponent } from '../../component/sidebar/sidebar.component';
 import { TabsComponent } from '../../component/tabs/tabs.component';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ref } from '../../model/ref';
-import { isWiki } from '../../mods/wiki';
+import { isWiki } from '../../mods/org/wiki';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
 import { StompService } from '../../service/api/stomp.service';
@@ -20,12 +20,14 @@ import { TaggingService } from '../../service/api/tagging.service';
 import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
 import { memo, MemoCache } from '../../util/memo';
+import { markRead } from '../../util/response';
 import { hasTag, privateTag, top } from '../../util/tag';
 
 @Component({
   selector: 'app-ref-page',
   templateUrl: './ref.component.html',
   styleUrls: ['./ref.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     RefComponent,
     MobxAngularModule,
@@ -41,7 +43,7 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
   private disposers: IReactionDisposer[] = [];
   private destroy$ = new Subject<void>();
 
-  @ViewChild(RefComponent)
+  @ViewChild('ref')
   ref?: RefComponent;
 
   newResponses = 0;
@@ -228,8 +230,6 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
   }
 
   markRead(ref: Ref) {
-    if (!this.admin.getPlugin('plugin/user/read')) return;
-    if (ref.metadata?.userUrls?.includes('plugin/user/read')) return;
-    this.ts.createResponse('plugin/user/read', ref.url).subscribe();
+    markRead(this.admin, this.ts, ref);
   }
 }

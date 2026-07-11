@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { defer, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { MobxAngularModule } from 'mobx-angular';
@@ -17,6 +17,7 @@ import { getArgs } from '../../../util/query';
   selector: 'app-ref-sources',
   templateUrl: './sources.component.html',
   styleUrls: ['./sources.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     MobxAngularModule,
     RefListComponent,
@@ -25,7 +26,7 @@ import { getArgs } from '../../../util/query';
 export class RefSourcesComponent implements OnInit, OnDestroy, HasChanges {
   private disposers: IReactionDisposer[] = [];
 
-  @ViewChild(RefListComponent)
+  @ViewChild('list')
   list?: RefListComponent;
 
   page: Page<Ref> = Page.of([]);

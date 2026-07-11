@@ -1,7 +1,7 @@
 import { Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { TemplatePortal } from '@angular/cdk/portal';
 import { HttpErrorResponse } from '@angular/common/http';
-import { ChangeDetectorRef, Component, ElementRef, TemplateRef, ViewChild, ViewContainerRef } from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, TemplateRef, ViewChild, ViewContainerRef, ChangeDetectionStrategy } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
 import { sortBy, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
@@ -23,6 +23,7 @@ import { printError } from '../../../util/http';
   templateUrl: './backup.component.html',
   styleUrls: ['./backup.component.scss'],
   host: { 'class': 'backup' },
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [ReactiveFormsModule, LoadingComponent, BackupListComponent]
 })
 export class SettingsBackupPage {
@@ -105,7 +106,7 @@ export class SettingsBackupPage {
       hasBackdrop: true,
       backdropClass: 'hide',
       positionStrategy,
-      scrollStrategy: this.overlay.scrollStrategies.close()
+      scrollStrategy: this.overlay.scrollStrategies.reposition()
     });
     this.backupOptionsRef.attach(new TemplatePortal(this.backupOptionsTemplate, this.viewContainerRef));
     this.backupOptionsRef.backdropClick().subscribe(() => this.cancelBackup());
@@ -148,10 +149,6 @@ export class SettingsBackupPage {
     });
   }
 
-  onBackupCancelled() {
-    // Nothing to do when cancelled
-  }
-
   upload(files?: FileList) {
     this.serverError = [];
     if (!files || !files.length) return;
@@ -190,7 +187,7 @@ export class SettingsBackupPage {
     }
     const confirmation = prompt($localize`Are you sure you want totally delete everything in ${this.origin || 'default'}?\n\nEnter the origin to confirm:`);
     if (confirmation === null) return;
-    if (confirmation !== (this.origin || 'default')){
+    if (confirmation !== (this.origin || 'default')) {
       alert($localize`Origin did not match ${this.origin || 'default'}, aborting.`)
       return;
     }

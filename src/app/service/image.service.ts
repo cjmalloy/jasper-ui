@@ -18,25 +18,28 @@ export function width(height: number, ar: Dim) {
 })
 export class ImageService {
 
-  private cache = new Map<string, Dim>();
+  private cache = new Map<string, Promise<Dim>>();
 
-  async getImage(url: string): Promise<Dim> {
-    return this.cache.get(url) || this.loadUrl(url);
+  getImage(url: string): Promise<Dim> {
+    if (!this.cache.has(url)) {
+      this.cache.set(url, this.loadUrl(url));
+    }
+    return this.cache.get(url)!;
   }
 
-  private async loadUrl(url: string): Promise<Dim> {
-    return new Promise((resolve, reject) => {
+  private loadUrl(url: string): Promise<Dim> {
+    const promise = new Promise<Dim>((resolve, reject) => {
       const image = new Image();
       image.src = url;
       image.onload = () => {
-        const dim = {
+        resolve({
           width: image.width,
           height: image.height,
-        };
-        this.cache.set(url, dim);
-        resolve(dim);
-      }
+        });
+      };
       image.onerror = (event) => reject(event);
     });
+    promise.catch(() => this.cache.delete(url));
+    return promise;
   }
 }

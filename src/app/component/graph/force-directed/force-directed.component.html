@@ -65,7 +65,7 @@
     }
   </div>
   <label class="graph-selected no-select" i18n>Selected:</label>
-  <app-ref-list [page]="store.graph.selectedPage"
+  <app-ref-list #list [page]="store.graph.selectedPage"
                 i18n-emptyMessage
                 emptyMessage="Empty selection"
                 [pageControls]="false"></app-ref-list>

@@ -25,6 +25,7 @@ body {
   --warning: #c1c500;
   --mod: #136500;
   --card: #f3ebc7;
+  --card-dragging: #ede7dc;
   --placeholder: #efebdf;
   --deleting: #ffa9a9;
 }
@@ -256,6 +257,14 @@ button {
   min-height: 22px !important;
 }
 
+.tag-list {
+  flex-wrap: wrap;
+  max-width: 100%;
+  a {
+    line-height: 18px !important;
+  }
+}
+
 .form-array, .buttons {
   & > button {
     min-width: 32px !important;
@@ -422,6 +431,7 @@ select {
     }
     & > button {
       min-width: 28px;
+      line-height: 24px;
     }
     label {
       border: 1px dashed var(--border) !important;
@@ -1016,6 +1026,7 @@ video.qr-preview {
     float: none;
     position: absolute;
     right: 0;
+    top: 86px;
   }
 
   .toggle {
@@ -1242,6 +1253,9 @@ details.advanced {
       }
     }
   }
+}
+.plugins-form details.advanced summary > span{
+  border: none;
 }
 
 details.advanced[open] {
@@ -2051,6 +2065,7 @@ formly-field-radio, formly-field-multicheckbox {
 }
 
 .expand {
+  display: block;
   border-radius: 4px;
   margin: 2px;
   padding: 8px;
@@ -2072,6 +2087,7 @@ formly-field-radio, formly-field-multicheckbox {
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
+  border-radius: 4px;
 }
 
 .loading {
@@ -2119,8 +2135,22 @@ formly-field-radio, formly-field-multicheckbox {
   }
 }
 
-.video-expand {
+.fullscreen > .lens-expand {
+  overflow: hidden;
+}
+
+.embed-expand {
+  border-radius: 4px;
+}
+
+.video-expand:not(:fullscreen) {
   height: 240px;
+  border-radius: 4px;
+}
+
+.fullscreen > .video-expand,
+.video-expand:fullscreen {
+  border-radius: 0;
 }
 
 .audio-expand {
@@ -2330,11 +2360,20 @@ footer {
 ngx-monaco-editor,
 ngx-monaco-diff-editor {
   position: relative;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-accent);
+  border-radius: 4px;
+  .overflow-guard, .monaco-editor {
+    border-radius: 4px;
+  }
   .editor-container {
     height: 100% !important;
   }
   .monaco-diff-editor {
     background: var(--vscode-editor-background);
   }
+}
+
+.help-element {
+  position: relative;
+  z-index: 1001;
 }

@@ -1,6 +1,6 @@
 import { Injectable, isDevMode } from '@angular/core';
 import { runInAction } from 'mobx';
-import { filter, map, mergeMap, Subject, switchMap, takeUntil, takeWhile, timer } from 'rxjs';
+import { filter, interval, map, mergeMap, Subject, switchMap, takeUntil, takeWhile, timer } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Ref } from '../model/ref';
 import { Store } from '../store/store';
@@ -49,14 +49,14 @@ export class VideoService {
   ) {
     if (isDevMode()) timer(3_000, 30_000).pipe(
       mergeMap(() => this.store.video.peers.entries()),
-      map(([user, peer]) => ({ user, stats: peer.getStats() })),
+      map(([user, peer]) => ({ user, stats: peer.getStats?.() })),
     ).subscribe(({ user, stats }) => {
-      stats.then(s => s.forEach((v, k) => console.log(user, k, v)));
+      stats?.then(s => s.forEach((v, k) => console.log(user, k, v)));
     });
   }
 
   get connecting() {
-    return !this.store.video.peers.size || !!this.store.video.peers.values().find(p => p.connectionState !== 'connected');
+    return !this.store.video.peers.size || !!Array.from(this.store.video.peers.values()).find(p => p.connectionState !== 'connected');
   }
 
   call(url: string, stream: MediaStream) {
@@ -201,7 +201,7 @@ export class VideoService {
         takeUntil(this.destroy$)
       ).subscribe((user: any) => this.doInvite(user));
     }
-    timer(this.poll).pipe(
+    interval(this.poll).pipe(
       takeWhile(() => !this.lobbyWebsocket),
       takeUntil(this.destroy$),
     ).subscribe(() => pollLobby());

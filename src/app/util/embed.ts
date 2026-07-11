@@ -8,6 +8,8 @@ import { ViewerComponent } from '../component/viewer/viewer.component';
 import { Ext } from '../model/ext';
 import { Page } from '../model/page';
 import { Ref } from '../model/ref';
+import { PipWindowConfig } from '../mods/system/pip';
+import { handleMediaKeydown, handleVideoKeydown } from './keyboard';
 import { hasTag } from './tag';
 
 export function parseSrc(html: string) {
@@ -68,9 +70,9 @@ export function createLens(vc: ViewContainerRef, params: any, page: Page<Ref>, t
   return c;
 }
 
-export async function createPip(vc: ViewContainerRef, ref: Ref) {
+export async function createPip(vc: ViewContainerRef, ref: Ref, config: PipWindowConfig) {
   // @ts-ignore
-  const pipWindow = await documentPictureInPicture.requestWindow();
+  const pipWindow = await documentPictureInPicture.requestWindow(config);
   const pipStyle = `
   <meta name="referrer" content="strict-origin-when-cross-origin">
   <style>
@@ -118,6 +120,15 @@ export async function createPip(vc: ViewContainerRef, ref: Ref) {
   pipWindow.document.head.innerHTML = document.head.innerHTML + pipStyle;
   document.body.classList.forEach(c => pipWindow.document.body.classList.add(c));
   pipWindow.document.body.append(createEmbed(vc, ref, true).location.nativeElement);
+  pipWindow.document.addEventListener('keydown', (event: KeyboardEvent) => {
+    const video = pipWindow.document.querySelector('video');
+    if (video) {
+      handleVideoKeydown(event, video);
+      return;
+    }
+    const audio = pipWindow.document.querySelector('audio');
+    if (audio) handleMediaKeydown(event, audio);
+  }, { capture: true });
 }
 
 export function embedUrl(url: string) {

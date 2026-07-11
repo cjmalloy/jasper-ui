@@ -3,7 +3,7 @@
 </a>
 @if (editing) {
   <div class="bubble inline-plugin row">
-    <app-form-gen class="stretch"
+    <app-form-gen #gen class="stretch"
                   [bulk]="true"
                   (keydown)="$event.key === 'Enter' && save() || true"
                   [plugins]="group"

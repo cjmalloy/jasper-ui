@@ -6,7 +6,8 @@ import {
   AfterViewInit,
   Component,
   ElementRef,
-  EventEmitter, forwardRef,
+  EventEmitter,
+  forwardRef,
   HostBinding,
   HostListener,
   Input,
@@ -17,7 +18,8 @@ import {
   SimpleChanges,
   TemplateRef,
   ViewChild,
-  ViewContainerRef
+  ViewContainerRef,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { defer, delay, difference, intersection, uniq } from 'lodash-es';
@@ -51,6 +53,7 @@ import { TodoComponent } from '../../todo/todo.component';
   templateUrl: './kanban-card.component.html',
   styleUrls: ['./kanban-card.component.scss'],
   host: { 'class': 'kanban-card' },
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     forwardRef(() => MdComponent),
     LoadingComponent,
@@ -76,6 +79,8 @@ export class KanbanCardComponent implements OnChanges, AfterViewInit, OnDestroy 
   hideSwimLanes = true;
   @Input()
   ext?: Ext;
+  @Input()
+  progress?: number;
 
   @Output()
   copied = new EventEmitter<Ref>();

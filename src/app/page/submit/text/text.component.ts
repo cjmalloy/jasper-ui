@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { AfterViewInit, Component, ElementRef, OnChanges, OnDestroy, SimpleChanges, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, forwardRef, OnChanges, OnDestroy, SimpleChanges, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import {
   ReactiveFormsModule,
   UntypedFormArray,
@@ -13,7 +13,7 @@ import { DateTime } from 'luxon';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { MobxAngularModule } from 'mobx-angular';
 import { MonacoEditorModule } from 'ngx-monaco-editor';
-import { catchError, forkJoin, map, of, Subscription, switchMap, throwError } from 'rxjs';
+import { catchError, firstValueFrom, forkJoin, map, of, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
 import { LoadingComponent } from '../../../component/loading/loading.component';
@@ -30,7 +30,7 @@ import { TagsFormComponent } from '../../../form/tags/tags.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Ext } from '../../../model/ext';
 import { Ref } from '../../../model/ref';
-import { wikiTitleFormat, wikiUriFormat } from '../../../mods/wiki';
+import { wikiTitleFormat, wikiUriFormat } from '../../../mods/org/wiki';
 import { AdminService } from '../../../service/admin.service';
 import { ExtService } from '../../../service/api/ext.service';
 import { RefService } from '../../../service/api/ref.service';
@@ -50,8 +50,9 @@ import { getVisibilityTags, hasPrefix, hasTag } from '../../../util/tag';
   templateUrl: './text.component.html',
   styleUrls: ['./text.component.scss'],
   host: { 'class': 'full-page-form' },
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
-    EditorComponent,
+    forwardRef(() => EditorComponent),
     MobxAngularModule,
     ReactiveFormsModule,
     LimitWidthDirective,
@@ -63,35 +64,45 @@ import { getVisibilityTags, hasPrefix, hasTag } from '../../../util/tag';
     ResizeHandleDirective,
     FillWidthDirective,
     TagsFormComponent,
-    RefFormComponent,
+    forwardRef(() => RefFormComponent),
   ],
 })
 export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasChanges {
   private disposers: IReactionDisposer[] = [];
+  private generatedUrl = 'comment:' + uuid();
 
   submitted = false;
   textForm: UntypedFormGroup;
   advanced = false;
   serverError: string[] = [];
 
+  limitWidth?: HTMLElement;
+
   @ViewChild('fill')
-  fill?: ElementRef;
+  set fill(value: ElementRef | undefined) {
+    this._fill = value;
+    defer(() => this.limitWidth = this._advancedFill?.nativeElement || value?.nativeElement);
+  }
+  private _fill?: ElementRef;
+  private _advancedFill?: ElementRef;
 
   @ViewChild('ed')
   editorComponent?: EditorComponent;
 
-  @ViewChild(TagsFormComponent)
+  @ViewChild('tagsFormComponent')
   tagsFormComponent!: TagsFormComponent;
-  @ViewChild(PluginsFormComponent)
+  @ViewChild('plugins')
   plugins!: PluginsFormComponent;
 
   submitting?: Subscription;
+  saving?: Subscription;
   addAnother = false;
   defaults?: { url: string, ref: Partial<Ref> };
   loadingDefaults: Ext[] = [];
   completedUploads: Ref[] = [];
   private oldSubmit: string[] = [];
   private savedRef?: Ref;
+  private cursor?: string;
 
   constructor(
     public config: ConfigService,
@@ -108,15 +119,28 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
   ) {
     mod.setTitle($localize`Submit: Text Post`);
     this.textForm = refForm(fb);
+    this.ensureUrl();
     runInAction(() => store.submit.wikiPrefix = admin.getWikiPrefix());
   }
 
-  saveChanges() {
-    // TODO: Just save in drafts
+  async saveChanges() {
+    if (this.admin.editing && this.textForm.dirty) {
+      return firstValueFrom(this.refs.saveEdit(this.writeRef(), this.cursor)
+        .pipe(map(() => true), catchError(() => of(false))));
+    }
     return !this.textForm?.dirty;
   }
 
   ngAfterViewInit() {
+    if (this.admin.editing && this.store.submit.url) {
+      this.refs.getEditing(this.store.submit.url).subscribe(draft => {
+        if (!draft) return;
+        this.cursor = draft.modifiedString;
+        const edit = draft.plugins?.['plugin/editing'] || {};
+        if (edit.comment) this.comment.setValue(edit.comment);
+        if (edit.title) this.title.setValue(edit.title);
+      });
+    }
     const allTags = [...this.store.submit.tags, ...(this.store.account.localTag ? [this.store.account.localTag] : [])];
     this.exts.getCachedExts(allTags).pipe(
       map(xs => xs.filter(x => x.config?.defaults) as Ext[]),
@@ -139,17 +163,14 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
       if (this.store.account.localTag) this.addTag(this.store.account.localTag);
       this.disposers.push(autorun(() => {
         MemoCache.clear(this);
-        let url = this.store.submit.url || 'comment:' + uuid();
+        const url = this.ensureUrl();
         if (!this.admin.isWikiExternal() && this.store.submit.wiki) {
-          url = wikiUriFormat(url, this.admin.getWikiPrefix());
           this.mod.setTitle($localize`Submit: Wiki`);
           this.title.setValue(wikiTitleFormat(url, this.admin.getWikiPrefix()));
           this.title.disable();
         } else if (this.store.submit.title) {
           this.title.setValue(this.store.submit.title);
         }
-        this.url.setValue(url);
-        this.url.disable();
         const tags = [...this.store.submit.tags, ...(this.store.account.localTag ? [this.store.account.localTag] : [])];
         const added = without(tags, ...this.oldSubmit);
         const removed = without(this.oldSubmit, ...tags);
@@ -187,6 +208,21 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
     return !this.store.submit.url && (this.admin.isWikiExternal() || !this.store.submit.wiki) ;
   }
 
+  saveForLater(leave = false) {
+    const savedValue = JSON.stringify(this.textForm.value);
+    this.saving = this.refs.saveEdit(this.writeRef(), this.cursor)
+      .pipe(catchError(err => {
+        delete this.saving;
+        return throwError(() => err);
+      }))
+      .subscribe(cursor => {
+        delete this.saving;
+        this.cursor = cursor;
+        if (JSON.stringify(this.textForm.value) === savedValue) this.textForm.markAsPristine();
+        if (leave) this.router.navigate(['/inbox/ref', 'plugin/editing']);
+      });
+  }
+
   showAdvanced() {
     const tags = uniq(this.textForm.value.tags);
     const published = this.textForm.value.published ? DateTime.fromISO(this.textForm.value.published) : DateTime.now();
@@ -208,6 +244,8 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
       value.setRef(this.savedRef);
       delete this.savedRef;
     }
+    this._advancedFill = value?.fill;
+    defer(() => this.limitWidth = value?.fill?.nativeElement || this._fill?.nativeElement);
   }
 
   get url() {
@@ -287,11 +325,43 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
     this.submitted = false;
   }
 
+  private ensureUrl() {
+    const routeUrl = this.store.submit.url;
+    const currentUrl = this.url.value;
+    const wiki = this.store.submit.wiki;
+    const wikiPrefix = this.admin.getWikiPrefix();
+    const useRouteUrl = !!routeUrl && (!wiki || routeUrl !== wikiPrefix);
+    let url = useRouteUrl ? routeUrl : currentUrl || this.generatedUrl;
+    if (!this.admin.isWikiExternal() && wiki) {
+      url = wikiUriFormat(url, wikiPrefix);
+    }
+    if (this.url.value !== url) this.url.setValue(url);
+    this.url.disable();
+    return url;
+  }
+
   syncEditor() {
     this.editor.syncEditor(this.fb, this.textForm);
   }
 
+  writeRef(publish = false) {
+    const url = this.ensureUrl();
+    return <Ref> {
+      ...this.textForm.value,
+      url, // Need to pull separately since control is locked
+      title: this.title.value, // Need to pull separately if disabled by wiki mode
+      origin: this.store.account.origin,
+      published: this.textForm.value.published ? DateTime.fromISO(this.textForm.value.published) : publish ? DateTime.now() : undefined,
+      tags: uniq(this.textForm.value.tags),
+      plugins: writePlugins(this.textForm.value.tags, this.textForm.value.plugins),
+    };
+  }
+
   submit() {
+    if (this.saving) {
+      this.saving.add(() => this.submit());
+      return;
+    }
     this.serverError = [];
     this.submitted = true;
     this.textForm.markAllAsTouched();
@@ -300,18 +370,10 @@ export class SubmitTextPage implements AfterViewInit, OnChanges, OnDestroy, HasC
       scrollToFirstInvalid();
       return;
     }
-    const tags = uniq(this.textForm.value.tags) as string[];
-    const published = this.textForm.value.published ? DateTime.fromISO(this.textForm.value.published) : DateTime.now();
-    const ref = {
-      ...this.textForm.value,
-      url: this.url.value, // Need to pull separately since control is locked
-      title: this.title.value, // Need to pull separately if disabled by wiki mode
-      origin: this.store.account.origin,
-      published,
-      tags,
-      plugins: writePlugins(this.textForm.value.tags, this.textForm.value.plugins),
-    };
-    this.submitting = this.refs.create(ref).pipe(
+    const ref = this.writeRef(true);
+    const tags = ref.tags;
+    const published = ref.published;
+    this.submitting = (this.cursor ? this.refs.update({ ...ref, modifiedString: this.cursor }) : this.refs.create(ref)).pipe(
       tap(() => {
         if (this.admin.getPlugin('plugin/user/vote/up')) {
           this.ts.createResponse('plugin/user/vote/up', this.url.value).subscribe();

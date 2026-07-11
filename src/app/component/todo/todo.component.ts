@@ -8,7 +8,8 @@ import {
   NgZone,
   OnChanges,
   Output,
-  SimpleChanges
+  SimpleChanges,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { catchError, Observable, of, Subscription, switchMap, throwError, timer } from 'rxjs';
@@ -24,6 +25,7 @@ import { TodoItemComponent } from './item/item.component';
   templateUrl: './todo.component.html',
   styleUrls: ['./todo.component.scss'],
   host: { 'class': 'todo-list' },
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     CdkDropList,
     CdkDrag,

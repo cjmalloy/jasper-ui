@@ -7,6 +7,17 @@ import { Store } from '../../store/store';
 import { isSubOrigin, localTag, tagOrigin } from '../../util/tag';
 import { ConfigService } from '../config.service';
 
+
+function isTestEnvironment(): boolean {
+  // Check for Vitest/Jest test environment
+  // @ts-ignore
+  if (typeof globalThis !== 'undefined' && (globalThis.__vitest_worker__ || globalThis.jest)) return true;
+  // Check for Zone.js test zone (Angular TestBed)
+  // @ts-ignore
+  if (typeof Zone !== 'undefined' && Zone.current?.name === 'ProxyZone') return true;
+  return false;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -26,10 +37,10 @@ export class StompService extends RxStomp {
       reconnectDelay: 2000,
     };
     if (isDevMode()) {
-      this.stompConfig.debug = msg => console.debug('📶️  '+ msg);
+      this.stompConfig.debug = (msg: string) => console.debug('📶️  '+ msg);
     }
     this.configure(this.stompConfig);
-    if (this.config.websockets) this.activate();
+    if (this.config.websockets && !isTestEnvironment()) this.activate();
   }
 
   get headers() {

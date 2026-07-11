@@ -1,4 +1,4 @@
-import { Component, ElementRef, Input, OnChanges, OnDestroy, SimpleChanges, ViewChild } from '@angular/core';
+import { Component, ElementRef, Input, OnChanges, OnDestroy, SimpleChanges, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { NavigationEnd, Router } from '@angular/router';
 import { autorun, IReactionDisposer, toJS } from 'mobx';
@@ -13,6 +13,7 @@ import { convertSort, defaultDesc, SortItem } from '../../util/query';
   templateUrl: './sort.component.html',
   styleUrls: ['./sort.component.scss'],
   host: { 'class': 'sort form-group' },
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [ReactiveFormsModule, FormsModule]
 })
 export class SortComponent implements OnChanges, OnDestroy {
@@ -43,6 +44,9 @@ export class SortComponent implements OnChanges, OnDestroy {
       this.sorts = toJS(this.store.view.sort);
       if (!Array.isArray(this.sorts)) this.sorts = [this.sorts];
     }));
+    this.disposers.push(autorun(() => {
+      this.rebuildSorts(this.store.view.isSearch);
+    }));
     router.events.pipe(
       filter(event => event instanceof NavigationEnd),
     ).subscribe(() => this.replace = false);
@@ -50,14 +54,18 @@ export class SortComponent implements OnChanges, OnDestroy {
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes.type) {
-      if (this.type === 'ref') {
-        this.allSorts = [...this.allRefSorts];
-        if (this.store.view.search) {
-          this.allSorts.unshift({ value: 'rank', label: $localize`🔍️ relevance`, title: $localize`Search rank` });
-        }
-      } else {
-        this.allSorts = [...this.allTagSorts];
+      this.rebuildSorts(this.store.view.isSearch);
+    }
+  }
+
+  private rebuildSorts(isSearch: boolean) {
+    if (this.type === 'ref') {
+      this.allSorts = [...this.allRefSorts];
+      if (isSearch) {
+        this.allSorts.unshift({ value: 'rank', label: $localize`🔍️ relevance`, title: $localize`Search rank` });
       }
+    } else {
+      this.allSorts = [...this.allTagSorts];
     }
   }
 

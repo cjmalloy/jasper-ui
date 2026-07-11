@@ -1,7 +1,7 @@
 <ng-container *mobxAutorun>
   @if (store.view.ref) {
-    <app-comment-reply [to]="store.view.ref"
-                       quote=""
+    <app-comment-reply #reply
+                       [to]="store.view.ref"
                        [tags]="replyTags"
                        (save)="newComments$.next($event)"></app-comment-reply>
     @if (thread.latest.length) {

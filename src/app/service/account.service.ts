@@ -158,61 +158,61 @@ export class AccountService {
     );
   }
 
-  addSub(tag: string) {
+  addSub$(tag: string): Observable<any> {
     if (!this.store.account.signedIn) throw 'Not signed in';
     if (!this.admin.getTemplate('user')) throw 'User template not installed';
-    this.addConfigArray$('subscriptions', tag).pipe(
+    return this.addConfigArray$('subscriptions', tag).pipe(
       tap(() => this.clearCache()),
       switchMap(() => this.subscriptions$),
-    ).subscribe();
+    );
   }
 
-  removeSub(tag: string) {
+  removeSub$(tag: string): Observable<any> {
     if (!this.store.account.signedIn) throw 'Not signed in';
     if (!this.admin.getTemplate('user')) throw 'User template not installed';
-    this.subscriptions$.pipe(
+    return this.subscriptions$.pipe(
       switchMap(() => this.removeConfigArray$('subscriptions', tag)),
       tap(() => this.clearCache()),
       switchMap(() => this.subscriptions$),
-    ).subscribe();
+    );
   }
 
-  addBookmark(tag: string) {
+  addBookmark$(tag: string): Observable<any> {
     if (!this.store.account.signedIn) throw 'Not signed in';
     if (!this.admin.getTemplate('user')) throw 'User template not installed';
-    this.addConfigArray$('bookmarks', tag).pipe(
+    return this.addConfigArray$('bookmarks', tag).pipe(
       tap(() => this.clearCache()),
       switchMap(() => this.bookmarks$),
-    ).subscribe();
+    );
   }
 
-  removeBookmark(tag: string) {
+  removeBookmark$(tag: string): Observable<any> {
     if (!this.store.account.signedIn) throw 'Not signed in';
     if (!this.admin.getTemplate('user')) throw 'User template not installed';
-    this.bookmarks$.pipe(
+    return this.bookmarks$.pipe(
       switchMap(() => this.removeConfigArray$('bookmarks', tag)),
       tap(() => this.clearCache()),
       switchMap(() => this.bookmarks$),
-    ).subscribe();
+    );
   }
 
-  addAlarm(tag: string) {
+  addAlarm$(tag: string): Observable<any> {
     if (!this.store.account.signedIn) throw 'Not signed in';
     if (!this.admin.getTemplate('user')) throw 'User template not installed';
-    this.addConfigArray$('alarms', tag).pipe(
+    return this.addConfigArray$('alarms', tag).pipe(
       tap(() => this.clearCache()),
       switchMap(() => this.alarms$),
-    ).subscribe();
+    );
   }
 
-  removeAlarm(tag: string) {
+  removeAlarm$(tag: string): Observable<any> {
     if (!this.store.account.signedIn) throw 'Not signed in';
     if (!this.admin.getTemplate('user')) throw 'User template not installed';
-    this.alarms$.pipe(
+    return this.alarms$.pipe(
       switchMap(() => this.removeConfigArray$('alarms', tag)),
       tap(() => this.clearCache()),
       switchMap(() => this.alarms$),
-    ).subscribe();
+    );
   }
 
   checkNotifications() {
@@ -311,8 +311,9 @@ export class AccountService {
 
   addConfigArray$(name: keyof UserConfig, value: any) {
     let path = name;
+    let patchValue = value;
     if (!this.store.account.config[name]) {
-      value = [value];
+      patchValue = [value];
     } else {
       if ((this.store.account.config[name] as any[]).includes(value)) return of();
       path += '/-';
@@ -320,7 +321,7 @@ export class AccountService {
     return this.exts.patch(this.store.account.tag, this.store.account.ext!.modifiedString!, [{
         op: 'add',
         path: '/config/' + path,
-        value: value,
+        value: patchValue,
       }]).pipe(tap(cursor => runInAction(() => {
         this.store.account.ext = <Ext> {
           ...this.store.account.ext,
@@ -328,7 +329,7 @@ export class AccountService {
             ...this.store.account.config,
             [name]: [
               ...(this.store.account.config[name] as any[] || []),
-              value
+              value,
             ],
           },
           modified: DateTime.fromISO(cursor),

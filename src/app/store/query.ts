@@ -2,7 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { isEqual, omit } from 'lodash-es';
 import { action, makeAutoObservable, observable, runInAction } from 'mobx';
-import { catchError, Subscription, throwError } from 'rxjs';
+import { catchError, EMPTY, Subscription } from 'rxjs';
 import { Page } from '../model/page';
 import { Ref, RefPageArgs } from '../model/ref';
 import { RefService } from '../service/api/ref.service';
@@ -60,18 +60,20 @@ export class QueryStore {
       this.running = this.refs.page(this.args).pipe(
         catchError((err: HttpErrorResponse) => {
           runInAction(() => this.error = err);
-          return throwError(() => err);
+          return EMPTY;
         }),
       ).subscribe(p => runInAction(() => this.page = p));
       this.runningSources?.unsubscribe();
       if (this.args.sources) {
-        this.runningSources = this.refs.getCurrent(this.args.sources)
-          .subscribe(ref => runInAction(() => this.sourcesOf = ref));
+        this.runningSources = this.refs.getCurrent(this.args.sources).pipe(
+          catchError(() => EMPTY),
+        ).subscribe(ref => runInAction(() => this.sourcesOf = ref));
       }
       this.runningResponses?.unsubscribe();
       if (this.args.responses) {
-        this.runningResponses = this.refs.getCurrent(this.args.responses)
-          .subscribe(ref => runInAction(() => this.responseOf = ref));
+        this.runningResponses = this.refs.getCurrent(this.args.responses).pipe(
+          catchError(() => EMPTY),
+        ).subscribe(ref => runInAction(() => this.responseOf = ref));
       }
     }
   }

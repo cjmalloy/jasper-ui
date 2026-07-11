@@ -1,4 +1,4 @@
-import { Component, HostBinding, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, HostBinding, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { isEqual, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
@@ -22,6 +22,7 @@ import { hasPrefix } from '../../util/tag';
   selector: 'app-tag-page',
   templateUrl: './tag.component.html',
   styleUrls: ['./tag.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     LensComponent,
     MobxAngularModule,
@@ -36,7 +37,7 @@ export class TagPage implements OnInit, OnDestroy, HasChanges {
 
   loading = true;
 
-  @ViewChild(LensComponent)
+  @ViewChild('lens')
   lens?: LensComponent;
 
   constructor(

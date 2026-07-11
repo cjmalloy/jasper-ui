@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, HostBinding, Input, OnChanges, QueryList, SimpleChanges, ViewChildren } from '@angular/core';
+import { Component, HostBinding, Input, OnChanges, QueryList, SimpleChanges, ViewChildren, ChangeDetectionStrategy } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { catchError, of, Subscription, switchMap, throwError } from 'rxjs';
@@ -7,7 +7,7 @@ import { tap } from 'rxjs/operators';
 import { pluginForm, PluginFormComponent } from '../../form/plugin/plugin.component';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Plugin, writePlugin } from '../../model/plugin';
-import { isDeletorTag, tagDeleteNotice } from "../../mods/delete";
+import { isDeletorTag, tagDeleteNotice } from '../../mods/delete';
 import { AdminService } from '../../service/admin.service';
 import { PluginService } from '../../service/api/plugin.service';
 import { ModService } from '../../service/mod.service';
@@ -24,6 +24,7 @@ import { LoadingComponent } from '../loading/loading.component';
   selector: 'app-plugin',
   templateUrl: './plugin.component.html',
   styleUrls: ['./plugin.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [RouterLink, ConfirmActionComponent, InlineButtonComponent, ReactiveFormsModule, PluginFormComponent, LoadingComponent]
 })
 export class PluginComponent implements OnChanges, HasChanges {
