@@ -116,8 +116,6 @@ export const aiQueryPlugin: Plugin = {
       const trimRef = c => {
         if (c.url.startsWith('system:')) delete c.metadata;
         const m = c.metadata;
-        delete c.created;
-        delete c.modified;
         if (!m) return c;
         const plugins = Object.fromEntries(
           Object.entries(m.plugins || {}).filter(([k]) =>
@@ -130,18 +128,6 @@ export const aiQueryPlugin: Plugin = {
         };
         if (!Object.keys(c.metadata).length) delete c.metadata;
         return c;
-      };
-      const trimExt = e => {
-        delete e.created;
-        delete e.modified;
-        delete e.modifiedString;
-        delete e.type;
-        delete e.origin;
-        if (e.config) {
-          delete e.config.lastNotified;
-          delete e.config._cache;
-        }
-        return e;
       };
       const formatMessage = source => {
         if (config.json) {
@@ -614,7 +600,7 @@ export const aiQueryPlugin: Plugin = {
         await loadTags(response.tags);
         await loadTags(response.sources.filter(t => t.startsWith('tag:/')).map(t => t.substring('tag:/'.length)));
         if (exts.size) {
-          const sorted = [...exts.values()].map(trimExt)
+          const sorted = [...exts.values()]
             .sort((a, b) => a.tag.localeCompare(b.tag));
           messages.push({
             role: 'system',
