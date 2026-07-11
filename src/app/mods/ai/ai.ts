@@ -881,6 +881,9 @@ export const aiQueryPlugin: Plugin = {
             : file.type.startsWith('video/') ? 'plugin/video'
             : file.type === 'application/pdf' ? 'plugin/pdf'
             : 'plugin/file';
+          if (!hasTag('_plugin/cache', r)) {
+            r.tags.push('_plugin/cache');
+          }
           if (!hasTag(plugin, r)) {
             r.tags.push(plugin);
           }
