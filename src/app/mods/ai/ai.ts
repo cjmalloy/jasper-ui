@@ -157,7 +157,6 @@ export const aiQueryPlugin: Plugin = {
             config.maxTokens ||= 4096;
             config.thinking = false;
             config.pdf = false;
-            config.file = false;
             config.image = ['gpt-5.6-sol', 'gpt-5.6-terra', 'gpt-5.6-luna', 'gpt-5.5', 'gpt-5.4-pro', 'gpt-5.4', 'gpt-5.2-pro', 'gpt-5.2', 'gpt-5.1', 'gpt-5', 'gpt-5-mini', 'gpt-5-nano', 'gpt-5.3-codex', 'gpt-5.2-codex', 'gpt-5.1-codex', 'gpt-5-codex'].includes(config.model);
             config.audio = ['gpt-audio', 'gpt-4o-audio-preview', 'gpt-4o-mini-audio-preview'].includes(config.model);
             config.video = false;
@@ -222,23 +221,19 @@ export const aiQueryPlugin: Plugin = {
             config.maxTokens ||= 4096;
             config.thinking = false;
             config.pdf = true;
-            config.file = true;
             config.image = ['grok-4-fast', 'grok-4', 'grok-2-vision-latest'].includes(config.model);
             config.audio = false;
             config.video = false;
           },
           loadMessage(source, plugins = {}) {
             const message = providers['openai'].loadMessage(source, plugins);
-            for (const plugin of ['plugin/pdf', 'plugin/file']) {
-              if (!plugins[plugin]) continue;
-              if (plugin === 'plugin/file' && ['plugin/pdf', 'plugin/image', 'plugin/audio', 'plugin/video'].some(p => hasTag(p, source))) continue;
-              const url = source.plugins?.[plugin]?.url || source.url || '';
+            if (plugins['plugin/pdf']) {
+              const url = source.plugins?.['plugin/pdf']?.url || source.url || '';
               message.content.push({
                 type: 'xai_file',
-                data: Buffer.from(plugins[plugin].data, 'binary').toString('base64'),
-                mimeType: plugins[plugin].headers['content-type'] || 'application/octet-stream',
-                filename: url.split('/').pop().split(/[?#]/)[0]
-                  || (plugin === 'plugin/pdf' ? 'attachment.pdf' : 'attachment'),
+                data: Buffer.from(plugins['plugin/pdf'].data, 'binary').toString('base64'),
+                mimeType: plugins['plugin/pdf'].headers['content-type'] || 'application/pdf',
+                filename: url.split('/').pop().split(/[?#]/)[0] || 'attachment.pdf',
               });
             }
             return message;
@@ -288,7 +283,6 @@ export const aiQueryPlugin: Plugin = {
             config.maxTokens ||= 4096;
             config.thinking = false;
             config.pdf = false;
-            config.file = false;
             config.image = false;
             config.audio = false;
             config.video = false;
@@ -319,7 +313,6 @@ export const aiQueryPlugin: Plugin = {
             config.maxTokens ||= 4096;
             config.thinking = config.model === 'deepseek-reasoner';
             config.pdf = false;
-            config.file = false;
             config.image = false;
             config.audio = false;
             config.video = false;
@@ -358,7 +351,6 @@ export const aiQueryPlugin: Plugin = {
             config.maxTokens ||= 4096;
             config.thinkingTokens ||= 4096
             config.pdf = true;
-            config.file = false;
             config.image = true;
             config.audio = false;
             config.video = false;
@@ -460,7 +452,6 @@ export const aiQueryPlugin: Plugin = {
           init(config) {
             config.model ||= 'gemini-3.1-pro-preview-customtools';
             config.pdf = ['gemini-3.1-pro-preview', 'gemini-3.1-pro-preview-customtools', 'gemini-3-pro-preview', 'gemini-2.5-pro'].includes(config.model);
-            config.file = false;
             config.image = true;
             config.audio = true;
             config.video = true;
@@ -700,7 +691,6 @@ export const aiQueryPlugin: Plugin = {
         { plugin: 'plugin/image', config: 'image' },
         { plugin: 'plugin/audio', config: 'audio' },
         { plugin: 'plugin/video', config: 'video' },
-        { plugin: 'plugin/file', config: 'file' },
       ];
       const mediaMessages = [];
       for (const c of sources) {
