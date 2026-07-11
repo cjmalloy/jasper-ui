@@ -846,7 +846,9 @@ export const aiQueryPlugin: Plugin = {
             : files[i].type.startsWith('video/') ? 'plugin/video'
             : files[i].type === 'application/pdf' ? 'plugin/pdf'
             : 'plugin/file';
-          if (!hasTag(plugin, r)) r.tags.push(plugin);
+          if (!hasTag(plugin, r)) {
+            r.tags.push(plugin);
+          }
         } else {
           if (oldUrl && !oldUrl.startsWith('add:')) continue;
           newUrl = i === 0 ? r.url : r.url = 'ai:' + uuid.v4();
