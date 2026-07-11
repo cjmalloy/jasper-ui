@@ -872,21 +872,23 @@ export const aiQueryPlugin: Plugin = {
         delete r.metadata;
         const oldUrl = i === 0 ? completionRef.url : r.url;
         let newUrl;
-        if (files?.[i]) {
-          const cache = (await axios.post(process.env.JASPER_API + '/pub/api/v1/repl/cache', Buffer.from(files[i].content, 'base64'), {
+        const part = oldUrl?.match(/^ai:part(\d*)$/);
+        const file = part ? files?.[Number(part[1] || 1) - 1] : undefined;
+        if (file) {
+          const cache = (await axios.post(process.env.JASPER_API + '/pub/api/v1/repl/cache', Buffer.from(file.content, 'base64'), {
             headers: {
               'Local-Origin': origin || 'default',
               'User-Tag': authors[0] || '',
-              'Content-Type': files[i].type,
+              'Content-Type': file.type,
             },
-            params: { origin, mime: files[i].type },
+            params: { origin, mime: file.type },
           })).data;
           delete cache.metadata;
           r.url = newUrl = cache.url;
-          const plugin = files[i].type.startsWith('audio/') ? 'plugin/audio'
-            : files[i].type.startsWith('image/') ? 'plugin/image'
-            : files[i].type.startsWith('video/') ? 'plugin/video'
-            : files[i].type === 'application/pdf' ? 'plugin/pdf'
+          const plugin = file.type.startsWith('audio/') ? 'plugin/audio'
+            : file.type.startsWith('image/') ? 'plugin/image'
+            : file.type.startsWith('video/') ? 'plugin/video'
+            : file.type === 'application/pdf' ? 'plugin/pdf'
             : 'plugin/file';
           if (!hasTag(plugin, r)) {
             r.tags.push(plugin);
