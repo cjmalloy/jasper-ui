@@ -864,6 +864,9 @@ export const aiQueryPlugin: Plugin = {
         let newUrl;
         const part = oldUrl?.match(/^ai:part(\d*)$/);
         const file = part ? files?.[Number(part[1] || 1) - 1] : undefined;
+        if (part && !file) {
+          throw new Error(`AI response referenced unavailable media asset ${oldUrl}.`);
+        }
         if (file) {
           const cache = (await axios.post(process.env.JASPER_API + '/pub/api/v1/repl/cache', Buffer.from(file.content, 'base64'), {
             headers: {
