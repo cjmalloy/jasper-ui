@@ -671,14 +671,14 @@ export const aiQueryPlugin: Plugin = {
           console.error(e.response.data);
           throw new Error(e);
         })).data.content;
-      const mediaLogs = [];
-      const attachMediaLog = (source, comment) => {
+      const logs = [];
+      const attachLog = (source, comment) => {
         const tags = ['internal', '+plugin/log'];
         if (hasTag('public', source)) tags.push('public');
         if ((source.origin || '') === origin) {
           tags.push(...(source.tags || []).filter(t => capturesDownwards('_user', t)).map(publicTag));
         }
-        mediaLogs.push({
+        logs.push({
           url: 'error:' + uuid.v4(),
           sources: [source.url],
           title: 'AI media ingestion',
@@ -702,7 +702,7 @@ export const aiQueryPlugin: Plugin = {
         for (const media of mediaTypes) {
           if (!hasTag(media.plugin, c)) continue;
           if (!media.config || !config[media.config]) {
-            attachMediaLog(c, config.provider + ' (' + config.model + ') does not support ' + media.plugin + ' input.');
+            attachLog(c, config.provider + ' (' + config.model + ') does not support ' + media.plugin + ' input.');
             continue;
           }
           const url = c.plugins?.[media.plugin]?.url || c.url;
@@ -717,7 +717,7 @@ export const aiQueryPlugin: Plugin = {
             });
           } catch (e) {
             console.error(e.response?.data || e.message);
-            attachMediaLog(c, 'Could not load ' + media.plugin + ' input from ' + url + '.');
+            attachLog(c, 'Could not load ' + media.plugin + ' input from ' + url + '.');
           }
         }
         if (Object.keys(plugins).some(plugin => plugin !== 'plugin/embed')) {
@@ -740,7 +740,7 @@ export const aiQueryPlugin: Plugin = {
             role: hasTag('+plugin/delta/ai', media.source) ? 'assistant' : 'user',
             ...provider.loadMessage(media.source),
           };
-          attachMediaLog(media.source, config.provider + ' (' + config.model + ') rejected the media input.');
+          attachLog(media.source, config.provider + ' (' + config.model + ') rejected the media input.');
         }
         generated = await provider.generate(messages, config);
       }
@@ -864,9 +864,6 @@ export const aiQueryPlugin: Plugin = {
         let newUrl;
         const part = oldUrl?.match(/^ai:part(\d*)$/);
         const file = part ? files?.[Number(part[1] || 1) - 1] : undefined;
-        if (part && !file) {
-          throw new Error(`AI response referenced unavailable media asset ${oldUrl}.`);
-        }
         if (file) {
           const cache = (await axios.post(process.env.JASPER_API + '/pub/api/v1/repl/cache', Buffer.from(file.content, 'base64'), {
             headers: {
@@ -891,6 +888,7 @@ export const aiQueryPlugin: Plugin = {
             r.tags.push(plugin);
           }
         } else {
+          if (part) attachLog(r, 'AI response referenced unavailable media asset ' + oldUrl);
           if (i !== 0 && oldUrl && !oldUrl.startsWith('add:')) continue;
           newUrl = i === 0 ? r.url : r.url = 'ai:' + uuid.v4();
         }
@@ -911,7 +909,7 @@ export const aiQueryPlugin: Plugin = {
           }
         }
       }
-      bundle.ref.push(...mediaLogs);
+      bundle.ref.push(...logs);
       if (hasTag('+plugin/debug', ref)) {
         // console.error('\`\`\`json\\n' + debugJson + '\\n\`\`\`');
         bundle.ref.push({
