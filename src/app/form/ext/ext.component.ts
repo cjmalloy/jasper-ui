@@ -22,7 +22,7 @@ import {
 import { RouterLink } from '@angular/router';
 import { FormlyFieldConfig, FormlyForm, FormlyFormOptions } from '@ngx-formly/core';
 import { cloneDeep, defer, uniq } from 'lodash-es';
-import { DateTime } from 'luxon';
+import { DateTime, Duration } from 'luxon';
 import { catchError, of, Subject, takeUntil } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { LoadingComponent } from '../../component/loading/loading.component';
@@ -70,6 +70,24 @@ export class ExtFormComponent implements OnDestroy {
     { filter: `created/before/${DateTime.now().toISO()}`, label: $localize`✨️ created before` },
     { filter: `created/after/${DateTime.now().toISO()}`, label: $localize`✨️ created after` },
     ...this.admin.filters.map(convertFilter),
+  ];
+  datePresets = [
+    'now',
+    'PT1M',
+    'PT15M',
+    'PT1H',
+    'PT6H',
+    'PT24H',
+    'P3D',
+    'P7D',
+    'P2W',
+    'P1M',
+    'P3M',
+    'P1Y',
+    'P5Y',
+    'P15Y',
+    'P50Y',
+    'P100Y',
   ];
 
   @Input()
@@ -205,6 +223,43 @@ export class ExtFormComponent implements OnDestroy {
   setFilterDate(index: number, filter: UrlFilter, date: string) {
     if (!date) return;
     this.setFilter(index, (filter.substring(0, filter.lastIndexOf('/') + 1) + DateTime.fromISO(date).toISO()) as UrlFilter);
+  }
+
+  filterOption(filter: UrlFilter) {
+    if (!this.filterIsDate(filter)) return filter;
+    const prefix = filter.substring(0, filter.lastIndexOf('/') + 1);
+    return this.allFilters.find(option => option.filter.startsWith(prefix))?.filter || filter;
+  }
+
+  filterIsDate(filter: UrlFilter) {
+    return /^(modified|response|published|created)\/(before|after)\//.test(filter);
+  }
+
+  filterDateValue(filter: UrlFilter) {
+    return filter.substring(filter.lastIndexOf('/') + 1);
+  }
+
+  filterSpecialDate(filter: UrlFilter) {
+    const value = this.filterDateValue(filter);
+    return value === 'now' || Duration.fromISO(value.toUpperCase()).isValid;
+  }
+
+  filterDatePreset(filter: UrlFilter) {
+    const value = this.filterDateValue(filter);
+    if (value === 'now') return 0;
+    const index = this.datePresets.indexOf(value.toUpperCase());
+    if (index >= 0) return index;
+    if (!this.filterSpecialDate(filter)) return 0;
+    const duration = Duration.fromISO(value.toUpperCase()).as('milliseconds');
+    return this.datePresets.reduce((closest, preset, index) => {
+      const milliseconds = preset === 'now' ? 0 : Duration.fromISO(preset).as('milliseconds');
+      const closestMilliseconds = closest === 0 ? 0 : Duration.fromISO(this.datePresets[closest]).as('milliseconds');
+      return Math.abs(milliseconds - duration) < Math.abs(closestMilliseconds - duration) ? index : closest;
+    }, 0);
+  }
+
+  setFilterDatePreset(index: number, filter: UrlFilter, preset: string) {
+    this.setFilter(index, (filter.substring(0, filter.lastIndexOf('/') + 1) + this.datePresets[Number(preset)]) as UrlFilter);
   }
 
   filterDate(filter: UrlFilter) {

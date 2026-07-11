@@ -6,6 +6,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormControl, ReactiveFormsModule, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { provideRouter } from '@angular/router';
 import { JasperFormlyModule } from '../../formly/formly.module';
+import { UrlFilter } from '../../util/query';
 
 import { ExtFormComponent } from './ext.component';
 
@@ -56,7 +57,7 @@ describe('ExtFormComponent', () => {
   });
 
   it('adds, toggles, dates, and removes multiple default filters', () => {
-    component.config.addControl('defaultFilter', new FormControl<string[]>([], { nonNullable: true }));
+    component.config.addControl('defaultFilter', new FormControl<UrlFilter[]>([], { nonNullable: true }));
     const select = document.createElement('select');
 
     component.addFilter('query/public', select);
@@ -78,5 +79,26 @@ describe('ExtFormComponent', () => {
       expect.stringMatching(/^published\/before\//),
       expect.stringMatching(/^created\/after\//),
     ]));
+  });
+
+  it('uses range presets for special dates and while the hotkey is pressed', () => {
+    component.config.addControl('defaultFilter', new FormControl<UrlFilter[]>([
+      'published/before/PT15M',
+      'created/after/2026-07-10T03:00:00.000Z',
+    ], { nonNullable: true }));
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelectorAll('input[type="range"]')).toHaveLength(1);
+    expect(component.filterDatePreset(component.defaultFilter.value[0])).toBe(2);
+    expect(component.filterDatePreset('modified/after/now')).toBe(0);
+    expect(component.filterSpecialDate('modified/after/P2D')).toBe(true);
+    expect(fixture.nativeElement.querySelector('.default-filter-row select').value).toMatch(/^published\/before\//);
+
+    component.store.hotkey = true;
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelectorAll('input[type="range"]')).toHaveLength(2);
+
+    component.setFilterDatePreset(1, component.defaultFilter.value[1], '11');
+    expect(component.defaultFilter.value[1]).toBe('created/after/P1Y');
   });
 });

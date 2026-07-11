@@ -19,6 +19,13 @@ test.describe.serial('Ext defaults', () => {
     await filterCreate.selectOption({ label: '✨️ created after' });
     await expect(page.locator('.default-filter-row')).toHaveCount(2);
     await page.locator('.default-filter-row input[type="datetime-local"]').first().fill('2026-07-09T12:30');
+    await page.keyboard.down('Control');
+    const range = page.locator('.default-filter-row input[type="range"]').first();
+    await expect(range).toBeVisible();
+    await range.fill('2');
+    await page.keyboard.up('Control');
+    await expect(range).toBeVisible();
+    await expect(page.locator('.default-filter-date-range output').first()).toHaveText('PT15M');
 
     const save = page.waitForResponse(response => (
       response.url().includes('/api/v1/ext') && response.request().method() === 'POST' && response.ok()

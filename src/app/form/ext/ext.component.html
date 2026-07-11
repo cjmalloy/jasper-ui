@@ -85,7 +85,7 @@
           <div class="default-filter-row">
             <span class="controls">
               <select [id]="id + '-defaultFilter-' + i"
-                      [value]="filter"
+                      [value]="filterOption(filter)"
                       (input)="setFilter(i, $any($event.target).value)">
                 @for (opt of allFilters; track opt) {
                   <option [value]="opt.filter">{{ opt.label || opt.filter }}</option>
@@ -96,11 +96,23 @@
               }
               <button type="button" (click)="removeFilter(i)" i18n>&ndash;</button>
             </span>
-            @if (filter.startsWith('modified/') || filter.startsWith('response/') || filter.startsWith('published/') || filter.startsWith('created/')) {
-              <input type="datetime-local"
-                     step="60"
-                     [value]="filterDate(filter)"
-                     (change)="setFilterDate(i, filter, $any($event.target).value)">
+            @if (filterIsDate(filter)) {
+              @if (store.hotkey || filterSpecialDate(filter)) {
+                <span class="default-filter-date-range">
+                  <input type="range"
+                         min="0"
+                         [max]="datePresets.length - 1"
+                         step="1"
+                         [value]="filterDatePreset(filter)"
+                         (input)="setFilterDatePreset(i, filter, $any($event.target).value)">
+                  <output>{{ filterDateValue(filter) }}</output>
+                </span>
+              } @else {
+                <input type="datetime-local"
+                       step="60"
+                       [value]="filterDate(filter)"
+                       (change)="setFilterDate(i, filter, $any($event.target).value)">
+              }
             }
           </div>
         }
