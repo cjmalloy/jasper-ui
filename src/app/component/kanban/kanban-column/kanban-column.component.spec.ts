@@ -4,7 +4,11 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { forwardRef } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { Subject } from 'rxjs';
 
+import { Page } from '../../../model/page';
+import { Ref } from '../../../model/ref';
+import { RefService } from '../../../service/api/ref.service';
 import { KanbanColumnComponent } from './kanban-column.component';
 
 describe('KanbanColumnComponent', () => {
@@ -28,6 +32,28 @@ describe('KanbanColumnComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it.each([
+    ['sources', 'sources/https://example.com/source'],
+    ['responses', 'responses/https://example.com/response'],
+  ])('publishes a new page when pinning the %s ref', (_name, filter) => {
+    const refs = TestBed.inject(RefService);
+    const filtered$ = new Subject<Page<Ref>>();
+    const pinned$ = new Subject<Page<Ref>>();
+    vi.spyOn(refs, 'page').mockImplementation(args => args?.url ? pinned$ : filtered$);
+    component.filter = [filter as any];
+
+    component.clear();
+    const initialPage = Page.of<Ref>([{ url: 'https://example.com/item' }]);
+    filtered$.next(initialPage);
+    pinned$.next(Page.of<Ref>([{ url: 'https://example.com/pinned' }]));
+
+    expect(component.page).not.toBe(initialPage);
+    expect(component.page?.content.map(ref => ref.url)).toEqual([
+      'https://example.com/pinned',
+      'https://example.com/item',
+    ]);
   });
 
   describe('Recovery Features', () => {
