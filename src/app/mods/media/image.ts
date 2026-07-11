@@ -8,7 +8,7 @@ export const imagePlugin: Plugin = {
   name: $localize`🖼️ Image`,
   config: {
     mod: $localize`🖼️ Images`,
-    version: 1,
+    version: 2,
     type: 'plugin',
     default: true,
     proxy: true,

@@ -9,7 +9,7 @@ export const pdfPlugin: Plugin = {
   name: $localize`📄️ PDF`,
   config: {
     mod: $localize`📄️ PDF`,
-    version: 1,
+    version: 2,
     type: 'plugin',
     default: true,
     proxy: true,
