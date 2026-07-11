@@ -874,7 +874,8 @@ export const aiQueryPlugin: Plugin = {
             params: { origin, mime: file.type },
           })).data;
           delete cache.metadata;
-          r.url = newUrl = cache.url;
+          Object.assign(r, { ...cache, ...r, url: cache.url });
+          newUrl = r.url;
           const plugin = file.type.startsWith('audio/') ? 'plugin/audio'
             : file.type.startsWith('image/') ? 'plugin/image'
             : file.type.startsWith('video/') ? 'plugin/video'
