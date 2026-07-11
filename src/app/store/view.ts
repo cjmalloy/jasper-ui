@@ -399,8 +399,9 @@ export class ViewStore {
   }
 
   get viewExtFilter() {
-    if (this.current !== 'home') return undefined;
-    return this.ext?.config?.defaultFilter;
+    if (this.current === 'home') return this.ext?.config?.defaultFilter;
+    if (this.current !== 'tag') return undefined;
+    return this.viewExt?.config?.defaultFilter;
   }
 
   get sort() {

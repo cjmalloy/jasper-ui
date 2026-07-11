@@ -2,13 +2,13 @@
 import { ViewStore } from './view';
 
 describe('ViewStore defaults', () => {
-  function createStore(queryParams = {}) {
+  function createStore(queryParams = {}, path = 'home', tag = '') {
     const route = {
       routeSnapshot: {
         queryParams,
         firstChild: {
-          url: [{ path: 'home' }],
-          params: {},
+          url: [{ path }],
+          params: { tag },
         },
       },
     } as any;
@@ -39,5 +39,16 @@ describe('ViewStore defaults', () => {
 
     expect(store.sort).toEqual(['created']);
     expect(store.filter).toEqual(['query/science', 'obsolete']);
+  });
+
+  it('loads default filters from the tag Ext', () => {
+    const store = createStore({}, 'tag', 'science');
+    store.exts = [{
+      tag: 'science',
+      origin: '',
+      config: { defaultFilter: ['query/public'] },
+    }];
+
+    expect(store.filter).toEqual(['query/public']);
   });
 });
