@@ -33,6 +33,16 @@ describe('MdComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  it('should render KaTeX when the LaTeX plugin is enabled', async () => {
+    const ready = firstValueFrom(component.postProcessMarkdown);
+    component.plugins = ['plugin/latex'];
+    component.text = '$x^2$';
+    fixture.detectChanges();
+    await ready;
+
+    expect(fixture.nativeElement.querySelector('.katex')).toBeTruthy();
+  });
+
   it('should block object tags in markdown content', async () => {
     // Set markdown content with an object tag
     component.text = '<object data="test.pdf" type="application/pdf"></object>';
