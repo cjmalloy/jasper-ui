@@ -113,7 +113,7 @@ test.describe.serial('Kanban Template No Swimlanes', () => {
 
     await page.goto(`/tag/kanban/test?debug=USER&filter=${encodeURIComponent(`sources/${source}`)}`);
 
-    await expect(page.locator('.kanban-column a', { hasText: 'Sources of' }).first()).toBeVisible();
+    await expect(page.locator('.sources-of', { hasText: 'Sources of' })).toBeVisible();
   });
 
   test('move to trash', async ({ page }) => {

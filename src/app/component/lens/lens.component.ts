@@ -1,4 +1,5 @@
 import { Component, forwardRef, Input, OnChanges, QueryList, SimpleChanges, ViewChildren, ChangeDetectionStrategy } from '@angular/core';
+import { MobxAngularModule } from 'mobx-angular';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ext } from '../../model/ext';
 import { Page } from '../../model/page';
@@ -26,6 +27,7 @@ import { RefComponent } from '../ref/ref.component';
   styleUrls: ['./lens.component.scss'],
   changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
+    MobxAngularModule,
     LoadingComponent,
     forwardRef(() => RefComponent),
     forwardRef(() => ForceDirectedComponent),

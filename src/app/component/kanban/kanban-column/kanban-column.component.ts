@@ -177,26 +177,31 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
       takeUntil(this.destroy$)
     ).subscribe(page => {
       this.page = page;
-      const pin = (res: Page<Ref>) => {
-        const ref = res.content[0];
-        if (!ref || this.page !== page) return;
-        this.mutated = true;
-        // @ts-ignore
-        ref['pinned'] = true;
-        page = { ...page, content: [ref, ...page.content] };
-        this.page = page;
-      };
       this.runningSources?.unsubscribe();
       if (args.sources) {
         this.runningSources = this.refs.page({ ...args, url: args.sources, size: 1, sources: undefined, responses: undefined }).pipe(
           takeUntil(this.destroy$)
-        ).subscribe(pin);
+        ).subscribe(res => {
+          if (res.content[0]) {
+            this.mutated = true;
+            // @ts-ignore
+            res.content[0]['pinned'] = true
+            page.content.unshift(res.content[0]);
+          }
+        });
       }
       this.runningResponses?.unsubscribe();
       if (args.responses) {
         this.runningResponses = this.refs.page({ ...args, url: args.responses, size: 1, sources: undefined, responses: undefined }).pipe(
           takeUntil(this.destroy$)
-        ).subscribe(pin);
+        ).subscribe(res => {
+          if (res.content[0]) {
+            this.mutated = true;
+            // @ts-ignore
+            res.content[0]['pinned'] = true
+            page.content.unshift(res.content[0]);
+          }
+        });
       }
     });
   }
