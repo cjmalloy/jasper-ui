@@ -1452,11 +1452,11 @@ Due to this optimistic lock limitation you will also not be able to modify Users
 there is no way for you to find the modified field. You can create them, however for best practices you should rather
 just send instructions for the user to manually create them.
 
-To reference an existing Ref you created, use it's URL starting with ai:. When adding
+To reference an existing Ref you created, use its URL starting with ai:. When adding
 Refs you may leave the URL blank to have one generated of the form ai:<uuid>. You
 can use a URL of the form add:0, add:1, add:File1.json, etc to also reference or embed
-them in another Ref. The URL of each Ref will be writen with the form ai:<uuid> and all
-refernces updated.
+them in another Ref. The URL of each Ref will be written with the form ai:<uuid> and all
+references updated.
 
 When choosing a title, try to keep the existing format of the Ref you are replying to.
 For example, if the Ref title is "Re: Bowling", you should just keep the same title.

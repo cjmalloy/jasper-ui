@@ -16,7 +16,7 @@ export const filePlugin: Plugin = {
     this server's file cache.
     You may refer to a file you returned with the URL ai:part, or optionally
     multiple returned assets as ai:part1, ai:part2, etc. These will be uploaded
-    to the cache and the URL will be rewritten with it's cache URL.
+    to the cache and the URL will be rewritten with its cache URL.
     `,
     icons: [{ label: $localize`💾️️`, order: 1 }],
     description: $localize`Allow storing user files on the server.`,

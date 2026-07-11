@@ -22,8 +22,8 @@ export const pdfPlugin: Plugin = {
     assumed to be the URL of the Ref instead.
     You may refer to a pdf you returned with the URL ai:part, or optionally
     multiple returned assets as ai:part1, ai:part2, etc. These will be uploaded
-    to the cache and the URL will be rewritten with it's cache URL. Even if you use
-    the url field of an pdf plugin, anything not prefixed with ai:part will be
+    to the cache and the URL will be rewritten with its cache URL. Even if you use
+    the url field of a pdf plugin, anything not prefixed with ai:part will be
     assumed to refer to an existing URL in the system and not replaced.
     `,
     description: $localize`Adds an action button to open the PDF version.`,

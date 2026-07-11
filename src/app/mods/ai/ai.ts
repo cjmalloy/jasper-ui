@@ -270,10 +270,6 @@ export const aiQueryPlugin: Plugin = {
             return {
               res,
               completion: res.choices[0]?.message?.content,
-              files: res.choices[0]?.message?.audio ? {
-                type: 'audio/mpeg',
-                content: res.choices[0]?.message?.audio.data
-              } : [],
               usage: res.usage,
             };
           }
@@ -459,7 +455,7 @@ export const aiQueryPlugin: Plugin = {
             if (plugins['plugin/audio']) {
               message.parts.push({
                 inlineData: {
-                  mimeType: plugins['plugin/audio'].headers['content-type'] || 'image/mpeg',
+                  mimeType: plugins['plugin/audio'].headers['content-type'] || 'audio/mpeg',
                   data: Buffer.from(plugins['plugin/audio'].data, 'binary').toString('base64'),
                 }
               });
@@ -512,9 +508,9 @@ export const aiQueryPlugin: Plugin = {
             return {
               res,
               completion: text,
-              files: res.response.candidates[0].content.parts.filter(p => !p.text).map(p => ({
-                type: p.text ? 'text' : p.inlineData.mimeType,
-                content: p.text || p.inlineData.data
+              files: res.response.candidates[0].content.parts.filter(p => p.inlineData).map(p => ({
+                type: p.inlineData.mimeType,
+                content: p.inlineData.data
               })),
               usage: {
                 prompt_tokens: res.response.usageMetadata.promptTokenCount - cached,
@@ -832,6 +828,8 @@ export const aiQueryPlugin: Plugin = {
           .filter(t => publicTagRegex.test(t) || t === '+plugin/delta/ai' || t.startsWith('+plugin/delta/ai'))
           .filter(uniq);
         delete r.metadata;
+        const oldUrl = i === 0 ? completionRef.url : r.url;
+        let newUrl;
         if (files?.[i]) {
           const cache = (await axios.post(process.env.JASPER_API + '/pub/api/v1/repl/cache', Buffer.from(files[i].content, 'base64'), {
             headers: {
@@ -842,18 +840,17 @@ export const aiQueryPlugin: Plugin = {
             params: { origin, mime: files[i].type },
           })).data;
           delete cache.metadata;
-          switch (files[i].type) {
-            case 'audio/mpeg':
-              if (!hasTag('plugin/audio', r)) r.tags.push('plugin/audio');
-              break;
-            case 'image/png':
-              if (!hasTag('plugin/image', r)) r.tags.push('plugin/image');
-              break;
-          }
+          r.url = newUrl = cache.url;
+          const plugin = files[i].type.startsWith('audio/') ? 'plugin/audio'
+            : files[i].type.startsWith('image/') ? 'plugin/image'
+            : files[i].type.startsWith('video/') ? 'plugin/video'
+            : files[i].type === 'application/pdf' ? 'plugin/pdf'
+            : 'plugin/file';
+          if (!hasTag(plugin, r)) r.tags.push(plugin);
+        } else {
+          if (oldUrl && !oldUrl.startsWith('add:')) continue;
+          newUrl = i === 0 ? r.url : r.url = 'ai:' + uuid.v4();
         }
-        const oldUrl = i === 0 ? completionRef.url : r.url;
-        if (oldUrl && !oldUrl.startsWith('add:')) continue;
-        const newUrl = i === 0 ? r.url : r.url = 'ai:' + uuid.v4();
         if (!oldUrl) continue;
         for (const rewrite of bundle.ref) {
           for (let i = 0; i < rewrite.sources?.length; i++) {
