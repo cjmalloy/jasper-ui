@@ -25,7 +25,7 @@ test.describe.serial('Ext defaults', () => {
     await range.fill('2');
     await page.keyboard.up('Control');
     await expect(range).toBeVisible();
-    await expect(page.locator('.default-filter-date-range output').first()).toHaveText('PT15M');
+    await expect(page.locator('.default-filter-date-range output').first()).toHaveText('15 minutes');
 
     const save = page.waitForResponse(response => (
       response.url().includes('/api/v1/ext') && response.request().method() === 'POST' && response.ok()
