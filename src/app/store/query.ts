@@ -54,6 +54,26 @@ export class QueryStore {
     this.refresh();
   }
 
+  setRelatedArgs(args: RefPageArgs) {
+    this.args = args;
+    this.runningSources?.unsubscribe();
+    if (args.sources) {
+      this.runningSources = this.refs.getCurrent(args.sources).pipe(
+        catchError(() => EMPTY),
+      ).subscribe(ref => runInAction(() => this.sourcesOf = ref));
+    } else {
+      this.sourcesOf = undefined;
+    }
+    this.runningResponses?.unsubscribe();
+    if (args.responses) {
+      this.runningResponses = this.refs.getCurrent(args.responses).pipe(
+        catchError(() => EMPTY),
+      ).subscribe(ref => runInAction(() => this.responseOf = ref));
+    } else {
+      this.responseOf = undefined;
+    }
+  }
+
   refresh() {
     if (this.args) {
       this.running?.unsubscribe();
