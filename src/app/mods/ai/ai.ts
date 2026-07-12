@@ -864,6 +864,7 @@ export const aiQueryPlugin: Plugin = {
           }
         }
       };
+      const generatedRefs = [];
       for (let i = 0; i < bundle.ref.length; i++) {
         const r = bundle.ref[i];
         if (i) {
@@ -890,18 +891,23 @@ export const aiQueryPlugin: Plugin = {
         const file = part ? files?.[Number(part[1] || 1) - 1] : undefined;
         if (file) {
           const cache = await uploadFile(file);
-          Object.assign(r, { ...cache, ...r, url: cache.url });
-          newUrl = r.url;
+          const generatedRef = i === 0 ? cache : r;
+          if (i === 0) {
+            generatedRefs.push(cache);
+          } else {
+            Object.assign(r, { ...cache, ...r, url: cache.url });
+          }
+          newUrl = cache.url;
           const plugin = file.type.startsWith('audio/') ? 'plugin/audio'
             : file.type.startsWith('image/') ? 'plugin/image'
             : file.type.startsWith('video/') ? 'plugin/video'
             : file.type === 'application/pdf' ? 'plugin/pdf'
             : 'plugin/file';
-          if (!hasTag('_plugin/cache', r)) {
-            r.tags.push('_plugin/cache');
+          if (!hasTag('_plugin/cache', generatedRef)) {
+            generatedRef.tags.push('_plugin/cache');
           }
-          if (!hasTag(plugin, r)) {
-            r.tags.push(plugin);
+          if (!hasTag(plugin, generatedRef)) {
+            generatedRef.tags.push(plugin);
           }
         } else {
           if (part) attachLog(r, 'AI response referenced unavailable media asset ' + oldUrl);
@@ -911,7 +917,7 @@ export const aiQueryPlugin: Plugin = {
         if (!oldUrl) continue;
         rewriteUrl(oldUrl, newUrl);
       }
-      bundle.ref.push(...logs);
+      bundle.ref.push(...generatedRefs, ...logs);
       if (hasTag('+plugin/debug', ref)) {
         // console.error('\`\`\`json\\n' + debugJson + '\\n\`\`\`');
         bundle.ref.push({

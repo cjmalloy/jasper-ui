@@ -154,6 +154,7 @@ describe('aiQueryPlugin', () => {
       comment: '',
       tags: ['+plugin/placeholder'],
       sources: [],
+      modified: 'placeholder-cursor',
       plugins: { 'plugin/llm': { json: true } },
     };
     const axios = {
@@ -165,7 +166,12 @@ describe('aiQueryPlugin', () => {
       }),
       post: vi.fn()
         .mockResolvedValueOnce({
-          data: { url: 'cache:image', tags: ['_plugin/cache'], metadata: { ignored: true } },
+          data: {
+            url: 'cache:image',
+            tags: ['_plugin/cache'],
+            modified: 'cache-cursor',
+            metadata: { ignored: true },
+          },
         })
         .mockResolvedValueOnce({
           data: { url: 'cache:pdf', tags: ['_plugin/cache'], metadata: { ignored: true } },
@@ -178,12 +184,10 @@ describe('aiQueryPlugin', () => {
             response: {
               text: () => JSON.stringify({
                 ref: [{
+                  url: 'ai:part1',
                   title: 'Generated image',
                   comment: '![Generated](ai:part1)',
                   sources: ['ai:part1'],
-                }, {
-                  url: 'ai:part1',
-                  tags: [],
                 }, {
                   url: 'add:pdf',
                   tags: ['plugin/image'],
@@ -229,11 +233,16 @@ describe('aiQueryPlugin', () => {
     expect(axios.post).toHaveBeenCalledTimes(2);
     expect(bundle.ref[0].comment).toBe('![Generated](cache:image)');
     expect(bundle.ref[0].sources).toContain('cache:image');
-    expect(bundle.ref[1]).toMatchObject({
+    expect(bundle.ref[0]).toMatchObject({
+      url: 'ai:response',
+      modified: 'placeholder-cursor',
+    });
+    expect(bundle.ref[1].plugins['plugin/image'].url).toBe('cache:pdf');
+    expect(bundle.ref[2]).toMatchObject({
       url: 'cache:image',
+      modified: 'cache-cursor',
       tags: expect.arrayContaining(['_plugin/cache', 'plugin/image']),
     });
-    expect(bundle.ref[2].plugins['plugin/image'].url).toBe('cache:pdf');
   });
 
   it('logs unavailable generated media parts', async () => {
