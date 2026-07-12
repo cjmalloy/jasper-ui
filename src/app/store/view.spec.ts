@@ -50,5 +50,6 @@ describe('ViewStore defaults', () => {
     }];
 
     expect(store.filter).toEqual(['query/public']);
+    expect(store.queryTags).toEqual(['science']);
   });
 });

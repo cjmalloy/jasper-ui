@@ -432,7 +432,8 @@ export class ViewStore {
   }
 
   get queryFilters(): string[] {
-    return this.filter
+    const filter = this.route.routeSnapshot?.queryParams['filter'];
+    return (!filter ? [] : Array.isArray(filter) ? filter : [filter])
       .filter(f => f.startsWith('query/'))
       .map(f => f.substring('query/'.length));
   }
