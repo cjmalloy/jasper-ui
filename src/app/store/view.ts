@@ -13,6 +13,15 @@ import { UrlFilter } from '../util/query';
 import { hasPrefix, hasTag, isQuery, localTag, queryPrefix, top, topAnds } from '../util/tag';
 import { AccountStore } from './account';
 
+function getQueryTags(tag: string, filters: UrlFilter[]) {
+  return uniq([
+    ...topAnds(tag).map(queryPrefix),
+    ...filters
+      .filter(f => f.startsWith('query/'))
+      .map(f => queryPrefix(f.substring('query/'.length))),
+  ].filter(t => t && !isQuery(t)));
+}
+
 /**
  * ID for current view. Only includes pages that make queries.
  * For example, the alt refs and missing refs pages are not included since
@@ -173,7 +182,7 @@ export class ViewStore {
    * Templates found in top ands of query or filters.
    */
   get activeTemplates(): Template[] {
-    return uniq(this.queryTags
+    return uniq(this.urlQueryTags
         .map(tag => this.extTemplates.find(t => hasPrefix(tag, t.tag))!)
         .filter(t => !!t));
   }
@@ -366,11 +375,12 @@ export class ViewStore {
     return isQuery(this.tag) ? this.tag : '';
   }
 
+  get urlQueryTags() {
+    return getQueryTags(this.tag, this.urlFilters);
+  }
+
   get queryTags() {
-    return uniq([
-        ...topAnds(this.tag).map(queryPrefix),
-        ...this.queryFilters.map(queryPrefix),
-    ].filter(t => t && !isQuery(t)));
+    return getQueryTags(this.tag, this.filter);
   }
 
   get noQuery() {
@@ -424,11 +434,15 @@ export class ViewStore {
     return this.sort[0]?.startsWith('plugins->plugin/user/vote');
   }
 
-  get filter(): UrlFilter[] {
+  get urlFilters(): UrlFilter[] {
     const filter = this.route.routeSnapshot?.queryParams['filter'];
-    if (!filter) return this.viewExtFilter || [];
-    if (!Array.isArray(filter)) return [filter]
+    if (!filter) return [];
+    if (!Array.isArray(filter)) return [filter];
     return filter;
+  }
+
+  get filter(): UrlFilter[] {
+    return this.urlFilters.length ? this.urlFilters : this.viewExtFilter || [];
   }
 
   get queryFilters(): string[] {

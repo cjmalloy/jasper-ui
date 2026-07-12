@@ -38,6 +38,7 @@ describe('ViewStore defaults', () => {
     });
 
     expect(store.sort).toEqual(['created']);
+    expect(store.urlFilters).toEqual(['query/science', 'obsolete']);
     expect(store.filter).toEqual(['query/science', 'obsolete']);
   });
 
@@ -49,6 +50,9 @@ describe('ViewStore defaults', () => {
       config: { defaultFilter: ['query/public'] },
     }];
 
+    expect(store.urlFilters).toEqual([]);
     expect(store.filter).toEqual(['query/public']);
+    expect(store.urlQueryTags).toEqual(['science']);
+    expect(store.queryTags).toEqual(['science', 'public']);
   });
 });
