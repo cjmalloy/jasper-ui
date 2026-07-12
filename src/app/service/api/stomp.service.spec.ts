@@ -3,8 +3,9 @@ import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/com
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { finalize, Subject } from 'rxjs';
 
-import { StompService } from './stomp.service';
+import { EXT_UPDATE_RATE_LIMIT_MS, StompService } from './stomp.service';
 
 describe('StompService', () => {
   let service: StompService;
@@ -47,5 +48,39 @@ describe('StompService', () => {
     expect(hostUrl).toMatch(/^ws:\/\/[^:]+(:[\d]+)?$/);
     // More specific check - should not have more than 5 consecutive digits (which would indicate port duplication)
     expect(hostUrl).not.toMatch(/:\d{5,}/);
+  });
+
+  it('should stop watching an Ext after two updates within one minute', () => {
+    vi.useFakeTimers();
+    const updates = new Subject<any>();
+    vi.spyOn(service, 'watch').mockReturnValue(updates);
+    const received = vi.fn();
+    const stopped = vi.fn();
+
+    service.watchExt('test').pipe(finalize(stopped)).subscribe(received);
+    updates.next({ body: '{"tag":"test","origin":"","name":"First"}' });
+    vi.advanceTimersByTime(EXT_UPDATE_RATE_LIMIT_MS - 1);
+    updates.next({ body: '{"tag":"test","origin":"","name":"Second"}' });
+
+    expect(received).toHaveBeenCalledOnce();
+    expect(stopped).toHaveBeenCalledOnce();
+    expect(updates.observed).toBe(false);
+    vi.useRealTimers();
+  });
+
+  it('should keep watching Ext updates at least one minute apart', () => {
+    vi.useFakeTimers();
+    const updates = new Subject<any>();
+    vi.spyOn(service, 'watch').mockReturnValue(updates);
+    const received = vi.fn();
+
+    service.watchExt('test').subscribe(received);
+    updates.next({ body: '{"tag":"test","origin":"","name":"First"}' });
+    vi.advanceTimersByTime(EXT_UPDATE_RATE_LIMIT_MS);
+    updates.next({ body: '{"tag":"test","origin":"","name":"Second"}' });
+
+    expect(received).toHaveBeenCalledTimes(2);
+    expect(updates.observed).toBe(true);
+    vi.useRealTimers();
   });
 });

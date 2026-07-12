@@ -1,12 +1,13 @@
 import { Injectable, isDevMode } from '@angular/core';
 import { RxStomp, RxStompConfig } from '@stomp/rx-stomp';
-import { map, Observable } from 'rxjs';
+import { map, Observable, takeWhile, timeInterval } from 'rxjs';
 import { Ext, mapExt } from '../../model/ext';
 import { mapRef, RefUpdates } from '../../model/ref';
 import { Store } from '../../store/store';
 import { isSubOrigin, localTag, tagOrigin } from '../../util/tag';
 import { ConfigService } from '../config.service';
 
+export const EXT_UPDATE_RATE_LIMIT_MS = 60 * 1000;
 
 function isTestEnvironment(): boolean {
   // Check for Vitest/Jest test environment
@@ -97,7 +98,9 @@ export class StompService extends RxStomp {
 
   watchExt(tag: string): Observable<Ext> {
     return this.watch('/topic/ext/' + (tagOrigin(tag) || this.store.account.origin || 'default') + '/' + encodeURIComponent(localTag(tag)), this.headers).pipe(
-      map(m => mapExt(JSON.parse(m.body))),
+      timeInterval(),
+      takeWhile((_, index) => index === 0 || _.interval >= EXT_UPDATE_RATE_LIMIT_MS),
+      map(({ value }) => mapExt(JSON.parse(value.body))),
     );
   }
 }
