@@ -40,41 +40,83 @@
     }
     @if (defaultSort && !user) {
       <label [for]="id + '-defaultSort'" i18n>Default Sort:</label>
-      <span class="controls">
-        <select [id]="id + '-defaultSort'" (input)="setSortCol($any($event.target).value)">
-          <option></option>
+      <div class="default-sort bubble">
+        <select #defaultSortCreate
+                class="default-sort-create"
+                [id]="id + '-defaultSort'"
+                (input)="addSort($any($event.target).value, defaultSortCreate)">
+          <option i18n>+ Add sort</option>
           @for (opt of allSorts; track opt) {
-            <option [selected]="sortCol === opt.value"
-                    [value]="opt.value">{{ opt.label || opt.value }}</option>
+            <option [value]="opt.value">{{ opt.label || opt.value }}</option>
           }
         </select>
-        @switch (sortDir) {
-          @case ("DESC") {
-            <button type="button" (click)="setSortDir('ASC')" i18n-title title="Descending" i18n>🔽️</button>
-          }
-          @case ("ASC") {
-            <button type="button" (click)="setSortDir('DESC')" i18n-title title="Ascending" i18n>🔼️</button>
-          }
+        @for (sort of defaultSort.value; track $index; let i = $index) {
+          <span class="controls default-sort-row">
+            <select [id]="id + '-defaultSort-' + i"
+                    [value]="sortCol(sort)"
+                    (input)="setSortCol(i, $any($event.target).value)">
+              @for (opt of allSorts; track opt) {
+                <option [value]="opt.value">{{ opt.label || opt.value }}</option>
+              }
+            </select>
+            @if (sortDir(sort) === "DESC") {
+              <button type="button" (click)="setSortDir(i, 'ASC')" i18n-title title="Descending" i18n>🔽️</button>
+            } @else {
+              <button type="button" (click)="setSortDir(i, 'DESC')" i18n-title title="Ascending" i18n>🔼️</button>
+            }
+            <button type="button" (click)="removeSort(i)" i18n>&ndash;</button>
+          </span>
         }
-      </span>
+      </div>
     }
     @if (defaultFilter && !user) {
       <label [for]="id + '-defaultFilter'" i18n>Default Filter:</label>
-      <span class="controls">
-        <select [id]="id + '-defaultFilter'" (input)="setFilter($any($event.target).value)">
-          <option></option>
+      <div class="default-filter bubble">
+        <select #defaultFilterCreate
+                class="default-filter-create"
+                [id]="id + '-defaultFilter'"
+                (input)="addFilter($any($event.target).value, defaultFilterCreate)">
+          <option i18n>+ Add filter</option>
           @for (opt of allFilters; track opt) {
-            <option [selected]="filter === opt.filter"
-                    [value]="opt.filter">{{ opt.label || opt.filter }}</option>
+            <option [value]="opt.filter">{{ opt.label || opt.filter }}</option>
           }
         </select>
-        @if (filter) {
-          @if (negatable(filter)) {
-            <button type="button" (click)="toggleFilter()">{{ store.account.querySymbol('!') }}</button>
-          }
-          <button type="button" (click)="setFilter(null)" i18n>&ndash;</button>
+        @for (filter of defaultFilter.value; track $index; let i = $index) {
+          <div class="default-filter-row">
+            <span class="controls">
+              <select [id]="id + '-defaultFilter-' + i"
+                      [value]="filterOption(filter)"
+                      (input)="setFilter(i, $any($event.target).value)">
+                @for (opt of allFilters; track opt) {
+                  <option [value]="opt.filter">{{ opt.label || opt.filter }}</option>
+                }
+              </select>
+              @if (negatable(filter)) {
+                <button type="button" (click)="toggleFilter(i)">{{ store.account.querySymbol('!') }}</button>
+              }
+              <button type="button" (click)="removeFilter(i)" i18n>&ndash;</button>
+            </span>
+            @if (filterIsDate(filter)) {
+              @if (store.hotkey || filterSpecialDate(filter)) {
+                <span class="default-filter-date-range">
+                  <input type="range"
+                         min="0"
+                         [max]="datePresets.length - 1"
+                         step="1"
+                         [value]="filterDatePreset(filter)"
+                         (input)="setFilterDatePreset(i, filter, $any($event.target).value)">
+                  <output>{{ filterDateLabel(filter) }}</output>
+                </span>
+              } @else {
+                <input type="datetime-local"
+                       step="60"
+                       [value]="filterDate(filter)"
+                       (change)="setFilterDate(i, filter, $any($event.target).value)">
+              }
+            }
+          </div>
         }
-      </span>
+      </div>
     }
     @if (form) {
       <formly-form #mainFormlyForm
@@ -128,23 +170,32 @@
       <div class="form">
         @if (defaultSort && user) {
           <label [for]="id + '-defaultSortAdvanced'" i18n>Default Sort:</label>
-          <span class="controls">
-            <select [id]="id + '-defaultSortAdvanced'" (input)="setSortCol($any($event.target).value)">
-              <option></option>
+          <div class="default-sort bubble">
+            <select #defaultSortAdvancedCreate
+                    class="default-sort-create"
+                    [id]="id + '-defaultSortAdvanced'"
+                    (input)="addSort($any($event.target).value, defaultSortAdvancedCreate)">
+              <option i18n>+ Add sort</option>
               @for (opt of allSorts; track opt) {
-                <option [selected]="sortCol === opt.value"
-                        [value]="opt.value">{{ opt.label || opt.value }}</option>
+                <option [value]="opt.value">{{ opt.label || opt.value }}</option>
               }
             </select>
-            @switch (sortDir) {
-              @case ("DESC") {
-                <button type="button" (click)="setSortDir('ASC')" i18n-title title="Descending" i18n>🔽️</button>
-              }
-              @case ("ASC") {
-                <button type="button" (click)="setSortDir('DESC')" i18n-title title="Ascending" i18n>🔼️</button>
-              }
+            @for (sort of defaultSort.value; track $index; let i = $index) {
+              <span class="controls default-sort-row">
+                <select [value]="sortCol(sort)" (input)="setSortCol(i, $any($event.target).value)">
+                  @for (opt of allSorts; track opt) {
+                    <option [value]="opt.value">{{ opt.label || opt.value }}</option>
+                  }
+                </select>
+                @if (sortDir(sort) === "DESC") {
+                  <button type="button" (click)="setSortDir(i, 'ASC')" i18n-title title="Descending" i18n>🔽️</button>
+                } @else {
+                  <button type="button" (click)="setSortDir(i, 'DESC')" i18n-title title="Ascending" i18n>🔼️</button>
+                }
+                <button type="button" (click)="removeSort(i)" i18n>&ndash;</button>
+              </span>
             }
-          </span>
+          </div>
         }
         <formly-form #advancedFormlyForm
                      class="nested-form"
