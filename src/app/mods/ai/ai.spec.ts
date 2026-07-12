@@ -67,7 +67,87 @@ describe('aiQueryPlugin', () => {
     });
   });
 
-  it('uploads generated media referenced by a plugin URL', async () => {
+  it('downloads media and retries without it when the provider rejects it', async () => {
+    const response = {
+      url: 'ai:response',
+      title: 'Response',
+      comment: '',
+      tags: ['+plugin/placeholder'],
+      sources: ['https://example.test/image.png'],
+    };
+    const source = {
+      url: 'https://example.test/image.png',
+      title: 'Image',
+      comment: '',
+      tags: ['public', 'plugin/image'],
+    };
+    const axios = {
+      get: vi.fn(async (url: string, options: { params: { query?: string } }) => {
+        const query = options.params.query;
+        if (url.endsWith('/repl/cache')) {
+          return { data: Buffer.from('image'), headers: { 'content-type': 'image/png' } };
+        }
+        if (query?.startsWith('+plugin/placeholder')) return { data: { content: [response] } };
+        if (query?.startsWith('+plugin/secret/')) return { data: { content: [{ comment: 'api-key' }] } };
+        if (query === '!+system/prompt') return { data: { content: [source] } };
+        return { data: { content: [] } };
+      }),
+    };
+    const generateContent = vi.fn()
+      .mockRejectedValueOnce(Object.assign(new Error('unsupported media'), { status: 415 }))
+      .mockResolvedValueOnce({
+        response: {
+          text: () => 'Fallback answer',
+          candidates: [{ content: { parts: [] } }],
+          usageMetadata: {
+            promptTokenCount: 2,
+            candidatesTokenCount: 3,
+            totalTokenCount: 5,
+          },
+        },
+      });
+    class GoogleGenerativeAI {
+      getGenerativeModel() {
+        return { generateContent };
+      }
+    }
+    const require = (module: string) => ({
+      'buffer': { Buffer },
+      'uuid': { v4: () => 'test-id' },
+      'axios': axios,
+      'fs': { readFileSync: () => JSON.stringify({ url: 'spec:question', tags: ['plugin/delta/ai'] }) },
+      '@google/generative-ai': { GoogleGenerativeAI },
+    })[module];
+    const output = vi.fn();
+    const run = new Function(
+      'require',
+      'process',
+      'console',
+      `return (async () => {${aiQueryPlugin.config?.script}})()`,
+    );
+
+    await run(require, { env: { JASPER_API: 'http://jasper.test' } }, { log: output, error: vi.fn() });
+
+    expect(generateContent).toHaveBeenCalledTimes(2);
+    expect(generateContent.mock.calls[0][0].contents)
+      .toEqual(expect.arrayContaining([expect.objectContaining({
+        parts: expect.arrayContaining([expect.objectContaining({
+          inlineData: expect.objectContaining({ mimeType: 'image/png' }),
+        })]),
+      })]));
+    expect(generateContent.mock.calls[1][0].contents)
+      .not.toEqual(expect.arrayContaining([expect.objectContaining({
+        parts: expect.arrayContaining([expect.objectContaining({ inlineData: expect.anything() })]),
+      })]));
+    const bundle = JSON.parse(output.mock.calls[0][0]);
+    expect(bundle.ref).toContainEqual(expect.objectContaining({
+      sources: [source.url],
+      comment: expect.stringContaining('rejected the media input'),
+      tags: expect.arrayContaining(['internal', '+plugin/log', 'public']),
+    }));
+  });
+
+  it('uploads generated media and rewrites its references', async () => {
     const response = {
       url: 'ai:response',
       title: 'Response',
@@ -83,13 +163,13 @@ describe('aiQueryPlugin', () => {
         if (query.startsWith('+plugin/secret/')) return { data: { content: [{ comment: 'api-key' }] } };
         return { data: { content: [] } };
       }),
-      post: vi.fn(async () => ({
-        data: {
-          url: 'cache:generated',
-          tags: ['_plugin/cache'],
-          metadata: { ignored: true },
-        },
-      })),
+      post: vi.fn()
+        .mockResolvedValueOnce({
+          data: { url: 'cache:image', tags: ['_plugin/cache'], metadata: { ignored: true } },
+        })
+        .mockResolvedValueOnce({
+          data: { url: 'cache:pdf', tags: ['_plugin/cache'], metadata: { ignored: true } },
+        }),
     };
     class GoogleGenerativeAI {
       getGenerativeModel() {
@@ -100,15 +180,22 @@ describe('aiQueryPlugin', () => {
                 ref: [{
                   title: 'Generated image',
                   comment: '![Generated](ai:part1)',
+                  sources: ['ai:part1'],
                 }, {
-                  url: 'add:image',
+                  url: 'ai:part1',
+                  tags: [],
+                }, {
+                  url: 'add:pdf',
                   tags: ['plugin/image'],
-                  plugins: { 'plugin/image': { url: 'ai:part1' } },
+                  plugins: { 'plugin/image': { url: 'ai:part2' } },
                 }],
               }),
               candidates: [{
                 content: {
-                  parts: [{ inlineData: { mimeType: 'image/png', data: Buffer.from('image').toString('base64') } }],
+                  parts: [
+                    { inlineData: { mimeType: 'image/png', data: Buffer.from('image').toString('base64') } },
+                    { inlineData: { mimeType: 'application/pdf', data: Buffer.from('pdf').toString('base64') } },
+                  ],
                 },
               }],
               usageMetadata: {
@@ -139,8 +226,82 @@ describe('aiQueryPlugin', () => {
     await run(require, { env: { JASPER_API: 'http://jasper.test' } }, { log: output, error: vi.fn() });
 
     const bundle = JSON.parse(output.mock.calls[0][0]);
-    expect(axios.post).toHaveBeenCalledOnce();
-    expect(bundle.ref[0].comment).toBe('![Generated](cache:generated)');
-    expect(bundle.ref[1].plugins['plugin/image'].url).toBe('cache:generated');
+    expect(axios.post).toHaveBeenCalledTimes(2);
+    expect(bundle.ref[0].comment).toBe('![Generated](cache:image)');
+    expect(bundle.ref[0].sources).toContain('cache:image');
+    expect(bundle.ref[1]).toMatchObject({
+      url: 'cache:image',
+      tags: expect.arrayContaining(['_plugin/cache', 'plugin/image']),
+    });
+    expect(bundle.ref[2].plugins['plugin/image'].url).toBe('cache:pdf');
+  });
+
+  it('logs unavailable generated media parts', async () => {
+    const response = {
+      url: 'ai:response',
+      title: 'Response',
+      comment: '',
+      tags: ['+plugin/placeholder'],
+      sources: [],
+      plugins: { 'plugin/llm': { json: true } },
+    };
+    const axios = {
+      get: vi.fn(async (_url: string, options: { params: { query: string } }) => {
+        const query = options.params.query;
+        if (query.startsWith('+plugin/placeholder')) return { data: { content: [response] } };
+        if (query.startsWith('+plugin/secret/')) return { data: { content: [{ comment: 'api-key' }] } };
+        return { data: { content: [] } };
+      }),
+      post: vi.fn(),
+    };
+    class GoogleGenerativeAI {
+      getGenerativeModel() {
+        return {
+          generateContent: async () => ({
+            response: {
+              text: () => JSON.stringify({
+                ref: [{
+                  title: 'Missing image',
+                  comment: '![Missing](ai:part2)',
+                }, {
+                  url: 'ai:part2',
+                  tags: ['plugin/image'],
+                }],
+              }),
+              candidates: [{ content: { parts: [] } }],
+              usageMetadata: {
+                promptTokenCount: 2,
+                candidatesTokenCount: 3,
+                totalTokenCount: 5,
+              },
+            },
+          }),
+        };
+      }
+    }
+    const require = (module: string) => ({
+      'buffer': { Buffer },
+      'uuid': { v4: () => 'test-id' },
+      'axios': axios,
+      'fs': { readFileSync: () => JSON.stringify({ url: 'spec:question', tags: ['plugin/delta/ai'] }) },
+      '@google/generative-ai': { GoogleGenerativeAI },
+    })[module];
+    const output = vi.fn();
+    const run = new Function(
+      'require',
+      'process',
+      'console',
+      `return (async () => {${aiQueryPlugin.config?.script}})()`,
+    );
+
+    await run(require, { env: { JASPER_API: 'http://jasper.test' } }, { log: output, error: vi.fn() });
+
+    expect(axios.post).not.toHaveBeenCalled();
+    const bundle = JSON.parse(output.mock.calls[0][0]);
+    expect(bundle.ref).toContainEqual(expect.objectContaining({
+      sources: ['ai:part2'],
+      comment: 'AI response referenced unavailable media asset ai:part2',
+      tags: expect.arrayContaining(['internal', '+plugin/log']),
+    }));
   });
 });
