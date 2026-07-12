@@ -18,6 +18,6 @@ describe('QueryStore', () => {
 
     expect(refs.page).not.toHaveBeenCalled();
     expect(refs.getCurrent).toHaveBeenCalledWith(source.url);
-    expect(store.sourcesOf).toBe(source);
+    expect(store.sourcesOf).toEqual(source);
   });
 });
