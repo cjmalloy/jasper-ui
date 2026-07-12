@@ -33,6 +33,12 @@ test.describe.serial('Ext defaults', () => {
     await page.locator('button', { hasText: 'Save' }).click();
     await save;
 
+    await page.goto('/ext/config/home?debug=ADMIN', { waitUntil: 'networkidle' });
+    await expect(page.locator('.default-sort-row select').first()).toHaveValue('published');
+    await expect(page.locator('.default-sort-row select').nth(1)).toHaveValue('modified');
+    await expect(page.locator('.default-filter-row select').first()).toHaveValue(/^published\/before\//);
+    await expect(page.locator('.default-filter-row select').nth(1)).toHaveValue(/^created\/after\//);
+
     await page.goto('/home?debug=ADMIN', { waitUntil: 'networkidle' });
     await expect(page.locator('.sort .controls')).toHaveCount(2);
     await expect(page.locator('.filter .controls')).toHaveCount(2);

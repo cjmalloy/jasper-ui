@@ -81,6 +81,30 @@ describe('ExtFormComponent', () => {
     ]));
   });
 
+  it('loads default sort and filter selections from the model', () => {
+    component.allSorts = [
+      { value: 'modified', label: 'modified' },
+      { value: 'published', label: 'published' },
+    ];
+    component.config.addControl('defaultSort', new FormControl<string[]>([
+      'published,DESC',
+      'modified,DESC',
+    ], { nonNullable: true }));
+    component.config.addControl('defaultFilter', new FormControl<UrlFilter[]>([
+      'published/before/PT15M',
+      'created/after/2026-07-10T03:00:00.000Z',
+    ], { nonNullable: true }));
+    fixture.detectChanges();
+
+    const sorts = fixture.nativeElement.querySelectorAll('.default-sort-row select');
+    const filters = fixture.nativeElement.querySelectorAll('.default-filter-row select');
+    expect([...sorts].map((select: HTMLSelectElement) => select.value)).toEqual(['published', 'modified']);
+    expect([...filters].map((select: HTMLSelectElement) => select.value)).toEqual([
+      component.filterOption(component.defaultFilter.value[0]),
+      component.filterOption(component.defaultFilter.value[1]),
+    ]);
+  });
+
   it('uses range presets for special dates and while the hotkey is pressed', () => {
     component.config.addControl('defaultFilter', new FormControl<UrlFilter[]>([
       'published/before/PT15M',
