@@ -7,6 +7,17 @@ test.describe.serial('Smoke Tests', () => {
     await expect(page.getByText('Powered by Jasper')).toBeVisible();
   });
 
+  test('logo reloads the home page', async ({ page }) => {
+    await page.goto('/?debug=USER', { waitUntil: 'networkidle' });
+    await page.evaluate(() => (window as any).logoReloadMarker = true);
+    await Promise.all([
+      page.waitForNavigation(),
+      page.locator('.logo').click(),
+    ]);
+    expect(new URL(page.url()).pathname).toBe('/');
+    expect(await page.evaluate(() => (window as any).logoReloadMarker)).toBeUndefined();
+  });
+
   test('@\u{ff20}main : clear mods', async ({ page }) => {
     await clearMods(page);
   });

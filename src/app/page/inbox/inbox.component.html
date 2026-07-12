@@ -1,6 +1,6 @@
 <ng-container *mobxAutorun>
   <app-tabs>
-    <a class="logo" routerLink="/"></a>
+    <a class="logo" href="/"></a>
     <h5 class="fake-link" routerLink="." i18n>Inbox</h5>
     @if (admin.getTemplate('dm') && admin.getTemplate('user') && store.account.userTag) {
       <a routerLink="./all" routerLinkActive="current-tab"
