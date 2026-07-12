@@ -7,6 +7,15 @@ test.describe.serial('Smoke Tests', () => {
     await expect(page.getByText('Powered by Jasper')).toBeVisible();
   });
 
+  test('logo requests the home page', async ({ page }) => {
+    await page.goto('/?debug=USER', { waitUntil: 'networkidle' });
+    const requestPromise = page.waitForRequest(request =>
+      request.isNavigationRequest() && new URL(request.url()).pathname === '/'
+    );
+    await page.locator('.logo').click();
+    await requestPromise;
+  });
+
   test('@\u{ff20}main : clear mods', async ({ page }) => {
     await clearMods(page);
   });
