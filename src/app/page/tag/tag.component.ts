@@ -85,8 +85,8 @@ export class TagPage implements OnInit, OnDestroy, HasChanges {
 
   ngOnInit() {
     this.disposers.push(autorun(() => {
-      if (hasPrefix(this.store.view.viewExt?.tag, 'kanban')) return;
-      if (hasPrefix(this.store.view.viewExt?.tag, 'chat')) return;
+      const pageEnabled = !hasPrefix(this.store.view.viewExt?.tag, 'kanban') &&
+        !hasPrefix(this.store.view.viewExt?.tag, 'chat');
       const filters = this.store.view.filter.length ? this.store.view.filter : this.store.view.viewExtFilter;
       if (!this.store.view.filter.length && this.store.view.viewExtFilter?.length) {
         this.bookmarks.filters = this.store.view.viewExtFilter;
@@ -100,7 +100,7 @@ export class TagPage implements OnInit, OnDestroy, HasChanges {
         this.store.view.pageNumber,
         this.store.view.pageSize,
       );
-      runInAction(() => this.query.setArgs(args));
+      runInAction(() => this.query.setArgs(args, pageEnabled));
     }));
   }
 

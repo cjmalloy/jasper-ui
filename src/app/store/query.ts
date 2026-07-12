@@ -21,6 +21,7 @@ export class QueryStore {
   private running?: Subscription;
   private runningSources?: Subscription;
   private runningResponses?: Subscription;
+  private pageEnabled = true;
 
   constructor(
     private refs: RefService,
@@ -48,8 +49,9 @@ export class QueryStore {
     if (this.running && !this.running.closed) this.clear()
   }
 
-  setArgs(args: RefPageArgs) {
-    if (!isEqual(omit(this.args, 'search'), omit(args, 'search'))) this.clear();
+  setArgs(args: RefPageArgs, pageEnabled = true) {
+    if (!isEqual(omit(this.args, 'search'), omit(args, 'search')) || this.pageEnabled !== pageEnabled) this.clear();
+    this.pageEnabled = pageEnabled;
     this.args = args;
     this.refresh();
   }
@@ -57,12 +59,15 @@ export class QueryStore {
   refresh() {
     if (this.args) {
       this.running?.unsubscribe();
-      this.running = this.refs.page(this.args).pipe(
-        catchError((err: HttpErrorResponse) => {
-          runInAction(() => this.error = err);
-          return EMPTY;
-        }),
-      ).subscribe(p => runInAction(() => this.page = p));
+      this.running = undefined;
+      if (this.pageEnabled) {
+        this.running = this.refs.page(this.args).pipe(
+          catchError((err: HttpErrorResponse) => {
+            runInAction(() => this.error = err);
+            return EMPTY;
+          }),
+        ).subscribe(p => runInAction(() => this.page = p));
+      }
       this.runningSources?.unsubscribe();
       if (this.args.sources) {
         this.runningSources = this.refs.getCurrent(this.args.sources).pipe(
