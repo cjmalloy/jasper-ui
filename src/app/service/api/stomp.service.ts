@@ -99,7 +99,7 @@ export class StompService extends RxStomp {
   watchExt(tag: string): Observable<Ext> {
     return this.watch('/topic/ext/' + (tagOrigin(tag) || this.store.account.origin || 'default') + '/' + encodeURIComponent(localTag(tag)), this.headers).pipe(
       timeInterval(),
-      takeWhile((_, index) => index === 0 || _.interval >= EXT_UPDATE_RATE_LIMIT_MS),
+      takeWhile((update, index) => index === 0 || update.interval >= EXT_UPDATE_RATE_LIMIT_MS),
       map(({ value }) => mapExt(JSON.parse(value.body))),
     );
   }

@@ -22,6 +22,10 @@ describe('StompService', () => {
     service = TestBed.inject(StompService);
   });
 
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   it('should be created', () => {
     expect(service).toBeTruthy();
   });
@@ -65,7 +69,6 @@ describe('StompService', () => {
     expect(received).toHaveBeenCalledOnce();
     expect(stopped).toHaveBeenCalledOnce();
     expect(updates.observed).toBe(false);
-    vi.useRealTimers();
   });
 
   it('should keep watching Ext updates at least one minute apart', () => {
@@ -81,6 +84,5 @@ describe('StompService', () => {
 
     expect(received).toHaveBeenCalledTimes(2);
     expect(updates.observed).toBe(true);
-    vi.useRealTimers();
   });
 });
