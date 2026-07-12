@@ -98,9 +98,12 @@ export class TagPage implements OnInit, OnDestroy, HasChanges {
         this.store.view.pageNumber,
         this.store.view.pageSize,
       );
+      if (hasPrefix(this.store.view.viewExt?.tag, 'kanban') ||
+          hasPrefix(this.store.view.viewExt?.tag, 'chat')) {
+        runInAction(() => this.query.setRelatedArgs(args));
+        return;
+      }
       runInAction(() => this.query.setArgs(args));
-      if (hasPrefix(this.store.view.viewExt?.tag, 'kanban')) return;
-      if (hasPrefix(this.store.view.viewExt?.tag, 'chat')) return;
     }));
   }
 
