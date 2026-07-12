@@ -173,7 +173,7 @@ export class ViewStore {
    * Templates found in top ands of query or filters.
    */
   get activeTemplates(): Template[] {
-    return uniq(this.queryTags
+    return uniq(this.urlQueryTags
         .map(tag => this.extTemplates.find(t => hasPrefix(tag, t.tag))!)
         .filter(t => !!t));
   }
@@ -373,6 +373,15 @@ export class ViewStore {
     ].filter(t => t && !isQuery(t)));
   }
 
+  get urlQueryTags() {
+    return uniq([
+        ...topAnds(this.tag).map(queryPrefix),
+        ...this.urlFilters
+          .filter(f => f.startsWith('query/'))
+          .map(f => queryPrefix(f.substring('query/'.length))),
+    ].filter(t => t && !isQuery(t)));
+  }
+
   get noQuery() {
     return isQuery(this.tag) ? '' : this.tag;
   }
@@ -427,13 +436,18 @@ export class ViewStore {
   get filter(): UrlFilter[] {
     const filter = this.route.routeSnapshot?.queryParams['filter'];
     if (!filter) return this.viewExtFilter || [];
-    if (!Array.isArray(filter)) return [filter]
+    return this.urlFilters;
+  }
+
+  get urlFilters(): UrlFilter[] {
+    const filter = this.route.routeSnapshot?.queryParams['filter'];
+    if (!filter) return [];
+    if (!Array.isArray(filter)) return [filter];
     return filter;
   }
 
   get queryFilters(): string[] {
-    const filter = this.route.routeSnapshot?.queryParams['filter'];
-    return (!filter ? [] : Array.isArray(filter) ? filter : [filter])
+    return this.filter
       .filter(f => f.startsWith('query/'))
       .map(f => f.substring('query/'.length));
   }

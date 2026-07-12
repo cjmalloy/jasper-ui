@@ -28,7 +28,10 @@ describe('ViewStore defaults', () => {
     const store = createStore();
 
     expect(store.sort).toEqual(['published,DESC', 'modified,DESC']);
+    expect(store.urlFilters).toEqual([]);
     expect(store.filter).toEqual(['query/public', 'published/after/P1D']);
+    expect(store.urlQueryTags).toEqual([]);
+    expect(store.queryTags).toEqual(['public']);
   });
 
   it('prefers sort and filter URL parameters over home Ext defaults', () => {
@@ -38,7 +41,10 @@ describe('ViewStore defaults', () => {
     });
 
     expect(store.sort).toEqual(['created']);
+    expect(store.urlFilters).toEqual(['query/science', 'obsolete']);
     expect(store.filter).toEqual(['query/science', 'obsolete']);
+    expect(store.urlQueryTags).toEqual(['science']);
+    expect(store.queryTags).toEqual(['science']);
   });
 
   it('loads default filters from the tag Ext', () => {
@@ -49,7 +55,9 @@ describe('ViewStore defaults', () => {
       config: { defaultFilter: ['query/public'] },
     }];
 
+    expect(store.urlFilters).toEqual([]);
     expect(store.filter).toEqual(['query/public']);
-    expect(store.queryTags).toEqual(['science']);
+    expect(store.urlQueryTags).toEqual(['science']);
+    expect(store.queryTags).toEqual(['science', 'public']);
   });
 });

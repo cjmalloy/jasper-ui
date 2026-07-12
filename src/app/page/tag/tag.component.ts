@@ -61,12 +61,12 @@ export class TagPage implements OnInit, OnDestroy, HasChanges {
       this.store.view.extTemplates = this.admin.view;
     });
     this.disposers.push(autorun(() => {
-      if (!this.store.view.queryTags.length) {
+      if (!this.store.view.urlQueryTags.length) {
         runInAction(() => this.store.view.exts = []);
         this.loading = false;
       } else {
         this.loading = true;
-        this.exts.getCachedExts(this.store.view.queryTags)
+        this.exts.getCachedExts(this.store.view.urlQueryTags)
           .pipe(this.admin.extFallbacks)
           .subscribe(exts => {
             if (!isEqual(exts.map(x => x.tag + x.origin + x.modifiedString).sort(), this.store.view.exts.map(x => x.tag + x.origin + x.modifiedString).sort())) {
