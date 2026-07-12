@@ -7,7 +7,7 @@ export const codePlugin: Plugin = {
   name: $localize`🗒️ Code`,
   config: {
     type: 'editor',
-    version: 1,
+    version: 2,
     default: true,
     add: true,
     submit: $localize`🗒️ code`,
@@ -17,6 +17,7 @@ export const codePlugin: Plugin = {
     description: $localize`Uses the monaco editor (like vscode).`,
     aiInstructions: `# plugin/code
     The plugin/code tag indicates the Ref comment is source code. The child tag (like plugin/code/json) indicates the type.
+    You may return code blocks sourced to the top comment. This will add them as available files or update existing files.
     Do not include the standard triple backticks or any extra text. The entire comment field is treated as a raw file.`,
     icons: [{ label: $localize`🗒️`, order: 2 }],
     filters: [
