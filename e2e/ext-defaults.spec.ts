@@ -3,7 +3,7 @@ import { mod } from './setup';
 
 test.describe.serial('Ext defaults', () => {
   test('enable Ext default mods', async ({ page }) => {
-    await mod(page, '#mod-root', '#mod-config/home');
+    await mod(page, '#mod-root', '#mod-config\\/home');
   });
 
   test('configures and loads multiple default sorts and date filters', async ({ page }) => {
