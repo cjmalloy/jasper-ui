@@ -835,6 +835,35 @@ export const aiQueryPlugin: Plugin = {
       response.sources = [...response.sources, ...(completionRef.sources || []).filter(uniq).filter(s => !response.sources.includes(s))];
       // TODO: Allow AI to add some protected tags
       const publicTagRegex = /^[a-z0-9]+(?:[./][a-z0-9]+)*$/;
+      const uploadFile = async file => {
+        const cache = (await axios.post(process.env.JASPER_API + '/pub/api/v1/repl/cache', Buffer.from(file.content, 'base64'), {
+          headers: {
+            'Local-Origin': origin || 'default',
+            'User-Tag': authors[0] || '',
+            'Content-Type': file.type,
+          },
+          params: { origin, mime: file.type },
+        })).data;
+        delete cache.metadata;
+        return cache;
+      };
+      const rewriteUrl = (oldUrl, newUrl) => {
+        for (const rewrite of bundle.ref) {
+          for (let i = 0; i < rewrite.sources?.length; i++) {
+            if (rewrite.sources[i] === oldUrl) rewrite.sources[i] = newUrl;
+          }
+          if (rewrite.comment) {
+            rewrite.comment = rewrite.comment
+              .replaceAll('](' + oldUrl + ')', '](' + newUrl + ')')
+              .replaceAll('](/ref/' + oldUrl + ')', '](/ref/' + newUrl + ')')
+              .replaceAll('url=' + oldUrl, 'url=' + newUrl)
+              .replaceAll('sources/' + oldUrl, 'sources/' + newUrl)
+              .replaceAll('responses/' + oldUrl, 'responses/' + newUrl)
+              .replaceAll('sources%2F' + oldUrl, 'sources%2F' + newUrl)
+              .replaceAll('responses%2F' + oldUrl, 'responses%2F' + newUrl);
+          }
+        }
+      };
       for (let i = 0; i < bundle.ref.length; i++) {
         const r = bundle.ref[i];
         if (i) {
@@ -846,20 +875,21 @@ export const aiQueryPlugin: Plugin = {
           .filter(t => publicTagRegex.test(t) || t === '+plugin/delta/ai' || t.startsWith('+plugin/delta/ai'))
           .filter(uniq);
         delete r.metadata;
+        for (const media of mediaTypes) {
+          const oldMediaUrl = r.plugins?.[media.plugin]?.url;
+          const mediaPart = oldMediaUrl?.match(/^ai:part(\\d*)$/);
+          const mediaFile = mediaPart ? files?.[Number(mediaPart[1] || 1) - 1] : undefined;
+          if (!mediaFile) continue;
+          const cache = await uploadFile(mediaFile);
+          r.plugins[media.plugin].url = cache.url;
+          rewriteUrl(oldMediaUrl, cache.url);
+        }
         const oldUrl = i === 0 ? completionRef.url : r.url;
         let newUrl;
-        const part = oldUrl?.match(/^ai:part(\d*)$/);
+        const part = oldUrl?.match(/^ai:part(\\d*)$/);
         const file = part ? files?.[Number(part[1] || 1) - 1] : undefined;
         if (file) {
-          const cache = (await axios.post(process.env.JASPER_API + '/pub/api/v1/repl/cache', Buffer.from(file.content, 'base64'), {
-            headers: {
-              'Local-Origin': origin || 'default',
-              'User-Tag': authors[0] || '',
-              'Content-Type': file.type,
-            },
-            params: { origin, mime: file.type },
-          })).data;
-          delete cache.metadata;
+          const cache = await uploadFile(file);
           Object.assign(r, { ...cache, ...r, url: cache.url });
           newUrl = r.url;
           const plugin = file.type.startsWith('audio/') ? 'plugin/audio'
@@ -879,21 +909,7 @@ export const aiQueryPlugin: Plugin = {
           newUrl = i === 0 ? r.url : r.url = 'ai:' + uuid.v4();
         }
         if (!oldUrl) continue;
-        for (const rewrite of bundle.ref) {
-          for (let i = 0; i < rewrite.sources?.length; i++) {
-            if (rewrite.sources[i] === oldUrl) rewrite.sources[i] = newUrl;
-          }
-          if (rewrite.comment) {
-            rewrite.comment = rewrite.comment
-              .replaceAll('](' + oldUrl + ')', '](' + newUrl + ')')
-              .replaceAll('](/ref/' + oldUrl + ')', '](/ref/' + newUrl + ')')
-              .replaceAll('url=' + oldUrl, 'url=' + newUrl)
-              .replaceAll('sources/' + oldUrl, 'sources/' + newUrl)
-              .replaceAll('responses/' + oldUrl, 'responses/' + newUrl)
-              .replaceAll('sources%2F' + oldUrl, 'sources%2F' + newUrl)
-              .replaceAll('responses%2F' + oldUrl, 'responses%2F' + newUrl);
-          }
-        }
+        rewriteUrl(oldUrl, newUrl);
       }
       bundle.ref.push(...logs);
       if (hasTag('+plugin/debug', ref)) {
