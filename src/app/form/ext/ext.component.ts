@@ -239,6 +239,13 @@ export class ExtFormComponent implements OnDestroy {
     return filter.substring(filter.lastIndexOf('/') + 1);
   }
 
+  filterDateLabel(filter: UrlFilter) {
+    const value = this.filterDateValue(filter);
+    if (value === 'now') return value;
+    const duration = Duration.fromISO(value.toUpperCase());
+    return duration.isValid ? duration.toHuman() : value;
+  }
+
   filterSpecialDate(filter: UrlFilter) {
     const value = this.filterDateValue(filter);
     return value === 'now' || Duration.fromISO(value.toUpperCase()).isValid;

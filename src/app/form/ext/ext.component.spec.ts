@@ -101,4 +101,14 @@ describe('ExtFormComponent', () => {
     component.setFilterDatePreset(1, component.defaultFilter.value[1], '11');
     expect(component.defaultFilter.value[1]).toBe('created/after/P1Y');
   });
+
+  it('displays range durations in a human-readable format', () => {
+    component.config.addControl('defaultFilter', new FormControl<UrlFilter[]>([
+      'published/before/PT15M',
+    ], { nonNullable: true }));
+    fixture.detectChanges();
+
+    expect(component.filterDateLabel(component.defaultFilter.value[0])).toBe('15 minutes');
+    expect(fixture.nativeElement.querySelector('.default-filter-date-range output').textContent).toBe('15 minutes');
+  });
 });
