@@ -40,7 +40,7 @@
     }
     @if (defaultSort && !user) {
       <label [for]="id + '-defaultSort'" i18n>Default Sort:</label>
-      <div class="default-sort">
+      <div class="default-sort bubble">
         <select #defaultSortCreate
                 class="default-sort-create"
                 [id]="id + '-defaultSort'"
@@ -71,7 +71,7 @@
     }
     @if (defaultFilter && !user) {
       <label [for]="id + '-defaultFilter'" i18n>Default Filter:</label>
-      <div class="default-filter">
+      <div class="default-filter bubble">
         <select #defaultFilterCreate
                 class="default-filter-create"
                 [id]="id + '-defaultFilter'"
@@ -170,7 +170,7 @@
       <div class="form">
         @if (defaultSort && user) {
           <label [for]="id + '-defaultSortAdvanced'" i18n>Default Sort:</label>
-          <div class="default-sort">
+          <div class="default-sort bubble">
             <select #defaultSortAdvancedCreate
                     class="default-sort-create"
                     [id]="id + '-defaultSortAdvanced'"
