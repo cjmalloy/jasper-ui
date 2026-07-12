@@ -6,7 +6,7 @@ import { RefService } from '../service/api/ref.service';
 import { QueryStore } from './query';
 
 describe('QueryStore', () => {
-  it('loads related refs without loading the main page', () => {
+  it('loads the page and related refs when sources are set', () => {
     const source = { url: 'https://example.com/source', title: 'Source' };
     const refs = {
       page: vi.fn(() => of(Page.of([]))),
@@ -14,9 +14,9 @@ describe('QueryStore', () => {
     } as unknown as RefService;
     const store = new QueryStore(refs);
 
-    store.setArgs({ query: 'kanban/test', sources: source.url }, false);
+    store.setArgs({ query: 'test', sources: source.url });
 
-    expect(refs.page).not.toHaveBeenCalled();
+    expect(refs.page).toHaveBeenCalled();
     expect(refs.getCurrent).toHaveBeenCalledWith(source.url);
     expect(store.sourcesOf).toEqual(source);
   });

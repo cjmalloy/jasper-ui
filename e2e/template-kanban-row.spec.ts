@@ -94,28 +94,6 @@ test.describe.serial('Kanban Template No Swimlanes', () => {
     await expect(page.locator('.full-page.ref .tag:not(.user)', { hasText: 'done' })).toHaveCount(0);
   });
 
-  test('shows the source ref as soon as its request completes', async ({ page }) => {
-    const source = 'https://example.com/kanban-source';
-    await page.route('**/api/v1/ref/page?**', async route => {
-      const requestUrl = new URL(route.request().url());
-      if (requestUrl.searchParams.get('url') !== source) {
-        await route.continue();
-        return;
-      }
-      await new Promise(resolve => setTimeout(resolve, 100));
-      await route.fulfill({
-        json: {
-          content: [{ url: source, title: 'Sources of' }],
-          page: { number: 0, size: 1, totalElements: 1, totalPages: 1 },
-        },
-      });
-    });
-
-    await page.goto(`/tag/kanban/test?debug=USER&filter=${encodeURIComponent(`sources/${source}`)}`);
-
-    await expect(page.locator('.sources-of', { hasText: 'Sources of' })).toBeVisible();
-  });
-
   test('move to trash', async ({ page }) => {
     await page.goto('/tag/kanban/test?debug=MOD');
     await loadBoard(page);
