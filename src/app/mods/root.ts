@@ -65,6 +65,7 @@ export const rootTemplate: Template = {
     The root template sets up basic functionality such as deleted icons and filters, and basic Ext config:
     \`\`\`typescript
     export interface RootConfig {
+      header?: string;
       pinned?: string[];
       sidebar?: string;
       modmail?: boolean;

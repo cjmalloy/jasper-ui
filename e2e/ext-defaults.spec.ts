@@ -43,4 +43,20 @@ test.describe.serial('Ext defaults', () => {
     await expect(page.locator('.sort .controls')).toHaveCount(2);
     await expect(page.locator('.filter .controls')).toHaveCount(2);
   });
+
+  test('configures and renders a Markdown header', async ({ page }) => {
+    await page.goto('/ext/config/home?debug=ADMIN', { waitUntil: 'networkidle' });
+    await page.getByRole('button', { name: '+ Add header' }).click();
+    await page.getByLabel('Header:').fill('# Home header');
+
+    const save = page.waitForResponse(response => (
+      response.url().includes('/api/v1/ext') && response.request().method() === 'POST' && response.ok()
+    ));
+    await page.getByRole('button', { name: 'Save' }).click();
+    await save;
+
+    await page.goto('/home?debug=ADMIN', { waitUntil: 'networkidle' });
+    await page.reload({ waitUntil: 'networkidle' });
+    await expect(page.locator('.lens-header h1')).toHaveText('Home header');
+  });
 });
