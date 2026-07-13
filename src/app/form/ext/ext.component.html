@@ -13,19 +13,6 @@
   <input [id]="id + '-name'" name="name" type="text" formControlName="name">
 
   <ng-container [formGroup]="config">
-    @if (popover) {
-      <label [for]="id + '-popover'" class="editor-label" i18n>Popover:</label>
-      <div #fillPopover class="fill-editor">
-        <app-editor [id]="id + '-popover'"
-                    name="popover"
-                    [hasTags]="false"
-                    [addButton]="true"
-                    i18n-addCommentTitle addCommentTitle="Add popover"
-                    i18n-addCommentLabel addCommentLabel="+ Add popover"
-                    [fillWidth]="fillPopover"
-                    [control]="popover"></app-editor>
-      </div>
-    }
     @if (userTheme && userThemeValues.length) {
       <!-- TODO: replace empty themes with instructions -->
       <label [for]="id + '-userTheme'" i18n>User Theme:</label>
@@ -128,19 +115,6 @@
       <div>
         <input [id]="id + '-modmail'" type="checkbox" [formControl]="modmail">
         <a class="tag" [routerLink]="['/tag', inbox]">{{ inbox }}</a>
-      </div>
-    }
-    @if (sidebar) {
-      <label [for]="id + '-sidebar'" class="editor-label" i18n>Sidebar:</label>
-      <div #fillSidebar class="fill-editor">
-        <app-editor [id]="id + '-sidebar'"
-                    class="bubble"
-                    [hasTags]="false"
-                    [addButton]="true"
-                    i18n-addCommentTitle addCommentTitle="Add sidebar"
-                    i18n-addCommentLabel addCommentLabel="+ Add sidebar"
-                    [fillWidth]="fillSidebar"
-                    [control]="sidebar"></app-editor>
       </div>
     }
     @if (themes) {

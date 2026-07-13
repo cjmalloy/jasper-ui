@@ -59,10 +59,15 @@ describe('GenComponent', () => {
 
     fixture.detectChanges();
 
-    const editor = fixture.debugElement.query(
+    const editorElement = fixture.debugElement.query(
       debugElement => debugElement.componentInstance instanceof EditorComponent,
-    ).componentInstance as EditorComponent;
+    );
+    expect(editorElement).toBeTruthy();
+    const editor = editorElement.componentInstance as EditorComponent;
     expect(editor.control).toBe(component.group?.get('comment'));
     expect(editor.hasTags).toBe(false);
+    expect(editor.fillWidth).toBe(
+      fixture.nativeElement.querySelector('.editor-field .fill-editor'),
+    );
   });
 });

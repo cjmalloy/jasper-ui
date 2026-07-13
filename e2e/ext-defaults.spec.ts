@@ -6,6 +6,24 @@ test.describe.serial('Ext defaults', () => {
     await mod(page, '#mod-root', '#mod-config\\/home');
   });
 
+  test('renders the resizable sidebar editor through Formly', async ({ page }) => {
+    await page.goto('/ext/config/home?debug=ADMIN', { waitUntil: 'networkidle' });
+    const extend = page.getByRole('button', { name: 'Extend', exact: true });
+    if (await extend.isVisible()) await extend.click();
+
+    const sidebar = page.locator('.sidebar-editor .editor-field');
+    await expect(sidebar).toBeVisible();
+    const editor = sidebar.locator('textarea');
+    await expect(editor).toBeVisible();
+    await expect.poll(async () => {
+      const { editorWidth, containerWidth } = await editor.evaluate(element => ({
+        editorWidth: element.getBoundingClientRect().width,
+        containerWidth: element.closest('.fill-editor')!.getBoundingClientRect().width,
+      }));
+      return Math.abs(editorWidth - containerWidth);
+    }).toBeLessThan(40);
+  });
+
   test('configures and loads multiple default sorts and date filters', async ({ page }) => {
     await page.goto('/ext/config/home?debug=ADMIN', { waitUntil: 'networkidle' });
 

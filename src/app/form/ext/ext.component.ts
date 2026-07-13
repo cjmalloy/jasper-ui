@@ -36,7 +36,6 @@ import { Store } from '../../store/store';
 import { TAG_REGEX } from '../../util/format';
 import { convertFilter, convertSort, defaultDesc, FilterItem, negatable, toggle, UrlFilter } from '../../util/query';
 import { hasPrefix } from '../../util/tag';
-import { EditorComponent } from '../editor/editor.component';
 import { linksForm } from '../links/links.component';
 import { themesForm, ThemesFormComponent } from '../themes/themes.component';
 
@@ -48,7 +47,6 @@ import { themesForm, ThemesFormComponent } from '../themes/themes.component';
   changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     forwardRef(() => RefComponent),
-    forwardRef(() => EditorComponent),
     ReactiveFormsModule,
     FormlyForm,
     CdkDropListGroup,
@@ -97,10 +95,6 @@ export class ExtFormComponent implements OnDestroy {
   @Output()
   clear = new EventEmitter<void>();
 
-  @ViewChild('fillPopover')
-  fillPopover?: ElementRef;
-  @ViewChild('fillSidebar')
-  fillSidebar?: ElementRef;
   @ViewChild('mainFormlyForm')
   mainFormlyForm?: FormlyForm;
   @ViewChild('advancedFormlyForm')
@@ -126,6 +120,7 @@ export class ExtFormComponent implements OnDestroy {
     public store: Store,
     private refs: RefService,
     private cd: ChangeDetectorRef,
+    private el: ElementRef<HTMLElement>,
   ) { }
 
   ngOnDestroy() {
@@ -140,6 +135,19 @@ export class ExtFormComponent implements OnDestroy {
 
   get config() {
     return this.group.get('config') as UntypedFormGroup;
+  }
+
+  get fillPopover(): ElementRef<HTMLElement> | undefined {
+    return this.fillEditor('.popover-editor');
+  }
+
+  get fillSidebar(): ElementRef<HTMLElement> | undefined {
+    return this.fillEditor('.sidebar-editor');
+  }
+
+  private fillEditor(selector: string) {
+    const element = this.el.nativeElement.querySelector<HTMLElement>(selector + ' .fill-editor');
+    return element ? new ElementRef(element) : undefined;
   }
 
   get inbox() {
@@ -274,14 +282,6 @@ export class ExtFormComponent implements OnDestroy {
     return date.isValid ? date.toFormat("yyyy-MM-dd'T'T") : '';
   }
 
-  get sidebar() {
-    return this.config.get('sidebar') as UntypedFormControl;
-  }
-
-  get popover() {
-    return this.config.get('popover') as UntypedFormControl;
-  }
-
   get themes() {
     return this.config.get('themes') as UntypedFormGroup;
   }
@@ -317,7 +317,34 @@ export class ExtFormComponent implements OnDestroy {
         });
     }
     if (!this.form) {
-      this.form = cloneDeep(this.admin.getTemplateForm(ext.tag));
+      this.form = cloneDeep(this.admin.getTemplateForm(ext.tag)) || [];
+      if (this.config.get('popover')) {
+        this.form.unshift({
+          key: 'popover',
+          type: 'editor',
+          className: 'popover-editor',
+          props: {
+            label: $localize`Popover:`,
+            addButton: true,
+            addCommentTitle: $localize`Add popover`,
+            addCommentLabel: $localize`+ Add popover`,
+          },
+        });
+      }
+      if (this.config.get('sidebar')) {
+        this.form.push({
+          key: 'sidebar',
+          type: 'editor',
+          className: 'sidebar-editor',
+          props: {
+            label: $localize`Sidebar:`,
+            addButton: true,
+            addCommentTitle: $localize`Add sidebar`,
+            addCommentLabel: $localize`+ Add sidebar`,
+            bubble: true,
+          },
+        });
+      }
     }
     if (!this.advancedForm) {
       this.advancedForm = cloneDeep(this.admin.getTemplateAdvancedForm(ext.tag));
