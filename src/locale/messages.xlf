@@ -1307,15 +1307,15 @@ Please Reload.</source>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/form/ext/ext.component.html</context>
-          <context context-type="linenumber">66</context>
+          <context context-type="linenumber">79</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/form/ext/ext.component.html</context>
-          <context context-type="linenumber">95</context>
+          <context context-type="linenumber">108</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/form/ext/ext.component.html</context>
-          <context context-type="linenumber">193</context>
+          <context context-type="linenumber">206</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/formly/bookmark.type.ts</context>
@@ -2043,23 +2043,23 @@ Please Reload.</source>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/root.ts</context>
-          <context context-type="linenumber">301</context>
+          <context context-type="linenumber">303</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/root.ts</context>
-          <context context-type="linenumber">339</context>
+          <context context-type="linenumber">341</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/root.ts</context>
-          <context context-type="linenumber">340</context>
+          <context context-type="linenumber">342</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/root.ts</context>
-          <context context-type="linenumber">385</context>
+          <context context-type="linenumber">387</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/root.ts</context>
-          <context context-type="linenumber">386</context>
+          <context context-type="linenumber">388</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4679350283070316054" datatype="html">
@@ -2224,7 +2224,7 @@ Please Reload.</source>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/root.ts</context>
-          <context context-type="linenumber">420</context>
+          <context context-type="linenumber">422</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/sync/email.ts</context>
@@ -2335,7 +2335,7 @@ Please Reload.</source>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/root.ts</context>
-          <context context-type="linenumber">302</context>
+          <context context-type="linenumber">304</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/system/cache.ts</context>
@@ -2802,14 +2802,14 @@ Please Reload.</source>
         <source>Responses Of:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/lens/lens.component.html</context>
-          <context context-type="linenumber">4,5</context>
+          <context context-type="linenumber">7,8</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2742033283089138360" datatype="html">
         <source>Sources Of:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/component/lens/lens.component.html</context>
-          <context context-type="linenumber">13,14</context>
+          <context context-type="linenumber">16,17</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4000468778603204036" datatype="html">
@@ -2898,11 +2898,11 @@ Please Reload.</source>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/form/ext/ext.component.html</context>
-          <context context-type="linenumber">34,35</context>
+          <context context-type="linenumber">47,48</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/form/ext/ext.component.html</context>
-          <context context-type="linenumber">150,151</context>
+          <context context-type="linenumber">163,164</context>
         </context-group>
       </trans-unit>
       <trans-unit id="9005900682610436567" datatype="html">
@@ -2943,7 +2943,7 @@ Please Reload.</source>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/root.ts</context>
-          <context context-type="linenumber">422</context>
+          <context context-type="linenumber">424</context>
         </context-group>
       </trans-unit>
       <trans-unit id="5501510435141891966" datatype="html">
@@ -3996,11 +3996,11 @@ Please Reload.</source>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/form/ext/ext.component.html</context>
-          <context context-type="linenumber">62</context>
+          <context context-type="linenumber">75</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/form/ext/ext.component.html</context>
-          <context context-type="linenumber">189</context>
+          <context context-type="linenumber">202</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/formly/bookmark.type.ts</context>
@@ -4015,11 +4015,11 @@ Please Reload.</source>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/form/ext/ext.component.html</context>
-          <context context-type="linenumber">62,63</context>
+          <context context-type="linenumber">75,76</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/form/ext/ext.component.html</context>
-          <context context-type="linenumber">189,190</context>
+          <context context-type="linenumber">202,203</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/formly/bookmark.type.ts</context>
@@ -4034,11 +4034,11 @@ Please Reload.</source>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/form/ext/ext.component.html</context>
-          <context context-type="linenumber">64</context>
+          <context context-type="linenumber">77</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/form/ext/ext.component.html</context>
-          <context context-type="linenumber">191</context>
+          <context context-type="linenumber">204</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/formly/bookmark.type.ts</context>
@@ -4053,11 +4053,11 @@ Please Reload.</source>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/form/ext/ext.component.html</context>
-          <context context-type="linenumber">64,65</context>
+          <context context-type="linenumber">77,78</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/form/ext/ext.component.html</context>
-          <context context-type="linenumber">191,192</context>
+          <context context-type="linenumber">204,205</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/formly/bookmark.type.ts</context>
@@ -4542,128 +4542,149 @@ Please Reload.</source>
           <context context-type="linenumber">19,20</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="664180978354676294" datatype="html">
+        <source>Header:</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/form/ext/ext.component.html</context>
+          <context context-type="linenumber">17,18</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="2179697481488400528" datatype="html">
+        <source>Add header</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/form/ext/ext.component.html</context>
+          <context context-type="linenumber">23,24</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="3996895427547978245" datatype="html">
+        <source>+ Add header</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/form/ext/ext.component.html</context>
+          <context context-type="linenumber">24,25</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="3169648418245875731" datatype="html">
         <source>Popover:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/form/ext/ext.component.html</context>
-          <context context-type="linenumber">17,18</context>
+          <context context-type="linenumber">30,31</context>
         </context-group>
       </trans-unit>
       <trans-unit id="624985221969734974" datatype="html">
         <source>Add popover</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/form/ext/ext.component.html</context>
-          <context context-type="linenumber">23,24</context>
+          <context context-type="linenumber">36,37</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3323213499746840529" datatype="html">
         <source>+ Add popover</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/form/ext/ext.component.html</context>
-          <context context-type="linenumber">24,25</context>
+          <context context-type="linenumber">37,38</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2175266453792785003" datatype="html">
         <source>User Theme:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/form/ext/ext.component.html</context>
-          <context context-type="linenumber">31,32</context>
+          <context context-type="linenumber">44,45</context>
         </context-group>
       </trans-unit>
       <trans-unit id="5666369127259683566" datatype="html">
         <source>This theme will be used on every page. Tag page themes will be ignored.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/form/ext/ext.component.html</context>
-          <context context-type="linenumber">32,33</context>
+          <context context-type="linenumber">45,46</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3534741147592988726" datatype="html">
         <source>Default Sort:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/form/ext/ext.component.html</context>
-          <context context-type="linenumber">42,43</context>
+          <context context-type="linenumber">55,56</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/form/ext/ext.component.html</context>
-          <context context-type="linenumber">170,171</context>
+          <context context-type="linenumber">183,184</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2747727333672411601" datatype="html">
         <source>+ Add sort</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/form/ext/ext.component.html</context>
-          <context context-type="linenumber">48,49</context>
+          <context context-type="linenumber">61,62</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/form/ext/ext.component.html</context>
-          <context context-type="linenumber">176,177</context>
+          <context context-type="linenumber">189,190</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6519772743037214910" datatype="html">
         <source>Default Filter:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/form/ext/ext.component.html</context>
-          <context context-type="linenumber">72,73</context>
+          <context context-type="linenumber">85,86</context>
         </context-group>
       </trans-unit>
       <trans-unit id="8857746354382606226" datatype="html">
         <source>+ Add filter</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/form/ext/ext.component.html</context>
-          <context context-type="linenumber">78,79</context>
+          <context context-type="linenumber">91,92</context>
         </context-group>
       </trans-unit>
       <trans-unit id="176203672608630030" datatype="html">
         <source>Enable Modmail:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/form/ext/ext.component.html</context>
-          <context context-type="linenumber">127,128</context>
+          <context context-type="linenumber">140,141</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2262162066468112122" datatype="html">
         <source>Sidebar:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/form/ext/ext.component.html</context>
-          <context context-type="linenumber">134,135</context>
+          <context context-type="linenumber">147,148</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6167949687674321275" datatype="html">
         <source>Add sidebar</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/form/ext/ext.component.html</context>
-          <context context-type="linenumber">140,141</context>
+          <context context-type="linenumber">153,154</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7444586930613414494" datatype="html">
         <source>+ Add sidebar</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/form/ext/ext.component.html</context>
-          <context context-type="linenumber">141,142</context>
+          <context context-type="linenumber">154,155</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4340398064324174760" datatype="html">
         <source>Tag Page Theme:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/form/ext/ext.component.html</context>
-          <context context-type="linenumber">147,148</context>
+          <context context-type="linenumber">160,161</context>
         </context-group>
       </trans-unit>
       <trans-unit id="5873544192592390803" datatype="html">
         <source>Custom Themes</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/form/ext/ext.component.html</context>
-          <context context-type="linenumber">156</context>
+          <context context-type="linenumber">169</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/form/ext/ext.component.html</context>
-          <context context-type="linenumber">156</context>
+          <context context-type="linenumber">169</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6201638315245239510" datatype="html">
         <source>Advanced</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/form/ext/ext.component.html</context>
-          <context context-type="linenumber">167</context>
+          <context context-type="linenumber">180</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/form/plugins/gen/gen.component.html</context>
@@ -6461,35 +6482,35 @@ Private tags start with an underscore.
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/root.ts</context>
-          <context context-type="linenumber">295</context>
+          <context context-type="linenumber">297</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/root.ts</context>
-          <context context-type="linenumber">314</context>
+          <context context-type="linenumber">316</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/root.ts</context>
-          <context context-type="linenumber">329</context>
+          <context context-type="linenumber">331</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/root.ts</context>
-          <context context-type="linenumber">355</context>
+          <context context-type="linenumber">357</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/root.ts</context>
-          <context context-type="linenumber">378</context>
+          <context context-type="linenumber">380</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/root.ts</context>
-          <context context-type="linenumber">401</context>
+          <context context-type="linenumber">403</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/root.ts</context>
-          <context context-type="linenumber">414</context>
+          <context context-type="linenumber">416</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/root.ts</context>
-          <context context-type="linenumber">434</context>
+          <context context-type="linenumber">436</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/sync/email.ts</context>
@@ -6525,7 +6546,35 @@ Private tags start with an underscore.
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/sync/scrape.ts</context>
-          <context context-type="linenumber">574</context>
+          <context context-type="linenumber">567</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/sync/scrape.ts</context>
+          <context context-type="linenumber">577</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/sync/scrape.ts</context>
+          <context context-type="linenumber">587</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/sync/scrape.ts</context>
+          <context context-type="linenumber">597</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/sync/scrape.ts</context>
+          <context context-type="linenumber">607</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/sync/scrape.ts</context>
+          <context context-type="linenumber">617</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/sync/scrape.ts</context>
+          <context context-type="linenumber">627</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/sync/scrape.ts</context>
+          <context context-type="linenumber">637</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/system/banlist.ts</context>
@@ -11690,35 +11739,35 @@ F: Fullscreen toggle
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/root.ts</context>
-          <context context-type="linenumber">292</context>
+          <context context-type="linenumber">294</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/root.ts</context>
-          <context context-type="linenumber">311</context>
+          <context context-type="linenumber">313</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/root.ts</context>
-          <context context-type="linenumber">326</context>
+          <context context-type="linenumber">328</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/root.ts</context>
-          <context context-type="linenumber">352</context>
+          <context context-type="linenumber">354</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/root.ts</context>
-          <context context-type="linenumber">374</context>
+          <context context-type="linenumber">376</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/root.ts</context>
-          <context context-type="linenumber">398</context>
+          <context context-type="linenumber">400</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/root.ts</context>
-          <context context-type="linenumber">410</context>
+          <context context-type="linenumber">412</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/root.ts</context>
-          <context context-type="linenumber">431</context>
+          <context context-type="linenumber">433</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/editor.service.ts</context>
@@ -11934,70 +11983,70 @@ F: Fullscreen toggle
         <source>⚙️ Internal</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/root.ts</context>
-          <context context-type="linenumber">290</context>
+          <context context-type="linenumber">292</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3995061669132737366" datatype="html">
         <source>Internal Refs which should be hidden by default</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/root.ts</context>
-          <context context-type="linenumber">296</context>
+          <context context-type="linenumber">298</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2407024492013741336" datatype="html">
         <source>⚙️</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/root.ts</context>
-          <context context-type="linenumber">298</context>
+          <context context-type="linenumber">300</context>
         </context-group>
       </trans-unit>
       <trans-unit id="8478497625222223207" datatype="html">
         <source>⚙️ internal</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/root.ts</context>
-          <context context-type="linenumber">301</context>
+          <context context-type="linenumber">303</context>
         </context-group>
       </trans-unit>
       <trans-unit id="1497409540080745685" datatype="html">
         <source>Show hidden comments and reactions</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/root.ts</context>
-          <context context-type="linenumber">301</context>
+          <context context-type="linenumber">303</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3668688121012985697" datatype="html">
         <source>internal:</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/root.ts</context>
-          <context context-type="linenumber">302</context>
+          <context context-type="linenumber">304</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6174916844494879365" datatype="html">
         <source>ℹ️ Alt Text</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/root.ts</context>
-          <context context-type="linenumber">309</context>
+          <context context-type="linenumber">311</context>
         </context-group>
       </trans-unit>
       <trans-unit id="748101342189560087" datatype="html">
         <source>Use comment as alt text</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/root.ts</context>
-          <context context-type="linenumber">315</context>
+          <context context-type="linenumber">317</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7382509881380278979" datatype="html">
         <source>ℹ️</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/root.ts</context>
-          <context context-type="linenumber">317</context>
+          <context context-type="linenumber">319</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6938936878686487610" datatype="html">
         <source>🔒️ Locked</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/root.ts</context>
-          <context context-type="linenumber">324</context>
+          <context context-type="linenumber">326</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4419545362030749443" datatype="html">
@@ -12005,92 +12054,92 @@ F: Fullscreen toggle
       locked and unlocked Refs</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/root.ts</context>
-          <context context-type="linenumber">330,331</context>
+          <context context-type="linenumber">332,333</context>
         </context-group>
       </trans-unit>
       <trans-unit id="8011230424102135762" datatype="html">
         <source>🔒️</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/root.ts</context>
-          <context context-type="linenumber">333</context>
+          <context context-type="linenumber">335</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/root.ts</context>
-          <context context-type="linenumber">343</context>
+          <context context-type="linenumber">345</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7870689051450450957" datatype="html">
         <source>Locked</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/root.ts</context>
-          <context context-type="linenumber">333</context>
+          <context context-type="linenumber">335</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/root.ts</context>
-          <context context-type="linenumber">339</context>
+          <context context-type="linenumber">341</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7665909446755660630" datatype="html">
         <source>unlock</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/root.ts</context>
-          <context context-type="linenumber">336</context>
+          <context context-type="linenumber">338</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3383234849841349780" datatype="html">
         <source>Unlock this post to allow editing</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/root.ts</context>
-          <context context-type="linenumber">336</context>
+          <context context-type="linenumber">338</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3407615419853754604" datatype="html">
         <source>🔒️ locked</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/root.ts</context>
-          <context context-type="linenumber">339</context>
+          <context context-type="linenumber">341</context>
         </context-group>
       </trans-unit>
       <trans-unit id="5176873257611652630" datatype="html">
         <source>🔓️ unlocked</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/root.ts</context>
-          <context context-type="linenumber">340</context>
+          <context context-type="linenumber">342</context>
         </context-group>
       </trans-unit>
       <trans-unit id="1678868786883654993" datatype="html">
         <source>Unlocked</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/root.ts</context>
-          <context context-type="linenumber">340</context>
+          <context context-type="linenumber">342</context>
         </context-group>
       </trans-unit>
       <trans-unit id="1828484135415054448" datatype="html">
         <source>🔓️</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/root.ts</context>
-          <context context-type="linenumber">343</context>
+          <context context-type="linenumber">345</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3228451713110409742" datatype="html">
         <source>Lock this post to prevent editing</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/root.ts</context>
-          <context context-type="linenumber">343</context>
+          <context context-type="linenumber">345</context>
         </context-group>
       </trans-unit>
       <trans-unit id="155024462023665978" datatype="html">
         <source>🔓️ Unlock</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/root.ts</context>
-          <context context-type="linenumber">350</context>
+          <context context-type="linenumber">352</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4925600314875486819" datatype="html">
         <source>🌐️ Public</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/root.ts</context>
-          <context context-type="linenumber">372</context>
+          <context context-type="linenumber">374</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6116033733870697863" datatype="html">
@@ -12098,144 +12147,144 @@ F: Fullscreen toggle
       private and public Refs</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/root.ts</context>
-          <context context-type="linenumber">379,380</context>
+          <context context-type="linenumber">381,382</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7031982446912702693" datatype="html">
         <source>👁️</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/root.ts</context>
-          <context context-type="linenumber">382</context>
+          <context context-type="linenumber">384</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/root.ts</context>
-          <context context-type="linenumber">389</context>
+          <context context-type="linenumber">391</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3686284950598311784" datatype="html">
         <source>Private</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/root.ts</context>
-          <context context-type="linenumber">382</context>
+          <context context-type="linenumber">384</context>
         </context-group>
       </trans-unit>
       <trans-unit id="5224126015540289117" datatype="html">
         <source>🌐️ public</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/root.ts</context>
-          <context context-type="linenumber">385</context>
+          <context context-type="linenumber">387</context>
         </context-group>
       </trans-unit>
       <trans-unit id="5643817794885534330" datatype="html">
         <source>Public read access</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/root.ts</context>
-          <context context-type="linenumber">385</context>
+          <context context-type="linenumber">387</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3758980196777220184" datatype="html">
         <source>👁️ private</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/root.ts</context>
-          <context context-type="linenumber">386</context>
+          <context context-type="linenumber">388</context>
         </context-group>
       </trans-unit>
       <trans-unit id="5403580393523819748" datatype="html">
         <source>Private read access</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/root.ts</context>
-          <context context-type="linenumber">386</context>
+          <context context-type="linenumber">388</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4508882742899530071" datatype="html">
         <source>🌐️</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/root.ts</context>
-          <context context-type="linenumber">389</context>
+          <context context-type="linenumber">391</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2653920503457223941" datatype="html">
         <source>Toggle 🌐️ Public or 👁️ Private</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/root.ts</context>
-          <context context-type="linenumber">389</context>
+          <context context-type="linenumber">391</context>
         </context-group>
       </trans-unit>
       <trans-unit id="660429532886163577" datatype="html">
         <source>🔀 Diff</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/root.ts</context>
-          <context context-type="linenumber">396</context>
+          <context context-type="linenumber">398</context>
         </context-group>
       </trans-unit>
       <trans-unit id="5137357606028175607" datatype="html">
         <source>Enable diff action for comparing reference versions using Monaco editor</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/root.ts</context>
-          <context context-type="linenumber">402</context>
+          <context context-type="linenumber">404</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3029870654393110207" datatype="html">
         <source>🎁️ Mod</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/root.ts</context>
-          <context context-type="linenumber">408</context>
+          <context context-type="linenumber">410</context>
         </context-group>
       </trans-unit>
       <trans-unit id="8084860890277468773" datatype="html">
         <source>A mod which can be installed by an admin.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/root.ts</context>
-          <context context-type="linenumber">415</context>
+          <context context-type="linenumber">417</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7615772940400448109" datatype="html">
         <source>🎁️</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/root.ts</context>
-          <context context-type="linenumber">418</context>
+          <context context-type="linenumber">420</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7441044671441264120" datatype="html">
         <source>🎁️ mod</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/root.ts</context>
-          <context context-type="linenumber">420</context>
+          <context context-type="linenumber">422</context>
         </context-group>
       </trans-unit>
       <trans-unit id="8397814887927533382" datatype="html">
         <source>Mod</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/root.ts</context>
-          <context context-type="linenumber">420</context>
+          <context context-type="linenumber">422</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3621153583371414913" datatype="html">
         <source>Install this mod</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/root.ts</context>
-          <context context-type="linenumber">422</context>
+          <context context-type="linenumber">424</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7808914062640299138" datatype="html">
         <source>Are you sure you want to install this mod?</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/root.ts</context>
-          <context context-type="linenumber">422</context>
+          <context context-type="linenumber">424</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4973234471360717290" datatype="html">
         <source>🎁️ Mod Receipt</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/root.ts</context>
-          <context context-type="linenumber">429</context>
+          <context context-type="linenumber">431</context>
         </context-group>
       </trans-unit>
       <trans-unit id="1390095266748534119" datatype="html">
         <source>Log of installed mod before any customization. Used for 3 way merges.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/root.ts</context>
-          <context context-type="linenumber">435</context>
+          <context context-type="linenumber">437</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6817971173758446472" datatype="html">
@@ -12996,7 +13045,35 @@ F: Fullscreen toggle
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/sync/scrape.ts</context>
-          <context context-type="linenumber">571</context>
+          <context context-type="linenumber">564</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/sync/scrape.ts</context>
+          <context context-type="linenumber">574</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/sync/scrape.ts</context>
+          <context context-type="linenumber">584</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/sync/scrape.ts</context>
+          <context context-type="linenumber">594</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/sync/scrape.ts</context>
+          <context context-type="linenumber">604</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/sync/scrape.ts</context>
+          <context context-type="linenumber">614</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/sync/scrape.ts</context>
+          <context context-type="linenumber">624</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/sync/scrape.ts</context>
+          <context context-type="linenumber">634</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6051041935662189685" datatype="html">
@@ -13292,56 +13369,56 @@ F: Fullscreen toggle
         <source>🪝 Scrape Ref</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/sync/scrape.ts</context>
-          <context context-type="linenumber">560</context>
+          <context context-type="linenumber">562</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7677937124904084119" datatype="html">
         <source>🪝 Scrape Title</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/sync/scrape.ts</context>
-          <context context-type="linenumber">561</context>
+          <context context-type="linenumber">572</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4017715312241538826" datatype="html">
         <source>🪝 Scrape Comment</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/sync/scrape.ts</context>
-          <context context-type="linenumber">562</context>
+          <context context-type="linenumber">582</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6498124290293783399" datatype="html">
         <source>🪝 Scrape Sources</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/sync/scrape.ts</context>
-          <context context-type="linenumber">563</context>
+          <context context-type="linenumber">592</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2069538275148241423" datatype="html">
         <source>🪝 Scrape Alternate URLs</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/sync/scrape.ts</context>
-          <context context-type="linenumber">564</context>
+          <context context-type="linenumber">602</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6468514242232310348" datatype="html">
         <source>🪝 Scrape Plugins</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/sync/scrape.ts</context>
-          <context context-type="linenumber">565</context>
+          <context context-type="linenumber">612</context>
         </context-group>
       </trans-unit>
       <trans-unit id="1781556809473469030" datatype="html">
         <source>🪝 Scrape Tags</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/sync/scrape.ts</context>
-          <context context-type="linenumber">566</context>
+          <context context-type="linenumber">622</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6274957383357122873" datatype="html">
         <source>🪝 Scrape Published Date</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/sync/scrape.ts</context>
-          <context context-type="linenumber">567</context>
+          <context context-type="linenumber">632</context>
         </context-group>
       </trans-unit>
       <trans-unit id="2148883232481903149" datatype="html">

@@ -1419,6 +1419,18 @@ Please Reload.</source>
         <source>Name:</source>
         <target>名前:</target>
       </trans-unit>
+      <trans-unit id="664180978354676294" datatype="html">
+        <source>Header:</source>
+        <target>ヘッダー:</target>
+      </trans-unit>
+      <trans-unit id="2179697481488400528" datatype="html">
+        <source>Add header</source>
+        <target>ヘッダーを追加</target>
+      </trans-unit>
+      <trans-unit id="3996895427547978245" datatype="html">
+        <source>+ Add header</source>
+        <target>+ ヘッダーを追加</target>
+      </trans-unit>
       <trans-unit id="3169648418245875731" datatype="html">
         <source>Popover:</source>
         <target>ポップオーバー:</target>
