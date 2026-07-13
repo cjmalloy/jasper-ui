@@ -317,48 +317,7 @@ export class ExtFormComponent implements OnDestroy {
         });
     }
     if (!this.form) {
-      this.form = cloneDeep(this.admin.getTemplateForm(ext.tag)) || [];
-      if (this.config.get('popover')) {
-        this.form.unshift({
-          key: 'popover',
-          type: 'editor',
-          className: 'popover-editor',
-          props: {
-            label: $localize`Popover:`,
-            addButton: true,
-            addCommentTitle: $localize`Add popover`,
-            addCommentLabel: $localize`+ Add popover`,
-          },
-        });
-      }
-      if (this.config.get('header')) {
-        this.form.unshift({
-          key: 'header',
-          type: 'editor',
-          className: 'header-editor',
-          props: {
-            label: $localize`Header:`,
-            addButton: true,
-            addCommentTitle: $localize`Add header`,
-            addCommentLabel: $localize`+ Add header`,
-            bubble: true,
-          },
-        });
-      }
-      if (this.config.get('sidebar')) {
-        this.form.push({
-          key: 'sidebar',
-          type: 'editor',
-          className: 'sidebar-editor',
-          props: {
-            label: $localize`Sidebar:`,
-            addButton: true,
-            addCommentTitle: $localize`Add sidebar`,
-            addCommentLabel: $localize`+ Add sidebar`,
-            bubble: true,
-          },
-        });
-      }
+      this.form = cloneDeep(this.admin.getTemplateForm(ext.tag));
     }
     if (!this.advancedForm) {
       this.advancedForm = cloneDeep(this.admin.getTemplateAdvancedForm(ext.tag));
