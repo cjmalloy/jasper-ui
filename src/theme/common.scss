@@ -25,6 +25,7 @@ body {
   --warning: #c1c500;
   --mod: #136500;
   --card: #f3ebc7;
+  --card-dragging: #ede7dc;
   --placeholder: #efebdf;
   --deleting: #ffa9a9;
 }
@@ -1252,6 +1253,9 @@ details.advanced {
       }
     }
   }
+}
+.plugins-form details.advanced summary > span{
+  border: none;
 }
 
 details.advanced[open] {

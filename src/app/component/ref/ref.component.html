@@ -16,15 +16,19 @@
       <div class="thumbnail"
            [style.background-image]="thumbnailRefs | thumbnail | async | cssUrl"
            [style.background-color]="thumbnailColor"
+           [style.background-size]="thumbnailRadius ? 'cover' : 'contain'"
            [style.border-radius.px]="thumbnailRadius">{{ thumbnailEmoji }}</div>
     } @else if (thumbnail) {
       <div class="thumbnail"
            [style.background-image]="thumbnailRefs | thumbnail: true | async | cssUrl"
+           [style.background-size]="thumbnailRadius ? 'cover' : 'contain'"
            [style.border-radius.px]="thumbnailRadius">{{ thumbnailEmoji }}</div>
     } @else if (thumbnailEmojiDefaults) {
       <div class="thumbnail">{{ thumbnailEmojiDefaults }}</div>
     } @else {
-      <div class="thumbnail" [class.default-thumbnail]="true"></div>
+      <div class="thumbnail"
+           [class.default-thumbnail]="true"
+           [class.has-storyboard-default]="storyboardData"></div>
     }
   }
   <div class="stack">
@@ -101,7 +105,7 @@
           @if (tags.length) {
             <span i18n> tagged
               @if (tagExts$ | async; as xs) {
-                @for (x of xs; track x.tag) {
+                @for (x of xs; track x) {
                   <a class="tag"
                      [routerLink]="['/tag', x.tag]"
                      [appTitle]="'#' + x.tag">{{ x.name || '#' + x.tag }}</a>
@@ -311,7 +315,8 @@
 </div>
 
 @if (replying) {
-  <app-comment-reply #reply [autofocus]="true"
+  <app-comment-reply #reply
+                     [autofocus]="true"
                      [to]="ref"
                      [showCancel]="true"
                      [selectResponseType]="!thread && !comment && !dm"

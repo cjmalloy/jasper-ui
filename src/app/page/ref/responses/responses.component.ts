@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { defer, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { MobxAngularModule } from 'mobx-angular';
@@ -15,6 +15,7 @@ import { getArgs, UrlFilter } from '../../../util/query';
   selector: 'app-ref-responses',
   templateUrl: './responses.component.html',
   styleUrls: ['./responses.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     MobxAngularModule,
     RefListComponent,

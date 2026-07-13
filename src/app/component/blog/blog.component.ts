@@ -1,4 +1,4 @@
-import { Component, Input, OnDestroy, QueryList, ViewChildren } from '@angular/core';
+import { Component, Input, OnDestroy, QueryList, ViewChildren, ChangeDetectionStrategy } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, forkJoin, of, Subject, takeUntil } from 'rxjs';
 import { HasChanges } from '../../guard/pending-changes.guard';
@@ -17,6 +17,7 @@ import { BlogEntryComponent } from './blog-entry/blog-entry.component';
   templateUrl: './blog.component.html',
   styleUrls: ['./blog.component.scss'],
   host: { 'class': 'blog ext' },
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     BlogEntryComponent,
     PageControlsComponent,

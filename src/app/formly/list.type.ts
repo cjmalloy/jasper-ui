@@ -1,13 +1,17 @@
 import { CdkDrag, CdkDragDrop, CdkDragHandle, CdkDropList } from '@angular/cdk/drag-drop';
 import { CdkScrollable } from '@angular/cdk/scrolling';
-import { Component, HostBinding } from '@angular/core';
+import { Component, HostBinding, ChangeDetectionStrategy } from '@angular/core';
 import { FieldArrayType, FormlyField } from '@ngx-formly/core';
 import { defer } from 'lodash-es';
 import { Store } from '../store/store';
+import { clipboardPasteValues } from '../util/clipboard';
 import { getPath } from '../util/http';
 
 @Component({
   selector: 'formly-list-section',
+  host: {
+    '(jasper-clipboard-paste)': 'clipboardPaste($any($event))',
+  },
   template: `
     <label [class.no-margin]="props.showLabel === false">{{ props.showLabel !== false && props.label || '' }}</label>
     <div #fg
@@ -40,6 +44,7 @@ import { getPath } from '../util/http';
       }
     </div>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     CdkDropList,
     CdkScrollable,
@@ -190,6 +195,14 @@ export class ListTypeComponent extends FieldArrayType {
       const el = document.querySelector(selector) as HTMLInputElement;
       el.blur();
     });
+  }
+
+  clipboardPaste(event: Event) {
+    event.preventDefault();
+    event.stopPropagation();
+    for (const value of clipboardPasteValues(event)) {
+      this.add(undefined, value);
+    }
   }
 
   drop(event: CdkDragDrop<ListTypeComponent>) {

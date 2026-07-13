@@ -1,5 +1,5 @@
 /// <reference types="vitest/globals" />
-import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
@@ -16,7 +16,7 @@ describe('MdComponent', () => {
     await TestBed.configureTestingModule({
       imports: [MarkdownModule.forRoot()],
       providers: [
-        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClient(withXhr(), withInterceptorsFromDi()),
         provideHttpClientTesting(),
         provideRouter([]),
       ]
@@ -31,6 +31,16 @@ describe('MdComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('should render KaTeX when the LaTeX plugin is enabled', async () => {
+    const ready = firstValueFrom(component.postProcessMarkdown);
+    component.plugins = ['plugin/latex'];
+    component.text = '$x^2$';
+    fixture.detectChanges();
+    await ready;
+
+    expect(fixture.nativeElement.querySelector('.katex')).toBeTruthy();
   });
 
   it('should block object tags in markdown content', async () => {

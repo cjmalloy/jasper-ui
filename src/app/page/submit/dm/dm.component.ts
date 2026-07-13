@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { AfterViewInit, Component, ElementRef, forwardRef, OnChanges, OnDestroy, SimpleChanges, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, forwardRef, OnChanges, OnDestroy, SimpleChanges, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import {
   ReactiveFormsModule,
   UntypedFormArray,
@@ -49,6 +49,7 @@ import { getVisibilityTags, hasPrefix, hasTag, localTag } from '../../../util/ta
   templateUrl: './dm.component.html',
   styleUrls: ['./dm.component.scss'],
   host: { 'class': 'full-page-form' },
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     forwardRef(() => EditorComponent),
     MobxAngularModule,

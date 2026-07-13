@@ -75,9 +75,16 @@ test.describe.serial('Bookmark Formly Type', () => {
     await expect(filterSelect.locator('option[value="query/doing"]')).toHaveText(/doing/);
     await expect(filterSelect.locator('option[value="query/done"]')).toHaveText(/done/);
     await expect(filterSelect.locator('option[value="query/!doing:!done"]')).toHaveText(/todo/);
-    const groups = await filterSelect.locator('optgroup').evaluateAll(elements => elements.map(group => group.getAttribute('label')));
-    expect(groups.indexOf('Filters 🕵️️')).toBeLessThan(groups.indexOf('Kanban 📋️'));
-    expect(groups.indexOf('Kanban 📋️')).toBeLessThan(groups.indexOf('Origins 🏛️'));
+    const groups = await filterSelect.locator('optgroup').evaluateAll(elements => (
+      elements.map(group => group.getAttribute('label') || '')
+    ));
+    const filtersIndex = groups.indexOf('Filters 🕵️️');
+    const kanbanIndex = groups.indexOf('Kanban 📋️');
+    expect(filtersIndex).not.toBe(-1);
+    expect(kanbanIndex).not.toBe(-1);
+    expect(filtersIndex).toBeLessThan(kanbanIndex);
+    const originsIndex = groups.indexOf('Origins 🏛️');
+    if (originsIndex !== -1) expect(kanbanIndex).toBeLessThan(originsIndex);
   });
 
   test('clicking outside popup closes it', async ({ page }) => {

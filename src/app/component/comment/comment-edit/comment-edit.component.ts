@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { AfterViewInit, Component, forwardRef, Input, OnDestroy, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, forwardRef, Input, OnDestroy, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { FormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { uniq, without } from 'lodash-es';
 import { catchError, forkJoin, map, of, Subject, Subscription, switchMap, takeUntil, throwError } from 'rxjs';
@@ -20,6 +20,7 @@ import { LoadingComponent } from '../../loading/loading.component';
   templateUrl: './comment-edit.component.html',
   styleUrls: ['./comment-edit.component.scss'],
   host: { 'class': 'comment-edit' },
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     forwardRef(() => EditorComponent),
     LoadingComponent,

@@ -1,4 +1,4 @@
-import { Component, Input, OnDestroy, OnInit, QueryList, ViewChildren } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit, QueryList, ViewChildren, ChangeDetectionStrategy } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, forkJoin, Observable, of, Subject, takeUntil } from 'rxjs';
 import { HasChanges } from '../../guard/pending-changes.guard';
@@ -18,6 +18,7 @@ import { NoteComponent } from './note/note.component';
   templateUrl: './notebook.component.html',
   styleUrl: './notebook.component.scss',
   host: { 'class': 'notebook ext' },
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     NoteComponent,
     PageControlsComponent,

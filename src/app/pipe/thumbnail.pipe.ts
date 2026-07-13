@@ -6,6 +6,8 @@ import { ProxyService } from '../service/api/proxy.service';
 import { OembedStore } from '../store/oembed';
 import { hasTag } from '../util/tag';
 
+type ThumbnailRef = Pick<Ref, 'url' | 'origin' | 'plugins' | 'tags'>;
+
 @Pipe({
     name: 'thumbnail',
     pure: true
@@ -18,7 +20,7 @@ export class ThumbnailPipe implements PipeTransform {
     private proxy: ProxyService,
   ) { }
 
-  transform(refs: (Ref | undefined)[], force = false): Observable<string> {
+  transform(refs: (ThumbnailRef | undefined)[], force = false): Observable<string> {
     for (const ref of refs) {
       if (!ref) continue;
       for (const plugin of ['plugin/thumbnail', 'plugin/image', 'plugin/video']) {

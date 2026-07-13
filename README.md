@@ -4,7 +4,8 @@ Reference client for Jasper KM.
 [![Build & Test](https://github.com/cjmalloy/jasper-ui/actions/workflows/test.yml/badge.svg)](https://cjmalloy.github.io/jasper-ui/reports/latest-vitest)
 [![Coverage](https://img.shields.io/endpoint?url=https://cjmalloy.github.io/jasper-ui/reports/latest-coverage/badge.json)](https://cjmalloy.github.io/jasper-ui/reports/latest-coverage/)
 [![Playwright](https://github.com/cjmalloy/jasper-ui/actions/workflows/playwright.yml/badge.svg)](https://cjmalloy.github.io/jasper-ui/reports/latest-playwright)
-[![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/jasper)](https://artifacthub.io/packages/helm/jasper/jasper-ui)
+[![Dependabot](https://img.shields.io/endpoint?url=https://cjmalloy.github.io/jasper-ui/reports/dependabot-badge.json)](https://github.com/cjmalloy/jasper-ui/security/dependabot)
+[![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/jasper-ui)](https://artifacthub.io/packages/helm/jasper/jasper-ui)
 
 Jasper-UI is the reference client for the
 [Jasper Knowledge Management Server](https://github.com/cjmalloy/jasper)
@@ -55,12 +56,16 @@ Markdown editor with support for rendering both markdown and HTML.
   of the Ref if it exists, or attempt to show the content directly if it is an image, audio, video, and embeddable
   sites.
 * Links of the form `![](/tag/query)` will add results of a tag query inline.
+
+
 ### Tag Query Page
 * Perform any tag query while performing a full text search and multi-column sort
 * Displays title from tag Ext if present
 * Displays sidebar markdown from tag Ext if present
 * Displays pinned Refs from tag Ext if present
 * Adds Modmail button that sends a DM to `plugin/inbox/tag`
+
+
 ### Mods
 1. **Root Mod:**
    1. **Pinned links:** Display these links at the top of this tag's page.
@@ -71,8 +76,7 @@ Markdown editor with support for rendering both markdown and HTML.
 2. **User:** (matches `user/`) Store user generated data:
    1. Inbox: last notified time (for use with the inbox plugin)
    2. Subscriptions: List of tags to show on your home page
-   3. Themes: (optional) Override the theme for the entire site. Will cause custom tag themes
-   to be ignored.
+   3. Themes: (optional) Override the theme for the entire site. Will cause custom tag themes to be ignored.
 3. **Home Page:** Enables a home page where you can subscribe to various tags or queries and
 see them on a personalized dashboard.
 4. **Inbox:** Enables notifications when installed. You receive a notification when someone posts a
@@ -210,6 +214,8 @@ Ref will be used to point to a TSV file.
 12. **Analytics:** Enables engagement tracking when installed. Reports links clicked, Refs expanded,
 Ref action taken, Refs viewed, and queries searched. Adds data to the Ref to override analytic
 tracking for that ref.
+13. **Clipboard:** Manage in-browser clipboard bubbles for copied Refs, tags, queries, bookmarks,
+and local-only images.
 
 ## Deployment
 Jasper-UI is available in the following distributions:
@@ -241,6 +247,7 @@ file will be generated from environment variables:
 | `fetchBatch`     | `JASPER_FETCH_BATCH`     | Batch size for fetching plugins, templates, and origins.                                          | `50`                                                                                                    |
 | `token`          | `JASPER_TOKEN`           | Set client bearer token.                                                                          |                                                                                                         |
 | `prefetch`       | `JASPER_PREFETCH`        | Prefetch proxied urls. Needed when not using cookies as image requests will not be authenticated. | `false`                                                                                                 |
+| `pwa`            | `JASPER_PWA`             | Enable the progressive web app service worker and manifest.                                       | `false`                                                                                                 |
 |                  | `BASE_HREF`              | Set the base href for the SPA.                                                                    | `/j/`                                                                                                   |
 |                  | `JASPER_LOCALE`          | One of 'en', or 'ja'. Default is 'en'.                                                            | `ja'`                                                                                                   |
 |                  | `CSP_DEFAULT_SRC`        | Additional URLS to add to the default content security policy.                                    | `https://accounts.google.com https://www.googleapis.com`                                                |

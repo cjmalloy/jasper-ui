@@ -29,7 +29,7 @@ export class LocalStore {
     return value === 'true';
   }
 
-  setRefToggled(url: string, value= true) {
+  setRefToggled(url: string, value = true) {
     localStorage.setItem(`toggled:${url}`, ''+value);
   }
 

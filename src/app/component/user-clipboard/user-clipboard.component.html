@@ -1,0 +1,73 @@
+@if (store.account.signedIn) {
+  @if (dropVisible || dropActive || dropFilled) {
+    <div class="clipboard-drop-zone"
+         [class.active]="dropActive"
+         [class.filled]="dropFilled"
+         (dragover)="dragOver($event)"
+         (dragleave)="dragLeave($event)"
+         (drop)="drop($event)"
+         aria-label="Drop to clipboard"
+         i18n-aria-label>🎨️</div>
+  }
+  @if (items.length) {
+    <div class="clipboard-bubbles" aria-label="Clipboard items" i18n-aria-label>
+      @for (item of items; track item.id) {
+        <div class="clipboard-bubble"
+             [class.selected]="item.selected"
+             [class.hold]="item.hold"
+             [style.left.px]="item.x"
+             [style.top.px]="item.y"
+             (click)="select(item, $event)"
+             (pointerdown)="pointerDown($event, item)"
+             (pointermove)="pointerMove($event)"
+             (pointerup)="pointerUp($event)"
+             (pointercancel)="cancelPointerDrag($event)"
+             (lostpointercapture)="cancelPointerDrag($event)">
+            @if (item.selected) {
+              <label class="clipboard-hold"
+                     i18n-title title="Keep selected after paste"
+                     (click)="$event.stopPropagation()">
+                <input #holdCheckbox
+                       type="checkbox"
+                       [checked]="item.hold"
+                       (change)="setHold(item, holdCheckbox.checked, $event)"
+                       aria-label="Keep selected after paste"
+                       i18n-aria-label>
+              </label>
+            }
+            @if (thumbnailVisible(item)) {
+              <span class="clipboard-thumbnail"
+                    [style.background-color]="thumbnailColor(item)"
+                    [style.border-radius.px]="thumbnailRadius(item)"
+                    role="img"
+                    [attr.aria-label]="thumbnailLabel(item)">
+                <span class="clipboard-thumbnail-image"
+                      [style.background-image]="thumbnailRefs(item) | thumbnail: thumbnailForce(item) | async | cssUrl"
+                      aria-hidden="true"></span>
+                @if (thumbnailEmoji(item); as emoji) {
+                  <span class="clipboard-thumbnail-emoji">{{ emoji }}</span>
+                }
+              </span>
+            }
+            @if (store.hotkey && previewLink(item); as link) {
+              <a class="clipboard-preview"
+                 [href]="link"
+                 [title]="previewText(item)"
+                 [attr.aria-label]="previewLabel(item)"
+                 (click)="$event.stopPropagation()"
+                 (keydown)="$event.stopPropagation()">{{ preview(item) }}</a>
+            } @else {
+              <button type="button" class="clipboard-preview" [title]="previewText(item)" [attr.aria-label]="previewLabel(item)">{{ preview(item) }}</button>
+            }
+             @if (item.selected) {
+               <button type="button"
+                      class="clipboard-clear"
+                      (click)="clear(item, $event)"
+                      aria-label="Clear clipboard item"
+                      i18n-aria-label>×</button>
+            }
+          </div>
+        }
+      </div>
+  }
+}

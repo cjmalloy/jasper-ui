@@ -1,4 +1,4 @@
-FROM node:24.13.0 AS builder
+FROM node:26.5.0 AS builder
 WORKDIR /app
 RUN npm i -g @angular/cli@20.3.15
 COPY package.json package-lock.json ./
@@ -7,13 +7,13 @@ RUN npm ci
 COPY . ./
 RUN npm run build
 
-FROM node:24.13.0 AS test
+FROM node:26.5.0 AS test
 WORKDIR /app
 RUN npm i -g @angular/cli@20.3.15
 COPY --from=builder /app ./
 SHELL ["/bin/bash", "-c"]
 CMD mkdir -p /report && \
-    (NO_COLOR=1 ng test --watch=false \
+    (NO_COLOR=1 node --localstorage-file=/tmp/jasper-ui-test-localstorage.json ./node_modules/@angular/cli/bin/ng test --watch=false \
       --coverage \
       --coverage-reporters=html \
       --coverage-reporters=json-summary \
@@ -25,8 +25,8 @@ CMD mkdir -p /report && \
     (if [ -d coverage ]; then mkdir -p /report/coverage && cp -r coverage/. /report/coverage/ 2>/dev/null || true; fi) && \
     exit $(cat /report/exit-code.txt)
 
-FROM nginx:1.29.8-alpine3.23-slim AS deploy
-RUN apk add --no-cache jq moreutils
+FROM nginx:1.31.2-alpine3.23-slim AS deploy
+RUN apk --no-cache upgrade && apk --no-cache add jq moreutils
 WORKDIR /var/lib/jasper/
 COPY --from=builder /app/dist/jasper-ui/browser ./
 ARG BASE_HREF="/"

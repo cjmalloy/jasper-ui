@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output, ChangeDetectionStrategy } from '@angular/core';
 import { catchError, Observable, of } from 'rxjs';
 import { AutofocusDirective } from '../../../directive/autofocus.directive';
 import { LoadingComponent } from '../../loading/loading.component';
@@ -9,6 +9,7 @@ import { ActionComponent } from '../action.component';
   templateUrl: './inline-password.component.html',
   styleUrls: ['./inline-password.component.scss'],
   host: { 'class': 'action' },
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [AutofocusDirective, LoadingComponent]
 })
 export class InlinePasswordComponent extends ActionComponent {

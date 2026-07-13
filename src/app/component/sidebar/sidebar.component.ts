@@ -9,7 +9,8 @@ import {
   OnChanges,
   OnDestroy,
   OnInit,
-  SimpleChanges
+  SimpleChanges,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { uniq, uniqBy } from 'lodash-es';
@@ -54,6 +55,7 @@ import { SortComponent } from '../sort/sort.component';
   templateUrl: './sidebar.component.html',
   styleUrls: ['./sidebar.component.scss'],
   host: { 'class': 'sidebar' },
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     ExtComponent,
     forwardRef(() => MdComponent),
@@ -162,13 +164,13 @@ export class SidebarComponent implements OnInit, AfterViewInit, OnChanges, OnDes
   }
 
   ngAfterViewInit() {
-    if (this.ext?.config.searchHelp) {
+    if (this.ext?.config?.searchHelp) {
       this.help.pushStep(this.el.nativeElement.querySelector('app-search'), this.ext.config.searchHelp);
     }
-    if (this.ext?.config.filterHelp) {
+    if (this.ext?.config?.filterHelp) {
       this.help.pushStep(this.el.nativeElement.querySelector('app-filter'), this.ext.config.filterHelp);
     }
-    if (this.ext?.config.sortHelp) {
+    if (this.ext?.config?.sortHelp) {
       this.help.pushStep(this.el.nativeElement.querySelector('app-sort'), this.ext.config.sortHelp);
     }
   }

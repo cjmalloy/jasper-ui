@@ -10,7 +10,8 @@ import {
   OnDestroy,
   Output,
   SimpleChanges,
-  ViewChild
+  ViewChild,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import * as he from 'he';
@@ -59,6 +60,7 @@ import { TodoComponent } from '../todo/todo.component';
   selector: 'app-viewer',
   templateUrl: './viewer.component.html',
   styleUrls: ['./viewer.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     forwardRef(() => RefComponent),
     forwardRef(() => PlaylistComponent),

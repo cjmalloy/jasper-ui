@@ -16,7 +16,8 @@ import {
   QueryList,
   SimpleChanges,
   ViewChild,
-  ViewChildren
+  ViewChildren,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -93,6 +94,7 @@ import { ViewerComponent } from '../viewer/viewer.component';
   selector: 'app-ref',
   templateUrl: './ref.component.html',
   styleUrls: ['./ref.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     forwardRef(() => ViewerComponent),
     forwardRef(() => RefFormComponent),
@@ -117,6 +119,39 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   css = 'ref list-item';
   @HostBinding('class')
   allCss = this.getPluginClasses();
+  @HostBinding('attr.data-ref-url')
+  get refUrlAttr() {
+    return this.ref?.url;
+  }
+  @HostBinding('attr.data-ref-origin')
+  get refOriginAttr() {
+    return this.ref?.origin || undefined;
+  }
+  @HostBinding('attr.data-ref-title')
+  get refTitleAttr() {
+    return this.title || undefined;
+  }
+  @HostBinding('attr.data-ref-thumbnail-url')
+  get refThumbnailUrlAttr() {
+    if (!this.thumbnail) return undefined;
+    return this.refThumbnailUrl() || undefined;
+  }
+  @HostBinding('attr.data-ref-thumbnail-color')
+  get refThumbnailColorAttr() {
+    if (!this.thumbnail) return undefined;
+    return this.refThumbnailString('color') || undefined;
+  }
+  @HostBinding('attr.data-ref-thumbnail-emoji')
+  get refThumbnailEmojiAttr() {
+    if (!this.thumbnail) return undefined;
+    return this.refThumbnailString('emoji') || this.thumbnailEmojiDefaults || undefined;
+  }
+  @HostBinding('attr.data-ref-thumbnail-radius')
+  get refThumbnailRadiusAttr() {
+    if (!this.thumbnail) return undefined;
+    const radius = Number(this.refThumbnailPlugin?.['radius']);
+    return Number.isFinite(radius) ? `${radius}` : undefined;
+  }
   private disposers: IReactionDisposer[] = [];
   private destroy$ = new Subject<void>();
 
@@ -233,7 +268,6 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
       MemoCache.clear(this, 'storyboardMargin');
       MemoCache.clear(this, 'storyboardHeight');
       MemoCache.clear(this, 'storyboardAnimation');
-      MemoCache.clear(this, 'hasStoryboardDefault');
       defer(() => {
         // Let Formly finish rebuilding tag rows before derived Ref UI state reacts.
         this.initFields({ ...this.ref, ...value });
@@ -334,7 +368,6 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   }
 
   private preloadStoryboard() {
-    if (this.hasStoryboardDefault) return;
     const url = this.storyboardRawUrl;
     if (!url) return;
     this.preloadingUrl = url;
@@ -421,7 +454,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     return this.ref.outdated;
   }
 
-  private get storyboardData() {
+  get storyboardData() {
     if (!this.admin.getPlugin('plugin/thumbnail/storyboard')) return null;
     if (this.editing) {
       return this.editForm.value?.plugins?.['plugin/thumbnail/storyboard'] || null;
@@ -525,15 +558,6 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     return `${name} ${(totalFrames * duration).toFixed(2)}s linear infinite`;
   }
 
-  @memo
-  @HostBinding('class.has-storyboard-default')
-  get hasStoryboardDefault(): boolean {
-    const sb = this.storyboardData;
-    const thumbPlugins = this.editing ? this.editForm.value?.plugins : (this.ref?.plugins || this.repostRef?.plugins);
-    const thumbData = thumbPlugins?.['plugin/thumbnail'];
-    return !!sb && !(thumbData?.url || thumbData?.emoji || thumbData?.color);
-  }
-
   get obsoleteOrigin() {
     if (this.ref.metadata?.obsolete) return this.ref.origin;
     return undefined;
@@ -625,7 +649,6 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
       MemoCache.clear(this, 'storyboardMargin');
       MemoCache.clear(this, 'storyboardHeight');
       MemoCache.clear(this, 'storyboardAnimation');
-      MemoCache.clear(this, 'hasStoryboardDefault');
     } else {
       if (this.expanded) this.focusViewer = true;
       defer(() => {
@@ -746,13 +769,38 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   @memo
   get thumbnail() {
     if (!this.admin.getPlugin('plugin/thumbnail')) return false;
-    if (this.editing) return hasTag('plugin/thumbnail', this.editForm.value);
-    return hasTag('plugin/thumbnail', this.ref) || hasTag('plugin/thumbnail', this.repostRef);
+    if (this.editing) {
+      if (hasTag('plugin/thumbnail', this.editForm.value)) return true;
+      if (!this.admin.getPlugin('plugin/image')) return false;
+      return hasTag('plugin/image', this.editForm.value);
+    }
+    if (hasTag('plugin/thumbnail', this.ref) || hasTag('plugin/thumbnail', this.repostRef)) return true;
+    if (!this.admin.getPlugin('plugin/image')) return false;
+    return hasTag('plugin/image', this.ref) || hasTag('plugin/image', this.repostRef);
   }
 
   @memo
   get thumbnailRefs() {
     return this.editing ? [{ ...this.editForm.value, origin: this.ref.origin }] : [this.repostRef, this.ref];
+  }
+
+  get refThumbnailPlugin() {
+    const plugin = this.ref?.plugins?.['plugin/thumbnail'] || this.repostRef?.plugins?.['plugin/thumbnail'];
+    return plugin && typeof plugin === 'object' && !Array.isArray(plugin) ? plugin : undefined;
+  }
+
+  refThumbnailString(key: 'url' | 'color' | 'emoji') {
+    const value = this.refThumbnailPlugin?.[key];
+    return typeof value === 'string' ? value : '';
+  }
+
+  refThumbnailUrl() {
+    return this.refThumbnailString('url') || this.refThumbnailPluginUrl('plugin/image') || this.refThumbnailPluginUrl('plugin/video');
+  }
+
+  refThumbnailPluginUrl(plugin: 'plugin/image' | 'plugin/video') {
+    const value = this.ref?.plugins?.[plugin]?.url || this.repostRef?.plugins?.[plugin]?.url;
+    return typeof value === 'string' ? value : '';
   }
 
   @memo

@@ -9,7 +9,8 @@ import {
   QueryList,
   SimpleChanges,
   ViewChild,
-  ViewChildren
+  ViewChildren,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -45,6 +46,7 @@ import { ConfirmActionComponent } from '../action/confirm-action/confirm-action.
   templateUrl: './ext.component.html',
   styleUrls: ['./ext.component.scss'],
   host: { 'class': 'ext list-item' },
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     forwardRef(() => ExtFormComponent),
     RouterLink,

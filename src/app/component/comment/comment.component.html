@@ -164,7 +164,8 @@
     }
   </div>
   @if (replying) {
-    <app-comment-reply #replyComponent [autofocus]="true"
+    <app-comment-reply #replyComponent
+                       [autofocus]="true"
                        [to]="ref"
                        [showCancel]="true"
                        [tags]="replyTags"
@@ -178,7 +179,7 @@
                         [context]="context + 1"
                         [newComments$]="newComments$"></app-comment-thread>
   </div>
-  @if (!collapsed && ((depth === 1 && comments) || moreComments)) {
+  @if (showLoadMore && !collapsed && ((depth === 1 && comments) || moreComments)) {
     @if (context < maxContext) {
       <span class="fake-link load-more no-select"
             (click)="loadMore()" i18n>

@@ -7,7 +7,8 @@ import {
   Output,
   QueryList,
   SimpleChanges,
-  ViewChildren
+  ViewChildren,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormArray, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { defer } from 'lodash-es';
@@ -26,6 +27,7 @@ import { GenFormComponent } from './gen/gen.component';
   templateUrl: './plugins.component.html',
   styleUrls: ['./plugins.component.scss'],
   host: { 'class': 'plugins-form' },
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [ReactiveFormsModule, TitleDirective, GenFormComponent]
 })
 export class PluginsFormComponent implements OnChanges, AfterViewInit {

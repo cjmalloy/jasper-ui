@@ -32,6 +32,8 @@
             },
             "index": "src/index.html",
             "polyfills": [
+              "src/zone-flags.ts",
+              "zone.js",
               "src/polyfills.ts",
               "@angular/localize/init"
             ],
@@ -41,7 +43,6 @@
             "allowedCommonJsDependencies": [
               "handlebars/dist/cjs/handlebars",
               "jtd",
-              "hammerjs",
               "file-saver",
               "jszip",
               "qrcode",

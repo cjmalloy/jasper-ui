@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { Router } from '@angular/router';
 import { defer } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
@@ -16,6 +16,7 @@ import { getArgs } from '../../../util/query';
   templateUrl: './reports.component.html',
   styleUrl: './reports.component.scss',
   host: { 'class': 'modlist' },
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     MobxAngularModule,
     RefListComponent,
