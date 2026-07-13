@@ -4,11 +4,14 @@ import {
   EventEmitter,
   forwardRef,
   HostBinding,
+  HostListener,
   Input,
   OnChanges,
+  OnDestroy,
   Output,
   SimpleChanges,
-  ViewChild
+  ViewChild,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import * as he from 'he';
@@ -23,7 +26,7 @@ import { Ext } from '../../model/ext';
 import { Oembed } from '../../model/oembed';
 import { Page } from '../../model/page';
 import { getPluginScope, PluginApi } from '../../model/plugin';
-import { Ref, RefSort, RefUpdates } from '../../model/ref';
+import { mapRef, Ref, RefSort, RefUpdates } from '../../model/ref';
 import { EmitAction, hydrate } from '../../model/tag';
 import { pdfUrl } from '../../mods/media/pdf';
 import { ActionService } from '../../service/action.service';
@@ -38,12 +41,14 @@ import { Store } from '../../store/store';
 import { embedUrl } from '../../util/embed';
 import { hasComment, templates } from '../../util/format';
 import { getExtension } from '../../util/http';
+import { handleMediaKeydown, handleVideoKeydown } from '../../util/keyboard';
 import { memo, MemoCache } from '../../util/memo';
 import { UrlFilter } from '../../util/query';
 import { hasPrefix, hasTag } from '../../util/tag';
 import { BackgammonComponent } from '../backgammon/backgammon.component';
 import { ChessComponent } from '../chess/chess.component';
 import { LensComponent } from '../lens/lens.component';
+import { LoadingComponent } from '../loading/loading.component';
 import { MdComponent } from '../md/md.component';
 import { ModComponent } from '../mod/mod.component';
 import { PlaylistComponent } from '../playlist/playlist.component';
@@ -55,12 +60,13 @@ import { TodoComponent } from '../todo/todo.component';
   selector: 'app-viewer',
   templateUrl: './viewer.component.html',
   styleUrls: ['./viewer.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     forwardRef(() => RefComponent),
     forwardRef(() => PlaylistComponent),
     forwardRef(() => LensComponent),
     forwardRef(() => ModComponent),
-    MdComponent,
+    forwardRef(() => MdComponent),
     ImageDirective,
     ResizeDirective,
     QrComponent,
@@ -68,12 +74,19 @@ import { TodoComponent } from '../todo/todo.component';
     BackgammonComponent,
     ChessComponent,
     ResizeHandleDirective,
+    LoadingComponent,
   ],
 })
-export class ViewerComponent implements OnChanges {
+export class ViewerComponent implements OnChanges, OnDestroy {
   @HostBinding('class') css = 'embed print-images';
   @HostBinding('tabindex') tabIndex = 0;
   private destroy$ = new Subject<void>();
+  private videoKeydownHandler?: (event: KeyboardEvent) => void;
+  private audioKeydownHandler?: (event: KeyboardEvent) => void;
+  private fullscreenKeydownHandler?: (event: KeyboardEvent) => void;
+  private fullscreenChangeHandler?: () => void;
+  private currentVideo?: HTMLVideoElement;
+  private currentAudio?: HTMLAudioElement;
 
   @ViewChild('iframe')
   iframe!: ElementRef;
@@ -103,7 +116,8 @@ export class ViewerComponent implements OnChanges {
   copied = new EventEmitter<string>();
 
   repost?: Ref;
-  page?: Page<Ref>;
+  lens?: boolean;
+  lensPage?: Page<Ref>;
   ext?: Ext;
   lensQuery = '';
   lensSize = 24;
@@ -151,14 +165,16 @@ export class ViewerComponent implements OnChanges {
         takeUntil(this.destroy$),
       ).subscribe(ref => this.repost = ref);
     }
-    const queryUrl = this.ref?.plugins?.['plugin/lens']?.url || this.ref?.url;
-    delete this.page;
-    delete this.ext;
+    const queryUrl = this.ref?.plugins?.['plugin/lens']?.url || (hasTag('plugin/repost', this.ref) ? this.ref?.sources?.[0] : this.ref?.url);
+    this.lens = false;
+    this.lensPage = undefined;
+    this.ext = undefined;
     if (queryUrl && hasTag('plugin/lens', this.currentTags)) {
+      this.lens = true;
       this.embeds.loadQuery$(queryUrl)
         .pipe(takeUntil(this.destroy$))
         .subscribe(({params, page, ext}) => {
-          this.page = page;
+          this.lensPage = page;
           this.ext = ext;
           this.lensQuery = this.editor.getQuery(queryUrl);
           this.lensSize = params.size;
@@ -187,7 +203,28 @@ export class ViewerComponent implements OnChanges {
     }
   }
 
+  @HostListener('keydown', ['$event'])
+  onKeydown(event: KeyboardEvent) {
+    if (event.defaultPrevented) return;
+    if (this.currentVideo) {
+      handleVideoKeydown(event, this.currentVideo);
+      return;
+    }
+    if (this.currentAudio) {
+      handleMediaKeydown(event, this.currentAudio);
+      return;
+    }
+    const video = this.el.nativeElement.querySelector('video') as HTMLVideoElement;
+    if (video) {
+      handleVideoKeydown(event, video);
+      return;
+    }
+    const audio = this.el.nativeElement.querySelector('audio') as HTMLAudioElement;
+    if (audio) handleMediaKeydown(event, audio);
+  }
+
   ngOnDestroy() {
+    this.removeMediaListeners();
     this.destroy$.next();
     this.destroy$.complete();
   }
@@ -213,12 +250,46 @@ export class ViewerComponent implements OnChanges {
   set video(value: ElementRef<HTMLVideoElement>) {
     if (!value) return;
     const video = value.nativeElement;
+    // Add capture-phase listener directly on the video element so it fires
+    // even when focus is inside the native controls' shadow DOM
+    this.removeVideoListener();
+    this.currentVideo = video;
+    this.videoKeydownHandler = (e: KeyboardEvent) => handleVideoKeydown(e, video);
+    video.addEventListener('keydown', this.videoKeydownHandler, { capture: true });
+    // Document-level capture listener for native fullscreen mode where events
+    // may not propagate through the video element's regular event path
+    this.removeFullscreenKeydownListener();
+    this.fullscreenKeydownHandler = (e: KeyboardEvent) => {
+      if (document.fullscreenElement === video && !e.defaultPrevented) {
+        handleVideoKeydown(e, video);
+      }
+    };
+    document.addEventListener('keydown', this.fullscreenKeydownHandler, { capture: true });
+    // Refocus the viewer when exiting native fullscreen so keyboard shortcuts
+    // continue to work via the @HostListener and video capture-phase listener
+    this.removeFullscreenChangeListener();
+    this.fullscreenChangeHandler = () => {
+      if (!document.fullscreenElement && this.currentVideo) {
+        this.el.nativeElement.focus();
+      }
+    };
+    document.addEventListener('fullscreenchange', this.fullscreenChangeHandler);
     if (video.canPlayType('application/vnd.apple.mpegurl')) return;
     if (Hls.isSupported() && this.hls) {
       const hls = new Hls();
       hls.loadSource(this.videoUrl);
       hls.attachMedia(video);
     }
+  }
+
+  @ViewChild('audio')
+  set audio(value: ElementRef<HTMLAudioElement>) {
+    if (!value) return;
+    const audio = value.nativeElement;
+    this.removeAudioListener();
+    this.currentAudio = audio;
+    this.audioKeydownHandler = (e: KeyboardEvent) => handleMediaKeydown(e, audio);
+    audio.addEventListener('keydown', this.audioKeydownHandler, { capture: true });
   }
 
   @ViewChild('pdfIframe')
@@ -307,6 +378,16 @@ export class ViewerComponent implements OnChanges {
   @memo
   get editingViewer() {
     return some(this.admin.editingViewer, t => hasTag(t.tag, this.currentTags));
+  }
+
+  @memo
+  get editingRef(): Ref | undefined {
+    if (!hasTag('plugin/editing', this.currentTags)) return undefined;
+    const data = this.ref?.plugins?.['plugin/editing'];
+    if (!data) return undefined;
+    const result = mapRef({ ...data, url: this.ref?.url, origin: this.ref?.origin });
+    if (!result.created) result.created = this.ref?.created;
+    return result;
   }
 
   @memo
@@ -520,5 +601,42 @@ export class ViewerComponent implements OnChanges {
   @memo
   get refOrDefault() {
     return this.ref || { url: '', comment: this.text, tags: this.tags };
+  }
+
+  private removeVideoListener() {
+    if (this.currentVideo && this.videoKeydownHandler) {
+      this.currentVideo.removeEventListener('keydown', this.videoKeydownHandler, { capture: true });
+    }
+    this.currentVideo = undefined;
+    this.videoKeydownHandler = undefined;
+    this.removeFullscreenKeydownListener();
+    this.removeFullscreenChangeListener();
+  }
+
+  private removeFullscreenKeydownListener() {
+    if (this.fullscreenKeydownHandler) {
+      document.removeEventListener('keydown', this.fullscreenKeydownHandler, { capture: true });
+    }
+    this.fullscreenKeydownHandler = undefined;
+  }
+
+  private removeFullscreenChangeListener() {
+    if (this.fullscreenChangeHandler) {
+      document.removeEventListener('fullscreenchange', this.fullscreenChangeHandler);
+    }
+    this.fullscreenChangeHandler = undefined;
+  }
+
+  private removeAudioListener() {
+    if (this.currentAudio && this.audioKeydownHandler) {
+      this.currentAudio.removeEventListener('keydown', this.audioKeydownHandler, { capture: true });
+    }
+    this.currentAudio = undefined;
+    this.audioKeydownHandler = undefined;
+  }
+
+  private removeMediaListeners() {
+    this.removeVideoListener();
+    this.removeAudioListener();
   }
 }

@@ -14,7 +14,7 @@ import { AdminService } from './admin.service';
 import { ExtService } from './api/ext.service';
 import { ConfigService } from './config.service';
 
-export type TagPreview = { name?: string, tag: string } | Ext;
+export type TagPreview = { name?: string,  bookmark?: string, tag: string } | Ext;
 
 @Injectable({
   providedIn: 'root'
@@ -301,6 +301,40 @@ export class EditorService {
   getTagsPreview(tags: string[], defaultOrigin = ''): Observable<TagPreview[]> {
     return forkJoin(tags.map( t => this.getTagPreview(t, defaultOrigin))).pipe(
       map(xs => xs.filter(x => !!x)),
-    ) as Observable<{name?: string, tag: string}[]>;
+    );
+  }
+
+  getBookmarksPreview(bookmarks: string[], defaultOrigin = ''): Observable<TagPreview[]> {
+    return forkJoin(bookmarks.map(b => {
+      const query = b.includes('?') ? b.substring(0, b.indexOf('?')) : b;
+      return this.getQueryPreviewName(query, defaultOrigin).pipe(
+        map(name => ({ name, tag: query, bookmark: b })),
+      );
+    })).pipe(
+      map(xs => xs.filter(x => !!x)),
+    ) as Observable<TagPreview[]>;
+  }
+
+  /** Build a display name for a query by replacing each tag token with its ext preview name. */
+  getQueryPreviewName(query: string, defaultOrigin = ''): Observable<string | undefined> {
+    const tokens = query.split(/([:|()])/g).filter(t => !!t);
+    const ops = new Set([':', '|', '(', ')']);
+    const tagIndices = tokens.reduce<number[]>((acc, t, i) => ops.has(t) ? acc : [...acc, i], []);
+    if (tagIndices.length === 0) return of(undefined);
+    return forkJoin(tagIndices.map(i => {
+      const token = tokens[i];
+      const bareTag = token.startsWith('!') ? token.substring(1) : token;
+      return this.getTagPreview(bareTag, defaultOrigin).pipe(
+        map(x => {
+          const name = x?.name || bareTag;
+          return token.startsWith('!') ? '!' + name : name;
+        }),
+      );
+    })).pipe(
+      map(names => {
+        let idx = 0;
+        return tokens.map(t => ops.has(t) ? t : names[idx++]).join('');
+      }),
+    );
   }
 }

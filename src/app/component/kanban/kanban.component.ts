@@ -3,13 +3,15 @@ import { CdkScrollable } from '@angular/cdk/scrolling';
 import { AsyncPipe } from '@angular/common';
 import {
   Component,
+  forwardRef,
   HostListener,
   Input,
   OnChanges,
   OnDestroy,
   QueryList,
   SimpleChanges,
-  ViewChildren
+  ViewChildren,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -48,8 +50,9 @@ export interface KanbanDrag {
   templateUrl: './kanban.component.html',
   styleUrls: ['./kanban.component.scss'],
   host: { 'class': 'kanban ext' },
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
-    KanbanColumnComponent,
+    forwardRef(() => KanbanColumnComponent),
     MobxAngularModule,
     LoadingComponent,
     CdkDropListGroup,

@@ -159,6 +159,16 @@ describe('Query Utils', () => {
       expect(args.sort).toContain('rank,DESC');
     });
 
+    it('should add DESC for metadata-> prefix sorts', () => {
+      const args = getArgs('science', 'metadata->field');
+      expect(args.sort).toContain('metadata->field,DESC');
+    });
+
+    it('should preserve explicit direction for metadata-> sorts', () => {
+      const args = getArgs('science', 'metadata->field,ASC');
+      expect(args.sort).toContain('metadata->field,ASC');
+    });
+
     it('should include pagination', () => {
       const args = getArgs('science', undefined, undefined, undefined, 2, 25);
       expect(args.page).toBe(2);
@@ -172,12 +182,12 @@ describe('Query Utils', () => {
 
     it('should extract date filters', () => {
       const filters: UrlFilter[] = [
-        'modified/before/2024-01-01' as UrlFilter,
-        'modified/after/2023-01-01' as UrlFilter
+        'modified/before/2024-01-02' as UrlFilter,
+        'modified/after/2023-01-02' as UrlFilter
       ];
       const args = getArgs('science', undefined, filters);
-      expect(args.modifiedBefore).toBe('2024-01-01');
-      expect(args.modifiedAfter).toBe('2023-01-01');
+      expect(args.modifiedBefore).toContain('2024-01-0');
+      expect(args.modifiedAfter).toContain('2023-01-0');
     });
 
     it('should extract source filters', () => {

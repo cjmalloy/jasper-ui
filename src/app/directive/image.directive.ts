@@ -12,6 +12,8 @@ export class ImageDirective implements OnInit, OnDestroy {
   @Input()
   grid = false;
   @Input()
+  padding = 12;
+  @Input()
   ref?: Ref;
   @Input('defaultWidth')
   defaultWidth?: number;
@@ -108,13 +110,13 @@ export class ImageDirective implements OnInit, OnDestroy {
       this.el.style.backgroundSize = '100% 100%';
       return;
     }
-    const parentWidth = this.parentWidth;
+    const parentWidth = this.parentWidth - (this.grid ? 0 : this.padding);
     if (this.config.mobile && !this.grid && (!this.defaultWidth || this.defaultWidth >= window.innerWidth)) {
-      this.el.style.width = (parentWidth - 12) + 'px';
+      this.el.style.width = parentWidth + 'px';
       this.el.style.height = this.defaultHeightPx || height(parentWidth, this.dim) + 'px';
     } else if (this.grid || this.dim.width > parentWidth && (!this.defaultWidth || this.defaultWidth >= parentWidth)) {
-      this.el.style.width = (parentWidth - 12) + 'px';
-      this.el.style.height = this.defaultHeightPx || height(this.defaultWidth || parentWidth, this.dim) + 'px';
+      this.el.style.width = parentWidth + 'px';
+      this.el.style.height = this.defaultHeightPx || height(parentWidth, this.dim) + 'px';
     } else if (this.defaultWidth) {
       this.el.style.width = this.defaultWidthPx;
       this.el.style.height = this.defaultHeightPx || height(this.defaultWidth, this.dim) + 'px';

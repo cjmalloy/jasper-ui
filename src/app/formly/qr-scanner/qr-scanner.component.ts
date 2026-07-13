@@ -8,7 +8,8 @@ import {
   Output,
   TemplateRef,
   ViewChild,
-  ViewContainerRef
+  ViewContainerRef,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import { loadImage } from '../../util/image';
 import { QrScanner, scanImage } from '../../util/qr-scanner';
@@ -18,6 +19,7 @@ import { Camera, hasCamera, listCameras } from '../../util/webcam';
   selector: 'app-qr-scanner',
   templateUrl: './qr-scanner.component.html',
   styleUrls: ['./qr-scanner.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   host: { 'class': 'form-array' }
 })
 export class QrScannerComponent implements OnDestroy {

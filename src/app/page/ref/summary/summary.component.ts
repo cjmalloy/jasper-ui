@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, QueryList, ViewChild, ViewChildren } from '@angular/core';
+import { Component, OnDestroy, OnInit, QueryList, ViewChild, ViewChildren, ChangeDetectionStrategy } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { defer, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
@@ -28,6 +28,7 @@ import { hasTag, removeTag, top, updateMetadata } from '../../../util/tag';
   selector: 'app-ref-summary',
   templateUrl: './summary.component.html',
   styleUrls: ['./summary.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [MobxAngularModule, CommentReplyComponent, RouterLink, ThreadSummaryComponent, RefListComponent, LoadingComponent]
 })
 export class RefSummaryComponent implements OnInit, OnDestroy, HasChanges {
@@ -38,11 +39,11 @@ export class RefSummaryComponent implements OnInit, OnDestroy, HasChanges {
 
   summaryItems = 5;
 
-  @ViewChild(CommentReplyComponent)
+  @ViewChild('reply')
   reply?: CommentReplyComponent;
   @ViewChildren(CommentThreadComponent)
   threadComponents?: QueryList<CommentThreadComponent>;
-  @ViewChild(RefListComponent)
+  @ViewChild('list')
   list?: RefListComponent;
 
   constructor(

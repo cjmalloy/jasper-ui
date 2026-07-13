@@ -1,6 +1,6 @@
 import { CdkFixedSizeVirtualScroll, CdkVirtualForOf, CdkVirtualScrollViewport } from '@angular/cdk/scrolling';
 import { HttpEventType } from '@angular/common/http';
-import { Component, Input, OnChanges, OnDestroy, SimpleChanges, ViewChild } from '@angular/core';
+import { Component, Input, OnChanges, OnDestroy, SimpleChanges, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { debounce, defer, delay, pull, pullAllWith, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
@@ -55,6 +55,7 @@ export interface ChatUpload {
   templateUrl: './chat.component.html',
   styleUrls: ['./chat.component.scss'],
   host: { 'class': 'chat ext' },
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     ChatEntryComponent,
     LoadingComponent,
@@ -74,7 +75,7 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
   @Input()
   responseOf?: Ref;
 
-  @ViewChild(CdkVirtualScrollViewport)
+  @ViewChild('viewport')
   viewport!: CdkVirtualScrollViewport;
 
   cursors = new Map<string, string | undefined>();
@@ -87,6 +88,7 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
   sending: Ref[] = [];
   errored: Ref[] = [];
   scrollLock?: number;
+  notAtBottom = false;
   uploads: ChatUpload[] = [];
   dropping = false;
 
@@ -282,6 +284,13 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
     });
   }
 
+  scrollToBottom() {
+    this.scrollLock = undefined;
+    this.viewport.scrollTo({ bottom: 0, behavior: 'smooth' })
+    this.viewport.checkViewportSize();
+    delay(() => this.viewport.scrollToIndex(this.messages!.length - 1, 'smooth'), 400);
+  }
+
   fetch() {
     if (!this.watch) {
       this.setPoll(false);
@@ -405,6 +414,7 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
   }
 
   onScroll(index: number) {
+    this.notAtBottom = this.viewport.measureScrollOffset('bottom') > this.itemSize;
     if (!this.scrollLock) return;
     // TODO: count height in rows
     const diff = this.scrollLock - index;

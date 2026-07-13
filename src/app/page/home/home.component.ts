@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { defer } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
@@ -19,6 +19,7 @@ import { getArgs } from '../../util/query';
   selector: 'app-home-page',
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     LensComponent,
     MobxAngularModule,
@@ -30,7 +31,7 @@ import { getArgs } from '../../util/query';
 export class HomePage implements OnInit, OnDestroy, HasChanges {
   private disposers: IReactionDisposer[] = [];
 
-  @ViewChild(LensComponent)
+  @ViewChild('lens')
   lens?: LensComponent;
 
   constructor(
@@ -44,7 +45,7 @@ export class HomePage implements OnInit, OnDestroy, HasChanges {
     mod.setTitle($localize`Home`);
     store.view.clear([!!admin.getPlugin('plugin/user/vote/up') ? 'plugins->plugin/user/vote:decay' : 'published']);
     query.clear();
-    if (admin.getTemplate('config/home')) {
+    if (admin.home) {
       exts.getCachedExt('config/home' + (store.account.origin || '@')).subscribe(x => runInAction(() => {
         if (x.modified) {
           store.view.exts = [x];

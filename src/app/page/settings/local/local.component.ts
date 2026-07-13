@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ModService } from '../../../service/mod.service';
 import { Store } from '../../../store/store';
@@ -7,6 +7,7 @@ import { Store } from '../../../store/store';
   selector: 'app-settings-local-page',
   templateUrl: './local.component.html',
   styleUrls: ['./local.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [RouterLink],
 })
 export class SettingsLocalPage {
@@ -43,6 +44,20 @@ export class SettingsLocalPage {
   clearAllExts() {
     if (confirm($localize`Are you sure you want to clear all Ext entries from local storage?`)) {
       this.store.local.clearAllExts();
+    }
+  }
+
+  get helpEntries() {
+    return this.store.local.getHelpKeys();
+  }
+
+  clearHelpEntry(key: string) {
+    this.store.local.clearHelpEntry(key);
+  }
+
+  clearAllHelp() {
+    if (confirm($localize`Are you sure you want to clear all help message history from local storage?`)) {
+      this.store.local.clearAllHelp();
     }
   }
 }

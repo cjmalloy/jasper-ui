@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { pickBy, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
@@ -21,6 +21,7 @@ import { TaggingService } from '../../service/api/tagging.service';
 import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
 import { memo, MemoCache } from '../../util/memo';
+import { markRead } from '../../util/response';
 import { hasTag, privateTag, top } from '../../util/tag';
 import { RefCommentsComponent } from './comments/comments.component';
 import { RefThreadComponent } from './thread/thread.component';
@@ -29,6 +30,7 @@ import { RefThreadComponent } from './thread/thread.component';
   selector: 'app-ref-page',
   templateUrl: './ref.component.html',
   styleUrls: ['./ref.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     RefComponent,
     MobxAngularModule,
@@ -47,7 +49,7 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
   private disposers: IReactionDisposer[] = [];
   private destroy$ = new Subject<void>();
 
-  @ViewChild(RefComponent)
+  @ViewChild('ref')
   ref?: RefComponent;
 
   newResponses = 0;
@@ -235,8 +237,6 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
 
   markRead(ref: Ref) {
     if (!ref.created) return;
-    if (!this.admin.getPlugin('plugin/user/read')) return;
-    if (ref.metadata?.userUrls?.includes('plugin/user/read')) return;
-    this.ts.createResponse('plugin/user/read', ref.url).subscribe();
+    markRead(this.admin, this.ts, ref);
   }
 }

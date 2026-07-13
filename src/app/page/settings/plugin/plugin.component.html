@@ -14,7 +14,7 @@
   }
 }
 @if (query.error?.status !== 403) {
-  <app-plugin-list [page]="query.page"></app-plugin-list>
+  <app-plugin-list #list [page]="query.page"></app-plugin-list>
 } @else {
   <div class="error-403" i18n>Access Denied</div>
 }

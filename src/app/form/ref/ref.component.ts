@@ -3,13 +3,15 @@ import {
   Component,
   ElementRef,
   EventEmitter,
+  forwardRef,
   HostBinding,
   HostListener,
   Input,
   OnChanges,
   Output,
   SimpleChanges,
-  ViewChild
+  ViewChild,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import {
   ReactiveFormsModule,
@@ -48,8 +50,9 @@ import { TagsFormComponent } from '../tags/tags.component';
   templateUrl: './ref.component.html',
   styleUrls: ['./ref.component.scss'],
   host: { 'class': 'nested-form' },
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
-    EditorComponent,
+    forwardRef(() => EditorComponent),
     CdkDropListGroup,
     ReactiveFormsModule,
     LinksFormComponent,
@@ -71,13 +74,13 @@ export class RefFormComponent implements OnChanges {
   @Output()
   toggleTag = new EventEmitter<string>();
 
-  @ViewChild(TagsFormComponent)
+  @ViewChild('tagsFormComponent')
   tagsFormComponent!: TagsFormComponent;
   @ViewChild('sources')
   sourcesFormComponent!: LinksFormComponent;
   @ViewChild('alts')
   altsFormComponent!: LinksFormComponent;
-  @ViewChild(PluginsFormComponent)
+  @ViewChild('pluginsFormComponent')
   pluginsFormComponent!: PluginsFormComponent;
   @ViewChild('fill')
   fill?: ElementRef;

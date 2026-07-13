@@ -1,3 +1,4 @@
+
 <div class="row">
   <div class="stack">
     <h2 class="link blog-title" [class.remote]="!local">
@@ -31,7 +32,7 @@
               }
             </span>
           }
-          @for (icon of icons; track icon.tag) {
+          @for (icon of icons; track icon) {
             @if (showIcon(icon)) {
               <span class="icon"
                     [class.filter-toggle]="icon.tag"
@@ -51,7 +52,7 @@
         <div class="actions">
           <a [routerLink]="[store.view.refPath, ref.url]" [queryParams]="{ origin: nonLocalOrigin }" (click)="saveRef()" i18n>permalink</a>
           @if (store.account.user) {
-            <a routerLink="/submit" [queryParams]="{source: ref.url}" i18n>reply</a>
+            <a class="fake-link" (click)="replying = !replying" i18n>reply</a>
           }
           @if (comments) {
             <a [routerLink]="[store.view.refPath, ref.url, 'comments']" [queryParams]="{ origin: nonLocalOrigin }" (click)="saveRef()" i18n>{comments, plural, =1 {1&thinsp;comment} other {{{ comments }}&thinsp;comments}}</a>
@@ -70,7 +71,7 @@
                                 [action]="store.hotkey ? forceDelete$ : delete$" i18n>delete</app-confirm-action>
           }
           @if (taggingAccess) {
-            <app-inline-tag #action [action]="tag$" i18n>tag</app-inline-tag>
+            <app-inline-tag #action [action]="tag$" [tags]="ref.tags" i18n>tag</app-inline-tag>
           }
           @if (writeAccess) {
             <a class="fake-link" (click)="editing = !editing" i18n>@if (editForm.dirty) {*edit*} @else {edit}</a>
@@ -88,10 +89,18 @@
     </div>
   </div>
 </div>
+@if (replying) {
+  <app-comment-reply #reply
+                     [autofocus]="true"
+                     [to]="ref"
+                     [showCancel]="true"
+                     [tags]="replyTags"
+                     (save)="goToComments()"></app-comment-reply>
+}
 @if (editing) {
   <form class="form" [formGroup]="editForm" (ngSubmit)="save()">
 
-    <app-ref-form [group]="editForm"></app-ref-form>
+    <app-ref-form #refForm [group]="editForm"></app-ref-form>
 
     @for (e of serverError; track e) {
       <span><!-- Unexpected Error --></span>
@@ -109,7 +118,7 @@
   </form>
 } @else if (viewSource) {
   <form [formGroup]="editForm">
-    <app-ref-form [group]="editForm"></app-ref-form>
+    <app-ref-form #refForm [group]="editForm"></app-ref-form>
   </form>
 } @else {
   <app-viewer class="blog-body" [ref]="ref"></app-viewer>
@@ -117,4 +126,20 @@
     <div class="error">{{ e }}</div>
   }
 }
+
+<h5 class="fake-link" [routerLink]="['/ref', ref.url, 'comments']" [queryParams]="{ origin: nonLocalOrigin }" i18n>Comments:</h5>
+<div class="summary-box" [class.hidden-without-removing]="!comments">
+  <app-thread-summary query="plugin/comment:!plugin/delete"
+                      [commentView]="true"
+                      [showLoadMore]="false"
+                      [source]="ref.url"
+                      [depth]="1"
+                      [pageSize]="summaryItems"></app-thread-summary>
+  <a class="load-more" [routerLink]="['/ref', ref.url, 'comments']" [queryParams]="{ origin: nonLocalOrigin }" i18n>
+    more comments
+  </a>
+</div>
+<app-comment-reply [to]="ref"
+                   [tags]="replyTags"
+                   (save)="goToComments()"></app-comment-reply>
 <hr>

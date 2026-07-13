@@ -1,4 +1,4 @@
-import { Component, HostBinding, Input } from '@angular/core';
+import { Component, HostBinding, Input, ChangeDetectionStrategy } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Ext } from '../../../model/ext';
 import { Action, Icon } from '../../../model/tag';
@@ -11,6 +11,7 @@ import { Store } from '../../../store/store';
   templateUrl: './subfolder.component.html',
   styleUrls: ['./subfolder.component.scss'],
   host: { 'class': 'subfolder' },
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [RouterLink]
 })
 export class SubfolderComponent {

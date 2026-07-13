@@ -6,6 +6,7 @@ export const threadPlugin: Plugin = {
   tag: 'plugin/thread',
   name: $localize`🧵️ Threads`,
   config: {
+    version: 1,
     type: 'plugin',
     default: true,
     genId: true,

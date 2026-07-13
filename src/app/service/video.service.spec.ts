@@ -1,6 +1,6 @@
 /// <reference types="vitest/globals" />
 import { TestBed } from '@angular/core/testing';
-import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { provideRouter } from '@angular/router';
 import { of } from 'rxjs';
@@ -114,10 +114,10 @@ describe('VideoService', () => {
     };
 
     // Mock RTCPeerConnection constructor
-    vi.stubGlobal('RTCPeerConnection', vi.fn(() => mockPeerConnection));
+    vi.stubGlobal('RTCPeerConnection', vi.fn(function() { return mockPeerConnection; }));
 
     // Mock RTCSessionDescription constructor
-    vi.stubGlobal('RTCSessionDescription', vi.fn((init: any) => init));
+    vi.stubGlobal('RTCSessionDescription', vi.fn(function(init: any) { return init; }));
 
     TestBed.configureTestingModule({
       providers: [
@@ -128,7 +128,7 @@ describe('VideoService', () => {
         { provide: RefService, useValue: mockRefs },
         { provide: AdminService, useValue: mockAdmin },
         { provide: ConfigService, useValue: mockConfig },
-        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClient(withXhr(), withInterceptorsFromDi()),
         provideHttpClientTesting(),
         provideRouter([]),
       ],

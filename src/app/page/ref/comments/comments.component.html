@@ -1,7 +1,8 @@
 <ng-container *mobxAutorun>
   @if (store.view.ref) {
     @if (store.account.signedIn) {
-      <app-comment-reply [to]="store.view.ref"
+      <app-comment-reply #reply
+                         [to]="store.view.ref"
                          quote=""
                          [tags]="replyTags"
                          (save)="newComments$.next($event)"></app-comment-reply>
@@ -12,8 +13,8 @@
                         [depth]="depth"></app-comment-thread>
     @if (thread.hasMore) {
       <span class="fake-link load-more" (click)="thread.loadMore()" i18n>
-          load more comments
-        </span>
+        load more comments
+      </span>
     }
   } @else {
     <app-loading></app-loading>

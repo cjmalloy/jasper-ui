@@ -1,5 +1,5 @@
 import { AsyncPipe } from '@angular/common';
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import {
   AbstractControl,
   AsyncValidatorFn,
@@ -47,6 +47,7 @@ type Validation = { test: (url: string) => Observable<any>; name: string; passed
   selector: 'app-submit-page',
   templateUrl: './submit.component.html',
   styleUrls: ['./submit.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     RefComponent,
     MobxAngularModule,

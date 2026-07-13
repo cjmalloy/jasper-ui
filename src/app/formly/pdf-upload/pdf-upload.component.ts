@@ -1,5 +1,5 @@
 import { HttpEventType } from '@angular/common/http';
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component, EventEmitter, Output, ChangeDetectionStrategy } from '@angular/core';
 import { catchError, last, map } from 'rxjs';
 import { Ref } from '../../model/ref';
 import { ProxyService } from '../../service/api/proxy.service';
@@ -11,6 +11,7 @@ import { readFileAsDataURL } from '../../util/async';
   selector: 'app-pdf-upload',
   templateUrl: './pdf-upload.component.html',
   styleUrls: ['./pdf-upload.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   host: { 'class': 'form-array' }
 })
 export class PdfUploadComponent {

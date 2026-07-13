@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { defer } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
@@ -20,6 +20,7 @@ import { braces, getPrefixes, hasPrefix, publicTag } from '../../util/tag';
   selector: 'app-tags-page',
   templateUrl: './tags.component.html',
   styleUrls: ['./tags.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     ExtListComponent,
     MobxAngularModule,
@@ -35,7 +36,7 @@ export class TagsPage implements OnInit, OnDestroy, HasChanges {
   title = '';
   templates = this.admin.tmplSubmit.filter(t => t.config?.view);
 
-  @ViewChild(ExtListComponent)
+  @ViewChild('list')
   list?: ExtListComponent;
 
   constructor(
@@ -62,7 +63,7 @@ export class TagsPage implements OnInit, OnDestroy, HasChanges {
         .subscribe(ext => this.title = ext.name || this.title);
       const query
         = this.store.view.home
-        ? [...getPrefixes('config/home'), ...this.store.account.subs, ...this.store.account.bookmarks].filter(t => this.auth.tagReadAccess(t)).join('|')
+        ? [...getPrefixes('config/home'), ...this.store.account.subs, ...this.store.account.bookmarkQueries].filter(t => this.auth.tagReadAccess(t)).join('|')
         : this.store.view.noTemplate
           ? [braces(this.store.view.template), '!+user', '!_user', ...this.templates.map(t => '!' + t.tag).flatMap(getPrefixes)].filter(t => this.auth.tagReadAccess(t)).join(':')
           : this.store.view.template

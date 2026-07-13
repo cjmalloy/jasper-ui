@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, EventEmitter, forwardRef, Input, Output, ViewChild } from '@angular/core';
+import { Component, EventEmitter, forwardRef, Input, Output, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { pickBy, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
@@ -26,6 +26,7 @@ import { LoadingComponent } from '../../loading/loading.component';
   templateUrl: './comment-reply.component.html',
   styleUrls: ['./comment-reply.component.scss'],
   host: { 'class': 'comment-reply' },
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     forwardRef(() => EditorComponent),
     ReactiveFormsModule,
@@ -47,7 +48,7 @@ export class CommentReplyComponent implements HasChanges {
   @Output()
   save = new EventEmitter<Ref|undefined>();
 
-  @ViewChild(EditorComponent)
+  @ViewChild('editor')
   editor?: EditorComponent
 
   editorTags: string[] = [];

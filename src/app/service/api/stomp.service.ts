@@ -1,11 +1,23 @@
 import { Injectable, isDevMode } from '@angular/core';
 import { RxStomp, RxStompConfig } from '@stomp/rx-stomp';
-import { map, Observable } from 'rxjs';
+import { map, Observable, takeWhile, timeInterval } from 'rxjs';
 import { Ext, mapExt } from '../../model/ext';
 import { mapRef, RefUpdates } from '../../model/ref';
 import { Store } from '../../store/store';
 import { isSubOrigin, localTag, tagOrigin } from '../../util/tag';
 import { ConfigService } from '../config.service';
+
+export const EXT_UPDATE_RATE_LIMIT_MS = 60 * 1000;
+
+function isTestEnvironment(): boolean {
+  // Check for Vitest/Jest test environment
+  // @ts-ignore
+  if (typeof globalThis !== 'undefined' && (globalThis.__vitest_worker__ || globalThis.jest)) return true;
+  // Check for Zone.js test zone (Angular TestBed)
+  // @ts-ignore
+  if (typeof Zone !== 'undefined' && Zone.current?.name === 'ProxyZone') return true;
+  return false;
+}
 
 @Injectable({
   providedIn: 'root'
@@ -26,10 +38,10 @@ export class StompService extends RxStomp {
       reconnectDelay: 2000,
     };
     if (isDevMode()) {
-      this.stompConfig.debug = msg => console.debug('📶️  '+ msg);
+      this.stompConfig.debug = (msg: string) => console.debug('📶️  '+ msg);
     }
     this.configure(this.stompConfig);
-    if (this.config.websockets) this.activate();
+    if (this.config.websockets && !isTestEnvironment()) this.activate();
   }
 
   get headers() {
@@ -86,7 +98,9 @@ export class StompService extends RxStomp {
 
   watchExt(tag: string): Observable<Ext> {
     return this.watch('/topic/ext/' + (tagOrigin(tag) || this.store.account.origin || 'default') + '/' + encodeURIComponent(localTag(tag)), this.headers).pipe(
-      map(m => mapExt(JSON.parse(m.body))),
+      timeInterval(),
+      takeWhile((update, index) => index === 0 || update.interval >= EXT_UPDATE_RATE_LIMIT_MS),
+      map(({ value }) => mapExt(JSON.parse(value.body))),
     );
   }
 }

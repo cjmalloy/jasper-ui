@@ -7,7 +7,8 @@ import {
   QueryList,
   SimpleChanges,
   ViewChild,
-  ViewChildren
+  ViewChildren,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, UntypedFormGroup } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -45,6 +46,7 @@ import { InlineSelectComponent } from '../action/inline-select/inline-select.com
   templateUrl: './user.component.html',
   styleUrls: ['./user.component.scss'],
   host: { 'class': 'profile list-item' },
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [RouterLink, TitleDirective, ConfirmActionComponent, InlineButtonComponent, InlinePasswordComponent, InlineSelectComponent, ReactiveFormsModule, UserFormComponent]
 })
 export class UserComponent implements OnChanges, HasChanges {
@@ -105,7 +107,7 @@ export class UserComponent implements OnChanges, HasChanges {
     }
   }
 
-  @ViewChild(UserFormComponent)
+  @ViewChild('refForm')
   set refForm(value: UserFormComponent) {
     if (this.user) defer(() => value?.setUser(this.user!));
   }

@@ -95,7 +95,7 @@
       <app-viewer class="browse"
                   [ref]="store.view.ref"></app-viewer>
     } @else {
-      <app-ref class="full-page"
+      <app-ref #ref class="full-page"
                [class.thread]="thread"
                [ref]="store.view.ref"
                [showToggle]="!thread"

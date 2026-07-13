@@ -1,9 +1,10 @@
-import { AfterViewInit, Component, HostBinding, HostListener, isDevMode, ViewContainerRef } from '@angular/core';
+import { AfterViewInit, Component, HostBinding, HostListener, isDevMode, ViewContainerRef, ChangeDetectionStrategy } from '@angular/core';
 import { Router, RouterOutlet } from '@angular/router';
 import { autorun, runInAction } from 'mobx';
 import { MobxAngularModule } from 'mobx-angular';
 import { LoginPopupComponent } from './component/login-popup/login-popup.component';
 import { SubscriptionBarComponent } from './component/subscription-bar/subscription-bar.component';
+import { UserClipboardComponent } from './component/user-clipboard/user-clipboard.component';
 import { pdfPlugin, pdfUrl } from './mods/media/pdf';
 import { pipPlugin } from './mods/system/pip';
 import { archivePlugin, archiveUrl } from './mods/tools/archive';
@@ -15,15 +16,18 @@ import { ConfigService } from './service/config.service';
 import { Store } from './store/store';
 import { createPip } from './util/embed';
 import { memo } from './util/memo';
+import { userClipboardPlugin } from './mods/clipboard';
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     MobxAngularModule,
     LoginPopupComponent,
     SubscriptionBarComponent,
+    UserClipboardComponent,
     RouterOutlet,
   ],
 })
@@ -38,6 +42,7 @@ export class AppComponent implements AfterViewInit {
   pdfPlugin = this.admin.getPlugin('plugin/pdf') as typeof pdfPlugin || undefined;
   archivePlugin = this.admin.getPlugin('plugin/archive') as typeof archivePlugin || undefined;
   pipPlugin = this.admin.getPlugin('plugin/pip') as typeof pipPlugin || undefined;
+  userClipboardPlugin = this.admin.getPlugin('plugin/user/clipboard') as typeof userClipboardPlugin || undefined;
 
   constructor(
     public config: ConfigService,

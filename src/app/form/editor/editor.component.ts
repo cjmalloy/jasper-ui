@@ -6,6 +6,7 @@ import {
   Component,
   ElementRef,
   EventEmitter,
+  forwardRef,
   HostBinding,
   HostListener,
   Input,
@@ -15,7 +16,8 @@ import {
   SimpleChanges,
   TemplateRef,
   ViewChild,
-  ViewContainerRef
+  ViewContainerRef,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, UntypedFormArray, UntypedFormControl } from '@angular/forms';
 import { NavigationEnd, Router } from '@angular/router';
@@ -58,8 +60,9 @@ export interface EditorUpload {
   templateUrl: './editor.component.html',
   styleUrls: ['./editor.component.scss'],
   host: { 'class': 'editor' },
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
-    MdComponent,
+    forwardRef(() => MdComponent),
     LoadingComponent,
     ReactiveFormsModule,
     FillWidthDirective,
@@ -87,7 +90,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   helpButton?: ElementRef<HTMLButtonElement>;
   @ViewChild('editor')
   editor?: ElementRef<HTMLTextAreaElement>;
-  @ViewChild(MdComponent)
+  @ViewChild('md')
   md?: MdComponent;
   @ViewChild('hiddenMeasure')
   hiddenMeasure?: ElementRef<HTMLTextAreaElement>;
@@ -375,6 +378,12 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
     return this.url.substring(0, this.url.indexOf(':') + 1);
   }
 
+  @memo
+  get helpLinks() {
+    const helpConfig = this.admin.getTemplate('config/help');
+    return helpConfig?.config?.editorHelpLinks || [];
+  }
+
   get currentText() {
     return this._text || this.control?.value || '';
   }
@@ -438,14 +447,12 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   setText = debounce((value: string) => {
     if (this._text === value) return;
     this._text = value;
-    this.store.local.saveEditing(value);
   }, 400, { leading: true, trailing: true, maxWait: 3000 });
 
   syncText(value: string) {
     if (!value) {
       // Do not throttle
       this._text = value;
-      this.store.local.saveEditing(value);
       this.syncEditor.next(this._text);
     }
     // Clear previous throttled values

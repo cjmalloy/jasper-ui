@@ -6,6 +6,7 @@ export const qrPlugin: Plugin = {
   tag: 'plugin/qr',
   name: $localize`🔲 QR Code`,
   config: {
+    version: 1,
     type: 'plugin',
     add: true,
     embeddable: true,

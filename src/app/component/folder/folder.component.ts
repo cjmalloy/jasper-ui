@@ -1,5 +1,5 @@
 import { CdkDrag } from '@angular/cdk/drag-drop';
-import { Component, ElementRef, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, ElementRef, Input, OnChanges, SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
 import { Router } from '@angular/router';
 import { mapValues } from 'lodash-es';
 import { toJS } from 'mobx';
@@ -21,6 +21,7 @@ import { SubfolderComponent } from './subfolder/subfolder.component';
   templateUrl: './folder.component.html',
   styleUrls: ['./folder.component.scss'],
   host: { 'class': 'folder ext' },
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     FileComponent,
     SubfolderComponent,
@@ -89,7 +90,7 @@ export class FolderComponent implements OnChanges, HasChanges {
     if (changes.ext) {
       this.files = {};
       this.subfolders = {};
-      this.flatten = this.ext?.config.flatten;
+      this.flatten = this.ext?.config?.flatten;
       if (!this.ext) return;
       this.cursor = this.ext.modifiedString!;
       this.files = mapValues(toJS(this.ext.config.files) || {}, p => this.transform(p));

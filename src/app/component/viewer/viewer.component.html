@@ -6,21 +6,33 @@
              [expandInline]="true"
              [ref]="repost"></app-ref>
   }
+  @if (editingRef) {
+    <app-ref class="expand"
+             [fetchRepost]="false"
+             [showToggle]="true"
+             [expandInline]="true"
+             [ref]="editingRef"></app-ref>
+  }
   @if (playlist) {
     <app-playlist [ref]="ref"></app-playlist>
   }
-  @if (page) {
-    <app-lens [page]="page"
-              [pageControls]="false"
-              [tag]="lensQuery"
-              [ext]="ext"
-              [size]="lensSize"
-              [cols]="lensCols"
-              [sort]="lensSort"
-              [filter]="lensFilter"
-              [search]="lensSearch"></app-lens>
+  @if (lens) {
+    @if (lensPage) {
+      <app-lens class="lens-expand"
+                [page]="lensPage"
+                [pageControls]="false"
+                [tag]="lensQuery"
+                [ext]="ext"
+                [size]="lensSize"
+                [cols]="lensCols"
+                [sort]="lensSort"
+                [filter]="lensFilter"
+                [search]="lensSearch"></app-lens>
+    } @else {
+      <app-loading></app-loading>
+    }
   }
-  @if (this.embedIframe) {
+  @if (embedIframe) {
     <div class="embed-container"
          [class.loading]="!embedReady"
          [class.twitter]="twitter"
@@ -56,7 +68,8 @@
     </video>
   }
   @if (audioUrl) {
-    <audio class="no-resize audio-expand"
+    <audio #audio
+           class="no-resize audio-expand"
            [autoplay]="autoplay"
            controls>
       <source [src]="audioUrl">

@@ -1,5 +1,5 @@
 /// <reference types="vitest/globals" />
-import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
@@ -34,9 +34,9 @@ describe('ChatVideoComponent', () => {
       })
     };
     mockTaggingService = {
-      getResponse: vi.fn(),
-      respond: vi.fn(),
-      deleteResponse: vi.fn()
+      getResponse: vi.fn().mockReturnValue({ subscribe: vi.fn() }),
+      respond: vi.fn().mockReturnValue({ subscribe: vi.fn() }),
+      deleteResponse: vi.fn().mockReturnValue({ subscribe: vi.fn() }),
     };
     mockVideoService = {
       call: vi.fn(),
@@ -59,7 +59,7 @@ describe('ChatVideoComponent', () => {
     await TestBed.configureTestingModule({
       imports: [ChatVideoComponent],
       providers: [
-        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClient(withXhr(), withInterceptorsFromDi()),
         provideHttpClientTesting(),
         provideRouter([]),
         { provide: AdminService, useValue: mockAdminService },

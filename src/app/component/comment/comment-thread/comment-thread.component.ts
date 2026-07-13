@@ -7,7 +7,8 @@ import {
   OnInit,
   QueryList,
   SimpleChanges,
-  ViewChildren
+  ViewChildren,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import { autorun, IReactionDisposer } from 'mobx';
 import { MobxAngularModule } from 'mobx-angular';
@@ -24,6 +25,7 @@ import { CommentComponent } from '../comment.component';
   templateUrl: './comment-thread.component.html',
   styleUrls: ['./comment-thread.component.scss'],
   host: { 'class': 'comment-thread' },
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     forwardRef(() => CommentComponent),
     MobxAngularModule,
@@ -60,6 +62,10 @@ export class CommentThreadComponent implements OnInit, OnChanges, OnDestroy, Has
     this.disposers.push(autorun(() => {
       if (thread.latest.length) {
         this.comments = thread.cache.get(this.source);
+        if (this.comments && this.newComments.length) {
+          const newUrls = new Set(this.newComments.map(c => c.url));
+          this.comments = this.comments.filter(c => !newUrls.has(c.url));
+        }
         if (this.comments && this.pageSize) {
           this.comments = [...this.comments!];
           this.comments.length = this.pageSize;

@@ -94,6 +94,25 @@
   margin: 8px;
 }
 
+.scroll-to-bottom {
+  display: block;
+  position: relative;
+  margin-top: calc(-1em - 10px);
+  text-align: center;
+  z-index: 1;
+  background: var(--card);
+  filter: drop-shadow(0 0 0.5px white) drop-shadow(1px 1px 0.5px black);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 4px 4px 0 0;
+  padding: 4px 12px;
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+  width: fit-content;
+  margin-left: auto;
+  margin-right: auto;
+}
+
 .fake-link {
   display: block;
   text-align: center;

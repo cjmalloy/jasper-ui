@@ -1,25 +1,35 @@
-import { Component, forwardRef, Input, OnChanges, QueryList, SimpleChanges, ViewChildren } from '@angular/core';
+import { Component, forwardRef, Input, OnChanges, QueryList, SimpleChanges, ViewChildren, ChangeDetectionStrategy } from '@angular/core';
+import { MobxAngularModule } from 'mobx-angular';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ext } from '../../model/ext';
 import { Page } from '../../model/page';
 import { Ref, RefSort } from '../../model/ref';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
+import { QueryStore } from '../../store/query';
 import { UrlFilter } from '../../util/query';
 import { hasPrefix } from '../../util/tag';
 import { BlogComponent } from '../blog/blog.component';
 import { ChatComponent } from '../chat/chat.component';
 import { FolderComponent } from '../folder/folder.component';
 import { ForceDirectedComponent } from '../graph/force-directed/force-directed.component';
+import { GridComponent } from '../grid/grid.component';
 import { KanbanComponent } from '../kanban/kanban.component';
+import { LoadingComponent } from '../loading/loading.component';
+import { MapComponent } from '../map/map.component';
 import { NotebookComponent } from '../notebook/notebook.component';
 import { RefListComponent } from '../ref/ref-list/ref-list.component';
+import { RefComponent } from '../ref/ref.component';
 
 @Component({
   selector: 'app-lens',
   templateUrl: './lens.component.html',
   styleUrls: ['./lens.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
+    MobxAngularModule,
+    LoadingComponent,
+    forwardRef(() => RefComponent),
     forwardRef(() => ForceDirectedComponent),
     forwardRef(() => BlogComponent),
     forwardRef(() => ChatComponent),
@@ -27,6 +37,8 @@ import { RefListComponent } from '../ref/ref-list/ref-list.component';
     forwardRef(() => RefListComponent),
     forwardRef(() => KanbanComponent),
     forwardRef(() => NotebookComponent),
+    forwardRef(() => GridComponent),
+    forwardRef(() => MapComponent),
   ],
 })
 export class LensComponent implements OnChanges, HasChanges {
@@ -64,6 +76,7 @@ export class LensComponent implements OnChanges, HasChanges {
   constructor(
     public admin: AdminService,
     public account: AccountService,
+    public query: QueryStore,
   ) { }
 
   saveChanges() {
@@ -85,7 +98,7 @@ export class LensComponent implements OnChanges, HasChanges {
   }
 
   isTemplate(template: string) {
-    return hasPrefix(this.ext?.tag, template);
+    return this.admin.getTemplate(template) && hasPrefix(this.ext?.tag, template);
   }
 
   cssClass(tag?: string) {

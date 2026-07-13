@@ -67,7 +67,7 @@
 @if (editing) {
   <form class="form" [formGroup]="editForm" (ngSubmit)="save()">
 
-    <app-user-form [group]="editForm"
+    <app-user-form #refForm [group]="editForm"
                    [externalErrors]="externalErrors"></app-user-form>
 
     @for (e of serverError; track e) {
@@ -83,7 +83,7 @@
   </form>
 } @else if (viewSource) {
   <form class="form" [formGroup]="editForm">
-    <app-user-form [group]="editForm"></app-user-form>
+    <app-user-form #refForm [group]="editForm"></app-user-form>
   </form>
 } @else {
   @for (e of serverError; track e) {

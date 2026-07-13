@@ -9,7 +9,8 @@ import {
   NgZone,
   OnChanges,
   OnDestroy,
-  SimpleChanges
+  SimpleChanges,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { isEqual, uniq } from 'lodash-es';
@@ -37,7 +38,7 @@ import { getArgs, UrlFilter } from '../../../util/query';
 import { hasTag } from '../../../util/tag';
 import { LoadingComponent } from '../../loading/loading.component';
 import { KanbanCardComponent } from '../kanban-card/kanban-card.component';
-import { KanbanDrag } from '../kanban.component';
+import type { KanbanDrag } from '../kanban.component';
 
 interface PendingUpload {
   id: string;
@@ -50,6 +51,7 @@ interface PendingUpload {
   templateUrl: './kanban-column.component.html',
   styleUrls: ['./kanban-column.component.scss'],
   host: { 'class': 'kanban-column' },
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     KanbanCardComponent,
     CdkDrag,
@@ -347,9 +349,9 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
   }
 
   private getTagsWithAuthor(): string[] {
-    return !hasTag(this.store.account.localTag, this.addTags)
+    return uniq(!hasTag(this.store.account.localTag, this.addTags)
       ? [...this.addTags, this.store.account.localTag]
-      : this.addTags;
+      : this.addTags).filter(t => !!t);
   }
 
   handlePaste(event: ClipboardEvent) {

@@ -1,5 +1,5 @@
 <form>
-  <app-editor [control]="comment"
+  <app-editor #editor [control]="comment"
               [createdTags]="tags || []"
               [selectResponseType]="selectResponseType"
               (syncTags)="syncTags($event)"

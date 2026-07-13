@@ -1,8 +1,8 @@
-import { Component, ElementRef, Input, OnChanges, OnDestroy, SimpleChanges, ViewChild } from '@angular/core';
+import { Component, ElementRef, Input, OnChanges, OnDestroy, SimpleChanges, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { filter, find, pullAll, uniq } from 'lodash-es';
-import { DateTime } from 'luxon';
+import { DateTime, Duration } from 'luxon';
 import { autorun, IReactionDisposer, toJS } from 'mobx';
 import { Ext } from '../../model/ext';
 import { FilterConfig } from '../../model/tag';
@@ -24,6 +24,7 @@ import { hasPrefix } from '../../util/tag';
   templateUrl: './filter.component.html',
   styleUrls: ['./filter.component.scss'],
   host: { 'class': 'filter form-group' },
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [ReactiveFormsModule, FormsModule]
 })
 export class FilterComponent implements OnChanges, OnDestroy {
@@ -81,7 +82,13 @@ export class FilterComponent implements OnChanges, OnDestroy {
         }
         this.pushFilter({
           label: $localize`Queries 🔎️️`, filters: [],
-        }, {
+        });
+        if (this.auth.hasRole('ROLE_USER')) {
+          this.pushFilter({
+            label: $localize`Lists ☰`, filters: [],
+          });
+        }
+        this.pushFilter({
           label: $localize`Media 🎬️`, filters: [],
         }, {
           label: $localize`Games 🕹️`, filters: [],
@@ -267,7 +274,7 @@ export class FilterComponent implements OnChanges, OnDestroy {
           const target = g.filters.find(i => i.filter === toggle(f));
           if (target) {
             target.filter = f;
-            if (f.startsWith('!') || f.startsWith('user/!') || f.startsWith('query/!(')) {
+            if (!target.label.startsWith(this.store.account.querySymbol('!'))) {
               target.label = this.store.account.querySymbol('!') + target.label;
             } else {
               target.label = target.label.substring(this.store.account.querySymbol('!').length);
@@ -382,7 +389,17 @@ export class FilterComponent implements OnChanges, OnDestroy {
 
   toDate(filter: string) {
     if (filter.includes('/')) filter = filter.substring(filter.lastIndexOf('/') + 1);
-    return DateTime.fromISO(filter).toFormat("yyyy-MM-dd'T'T");
+    let dt: DateTime;
+    if (filter.toLowerCase() === 'now') {
+      dt = DateTime.now();
+    } else if (filter.toUpperCase().startsWith('P')) {
+      const duration = Duration.fromISO(filter.toUpperCase());
+      if (!duration.isValid) return '';
+      dt = DateTime.now().minus(duration);
+    } else {
+      dt = DateTime.fromISO(filter);
+    }
+    return dt.isValid ? dt.toFormat("yyyy-MM-dd'T'T") : '';
   }
 
 }

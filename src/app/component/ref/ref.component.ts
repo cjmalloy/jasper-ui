@@ -6,6 +6,7 @@ import {
   Component,
   ElementRef,
   EventEmitter,
+  forwardRef,
   HostBinding,
   HostListener,
   Input,
@@ -15,7 +16,8 @@ import {
   QueryList,
   SimpleChanges,
   ViewChild,
-  ViewChildren
+  ViewChildren,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -34,6 +36,7 @@ import { equalsRef, isRef, Ref } from '../../model/ref';
 import { Action, active, hydrate, Icon, sortOrder, uniqueConfigs, visible } from '../../model/tag';
 import { deleteNotice } from '../../mods/delete';
 import { addressedTo, getMailbox, mailboxes } from '../../mods/mailbox';
+import { generateStoryboardKeyframes } from '../../mods/thumbnail';
 import { CssUrlPipe } from '../../pipe/css-url.pipe';
 import { ThumbnailPipe } from '../../pipe/thumbnail.pipe';
 import { AccountService } from '../../service/account.service';
@@ -45,6 +48,7 @@ import { AuthzService } from '../../service/authz.service';
 import { BookmarkService } from '../../service/bookmark.service';
 import { ConfigService } from '../../service/config.service';
 import { EditorService } from '../../service/editor.service';
+import { ImageService } from '../../service/image.service';
 import { Store } from '../../store/store';
 import { scrollToFirstInvalid } from '../../util/form';
 import {
@@ -59,6 +63,7 @@ import {
 } from '../../util/format';
 import { getExtension, getScheme, printError } from '../../util/http';
 import { memo, MemoCache } from '../../util/memo';
+import { markRead } from '../../util/response';
 import {
   capturesAny,
   expandedTagsInclude,
@@ -88,10 +93,11 @@ import { ViewerComponent } from '../viewer/viewer.component';
   selector: 'app-ref',
   templateUrl: './ref.component.html',
   styleUrls: ['./ref.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
-    ViewerComponent,
-    RefFormComponent,
-    MdComponent,
+    forwardRef(() => ViewerComponent),
+    forwardRef(() => RefFormComponent),
+    forwardRef(() => MdComponent),
     NavComponent,
     RouterLink,
     TitleDirective,
@@ -110,14 +116,49 @@ import { ViewerComponent } from '../viewer/viewer.component';
 })
 export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasChanges {
   css = 'ref list-item';
+  @HostBinding('class')
+  allCss = this.getPluginClasses();
+  @HostBinding('attr.data-ref-url')
+  get refUrlAttr() {
+    return this.ref?.url;
+  }
+  @HostBinding('attr.data-ref-origin')
+  get refOriginAttr() {
+    return this.ref?.origin || undefined;
+  }
+  @HostBinding('attr.data-ref-title')
+  get refTitleAttr() {
+    return this.title || undefined;
+  }
+  @HostBinding('attr.data-ref-thumbnail-url')
+  get refThumbnailUrlAttr() {
+    if (!this.thumbnail) return undefined;
+    return this.refThumbnailUrl() || undefined;
+  }
+  @HostBinding('attr.data-ref-thumbnail-color')
+  get refThumbnailColorAttr() {
+    if (!this.thumbnail) return undefined;
+    return this.refThumbnailString('color') || undefined;
+  }
+  @HostBinding('attr.data-ref-thumbnail-emoji')
+  get refThumbnailEmojiAttr() {
+    if (!this.thumbnail) return undefined;
+    return this.refThumbnailString('emoji') || this.thumbnailEmojiDefaults || undefined;
+  }
+  @HostBinding('attr.data-ref-thumbnail-radius')
+  get refThumbnailRadiusAttr() {
+    if (!this.thumbnail) return undefined;
+    const radius = Number(this.refThumbnailPlugin?.['radius']);
+    return Number.isFinite(radius) ? `${radius}` : undefined;
+  }
   private disposers: IReactionDisposer[] = [];
   private destroy$ = new Subject<void>();
 
   @ViewChildren('action')
   actionComponents?: QueryList<ActionComponent>;
-  @ViewChild(RefFormComponent)
+  @ViewChild('refForm')
   refForm?: RefFormComponent;
-  @ViewChild(CommentReplyComponent)
+  @ViewChild('reply')
   reply?: CommentReplyComponent;
   @ViewChild('diffEditor')
   diffEditor?: any;
@@ -165,6 +206,8 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   deleted = false;
   @HostBinding('class.mobile-unlock')
   mobileUnlock = false;
+  @HostBinding('class.storyboard-ready')
+  storyboardLoaded = false;
   actionsExpanded?: boolean;
   replying = false;
   writeAccess = false;
@@ -185,7 +228,8 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   private diffSubscription?: Subscription;
   private _viewer?: ViewerComponent;
   private closeOffFullscreen = false;
-  private _expanded = false;
+  private focusViewer = false;
+  private preloadingUrl = '';
 
   constructor(
     public config: ConfigService,
@@ -202,6 +246,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     private fb: UntypedFormBuilder,
     private el: ElementRef<HTMLDivElement>,
     private cd: ChangeDetectorRef,
+    private imgs: ImageService,
   ) {
     this.editForm = refForm(fb);
     this.editForm.valueChanges.pipe(
@@ -216,8 +261,16 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
       MemoCache.clear(this, 'thumbnailColor');
       MemoCache.clear(this, 'thumbnailEmoji');
       MemoCache.clear(this, 'thumbnailEmojiDefaults');
-      this.initFields({ ...this.ref, ...value });
-      cd.detectChanges();
+      MemoCache.clear(this, 'storyboardUrl');
+      MemoCache.clear(this, 'storyboardSize');
+      MemoCache.clear(this, 'storyboardMargin');
+      MemoCache.clear(this, 'storyboardHeight');
+      MemoCache.clear(this, 'storyboardAnimation');
+      defer(() => {
+        // Let Formly finish rebuilding tag rows before derived Ref UI state reacts.
+        this.initFields({ ...this.ref, ...value });
+        cd.detectChanges();
+      });
     }, 400, { leading: true, trailing: true }));
     this.disposers.push(autorun(() => {
       if (this.store.eventBus.event === 'refresh') {
@@ -234,6 +287,14 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
             delete this.refreshTap;
           }
         }
+      }
+      if (this.ref?.upload && this.store.eventBus.event === 'refresh:uploads') {
+        if (this.editing || this.viewSource) {
+          // TODO: show somewhere
+          console.warn('Ignoring Ref edit.');
+          return;
+        }
+        this.init();
       }
       if (this.store.eventBus.event === 'error') {
         if (this.ref?.url && this.store.eventBus.isRef(this.ref)) {
@@ -269,6 +330,8 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     this.deleted = false;
     this.editing = false;
     this.viewSource = false;
+    this.storyboardLoaded = false;
+    this.preloadingUrl = '';
     this.actionComponents?.forEach(c => c.reset());
     if (this.ref?.upload) this.editForm.get('url')!.enable();
     this.writeAccess = this.auth.writeAccess(this.ref);
@@ -278,6 +341,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     this.initFields(this.ref);
 
     this.expandPlugins = this.admin.getEmbeds(this.ref);
+    MemoCache.clear(this);
     if (this.repost && this.ref && this.fetchRepost && this.repostRef?.url != repost(this.ref)) {
       (this.store.view.top?.url === this.ref.sources![0]
           ? of(this.store.view.top)
@@ -291,11 +355,27 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
         MemoCache.clear(this);
         if (this.bareRepost) {
           this.expandPlugins = this.admin.getEmbeds(ref);
+          this.allCss = this.getPluginClasses();
         } else {
           this.expandPlugins.push('plugin/repost');
         }
+        this.preloadStoryboard();
       });
     }
+    this.preloadStoryboard();
+  }
+
+  private preloadStoryboard() {
+    const url = this.storyboardRawUrl;
+    if (!url) return;
+    this.preloadingUrl = url;
+    this.imgs.getImage(url).then(() => {
+      if (this.preloadingUrl === url) {
+        this.storyboardLoaded = true;
+      }
+    }).catch(() => {
+      // If preloading fails, storyboard-ready class is never set and hover shows original thumbnail
+    });
   }
 
   initFields(ref: Ref) {
@@ -307,6 +387,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     this.advancedActions = ref.created ? sortOrder(this.admin.getAdvancedActions(ref.tags, ref.plugins)) : [];
     this.groupedAdvancedActions = groupBy(this.advancedActions.filter(a => this.showAction(a)), a => (a as any)[this.label(a)]);
     this.infoUis = this.admin.getPluginInfoUis(ref.tags);
+    this.allCss = this.getPluginClasses()
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -339,11 +420,15 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     event.preventDefault();
   }
 
-  @HostBinding('class')
-  get pluginClasses() {
+  getPluginClasses() {
+    if (!this.ref) return this.css;
+    const tags = this.bareRepost
+      ? uniq([...(this.ref.tags || []), ...(this.repostRef?.tags || [])])
+      : this.ref.tags;
     return this.css + ' ' + [
-      ...templates(this.ref.tags, 'plugin'),
-      ...Object.keys(this.ref.metadata?.plugins || {}).map(p => 'response-' + p)
+      ...templates(tags, 'plugin'),
+      ...Object.keys(this.ref.metadata?.plugins || {}).map(p => 'response-' + p),
+      ...(this.ref.metadata?.userUrls || []).map(p => 'user-response-' + p)
     ].map(t => t.replace(/[+_]/g, '').replace(/\//g, '_').replace(/\./g, '-')).join(' ');
   }
 
@@ -365,6 +450,110 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   @HostBinding('class.outdated')
   get modifiedFile() {
     return this.ref.outdated;
+  }
+
+  get storyboardData() {
+    if (!this.admin.getPlugin('plugin/thumbnail/storyboard')) return null;
+    if (this.editing) {
+      return this.editForm.value?.plugins?.['plugin/thumbnail/storyboard'] || null;
+    }
+    return this.ref?.plugins?.['plugin/thumbnail/storyboard']
+      || this.repostRef?.plugins?.['plugin/thumbnail/storyboard']
+      || null;
+  }
+
+  private get storyboardRawUrl(): string | null {
+    const sb = this.storyboardData;
+    if (!sb?.url) return null;
+    const rawUrl = String(sb.url);
+    const origin = this.ref?.origin || this.repostRef?.origin || '';
+    if (rawUrl.startsWith('cache:') || this.admin.getPlugin('plugin/thumbnail')?.config?.proxy) {
+      return this.proxy.getFetch(rawUrl, origin, 'storyboard');
+    } else {
+      return rawUrl;
+    }
+  }
+
+  @memo
+  @HostBinding('style.--storyboard-url')
+  get storyboardUrl(): string | null {
+    const resolvedUrl = this.storyboardRawUrl;
+    if (!resolvedUrl) return null;
+    const escapedUrl = resolvedUrl.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+    return `url("${escapedUrl}")`;
+  }
+
+  @memo
+  @HostBinding('style.--storyboard-size')
+  get storyboardSize(): string | null {
+    const sb = this.storyboardData;
+    if (!sb?.cols || !sb?.rows) return null;
+    const cols = Math.trunc(Number(sb.cols));
+    const rows = Math.trunc(Number(sb.rows));
+    if (cols <= 0 || rows <= 0 || cols * rows > 10_000) return null;
+    return `${cols * 100}% ${rows * 100}%`;
+  }
+
+  @memo
+  @HostBinding('style.--storyboard-margin')
+  get storyboardMargin(): string | null {
+    const sb = this.storyboardData;
+    if (!sb?.cols || !sb?.rows) return null;
+    const cols = Math.trunc(Number(sb.cols));
+    const rows = Math.trunc(Number(sb.rows));
+    if (cols <= 0 || rows <= 0 || cols * rows > 10_000) return null;
+    if (!sb.width || sb.width <= 0 || !sb.height || sb.height <= 0) return null;
+    if (sb.width > sb.height) return ((48 - (48 * sb.height / sb.width)) / 2) + 'px 10px 0 0';
+    const margin = ((48 - (48 * sb.width / sb.height)) / 2);
+    return '0 ' + (margin + 10) + 'px 0 ' + margin + 'px';
+  }
+
+  @memo
+  @HostBinding('style.--storyboard-width')
+  get storyboardWidth(): string | null {
+    const sb = this.storyboardData;
+    if (!sb?.cols || !sb?.rows) return null;
+    const cols = Math.trunc(Number(sb.cols));
+    const rows = Math.trunc(Number(sb.rows));
+    if (cols <= 0 || rows <= 0 || cols * rows > 10_000) return null;
+    if (!sb.width || sb.width <= 0 || !sb.height || sb.height <= 0) return null;
+    if (sb.width > sb.height) return '48px';
+    return (48 * sb.width / sb.height) + 'px';
+
+  }
+
+  @memo
+  @HostBinding('style.--storyboard-height')
+  get storyboardHeight(): string | null {
+    const sb = this.storyboardData;
+    if (!sb?.cols || !sb?.rows) return null;
+    const cols = Math.trunc(Number(sb.cols));
+    const rows = Math.trunc(Number(sb.rows));
+    if (cols <= 0 || rows <= 0 || cols * rows > 10_000) return null;
+    if (!sb.width || sb.width <= 0 || !sb.height || sb.height <= 0) return null;
+    if (sb.width > sb.height) return (48 * sb.height / sb.width) + 'px';
+    return '48px';
+  }
+
+  @memo
+  @HostBinding('style.--storyboard-animation')
+  get storyboardAnimation(): string | null {
+    const sb = this.storyboardData;
+    if (!sb?.cols || !sb?.rows) return null;
+    const cols = Math.trunc(Number(sb.cols));
+    const rows = Math.trunc(Number(sb.rows));
+    const totalFrames = cols * rows;
+    if (cols <= 0 || rows <= 0 || totalFrames > 10_000 || totalFrames < 2) return null;
+    const duration = 0.4;
+    const name = `storyboard-slide-${cols}x${rows}`;
+    const styleId = `style-${name}`;
+    if (!document.getElementById(styleId)) {
+      const style = document.createElement('style');
+      style.id = styleId;
+      style.textContent = generateStoryboardKeyframes(name, cols, rows);
+      document.head.appendChild(style);
+    }
+    return `${name} ${(totalFrames * duration).toFixed(2)}s linear infinite`;
   }
 
   get obsoleteOrigin() {
@@ -396,7 +585,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     this.store.view.clearLastSelected(this.ref.url);
   }
 
-  @ViewChild(ViewerComponent)
+  @ViewChild('viewer')
   set viewer(value: ViewerComponent | undefined) {
     this._viewer = value;
     if (value) {
@@ -405,6 +594,11 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
           console.warn('Could not make fullscreen.');
           if (this.closeOffFullscreen) this.expanded = false;
         });
+      }
+      if (this.focusViewer) {
+        this.focusViewer = false;
+        // Defer to ensure the viewer's DOM is fully rendered before focusing
+        defer(() => value.el.nativeElement.focus({ preventScroll: true }));
       }
     }
   }
@@ -418,9 +612,12 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   }
 
   set viewSource(value: boolean) {
+    if (this._viewSource === value) return;
     this._viewSource = value;
     if (value) {
       this.syncEditor();
+    } else {
+      if (this.expanded) this.focusViewer = true;
     }
   }
 
@@ -445,7 +642,13 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     this._editing = value;
     if (value) {
       this.syncEditor();
+      MemoCache.clear(this, 'storyboardUrl');
+      MemoCache.clear(this, 'storyboardSize');
+      MemoCache.clear(this, 'storyboardMargin');
+      MemoCache.clear(this, 'storyboardHeight');
+      MemoCache.clear(this, 'storyboardAnimation');
     } else {
+      if (this.expanded) this.focusViewer = true;
       defer(() => {
         MemoCache.clear(this);
         this.init();
@@ -564,13 +767,38 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   @memo
   get thumbnail() {
     if (!this.admin.getPlugin('plugin/thumbnail')) return false;
-    if (this.editing) return hasTag('plugin/thumbnail', this.editForm.value);
-    return hasTag('plugin/thumbnail', this.ref) || hasTag('plugin/thumbnail', this.repostRef);
+    if (this.editing) {
+      if (hasTag('plugin/thumbnail', this.editForm.value)) return true;
+      if (!this.admin.getPlugin('plugin/image')) return false;
+      return hasTag('plugin/image', this.editForm.value);
+    }
+    if (hasTag('plugin/thumbnail', this.ref) || hasTag('plugin/thumbnail', this.repostRef)) return true;
+    if (!this.admin.getPlugin('plugin/image')) return false;
+    return hasTag('plugin/image', this.ref) || hasTag('plugin/image', this.repostRef);
   }
 
   @memo
   get thumbnailRefs() {
     return this.editing ? [{ ...this.editForm.value, origin: this.ref.origin }] : [this.repostRef, this.ref];
+  }
+
+  get refThumbnailPlugin() {
+    const plugin = this.ref?.plugins?.['plugin/thumbnail'] || this.repostRef?.plugins?.['plugin/thumbnail'];
+    return plugin && typeof plugin === 'object' && !Array.isArray(plugin) ? plugin : undefined;
+  }
+
+  refThumbnailString(key: 'url' | 'color' | 'emoji') {
+    const value = this.refThumbnailPlugin?.[key];
+    return typeof value === 'string' ? value : '';
+  }
+
+  refThumbnailUrl() {
+    return this.refThumbnailString('url') || this.refThumbnailPluginUrl('plugin/image') || this.refThumbnailPluginUrl('plugin/video');
+  }
+
+  refThumbnailPluginUrl(plugin: 'plugin/image' | 'plugin/video') {
+    const value = this.ref?.plugins?.[plugin]?.url || this.repostRef?.plugins?.[plugin]?.url;
+    return typeof value === 'string' ? value : '';
   }
 
   @memo
@@ -766,6 +994,23 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   }
 
   @memo
+  get editingLink() {
+    if (!hasTag('plugin/editing', this.ref)) return undefined;
+    if (this.url.startsWith('comment:')) {
+      return { routerLink: ['/submit/text'], queryParams: { url: this.url } };
+    }
+    return { routerLink: ['/submit/web'], queryParams: { url: this.url } };
+  }
+
+  @memo
+  get submitRoute() {
+    if (this.url.startsWith('comment:')) {
+      return { routerLink: ['/submit/text'], queryParams: { url: this.url } };
+    }
+    return { routerLink: ['/submit/web'], queryParams: { url: this.url } };
+  }
+
+  @memo
   get clickableLink() {
     if (this.file) return true;
     return clickableLink(this.url);
@@ -773,6 +1018,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
 
   @memo
   get redundantLink() {
+    if (this.editingLink) return true;
     if (!this.clickableLink) return true;
     return this.expandPlugins.length;
   }
@@ -915,32 +1161,35 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
             console.warn('Could not make fullscreen.');
           });
         }
+        this.focusViewer = true;
         this.expanded = true;
         this.cd.detectChanges();
       } else if (this.pipRequired) {
         this.store.eventBus.fire('pip', this.ref);
-        this.store.eventBus.fire('');
         read = true;
       } else {
         this.expanded = !this.expanded;
+        if (this.expanded) this.focusViewer = true;
         this.store.local.setRefToggled(this.ref.url, this.expanded);
       }
       // Mark as read
       if (!read && !this.expanded) return;
-      if (!this.admin.getPlugin('plugin/user/read')) return;
-      if (this.ref.metadata?.userUrls?.includes('plugin/user/read')) return;
-      // TODO: Update ref metadata
-      this.ts.createResponse('plugin/user/read', this.ref.url).subscribe();
+      this.markRead();
     }
   }
 
   pip(event?: MouseEvent) {
     if (!this.admin.pip) return;
     this.store.eventBus.fire('pip', this.ref);
-    this.store.eventBus.fire('');
+    this.markRead();
     if ('vibrate' in navigator) navigator.vibrate([2, 32, 4]);
     event?.preventDefault();
     event?.stopPropagation();
+  }
+
+  markRead() {
+    markRead(this.admin, this.ts, this.ref);
+    this.initFields(this.ref);
   }
 
   @memo
@@ -1013,6 +1262,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
       if (a.tag && hasTag(a.tag, this.ref) && !this.writeAccess) return false;
     }
     if ('tag' in a || 'response' in a) {
+      if (!this.auth.hasRole('ROLE_USER')) return false;
       if (active(this.ref, a) && !a.labelOn) return false;
       if (!active(this.ref, a) && !a.labelOff) return false;
     } else {
@@ -1192,6 +1442,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   saveDiff() {
     const ref = this.diffEditor?.getModifiedContent();
     if (!ref) return;
+    ref.origin = this.store.account.origin;
     ref.modifiedString = this.overwrite ? this.overwrittenModified : this.ref.modifiedString;
     this.submitting = this.store.eventBus.runAndReload(this.refs.update(ref).pipe(
       tap(cursor => {

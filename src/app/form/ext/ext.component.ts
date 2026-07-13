@@ -4,13 +4,14 @@ import {
   Component,
   ElementRef,
   EventEmitter,
+  forwardRef,
   Input,
   OnDestroy,
   Output,
-  ViewChild
+  ViewChild,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import {
-  FormArray,
   FormControl,
   ReactiveFormsModule,
   UntypedFormBuilder,
@@ -21,7 +22,7 @@ import {
 import { RouterLink } from '@angular/router';
 import { FormlyFieldConfig, FormlyForm, FormlyFormOptions } from '@ngx-formly/core';
 import { cloneDeep, defer, uniq } from 'lodash-es';
-import { DateTime } from 'luxon';
+import { DateTime, Duration } from 'luxon';
 import { catchError, of, Subject, takeUntil } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { LoadingComponent } from '../../component/loading/loading.component';
@@ -33,7 +34,7 @@ import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
 import { Store } from '../../store/store';
 import { TAG_REGEX } from '../../util/format';
-import { convertFilter, convertSort, defaultDesc, negatable, toggle, UrlFilter } from '../../util/query';
+import { convertFilter, convertSort, defaultDesc, FilterItem, negatable, toggle, UrlFilter } from '../../util/query';
 import { hasPrefix } from '../../util/tag';
 import { EditorComponent } from '../editor/editor.component';
 import { linksForm } from '../links/links.component';
@@ -44,9 +45,10 @@ import { themesForm, ThemesFormComponent } from '../themes/themes.component';
   templateUrl: './ext.component.html',
   styleUrls: ['./ext.component.scss'],
   host: { 'class': 'nested-form' },
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
-    RefComponent,
-    EditorComponent,
+    forwardRef(() => RefComponent),
+    forwardRef(() => EditorComponent),
     ReactiveFormsModule,
     FormlyForm,
     CdkDropListGroup,
@@ -58,7 +60,35 @@ import { themesForm, ThemesFormComponent } from '../themes/themes.component';
 export class ExtFormComponent implements OnDestroy {
   private destroy$ = new Subject<void>();
   allSorts = this.admin.refSorts.map(convertSort);
-  allFilters = this.admin.filters.map(convertFilter);
+  allFilters: FilterItem[] = [
+    { filter: `modified/before/${DateTime.now().toISO()}`, label: $localize`🕓️ modified before` },
+    { filter: `modified/after/${DateTime.now().toISO()}`, label: $localize`🕓️ modified after` },
+    { filter: `response/before/${DateTime.now().toISO()}`, label: $localize`🧵️ response before` },
+    { filter: `response/after/${DateTime.now().toISO()}`, label: $localize`🧵️ response after` },
+    { filter: `published/before/${DateTime.now().toISO()}`, label: $localize`📅️ published before` },
+    { filter: `published/after/${DateTime.now().toISO()}`, label: $localize`📅️ published after` },
+    { filter: `created/before/${DateTime.now().toISO()}`, label: $localize`✨️ created before` },
+    { filter: `created/after/${DateTime.now().toISO()}`, label: $localize`✨️ created after` },
+    ...this.admin.filters.map(convertFilter),
+  ];
+  datePresets = [
+    'now',
+    'PT1M',
+    'PT15M',
+    'PT1H',
+    'PT6H',
+    'PT24H',
+    'P3D',
+    'P7D',
+    'P2W',
+    'P1M',
+    'P3M',
+    'P1Y',
+    'P5Y',
+    'P15Y',
+    'P50Y',
+    'P100Y',
+  ];
 
   @Input()
   group!: UntypedFormGroup;
@@ -122,48 +152,126 @@ export class ExtFormComponent implements OnDestroy {
   }
 
   get defaultSort() {
-    return this.config.get('defaultSort') as FormArray<FormControl<string>>;
+    return this.config.get('defaultSort') as FormControl<string[]>;
   }
 
   get defaultFilter() {
-    return this.config.get('defaultFilter') as FormArray<FormControl<string>>;
+    return this.config.get('defaultFilter') as FormControl<UrlFilter[]>;
   }
 
-  get sortCol() {
-    if (!this.defaultSort.value?.[0]) return undefined;
-    if (!this.defaultSort.value[0].includes(',')) return this.defaultSort.value[0];
-    return this.defaultSort.value[0].split(',')[0];
+  addSort(value: string, select: HTMLSelectElement) {
+    if (!value) return;
+    this.defaultSort.setValue([
+      ...this.defaultSort.value || [],
+      value + ',' + (defaultDesc(value) ? 'DESC' : 'ASC'),
+    ]);
+    select.selectedIndex = 0;
   }
 
-  get sortDir() {
-    if (!this.defaultSort.value?.[0]) return undefined;
-    if (!this.defaultSort.value[0].includes(',')) return defaultDesc(this.defaultSort.value[0]) ? 'DESC' : 'ASC';
-    return this.defaultSort.value[0].split(',')[1].toUpperCase() === 'DESC' ? 'DESC' : 'ASC';
+  sortCol(sort: string) {
+    if (!sort.includes(',')) return sort;
+    return sort.split(',')[0];
   }
 
-  get filter(): UrlFilter | undefined {
-    return this.defaultFilter.value[0] as UrlFilter;
+  sortDir(sort: string) {
+    if (!sort.includes(',')) return defaultDesc(sort) ? 'DESC' : 'ASC';
+    return sort.split(',')[1].toUpperCase() === 'DESC' ? 'DESC' : 'ASC';
   }
 
-  setSortCol(value: string) {
-    this.defaultSort.setValue([value + ',' + this.sortDir]);
+  setSortCol(index: number, value: string) {
+    const sorts = [...this.defaultSort.value];
+    sorts[index] = value + ',' + this.sortDir(value);
+    this.defaultSort.setValue(sorts);
   }
 
-  setSortDir(value: string) {
-    this.defaultSort.setValue([this.sortCol + ',' + value]);
+  setSortDir(index: number, value: string) {
+    const sorts = [...this.defaultSort.value];
+    sorts[index] = this.sortCol(sorts[index]) + ',' + value;
+    this.defaultSort.setValue(sorts);
   }
 
-  setFilter(value: string | null) {
-    if (value) {
-      this.defaultFilter.setValue([value]);
-    } else {
-      this.defaultFilter.setValue([]);
-    }
+  removeSort(index: number) {
+    const sorts = [...this.defaultSort.value];
+    sorts.splice(index, 1);
+    this.defaultSort.setValue(sorts);
   }
 
-  toggleFilter() {
-    if (!this.filter) return;
-    this.defaultFilter.setValue([toggle(this.filter)]);
+  addFilter(value: UrlFilter, select: HTMLSelectElement) {
+    if (!value) return;
+    this.defaultFilter.setValue([...this.defaultFilter.value || [], value]);
+    select.selectedIndex = 0;
+  }
+
+  setFilter(index: number, value: UrlFilter) {
+    const filters = [...this.defaultFilter.value];
+    filters[index] = value;
+    this.defaultFilter.setValue(filters);
+  }
+
+  removeFilter(index: number) {
+    const filters = [...this.defaultFilter.value];
+    filters.splice(index, 1);
+    this.defaultFilter.setValue(filters);
+  }
+
+  toggleFilter(index: number) {
+    const filters = [...this.defaultFilter.value];
+    filters[index] = toggle(filters[index])!;
+    this.defaultFilter.setValue(filters);
+  }
+
+  setFilterDate(index: number, filter: UrlFilter, date: string) {
+    if (!date) return;
+    this.setFilter(index, (filter.substring(0, filter.lastIndexOf('/') + 1) + DateTime.fromISO(date).toISO()) as UrlFilter);
+  }
+
+  filterOption(filter: UrlFilter) {
+    if (!this.filterIsDate(filter)) return filter;
+    const prefix = filter.substring(0, filter.lastIndexOf('/') + 1);
+    return this.allFilters.find(option => option.filter.startsWith(prefix))?.filter || filter;
+  }
+
+  filterIsDate(filter: UrlFilter) {
+    return /^(modified|response|published|created)\/(before|after)\//.test(filter);
+  }
+
+  filterDateValue(filter: UrlFilter) {
+    return filter.substring(filter.lastIndexOf('/') + 1);
+  }
+
+  filterDateLabel(filter: UrlFilter) {
+    const value = this.filterDateValue(filter);
+    if (value === 'now') return value;
+    const duration = Duration.fromISO(value.toUpperCase());
+    return duration.isValid ? duration.toHuman() : value;
+  }
+
+  filterSpecialDate(filter: UrlFilter) {
+    const value = this.filterDateValue(filter);
+    return value === 'now' || Duration.fromISO(value.toUpperCase()).isValid;
+  }
+
+  filterDatePreset(filter: UrlFilter) {
+    const value = this.filterDateValue(filter);
+    if (value === 'now') return 0;
+    const index = this.datePresets.indexOf(value.toUpperCase());
+    if (index >= 0) return index;
+    if (!this.filterSpecialDate(filter)) return 0;
+    const duration = Duration.fromISO(value.toUpperCase()).as('milliseconds');
+    return this.datePresets.reduce((closest, preset, index) => {
+      const milliseconds = preset === 'now' ? 0 : Duration.fromISO(preset).as('milliseconds');
+      const closestMilliseconds = closest === 0 ? 0 : Duration.fromISO(this.datePresets[closest]).as('milliseconds');
+      return Math.abs(milliseconds - duration) < Math.abs(closestMilliseconds - duration) ? index : closest;
+    }, 0);
+  }
+
+  setFilterDatePreset(index: number, filter: UrlFilter, preset: string) {
+    this.setFilter(index, (filter.substring(0, filter.lastIndexOf('/') + 1) + this.datePresets[Number(preset)]) as UrlFilter);
+  }
+
+  filterDate(filter: UrlFilter) {
+    const date = DateTime.fromISO(filter.substring(filter.lastIndexOf('/') + 1));
+    return date.isValid ? date.toFormat("yyyy-MM-dd'T'T") : '';
   }
 
   get sidebar() {
@@ -286,7 +394,7 @@ export function extForm(fb: UntypedFormBuilder, ext: Ext | undefined, admin: Adm
       theme: [''],
     };
   }
-  if (admin.getTemplate('config/home') && hasPrefix(ext?.tag, 'config/home')) {
+  if (admin.home && hasPrefix(ext?.tag, 'config/home')) {
     configControls = {
       ...configControls,
       defaultSort: [[]],
