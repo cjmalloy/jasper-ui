@@ -13,6 +13,19 @@
   <input [id]="id + '-name'" name="name" type="text" formControlName="name">
 
   <ng-container [formGroup]="config">
+    @if (header) {
+      <label [for]="id + '-header'" class="editor-label" i18n>Header:</label>
+      <div #fillHeader class="fill-editor">
+        <app-editor [id]="id + '-header'"
+                    class="bubble"
+                    [hasTags]="false"
+                    [addButton]="true"
+                    i18n-addCommentTitle addCommentTitle="Add header"
+                    i18n-addCommentLabel addCommentLabel="+ Add header"
+                    [fillWidth]="fillHeader"
+                    [control]="header"></app-editor>
+      </div>
+    }
     @if (popover) {
       <label [for]="id + '-popover'" class="editor-label" i18n>Popover:</label>
       <div #fillPopover class="fill-editor">
