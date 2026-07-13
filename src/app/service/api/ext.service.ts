@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { delay } from 'lodash-es';
-import { catchError, concat, map, Observable, of, shareReplay, Subject, switchMap, toArray } from 'rxjs';
+import { catchError, concat, map, Observable, of, shareReplay, Subject, switchMap, takeWhile, timeInterval, toArray } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Ext, mapExt, writeExt } from '../../model/ext';
 import { mapPage, Page } from '../../model/page';
@@ -15,6 +15,7 @@ import { LoginService } from '../login.service';
 import { StompService } from './stomp.service';
 
 export const EXT_CACHE_MS = 15 * 60 * 1000;
+export const EXT_UPDATE_RATE_LIMIT_MS = 60 * 1000;
 export const EXT_BATCH_THROTTLE_MS = 50;
 export const EXT_BATCH_SIZE = 50;
 
@@ -119,7 +120,11 @@ export class ExtService {
     for (const key of keys) {
       this._cache.set(key, value);
     }
-    const sub = this.stomp.watchExt(ext.tag + ext.origin).subscribe(x => {
+    const sub = this.stomp.watchExt(ext.tag + ext.origin).pipe(
+      timeInterval(),
+      takeWhile((update, index) => index === 0 || update.interval >= EXT_UPDATE_RATE_LIMIT_MS),
+      map(update => update.value),
+    ).subscribe(x => {
       value = of(x);
       for (const key of keys) {
         this._cache.set(key, value);
