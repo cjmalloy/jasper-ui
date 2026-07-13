@@ -1,3 +1,6 @@
+@if (header) {
+  <app-viewer [text]="header"></app-viewer>
+}
 <ng-container *mobxAutorun>
   @if (query.responseOf) {
     <div class="list-container responses-of">

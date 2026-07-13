@@ -20,6 +20,7 @@ import { MapComponent } from '../map/map.component';
 import { NotebookComponent } from '../notebook/notebook.component';
 import { RefListComponent } from '../ref/ref-list/ref-list.component';
 import { RefComponent } from '../ref/ref.component';
+import { ViewerComponent } from '../viewer/viewer.component';
 
 @Component({
   selector: 'app-lens',
@@ -39,6 +40,7 @@ import { RefComponent } from '../ref/ref.component';
     forwardRef(() => NotebookComponent),
     forwardRef(() => GridComponent),
     forwardRef(() => MapComponent),
+    ViewerComponent,
   ],
 })
 export class LensComponent implements OnChanges, HasChanges {
@@ -69,6 +71,7 @@ export class LensComponent implements OnChanges, HasChanges {
   showVotes = false;
 
   plugins?: string[];
+  header?: string;
 
   @ViewChildren('lens')
   list?: QueryList<HasChanges>;
@@ -84,6 +87,7 @@ export class LensComponent implements OnChanges, HasChanges {
   }
 
   init() {
+    this.header = this.ext?.config?.header;
     if (hasPrefix(this.ext?.tag, 'plugin')) {
       this.plugins = [this.ext!.tag];
     } else {

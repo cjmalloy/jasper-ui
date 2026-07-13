@@ -274,6 +274,10 @@ export class ExtFormComponent implements OnDestroy {
     return date.isValid ? date.toFormat("yyyy-MM-dd'T'T") : '';
   }
 
+  get header() {
+    return this.config.get('header') as UntypedFormControl;
+  }
+
   get sidebar() {
     return this.config.get('sidebar') as UntypedFormControl;
   }
@@ -384,6 +388,7 @@ export function extForm(fb: UntypedFormBuilder, ext: Ext | undefined, admin: Adm
   if (admin.getTemplate('') && !hasPrefix(ext?.tag, 'config')) {
     configControls = {
       ...configControls,
+      header: [''],
       defaultSort: [[]],
       defaultFilter: [[]],
       sidebar: [''],
@@ -397,6 +402,7 @@ export function extForm(fb: UntypedFormBuilder, ext: Ext | undefined, admin: Adm
   if (admin.home && hasPrefix(ext?.tag, 'config/home')) {
     configControls = {
       ...configControls,
+      header: [''],
       defaultSort: [[]],
       defaultFilter: [[]],
       sidebar: [''],
