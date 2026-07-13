@@ -79,10 +79,12 @@ test.describe.serial('Ext defaults', () => {
   test('configures and renders a Markdown header', async ({ page }) => {
     await page.goto('/ext/config/home?debug=ADMIN', { waitUntil: 'networkidle' });
     await page.getByRole('button', { name: '+ Add header' }).click();
-    await page.getByLabel('Header:').fill('# Home header');
+    await page.locator('.header-editor textarea').fill('# Home header');
 
     const save = page.waitForResponse(response => (
-      response.url().includes('/api/v1/ext') && response.request().method() === 'POST' && response.ok()
+      response.url().includes('/api/v1/ext') &&
+      ['POST', 'PUT'].includes(response.request().method()) &&
+      response.ok()
     ));
     await page.getByRole('button', { name: 'Save' }).click();
     await save;
