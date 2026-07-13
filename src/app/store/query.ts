@@ -75,7 +75,6 @@ export class QueryStore {
   }
 
   refresh() {
-    console.log("QUERY REFRESH", new Error().stack);
     if (this.args) {
       this.running?.unsubscribe();
       this.running = this.refs.page(this.args).pipe(

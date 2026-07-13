@@ -63,6 +63,8 @@ export class HomePage implements OnInit, OnDestroy, HasChanges {
   ngOnInit(): void {
     runInAction(() => this.store.view.extTemplates = this.admin.view);
     this.disposers.push(autorun(() => {
+      // Track the route snapshot so same-URL navigation (e.g. clicking the logo) reloads the query
+      this.store.view.route.routeSnapshot;
       if (this.store.view.forYou) {
         this.account.forYouQuery$.subscribe(q => {
           const args = getArgs(

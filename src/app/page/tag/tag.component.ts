@@ -85,6 +85,8 @@ export class TagPage implements OnInit, OnDestroy, HasChanges {
 
   ngOnInit() {
     this.disposers.push(autorun(() => {
+      // Track the route snapshot so same-URL navigation (e.g. clicking the logo) reloads the query
+      this.store.view.route.routeSnapshot;
       const filters = this.store.view.filter.length ? this.store.view.filter : this.store.view.viewExtFilter;
       if (!this.store.view.filter.length && this.store.view.viewExtFilter?.length) {
         this.bookmarks.filters = this.store.view.viewExtFilter;
