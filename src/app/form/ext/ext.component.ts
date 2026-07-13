@@ -331,6 +331,20 @@ export class ExtFormComponent implements OnDestroy {
           },
         });
       }
+      if (this.config.get('header')) {
+        this.form.unshift({
+          key: 'header',
+          type: 'editor',
+          className: 'header-editor',
+          props: {
+            label: $localize`Header:`,
+            addButton: true,
+            addCommentTitle: $localize`Add header`,
+            addCommentLabel: $localize`+ Add header`,
+            bubble: true,
+          },
+        });
+      }
       if (this.config.get('sidebar')) {
         this.form.push({
           key: 'sidebar',
@@ -411,6 +425,7 @@ export function extForm(fb: UntypedFormBuilder, ext: Ext | undefined, admin: Adm
   if (admin.getTemplate('') && !hasPrefix(ext?.tag, 'config')) {
     configControls = {
       ...configControls,
+      header: [''],
       defaultSort: [[]],
       defaultFilter: [[]],
       sidebar: [''],
@@ -424,6 +439,7 @@ export function extForm(fb: UntypedFormBuilder, ext: Ext | undefined, admin: Adm
   if (admin.home && hasPrefix(ext?.tag, 'config/home')) {
     configControls = {
       ...configControls,
+      header: [''],
       defaultSort: [[]],
       defaultFilter: [[]],
       sidebar: [''],
