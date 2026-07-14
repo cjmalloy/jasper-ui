@@ -66,6 +66,8 @@ describe('GenComponent', () => {
     const editor = editorElement.componentInstance as EditorComponent;
     expect(editor.control).toBe(component.group?.get('comment'));
     expect(editor.hasTags).toBe(false);
+    expect(editor.addCommentTitle).toBe('Add comment');
+    expect(editor.addCommentLabel).toBe('+ Add comment');
     expect(editor.fillWidth).toBe(
       fixture.nativeElement.querySelector('.editor-field .fill-editor'),
     );

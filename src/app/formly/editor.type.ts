@@ -19,8 +19,8 @@ interface EditorProps extends FormlyFieldProps {
                   [control]="editorControl"
                   [hasTags]="false"
                   [addButton]="!!props.addButton"
-                  [addCommentTitle]="props.addCommentTitle || ''"
-                  [addCommentLabel]="props.addCommentLabel || ''"
+                  [addCommentTitle]="addCommentTitle"
+                  [addCommentLabel]="addCommentLabel"
                   [fillWidth]="fillWidth"
                   [class.bubble]="props.bubble"></app-editor>
     </div>
@@ -31,5 +31,13 @@ interface EditorProps extends FormlyFieldProps {
 export class FormlyFieldEditor extends FieldType<FieldTypeConfig<EditorProps>> {
   get editorControl() {
     return this.formControl as UntypedFormControl;
+  }
+
+  get addCommentTitle() {
+    return this.props.addCommentTitle ?? $localize`Add comment`;
+  }
+
+  get addCommentLabel() {
+    return this.props.addCommentLabel ?? $localize`+ Add comment`;
   }
 }
