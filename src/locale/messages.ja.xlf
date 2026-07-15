@@ -10,6 +10,10 @@
         <source>Warning: unmet dependencies:</source>
         <target>警告：未解決の依存関係：</target>
       </trans-unit>
+      <trans-unit id="3532164303573580690" datatype="html">
+        <source>Unmet peer dependencies: <x id="PH" equiv-text="this.unmetPeerDependencies(config).join(&apos;, &apos;)"/></source>
+        <target>未解決のピア依存関係：<x id="PH" equiv-text="this.unmetPeerDependencies(config).join(&apos;, &apos;)"/></target>
+      </trans-unit>
       <trans-unit id="3901786072215813225" datatype="html">
         <source>Install peer dependencies?</source>
         <target>ピア依存関係をインストールしますか？</target>

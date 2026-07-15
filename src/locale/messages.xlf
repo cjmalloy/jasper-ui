@@ -9,13 +9,6 @@
           <context context-type="linenumber">27,29</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="1917800290196585468" datatype="html">
-        <source>Warning: unmet dependencies:</source>
-        <context-group purpose="location">
-          <context context-type="sourcefile">src/app/app.component.html</context>
-          <context context-type="linenumber">39,40</context>
-        </context-group>
-      </trans-unit>
       <trans-unit id="6631147598757213823" datatype="html">
         <source>download</source>
         <context-group purpose="location">
@@ -229,7 +222,7 @@
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/page/settings/setup/setup.component.html</context>
-          <context context-type="linenumber">39,40</context>
+          <context context-type="linenumber">52,53</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/page/tag/tag.component.html</context>
@@ -643,7 +636,7 @@ Please Reload.</source>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/page/settings/setup/setup.component.html</context>
-          <context context-type="linenumber">103,104</context>
+          <context context-type="linenumber">133,134</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3347932678307141902" datatype="html">
@@ -1024,7 +1017,7 @@ Please Reload.</source>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/page/settings/setup/setup.component.html</context>
-          <context context-type="linenumber">102,103</context>
+          <context context-type="linenumber">132,133</context>
         </context-group>
       </trans-unit>
       <trans-unit id="176284322192820771" datatype="html">
@@ -16170,32 +16163,43 @@ Enter the origin to confirm:</source>
           <context context-type="linenumber">21,22</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="1917800290196585468" datatype="html">
+        <source>Warning: unmet dependencies:</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/page/settings/setup/setup.component.html</context>
+          <context context-type="linenumber">37,38</context>
+        </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/page/settings/setup/setup.component.html</context>
+          <context context-type="linenumber">95,96</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="6304267956017984549" datatype="html">
         <source>🌟️ update</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/page/settings/setup/setup.component.html</context>
-          <context context-type="linenumber">54,55</context>
+          <context context-type="linenumber">71,72</context>
         </context-group>
       </trans-unit>
       <trans-unit id="5330242595937013307" datatype="html">
         <source>🔀 diff</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/page/settings/setup/setup.component.html</context>
-          <context context-type="linenumber">57,58</context>
+          <context context-type="linenumber">74,75</context>
         </context-group>
       </trans-unit>
       <trans-unit id="8961752191581686674" datatype="html">
         <source>Unable to merge automatically. Review the mod diff or overwrite your local changes.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/page/settings/setup/setup.component.html</context>
-          <context context-type="linenumber">86,87</context>
+          <context context-type="linenumber">116,117</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6448703453936278950" datatype="html">
         <source>Review the merged mod before saving or overwrite your local changes.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/page/settings/setup/setup.component.html</context>
-          <context context-type="linenumber">88,89</context>
+          <context context-type="linenumber">118,119</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6121766057800725904" datatype="html">
@@ -16227,6 +16231,13 @@ Enter the origin to confirm:</source>
           <context context-type="sourcefile">src/app/page/settings/setup/setup.component.ts</context>
           <context context-type="linenumber">211</context>
         </context-group>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/page/settings/setup/setup.component.ts</context>
+          <context context-type="linenumber">343</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="3532164303573580690" datatype="html">
+        <source>Unmet peer dependencies: <x id="PH" equiv-text="this.unmetPeerDependencies(config).join(&apos;, &apos;)"/></source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/page/settings/setup/setup.component.ts</context>
           <context context-type="linenumber">324</context>
@@ -16818,123 +16829,123 @@ Enter the origin to confirm:</source>
         <source>Installing <x id="PH" equiv-text="def.title || def.url"/> ref...</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1013</context>
+          <context context-type="linenumber">1017</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4147619993239863788" datatype="html">
         <source>Ref <x id="PH" equiv-text="def.title || def.url"/> already exists...</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1021</context>
+          <context context-type="linenumber">1025</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3630868986759354735" datatype="html">
         <source>Installing <x id="PH" equiv-text="def.name || def.tag"/> ext...</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1032</context>
+          <context context-type="linenumber">1036</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3297602259759413939" datatype="html">
         <source>Ext <x id="PH" equiv-text="def.name || def.tag"/> already exists...</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1036</context>
+          <context context-type="linenumber">1040</context>
         </context-group>
       </trans-unit>
       <trans-unit id="3524609671751595375" datatype="html">
         <source>Installing <x id="PH" equiv-text="def.name || def.tag"/> user...</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1047</context>
+          <context context-type="linenumber">1051</context>
         </context-group>
       </trans-unit>
       <trans-unit id="8104259115775582236" datatype="html">
         <source>User <x id="PH" equiv-text="def.name || def.tag"/> already exists...</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1051</context>
+          <context context-type="linenumber">1055</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4744345424867452582" datatype="html">
         <source>Installing <x id="PH" equiv-text="def.name || def.tag"/> plugin...</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1062</context>
+          <context context-type="linenumber">1066</context>
         </context-group>
       </trans-unit>
       <trans-unit id="6857764545124483676" datatype="html">
         <source>Plugin <x id="PH" equiv-text="def.name || def.tag"/> already exists...</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1067</context>
+          <context context-type="linenumber">1071</context>
         </context-group>
       </trans-unit>
       <trans-unit id="663969018956266050" datatype="html">
         <source>Deleting <x id="PH" equiv-text="p.name || p.tag"/> plugin...</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1078</context>
+          <context context-type="linenumber">1082</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7341203762945439729" datatype="html">
         <source>Installing <x id="PH" equiv-text="def.name || def.tag"/> template...</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1087</context>
+          <context context-type="linenumber">1091</context>
         </context-group>
       </trans-unit>
       <trans-unit id="1914752778486056818" datatype="html">
         <source>Template <x id="PH" equiv-text="def.name || def.tag"/> already exists...</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1092</context>
+          <context context-type="linenumber">1096</context>
         </context-group>
       </trans-unit>
       <trans-unit id="8397044276128761089" datatype="html">
         <source>Deleting <x id="PH" equiv-text="t.name || t.tag"/> template...</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1103</context>
+          <context context-type="linenumber">1107</context>
         </context-group>
       </trans-unit>
       <trans-unit id="898435854656311367" datatype="html">
         <source>Installing <x id="PH" equiv-text="mod"/> mod...</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1113</context>
+          <context context-type="linenumber">1117</context>
         </context-group>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1135</context>
+          <context context-type="linenumber">1139</context>
         </context-group>
       </trans-unit>
       <trans-unit id="4164502271007019945" datatype="html">
         <source>Deleting <x id="PH" equiv-text="mod"/> mod...</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1149</context>
+          <context context-type="linenumber">1153</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7393705938004595273" datatype="html">
         <source>Updating <x id="PH" equiv-text="def.name || def.tag"/> plugin...</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1161</context>
+          <context context-type="linenumber">1165</context>
         </context-group>
       </trans-unit>
       <trans-unit id="7325078987927217893" datatype="html">
         <source>Updating <x id="PH" equiv-text="def.name || def.tag"/> template...</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1170</context>
+          <context context-type="linenumber">1174</context>
         </context-group>
       </trans-unit>
       <trans-unit id="612983901370848355" datatype="html">
         <source>Logging <x id="PH" equiv-text="mod || ref.url"/> receipt...</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/service/admin.service.ts</context>
-          <context context-type="linenumber">1199</context>
+          <context context-type="linenumber">1203</context>
         </context-group>
       </trans-unit>
       <trans-unit id="9116115446897812158" datatype="html">
