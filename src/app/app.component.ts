@@ -133,6 +133,10 @@ export class AppComponent implements AfterViewInit {
     return this.macos ? event.metaKey : event.ctrlKey;
   }
 
+  storeDependencyUrl(dependency: string) {
+    return '/settings/ref/plugin/mod/store?search=' + encodeURIComponent(dependency);
+  }
+
   @HostListener('window:blur')
   removeHotkey() {
     if (this.store.hotkey) {

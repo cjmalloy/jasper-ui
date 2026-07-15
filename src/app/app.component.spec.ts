@@ -47,12 +47,12 @@ describe('AppComponent', () => {
     };
     const store = TestBed.inject(Store);
     store.eventBus.progressDen = 1;
-    store.eventBus.unmetDependency('Community Tools');
+    store.eventBus.unmetDependency('Community Tools & More');
     fixture.detectChanges();
 
     const link = fixture.nativeElement.querySelector('.store-dependency-link');
-    expect(link.textContent).toContain('Community Tools');
+    expect(link.textContent).toContain('Community Tools & More');
     expect(link.getAttribute('href')).toContain('/settings/ref/plugin/mod/store');
-    expect(new URL(link.href).searchParams.get('search')).toBe('Community Tools');
+    expect(new URL(link.href).searchParams.get('search')).toBe('Community Tools & More');
   });
 });

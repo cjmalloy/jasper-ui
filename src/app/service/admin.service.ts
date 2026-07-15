@@ -233,15 +233,19 @@ export class AdminService {
           [this.store.eventBus.ref?.title || '', mod],
         ];
         store.eventBus.clearProgress(Math.max(1, bundles.reduce((size, [, bundle]) => size + bundleSize(bundle), 0)));
-        dependencies.unavailable.forEach(dependency => store.eventBus.unmetDependency(dependency));
+        const unmetDependencies = [
+          ...dependencies.unavailable,
+          ...installDependencies ? [] : dependencies.available.map(([dependency]) => dependency),
+        ];
+        unmetDependencies.forEach(dependency => store.eventBus.unmetDependency(dependency));
         concat(...bundles.map(([name, bundle]) =>
-          this.install$(name, bundle, (msg, p = 0) => store.eventBus.progress(msg, p))
-        )).subscribe(() => {
-            for (const [, bundle] of bundles) {
+          this.install$(name, bundle, (msg, p = 0) => store.eventBus.progress(msg, p)).pipe(
+            tap(() => {
               this.pluginToStatus(bundle.plugin || []);
               this.templateToStatus(bundle.template || []);
-            }
-          });
+            }),
+          )
+        )).subscribe();
       }
     });
   }

@@ -40,7 +40,7 @@
               @for (dependency of store.eventBus.unmetDependencies; track dependency) {
                 @if (admin.getPlugin('plugin/mod/store')) {
                   <a class="store-dependency-link"
-                     [href]="'/settings/ref/plugin/mod/store?search=' + dependency">{{ dependency }}</a>
+                     [href]="storeDependencyUrl(dependency)">{{ dependency }}</a>
                 } @else {
                   <span>{{ dependency }}</span>
                 }

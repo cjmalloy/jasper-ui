@@ -79,4 +79,26 @@ describe('AdminService', () => {
     expect(install.mock.calls.map(([name]) => name)).toEqual(['Available', 'Community']);
     expect(store.eventBus.unmetDependencies).toEqual(['Missing']);
   });
+
+  it('should log available peer dependencies when installation is declined', () => {
+    const dependency: Mod = {
+      plugin: [{ tag: 'plugin/available', config: { mod: 'Available' } }],
+    };
+    const target: Mod = {
+      peerDependencies: ['Available'],
+      plugin: [{ tag: 'plugin/community', config: { mod: 'Community' } }],
+    };
+    service.mods.push(dependency);
+    vi.spyOn(service, 'install$').mockReturnValue(of(null));
+    vi.spyOn(window, 'confirm').mockReturnValue(false);
+
+    const store = TestBed.inject(Store);
+    store.eventBus.fire('install', {
+      url: 'comment:community',
+      title: 'Community',
+      plugins: { 'plugin/mod': target },
+    });
+
+    expect(store.eventBus.unmetDependencies).toEqual(['Available']);
+  });
 });
