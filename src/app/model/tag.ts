@@ -34,7 +34,6 @@ export interface Tag extends Cursor {
 }
 
 export interface Mod {
-  peerDependencies?: string[];
   ref?: Ref[];
   ext?: Ext[];
   user?: User[];
@@ -52,7 +51,6 @@ export function bundleSize(mod: Mod) {
 
 export const modSchema: Schema = {
   optionalProperties: {
-    peerDependencies: { elements: { type: 'string' } },
     ref: { elements: refSchema },
     ext: { elements: extSchema },
     user: { elements: userSchema },

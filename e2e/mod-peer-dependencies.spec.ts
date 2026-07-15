@@ -14,10 +14,10 @@ test.describe.serial('Mod peer dependencies', () => {
         tags: ['plugin/mod'],
         plugins: {
           'plugin/mod': {
-            peerDependencies: ['Community Tools & More'],
             plugin: [{
               tag: 'plugin/peer-dependency-test',
               name: 'Peer dependency test',
+              peerDependencies: ['Community Tools & More'],
               config: { mod: 'Peer dependency test', version: 1 },
             }],
           },

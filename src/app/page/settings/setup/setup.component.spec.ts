@@ -31,7 +31,13 @@ describe('SettingsSetupPage', () => {
                 getTemplate() { },
                 getMod() { },
                 getUnmetPeerDependencies(bundle?: Mod) {
-                  return { available: [], unavailable: bundle?.peerDependencies || [] };
+                  return {
+                    available: [],
+                    unavailable: [
+                      ...bundle?.plugin?.flatMap(plugin => plugin.peerDependencies || []) || [],
+                      ...bundle?.template?.flatMap(template => template.peerDependencies || []) || [],
+                    ],
+                  };
                 },
                 def: { plugins: {}, templates: {} },
                 status: {
@@ -85,7 +91,12 @@ describe('SettingsSetupPage', () => {
     admin.status.receipts['Community'] = {
       url: 'mod-receipt:Community',
       plugins: {
-        'plugin/mod': { peerDependencies: ['Missing'] },
+        'plugin/mod': {
+          plugin: [{
+            tag: config.tag,
+            peerDependencies: ['Missing'],
+          }],
+        },
       },
     };
     component.modGroups = { feature: [['plugin/community', config]] } as typeof component.modGroups;

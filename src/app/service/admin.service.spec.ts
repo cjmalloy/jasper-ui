@@ -49,7 +49,14 @@ describe('AdminService', () => {
     service.mods.push(available);
 
     expect(service.getUnmetPeerDependencies({
-      peerDependencies: ['Existing', 'Available', 'Missing', 'Missing'],
+      plugin: [{
+        tag: 'plugin/dependent',
+        peerDependencies: ['Existing', 'Available', 'Missing'],
+      }],
+      template: [{
+        tag: 'template/dependent',
+        peerDependencies: ['Missing'],
+      }],
     })).toEqual({
       available: [['Available', available]],
       unavailable: ['Missing'],
@@ -61,8 +68,11 @@ describe('AdminService', () => {
       plugin: [{ tag: 'plugin/available', config: { mod: 'Available' } }],
     };
     const target: Mod = {
-      peerDependencies: ['Available', 'Missing'],
-      plugin: [{ tag: 'plugin/community', config: { mod: 'Community' } }],
+      plugin: [{
+        tag: 'plugin/community',
+        peerDependencies: ['Available', 'Missing'],
+        config: { mod: 'Community' },
+      }],
     };
     service.mods.push(dependency);
     const install = vi.spyOn(service, 'install$').mockReturnValue(of(null));
@@ -85,8 +95,11 @@ describe('AdminService', () => {
       plugin: [{ tag: 'plugin/available', config: { mod: 'Available' } }],
     };
     const target: Mod = {
-      peerDependencies: ['Available'],
-      plugin: [{ tag: 'plugin/community', config: { mod: 'Community' } }],
+      plugin: [{
+        tag: 'plugin/community',
+        peerDependencies: ['Available'],
+        config: { mod: 'Community' },
+      }],
     };
     service.mods.push(dependency);
     vi.spyOn(service, 'install$').mockReturnValue(of(null));

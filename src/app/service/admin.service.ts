@@ -1001,7 +1001,10 @@ export class AdminService {
   }
 
   getUnmetPeerDependencies(bundle?: Mod) {
-    const dependencies = uniq(bundle?.peerDependencies || [])
+    const dependencies = uniq([
+      ...bundle?.plugin?.flatMap(plugin => plugin.peerDependencies || []) || [],
+      ...bundle?.template?.flatMap(template => template.peerDependencies || []) || [],
+    ])
       .filter(dependency => !this.getInstalledMod(dependency));
     const available = dependencies
       .map(dependency => [dependency, this.getMod(dependency)] as [string, Mod | undefined])
