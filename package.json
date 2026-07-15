@@ -71,8 +71,8 @@
     "zone.js": "~0.16.2"
   },
   "devDependencies": {
-    "@angular/build": "^22.0.6",
-    "@angular/cli": "^22.0.6",
+    "@angular/build": "^22.0.7",
+    "@angular/cli": "^22.0.7",
     "@angular/compiler-cli": "^22.0.0",
     "@ngx-formly/schematics": "7.1.0",
     "@playwright/test": "^1.61.1",
