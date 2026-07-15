@@ -27,11 +27,17 @@ test.describe.serial('Mod peer dependencies', () => {
     expect(response.ok()).toBe(true);
   });
 
-  test('links unavailable dependencies to the Store', async ({ page }) => {
+  test('shows unavailable dependencies on the setup page', async ({ page }) => {
     await page.goto(`/ref/e/${encodeURIComponent(url)}?debug=ADMIN`, { waitUntil: 'networkidle' });
     await page.locator('.full-page.ref .actions .fake-link', { hasText: 'install' }).click();
     await page.locator('.full-page.ref .actions .fake-link', { hasText: 'yes' }).click();
+    await page.locator('.settings a', { hasText: 'settings' }).click();
+    await page.locator('.tabs a', { hasText: 'setup' }).first().click();
 
+    await expect(page.locator('.peer-dependency-warning')).toHaveAttribute(
+      'title',
+      'Unmet peer dependencies: Community Tools & More',
+    );
     const link = page.locator('.store-dependency-link', { hasText: 'Community Tools & More' });
     await expect(link).toBeVisible();
     await link.click();

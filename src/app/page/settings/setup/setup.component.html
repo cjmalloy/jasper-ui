@@ -23,7 +23,7 @@
       <button type="button" (click)="install()" [disabled]="submitted && !adminForm.valid" i18n>Save</button>
     </span>
 
-    @if (serverError.length || installMessages.length) {
+    @if (serverError.length || installMessages.length || store.eventBus.unmetDependencies.length) {
       <span class="mobile-block"><!-- Log --></span>
       <div class="log mobile-block">
         @for (e of serverError; track e) {
@@ -31,6 +31,19 @@
         }
         @for (i of installMessages; track $index) {
           <div>{{ i }}</div>
+        }
+        @if (store.eventBus.unmetDependencies.length) {
+          <div class="unmet-dependencies warning">
+            <span i18n>Warning: unmet dependencies:</span>
+            @for (dependency of store.eventBus.unmetDependencies; track dependency) {
+              @if (admin.getPlugin('plugin/mod/store')) {
+                <a class="store-dependency-link"
+                   [href]="storeDependencyUrl(dependency)">{{ dependency }}</a>
+              } @else {
+                <span>{{ dependency }}</span>
+              }
+            }
+          </div>
         }
       </div>
     }
@@ -47,6 +60,10 @@
               <label for="mod-{{ modLabel(e) }}" [title]="c.config?.description || ''">{{ c.config?.mod || c.name || c.tag || 'root' }}@if (hasCustomChanges(c)) {<span class="modified-indicator">*</span>}</label>
               @if (c.config?.experimental) {
                 <span>🧪️</span>
+              }
+              @if (unmetPeerDependencies(c).length) {
+                <span class="peer-dependency-warning"
+                      [title]="unmetPeerDependenciesTitle(c)">⚠️</span>
               }
               @if (needsModUpdate(c) || canDiffMod(c)) {
                 <span class="update">
@@ -65,13 +82,26 @@
     }
 
   </form>
-  @if (serverError.length || installMessages.length) {
+  @if (serverError.length || installMessages.length || store.eventBus.unmetDependencies.length) {
     <span class="log mobile-hide">
       @for (e of serverError; track $index) {
         <div class="error">{{ e }}</div>
       }
       @for (i of installMessages; track $index) {
         <div>{{ i }}</div>
+      }
+      @if (store.eventBus.unmetDependencies.length) {
+        <div class="unmet-dependencies warning">
+          <span i18n>Warning: unmet dependencies:</span>
+          @for (dependency of store.eventBus.unmetDependencies; track dependency) {
+            @if (admin.getPlugin('plugin/mod/store')) {
+              <a class="store-dependency-link"
+                 [href]="storeDependencyUrl(dependency)">{{ dependency }}</a>
+            } @else {
+              <span>{{ dependency }}</span>
+            }
+          }
+        </div>
       }
     </span>
   }

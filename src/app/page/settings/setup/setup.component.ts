@@ -309,6 +309,25 @@ export class SettingsSetupPage implements OnDestroy {
     return (e.config?.mod?.replace(/\W/g, '') || tag).toLowerCase();
   }
 
+  unmetPeerDependencies(config: Config) {
+    if (!this.installed(config)) return [];
+    const mod = modId(config);
+    const bundle = this.admin.status.receipts[mod]?.plugins?.['plugin/mod'] || this.admin.getMod(mod);
+    const dependencies = this.admin.getUnmetPeerDependencies(bundle);
+    return [
+      ...dependencies.available.map(([dependency]) => dependency),
+      ...dependencies.unavailable,
+    ];
+  }
+
+  unmetPeerDependenciesTitle(config: Config) {
+    return $localize`Unmet peer dependencies: ${this.unmetPeerDependencies(config).join(', ')}`;
+  }
+
+  storeDependencyUrl(dependency: string) {
+    return '/settings/ref/plugin/mod/store?search=' + encodeURIComponent(dependency);
+  }
+
   applyMerge(bundle: Mod | null) {
     if (!this.mergeState || !bundle) return;
     this.serverError = [];
