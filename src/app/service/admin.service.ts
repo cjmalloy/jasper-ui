@@ -232,7 +232,7 @@ export class AdminService {
           ...installDependencies ? dependencies.available : [],
           [this.store.eventBus.ref?.title || '', mod],
         ];
-        store.eventBus.clearProgress(bundles.reduce((size, [, bundle]) => size + bundleSize(bundle), 0));
+        store.eventBus.clearProgress(Math.max(1, bundles.reduce((size, [, bundle]) => size + bundleSize(bundle), 0)));
         dependencies.unavailable.forEach(dependency => store.eventBus.unmetDependency(dependency));
         concat(...bundles.map(([name, bundle]) =>
           this.install$(name, bundle, (msg, p = 0) => store.eventBus.progress(msg, p))

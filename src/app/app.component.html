@@ -40,8 +40,7 @@
               @for (dependency of store.eventBus.unmetDependencies; track dependency) {
                 @if (admin.getPlugin('plugin/mod/store')) {
                   <a class="store-dependency-link"
-                     routerLink="/settings/ref/plugin/mod/store"
-                     [queryParams]="{ search: dependency }">{{ dependency }}</a>
+                     [href]="'/settings/ref/plugin/mod/store?search=' + dependency">{{ dependency }}</a>
                 } @else {
                   <span>{{ dependency }}</span>
                 }

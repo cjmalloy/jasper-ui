@@ -53,6 +53,6 @@ describe('AppComponent', () => {
     const link = fixture.nativeElement.querySelector('.store-dependency-link');
     expect(link.textContent).toContain('Community Tools');
     expect(link.getAttribute('href')).toContain('/settings/ref/plugin/mod/store');
-    expect(link.getAttribute('href')).toContain('search=Community+Tools');
+    expect(new URL(link.href).searchParams.get('search')).toBe('Community Tools');
   });
 });

@@ -1,5 +1,5 @@
 import { AfterViewInit, Component, HostBinding, HostListener, isDevMode, ViewContainerRef, ChangeDetectionStrategy } from '@angular/core';
-import { Router, RouterLink, RouterOutlet } from '@angular/router';
+import { Router, RouterOutlet } from '@angular/router';
 import { autorun, runInAction } from 'mobx';
 import { MobxAngularModule } from 'mobx-angular';
 import { LoginPopupComponent } from './component/login-popup/login-popup.component';
@@ -28,7 +28,6 @@ import { userClipboardPlugin } from './mods/clipboard';
     LoginPopupComponent,
     SubscriptionBarComponent,
     UserClipboardComponent,
-    RouterLink,
     RouterOutlet,
   ],
 })

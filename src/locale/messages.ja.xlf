@@ -6,6 +6,14 @@
         <source> Powered by Jasper <x id="START_LINK" ctype="x-a" equiv-text="&lt;a [href]=&quot;website&quot;&gt;"/><x id="INTERPOLATION" equiv-text="{{ config.version || '' }}"/><x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/></source>
         <target> Jasper 搭載 <x id="START_LINK" ctype="x-a" equiv-text="&lt;a [href]=&quot;website&quot;&gt;"/><x id="INTERPOLATION" equiv-text="{{ config.version || '' }}"/><x id="CLOSE_LINK" ctype="x-a" equiv-text="&lt;/a&gt;"/></target>
       </trans-unit>
+      <trans-unit id="1917800290196585468" datatype="html">
+        <source>Warning: unmet dependencies:</source>
+        <target>警告：未解決の依存関係：</target>
+      </trans-unit>
+      <trans-unit id="3901786072215813225" datatype="html">
+        <source>Install peer dependencies?</source>
+        <target>ピア依存関係をインストールしますか？</target>
+      </trans-unit>
       <trans-unit id="6631147598757213823" datatype="html">
         <source>download</source>
         <target>ダウンロード</target>
