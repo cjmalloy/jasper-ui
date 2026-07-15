@@ -34,6 +34,20 @@
           @for (msg of store.eventBus.progressMessages; track msg) {
             <div>{{ msg }}</div>
           }
+          @if (store.eventBus.unmetDependencies.length) {
+            <div class="unmet-dependencies">
+              <span i18n>Warning: unmet dependencies:</span>
+              @for (dependency of store.eventBus.unmetDependencies; track dependency) {
+                @if (admin.getPlugin('plugin/mod/store')) {
+                  <a class="store-dependency-link"
+                     routerLink="/settings/ref/plugin/mod/store"
+                     [queryParams]="{ search: dependency }">{{ dependency }}</a>
+                } @else {
+                  <span>{{ dependency }}</span>
+                }
+              }
+            </div>
+          }
           <button type="button" (click)="store.eventBus.clearProgress()">clear</button>
         </div>
       }

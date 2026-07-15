@@ -225,11 +225,22 @@ export class AdminService {
     autorun(() => {
       const mod = this.store.eventBus.ref?.plugins?.['plugin/mod'];
       if (this.store.eventBus.event === 'install') {
-        store.eventBus.clearProgress(bundleSize(mod));
-        this.install$(this.store.eventBus.ref?.title || '', mod, (msg, p = 0) => store.eventBus.progress(msg, p))
-          .subscribe(mod => {
-            this.pluginToStatus(mod.plugin || []);
-            this.templateToStatus(mod.template || []);
+        const dependencies = this.getUnmetPeerDependencies(mod);
+        const installDependencies = dependencies.available.length &&
+          confirm($localize`Install peer dependencies?`);
+        const bundles: [string, Mod][] = [
+          ...installDependencies ? dependencies.available : [],
+          [this.store.eventBus.ref?.title || '', mod],
+        ];
+        store.eventBus.clearProgress(bundles.reduce((size, [, bundle]) => size + bundleSize(bundle), 0));
+        dependencies.unavailable.forEach(dependency => store.eventBus.unmetDependency(dependency));
+        concat(...bundles.map(([name, bundle]) =>
+          this.install$(name, bundle, (msg, p = 0) => store.eventBus.progress(msg, p))
+        )).subscribe(() => {
+            for (const [, bundle] of bundles) {
+              this.pluginToStatus(bundle.plugin || []);
+              this.templateToStatus(bundle.template || []);
+            }
           });
       }
     });
@@ -982,6 +993,18 @@ export class AdminService {
     return {
       ...this.getMod(mod) || {}, // Refs, Exts, Users
       ...result
+    };
+  }
+
+  getUnmetPeerDependencies(bundle?: Mod) {
+    const dependencies = uniq(bundle?.peerDependencies || [])
+      .filter(dependency => !this.getInstalledMod(dependency));
+    const available = dependencies
+      .map(dependency => [dependency, this.getMod(dependency)] as [string, Mod | undefined])
+      .filter((entry): entry is [string, Mod] => !!entry[1]);
+    return {
+      available,
+      unavailable: dependencies.filter(dependency => !this.getMod(dependency)),
     };
   }
 
