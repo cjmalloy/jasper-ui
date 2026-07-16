@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, forwardRef } from '@angular/core';
 import { ICellRendererAngularComp } from 'ag-grid-angular';
 import { ICellRendererParams } from 'ag-grid-community';
 import { Ref } from '../../../model/ref';
+import { isInlineSvg } from '../../../pipe/thumbnail.pipe';
 import { AdminService } from '../../../service/admin.service';
 import { ProxyService } from '../../../service/api/proxy.service';
 import { MdComponent } from '../../md/md.component';
@@ -59,6 +60,8 @@ export class GridCellComponent implements ICellRendererAngularComp {
   get imageUrl() {
     const url = this.textValue;
     if (!url) return '';
+    if (isInlineSvg(url)) return url;
+    if (!this.admin.getPlugin('plugin/image')) return '';
     if (url.startsWith('cache:') || this.admin.getPlugin('plugin/image')?.config?.proxy) {
       return this.proxy.getFetch(url, this.data?.origin || '', this.data?.title || $localize`Untitled Image`);
     }
