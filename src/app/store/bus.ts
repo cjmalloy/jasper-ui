@@ -14,7 +14,6 @@ export class EventBus {
   repost?: Ref = {} as any;
   errors: string[] = [];
   progressMessages: string[] = [];
-  unmetDependencies: string[] = [];
   progressNum = 0;
   progressDen = 0;
 
@@ -108,7 +107,6 @@ export class EventBus {
   clearProgress(steps = 0) {
     if (!steps || !this.progressDen || this.progressNum >= this.progressDen) {
       this.progressMessages = [];
-      this.unmetDependencies = [];
       this.progressNum = 0;
       this.progressDen = steps;
     } else {
@@ -118,10 +116,6 @@ export class EventBus {
 
   msg(msg: string) {
     this.progressMessages.push(msg)
-  }
-
-  unmetDependency(dependency: string) {
-    this.unmetDependencies.push(dependency);
   }
 
   steps(steps = 1) {

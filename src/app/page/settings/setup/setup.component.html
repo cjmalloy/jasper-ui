@@ -23,7 +23,7 @@
       <button type="button" (click)="install()" [disabled]="submitted && !adminForm.valid" i18n>Save</button>
     </span>
 
-    @if (serverError.length || installMessages.length || store.eventBus.unmetDependencies.length) {
+    @if (serverError.length || installMessages.length || unmetDependencies.length) {
       <span class="mobile-block"><!-- Log --></span>
       <div class="log mobile-block">
         @for (e of serverError; track e) {
@@ -32,10 +32,10 @@
         @for (i of installMessages; track $index) {
           <div>{{ i }}</div>
         }
-        @if (store.eventBus.unmetDependencies.length) {
+        @if (unmetDependencies.length) {
           <div class="unmet-dependencies warning">
             <span i18n>Warning: unmet dependencies:</span>
-            @for (dependency of store.eventBus.unmetDependencies; track dependency) {
+            @for (dependency of unmetDependencies; track dependency) {
               @if (admin.getPlugin('plugin/mod/store')) {
                 <a class="store-dependency-link"
                    [href]="storeDependencyUrl(dependency)">{{ dependency }}</a>
@@ -82,7 +82,7 @@
     }
 
   </form>
-  @if (serverError.length || installMessages.length || store.eventBus.unmetDependencies.length) {
+  @if (serverError.length || installMessages.length || unmetDependencies.length) {
     <span class="log mobile-hide">
       @for (e of serverError; track $index) {
         <div class="error">{{ e }}</div>
@@ -90,10 +90,10 @@
       @for (i of installMessages; track $index) {
         <div>{{ i }}</div>
       }
-      @if (store.eventBus.unmetDependencies.length) {
+      @if (unmetDependencies.length) {
         <div class="unmet-dependencies warning">
           <span i18n>Warning: unmet dependencies:</span>
-          @for (dependency of store.eventBus.unmetDependencies; track dependency) {
+          @for (dependency of unmetDependencies; track dependency) {
             @if (admin.getPlugin('plugin/mod/store')) {
               <a class="store-dependency-link"
                  [href]="storeDependencyUrl(dependency)">{{ dependency }}</a>

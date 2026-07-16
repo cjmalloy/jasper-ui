@@ -63,10 +63,7 @@ describe('AdminService', () => {
     });
   });
 
-  it('should offer to install available peers and log unavailable peers', () => {
-    const dependency: Mod = {
-      plugin: [{ tag: 'plugin/available', config: { mod: 'Available' } }],
-    };
+  it('should not resolve peer dependencies for event bus installs', () => {
     const target: Mod = {
       plugin: [{
         tag: 'plugin/community',
@@ -76,9 +73,8 @@ describe('AdminService', () => {
         },
       }],
     };
-    service.mods.push(dependency);
     const install = vi.spyOn(service, 'install$').mockReturnValue(of(null));
-    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    const dependencies = vi.spyOn(service, 'getUnmetPeerDependencies');
 
     const store = TestBed.inject(Store);
     store.eventBus.fire('install', {
@@ -87,35 +83,7 @@ describe('AdminService', () => {
       plugins: { 'plugin/mod': target },
     });
 
-    expect(window.confirm).toHaveBeenCalledWith('Install peer dependencies?');
-    expect(install.mock.calls.map(([name]) => name)).toEqual(['Available', 'Community']);
-    expect(store.eventBus.unmetDependencies).toEqual(['Missing']);
-  });
-
-  it('should log available peer dependencies when installation is declined', () => {
-    const dependency: Mod = {
-      plugin: [{ tag: 'plugin/available', config: { mod: 'Available' } }],
-    };
-    const target: Mod = {
-      plugin: [{
-        tag: 'plugin/community',
-        config: {
-          mod: 'Community',
-          peerDependencies: ['Available'],
-        },
-      }],
-    };
-    service.mods.push(dependency);
-    vi.spyOn(service, 'install$').mockReturnValue(of(null));
-    vi.spyOn(window, 'confirm').mockReturnValue(false);
-
-    const store = TestBed.inject(Store);
-    store.eventBus.fire('install', {
-      url: 'comment:community',
-      title: 'Community',
-      plugins: { 'plugin/mod': target },
-    });
-
-    expect(store.eventBus.unmetDependencies).toEqual(['Available']);
+    expect(dependencies).not.toHaveBeenCalled();
+    expect(install).toHaveBeenCalledWith('Community', target, expect.any(Function));
   });
 });

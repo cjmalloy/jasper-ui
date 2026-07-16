@@ -225,27 +225,13 @@ export class AdminService {
     autorun(() => {
       const mod = this.store.eventBus.ref?.plugins?.['plugin/mod'];
       if (this.store.eventBus.event === 'install') {
-        const dependencies = this.getUnmetPeerDependencies(mod);
-        const installDependencies = dependencies.available.length &&
-          confirm($localize`Install peer dependencies?`);
-        const bundles: [string, Mod][] = [
-          ...installDependencies ? dependencies.available : [],
-          [this.store.eventBus.ref?.title || '', mod],
-        ];
-        store.eventBus.clearProgress(Math.max(1, bundles.reduce((size, [, bundle]) => size + bundleSize(bundle), 0)));
-        const unmetDependencies = [
-          ...dependencies.unavailable,
-          ...installDependencies ? [] : dependencies.available.map(([dependency]) => dependency),
-        ];
-        unmetDependencies.forEach(dependency => store.eventBus.unmetDependency(dependency));
-        concat(...bundles.map(([name, bundle]) =>
-          this.install$(name, bundle, (msg, p = 0) => store.eventBus.progress(msg, p)).pipe(
-            tap(() => {
-              this.pluginToStatus(bundle.plugin || []);
-              this.templateToStatus(bundle.template || []);
-            }),
-          )
-        )).subscribe();
+        store.eventBus.clearProgress(Math.max(1, bundleSize(mod)));
+        this.install$(this.store.eventBus.ref?.title || '', mod, (msg, p = 0) => store.eventBus.progress(msg, p)).pipe(
+          tap(() => {
+            this.pluginToStatus(mod.plugin || []);
+            this.templateToStatus(mod.template || []);
+          }),
+        ).subscribe();
       }
     });
   }

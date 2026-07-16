@@ -41,13 +41,6 @@ test.describe.serial('Mod peer dependencies', () => {
       'title',
       'Unmet peer dependencies: Community Tools & More',
     );
-    const link = page.locator('.store-dependency-link', { hasText: 'Community Tools & More' });
-    await expect(link).toBeVisible();
-    await link.click();
-    await expect(page).toHaveURL(url => (
-      url.pathname === '/settings/ref/plugin/mod/store' &&
-      url.searchParams.get('search') === 'Community Tools & More'
-    ));
   });
 
   test('cleanup', async ({ page }) => {

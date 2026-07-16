@@ -50,6 +50,7 @@ export class SettingsSetupPage implements OnDestroy {
   adminForm: UntypedFormGroup;
   serverError: string[] = [];
   installMessages: string[] = [];
+  unmetDependencies: string[] = [];
   mergeState?: ModUpdatePreview;
   mergeSaving?: Subscription;
   mergePopupSub = new Subscription();
@@ -82,6 +83,7 @@ export class SettingsSetupPage implements OnDestroy {
   install() {
     this.serverError = [];
     this.installMessages = [];
+    this.unmetDependencies = [];
     this.submitted = true;
     this.adminForm.markAllAsTouched();
     if (!this.adminForm.valid) {
@@ -113,6 +115,17 @@ export class SettingsSetupPage implements OnDestroy {
       }
     }
     const _ = (msg?: string) => this.installMessages.push(msg!);
+    const dependencies = uniq(installs.flatMap(mod => {
+      const unmet = this.admin.getUnmetPeerDependencies(this.admin.getMod(mod));
+      this.unmetDependencies.push(...unmet.unavailable);
+      return unmet.available.map(([dependency]) => dependency);
+    })).filter(dependency => !installs.includes(dependency));
+    if (dependencies.length && confirm($localize`Install peer dependencies?`)) {
+      installs.unshift(...dependencies);
+    } else {
+      this.unmetDependencies.push(...dependencies);
+    }
+    this.unmetDependencies = uniq(this.unmetDependencies);
     if (!deletes.length && !installs.length) {
       this.submitted = true;
       _($localize`Success.`);

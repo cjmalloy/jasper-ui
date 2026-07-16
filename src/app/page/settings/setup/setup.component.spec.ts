@@ -30,6 +30,7 @@ describe('SettingsSetupPage', () => {
                 getPlugin() { },
                 getTemplate() { },
                 getMod() { },
+                installMod$() { return of(null); },
                 getUnmetPeerDependencies(bundle?: Mod) {
                   return {
                     available: [],
@@ -72,13 +73,45 @@ describe('SettingsSetupPage', () => {
   it('should show unmet dependency warnings in setup logs', () => {
     const admin = TestBed.inject(AdminService);
     vi.spyOn(admin, 'getPlugin').mockReturnValue({ tag: 'plugin/mod/store' });
-    const store = TestBed.inject(Store);
-    store.eventBus.unmetDependency('Community Tools & More');
+    component.unmetDependencies = ['Community Tools & More'];
     fixture.detectChanges();
 
     const link = fixture.nativeElement.querySelector('.store-dependency-link');
     expect(link.textContent).toContain('Community Tools & More');
     expect(new URL(link.href).searchParams.get('search')).toBe('Community Tools & More');
+  });
+
+  it('should install peer dependencies from setup', () => {
+    const target: Plugin = {
+      tag: 'plugin/community',
+      config: { mod: 'Community' },
+    };
+    const targetBundle: Mod = {
+      plugin: [target],
+    };
+    const available: Mod = {
+      plugin: [{ tag: 'plugin/available', config: { mod: 'Available' } }],
+    };
+    const admin = TestBed.inject(AdminService);
+    admin.def.plugins[target.tag] = target;
+    vi.spyOn(admin, 'getMod').mockImplementation(mod => mod === 'Community' ? targetBundle : available);
+    vi.spyOn(admin, 'getUnmetPeerDependencies').mockReturnValue({
+      available: [['Available', available]],
+      unavailable: ['Missing'],
+    });
+    const install = vi.spyOn(admin, 'installMod$').mockReturnValue(of(null));
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    component.adminForm = new UntypedFormGroup({
+      mods: new UntypedFormGroup({
+        [target.tag]: new UntypedFormControl(true),
+      }),
+    });
+
+    component.install();
+
+    expect(window.confirm).toHaveBeenCalledWith('Install peer dependencies?');
+    expect(install.mock.calls.map(([mod]) => mod)).toEqual(['Available', 'Community']);
+    expect(component.unmetDependencies).toEqual(['Missing']);
   });
 
   it('should mark installed mods with unmet peer dependencies', () => {
