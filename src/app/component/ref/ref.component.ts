@@ -38,7 +38,7 @@ import { deleteNotice } from '../../mods/delete';
 import { addressedTo, getMailbox, mailboxes } from '../../mods/mailbox';
 import { generateStoryboardKeyframes } from '../../mods/thumbnail';
 import { CssUrlPipe } from '../../pipe/css-url.pipe';
-import { ThumbnailPipe } from '../../pipe/thumbnail.pipe';
+import { isInlineSvg, ThumbnailPipe } from '../../pipe/thumbnail.pipe';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
@@ -455,6 +455,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   }
 
   get storyboardData() {
+    if (!this.admin.getPlugin('plugin/image')) return null;
     if (!this.admin.getPlugin('plugin/thumbnail/storyboard')) return null;
     if (this.editing) {
       return this.editForm.value?.plugins?.['plugin/thumbnail/storyboard'] || null;
@@ -795,7 +796,9 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   }
 
   refThumbnailUrl() {
-    return this.refThumbnailString('url') || this.refThumbnailPluginUrl('plugin/image') || this.refThumbnailPluginUrl('plugin/video');
+    const url = this.refThumbnailString('url');
+    if (!this.admin.getPlugin('plugin/image')) return isInlineSvg(url) ? url : '';
+    return url || this.refThumbnailPluginUrl('plugin/image') || this.refThumbnailPluginUrl('plugin/video');
   }
 
   refThumbnailPluginUrl(plugin: 'plugin/image' | 'plugin/video') {
