@@ -38,6 +38,38 @@ describe('MapComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  describe('thumbnail markers', () => {
+    const externalUrl = 'https://example.com/thumbnail.png';
+    const inlineSvg = 'data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22/%3E';
+
+    function marker(url: string) {
+      return (component as any).createMarkerElement({
+        url: 'https://example.com',
+        origin: '',
+        tags: ['plugin/thumbnail'],
+        plugins: { 'plugin/thumbnail': { url } },
+      } as Ref) as HTMLElement;
+    }
+
+    it('does not render marker images without the image plugin', () => {
+      vi.spyOn((component as any).admin, 'getPlugin').mockImplementation((plugin: string) =>
+        plugin === 'plugin/thumbnail' ? { config: { proxy: true } } : undefined);
+      const proxy = vi.spyOn((component as any).proxy, 'getFetch');
+
+      expect(marker(externalUrl).style.backgroundImage).toBe('');
+      expect(proxy).not.toHaveBeenCalled();
+    });
+
+    it('renders inline SVG marker images without the image plugin', () => {
+      vi.spyOn((component as any).admin, 'getPlugin').mockImplementation((plugin: string) =>
+        plugin === 'plugin/thumbnail' ? { config: { proxy: true } } : undefined);
+      const proxy = vi.spyOn((component as any).proxy, 'getFetch');
+
+      expect(marker(inlineSvg).style.backgroundImage).toContain('data:image/svg+xml');
+      expect(proxy).not.toHaveBeenCalled();
+    });
+  });
+
   describe('page', () => {
     it('should fetch source refs for bare repost map data', () => {
       const repostRef: Ref = {
