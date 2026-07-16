@@ -102,6 +102,7 @@ import { UserService } from './api/user.service';
 import { AuthzService } from './authz.service';
 import { ConfigService } from './config.service';
 import { equalBundle } from '../util/diff';
+import { neoMod } from '../mods/ai/neo-banana';
 
 @Injectable({
   providedIn: 'root',
@@ -175,6 +176,7 @@ export class AdminService {
     aiMod,
     naviMod,
     dalleMod,
+    neoMod,
     summaryMod,
     translateMod,
     pdfMod,
