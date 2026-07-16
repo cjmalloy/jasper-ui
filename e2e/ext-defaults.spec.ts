@@ -4,6 +4,13 @@ import { mod } from './setup';
 test.describe.serial('Ext defaults', () => {
   test('enable Ext default mods', async ({ page }) => {
     await mod(page, '#mod-root', '#mod-config\\/home');
+    await page.goto('/ext/config/home?debug=ADMIN', { waitUntil: 'networkidle' });
+    const create = page.waitForResponse(response => (
+      response.url().includes('/api/v1/ext') && response.request().method() === 'POST' && response.ok()
+    ));
+    await page.getByRole('button', { name: 'Extend' }).click();
+    await create;
+    await expect(page.locator('.default-sort-create')).toBeVisible();
   });
 
   test('configures and loads multiple default sorts and date filters', async ({ page }) => {
