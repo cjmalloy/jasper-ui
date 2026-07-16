@@ -455,11 +455,14 @@ export const aiQueryPlugin: Plugin = {
         gemini: {
           init(config) {
             config.model ||= 'gemini-3.1-pro-preview-customtools';
-            config.pdf = ['gemini-3.1-pro-preview', 'gemini-3.1-pro-preview-customtools', 'gemini-3-pro-preview', 'gemini-2.5-pro'].includes(config.model);
+            config.imageGeneration = [
+              'gemini-3.1-flash-image', 'gemini-2.5-flash-image',
+            ].includes(config.model);
+            config.pdf = ['gemini-3.1-pro-preview', 'gemini-3.1-pro-preview-customtools', 'gemini-3.1-flash-image', 'gemini-3-pro-preview', 'gemini-2.5-pro'].includes(config.model);
             config.image = true;
             config.audio = true;
             config.video = true;
-            config.embed = config.url && ['gemini-3.1-pro-preview', 'gemini-3.1-pro-preview-customtools', 'gemini-3-pro-preview', 'gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.5-flash-lite', 'gemini-live-2.5-flash-preview'].includes(config.model);
+            config.embed = config.url && ['gemini-3.1-pro-preview', 'gemini-3.1-pro-preview-customtools', 'gemini-3.1-flash-image', 'gemini-3-pro-preview', 'gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.5-flash-lite', 'gemini-live-2.5-flash-preview'].includes(config.model);
           },
           loadMessage(source, plugins = {}) {
             const message = {};
@@ -510,44 +513,53 @@ export const aiQueryPlugin: Plugin = {
             return message;
           },
           async generate(messages, config) {
-            const { GoogleGenerativeAI } = require('@google/generative-ai');
-            const genAI = new GoogleGenerativeAI(apiKey);
-            const system = messages.filter(m => m.role === 'system').map(m => m.parts[0].text).join("\\n\\n");
-            const model = genAI.getGenerativeModel({ model: config.model });
-            const res = await model.generateContent({
-              contents: messages.filter(m => m.role !== 'system').map(m => {
-                if (m.role === 'assistant') m.role = 'model';
-                return m;
-              }),
-              systemInstruction: system,
-              tools: [
-                ...config.search ? [{ googleSearch: {} }] : [],
-                ...config.embed ? [{ urlContext: {} }] : [],
-              ],
+            const { GoogleGenAI, Modality } = require('@google/genai');
+            const ai = new GoogleGenAI({ apiKey });
+            const system = messages
+              .filter(m => m.role === 'system')
+              .map(m => m.parts.filter(p => p.text).map(p => p.text).join('\\n\\n'))
+              .join('\\n\\n');
+            const contents = messages
+              .filter(m => m.role !== 'system')
+              .map(m => ({
+                ...m,
+                role: m.role === 'assistant' ? 'model' : m.role,
+              }));
+            const res = await ai.models.generateContent({
+              model: config.model,
+              contents,
+              config: {
+                systemInstruction: system,
+                responseModalities: config.imageGeneration
+                  ? [ Modality.TEXT, Modality.IMAGE ]
+                  : [ Modality.TEXT ],
+                tools: [
+                  ...config.search ? [{ googleSearch: {} }] : [],
+                  ...config.embed ? [{ urlContext: {} }] : [],
+                ],
+              },
             });
-            let text = res.response.text().trim();
-            if (config.json || text.startsWith('\`\`\`json')) {
-              config.json = true;
-              while (text && !text.startsWith('{')) text = text.substring(1).trim();
-              while (text && !text.endsWith('}')) text = text.substring(0, text.length - 1).trim();
-              if (!text) {
-                config.json = false;
-                text = res.response.text().trim();
-              }
-            }
-            const cached = res.response.usageMetadata.cachedContentTokenCount ?? 0;
+            const parts = res.candidates?.[0]?.content?.parts || [];
+            const completion = parts
+              .filter(p => p.text)
+              .map(p => p.text)
+              .join('')
+              .trim();
+            const files = parts
+              .filter(p => p.inlineData?.data)
+              .map(p => ({
+                type: p.inlineData.mimeType || 'image/png',
+                content: p.inlineData.data,
+              }));
             return {
               res,
-              completion: text,
-              files: res.response.candidates[0].content.parts.filter(p => p.inlineData).map(p => ({
-                type: p.inlineData.mimeType,
-                content: p.inlineData.data
-              })),
+              completion,
+              files,
               usage: {
-                prompt_tokens: res.response.usageMetadata.promptTokenCount - cached,
-                completion_tokens: res.response.usageMetadata.candidatesTokenCount,
-                total_tokens: res.response.usageMetadata.totalTokenCount,
-                cache_read_tokens: cached,
+                prompt_tokens: res.usageMetadata?.promptTokenCount || 0,
+                completion_tokens: res.usageMetadata?.candidatesTokenCount || 0,
+                total_tokens: res.usageMetadata?.totalTokenCount || 0,
+                cache_read_tokens: res.usageMetadata?.cachedContentTokenCount || 0,
               },
             };
           }

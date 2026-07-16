@@ -30,6 +30,7 @@ export const imagePlugin: Plugin = {
     reference ai:partN unless the corresponding asset was actually returned.
     Claimed assets are uploaded to the cache and all matching references are rewritten.
     Non-ai:part URLs refer to existing resources and are not replaced.
+    Only set the width/height in the plugin data to disable autosizing.
     `,
     submit: $localize`🖼️ image`,
     icons: [{ label: $localize`🖼️`, order: 2 }],
