@@ -6,7 +6,6 @@ import { Config, TagSort } from './tag';
 import { Roles } from './user';
 
 export interface Template extends Config {
-  peerDependencies?: string[];
   config?: Config['config'] & {
     /**
      * Do not render forms from inherited Templates. If unset forms
@@ -52,7 +51,6 @@ export const templateSchema: Schema = {
   optionalProperties: {
     tag: { type: 'string' },
     name: { type: 'string' },
-    peerDependencies: { elements: { type: 'string' } },
     config: {},
     defaults: {},
     schema: {},

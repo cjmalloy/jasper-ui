@@ -7,7 +7,6 @@ import { Ref, RefSort, RefUpdates } from './ref';
 import { Config, EmitAction } from './tag';
 
 export interface Plugin extends Config {
-  peerDependencies?: string[];
   config?: Config['config'] & {
     /**
      * Optional flag adding this plugin to the Ref form Add Plugin dropdown.
@@ -138,7 +137,6 @@ export const pluginSchema: Schema = {
   optionalProperties: {
     tag: { type: 'string' },
     name: { type: 'string' },
-    peerDependencies: { elements: { type: 'string' } },
     config: {},
     defaults: {},
     schema: {},

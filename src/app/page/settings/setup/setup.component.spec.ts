@@ -34,8 +34,8 @@ describe('SettingsSetupPage', () => {
                   return {
                     available: [],
                     unavailable: [
-                      ...bundle?.plugin?.flatMap(plugin => plugin.peerDependencies || []) || [],
-                      ...bundle?.template?.flatMap(template => template.peerDependencies || []) || [],
+                      ...bundle?.plugin?.flatMap(plugin => plugin.config?.peerDependencies || []) || [],
+                      ...bundle?.template?.flatMap(template => template.config?.peerDependencies || []) || [],
                     ],
                   };
                 },
@@ -94,7 +94,7 @@ describe('SettingsSetupPage', () => {
         'plugin/mod': {
           plugin: [{
             tag: config.tag,
-            peerDependencies: ['Missing'],
+            config: { peerDependencies: ['Missing'] },
           }],
         },
       },

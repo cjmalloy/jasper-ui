@@ -17,8 +17,11 @@ test.describe.serial('Mod peer dependencies', () => {
             plugin: [{
               tag: 'plugin/peer-dependency-test',
               name: 'Peer dependency test',
-              peerDependencies: ['Community Tools & More'],
-              config: { mod: 'Peer dependency test', version: 1 },
+              config: {
+                mod: 'Peer dependency test',
+                version: 1,
+                peerDependencies: ['Community Tools & More'],
+              },
             }],
           },
         },

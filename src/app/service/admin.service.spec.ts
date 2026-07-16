@@ -51,11 +51,11 @@ describe('AdminService', () => {
     expect(service.getUnmetPeerDependencies({
       plugin: [{
         tag: 'plugin/dependent',
-        peerDependencies: ['Existing', 'Available', 'Missing'],
+        config: { peerDependencies: ['Existing', 'Available', 'Missing'] },
       }],
       template: [{
         tag: 'template/dependent',
-        peerDependencies: ['Missing'],
+        config: { peerDependencies: ['Missing'] },
       }],
     })).toEqual({
       available: [['Available', available]],
@@ -70,8 +70,10 @@ describe('AdminService', () => {
     const target: Mod = {
       plugin: [{
         tag: 'plugin/community',
-        peerDependencies: ['Available', 'Missing'],
-        config: { mod: 'Community' },
+        config: {
+          mod: 'Community',
+          peerDependencies: ['Available', 'Missing'],
+        },
       }],
     };
     service.mods.push(dependency);
@@ -97,8 +99,10 @@ describe('AdminService', () => {
     const target: Mod = {
       plugin: [{
         tag: 'plugin/community',
-        peerDependencies: ['Available'],
-        config: { mod: 'Community' },
+        config: {
+          mod: 'Community',
+          peerDependencies: ['Available'],
+        },
       }],
     };
     service.mods.push(dependency);
