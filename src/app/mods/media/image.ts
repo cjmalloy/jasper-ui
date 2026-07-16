@@ -8,7 +8,7 @@ export const imagePlugin: Plugin = {
   name: $localize`🖼️ Image`,
   config: {
     mod: $localize`🖼️ Images`,
-    version: 2,
+    version: 3,
     type: 'plugin',
     default: true,
     proxy: true,
@@ -20,11 +20,16 @@ export const imagePlugin: Plugin = {
     with plugin/thumbnail. It contains optional fields { url, width, height } which
     are typically all missing. When the url field is missing it is assumed to be the
     URL of the Ref instead.
-    You may refer to an image you returned with the URL ai:part, or optionally
-    multiple returned assets as ai:part1, ai:part2, etc. These will be uploaded
-    to the cache and the URL will be rewritten with its cache URL. Even if you use
-    the url field of an image plugin, anything not prefixed with ai:part will be
-    assumed to refer to an existing URL in the system and not replaced.
+    When an image-generation tool is available, use it for requests to create or modify
+    images. For every generated image you want retained, return a separate Ref tagged
+    plugin/image whose URL is ai:part1, ai:part2, and so on, corresponding to the
+    returned assets in order. Embed or link that URL from the first response Ref.
+    The Ref may include a title, tags, and plugin/image data; when its own URL is
+    ai:partN, normally omit plugin/image.url. Only an explicit Ref URL or media-plugin
+    URL claims an asset; unclaimed generated assets are discarded. Never invent or
+    reference ai:partN unless the corresponding asset was actually returned.
+    Claimed assets are uploaded to the cache and all matching references are rewritten.
+    Non-ai:part URLs refer to existing resources and are not replaced.
     `,
     submit: $localize`🖼️ image`,
     icons: [{ label: $localize`🖼️`, order: 2 }],

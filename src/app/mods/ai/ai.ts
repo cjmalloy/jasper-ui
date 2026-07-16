@@ -143,8 +143,18 @@ export const aiQueryPlugin: Plugin = {
             config.maxTokens ||= 4096;
             config.thinking = false;
             config.pdf = false;
-            config.image = ['gpt-5.6-sol', 'gpt-5.6-terra', 'gpt-5.6-luna', 'gpt-5.5', 'gpt-5.4-pro', 'gpt-5.4', 'gpt-5.2-pro', 'gpt-5.2', 'gpt-5.1', 'gpt-5', 'gpt-5-mini', 'gpt-5-nano', 'gpt-5.3-codex', 'gpt-5.2-codex', 'gpt-5.1-codex', 'gpt-5-codex'].includes(config.model);
+            config.image = [
+              'gpt-5.6-sol', 'gpt-5.6-terra', 'gpt-5.6-luna',
+              'gpt-5.5', 'gpt-5.4-pro', 'gpt-5.4',
+              'gpt-5.2-pro', 'gpt-5.2', 'gpt-5.1', 'gpt-5',
+              'gpt-5-mini', 'gpt-5-nano', 'gpt-5.3-codex', 'gpt-5.2-codex', 'gpt-5.1-codex', 'gpt-5-codex'
+            ].includes(config.model);
             config.audio = ['gpt-audio', 'gpt-4o-audio-preview', 'gpt-4o-mini-audio-preview'].includes(config.model);
+            config.imageGeneration = !config.audio && [
+              'gpt-5.6-sol', 'gpt-5.6-terra', 'gpt-5.6-luna',
+              'gpt-5.5', 'gpt-5.4-pro', 'gpt-5.4',
+              'gpt-5.2-pro', 'gpt-5.2', 'gpt-5.1', 'gpt-5'
+            ].includes(config.model);
             config.video = false;
           },
           loadMessage(source, plugins = {}) {
@@ -179,18 +189,26 @@ export const aiQueryPlugin: Plugin = {
                   : part
               ),
             }));
+            const tools = [
+              ...config.search ? [{ type: 'web_search' }] : [],
+              ...config.imageGeneration ? [{ type: 'image_generation' }] : [],
+            ];
             const res = await openai.responses.create({
               model: config.model,
               input,
               text: {
                 format: { type: config.search || config.audio || !config.json ? 'text' : 'json_object' },
               },
-              tools: config.search ? [{ type: 'web_search' }] : undefined,
+              tools: tools.length ? tools : undefined,
               max_output_tokens: config.maxTokens,
             });
+            const files = (res.output || [])
+              .filter(o => o.type === 'image_generation_call' && o.result)
+              .map(o => ({ type: 'image/png', content: o.result }));
             const cached = res.usage?.input_tokens_details?.cached_tokens ?? 0;
             return {
               res,
+              files,
               completion: res.output_text,
               usage: {
                 prompt_tokens: (res.usage?.input_tokens ?? 0) - cached,
@@ -895,7 +913,7 @@ export const aiQueryPlugin: Plugin = {
           if (i === 0) {
             generatedRefs.push(cache);
           } else {
-            Object.assign(r, { ...cache, ...r, url: cache.url });
+            Object.assign(r, {...cache, ...r, url: cache.url, plugins: {...cache.plugins, ...r.plugins}})
           }
           newUrl = cache.url;
           const plugin = file.type.startsWith('audio/') ? 'plugin/audio'
