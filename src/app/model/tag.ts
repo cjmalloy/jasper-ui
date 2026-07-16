@@ -73,6 +73,10 @@ export interface Config extends Tag {
      */
     mod?: string;
     /**
+     * Optional mod names that should be installed alongside this config.
+     */
+    peerDependencies?: string[];
+    /**
      * Optional category for setup screen.
      */
     type?: ModType,

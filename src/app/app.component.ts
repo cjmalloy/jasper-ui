@@ -47,7 +47,7 @@ export class AppComponent implements AfterViewInit {
   constructor(
     public config: ConfigService,
     public store: Store,
-    private admin: AdminService,
+    public admin: AdminService,
     private proxy: ProxyService,
     private origins: OriginService,
     private scrape: ScrapeService,

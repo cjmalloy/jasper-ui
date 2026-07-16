@@ -225,12 +225,13 @@ export class AdminService {
     autorun(() => {
       const mod = this.store.eventBus.ref?.plugins?.['plugin/mod'];
       if (this.store.eventBus.event === 'install') {
-        store.eventBus.clearProgress(bundleSize(mod));
-        this.install$(this.store.eventBus.ref?.title || '', mod, (msg, p = 0) => store.eventBus.progress(msg, p))
-          .subscribe(mod => {
+        store.eventBus.clearProgress(Math.max(1, bundleSize(mod)));
+        this.install$(this.store.eventBus.ref?.title || '', mod, (msg, p = 0) => store.eventBus.progress(msg, p)).pipe(
+          tap(() => {
             this.pluginToStatus(mod.plugin || []);
             this.templateToStatus(mod.template || []);
-          });
+          }),
+        ).subscribe();
       }
     });
   }
@@ -982,6 +983,21 @@ export class AdminService {
     return {
       ...this.getMod(mod) || {}, // Refs, Exts, Users
       ...result
+    };
+  }
+
+  getUnmetPeerDependencies(bundle?: Mod) {
+    const dependencies = uniq([
+      ...bundle?.plugin?.flatMap(plugin => plugin.config?.peerDependencies || []) || [],
+      ...bundle?.template?.flatMap(template => template.config?.peerDependencies || []) || [],
+    ])
+      .filter(dependency => !this.getInstalledMod(dependency));
+    const available = dependencies
+      .map(dependency => [dependency, this.getMod(dependency)] as [string, Mod | undefined])
+      .filter((entry): entry is [string, Mod] => !!entry[1]);
+    return {
+      available,
+      unavailable: dependencies.filter(dependency => !this.getMod(dependency)),
     };
   }
 

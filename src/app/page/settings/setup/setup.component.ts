@@ -50,6 +50,7 @@ export class SettingsSetupPage implements OnDestroy {
   adminForm: UntypedFormGroup;
   serverError: string[] = [];
   installMessages: string[] = [];
+  unmetDependencies: string[] = [];
   mergeState?: ModUpdatePreview;
   mergeSaving?: Subscription;
   mergePopupSub = new Subscription();
@@ -82,6 +83,7 @@ export class SettingsSetupPage implements OnDestroy {
   install() {
     this.serverError = [];
     this.installMessages = [];
+    this.unmetDependencies = [];
     this.submitted = true;
     this.adminForm.markAllAsTouched();
     if (!this.adminForm.valid) {
@@ -113,6 +115,17 @@ export class SettingsSetupPage implements OnDestroy {
       }
     }
     const _ = (msg?: string) => this.installMessages.push(msg!);
+    const dependencies = uniq(installs.flatMap(mod => {
+      const unmet = this.admin.getUnmetPeerDependencies(this.admin.getMod(mod));
+      this.unmetDependencies.push(...unmet.unavailable);
+      return unmet.available.map(([dependency]) => dependency);
+    })).filter(dependency => !installs.includes(dependency));
+    if (dependencies.length && confirm($localize`Install peer dependencies?`)) {
+      installs.unshift(...dependencies);
+    } else {
+      this.unmetDependencies.push(...dependencies);
+    }
+    this.unmetDependencies = uniq(this.unmetDependencies);
     if (!deletes.length && !installs.length) {
       this.submitted = true;
       _($localize`Success.`);
@@ -307,6 +320,25 @@ export class SettingsSetupPage implements OnDestroy {
 
   modLabel([tag, e]: [string, Config]) {
     return (e.config?.mod?.replace(/\W/g, '') || tag).toLowerCase();
+  }
+
+  unmetPeerDependencies(config: Config) {
+    if (!this.installed(config)) return [];
+    const mod = modId(config);
+    const bundle = this.admin.status.receipts[mod]?.plugins?.['plugin/mod'] || this.admin.getMod(mod);
+    const dependencies = this.admin.getUnmetPeerDependencies(bundle);
+    return [
+      ...dependencies.available.map(([dependency]) => dependency),
+      ...dependencies.unavailable,
+    ];
+  }
+
+  unmetPeerDependenciesTitle(config: Config) {
+    return $localize`Unmet peer dependencies: ${this.unmetPeerDependencies(config).join(', ')}`;
+  }
+
+  storeDependencyUrl(dependency: string) {
+    return '/settings/ref/plugin/mod/store?search=' + encodeURIComponent(dependency);
   }
 
   applyMerge(bundle: Mod | null) {
