@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, forwardRef } from '@angular/core';
+import { DomSanitizer } from '@angular/platform-browser';
 import { ICellRendererAngularComp } from 'ag-grid-angular';
 import { ICellRendererParams } from 'ag-grid-community';
 import { Ref } from '../../../model/ref';
@@ -28,6 +29,7 @@ export class GridCellComponent implements ICellRendererAngularComp {
   constructor(
     private admin: AdminService,
     private proxy: ProxyService,
+    private sanitizer: DomSanitizer,
   ) {}
 
   agInit(params: ICellRendererParams): void {
@@ -60,7 +62,7 @@ export class GridCellComponent implements ICellRendererAngularComp {
   get imageUrl() {
     const url = this.textValue;
     if (!url) return '';
-    if (isInlineSvg(url)) return url;
+    if (isInlineSvg(url)) return this.sanitizer.bypassSecurityTrustUrl(url);
     if (!this.admin.getPlugin('plugin/image')) return '';
     if (url.startsWith('cache:') || this.admin.getPlugin('plugin/image')?.config?.proxy) {
       return this.proxy.getFetch(url, this.data?.origin || '', this.data?.title || $localize`Untitled Image`);
