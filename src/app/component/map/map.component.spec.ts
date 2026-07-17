@@ -52,7 +52,7 @@ describe('MapComponent', () => {
     }
 
     it('does not render marker images without the image plugin', () => {
-      vi.spyOn((component as any).admin, 'getPlugin').mockImplementation((plugin: string) =>
+      vi.spyOn((component as any).admin, 'getPlugin').mockImplementation(plugin =>
         plugin === 'plugin/thumbnail' ? { config: { proxy: true } } : undefined);
       const proxy = vi.spyOn((component as any).proxy, 'getFetch');
 
@@ -61,7 +61,7 @@ describe('MapComponent', () => {
     });
 
     it('renders inline SVG marker images without the image plugin', () => {
-      vi.spyOn((component as any).admin, 'getPlugin').mockImplementation((plugin: string) =>
+      vi.spyOn((component as any).admin, 'getPlugin').mockImplementation(plugin =>
         plugin === 'plugin/thumbnail' ? { config: { proxy: true } } : undefined);
       const proxy = vi.spyOn((component as any).proxy, 'getFetch');
 
