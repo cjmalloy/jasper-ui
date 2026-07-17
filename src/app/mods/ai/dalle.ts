@@ -246,16 +246,6 @@ export const dalleQueryPlugin: Plugin = {
         ],
       },
     }, {
-      key: 'style',
-      type: 'select',
-      props: {
-        label: $localize`Style:`,
-        options: [
-          { value: 'vivid', label: $localize`Vivid` },
-          { value: 'natural', label: $localize`Natural` },
-        ],
-      },
-    }, {
       key: 'useUrl',
       type: 'boolean',
       props: {
@@ -269,7 +259,6 @@ export const dalleQueryPlugin: Plugin = {
     model: 'dall-e-3',
     size: '1024x1024',
     quality: 'hd',
-    style: 'vivid',
     // TODO: multiple images
   },
   schema: {
@@ -279,7 +268,6 @@ export const dalleQueryPlugin: Plugin = {
       model: { type: 'string' },
       size: { type: 'string' },
       quality: { type: 'string' },
-      style: { type: 'string' },
       useUrl: { type: 'boolean' },
     }
   }
