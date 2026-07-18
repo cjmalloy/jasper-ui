@@ -7,7 +7,7 @@ export const dalleQueryPlugin: Plugin = {
   name: $localize`👨️‍🎨️💭️ Ask DALL·E`,
   config: {
     mod: $localize`👨️‍🎨️ DALL·E Chat`,
-    version: 1,
+    version: 2,
     type: 'tool',
     default: false,
     add: true,
@@ -146,7 +146,6 @@ export const dalleQueryPlugin: Plugin = {
         prompt: (ref.title ? ref.title + ': ' : '') + (ref.comment || ''),
         size: config?.size || '1024x1024',
         quality: config?.quality || 'hd',
-        style: config?.style || 'vivid',
         response_format: config?.useUrl ? 'url' : 'b64_json',
       });
       let tags = ['+plugin/delta/dalle', 'plugin/image', 'plugin/thumbnail', 'plugin/alt'];
@@ -247,16 +246,6 @@ export const dalleQueryPlugin: Plugin = {
         ],
       },
     }, {
-      key: 'style',
-      type: 'select',
-      props: {
-        label: $localize`Style:`,
-        options: [
-          { value: 'vivid', label: $localize`Vivid` },
-          { value: 'natural', label: $localize`Natural` },
-        ],
-      },
-    }, {
       key: 'useUrl',
       type: 'boolean',
       props: {
@@ -270,7 +259,6 @@ export const dalleQueryPlugin: Plugin = {
     model: 'dall-e-3',
     size: '1024x1024',
     quality: 'hd',
-    style: 'vivid',
     // TODO: multiple images
   },
   schema: {
@@ -280,7 +268,6 @@ export const dalleQueryPlugin: Plugin = {
       model: { type: 'string' },
       size: { type: 'string' },
       quality: { type: 'string' },
-      style: { type: 'string' },
       useUrl: { type: 'boolean' },
     }
   }
