@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { makeAutoObservable, observable, reaction, toJS } from 'mobx';
+import { makeAutoObservable, reaction, toJS } from 'mobx';
 import { catchError, Observable, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Ref } from '../model/ref';
@@ -9,7 +9,8 @@ export type progress = (msg?: string, p?: number) => void;
 
 export class EventBus {
 
-  event = '';
+  eventValue = '';
+  signal = 0;
   ref?: Ref = {} as any;
   repost?: Ref = {} as any;
   errors: string[] = [];
@@ -19,28 +20,38 @@ export class EventBus {
 
   constructor() {
     makeAutoObservable(this, {
-      ref: observable.ref,
-      errors: observable.shallow,
+      event: false,
+      eventValue: false,
+      ref: false,
+      repost: false,
+      errors: false,
       runAndReload: false,
       runAndRefresh: false,
       catchError$: false,
       isRef: false,
     });
-    reaction(() => this.event, () => console.log('🚌️ Event Bus:', this.event, this.event === 'error' ? toJS(this.errors) : '', toJS(this.ref)));
+    reaction(() => this.signal, () => console.log('🚌️ Event Bus:', this.event, this.event === 'error' ? toJS(this.errors) : '', toJS(this.ref)));
+  }
+
+  get event() {
+    this.signal;
+    return this.eventValue;
   }
 
   fire(event: string, ref?: Ref, repost?: Ref) {
-    this.event = event;
+    this.eventValue = event;
     this.ref = ref;
     this.repost = repost;
+    this.signal++;
   }
 
   fireError(errors: string[], ref?: Ref) {
-    this.event = 'error';
+    this.eventValue = 'error';
     this.errors = [...errors];
     if (ref) {
       this.ref = ref;
     }
+    this.signal++;
   }
 
   /**
@@ -48,31 +59,24 @@ export class EventBus {
    * 'refresh' event.
    */
   reload(ref?: Ref) {
-    this.event = 'reload';
+    this.eventValue = 'reload';
     if (ref) {
       this.ref = ref;
     }
     this.repost = undefined;
+    this.signal++;
   }
 
   /**
    * Notify latest version of ref is not available.
    */
   refresh(ref?: Ref) {
-    this.event = 'refresh';
+    this.eventValue = 'refresh';
     if (ref) {
       this.ref = ref;
     }
     this.repost = undefined;
-  }
-
-  /**
-   * Clear event bus state for sending duplicate events.
-   */
-  reset() {
-    this.event = '';
-    this.ref = undefined;
-    this.repost = undefined;
+    this.signal++;
   }
 
   runAndReload(o: Observable<any>, ref?: Ref) {
