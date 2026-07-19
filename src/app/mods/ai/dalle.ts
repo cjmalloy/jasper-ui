@@ -156,8 +156,9 @@ export const dalleQueryPlugin: Plugin = {
       if (ref.tags?.includes('plugin/comment')) tags.push('plugin/comment', 'internal');
       if (ref.tags?.includes('plugin/thread')) tags.push('plugin/thread', 'internal');
       const authors = ref.tags?.filter(tag => tag === '+user' || tag === '_user' || tag.startsWith('+user/') || tag.startsWith('_user/')) || [];
+      const ai = ref.tags?.filter(tag => tag.startsWith('+plugin/delta/ai/')) || [];
       const mailboxes = ref.tags?.filter(tag => tag.startsWith('plugin/inbox') || tag.startsWith('plugin/outbox')) || [];
-      tags.push(...mailboxes, ...authors.map(tag => 'plugin/inbox/' + tag.substring(1)));
+      tags.push(...mailboxes, ...authors.map(tag => 'plugin/inbox/' + tag.substring(1)), ...ai.map(tag => tag.substring(1)));
       tags = tags.filter((v, i, a) => a.indexOf(v) === i);
       const sources = [ref.url];
       if (ref.sources && (ref.tags.includes('plugin/thread') || ref.tags.includes('plugin/comment'))) {
