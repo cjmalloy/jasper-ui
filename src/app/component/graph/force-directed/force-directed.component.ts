@@ -123,12 +123,6 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy, HasChan
     private viewContainerRef: ViewContainerRef,
     private cd: ChangeDetectorRef,
   ) {
-    this.disposers.push(autorun(() => {
-      this.selectedStroke = store.darkTheme ? this.selectedStrokeDarkTheme : this.selectedStrokeLightTheme;
-      this.linkStroke = store.darkTheme ? this.linkStrokeDarkTheme : this.linkStrokeLightTheme;
-      this.update();
-      this.cd.markForCheck();
-    }));
   }
 
   saveChanges() {
@@ -166,7 +160,12 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy, HasChan
 
   ngAfterViewInit(): void {
     this.init();
-    this.update();
+    this.disposers.push(autorun(() => {
+      this.selectedStroke = this.store.darkTheme ? this.selectedStrokeDarkTheme : this.selectedStrokeLightTheme;
+      this.linkStroke = this.store.darkTheme ? this.linkStrokeDarkTheme : this.linkStrokeLightTheme;
+      this.update();
+      this.cd.markForCheck();
+    }));
   }
 
   @HostListener('window:resize')
