@@ -55,6 +55,13 @@ test.describe.serial('Bookmark Formly Type', () => {
     await expect(bookmarkField.locator('.filter-toggle')).toContainText('🪄️');
   });
 
+  test('admin with blank tag can open my settings', async ({ page }) => {
+    await page.goto('/settings/me?debug=ADMIN&tag=', { waitUntil: 'networkidle' });
+    await expect(page).toHaveURL(/\/settings\/me(\?|$)/);
+    await expect(page).not.toHaveURL(/\/settings\/setup(\?|$)/);
+    await expect(page.locator('.tabs a', { hasText: 'me' })).toHaveClass(/current-tab/);
+  });
+
   test('clicking filter-toggle opens params popup', async ({ page }) => {
     await page.goto('/settings/me?debug=ADMIN', { waitUntil: 'networkidle' });
     const bookmarkField = await addBookmark(page);
