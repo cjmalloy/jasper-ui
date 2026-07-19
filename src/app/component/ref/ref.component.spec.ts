@@ -36,4 +36,12 @@ describe('RefComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it('keeps the disabled Ref URL in thumbnail data while editing', () => {
+    component.ref = { url: 'cache:image-id', origin: '' };
+    component.editForm.get('url')!.setValue(component.ref.url);
+    (component as any)._editing = true;
+
+    expect(component.thumbnailRefs[0]?.url).toBe('cache:image-id');
+  });
 });

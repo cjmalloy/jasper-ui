@@ -782,7 +782,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
 
   @memo
   get thumbnailRefs() {
-    return this.editing ? [{ ...this.editForm.value, origin: this.ref.origin }] : [this.repostRef, this.ref];
+    return this.editing ? [{ ...this.editForm.getRawValue(), origin: this.ref.origin }] : [this.repostRef, this.ref];
   }
 
   get refThumbnailPlugin() {
