@@ -21,7 +21,7 @@
                  [text]="source"></app-nav>
       }
     </div>
-  } @else if (type === 'image' && textValue) {
+  } @else if (type === 'image' && imageUrl) {
     <img class="grid-image" [src]="imageUrl" alt="">
   } @else if (type === 'lens' && textValue) {
     <app-viewer class="grid-viewer"
