@@ -290,10 +290,7 @@ export class AdminService {
         return throwError(() => err);
       })
     )));
-    return this.exts.create({
-      tag: this.store.account.localTag,
-      origin: this.store.account.origin,
-    }).pipe(
+    return of(null).pipe(
       tap(() => this.store.eventBus.fire('*:defaults')),
       switchMap(() => concat(...installs).pipe(toArray())),
       switchMap(() => this.init$),
