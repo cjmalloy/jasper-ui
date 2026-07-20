@@ -1382,8 +1382,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     const tags = uniq([
       ...(this.store.account.localTag ? [this.store.account.localTag] : []),
       ...(this.ref.tags || [])
-        .filter(t => !t.startsWith('+'))
-        .filter(t => !t.startsWith('_'))
+        .filter(t => hasPrefix(t, 'plugin') || !t.startsWith('+') && !t.startsWith('_'))
         .filter(t => !hasPrefix(t, 'user'))
         .filter(t => this.auth.canAddTag(t))
     ]);
