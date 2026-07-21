@@ -5,25 +5,44 @@ test.describe.serial('Ext defaults', () => {
   test('enable Ext default mods', async ({ page }) => {
     await mod(page, '#mod-root', '#mod-config\\/home');
     await page.goto('/ext/config/home?debug=ADMIN', { waitUntil: 'networkidle' });
-    const create = page.waitForResponse(response => (
-      response.url().includes('/api/v1/ext') && response.request().method() === 'POST' && response.ok()
-    ));
-    await page.getByRole('button', { name: 'Extend' }).click();
-    await create;
-    await expect(page.locator('.default-sort-create')).toBeVisible();
+    const deleteButton = page.getByRole('button', { name: 'Delete', exact: true });
+    if (await deleteButton.isVisible()) {
+      page.once('dialog', dialog => dialog.accept());
+      await deleteButton.click();
+    }
+  });
+
+  test('renders the resizable sidebar editor through Formly', async ({ page }) => {
+    await page.goto('/ext/config/home?debug=ADMIN', { waitUntil: 'networkidle' });
+    const extend = page.getByRole('button', { name: 'Extend', exact: true });
+    const sidebar = page.locator('.sidebar-editor .editor-field');
+    await expect(extend.or(sidebar)).toBeVisible();
+    if (await extend.isVisible()) await extend.click();
+
+    await expect(sidebar).toBeVisible();
+    const editor = sidebar.locator('textarea');
+    await expect(editor).toBeVisible();
+    await expect.poll(async () => {
+      const { editorWidth, containerWidth } = await editor.evaluate(element => ({
+        editorWidth: element.getBoundingClientRect().width,
+        containerWidth: element.closest('.fill-editor')!.getBoundingClientRect().width,
+      }));
+      return Math.abs(editorWidth - containerWidth);
+    }).toBeLessThan(40);
   });
 
   test('configures and loads multiple default sorts and date filters', async ({ page }) => {
     await page.goto('/ext/config/home?debug=ADMIN', { waitUntil: 'networkidle' });
-
+    const extend = page.getByRole('button', { name: 'Extend', exact: true });
     const sortCreate = page.locator('.default-sort-create');
-    const sortRows = page.locator('.default-sort-row');
-    while (await sortRows.count()) {
-      await sortRows.last().getByRole('button', { name: '–' }).click();
-    }
-    await sortCreate.selectOption('published');
+    await expect(extend.or(sortCreate)).toBeVisible();
+    if (await extend.isVisible()) await extend.click();
+    await expect(sortCreate).toBeVisible();
+
+    await expect(page.locator('.default-sort-row')).toHaveCount(1);
+    await expect(page.locator('.default-sort-row select')).toHaveValue('published');
     await sortCreate.selectOption('modified');
-    await expect(sortRows).toHaveCount(2);
+    await expect(page.locator('.default-sort-row')).toHaveCount(2);
 
     const filterCreate = page.locator('.default-filter-create');
     await filterCreate.selectOption({ label: '📅️ published before' });
@@ -39,7 +58,9 @@ test.describe.serial('Ext defaults', () => {
     await expect(page.locator('.default-filter-date-range output').first()).toHaveText('15 minutes');
 
     const save = page.waitForResponse(response => (
-      response.url().includes('/api/v1/ext') && response.request().method() === 'POST' && response.ok()
+      response.url().includes('/api/v1/ext') &&
+      ['POST', 'PUT'].includes(response.request().method()) &&
+      response.ok()
     ));
     await page.locator('button', { hasText: 'Save' }).click();
     await save;
@@ -58,10 +79,12 @@ test.describe.serial('Ext defaults', () => {
   test('configures and renders a Markdown header', async ({ page }) => {
     await page.goto('/ext/config/home?debug=ADMIN', { waitUntil: 'networkidle' });
     await page.getByRole('button', { name: '+ Add header' }).click();
-    await page.getByLabel('Header:').fill('# Home header');
+    await page.locator('.header-editor textarea').fill('# Home header');
 
     const save = page.waitForResponse(response => (
-      response.url().includes('/api/v1/ext') && response.request().method() === 'POST' && response.ok()
+      response.url().includes('/api/v1/ext') &&
+      ['POST', 'PUT'].includes(response.request().method()) &&
+      response.ok()
     ));
     await page.getByRole('button', { name: 'Save' }).click();
     await save;

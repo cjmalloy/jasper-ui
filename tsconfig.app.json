@@ -9,6 +9,7 @@
   },
   "files": [
     "src/main.ts",
+    "src/zone-flags.ts",
     "src/polyfills.ts"
   ],
   "include": [

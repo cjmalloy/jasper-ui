@@ -36,7 +36,6 @@ import { Store } from '../../store/store';
 import { TAG_REGEX } from '../../util/format';
 import { convertFilter, convertSort, defaultDesc, FilterItem, negatable, toggle, UrlFilter } from '../../util/query';
 import { hasPrefix } from '../../util/tag';
-import { EditorComponent } from '../editor/editor.component';
 import { linksForm } from '../links/links.component';
 import { themesForm, ThemesFormComponent } from '../themes/themes.component';
 
@@ -48,7 +47,6 @@ import { themesForm, ThemesFormComponent } from '../themes/themes.component';
   changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     forwardRef(() => RefComponent),
-    forwardRef(() => EditorComponent),
     ReactiveFormsModule,
     FormlyForm,
     CdkDropListGroup,
@@ -97,10 +95,6 @@ export class ExtFormComponent implements OnDestroy {
   @Output()
   clear = new EventEmitter<void>();
 
-  @ViewChild('fillPopover')
-  fillPopover?: ElementRef;
-  @ViewChild('fillSidebar')
-  fillSidebar?: ElementRef;
   @ViewChild('mainFormlyForm')
   mainFormlyForm?: FormlyForm;
   @ViewChild('advancedFormlyForm')
@@ -126,6 +120,7 @@ export class ExtFormComponent implements OnDestroy {
     public store: Store,
     private refs: RefService,
     private cd: ChangeDetectorRef,
+    private el: ElementRef<HTMLElement>,
   ) { }
 
   ngOnDestroy() {
@@ -140,6 +135,19 @@ export class ExtFormComponent implements OnDestroy {
 
   get config() {
     return this.group.get('config') as UntypedFormGroup;
+  }
+
+  get fillPopover(): ElementRef<HTMLElement> | undefined {
+    return this.fillEditor('.popover-editor');
+  }
+
+  get fillSidebar(): ElementRef<HTMLElement> | undefined {
+    return this.fillEditor('.sidebar-editor');
+  }
+
+  private fillEditor(selector: string) {
+    const element = this.el.nativeElement.querySelector<HTMLElement>(selector + ' .fill-editor');
+    return element ? new ElementRef(element) : undefined;
   }
 
   get inbox() {
@@ -272,18 +280,6 @@ export class ExtFormComponent implements OnDestroy {
   filterDate(filter: UrlFilter) {
     const date = DateTime.fromISO(filter.substring(filter.lastIndexOf('/') + 1));
     return date.isValid ? date.toFormat("yyyy-MM-dd'T'T") : '';
-  }
-
-  get header() {
-    return this.config.get('header') as UntypedFormControl;
-  }
-
-  get sidebar() {
-    return this.config.get('sidebar') as UntypedFormControl;
-  }
-
-  get popover() {
-    return this.config.get('popover') as UntypedFormControl;
   }
 
   get themes() {
