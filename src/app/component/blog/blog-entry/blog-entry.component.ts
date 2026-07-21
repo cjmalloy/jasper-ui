@@ -1,4 +1,5 @@
 import { AsyncPipe } from '@angular/common';
+import { FakeLinkDirective } from '../../../directive/fake-link.directive';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
   Component,
@@ -17,7 +18,6 @@ import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angu
 import { Router, RouterLink } from '@angular/router';
 import { defer, groupBy, intersection, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
-import { autorun, IReactionDisposer } from 'mobx';
 import { catchError, map, of, Subject, Subscription, switchMap, takeUntil, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { TitleDirective } from '../../../directive/title.directive';
@@ -71,6 +71,7 @@ import { ThreadSummaryComponent } from '../../comment/thread-summary/thread-summ
   host: { 'class': 'blog-entry' },
   changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
+    FakeLinkDirective,
     forwardRef(() => ViewerComponent),
     forwardRef(() => RefFormComponent),
     forwardRef(() => CommentReplyComponent),
@@ -87,7 +88,6 @@ import { ThreadSummaryComponent } from '../../comment/thread-summary/thread-summ
 })
 export class BlogEntryComponent implements OnChanges, OnDestroy, HasChanges {
   @HostBinding('attr.tabindex') tabIndex = 0;
-  private disposers: IReactionDisposer[] = [];
   private destroy$ = new Subject<void>();
 
   @ViewChildren('action')
@@ -131,19 +131,19 @@ export class BlogEntryComponent implements OnChanges, OnDestroy, HasChanges {
     private fb: UntypedFormBuilder,
   ) {
     this.editForm = refForm(fb);
-    this.disposers.push(autorun(() => {
-      if (this.store.eventBus.event === 'refresh') {
-        if (this.ref?.url && this.store.eventBus.isRef(this.ref)) {
-          this.ref = this.store.eventBus.ref!;
+    this.store.eventBus.events.pipe(takeUntil(this.destroy$)).subscribe(event => {
+      if (event.event === 'refresh') {
+        if (this.ref?.url && this.store.eventBus.isRef(event, this.ref)) {
+          this.ref = event.ref!;
           this.init();
         }
       }
-      if (this.store.eventBus.event === 'error') {
-        if (this.ref?.url && this.store.eventBus.isRef(this.ref)) {
-          this.serverError = this.store.eventBus.errors;
+      if (event.event === 'error') {
+        if (this.ref?.url && this.store.eventBus.isRef(event, this.ref)) {
+          this.serverError = event.errors;
         }
       }
-    }));
+    });
   }
 
   saveChanges() {
@@ -183,8 +183,6 @@ export class BlogEntryComponent implements OnChanges, OnDestroy, HasChanges {
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
   }
 
   @memo

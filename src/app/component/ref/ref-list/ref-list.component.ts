@@ -185,6 +185,5 @@ export class RefListComponent implements OnInit, OnDestroy, HasChanges {
       }
     }
     this.store.eventBus.refresh(ref);
-    this.store.eventBus.reset();
   }
 }

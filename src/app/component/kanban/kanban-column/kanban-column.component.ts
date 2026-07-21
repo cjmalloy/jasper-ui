@@ -1,4 +1,5 @@
 import { CdkDrag } from '@angular/cdk/drag-drop';
+import { FakeLinkDirective } from '../../../directive/fake-link.directive';
 import { HttpEventType } from '@angular/common/http';
 import {
   AfterViewInit,
@@ -53,6 +54,7 @@ interface PendingUpload {
   host: { 'class': 'kanban-column' },
   changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
+    FakeLinkDirective,
     KanbanCardComponent,
     CdkDrag,
     LoadingComponent,

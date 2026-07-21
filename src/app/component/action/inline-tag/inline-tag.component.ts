@@ -1,6 +1,7 @@
 import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
+import { FakeLinkDirective } from '../../../directive/fake-link.directive';
 import { ReactiveFormsModule } from '@angular/forms';
-import { debounce } from 'lodash-es';
+import { debounce, uniqBy } from 'lodash-es';
 import { catchError, forkJoin, map, Observable, of, Subscription, switchMap } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { AutofocusDirective } from '../../../directive/autofocus.directive';
@@ -20,7 +21,7 @@ import { ActionComponent } from '../action.component';
   styleUrls: ['./inline-tag.component.scss'],
   host: { 'class': 'action' },
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [ReactiveFormsModule, AutofocusDirective, LoadingComponent]
+  imports: [FakeLinkDirective, ReactiveFormsModule, AutofocusDirective, LoadingComponent]
 })
 export class InlineTagComponent extends ActionComponent {
   tagsRegex = TAGS_REGEX.source;
@@ -102,7 +103,9 @@ export class InlineTagComponent extends ActionComponent {
     ).subscribe(xs => {
       this.autocomplete = xs.map(x => ({ value: prefix + remove + x.tag, label: remove + (x.name || '#' + x.tag) }));
       if (!remove && this.autocomplete.length < 3) this.autocomplete.push(...getPlugins(tag));
+      this.autocomplete = uniqBy(this.autocomplete, 'value');
       if (!remove && this.autocomplete.length < 3) this.autocomplete.push(...getTemplates(tag));
+      this.autocomplete = uniqBy(this.autocomplete, 'value');
     });
   }, 400);
 

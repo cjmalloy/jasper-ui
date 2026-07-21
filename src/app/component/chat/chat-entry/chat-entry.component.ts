@@ -1,3 +1,4 @@
+import { FakeLinkDirective } from '../../../directive/fake-link.directive';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
   Component,
@@ -42,6 +43,7 @@ import { ViewerComponent } from '../../viewer/viewer.component';
   host: { 'class': 'chat-entry' },
   changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
+    FakeLinkDirective,
     forwardRef(() => ViewerComponent),
     forwardRef(() => MdComponent),
     RouterLink,

@@ -1,4 +1,5 @@
 import { AsyncPipe } from '@angular/common';
+import { FakeLinkDirective } from '../../directive/fake-link.directive';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
   AfterViewInit,
@@ -23,7 +24,7 @@ import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angu
 import { Router, RouterLink } from '@angular/router';
 import { cloneDeep, defer, delay, groupBy, pick, throttle, uniq, without } from 'lodash-es';
 import { DateTime } from 'luxon';
-import { autorun, IReactionDisposer, runInAction } from 'mobx';
+import { runInAction } from 'mobx';
 import { catchError, map, of, Subject, Subscription, switchMap, takeUntil, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { TitleDirective } from '../../directive/title.directive';
@@ -38,7 +39,7 @@ import { deleteNotice } from '../../mods/delete';
 import { addressedTo, getMailbox, mailboxes } from '../../mods/mailbox';
 import { generateStoryboardKeyframes } from '../../mods/thumbnail';
 import { CssUrlPipe } from '../../pipe/css-url.pipe';
-import { ThumbnailPipe } from '../../pipe/thumbnail.pipe';
+import { isInlineSvg, ThumbnailPipe } from '../../pipe/thumbnail.pipe';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { ProxyService } from '../../service/api/proxy.service';
@@ -95,6 +96,7 @@ import { ViewerComponent } from '../viewer/viewer.component';
   styleUrls: ['./ref.component.scss'],
   changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
+    FakeLinkDirective,
     forwardRef(() => ViewerComponent),
     forwardRef(() => RefFormComponent),
     forwardRef(() => MdComponent),
@@ -151,7 +153,6 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     const radius = Number(this.refThumbnailPlugin?.['radius']);
     return Number.isFinite(radius) ? `${radius}` : undefined;
   }
-  private disposers: IReactionDisposer[] = [];
   private destroy$ = new Subject<void>();
 
   @ViewChildren('action')
@@ -272,15 +273,15 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
         cd.detectChanges();
       });
     }, 400, { leading: true, trailing: true }));
-    this.disposers.push(autorun(() => {
-      if (this.store.eventBus.event === 'refresh') {
+    this.store.eventBus.events.pipe(takeUntil(this.destroy$)).subscribe(event => {
+      if (event.event === 'refresh') {
         if (this.editing || this.viewSource) {
           // TODO: show somewhere
           console.warn('Ignoring Ref edit.');
           return;
         }
-        if (this.ref?.url && this.store.eventBus.isRef(this.ref)) {
-          this.ref = this.store.eventBus.ref!;
+        if (this.ref?.url && this.store.eventBus.isRef(event, this.ref)) {
+          this.ref = event.ref!;
           this.init();
           if (this.refreshTap) {
             this.refreshTap();
@@ -288,7 +289,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
           }
         }
       }
-      if (this.ref?.upload && this.store.eventBus.event === 'refresh:uploads') {
+      if (this.ref?.upload && event.event === 'refresh:uploads') {
         if (this.editing || this.viewSource) {
           // TODO: show somewhere
           console.warn('Ignoring Ref edit.');
@@ -296,23 +297,23 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
         }
         this.init();
       }
-      if (this.store.eventBus.event === 'error') {
-        if (this.ref?.url && this.store.eventBus.isRef(this.ref)) {
-          this.serverError = this.store.eventBus.errors;
+      if (event.event === 'error') {
+        if (this.ref?.url && this.store.eventBus.isRef(event, this.ref)) {
+          this.serverError = event.errors;
         }
       }
-      if (this.store.eventBus.event === 'toggle') {
-        if (this.ref?.url && this.store.eventBus.isRef(this.ref)) {
+      if (event.event === 'toggle') {
+        if (this.ref?.url && this.store.eventBus.isRef(event, this.ref)) {
           this.expanded = !this.expanded;
         }
       }
-      if (this.store.eventBus.event === 'toggle-all-open') {
+      if (event.event === 'toggle-all-open') {
         this.expanded = true;
       }
-      if (this.store.eventBus.event === 'toggle-all-closed') {
+      if (event.event === 'toggle-all-closed') {
         this.expanded = false;
       }
-    }));
+    });
   }
 
   saveChanges() {
@@ -407,8 +408,6 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
     if (this.lastSelected) {
       this.store.view.clearLastSelected();
     }
@@ -453,6 +452,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   }
 
   get storyboardData() {
+    if (!this.admin.getPlugin('plugin/image')) return null;
     if (!this.admin.getPlugin('plugin/thumbnail/storyboard')) return null;
     if (this.editing) {
       return this.editForm.value?.plugins?.['plugin/thumbnail/storyboard'] || null;
@@ -779,7 +779,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
 
   @memo
   get thumbnailRefs() {
-    return this.editing ? [{ ...this.editForm.value, origin: this.ref.origin }] : [this.repostRef, this.ref];
+    return this.editing ? [{ ...this.editForm.getRawValue(), origin: this.ref.origin }] : [this.repostRef, this.ref];
   }
 
   get refThumbnailPlugin() {
@@ -793,7 +793,9 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   }
 
   refThumbnailUrl() {
-    return this.refThumbnailString('url') || this.refThumbnailPluginUrl('plugin/image') || this.refThumbnailPluginUrl('plugin/video');
+    const url = this.refThumbnailString('url');
+    if (!this.admin.getPlugin('plugin/image')) return isInlineSvg(url) ? url : '';
+    return url || this.refThumbnailPluginUrl('plugin/image') || this.refThumbnailPluginUrl('plugin/video');
   }
 
   refThumbnailPluginUrl(plugin: 'plugin/image' | 'plugin/video') {
@@ -1361,8 +1363,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     const tags = uniq([
       ...(this.store.account.localTag ? [this.store.account.localTag] : []),
       ...(this.ref.tags || [])
-        .filter(t => !t.startsWith('+'))
-        .filter(t => !t.startsWith('_'))
+        .filter(t => hasPrefix(t, 'plugin') || !t.startsWith('+') && !t.startsWith('_'))
         .filter(t => !hasPrefix(t, 'user'))
         .filter(t => this.auth.canAddTag(t))
     ]);

@@ -1,4 +1,5 @@
 import { AfterViewInit, Component, ElementRef, ChangeDetectionStrategy } from '@angular/core';
+import { FakeLinkDirective } from '../../directive/fake-link.directive';
 import { RouterLink } from '@angular/router';
 import { MobxAngularModule } from 'mobx-angular';
 import { AccountService } from '../../service/account.service';
@@ -13,7 +14,7 @@ import { Store } from '../../store/store';
   styleUrls: ['./settings.component.scss'],
   host: { 'class': 'settings' },
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [MobxAngularModule, RouterLink]
+  imports: [FakeLinkDirective, MobxAngularModule, RouterLink]
 })
 export class SettingsComponent implements AfterViewInit {
 

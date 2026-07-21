@@ -22,6 +22,7 @@
       <a class="fake-link" (click)="viewSource = !viewSource" i18n>source</a>
     }
     <a class="fake-link" (click)="download()" i18n>download</a>
+    <a class="fake-link connect-action" (click)="connect()" i18n>connect</a>
     @if (store.account.root && store.account.mod && config.scim && !profile) {
       <app-inline-button #action [action]="activate$" i18n>sync</app-inline-button>
     }

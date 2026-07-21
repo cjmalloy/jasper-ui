@@ -48,7 +48,7 @@ This Angular client (jasper-ui) provides the reference implementation for intera
 ## Quick Start
 
 - **CRITICAL**: Debugging requires the Jasper server backend running
-- Add screenshots to your comments using playwrite for UI changes in both light and dark mode
+- Add screenshots to your comments using Playwright for UI changes in both light and dark mode
 
 ## Development Commands
 
@@ -358,7 +358,7 @@ When writing a new test, use the MCP server to find the right selectors:
 
 ## Key Info
 
-- Angular 20 + TypeScript + MobX + Vitest
+- Angular 22 + TypeScript 6 + MobX + Vitest
 - API configured via Docker `JASPER_API` environment variable
 - Use `ng generate component|service|pipe|directive name` for new features
 - Network issues: Playwright browsers are bundled, no separate install needed
@@ -443,3 +443,23 @@ When styling components that need to adapt to themes:
 - `--card` - Card backgrounds
 
 See `src/theme/common.scss`, `src/theme/light.scss`, and `src/theme/dark.scss` for complete variable lists.
+
+# Alpine `TLS: unspecified error`
+
+If the Jasper-UI Docker build reports `TLS: unspecified error` while fetching
+an APK index, retry the root Dockerfile build with host networking to populate
+the build cache, then run the normal Compose command:
+
+```sh
+docker build --network=host -t jasper-ui .
+docker compose --profile server up --build
+```
+
+For the Playwright suite, populate the same client-image cache before running
+the normal E2E command:
+
+```sh
+docker build --network=host -t jasper-ui .
+npm run pw:ci
+docker compose -f e2e/docker-compose.yaml down -v
+```

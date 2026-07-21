@@ -15,6 +15,7 @@ import { Ext } from '../../model/ext';
 import { Page } from '../../model/page';
 import { Ref } from '../../model/ref';
 import { features, mapTemplate } from '../../mods/map';
+import { isInlineSvg } from '../../pipe/thumbnail.pipe';
 import { AdminService } from '../../service/admin.service';
 import { ProxyService } from '../../service/api/proxy.service';
 import { RefService } from '../../service/api/ref.service';
@@ -235,9 +236,9 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
     if (thumbnailPlugin.color) el.style.backgroundColor = thumbnailPlugin.color;
     if (thumbnailPlugin.radius) el.style.borderRadius = thumbnailPlugin.radius + 'px';
     if (thumbnailPlugin.emoji) el.textContent = thumbnailPlugin.emoji;
-    if (thumbnailPlugin.url) {
+    if (thumbnailPlugin.url && (this.admin.getPlugin('plugin/image') || isInlineSvg(thumbnailPlugin.url))) {
       const isProxy = this.admin.getPlugin('plugin/thumbnail')?.config?.proxy;
-      const url = isProxy
+      const url = isProxy && !isInlineSvg(thumbnailPlugin.url)
         ? this.proxy.getFetch(thumbnailPlugin.url, ref.origin, 'thumbnail', true)
         : thumbnailPlugin.url;
       el.style.backgroundImage = `url(${url})`;

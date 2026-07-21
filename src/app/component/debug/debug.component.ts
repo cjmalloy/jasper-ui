@@ -1,4 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
+import { FakeLinkDirective } from '../../directive/fake-link.directive';
 import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, concat, concatMap, generate, last, Observable, of } from 'rxjs';
@@ -22,7 +23,7 @@ import { LoadingComponent } from '../loading/loading.component';
   styleUrls: ['./debug.component.scss'],
   host: { 'class': 'debug actions' },
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [LoadingComponent]
+  imports: [FakeLinkDirective, LoadingComponent]
 })
 export class DebugComponent {
 

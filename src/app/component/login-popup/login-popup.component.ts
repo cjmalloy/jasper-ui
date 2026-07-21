@@ -1,4 +1,5 @@
 import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { FakeLinkDirective } from '../../directive/fake-link.directive';
 import { runInAction } from 'mobx';
 import { MobxAngularModule } from 'mobx-angular';
 import { ConfigService } from '../../service/config.service';
@@ -10,7 +11,7 @@ import { Store } from '../../store/store';
   styleUrls: ['./login-popup.component.scss'],
   host: { 'class': 'login-popup' },
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [MobxAngularModule]
+  imports: [FakeLinkDirective, MobxAngularModule]
 })
 export class LoginPopupComponent {
 

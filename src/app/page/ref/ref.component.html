@@ -84,11 +84,11 @@
                [expanded]="false"
                (copied)="reload()"></app-ref>
       @if (thread) {
-        <span class="parent-link fake-link print-hide" [routerLink]="[store.view.refPath, store.view.top.url, 'thread']" (click)="store.view.preloadRef(store.view.top)" i18n>full thread</span>
+        <a class="parent-link print-hide" [routerLink]="[store.view.refPath, store.view.top.url, 'thread']" (click)="store.view.preloadRef(store.view.top)" i18n>full thread</a>
       } @else if (comment && store.view.current === 'ref/comments') {
-        <span class="parent-link fake-link print-hide" [routerLink]="[store.view.refPath, store.view.top.url, 'comments']" (click)="store.view.preloadRef(store.view.top)" i18n>full comments</span>
+        <a class="parent-link print-hide" [routerLink]="[store.view.refPath, store.view.top.url, 'comments']" (click)="store.view.preloadRef(store.view.top)" i18n>full comments</a>
       } @else {
-        <span class="parent-link fake-link print-hide" [routerLink]="[store.view.refPath, store.view.top.url]" (click)="store.view.preloadRef(store.view.top)" i18n>parent</span>
+        <a class="parent-link print-hide" [routerLink]="[store.view.refPath, store.view.top.url]" (click)="store.view.preloadRef(store.view.top)" i18n>parent</a>
       }
     }
     @if (this.store.view.browser) {

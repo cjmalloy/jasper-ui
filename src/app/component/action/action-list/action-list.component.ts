@@ -1,4 +1,5 @@
 import { Overlay, OverlayRef } from '@angular/cdk/overlay';
+import { FakeLinkDirective } from '../../../directive/fake-link.directive';
 import { TemplatePortal } from '@angular/cdk/portal';
 import { KeyValuePipe } from '@angular/common';
 import {
@@ -32,7 +33,7 @@ import { InlineButtonComponent } from '../inline-button/inline-button.component'
   templateUrl: './action-list.component.html',
   styleUrl: './action-list.component.scss',
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [ConfirmActionComponent, TitleDirective, InlineButtonComponent, KeyValuePipe]
+  imports: [FakeLinkDirective, ConfirmActionComponent, TitleDirective, InlineButtonComponent, KeyValuePipe]
 })
 export class ActionListComponent implements AfterViewInit, OnChanges {
 
@@ -144,9 +145,12 @@ export class ActionListComponent implements AfterViewInit, OnChanges {
 
   showAdvanced(event: MouseEvent) {
     this.closeAdvanced();
+    const origin = event.detail === 0
+      ? event.currentTarget as HTMLElement
+      : {x: event.x, y: event.y};
     defer(() => {
       const positionStrategy = this.overlay.position()
-        .flexibleConnectedTo({x: event.x, y: event.y})
+        .flexibleConnectedTo(origin)
         .withPositions([{
           originX: 'center',
           originY: 'center',

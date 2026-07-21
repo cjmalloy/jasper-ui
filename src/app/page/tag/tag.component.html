@@ -1,7 +1,7 @@
 <ng-container *mobxAutorun>
   <app-tabs>
     <a class="logo" routerLink="/"></a>
-    <h5 class="fake-link" routerLink="." [queryParams]="{}">{{ store.view.name }}</h5>
+    <h5 routerLink="." [queryParams]="{}">{{ store.view.name }}</h5>
     @if (store.view.activeTemplates.length) {
       <a routerLink="./"
          [class.current-tab]="store.view.noView"

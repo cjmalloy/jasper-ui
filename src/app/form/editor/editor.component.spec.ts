@@ -38,6 +38,16 @@ describe('EditorComponent', () => {
     expect(component.uploads).toEqual([]);
   });
 
+  it('should show the editor after clicking the add button', async () => {
+    component.addButton = true;
+    fixture.detectChanges();
+
+    fixture.nativeElement.querySelector('button').click();
+    await fixture.whenStable();
+
+    expect(fixture.nativeElement.querySelector('textarea')).toBeTruthy();
+  });
+
   it('should have hasActiveUploads method that returns false when no uploads', () => {
     expect(component.hasActiveUploads()).toBeFalsy();
   });

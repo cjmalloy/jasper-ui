@@ -1,4 +1,5 @@
 import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
+import { FakeLinkDirective } from '../../../directive/fake-link.directive';
 import { catchError, Observable, of } from 'rxjs';
 import { LoadingComponent } from '../../loading/loading.component';
 import { ActionComponent } from '../action.component';
@@ -9,7 +10,7 @@ import { ActionComponent } from '../action.component';
   styleUrls: ['./inline-button.component.scss'],
   host: { 'class': 'action' },
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [LoadingComponent]
+  imports: [FakeLinkDirective, LoadingComponent]
 })
 export class InlineButtonComponent extends ActionComponent {
 

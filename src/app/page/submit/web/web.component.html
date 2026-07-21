@@ -16,6 +16,7 @@
     }
 
     <app-ref-form #refForm [group]="webForm"
+                  [creating]="true"
                   (toggleTag)="bookmarks.toggleTag($event)"></app-ref-form>
 
     @for (e of serverError; track e) {

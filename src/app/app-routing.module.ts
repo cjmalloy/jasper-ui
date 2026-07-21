@@ -60,7 +60,9 @@ export class CustomUrlSerializer implements UrlSerializer {
   encodeTagParam(url: string) {
     let [path, search, hash] = parts(url);
     path = path.substring(1);
-    path = path.replace(/%7C/g, '|');
+    path = path
+      .replace(/%7C/gi, '|')
+      .replace(/,/g, '|');
     path = encodeURIComponent(path)
         .replace(/\(/g, '%28')
         .replace(/\)/g, '%29');
@@ -139,7 +141,7 @@ export class CustomUrlSerializer implements UrlSerializer {
       if ((tree.root.children.primary?.segments?.length || 0) <= parts) continue;
       const path = tree.root.children.primary.segments.slice(0, parts).map(s => s.path).join('/');
       if (path === page) {
-        return `/${page}/` + tree.root.children.primary.segments[parts].path + this.getExtras(url);
+        return `/${page}/` + tree.root.children.primary.segments[parts].path.replace(/\|/g, ',') + this.getExtras(url);
       }
     }
     let [path, search, hash] = parts(url);

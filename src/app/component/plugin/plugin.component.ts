@@ -1,4 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
+import { FakeLinkDirective } from '../../directive/fake-link.directive';
 import { Component, HostBinding, Input, OnChanges, QueryList, SimpleChanges, ViewChildren, ChangeDetectionStrategy } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -25,7 +26,7 @@ import { LoadingComponent } from '../loading/loading.component';
   templateUrl: './plugin.component.html',
   styleUrls: ['./plugin.component.scss'],
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [RouterLink, ConfirmActionComponent, InlineButtonComponent, ReactiveFormsModule, PluginFormComponent, LoadingComponent]
+  imports: [FakeLinkDirective, RouterLink, ConfirmActionComponent, InlineButtonComponent, ReactiveFormsModule, PluginFormComponent, LoadingComponent]
 })
 export class PluginComponent implements OnChanges, HasChanges {
   css = 'plugin list-item';

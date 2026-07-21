@@ -3,7 +3,7 @@ import { HttpErrorResponse, HttpEventType } from '@angular/common/http';
 import { Component, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { pick, uniq, without } from 'lodash-es';
+import { uniq, without } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { autorun, IReactionDisposer, runInAction, toJS } from 'mobx';
 import { MobxAngularModule } from 'mobx-angular';
@@ -28,6 +28,7 @@ import { Store } from '../../../store/store';
 import { downloadSet } from '../../../util/download';
 import { TAGS_REGEX } from '../../../util/format';
 import { printError } from '../../../util/http';
+import { hasTag } from '../../../util/tag';
 import { FilteredModels, filterModels, getModels, getTextFile, unzip, zippedFile } from '../../../util/zip';
 
 @Component({
@@ -357,8 +358,11 @@ export class UploadPage implements OnDestroy {
   uploadRef$(ref: Ref) {
     ref = toJS(ref);
     ref.origin = this.store.account.origin;
+    ref.published ||= DateTime.now();
     ref.tags = ref.tags?.filter(t => this.auth.canAddTag(t));
-    ref.plugins = pick(ref.plugins, ref.tags || []);
+    ref.plugins = Object.fromEntries(
+      Object.entries(ref.plugins || {}).filter(([tag]) => hasTag(tag, ref.tags)),
+    );
     return (ref.exists
         ? this.refs.update(ref).pipe(
           catchError((err: HttpErrorResponse) => {

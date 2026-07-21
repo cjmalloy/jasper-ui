@@ -46,4 +46,29 @@ test.describe.serial('User Page', () => {
     await page.locator('.sidebar .tag-select').getByText('Outbox').click();
     await expect(page).toHaveURL(/\/tag\/\+user\/bob/);
   });
+
+  test('downloads a pre-filled connection ref', async ({ page }) => {
+    await page.goto('/settings/user?debug=ADMIN', { waitUntil: 'networkidle' });
+    const profile = page.locator('.profile', {
+      has: page.getByRole('link', { name: '+user', exact: true }),
+    });
+    const downloadPromise = page.waitForEvent('download');
+    await profile.locator('.connect-action').click();
+    const download = await downloadPromise;
+    expect(download.suggestedFilename()).toBe('@localhost.json');
+    const stream = await download.createReadStream();
+    const chunks: Buffer[] = [];
+    for await (const chunk of stream) chunks.push(chunk);
+
+    expect(JSON.parse(Buffer.concat(chunks).toString())).toEqual({
+      url: 'http://localhost:8081/',
+      title: '@localhost',
+      tags: ['public', 'internal', '+plugin/cron', '+plugin/origin/pull', '+plugin/origin/tunnel'],
+      plugins: {
+        '+plugin/cron': { interval: 'PT15M' },
+        '+plugin/origin': { remote: '', local: '@localhost' },
+        '+plugin/origin/tunnel': { remoteUser: '+user' },
+      },
+    });
+  });
 });

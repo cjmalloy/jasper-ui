@@ -1,4 +1,5 @@
 import { KeyValuePipe } from '@angular/common';
+import { FakeLinkDirective } from '../../../directive/fake-link.directive';
 import { Overlay, OverlayModule, OverlayRef } from '@angular/cdk/overlay';
 import { HttpErrorResponse } from '@angular/common/http';
 import { Component, OnDestroy, TemplateRef, ViewChild, ViewContainerRef, ChangeDetectionStrategy } from '@angular/core';
@@ -31,6 +32,7 @@ interface ModUpdatePreview {
   styleUrls: ['./setup.component.scss'],
   changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
+    FakeLinkDirective,
     ReactiveFormsModule,
     RouterLink,
     KeyValuePipe,
