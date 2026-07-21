@@ -1,8 +1,9 @@
 import { Location } from '@angular/common';
 import { AfterViewInit, Component, ElementRef, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { autorun, IReactionDisposer } from 'mobx';
 import { MobxAngularModule } from 'mobx-angular';
+import { filter, take } from 'rxjs';
 import { TitleDirective } from '../../directive/title.directive';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
@@ -38,7 +39,12 @@ export class SubscriptionBarComponent implements AfterViewInit, OnDestroy {
     public location: Location,
     private el: ElementRef,
     private help: HelpService,
+    router: Router,
   ) {
+    router.events.pipe(
+      filter(event => event instanceof NavigationEnd),
+      take(1),
+    ).subscribe(() => this.startIndex = this.currentIndex);
     this.disposers.push(autorun(() => this.editor.getBookmarksPreview(this.store.account.bookmarks, this.store.account.origin)
       .subscribe(xs => this.bookmarks = xs)));
     this.disposers.push(autorun(() => this.exts.getCachedExts(this.store.account.subs)
