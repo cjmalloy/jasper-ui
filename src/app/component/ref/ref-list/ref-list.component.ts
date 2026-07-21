@@ -113,9 +113,10 @@ export class RefListComponent implements OnInit, OnDestroy, HasChanges {
   }
 
   get gridTemplateColumns() {
-    if (!this.query.bulkToolsOpen) return this.colStyle;
+    const bulkSelectable = this.query.bulkToolsOpen && this.page === this.query.page;
+    if (!bulkSelectable) return this.colStyle;
     if (!this.cols) return 'min-content min-content auto';
-    return ' min-content 1fr'.repeat(this.cols);
+    return 'min-content 1fr'.repeat(this.cols);
   }
 
   get cols() {
