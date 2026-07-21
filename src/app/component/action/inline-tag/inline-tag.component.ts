@@ -103,6 +103,7 @@ export class InlineTagComponent extends ActionComponent {
     ).subscribe(xs => {
       this.autocomplete = xs.map(x => ({ value: prefix + remove + x.tag, label: remove + (x.name || '#' + x.tag) }));
       if (!remove && this.autocomplete.length < 3) this.autocomplete.push(...getPlugins(tag));
+      this.autocomplete = uniqBy(this.autocomplete, 'value');
       if (!remove && this.autocomplete.length < 3) this.autocomplete.push(...getTemplates(tag));
       this.autocomplete = uniqBy(this.autocomplete, 'value');
     });
