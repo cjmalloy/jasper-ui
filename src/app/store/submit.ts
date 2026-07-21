@@ -1,19 +1,21 @@
-import { flatten, without } from 'lodash-es';
-import { autorun, makeAutoObservable, observable } from 'mobx';
+import { flatten, isArray, without } from 'lodash-es';
+import { action, autorun, makeAutoObservable, observable } from 'mobx';
 import { RouterStore } from 'mobx-angular';
 import { Ext } from '../model/ext';
 import { Plugin } from '../model/plugin';
 import { Ref } from '../model/ref';
-import { DEFAULT_WIKI_PREFIX } from '../mods/wiki';
+import { DEFAULT_WIKI_PREFIX } from '../mods/org/wiki';
 import { EventBus } from './bus';
 
+export type Saving = { url?: string, name: string, progress?: number };
 export class SubmitStore {
 
   wikiPrefix = DEFAULT_WIKI_PREFIX;
   maxPreview = 300;
-  submitInternal: Plugin[] = [];
-  submitText: Plugin[] = [];
+  submitGenId: Plugin[] = [];
+  submitDm: Plugin[] = [];
   files: File[] = [] as any;
+  caching: Map<File, Saving> = new Map<File, Saving>();
   exts: Ext[] = [];
   refs: Ref[] = [];
   overwrite = false;
@@ -24,18 +26,29 @@ export class SubmitStore {
     private eventBus: EventBus,
   ) {
     makeAutoObservable(this, {
-      submitInternal: observable.shallow,
-      submitText: observable.shallow,
+      submitGenId: observable.shallow,
+      submitDm: observable.shallow,
       files: observable.shallow,
+      caching: observable.shallow,
+      setRef: action,
+      setExt: action,
     });
 
-    autorun(() => {
-      if (this.eventBus.event === 'refresh') {
-        if (this.eventBus.ref) {
-          this.setRef(this.eventBus.ref)
+    this.eventBus.events.subscribe(event => {
+      if (event.event === 'refresh') {
+        if (event.ref) {
+          this.setRef(event.ref)
         }
       }
     });
+  }
+
+  get topRefs() {
+    return this.refs.slice(0, 5);
+  }
+
+  get topExts() {
+    return this.exts.slice(0, 5);
   }
 
   get subpage() {
@@ -61,8 +74,14 @@ export class SubmitStore {
     return !!this.url?.startsWith(this.wikiPrefix);
   }
 
-  get to() {
-    return this.route.routeSnapshot?.queryParams['to'];
+  get title(): string {
+    return this.route.routeSnapshot?.queryParams['title'] || '';
+  }
+
+  get to(): string[] {
+    const tag = this.route.routeSnapshot?.queryParams['to'];
+    if (!tag) return [];
+    return isArray(tag) ? tag : [tag];
   }
 
   get tag() {
@@ -74,6 +93,15 @@ export class SubmitStore {
       .flatMap( t => t.split(/[:|!()]/))
       .map(t => t.includes('@') ? t.substring(0, t.indexOf('@')) : t)
       .filter(t => t && !t.includes('*'));
+  }
+
+  get plugin() {
+    return this.route.routeSnapshot?.queryParams['plugin'] || '' as string;
+  }
+
+  get pluginUpload() {
+    if (!this.plugin) return '';
+    return this.route.routeSnapshot?.queryParams['upload'] || '' as string;
   }
 
   get repost() {
@@ -104,21 +132,26 @@ export class SubmitStore {
     return !this.exts.length && !this.refs.length;
   }
 
-  get internal() {
-    return this.tags.find(t => this.submitInternal.find(p => p.tag === t));
+  get genId() {
+    return this.tags.find(t => this.submitGenId.find(p => p.tag === t));
   }
 
-  get textPlugin() {
-    return this.tags.find(t => this.submitText.find(p => p.tag === t));
+  get dmPlugin() {
+    return [...this.tags, ...this.to].find(t => this.submitDm.find(p => p.tag === t));
   }
 
-  get withoutInternal() {
-    return without(this.tags, ...this.submitInternal.map(p => p.tag));
+  get withoutGenId() {
+    if (!this.submitGenId.length) return this.tags;
+    return without(this.tags, ...this.submitGenId.map(p => p.tag));
   }
 
   get huge() {
     if (this.refLimitOverride) return false;
     return this.refs.length > 100 || this.exts.length > 100;
+  }
+
+  get uploads() {
+    return [...this.caching.values()];
   }
 
   clearOverride() {
@@ -138,19 +171,19 @@ export class SubmitStore {
   }
 
   removeRef(ref: Ref) {
-    this.refs = without(this.refs, ref);
+    this.refs = this.refs.filter(r => r.url !== ref.url || r.modifiedString !== ref.modifiedString);
   }
 
   removeExt(ext: Ext) {
-    this.exts = without(this.exts, ext);
+    this.exts = this.exts.filter(x => x.tag !== ext.tag || x.modifiedString !== ext.modifiedString);
   }
 
-  clearUpload() {
-    this.exts = [];
-    this.refs = [];
+  clearUpload(refs: Ref[] = [], exts: Ext[] = []) {
+    this.exts = exts;
+    this.refs = refs;
   }
 
-  setFiles(files?: File[]) {
+  addFiles(files?: File[]) {
     if (!files) return;
     this.files ||= [];
     this.files.push(...files);

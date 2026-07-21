@@ -1,11 +1,13 @@
-import { HttpClientTestingModule } from '@angular/common/http/testing';
+/// <reference types="vitest/globals" />
+import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
-import { RouterTestingModule } from '@angular/router/testing';
+import { provideRouter } from '@angular/router';
+import { of } from 'rxjs';
 import { AdminService } from '../../../service/admin.service';
 
 import { SettingsSetupPage } from './setup.component';
-import { BehaviorSubject, of } from 'rxjs';
 
 describe('SettingsSetupPage', () => {
   let component: SettingsSetupPage;
@@ -13,25 +15,27 @@ describe('SettingsSetupPage', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ SettingsSetupPage ],
       imports: [
-        HttpClientTestingModule,
-        RouterTestingModule,
         ReactiveFormsModule,
+        SettingsSetupPage,
       ],
       providers: [
-        { provide: AdminService, useValue: {
-            init$: of(null),
-            getPlugin() {},
-            getTemplate() {},
-            def: {plugins: {}, templates: {}},
-            status: {plugins: {}, templates: {}}}}
+        {
+          provide: AdminService,
+          useValue: {
+                init$: of(null),
+                getPlugin() { },
+                getTemplate() { },
+                def: { plugins: {}, templates: {} },
+                status: { plugins: {}, templates: {} }
+            }
+        },
+        provideHttpClient(withXhr(), withInterceptorsFromDi()),
+        provideHttpClientTesting(),
+        provideRouter([]),
       ],
-    })
-    .compileComponents();
-  });
+    }).compileComponents();
 
-  beforeEach(() => {
     fixture = TestBed.createComponent(SettingsSetupPage);
     component = fixture.componentInstance;
     component.adminForm = new UntypedFormGroup({

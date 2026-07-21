@@ -1,20 +1,18 @@
+// Mini: Smallest possible size
+$mini-width: 380px;
 // Mobile: Change tabs and forms
 $mobile-width: 740px;
-// Mobile: Change tabs and forms
-$settings-tabs-width: 948px;
 // Tablet: Move sidebar above
-$tablet-width: 767px;
+$tablet-width: 948px;
 
 // TODO: CSS Vars
 
 /* Tablet and Bigger Screens */
 @media (min-width: $mobile-width) {
-  app-mobile-tab-select {
-    display: none;
-  }
-
-  .toggle.actions-toggle, .toggle.comments {
-    display: none;
+  .toggle {
+    &.actions-toggle, &.view, &.threads, &.comments {
+      display: none;
+    }
   }
 
   .full-page-form {
@@ -24,6 +22,12 @@ $tablet-width: 767px;
     }
     .form {
       margin: auto;
+    }
+  }
+
+  .editor {
+    &.add-button {
+      min-width: calc(min(100vw, 538px));
     }
   }
 
@@ -37,84 +41,108 @@ $tablet-width: 767px;
 @media not print {
 /* Tablet and Smaller Screens */
 @media (max-width: $tablet-width) {
-.sidebar {
-  position: static !important;
-  float: none !important;
-  backdrop-filter: blur(1px) !important;
-  border: none !important;
+  .sidebar {
+    position: static !important;
+    float: none !important;
+    backdrop-filter: blur(1px) !important;
+    border: none !important;
+    margin-left: 0;
 
-  details {
-    max-height: 42px;
-  }
-
-  input[type=search] {
-    width: 100%;
-  }
-
-  & > * {
-    max-height: 1000px;
-    overflow: hidden;
-    transition: opacity .4s .1s,
-    font-size .5s,
-    margin .5s,
-    padding .5s,
-    border .5s,
-    max-height .5s;
-  }
-
-  &:not(.expanded) {
-    .hide {
-      transition: opacity .5s,
-      font-size .4s .1s,
-      margin .4s .1s,
-      padding .4s .1s,
-      border .4s .1s,
-      max-height .4s .1s;
-      font-size: 0 !important;
-      margin: 0 !important;
-      max-height: 0 !important;
-      opacity: 0 !important;
-      padding: 0 !important;
-      border: 0 !important;
+    details {
+      max-height: 42px;
     }
-    .button-bar {
-      flex-direction: row;
+
+    input[type=search] {
+      width: 100%;
     }
-    .submit-button {
-      display: flex;
-      flex-grow: 1;
-      margin: 0;
-      margin-right: 4px;
-      align-items: center;
-      &:last-child {
-        margin-right: 1px;
+
+    & > * {
+      max-height: 1000px;
+      overflow: hidden;
+      transition: opacity .4s .1s,
+      font-size .5s,
+      margin .5s,
+      padding .5s,
+      border .5s,
+      max-height .5s;
+    }
+
+    &:not(.expanded) {
+      .hide {
+        transition: opacity .5s,
+        font-size .4s .1s,
+        margin .4s .1s,
+        padding .4s .1s,
+        border .4s .1s,
+        max-height .4s .1s;
+        font-size: 0 !important;
+        margin: 0 !important;
+        max-height: 0 !important;
+        opacity: 0 !important;
+        padding: 0 !important;
+        border: 0 !important;
       }
-      span {
-        width: 100%;
-        text-align: center;
-      }
-      label {
+      app-chat-video > *:not(.submit-button) {
         display: none;
       }
+      .button-bar {
+        flex-direction: row;
+      }
+      .tag-select {
+        display: flex;
+        margin: 4px;
+      }
+      .submit-button {
+        display: flex;
+        flex-grow: 1;
+        padding: 4px !important;
+        margin: 0 !important;
+        margin-right: 4px !important;
+        align-items: center;
+        &:last-child {
+          margin-right: 1px !important;
+        }
+        span {
+          width: 100%;
+          text-align: center;
+        }
+        label {
+          display: none;
+        }
+      }
     }
   }
-}
-}
 
-/* Special width for settings tabs */
-@media (max-width: $settings-tabs-width) {
-  .settings .tabs {
-    & > a:not(.current-tab):not(.logo) {
-      display: none;
-    }
-    app-mobile-tab-select {
-      display: block;
+  .todo-list, .kanban-column {
+    padding-bottom: 4px !important;
+    input {
+      display: block !important;
     }
   }
 }
 
 /* Phone Screens */
 @media (max-width: $mobile-width) {
+  input[type="color"],
+  input[type="date"],
+  input[type="datetime"],
+  input[type="datetime-local"],
+  input[type="email"],
+  input[type="month"],
+  input[type="number"],
+  input[type="password"],
+  input[type="search"],
+  input[type="tel"],
+  input[type="text"],
+  input[type="time"],
+  input[type="url"],
+  input[type="week"],
+  button,
+  select,
+  select:focus,
+  textarea {
+    font-size: 16px;
+  }
   .mobile-col {
     flex-direction: column;
   }
@@ -142,7 +170,7 @@ $tablet-width: 767px;
 
     .light-toggle {
       font-size: 13px;
-      padding: 2px 20px 12px 20px;
+      padding: 2px 20px 15px 22px;
     }
   }
 
@@ -150,25 +178,85 @@ $tablet-width: 767px;
     h5 {
       flex-basis: 100%;
     }
-    & > a:not(.current-tab):not(.logo) {
-      display: none;
-    }
   }
 
   .editor, .summary-box {
-    margin: 0 !important;
-    padding: 0 !important;
     background-color: unset !important;
     backdrop-filter: unset !important;
     box-shadow: unset !important;
     border: 1px solid transparent !important;
   }
 
+  .toolbar {
+    overflow-x: scroll;
+  }
+
+  .ref, .comment-edit, .comment-reply, .full-page-form {
+    .editor, .summary-box {
+      margin: 0 !important;
+      padding: 0 !important;
+    }
+  }
+
+  .editor {
+    &.add-button {
+      &>* {
+        margin: 4px;
+      }
+    }
+  }
+
+  .thread > .ref-list > .list-container > .ref,
+  .md .ref.plugin_thread:not(.ref-list-item),
+  .thread .ref.plugin_thread:not(.ref-list-item),
+  .parent-ref.thread,
+  .full-page.ref.thread {
+    margin: 4px 6px 4px 4px;
+    padding: 0;
+    .thumbnail,
+    .toggle.actions-toggle,
+    .toggle.view,
+    .toggle.threads,
+    .toggle.comments {
+      display: none;
+    }
+    &:not(.sent) {
+      justify-self: left;
+    }
+    &.sent {
+      margin-left: 4px;
+      justify-self: right;
+    }
+    & > .row > .stack {
+      padding: 8px;
+      & > .link-below > .stack > .info,
+      & > .link-below > .stack > .actions,
+      & > .link  {
+        margin-left: 0;
+        transition: none;
+        height: 28px;
+        line-height: 28px;
+        padding: 0 8px;
+      }
+      & > .link  {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+    }
+  }
+
+  .buttons.right {
+    padding-right: 27px;
+  }
+
   .list-container {
     .list-number {
       opacity: 0;
       width: 0;
+      min-width: 0;
       padding: 0;
+      line-height: 0;
     }
     .link {
       -webkit-box-orient: vertical;
@@ -187,31 +275,64 @@ $tablet-width: 767px;
   textarea {
     margin: 0;
     resize: vertical;
-    width: calc(100vw - 12px) !important;
+    width: 100%;
   }
 
-  .editor textarea {
-    margin-left: -3px;
+  .full-page-form .editor textarea {
+    margin-left: 0;
   }
 
-  .json-editor ngx-monaco-editor {
+  .app-comment-reply, app-comment-edit {
+    .editor {
+      width: calc(100% - 11px);
+      textarea {
+        margin-left: -11px;
+        width: calc(100% + 5px);
+      }
+    }
+  }
+
+  .editor-label, .add-plugins-label {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    & > label {
+      margin-right: 20px;
+    }
+    & > .select-plugin {
+      flex: 1;
+    }
+  }
+
+  mgl-map {
+    width: 100vw !important;
+  }
+
+  .json-editor ngx-monaco-editor,
+  .diff-editor ngx-monaco-diff-editor {
     margin: 0 0 0 -10px;
     width: 100vw !important;
   }
 
   .plugins-form {
     .json-editor ngx-monaco-editor,
+    .diff-editor ngx-monaco-diff-editor,
     textarea {
       width: calc(100vw - 40px) !important;
     }
   }
 
-  ngx-monaco-editor {
+  .floating-ribbons > div {
+    right: calc(23px - 100%);
+  }
+
+  ngx-monaco-editor,
+  ngx-monaco-diff-editor {
     width: 100vw !important;
     max-height: 50vh;
   }
 
-  .resize-handle:after {
+  .resize-handle:before {
     content: '⬍';
     font-size: 175%;
     width: 24px;
@@ -239,21 +360,17 @@ $tablet-width: 767px;
     .comment-children {
       margin-left: 2px;
     }
-
-    .comment-container {
-      max-width: calc(100% - 8px);
-    }
   }
 
   .comment-reply, .comment-edit {
-    width: calc(100vw - 8px);
+    width: min(100%, 100vw - 16px);
   }
 
-  .embed {
+  .embed:not(.comment-body) {
     position: relative;
     left: 0;
     margin: 0;
-    width: 100vw;
+    width: min(100%, 100vw - 16px);
   }
 
   .audio-expand {
@@ -261,7 +378,7 @@ $tablet-width: 767px;
     margin: 10px 0;
   }
 
-  video {
+  .video-expand {
     width: 100vw;
     height: 100vh;
   }
@@ -269,6 +386,9 @@ $tablet-width: 767px;
   .full-page {
     .embed {
       width: calc(100vw - 10px);
+    }
+    &.thread .embed {
+      width: unset;
     }
   }
 
@@ -278,7 +398,6 @@ $tablet-width: 767px;
     height: 28px;
     padding-top: 0;
     padding-bottom: 0;
-    transition: height .5s;
     overflow-y: hidden;
     overflow-x: auto;
     white-space: nowrap;
@@ -300,10 +419,30 @@ $tablet-width: 767px;
     }
     .info, .actions {
       height: 0;
+      margin-left: -8px;
+      padding: 0 8px;
+      mask-image: linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.1) 2px, white 8px, white calc(100% - 18px), rgba(255, 255, 255, 0.1) calc(100% - 6px), rgba(255, 255, 255, 0));
 
       &.expanded {
-        height: 28px;
-        padding-bottom: 10px;
+        transition: height .5s;
+        height: 32px;
+        padding-top: 2px;
+      }
+      &.not-expanded {
+        transition: height .5s;
+      }
+    }
+    &.full-page > .row > .stack > .link-below {
+      & > .stack > * {
+        &.info, &.actions {
+          height: 32px !important;
+          transition: none !important;
+        }
+      }
+      & > .toggle {
+        &.actions-toggle, &.view, &.threads, &.comments {
+          display: none !important;
+        }
       }
     }
   }
@@ -316,13 +455,18 @@ $tablet-width: 767px;
     border: none !important;
   }
 
-  .image-expand {
-    width: 100vw;
-    height: 100vh;
+  .thread .image-expand {
+    width: calc(100vw - 36px);
   }
 
   .fill-editor {
     margin: 0 !important;
+  }
+
+  .md {
+    blockquote {
+      margin-right: auto;
+    }
   }
 
   .kanban-header {
@@ -331,32 +475,46 @@ $tablet-width: 767px;
     }
   }
 
+  .badges .badge {
+    transform: none !important;
+    filter: none !important;
+    border: 1px solid transparent !important;
+    &.filtering {
+      transform: translate(1px, -1px) !important;
+      filter: drop-shadow(0 0 0.5px white) drop-shadow(1px 1px 0.5px black) !important;
+      border: 1px solid rgba(0, 0, 0, 0.1) !important;
+    }
+    &:active {
+      transform: scale(1.1) !important;
+      filter: drop-shadow(-1px -1px 0.5px black) !important;
+      border: 1px solid rgba(0, 0, 0, 0.1) !important;
+    }
+  }
+
   .cdk-overlay-pane .editor textarea {
     margin-left: 2px;
   }
-
-  .full-page {
-    .toggle.actions-toggle, .toggle.comments {
-      display: none;
-    }
-
-    .info, .actions {
-      height: 28px;
-      padding-bottom: 10px;
-    }
-  }
-  .form {
-    max-width: 100vw;
+  .form, .full-page-upload .list-container {
+    max-width: calc(100vw - 8px);
     display: flex !important;
     flex-direction: column;
 
-
-    app-select-plugin select {
-      width: unset !important;
-    }
-
     label {
       text-align: left !important;
+    }
+  }
+}
+
+/* Smallest possible */
+@media (max-width: $mini-width) {
+  .mini-col {
+    flex-direction: column;
+    &.reverse {
+      flex-direction: column-reverse;
+    }
+    & > * {
+      width: 100% !important;
+      margin: 4px 0;
     }
   }
 }

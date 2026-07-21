@@ -1,16 +1,24 @@
-<div *ngFor="let p of pieces trackBy: trackByPiece; let i = index" class="tile {{ color(i) }}"
-     [class.from]="getCoord(white ? i : 63 - i) === from"
-     [class.move]="moves.includes(getCoord(white ? i : 63 - i))"
-     (click)="clickSquare(white ? i : 63 - i)"
-     cdkDropList
-     [cdkDropListData]="white ? i : 63 - i"
-     (cdkDropListDropped)="drop($any($event))">
-  <div *ngIf="(white ? p : pieces[63-i]) as rp" class="chess-piece {{ rp?.color }}"
-       [class.bounce]="rp.square===bounce"
-       [class.disabled]="!writeAccess || turn !== rp.color"
-       cdkDrag
-       cdkDragBoundary=".chess-board"
-       (cdkDragStarted)="setPieceSize()"
-       [cdkDragData]="rp"
-       [cdkDragDisabled]="config.mobile || !writeAccess || turn !== rp.color">{{ drawPiece(rp) }}</div>
-</div>
+@for (p of pieces; track i; let i = $index) {
+  <div class="tile {{ color(i) }}"
+       [class.from]="getCoord(white ? i : 63 - i) === from"
+       [class.move]="moves.includes(getCoord(white ? i : 63 - i))"
+       [class.last-move]="getCoord(white ? i : 63 - i) === lastMoveTo"
+       (click)="clickSquare(white ? i : 63 - i)"
+       cdkDropList
+       [cdkDropListData]="white ? i : 63 - i"
+       (cdkDropListDropped)="drop($any($event))">
+    @if (white ? p : pieces[63-i]; as rp) {
+      <div class="chess-piece {{ rp?.color }}"
+           [class.translate]="translate.includes(rp.square)"
+           [class.disabled]="!writeAccess || turn !== rp.color"
+           cdkDrag
+           cdkDragBoundary=".chess-board"
+           (cdkDragStarted)="setPieceSize()"
+           [cdkDragData]="rp"
+           [cdkDragDisabled]="config.mobile || turn !== rp.color">{{ drawPiece(rp) }}</div>
+    }
+    @if (capturedPiece && getCoord(white ? i : 63 - i) === capturedPiece.square) {
+      <div class="chess-piece {{ capturedPiece.piece.color }} captured">{{ drawPiece(capturedPiece.piece) }}</div>
+    }
+  </div>
+}

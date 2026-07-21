@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
-import { without } from 'lodash-es';
+import { filter, without } from 'lodash-es';
 import { Store } from '../store/store';
+import { toggle, UrlFilter } from '../util/query';
 
 @Injectable({
   providedIn: 'root'
@@ -13,12 +14,29 @@ export class BookmarkService {
     private router: Router,
   ) { }
 
-  toggleFilter(query: string) {
-    if (this.store.view.queryFilters.includes(query)) {
-      this.filters = without(this.store.view.filter, 'query/' + query);
+  toggleFilter(f: UrlFilter, ...clear: string[]) {
+    const filters = filter(this.store.view.filter, f => !clear.find(p => f.startsWith(p)));
+    if (filters.includes(f)) {
+      this.filters = without(filters, f);
     } else {
-      this.filters = [...this.store.view.filter, 'query/' + query];
+      this.filters = [...without(filters, toggle(f)), f];
     }
+  }
+
+  clearFilters(...prefix: string[]) {
+    this.filters = filter(this.store.view.filter, f => !prefix.find(p => f.startsWith(p)));
+  }
+
+  toggleQuery(query: string) {
+    this.toggleFilter('query/' + query as UrlFilter);
+  }
+
+  toggleSources(url: string) {
+    this.toggleFilter('sources/' + url as UrlFilter, 'responses/' + url);
+  }
+
+  toggleResponses(url: string) {
+    this.toggleFilter('responses/' + url as UrlFilter, 'sources/' + url);
   }
 
   get filters() {
@@ -33,17 +51,30 @@ export class BookmarkService {
     });
   }
 
-  toggleTag(tag: string) {
+  get origin() {
+    return this.store.view.origin;
+  }
+
+  set origin(origin: string) {
+    this.router.navigate([], {
+      queryParams: { origin },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
+  }
+
+  toggleTag(...ts: string[]) {
+    if (!ts.length) return;
     const tags = this.tags;
-    if (tag) {
-      if (tags.includes(tag)) {
+    for (const t of ts) {
+      if (tags.includes(t)) {
         for (let i = tags.length - 1; i >= 0; i--) {
-          if (tag === tags[i] || tags[i].startsWith(tag + '/')) {
+          if (t === tags[i] || tags[i].startsWith(t + '/')) {
             tags.splice(i, 1);
           }
         }
       } else {
-        tags.push(tag);
+        tags.push(t);
       }
     }
     this.tags = tags;
@@ -56,6 +87,19 @@ export class BookmarkService {
   set tags(tags: string[]) {
     this.router.navigate([], {
       queryParams: { tag: tags.length ? tags : null, pageNumber: null },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
+  }
+
+  get to() {
+    return this.store.submit.to;
+  }
+
+  set to(tos: string[]) {
+    if (tos.join(' ') === this.store.submit.to.join(' ')) return;
+    this.router.navigate([], {
+      queryParams: { to: tos.length ? tos : null, pageNumber: null },
       queryParamsHandling: 'merge',
       replaceUrl: true,
     });

@@ -1,8 +1,55 @@
-<app-force-directed *ngIf="isTemplate('graph') else kanban"
-                    [tag]="tag"
-                    [content]="page?.content || []"></app-force-directed>
-<ng-template #kanban>
-  <app-kanban *ngIf="isTemplate('kanban') else blog"
+@if (header) {
+  <app-viewer class="lens-header" [text]="header"></app-viewer>
+}
+<ng-container *mobxAutorun>
+  @if (query.responseOf) {
+    <div class="list-container responses-of">
+      <div class="label" i18n>Responses Of:</div>
+      <app-ref class="full-page"
+               [ref]="query.responseOf"
+               [showToggle]="true"
+               (copied)="query.refresh()"></app-ref>
+    </div>
+  }
+  @if (query.sourcesOf) {
+    <div class="list-container sources-of">
+      <div class="label" i18n>Sources Of:</div>
+      <app-ref class="full-page"
+               [ref]="query.sourcesOf"
+               [showToggle]="true"
+               (copied)="query.refresh()"></app-ref>
+    </div>
+  }
+</ng-container>
+@if (isTemplate('graph')) {
+  @defer {
+    <app-force-directed #lens
+                        [tag]="tag"
+                        [content]="page?.content || []"></app-force-directed>
+  } @placeholder {
+    <app-loading></app-loading>
+  }
+} @else if (isTemplate('grid')) {
+  @defer {
+    <app-grid #lens
+              [tag]="tag"
+              [ext]="ext!"
+              [page]="page"
+              [pageControls]="pageControls"
+              [cols]="cols"></app-grid>
+  } @placeholder {
+    <app-loading></app-loading>
+  }
+} @else if (isTemplate('notes')) {
+  <app-notebook #lens
+                [class]="cssClass(ext?.tag)"
+                [ext]="ext"
+                [page]="page"
+                [pageControls]="pageControls"
+                [plugins]="plugins"
+                [cols]="cols"></app-notebook>
+} @else if (isTemplate('kanban')) {
+  <app-kanban #lens
               [query]="tag"
               [ext]="ext!"
               [fullPage]="fullPage"
@@ -11,26 +58,34 @@
               [sort]="sort"
               [filter]="filter"
               [search]="search"></app-kanban>
-</ng-template>
-<ng-template #blog>
-  <app-blog *ngIf="isTemplate('blog') else chat"
+} @else if (isTemplate('blog')) {
+  <app-blog #lens
             [ext]="ext!"
             [page]="page"
             [pageControls]="pageControls"
             [cols]="cols"></app-blog>
-</ng-template>
-<ng-template #chat>
-  <app-chat *ngIf="isTemplate('chat') else folder"
+} @else if (isTemplate('chat')) {
+  <app-chat #lens
             [query]="tag"></app-chat>
-</ng-template>
-<ng-template #folder>
-  <app-folder *ngIf="isTemplate('folder') else noTmpl"
-              [tag]="tag"
+} @else if (isTemplate('map')) {
+  @defer {
+    <app-map #lens
+             [tag]="tag"
+             [ext]="ext"
+             [page]="page"
+             [pageControls]="pageControls"></app-map>
+  } @placeholder {
+    <app-loading></app-loading>
+  }
+} @else if (isTemplate('folder')) {
+  <app-folder #lens
               [page]="page"
+              [tag]="tag"
               [ext]="ext!"></app-folder>
-</ng-template>
-<ng-template #noTmpl>
-  <app-ref-list [class]="cssClass(ext?.tag)"
+} @else {
+  <app-ref-list #lens
+                class="expand"
+                [class]="cssClass(ext?.tag)"
                 [ext]="ext"
                 [page]="page"
                 [pageControls]="pageControls"
@@ -38,4 +93,4 @@
                 [cols]="cols"
                 [showAlarm]="showAlarm"
                 [showVotes]="showVotes"></app-ref-list>
-</ng-template>
+}

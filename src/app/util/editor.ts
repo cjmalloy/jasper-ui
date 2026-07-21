@@ -1,7 +1,8 @@
-import { difference, uniq } from 'lodash-es';
 import * as he from 'he';
+import { difference, uniq } from 'lodash-es';
 import { marked } from 'marked';
 import { getMailbox } from '../mods/mailbox';
+import { wikiUriFormat } from '../mods/org/wiki';
 import { QUALIFIED_USER_REGEX, TAG_REGEX } from './format';
 
 export function getMailboxes(markdown: string, origin = '') {
@@ -10,11 +11,12 @@ export function getMailboxes(markdown: string, origin = '') {
 }
 
 export function getTags(markdown: string) {
-  return extractPattern(markdown, /#[a-z0-9]+([./][a-z0-9]+)*/g, /#([a-z0-9]+([./][a-z0-9]+)*)/, TAG_REGEX);
+  return extractPattern(markdown, /#[_+]?[a-z0-9]+([./][a-z0-9]+)*/g, /#([a-z0-9]+([./][a-z0-9]+)*)/, TAG_REGEX);
 }
 
 export function extractPattern(markdown: string, pattern: RegExp, extractor?: RegExp, validator?: RegExp) {
   const result: string[] = [];
+  if (!markdown) return result;
   const matches = markdown.match(pattern);
   for (const s of matches || []) {
     const url = (extractor ? s.match(extractor)?.[1] : s)?.trim();
@@ -44,9 +46,12 @@ export function getLinks(markdown: string, withText?: RegExp) {
     }
     if (withText) return;
     const customType = t as any;
-    if (customType.type === 'embed' || customType.type === 'wiki' || customType.type === 'wiki-embed') {
-      if (!customType.text) return;
-      result.push(customType.text);
+    if (customType.text) {
+      if (customType.type === 'wiki' || customType.type === 'wiki-embed') {
+        result.push(wikiUriFormat(customType.text));
+      } else if (customType.type === 'embed') {
+        result.push(customType.text);
+      }
     }
   });
   return result;

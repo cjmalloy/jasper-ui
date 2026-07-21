@@ -1,28 +1,30 @@
-<div *ngFor="let s of spots trackBy: trackByIdx"
-     class="backgammon-spot"
-     [style.grid-column]="s.col > 6 ? s.col + 2 : s.col + 1"
-     [style.grid-row]="s.top ? 1 : 2"
-     [class.move]="s.move"
-     [class.red]="s.red"
-     [class.top]="s.top"
-     [class.drag-source]="dragSource===s.index"
-     cdkDropList
-     [cdkDropListData]="s.index"
-     (cdkDropListDropped)="drop($any($event))"
-     (click)="onClick(s.index)"
-     (contextmenu)="moveHighest($event, s.index)">
-  <div *ngFor="let p of s.pieces trackBy: trackByColor; let pi = index"
-       class="backgammon-piece"
-       [class.stacked]="pi > 4"
-       [class.double-stacked]="pi > 9"
-       [class.bounce]="s.bounce && pi >= s.pieces.length - s.bounce"
-       cdkDrag
-       cdkDragBoundary=".backgammon-board"
-       (cdkDragStarted)="onDragStarted(s.index)"
-       (cdkDragExited)="dragSource = -1"
-       [cdkDragData]="p"
-       [cdkDragDisabled]="!writeAccess">{{ drawPiece(p) }}</div>
-</div>
+@for (s of spots; track s.index) {
+  <div class="backgammon-spot"
+       [style.grid-column]="s.col > 6 ? s.col + 2 : s.col + 1"
+       [style.grid-row]="s.top ? 1 : 2"
+       [class.move]="s.move"
+       [class.red]="s.red"
+       [class.top]="s.top"
+       [class.drag-source]="dragSource===s.index"
+       cdkDropList
+       [cdkDropListData]="s.index"
+       (cdkDropListDropped)="drop($any($event))"
+       (click)="onClick(s.index)"
+       (contextmenu)="moveHighest($event, s.index)">
+    @for (p of s.pieces; track pi; let pi = $index) {
+      <div class="backgammon-piece"
+           [class.stacked]="pi > 4"
+           [class.double-stacked]="pi > 9"
+           [class.hidden]="animatedPiece && animatedPiece.from === s.index && pi === s.pieces.length - 1"
+           [class.glow]="pi >= s.pieces.length - (lastMovedSpots[s.index] || 0)"
+           cdkDrag
+           cdkDragBoundary=".backgammon-board"
+           (cdkDragStarted)="onDragStarted(s.index)"
+           (cdkDragExited)="dragSource = -1"
+           [cdkDragData]="p">{{ drawPiece(p) }}</div>
+    }
+  </div>
+}
 <div class="backgammon-off black"
      [style.grid-column]="1"
      [style.grid-row]="1"
@@ -30,7 +32,15 @@
      cdkDropList
      [cdkDropListData]="-2"
      (cdkDropListDropped)="drop($any($event))"
-     (click)="onClickOff()"></div>
+     (click)="onClickOff()">
+  @for (p of blackOff; track pi; let pi = $index) {
+    <div class="backgammon-piece"
+         [class.stacked]="pi > 4"
+         [class.double-stacked]="pi > 9"
+         [class.glow]="pi >= blackOff.length - (lastMovedOff['b'] || 0)"
+         [class.translate]="turn === 'b' && translate === -2 && pi === blackOff.length - 1">{{ drawPiece(p) }}</div>
+  }
+</div>
 <div class="backgammon-off red"
      [style.grid-column]="1"
      [style.grid-row]="2"
@@ -38,7 +48,15 @@
      cdkDropList
      [cdkDropListData]="-2"
      (cdkDropListDropped)="drop($any($event))"
-     (click)="onClickOff()"></div>
+     (click)="onClickOff()">
+  @for (p of redOff; track pi; let pi = $index) {
+    <div class="backgammon-piece"
+         [class.stacked]="pi > 4"
+         [class.double-stacked]="pi > 9"
+         [class.glow]="pi >= redOff.length - (lastMovedOff['r'] || 0)"
+         [class.translate]="turn === 'r' && translate === -2 && pi === redOff.length - 1">{{ drawPiece(p) }}</div>
+  }
+</div>
 <div class="backgammon-bar black"
      [style.grid-column]="8"
      [style.grid-row]="1"
@@ -48,16 +66,14 @@
      [cdkDropListData]="-1"
      (click)="onClickBar()"
      (contextmenu)="moveBarHighest($event)">
-  <ng-container *ngFor="let p of blackBar trackBy: trackByColor; let pi = index">
-    <div *ngIf="p === 'b'"
-         class="backgammon-piece"
-         [class.bounce]="pi >= blackBar.length - redBarBounce"
+  @for (p of blackBar; track pi; let pi = $index) {
+    <div class="backgammon-piece"
+         [class.hidden]="animatedPiece && animatedPiece.from === -1 && animatedPiece.piece === 'b' && pi === blackBar.length - 1"
          cdkDrag
          cdkDragBoundary=".backgammon-board"
          (cdkDragStarted)="onDragStarted(-1)"
-         [cdkDragData]="p"
-         [cdkDragDisabled]="!writeAccess">{{ drawPiece(p) }}</div>
-  </ng-container>
+         [cdkDragData]="p">{{ drawPiece(p) }}</div>
+  }
 </div>
 <div class="backgammon-bar red"
      [style.grid-column]="8"
@@ -67,17 +83,18 @@
      [cdkDropListData]="-1"
      (click)="onClickBar()"
      (contextmenu)="moveBarHighest($event)">
-  <ng-container *ngFor="let p of redBar trackBy: trackByColor; let pi = index">
+  @for (p of redBar; track p; let pi = $index) {
     <div class="backgammon-piece"
-         [class.bounce]="pi >= redBar.length - redBarBounce"
+         [class.hidden]="animatedPiece && animatedPiece.from === -1 && animatedPiece.piece === 'r' && pi === redBar.length - 1"
          cdkDrag
          cdkDragBoundary=".backgammon-board"
          (cdkDragStarted)="onDragStarted(-1)"
-         [cdkDragData]="p"
-         [cdkDragDisabled]="!writeAccess">{{ drawPiece(p) }}</div>
-  </ng-container>
+         [cdkDragData]="p">{{ drawPiece(p) }}</div>
+  }
 </div>
-
+@if (animatedPiece) {
+  <div class="backgammon-piece animated-piece">{{ drawPiece(animatedPiece.piece) }}</div>
+}
 <div class="red dice bubble"
      [class.winner]="winner === 'r'"
      [class.backgammon]="winner === 'r' && backgammon"
@@ -85,22 +102,34 @@
      [class.clickme]="!winner && (first && turn === 'r' || !moves.length && turn === 'b')"
      [class.play]="moves.length && turn === 'r'"
      [class.rolling]="rolling === 'r'"
-     [class.disabled]="!writeAccess || winner || moves.length || redDice[0] && turn !== 'b'"
+     [class.disabled]="winner || moves.length || redDice[0] && turn !== 'b'"
      (click)="roll('r')"
      i18n-title title="Red">
-  <div *ngIf="winner === 'r'" i18n>
-    Red Wins
-    <span *ngIf="backgammon" i18n-title title="Backgammon">🎲️🎲️🎲️</span>
-    <span *ngIf="gammon && !backgammon" i18n-title title="Gammon">🎲️🎲️</span>
-    <span *ngIf="!gammon">🎲️</span>
-  </div>
-  <div *ngIf="!redDice[0] else redStarted" i18n>🎲️ Roll</div>
-  <ng-template #redStarted>
-    <div *ngIf="redDice[0] && !redDice[1] else redRolled" i18n>{{ redDice[0] }}</div>
-  </ng-template>
-  <ng-template #redRolled>
-    <div *ngIf="redDice[1]" i18n>{{ redDice[0] }} - {{ redDice[1] }}</div>
-  </ng-template>
+  @if (winner === 'r') {
+    <div i18n>
+      Red Wins
+      @if (backgammon) {
+        <span i18n-title title="Backgammon">🎲️🎲️🎲️</span>
+      }
+      @if (gammon && !backgammon) {
+        <span i18n-title title="Gammon">🎲️🎲️</span>
+      }
+      @if (!gammon) {
+        <span>🎲️</span>
+      }
+    </div>
+  }
+  @if (!redDice[0]) {
+    <div i18n>🎲️ Roll</div>
+  } @else {
+    @if (redDice[0] && !redDice[1]) {
+      <div i18n>{{ redDice[0] }}</div>
+    } @else {
+      @if (redDice[1]) {
+        <div i18n>{{ redDice[0] }} - {{ redDice[1] }}</div>
+      }
+    }
+  }
 </div>
 <div class="black dice bubble"
      [class.winner]="winner === 'b'"
@@ -109,20 +138,76 @@
      [class.clickme]="!winner && (first && turn === 'b' || !moves.length && turn === 'r')"
      [class.play]="moves.length && turn === 'b'"
      [class.rolling]="rolling === 'b'"
-     [class.disabled]="!writeAccess || winner || moves.length || blackDice[0] && turn !== 'r'"
+     [class.disabled]="winner || moves.length || blackDice[0] && turn !== 'r'"
      (click)="roll('b')"
      i18n-title title="Black">
-  <div *ngIf="winner === 'b'" i18n>
-    Black Wins
-    <span *ngIf="backgammon" i18n-title title="Backgammon">🎲️🎲️🎲️</span>
-    <span *ngIf="gammon && !backgammon" i18n-title title="Gammon">🎲️🎲️</span>
-    <span *ngIf="!gammon">🎲️</span>
-  </div>
-  <div *ngIf="!blackDice[0] else blackStarted" i18n>🎲️ Roll</div>
-  <ng-template #blackStarted>
-    <div *ngIf="blackDice[0] && !blackDice[1] else blackRolled" i18n>{{ blackDice[0] }}</div>
-  </ng-template>
-  <ng-template #blackRolled>
-    <div *ngIf="blackDice[1]" i18n>{{ blackDice[0] }} - {{ blackDice[1] }}</div>
-  </ng-template>
+  @if (winner === 'b') {
+    <div i18n>
+      Black Wins
+      @if (backgammon) {
+        <span i18n-title title="Backgammon">🎲️🎲️🎲️</span>
+      }
+      @if (gammon && !backgammon) {
+        <span i18n-title title="Gammon">🎲️🎲️</span>
+      }
+      @if (!gammon) {
+        <span>🎲️</span>
+      }
+    </div>
+  }
+  @if (!blackDice[0]) {
+    <div i18n>🎲️ Roll</div>
+  } @else {
+    @if (blackDice[0] && !blackDice[1]) {
+      <div i18n>{{ blackDice[0] }}</div>
+    } @else {
+      @if (blackDice[1]) {
+        <div i18n>{{ blackDice[0] }} - {{ blackDice[1] }}</div>
+      }
+    }
+  }
 </div>
+@if (replayMode) {
+  <div class="replay-controls">
+    <div class="scrubber-container">
+      <input type="range"
+             class="scrubber-bar"
+             [min]="0"
+             [max]="replayAnimations.length + 1"
+             [value]="replayPosition"
+             (pointerdown)="startSeeking()"
+             (input)="seek($any($event.target).value)"
+             (pointerup)="endSeeking()">
+      <div class="scrubber-ticks">
+        @for (eventPos of importantEvents; track eventPos) {
+          <div class="scrubber-tick"
+               [style.left.%]="(eventPos / replayAnimations.length) * 100"
+               [title]="importantEventTypes.get(eventPos) || 'Important event'">
+            <span class="tick-emoji" 
+                  (click)="snapToEvent(eventPos)">{{ getEventEmoji(eventPos) }}</span>
+          </div>
+        }
+      </div>
+    </div>
+    <div class="control-buttons">
+      @if (!replayPlaying) {
+        <button type="button"
+                class="replay-btn play-btn"
+                (click)="playReplay()"
+                i18n-title title="Play">▶️</button>
+      } @else {
+        <button type="button"
+                class="replay-btn pause-btn"
+                (click)="pauseReplay()"
+                i18n-title title="Pause">⏸️</button>
+      }
+      <button type="button"
+              class="replay-btn"
+              (click)="replayFastForward()"
+              i18n-title title="Change playback speed">⏩️ {{ replaySpeed }}x</button>
+    </div>
+    <div class="replay-info">
+      <span i18n>Move {{ floor(replayPosition) }} / {{ replayAnimations.length }}</span>
+    </div>
+  </div>
+}

@@ -1,10 +1,13 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
-import { defer } from 'lodash-es';
+import { Component, inject, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { defer, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
+import { MobxAngularModule } from 'mobx-angular';
+import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
+import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Plugin } from '../../../model/plugin';
 import { AdminService } from '../../../service/admin.service';
 import { AuthzService } from '../../../service/authz.service';
-import { ThemeService } from '../../../service/theme.service';
+import { ModService } from '../../../service/mod.service';
 import { QueryStore } from '../../../store/query';
 import { Store } from '../../../store/store';
 import { getArgs } from '../../../util/query';
@@ -13,34 +16,43 @@ import { getArgs } from '../../../util/query';
   selector: 'app-settings-ref-page',
   templateUrl: './ref.component.html',
   styleUrls: ['./ref.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [MobxAngularModule, RefListComponent],
 })
-export class SettingsRefPage implements OnInit, OnDestroy {
+export class SettingsRefPage implements OnInit, OnDestroy, HasChanges {
   private disposers: IReactionDisposer[] = [];
 
-  plugin!: Plugin;
+  plugin?: Plugin;
   writeAccess = false;
 
+  @ViewChild('list')
+  list?: RefListComponent;
+
   constructor(
-    private theme: ThemeService,
+    private mod: ModService,
     private admin: AdminService,
     private auth: AuthzService,
     public store: Store,
     public query: QueryStore,
   ) {
-    theme.setTitle($localize`Settings: `);
-    store.view.clear('modified');
+    mod.setTitle($localize`Settings: `);
+    store.view.clear(['metadata->modified']);
     query.clear();
+  }
+
+  saveChanges() {
+    return !this.list || this.list.saveChanges();
   }
 
   ngOnInit(): void {
     this.disposers.push(autorun(() => {
-      this.plugin = this.admin.getPlugin(this.store.settings.tag)!;
-      this.writeAccess = this.auth.canAddTag(this.plugin.tag);
-      this.theme.setTitle($localize`Settings: ${this.plugin.config?.settings || this.plugin.tag}`);
+      this.plugin = this.admin.getPlugin(this.store.view.settingsTag);
+      this.writeAccess = this.auth.canAddTag(this.store.view.settingsTag);
+      this.mod.setTitle($localize`Settings: ${this.plugin?.config?.settings || this.store.view.settingsTag}`);
       const args = getArgs(
-        this.plugin.tag + (this.store.view.showRemotes ? '' : (this.plugin.origin || '@')),
+        this.store.view.settingsTag + (this.store.view.showRemotes ? '' : (this.plugin?.origin || '@')),
         this.store.view.sort,
-        this.store.view.filter,
+        uniq(['!obsolete', ...this.store.view.filter]),
         this.store.view.search,
         this.store.view.pageNumber,
         this.store.view.pageSize,
@@ -50,17 +62,25 @@ export class SettingsRefPage implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    this.query.close();
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
   }
 
   loadDefaults() {
-    this.store.eventBus.fire(this.plugin.tag + ':defaults');
-    this.store.eventBus.fire('');
+    if (!this.plugin?.config?.defaultsConfirm || confirm(this.plugin?.config?.defaultsConfirm)) {
+      this.store.eventBus.fire(this.store.view.settingsTag + ':defaults');
+    }
   }
 
   clearCache() {
-    this.store.eventBus.fire(this.plugin.tag + ':clear-cache');
-    this.store.eventBus.fire('');
+    if (!this.plugin?.config?.clearCacheConfirm || confirm(this.plugin?.config?.clearCacheConfirm)) {
+      this.store.eventBus.fire(this.store.view.settingsTag + ':clear-cache');
+    }
   }
 }
+
+export const getSettings = () => {
+  const auth = inject(AuthzService);
+  return inject(AdminService).settings.find(p => auth.tagReadAccess(p.tag))?.tag || '';
+};

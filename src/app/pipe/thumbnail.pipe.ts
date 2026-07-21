@@ -2,52 +2,82 @@ import { Pipe, PipeTransform } from '@angular/core';
 import { map, Observable, of } from 'rxjs';
 import { Ref } from '../model/ref';
 import { AdminService } from '../service/admin.service';
-import { ScrapeService } from '../service/api/scrape.service';
+import { ProxyService } from '../service/api/proxy.service';
 import { OembedStore } from '../store/oembed';
 import { hasTag } from '../util/tag';
 
+type ThumbnailRef = Pick<Ref, 'url' | 'origin' | 'plugins' | 'tags'>;
+
 @Pipe({
-  name: 'thumbnail',
-  pure: true
+    name: 'thumbnail',
+    pure: true
 })
 export class ThumbnailPipe implements PipeTransform {
 
   constructor(
     private admin: AdminService,
     private store: OembedStore,
-    private scraper: ScrapeService,
+    private proxy: ProxyService,
   ) { }
 
-  transform(refs: (Ref | undefined)[]): Observable<string | null> {
+  transform(refs: (ThumbnailRef | undefined)[], force = false): Observable<string> {
+    const imagesEnabled = !!this.admin.getPlugin('plugin/image');
     for (const ref of refs) {
       if (!ref) continue;
-      if (ref.plugins?.['plugin/thumbnail']?.url) return of(this.cssUrl(ref.plugins?.['plugin/thumbnail']?.url));
-      if (ref.plugins?.['plugin/image']?.url) return of(this.cssUrl(ref.plugins?.['plugin/image']?.url));
-      if (ref.plugins?.['plugin/video']?.url) return of(this.cssUrl(ref.plugins?.['plugin/video']?.url));
+      const thumbnailUrl = refUrl(ref, 'plugin/thumbnail');
+      if (thumbnailUrl && (imagesEnabled || isInlineSvg(thumbnailUrl))) {
+        return of(this.fetchUrl(thumbnailUrl, ref.origin, 'plugin/thumbnail'));
+      }
+      if (!imagesEnabled) continue;
+      for (const plugin of ['plugin/image', 'plugin/video']) {
+        if (refUrl(ref, plugin)) return of(this.fetchUrl(refUrl(ref, plugin), ref.origin, plugin));
+      }
       if (hasTag('plugin/embed', ref)) {
         return this.store.get(ref.plugins?.['plugin/embed']?.url || ref.url).pipe(
           map(oembed => {
             if (oembed?.thumbnail_url) {
-              return this.cssUrl(oembed.thumbnail_url);
+              return this.fetchUrl(oembed.thumbnail_url, ref.origin, 'plugin/thumbnail');
             }
             return '';
           }),
         );
       }
+      if (!this.validUrl(ref.url)) continue;
+      const embedPlugins = this.admin.getEmbeds(ref);
+      for (const plugin of ['plugin/image', 'plugin/video']) {
+        if (embedPlugins.includes(plugin)) return of(this.fetchUrl(ref.url, ref.origin, plugin));
+      }
     }
-    for (const ref of refs) {
-      if (!ref) continue;
-      return of(this.cssUrl(ref.url));
+    if (imagesEnabled && force) {
+      for (const ref of refs) {
+        if (!this.validUrl(ref?.url)) continue;
+        return of(this.fetchUrl(ref!.url, ref!.origin, 'plugin/image'));
+      }
     }
     return of('');
   }
 
-  cssUrl(url: string | null) {
+  fetchUrl(url: string, origin: string | undefined, plugin: string) {
     if (!url) return '';
-    if (this.admin.getPlugin('plugin/thumbnail')?.config?.cache) {
-      url = this.scraper.getFetch(url);
+    if (isInlineSvg(url)) return url;
+    if (url.startsWith('cache:') || this.admin.getPlugin(plugin)?.config?.proxy) {
+      return this.proxy.getFetch(url, origin, 'thumbnail', true);
     }
-    return `url("${url}")`;
+    return url;
   }
 
+  private validUrl(url?: string) {
+    return url
+      && !url.startsWith('data:')
+      && !url.startsWith('comment:')
+      && !url.startsWith('internal:');
+  }
+}
+
+function refUrl(ref: Ref, plugin: string) {
+  return ref.plugins?.[plugin]?.url;
+}
+
+export function isInlineSvg(url: string) {
+  return /^data:image\/svg\+xml(?:[,;])/i.test(url);
 }

@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { makeAutoObservable, observable, runInAction } from 'mobx';
-import { catchError, Observable, of, shareReplay, Subject } from 'rxjs';
+import { catchError, Observable, of, shareReplay, Subject, throwError } from 'rxjs';
 import { Oembed } from '../model/oembed';
 import { OEmbedService } from '../service/api/oembed.service';
 
@@ -35,7 +35,15 @@ export class OembedStore {
       }));
       if (this.loading.length === 1) this.loading[0]!();
     }
-    return this.cache.get(key)!;
+    return this.cache.get(key)!.pipe(
+      catchError(err => {
+        if (err.status === 404) {
+          this.cache.delete(key);
+          return of({ url } as Oembed);
+        }
+        return throwError(() => err);
+      }),
+    );
   }
 
 }

@@ -1,5 +1,7 @@
+/// <reference types="vitest/globals" />
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { RouterTestingModule } from '@angular/router/testing';
+import { provideRouter } from '@angular/router';
+import { Page } from '../../model/page';
 
 import { PageControlsComponent } from './page-controls.component';
 
@@ -9,28 +11,17 @@ describe('PageControlsComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ PageControlsComponent ],
-      imports: [
-        RouterTestingModule,
-      ],
-    })
-    .compileComponents();
+      imports: [PageControlsComponent],
+        providers: [
+          provideRouter([]),
+        ],
+    }).compileComponents();
   });
 
   beforeEach(() => {
     fixture = TestBed.createComponent(PageControlsComponent);
     component = fixture.componentInstance;
-    component.page = {
-      content: [],
-      empty: false,
-      first: false,
-      last: false,
-      number: 0,
-      size: 0,
-      numberOfElements: 0,
-      totalElements: 0,
-      totalPages: 0
-    };
+    component.page = Page.of([]);
     fixture.detectChanges();
   });
 

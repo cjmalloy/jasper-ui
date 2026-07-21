@@ -1,16 +1,41 @@
-import { CdkDragDrop } from '@angular/cdk/drag-drop';
-import { Component, HostBinding, Input, OnDestroy, OnInit } from '@angular/core';
-import { uniq } from 'lodash-es';
+import { CdkDragDrop, CdkDropList, CdkDropListGroup } from '@angular/cdk/drag-drop';
+import { CdkScrollable } from '@angular/cdk/scrolling';
+import { AsyncPipe } from '@angular/common';
+import {
+  Component,
+  forwardRef,
+  HostListener,
+  Input,
+  OnChanges,
+  OnDestroy,
+  QueryList,
+  SimpleChanges,
+  ViewChildren,
+  ChangeDetectionStrategy
+} from '@angular/core';
+import { ReactiveFormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
+import { uniq, without } from 'lodash-es';
+import { DateTime } from 'luxon';
+import { runInAction } from 'mobx';
+import { MobxAngularModule } from 'mobx-angular';
 import { catchError, of, Subject } from 'rxjs';
+import { tap } from 'rxjs/operators';
+import { TitleDirective } from '../../directive/title.directive';
+import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ext } from '../../model/ext';
 import { Ref, RefSort } from '../../model/ref';
-import { KanbanConfig } from '../../mods/kanban';
+import { KanbanConfig } from '../../mods/org/kanban';
+import { AccountService } from '../../service/account.service';
 import { ExtService } from '../../service/api/ext.service';
 import { TaggingService } from '../../service/api/tagging.service';
 import { BookmarkService } from '../../service/bookmark.service';
 import { Store } from '../../store/store';
-import { UrlFilter } from '../../util/query';
-import { isQuery, topAnds } from '../../util/tag';
+import { negate, UrlFilter } from '../../util/query';
+import { isQuery, isSelector, localTag, topAnds } from '../../util/tag';
+import { LoadingComponent } from '../loading/loading.component';
+import { PageControlsComponent } from '../page-controls/page-controls.component';
+import { KanbanColumnComponent } from './kanban-column/kanban-column.component';
 
 export interface KanbanDrag {
   from: string;
@@ -22,10 +47,27 @@ export interface KanbanDrag {
 @Component({
   selector: 'app-kanban',
   templateUrl: './kanban.component.html',
-  styleUrls: ['./kanban.component.scss']
+  styleUrls: ['./kanban.component.scss'],
+  host: { 'class': 'kanban ext' },
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [
+    forwardRef(() => KanbanColumnComponent),
+    MobxAngularModule,
+    LoadingComponent,
+    CdkDropListGroup,
+    CdkScrollable,
+    CdkDropList,
+    RouterLink,
+    TitleDirective,
+    ReactiveFormsModule,
+    PageControlsComponent,
+    AsyncPipe,
+  ],
 })
-export class KanbanComponent implements OnInit, OnDestroy {
-  @HostBinding('class') css = 'kanban ext';
+export class KanbanComponent implements OnChanges, OnDestroy, HasChanges {
+
+  @ViewChildren(KanbanColumnComponent)
+  list?: QueryList<KanbanColumnComponent>;
 
   @Input()
   query?: string;
@@ -54,21 +96,36 @@ export class KanbanComponent implements OnInit, OnDestroy {
   };
 
   constructor(
+    private accounts: AccountService,
     public bookmarks: BookmarkService,
-    private store: Store,
+    public store: Store,
     public exts: ExtService,
     private tags: TaggingService,
   ) { }
 
-  ngOnInit(): void {
+  saveChanges() {
+    return !this.list?.find(r => !r.saveChanges());
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes.ext) {
+      this.preloadExts();
+    }
+    this.onResize();
   }
 
   ngOnDestroy() {
     this.updates.complete();
   }
 
-  trackByIdx(index: number, value: string) {
-    return index;
+  @HostListener('window:resize')
+  onResize() {
+    const margin = 20;
+    const minColSize = 320;
+    const sidebarSize = 354;
+    runInAction(() => {
+      this.store.view.floatingSidebar = innerWidth - sidebarSize < margin + minColSize * (this.columns.length + (this.showColumnBacklog ? 1 : 0))
+    });
   }
 
   get disableSwimLanes(): boolean {
@@ -82,7 +139,8 @@ export class KanbanComponent implements OnInit, OnDestroy {
   get columns(): string[] {
     if (this.filteredColumnBacklog) return [];
     if (this.filteredColumn) return [this.filteredColumn];
-    return this.kanbanConfig.columns || [this.ext!.tag];
+    if (!this.kanbanConfig.columns) return [this.ext!.tag];
+    return without(this.kanbanConfig.columns, ...this.negateFilters);
   }
 
   get swimLanes(): string[] | undefined {
@@ -91,7 +149,7 @@ export class KanbanComponent implements OnInit, OnDestroy {
     if (!this.kanbanConfig.swimLanes.length) return undefined;
     if (this.filteredSwimLaneBacklog) return [];
     if (this.filteredSwimLane) return [this.filteredSwimLane];
-    return this.kanbanConfig.swimLanes;
+    return without(this.kanbanConfig.swimLanes, ...this.negateFilters);
   }
 
   get andColBacklog() {
@@ -124,7 +182,21 @@ export class KanbanComponent implements OnInit, OnDestroy {
       ...topAnds(this.query).filter(t => !isQuery(t)),
       ...this.filter
         .filter(f => f.startsWith('query/'))
+        .filter(f => !f.startsWith('query/!('))
         .map(f => f.substring('query/'.length)),
+    ]);
+  }
+
+  get negateFilters(): string[] {
+    // TODO: evaluate queries
+    return uniq([
+      ...topAnds(this.query).filter(t => isSelector(t))
+        .map(f => f.startsWith('!') ? f.substring(1) : '!' + f),
+      ...this.filter
+        .filter(f => f.startsWith('query/'))
+        .flatMap(f => f.startsWith('query/!(')
+          ? [f.substring('query/!('.length, f.length - 1)]
+          : topAnds(negate(f.substring('query/'.length)))),
     ]);
   }
 
@@ -161,15 +233,25 @@ export class KanbanComponent implements OnInit, OnDestroy {
   }
 
   get showColumnBacklog() {
+    if (this.negateFilters.includes(this.colBacklog)) return false;
     if (this.filteredColumnBacklog) return true;
     if (this.filteredColumn) return false;
     return this.kanbanConfig.showColumnBacklog;
   }
 
   get showSwimLaneBacklog() {
+    if (this.negateFilters.includes(this.slBacklog)) return false;
     if (this.filteredSwimLaneBacklog) return true;
     if (this.filteredSwimLane) return false;
     return this.kanbanConfig.showSwimLaneBacklog;
+  }
+
+  preloadExts() {
+    this.exts.getCachedExts([
+      ...this.kanbanConfig.columns || [],
+      ...this.kanbanConfig.swimLanes || [],
+      ...this.kanbanConfig.badges || [],
+    ]).subscribe();
   }
 
   /**
@@ -177,8 +259,8 @@ export class KanbanComponent implements OnInit, OnDestroy {
    */
   addingTags(tags: { col?: string, sl?: string }) {
     const result = [
-        ...this.kanbanConfig.addTags || [],
-        ...this.store.view.queryTags
+      ...this.kanbanConfig.addTags || [],
+      ...this.store.view.queryTags.map(localTag),
     ];
     result.push(this.ext!.tag);
     if (tags.col) result.push(tags.col);
@@ -211,10 +293,14 @@ export class KanbanComponent implements OnInit, OnDestroy {
       ref,
       index: event.currentIndex,
     });
+    if (this.store.view.lastSelected?.url === ref.url) {
+      this.store.view.clearLastSelected();
+    }
 
     const tags = [...remove.map(t => `-${t}`), ...add];
     if (!tags.length) return;
     this.tags.patch(tags, ref.url, ref.origin).pipe(
+      tap(cursor => this.accounts.clearNotificationsIfNone(DateTime.fromISO(cursor))),
       catchError(() => {
         // Revert
         ref.tags = oldTags;

@@ -1,8 +1,10 @@
+/// <reference types="vitest/globals" />
+import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 
 import { VideoUploadComponent } from './video-upload.component';
-import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { RouterTestingModule } from '@angular/router/testing';
 
 describe('VideoUploadComponent', () => {
   let component: VideoUploadComponent;
@@ -10,13 +12,13 @@ describe('VideoUploadComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ VideoUploadComponent ],
-      imports: [
-        HttpClientTestingModule,
-        RouterTestingModule,
-      ]
-    })
-    .compileComponents();
+      imports: [VideoUploadComponent],
+      providers: [
+        provideHttpClient(withXhr(), withInterceptorsFromDi()),
+        provideHttpClientTesting(),
+        provideRouter([]),
+      ],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(VideoUploadComponent);
     component = fixture.componentInstance;

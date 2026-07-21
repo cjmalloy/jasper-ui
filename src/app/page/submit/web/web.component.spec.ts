@@ -1,10 +1,13 @@
-import { HttpClientTestingModule } from '@angular/common/http/testing';
+/// <reference types="vitest/globals" />
+import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
-import { RouterTestingModule } from '@angular/router/testing';
+import { provideRouter } from '@angular/router';
 import { LinksFormComponent } from '../../../form/links/links.component';
 import { RefFormComponent } from '../../../form/ref/ref.component';
 import { TagsFormComponent } from '../../../form/tags/tags.component';
+import { JasperFormlyModule } from '../../../formly/formly.module';
 
 import { SubmitWebPage } from './web.component';
 
@@ -14,22 +17,21 @@ describe('SubmitWebPage', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [
+      imports: [
+        ReactiveFormsModule,
+        JasperFormlyModule,
         SubmitWebPage,
         RefFormComponent,
         TagsFormComponent,
         LinksFormComponent,
       ],
-      imports: [
-        HttpClientTestingModule,
-        ReactiveFormsModule,
-        RouterTestingModule,
+      providers: [
+        provideHttpClient(withXhr(), withInterceptorsFromDi()),
+        provideHttpClientTesting(),
+        provideRouter([]),
       ],
-    })
-    .compileComponents();
-  });
+    }).compileComponents();
 
-  beforeEach(() => {
     fixture = TestBed.createComponent(SubmitWebPage);
     component = fixture.componentInstance;
     fixture.detectChanges();

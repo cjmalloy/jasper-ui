@@ -1,32 +1,53 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, QueryList, ViewChild, ViewChildren, ChangeDetectionStrategy } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { defer, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
+import { MobxAngularModule } from 'mobx-angular';
 import { Subject } from 'rxjs';
+import { CommentReplyComponent } from '../../../component/comment/comment-reply/comment-reply.component';
+import { CommentThreadComponent } from '../../../component/comment/comment-thread/comment-thread.component';
+import { ThreadSummaryComponent } from '../../../component/comment/thread-summary/thread-summary.component';
+import { LoadingComponent } from '../../../component/loading/loading.component';
+import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
+import { HasChanges } from '../../../guard/pending-changes.guard';
+
 import { Ref } from '../../../model/ref';
 import { getMailbox, mailboxes } from '../../../mods/mailbox';
 import { AdminService } from '../../../service/admin.service';
 import { RefService } from '../../../service/api/ref.service';
-import { ThemeService } from '../../../service/theme.service';
+import { ModService } from '../../../service/mod.service';
 import { QueryStore } from '../../../store/query';
 import { Store } from '../../../store/store';
 import { ThreadStore } from '../../../store/thread';
-import { interestingTags } from '../../../util/format';
+import { getTitle } from '../../../util/format';
+import { memo, MemoCache } from '../../../util/memo';
 import { getArgs } from '../../../util/query';
-import { hasTag, removeTag } from '../../../util/tag';
+import { hasTag, removeTag, top, updateMetadata } from '../../../util/tag';
 
 @Component({
   selector: 'app-ref-summary',
   templateUrl: './summary.component.html',
-  styleUrls: ['./summary.component.scss']
+  styleUrls: ['./summary.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [MobxAngularModule, CommentReplyComponent, RouterLink, ThreadSummaryComponent, RefListComponent, LoadingComponent]
 })
-export class RefSummaryComponent implements OnInit, OnDestroy {
+export class RefSummaryComponent implements OnInit, OnDestroy, HasChanges {
   private disposers: IReactionDisposer[] = [];
-  newComments$ = new Subject<Ref | null>();
+  newResp$ = new Subject<Ref | undefined>();
+  newComment$ = new Subject<Ref | undefined>();
+  newThread$ = new Subject<Ref | undefined>();
 
   summaryItems = 5;
 
+  @ViewChild('reply')
+  reply?: CommentReplyComponent;
+  @ViewChildren(CommentThreadComponent)
+  threadComponents?: QueryList<CommentThreadComponent>;
+  @ViewChild('list')
+  list?: RefListComponent;
+
   constructor(
-    private theme: ThemeService,
+    private mod: ModService,
     public admin: AdminService,
     public refs: RefService,
     public store: Store,
@@ -35,13 +56,21 @@ export class RefSummaryComponent implements OnInit, OnDestroy {
   ) {
     query.clear();
     thread.clear();
-    runInAction(() => store.view.defaultSort = 'modified,DESC');
+    runInAction(() => store.view.defaultSort = ['modified,DESC']);
+  }
+
+  saveChanges() {
+    return (!this.reply || this.reply.saveChanges())
+      && (!this.list || this.list.saveChanges())
+      && !this.threadComponents?.find(t => !t.saveChanges());
   }
 
   ngOnInit(): void {
-    this.disposers.push(autorun(() => this.theme.setTitle((this.store.view.ref?.title || this.store.view.url))));
+    // TODO: set title for bare reposts
+    this.disposers.push(autorun(() => this.mod.setTitle(getTitle(this.store.view.ref))));
     this.disposers.push(autorun(() => {
-      const top = this.store.view.ref!;
+      MemoCache.clear(this);
+      const top = this.store.view.url;
       const sort = this.store.view.sort;
       const filter = this.store.view.filter;
       const search = this.store.view.search;
@@ -51,7 +80,7 @@ export class RefSummaryComponent implements OnInit, OnDestroy {
       const args = getArgs(
         '',
         this.store.view.sort,
-        uniq(['query/!internal', ...this.store.view.filter]),
+        uniq(['query/!internal', 'query/!plugin/comment', 'query/!plugin/thread', ...this.store.view.filter]),
         this.store.view.search,
         this.store.view.pageNumber,
         this.summaryItems,
@@ -59,77 +88,61 @@ export class RefSummaryComponent implements OnInit, OnDestroy {
       args.responses = this.store.view.url;
       defer(() => this.query.setArgs(args));
     }));
-    this.newComments$.subscribe(c => {
-      if (c && this.store.view.ref) {
-        this.store.view.ref.metadata ||= {};
-        this.store.view.ref.metadata.plugins ||= {} as any;
-        if (hasTag('plugin/comment', c)) {
-          this.store.view.ref.metadata.plugins!['plugin/comment'] ||= 0;
-          this.store.view.ref.metadata.plugins!['plugin/comment']++;
-        }
-        if (hasTag('plugin/thread', c)) {
-          this.store.view.ref.metadata.plugins!['plugin/thread'] ||= 0;
-          this.store.view.ref.metadata.plugins!['plugin/thread']++;
-        }
-      }
-    });
   }
 
   ngOnDestroy() {
+    this.query.close();
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
-    this.newComments$.complete();
+    this.newResp$.complete();
+    this.newComment$.complete();
+    this.newThread$.complete();
   }
 
+  @memo
   get top() {
-    if (hasTag('plugin/comment', this.store.view.ref)) {
-      return this.store.view.ref?.sources?.[1] || this.store.view.ref?.sources?.[0];
-    }
-    return this.store.view.ref?.url;
+    return top(this.store.view.ref);
   }
 
-  getComments(r?: Ref) {
-    if (!this.admin.getPlugin('plugin/comment')) return 0;
-    return r?.metadata?.plugins?.['plugin/comment'] || 0;
+  @memo
+  get responseSet() {
+    return this.comments || this.threads || this.admin.responseButton.find(p => hasTag(p.tag, this.replyTags));
   }
 
-  getThreads(r?: Ref) {
-    if (!this.admin.getPlugin('plugin/thread')) return 0;
-    return r?.metadata?.plugins?.['plugin/thread'] || 0;
+  @memo
+  get dm() {
+    return !!this.admin.getTemplate('dm') && hasTag('dm', this.store.view.ref);
   }
 
+  @memo
   get comments() {
     if (!this.admin.getPlugin('plugin/comment')) return 0;
-    return this.getComments(this.store.view.ref);
+    return this.store.view.ref?.metadata?.plugins?.['plugin/comment'] || 0;
   }
 
+  @memo
   get threads() {
-    return this.getThreads(this.store.view.ref);
+    if (!this.admin.getPlugin('plugin/thread')) return 0;
+    return this.store.view.ref?.metadata?.plugins?.['plugin/thread'] || 0;
   }
 
+  @memo
   get responses() {
     return this.store.view.ref?.metadata?.responses || 0;
   }
 
+  @memo
   get mailboxes() {
     return mailboxes(this.store.view.ref!, this.store.account.tag, this.store.origins.originMap);
   }
 
+  @memo
   get replyTags(): string[] {
     const tags = [
-      'internal',
-      ...this.admin.reply.filter(p => (this.store.view.ref?.tags || []).includes(p.tag)).flatMap(p => p.config!.reply as string[]),
+      ...this.comments ? ['plugin/comment'] : this.threads ? ['plugin/thread'] : [],
+      ...this.admin.reply.filter(p => hasTag(p.tag, this.store.view.ref)).flatMap(p => p.config!.reply as string[]),
       ...this.mailboxes,
     ];
-    if (hasTag('public', this.store.view.ref)) tags.unshift('public');
-    if (hasTag('plugin/email', this.store.view.ref)) {
-      tags.push('plugin/email');
-      tags.push('plugin/thread')
-    } else if (hasTag('plugin/thread', this.store.view.ref)) {
-      tags.push('plugin/thread');
-    } else {
-      tags.push('plugin/comment');
-    }
     return removeTag(getMailbox(this.store.account.tag, this.store.account.origin), uniq(tags));
   }
 
@@ -137,5 +150,23 @@ export class RefSummaryComponent implements OnInit, OnDestroy {
     const topComments = this.thread.cache.get(this.top);
     if (!topComments) return false;
     return topComments.length > this.summaryItems;
+  }
+
+  onReply(ref?: Ref) {
+    runInAction(() => {
+      if (ref && this.store.view.ref) {
+        MemoCache.clear(this);
+        runInAction(() => updateMetadata(this.store.view.ref!, ref));
+      }
+    });
+    this.store.eventBus.reload(ref);
+    if (hasTag('plugin/comment', ref)) {
+      this.newComment$?.next(ref);
+    } else if (hasTag('plugin/thread', ref)) {
+      this.newThread$?.next(ref);
+    } else if (!hasTag('internal', ref)) {
+      this.newResp$?.next(ref);
+    }
+
   }
 }

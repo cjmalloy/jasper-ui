@@ -1,6 +1,6 @@
-import { Component, HostBinding, Inject, Optional, ViewChild } from '@angular/core';
+import { CdkDragHandle } from '@angular/cdk/drag-drop';
+import { Component, HostBinding, ChangeDetectionStrategy } from '@angular/core';
 import { FieldWrapper, FormlyFieldConfig } from '@ngx-formly/core';
-import { CDK_DRAG_PARENT, CdkDrag, CdkDragHandle } from '@angular/cdk/drag-drop';
 
 @Component({
   selector: 'formly-wrapper-form-field',
@@ -9,42 +9,19 @@ import { CDK_DRAG_PARENT, CdkDrag, CdkDragHandle } from '@angular/cdk/drag-drop'
       {{ props.label || '' }}
     </label>
     <ng-template #fieldComponent></ng-template>
-    <ng-container *ngIf="props.hint">
+    @if (props.hint) {
       <span><!-- Hint --></span>
       <div class="no-margin">
-        <span class="hints">
-          <ng-container *ngIf="field.type === 'duration' else defaultHint">
-            Use time spans (HH:MM:SS) or ISO 8601 Durations&nbsp;
-            <sup><a target="_blank" href="https://en.wikipedia.org/wiki/ISO_8601#Durations">help</a></sup>
-          </ng-container>
-          <ng-template #defaultHint>
-            {{ props.hint }}
-          </ng-template>
-        </span>
+        <span class="hints">{{ props.hint }}</span>
       </div>
-    </ng-container>
-    <ng-container *ngIf="showError">
-      <span><!-- Errors --></span>
-      <formly-error [field]="field"></formly-error>
-    </ng-container>
+    }
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [CdkDragHandle],
 })
 export class FormlyWrapperFormField extends FieldWrapper<FormlyFieldConfig> {
   @HostBinding('title')
   get title() {
     return this.props.title || '';
-  }
-
-  @ViewChild(CdkDragHandle) handle?: CdkDragHandle;
-
-  constructor(@Optional() @Inject(CDK_DRAG_PARENT) public cdk: CdkDrag) {
-    super();
-  }
-
-  ngAfterViewInit() {
-    if (this.cdk && this.props.label) {
-        // @ts-ignore
-      this.cdk._handles.reset([...this.cdk._handles._results, this.handle]);
-    }
   }
 }

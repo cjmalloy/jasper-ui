@@ -1,0 +1,7 @@
+@if (!acting && !minTimeout) {
+  <span class="fake-link" (click)="act()">
+  <ng-content></ng-content>
+</span>
+} @else {
+  <app-loading [inline]="true"></app-loading>
+}

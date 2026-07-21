@@ -1,0 +1,10 @@
+<ng-content></ng-content>
+<div class="mobile-tab-select" [style.display]="hidden ? 'inline-block' : 'none'">
+  <select #select (input)="nav(select)">
+    <option i18n>🧭️</option>
+    @for (opt of options; track opt) {
+      <option>{{ opt }}</option>
+    }
+  </select>
+</div>
+<app-settings></app-settings>

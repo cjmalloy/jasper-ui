@@ -1,18 +1,21 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, HostBinding, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Component, HostBinding, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
+import { Router, RouterLink } from '@angular/router';
 import { defer, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
-import { catchError, forkJoin, of, throwError } from 'rxjs';
+import { MobxAngularModule } from 'mobx-angular';
+import { catchError, forkJoin, Observable, of, switchMap, throwError } from 'rxjs';
+import { SettingsComponent } from '../../component/settings/settings.component';
+import { LimitWidthDirective } from '../../directive/limit-width.directive';
 import { userForm, UserFormComponent } from '../../form/user/user.component';
 import { HasChanges } from '../../guard/pending-changes.guard';
-import { tagDeleteNotice } from "../../mods/delete";
+import { isDeletorTag, tagDeleteNotice } from '../../mods/delete';
 import { AdminService } from '../../service/admin.service';
 import { ProfileService } from '../../service/api/profile.service';
 import { UserService } from '../../service/api/user.service';
 import { ConfigService } from '../../service/config.service';
-import { ThemeService } from '../../service/theme.service';
+import { ModService } from '../../service/mod.service';
 import { Store } from '../../store/store';
 import { scrollToFirstInvalid } from '../../util/form';
 import { printError } from '../../util/http';
@@ -21,21 +24,24 @@ import { prefix, setPublic } from '../../util/tag';
 @Component({
   selector: 'app-user-page',
   templateUrl: './user.component.html',
-  styleUrls: ['./user.component.scss']
+  styleUrls: ['./user.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [MobxAngularModule, RouterLink, SettingsComponent, ReactiveFormsModule, LimitWidthDirective, UserFormComponent]
 })
 export class UserPage implements OnInit, OnDestroy, HasChanges {
   private disposers: IReactionDisposer[] = [];
   @HostBinding('class') css = 'full-page-form';
 
-  @ViewChild(UserFormComponent)
+  @ViewChild('form')
   userForm!: UserFormComponent;
 
   submitted = false;
   profileForm: UntypedFormGroup;
   serverError: string[] = [];
+  externalErrors: string[] = [];
 
   constructor(
-    private theme: ThemeService,
+    private mod: ModService,
     private admin: AdminService,
     public config: ConfigService,
     public router: Router,
@@ -44,7 +50,7 @@ export class UserPage implements OnInit, OnDestroy, HasChanges {
     private users: UserService,
     private fb: UntypedFormBuilder,
   ) {
-    theme.setTitle($localize`Create Profile`);
+    mod.setTitle($localize`Create Profile`);
     this.profileForm = fb.group({
       active: [true],
       password: [''],
@@ -75,8 +81,8 @@ export class UserPage implements OnInit, OnDestroy, HasChanges {
             defer(() => this.userForm.setUser({
               tag: this.store.view.localTag,
               origin: this.store.view.origin,
-              readAccess: this.admin.readAccess.map(t => prefix(t, setPublic(this.store.view.localTag))),
-              writeAccess: this.admin.writeAccess.map(t => prefix(t, setPublic(this.store.view.localTag))),
+              readAccess: this.admin.readAccess.map(t => setPublic(prefix(t, this.store.view.localTag))),
+              writeAccess: this.admin.writeAccess.map(t => setPublic(prefix(t, this.store.view.localTag))),
             }));
           }
         }));
@@ -125,8 +131,17 @@ export class UserPage implements OnInit, OnDestroy, HasChanges {
       readAccess: uniq([...this.user.value.readAccess, ...this.user.value.notifications]),
     };
     delete updates.notifications;
-    const entities = [
-      (this.store.view.selectedUser ? this.users.update(updates) : this.users.create(updates)).pipe(
+    this.externalErrors = [];
+    try {
+      if (!updates.external) delete updates.external;
+      if (updates.external) updates.external = JSON.parse(updates.external);
+    } catch (e: any) {
+      this.externalErrors.push(e.message);
+    }
+    const entities: Observable<any>[] = [
+      (this.store.view.selectedUser
+        ? this.users.update(updates)
+        : this.users.create(updates)).pipe(
         catchError((res: HttpErrorResponse) => {
           this.serverError.push(...printError(res));
           return throwError(() => res);
@@ -168,16 +183,18 @@ export class UserPage implements OnInit, OnDestroy, HasChanges {
 
   delete() {
     // TODO: Better dialogs
-    if (window.confirm($localize`Are you sure you want to delete this user?`)) {
-      (this.admin.getPlugin('plugin/delete')
-        ? this.users.update(tagDeleteNotice(this.store.view.selectedUser!))
-        : this.users.delete(this.store.view.localTag + this.store.account.origin)).pipe(
-        catchError((res: HttpErrorResponse) => {
-          this.serverError = printError(res);
-          return throwError(() => res);
+    if (confirm($localize`Are you sure you want to delete this user?`)) {
+      const deleteNotice = !isDeletorTag(this.store.view.selectedUser!.tag) && this.admin.getPlugin('plugin/delete')
+        ? this.users.create(tagDeleteNotice(this.store.view.selectedUser!))
+        : of(null);
+      this.users.delete(this.store.view.localTag + this.store.account.origin).pipe(
+        switchMap(() => deleteNotice),
+        catchError((err: HttpErrorResponse) => {
+          this.serverError = printError(err);
+          return throwError(() => err);
         }),
       ).subscribe(() => {
-        this.router.navigate(['/tag', this.tag.value + this.store.account.origin]);
+        this.router.navigate(['/tag', this.store.view.localTag + this.store.account.origin]);
       });
     }
   }

@@ -1,10 +1,12 @@
 import { Injectable } from '@angular/core';
+import { uniq } from 'lodash-es';
 import { runInAction } from 'mobx';
 import { catchError, Observable, of, switchMap } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Ref } from '../model/ref';
-import { isPushing, isReplicating } from '../mods/origin';
+import { isPushing, isReplicating } from '../mods/sync/origin';
 import { Store } from '../store/store';
+import { defaultOrigin, subOrigin } from '../util/tag';
 import { AdminService } from './admin.service';
 import { RefService } from './api/ref.service';
 import { ConfigService } from './config.service';
@@ -29,6 +31,9 @@ export class OriginMapService {
     return this.loadOrigins$().pipe(
       tap(() => runInAction(() => {
         this.store.origins.origins = this.origins;
+        this.store.origins.list = this.list;
+        this.store.origins.lookup = this.lookup;
+        this.store.origins.tunnelLookup = this.tunnelLookup;
         this.store.origins.reverseLookup = this.reverseLookup;
         this.store.origins.originMap = this.originMap;
       })),
@@ -46,40 +51,111 @@ export class OriginMapService {
       console.error(`Too many origins to load, only loaded ${alreadyLoaded}. Increase maxOrigins to load more.`)
       return of(null);
     }
-    return this.refs.page({query: '+plugin/origin', page, size: this.config.fetchBatch}).pipe(
+    return this.refs.page({ query: '+plugin/origin', page, size: this.config.fetchBatch, obsolete: null as any }).pipe(
       tap(batch => this.origins.push(...batch.content)),
-      switchMap(batch => batch.last ? of(null) : this.loadOrigins$(page + 1)),
+      switchMap(batch => !batch.content.length ? of(null) : this.loadOrigins$(page + 1)),
     );
   }
 
+  private get api() {
+    if (this.config.api.startsWith('//')) {
+      return location.protocol + this.config.api;
+    }
+    return this.config.api;
+  }
+
+  /**
+   * Searches push configs to list api aliases.
+   */
   private get selfApis(): Map<string, string> {
+    const config = (remote?: Ref): any => remote?.plugins?.['+plugin/origin'];
+    const trimUrl = (url: string) => url.endsWith('/') ? url.substring(0, url.length - 1) : url;
+    const remotesForOrigin = (origin: string) => this.origins.filter(remote => remote.origin === origin);
     return new Map([
-      [this.store.account.origin, this.config.api],
-      ...this.origins
-      .filter(remote => isPushing(remote, this.store.account.origin))
-      .map(remote => [remote.plugins?.['+plugin/origin']?.remote || '', remote.url] as [string, string]),
+      [this.api, this.store.account.origin],
+      ...remotesForOrigin(this.store.account.origin)
+        .filter(remote => isPushing(remote, ''))
+        .map(remote => [trimUrl(remote.url), config(remote).remote]),
+    ] as [string, string][]);
+  }
+
+  /**
+   * Lists all visible origins.
+   */
+  private get list(): string[] {
+    const config = (remote?: Ref): any => remote?.plugins?.['+plugin/origin'];
+    const remotesForOrigin = (origin: string) => this.origins.filter(remote => remote.origin === origin);
+    return uniq([
+      this.store.account.origin,
+      ...remotesForOrigin(this.store.account.origin)
+        .map(remote => subOrigin(remote.origin, config(remote)?.local)),
     ]);
   }
 
-  private get reverseLookup(): Map<string, string> {
-    return new Map(this.origins
-      .filter(remote => isReplicating(remote, this.selfApis))
-      .map(remote => [remote.origin || '', remote.plugins?.['+plugin/origin']?.local]));
+  /**
+   * Maps local-alias -> api.
+   */
+  private get lookup(): Map<string, string> {
+    const config = (remote?: Ref): any => remote?.plugins?.['+plugin/origin'];
+    const trimUrl = (url: string) => url.endsWith('/') ? url.substring(0, url.length - 1) : url;
+    const remotesForOrigin = (origin: string) => this.origins.filter(remote => remote.origin === origin);
+    return new Map([
+      [this.store.account.origin, this.api],
+      ...remotesForOrigin(this.store.account.origin)
+        .map(remote => [subOrigin(remote.origin, config(remote)?.local), trimUrl(remote.url)]),
+    ] as [string, string][]);
   }
 
+  /**
+   * Maps local-alias -> ssh user.
+   */
+  private get tunnelLookup(): Map<string, string> {
+    const config = (remote?: Ref): any => remote?.plugins?.['+plugin/origin'];
+    const tunnel = (remote: Ref): any => remote.plugins?.['+plugin/origin/tunnel'];
+    const remotesForOrigin = (origin: string) => this.origins.filter(remote => remote.origin === origin);
+    return new Map([
+      [this.store.account.origin, this.api],
+        ...remotesForOrigin(this.store.account.origin)
+          .map(remote => [subOrigin(remote.origin, config(remote)?.local), {
+            ...tunnel(remote),
+            remoteUser: defaultOrigin(tunnel(remote)?.remoteUser || '', remote.origin),
+          }]),
+    ] as [string, string][]);
+  }
+
+  /**
+   * Maps local-alias -> remote-alias-to-self.
+   */
+  private get reverseLookup(): Map<string, string> {
+    const config = (remote?: Ref): any => remote?.plugins?.['+plugin/origin'];
+    return new Map(this.origins
+      .filter(remote => isReplicating(this.store.account.origin || '', remote, this.selfApis))
+      .filter(remote => config(remote)?.local)
+      .map(remote => [remote.origin || '', config(remote)?.local]));
+  }
+
+  /**
+   * Maps local-alias -> remote-alias -> local-alias.
+   */
   private get originMap(): Map<string, Map<string, string>> {
     const config = (remote: Ref): any => remote.plugins?.['+plugin/origin'];
     const remotesForOrigin = (origin: string) => this.origins.filter(remote => remote.origin === origin);
+    const trimUrl = (url: string) => url.endsWith('/') ? url.substring(0, url.length - 1) : url;
     const findLocalAlias = (url: string) => remotesForOrigin(this.store.account.origin)
-      .filter(remote => remote.url === url)
-      .map(remote => config(remote)?.local || '')
-      .find(() => true) || '';
-    const originMapFor = (origin: string) => new Map(
-      remotesForOrigin(origin)
-        .map(remote => [config(remote)?.local || '', findLocalAlias(remote.url)]));
+      .filter(remote => trimUrl(remote.url) === url)
+      [0] || undefined;
+    const originMapFor = (remote: Ref): Map<string, string> => new Map(
+      remotesForOrigin(subOrigin(this.store.account.origin, config(remote)?.local))
+        .filter(nested => findLocalAlias(trimUrl(nested.url)) !== undefined)
+        .map(nested => [
+          config(nested)?.local || '',
+          config(findLocalAlias(trimUrl(nested.url))!)?.local || ''
+        ]));
     return new Map(
       remotesForOrigin(this.store.account.origin || '')
-        .map(remote => config(remote).local)
-        .map(origin => [origin, originMapFor(origin)]));
+        .map(remote => [
+          subOrigin(this.store.account.origin, config(remote)?.local),
+          originMapFor(remote)
+        ]));
   }
 }

@@ -1,23 +1,36 @@
-import { Component, HostBinding, Input, OnDestroy, OnInit } from '@angular/core';
+import { Component, forwardRef, Input, OnDestroy, OnInit, QueryList, ViewChildren, ChangeDetectionStrategy } from '@angular/core';
 import { Router } from '@angular/router';
-import * as moment from 'moment';
+import { DateTime } from 'luxon';
 import { catchError, forkJoin, Observable, of, Subject, takeUntil } from 'rxjs';
+import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Ext } from '../../../model/ext';
 import { Page } from '../../../model/page';
 import { Ref } from '../../../model/ref';
 import { score } from '../../../mods/vote';
+import { AccountService } from '../../../service/account.service';
 import { RefService } from '../../../service/api/ref.service';
 import { Store } from '../../../store/store';
+import { LoadingComponent } from '../../loading/loading.component';
+import { PageControlsComponent } from '../../page-controls/page-controls.component';
+import { RefComponent } from '../ref.component';
 
 @Component({
   selector: 'app-ref-list',
   templateUrl: './ref-list.component.html',
   styleUrls: ['./ref-list.component.scss'],
+  host: { 'class': 'ref-list' },
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [
+    forwardRef(() => RefComponent),
+    PageControlsComponent,
+    LoadingComponent,
+  ],
 })
-export class RefListComponent implements OnInit, OnDestroy {
-  @HostBinding('class') css = 'ref-list';
+export class RefListComponent implements OnInit, OnDestroy, HasChanges {
   private destroy$ = new Subject<void>();
 
+  @Input()
+  hide?: number[];
   @Input()
   plugins?: string[];
   @Input()
@@ -27,13 +40,24 @@ export class RefListComponent implements OnInit, OnDestroy {
   @Input()
   pageControls = true;
   @Input()
-  emptyMessage = 'No results found';
+  emptyMessage = $localize`No results found`;
+  @Input()
+  showToggle = true;
+  @Input()
+  expandInline = false;
   @Input()
   showVotes = false;
   @Input()
   hideNewZeroVoteScores = true;
   @Input()
-  newRefs$?: Observable<Ref | null>;
+  newRefs$?: Observable<Ref | undefined>;
+  @Input()
+  insertNewAtTop = false;
+  @Input()
+  showPrev = true;
+
+  @ViewChildren(RefComponent)
+  list?: QueryList<RefComponent>;
 
   pinned: Ref[] = [];
   newRefs: Ref[] = [];
@@ -44,13 +68,14 @@ export class RefListComponent implements OnInit, OnDestroy {
   private _cols = 0;
 
   constructor(
+    private accounts: AccountService,
     private router: Router,
-    private refs: RefService,
     private store: Store,
+    private refs: RefService,
   ) { }
 
-  trackByUrlOrigin(index: number, value: Ref) {
-    return value.origin + '@' + value.url;
+  saveChanges() {
+    return !this.list?.find(r => !r.saveChanges());
   }
 
   get ext() {
@@ -64,8 +89,9 @@ export class RefListComponent implements OnInit, OnDestroy {
       this.pinned = [];
     } else {
       forkJoin((value.config.pinned as string[])
-        .map(pin => this.refs.get(pin, this.store.account.origin).pipe(
-          catchError(err => of({url: pin}))
+        .map(pin => this.refs.getCurrent(pin).pipe(
+          catchError(err => of({ url: pin })),
+          takeUntil(this.destroy$),
         )))
         .subscribe(pinned => this.pinned = pinned);
     }
@@ -89,10 +115,6 @@ export class RefListComponent implements OnInit, OnDestroy {
     return this.ext?.config?.defaultCols;
   }
 
-  get page(): Page<Ref> | undefined {
-    return this._page;
-  }
-
   get expanded(): boolean {
     if (this._expanded === undefined) return this._ext?.config?.defaultExpanded;
     return this._expanded;
@@ -103,16 +125,21 @@ export class RefListComponent implements OnInit, OnDestroy {
     this._expanded = value;
   }
 
+  get page(): Page<Ref> | undefined {
+    return this._page;
+  }
+
   @Input()
   set page(value: Page<Ref> | undefined) {
     this._page = value;
     if (this._page) {
-      if (this._page.number > 0 && this._page.number >= this._page.totalPages) {
+      if (this._page.page.number > 0 && this._page.page.number >= this._page.page.totalPages) {
         this.router.navigate([], {
           queryParams: {
-            pageNumber: this._page.totalPages - 1
+            pageNumber: this._page.page.totalPages - 1,
           },
           queryParamsHandling: 'merge',
+          replaceUrl: true,
         });
       }
     }
@@ -121,7 +148,7 @@ export class RefListComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.newRefs$?.pipe(
       takeUntil(this.destroy$),
-    ).subscribe(ref => ref && this.newRefs.push(ref));
+    ).subscribe(ref => ref && this.addNewRef(ref));
   }
 
   ngOnDestroy() {
@@ -134,11 +161,29 @@ export class RefListComponent implements OnInit, OnDestroy {
       const votes = score(this.page!.content[i]);
       if (votes < 100 &&
         this.hideNewZeroVoteScores &&
-        moment().diff(this.page!.content[i].created!, 'minutes') < 5) {
+        DateTime.now().diff(this.page!.content[i].created!, 'minutes').minutes < 5) {
         return '•';
       }
       return votes;
     }
-    return i + this.page!.number * this.page!.size + 1;
+    return i + this.page!.page.number * this.page!.page.size + 1;
+  }
+
+  addNewRef(ref: Ref) {
+    // TODO: verify read before clearing?
+    this.accounts.clearNotificationsIfNone(ref.modified);
+    if (ref.url !== this.store.view.url && !this.page?.content.find(r => r.url === ref.url)) {
+      const index = this.newRefs.findIndex(r => r.url === ref.url);
+      if (index !== -1) {
+        this.newRefs[index] = ref;
+      } else if (this.insertNewAtTop) {
+        this.newRefs = [ref, ...this.newRefs];
+        return;
+      } else {
+        this.newRefs = [...this.newRefs, ref];
+        return;
+      }
+    }
+    this.store.eventBus.refresh(ref);
   }
 }

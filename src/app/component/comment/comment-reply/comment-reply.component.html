@@ -1,10 +1,19 @@
 <form>
-  <app-editor [control]="comment"
-              (syncTags)="plugins = $event"
+  <app-editor #editor [control]="comment"
+              [createdTags]="tags || []"
+              [selectResponseType]="selectResponseType"
+              (syncTags)="syncTags($event)"
+              (addSource)="addSource($event)"
+              (uploadCompleted)="completedUploads.push($event)"
               [autoFocus]="autofocus"></app-editor>
 </form>
-<ng-container *ngFor="let e of serverError">
-  <div class="error" [title]="e">{{ e }}</div>
-</ng-container>
-<button (click)="reply()" i18n>reply</button>
-<button *ngIf="showCancel" (click)="cancel()" i18n>cancel</button>
+@for (e of serverError; track e) {
+  <div class="error">{{ e }}</div>
+}
+
+<button type="button" [disabled]="replying" (click)="reply()" i18n>reply</button>
+@if (replying) {
+  <app-loading [inline]="true"></app-loading>
+} @else if (showCancel) {
+  <button type="button" (click)="cancel()" i18n>cancel</button>
+}

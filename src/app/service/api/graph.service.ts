@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { catchError, map, Observable } from 'rxjs';
+import { catchError, map, Observable, of } from 'rxjs';
 import { mapRefOrNull, RefNode } from '../../model/ref';
 import { params } from '../../util/http';
 import { ConfigService } from '../config.service';
@@ -21,9 +21,10 @@ export class GraphService {
     return this.config.api + '/api/v1/graph';
   }
 
-  list(urls: string[], origin = ''): Observable<(RefNode | null)[]> {
+  list(urls: string[]): Observable<(RefNode | null)[]> {
+    if (!urls?.length) return of([]);
     return this.http.get(`${this.base}/list`, {
-      params: params({ urls, origin }),
+      params: params({ urls }),
     }).pipe(
       map(res => res as any[]),
       map(res => res.map(mapRefOrNull)),

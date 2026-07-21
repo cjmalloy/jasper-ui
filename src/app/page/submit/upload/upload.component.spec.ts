@@ -1,6 +1,10 @@
-import { HttpClientTestingModule } from '@angular/common/http/testing';
+/// <reference types="vitest/globals" />
+import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { forwardRef } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { RouterTestingModule } from '@angular/router/testing';
+import { ActivatedRoute, provideRouter } from '@angular/router';
+import { of } from 'rxjs';
 
 import { UploadPage } from './upload.component';
 
@@ -10,13 +14,21 @@ describe('UploadPage', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ UploadPage ],
-      imports: [
-        HttpClientTestingModule,
-        RouterTestingModule,
+      imports: [forwardRef(() => UploadPage)],
+      providers: [
+        provideHttpClient(withXhr(), withInterceptorsFromDi()),
+        provideHttpClientTesting(),
+        provideRouter([]),
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            params: of({}),
+            queryParams: of({}),
+            snapshot: { params: {}, queryParams: {} }
+          }
+        },
       ],
-    })
-    .compileComponents();
+    }).compileComponents();
 
     fixture = TestBed.createComponent(UploadPage);
     component = fixture.componentInstance;
@@ -25,5 +37,26 @@ describe('UploadPage', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('preserves origin plugin data and supplies a missing published date', () => {
+    const refs = component['refs'];
+    vi.spyOn(component['auth'], 'canAddTag').mockReturnValue(true);
+    const create = vi.spyOn(refs, 'create').mockReturnValue(of('cursor'));
+
+    component.uploadRef$({
+      url: 'https://example.com',
+      tags: ['public', '+plugin/origin/pull'],
+      plugins: {
+        '+plugin/origin': { remote: '', local: '@example' },
+      },
+    }).subscribe();
+
+    expect(create).toHaveBeenCalledWith(expect.objectContaining({
+      published: expect.anything(),
+      plugins: {
+        '+plugin/origin': { remote: '', local: '@example' },
+      },
+    }));
   });
 });

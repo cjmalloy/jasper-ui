@@ -1,18 +1,20 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
+import { BackupRef } from '../../../service/api/backup.service';
+import { LoadingComponent } from '../../loading/loading.component';
+import { BackupComponent } from '../backup.component';
 
 @Component({
   selector: 'app-backup-list',
   templateUrl: './backup-list.component.html',
-  styleUrls: ['./backup-list.component.scss']
+  styleUrls: ['./backup-list.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [LoadingComponent, BackupComponent]
 })
-export class BackupListComponent implements OnInit {
+export class BackupListComponent {
 
   @Input()
-  list?: string[];
-
-  constructor() { }
-
-  ngOnInit(): void {
-  }
+  list?: BackupRef[];
+  @Input()
+  origin = '';
 
 }

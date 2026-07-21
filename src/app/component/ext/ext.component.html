@@ -1,102 +1,95 @@
 <div class="link" [class.remote]="!local">
-  <a [routerLink]="['/tag', extLink]">{{ ext.name || template?.name || plugin?.name || ext.tag }}</a>
-  <span *ngIf="ext.name" class="host">({{ qualifiedTag }})</span>
-  <span *ngIf="!ext.name && ext.origin" class="host">({{ ext.origin }})</span>
+  @if (preview | async; as p) {
+    <a [routerLink]="['/tag', extLink]" [appTitle]="ext">{{ p.name || '#' + p.tag }}</a>
+  } @else {
+    <a [routerLink]="['/tag', extLink]" [appTitle]="ext">{{ ext.name || template?.name || plugin?.name || '#' + ext.tag }}</a>
+  }
+  @if (ext.name) {
+    <span class="host">({{ qualifiedTag }})</span>
+  } @else if (ext.origin) {
+    <span class="host">({{ ext.origin }})</span>
+  }
 </div>
 <div class="stack">
   <div class="info">
-    <ng-container *ngIf="ext.modified else notSubmitted">
-      <span [title]="ext.modified.toISOString()" i18n>modified {{ ext.modified.fromNow() }}</span>
-    </ng-container>
-    <ng-template #notSubmitted>
+    @if (ext.modified) {
+      <span [title]="ext.modified.toISO()" i18n>modified {{ ext.modified.toRelative() }}</span>
+    } @else {
       <span i18n>not found</span>
-    </ng-template>
-    <ng-container *ngFor="let icon of icons">
-      <span class="icon" (click)="clickIcon(icon)" [title]="icon.tag">{{ icon.config!.view! }}</span>
-    </ng-container>
-    <ng-container *ngIf="!local" i18n>
-      on <a [routerLink]="['/tag', ext.origin]">{{ ext.origin || 'default' }}</a>
-    </ng-container>
+    }
+    @for (icon of icons; track icon) {
+      <span class="icon" (click)="bookmarks.toggleTag(icon.tag)" [title]="icon.tag">{{ icon.config!.view! }}</span>
+    }
+    @if (!local) {
+      &nbsp;<span i18n>on</span>&nbsp;<a [routerLink]="['/tag', ext.origin]">{{ ext.origin || 'default' }}</a>
+    }
   </div>
   <div class="actions">
-    <ng-container *ngIf="!ext.upload">
-      <a *ngIf="parent"
-         [routerLink]="['/tags', parent]" i18n>parent</a>
+    @if (!ext.upload) {
+      @if (parent) {
+        <a [routerLink]="['/tags', parent]" i18n>parent</a>
+      }
       <a [routerLink]="['/tags', extLink]" i18n>tags</a>
-      <a *ngIf="!local"
-         class="fake-link"
-         (click)="copy()" i18n>copy</a>
-      <a *ngIf="local && writeAccess else source"
-         class="fake-link"
-         (click)="editing = !editing" i18n>edit</a>
-      <ng-template #source>
-        <a *ngIf="!local"
-           class="fake-link"
-           (click)="editing = !editing" i18n>diff</a>
-        <a *ngIf="local"
-           class="fake-link"
-           (click)="viewSource = !viewSource" i18n>source</a>
-      </ng-template>
-      <a class="fake-link"
-         (click)="download()" i18n>download</a>
-      <a *ngIf="!deleting && (store.account.sysMod || writeAccess)"
-         class="fake-link"
-         (click)="deleting = true" i18n>delete</a>
-      <span *ngIf="deleting" class="delete-confirm" i18n>are you sure?
-      <a class="fake-link" (click)="delete()">yes</a> /
-      <a class="fake-link" (click)="deleting = false">no</a>
-    </span>
-    </ng-container>
-    <ng-container *ngIf="store.account.user && ext.upload">
+      @if (!local) {
+        <a class="fake-link" (click)="copy()" i18n>copy</a>
+      }
+      @if (local && writeAccess) {
+        @if (useEditPage) {
+          <a [routerLink]="['/ext/', ext.tag]" i18n>edit</a>
+        } @else {
+          <a class="fake-link" (click)="editing = !editing" i18n>@if (editForm.dirty) {*edit*} @else {edit}</a>
+        }
+      } @else if (useEditPage) {
+        <a [routerLink]="['/ext/', ext.tag]" i18n>source</a>
+      } @else {
+        <a class="fake-link" (click)="viewSource = !viewSource" i18n>source</a>
+      }
+      <a class="fake-link" (click)="download()" i18n>download</a>
+      @if (store.account.mod || writeAccess) {
+        <app-confirm-action #action [action]="delete$" i18n>delete</app-confirm-action>
+      }
+    }
+    @if (store.account.user && ext.upload) {
       <a class="fake-link" (click)="upload()" i18n>upload</a>
-      <a *ngIf="parent"
-         [routerLink]="['/tags', parent]" i18n>parent</a>
+      @if (parent) {
+        <a [routerLink]="['/tags', parent]" i18n>parent</a>
+      }
       <a [routerLink]="['/tags', ext.tag]" i18n>tags</a>
-      <a class="fake-link"
-         (click)="editing = !editing" i18n>edit</a>
-      <a class="fake-link"
-         (click)="download()" i18n>download</a>
-      <a *ngIf="!deleting"
-         class="fake-link"
-         (click)="deleting = true" i18n>remove</a>
-      <span *ngIf="deleting" class="delete-confirm" i18n>are you sure?
-        <a class="fake-link" (click)="(deleting = false) && store.submit.removeExt(ext)">yes</a> /
-        <a class="fake-link" (click)="deleting = false">no</a>
-      </span>
-    </ng-container>
+      <a class="fake-link" (click)="editing = !editing" i18n>@if (editForm.dirty) {*edit*} @else {edit}</a>
+      <a class="fake-link" (click)="download()" i18n>download</a>
+      <app-confirm-action #action [action]="delete$" i18n>delete</app-confirm-action>
+    }
   </div>
 </div>
 
-<form *ngIf="editing else showErrors" class="form" [formGroup]="editForm" (ngSubmit)="save()">
+@if (editing) {
+  <form class="form" [formGroup]="editForm" (ngSubmit)="save()">
 
-  <app-ext-form [group]="editForm"></app-ext-form>
+    <app-ext-form #extForm [group]="editForm"></app-ext-form>
 
-  <ng-container *ngFor="let e of serverError">
-    <span><!-- Unexpected Error --></span>
-    <div class="error">{{ e }}</div>
-  </ng-container>
+    @for (e of serverError; track e) {
+      <span><!-- Unexpected Error --></span>
+      <div class="error">{{ e }}</div>
+    }
 
-  <span><!-- Buttons --></span>
-  <span class="form-array right">
-    <div *ngIf="invalid && !force" class="overwrite warning" i18n-title title="Will drop all unknown configs.">
-      <input id="overwrite" type="checkbox" [(ngModel)]="overwrite" [ngModelOptions]="{standalone: true}">
-      <label for="overwrite" i18n>Overwrite</label>
-    </div>
-    <div *ngIf="invalid && force" class="force error" i18n-title title="Will reset config to defaults.">
-      <input id="force" type="checkbox" [(ngModel)]="force" [ngModelOptions]="{standalone: true}">
-      <label for="force" i18n>Force</label>
-    </div>
+    <span><!-- Buttons --></span>
+    <span class="buttons right">
+    @if (overwritten) {
+      <div class="overwrite warning" i18n-title title="Will drop all unknown configs.">
+        <input id="overwrite" type="checkbox" [checked]="overwrite" (input)="overwrite = !overwrite">
+        <label for="overwrite" i18n>Overwrite</label>
+      </div>
+    }
     <button type="submit" [disabled]="submitted && !editForm.valid" i18n>save</button>
-    <button (click)="editing = false" i18n>cancel</button>
+    <button type="button" (click)="editing = false" i18n>cancel</button>
   </span>
-</form>
-
-<form *ngIf="viewSource" class="form" [formGroup]="editForm">
-  <app-ext-form [group]="editForm"></app-ext-form>
-</form>
-
-<ng-template #showErrors>
-  <ng-container *ngFor="let e of serverError">
+  </form>
+} @else if (viewSource) {
+  <form class="form" [formGroup]="editForm">
+    <app-ext-form #extForm [group]="editForm"></app-ext-form>
+  </form>
+} @else {
+  @for (e of serverError; track e) {
     <div class="error">{{ e }}</div>
-  </ng-container>
-</ng-template>
+  }
+}

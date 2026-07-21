@@ -1,14 +1,21 @@
 :host {
   flex-shrink: 0;
   display: block;
-  max-height: 160px;
   user-select: none;
   scroll-padding: 40px;
   overflow: hidden;
 
   .todo-item-container {
+    display: flex;
     overflow: hidden;
     height: 100%;
     width: 100%;
+    & > * {
+      flex: 1;
+    }
+    & > input {
+      flex: 0;
+      margin-right: 12px;
+    }
   }
 }

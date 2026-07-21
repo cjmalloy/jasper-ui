@@ -1,32 +1,30 @@
-import { HttpClientTestingModule } from '@angular/common/http/testing';
+/// <reference types="vitest/globals" />
+import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { forwardRef } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
-import { RouterTestingModule } from '@angular/router/testing';
-import { OAuthService, OAuthStorage } from 'angular-oauth2-oidc';
+import { provideRouter } from '@angular/router';
 
 import { ExtPage } from './ext.component';
 
-describe('CreateExtPage', () => {
+describe('ExtPage', () => {
   let component: ExtPage;
   let fixture: ComponentFixture<ExtPage>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ ExtPage ],
       imports: [
-        HttpClientTestingModule,
         ReactiveFormsModule,
-        RouterTestingModule,
+        forwardRef(() => ExtPage),
       ],
       providers: [
-        { provide: OAuthService, useValue: {} },
-        { provide: OAuthStorage, useValue: {} },
+        provideHttpClient(withXhr(), withInterceptorsFromDi()),
+        provideHttpClientTesting(),
+        provideRouter([]),
       ],
-    })
-    .compileComponents();
-  });
+    }).compileComponents();
 
-  beforeEach(() => {
     fixture = TestBed.createComponent(ExtPage);
     component = fixture.componentInstance;
     fixture.detectChanges();

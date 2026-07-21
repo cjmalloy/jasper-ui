@@ -1,5 +1,10 @@
+/// <reference types="vitest/globals" />
+import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
+import { provideRouter } from '@angular/router';
+import { JasperFormlyModule } from '../../formly/formly.module';
 
 import { TagsFormComponent } from './tags.component';
 
@@ -9,15 +14,18 @@ describe('TagsFormComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ TagsFormComponent ],
       imports: [
         ReactiveFormsModule,
+        JasperFormlyModule,
+        TagsFormComponent
       ],
-    })
-    .compileComponents();
-  });
+      providers: [
+        provideHttpClient(withXhr(), withInterceptorsFromDi()),
+        provideHttpClientTesting(),
+        provideRouter([]),
+      ],
+    }).compileComponents();
 
-  beforeEach(() => {
     fixture = TestBed.createComponent(TagsFormComponent);
     component = fixture.componentInstance;
     component.group = new UntypedFormGroup({ tags: new UntypedFormControl({}) });

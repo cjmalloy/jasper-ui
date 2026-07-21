@@ -1,7 +1,11 @@
+/// <reference types="vitest/globals" />
 import { OverlayModule } from '@angular/cdk/overlay';
-import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { forwardRef } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { RouterTestingModule } from '@angular/router/testing';
+import { provideRouter } from '@angular/router';
+import { runInAction } from 'mobx';
 
 import { ForceDirectedComponent } from './force-directed.component';
 
@@ -11,17 +15,16 @@ describe('ForceDirectedComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ ForceDirectedComponent ],
       imports: [
-        HttpClientTestingModule,
-        RouterTestingModule,
         OverlayModule,
+        forwardRef(() => ForceDirectedComponent),
       ],
-    })
-    .compileComponents();
-  });
+      providers: [
+        provideHttpClient(withXhr(), withInterceptorsFromDi()),
+        provideHttpClientTesting(),
+        provideRouter([]),]
+    }).compileComponents();
 
-  beforeEach(() => {
     fixture = TestBed.createComponent(ForceDirectedComponent);
     component = fixture.componentInstance;
     component.content = [{ url: '' }];
@@ -30,5 +33,11 @@ describe('ForceDirectedComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('should draw nodes when the graph store changes', () => {
+    runInAction(() => component.store.graph.nodes = [{ url: 'https://example.com' }]);
+
+    expect(fixture.nativeElement.querySelectorAll('.force-directed-graph circle')).toHaveLength(1);
   });
 });

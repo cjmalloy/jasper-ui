@@ -1,81 +1,132 @@
 <ng-container [formGroup]="group"
               cdkDropListGroup>
-  <label for="url" i18n>URL:</label>
+  @if (creating && thumbnail) {
+    <span><!-- Thumbnail Preview --></span>
+    <div class="thumbnail-preview">
+      <div class="thumbnail"
+           [style.background-image]="thumbnailRefs | thumbnail: !thumbnailEmoji && !thumbnailColor | async | cssUrl"
+           [style.background-color]="thumbnailColor"
+           [style.background-size]="thumbnailRadius ? 'cover' : 'contain'"
+           [style.border-radius.px]="thumbnailRadius">{{ thumbnailEmoji }}</div>
+    </div>
+  }
+
+  <label [for]="id + '-url'" i18n>URL:</label>
   <div class="form-array">
-    <input id="url" type="text" formControlName="url">
-    <button type="button" (click)="alts.addLink('')" i18n>📎️</button>
+    <input [id]="id + '-url'" name="url" type="text" formControlName="url">
+    <button type="button" (click)="alts.addLink('')" i18n-title title="+ Add another alternate URL" i18n>📎️</button>
   </div>
   <app-links #alts
+             [id]="id + '-alts'"
              fieldName="alternateUrls"
              i18n-label label="Alts:"
-             [showLabel]="!!alts.links?.length"
+             [showLabel]="dropping || !!alts.links?.length"
              i18n-emoji emoji="📎️"
              [showAdd]="false"
              [group]="group"
-             [class.no-margin]="!alts.links?.length"></app-links>
+             [class.no-margin]="!dropping && !alts.links?.length"></app-links>
 
-  <label for="title" i18n>Title:</label>
+  <label [for]="id + '-title'" i18n>Title:</label>
   <div class="form-array">
-    <input id="title" type="text" [formControl]="title">
-    <button *ngIf="web" type="button" (click)="scrapeTitle()" i18n-title title="Scrape Title" i18n>🪝</button>
-  </div>
-  <span><!-- Title Errors --></span>
-  <div>
-    <div class="error" *ngIf="title.touched && title.errors?.['required']" i18n>
-      Title must not be blank.
-    </div>
+    <input [id]="id + '-title'"
+           name="title"
+           type="text"
+           [formControl]="title"
+           (blur)="validate($any($event.target))">
+    @if (web) {
+      @if (scrapingTitle) {
+        <app-loading class="event-loading"
+                     [inline]="true"
+                     i18n-title title="Scrape Title"></app-loading>
+      } @else {
+        <button type="button" (click)="scrapeTitle()" i18n-title title="Scrape Title" i18n>🪝</button>
+      }
+    }
   </div>
 
-  <label for="published" i18n>Published:</label>
+  <label [for]="id + '-published'" i18n>Published:</label>
   <div class="form-array">
-    <input id="published" type="datetime-local" step="1" [formControl]="published">
-    <button *ngIf="web" type="button" (click)="scrapePublished()" i18n-title title="Scrape Published" i18n>🪝</button>
-    <button type="button" (click)="sources.addLink('')" i18n>📜️</button>
+    <input [id]="id + '-published'"
+           name="published"
+           type="datetime-local"
+           step="1"
+           [formControl]="published"
+           (blur)="validate($any($event.target))">
+    @if (web) {
+      @if (scrapingPublished) {
+        <app-loading class="event-loading"
+                     [inline]="true"
+                     i18n-title title="Scrape Published"></app-loading>
+      } @else {
+        <button type="button" (click)="scrapePublished()" i18n-title title="Scrape Published" i18n>🪝</button>
+      }
+    }
+    <button type="button" (click)="sources.addLink('')" i18n-title title="+ Add another source" i18n>📜️</button>
   </div>
   <span><!-- Published Errors --></span>
   <div>
-    <div class="error" *ngIf="published.touched && published.errors?.['required']" i18n>
-      Published date is required.
-    </div>
+    @if (published.touched && published.errors?.['required']) {
+      <div class="error" i18n>
+        Published date is required.
+      </div>
+    }
   </div>
   <app-links #sources
-             id="sources"
+             [id]="id + '-sources'"
              fieldName="sources"
              i18n-label label="Sources:"
-             [showLabel]="!!sources.links?.length"
+             [showLabel]="dropping || !!sources.links?.length"
              i18n-emoji emoji="🔗️"
              [showAdd]="false"
              [group]="group"
-             [class.no-margin]="!sources.links?.length"></app-links>
+             [class.no-margin]="!dropping && !sources.links?.length"></app-links>
 
-  <label for="plugins"
-         style="margin-top: 7px">
-    <span class="mobile-inline" i18n>Add Plugin: &nbsp;</span>
+  <div class="add-plugins-label">
+    <label [for]="id + '-plugins'" class="mobile-inline" i18n>Add Plugin:</label>
     <app-select-plugin #pluginSelect
+                       [id]="id + '-plugins'"
                        class="shrink"
                        [add]="true"
                        i18n-title title="Add Plugin"
                        (pluginChange)="togglePlugin($event); pluginSelect.plugin = ''"></app-select-plugin>
-  </label>
-  <app-form-plugins id="plugins"
+  </div>
+  <app-form-plugins #pluginsFormComponent id="plugins"
                     (togglePlugin)="togglePlugin($event)"
-                    [ref]="group.value.url"
-                    [tags]="group.value.tags"
                     [group]="group"></app-form-plugins>
 
-  <label for="comment" class="editor-label" i18n>Abstract:</label>
-  <div class="fill-editor" #fill>
-    <app-editor id="comment"
-                class="bubble"
-                [control]="comment"
-                [tags]="getTags()"
-                [fillWidth]="fill"
-                [showScrape]="web && !oembed"
-                (scrape)="scrapeComment()"
-                (syncEditor)="syncEditor()"
-                (syncTags)="editorTags.next($event)"></app-editor>
-  </div>
+  @if (customEditor) {
+    <span><!-- Editor --></span>
+    <div #fill class="fill-editor">
+      <ngx-monaco-editor #ed
+                         [formControl]="comment"
+                         [options]="codeOptions"
+                         [style.width]="'min(900px, 50vw)'"
+                         [style.height]="'min(200px, 90vh)'"
+                         appResizeHandle
+                         [appFillWidth]="fill"
+                         [hitArea]="config.mobile ? 48 : 20"></ngx-monaco-editor>
+    </div>
+  } @else {
+    <label [for]="ed.id" class="editor-label">{{ editorLabel }}:</label><!-- TODO: Let plugins change comment label -->
+    <div #fill class="fill-editor">
+      <app-editor #ed
+                  class="bubble"
+                  [addButton]="true"
+                  [addCommentTitle]="addEditorTitle"
+                  [addCommentLabel]="addEditorLabel"
+                  [control]="comment"
+                  [tags]="tags"
+                  [fillWidth]="fill"
+                  [url]="web && url.value"
+                  (scrape)="scrapeAll()"
+                  [scraping]="scrapingAll"
+                  (syncEditor)="syncEditor()"
+                  (syncTags)="setTags($event)"
+                  (addSource)="addSource($event)"
+                  (uploadCompleted)="completedUploads.push($event)"></app-editor>
+    </div>
+  }
 
-  <app-tags [group]="group"></app-tags>
+  <app-tags #tagsFormComponent [group]="group" [origin]="origin"></app-tags>
 
 </ng-container>

@@ -7,3 +7,16 @@
     flex-grow: 1;
   }
 }
+
+.offline-banner {
+  display: none;
+}
+
+.offline .offline-banner {
+  display: block;
+  padding: 4px;
+  text-align: center;
+  background-color: var(--bg-accent);
+  backdrop-filter: blur(1px);
+  box-shadow: 0 0 2px 1px rgba(246, 246, 246, 0.1);
+}

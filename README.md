@@ -1,182 +1,221 @@
 # Jasper-UI
-Reference client for Jasper KMS.
+Reference client for Jasper KM.
 
-[![Build & Test](https://github.com/cjmalloy/jasper-ui/actions/workflows/docker-image.yml/badge.svg)](https://github.com/cjmalloy/jasper-ui/actions/workflows/docker-image.yml)
-[![Cypress](https://github.com/cjmalloy/jasper-ui/actions/workflows/cypress.yml/badge.svg)](https://github.com/cjmalloy/jasper-ui/actions/workflows/cypress.yml)
-[![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/jasper)](https://artifacthub.io/packages/helm/jasper/jasper-ui)
+[![Build & Test](https://github.com/cjmalloy/jasper-ui/actions/workflows/test.yml/badge.svg)](https://cjmalloy.github.io/jasper-ui/reports/latest-vitest)
+[![Coverage](https://img.shields.io/endpoint?url=https://cjmalloy.github.io/jasper-ui/reports/latest-coverage/badge.json)](https://cjmalloy.github.io/jasper-ui/reports/latest-coverage/)
+[![Playwright](https://github.com/cjmalloy/jasper-ui/actions/workflows/playwright.yml/badge.svg)](https://cjmalloy.github.io/jasper-ui/reports/latest-playwright)
+[![Dependabot](https://img.shields.io/endpoint?url=https://cjmalloy.github.io/jasper-ui/reports/dependabot-badge.json)](https://github.com/cjmalloy/jasper-ui/security/dependabot)
+[![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/jasper-ui)](https://artifacthub.io/packages/helm/jasper/jasper-ui)
 
 Jasper-UI is the reference client for the
-[Jasper Knowledge Management System](https://github.com/cjmalloy/jasper)
+[Jasper Knowledge Management Server](https://github.com/cjmalloy/jasper)
 
 ## Quickstart
 To start the server, client and database with a single admin user, run
 the [quickstart](https://github.com/cjmalloy/jasper-ui/blob/master/quickstart/docker-compose.yaml)
 docker compose file.
 
+## Knowledge Management Client
+As the reference client for the jasper protocol this project is designed to expose all
+features of the jasper protocol with a user experience supporting devs and power users.
+
+This client allows you to expressively annotate links with tags and your own ontology.
+It can be left unmodded to act as a general purpose database or admin tool.
+With modding single purpose UIs can be derived for prototyping, one-off use, or micro-frontends.
+Modding can also augment existing general purpose functionality. See `src/app/mods` for bundled mods.
+Other mod distributions may be compatible with this client or require a different client.
+The same network can be used by multiple clients and unsupported features are silently ignored.
+
+General Purpose Usage:
+* RSS Reader
+* AI Chat
+* Bulletin Board
+* Discussion Forum
+* Wiki / Knowledge Base
+* Business Workflow Automation
+* Continuous Offsite Backups
+
 ## Features
-
-## CSRF Protection
-All modifying or sensitive server endpoints in this project must not use GET as a method in order to prevent cross site
-request forgeries. All pages, upon load, with no user interaction, should not make any modifying or sensitive request.
-No combination of url path, parameters, or hash should cause such a request. CSRF attacks require that the app perform
-some action simply by loading a page.
-
-By preventing CSRF on the client side, we prevent the need to copy CSRF tokens into headers and can persist auth tokens
-in secure cookies. CSRF-TOKEN headers have issues where adding headers is difficult, such as loading images or
-downloading files in a new tab. By storing auth tokens in a secure cookie, we can allow the user to open a new tab and
-still be signed in.
 
 ### Text Editor
 Markdown editor with support for rendering both markdown and HTML.
-* Use `#tag` to create a tag link `[tag](/tag/politics)` (add a space for the usual markdown
-  H1 "# Title"). The tag will automatically be added to the Ref.
-* Any links in markdown will automatically be added to either sources or alternate URLs
-* Use `[1]` or `[[1]]` to reference existing sources. The number will be the 1-based index of the source
-  and automatically updated if the index of the source changes.
+* Use `#tag` to create a tag link. Add a space for the usual markdown H1 "# Title".
+* Use `[1]` or `[[1]]` to reference existing sources. The number will be the 1-based index of the source.
 * Use `[alt1]` or `[[alt1]]` to reference alternate URLs. Use `[alt1](url)` to add an alternate URL. The
-  number will be the 1-based index of the alternate URL and automatically updated if the index of the
-  alt changes.
-* Using `#+user/charlie` with the inbox plugin installed will add `plugin/inbox/user/charlie`
-  to the tags. Will remove `#+user/` prefix when displaying.
+  number will be the 1-based index of the alternate URLs.
+* Using `+user/charlie` with the inbox plugin installed will add `plugin/inbox/user/charlie`
+  to the tags. Use `#+user/charlie` instead to simply link to the user without notifying them.
 * Use `^` to create superscripts. Use in combination with source references for standard reference style such
   as `^[1]` or `^[[1]]`.
 * Any links to a ref or tag will render a toggle button to expand inline (any link that starts
-  with `/ref/` or `/tag/`).
-* Links of the form `[ref](www.example.com)` will add a ref entry inline.
-* Links of the form `[query](tag|query)` will add results of a tag query inline.
-* Links of the form `[toggle](www.example.com)` will add a toggle button that will expand to show the contents
+  with `/ref/` or `/tag/`, with or without the server host and base path).
+* Links of the form `![=](www.example.com)` will add a ref entry inline.
+* Links of the form `![](www.example.com)` will embed the contents of the Ref if it exists, or attempt to embed
+  the url directly if it is an image, audio, video, or embeddable sites.
+* Links of the form `![+](www.example.com)` will add a toggle button that will expand to show the contents
   of the Ref if it exists, or attempt to show the content directly if it is an image, audio, video, and embeddable
-  sites (currently YouTube, Twitter, and BitChute).
-* Links of the form `[embed](www.example.com)` will embed the contents of the Ref if it exists, or attempt to embed
-  the url directly if it is an image, audio, video, or embeddable sites (currently YouTube, Twitter, and BitChute).
+  sites.
+* Links of the form `![](/tag/query)` will add results of a tag query inline.
+
+
 ### Tag Query Page
 * Perform any tag query while performing a full text search and multi-column sort
 * Displays title from tag Ext if present
 * Displays sidebar markdown from tag Ext if present
 * Displays pinned Refs from tag Ext if present
 * Adds Modmail button that sends a DM to `plugin/inbox/tag`
-### Home Page
-* Query all tags in users Ext subscriptions
-### Templates
-1. Default template: (matches all tags):
+
+
+### Mods
+1. **Root Mod:**
    1. **Pinned links:** Display these links at the top of this tag's page.
    2. **Sidebar:** (optional) Custom markdown content for the sidebar. LaTeX and emojis are
    supported if plugins are installed.
    3. **Themes:** (optional) Set a custom theme for a tag page. Will remain active until a
    different tag page is visited.
-2. User: (matches `user/`) Store user generated data:
+2. **User:** (matches `user/`) Store user generated data:
    1. Inbox: last notified time (for use with the inbox plugin)
    2. Subscriptions: List of tags to show on your home page
-   3. Themes: (optional) Override the theme for the entire site. Will cause custom tag themes
-   to be ignored.
-3. Queue: (matches `queue/`) Work Queue for assigning or tracking work and paying workers. Requires
-the invoice plugin to pay workers. Adds data:
-   1. Approvers: list of user tags to send invoices to
-   2. Bounty: (optional) payment for responses to items in the queue.
-   3. Max Age: (optional) max age Refs in the queue to be considered active. Refs in the queue
-   older than this will have an expired icon when viewed from the queue tag page.
-### Plugins
-1. **Inbox:** Enables notifications when installed. You receive a notification when someone posts a
+   3. Themes: (optional) Override the theme for the entire site. Will cause custom tag themes to be ignored.
+3. **Home Page:** Enables a home page where you can subscribe to various tags or queries and
+see them on a personalized dashboard.
+4. **Inbox:** Enables notifications when installed. You receive a notification when someone posts a
 response to yours. Activates the envelope icon button in the settings area of the client.
 Requires the inbox field in the user template. When posting a response the client will add (for
 example with `+user/charlie`) `plugin/inbox/user/charlie` to the tags. This will cause it to show up
 in `+user/charlie`'s notifications. Users also receive notifications for all tags they have write
 access to (tag modmail). This tag is also the convention by which you may address a Ref "To:"
-another user. Does not add data to a Ref. Does not generate metadata.
-2. **Comment:** Enables comments and comment threads when installed. Allows sorting Refs by number
+another user. Also includes an outbox plugin for remote notifications and a DM template for
+private direct messages.
+5. **Comment:** Enables comments and comment threads when installed. Allows sorting Refs by number
 of comments. Comments are created with `plugin/comment` and `internal` tags. (the `internal` tag
 prevents the comment from showing up on `@*`). Adds a deleted field to the ref to mark the
 comment as deleted. This is used to prevent breaking a comment thread by actually removing a
-node when a comment is deleted. Generates count metadata in parent.
-3. **Thumbnail:** Enables the Ref thumbnail when installed. When a Ref is tagged `plugin/thumbnail`,
+node when a comment is deleted.
+6. **Thread:** Merges similar Refs tagged `plugin/thread` into discussion threads.
+7. **Delete Notice:** Marks Refs as deleted without actually removing them, preserving comment
+thread structure.
+8. **Thumbnail:** Enables the Ref thumbnail when installed. When a Ref is tagged `plugin/thumbnail`,
 the Ref has an image that can be used as a thumbnail. Adds optional url, width, height, and time
 fields to the Ref. If the url field is not specified, the url of the Ref will be the image
-thumbnail. Does not generate metadata.
-4. **Latex:** Enables KaTeX processing on the Ref comment markdown. Does not add data to a Ref.
-Does not generate metadata. KaTeX support for sidebar content is always enabled if this plugin
-is installed.
-5. **Emoji:** Enables emoji support in the Ref comment markdown. Does not add data to a Ref. Does
-not generate metadata. Emoji support for sidebar content is always enabled if this plugin is
-installed.
-6. **Graph:** Enable the knowledge graph tab in the client UI when this is installed. Adds data
-to refs to override how they are graphed.
-7. **Invoice:** Enables invoice support in the client when installed. When invoices are created they
-will be tagged `plugin/invoice`. When the inbox plugin is installed there is a tab on the inbox
-page to show invoices addressed to you. Requires the QR plugin to send QR invoices. If the Work
-Queue template is installed, any invoices can include a Work Queue to address the invoice to all
-work queue approvers. Does not add data to a Ref. Generates count metadata in any sourced Refs.
-8. **Invoice/Rejected:** Used by the invoice plugin to mark responses to an invoice. Does not add
-data to a Ref. Generates count metadata in any sourced Refs.
-9. **Invoice/Disputed:** Used by the invoice plugin to mark responses to an invoice. Does not add
-data to a Ref. Generates count metadata in any sourced Refs.
-10. **Invoice/Paid:** Used by the invoice plugin to mark responses to an invoice. Does not add data
-to a Ref. Generates count metadata in any sourced Refs.
+thumbnail.
+9. **LaTeX:** Enables KaTeX processing on the Ref comment markdown. Use `$` for inline math
+and `$$` for block math. KaTeX support for sidebar content is always enabled if this plugin
+is installed. Does not add data to a Ref.
+10. **Code:** Edit and view code with syntax highlighting using the Monaco editor (the same
+editor as VS Code), supporting multiple programming languages.
 11. **QR:** Enables the QR embed when installed. When the `plugin/qr` is applied to a Ref, the Ref has
 a URL to be converted into a QR code. The QR code is shown when the embed toggle is pressed. Adds
 optional URL field to the Ref to use for the QR code, if this is unspecified the URL of the Ref
-will be used. Does not generate metadata.
-12. **Embed:** Enables the iframe embed when installed. When the plugin/embed is applied to a Ref,
+will be used.
+12. **Embed:** Enables the iframe embed when installed. When the `plugin/embed` is applied to a Ref,
 the Ref has a URL that can be used in an iframe. The iframe is shown when the embed toggle is
 pressed. Adds optional URL field to the Ref to use for the iframe, if this is unspecified the
-URL of the Ref will be used. Does not generate metadata. Currently implemented for:
-    1. YouTube
-    2. Twitter
-    3. BitChute
-13. **Audio:** Enables the audio embed when installed. When the `plugin/audio` is applied to a Ref,
+URL of the Ref will be used. Will check [public oembed servers](https://oembed.com/providers.json)
+by default.
+14. **Audio:** Enables the audio embed when installed. When the `plugin/audio` is applied to a Ref,
 the Ref has a URL that points to an audio file. The audio player is shown when the embed toggle
 is pressed. Adds optional URL field to the Ref to use for the audio file, if this is unspecified
-the URL of the Ref will be used. Does not generate metadata. This plugin will be suggested when
+the URL of the Ref will be used. This plugin will be suggested when
 you submit a link ending in an audio file extension.
-14. **Video:** Enables the video embed when installed. When the `plugin/video` is applied to a Ref,
+15. **Video:** Enables the video embed when installed. When the `plugin/video` is applied to a Ref,
 the Ref has a URL that points to a video file. The video player is shown when the embed toggle
 is pressed. Adds optional URL field to the Ref to use for the video file, if this is unspecified
-the URL of the Ref will be used. Does not generate metadata. This plugin will be suggested when
+the URL of the Ref will be used. This plugin will be suggested when
 you submit a link ending in a video file extension.
-15. **Image:** Enables the image embed when installed. When the `plugin/image` is applied to a Ref,
+16. **Image:** Enables the image embed when installed. When the `plugin/image` is applied to a Ref,
 the Ref has a URL that points to an image file. The image is shown when the embed toggle is
 pressed. Adds optional URL field to the Ref to use for the image file, if this is unspecified
-the URL of the Ref will be used. Does not generate metadata. This plugin will be suggested when
-you submit a link ending in an image file extension.
-16. **Wiki:** Enables adding Wiki Refs when installed. When creating a wiki the URL will be
+the URL of the Ref will be used. Also provides an image gallery template with a responsive grid
+layout. This plugin will be suggested when you submit a link ending in an image file extension.
+17. **PDF:** Adds an action button to open the PDF version of a Ref.
+18. **Playlist:** Create a playlist from the list of sources on a Ref.
+19. **File:** Allow storing user files on the server using a file cache.
+20. **Wiki:** Enables adding Wiki Refs when installed. When creating a wiki the URL will be
 `wiki://Page_name`. You can link to a Wiki page using the double `[[bracket syntax]]` in all
-markdown fields. Does not add data to the Ref. Does not generate metadata.
+markdown fields. Does not add data to the Ref.
+21. **Blog:** View and organize collections of blog posts with tag-based filtering and
+title/body formatting.
+22. **Chat:** Real-time chat rooms where multiple users can message each other. Includes chatroom
+embeds, a user lobby for tracking online users, and optional video call support.
+23. **Kanban:** Organize tasks on a visual board with customizable columns (To Do, In Progress,
+Done), swim lanes (by team or owner), and priority badges with drag-and-drop between lanes.
+24. **Lens:** Embed query results as visual cards in a grid layout. Can be used to display
+related content directly inside a Ref.
+25. **Person:** Adds filtering and stylizing to support people-oriented content semantics.
+26. **Repost:** Re-submit a URL which has already been submitted by another user. The first
+source of this Ref is the URL to be reposted.
+27. **Hide:** Mark Refs as hidden for the current user.
+28. **Save:** Save Refs to a personal list for the current user.
+29. **Mark as Read:** Track read status for Refs across multiple sessions.
+30. **AI:** Send Refs to an AI for responses. Includes support for DALL·E image generation,
+a Navi chat assistant, automatic summarization, and translation. Configurable LLM settings
+with optional web search context.
+31. **Delta:** Apply server-side scripts to transform Refs. Includes a scheduler for running
+scripts on configurable intervals.
+32. **RSS/Atom Feed:** Import entries from an RSS or Atom feed. The feed will be scraped on an
+interval you specify.
+33. **Remote Origin:** Replicate a remote Jasper instance. The remote origin will be scraped
+on an interval you specify. If the remote is also set up to replicate from this instance, you
+may communicate with remote users. Supports push and pull modes, plus optional SSH tunnels.
+34. **Scrape:** Configure CSS selectors for scraping websites.
+35. **Email:** Render e-mail specific formatting in Refs.
+36. **Cache:** Cache remote resources locally. Includes recycle bin support: if you delete a Ref
+its cached file will not be removed from storage right away, and restoring the Ref before the
+cache is cleared also recovers the cached file.
+37. **YT-DLP:** Download and cache videos using YT-DLP.
+38. **MarkItDown:** Convert documents to Markdown using Microsoft MarkItDown. Supports PDF,
+Word, Excel, PowerPoint, images (with OCR), audio (transcription), HTML, and more.
+39. **HTML to Markdown:** Add a button to the editor to convert HTML content into Markdown.
+40. **Mod Store:** Install and share mods with other users.
+41. **Mod Tools:** Moderate content with approval workflows, NSFW tagging, and user reporting.
+Adds a modlist tab to the inbox for reviewing unmoderated posts.
+42. **Themes:** Add custom themes to the global theme list. Includes Terminal and Night themes.
+43. **Fullscreen:** Fullscreen the viewer when an embed is shown.
+44. **Seamless:** Remove the white border from the comment markdown for a cleaner display.
+45. **GDPR:** Activates a GDPR-compliant cookie consent banner.
+46. **Chess:** Play chess games with move tracking, board flip, and an AI opponent. Includes an
+integrated chatroom for game commentary.
+47. **Backgammon:** Play backgammon with piece dragging, dice rolling, game replay controls, and
+customizable player names.
+48. **Help Popups:** Enable contextual help popups that guide users through different parts of
+the application.
+49. **Map:** View Refs on an interactive map. Includes GeoJSON and GeoPackage support for point,
+line, polygon, and multi-geometry data.
+50. **Drafts:** Save edits to a Ref before publishing, then commit or revert them later.
+51. **Duration:** Store media duration metadata in a tag and display it in the Ref info area.
+52. **Grid:** View query results in a configurable multi-column grid.
 
 ## Coming Soon
-### Templates
-1. **Delta:** (matches `delta/`) Apply a server side script to transform this Ref into a new Ref.
-Adds data to the tag Ext to contain the code or service reference and config.
-### Plugins
-1. **Table:** Enabled the table embed when installed. When the `plugin/table` is applied to a Ref,
-the Ref contains tabular data. The tabular data is shown when the embed toggle is pressed. Adds
-an optional field to the Ref to use for the tabular data, if this is unspecified the URL of the
-Ref will be used to point to a TSV file. Does not generate metadata.
-2. **Chart:** Enabled the graph embed when installed. When the `plugin/chart` is applied to a Ref, the
-Ref contains tabular data. The tabular data rendered in a graph is shown when the embed toggle is
-pressed. Adds fields to the ref for defining the chart type, labels, and location of the data in
-the table. Adds an optional field to the Ref to use for the tabular data, if this is unspecified
-the URL of the Ref will be used to point to a TSV file. Does not generate metadata.
-3. **Voting:** Enables voting and sorting by vote when installed. Requires additions to the user
+1. **Voting:** Enables voting and sorting by vote when installed. Requires additions to the user
 template to hold votes. This adds two new sort fields to the UI: Top and Hot. Top sorts by vote
 total, and Hot applies an exponential time decay when sorting. If the inbox plugin is enabled
 there is a tab on the index page to view the refs you voted on. Can be configured to allow
-positive or both positive and negative votes. Voting on a Ref adds it to a list in your user
-extension. Does not add data to a Ref. Does not generate metadata.
-4. **Analytics:** Enables engagement tracking when installed. Reports links clicked, Refs expanded,
+positive or both positive and negative votes. Does not add data to a Ref.
+2. **Graph:** Create and visualize relationship graphs to show connections and hierarchies
+between items.
+3. **Folder:** Desktop-like file browser interface where you can arrange files and subfolders
+freely on a canvas with drag-and-drop positioning.
+4. **Notebook:** Keep private notes in a notebook with column layouts and priority badges
+(Reminder, Important).
+5. **Work Queue:** Manage workflows with task assignment, tracking, and invoicing. Includes
+invoice support for paying workers with QR invoices and workflow status tracking (rejected,
+disputed, paid).
+6. **To Do List:** Create and manage to-do lists with checkable items.
+7. **Table:** Create and edit spreadsheet-style tables with CSV data in Refs.
+8. **Poll:** Create multiple-choice polls and view results. Voting is done by adding a Ref
+response for each poll option.
+9. **Archive:** Generate and use external archive/unpaywalled links (e.g., archive.ph, 12ft.io) for Refs.
+10. **HTML Editor:** Format Ref comments as HTML instead of Markdown.
+11. **Chart:** Render tabular data as a graph in the embed viewer. When the `plugin/chart` is
+applied to a Ref, add fields to define the chart type, labels, and data location. Adds an
+optional field to the Ref to use for the tabular data, if this is unspecified the URL of the
+Ref will be used to point to a TSV file.
+12. **Analytics:** Enables engagement tracking when installed. Reports links clicked, Refs expanded,
 Ref action taken, Refs viewed, and queries searched. Adds data to the Ref to override analytic
-tracking for that ref. Does not generate metadata.
-5. **Poll:** Enables polls in the embeds when installed. When a Ref is tagged `plugin/poll` data is
-added to specify the options and their description text. Voting is done by adding a Ref response
-tagged with `plugin/poll/response/tag` and the response field, with tag being the response to the
-poll. The `poll/response` plugin will generate metadata, but the poll plugin will not.
-6. **Geo:** Enables a map in the embeds that displays GeoJson when installed. When a Ref is tagged
-`plugin/geo`, the Ref includes some GeoJson. The map is shown when the embed toggle is pressed.
-Adds an optional field to the Ref to use for the GeoJson, if this is unspecified the URL of the
-Ref will be used to point to a GeoJson file. Does not generate metadata.
-7. **GeoPackage:** Enables a map in the embeds that displays GeoPackage when installed. When a
-Ref is tagged `plugin/geopackage`, the Ref includes some GeoPackage. The map is shown when the
-embed toggle is pressed. Adds an optional field to the Ref to use for the GeoPackage, if this
-is unspecified the URL of the Ref will be used to point to a GeoPackage file. Does not generate
-metadata.
+tracking for that ref.
+13. **Clipboard:** Manage in-browser clipboard bubbles for copied Refs, tags, queries, bookmarks,
+and local-only images.
 
 ## Deployment
 Jasper-UI is available in the following distributions:
@@ -187,53 +226,75 @@ Jasper-UI is available in the following distributions:
 Config settings are loaded at runtime from assets/config.json. When using a docker image, a config
 file will be generated from environment variables:
 
-| Config field     | Docker Env               | Description                                                                                                                       | Example Value                                                                                           |
-|------------------|--------------------------|-----------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------|
-| `title`          | `JASPER_TITLE`           | Name to display in the title bar.                                                                                                 | `Jasper`                                                                                                |
-| `version`        | `JASPER_VERSION`         | Version string to display as a tooltip in the footer.                                                                             | `v1.0.0`                                                                                                |
-| `api`            | `JASPER_API`             | URL of the API server (no trailing slash)                                                                                         | `//jasperkm.info`                                                                                       |
-| `logout`         | `JASPER_LOGOUT`          | Optional URL to log out. (ignored when using codeFlow or implicitFlow)                                                            | `//jasperkm.info/oauth2/sign_out?rd=https%3A%2F%2Fauth.jasperkm.info%2Fauthn%2Fauthentication%2Flogout` |
-| `login`          | `JASPER_LOGIN`           | Optional URL to log in. A redirect (`?rd=`) will be appended with the current page. (ignored when using codeFlow or implicitFlow) | `//jasperkm.info/oauth2/sign_in`                                                                        |
-| `signup`         | `JASPER_SIGNUP`          | Optional URL to sign up. (ignored when using codeFlow or implicitFlow)                                                            | `https://auth.jasperkm.info/authn/registration/form`                                                    |
-| `scim`           | `JASPER_SCIM`            | Enable SCIM user management interface.                                                                                            | `false`                                                                                                 |
-| `multiTenant`    | `JASPER_MULTI_TENANT`    | Running in multi-tenant mode. Requires sysadmin role for certain backup and profile endpoints.                                    | `false`                                                                                                 |
-| `allowedSchemes` | `JASPER_ALLOWED_SCHEMES` | Allow clickable links for certain schemas.                                                                                        | `["http:", "https:", "ftp:", "tel:", "mailto:"]`                                                        |
-| `maxPlugins`     | `JASPER_MAX_PLUGINS`     | Maximum number of plugins to load before giving up and writing an error to the console.                                           | `1000`                                                                                                  |
-| `maxTemplates`   | `JASPER_MAX_TEMPLATES`   | Maximum number of templates to load before giving up and writing an error to the console.                                         | `1000`                                                                                                  |
-| `maxOrigins`     | `JASPER_MAX_ORIGINS`     | Maximum number of origins to load before giving up and writing an error to the console.                                           | `1000`                                                                                                  |
-| `fetchBatch`     | `JASPER_FETCH_BATCH`     | Batch size for fetching plugins, templates, and origins.                                                                          | `50`                                                                                                    |
-| `token`          | `JASPER_TOKEN`           | Set client bearer token.                                                                                                          |                                                                                                         |
-| `codeFlow`       | `JASPER_CODE_FLOW`       | Enable client side OIDC authorization using PKCE.                                                                                 | `false`                                                                                                 |
-| `implicitFlow`   | `JASPER_IMPLICIT_FLOW`   | Enable client side OIDC authorization using the implicit flow.                                                                    | `false`                                                                                                 |
-| `issuer`         | `JASPER_ISSUER`          | IDP issuer. (used for codeFlow and implicitFlow)                                                                                  | `https://accounts.google.com`                                                                           |
-| `clientId`       | `JASPER_CLIENT_ID`       | IDP client ID. (used for codeFlow and implicitFlow)                                                                               | `123-abc.apps.googleusercontent.com`                                                                    |
-| `scope`          | `JASPER_SCOPE`           | OAuth2 Scopes. (used for codeFlow and implicitFlow)                                                                               | `openid email`                                                                                          |
-|                  | `BASE_HREF`              | Set the base href for the SPA.                                                                                                    | `/j/`                                                                                                   |
-|                  | `CSP_DEFAULT_SRC`        | Additional URLS to add to the default content security policy.                                                                    | `https://accounts.google.com https://www.googleapis.com`                                                |
+| Config field     | Docker Env               | Description                                                                                       | Example Value                                                                                           |
+|------------------|--------------------------|---------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------|
+| `title`          | `JASPER_TITLE`           | Name to display in the title bar.                                                                 | `Jasper`                                                                                                |
+| `version`        | `JASPER_VERSION`         | Version string to display as a tooltip in the footer.                                             | `v1.0.0`                                                                                                |
+| `api`            | `JASPER_API`             | URL of the API server (no trailing slash)                                                         | `//jasperkm.info`                                                                                       |
+|                  | `JASPER_API_PROXY`       | Backend host to proxy on `/api`. Sets `JASPER_API` to `.`                                         | `http://web:80`                                                                                         |
+| `logout`         | `JASPER_LOGOUT`          | Optional URL to log out.                                                                          | `//jasperkm.info/oauth2/sign_out?rd=https%3A%2F%2Fauth.jasperkm.info%2Fauthn%2Fauthentication%2Flogout` |
+| `login`          | `JASPER_LOGIN`           | Optional URL to log in. A redirect (`?rd=`) will be appended with the current page.               | `//jasperkm.info/oauth2/sign_in`                                                                        |
+| `signup`         | `JASPER_SIGNUP`          | Optional URL to sign up.                                                                          | `https://auth.jasperkm.info/authn/registration/form`                                                    |
+| `scim`           | `JASPER_SCIM`            | Enable SCIM user management interface.                                                            | `false`                                                                                                 |
+| `websockets`     | `JASPER_WEBSOCKETS`      | Enable websocket STOMP connections.                                                               | `false`                                                                                                 |
+| `support`        | `JASPER_SUPPORT`         | Optional tag to send help requests to.                                                            | `false`                                                                                                 |
+| `allowedSchemes` | `JASPER_ALLOWED_SCHEMES` | Allow clickable links for certain schemas.                                                        | `["http:", "https:", "ftp:", "tel:", "mailto:"]`                                                        |
+| `modSeals`       | `JASPER_MOD_SEALS`       | Seals which may only be added via ROLE_MOD or above.                                              | `["seal", "_seal", "+seal", "_moderated"]`                                                              |
+| `editorSeals`    | `JASPER_EDITOR_SEALS`    | Seals which may only be added via ROLE_EDITOR or above.                                           | `["plugin/qc"]`                                                                                         |
+| `maxPlugins`     | `JASPER_MAX_PLUGINS`     | Maximum number of plugins to load before giving up and writing an error to the console.           | `1000`                                                                                                  |
+| `maxTemplates`   | `JASPER_MAX_TEMPLATES`   | Maximum number of templates to load before giving up and writing an error to the console.         | `1000`                                                                                                  |
+| `maxOrigins`     | `JASPER_MAX_ORIGINS`     | Maximum number of origins to load before giving up and writing an error to the console.           | `1000`                                                                                                  |
+| `fetchBatch`     | `JASPER_FETCH_BATCH`     | Batch size for fetching plugins, templates, and origins.                                          | `50`                                                                                                    |
+| `token`          | `JASPER_TOKEN`           | Set client bearer token.                                                                          |                                                                                                         |
+| `prefetch`       | `JASPER_PREFETCH`        | Prefetch proxied urls. Needed when not using cookies as image requests will not be authenticated. | `false`                                                                                                 |
+| `pwa`            | `JASPER_PWA`             | Enable the progressive web app service worker and manifest.                                       | `false`                                                                                                 |
+|                  | `BASE_HREF`              | Set the base href for the SPA.                                                                    | `/j/`                                                                                                   |
+|                  | `JASPER_LOCALE`          | One of 'en', or 'ja'. Default is 'en'.                                                            | `ja'`                                                                                                   |
+|                  | `CSP_DEFAULT_SRC`        | Additional URLS to add to the default content security policy.                                    | `https://accounts.google.com https://www.googleapis.com`                                                |
+|                  | `CSP_SCRIPT_SRC`         | Additional URLS to add to the script-src content security policy.                                 |                                                                                                         |
+|                  | `CSP_STYLE_SRC`          | Additional URLS to add to the style-src content security policy.                                  |                                                                                                         |
+|                  | `CSP_CONNECT_SRC`        | Additional URLS to add to the connect-src content security policy.                                |                                                                                                         |
+|                  | `CSP_FONT_SRC`           | Additional URLS to add to the font-src content security policy.                                   |                                                                                                         |
+|                  | `CSP_IMG_SRC`            | Additional URLS to add to the img-src content security policy.                                    |                                                                                                         |
 
 ## Developing
 This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 13.3.0.
 
 ### Development server
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The application will automatically reload if you change any of the source files.
+Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The
+application will automatically reload if you change any of the source files.
 
 ### Code scaffolding
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+Run `ng generate component component-name` to generate a new component.
+You can also use
+`ng generate directive|pipe|service|class|guard|interface|enum|module`.
+
+### Localizing
+
+To update the localization file after new text is added run
+`ng extract-i18n --output-path src/locale`.
+Run
+`xmlstarlet ed -N x="urn:oasis:names:tc:xliff:document:1.2" -d "//x:context-group" src/locale/messages.xlf > src/locale/messages.<locale here>.xlf`
+to generate a new translation file. Then add it to the `locales` array in `angular.json`.
 
 ### Build
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
+Run `ng build` to build the project. The build artifacts will be stored in the
+`dist/` directory.
 
 ### Running unit tests
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
+Run `ng test` to execute the unit tests via [Vitest](https://vitest.dev/).
 
 ### Running end-to-end tests
 
-Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To use this command, you need to first add a package that implements end-to-end testing capabilities.
+Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To
+use this command, you need to first add a package that implements end-to-end
+testing capabilities.
 
 ### Further help
 
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.io/cli) page.
+To get more help on the Angular CLI use `ng help` or go check out the
+[Angular CLI Overview and Command Reference](https://angular.io/cli) page.

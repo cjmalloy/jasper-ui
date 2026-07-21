@@ -1,6 +1,8 @@
-import { HttpClientTestingModule } from '@angular/common/http/testing';
+/// <reference types="vitest/globals" />
+import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { RouterTestingModule } from '@angular/router/testing';
+import { provideRouter } from '@angular/router';
 import { AdminService } from '../../../service/admin.service';
 
 import { CommentReplyComponent } from './comment-reply.component';
@@ -11,19 +13,20 @@ describe('CommentReplyComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ CommentReplyComponent ],
-      imports: [
-        HttpClientTestingModule,
-        RouterTestingModule,
-      ],
+      imports: [CommentReplyComponent],
       providers: [
-        { provide: AdminService, useValue: { getPlugin: () => null } },
-      ]
-    })
-    .compileComponents();
-  });
+        { provide: AdminService, useValue: {
+            getPlugin: () => null,
+            getEditorButtons: () => [],
+            getTemplate: () => null,
+          }
+        },
+        provideHttpClient(withXhr(), withInterceptorsFromDi()),
+        provideHttpClientTesting(),
+        provideRouter([]),
+      ],
+    }).compileComponents();
 
-  beforeEach(() => {
     fixture = TestBed.createComponent(CommentReplyComponent);
     component = fixture.componentInstance;
     component.to = { url: '' };

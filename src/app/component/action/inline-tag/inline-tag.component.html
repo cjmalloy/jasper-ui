@@ -1,0 +1,26 @@
+<a class="fake-link" (click)="editing = !editing">
+  <ng-content></ng-content>
+</a>
+@if (editing) {
+  <span class="inline-tagging">
+    <datalist [id]="id">
+      @for (o of autocomplete; track o.value) {
+        <option [value]="o.value">{{ o.label }}</option>
+      }
+    </datalist>
+    <input #inlineTag
+           [attr.list]="id"
+           (keydown)="keydown($event, inlineTag)"
+           (input)="search(inlineTag)"
+           type="text"
+           inputmode="email"
+           enterkeyhint="enter"
+           [pattern]="tagsRegex"
+           autocorrect="off"
+           autocapitalize="none"
+           appAutofocus>
+    <button type="button" (click)="save(inlineTag)" i18n>+</button>
+  </span>
+} @else if (acting) {
+  <app-loading [inline]="true"></app-loading>
+}

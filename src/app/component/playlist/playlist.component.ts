@@ -1,38 +1,38 @@
-import { Component, Input } from '@angular/core';
+import { Component, forwardRef, Input, OnChanges, SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
 import { Ref } from '../../model/ref';
 import { RefService } from '../../service/api/ref.service';
+import { ViewerComponent } from '../viewer/viewer.component';
 
 @Component({
   selector: 'app-playlist',
   templateUrl: './playlist.component.html',
-  styleUrls: ['./playlist.component.scss']
+  styleUrls: ['./playlist.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [
+    forwardRef(() => ViewerComponent),
+  ],
 })
-export class PlaylistComponent {
+export class PlaylistComponent implements OnChanges {
+
+  @Input()
+  ref?: Ref;
 
   index = 0;
   page?: Ref;
-
-  private _ref?: Ref;
 
   constructor(
     private refs: RefService,
   ) { }
 
-  get ref() {
-    return this._ref;
-  }
-
-  @Input()
-  set ref(value: Ref | undefined) {
-    this._ref = value;
-    if (value?.sources?.length) {
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes.ref?.currentValue?.sources?.length) {
       this.index = 0;
       this.fetch();
     }
   }
 
   fetch() {
-    this.refs.page({url: this.ref!.sources![this.index], size: 1 }).subscribe(page => this.page = page.content[0]);
+    this.refs.getCurrent(this.ref!.sources![this.index]).subscribe(ref => this.page = ref);
   }
 
   back() {

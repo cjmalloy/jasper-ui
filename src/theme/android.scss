@@ -1,0 +1,12 @@
+body.android {
+  .toggle {
+    .toggle-x {
+      top: -1px;
+    }
+  }
+  body.fullscreen {
+    & > * {
+      display: block;
+    }
+  }
+}

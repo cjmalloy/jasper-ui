@@ -1,16 +1,24 @@
-import { Component, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
-import { UntypedFormGroup } from '@angular/forms';
+import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { ReactiveFormsModule, UntypedFormGroup } from '@angular/forms';
 import { FormlyForm, FormlyFormOptions } from '@ngx-formly/core';
+import { cloneDeep } from 'lodash-es';
 import { Plugin } from '../../../model/plugin';
-import { defer } from 'lodash-es';
+import { AdminService } from '../../../service/admin.service';
+import { memo, MemoCache } from '../../../util/memo';
 
 @Component({
   selector: 'app-form-gen',
   templateUrl: './gen.component.html',
-  styleUrls: ['./gen.component.scss']
+  styleUrls: ['./gen.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [ReactiveFormsModule, FormlyForm]
 })
-export class GenFormComponent implements OnInit {
+export class GenFormComponent implements OnInit, OnChanges {
 
+  @Input()
+  bulk = false;
+  @Input()
+  promoteAdvanced = false;
   @Input()
   plugins!: UntypedFormGroup;
   @Input()
@@ -20,20 +28,41 @@ export class GenFormComponent implements OnInit {
   @Output()
   togglePlugin = new EventEmitter<string>();
 
-  @ViewChild(FormlyForm)
-  formlyForm?: FormlyForm;
-
   model: any;
   options: FormlyFormOptions = {
     formState: {
+      admin: this.admin,
       config: {},
     },
   };
 
-  constructor() { }
+  constructor(
+    private admin: AdminService,
+  ) { }
+
+  ngOnChanges(changes: SimpleChanges) {
+    MemoCache.clear(this);
+  }
 
   get group() {
-    return this.plugins.get(this.plugin.tag) as UntypedFormGroup;
+    return this.plugins.get(this.plugin.tag) as UntypedFormGroup | undefined;
+  }
+
+  @memo
+  get form() {
+    if (this.bulk) {
+      if (this.plugin.config?.bulkForm === true) {
+        return cloneDeep(this.plugin.config?.form || this.plugin.config?.advancedForm);
+      }
+      return cloneDeep(this.plugin.config?.bulkForm);
+    }
+    return cloneDeep(this.plugin.config?.form);
+  }
+
+  @memo
+  get advancedForm() {
+    if (this.bulk) return undefined;
+    return cloneDeep(this.plugin.config?.advancedForm);
   }
 
   get childrenOn() {
@@ -44,7 +73,7 @@ export class GenFormComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.group.patchValue(this.plugin.defaults);
+    this.group?.patchValue(this.plugin.defaults);
     this.options.formState.config = this.plugin.defaults;
   }
 
@@ -53,7 +82,13 @@ export class GenFormComponent implements OnInit {
   }
 
   cssClass(tag: string) {
-    return tag.replace(/\//g, '-')
-      .replace(/[^\w-]/g, '');
+    return tag.replace(/\//g, '_')
+      .replace(/\./g, '-')
+      .replace(/[^\w-_]/g, '');
+  }
+
+  toggleChild(tag: string) {
+    this.togglePlugin.next(tag);
+    if ('vibrate' in navigator) navigator.vibrate([2, 8, 8]);
   }
 }

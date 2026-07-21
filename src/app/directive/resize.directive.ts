@@ -1,8 +1,6 @@
-import { Directive, ElementRef, HostBinding, HostListener, Input } from '@angular/core';
+import { Directive, ElementRef, HostBinding, HostListener, Input, NgZone } from '@angular/core';
 
-@Directive({
-  selector: '[appResize]'
-})
+@Directive({ selector: '[appResize]' })
 export class ResizeDirective {
 
   @Input('appResize')
@@ -15,12 +13,14 @@ export class ResizeDirective {
 
   @HostBinding('style.width')
   get width() {
-    return this.dim ? this.dim.x + 'px' : null;
+    if (!this.enabled || !this.dim) return this.el.nativeElement.style.width;
+    return this.dim.x + 'px'
   }
 
   @HostBinding('style.height')
   get height() {
-    return this.dim ? this.dim.y + 'px' : null;
+    if (!this.enabled || !this.dim) return this.el.nativeElement.style.height;
+    return this.dim.y + 'px';
   }
 
   minPx = 2;
@@ -33,7 +33,10 @@ export class ResizeDirective {
   wasDragging = false;
   dirty = false;
 
-  constructor(private el: ElementRef) {}
+  constructor(
+    private el: ElementRef,
+    private zone: NgZone,
+  ) { }
 
   @HostListener('mousedown', ['$event'])
   onMousedown(e: MouseEvent) {
@@ -46,8 +49,8 @@ export class ResizeDirective {
       y: e.clientY,
     };
     this.startDim = {
-      x: this.el.nativeElement.offsetWidth,
-      y: this.el.nativeElement.offsetHeight,
+      x: Math.floor(this.el.nativeElement.offsetWidth),
+      y: Math.floor(this.el.nativeElement.offsetHeight),
     };
   }
 
@@ -55,20 +58,22 @@ export class ResizeDirective {
   onTouchstart(e: TouchEvent) {
     if (this.enabled === false) return;
     if (e.touches.length != 2) return;
-    e.preventDefault();
-    this.oldZoom = this.zoom;
-    const t1x = e.touches.item(0)!.clientX;
-    const t1y = e.touches.item(0)!.clientY;
-    const t2x = e.touches.item(1)?.clientX || 2 * t1x;
-    const t2y = e.touches.item(1)?.clientY || 2 * t1y;
-    this.dragStart = {
-      x: Math.abs(t1x - t2x),
-      y: Math.abs(t1y - t2y),
-    };
-    this.startDim = {
-      x: this.el.nativeElement.offsetWidth,
-      y: this.el.nativeElement.offsetHeight,
-    };
+    this.zone.run(() => {
+      e.preventDefault();
+      this.oldZoom = this.zoom;
+      const t1x = e.touches.item(0)!.clientX;
+      const t1y = e.touches.item(0)!.clientY;
+      const t2x = e.touches.item(1)?.clientX || 2 * t1x;
+      const t2y = e.touches.item(1)?.clientY || 2 * t1y;
+      this.dragStart = {
+        x: Math.abs(t1x - t2x),
+        y: Math.abs(t1y - t2y),
+      };
+      this.startDim = {
+        x: Math.floor(this.el.nativeElement.offsetWidth),
+        y: Math.floor(this.el.nativeElement.offsetHeight),
+      };
+    });
   }
 
   @HostListener('click', ['$event'])
@@ -89,41 +94,49 @@ export class ResizeDirective {
           Math.abs(e.clientY - this.dragStart.y) < this.minPx) {
         return;
       }
-      this.dragging = true;
-      this.wasDragging = true;
+      this.zone.run(() => {
+        this.dragging = true;
+        this.wasDragging = true;
+      });
     }
-    e.preventDefault();
-    const dx = (e.clientX - this.dragStart.x) / this.startDim.x;
-    const dy = (e.clientY - this.dragStart.y) / this.startDim.y;
-    const l = (dx + dy) / 2;
-    this.dim ??= { ...this.startDim };
-    this.dim.x = this.startDim.x * (1 + l);
-    this.dim.y = this.startDim.y * (1 + l);
-    this.dirty = true;
+    this.zone.run(() => {
+      if (!this.dragStart || !this.startDim) return;
+      e.preventDefault();
+      const dx = (e.clientX - this.dragStart.x) / this.startDim.x;
+      const dy = (e.clientY - this.dragStart.y) / this.startDim.y;
+      const l = (dx + dy) / 2;
+      this.dim ??= { ...this.startDim };
+      this.dim.x = Math.floor(this.startDim.x * (1 + l));
+      this.dim.y = this.dim.x * this.startDim.y / this.startDim.x;
+      this.dirty = true;
+    });
   }
 
   @HostListener('window:touchmove', ['$event'])
   onTouchmove(e: TouchEvent) {
     if (this.enabled === false) return;
     if (!this.dragStart || !this.startDim) return;
-    if (!this.dragging) {
-      this.dragging = true;
-      this.wasDragging = true;
-    }
-    e.preventDefault();
-    const t1 = e.touches.item(0)!;
-    const t2 = e.touches.item(1) || t1;
-    const dims = {
-      w: Math.abs(t1.clientX - t2.clientX),
-      h: Math.abs(t1.clientY - t2.clientY),
-    };
-    const dx = (dims.w - this.dragStart.x) / this.startDim.x;
-    const dy = (dims.h - this.dragStart.y) / this.startDim.y;
-    const l = (dx + dy) / 2;
-    this.dim ??= { ...this.startDim };
-    this.dim.x = this.startDim.x * (1 + l);
-    this.dim.y = this.startDim.y * (1 + l);
-    this.dirty = true;
+    this.zone.run(() => {
+      if (!this.dragStart || !this.startDim) return;
+      if (!this.dragging) {
+        this.dragging = true;
+        this.wasDragging = true;
+      }
+      e.preventDefault();
+      const t1 = e.touches.item(0)!;
+      const t2 = e.touches.item(1) || t1;
+      const dims = {
+        w: Math.abs(t1.clientX - t2.clientX),
+        h: Math.abs(t1.clientY - t2.clientY),
+      };
+      const dx = (dims.w - this.dragStart.x) / this.startDim.x;
+      const dy = (dims.h - this.dragStart.y) / this.startDim.y;
+      const l = (dx + dy) / 2;
+      this.dim ??= { ...this.startDim };
+      this.dim.x = Math.floor(this.startDim.x * (1 + l));
+      this.dim.y = this.dim.x * this.startDim.y / this.startDim.x;
+      this.dirty = true;
+    });
   }
 
   @HostListener('window:contextmenu', ['$event'])
@@ -134,8 +147,10 @@ export class ResizeDirective {
     if (this.enabled === false) return;
     delete this.dragStart;
     if (this.dragging) {
-      this.dragging = false;
-      e.preventDefault();
+      this.zone.run(() => {
+        this.dragging = false;
+        e.preventDefault();
+      });
     }
   }
 
