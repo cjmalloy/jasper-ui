@@ -7,6 +7,7 @@ COPY patches ./patches/
 RUN npm ci
 COPY . ./
 RUN npm run build
+RUN for i in $(find dist/jasper-ui/ -type f -not -name "*.br" -not -name "index.html" -not -name "config.json" -print); do brotli -9 $i; done
 
 FROM node:26.5.0 AS test
 WORKDIR /app
