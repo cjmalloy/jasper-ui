@@ -2,7 +2,7 @@
 import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ReactiveFormsModule, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
+import { ReactiveFormsModule, UntypedFormArray, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { provideRouter } from '@angular/router';
 import { JasperFormlyModule } from '../../formly/formly.module';
 import { PluginsFormComponent } from '../plugins/plugins.component';
@@ -37,9 +37,9 @@ describe('RefFormComponent', () => {
       published: new UntypedFormControl(),
       title: new UntypedFormControl(),
       comment: new UntypedFormControl(),
-      sources: new UntypedFormControl(),
-      alternateUrls: new UntypedFormControl(),
-      tags: new UntypedFormControl(),
+      sources: new UntypedFormArray([]),
+      alternateUrls: new UntypedFormArray([]),
+      tags: new UntypedFormArray([]),
       plugins: new UntypedFormGroup({}),
     });
     fixture.detectChanges();
