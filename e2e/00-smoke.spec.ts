@@ -12,6 +12,7 @@ test.describe.serial('Smoke Tests', () => {
       Object.defineProperty(navigator, 'userAgent', { value: `${navigator.userAgent} Electron` });
     });
     await page.goto('/?debug=USER', { waitUntil: 'networkidle' });
+    await page.waitForURL(url => url.pathname !== '/');
     const initialUrl = page.url();
     await page.locator('.subscription-bar a').first().click();
     await expect(page).not.toHaveURL(initialUrl);
