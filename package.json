@@ -31,6 +31,7 @@
     "@ngx-formly/core": "7.1.0",
     "@stomp/rx-stomp": "^2.4.0",
     "@stomp/stompjs": "^7.3.0",
+    "@toast-ui/editor": "^3.2.2",
     "ag-grid-angular": "^36.0.1",
     "ag-grid-community": "^36.0.0",
     "array.prototype.at": "^1.1.3",

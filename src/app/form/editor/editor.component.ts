@@ -45,6 +45,7 @@ import { Store } from '../../store/store';
 import { readFileAsDataURL, readFileAsString } from '../../util/async';
 import { memo, MemoCache } from '../../util/memo';
 import { expandedTagsInclude, hasTag, test } from '../../util/tag';
+import { WysiwygEditorComponent } from './wysiwyg-editor.component';
 
 export interface EditorUpload {
   id: string;
@@ -69,6 +70,7 @@ export interface EditorUpload {
     FillWidthDirective,
     AutofocusDirective,
     LimitWidthDirective,
+    WysiwygEditorComponent,
   ],
 })
 export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
@@ -91,6 +93,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   helpButton?: ElementRef<HTMLButtonElement>;
   @ViewChild('editor')
   editor?: ElementRef<HTMLTextAreaElement>;
+
   @ViewChild('md')
   md?: MdComponent;
   @ViewChild('hiddenMeasure')
@@ -391,6 +394,10 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
     return this._text || this.control?.value || '';
   }
 
+  get wysiwygEnabled() {
+    return !!this.admin.getTemplate('md.wysiwyg');
+  }
+
   updateTags(tags: string[]) {
     if (!this.tags) {
       this.createdTags = tags;
@@ -589,7 +596,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
         baseUri: this.url,
         inline: true,
       });
-      const md = this.europa.convert(this.editor!.nativeElement.value);
+      const md = this.europa.convert(this.currentText);
       this.syncText(md);
     } else if (event === 'scrape') {
       this.scrape.emit();

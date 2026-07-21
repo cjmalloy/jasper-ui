@@ -32,6 +32,7 @@ import { homeMod } from '../mods/home';
 import { lensMod } from '../mods/lens';
 import { mailboxMod } from '../mods/mailbox';
 import { mapMod } from '../mods/map';
+import { mdWysiwygMod } from '../mods/mdWysiwyg';
 import { audioMod } from '../mods/media/audio';
 import { codeMod } from '../mods/media/code';
 import { durationMod } from '../mods/media/duration';
@@ -146,6 +147,7 @@ export class AdminService {
     banlistMod,
     snippetMod,
     htmlToMarkdownMod,
+    mdWysiwygMod,
     thanksMod,
     gdprMod,
 
