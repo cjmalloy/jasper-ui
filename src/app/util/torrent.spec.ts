@@ -1,4 +1,4 @@
-import { decodeTorrentFile } from './torrent';
+import { decodeTorrentFile, hashTorrentInfo } from './torrent';
 
 describe('Torrent Utils', () => {
   it('extracts a v1 info hash', async () => {
@@ -12,6 +12,14 @@ describe('Torrent Utils', () => {
       hash: '26BBF26111E1F1F37DEF07E192B2597BDCC49F68',
       magnetUrl: 'magnet:?xt=urn:btih:26BBF26111E1F1F37DEF07E192B2597BDCC49F68',
     });
+  });
+
+  it('hashes non-ASCII pieces as bytes', () => {
+    expect(hashTorrentInfo({
+      length: 1,
+      name: 'test',
+      pieces: '\x00\x80\xFF',
+    })).toBe('BAA706756BFB0B3852DE732C1FC06049B7D42C01');
   });
 
   it('rejects unsupported v2 torrents', async () => {
