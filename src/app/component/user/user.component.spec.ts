@@ -49,8 +49,10 @@ describe('UserComponent', () => {
 
     expect(downloadRef).toHaveBeenCalledWith({
       url: 'https://remote.example/api',
-      tags: ['+plugin/origin/pull', '+plugin/origin/tunnel'],
+      title: '@example',
+      tags: ['public', 'internal', '+plugin/cron', '+plugin/origin/pull', '+plugin/origin/tunnel'],
       plugins: {
+        '+plugin/cron': { interval: 'PT15M' },
         '+plugin/origin': { remote: '@example', local: '@example' },
         '+plugin/origin/tunnel': { remoteUser: '+user/test@example' },
       },

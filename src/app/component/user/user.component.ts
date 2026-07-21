@@ -23,6 +23,7 @@ import { Ext } from '../../model/ext';
 import { getRole, Profile } from '../../model/profile';
 import { Role, User } from '../../model/user';
 import { isDeletorTag, tagDeleteNotice } from '../../mods/delete';
+import { cronPlugin } from '../../mods/system/script';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
 import { ProfileService } from '../../service/api/profile.service';
@@ -166,11 +167,14 @@ export class UserComponent implements OnChanges, HasChanges {
   }
 
   connect() {
+    const local = this.origin || this.reccomendedAlias;
     downloadRef({
       url: this.config.api,
-      tags: ['+plugin/origin/pull', '+plugin/origin/tunnel'],
+      title: local,
+      tags: ['public', 'internal', '+plugin/cron', '+plugin/origin/pull', '+plugin/origin/tunnel'],
       plugins: {
-        '+plugin/origin': { remote: this.origin, local: this.origin || this.reccomendedAlias },
+        '+plugin/cron': { ...cronPlugin.defaults },
+        '+plugin/origin': { remote: this.origin, local },
         '+plugin/origin/tunnel': { remoteUser: this.qualifiedTag },
       },
     });
