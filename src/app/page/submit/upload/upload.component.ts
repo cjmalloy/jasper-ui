@@ -3,7 +3,7 @@ import { HttpErrorResponse, HttpEventType } from '@angular/common/http';
 import { Component, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { pick, uniq, without } from 'lodash-es';
+import { uniq, without } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { autorun, IReactionDisposer, runInAction, toJS } from 'mobx';
 import { MobxAngularModule } from 'mobx-angular';
@@ -14,6 +14,7 @@ import { ExtComponent } from '../../../component/ext/ext.component';
 import { LoadingComponent } from '../../../component/loading/loading.component';
 import { RefComponent } from '../../../component/ref/ref.component';
 import { AutofocusDirective } from '../../../directive/autofocus.directive';
+import { writePlugins } from '../../../form/plugins/plugins.component';
 import { Ext, mapExt } from '../../../model/ext';
 import { mapRef, Ref } from '../../../model/ref';
 import { TagPreviewPipe } from '../../../pipe/tag-preview.pipe';
@@ -357,8 +358,9 @@ export class UploadPage implements OnDestroy {
   uploadRef$(ref: Ref) {
     ref = toJS(ref);
     ref.origin = this.store.account.origin;
+    ref.published ||= DateTime.now();
     ref.tags = ref.tags?.filter(t => this.auth.canAddTag(t));
-    ref.plugins = pick(ref.plugins, ref.tags || []);
+    ref.plugins = writePlugins(ref.tags || [], ref.plugins || {});
     return (ref.exists
         ? this.refs.update(ref).pipe(
           catchError((err: HttpErrorResponse) => {
