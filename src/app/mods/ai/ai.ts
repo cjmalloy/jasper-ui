@@ -902,6 +902,16 @@ export const aiQueryPlugin: Plugin = {
           }
         }
       };
+      const removeUrlReferences = oldUrl => {
+        for (const rewrite of bundle.ref) {
+          rewrite.sources = rewrite.sources?.filter(source => source !== oldUrl);
+          if (rewrite.comment) {
+            rewrite.comment = rewrite.comment
+              .replaceAll('](' + oldUrl + ')', ']')
+              .replaceAll('](/ref/' + oldUrl + ')', ']');
+          }
+        }
+      };
       const generatedRefs = [];
       for (let i = 0; i < bundle.ref.length; i++) {
         const r = bundle.ref[i];
@@ -917,8 +927,9 @@ export const aiQueryPlugin: Plugin = {
         for (const media of mediaTypes) {
           const oldMediaUrl = r.plugins?.[media.plugin]?.url;
           if (oldMediaUrl === 'ai:part') {
-            delete r.plugins[media.plugin].url;
             attachLog(r, 'AI response referenced unavailable media asset ' + oldMediaUrl);
+            delete r.plugins[media.plugin];
+            r.tags = r.tags.filter(t => !matchesTag(media.plugin, t));
             continue;
           }
           const mediaPart = oldMediaUrl?.match(/^ai:part(\\d+)$/);
@@ -956,6 +967,12 @@ export const aiQueryPlugin: Plugin = {
             generatedRef.tags.push(plugin);
           }
         } else {
+          if (i !== 0 && oldUrl === 'ai:part') {
+            attachLog(r, 'AI response referenced unavailable media asset ' + oldUrl);
+            removeUrlReferences(oldUrl);
+            bundle.ref.splice(i--, 1);
+            continue;
+          }
           if (part || oldUrl === 'ai:part') {
             attachLog(r, 'AI response referenced unavailable media asset ' + oldUrl);
           }

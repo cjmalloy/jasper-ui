@@ -180,7 +180,7 @@ describe('aiQueryPlugin', () => {
                     comment: '![Generated](ai:part1)',
                     sources: ['ai:part1'],
                     tags: ['plugin/image'],
-                    plugins: { 'plugin/image': { width: 512 } },
+                    plugins: { 'plugin/image': { url: 'ai:part1', width: 512 } },
                   }, {
                     url: 'add:pdf',
                     tags: ['plugin/image'],
@@ -219,6 +219,7 @@ describe('aiQueryPlugin', () => {
 
     const bundle = JSON.parse(output.mock.calls[0][0]);
     expect(axios.post).toHaveBeenCalledTimes(2);
+    expect(axios.post.mock.calls.map(call => call[1].toString())).toEqual(['image', 'pdf']);
     expect(bundle.ref[0].comment).toBe('![Generated](cache:image)');
     expect(bundle.ref[0].sources).toContain('cache:image');
     expect(bundle.ref[0].plugins['plugin/image']).toEqual({
@@ -235,6 +236,7 @@ describe('aiQueryPlugin', () => {
       modified: 'cache-cursor',
       tags: expect.arrayContaining(['_plugin/cache', 'plugin/image']),
     });
+    expect(bundle.ref[0].plugins['plugin/image'].url).toBe(bundle.ref[2].url);
   });
 
   it('logs unavailable generated media parts', async () => {
@@ -263,7 +265,10 @@ describe('aiQueryPlugin', () => {
               parts: [{ text: JSON.stringify({
                 ref: [{
                   title: 'Missing image',
-                  comment: '![Missing](ai:part2)',
+                  comment: '![Missing](ai:part2) ![Invalid](ai:part)',
+                  sources: ['ai:part'],
+                  tags: ['plugin/image'],
+                  plugins: { 'plugin/image': { url: 'ai:part' } },
                 }, {
                   url: 'ai:part2',
                   tags: ['plugin/image'],
@@ -301,6 +306,11 @@ describe('aiQueryPlugin', () => {
 
     expect(axios.post).not.toHaveBeenCalled();
     const bundle = JSON.parse(output.mock.calls[0][0]);
+    expect(bundle.ref[0].comment).not.toContain('(ai:part)');
+    expect(bundle.ref[0].sources).not.toContain('ai:part');
+    expect(bundle.ref[0].tags).not.toContain('plugin/image');
+    expect(bundle.ref[0].plugins['plugin/image']).toBeUndefined();
+    expect(bundle.ref).not.toContainEqual(expect.objectContaining({ url: 'ai:part' }));
     expect(bundle.ref).toContainEqual(expect.objectContaining({
       sources: ['ai:part2'],
       comment: 'AI response referenced unavailable media asset ai:part2',
