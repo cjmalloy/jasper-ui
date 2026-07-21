@@ -8,7 +8,7 @@ export function rng(seed: any): Rng {
     },
     range(from: number, to: number): number {
       const r = gen();
-      return Math.floor(r * to - from + 1) + from;
+      return Math.floor(r * (to - from + 1)) + from;
     },
     cycle(run: number) {
       while (run > 0) {
