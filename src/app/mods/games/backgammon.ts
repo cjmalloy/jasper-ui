@@ -231,15 +231,13 @@ export const backgammonAiPlugin: Plugin = {
           'Do not include any lists, formatting, additional text. Only reply with either a valid move or the word pass or roll in all lowercase.\\n\\n'
           + ref.comment;
         const openai = new OpenAi({ apiKey });
-        const completion = await openai.chat.completions.create({
-          model: config?.model || 'gpt-4o',
-          max_tokens: config?.maxTokens || 4096,
-          messages: [
-            { role: 'system', content: prompt },
-            { role: 'user', content: ref.comment },
-          ],
+        const completion = await openai.responses.create({
+          model: config?.model || 'gpt-5.6-sol',
+          max_output_tokens: config?.maxTokens || 4096,
+          instructions: prompt,
+          input: ref.comment,
         });
-        move = completion.choices[0]?.message?.content;
+        move = completion.output_text;
       }
       if (move !== 'pass') {
         if (move === 'roll') {
