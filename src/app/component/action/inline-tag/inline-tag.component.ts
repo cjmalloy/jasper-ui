@@ -1,7 +1,7 @@
 import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 import { FakeLinkDirective } from '../../../directive/fake-link.directive';
 import { ReactiveFormsModule } from '@angular/forms';
-import { debounce } from 'lodash-es';
+import { debounce, uniqBy } from 'lodash-es';
 import { catchError, forkJoin, map, Observable, of, Subscription, switchMap } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { AutofocusDirective } from '../../../directive/autofocus.directive';
@@ -104,6 +104,7 @@ export class InlineTagComponent extends ActionComponent {
       this.autocomplete = xs.map(x => ({ value: prefix + remove + x.tag, label: remove + (x.name || '#' + x.tag) }));
       if (!remove && this.autocomplete.length < 3) this.autocomplete.push(...getPlugins(tag));
       if (!remove && this.autocomplete.length < 3) this.autocomplete.push(...getTemplates(tag));
+      this.autocomplete = uniqBy(this.autocomplete, 'value');
     });
   }, 400);
 
