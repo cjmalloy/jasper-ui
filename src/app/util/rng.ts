@@ -43,8 +43,8 @@ function sfc32(a = 0, b = 0, c = 0, d = 0) {
 
 export interface Rng {
   random(): number;
-  range(...range: number[]): number;
+  range(from: number, to: number): number;
   cycle(run: number): void;
   restart(): void;
-  seed(...args: any[]): void;
+  seed(newSeed: string): void;
 }
