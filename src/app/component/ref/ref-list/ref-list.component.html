@@ -58,7 +58,7 @@
   @if (!insertNewAtTop) {
     @for (ref of newRefs; track ref.origin + '@' + ref.url; let i = $index) {
       <div class="list-number">{{ getNumber(i + (page?.content?.length || 0)) }}</div>
-      @if (query.bulkToolsOpen) {
+      @if (query.bulkToolsOpen && page === query.page) {
         <div class="bulk-select-cell"></div>
       }
       <app-ref class="ref-list-item"
