@@ -41,7 +41,7 @@ export class QueryStore {
     this.error = undefined;
     this.sourcesOf = undefined;
     this.responseOf = undefined;
-    this.setBulkToolsOpen(false);
+    this.setBulkToolsOpen(this.bulkToolsOpen);
     this.running?.unsubscribe();
     this.runningSources?.unsubscribe();
     this.runningResponses?.unsubscribe();
