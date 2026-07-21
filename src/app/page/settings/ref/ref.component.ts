@@ -1,6 +1,7 @@
-import { Component, inject, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { defer, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
+import { MobxAngularModule } from 'mobx-angular';
 import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Plugin } from '../../../model/plugin';
@@ -12,10 +13,11 @@ import { Store } from '../../../store/store';
 import { getArgs } from '../../../util/query';
 
 @Component({
-  standalone: false,
   selector: 'app-settings-ref-page',
   templateUrl: './ref.component.html',
   styleUrls: ['./ref.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [MobxAngularModule, RefListComponent],
 })
 export class SettingsRefPage implements OnInit, OnDestroy, HasChanges {
   private disposers: IReactionDisposer[] = [];
@@ -23,7 +25,7 @@ export class SettingsRefPage implements OnInit, OnDestroy, HasChanges {
   plugin?: Plugin;
   writeAccess = false;
 
-  @ViewChild(RefListComponent)
+  @ViewChild('list')
   list?: RefListComponent;
 
   constructor(
@@ -34,7 +36,7 @@ export class SettingsRefPage implements OnInit, OnDestroy, HasChanges {
     public query: QueryStore,
   ) {
     mod.setTitle($localize`Settings: `);
-    store.view.clear(['modified']);
+    store.view.clear(['metadata->modified']);
     query.clear();
   }
 
@@ -68,14 +70,12 @@ export class SettingsRefPage implements OnInit, OnDestroy, HasChanges {
   loadDefaults() {
     if (!this.plugin?.config?.defaultsConfirm || confirm(this.plugin?.config?.defaultsConfirm)) {
       this.store.eventBus.fire(this.store.view.settingsTag + ':defaults');
-      this.store.eventBus.reset();
     }
   }
 
   clearCache() {
     if (!this.plugin?.config?.clearCacheConfirm || confirm(this.plugin?.config?.clearCacheConfirm)) {
       this.store.eventBus.fire(this.store.view.settingsTag + ':clear-cache');
-      this.store.eventBus.reset();
     }
   }
 }

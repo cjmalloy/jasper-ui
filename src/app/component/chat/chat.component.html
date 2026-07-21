@@ -1,6 +1,10 @@
-<app-loading *ngIf="!messages || loadingPrev"></app-loading>
-<a *ngIf="messages && !loadingPrev" class="load-more fake-link" (click)="loadPrev()">load prev</a>
-<cdk-virtual-scroll-viewport class="messages"
+@if (!messages || loadingPrev) {
+  <app-loading></app-loading>
+}
+@if (messages && !loadingPrev) {
+  <a class="load-more fake-link" (click)="loadPrev()">load prev</a>
+}
+<cdk-virtual-scroll-viewport #viewport class="messages"
                              [class.scroll-lock]="scrollLock"
                              [itemSize]="itemSize"
                              [style.height.px]="containerHeight"
@@ -11,8 +15,16 @@
                   (click)="scrollLock = index"
                   [focused]="scrollLock === index"></app-chat-entry>
 </cdk-virtual-scroll-viewport>
+@if (notAtBottom) {
+  <div class="scroll-to-bottom" tabindex="0" (click)="scrollToBottom()" i18n>More messages below</div>
+}
 <div class="spacer"></div>
-<div class="input-box">
+<div class="input-box"
+     [class.dropping]="dropping"
+     (dragenter)="dropping = true"
+     (dragleave)="dragLeave($event)"
+     (dragover)="$event.preventDefault()"
+     (drop)="handleDrop($event)">
   @if (!config.websockets) {
     <button type="button"
             class="refresh"
@@ -31,8 +43,10 @@
          placeholder="chat..."
          enterkeyhint="send"
          size="10"
-         [(ngModel)]="addText"
+         [value]="addText"
+         (input)="addText = $any($event.target).value"
          (keydown)="$event.key === 'Enter' && add() || true"
+         (paste)="handlePaste($event)"
          appAutofocus>
   <button type="button"
           class="add"
@@ -40,19 +54,59 @@
           title="Send"
           (click)="add()" i18n>⏎</button>
 </div>
+@if (uploads.length) {
+  <div class="upload-progress">
+    <div class="upload-list">
+      @for (upload of uploads; track upload.id) {
+        <div class="upload-item">
+          <div class="upload-filename">{{ upload.name }}</div>
+          <div class="upload-controls">
+            @if (upload.error) {
+              <span class="upload-error">{{ upload.error }}</span>
+            } @else if (upload.completed) {
+              <span class="upload-complete" i18n>✅ Complete</span>
+            } @else {
+              <progress class="upload-progress-bar" max="100" [value]="upload.progress"></progress>
+              <span class="upload-percentage">{{ upload.progress }}%</span>
+            }
+            @if (!upload.completed && !upload.error) {
+              <button type="button"
+                      class="upload-cancel"
+                      (click)="cancelUpload(upload)"
+                      i18n-title title="Cancel upload" i18n>&ndash;</button>
+            }
+          </div>
+        </div>
+      }
+    </div>
+    @if (uploads.length > 1) {
+      <div class="upload-actions">
+        <button type="button"
+                class="upload-cancel-all"
+                (click)="cancelAllUploads()"
+                i18n>&ndash; remove all</button>
+      </div>
+    }
+  </div>
+  @if (hasActiveUploads()) {
+    <app-loading class="upload-loading" [batch]="true"></app-loading>
+  }
+}
 <span class="hints">
-  <ng-container *ngIf="admin.getPlugin('plugin/latex')">
-    <input id="latex" type="checkbox" [(ngModel)]="latex">
+  @if (admin.getPlugin('plugin/latex')) {
+    <input id="latex" type="checkbox" [checked]="latex" (input)="latex = !latex">
     <label for="latex" i18n>
       LaTeX plugin
       <sup><a target="_blank" href="https://katex.org/docs/supported.html">help</a></sup>
     </label>
-  </ng-container>
+  }
 </span>
 <div class="list-container">
-  <ng-container *ngFor="let ref of errored">
+  @for (ref of errored; track ref.origin + ref.url) {
     <button type="button" class="retry" (click)="retry(ref)" i18n>retry</button>
     <app-chat-entry [ref]="ref" [loading]="false"></app-chat-entry>
-  </ng-container>
-  <app-chat-entry *ngFor="let ref of sending" [ref]="ref"></app-chat-entry>
+  }
+  @for (ref of sending; track ref.url) {
+    <app-chat-entry [ref]="ref"></app-chat-entry>
+  }
 </div>

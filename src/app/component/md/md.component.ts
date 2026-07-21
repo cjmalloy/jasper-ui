@@ -1,15 +1,21 @@
-import { Component, ElementRef, Input, Output } from '@angular/core';
-import { defer } from 'lodash-es';
+import { Component, ElementRef, Input, Output, ChangeDetectionStrategy } from '@angular/core';
+import { MermaidConfig } from 'mermaid';
+import { MarkdownComponent, MermaidAPI } from 'ngx-markdown';
 import { Subject } from 'rxjs';
 import * as XLSX from 'xlsx';
+import { MdPostDirective } from '../../directive/md-post.directive';
 import { AdminService } from '../../service/admin.service';
 import { Store } from '../../store/store';
 
 @Component({
-  standalone: false,
   selector: 'app-md',
   templateUrl: './md.component.html',
-  styleUrls: ['./md.component.scss']
+  styleUrls: ['./md.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [
+    MarkdownComponent,
+    MdPostDirective,
+  ]
 })
 export class MdComponent {
 
@@ -21,6 +27,10 @@ export class MdComponent {
   disableSanitizer = false;
   @Output()
   postProcessMarkdown: Subject<void> = new Subject();
+  @Input()
+  mermaid = true;
+  @Input()
+  clipboard = true;
 
   katexOptions = {
     throwOnError: false,
@@ -28,6 +38,9 @@ export class MdComponent {
       {left: "$$", right: "$$", display: true},
       {left: "$", right: "$", display: false},
     ],
+  };
+  mermaidOptions: MermaidConfig & MermaidAPI.MermaidConfig = {
+    theme: this.store.darkTheme ? 'dark' : 'default',
   };
 
   private _text = '';
@@ -60,10 +73,6 @@ export class MdComponent {
       }
     }
     return this._value = this._text;
-  }
-
-  onReady() {
-    defer(() => this.postProcessMarkdown.next());
   }
 
 }

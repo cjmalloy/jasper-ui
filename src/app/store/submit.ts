@@ -4,7 +4,7 @@ import { RouterStore } from 'mobx-angular';
 import { Ext } from '../model/ext';
 import { Plugin } from '../model/plugin';
 import { Ref } from '../model/ref';
-import { DEFAULT_WIKI_PREFIX } from '../mods/wiki';
+import { DEFAULT_WIKI_PREFIX } from '../mods/org/wiki';
 import { EventBus } from './bus';
 
 export type Saving = { url?: string, name: string, progress?: number };
@@ -34,10 +34,10 @@ export class SubmitStore {
       setExt: action,
     });
 
-    autorun(() => {
-      if (this.eventBus.event === 'refresh') {
-        if (this.eventBus.ref) {
-          this.setRef(this.eventBus.ref)
+    this.eventBus.events.subscribe(event => {
+      if (event.event === 'refresh') {
+        if (event.ref) {
+          this.setRef(event.ref)
         }
       }
     });
@@ -141,6 +141,7 @@ export class SubmitStore {
   }
 
   get withoutGenId() {
+    if (!this.submitGenId.length) return this.tags;
     return without(this.tags, ...this.submitGenId.map(p => p.tag));
   }
 

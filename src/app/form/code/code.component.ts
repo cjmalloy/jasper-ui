@@ -1,14 +1,17 @@
-import { Component, Input, OnDestroy } from '@angular/core';
-import { UntypedFormGroup } from '@angular/forms';
+import { Component, Input, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
+import { ReactiveFormsModule, UntypedFormGroup } from '@angular/forms';
 import { autorun, IReactionDisposer } from 'mobx';
+import { MonacoEditorModule } from 'ngx-monaco-editor';
+import { ResizeHandleDirective } from '../../directive/resize-handle.directive';
 import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
 
 @Component({
-  standalone: false,
   selector: 'app-code',
   templateUrl: './code.component.html',
-  styleUrls: ['./code.component.scss']
+  styleUrls: ['./code.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [ReactiveFormsModule, MonacoEditorModule, ResizeHandleDirective]
 })
 export class CodeComponent implements OnDestroy {
 

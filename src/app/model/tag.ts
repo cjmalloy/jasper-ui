@@ -3,7 +3,7 @@ import * as d3 from 'd3';
 import * as Handlebars from 'handlebars/dist/cjs/handlebars';
 import { Schema } from 'jtd';
 import { defer, isEqual, omitBy, uniqWith } from 'lodash-es';
-import { DateTime, Duration } from 'luxon';
+import { DateTime, Duration, DurationObjectUnits } from 'luxon';
 import { toJS } from 'mobx';
 import { v4 as uuid } from 'uuid';
 import { interestingTags } from '../util/format';
@@ -171,6 +171,22 @@ export interface Config extends Tag {
      * with the plugin tag.
      */
     writeAccess?: string[],
+    /**
+     * Show help text for search box.
+     */
+    searchHelp?: string,
+    /**
+     * Show help text for filter box.
+     */
+    filterHelp?: string,
+    /**
+     * Show help text for sort box.
+     */
+    sortHelp?: string,
+    /**
+     * Help links to show in editor dropdown.
+     */
+    editorHelpLinks?: Array<{ label: string; url: string }>,
   };
   /**
    * Default config values when validating or reading. Should pass validation.
@@ -204,6 +220,10 @@ export interface Visibility {
    */
   title?: string;
   /**
+   * Tag to show / hide.
+   */
+  if?: string;
+  /**
    * Minimum role required to be visible.
    */
   role?: Role;
@@ -233,7 +253,8 @@ export interface Visibility {
   _parent?: Config;
 }
 
-export function visible(v: Visibility, isAuthor: boolean, isRecipient: boolean) {
+export function visible(ref: Ref, v: Visibility, isAuthor: boolean, isRecipient: boolean) {
+  if (('if' in v) && !hasTag(v.if, ref)) return false;
   if (!v.visible) return true;
   if (isAuthor) return v.visible === 'author' || v.visible === 'participant';
   if (isRecipient) return v.visible === 'recipient' || v.visible === 'participant';
@@ -362,6 +383,11 @@ export interface EditorButton {
    */
   event?: string;
   /**
+   * Event to listen for to stop showing loading indicator.
+   * If set, button will show loading indicator after click until this event fires.
+   */
+  eventDone?: string;
+  /**
    * Only show button if URL is of scheme.
    */
   scheme?: `${string}:`;
@@ -481,10 +507,54 @@ Handlebars.registerHelper('defer', (el: Element, fn: () => {}) => {
 });
 Handlebars.registerHelper('fromNow', (value: string) => DateTime.fromISO(value).toRelative());
 Handlebars.registerHelper('formatInterval', (value: string) => Duration.fromISO(value).toHuman());
+Handlebars.registerHelper('duration', (ref: Ref, tag: string) => {
+  const p = tag + '/';
+  const t = ref?.tags?.find(t => t.startsWith(p));
+  if (!t) return undefined;
+  const result = t.substring(p.length);
+  const value = result.split('/')[0];
+  const d = Duration.fromISO(value.toUpperCase());
+  return d.isValid ? d : undefined;
+});
+Handlebars.registerHelper('human', (value: any) => {
+  if (!value) return '';
+  const formatDuration = (d: Duration) => {
+    // Standard duration units ordered by scale
+    const units: (keyof DurationObjectUnits)[] = [
+      'years', 'months', 'weeks', 'days', 'hours', 'minutes', 'seconds'
+    ];
+    // Find the largest unit that has at least "1" of that unit
+    const largestUnitIndex = units.findIndex(unit => d.as(unit) >= 1);
+    // Fallback for durations < 1 second (e.g., "0.5 seconds" becomes "1 second")
+    if (largestUnitIndex === -1) {
+      return d.shiftTo('seconds').mapUnits(Math.round).toHuman({ listStyle: 'narrow', unitDisplay: 'short', showZeros: false });
+    }
+    const primaryUnit = units[largestUnitIndex];
+    const secondaryUnit = units[largestUnitIndex + 1];
+    // Build target units (e.g., ['years', 'months'] or ['seconds'])
+    const targetUnits = secondaryUnit ? [primaryUnit, secondaryUnit] : [primaryUnit];
+    return d
+      .shiftTo(...targetUnits)
+      .mapUnits(Math.round) // Rounds the smallest visible unit
+      .normalize()          // Handles carry-over (e.g., 60m -> 1h)
+      .toHuman({ listStyle: 'narrow', unitDisplay: 'short', showZeros: false });
+  };
+  if (Duration.isDuration(value)) return formatDuration(value);
+  if (DateTime.isDateTime(value)) return value.toRelative() ?? '';
+  if (typeof value === 'string') {
+    const d = Duration.fromISO(value.toUpperCase());
+    if (d.isValid) return formatDuration(d);
+    const dt = DateTime.fromISO(value);
+    if (dt.isValid) return dt.toRelative() ?? '';
+  }
+  return String(value);
+});
+Handlebars.registerHelper('plugins', (ref: Ref, plugin: string) => ref.metadata?.plugins?.[plugin]);
 Handlebars.registerHelper('response', (ref: Ref, value: string) => ref.metadata?.userUrls?.includes(value));
 Handlebars.registerHelper('includes', (array: string[], value: string) => array?.includes(value));
 Handlebars.registerHelper('interestingTags', (tags: string[]) => interestingTags(tags));
 Handlebars.registerHelper('hasTag', (tag: string | undefined, ref: Ref | string[] | undefined) => hasTag(tag, ref));
+Handlebars.registerHelper('tail', (text: string) => text.split('\n').pop()!.trim());
 Handlebars.registerHelper('eq', (v1, v2) => v1 === v2);
 Handlebars.registerHelper('ne', (v1, v2) => v1 !== v2);
 Handlebars.registerHelper('lt', (v1, v2) => v1 < v2);
@@ -498,11 +568,18 @@ Handlebars.registerHelper('or', function() {
   return Array.prototype.slice.call(arguments, 0, arguments.length - 1).some(Boolean);
 });
 
+let hydrateError = false;
 export function hydrate(config: any, field: string, model: any): string {
   if (!config[field]) return '';
   config._cache ||= {};
   config._cache[field] ||= Handlebars.compile(config[field]);
-  return config._cache[field](model);
+  try {
+    return config._cache[field](model);
+  } catch (e) {
+    if (!hydrateError) console.error('hydrate error', config, field, model, e);
+    hydrateError = true;
+    return '';
+  }
 }
 
 export function emitModels(action: EmitAction, ref?: Ref, user?: string) {
@@ -515,12 +592,12 @@ export function emitModels(action: EmitAction, ref?: Ref, user?: string) {
 }
 
 export function clear<T extends Config>(c: T) {
+  const { tag } = c;
   c = omitBy(c, i => !i) as any;
+  if (tag !== undefined) c.tag = tag;
   c.config = omitBy(c.config, i => !i);
   delete c.config!.generated;
-  delete c.config!.mod;
   delete c.config!._parent;
-  delete c.defaults;
   delete c.type;
   delete c.origin;
   delete c.modified;
@@ -548,7 +625,12 @@ export type TagPageArgs = TagQueryArgs & {
 export type TagSort = '' |
   'modified' | 'modified,ASC' | 'modified,DESC' |
   'tag' | 'tag,ASC' | 'tag,DESC' |
-  'levels' | 'levels,ASC' | 'levels,DESC' |
+  'tag:len' | 'tag:len,ASC' | 'tag:len,DESC' |
   'name' | 'name,ASC' | 'name,DESC' |
   'origin' | 'origin,ASC' | 'origin,DESC' |
-  'nesting' | 'nesting,ASC' | 'nesting,DESC';
+  'origin:len' | 'origin:len,ASC' | 'origin:len,DESC' |
+  `config->${string}` | `config->${string},ASC` | `config->${string},DESC`;
+
+export type ConfigSort = TagSort |
+  `defaults->${string}` | `defaults->${string},ASC` | `defaults->${string},DESC` |
+  `schema->${string}` | `schema->${string},ASC` | `schema->${string},DESC`;

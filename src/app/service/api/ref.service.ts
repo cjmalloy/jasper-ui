@@ -1,14 +1,13 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { delay } from 'lodash-es';
-import { autorun } from 'mobx';
 import { catchError, concat, first, map, Observable, of } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { mapPage, Page } from '../../model/page';
-import { mapRef, Ref, RefFilter, RefPageArgs, writeRef } from '../../model/ref';
+import { mapRef, Ref, RefFilter, RefPageArgs, writeEdit, writeRef } from '../../model/ref';
 import { Store } from '../../store/store';
 import { params } from '../../util/http';
-import { OpPatch } from '../../util/json-patch';
+import { escapePath, OpPatch } from '../../util/json-patch';
 import { ConfigService } from '../config.service';
 import { LoginService } from '../login.service';
 
@@ -27,9 +26,9 @@ export class RefService {
     private store: Store,
     private login: LoginService,
   ) {
-    autorun(() => {
-      if (this.store.eventBus.event === 'reload') {
-        this.store.eventBus.catchError$(this.get(this.store.eventBus.ref!.url, this.store.eventBus.ref!.origin!))
+    this.store.eventBus.events.subscribe(event => {
+      if (event.event === 'reload') {
+        this.store.eventBus.catchError$(this.get(event.ref!.url, event.ref!.origin!))
           .subscribe(ref => this.store.eventBus.refresh(ref));
       }
     });
@@ -126,6 +125,37 @@ export class RefService {
     return this.http.put<string>(this.base, writeRef(ref)).pipe(
       catchError(err => this.login.handleHttpError(err)),
     );
+  }
+
+  getEditing(url: string): Observable<Ref | undefined> {
+    if (!this.store.account.localTag) return of(undefined);
+    return this.page({
+      url,
+      query: this.store.account.localTag + ':plugin/editing',
+      size: 1,
+      obsolete: null,
+    }).pipe(
+      map(page => page.content[0]),
+      catchError(() => of(undefined)),
+    );
+  }
+
+  startEditing(ref: Ref) {
+    return this.create({
+      url: ref.url,
+      origin: this.store.account.origin,
+      tags: [this.store.account.localTag, 'plugin/editing'],
+      plugins: { 'plugin/editing': writeEdit(ref) }
+    });
+  }
+
+  saveEdit(ref: Ref, cursor?: string): Observable<string> {
+    if (!cursor) return this.startEditing(ref);
+    return this.patch(ref.url, this.store.account.origin, cursor, [{
+      op: 'add',
+      path: '/plugins/' + escapePath('plugin/editing'),
+      value: writeEdit(ref),
+    }]);
   }
 
   patch(url: string, origin: string, cursor: string, patch: OpPatch[]): Observable<string> {

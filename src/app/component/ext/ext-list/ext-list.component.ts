@@ -1,16 +1,23 @@
-import { Component, Input, QueryList, ViewChildren } from '@angular/core';
+import { Component, Input, QueryList, ViewChildren, ChangeDetectionStrategy } from '@angular/core';
 import { Router } from '@angular/router';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Ext } from '../../../model/ext';
 import { Page } from '../../../model/page';
+import { LoadingComponent } from '../../loading/loading.component';
+import { PageControlsComponent } from '../../page-controls/page-controls.component';
 import { ExtComponent } from '../ext.component';
 
 @Component({
-  standalone: false,
   selector: 'app-ext-list',
   templateUrl: './ext-list.component.html',
   styleUrls: ['./ext-list.component.scss'],
-  host: {'class': 'ext-list'}
+  host: { 'class': 'ext-list' },
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [
+    ExtComponent,
+    PageControlsComponent,
+    LoadingComponent,
+  ],
 })
 export class ExtListComponent implements HasChanges {
 

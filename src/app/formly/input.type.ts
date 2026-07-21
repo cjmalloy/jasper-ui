@@ -1,14 +1,19 @@
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component } from '@angular/core';
-import { FieldType, FieldTypeConfig, FormlyConfig } from '@ngx-formly/core';
+import { ReactiveFormsModule } from '@angular/forms';
+import { FieldType, FieldTypeConfig, FormlyAttributes, FormlyConfig } from '@ngx-formly/core';
 import { isString } from 'lodash-es';
 import { AdminService } from '../service/admin.service';
 import { Saving } from '../store/submit';
+import { AudioUploadComponent } from './audio-upload/audio-upload.component';
 import { getErrorMessage } from './errors';
+import { ImageUploadComponent } from './image-upload/image-upload.component';
+import { PdfUploadComponent } from './pdf-upload/pdf-upload.component';
+import { QrScannerComponent } from './qr-scanner/qr-scanner.component';
+import { VideoUploadComponent } from './video-upload/video-upload.component';
 
 @Component({
-  standalone: false,
   selector: 'formly-field-input',
-  host: {'class': 'field'},
+  host: { 'class': 'field' },
   template: `
     <div class="form-array">
       @if (uploading) {
@@ -40,6 +45,15 @@ import { getErrorMessage } from './errors';
     </div>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [
+    ReactiveFormsModule,
+    QrScannerComponent,
+    PdfUploadComponent,
+    AudioUploadComponent,
+    VideoUploadComponent,
+    ImageUploadComponent,
+    FormlyAttributes,
+  ],
 })
 export class FormlyFieldInput extends FieldType<FieldTypeConfig> {
 

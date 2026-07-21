@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { defer } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import { catchError, switchMap, throwError } from 'rxjs';
@@ -15,16 +15,17 @@ import { getTagFilter } from '../../../util/query';
 import { getModels, getZipOrTextFile } from '../../../util/zip';
 
 @Component({
-  standalone: false,
   selector: 'app-settings-plugin-page',
   templateUrl: './plugin.component.html',
   styleUrls: ['./plugin.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [PluginListComponent],
 })
 export class SettingsPluginPage implements OnInit, OnDestroy, HasChanges {
 
   serverError: string[] = [];
 
-  @ViewChild(PluginListComponent)
+  @ViewChild('list')
   list?: PluginListComponent;
 
   private disposers: IReactionDisposer[] = [];
@@ -36,7 +37,7 @@ export class SettingsPluginPage implements OnInit, OnDestroy, HasChanges {
     private plugins: PluginService,
   ) {
     mod.setTitle($localize`Settings: Plugins`);
-    store.view.clear(['levels', 'tag'], ['levels', 'tag']);
+    store.view.clear(['tag:len', 'tag'], ['tag:len', 'tag']);
     query.clear();
   }
 

@@ -1,5 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component } from '@angular/core';
+import { FakeLinkDirective } from '../../directive/fake-link.directive';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, concat, concatMap, generate, last, Observable, of } from 'rxjs';
 import { tap } from 'rxjs/operators';
@@ -14,13 +15,15 @@ import { Store } from '../../store/store';
 import { TemplateStore } from '../../store/template';
 import { UserStore } from '../../store/user';
 import { printError } from '../../util/http';
+import { LoadingComponent } from '../loading/loading.component';
 
 @Component({
-  standalone: false,
   selector: 'app-debug',
   templateUrl: './debug.component.html',
   styleUrls: ['./debug.component.scss'],
-  host: {'class': 'debug actions'}
+  host: { 'class': 'debug actions' },
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [FakeLinkDirective, LoadingComponent]
 })
 export class DebugComponent {
 

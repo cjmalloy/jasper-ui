@@ -13,6 +13,7 @@ yarn-error.log
 
 # IDEs and editors
 .idea/
+.junie/
 .project
 .classpath
 .c9/
@@ -36,6 +37,12 @@ yarn-error.log
 /libpeerconnection.log
 testem.log
 /typings
+
+# Playwright
+/e2e/reports
+/e2e/test-results
+/playwright-report
+/test-results
 
 # System files
 .DS_Store

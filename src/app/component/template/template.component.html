@@ -1,10 +1,18 @@
 <div class="link" [class.remote]="!local" [title]="template.config?.description || ''">
-  <a *ngIf="template.tag" [routerLink]="['/tags', template.tag]">{{ template.name || template.tag }}</a>
-  <a *ngIf="!template.tag" routerLink="/tags">{{ template.name || 'root' }}</a>
-  <span *ngIf="!qualifiedTag" class="host" i18n>(root: "")</span>
-  <span *ngIf="!template.tag && template.origin" class="host" i18n>(root: {{ template.origin }})</span>
-  <span *ngIf="template.name && template.tag" class="host">({{ qualifiedTag }})</span>
-  <span *ngIf="!template.tag && !template.name && template.origin" class="host">({{ template.origin }})</span>
+  @if (template.tag) {
+    <a [routerLink]="['/tags', template.tag]">{{ template.name || template.tag }}</a>
+  } @else {
+    <a routerLink="/tags">{{ template.name || 'root' }}</a>
+  }
+  @if (!qualifiedTag) {
+    <span class="host" i18n>(root: "")</span>
+  } @else if (!template.tag && template.origin) {
+    <span class="host" i18n>(root: {{ template.origin }})</span>
+  } @else if (template.name && template.tag) {
+    <span class="host">({{ qualifiedTag }})</span>
+  } @else if (template.origin) {
+    <span class="host">({{ template.origin }})</span>
+  }
 </div>
 <div class="stack">
   <div class="info">
@@ -20,7 +28,7 @@
       <app-inline-button #action [action]="copy$" i18n>copy</app-inline-button>
     }
     @if (created && local && store.account.admin) {
-      <a class="fake-link" (click)="editing = !editing" i18n>edit</a>
+      <a class="fake-link" (click)="editing = !editing" i18n>@if (editForm.dirty) {*edit*} @else {edit}</a>
     } @else {
       <a class="fake-link" (click)="viewSource = !viewSource" i18n>source</a>
     }
@@ -46,9 +54,12 @@
 
     <span><!-- Buttons --></span>
     <span class="buttons right">
-    <button type="submit" [disabled]="submitted && !editForm.valid" i18n>save</button>
-    <button type="button" (click)="editing = false" i18n>cancel</button>
-  </span>
+      @if (saving) {
+        <app-loading [inline]="true"></app-loading>
+      }
+      <button type="submit" [disabled]="saving || submitted && !editForm.valid" i18n>save</button>
+      <button type="button" (click)="editing = false" i18n>cancel</button>
+    </span>
   </form>
 } @else if (viewSource) {
   <form class="form" [formGroup]="editForm">

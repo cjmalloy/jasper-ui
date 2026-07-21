@@ -1,24 +1,29 @@
+/// <reference types="vitest/globals" />
+import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { RouterModule } from '@angular/router';
+import { provideRouter } from '@angular/router';
 
 import { HomePage } from './home.component';
-import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 describe('HomePage', () => {
   let component: HomePage;
   let fixture: ComponentFixture<HomePage>;
 
   beforeEach(async () => {
-    await TestBed.configureTestingModule({
-    declarations: [HomePage],
-    imports: [RouterModule.forRoot([])],
-    providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
-})
-    .compileComponents();
-  });
+    TestBed.overrideComponent(HomePage, {
+      set: { template: '' },
+    });
 
-  beforeEach(() => {
+    await TestBed.configureTestingModule({
+       imports: [HomePage],
+       providers: [
+         provideHttpClient(withXhr(), withInterceptorsFromDi()),
+         provideHttpClientTesting(),
+         provideRouter([]),
+      ],
+    }).compileComponents();
+
     fixture = TestBed.createComponent(HomePage);
     component = fixture.componentInstance;
     fixture.detectChanges();

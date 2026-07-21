@@ -3,9 +3,11 @@ import { DomPortal, TemplatePortal } from '@angular/cdk/portal';
 import { HttpEventType } from '@angular/common/http';
 import {
   AfterViewInit,
+  ChangeDetectorRef,
   Component,
   ElementRef,
   EventEmitter,
+  forwardRef,
   HostBinding,
   HostListener,
   Input,
@@ -15,34 +17,59 @@ import {
   SimpleChanges,
   TemplateRef,
   ViewChild,
-  ViewContainerRef
+  ViewContainerRef,
+  ChangeDetectionStrategy
 } from '@angular/core';
-import { FormBuilder, UntypedFormArray, UntypedFormControl } from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule, UntypedFormArray, UntypedFormControl } from '@angular/forms';
 import { NavigationEnd, Router } from '@angular/router';
 import Europa from 'europa';
-import { debounce, defer, delay, sortedLastIndex, throttle, uniq, without } from 'lodash-es';
+import { debounce, defer, delay, intersection, sortedLastIndex, uniq, without } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
-import { catchError, filter, forkJoin, last, map, of, Subject, switchMap, takeUntil } from 'rxjs';
+import { catchError, filter, last, map, Observable, of, Subject, Subscription, switchMap, takeUntil, tap } from 'rxjs';
 import { v4 as uuid } from 'uuid';
+import { LoadingComponent } from '../../component/loading/loading.component';
 import { MdComponent } from '../../component/md/md.component';
+import { AutofocusDirective } from '../../directive/autofocus.directive';
+import { FillWidthDirective } from '../../directive/fill-width.directive';
+import { LimitWidthDirective } from '../../directive/limit-width.directive';
 import { Ref } from '../../model/ref';
 import { EditorButton, sortOrder } from '../../model/tag';
+import { mimeToCode } from '../../mods/media/code';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { ProxyService } from '../../service/api/proxy.service';
+import { RefService } from '../../service/api/ref.service';
 import { TaggingService } from '../../service/api/tagging.service';
 import { AuthzService } from '../../service/authz.service';
 import { Store } from '../../store/store';
-import { readFileAsDataURL } from '../../util/async';
+import { readFileAsDataURL, readFileAsString } from '../../util/async';
 import { memo, MemoCache } from '../../util/memo';
 import { expandedTagsInclude, hasTag, test } from '../../util/tag';
 
+export interface EditorUpload {
+  id: string;
+  name: string;
+  progress: number;
+  subscription?: Subscription;
+  completed?: boolean;
+  error?: string;
+  ref?: Ref | null;
+}
+
 @Component({
-  standalone: false,
   selector: 'app-editor',
   templateUrl: './editor.component.html',
   styleUrls: ['./editor.component.scss'],
-  host: {'class': 'editor'}
+  host: { 'class': 'editor' },
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [
+    forwardRef(() => MdComponent),
+    LoadingComponent,
+    ReactiveFormsModule,
+    FillWidthDirective,
+    AutofocusDirective,
+    LimitWidthDirective,
+  ],
 })
 export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   private destroy$ = new Subject<void>();
@@ -64,7 +91,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   helpButton?: ElementRef<HTMLButtonElement>;
   @ViewChild('editor')
   editor?: ElementRef<HTMLTextAreaElement>;
-  @ViewChild(MdComponent)
+  @ViewChild('md')
   md?: MdComponent;
   @ViewChild('hiddenMeasure')
   hiddenMeasure?: ElementRef<HTMLTextAreaElement>;
@@ -98,7 +125,6 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   addCommentLabel = $localize`+ Add comment`;
   @Input()
   fillWidth?: HTMLElement;
-
   @Output()
   syncEditor = new EventEmitter<string>();
   @Output()
@@ -107,6 +133,8 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   addSource = new EventEmitter<string>();
   @Output()
   scrape = new EventEmitter<void>();
+  @Output()
+  uploadCompleted = new EventEmitter<Ref>();
 
   dropping = false;
   overlayRef?: OverlayRef;
@@ -115,8 +143,9 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   initialFullscreen = false;
   focused?: boolean = false;
   progress = 0;
-  uploading = false;
+  uploads: EditorUpload[] = [];
   files = !!this.admin.getPlugin('plugin/file');
+  loadingEvents: any = {};
 
   private _text? = '';
   private _editing = false;
@@ -137,6 +166,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
     private accounts: AccountService,
     private auth: AuthzService,
     private proxy: ProxyService,
+    private refs: RefService,
     private ts: TaggingService,
     public store: Store,
     private overlay: Overlay,
@@ -144,10 +174,14 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
     private el: ElementRef,
     private vc: ViewContainerRef,
     private fb: FormBuilder,
+    private cd: ChangeDetectorRef,
   ) {
     this.router.events.pipe(
       filter(event => event instanceof NavigationEnd)
     ).subscribe(() => this.toggleFullscreen(false));
+    this.store.eventBus.events.pipe(takeUntil(this.destroy$)).subscribe(event => {
+      this.loadingEvents[event.event] = false;
+    });
   }
 
   init() {
@@ -198,6 +232,11 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
     document.body.style.height = '';
     document.body.classList.remove('fullscreen');
     this.el.nativeElement.style.setProperty('--viewport-height', this.store.viewportHeight + 'px');
+  }
+
+  @Input()
+  set scraping(value: boolean) {
+    this.loadingEvents['scrape-done'] = value;
   }
 
   @HostListener('window:scroll')
@@ -276,6 +315,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
       defer(() => {
         this._editing = true;
         this.updateTags(this.initTags);
+        this.cd.detectChanges();
       });
     }
   }
@@ -291,7 +331,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   @memo
   get initTags() {
     return [
-      ...without(this.store.account.defaultEditors(this.editors), ...this.allTags),
+      ...without(intersection(this.store.account.defaultEditors(this.editors), this.editorButtons.filter(b => this.visible(b)).map(b => b.toggle!)), ...this.allTags),
       ...this.allTags,
     ];
   }
@@ -341,6 +381,12 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
     return this.url.substring(0, this.url.indexOf(':') + 1);
   }
 
+  @memo
+  get helpLinks() {
+    const helpConfig = this.admin.getTemplate('config/help');
+    return helpConfig?.config?.editorHelpLinks || [];
+  }
+
   get currentText() {
     return this._text || this.control?.value || '';
   }
@@ -354,7 +400,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   }
 
   toggleTag(button: EditorButton) {
-    if (button.event) this.fireEvent(button.event);
+    if (button.event) this.fireEvent(button);
     const toggle = button.toggle!;
     if (hasTag(toggle, this.allTags)) {
       this.updateTags(this.allTags.filter(t => !expandedTagsInclude(t, toggle)));
@@ -401,17 +447,15 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
     this.setText(value);
   }
 
-  setText = throttle((value: string) => {
+  setText = debounce((value: string) => {
     if (this._text === value) return;
     this._text = value;
-    this.store.local.saveEditing(value);
-  }, 400);
+  }, 400, { leading: true, trailing: true, maxWait: 3000 });
 
   syncText(value: string) {
     if (!value) {
       // Do not throttle
       this._text = value;
-      this.store.local.saveEditing(value);
       this.syncEditor.next(this._text);
     }
     // Clear previous throttled values
@@ -536,7 +580,9 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
     return test(button.query || button._parent!.tag, this.allTags);
   }
 
-  fireEvent(event: string) {
+  fireEvent(button: EditorButton) {
+    const event = button.event!;
+    if (button.eventDone) this.loadingEvents[button.eventDone] = true;
     if (event === 'html-to-markdown') {
       this.europa ||= new Europa({
         absolute: !!this.url,
@@ -567,7 +613,6 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
 
   drop(event: Event, items?: DataTransferItemList) {
     this.dropping = false;
-    this.uploading = false;
     if (!this.admin.getPlugin('plugin/file')) return;
     if (!items) return;
     const files = [] as any;
@@ -584,61 +629,119 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   }
 
   upload(files?: FileList | null) {
-    this.uploading = false;
     if (!files) return;
-    // @ts-ignore
-    forkJoin([...files].map(f => this.upload$(f))).subscribe(urls => this.attachUrls(...urls));
-  }
-
-  upload$(file: File) {
-    this.uploading = true;
-    this.control.disable();
-    const tags: string[] = ['plugin/file'];
-    if (file.type.startsWith('audio/') && this.admin.getPlugin('plugin/audio')) {
-      tags.push('plugin/audio');
-    } else if (file.type.startsWith('video/') && this.admin.getPlugin('plugin/video')) {
-      tags.push('plugin/video', 'plugin/thumbnail');
-    } else if (file.type.startsWith('image/') && this.admin.getPlugin('plugin/image')) {
-      tags.push('plugin/image', 'plugin/thumbnail');
-    } else if (file.type.startsWith('application/pdf') && this.admin.getPlugin('plugin/pdf')) {
-      tags.push('plugin/pdf');
+    const hasActiveUploads = this.uploads.some(upload => !upload.completed && !upload.error);
+    if (!hasActiveUploads) {
+      // Only clear uploads if no active uploads exist
+      this.uploads = [];
     }
-    return this.proxy.save(file, this.store.account.origin).pipe(
-      map(event => {
-        switch (event.type) {
-          case HttpEventType.Response:
-            return event.body;
-          case HttpEventType.UploadProgress:
-            const percentDone = event.total ? Math.round(100 * event.loaded / event.total) : 0;
-            this.progress = percentDone;
-            return null;
+    this.control.disable();
+    const fileArray = Array.from(files);
+    const fileUploads: EditorUpload[] = fileArray.map(file => ({
+      id: uuid(),
+      name: file.name,
+      progress: 0
+    }));
+    this.uploads = [...this.uploads, ...fileUploads];
+    fileArray.map((file, index) => {
+      const upload = fileUploads[index];
+      return upload.subscription = this.upload$(file, upload).subscribe(ref => {
+        if (ref && !ref.url.startsWith('data:')) {
+          upload.completed = true;
+          upload.progress = 100;
+          upload.ref = ref;
+          // Emit upload completion so parent can tag it
+          this.uploadCompleted.emit(ref);
         }
-        return null;
-      }),
-      last(),
-      switchMap(ref => !ref ? of(ref) : this.ts.patch(tags, ref.url, ref.origin).pipe(map(cursor => ref))),
-      map((ref: Ref | null) => ref?.url),
-      catchError(err => readFileAsDataURL(file)), // base64
-    );
+        this.checkAllUploadsComplete();
+      });
+    });
   }
 
-  attachUrls(...urls: (string | undefined)[]) {
-    this.uploading = false;
-    this.control.enable();
-    urls = urls.filter(u => !!u);
-    if (!urls.length) return;
-    for (const url of urls) this.addSource.next(url!);
+  upload$(file: File, upload: EditorUpload): Observable<Ref | null> {
+    const codeType = mimeToCode(file.type);
+    if (codeType.length) {
+      const ref = {
+        origin: this.store.account.origin,
+        url: 'internal:' + uuid(),
+        title: file.name,
+        // Upload as private - only localTag and internal, no visibility tags
+        tags: uniq([
+          this.store.account.localTag,
+          'internal',
+          ...file.type === 'text/markdown' ? [] : codeType
+        ])
+      };
+      upload.progress = 50; // Simulate progress for text files
+      return readFileAsString(file).pipe(
+        switchMap(contents => this.refs.create({
+          ...ref,
+          comment: contents,
+        })),
+        map(cursor => ref),
+        tap(() => upload.progress = 100),
+        catchError(err => {
+          upload.error = err.message || 'Upload failed';
+          upload.progress = 0;
+          return readFileAsDataURL(file).pipe(map(url => ({ ...ref, url }))); // base64
+        }),
+      );
+    } else {
+      // Upload binary files as private - only plugin/file and type-specific tags
+      const tags: string[] = ['plugin/file'];
+      if (file.type.startsWith('audio/') && this.admin.getPlugin('plugin/audio')) {
+        tags.push('plugin/audio');
+      } else if (file.type.startsWith('video/') && this.admin.getPlugin('plugin/video')) {
+        tags.push('plugin/video', 'plugin/thumbnail');
+      } else if (file.type.startsWith('image/') && this.admin.getPlugin('plugin/image')) {
+        tags.push('plugin/image', 'plugin/thumbnail');
+      } else if (file.type.startsWith('application/pdf') && this.admin.getPlugin('plugin/pdf')) {
+        tags.push('plugin/pdf');
+      }
+      return this.proxy.save(file, this.store.account.origin).pipe(
+        map(event => {
+          switch (event.type) {
+            case HttpEventType.Response:
+              return event.body;
+            case HttpEventType.UploadProgress:
+              const percentDone = event.total ? Math.round(100 * event.loaded / event.total) : 0;
+              this.progress = percentDone;
+              upload.progress = percentDone;
+              return null;
+          }
+          return null;
+        }),
+        last(),
+        switchMap(ref => !ref ? of(ref) : this.ts.patch(tags, ref.url, ref.origin).pipe(
+          map(cursor => ({ ...ref, tags: uniq([...ref?.tags || [], ...tags]) })),
+        )),
+        catchError(err => {
+          upload.error = err.message || 'Upload failed';
+          upload.progress = 0;
+          return readFileAsDataURL(file).pipe(map(url => ({url, tags}))); // base64
+        }),
+      );
+    }
+  }
+
+  attachUrls(...refs: (Ref | null)[]) {
+    refs = refs.filter(u => !!u);
+    if (!refs.length) return;
+    for (const ref of refs) this.addSource.next(ref!.url);
     const text = this.currentText;
-    if (urls.length === 1) {
-      if (!urls[0]) return;
-      const encodedUrl = (this.selectionStart !== this.selectionEnd ? '[' + text.substring(this.selectionStart, this.selectionEnd) + ']' : '![]') + '(' + urls[0].replace(')', '\\)') + ')\n';
+    const embed = (ref: Ref) => hasTag('plugin/audio', ref) || hasTag('plugin/video', ref) || hasTag('plugin/image', ref) || hasTag('plugin/pdf', ref);
+    if (refs.length === 1) {
+      if (!refs[0]) return;
+      const encodedUrl = (this.selectionStart !== this.selectionEnd ? '[' + text.substring(this.selectionStart, this.selectionEnd) + ']'
+          : embed(refs[0]) ? '![]' : '![=]'
+      ) + '(' + refs[0].url.replace(')', '\\)') + ')\n';
       if (this.selectionStart || this.selectionStart !== this.selectionEnd) {
         this.syncText(text.substring(0, this.selectionStart) + encodedUrl + text.substring(this.selectionEnd));
       } else {
         this.syncText(text + encodedUrl + '\n');
       }
     } else {
-      const encodedUrls = urls.map(u => '![](' + u!.replace(')', '\\)') + ')\n').join('');
+      const encodedUrls = refs.map(ref => (embed(ref!) ? '![]' : '![=]') + '(' + ref!.url.replace(')', '\\)') + ')\n').join('');
       this.syncText(text.substring(0, this.selectionStart) + encodedUrls + text.substring(this.selectionStart));
       if (!text) this.preview = true;
     }
@@ -646,9 +749,50 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
     if (this.focused !== false) this.editor?.nativeElement.focus();
   }
 
+  checkAllUploadsComplete() {
+    const allComplete = this.uploads.every(upload => upload.completed || upload.error);
+    if (allComplete && this.uploads.length > 0) {
+      this.control.enable();
+      const completedRefs = this.uploads
+        .filter(upload => upload.completed && upload.ref)
+        .map(upload => upload.ref!);
+      if (completedRefs.length > 0) {
+        this.attachUrls(...completedRefs);
+      }
+      this.uploads = [];
+    }
+  }
+
+  cancelUpload(upload: EditorUpload) {
+    if (upload.subscription) {
+      upload.subscription.unsubscribe();
+    }
+    this.uploads = this.uploads.filter(u => u.id !== upload.id);
+    if (this.uploads.length === 0) {
+      this.control.enable();
+    } else {
+      this.checkAllUploadsComplete();
+    }
+  }
+
+  cancelAllUploads() {
+    this.uploads.forEach(upload => {
+      if (upload.subscription) {
+        upload.subscription.unsubscribe();
+      }
+    });
+    this.uploads = [];
+    this.control.enable();
+  }
+
   dragLeave(parent: HTMLElement, target: HTMLElement) {
     if (this.dropping && parent === target || !parent.contains(target)) {
       this.dropping = false;
     }
   }
+
+  hasActiveUploads(): boolean {
+    return this.uploads.some(upload => !upload.completed && !upload.error);
+  }
+
 }

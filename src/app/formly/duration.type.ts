@@ -1,13 +1,12 @@
 import { ChangeDetectionStrategy, Component, Directive, ElementRef, forwardRef, Input } from '@angular/core';
-import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
-import { FieldType, FieldTypeConfig, FormlyConfig } from '@ngx-formly/core';
+import { ControlValueAccessor, NG_VALUE_ACCESSOR, ReactiveFormsModule } from '@angular/forms';
+import { FieldType, FieldTypeConfig, FormlyAttributes, FormlyConfig } from '@ngx-formly/core';
 import { Duration } from 'luxon';
 import { getErrorMessage } from './errors';
 
 @Component({
-  standalone: false,
   selector: 'formly-field-duration',
-  host: {'class': 'field'},
+  host: { 'class': 'field' },
   template: `
     <div class="col">
       <div class="center">{{ formatInterval(model[$any(key)]) }}</div>
@@ -24,6 +23,11 @@ import { getErrorMessage } from './errors';
     </div>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [
+    ReactiveFormsModule,
+    forwardRef(() => DurationInputAccessor),
+    FormlyAttributes,
+  ],
 })
 export class FormlyFieldDuration extends FieldType<FieldTypeConfig> {
 
@@ -46,7 +50,6 @@ export class FormlyFieldDuration extends FieldType<FieldTypeConfig> {
 }
 
 @Directive({
-  standalone: false,
   selector: '[duration]',
   providers: [
     {
@@ -56,8 +59,8 @@ export class FormlyFieldDuration extends FieldType<FieldTypeConfig> {
     },
   ],
   host: {
-    '(change)': 'onChange($event.target.value)',
-    '(input)': 'onChange($event.target.value)',
+    '(change)': 'onChange($any($event.target).value)',
+    '(input)': 'onChange($any($event.target).value)',
     '(blur)': 'onTouched()'
   },
 })

@@ -1,4 +1,5 @@
 <figure id="force-directed-graph"
+        class="force-directed-graph"
         #figure
         (click)="store.graph.clearSelection()"
         (contextmenu)="contextMenu(null, $event)"></figure>
@@ -65,7 +66,7 @@
     }
   </div>
   <label class="graph-selected no-select" i18n>Selected:</label>
-  <app-ref-list [page]="store.graph.selectedPage"
+  <app-ref-list #list [page]="store.graph.selectedPage"
                 i18n-emptyMessage
                 emptyMessage="Empty selection"
                 [pageControls]="false"></app-ref-list>

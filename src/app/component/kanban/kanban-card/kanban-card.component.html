@@ -1,5 +1,9 @@
 @if (!ref.modified) {
-  <app-loading></app-loading>
+  @if (progress !== undefined) {
+    <progress class="upload-progress" max="100" [value]="progress"></progress>
+  } @else {
+    <app-loading></app-loading>
+  }
 }
 <div class="kanban-card-container">
   <div class="badges">
@@ -14,7 +18,7 @@
         <a class="badge filter-toggle"
            [class.filtering]="bookmarks.filters.includes($any('query/' + x.tag))"
            (click)="bookmarks.toggleQuery(store.hotkey ? '!(' + x.tag + ')' : x.tag)"
-           [title]="x.name && x.tag">{{ x.name || '#' + x.tag }}</a>
+           [title]="x.name && x.tag">{{ firstWord(x.name) || '#' + x.tag }}</a>
       }
     }
     @if (dependents) {
@@ -47,7 +51,8 @@
       <div class="thumbnail"
            [style.background-image]="[repostRef, ref] | thumbnail | async | cssUrl"
            [style.background-color]="thumbnailColor"
-           [style.border-radius]="thumbnailRadius">{{ thumbnailEmoji }}</div>
+           [style.background-size]="thumbnailRadius ? 'cover' : 'contain'"
+           [style.border-radius.px]="thumbnailRadius">{{ thumbnailEmoji }}</div>
     }
     <a class="card-title grow" [routerLink]="['/ref', ref.url]" (click)="saveRef()">{{ title }}</a>
   </div>

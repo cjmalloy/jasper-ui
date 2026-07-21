@@ -13,3 +13,36 @@ app-ref {
   max-width: 100%;
   margin: 4px;
 }
+
+.default-sort,
+.default-filter {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  > select,
+  .controls {
+    width: 100%;
+  }
+
+  .controls select {
+    flex: 1;
+  }
+}
+
+.default-filter-date-range {
+  display: flex;
+  gap: 8px;
+
+  input {
+    flex: 1;
+    min-width: 0;
+    width: 0;
+  }
+}
+
+.default-filter-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}

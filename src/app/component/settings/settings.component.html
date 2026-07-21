@@ -43,7 +43,7 @@
       |
     }
     <a routerLink="/settings" i18n>settings</a>
-    @if (store.view.updates) {
+    @if (store.view.modUpdates.size) {
       <a routerLink="/settings/setup"
          i18n-title title="Updates available in setup" i18n>🌟️</a>
     }

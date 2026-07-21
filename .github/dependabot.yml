@@ -8,7 +8,7 @@ updates:
 - package-ecosystem: docker
   directories:
     - "/"
-    - "/cypress"
+    - "/e2e"
   schedule:
     interval: daily
     timezone: America/Halifax
@@ -32,16 +32,22 @@ updates:
     formly:
       patterns:
         - "@ngx-formly/*"
+    ag-grid:
+      patterns:
+        - "ag-grid-angular"
+        - "ag-grid-community"
+    maplibre-gl:
+      patterns:
+        - "@maplibre/*"
+        - "maplibre-gl"
     tests:
       patterns:
-        - "@types/jasmine"
-        - "jasmine*"
-        - "karma*"
-        - "@ngx-formly/*"
-    cypress:
+        - "@vitest/*"
+        - "vitest"
+        - "jsdom"
+    playwright:
       patterns:
-        - "@cypress/schematic"
-        - "cypress*"
+        - "@playwright/*"
 - package-ecosystem: github-actions
   directory: /
   schedule:

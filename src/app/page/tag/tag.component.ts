@@ -1,7 +1,12 @@
-import { Component, HostBinding, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, HostBinding, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { isEqual, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
+import { MobxAngularModule } from 'mobx-angular';
 import { LensComponent } from '../../component/lens/lens.component';
+import { LoadingComponent } from '../../component/loading/loading.component';
+import { SidebarComponent } from '../../component/sidebar/sidebar.component';
+import { TabsComponent } from '../../component/tabs/tabs.component';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
@@ -11,19 +16,28 @@ import { ModService } from '../../service/mod.service';
 import { QueryStore } from '../../store/query';
 import { Store } from '../../store/store';
 import { getArgs, UrlFilter } from '../../util/query';
+import { hasPrefix } from '../../util/tag';
 
 @Component({
-  standalone: false,
   selector: 'app-tag-page',
   templateUrl: './tag.component.html',
   styleUrls: ['./tag.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [
+    LensComponent,
+    MobxAngularModule,
+    TabsComponent,
+    RouterLink,
+    SidebarComponent,
+    LoadingComponent,
+  ],
 })
 export class TagPage implements OnInit, OnDestroy, HasChanges {
   private disposers: IReactionDisposer[] = [];
 
   loading = true;
 
-  @ViewChild(LensComponent)
+  @ViewChild('lens')
   lens?: LensComponent;
 
   constructor(
@@ -39,27 +53,27 @@ export class TagPage implements OnInit, OnDestroy, HasChanges {
     runInAction(() => {
       this.store.view.clear([
         !!this.admin.getPlugin('plugin/user/vote/up')
-        ? 'voteScoreDecay'
-        : this.store.view.tag.includes('*')
-        ? 'published'
-        : 'created'
+          ? 'plugins->plugin/user/vote:decay'
+          : this.store.view.tag.includes('*')
+            ? 'published'
+            : 'created'
       ]);
       this.store.view.extTemplates = this.admin.view;
     });
     this.disposers.push(autorun(() => {
-      if (!this.store.view.queryTags.length) {
+      if (!this.store.view.urlQueryTags.length) {
         runInAction(() => this.store.view.exts = []);
         this.loading = false;
       } else {
         this.loading = true;
-        this.exts.getCachedExts(this.store.view.queryTags)
+        this.exts.getCachedExts(this.store.view.urlQueryTags)
           .pipe(this.admin.extFallbacks)
           .subscribe(exts => {
             if (!isEqual(exts.map(x => x.tag + x.origin + x.modifiedString).sort(), this.store.view.exts.map(x => x.tag + x.origin + x.modifiedString).sort())) {
               runInAction(() => this.store.view.exts = exts);
             }
             this.loading = false;
-        });
+          });
       }
     }));
     this.query.clear();
@@ -84,6 +98,11 @@ export class TagPage implements OnInit, OnDestroy, HasChanges {
         this.store.view.pageNumber,
         this.store.view.pageSize,
       );
+      if (hasPrefix(this.store.view.viewExt?.tag, 'kanban') ||
+          hasPrefix(this.store.view.viewExt?.tag, 'chat')) {
+        runInAction(() => this.query.setRelatedArgs(args));
+        return;
+      }
       runInAction(() => this.query.setArgs(args));
     }));
   }

@@ -11,13 +11,30 @@
       }
     </p>
 
-    <span><!-- Tags --></span>
-    <div class="form-array right">
-      <formly-form class="form"
-                   [model]="store.submit.tags"
-                   (modelChange)="bookmarks.tags = $event"
-                   [fields]="[{ type: 'tags'}]"></formly-form>
+    <span><!-- Add Tags --></span>
+    <div class="padded form-array">
+      <input #tagInput
+             id="add-tag"
+             i18n-placeholder placeholder="Tag All"
+             (keydown)="$event.key === 'Enter' && tagAll(tagInput) || true"
+             type="text"
+             inputmode="email"
+             [pattern]="tagRegex"
+             autocorrect="off"
+             autocapitalize="none"
+             appAutofocus>
+      <button type="button" (click)="tagAll(tagInput)" i18n>+</button>
     </div>
+
+    @if (store.submit.tags.length) {
+      <span><!-- Tags --></span>
+      <div class="tag-list form-array right">
+        <span i18n>Tagging:</span>
+        @for (p of store.submit.tags | tagPreview | async; track p.tag) {
+          <a class="tag" [routerLink]="['/tag', p.tag]">{{ p.name || '#' + p.tag }}</a>
+        }
+      </div>
+    }
 
     <span><!-- Default upload --></span>
     <div>
@@ -55,7 +72,7 @@
         <hr>
         <div class="padded form-array">
           <button type="button" (click)="push()" i18n>upload all</button>
-          <div><input id="overwrite" type="checkbox" [(ngModel)]="store.submit.overwrite"></div>
+          <div><input id="overwrite" type="checkbox" [checked]="store.submit.overwrite" (input)="overwrite = !store.submit.overwrite"></div>
           <label for="overwrite" i18n>Overwrite existing</label>
           <div class="buttons right">
             <button type="button" (click)="download()" i18n>download all</button>
@@ -65,33 +82,15 @@
       </div>
 
       <span></span>
-      <div class="padded form-array">
-        <input #tagInput
-               id="add-tag"
-               i18n-placeholder placeholder="Tag All"
-               (keydown)="$event.key === 'Enter' && tagAll(tagInput) || true"
-               type="text"
-               inputmode="email"
-               [pattern]="tagRegex"
-               autocorrect="off"
-               autocapitalize="none"
-               appAutofocus>
-        <button type="button" (click)="tagAll(tagInput)" i18n>+</button>
-      </div>
-
-      @for (c of store.submit.uploads; track c) {
-        <span>Uploading <!-- Uploading --></span>
-        <span>{{ c.name }} <progress class="grow" max="100" [value]="c.progress"></progress></span>
-      }
-
-      <span></span>
       <div>
         @if (processing) {
           <app-loading></app-loading>
         }
       </div>
     }
+  </div>
 
+  <div class="padded list-container">
     @if (store.submit.huge) {
       <span></span>
       <span class="warning">

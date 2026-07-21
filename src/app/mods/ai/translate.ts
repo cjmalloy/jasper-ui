@@ -5,9 +5,10 @@ import { Mod } from '../../model/tag';
 
 export const translateQueryPlugin: Plugin = {
   tag: 'plugin/delta/ai/translate',
-  name: '🔡️️💭️ Translate',
+  name: $localize`🔡️️💭️ Translate`,
   config: {
     mod: $localize`🔡️ Translate`,
+    version: 1,
     type: 'tool',
     default: false,
     add: true,
@@ -37,7 +38,10 @@ export const translateQueryPlugin: Plugin = {
           responses: ref.url,
           size: 1,
         },
-      })).data.content[0];
+      }).catch(e => {
+          console.error(e.response.data);
+          throw new Error(e);
+        })).data.content[0];
       if (existingResponse) process.exit(0);
       const response = {
         origin,
@@ -110,9 +114,10 @@ export const translateQueryPlugin: Plugin = {
 
 export const translatePlugin: Plugin = {
   tag: '+plugin/delta/ai/translate',
-  name: '🔡️️ Translation',
+  name: $localize`🔡️️ Translation`,
   config: {
     mod: $localize`🔡️ Translate`,
+    version: 1,
     type: 'tool',
     default: false,
     genId: true,

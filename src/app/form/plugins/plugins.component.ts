@@ -7,12 +7,14 @@ import {
   Output,
   QueryList,
   SimpleChanges,
-  ViewChildren
+  ViewChildren,
+  ChangeDetectionStrategy
 } from '@angular/core';
-import { UntypedFormArray, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
+import { ReactiveFormsModule, UntypedFormArray, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { defer } from 'lodash-es';
 import { toJS } from 'mobx';
 import { Subject, takeUntil } from 'rxjs';
+import { TitleDirective } from '../../directive/title.directive';
 import { Plugin } from '../../model/plugin';
 import { active, Icon, ResponseAction, sortOrder, TagAction, Visibility, visible } from '../../model/tag';
 import { AdminService } from '../../service/admin.service';
@@ -21,11 +23,12 @@ import { addAllHierarchicalTags, hasTag } from '../../util/tag';
 import { GenFormComponent } from './gen/gen.component';
 
 @Component({
-  standalone: false,
   selector: 'app-form-plugins',
   templateUrl: './plugins.component.html',
   styleUrls: ['./plugins.component.scss'],
-  host: {'class': 'plugins-form'}
+  host: { 'class': 'plugins-form' },
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [ReactiveFormsModule, TitleDirective, GenFormComponent]
 })
 export class PluginsFormComponent implements OnChanges, AfterViewInit {
   private destroy$ = new Subject<void>();
@@ -121,7 +124,7 @@ export class PluginsFormComponent implements OnChanges, AfterViewInit {
   }
 
   visible(v: Visibility) {
-    return visible(v, true, false);
+    return visible(this.group.value, v, true, false);
   }
 
   active(a: TagAction | ResponseAction | Icon) {

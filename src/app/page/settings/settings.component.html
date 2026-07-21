@@ -2,7 +2,7 @@
   <app-tabs>
     <a class="logo" routerLink="/"></a>
     <h5 i18n>Settings</h5>
-    @if (admin.getTemplate('user') && store.account.localTag) {
+    @if (admin.getTemplate('user')) {
       <a routerLink="./me"
          routerLinkActive="current-tab"
          i18n-title title="⚙️ My settings"
@@ -17,8 +17,7 @@
     @for (plugin of store.view.settingsTabs; track plugin.tag) {
       <a [routerLink]="['./ref', plugin.tag]"
          routerLinkActive="current-tab"
-         queryParamsHandling="merge"
-         [title]="plugin.name || plugin.tag">{{ plugin.config?.settings || plugin.tag }}</a>
+         [title]="plugin.config?.mod || plugin.name || plugin.tag">{{ plugin.config?.settings || plugin.tag }}</a>
     }
     <a routerLink="./user"
        routerLinkActive="current-tab"
@@ -44,9 +43,14 @@
          i18n-title title="🔏 Change Password"
          i18n>password</a>
     }
+    <a routerLink="./local"
+       routerLinkActive="current-tab"
+       i18n-title title="💾 Local Storage"
+       i18n>local</a>
   </app-tabs>
   @if (store.view.type) {
-    <app-sidebar [tag]="store.view.settingsTag"></app-sidebar>
+    <app-sidebar [tag]="store.view.settingsTag"
+                 [ext]="store.view.settingsExt"></app-sidebar>
   }
   <router-outlet></router-outlet>
 </ng-container>

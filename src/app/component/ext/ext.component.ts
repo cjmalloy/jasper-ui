@@ -1,20 +1,26 @@
+import { AsyncPipe } from '@angular/common';
+import { FakeLinkDirective } from '../../directive/fake-link.directive';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
   Component,
+  forwardRef,
   HostBinding,
   Input,
   OnChanges,
   QueryList,
   SimpleChanges,
   ViewChild,
-  ViewChildren
+  ViewChildren,
+  ChangeDetectionStrategy
 } from '@angular/core';
-import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
+import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { isObject } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { toJS } from 'mobx';
 import { catchError, of, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
+import { TitleDirective } from '../../directive/title.directive';
 import { extForm, ExtFormComponent } from '../../form/ext/ext.component';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { equalsExt, Ext, writeExt } from '../../model/ext';
@@ -34,13 +40,23 @@ import { printError } from '../../util/http';
 import { memo, MemoCache } from '../../util/memo';
 import { hasPrefix, parentTag } from '../../util/tag';
 import { ActionComponent } from '../action/action.component';
+import { ConfirmActionComponent } from '../action/confirm-action/confirm-action.component';
 
 @Component({
-  standalone: false,
   selector: 'app-ext',
   templateUrl: './ext.component.html',
   styleUrls: ['./ext.component.scss'],
-  host: {'class': 'ext list-item'}
+  host: { 'class': 'ext list-item' },
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [
+    FakeLinkDirective,
+    forwardRef(() => ExtFormComponent),
+    RouterLink,
+    TitleDirective,
+    ConfirmActionComponent,
+    ReactiveFormsModule,
+    AsyncPipe,
+  ],
 })
 export class ExtComponent implements OnChanges, HasChanges {
   @HostBinding('attr.tabindex') tabIndex = 0;
@@ -127,7 +143,7 @@ export class ExtComponent implements OnChanges, HasChanges {
     return this.ext.exists;
   }
 
-  @ViewChild(ExtFormComponent)
+  @ViewChild('extForm')
   set extForm(value: ExtFormComponent) {
     value?.setValue(toJS(this.ext));
   }
@@ -202,6 +218,7 @@ export class ExtComponent implements OnChanges, HasChanges {
           return throwError(() => res);
         }),
       ).subscribe(ext => {
+        this.editForm.reset();
         this.ext = ext;
         this.init();
       });

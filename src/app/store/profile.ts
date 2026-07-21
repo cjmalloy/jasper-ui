@@ -2,7 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { isEqual, omit } from 'lodash-es';
 import { makeAutoObservable, observable, runInAction } from 'mobx';
-import { catchError, Subscription, throwError } from 'rxjs';
+import { catchError, EMPTY, Subscription } from 'rxjs';
 import { Page } from '../model/page';
 import { Profile, ProfilePageArgs } from '../model/profile';
 import { ProfileService } from '../service/api/profile.service';
@@ -46,7 +46,7 @@ export class ProfileStore {
     this.running = this.profiles.page(this.args).pipe(
       catchError((err: HttpErrorResponse) => {
         runInAction(() => this.error = err);
-        return throwError(() => err);
+        return EMPTY;
       }),
     ).subscribe(p => runInAction(() => this.page = p));
   }

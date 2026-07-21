@@ -1,43 +1,70 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component } from '@angular/core';
-import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { Component, OnDestroy, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import {
+  ReactiveFormsModule,
+  UntypedFormBuilder,
+  UntypedFormControl,
+  UntypedFormGroup,
+  Validators
+} from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { flatten, uniq, without } from 'lodash-es';
 import { DateTime } from 'luxon';
-import { catchError, map, Subscription, switchMap, throwError } from 'rxjs';
+import { catchError, firstValueFrom, forkJoin, interval, map, of, Subject, Subscription, switchMap, takeUntil, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
+import { LoadingComponent } from '../../../component/loading/loading.component';
+import { LimitWidthDirective } from '../../../directive/limit-width.directive';
+import { EditorComponent } from '../../../form/editor/editor.component';
+import { QrScannerComponent } from '../../../formly/qr-scanner/qr-scanner.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Ext } from '../../../model/ext';
+import { Ref } from '../../../model/ref';
 import { getMailbox } from '../../../mods/mailbox';
 import { AdminService } from '../../../service/admin.service';
 import { ExtService } from '../../../service/api/ext.service';
 import { RefService } from '../../../service/api/ref.service';
+import { TaggingService } from '../../../service/api/tagging.service';
 import { EditorService } from '../../../service/editor.service';
 import { ModService } from '../../../service/mod.service';
 import { Store } from '../../../store/store';
 import { scrollToFirstInvalid } from '../../../util/form';
 import { templates, URI_REGEX } from '../../../util/format';
 import { printError } from '../../../util/http';
-import { prefix } from '../../../util/tag';
+import { getVisibilityTags, prefix } from '../../../util/tag';
 
 @Component({
-  standalone: false,
   selector: 'app-submit-invoice',
   templateUrl: './invoice.component.html',
   styleUrls: ['./invoice.component.scss'],
-  host: {'class': 'full-page-form'}
+  host: { 'class': 'full-page-form' },
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [
+    EditorComponent,
+    ReactiveFormsModule,
+    LimitWidthDirective,
+    QrScannerComponent,
+    LoadingComponent,
+  ]
 })
-export class SubmitInvoicePage implements HasChanges {
+export class SubmitInvoicePage implements OnDestroy, HasChanges {
+
+  private destroy$ = new Subject<void>();
 
   submitted = false;
   invoiceForm: UntypedFormGroup;
   serverError: string[] = [];
 
+  @ViewChild('editor')
+  editorComponent?: EditorComponent;
+
   refUrl?: string;
   queue?: string;
   editorTags: string[] = [];
+  completedUploads: Ref[] = [];
 
   submitting?: Subscription;
+  saving?: Subscription;
+  private cursor?: string;
 
   constructor(
     private mod: ModService,
@@ -48,6 +75,7 @@ export class SubmitInvoicePage implements HasChanges {
     private editor: EditorService,
     private refs: RefService,
     private exts: ExtService,
+    private ts: TaggingService,
     private fb: UntypedFormBuilder,
   ) {
     mod.setTitle($localize`Submit: Invoice`);
@@ -56,6 +84,13 @@ export class SubmitInvoicePage implements HasChanges {
       title: ['', [Validators.required]],
       comment: [''],
     });
+    if (this.admin.editing) {
+      interval(5_000).pipe(
+        takeUntil(this.destroy$),
+      ).subscribe(() => {
+        if (this.invoiceForm.dirty) this.saveForLater();
+      });
+    }
     this.ref$.pipe(
       // TODO: support multiple valid queues
     ).subscribe(ref => {
@@ -65,9 +100,39 @@ export class SubmitInvoicePage implements HasChanges {
     });
   }
 
-  saveChanges() {
-    // TODO: Just save in drafts
+  async saveChanges() {
+    if (this.admin.editing && this.invoiceForm.dirty) {
+      return firstValueFrom(this.refs.saveEdit(this.writeRef(), this.cursor)
+        .pipe(map(() => true), catchError(() => of(false))));
+    }
     return !this.invoiceForm?.dirty;
+  }
+
+  saveForLater(leave = false) {
+    const savedValue = JSON.stringify(this.invoiceForm.value);
+    this.saving = this.refs.saveEdit(this.writeRef(), this.cursor)
+      .pipe(catchError(err => {
+        delete this.saving;
+        return throwError(() => err);
+      }))
+      .subscribe(cursor => {
+        delete this.saving;
+        this.cursor = cursor;
+        if (JSON.stringify(this.invoiceForm.value) === savedValue) this.invoiceForm.markAsPristine();
+        if (leave) this.router.navigate(['/inbox/ref', 'plugin/editing']);
+      });
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  writeRef() {
+    return <Ref> {
+      ...this.invoiceForm.value,
+      origin: this.store.account.origin,
+    };
   }
 
   checkUrl() {
@@ -140,6 +205,10 @@ export class SubmitInvoicePage implements HasChanges {
   }
 
   submit() {
+    if (this.saving) {
+      this.saving.add(() => this.submit());
+      return;
+    }
     this.serverError = [];
     this.submitted = true;
     this.invoiceForm.markAllAsTouched();
@@ -150,13 +219,26 @@ export class SubmitInvoicePage implements HasChanges {
     }
     const published = this.invoiceForm.value.published ? DateTime.fromISO(this.invoiceForm.value.published) : DateTime.now();
     this.submitting = this.exts.getCachedExt(this.queue!).pipe(
-      switchMap(queueExt => this.refs.create({
-        ...this.invoiceForm.value,
-        origin: this.store.account.origin,
-        published,
-        tags: this.getTags(queueExt),
-        sources: flatten([this.refUrl]),
-      })),
+      switchMap(queueExt => {
+        const finalTags = this.getTags(queueExt);
+        const ref = {
+          ...this.invoiceForm.value,
+          origin: this.store.account.origin,
+          published,
+          tags: finalTags,
+          sources: flatten([this.refUrl]),
+        };
+        return (this.cursor ? this.refs.update({ ...ref, modifiedString: this.cursor }) : this.refs.create(ref)).pipe(
+          switchMap(res => {
+            const finalVisibilityTags = getVisibilityTags(finalTags);
+            if (!finalVisibilityTags.length) return of(res);
+            const taggingOps = this.completedUploads
+              .map(upload => this.ts.patch(finalVisibilityTags, upload.url, upload.origin));
+            if (!taggingOps.length) return of(res);
+            return forkJoin(taggingOps).pipe(map(() => res));
+          }),
+        );
+      }),
       catchError((res: HttpErrorResponse) => {
         delete this.submitting;
         this.serverError = printError(res);
@@ -165,6 +247,7 @@ export class SubmitInvoicePage implements HasChanges {
     ).subscribe(() => {
       delete this.submitting;
       this.invoiceForm.markAsPristine();
+      this.completedUploads = [];
       this.router.navigate(['/ref', this.invoiceForm.value.url], { queryParams: { published }, replaceUrl: true});
     });
   }

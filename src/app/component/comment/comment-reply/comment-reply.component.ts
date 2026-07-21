@@ -1,9 +1,9 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, EventEmitter, Input, Output, ViewChild } from '@angular/core';
-import { FormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
+import { Component, EventEmitter, forwardRef, Input, Output, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { FormBuilder, ReactiveFormsModule, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { pickBy, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
-import { catchError, Subscription, throwError } from 'rxjs';
+import { catchError, forkJoin, map, of, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
 import { EditorComponent } from '../../../form/editor/editor.component';
@@ -18,14 +18,20 @@ import { Store } from '../../../store/store';
 import { getMailboxes } from '../../../util/editor';
 import { getRe } from '../../../util/format';
 import { printError } from '../../../util/http';
-import { hasTag, removeTag } from '../../../util/tag';
+import { getVisibilityTags, hasTag, removeTag } from '../../../util/tag';
+import { LoadingComponent } from '../../loading/loading.component';
 
 @Component({
-  standalone: false,
   selector: 'app-comment-reply',
   templateUrl: './comment-reply.component.html',
   styleUrls: ['./comment-reply.component.scss'],
-  host: {'class': 'comment-reply'}
+  host: { 'class': 'comment-reply' },
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [
+    forwardRef(() => EditorComponent),
+    ReactiveFormsModule,
+    LoadingComponent,
+  ]
 })
 export class CommentReplyComponent implements HasChanges {
 
@@ -42,11 +48,12 @@ export class CommentReplyComponent implements HasChanges {
   @Output()
   save = new EventEmitter<Ref|undefined>();
 
-  @ViewChild(EditorComponent)
+  @ViewChild('editor')
   editor?: EditorComponent
 
   editorTags: string[] = [];
   editorSources: string[] = [];
+  completedUploads: Ref[] = [];
 
   replying?: Subscription;
   commentForm: UntypedFormGroup;
@@ -128,6 +135,14 @@ export class CommentReplyComponent implements HasChanges {
           this.ts.createResponse('plugin/user/vote/up', url).subscribe();
         }
       }),
+      switchMap(res => {
+        const finalVisibilityTags = getVisibilityTags(tags);
+        if (!finalVisibilityTags.length) return of(res);
+        const taggingOps = this.completedUploads
+          .map(upload => this.ts.patch(finalVisibilityTags, upload.url, upload.origin));
+        if (!taggingOps.length) return of(res);
+        return forkJoin(taggingOps).pipe(map(() => res));
+      }),
       catchError((err: HttpErrorResponse) => {
         delete this.replying;
         this.serverError = printError(err);
@@ -141,6 +156,8 @@ export class CommentReplyComponent implements HasChanges {
       this.commentForm.reset();
       this.editorTags = [...this.tags];
       this.tags = [...this.tags];
+      this.completedUploads = [];
+
       this.editor?.syncText('');
       const update = {
         ...ref,

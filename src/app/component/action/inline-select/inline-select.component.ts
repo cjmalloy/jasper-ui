@@ -1,13 +1,16 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output, ChangeDetectionStrategy } from '@angular/core';
+import { FakeLinkDirective } from '../../../directive/fake-link.directive';
 import { catchError, Observable, of } from 'rxjs';
+import { LoadingComponent } from '../../loading/loading.component';
 import { ActionComponent } from '../action.component';
 
 @Component({
-  standalone: false,
   selector: 'app-inline-select',
   templateUrl: './inline-select.component.html',
   styleUrls: ['./inline-select.component.scss'],
-  host: {'class': 'action'}
+  host: { 'class': 'action' },
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [FakeLinkDirective, LoadingComponent]
 })
 export class InlineSelectComponent extends ActionComponent {
 

@@ -1,0 +1,136 @@
+<div class="form">
+  <span></span>
+  <h2 i18n>Local Storage</h2>
+
+  <span></span>
+  <p i18n>This page shows data stored in your browser's local storage for Refs and Exts.<br><br></p>
+
+
+  <h3 i18n>Refs</h3>
+  <p i18n>Stored toggle states and last seen counts for Refs.</p>
+  <span></span>
+  <div class="buttons">
+    <button type="button"
+            [disabled]="!refEntries.length"
+            (click)="clearAllRefs()"
+            i18n-title title="Clear all Ref data from local storage"
+            i18n>🗑️ clear all refs</button>
+  </div>
+
+  @if (refEntries.length) {
+    <span></span>
+    <table class="local-storage-table">
+      <thead>
+      <tr>
+        <th i18n>URL</th>
+        <th i18n>Type</th>
+        <th i18n>Value</th>
+        <th></th>
+      </tr>
+      </thead>
+      <tbody>
+        @for (entry of refEntries; track entry.key) {
+          <tr>
+            <td class="url-cell">
+              <a [routerLink]="['/ref', entry.url]">{{ entry.url }}</a>
+            </td>
+            <td>{{ entry.type }}</td>
+            <td>{{ entry.value }}</td>
+            <td>
+              <button type="button"
+                      (click)="clearRefEntry(entry.key)"
+                      i18n-title title="Remove this entry"
+                      i18n>🗑️</button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  } @else {
+    <span></span>
+    <p class="empty" i18n>No Ref data stored in local storage.<br><br></p>
+  }
+
+  <h3 i18n>Exts</h3>
+  <p i18n>Cached Ext tags for faster loading.</p>
+  <span></span>
+  <div class="buttons">
+    <button type="button"
+            [disabled]="!extEntries.length"
+            (click)="clearAllExts()"
+            i18n-title title="Clear all Ext data from local storage"
+            i18n>🗑️ clear all exts</button>
+  </div>
+
+
+  @if (extEntries.length) {
+    <span></span>
+    <table class="local-storage-table">
+      <thead>
+      <tr>
+        <th i18n>Tag</th>
+        <th i18n>Status</th>
+        <th></th>
+      </tr>
+      </thead>
+      <tbody>
+        @for (entry of extEntries; track entry.key) {
+          <tr>
+            <td class="tag-cell">
+              <a [routerLink]="['/tag', entry.tag]">{{ entry.tag }}</a>
+            </td>
+            <td>{{ entry.value }}</td>
+            <td>
+              <button type="button"
+                      (click)="clearExtEntry(entry.key)"
+                      i18n-title title="Remove this entry"
+                      i18n>🗑️</button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  } @else {
+    <span></span>
+    <p class="empty" i18n>No Ext data stored in local storage.<br><br></p>
+  }
+
+  <h3 i18n>Help Messages</h3>
+  <p i18n>Dismissed help messages stored so they won't be shown again.</p>
+  <span></span>
+  <div class="buttons">
+    <button type="button"
+            [disabled]="!helpEntries.length"
+            (click)="clearAllHelp()"
+            i18n-title title="Clear all help message history from local storage"
+            i18n>🗑️ clear all help</button>
+  </div>
+
+  @if (helpEntries.length) {
+    <span></span>
+    <table class="local-storage-table">
+      <thead>
+      <tr>
+        <th i18n>ID</th>
+        <th></th>
+      </tr>
+      </thead>
+      <tbody>
+        @for (entry of helpEntries; track entry.key) {
+          <tr>
+            <td class="id-cell">{{ entry.id }}</td>
+            <td>
+              <button type="button"
+                      (click)="clearHelpEntry(entry.key)"
+                      i18n-title title="Remove this entry"
+                      i18n>🗑️</button>
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  } @else {
+    <span></span>
+    <p class="empty" i18n>No help message history stored in local storage.</p>
+  }
+</div>

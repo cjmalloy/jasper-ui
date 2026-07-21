@@ -1,39 +1,80 @@
+import { CdkDropListGroup } from '@angular/cdk/drag-drop';
+import { AsyncPipe } from '@angular/common';
 import {
   Component,
   ElementRef,
   EventEmitter,
+  forwardRef,
   HostBinding,
   HostListener,
   Input,
+  OnChanges,
   Output,
-  ViewChild
+  SimpleChanges,
+  ViewChild,
+  ChangeDetectionStrategy
 } from '@angular/core';
-import { UntypedFormArray, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
-import { defer } from 'lodash-es';
-import { catchError, map, of, switchMap } from 'rxjs';
+import {
+  ReactiveFormsModule,
+  UntypedFormArray,
+  UntypedFormBuilder,
+  UntypedFormControl,
+  UntypedFormGroup
+} from '@angular/forms';
+import { defer, some } from 'lodash-es';
+import { MonacoEditorModule } from 'ngx-monaco-editor';
+import { catchError, map, of, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
+import { LoadingComponent } from '../../component/loading/loading.component';
+import { SelectPluginComponent } from '../../component/select-plugin/select-plugin.component';
+import { FillWidthDirective } from '../../directive/fill-width.directive';
+import { ResizeHandleDirective } from '../../directive/resize-handle.directive';
 import { Oembed } from '../../model/oembed';
 import { Ref } from '../../model/ref';
+import { CssUrlPipe } from '../../pipe/css-url.pipe';
+import { ThumbnailPipe } from '../../pipe/thumbnail.pipe';
 import { AdminService } from '../../service/admin.service';
 import { ScrapeService } from '../../service/api/scrape.service';
+import { ConfigService } from '../../service/config.service';
 import { EditorService } from '../../service/editor.service';
 import { OembedStore } from '../../store/oembed';
-import { getScheme } from '../../util/http';
-import { hasMedia, hasTag } from '../../util/tag';
+import { Store } from '../../store/store';
+import { getScheme, getTitleFromFilename } from '../../util/http';
+import { memo, MemoCache } from '../../util/memo';
+import { hasMedia, hasPrefix, hasTag } from '../../util/tag';
+import { EditorComponent } from '../editor/editor.component';
 import { LinksFormComponent } from '../links/links.component';
 import { PluginsFormComponent } from '../plugins/plugins.component';
 import { TagsFormComponent } from '../tags/tags.component';
 
 @Component({
-  standalone: false,
   selector: 'app-ref-form',
   templateUrl: './ref.component.html',
   styleUrls: ['./ref.component.scss'],
-  host: {'class': 'nested-form'}
+  host: { 'class': 'nested-form' },
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [
+    forwardRef(() => EditorComponent),
+    CdkDropListGroup,
+    ReactiveFormsModule,
+    LinksFormComponent,
+    LoadingComponent,
+    SelectPluginComponent,
+    PluginsFormComponent,
+    MonacoEditorModule,
+    ResizeHandleDirective,
+    FillWidthDirective,
+    TagsFormComponent,
+    AsyncPipe,
+    ThumbnailPipe,
+    CssUrlPipe,
+  ],
 })
-export class RefFormComponent {
+export class RefFormComponent implements OnChanges {
 
+  @Input()
+  creating = false;
   @Input()
   origin? = '';
   @Input()
@@ -41,16 +82,18 @@ export class RefFormComponent {
   @Output()
   toggleTag = new EventEmitter<string>();
 
-  @ViewChild(TagsFormComponent)
+  @ViewChild('tagsFormComponent')
   tagsFormComponent!: TagsFormComponent;
   @ViewChild('sources')
   sourcesFormComponent!: LinksFormComponent;
   @ViewChild('alts')
   altsFormComponent!: LinksFormComponent;
-  @ViewChild(PluginsFormComponent)
+  @ViewChild('pluginsFormComponent')
   pluginsFormComponent!: PluginsFormComponent;
   @ViewChild('fill')
   fill?: ElementRef;
+  @ViewChild('ed')
+  editorComponent?: EditorComponent;
 
   @HostBinding('class.show-drops')
   dropping = false;
@@ -59,14 +102,24 @@ export class RefFormComponent {
   oembed?: Oembed;
   scraped?: Ref;
   ref?: Ref;
+  scrapingTitle = false;
+  scrapingPublished = false;
+  scrapingAll = false;
+  completedUploads: Ref[] = [];
 
   constructor(
-    private fb: UntypedFormBuilder,
+    public config: ConfigService,
     public admin: AdminService,
     private editor: EditorService,
     private scrape: ScrapeService,
     private oembeds: OembedStore,
+    private store: Store,
+    private fb: UntypedFormBuilder,
   ) { }
+
+  ngOnChanges(changes: SimpleChanges) {
+    MemoCache.clear(this);
+  }
 
   get web() {
     const scheme = getScheme(this.url.value);
@@ -97,6 +150,33 @@ export class RefFormComponent {
     return this.group.get('sources') as UntypedFormArray;
   }
 
+  get thumbnail() {
+    if (!this.admin.getPlugin('plugin/thumbnail')) return false;
+    if (hasTag('plugin/thumbnail', this.group.value)) return true;
+    return !!this.admin.getPlugin('plugin/image') && hasTag('plugin/image', this.group.value);
+  }
+
+  get thumbnailRefs() {
+    return [{ ...this.group.getRawValue(), origin: this.creating ? this.store.account.origin : this.origin }];
+  }
+
+  get thumbnailPlugin() {
+    const plugin = this.group.value.plugins?.['plugin/thumbnail'];
+    return plugin && typeof plugin === 'object' && !Array.isArray(plugin) ? plugin : undefined;
+  }
+
+  get thumbnailColor() {
+    return this.thumbnailPlugin?.color || '';
+  }
+
+  get thumbnailEmoji() {
+    return this.thumbnailPlugin?.emoji || '';
+  }
+
+  get thumbnailRadius() {
+    return this.thumbnailPlugin?.radius || 0;
+  }
+
   addSource(value = '') {
     this.sources.push(this.fb.control(value, LinksFormComponent.validators));
   }
@@ -106,6 +186,7 @@ export class RefFormComponent {
       defer(() => this.setTags(value));
       return;
     }
+    MemoCache.clear(this);
     this.tagsFormComponent.setTags(value);
   }
 
@@ -124,13 +205,38 @@ export class RefFormComponent {
     return $localize`Add ` + this.editorLabel.toLowerCase();
   }
 
+  @memo
+  get codeLang() {
+    for (const t of this.tags.value) {
+      if (hasPrefix(t, 'plugin/code')) {
+        return t.split('/')[2];
+      }
+    }
+    return '';
+  }
+
+  @memo
+  get codeOptions() {
+    return {
+      language: this.codeLang,
+      theme: this.store.darkTheme ? 'vs-dark' : 'vs',
+      automaticLayout: true,
+    };
+  }
+
+  @memo
+  get customEditor() {
+    if (!this.tags?.value) return false;
+    return some(this.admin.editor, t => hasTag(t.tag, this.tags!.value));
+  }
+
   @HostListener('dragenter')
   onDragEnter() {
     this.dropping = true;
   }
 
   @HostListener('window:dragend')
-  OnDragEnd() {
+  onDragEnd() {
     this.dropping = false;
   }
 
@@ -176,26 +282,40 @@ export class RefFormComponent {
   }
 
   scrapeTitle() {
+    this.scrapingTitle = true;
     this.scrape$.pipe(
-      catchError(err => of({
-        url: this.url.value,
-        title: undefined,
-      })),
+      catchError(err => {
+        this.scrapingTitle = false;
+        return of({
+          url: this.url.value,
+          title: undefined,
+        })
+      }),
       switchMap(s => this.oembeds.get(s.url).pipe(
         map(oembed => {
           this.oembed = oembed!;
-          if (oembed) s.title ||= oembed.title;
+          if (oembed) s.title ||= oembed.title || '';
           return s;
         }),
         catchError(err => of(s)),
       )),
     ).subscribe((s: Ref) => {
-      if (s.title) this.group.patchValue({ title: s.title });
+      this.scrapingTitle = false;
+      const title = s.title ?? getTitleFromFilename(this.url.value);
+      if (title) this.group.patchValue({ title });
     });
   }
 
   scrapePublished() {
-    this.scrape$.subscribe(ref => {
+    this.scrapingPublished = true;
+    this.scrape$.pipe(
+      catchError(err => {
+        this.scrapingPublished = false;
+        // TODO: Write error
+        return throwError(() => err);
+      })
+    ).subscribe(ref => {
+      this.scrapingPublished = false;
       this.published.setValue(ref.published?.toFormat("YYYY-MM-DD'T'TT"));
     });
   }
@@ -204,11 +324,18 @@ export class RefFormComponent {
     if (this.oembed) {
       // TODO: oEmbed
     } else {
-      this.scrape$.subscribe(s => {
+      this.scrapingAll = true;
+      this.scrape$.pipe(
+        catchError(err => {
+          this.scrapingAll = false;
+          return throwError(() => err);
+        })
+      ).subscribe(s => {
         if (!hasMedia(s) || hasMedia(this.group.value)) {
           this.scrapeComment();
         }
         this.scrapePlugins();
+        this.scrapingAll = false;
       });
     }
   }
@@ -240,6 +367,7 @@ export class RefFormComponent {
   }
 
   togglePlugin(tag: string) {
+    MemoCache.clear(this);
     this.toggleTag.next(tag);
     if (tag) {
       if (hasTag(tag, this.tags.value)) {
@@ -256,10 +384,13 @@ export class RefFormComponent {
       ...ref,
       published: ref.published ? ref.published.toFormat("yyyy-MM-dd'T'TT") : undefined,
     });
-    defer(() => this.sourcesFormComponent.setLinks(ref.sources || []));
-    defer(() => this.altsFormComponent.setLinks(ref.alternateUrls || []));
-    defer(() => this.tagsFormComponent.setTags(ref.tags || []));
-    defer(() => this.pluginsFormComponent.setValue(ref.plugins));
+    defer(() => {
+      this.sourcesFormComponent.setLinks(ref.sources || []);
+      this.altsFormComponent.setLinks(ref.alternateUrls || []);
+      this.tagsFormComponent.setTags(ref.tags || []);
+      this.pluginsFormComponent.setValue(ref.plugins);
+      MemoCache.clear(this);
+    });
   }
 }
 

@@ -1,4 +1,5 @@
-import { Component, ElementRef, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { CdkDrag } from '@angular/cdk/drag-drop';
+import { Component, ElementRef, Input, OnChanges, SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
 import { Router } from '@angular/router';
 import { mapValues } from 'lodash-es';
 import { toJS } from 'mobx';
@@ -7,18 +8,25 @@ import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ext } from '../../model/ext';
 import { Page } from '../../model/page';
 import { Ref } from '../../model/ref';
-import { Pos } from '../../mods/folder';
+import { Pos } from '../../mods/org/folder';
 import { ExtService } from '../../service/api/ext.service';
 import { Store } from '../../store/store';
 import { escapePath } from '../../util/json-patch';
 import { defaultOrigin, level, tagOrigin } from '../../util/tag';
+import { FileComponent } from './file/file.component';
+import { SubfolderComponent } from './subfolder/subfolder.component';
 
 @Component({
-  standalone: false,
   selector: 'app-folder',
   templateUrl: './folder.component.html',
   styleUrls: ['./folder.component.scss'],
-  host: {'class': 'folder ext'}
+  host: { 'class': 'folder ext' },
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [
+    FileComponent,
+    SubfolderComponent,
+    CdkDrag,
+  ],
 })
 export class FolderComponent implements OnChanges, HasChanges {
 
@@ -82,7 +90,7 @@ export class FolderComponent implements OnChanges, HasChanges {
     if (changes.ext) {
       this.files = {};
       this.subfolders = {};
-      this.flatten = this.ext?.config.flatten;
+      this.flatten = this.ext?.config?.flatten;
       if (!this.ext) return;
       this.cursor = this.ext.modifiedString!;
       this.files = mapValues(toJS(this.ext.config.files) || {}, p => this.transform(p));

@@ -1,5 +1,5 @@
-import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
-import { UntypedFormGroup } from '@angular/forms';
+import { Component, EventEmitter, Input, OnChanges, OnInit, Output, SimpleChanges, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { ReactiveFormsModule, UntypedFormGroup } from '@angular/forms';
 import { FormlyForm, FormlyFormOptions } from '@ngx-formly/core';
 import { cloneDeep } from 'lodash-es';
 import { Plugin } from '../../../model/plugin';
@@ -7,10 +7,11 @@ import { AdminService } from '../../../service/admin.service';
 import { memo, MemoCache } from '../../../util/memo';
 
 @Component({
-  standalone: false,
   selector: 'app-form-gen',
   templateUrl: './gen.component.html',
-  styleUrls: ['./gen.component.scss']
+  styleUrls: ['./gen.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [ReactiveFormsModule, FormlyForm]
 })
 export class GenFormComponent implements OnInit, OnChanges {
 
@@ -26,9 +27,6 @@ export class GenFormComponent implements OnInit, OnChanges {
   children: Plugin[] = [];
   @Output()
   togglePlugin = new EventEmitter<string>();
-
-  @ViewChild(FormlyForm)
-  formlyForm?: FormlyForm;
 
   model: any;
   options: FormlyFormOptions = {

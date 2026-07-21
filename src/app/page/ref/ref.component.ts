@@ -1,14 +1,18 @@
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { Router } from '@angular/router';
+import { Component, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { pickBy, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
+import { MobxAngularModule } from 'mobx-angular';
 import { catchError, filter, map, of, Subject, Subscription, switchMap, takeUntil, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
+import { LoadingComponent } from '../../component/loading/loading.component';
 import { RefComponent } from '../../component/ref/ref.component';
+import { SidebarComponent } from '../../component/sidebar/sidebar.component';
+import { TabsComponent } from '../../component/tabs/tabs.component';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ref } from '../../model/ref';
-import { isWiki } from '../../mods/wiki';
+import { isWiki } from '../../mods/org/wiki';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
 import { StompService } from '../../service/api/stomp.service';
@@ -16,19 +20,30 @@ import { TaggingService } from '../../service/api/tagging.service';
 import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
 import { memo, MemoCache } from '../../util/memo';
+import { markRead } from '../../util/response';
 import { hasTag, privateTag, top } from '../../util/tag';
 
 @Component({
-  standalone: false,
   selector: 'app-ref-page',
   templateUrl: './ref.component.html',
   styleUrls: ['./ref.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [
+    RefComponent,
+    MobxAngularModule,
+    TabsComponent,
+    RouterLink,
+    RouterLinkActive,
+    SidebarComponent,
+    RouterOutlet,
+    LoadingComponent,
+  ],
 })
 export class RefPage implements OnInit, OnDestroy, HasChanges {
   private disposers: IReactionDisposer[] = [];
   private destroy$ = new Subject<void>();
 
-  @ViewChild(RefComponent)
+  @ViewChild('ref')
   ref?: RefComponent;
 
   newResponses = 0;
@@ -136,7 +151,7 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
   }
 
   reload(url?: string) {
-    url ||= this.store.view.url || '';
+    url ||= this.url || '';
     if (!url) {
       this.store.view.clear();
       return;
@@ -146,19 +161,18 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
       this.store.view.versions = count));
     const fetchTop = (ref: Ref) => hasTag('plugin/thread', ref) || hasTag('plugin/comment', ref);
     (url === this.store.view.ref?.url
-      ? of(this.store.view.ref)
-      : this.refs.getCurrent(url)
+        ? of(this.store.view.ref)
+        : this.refs.getCurrent(url)
     ).pipe(
       catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
       map(ref => ref || { url }),
       tap(ref => this.markRead(ref)),
-      switchMap(ref => !fetchTop(ref)
-        ? of([ref, undefined])
+      switchMap(ref => !fetchTop(ref) ? of([ref, undefined])
         : top(ref) === url ? of([ref, ref])
         : top(ref) === this.store.view.top?.url ? of([ref, this.store.view.top])
         : this.refs.getCurrent(top(ref)).pipe(
+          map(top => [ref, top]),
           catchError(err => err.status === 404 ? of([ref, undefined]) : throwError(() => err)),
-          map(top => [ref, top] as [Ref, Ref]),
         )),
       tap(([ref, top]) => runInAction(() => this.store.view.setRef(ref, top))),
       takeUntil(this.destroy$),
@@ -195,7 +209,6 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
         };
         runInAction(() => Object.assign(this.store.view.ref!, merged));
         this.store.eventBus.refresh(merged);
-        this.store.eventBus.reset();
       });
       this.watchResponses?.unsubscribe();
       this.watchResponses = this.stomp.watchResponse(url).pipe(
@@ -216,8 +229,6 @@ export class RefPage implements OnInit, OnDestroy, HasChanges {
   }
 
   markRead(ref: Ref) {
-    if (!this.admin.getPlugin('plugin/user/read')) return;
-    if (ref.metadata?.userUrls?.includes('plugin/user/read')) return;
-    this.ts.createResponse('plugin/user/read', ref.url).subscribe();
+    markRead(this.admin, this.ts, ref);
   }
 }

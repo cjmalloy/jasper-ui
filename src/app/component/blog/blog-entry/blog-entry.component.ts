@@ -1,6 +1,9 @@
+import { AsyncPipe } from '@angular/common';
+import { FakeLinkDirective } from '../../../directive/fake-link.directive';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
   Component,
+  forwardRef,
   HostBinding,
   Input,
   OnChanges,
@@ -8,14 +11,16 @@ import {
   QueryList,
   SimpleChanges,
   ViewChild,
-  ViewChildren
+  ViewChildren,
+  ChangeDetectionStrategy
 } from '@angular/core';
-import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
+import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
+import { Router, RouterLink } from '@angular/router';
 import { defer, groupBy, intersection, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
-import { autorun, IReactionDisposer } from 'mobx';
 import { catchError, map, of, Subject, Subscription, switchMap, takeUntil, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
+import { TitleDirective } from '../../../directive/title.directive';
 import { writePlugins } from '../../../form/plugins/plugins.component';
 import { refForm, RefFormComponent } from '../../../form/ref/ref.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
@@ -32,8 +37,8 @@ import {
   Visibility,
   visible
 } from '../../../model/tag';
-import { findArchive } from '../../../mods/archive';
 import { deleteNotice } from '../../../mods/delete';
+import { findArchive } from '../../../mods/tools/archive';
 import { AdminService } from '../../../service/admin.service';
 import { ExtService } from '../../../service/api/ext.service';
 import { RefService } from '../../../service/api/ref.service';
@@ -48,19 +53,43 @@ import { scrollToFirstInvalid } from '../../../util/form';
 import { authors, clickableLink, formatAuthor, interestingTags } from '../../../util/format';
 import { getScheme, printError } from '../../../util/http';
 import { memo, MemoCache } from '../../../util/memo';
-import { hasTag, isAuthorTag, localTag, repost, tagOrigin } from '../../../util/tag';
+import { hasTag, isAuthorTag, localTag, removeTag, repost, tagOrigin } from '../../../util/tag';
+import { ActionListComponent } from '../../action/action-list/action-list.component';
 import { ActionComponent } from '../../action/action.component';
+import { ConfirmActionComponent } from '../../action/confirm-action/confirm-action.component';
+import { InlineTagComponent } from '../../action/inline-tag/inline-tag.component';
+import { LoadingComponent } from '../../loading/loading.component';
+import { NavComponent } from '../../nav/nav.component';
+import { ViewerComponent } from '../../viewer/viewer.component';
+import { CommentReplyComponent } from '../../comment/comment-reply/comment-reply.component';
+import { getMailbox, mailboxes } from '../../../mods/mailbox';
+import { ThreadSummaryComponent } from '../../comment/thread-summary/thread-summary.component';
 
 @Component({
-  standalone: false,
   selector: 'app-blog-entry',
   templateUrl: './blog-entry.component.html',
   styleUrls: ['./blog-entry.component.scss'],
-  host: {'class': 'blog-entry'}
+  host: { 'class': 'blog-entry' },
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [
+    FakeLinkDirective,
+    forwardRef(() => ViewerComponent),
+    forwardRef(() => RefFormComponent),
+    forwardRef(() => CommentReplyComponent),
+    forwardRef(() => ThreadSummaryComponent),
+    NavComponent,
+    RouterLink,
+    TitleDirective,
+    ConfirmActionComponent,
+    InlineTagComponent,
+    ActionListComponent,
+    ReactiveFormsModule,
+    LoadingComponent,
+    AsyncPipe,
+  ],
 })
 export class BlogEntryComponent implements OnChanges, OnDestroy, HasChanges {
   @HostBinding('attr.tabindex') tabIndex = 0;
-  private disposers: IReactionDisposer[] = [];
   private destroy$ = new Subject<void>();
 
   @ViewChildren('action')
@@ -84,9 +113,12 @@ export class BlogEntryComponent implements OnChanges, OnDestroy, HasChanges {
   writeAccess = false;
   taggingAccess = false;
   deleteAccess = false;
+  replying = false;
   serverError: string[] = [];
 
   submitting?: Subscription;
+
+  summaryItems = 5;
 
   constructor(
     private config: ConfigService,
@@ -98,22 +130,23 @@ export class BlogEntryComponent implements OnChanges, OnDestroy, HasChanges {
     private exts: ExtService,
     private bookmarks: BookmarkService,
     private ts: TaggingService,
+    private router: Router,
     private fb: UntypedFormBuilder,
   ) {
     this.editForm = refForm(fb);
-    this.disposers.push(autorun(() => {
-      if (this.store.eventBus.event === 'refresh') {
-        if (this.ref?.url && this.store.eventBus.isRef(this.ref)) {
-          this.ref = this.store.eventBus.ref!;
+    this.store.eventBus.events.pipe(takeUntil(this.destroy$)).subscribe(event => {
+      if (event.event === 'refresh') {
+        if (this.ref?.url && this.store.eventBus.isRef(event, this.ref)) {
+          this.ref = event.ref!;
           this.init();
         }
       }
-      if (this.store.eventBus.event === 'error') {
-        if (this.ref?.url && this.store.eventBus.isRef(this.ref)) {
-          this.serverError = this.store.eventBus.errors;
+      if (event.event === 'error') {
+        if (this.ref?.url && this.store.eventBus.isRef(event, this.ref)) {
+          this.serverError = event.errors;
         }
       }
-    }));
+    });
   }
 
   saveChanges() {
@@ -153,8 +186,6 @@ export class BlogEntryComponent implements OnChanges, OnDestroy, HasChanges {
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
   }
 
   @memo
@@ -198,7 +229,7 @@ export class BlogEntryComponent implements OnChanges, OnDestroy, HasChanges {
     return comment.substring(0, 140);
   }
 
-  @ViewChild(RefFormComponent)
+  @ViewChild('refForm')
   set refForm(value: RefFormComponent) {
     defer(() => {
       value?.setRef(this.ref);
@@ -319,6 +350,22 @@ export class BlogEntryComponent implements OnChanges, OnDestroy, HasChanges {
     return formatAuthor(user);
   }
 
+  @memo
+  get mailboxes() {
+    return mailboxes(this.ref, this.store.account.tag, this.store.origins.originMap);
+  }
+
+  @memo
+  get replyTags(): string[] {
+    const tags = [
+      'plugin/comment',
+      'internal',
+      ...this.admin.reply.filter(p => hasTag(p.tag, this.ref)).flatMap(p => p.config!.reply as string[]),
+      ...this.mailboxes,
+    ];
+    return removeTag(getMailbox(this.store.account.tag, this.store.account.origin), uniq(tags));
+  }
+
   saveRef() {
     this.store.view.preloadRef(this.ref, this.repostRef);
   }
@@ -333,7 +380,7 @@ export class BlogEntryComponent implements OnChanges, OnDestroy, HasChanges {
   }
 
   visible(v: Visibility) {
-    return visible(v, this.isAuthor, this.isRecipient);
+    return visible(this.ref, v, this.isAuthor, this.isRecipient);
   }
 
   label(a: Action) {
@@ -404,6 +451,7 @@ export class BlogEntryComponent implements OnChanges, OnDestroy, HasChanges {
         return throwError(() => err);
       }),
     ).subscribe(ref => {
+      this.editForm.reset();
       delete this.submitting;
       this.serverError = [];
       this.editing = false;
@@ -435,5 +483,9 @@ export class BlogEntryComponent implements OnChanges, OnDestroy, HasChanges {
         return throwError(() => err);
       }),
     );
+  }
+
+  protected goToComments() {
+    this.router.navigate(['/ref', this.ref.url, 'comments'], { queryParams: { origin: this.nonLocalOrigin } });
   }
 }

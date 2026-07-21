@@ -1,14 +1,22 @@
+import { AsyncPipe } from '@angular/common';
 import { HttpErrorResponse, HttpEventType } from '@angular/common/http';
-import { Component, OnDestroy } from '@angular/core';
-import { Router } from '@angular/router';
-import { pick, uniq } from 'lodash-es';
+import { Component, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
+import { ReactiveFormsModule } from '@angular/forms';
+import { Router, RouterLink } from '@angular/router';
+import { uniq, without } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { autorun, IReactionDisposer, runInAction, toJS } from 'mobx';
+import { MobxAngularModule } from 'mobx-angular';
 import { catchError, concat, last, lastValueFrom, map, of, switchMap, throwError } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import * as XLSX from 'xlsx';
-import { Ext, mapTag } from '../../../model/ext';
+import { ExtComponent } from '../../../component/ext/ext.component';
+import { LoadingComponent } from '../../../component/loading/loading.component';
+import { RefComponent } from '../../../component/ref/ref.component';
+import { AutofocusDirective } from '../../../directive/autofocus.directive';
+import { Ext, mapExt } from '../../../model/ext';
 import { mapRef, Ref } from '../../../model/ref';
+import { TagPreviewPipe } from '../../../pipe/tag-preview.pipe';
 import { AdminService } from '../../../service/admin.service';
 import { ExtService } from '../../../service/api/ext.service';
 import { ProxyService } from '../../../service/api/proxy.service';
@@ -21,14 +29,26 @@ import { downloadSet } from '../../../util/download';
 import { TAGS_REGEX } from '../../../util/format';
 import { printError } from '../../../util/http';
 import { decodeTorrentFile } from '../../../util/torrent';
+import { hasTag } from '../../../util/tag';
 import { FilteredModels, filterModels, getModels, getTextFile, unzip, zippedFile } from '../../../util/zip';
 
 @Component({
-  standalone: false,
   selector: 'app-upload',
   templateUrl: './upload.component.html',
   styleUrls: ['./upload.component.scss'],
-  host: {'class': 'full-page-upload'}
+  host: { 'class': 'full-page-upload' },
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [
+    ExtComponent,
+    RefComponent,
+    MobxAngularModule,
+    RouterLink,
+    ReactiveFormsModule,
+    AutofocusDirective,
+    LoadingComponent,
+    AsyncPipe,
+    TagPreviewPipe,
+  ]
 })
 export class UploadPage implements OnDestroy {
   private disposers: IReactionDisposer[] = [];
@@ -56,9 +76,6 @@ export class UploadPage implements OnDestroy {
       this.readUploads(this.store.submit.files);
       runInAction(() => this.store.submit.clearFiles());
     }));
-    this.disposers.push(autorun(() => {
-      console.log(this.store.submit.uploads.length);
-    }));
     this.store.submit.clearOverride();
   }
 
@@ -69,7 +86,7 @@ export class UploadPage implements OnDestroy {
 
   readUploads(uploads?: File[], forceCache = false) {
     // TODO: process sequentially and show indicator
-    if (!uploads) return;
+    if (!uploads?.length) return;
     // Refs and Exts
     const files: File[] = [];
     const tables: File[] = [];
@@ -197,6 +214,11 @@ export class UploadPage implements OnDestroy {
           ref!.title = file.name;
           ref!.tags = uniq([...ref!.tags || [], tag, ...extraTags.filter(t => !!t)]);
           return ref!;
+        }),
+        catchError((res: HttpErrorResponse) => {
+          this.store.submit.caching.delete(file);
+          this.serverErrors.push(...printError(res));
+          return throwError(() => res);
         }),
       ).subscribe(ref => runInAction(() => {
         this.store.submit.caching.delete(file);
@@ -375,10 +397,13 @@ export class UploadPage implements OnDestroy {
   uploadRef$(ref: Ref) {
     ref = toJS(ref);
     ref.origin = this.store.account.origin;
+    ref.published ||= DateTime.now();
     ref.tags = ref.tags?.filter(t => this.auth.canAddTag(t));
-    ref.plugins = pick(ref.plugins, ref.tags || []);
+    ref.plugins = Object.fromEntries(
+      Object.entries(ref.plugins || {}).filter(([tag]) => hasTag(tag, ref.tags)),
+    );
     return (ref.exists
-      ? this.refs.update(ref).pipe(
+        ? this.refs.update(ref).pipe(
           catchError((err: HttpErrorResponse) => {
             if (err.status === 404) {
               return this.refs.create(ref);
@@ -386,7 +411,7 @@ export class UploadPage implements OnDestroy {
             return throwError(() => err);
           }),
         )
-      : this.refs.create(ref)
+        : this.refs.create(ref)
     ).pipe(
       catchError((err: HttpErrorResponse) => {
         if (err.status === 409) {
@@ -450,9 +475,17 @@ export class UploadPage implements OnDestroy {
       return;
     }
     if (field.value) {
+      this.bookmarks.tags = field.value.startsWith('-')
+        ? without(this.bookmarks.tags, field.value.substring(1))
+        : uniq([...this.bookmarks.tags, field.value]);
       this.store.submit.tagRefs(field.value.toLowerCase().trim().split(/\s+/));
+      this.store.eventBus.fire('refresh:uploads');
       field.value = '';
     }
+  }
+
+  set overwrite(value: boolean) {
+    runInAction(() => this.store.submit.overwrite = value);
   }
 
   private getModels(file: File): Promise<FilteredModels> {
@@ -460,7 +493,7 @@ export class UploadPage implements OnDestroy {
       return unzip(file).then(zip => Promise.all([
         zippedFile(zip, 'ext.json')
           .then(json => getModels<Ext>(json))
-          .then(exts => exts.map(mapTag)),
+          .then(exts => exts.map(mapExt)),
         zippedFile(zip, 'ref.json')
           .then(json => getModels<Ref>(json))
           .then(refs => refs.map(mapRef)),
@@ -485,6 +518,4 @@ export class UploadPage implements OnDestroy {
     }
     return null;
   }
-
-  protected readonly console = console;
 }

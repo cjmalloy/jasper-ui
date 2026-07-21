@@ -1,4 +1,5 @@
-import { Component, ElementRef, Input, OnDestroy, OnInit } from '@angular/core';
+import { Component, ElementRef, Input, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 import { AdminService } from '../../service/admin.service';
 import { RefService } from '../../service/api/ref.service';
@@ -6,14 +7,15 @@ import { TaggingService } from '../../service/api/tagging.service';
 import { ConfigService } from '../../service/config.service';
 import { EditorService } from '../../service/editor.service';
 import { VisibilityService } from '../../service/visibility.service';
-import { getPath, parseParams } from '../../util/http';
+import { getPath, parseBookmarkParams } from '../../util/http';
 import { hasPrefix } from '../../util/tag';
 
 @Component({
-  standalone: false,
   selector: 'app-nav',
   templateUrl: './nav.component.html',
-  styleUrls: ['./nav.component.scss']
+  styleUrls: ['./nav.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [RouterLink]
 })
 export class NavComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
@@ -90,7 +92,7 @@ export class NavComponent implements OnInit, OnDestroy {
   }
 
   get query() {
-    return parseParams(this.url);
+    return parseBookmarkParams(this.url);
   }
 
   get localUrl() {
@@ -109,8 +111,9 @@ export class NavComponent implements OnInit, OnDestroy {
     return this.text != this.url;
   }
 
-  markRead() {
+  markRead(event: MouseEvent) {
     if (!this.admin.getPlugin('plugin/user/read')) return;
+    if (event.button !== 0 && event.button !== 1) return;
     this.ts.createResponse('plugin/user/read', this.url).subscribe();
   }
 

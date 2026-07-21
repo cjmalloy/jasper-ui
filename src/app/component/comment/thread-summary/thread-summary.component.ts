@@ -1,16 +1,24 @@
-import { Component, Input, OnChanges, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
+import { Component, forwardRef, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
+import { MobxAngularModule } from 'mobx-angular';
 import { Observable, Subject, takeUntil } from 'rxjs';
 import { Ref } from '../../../model/ref';
 import { RefService } from '../../../service/api/ref.service';
 import { Store } from '../../../store/store';
 import { getArgs } from '../../../util/query';
+import { RefComponent } from '../../ref/ref.component';
+import { CommentComponent } from '../comment.component';
 
 @Component({
-  standalone: false,
   selector: 'app-thread-summary',
   templateUrl: './thread-summary.component.html',
   styleUrls: ['./thread-summary.component.scss'],
-  host: {'class': 'thread-summary'}
+  host: { 'class': 'thread-summary' },
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [
+    forwardRef(() => CommentComponent),
+    forwardRef(() => RefComponent),
+    MobxAngularModule,
+  ]
 })
 export class ThreadSummaryComponent implements OnInit, OnChanges, OnDestroy {
   private destroy$ = new Subject<void>();
@@ -30,7 +38,7 @@ export class ThreadSummaryComponent implements OnInit, OnChanges, OnDestroy {
   @Input()
   showLoadMore = true;
   @Input()
-  newRefs$!: Observable<Ref | undefined>;
+  newRefs$?: Observable<Ref | undefined>;
 
   newRefs: Ref[] = [];
   list: Ref[] = [];
@@ -41,7 +49,7 @@ export class ThreadSummaryComponent implements OnInit, OnChanges, OnDestroy {
   ) { }
 
   ngOnInit(): void {
-    this.newRefs$.pipe(
+    this.newRefs$?.pipe(
       takeUntil(this.destroy$),
     ).subscribe(comment => {
       if (comment) this.newRefs = [comment, ...this.newRefs];

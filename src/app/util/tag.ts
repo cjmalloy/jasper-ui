@@ -1,4 +1,4 @@
-import { filter, find, flatMap, isArray, without } from 'lodash-es';
+import { filter, find, flatMap, isArray, uniq, without } from 'lodash-es';
 import { Ref } from '../model/ref';
 import { User } from '../model/user';
 
@@ -15,14 +15,14 @@ export function decompose(tag: string): [string, string] {
   return [tag.substring(0, index), tag.substring(index)];
 }
 
-export function level(tag: string) {
-  return (tag.match(/\//g)?.length || 0) + 1;
+export function level(tag?: string) {
+  return (tag?.match(/\//g)?.length || 0) + 1;
 }
 
 export function captures(selector: string, target: string): boolean {
   const [sTag, sOrigin] = decompose(selector);
   const [tTag, tOrigin] = decompose(target);
-  if (sTag && !expandedTagsInclude(sTag, tTag)) return false;
+  if (sTag && !expandedTagsInclude(tTag, sTag)) return false;
   return sOrigin === '@*' || sOrigin === tOrigin;
 }
 
@@ -126,7 +126,7 @@ export function hasUserUrlResponse(tag?: string, ref?: Ref)  {
 
 export function tagIntersection(expand: string[] | undefined, targets: string[] | undefined) {
   if (!expand || !targets) return [];
-  return filter(targets, target => hasTag(target, expand));
+  return filter(expand, target => targets.find(t => expandedTagsInclude(target, t)));
 }
 
 export function expandedTagsInclude(tag?: string, target?: string) {
@@ -150,6 +150,7 @@ export function isAuthorTag(tag: string, ref?: Ref) {
 }
 
 export function isOwnerTag(tag: string, ref?: Ref) {
+  if (publicTag(tag)) return false;
   if (ref?.origin !== tagOrigin(tag)) return false;
   return hasDownwardsTag(localTag(tag), ref);
 }
@@ -158,6 +159,11 @@ export function localTag(tag?: string) {
   if (!tag) return '';
   if (!tag.includes('@')) return tag;
   return tag.substring(0, tag.indexOf('@'));
+}
+
+export function userResponse(tag?: string) {
+  if (!tag) return '';
+  return 'tag:/' + setPublic(localTag(tag));
 }
 
 export function tagOrigin(tag?: string) {
@@ -185,10 +191,10 @@ export function isSubOrigin(local?: string, origin?: string) {
 export function subOrigin(local?: string, origin?: string) {
   if (!local) local = '';
   if (!origin) origin = '';
+  if (origin && !origin.startsWith('@')) origin = '@' + origin;
   if (!local) return origin;
   if (!origin) return local;
-  if (origin.startsWith('@')) origin = origin.substring(1);
-  return local + '.' + origin;
+  return local + '.' + origin.substring(1);
 }
 
 export function removeParentOrigin(local?: string, parent?: string) {
@@ -233,6 +239,10 @@ export function hasPrefix(tag?: string, prefix?: string) {
     tag.startsWith(prefix + '@') ||
     tag.startsWith('_' + prefix + '@') ||
     tag.startsWith('+' + prefix + '@');
+}
+
+export function directChild(child?: string, parent?: string) {
+  return hasPrefix(child, parent) && level(child) - 1 === level(parent);
 }
 
 export function removePrefix(tag: string, count = 1) {
@@ -319,16 +329,26 @@ export function publicTag(tag: string) {
 
 export function setPublic(tag: string) {
   if (!tag) return '';
- if (publicTag(tag)) return tag;
- return tag.substring(1);
+  if (publicTag(tag)) return tag;
+  return tag.substring(1);
 }
 
 export function privateTag(tag: string) {
   return tag.startsWith('_');
 }
 
+export function setPrivate(tag: string) {
+  if (!tag) return '';
+  return '_' + setPublic(tag);
+}
+
 export function protectedTag(tag: string) {
   return tag.startsWith('+');
+}
+
+export function setProtected(tag: string) {
+  if (!tag) return '';
+  return '+' + setPublic(tag);
 }
 
 export function access(tag?: string) {
@@ -343,12 +363,21 @@ export function parentTag(tag: string): string | undefined {
   return tag.substring(0, tag.lastIndexOf('/'));
 }
 
-export function removeTag(tag: string | undefined, tags: string[]): string[] {
-  while (tag) {
-    tags = without(tags, tag);
-    tag = parentTag(tag);
+export function removeTag(tag: string | string[] | undefined, tags: string[]): string[] {
+  const ts = isArray(tag) ? tag : [tag];
+  for (let t of ts) {
+    while (t) {
+      tags = without(tags, t);
+      t = parentTag(t);
+    }
   }
   return tags;
+}
+
+export function getVisibilityTags(tags?: string[]): string[] {
+  if (!tags) return [];
+  if (hasTag('public', tags)) return ['public'];
+  return uniq(tags.filter(t => hasPrefix(t, 'user')).map(t => t.startsWith('+') ? t.substring(1) : t));
 }
 
 export function top(ref?: Ref) {
@@ -377,4 +406,10 @@ export function updateMetadata(parent: Ref, child: Ref) {
     parent.metadata.responses ||= 0;
     parent.metadata.responses++;
   }
+}
+
+export function getUserUrl(ref: Ref) {
+  if (!ref.url.startsWith('tag:/')) return '';
+  if (!ref.url.includes('?')) return ref.url.substring('tag:/'.length);
+  return setPublic(ref.url.substring('tag:/'.length, ref.url.indexOf('?'))) + (ref.origin || '');
 }

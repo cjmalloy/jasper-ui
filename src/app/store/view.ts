@@ -1,5 +1,5 @@
-import { delay, isEqual, uniq } from 'lodash-es';
-import { action, makeAutoObservable, observable, runInAction } from 'mobx';
+import { isEqual, uniq } from 'lodash-es';
+import { action, makeAutoObservable, observable } from 'mobx';
 import { RouterStore } from 'mobx-angular';
 import { Ext } from '../model/ext';
 import { Plugin } from '../model/plugin';
@@ -12,6 +12,15 @@ import { getPageTitle } from '../util/format';
 import { UrlFilter } from '../util/query';
 import { hasPrefix, hasTag, isQuery, localTag, queryPrefix, top, topAnds } from '../util/tag';
 import { AccountStore } from './account';
+
+function getQueryTags(tag: string, filters: UrlFilter[]) {
+  return uniq([
+    ...topAnds(tag).map(queryPrefix),
+    ...filters
+      .filter(f => f.startsWith('query/'))
+      .map(f => queryPrefix(f.substring('query/'.length))),
+  ].filter(t => t && !isQuery(t)));
+}
 
 /**
  * ID for current view. Only includes pages that make queries.
@@ -36,6 +45,7 @@ export class ViewStore {
   defaultBlogPageSize = 5;
   defaultSort: RefSort[] | TagSort[] = ['published'];
   defaultSearchSort: RefSort[] | TagSort[] = ['rank'];
+  defaultPageNumber = 0;
   ref?: Ref = {} as any;
   top?: Ref = {} as any;
   lastSelected?: Ref = {} as any;
@@ -43,7 +53,8 @@ export class ViewStore {
   exts: Ext[] = [];
   extTemplates: Template[] = [];
   selectedUser?: User = {} as any;
-  updates = false;
+  modChanges = new Map<string, boolean>();
+  modUpdates = new Set<string>();
   inboxTabs: Plugin[] = [];
   settingsTabs: Plugin[] = [];
 
@@ -74,7 +85,7 @@ export class ViewStore {
     }
   }
 
-  clear(defaultSort: RefSort[] | TagSort[] = ['published'], defaultSearchSort: RefSort[] | TagSort[] = ['rank']) {
+  clear(defaultSort: RefSort[] | TagSort[] = ['published'], defaultSearchSort: RefSort[] | TagSort[] = ['rank'], defaultPageNumber = 0) {
     this.ref = undefined;
     this.top = undefined;
     this.versions = 0;
@@ -83,25 +94,26 @@ export class ViewStore {
     this.selectedUser = undefined;
     this.defaultSort = defaultSort;
     this.defaultSearchSort = defaultSearchSort;
+    this.defaultPageNumber = defaultPageNumber;
   }
 
-  clearRef() {
-    if (this.ref) this.lastSelected = this.ref;
+  clearRef(ref?: Ref) {
+    if (this.ref && (!ref || ref.url !== this.ref?.url)) this.lastSelected = this.ref;
     this.ref = undefined;
     this.top = undefined;
   }
 
   setRef(ref?: Ref, top?: Ref) {
-    this.clearRef();
+    this.clearRef(ref);
     this.ref = ref;
     this.top = top;
-    this.versions = 0;
     this.exts = [];
     this.extTemplates = [];
     this.selectedUser = undefined;
   }
 
   preloadRef(ref: Ref, topRef?: Ref) {
+    this.clearRef(ref);
     if (ref?.created) this.ref = ref;
     if (topRef || top(ref) !== this.top?.url) this.top = topRef;
   }
@@ -146,7 +158,7 @@ export class ViewStore {
         .flatMap(t => {
           const exts = this.exts.filter(x => x.modifiedString && hasPrefix(x.tag, t.tag));
           if (exts.length) return exts;
-          return [{ tag: t.tag, origin: t.origin, name: t.name, config: { ...t.defaults, view: t?.config?.view} }];
+          return [{ tag: t.tag, origin: t.origin, name: t.name, config: { ...t.defaults, tab: t?.config?.tab, view: t?.config?.view } }];
         })
         .filter(x => !!x));
   }
@@ -161,7 +173,7 @@ export class ViewStore {
             // Already an active ext so ignore global
             return [];
           }
-          return [{ tag: t.tag, origin: t.origin, name: t.name, config: { ...t.defaults, view: t.config?.view } }];
+          return [{ tag: t.tag, origin: t.origin, name: t.name, config: { ...t.defaults, tab: t.config?.tab, view: t.config?.view } }];
         })
         .filter(x => !!x));
   }
@@ -170,7 +182,7 @@ export class ViewStore {
    * Templates found in top ands of query or filters.
    */
   get activeTemplates(): Template[] {
-    return uniq(this.queryTags
+    return uniq(this.urlQueryTags
         .map(tag => this.extTemplates.find(t => hasPrefix(tag, t.tag))!)
         .filter(t => !!t));
   }
@@ -196,6 +208,10 @@ export class ViewStore {
   get settingsTag() {
     if (!this.settings) return '';
     return this.childTag;
+  }
+
+  get settingsExt() {
+    return this.settingsTabs.find(t => t.tag === this.settingsTag) as Ext;
   }
 
   get inbox() {
@@ -253,7 +269,12 @@ export class ViewStore {
     return undefined;
   }
 
+  get originFilter() {
+    return this.filter?.some(f => f.startsWith('query/@') || f === 'query/*');
+  }
+
   get showRemotesCheckbox() {
+    if (this.originFilter) return false;
     return ['tags', 'settings/user', 'settings/plugin', 'settings/template', 'settings/ref', 'inbox/ref'].includes(this.current!);
   }
 
@@ -319,6 +340,17 @@ export class ViewStore {
     return this.viewTag && [...this.activeExts, ...this.globalExts].find(x => hasPrefix(x.tag, this.viewTag)) || this.exts[0];
   }
 
+  get homeExt() {
+    if (this.list) return this.ext;
+    return {
+      ...this.ext || {},
+      config: {
+        ...this.ext?.config || {},
+        noFloatingSidebar: this.viewExt?.config?.noFloatingSidebar ?? this.ext?.config?.noFloatingSidebar,
+      },
+    };
+  }
+
   get template(): string {
     return this.route.routeSnapshot?.firstChild?.params['template'] || '';
   }
@@ -343,11 +375,12 @@ export class ViewStore {
     return isQuery(this.tag) ? this.tag : '';
   }
 
+  get urlQueryTags() {
+    return getQueryTags(this.tag, this.urlFilters);
+  }
+
   get queryTags() {
-    return uniq([
-        ...topAnds(this.tag).map(queryPrefix),
-        ...this.queryFilters.map(queryPrefix),
-    ].filter(t => t && !isQuery(t)));
+    return getQueryTags(this.tag, this.filter);
   }
 
   get noQuery() {
@@ -370,12 +403,14 @@ export class ViewStore {
   }
 
   get viewExtSort() {
-    if (!['tag', 'home'].includes(this.current!)) return undefined;
+    if (this.current === 'home') return this.ext?.config?.defaultSort;
+    if (this.current !== 'tag') return undefined;
     return this.viewExt?.config?.defaultSort;
   }
 
   get viewExtFilter() {
-    if (!['tag', 'home'].includes(this.current!)) return undefined;
+    if (this.current === 'home') return this.ext?.config?.defaultFilter;
+    if (this.current !== 'tag') return undefined;
     return this.viewExt?.config?.defaultFilter;
   }
 
@@ -396,14 +431,18 @@ export class ViewStore {
   }
 
   get isVoteSorted() {
-    return this.sort[0]?.startsWith('vote');
+    return this.sort[0]?.startsWith('plugins->plugin/user/vote');
+  }
+
+  get urlFilters(): UrlFilter[] {
+    const filter = this.route.routeSnapshot?.queryParams['filter'];
+    if (!filter) return [];
+    if (!Array.isArray(filter)) return [filter];
+    return filter;
   }
 
   get filter(): UrlFilter[] {
-    const filter = this.route.routeSnapshot?.queryParams['filter'];
-    if (!filter) return [];
-    if (!Array.isArray(filter)) return [filter]
-    return filter;
+    return this.urlFilters.length ? this.urlFilters : this.viewExtFilter || [];
   }
 
   get queryFilters(): string[] {
@@ -416,8 +455,8 @@ export class ViewStore {
     return this.route.routeSnapshot?.queryParams['search'];
   }
 
-  get defaultPageNumber() {
-    return this.current === 'ref/thread' ? Math.floor((this.ref?.metadata?.plugins?.['plugin/thread'] || 0) / this.pageSize) : 0;
+  get isSearch() {
+    return !!this.search;
   }
 
   get pageNumber() {
@@ -453,14 +492,11 @@ export class ViewStore {
   }
 
   get showRemotes() {
+    if (!this.showRemotesCheckbox) return true;
     return this.route.routeSnapshot?.queryParams['showRemotes'] !== undefined && this.route.routeSnapshot?.queryParams['showRemotes'] !== 'false';
   }
 
   get repost() {
     return this.ref?.sources?.[0] && hasTag('plugin/repost', this.ref);
-  }
-
-  updateNotify() {
-    return this.updates = true;
   }
 }

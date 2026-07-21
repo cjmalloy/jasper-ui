@@ -5,9 +5,10 @@ import { Mod } from '../../model/tag';
 
 export const summaryQueryPlugin: Plugin = {
   tag: 'plugin/delta/ai/summary',
-  name: '✂️️💭️ Summarize',
+  name: $localize`✂️️💭️ Summarize`,
   config: {
     mod: $localize`✂️ Summarize`,
+    version: 1,
     type: 'tool',
     default: false,
     add: true,
@@ -40,7 +41,10 @@ export const summaryQueryPlugin: Plugin = {
           responses: ref.url,
           size: 1,
         },
-      })).data.content[0];
+      }).catch(e => {
+          console.error(e.response.data);
+          throw new Error(e);
+        })).data.content[0];
       if (existingResponse) process.exit(0);
       const response = {
         origin,
@@ -81,9 +85,10 @@ export const summaryQueryPlugin: Plugin = {
 
 export const summaryPlugin: Plugin = {
   tag: '+plugin/delta/ai/summary',
-  name: '✂️️ Summary',
+  name: $localize`✂️️ Summary`,
   config: {
     mod: $localize`✂️ Summarize`,
+    version: 1,
     type: 'tool',
     default: false,
     signature: '+plugin/delta/ai/summary',

@@ -1,15 +1,15 @@
-import { Component, ElementRef, Input, OnChanges, OnDestroy, SimpleChanges, ViewChild } from '@angular/core';
+import { Component, ElementRef, Input, OnChanges, OnDestroy, SimpleChanges, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { filter, find, pullAll, uniq } from 'lodash-es';
-import { DateTime } from 'luxon';
+import { DateTime, Duration } from 'luxon';
 import { autorun, IReactionDisposer, toJS } from 'mobx';
 import { Ext } from '../../model/ext';
 import { FilterConfig } from '../../model/tag';
-import { KanbanConfig } from '../../mods/kanban';
+import { KanbanConfig } from '../../mods/org/kanban';
 import { RootConfig } from '../../mods/root';
 import { UserConfig } from '../../mods/user';
 import { AdminService } from '../../service/admin.service';
-import { ExtService } from '../../service/api/ext.service';
 import { AuthzService } from '../../service/authz.service';
 import { BookmarkService } from '../../service/bookmark.service';
 import { EditorService } from '../../service/editor.service';
@@ -20,11 +20,12 @@ import { convertFilter, FilterGroup, FilterItem, negatable, toggle, UrlFilter } 
 import { hasPrefix } from '../../util/tag';
 
 @Component({
-  standalone: false,
   selector: 'app-filter',
   templateUrl: './filter.component.html',
   styleUrls: ['./filter.component.scss'],
-  host: {'class': 'filter form-group'}
+  host: { 'class': 'filter form-group' },
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [ReactiveFormsModule, FormsModule]
 })
 export class FilterComponent implements OnChanges, OnDestroy {
 
@@ -56,7 +57,6 @@ export class FilterComponent implements OnChanges, OnDestroy {
     public router: Router,
     public admin: AdminService,
     public store: Store,
-    private exts: ExtService,
     private auth: AuthzService,
     private bookmarks: BookmarkService,
     private editor: EditorService,
@@ -82,7 +82,13 @@ export class FilterComponent implements OnChanges, OnDestroy {
         }
         this.pushFilter({
           label: $localize`Queries 🔎️️`, filters: [],
-        }, {
+        });
+        if (this.auth.hasRole('ROLE_USER')) {
+          this.pushFilter({
+            label: $localize`Lists ☰`, filters: [],
+          });
+        }
+        this.pushFilter({
           label: $localize`Media 🎬️`, filters: [],
         }, {
           label: $localize`Games 🕹️`, filters: [],
@@ -163,9 +169,6 @@ export class FilterComponent implements OnChanges, OnDestroy {
           filters: [
             { filter: 'obsolete', label: $localize`⏮️ obsolete`, title: $localize`Show older versions` },
             { filter: 'query/_plugin:!+user', label: $localize`📟️ system`, title: $localize`System configs` },
-            { filter: 'untagged', label: $localize`🚫️🏷️ untagged` },
-            { filter: 'uncited', label: $localize`🚫️💌️ uncited` },
-            { filter: 'unsourced', label: $localize`🚫️📜️ unsourced` },
           ],
         });
       } else {
@@ -191,9 +194,9 @@ export class FilterComponent implements OnChanges, OnDestroy {
         filters: this.store.origins.list.map(o => ({ filter: 'query/' + (o || '*') as UrlFilter,
           label:
             !o ? $localize`✴️ local`
-            : o === this.store.account.origin ? $localize`🏛️ ${o}`
-            : !this.store.account.origin ? $localize`🏛️ ${o}`
-            : $localize`🪆 ${o}` })),
+              : o === this.store.account.origin ? $localize`🏛️ ${o}`
+                : !this.store.account.origin ? $localize`🏛️ ${o}`
+                  : $localize`🪆 ${o}` })),
       });
       this.sync();
     }
@@ -212,15 +215,15 @@ export class FilterComponent implements OnChanges, OnDestroy {
   get userConfigs() {
     if (!this.admin.getTemplate('user')) return [];
     return this.activeExts
-        .filter(x => hasPrefix(x.tag, 'user'))
-        .map(x => x.config).filter(c => !!c) as UserConfig[];
+      .filter(x => hasPrefix(x.tag, 'user'))
+      .map(x => x.config).filter(c => !!c) as UserConfig[];
   }
 
   get kanbanExts() {
     if (!this.admin.getTemplate('kanban')) return [];
     return this.activeExts
-        .filter(x => hasPrefix(x.tag, 'kanban'))
-        .filter(x => x.config);
+      .filter(x => hasPrefix(x.tag, 'kanban'))
+      .filter(x => x.config);
   }
 
   /**
@@ -271,7 +274,7 @@ export class FilterComponent implements OnChanges, OnDestroy {
           const target = g.filters.find(i => i.filter === toggle(f));
           if (target) {
             target.filter = f;
-            if (f.startsWith('!') || f.startsWith('user/!') || f.startsWith('query/!(')) {
+            if (!target.label.startsWith(this.store.account.querySymbol('!'))) {
               target.label = this.store.account.querySymbol('!') + target.label;
             } else {
               target.label = target.label.substring(this.store.account.querySymbol('!').length);
@@ -349,26 +352,24 @@ export class FilterComponent implements OnChanges, OnDestroy {
     this.setFilters();
   }
 
-  setModified(index: number, before: boolean, isoDate: string) {
-    this.filters[index] = `modified/${before ? 'before' : 'after'}/${isoDate}`;
-    this.sync();
-    this.setFilters();
+  lastFocused = false;
+  hasFocus() {
+    return this.lastFocused;
+  }
+  focus() {
+    this.lastFocused = true;
+    return true;
+  }
+  clearFocus() {
+    this.lastFocused = false;
+    return true;
   }
 
-  setResponse(index: number, before: boolean, isoDate: string) {
-    this.filters[index] = `response/${before ? 'before' : 'after'}/${isoDate}`;
-    this.sync();
-    this.setFilters();
-  }
-
-  setPublished(index: number, before: boolean, isoDate: string) {
-    this.filters[index] = `published/${before ? 'before' : 'after'}/${isoDate}`;
-    this.sync();
-    this.setFilters();
-  }
-
-  setCreated(index: number, before: boolean, isoDate: string) {
-    this.filters[index] = `created/${before ? 'before' : 'after'}/${isoDate}`;
+  set(index: number, filter: UrlFilter, isoDate: string) {
+    this.clearFocus();
+    if (!isoDate) return;
+    // @ts-ignore
+    this.filters[index] = filter.substring(0, filter.lastIndexOf('/') + 1) + isoDate;
     this.sync();
     this.setFilters();
   }
@@ -388,7 +389,17 @@ export class FilterComponent implements OnChanges, OnDestroy {
 
   toDate(filter: string) {
     if (filter.includes('/')) filter = filter.substring(filter.lastIndexOf('/') + 1);
-    return DateTime.fromISO(filter).toFormat("YYYY-MM-DD'T'TT");
+    let dt: DateTime;
+    if (filter.toLowerCase() === 'now') {
+      dt = DateTime.now();
+    } else if (filter.toUpperCase().startsWith('P')) {
+      const duration = Duration.fromISO(filter.toUpperCase());
+      if (!duration.isValid) return '';
+      dt = DateTime.now().minus(duration);
+    } else {
+      dt = DateTime.fromISO(filter);
+    }
+    return dt.isValid ? dt.toFormat("yyyy-MM-dd'T'T") : '';
   }
 
 }

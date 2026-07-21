@@ -1,6 +1,9 @@
 <ng-container *mobxAutorun>
-  <form class="form" [formGroup]="webForm" (ngSubmit)="submit()"
-        [appLimitWidth]="refForm?.fill?.nativeElement" [limitSibling]="true">
+  <form class="form"
+        [formGroup]="webForm"
+        (ngSubmit)="submit()"
+        [appLimitWidth]="limitWidth"
+        [limitSibling]="true">
 
     @if (defaults?.url || loadingDefaults.length) {
       <span></span>
@@ -12,21 +15,23 @@
       </div>
     }
 
-    <app-ref-form [group]="webForm"
+    <app-ref-form #refForm [group]="webForm"
+                  [creating]="true"
                   (toggleTag)="bookmarks.toggleTag($event)"></app-ref-form>
 
     @for (e of serverError; track e) {
       <span><!-- Unexpected Error --></span>
       <div class="error">{{ e }}</div>
     }
-
     <span><!-- Buttons --></span>
     <span class="buttons right">
-      @if (submitting) {
+      @if (submitting || saving) {
         <app-loading [inline]="true"></app-loading>
+      }
+      @if (admin.getPlugin('plugin/editing')) {
+        <button type="button" [disabled]="submitting || saving || submitted || webForm.pristine" (click)="saveForLater(true)" i18n>Save for later</button>
       }
       <button type="submit" [disabled]="submitting || submitted && !webForm.valid" i18n>Submit</button>
     </span>
-
   </form>
 </ng-container>

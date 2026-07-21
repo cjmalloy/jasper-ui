@@ -1,9 +1,13 @@
+import { KeyValuePipe } from '@angular/common';
+import { FakeLinkDirective } from '../../directive/fake-link.directive';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, Input, OnChanges, OnDestroy, SimpleChanges } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, Input, OnChanges, OnDestroy, SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { groupBy, intersection, isEqual, map, pick, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import { catchError, concat, last, Observable, of, switchMap } from 'rxjs';
 import { tap } from 'rxjs/operators';
+import { TitleDirective } from '../../directive/title.directive';
 import { patchPlugins } from '../../form/plugins/plugins.component';
 import { Ext } from '../../model/ext';
 import { Plugin } from '../../model/plugin';
@@ -21,6 +25,7 @@ import { TaggingService } from '../../service/api/tagging.service';
 import { TemplateService } from '../../service/api/template.service';
 import { UserService } from '../../service/api/user.service';
 import { AuthzService } from '../../service/authz.service';
+import { HelpService } from '../../service/help.service';
 import { ExtStore } from '../../store/ext';
 import { PluginStore } from '../../store/plugin';
 import { QueryStore } from '../../store/query';
@@ -31,16 +36,22 @@ import { Type } from '../../store/view';
 import { downloadPage } from '../../util/download';
 import { getScheme, printError } from '../../util/http';
 import { memo, MemoCache } from '../../util/memo';
-import { addAllHierarchicalTags, expandedTagsInclude, hasTag, isAuthorTag, subOrigin } from '../../util/tag';
+import { expandedTagsInclude, hasTag, isAuthorTag, subOrigin } from '../../util/tag';
+import { ConfirmActionComponent } from '../action/confirm-action/confirm-action.component';
+import { InlineButtonComponent } from '../action/inline-button/inline-button.component';
+import { InlinePluginComponent } from '../action/inline-plugin/inline-plugin.component';
+import { InlineTagComponent } from '../action/inline-tag/inline-tag.component';
+import { LoadingComponent } from '../loading/loading.component';
 
 @Component({
-  standalone: false,
   selector: 'app-bulk',
   templateUrl: './bulk.component.html',
   styleUrls: ['./bulk.component.scss'],
-  host: {'class': 'bulk actions'}
+  host: { 'class': 'bulk actions' },
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [FakeLinkDirective, LoadingComponent, RouterLink, InlineTagComponent, ConfirmActionComponent, InlinePluginComponent, TitleDirective, InlineButtonComponent, KeyValuePipe]
 })
-export class BulkComponent implements OnChanges, OnDestroy {
+export class BulkComponent implements AfterViewInit, OnChanges, OnDestroy {
 
   private disposers: IReactionDisposer[] = [];
 
@@ -75,6 +86,8 @@ export class BulkComponent implements OnChanges, OnDestroy {
     private templates: TemplateService,
     private acts: ActionService,
     private ts: TaggingService,
+    private el: ElementRef,
+    private help: HelpService,
   ) {
     this.disposers.push(autorun(() => {
       MemoCache.clear(this);
@@ -88,6 +101,10 @@ export class BulkComponent implements OnChanges, OnDestroy {
       const xs = [...(this.viewExt ? [this.viewExt] : []), ...this.activeExts, this.admin.getTemplate('')] as Tag[];
       this.refs.getDefaults(...xs.filter(x => x).map(x => x.tag)).subscribe(d => this.defaults = d?.ref)
     }));
+  }
+
+  ngAfterViewInit() {
+    this.help.pushStep(this.el?.nativeElement, $localize`Bulk actions will only affect all Refs in the current page.`);
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -220,7 +237,7 @@ export class BulkComponent implements OnChanges, OnDestroy {
   }
 
   showAction(ref: Ref, a: Action) {
-    if (!visible(a, isAuthorTag(this.store.account.tag, ref), hasTag(this.store.account.mailbox, ref))) return false;
+    if (!visible(ref, a, isAuthorTag(this.store.account.tag, ref), hasTag(this.store.account.mailbox, ref))) return false;
     const writeAccess = this.auth.writeAccess(ref);
     const taggingAccess = this.auth.taggingAccess(ref);
     if ('scheme' in a) {
@@ -280,10 +297,10 @@ export class BulkComponent implements OnChanges, OnDestroy {
   copy$ = () => {
     return this.batch$<Ref>(ref => {
       if (ref.origin === this.store.account.origin) return of(null);
-      const tags = uniq(addAllHierarchicalTags([
+      const tags = uniq([
         ...(this.store.account.localTag ? [this.store.account.localTag] : []),
         ...(ref.tags || []).filter(t => this.auth.canAddTag(t))
-      ]).filter(t => !expandedTagsInclude(t, '+plugin/origin/push')
+      ].filter(t => !expandedTagsInclude(t, '+plugin/origin/push')
         && !expandedTagsInclude(t, 'plugin/delta')
         && !expandedTagsInclude(t, '+plugin/delta')
         && !expandedTagsInclude(t, '+plugin/cron')));

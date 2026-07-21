@@ -1,8 +1,8 @@
 import { HttpErrorResponse, HttpParameterCodec, HttpParams } from '@angular/common/http';
-import { isArray, isObject } from 'lodash-es';
+import { flatten, isArray, isObject } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { Problem } from '../model/problem';
-import { banlistConfig } from '../mods/banlist';
+import { banlistConfig } from '../mods/system/banlist';
 
 export class HttpUrlEncodingCodec implements HttpParameterCodec {
   encodeKey(k: string): string { return encodeURIComponent(k); }
@@ -25,7 +25,7 @@ export function writeObj(obj?: Record<string, any>): Record<string, any> | undef
     let v = obj[k];
     if (DateTime.isDateTime(v)) v = v.toUTC().toISO();
     if ((v || v === false) && !emptyObject(v)) {
-      result[k] = v;
+      result[k] = (isObject(v) && !isArray(v))  ? writeObj(v) : v;
     }
   }
   if (emptyObject(result)) return undefined;
@@ -168,6 +168,78 @@ export function parseParams(url: string): any {
   return params;
 }
 
+/** Minimal per-value encoding for bookmark params. Only encodes %, &, # */
+function encodeBookmarkValue(v: string): string {
+  return v.replace(/%/g, '%25').replace(/&/g, '%26').replace(/#/g, '%23');
+}
+
+/**
+ * Extract only sort/filter/search from a URL or query string, re-encode them
+ * with minimal encoding, and return the resulting query string.
+ * All other query params are stripped.
+ */
+export function encodeBookmarkParams(url: string): string;
+/**
+ * Build a bookmark query string from a params record.
+ * Multi-value keys (arrays) produce repeated key=value pairs.
+ * All values use minimal encoding (only %, &, # are encoded).
+ */
+export function encodeBookmarkParams(params: Record<string, string | string[]>): string;
+export function encodeBookmarkParams(input: string | Record<string, string | string[]>): string {
+  if (typeof input === 'string') {
+    // Extract query string from full URL if present
+    const qIdx = input.indexOf('?');
+    const qs = qIdx !== -1 ? input.substring(qIdx + 1) : input;
+    const parsed = parseBookmarkParams(qs);
+    const p: Record<string, string | string[]> = {};
+    if (parsed['sort']) p['sort'] = parsed['sort'];
+    if (parsed['filter']) p['filter'] = parsed['filter'];
+    if (parsed['search']) p['search'] = parsed['search'];
+    if (parsed['view']) p['view'] = parsed['view'];
+    return encodeBookmarkParams(p);
+  }
+  const pairs: string[] = [];
+  for (const key of Object.keys(input)) {
+    const values = Array.isArray(input[key]) ? input[key] as string[] : [input[key] as string];
+    for (const v of values) {
+      if (v) pairs.push(`${key}=${encodeBookmarkValue(v)}`);
+    }
+  }
+  return pairs.join('&');
+}
+
+/**
+ * Parse a bookmark query string without treating '+' as a space.
+ * Uses decodeURIComponent so '%2B' decodes to '+' and a literal '+' stays '+'.
+ * Only URL values (e.g. sources/responses filters) and search text use
+ * percent-encoding; tag-based values keep '+' readable as a tag-prefix character.
+ */
+export function parseBookmarkParams(qs: string): any {
+  const params: any = {};
+  const qIdx = qs.indexOf('?');
+  // Strip path/host if this looks like a full URL (a '?' is present but no '=' appears before it)
+  const isFullUrl = qIdx !== -1 && !qs.substring(0, qIdx).includes('=');
+  const raw = isFullUrl ? qs.substring(qIdx + 1) : qs;
+  if (!raw) return params;
+  for (const pair of raw.split('&')) {
+    const eqIdx = pair.indexOf('=');
+    if (eqIdx === -1) continue;
+    const key = decodeURIComponent(pair.substring(0, eqIdx));
+    const val = decodeURIComponent(pair.substring(eqIdx + 1));
+    if (key in params) {
+      params[key] = Array.isArray(params[key]) ? [...params[key], val] : [params[key], val];
+    } else {
+      params[key] = val;
+    }
+  }
+  return params;
+}
+
+export function getArray(value?: string | string[] | undefined | null) {
+  if (!value) return undefined;
+  return flatten([value]);
+}
+
 export function getUrl(url: string): URL | null {
   try {
     return new URL(url);
@@ -187,20 +259,46 @@ export function getScheme(url: string) {
   return parsed.protocol;
 }
 
+export function parts(url: string) {
+  const parts = new URL('http://test.com/' + url);
+  return [parts.pathname, parts.search, parts.hash];
+}
+
 export function getPath(url: string): string | null {
-  if (url.startsWith('/')) {
+  if (!url) return '';
+  if ((''+url).startsWith('/')) {
     if (url.includes('#')) url = url.substring(0, url.indexOf('#'));
     if (url.includes('?')) url = url.substring(0, url.indexOf('?'));
     return url;
   }
   const parsed = getUrl(url);
-  if (!parsed) return null;
+  if (!parsed) return '';
   return parsed.pathname;
 }
 
 export function getExtension(url: string): string | null {
   const parsed = getUrl(url);
   if (!parsed) return null;
-  if (!parsed.pathname.includes('.')) return parsed.pathname;
-  return parsed.pathname.substring(parsed.pathname.lastIndexOf('.'));
+  if (!parsed.pathname.includes('.')) return null;
+  return parsed.pathname.substring(parsed.pathname.lastIndexOf('.')).toLowerCase();
+}
+
+export function getTitleFromFilename(url: string): string | null {
+  if (!url.includes('/')) return null;
+  const path = getPath(url);
+  if (!path) return null;
+  const segments = path.split('/').filter(s => !!s);
+  if (!segments.length) return null;
+  let filename = segments[segments.length - 1];
+  try {
+    filename = decodeURIComponent(filename);
+  } catch (e) { }
+  return filename?.trim() || null;
+}
+
+export function sanitizePath(value: string) {
+  return encodeURIComponent(value
+    .replace(/[/]/g, ' ')
+    .replace(/[?%;]/g, '')
+  );
 }

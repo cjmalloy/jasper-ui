@@ -7,7 +7,8 @@
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
-          "style": "scss"
+          "style": "scss",
+          "standalone": true
         },
         "@schematics/angular:application": {
           "strict": true
@@ -24,22 +25,24 @@
       },
       "architect": {
         "build": {
-          "builder": "@angular-devkit/build-angular:browser",
+          "builder": "@angular/build:application",
           "options": {
-            "outputPath": "dist/jasper-ui",
+            "outputPath": {
+              "base": "dist/jasper-ui"
+            },
             "index": "src/index.html",
-            "main": "src/main.ts",
             "polyfills": [
+              "src/zone-flags.ts",
+              "zone.js",
               "src/polyfills.ts",
               "@angular/localize/init"
             ],
             "tsConfig": "tsconfig.app.json",
-            "serviceWorker": true,
-            "ngswConfigPath": "ngsw-config.json",
+            "serviceWorker": "ngsw-config.json",
             "inlineStyleLanguage": "scss",
             "allowedCommonJsDependencies": [
               "handlebars/dist/cjs/handlebars",
-              "moment",
+              "jtd",
               "file-saver",
               "jszip",
               "qrcode",
@@ -50,7 +53,15 @@
               "src/favicon.ico",
               "src/assets",
               "src/manifest.webmanifest",
-              { "glob": "**/*", "input": "node_modules/monaco-editor", "output": "assets/monaco-editor" }
+              {
+                "glob": "**/*",
+                "input": "node_modules/monaco-editor",
+                "output": "assets/monaco-editor"
+              }, {
+                "glob": "maplibre-gl-csp-worker.js",
+                "input": "node_modules/maplibre-gl/dist",
+                "output": "assets"
+              }
             ],
             "styles": [
               "src/styles.scss",
@@ -90,8 +101,10 @@
               "node_modules/prismjs/components/prism-r.min.js",
               "node_modules/prismjs/components/prism-regex.min.js",
               "node_modules/prismjs/components/prism-rust.min.js",
+              "node_modules/prismjs/components/prism-scss.min.js",
               "node_modules/prismjs/components/prism-sass.min.js",
               "node_modules/prismjs/components/prism-scala.min.js",
+              "node_modules/prismjs/components/prism-shell-session.min.js",
               "node_modules/prismjs/components/prism-sql.min.js",
               "node_modules/prismjs/components/prism-swift.min.js",
               "node_modules/prismjs/components/prism-toml.min.js",
@@ -100,20 +113,21 @@
               "node_modules/prismjs/components/prism-zig.min.js",
               "node_modules/katex/dist/katex.min.js",
               "node_modules/katex/dist/contrib/auto-render.min.js"
-            ]
+            ],
+            "browser": "src/main.ts"
           },
           "configurations": {
             "production": {
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "4mb",
-                  "maximumError": "8mb"
+                  "maximumWarning": "9mb",
+                  "maximumError": "10mb"
                 },
                 {
                   "type": "anyComponentStyle",
                   "maximumWarning": "3kb",
-                  "maximumError": "6kb"
+                  "maximumError": "300kb"
                 }
               ],
               "fileReplacements": [
@@ -125,16 +139,16 @@
               "outputHashing": "all"
             },
             "development": {
-              "buildOptimizer": false,
               "optimization": false,
-              "vendorChunk": true,
               "extractLicenses": false,
               "sourceMap": true,
               "namedChunks": true
             },
             "ja": {
               "aot": true,
-              "outputPath": "dist/ja",
+              "outputPath": {
+                "base": "dist/ja"
+              },
               "i18nFile": "src/locale/messages.ja.xlf",
               "i18nFormat": "xlf",
               "i18nLocale": "ja",
@@ -144,14 +158,14 @@
           "defaultConfiguration": "production"
         },
         "serve": {
-          "builder": "@angular-devkit/build-angular:dev-server",
+          "builder": "@angular/build:dev-server",
           "configurations": {
             "production": {
               "buildTarget": "jasper-ui:build:production"
             },
             "development": {
               "headers": {
-                "Content-Security-Policy": "default-src 'self' ws://localhost:8081 http://localhost:8081; frame-src * data:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://storage.googleapis.com https://platform.twitter.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' http://cdn.jsdelivr.net; media-src * data: blob:; img-src * data: blob:; font-src 'self' data:"
+                "Content-Security-Policy": "default-src 'self' ws://localhost:8081 http://localhost:8081 https://api.maptiler.com https://demotiles.maplibre.org blob:; frame-src * data: blob:; worker-src 'self' blob:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://storage.googleapis.com https://platform.twitter.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' http://cdn.jsdelivr.net; media-src * data: blob:; img-src * data: blob:; font-src 'self' data:"
               },
               "buildTarget": "jasper-ui:build:development"
             }
@@ -159,62 +173,18 @@
           "defaultConfiguration": "development"
         },
         "extract-i18n": {
-          "builder": "@angular-devkit/build-angular:extract-i18n",
+          "builder": "@angular/build:extract-i18n",
           "options": {
             "buildTarget": "jasper-ui:build"
           }
         },
         "test": {
-          "builder": "@angular-devkit/build-angular:karma",
+          "builder": "@angular/build:unit-test",
           "options": {
-            "main": "src/test.ts",
-            "polyfills": [
-              "src/polyfills.ts",
-              "@angular/localize/init"
-            ],
             "tsConfig": "tsconfig.spec.json",
-            "karmaConfig": "karma.conf.js",
-            "inlineStyleLanguage": "scss",
-            "assets": [
-              "src/favicon.ico",
-              "src/assets",
-              "src/manifest.webmanifest"
-            ],
-            "styles": [
-              "src/styles.scss"
-            ],
-            "scripts": []
-          }
-        },
-        "cypress-run": {
-          "builder": "@cypress/schematic:cypress",
-          "options": {
-            "devServerTarget": "jasper-ui:serve"
-          },
-          "configurations": {
-            "production": {
-              "devServerTarget": "jasper-ui:serve:production"
-            }
-          }
-        },
-        "cypress-open": {
-          "builder": "@cypress/schematic:cypress",
-          "options": {
-            "watch": true,
-            "headless": false
-          }
-        },
-        "e2e": {
-          "builder": "@cypress/schematic:cypress",
-          "options": {
-            "devServerTarget": "jasper-ui:serve",
-            "watch": true,
-            "headless": false
-          },
-          "configurations": {
-            "production": {
-              "devServerTarget": "jasper-ui:serve:production"
-            }
+            "runner": "vitest",
+            "runnerConfig": true,
+            "buildTarget": "jasper-ui:build:development"
           }
         }
       }

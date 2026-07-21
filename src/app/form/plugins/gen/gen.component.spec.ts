@@ -1,8 +1,11 @@
-import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
+/// <reference types="vitest/globals" />
+import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule, UntypedFormGroup } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import { provideRouter } from '@angular/router';
+import { EditorComponent } from '../../editor/editor.component';
+import { JasperFormlyModule } from '../../../formly/formly.module';
 
 import { GenFormComponent } from './gen.component';
 
@@ -12,17 +15,17 @@ describe('GenComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ GenFormComponent ],
       imports: [
-        RouterModule.forRoot([]),
-        ReactiveFormsModule
+        ReactiveFormsModule,
+        JasperFormlyModule,
+        GenFormComponent,
       ],
       providers: [
-        provideHttpClient(withInterceptorsFromDi()),
-        provideHttpClientTesting()
+        provideHttpClient(withXhr(), withInterceptorsFromDi()),
+        provideHttpClientTesting(),
+        provideRouter([]),
       ],
-    })
-    .compileComponents();
+    }).compileComponents();
 
     fixture = TestBed.createComponent(GenFormComponent);
     component = fixture.componentInstance;
@@ -40,5 +43,33 @@ describe('GenComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('should create an editor input', () => {
+    component.plugin = {
+      tag: 'plugin/test',
+      config: {
+        form: [{
+          key: 'comment',
+          type: 'editor',
+        }],
+      },
+    };
+    component.ngOnChanges({});
+
+    fixture.detectChanges();
+
+    const editorElement = fixture.debugElement.query(
+      debugElement => debugElement.componentInstance instanceof EditorComponent,
+    );
+    expect(editorElement).toBeTruthy();
+    const editor = editorElement.componentInstance as EditorComponent;
+    expect(editor.control).toBe(component.group?.get('comment'));
+    expect(editor.hasTags).toBe(false);
+    expect(editor.addCommentTitle).toBe('Add comment');
+    expect(editor.addCommentLabel).toBe('+ Add comment');
+    expect(editor.fillWidth).toBe(
+      fixture.nativeElement.querySelector('.editor-field .fill-editor'),
+    );
   });
 });

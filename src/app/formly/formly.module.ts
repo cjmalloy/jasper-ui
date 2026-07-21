@@ -2,11 +2,9 @@ import { DragDropModule } from '@angular/cdk/drag-drop';
 import { OverlayModule } from '@angular/cdk/overlay';
 import { NgModule } from '@angular/core';
 import { AbstractControl, ReactiveFormsModule } from '@angular/forms';
-import { BrowserModule } from '@angular/platform-browser';
-import { FormlyExtension, FormlyFieldConfig, FormlyModule } from '@ngx-formly/core';
+import { FormlyExtension, FormlyFieldConfig, FormlyModule, withFormlyFieldExpression } from '@ngx-formly/core';
 import { FormlySelectModule } from '@ngx-formly/core/select';
 import { v4 as uuid } from 'uuid';
-import { AppRoutingModule } from '../app-routing.module';
 import {
   ORIGIN_REGEX,
   PLUGIN_REGEX,
@@ -21,14 +19,17 @@ import {
 import { AudioUploadComponent } from './audio-upload/audio-upload.component';
 import { FormlyFieldCheckbox } from './checkbox.type';
 import { DurationInputAccessor, FormlyFieldDuration } from './duration.type';
+import { FormlyFieldEditor } from './editor.type';
 import { FormlyWrapperFormField } from './form-field.wrapper';
 import { FormlyWrapperFormGroup } from './form-group.wrapper';
 import { ImageUploadComponent } from './image-upload/image-upload.component';
+import { FormlyFieldLocation } from './location.type';
 import { FormlyFieldInput } from './input.type';
 import { ListTypeComponent } from './list.type';
 import { FormlyFieldMultiCheckbox } from './multicheckbox.type';
 import { PdfUploadComponent } from './pdf-upload/pdf-upload.component';
 import { QrScannerComponent } from './qr-scanner/qr-scanner.component';
+import { FormlyFieldBookmarkInput } from './bookmark.type';
 import { FormlyFieldQueryInput } from './query.type';
 import { FormlyFieldRadio } from './radio.type';
 import { FormlyFieldRange } from './range.type';
@@ -54,28 +55,9 @@ export class IdPrefixExtension implements FormlyExtension {
   }
 }
 
+const formlyFieldExpressionConfig = withFormlyFieldExpression();
+
 @NgModule({
-  declarations: [
-    FormlyWrapperFormField,
-    FormlyFieldInput,
-    FormlyFieldRange,
-    FormlyFieldTagInput,
-    FormlyFieldQueryInput,
-    FormlyFieldRefInput,
-    FormlyFieldTextArea,
-    FormlyFieldCheckbox,
-    FormlyFieldMultiCheckbox,
-    FormlyFieldRadio,
-    FormlyFieldSelect,
-    FormlyFieldDuration,
-    DurationInputAccessor,
-    QrScannerComponent,
-    ImageUploadComponent,
-    VideoUploadComponent,
-    AudioUploadComponent,
-    PdfUploadComponent,
-    ListTypeComponent,
-  ],
   exports: [
     QrScannerComponent,
     AudioUploadComponent,
@@ -84,14 +66,37 @@ export class IdPrefixExtension implements FormlyExtension {
     PdfUploadComponent,
   ],
   imports: [
-    BrowserModule,
     ReactiveFormsModule,
-    AppRoutingModule,
     DragDropModule,
     OverlayModule,
     FormlySelectModule,
+    FormlyWrapperFormField,
+    FormlyFieldInput,
+    FormlyFieldLocation,
+    FormlyFieldRange,
+    FormlyFieldTagInput,
+    FormlyFieldQueryInput,
+    FormlyFieldBookmarkInput,
+    FormlyFieldRefInput,
+    FormlyFieldTextArea,
+    FormlyFieldCheckbox,
+    FormlyFieldMultiCheckbox,
+    FormlyFieldRadio,
+    FormlyFieldSelect,
+    FormlyFieldDuration,
+    FormlyFieldEditor,
+    DurationInputAccessor,
+    QrScannerComponent,
+    ImageUploadComponent,
+    VideoUploadComponent,
+    AudioUploadComponent,
+    PdfUploadComponent,
+    ListTypeComponent,
     FormlyModule.forRoot({
-      extensions: [{ name: 'id-prefix', extension: new IdPrefixExtension() }],
+      extensions: [
+        ...(formlyFieldExpressionConfig.extensions || []),
+        { name: 'id-prefix', extension: new IdPrefixExtension() },
+      ],
       validationMessages: [
         { name: 'required', message: 'This field is required' },
       ],
@@ -284,16 +289,16 @@ export class IdPrefixExtension implements FormlyExtension {
           props: {
             label: $localize`Duration:`,
             datalist: [
-              { value: 'PT1M', label: $localize`1 min`},
-              { value: 'PT5M', label: $localize`5 mins`},
-              { value: 'PT15M', label: $localize`15 mins`},
-              { value: 'PT30M', label: $localize`30 mins`},
-              { value: 'PT30M', label: $localize`30 mins`},
-              { value: 'PT1H', label: $localize`1 hour`},
-              { value: 'PT2H', label: $localize`2 hours`},
-              { value: 'PT6H', label: $localize`6 hours`},
-              { value: 'PT12H', label: $localize`12 hours`},
-              { value: 'PT24H', label: $localize`1 day`},
+              { value: 'PT1M', label: $localize`1 min` },
+              { value: 'PT5M', label: $localize`5 mins` },
+              { value: 'PT15M', label: $localize`15 mins` },
+              { value: 'PT30M', label: $localize`30 mins` },
+              { value: 'PT30M', label: $localize`30 mins` },
+              { value: 'PT1H', label: $localize`1 hour` },
+              { value: 'PT2H', label: $localize`2 hours` },
+              { value: 'PT6H', label: $localize`6 hours` },
+              { value: 'PT12H', label: $localize`12 hours` },
+              { value: 'PT24H', label: $localize`1 day` },
             ],
           },
         },
@@ -571,6 +576,36 @@ Private tags start with an underscore.
           },
         },
       }, {
+        name: 'bookmark',
+        component: FormlyFieldBookmarkInput,
+        wrappers: ['form-field'],
+        defaultOptions: {
+          props: {
+            label: $localize`Bookmark: `,
+          },
+          validators: {
+            pattern: {
+              expression: (c: AbstractControl) => {
+                if (!c.value) return true;
+                const query = c.value.split('?')[0];
+                return !query || QUERY_REGEX.test(query);
+              },
+              message: $localize`Queries support AND (:), OR (|), NOT (!) and grouping qualified tags (parentheses).
+Tags must be lower case letters, numbers, periods and forward slashes.
+Must not start with a forward slash or period.
+Must not or contain two forward slashes or periods in a row.
+Use the local wildcard (*) to match all tags with a local origin.
+Tags may be qualified with an origin, or a wildcard origin (@*).
+Origins must start with an at sign (@) and contain only lowercase letters, numbers, and periods.
+Use an origin without a tag to match all tags at that origin.
+The wildcard origin (@*) by itself will match everything.
+Protected tags start with a plus sign.
+Private tags start with an underscore.
+(i.e. "science:news", "science@origin science@other" "your/tag my/tag", "!cool", or "news:_my/private/tag")`,
+            }
+          },
+        },
+      }, {
         name: 'queries',
         extends: 'selectors',
         defaultOptions: {
@@ -582,6 +617,22 @@ Private tags start with an underscore.
             type: 'query',
           },
         },
+      }, {
+        name: 'bookmarks',
+        extends: 'selectors',
+        defaultOptions: {
+          props: {
+            label: $localize`Bookmarks: `,
+            addText: $localize`+ Add another bookmark`,
+          },
+          fieldArray: {
+            type: 'bookmark',
+          },
+        },
+      }, {
+        name: 'editor',
+        component: FormlyFieldEditor,
+        wrappers: ['form-field'],
       }, {
         name: 'textarea',
         component: FormlyFieldTextArea,
@@ -608,6 +659,16 @@ Private tags start with an underscore.
       }, {
         name: 'enum',
         extends: 'select',
+      }, {
+        name: 'location',
+        component: FormlyFieldLocation,
+        wrappers: ['form-field'],
+        defaultOptions: {
+          defaultValue: [0, 0],
+          props: {
+            label: $localize`Location: `,
+          },
+        },
       }],
     }),
   ],

@@ -1,4 +1,7 @@
 body.darwin, body.ios {
+  .submit-button span {
+    margin: 4px 0 2px 3px;
+  }
   // See `mobile.scss`
   $mobile-width: 740px;
   @media (max-width: $mobile-width) {

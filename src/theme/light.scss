@@ -25,6 +25,7 @@ body.light-theme {
   --warning: #883;
   --mod: #136500;
   --card: #f3ebc7;
+  --card-dragging: #ede7dc;
   --placeholder: #efebdf;
   --deleting: #ffa9a9;
   --quote: #af5800;
@@ -32,12 +33,12 @@ body.light-theme {
   color-scheme: light;
   color: var(--text);
 
-  background-color: var(--bg);
-  background-image: url("~/assets/bg-light.png");
-  background-blend-mode: darken;
-  figure::backdrop, .editor.fullscreen app-md {
+  &,
+  .embed::backdrop,
+  figure::backdrop,
+  .editor.fullscreen app-md {
     background-color: var(--bg);
-    background-image: url("~/assets/bg-light.png");
+    background-image: url("../assets/bg-light.png");
     background-blend-mode: darken;
   }
 
@@ -50,6 +51,10 @@ body.light-theme {
   }
   .debug footer p {
     filter: brightness(3);
+  }
+
+  .glass {
+    backdrop-filter: grayscale(1) contrast(0.3) brightness(1.5) blur(8px);
   }
 
   .toolbar {
@@ -92,7 +97,7 @@ body.light-theme {
     background-color: var(--blue);
 
     .logo {
-      background-image: url("~/assets/jasper-light.png");
+      background-image: url("../assets/jasper-light.png");
     }
 
     & > a {
@@ -101,7 +106,7 @@ body.light-theme {
       }
 
       &.current-tab {
-        background-image: url("~/assets/bg-light.png");
+        background-image: url("../assets/bg-light.png");
         background-blend-mode: darken;
       }
     }
@@ -112,8 +117,6 @@ body.light-theme {
   }
 
   .sidebar {
-    transform: translateY(-1px);
-    border-top: 1px solid var(--border);
     border-left: 1px dashed var(--border);
     border-bottom: 1px dashed var(--border);
     backdrop-filter: grayscale(1) contrast(0.2) brightness(1.5) blur(6px);
@@ -147,25 +150,4 @@ body.light-theme {
                 0 4px 0.5px 0 white;
   }
 
-  .kanban {
-    .column-title, .swim-lane-title {
-      background-color: transparent;
-      backdrop-filter: blur(1px) sepia(5%);
-      border: 0.5px solid var(--border-light);
-      &:hover {
-        box-shadow: 0 0 4px rgba(0, 0, 0, 0.2);
-      }
-    }
-  }
-
-  .backgammon-board {
-    --bg: rgba(187, 147, 71, 0.5);
-    --black: #333;
-    --red: #A55;
-    --play: #DDD;
-    --brown: #862;
-    --brown-alt: #975;
-    --glow: rgba(0, 0, 0, 0.5);
-    --move: rgba(82, 136, 82, 0.5);
-  }
 }

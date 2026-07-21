@@ -1,13 +1,17 @@
-import { CdkDragDrop } from '@angular/cdk/drag-drop';
-import { Component, HostBinding } from '@angular/core';
-import { FieldArrayType } from '@ngx-formly/core';
+import { CdkDrag, CdkDragDrop, CdkDragHandle, CdkDropList } from '@angular/cdk/drag-drop';
+import { CdkScrollable } from '@angular/cdk/scrolling';
+import { Component, HostBinding, ChangeDetectionStrategy } from '@angular/core';
+import { FieldArrayType, FormlyField } from '@ngx-formly/core';
 import { defer } from 'lodash-es';
 import { Store } from '../store/store';
+import { clipboardPasteValues } from '../util/clipboard';
 import { getPath } from '../util/http';
 
 @Component({
-  standalone: false,
   selector: 'formly-list-section',
+  host: {
+    '(jasper-clipboard-paste)': 'clipboardPaste($any($event))',
+  },
   template: `
     <label [class.no-margin]="props.showLabel === false">{{ props.showLabel !== false && props.label || '' }}</label>
     <div #fg
@@ -40,6 +44,14 @@ import { getPath } from '../util/http';
       }
     </div>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [
+    CdkDropList,
+    CdkScrollable,
+    CdkDrag,
+    CdkDragHandle,
+    FormlyField,
+  ],
 })
 export class ListTypeComponent extends FieldArrayType {
 
@@ -80,6 +92,7 @@ export class ListTypeComponent extends FieldArrayType {
       case 'selector':
       case 'plugin':
       case 'template':
+      case 'bookmark':
         return 'tag';
     }
     // @ts-ignore
@@ -184,6 +197,14 @@ export class ListTypeComponent extends FieldArrayType {
     });
   }
 
+  clipboardPaste(event: Event) {
+    event.preventDefault();
+    event.stopPropagation();
+    for (const value of clipboardPasteValues(event)) {
+      this.add(undefined, value);
+    }
+  }
+
   drop(event: CdkDragDrop<ListTypeComponent>) {
     if (!this.store.hotkey || event.previousContainer === event.container) {
       event.previousContainer.data.remove(event.previousIndex);
@@ -206,7 +227,7 @@ export class ListTypeComponent extends FieldArrayType {
     } else if (event.previousContainer.data.type === 'tag' && event.container.data.type === 'ref') {
       value = 'tag:/' + value;
     }
-    super.add(event.currentIndex, value);
+    this.add(event.currentIndex, value);
   }
 
   dnd(event: DragEvent) {

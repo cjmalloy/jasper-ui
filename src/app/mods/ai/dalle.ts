@@ -7,6 +7,7 @@ export const dalleQueryPlugin: Plugin = {
   name: $localize`👨️‍🎨️💭️ Ask DALL·E`,
   config: {
     mod: $localize`👨️‍🎨️ DALL·E Chat`,
+    version: 2,
     type: 'tool',
     default: false,
     add: true,
@@ -135,14 +136,16 @@ export const dalleQueryPlugin: Plugin = {
           'User-Role': 'ROLE_ADMIN',
         },
         params: { query: (config?.apiKeyTag || '+plugin/secret/openai') + origin },
-      })).data.content[0].comment;
+      }).catch(e => {
+          console.error(e.response.data);
+          throw new Error(e);
+        })).data.content[0].comment;
       const openai = new OpenAi({ apiKey });
       const gen = await openai.images.generate({
         model: config?.model || 'dall-e-3',
         prompt: (ref.title ? ref.title + ': ' : '') + (ref.comment || ''),
         size: config?.size || '1024x1024',
         quality: config?.quality || 'hd',
-        style: config?.style || 'vivid',
         response_format: config?.useUrl ? 'url' : 'b64_json',
       });
       let tags = ['+plugin/delta/dalle', 'plugin/image', 'plugin/thumbnail', 'plugin/alt'];
@@ -153,8 +156,9 @@ export const dalleQueryPlugin: Plugin = {
       if (ref.tags?.includes('plugin/comment')) tags.push('plugin/comment', 'internal');
       if (ref.tags?.includes('plugin/thread')) tags.push('plugin/thread', 'internal');
       const authors = ref.tags?.filter(tag => tag === '+user' || tag === '_user' || tag.startsWith('+user/') || tag.startsWith('_user/')) || [];
+      const ai = ref.tags?.filter(tag => tag.startsWith('+plugin/delta/ai/')) || [];
       const mailboxes = ref.tags?.filter(tag => tag.startsWith('plugin/inbox') || tag.startsWith('plugin/outbox')) || [];
-      tags.push(...mailboxes, ...authors.map(tag => 'plugin/inbox/' + tag.substring(1)));
+      tags.push(...mailboxes, ...authors.map(tag => 'plugin/inbox/' + tag.substring(1)), ...ai.map(tag => tag.substring(1)));
       tags = tags.filter((v, i, a) => a.indexOf(v) === i);
       const sources = [ref.url];
       if (ref.sources && (ref.tags.includes('plugin/thread') || ref.tags.includes('plugin/comment'))) {
@@ -187,6 +191,9 @@ export const dalleQueryPlugin: Plugin = {
             'Content-Type': 'image/png',
           },
           params: { origin, mime: 'image/png' },
+        }).catch(e => {
+          console.error(e.response.data);
+          throw new Error(e);
         })).data;
         delete cache.metadata;
         console.log(JSON.stringify({
@@ -240,16 +247,6 @@ export const dalleQueryPlugin: Plugin = {
         ],
       },
     }, {
-      key: 'style',
-      type: 'select',
-      props: {
-        label: $localize`Style:`,
-        options: [
-          { value: 'vivid', label: $localize`Vivid` },
-          { value: 'natural', label: $localize`Natural` },
-        ],
-      },
-    }, {
       key: 'useUrl',
       type: 'boolean',
       props: {
@@ -263,7 +260,6 @@ export const dalleQueryPlugin: Plugin = {
     model: 'dall-e-3',
     size: '1024x1024',
     quality: 'hd',
-    style: 'vivid',
     // TODO: multiple images
   },
   schema: {
@@ -273,7 +269,6 @@ export const dalleQueryPlugin: Plugin = {
       model: { type: 'string' },
       size: { type: 'string' },
       quality: { type: 'string' },
-      style: { type: 'string' },
       useUrl: { type: 'boolean' },
     }
   }
@@ -284,6 +279,7 @@ export const dallePlugin: Plugin = {
   name: $localize`👨️‍🎨️ DALL·E`,
   config: {
     mod: $localize`👨️‍🎨️ DALL·E Chat`,
+    version: 1,
     type: 'tool',
     default: false,
     genId: true,

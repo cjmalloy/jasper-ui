@@ -1,19 +1,16 @@
 import { Directive, ElementRef, HostBinding, Input, OnDestroy, OnInit } from '@angular/core';
-import { autorun, IReactionDisposer } from 'mobx';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Ref } from '../model/ref';
 import { ConfigService } from '../service/config.service';
 import { Dim, height, ImageService, width } from '../service/image.service';
 import { Store } from '../store/store';
 
-@Directive({
-  standalone: false,
-  selector: '[appImage]'
-})
+@Directive({ selector: '[appImage]' })
 export class ImageDirective implements OnInit, OnDestroy {
-  private disposers: IReactionDisposer[] = [];
-
   @Input()
   grid = false;
+  @Input()
+  padding = 12;
   @Input()
   ref?: Ref;
   @Input('defaultWidth')
@@ -34,34 +31,33 @@ export class ImageDirective implements OnInit, OnDestroy {
     private elRef: ElementRef,
     private imgs: ImageService,
   ) {
-    this.disposers.push(autorun(() => {
-      if (this.store.eventBus.event === 'refresh') {
-        if (this.ref?.url && this.store.eventBus.isRef(this.ref)) {
+    this.store.eventBus.events.pipe(takeUntilDestroyed()).subscribe(event => {
+      if (event.event === 'refresh') {
+        if (this.ref?.url && this.store.eventBus.isRef(event, this.ref)) {
           if (this.loading && this.loadingUrl) {
             this.url = this.loadingUrl;
           }
         }
       }
-    }));
+    });
   }
 
   ngOnInit() {
-    if (this.config.mobile) {
-      this.el.style.width = this.defaultWidthPx || null;
-      this.el.style.height = this.defaultHeightPx || this.el.clientWidth + 'px';
-    } else {
-      this.el.style.width = this.defaultWidthPx || '600px';
-      this.el.style.height = this.defaultHeightPx || '600px';
-    }
     if (this.grid) {
       this.resizeObserver = window.ResizeObserver && new ResizeObserver(() => this.onResize());
       this.resizeObserver?.observe(this.el);
+    } else {
+      if (this.config.mobile) {
+        this.el.style.width = this.defaultWidthPx || null;
+        this.el.style.height = this.defaultHeightPx || this.el.clientWidth + 'px';
+      } else {
+        this.el.style.width = this.defaultWidthPx || '600px';
+        this.el.style.height = this.defaultHeightPx || '600px';
+      }
     }
   }
 
   ngOnDestroy() {
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
     this.resizeObserver?.disconnect();
   }
 
@@ -110,13 +106,13 @@ export class ImageDirective implements OnInit, OnDestroy {
       this.el.style.backgroundSize = '100% 100%';
       return;
     }
-    const parentWidth = this.parentWidth;
+    const parentWidth = this.parentWidth - (this.grid ? 0 : this.padding);
     if (this.config.mobile && !this.grid && (!this.defaultWidth || this.defaultWidth >= window.innerWidth)) {
-      this.el.style.width = (parentWidth - 12) + 'px';
+      this.el.style.width = parentWidth + 'px';
       this.el.style.height = this.defaultHeightPx || height(parentWidth, this.dim) + 'px';
     } else if (this.grid || this.dim.width > parentWidth && (!this.defaultWidth || this.defaultWidth >= parentWidth)) {
       this.el.style.width = parentWidth + 'px';
-      this.el.style.height = this.defaultHeightPx || height(this.defaultWidth || parentWidth, this.dim) + 'px';
+      this.el.style.height = this.defaultHeightPx || height(parentWidth, this.dim) + 'px';
     } else if (this.defaultWidth) {
       this.el.style.width = this.defaultWidthPx;
       this.el.style.height = this.defaultHeightPx || height(this.defaultWidth, this.dim) + 'px';

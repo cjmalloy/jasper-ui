@@ -4,12 +4,12 @@
     @if (ref.origin && !authors.length) {
       <a class="origin tag" [routerLink]="['/tag', ref.origin]">{{ ref.origin }}</a>
     }
-    @if (authorExts$ | async; as authorExts) {
-      @for (user of authorExts; track user.tag + user.origin) {
+    @if (authorExts$ | async; as xs) {
+      @for (x of xs; track x.tag + x.origin) {
         <a class="user tag"
-           [title]="formatAuthor(user.tag + user.origin)"
-           [routerLink]="['/tag', user.tag + user.origin]"
-           [appTitle]="user">{{ user.name || formatAuthor(user.tag) }}</a>
+           [title]="formatAuthor(x.tag + x.origin)"
+           [routerLink]="['/tag', x.tag + x.origin]"
+           [appTitle]="x">{{ x.name || formatAuthor(x.tag) }}</a>
       }
     } @else {
       @for (t of authors; track t) {
@@ -31,7 +31,7 @@
       [class.sending]="!ref.created"
       (pointerenter)="allowActions = true"
       (pointerleave)="allowActions = false">
-  <div [class.has-title]="clickableLink || title && !focused">
+  <div class="content" [class.has-title]="clickableLink || title && !focused">
     @if (tagLink) {
       <app-nav [url]="ref.url" [text]="title"></app-nav>
     } @else if (clickableLink && (title && !focused || !media)) {
@@ -75,7 +75,7 @@
                             [action]="store.hotkey ? forceDelete$ : delete$" i18n>delete</app-confirm-action>
       }
       @if (taggingAccess) {
-        <app-inline-tag #action [action]="tag$" i18n>tag</app-inline-tag>
+        <app-inline-tag #action [action]="tag$" [tags]="ref.tags" i18n>tag</app-inline-tag>
       }
       @if (!ref.origin && store.account.mod && !approved && !locked) {
         <a class="fake-link" (click)="approve()" i18n>approve</a>

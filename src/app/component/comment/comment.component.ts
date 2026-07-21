@@ -1,7 +1,10 @@
+import { AsyncPipe } from '@angular/common';
+import { FakeLinkDirective } from '../../directive/fake-link.directive';
 import {
   AfterViewInit,
   Component,
   ElementRef,
+  forwardRef,
   HostBinding,
   Input,
   OnChanges,
@@ -10,11 +13,15 @@ import {
   QueryList,
   SimpleChanges,
   ViewChild,
-  ViewChildren
+  ViewChildren,
+  ChangeDetectionStrategy
 } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { delay, groupBy, uniq, without } from 'lodash-es';
-import { autorun, IReactionDisposer, runInAction } from 'mobx';
+import { runInAction } from 'mobx';
+import { MobxAngularModule } from 'mobx-angular';
 import { Subject, takeUntil } from 'rxjs';
+import { TitleDirective } from '../../directive/title.directive';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ref } from '../../model/ref';
 import {
@@ -44,32 +51,49 @@ import { authors, formatAuthor, interestingTags } from '../../util/format';
 import { getScheme } from '../../util/http';
 import { memo, MemoCache } from '../../util/memo';
 import { hasTag, hasUserUrlResponse, localTag, removeTag, tagOrigin } from '../../util/tag';
+import { ActionListComponent } from '../action/action-list/action-list.component';
 import { ActionComponent } from '../action/action.component';
+import { ConfirmActionComponent } from '../action/confirm-action/confirm-action.component';
+import { InlineTagComponent } from '../action/inline-tag/inline-tag.component';
+import { ViewerComponent } from '../viewer/viewer.component';
 import { CommentEditComponent } from './comment-edit/comment-edit.component';
 import { CommentReplyComponent } from './comment-reply/comment-reply.component';
 import { CommentThreadComponent } from './comment-thread/comment-thread.component';
 
 @Component({
-  standalone: false,
   selector: 'app-comment',
   templateUrl: './comment.component.html',
   styleUrls: ['./comment.component.scss'],
-  host: {'class': 'comment'}
+  host: { 'class': 'comment' },
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [
+    FakeLinkDirective,
+    CommentThreadComponent,
+    forwardRef(() => ViewerComponent),
+    MobxAngularModule,
+    RouterLink,
+    TitleDirective,
+    CommentEditComponent,
+    ConfirmActionComponent,
+    InlineTagComponent,
+    ActionListComponent,
+    CommentReplyComponent,
+    AsyncPipe,
+  ],
 })
 export class CommentComponent implements OnInit, AfterViewInit, OnChanges, OnDestroy, HasChanges {
   @HostBinding('attr.tabindex') tabIndex = 0;
   private destroy$ = new Subject<void>();
-  private disposers: IReactionDisposer[] = [];
 
   maxContext = 20;
 
   @ViewChildren('action')
   actionComponents?: QueryList<ActionComponent>;
-  @ViewChild(CommentReplyComponent)
+  @ViewChild('replyComponent')
   replyComponent?: CommentReplyComponent;
-  @ViewChild(CommentEditComponent)
+  @ViewChild('editComponent')
   editComponent?: CommentEditComponent;
-  @ViewChild(CommentThreadComponent)
+  @ViewChild('threadComponent')
   threadComponent?: CommentThreadComponent;
 
   @Input()
@@ -80,6 +104,8 @@ export class CommentComponent implements OnInit, AfterViewInit, OnChanges, OnDes
   depth?: number | null = 7;
   @Input()
   context = 0
+  @Input()
+  showLoadMore = true;
 
   commentEdited$ = new Subject<Ref>();
   newComments = 0;
@@ -107,19 +133,19 @@ export class CommentComponent implements OnInit, AfterViewInit, OnChanges, OnDes
     private bookmarks: BookmarkService,
     private el: ElementRef<HTMLDivElement>,
   ) {
-    this.disposers.push(autorun(() => {
-      if (this.store.eventBus.event === 'refresh') {
-        if (this.ref?.url && this.store.eventBus.isRef(this.ref)) {
-          this.ref = this.store.eventBus.ref!;
+    this.store.eventBus.events.pipe(takeUntil(this.destroy$)).subscribe(event => {
+      if (event.event === 'refresh') {
+        if (this.ref?.url && this.store.eventBus.isRef(event, this.ref)) {
+          this.ref = event.ref!;
           this.init();
         }
       }
-      if (this.store.eventBus.event === 'error') {
-        if (this.ref?.url && this.store.eventBus.isRef(this.ref)) {
-          this.serverError = this.store.eventBus.errors;
+      if (event.event === 'error') {
+        if (this.ref?.url && this.store.eventBus.isRef(event, this.ref)) {
+          this.serverError = event.errors;
         }
       }
-    }));
+    });
   }
 
   saveChanges() {
@@ -181,8 +207,6 @@ export class CommentComponent implements OnInit, AfterViewInit, OnChanges, OnDes
     this.newComments$.complete();
     this.destroy$.next();
     this.destroy$.complete();
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
   }
 
   @HostBinding('class.last-selected')
@@ -312,7 +336,7 @@ export class CommentComponent implements OnInit, AfterViewInit, OnChanges, OnDes
   }
 
   visible(v: Visibility) {
-    return visible(v, this.isAuthor, this.isRecipient);
+    return visible(this.ref, v, this.isAuthor, this.isRecipient);
   }
 
   label(a: Action) {

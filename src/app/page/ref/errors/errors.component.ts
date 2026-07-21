@@ -1,6 +1,7 @@
-import { Component, ViewChild } from '@angular/core';
+import { Component, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { defer } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
+import { MobxAngularModule } from 'mobx-angular';
 import { catchError, filter, of, Subject, Subscription, switchMap, takeUntil } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
@@ -19,18 +20,19 @@ import { getArgs } from '../../../util/query';
 import { hasTag, updateMetadata } from '../../../util/tag';
 
 @Component({
-  standalone: false,
   selector: 'app-ref-errors',
   templateUrl: './errors.component.html',
   styleUrl: './errors.component.scss',
-  host: {'class': 'errors'}
+  host: { 'class': 'errors' },
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [MobxAngularModule, RefListComponent]
 })
 export class RefErrorsComponent implements HasChanges {
 
   private disposers: IReactionDisposer[] = [];
   private destroy$ = new Subject<void>();
 
-  @ViewChild(RefListComponent)
+  @ViewChild('list')
   list?: RefListComponent;
 
   newRefs$ = new Subject<Ref | undefined>();

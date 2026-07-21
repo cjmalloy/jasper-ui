@@ -1,13 +1,13 @@
 @if (icons.length) {
   <div>
-    @for(icon of icons; track icon) {
+    @for (icon of icons; track icon) {
       <span class="icon"
             [appTitle]="icon"
             [ref]="group.value">{{ icon.label || icon.thumbnail }}</span>
     }
   </div>
 }
-@for (plugin of forms; track plugin.tag) {
+@for (plugin of forms; track plugin) {
   @if (hasForm(plugin)) {
     <app-form-gen #gen
                   [plugins]="plugins"

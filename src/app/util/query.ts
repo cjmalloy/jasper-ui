@@ -1,9 +1,16 @@
 import { isArray, uniq, without } from 'lodash-es';
+import { DateTime } from 'luxon';
 import { Filter, RefFilter, RefPageArgs, RefSort } from '../model/ref';
-import { FilterConfig, TagQueryArgs } from '../model/tag';
+import { FilterConfig, TagQueryArgs, TagSort } from '../model/tag';
 import { braces, fixClientQuery, hasPrefix } from './tag';
 
-export const defaultDesc = ['created', 'published', 'modified', 'metadataModified', 'rank', 'tagCount', 'commentCount', 'sourceCount', 'responseCount', 'voteCount', 'voteScore', 'voteScoreDecay'];
+const DEFAULT_DESC_SUFFIXES = [':num', ':top', ':score', ':decay'];
+const DEFAULT_DESC_PREFIXES = ['metadata->'];
+const DEFAULT_DESC_EXACT = ['created', 'published', 'modified', 'rank'];
+export const defaultDesc = (sort: string) =>
+  DEFAULT_DESC_EXACT.includes(sort) ||
+  DEFAULT_DESC_PREFIXES.some(prefix => sort.startsWith(prefix)) ||
+  DEFAULT_DESC_SUFFIXES.some(suffix => sort.endsWith(suffix));
 
 export type FilterItem = { filter: UrlFilter, label: string, title?: string, time?: boolean };
 export type FilterGroup = { filters: FilterItem[], label: string };
@@ -31,6 +38,8 @@ export type UrlFilter = Filter |
   `!plugin/${string}` |
   `!+plugin/${string}` |
   `!_plugin/${string}`;
+
+export type SortItem = { value: RefSort | TagSort, label: string, title?: string };
 
 export function negatable(filter: string) {
   if (!filter) return false;
@@ -76,6 +85,10 @@ export function convertFilter(filter: FilterConfig): FilterItem {
   throw 'Can\'t convert filter';
 }
 
+export function convertSort(sort: any): SortItem {
+  return { value: sort.sort as any, label: sort.label, title: sort.title };
+}
+
 export function getArgs(
   tagOrSimpleQuery?: string,
   sort?: RefSort | RefSort[],
@@ -100,7 +113,7 @@ export function getArgs(
     sort = Array.isArray(sort) ? [...sort] : [sort];
     for (let i = 0; i < sort.length; i++) {
       const s = sort[i];
-      if (defaultDesc.includes(s)) {
+      if (!s.includes(',') && defaultDesc(s)) {
         sort[i] = s + ',DESC' as RefSort;
       }
     }
@@ -200,21 +213,21 @@ function getRefFilter(filter?: UrlFilter[]): RefFilter {
       result.noPluginResponse ||= [];
       result.noPluginResponse.push(f.substring(1));
     } else if (f.startsWith('modified/before/')) {
-      result.modifiedBefore = f.substring('modified/before/'.length);
+      result.modifiedBefore = fixDateTime(f.substring('modified/before/'.length));
     } else if (f.startsWith('modified/after/')) {
-      result.modifiedAfter = f.substring('modified/after/'.length);
+      result.modifiedAfter = fixDateTime(f.substring('modified/after/'.length));
     } else if (f.startsWith('published/before/')) {
-      result.publishedBefore = f.substring('published/before/'.length);
+      result.publishedBefore = fixDateTime(f.substring('published/before/'.length));
     } else if (f.startsWith('published/after/')) {
-      result.publishedAfter = f.substring('published/after/'.length);
+      result.publishedAfter = fixDateTime(f.substring('published/after/'.length));
     } else if (f.startsWith('created/before/')) {
-      result.createdBefore = f.substring('created/before/'.length);
+      result.createdBefore = fixDateTime(f.substring('created/before/'.length));
     } else if (f.startsWith('created/after/')) {
-      result.createdAfter = f.substring('created/after/'.length);
+      result.createdAfter = fixDateTime(f.substring('created/after/'.length));
     } else if (f.startsWith('response/before/')) {
-      result.responseBefore = f.substring('response/before/'.length);
+      result.responseBefore = fixDateTime(f.substring('response/before/'.length));
     } else if (f.startsWith('response/after/')) {
-      result.responseAfter = f.substring('response/after/'.length);
+      result.responseAfter = fixDateTime(f.substring('response/after/'.length));
     } else if (f === '!obsolete') {
       result['obsolete'] = null as any;
     } else if (f.startsWith('!')) {
@@ -224,6 +237,10 @@ function getRefFilter(filter?: UrlFilter[]): RefFilter {
     }
   }
   return result;
+}
+
+export function fixDateTime(t: string) {
+  return DateTime.fromISO(t).toUTC().toISO()!;
 }
 
 export function getTagFilter(filter?: UrlFilter[]): TagQueryArgs {

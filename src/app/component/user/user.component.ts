@@ -1,4 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
+import { FakeLinkDirective } from '../../directive/fake-link.directive';
 import {
   Component,
   HostBinding,
@@ -7,19 +8,24 @@ import {
   QueryList,
   SimpleChanges,
   ViewChild,
-  ViewChildren
+  ViewChildren,
+  ChangeDetectionStrategy
 } from '@angular/core';
-import { FormBuilder, UntypedFormGroup } from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule, UntypedFormGroup } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { defer, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { catchError, forkJoin, of, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
+import { TitleDirective } from '../../directive/title.directive';
 import { userForm, UserFormComponent } from '../../form/user/user.component';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ext } from '../../model/ext';
 import { getRole, Profile } from '../../model/profile';
+import { Ref } from '../../model/ref';
 import { Role, User } from '../../model/user';
 import { isDeletorTag, tagDeleteNotice } from '../../mods/delete';
+import { cronPlugin } from '../../mods/system/script';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
 import { ProfileService } from '../../service/api/profile.service';
@@ -27,19 +33,24 @@ import { UserService } from '../../service/api/user.service';
 import { AuthzService } from '../../service/authz.service';
 import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
-import { downloadTag } from '../../util/download';
+import { downloadRef, downloadTag } from '../../util/download';
 import { scrollToFirstInvalid } from '../../util/form';
 import { printError } from '../../util/http';
 import { memo, MemoCache } from '../../util/memo';
-import { localTag, tagOrigin } from '../../util/tag';
+import { localTag, subOrigin, tagOrigin } from '../../util/tag';
 import { ActionComponent } from '../action/action.component';
+import { ConfirmActionComponent } from '../action/confirm-action/confirm-action.component';
+import { InlineButtonComponent } from '../action/inline-button/inline-button.component';
+import { InlinePasswordComponent } from '../action/inline-password/inline-password.component';
+import { InlineSelectComponent } from '../action/inline-select/inline-select.component';
 
 @Component({
-  standalone: false,
   selector: 'app-user',
   templateUrl: './user.component.html',
   styleUrls: ['./user.component.scss'],
-  host: {'class': 'profile list-item'}
+  host: { 'class': 'profile list-item' },
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [FakeLinkDirective, RouterLink, TitleDirective, ConfirmActionComponent, InlineButtonComponent, InlinePasswordComponent, InlineSelectComponent, ReactiveFormsModule, UserFormComponent]
 })
 export class UserComponent implements OnChanges, HasChanges {
   @HostBinding('attr.tabindex') tabIndex = 0;
@@ -87,9 +98,9 @@ export class UserComponent implements OnChanges, HasChanges {
     this.writeAccess = this.auth.tagWriteAccess(this.qualifiedTag) && this.auth.hasRole(this.role);
     if (this.created && !this.profile) {
       this.exts.getCachedExt(this.user!.tag, this.user!.origin)
-      .subscribe(x => this.ext = x);
+        .subscribe(x => this.ext = x);
       this.profiles.getProfile(this.qualifiedTag)
-      .subscribe(profile => this.profile = profile);
+        .subscribe(profile => this.profile = profile);
     }
   }
 
@@ -99,7 +110,7 @@ export class UserComponent implements OnChanges, HasChanges {
     }
   }
 
-  @ViewChild(UserFormComponent)
+  @ViewChild('refForm')
   set refForm(value: UserFormComponent) {
     if (this.user) defer(() => value?.setUser(this.user!));
   }
@@ -125,6 +136,15 @@ export class UserComponent implements OnChanges, HasChanges {
   }
 
   @memo
+  get recommendedAlias() {
+    const api = new URL(this.config.api, location.href);
+    const firstPath = api.pathname.split('/').filter(Boolean)[0];
+    return firstPath?.startsWith('~') && firstPath.length > 1
+      ? '@' + firstPath.substring(1)
+      : '@' + api.hostname;
+  }
+
+  @memo
   get local() {
     return this.profile?.tag || (!this.user || this.user?.origin === this.store.account.origin);
   }
@@ -146,6 +166,26 @@ export class UserComponent implements OnChanges, HasChanges {
     delete user.type;
     delete user.modifiedString;
     downloadTag(user);
+  }
+
+  get connectionRef(): Ref {
+    const template = this.store.origins.origins.find(ref =>
+      subOrigin(ref.origin, ref.plugins?.['+plugin/origin']?.local) === this.origin);
+    const local = template?.plugins?.['+plugin/origin']?.remote || this.origin || this.recommendedAlias;
+    return {
+      url: template?.url || new URL(this.config.api, document.baseURI).href,
+      title: template?.title || local,
+      tags: ['public', 'internal', '+plugin/cron', '+plugin/origin/pull', '+plugin/origin/tunnel'],
+      plugins: {
+        '+plugin/cron': { ...cronPlugin.defaults },
+        '+plugin/origin': { remote: this.origin, local },
+        '+plugin/origin/tunnel': { remoteUser: this.qualifiedTag },
+      },
+    };
+  }
+
+  connect() {
+    downloadRef(this.connectionRef);
   }
 
   setPassword$ = (password: string) => {
@@ -251,6 +291,7 @@ export class UserComponent implements OnChanges, HasChanges {
         return throwError(() => err);
       }),
     ).subscribe(cursor => {
+      this.editForm.reset();
       this.user = updates;
       this.user.modifiedString = cursor;
       this.user.modified = DateTime.fromISO(cursor);

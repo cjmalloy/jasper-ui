@@ -1,5 +1,6 @@
 import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy } from '@angular/core';
-import { FieldType, FieldTypeConfig, FormlyConfig } from '@ngx-formly/core';
+import { ReactiveFormsModule } from '@angular/forms';
+import { FieldType, FieldTypeConfig, FormlyAttributes, FormlyConfig } from '@ngx-formly/core';
 import { debounce, defer, uniqBy } from 'lodash-es';
 import { forkJoin, map, Observable, of, Subscription, switchMap } from 'rxjs';
 import { v4 as uuid } from 'uuid';
@@ -12,9 +13,8 @@ import { Store } from '../store/store';
 import { getErrorMessage } from './errors';
 
 @Component({
-  standalone: false,
   selector: 'formly-field-tag-input',
-  host: {'class': 'field'},
+  host: { 'class': 'field tag-field' },
   template: `
     <div class="form-array skip-margin">
       <input class="preview grow"
@@ -48,6 +48,10 @@ import { getErrorMessage } from './errors';
     </div>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [
+    ReactiveFormsModule,
+    FormlyAttributes,
+  ],
 })
 export class FormlyFieldTagInput extends FieldType<FieldTypeConfig> implements AfterViewInit, OnDestroy {
 
@@ -143,21 +147,24 @@ export class FormlyFieldTagInput extends FieldType<FieldTypeConfig> implements A
   }
 
   search = debounce((value: string) => {
+    const siblings = (this.formControl.parent?.value as string[] || []).filter(t => t && t !== this.formControl.value);
+    const derank = (xs: { value: string, label: string }[]) =>
+      [...xs.filter(x => !siblings.includes(x.value)), ...xs.filter(x => siblings.includes(x.value))];
     const toEntry = (p: Config) => ({ value: p.tag, label: p.name || p.tag });
     const getPlugins = (text: string, size = 5) => this.admin.searchPlugins(text).slice(0, size).map(toEntry);
     const getTemplates = (text: string, size = 5) => this.admin.searchTemplates(text).slice(0, size).map(toEntry);
     if (this.field.type === 'plugin') {
-      this.autocomplete = getPlugins(value);
+      this.autocomplete = derank(getPlugins(value));
       this.cd.detectChanges();
     } else if (this.field.type === 'template') {
-      this.autocomplete = getTemplates(value);
+      this.autocomplete = derank(getTemplates(value));
       this.cd.detectChanges();
     } else {
       this.searching?.unsubscribe();
       this.searching = this.exts.page({
         query: this.props.prefix || '',
         search: value,
-        sort: ['nesting', 'levels'],
+        sort: ['origin:len', 'tag:len'],
         size: 5,
       }).pipe(
         switchMap(page => page.page.totalElements ? forkJoin(page.content.map(x => this.preview$(x.tag + x.origin))) : of([])),
@@ -166,7 +173,7 @@ export class FormlyFieldTagInput extends FieldType<FieldTypeConfig> implements A
         this.autocomplete = xs.map(x => ({ value: x.tag, label: x.name || x.tag }));
         if (this.autocomplete.length < 5) this.autocomplete.push(...getPlugins(value, 5 - this.autocomplete.length));
         if (this.autocomplete.length < 5) this.autocomplete.push(...getTemplates(value, 5 - this.autocomplete.length));
-        this.autocomplete = uniqBy(this.autocomplete, 'value')
+        this.autocomplete = derank(uniqBy(this.autocomplete, 'value'));
         this.cd.detectChanges();
       });
     }

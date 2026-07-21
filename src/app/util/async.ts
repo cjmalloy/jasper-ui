@@ -12,22 +12,37 @@ export function delay(ms: number) {
 export function readFileAsDataURL(file: Blob): Observable<string> {
   return new Observable<string>((subscriber) => {
     const reader = new FileReader();
-
-    // Event handler for successful file reading
     reader.onload = () => {
-      subscriber.next(reader.result as string); // Emit the result
-      subscriber.complete(); // Complete the observable
+      subscriber.next(reader.result as string);
+      subscriber.complete();
     };
-
-    // Event handler for errors during file reading
     reader.onerror = (error) => {
-      subscriber.error(error); // Emit the error
+      subscriber.error(error);
     };
-
-    // Start reading the file
     reader.readAsDataURL(file);
+    return () => {
+      reader.abort();
+    };
+  });
+}
 
-    // Teardown logic (optional): abort the read operation if the subscriber unsubscribes early
+
+/**
+ * Reads a File or Blob as a string using FileReader and returns an Observable.
+ * @param file The File or Blob to read.
+ * @returns An Observable that emits the string upon successful completion.
+ */
+export function readFileAsString(file: Blob): Observable<string> {
+  return new Observable<string>((subscriber) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      subscriber.next(reader.result as string);
+      subscriber.complete();
+    };
+    reader.onerror = (error) => {
+      subscriber.error(error);
+    };
+    reader.readAsText(file);
     return () => {
       reader.abort();
     };

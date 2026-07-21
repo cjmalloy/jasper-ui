@@ -1,0 +1,143 @@
+import { expect, test } from '@playwright/test';
+import { mod, openSidebar, pollNotifications, upload } from './setup';
+
+test.describe.serial('MarkItDown Plugin', () => {
+  let url = '';
+
+  test('loads the page', async ({ page }) => {
+    await page.goto('/?debug=USER', { waitUntil: 'networkidle' });
+    await expect(page.getByText('Powered by Jasper')).toBeVisible({ timeout: 60_000 });
+  });
+
+  test('turn on markitdown plugin', async ({ page }) => {
+    await mod(page,
+      '#mod-root',
+      '#mod-scripts',
+      '#mod-pdf',
+      '#mod-thumbnail',
+      '#mod-images',
+      '#mod-error',
+      '#mod-markitdown',
+      '#mod-cache',
+      '#mod-filecache',
+      '#mod-mailbox',
+      '#mod-user');
+  });
+
+  test('creates a ref with plugin/pdf tag', async ({ page }) => {
+    url = await upload(page, 'e2e/fixtures/test.pdf');
+  });
+
+  test('should show markdown action button', async ({ page }) => {
+    await page.goto(url + '?debug=USER');
+    await page.locator('.full-page.ref .actions .show-more').click();
+    await expect(page.locator('.advanced-actions .fake-link', { hasText: 'markdown' })).toHaveCount(1);
+  });
+
+  test('should convert PDF to markdown', async ({ page }) => {
+    // Navigate to the ref page and trigger conversion
+    await page.goto(url + '?debug=USER', { waitUntil: 'networkidle' });
+    await page.locator('.full-page.ref .actions .show-more').click();
+    await page.locator('.advanced-actions .fake-link', { hasText: 'markdown' }).click();
+    // Wait for the conversion to complete by checking notifications
+    await pollNotifications(page);
+    await page.locator('.settings .notification').click();
+    await page.locator('.tabs a', { hasText: 'all' }).first().click();
+    await page.locator('.ref', { hasText: 'Markdown:' }).first().locator('a').first().click();
+    await page.waitForLoadState('networkidle');
+    await expect(page.locator('.full-page.ref .md')).toContainText('PDF BOOKMARK SAMPLE');
+  });
+
+  test('creates a public ref for visibility test', async ({ page }) => {
+    await page.goto('/?debug=USER', { waitUntil: 'networkidle' });
+    await openSidebar(page);
+    await page.locator('.sidebar .submit-button', { hasText: 'Submit' }).first().click();
+    await page.locator('.tabs a', { hasText: 'upload' }).click();
+    await expect(page.locator('button', { hasText: '+ cache' })).toBeVisible({ timeout: 10_000 });
+    const fileInput = page.locator('input[type="file"]').nth(1);
+    await fileInput.setInputFiles('e2e/fixtures/test.pdf');
+    await page.locator('input#add-tag').fill('public');
+    await page.locator('input#add-tag').press('Enter');
+    await page.locator('.ref .actions .fake-link', { hasText: 'upload' }).click();
+    await page.waitForTimeout(1_000);
+    await expect(page.locator('.full-page.ref .link a')).toContainText('test.pdf');
+    url = page.url().replace('/ref/', '/ref/e/');
+  });
+
+  test('should propagate public tag to response', async ({ page }) => {
+    await page.goto(url + '?debug=USER');
+    await expect(page.locator('.full-page.ref .info .icon', { hasText: '👁️' })).not.toBeVisible();
+  });
+
+  test('can filter by markdown signature tag', async ({ page }) => {
+    await page.goto('/?debug=USER');
+    await openSidebar(page);
+    await expect(page.locator('.sidebar')).toContainText('markdown');
+  });
+
+  test('cancels markdown conversion', async ({ page }) => {
+    await upload(page, 'e2e/fixtures/test.pdf');
+
+    // Click markdown action in advanced menu
+    await page.locator('.full-page.ref .actions .show-more').click();
+    await page.locator('.advanced-actions .fake-link', { hasText: 'markdown' }).click();
+    await expect(page.locator('.full-page.ref .actions .fake-link', { hasText: 'cancel' })).toHaveCount(1);
+
+    // Click cancel
+    await page.locator('.full-page.ref .actions .fake-link', { hasText: 'cancel' }).click();
+
+    // Should show markdown action again in advanced menu (not cancel)
+    await page.locator('.full-page.ref .actions .show-more').click();
+    await expect(page.locator('.advanced-actions .fake-link', { hasText: 'markdown' })).toHaveCount(1);
+    await expect(page.locator('.full-page.ref .actions .fake-link', { hasText: 'cancel' })).toHaveCount(0);
+  });
+
+  test('creates a ref with plugin/file tag (docx)', async ({ page }) => {
+    url = await upload(page, 'e2e/fixtures/test.docx');
+  });
+
+  test('should have markdown action on docx file ref', async ({ page }) => {
+    await page.goto(url + '?debug=USER');
+    await page.locator('.full-page.ref .actions .show-more').click();
+    await expect(page.locator('.advanced-actions .fake-link', { hasText: 'markdown' })).toHaveCount(1);
+  });
+
+  test('should convert DOCX to markdown', async ({ page }) => {
+    // Navigate to the ref page and trigger conversion
+    await page.goto(url + '?debug=USER', { waitUntil: 'networkidle' });
+    await page.locator('.full-page.ref .actions .show-more').click();
+    await page.locator('.advanced-actions .fake-link', { hasText: 'markdown' }).click();
+    // Wait for the conversion to complete by checking notifications
+    await pollNotifications(page);
+    await page.locator('.settings .notification').click();
+    await page.locator('.tabs a', { hasText: 'all' }).first().click();
+    await page.locator('.ref', { hasText: 'Markdown:' }).first().locator('a').first().click();
+    await page.waitForLoadState('networkidle');
+    await expect(page.locator('.full-page.ref .md')).toContainText('This is a Word Document File (DOCX)');
+  });
+
+  test('creates a ref with plugin/file tag (xls)', async ({ page }) => {
+    url = await upload(page, 'e2e/fixtures/test.xls');
+  });
+
+  test('should have markdown action on xls file ref', async ({ page }) => {
+    await page.goto(url + '?debug=USER');
+    await page.locator('.full-page.ref .actions .show-more').click();
+    await expect(page.locator('.advanced-actions .fake-link', { hasText: 'markdown' })).toHaveCount(1);
+  });
+
+  test('should convert XLS to markdown', async ({ page }) => {
+    // Navigate to the ref page and trigger conversion
+    await page.goto(url + '?debug=USER', { waitUntil: 'networkidle' });
+    await page.locator('.full-page.ref .actions .show-more').click();
+    await page.locator('.advanced-actions .fake-link', { hasText: 'markdown' }).click();
+    // Wait for the conversion to complete by checking notifications
+    await pollNotifications(page);
+    await page.locator('.settings .notification').click();
+    await page.locator('.tabs a', { hasText: 'all' }).first().click();
+    await page.locator('.ref', { hasText: 'Markdown:' }).first().locator('a').first().click();
+    await page.waitForLoadState('networkidle');
+    await expect(page.locator('.full-page.ref .md')).toContainText('Example Test');
+  });
+
+});
