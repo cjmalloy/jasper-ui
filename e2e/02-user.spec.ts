@@ -50,7 +50,7 @@ test.describe.serial('User Page', () => {
   test('downloads a pre-filled connection ref', async ({ page }) => {
     await page.goto('/settings/user?debug=ADMIN', { waitUntil: 'networkidle' });
     const profile = page.locator('.profile', {
-      has: page.getByRole('link', { name: 'alice', exact: true }),
+      has: page.getByRole('link', { name: '+user', exact: true }),
     });
     const downloadPromise = page.waitForEvent('download');
     await profile.locator('.connect-action').click();
@@ -67,7 +67,7 @@ test.describe.serial('User Page', () => {
       plugins: {
         '+plugin/cron': { interval: 'PT15M' },
         '+plugin/origin': { remote: '', local: '@localhost' },
-        '+plugin/origin/tunnel': { remoteUser: 'user/alice' },
+        '+plugin/origin/tunnel': { remoteUser: '+user' },
       },
     });
   });
