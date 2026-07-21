@@ -171,7 +171,7 @@ export class UserComponent implements OnChanges, HasChanges {
     const template = this.store.origins.origins.find(ref => ref.plugins?.['+plugin/origin']?.local === this.origin);
     const local = template?.plugins?.['+plugin/origin']?.remote || this.origin || this.reccomendedAlias;
     return {
-      url: template?.url || this.config.api,
+      url: template?.url || (this.config.api.startsWith('//') ? location.protocol + this.config.api : this.config.api),
       title: template?.title || local,
       tags: ['public', 'internal', '+plugin/cron', '+plugin/origin/pull', '+plugin/origin/tunnel'],
       plugins: {
