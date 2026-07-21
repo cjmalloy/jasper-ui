@@ -121,7 +121,7 @@
                 (focus)="focusText()"
                 [class.dropping]="dropping"
                 (dragenter)="dropping = true"
-                (dragleave)="dragLeave(monacoEditor, $any($event.target))"
+                (dragleave)="dragLeave($any($event.currentTarget), $any($event.target))"
                 (drop)="drop($event, $event.dataTransfer?.items)"
                 (paste)="drop($event, $event.clipboardData?.items)"
                 [appFillWidth]="fillWidth"
