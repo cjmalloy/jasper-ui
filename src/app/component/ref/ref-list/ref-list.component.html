@@ -19,7 +19,7 @@
   @if (insertNewAtTop) {
     @for (ref of newRefs; track ref.origin + '@' + ref.url) {
       <div class="list-number">&bullet;</div>
-      @if (query.bulkToolsOpen) {
+      @if (query.bulkToolsOpen && page === query.page) {
         <div class="bulk-select-cell"></div>
       }
       <app-ref class="ref-list-item"
