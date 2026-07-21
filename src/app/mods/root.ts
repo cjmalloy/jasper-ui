@@ -88,7 +88,7 @@ export const rootTemplate: Template = {
       { tag: 'plugin/delete', label: $localize`🗑️`, global: true },
     ],
     advancedActions: [
-      { event: 'browse', label: 'browse', global: true },
+      { event: 'browse', label: $localize`browse`, global: true }
     ],
     filters: [
       { scheme: 'http:', label: $localize`http:`, group: $localize`Schemes 🏳️️`},
