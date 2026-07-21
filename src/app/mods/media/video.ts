@@ -6,7 +6,7 @@ export const videoPlugin: Plugin = {
   tag: 'plugin/video',
   name: $localize`🎞️ Video`,
   config: {
-    version: 2,
+    version: 3,
     type: 'plugin',
     default: true,
     proxy: true,
@@ -17,11 +17,15 @@ export const videoPlugin: Plugin = {
     The video plugin indicates a Ref contains a video file. It contains optional
     field url which is typically missing. When the url field is missing it is
     assumed to be the URL of the Ref instead.
-    You may refer to a video you returned with the URL ai:part, or optionally
-    multiple returned assets as ai:part1, ai:part2, etc. These will be uploaded
-    to the cache and the URL will be rewritten with its cache URL. Even if you use
-    the url field of a video plugin, anything not prefixed with ai:part will be
-    assumed to refer to an existing URL in the system and not replaced.
+    Put each generated video in a separate Ref after the first response Ref and
+    tag it plugin/video. Set that Ref's URL to ai:part1, ai:part2, and so on,
+    matching the returned assets in order. Never use unnumbered ai:part.
+    Embed the video Ref from the first response comment with ![=](ai:partN), or
+    link to it with [video](/ref/ai:partN). Normally omit plugin/video.url when
+    the Ref's own URL is ai:partN; use the plugin url only when the media differs
+    from the Ref URL. Never reference an ai:partN that was not actually returned.
+    Claimed assets are uploaded and matching references are rewritten. Other URLs
+    refer to existing resources and are not replaced.
     `,
     submit: $localize`🎞️ video`,
     icons: [{ label: $localize`🎞️`, order: 2 }],
