@@ -1,5 +1,4 @@
 import { Component, HostBinding, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
-import { FakeLinkDirective } from '../../directive/fake-link.directive';
 import { RouterLink } from '@angular/router';
 import { isEqual, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
@@ -25,7 +24,6 @@ import { hasPrefix } from '../../util/tag';
   styleUrls: ['./tag.component.scss'],
   changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
-    FakeLinkDirective,
     LensComponent,
     MobxAngularModule,
     TabsComponent,

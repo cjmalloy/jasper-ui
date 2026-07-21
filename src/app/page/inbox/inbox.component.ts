@@ -1,5 +1,4 @@
 import { Component, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
-import { FakeLinkDirective } from '../../directive/fake-link.directive';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { runInAction } from 'mobx';
 import { MobxAngularModule } from 'mobx-angular';
@@ -15,7 +14,7 @@ import { Store } from '../../store/store';
   styleUrls: ['./inbox.component.scss'],
   host: { 'class': 'inbox' },
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [FakeLinkDirective, MobxAngularModule, TabsComponent, RouterLink, RouterLinkActive, SidebarComponent, RouterOutlet]
+  imports: [MobxAngularModule, TabsComponent, RouterLink, RouterLinkActive, SidebarComponent, RouterOutlet]
 })
 export class InboxPage implements OnInit {
 
