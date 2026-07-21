@@ -1,27 +1,34 @@
+import { Location } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, HostBinding, ViewChild } from '@angular/core';
-import { FormBuilder, UntypedFormGroup } from '@angular/forms';
+import { Component, isDevMode, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { FormBuilder, ReactiveFormsModule, UntypedFormGroup } from '@angular/forms';
 import { cloneDeep, defer } from 'lodash-es';
 import { runInAction } from 'mobx';
-import { catchError, switchMap, throwError } from 'rxjs';
+import { MobxAngularModule } from 'mobx-angular';
+import { catchError, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
+import { LoadingComponent } from '../../../component/loading/loading.component';
+import { UserTagSelectorComponent } from '../../../component/user-tag-selector/user-tag-selector.component';
+import { LimitWidthDirective } from '../../../directive/limit-width.directive';
 import { extForm, ExtFormComponent } from '../../../form/ext/ext.component';
+import { HasChanges } from '../../../guard/pending-changes.guard';
 import { AccountService } from '../../../service/account.service';
 import { AdminService } from '../../../service/admin.service';
 import { ExtService } from '../../../service/api/ext.service';
+import { ConfigService } from '../../../service/config.service';
 import { Store } from '../../../store/store';
 import { scrollToFirstInvalid } from '../../../util/form';
 import { printError } from '../../../util/http';
-import { Router } from '@angular/router';
-import { HasChanges } from '../../../guard/pending-changes.guard';
 
 @Component({
   selector: 'app-settings-me-page',
   templateUrl: './me.component.html',
-  styleUrls: ['./me.component.scss']
+  styleUrls: ['./me.component.scss'],
+  host: { 'class': 'full-page-form' },
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [MobxAngularModule, ReactiveFormsModule, LimitWidthDirective, UserTagSelectorComponent, ExtFormComponent, LoadingComponent]
 })
 export class SettingsMePage implements HasChanges {
-  @HostBinding('class') css = 'full-page-form';
 
   @ViewChild('form')
   form?: ExtFormComponent;
@@ -30,27 +37,21 @@ export class SettingsMePage implements HasChanges {
   editForm!: UntypedFormGroup;
   serverError: string[] = [];
 
+  editing?: Subscription;
+
   constructor(
+    public config: ConfigService,
     public store: Store,
     private exts: ExtService,
     private accounts: AccountService,
     private admin: AdminService,
     private fb: FormBuilder,
-    private router: Router,
+    private location: Location,
   ) {
     const ext = cloneDeep(store.account.ext!);
     this.editForm = extForm(fb, ext, this.admin, true);
     this.editForm.patchValue(ext);
-    defer(() => this.form!.setValue(ext));
-    if (!admin.getTemplate('user') || !store.account.localTag) {
-      let defaultPath = ['/settings/plugin'];
-      if (store.account.admin) {
-        defaultPath = ['/settings/setup'];
-      } else if (store.settings.plugins.length) {
-        defaultPath = ['/settings/ref/', store.settings.plugins[0].tag];
-      }
-      router.navigate(defaultPath, { replaceUrl: true });
-    }
+    if (ext) defer(() => this.form!.setValue(ext));
   }
 
   saveChanges() {
@@ -66,7 +67,7 @@ export class SettingsMePage implements HasChanges {
       return;
     }
     const ext = this.store.account.ext!;
-    this.exts.update({
+    this.editing = this.exts.update({
       ...ext,
       ...this.editForm.value,
       tag: ext.tag, // Need to fetch because control is disabled
@@ -78,13 +79,16 @@ export class SettingsMePage implements HasChanges {
       tap(() => runInAction(() => this.accounts.clearCache())),
       switchMap(() => this.accounts.initExt$),
       catchError((res: HttpErrorResponse) => {
+        delete this.editing;
         this.serverError = printError(res);
         return throwError(() => res);
       }),
     ).subscribe(() => {
+      delete this.editing;
       this.editForm.markAsPristine();
-      this.router.navigate(['/tag', this.store.account.tag]);
+      this.location.back();
     });
   }
 
+  protected readonly isDevMode = isDevMode;
 }

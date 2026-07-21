@@ -2,17 +2,7 @@ import { Injectable } from '@angular/core';
 import { Ref } from '../model/ref';
 import { Role } from '../model/user';
 import { Store } from '../store/store';
-import {
-  capturesAny,
-  hasTag,
-  includesTag,
-  isOwner,
-  isOwnerTag,
-  localTag,
-  privateTag,
-  publicTag,
-  qualifyTags
-} from '../util/tag';
+import { capturesAny, hasTag, isOwner, isOwnerTag, localTag, privateTag, publicTag, qualifyTags } from '../util/tag';
 import { ConfigService } from './config.service';
 
 @Injectable({
@@ -46,6 +36,13 @@ export class AuthzService {
     return !!capturesAny(this.store.account.access.writeAccess, qualifyTags(ref.tags, ref.origin));
   }
 
+  deleteAccess(ref: Ref): boolean {
+    if (!this.store.account.signedIn) return false;
+    if (this.store.account.mod) return true;
+    if (ref.origin !== this.store.account.origin) return false;
+    return this.taggingAccess(ref);
+  }
+
   queryReadAccess(query?: string): boolean {
     if (!query) return false;
     for (const part of query.split(/[-|:!()\s]+/)) {
@@ -55,14 +52,14 @@ export class AuthzService {
   }
 
   canAddTag(tag?: string): boolean {
-    if (!this.store.account.signedIn) return false;
     if (!tag) return false;
     tag = localTag(tag);
     if (publicTag(tag)) return true;
+    if (!this.store.account.signedIn) return false;
     if (this.store.account.mod) return true;
     if (this.store.account.localTag === tag) return true;
-    if (includesTag(tag, this.config.modSeals)) return false;
-    if (!this.store.account.editor && includesTag(tag, this.config.editorSeals)) return false;
+    if (hasTag(tag, this.config.modSeals)) return false;
+    if (!this.store.account.editor && hasTag(tag, this.config.editorSeals)) return false;
     if (!this.store.account.access) return false;
     if (capturesAny(this.store.account.access.tagReadAccess, [tag])) return true;
     return !!capturesAny(this.store.account.access.readAccess, [tag]);

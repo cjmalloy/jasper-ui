@@ -13,7 +13,7 @@ config="
 {
   \"title\": \"$JASPER_TITLE\",
   \"version\": \"${JASPER_VERSION:-Build: $(cat /build-timestamp)}\",
-  \"api\": \"$JASPER_API\",
+  \"api\": \"${JASPER_API-.}\",
   \"logout\": \"$JASPER_LOGOUT\",
   \"login\": \"$JASPER_LOGIN\",
   \"signup\": \"$JASPER_SIGNUP\",
@@ -21,17 +21,15 @@ config="
   \"websockets\": ${JASPER_WEBSOCKETS-true},
   \"support\": \"${JASPER_SUPPORT-"+support"}\",
   \"allowedSchemes\": ${JASPER_ALLOWED_SCHEMES-[\"http:\", \"https:\", \"ftp:\", \"tel:\", \"mailto:\", \"magnet:\"]},
+  \"modSeals\": ${JASPER_MOD_SEALS-[\"seal\", \"+seal\", \"seal\", \"_moderated\"]},
+  \"editorSeals\": ${JASPER_EDITOR_SEALS-[\"plugin/qc\"]},
   \"maxPlugins\": ${JASPER_MAX_PLUGINS-0},
   \"maxTemplates\": ${JASPER_MAX_TEMPLATES-0},
   \"maxOrigins\": ${JASPER_MAX_ORIGINS-0},
   \"fetchBatch\": ${JASPER_FETCH_BATCH-0},
   \"token\": \"${JASPER_TOKEN}\",
-  \"codeFlow\": ${JASPER_CODE_FLOW-false},
-  \"implicitFlow\": ${JASPER_IMPLICIT_FLOW-false},
-  \"issuer\": \"$JASPER_ISSUER\",
-  \"clientId\": \"$JASPER_CLIENT_ID\",
-  \"scope\": \"$JASPER_SCOPE\",
-  \"preAuthScrape\": ${PRE_AUTH_SCRAPE-true}
+  \"prefetch\": ${JASPER_PREFETCH:-false},
+  \"pwa\": ${JASPER_PWA:-false}
 }
 "
 echo "$config"

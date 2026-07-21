@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
-import { delay, uniq } from 'lodash-es';
+import { delay, isArray, uniq, without } from 'lodash-es';
+import { DateTime } from 'luxon';
 import { runInAction } from 'mobx';
-import * as moment from 'moment';
 import { catchError, forkJoin, map, Observable, of, shareReplay, throwError } from 'rxjs';
 import { switchMap, tap } from 'rxjs/operators';
 import { Ext } from '../model/ext';
@@ -13,7 +13,7 @@ import { AdminService } from './admin.service';
 import { ExtService } from './api/ext.service';
 import { RefService } from './api/ref.service';
 import { UserService } from './api/user.service';
-import { AuthnService } from './authn.service';
+import { ConfigService } from './config.service';
 
 export const CACHE_MS = 15 * 1000;
 
@@ -27,7 +27,7 @@ export class AccountService {
 
   constructor(
     private store: Store,
-    private authn: AuthnService,
+    private config: ConfigService,
     private admin: AdminService,
     private users: UserService,
     private exts: ExtService,
@@ -39,7 +39,7 @@ export class AccountService {
       catchError(err => {
         if ([0, 200, 401, 403].includes(err.status)) {
           // Requires auth to access at all
-          this.authn.logIn();
+          this.config.logIn();
         }
         return throwError(() => err);
       }),
@@ -158,64 +158,61 @@ export class AccountService {
     );
   }
 
-  addSub(tag: string) {
+  addSub$(tag: string): Observable<any> {
     if (!this.store.account.signedIn) throw 'Not signed in';
     if (!this.admin.getTemplate('user')) throw 'User template not installed';
-    this.addConfigArray('subscriptions', tag).pipe(
+    return this.addConfigArray$('subscriptions', tag).pipe(
       tap(() => this.clearCache()),
       switchMap(() => this.subscriptions$),
-    ).subscribe();
+    );
   }
 
-  removeSub(tag: string) {
+  removeSub$(tag: string): Observable<any> {
     if (!this.store.account.signedIn) throw 'Not signed in';
     if (!this.admin.getTemplate('user')) throw 'User template not installed';
-    this.subscriptions$.pipe(
-      map(subs => subs.indexOf(tag)),
-      switchMap(index => this.removeConfigArray('subscriptions', index)),
+    return this.subscriptions$.pipe(
+      switchMap(() => this.removeConfigArray$('subscriptions', tag)),
       tap(() => this.clearCache()),
       switchMap(() => this.subscriptions$),
-    ).subscribe();
+    );
   }
 
-  addBookmark(tag: string) {
+  addBookmark$(tag: string): Observable<any> {
     if (!this.store.account.signedIn) throw 'Not signed in';
     if (!this.admin.getTemplate('user')) throw 'User template not installed';
-    this.addConfigArray('bookmarks', tag).pipe(
+    return this.addConfigArray$('bookmarks', tag).pipe(
       tap(() => this.clearCache()),
       switchMap(() => this.bookmarks$),
-    ).subscribe();
+    );
   }
 
-  removeBookmark(tag: string) {
+  removeBookmark$(tag: string): Observable<any> {
     if (!this.store.account.signedIn) throw 'Not signed in';
     if (!this.admin.getTemplate('user')) throw 'User template not installed';
-    this.bookmarks$.pipe(
-      map(subs => subs.indexOf(tag)),
-      switchMap(index => this.removeConfigArray('bookmarks', index)),
+    return this.bookmarks$.pipe(
+      switchMap(() => this.removeConfigArray$('bookmarks', tag)),
       tap(() => this.clearCache()),
       switchMap(() => this.bookmarks$),
-    ).subscribe();
+    );
   }
 
-  addAlarm(tag: string) {
+  addAlarm$(tag: string): Observable<any> {
     if (!this.store.account.signedIn) throw 'Not signed in';
     if (!this.admin.getTemplate('user')) throw 'User template not installed';
-    this.addConfigArray('alarms', tag).pipe(
+    return this.addConfigArray$('alarms', tag).pipe(
       tap(() => this.clearCache()),
       switchMap(() => this.alarms$),
-    ).subscribe();
+    );
   }
 
-  removeAlarm(tag: string) {
+  removeAlarm$(tag: string): Observable<any> {
     if (!this.store.account.signedIn) throw 'Not signed in';
     if (!this.admin.getTemplate('user')) throw 'User template not installed';
-    this.alarms$.pipe(
-      map(subs => subs.indexOf(tag)),
-      switchMap(index => this.removeConfigArray('alarms', index)),
+    return this.alarms$.pipe(
+      switchMap(() => this.removeConfigArray$('alarms', tag)),
       tap(() => this.clearCache()),
       switchMap(() => this.alarms$),
-    ).subscribe();
+    );
   }
 
   checkNotifications() {
@@ -224,22 +221,77 @@ export class AccountService {
     this.userExt$.pipe(
       switchMap(() => this.refs.count({
         query: this.store.account.notificationsQuery,
-        modifiedAfter: this.store.account.config.lastNotified || moment().subtract(1, 'year'),
+        modifiedAfter: this.store.account.config.lastNotified || DateTime.now().minus({ year: 1 }),
       })),
     ).subscribe(count => runInAction(() => this.store.account.notifications = count));
+    this.checkAlarms();
   }
 
-  clearNotifications(readDate: moment.Moment) {
+  clearNotificationsIfNone(readDate?: DateTime) {
+    if (!readDate || this.store.account.config.lastNotified && readDate < DateTime.fromISO(this.store.account.config.lastNotified)) return;
+    if (!this.store.account.signedIn) return;
+    if (!this.admin.getTemplate('user')) return;
+    this.userExt$.pipe(
+      switchMap(() => this.refs.count({
+        query: this.store.account.notificationsQuery,
+        modifiedAfter: this.store.account.config.lastNotified || DateTime.now().minus({year: 1}),
+        modifiedBefore: readDate,
+      })),
+    ).subscribe(count => {
+      if (count === 0) {
+        this.clearNotifications(readDate);
+      } else {
+        runInAction(() => this.store.account.ignoreNotifications.push(readDate.valueOf()));
+      }
+    });
+  }
+
+  clearNotifications(readDate?: DateTime) {
+    if (readDate) {
+      if (this.store.account.config.lastNotified && readDate < DateTime.fromISO(this.store.account.config.lastNotified)) return;
+    } else {
+      readDate = DateTime.now();
+    }
     if (!this.store.account.signedIn) throw 'Not signed in';
     if (!this.admin.getTemplate('user')) throw 'User template not installed';
-    const lastNotified = readDate.add(1, 'millisecond').toISOString();
-    this.updateConfig('lastNotified', lastNotified).subscribe(() => {
+    const lastNotified = readDate.plus({ millisecond: 1 }).toISO();
+    this.updateConfig$('lastNotified', lastNotified).subscribe(() => {
       this.clearCache();
       this.checkNotifications();
     });
   }
 
-  updateConfig(name: string, value: any) {
+  checkAlarms() {
+    if (!this.store.account.signedIn) throw 'Not signed in';
+    if (!this.admin.getTemplate('user')) throw 'User template not installed';
+    if (!this.store.account.alarms.length) return;
+    this.userExt$.pipe(
+      switchMap(() => this.refs.count({
+        query: this.store.account.alarmsQuery,
+        modifiedAfter: this.store.account.config.lastNotified || DateTime.now().minus({ year: 1 }),
+      })),
+    ).subscribe(count => runInAction(() => this.store.account.alarmCount = count));
+  }
+
+  checkConsent(consent?: [string, string][]) {
+    if (!consent?.length) return;
+    let status = this.store.account.ext?.config?.consent || {};
+    let result = null;
+    for (const [key, disclosure] of consent) {
+      if (!status?.[key] && confirm(disclosure)) {
+        result ||= { ...status };
+        result[key] = true;
+      }
+    }
+    if (result) {
+      this.userExt$.pipe(
+        switchMap(() => this.updateConfig$('consent', result)),
+      ).subscribe();
+    }
+  }
+
+  // TODO: move to ext, plugin, template service as  a mixin
+  updateConfig$(name: keyof UserConfig, value: any) {
     return this.exts.patch(this.store.account.tag, this.store.account.ext!.modifiedString!, [{
         op: 'add',
         path: '/config/' + name,
@@ -251,22 +303,25 @@ export class AccountService {
             ...this.store.account.config,
             [name]: value,
           },
-          modified: moment(cursor),
+          modified: DateTime.fromISO(cursor),
           modifiedString: cursor,
         };
       })));
   }
 
-  addConfigArray(name: keyof UserConfig, value: any) {
+  addConfigArray$(name: keyof UserConfig, value: any) {
+    let path = name;
+    let patchValue = value;
     if (!this.store.account.config[name]) {
-      value = [value];
+      patchValue = [value];
     } else {
-      name += '/-';
+      if ((this.store.account.config[name] as any[]).includes(value)) return of();
+      path += '/-';
     }
     return this.exts.patch(this.store.account.tag, this.store.account.ext!.modifiedString!, [{
         op: 'add',
-        path: '/config/' + name,
-        value: value,
+        path: '/config/' + path,
+        value: patchValue,
       }]).pipe(tap(cursor => runInAction(() => {
         this.store.account.ext = <Ext> {
           ...this.store.account.ext,
@@ -274,16 +329,19 @@ export class AccountService {
             ...this.store.account.config,
             [name]: [
               ...(this.store.account.config[name] as any[] || []),
-              value
+              value,
             ],
           },
-          modified: moment(cursor),
+          modified: DateTime.fromISO(cursor),
           modifiedString: cursor,
         };
       })));
   }
 
-  removeConfigArray(name: keyof UserConfig, index: number) {
+  removeConfigArray$(name: keyof UserConfig, value: any) {
+    if (!isArray(this.store.account.config[name])) return of();
+    const index = (this.store.account.config[name] as any[]).indexOf(value);
+    if (index === -1) return of();
     return this.exts.patch(this.store.account.tag, this.store.account.ext!.modifiedString!, [{
       op: 'remove',
       path: '/config/' + name + '/' + index,
@@ -292,9 +350,9 @@ export class AccountService {
           ...this.store.account.ext,
           config: {
             ...this.store.account.config,
-            [name]: (this.store.account.config[name] as any[] || []).splice(index, 1),
+            [name]: without(this.store.account.config[name] as any[], value)
           },
-          modified: moment(cursor),
+          modified: DateTime.fromISO(cursor),
           modifiedString: cursor,
         };
       })));

@@ -1,8 +1,56 @@
+@if (header) {
+  <app-viewer class="lens-header" [text]="header"></app-viewer>
+}
+<ng-container *mobxAutorun>
+  @if (query.responseOf) {
+    <div class="list-container responses-of">
+      <div class="label" i18n>Responses Of:</div>
+      <app-ref class="full-page"
+               [ref]="query.responseOf"
+               [showToggle]="true"
+               (copied)="query.refresh()"></app-ref>
+    </div>
+  }
+  @if (query.sourcesOf) {
+    <div class="list-container sources-of">
+      <div class="label" i18n>Sources Of:</div>
+      <app-ref class="full-page"
+               [ref]="query.sourcesOf"
+               [showToggle]="true"
+               (copied)="query.refresh()"></app-ref>
+    </div>
+  }
+</ng-container>
 @if (isTemplate('graph')) {
-  <app-force-directed [tag]="tag"
-                      [content]="page?.content || []"></app-force-directed>
+  @defer {
+    <app-force-directed #lens
+                        [tag]="tag"
+                        [content]="page?.content || []"></app-force-directed>
+  } @placeholder {
+    <app-loading></app-loading>
+  }
+} @else if (isTemplate('grid')) {
+  @defer {
+    <app-grid #lens
+              [tag]="tag"
+              [ext]="ext!"
+              [page]="page"
+              [pageControls]="pageControls"
+              [cols]="cols"></app-grid>
+  } @placeholder {
+    <app-loading></app-loading>
+  }
+} @else if (isTemplate('notes')) {
+  <app-notebook #lens
+                [class]="cssClass(ext?.tag)"
+                [ext]="ext"
+                [page]="page"
+                [pageControls]="pageControls"
+                [plugins]="plugins"
+                [cols]="cols"></app-notebook>
 } @else if (isTemplate('kanban')) {
-  <app-kanban [query]="tag"
+  <app-kanban #lens
+              [query]="tag"
               [ext]="ext!"
               [fullPage]="fullPage"
               [pageControls]="pageControls"
@@ -11,18 +59,33 @@
               [filter]="filter"
               [search]="search"></app-kanban>
 } @else if (isTemplate('blog')) {
-  <app-blog [ext]="ext!"
+  <app-blog #lens
+            [ext]="ext!"
             [page]="page"
             [pageControls]="pageControls"
             [cols]="cols"></app-blog>
 } @else if (isTemplate('chat')) {
-  <app-chat [query]="tag"></app-chat>
+  <app-chat #lens
+            [query]="tag"></app-chat>
+} @else if (isTemplate('map')) {
+  @defer {
+    <app-map #lens
+             [tag]="tag"
+             [ext]="ext"
+             [page]="page"
+             [pageControls]="pageControls"></app-map>
+  } @placeholder {
+    <app-loading></app-loading>
+  }
 } @else if (isTemplate('folder')) {
-  <app-folder [tag]="tag"
+  <app-folder #lens
               [page]="page"
+              [tag]="tag"
               [ext]="ext!"></app-folder>
 } @else {
-  <app-ref-list [class]="cssClass(ext?.tag)"
+  <app-ref-list #lens
+                class="expand"
+                [class]="cssClass(ext?.tag)"
                 [ext]="ext"
                 [page]="page"
                 [pageControls]="pageControls"

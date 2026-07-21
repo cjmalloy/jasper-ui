@@ -1,11 +1,14 @@
-import { Component, EventEmitter, HostBinding, Input, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, HostBinding, Input, Output, ChangeDetectionStrategy } from '@angular/core';
+import { ReactiveFormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-list-editor',
   templateUrl: './list-editor.component.html',
-  styleUrls: ['./list-editor.component.scss']
+  styleUrls: ['./list-editor.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [ReactiveFormsModule]
 })
-export class ListEditorComponent implements OnInit {
+export class ListEditorComponent {
   @HostBinding('class') css = 'listbox form-group';
 
   @Input()
@@ -25,11 +28,6 @@ export class ListEditorComponent implements OnInit {
   selectedIndex = -1;
 
   error = '';
-
-  constructor() { }
-
-  ngOnInit(): void {
-  }
 
   add() {
     this.error = '';
@@ -55,6 +53,13 @@ export class ListEditorComponent implements OnInit {
       this.selected.emit(this.list[index]);
     } else {
       this.selected.emit(undefined);
+    }
+  }
+
+  keydown(event: KeyboardEvent) {
+    if (event.key === 'Enter') {
+      this.add();
+      event.preventDefault();
     }
   }
 }

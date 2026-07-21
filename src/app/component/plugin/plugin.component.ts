@@ -1,27 +1,39 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, HostBinding, Input, OnInit } from '@angular/core';
-import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
-import { Router } from '@angular/router';
-import { catchError, Observable, of, switchMap, throwError } from 'rxjs';
+import { FakeLinkDirective } from '../../directive/fake-link.directive';
+import { Component, HostBinding, Input, OnChanges, QueryList, SimpleChanges, ViewChildren, ChangeDetectionStrategy } from '@angular/core';
+import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
+import { RouterLink } from '@angular/router';
+import { catchError, of, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
-import { pluginForm } from '../../form/plugin/plugin.component';
+import { pluginForm, PluginFormComponent } from '../../form/plugin/plugin.component';
+import { HasChanges } from '../../guard/pending-changes.guard';
 import { Plugin, writePlugin } from '../../model/plugin';
-import { tagDeleteNotice } from "../../mods/delete";
+import { isDeletorTag, tagDeleteNotice } from '../../mods/delete';
 import { AdminService } from '../../service/admin.service';
 import { PluginService } from '../../service/api/plugin.service';
+import { ModService } from '../../service/mod.service';
 import { Store } from '../../store/store';
-import { downloadTag } from '../../util/download';
+import { downloadPluginExport, downloadTag } from '../../util/download';
 import { scrollToFirstInvalid } from '../../util/form';
 import { printError } from '../../util/http';
+import { ActionComponent } from '../action/action.component';
+import { ConfirmActionComponent } from '../action/confirm-action/confirm-action.component';
+import { InlineButtonComponent } from '../action/inline-button/inline-button.component';
+import { LoadingComponent } from '../loading/loading.component';
 
 @Component({
   selector: 'app-plugin',
   templateUrl: './plugin.component.html',
-  styleUrls: ['./plugin.component.scss']
+  styleUrls: ['./plugin.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [FakeLinkDirective, RouterLink, ConfirmActionComponent, InlineButtonComponent, ReactiveFormsModule, PluginFormComponent, LoadingComponent]
 })
-export class PluginComponent implements OnInit {
-  @HostBinding('class') css = 'plugin list-item';
+export class PluginComponent implements OnChanges, HasChanges {
+  css = 'plugin list-item';
   @HostBinding('attr.tabindex') tabIndex = 0;
+
+  @ViewChildren('action')
+  actionComponents?: QueryList<ActionComponent>;
 
   @Input()
   plugin!: Plugin;
@@ -30,25 +42,30 @@ export class PluginComponent implements OnInit {
   submitted = false;
   editing = false;
   viewSource = false;
-  deleting = false;
   @HostBinding('class.deleted')
   deleted = false;
   serverError: string[] = [];
   configErrors: string[] = [];
   defaultsErrors: string[] = [];
   schemaErrors: string[] = [];
+  saving?: Subscription;
 
   constructor(
+    private mod: ModService,
     public admin: AdminService,
     public store: Store,
     private plugins: PluginService,
     private fb: UntypedFormBuilder,
-    private router: Router,
   ) {
     this.editForm = pluginForm(fb);
   }
 
-  ngOnInit(): void {
+  saveChanges() {
+    return !this.editing || !this.editForm.dirty;
+  }
+
+  init(): void {
+    this.actionComponents?.forEach(c => c.reset());
     this.editForm.patchValue({
       ...this.plugin,
       config: this.plugin.config ? JSON.stringify(this.plugin.config, null, 2) : undefined,
@@ -57,12 +74,34 @@ export class PluginComponent implements OnInit {
     });
   }
 
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes.plugin) {
+      this.init();
+    }
+  }
+
+  @HostBinding('class')
+  get pluginClass() {
+    return this.css + ' ' + this.plugin.tag
+      .replace(/[+_]/g, '')
+      .replace(/\//g, '_')
+      .replace(/\./g, '-');
+  }
+
+  get created() {
+    return !!this.plugin.modified;
+  }
+
   get qualifiedTag() {
-    return this.plugin.tag + this.plugin.origin;
+    return this.plugin.tag + this.origin;
+  }
+
+  get origin() {
+    return this.plugin.origin || '';
   }
 
   get local() {
-    return this.plugin.origin === this.store.account.origin;
+    return this.origin === this.store.account.origin;
   }
 
   save() {
@@ -98,30 +137,27 @@ export class PluginComponent implements OnInit {
       this.schemaErrors.push(e.message);
     }
     if (this.configErrors.length || this.defaultsErrors.length || this.schemaErrors.length) return;
-    this.plugins.update(plugin).pipe(
-      switchMap(() => this.plugins.get(this.plugin.tag + this.plugin.origin)),
+    this.saving = this.plugins.update(plugin).pipe(
+      switchMap(() => this.plugins.get(this.qualifiedTag)),
       catchError((err: HttpErrorResponse) => {
+        delete this.saving;
         this.serverError = printError(err);
         return throwError(() => err);
       }),
     ).subscribe(tag => {
+      delete this.saving;
+      this.editForm.reset();
       this.serverError = [];
       this.editing = false;
       this.plugin = tag;
     });
   }
 
-  copy() {
-    this.catchError(this.plugins.create({
+  copy$ = () => {
+    return this.plugins.create({
       ...this.plugin,
       origin: this.store.account.origin,
-    })).subscribe(() => {
-      this.router.navigate(['/tag', this.plugin.tag]);
-    });
-  }
-
-  catchError(o: Observable<any>) {
-    return o.pipe(
+    }).pipe(
       catchError((err: HttpErrorResponse) => {
         this.serverError = printError(err);
         return throwError(() => err);
@@ -129,25 +165,28 @@ export class PluginComponent implements OnInit {
     );
   }
 
-  delete() {
-    const deleteNotice = !this.plugin.tag.endsWith('/deleted') && this.admin.getPlugin('plugin/delete')
+  delete$ = () => {
+    const deleteNotice = !isDeletorTag(this.plugin.tag) && this.admin.getPlugin('plugin/delete')
       ? this.plugins.create(tagDeleteNotice(this.plugin))
       : of(null);
     return this.plugins.delete(this.qualifiedTag).pipe(
-      tap(() => this.deleted = true),
       switchMap(() => deleteNotice),
+      tap(() => {
+        this.serverError = [];
+        this.deleted = true;
+      }),
       catchError((err: HttpErrorResponse) => {
         this.serverError = printError(err);
         return throwError(() => err);
       }),
-    ).subscribe(() => {
-      this.serverError = [];
-      this.deleting = false;
-      this.deleted = true;
-    });
+    );
   }
 
-  download() {
+  download = () => {
     downloadTag(writePlugin(this.plugin));
+  }
+
+  export() {
+    downloadPluginExport(this.plugin, this.mod.exportHtml(this.plugin));
   }
 }

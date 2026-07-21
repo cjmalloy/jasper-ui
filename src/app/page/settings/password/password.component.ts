@@ -1,7 +1,7 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnInit } from '@angular/core';
-import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
+import { Router } from '@angular/router';
 import { catchError, throwError } from 'rxjs';
 import { AdminService } from '../../../service/admin.service';
 import { ProfileService } from '../../../service/api/profile.service';
@@ -12,9 +12,11 @@ import { printError } from '../../../util/http';
 @Component({
   selector: 'app-settings-password-page',
   templateUrl: './password.component.html',
-  styleUrls: ['./password.component.scss']
+  styleUrls: ['./password.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [ReactiveFormsModule]
 })
-export class SettingsPasswordPage implements OnInit {
+export class SettingsPasswordPage {
 
   submitted = false;
   passwordForm!: UntypedFormGroup;
@@ -23,7 +25,6 @@ export class SettingsPasswordPage implements OnInit {
   constructor(
     public admin: AdminService,
     private router: Router,
-    private route: ActivatedRoute,
     private store: Store,
     private profiles: ProfileService,
     private fb: UntypedFormBuilder,
@@ -31,9 +32,6 @@ export class SettingsPasswordPage implements OnInit {
     this.passwordForm = fb.group({
       password: [''],
     });
-  }
-
-  ngOnInit(): void {
   }
 
   get password() {

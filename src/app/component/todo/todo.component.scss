@@ -7,18 +7,18 @@
   input {
     margin: 8px;
     width: calc(100% - 24px);
-    height: 24px;
+    height: 30px;
   }
 
   .spacer {
     min-height: 4px;
   }
 
-  &:hover, &:focus-within {
+  &.empty, &:hover, &:focus-within {
     padding-bottom: 4px;
   }
 
-  &:hover input, input:focus {
+  &.empty input, &:hover input, input:focus {
     display: block !important;
   }
 

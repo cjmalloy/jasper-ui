@@ -1,8 +1,12 @@
-import { HttpClientTestingModule } from '@angular/common/http/testing';
+/// <reference types="vitest/globals" />
+import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { forwardRef } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
-import { RouterTestingModule } from '@angular/router/testing';
+import { provideRouter } from '@angular/router';
 
+import { ExtService } from '../../service/api/ext.service';
 import { ExtComponent } from './ext.component';
 
 describe('ExtComponent', () => {
@@ -11,19 +15,27 @@ describe('ExtComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ ExtComponent ],
       imports: [
-        HttpClientTestingModule,
-        RouterTestingModule,
         ReactiveFormsModule,
+        forwardRef(() => ExtComponent),
       ],
-    })
-    .compileComponents();
+      providers: [
+        provideHttpClient(withXhr(), withInterceptorsFromDi()),
+        provideHttpClientTesting(),
+        provideRouter([]),
+      ]
+    }).compileComponents();
 
     fixture = TestBed.createComponent(ExtComponent);
     component = fixture.componentInstance;
     component.ext = { tag: 'ext' };
     fixture.detectChanges();
+  });
+
+  afterEach(() => {
+    const extService = TestBed.inject(ExtService);
+    clearTimeout(extService['_batchTimer']);
+    fixture.destroy();
   });
 
   it('should create', () => {

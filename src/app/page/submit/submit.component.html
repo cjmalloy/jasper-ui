@@ -1,45 +1,48 @@
 <ng-container *mobxAutorun>
   <app-tabs>
     <a class="logo" routerLink="/"></a>
-    <h5 class="fake-link" routerLink="." i18n>
+    <h5 routerLink="." i18n>
       Submit
-      <span *ngIf="selectedPlugin">{{ selectedPlugin.name || selectedPlugin.config?.submit || selectedPlugin.tag }}</span>
+      @if (selectedPlugin) {
+        <span>{{ selectedPlugin.name || selectedPlugin.tag }}</span>
+      }
     </h5>
     <a routerLink="/submit"
        [class.current-tab]="store.submit.web && !store.submit.genId"
        [queryParams]="{ url: url.value, tag: store.submit.withoutGenId }"
        [replaceUrl]="true"
-       i18n-title title="📝️ Link Post"
+       i18n-title title="🔗️ Link Post"
        queryParamsHandling="merge" i18n>link</a>
     <a routerLink="/submit/text"
        [class.current-tab]="store.submit.text"
        [queryParams]="{ url: null, tag: store.submit.withoutGenId }"
        i18n-title title="📝️ Text Post"
        queryParamsHandling="merge" i18n>text</a>
-    <a class="fake-link"
-       routerLink="/submit/upload"
+    <a routerLink="/submit/upload"
        [class.current-tab]="store.submit.upload"
+       [queryParams]="{ to: null, url: null }"
        i18n-title title="💾️ Upload"
        queryParamsHandling="merge" i18n>upload</a>
-    <ng-container *ngIf="!admin.isWikiExternal()">
+    @if (!admin.isWikiExternal()) {
       <a routerLink="/submit"
          [class.current-tab]="store.submit.wiki"
          [queryParams]="{ url: wikify, tag: store.submit.withoutGenId }"
          [replaceUrl]="true"
          i18n-title title="📔️ Wiki Page"
          queryParamsHandling="merge" i18n>wiki</a>
-    </ng-container>
-    <a routerLink="/submit/dm"
-       *ngIf="admin.getTemplate('dm')"
-       [class.current-tab]="store.submit.subpage === 'dm' && !store.submit.dmPlugin"
-       [queryParams]="{ to: null, tag: null }"
-       i18n-title title="📨️ Direct Message"
-       queryParamsHandling="merge" i18n>dm</a>
-    @for (p of store.submit.submitGenId; track p) {
+    }
+    @if (admin.getTemplate('dm')) {
+      <a routerLink="/submit/dm"
+         [class.current-tab]="store.submit.subpage === 'dm' && !store.submit.dmPlugin"
+         [queryParams]="{ to: null, tag: null, url: null }"
+         i18n-title title="📨️ Direct Message"
+         queryParamsHandling="merge" i18n>dm</a>
+    }
+    @for (p of store.submit.submitGenId; track p.tag) {
       @if (p.config?.submitDm) {
         <a routerLink="/submit/dm"
            [class.current-tab]="store.submit.subpage === 'dm' && store.submit.to[0] === p.tag"
-           [queryParams]="{ to: p.tag, tag: null }"
+           [queryParams]="{ to: p.tag, tag: null, url: null }"
            [replaceUrl]="true"
            [title]="p.name"
            queryParamsHandling="merge">{{ p.config!.submit }}</a>
@@ -62,73 +65,150 @@
   </app-tabs>
   <router-outlet></router-outlet>
 
-  <div class="full-page-form" *ngIf="!store.submit.subpage">
-    <form class="form" [formGroup]="submitForm" (ngSubmit)="submit()">
+  @if (!store.submit.subpage) {
+    <div class="full-page-form">
+      <form class="form" [formGroup]="submitForm" (ngSubmit)="submit()">
+        @if (!store.submit.wiki && selectedPlugin) {
+          <span i18n>Type:</span>
+          <div>
+            <span>{{ selectedPlugin.name || selectedPlugin.tag }}</span>
+            @if (selectedPlugin.config?.description) {
+              <p class="description">
+                {{ selectedPlugin.config!.description }}
+              </p>
+            }
+          </div>
+        }
+        @if (store.submit.wiki) {
+          <span i18n>Type:</span>
+          <div>
+            <span i18n>Wiki</span>
+            <p class="description" i18n>
+              Create a text post that can be linked to via double bracket [[Wiki]] style.
+            </p>
+          </div>
+        }
 
-      <ng-container *ngIf="!store.submit.wiki && selectedPlugin">
-        <span i18n>Type:</span>
-        <div>
-          <span>{{ selectedPlugin.name || selectedPlugin.config?.submit || selectedPlugin.tag }}</span>
-          <p *ngIf="selectedPlugin.config?.description" class="description">
-            {{ selectedPlugin.config!.description }}
-          </p>
+        @if (store.submit.wiki) {
+          <label for="url" class="big">Title:</label>
+        } @else {
+          <label for="url" class="big"></label>
+        }
+        <div class="form-array">
+          @if (store.submit.web) {
+            <app-select-plugin [(plugin)]="plugin"
+                               [settings]="!!admin.getPluginSettings(store.submit.tags).length"></app-select-plugin>
+          }
+          @if (uploading) {
+            <progress class="grow" max="100" [value]="progress"></progress>
+          } @else {
+            <datalist [id]="listId">
+              @for (o of autocomplete; track o.value) {
+                <option [value]="o.value">{{ o.label }}</option>
+              }
+            </datalist>
+            <input id="url"
+                   [placeholder]="placeholder"
+                   class="big"
+                   type="text"
+                   size="1"
+                   autocomplete="off"
+                   [attr.list]="listId"
+                   formControlName="url"
+                   appAutofocus
+                   (input)="search(url.value)"
+                   (paste)="getUrlPlugin()">
+          }
+          @if (!store.submit.wiki) {
+            @if ((!plugin || plugin === 'plugin/qr') && admin.getPlugin('plugin/qr')) {
+              <app-qr-scanner [upload]="plugin === 'plugin/qr'" (data)="scanQr($event)"></app-qr-scanner>
+            }
+            @if (admin.getPlugin('plugin/file')) {
+              @switch (plugin) {
+                @case (  'plugin/pdf') { <app-pdf-upload   (data)="onUpload($event)"></app-pdf-upload> }
+                @case ('plugin/audio') { <app-audio-upload (data)="onUpload($event)"></app-audio-upload> }
+                @case ('plugin/video') { <app-video-upload (data)="onUpload($event)"></app-video-upload> }
+                @case ('plugin/image') { <app-image-upload (data)="onUpload($event)"></app-image-upload> }
+              }
+            }
+          }
         </div>
-      </ng-container>
 
-      <ng-container *ngIf="store.submit.wiki">
-        <span i18n>Type:</span>
-        <div>
-          <span i18n>Wiki</span>
-          <p class="description" i18n>
-            Create a text post that can be linked to via double bracket [[Wiki]] style.
-          </p>
+        @for (e of serverErrors; track e) {
+          <span><!-- Unexpected Error --></span>
+          <div class="error">{{ e }}</div>
+        }
+
+        <span><!-- Tags --></span>
+        <div class="tag-list form-array right">
+          @for (p of store.submit.tags | tagPreview | async; track p.tag) {
+            <a class="tag" [routerLink]="['/tag', p.tag]">{{ p.name || '#' + p.tag }}</a>
+          }
         </div>
-      </ng-container>
 
-      <label for="url" class="big" *ngIf="!store.submit.wiki"></label>
-      <label for="url" class="big" *ngIf="store.submit.wiki">Title:</label>
-      <div class="form-array">
-        <app-select-plugin *ngIf="store.submit.web" [(plugin)]="plugin"></app-select-plugin>
-        <input id="url"
-               [placeholder]="placeholder"
-               class="big"
-               type="text"
-               size="1"
-               autocomplete="off"
-               formControlName="url"
-               appAutofocus>
-        <app-qr-scanner *ngIf="admin.getPlugin('plugin/qr') && !store.submit.wiki" (data)="scanQr($event)"></app-qr-scanner>
+        @if (!uploading) {
+          @if (existingRef) {
+            <br>
+            <app-ref [ref]="existingRef" [showToggle]="true"></app-ref>
+          }
+
+          <br>
+          <div class="validations">
+            @for (v of validations; track v.name) {
+              @if (v.passed) {
+                <div>✅️ &nbsp;{{ v.name }}</div>
+              } @else {
+                <div>❌️ &nbsp;{{ v.name }}</div>
+              }
+            }
+          </div>
+
+          <span><!-- Buttons --></span>
+          <span class="buttons right">
+            <button type="submit" [disabled]="!submitForm.valid && !existingRef"
+                    i18n-title title="Submit link"
+                    i18n>@if (repost) { Repost } @else { Next }</button>
+          </span>
+
+          @if (responsesToUrl.content.length > 0) {
+            <span><!-- Title --></span>
+            <span i18n>Existing Responses:</span>
+
+            <span><!-- Existing responses --></span>
+            <div class="list-container">
+              @for (ref of responsesToUrl.content; track ref.url; let i = $index) {
+                <div class="list-number">{{ i + 1 }}</div>
+                <app-ref [ref]="ref" [showToggle]="true"></app-ref>
+              }
+            </div>
+            @if (responsesToUrl.page.totalPages > 1) {
+              <span><!-- show more --></span>
+              <a [routerLink]="['/ref', url.value, 'responses']"
+                 class="load-more no-select" i18n>
+                see all
+              </a>
+            }
+          }
+        }
+      </form>
+
+      <span></span>
+      <div class="summary-box" [class.hidden-without-removing]="!store.submit.refs.length">
+        <h5 routerLink="./responses" i18n>Unsaved:</h5>
+        <div class="list-container">
+          @for (ref of store.submit.topRefs; track ref.url; let i = $index) {
+            <div class="list-number">{{ i + 1 }}</div>
+            <app-ref [ref]="ref" [showToggle]="true"></app-ref>
+          }
+        </div>
+        @if (store.submit.refs.length > store.submit.topRefs.length) {
+          <a routerLink="./submit/upload"
+             queryParamsHandling="merge"
+             class="load-more no-select" i18n>
+            more unsaved
+          </a>
+        }
       </div>
-
-      <ng-container *ngFor="let e of serverErrors">
-        <span><!-- Unexpected Error --></span>
-        <div class="error">{{ e }}</div>
-      </ng-container>
-
-      <span><!-- Tags --></span>
-      <div class="form-array right">
-        <span *ngFor="let tag of store.submit.tags | plugins">{{ tag }}</span>
-      </div>
-
-      <br>
-      <div class="validations">
-        <ng-container *ngFor="let v of validations">
-          <div *ngIf="v.passed">✅️ &nbsp;{{ v.name }}</div>
-          <div *ngIf="!v.passed">❌️ &nbsp;{{ v.name }}</div>
-        </ng-container>
-      </div>
-
-      <span><!-- Buttons --></span>
-      <span class="buttons form-array right">
-        <button type="submit" [disabled]="!submitForm.valid"
-                i18n-title title="Submit link"
-                i18n>Next</button>
-      </span>
-    </form>
-
-    <ng-container *ngIf="existingRef">
-      <br>
-      <app-ref [ref]="existingRef" [showToggle]="true"></app-ref>
-    </ng-container>
-  </div>
+    </div>
+  }
 </ng-container>

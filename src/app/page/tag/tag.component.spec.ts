@@ -1,7 +1,9 @@
-import { HttpClientTestingModule } from '@angular/common/http/testing';
+/// <reference types="vitest/globals" />
+import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { forwardRef } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { RouterTestingModule } from '@angular/router/testing';
-import { OAuthService, OAuthStorage } from 'angular-oauth2-oidc';
+import { provideRouter } from '@angular/router';
 
 import { TagPage } from './tag.component';
 
@@ -11,20 +13,14 @@ describe('TagPage', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ TagPage ],
-      imports: [
-        HttpClientTestingModule,
-        RouterTestingModule,
-      ],
+      imports: [forwardRef(() => TagPage)],
       providers: [
-        { provide: OAuthService, useValue: {} },
-        { provide: OAuthStorage, useValue: {} },
+        provideHttpClient(withXhr(), withInterceptorsFromDi()),
+        provideHttpClientTesting(),
+        provideRouter([]),
       ],
-    })
-    .compileComponents();
-  });
+    }).compileComponents();
 
-  beforeEach(() => {
     fixture = TestBed.createComponent(TagPage);
     component = fixture.componentInstance;
     fixture.detectChanges();

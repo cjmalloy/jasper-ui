@@ -1,11 +1,16 @@
-import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, forwardRef, Input, OnChanges, SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
 import { Ref } from '../../model/ref';
 import { RefService } from '../../service/api/ref.service';
+import { ViewerComponent } from '../viewer/viewer.component';
 
 @Component({
   selector: 'app-playlist',
   templateUrl: './playlist.component.html',
-  styleUrls: ['./playlist.component.scss']
+  styleUrls: ['./playlist.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [
+    forwardRef(() => ViewerComponent),
+  ],
 })
 export class PlaylistComponent implements OnChanges {
 

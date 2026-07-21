@@ -1,91 +1,144 @@
 @if (ref || tags) {
-  <app-ref *ngIf="repost"
-           class="expand"
-           [fetchRepost]="false"
-           [showToggle]="true"
-           [expandInline]="true"
-           [ref]="repost"></app-ref>
-  <app-playlist *ngIf="playlist"
-                [ref]="ref"></app-playlist>
-  <app-lens *ngIf="page"
-            [page]="page"
-            [pageControls]="false"
-            [tag]="lensQuery"
-            [ext]="ext"
-            [size]="lensSize"
-            [cols]="lensCols"
-            [sort]="lensSort"
-            [filter]="lensFilter"
-            [search]="lensSearch"></app-lens>
-  <div *ngIf="currentTags.includes('plugin/embed')"
-       class="embed-container"
-       [class.twitter]="twitter">
-    <app-loading *ngIf="!embedReady"></app-loading>
-    <iframe #iframe
-            class="embed-expand"
-            [class.ready]="embedReady"
+  @if (repost) {
+    <app-ref class="expand"
+             [fetchRepost]="false"
+             [showToggle]="true"
+             [expandInline]="true"
+             [ref]="repost"></app-ref>
+  }
+  @if (editingRef) {
+    <app-ref class="expand"
+             [fetchRepost]="false"
+             [showToggle]="true"
+             [expandInline]="true"
+             [ref]="editingRef"></app-ref>
+  }
+  @if (playlist) {
+    <app-playlist [ref]="ref"></app-playlist>
+  }
+  @if (lens) {
+    @if (lensPage) {
+      <app-lens class="lens-expand"
+                [page]="lensPage"
+                [pageControls]="false"
+                [tag]="lensQuery"
+                [ext]="ext"
+                [size]="lensSize"
+                [cols]="lensCols"
+                [sort]="lensSort"
+                [filter]="lensFilter"
+                [search]="lensSearch"></app-lens>
+    } @else {
+      <app-loading></app-loading>
+    }
+  }
+  @if (embedIframe) {
+    <div class="embed-container"
+         [class.loading]="!embedReady"
+         [class.twitter]="twitter"
+         [class.zoom]="zoom"
+         [appResizeHandle]="resizable && !disableResize && !fullscreen"
+         [child]="iframe">
+      <iframe #iframe
+              class="embed-expand"
+              [class.ready]="embedReady"
+              src="about:blank"
+              frameborder="0"
+              scrolling="yes"
+              allow="fullscreen; accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share;"
+              referrerpolicy="strict-origin-when-cross-origin"></iframe>
+    </div>
+  }
+  @if (imageUrl) {
+    <div class="image-expand"
+         [appImage]="imageUrl"
+         [ref]="ref"
+         [defaultWidth]="ref?.plugins?.['plugin/image']?.width"
+         [defaultHeight]="ref?.plugins?.['plugin/image']?.height"
+         [grid]="disableResize"
+         [appResize]="!disableResize"></div>
+  }
+  @if (videoUrl) {
+    <video #video
+           class="video-expand"
+           [autoplay]="autoplay"
+           controls
+           [appResize]="!disableResize">
+      <source [src]="videoUrl">
+    </video>
+  }
+  @if (audioUrl) {
+    <audio #audio
+           class="no-resize audio-expand"
+           [autoplay]="autoplay"
+           controls>
+      <source [src]="audioUrl">
+    </audio>
+  }
+  @if (qrUrl) {
+    <app-qr class="zoom qr-expand"
+            [url]="qrUrl"
+            [appResize]="!disableResize"></app-qr>
+  }
+  @if (todo) {
+    <app-todo class="zoom"
+              [ref]="ref"
+              [text]="text"
+              [tags]="tags"
+              (comment)="comment.emit($event)"
+              (copied)="copied.emit($event)"></app-todo>
+  }
+  @if (backgammon) {
+    <app-backgammon class="no-resize"
+                    [ref]="ref"
+                    [text]="text"
+                    (comment)="comment.emit($event)"
+                    (copied)="copied.emit($event)"></app-backgammon>
+  }
+  @if (chess) {
+    <app-chess class="no-resize"
+               [white]="chessWhite"
+               [ref]="ref"
+               [text]="text"
+               (comment)="comment.emit($event)"
+               (copied)="copied.emit($event)"></app-chess>
+  }
+}
+@if (code) {
+  <app-md class="code md-container"
+          [origin]="currentOrigin"
+          [text]="currentCode"
+          [mermaid]="false"
+          [clipboard]="false"></app-md>
+} @else if (currentText) {
+  <app-md class="zoom md-container"
+          [class.expand]="expand"
+          [origin]="currentOrigin"
+          [text]="currentText"
+          [plugins]="currentTags"></app-md>
+}
+@if (pdfUrl) {
+  <div class="embed-container"
+       [appResizeHandle]="!disableResize && !fullscreen"
+       [child]="pdfIframe">
+    <iframe #pdfIframe
+            class="embed-expand ready"
             src="about:blank"
             frameborder="0"
             scrolling="yes"
-            allow="fullscreen; accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowfullscreen></iframe>
+            allow="fullscreen; accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share;"
+            referrerpolicy="strict-origin-when-cross-origin"></iframe>
   </div>
-  <div *ngIf="imageUrl"
-       class="image-expand"
-       [appImageDim]="imageUrl"
-       [defaultWidth]="ref?.plugins?.['plugin/image']?.width"
-       [defaultHeight]="ref?.plugins?.['plugin/image']?.height"
-       [grid]="disableResize"
-       [appResize]="!disableResize"></div>
-  <video *ngIf="videoUrl"
-         #video
-         class="video-expand"
-         autoplay
-         controls
-         [appResize]="!disableResize">
-    <source [src]="videoUrl">
-  </video>
-  <audio *ngIf="audioUrl"
-         class="audio-expand"
-         autoplay
-         controls>
-    <source [src]="audioUrl">
-  </audio>
-  <app-qr *ngIf="qrUrl"
-          class="qr-expand"
-          [url]="qrUrl"
-          [appResize]="!disableResize"></app-qr>
-  <app-todo *ngIf="todo"
-            [ref]="ref"
-            [text]="text"
-            [tags]="tags"
-            (comment)="comment.emit($event)"
-            (copied)="copied.emit($event)"></app-todo>
-  <app-backgammon *ngIf="backgammon"
-                  [ref]="ref"
-                  [text]="text"
-                  (comment)="comment.emit($event)"
-                  (copied)="copied.emit($event)"></app-backgammon>
-  <app-chess *ngIf="chess"
-             [white]="chessWhite"
-             [ref]="ref"
-             [text]="text"
-             (comment)="comment.emit($event)"
-             (copied)="copied.emit($event)"></app-chess>
 }
-<app-md *ngIf="currentText"
-        [class.expand]="expand"
-        [origin]="origin || ref?.origin || ''"
-        [text]="currentText"
-        [plugins]="currentTags"></app-md>
-<embed *ngIf="pdfUrl"
-       type="application/pdf"
-       [src]="pdfUrl | safe"
-       [style.width]="embedWidth"
-       [style.height]="embedHeight">
-<ng-container *ngFor="let ui of uis">
-  <app-md [class]="uiCss(ui.tag)"
+@for (ui of uis; track ui.tag) {
+  <app-md class="zoom md-container"
+          [class]="uiCss(ui.tag)"
           [disableSanitizer]="true"
-          [origin]="origin || ref?.origin || ''"
+          [origin]="currentOrigin"
           [text]="uiMarkdown(ui.tag)"></app-md>
-</ng-container>
+}
+@if (mod) {
+  <app-mod class="zoom md-container"
+           [mod]="mod"
+           [class.expand]="expand"></app-mod>
+}

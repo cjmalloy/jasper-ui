@@ -1,10 +1,11 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { catchError, map, Observable, of } from 'rxjs';
+import { catchError, map, Observable } from 'rxjs';
 import { mapPage, Page } from '../../model/page';
 import { TagPageArgs } from '../../model/tag';
 import { mapTemplate, Template, writeTemplate } from '../../model/template';
 import { params } from '../../util/http';
+import { OpPatch } from '../../util/json-patch';
 import { ConfigService } from '../config.service';
 import { LoginService } from '../login.service';
 
@@ -40,17 +41,6 @@ export class TemplateService {
     );
   }
 
-  exists(tag: string): Observable<boolean> {
-    if (tag.startsWith('/')) tag = tag.substring(1);
-    return this.http.head(this.base, {
-      params: { tag },
-    }).pipe(
-      map(() => true),
-      catchError(err => this.login.handleHttpError(err)),
-      catchError(() => of(false)),
-    );
-  }
-
   page(args?: TagPageArgs): Observable<Page<Template>> {
     return this.http.get(`${this.base}/page`, {
       params: params(args),
@@ -62,6 +52,24 @@ export class TemplateService {
 
   update(template: Template): Observable<void> {
     return this.http.put<void>(this.base, writeTemplate(template)).pipe(
+      catchError(err => this.login.handleHttpError(err)),
+    );
+  }
+
+  patch(tag: string, cursor: string, patch: OpPatch[]): Observable<string> {
+    return this.http.patch<string>(this.base, patch, {
+      headers: { 'Content-Type': 'application/json-patch+json' },
+      params: params({ tag, cursor }),
+    }).pipe(
+      catchError(err => this.login.handleHttpError(err)),
+    );
+  }
+
+  merge(tag: string, cursor: string, patch: Partial<Template>): Observable<string> {
+    return this.http.patch<string>(this.base, patch, {
+      headers: { 'Content-Type': 'application/merge-patch+json' },
+      params: params({ tag, cursor }),
+    }).pipe(
       catchError(err => this.login.handleHttpError(err)),
     );
   }

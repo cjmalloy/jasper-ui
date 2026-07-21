@@ -1,18 +1,19 @@
+/// <reference types="vitest/globals" />
 import { TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 
 import { BookmarkService } from './bookmark.service';
-import { RouterTestingModule } from '@angular/router/testing';
-import { HttpClientTestingModule } from '@angular/common/http/testing';
 
 describe('BookmarkService', () => {
   let service: BookmarkService;
 
-  beforeEach(() => {
-    TestBed.configureTestingModule({
-      imports: [
-        RouterTestingModule,
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      providers: [
+        provideRouter([]),
       ],
-    });
+    }).compileComponents();
+
     service = TestBed.inject(BookmarkService);
   });
 

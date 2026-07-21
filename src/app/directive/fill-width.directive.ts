@@ -2,9 +2,7 @@ import { AfterViewInit, Directive, ElementRef, HostListener, Input, OnDestroy } 
 import { throttle } from 'lodash-es';
 import { ConfigService } from '../service/config.service';
 
-@Directive({
-  selector: '[appFillWidth]'
-})
+@Directive({ selector: '[appFillWidth]' })
 export class FillWidthDirective implements OnDestroy, AfterViewInit {
 
   @Input('appFillWidth')

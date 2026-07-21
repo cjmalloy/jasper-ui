@@ -2,13 +2,13 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="referrer" content="no-referrer">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
   <title>JasperUi</title>
   <base href="/">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, interactive-widget=resizes-content">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
-  <link rel="prefetch" href="/assets/jasper-dark.png">
-  <link rel="prefetch" href="/assets/jasper-light.png">
+  <link rel="prefetch" href="assets/jasper-dark.png">
+  <link rel="prefetch" href="assets/jasper-light.png">
   <link rel="manifest" href="manifest.webmanifest">
   <meta name="theme-color" media="(prefers-color-scheme: light)" content="#44b" />
   <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#222" />
@@ -16,16 +16,16 @@
     body.init-theme {
       /* Prevent bright flash while loading */
       background-color: black;
-      background-image: url("/assets/jasper-dark.png");
+      background-image: url("assets/jasper-dark.png");
       background-blend-mode: soft-light;
       background-position: center center;
       background-repeat: no-repeat;
-      animation: fadein 5s ease-in-out;
+      animation: loading 5s ease-in-out;
       animation-iteration-count: infinite;
       height: 100vh;
       overflow: hidden;
     }
-    @keyframes fadein {
+    @keyframes loading {
       from {
         background-color: black;
       }
@@ -43,14 +43,26 @@
   <noscript>Please enable JavaScript to continue using this application.</noscript>
 </body>
 <script>
-  if (navigator.vendor && navigator.vendor.indexOf('Apple') > -1 &&
-    navigator.userAgent &&
-    navigator.userAgent.indexOf('CriOS') < 0 &&
-    navigator.userAgent.indexOf('FxiOS') < 0) {
-    document.body.classList.add('macos');
+  const iPad = navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1;
+  const iOs = navigator.platform && (
+    navigator.platform === 'iPhone' ||
+    navigator.platform === 'iPad' ||
+    navigator.platform === 'iPod');
+  if (iPad || iOs) {
+    document.body.classList.add('ios', 'safari'); // All browsers on iOS run Safari
+  } else {
+    if (navigator.platform && navigator.platform.startsWith('Mac')) {
+      document.body.classList.add('darwin');
+      if (navigator.vendor && navigator.vendor.indexOf('Apple') > -1) {
+        document.body.classList.add('safari');
+      }
+    }
   }
   if (navigator.userAgent && /android/i.test(navigator.userAgent)) {
     document.body.classList.add('android');
+  }
+  if (window.visualViewport) {
+    document.body.style.height = visualViewport.height + 'px';
   }
 </script>
 </html>

@@ -1,12 +1,14 @@
-<a class="fake-link"
-   (click)="editing = !editing">
+<a class="fake-link" (click)="editing = !editing">
   <ng-content></ng-content>
 </a>
-<span *ngIf="editing" class="inline-select">
-  <select #inlineSelect
-          [value]="value"
-          (change)="save(inlineSelect)">
-    <ng-content select="option"></ng-content>
-  </select>&nbsp;
-</span>
-<app-loading *ngIf="acting" [inline]="true"></app-loading>
+@if (editing) {
+  <span class="inline-select">
+    <select #inlineSelect
+            [value]="value"
+            (change)="save(inlineSelect)">
+      <ng-content select="option"></ng-content>
+    </select>&nbsp;
+  </span>
+} @else if (acting) {
+  <app-loading [inline]="true"></app-loading>
+}

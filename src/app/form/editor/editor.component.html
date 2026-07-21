@@ -1,73 +1,174 @@
-
-@if (admin.getTemplate('md.wysiwyg')) {
-  <div #editor
-       appResizeHandle
-       [style.width.px]="500"
-       [appFillWidth]="fillWidth"
-       [padding]="padding"
-       [appAutofocus]="autoFocus"></div>
+@if (addButton && !editing && !currentText) {
+  <button type="button"
+          (click)="addComment()"
+          [title]="addCommentTitle">{{ addCommentLabel }}</button>
 } @else {
-  <div #tw class="text-wrapper">
+  <div class="text-wrapper">
     <div class="toolbar">
       <button type="button"
               (click)="toggleFullscreen()"
               i18n-title title="Fullscreen editor"
               i18n>⛶</button>
-      <button type="button"
-              (click)="toggleHelp()"
-              i18n-title title="Help"
-              i18n>❓️</button>
-      <button type="button"
-              *ngIf="fullscreen || currentText"
-              (click)="toggleStacked()"
-              i18n-title title="Stacked or side by side layout toggle">
-        <span *ngIf="!fullscreen" i18n>📝️</span>
-        <span *ngIf="fullscreen" i18n>/</span>
-      </button>
-      <button type="button"
-              *ngIf="showScrape"
-              (click)="scrape.emit()"
-              i18n-title title="Scrape Webpage" i18n>🪝</button>
-      <button type="button"
-              *ngIf="admin.getTemplate('html.markdown')"
-              (click)="htmlToMarkdown()"
-              i18n-title title="Convert HTML to Markdown" i18n>⬇️</button>
-      <div *ngFor="let plugin of editorPlugins; let i = index" class="editor-plugin">
-        <input type="checkbox"
-               [style.display]="'none'"
-               [id]="id + i"
-               [checked]="tags?.includes(plugin.tag)"
-               (click)="toggleTag(plugin.tag)">
-        <label [for]="id + i"
-               [class.on]="tags?.includes(plugin.tag)"
-               [title]="plugin.name || plugin.tag">{{ plugin.config?.editor }}
-        </label>
-      </div>
+      @if (helpLinks.length) {
+        <button #helpButton
+                type="button"
+                (click)="toggleHelp()"
+                i18n-title title="Help"
+                i18n>❓️</button>
+      }
+      @if (fullscreen) {
+        <button type="button"
+                (click)="toggleStacked()"
+                i18n-title title="Stacked or side by side layout toggle"
+                i18n>/</button>
+      }
+      @if (fullscreen || currentText) {
+        <button type="button"
+                (click)="togglePreview()"
+                i18n-title title="Show preview"
+                i18n>📝️</button>
+      }
+      @for (button of editorPushButtons; track button) {
+        @if (button.event) {
+          @if (button.eventDone && loadingEvents[button.eventDone]) {
+            <app-loading class="event-loading"
+                         [inline]="true"
+                         [title]="button.title || button.label || ''"></app-loading>
+          } @else {
+            <button type="button"
+                    (click)="fireEvent(button)"
+                    [title]="button.title || ''" i18n>{{ button.label }}</button>
+          }
+        } @else if (hasTags) {
+          <button type="button"
+                  (click)="toggleTag(button)"
+                  [title]="button.title || ''" i18n>{{(button._on ? button.labelOn : button.labelOff) || button.label }}</button>
+        }
+      }
+      @if (hasTags) {
+        @for (button of editorRibbons; track button; let i = $index) {
+          <div class="editor-toggle">
+            <input type="checkbox"
+                   [style.display]="'none'"
+                   [id]="'ribbon-' + id + i"
+                   [checked]="button._on"
+                   (click)="toggleTag(button)">
+            <label [for]="'ribbon-' + id + i"
+                   [class.on]="button._on"
+                   [title]="button.title || ''">{{ (button._on ? button.labelOn : button.labelOff) || button.label }}</label>
+          </div>
+        }
+        @if (selectResponseType && responseButtons.length > 1) {
+          <div class="toolbar-toggle toolbar-toggle-{{toggleIndex}}">
+            @for (plugin of responseButtons; track plugin.tag; let i=$index) {
+              <button type="button"
+                      class="response-button"
+                      (click)="setResponse(plugin.tag)"
+                      [class.selected]="toggleIndex === i"
+                      [title]="plugin.name || ''" i18n>{{ plugin.config?.responseButton }}</button>
+            }
+          </div>
+        }
+      }
     </div>
-    <textarea #editor
-              [formControl]="control"
-              (focusin)="editing = true"
-              (input)="setText($any($event).target.value)"
-              (blur)="syncText($any($event).target.value)"
-              [appFillWidth]="fillWidth"
-              [padding]="padding"
-              [appAutofocus]="autoFocus"></textarea>
+    @if (uploads.length) {
+      <div class="upload-progress">
+        <div class="upload-list">
+          @for (upload of uploads; track upload.id) {
+            <div class="upload-item">
+              <div class="upload-filename">{{ upload.name }}</div>
+              <div class="upload-controls">
+                @if (upload.error) {
+                  <span class="upload-error">{{ upload.error }}</span>
+                } @else if (upload.completed) {
+                  <span class="upload-complete">✅️ Complete</span>
+                } @else {
+                  <progress class="upload-progress-bar" max="100" [value]="upload.progress"></progress>
+                  <span class="upload-percentage">{{ upload.progress }}%</span>
+                }
+                @if (!upload.completed && !upload.error) {
+                  <button type="button"
+                          class="upload-cancel"
+                          (click)="cancelUpload(upload)"
+                          i18n-title title="Cancel upload" i18n>&ndash;</button>
+                }
+              </div>
+            </div>
+          }
+        </div>
+        @if (uploads.length > 1) {
+          <div class="upload-actions">
+            <button type="button"
+                    class="upload-cancel-all"
+                    (click)="cancelAllUploads()"
+                    i18n>&ndash; remove all</button>
+          </div>
+        }
+      </div>
+      <app-loading class="upload-loading" [batch]="true"></app-loading>
+    }
+    @if (wysiwygEnabled) {
+      <div #wysiwygEditor
+           [class.dropping]="dropping"
+           (dragenter)="dropping = true"
+           (dragleave)="dragLeave(wysiwygEditor, $any($event.target))"
+           (drop)="drop($event, $event.dataTransfer?.items)"
+           (paste)="drop($event, $event.clipboardData?.items)"
+           [appFillWidth]="fillWidth"
+           [padding]="padding"></div>
+      <textarea #editor
+                class="wysiwyg-source"
+                [id]="id"
+                [formControl]="control"></textarea>
+    } @else {
+      <textarea #editor
+                [disabled]="!!uploads.length"
+                [id]="id"
+                [formControl]="control"
+                (focusin)="editing = true"
+                (pointerup)="onSelect($event)"
+                (select)="onSelect()"
+                (selectionchange)="onSelect()"
+                (input)="setText($any($event).target.value)"
+                (blur)="blurText($any($event).target.value)"
+                (focus)="focusText()"
+                [class.dropping]="dropping"
+                (dragenter)="dropping = true"
+                (dragleave)="dragLeave(editor, $any($event.target))"
+                (drop)="drop($event, $event.dataTransfer?.items)"
+                (paste)="drop($event, $event.clipboardData?.items)"
+                [appFillWidth]="fillWidth"
+                [padding]="padding"
+                [appAutofocus]="autoFocus"></textarea>
+    }
     <div class="floating-toggles">
     </div>
   </div>
-  <app-md *ngIf="preview && (fullscreen || currentText)"
-          class="expand"
-          [origin]="store.account.origin"
-          [text]="currentText"
-          [plugins]="tags"
-          [appLimitWidth]="$any(tw.firstElementChild)"></app-md>
-}
+  @if (preview && (fullscreen || currentText)) {
+    <app-md #md
+            class="expand"
+            [origin]="store.account.origin"
+            [text]="currentText"
+            [plugins]="allTags"
+            [appLimitWidth]="editor"
+            (postProcessMarkdown)="postProcessMarkdown()"
+            (pointerup)="onSelectPreview()"></app-md>
+    <textarea #hiddenMeasure
+              class="measurer"></textarea>
+  }
+  <input #fileUpload
+         type="file"
+         accept="*"
+         (change)="upload(fileUpload.files)"
+         multiple/>
 
-<ng-template #help>
-  <div class="editor-help-popup" (click)="toggleHelp()">
-    <a target="_blank" href="https://jfcere.github.io/ngx-markdown/cheat-sheet">Markdown</a>
-  </div>
-  <div class="editor-help-popup" (click)="toggleHelp()">
-    <a target="_blank" href="https://katex.org/docs/supported.html">LaTeX plugin</a>
-  </div>
-</ng-template>
+  <ng-template #help>
+    <div class="context-menu" (click)="$event.stopPropagation()">
+      @for (link of helpLinks; track link.url) {
+        <div (click)="toggleHelp()">
+          <a target="_blank" rel="noopener noreferrer" [href]="link.url">{{ link.label }}</a>
+        </div>
+      }
+    </div>
+  </ng-template>
+}

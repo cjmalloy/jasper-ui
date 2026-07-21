@@ -1,30 +1,80 @@
 <div class="link">
-  <a [href]="downloadLinkAuth" *ngIf="!inProgress">{{ id }}</a>
-  <span *ngIf="inProgress">{{ id.substring(1) }}</span>
+  @if (!inProgress) {
+    <a [href]="downloadLinkAuth">{{ id }}</a>
+  } @else {
+    <span>{{ id.substring(1) }}</span>
+  }
 </div>
 <div class="stack">
   <div class="info">
-    <span *ngIf="inProgress" i18n>in progress...</span>
+    @if (inProgress) {
+      <span i18n>in progress...</span>
+    } @else if (size) {
+      <span>{{ fileSize }}</span>
+    }
   </div>
   <div class="actions">
     <a [routerLink]="['/ref', downloadLink]" i18n>ref</a>
-    <a *ngIf="store.account.admin && !restoring && !inProgress"
-       class="fake-link"
-       (click)="restoring = true" i18n>restore</a>
-    <span *ngIf="restoring" class="restore-confirm">are you sure?
-      <a class="fake-link" (click)="restore()">yes</a> /
-      <a class="fake-link" (click)="restoring = false" i18n>no</a>
-    </span>
-    <a *ngIf="store.account.admin && !deleting"
-       class="fake-link"
-       (click)="deleting = true" i18n>delete</a>
-    <span *ngIf="deleting" class="delete-confirm" i18n>are you sure?
-      <a class="fake-link" (click)="delete()">yes</a> /
-      <a class="fake-link" (click)="deleting = false">no</a>
-    </span>
+    @if (store.account.admin) {
+      @if (!inProgress) {
+        <app-confirm-action #restoreButton [action]="restore$">restore</app-confirm-action>
+      }
+      <app-confirm-action [action]="delete$">delete</app-confirm-action>
+    }
+
   </div>
 </div>
 
-<ng-container *ngFor="let e of serverError">
+@for (e of serverError; track e) {
   <div class="error">{{ e }}</div>
-</ng-container>
+}
+
+<ng-template #restoreOptions>
+  <div class="popup bubble" (click)="$event.stopPropagation()" [formGroup]="restoreOptionsForm">
+    <div class="form">
+      <label for="restoreCache" i18n>Cache</label>
+      <div>
+        <input id="restoreCache" type="checkbox" formControlName="cache">
+      </div>
+      <label for="restoreRefs" i18n>Refs</label>
+      <div>
+        <input id="restoreRefs" type="checkbox" formControlName="ref">
+      </div>
+      <label for="restoreExts" i18n>Exts</label>
+      <div>
+        <input id="restoreExts" type="checkbox" formControlName="ext">
+      </div>
+      <label for="restoreUsers" i18n>Users</label>
+      <div>
+        <input id="restoreUsers" type="checkbox" formControlName="user">
+      </div>
+      <label for="restorePlugins" i18n>Plugins</label>
+      <div>
+        <input id="restorePlugins" type="checkbox" formControlName="plugin">
+      </div>
+      <label for="restoreTemplates" i18n>Templates</label>
+      <div>
+        <input id="restoreTemplates" type="checkbox" formControlName="template">
+      </div>
+    </div>
+    <hr>
+    <div class="form">
+      <div>
+        <label for="newerThan" i18n>Newer than:</label>
+        <div class="form-array">
+          <input type="datetime-local"
+                 id="newerThan"
+                 step="1"
+                 formControlName="newerThan"
+                 class="grow">
+          <button type="button" (click)="restoreOptionsForm.get('newerThan')!.setValue('')" i18n-title title="Clear" i18n>🆑️</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="buttons right">
+      <button type="button" (click)="cancelRestore()" i18n>cancel</button>
+      <button type="button" (click)="confirmRestore()" i18n>restore</button>
+    </div>
+  </div>
+</ng-template>

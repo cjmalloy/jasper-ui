@@ -1,50 +1,63 @@
 <div class="controls">
-  <ng-container *ngIf="page">
-    <label i18n-title title="pages: {{ page.totalPages }}, results: {{ page.totalElements }}" i18n>more results: </label>
-    <ng-container *ngIf="hasQuery">
+  @if (page) {
+    <label i18n-title title="pages: {{ page.page.totalPages }}, results: {{ page.page.totalElements }}" i18n>more results: </label>
+    @if (hasQuery) {
       <a class="first-page"
          routerLink="./"
-         [class.disabled]="page.first"
+         [class.disabled]="page.page.number === 0"
          [queryParams]="{ pageNumber: store.view.defaultPageNumber ? 0 : null }"
          queryParamsHandling="merge" i18n>first</a>
-      |
-      <a class="prev-page"
-         routerLink="./"
-         routerLinkActive="disabled"
-         [queryParams]="{ pageNumber: prev }"
-         queryParamsHandling="merge" i18n>prev</a>
-      |
-    </ng-container>
+      <span> | </span>
+      @if (showPrev) {
+        <a class="prev-page"
+           routerLink="./"
+           routerLinkActive="disabled"
+           [queryParams]="{ pageNumber: prev }"
+           queryParamsHandling="merge" i18n>prev</a>
+        <span> | </span>
+      }
+    }
     <a class="next-page"
        routerLink="./"
-       [class.disabled]="page.last"
+       [class.disabled]="page.page.number === page.page.totalPages - 1"
        [queryParams]="{ pageNumber: next }"
        (click)="scrollUp()"
        queryParamsHandling="merge" i18n>next</a>
-    |
-    <a class="last-page"
-       *ngIf="showPageLast"
-       routerLink="./"
-       [class.disabled]="page.last"
-       [queryParams]="{ pageNumber: last }"
-       queryParamsHandling="merge" i18n>last</a>
-  </ng-container>
+    <span> | </span>
+    @if (showPageLast) {
+      <a class="last-page"
+         routerLink="./"
+         [class.disabled]="page.page.number === page.page.totalPages - 1"
+         [queryParams]="{ pageNumber: last }"
+         queryParamsHandling="merge" i18n>last</a>
+    }
+  }
 
   <label for="pageSize" i18n> size: </label>
   <select id="pageSize" [(ngModel)]="pageSize">
-    <option *ngIf="outOfPageSizeRange(store.view.pageSize)" [value]="store.view.pageSize">{{ store.view.pageSize }}</option>
-    <option *ngFor="let size of pageSizes" [value]="size">{{ size }}</option>
+    @if (outOfPageSizeRange(store.view.pageSize)) {
+      <option [value]="store.view.pageSize">{{ store.view.pageSize }}</option>
+    }
+    @for (size of pageSizes; track size) {
+      <option [value]="size">{{ size }}</option>
+    }
   </select>
 
-  <ng-container *ngIf="!hideCols && (cols || colsChanged)">
+  @if (!hideCols && (cols || colsChanged)) {
     <label for="cols" i18n> cols: </label>
     <select id="cols" [(ngModel)]="cols">
       <option [value]="0" i18n>default</option>
-      <option *ngIf="outOfColSizeRange(store.view.cols || 1)" [value]="store.view.cols">{{ store.view.cols }}</option>
-      <option *ngFor="let size of colSizes" [value]="size">{{ size }}</option>
+      @if (outOfColSizeRange(store.view.cols || 1)) {
+        <option [value]="store.view.cols">{{ store.view.cols }}</option>
+      }
+      @for (size of colSizes; track size) {
+        <option [value]="size">{{ size }}</option>
+      }
     </select>
-  </ng-container>
+  }
 </div>
-<div *ngIf="page" class="print-view" i18n>
-  Page {{ page.number + 1 }} of {{ page.totalPages }} (size: {{ page.size }})
-</div>
+@if (page) {
+  <div class="print-view" i18n>
+    Page {{ page.page.number + 1 }} of {{ page.page.totalPages }} (size: {{ page.page.size }})
+  </div>
+}

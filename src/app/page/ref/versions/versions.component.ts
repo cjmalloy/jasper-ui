@@ -1,29 +1,42 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { defer } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
+import { MobxAngularModule } from 'mobx-angular';
+import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
+import { HasChanges } from '../../../guard/pending-changes.guard';
 import { AdminService } from '../../../service/admin.service';
-import { ThemeService } from '../../../service/theme.service';
+import { ModService } from '../../../service/mod.service';
 import { QueryStore } from '../../../store/query';
 import { Store } from '../../../store/store';
+import { getTitle } from '../../../util/format';
 import { getArgs } from '../../../util/query';
 
 @Component({
   selector: 'app-ref-versions',
   templateUrl: './versions.component.html',
-  styleUrls: ['./versions.component.scss']
+  styleUrls: ['./versions.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [MobxAngularModule, RefListComponent]
 })
-export class RefVersionsComponent implements OnInit, OnDestroy {
+export class RefVersionsComponent implements OnInit, OnDestroy, HasChanges {
 
   private disposers: IReactionDisposer[] = [];
 
+  @ViewChild('list')
+  list?: RefListComponent;
+
   constructor(
-    private theme: ThemeService,
+    private mod: ModService,
     public admin: AdminService,
     public store: Store,
     public query: QueryStore,
   ) {
     query.clear();
-    runInAction(() => store.view.defaultSort = 'published');
+    runInAction(() => store.view.defaultSort = ['published']);
+  }
+
+  saveChanges() {
+    return !this.list || this.list.saveChanges();
   }
 
   ngOnInit(): void {
@@ -37,15 +50,15 @@ export class RefVersionsComponent implements OnInit, OnDestroy {
         this.store.view.pageSize,
       );
       args.url = this.store.view.url;
-      args.obsolete = true;
+      args.obsolete = this.store.view.ref?.metadata?.obsolete ? null : true;
       defer(() => this.query.setArgs(args));
     }));
-    this.disposers.push(autorun(() => {
-      this.theme.setTitle($localize`Remotes: ` + (this.store.view.ref?.title || this.store.view.url));
-    }));
+    // TODO: set title for bare reposts
+    this.disposers.push(autorun(() => this.mod.setTitle($localize`Remotes: ` + getTitle(this.store.view.ref))));
   }
 
   ngOnDestroy() {
+    this.query.close();
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
   }

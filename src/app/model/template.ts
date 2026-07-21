@@ -1,11 +1,11 @@
+import { Schema } from 'jtd';
+import { DateTime } from 'luxon';
 import { toJS } from 'mobx';
-import * as moment from 'moment';
 import { Ext } from './ext';
-import { Config } from './tag';
+import { Config, TagSort } from './tag';
 import { Roles } from './user';
 
 export interface Template extends Config {
-  type?: 'template';
   config?: Config['config'] & {
     /**
      * Do not render forms from inherited Templates. If unset forms
@@ -17,6 +17,14 @@ export interface Template extends Config {
      */
     view?: string,
     /**
+     * Override the view text used in a tab.
+     */
+    tab?: string,
+    /**
+     * Always use fully qualified tag when creating web links.
+     */
+    local?: boolean,
+    /**
      * This view is available by default, no tagging required.
      */
     global?: boolean;
@@ -24,15 +32,37 @@ export interface Template extends Config {
      * Submit text instead of links by default.
      */
     submitText?: boolean,
+    /**
+     * Add to the sort dropdown.
+     */
+    sorts?: SortConfig[],
   };
+  // Client-only
+  type?: 'template';
 }
+
+export interface SortConfig {
+  sort: TagSort;
+  label: string;
+  title?: string;
+}
+
+export const templateSchema: Schema = {
+  optionalProperties: {
+    tag: { type: 'string' },
+    name: { type: 'string' },
+    config: {},
+    defaults: {},
+    schema: {},
+  }
+};
 
 export function mapTemplate(obj: any): Template {
   obj.type = 'template';
   obj.tag ||= '';
   obj.origin ||= '';
   obj.modifiedString = obj.modified;
-  obj.modified = obj.modified && moment(obj.modified);
+  obj.modified = obj.modified && DateTime.fromISO(obj.modified);
   return obj;
 }
 
@@ -47,6 +77,7 @@ export function writeTemplate(template: Template): Template {
   delete result.type;
   delete result.upload;
   delete result.exists;
+  delete result.outdated;
   delete result.modifiedString;
   delete result.config?._cache;
   return result;
@@ -58,8 +89,10 @@ export interface TemplateScope {
   template: Template;
 }
 
-export function getTemplateScope(account: Roles, template: Template, ext: Ext): TemplateScope {
+export function getTemplateScope(account: Roles, template: Template, ext: Ext, el?: Element, actions?: any): TemplateScope {
   return {
+    el,
+    ...actions || {},
     account: toJS(account),
     ext: toJS(ext),
     template: toJS(template),

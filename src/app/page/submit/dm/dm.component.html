@@ -1,33 +1,44 @@
 <ng-container *mobxAutorun>
   <form class="form" [formGroup]="dmForm" (ngSubmit)="submit()"
-        [appLimitWidth]="fill?.nativeElement" [limitSibling]="true">
-
-    <ng-container *ngIf="!store.submit.dmPlugin">
-      <label for="to">To:</label>
-      <input id="to"
-             placeholder="Myself"
-             [formControl]="to"
-             type="email"
-             autocorrect="off"
-             autocapitalize="none"
-             (keydown)="$event.key === 'Enter' && (bookmarks.to = $any($event.target).value.split(' ')) || true"
-             (blur)="bookmarks.to = $any($event.target).value.split(' ')"
-             [appAutofocus]="!store.submit.to.length">
-
-      <div><!-- Errors --></div>
-      <div>
-        <div class="error" *ngIf="to.touched && to.errors?.['pattern']" i18n>
-          User tags must start with the "+user/" or "_user/" prefix.
-          Notification tags must start with the "plugin/inbox" or "plugin/outbox" prefix.
-          Tags must be lower case letters, numbers, periods and forward slashes.
-          Must not or contain two forward slashes or periods in a row.<br>
-          (i.e. "+user/bob", "plugin/outbox/dictionary/science", or "_user/charlie&#64;jasperkm.info")
-        </div>
-        <div class="warning" *ngIf="to.touched && !to.value" i18n>
-          Message to myself
-        </div>
+        [appLimitWidth]="limitWidth" [limitSibling]="true">
+    @if (!store.submit.dmPlugin) {
+      <label for="to" i18n>To:</label>
+      <div class="form-array skip-margin">
+        <input class="preview grow"
+               type="text"
+               [value]="preview"
+               [title]="toInput.value"
+               [style.display]="preview ? 'block' : 'none'"
+               (focus)="clickPreview(toInput)">
+        <datalist id="to-list">
+          @for (o of autocomplete; track o.value) {
+            <option [value]="o.value">{{ o.label }}</option>
+          }
+        </datalist>
+        <input #toInput
+               id="to"
+               i18n-placeholder placeholder="Myself"
+               [formControl]="to"
+               type="text"
+               inputmode="email"
+               autocorrect="off"
+               autocapitalize="none"
+               list="to-list"
+               [class.hidden-without-removing]="preview"
+               [appAutofocus]="!store.submit.to.length"
+               (input)="search(toInput)"
+               (blur)="blur(toInput)"
+               (focusin)="edit(toInput)"
+               (focus)="edit(toInput)"
+               (focusout)="getPreview(toInput.value)">
       </div>
-    </ng-container>
+      @if (to.touched && !to.value) {
+        <div><!-- Warning --></div>
+        <div>
+            <div class="warning" i18n> Message to myself</div>
+        </div>
+      }
+    }
 
     <label for="title" i18n>Title:</label>
     <input id="title" type="text" [formControl]="title">
@@ -37,41 +48,52 @@
                        [text]="true"
                        i18n-title title="Add Plugin"
                        (pluginChange)="bookmarks.toggleTag($event); pluginSelect.plugin = ''"></app-select-plugin>
-    <app-form-plugins id="plugins"
-                      (togglePlugin)="bookmarks.toggleTag($event)"
-                      [tags]="dmForm.value.tags"
-                      [group]="dmForm"></app-form-plugins>
+    <app-form-plugins id="plugins"[group]="dmForm"></app-form-plugins>
 
-    @if (editingViewer) {
-      <span><!-- Viewer --></span>
-      <app-viewer [text]="dmForm.value.comment"
-                  [tags]="dmForm.value.tags"
-                  (comment)="comment.setValue($event)"></app-viewer>
+    @if (customEditor) {
+      <span><!-- Editor --></span>
+      <div #fill class="fill-editor">
+        <ngx-monaco-editor #ed
+                           [formControl]="comment"
+                           [options]="codeOptions"
+                           [style.width]="'min(900px, 50vw)'"
+                           [style.height]="'min(200px, 90vh)'"
+                           [appFillWidth]="fill"
+                           appResizeHandle
+                           [hitArea]="config.mobile ? 48 : 20"></ngx-monaco-editor>
+      </div>
     } @else {
-      <span i18n>Mesage:</span>
-      <div #fill>
-        <app-editor class="bubble"
+      <label [for]="ed.id" i18n>Message:</label>
+      <div #fill class="fill-editor">
+        <app-editor #ed
+                    class="bubble"
                     [control]="comment"
-                    (focusin)="setDefaultTitle()"
                     [fillWidth]="fill"
                     (syncEditor)="syncEditor()"
-                    (syncTags)="plugins = $event"
-                    [autoFocus]="!!store.submit.to.length"></app-editor>
+                    [tags]="tags"
+                    (syncTags)="setTags($event)"
+                    (addSource)="addSource($event)"
+                    (uploadCompleted)="completedUploads.push($event)"
+                    [autoFocus]="!!store.submit.dmPlugin || !!store.submit.to.length"></app-editor>
       </div>
     }
 
-    <app-tags #tags
-              [group]="dmForm"
-              (syncTags)="syncTags($event)"></app-tags>
+    <app-tags #tagsFormComponent [group]="dmForm"></app-tags>
 
-    <ng-container *ngFor="let e of serverError">
+    @for (e of serverError; track e) {
       <span><!-- Unexpected Error --></span>
       <div class="error">{{ e }}</div>
-    </ng-container>
+    }
 
     <span><!-- Buttons --></span>
-    <span class="buttons form-array right">
-    <button type="submit" [disabled]="submitted && !dmForm.valid" i18n>Send</button>
-  </span>
+    <span class="buttons right">
+      @if (submitting || saving) {
+        <app-loading [inline]="true"></app-loading>
+      }
+      @if (admin.getPlugin('plugin/editing')) {
+        <button type="button" [disabled]="submitting || saving || submitted || dmForm.pristine" (click)="saveForLater(true)" i18n>Save for later</button>
+      }
+      <button type="submit" [disabled]="submitting || (submitted && !dmForm.valid)" i18n>Send</button>
+    </span>
   </form>
 </ng-container>

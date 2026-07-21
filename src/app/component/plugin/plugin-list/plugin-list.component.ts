@@ -1,39 +1,49 @@
-import { Component, HostBinding, Input } from '@angular/core';
+import { Component, Input, QueryList, ViewChildren, ChangeDetectionStrategy } from '@angular/core';
 import { Router } from '@angular/router';
+import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Page } from '../../../model/page';
-import { Tag } from '../../../model/tag';
+import { Plugin } from '../../../model/plugin';
+import { LoadingComponent } from '../../loading/loading.component';
+import { PageControlsComponent } from '../../page-controls/page-controls.component';
+import { PluginComponent } from '../plugin.component';
 
 @Component({
   selector: 'app-plugin-list',
   templateUrl: './plugin-list.component.html',
-  styleUrls: ['./plugin-list.component.scss']
+  styleUrls: ['./plugin-list.component.scss'],
+  host: { 'class': 'plugin-list' },
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [PluginComponent, PageControlsComponent, LoadingComponent]
 })
-export class PluginListComponent {
-  @HostBinding('class') css = 'plugin-list';
+export class PluginListComponent implements HasChanges {
 
-  private _page?: Page<Tag>;
+  @ViewChildren(PluginComponent)
+  list?: QueryList<PluginComponent>;
+
+  private _page?: Page<Plugin>;
 
   constructor(private router: Router) { }
+
+  saveChanges() {
+    return !this.list?.find(p => !p.saveChanges());
+  }
 
   get page() {
     return this._page;
   }
 
   @Input()
-  set page(value: Page<Tag> | undefined) {
+  set page(value: Page<Plugin> | undefined) {
     this._page = value;
     if (this._page) {
-      if (this._page.number > 0 && this._page.number >= this._page.totalPages) {
+      if (this._page.page.number > 0 && this._page.page.number >= this._page.page.totalPages) {
         this.router.navigate([], {
           queryParams: {
-            pageNumber: this._page.totalPages - 1
+            pageNumber: this._page.page.totalPages - 1
           },
           queryParamsHandling: "merge",
         });
       }
     }
-  }
-
-  ngOnInit(): void {
   }
 }

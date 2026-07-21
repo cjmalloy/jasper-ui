@@ -1,11 +1,13 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { defer } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import { catchError, switchMap, throwError } from 'rxjs';
+import { TemplateListComponent } from '../../../component/template/template-list/template-list.component';
+import { HasChanges } from '../../../guard/pending-changes.guard';
 import { mapTemplate, Template } from '../../../model/template';
 import { TemplateService } from '../../../service/api/template.service';
-import { ThemeService } from '../../../service/theme.service';
+import { ModService } from '../../../service/mod.service';
 import { Store } from '../../../store/store';
 import { TemplateStore } from '../../../store/template';
 import { printError } from '../../../util/http';
@@ -16,22 +18,31 @@ import { getModels, getZipOrTextFile } from '../../../util/zip';
   selector: 'app-settings-template-page',
   templateUrl: './template.component.html',
   styleUrls: ['./template.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [TemplateListComponent],
 })
-export class SettingsTemplatePage implements OnInit, OnDestroy {
+export class SettingsTemplatePage implements OnInit, OnDestroy, HasChanges {
 
   serverError: string[] = [];
+
+  @ViewChild('list')
+  list?: TemplateListComponent;
 
   private disposers: IReactionDisposer[] = [];
 
   constructor(
-    private theme: ThemeService,
+    private mod: ModService,
     public store: Store,
     public query: TemplateStore,
     private templates: TemplateService,
   ) {
-    theme.setTitle($localize`Settings: Templates`);
-    store.view.clear('tag', 'tag');
+    mod.setTitle($localize`Settings: Templates`);
+    store.view.clear(['tag:len', 'tag'], ['tag:len', 'tag']);
     query.clear();
+  }
+
+  saveChanges() {
+    return !this.list || this.list.saveChanges();
   }
 
   ngOnInit(): void {
@@ -49,6 +60,7 @@ export class SettingsTemplatePage implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    this.query.close();
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
   }

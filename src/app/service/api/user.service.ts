@@ -5,6 +5,7 @@ import { mapPage, Page } from '../../model/page';
 import { TagPageArgs } from '../../model/tag';
 import { mapUser, Roles, User, writeUser } from '../../model/user';
 import { params } from '../../util/http';
+import { OpPatch } from '../../util/json-patch';
 import { ConfigService } from '../config.service';
 import { LoginService } from '../login.service';
 
@@ -56,6 +57,24 @@ export class UserService {
   keygen(tag: string): Observable<void> {
     return this.http.post<void>(`${this.base}/keygen`, null, {
       params: params({ tag }),
+    }).pipe(
+      catchError(err => this.login.handleHttpError(err)),
+    );
+  }
+
+  patch(tag: string, cursor: string, patch: OpPatch[]): Observable<string> {
+    return this.http.patch<string>(this.base, patch, {
+      headers: { 'Content-Type': 'application/json-patch+json' },
+      params: params({ tag, cursor }),
+    }).pipe(
+      catchError(err => this.login.handleHttpError(err)),
+    );
+  }
+
+  merge(tag: string, cursor: string, patch: Partial<User>): Observable<string> {
+    return this.http.patch<string>(this.base, patch, {
+      headers: { 'Content-Type': 'application/merge-patch+json' },
+      params: params({ tag, cursor }),
     }).pipe(
       catchError(err => this.login.handleHttpError(err)),
     );

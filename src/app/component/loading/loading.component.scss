@@ -14,7 +14,15 @@
     font-size: 20px;
     line-height: 10px;
     padding: 0;
+    margin: 6px;
     top: -2px;
+    animation: fadein 2s ease-in-out;
+    animation-iteration-count: infinite;
+  }
+  &.batch {
+    opacity: 1;
+    animation: rotate 2s linear;
+    animation-iteration-count: infinite;
   }
 }
 
@@ -27,5 +35,14 @@
   }
   to {
     opacity: 0;
+  }
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0);
+  }
+  to {
+    transform: rotate(360deg);
   }
 }

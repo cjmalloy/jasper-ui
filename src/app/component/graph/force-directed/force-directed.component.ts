@@ -1,10 +1,13 @@
 import { Overlay, OverlayRef } from '@angular/cdk/overlay';
+import { FakeLinkDirective } from '../../../directive/fake-link.directive';
 import { TemplatePortal } from '@angular/cdk/portal';
 import {
   AfterViewInit,
   ChangeDetectionStrategy,
+  ChangeDetectorRef,
   Component,
   ElementRef,
+  forwardRef,
   HostListener,
   Input,
   OnDestroy,
@@ -15,28 +18,38 @@ import {
 import * as d3 from 'd3';
 import { ForceLink, ScaleTime, Selection, Simulation, SimulationNodeDatum } from 'd3';
 import { filter } from 'lodash-es';
+import { DateTime, Duration } from 'luxon';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
-import * as moment from 'moment';
+import { MobxAngularModule } from 'mobx-angular';
 import { Observable, of, Subscription } from 'rxjs';
 import { switchMap, tap } from 'rxjs/operators';
+import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Ref, RefNode } from '../../../model/ref';
 import { active, sortOrder } from '../../../model/tag';
 import { AdminService } from '../../../service/admin.service';
 import { GraphService } from '../../../service/api/graph.service';
 import { Store } from '../../../store/store';
-import { isTextPost } from '../../../util/format';
+import { getTitle, isTextPost } from '../../../util/format';
 import { findNode, GraphNode, isGraphable, isInternal, responses, sources } from '../../../util/graph';
-import { getScheme } from '../../../util/hosts';
+import { getScheme } from '../../../util/http';
 import { Point, Rect } from '../../../util/math';
 import { capturesAny, hasTag } from '../../../util/tag';
+import { LoadingComponent } from '../../loading/loading.component';
+import { RefListComponent } from '../../ref/ref-list/ref-list.component';
 
 @Component({
   selector: 'app-force-directed',
   templateUrl: './force-directed.component.html',
   styleUrls: ['./force-directed.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [
+    FakeLinkDirective,
+    forwardRef(() => RefListComponent),
+    MobxAngularModule,
+    LoadingComponent,
+  ],
 })
-export class ForceDirectedComponent implements AfterViewInit, OnDestroy {
+export class ForceDirectedComponent implements AfterViewInit, OnDestroy, HasChanges {
   private disposers: IReactionDisposer[] = [];
 
   @Input()
@@ -89,6 +102,8 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy {
   figure!: ElementRef;
   @ViewChild('nodeMenu')
   nodeMenu!: TemplateRef<any>;
+  @ViewChild('list')
+  list?: RefListComponent;
 
   overlayRef?: OverlayRef;
   sub?: Subscription;
@@ -108,12 +123,12 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy {
     private graphs: GraphService,
     private overlay: Overlay,
     private viewContainerRef: ViewContainerRef,
+    private cd: ChangeDetectorRef,
   ) {
-    this.disposers.push(autorun(() => {
-      this.selectedStroke = store.darkTheme ? this.selectedStrokeDarkTheme : this.selectedStrokeLightTheme;
-      this.linkStroke = store.darkTheme ? this.linkStrokeDarkTheme : this.linkStrokeLightTheme;
-      this.update();
-    }));
+  }
+
+  saveChanges() {
+    return !this.list || this.list.saveChanges();
   }
 
   ngOnDestroy() {
@@ -136,25 +151,32 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy {
             if (this.figure) {
               this.update()
             }
+            this.cd.markForCheck();
           });
         } else if (this.figure) {
           this.update();
         }
+        this.cd.markForCheck();
       });
   }
 
   ngAfterViewInit(): void {
     this.init();
-    this.update();
+    this.disposers.push(autorun(() => {
+      this.selectedStroke = this.store.darkTheme ? this.selectedStrokeDarkTheme : this.selectedStrokeLightTheme;
+      this.linkStroke = this.store.darkTheme ? this.linkStrokeDarkTheme : this.linkStrokeLightTheme;
+      this.update();
+      this.cd.markForCheck();
+    }));
   }
 
-  @HostListener('window:resize', ['$event'])
+  @HostListener('window:resize')
   onResize() {
     this.simulation?.alpha(0.3);
     this.update();
   }
 
-  @HostListener('window:click', ['$event'])
+  @HostListener('window:click')
   onWindowClick() {
     this.close();
   }
@@ -183,6 +205,7 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy {
         this.simulation?.alpha(0.1);
         this.update();
       }
+      this.cd.markForCheck();
     });
   }
 
@@ -286,6 +309,7 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy {
         this.simulation?.alpha(0.1);
         this.update();
       }
+      this.cd.markForCheck();
     });
     this.close();
   }
@@ -296,6 +320,7 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy {
         this.simulation?.alpha(0.1);
         this.update();
       }
+      this.cd.markForCheck();
     });
     this.close();
   }
@@ -308,6 +333,7 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy {
         this.simulation?.alpha(0.1);
         this.update();
       }
+      this.cd.markForCheck();
     });
     this.close();
   }
@@ -350,10 +376,6 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy {
     this.close();
   }
 
-  title(ref: GraphNode) {
-    return (ref.title || '').trim() || ref.url;
-  }
-
   icon(ref: GraphNode) {
     return sortOrder(this.admin.getIcons(ref.tags, ref.plugins, getScheme(ref.url))).filter(i => active(ref, i)).shift()?.label || '';
   }
@@ -376,12 +398,15 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy {
     return this.figure.nativeElement.offsetHeight;
   }
 
+  get viewBox() {
+    return [-this.figWidth / 2, -this.figHeight / 2, this.figWidth, this.figHeight]
+  }
+
   init() {
-    const viewBox = [-this.figWidth / 2, -this.figHeight / 2, this.figWidth, this.figHeight];
     this.svg = d3.select('figure#force-directed-graph').append('svg')
       .attr('width', this.figWidth)
       .attr('height', this.figHeight)
-      .attr('viewBox', viewBox)
+      .attr('viewBox', this.viewBox)
       .attr('style', 'max-width: 100%; height: auto; height: intrinsic;')
       .call(dragSelection() as any);
 
@@ -394,8 +419,8 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy {
       .attr('markerHeight', 6)
       .attr('orient', 'auto')
       .append('path')
-        .attr('fill', this.linkStroke)
-        .attr('d', 'M0,-5L10,0L0,5');
+      .attr('fill', this.linkStroke)
+      .attr('d', 'M0,-5L10,0L0,5');
 
     this.link = this.svg.append('g')
       .attr('stroke-opacity', this.linkStrokeOpacity)
@@ -435,12 +460,12 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy {
 
         this.node!
           .selectAll('g').select('circle')
-            .attr('cx', (d: any) => d.x)
-            .attr('cy', (d: any) => d.y);
+          .attr('cx', (d: any) => d.x)
+          .attr('cy', (d: any) => d.y);
         this.node!
           .selectAll('g').select('text')
-            .attr('x', (d: any) => d.x)
-            .attr('y', (d: any) => d.y);
+          .attr('x', (d: any) => d.x)
+          .attr('y', (d: any) => d.y);
       });
 
     this.dragRect = this.svg.append('g')
@@ -458,10 +483,10 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy {
       return d3.drag()
         .on('start', event => {
           rect = {
-            x1: event.x + viewBox[0],
-            y1: event.y + viewBox[1],
-            x2: event.x + viewBox[0],
-            y2: event.y + viewBox[1],
+            x1: event.x - self.figWidth / 2,
+            y1: event.y - self.figHeight / 2,
+            x2: event.x - self.figWidth / 2,
+            y2: event.y - self.figHeight / 2,
           };
           self.dragRect!
             .style('display', 'inline')
@@ -472,8 +497,8 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy {
             .attr('height', Math.abs(rect.y1 - rect.y2));
         })
         .on('drag', event => {
-          rect.x2 = event.x + viewBox[0];
-          rect.y2 = event.y + viewBox[1];
+          rect.x2 = event.x - self.figWidth / 2;
+          rect.y2 = event.y - self.figHeight / 2;
           self.dragRect!
             .attr('x', Math.min(rect.x1, rect.x2))
             .attr('y', Math.min(rect.y1, rect.y2))
@@ -494,7 +519,7 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy {
     this.svg
       .attr('width', this.figWidth)
       .attr('height', this.figHeight)
-      .attr('viewBox', [-this.figWidth / 2, -this.figHeight / 2, this.figWidth, this.figHeight])
+      .attr('viewBox', this.viewBox)
 
     this.link
       .selectAll('line')
@@ -539,7 +564,7 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy {
             .attr('stroke-width', ref => this.store.graph.selected.includes(ref) ? this.selectedStrokeWidth : this.nodeStrokeOpacity)
             .attr('fill', ref => this.color(ref))
             .select('title')
-              .text(ref => this.title(ref));
+            .text(ref => getTitle(ref));
           update.select('text')
             .text(ref => this.icon(ref));
           return update;
@@ -568,11 +593,11 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy {
     if (this.store.graph.timeline) {
       let minPublished = this.store.graph.minPublished;
       let maxPublished = this.store.graph.maxPublished;
-      const minDiff = moment.duration(1, 'day').asMilliseconds();
+      const minDiff = Duration.fromObject({ day: 1 }).milliseconds;
       if (this.store.graph.publishedDiff < minDiff) {
-        const half = moment((minPublished || maxPublished || moment()).valueOf() / 2 + (maxPublished || minPublished || moment()).valueOf() / 2);
-        minPublished = moment(half).subtract(minDiff / 2);
-        maxPublished = moment(half).add(minDiff / 2);
+        const half = DateTime.fromMillis((minPublished || maxPublished || DateTime.now()).valueOf() / 2 + (maxPublished || minPublished || DateTime.now()).valueOf() / 2);
+        minPublished = half.minus(minDiff / 2);
+        maxPublished = half.plus(minDiff / 2);
       }
       const height = 20;
       const padding = 40;

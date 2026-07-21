@@ -1,18 +1,23 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { delay } from 'lodash-es';
-import { catchError, concat, map, Observable, of, shareReplay, throwError, toArray } from 'rxjs';
+import { catchError, concat, map, Observable, of, shareReplay, Subject, switchMap, takeWhile, timeInterval, toArray } from 'rxjs';
 import { tap } from 'rxjs/operators';
-import { Ext, mapTag, writeExt } from '../../model/ext';
+import { Ext, mapExt, writeExt } from '../../model/ext';
 import { mapPage, Page } from '../../model/page';
-import { TagPageArgs, TagQueryArgs } from '../../model/tag';
+import { latest, TagPageArgs, TagQueryArgs } from '../../model/tag';
 import { Store } from '../../store/store';
 import { params } from '../../util/http';
-import { defaultOrigin, isQuery, localTag, tagOrigin } from '../../util/tag';
+import { OpPatch } from '../../util/json-patch';
+import { hasPrefix, isQuery, localTag, protectedTag, removePrefix, tagOrigin } from '../../util/tag';
 import { ConfigService } from '../config.service';
 import { LoginService } from '../login.service';
+import { StompService } from './stomp.service';
 
 export const EXT_CACHE_MS = 15 * 60 * 1000;
+export const EXT_UPDATE_RATE_LIMIT_MS = 60 * 1000;
+export const EXT_BATCH_THROTTLE_MS = 50;
+export const EXT_BATCH_SIZE = 50;
 
 @Injectable({
   providedIn: 'root',
@@ -20,23 +25,74 @@ export const EXT_CACHE_MS = 15 * 60 * 1000;
 export class ExtService {
 
   private _cache = new Map<string, Observable<Ext>>();
+  private _batchQueue: Array<{ key: string; tag: string; origin?: string; subject: Subject<Ext> }> = [];
+  private _batchTimer?: number;
 
   constructor(
     private http: HttpClient,
     private config: ConfigService,
     private login: LoginService,
     private store: Store,
+    private stomp: StompService,
   ) { }
 
   private get base() {
     return this.config.api + '/api/v1/ext';
   }
 
-  create(ext: Ext, force = false): Observable<string> {
-    return this.http.post<string>(this.base, writeExt(ext), {
-      params: !force ? undefined : { force: true },
-    }).pipe(
-      tap(() => this._cache.delete(ext.tag)),
+  get init$() {
+    return this.loadExts$().pipe(
+      tap(() => this.store.local.loadExt([...this._cache.keys()])),
+      catchError(() => of(null)),
+    );
+  }
+
+  private loadExts$(page = 0): Observable<null> {
+    const alreadyLoaded = page * this.config.fetchBatch;
+    if (alreadyLoaded >= this.config.maxExts) {
+      console.error(`Too many exts to prefetch, only loaded ${alreadyLoaded}. Increase maxExts to load more.`)
+      return of(null);
+    }
+    const prefetch = this.store.local.extPrefetch.slice(page * this.config.fetchBatch, (page + 1) * this.config.fetchBatch);
+    const setOrigin = (t: string) => {
+      const [tag, origin] = t.split(':');
+      if (tag.includes('@')) return tag;
+      if ((origin || '') !== this.store.account.origin) {
+        return tag + (origin || '') + '|' + tag + this.store.account.origin;
+      }
+      return tag + this.store.account.origin;
+    };
+    return this.page({ query: prefetch.map(setOrigin).join('|'), size: 1000 }).pipe(
+      tap(batch => {
+        for (const key of prefetch) {
+          const [tag, defaultOrigin] = key.split(':');
+          if (!this._cache.has(key)) {
+            if (tag.includes('@')) {
+              this._cache.set(key, of(
+                batch.content.find(x => x.tag === localTag(tag) && x.origin === tagOrigin(tag))
+                || this.defaultExt(tag)));
+            } else if (defaultOrigin) {
+              this._cache.set(key, of(
+                batch.content.find(x => x.tag === tag && x.origin === this.store.account.origin)
+                || batch.content.find(x => x.tag === tag && x.origin === defaultOrigin)
+                || latest(batch.content).find(x => x.tag === tag)
+                || this.defaultExt(tag)));
+            } else {
+              this._cache.set(key, of(
+                batch.content.find(x => x.tag === tag && x.origin === this.store.account.origin)
+                || latest(batch.content).find(x => x.tag === tag)
+                || this.defaultExt(tag)));
+            }
+          }
+        }
+      }),
+      switchMap(batch => (page + 1) * this.config.fetchBatch >= this.store.local.extPrefetch.length ? of(null) : this.loadExts$(page + 1)),
+    );
+  }
+
+  create(ext: Ext): Observable<string> {
+    return this.http.post<string>(this.base, writeExt(ext)).pipe(
+      tap(() => this.clearCache(ext.tag, ext)),
       catchError(err => this.login.handleHttpError(err)),
     );
   }
@@ -45,10 +101,102 @@ export class ExtService {
     return this.http.get(this.base, {
       params: params({ tag }),
     }).pipe(
-      map(mapTag),
-      tap(ext => this._cache.set(tag, of(ext))),
+      map(mapExt),
+      tap(ext => {
+        this.prefillCache(ext);
+        this.store.local.loadExt([...this._cache.keys()]);
+      }),
       catchError(err => this.login.handleHttpError(err)),
     );
+  }
+
+  prefillCache(ext: Ext) {
+    let value = of(ext);
+    const keys: string[] = [];
+    keys.push(ext.tag + ext.origin + ':');
+keys.push(ext.tag + ':' + ext.origin);
+    for (const key of keys) {
+      this._cache.set(key, value);
+    }
+    const sub = this.stomp.watchExt(ext.tag + ext.origin).pipe(
+      timeInterval(),
+      takeWhile((update, index) => index === 0 || update.interval >= EXT_UPDATE_RATE_LIMIT_MS),
+      map(update => update.value),
+    ).subscribe(x => {
+      value = of(x);
+      for (const key of keys) {
+        this._cache.set(key, value);
+      }
+    });
+    const clear = () => {
+      for (const key of keys) {
+        if (this._cache.get(key) === value) this._cache.delete(key);
+      }
+      sub.unsubscribe();
+    };
+    delay(clear, EXT_CACHE_MS);
+  }
+
+  private processBatch() {
+    if (this._batchQueue.length === 0) return;
+
+    // Take up to EXT_BATCH_SIZE items from the queue
+    const batch = this._batchQueue.splice(0, EXT_BATCH_SIZE);
+
+    // Build query string for all tags in the batch
+    const queries: string[] = [];
+    for (const item of batch) {
+      const tag = localTag(item.tag);
+      const origin = tagOrigin(item.tag);
+      if (origin) {
+        queries.push(tag + origin);
+      } else if (item.origin !== undefined) {
+        queries.push(tag + this.store.account.origin + '|' + tag + item.origin);
+      } else {
+        queries.push(tag + this.store.account.origin);
+      }
+    }
+
+    // Fetch all exts in a single page request
+    this.page({ query: queries.join('|'), size: EXT_BATCH_SIZE }).pipe(
+      catchError(() => of(Page.of([])))
+    ).subscribe(result => {
+      // Process results for each item in the batch
+      for (const item of batch) {
+        const tag = localTag(item.tag);
+        const origin = tagOrigin(item.tag) || item.origin;
+
+        let ext: Ext | undefined;
+        if (tagOrigin(item.tag)) {
+          ext = result.content.find(x => x.tag === tag && x.origin === tagOrigin(item.tag));
+        } else if (item.origin !== undefined) {
+          ext = result.content.find(x => x.tag === tag && x.origin === this.store.account.origin)
+            || result.content.find(x => x.tag === tag && x.origin === item.origin)
+            || latest(result.content).find(x => x.tag === tag);
+        } else {
+          ext = result.content.find(x => x.tag === tag && x.origin === this.store.account.origin)
+            || latest(result.content).find(x => x.tag === tag);
+        }
+
+        const resolvedExt = ext || this.defaultExt(item.tag, origin);
+
+        // Update cache with the resolved ext using the same logic as prefillCache()
+        this.prefillCache(resolvedExt);
+
+        // Emit the result to the subject
+        item.subject.next(resolvedExt);
+        item.subject.complete();
+      }
+
+      this.store.local.loadExt([...this._cache.keys()]);
+    });
+
+    // If there are more items in the queue, schedule another batch
+    if (this._batchQueue.length > 0) {
+      this._batchTimer = delay(() => this.processBatch(), EXT_BATCH_THROTTLE_MS);
+    } else {
+      this._batchTimer = undefined;
+    }
   }
 
   getCachedExts(tags: string[], origin?: string): Observable<Ext[]> {
@@ -57,37 +205,64 @@ export class ExtService {
   }
 
   getCachedExt(tag: string, origin?: string) {
-    const key = defaultOrigin(tag, origin);
-    if (!this._cache.has(key)) {
-      if (isQuery(tag)) {
-        this._cache.set(key, of({ name: tag, tag: tag, origin: origin } as Ext));
-      } else {
-        this._cache.set(key, this.get(defaultOrigin(tag, this.store.account.origin)).pipe(
-          catchError(err => {
-            if (origin === undefined) throw throwError(() => err);
-            return this.get(defaultOrigin(tag, origin));
-          }),
-          catchError(err => {
-            if (tag.includes('@')) throw throwError(() => err);
-            return this.page({ query: localTag(tag), sort: ['levels,ASC', 'modified,DESC'] }).pipe(
-              map(p => p.content.filter(x => x.tag === localTag(tag))[0])
-            );
-          }),
-          catchError(err => of(null)),
-          map(x => x ? x : { tag: localTag(tag), origin: tagOrigin(tag) } as Ext),
-          shareReplay(1),
-        ));
-        delay(() => this._cache.delete(key), EXT_CACHE_MS);
-      }
+    const key = tag + ':' + (origin || '');
+
+    // Return immediately if cached
+    if (this._cache.has(key)) {
+      return this._cache.get(key)!;
     }
-    return this._cache.get(key)!;
+
+    // For queries or empty tags, return default immediately
+    if (!tag || isQuery(tag)) {
+      const value = of(this.defaultExt(tag, origin));
+      this._cache.set(key, value);
+      this.store.local.loadExt([...this._cache.keys()]);
+      return value;
+    }
+
+    // For uncached exts, use batching mechanism
+    const subject = new Subject<Ext>();
+    const value = subject.asObservable().pipe(
+      shareReplay(1),
+    );
+    this._cache.set(key, value);
+
+    // Add to batch queue
+    this._batchQueue.push({ key, tag, origin, subject });
+
+    // Schedule batch processing if not already scheduled
+    if (!this._batchTimer) {
+      this._batchTimer = delay(() => this.processBatch(), EXT_BATCH_THROTTLE_MS);
+    }
+
+    // Set cache expiration
+    delay(() => {
+      if (this._cache.get(key) === value) this._cache.delete(key);
+    }, EXT_CACHE_MS);
+
+    this.store.local.loadExt([...this._cache.keys()]);
+    return value;
+  }
+
+  defaultExt(tag: string, defaultOrigin = '', name = ''): Ext {
+    const origin = tagOrigin(tag) || defaultOrigin || '';
+    tag = localTag(tag);
+    name = name || hasPrefix(tag, 'user') ? removePrefix(protectedTag(tag) ? tag.substring(1) : tag) : name;
+    return { name, tag, origin };
+  }
+
+  clearCache(tag: string, ext?: Ext) {
+    for (const key of this._cache.keys()) {
+      if (key.startsWith(tag + ':') || key.startsWith(tag + '@')) this._cache.delete(key);
+    }
+    if (ext) this.prefillCache(ext);
   }
 
   page(args?: TagPageArgs): Observable<Page<Ext>> {
     return this.http.get(`${this.base}/page`, {
       params: params(args),
     }).pipe(
-      map(mapPage(mapTag)),
+      map(mapPage(mapExt)),
       catchError(err => this.login.handleHttpError(err)),
     );
   }
@@ -102,21 +277,19 @@ export class ExtService {
     );
   }
 
-  update(ext: Ext, force = false): Observable<string> {
-    return this.http.put<string>(this.base, writeExt(ext), {
-      params: !force ? undefined : { force: true },
-    }).pipe(
-      tap(() => this._cache.delete(ext.tag)),
+  update(ext: Ext): Observable<string> {
+    return this.http.put<string>(this.base, writeExt(ext)).pipe(
+      tap(() => this.clearCache(ext.tag, ext)),
       catchError(err => this.login.handleHttpError(err)),
     );
   }
 
-  patch(tag: string, cursor: string, patch: any[]): Observable<string> {
+  patch(tag: string, cursor: string, patch: OpPatch[]): Observable<string> {
     return this.http.patch<string>(this.base, patch, {
       headers: { 'Content-Type': 'application/json-patch+json' },
       params: params({ tag, cursor }),
     }).pipe(
-      tap(() => this._cache.delete(tag)),
+      tap(() => this.clearCache(localTag(tag))),
       catchError(err => this.login.handleHttpError(err)),
     );
   }
@@ -126,7 +299,7 @@ export class ExtService {
       headers: { 'Content-Type': 'application/merge-patch+json' },
       params: params({ tag, cursor }),
     }).pipe(
-      tap(() => this._cache.delete(tag)),
+      tap(() => this.clearCache(localTag(tag))),
       catchError(err => this.login.handleHttpError(err)),
     );
   }
@@ -135,7 +308,7 @@ export class ExtService {
     return this.http.delete<void>(this.base, {
       params: params({ tag }),
     }).pipe(
-      tap(() => this._cache.delete(tag)),
+      tap(() => this.clearCache(localTag(tag))),
       catchError(err => this.login.handleHttpError(err)),
     );
   }

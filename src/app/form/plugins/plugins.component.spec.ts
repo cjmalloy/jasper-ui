@@ -1,7 +1,9 @@
-import { HttpClientTestingModule } from '@angular/common/http/testing';
+/// <reference types="vitest/globals" />
+import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ReactiveFormsModule } from '@angular/forms';
-import { RouterTestingModule } from '@angular/router/testing';
+import { ReactiveFormsModule, UntypedFormArray, UntypedFormGroup } from '@angular/forms';
+import { provideRouter } from '@angular/router';
 
 import { PluginsFormComponent } from './plugins.component';
 
@@ -11,19 +13,23 @@ describe('PluginsFormComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ PluginsFormComponent ],
       imports: [
-        HttpClientTestingModule,
-        RouterTestingModule,
         ReactiveFormsModule,
+        PluginsFormComponent
       ],
-    })
-    .compileComponents();
-  });
+      providers: [
+        provideHttpClient(withXhr(), withInterceptorsFromDi()),
+        provideHttpClientTesting(),
+        provideRouter([]),
+      ],
+    }).compileComponents();
 
-  beforeEach(() => {
     fixture = TestBed.createComponent(PluginsFormComponent);
     component = fixture.componentInstance;
+    component.group = new UntypedFormGroup({
+      tags: new UntypedFormArray([]),
+      plugins: new UntypedFormGroup({}),
+    });
     fixture.detectChanges();
   });
 
