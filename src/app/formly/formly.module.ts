@@ -19,6 +19,7 @@ import {
 import { AudioUploadComponent } from './audio-upload/audio-upload.component';
 import { FormlyFieldCheckbox } from './checkbox.type';
 import { DurationInputAccessor, FormlyFieldDuration } from './duration.type';
+import { FormlyFieldEditor } from './editor.type';
 import { FormlyWrapperFormField } from './form-field.wrapper';
 import { FormlyWrapperFormGroup } from './form-group.wrapper';
 import { ImageUploadComponent } from './image-upload/image-upload.component';
@@ -83,6 +84,7 @@ const formlyFieldExpressionConfig = withFormlyFieldExpression();
     FormlyFieldRadio,
     FormlyFieldSelect,
     FormlyFieldDuration,
+    FormlyFieldEditor,
     DurationInputAccessor,
     QrScannerComponent,
     ImageUploadComponent,
@@ -627,6 +629,10 @@ Private tags start with an underscore.
             type: 'bookmark',
           },
         },
+      }, {
+        name: 'editor',
+        component: FormlyFieldEditor,
+        wrappers: ['form-field'],
       }, {
         name: 'textarea',
         component: FormlyFieldTextArea,
