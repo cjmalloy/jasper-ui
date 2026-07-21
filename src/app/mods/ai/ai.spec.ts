@@ -19,29 +19,24 @@ describe('aiQueryPlugin', () => {
         return { data: { content: [] } };
       }),
     };
-    class GoogleGenerativeAI {
-      getGenerativeModel() {
-        return {
-          generateContent: async () => ({
-            response: {
-              text: () => 'A basic answer',
-              candidates: [{ content: { parts: [] } }],
-              usageMetadata: {
-                promptTokenCount: 2,
-                candidatesTokenCount: 3,
-                totalTokenCount: 5,
-              },
-            },
-          }),
-        };
-      }
+    class GoogleGenAI {
+      models = {
+        generateContent: async () => ({
+          candidates: [{ content: { parts: [{ text: 'A basic answer' }] } }],
+          usageMetadata: {
+            promptTokenCount: 2,
+            candidatesTokenCount: 3,
+            totalTokenCount: 5,
+          },
+        }),
+      };
     }
     const require = (module: string) => ({
       'buffer': { Buffer: globalThis.ArrayBuffer },
       'uuid': { v4: () => 'test-id' },
       'axios': axios,
       'fs': { readFileSync: () => JSON.stringify({ url: 'spec:question', tags: ['plugin/delta/ai'] }) },
-      '@google/generative-ai': { GoogleGenerativeAI },
+      '@google/genai': { GoogleGenAI, Modality: { TEXT: 'TEXT', IMAGE: 'IMAGE' } },
     })[module];
     const output = vi.fn();
     const run = new Function(
@@ -96,27 +91,22 @@ describe('aiQueryPlugin', () => {
     const generateContent = vi.fn()
       .mockRejectedValueOnce(Object.assign(new Error('unsupported media'), { status: 415 }))
       .mockResolvedValueOnce({
-        response: {
-          text: () => 'Fallback answer',
-          candidates: [{ content: { parts: [] } }],
-          usageMetadata: {
-            promptTokenCount: 2,
-            candidatesTokenCount: 3,
-            totalTokenCount: 5,
-          },
+        candidates: [{ content: { parts: [{ text: 'Fallback answer' }] } }],
+        usageMetadata: {
+          promptTokenCount: 2,
+          candidatesTokenCount: 3,
+          totalTokenCount: 5,
         },
       });
-    class GoogleGenerativeAI {
-      getGenerativeModel() {
-        return { generateContent };
-      }
+    class GoogleGenAI {
+      models = { generateContent };
     }
     const require = (module: string) => ({
       'buffer': { Buffer },
       'uuid': { v4: () => 'test-id' },
       'axios': axios,
       'fs': { readFileSync: () => JSON.stringify({ url: 'spec:question', tags: ['plugin/delta/ai'] }) },
-      '@google/generative-ai': { GoogleGenerativeAI },
+      '@google/genai': { GoogleGenAI, Modality: { TEXT: 'TEXT', IMAGE: 'IMAGE' } },
     })[module];
     const output = vi.fn();
     const run = new Function(
@@ -177,47 +167,43 @@ describe('aiQueryPlugin', () => {
           data: { url: 'cache:pdf', tags: ['_plugin/cache'], metadata: { ignored: true } },
         }),
     };
-    class GoogleGenerativeAI {
-      getGenerativeModel() {
-        return {
-          generateContent: async () => ({
-            response: {
-              text: () => JSON.stringify({
-                ref: [{
-                  url: 'ai:part1',
-                  title: 'Generated image',
-                  comment: '![Generated](ai:part1)',
-                  sources: ['ai:part1'],
-                }, {
-                  url: 'add:pdf',
-                  tags: ['plugin/image'],
-                  plugins: { 'plugin/image': { url: 'ai:part2' } },
-                }],
-              }),
-              candidates: [{
-                content: {
-                  parts: [
-                    { inlineData: { mimeType: 'image/png', data: Buffer.from('image').toString('base64') } },
-                    { inlineData: { mimeType: 'application/pdf', data: Buffer.from('pdf').toString('base64') } },
-                  ],
-                },
-              }],
-              usageMetadata: {
-                promptTokenCount: 2,
-                candidatesTokenCount: 3,
-                totalTokenCount: 5,
-              },
+    class GoogleGenAI {
+      models = {
+        generateContent: async () => ({
+          candidates: [{
+            content: {
+              parts: [
+                { text: JSON.stringify({
+                  ref: [{
+                    url: 'ai:part1',
+                    title: 'Generated image',
+                    comment: '![Generated](ai:part1)',
+                    sources: ['ai:part1'],
+                  }, {
+                    url: 'add:pdf',
+                    tags: ['plugin/image'],
+                    plugins: { 'plugin/image': { url: 'ai:part2' } },
+                  }],
+                }) },
+                { inlineData: { mimeType: 'image/png', data: Buffer.from('image').toString('base64') } },
+                { inlineData: { mimeType: 'application/pdf', data: Buffer.from('pdf').toString('base64') } },
+              ],
             },
-          }),
-        };
-      }
+          }],
+          usageMetadata: {
+            promptTokenCount: 2,
+            candidatesTokenCount: 3,
+            totalTokenCount: 5,
+          },
+        }),
+      };
     }
     const require = (module: string) => ({
       'buffer': { Buffer },
       'uuid': { v4: () => 'test-id' },
       'axios': axios,
       'fs': { readFileSync: () => JSON.stringify({ url: 'spec:question', tags: ['plugin/delta/ai'] }) },
-      '@google/generative-ai': { GoogleGenerativeAI },
+      '@google/genai': { GoogleGenAI, Modality: { TEXT: 'TEXT', IMAGE: 'IMAGE' } },
     })[module];
     const output = vi.fn();
     const run = new Function(
@@ -263,12 +249,12 @@ describe('aiQueryPlugin', () => {
       }),
       post: vi.fn(),
     };
-    class GoogleGenerativeAI {
-      getGenerativeModel() {
-        return {
-          generateContent: async () => ({
-            response: {
-              text: () => JSON.stringify({
+    class GoogleGenAI {
+      models = {
+        generateContent: async () => ({
+          candidates: [{
+            content: {
+              parts: [{ text: JSON.stringify({
                 ref: [{
                   title: 'Missing image',
                   comment: '![Missing](ai:part2)',
@@ -276,24 +262,23 @@ describe('aiQueryPlugin', () => {
                   url: 'ai:part2',
                   tags: ['plugin/image'],
                 }],
-              }),
-              candidates: [{ content: { parts: [] } }],
-              usageMetadata: {
-                promptTokenCount: 2,
-                candidatesTokenCount: 3,
-                totalTokenCount: 5,
-              },
+              }) }],
             },
-          }),
-        };
-      }
+          }],
+          usageMetadata: {
+            promptTokenCount: 2,
+            candidatesTokenCount: 3,
+            totalTokenCount: 5,
+          },
+        }),
+      };
     }
     const require = (module: string) => ({
       'buffer': { Buffer },
       'uuid': { v4: () => 'test-id' },
       'axios': axios,
       'fs': { readFileSync: () => JSON.stringify({ url: 'spec:question', tags: ['plugin/delta/ai'] }) },
-      '@google/generative-ai': { GoogleGenerativeAI },
+      '@google/genai': { GoogleGenAI, Modality: { TEXT: 'TEXT', IMAGE: 'IMAGE' } },
     })[module];
     const output = vi.fn();
     const run = new Function(
