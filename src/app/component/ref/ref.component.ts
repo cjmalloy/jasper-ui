@@ -782,7 +782,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
 
   @memo
   get thumbnailRefs() {
-    return this.editing ? [{ ...this.editForm.value, origin: this.ref.origin }] : [this.repostRef, this.ref];
+    return this.editing ? [{ ...this.editForm.getRawValue(), origin: this.ref.origin }] : [this.repostRef, this.ref];
   }
 
   get refThumbnailPlugin() {
@@ -1382,8 +1382,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     const tags = uniq([
       ...(this.store.account.localTag ? [this.store.account.localTag] : []),
       ...(this.ref.tags || [])
-        .filter(t => !t.startsWith('+'))
-        .filter(t => !t.startsWith('_'))
+        .filter(t => hasPrefix(t, 'plugin') || !t.startsWith('+') && !t.startsWith('_'))
         .filter(t => !hasPrefix(t, 'user'))
         .filter(t => this.auth.canAddTag(t))
     ]);
