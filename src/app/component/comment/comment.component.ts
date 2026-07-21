@@ -1,7 +1,10 @@
+import { AsyncPipe } from '@angular/common';
+import { FakeLinkDirective } from '../../directive/fake-link.directive';
 import {
   AfterViewInit,
   Component,
   ElementRef,
+  forwardRef,
   HostBinding,
   Input,
   OnChanges,
@@ -10,11 +13,15 @@ import {
   QueryList,
   SimpleChanges,
   ViewChild,
-  ViewChildren
+  ViewChildren,
+  ChangeDetectionStrategy
 } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { delay, groupBy, uniq, without } from 'lodash-es';
-import { autorun, IReactionDisposer, runInAction } from 'mobx';
+import { runInAction } from 'mobx';
+import { MobxAngularModule } from 'mobx-angular';
 import { Subject, takeUntil } from 'rxjs';
+import { TitleDirective } from '../../directive/title.directive';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ref } from '../../model/ref';
 import {
@@ -37,38 +44,56 @@ import { RefService } from '../../service/api/ref.service';
 import { TaggingService } from '../../service/api/tagging.service';
 import { AuthzService } from '../../service/authz.service';
 import { BookmarkService } from '../../service/bookmark.service';
+import { EditorService } from '../../service/editor.service';
 import { Store } from '../../store/store';
 import { ThreadStore } from '../../store/thread';
 import { authors, formatAuthor, interestingTags } from '../../util/format';
 import { getScheme } from '../../util/http';
 import { memo, MemoCache } from '../../util/memo';
-import { hasTag, hasUserUrlResponse, localTag, removeTag, tagOrigin, top } from '../../util/tag';
+import { hasTag, hasUserUrlResponse, localTag, removeTag, tagOrigin } from '../../util/tag';
+import { ActionListComponent } from '../action/action-list/action-list.component';
 import { ActionComponent } from '../action/action.component';
+import { ConfirmActionComponent } from '../action/confirm-action/confirm-action.component';
+import { InlineTagComponent } from '../action/inline-tag/inline-tag.component';
+import { ViewerComponent } from '../viewer/viewer.component';
 import { CommentEditComponent } from './comment-edit/comment-edit.component';
 import { CommentReplyComponent } from './comment-reply/comment-reply.component';
 import { CommentThreadComponent } from './comment-thread/comment-thread.component';
 
 @Component({
-  standalone: false,
   selector: 'app-comment',
   templateUrl: './comment.component.html',
   styleUrls: ['./comment.component.scss'],
+  host: { 'class': 'comment' },
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [
+    FakeLinkDirective,
+    CommentThreadComponent,
+    forwardRef(() => ViewerComponent),
+    MobxAngularModule,
+    RouterLink,
+    TitleDirective,
+    CommentEditComponent,
+    ConfirmActionComponent,
+    InlineTagComponent,
+    ActionListComponent,
+    CommentReplyComponent,
+    AsyncPipe,
+  ],
 })
 export class CommentComponent implements OnInit, AfterViewInit, OnChanges, OnDestroy, HasChanges {
-  @HostBinding('class') css = 'comment';
   @HostBinding('attr.tabindex') tabIndex = 0;
   private destroy$ = new Subject<void>();
-  private disposers: IReactionDisposer[] = [];
 
   maxContext = 20;
 
   @ViewChildren('action')
   actionComponents?: QueryList<ActionComponent>;
-  @ViewChild(CommentReplyComponent)
+  @ViewChild('replyComponent')
   replyComponent?: CommentReplyComponent;
-  @ViewChild(CommentEditComponent)
+  @ViewChild('editComponent')
   editComponent?: CommentEditComponent;
-  @ViewChild(CommentThreadComponent)
+  @ViewChild('threadComponent')
   threadComponent?: CommentThreadComponent;
 
   @Input()
@@ -79,6 +104,8 @@ export class CommentComponent implements OnInit, AfterViewInit, OnChanges, OnDes
   depth?: number | null = 7;
   @Input()
   context = 0
+  @Input()
+  showLoadMore = true;
 
   commentEdited$ = new Subject<Ref>();
   newComments = 0;
@@ -101,23 +128,24 @@ export class CommentComponent implements OnInit, AfterViewInit, OnChanges, OnDes
     private auth: AuthzService,
     private refs: RefService,
     private exts: ExtService,
+    private editor: EditorService,
     private ts: TaggingService,
     private bookmarks: BookmarkService,
     private el: ElementRef<HTMLDivElement>,
   ) {
-    this.disposers.push(autorun(() => {
-      if (this.store.eventBus.event === 'refresh') {
-        if (this.ref?.url && this.store.eventBus.isRef(this.ref)) {
-          this.ref = this.store.eventBus.ref!;
+    this.store.eventBus.events.pipe(takeUntil(this.destroy$)).subscribe(event => {
+      if (event.event === 'refresh') {
+        if (this.ref?.url && this.store.eventBus.isRef(event, this.ref)) {
+          this.ref = event.ref!;
           this.init();
         }
       }
-      if (this.store.eventBus.event === 'error') {
-        if (this.ref?.url && this.store.eventBus.isRef(this.ref)) {
-          this.serverError = this.store.eventBus.errors;
+      if (event.event === 'error') {
+        if (this.ref?.url && this.store.eventBus.isRef(event, this.ref)) {
+          this.serverError = event.errors;
         }
       }
-    }));
+    });
   }
 
   saveChanges() {
@@ -179,8 +207,6 @@ export class CommentComponent implements OnInit, AfterViewInit, OnChanges, OnDes
     this.newComments$.complete();
     this.destroy$.next();
     this.destroy$.complete();
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
   }
 
   @HostBinding('class.last-selected')
@@ -192,11 +218,6 @@ export class CommentComponent implements OnInit, AfterViewInit, OnChanges, OnDes
   get nonLocalOrigin() {
     if (this.ref.origin === this.store.account.origin) return undefined;
     return this.ref.origin || '';
-  }
-
-  @memo
-  get top() {
-    return top(this.ref);
   }
 
   @memo
@@ -241,19 +262,11 @@ export class CommentComponent implements OnInit, AfterViewInit, OnChanges, OnDes
     return mailboxes(this.ref, this.store.account.tag, this.store.origins.originMap);
   }
 
-  get replyExts() {
-    return (this.ref.tags || [])
-      .map(tag => this.admin.getPlugin(tag))
-      .flatMap(p => p?.config?.reply)
-      .filter(t => !!t) as string[];
-  }
-
   @memo
   get replyTags(): string[] {
     const tags = [
-      ...this.admin.reply.filter(p => (this.store.view.ref?.tags || []).includes(p.tag)).flatMap(p => p.config!.reply as string[]),
+      ...this.admin.reply.filter(p => hasTag(p.tag, this.ref)).flatMap(p => p.config!.reply as string[]),
       ...this.mailboxes,
-      ...this.replyExts,
     ];
     return removeTag(getMailbox(this.store.account.tag, this.store.account.origin), uniq(tags));
   }
@@ -265,7 +278,7 @@ export class CommentComponent implements OnInit, AfterViewInit, OnChanges, OnDes
 
   @memo
   get tagExts$() {
-    return this.exts.getCachedExts(this.tagged, this.ref.origin || '').pipe(this.admin.extFallbacks);
+    return this.editor.getTagsPreview(this.tagged, this.ref.origin || '');
   }
 
   @memo
@@ -296,12 +309,12 @@ export class CommentComponent implements OnInit, AfterViewInit, OnChanges, OnDes
 
   @memo
   get upvote() {
-    return hasUserUrlResponse('plugin/vote/up', this.ref);
+    return hasUserUrlResponse('plugin/user/vote/up', this.ref);
   }
 
   @memo
   get downvote() {
-    return hasUserUrlResponse('plugin/vote/down', this.ref);
+    return hasUserUrlResponse('plugin/user/vote/down', this.ref);
   }
 
   @memo
@@ -323,7 +336,7 @@ export class CommentComponent implements OnInit, AfterViewInit, OnChanges, OnDes
   }
 
   visible(v: Visibility) {
-    return visible(v, this.isAuthor, this.isRecipient);
+    return visible(this.ref, v, this.isAuthor, this.isRecipient);
   }
 
   label(a: Action) {
@@ -373,15 +386,15 @@ export class CommentComponent implements OnInit, AfterViewInit, OnChanges, OnDes
     this.ref.metadata ||= {};
     this.ref.metadata.userUrls ||= [];
     if (this.upvote) {
-      this.ref.metadata.userUrls = without(this.ref.metadata.userUrls, 'plugin/vote/up');
-      this.store.eventBus.runAndRefresh(this.ts.deleteResponse('plugin/vote/up', this.ref.url), this.ref);
+      this.ref.metadata.userUrls = without(this.ref.metadata.userUrls, 'plugin/user/vote/up');
+      this.store.eventBus.runAndRefresh(this.ts.deleteResponse('plugin/user/vote/up', this.ref.url), this.ref);
     } else if (!this.downvote) {
-      this.ref.metadata.userUrls.push('plugin/vote/up');
-      this.store.eventBus.runAndRefresh(this.ts.createResponse('plugin/vote/up', this.ref.url), this.ref);
+      this.ref.metadata.userUrls.push('plugin/user/vote/up');
+      this.store.eventBus.runAndRefresh(this.ts.createResponse('plugin/user/vote/up', this.ref.url), this.ref);
     } else {
-      this.ref.metadata.userUrls.push('plugin/vote/up');
-      this.ref.metadata.userUrls = without(this.ref.metadata.userUrls, 'plugin/vote/down');
-      this.store.eventBus.runAndRefresh(this.ts.respond(['plugin/vote/up', '-plugin/vote/down'], this.ref.url), this.ref);
+      this.ref.metadata.userUrls.push('plugin/user/vote/up');
+      this.ref.metadata.userUrls = without(this.ref.metadata.userUrls, 'plugin/user/vote/down');
+      this.store.eventBus.runAndRefresh(this.ts.respond(['plugin/user/vote/up', '-plugin/user/vote/down'], this.ref.url), this.ref);
     }
   }
 
@@ -389,15 +402,15 @@ export class CommentComponent implements OnInit, AfterViewInit, OnChanges, OnDes
     this.ref.metadata ||= {};
     this.ref.metadata.userUrls ||= [];
     if (this.downvote) {
-      this.ref.metadata.userUrls = without(this.ref.metadata.userUrls, 'plugin/vote/down');
-      this.store.eventBus.runAndRefresh(this.ts.deleteResponse('plugin/vote/down', this.ref.url), this.ref);
+      this.ref.metadata.userUrls = without(this.ref.metadata.userUrls, 'plugin/user/vote/down');
+      this.store.eventBus.runAndRefresh(this.ts.deleteResponse('plugin/user/vote/down', this.ref.url), this.ref);
     } else if (!this.upvote) {
-      this.ref.metadata.userUrls.push('plugin/vote/down');
-      this.store.eventBus.runAndRefresh(this.ts.createResponse('plugin/vote/down', this.ref.url), this.ref);
+      this.ref.metadata.userUrls.push('plugin/user/vote/down');
+      this.store.eventBus.runAndRefresh(this.ts.createResponse('plugin/user/vote/down', this.ref.url), this.ref);
     } else {
-      this.ref.metadata.userUrls.push('plugin/vote/down');
-      this.ref.metadata.userUrls = without(this.ref.metadata.userUrls, 'plugin/vote/up');
-      this.store.eventBus.runAndRefresh(this.ts.respond(['-plugin/vote/up', 'plugin/vote/down'], this.ref.url), this.ref);
+      this.ref.metadata.userUrls.push('plugin/user/vote/down');
+      this.ref.metadata.userUrls = without(this.ref.metadata.userUrls, 'plugin/user/vote/up');
+      this.store.eventBus.runAndRefresh(this.ts.respond(['-plugin/user/vote/up', 'plugin/user/vote/down'], this.ref.url), this.ref);
     }
   }
 

@@ -7,6 +7,7 @@ export const commentPlugin: Plugin = {
   name: $localize`💬️ Comment`,
   config: {
     mod: $localize`💬️ Comment`,
+    version: 1,
     type: 'plugin',
     default: true,
     genId: true,
@@ -25,8 +26,8 @@ export const commentPlugin: Plugin = {
     filters: [
       { query: 'plugin/comment', label: $localize`💬️ comments`, title: $localize`Comments`, group: $localize`Plugins 🧰️` },
     ],
+    sorts: [{ sort: 'metadata->plugins->plugin/comment', label: $localize`💬️ comments`, title: $localize`Number of comments` }],
   },
-  generateMetadata: true,
 };
 
 export const commentMod: Mod = {

@@ -1,12 +1,14 @@
-import { Component, EventEmitter, HostBinding, Input, Output } from '@angular/core';
+import { Component, EventEmitter, HostBinding, Input, Output, ChangeDetectionStrategy } from '@angular/core';
+import { ReactiveFormsModule } from '@angular/forms';
 
 @Component({
-  standalone: false,
   selector: 'app-list-editor',
   templateUrl: './list-editor.component.html',
-  styleUrls: ['./list-editor.component.scss']
+  styleUrls: ['./list-editor.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [ReactiveFormsModule]
 })
-export class ListEditorComponent{
+export class ListEditorComponent {
   @HostBinding('class') css = 'listbox form-group';
 
   @Input()

@@ -1,4 +1,4 @@
-import { Component, HostBinding, Input, OnDestroy, OnInit, QueryList, ViewChildren } from '@angular/core';
+import { Component, forwardRef, Input, OnDestroy, OnInit, QueryList, ViewChildren, ChangeDetectionStrategy } from '@angular/core';
 import { Router } from '@angular/router';
 import { DateTime } from 'luxon';
 import { catchError, forkJoin, Observable, of, Subject, takeUntil } from 'rxjs';
@@ -10,16 +10,23 @@ import { score } from '../../../mods/vote';
 import { AccountService } from '../../../service/account.service';
 import { RefService } from '../../../service/api/ref.service';
 import { Store } from '../../../store/store';
+import { LoadingComponent } from '../../loading/loading.component';
+import { PageControlsComponent } from '../../page-controls/page-controls.component';
 import { RefComponent } from '../ref.component';
 
 @Component({
-  standalone: false,
   selector: 'app-ref-list',
   templateUrl: './ref-list.component.html',
   styleUrls: ['./ref-list.component.scss'],
+  host: { 'class': 'ref-list' },
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [
+    forwardRef(() => RefComponent),
+    PageControlsComponent,
+    LoadingComponent,
+  ],
 })
 export class RefListComponent implements OnInit, OnDestroy, HasChanges {
-  @HostBinding('class') css = 'ref-list';
   private destroy$ = new Subject<void>();
 
   @Input()
@@ -33,7 +40,7 @@ export class RefListComponent implements OnInit, OnDestroy, HasChanges {
   @Input()
   pageControls = true;
   @Input()
-  emptyMessage = 'No results found';
+  emptyMessage = $localize`No results found`;
   @Input()
   showToggle = true;
   @Input()
@@ -83,7 +90,8 @@ export class RefListComponent implements OnInit, OnDestroy, HasChanges {
     } else {
       forkJoin((value.config.pinned as string[])
         .map(pin => this.refs.getCurrent(pin).pipe(
-          catchError(err => of({ url: pin }))
+          catchError(err => of({ url: pin })),
+          takeUntil(this.destroy$),
         )))
         .subscribe(pinned => this.pinned = pinned);
     }
@@ -131,6 +139,7 @@ export class RefListComponent implements OnInit, OnDestroy, HasChanges {
             pageNumber: this._page.page.totalPages - 1,
           },
           queryParamsHandling: 'merge',
+          replaceUrl: true,
         });
       }
     }
@@ -163,7 +172,7 @@ export class RefListComponent implements OnInit, OnDestroy, HasChanges {
   addNewRef(ref: Ref) {
     // TODO: verify read before clearing?
     this.accounts.clearNotificationsIfNone(ref.modified);
-    if (!this.page?.content.find(r => r.url === ref.url)) {
+    if (ref.url !== this.store.view.url && !this.page?.content.find(r => r.url === ref.url)) {
       const index = this.newRefs.findIndex(r => r.url === ref.url);
       if (index !== -1) {
         this.newRefs[index] = ref;
@@ -176,6 +185,5 @@ export class RefListComponent implements OnInit, OnDestroy, HasChanges {
       }
     }
     this.store.eventBus.refresh(ref);
-    this.store.eventBus.reset();
   }
 }

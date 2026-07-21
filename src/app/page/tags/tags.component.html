@@ -1,24 +1,34 @@
 <ng-container *mobxAutorun>
   <app-tabs>
     <a class="logo" routerLink="/"></a>
-    <h5 class="fake-link" routerLink=".">{{ title }}</h5>
-    <a routerLink="/tags"
-       [queryParams]="{ noTemplate: null, home: true }"
-       [class.current-tab]="store.view.allTags && store.view.home"
-       queryParamsHandling="merge"
-       i18n-title title="🏡️️ Subscribed Tags"
-       i18n>home</a>
+    @if (!title || title === '@*') {
+      @if (store.view.noTemplate) {
+        <h5 routerLink="." i18n>🔖️ Simple Tags</h5>
+      } @else {
+        <h5 routerLink="." i18n>🏷️ All Tags</h5>
+      }
+    } @else {
+      <h5 routerLink=".">{{ title }}</h5>
+    }
+    @if (admin.home) {
+      <a routerLink="/tags"
+         [queryParams]="{ noTemplate: null, home: true }"
+         [class.current-tab]="store.view.home"
+         queryParamsHandling="merge"
+         i18n-title title="🏡️️ Subscribed Tags"
+         i18n>home</a>
+    }
     <a routerLink="/tags"
        [queryParams]="{ noTemplate: null, home: null }"
-       [class.current-tab]="store.view.allTags && !store.view.noTemplate && !store.view.home"
+       [class.current-tab]="!store.view.noTemplate && !store.view.home && !templateExists"
        queryParamsHandling="merge"
        i18n-title title="🏷️ All Tags"
        i18n>all</a>
     <a routerLink="/tags"
        [queryParams]="{ noTemplate: true, home: null }"
-       [class.current-tab]="store.view.noTemplate || (store.view.template && !store.view.userTemplate && !templateExists)"
+       [class.current-tab]="store.view.noTemplate"
        queryParamsHandling="merge"
-       i18n-title title="🔖 Simple Tags"
+       i18n-title title="🔖️ Simple Tags"
        i18n>🏷️</a>
     @for (tmpl of templates; track tmpl.tag) {
       <a [routerLink]="['/tags', tmpl.tag]"
@@ -34,9 +44,9 @@
        i18n-title title="🧑️ User"
        i18n>🧑️</a>
   </app-tabs>
-  <app-sidebar [tag]="store.view.template"></app-sidebar>
+  <app-sidebar [tag]="store.view.home ? '' : store.view.template"></app-sidebar>
   @if (query.error?.status !== 403) {
-    <app-ext-list [page]="query.page"></app-ext-list>
+    <app-ext-list #list [page]="query.page"></app-ext-list>
   } @else {
     <div class="error-403" i18n>Access Denied</div>
   }

@@ -1,25 +1,30 @@
 import {
   AfterViewInit,
+  ChangeDetectorRef,
   Component,
   ContentChildren,
   ElementRef,
   HostBinding,
   HostListener,
-  QueryList
+  QueryList,
+  ChangeDetectionStrategy
 } from '@angular/core';
+import { ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { defer } from 'lodash-es';
 import { ConfigService } from '../../service/config.service';
 import { memo, MemoCache } from '../../util/memo';
+import { SettingsComponent } from '../settings/settings.component';
 
 @Component({
-  standalone: false,
   selector: 'app-tabs',
   templateUrl: './tabs.component.html',
-  styleUrl: './tabs.component.scss'
+  styleUrl: './tabs.component.scss',
+  host: { 'class': 'tabs' },
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [ReactiveFormsModule, SettingsComponent]
 })
 export class TabsComponent implements AfterViewInit {
-  @HostBinding('class') css = 'tabs';
 
   @ContentChildren(RouterLink)
   routerLinks!: QueryList<RouterLink>;
@@ -38,6 +43,7 @@ export class TabsComponent implements AfterViewInit {
   constructor(
     private config: ConfigService,
     private el: ElementRef<HTMLElement>,
+    private cd: ChangeDetectorRef,
   ) { }
 
   ngAfterViewInit() {
@@ -57,7 +63,11 @@ export class TabsComponent implements AfterViewInit {
   @HostListener('window:resize')
   onResize() {
     if (!this.options.length) return;
-    defer(() => this.measureVisible());
+    defer(() => {
+      if (!document.body.classList.contains('fullscreen')) {
+        this.measureVisible();
+      }
+    });
   }
 
   measureVisible() {
@@ -98,6 +108,7 @@ export class TabsComponent implements AfterViewInit {
       }
     }
     this.measuring = false;
+    this.cd.markForCheck();
   }
 
   @memo
@@ -108,7 +119,7 @@ export class TabsComponent implements AfterViewInit {
       const el = t.nativeElement as HTMLAnchorElement;
       if (el.tagName !== 'A') continue;
       if (el.classList.contains('logo')) continue;
-      result.push(el.offsetWidth + 8);
+      result.push(el.offsetWidth + 8.5);
     }
     return result;
   }
@@ -118,7 +129,7 @@ export class TabsComponent implements AfterViewInit {
     for (let i = 0; i < el.children.length; i++) {
       const e = el.children[i] as HTMLElement;
       if (!e.classList.contains('current-tab')) continue;
-      return e.offsetWidth + 8;
+      return e.offsetWidth + 8.5;
     }
     return 0;
   }
@@ -152,7 +163,7 @@ export class TabsComponent implements AfterViewInit {
   get visible() {
     const current = this.currentTabWidth;
     if (!current) return this.options.length;
-    if (this.floatingTabs) return 0;
+    if (this.config.mini) return 0;
     const el = this.el.nativeElement;
     const width = el.offsetWidth - 2;
     let result = 1;
@@ -165,7 +176,7 @@ export class TabsComponent implements AfterViewInit {
         continue;
       }
       childWidth += w;
-      if (childWidth < width) {
+      if (childWidth + current < width) {
         result++;
       } else {
         return result;

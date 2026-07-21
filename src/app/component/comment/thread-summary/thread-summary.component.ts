@@ -1,22 +1,30 @@
-import { Component, HostBinding, Input, OnChanges, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
+import { Component, forwardRef, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
+import { MobxAngularModule } from 'mobx-angular';
 import { Observable, Subject, takeUntil } from 'rxjs';
 import { Ref } from '../../../model/ref';
 import { RefService } from '../../../service/api/ref.service';
 import { Store } from '../../../store/store';
 import { getArgs } from '../../../util/query';
+import { RefComponent } from '../../ref/ref.component';
+import { CommentComponent } from '../comment.component';
 
 @Component({
-  standalone: false,
   selector: 'app-thread-summary',
   templateUrl: './thread-summary.component.html',
   styleUrls: ['./thread-summary.component.scss'],
+  host: { 'class': 'thread-summary' },
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [
+    forwardRef(() => CommentComponent),
+    forwardRef(() => RefComponent),
+    MobxAngularModule,
+  ]
 })
 export class ThreadSummaryComponent implements OnInit, OnChanges, OnDestroy {
-  @HostBinding('class') css = 'thread-summary';
   private destroy$ = new Subject<void>();
 
   @Input()
-  source?: Ref;
+  source = '';
   @Input()
   commentView = false;
   @Input()
@@ -30,7 +38,7 @@ export class ThreadSummaryComponent implements OnInit, OnChanges, OnDestroy {
   @Input()
   showLoadMore = true;
   @Input()
-  newRefs$!: Observable<Ref | undefined>;
+  newRefs$?: Observable<Ref | undefined>;
 
   newRefs: Ref[] = [];
   list: Ref[] = [];
@@ -41,7 +49,7 @@ export class ThreadSummaryComponent implements OnInit, OnChanges, OnDestroy {
   ) { }
 
   ngOnInit(): void {
-    this.newRefs$.pipe(
+    this.newRefs$?.pipe(
       takeUntil(this.destroy$),
     ).subscribe(comment => {
       if (comment) this.newRefs = [comment, ...this.newRefs];
@@ -53,9 +61,11 @@ export class ThreadSummaryComponent implements OnInit, OnChanges, OnDestroy {
       this.newRefs = [];
       this.refs.page({
         ...getArgs(this.query, this.store.view.sort, this.store.view.filter),
-        responses: this.source?.url,
+        responses: this.source,
         size: this.pageSize,
-      }).subscribe(page => {
+      }).pipe(
+        takeUntil(this.destroy$)
+      ).subscribe(page => {
         this.list = page.content;
       });
     }

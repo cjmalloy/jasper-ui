@@ -1,34 +1,23 @@
 <ng-container [formGroup]="group"
               cdkDropListGroup>
 
-  <label for="tag" i18n>Tag:</label>
+  <label [for]="id + '-tag'" i18n>Tag:</label>
   <div class="form-array">
-    <input id="tag" type="text" formControlName="tag">
+    <input [id]="id + '-tag'" name="tag" type="text" formControlName="tag">
     @if (showClear) {
       <button type="button" (click)="clear.next()" i18n-title title="New Ext" i18n>🆑️</button>
     }
   </div>
 
-  <label for="name" i18n>Name:</label>
-  <input id="name" type="text" formControlName="name">
+  <label [for]="id + '-name'" i18n>Name:</label>
+  <input [id]="id + '-name'" name="name" type="text" formControlName="name">
 
   <ng-container [formGroup]="config">
-    @if (popover) {
-      <label for="popover" class="editor-label" i18n>Popover:</label>
-      <div #fillPopover class="fill-editor">
-        <app-editor id="popover"
-                    [addButton]="true"
-                    i18n-addCommentTitle addCommentTitle="Add popover"
-                    i18n-addCommentLabel addCommentLabel="+ Add popover"
-                    [fillWidth]="fillPopover"
-                    [control]="popover"></app-editor>
-      </div>
-    }
     @if (userTheme && userThemeValues.length) {
       <!-- TODO: replace empty themes with instructions -->
-      <label for="userTheme" i18n>User Theme:</label>
+      <label [for]="id + '-userTheme'" i18n>User Theme:</label>
       <div i18n-title title="This theme will be used on every page. Tag page themes will be ignored.">
-        <select id="userTheme" formControlName="userTheme">
+        <select [id]="id + '-userTheme'" formControlName="userTheme">
           <option [ngValue]="undefined" i18n>default</option>
           @for (t of userThemeValues; track t) {
             <option [ngValue]="t">{{ t }}</option>
@@ -37,40 +26,82 @@
       </div>
     }
     @if (defaultSort && !user) {
-      <label for="defaultSort" i18n>Default Sort:</label>
-      <span class="controls">
-        <select id="defaultSort" (input)="setSortCol($any($event.target).value)">
-          <option></option>
+      <label [for]="id + '-defaultSort'" i18n>Default Sort:</label>
+      <div class="default-sort bubble">
+        <select #defaultSortCreate
+                class="default-sort-create"
+                [id]="id + '-defaultSort'"
+                (input)="addSort($any($event.target).value, defaultSortCreate)">
+          <option i18n>+ Add sort</option>
           @for (opt of allSorts; track opt) {
-            <option [selected]="sortCol === opt.value"
-                    [value]="opt.value">{{ opt.label || opt.value }}</option>
+            <option [value]="opt.value">{{ opt.label || opt.value }}</option>
           }
         </select>
-        @switch (sortDir) {
-          @case ("DESC") {
-            <button type="button" (click)="setSortDir('ASC')" i18n>🔽️</button>
-          }
-          @case ("ASC") {
-            <button type="button" (click)="setSortDir('DESC')" i18n>🔼️</button>
-          }
+        @for (sort of defaultSort.value; track $index; let i = $index) {
+          <span class="controls default-sort-row">
+            <select [id]="id + '-defaultSort-' + i"
+                    (input)="setSortCol(i, $any($event.target).value)">
+              @for (opt of allSorts; track opt) {
+                <option [value]="opt.value" [selected]="opt.value === sortCol(sort)">{{ opt.label || opt.value }}</option>
+              }
+            </select>
+            @if (sortDir(sort) === "DESC") {
+              <button type="button" (click)="setSortDir(i, 'ASC')" i18n-title title="Descending" i18n>🔽️</button>
+            } @else {
+              <button type="button" (click)="setSortDir(i, 'DESC')" i18n-title title="Ascending" i18n>🔼️</button>
+            }
+            <button type="button" (click)="removeSort(i)" i18n>&ndash;</button>
+          </span>
         }
-      </span>
+      </div>
     }
     @if (defaultFilter && !user) {
-      <label for="defaultFilter" i18n>Default Filter:</label>
-      <span class="controls">
-        <select id="defaultFilter" (input)="setFilter($any($event.target).value)">
-          <option></option>
+      <label [for]="id + '-defaultFilter'" i18n>Default Filter:</label>
+      <div class="default-filter bubble">
+        <select #defaultFilterCreate
+                class="default-filter-create"
+                [id]="id + '-defaultFilter'"
+                (input)="addFilter($any($event.target).value, defaultFilterCreate)">
+          <option i18n>+ Add filter</option>
           @for (opt of allFilters; track opt) {
-            <option [selected]="filter === opt.filter"
-                    [value]="opt.filter">{{ opt.label || opt.filter }}</option>
+            <option [value]="opt.filter">{{ opt.label || opt.filter }}</option>
           }
         </select>
-        @if (filter) {
-          <button type="button" *ngIf="negatable(filter)" (click)="toggleFilter()">{{ store.account.querySymbol('!') }}</button>
-          <button type="button" (click)="setFilter(null)" i18n>&ndash;</button>
+        @for (filter of defaultFilter.value; track $index; let i = $index) {
+          <div class="default-filter-row">
+            <span class="controls">
+              <select [id]="id + '-defaultFilter-' + i"
+                      (input)="setFilter(i, $any($event.target).value)">
+                @for (opt of allFilters; track opt) {
+                  <option [value]="opt.filter" [selected]="opt.filter === filterOption(filter)">{{ opt.label || opt.filter }}</option>
+                }
+              </select>
+              @if (negatable(filter)) {
+                <button type="button" (click)="toggleFilter(i)">{{ store.account.querySymbol('!') }}</button>
+              }
+              <button type="button" (click)="removeFilter(i)" i18n>&ndash;</button>
+            </span>
+            @if (filterIsDate(filter)) {
+              @if (store.hotkey || filterSpecialDate(filter)) {
+                <span class="default-filter-date-range">
+                  <input type="range"
+                         min="0"
+                         [max]="datePresets.length - 1"
+                         step="1"
+                         [value]="filterDatePreset(filter)"
+                         (input)="setFilterDatePreset(i, filter, $any($event.target).value)">
+                  <output>{{ filterDateLabel(filter) }}</output>
+                </span>
+              } @else {
+                <input type="datetime-local"
+                       step="60"
+                       [value]="filterDate(filter)"
+                       (change)="setFilterDate(i, filter, $any($event.target).value)">
+              }
+            }
+          </div>
         }
-      </span>
+      </div>
     }
     @if (form) {
       <formly-form #mainFormlyForm
@@ -80,28 +111,16 @@
                    [options]="options"></formly-form>
     }
     @if (modmail && inbox && !user) {
-      <label for="modmail" i18n>Enable Modmail:</label>
+      <label [for]="id + '-modmail'" i18n>Enable Modmail:</label>
       <div>
-        <input id="modmail" type="checkbox" [formControl]="modmail">
+        <input [id]="id + '-modmail'" type="checkbox" [formControl]="modmail">
         <a class="tag" [routerLink]="['/tag', inbox]">{{ inbox }}</a>
       </div>
     }
-    @if (sidebar) {
-      <label for="sidebar" class="editor-label" i18n>Sidebar:</label>
-      <div #fillSidebar class="fill-editor">
-        <app-editor id="sidebar"
-                    class="bubble"
-                    [addButton]="true"
-                    i18n-addCommentTitle addCommentTitle="Add sidebar"
-                    i18n-addCommentLabel addCommentLabel="+ Add sidebar"
-                    [fillWidth]="fillSidebar"
-                    [control]="sidebar"></app-editor>
-      </div>
-    }
     @if (themes) {
-      <label for="theme" i18n>Tag Page Theme:</label>
+      <label [for]="id + '-theme'" i18n>Tag Page Theme:</label>
       <div>
-        <select id="theme" formControlName="theme">
+        <select [id]="id + '-theme'" formControlName="theme">
           <option [ngValue]="undefined" i18n>default</option>
           @for (t of themeValues; track t) {
             <option [ngValue]="t">{{ t }}</option>
@@ -122,24 +141,33 @@
       <summary><span i18n>Advanced</span></summary>
       <div class="form">
         @if (defaultSort && user) {
-          <label for="defaultSortAdvanced" i18n>Default Sort:</label>
-          <span class="controls">
-            <select id="defaultSortAdvanced" (input)="setSortCol($any($event.target).value)">
-              <option></option>
+          <label [for]="id + '-defaultSortAdvanced'" i18n>Default Sort:</label>
+          <div class="default-sort bubble">
+            <select #defaultSortAdvancedCreate
+                    class="default-sort-create"
+                    [id]="id + '-defaultSortAdvanced'"
+                    (input)="addSort($any($event.target).value, defaultSortAdvancedCreate)">
+              <option i18n>+ Add sort</option>
               @for (opt of allSorts; track opt) {
-                <option [selected]="sortCol === opt.value"
-                        [value]="opt.value">{{ opt.label || opt.value }}</option>
+                <option [value]="opt.value">{{ opt.label || opt.value }}</option>
               }
             </select>
-            @switch (sortDir) {
-              @case ("DESC") {
-                <button type="button" (click)="setSortDir('ASC')">🔽️</button>
-              }
-              @case ("ASC") {
-                <button type="button" (click)="setSortDir('DESC')">🔼️</button>
-              }
+            @for (sort of defaultSort.value; track $index; let i = $index) {
+              <span class="controls default-sort-row">
+                <select (input)="setSortCol(i, $any($event.target).value)">
+                  @for (opt of allSorts; track opt) {
+                    <option [value]="opt.value" [selected]="opt.value === sortCol(sort)">{{ opt.label || opt.value }}</option>
+                  }
+                </select>
+                @if (sortDir(sort) === "DESC") {
+                  <button type="button" (click)="setSortDir(i, 'ASC')" i18n-title title="Descending" i18n>🔽️</button>
+                } @else {
+                  <button type="button" (click)="setSortDir(i, 'DESC')" i18n-title title="Ascending" i18n>🔼️</button>
+                }
+                <button type="button" (click)="removeSort(i)" i18n>&ndash;</button>
+              </span>
             }
-          </span>
+          </div>
         }
         <formly-form #advancedFormlyForm
                      class="nested-form"
@@ -147,6 +175,11 @@
                      [fields]="advancedForm!"
                      [options]="options"></formly-form>
       </div>
+      @if (defaults) {
+        <app-ref class="bubble" [ref]="defaults"></app-ref>
+      } @else if (loadingDefaults) {
+        <app-loading></app-loading>
+      }
     </details>
   }
 </ng-container>

@@ -1,3 +1,4 @@
+/// <reference types="vitest/globals" />
 import { TestBed } from '@angular/core/testing';
 import { CanMatchFn } from '@angular/router';
 
@@ -7,8 +8,8 @@ describe('lastSelectedGuard', () => {
   const executeGuard: CanMatchFn = (...guardParameters) =>
       TestBed.runInInjectionContext(() => clearLastSelected(...guardParameters));
 
-  beforeEach(() => {
-    TestBed.configureTestingModule({});
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({});
   });
 
   it('should be created', () => {

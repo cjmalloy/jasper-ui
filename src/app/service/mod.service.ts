@@ -16,7 +16,7 @@ import { ConfigService } from './config.service';
 })
 export class ModService {
 
-  nesting = CSS.supports('selector(& > *)');
+  nesting = CSS && CSS.supports('selector(& > *)');
 
   constructor(
     @Inject(DOCUMENT) private document: Document,
@@ -28,6 +28,7 @@ export class ModService {
   ) { }
 
   get init$() {
+    document.documentElement.style.overflowY = 'scroll';
     this.setTheme(localStorage.getItem('theme') || this.systemTheme);
     autorun(() => this.setCustomCss('custom-css', ...(this.store.account.config.userTheme ? this.getUserCss() : this.getExtCss())));
     this.admin.configProperty('css').forEach(p => this.setCustomCss(p.type + '-' + p.tag, p.config!.css));

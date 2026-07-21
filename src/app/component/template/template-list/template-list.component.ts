@@ -1,19 +1,21 @@
-import { Component, HostBinding, Input, QueryList, ViewChildren } from '@angular/core';
+import { Component, Input, QueryList, ViewChildren, ChangeDetectionStrategy } from '@angular/core';
 import { Router } from '@angular/router';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Page } from '../../../model/page';
-import { Tag } from '../../../model/tag';
 import { Template } from '../../../model/template';
+import { LoadingComponent } from '../../loading/loading.component';
+import { PageControlsComponent } from '../../page-controls/page-controls.component';
 import { TemplateComponent } from '../template.component';
 
 @Component({
-  standalone: false,
   selector: 'app-template-list',
   templateUrl: './template-list.component.html',
-  styleUrls: ['./template-list.component.scss']
+  styleUrls: ['./template-list.component.scss'],
+  host: { 'class': 'template-list' },
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [TemplateComponent, PageControlsComponent, LoadingComponent]
 })
 export class TemplateListComponent implements HasChanges {
-  @HostBinding('class') css = 'template-list';
 
   @ViewChildren(TemplateComponent)
   list?: QueryList<TemplateComponent>;

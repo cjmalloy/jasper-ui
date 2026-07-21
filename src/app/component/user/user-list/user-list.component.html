@@ -1,19 +1,21 @@
 <div class="list-container">
-  <ng-container *ngFor="let user of page?.content; let i = index">
+  @for (user of page?.content; track user.tag + user.origin; let i = $index) {
     <div class="list-number">{{ i + page!.page.number * page!.page.size + 1 }}</div>
     <app-user [user]="user" [profile]="getProfile(user)"></app-user>
-  </ng-container>
-  <ng-container *ngFor="let profile of scim?.content; let i = index">
-    <ng-container *ngIf="!hasUser(profile.tag)">
+  }
+  @for (profile of scim?.content; track profile.tag; let i = $index) {
+    @if (!hasUser(profile.tag)) {
       <div class="list-number">{{ i + scim!.page.number * scim!.page.size + (page ? page.content.length + page.page.number * page.page.size : 0) }}</div>
       <app-user [profile]="profile"></app-user>
-    </ng-container>
-  </ng-container>
+    }
+  }
 </div>
-<app-loading *ngIf="!page"></app-loading>
-<app-page-controls *ngIf="page && page.content.length"
-                   [page]="page"></app-page-controls>
-
-<p class="no-results" *ngIf="page && !page.content.length" i18n>
-  No results found
-</p>
+@if (!page) {
+  <app-loading></app-loading>
+} @else if (page.content.length) {
+  <app-page-controls [page]="page"></app-page-controls>
+} @else {
+  <p class="no-results" i18n>
+    No results found
+  </p>
+}

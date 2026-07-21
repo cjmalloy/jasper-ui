@@ -4,17 +4,17 @@
     @if (children.length) {
       <div class="ribbon-margin" [style.margin-bottom.px]="childrenOn * 20"></div>
     }
-    @if (plugin.config!.form) {
+    @if (form || promoteAdvanced && advancedForm) {
       <formly-form class="form plugin-content"
                    [model]="model"
                    [form]="group"
-                   [fields]="plugin.config!.form"
+                   [fields]="form || advancedForm!"
                    [options]="options"></formly-form>
     }
-    @if (plugin.config!.advancedForm) {
-      <details class="advanced"
-               [class.mini]="!plugin.config!.form">
-        @if (plugin.config!.form) {
+    @if (advancedForm && (form || !promoteAdvanced)) {
+      <details class="advanced {{ cssClass(plugin.tag) }}"
+               [class.mini]="!form">
+        @if (form) {
           <summary><span i18n>Advanced</span></summary>
         } @else {
           <summary i18n-title title="Advanced"><span></span></summary>
@@ -22,7 +22,7 @@
         <formly-form class="form plugin-content"
                      [model]="model"
                      [form]="group"
-                     [fields]="plugin.config!.advancedForm"
+                     [fields]="advancedForm"
                      [options]="options"></formly-form>
       </details>
     }

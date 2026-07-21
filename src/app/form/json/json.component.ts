@@ -1,17 +1,20 @@
-import { Component, HostBinding, Input, OnDestroy } from '@angular/core';
-import { UntypedFormGroup } from '@angular/forms';
+import { Component, Input, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
+import { ReactiveFormsModule, UntypedFormGroup } from '@angular/forms';
 import { autorun, IReactionDisposer } from 'mobx';
+import { MonacoEditorModule } from 'ngx-monaco-editor';
+import { ResizeHandleDirective } from '../../directive/resize-handle.directive';
 import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
 
 @Component({
-  standalone: false,
   selector: 'app-json',
   templateUrl: './json.component.html',
-  styleUrls: ['./json.component.scss']
+  styleUrls: ['./json.component.scss'],
+  host: { 'class': 'json-editor' },
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [ReactiveFormsModule, MonacoEditorModule, ResizeHandleDirective]
 })
 export class JsonComponent implements OnDestroy {
-  @HostBinding('class') css = 'json-editor';
 
   private disposers: IReactionDisposer[] = [];
 

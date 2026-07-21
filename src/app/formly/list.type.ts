@@ -1,19 +1,29 @@
-import { CdkDragDrop } from '@angular/cdk/drag-drop';
-import { Component, HostBinding } from '@angular/core';
-import { FieldArrayType } from '@ngx-formly/core';
+import { CdkDrag, CdkDragDrop, CdkDragHandle, CdkDropList } from '@angular/cdk/drag-drop';
+import { CdkScrollable } from '@angular/cdk/scrolling';
+import { Component, HostBinding, ChangeDetectionStrategy } from '@angular/core';
+import { FieldArrayType, FormlyField } from '@ngx-formly/core';
 import { defer } from 'lodash-es';
 import { Store } from '../store/store';
+import { clipboardPasteValues } from '../util/clipboard';
+import { getPath } from '../util/http';
 
 @Component({
-  standalone: false,
   selector: 'formly-list-section',
+  host: {
+    '(jasper-clipboard-paste)': 'clipboardPaste($any($event))',
+  },
   template: `
     <label [class.no-margin]="props.showLabel === false">{{ props.showLabel !== false && props.label || '' }}</label>
-    <div class="form-group"
+    <div #fg
+         class="form-group"
          cdkDropList
          cdkScrollable
          [cdkDropListData]="this"
-         (cdkDropListDropped)="drop($any($event))">
+         (cdkDropListDropped)="drop($any($event))"
+         [class.dropping]="dropping"
+         (drop)="dnd($event)"
+         (dragenter)="dropping = true"
+         (dragleave)="dragLeave(fg, $any($event.target))">
       @if (props.showAdd !== false) {
         <button type="button" (click)="add()">{{ props.addText }}</button>
       }
@@ -34,8 +44,18 @@ import { Store } from '../store/store';
       }
     </div>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [
+    CdkDropList,
+    CdkScrollable,
+    CdkDrag,
+    CdkDragHandle,
+    FormlyField,
+  ],
 })
 export class ListTypeComponent extends FieldArrayType {
+
+  dropping = false;
 
   constructor(
     private store: Store,
@@ -53,6 +73,32 @@ export class ListTypeComponent extends FieldArrayType {
     return this.field.fieldArray.fieldGroup;
   }
 
+  get type() {
+    // @ts-ignore
+    switch(this.field.fieldArray?.type) {
+      case 'url':
+      case 'ref':
+      case 'pdf':
+      case 'qr':
+      case 'audio':
+      case 'video':
+      case 'image':
+        return 'ref';
+      case 'tag':
+      case 'qtag':
+      case 'user':
+      case 'quser':
+      case 'query':
+      case 'selector':
+      case 'plugin':
+      case 'template':
+      case 'bookmark':
+        return 'tag';
+    }
+    // @ts-ignore
+    return this.field.fieldArray?.type;
+  }
+
   override add(index?: number, initialModel?: any) {
     // @ts-ignore
     this.field.fieldArray.focus = index === undefined && !initialModel;
@@ -61,6 +107,7 @@ export class ListTypeComponent extends FieldArrayType {
 
   keydown(event: KeyboardEvent, index: number) {
     if (this.groupArray) return;
+    if (event.repeat) return;
     const len = this.formControl.length;
     if (!event.shiftKey) {
       if (event.key === 'Enter' || event.key === 'Tab' && len - 1 === index) {
@@ -116,9 +163,15 @@ export class ListTypeComponent extends FieldArrayType {
     }
   }
 
+  /**
+   * Remove blank inputs on blur.
+   */
   maybeRemove(event: FocusEvent, i: number) {
     if (this.groupArray) return;
-    if (!(event.target as any).value) this.remove(i);
+    const input = event.target as HTMLInputElement;
+    if (input.tagName !== 'INPUT') return;
+    if (input.classList.contains('preview')) return;
+    if (!input.value) this.remove(i);
   }
 
   focus(index?: number, select = false) {
@@ -144,10 +197,86 @@ export class ListTypeComponent extends FieldArrayType {
     });
   }
 
+  clipboardPaste(event: Event) {
+    event.preventDefault();
+    event.stopPropagation();
+    for (const value of clipboardPasteValues(event)) {
+      this.add(undefined, value);
+    }
+  }
+
   drop(event: CdkDragDrop<ListTypeComponent>) {
     if (!this.store.hotkey || event.previousContainer === event.container) {
       event.previousContainer.data.remove(event.previousIndex);
     }
-    super.add(event.currentIndex, event.item.data);
+    let value = event.item.data;
+    if (event.previousContainer.data.type === 'ref' && event.container.data.type === 'tag') {
+      let path = getPath(value) || value;
+      // @ts-ignore
+      if (value.startsWith(window.configService.base)) {
+        // @ts-ignore
+        path = value.substring(window.configService.base.length);
+        if (!path.startsWith('/')) path = '/' + path;
+      }
+      if (path.startsWith('/ref/')) path = path.substring('/ref/'.length);
+      if (path.startsWith('tag:/')) {
+        value = path.substring('tag:/'.length);
+      } else if (value.startsWith('tag:/')) {
+        value = value.substring('tag:/'.length);
+      }
+    } else if (event.previousContainer.data.type === 'tag' && event.container.data.type === 'ref') {
+      value = 'tag:/' + value;
+    }
+    this.add(event.currentIndex, value);
+  }
+
+  dnd(event: DragEvent) {
+    this.dropping = false;
+    event.preventDefault();
+    event.stopPropagation();
+    const items = event.dataTransfer?.items;
+    if (!items) return;
+    for (let i = 0; i < items.length; i++) {
+      const d = items[i];
+      if (d?.kind !== 'string') continue;
+      if (d?.type !== 'text/plain') continue;
+      d.getAsString(url => {
+        let path = getPath(url) || url;
+        // @ts-ignore
+        if (url.startsWith(window.configService.base)) {
+          // @ts-ignore
+          path = url.substring(window.configService.base.length);
+          if (!path.startsWith('/')) path = '/' + path;
+        }
+        if (path.startsWith('/ref/')) path = path.substring('/ref/'.length);
+        if (path.startsWith('/tag/')) {
+          if (this.type == 'ref') {
+            this.add(undefined, 'tag:' + path.substring('/tag'.length));
+          } else {
+            this.add(undefined, path.substring('/tag/'.length));
+          }
+        } else if (path.startsWith('tag:/')) {
+          if (this.type == 'ref') {
+            this.add(undefined, path);
+          } else {
+            this.add(undefined, path.substring('tag:/'.length));
+          }
+        } else if (url.startsWith('tag:/')) {
+          if (this.type == 'ref') {
+            this.add(undefined, url);
+          } else {
+            this.add(undefined, url.substring('tag:/'.length));
+          }
+        } else {
+          this.add(undefined, url);
+        }
+      });
+    }
+  }
+
+  dragLeave(parent: HTMLElement, target: HTMLElement) {
+    if (this.dropping && parent === target || !parent.contains(target)) {
+      this.dropping = false;
+    }
   }
 }

@@ -2,16 +2,7 @@ import { Injectable } from '@angular/core';
 import { Ref } from '../model/ref';
 import { Role } from '../model/user';
 import { Store } from '../store/store';
-import {
-  capturesAny,
-  hasTag,
-  isOwner,
-  isOwnerTag,
-  localTag,
-  privateTag,
-  publicTag,
-  qualifyTags
-} from '../util/tag';
+import { capturesAny, hasTag, isOwner, isOwnerTag, localTag, privateTag, publicTag, qualifyTags } from '../util/tag';
 import { ConfigService } from './config.service';
 
 @Injectable({

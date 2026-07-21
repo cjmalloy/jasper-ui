@@ -1,13 +1,13 @@
 name: Draft GitHub Release
+permissions:
+  contents: write
 
 on:
   push:
     tags: [ 'v*.*.*' ]
 
 env:
-  # Use docker.io for Docker Hub if empty
   REGISTRY: ghcr.io
-  # github.repository as <account>/<repo>
   RELEASE_FILE: jasper-ui-${{ github.ref_name }}.zip
 
 jobs:
@@ -15,18 +15,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out Git repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Install Node.js, NPM and Yarn
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
-          node-version: 18
+          node-version: 24
+          cache: 'npm'
 
       - name: Build
         run: npm ci && npm run build
 
       - name: Zip
-        run: cd dist/jasper-ui/; zip -r ../../${{ env.RELEASE_FILE }} .
+        run: cd dist/jasper-ui/browser/; zip -r $GITHUB_WORKSPACE/${{ env.RELEASE_FILE }} .
 
       - name: Create Draft Release
         id: create_release

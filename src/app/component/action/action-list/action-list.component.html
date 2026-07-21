@@ -32,8 +32,7 @@
            (click)="download()" i18n>download</a>
       }
       @if (mediaAttachment) {
-      <a *ngIf="mediaAttachment"
-         class="fake-link"
+      <a class="fake-link"
          (click)="downloadMedia()" i18n>media</a>
       }
       @if (groupedAdvancedActions) {

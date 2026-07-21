@@ -1,4 +1,4 @@
-import { Component, HostBinding, Input, QueryList, ViewChildren } from '@angular/core';
+import { Component, Input, QueryList, ViewChildren, ChangeDetectionStrategy } from '@angular/core';
 import { Router } from '@angular/router';
 import { find } from 'lodash-es';
 import { catchError, of } from 'rxjs';
@@ -7,16 +7,19 @@ import { Page } from '../../../model/page';
 import { Profile } from '../../../model/profile';
 import { User } from '../../../model/user';
 import { ProfileService } from '../../../service/api/profile.service';
+import { LoadingComponent } from '../../loading/loading.component';
+import { PageControlsComponent } from '../../page-controls/page-controls.component';
 import { UserComponent } from '../user.component';
 
 @Component({
-  standalone: false,
   selector: 'app-user-list',
   templateUrl: './user-list.component.html',
-  styleUrls: ['./user-list.component.scss']
+  styleUrls: ['./user-list.component.scss'],
+  host: { 'class': 'user-list' },
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [UserComponent, LoadingComponent, PageControlsComponent]
 })
 export class UserListComponent implements HasChanges {
-  @HostBinding('class') css = 'user-list';
 
   @Input()
   scim?: Page<Profile>;

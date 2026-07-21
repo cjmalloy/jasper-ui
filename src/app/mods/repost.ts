@@ -6,6 +6,7 @@ export const repostPlugin: Plugin = {
   tag: 'plugin/repost',
   name: $localize`↪️ Repost`,
   config: {
+    version: 2,
     type: 'semantic',
     default: true,
     add: true,
@@ -21,7 +22,7 @@ export const repostPlugin: Plugin = {
     `,
     icons: [{ label: $localize`↪️` }],
     filters: [
-      { query: 'plugin/repost', label: $localize`↪️ Repost`, title: $localize`Reposts`, group: $localize`Plugins 🧰️` },
+      { query: 'plugin/repost', label: $localize`↪️ repost`, title: $localize`Reposts`, group: $localize`Plugins 🧰️` },
     ],
   },
 };

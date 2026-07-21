@@ -1,11 +1,12 @@
 import { Injectable } from '@angular/core';
+import { uniq } from 'lodash-es';
 import { runInAction } from 'mobx';
 import { catchError, Observable, of, switchMap } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Ref } from '../model/ref';
-import { isPushing, isReplicating } from '../mods/origin';
+import { isPushing, isReplicating } from '../mods/sync/origin';
 import { Store } from '../store/store';
-import { subOrigin } from '../util/tag';
+import { defaultOrigin, subOrigin } from '../util/tag';
 import { AdminService } from './admin.service';
 import { RefService } from './api/ref.service';
 import { ConfigService } from './config.service';
@@ -30,6 +31,9 @@ export class OriginMapService {
     return this.loadOrigins$().pipe(
       tap(() => runInAction(() => {
         this.store.origins.origins = this.origins;
+        this.store.origins.list = this.list;
+        this.store.origins.lookup = this.lookup;
+        this.store.origins.tunnelLookup = this.tunnelLookup;
         this.store.origins.reverseLookup = this.reverseLookup;
         this.store.origins.originMap = this.originMap;
       })),
@@ -47,7 +51,7 @@ export class OriginMapService {
       console.error(`Too many origins to load, only loaded ${alreadyLoaded}. Increase maxOrigins to load more.`)
       return of(null);
     }
-    return this.refs.page({ query: '+plugin/origin', page, size: this.config.fetchBatch, obsolete: true }).pipe(
+    return this.refs.page({ query: '+plugin/origin', page, size: this.config.fetchBatch, obsolete: null as any }).pipe(
       tap(batch => this.origins.push(...batch.content)),
       switchMap(batch => !batch.content.length ? of(null) : this.loadOrigins$(page + 1)),
     );
@@ -72,6 +76,50 @@ export class OriginMapService {
       ...remotesForOrigin(this.store.account.origin)
         .filter(remote => isPushing(remote, ''))
         .map(remote => [trimUrl(remote.url), config(remote).remote]),
+    ] as [string, string][]);
+  }
+
+  /**
+   * Lists all visible origins.
+   */
+  private get list(): string[] {
+    const config = (remote?: Ref): any => remote?.plugins?.['+plugin/origin'];
+    const remotesForOrigin = (origin: string) => this.origins.filter(remote => remote.origin === origin);
+    return uniq([
+      this.store.account.origin,
+      ...remotesForOrigin(this.store.account.origin)
+        .map(remote => subOrigin(remote.origin, config(remote)?.local)),
+    ]);
+  }
+
+  /**
+   * Maps local-alias -> api.
+   */
+  private get lookup(): Map<string, string> {
+    const config = (remote?: Ref): any => remote?.plugins?.['+plugin/origin'];
+    const trimUrl = (url: string) => url.endsWith('/') ? url.substring(0, url.length - 1) : url;
+    const remotesForOrigin = (origin: string) => this.origins.filter(remote => remote.origin === origin);
+    return new Map([
+      [this.store.account.origin, this.api],
+      ...remotesForOrigin(this.store.account.origin)
+        .map(remote => [subOrigin(remote.origin, config(remote)?.local), trimUrl(remote.url)]),
+    ] as [string, string][]);
+  }
+
+  /**
+   * Maps local-alias -> ssh user.
+   */
+  private get tunnelLookup(): Map<string, string> {
+    const config = (remote?: Ref): any => remote?.plugins?.['+plugin/origin'];
+    const tunnel = (remote: Ref): any => remote.plugins?.['+plugin/origin/tunnel'];
+    const remotesForOrigin = (origin: string) => this.origins.filter(remote => remote.origin === origin);
+    return new Map([
+      [this.store.account.origin, this.api],
+        ...remotesForOrigin(this.store.account.origin)
+          .map(remote => [subOrigin(remote.origin, config(remote)?.local), {
+            ...tunnel(remote),
+            remoteUser: defaultOrigin(tunnel(remote)?.remoteUser || '', remote.origin),
+          }]),
     ] as [string, string][]);
   }
 

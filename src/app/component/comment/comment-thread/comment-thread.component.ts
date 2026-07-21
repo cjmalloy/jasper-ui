@@ -1,15 +1,17 @@
 import {
   Component,
-  HostBinding,
+  forwardRef,
   Input,
   OnChanges,
   OnDestroy,
   OnInit,
   QueryList,
   SimpleChanges,
-  ViewChildren
+  ViewChildren,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import { autorun, IReactionDisposer } from 'mobx';
+import { MobxAngularModule } from 'mobx-angular';
 import { Observable, Subject, takeUntil } from 'rxjs';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Ref } from '../../../model/ref';
@@ -18,18 +20,22 @@ import { ThreadStore } from '../../../store/thread';
 import { CommentComponent } from '../comment.component';
 
 @Component({
-  standalone: false,
   selector: 'app-comment-thread',
   templateUrl: './comment-thread.component.html',
-  styleUrls: ['./comment-thread.component.scss']
+  styleUrls: ['./comment-thread.component.scss'],
+  host: { 'class': 'comment-thread' },
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [
+    forwardRef(() => CommentComponent),
+    MobxAngularModule,
+  ],
 })
 export class CommentThreadComponent implements OnInit, OnChanges, OnDestroy, HasChanges {
-  @HostBinding('class') css = 'comment-thread';
   private destroy$ = new Subject<void>();
   private disposers: IReactionDisposer[] = [];
 
   @Input()
-  source?: Ref;
+  source = '';
   @Input()
   scrollToLatest = false;
   @Input()
@@ -44,7 +50,7 @@ export class CommentThreadComponent implements OnInit, OnChanges, OnDestroy, Has
   @ViewChildren('comment')
   list?: QueryList<CommentComponent>;
 
-  comments?: Ref[];
+  comments?: Ref[] = [];
   newComments: Ref[] = [];
 
   constructor(
@@ -52,8 +58,12 @@ export class CommentThreadComponent implements OnInit, OnChanges, OnDestroy, Has
     public thread: ThreadStore,
   ) {
     this.disposers.push(autorun(() => {
-      if (thread.latest) {
-        this.comments = thread.cache.get(this.source?.url);
+      if (thread.latest.length) {
+        this.comments = thread.cache.get(this.source);
+        if (this.comments && this.newComments.length) {
+          const newUrls = new Set(this.newComments.map(c => c.url));
+          this.comments = this.comments.filter(c => !newUrls.has(c.url));
+        }
         if (this.comments && this.pageSize) {
           this.comments = [...this.comments!];
           this.comments.length = this.pageSize;
@@ -75,7 +85,7 @@ export class CommentThreadComponent implements OnInit, OnChanges, OnDestroy, Has
   ngOnChanges(changes: SimpleChanges) {
     if (changes.source || changes.pageSize) {
       this.newComments = [];
-      this.comments = this.thread.cache.get(this.source?.url);
+      this.comments = this.thread.cache.get(this.source);
       if (this.comments && this.pageSize) {
         this.comments = [...this.comments!];
         this.comments.length = this.pageSize;

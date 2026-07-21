@@ -1,30 +1,40 @@
-import { Component, HostBinding, Input } from '@angular/core';
-import { debounce } from 'lodash-es';
-import { catchError, Observable, of, Subscription } from 'rxjs';
+import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
+import { FakeLinkDirective } from '../../../directive/fake-link.directive';
+import { ReactiveFormsModule } from '@angular/forms';
+import { debounce, uniqBy } from 'lodash-es';
+import { catchError, forkJoin, map, Observable, of, Subscription, switchMap } from 'rxjs';
 import { v4 as uuid } from 'uuid';
+import { AutofocusDirective } from '../../../directive/autofocus.directive';
 import { Config } from '../../../model/tag';
 import { AdminService } from '../../../service/admin.service';
 import { ExtService } from '../../../service/api/ext.service';
+import { EditorService } from '../../../service/editor.service';
 import { Store } from '../../../store/store';
 import { TAGS_REGEX } from '../../../util/format';
+import { hasTag } from '../../../util/tag';
+import { LoadingComponent } from '../../loading/loading.component';
 import { ActionComponent } from '../action.component';
 
 @Component({
-  standalone: false,
   selector: 'app-inline-tag',
   templateUrl: './inline-tag.component.html',
-  styleUrls: ['./inline-tag.component.scss']
+  styleUrls: ['./inline-tag.component.scss'],
+  host: { 'class': 'action' },
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [FakeLinkDirective, ReactiveFormsModule, AutofocusDirective, LoadingComponent]
 })
 export class InlineTagComponent extends ActionComponent {
-  @HostBinding('class') css = 'action';
-  tagRegex = TAGS_REGEX.source;
+  tagsRegex = TAGS_REGEX.source;
 
   @Input()
   action: (tag: string) => Observable<any|never> = () => of(null);
 
+  @Input()
+  tags?: string[];
+
   editing = false;
   acting = false;
-  id = uuid();
+  id = 'tag-' + uuid();
   autocomplete: { value: string; label: string }[] = [];
 
   private searching?: Subscription;
@@ -32,6 +42,7 @@ export class InlineTagComponent extends ActionComponent {
   constructor(
     private store: Store,
     private admin: AdminService,
+    private editor: EditorService,
     private exts: ExtService,
   ) {
     super();
@@ -65,20 +76,36 @@ export class InlineTagComponent extends ActionComponent {
     ).subscribe(() => this.acting = false);
   }
 
+  preview$(value: string): Observable<{ name?: string, tag: string } | undefined> {
+    return this.editor.getTagPreview(value, this.store.account.origin, false,);
+  }
+
   search = debounce((input: HTMLInputElement) => {
-    const value = input.value = input.value.toLowerCase();
-    const toEntry = (p: Config) => ({ value: p.tag, label: p.name || p.tag });
-    const getPlugins = (text: string) => this.admin.searchPlugins(text).slice(0, 1).map(toEntry);
-    const getTemplates = (text: string) => this.admin.searchTemplates(text).slice(0, 1).map(toEntry);
+    const text = input.value.replace(/[,\s]+$/, '');
+    const parts = text.split(/[,\s]+/).filter(t => !!t);
+    const value = parts.pop() || '';
+    const prefix = text.substring(0, text.length - value.length);
+    const remove = value.startsWith('-') ? '-' : '';
+    const tag = value.replace(/[^_+a-z0-9./]/, '').toLowerCase();
+    const toEntry = (p: Config) => ({ value: prefix + remove + p.tag, label: remove + (p.name || '#' + p.tag) });
+    const getPlugins = (text: string) => this.admin.searchPlugins(text).filter(p => !hasTag(p.tag, this.tags)).slice(0, 1).map(toEntry);
+    const getTemplates = (text: string) => this.admin.searchTemplates(text).filter(p => !hasTag(p.tag, this.tags)).slice(0, 1).map(toEntry);
     this.searching?.unsubscribe();
     this.searching = this.exts.page({
-      query: this.store.account.origin || '@',
-      search: value,
-      size: 1,
-    }).subscribe(page => {
-      this.autocomplete = page.content.map(x => ({ value: x.tag, label: x.name || x.tag }));
-      if (this.autocomplete.length < 1) this.autocomplete.push(...getPlugins(value));
-      if (this.autocomplete.length < 1) this.autocomplete.push(...getTemplates(value));
+      search: tag,
+      sort: ['origin:len', 'tag:len'],
+      size: 3,
+    }).pipe(
+      switchMap(page => page.page.totalElements ? forkJoin(page.content.map(x => this.preview$(x.tag + x.origin))) : of([])),
+      map(xs => xs.filter(x => !!x) as { name?: string, tag: string }[]),
+      map(xs => remove ? xs.filter(x => hasTag(x.tag, this.tags)) : xs.filter(x => !hasTag(x.tag, this.tags))),
+      map(xs => remove && !xs.length ? (this.tags || []).filter(t => hasTag(tag, [t])).map(t => ({ tag: t } as { name?: string, tag: string })) : xs),
+    ).subscribe(xs => {
+      this.autocomplete = xs.map(x => ({ value: prefix + remove + x.tag, label: remove + (x.name || '#' + x.tag) }));
+      if (!remove && this.autocomplete.length < 3) this.autocomplete.push(...getPlugins(tag));
+      this.autocomplete = uniqBy(this.autocomplete, 'value');
+      if (!remove && this.autocomplete.length < 3) this.autocomplete.push(...getTemplates(tag));
+      this.autocomplete = uniqBy(this.autocomplete, 'value');
     });
   }, 400);
 

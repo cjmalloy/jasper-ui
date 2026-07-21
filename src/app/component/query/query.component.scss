@@ -8,14 +8,12 @@
     margin-right: 4px;
   }
 }
-
-div {
+.breadcrumbs {
   align-self: center;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-.breadcrumbs {
+  white-space: nowrap;
+  cursor: text;
   .tag {
     white-space: nowrap;
     line-height: 147%;

@@ -8,6 +8,8 @@ import { CACHE_MS } from '../account.service';
 import { ConfigService } from '../config.service';
 import { LoginService } from '../login.service';
 
+export type BackupRef = {  id: string, size?: number };
+
 @Injectable({
   providedIn: 'root'
 })
@@ -35,11 +37,10 @@ export class BackupService {
     );
   }
 
-  list(origin: string): Observable<string[]> {
-    return this.http.get(`${this.base}`, {
+  list(origin: string): Observable<BackupRef[]> {
+    return this.http.get<BackupRef[]>(`${this.base}`, {
       params: params({ origin }),
     }).pipe(
-      map(res => res as string[]),
       catchError(err => this.login.handleHttpError(err)),
     );
   }
@@ -68,8 +69,8 @@ export class BackupService {
     );
   }
 
-  backfill(origin: string): Observable<void> {
-    return this.http.post<void>(`${this.base}/backfill`, null, {
+  regen(origin: string): Observable<void> {
+    return this.http.post<void>(`${this.base}/regen`, null, {
       params: params({ origin }),
     }).pipe(
         catchError(err => this.login.handleHttpError(err)),

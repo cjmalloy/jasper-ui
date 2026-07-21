@@ -1,20 +1,26 @@
+import { AsyncPipe } from '@angular/common';
+import { FakeLinkDirective } from '../../directive/fake-link.directive';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
   Component,
+  forwardRef,
   HostBinding,
   Input,
   OnChanges,
   QueryList,
   SimpleChanges,
   ViewChild,
-  ViewChildren
+  ViewChildren,
+  ChangeDetectionStrategy
 } from '@angular/core';
-import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
+import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { isObject } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { toJS } from 'mobx';
 import { catchError, of, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
+import { TitleDirective } from '../../directive/title.directive';
 import { extForm, ExtFormComponent } from '../../form/ext/ext.component';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { equalsExt, Ext, writeExt } from '../../model/ext';
@@ -25,6 +31,7 @@ import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
 import { AuthzService } from '../../service/authz.service';
 import { BookmarkService } from '../../service/bookmark.service';
+import { EditorService } from '../../service/editor.service';
 import { Store } from '../../store/store';
 import { downloadTag } from '../../util/download';
 import { scrollToFirstInvalid } from '../../util/form';
@@ -33,15 +40,25 @@ import { printError } from '../../util/http';
 import { memo, MemoCache } from '../../util/memo';
 import { hasPrefix, parentTag } from '../../util/tag';
 import { ActionComponent } from '../action/action.component';
+import { ConfirmActionComponent } from '../action/confirm-action/confirm-action.component';
 
 @Component({
-  standalone: false,
   selector: 'app-ext',
   templateUrl: './ext.component.html',
-  styleUrls: ['./ext.component.scss']
+  styleUrls: ['./ext.component.scss'],
+  host: { 'class': 'ext list-item' },
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [
+    FakeLinkDirective,
+    forwardRef(() => ExtFormComponent),
+    RouterLink,
+    TitleDirective,
+    ConfirmActionComponent,
+    ReactiveFormsModule,
+    AsyncPipe,
+  ],
 })
 export class ExtComponent implements OnChanges, HasChanges {
-  @HostBinding('class') css = 'ext list-item';
   @HostBinding('attr.tabindex') tabIndex = 0;
 
   @ViewChildren('action')
@@ -55,8 +72,8 @@ export class ExtComponent implements OnChanges, HasChanges {
   editForm!: UntypedFormGroup;
   submitted = false;
   invalid = false;
+  overwritten = false;
   overwrite = true;
-  force = false;
   icons: Template[] = [];
   template?: Template;
   plugin?: Plugin;
@@ -67,11 +84,14 @@ export class ExtComponent implements OnChanges, HasChanges {
   writeAccess = false;
   serverError: string[] = [];
 
+  private overwrittenModified? = '';
+
   constructor(
     public admin: AdminService,
     public store: Store,
     private auth: AuthzService,
     private exts: ExtService,
+    private editor: EditorService,
     public bookmarks: BookmarkService,
     private fb: UntypedFormBuilder,
   ) { }
@@ -85,7 +105,7 @@ export class ExtComponent implements OnChanges, HasChanges {
     this.submitted = false;
     this.invalid = false;
     this.overwrite = false;
-    this.force = false;
+    this.overwritten = false;
     this.template = this.admin.getTemplate(this.ext.tag);
     this.plugin = this.admin.getPlugin(this.ext.tag);
     this.editing = false;
@@ -123,7 +143,7 @@ export class ExtComponent implements OnChanges, HasChanges {
     return this.ext.exists;
   }
 
-  @ViewChild(ExtFormComponent)
+  @ViewChild('extForm')
   set extForm(value: ExtFormComponent) {
     value?.setValue(toJS(this.ext));
   }
@@ -147,7 +167,13 @@ export class ExtComponent implements OnChanges, HasChanges {
 
   @memo
   get extLink() {
+    if (this.admin.local.find(t => hasPrefix(this.ext.tag, t.tag))) return this.ext.tag + (this.ext.origin || '@');
     return tagLink(this.ext.tag, this.ext.origin, this.store.account.origin);
+  }
+
+  @memo
+  get preview() {
+    return this.editor.getTagPreview(this.ext.tag, this.ext.origin);
   }
 
   save() {
@@ -160,38 +186,39 @@ export class ExtComponent implements OnChanges, HasChanges {
     let ext = {
       ...this.editForm.value,
       tag: this.ext.tag, // Need to fetch because control is disabled
-      modifiedString: this.ext.modifiedString,
+      modifiedString: this.overwrite ? this.overwrittenModified : this.ext.modifiedString,
     };
-    if (this.ext.upload || !this.invalid || !this.overwrite) {
-      const config = this.ext.config;
-      ext = {
-        ...this.ext,
-        ...ext,
-        config: {
-          ...isObject(config) ? config : {},
-          ...ext.config,
-        },
-      }
-    }
+    const config = this.ext.config;
+    ext = {
+      ...this.ext,
+      ...ext,
+      config: {
+        ...isObject(config) ? config : {},
+        ...ext.config,
+      },
+    };
     if (this.ext.upload) {
       ext.upload = true;
       this.ext = ext;
       this.store.submit.setExt(this.ext);
     } else {
-      this.exts.update(ext, this.force).pipe(
+      this.exts.update(ext).pipe(
         switchMap(() => this.exts.get(this.qualifiedTag)),
         catchError((res: HttpErrorResponse) => {
           if (res.status === 400) {
-            if (this.invalid) {
-              this.force = true;
-            } else {
-              this.invalid = true;
-            }
+            this.invalid = true;
+            console.log(res.message);
+            // TODO: read res.message to find which fields to delete
+          }
+          if (res.status === 409) {
+            this.overwritten = true;
+            this.exts.get(this.qualifiedTag).subscribe(x => this.overwrittenModified = x.modifiedString);
           }
           this.serverError = printError(res);
           return throwError(() => res);
         }),
       ).subscribe(ext => {
+        this.editForm.reset();
         this.ext = ext;
         this.init();
       });
@@ -200,7 +227,7 @@ export class ExtComponent implements OnChanges, HasChanges {
 
   upload() {
     (this.store.submit.overwrite
-      ? this.exts.update({ ...this.ext, origin: this.store.account.origin }, true)
+      ? this.exts.update({ ...this.ext, origin: this.store.account.origin })
       : this.exts.create({ ...this.ext, origin: this.store.account.origin })).pipe(
       catchError((err: HttpErrorResponse) => {
         this.serverError = printError(err);
@@ -227,7 +254,7 @@ export class ExtComponent implements OnChanges, HasChanges {
             switchMap(ext => {
               if (equalsExt(ext, copied) || confirm('An old version already exists. Overwrite it?')) {
                 // TODO: Show diff and merge or split
-                return this.exts.update(copied, true);
+                return this.exts.update(copied);
               } else {
                 return throwError(() => 'Cancelled')
               }

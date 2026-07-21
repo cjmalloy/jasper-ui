@@ -6,6 +6,7 @@ export const threadPlugin: Plugin = {
   tag: 'plugin/thread',
   name: $localize`🧵️ Threads`,
   config: {
+    version: 1,
     type: 'plugin',
     default: true,
     genId: true,
@@ -25,7 +26,6 @@ export const threadPlugin: Plugin = {
       { query: 'plugin/thread', label: $localize`🧵️ threads`, title: $localize`Discussion Threads or DMs`, group: $localize`Plugins 🧰️` },
     ],
   },
-  generateMetadata: true,
 };
 
 export const threadMod: Mod = {

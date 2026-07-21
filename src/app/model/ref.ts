@@ -30,6 +30,24 @@ export const refSchema: Schema = {
   }
 };
 
+export const refViewSchema: Schema = {
+  optionalProperties: {
+    url: { type: 'string' },
+    origin: { type: 'string' },
+    tags: { elements: { type: 'string' } },
+    title: { type: 'string' },
+    comment: { type: 'string' },
+    sources: { elements: { type: 'string' } },
+    alternateUrls: { elements: { type: 'string' } },
+    plugins: {},
+    metadata: {},
+    published: { type: 'string' },
+    modified: { type: 'string' },
+    modifiedString: { type: 'string' },
+    created: { type: 'string' },
+  }
+};
+
 /**
  * Sent in response to websocket subscription.
  *
@@ -74,18 +92,15 @@ export interface MetadataUpdates {
   obsolete?: boolean;
 }
 
-export type Filter =
-  'untagged' |
-  'uncited' |
-  'unsourced' |
-  'obsolete';
+export type Filter = 'obsolete';
 
 type FilterObj = {
-  [name in Filter]?: boolean;
+  [name in Filter]?: boolean | null;
 };
 
 export type RefFilter = FilterObj & {
   query?: string;
+  noDescendents?: string;
   nesting?: number,
   scheme?: string;
   pluginResponse?: string[];
@@ -93,9 +108,11 @@ export type RefFilter = FilterObj & {
   userResponse?: string[];
   noUserResponse?: string[];
   url?: string;
-  obsolete?: boolean;
+  obsolete?: boolean | null;
+  noResponses?: string;
   responses?: string;
   sources?: string;
+  noSources?: string;
   search?: string;
   modifiedAfter?: string | DateTime;
   modifiedBefore?: string | DateTime;
@@ -117,21 +134,17 @@ export type RefSort = '' | 'rank' | 'rank,DESC' |
   'created' | 'created,ASC' | 'created,DESC' |
   'modified' | 'modified,ASC' | 'modified,DESC' |
   'published' | 'published,ASC' | 'published,DESC' |
-  'metadataModified' | 'metadataModified,ASC' | 'metadataModified,DESC' |
   'url' | 'url,ASC' | 'url,DESC' |
   'obsolete' | 'obsolete,ASC' | 'obsolete,DESC' |
   'scheme' | 'scheme,ASC' | 'scheme,DESC' |
   'title' | 'title,ASC' | 'title,DESC' |
   'origin' | 'origin,ASC' | 'origin,DESC' |
-  'nesting' | 'nesting,ASC' | 'nesting,DESC' |
+  'origin:len' | 'origin:len,ASC' | 'origin:len,DESC' |
   'comment' | 'comment,ASC' | 'comment,DESC' |
-  'tagCount' | 'tagCount,ASC' | 'tagCount,DESC' |
-  'sourceCount' | 'sourceCount,ASC' | 'sourceCount,DESC' |
-  'responseCount' | 'responseCount,ASC' | 'responseCount,DESC' |
-  'commentCount' | 'commentCount,ASC' | 'commentCount,DESC' |
-  'voteCount' | 'voteCount,ASC' | 'voteCount,DESC' |
-  'voteScore' | 'voteScore,ASC' | 'voteScore,DESC' |
-  'voteScoreDecay' | 'voteScoreDecay,ASC' | 'voteScoreDecay,DESC';
+  'tags:len' | 'tags:len,ASC' | 'tags:len,DESC' |
+  'sources:len' | 'sources:len,ASC' | 'sources:len,DESC' |
+  `metadata->${string}` | `metadata->${string},ASC` | `metadata->${string},DESC` |
+  `plugins->${string}` | `plugins->${string},ASC` | `plugins->${string},DESC`;
 
 export function mapRef(obj: any): Ref {
   obj.origin ||= '';
@@ -166,6 +179,13 @@ export function writeRef(ref: Ref): Ref {
   delete result.vy;
   delete result.fx;
   delete result.fy;
+  return result;
+}
+
+export function writeEdit(ref: Ref): Ref {
+  const result = writeRef(ref);
+  delete result.origin;
+  delete result.modified;
   return result;
 }
 

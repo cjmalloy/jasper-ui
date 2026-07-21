@@ -1,5 +1,5 @@
 import * as FileSaver from 'file-saver';
-import * as JSZip from 'jszip';
+import JSZip from 'jszip';
 import { Ext, writeExt } from '../model/ext';
 import { Page } from '../model/page';
 import { Plugin, writePlugin } from '../model/plugin';

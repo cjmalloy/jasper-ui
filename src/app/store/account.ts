@@ -4,7 +4,8 @@ import { Ext } from '../model/ext';
 import { Roles, User } from '../model/user';
 import { getMailbox } from '../mods/mailbox';
 import { defaultSubs, UserConfig } from '../mods/user';
-import { braces, hasPrefix, localTag, prefix, setPublic, tagOrigin } from '../util/tag';
+import { parseBookmarkParams, parseParams } from '../util/http';
+import { braces, defaultOrigin, hasPrefix, localTag, prefix, setPublic, tagOrigin } from '../util/tag';
 import { OriginStore } from './origin';
 
 export class AccountStore {
@@ -150,17 +151,25 @@ export class AccountStore {
     return this.config.bookmarks || [];
   }
 
+  get bookmarkQueries() {
+    return this.bookmarks.map(b => b.includes('?') ? b.substring(0, b.indexOf('?')) : b);
+  }
+
+  get bookmarkParams() {
+    return this.bookmarks.map(b => parseBookmarkParams(b.includes('?') ? b.substring(b.indexOf('?')) : b));
+  }
+
   get alarms(): string[] {
     return this.config.alarms || [];
   }
 
   get mailbox() {
     if (!this.signedIn) return undefined;
-    return getMailbox(this.tag, this.origin);
+    return getMailbox(this.tag, this.origin) + (this.origin || '@');
   }
 
   get modmail() {
-    return this.access?.readAccess?.filter(t => hasPrefix(t, 'plugin/inbox')).map(t => t + (this.origin || '@*'));
+    return this.access?.readAccess?.filter(t => hasPrefix(t, 'plugin/inbox')).map(t => defaultOrigin(t, this.origin || '@'));
   }
 
   get outboxes() {
@@ -172,7 +181,7 @@ export class AccountStore {
     if (!this.signedIn) return '';
     let tags = [this.mailbox];
     if (this.origin) {
-      tags.push(setPublic(prefix('plugin/outbox', this.origin, this.tagWithOrigin)));
+      tags.push(setPublic(prefix('plugin/outbox', this.origin, this.tagWithOrigin)) + this.origin);
     }
     if (this.modmail?.length) {
       tags.push(...this.modmail);

@@ -1,15 +1,18 @@
 <ng-container *mobxAutorun>
-  <app-comment #comment
-               *ngFor="let comment of newComments"
-               [ref]="comment"
-               [depth]="depth"
-               [context]="context"></app-comment>
-  <ng-container *ngIf="depth > 0">
+  @for (comment of newComments; track comment.url) {
+
     <app-comment #comment
-                 *ngFor="let comment of comments"
                  [ref]="comment"
-                 [scrollToLatest]="scrollToLatest"
                  [depth]="depth"
                  [context]="context"></app-comment>
-  </ng-container>
+  }
+  @if (depth > 0) {
+    @for (comment of comments; track comment.origin + comment.url) {
+      <app-comment #comment
+                   [ref]="comment"
+                   [scrollToLatest]="scrollToLatest"
+                   [depth]="depth"
+                   [context]="context"></app-comment>
+    }
+  }
 </ng-container>

@@ -6,10 +6,11 @@ import { ProxyService } from '../service/api/proxy.service';
 import { OembedStore } from '../store/oembed';
 import { hasTag } from '../util/tag';
 
+type ThumbnailRef = Pick<Ref, 'url' | 'origin' | 'plugins' | 'tags'>;
+
 @Pipe({
-  standalone: false,
-  name: 'thumbnail',
-  pure: true
+    name: 'thumbnail',
+    pure: true
 })
 export class ThumbnailPipe implements PipeTransform {
 
@@ -19,10 +20,16 @@ export class ThumbnailPipe implements PipeTransform {
     private proxy: ProxyService,
   ) { }
 
-  transform(refs: (Ref | undefined)[], force = false): Observable<string> {
+  transform(refs: (ThumbnailRef | undefined)[], force = false): Observable<string> {
+    const imagesEnabled = !!this.admin.getPlugin('plugin/image');
     for (const ref of refs) {
       if (!ref) continue;
-      for (const plugin of ['plugin/thumbnail', 'plugin/image', 'plugin/video']) {
+      const thumbnailUrl = refUrl(ref, 'plugin/thumbnail');
+      if (thumbnailUrl && (imagesEnabled || isInlineSvg(thumbnailUrl))) {
+        return of(this.fetchUrl(thumbnailUrl, ref.origin, 'plugin/thumbnail'));
+      }
+      if (!imagesEnabled) continue;
+      for (const plugin of ['plugin/image', 'plugin/video']) {
         if (refUrl(ref, plugin)) return of(this.fetchUrl(refUrl(ref, plugin), ref.origin, plugin));
       }
       if (hasTag('plugin/embed', ref)) {
@@ -41,7 +48,7 @@ export class ThumbnailPipe implements PipeTransform {
         if (embedPlugins.includes(plugin)) return of(this.fetchUrl(ref.url, ref.origin, plugin));
       }
     }
-    if (force) {
+    if (imagesEnabled && force) {
       for (const ref of refs) {
         if (!this.validUrl(ref?.url)) continue;
         return of(this.fetchUrl(ref!.url, ref!.origin, 'plugin/image'));
@@ -52,8 +59,9 @@ export class ThumbnailPipe implements PipeTransform {
 
   fetchUrl(url: string, origin: string | undefined, plugin: string) {
     if (!url) return '';
-    if (this.admin.getPlugin(plugin)?.config?.proxy) {
-      return this.proxy.getFetch(url, origin, true);
+    if (isInlineSvg(url)) return url;
+    if (url.startsWith('cache:') || this.admin.getPlugin(plugin)?.config?.proxy) {
+      return this.proxy.getFetch(url, origin, 'thumbnail', true);
     }
     return url;
   }
@@ -68,4 +76,8 @@ export class ThumbnailPipe implements PipeTransform {
 
 function refUrl(ref: Ref, plugin: string) {
   return ref.plugins?.[plugin]?.url;
+}
+
+export function isInlineSvg(url: string) {
+  return /^data:image\/svg\+xml(?:[,;])/i.test(url);
 }

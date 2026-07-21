@@ -1,14 +1,23 @@
-import { Component, HostBinding, Input } from '@angular/core';
-import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
+import {
+  ReactiveFormsModule,
+  UntypedFormBuilder,
+  UntypedFormControl,
+  UntypedFormGroup,
+  Validators
+} from '@angular/forms';
+import { v4 as uuid } from 'uuid';
+import { JsonComponent } from '../json/json.component';
 
 @Component({
-  standalone: false,
   selector: 'app-plugin-form',
   templateUrl: './plugin.component.html',
-  styleUrls: ['./plugin.component.scss']
+  styleUrls: ['./plugin.component.scss'],
+  host: { 'class': 'nested-form' },
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [ReactiveFormsModule, JsonComponent]
 })
 export class PluginFormComponent {
-  @HostBinding('class') css = 'nested-form';
 
   @Input()
   group!: UntypedFormGroup;
@@ -19,12 +28,29 @@ export class PluginFormComponent {
   @Input()
   schemaErrors: string[] = [];
 
+  id = 'plugin-' + uuid();
+  editingConfig = false;
+  editingDefaults = false;
+  editingSchema = false;
+
   get tag() {
     return this.group.get('tag') as UntypedFormControl;
   }
 
   get name() {
     return this.group.get('name') as UntypedFormControl;
+  }
+
+  get config() {
+    return this.editingConfig ||= this.group.get('config')?.value;
+  }
+
+  get defaults() {
+    return this.editingDefaults ||= this.group.get('defaults')?.value;
+  }
+
+  get schema() {
+    return this.editingSchema ||= this.group.get('schema')?.value;
   }
 
   validate(input: HTMLInputElement) {
@@ -42,7 +68,6 @@ export function pluginForm(fb: UntypedFormBuilder) {
   return fb.group({
     tag: [{value: '', disabled: true}, [Validators.required]],
     name: ['', [Validators.required]],
-    generateMetadata: [false],
     config: [],
     defaults: [],
     schema: [],

@@ -1,4 +1,7 @@
 body.darwin, body.ios {
+  .submit-button span {
+    margin: 4px 0 2px 3px;
+  }
   // See `mobile.scss`
   $mobile-width: 740px;
   @media (max-width: $mobile-width) {
@@ -10,14 +13,14 @@ body.darwin, body.ios {
   }
 }
 body.safari {
-  input, textarea {
-    background-color: var(--form-bg);
-  }
   .toggle {
     line-height: 22px;
   }
   .actions-toggle {
     line-height: 25px;
+  }
+  select {
+    height: unset;
   }
 }
 
@@ -34,11 +37,13 @@ body.darwin.safari {
     height: 28px;
   }
   .actions, .advanced-actions {
-    input, button {
-      position: relative;
-      top: 1px;
-      height: 16px !important;
-      font-size: 100%;
+    .action > span {
+      & > input, & > button {
+        position: relative;
+        top: 1px;
+        height: 16px !important;
+        font-size: 100%;
+      }
     }
   }
   .form-array, .buttons {
@@ -96,11 +101,18 @@ body.darwin.safari {
 }
 
 body.ios {
+  input, textarea {
+    background-color: var(--form-bg);
+  }
   input:not([type=checkbox]):not([type=radio]) {
     height: 28px;
   }
   button[type=submit] {
     color: revert;
+  }
+  input[type=color] {
+    border-radius: 5px;
+    border: solid 1px -apple-system-secondary-label;
   }
   button {
     min-width: 30px !important;
@@ -125,7 +137,7 @@ body.ios {
     margin-top: 4px;
   }
   .actions, .advanced-actions {
-    input {
+    .action > span > input {
       height: 20px !important;
     }
   }

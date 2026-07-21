@@ -31,33 +31,13 @@
     }
     <button type="button" (click)="removeFilter(i)" i18n>&ndash;</button>
   </div>
-  @if (filter.startsWith('modified/')) {
+  @if (filter.startsWith('modified/') || filter.startsWith('response/') || filter.startsWith('published/') || filter.startsWith('created/')) {
     <input type="datetime-local"
            step="60"
-           [ngModel]="toDate(filter)"
-           (input)="!$any($event.target).isFocused() && $any($event.target).focus()"
-           (keydown)="$event.key === 'Enter' && setModified(i, filter.startsWith('modified/before/'), toIso($any($event.target).value)) || true"
-           (blur)="setModified(i, filter.startsWith('modified/before/'), toIso($any($event.target).value))">
-  } @else if (filter.startsWith('response/')) {
-    <input type="datetime-local"
-           step="60"
-           [ngModel]="toDate(filter)"
-           (input)="!$any($event.target).isFocused() && $any($event.target).focus()"
-           (keydown)="$event.key === 'Enter' && setModified(i, filter.startsWith('response/before/'), toIso($any($event.target).value)) || true"
-           (blur)="setResponse(i, filter.startsWith('response/before/'), toIso($any($event.target).value))">
-  } @else if (filter.startsWith('published/')) {
-    <input type="datetime-local"
-           step="60"
-           [ngModel]="toDate(filter)"
-           (input)="!$any($event.target).isFocused() && $any($event.target).focus()"
-           (keydown)="$event.key === 'Enter' && setModified(i, filter.startsWith('published/before/'), toIso($any($event.target).value)) || true"
-           (blur)="setPublished(i, filter.startsWith('published/before/'), toIso($any($event.target).value))">
-  } @else if (filter.startsWith('created/')) {
-    <input type="datetime-local"
-           step="60"
-           [ngModel]="toDate(filter)"
-           (input)="!$any($event.target).isFocused() && $any($event.target).focus()"
-           (keydown)="$event.key === 'Enter' && setModified(i, filter.startsWith('created/before/'), toIso($any($event.target).value)) || true"
-           (blur)="setCreated(i, filter.startsWith('created/before/'), toIso($any($event.target).value))">
+           [value]="toDate(filter)"
+           (focus)="focus()"
+           (change)="hasFocus() && set(i, filter, toIso($any($event.target).value))"
+           (keydown)="clearFocus() && $event.key === 'Enter' && set(i, filter, toIso($any($event.target).value)) || true"
+           (blur)="set(i, filter, toIso($any($event.target).value))">
   }
 }

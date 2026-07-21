@@ -1,10 +1,13 @@
 import { Overlay, OverlayRef } from '@angular/cdk/overlay';
+import { FakeLinkDirective } from '../../../directive/fake-link.directive';
 import { TemplatePortal } from '@angular/cdk/portal';
 import {
   AfterViewInit,
   ChangeDetectionStrategy,
+  ChangeDetectorRef,
   Component,
   ElementRef,
+  forwardRef,
   HostListener,
   Input,
   OnDestroy,
@@ -17,6 +20,7 @@ import { ForceLink, ScaleTime, Selection, Simulation, SimulationNodeDatum } from
 import { filter } from 'lodash-es';
 import { DateTime, Duration } from 'luxon';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
+import { MobxAngularModule } from 'mobx-angular';
 import { Observable, of, Subscription } from 'rxjs';
 import { switchMap, tap } from 'rxjs/operators';
 import { HasChanges } from '../../../guard/pending-changes.guard';
@@ -30,14 +34,20 @@ import { findNode, GraphNode, isGraphable, isInternal, responses, sources } from
 import { getScheme } from '../../../util/http';
 import { Point, Rect } from '../../../util/math';
 import { capturesAny, hasTag } from '../../../util/tag';
+import { LoadingComponent } from '../../loading/loading.component';
 import { RefListComponent } from '../../ref/ref-list/ref-list.component';
 
 @Component({
-  standalone: false,
   selector: 'app-force-directed',
   templateUrl: './force-directed.component.html',
   styleUrls: ['./force-directed.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [
+    FakeLinkDirective,
+    forwardRef(() => RefListComponent),
+    MobxAngularModule,
+    LoadingComponent,
+  ],
 })
 export class ForceDirectedComponent implements AfterViewInit, OnDestroy, HasChanges {
   private disposers: IReactionDisposer[] = [];
@@ -92,7 +102,7 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy, HasChan
   figure!: ElementRef;
   @ViewChild('nodeMenu')
   nodeMenu!: TemplateRef<any>;
-  @ViewChild(RefListComponent)
+  @ViewChild('list')
   list?: RefListComponent;
 
   overlayRef?: OverlayRef;
@@ -113,12 +123,8 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy, HasChan
     private graphs: GraphService,
     private overlay: Overlay,
     private viewContainerRef: ViewContainerRef,
+    private cd: ChangeDetectorRef,
   ) {
-    this.disposers.push(autorun(() => {
-      this.selectedStroke = store.darkTheme ? this.selectedStrokeDarkTheme : this.selectedStrokeLightTheme;
-      this.linkStroke = store.darkTheme ? this.linkStrokeDarkTheme : this.linkStrokeLightTheme;
-      this.update();
-    }));
   }
 
   saveChanges() {
@@ -145,25 +151,32 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy, HasChan
             if (this.figure) {
               this.update()
             }
+            this.cd.markForCheck();
           });
         } else if (this.figure) {
           this.update();
         }
+        this.cd.markForCheck();
       });
   }
 
   ngAfterViewInit(): void {
     this.init();
-    this.update();
+    this.disposers.push(autorun(() => {
+      this.selectedStroke = this.store.darkTheme ? this.selectedStrokeDarkTheme : this.selectedStrokeLightTheme;
+      this.linkStroke = this.store.darkTheme ? this.linkStrokeDarkTheme : this.linkStrokeLightTheme;
+      this.update();
+      this.cd.markForCheck();
+    }));
   }
 
-  @HostListener('window:resize', ['$event'])
+  @HostListener('window:resize')
   onResize() {
     this.simulation?.alpha(0.3);
     this.update();
   }
 
-  @HostListener('window:click', ['$event'])
+  @HostListener('window:click')
   onWindowClick() {
     this.close();
   }
@@ -192,6 +205,7 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy, HasChan
         this.simulation?.alpha(0.1);
         this.update();
       }
+      this.cd.markForCheck();
     });
   }
 
@@ -295,6 +309,7 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy, HasChan
         this.simulation?.alpha(0.1);
         this.update();
       }
+      this.cd.markForCheck();
     });
     this.close();
   }
@@ -305,6 +320,7 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy, HasChan
         this.simulation?.alpha(0.1);
         this.update();
       }
+      this.cd.markForCheck();
     });
     this.close();
   }
@@ -317,6 +333,7 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy, HasChan
         this.simulation?.alpha(0.1);
         this.update();
       }
+      this.cd.markForCheck();
     });
     this.close();
   }
@@ -402,8 +419,8 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy, HasChan
       .attr('markerHeight', 6)
       .attr('orient', 'auto')
       .append('path')
-        .attr('fill', this.linkStroke)
-        .attr('d', 'M0,-5L10,0L0,5');
+      .attr('fill', this.linkStroke)
+      .attr('d', 'M0,-5L10,0L0,5');
 
     this.link = this.svg.append('g')
       .attr('stroke-opacity', this.linkStrokeOpacity)
@@ -443,12 +460,12 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy, HasChan
 
         this.node!
           .selectAll('g').select('circle')
-            .attr('cx', (d: any) => d.x)
-            .attr('cy', (d: any) => d.y);
+          .attr('cx', (d: any) => d.x)
+          .attr('cy', (d: any) => d.y);
         this.node!
           .selectAll('g').select('text')
-            .attr('x', (d: any) => d.x)
-            .attr('y', (d: any) => d.y);
+          .attr('x', (d: any) => d.x)
+          .attr('y', (d: any) => d.y);
       });
 
     this.dragRect = this.svg.append('g')
@@ -547,7 +564,7 @@ export class ForceDirectedComponent implements AfterViewInit, OnDestroy, HasChan
             .attr('stroke-width', ref => this.store.graph.selected.includes(ref) ? this.selectedStrokeWidth : this.nodeStrokeOpacity)
             .attr('fill', ref => this.color(ref))
             .select('title')
-              .text(ref => getTitle(ref));
+            .text(ref => getTitle(ref));
           update.select('text')
             .text(ref => this.icon(ref));
           return update;

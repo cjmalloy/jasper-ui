@@ -1,21 +1,18 @@
 <ng-container *mobxAutorun>
-  @if (store.view.top && store.view.top.url !== store.view.ref?.url) {
-    <span class="parent-link fake-link print-hide" [routerLink]="['/ref', store.view.top.url, 'thread']" i18n>full thread</span>
-  }
   @if (query.page) {
-    <app-ref-list [page]="query.page"
+    <app-ref-list #list [page]="query.page"
                   [newRefs$]="newRefs$"
                   emptyMessage=""
                   [showToggle]="false"
                   [expanded]="true"
                   [expandInline]="true"></app-ref-list>
-  }
-  @if (store.view.ref) {
-    <app-comment-reply [to]="to"
-                       quote=""
-                       [tags]="replyTags"
-                       (save)="newRefs$.next($event)"></app-comment-reply>
   } @else {
     <app-loading></app-loading>
+  }
+  @if (store.view.ref) {
+    <app-comment-reply #reply
+                       [to]="to"
+                       [tags]="replyTags"
+                       (save)="newRefs$.next($event)"></app-comment-reply>
   }
 </ng-container>

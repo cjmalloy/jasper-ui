@@ -3,7 +3,7 @@
 # The web client will be on http://localhost:8092
 services:
   web:
-    image: ghcr.io/cjmalloy/jasper:v1.2
+    image: ghcr.io/cjmalloy/jasper:v1.3
     ports:
       - 8091:80
     environment:
@@ -24,13 +24,13 @@ services:
     depends_on:
       - db
   db:
-    image: postgres:16
+    image: postgres:18
     environment:
       POSTGRES_USER: jasper
       POSTGRES_PASSWORD: jasper
       POSTGRES_DB: jasper
   client:
-    image: ghcr.io/cjmalloy/jasper-ui:v1.2
+    image: ghcr.io/cjmalloy/jasper-ui:v1.3
     ports:
       - 8092:80
     environment:

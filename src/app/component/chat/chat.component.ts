@@ -1,37 +1,85 @@
-import { CdkVirtualScrollViewport } from '@angular/cdk/scrolling';
-import { Component, HostBinding, Input, OnDestroy, ViewChild } from '@angular/core';
+import { CdkFixedSizeVirtualScroll, CdkVirtualForOf, CdkVirtualScrollViewport } from '@angular/cdk/scrolling';
+import { FakeLinkDirective } from '../../directive/fake-link.directive';
+import { HttpEventType } from '@angular/common/http';
+import { Component, Input, OnChanges, OnDestroy, SimpleChanges, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { ReactiveFormsModule } from '@angular/forms';
 import { debounce, defer, delay, pull, pullAllWith, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
-import { catchError, map, Subject, Subscription, takeUntil, throwError } from 'rxjs';
+import {
+  catchError,
+  last,
+  map,
+  Observable,
+  of,
+  Subject,
+  Subscription,
+  switchMap,
+  takeUntil,
+  tap,
+  throwError
+} from 'rxjs';
 import { v4 as uuid } from 'uuid';
+import { AutofocusDirective } from '../../directive/autofocus.directive';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ref } from '../../model/ref';
+import { EditorButton, sortOrder } from '../../model/tag';
+import { mimeToCode } from '../../mods/media/code';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
+import { ProxyService } from '../../service/api/proxy.service';
 import { RefService } from '../../service/api/ref.service';
 import { StompService } from '../../service/api/stomp.service';
+import { TaggingService } from '../../service/api/tagging.service';
+import { AuthzService } from '../../service/authz.service';
 import { ConfigService } from '../../service/config.service';
 import { EditorService } from '../../service/editor.service';
 import { Store } from '../../store/store';
+import { readFileAsDataURL, readFileAsString } from '../../util/async';
 import { URI_REGEX } from '../../util/format';
 import { getArgs } from '../../util/query';
-import { braces, tagOrigin } from '../../util/tag';
+import { braces, hasTag, tagOrigin } from '../../util/tag';
+import { LoadingComponent } from '../loading/loading.component';
+import { ChatEntryComponent } from './chat-entry/chat-entry.component';
+
+export interface ChatUpload {
+  id: string;
+  name: string;
+  progress: number;
+  subscription?: Subscription;
+  completed?: boolean;
+  error?: string;
+  ref?: Ref | null;
+}
 
 @Component({
-  standalone: false,
   selector: 'app-chat',
   templateUrl: './chat.component.html',
-  styleUrls: ['./chat.component.scss']
+  styleUrls: ['./chat.component.scss'],
+  host: { 'class': 'chat ext' },
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [
+    FakeLinkDirective,
+    ChatEntryComponent,
+    LoadingComponent,
+    CdkVirtualScrollViewport,
+    CdkFixedSizeVirtualScroll,
+    CdkVirtualForOf,
+    ReactiveFormsModule,
+    AutofocusDirective,
+  ],
 })
-export class ChatComponent implements OnDestroy, HasChanges {
-  @HostBinding('class') css = 'chat ext';
+export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
   private destroy$ = new Subject<void>();
   itemSize = 18.5;
 
-  @ViewChild(CdkVirtualScrollViewport)
+  @Input()
+  query = 'chat';
+  @Input()
+  responseOf?: Ref;
+
+  @ViewChild('viewport')
   viewport!: CdkVirtualScrollViewport;
 
-  _query!: string;
   cursors = new Map<string, string | undefined>();
   loadingPrev = false;
   plugins = this.store.account.defaultEditors(['plugin/latex']);
@@ -42,22 +90,29 @@ export class ChatComponent implements OnDestroy, HasChanges {
   sending: Ref[] = [];
   errored: Ref[] = [];
   scrollLock?: number;
+  notAtBottom = false;
+  uploads: ChatUpload[] = [];
+  dropping = false;
 
-  latex = this.admin.getPlugin('plugin/latex');
+  latex = !!this.admin.getPlugin('plugin/latex');
 
+  private tags: string[] = [];
   private timeoutId?: number;
   private retries = 0;
   private lastScrolled = 0;
   private watch?: Subscription;
 
   constructor(
-    private config: ConfigService,
+    public config: ConfigService,
     private accounts: AccountService,
     public admin: AdminService,
     private store: Store,
+    private auth: AuthzService,
     private refs: RefService,
     private editor: EditorService,
     private stomp: StompService,
+    private proxy: ProxyService,
+    private ts: TaggingService,
   ) { }
 
   saveChanges() {
@@ -65,29 +120,28 @@ export class ChatComponent implements OnDestroy, HasChanges {
     return true;
   }
 
-  @Input()
-  set query(value: string) {
-    this._query = value;
-    this.clear();
-  }
-
-  get query() {
-    return this._query;
-  }
-
-  get containerHeight() {
-    return Math.max(300, Math.min(window.innerHeight - 400, this.itemSize * (this.messages?.length || 1)));
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes.query || changes.responseOf) {
+      this.init();
+    }
   }
 
   ngOnDestroy(): void {
     this.clearPoll();
     this.destroy$.next();
     this.destroy$.complete();
+    // Clean up any active upload subscriptions to prevent memory leaks
+    this.uploads.forEach(upload => {
+      if (upload.subscription) {
+        upload.subscription.unsubscribe();
+      }
+    });
   }
 
-  clear() {
+  init() {
     this.messages = undefined;
     this.cursors.clear();
+    this.tags = this.store.account.defaultEditors(this.editors);
     this.loadPrev(true);
     if (this.config.websockets) {
       this.watch?.unsubscribe();
@@ -95,6 +149,29 @@ export class ChatComponent implements OnDestroy, HasChanges {
         takeUntil(this.destroy$),
       ).subscribe(tag =>  this.refresh(tagOrigin(tag)));
     }
+  }
+
+  get editors() {
+    return this.editorButtons.map(p => p?.toggle as string).filter(p => !!p);
+  }
+
+  get editorButtons() {
+    return sortOrder(this.admin.getEditorButtons()).reverse();
+  }
+
+  get editorPushButtons() {
+    return this.editorButtons.filter(b => !b.ribbon && this.visible(b));
+  }
+
+  visible(button: EditorButton) {
+    if (button.scheme) return false;
+    if (!button.global) return false;
+    if (button.toggle && !this.auth.canAddTag(button.toggle)) return false;
+    return true;
+  }
+
+  get containerHeight() {
+    return Math.max(300, Math.min(window.innerHeight - 400, this.itemSize * (this.messages?.length || 1)));
   }
 
   refresh = debounce((origin?: string) => {
@@ -124,15 +201,20 @@ export class ChatComponent implements OnDestroy, HasChanges {
         this.store.view.pageNumber,
         this.store.view.pageSize,
       ),
+      responses: this.responseOf?.url,
       modifiedAfter: this.cursors.get(origin!)
-    }).pipe(catchError(err => {
-      this.setPoll(true);
-      return throwError(() => err);
-    })).subscribe(page => {
+    }).pipe(
+      catchError(err => {
+        this.setPoll(true);
+        this.messages ||= [];
+        return throwError(() => err);
+      }),
+      takeUntil(this.destroy$),
+    ).subscribe(page => {
       this.setPoll(!page.content.length);
+      this.messages ||= [];
       if (!page.content.length) return;
-      if (!this.messages) this.messages = [];
-      this.messages = [...this.messages, ...page.content];
+      this.messages = [...this.messages, ...page.content.filter(r => !hasTag('+plugin/placeholder', r))];
       const last = page.content[page.content.length - 1];
       this.cursors.set(origin, last?.modifiedString);
       // TODO: verify read before clearing?
@@ -156,23 +238,28 @@ export class ChatComponent implements OnDestroy, HasChanges {
         this.store.view.pageNumber,
         Math.max(this.store.view.pageSize, !this.cursors.size ? this.initialSize : 0),
       ),
+      responses: this.responseOf?.url,
       modifiedBefore: this.messages?.[0]?.modifiedString,
-    }).pipe(catchError(err => {
-      this.loadingPrev = false;
-      this.setPoll(true);
-      return throwError(() => err);
-    })).subscribe(page => {
+    }).pipe(
+      catchError(err => {
+        this.loadingPrev = false;
+        this.messages ||= [];
+        this.setPoll(true);
+        return throwError(() => err);
+      }),
+      takeUntil(this.destroy$),
+    ).subscribe(page => {
       this.loadingPrev = false;
       this.setPoll(!page.content.length);
-      if (!page.content.length) return;
+      this.messages ||= [];
       this.scrollLock = undefined;
-      if (!this.messages) this.messages = [];
+      if (!page.content.length) return;
       for (const ref of page.content) {
         if (!this.cursors.has(ref.origin!)) {
           this.cursors.set(ref.origin!, ref.modifiedString);
         }
       }
-      this.messages = [...page.content.reverse(), ...this.messages];
+      this.messages = [...page.content.reverse().filter(r => !hasTag('+plugin/placeholder', r)), ...this.messages];
       pullAllWith(this.sending, page.content, (a, b) => a.url === b.url);
       defer(() => this.viewport.checkViewportSize());
       if (scrollDown) {
@@ -197,6 +284,13 @@ export class ChatComponent implements OnDestroy, HasChanges {
         delay(() => this.viewport.scrollToIndex(this.lastScrolled, 'smooth'), wait);
       }
     });
+  }
+
+  scrollToBottom() {
+    this.scrollLock = undefined;
+    this.viewport.scrollTo({ bottom: 0, behavior: 'smooth' })
+    this.viewport.checkViewportSize();
+    delay(() => this.viewport.scrollToIndex(this.messages!.length - 1, 'smooth'), 400);
   }
 
   fetch() {
@@ -225,49 +319,93 @@ export class ChatComponent implements OnDestroy, HasChanges {
       Math.max(1000, 250 * Math.pow(2, Math.min(10, this.retries))));
   }
 
-  add() {
-    this.addText = this.addText.trim();
-    if (!this.addText) return;
+  add(text = '') {
+    if (!text) {
+      this.addText = this.addText.trim();
+      if (!this.addText) return;
+      text = this.addText;
+      this.addText = '';
+    }
     this.scrollLock = undefined;
     const newTags = uniq([
       'internal',
-      ...(uniq([this.store.view.localTag, ...this.store.view.ext?.config?.addTags || []])),
+      ...this.tags,
+      ...([this.store.view.localTag || 'chat', ...this.store.view.ext?.config?.addTags || []]),
       ...this.plugins,
-      ...(this.store.account.localTag ? [this.store.account.localTag] : []),]);
-    const ref = URI_REGEX.test(this.addText) ? {
-      url: this.editor.getRefUrl(this.addText),
-      origin: this.store.account.origin,
-      tags: newTags,
-    } : {
-      url: 'comment:' + uuid(),
-      origin: this.store.account.origin,
-      comment: this.addText,
-      tags: newTags,
-    };
-    this.addText = '';
-    this.send(ref);
+      ...(this.latex ? ['plugin/latex'] : []),
+      ...(this.store.account.localTag ? [this.store.account.localTag] : []),
+    ]).filter(t => !!t);
+    if (URI_REGEX.test(text)) {
+      const url = this.editor.getRefUrl(text);
+      newTags.push(...this.admin.getPluginsForExtension(url).filter(p => !newTags.includes(p.tag)));
+      this.send({
+        url,
+        origin: this.store.account.origin,
+        tags: newTags,
+      });
+    } else {
+      this.send({
+        url: 'comment:' + uuid(),
+        origin: this.store.account.origin,
+        comment: text,
+        tags: newTags,
+      });
+    }
   }
 
   private send(ref: Ref) {
+    if (this.responseOf) ref.sources = [this.responseOf.url];
     this.sending.push(ref);
-    this.refs.create(ref).pipe(
+    (ref.modified ? this.refs.update(ref).pipe(
       map(() => ref),
       catchError(err => {
-        if (err.status === 409) {
+        if (err.status === 403) {
           // Ref already exists, repost
-          return this.refs.create({
+          pull(this.sending, ref);
+          ref = {
             ...ref,
             url: 'comment:' + uuid(),
             tags: [...ref.tags!, 'plugin/repost'],
-            sources: [ ref.url ],
-          });
+            sources: [ ref.url, ...ref.sources || [] ],
+          };
+          this.sending.push(ref);
+          return this.refs.create(ref);
+        } else if (err.status === 409) {
+          // Ref already exists, repost
+          return this.refs.get(ref.url, ref.origin).pipe(
+            switchMap(r => this.refs.update({
+              ...ref,
+              modified: r.modified,
+              modifiedString: r.modifiedString,
+            })),
+          );
         } else {
           pull(this.sending, ref);
           this.errored.push(ref);
         }
         return throwError(err);
       }),
-    ).subscribe(cursor => {
+    ) : this.refs.create(ref).pipe(
+      map(() => ref),
+      catchError(err => {
+        if (err.status === 409) {
+          // Ref already exists, repost
+          pull(this.sending, ref);
+          ref = {
+            ...ref,
+            url: 'comment:' + uuid(),
+            tags: [...ref.tags!, 'plugin/repost'],
+            sources: [ ref.url, ...ref.sources || [] ],
+          };
+          this.sending.push(ref);
+          return this.refs.create(ref);
+        } else {
+          pull(this.sending, ref);
+          this.errored.push(ref);
+        }
+        return throwError(err);
+      }),
+    )).subscribe(cursor => {
       this.fetch();
     });
   }
@@ -278,12 +416,217 @@ export class ChatComponent implements OnDestroy, HasChanges {
   }
 
   onScroll(index: number) {
+    this.notAtBottom = this.viewport.measureScrollOffset('bottom') > this.itemSize;
     if (!this.scrollLock) return;
     // TODO: count height in rows
     const diff = this.scrollLock - index;
     if (diff < -5) {
       this.scrollLock = undefined;
     }
+  }
+
+  toggleTag(button: EditorButton) {
+    const tag = button.toggle!;
+    if (this.buttonOn(tag)) {
+      if (this.tags.includes(tag)) this.tags.splice(this.tags.indexOf(tag), 1);
+      if (button.remember && this.admin.getTemplate('user')) {
+        this.accounts.removeConfigArray$('editors', tag).subscribe();
+      }
+    } else {
+      this.tags.push(tag);
+      if (button.remember && this.admin.getTemplate('user')) {
+        this.accounts.addConfigArray$('editors', tag).subscribe();
+      }
+    }
+    if ('vibrate' in navigator) navigator.vibrate([2, 8, 8]);
+  }
+
+  buttonOn(tag: string) {
+    return this.tags?.includes(tag);
+  }
+
+  handlePaste(event: ClipboardEvent) {
+    const items = event.clipboardData?.items;
+    if (!items) return;
+
+    // First, check for files
+    const files = [] as File[];
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      if (item?.kind === 'file') {
+        const file = item.getAsFile();
+        if (file) files.push(file);
+      }
+    }
+
+    // If files found and plugin/file is enabled, upload them
+    if (files.length && this.admin.getPlugin('plugin/file')) {
+      event.preventDefault();
+      event.stopPropagation();
+      this.upload(files);
+      return;
+    }
+  }
+
+  handleDrop(event: DragEvent) {
+    this.dropping = false;
+    const items = event.dataTransfer?.items;
+    if (!items) return;
+
+    // Check for files first
+    const files = [] as File[];
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      if (item?.kind === 'file') {
+        const file = item.getAsFile();
+        if (file) files.push(file);
+      }
+    }
+
+    // If files found and plugin/file is enabled, upload them
+    if (files.length && this.admin.getPlugin('plugin/file')) {
+      event.preventDefault();
+      event.stopPropagation();
+      this.upload(files);
+      return;
+    }
+
+    // Check for URL in text content
+    const text = event.dataTransfer?.getData('text/plain')?.trim();
+    if (!text) return;
+    event.preventDefault();
+    event.stopPropagation();
+    this.addText = text;
+  }
+
+  dragLeave(event: DragEvent) {
+    const target = event.target as HTMLElement;
+    const relatedTarget = event.relatedTarget as HTMLElement;
+    // Only set dropping to false if we're leaving the container entirely
+    if (this.dropping && (!relatedTarget || !target.contains(relatedTarget))) {
+      this.dropping = false;
+    }
+  }
+
+  upload(files: File[]) {
+    if (!files || files.length === 0) return;
+    files.forEach((file) => {
+      const upload: ChatUpload = {
+        id: uuid(),
+        name: file.name,
+        progress: 0
+      };
+      this.uploads.push(upload);
+      upload.subscription = this.upload$(file, upload).subscribe(ref => {
+        if (ref && !upload.error) {
+          upload.completed = true;
+          upload.progress = 100;
+          upload.ref = ref;
+          this.add(ref.url);
+          this.uploads = this.uploads.filter(u => u.id !== upload.id);
+        }
+      });
+    });
+  }
+
+  upload$(file: File, upload: ChatUpload): Observable<Ref | null> {
+    const codeType = mimeToCode(file.type);
+    if (codeType.length) {
+      const ref: Ref = {
+        origin: this.store.account.origin,
+        url: 'internal:' + uuid(),
+        // Upload as private - only localTag and internal, no visibility tags
+        tags: uniq([
+          this.store.account.localTag,
+          'internal',
+          ...file.type === 'text/markdown' ? [] : codeType
+        ])
+      };
+      upload.progress = 50; // Simulate progress for text files
+      return readFileAsString(file).pipe(
+        switchMap(contents => this.refs.create({
+          ...ref,
+          comment: contents,
+        })),
+        map(cursor => {
+          ref.modifiedString = cursor;
+          ref.modified = DateTime.fromISO(cursor);
+          return ref;
+        }),
+        tap(() => upload.progress = 100),
+        catchError(err => {
+          upload.error = err.message || $localize`Upload failed`;
+          upload.progress = 0;
+          return readFileAsDataURL(file).pipe(map(url => ({
+            ...ref,
+            url,
+          } as Ref)));
+        }),
+      );
+    } else {
+      // Upload binary files as private - only plugin/file and type-specific tags
+      const tags: string[] = ['plugin/file'];
+      if (file.type.startsWith('audio/') && this.admin.getPlugin('plugin/audio')) {
+        tags.push('plugin/audio');
+      } else if (file.type.startsWith('video/') && this.admin.getPlugin('plugin/video')) {
+        tags.push('plugin/video', 'plugin/thumbnail');
+      } else if (file.type.startsWith('image/') && this.admin.getPlugin('plugin/image')) {
+        tags.push('plugin/image', 'plugin/thumbnail');
+      } else if (file.type.startsWith('application/pdf') && this.admin.getPlugin('plugin/pdf')) {
+        tags.push('plugin/pdf');
+      }
+      return this.proxy.save(file, this.store.account.origin).pipe(
+        map(event => {
+          switch (event.type) {
+            case HttpEventType.Response:
+              return event.body;
+            case HttpEventType.UploadProgress:
+              const percentDone = event.total ? Math.round(100 * event.loaded / event.total) : 0;
+              upload.progress = percentDone;
+              return null;
+          }
+          return null;
+        }),
+        last(),
+        switchMap(ref => !ref ? of(ref) : this.ts.patch(tags, ref.url, ref.origin).pipe(
+          map(cursor => ({
+            ...ref,
+            tags: uniq([...ref?.tags || [], ...tags]),
+            modifiedString: cursor,
+            modified: DateTime.fromISO(cursor),
+          })),
+        )),
+        catchError(err => {
+          upload.error = err.message || $localize`Upload failed`;
+          upload.progress = 0;
+          return readFileAsDataURL(file).pipe(map(url => ({
+            url,
+            tags,
+            origin: this.store.account.origin
+          } as Ref)));
+        }),
+      );
+    }
+  }
+
+  cancelUpload(upload: ChatUpload) {
+    if (upload.subscription) {
+      upload.subscription.unsubscribe();
+    }
+    this.uploads = this.uploads.filter(u => u.id !== upload.id);
+  }
+
+  cancelAllUploads() {
+    this.uploads.forEach(upload => {
+      if (upload.subscription) {
+        upload.subscription.unsubscribe();
+      }
+    });
+    this.uploads = [];
+  }
+
+  hasActiveUploads(): boolean {
+    return this.uploads.some(u => !u.completed && !u.error);
   }
 
 }

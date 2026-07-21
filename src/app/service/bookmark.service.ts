@@ -51,6 +51,18 @@ export class BookmarkService {
     });
   }
 
+  get origin() {
+    return this.store.view.origin;
+  }
+
+  set origin(origin: string) {
+    this.router.navigate([], {
+      queryParams: { origin },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
+  }
+
   toggleTag(...ts: string[]) {
     if (!ts.length) return;
     const tags = this.tags;

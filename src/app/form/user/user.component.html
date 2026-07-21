@@ -1,25 +1,26 @@
 <ng-container [formGroup]="group">
 
-  <label for="tag" i18n>Tag:</label>
+  <label [for]="id + '-tag'" i18n>Tag:</label>
   <div class="form-array">
     <input #tagInput
-           id="tag"
-           type="email"
+           [id]="id + '-tag'"
+           type="text"
+           inputmode="email"
            autocorrect="off"
            autocapitalize="none"
            formControlName="tag"
            (keydown)="$event.key === 'Enter' && validate(tagInput) || true"
-           (blur)="validate(tagInput)">
+           (blur)="blur(tagInput)">
     @if (showClear) {
       <button type="button" (click)="clear.next()" i18n-title title="New User" i18n>🆑️</button>
     }
   </div>
 
-  <label for="name" i18n>Name:</label>
-  <input id="name" type="text" formControlName="name">
+  <label [for]="id + '-name'" i18n>Name:</label>
+  <input [id]="id + '-name'" type="text" formControlName="name">
 
-  <label for="role" i18n>Role:</label>
-  <select id="role" formControlName="role">
+  <label [for]="id + '-role'" i18n>Role:</label>
+  <select [id]="id + '-role'" formControlName="role">
     <option value="ROLE_ADMIN" i18n>admin</option>
     <option value="ROLE_MOD" i18n>mod</option>
     <option value="ROLE_EDITOR" i18n>editor</option>
@@ -56,18 +57,40 @@
             [group]="group"></app-tags>
 
   @if (showPubKey) {
-    <label for="pubKey" i18n>SSH Public Key:</label>
+    <label [for]="id + '-pubKey'" i18n>SSH Public Key:</label>
     <div>
-      <textarea id="pubKey"
+      <textarea [id]="id + '-pubKey'"
                 formControlName="pubKey"></textarea>
     </div>
   }
 
-  <label for="authorizedKeys" i18n>Authorized Keys:</label>
+  <label [for]="id + '-authorizedKeys'" i18n>Authorized Keys:</label>
   <div #fill>
-    <textarea id="authorizedKeys"
+    <textarea [id]="id + '-authorizedKeys'"
               formControlName="authorizedKeys"
               [appFillWidth]="fill"></textarea>
   </div>
+
+  @if (store.account.mod || external) {
+    <label [for]="id + '-external'" i18n>External Config:</label>
+    @if (!editingExternal && !external) {
+      <div>
+        <button type="button" (click)="editingExternal = true" i18n>+ Add Config</button>
+      </div>
+    } @else {
+      <app-json [id]="id + '-external'"
+                fieldName="external"
+                [style.pointer-events]="store.account.mod ? 'auto' : 'none'"
+                [group]="group"></app-json>
+      @if (externalErrors.length) {
+        <span><!-- Errors --></span>
+        @for (e of externalErrors; track e) {
+          <div>
+            <span class="error">{{ e }}</span>
+          </div>
+        }
+      }
+    }
+  }
 
 </ng-container>

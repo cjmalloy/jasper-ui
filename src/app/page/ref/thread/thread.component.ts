@@ -1,8 +1,11 @@
-import { Component, HostBinding, ViewChild } from '@angular/core';
+import { Component, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { defer, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
+import { MobxAngularModule } from 'mobx-angular';
 import { catchError, filter, of, Subject, Subscription, switchMap, takeUntil } from 'rxjs';
+import { tap } from 'rxjs/operators';
 import { CommentReplyComponent } from '../../../component/comment/comment-reply/comment-reply.component';
+import { LoadingComponent } from '../../../component/loading/loading.component';
 import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Ref } from '../../../model/ref';
@@ -14,31 +17,34 @@ import { ConfigService } from '../../../service/config.service';
 import { ModService } from '../../../service/mod.service';
 import { QueryStore } from '../../../store/query';
 import { Store } from '../../../store/store';
+import { getTitle } from '../../../util/format';
 import { memo, MemoCache } from '../../../util/memo';
 import { getArgs } from '../../../util/query';
-import { hasTag, removeTag } from '../../../util/tag';
+import { hasTag, removeTag, top, updateMetadata } from '../../../util/tag';
 
 @Component({
-  standalone: false,
   selector: 'app-ref-thread',
   templateUrl: './thread.component.html',
-  styleUrls: ['./thread.component.scss']
+  styleUrls: ['./thread.component.scss'],
+  host: { 'class': 'thread' },
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [MobxAngularModule, RefListComponent, LoadingComponent, CommentReplyComponent]
 })
 export class RefThreadComponent implements HasChanges {
-  @HostBinding('class') css = 'thread';
 
   private disposers: IReactionDisposer[] = [];
   private destroy$ = new Subject<void>();
 
-  @ViewChild(CommentReplyComponent)
+  @ViewChild('reply')
   reply?: CommentReplyComponent;
-  @ViewChild(RefListComponent)
+  @ViewChild('list')
   list?: RefListComponent;
 
   newRefs$ = new Subject<Ref | undefined>();
 
   to = this.store.view.ref!;
 
+  private watchUrl = '';
   private watch?: Subscription;
 
   constructor(
@@ -61,6 +67,11 @@ export class RefThreadComponent implements HasChanges {
 
   ngOnInit(): void {
     this.disposers.push(autorun(() => {
+      if (this.store.view.pageSize) {
+        runInAction(() => this.store.view.defaultPageNumber = Math.floor(((this.to.metadata?.plugins?.['plugin/thread'] || 1) - 1) / this.store.view.pageSize));
+      }
+    }));
+    this.disposers.push(autorun(() => {
       const args = getArgs(
         'plugin/thread:!plugin/delete',
         this.store.view.sort,
@@ -73,45 +84,65 @@ export class RefThreadComponent implements HasChanges {
       defer(() => this.query.setArgs(args));
     }));
     this.disposers.push(autorun(() => {
-      this.mod.setTitle($localize`Thread: ` + (this.store.view.ref?.title || this.store.view.url));
+      const args = getArgs(
+        'plugin/thread:!plugin/delete',
+        this.store.view.sort,
+        this.store.view.filter,
+        this.store.view.search,
+        this.store.view.pageNumber,
+        this.store.view.pageSize,
+      );
+      args.responses = this.store.view.url;
+      defer(() => this.query.setArgs(args));
     }));
+    // TODO: set title for bare reposts
+    this.disposers.push(autorun(() => this.mod.setTitle($localize`Thread: ` + getTitle(this.store.view.ref))));
     this.disposers.push(autorun(() => {
       MemoCache.clear(this);
-      if (this.store.view.top && this.config.websockets) {
-        this.watch?.unsubscribe();
-        this.watch = this.stomp.watchResponse(this.store.view.top.url).pipe(
-          takeUntil(this.destroy$),
-          switchMap(url => this.refs.getCurrent(url)), // TODO: fix race conditions
-          filter(ref => hasTag('plugin/thread', ref)),
-          catchError(err => of(undefined)),
-        ).subscribe(ref => this.newRefs$.next(ref));
+      if (this.store.view.ref) {
+        const threadCount = this.store.view.ref.metadata?.plugins?.['plugin/thread'] || 0;
+        this.store.local.setLastSeenCount(this.store.view.url, 'threads', threadCount);
+      }
+      if (this.store.view.ref && this.config.websockets) {
+        const topUrl = top(this.store.view.ref);
+        if (this.watchUrl !== topUrl) {
+          this.watchUrl = topUrl;
+          this.watch?.unsubscribe();
+          this.watch = this.stomp.watchResponse(topUrl).pipe(
+            switchMap(url => this.refs.getCurrent(url)), // TODO: fix race conditions
+            tap(ref => runInAction(() => updateMetadata(this.store.view.ref!, ref))),
+            filter(ref => hasTag('plugin/thread', ref)),
+            catchError(err => of(undefined)),
+            takeUntil(this.destroy$),
+          ).subscribe(ref => this.newRefs$.next(ref));
+        }
       }
     }));
     this.disposers.push(autorun(() => {
       if (this.query.page) {
-        this.to = this.query.page?.content?.[(this.query.page?.content?.length || 0) - 1] || this.store.view.ref!;
+        this.to = this.query.page?.content?.filter(ref => !hasTag('+plugin/placeholder', ref))?.[(this.query.page?.content?.length || 0) - 1] || this.store.view.ref!;
       }
     }));
     this.newRefs$.subscribe(c => {
       if (c && this.store.view.ref) {
-        if (c.published! > this.to.published!) {
+        if (hasTag('plugin/thread', c) && !hasTag('+plugin/placeholder', c) && c.published! > this.to.published!) {
           this.to = c;
         }
-        runInAction(() => {
-          this.store.view.ref!.metadata ||= {};
-          this.store.view.ref!.metadata.plugins ||= {} as any;
-          this.store.view.ref!.metadata.plugins!['plugin/thread'] ||= 0;
-          this.store.view.ref!.metadata.plugins!['plugin/thread']++;
-        });
       }
     });
   }
 
   ngOnDestroy() {
+    this.query.close();
     this.destroy$.next();
     this.destroy$.complete();
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
+  }
+
+  @memo
+  get thread() {
+    return this.admin.getPlugin('plugin/thread') && hasTag('plugin/thread', this.store.view.ref);
   }
 
   @memo
@@ -120,21 +151,12 @@ export class RefThreadComponent implements HasChanges {
   }
 
   @memo
-  get replyExts() {
-    return (this.to.tags || [])
-      .map(tag => this.admin.getPlugin(tag))
-      .flatMap(p => p?.config?.reply)
-      .filter(t => !!t) as string[];
-  }
-
-  @memo
   get replyTags(): string[] {
     const tags = [
-      'internal',
       'plugin/thread',
-      ...this.admin.reply.filter(p => (this.store.view.ref?.tags || []).includes(p.tag)).flatMap(p => p.config!.reply as string[]),
+      'internal',
+      ...this.admin.reply.filter(p => hasTag(p.tag, this.store.view.ref)).flatMap(p => p.config!.reply as string[]),
       ...this.mailboxes,
-      ...this.replyExts,
     ];
     return removeTag(getMailbox(this.store.account.tag, this.store.account.origin), uniq(tags));
   }

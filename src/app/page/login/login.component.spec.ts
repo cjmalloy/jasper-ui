@@ -1,3 +1,4 @@
+/// <reference types="vitest/globals" />
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
 import { LoginPage } from './login.component';
@@ -8,12 +9,9 @@ describe('LoginPage', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ LoginPage ]
-    })
-    .compileComponents();
-  });
+      imports: [LoginPage]
+    }).compileComponents();
 
-  beforeEach(() => {
     fixture = TestBed.createComponent(LoginPage);
     component = fixture.componentInstance;
     fixture.detectChanges();

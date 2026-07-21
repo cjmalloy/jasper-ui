@@ -1,9 +1,10 @@
+/// <reference types="vitest/globals" />
+import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { RouterModule } from '@angular/router';
+import { provideRouter } from '@angular/router';
 
 import { KanbanComponent } from './kanban.component';
-import { provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 describe('KanbanComponent', () => {
   let component: KanbanComponent;
@@ -11,14 +12,14 @@ describe('KanbanComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-    declarations: [KanbanComponent],
-    imports: [RouterModule.forRoot([])],
-    providers: [provideHttpClient(withInterceptorsFromDi()), provideHttpClientTesting()]
-})
-    .compileComponents();
-  });
+      imports: [KanbanComponent],
+      providers: [
+        provideHttpClient(withXhr(), withInterceptorsFromDi()),
+        provideHttpClientTesting(),
+        provideRouter([]),
+      ],
+    }).compileComponents();
 
-  beforeEach(() => {
     fixture = TestBed.createComponent(KanbanComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
@@ -26,5 +27,36 @@ describe('KanbanComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  describe('saveChanges navigation guard', () => {
+    it('should allow navigation when no column components exist', () => {
+      // No column components, should allow navigation
+      expect(component.saveChanges()).toBe(true);
+    });
+
+    it('should allow navigation when all columns allow navigation', () => {
+      // Mock column components that all allow navigation
+      const mockColumn1 = { saveChanges: () => true } as any;
+      const mockColumn2 = { saveChanges: () => true } as any;
+
+      component.list = {
+        find: vi.fn().mockReturnValue(undefined) // No column returns false
+      } as any;
+
+      expect(component.saveChanges()).toBe(true);
+    });
+
+    it('should prevent navigation when any column prevents navigation', () => {
+      // Mock column components where one prevents navigation
+      const mockColumnAllowing = { saveChanges: () => true } as any;
+      const mockColumnPreventing = { saveChanges: () => false } as any;
+
+      component.list = {
+        find: vi.fn().mockReturnValue(mockColumnPreventing) // One column returns false
+      } as any;
+
+      expect(component.saveChanges()).toBe(false);
+    });
   });
 });

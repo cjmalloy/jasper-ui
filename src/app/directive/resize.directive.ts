@@ -1,9 +1,6 @@
 import { Directive, ElementRef, HostBinding, HostListener, Input, NgZone } from '@angular/core';
 
-@Directive({
-  standalone: false,
-  selector: '[appResize]'
-})
+@Directive({ selector: '[appResize]' })
 export class ResizeDirective {
 
   @Input('appResize')
@@ -16,12 +13,14 @@ export class ResizeDirective {
 
   @HostBinding('style.width')
   get width() {
-    return this.dim ? this.dim.x + 'px' : null;
+    if (!this.enabled || !this.dim) return this.el.nativeElement.style.width;
+    return this.dim.x + 'px'
   }
 
   @HostBinding('style.height')
   get height() {
-    return this.dim ? this.dim.y + 'px' : null;
+    if (!this.enabled || !this.dim) return this.el.nativeElement.style.height;
+    return this.dim.y + 'px';
   }
 
   minPx = 2;
@@ -50,8 +49,8 @@ export class ResizeDirective {
       y: e.clientY,
     };
     this.startDim = {
-      x: this.el.nativeElement.offsetWidth,
-      y: this.el.nativeElement.offsetHeight,
+      x: Math.floor(this.el.nativeElement.offsetWidth),
+      y: Math.floor(this.el.nativeElement.offsetHeight),
     };
   }
 
@@ -71,8 +70,8 @@ export class ResizeDirective {
         y: Math.abs(t1y - t2y),
       };
       this.startDim = {
-        x: this.el.nativeElement.offsetWidth,
-        y: this.el.nativeElement.offsetHeight,
+        x: Math.floor(this.el.nativeElement.offsetWidth),
+        y: Math.floor(this.el.nativeElement.offsetHeight),
       };
     });
   }
@@ -107,8 +106,8 @@ export class ResizeDirective {
       const dy = (e.clientY - this.dragStart.y) / this.startDim.y;
       const l = (dx + dy) / 2;
       this.dim ??= { ...this.startDim };
-      this.dim.x = this.startDim.x * (1 + l);
-      this.dim.y = this.startDim.y * (1 + l);
+      this.dim.x = Math.floor(this.startDim.x * (1 + l));
+      this.dim.y = this.dim.x * this.startDim.y / this.startDim.x;
       this.dirty = true;
     });
   }
@@ -134,8 +133,8 @@ export class ResizeDirective {
       const dy = (dims.h - this.dragStart.y) / this.startDim.y;
       const l = (dx + dy) / 2;
       this.dim ??= { ...this.startDim };
-      this.dim.x = this.startDim.x * (1 + l);
-      this.dim.y = this.startDim.y * (1 + l);
+      this.dim.x = Math.floor(this.startDim.x * (1 + l));
+      this.dim.y = this.dim.x * this.startDim.y / this.startDim.x;
       this.dirty = true;
     });
   }

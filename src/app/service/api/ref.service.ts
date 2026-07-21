@@ -1,19 +1,24 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { autorun } from 'mobx';
-import { catchError, map, Observable, of } from 'rxjs';
+import { delay } from 'lodash-es';
+import { catchError, concat, first, map, Observable, of } from 'rxjs';
+import { tap } from 'rxjs/operators';
 import { mapPage, Page } from '../../model/page';
-import { mapRef, Ref, RefFilter, RefPageArgs, writeRef } from '../../model/ref';
+import { mapRef, Ref, RefFilter, RefPageArgs, writeEdit, writeRef } from '../../model/ref';
 import { Store } from '../../store/store';
 import { params } from '../../util/http';
-import { OpPatch } from '../../util/json-patch';
+import { escapePath, OpPatch } from '../../util/json-patch';
 import { ConfigService } from '../config.service';
 import { LoginService } from '../login.service';
+
+export const REF_CACHE_MS = 15 * 60 * 1000;
 
 @Injectable({
   providedIn: 'root',
 })
 export class RefService {
+
+  private _cache = new Map<string, boolean>();
 
   constructor(
     private http: HttpClient,
@@ -21,9 +26,9 @@ export class RefService {
     private store: Store,
     private login: LoginService,
   ) {
-    autorun(() => {
-      if (this.store.eventBus.event === 'reload') {
-        this.store.eventBus.catchError$(this.get(this.store.eventBus.ref!.url, this.store.eventBus.ref!.origin!))
+    this.store.eventBus.events.subscribe(event => {
+      if (event.event === 'reload') {
+        this.store.eventBus.catchError$(this.get(event.ref!.url, event.ref!.origin!))
           .subscribe(ref => this.store.eventBus.refresh(ref));
       }
     });
@@ -33,10 +38,8 @@ export class RefService {
     return this.config.api + '/api/v1/ref';
   }
 
-  create(ref: Ref, force = false): Observable<string> {
-    return this.http.post<string>(this.base, writeRef(ref), {
-      params: !force ? undefined : { force: true },
-    }).pipe(
+  create(ref: Ref): Observable<string> {
+    return this.http.post<string>(this.base, writeRef(ref)).pipe(
       catchError(err => this.login.handleHttpError(err)),
     );
   }
@@ -59,14 +62,44 @@ export class RefService {
     );
   }
 
-  exists(url: string): Observable<boolean> {
-    return this.count({ url }).pipe(
+  getDefaults(...tags: string[]): Observable<{ url: string, ref: Partial<Ref> } | undefined> {
+    return concat(...[
+      ...tags.map(t => this.getCurrent('tag:/' + t).pipe(
+        catchError(err => of()),
+      )),
+      of(undefined),
+    ]).pipe(
+      first(),
+      map(ref => {
+        if (!ref) return ref;
+        const url = ref.url;
+        const partial: Partial<Ref> = ref;
+        delete partial.url;
+        delete partial.origin;
+        delete partial.modified;
+        delete partial.modifiedString;
+        delete partial.created;
+        delete partial.published;
+        return { url, ref: partial };
+      })
+    );
+  }
+
+  exists(url: string, origin?: string): Observable<boolean> {
+    const key = (origin || '') + ':' + url;
+    if (this._cache.has(key)) return of(this._cache.get(key)!);
+    delay(() => this._cache.delete(key), REF_CACHE_MS);
+    return this.count({ url, query: origin }).pipe(
       map(n => !!n),
+      tap(e => this._cache.set(key, e)),
     );
   }
 
   page(args?: RefPageArgs): Observable<Page<Ref>> {
     if (args?.query === '!@*') return of(Page.of<Ref>([]));
+    if (args && args.obsolete === undefined) {
+      args.obsolete = false;
+    }
     return this.http.get(`${this.base}/page`, {
       params: params(args),
     }).pipe(
@@ -76,6 +109,9 @@ export class RefService {
   }
 
   count(args?: RefFilter): Observable<number> {
+    if (args && args.obsolete === undefined) {
+      args.obsolete = false;
+    }
     return this.http.get(`${this.base}/count`, {
       responseType: 'text',
       params: params(args),
@@ -85,12 +121,41 @@ export class RefService {
     );
   }
 
-  update(ref: Ref, force = false): Observable<string> {
-    return this.http.put<string>(this.base, writeRef(ref), {
-      params: !force ? undefined : { force: true },
-    }).pipe(
+  update(ref: Ref): Observable<string> {
+    return this.http.put<string>(this.base, writeRef(ref)).pipe(
       catchError(err => this.login.handleHttpError(err)),
     );
+  }
+
+  getEditing(url: string): Observable<Ref | undefined> {
+    if (!this.store.account.localTag) return of(undefined);
+    return this.page({
+      url,
+      query: this.store.account.localTag + ':plugin/editing',
+      size: 1,
+      obsolete: null,
+    }).pipe(
+      map(page => page.content[0]),
+      catchError(() => of(undefined)),
+    );
+  }
+
+  startEditing(ref: Ref) {
+    return this.create({
+      url: ref.url,
+      origin: this.store.account.origin,
+      tags: [this.store.account.localTag, 'plugin/editing'],
+      plugins: { 'plugin/editing': writeEdit(ref) }
+    });
+  }
+
+  saveEdit(ref: Ref, cursor?: string): Observable<string> {
+    if (!cursor) return this.startEditing(ref);
+    return this.patch(ref.url, this.store.account.origin, cursor, [{
+      op: 'add',
+      path: '/plugins/' + escapePath('plugin/editing'),
+      value: writeEdit(ref),
+    }]);
   }
 
   patch(url: string, origin: string, cursor: string, patch: OpPatch[]): Observable<string> {
