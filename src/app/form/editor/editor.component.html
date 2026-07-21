@@ -108,18 +108,16 @@
       <app-loading class="upload-loading" [batch]="true"></app-loading>
     }
     @defer (when wysiwygEnabled) {
-      <div #wysiwygEditor
-           [class.dropping]="dropping"
-           (dragenter)="dropping = true"
-           (dragleave)="dragLeave(wysiwygEditor, $any($event.target))"
-           (drop)="drop($event, $event.dataTransfer?.items)"
-           (paste)="drop($event, $event.clipboardData?.items)"
-           [appFillWidth]="fillWidth"
-           [padding]="padding"></div>
-      <textarea #editor
-                class="wysiwyg-source"
-                [id]="id"
-                [formControl]="control"></textarea>
+      <app-wysiwyg-editor [control]="control"
+                          [initialValue]="currentText"
+                          [fillWidth]="fillWidth"
+                          [padding]="padding"
+                          [autoFocus]="autoFocus"
+                          [id]="id"
+                          (focusIn)="editing = true"
+                          (textFocus)="focusText()"
+                          (textBlur)="blurText($event); syncText($event)"
+                          (fileDrop)="drop($event.event, $event.items)"></app-wysiwyg-editor>
     } @placeholder {
       <textarea #editor
                 [disabled]="!!uploads.length"

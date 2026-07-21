@@ -1,0 +1,11 @@
+<div #wysiwygContainer
+     [class.dropping]="dropping"
+     (dragenter)="dropping = true"
+     (dragleave)="dragLeave(wysiwygContainer, $any($event.target))"
+     (drop)="onDrop($event, $event.dataTransfer?.items)"
+     (paste)="onDrop($event, $event.clipboardData?.items)"
+     [appFillWidth]="fillWidth"
+     [padding]="padding"></div>
+<textarea class="wysiwyg-source"
+          [id]="id"
+          [formControl]="control"></textarea>

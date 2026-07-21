@@ -22,7 +22,6 @@ import {
 } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, UntypedFormArray, UntypedFormControl } from '@angular/forms';
 import { NavigationEnd, Router } from '@angular/router';
-import type { Editor } from '@toast-ui/editor';
 import Europa from 'europa';
 import { debounce, defer, delay, intersection, sortedLastIndex, uniq, without } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
@@ -46,6 +45,7 @@ import { Store } from '../../store/store';
 import { readFileAsDataURL, readFileAsString } from '../../util/async';
 import { memo, MemoCache } from '../../util/memo';
 import { expandedTagsInclude, hasTag, test } from '../../util/tag';
+import { WysiwygEditorComponent } from './wysiwyg-editor.component';
 
 export interface EditorUpload {
   id: string;
@@ -70,6 +70,7 @@ export interface EditorUpload {
     FillWidthDirective,
     AutofocusDirective,
     LimitWidthDirective,
+    WysiwygEditorComponent,
   ],
 })
 export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
@@ -92,56 +93,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   helpButton?: ElementRef<HTMLButtonElement>;
   @ViewChild('editor')
   editor?: ElementRef<HTMLTextAreaElement>;
-  private wysiwygElement?: ElementRef<HTMLDivElement>;
-  private wysiwygChanges?: Subscription;
-  editorInstance?: Editor;
 
-  @ViewChild('wysiwygEditor')
-  set wysiwygEditor(value: ElementRef<HTMLDivElement> | undefined) {
-    if (!value) {
-      this.wysiwygChanges?.unsubscribe();
-      this.editorInstance?.destroy();
-      delete this.wysiwygChanges;
-      delete this.editorInstance;
-      delete this.wysiwygElement;
-      return;
-    }
-    if (this.editorInstance) return;
-    this.wysiwygElement = value;
-    void import('@toast-ui/editor').then(({ Editor }) => {
-      if (this.wysiwygElement !== value || this.editorInstance) return;
-      const editor = new Editor({
-        el: value.nativeElement,
-        height: '200px',
-        initialEditType: 'wysiwyg',
-        initialValue: this.currentText,
-        previewStyle: 'vertical',
-        theme: this.store.darkTheme ? 'dark' : 'light',
-      });
-      editor.on('change', () => {
-        const markdown = editor.getMarkdown();
-        this.setText(markdown);
-        this.control.setValue(markdown);
-      });
-      editor.on('focus', () => {
-        this.editing = true;
-        this.focusText();
-      });
-      editor.on('blur', () => {
-        const markdown = editor.getMarkdown();
-        this.blurText(markdown);
-        this.syncText(markdown);
-      });
-      this.wysiwygChanges = this.control.valueChanges.pipe(
-        takeUntil(this.destroy$),
-      ).subscribe(value => {
-        value ||= '';
-        if (editor.getMarkdown() !== value) editor.setMarkdown(value);
-      });
-      this.editorInstance = editor;
-      if (this.autoFocus) editor.focus();
-    });
-  }
   @ViewChild('md')
   md?: MdComponent;
   @ViewChild('hiddenMeasure')
@@ -256,7 +208,6 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
         document.body.style.height = height + 'px';
         this.el.nativeElement.style.setProperty('--viewport-height', height + 'px');
       }
-      this.wysiwygElement?.nativeElement.firstElementChild?.classList.toggle('toastui-editor-dark', this.store.darkTheme);
     }));
     if (this.tags) {
       this.tags.valueChanges.pipe(
@@ -281,10 +232,6 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
     this.destroy$.complete();
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
-    this.wysiwygChanges?.unsubscribe();
-    this.editorInstance?.destroy();
-    delete this.wysiwygChanges;
-    delete this.editorInstance;
     document.body.style.height = '';
     document.body.classList.remove('fullscreen');
     this.el.nativeElement.style.setProperty('--viewport-height', this.store.viewportHeight + 'px');
@@ -521,7 +468,6 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
     // Clear previous throttled values
     this.syncTextThrottled(value);
     this.control.setValue(value);
-    if (this.editorInstance?.getMarkdown() !== value) this.editorInstance?.setMarkdown(value);
   }
 
   syncTextThrottled = debounce((value: string) => {

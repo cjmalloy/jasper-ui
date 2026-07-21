@@ -20,9 +20,6 @@
     --viewport-height: 100%;
   }
 
-  textarea.wysiwyg-source {
-    display: none;
-  }
   &.fullscreen {
     textarea {
       padding-bottom: calc(var(--viewport-height) - 64px);
