@@ -1,5 +1,5 @@
 import { Directive, ElementRef, HostBinding, Input, OnDestroy, OnInit } from '@angular/core';
-import { autorun, IReactionDisposer } from 'mobx';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Ref } from '../model/ref';
 import { ConfigService } from '../service/config.service';
 import { Dim, height, ImageService, width } from '../service/image.service';
@@ -7,8 +7,6 @@ import { Store } from '../store/store';
 
 @Directive({ selector: '[appImage]' })
 export class ImageDirective implements OnInit, OnDestroy {
-  private disposers: IReactionDisposer[] = [];
-
   @Input()
   grid = false;
   @Input()
@@ -33,15 +31,15 @@ export class ImageDirective implements OnInit, OnDestroy {
     private elRef: ElementRef,
     private imgs: ImageService,
   ) {
-    this.disposers.push(autorun(() => {
-      if (this.store.eventBus.event === 'refresh') {
-        if (this.ref?.url && this.store.eventBus.isRef(this.ref)) {
+    this.store.eventBus.events.pipe(takeUntilDestroyed()).subscribe(event => {
+      if (event.event === 'refresh') {
+        if (this.ref?.url && this.store.eventBus.isRef(event, this.ref)) {
           if (this.loading && this.loadingUrl) {
             this.url = this.loadingUrl;
           }
         }
       }
-    }));
+    });
   }
 
   ngOnInit() {
@@ -60,8 +58,6 @@ export class ImageDirective implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
     this.resizeObserver?.disconnect();
   }
 

@@ -13,9 +13,9 @@ import {
   SimpleChanges,
   ChangeDetectionStrategy
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Chess, Square } from 'chess.js';
 import { defer, delay, flatten, without } from 'lodash-es';
-import { autorun, IReactionDisposer } from 'mobx';
 import { catchError, Observable, of, Subscription, throwError } from 'rxjs';
 import { Ref } from '../../model/ref';
 import { ActionService } from '../../service/action.service';
@@ -38,7 +38,6 @@ type AnimationState = { from: Square; to: Square; capture?: { square: Square; pi
   imports: [CdkDropList, CdkDrag]
 })
 export class ChessComponent implements OnInit, OnChanges, OnDestroy {
-  private disposers: IReactionDisposer[] = [];
 
   @Input()
   ref?: Ref;
@@ -80,8 +79,8 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
     private store: Store,
     private el: ElementRef<HTMLDivElement>,
   ) {
-    this.disposers.push(autorun(() => {
-      if (this.store.eventBus.event === 'flip' && this.store.eventBus.ref?.url === this.ref?.url) {
+    this.store.eventBus.events.pipe(takeUntilDestroyed()).subscribe(event => {
+      if (event.event === 'flip' && event.ref?.url === this.ref?.url) {
         this.flip = true;
         delay(() => {
           this.flip = false;
@@ -89,7 +88,7 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
         }, 1000);
         defer(() => this.store.eventBus.fire('flip-done'));
       }
-    }));
+    });
   }
 
   ngOnInit(): void {
@@ -160,8 +159,6 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   ngOnDestroy() {
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
     this.resizeObserver?.disconnect();
     this.watch?.unsubscribe();
   }

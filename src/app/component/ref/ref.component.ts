@@ -24,7 +24,7 @@ import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angu
 import { Router, RouterLink } from '@angular/router';
 import { cloneDeep, defer, delay, groupBy, pick, throttle, uniq, without } from 'lodash-es';
 import { DateTime } from 'luxon';
-import { autorun, IReactionDisposer, runInAction } from 'mobx';
+import { runInAction } from 'mobx';
 import { catchError, map, of, Subject, Subscription, switchMap, takeUntil, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { TitleDirective } from '../../directive/title.directive';
@@ -154,7 +154,6 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     const radius = Number(this.refThumbnailPlugin?.['radius']);
     return Number.isFinite(radius) ? `${radius}` : undefined;
   }
-  private disposers: IReactionDisposer[] = [];
   private destroy$ = new Subject<void>();
 
   @ViewChildren('action')
@@ -276,15 +275,15 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
         cd.detectChanges();
       });
     }, 400, { leading: true, trailing: true }));
-    this.disposers.push(autorun(() => {
-      if (this.store.eventBus.event === 'refresh') {
+    this.store.eventBus.events.pipe(takeUntil(this.destroy$)).subscribe(event => {
+      if (event.event === 'refresh') {
         if (this.editing || this.viewSource) {
           // TODO: show somewhere
           console.warn('Ignoring Ref edit.');
           return;
         }
-        if (this.ref?.url && this.store.eventBus.isRef(this.ref)) {
-          this.ref = this.store.eventBus.ref!;
+        if (this.ref?.url && this.store.eventBus.isRef(event, this.ref)) {
+          this.ref = event.ref!;
           this.init();
           if (this.refreshTap) {
             this.refreshTap();
@@ -292,7 +291,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
           }
         }
       }
-      if (this.ref?.upload && this.store.eventBus.event === 'refresh:uploads') {
+      if (this.ref?.upload && event.event === 'refresh:uploads') {
         if (this.editing || this.viewSource) {
           // TODO: show somewhere
           console.warn('Ignoring Ref edit.');
@@ -300,23 +299,23 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
         }
         this.init();
       }
-      if (this.store.eventBus.event === 'error') {
-        if (this.ref?.url && this.store.eventBus.isRef(this.ref)) {
-          this.serverError = this.store.eventBus.errors;
+      if (event.event === 'error') {
+        if (this.ref?.url && this.store.eventBus.isRef(event, this.ref)) {
+          this.serverError = event.errors;
         }
       }
-      if (this.store.eventBus.event === 'toggle') {
-        if (this.ref?.url && this.store.eventBus.isRef(this.ref)) {
+      if (event.event === 'toggle') {
+        if (this.ref?.url && this.store.eventBus.isRef(event, this.ref)) {
           this.expanded = !this.expanded;
         }
       }
-      if (this.store.eventBus.event === 'toggle-all-open') {
+      if (event.event === 'toggle-all-open') {
         this.expanded = true;
       }
-      if (this.store.eventBus.event === 'toggle-all-closed') {
+      if (event.event === 'toggle-all-closed') {
         this.expanded = false;
       }
-    }));
+    });
   }
 
   saveChanges() {
@@ -411,8 +410,6 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   ngOnDestroy() {
     this.destroy$.next();
     this.destroy$.complete();
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
     if (this.lastSelected) {
       this.store.view.clearLastSelected();
     }
