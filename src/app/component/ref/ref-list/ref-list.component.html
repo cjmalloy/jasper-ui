@@ -36,7 +36,7 @@
   @for (ref of page?.content; track ref.origin + '@' + ref.url; let i = $index) {
     @if (!hide?.includes($any(ref.modified?.valueOf()) || 0)) {
       <div class="list-number">{{ getNumber(i) }}</div>
-      @if (query.bulkToolsOpen) {
+      @if (query.bulkToolsOpen && page === query.page) {
         <input class="bulk-select-cell bulk-select"
                type="checkbox"
                [checked]="query.isBulkSelected(ref)"
