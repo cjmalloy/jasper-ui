@@ -1,4 +1,5 @@
 import { Component, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { FakeLinkDirective } from '../../directive/fake-link.directive';
 import { RouterLink } from '@angular/router';
 import { defer } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
@@ -21,6 +22,7 @@ import { getArgs } from '../../util/query';
   styleUrls: ['./home.component.scss'],
   changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
+    FakeLinkDirective,
     LensComponent,
     MobxAngularModule,
     TabsComponent,

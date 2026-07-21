@@ -1,4 +1,5 @@
 import { Overlay, OverlayRef } from '@angular/cdk/overlay';
+import { FakeLinkDirective } from '../../../directive/fake-link.directive';
 import { TemplatePortal } from '@angular/cdk/portal';
 import {
   AfterViewInit,
@@ -42,6 +43,7 @@ import { RefListComponent } from '../../ref/ref-list/ref-list.component';
   styleUrls: ['./force-directed.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
+    FakeLinkDirective,
     forwardRef(() => RefListComponent),
     MobxAngularModule,
     LoadingComponent,

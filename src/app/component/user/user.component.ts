@@ -1,4 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
+import { FakeLinkDirective } from '../../directive/fake-link.directive';
 import {
   Component,
   HostBinding,
@@ -47,7 +48,7 @@ import { InlineSelectComponent } from '../action/inline-select/inline-select.com
   styleUrls: ['./user.component.scss'],
   host: { 'class': 'profile list-item' },
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [RouterLink, TitleDirective, ConfirmActionComponent, InlineButtonComponent, InlinePasswordComponent, InlineSelectComponent, ReactiveFormsModule, UserFormComponent]
+  imports: [FakeLinkDirective, RouterLink, TitleDirective, ConfirmActionComponent, InlineButtonComponent, InlinePasswordComponent, InlineSelectComponent, ReactiveFormsModule, UserFormComponent]
 })
 export class UserComponent implements OnChanges, HasChanges {
   @HostBinding('attr.tabindex') tabIndex = 0;

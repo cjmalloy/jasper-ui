@@ -1,4 +1,5 @@
 import { Component, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { FakeLinkDirective } from '../../directive/fake-link.directive';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { pickBy, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
@@ -29,6 +30,7 @@ import { hasTag, privateTag, top } from '../../util/tag';
   styleUrls: ['./ref.component.scss'],
   changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
+    FakeLinkDirective,
     RefComponent,
     MobxAngularModule,
     TabsComponent,

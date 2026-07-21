@@ -1,4 +1,5 @@
 import { AsyncPipe } from '@angular/common';
+import { FakeLinkDirective } from '../../directive/fake-link.directive';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
   AfterViewInit,
@@ -96,6 +97,7 @@ import { ViewerComponent } from '../viewer/viewer.component';
   styleUrls: ['./ref.component.scss'],
   changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
+    FakeLinkDirective,
     forwardRef(() => ViewerComponent),
     forwardRef(() => RefFormComponent),
     forwardRef(() => MdComponent),

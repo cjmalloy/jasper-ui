@@ -1,4 +1,5 @@
 import { AsyncPipe } from '@angular/common';
+import { FakeLinkDirective } from '../../directive/fake-link.directive';
 import {
   AfterViewInit,
   Component,
@@ -66,6 +67,7 @@ import { CommentThreadComponent } from './comment-thread/comment-thread.componen
   host: { 'class': 'comment' },
   changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
+    FakeLinkDirective,
     CommentThreadComponent,
     forwardRef(() => ViewerComponent),
     MobxAngularModule,

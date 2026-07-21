@@ -1,4 +1,5 @@
 import { AsyncPipe } from '@angular/common';
+import { FakeLinkDirective } from '../../../directive/fake-link.directive';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
   Component,
@@ -72,6 +73,7 @@ import { ThreadSummaryComponent } from '../../comment/thread-summary/thread-summ
   host: { 'class': 'blog-entry' },
   changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
+    FakeLinkDirective,
     forwardRef(() => ViewerComponent),
     forwardRef(() => RefFormComponent),
     forwardRef(() => CommentReplyComponent),

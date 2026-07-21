@@ -1,4 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
+import { FakeLinkDirective } from '../../../directive/fake-link.directive';
 import { AfterViewInit, Component, ElementRef, forwardRef, OnChanges, OnDestroy, SimpleChanges, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import {
   ReactiveFormsModule,
@@ -52,6 +53,7 @@ import { getVisibilityTags, hasPrefix, hasTag } from '../../../util/tag';
   host: { 'class': 'full-page-form' },
   changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
+    FakeLinkDirective,
     forwardRef(() => EditorComponent),
     MobxAngularModule,
     ReactiveFormsModule,

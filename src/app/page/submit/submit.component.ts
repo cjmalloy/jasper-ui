@@ -1,4 +1,5 @@
 import { AsyncPipe } from '@angular/common';
+import { FakeLinkDirective } from '../../directive/fake-link.directive';
 import { Component, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import {
   AbstractControl,
@@ -49,6 +50,7 @@ type Validation = { test: (url: string) => Observable<any>; name: string; passed
   styleUrls: ['./submit.component.scss'],
   changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
+    FakeLinkDirective,
     RefComponent,
     MobxAngularModule,
     TabsComponent,
