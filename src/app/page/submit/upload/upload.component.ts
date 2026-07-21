@@ -117,6 +117,7 @@ export class UploadPage implements OnDestroy {
       } else if (!forceCache && file.type.startsWith('text/html')) {
         bookmarks.push(file);
       } else if (!forceCache && (file.type === 'application/x-bittorrent' || file.name.toLowerCase().endsWith('.torrent'))) {
+        if (!this.fileCache) cacheWarning = true;
         torrents.push(file);
       } else if (!forceCache && file.type.startsWith('text/xml') || file.type.startsWith('application/xml')) {
         sitemap.push(file);
