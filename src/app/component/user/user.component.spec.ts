@@ -57,7 +57,8 @@ describe('UserComponent', () => {
     });
   });
 
-  it('recommends the user name as the local alias for the default origin', () => {
+  it('recommends the API hostname as the local alias for the default origin', () => {
+    component.config.api = 'https://jasper.example/api';
     component.user = { tag: '+user/test', origin: '' };
     component.ngOnChanges({ user: {} as any });
 
@@ -65,7 +66,7 @@ describe('UserComponent', () => {
 
     expect(downloadRef).toHaveBeenLastCalledWith(expect.objectContaining({
       plugins: expect.objectContaining({
-        '+plugin/origin': { remote: '', local: '@test' },
+        '+plugin/origin': { remote: '', local: '@jasper.example' },
       }),
     }));
   });

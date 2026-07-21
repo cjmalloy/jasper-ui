@@ -134,7 +134,7 @@ export class UserComponent implements OnChanges, HasChanges {
 
   @memo
   get reccomendedAlias() {
-    return '@' + this.localTag.substring(this.localTag.lastIndexOf('/') + 1);
+    return '@' + new URL(this.config.api, location.href).hostname;
   }
 
   @memo
