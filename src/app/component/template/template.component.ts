@@ -1,28 +1,38 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, HostBinding, Input, OnInit } from '@angular/core';
-import { UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
-import { Router } from '@angular/router';
-import { catchError, Observable, of, switchMap, throwError } from 'rxjs';
+import { FakeLinkDirective } from '../../directive/fake-link.directive';
+import { Component, HostBinding, Input, OnChanges, QueryList, SimpleChanges, ViewChildren, ChangeDetectionStrategy } from '@angular/core';
+import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
+import { RouterLink } from '@angular/router';
+import { catchError, of, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
-import { templateForm } from '../../form/template/template.component';
+import { templateForm, TemplateFormComponent } from '../../form/template/template.component';
+import { HasChanges } from '../../guard/pending-changes.guard';
 import { Template, writeTemplate } from '../../model/template';
-import { tagDeleteNotice } from '../../mods/delete';
+import { isDeletorTag, tagDeleteNotice } from '../../mods/delete';
 import { AdminService } from '../../service/admin.service';
 import { TemplateService } from '../../service/api/template.service';
 import { Store } from '../../store/store';
 import { downloadTag } from '../../util/download';
 import { scrollToFirstInvalid } from '../../util/form';
-import { templates } from '../../util/format';
 import { printError } from '../../util/http';
+import { ActionComponent } from '../action/action.component';
+import { ConfirmActionComponent } from '../action/confirm-action/confirm-action.component';
+import { InlineButtonComponent } from '../action/inline-button/inline-button.component';
+import { LoadingComponent } from '../loading/loading.component';
 
 @Component({
   selector: 'app-template',
   templateUrl: './template.component.html',
-  styleUrls: ['./template.component.scss']
+  styleUrls: ['./template.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [FakeLinkDirective, RouterLink, ConfirmActionComponent, InlineButtonComponent, ReactiveFormsModule, TemplateFormComponent, LoadingComponent]
 })
-export class TemplateComponent implements OnInit {
+export class TemplateComponent implements OnChanges, HasChanges {
   css = 'template list-item';
   @HostBinding('attr.tabindex') tabIndex = 0;
+
+  @ViewChildren('action')
+  actionComponents?: QueryList<ActionComponent>;
 
   @Input()
   template!: Template;
@@ -31,31 +41,41 @@ export class TemplateComponent implements OnInit {
   submitted = false;
   editing = false;
   viewSource = false;
-  deleting = false;
   @HostBinding('class.deleted')
   deleted = false;
   serverError: string[] = [];
   configErrors: string[] = [];
   defaultsErrors: string[] = [];
   schemaErrors: string[] = [];
+  saving?: Subscription;
 
   constructor(
     public admin: AdminService,
     public store: Store,
     private templates: TemplateService,
     private fb: UntypedFormBuilder,
-    private router: Router,
   ) {
     this.editForm = templateForm(fb);
   }
 
-  ngOnInit(): void {
+  saveChanges() {
+    return !this.editing || !this.editForm.dirty;
+  }
+
+  init(): void {
+    this.actionComponents?.forEach(c => c.reset());
     this.editForm.patchValue({
       ...this.template,
       config: this.template.config ? JSON.stringify(this.template.config, null, 2) : undefined,
       defaults: this.template.defaults ? JSON.stringify(this.template.defaults, null, 2) : undefined,
       schema: this.template.schema ? JSON.stringify(this.template.schema, null, 2) : undefined,
     });
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes.template) {
+      this.init();
+    }
   }
 
   @HostBinding('class')
@@ -66,12 +86,20 @@ export class TemplateComponent implements OnInit {
       .replace(/\./g, '-');
   }
 
+  get created() {
+    return !!this.template.modified;
+  }
+
   get qualifiedTag() {
-    return this.template.tag + this.template.origin;
+    return this.template.tag + this.origin;
+  }
+
+  get origin() {
+    return this.template.origin || '';
   }
 
   get local() {
-    return this.template.origin === this.store.account.origin;
+    return this.origin === this.store.account.origin;
   }
 
   save() {
@@ -107,30 +135,27 @@ export class TemplateComponent implements OnInit {
       this.schemaErrors.push(e.message);
     }
     if (this.configErrors.length || this.defaultsErrors.length || this.schemaErrors.length) return;
-    this.templates.update(template).pipe(
-      switchMap(() => this.templates.get(this.template.tag + this.template.origin)),
+    this.saving = this.templates.update(template).pipe(
+      switchMap(() => this.templates.get(this.qualifiedTag)),
       catchError((err: HttpErrorResponse) => {
+        delete this.saving;
         this.serverError = printError(err);
         return throwError(() => err);
       }),
     ).subscribe(template => {
+      delete this.saving;
+      this.editForm.reset();
       this.serverError = [];
       this.editing = false;
       this.template = template;
     });
   }
 
-  copy() {
-    this.catchError(this.templates.create({
+  copy$ = () => {
+    return this.templates.create({
       ...this.template,
       origin: this.store.account.origin,
-    })).subscribe(() => {
-      this.router.navigate(['/tags', this.template.tag]);
-    });
-  }
-
-  catchError(o: Observable<any>) {
-    return o.pipe(
+    }).pipe(
       catchError((err: HttpErrorResponse) => {
         this.serverError = printError(err);
         return throwError(() => err);
@@ -138,22 +163,21 @@ export class TemplateComponent implements OnInit {
     );
   }
 
-  delete() {
-    const deleteNotice = !this.template.tag.endsWith('/deleted') && this.admin.getPlugin('plugin/delete')
+  delete$ = () => {
+    const deleteNotice = !isDeletorTag(this.template.tag) && this.admin.getPlugin('plugin/delete')
       ? this.templates.create(tagDeleteNotice(this.template))
       : of(null);
     return this.templates.delete(this.qualifiedTag).pipe(
-      tap(() => this.deleted = true),
       switchMap(() => deleteNotice),
+      tap(() => {
+        this.serverError = [];
+        this.deleted = true;
+      }),
       catchError((err: HttpErrorResponse) => {
         this.serverError = printError(err);
         return throwError(() => err);
       }),
-    ).subscribe(() => {
-      this.serverError = [];
-      this.deleting = false;
-      this.deleted = true;
-    });
+    );
   }
 
   download() {

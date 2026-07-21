@@ -1,27 +1,29 @@
-<div *ngIf="!ref.created && loading" class="loading-container"><app-loading></app-loading></div>
-<span *ngIf="ref.created" class="gutter" [class.deleted]="deleted">
-  <a *ngIf="ref.origin && !authors.length"
-     class="origin tag"
-     [routerLink]="['/tag', ref.origin]">
-    {{ ref.origin }}</a>
-            <ng-container *ngIf="authorExts$ | async as authorExts; else authorNoExts">
-              <ng-container *ngFor="let user of authorExts">
-                <a class="user tag"
-                   [title]="formatAuthor(user.tag + user.origin)"
-                   [routerLink]="['/tag', user.tag + user.origin]"
-                   [appTitle]="user">{{ user.name || formatAuthor(user.tag) }}</a>
-              </ng-container>
-            </ng-container>
-            <ng-template #authorNoExts>
-              <ng-container *ngFor="let t of authors">
-                <a class="user tag"
-                   [title]="formatAuthor(t)"
-                   [routerLink]="['/tag', t]">{{ formatAuthor(t) }}</a>
-              </ng-container>
-            </ng-template>
-  <span class="timestamp" [title]="ref.modified?.toISOString()">{{ ref.modified?.fromNow() }}</span>
-  &nbsp;|&nbsp;
-</span>
+@if (ref.created) {
+  <span class="gutter"
+        [class.deleted]="deleted">
+    @if (ref.origin && !authors.length) {
+      <a class="origin tag" [routerLink]="['/tag', ref.origin]">{{ ref.origin }}</a>
+    }
+    @if (authorExts$ | async; as xs) {
+      @for (x of xs; track x.tag + x.origin) {
+        <a class="user tag"
+           [title]="formatAuthor(x.tag + x.origin)"
+           [routerLink]="['/tag', x.tag + x.origin]"
+           [appTitle]="x">{{ x.name || formatAuthor(x.tag) }}</a>
+      }
+    } @else {
+      @for (t of authors; track t) {
+        <a class="user tag"
+           [title]="formatAuthor(t)"
+           [routerLink]="['/tag', t]">{{ formatAuthor(t) }}</a>
+      }
+    }
+    <span class="timestamp" [title]="ref.modified?.toISO()">{{ ref.modified?.toRelative() }}</span>
+    &nbsp;|&nbsp;
+  </span>
+} @else if (loading) {
+  <div class="loading-container"><app-loading></app-loading></div>
+}
 <span class="message"
       [class.bubble]="focused"
       [class.focused]="focused"
@@ -29,32 +31,60 @@
       [class.sending]="!ref.created"
       (pointerenter)="allowActions = true"
       (pointerleave)="allowActions = false">
-  <div [class.has-title]="clickableLink || title && !focused">
-    @if (clickableLink && (title && !focused || !media)) {
+  <div class="content" [class.has-title]="clickableLink || title && !focused">
+    @if (tagLink) {
+      <app-nav [url]="ref.url" [text]="title"></app-nav>
+    } @else if (clickableLink && (title && !focused || !media)) {
       <app-nav [url]="ref.url" [text]="title" [external]="true"></app-nav>
     } @else {
       <span>{{ title }}</span>
     }
-    <app-md *ngIf="focused && bareRef?.comment"
-            [origin]="ref.origin!"
-            [text]="bareRef!.comment!"
-            [plugins]="bareRef!.tags!"></app-md>
+    @if (focused && bareRef?.comment) {
+      <app-md [origin]="ref.origin!"
+              [text]="bareRef!.comment!"
+              [plugins]="bareRef!.tags!"></app-md>
+    }
     <app-viewer [ref]="noComment"></app-viewer>
   </div>
-  <div class="actions"
-       *ngIf="ref.created"
-       [style.pointer-events]="allowActions ? 'auto' : 'none'">
-    <a *ngIf="comments"
-       [routerLink]="['/ref', ref.url, 'comments']" [queryParams]="{ origin: nonLocalOrigin }" i18n>{comments, plural, =1 {1&thinsp;comment} other {{{ comments }}&thinsp;comments}}</a>
-    <a *ngIf="!comments"
-       [routerLink]="['/ref', ref.url]" [queryParams]="{ origin: nonLocalOrigin }" i18n>permalink</a>
-        <app-confirm-action #action *ngIf="store.account.mod || writeAccess" [action]="delete$" i18n>delete</app-confirm-action>
-        <app-inline-tag #action *ngIf="taggingAccess" [action]="tag$" i18n>tag</app-inline-tag>
-    <a *ngIf="!ref.origin && store.account.mod && !approved && !locked"
-       class="fake-link"
-       (click)="approve()" i18n>approve</a>
-    <span class="approved icon" *ngIf="store.account.mod && approved" i18n-title title="Moderated" i18n>✔️</span>
-  </div>
+  @if (ref.created) {
+    <div class="actions" [style.pointer-events]="allowActions ? 'auto' : 'none'">
+      @if (threads) {
+        <a  [routerLink]="['/ref', ref.url, 'thread']"
+            [queryParams]="{ origin: nonLocalOrigin }"
+            (click)="saveRef()"
+            i18n>sidebar</a>
+      } @else if (comments) {
+        <a  [routerLink]="['/ref', ref.url, 'comments']"
+            [queryParams]="{ origin: nonLocalOrigin }"
+            (click)="saveRef()"
+            i18n>{comments, plural, =1 {1&thinsp;comment} other {{{ comments }}&thinsp;comments}}</a>
+      } @else if (chatroom) {
+        <a [routerLink]="['/ref', ref.url]"
+           [queryParams]="{ origin: nonLocalOrigin }"
+           (click)="saveRef()"
+           i18n>sidebar</a>
+      } @else {
+        <a [routerLink]="['/ref', ref.url]"
+           [queryParams]="{ origin: nonLocalOrigin }"
+           (click)="saveRef()"
+           i18n>permalink</a>
+      }
+      @if (store.account.mod || taggingAccess) {
+        <app-confirm-action #action
+                            [class.force-delete]="deleteAccess"
+                            [action]="store.hotkey ? forceDelete$ : delete$" i18n>delete</app-confirm-action>
+      }
+      @if (taggingAccess) {
+        <app-inline-tag #action [action]="tag$" [tags]="ref.tags" i18n>tag</app-inline-tag>
+      }
+      @if (!ref.origin && store.account.mod && !approved && !locked) {
+        <a class="fake-link" (click)="approve()" i18n>approve</a>
+      }
+      @if (store.account.mod && approved) {
+        <span class="approved icon" i18n-title title="Moderated" i18n>✔️</span>
+      }
+    </div>
+  }
 </span>
 @for (e of serverError; track e) {
   <span><!-- Unexpected Error --></span>

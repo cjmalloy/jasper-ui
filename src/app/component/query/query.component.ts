@@ -1,9 +1,11 @@
-import { Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
-import { Router } from '@angular/router';
+import { Component, ElementRef, Input, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { ReactiveFormsModule } from '@angular/forms';
+import { Router, RouterLink } from '@angular/router';
 import { defer } from 'lodash-es';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
 import { Store } from '../../store/store';
+import { getEl } from '../../util/html';
 import { access, fixClientQuery, getStrictPrefix, localTag, tagOrigin } from '../../util/tag';
 
 export type Crumb = { text: string, tag?: string, pos: number, len: number };
@@ -11,12 +13,15 @@ export type Crumb = { text: string, tag?: string, pos: number, len: number };
 @Component({
   selector: 'app-query',
   templateUrl: './query.component.html',
-  styleUrls: ['./query.component.scss']
+  styleUrls: ['./query.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [ReactiveFormsModule, RouterLink]
 })
-export class QueryComponent implements OnInit {
+export class QueryComponent {
 
   editing = false;
-  select: boolean | Crumb = false;
+  replaceOnClipboardPaste = false;
+  select: boolean | Crumb[] = false;
   breadcrumbs: Crumb[] = [];
 
   private _query = '';
@@ -27,9 +32,6 @@ export class QueryComponent implements OnInit {
     private admin: AdminService,
     public store: Store,
   ) { }
-
-  ngOnInit(): void {
-  }
 
   get query(): string {
     return this._query;
@@ -54,9 +56,7 @@ export class QueryComponent implements OnInit {
       if (this.select === true) {
         el.select();
       } else if (this.select) {
-        el.setAttribute('type', 'text'); // Email does not support selections
-        el.setSelectionRange(this.select.pos, this.select.pos + this.select.len);
-        el.setAttribute('type', 'email');
+        el.setSelectionRange(this.select[0].pos, this.select[1].pos + this.select[1].len);
       }
     });
   }
@@ -65,13 +65,40 @@ export class QueryComponent implements OnInit {
     if (!this.store.hotkey) return true;
     event.preventDefault();
     event.stopImmediatePropagation();
-    this.edit(breadcrumb);
+    this.edit([breadcrumb, breadcrumb]);
     return false;
   }
 
-  edit(select: boolean | Crumb) {
+  edit(select: boolean | Crumb[]) {
+    if (!this.editing) this.replaceOnClipboardPaste = true;
     this.editing = true;
-    this.select = select;
+    if (select) {
+      this.select = select;
+    } else {
+      this.select = false;
+      const selection = document.getSelection();
+      if (selection && selection.rangeCount > 0 && selection.toString()) {
+        const range = selection.getRangeAt(0);
+        const startCrumb = this.findCrumbFromNode(getEl(range.startContainer));
+        const endCrumb = this.findCrumbFromNode(getEl(range.endContainer));
+        if (startCrumb && endCrumb) {
+          this.select = [startCrumb, endCrumb];
+        }
+      }
+    }
+  }
+
+  private findCrumbFromNode(el: Element | null): Crumb | undefined {
+    while (el) {
+      if (el.classList.contains('crumb')) {
+        const index = Array.from(el.parentElement?.children || []).indexOf(el);
+        if (index >= 0 && index < this.breadcrumbs.length) {
+          return this.breadcrumbs[index];
+        }
+      }
+      el = el.parentElement;
+    }
+    return undefined;
   }
 
   search(query: string) {
@@ -82,7 +109,11 @@ export class QueryComponent implements OnInit {
       .replace(/[\s|]*:[\s|]*/g, ':')
       .replace(/\s+/g, '+')
       .replace(/[^_+/a-z-0-9.:|!@*()]+/g, '');
-    this.router.navigate(['/tag', query], { queryParams: { pageNumber: null },  queryParamsHandling: 'merge'});
+    if (this.store.view.current === 'tags') {
+      this.router.navigate(['/tags', query], { queryParams: { pageNumber: null }, queryParamsHandling: 'merge' });
+    } else {
+      this.router.navigate(['/tag', query], { queryParams: { pageNumber: null }, queryParamsHandling: 'merge' });
+    }
   }
 
   private queryCrumbs(query: string): Crumb[] {
@@ -176,14 +207,20 @@ export class QueryComponent implements OnInit {
       if (tag && !tag.startsWith('@')) {
         this.exts.getCachedExt(tag).subscribe(ext => {
           // TODO: possible delayed write
-          if (ext?.modifiedString && ext?.name) {
+          if (ext.modifiedString && ext.name) {
             t.text = ext.name;
+          } else if (ext.tag === 'plugin') {
+            t.text = '📦';
+          } else if (ext.tag === '+plugin') {
+            t.text = '+📦';
+          } else if (ext.tag === '_plugin') {
+            t.text = '_📦';
           } else {
-            const template = this.admin.getTemplate(localTag(tag));
+            const template = this.admin.getTemplate(ext.tag);
             if (template?.name) {
               t.text = template.name;
             } else {
-              const plugin = this.admin.getPlugin(localTag(tag));
+              const plugin = this.admin.getPlugin(ext.tag);
               if (plugin?.name) t.text = plugin.name;
             }
           }
@@ -192,5 +229,11 @@ export class QueryComponent implements OnInit {
     }
     return crumbs;
   }
-}
 
+  blur(value: string) {
+    this.replaceOnClipboardPaste = false;
+    if (value === this.query) {
+      this.editing = false;
+    }
+  }
+}

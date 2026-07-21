@@ -1,14 +1,25 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, HostBinding, OnDestroy, OnInit, ViewChild } from '@angular/core';
-import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Component, HostBinding, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import {
+  ReactiveFormsModule,
+  UntypedFormBuilder,
+  UntypedFormControl,
+  UntypedFormGroup,
+  Validators
+} from '@angular/forms';
+import { Router, RouterLink } from '@angular/router';
 import { defer, isObject } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
+import { MobxAngularModule } from 'mobx-angular';
 import { catchError, of, Subscription, switchMap, throwError } from 'rxjs';
+import { LoadingComponent } from '../../component/loading/loading.component';
+import { SelectTemplateComponent } from '../../component/select-template/select-template.component';
+import { SettingsComponent } from '../../component/settings/settings.component';
+import { LimitWidthDirective } from '../../directive/limit-width.directive';
 import { extForm, ExtFormComponent } from '../../form/ext/ext.component';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ext } from '../../model/ext';
-import { tagDeleteNotice } from '../../mods/delete';
+import { isDeletorTag, tagDeleteNotice } from '../../mods/delete';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
 import { ModService } from '../../service/mod.service';
@@ -22,6 +33,17 @@ import { access, hasPrefix, localTag, prefix } from '../../util/tag';
   selector: 'app-ext-page',
   templateUrl: './ext.component.html',
   styleUrls: ['./ext.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [
+    MobxAngularModule,
+    RouterLink,
+    SettingsComponent,
+    ReactiveFormsModule,
+    SelectTemplateComponent,
+    LoadingComponent,
+    LimitWidthDirective,
+    ExtFormComponent,
+  ],
 })
 export class ExtPage implements OnInit, OnDestroy, HasChanges {
   private disposers: IReactionDisposer[] = [];
@@ -34,8 +56,8 @@ export class ExtPage implements OnInit, OnDestroy, HasChanges {
   created = false;
   submitted = false;
   invalid = false;
-  overwrite = true;
-  force = false;
+  overwritten = false;
+  overwrite = false;
   extForm: UntypedFormGroup;
   editForm!: UntypedFormGroup;
   serverError: string[] = [];
@@ -45,6 +67,8 @@ export class ExtPage implements OnInit, OnDestroy, HasChanges {
   creating?: Subscription;
   editing?: Subscription;
   deleting?: Subscription;
+
+  private overwrittenModified? = '';
 
   constructor(
     private mod: ModService,
@@ -96,7 +120,7 @@ export class ExtPage implements OnInit, OnDestroy, HasChanges {
       }
       if (tag) {
         const template = this.admin.getTemplate(tag);
-        if (template) {
+        if (template?.config?.submit) {
           this.templates.unshift(template);
           this.template = tag;
           this.tag.setValue('')
@@ -185,28 +209,28 @@ export class ExtPage implements OnInit, OnDestroy, HasChanges {
     let ext = {
       ...this.editForm.value,
       tag: this.store.view.ext!.tag, // Need to fetch because control is disabled
-      modifiedString: this.store.view.ext!.modifiedString,
+      modifiedString: this.overwrite ? this.overwrittenModified : this.store.view.ext!.modifiedString,
     };
-    if (!this.invalid || !this.overwrite) {
-      const config = this.store.view.ext!.config;
-      ext = {
-        ...this.store.view.ext,
-        ...ext,
-        config: {
-          ...isObject(config) ? config : {},
-          ...ext.config,
-        },
-      }
-    }
-    this.editing = this.exts.update(ext, this.force).pipe(
+    const config = this.store.view.ext!.config;
+    ext = {
+      ...this.store.view.ext,
+      ...ext,
+      config: {
+        ...isObject(config) ? config : {},
+        ...ext.config,
+      },
+    };
+    this.editing = this.exts.update(ext).pipe(
       catchError((res: HttpErrorResponse) => {
         delete this.editing;
         if (res.status === 400) {
-          if (this.invalid) {
-            this.force = true;
-          } else {
-            this.invalid = true;
-          }
+          this.invalid = true;
+          console.log(res.message);
+          // TODO: read res.message to find which fields to delete
+        }
+        if (res.status === 409) {
+          this.overwritten = true;
+          this.exts.get(ext.tag + ext.origin).subscribe(x => this.overwrittenModified = x.modifiedString);
         }
         this.serverError = printError(res);
         return throwError(() => res);
@@ -214,7 +238,7 @@ export class ExtPage implements OnInit, OnDestroy, HasChanges {
     ).subscribe(() => {
       delete this.editing;
       this.editForm.markAsPristine();
-      if (ext.tag === 'home' && this.admin.getTemplate('home')) {
+      if (ext.tag === 'config/home' && this.admin.home) {
         this.router.navigate(['/home']);
       } else {
         this.router.navigate(['/tag', ext.tag]);
@@ -225,8 +249,8 @@ export class ExtPage implements OnInit, OnDestroy, HasChanges {
   delete() {
     const ext = this.store.view.ext!;
     // TODO: Better dialogs
-    if (window.confirm($localize`Are you sure you want to delete this tag extension?`)) {
-      const deleteNotice = !ext.tag.endsWith('/deleted') && this.admin.getPlugin('plugin/delete')
+    if (confirm($localize`Are you sure you want to delete this tag extension?`)) {
+      const deleteNotice = !isDeletorTag(ext.tag) && this.admin.getPlugin('plugin/delete')
         ? this.exts.create(tagDeleteNotice(ext))
         : of(null);
       this.deleting = this.exts.delete(ext.tag + ext.origin).pipe(

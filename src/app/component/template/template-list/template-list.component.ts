@@ -1,39 +1,49 @@
-import { Component, HostBinding, Input } from '@angular/core';
+import { Component, Input, QueryList, ViewChildren, ChangeDetectionStrategy } from '@angular/core';
 import { Router } from '@angular/router';
+import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Page } from '../../../model/page';
-import { Tag } from '../../../model/tag';
+import { Template } from '../../../model/template';
+import { LoadingComponent } from '../../loading/loading.component';
+import { PageControlsComponent } from '../../page-controls/page-controls.component';
+import { TemplateComponent } from '../template.component';
 
 @Component({
   selector: 'app-template-list',
   templateUrl: './template-list.component.html',
-  styleUrls: ['./template-list.component.scss']
+  styleUrls: ['./template-list.component.scss'],
+  host: { 'class': 'template-list' },
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [TemplateComponent, PageControlsComponent, LoadingComponent]
 })
-export class TemplateListComponent {
-  @HostBinding('class') css = 'template-list';
+export class TemplateListComponent implements HasChanges {
 
-  private _page?: Page<Tag>;
+  @ViewChildren(TemplateComponent)
+  list?: QueryList<TemplateComponent>;
+
+  private _page?: Page<Template>;
 
   constructor(private router: Router) { }
+
+  saveChanges() {
+    return !this.list?.find(p => !p.saveChanges());
+  }
 
   get page() {
     return this._page;
   }
 
   @Input()
-  set page(value: Page<Tag> | undefined) {
+  set page(value: Page<Template> | undefined) {
     this._page = value;
     if (this._page) {
-      if (this._page.number > 0 && this._page.number >= this._page.totalPages) {
+      if (this._page.page.number > 0 && this._page.page.number >= this._page.page.totalPages) {
         this.router.navigate([], {
           queryParams: {
-            pageNumber: this._page.totalPages - 1
+            pageNumber: this._page.page.totalPages - 1
           },
           queryParamsHandling: "merge",
         })
       }
     }
-  }
-
-  ngOnInit(): void {
   }
 }

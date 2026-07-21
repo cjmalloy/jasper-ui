@@ -1,5 +1,5 @@
 import { isEqual, uniq } from 'lodash-es';
-import { action, autorun, makeAutoObservable, observable } from 'mobx';
+import { action, makeAutoObservable, observable } from 'mobx';
 import { RouterStore } from 'mobx-angular';
 import { Ext } from '../model/ext';
 import { Plugin } from '../model/plugin';
@@ -8,10 +8,19 @@ import { TagSort } from '../model/tag';
 import { Template } from '../model/template';
 import { User } from '../model/user';
 import { RootConfig } from '../mods/root';
+import { getPageTitle } from '../util/format';
 import { UrlFilter } from '../util/query';
-import { hasPrefix, hasTag, isQuery, localTag, queryPrefix, topAnds } from '../util/tag';
-import { AccountStore } from "./account";
-import { EventBus } from './bus';
+import { hasPrefix, hasTag, isQuery, localTag, queryPrefix, top, topAnds } from '../util/tag';
+import { AccountStore } from './account';
+
+function getQueryTags(tag: string, filters: UrlFilter[]) {
+  return uniq([
+    ...topAnds(tag).map(queryPrefix),
+    ...filters
+      .filter(f => f.startsWith('query/'))
+      .map(f => queryPrefix(f.substring('query/'.length))),
+  ].filter(t => t && !isQuery(t)));
+}
 
 /**
  * ID for current view. Only includes pages that make queries.
@@ -36,6 +45,7 @@ export class ViewStore {
   defaultBlogPageSize = 5;
   defaultSort: RefSort[] | TagSort[] = ['published'];
   defaultSearchSort: RefSort[] | TagSort[] = ['rank'];
+  defaultPageNumber = 0;
   ref?: Ref = {} as any;
   top?: Ref = {} as any;
   lastSelected?: Ref = {} as any;
@@ -43,18 +53,19 @@ export class ViewStore {
   exts: Ext[] = [];
   extTemplates: Template[] = [];
   selectedUser?: User = {} as any;
-  updates = false;
+  modChanges = new Map<string, boolean>();
+  modUpdates = new Set<string>();
   inboxTabs: Plugin[] = [];
   settingsTabs: Plugin[] = [];
 
   constructor(
     public route: RouterStore,
     private account: AccountStore,
-    private eventBus: EventBus,
   ) {
     makeAutoObservable(this, {
       clear: action,
       setRef: action,
+      preloadRef: action,
       setLastSelected: action,
       exts: observable.shallow,
       extTemplates: observable.shallow,
@@ -64,22 +75,17 @@ export class ViewStore {
     this.clear(); // Initial observables may not be null for MobX
   }
 
-  setRef(ref?: Ref) {
-    if (this.ref && this.ref !== ref) {
-      this.lastSelected = this.ref;
-    }
-    this.ref = ref;
-  }
-
   setLastSelected(ref?: Ref) {
     this.lastSelected = ref;
   }
 
-  clearLastSelected() {
-    this.lastSelected = undefined;
+  clearLastSelected(url?: string) {
+    if (!url || url === this.lastSelected?.url) {
+      this.lastSelected = undefined;
+    }
   }
 
-  clear(defaultSort: RefSort[] | TagSort[] = ['published'], defaultSearchSort: RefSort[] | TagSort[] = ['rank']) {
+  clear(defaultSort: RefSort[] | TagSort[] = ['published'], defaultSearchSort: RefSort[] | TagSort[] = ['rank'], defaultPageNumber = 0) {
     this.ref = undefined;
     this.top = undefined;
     this.versions = 0;
@@ -88,15 +94,32 @@ export class ViewStore {
     this.selectedUser = undefined;
     this.defaultSort = defaultSort;
     this.defaultSearchSort = defaultSearchSort;
+    this.defaultPageNumber = defaultPageNumber;
   }
 
-  clearRef(defaultSort: RefSort[] | TagSort[] = ['published'], defaultSearchSort: RefSort[] | TagSort[] = ['rank']) {
+  clearRef(ref?: Ref) {
+    if (this.ref && (!ref || ref.url !== this.ref?.url)) this.lastSelected = this.ref;
     this.ref = undefined;
     this.top = undefined;
-    this.versions = 0;
+  }
+
+  setRef(ref?: Ref, top?: Ref) {
+    this.clearRef(ref);
+    this.ref = ref;
+    this.top = top;
+    this.exts = [];
+    this.extTemplates = [];
     this.selectedUser = undefined;
-    this.defaultSort = defaultSort;
-    this.defaultSearchSort = defaultSearchSort;
+  }
+
+  preloadRef(ref: Ref, topRef?: Ref) {
+    this.clearRef(ref);
+    if (ref?.created) this.ref = ref;
+    if (topRef || top(ref) !== this.top?.url) this.top = topRef;
+  }
+
+  get pageTitle() {
+    return getPageTitle(this.ref, this.top);
   }
 
   get ext() {
@@ -104,7 +127,7 @@ export class ViewStore {
   }
 
   get extTemplate() {
-    return this.exts.length === 1 && this.extTemplates.find(t => this.exts.find(x => hasPrefix(x.tag, t.tag)));
+    return this.extTemplates.find(t => this.exts.find(x => hasPrefix(x.tag, t.tag)));
   }
 
   get config(): RootConfig | undefined {
@@ -135,7 +158,7 @@ export class ViewStore {
         .flatMap(t => {
           const exts = this.exts.filter(x => x.modifiedString && hasPrefix(x.tag, t.tag));
           if (exts.length) return exts;
-          return [{ tag: t.tag, origin: t.origin, name: t.config?.view || t.name, config: t.defaults }];
+          return [{ tag: t.tag, origin: t.origin, name: t.name, config: { ...t.defaults, tab: t?.config?.tab, view: t?.config?.view } }];
         })
         .filter(x => !!x));
   }
@@ -150,7 +173,7 @@ export class ViewStore {
             // Already an active ext so ignore global
             return [];
           }
-          return [{ tag: t.tag, origin: t.origin, name: t.config?.view || t.name, config: t.defaults }];
+          return [{ tag: t.tag, origin: t.origin, name: t.name, config: { ...t.defaults, tab: t.config?.tab, view: t.config?.view } }];
         })
         .filter(x => !!x));
   }
@@ -159,17 +182,13 @@ export class ViewStore {
    * Templates found in top ands of query or filters.
    */
   get activeTemplates(): Template[] {
-    return uniq(this.queryTags
+    return uniq(this.urlQueryTags
         .map(tag => this.extTemplates.find(t => hasPrefix(tag, t.tag))!)
         .filter(t => !!t));
   }
 
   get globalTemplates(): Template[] {
     return this.extTemplates.filter(t => t.config?.global);
-  }
-
-  get hasTemplate() {
-    return !!this.activeTemplates.length || !!this.globalTemplates.length;
   }
 
   isTemplate(template: string) {
@@ -181,11 +200,6 @@ export class ViewStore {
     return s?.url[0].path === 'tags';
   }
 
-  get allTags(): boolean {
-    const s = this.route.routeSnapshot?.firstChild;
-    return s?.url[0].path === 'tags' && !s?.params.template;
-  }
-
   get settings() {
     const s = this.route.routeSnapshot?.firstChild;
     return s?.routeConfig?.path === 'settings';
@@ -193,8 +207,21 @@ export class ViewStore {
 
   get settingsTag() {
     if (!this.settings) return '';
-    const s = this.route.routeSnapshot?.firstChild?.firstChild;
-    return s?.params['tag'];
+    return this.childTag;
+  }
+
+  get settingsExt() {
+    return this.settingsTabs.find(t => t.tag === this.settingsTag) as Ext;
+  }
+
+  get inbox() {
+    const s = this.route.routeSnapshot?.firstChild;
+    return s?.routeConfig?.path === 'inbox';
+  }
+
+  get inboxTag() {
+    if (!this.inbox) return '';
+    return this.childTag;
   }
 
   get current(): View | undefined {
@@ -240,6 +267,15 @@ export class ViewStore {
         return undefined;
     }
     return undefined;
+  }
+
+  get originFilter() {
+    return this.filter?.some(f => f.startsWith('query/@') || f === 'query/*');
+  }
+
+  get showRemotesCheckbox() {
+    if (this.originFilter) return false;
+    return ['tags', 'settings/user', 'settings/plugin', 'settings/template', 'settings/ref', 'inbox/ref'].includes(this.current!);
   }
 
   get type(): Type | undefined {
@@ -301,7 +337,18 @@ export class ViewStore {
    */
   get viewExt() {
     if (this.list) return undefined;
-    return [...this.activeExts, ...this.globalExts].find(x => x.tag === this.viewTag) || this.exts[0];
+    return this.viewTag && [...this.activeExts, ...this.globalExts].find(x => hasPrefix(x.tag, this.viewTag)) || this.exts[0];
+  }
+
+  get homeExt() {
+    if (this.list) return this.ext;
+    return {
+      ...this.ext || {},
+      config: {
+        ...this.ext?.config || {},
+        noFloatingSidebar: this.viewExt?.config?.noFloatingSidebar ?? this.ext?.config?.noFloatingSidebar,
+      },
+    };
   }
 
   get template(): string {
@@ -317,23 +364,23 @@ export class ViewStore {
   }
 
   get noTemplate(): boolean {
-    return this.route.routeSnapshot?.queryParams['noTemplate'] === 'true';
+    return this.route.routeSnapshot?.queryParams['noTemplate'] !== undefined && this.route.routeSnapshot?.queryParams['noTemplate'] !== 'false';
   }
 
   get home(): boolean {
-    return this.route.routeSnapshot?.queryParams['home'] === 'true';
+    return this.route.routeSnapshot?.queryParams['home'] !== undefined && this.route.routeSnapshot?.queryParams['home'] !== 'false';
   }
 
   get query() {
     return isQuery(this.tag) ? this.tag : '';
   }
 
+  get urlQueryTags() {
+    return getQueryTags(this.tag, this.urlFilters);
+  }
+
   get queryTags() {
-    return uniq([
-        ...topAnds(this.tag),
-        ...topAnds(this.tag).map(queryPrefix),
-        ...this.queryFilters,
-    ].filter(t => t && !isQuery(t)));
+    return getQueryTags(this.tag, this.filter);
   }
 
   get noQuery() {
@@ -348,7 +395,7 @@ export class ViewStore {
     if (this.tag === '@*') return $localize`All`;
     if (this.tag === '*') return $localize`Local`;
     if (isQuery(this.tag)) return $localize`Query`;
-    return this.exts[0]?.name || this.activeTemplates[0]?.name || this.viewExt?.name || this.viewExt?.tag || this.tag;
+    return this.exts[0]?.name || this.viewExt?.name || (this.viewExt?.tag || this.tag).substring(this.tag.lastIndexOf('/') + 1);
   }
 
   get cols() {
@@ -356,9 +403,15 @@ export class ViewStore {
   }
 
   get viewExtSort() {
-    if (!['tag', 'home'].includes(this.current!)) return undefined;
-    // TODO: Multiple ext default sorts
-    return this.viewExt?.config?.defaultSort && [this.viewExt?.config?.defaultSort];
+    if (this.current === 'home') return this.ext?.config?.defaultSort;
+    if (this.current !== 'tag') return undefined;
+    return this.viewExt?.config?.defaultSort;
+  }
+
+  get viewExtFilter() {
+    if (this.current === 'home') return this.ext?.config?.defaultFilter;
+    if (this.current !== 'tag') return undefined;
+    return this.viewExt?.config?.defaultFilter;
   }
 
   get sort() {
@@ -378,14 +431,18 @@ export class ViewStore {
   }
 
   get isVoteSorted() {
-    return this.sort[0]?.startsWith('vote');
+    return this.sort[0]?.startsWith('plugins->plugin/user/vote');
+  }
+
+  get urlFilters(): UrlFilter[] {
+    const filter = this.route.routeSnapshot?.queryParams['filter'];
+    if (!filter) return [];
+    if (!Array.isArray(filter)) return [filter];
+    return filter;
   }
 
   get filter(): UrlFilter[] {
-    const filter = this.route.routeSnapshot?.queryParams['filter'];
-    if (!filter) return [];
-    if (!Array.isArray(filter)) return [filter]
-    return filter;
+    return this.urlFilters.length ? this.urlFilters : this.viewExtFilter || [];
   }
 
   get queryFilters(): string[] {
@@ -398,8 +455,8 @@ export class ViewStore {
     return this.route.routeSnapshot?.queryParams['search'];
   }
 
-  get defaultPageNumber() {
-    return this.current === 'ref/thread' ? Math.floor((this.ref?.metadata?.plugins?.['plugin/thread'] || 0) / this.pageSize) : 0;
+  get isSearch() {
+    return !!this.search;
   }
 
   get pageNumber() {
@@ -435,14 +492,11 @@ export class ViewStore {
   }
 
   get showRemotes() {
-    return this.route.routeSnapshot?.queryParams['showRemotes'] === 'true';
+    if (!this.showRemotesCheckbox) return true;
+    return this.route.routeSnapshot?.queryParams['showRemotes'] !== undefined && this.route.routeSnapshot?.queryParams['showRemotes'] !== 'false';
   }
 
   get repost() {
-    return hasTag('plugin/repost', this.ref);
-  }
-
-  updateNotify() {
-    return this.updates = true;
+    return this.ref?.sources?.[0] && hasTag('plugin/repost', this.ref);
   }
 }

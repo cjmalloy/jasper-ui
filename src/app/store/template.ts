@@ -2,7 +2,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { isEqual, omit } from 'lodash-es';
 import { makeAutoObservable, observable, runInAction } from 'mobx';
-import { catchError, Subscription, throwError } from 'rxjs';
+import { catchError, EMPTY, Subscription } from 'rxjs';
 import { Page } from '../model/page';
 import { TagPageArgs } from '../model/tag';
 import { Template } from '../model/template';
@@ -33,6 +33,11 @@ export class TemplateStore {
     this.args = undefined;
     this.page = undefined;
     this.error = undefined;
+    this.running?.unsubscribe();
+  }
+
+  close() {
+    if (this.running && !this.running.closed) this.clear();
   }
 
   setArgs(args: TagPageArgs) {
@@ -47,7 +52,7 @@ export class TemplateStore {
     this.running = this.templates.page(this.args).pipe(
       catchError((err: HttpErrorResponse) => {
         runInAction(() => this.error = err);
-        return throwError(() => err);
+        return EMPTY;
       }),
     ).subscribe(p => runInAction(() => this.page = p));
   }

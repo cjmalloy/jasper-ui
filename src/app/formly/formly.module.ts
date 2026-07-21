@@ -2,10 +2,9 @@ import { DragDropModule } from '@angular/cdk/drag-drop';
 import { OverlayModule } from '@angular/cdk/overlay';
 import { NgModule } from '@angular/core';
 import { AbstractControl, ReactiveFormsModule } from '@angular/forms';
-import { BrowserModule } from '@angular/platform-browser';
-import { FormlyModule } from '@ngx-formly/core';
+import { FormlyExtension, FormlyFieldConfig, FormlyModule, withFormlyFieldExpression } from '@ngx-formly/core';
 import { FormlySelectModule } from '@ngx-formly/core/select';
-import * as moment from 'moment';
+import { v4 as uuid } from 'uuid';
 import {
   ORIGIN_REGEX,
   PLUGIN_REGEX,
@@ -20,51 +19,93 @@ import {
 import { AudioUploadComponent } from './audio-upload/audio-upload.component';
 import { FormlyFieldCheckbox } from './checkbox.type';
 import { DurationInputAccessor, FormlyFieldDuration } from './duration.type';
+import { FormlyFieldEditor } from './editor.type';
 import { FormlyWrapperFormField } from './form-field.wrapper';
+import { FormlyWrapperFormGroup } from './form-group.wrapper';
 import { ImageUploadComponent } from './image-upload/image-upload.component';
+import { FormlyFieldLocation } from './location.type';
 import { FormlyFieldInput } from './input.type';
 import { ListTypeComponent } from './list.type';
 import { FormlyFieldMultiCheckbox } from './multicheckbox.type';
+import { PdfUploadComponent } from './pdf-upload/pdf-upload.component';
 import { QrScannerComponent } from './qr-scanner/qr-scanner.component';
+import { FormlyFieldBookmarkInput } from './bookmark.type';
+import { FormlyFieldQueryInput } from './query.type';
 import { FormlyFieldRadio } from './radio.type';
+import { FormlyFieldRange } from './range.type';
+import { FormlyFieldRefInput } from './ref.type';
 import { FormlyFieldSelect } from './select.type';
+import { FormlyFieldTagInput } from './tag.type';
 import { FormlyFieldTextArea } from './textarea.type';
 import { VideoUploadComponent } from './video-upload/video-upload.component';
 
+export class IdPrefixExtension implements FormlyExtension {
+  prePopulate(field: FormlyFieldConfig) {
+    if (field.key && !field.id) {
+      field.id = `formly-${uuid()}-${field.key}`;
+    }
+    if (field.key && !field.name) {
+      field.name = field.key as string;
+    }
+    // Recurse for nested fields
+    field.fieldGroup?.forEach(f => this.prePopulate(f));
+    if (field.fieldArray) {
+      this.prePopulate(field.fieldArray as FormlyFieldConfig);
+    }
+  }
+}
+
+const formlyFieldExpressionConfig = withFormlyFieldExpression();
+
 @NgModule({
-  declarations: [
+  exports: [
+    QrScannerComponent,
+    AudioUploadComponent,
+    VideoUploadComponent,
+    ImageUploadComponent,
+    PdfUploadComponent,
+  ],
+  imports: [
+    ReactiveFormsModule,
+    DragDropModule,
+    OverlayModule,
+    FormlySelectModule,
     FormlyWrapperFormField,
     FormlyFieldInput,
+    FormlyFieldLocation,
+    FormlyFieldRange,
+    FormlyFieldTagInput,
+    FormlyFieldQueryInput,
+    FormlyFieldBookmarkInput,
+    FormlyFieldRefInput,
     FormlyFieldTextArea,
     FormlyFieldCheckbox,
     FormlyFieldMultiCheckbox,
     FormlyFieldRadio,
     FormlyFieldSelect,
     FormlyFieldDuration,
+    FormlyFieldEditor,
     DurationInputAccessor,
     QrScannerComponent,
     ImageUploadComponent,
     VideoUploadComponent,
     AudioUploadComponent,
+    PdfUploadComponent,
     ListTypeComponent,
-  ],
-  exports: [
-    QrScannerComponent,
-    ImageUploadComponent,
-  ],
-  imports: [
-    BrowserModule,
-    ReactiveFormsModule,
-    DragDropModule,
-    OverlayModule,
-    FormlySelectModule,
     FormlyModule.forRoot({
+      extensions: [
+        ...(formlyFieldExpressionConfig.extensions || []),
+        { name: 'id-prefix', extension: new IdPrefixExtension() },
+      ],
       validationMessages: [
         { name: 'required', message: 'This field is required' },
       ],
       wrappers: [{
         name: 'form-field',
         component: FormlyWrapperFormField,
+      }, {
+        name: 'form-group',
+        component: FormlyWrapperFormGroup,
       }],
       types: [{
         name: 'list',
@@ -73,6 +114,18 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
         name: 'input',
         component: FormlyFieldInput,
         wrappers: ['form-field'],
+      }, {
+        name: 'range',
+        component: FormlyFieldRange,
+        wrappers: ['form-field'],
+        defaultOptions: {
+          defaultValue: 0,
+          props: {
+            min: 0,
+            max: 10,
+            step: 1,
+          }
+        }
       }, {
         name: 'string',
         extends: 'input',
@@ -99,6 +152,7 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
           props: {
             type: 'color',
             label: $localize`Color: `,
+            clear: true,
           },
         },
       }, {
@@ -128,6 +182,38 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
           },
           fieldArray: {
             type: 'url',
+            props: {
+              label: $localize`🔗️`,
+            }
+          },
+        },
+      }, {
+        name: 'ref',
+        component: FormlyFieldRefInput,
+        wrappers: ['form-field'],
+        defaultOptions: {
+          props: {
+            label: $localize`URL:`,
+          },
+          validators: {
+            pattern: {
+              expression: (c: AbstractControl) => !c.value || URI_REGEX.test(c.value),
+              message: $localize`Must be a valid URI (see RFC 3986).`,
+            }
+          },
+        },
+      }, {
+        name: 'refs',
+        extends: 'list',
+        defaultOptions: {
+          props: {
+            showLabel: true,
+            label: $localize`URLs: `,
+            showAdd: true,
+            addText: $localize`+ Add another URL`,
+          },
+          fieldArray: {
+            type: 'ref',
             props: {
               label: $localize`🔗️`,
             }
@@ -202,18 +288,23 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
         defaultOptions: {
           props: {
             label: $localize`Duration:`,
-            hint: $localize`Use time spans (HH:MM:SS) or ISO 8601 Durations`,
-          },
-          validators: {
-            interval: {
-              expression: (c: AbstractControl) =>  moment.duration(c.value).isValid(),
-              message: $localize`Scrape Duration must be valid time span (HH:MM:SS) or ISO 8601 Duration.`,
-            }
+            datalist: [
+              { value: 'PT1M', label: $localize`1 min` },
+              { value: 'PT5M', label: $localize`5 mins` },
+              { value: 'PT15M', label: $localize`15 mins` },
+              { value: 'PT30M', label: $localize`30 mins` },
+              { value: 'PT30M', label: $localize`30 mins` },
+              { value: 'PT1H', label: $localize`1 hour` },
+              { value: 'PT2H', label: $localize`2 hours` },
+              { value: 'PT6H', label: $localize`6 hours` },
+              { value: 'PT12H', label: $localize`12 hours` },
+              { value: 'PT24H', label: $localize`1 day` },
+            ],
           },
         },
       }, {
         name: 'image',
-        extends: 'url',
+        extends: 'ref',
         defaultOptions: {
           props: {
             label: $localize`Image:`,
@@ -221,7 +312,7 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
         },
       }, {
         name: 'video',
-        extends: 'url',
+        extends: 'ref',
         defaultOptions: {
           props: {
             label: $localize`Video:`,
@@ -229,18 +320,22 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
         },
       }, {
         name: 'audio',
-        extends: 'url',
+        extends: 'ref',
         defaultOptions: {
           props: {
             label: $localize`Audio:`,
           },
         },
       }, {
+        name: 'pdf',
+        extends: 'ref',
+      }, {
         name: 'qr',
-        extends: 'url',
+        extends: 'ref',
       }, {
         name: 'tag',
-        extends: 'input',
+        component: FormlyFieldTagInput,
+        wrappers: ['form-field'],
         defaultOptions: {
           props: {
             type: 'email',
@@ -249,13 +344,12 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
           validators: {
             pattern: {
               expression: (c: AbstractControl) => !c.value || TAG_REGEX.test(c.value),
-              message: $localize`
-                Tags must be lower case letters, numbers, periods and forward slashes.
-                Must not start with a forward slash or period.
-                Must not or contain two forward slashes or periods in a row.
-                Protected tags start with a plus sign.
-                Private tags start with an underscore.
-                (i.e. "science", "my/tag", or "_my/private/tag")`,
+              message: $localize`Tags must be lower case letters, numbers, periods and forward slashes.
+Must not start with a forward slash or period.
+Must not or contain two forward slashes or periods in a row.
+Protected tags start with a plus sign.
+Private tags start with an underscore.
+(i.e. "science", "my/tag", or "_my/private/tag")`,
             }
           },
         },
@@ -265,22 +359,21 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
         defaultOptions: {
           props: {
             type: 'email',
-            label: $localize`Origin:`,
+            label: $localize`@`,
           },
           validators: {
             pattern: {
               expression: (c: AbstractControl) => !c.value || ORIGIN_REGEX.test(c.value),
-              message: $localize`
-                Origins must start with an at sign (@) and contain only lowercase letters, numbers, and periods.
-                The default origin is blank.
-                Must not start with a period or contain two periods in a row.
-                (i.e. "@origin", "@my.origin", or "").`,
+              message: $localize`Origins must start with an at sign (@) and contain only lowercase letters, numbers, and periods.
+The default origin is blank.
+Must not start with a period or contain two periods in a row.
+(i.e. "@origin", "@my.origin", or "").`,
             }
           },
         },
       }, {
         name: 'plugin',
-        extends: 'input',
+        extends: 'tag',
         defaultOptions: {
           props: {
             type: 'email',
@@ -289,14 +382,35 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
           validators: {
             pattern: {
               expression: (c: AbstractControl) => !c.value || PLUGIN_REGEX.test(c.value),
-              message: $localize`
-                Plugin tags must start with the "plugin/", "+plugin/" or "_plugin/" prefix.
-                Tags must be lower case letters, numbers, periods and forward slashes.
-                Must not start with a forward slash or period.
-                Must not or contain two forward slashes or periods in a row.
-                Protected tags start with a plus sign.
-                Private tags start with an underscore.
-                (i.e. "plugin/thumbnail", "plugin/image" "+plugin/cron", or "_plugin/admin")`,
+              message: $localize`Plugin tags must start with the "plugin/", "+plugin/" or "_plugin/" prefix.
+Tags must be lower case letters, numbers, periods and forward slashes.
+Must not start with a forward slash or period.
+Must not or contain two forward slashes or periods in a row.
+Protected tags start with a plus sign.
+Private tags start with an underscore.
+(i.e. "plugin/thumbnail", "plugin/image" "+plugin/cron", or "_plugin/admin")`,
+            }
+          },
+        },
+      }, {
+        name: 'template',
+        extends: 'tag',
+        defaultOptions: {
+          props: {
+            type: 'email',
+            label: $localize`Template:`,
+            required: false,
+          },
+          validators: {
+            pattern: {
+              expression: (c: AbstractControl) => !c.value || TAG_REGEX.test(c.value),
+              message: $localize`Templates must be lower case letters, numbers, periods and forward slashes.
+The root template is blank.
+Must not start with a forward slash or period.
+Must not or contain two forward slashes or periods in a row.
+Protected tags start with a plus sign.
+Private tags start with an underscore.
+(i.e. "", "science", "my/tag", or "_my/private/tag")`,
             }
           },
         },
@@ -322,15 +436,14 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
           validators: {
             pattern: {
               expression: (c: AbstractControl) => !c.value || QUALIFIED_TAG_REGEX.test(c.value),
-              message: $localize`
-                Tags must be lower case letters, numbers, periods and forward slashes.
-                Must not start with a forward slash or period.
-                Must not or contain two forward slashes or periods in a row.
-                Tags may be qualified with an origin.
-                Origins must start with an at sign (@) and contain only lowercase letters, numbers, and periods.
-                Protected tags start with a plus sign.
-                Private tags start with an underscore.
-                (i.e. "science", "science@origin" "my/tag", or "_my/private/tag")`,
+              message: $localize`Tags must be lower case letters, numbers, periods and forward slashes.
+Must not start with a forward slash or period.
+Must not or contain two forward slashes or periods in a row.
+Tags may be qualified with an origin.
+Origins must start with an at sign (@) and contain only lowercase letters, numbers, and periods.
+Protected tags start with a plus sign.
+Private tags start with an underscore.
+(i.e. "science", "science@origin" "my/tag", or "_my/private/tag")`,
             }
           },
         },
@@ -352,11 +465,10 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
           validators: {
             pattern: {
               expression: (c: AbstractControl) => !c.value || USER_REGEX.test(c.value),
-              message: $localize`
-                User tags must start with the "+user/" or "_user/" prefix.
-                Tags must be lower case letters and forward slashes. Must not start with a slash or contain two forward slashes in a row. Private
-                tags start with an underscore.
-                (i.e. "+user/alice", "_user/bob", or "+user/department/charlie")`,
+              message: $localize`User tags must start with the "+user/" or "_user/" prefix.
+Tags must be lower case letters and forward slashes. Must not start with a slash or contain two forward slashes in a row. Private
+tags start with an underscore.
+(i.e. "+user/alice", "_user/bob", or "+user/department/charlie")`,
             }
           },
         },
@@ -385,13 +497,12 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
           validators: {
             pattern: {
               expression: (c: AbstractControl) => !c.value || QUALIFIED_USER_REGEX.test(c.value),
-              message: $localize`
-                User tags must start with the "+user/" or "_user/" prefix.
-                Tags must be lower case letters and forward slashes. Must not start with a slash or contain two forward slashes in a row. Private
-                tags start with an underscore.
-                Tags may be qualified with an origin.
-                Origins must start with an at sign (@) and contain only lowercase letters, numbers, and periods.
-                (i.e. "+user/alice", "_user/bob", or "+user/department/charlie")`,
+              message: $localize`User tags must start with the "+user/" or "_user/" prefix.
+Tags must be lower case letters and forward slashes. Must not start with a slash or contain two forward slashes in a row. Private
+tags start with an underscore.
+Tags may be qualified with an origin.
+Origins must start with an at sign (@) and contain only lowercase letters, numbers, and periods.
+(i.e. "+user/alice", "_user/bob", or "+user/department/charlie")`,
             }
           },
         },
@@ -413,18 +524,17 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
           validators: {
             pattern: {
               expression: (c: AbstractControl) => !c.value || SELECTOR_REGEX.test(c.value),
-              message: $localize`
-                Tags must be lower case letters, numbers, periods and forward slashes.
-                Must not start with a forward slash or period.
-                Must not or contain two forward slashes or periods in a row.
-                Use the local wildcard (*) to match all tags with a local origin.
-                Tags may be qualified with an origin, or a wildcard origin (@*).
-                Origins must start with an at sign (@) and contain only lowercase letters, numbers, and periods.
-                Use an origin without a tag to match all tags at that origin.
-                The wildcard origin (@*) by itself will match everything.
-                Protected tags start with a plus sign.
-                Private tags start with an underscore.
-                (i.e. "*", "science", "science@origin" "my/tag@", or "_my/private/tag")`,
+              message: $localize`Tags must be lower case letters, numbers, periods and forward slashes.
+Must not start with a forward slash or period.
+Must not or contain two forward slashes or periods in a row.
+Use the local wildcard (*) to match all tags with a local origin.
+Tags may be qualified with an origin, or a wildcard origin (@*).
+Origins must start with an at sign (@) and contain only lowercase letters, numbers, and periods.
+Use an origin without a tag to match all tags at that origin.
+The wildcard origin (@*) by itself will match everything.
+Protected tags start with a plus sign.
+Private tags start with an underscore.
+(i.e. "*", "science", "science@origin" "my/tag@", or "_my/private/tag")`,
             }
           },
         },
@@ -441,7 +551,8 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
         },
       }, {
         name: 'query',
-        extends: 'tag',
+        component: FormlyFieldQueryInput,
+        wrappers: ['form-field'],
         defaultOptions: {
           props: {
             label: $localize`Query: `,
@@ -449,19 +560,48 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
           validators: {
             pattern: {
               expression: (c: AbstractControl) => !c.value || QUERY_REGEX.test(c.value),
-              message: $localize`
-                Queries support AND (:), OR (|), NOT (!) and grouping qualified tags (parentheses).
-                Tags must be lower case letters, numbers, periods and forward slashes.
-                Must not start with a forward slash or period.
-                Must not or contain two forward slashes or periods in a row.
-                Use the local wildcard (*) to match all tags with a local origin.
-                Tags may be qualified with an origin, or a wildcard origin (@*).
-                Origins must start with an at sign (@) and contain only lowercase letters, numbers, and periods.
-                Use an origin without a tag to match all tags at that origin.
-                The wildcard origin (@*) by itself will match everything.
-                Protected tags start with a plus sign.
-                Private tags start with an underscore.
-                (i.e. "science:news", "science@origin science@other" "your/tag my/tag", "!cool", or "news:_my/private/tag")`,
+              message: $localize`Queries support AND (:), OR (|), NOT (!) and grouping qualified tags (parentheses).
+Tags must be lower case letters, numbers, periods and forward slashes.
+Must not start with a forward slash or period.
+Must not or contain two forward slashes or periods in a row.
+Use the local wildcard (*) to match all tags with a local origin.
+Tags may be qualified with an origin, or a wildcard origin (@*).
+Origins must start with an at sign (@) and contain only lowercase letters, numbers, and periods.
+Use an origin without a tag to match all tags at that origin.
+The wildcard origin (@*) by itself will match everything.
+Protected tags start with a plus sign.
+Private tags start with an underscore.
+(i.e. "science:news", "science@origin science@other" "your/tag my/tag", "!cool", or "news:_my/private/tag")`,
+            }
+          },
+        },
+      }, {
+        name: 'bookmark',
+        component: FormlyFieldBookmarkInput,
+        wrappers: ['form-field'],
+        defaultOptions: {
+          props: {
+            label: $localize`Bookmark: `,
+          },
+          validators: {
+            pattern: {
+              expression: (c: AbstractControl) => {
+                if (!c.value) return true;
+                const query = c.value.split('?')[0];
+                return !query || QUERY_REGEX.test(query);
+              },
+              message: $localize`Queries support AND (:), OR (|), NOT (!) and grouping qualified tags (parentheses).
+Tags must be lower case letters, numbers, periods and forward slashes.
+Must not start with a forward slash or period.
+Must not or contain two forward slashes or periods in a row.
+Use the local wildcard (*) to match all tags with a local origin.
+Tags may be qualified with an origin, or a wildcard origin (@*).
+Origins must start with an at sign (@) and contain only lowercase letters, numbers, and periods.
+Use an origin without a tag to match all tags at that origin.
+The wildcard origin (@*) by itself will match everything.
+Protected tags start with a plus sign.
+Private tags start with an underscore.
+(i.e. "science:news", "science@origin science@other" "your/tag my/tag", "!cool", or "news:_my/private/tag")`,
             }
           },
         },
@@ -477,6 +617,22 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
             type: 'query',
           },
         },
+      }, {
+        name: 'bookmarks',
+        extends: 'selectors',
+        defaultOptions: {
+          props: {
+            label: $localize`Bookmarks: `,
+            addText: $localize`+ Add another bookmark`,
+          },
+          fieldArray: {
+            type: 'bookmark',
+          },
+        },
+      }, {
+        name: 'editor',
+        component: FormlyFieldEditor,
+        wrappers: ['form-field'],
       }, {
         name: 'textarea',
         component: FormlyFieldTextArea,
@@ -503,6 +659,16 @@ import { VideoUploadComponent } from './video-upload/video-upload.component';
       }, {
         name: 'enum',
         extends: 'select',
+      }, {
+        name: 'location',
+        component: FormlyFieldLocation,
+        wrappers: ['form-field'],
+        defaultOptions: {
+          defaultValue: [0, 0],
+          props: {
+            label: $localize`Location: `,
+          },
+        },
       }],
     }),
   ],

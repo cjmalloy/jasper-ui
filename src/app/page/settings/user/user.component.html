@@ -1,5 +1,5 @@
 @if (query.error?.status !== 403) {
-  <app-user-list [page]="query.page"
+  <app-user-list #list [page]="query.page"
                  [scim]="scim.page"></app-user-list>
 } @else {
   <div class="error-403" i18n>Access Denied</div>

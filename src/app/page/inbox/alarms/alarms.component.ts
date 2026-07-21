@@ -1,6 +1,9 @@
-import { Component, HostBinding, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { defer } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
+import { MobxAngularModule } from 'mobx-angular';
+import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
+import { HasChanges } from '../../../guard/pending-changes.guard';
 import { AdminService } from '../../../service/admin.service';
 import { ModService } from '../../../service/mod.service';
 import { QueryStore } from '../../../store/query';
@@ -10,12 +13,17 @@ import { getArgs } from '../../../util/query';
 @Component({
   selector: 'app-inbox-alarms',
   templateUrl: './alarms.component.html',
-  styleUrls: ['./alarms.component.scss']
+  styleUrls: ['./alarms.component.scss'],
+  host: { 'class': 'alarms' },
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [MobxAngularModule, RefListComponent]
 })
-export class InboxAlarmsPage implements OnInit, OnDestroy {
-  @HostBinding('class') css = 'alarms';
+export class InboxAlarmsPage implements OnInit, OnDestroy, HasChanges {
 
   private disposers: IReactionDisposer[] = [];
+
+  @ViewChild('list')
+  list?: RefListComponent;
 
   constructor(
     private mod: ModService,
@@ -26,6 +34,10 @@ export class InboxAlarmsPage implements OnInit, OnDestroy {
     mod.setTitle($localize`Inbox: Alarms`);
     store.view.clear(['modified']);
     query.clear();
+  }
+
+  saveChanges() {
+    return !this.list || this.list.saveChanges();
   }
 
   ngOnInit(): void {
@@ -43,6 +55,7 @@ export class InboxAlarmsPage implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    this.query.close();
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
   }

@@ -1,19 +1,26 @@
-import { Component, HostBinding, Input } from '@angular/core';
+import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
+import { FakeLinkDirective } from '../../../directive/fake-link.directive';
 import { catchError, Observable, of } from 'rxjs';
+import { LoadingComponent } from '../../loading/loading.component';
 import { ActionComponent } from '../action.component';
 
 @Component({
   selector: 'app-inline-button',
   templateUrl: './inline-button.component.html',
-  styleUrls: ['./inline-button.component.scss']
+  styleUrls: ['./inline-button.component.scss'],
+  host: { 'class': 'action' },
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [FakeLinkDirective, LoadingComponent]
 })
 export class InlineButtonComponent extends ActionComponent {
-  @HostBinding('class') css = 'action';
 
   @Input()
   action: () => Observable<any|never> = () => of(null);
+  @Input()
+  minDelayMs = 1000;
 
   acting = false;
+  minTimeout = false;
 
   override reset() {
     this.acting = false;
@@ -25,6 +32,8 @@ export class InlineButtonComponent extends ActionComponent {
 
   act() {
     this.acting = true;
+    this.minTimeout = true;
+    setTimeout(() => this.minTimeout = false, this.minDelayMs);
     this.action().pipe(
       catchError(() => of(null)),
     ).subscribe(() => this.acting = false);

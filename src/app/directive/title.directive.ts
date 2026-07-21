@@ -1,19 +1,18 @@
 import { Directive, ElementRef, Input, OnChanges, SimpleChanges } from '@angular/core';
-import { isArray, isString } from 'lodash-es';
+import { isArray, isString, uniq } from 'lodash-es';
 import { Ext } from '../model/ext';
 import { getPluginScope } from '../model/plugin';
 import { Ref } from '../model/ref';
 import { hydrate, Visibility } from '../model/tag';
 import { getTemplateScope } from '../model/template';
+import { TagPreview } from '../service/editor.service';
 import { Store } from '../store/store';
 
-@Directive({
-  selector: '[appTitle]'
-})
+@Directive({ selector: '[appTitle]' })
 export class TitleDirective implements OnChanges {
 
   @Input('appTitle')
-  node?: Visibility | Visibility[] | Ext | string;
+  node?: Visibility | Visibility[] | Ext | string | TagPreview;
   @Input()
   ref?: Ref;
 
@@ -51,7 +50,7 @@ export class TitleDirective implements OnChanges {
         );
       }
     }
-    this.el.nativeElement.title = title.join($localize` / `);
+    this.el.nativeElement.title = uniq(title).join($localize` / `);
   }
 
 }

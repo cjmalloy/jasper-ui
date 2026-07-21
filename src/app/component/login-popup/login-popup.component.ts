@@ -1,23 +1,24 @@
-import { Component, HostBinding, OnInit } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { FakeLinkDirective } from '../../directive/fake-link.directive';
 import { runInAction } from 'mobx';
+import { MobxAngularModule } from 'mobx-angular';
 import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
 
 @Component({
   selector: 'app-login-popup',
   templateUrl: './login-popup.component.html',
-  styleUrls: ['./login-popup.component.scss']
+  styleUrls: ['./login-popup.component.scss'],
+  host: { 'class': 'login-popup' },
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [FakeLinkDirective, MobxAngularModule]
 })
-export class LoginPopupComponent implements OnInit {
-  @HostBinding('class') css = 'login-popup';
+export class LoginPopupComponent {
 
   constructor(
     public store: Store,
     public config: ConfigService,
   ) { }
-
-  ngOnInit(): void {
-  }
 
   clear() {
     runInAction(() => this.store.account.authError = false);

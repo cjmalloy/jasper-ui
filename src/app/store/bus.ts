@@ -1,41 +1,50 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { makeAutoObservable, observable, reaction, toJS } from 'mobx';
-import { catchError, Observable, throwError } from 'rxjs';
+import { signal } from '@angular/core';
+import { catchError, Observable, Subject, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Ref } from '../model/ref';
 import { printError } from '../util/http';
 
+export type progress = (msg?: string, p?: number) => void;
+export type BusEvent = {
+  event: string,
+  ref?: Ref,
+  repost?: Ref,
+  errors: string[],
+};
+
 export class EventBus {
 
-  event = '';
-  ref?: Ref = {} as any;
-  repost?: Ref = {} as any;
-  errors: string[] = [];
+  readonly events = new Subject<BusEvent>();
+  private readonly progressState = signal({
+    messages: [] as string[],
+    num: 0,
+    den: 0,
+  });
 
-  constructor() {
-    makeAutoObservable(this, {
-      ref: observable.ref,
-      errors: observable.shallow,
-      runAndReload: false,
-      runAndRefresh: false,
-      catchError$: false,
-      isRef: false,
-    });
-    reaction(() => this.event, () => console.log('🚌️ Event Bus:', this.event, this.event === 'error' ? toJS(this.errors) : '', toJS(this.ref)));
+  get progressMessages() {
+    return this.progressState().messages;
+  }
+
+  get progressNum() {
+    return this.progressState().num;
+  }
+
+  get progressDen() {
+    return this.progressState().den;
+  }
+
+  private setState(event: string, ref?: Ref, repost?: Ref, errors: string[] = []) {
+    this.events.next({ event, ref, repost, errors });
+    console.log('🚌️ Event Bus:', event, event === 'error' ? errors : '', ref);
   }
 
   fire(event: string, ref?: Ref, repost?: Ref) {
-    this.event = event;
-    this.ref = ref;
-    this.repost = repost;
+    this.setState(event, ref, repost);
   }
 
   fireError(errors: string[], ref?: Ref) {
-    this.event = 'error';
-    this.errors = [...errors];
-    if (ref) {
-      this.ref = ref;
-    }
+    this.setState('error', ref, undefined, [...errors]);
   }
 
   /**
@@ -43,31 +52,21 @@ export class EventBus {
    * 'refresh' event.
    */
   reload(ref?: Ref) {
-    this.event = 'reload';
-    if (ref) {
-      this.ref = ref;
-    }
-    this.repost = undefined;
+    this.setState('reload', ref);
   }
 
   /**
    * Notify latest version of ref is not available.
    */
   refresh(ref?: Ref) {
-    this.event = 'refresh';
-    if (ref) {
-      this.ref = ref;
-    }
-    this.repost = undefined;
+    this.setState('refresh', ref);
   }
 
   /**
    * Clear event bus state for sending duplicate events.
    */
   reset() {
-    this.event = '';
-    this.ref = undefined;
-    this.repost = undefined;
+    this.setState('');
   }
 
   runAndReload(o: Observable<any>, ref?: Ref) {
@@ -95,7 +94,31 @@ export class EventBus {
     );
   }
 
-  isRef(r: Ref) {
-    return this.ref?.url === r.url && this.ref.origin === r.origin;
+  isRef(event: BusEvent, r: Ref) {
+    return event.ref?.url === r.url && event.ref.origin === r.origin;
+  }
+
+  clearProgress(steps = 0) {
+    if (!steps || !this.progressDen || this.progressNum >= this.progressDen) {
+      this.progressState.set({ messages: [], num: 0, den: steps });
+    } else {
+      this.progressState.update(progress => ({ ...progress, den: progress.den + steps }));
+    }
+  }
+
+  msg(msg: string) {
+    this.progressState.update(progress => ({ ...progress, messages: [...progress.messages, msg] }));
+  }
+
+  steps(steps = 1) {
+    this.progressState.update(progress => ({ ...progress, den: progress.den + steps }));
+  }
+
+  progress(msg?: string, steps = 1) {
+    this.progressState.update(progress => ({
+      ...progress,
+      messages: msg ? [...progress.messages, msg] : progress.messages,
+      num: progress.num + steps,
+    }));
   }
 }

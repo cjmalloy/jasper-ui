@@ -7,6 +7,7 @@ import { autorun, runInAction } from 'mobx';
 import { of } from 'rxjs';
 import { Plugin } from '../model/plugin';
 import { Store } from '../store/store';
+import { AccountService } from './account.service';
 import { AdminService } from './admin.service';
 import { ConfigService } from './config.service';
 
@@ -15,22 +16,25 @@ import { ConfigService } from './config.service';
 })
 export class ModService {
 
-  nesting = CSS.supports('selector(& > *)');
+  nesting = CSS && CSS.supports('selector(& > *)');
 
   constructor(
     @Inject(DOCUMENT) private document: Document,
     private config: ConfigService,
     private admin: AdminService,
+    private account: AccountService,
     private store: Store,
     private titleService: Title,
   ) { }
 
   get init$() {
+    document.documentElement.style.overflowY = 'scroll';
     this.setTheme(localStorage.getItem('theme') || this.systemTheme);
     autorun(() => this.setCustomCss('custom-css', ...(this.store.account.config.userTheme ? this.getUserCss() : this.getExtCss())));
     this.admin.configProperty('css').forEach(p => this.setCustomCss(p.type + '-' + p.tag, p.config!.css));
     this.admin.configProperty('snippet').forEach(p => this.addSnippet(p.type + '-' + p.tag, p.config!.snippet));
     this.admin.configProperty('banner').forEach(p => this.addBanner(p.type + '-' + p.tag, p.config!.banner));
+    this.account.checkConsent(this.admin.configProperty('consent').flatMap(p => Object.entries(p.config?.consent || {})));
     const ql = matchMedia && matchMedia('(prefers-color-scheme: dark)');
     if (ql.addEventListener) {
       ql.addEventListener('change', e => {

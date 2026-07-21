@@ -1,6 +1,12 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { defer } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
+import { MobxAngularModule } from 'mobx-angular';
+import { LensComponent } from '../../component/lens/lens.component';
+import { SidebarComponent } from '../../component/sidebar/sidebar.component';
+import { TabsComponent } from '../../component/tabs/tabs.component';
+import { HasChanges } from '../../guard/pending-changes.guard';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
@@ -13,9 +19,20 @@ import { getArgs } from '../../util/query';
   selector: 'app-home-page',
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [
+    LensComponent,
+    MobxAngularModule,
+    TabsComponent,
+    RouterLink,
+    SidebarComponent,
+  ],
 })
-export class HomePage implements OnInit, OnDestroy {
+export class HomePage implements OnInit, OnDestroy, HasChanges {
   private disposers: IReactionDisposer[] = [];
+
+  @ViewChild('lens')
+  lens?: LensComponent;
 
   constructor(
     private mod: ModService,
@@ -26,11 +43,21 @@ export class HomePage implements OnInit, OnDestroy {
     private exts: ExtService,
   ) {
     mod.setTitle($localize`Home`);
-    store.view.clear([!!this.admin.getPlugin('plugin/vote/up') ? 'voteScoreDecay' : 'published']);
+    store.view.clear([!!admin.getPlugin('plugin/user/vote/up') ? 'plugins->plugin/user/vote:decay' : 'published']);
     query.clear();
-    if (admin.getTemplate('home')) {
-      exts.getCachedExt('home').subscribe(x => runInAction(() => this.store.view.exts = [x]));
+    if (admin.home) {
+      exts.getCachedExt('config/home' + (store.account.origin || '@')).subscribe(x => runInAction(() => {
+        if (x.modified) {
+          store.view.exts = [x];
+        } else {
+          store.view.exts = [ { ...this.exts.defaultExt('config/home'), config: admin.getDefaults('config/home') }];
+        }
+      }));
     }
+  }
+
+  saveChanges() {
+    return !this.lens || this.lens.saveChanges();
   }
 
   ngOnInit(): void {
@@ -41,7 +68,7 @@ export class HomePage implements OnInit, OnDestroy {
           const args = getArgs(
             q,
             this.store.view.sort,
-            this.store.view.filter,
+            ['user/!plugin/user/hide', ...this.store.view.filter],
             this.store.view.search,
             this.store.view.pageNumber,
             this.store.view.pageSize,
@@ -52,7 +79,7 @@ export class HomePage implements OnInit, OnDestroy {
         const args = getArgs(
           this.store.account.subscriptionQuery,
           this.store.view.sort,
-          this.store.view.filter,
+          ['user/!plugin/user/hide', ...this.store.view.filter],
           this.store.view.search,
           this.store.view.pageNumber,
           this.store.view.pageSize,
@@ -63,6 +90,7 @@ export class HomePage implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    this.query.close();
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
   }

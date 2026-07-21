@@ -6,9 +6,11 @@ import { ProxyService } from '../service/api/proxy.service';
 import { OembedStore } from '../store/oembed';
 import { hasTag } from '../util/tag';
 
+type ThumbnailRef = Pick<Ref, 'url' | 'origin' | 'plugins' | 'tags'>;
+
 @Pipe({
-  name: 'thumbnail',
-  pure: true
+    name: 'thumbnail',
+    pure: true
 })
 export class ThumbnailPipe implements PipeTransform {
 
@@ -18,46 +20,64 @@ export class ThumbnailPipe implements PipeTransform {
     private proxy: ProxyService,
   ) { }
 
-  transform(refs: (Ref | undefined)[], force = false): Observable<string> {
+  transform(refs: (ThumbnailRef | undefined)[], force = false): Observable<string> {
+    const imagesEnabled = !!this.admin.getPlugin('plugin/image');
     for (const ref of refs) {
       if (!ref) continue;
-      for (const plugin of ['plugin/thumbnail', 'plugin/image', 'plugin/video']) {
-        if (refUrl(ref, plugin)) return of(this.fetchUrl(refUrl(ref, plugin), plugin));
+      const thumbnailUrl = refUrl(ref, 'plugin/thumbnail');
+      if (thumbnailUrl && (imagesEnabled || isInlineSvg(thumbnailUrl))) {
+        return of(this.fetchUrl(thumbnailUrl, ref.origin, 'plugin/thumbnail'));
+      }
+      if (!imagesEnabled) continue;
+      for (const plugin of ['plugin/image', 'plugin/video']) {
+        if (refUrl(ref, plugin)) return of(this.fetchUrl(refUrl(ref, plugin), ref.origin, plugin));
       }
       if (hasTag('plugin/embed', ref)) {
         return this.store.get(ref.plugins?.['plugin/embed']?.url || ref.url).pipe(
           map(oembed => {
             if (oembed?.thumbnail_url) {
-              return this.fetchUrl(oembed.thumbnail_url, 'plugin/thumbnail');
+              return this.fetchUrl(oembed.thumbnail_url, ref.origin, 'plugin/thumbnail');
             }
             return '';
           }),
         );
       }
+      if (!this.validUrl(ref.url)) continue;
       const embedPlugins = this.admin.getEmbeds(ref);
       for (const plugin of ['plugin/image', 'plugin/video']) {
-        if (embedPlugins.includes(plugin)) return of(this.fetchUrl(ref.url, plugin));
+        if (embedPlugins.includes(plugin)) return of(this.fetchUrl(ref.url, ref.origin, plugin));
       }
     }
-    if (force) {
+    if (imagesEnabled && force) {
       for (const ref of refs) {
-        if (!ref) continue;
-        return of(this.fetchUrl(ref.url, 'plugin/image'));
+        if (!this.validUrl(ref?.url)) continue;
+        return of(this.fetchUrl(ref!.url, ref!.origin, 'plugin/image'));
       }
     }
     return of('');
   }
 
-  fetchUrl(url: string, plugin: string) {
+  fetchUrl(url: string, origin: string | undefined, plugin: string) {
     if (!url) return '';
-    if (this.admin.getPlugin(plugin)?.config?.proxy) {
-      return this.proxy.getFetch(url, true);
+    if (isInlineSvg(url)) return url;
+    if (url.startsWith('cache:') || this.admin.getPlugin(plugin)?.config?.proxy) {
+      return this.proxy.getFetch(url, origin, 'thumbnail', true);
     }
     return url;
   }
 
+  private validUrl(url?: string) {
+    return url
+      && !url.startsWith('data:')
+      && !url.startsWith('comment:')
+      && !url.startsWith('internal:');
+  }
 }
 
 function refUrl(ref: Ref, plugin: string) {
   return ref.plugins?.[plugin]?.url;
+}
+
+export function isInlineSvg(url: string) {
+  return /^data:image\/svg\+xml(?:[,;])/i.test(url);
 }

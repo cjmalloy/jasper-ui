@@ -3,26 +3,28 @@ import * as d3 from 'd3';
 import * as Handlebars from 'handlebars/dist/cjs/handlebars';
 import { Schema } from 'jtd';
 import { defer, isEqual, omitBy, uniqWith } from 'lodash-es';
+import { DateTime, Duration, DurationObjectUnits } from 'luxon';
 import { toJS } from 'mobx';
-import * as moment from 'moment';
-import { MomentInput } from 'moment/moment';
 import { v4 as uuid } from 'uuid';
+import { interestingTags } from '../util/format';
 import { hasAnyResponse, hasResponse, hasTag, prefix } from '../util/tag';
 import { filterModels } from '../util/zip';
-import { Plugin } from './plugin';
-import { Ref } from './ref';
-import { Template } from './template';
-import { Role } from './user';
+import { Ext, extSchema } from './ext';
+import { Plugin, pluginSchema } from './plugin';
+import { Ref, refSchema } from './ref';
+import { Template, templateSchema } from './template';
+import { Role, User, userSchema } from './user';
 
-export interface HasOrigin {
+export interface Cursor {
   origin?: string;
-}
-export interface Cursor extends HasOrigin {
+  modified?: DateTime;
+  // Saved to pass modified check since moment looses precision
+  // TODO: Does luxon loose precision?
+  modifiedString?: string;
+  // Client-only
   upload?: boolean;
   exists?: boolean;
-  modified?: moment.Moment;
-  // Saved to pass modified check since moment looses precision
-  modifiedString?: string;
+  outdated?: boolean;
 }
 
 export interface Tag extends Cursor {
@@ -32,14 +34,34 @@ export interface Tag extends Cursor {
 }
 
 export interface Mod {
-  plugins?: Record<string, Plugin>;
-  templates?: Record<string, Template>;
+  ref?: Ref[];
+  ext?: Ext[];
+  user?: User[];
+  plugin?: Plugin[];
+  template?: Template[];
 }
+
+export function bundleSize(mod: Mod) {
+  return (mod.ref?.length || 0) +
+    (mod.ext?.length || 0) +
+    (mod.user?.length || 0) +
+    (mod.plugin?.length || 0) +
+    (mod.template?.length || 0);
+}
+
+export const modSchema: Schema = {
+  optionalProperties: {
+    ref: { elements: refSchema },
+    ext: { elements: extSchema },
+    user: { elements: userSchema },
+    plugin: { elements: pluginSchema },
+    template: { elements: templateSchema },
+  }
+};
 
 export type ModType = 'config' | 'icon' | 'feature' | 'lens' | 'plugin' | 'editor' | 'semantic' | 'theme' | 'tool';
 
 export interface Config extends Tag {
-  type?: 'plugin' | 'template';
   config?: {
     /**
      * Configs may only be created and edited by admin, so we allow anything.
@@ -84,6 +106,10 @@ export interface Config extends Tag {
      */
     aiInstructions?: string,
     /**
+     * Add tags when replying to this tag.
+     */
+    reply?: string[],
+    /**
      * Optional handlebars template to use as a UI.
      */
     ui?: string,
@@ -99,6 +125,10 @@ export interface Config extends Tag {
      * Optional html to be added to <body> on load.
      */
     banner?: string,
+    /**
+     * Optional html to be added to <body> on load.
+     */
+    consent?: { [key: string]: string },
     /**
      * Optional buttons to add to the editor.
      */
@@ -141,6 +171,22 @@ export interface Config extends Tag {
      * with the plugin tag.
      */
     writeAccess?: string[],
+    /**
+     * Show help text for search box.
+     */
+    searchHelp?: string,
+    /**
+     * Show help text for filter box.
+     */
+    filterHelp?: string,
+    /**
+     * Show help text for sort box.
+     */
+    sortHelp?: string,
+    /**
+     * Help links to show in editor dropdown.
+     */
+    editorHelpLinks?: Array<{ label: string; url: string }>,
   };
   /**
    * Default config values when validating or reading. Should pass validation.
@@ -150,10 +196,22 @@ export interface Config extends Tag {
    * JTD schema for validating config.
    */
   schema?: Schema;
+  // Client-only
+  type?: 'plugin' | 'template';
   /**
    * Cache for compiled templates.
    */
   _cache?: any;
+}
+
+
+export function condition(value: string | undefined, config: any | undefined) {
+  if (!value) return false;
+  if (value.startsWith('!')) {
+    return !config?.[value.substring(1)]
+  } else {
+    return config?.[value];
+  }
 }
 
 export interface Visibility {
@@ -161,6 +219,10 @@ export interface Visibility {
    * Optional handlebars template tooltip.
    */
   title?: string;
+  /**
+   * Tag to show / hide.
+   */
+  if?: string;
   /**
    * Minimum role required to be visible.
    */
@@ -191,23 +253,21 @@ export interface Visibility {
   _parent?: Config;
 }
 
-export function visible(v: Visibility, isAuthor: boolean, isRecipient: boolean) {
+export function visible(ref: Ref, v: Visibility, isAuthor: boolean, isRecipient: boolean) {
+  if (('if' in v) && !hasTag(v.if, ref)) return false;
   if (!v.visible) return true;
   if (isAuthor) return v.visible === 'author' || v.visible === 'participant';
   if (isRecipient) return v.visible === 'recipient' || v.visible === 'participant';
   return false;
 }
 
-export function sortOrder<T extends { order?: number }>(vs: T[]) {
-  return vs.sort((a, b) => {
-    if (!a.order || !b.order) return (b.order || 0) - (a.order || 0);
-    if (Math.sign(a.order) !== Math.sign(b.order)) return b.order - a.order;
-    return a.order - b.order;
-  });
+export function sortOrder<T extends { order?: number, toggle?: string, _parent?: Config; }>(vs: T[]) {
+  const getTag = (o: T) => o.toggle || o._parent?.tag || '';
+  return vs.sort((a, b) => a.order === b.order ? getTag(b).localeCompare(getTag(a)) : (b.order || 0) - (a.order || 0));
 }
 
 export function uniqueConfigs<T extends Visibility>(vs: T[]) {
-  const hiddenField = (v: string, k: string) => k.startsWith('_')
+  const hiddenField = (v: string, k: string) => k.startsWith('_');
   return uniqWith(vs, (a, b) => isEqual(omitBy(a as any, hiddenField), omitBy(b as any, hiddenField)));
 }
 
@@ -242,7 +302,7 @@ export interface Icon extends Visibility {
   /**
    * If set, makes this icon conditional on the current user's plugin response.
    */
-  response?: `plugin/${string}` | `+plugin/${string}` | `_plugin/${string}`;
+  response?: `plugin/user/${string}` | `+plugin/user/${string}` | `_plugin/user/${string}`;
   /**
    * If set, makes this icon conditional on a ref scheme.
    */
@@ -271,16 +331,25 @@ export interface FilterConfig {
    */
   responses?: string;
   /**
-   * Filter based on plugin responses in metadata. Plugins must have be
-   * generating metadata to work.
-   * If set, query  and scheme must not be set.
+   * Filter based on plugin responses in metadata.
+   * If set, query and scheme must not be set.
    */
   response?: `plugin/${string}` | `+plugin/${string}` | `_plugin/${string}` | `!plugin/${string}` | `!+plugin/${string}` | `!_plugin/${string}`;
+  /**
+   * Filter based on user plugin responses in metadata.
+   * If set, query and scheme must not be set.
+   */
+  user?: `plugin/user/${string}` | `+plugin/user/${string}` | `_plugin/user/${string}` | `!plugin/user/${string}` | `!+plugin/user/${string}` | `!_plugin/user/${string}`;
   label?: string;
+  title?: string;
   group?: string;
 }
 
 export interface EditorButton {
+  /**
+   * Query required to show this button (default to the parent tag).
+   */
+  query?: string;
   /**
    * Label for editor button.
    */
@@ -314,6 +383,11 @@ export interface EditorButton {
    */
   event?: string;
   /**
+   * Event to listen for to stop showing loading indicator.
+   * If set, button will show loading indicator after click until this event fires.
+   */
+  eventDone?: string;
+  /**
    * Only show button if URL is of scheme.
    */
   scheme?: `${string}:`;
@@ -333,9 +407,15 @@ export interface EditorButton {
 
   //cache
   _parent?: Config;
+  _on?: boolean;
 }
 
-export type Action = TagAction | ResponseAction | EmitAction | EventAction;
+export type Action = (TagAction | ResponseAction | EmitAction | EventAction) & {
+  /**
+   * Display confirm message.
+   */
+  confirm?: string;
+};
 
 export interface TagAction extends Visibility {
   /**
@@ -356,11 +436,11 @@ export interface ResponseAction extends Visibility {
   /**
    * Add a tag response to the Ref.
    */
-  response: `plugin/${string}` | `+plugin/${string}` | `_plugin/${string}` | `!plugin/${string}` | `!+plugin/${string}` | `!_plugin/${string}`;
+  response: `plugin/user/${string}` | `+plugin/user/${string}` | `_plugin/user/${string}` | `!plugin/user/${string}` | `!+plugin/user/${string}` | `!_plugin/user/${string}`;
   /**
    * Clear other tag responses when adding tag response.
    */
-  clear?: (`plugin/${string}` | `+plugin/${string}` | `_plugin/${string}`)[];
+  clear?: (`plugin/user/${string}` | `+plugin/user/${string}` | `_plugin/user/${string}`)[];
   /**
    * Handlebars template label to show when this action has been applied.
    * The response plugin must have metadata generation turned on.
@@ -413,11 +493,8 @@ window.global = {};
 window.Handlebars = Handlebars as any;
 
 Handlebars.registerHelper('prefix', (p: string, r: string) => prefix(p, r));
-
 Handlebars.registerHelper('uuid', () => uuid());
-
 Handlebars.registerHelper('d3', () => d3);
-
 Handlebars.registerHelper('defer', (el: Element, fn: () => {}) => {
   // @ts-ignore
   if (el.defered) {
@@ -428,24 +505,81 @@ Handlebars.registerHelper('defer', (el: Element, fn: () => {}) => {
     defer(fn);
   }
 });
-
-Handlebars.registerHelper('fromNow', (value: MomentInput) => moment(value).fromNow());
-
-Handlebars.registerHelper('formatInterval', (value: string) => moment.duration(value).humanize());
-
-Handlebars.registerHelper('response', (ref: Ref, value: string) => {
-  return ref.metadata?.userUrls?.includes(value);
+Handlebars.registerHelper('fromNow', (value: string) => DateTime.fromISO(value).toRelative());
+Handlebars.registerHelper('formatInterval', (value: string) => Duration.fromISO(value).toHuman());
+Handlebars.registerHelper('duration', (ref: Ref, tag: string) => {
+  const p = tag + '/';
+  const t = ref?.tags?.find(t => t.startsWith(p));
+  if (!t) return undefined;
+  const result = t.substring(p.length);
+  const value = result.split('/')[0];
+  const d = Duration.fromISO(value.toUpperCase());
+  return d.isValid ? d : undefined;
+});
+Handlebars.registerHelper('human', (value: any) => {
+  if (!value) return '';
+  const formatDuration = (d: Duration) => {
+    // Standard duration units ordered by scale
+    const units: (keyof DurationObjectUnits)[] = [
+      'years', 'months', 'weeks', 'days', 'hours', 'minutes', 'seconds'
+    ];
+    // Find the largest unit that has at least "1" of that unit
+    const largestUnitIndex = units.findIndex(unit => d.as(unit) >= 1);
+    // Fallback for durations < 1 second (e.g., "0.5 seconds" becomes "1 second")
+    if (largestUnitIndex === -1) {
+      return d.shiftTo('seconds').mapUnits(Math.round).toHuman({ listStyle: 'narrow', unitDisplay: 'short', showZeros: false });
+    }
+    const primaryUnit = units[largestUnitIndex];
+    const secondaryUnit = units[largestUnitIndex + 1];
+    // Build target units (e.g., ['years', 'months'] or ['seconds'])
+    const targetUnits = secondaryUnit ? [primaryUnit, secondaryUnit] : [primaryUnit];
+    return d
+      .shiftTo(...targetUnits)
+      .mapUnits(Math.round) // Rounds the smallest visible unit
+      .normalize()          // Handles carry-over (e.g., 60m -> 1h)
+      .toHuman({ listStyle: 'narrow', unitDisplay: 'short', showZeros: false });
+  };
+  if (Duration.isDuration(value)) return formatDuration(value);
+  if (DateTime.isDateTime(value)) return value.toRelative() ?? '';
+  if (typeof value === 'string') {
+    const d = Duration.fromISO(value.toUpperCase());
+    if (d.isValid) return formatDuration(d);
+    const dt = DateTime.fromISO(value);
+    if (dt.isValid) return dt.toRelative() ?? '';
+  }
+  return String(value);
+});
+Handlebars.registerHelper('plugins', (ref: Ref, plugin: string) => ref.metadata?.plugins?.[plugin]);
+Handlebars.registerHelper('response', (ref: Ref, value: string) => ref.metadata?.userUrls?.includes(value));
+Handlebars.registerHelper('includes', (array: string[], value: string) => array?.includes(value));
+Handlebars.registerHelper('interestingTags', (tags: string[]) => interestingTags(tags));
+Handlebars.registerHelper('hasTag', (tag: string | undefined, ref: Ref | string[] | undefined) => hasTag(tag, ref));
+Handlebars.registerHelper('tail', (text: string) => text.split('\n').pop()!.trim());
+Handlebars.registerHelper('eq', (v1, v2) => v1 === v2);
+Handlebars.registerHelper('ne', (v1, v2) => v1 !== v2);
+Handlebars.registerHelper('lt', (v1, v2) => v1 < v2);
+Handlebars.registerHelper('gt', (v1, v2) => v1 > v2);
+Handlebars.registerHelper('lte', (v1, v2) => v1 <= v2);
+Handlebars.registerHelper('gte', (v1, v2) => v1 >= v2);
+Handlebars.registerHelper('and', function() {
+  return Array.prototype.slice.call(arguments, 0, arguments.length - 1).every(Boolean);
+});
+Handlebars.registerHelper('or', function() {
+  return Array.prototype.slice.call(arguments, 0, arguments.length - 1).some(Boolean);
 });
 
-Handlebars.registerHelper('includes', (array: string[], value: string) => {
-  return array?.includes(value);
-});
-
+let hydrateError = false;
 export function hydrate(config: any, field: string, model: any): string {
   if (!config[field]) return '';
   config._cache ||= {};
   config._cache[field] ||= Handlebars.compile(config[field]);
-  return config._cache[field](model);
+  try {
+    return config._cache[field](model);
+  } catch (e) {
+    if (!hydrateError) console.error('hydrate error', config, field, model, e);
+    hydrateError = true;
+    return '';
+  }
 }
 
 export function emitModels(action: EmitAction, ref?: Ref, user?: string) {
@@ -457,8 +591,25 @@ export function emitModels(action: EmitAction, ref?: Ref, user?: string) {
   return filterModels(JSON.parse(hydrated));
 }
 
+export function clear<T extends Config>(c: T) {
+  const { tag } = c;
+  c = omitBy(c, i => !i) as any;
+  if (tag !== undefined) c.tag = tag;
+  c.config = omitBy(c.config, i => !i);
+  delete c.config!.generated;
+  delete c.config!._parent;
+  delete c.type;
+  delete c.origin;
+  delete c.modified;
+  delete c.modifiedString;
+  delete c._cache;
+  return c;
+}
+
 export type TagQueryArgs = {
   query?: string,
+  nesting?: number,
+  level?: number,
   deleted?: boolean,
   search?: string,
   modifiedBefore?: string,
@@ -474,6 +625,12 @@ export type TagPageArgs = TagQueryArgs & {
 export type TagSort = '' |
   'modified' | 'modified,ASC' | 'modified,DESC' |
   'tag' | 'tag,ASC' | 'tag,DESC' |
-  'levels' | 'levels,ASC' | 'levels,DESC' |
+  'tag:len' | 'tag:len,ASC' | 'tag:len,DESC' |
   'name' | 'name,ASC' | 'name,DESC' |
-  'origin' | 'origin,ASC' | 'origin,DESC';
+  'origin' | 'origin,ASC' | 'origin,DESC' |
+  'origin:len' | 'origin:len,ASC' | 'origin:len,DESC' |
+  `config->${string}` | `config->${string},ASC` | `config->${string},DESC`;
+
+export type ConfigSort = TagSort |
+  `defaults->${string}` | `defaults->${string},ASC` | `defaults->${string},DESC` |
+  `schema->${string}` | `schema->${string},ASC` | `schema->${string},DESC`;

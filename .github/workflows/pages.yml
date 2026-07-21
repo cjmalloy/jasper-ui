@@ -1,0 +1,293 @@
+name: GitHub Pages
+
+on:
+  push:
+    branches: [ master ]
+  workflow_run:
+    workflows: ["Test", "Playwright"]
+    types:
+      - completed
+    branches: [ '**' ]
+  workflow_dispatch:
+
+env:
+  # Runs created within this window of the newest run are considered part of the same set.
+  DEPENDABOT_RUN_SET_WINDOW_SECONDS: 1800
+
+permissions:
+  actions: read
+  contents: read
+  pages: write
+  pull-requests: read
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/configure-pages@v6
+
+      # Create site directory
+      - name: Create site directory
+        # language=bash
+        run: |
+          mkdir -p _build _site
+          cp README.md _build/
+          cp _config.yml _build/
+          cp -r _includes _build/
+          cp -r docs _build/
+
+      # Build docs from root
+      - uses: actions/jekyll-build-pages@v1
+        with:
+          source: ./_build
+          destination: ./_site
+
+      # Download and merge any test reports
+      - name: Process Reports
+        # language=bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p "_site/reports"
+
+          dependabot_message="current"
+          dependabot_color="brightgreen"
+          if [ ! -f ".github/dependabot.yml" ]; then
+            dependabot_message="cannot run"
+            dependabot_color="red"
+          # Only check the most recent set of runs so old failures do not keep the badge red forever.
+          elif ! failed_dependabot_run_count=$( \
+            set -o pipefail; \
+            dependabot_workflow_id=$( \
+              gh api --method GET --paginate "/repos/${GITHUB_REPOSITORY}/actions/workflows" \
+                -f 'per_page=100' \
+                2>/dev/null \
+                | jq -s -r '[.[] | (.workflows // [])[] | select(.path == "dynamic/dependabot/dependabot-updates")] | first | .id // empty' \
+            ) || exit 1; \
+            if [ -z "$dependabot_workflow_id" ]; then \
+              echo 0; \
+            else \
+              gh api --method GET "/repos/${GITHUB_REPOSITORY}/actions/workflows/${dependabot_workflow_id}/runs" \
+                -f 'status=completed' \
+                -f 'per_page=100' \
+                2>/dev/null \
+                | jq --argjson window "${DEPENDABOT_RUN_SET_WINDOW_SECONDS}" '((.workflow_runs // []) | sort_by(.created_at) | reverse) as $runs | if ($runs | length) == 0 then 0 else (($runs[0].created_at | fromdateiso8601) - $window) as $cutoff | [$runs[] | select((.created_at | fromdateiso8601) >= $cutoff) | select(.conclusion == "failure")] | length end'; \
+            fi \
+           ); then
+            dependabot_message="cannot run"
+            dependabot_color="red"
+          elif [ "$failed_dependabot_run_count" -gt 0 ]; then
+            dependabot_message="failed"
+            dependabot_color="red"
+          elif ! dependabot_pr_count=$( \
+            set -o pipefail; \
+            gh api --method GET --paginate "/repos/${GITHUB_REPOSITORY}/pulls" \
+              -f 'state=open' \
+              -f 'per_page=100' \
+              2>/dev/null \
+              | jq -s '[.[][] | select(.user.login == "dependabot[bot]")] | length' \
+           ); then
+            dependabot_message="cannot run"
+            dependabot_color="red"
+          elif [ "$dependabot_pr_count" -gt 0 ]; then
+            dependabot_message="$dependabot_pr_count updates"
+            if [ "$dependabot_pr_count" -eq 1 ]; then
+              dependabot_message="1 update"
+            fi
+            dependabot_color="yellow"
+          fi
+          jq -n \
+            --arg label "dependabot" \
+            --arg message "$dependabot_message" \
+            --arg color "$dependabot_color" \
+            '{schemaVersion: 1, label: $label, message: $message, color: $color}' \
+            > _site/reports/dependabot-badge.json
+
+          # Download only the latest 10 reports for each type to save space
+          gh run list --workflow test.yml --branch master --limit 10 --json databaseId --jq '.[].databaseId' | while read run_id; do
+            gh run download "$run_id" --pattern "vitest-reports-*" --dir _site/reports 2>/dev/null || true
+          done
+
+          gh run list --workflow playwright.yml --branch master --limit 10 --json databaseId --jq '.[].databaseId' | while read run_id; do
+            gh run download "$run_id" --pattern "playwright-reports-*" --dir _site/reports 2>/dev/null || true
+          done
+
+          # Download PR reports
+          gh run list --workflow playwright.yml --limit 20 --json databaseId --jq '.[].databaseId' | while read run_id; do
+            gh run download "$run_id" --pattern "playwright-reports-*-pr-*" --dir _site/reports 2>/dev/null || true
+          done
+
+          gh run list --workflow test.yml --limit 20 --json databaseId --jq '.[].databaseId' | while read run_id; do
+            gh run download "$run_id" --pattern "vitest-reports-pr-*" --dir _site/reports 2>/dev/null || true
+          done
+
+          latest_vitest=$(ls -dv _site/reports/vitest-reports-master-* 2>/dev/null | tail -1)
+          echo "Creating latest Vitest $latest_vitest"
+          if [ -n "$latest_vitest" ] && [ -d "$latest_vitest" ]; then
+            mkdir -p _site/reports/latest-vitest
+            cp -r "$latest_vitest/." _site/reports/latest-vitest/
+            if [ -d "$latest_vitest/coverage" ]; then
+              mkdir -p _site/reports/latest-coverage
+              cp -r "$latest_vitest/coverage/." _site/reports/latest-coverage/
+            fi
+          fi
+          if [ -f "_site/reports/latest-coverage/coverage-summary.json" ]; then
+            lines_pct=$(jq -r '(.total.lines.pct // 0) | tonumber' _site/reports/latest-coverage/coverage-summary.json)
+            coverage_message=$(printf "%.1f%%" "$lines_pct")
+            coverage_color="red"
+            if (( $(awk "BEGIN { print ($lines_pct >= 70) }") )); then
+              coverage_color="brightgreen"
+            elif (( $(awk "BEGIN { print ($lines_pct >= 60) }") )); then
+              coverage_color="green"
+            elif (( $(awk "BEGIN { print ($lines_pct >= 50) }") )); then
+              coverage_color="yellowgreen"
+            elif (( $(awk "BEGIN { print ($lines_pct >= 40) }") )); then
+              coverage_color="yellow"
+            elif (( $(awk "BEGIN { print ($lines_pct >= 20) }") )); then
+              coverage_color="orange"
+            fi
+            jq -n \
+              --arg label "coverage" \
+              --arg message "$coverage_message" \
+              --arg color "$coverage_color" \
+              '{schemaVersion: 1, label: $label, message: $message, color: $color}' \
+              > _site/reports/latest-coverage/badge.json
+          fi
+          latest_playwright_postgres=$(ls -dv _site/reports/playwright-reports-postgres-master-* 2>/dev/null | tail -1)
+          echo "Creating latest Playwright (postgres) $latest_playwright_postgres"
+          if [ -n "$latest_playwright_postgres" ] && [ -d "$latest_playwright_postgres" ]; then
+            mkdir -p _site/reports/latest-playwright-postgres
+            cp -r "$latest_playwright_postgres/." _site/reports/latest-playwright-postgres/
+            mkdir -p _site/reports/latest-playwright
+            cp -r "$latest_playwright_postgres/." _site/reports/latest-playwright/
+          fi
+          latest_playwright_sqlite=$(ls -dv _site/reports/playwright-reports-sqlite-master-* 2>/dev/null | tail -1)
+          echo "Creating latest Playwright (sqlite) $latest_playwright_sqlite"
+          if [ -n "$latest_playwright_sqlite" ] && [ -d "$latest_playwright_sqlite" ]; then
+            mkdir -p _site/reports/latest-playwright-sqlite
+            cp -r "$latest_playwright_sqlite/." _site/reports/latest-playwright-sqlite/
+          fi
+          latest_coverage_message=
+          if [ -f "_site/reports/latest-coverage/badge.json" ]; then
+            latest_coverage_message=$(jq -r '.message // empty' _site/reports/latest-coverage/badge.json)
+          fi
+          latest_coverage_metric=
+          if [ -n "$latest_coverage_message" ]; then
+            latest_coverage_metric=" <span class='metric'>$latest_coverage_message</span>"
+          fi
+          cat > _site/reports/index.html << EOF
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <title>Test Reports</title>
+            <style>
+              :root {
+                /* Light mode variables */
+                --heading-color: #2c3e50;
+                --border-color: #eee;
+                --report-bg: #f8f9fa;
+                --link-color: #3498db;
+                --latest-bg: #e8f5e9;
+                --latest-border: #4caf50;
+                --text-color: #000;
+                --bg-color: #fff;
+              }
+              @media (prefers-color-scheme: dark) {
+                :root {
+                  color-scheme: dark;
+                  /* Dark mode variables */
+                  --heading-color: #89a7c3;
+                  --border-color: #333;
+                  --report-bg: #2a2a2a;
+                  --link-color: #5dade2;
+                  --latest-bg: #1b3320;
+                  --latest-border: #2d6a31;
+                  --text-color: #fff;
+                  --bg-color: #1a1a1a;
+                }
+              }
+              body {
+                font-family: system-ui, -apple-system, sans-serif;
+                margin: 2em auto;
+                max-width: 800px;
+                line-height: 1.6;
+                color: var(--text-color);
+                background: var(--bg-color);
+              }
+              h1 {
+                color: var(--heading-color);
+                border-bottom: 2px solid var(--border-color);
+                padding-bottom: 0.5em;
+              }
+              .report {
+                margin: 1em 0;
+                padding: 0.8em;
+                background: var(--report-bg);
+                border-radius: 4px;
+              }
+              .report a {
+                color: var(--link-color);
+                text-decoration: none;
+              }
+              .report a:hover {
+                text-decoration: underline;
+              }
+              .latest {
+                background: var(--latest-bg);
+                border-left: 4px solid var(--latest-border);
+              }
+              .metric {
+                display: inline-block;
+                margin-left: 0.5em;
+                padding: 0.1em 0.5em;
+                border-radius: 999px;
+                background: var(--bg-color);
+                border: 1px solid var(--border-color);
+                font-size: 0.9em;
+              }
+            </style>
+          </head>
+          <body>
+            <h1>Test Reports</h1>
+            <div class='report'>
+              <a href='latest-playwright-postgres/'>Latest Playwright Report (postgres)</a>
+            </div>
+            <div class='report'>
+              <a href='latest-playwright-sqlite/'>Latest Playwright Report (sqlite)</a>
+            </div>
+            <div class='report'>
+              <a href='latest-vitest/'>Latest Vitest Report</a>
+            </div>
+            <div class='report latest'>
+              <a href='latest-coverage/'>Latest Coverage Report</a>$latest_coverage_metric
+            </div>
+            <h2>All Reports</h2>
+            <div id="reports">
+              $(for d in _site/reports/*/; do
+                name=$(basename "$d")
+                if [[ ! "$name" =~ ^latest-.*$ ]]; then
+                  echo "<div class='report'><a href='$name/'>$name</a></div>"
+                fi
+              done)
+            </div>
+          </body>
+          </html>
+          EOF
+
+      # Upload combined site
+      - uses: actions/upload-pages-artifact@v5
+
+  deploy:
+    needs: build
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/deploy-pages@v5

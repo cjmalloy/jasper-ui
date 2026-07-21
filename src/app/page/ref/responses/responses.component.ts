@@ -1,20 +1,32 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { defer, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
+import { MobxAngularModule } from 'mobx-angular';
+import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
+import { HasChanges } from '../../../guard/pending-changes.guard';
 import { AdminService } from '../../../service/admin.service';
 import { ModService } from '../../../service/mod.service';
 import { QueryStore } from '../../../store/query';
 import { Store } from '../../../store/store';
-import { getArgs } from '../../../util/query';
+import { getTitle } from '../../../util/format';
+import { getArgs, UrlFilter } from '../../../util/query';
 
 @Component({
   selector: 'app-ref-responses',
   templateUrl: './responses.component.html',
   styleUrls: ['./responses.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [
+    MobxAngularModule,
+    RefListComponent,
+  ],
 })
-export class RefResponsesComponent implements OnInit, OnDestroy {
+export class RefResponsesComponent implements OnInit, OnDestroy, HasChanges {
 
   private disposers: IReactionDisposer[] = [];
+
+  @ViewChild('list')
+  list?: RefListComponent;
 
   constructor(
     private mod: ModService,
@@ -26,12 +38,17 @@ export class RefResponsesComponent implements OnInit, OnDestroy {
     runInAction(() => store.view.defaultSort = ['published']);
   }
 
+  saveChanges() {
+    return !this.list || this.list.saveChanges();
+  }
+
   ngOnInit(): void {
     this.disposers.push(autorun(() => {
+      const hideInternal = !this.admin.getPlugins(this.store.view.queryTags).length;
       const args = getArgs(
         '',
         this.store.view.sort,
-        uniq(['query/!internal', ...this.store.view.filter]),
+        uniq([...hideInternal ? ['query/!internal', 'query/!plugin/delete', 'user/!plugin/user/hide'] : ['query/!plugin/delete', 'user/!plugin/user/hide'], ...this.store.view.filter || []]) as UrlFilter[],
         this.store.view.search,
         this.store.view.pageNumber,
         this.store.view.pageSize,
@@ -39,12 +56,18 @@ export class RefResponsesComponent implements OnInit, OnDestroy {
       args.responses = this.store.view.url;
       defer(() => this.query.setArgs(args));
     }));
+    // TODO: set title for bare reposts
+    this.disposers.push(autorun(() => this.mod.setTitle($localize`Responses: ` + getTitle(this.store.view.ref))));
     this.disposers.push(autorun(() => {
-      this.mod.setTitle($localize`Responses: ` + (this.store.view.ref?.title || this.store.view.url));
+      if (this.store.view.ref) {
+        const responsesCount = this.store.view.ref.metadata?.responses || 0;
+        this.store.local.setLastSeenCount(this.store.view.url, 'replies', responsesCount);
+      }
     }));
   }
 
   ngOnDestroy() {
+    this.query.close();
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
   }

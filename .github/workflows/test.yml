@@ -1,0 +1,299 @@
+name: Test
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ '**' ]
+
+permissions:
+  checks: write
+  contents: read
+  pull-requests: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Setup Docker buildx
+        uses: docker/setup-buildx-action@v4
+      - name: Build the Docker image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          load: true
+          tags: build
+          cache-from: type=gha,scope=build
+          cache-to: type=gha,mode=max,scope=build
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Setup Docker buildx
+        uses: docker/setup-buildx-action@v4
+      - name: Build the testing image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          load: true
+          target: test
+          tags: test
+          cache-from: type=gha,scope=test
+          cache-to: type=gha,mode=max,scope=test
+      - name: Run the test container
+        run: docker run --name test test
+      - name: Copy test reports from container
+        if: always()
+        run: docker cp test:/report report
+      - name: Generate Test Summary
+        if: always()
+        uses: actions/github-script@v9
+        with:
+          # language=JavaScript
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            
+            // Parse Vitest console output
+            function parseVitestOutput(logContent) {
+              let testFiles = 0;
+              let testFilesFailed = 0;
+              let testsTotal = 0;
+              let testsFailed = 0;
+              
+              // Look for the summary line: "Test Files  X failed | Y passed (Z)" or "Test Files  X passed (X)"
+              const testFilesFailMatch = logContent.match(/Test Files\s+(\d+)\s+failed\s+\|\s+(\d+)\s+passed\s+\((\d+)\)/);
+              const testFilesPassMatch = logContent.match(/Test Files\s+(\d+)\s+passed\s+\((\d+)\)/);
+              
+              if (testFilesFailMatch) {
+                testFilesFailed = parseInt(testFilesFailMatch[1]);
+                const testFilesPassed = parseInt(testFilesFailMatch[2]);
+                testFiles = parseInt(testFilesFailMatch[3]);
+              } else if (testFilesPassMatch) {
+                testFilesFailed = 0;
+                const testFilesPassed = parseInt(testFilesPassMatch[1]);
+                testFiles = parseInt(testFilesPassMatch[2]);
+              }
+              
+              // Look for the tests summary line: "Tests  X failed | Y passed (Z)" or "Tests  X passed (X)"
+              const testsFailMatch = logContent.match(/Tests\s+(\d+)\s+failed\s+\|\s+(\d+)\s+passed\s+\((\d+)\)/);
+              const testsPassMatch = logContent.match(/Tests\s+(\d+)\s+passed\s+\((\d+)\)/);
+              
+              if (testsFailMatch) {
+                testsFailed = parseInt(testsFailMatch[1]);
+                const testsPassed = parseInt(testsFailMatch[2]);
+                testsTotal = parseInt(testsFailMatch[3]);
+              } else if (testsPassMatch) {
+                testsFailed = 0;
+                const testsPassed = parseInt(testsPassMatch[1]);
+                testsTotal = parseInt(testsPassMatch[2]);
+              }
+              
+              return {
+                testFiles,
+                testFilesFailed,
+                testsTotal,
+                testsFailed
+              };
+            }
+
+            function parseCoverageSummary(summaryPath) {
+              if (!fs.existsSync(summaryPath)) {
+                return null;
+              }
+
+              const data = JSON.parse(fs.readFileSync(summaryPath, 'utf8'));
+              return data.total || null;
+            }
+
+            function formatPercent(value) {
+              return Number(value ?? 0).toFixed(1);
+            }
+             
+            let summary = '## 🧪 Test Results\n\n';
+             
+            try {
+              const logPath = 'report/test-output.log';
+              if (fs.existsSync(logPath)) {
+                const logContent = fs.readFileSync(logPath, 'utf8');
+                const results = parseVitestOutput(logContent);
+                
+                if (results.testsTotal > 0) {
+                  const testFilesPassed = results.testFiles - results.testFilesFailed;
+                  const testsPassed = results.testsTotal - results.testsFailed;
+                  const emoji = results.testsFailed === 0 ? '✅' : '⚠️';
+                  
+                  summary += `${emoji} **Test Files:** ${results.testFilesFailed} failed | ${testFilesPassed} passed (${results.testFiles})\n\n`;
+                  summary += `${emoji} **Tests:** ${results.testsFailed} failed | ${testsPassed} passed (${results.testsTotal})\n\n`;
+                  
+                  if (results.testsFailed === 0) {
+                    summary += '🎉 All tests passed!\n\n';
+                  } else {
+                    const passRate = ((testsPassed / results.testsTotal) * 100).toFixed(1);
+                    summary += `📊 **Pass Rate:** ${passRate}%\n\n`;
+                  }
+                } else {
+                  summary += '⚠️ No test results found in log output.\n\n';
+                }
+              } else {
+                summary += '⚠️ Test output log not found.\n\n';
+              }
+            } catch (error) {
+              summary += `⚠️ Error parsing test results: ${error.message}\n\n`;
+            }
+
+            try {
+              const coveragePath = path.join('report', 'coverage', 'coverage-summary.json');
+              const coverage = parseCoverageSummary(coveragePath);
+
+              if (coverage) {
+                const linesPct = formatPercent(coverage.lines?.pct);
+                const statementsPct = formatPercent(coverage.statements?.pct);
+                const functionsPct = formatPercent(coverage.functions?.pct);
+                const branchesPct = formatPercent(coverage.branches?.pct);
+                summary += `📈 **Coverage:** Lines ${linesPct}% | `;
+                summary += `Statements ${statementsPct}% | `;
+                summary += `Functions ${functionsPct}% | `;
+                summary += `Branches ${branchesPct}%\n\n`;
+              } else {
+                summary += '⚠️ Coverage summary not found.\n\n';
+              }
+            } catch (error) {
+              summary += `⚠️ Error parsing coverage results: ${error.message}\n\n`;
+            }
+             
+            // Write summary to GitHub Step Summary
+            await core.summary
+              .addRaw(summary)
+              .write();
+            
+            // Store summary for use in PR comment
+            fs.writeFileSync('test-summary.md', summary);
+      - name: Upload PR Report
+        if: github.event_name == 'pull_request' && always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: vitest-reports-pr-${{ github.event.pull_request.number }}
+          path: report
+          retention-days: 7
+      - name: Upload Reports
+        if: github.event_name != 'pull_request' && always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: vitest-reports-${{ github.ref_name }}-${{ github.run_number }}
+          path: report
+          retention-days: 30
+      - name: Comment on PR
+        if: github.event_name == 'pull_request' && always()
+        uses: actions/github-script@v9
+        with:
+          # language=JavaScript
+          script: |
+            const fs = require('fs');
+            
+            let summary = '';
+            try {
+              summary = fs.readFileSync('test-summary.md', 'utf8');
+            } catch (error) {
+              summary = '⚠️ Could not read test summary.';
+             }
+             
+            const baseUrl = `https://${context.repo.owner}.github.io/${context.repo.repo}/reports/vitest-reports-pr-${context.issue.number}/`;
+            summary += `\n\n📊 [View detailed HTML report](${baseUrl})`;
+            summary += `\n📈 [View coverage report](${baseUrl}coverage/)`;
+             
+            // Add HTML comment marker for identification
+            const body = `<!-- test-results-comment -->\n${summary}`;
+            
+            // Find existing comment (with pagination)
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+            });
+            
+            const botComment = comments.find(comment => 
+              comment.body.includes('<!-- test-results-comment -->')
+            );
+            
+            if (botComment) {
+              // Update existing comment
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: body
+              });
+            } else {
+              // Create new comment
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: body
+              });
+            }
+
+  clean:
+    needs: test
+    if: always()
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    steps:
+      - name: Cleanup old artifacts
+        if: github.event_name != 'pull_request'
+        uses: actions/github-script@v9
+        with:
+          # language=JavaScript
+          script: |
+            const maxVersions = 3;
+            const response = await github.rest.actions.listArtifactsForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              per_page: 100
+            });
+            const artifacts = response.data.artifacts
+              .filter(artifact => artifact.name.startsWith('vitest-reports-' + '${{ github.ref_name }}'));
+            if (artifacts.length > maxVersions) {
+              // Sort by created_at descending
+              artifacts.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+              // Delete all but the latest maxVersions
+              for (const artifact of artifacts.slice(maxVersions)) {
+                console.log('Deleting artifact:', artifact.name);
+                await github.rest.actions.deleteArtifact({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  artifact_id: artifact.id
+                });
+              }
+            }
+      - name: Cleanup old PR artifacts
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v9
+        with:
+          # language=JavaScript
+          script: |
+            const maxVersions = 1;
+            const response = await github.rest.actions.listArtifactsForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              per_page: 100
+            });
+            const artifacts = response.data.artifacts
+              .filter(artifact => artifact.name === 'vitest-reports-pr-${{ github.event.pull_request.number }}');
+            if (artifacts.length > maxVersions) {
+              // Sort by created_at descending
+              artifacts.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+              // Delete all but the latest maxVersions
+              for (const artifact of artifacts.slice(maxVersions)) {
+                console.log('Deleting artifact:', artifact.name);
+                await github.rest.actions.deleteArtifact({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  artifact_id: artifact.id
+                });
+              }
+            }

@@ -1,13 +1,20 @@
 import { Injectable } from '@angular/core';
 import { UntypedFormArray, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import Europa from 'europa';
-import { Plugin, PluginApi } from 'europa-core';
+import { Plugin, PluginApi, PluginConverter } from 'europa-core';
 import { difference, uniq } from 'lodash-es';
+import { forkJoin, map, Observable, of, switchMap } from 'rxjs';
 import { TagsFormComponent } from '../form/tags/tags.component';
+import { Ext } from '../model/ext';
 import { Store } from '../store/store';
 import { getMailboxes } from '../util/editor';
 import { getPath } from '../util/http';
+import { access, removePrefix, setPublic } from '../util/tag';
+import { AdminService } from './admin.service';
+import { ExtService } from './api/ext.service';
 import { ConfigService } from './config.service';
+
+export type TagPreview = { name?: string,  bookmark?: string, tag: string } | Ext;
 
 @Injectable({
   providedIn: 'root'
@@ -16,6 +23,8 @@ export class EditorService {
 
   constructor(
     private config: ConfigService,
+    private admin: AdminService,
+    private exts: ExtService,
     private store: Store,
   ) {
     const superscriptProvider = (api: PluginApi): Plugin => ({
@@ -29,7 +38,128 @@ export class EditorService {
         },
       },
     });
+    const paragraphConverter: PluginConverter = {
+      startTag(conversion, context): boolean {
+        // @ts-ignore
+        if (conversion.atParagraph || conversion.inline) return true;
+        conversion.appendParagraph();
+        return true;
+      },
+
+      endTag(conversion, context) {
+        // @ts-ignore
+        if (conversion.inline) return;
+        conversion.appendParagraph();
+      },
+    };
+    const paragraphProvider = (api: PluginApi): Plugin => ({
+      converters: {
+        ADDRESS: paragraphConverter,
+        ARTICLE: paragraphConverter,
+        ASIDE: paragraphConverter,
+        DIV: paragraphConverter,
+        FIELDSET: paragraphConverter,
+        FOOTER: paragraphConverter,
+        HEADER: paragraphConverter,
+        MAIN: paragraphConverter,
+        NAV: paragraphConverter,
+        P: paragraphConverter,
+        SECTION: paragraphConverter,
+      },
+    });
+    const linkProvider = (api: PluginApi): Plugin => ({
+      converters: {
+        A: {
+          startTag(conversion, context): boolean {
+            const absolute = conversion.getOption('absolute');
+            const inline = conversion.getOption('inline');
+            const { element } = conversion;
+            const href = element.attr('href');
+            if (!href) {
+              return true;
+            }
+
+            // Set inline flag
+            // @ts-ignore
+            conversion.inline = true;
+
+            const title = element.attr('title');
+            const url = absolute ? conversion.resolveUrl(href) : href;
+            let value = title ? `${url} "${title}"` : url;
+
+            if (inline) {
+              value = `(${value})`;
+            } else {
+              const reference = conversion.addReference('link', value);
+              value = `[${reference}]`;
+            }
+
+            context.set('value', value);
+            conversion.output('[');
+            conversion.atNoWhitespace = true;
+
+            return true;
+          },
+
+          endTag(conversion, context) {
+            if (context.has('value')) {
+              conversion.output(`]${context.get<string>('value')}`);
+
+              // Unset inline flag
+              // @ts-ignore
+              conversion.inline = false;
+            }
+          }
+        }
+      }
+    });
+    const audioProvider = (api: PluginApi): Plugin => ({
+      converters: {
+        AUDIO: {
+          startTag(conversion): boolean {
+            const { element } = conversion;
+            const source = element.find('source')?.attr('src');
+            if (!source) {
+              return false; // No source found, skip
+            }
+
+            const absolute = conversion.getOption('absolute');
+            const url = absolute ? conversion.resolveUrl(source) : source;
+            const value = `(${url})`;
+
+            conversion.output(`![]${value}`);
+
+            return false;
+          },
+        },
+      }
+    });
+    const videoProvider = (api: PluginApi): Plugin => ({
+      converters: {
+        VIDEO: {
+          startTag(conversion): boolean {
+            const { element } = conversion;
+            const source = element.find('source')?.attr('src');
+            if (!source) {
+              return false; // No source found, skip
+            }
+
+            const absolute = conversion.getOption('absolute');
+            const url = absolute ? conversion.resolveUrl(source) : source;
+            const value = `(${url})`;
+
+            conversion.output(`![]${value}`);
+
+            return false;
+          },
+        },
+      }
+    });
     Europa.registerPlugin(superscriptProvider);
+    Europa.registerPlugin(paragraphProvider);
+    Europa.registerPlugin(linkProvider);
+    Europa.registerPlugin(audioProvider);
+    Europa.registerPlugin(videoProvider);
   }
 
   getUrlType(url: string) {
@@ -76,7 +206,9 @@ export class EditorService {
     if (url.startsWith('unsafe:')) url = url.substring('unsafe:'.length);
     const tagPrefix = this.config.base + 'tag/';
     let ending = '';
-    if (url.startsWith(tagPrefix)) {
+    if (url.startsWith('tag:/')) {
+      ending = url.substring('tag:/'.length);
+    } else if (url.startsWith(tagPrefix)) {
       ending = url.substring(tagPrefix.length);
     } else {
       const relTagPrefix = getPath(tagPrefix)!;
@@ -119,4 +251,89 @@ export class EditorService {
     }
   }
 
+  getTagPreview(tag: string, defaultOrigin = '', returnDefault = true, loadTemplates = true, loadPlugins = true): Observable<{ name?: string, tag: string } | undefined> {
+    return this.exts.getCachedExt(tag, defaultOrigin).pipe(
+      switchMap(x => {
+        const localExists = x.modified && x.origin === (defaultOrigin || this.store.account.origin);
+        if (loadTemplates) {
+          const templates = this.admin.getTemplates(x.tag).filter(t => t.tag);
+          if (templates.length) {
+            const longestMatch = templates[templates.length - 1];
+            if (!localExists) {
+              if (x.tag === '+user') return of({ ...x, name: (longestMatch.config?.view || longestMatch.name || longestMatch.tag) + ' / ' + $localize`⚓️ Root` });
+              if (x.tag === '_user') return of({ ...x, name: (longestMatch.config?.view || longestMatch.name || longestMatch.tag) + ' / ' + $localize`🥷 Root` });
+            }
+            if (x.tag === longestMatch.tag) return of(longestMatch);
+            const childTag = removePrefix(x.tag, longestMatch.tag.split('/').length);
+            return of({ tag: x.tag, name: (longestMatch.config?.view || longestMatch.name || longestMatch.tag) + ' / ' + (x.name || childTag) });
+          }
+        }
+        if (localExists) return of(x);
+        const plugin = this.admin.getPlugin(x.tag);
+        if (loadPlugins) {
+          if (plugin) return of(plugin);
+          const parentPlugins = this.admin.getParentPlugins(x.tag);
+          if (parentPlugins.length) {
+            const longestMatch = parentPlugins[parentPlugins.length - 1];
+            if (x.tag === longestMatch.tag) return of(longestMatch);
+            const childTag = removePrefix(x.tag, longestMatch.tag.split('/').length);
+            if (longestMatch.tag === 'plugin/outbox') {
+              const origin = childTag.substring(0, childTag.indexOf('/'));
+              const remoteTag = childTag.substring(origin.length + 1);
+              const originFormat = origin ? ' @' + origin : '';
+              return this.exts.getCachedExt(remoteTag, origin).pipe(
+                map(c => ({ tag: x.tag, name: (longestMatch.name || longestMatch.tag) + ' / ' + (c.name || c.tag) + originFormat })),
+              );
+            }
+            let a = access(x.tag) || '+';
+            return this.exts.getCachedExt(a + setPublic(childTag), defaultOrigin).pipe(
+              map(c => ({ tag: x.tag, name: (longestMatch.config?.view || longestMatch.name || longestMatch.tag) + ' / ' + (c.name || setPublic(childTag)) })),
+            );
+          }
+        }
+        if (x.modified || returnDefault) return of(x);
+        return of(undefined);
+      })
+    );
+  }
+
+  getTagsPreview(tags: string[], defaultOrigin = ''): Observable<TagPreview[]> {
+    return forkJoin(tags.map( t => this.getTagPreview(t, defaultOrigin))).pipe(
+      map(xs => xs.filter(x => !!x)),
+    );
+  }
+
+  getBookmarksPreview(bookmarks: string[], defaultOrigin = ''): Observable<TagPreview[]> {
+    return forkJoin(bookmarks.map(b => {
+      const query = b.includes('?') ? b.substring(0, b.indexOf('?')) : b;
+      return this.getQueryPreviewName(query, defaultOrigin).pipe(
+        map(name => ({ name, tag: query, bookmark: b })),
+      );
+    })).pipe(
+      map(xs => xs.filter(x => !!x)),
+    ) as Observable<TagPreview[]>;
+  }
+
+  /** Build a display name for a query by replacing each tag token with its ext preview name. */
+  getQueryPreviewName(query: string, defaultOrigin = ''): Observable<string | undefined> {
+    const tokens = query.split(/([:|()])/g).filter(t => !!t);
+    const ops = new Set([':', '|', '(', ')']);
+    const tagIndices = tokens.reduce<number[]>((acc, t, i) => ops.has(t) ? acc : [...acc, i], []);
+    if (tagIndices.length === 0) return of(undefined);
+    return forkJoin(tagIndices.map(i => {
+      const token = tokens[i];
+      const bareTag = token.startsWith('!') ? token.substring(1) : token;
+      return this.getTagPreview(bareTag, defaultOrigin).pipe(
+        map(x => {
+          const name = x?.name || bareTag;
+          return token.startsWith('!') ? '!' + name : name;
+        }),
+      );
+    })).pipe(
+      map(names => {
+        let idx = 0;
+        return tokens.map(t => ops.has(t) ? t : names[idx++]).join('');
+      }),
+    );
+  }
 }

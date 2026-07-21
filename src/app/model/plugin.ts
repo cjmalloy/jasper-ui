@@ -1,11 +1,12 @@
+import { FormlyFieldConfig } from '@ngx-formly/core';
+import { Schema } from 'jtd';
+import { DateTime } from 'luxon';
 import { toJS } from 'mobx';
-import * as moment from 'moment';
 import { Observable } from 'rxjs';
-import { Ref, RefUpdates } from './ref';
+import { Ref, RefSort, RefUpdates } from './ref';
 import { Config, EmitAction } from './tag';
 
 export interface Plugin extends Config {
-  type?: 'plugin';
   config?: Config['config'] & {
     /**
      * Optional flag adding this plugin to the Ref form Add Plugin dropdown.
@@ -16,10 +17,6 @@ export interface Plugin extends Config {
      */
     infoUi?: string,
     /**
-     * Add tags when replying to this plugin.
-     */
-    reply?: string[],
-    /**
      * Add plugin to submit dropdown.
      */
     submit?: string,
@@ -29,8 +26,7 @@ export interface Plugin extends Config {
     genId?: boolean,
     /**
      * This plugin should be used in combination with the internal tag so it
-     * does not show up on the home page or search. Also removes !internal
-     * filter when filtering on this plugin.
+     * does not show up on the home page or search.
      */
     internal?: boolean,
     /**
@@ -52,6 +48,10 @@ export interface Plugin extends Config {
      */
     submitChild?: string,
     /**
+     * Add to the sort dropdown.
+     */
+    sorts?: SortConfig[],
+    /**
      * Add tab on the inbox page for this plugin using this label.
      */
     inbox?: string,
@@ -64,6 +64,10 @@ export interface Plugin extends Config {
      */
     editingViewer?: boolean;
     /**
+     * Provides custom editor.
+     */
+    editor?: boolean;
+    /**
      * This plugin can be exported to a self-contained html file.
      */
     export?: boolean,
@@ -72,9 +76,17 @@ export interface Plugin extends Config {
      */
     signature?: string,
     /**
+     * Copy this plugin into responses.
+     */
+    inherit?: boolean,
+    /**
      * List of file extensions that match this plugin.
      */
     extensions?: string[],
+    /**
+     * List of url prefixes that match this plugin.
+     */
+    prefix?: string[],
     /**
      * List of web hosts that match this plugin.
      */
@@ -104,16 +116,32 @@ export interface Plugin extends Config {
      * Require user to confirm clearing the cache with this message.
      */
     clearCacheConfirm?: string;
+    /**
+     * Optional formly config for editing a form defined by the schema in bulk tools.
+     *
+     * Set to true to reuse the existing form.
+     */
+    bulkForm?: FormlyFieldConfig[] | true,
   };
-  /**
-   * Generate separate Ref response metadata for this plugin.
-   */
-  generateMetadata?: boolean;
-  /**
-   * Validate that any Ref with this plugin has a valid User URL.
-   */
-  userUrl?: boolean;
+  // Client-only
+  type?: 'plugin';
 }
+
+export interface SortConfig {
+  sort: RefSort;
+  label: string;
+  title?: string;
+}
+
+export const pluginSchema: Schema = {
+  optionalProperties: {
+    tag: { type: 'string' },
+    name: { type: 'string' },
+    config: {},
+    defaults: {},
+    schema: {},
+  }
+};
 
 export interface PluginApi {
   comment: (comment: string) => void;
@@ -121,13 +149,15 @@ export interface PluginApi {
   emit: (a: EmitAction) => void;
   tag: (tag: string) => void;
   respond: (response: string, clear?: string[]) => void;
+  watch: (delimiter?: string) => { ref$: Observable<RefUpdates>, comment$: (comment: string) => Observable<string> },
+  append: (delimiter?: string) => { updates$: Observable<string>, append$: (value: string) => Observable<string> },
 }
 
 export function mapPlugin(obj: any): Plugin {
   obj.type = 'plugin';
   obj.origin ||= '';
   obj.modifiedString = obj.modified;
-  obj.modified &&= moment(obj.modified);
+  obj.modified &&= DateTime.fromISO(obj.modified);
   return obj;
 }
 
@@ -142,6 +172,7 @@ export function writePlugin(plugin: Plugin): Plugin {
   delete result.type;
   delete result.upload;
   delete result.exists;
+  delete result.outdated;
   delete result.modifiedString;
   delete result.config?._cache;
   return result;
@@ -153,11 +184,10 @@ export interface PluginScope {
   plugin: Plugin;
 }
 
-export function getPluginScope(plugin?: Config, ref: Ref = { url: '' }, el?: Element, actions?: PluginApi, updates$?: Observable<RefUpdates>): PluginScope {
+export function getPluginScope(plugin?: Config, ref: Ref = { url: '' }, el?: Element, actions?: PluginApi): PluginScope {
   return {
     el,
     actions,
-    updates$,
     ref: toJS(ref),
     plugin: toJS(plugin),
     ...toJS(plugin && ref.plugins?.[plugin.tag || ''] || {}),

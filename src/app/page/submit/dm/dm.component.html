@@ -1,16 +1,37 @@
 <ng-container *mobxAutorun>
   <form class="form" [formGroup]="dmForm" (ngSubmit)="submit()"
-        [appLimitWidth]="fill?.nativeElement" [limitSibling]="true">
+        [appLimitWidth]="limitWidth" [limitSibling]="true">
     @if (!store.submit.dmPlugin) {
-      <label for="to">To:</label>
-      <input id="to"
-             placeholder="Myself"
-             [formControl]="to"
-             type="email"
-             autocorrect="off"
-             autocapitalize="none"
-             (blur)="validate($any($event.target))"
-             [appAutofocus]="!store.submit.to.length">
+      <label for="to" i18n>To:</label>
+      <div class="form-array skip-margin">
+        <input class="preview grow"
+               type="text"
+               [value]="preview"
+               [title]="toInput.value"
+               [style.display]="preview ? 'block' : 'none'"
+               (focus)="clickPreview(toInput)">
+        <datalist id="to-list">
+          @for (o of autocomplete; track o.value) {
+            <option [value]="o.value">{{ o.label }}</option>
+          }
+        </datalist>
+        <input #toInput
+               id="to"
+               i18n-placeholder placeholder="Myself"
+               [formControl]="to"
+               type="text"
+               inputmode="email"
+               autocorrect="off"
+               autocapitalize="none"
+               list="to-list"
+               [class.hidden-without-removing]="preview"
+               [appAutofocus]="!store.submit.to.length"
+               (input)="search(toInput)"
+               (blur)="blur(toInput)"
+               (focusin)="edit(toInput)"
+               (focus)="edit(toInput)"
+               (focusout)="getPreview(toInput.value)">
+      </div>
       @if (to.touched && !to.value) {
         <div><!-- Warning --></div>
         <div>
@@ -27,32 +48,37 @@
                        [text]="true"
                        i18n-title title="Add Plugin"
                        (pluginChange)="bookmarks.toggleTag($event); pluginSelect.plugin = ''"></app-select-plugin>
-    <app-form-plugins id="plugins"
-                      (togglePlugin)="bookmarks.toggleTag($event)"
-                      [tags]="$any(dmForm.value).tags"
-                      [group]="dmForm"></app-form-plugins>
+    <app-form-plugins id="plugins"[group]="dmForm"></app-form-plugins>
 
-    @if (editingViewer) {
-      <span><!-- Viewer --></span>
-      <app-viewer [text]="dmForm.value.comment"
-                  [tags]="$any(dmForm.value).tags"
-                  (comment)="comment.setValue($event)"></app-viewer>
+    @if (customEditor) {
+      <span><!-- Editor --></span>
+      <div #fill class="fill-editor">
+        <ngx-monaco-editor #ed
+                           [formControl]="comment"
+                           [options]="codeOptions"
+                           [style.width]="'min(900px, 50vw)'"
+                           [style.height]="'min(200px, 90vh)'"
+                           [appFillWidth]="fill"
+                           appResizeHandle
+                           [hitArea]="config.mobile ? 48 : 20"></ngx-monaco-editor>
+      </div>
     } @else {
-      <span i18n>Mesage:</span>
-      <div #fill>
-        <app-editor class="bubble"
+      <label [for]="ed.id" i18n>Message:</label>
+      <div #fill class="fill-editor">
+        <app-editor #ed
+                    class="bubble"
                     [control]="comment"
                     [fillWidth]="fill"
                     (syncEditor)="syncEditor()"
-                    [tags]="$any(dmForm.value).tags"
-                    (syncTags)="editorTags = $event"
-                    [autoFocus]="true"></app-editor>
+                    [tags]="tags"
+                    (syncTags)="setTags($event)"
+                    (addSource)="addSource($event)"
+                    (uploadCompleted)="completedUploads.push($event)"
+                    [autoFocus]="!!store.submit.dmPlugin || !!store.submit.to.length"></app-editor>
       </div>
     }
 
-    <app-tags #tags
-              [group]="dmForm"
-              (syncTags)="syncTags($event)"></app-tags>
+    <app-tags #tagsFormComponent [group]="dmForm"></app-tags>
 
     @for (e of serverError; track e) {
       <span><!-- Unexpected Error --></span>
@@ -60,11 +86,14 @@
     }
 
     <span><!-- Buttons --></span>
-    <span class="buttons form-array right">
-      @if (submitting) {
+    <span class="buttons right">
+      @if (submitting || saving) {
         <app-loading [inline]="true"></app-loading>
       }
-      <button type="submit" [disabled]="submitting || submitted && !dmForm.valid" i18n>Send</button>
+      @if (admin.getPlugin('plugin/editing')) {
+        <button type="button" [disabled]="submitting || saving || submitted || dmForm.pristine" (click)="saveForLater(true)" i18n>Save for later</button>
+      }
+      <button type="submit" [disabled]="submitting || (submitted && !dmForm.valid)" i18n>Send</button>
     </span>
   </form>
 </ng-container>

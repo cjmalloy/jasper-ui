@@ -1,17 +1,41 @@
-import { CdkDragDrop } from '@angular/cdk/drag-drop';
-import { Component, HostBinding, HostListener, Input, OnChanges, OnDestroy, SimpleChanges } from '@angular/core';
+import { CdkDragDrop, CdkDropList, CdkDropListGroup } from '@angular/cdk/drag-drop';
+import { CdkScrollable } from '@angular/cdk/scrolling';
+import { AsyncPipe } from '@angular/common';
+import {
+  Component,
+  forwardRef,
+  HostListener,
+  Input,
+  OnChanges,
+  OnDestroy,
+  QueryList,
+  SimpleChanges,
+  ViewChildren,
+  ChangeDetectionStrategy
+} from '@angular/core';
+import { ReactiveFormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { uniq, without } from 'lodash-es';
+import { DateTime } from 'luxon';
 import { runInAction } from 'mobx';
+import { MobxAngularModule } from 'mobx-angular';
 import { catchError, of, Subject } from 'rxjs';
+import { tap } from 'rxjs/operators';
+import { TitleDirective } from '../../directive/title.directive';
+import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ext } from '../../model/ext';
 import { Ref, RefSort } from '../../model/ref';
-import { KanbanConfig } from '../../mods/kanban';
+import { KanbanConfig } from '../../mods/org/kanban';
+import { AccountService } from '../../service/account.service';
 import { ExtService } from '../../service/api/ext.service';
 import { TaggingService } from '../../service/api/tagging.service';
 import { BookmarkService } from '../../service/bookmark.service';
 import { Store } from '../../store/store';
 import { negate, UrlFilter } from '../../util/query';
-import { isQuery, isSelector, topAnds } from '../../util/tag';
+import { isQuery, isSelector, localTag, topAnds } from '../../util/tag';
+import { LoadingComponent } from '../loading/loading.component';
+import { PageControlsComponent } from '../page-controls/page-controls.component';
+import { KanbanColumnComponent } from './kanban-column/kanban-column.component';
 
 export interface KanbanDrag {
   from: string;
@@ -23,10 +47,27 @@ export interface KanbanDrag {
 @Component({
   selector: 'app-kanban',
   templateUrl: './kanban.component.html',
-  styleUrls: ['./kanban.component.scss']
+  styleUrls: ['./kanban.component.scss'],
+  host: { 'class': 'kanban ext' },
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [
+    forwardRef(() => KanbanColumnComponent),
+    MobxAngularModule,
+    LoadingComponent,
+    CdkDropListGroup,
+    CdkScrollable,
+    CdkDropList,
+    RouterLink,
+    TitleDirective,
+    ReactiveFormsModule,
+    PageControlsComponent,
+    AsyncPipe,
+  ],
 })
-export class KanbanComponent implements OnChanges, OnDestroy {
-  @HostBinding('class') css = 'kanban ext';
+export class KanbanComponent implements OnChanges, OnDestroy, HasChanges {
+
+  @ViewChildren(KanbanColumnComponent)
+  list?: QueryList<KanbanColumnComponent>;
 
   @Input()
   query?: string;
@@ -55,11 +96,16 @@ export class KanbanComponent implements OnChanges, OnDestroy {
   };
 
   constructor(
+    private accounts: AccountService,
     public bookmarks: BookmarkService,
     public store: Store,
     public exts: ExtService,
     private tags: TaggingService,
   ) { }
+
+  saveChanges() {
+    return !this.list?.find(r => !r.saveChanges());
+  }
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes.ext) {
@@ -70,10 +116,6 @@ export class KanbanComponent implements OnChanges, OnDestroy {
 
   ngOnDestroy() {
     this.updates.complete();
-  }
-
-  trackByIdx(index: number, value: string) {
-    return index;
   }
 
   @HostListener('window:resize')
@@ -217,8 +259,8 @@ export class KanbanComponent implements OnChanges, OnDestroy {
    */
   addingTags(tags: { col?: string, sl?: string }) {
     const result = [
-        ...this.kanbanConfig.addTags || [],
-        ...this.store.view.queryTags
+      ...this.kanbanConfig.addTags || [],
+      ...this.store.view.queryTags.map(localTag),
     ];
     result.push(this.ext!.tag);
     if (tags.col) result.push(tags.col);
@@ -258,6 +300,7 @@ export class KanbanComponent implements OnChanges, OnDestroy {
     const tags = [...remove.map(t => `-${t}`), ...add];
     if (!tags.length) return;
     this.tags.patch(tags, ref.url, ref.origin).pipe(
+      tap(cursor => this.accounts.clearNotificationsIfNone(DateTime.fromISO(cursor))),
       catchError(() => {
         // Revert
         ref.tags = oldTags;

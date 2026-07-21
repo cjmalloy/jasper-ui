@@ -25,3 +25,7 @@ export interface TestPatch extends Patch {
   op: "test";
   value: any;
 }
+
+export function escapePath(path: string) {
+  return path.replace(/~/g, '~0').replace(/\//g, '~1');
+}

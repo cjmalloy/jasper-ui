@@ -1,35 +1,39 @@
-<details *ngIf="debug" class="advanced">
-  <summary><span i18n>Debug</span> <app-loading *ngIf="batchRunning"></app-loading></summary>
-  <a class="fake-link"
-     (click)="settingUser = !settingUser">user</a>
-  <span *ngIf="settingUser">
-    <input #inlineUser
-           i18n-placeholder placeholder="bob"
-           (keydown)="$event.key === 'Enter' && setUser(inlineUser.value || 'bob') || true">
-    <button type="button" (click)="setUser(inlineUser.value || 'bob')">⏎</button>
-  </span>
-  <a class="fake-link"
-     (click)="generating = !generating">gen</a>
-  <span *ngIf="generating">
-    <input #inlineGen
-           value="100"
-           (keydown)="$event.key === 'Enter' && gen(inlineGen.value) || true"
-           type="number">
-    <button type="button" (click)="gen(inlineGen.value)">⏎</button>
-  </span>
-  <ng-container *ngIf="!empty">
-    <a class="fake-link"
-       (click)="sourcing = !sourcing">source</a>
-    <span *ngIf="sourcing">
-      <input #inlineUrl
-             placeholder="url"
-             (keydown)="$event.key === 'Enter' && source(inlineUrl.value) || true"
-             type="url">
-      <button type="button" (click)="source(inlineUrl.value)">⏎</button>
-    </span>
-  </ng-container>
-
-  @for (e of serverError; track e) {
-    <div class="error">{{ e }}</div>
-  }
-</details>
+@if (debug) {
+  <details class="advanced">
+    <summary><span i18n>Debug</span> @if (batchRunning) { <app-loading></app-loading> }</summary>
+    <a class="fake-link" (click)="settingUser = !settingUser">user</a>
+    @if (settingUser) {
+      <span>
+        <input #inlineUser
+               i18n-placeholder placeholder="bob"
+               (keydown)="$event.key === 'Enter' && setUser(inlineUser.value || 'bob') || true">
+        <button type="button" (click)="setUser(inlineUser.value || 'bob')">⏎</button>
+      </span>
+    }
+    <a class="fake-link" (click)="generating = !generating">gen</a>
+    @if (generating) {
+      <span>
+        <input #inlineGen
+               value="100"
+               (keydown)="$event.key === 'Enter' && gen(inlineGen.value) || true"
+               type="number">
+        <button type="button" (click)="gen(inlineGen.value)">⏎</button>
+      </span>
+    }
+    @if (!empty) {
+      <a class="fake-link" (click)="sourcing = !sourcing">source</a>
+      @if (sourcing) {
+        <span>
+          <input #inlineUrl
+                 placeholder="url"
+                 (keydown)="$event.key === 'Enter' && source(inlineUrl.value) || true"
+                 type="url">
+          <button type="button" (click)="source(inlineUrl.value)">⏎</button>
+        </span>
+      }
+    }
+    @for (e of serverError; track e) {
+      <div class="error">{{ e }}</div>
+    }
+  </details>
+}

@@ -1,6 +1,8 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { defer } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
+import { UserListComponent } from '../../../component/user/user-list/user-list.component';
+import { HasChanges } from '../../../guard/pending-changes.guard';
 import { UserService } from '../../../service/api/user.service';
 import { ConfigService } from '../../../service/config.service';
 import { ModService } from '../../../service/mod.service';
@@ -13,10 +15,15 @@ import { getTagFilter } from '../../../util/query';
   selector: 'app-settings-user-page',
   templateUrl: './user.component.html',
   styleUrls: ['./user.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [UserListComponent],
 })
-export class SettingsUserPage implements OnInit, OnDestroy {
+export class SettingsUserPage implements OnInit, OnDestroy, HasChanges {
 
   private disposers: IReactionDisposer[] = [];
+
+  @ViewChild('list')
+  list?: UserListComponent;
 
   constructor(
     private mod: ModService,
@@ -27,9 +34,13 @@ export class SettingsUserPage implements OnInit, OnDestroy {
     public query: UserStore,
   ) {
     mod.setTitle($localize`Settings: User Profiles`);
-    store.view.clear(['levels', 'tag'], ['levels', 'tag']);
+    store.view.clear(['tag:len', 'tag'], ['tag:len', 'tag']);
     scim.clear();
     query.clear();
+  }
+
+  saveChanges() {
+    return !this.list || this.list.saveChanges();
   }
 
   ngOnInit(): void {
@@ -57,6 +68,7 @@ export class SettingsUserPage implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    this.query.close();
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
   }

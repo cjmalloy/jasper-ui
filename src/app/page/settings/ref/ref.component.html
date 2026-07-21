@@ -2,12 +2,16 @@
   @if (plugin) {
     <div class="row form">
       <span><!-- Title --></span>
-      <h2 i18n>{{ plugin.name || plugin.tag }} Settings</h2>
+      @if (plugin.config?.mod) {
+        <h2>{{ plugin.config?.mod }}</h2>
+      } @else {
+        <h2 i18n>{{ plugin.name || plugin.tag }} Settings</h2>
+      }
       <span><!-- Description --></span>
       <p>{{ plugin.config?.description || '' }}</p>
 
       <span><!-- Buttons --></span>
-      <span class="buttons form-array right">
+      <span class="buttons right">
         @if (writeAccess) {
           @if (plugin.config?.hasDefaults) {
             <button type="button" (click)="loadDefaults()" i18n>🔁️ load defaults</button>
@@ -20,7 +24,7 @@
     </div>
   }
   @if (query.error?.status !== 403) {
-    <app-ref-list [page]="query.page"></app-ref-list>
+    <app-ref-list #list [page]="query.page"></app-ref-list>
   } @else {
     <div class="error-403" i18n>Access Denied</div>
   }

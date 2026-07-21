@@ -1,4 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
+import { FakeLinkDirective } from '../../directive/fake-link.directive';
 import {
   Component,
   HostBinding,
@@ -7,19 +8,24 @@ import {
   QueryList,
   SimpleChanges,
   ViewChild,
-  ViewChildren
+  ViewChildren,
+  ChangeDetectionStrategy
 } from '@angular/core';
-import { FormBuilder, UntypedFormGroup } from '@angular/forms';
-import { Router } from '@angular/router';
+import { FormBuilder, ReactiveFormsModule, UntypedFormGroup } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { defer, uniq } from 'lodash-es';
-import * as moment from 'moment';
-import { catchError, forkJoin, Observable, of, switchMap, throwError } from 'rxjs';
+import { DateTime } from 'luxon';
+import { catchError, forkJoin, of, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
+import { TitleDirective } from '../../directive/title.directive';
 import { userForm, UserFormComponent } from '../../form/user/user.component';
+import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ext } from '../../model/ext';
 import { getRole, Profile } from '../../model/profile';
+import { Ref } from '../../model/ref';
 import { Role, User } from '../../model/user';
-import { tagDeleteNotice } from '../../mods/delete';
+import { isDeletorTag, tagDeleteNotice } from '../../mods/delete';
+import { cronPlugin } from '../../mods/system/script';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
 import { ProfileService } from '../../service/api/profile.service';
@@ -27,20 +33,26 @@ import { UserService } from '../../service/api/user.service';
 import { AuthzService } from '../../service/authz.service';
 import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
-import { downloadTag } from '../../util/download';
+import { downloadRef, downloadTag } from '../../util/download';
 import { scrollToFirstInvalid } from '../../util/form';
 import { printError } from '../../util/http';
 import { memo, MemoCache } from '../../util/memo';
-import { localTag, tagOrigin } from '../../util/tag';
+import { localTag, subOrigin, tagOrigin } from '../../util/tag';
 import { ActionComponent } from '../action/action.component';
+import { ConfirmActionComponent } from '../action/confirm-action/confirm-action.component';
+import { InlineButtonComponent } from '../action/inline-button/inline-button.component';
+import { InlinePasswordComponent } from '../action/inline-password/inline-password.component';
+import { InlineSelectComponent } from '../action/inline-select/inline-select.component';
 
 @Component({
   selector: 'app-user',
   templateUrl: './user.component.html',
   styleUrls: ['./user.component.scss'],
+  host: { 'class': 'profile list-item' },
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [FakeLinkDirective, RouterLink, TitleDirective, ConfirmActionComponent, InlineButtonComponent, InlinePasswordComponent, InlineSelectComponent, ReactiveFormsModule, UserFormComponent]
 })
-export class UserComponent implements OnChanges {
-  @HostBinding('class') css = 'profile list-item';
+export class UserComponent implements OnChanges, HasChanges {
   @HostBinding('attr.tabindex') tabIndex = 0;
 
   @ViewChildren('action')
@@ -61,12 +73,12 @@ export class UserComponent implements OnChanges {
   deleted = false;
   writeAccess = false;
   serverError: string[] = [];
+  externalErrors: string[] = [];
 
   constructor(
     public admin: AdminService,
     public config: ConfigService,
     public store: Store,
-    private router: Router,
     private auth: AuthzService,
     private profiles: ProfileService,
     private users: UserService,
@@ -76,15 +88,19 @@ export class UserComponent implements OnChanges {
     this.editForm = userForm(fb, true);
   }
 
+  saveChanges() {
+    return !this.editing || !this.editForm.dirty;
+  }
+
   init() {
     MemoCache.clear(this);
     this.actionComponents?.forEach(c => c.reset());
     this.writeAccess = this.auth.tagWriteAccess(this.qualifiedTag) && this.auth.hasRole(this.role);
-    if (this.user && !this.profile) {
-      this.exts.getCachedExt(this.user.tag, this.user.origin)
-      .subscribe(x => this.ext = x);
+    if (this.created && !this.profile) {
+      this.exts.getCachedExt(this.user!.tag, this.user!.origin)
+        .subscribe(x => this.ext = x);
       this.profiles.getProfile(this.qualifiedTag)
-      .subscribe(profile => this.profile = profile);
+        .subscribe(profile => this.profile = profile);
     }
   }
 
@@ -94,9 +110,14 @@ export class UserComponent implements OnChanges {
     }
   }
 
-  @ViewChild(UserFormComponent)
+  @ViewChild('refForm')
   set refForm(value: UserFormComponent) {
     if (this.user) defer(() => value?.setUser(this.user!));
+  }
+
+  @memo
+  get created() {
+    return this.user?.modified;
   }
 
   @memo
@@ -112,6 +133,15 @@ export class UserComponent implements OnChanges {
   @memo
   get origin() {
     return tagOrigin(this.profile?.tag) || this.user?.origin || '';
+  }
+
+  @memo
+  get recommendedAlias() {
+    const api = new URL(this.config.api, location.href);
+    const firstPath = api.pathname.split('/').filter(Boolean)[0];
+    return firstPath?.startsWith('~') && firstPath.length > 1
+      ? '@' + firstPath.substring(1)
+      : '@' + api.hostname;
   }
 
   @memo
@@ -136,6 +166,26 @@ export class UserComponent implements OnChanges {
     delete user.type;
     delete user.modifiedString;
     downloadTag(user);
+  }
+
+  get connectionRef(): Ref {
+    const template = this.store.origins.origins.find(ref =>
+      subOrigin(ref.origin, ref.plugins?.['+plugin/origin']?.local) === this.origin);
+    const local = template?.plugins?.['+plugin/origin']?.remote || this.origin || this.recommendedAlias;
+    return {
+      url: template?.url || new URL(this.config.api, document.baseURI).href,
+      title: template?.title || local,
+      tags: ['public', 'internal', '+plugin/cron', '+plugin/origin/pull', '+plugin/origin/tunnel'],
+      plugins: {
+        '+plugin/cron': { ...cronPlugin.defaults },
+        '+plugin/origin': { remote: this.origin, local },
+        '+plugin/origin/tunnel': { remoteUser: this.qualifiedTag },
+      },
+    };
+  }
+
+  connect() {
+    downloadRef(this.connectionRef);
   }
 
   setPassword$ = (password: string) => {
@@ -173,7 +223,7 @@ export class UserComponent implements OnChanges {
       return this.users.update(this.user).pipe(
         tap(cursor => {
           this.user!.modifiedString = cursor;
-          this.user!.modified = moment(cursor);
+          this.user!.modified = DateTime.fromISO(cursor);
           this.init();
         }),
         catchError((res: HttpErrorResponse) => {
@@ -226,6 +276,13 @@ export class UserComponent implements OnChanges {
       origin: this.origin,
       readAccess: uniq([...this.editForm.value.readAccess, ...this.editForm.value.notifications]),
     };
+    this.externalErrors = [];
+    try {
+      if (!updates.external) delete updates.external;
+      if (updates.external) updates.external = JSON.parse(updates.external);
+    } catch (e: any) {
+      this.externalErrors.push(e.message);
+    }
     (this.user
       ? this.users.update(updates)
       : this.users.create(updates)).pipe(
@@ -234,26 +291,21 @@ export class UserComponent implements OnChanges {
         return throwError(() => err);
       }),
     ).subscribe(cursor => {
+      this.editForm.reset();
       this.user = updates;
       this.user.modifiedString = cursor;
-      this.user.modified = moment(cursor);
+      this.user.modified = DateTime.fromISO(cursor);
       this.serverError = [];
       this.editing = false;
       this.init();
     });
   }
 
-  copy() {
-    this.catchError(this.users.create({
+  copy$ = () => {
+    return this.users.create({
       ...this.user!,
       origin: this.store.account.origin,
-    })).subscribe(() => {
-      this.router.navigate(['/user', this.user!.tag]);
-    });
-  }
-
-  catchError(o: Observable<any>) {
-    return o.pipe(
+    }).pipe(
       catchError((err: HttpErrorResponse) => {
         this.serverError = printError(err);
         return throwError(() => err);
@@ -265,7 +317,7 @@ export class UserComponent implements OnChanges {
     this.serverError = [];
     const os = [];
     if (this.user) {
-      const deleteNotice = !this.user.tag.endsWith('/deleted') && this.admin.getPlugin('plugin/delete')
+      const deleteNotice = !isDeletorTag(this.user.tag) && this.admin.getPlugin('plugin/delete')
         ? this.users.create(tagDeleteNotice(this.user))
         : of(null);
       os.push(this.users.delete(this.qualifiedTag).pipe(
@@ -290,22 +342,20 @@ export class UserComponent implements OnChanges {
     );
   }
 
-  keygen() {
+  keygen$ = () => {
     this.serverError = [];
-    if (this.user) {
-      this.users.keygen(this.qualifiedTag).pipe(
-        catchError((err: HttpErrorResponse) => {
-          this.serverError.push(...printError(err));
-          return throwError(() => err);
-        }),
-      ).pipe(
-        switchMap(() => this.users.get(this.qualifiedTag))
-      ).subscribe(user => {
+    return this.users.keygen(this.qualifiedTag).pipe(
+      catchError((err: HttpErrorResponse) => {
+        this.serverError.push(...printError(err));
+        return throwError(() => err);
+      }),
+      switchMap(() => this.users.get(this.qualifiedTag)),
+      tap(user => {
         this.user = user;
         this.serverError = [];
         this.genKey = false;
         this.init();
-      });
-    }
+      })
+    );
   }
 }

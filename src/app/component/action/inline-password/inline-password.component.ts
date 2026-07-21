@@ -1,14 +1,19 @@
-import { Component, EventEmitter, HostBinding, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output, ChangeDetectionStrategy } from '@angular/core';
+import { FakeLinkDirective } from '../../../directive/fake-link.directive';
 import { catchError, Observable, of } from 'rxjs';
+import { AutofocusDirective } from '../../../directive/autofocus.directive';
+import { LoadingComponent } from '../../loading/loading.component';
 import { ActionComponent } from '../action.component';
 
 @Component({
   selector: 'app-inline-password',
   templateUrl: './inline-password.component.html',
-  styleUrls: ['./inline-password.component.scss']
+  styleUrls: ['./inline-password.component.scss'],
+  host: { 'class': 'action' },
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [FakeLinkDirective, AutofocusDirective, LoadingComponent]
 })
 export class InlinePasswordComponent extends ActionComponent {
-  @HostBinding('class') css = 'action';
 
   @Input()
   action: (password: string) => Observable<any|never> = () => of(null);

@@ -1,5 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, HostBinding } from '@angular/core';
+import { FakeLinkDirective } from '../../directive/fake-link.directive';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, concat, concatMap, generate, last, Observable, of } from 'rxjs';
 import { tap } from 'rxjs/operators';
@@ -14,14 +15,17 @@ import { Store } from '../../store/store';
 import { TemplateStore } from '../../store/template';
 import { UserStore } from '../../store/user';
 import { printError } from '../../util/http';
+import { LoadingComponent } from '../loading/loading.component';
 
 @Component({
   selector: 'app-debug',
   templateUrl: './debug.component.html',
-  styleUrls: ['./debug.component.scss']
+  styleUrls: ['./debug.component.scss'],
+  host: { 'class': 'debug actions' },
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [FakeLinkDirective, LoadingComponent]
 })
 export class DebugComponent {
-  @HostBinding('class') css = 'debug actions';
 
   generating = false;
   settingUser = false;
@@ -42,9 +46,6 @@ export class DebugComponent {
     private ts: TaggingService,
     private router: Router,
   ) { }
-
-  ngOnInit(): void {
-  }
 
   get empty() {
     return !this.query.page?.content?.length;
@@ -95,8 +96,8 @@ export class DebugComponent {
         tags: ['public', 'gen'],
       }).pipe(
         tap(() => {
-          if (this.admin.def.plugins.voteUpPlugin) {
-            this.ts.createResponse('plugin/vote/up', url).subscribe();
+          if (this.admin.getPlugin('plugin/user/vote/up')) {
+            this.ts.createResponse('plugin/user/vote/up', url).subscribe();
           }
         }),
       );

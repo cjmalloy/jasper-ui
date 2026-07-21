@@ -1,6 +1,9 @@
-import { Component, HostBinding, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { defer } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
+import { MobxAngularModule } from 'mobx-angular';
+import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
+import { HasChanges } from '../../../guard/pending-changes.guard';
 import { AdminService } from '../../../service/admin.service';
 import { ModService } from '../../../service/mod.service';
 import { QueryStore } from '../../../store/query';
@@ -10,12 +13,17 @@ import { getArgs } from '../../../util/query';
 @Component({
   selector: 'app-inbox-dms',
   templateUrl: './dms.component.html',
-  styleUrls: ['./dms.component.scss']
+  styleUrls: ['./dms.component.scss'],
+  host: { 'class': 'dms' },
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [MobxAngularModule, RefListComponent]
 })
-export class InboxDmsPage implements OnInit, OnDestroy {
-  @HostBinding('class') css = 'dms';
+export class InboxDmsPage implements OnInit, OnDestroy, HasChanges {
 
   private disposers: IReactionDisposer[] = [];
+
+  @ViewChild('list')
+  list?: RefListComponent;
 
   constructor(
     private mod: ModService,
@@ -24,16 +32,20 @@ export class InboxDmsPage implements OnInit, OnDestroy {
     public query: QueryStore,
   ) {
     mod.setTitle($localize`Inbox: DMs`);
-    store.view.clear(['metadataModified']);
+    store.view.clear(['metadata->modified']);
     query.clear();
+  }
+
+  saveChanges() {
+    return !this.list || this.list.saveChanges();
   }
 
   ngOnInit(): void {
     this.disposers.push(autorun(() => {
       const args = getArgs(
-        `dm:(${this.store.account.tag}|${this.store.account.inboxQuery})`,
+        (this.store.view.search ? 'dm:' : 'dm:!internal:') + `(${this.store.account.tagWithOrigin}|${this.store.account.inboxQuery})`,
         this.store.view.sort,
-        this.store.view.filter.includes('query/plugin/delete') ? ['unsourced', ...this.store.view.filter] : ['unsourced', 'query/!plugin/delete', ...this.store.view.filter],
+        ['query/!plugin/delete', 'user/!plugin/user/hide', ...this.store.view.filter],
         this.store.view.search,
         this.store.view.pageNumber,
         this.store.view.pageSize,
@@ -43,6 +55,7 @@ export class InboxDmsPage implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    this.query.close();
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
   }

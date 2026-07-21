@@ -1,21 +1,21 @@
-import { Injectable } from '@angular/core';
+import { Injectable, ViewContainerRef } from '@angular/core';
 import { escape, uniq } from 'lodash-es';
-import { marked } from 'marked';
-import * as moment from 'moment';
-import { MarkdownService } from 'ngx-markdown';
-import { catchError, forkJoin, map, Observable, of } from 'rxjs';
+import { DateTime } from 'luxon';
+import { marked, Token, Tokens, TokensList } from 'marked';
+import { MarkdownService, MarkedRenderer } from 'ngx-markdown';
+import { catchError, forkJoin, map, Observable, of, Subscription, switchMap } from 'rxjs';
 import { Ext } from '../model/ext';
 import { Oembed } from '../model/oembed';
 import { Page } from '../model/page';
-import { Ref } from '../model/ref';
-import { wikiUriFormat } from '../mods/wiki';
+import { Ref, RefSort } from '../model/ref';
+import { wikiUriFormat } from '../mods/org/wiki';
 import { OembedStore } from '../store/oembed';
 import { Store } from '../store/store';
 import { delay } from '../util/async';
-import { Embed } from '../util/embed';
-import { parseParams } from '../util/http';
-import { getFilters, getFiltersQuery, parseArgs } from '../util/query';
-import { isQuery, queryPrefix, tagOrigin, topAnds } from '../util/tag';
+import { createEmbed, createLens, createLink, createRef, embedUrl, parseSrc } from '../util/embed';
+import { getArray, parseBookmarkParams } from '../util/http';
+import { getArgs, getFilters, UrlFilter } from '../util/query';
+import { isQuery, localTag, queryPrefix, tagOrigin, topAnds } from '../util/tag';
 import { AdminService } from './admin.service';
 import { ExtService } from './api/ext.service';
 import { RefService } from './api/ref.service';
@@ -42,54 +42,104 @@ export class EmbedService {
       breaks: false,
       pedantic: false,
     };
-    // @ts-ignore
-    const parseMarked = markdownService.parseMarked;
-    // @ts-ignore
-    markdownService.parseMarked = (html: string, markedOptions: any, inline = false) => {
-      const parsed = parseMarked.call(markdownService, html, markedOptions, inline);
-      const parser = new DOMParser();
-      const htmlDoc = parser.parseFromString(parsed, 'text/html');
-      const media = htmlDoc.querySelectorAll<HTMLImageElement|HTMLSourceElement>('img, source');
-      media.forEach(t => {
-        if (t.src) {
-          t.src = 'unsafe:' + t.src;
+    function cleanUrl(href: string) {
+      try {
+        href = encodeURI(href).replace(/%25/g, '%');
+      } catch {
+        return null;
+      }
+      return href;
+    }
+    function sourceMap<T extends keyof MarkedRenderer>(name: T) {
+      const orig = marked.Renderer.prototype[name] as any;
+      return function (this: any, token: any, ...rest: any[]) {
+        const html = orig.call(this, token, ...rest);
+        return html.replace(/^(<\w+)/, `$1 aria-posinset="${token.sourceMap}"`);
+      };
+    }
+    marked.use({
+      hooks: {
+        processAllTokens(tokens: Token[] | TokensList) {
+          let pos = 0;
+          const walk = (ts: any[]) => {
+            for (const t of ts) {
+              t.sourceMap = pos;
+              if (t.tokens?.length) walk(t.tokens);
+              else if (t.items?.length) walk(t.items);
+              else if (t.rows?.length) walk(t.rows);
+              pos = t.sourceMap + (t.raw?.length ?? 0);
+            }
+          };
+          walk(tokens);
+          return tokens;
+        },
+        postprocess(html: string): string {
+          const parser = new DOMParser();
+          const htmlDoc = parser.parseFromString(html, 'text/html');
+          const media = htmlDoc.querySelectorAll<HTMLImageElement|HTMLSourceElement>('img, source');
+          media.forEach(t => {
+            if (t.src) {
+              t.src = 'unsafe:' + t.src;
+            }
+            if (t.srcset) {
+              t.srcset = t.srcset.split(', ').map(src => 'unsafe:' + src).join(', ');
+            }
+          });
+          return htmlDoc.body.innerHTML;
+        },
+      },
+      renderer: {
+        paragraph : sourceMap('paragraph'),
+        heading   : sourceMap('heading'),
+        list      : sourceMap('list'),
+        listitem  : sourceMap('listitem'),
+        code      : sourceMap('code'),
+        blockquote: sourceMap('blockquote'),
+        table     : sourceMap('table'),
+        tablerow  : sourceMap('tablerow'),
+        html({text}: Tokens.HTML | Tokens.Tag): string {
+          return text.replace(/<img/g, '<img loading="lazy"');
+        },
+        image({href, title, text}: Tokens.Image): string {
+          const cleanHref = cleanUrl(href);
+          if (cleanHref === null) {
+            return escape(text);
+          }
+          href = cleanHref;
+          if (href.startsWith(config.base) || !href.startsWith('http')) {
+            return `<div class="loading inline-embed" title="${text}">${href}</div>`;
+          }
+          let out = `<img src="${href}" alt="${text}"`;
+          if (title) {
+            out += ` title="${escape(title)}"`;
+          }
+          out += '>';
+          return out;
+        },
+        link({href, title, tokens}: Tokens.Link): string {
+          const text = this.parser.parseInline(tokens);
+          if (tokens.find(t => t.type === 'bang-embed' || t.type === 'image')) {
+            // Skip linking images
+            return text;
+          }
+          const cleanHref = cleanUrl(href);
+          if (cleanHref === null) {
+            return text;
+          }
+          href = cleanHref;
+          let out = '<a href="' + href + '"';
+          if (title) {
+            out += ' title="' + (escape(title)) + '"';
+          }
+          out += '>' + text + '</a>';
+          if (admin.getPluginsForUrl(href).length || ['ref', 'tag'].includes(editor.getUrlType(href))) {
+            return out + `<span class="toggle embed" title="${href}"><span class="toggle-plus">＋</span></span>`;
+          }
+          return out;
         }
-        if (t.srcset) {
-          t.srcset = t.srcset.split(', ').map(src => 'unsafe:' + src).join(', ');
-        }
-      });
-      return htmlDoc.body.innerHTML;
-    };
-    const renderHtml = markdownService.renderer.html;
-    markdownService.renderer.html = (html: string, block) => {
-      let src = renderHtml.call(markdownService.renderer, html, block);
-      if (!src) return src;
-      return src
-        .replace(/<img/g, '<img loading="lazy"');
-    }
-    const renderImage = markdownService.renderer.image;
-    markdownService.renderer.image = (href: string, title: string | null, text: string) => {
-      let html = renderImage.call(markdownService.renderer, href, title, text);
-      if (!href) return html;
-      if (href.startsWith(this.config.base) || !href.startsWith('http')) {
-        return `<a class="inline-embed" title="${text}">${href}</a>`;
-      }
-      return html;
-    }
-    const renderLink = markdownService.renderer.link;
-    markdownService.renderer.link = (href: string, title: string | null, text: string) => {
-      let html = renderLink.call(markdownService.renderer, href, title, text);
-      if (!href) return html;
-      if (text.toLowerCase().trim() === 'toggle' || this.admin.getPluginsForUrl(href).length) {
-        return html + `<span class="toggle embed" title="${href}"><span class="toggle-plus">＋</span></span>`;
-      }
-      const type = this.editor.getUrlType(href);
-      if (type === 'ref' || type === 'tag') {
-        return html + `<span class="toggle inline" title="${href}"><span class="toggle-plus">＋</span></span>`;
-      }
-      return html;
-    }
-    marked.use({extensions: this.extensions});
+      },
+      extensions: this.extensions,
+    });
   }
 
   private get extensions() {
@@ -99,11 +149,11 @@ export class EmbedService {
       level: 'inline',
       start: (src: string) => src.match(/[+_]/)?.index,
       tokenizer(src: string, tokens: any): any {
-        const rule = /^([+_]user\/[a-z0-9]+([./][a-z0-9]+)*(@[a-z0-9]+(\.[a-z0-9]+)*)?)/;
+        const rule = /^([+_](user|plugin)\/[a-z0-9]+([./][a-z0-9]+)*(@[a-z0-9]+(\.[a-z0-9]+)*)?)/;
         const match = rule.exec(src);
         if (match) {
           const text = match[0]
-          const title = 'User ' + text;
+          const title = $localize`User ` + text;
           return {
             type: 'userTag',
             href: '/tag/' + text,
@@ -123,17 +173,19 @@ export class EmbedService {
       level: 'inline',
       start: (src: string) => src.match(/#/)?.index,
       tokenizer(src: string, tokens: any): any {
-        const rule = /^#[+_]?([a-z0-9]+([./][a-z0-9]+)*)/;
+        const rule = /^#([+_]?[a-z0-9]+([./][a-z0-9]+)*)(\?[^\s)#]*)?/;
         const match = rule.exec(src);
         if (match) {
-          const text = match[0];
-          const title = 'Hashtag ' + text;
+          const tag = '#' + match[1];
+          // Don't link simple numbers
+          if (/^#[0-9]+$/.exec(tag)) return undefined;
+          const qs = match[3] || '';
           return {
             type: 'hashTag',
-            href: '/tag/' + match[1],
-            text,
-            title,
-            raw: text,
+            href: '/tag/' + match[1] + qs,
+            text: tag,
+            title: tag,
+            raw: match[0],
             tokens: [],
           };
         }
@@ -195,7 +247,7 @@ export class EmbedService {
         if (self.admin.isWikiExternal()) {
           return `<a target="_blank" href="${token.href}">${token.text}</a>`;
         } else {
-          return `<a class="inline-embed">${token.href}</a>`;
+          return `<div class="loading inline-embed">${token.href}</div>`;
         }
       }
     }, {
@@ -203,46 +255,25 @@ export class EmbedService {
       level: 'inline',
       start: (src: string) => src.match(/!\[]\(/)?.index,
       tokenizer(src: string, tokens: any): any {
-        const rule = /^!\[]\(([^\]]+)\)/;
-        const match = rule.exec(src);
+        // @ts-ignore
+        const match = src.startsWith('!') && this.lexer.tokenizer.rules.inline.link.exec(src);
         if (match) {
-          const text = match[0];
-          const href = match[1];
           return {
+            // @ts-ignore
+            ...this.lexer.tokenizer.link(src),
             type: 'bang-embed',
-            href,
-            text,
-            raw: match[0],
-            tokens: [],
           };
         }
         return undefined;
       },
       renderer(token: any): string {
-        return `<a class="inline-embed">${token.href}</a>`;
-      }
-    }, {
-      name: 'embed',
-      level: 'inline',
-      start: (src: string) => src.match(/\[(ref|embed)]/)?.index,
-      tokenizer(src: string, tokens: any): any {
-        const rule = /^\[(ref|embed)]\(([^\]]+)\)/;
-        const match = rule.exec(src);
-        if (match) {
-          const css = match[1];
-          const text = match[2];
-          return {
-            type: 'embed',
-            css,
-            text,
-            raw: match[0],
-            tokens: [],
-          };
+        if (token.text?.trim() === '=') {
+          return `<div class="loading inline-ref" title="${token.title}">${token.href}</div>`;
+        } else if (token.text?.trim() === '+') {
+          return `<span class="toggle embed" title="${token.href}"><span class="toggle-plus">＋</span></span>`;
+        } else {
+          return `<div class="loading inline-embed" title="${token.title}">${token.href}</div>`;
         }
-        return undefined;
-      },
-      renderer(token: any): string {
-        return `<a class="inline-${token.css}">${token.text}</a>`;
       }
     }, {
       name: 'preserveMath',
@@ -291,19 +322,28 @@ export class EmbedService {
 
   /**
    * Post process a markdown render.
-   * @param el the div containing the rendered markdown
-   * @param embed interface that injects components
+   * @param vc
    * @param event callback to add event handlers without memory leaks
    * @param origin origin to append to user links without existing origins
    */
-  postProcess(el: HTMLDivElement, embed: Embed, event: (type: string, el: Element, fn: () => void) => void, origin = '') {
-    if (origin) {
-      const userTags = el.querySelectorAll<HTMLAnchorElement>('.user.tag');
-      userTags.forEach(t => {
-        if (tagOrigin(t.innerText)) return;
+  postProcess(vc: ViewContainerRef, event: (type: string, el: Element, fn: () => void) => void, origin = '') {
+    const el = vc.element.nativeElement as HTMLDivElement;
+    const subscriptions: Subscription[] = [];
+    const lookup = this.store.origins.originMap.get(origin || '');
+    const userTags = el.querySelectorAll<HTMLAnchorElement>('.user.tag');
+    userTags.forEach(t => {
+      const userOrigin = tagOrigin(t.innerText);
+      if (userOrigin) {
+        if (lookup?.has(userOrigin)) {
+          const tag = localTag(t.innerText) + lookup?.get(userOrigin);
+          t.innerText = tag;
+          t.href = '/tag/' + escape(tag);
+          t.title = $localize`User ` + tag;
+        }
+      } else if (origin) {
         t.href = t.getAttribute('href') + origin;
-      });
-    }
+      }
+    });
     const pictures = el.querySelectorAll<HTMLPictureElement>('picture');
     pictures.forEach(t => {
       const source = t.querySelectorAll('source')[0];
@@ -314,7 +354,7 @@ export class EmbedService {
         const config = {} as any;
         if (t.style.width) config.width = t.style.width;
         if (t.style.height) config.height = t.style.height;
-        const c = embed.createEmbed({ url, plugins: { 'plugin/image': config } }, ['plugin/image']);
+        const c = createEmbed(vc, { url, origin, tags: ['plugin/image'], plugins: { 'plugin/image': config } });
         c.location.nativeElement.title = t.title;
         c.location.nativeElement.alt = t.querySelectorAll('img')[0]?.alt;
         t.parentNode?.insertBefore(c.location.nativeElement, t);
@@ -330,7 +370,7 @@ export class EmbedService {
         const config = {} as any;
         if (t.style.width) config.width = t.style.width;
         if (t.style.height) config.height = t.style.height;
-        const c = embed.createEmbed({ url, plugins: { 'plugin/image': config } }, ['plugin/image']);
+        const c = createEmbed(vc, { url, origin, tags: ['plugin/image'], plugins: { 'plugin/image': config } });
         c.location.nativeElement.title = t.title;
         c.location.nativeElement.alt = t.alt;
         t.parentNode?.insertBefore(c.location.nativeElement, t);
@@ -343,7 +383,7 @@ export class EmbedService {
       if (source) {
         let url = source.src;
         if (url.startsWith('unsafe:')) url = url.substring('unsafe:'.length);
-        const c = embed.createEmbed({ url }, ['plugin/audio']);
+        const c = createEmbed(vc, { url, origin, tags: ['plugin/audio'] });
         c.location.nativeElement.title = t.title;
         t.parentNode?.insertBefore(c.location.nativeElement, t);
       }
@@ -358,7 +398,7 @@ export class EmbedService {
         const config = {} as any;
         if (t.style.width) config.width = t.style.width;
         if (t.style.height) config.height = t.style.height;
-        const c = embed.createEmbed({ url, plugins: { 'plugin/video': config } }, ['plugin/video']);
+        const c = createEmbed(vc, { url, origin, tags: ['plugin/video'], plugins: { 'plugin/video': config } });
         c.location.nativeElement.title = t.title;
         t.parentNode?.insertBefore(c.location.nativeElement, t);
       }
@@ -367,19 +407,19 @@ export class EmbedService {
     const inlineRefs = el.querySelectorAll<HTMLAnchorElement>('.inline-ref');
     inlineRefs.forEach(t => {
       const url = t.innerText;
-      this.refs.getCurrent(this.editor.getRefUrl(url)).pipe(
+      subscriptions.push(this.refs.getCurrent(this.editor.getRefUrl(url)).pipe(
         catchError(() => of(null)),
       ).subscribe(ref => {
         if (ref) {
-          const c = embed.createRef(ref, true);
+          const c = createRef(vc, ref, true);
           t.parentNode?.insertBefore(c.location.nativeElement, t);
         } else {
-          el = document.createElement('div');
-          el.innerHTML = `<span class="error">Ref ${escape(url)} not found.</span>`;
-          t.parentNode?.insertBefore(el, t);
+          const warn = document.createElement('div');
+          warn.innerHTML = `<span class="error">Ref ${escape(url)} not found.</span>`;
+          t.parentNode?.insertBefore(warn, t);
         }
         t.remove();
-      });
+      }));
     });
     const embedRefs = el.querySelectorAll<HTMLAnchorElement>('.inline-embed');
     embedRefs.forEach(t => {
@@ -387,47 +427,50 @@ export class EmbedService {
       const title = t.title;
       const type = this.editor.getUrlType(url);
       if (type === 'tag') {
-        this.loadQuery$(t.innerText).subscribe(({params, page, ext}) => {
-          const c = embed.createLens(params, page, this.editor.getQuery(t.innerText), ext);
+        subscriptions.push(this.loadQuery$(t.innerText).subscribe(({params, page, ext}) => {
+          const c = createLens(vc, params, page, this.editor.getQuery(t.innerText), ext);
           if (title) c.location.nativeElement.title = title;
           t.parentNode?.insertBefore(c.location.nativeElement, t);
           t.remove();
-        });
+        }));
       } else {
-        this.refs.getCurrent(this.editor.getRefUrl(url)).pipe(
+        subscriptions.push(this.refs.getCurrent(this.editor.getRefUrl(url)).pipe(
           catchError(() => of(null)),
-        ).subscribe(ref => {
-          const expandPlugins = this.admin.getEmbeds(ref);
-          if (ref?.comment || expandPlugins.length) {
-            const c = embed.createEmbed(ref!, expandPlugins);
-            if (title) c.location.nativeElement.title = title;
-            t.parentNode?.insertBefore(c.location.nativeElement, t);
-            t.remove();
-          } else {
-            const embeds = this.admin.getPluginsForUrl(url);
-            if (embeds.length) {
-              const c = embed.createEmbed(url, embeds.map(p => p.tag));
+          switchMap(ref => {
+            const expandPlugins = this.admin.getEmbeds(ref);
+            if (ref?.comment || expandPlugins.length) {
+              const c = createEmbed(vc, { ...ref!, tags: expandPlugins });
               if (title) c.location.nativeElement.title = title;
               t.parentNode?.insertBefore(c.location.nativeElement, t);
               t.remove();
-            } else if (url.startsWith('/ref/')) {
-              el = document.createElement('div');
-              el.innerHTML = `<span class="error">Ref ${escape(url)} not found and could not embed directly.</span>`;
-              t.parentNode?.insertBefore(el, t);
-              t.remove();
             } else {
-              this.oembeds.get(url, this.store.darkTheme ? 'dark' : undefined)
-                .pipe(catchError(() => of(null)))
-                .subscribe(oembed => {
-                  const expandPlugins = oembed ? ['plugin/embed'] : ['plugin/image'];
-                  const c = embed.createEmbed(url, expandPlugins);
-                  c.location.nativeElement.title = t.title;
-                  t.parentNode?.insertBefore(c.location.nativeElement, t);
-                  t.remove();
-                });
+              const embeds = this.admin.getPluginsForUrl(url);
+              if (embeds.length) {
+                const c = createEmbed(vc, { url, origin, tags: embeds.map(p => p.tag) });
+                if (title) c.location.nativeElement.title = title;
+                t.parentNode?.insertBefore(c.location.nativeElement, t);
+                t.remove();
+              } else if (url.startsWith('/ref/')) {
+                const warn = document.createElement('div');
+                warn.innerHTML = `<span class="error">Ref ${escape(url)} not found and could not embed directly.</span>`;
+                t.parentNode?.insertBefore(warn, t);
+                t.remove();
+              } else {
+                return this.oembeds.get(url, this.store.darkTheme ? 'dark' : undefined).pipe(
+                  catchError(() => of(null)),
+                  map(oembed => {
+                    const expandPlugins = oembed ? ['plugin/embed'] : ['plugin/image'];
+                    const c = createEmbed(vc, { url, origin, tags: expandPlugins });
+                    c.location.nativeElement.title = t.title;
+                    t.parentNode?.insertBefore(c.location.nativeElement, t);
+                    t.remove();
+                  }),
+                );
+              }
             }
-          }
-        });
+            return of(null);
+          }),
+        ).subscribe());
       }
     });
     const toggleFaces = '<span class="toggle-plus">＋</span><span class="toggle-x" style="display: none">✕</span>';
@@ -457,27 +500,27 @@ export class EmbedService {
           const url = t.title!;
           const type = this.editor.getUrlType(url);
           if (type === 'ref') {
-            this.refs.getCurrent(this.editor.getRefUrl(url)).pipe(
+            subscriptions.push(this.refs.getCurrent(this.editor.getRefUrl(url)).pipe(
               catchError(() => of(null)),
             ).subscribe(ref => {
               if (ref) {
-                const c = embed.createRef(ref, true);
+                const c = createRef(vc, ref, true);
                 t.parentNode?.insertBefore(c.location.nativeElement, t.nextSibling);
               } else {
-                el = document.createElement('div');
-                el.innerHTML = `<span class="error">Ref ${escape(url)} not found.</span>`;
-                t.parentNode?.insertBefore(el, t.nextSibling);
+                const warn = document.createElement('div');
+                warn.innerHTML = `<span class="error">Ref ${escape(url)} not found.</span>`;
+                t.parentNode?.insertBefore(warn, t.nextSibling);
               }
               // @ts-ignore
               t.expanded = !t.expanded;
-            });
+            }));
           } else if (type === 'tag') {
-            this.loadQuery$(url).subscribe(({params, page, ext}) => {
-              const c = embed.createLens(params, page, this.editor.getQuery(url), ext);
+            subscriptions.push(this.loadQuery$(url).subscribe(({params, page, ext}) => {
+              const c = createLens(vc, params, page, this.editor.getQuery(url), ext);
               t.parentNode?.insertBefore(c.location.nativeElement, t.nextSibling);
               // @ts-ignore
               t.expanded = !t.expanded;
-            });
+            }));
           }
         }
       });
@@ -490,7 +533,7 @@ export class EmbedService {
       t.postProcessed = true;
       t.innerHTML = toggleFaces;
       // @ts-ignore
-      if (t.previousSibling.innerText === 'toggle') {
+      if (t.previousSibling?.innerText === 'toggle') {
         t.previousSibling?.remove();
       }
       // @ts-ignore
@@ -512,41 +555,41 @@ export class EmbedService {
           const url = t.title!;
           const embeds = this.admin.getPluginsForUrl(url);
           if (embeds.length) {
-            const c = embed.createEmbed(url, embeds.map(p => p.tag));
+            const c = createEmbed(vc, { url, origin, tags: embeds.map(p => p.tag) }, );
             t.parentNode?.insertBefore(c.location.nativeElement, t.nextSibling);
             // @ts-ignore
             t.expanded = !t.expanded;
           } else {
             const type = this.editor.getUrlType(url);
             if (type === 'tag') {
-              this.loadQuery$(url).subscribe(({params, page, ext}) => {
-                const c = embed.createLens(params, page, this.editor.getQuery(url), ext);
+              subscriptions.push(this.loadQuery$(url).subscribe(({params, page, ext}) => {
+                const c = createLens(vc, params, page, this.editor.getQuery(url), ext);
                 t.parentNode?.insertBefore(c.location.nativeElement, t.nextSibling);
                 // @ts-ignore
                 t.expanded = !t.expanded;
-              });
+              }));
             } else {
-              this.refs.getCurrent(this.editor.getRefUrl(url)).pipe(
+              subscriptions.push(this.refs.getCurrent(this.editor.getRefUrl(url)).pipe(
                 catchError(() => of(null)),
               ).subscribe(ref => {
                 if (ref) {
                   const expandPlugins = this.admin.getEmbeds(ref);
                   if (ref.comment || expandPlugins.length) {
-                    const c = embed.createEmbed(ref, expandPlugins);
+                    const c = createEmbed(vc, { ...ref, tags: expandPlugins });
                     t.parentNode?.insertBefore(c.location.nativeElement, t.nextSibling);
                   } else {
-                    el = document.createElement('div');
-                    el.innerHTML = `<span class="error">Ref ${escape(ref.title || ref.url)} does not contain any embeds.</span>`;
-                    t.parentNode?.insertBefore(el, t.nextSibling);
+                    const warn = document.createElement('div');
+                    warn.innerHTML = `<span class="error">Ref ${escape(ref.title || ref.url)} does not contain any embeds.</span>`;
+                    t.parentNode?.insertBefore(warn, t.nextSibling);
                   }
                 } else {
-                  el = document.createElement('div');
-                  el.innerHTML = `<span class="error">Ref ${escape(url)} not found and could not embed directly.</span>`;
-                  t.parentNode?.insertBefore(el, t.nextSibling);
+                  const warn = document.createElement('div');
+                  warn.innerHTML = `<span class="error">Ref ${escape(url)} not found and could not embed directly.</span>`;
+                  t.parentNode?.insertBefore(warn, t.nextSibling);
                 }
                 // @ts-ignore
                 t.expanded = !t.expanded;
-              });
+              }));
             }
           }
         }
@@ -555,73 +598,100 @@ export class EmbedService {
     const links = el.querySelectorAll<HTMLAnchorElement>('a[href]');
     links.forEach(t => {
       if (t.querySelectorAll('app-viewer').length) {
-        // TODO: allow image links?
+        // Don't allow linking images
         while (t.firstChild) t.parentNode?.insertBefore(t.firstChild, t);
         t.remove();
         return;
       }
-      const c = embed.createLink(t.getAttribute('href') || '', t.innerText, t.title, t.className);
+      const c = createLink(vc, t.getAttribute('href') || '', t.innerText, t.title, t.className);
       t.parentNode?.insertBefore(c.location.nativeElement, t);
       t.remove();
     });
+    return () => subscriptions.forEach(s => s.unsubscribe());
   }
 
   private get iframeBg() {
     return getComputedStyle(document.body).backgroundColor;
   }
 
-  async writeIframe(oembed: Oembed, iframe: HTMLIFrameElement, width = '100px') {
+  async writeIframe(oembed: Oembed, iframe: HTMLIFrameElement, width = '100px', scroll = true) {
     iframe.style.width = (oembed.width ? oembed.width + 'px' : width);
     if (oembed.height) iframe.style.height = oembed.height + 'px';
     if (oembed.html) {
-      this.writeIframeHtml(oembed.html || '', iframe);
+      if (oembed.html.startsWith('<iframe')) {
+        iframe.src = embedUrl(parseSrc(oembed.html));
+      } else {
+        this.writeIframeHtml(oembed.html || '', iframe, scroll);
+      }
     } else {
-      iframe.src = oembed.url;
+      iframe.src = embedUrl(oembed.url);
     }
-    const doc = iframe.contentWindow!.document;
     if (!oembed.height) {
-      let start = moment();
-      let oldHeight = doc.body.scrollHeight;
-      let newHeight = false;
-      const f = async () => {
-        if (document.fullscreenElement) return;
-        const h = doc.body.scrollHeight;
-        if (h !== oldHeight) {
-          newHeight = true;
-          start = moment();
-          oldHeight = h;
-          iframe.style.height = h + 'px';
+      iframe.style.height = (oembed.width ? oembed.width + 'px' : width);
+      const doCheck = async () => {
+        let doc: Document | undefined;
+        try {
+          doc = iframe.contentWindow?.document;
+        } catch (e) {
+          // Cross origin
+          return;
         }
-        await delay(100);
-        if ((!newHeight || h < 300) && start.isAfter(moment().subtract(5, 'seconds'))) {
-          // Keep checking height
-          await f();
-        } else if (start.isAfter(moment().subtract(30, 'seconds'))) {
-          // Timeout checking height less than 5 seconds since the last change
-          f(); // Keep checking height until 30 seconds timeout but let promise resolve
+        if (!doc) {
+          await delay(100);
+          await doCheck();
+          return;
         }
+        let start = DateTime.now();
+        let oldHeight = doc.body.scrollHeight;
+        let newHeight = false;
+        const f = async () => {
+          let doc: Document;
+          try {
+            doc = iframe.contentWindow!.document;
+          } catch (e) {
+            // Cross origin
+            return;
+          }
+          if (document.fullscreenElement) return;
+          const h = doc.body.scrollHeight;
+          if (h !== oldHeight) {
+            newHeight = true;
+            start = DateTime.now();
+            oldHeight = h;
+            iframe.style.height = h + 'px';
+          }
+          await delay(100);
+          if ((!newHeight || h < 300) && start > DateTime.now().minus({ seconds: 5 })) {
+            // Keep checking height
+            await f();
+          } else if (start > DateTime.now().minus({ seconds: 30 })) {
+            // Timeout checking height less than 5 seconds since the last change
+            f(); // Keep checking height until 30 seconds timeout but let promise resolve
+          }
+        };
+        await f();
+
       };
-      await f();
+      await doCheck();
     }
   }
 
-  writeIframeHtml(html: string, iframe: HTMLIFrameElement) {
-    const doc = iframe.contentWindow!.document;
-    doc.open();
-    doc.write(transparentIframe(html, this.iframeBg));
-    doc.close();
+  writeIframeHtml(html: string, iframe: HTMLIFrameElement, scroll = true) {
+    const blob = new Blob([transparentIframe(html, this.iframeBg, scroll ? 'auto' : 'hidden')], {type: 'text/html'});
+    const blobUrl = URL.createObjectURL(blob);
+    iframe.addEventListener('load', () => {
+      URL.revokeObjectURL(blobUrl);
+    }, { once: true });
+    iframe.src = blobUrl;
   }
 
   loadQuery$(url: string):  Observable<{params: any, page: Page<Ref>, ext?: Ext}> {
     const query = this.editor.getQuery(url);
-    const params = parseParams(url);
+    const params = parseBookmarkParams(url);
     const view: string = params.view;
-    const filterQuery = getFiltersQuery(params.filter);
-    const fullQuery = query && filterQuery ? query + ':' + filterQuery : query || filterQuery || '';
-    const args = parseArgs(params);
     return forkJoin({
       params: of(params),
-      page: this.refs.page({query: fullQuery, ...args}),
+      page: this.refs.page(getArgs(query, getArray(params.sort) as RefSort[], getArray(params.filter) as UrlFilter[], params.search, params.pageNumber, params.pageSize)),
       ext: this.exts.getCachedExts(uniq([
         ...topAnds(query),
         ...topAnds(query).map(queryPrefix),
@@ -641,21 +711,26 @@ export class EmbedService {
     if (ext) return ext;
     const t = this.admin.view.find(t => t.tag === view);
     if (t) {
-      return { tag: t.tag, origin: t.origin, name: t.config?.view || t.name, config: t.defaults };
+      return { tag: t.tag, origin: t.origin, name: t.name, config: { ...t.defaults, view: t.config?.view } };
     }
     return undefined;
   }
 }
 
-export function transparentIframe(content: string, bgColor: string) {
+export function transparentIframe(content: string, bgColor: string, overflow = 'auto') {
   return `
   <html>
   <head>
     <style>
-    body {
+    html, body {
+      height: 100%;
       background-color: ${bgColor};
-      overflow: hidden;
+      overflow: ${overflow};
       margin: 0;
+    }
+    body > * {
+      margin-left: auto;
+      margin-right: auto;
     }
     </style>
   </head>

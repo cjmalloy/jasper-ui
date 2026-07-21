@@ -1,8 +1,10 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { defer } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
 import { catchError, switchMap, throwError } from 'rxjs';
+import { PluginListComponent } from '../../../component/plugin/plugin-list/plugin-list.component';
+import { HasChanges } from '../../../guard/pending-changes.guard';
 import { mapPlugin, Plugin } from '../../../model/plugin';
 import { PluginService } from '../../../service/api/plugin.service';
 import { ModService } from '../../../service/mod.service';
@@ -16,10 +18,15 @@ import { getModels, getZipOrTextFile } from '../../../util/zip';
   selector: 'app-settings-plugin-page',
   templateUrl: './plugin.component.html',
   styleUrls: ['./plugin.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [PluginListComponent],
 })
-export class SettingsPluginPage implements OnInit, OnDestroy {
+export class SettingsPluginPage implements OnInit, OnDestroy, HasChanges {
 
   serverError: string[] = [];
+
+  @ViewChild('list')
+  list?: PluginListComponent;
 
   private disposers: IReactionDisposer[] = [];
 
@@ -30,8 +37,12 @@ export class SettingsPluginPage implements OnInit, OnDestroy {
     private plugins: PluginService,
   ) {
     mod.setTitle($localize`Settings: Plugins`);
-    store.view.clear(['levels', 'tag'], ['levels', 'tag']);
+    store.view.clear(['tag:len', 'tag'], ['tag:len', 'tag']);
     query.clear();
+  }
+
+  saveChanges() {
+    return !this.list || this.list.saveChanges();
   }
 
   ngOnInit(): void {
@@ -49,6 +60,7 @@ export class SettingsPluginPage implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    this.query.close();
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
   }

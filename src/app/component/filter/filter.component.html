@@ -3,46 +3,41 @@
         (input)="addFilter($any(create.value))"
         i18n-title title="Filter">
   <option class="unselected" i18n>{{ emoji }} filter</option>
-  <optgroup *ngFor="let g of allFilters" [label]="g.label">
-    <option *ngFor="let f of g.filters" [value]="f.filter">{{ f.label || f.filter }}</option>
-  </optgroup>
-</select>
-<ng-container *ngFor="let filter of filters; let i=index">
-  <div class="form-array" [title]="filter">
-    <select id="filter-{{ i }}" [ngModel]="filter" (ngModelChange)="setFilter(i, $event)">
-      <optgroup *ngFor="let g of allFilters" [label]="g.label">
-        <option *ngFor="let f of g.filters" [value]="f.filter">{{ f.label || f.filter }}</option>
+  @for (g of allFilters; track g.label) {
+    @if (g.filters.length) {
+      <optgroup [label]="g.label">
+        @for (f of g.filters; track f.filter) {
+          <option [value]="f.filter" [title]="f.title || ''">{{ f.label || f.filter }}</option>
+        }
       </optgroup>
+    }
+  }
+</select>
+@for (filter of filters; track filter; let i = $index) {
+  <div class="controls" [title]="filter">
+    <select id="filter-{{ i }}" [ngModel]="filter" (ngModelChange)="setFilter(i, $event)" [title]="title(filter)">
+      @for (g of allFilters; track g.label) {
+        @if (g.filters.length) {
+          <optgroup [label]="g.label">
+            @for (f of g.filters; track f.filter) {
+              <option [value]="f.filter" [title]="f.title || ''">{{ f.label || f.filter }}</option>
+            }
+          </optgroup>
+        }
+      }
     </select>
-    <button type="button" *ngIf="negatable(filter)" (click)="toggleQuery(i)">{{ store.account.querySymbol('!') }}</button>
+    @if (negatable(filter)) {
+      <button type="button" (click)="toggleQuery(i)">{{ store.account.querySymbol('!') }}</button>
+    }
     <button type="button" (click)="removeFilter(i)" i18n>&ndash;</button>
   </div>
-  <input *ngIf="filter.startsWith('modified/')"
-         type="datetime-local"
-         step="60"
-         [ngModel]="toDate(filter)"
-         (input)="!$any($event.target).isFocused() && $any($event.target).focus()"
-         (keydown)="$event.key === 'Enter' && setModified(i, filter.startsWith('modified/before/'), toIso($any($event.target).value)) || true"
-         (blur)="setModified(i, filter.startsWith('modified/before/'), toIso($any($event.target).value))">
-  <input *ngIf="filter.startsWith('response/')"
-         type="datetime-local"
-         step="60"
-         [ngModel]="toDate(filter)"
-         (input)="!$any($event.target).isFocused() && $any($event.target).focus()"
-         (keydown)="$event.key === 'Enter' && setModified(i, filter.startsWith('response/before/'), toIso($any($event.target).value)) || true"
-         (blur)="setResponse(i, filter.startsWith('response/before/'), toIso($any($event.target).value))">
-  <input *ngIf="filter.startsWith('published/')"
-         type="datetime-local"
-         step="60"
-         [ngModel]="toDate(filter)"
-         (input)="!$any($event.target).isFocused() && $any($event.target).focus()"
-         (keydown)="$event.key === 'Enter' && setModified(i, filter.startsWith('published/before/'), toIso($any($event.target).value)) || true"
-         (blur)="setPublished(i, filter.startsWith('published/before/'), toIso($any($event.target).value))">
-  <input *ngIf="filter.startsWith('created/')"
-         type="datetime-local"
-         step="60"
-         [ngModel]="toDate(filter)"
-         (input)="!$any($event.target).isFocused() && $any($event.target).focus()"
-         (keydown)="$event.key === 'Enter' && setModified(i, filter.startsWith('created/before/'), toIso($any($event.target).value)) || true"
-         (blur)="setCreated(i, filter.startsWith('created/before/'), toIso($any($event.target).value))">
-</ng-container>
+  @if (filter.startsWith('modified/') || filter.startsWith('response/') || filter.startsWith('published/') || filter.startsWith('created/')) {
+    <input type="datetime-local"
+           step="60"
+           [value]="toDate(filter)"
+           (focus)="focus()"
+           (change)="hasFocus() && set(i, filter, toIso($any($event.target).value))"
+           (keydown)="clearFocus() && $event.key === 'Enter' && set(i, filter, toIso($any($event.target).value)) || true"
+           (blur)="set(i, filter, toIso($any($event.target).value))">
+  }
+}

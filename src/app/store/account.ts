@@ -4,7 +4,8 @@ import { Ext } from '../model/ext';
 import { Roles, User } from '../model/user';
 import { getMailbox } from '../mods/mailbox';
 import { defaultSubs, UserConfig } from '../mods/user';
-import { hasPrefix, localTag, prefix, setPublic, tagOrigin } from '../util/tag';
+import { parseBookmarkParams, parseParams } from '../util/http';
+import { braces, defaultOrigin, hasPrefix, localTag, prefix, setPublic, tagOrigin } from '../util/tag';
 import { OriginStore } from './origin';
 
 export class AccountStore {
@@ -15,6 +16,7 @@ export class AccountStore {
   access?: User = {} as User;
   ext?: Ext = {} as Ext;
   defaultConfig: UserConfig = {};
+  ignoreNotifications: number[] = [];
 
   /**
    * Is admin.
@@ -59,6 +61,10 @@ export class AccountStore {
    * Unread inbox and alarms total count.
    */
   notifications = 0;
+  /**
+   * Unread alarms count.
+   */
+  alarmCount = 0;
   /**
    * Flag indicating the interceptor detected an unauthorized request.
    */
@@ -145,17 +151,25 @@ export class AccountStore {
     return this.config.bookmarks || [];
   }
 
+  get bookmarkQueries() {
+    return this.bookmarks.map(b => b.includes('?') ? b.substring(0, b.indexOf('?')) : b);
+  }
+
+  get bookmarkParams() {
+    return this.bookmarks.map(b => parseBookmarkParams(b.includes('?') ? b.substring(b.indexOf('?')) : b));
+  }
+
   get alarms(): string[] {
     return this.config.alarms || [];
   }
 
   get mailbox() {
     if (!this.signedIn) return undefined;
-    return getMailbox(this.tag, this.origin);
+    return getMailbox(this.tag, this.origin) + (this.origin || '@');
   }
 
   get modmail() {
-    return this.access?.readAccess?.filter(t => hasPrefix(t, 'plugin/inbox')).map(t => t + (this.origin || '@*'));
+    return this.access?.readAccess?.filter(t => hasPrefix(t, 'plugin/inbox')).map(t => defaultOrigin(t, this.origin || '@'));
   }
 
   get outboxes() {
@@ -164,10 +178,10 @@ export class AccountStore {
   }
 
   get inboxQuery() {
-    if (!this.signedIn) return undefined;
+    if (!this.signedIn) return '';
     let tags = [this.mailbox];
     if (this.origin) {
-      tags.push(setPublic(prefix('plugin/outbox', this.origin, this.tagWithOrigin)));
+      tags.push(setPublic(prefix('plugin/outbox', this.origin, this.tagWithOrigin)) + this.origin);
     }
     if (this.modmail?.length) {
       tags.push(...this.modmail);
@@ -180,8 +194,14 @@ export class AccountStore {
 
   get notificationsQuery() {
     if (!this.signedIn) return undefined;
-    const alarms = this.config.alarms?.length ? '|' + this.config.alarms.join('|') : '';
-    return `!${this.tag}:!plugin/delete:(` + this.inboxQuery + ')' + alarms;
+    const alarms = this.alarmsQuery ? '|' + this.alarmsQuery : '';
+    return `!${this.tag}:!plugin/delete:` + braces(this.inboxQuery) + alarms;
+  }
+
+  get alarmsQuery() {
+    if (!this.signedIn) return undefined;
+    if (!this.config.alarms?.length) return '';
+    return this.config.alarms.join('|');
   }
 
   get subscriptionQuery() {
@@ -237,7 +257,7 @@ export class AccountStore {
         case '|': return $localize` | `;
         case '(': return $localize` (\u00A0`;
         case ')': return $localize`\u00A0) `;
-        case `!`: return $localize` !`;
+        case `!`: return $localize` ❗`;
         case `{`: return $localize` {\u00A0`;
         case `}`: return $localize`\u00A0} `;
         case `,`: return $localize`, `;
@@ -263,7 +283,7 @@ export class AccountStore {
   }
 
   defaultEditors(plugins: string[]) {
-    if (!this.config?.editors) return plugins;
+    if (!this.config?.editors) return [];
     return intersection(this.config.editors, plugins);
   }
 }

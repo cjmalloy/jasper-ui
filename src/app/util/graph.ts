@@ -25,7 +25,7 @@ export function isGraphable(node: GraphNode) {
 }
 
 export function isInternal(node: GraphNode) {
-  return hasTag('internal', node);
+  return hasTag('internal', node) && !hasTag('plugin/thread', node) && !hasTag('plugin/comment', node);
 }
 
 export function links(allNodes: GraphNode[], ...nodes: GraphNode[]) {

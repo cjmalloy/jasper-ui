@@ -1,14 +1,24 @@
-import { Component, HostBinding, Input, OnInit } from '@angular/core';
-import { UntypedFormArray, UntypedFormBuilder, UntypedFormGroup, Validators } from '@angular/forms';
+import { Component, HostBinding, Input, ChangeDetectionStrategy } from '@angular/core';
+import {
+  FormBuilder,
+  ReactiveFormsModule,
+  UntypedFormArray,
+  UntypedFormBuilder,
+  UntypedFormGroup,
+  Validators
+} from '@angular/forms';
+import { FormlyForm } from '@ngx-formly/core';
 import { map } from 'lodash-es';
 import { URI_REGEX } from '../../util/format';
 
 @Component({
   selector: 'app-links',
   templateUrl: './links.component.html',
-  styleUrls: ['./links.component.scss']
+  styleUrls: ['./links.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [ReactiveFormsModule, FormlyForm]
 })
-export class LinksFormComponent implements OnInit {
+export class LinksFormComponent {
   static validators = [Validators.pattern(URI_REGEX)];
   @HostBinding('class') css = 'form-group';
 
@@ -19,7 +29,7 @@ export class LinksFormComponent implements OnInit {
 
   model: string[] = [];
   field = {
-    type: 'urls',
+    type: 'refs',
     props: {
       showLabel: true,
       label: $localize`Sources: `,
@@ -35,11 +45,8 @@ export class LinksFormComponent implements OnInit {
   };
 
   constructor(
-    private fb: UntypedFormBuilder,
-  ) {}
-
-  ngOnInit(): void {
-  }
+    private fb: FormBuilder,
+  ) { }
 
   @Input()
   set emoji(value: string) {
@@ -68,6 +75,14 @@ export class LinksFormComponent implements OnInit {
 
   get links() {
     return this.group?.get(this.fieldName) as UntypedFormArray | undefined;
+  }
+
+  setLinks(values: string[]) {
+    this.model = values;
+    if (!this.links) return;
+    while (this.links.length > values.length) this.links.removeAt(this.links.length - 1, { emitEvent: false });
+    while (this.links.length < values.length) this.links.push(this.fb.control(''), { emitEvent: false });
+    this.links.setValue(values);
   }
 
   addLink(...values: string[]) {

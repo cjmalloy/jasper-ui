@@ -1,13 +1,23 @@
-import { Component, HostBinding, Input, OnInit } from '@angular/core';
-import { UntypedFormBuilder, UntypedFormControl, UntypedFormGroup, Validators } from '@angular/forms';
+import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
+import {
+  ReactiveFormsModule,
+  UntypedFormBuilder,
+  UntypedFormControl,
+  UntypedFormGroup,
+  Validators
+} from '@angular/forms';
+import { v4 as uuid } from 'uuid';
+import { JsonComponent } from '../json/json.component';
 
 @Component({
   selector: 'app-template-form',
   templateUrl: './template.component.html',
-  styleUrls: ['./template.component.scss']
+  styleUrls: ['./template.component.scss'],
+  host: { 'class': 'nested-form' },
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [ReactiveFormsModule, JsonComponent]
 })
-export class TemplateFormComponent implements OnInit {
-  @HostBinding('class') css = 'nested-form';
+export class TemplateFormComponent {
 
   @Input()
   group!: UntypedFormGroup;
@@ -18,10 +28,10 @@ export class TemplateFormComponent implements OnInit {
   @Input()
   schemaErrors: string[] = [];
 
-  constructor() { }
-
-  ngOnInit(): void {
-  }
+  id = 'template-' + uuid();
+  editingConfig = false;
+  editingDefaults = false;
+  editingSchema = false;
 
   get tag() {
     return this.group.get('tag') as UntypedFormControl;
@@ -29,6 +39,18 @@ export class TemplateFormComponent implements OnInit {
 
   get name() {
     return this.group.get('name') as UntypedFormControl;
+  }
+
+  get config() {
+    return this.editingConfig ||= this.group.get('config')?.value;
+  }
+
+  get defaults() {
+    return this.editingDefaults ||= this.group.get('defaults')?.value;
+  }
+
+  get schema() {
+    return this.editingSchema ||= this.group.get('schema')?.value;
   }
 
   validate(input: HTMLInputElement) {
@@ -44,7 +66,7 @@ export class TemplateFormComponent implements OnInit {
 
 export function templateForm(fb: UntypedFormBuilder) {
   return fb.group({
-    tag: ['', []],
+    tag: [{value: '', disabled: true}, [Validators.required]],
     name: ['', [Validators.required]],
     config: [],
     defaults: [],

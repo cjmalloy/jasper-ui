@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { FieldType, FieldTypeConfig, FormlyConfig, FormlyFieldProps } from '@ngx-formly/core';
+import { ReactiveFormsModule } from '@angular/forms';
+import { FieldType, FieldTypeConfig, FormlyAttributes, FormlyConfig, FormlyFieldProps } from '@ngx-formly/core';
 import { getErrorMessage } from './errors';
 
 interface TextAreaProps extends FormlyFieldProps {
@@ -9,6 +10,7 @@ interface TextAreaProps extends FormlyFieldProps {
 
 @Component({
   selector: 'formly-field-textarea',
+  host: { 'class': 'field' },
   template: `
     <textarea (blur)="validate($any($event.target))"
               [formControl]="formControl"
@@ -18,6 +20,10 @@ interface TextAreaProps extends FormlyFieldProps {
               [formlyAttributes]="field"></textarea>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [
+    ReactiveFormsModule,
+    FormlyAttributes,
+  ],
 })
 export class FormlyFieldTextArea extends FieldType<FieldTypeConfig<TextAreaProps>> {
   override defaultOptions = {
@@ -27,16 +33,27 @@ export class FormlyFieldTextArea extends FieldType<FieldTypeConfig<TextAreaProps
     },
   };
 
+  private showedError = false;
+
   constructor(
     private config: FormlyConfig,
   ) {
     super();
   }
 
-  validate(input: HTMLTextAreaElement) {
+  validate(input: HTMLInputElement) {
     if (this.showError) {
       input.setCustomValidity(getErrorMessage(this.field, this.config));
       input.reportValidity();
+    }
+  }
+
+  blur(input: HTMLInputElement) {
+    if (this.showError && !this.showedError) {
+      this.showedError = true;
+      this.validate(input);
+    } else {
+      this.showedError = false;
     }
   }
 }

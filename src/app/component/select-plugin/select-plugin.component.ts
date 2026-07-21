@@ -1,15 +1,7 @@
-import {
-  Component,
-  ElementRef,
-  EventEmitter,
-  HostBinding,
-  Input,
-  OnChanges,
-  Output,
-  SimpleChanges,
-  ViewChild
-} from '@angular/core';
-import { defer } from 'lodash-es';
+import { Component, ElementRef, EventEmitter, Input, OnChanges, Output, SimpleChanges, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { ReactiveFormsModule } from '@angular/forms';
+import { defer, uniqBy } from 'lodash-es';
+import { v4 as uuid } from 'uuid';
 import { Plugin } from '../../model/plugin';
 import { AdminService } from '../../service/admin.service';
 import { AuthzService } from '../../service/authz.service';
@@ -17,11 +9,15 @@ import { AuthzService } from '../../service/authz.service';
 @Component({
   selector: 'app-select-plugin',
   templateUrl: './select-plugin.component.html',
-  styleUrls: ['./select-plugin.component.scss']
+  styleUrls: ['./select-plugin.component.scss'],
+  host: { 'class': 'select-plugin' },
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [ReactiveFormsModule]
 })
 export class SelectPluginComponent implements OnChanges {
-  @HostBinding('class') css = 'select-plugin';
 
+  @Input()
+  id = 'plugin-' + uuid();
   @Input()
   add = false;
   @Input()
@@ -39,6 +35,7 @@ export class SelectPluginComponent implements OnChanges {
   textPlugins = this.admin.submitText.filter(p => this.auth.canAddTag(p.tag));
   settingsPlugins = this.admin.submitSettings.filter(p => this.auth.canAddTag(p.tag));
 
+  customPlugin?: Plugin;
   plugins: Plugin[] = [];
 
   constructor(
@@ -47,12 +44,13 @@ export class SelectPluginComponent implements OnChanges {
   ) {  }
 
   ngOnChanges(changes: SimpleChanges) {
-    this.plugins = [
+    this.plugins = uniqBy([
+      ...(this.customPlugin ? [this.customPlugin] : []),
       ...(this.add ? this.addPlugins : []),
       ...(this.text ? this.textPlugins : []),
       ...(this.settings ? this.settingsPlugins : []),
       ...this.submitPlugins
-    ];
+    ], 'tag');
   }
 
   @Input()
@@ -63,8 +61,9 @@ export class SelectPluginComponent implements OnChanges {
       if (!this.plugins.find(p => p?.tag === value)) {
         const plugin = this.admin.getPlugin(value);
         if (plugin) {
+          this.customPlugin = plugin;
           this.plugins.unshift(plugin);
-          this.select!.nativeElement.selectedIndex = 1;
+          defer(() => this.select!.nativeElement.selectedIndex = 1);
           return;
         }
       }

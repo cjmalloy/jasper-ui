@@ -3,12 +3,13 @@ import { TemplatePortal } from '@angular/cdk/portal';
 import {
   Component,
   EventEmitter,
-  HostBinding,
+  Input,
   OnDestroy,
   Output,
   TemplateRef,
   ViewChild,
-  ViewContainerRef
+  ViewContainerRef,
+  ChangeDetectionStrategy
 } from '@angular/core';
 import { loadImage } from '../../util/image';
 import { QrScanner, scanImage } from '../../util/qr-scanner';
@@ -17,14 +18,17 @@ import { Camera, hasCamera, listCameras } from '../../util/webcam';
 @Component({
   selector: 'app-qr-scanner',
   templateUrl: './qr-scanner.component.html',
-  styleUrls: ['./qr-scanner.component.scss']
+  styleUrls: ['./qr-scanner.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  host: { 'class': 'form-array' }
 })
 export class QrScannerComponent implements OnDestroy {
-  @HostBinding('class') css = 'form-array';
 
   @ViewChild('video')
   video!: TemplateRef<HTMLVideoElement>;
 
+  @Input()
+  upload = true;
   @Output()
   data = new EventEmitter<string>();
 
@@ -56,6 +60,7 @@ export class QrScannerComponent implements OnDestroy {
       this.stopScanQr();
       return;
     }
+    document.documentElement.style.overflowY = 'auto';
     this.overlayRef = this.overlay.create({
       height: '100vh',
       width: '100vw',
@@ -75,6 +80,7 @@ export class QrScannerComponent implements OnDestroy {
   }
 
   stopScanQr() {
+    document.documentElement.style.overflowY = 'scroll';
     if (!this.scanner) return;
     this.scanner.stop();
     this.scanner.destroy();

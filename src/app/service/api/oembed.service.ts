@@ -1,6 +1,5 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { autorun } from 'mobx';
 import { catchError, map, Observable } from 'rxjs';
 import { Oembed } from '../../model/oembed';
 import { Store } from '../../store/store';
@@ -19,8 +18,8 @@ export class OEmbedService {
     private login: LoginService,
     private store: Store,
   ) {
-    autorun(() => {
-      if (store.eventBus.event === '+plugin/oembed:defaults') {
+    store.eventBus.events.subscribe(event => {
+      if (event.event === '+plugin/oembed:defaults' || event.event === '*:defaults') {
         this.defaults().subscribe();
       }
     });
