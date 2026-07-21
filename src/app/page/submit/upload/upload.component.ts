@@ -14,7 +14,6 @@ import { ExtComponent } from '../../../component/ext/ext.component';
 import { LoadingComponent } from '../../../component/loading/loading.component';
 import { RefComponent } from '../../../component/ref/ref.component';
 import { AutofocusDirective } from '../../../directive/autofocus.directive';
-import { writePlugins } from '../../../form/plugins/plugins.component';
 import { Ext, mapExt } from '../../../model/ext';
 import { mapRef, Ref } from '../../../model/ref';
 import { TagPreviewPipe } from '../../../pipe/tag-preview.pipe';
@@ -29,6 +28,7 @@ import { Store } from '../../../store/store';
 import { downloadSet } from '../../../util/download';
 import { TAGS_REGEX } from '../../../util/format';
 import { printError } from '../../../util/http';
+import { hasTag } from '../../../util/tag';
 import { FilteredModels, filterModels, getModels, getTextFile, unzip, zippedFile } from '../../../util/zip';
 
 @Component({
@@ -360,7 +360,9 @@ export class UploadPage implements OnDestroy {
     ref.origin = this.store.account.origin;
     ref.published ||= DateTime.now();
     ref.tags = ref.tags?.filter(t => this.auth.canAddTag(t));
-    ref.plugins = writePlugins(ref.tags || [], ref.plugins || {});
+    ref.plugins = Object.fromEntries(
+      Object.entries(ref.plugins || {}).filter(([tag]) => hasTag(tag, ref.tags)),
+    );
     return (ref.exists
         ? this.refs.update(ref).pipe(
           catchError((err: HttpErrorResponse) => {

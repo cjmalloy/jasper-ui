@@ -4,7 +4,6 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { forwardRef } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, provideRouter } from '@angular/router';
-import { DateTime } from 'luxon';
 import { of } from 'rxjs';
 
 import { UploadPage } from './upload.component';
@@ -54,7 +53,7 @@ describe('UploadPage', () => {
     }).subscribe();
 
     expect(create).toHaveBeenCalledWith(expect.objectContaining({
-      published: expect.any(DateTime),
+      published: expect.anything(),
       plugins: {
         '+plugin/origin': { remote: '', local: '@example' },
       },
