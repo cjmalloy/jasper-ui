@@ -157,7 +157,7 @@ export class RefFormComponent implements OnChanges {
   }
 
   get thumbnailRefs() {
-    return [{ ...this.group.getRawValue(), origin: this.origin }];
+    return [{ ...this.group.getRawValue(), origin: this.creating ? this.store.account.origin : this.origin }];
   }
 
   get thumbnailPlugin() {
