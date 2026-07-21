@@ -8,16 +8,17 @@ services:
       CSP_DEFAULT_SRC: http://localhost:8081
       JASPER_TITLE: DEBUG
   web:
-    image: ghcr.io/cjmalloy/jasper
+    image: ghcr.io/cjmalloy/jasper:master
     profiles:
       - server
     ports:
       - 8081:8081
     environment:
-      SPRING_PROFILES_ACTIVE: dev,jwt,feed-burst,repl-burst,storage
+      SPRING_PROFILES_ACTIVE: dev,storage,proxy,file-cache,scripts
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/jasper
       SPRING_DATASOURCE_USERNAME: jasper
       SPRING_DATASOURCE_PASSWORD: jasper
+      JASPER_DEFAULT_ROLE: ROLE_ADMIN
     depends_on:
       - db
   db:

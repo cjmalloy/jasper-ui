@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { FormlyFieldConfig } from '@ngx-formly/core';
 import { Schema, validate } from 'jtd';
 import { identity, isEqual, reduce, uniq } from 'lodash-es';
-import { autorun, runInAction } from 'mobx';
+import { runInAction } from 'mobx';
 import { catchError, concat, forkJoin, map, Observable, of, retry, switchMap, throwError, toArray } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { v4 as uuid } from 'uuid';
@@ -102,6 +102,7 @@ import { UserService } from './api/user.service';
 import { AuthzService } from './authz.service';
 import { ConfigService } from './config.service';
 import { equalBundle } from '../util/diff';
+import { neoMod } from '../mods/ai/neo-banana';
 
 @Injectable({
   providedIn: 'root',
@@ -175,6 +176,7 @@ export class AdminService {
     aiMod,
     naviMod,
     dalleMod,
+    neoMod,
     summaryMod,
     translateMod,
     pdfMod,
@@ -222,11 +224,11 @@ export class AdminService {
     private templates: TemplateService,
     private store: Store,
   ) {
-    autorun(() => {
-      const mod = this.store.eventBus.ref?.plugins?.['plugin/mod'];
-      if (this.store.eventBus.event === 'install') {
+    this.store.eventBus.events.subscribe(event => {
+      const mod = event.ref?.plugins?.['plugin/mod'];
+      if (event.event === 'install') {
         store.eventBus.clearProgress(bundleSize(mod));
-        this.install$(this.store.eventBus.ref?.title || '', mod, (msg, p = 0) => store.eventBus.progress(msg, p))
+        this.install$(event.ref?.title || '', mod, (msg, p = 0) => store.eventBus.progress(msg, p))
           .subscribe(mod => {
             this.pluginToStatus(mod.plugin || []);
             this.templateToStatus(mod.template || []);
@@ -288,10 +290,7 @@ export class AdminService {
         return throwError(() => err);
       })
     )));
-    return this.exts.create({
-      tag: this.store.account.localTag,
-      origin: this.store.account.origin,
-    }).pipe(
+    return of(null).pipe(
       tap(() => this.store.eventBus.fire('*:defaults')),
       switchMap(() => concat(...installs).pipe(toArray())),
       switchMap(() => this.init$),

@@ -2,7 +2,7 @@
 import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ReactiveFormsModule, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
+import { ReactiveFormsModule, UntypedFormArray, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { provideRouter } from '@angular/router';
 import { JasperFormlyModule } from '../../formly/formly.module';
 import { PluginsFormComponent } from '../plugins/plugins.component';
@@ -37,9 +37,9 @@ describe('RefFormComponent', () => {
       published: new UntypedFormControl(),
       title: new UntypedFormControl(),
       comment: new UntypedFormControl(),
-      sources: new UntypedFormControl(),
-      alternateUrls: new UntypedFormControl(),
-      tags: new UntypedFormControl(),
+      sources: new UntypedFormArray([]),
+      alternateUrls: new UntypedFormArray([]),
+      tags: new UntypedFormArray([]),
       plugins: new UntypedFormGroup({}),
     });
     fixture.detectChanges();
@@ -51,6 +51,27 @@ describe('RefFormComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('shows a thumbnail preview only when creating a Ref with thumbnail data', () => {
+    vi.spyOn(component.admin, 'getPlugin').mockImplementation(tag => {
+      return tag === 'plugin/thumbnail' ? {} as any : undefined;
+    });
+    component.tags.push(new UntypedFormControl('plugin/thumbnail'));
+
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.thumbnail-preview')).toBeNull();
+
+    component.creating = true;
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.thumbnail-preview .thumbnail')).not.toBeNull();
+  });
+
+  it('includes the disabled URL in creation thumbnail data', () => {
+    component.url.setValue('cache:image-id');
+    component.url.disable();
+
+    expect(component.thumbnailRefs[0].url).toBe('cache:image-id');
   });
 
   it('should extract title from filename when scrape returns no title', async () => {

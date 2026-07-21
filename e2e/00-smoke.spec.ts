@@ -7,6 +7,19 @@ test.describe.serial('Smoke Tests', () => {
     await expect(page.getByText('Powered by Jasper')).toBeVisible();
   });
 
+  test('electron back button returns to the previous page', async ({ page }) => {
+    await page.addInitScript(() => {
+      Object.defineProperty(navigator, 'userAgent', { value: `${navigator.userAgent} Electron` });
+    });
+    await page.goto('/?debug=USER', { waitUntil: 'networkidle' });
+    await page.waitForURL(url => url.pathname !== '/');
+    const initialUrl = page.url();
+    await page.locator('.subscription-bar a').first().click();
+    await expect(page).not.toHaveURL(initialUrl);
+    await page.locator('.back-button').click();
+    await expect(page).toHaveURL(initialUrl);
+  });
+
   test('@\u{ff20}main : clear mods', async ({ page }) => {
     await clearMods(page);
   });
@@ -32,8 +45,13 @@ test.describe.serial('Smoke Tests', () => {
 
   test('deletes a ref', async ({ page }) => {
     await page.goto(`/ref/e/${encodeURIComponent('https://jasperkm.info/')}?debug=ADMIN`);
-    await page.locator('.full-page.ref .actions .fake-link', { hasText: 'delete' }).first().click();
-    await page.locator('.full-page.ref .actions .fake-link', { hasText: 'yes' }).first().click();
+    const deleteLink = page.locator('.full-page.ref .actions .fake-link', { hasText: 'delete' }).first();
+    await expect(deleteLink).toHaveAttribute('role', 'button');
+    await deleteLink.focus();
+    await deleteLink.press('Enter');
+    const confirmLink = page.locator('.full-page.ref .actions .fake-link', { hasText: 'yes' }).first();
+    await confirmLink.focus();
+    await confirmLink.press('Space');
     await page.goto(`/ref/e/${encodeURIComponent('https://jasperkm.info/')}?debug=USER`);
     await expect(page.locator('.error-404', { hasText: 'Not Found' })).toBeVisible();
   });

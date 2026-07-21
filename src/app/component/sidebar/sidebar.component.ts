@@ -1,4 +1,5 @@
 import { AsyncPipe } from '@angular/common';
+import { FakeLinkDirective } from '../../directive/fake-link.directive';
 import {
   AfterViewInit,
   Component,
@@ -57,6 +58,7 @@ import { SortComponent } from '../sort/sort.component';
   host: { 'class': 'sidebar' },
   changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
+    FakeLinkDirective,
     ExtComponent,
     forwardRef(() => MdComponent),
     MobxAngularModule,

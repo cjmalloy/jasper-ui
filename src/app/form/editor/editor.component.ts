@@ -3,6 +3,7 @@ import { DomPortal, TemplatePortal } from '@angular/cdk/portal';
 import { HttpEventType } from '@angular/common/http';
 import {
   AfterViewInit,
+  ChangeDetectorRef,
   Component,
   ElementRef,
   EventEmitter,
@@ -173,13 +174,14 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
     private el: ElementRef,
     private vc: ViewContainerRef,
     private fb: FormBuilder,
+    private cd: ChangeDetectorRef,
   ) {
     this.router.events.pipe(
       filter(event => event instanceof NavigationEnd)
     ).subscribe(() => this.toggleFullscreen(false));
-    this.disposers.push(autorun(() => {
-      this.loadingEvents[this.store.eventBus.event] = false;
-    }));
+    this.store.eventBus.events.pipe(takeUntil(this.destroy$)).subscribe(event => {
+      this.loadingEvents[event.event] = false;
+    });
   }
 
   init() {
@@ -313,6 +315,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
       defer(() => {
         this._editing = true;
         this.updateTags(this.initTags);
+        this.cd.detectChanges();
       });
     }
   }

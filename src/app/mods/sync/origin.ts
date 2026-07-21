@@ -41,7 +41,8 @@ export const originPlugin: Plugin = {
       key: 'proxy',
       type: 'url',
       props: {
-        label: $localize`Proxy:`
+        label: $localize`Proxy:`,
+        title: $localize`Fetch all resources directly from the origin, not the internet`,
       }
     }],
   },

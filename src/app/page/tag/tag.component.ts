@@ -61,12 +61,12 @@ export class TagPage implements OnInit, OnDestroy, HasChanges {
       this.store.view.extTemplates = this.admin.view;
     });
     this.disposers.push(autorun(() => {
-      if (!this.store.view.queryTags.length) {
+      if (!this.store.view.urlQueryTags.length) {
         runInAction(() => this.store.view.exts = []);
         this.loading = false;
       } else {
         this.loading = true;
-        this.exts.getCachedExts(this.store.view.queryTags)
+        this.exts.getCachedExts(this.store.view.urlQueryTags)
           .pipe(this.admin.extFallbacks)
           .subscribe(exts => {
             if (!isEqual(exts.map(x => x.tag + x.origin + x.modifiedString).sort(), this.store.view.exts.map(x => x.tag + x.origin + x.modifiedString).sort())) {
@@ -85,8 +85,6 @@ export class TagPage implements OnInit, OnDestroy, HasChanges {
 
   ngOnInit() {
     this.disposers.push(autorun(() => {
-      if (hasPrefix(this.store.view.viewExt?.tag, 'kanban')) return;
-      if (hasPrefix(this.store.view.viewExt?.tag, 'chat')) return;
       const filters = this.store.view.filter.length ? this.store.view.filter : this.store.view.viewExtFilter;
       if (!this.store.view.filter.length && this.store.view.viewExtFilter?.length) {
         this.bookmarks.filters = this.store.view.viewExtFilter;
@@ -100,6 +98,11 @@ export class TagPage implements OnInit, OnDestroy, HasChanges {
         this.store.view.pageNumber,
         this.store.view.pageSize,
       );
+      if (hasPrefix(this.store.view.viewExt?.tag, 'kanban') ||
+          hasPrefix(this.store.view.viewExt?.tag, 'chat')) {
+        runInAction(() => this.query.setRelatedArgs(args));
+        return;
+      }
       runInAction(() => this.query.setArgs(args));
     }));
   }

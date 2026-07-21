@@ -8,7 +8,7 @@ export const naviQueryPlugin: Plugin = {
   name: $localize`👻️💭️ Ask Navi`,
   config: {
     mod: $localize`👻️ Navi Chat`,
-    version: 1,
+    version: 2,
     type: 'tool',
     default: false,
     add: true,
@@ -26,7 +26,7 @@ export const naviQueryPlugin: Plugin = {
       { ribbon: true, order: -2, label: $localize`✨️`,   title: $localize`Configure AI`, toggle: 'plugin/llm', remember: true },
       { ribbon: true, order: -1, label: $localize`🔎️🌐️`, title: $localize`Web Context`, toggle: 'plugin/llm/search', query: 'plugin/delta/ai/navi:plugin/llm' },
     ],
-    timeoutMs: 30_000,
+    timeoutMs: 300_000,
     language: 'javascript',
     // language=JavaScript
     script: `
@@ -46,7 +46,7 @@ export const naviQueryPlugin: Plugin = {
           'User-Tag': authors[0] || '',
         },
         params: {
-          query: '+plugin/placeholder:!+plugin/delta:' + authors.map(a => a.substring(1)).join(':') + ':' + (origin || '@'),
+          query: '+plugin/placeholder:!+plugin/delta:' + (authors.length ? authors.map(a => a.substring(1)).join(':') : '+plugin/followup') + ':' + (origin || '@'),
           responses: ref.url,
           size: 1,
         },
@@ -75,13 +75,20 @@ export const naviQueryPlugin: Plugin = {
       let parents = await getSources(ref.url);
       parents.forEach(p => context.set(p.url, p));
       for (let i = 0; i < config.maxContext; i++) {
-        if (!parents.length) break;
-        const grandParents = parents.flatMap(async p => await getSources(p.url));
-        parents = grandParents.filter(g => !context.has(g.url));
-        if (context.size + parents.length > config.maxSources) {
-          parents.length = config.maxSources - context.size;
+        if (!parents.length || context.size >= config.maxSources) break;
+        const grandParents = [];
+        for (const parent of parents) {
+          if (context.size >= config.maxSources) break;
+          const fetched = await getSources(parent.url);
+          for (const grandParent of fetched) {
+            if (grandParent?.url && !context.has(grandParent.url)) {
+              grandParents.push(grandParent);
+              context.set(grandParent.url, grandParent);
+              if (context.size >= config.maxSources) break;
+            }
+          }
         }
-        parents.forEach(p => context.set(p.url, p));
+        parents = grandParents;
       }
       if (ref.sources?.length && context.size < config.maxSources && ref.tags.includes('plugin/thread')) {
         const source =  ref.sources[ref.sources.length === 1 ? 0 : 1];
@@ -92,7 +99,9 @@ export const naviQueryPlugin: Plugin = {
         thread.forEach(t => context.set(t.url, t));
       }
       const tags = new Set(ref.tags);
-      for (const p of context.values()) await tags.add(...p?.tags || []);
+      for (const p of context.values()) {
+        for (const t of p?.tags || []) tags.add(t);
+      }
       const pluginCursor = (await axios.get(process.env.JASPER_API + '/pub/api/v1/repl/plugin/cursor', {
         headers: {
           'Local-Origin': origin || 'default',
@@ -153,7 +162,7 @@ export const naviQueryPlugin: Plugin = {
         }
       };
       bundle.ref.push(response);
-      response.tags.push(...authors.map(a => a.startsWith('+') || a.startsWith('_') ? a.substring(1) : a));
+      response.tags.push(...(authors.length ? authors.map(a => a.startsWith('+') || a.startsWith('_') ? a.substring(1) : a) : ['+plugin/followup']));
       if (ref.tags.includes('public')) response.tags.push('public');
       if (ref.tags.includes('internal')) response.tags.push('internal');
       if (ref.tags.includes('dm')) response.tags.push('dm', 'internal', 'plugin/thread');
@@ -228,27 +237,30 @@ the [quickstart](https://github.com/cjmalloy/jasper-ui/blob/master/quickstart/do
 docker compose file. See [Jasper App](https://github.com/cjmalloy/jasper-app) for an installable
 electron wrapper.
 
-## Knowledge Management
-
-Jasper is an open source knowledge management (KM) system. A KM system is similar to a Content Management
-System (CMS), but it does not store any content. Instead, a KM stores links to content. This means
-that adding a KM to your internal tools is quick and easy. It will create an overlay database,
-which is a small and fast index of all your content sources. Extend functionality with custom plugins,
-or embed existing dashboard panels directly to create your central business intelligence dashboard.
-
 See [Jasper-UI](https://github.com/cjmalloy/jasper-ui) for documentation on the reference client.
 
-### Centralized Business Intelligence
+## Knowledge Management
 
-Dumping all department-level data into a central data lake to perform analytics on is a massive undertaking
-with dubious potential benefit. Instead, empower departments to run their own analytics and formalize the
-reporting format to allow centralized aggregation.
+Jasper is an open source knowledge management system. It provides a generic set of tools for dealing
+with knowledge management style problems. Knowledge management type problems include:
 
-Build a Business Intelligence (BI) dashboard without building a data lake. Business departments can use
-both a push or pull model to publish their analytics, reports, results, KPIs, graphs, metrics, or alerts.
-Jasper standardises the transport, storage, searching, indexing, and retrieval of data while allowing you
-to use your existing data structures and formats. Stitch together department-level resources to create
-a central overview that explicitly describes dependencies.
+* Business Intelligence
+* Scientific Research
+* Journalism
+* Web Forums
+* Wiki (Encyclopedia)
+* Task Management
+* Libraries
+* Customer Support
+* Collaborative Writing
+* Personal Knowledge Management
+* E-mail
+
+Jasper can be configured to host all these products, individually or in combination.
+Run it as an app or a website and connect them together to build a networked system.
+Prevent data loss by having full or partial replication of data across the network.
+Safely ingest external data sources with one-way replication.
+Enforce conformity with a flexible data model, or simply collate unstructured reports.
 
 ### Security
 
@@ -258,7 +270,7 @@ in a [small, readable file](https://github.com/cjmalloy/jasper/blob/master/src/m
 
 ### Build your own client
 
-Connect to Jasper with a custom client to give users a streamlined user experience (UX). Frontend
+Connect to Jasper with a custom client to give users a streamlined user experience. Frontend
 developers can create a bespoke interface without needing to make any server side changes. Create custom
 plugins and templates and ensure data shape with [JTD](https://jsontypedef.com/docs/jtd-in-5-minutes/)
 schemas. Fork [the reference client](https://github.com/cjmalloy/jasper-ui) or use the
@@ -290,10 +302,9 @@ usually a UUID
 
 Like the [OSI model](https://en.wikipedia.org/wiki/OSI_model), Jasper's data model is defined in layers:
 
-1. **Identity Layer** - Structure and Persistence of entities
-2. **Indexing Layer** - Defining optional fields used to query, sort, filter, and transport
-3. **Validation Layer** - plugins and templates are validated
-4. **Modding Layer** - custom plugins, templates, and clients
+1. **Identity Layer** - persistence of individual entities
+2. **Indexing Layer** - query and transport of entities
+3. **Application Layer** - custom modifications
 
 ## Tagging
 
@@ -382,7 +393,7 @@ stored in Ext entities and similarly validated according to their schema.
 
 See [Jasper-UI](https://github.com/cjmalloy/jasper-ui) for examples of Plugins and Templates, such as:
 
-* \`plugin/thumbanail\`: [This plugin](https://github.com/cjmalloy/jasper-ui/blob/master/src/app/mods/thumbnail.ts)
+* \`plugin/thumbnail\`: [This plugin](https://github.com/cjmalloy/jasper-ui/blob/master/src/app/mods/thumbnail.ts)
   allows a Ref to include a URL to a thumbnail image.
 * \`user\` Template:
   [This template](https://github.com/cjmalloy/jasper-ui/blob/master/src/app/mods/user.ts)
@@ -561,7 +572,8 @@ Implementations may also make the modified date part of the composite primary ke
 **Origin:** The Origin this Plugin was replicated from, or the empty string for local.
 **Name:** The display name of this Ext. Used to customise the page title for the Tag page.
 **Config:** Arbitrary JSON.
-**Defaults:** Default plugin data if creating a new Ref with empty plugin data.
+**Defaults:** Default plugin data if creating a new Ref with empty plugin data. May be any JSON value (object, array, or
+scalar).
 **Schema:** Json Type Def (JTD) schema used to validate plugin data in Ref.
 **Modified:** Last modified date of this Plugin.
 
@@ -1338,8 +1350,8 @@ You could respond:
     }],
     "ext": []
 }
-Also, when using a chat template, do not notifications (starting with plugin/inbox/user/bob) to instead tag
-with the current chat (starting with chat/)
+Also, when using a chat template, do not use notification tags (starting with plugin/inbox/user/bob); instead, tag
+with the current chat (starting with chat/).
 All date times are ISO format Zulu time like: "2023-04-22T20:38:19.480464Z"
 Always add the "+plugin/delta/ai/navi" tag, as that is your signature.
 Never include a tag like "+user/chris", as that is impersonation.
@@ -1405,8 +1417,8 @@ graph TB
  - ngx-markdown has KaTeX support enabled, but this is conditional on the plugin/latex plugin installed
 and the tag added to the Ref in question.
 As ngx-markdown supports mixed markdown and HTML, you can output HTML if necessary to overcome some limitation.
- - ngx-markdown does not have emoji or clipboard enabled. If you need to use an emoji, just use the actual character.
 However, markdown is more portable so it is strongly preferred.
+ - ngx-markdown does not have emoji or clipboard enabled. If you need to use an emoji, just use the actual character.
 Never create lists with a bullet character, always use * to be valid markdown.
 
 You can reply with multiple Refs and request help from another assistant by tagging with plugin/delta/ai/navi.
@@ -1418,7 +1430,6 @@ the additional context also loaded. You should use a message like "Reading the l
 When in chat mode, you will only have access to the single Ref you are replying to, so being able to load extra
 context is especially useful.
 When replying with multiple Refs, the first Ref will be considered the main response addressed to the user.
-You must list the other Refs or Exts you created in the response Ref! This is extremely important.
 To reference a Ref and include the title, info row, actions row (and thumbnail if enabled), use
 the form ![=](ai:url). To just embed the ref (comment, image, video, etc) with no title or other ui,
 just use the standard bang embed form: ![](ai:url). If you include a regular link to it, a toggle to show / hide
@@ -1440,6 +1451,12 @@ and modify it from there. For example, to create or update an Ext
 Due to this optimistic lock limitation you will also not be able to modify Users, Plugins, or Templates as
 there is no way for you to find the modified field. You can create them, however for best practices you should rather
 just send instructions for the user to manually create them.
+
+To reference an existing Ref you created, use its URL starting with ai:. When adding
+Refs you may leave the URL blank to have one generated of the form ai:<uuid>. You
+can use a URL of the form add:0, add:1, add:File1.json, etc to also reference or embed
+them in another Ref. The URL of each Ref will be written with the form ai:<uuid> and all
+references updated.
 
 When choosing a title, try to keep the existing format of the Ref you are replying to.
 For example, if the Ref title is "Re: Bowling", you should just keep the same title.

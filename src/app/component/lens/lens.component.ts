@@ -1,4 +1,5 @@
 import { Component, forwardRef, Input, OnChanges, QueryList, SimpleChanges, ViewChildren, ChangeDetectionStrategy } from '@angular/core';
+import { MobxAngularModule } from 'mobx-angular';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ext } from '../../model/ext';
 import { Page } from '../../model/page';
@@ -19,6 +20,7 @@ import { MapComponent } from '../map/map.component';
 import { NotebookComponent } from '../notebook/notebook.component';
 import { RefListComponent } from '../ref/ref-list/ref-list.component';
 import { RefComponent } from '../ref/ref.component';
+import { ViewerComponent } from '../viewer/viewer.component';
 
 @Component({
   selector: 'app-lens',
@@ -26,6 +28,7 @@ import { RefComponent } from '../ref/ref.component';
   styleUrls: ['./lens.component.scss'],
   changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
+    MobxAngularModule,
     LoadingComponent,
     forwardRef(() => RefComponent),
     forwardRef(() => ForceDirectedComponent),
@@ -37,6 +40,7 @@ import { RefComponent } from '../ref/ref.component';
     forwardRef(() => NotebookComponent),
     forwardRef(() => GridComponent),
     forwardRef(() => MapComponent),
+    ViewerComponent,
   ],
 })
 export class LensComponent implements OnChanges, HasChanges {
@@ -67,6 +71,7 @@ export class LensComponent implements OnChanges, HasChanges {
   showVotes = false;
 
   plugins?: string[];
+  header?: string;
 
   @ViewChildren('lens')
   list?: QueryList<HasChanges>;
@@ -82,6 +87,7 @@ export class LensComponent implements OnChanges, HasChanges {
   }
 
   init() {
+    this.header = this.ext?.config?.header;
     if (hasPrefix(this.ext?.tag, 'plugin')) {
       this.plugins = [this.ext!.tag];
     } else {

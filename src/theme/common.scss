@@ -233,6 +233,14 @@ hr {
   text-decoration: underline;
 }
 
+h5[routerLink],
+span[routerLink] {
+  cursor: pointer;
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
 .no-underline {
   &, &:active, &:hover, &:visited {
     text-decoration: none;
@@ -1253,6 +1261,9 @@ details.advanced {
       }
     }
   }
+}
+.plugins-form details.advanced summary > span{
+  border: none;
 }
 
 details.advanced[open] {

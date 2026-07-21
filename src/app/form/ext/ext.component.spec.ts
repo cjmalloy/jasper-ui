@@ -3,9 +3,10 @@ import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/com
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { forwardRef } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ReactiveFormsModule, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
+import { FormControl, ReactiveFormsModule, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { provideRouter } from '@angular/router';
 import { JasperFormlyModule } from '../../formly/formly.module';
+import { UrlFilter } from '../../util/query';
 
 import { ExtFormComponent } from './ext.component';
 
@@ -39,5 +40,99 @@ describe('ExtFormComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('adds, updates, and removes multiple default sorts', () => {
+    component.config.addControl('defaultSort', new FormControl<string[]>([], { nonNullable: true }));
+    const select = document.createElement('select');
+
+    component.addSort('published', select);
+    component.addSort('modified', select);
+    component.setSortDir(0, 'DESC');
+
+    expect(component.defaultSort.value).toEqual(['published,DESC', 'modified,DESC']);
+
+    component.removeSort(0);
+    expect(component.defaultSort.value).toEqual(['modified,DESC']);
+  });
+
+  it('adds, toggles, dates, and removes multiple default filters', () => {
+    component.config.addControl('defaultFilter', new FormControl<UrlFilter[]>([], { nonNullable: true }));
+    const select = document.createElement('select');
+
+    component.addFilter('query/public', select);
+    component.addFilter('published/before/2026-07-10T03:00:00.000Z', select);
+    component.toggleFilter(0);
+    component.setFilterDate(1, component.defaultFilter.value[1], '2026-07-09T12:30');
+
+    expect(component.defaultFilter.value[0]).toBe('query/!(public)');
+    expect(component.defaultFilter.value[1]).toContain('published/before/2026-07-09T12:30');
+
+    component.removeFilter(0);
+    expect(component.defaultFilter.value).toHaveLength(1);
+  });
+
+  it('includes date filters in the available default filters', () => {
+    expect(component.allFilters.map(filter => filter.filter)).toEqual(expect.arrayContaining([
+      expect.stringMatching(/^modified\/before\//),
+      expect.stringMatching(/^response\/after\//),
+      expect.stringMatching(/^published\/before\//),
+      expect.stringMatching(/^created\/after\//),
+    ]));
+  });
+
+  it('loads default sort and filter selections from the model', () => {
+    component.allSorts = [
+      { value: 'modified', label: 'modified' },
+      { value: 'published', label: 'published' },
+    ];
+    component.config.addControl('defaultSort', new FormControl<string[]>([
+      'published,DESC',
+      'modified,DESC',
+    ], { nonNullable: true }));
+    component.config.addControl('defaultFilter', new FormControl<UrlFilter[]>([
+      'published/before/PT15M',
+      'created/after/2026-07-10T03:00:00.000Z',
+    ], { nonNullable: true }));
+    fixture.detectChanges();
+
+    const sorts = fixture.nativeElement.querySelectorAll('.default-sort-row select');
+    const filters = fixture.nativeElement.querySelectorAll('.default-filter-row select');
+    expect([...sorts].map((select: HTMLSelectElement) => select.value)).toEqual(['published', 'modified']);
+    expect([...filters].map((select: HTMLSelectElement) => select.value)).toEqual([
+      component.filterOption(component.defaultFilter.value[0]),
+      component.filterOption(component.defaultFilter.value[1]),
+    ]);
+  });
+
+  it('uses range presets for special dates and while the hotkey is pressed', () => {
+    component.config.addControl('defaultFilter', new FormControl<UrlFilter[]>([
+      'published/before/PT15M',
+      'created/after/2026-07-10T03:00:00.000Z',
+    ], { nonNullable: true }));
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelectorAll('input[type="range"]')).toHaveLength(1);
+    expect(component.filterDatePreset(component.defaultFilter.value[0])).toBe(2);
+    expect(component.filterDatePreset('modified/after/now')).toBe(0);
+    expect(component.filterSpecialDate('modified/after/P2D')).toBe(true);
+    expect(fixture.nativeElement.querySelector('.default-filter-row select').value).toMatch(/^published\/before\//);
+
+    component.store.hotkey = true;
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelectorAll('input[type="range"]')).toHaveLength(2);
+
+    component.setFilterDatePreset(1, component.defaultFilter.value[1], '11');
+    expect(component.defaultFilter.value[1]).toBe('created/after/P1Y');
+  });
+
+  it('displays range durations in a human-readable format', () => {
+    component.config.addControl('defaultFilter', new FormControl<UrlFilter[]>([
+      'published/before/PT15M',
+    ], { nonNullable: true }));
+    fixture.detectChanges();
+
+    expect(component.filterDateLabel(component.defaultFilter.value[0])).toBe('15 minutes');
+    expect(fixture.nativeElement.querySelector('.default-filter-date-range output').textContent).toBe('15 minutes');
   });
 });
