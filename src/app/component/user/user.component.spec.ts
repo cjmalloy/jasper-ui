@@ -51,6 +51,15 @@ describe('UserComponent', () => {
     });
   });
 
+  it.each(['.', '/api', '//remote.example/api'])(
+    'resolves the %s API URL against the document base',
+    api => {
+      component.config.api = api;
+
+      expect(component.connectionRef.url).toBe(new URL(api, document.baseURI).href);
+    },
+  );
+
   it('recommends the API hostname as the local alias for the default origin', () => {
     component.config.api = 'https://jasper.example/api';
     component.user = { tag: '+user/test', origin: '' };
