@@ -36,10 +36,14 @@ describe('FakeLinkDirective', () => {
   });
 
   it('activates with Space and prevents scrolling', () => {
-    const event = new KeyboardEvent('keydown', { key: ' ', cancelable: true });
-    fakeLink.dispatchEvent(event);
+    const keydown = new KeyboardEvent('keydown', { key: ' ', cancelable: true });
+    fakeLink.dispatchEvent(keydown);
+
+    expect(fixture.componentInstance.activated).toBe(0);
+    expect(keydown.defaultPrevented).toBe(true);
+
+    fakeLink.dispatchEvent(new KeyboardEvent('keyup', { key: ' ' }));
 
     expect(fixture.componentInstance.activated).toBe(1);
-    expect(event.defaultPrevented).toBe(true);
   });
 });

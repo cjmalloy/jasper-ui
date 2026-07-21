@@ -145,9 +145,12 @@ export class ActionListComponent implements AfterViewInit, OnChanges {
 
   showAdvanced(event: MouseEvent) {
     this.closeAdvanced();
+    const origin = event.detail === 0
+      ? event.currentTarget as HTMLElement
+      : {x: event.x, y: event.y};
     defer(() => {
       const positionStrategy = this.overlay.position()
-        .flexibleConnectedTo({x: event.x, y: event.y})
+        .flexibleConnectedTo(origin)
         .withPositions([{
           originX: 'center',
           originY: 'center',
