@@ -48,9 +48,12 @@ test.describe.serial('User Page', () => {
   });
 
   test('downloads a pre-filled connection ref', async ({ page }) => {
-    await page.goto('/tag/user/alice?debug=USER&tag=alice', { waitUntil: 'networkidle' });
+    await page.goto('/settings/user?debug=ADMIN', { waitUntil: 'networkidle' });
+    const profile = page.locator('.profile', {
+      has: page.getByRole('link', { name: 'alice', exact: true }),
+    });
     const downloadPromise = page.waitForEvent('download');
-    await page.locator('.profile .connect-action').click();
+    await profile.locator('.connect-action').click();
     const download = await downloadPromise;
     expect(download.suggestedFilename()).toBe('@localhost.json');
     const stream = await download.createReadStream();

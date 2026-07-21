@@ -36,7 +36,7 @@ import { downloadRef, downloadTag } from '../../util/download';
 import { scrollToFirstInvalid } from '../../util/form';
 import { printError } from '../../util/http';
 import { memo, MemoCache } from '../../util/memo';
-import { localTag, tagOrigin } from '../../util/tag';
+import { localTag, subOrigin, tagOrigin } from '../../util/tag';
 import { ActionComponent } from '../action/action.component';
 import { ConfirmActionComponent } from '../action/confirm-action/confirm-action.component';
 import { InlineButtonComponent } from '../action/inline-button/inline-button.component';
@@ -168,7 +168,8 @@ export class UserComponent implements OnChanges, HasChanges {
   }
 
   get connectionRef(): Ref {
-    const template = this.store.origins.origins.find(ref => !ref.plugins?.['+plugin/origin']?.local);
+    const template = this.store.origins.origins.find(ref =>
+      subOrigin(ref.origin, ref.plugins?.['+plugin/origin']?.local) === this.origin);
     const local = template?.plugins?.['+plugin/origin']?.remote || this.origin || this.recommendedAlias;
     return {
       url: template?.url || (this.config.api.startsWith('//') ? location.protocol + this.config.api : this.config.api),
