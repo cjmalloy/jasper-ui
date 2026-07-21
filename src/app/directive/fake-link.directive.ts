@@ -1,7 +1,7 @@
 import { Directive, ElementRef, HostListener } from '@angular/core';
 
 @Directive({
-  selector: '.fake-link',
+  selector: '.fake-link, .parent-link',
   host: {
     role: 'button',
     tabindex: '0',
