@@ -53,6 +53,27 @@ describe('RefFormComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  it('shows a thumbnail preview only when creating a Ref with thumbnail data', () => {
+    vi.spyOn(component.admin, 'getPlugin').mockImplementation(tag => {
+      return tag === 'plugin/thumbnail' ? {} as any : undefined;
+    });
+    component.tags.setValue(['plugin/thumbnail']);
+
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.thumbnail-preview')).toBeNull();
+
+    component.creating = true;
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.thumbnail-preview .thumbnail')).not.toBeNull();
+  });
+
+  it('includes the disabled URL in creation thumbnail data', () => {
+    component.url.setValue('cache:image-id');
+    component.url.disable();
+
+    expect(component.thumbnailRefs[0].url).toBe('cache:image-id');
+  });
+
   it('should extract title from filename when scrape returns no title', async () => {
     // Set a URL to a PDF file
     component.url.setValue('https://example.com/my-document.pdf');
