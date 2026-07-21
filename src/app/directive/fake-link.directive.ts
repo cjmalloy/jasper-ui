@@ -17,7 +17,7 @@ export class FakeLinkDirective {
   }
 
   @HostListener('keydown.space', ['$event'])
-  activateWithSpace(event: KeyboardEvent): void {
+  activateWithSpace(event: Event): void {
     event.preventDefault();
     this.elementRef.nativeElement.click();
   }
