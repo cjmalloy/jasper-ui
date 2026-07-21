@@ -3,7 +3,7 @@
      [style.grid-template-columns]="gridTemplateColumns">
   @for (ref of pinned; track ref.origin + '@' + ref.url) {
     <div class="list-number">&bullet;</div>
-    @if (query.bulkToolsOpen) {
+    @if (query.bulkToolsOpen && page === query.page) {
       <div class="bulk-select-cell"></div>
     }
     <app-ref class="pinned ref-list-item"
