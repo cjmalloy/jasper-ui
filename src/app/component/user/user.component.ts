@@ -135,7 +135,7 @@ export class UserComponent implements OnChanges, HasChanges {
   }
 
   @memo
-  get reccomendedAlias() {
+  get recommendedAlias() {
     const api = new URL(this.config.api, location.href);
     const firstPath = api.pathname.split('/').filter(Boolean)[0];
     return firstPath?.startsWith('~') && firstPath.length > 1
@@ -169,7 +169,7 @@ export class UserComponent implements OnChanges, HasChanges {
 
   get connectionRef(): Ref {
     const template = this.store.origins.origins.find(ref => !ref.plugins?.['+plugin/origin']?.local);
-    const local = template?.plugins?.['+plugin/origin']?.remote || this.origin || this.reccomendedAlias;
+    const local = template?.plugins?.['+plugin/origin']?.remote || this.origin || this.recommendedAlias;
     return {
       url: template?.url || (this.config.api.startsWith('//') ? location.protocol + this.config.api : this.config.api),
       title: template?.title || local,
