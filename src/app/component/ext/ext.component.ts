@@ -1,4 +1,5 @@
 import { AsyncPipe } from '@angular/common';
+import { FakeLinkDirective } from '../../directive/fake-link.directive';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
   Component,
@@ -48,6 +49,7 @@ import { ConfirmActionComponent } from '../action/confirm-action/confirm-action.
   host: { 'class': 'ext list-item' },
   changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
+    FakeLinkDirective,
     forwardRef(() => ExtFormComponent),
     RouterLink,
     TitleDirective,

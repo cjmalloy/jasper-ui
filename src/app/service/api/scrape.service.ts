@@ -1,6 +1,5 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { autorun } from 'mobx';
 import { catchError, map, Observable, throwError } from 'rxjs';
 import { mapRef, Ref } from '../../model/ref';
 import { catchAll } from '../../mods/sync/scrape';
@@ -22,8 +21,8 @@ export class ScrapeService {
     private refs: RefService,
     private login: LoginService,
   ) {
-    autorun(() => {
-      if (store.eventBus.event === '+plugin/scrape:defaults' || store.eventBus.event === '*:defaults') {
+    store.eventBus.events.subscribe(event => {
+      if (event.event === '+plugin/scrape:defaults' || event.event === '*:defaults') {
         this.defaults().subscribe();
       }
     });

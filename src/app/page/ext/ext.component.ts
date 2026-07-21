@@ -1,4 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
+import { FakeLinkDirective } from '../../directive/fake-link.directive';
 import { Component, HostBinding, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import {
   ReactiveFormsModule,
@@ -35,6 +36,7 @@ import { access, hasPrefix, localTag, prefix } from '../../util/tag';
   styleUrls: ['./ext.component.scss'],
   changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
+    FakeLinkDirective,
     MobxAngularModule,
     RouterLink,
     SettingsComponent,

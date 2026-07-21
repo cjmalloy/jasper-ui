@@ -1,4 +1,5 @@
 import { AsyncPipe } from '@angular/common';
+import { FakeLinkDirective } from '../../directive/fake-link.directive';
 import {
   AfterViewInit,
   Component,
@@ -17,7 +18,7 @@ import {
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { delay, groupBy, uniq, without } from 'lodash-es';
-import { autorun, IReactionDisposer, runInAction } from 'mobx';
+import { runInAction } from 'mobx';
 import { MobxAngularModule } from 'mobx-angular';
 import { Subject, takeUntil } from 'rxjs';
 import { TitleDirective } from '../../directive/title.directive';
@@ -66,6 +67,7 @@ import { CommentThreadComponent } from './comment-thread/comment-thread.componen
   host: { 'class': 'comment' },
   changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
+    FakeLinkDirective,
     CommentThreadComponent,
     forwardRef(() => ViewerComponent),
     MobxAngularModule,
@@ -82,7 +84,6 @@ import { CommentThreadComponent } from './comment-thread/comment-thread.componen
 export class CommentComponent implements OnInit, AfterViewInit, OnChanges, OnDestroy, HasChanges {
   @HostBinding('attr.tabindex') tabIndex = 0;
   private destroy$ = new Subject<void>();
-  private disposers: IReactionDisposer[] = [];
 
   maxContext = 20;
 
@@ -132,19 +133,19 @@ export class CommentComponent implements OnInit, AfterViewInit, OnChanges, OnDes
     private bookmarks: BookmarkService,
     private el: ElementRef<HTMLDivElement>,
   ) {
-    this.disposers.push(autorun(() => {
-      if (this.store.eventBus.event === 'refresh') {
-        if (this.ref?.url && this.store.eventBus.isRef(this.ref)) {
-          this.ref = this.store.eventBus.ref!;
+    this.store.eventBus.events.pipe(takeUntil(this.destroy$)).subscribe(event => {
+      if (event.event === 'refresh') {
+        if (this.ref?.url && this.store.eventBus.isRef(event, this.ref)) {
+          this.ref = event.ref!;
           this.init();
         }
       }
-      if (this.store.eventBus.event === 'error') {
-        if (this.ref?.url && this.store.eventBus.isRef(this.ref)) {
-          this.serverError = this.store.eventBus.errors;
+      if (event.event === 'error') {
+        if (this.ref?.url && this.store.eventBus.isRef(event, this.ref)) {
+          this.serverError = event.errors;
         }
       }
-    }));
+    });
   }
 
   saveChanges() {
@@ -206,8 +207,6 @@ export class CommentComponent implements OnInit, AfterViewInit, OnChanges, OnDes
     this.newComments$.complete();
     this.destroy$.next();
     this.destroy$.complete();
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
   }
 
   @HostBinding('class.last-selected')

@@ -34,10 +34,10 @@ export class SubmitStore {
       setExt: action,
     });
 
-    autorun(() => {
-      if (this.eventBus.event === 'refresh') {
-        if (this.eventBus.ref) {
-          this.setRef(this.eventBus.ref)
+    this.eventBus.events.subscribe(event => {
+      if (event.event === 'refresh') {
+        if (event.ref) {
+          this.setRef(event.ref)
         }
       }
     });

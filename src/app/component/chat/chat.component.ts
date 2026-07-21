@@ -1,4 +1,5 @@
 import { CdkFixedSizeVirtualScroll, CdkVirtualForOf, CdkVirtualScrollViewport } from '@angular/cdk/scrolling';
+import { FakeLinkDirective } from '../../directive/fake-link.directive';
 import { HttpEventType } from '@angular/common/http';
 import { Component, Input, OnChanges, OnDestroy, SimpleChanges, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
@@ -57,6 +58,7 @@ export interface ChatUpload {
   host: { 'class': 'chat ext' },
   changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
+    FakeLinkDirective,
     ChatEntryComponent,
     LoadingComponent,
     CdkVirtualScrollViewport,

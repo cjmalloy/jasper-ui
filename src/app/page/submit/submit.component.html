@@ -1,7 +1,7 @@
 <ng-container *mobxAutorun>
   <app-tabs>
     <a class="logo" routerLink="/"></a>
-    <h5 class="fake-link" routerLink="." i18n>
+    <h5 routerLink="." i18n>
       Submit
       @if (selectedPlugin) {
         <span>{{ selectedPlugin.name || selectedPlugin.tag }}</span>

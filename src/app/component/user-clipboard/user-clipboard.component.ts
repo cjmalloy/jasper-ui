@@ -1,8 +1,8 @@
 import { AsyncPipe } from '@angular/common';
 import { Component, HostListener, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import DOMPurify from 'dompurify';
-import { autorun, IReactionDisposer } from 'mobx';
 import { catchError, finalize, of, Subscription } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { Plugin } from '../../model/plugin';
@@ -82,7 +82,6 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
   private suppressedSelect?: ClipboardItem;
   private pendingRemotePersist = false;
   private savingRemote = false;
-  private disposers: IReactionDisposer[] = [];
   private resizeClamp?: number;
   private loading = false;
   dropVisible = false;
@@ -97,16 +96,17 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     private editor: EditorService,
     private stomp: StompService,
     private router: Router,
-  ) {}
+  ) {
+    this.store.eventBus.events.pipe(takeUntilDestroyed()).subscribe(event => {
+      if (event.event === 'clip' && event.ref?.url) {
+        this.addItem({ ref: event.ref });
+      }
+    });
+  }
 
   ngOnInit() {
     this.loadLocal();
     this.loadRemote();
-    this.disposers.push(autorun(() => {
-      if (this.store.eventBus.event === 'clip' && this.store.eventBus.ref?.url) {
-        this.addItem({ ref: this.store.eventBus.ref });
-      }
-    }));
     this.watch = this.stomp.watchResponse('tag:/plugin/user/clipboard').pipe(
       catchError(() => of(undefined)),
     ).subscribe(() => this.loadRemote());
@@ -116,8 +116,6 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     this.watch?.unsubscribe();
     this.save?.unsubscribe();
     if (this.resizeClamp) window.clearTimeout(this.resizeClamp);
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
   }
 
   get plugin(): Plugin | undefined {

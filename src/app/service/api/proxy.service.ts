@@ -1,6 +1,5 @@
 import { HttpClient, HttpEvent } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { autorun } from 'mobx';
 import { catchError, map, Observable, of, throwError } from 'rxjs';
 import { mapRef, Ref } from '../../model/ref';
 import { Resource } from '../../model/resource';
@@ -27,8 +26,8 @@ export class ProxyService {
     private refs: RefService,
     private login: LoginService,
   ) {
-    autorun(() => {
-      if (store.eventBus.event === '_plugin/cache:clear-cache') {
+    store.eventBus.events.subscribe(event => {
+      if (event.event === '_plugin/cache:clear-cache') {
         this.clearDeleted(store.account.origin).subscribe();
       }
     });

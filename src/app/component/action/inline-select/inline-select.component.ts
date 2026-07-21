@@ -1,4 +1,5 @@
 import { Component, EventEmitter, Input, Output, ChangeDetectionStrategy } from '@angular/core';
+import { FakeLinkDirective } from '../../../directive/fake-link.directive';
 import { catchError, Observable, of } from 'rxjs';
 import { LoadingComponent } from '../../loading/loading.component';
 import { ActionComponent } from '../action.component';
@@ -9,7 +10,7 @@ import { ActionComponent } from '../action.component';
   styleUrls: ['./inline-select.component.scss'],
   host: { 'class': 'action' },
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [LoadingComponent]
+  imports: [FakeLinkDirective, LoadingComponent]
 })
 export class InlineSelectComponent extends ActionComponent {
 
