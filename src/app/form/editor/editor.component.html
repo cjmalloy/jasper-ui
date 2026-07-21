@@ -107,7 +107,7 @@
       </div>
       <app-loading class="upload-loading" [batch]="true"></app-loading>
     }
-    @if (wysiwygEnabled) {
+    @defer (when wysiwygEnabled) {
       <div #wysiwygEditor
            [class.dropping]="dropping"
            (dragenter)="dropping = true"
@@ -120,7 +120,7 @@
                 class="wysiwyg-source"
                 [id]="id"
                 [formControl]="control"></textarea>
-    } @else {
+    } @placeholder {
       <textarea #editor
                 [disabled]="!!uploads.length"
                 [id]="id"

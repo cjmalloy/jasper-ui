@@ -22,7 +22,7 @@ import {
 } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, UntypedFormArray, UntypedFormControl } from '@angular/forms';
 import { NavigationEnd, Router } from '@angular/router';
-import { Editor } from '@toast-ui/editor';
+import type { Editor } from '@toast-ui/editor';
 import Europa from 'europa';
 import { debounce, defer, delay, intersection, sortedLastIndex, uniq, without } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
@@ -108,36 +108,39 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
     }
     if (this.editorInstance) return;
     this.wysiwygElement = value;
-    const editor = new Editor({
-      el: value.nativeElement,
-      height: '200px',
-      initialEditType: 'wysiwyg',
-      initialValue: this.currentText,
-      previewStyle: 'vertical',
-      theme: this.store.darkTheme ? 'dark' : 'light',
+    void import('@toast-ui/editor').then(({ Editor }) => {
+      if (this.wysiwygElement !== value || this.editorInstance) return;
+      const editor = new Editor({
+        el: value.nativeElement,
+        height: '200px',
+        initialEditType: 'wysiwyg',
+        initialValue: this.currentText,
+        previewStyle: 'vertical',
+        theme: this.store.darkTheme ? 'dark' : 'light',
+      });
+      editor.on('change', () => {
+        const markdown = editor.getMarkdown();
+        this.setText(markdown);
+        this.control.setValue(markdown);
+      });
+      editor.on('focus', () => {
+        this.editing = true;
+        this.focusText();
+      });
+      editor.on('blur', () => {
+        const markdown = editor.getMarkdown();
+        this.blurText(markdown);
+        this.syncText(markdown);
+      });
+      this.wysiwygChanges = this.control.valueChanges.pipe(
+        takeUntil(this.destroy$),
+      ).subscribe(value => {
+        value ||= '';
+        if (editor.getMarkdown() !== value) editor.setMarkdown(value);
+      });
+      this.editorInstance = editor;
+      if (this.autoFocus) editor.focus();
     });
-    editor.on('change', () => {
-      const markdown = editor.getMarkdown();
-      this.setText(markdown);
-      this.control.setValue(markdown);
-    });
-    editor.on('focus', () => {
-      this.editing = true;
-      this.focusText();
-    });
-    editor.on('blur', () => {
-      const markdown = editor.getMarkdown();
-      this.blurText(markdown);
-      this.syncText(markdown);
-    });
-    this.wysiwygChanges = this.control.valueChanges.pipe(
-      takeUntil(this.destroy$),
-    ).subscribe(value => {
-      value ||= '';
-      if (editor.getMarkdown() !== value) editor.setMarkdown(value);
-    });
-    this.editorInstance = editor;
-    if (this.autoFocus) editor.focus();
   }
   @ViewChild('md')
   md?: MdComponent;
