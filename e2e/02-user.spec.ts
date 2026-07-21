@@ -46,4 +46,23 @@ test.describe.serial('User Page', () => {
     await page.locator('.sidebar .tag-select').getByText('Outbox').click();
     await expect(page).toHaveURL(/\/tag\/\+user\/bob/);
   });
+
+  test('downloads a pre-filled connection ref', async ({ page }) => {
+    await page.goto('/tag/user/alice?debug=USER&tag=alice', { waitUntil: 'networkidle' });
+    const downloadPromise = page.waitForEvent('download');
+    await page.locator('.profile .connect-action').click();
+    const download = await downloadPromise;
+    const stream = await download.createReadStream();
+    const chunks: Buffer[] = [];
+    for await (const chunk of stream) chunks.push(chunk);
+
+    expect(JSON.parse(Buffer.concat(chunks).toString())).toEqual({
+      url: 'http://localhost:8081',
+      tags: ['+plugin/origin/pull', '+plugin/origin/tunnel'],
+      plugins: {
+        '+plugin/origin': { remote: '' },
+        '+plugin/origin/tunnel': { remoteUser: 'user/alice' },
+      },
+    });
+  });
 });

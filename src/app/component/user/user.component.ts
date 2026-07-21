@@ -30,7 +30,7 @@ import { UserService } from '../../service/api/user.service';
 import { AuthzService } from '../../service/authz.service';
 import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
-import { downloadTag } from '../../util/download';
+import { downloadRef, downloadTag } from '../../util/download';
 import { scrollToFirstInvalid } from '../../util/form';
 import { printError } from '../../util/http';
 import { memo, MemoCache } from '../../util/memo';
@@ -154,6 +154,17 @@ export class UserComponent implements OnChanges, HasChanges {
     delete user.type;
     delete user.modifiedString;
     downloadTag(user);
+  }
+
+  connect() {
+    downloadRef({
+      url: this.config.api,
+      tags: ['+plugin/origin/pull', '+plugin/origin/tunnel'],
+      plugins: {
+        '+plugin/origin': { remote: this.origin },
+        '+plugin/origin/tunnel': { remoteUser: this.qualifiedTag },
+      },
+    });
   }
 
   setPassword$ = (password: string) => {
