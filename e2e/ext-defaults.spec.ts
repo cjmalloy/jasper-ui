@@ -17,9 +17,13 @@ test.describe.serial('Ext defaults', () => {
     await page.goto('/ext/config/home?debug=ADMIN', { waitUntil: 'networkidle' });
 
     const sortCreate = page.locator('.default-sort-create');
+    const sortRows = page.locator('.default-sort-row');
+    while (await sortRows.count()) {
+      await sortRows.last().getByRole('button', { name: '–' }).click();
+    }
     await sortCreate.selectOption('published');
     await sortCreate.selectOption('modified');
-    await expect(page.locator('.default-sort-row')).toHaveCount(2);
+    await expect(sortRows).toHaveCount(2);
 
     const filterCreate = page.locator('.default-filter-create');
     await filterCreate.selectOption({ label: '📅️ published before' });
