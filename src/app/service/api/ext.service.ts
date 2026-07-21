@@ -114,9 +114,7 @@ export class ExtService {
     let value = of(ext);
     const keys: string[] = [];
     keys.push(ext.tag + ext.origin + ':');
-    if (ext.origin !== this.store.account.origin) {
-      keys.push(ext.tag + ':' + ext.origin);
-    }
+keys.push(ext.tag + ':' + ext.origin);
     for (const key of keys) {
       this._cache.set(key, value);
     }
