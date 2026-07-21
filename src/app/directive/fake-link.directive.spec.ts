@@ -3,7 +3,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FakeLinkDirective } from './fake-link.directive';
 
 @Component({
-  template: '<span class="fake-link" (click)="activated++">activate</span>',
+  template: '<span class="fake-link" (click)="activated = activated + 1">activate</span>',
   imports: [FakeLinkDirective],
 })
 class TestComponent {
