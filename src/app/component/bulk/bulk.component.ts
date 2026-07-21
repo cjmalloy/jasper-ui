@@ -108,6 +108,10 @@ export class BulkComponent implements AfterViewInit, OnChanges, OnDestroy {
   }
 
   ngOnChanges(changes: SimpleChanges) {
+    if (changes.type) {
+      const details = this.el.nativeElement.querySelector('details') as HTMLDetailsElement | null;
+      this.query.setBulkToolsOpen(this.type === 'ref' && !!details?.open);
+    }
     if (changes.type || changes.activeExts) {
       MemoCache.clear(this);
     }

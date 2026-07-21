@@ -66,4 +66,16 @@ describe('BulkComponent', () => {
 
     expect(component.empty).toBe(true);
   });
+
+  it('synchronizes open bulk tools when type changes to ref', () => {
+    fixture.componentRef.setInput('type', 'ext');
+    fixture.detectChanges();
+    const details = fixture.nativeElement.querySelector('details') as HTMLDetailsElement;
+    details.open = true;
+
+    fixture.componentRef.setInput('type', 'ref');
+    fixture.detectChanges();
+
+    expect(component.query.bulkToolsOpen).toBe(true);
+  });
 });
