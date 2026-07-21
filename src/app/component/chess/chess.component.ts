@@ -1,6 +1,7 @@
 import { CdkDrag, CdkDragDrop, CdkDropList, CdkDropListGroup } from '@angular/cdk/drag-drop';
 import {
   Component,
+  effect,
   ElementRef,
   EventEmitter,
   HostBinding,
@@ -15,7 +16,6 @@ import {
 } from '@angular/core';
 import { Chess, Square } from 'chess.js';
 import { defer, delay, flatten, without } from 'lodash-es';
-import { autorun, IReactionDisposer } from 'mobx';
 import { catchError, Observable, of, Subscription, throwError } from 'rxjs';
 import { Ref } from '../../model/ref';
 import { ActionService } from '../../service/action.service';
@@ -38,7 +38,6 @@ type AnimationState = { from: Square; to: Square; capture?: { square: Square; pi
   imports: [CdkDropList, CdkDrag]
 })
 export class ChessComponent implements OnInit, OnChanges, OnDestroy {
-  private disposers: IReactionDisposer[] = [];
 
   @Input()
   ref?: Ref;
@@ -80,7 +79,7 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
     private store: Store,
     private el: ElementRef<HTMLDivElement>,
   ) {
-    this.disposers.push(autorun(() => {
+    effect(() => {
       if (this.store.eventBus.event === 'flip' && this.store.eventBus.ref?.url === this.ref?.url) {
         this.flip = true;
         delay(() => {
@@ -89,7 +88,7 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
         }, 1000);
         defer(() => this.store.eventBus.fire('flip-done'));
       }
-    }));
+    });
   }
 
   ngOnInit(): void {
@@ -160,8 +159,6 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
   }
 
   ngOnDestroy() {
-    for (const dispose of this.disposers) dispose();
-    this.disposers.length = 0;
     this.resizeObserver?.disconnect();
     this.watch?.unsubscribe();
   }

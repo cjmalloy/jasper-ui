@@ -1,6 +1,6 @@
-import { AfterViewInit, Component, HostBinding, HostListener, isDevMode, ViewContainerRef, ChangeDetectionStrategy } from '@angular/core';
+import { AfterViewInit, Component, effect, HostBinding, HostListener, inject, Injector, isDevMode, ViewContainerRef, ChangeDetectionStrategy } from '@angular/core';
 import { Router, RouterOutlet } from '@angular/router';
-import { autorun, runInAction } from 'mobx';
+import { runInAction } from 'mobx';
 import { MobxAngularModule } from 'mobx-angular';
 import { LoginPopupComponent } from './component/login-popup/login-popup.component';
 import { SubscriptionBarComponent } from './component/subscription-bar/subscription-bar.component';
@@ -32,6 +32,7 @@ import { userClipboardPlugin } from './mods/clipboard';
   ],
 })
 export class AppComponent implements AfterViewInit {
+  private readonly injector = inject(Injector);
 
   @HostBinding('class.electron')
   electron = this.config.electron;
@@ -88,30 +89,30 @@ export class AppComponent implements AfterViewInit {
 
   ngAfterViewInit() {
     if (this.pdfPlugin) {
-      autorun(() => {
+      effect(() => {
         if (this.store.eventBus.event === 'pdf') {
           let pdf = pdfUrl(this.pdfPlugin, this.store.eventBus.ref, this.store.eventBus.repost);
           if (!pdf) return;
           if (pdf.url.startsWith('cache:') || this.pdfPlugin!.config?.proxy) pdf.url = this.proxy.getFetch(pdf.url, pdf.origin, pdf.title + (pdf.title.toLowerCase().endsWith('.pdf') ? '' : '.pdf'));
           open(pdf.url, '_blank');
         }
-      });
+      }, { injector: this.injector });
     }
     if (this.archivePlugin) {
-      autorun(() => {
+      effect(() => {
         if (this.store.eventBus.event === 'archive') {
           let url = archiveUrl(this.archivePlugin, this.store.eventBus.ref, this.store.eventBus.repost);
           if (!url) return;
           open(url, '_blank');
         }
-      });
+      }, { injector: this.injector });
     }
     if (this.pipPlugin) {
-      autorun(() => {
+      effect(() => {
         if (this.store.eventBus.event === 'pip') {
           createPip(this.vc, this.store.eventBus.ref!, this.pipPlugin?.config?.windowConfig);
         }
-      });
+      }, { injector: this.injector });
     }
 
     window.visualViewport?.addEventListener('resize', event => {

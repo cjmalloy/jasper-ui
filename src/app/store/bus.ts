@@ -1,5 +1,5 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { makeAutoObservable, observable, reaction, toJS } from 'mobx';
+import { signal } from '@angular/core';
 import { catchError, Observable, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Ref } from '../model/ref';
@@ -9,38 +9,57 @@ export type progress = (msg?: string, p?: number) => void;
 
 export class EventBus {
 
-  event = '';
-  ref?: Ref = {} as any;
-  repost?: Ref = {} as any;
-  errors: string[] = [];
-  progressMessages: string[] = [];
-  progressNum = 0;
-  progressDen = 0;
+  private readonly state = signal({
+    event: '',
+    ref: undefined as Ref | undefined,
+    repost: undefined as Ref | undefined,
+    errors: [] as string[],
+  });
+  private readonly progressState = signal({
+    messages: [] as string[],
+    num: 0,
+    den: 0,
+  });
 
-  constructor() {
-    makeAutoObservable(this, {
-      ref: observable.ref,
-      errors: observable.shallow,
-      runAndReload: false,
-      runAndRefresh: false,
-      catchError$: false,
-      isRef: false,
-    });
-    reaction(() => this.event, () => console.log('🚌️ Event Bus:', this.event, this.event === 'error' ? toJS(this.errors) : '', toJS(this.ref)));
+  get event() {
+    return this.state().event;
+  }
+
+  get ref() {
+    return this.state().ref;
+  }
+
+  get repost() {
+    return this.state().repost;
+  }
+
+  get errors() {
+    return this.state().errors;
+  }
+
+  get progressMessages() {
+    return this.progressState().messages;
+  }
+
+  get progressNum() {
+    return this.progressState().num;
+  }
+
+  get progressDen() {
+    return this.progressState().den;
+  }
+
+  private setState(event: string, ref?: Ref, repost?: Ref, errors: string[] = []) {
+    this.state.set({ event, ref, repost, errors });
+    console.log('🚌️ Event Bus:', event, event === 'error' ? errors : '', ref);
   }
 
   fire(event: string, ref?: Ref, repost?: Ref) {
-    this.event = event;
-    this.ref = ref;
-    this.repost = repost;
+    this.setState(event, ref, repost);
   }
 
   fireError(errors: string[], ref?: Ref) {
-    this.event = 'error';
-    this.errors = [...errors];
-    if (ref) {
-      this.ref = ref;
-    }
+    this.setState('error', ref ?? this.ref, undefined, [...errors]);
   }
 
   /**
@@ -48,31 +67,21 @@ export class EventBus {
    * 'refresh' event.
    */
   reload(ref?: Ref) {
-    this.event = 'reload';
-    if (ref) {
-      this.ref = ref;
-    }
-    this.repost = undefined;
+    this.setState('reload', ref ?? this.ref);
   }
 
   /**
    * Notify latest version of ref is not available.
    */
   refresh(ref?: Ref) {
-    this.event = 'refresh';
-    if (ref) {
-      this.ref = ref;
-    }
-    this.repost = undefined;
+    this.setState('refresh', ref ?? this.ref);
   }
 
   /**
    * Clear event bus state for sending duplicate events.
    */
   reset() {
-    this.event = '';
-    this.ref = undefined;
-    this.repost = undefined;
+    this.setState('');
   }
 
   runAndReload(o: Observable<any>, ref?: Ref) {
@@ -106,24 +115,25 @@ export class EventBus {
 
   clearProgress(steps = 0) {
     if (!steps || !this.progressDen || this.progressNum >= this.progressDen) {
-      this.progressMessages = [];
-      this.progressNum = 0;
-      this.progressDen = steps;
+      this.progressState.set({ messages: [], num: 0, den: steps });
     } else {
-      this.progressDen += steps;
+      this.progressState.update(progress => ({ ...progress, den: progress.den + steps }));
     }
   }
 
   msg(msg: string) {
-    this.progressMessages.push(msg)
+    this.progressState.update(progress => ({ ...progress, messages: [...progress.messages, msg] }));
   }
 
   steps(steps = 1) {
-    this.progressDen += steps;
+    this.progressState.update(progress => ({ ...progress, den: progress.den + steps }));
   }
 
   progress(msg?: string, steps = 1) {
-    if (msg) this.progressMessages.push(msg);
-    if (steps) this.progressNum += steps;
+    this.progressState.update(progress => ({
+      ...progress,
+      messages: msg ? [...progress.messages, msg] : progress.messages,
+      num: progress.num + steps,
+    }));
   }
 }
