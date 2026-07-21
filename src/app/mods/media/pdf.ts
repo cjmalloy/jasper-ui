@@ -9,7 +9,7 @@ export const pdfPlugin: Plugin = {
   name: $localize`📄️ PDF`,
   config: {
     mod: $localize`📄️ PDF`,
-    version: 2,
+    version: 3,
     type: 'plugin',
     default: true,
     proxy: true,
@@ -20,11 +20,15 @@ export const pdfPlugin: Plugin = {
     The pdf plugin indicates a Ref contains a pdf file. It contains optional
     field url which is typically missing. When the url field is missing it is
     assumed to be the URL of the Ref instead.
-    You may refer to a pdf you returned with the URL ai:part, or optionally
-    multiple returned assets as ai:part1, ai:part2, etc. These will be uploaded
-    to the cache and the URL will be rewritten with its cache URL. Even if you use
-    the url field of a pdf plugin, anything not prefixed with ai:part will be
-    assumed to refer to an existing URL in the system and not replaced.
+    Put each generated PDF in a separate Ref after the first response Ref and tag
+    it plugin/pdf. Set that Ref's URL to ai:part1, ai:part2, and so on, matching
+    the returned assets in order. Never use unnumbered ai:part.
+    Embed the PDF Ref from the first response comment with ![=](ai:partN), or
+    link to it with [document](/ref/ai:partN). Normally omit plugin/pdf.url when
+    the Ref's own URL is ai:partN; use the plugin url only when the media differs
+    from the Ref URL. Never reference an ai:partN that was not actually returned.
+    Claimed assets are uploaded and matching references are rewritten. Other URLs
+    refer to existing resources and are not replaced.
     `,
     description: $localize`Adds an action button to open the PDF version.`,
     submit: $localize`📄️ pdf`,

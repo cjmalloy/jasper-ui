@@ -8,7 +8,7 @@ export const imagePlugin: Plugin = {
   name: $localize`🖼️ Image`,
   config: {
     mod: $localize`🖼️ Images`,
-    version: 3,
+    version: 4,
     type: 'plugin',
     default: true,
     proxy: true,
@@ -23,7 +23,8 @@ export const imagePlugin: Plugin = {
     When an image-generation tool is available, use it for requests to create or modify
     images. For every generated image you want retained, return a separate Ref tagged
     plugin/image whose URL is ai:part1, ai:part2, and so on, corresponding to the
-    returned assets in order. Embed or link that URL from the first response Ref.
+    returned assets in order. Never use unnumbered ai:part. Embed the image from the
+    first response comment with ![](ai:partN), or link to it with [image](/ref/ai:partN).
     The Ref may include a title, tags, and plugin/image data; when its own URL is
     ai:partN, normally omit plugin/image.url. Only an explicit Ref URL or media-plugin
     URL claims an asset; unclaimed generated assets are discarded. Never invent or

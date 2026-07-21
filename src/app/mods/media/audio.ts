@@ -7,7 +7,7 @@ export const audioPlugin: Plugin = {
   name: $localize`📻️ Audio`,
   config: {
     type: 'plugin',
-    version: 2,
+    version: 3,
     default: true,
     proxy: true,
     add: true,
@@ -17,11 +17,15 @@ export const audioPlugin: Plugin = {
     The audio plugin indicates a Ref contains an audio file. It contains optional
     field url which is typically missing. When the url field is missing it is
     assumed to be the URL of the Ref instead.
-    You may refer to audio you returned with the URL ai:part, or optionally
-    multiple returned assets as ai:part1, ai:part2, etc. These will be uploaded
-    to the cache and the URL will be rewritten with its cache URL. Even if you use
-    the url field of an audio plugin, anything not prefixed with ai:part will be
-    assumed to refer to an existing URL in the system and not replaced.
+    Put each generated audio file in a separate Ref after the first response Ref
+    and tag it plugin/audio. Set that Ref's URL to ai:part1, ai:part2, and so on,
+    matching the returned assets in order. Never use unnumbered ai:part.
+    Embed the audio Ref from the first response comment with ![=](ai:partN), or
+    link to it with [audio](/ref/ai:partN). Normally omit plugin/audio.url when
+    the Ref's own URL is ai:partN; use the plugin url only when the media differs
+    from the Ref URL. Never reference an ai:partN that was not actually returned.
+    Claimed assets are uploaded and matching references are rewritten. Other URLs
+    refer to existing resources and are not replaced.
     `,
     submit: $localize`📻️ audio`,
     icons: [{ label: $localize`📻️`, order: 2 }],
