@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { delay } from 'lodash-es';
-import { catchError, concat, map, Observable, of, shareReplay, Subject, switchMap, toArray } from 'rxjs';
+import { catchError, concat, map, Observable, of, shareReplay, Subject, switchMap, takeWhile, timeInterval, toArray } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Ext, mapExt, writeExt } from '../../model/ext';
 import { mapPage, Page } from '../../model/page';
@@ -12,8 +12,10 @@ import { OpPatch } from '../../util/json-patch';
 import { hasPrefix, isQuery, localTag, protectedTag, removePrefix, tagOrigin } from '../../util/tag';
 import { ConfigService } from '../config.service';
 import { LoginService } from '../login.service';
+import { StompService } from './stomp.service';
 
 export const EXT_CACHE_MS = 15 * 60 * 1000;
+export const EXT_UPDATE_RATE_LIMIT_MS = 60 * 1000;
 export const EXT_BATCH_THROTTLE_MS = 50;
 export const EXT_BATCH_SIZE = 50;
 
@@ -24,13 +26,14 @@ export class ExtService {
 
   private _cache = new Map<string, Observable<Ext>>();
   private _batchQueue: Array<{ key: string; tag: string; origin?: string; subject: Subject<Ext> }> = [];
-  private _batchTimer?: any;
+  private _batchTimer?: number;
 
   constructor(
     private http: HttpClient,
     private config: ConfigService,
     private login: LoginService,
     private store: Store,
+    private stomp: StompService,
   ) { }
 
   private get base() {
@@ -108,15 +111,30 @@ export class ExtService {
   }
 
   prefillCache(ext: Ext) {
-    const key1 = ext.tag + ext.origin + ':';
-    const key2 = ext.tag + ':' + ext.origin;
-    const value = of(ext);
-    this._cache.set(key1, value);
-    this._cache.set(key2, value);
-    delay(() => {
-      if (this._cache.get(key1) === value) this._cache.delete(key1);
-      if (this._cache.get(key2) === value) this._cache.delete(key2);
-    }, EXT_CACHE_MS);
+    let value = of(ext);
+    const keys: string[] = [];
+    keys.push(ext.tag + ext.origin + ':');
+keys.push(ext.tag + ':' + ext.origin);
+    for (const key of keys) {
+      this._cache.set(key, value);
+    }
+    const sub = this.stomp.watchExt(ext.tag + ext.origin).pipe(
+      timeInterval(),
+      takeWhile((update, index) => index === 0 || update.interval >= EXT_UPDATE_RATE_LIMIT_MS),
+      map(update => update.value),
+    ).subscribe(x => {
+      value = of(x);
+      for (const key of keys) {
+        this._cache.set(key, value);
+      }
+    });
+    const clear = () => {
+      for (const key of keys) {
+        if (this._cache.get(key) === value) this._cache.delete(key);
+      }
+      sub.unsubscribe();
+    };
+    delay(clear, EXT_CACHE_MS);
   }
 
   private processBatch() {
@@ -175,7 +193,7 @@ export class ExtService {
 
     // If there are more items in the queue, schedule another batch
     if (this._batchQueue.length > 0) {
-      this._batchTimer = setTimeout(() => this.processBatch(), EXT_BATCH_THROTTLE_MS);
+      this._batchTimer = delay(() => this.processBatch(), EXT_BATCH_THROTTLE_MS);
     } else {
       this._batchTimer = undefined;
     }
@@ -214,7 +232,7 @@ export class ExtService {
 
     // Schedule batch processing if not already scheduled
     if (!this._batchTimer) {
-      this._batchTimer = setTimeout(() => this.processBatch(), EXT_BATCH_THROTTLE_MS);
+      this._batchTimer = delay(() => this.processBatch(), EXT_BATCH_THROTTLE_MS);
     }
 
     // Set cache expiration
