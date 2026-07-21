@@ -107,7 +107,7 @@
       </div>
       <app-loading class="upload-loading" [batch]="true"></app-loading>
     }
-    @if (admin.getPlugin('plugin/monaco')) {
+    @defer (when admin.getPlugin('plugin/monaco')) {
       <app-code #monacoEditor
                 [id]="id"
                 [formControl]="control"
@@ -127,7 +127,7 @@
                 [appFillWidth]="fillWidth"
                 [padding]="padding"
                 [appAutofocus]="autoFocus"></app-code>
-    } @else {
+    } @placeholder {
       <textarea #editor
                 [disabled]="!!uploads.length"
                 [id]="id"
