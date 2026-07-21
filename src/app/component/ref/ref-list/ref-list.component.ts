@@ -116,7 +116,7 @@ export class RefListComponent implements OnInit, OnDestroy, HasChanges {
     const bulkSelectable = this.query.bulkToolsOpen && this.page === this.query.page;
     if (!bulkSelectable) return this.colStyle;
     if (!this.cols) return 'min-content min-content auto';
-    return 'min-content 1fr'.repeat(this.cols);
+    return Array(this.cols).fill('min-content 1fr').join(' ');
   }
 
   get cols() {
