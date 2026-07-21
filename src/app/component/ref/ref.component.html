@@ -1,206 +1,260 @@
 <div class="row">
-  <div *ngIf="store.account.user && admin.getPlugin('plugin/vote/up')"
-       class="voting">
-    <div class="vote-up"
-         [class.on]="upvote"
-         (click)="voteUp()"></div>
-    <div class="vote-down"
-         *ngIf="admin.getPlugin('plugin/vote/down')"
-         [class.on]="downvote"
-         (click)="voteDown()"></div>
-  </div>
+  @if (store.view.isVoteSorted && store.account.user && admin.getPlugin('plugin/user/vote/up')) {
+    <div class="voting">
+      <div class="vote-up"
+           [class.on]="upvote"
+           (click)="voteUp()"></div>
+      @if (admin.getPlugin('plugin/user/vote/down')) {
+        <div class="vote-down"
+             [class.on]="downvote"
+             (click)="voteDown()"></div>
+      }
+    </div>
+  }
   @if (admin.getPlugin('plugin/thumbnail')) {
-    @if (thumbnailUrl) {
+    @if (thumbnailEmoji || thumbnailColor) {
       <div class="thumbnail"
-           [style.background-image]="[repostRef, ref] | thumbnail | async"
+           [style.background-image]="thumbnailRefs | thumbnail | async | cssUrl"
+           [style.background-color]="thumbnailColor"
+           [style.background-size]="thumbnailRadius ? 'cover' : 'contain'"
            [style.border-radius.px]="thumbnailRadius">{{ thumbnailEmoji }}</div>
+    } @else if (thumbnail) {
+      <div class="thumbnail"
+           [style.background-image]="thumbnailRefs | thumbnail: true | async | cssUrl"
+           [style.background-size]="thumbnailRadius ? 'cover' : 'contain'"
+           [style.border-radius.px]="thumbnailRadius">{{ thumbnailEmoji }}</div>
+    } @else if (thumbnailEmojiDefaults) {
+      <div class="thumbnail">{{ thumbnailEmojiDefaults }}</div>
     } @else {
       <div class="thumbnail"
-           [class.default-thumbnail]="!thumbnailColor && !thumbnailEmoji"
-           [style.background-color]="thumbnailColor"
-           [style.border-radius.px]="thumbnailRadius">{{ thumbnailEmoji }}</div>
+           [class.default-thumbnail]="true"
+           [class.has-storyboard-default]="storyboardData"></div>
     }
   }
   <div class="stack">
-    <div class="link" [class.remote]="!local">
-      <a *ngIf="clickableLink" [href]="link | safe" target="_blank">{{ title }}</a>
-      <a *ngIf="!clickableLink" [routerLink]="defaultView ? ['/ref', url, defaultView] : ['/ref', url]" [queryParams]="{ origin: obsoleteOrigin }">{{ title }}</a><wbr>
+    <div class="link"
+         [class.remote]="!local"
+         [class.comment-title]="!ref.title"
+         [class.redundant]="redundantLink"
+         [attr.title]="altText">
+      @if (tagLink) {
+        <app-nav [url]="url" [text]="title"></app-nav>
+      } @else if (editingLink) {
+        <a [routerLink]="editingLink.routerLink" [queryParams]="editingLink.queryParams">{{ title }}</a><wbr>
+      } @else if (clickableLink) {
+        <app-nav [url]="link" [text]="title" [external]="true"></app-nav>
+      } @else {
+        <a [routerLink]="defaultView ? ['/ref', url, defaultView] : ['/ref', url]"
+           [queryParams]="{ origin: obsoleteOrigin }"
+           (click)="saveRef()">{{ title }}</a><wbr>
+      }
       <span class="host">({{ host }})</span>
     </div>
     <div class="link-below">
-      <button *ngIf="showToggle && (thread || commentNoTitle || expandPlugins.length)"
-              type="button"
-              class="toggle"
-              (click)="editing ? editing = false : viewSource ? viewSource = false : store.local.setRefToggled(ref.url, ref.origin, expanded = !expanded)">
-        @if (editing || viewSource || expanded) {
-          <span class="toggle-x">✕</span>
-        } @else {
-          <span class="toggle-plus" *ngIf="!fullscreen">＋</span>
-          <span class="toggle-fullscreen" *ngIf="fullscreen">⛶</span>
-        }
-      </button>
+      @if (showToggle && (thread || commentNoTitle || expandPlugins.length)) {
+        <button type="button" class="toggle" (click)="toggle()" (contextmenu)="pip($event)">
+          @if (editing || viewSource || diffing) {
+            <span class="toggle-x">✕</span>
+          } @else if (fullscreen || store.hotkey && admin.getPlugin('plugin/fullscreen')) {
+            <span class="toggle-fullscreen">⛶</span>
+          } @else if (expanded) {
+            <span class="toggle-x">✕</span>
+          } @else {
+            <span class="toggle-plus">＋</span>
+          }
+        </button>
+      }
       <div class="stack">
-        <div class="info" [class.expanded]="!actionsExpanded">
+        <div class="info"
+             [class.expanded]="!actionsExpanded"
+             [class.not-expanded]="actionsExpanded === true">
           @if (!ref.created) {
             <span i18n>not found</span>
           } @else {
             @if (publishedIsSubmitted) {
-              <span [title]="ref.created.toISOString()">
-                {{ config.mobile ? '' : submittedLabel }}
-                {{ ref.created.fromNow() }}
-              </span>
+              <span [title]="ref.created.toISO()" i18n>
+                @if (!config.mobile) { submitted }
+                {{ ref.created.toRelative() }}</span>
             } @else {
-              <span [title]="ref.published!.toISOString()" i18n>
-                {{ config.mobile ? '' : publishedLabel }}
-                {{ ref.published!.fromNow() }}
-              </span>
+              <span [title]="ref.published!.toISO()" i18n>
+                @if (!config.mobile) { published }
+                {{ ref.published!.toRelative() }}</span>
             }
             @if (!modifiedIsSubmitted) {
-              <span i18n-title  title="last edited {{ ref.modified!.fromNow() }}">*</span>
+              <span i18n-title title="last edited {{ ref.modified!.toRelative() }}">* </span>
             }
           }
-          <ng-container *ngIf="authors.length" i18n>
-            by
-
-            <ng-container *ngIf="authorExts$ | async as authorExts; else authorNoExts">
-              <ng-container *ngFor="let user of authorExts">
-                <a class="user tag"
-                   [title]="formatAuthor(user.tag + user.origin)"
-                   [routerLink]="['/tag', user.tag + user.origin]">{{ user.name || formatAuthor(user.tag + user.origin) }}</a>
-              </ng-container>
-            </ng-container>
-            <ng-template #authorNoExts>
-              @for (t of userAuthors; track t) {
-                <a class="user tag"
-                   [title]="formatAuthor(t)"
-                   [routerLink]="['/tag', t]">{{ formatAuthor(t) }}</a>
+          @if (authors.length) {
+            <span i18n> by
+              @if (authorExts$ | async; as xs) {
+                @for (x of xs; track x.tag + x.origin) {
+                  <a class="user tag"
+                     [title]="formatAuthor(x.tag + x.origin)"
+                     [routerLink]="['/tag', x.tag + x.origin]"
+                     [appTitle]="x">{{ x.name || formatAuthor(x.tag) }}</a>
+                }
+              } @else {
+                @for (t of authors; track t) {
+                  <a class="user tag"
+                     [title]="formatAuthor(t)"
+                     [routerLink]="['/tag', t]">{{ formatAuthor(t) }}</a>
+                }
               }
-            </ng-template>
-          </ng-container>
-          <ng-container *ngIf="tags.length" i18n>
-            tagged
-            <ng-container *ngIf="tagExts$ | async as tagExts; else tagNoExts">
-              @for (e of tagExts; track e) {
-                <a class="tag" [routerLink]="['/tag', e.tag]">{{ e.name || e.tag }}</a>
+            </span>
+          }
+          @if (tags.length) {
+            <span i18n> tagged
+              @if (tagExts$ | async; as xs) {
+                @for (x of xs; track x) {
+                  <a class="tag"
+                     [routerLink]="['/tag', x.tag]"
+                     [appTitle]="'#' + x.tag">{{ x.name || '#' + x.tag }}</a>
+                }
+              } @else {
+                @for (t of tags; track t) {
+                  <a class="tag"
+                     [routerLink]="['/tag', t]">{{ t }}</a>
+                }
               }
-            </ng-container>
-            <ng-template #tagNoExts>
-              @for (t of tags; track t) {
-                <a class="tag" [routerLink]="['/tag', t]">{{ t }}</a>
+            </span>
+          }
+          @if (recipients.length) {
+            <span i18n> to
+              @if (recipientExts$ | async; as xs) {
+                @for (x of xs; track x.tag + x.origin) {
+                  <a class="user tag"
+                     [title]="formatAuthor(x.tag + x.origin)"
+                     [routerLink]="['/tag', x.tag + x.origin]"
+                     [appTitle]="x">{{ x.name || formatAuthor(x.tag + x.origin) }}</a>
+                }
+              } @else {
+                @for (t of recipients; track t) {
+                  <a class="user tag"
+                     [title]="formatAuthor(t)"
+                     [routerLink]="['/tag', t]">{{ formatAuthor(t) }}</a>
+                }
               }
-            </ng-template>
-          </ng-container>
-          <ng-container *ngIf="recipients.length" i18n>
-            to
-            <ng-container *ngIf="recipientExts$ | async as recipientExts; else recipientNoExts">
-              @for (user of recipientExts; track user) {
-                <a class="user tag"
-                   [title]="formatAuthor(user.tag + user.origin)"
-                   [routerLink]="['/tag', user.tag + user.origin]">{{ user.name || formatAuthor(user.tag + user.origin) }}</a>
-              }
-            </ng-container>
-            <ng-template #recipientNoExts>
-              @for (t of recipients; track t) {
-                <a class="user tag"
-                   [title]="formatAuthor(t)"
-                   [routerLink]="['/tag', t]">{{ formatAuthor(t) }}</a>
-              }
-            </ng-template>
-          </ng-container>
+            </span>
+          }
+          @if (showObsolete && ref.metadata?.obsolete) {
+            <span class="icon" [routerLink]="['/tag', alarm]" i18n-title title="Obsolete">⏮️</span>
+          }
           @if (showAlarm && alarm) {
-            <span class="icon" [routerLink]="['/tag', alarm]" i18n-title title="Alarm ({{ alarm }})">🔔</span>
+            <span class="icon" [routerLink]="['/tag', alarm]" i18n-title title="Alarm ({{ alarm }})">🔔️</span>
           }
           @for (icon of icons; track icon) {
-            <span *ngIf="showIcon(icon)"
-                  class="icon"
-                  (click)="clickIcon(icon)"
-                  [appTitle]="icon"
-                  [ref]="ref">{{ icon.label }}</span>
+            @if (showIcon(icon)) {
+              <span class="icon"
+                    [class.filter-toggle]="icon.tag"
+                    (click)="clickIcon(icon, store.hotkey)"
+                    [appTitle]="icon"
+                    [ref]="ref">{{ icon.label }}</span>
+            }
           }
           @for (ui of infoUis; track ui) {
-            <span class="inline-ui"
-                  [appPluginInfoUi]="ui"
-                  [appMdPost]
-                  [ref]="ref"></span>
+            <app-md class="inline-ui"
+                    [disableSanitizer]="true"
+                    [origin]="ref.origin"
+                    [text]="uiMarkdown(ui.tag)"></app-md>
           }
-          <ng-container *ngIf="ref.created && !local" i18n>
-            on <a class="origin tag" [routerLink]="['/tag', ref.origin || '*']">{{ ref.origin || 'default' }}</a>
-          </ng-container>
-          <ng-container *ngIf="local && addTags?.length" i18n>
-            tagging refs
-            <ng-container *ngIf="addTagExts$ | async as addTagExts; else addTagNoExts">
-              <ng-container *ngFor="let e of addTagExts">
-                <a class="tag" [routerLink]="['/tag', e.tag]">{{ e.name || e.tag }}</a>
-              </ng-container>
-            </ng-container>
-            <ng-template #addTagNoExts>
-              <ng-container *ngFor="let t of addTags || []">
-                <a class="tag" [routerLink]="['/tag', t]">{{ t }}</a>
-              </ng-container>
-            </ng-template>
-          </ng-container>
-          <ng-container *ngIf="local && fromOrigin" i18n>
-            from <a class="origin tag" [routerLink]="['/tag', fromOrigin]">{{ fromOrigin }}</a>
-          </ng-container>
-          <ng-container *ngIf="local && addOrigin" i18n>
-            to <a class="origin tag" [routerLink]="['/tag', addOrigin]">{{ addOrigin }}</a>
-          </ng-container>
+          @if (ref.created && !local) {
+            <span i18n> on <a class="origin tag" [routerLink]="['/tag', ref.origin || '*']">{{ ref.origin || 'default' }}</a></span>
+          }
+          @if (local) {
+            @if (originPull) {
+              @if (remoteOrigin) {
+                <span i18n> from {{ remoteOrigin }}</span>
+              }
+              @if (localOrigin) {
+                <span i18n> to <a class="origin tag" [routerLink]="['/tag', localOrigin]">{{ localOrigin }}</a></span>
+              }
+            }
+            @if (originPush) {
+              @if (localOrigin) {
+                <span i18n> from <a class="origin tag" [routerLink]="['/tag', localOrigin]">{{ localOrigin }}</a></span>
+              }
+              @if (remoteOrigin) {
+                <span i18n> to {{ remoteOrigin }}</span>
+              }
+            }
+          }
         </div>
         @if (expanded && expandInline && !editing && !viewSource) {
-          <app-viewer class="viewer-inline"
+          <app-viewer #viewer class="viewer-inline"
                       [ref]="bareRef"
-                      [tags]="plugins"
+                      [tags]="plugins || currentTags"
                       [disableResize]="disableResize"
+                      [fullscreen]="fullscreen"
                       (contextmenu)="unlockViewer($event)"
                       (copied)="copied.emit($event)"></app-viewer>
         }
-        <div class="actions" [class.expanded]="actionsExpanded">
+        <div class="actions"
+             [class.expanded]="actionsExpanded"
+             [class.not-expanded]="actionsExpanded === false">
           @if (store.account.user && !ref.created && !ref.upload) {
-            <a routerLink="/submit" [queryParams]="{ url: ref.url }" i18n>submit</a>
+            <a [routerLink]="submitRoute.routerLink" [queryParams]="submitRoute.queryParams" i18n>submit</a>
           }
           @if (ref.created && !ref.upload) {
-            <a [routerLink]="['/ref', ref.url]" [queryParams]="{ origin: obsoleteOrigin }" i18n>permalink</a>
-            @if (store.account.user && !dm) {
-              <a routerLink="/submit/text" [queryParams]="{source: replySources, sourceTitle: ref.title, tag: replyTags}" i18n>reply</a>
-            } @else if (store.account.user && dm) {
-              <a routerLink="/submit/dm" [queryParams]="{source: replySources, sourceTitle: ref.title, tag: replyTags, to: replyTo}" i18n>reply</a>
+            @if (thread) {
+              <a [routerLink]="['/ref', ref.url, 'thread']" [queryParams]="{ origin: obsoleteOrigin }" (click)="saveRef()" i18n>permalink</a>
+            } @else if (comment) {
+              <a [routerLink]="['/ref', ref.url, 'comments']" [queryParams]="{ origin: obsoleteOrigin }" (click)="saveRef()" i18n>permalink</a>
+            } @else {
+              <a [routerLink]="['/ref', ref.url]" [queryParams]="{ origin: obsoleteOrigin }" (click)="saveRef()" i18n>permalink</a>
+            }
+            @if (parentCommentTop) {
+              <a [routerLink]="['/ref', parentCommentTop, 'comments']" [queryParams]="{ origin: obsoleteOrigin }" (click)="saveRef()" i18n>top</a>
+            }
+            @if (parentThreadTop) {
+              <a [routerLink]="['/ref', parentThreadTop, 'thread']" [queryParams]="{ origin: obsoleteOrigin }" (click)="saveRef()" i18n>parent</a>
+            }
+            @if (store.account.user) {
+              <a class="fake-link" (click)="replying = !replying" i18n>reply</a>
+            }
+            @if (errors) {
+              <a [routerLink]="['/ref', ref.url, 'errors']" [queryParams]="{ origin: obsoleteOrigin }" (click)="saveRef()" i18n>{errors, plural, =1 {1&thinsp;error} other {{{ errors }}&thinsp;errors}}</a>
             }
             @if (comments) {
-              <a [routerLink]="['/ref', ref.url, 'comments']" [queryParams]="{ origin: obsoleteOrigin }" i18n>{comments, plural, =1 {1&thinsp;comment} other {{{ comments }}&thinsp;comments}}</a>
+              <a [routerLink]="['/ref', ref.url, 'comments']" [queryParams]="{ origin: obsoleteOrigin }" (click)="saveRef()" i18n>{comments, plural, =1 {1&thinsp;comment} other {{{ comments }}&thinsp;comments}}@if (newCommentsCount > 0) {<span class="new-resp">&nbsp;({{ newCommentsCount }} new)</span>}</a>
             } @else if (threads) {
-              <a [routerLink]="['/ref', ref.url, 'thread']" [queryParams]="{ origin: obsoleteOrigin }" i18n>{threads, plural, =1 {1&thinsp;reply} other {{{ threads }}&thinsp;replies}}</a>
+              <a [routerLink]="['/ref', ref.url, 'thread']" [queryParams]="{ origin: obsoleteOrigin }" (click)="saveRef()" i18n>{threads, plural, =1 {1&thinsp;reply} other {{{ threads }}&thinsp;replies}}@if (newThreadsCount > 0) {<span class="new-resp">&nbsp;({{ newThreadsCount }} new)</span>}</a>
             }
             @if (responses) {
-              <a [routerLink]="['/ref', ref.url, 'responses']" [queryParams]="{ origin: obsoleteOrigin }" i18n>{feed, select, true {{{ responses }}&thinsp;scraped} false {{responses, plural, =1 {1&thinsp;citation} other {{{ responses }}&thinsp;citations}}}}</a>
+              <a [routerLink]="['/ref', ref.url, 'responses']" [queryParams]="{ origin: obsoleteOrigin }" (click)="saveRef()" i18n>{feed, select, true {{{ responses }}&thinsp;scraped} false {{responses, plural, =1 {1&thinsp;citation} other {{{ responses }}&thinsp;citations}}}}@if (newResponsesCount > 0) {<span class="new-resp">&nbsp;({{ newResponsesCount }} new)</span>}</a>
             }
             @if (parentComment) {
               <a [routerLink]="['/ref', parentComment, 'comments']" [queryParams]="{ origin: obsoleteOrigin }" i18n>parent</a>
+            } @else if (!parentThreadTop) {
+              @if (parent) {
+                <a [routerLink]="['/ref', parent]" [queryParams]="{ origin: obsoleteOrigin }" i18n>parent</a>
+              } @else if (sources) {
+                <a [routerLink]="['/ref', ref.url, 'sources']" [queryParams]="{ origin: obsoleteOrigin }" (click)="saveRef()" i18n>{{ sources }}&thinsp;sources</a>
+              }
             }
-            @if (parentCommentTop) {
-              <a [routerLink]="['/ref', parentCommentTop, 'comments']" [queryParams]="{ origin: obsoleteOrigin }" i18n>top</a>
+            @if (taggingAccess) {
+              <app-inline-tag [action]="tag$" [tags]="ref.tags" i18n>tag</app-inline-tag>
             }
-            @if (parentThreadTop) {
-              <a [routerLink]="['/ref', parentThreadTop, 'thread']" [queryParams]="{ origin: obsoleteOrigin }" i18n>parent</a>
+            @if (store.account.user && !local) {
+              <app-inline-button #action [action]="copy$" i18n>copy</app-inline-button>
             }
-            @if (!parentComment && !parentThreadTop && sources === 1) {
-              <a *ngIf="!parentComment && !parentThreadTop && sources === 1" [routerLink]="['/ref', ref.sources![0]]" [queryParams]="{ origin: obsoleteOrigin }" i18n>parent</a>
-            }
-            @if (!parentComment && !parentThreadTop && sources > 1) {
-              <a *ngIf="!parentComment && !parentThreadTop && sources > 1" [routerLink]="['/ref', ref.url, 'sources']" [queryParams]="{ origin: obsoleteOrigin }" i18n>{{ sources }}&thinsp;sources</a>
-            }
-            <app-inline-tag #action *ngIf="taggingAccess" [action]="tag$" i18n>tag</app-inline-tag>
-            <app-inline-button #action *ngIf="store.account.user && !local" [action]="copy$" i18n>copy</app-inline-button>
             @if (store.account.user && local) {
               <a routerLink="/submit/web" [queryParams]="{ url, tag: 'plugin/repost' }" i18n>repost</a>
             }
-            @if (!hideEdit) {
-              @if (writeAccess) {
-                <a class="fake-link" (click)="editing = !editing" i18n>edit</a>
-              } @else {
-                <a class="fake-link" (click)="viewSource = !viewSource" i18n>source</a>
-              }
+          }
+          @if (!hideEdit) {
+            @if (ref.created && writeAccess) {
+              <a class="fake-link" (click)="editing = !editing" i18n>@if (editForm.dirty) {*edit*} @else {edit}</a>
+            } @else {
+              <a class="fake-link" (click)="viewSource = !viewSource" i18n>source</a>
             }
-            <app-confirm-action #action *ngIf="store.account.sysMod || taggingAccess" [action]="delete$" i18n>delete</app-confirm-action>
+            @if (isView && store.view.versions) {
+              <a class="fake-link" (click)="diffing = !diffing" i18n>diff</a>
+            }
+          }
+          @if (ref.created && !ref.upload && (store.account.mod || taggingAccess)) {
+            <app-confirm-action #action
+                                [class.force-delete]="deleteAccess"
+                                [action]="store.hotkey ? forceDelete$ : delete$" i18n>delete</app-confirm-action>
           }
           @if (ref.upload) {
             @if (ref.exists) {
@@ -213,8 +267,10 @@
               } @else if (store.account.user && dm) {
                 <a routerLink="/submit/dm" [queryParams]="{source: replySources, sourceTitle: ref.title, tag: replyTags, to: replyTo}" i18n>reply</a>
               }
-              <app-inline-tag #action *ngIf="taggingAccess" [action]="tag$" i18n>tag</app-inline-tag>
-              <a class="fake-link" (click)="editing = !editing" i18n>edit</a>
+              @if (taggingAccess) {
+                <app-inline-tag #action [action]="tag$" [tags]="ref.tags" i18n>tag</app-inline-tag>
+              }
+              <a class="fake-link" (click)="editing = !editing" i18n>@if (editForm.dirty) {*edit*} @else {edit}</a>
             }
             <app-confirm-action #action [action]="remove$" i18n>remove</app-confirm-action>
           }
@@ -222,93 +278,122 @@
             <a routerLink="/submit/invoice"
                [queryParams]="{url: ref.url}" i18n>invoice</a>
           }
-          @for (a of actions; track a) {
-            <a *ngIf="showAction(a)"
-               class="fake-link"
-               (click)="acts.apply(a, ref, repostRef)"
-               [appTitle]="a"
-               [appActionLabel]="a"
-               [field]="label(a)"
-               [ref]="ref"></a>
-          }
-          <span class="fake-link show-more"
-                (click)="showAdvanced($event)">…</span>
-          <ng-template #actionsMenu>
-            <div class="context-menu advanced-actions" (click)="$event.stopPropagation()">
-              <a class="fake-link"
-                 (click)="download()" i18n>download</a>
-              <a *ngIf="mediaAttachment"
-                 class="fake-link"
-                 (click)="downloadMedia()" i18n>media</a>
-              @for (a of advancedActions; track a) {
-                <a *ngIf="showAction(a)"
-                   class="fake-link"
-                   (click)="closeAdvanced() || acts.apply(a, ref, repostRef)"
-                   [appTitle]="a"
-                   [appActionLabel]="a"
-                   [field]="label(a)"
-                   [ref]="ref"></a>
-              }
-            </div>
-          </ng-template>
+          <app-action-list [ref]="ref"
+                           [repostRef]="repostRef"
+                           [mediaAttachment]="mediaAttachment"
+                           [groupedActions]="groupedActions"
+                           [groupedAdvancedActions]="groupedAdvancedActions"></app-action-list>
         </div>
       </div>
       <div class="toggle actions-toggle"
            (click)="actionsExpanded = !actionsExpanded">⚙️</div>
-      <div class="toggle view"
-           *ngIf="!admin.getPlugin('plugin/comment')"
-           [routerLink]="['/ref', ref.url]"
-           [queryParams]="{ origin: obsoleteOrigin }">🖇️️</div>
-      <div class="toggle comments"
-           *ngIf="admin.getPlugin('plugin/comment')"
-           [routerLink]="['/ref', ref.url]"
-           [queryParams]="{ origin: obsoleteOrigin }">💬️</div>
+      @if (thread || threads) {
+        <div class="toggle threads"
+             (focus)="delayLastSelected()"
+             (pointerdown)="delayLastSelected()"
+             [routerLink]="['/ref', top, 'thread']"
+             (click)="saveRef()"
+             [queryParams]="{ origin: obsoleteOrigin }">🧵️</div>
+      } @else if (comment || comments) {
+        <div class="toggle comments"
+             [routerLink]="['/ref', ref.url, 'comments']"
+             [queryParams]="{ origin: obsoleteOrigin }"
+             (click)="saveRef()">💬️</div>
+      } @else if (admin.getPlugin('plugin/comment')) {
+        <div class="toggle comments"
+             [routerLink]="['/ref', ref.url]"
+             [queryParams]="{ origin: obsoleteOrigin }"
+             (click)="saveRef()">💬️</div>
+      } @else {
+        <div class="toggle view"
+             [routerLink]="['/ref', ref.url]"
+             [queryParams]="{ origin: obsoleteOrigin }"
+             (click)="saveRef()">🖇️️</div>
+      }
     </div>
   </div>
 </div>
-<app-viewer *ngIf="expanded && !expandInline && !editing && !viewSource"
-            class="viewer-below"
-            [ref]="bareRef"
-            [tags]="plugins"
-            [disableResize]="disableResize"
-            (contextmenu)="unlockViewer($event)"
-            (copied)="copied.emit($event)"></app-viewer>
 
-<form *ngIf="editing else showErrors" class="form" [formGroup]="editForm" (ngSubmit)="save()">
+@if (replying) {
+  <app-comment-reply #reply
+                     [autofocus]="true"
+                     [to]="ref"
+                     [showCancel]="true"
+                     [selectResponseType]="!thread && !comment && !dm"
+                     [tags]="replyTags"
+                     (save)="onReply($event)"></app-comment-reply>
+}
+@if (expanded && !expandInline && !editing && !viewSource) {
+  <app-viewer #viewer class="viewer-below"
+              [ref]="bareRef"
+              [tags]="plugins || currentTags"
+              [disableResize]="disableResize"
+              [fullscreen]="fullscreen"
+              (contextmenu)="unlockViewer($event)"
+              (copied)="copied.emit($event)"></app-viewer>
+}
 
-  <app-ref-form [group]="editForm"
-                (editorTags)="editorPlugins = $event"></app-ref-form>
+@if (editing) {
+  <form class="form" [formGroup]="editForm" (ngSubmit)="save()">
 
+    <app-ref-form #refForm [group]="editForm"></app-ref-form>
+
+    @for (e of serverError; track e) {
+      <span><!-- Unexpected Error --></span>
+      <div class="error">{{ e }}</div>
+    }
+
+    <span><!-- Buttons --></span>
+    <span class="buttons right">
+      @if (overwritten) {
+        <div class="overwrite warning">
+          <input id="overwrite" type="checkbox" [checked]="overwrite" (input)="overwrite = !overwrite">
+          <label for="overwrite" i18n>Overwrite</label>
+        </div>
+      }
+      @if (submitting) {
+        <app-loading [inline]="true"></app-loading>
+      }
+      <button type="submit" [disabled]="submitting || submitted && !editForm.valid" i18n>save</button>
+      <button type="button" [disabled]="submitting" (click)="editing = false" i18n>cancel</button>
+    </span>
+  </form>
+} @else if (viewSource) {
+  <form class="form" [formGroup]="editForm">
+    <app-ref-form #refForm [group]="editForm" [origin]="origin"></app-ref-form>
+  </form>
+} @else if (diffing && diffOriginal && diffModified) {
+  <div class="diff-view form">
+    <app-diff #diffEditor
+              [original]="diffOriginal"
+              [modified]="diffModified"
+              [readOnly]="!local && !!ref.metadata?.obsolete">
+    </app-diff>
+
+    @if (local || !ref.metadata?.obsolete) {
+      <span><!-- Buttons --></span>
+      <span class="buttons right">
+        @if (overwritten) {
+          <div class="overwrite warning">
+            <input id="overwriteDiff" type="checkbox" [checked]="overwrite" (input)="overwrite = !overwrite">
+            <label for="overwriteDiff" i18n>Overwrite</label>
+          </div>
+        }
+        @if (submitting) {
+          <app-loading [inline]="true"></app-loading>
+        }
+        <button type="button" [disabled]="submitting" (click)="saveDiff()" i18n>save</button>
+        <button type="button" [disabled]="submitting" (click)="diffing = false" i18n>cancel</button>
+      </span>
+    }
+  </div>
+} @else {
   @for (e of serverError; track e) {
-    <span><!-- Unexpected Error --></span>
     <div class="error">{{ e }}</div>
   }
-
-  <span><!-- Buttons --></span>
-  <span class="buttons form-array right">
-    <div *ngIf="invalid && !force" class="overwrite warning" i18n-title title="Will drop all unknown plugins.">
-      <input id="overwrite" type="checkbox" [(ngModel)]="overwrite" [ngModelOptions]="{standalone: true}">
-      <label for="overwrite" i18n>Overwrite</label>
+  @if (publishChanged) {
+    <div class="warning" i18n>
+      * Published date was changed to be after source published date.
     </div>
-    <div *ngIf="invalid && force" class="force error" i18n-title title="Will reset all plugins to defaults.">
-      <input id="force" type="checkbox" [(ngModel)]="force" [ngModelOptions]="{standalone: true}">
-      <label for="force" i18n>Force</label>
-    </div>
-    <button type="submit" [disabled]="submitted && !editForm.valid" i18n>save</button>
-    <button type="button" (click)="editing = false" i18n>cancel</button>
-  </span>
-</form>
-
-<form *ngIf="viewSource" class="form" [formGroup]="editForm">
-  <app-ref-form [group]="editForm"></app-ref-form>
-</form>
-
-<ng-template #showErrors>
-  <ng-container *ngFor="let e of serverError">
-    <div class="error">{{ e }}</div>
-  </ng-container>
-  <div *ngIf="publishChanged"
-       class="warning" i18n>
-    * Published date was changed to be after source published date.
-  </div>
-</ng-template>
+  }
+}

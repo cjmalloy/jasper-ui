@@ -1,6 +1,9 @@
-import { HttpClientTestingModule } from '@angular/common/http/testing';
+/// <reference types="vitest/globals" />
+import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { forwardRef } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { RouterTestingModule } from '@angular/router/testing';
+import { provideRouter } from '@angular/router';
 
 import { SubfolderComponent } from './subfolder.component';
 
@@ -10,13 +13,13 @@ describe('SubfolderComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ SubfolderComponent ],
-      imports: [
-        HttpClientTestingModule,
-        RouterTestingModule,
-      ],
-    })
-    .compileComponents();
+      imports: [forwardRef(() => SubfolderComponent)],
+      providers: [
+        provideHttpClient(withXhr(), withInterceptorsFromDi()),
+        provideHttpClientTesting(),
+        provideRouter([]),
+      ]
+    }).compileComponents();
 
     fixture = TestBed.createComponent(SubfolderComponent);
     component = fixture.componentInstance;

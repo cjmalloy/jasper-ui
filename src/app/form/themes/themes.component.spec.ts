@@ -1,3 +1,4 @@
+/// <reference types="vitest/globals" />
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 
@@ -9,15 +10,12 @@ describe('ThemesFormComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ ThemesFormComponent ],
       imports: [
         ReactiveFormsModule,
+        ThemesFormComponent,
       ],
-    })
-    .compileComponents();
-  });
+    }).compileComponents();
 
-  beforeEach(() => {
     fixture = TestBed.createComponent(ThemesFormComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();

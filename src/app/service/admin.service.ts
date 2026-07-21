@@ -1,78 +1,108 @@
 import { Injectable } from '@angular/core';
 import { FormlyFieldConfig } from '@ngx-formly/core';
-import { findKey, isEqual, mapValues, omitBy, reduce, uniq } from 'lodash-es';
+import { Schema, validate } from 'jtd';
+import { identity, isEqual, reduce, uniq } from 'lodash-es';
 import { runInAction } from 'mobx';
-import { catchError, concat, forkJoin, map, Observable, of, switchMap, throwError } from 'rxjs';
+import { catchError, concat, forkJoin, map, Observable, of, retry, switchMap, throwError, toArray } from 'rxjs';
 import { tap } from 'rxjs/operators';
+import { v4 as uuid } from 'uuid';
 import { Ext } from '../model/ext';
 import { Plugin } from '../model/plugin';
 import { Ref } from '../model/ref';
-import { Config, Tag } from '../model/tag';
+import { bundleSize, clear, condition, Config, EditorButton, Mod } from '../model/tag';
 import { Template } from '../model/template';
-import { aiPlugin, aiQueryPlugin, aiTemplate, dallePlugin, dalleQueryPlugin } from '../mods/ai';
-import { archivePlugin } from '../mods/archive';
-import { audioPlugin } from '../mods/audio';
-import { backgammonPlugin, backgammonTemplate } from '../mods/backgammon';
-import { banlistConfig } from '../mods/banlist';
-import { blogTemplate } from '../mods/blog';
-import { chatTemplate } from '../mods/chat';
-import { chessPlugin, chessTemplate } from '../mods/chess';
-import { commentPlugin } from '../mods/comment';
-import { breakpointPlugin, debugPlugin, debugTemplate } from '../mods/debug';
-import { deletePlugin } from '../mods/delete';
-import { htmlPlugin, latexPlugin } from '../mods/editor';
-import { emailPlugin } from '../mods/email';
-import { embedPlugin } from '../mods/embed';
-import { experimentsConfig } from '../mods/experiments';
-import { feedPlugin } from '../mods/feed';
-import { filePlugin } from '../mods/file';
-import { folderTemplate } from '../mods/folder';
-import { fullscreenPlugin } from '../mods/fullscreen';
-import { graphConfig } from '../mods/graph';
-import { homeTemplate } from '../mods/home';
-import { htmlToMarkdownConfig } from '../mods/htmlToMarkdown';
-import { lockedIcon, privateIcon } from '../mods/icons';
-import { imagePlugin, imageTemplate } from '../mods/image';
-import { kanbanTemplate } from '../mods/kanban';
-import { lensPlugin, lensTemplate } from '../mods/lens';
-import { dmTemplate, inboxPlugin, outboxPlugin } from '../mods/mailbox';
-import { modlistConfig } from '../mods/modlist';
-import { oEmbedPlugin } from '../mods/oembed';
-import { originPlugin, originPullPlugin, originPushPlugin, originTunnelPlugin } from '../mods/origin';
-import { pdfPlugin } from '../mods/pdf';
-import { personPlugin } from '../mods/person';
-import { pipPlugin } from '../mods/pip';
-import { playlistPlugin, playlistTemplate } from '../mods/playlist';
-import { pollOptionAPlugin, pollOptionBPlugin, pollOptionCPlugin, pollOptionDPlugin, pollPlugin, pollTemplate } from '../mods/poll';
-import { qrPlugin } from '../mods/qr';
-import { invoiceDisputedPlugin, invoicePaidPlugin, invoicePlugin, invoiceRejectionPlugin, queueTemplate } from '../mods/queue';
-import { repostPlugin } from '../mods/repost';
-import { rootTemplate } from '../mods/root';
-import { scrapePlugin } from '../mods/scrape';
-import { seamlessPlugin } from '../mods/seamless';
-import { snippetConfig } from '../mods/snippet';
-import { summaryPlugin, summaryQueryPlugin } from '../mods/summary';
-import { tablePlugin } from '../mods/table';
-import { thanksConfig } from '../mods/thanks';
-import { terminalTheme } from '../mods/theme';
-import { threadPlugin } from '../mods/thread';
-import { thumbnailPlugin } from '../mods/thumbnail';
-import { todoPlugin, todoTemplate } from '../mods/todo';
-import { userTemplate } from '../mods/user';
-import { videoPlugin } from '../mods/video';
-import { voteDownPlugin, voteUpPlugin } from '../mods/vote';
-import { DEFAULT_WIKI_PREFIX, wikiConfig } from '../mods/wiki';
+import { User } from '../model/user';
+import { aiMod } from '../mods/ai/ai';
+import { dalleMod } from '../mods/ai/dalle';
+import { naviMod } from '../mods/ai/navi';
+import { summaryMod } from '../mods/ai/summary';
+import { translateMod } from '../mods/ai/translate';
+import { blogMod } from '../mods/blog';
+import { chatMod } from '../mods/chat';
+import { clipboardMod } from '../mods/clipboard';
+import { commentMod } from '../mods/comment';
+import { deleteMod, tagDeleteNotice } from '../mods/delete';
+import { draftMod } from '../mods/draft';
+import { htmlMod, latexMod } from '../mods/editor';
+import { experimentsMod } from '../mods/experiments';
+import { backgammonMod } from '../mods/games/backgammon';
+import { chessMod } from '../mods/games/chess';
+import { helpMod } from '../mods/help';
+import { homeMod } from '../mods/home';
+import { lensMod } from '../mods/lens';
+import { mailboxMod } from '../mods/mailbox';
+import { mapMod } from '../mods/map';
+import { audioMod } from '../mods/media/audio';
+import { codeMod } from '../mods/media/code';
+import { durationMod } from '../mods/media/duration';
+import { embedMod } from '../mods/media/embed';
+import { fileMod } from '../mods/media/file';
+import { imageMod } from '../mods/media/image';
+import { pdfMod } from '../mods/media/pdf';
+import { playlistMod } from '../mods/media/playlist';
+import { tableMod } from '../mods/media/table';
+import { videoMod } from '../mods/media/video';
+import { ytdlpMod } from '../mods/media/ytdlp';
+import { storeMod } from '../mods/mod';
+import { modlistMod } from '../mods/modlist';
+import { folderMod } from '../mods/org/folder';
+import { graphMod } from '../mods/org/graph';
+import { gridMod } from '../mods/org/grid';
+import { hideMod } from '../mods/org/hide';
+import { kanbanMod } from '../mods/org/kanban';
+import { notesMod } from '../mods/org/notes';
+import { personMod } from '../mods/org/person';
+import { queueMod } from '../mods/org/queue';
+import { readMod } from '../mods/org/read';
+import { saveMod } from '../mods/org/save';
+import { todoMod } from '../mods/org/todo';
+import { DEFAULT_WIKI_PREFIX, wikiMod } from '../mods/org/wiki';
+import { repostMod } from '../mods/repost';
+import { rootMod } from '../mods/root';
+import { emailMod } from '../mods/sync/email';
+import { feedMod } from '../mods/sync/feed';
+import { remoteOriginMod } from '../mods/sync/origin';
+import { scrapeMod } from '../mods/sync/scrape';
+import { banlistMod } from '../mods/system/banlist';
+import { cacheMod } from '../mods/system/cache';
+import { debugMod } from '../mods/system/debug';
+import { errorMod } from '../mods/system/error';
+import { fullscreenMod } from '../mods/system/fullscreen';
+import { gdprMod } from '../mods/system/gdpr';
+import { oembedMod } from '../mods/system/oembed';
+import { pipMod } from '../mods/system/pip';
+import { scriptMod } from '../mods/system/script';
+import { seamlessMod } from '../mods/system/seamless';
+import { secretMod } from '../mods/system/secret';
+import { snippetMod } from '../mods/system/snippet';
+import { systemMod } from '../mods/system/system';
+import { themesMod } from '../mods/system/theme';
+import { threadMod } from '../mods/thread';
+import { thumbnailMod } from '../mods/thumbnail';
+import { archiveMod } from '../mods/tools/archive';
+import { htmlToMarkdownMod } from '../mods/tools/htmlToMarkdown';
+import { markitdownMod } from '../mods/tools/markitdown';
+import { ninjaTriangleMod } from '../mods/tools/ninga-triangle';
+import { pollMod } from '../mods/tools/poll';
+import { qrMod } from '../mods/tools/qr';
+import { thanksMod } from '../mods/tools/thanks';
+import { userMod } from '../mods/user';
+import { voteMod } from '../mods/vote';
+import { progress } from '../store/bus';
 import { Store } from '../store/store';
-import { getExtension, getHost } from '../util/hosts';
+import { modId } from '../util/format';
+import { getExtension, getHost } from '../util/http';
 import { memo, MemoCache } from '../util/memo';
-import { hasPrefix, includesTag, tagIntersection } from '../util/tag';
+import { addHierarchicalTags, directChild, hasPrefix, hasTag, tagIntersection, test } from '../util/tag';
 import { ExtService } from './api/ext.service';
-import { OEmbedService } from './api/oembed.service';
 import { PluginService } from './api/plugin.service';
-import { ScrapeService } from './api/scrape.service';
+import { RefService } from './api/ref.service';
 import { TemplateService } from './api/template.service';
+import { UserService } from './api/user.service';
 import { AuthzService } from './authz.service';
 import { ConfigService } from './config.service';
+import { equalBundle } from '../util/diff';
+import { neoMod } from '../mods/ai/neo-banana';
 
 @Injectable({
   providedIn: 'root',
@@ -80,149 +110,159 @@ import { ConfigService } from './config.service';
 export class AdminService {
 
   status = {
-    plugins: <Record<string, Plugin | undefined>> {},
-    disabledPlugins: <Record<string, Plugin | undefined>> {},
-    templates: <Record<string, Template | undefined>> {},
-    disabledTemplates: <Record<string, Template | undefined>> {},
+    plugins: <Record<string, Plugin>> {},
+    disabledPlugins: <Record<string, Plugin>> {},
+    templates: <Record<string, Template>> {},
+    disabledTemplates: <Record<string, Template>> {},
+    receipts: <Record<string, Ref>> {},
   };
 
+  mods: Mod[] = [
+    debugMod,
+    rootMod,
+    userMod,
+    folderMod,
+    homeMod,
+    kanbanMod,
+    blogMod,
+    mapMod,
+    chatMod,
+    clipboardMod,
+    mailboxMod,
+    hideMod,
+    saveMod,
+    readMod,
+    draftMod,
+
+    // Themes
+    themesMod,
+
+    // Configs
+    experimentsMod,
+    helpMod,
+    wikiMod,
+    graphMod,
+    modlistMod,
+    banlistMod,
+    snippetMod,
+    htmlToMarkdownMod,
+    thanksMod,
+    gdprMod,
+
+    // Plugins
+    storeMod,
+    oembedMod,
+    scrapeMod,
+    cacheMod,
+    systemMod,
+    secretMod,
+    errorMod,
+    remoteOriginMod,
+    scriptMod,
+    feedMod,
+    deleteMod,
+    mailboxMod,
+    modlistMod,
+    commentMod,
+    threadMod,
+    gridMod,
+    notesMod,
+    emailMod,
+    durationMod,
+    fullscreenMod,
+    seamlessMod,
+    thumbnailMod,
+    tableMod,
+    aiMod,
+    naviMod,
+    dalleMod,
+    neoMod,
+    summaryMod,
+    translateMod,
+    pdfMod,
+    archiveMod,
+    latexMod,
+    codeMod,
+    htmlMod,
+    personMod,
+    repostMod,
+    queueMod,
+    qrMod,
+    embedMod,
+    audioMod,
+    videoMod,
+    ytdlpMod,
+    markitdownMod,
+    voteMod,
+    imageMod,
+    lensMod,
+    pipMod,
+    chessMod,
+    backgammonMod,
+    pollMod,
+    todoMod,
+    ninjaTriangleMod,
+    playlistMod,
+    fileMod,
+  ];
+
   def = {
-    plugins: <Record<string, Plugin>> {
-      oembed: oEmbedPlugin,
-      scrape: scrapePlugin,
-      origin: originPlugin,
-      originPull: originPullPlugin,
-      originPush: originPushPlugin,
-      originTunnel: originTunnelPlugin,
-      feed: feedPlugin,
-      delete: deletePlugin,
-      inbox: inboxPlugin,
-      outbox: outboxPlugin,
-      comment: commentPlugin,
-      thread: threadPlugin,
-      email: emailPlugin,
-      fullscreen: fullscreenPlugin,
-      seamless: seamlessPlugin,
-      thumbnail: thumbnailPlugin,
-      table: tablePlugin,
-      aiQuery: aiQueryPlugin,
-      ai: aiPlugin,
-      dalleQuery: dalleQueryPlugin,
-      dalle: dallePlugin,
-      summaryQuery: summaryQueryPlugin,
-      summary: summaryPlugin,
-      pdf: pdfPlugin,
-      archive: archivePlugin,
-      latex: latexPlugin,
-      html: htmlPlugin,
-      person: personPlugin,
-      repost: repostPlugin,
-      invoice: invoicePlugin,
-      invoiceRejected: invoiceRejectionPlugin,
-      invoiceDisputed: invoiceDisputedPlugin,
-      invoicePaid: invoicePaidPlugin,
-      qr: qrPlugin,
-      embed: embedPlugin,
-      audio: audioPlugin,
-      video: videoPlugin,
-      voteUp: voteUpPlugin,
-      voteDown: voteDownPlugin,
-
-      imagePlugin: imagePlugin,
-      lensPlugin: lensPlugin,
-      pipPlugin: pipPlugin,
-      chessPlugin: chessPlugin,
-      backgammonPlugin: backgammonPlugin,
-      pollPlugin: pollPlugin,
-      pollPluginA: pollOptionAPlugin,
-      pollPluginB: pollOptionBPlugin,
-      pollPluginC: pollOptionCPlugin,
-      pollPluginD: pollOptionDPlugin,
-      todoPlugin: todoPlugin,
-      playlistPlugin: playlistPlugin,
-      filePlugin: filePlugin,
-
-      debugPlugin: debugPlugin,
-      breakpoint: breakpointPlugin,
-    },
-    templates: <Record<string, Template>> {
-      debugTemplate: debugTemplate,
-      root: rootTemplate,
-      user: userTemplate,
-      folder: folderTemplate,
-      home: homeTemplate,
-      queue: queueTemplate,
-      kanban: kanbanTemplate,
-      blog: blogTemplate,
-      chat: chatTemplate,
-      dm: dmTemplate,
-
-      aiTemplate: aiTemplate,
-      imageTemplate: imageTemplate,
-      lensTemplate: lensTemplate,
-      chessTemplate: chessTemplate,
-      bacgammonTemplate: backgammonTemplate,
-      pollTemplate: pollTemplate,
-      todoTemplate: todoTemplate,
-      playlistTemplate: playlistTemplate,
-
-      // Icons
-      lockedIcon: lockedIcon,
-      privateIcon: privateIcon,
-
-      // Themes
-      terminalTheme: terminalTheme,
-
-      // Configs
-      experiments: experimentsConfig,
-      wiki: wikiConfig,
-      graph: graphConfig,
-      modlist: modlistConfig,
-      banlist: banlistConfig,
-      snippets: snippetConfig,
-      htmlToMarkdown: htmlToMarkdownConfig,
-      thanks: thanksConfig,
-    },
+    plugins: <Record<string, Plugin>> Object.fromEntries(this.mods.flatMap(mod => mod.plugin || []).map(p => [p.tag, p])),
+    templates: <Record<string, Template>> Object.fromEntries(this.mods.flatMap(mod => mod.template || []).map(t => [t.tag, t])),
   };
 
   _cache = new Map<string, any>();
+  private firstRun = false;
 
   constructor(
     private config: ConfigService,
     private auth: AuthzService,
+    private refs: RefService,
+    private exts: ExtService,
+    private users: UserService,
     private plugins: PluginService,
     private templates: TemplateService,
-    private exts: ExtService,
-    private oembed: OEmbedService,
-    private ss: ScrapeService,
     private store: Store,
-  ) { }
+  ) {
+    this.store.eventBus.events.subscribe(event => {
+      const mod = event.ref?.plugins?.['plugin/mod'];
+      if (event.event === 'install') {
+        store.eventBus.clearProgress(bundleSize(mod));
+        this.install$(event.ref?.title || '', mod, (msg, p = 0) => store.eventBus.progress(msg, p))
+          .subscribe(mod => {
+            this.pluginToStatus(mod.plugin || []);
+            this.templateToStatus(mod.template || []);
+          });
+      }
+    });
+  }
 
   get init$() {
     this._cache.clear();
     MemoCache.clear(this);
-    runInAction(() => this.store.view.updates = false);
-    this.status.plugins = mapValues(this.def.plugins, () => undefined);
+    runInAction(() => {
+      this.store.view.modChanges.clear();
+      this.store.view.modUpdates.clear();
+    });
+    this.status.plugins = {};
     this.status.disabledPlugins = {};
-    this.status.templates = mapValues(this.def.templates, () => undefined);
+    this.status.templates = {};
     this.status.disabledTemplates = {};
+    this.status.receipts = {};
     return forkJoin([this.loadPlugins$(), this.loadTemplates$()]).pipe(
       switchMap(() => this.firstRun$),
-      tap(() => this.updates),
+      switchMap(() => this.loadReceipts$()),
+      tap(() => this.checkMissingReceipts()),
       catchError(() => of(null)),
     );
   }
 
-  get updates() {
-    for (const p of Object.values(this.status.plugins)) if (p?.config?.needsUpdate) return this.store.view.updateNotify();
-    for (const t of Object.values(this.status.templates)) if (t?.config?.needsUpdate) return this.store.view.updateNotify();
-    return false;
-  }
-
   get firstRun$(): Observable<any> {
+    if (this.firstRun) return of(null);
+    this.firstRun = true;
     if (!this.store.account.admin || this.store.account.ext) return of(null);
     if (Object.values(this.status.plugins).filter(p => !!p).length > 0) return of(null);
-    if (Object.values(this.status.templates).filter(t => !!t).length > 0) return of(null);
+    if (Object.values(this.status.templates).filter(t => !!t && !t.tag.startsWith('_config/')).length > 0) return of(null);
 
     const installs = this.defaultPlugins.map(p => this.plugins.create({
       ...p,
@@ -250,24 +290,131 @@ export class AdminService {
         return throwError(() => err);
       })
     )));
-    return this.exts.create({
-      tag: this.store.account.localTag,
-      origin: this.store.account.origin,
-    }).pipe(
-      tap(() => this.oembed.defaults()),
-      tap(() => this.ss.defaults()),
-      switchMap(() => concat(...installs)),
-      switchMap(() => this.init$)
+    return of(null).pipe(
+      tap(() => this.store.eventBus.fire('*:defaults')),
+      switchMap(() => concat(...installs).pipe(toArray())),
+      switchMap(() => this.init$),
+      switchMap(() => this.logDefaultReceipts$()),
     );
+  }
+
+  private logDefaultReceipts$(): Observable<any> {
+    if (!this.getPlugin('plugin/mod/receipt')) return of(null);
+    const noProgress: progress = () => {};
+    const modIds = uniq([
+      ...this.defaultPlugins.map(p => modId(p)),
+      ...this.defaultTemplates.map(t => modId(t)),
+    ]).filter(Boolean);
+    const receipts = modIds
+      .map(m => ({ mod: m, bundle: this.getMod(m) }))
+      .filter((entry): entry is { mod: string; bundle: Mod } => !!entry.bundle)
+      .map(entry => this.logModReceipt$(entry.mod, entry.bundle, noProgress));
+    if (!receipts.length) return of(null);
+    return concat(...receipts).pipe(toArray());
   }
 
   get localOriginQuery() {
     return this.store.account.origin || '*';
   }
 
+  private loadPlugins$(page = 0): Observable<null> {
+    const alreadyLoaded = page * this.config.fetchBatch;
+    if (alreadyLoaded >= this.config.maxPlugins) {
+      console.error(`Too many plugins to load, only loaded ${alreadyLoaded}. Increase maxPlugins to load more.`)
+      return of(null);
+    }
+    return this.plugins.page({query: this.localOriginQuery, page, size: this.config.fetchBatch}).pipe(
+      retry(10),
+      tap(batch => this.pluginToStatus(batch.content)),
+      switchMap(batch => page + 1 < batch.page.totalPages ? this.loadPlugins$(page + 1) : of(null)),
+    );
+  }
+
+  private loadTemplates$(page = 0): Observable<null> {
+    const alreadyLoaded = page * this.config.fetchBatch;
+    if (alreadyLoaded >= this.config.maxTemplates) {
+      console.error(`Too many templates to load, only loaded ${alreadyLoaded}. Increase maxTemplates to load more.`)
+      return of(null);
+    }
+    return this.templates.page({query: this.localOriginQuery + ':!_config', page, size: this.config.fetchBatch}).pipe(
+      retry(10),
+      tap(batch => this.templateToStatus(batch.content)),
+      switchMap(batch => page + 1 < batch.page.totalPages ? this.loadTemplates$(page + 1) : of(null)),
+    );
+  }
+
+  private loadReceipts$(page = 0): Observable<null> {
+    if (!this.store.account.admin) return of(null);
+    const alreadyLoaded = page * this.config.fetchBatch;
+    if (alreadyLoaded >= this.config.maxTemplates + this.config.maxPlugins) {
+      console.error(`Too many templates to load, only loaded ${alreadyLoaded}. Increase maxTemplates or maxPlugins to load more.`)
+      return of(null);
+    }
+    return this.refs.page({query: this.localOriginQuery + ':plugin/mod/receipt', page, size: this.config.fetchBatch}).pipe(
+      retry(10),
+      tap(batch => this.receiptToStatus(batch.content)),
+      switchMap(batch => page + 1 < batch.page.totalPages ? this.loadReceipts$(page + 1) : of(null)),
+    );
+  }
+
+  private pluginToStatus(list: Plugin[]) {
+    for (const p of list) {
+      if (p.config?.disabled) {
+        this.status.disabledPlugins[p.tag] = p;
+      } else {
+        this.status.plugins[p.tag] = p;
+        this.def.plugins[p.tag] ||= clear(p);
+      }
+      if (this.needsUpdate(this.def.plugins[p.tag], p)) {
+        console.log(p.tag + ' needs update');
+        runInAction(() => this.store.view.modUpdates.add(modId(p)));
+      }
+    }
+  }
+
+  private templateToStatus(list: Template[]) {
+    for (const t of list) {
+      if (t.config?.disabled) {
+        this.status.disabledTemplates[t.tag] = t;
+      } else {
+        this.status.templates[t.tag] = t;
+        this.def.templates[t.tag] ||= t;
+      }
+      if (this.needsUpdate(this.def.templates[t.tag], t)) {
+        console.log((t.tag || 'Root template') + ' needs update');
+        runInAction(() => this.store.view.modUpdates.add(modId(t)));
+      }
+    }
+  }
+
+  private receiptToStatus(list: Ref[]) {
+    for (const r of list) {
+      const mod = r.title!
+      if (this.store.view.modChanges.has(mod)) continue;
+      const current = this.getInstalledMod(mod);
+      if (!current) continue;
+      this.status.receipts[mod] = r;
+      runInAction(() => this.store.view.modChanges.set(mod, !equalBundle(current, r.plugins?.['plugin/mod'])));
+    }
+  }
+
+  private checkMissingReceipts() {
+    for (const mod of uniq([
+      ...Object.values(this.status.plugins).map(p => modId(p)),
+      ...Object.values(this.status.templates).map(t => modId(t)),
+    ])) {
+      if (this.store.view.modChanges.has(mod)) continue;
+      const current = this.getInstalledMod(mod);
+      if (!current) continue;
+      const target = this.getMod(mod);
+      if (!target) continue;
+      runInAction(() => this.store.view.modChanges.set(mod, !equalBundle(current, target)));
+    }
+  }
+
   private get _extFallback() {
     return (x: Ext) => {
-      if (x.modifiedString) return x;
+      if (!x.tag || x.modifiedString) return x;
       x = {...x};
       const tmpl = this.getTemplate(x.tag);
       let plugin = this.getPlugin(x.tag);
@@ -286,7 +433,7 @@ export class AdminService {
 
   get authorFallback() {
     return map((xs: Ext[]) => xs.map(x => {
-      if (x.modifiedString) return x;
+      if (!x.tag || x.modifiedString) return x;
       x = {...x};
       const tmpl = this.getTemplate(x.tag);
       let plugin = this.getPlugin(x.tag);
@@ -302,58 +449,21 @@ export class AdminService {
     }));
   }
 
-  private loadPlugins$(page = 0): Observable<null> {
-    const alreadyLoaded = page * this.config.fetchBatch;
-    if (alreadyLoaded >= this.config.maxPlugins) {
-      console.error(`Too many plugins to load, only loaded ${alreadyLoaded}. Increase maxPlugins to load more.`)
-      return of(null);
-    }
-    return this.plugins.page({query: this.localOriginQuery, page, size: this.config.fetchBatch}).pipe(
-      tap(batch => this.pluginToStatus(batch.content)),
-      switchMap(batch => batch.last ? of(null) : this.loadPlugins$(page + 1)),
-    );
-  }
-
-  private loadTemplates$(page = 0): Observable<null> {
-    const alreadyLoaded = page * this.config.fetchBatch;
-    if (alreadyLoaded >= this.config.maxTemplates) {
-      console.error(`Too many templates to load, only loaded ${alreadyLoaded}. Increase maxTemplates to load more.`)
-      return of(null);
-    }
-    return this.templates.page({query: this.localOriginQuery, page, size: this.config.fetchBatch}).pipe(
-      tap(batch => this.templateToStatus(batch.content)),
-      switchMap(batch => batch.last ? of(null) : this.loadTemplates$(page + 1)),
-    );
-  }
-
-  private pluginToStatus(list: Plugin[]) {
-    for (const p of list) {
-      const key = this.keyOf(this.def.plugins, p.tag);
-      if (p.config?.deleted || p.config?.disabled) {
-        this.status.disabledPlugins[key] = p;
-      } else {
-        this.status.plugins[key] = p;
+  get recipientFallback() {
+    return map((xs: Ext[]) => xs.map(x => {
+      if (!x.tag || x.modifiedString) return x;
+      x = {...x};
+      const inbox = (hasPrefix(x.tag, 'plugin') ? '' : 'plugin/inbox/') + x.tag;
+      const tmpl = this.getTemplate(inbox);
+      let plugin = this.getPlugin(inbox);
+      if (plugin?.config?.signature) {
+        plugin = this.getPlugin(plugin.config.signature) || plugin;
+        x.tag = plugin?.tag || x.tag;
+        x.name ||= plugin?.name;
       }
-      p.config ||= {};
-      p.config.needsUpdate ||= this.needsUpdate(this.def.plugins[key], p);
-    }
-  }
-
-  private templateToStatus(list: Template[]) {
-    for (const t of list) {
-      const key = this.keyOf(this.def.templates, t.tag);
-      if (t.config?.deleted || t.config?.disabled) {
-        this.status.disabledTemplates[key] = t;
-      } else {
-        this.status.templates[key] = t;
-      }
-      t.config ||= {};
-      t.config.needsUpdate ||= this.needsUpdate(this.def.templates[key], t);
-    }
-  }
-
-  keyOf(dict: Record<string, Tag>, tag: string) {
-    return findKey(dict, p => p.tag === tag) || tag || 'root';
+      x.name ||= tmpl?.name;
+      return x;
+    }));
   }
 
   configProperty(...names: string[]): [Plugin | Template] {
@@ -410,6 +520,19 @@ export class AdminService {
     return this._cache.get(key)!;
   }
 
+  get pip() {
+    if (!('documentPictureInPicture' in window)) return false;
+    return this.getPlugin('plugin/pip');
+  }
+
+  get editing() {
+    return this.getPlugin('plugin/editing');
+  }
+
+  get home() {
+    return this.getTemplate('config/home');
+  }
+
   get defaultPlugins() {
     return Object.values(this.def.plugins).filter(p => p?.config?.default) as Plugin[];
   }
@@ -429,7 +552,11 @@ export class AdminService {
   }
 
   get reply() {
-    return this.pluginConfigProperty('reply');
+    return this.configProperty('reply');
+  }
+
+  get inbox() {
+    return this.pluginConfigProperty('inbox');
   }
 
   get submit() {
@@ -448,12 +575,24 @@ export class AdminService {
     return this.pluginConfigProperty('submitText');
   }
 
+  get submitDm() {
+    return this.pluginConfigProperty('submitDm');
+  }
+
   get settings() {
     return this.pluginConfigProperty('settings');
   }
 
+  get submitSettings() {
+    return this.pluginConfigProperty('submit', 'settings', '!genId');
+  }
+
   get extensions() {
     return this.pluginConfigProperty('extensions');
+  }
+
+  get prefix() {
+    return this.pluginConfigProperty('prefix');
   }
 
   get hosts() {
@@ -464,16 +603,20 @@ export class AdminService {
     return this.templateConfigProperty('submit');
   }
 
-  get tmplView() {
+  get view() {
     return this.templateConfigProperty('view');
   }
 
-  get editors() {
-    return this.pluginConfigProperty('editor');
+  get local() {
+    return this.templateConfigProperty('local');
   }
 
-  get editorTags() {
-    return this.editors.map(p => p.tag);
+  get editorButtons() {
+    return this.configProperty('editorButtons');
+  }
+
+  get responseButton() {
+    return this.pluginConfigProperty('responseButton');
   }
 
   get uis() {
@@ -485,37 +628,39 @@ export class AdminService {
   }
 
   get forms() {
-    return uniq([
+    return this.addPluginParents(uniq([
       ...this.pluginConfigProperty('form'),
       ...this.pluginConfigProperty('advancedForm')
-    ]);
+    ]));
   }
 
   get embeddable(): string[] {
     if (!this._cache.has('embeddable')) {
       this._cache.set('embeddable', Object.values(this.status.plugins).filter(p => {
         if (!p) return false;
+        if (p?.config?.embeddable) return true;
+        if (p?.config?.editingViewer) return true;
         if (p?.config?.ui) return true;
-        if (p === this.status.plugins.qr) return true;
-        if (p === this.status.plugins.embed) return true;
-        if (p === this.status.plugins.audio) return true;
-        if (p === this.status.plugins.video) return true;
-        if (p === this.status.plugins.imagePlugin) return true;
-        if (p === this.status.plugins.pdf) return true;
-        if (p === this.status.plugins.repost) return true;
-        if (p === this.status.plugins.lensPlugin) return true;
-        if (p === this.status.plugins.backgammonPlugin) return true;
-        if (p === this.status.plugins.chessPlugin) return true;
-        if (p === this.status.plugins.todoPlugin) return true;
-        if (p === this.status.plugins.playlistPlugin) return true;
         return false;
       }).map(p => p!.tag));
     }
     return this._cache.get('embeddable')!;
   }
 
+  get editor() {
+    return this.pluginConfigProperty('editor');
+  }
+
+  get editingViewer() {
+    return this.pluginConfigProperty('editingViewer');
+  }
+
   get icons() {
     return this.configProperty('icons');
+  }
+
+  get bulkForm() {
+    return this.pluginConfigProperty('bulkForm');
   }
 
   get actions() {
@@ -526,31 +671,55 @@ export class AdminService {
     return this.configProperty('advancedActions');
   }
 
-  get published() {
-    return this.pluginConfigProperty('published');
-  }
-
   get themes() {
     return this.configProperty('themes');
   }
 
   get filters() {
     return this.configProperty('filters')
-      .flatMap(p => p.config?.filters!);
+      .flatMap(p => p.config?.filters!)
+      .filter(f => !f.user || this.auth.hasRole('ROLE_USER'));
   }
 
-  getEmbeds(ref: Ref) {
+  get refSorts() {
+    return this.pluginConfigProperty('sorts')
+      .flatMap(p => p.config?.sorts!);
+  }
+
+  get tagSorts() {
+    return this.templateConfigProperty('sorts')
+      .flatMap(p => p.config?.sorts!);
+  }
+
+  addPluginParents(cs: Plugin[]) {
+    return uniq(cs.flatMap(c =>
+      addHierarchicalTags(c.tag)
+        .map(tag => this.getPlugin(tag))
+        .filter(identity) as Plugin[]));
+  }
+
+  getEmbeds(ref?: Ref | null) {
+    if (!ref) return [];
     const tags = ref.tags || [];
-    return tagIntersection([
+    return uniq(tagIntersection([
       'plugin',
       ...tags,
       ...this.getPluginsForUrl(ref.url).map(p => p.tag),
+      ...this.getPluginsForCache(ref),
       ...(ref.alternateUrls || []).flatMap(url => this.getPluginsForUrl(url).map(p => p.tag)),
-    ], this.embeddable) as string[];
+    ], this.embeddable) as string[]);
   }
 
   getPluginsForUrl(url: string) {
-    return uniq([...this.getPluginsForHost(url), ...this.getPluginsForExtension(url)]);
+    return uniq([...this.getPluginsForHost(url), ...this.getPluginsForPrefix(url), ...this.getPluginsForExtension(url)]);
+  }
+
+  getPluginsForCache(ref: Ref): string[] {
+    const mimeType = ref.plugins?.['_plugin/cache']?.mimeType as string | undefined;
+    if (!mimeType) return [];
+    if (mimeType.startsWith('image/')) return ['plugin/image'];
+    if (mimeType.startsWith('video/')) return ['plugin/video'];
+    return [];
   }
 
   getPluginsForHost(url: string) {
@@ -558,8 +727,12 @@ export class AdminService {
     return this.hosts.filter(p => p.config!.hosts!.includes(host!))
   }
 
+  getPluginsForPrefix(url: string) {
+    return this.prefix.filter(p => p.config!.prefix!.find(prefix => url.startsWith(prefix)));
+  }
+
   getPluginsForExtension(url: string) {
-    const type = getExtension(url)!;
+    const type = getExtension(url) || '';
     return this.extensions.filter(p => p.config!.extensions!.includes(type))
   }
 
@@ -567,9 +740,9 @@ export class AdminService {
     const match = ['plugin', ...(tags || [])];
     return this.actions
       .flatMap(p => p.config!.actions!.filter(a => {
-        if (a.condition && !config?.[p.tag]?.[a.condition]) return false;
+        if (a.condition && !condition(a.condition, config?.[p.tag])) return false;
         if (a.global) return true;
-        return includesTag(p.tag, match);
+        return hasTag(p.tag, match);
       }).map(addParent(p)))
       .filter(a => !a.role || this.auth.hasRole(a.role));
   }
@@ -578,9 +751,9 @@ export class AdminService {
     const match = ['plugin', ...(tags || [])];
     return this.advancedActions
       .flatMap(p => p.config!.advancedActions!.filter(a => {
-        if (a.condition && !config?.[p.tag]?.[a.condition]) return false;
+        if (a.condition && !condition(a.condition, config?.[p.tag])) return false;
         if (a.global) return true;
-        return includesTag(p.tag, match);
+        return hasTag(p.tag, match);
       }).map(addParent(p)))
       .filter(a => !a.role || this.auth.hasRole(a.role));
   }
@@ -589,29 +762,38 @@ export class AdminService {
     const match = ['plugin', ...(tags || [])];
     return this.icons
       .flatMap(p => p.config!.icons!.filter(i => {
-        if (i.condition && !config?.[p.tag]?.[i.condition]) return false;
+        if (i.condition && !condition(i.condition, config?.[p.tag])) return false;
         if (i.global) return true;
         if (i.scheme && i.scheme === scheme) return true;
-        return includesTag(p.tag, match);
+        if (i.tag && !hasTag(i.tag, match)) return false;
+        return hasTag(p.tag, match);
       }).map(addParent(p))
         .map(i => {
-          if (!i.response) i.tag ||= p.tag;
-          if (i.tag === p.tag)  i.title ||= p.name;
+          if (!i.tag && !i.response && !i.anyResponse && !i.noResponse && !i.scheme) i.tag ||= p.tag;
+          if (!i.tag || i.tag === p.tag) i.title ||= p.name;
           i.title ||= i.tag;
           return i;
         }))
       .filter(i => !i.role || this.auth.hasRole(i.role));
   }
 
-  getTemplateView(tag: string) {
-    return this.tmplView
-      .filter(t => hasPrefix(tag, t.tag));
+  getEditorButtons(tags?: string[], scheme?: string): EditorButton[] {
+    const match = ['plugin', ...(tags || [])];
+    return this.editorButtons
+      .flatMap(config => config.config!.editorButtons!.filter(b => {
+        if (b.global) return true;
+        if (b.scheme && b.scheme === scheme) return true;
+        return test(b.query || config.tag, match);
+      }).map(addParent(config))
+        .map(b => {
+          if (b.ribbon || !b.event) b.toggle ||= config.tag;
+          return b;
+        }));
   }
 
-  getPublished(tags?: string[]) {
-    const match = ['plugin', ...(tags || [])];
-    return this.published.filter(p => includesTag(p.tag, match))
-      .flatMap(p => p.config!.published as string);
+  getTemplateView(tag: string) {
+    return this.view
+      .filter(t => hasPrefix(tag, t.tag));
   }
 
   @memo
@@ -619,48 +801,65 @@ export class AdminService {
     return Object.values(this.status.plugins).find(p => p?.tag === tag);
   }
 
-  getPlugins(tags: string[]) {
-    return Object.values(this.status.plugins).filter(p => tags.includes(p?.tag || '')) as Plugin[];
+  @memo
+  searchPlugins(text: string) {
+    text = text.toLowerCase();
+    return Object.values(this.status.plugins).filter(p => p?.tag.includes(text) || p?.name?.toLowerCase()?.includes(text));
   }
 
-  getEditors(tags?: string[]) {
-    const match = tags || [];
-    return this.editors.filter(p => match.includes(p.tag));
+  @memo
+  getParentPlugins(tag: string) {
+    return this.getPlugins([tag]);
+  }
+
+  getPlugins(tags: string[] | undefined) {
+    if (!tags) return [];
+    return Object.values(this.status.plugins).filter(p => hasTag(p?.tag, tags)) as Plugin[];
   }
 
   getPluginUi(tags?: string[]) {
     const match = ['plugin', ...(tags || [])];
-    return this.uis.filter(p => match.includes(p.tag));
+    return this.uis.filter(p => hasTag(p.tag, match));
   }
 
   getPluginInfoUis(tags?: string[]) {
     const match = ['plugin', ...(tags || [])];
-    return this.infoUis.filter(p => match.includes(p.tag));
+    return this.infoUis.filter(p => hasTag(p.tag, match));
   }
 
   getPluginForms(tags?: string[]) {
     const match = ['plugin', ...(tags || [])];
-    return this.forms.filter(p => match.includes(p.tag));
+    return this.forms.filter(p => hasTag(p.tag, match));
   }
 
+  @memo
   getPluginSubForms(parent: string) {
-    return this.forms.filter(p => p.config?.submitChild && hasPrefix(p.tag, parent));
+    return this.forms.filter(p => p.config?.submitChild && directChild(p.tag, parent));
   }
 
   getTemplate(tag: string) {
     if (this.status.templates[tag]) return this.status.templates[tag];
     return Object.values(this.status.templates).find(t => {
-      tag = tag.replace('+', '');
-      if (t?.tag === tag) return true;
-      tag = tag.replace('_', '');
-      return t?.tag === tag;
+      if (t?.tag === tag.replace('+', '')) return true;
+      return t?.tag === tag.replace('_', '');
     });
+  }
+
+  @memo
+  searchTemplates(text: string) {
+    text = text.toLowerCase();
+    return Object.values(this.status.templates).filter(p => p?.tag.includes(text) || p?.name?.toLowerCase()?.includes(text));
   }
 
   defaultConfig(tag: string) {
     return reduce(this.getTemplates(tag).map(t => t.defaults || {}), (prev, curr) => {
       return {...prev, ...curr};
     }, {});
+  }
+
+  getPluginSettings(tags?: string[]) {
+    const match = ['plugin', ...(tags || [])];
+    return this.settings.filter(p => hasTag(p.tag, match));
   }
 
   @memo
@@ -721,7 +920,7 @@ export class AdminService {
     if (defaults) {
       if (!tag || template!.config?.overrideForm) return defaults;
       return {
-        ...this.getTemplateForm(parent!),
+        ...this.getDefaults(parent!),
         ...defaults
       };
     } else if (tag) {
@@ -730,35 +929,255 @@ export class AdminService {
     return undefined;
   }
 
+  stripInvalid(tag: string, data: any): any {
+    const plugin = this.getPlugin(tag);
+    const schema = plugin?.schema;
+    const defaults = plugin?.defaults || {};
+    if (this.isValid(schema, data)) return data;
+    // Sanity test, if defaults don't validate just bail
+    if (!this.isValid(schema, defaults)) return undefined;
+    const result = { ...defaults };
+    for (const [key, value] of Object.entries(data)) {
+      if (this.isValid(schema, { ...result, [key]: value })) {
+        result[key] = value;
+      }
+    }
+    return result;
+  }
+
+  isValid(schema: Schema | undefined, data: any) {
+    if (!schema) return false;
+    return !validate(schema, data,{ maxErrors: 1, maxDepth: 0 }).length;
+  }
+
   isWikiExternal() {
-    return !!this.status.templates.wiki?.config?.external;
+    return !!this.getTemplate('config/wiki')?.config?.external;
   }
 
   getWikiPrefix() {
-    return this.status.templates.wiki?.config?.prefix || DEFAULT_WIKI_PREFIX;
+    return this.getTemplate('config/wiki')?.config?.prefix || DEFAULT_WIKI_PREFIX;
   }
 
-  needsUpdate(def: Plugin | Template, status: Plugin | Template) {
+  getMod(mod: string) {
+    const bundle = this.mods.find(m =>
+      m.plugin?.find(p => modId(p) === mod) ||
+      m.template?.find(t => modId(t) === mod)
+    );
+    if (bundle) return bundle;
+    const modPlugins = Object.values(this.status.plugins).filter(p => modId(p) === mod).map(p => p.tag);
+    const modTemplates = Object.values(this.status.templates).filter(p => modId(p) === mod).map(t => t.tag);
+    return this.mods.find(m =>
+      m.plugin?.find(p => modPlugins.includes(p.tag)) ||
+      m.template?.find(t => modTemplates.includes(t.tag))
+    );
+  }
+
+  getInstalledMod(mod: string) {
+    const result =  {
+      plugin: Object.values(this.status.plugins).filter(p => modId(p) === mod),
+      template: Object.values(this.status.templates).filter(t => modId(t) === mod),
+    };
+    if (!result.plugin.length && !result.template.length) return undefined;
+    return {
+      ...this.getMod(mod) || {}, // Refs, Exts, Users
+      ...result
+    };
+  }
+
+  installRef$(def: Ref, _: progress) {
+    return of(null).pipe(
+      tap(() => _('\u00A0'.repeat(4) + $localize`Installing ${def.title || def.url} ref...`)),
+      switchMap(() => this.refs.create({
+        ...def,
+        origin: this.store.account.origin,
+        url: def.url || ('comment:' + uuid()),
+      })),
+      catchError(err => {
+        if (err.status === 409) {
+          _('\u00A0'.repeat(4) + $localize`Ref ${def.title || def.url} already exists...`);
+          return of(null);
+        }
+        return throwError(() => err);
+      }),
+      tap(() => _('', 1)),
+    );
+  }
+
+  installExt$(def: Ext, _: progress) {
+    return of(null).pipe(
+      tap(() => _('\u00A0'.repeat(4) + $localize`Installing ${def.name || def.tag} ext...`)),
+      switchMap(() => this.exts.create({ ...def, origin: this.store.account.origin })),
+      catchError(err => {
+        if (err.status === 409) {
+          _('\u00A0'.repeat(4) + $localize`Ext ${def.name || def.tag} already exists...`);
+          return of(null);
+        }
+        return throwError(() => err);
+      }),
+      tap(() => _('', 1)),
+    );
+  }
+
+  installUser$(def: User, _: progress) {
+    return of(null).pipe(
+      tap(() => _('\u00A0'.repeat(4) + $localize`Installing ${def.name || def.tag} user...`)),
+      switchMap(() => this.users.create({ ...def, origin: this.store.account.origin })),
+      catchError(err => {
+        if (err.status === 409) {
+          _('\u00A0'.repeat(4) + $localize`User ${def.name || def.tag} already exists...`);
+          return of(null);
+        }
+        return throwError(() => err);
+      }),
+      tap(() => _('', 1)),
+    );
+  }
+
+  installPlugin$(def: Plugin, _: progress) {
+    return of(null).pipe(
+      tap(() => _('\u00A0'.repeat(4) + $localize`Installing ${def.name || def.tag} plugin...`)),
+      switchMap(() => this.plugins.delete(def.tag + this.store.account.origin)),
+      switchMap(() => this.plugins.create({ ...def, origin: this.store.account.origin })),
+      catchError(err => {
+        if (err.status === 409) {
+          _('\u00A0'.repeat(4) + $localize`Plugin ${def.name || def.tag} already exists...`);
+          return of(null);
+        }
+        return throwError(() => err);
+      }),
+      tap(() => _('', 1)),
+    );
+  }
+
+  deletePlugin$(p: Plugin, _: progress) {
+    return of(null).pipe(
+      tap(() => _('\u00A0'.repeat(4) + $localize`Deleting ${p.name || p.tag} plugin...`)),
+      switchMap(() => this.plugins.delete(p.tag + this.store.account.origin)),
+      switchMap(() => this.getPlugin('plugin/delete') ? this.plugins.create(tagDeleteNotice(p)) : of(null)),
+      tap(() => _('', 1)),
+    );
+  }
+
+  installTemplate$(def: Template, _: progress) {
+    return of(null).pipe(
+      tap(() => _('\u00A0'.repeat(4) + $localize`Installing ${def.name || def.tag} template...`)),
+      switchMap(() => this.templates.delete(def.tag + this.store.account.origin)),
+      switchMap(() => this.templates.create({ ...def, origin: this.store.account.origin })),
+      catchError(err => {
+        if (err.status === 409) {
+          _('\u00A0'.repeat(4) + $localize`Template ${def.name || def.tag} already exists...`);
+          return of(null);
+        }
+        return throwError(() => err);
+      }),
+      tap(() => _('', 1)),
+    );
+  }
+
+  deleteTemplate$(t: Template, _: progress) {
+    return of(null).pipe(
+      tap(() => _('\u00A0'.repeat(4) + $localize`Deleting ${t.name || t.tag} template...`)),
+      switchMap(() => this.templates.delete(t.tag + this.store.account.origin)),
+      switchMap(() => this.getPlugin('plugin/delete') ? this.templates.create(tagDeleteNotice(t)) : of(null)),
+      tap(() => _('', 1)),
+    );
+  }
+
+  install$(mod: string, bundle: Mod, _: progress): Observable<any> {
+    if (!bundle) return of(null);
+    return concat(...[
+      of(null).pipe(tap(() => _($localize`Installing ${mod} mod...`))),
+      ...(bundle.ref || []).map(p => this.installRef$(p, _)),
+      ...(bundle.ext || []).map(p => this.installExt$(p, _)),
+      ...(bundle.user || []).map(p => this.installUser$(p, _)),
+      ...(bundle.plugin || []).map(p => this.installPlugin$(p, _)),
+      ...(bundle.template || []).map(t => this.installTemplate$(t, _)),
+    ]).pipe(
+      toArray(),
+      switchMap(() => {
+        if (!this.getPlugin('plugin/mod/receipt')) return of(null);
+        return this.logModReceipt$(mod, bundle, _);
+      }),
+    );
+  }
+
+  installMod$(mod: string, _: progress): Observable<any> {
+    return this.install$(mod, this.getMod(mod)!, _);
+  }
+
+  updateMod$(mod: string, bundle: Mod, receipt: Mod, _: progress): Observable<any> {
+    if (!bundle) return of(null);
+    return concat(...[
+      of(null).pipe(tap(() => _($localize`Installing ${mod} mod...`))),
+      ...(bundle.plugin || []).map(p => this.updatePlugin$(p, _)),
+      ...(bundle.template || []).map(t => this.updateTemplate$(t, _)),
+    ]).pipe(
+      toArray(),
+      switchMap(() => {
+        if (!this.getPlugin('plugin/mod/receipt')) return of(null);
+        return this.logModReceipt$(mod, receipt, _);
+      }),
+    );
+  }
+
+  deleteMod$(mod: string, _: progress): Observable<any> {
+    return concat(...[
+      of(null).pipe(tap(() => _($localize`Deleting ${mod} mod...`))),
+      ...Object.values(this.status.plugins)
+        .filter(p => modId(p) === mod)
+        .map(p => this.deletePlugin$(p!, _)),
+      ...Object.values(this.status.templates)
+        .filter(t => modId(t) === mod)
+        .map(t => this.deleteTemplate$(t!, _)),
+    ]).pipe(toArray());
+  }
+
+  updatePlugin$(def: Plugin, _: progress) {
+    return of(null).pipe(
+      tap(() => _('\u00A0'.repeat(4) + $localize`Updating ${def.name || def.tag} plugin...`)),
+      switchMap(() => this.plugins.delete(def.tag + this.store.account.origin)),
+      switchMap(() => this.plugins.create({ ...def, origin: this.store.account.origin })),
+      tap(() => _('', 1)),
+    );
+  }
+
+  updateTemplate$(def: Template, _: progress) {
+    return of(null).pipe(
+      tap(() => _('\u00A0'.repeat(4) + $localize`Updating ${def.name || def.tag} template...`)),
+      switchMap(() => this.templates.delete(def.tag + this.store.account.origin)),
+      switchMap(() => this.templates.create({ ...def, origin: this.store.account.origin })),
+      tap(() => _('', 1)),
+    );
+  }
+
+  needsUpdate(def: Config, status: Config) {
     if (!this.store.account.admin) return false;
-    if (!def) return false;
     if (def.config?.noUpdate || status.config?.noUpdate) return false;
-    if (def.config?.version != status.config?.version) {
-      if (def.config?.version && status.config?.version) return def.config.version > status.config.version;
+    if (def.config?.version !== undefined) {
+      if (status.config?.version === undefined) return true;
+      if (def.config.version !== status.config.version) {
+        return def.config.version > status.config.version;
+      }
+      return false;
     }
-    def = omitBy(def, i => !i) as any;
-    status = omitBy(status, i => !i) as any;
-    def.config = omitBy(def.config, i => !i);
-    status.config = omitBy(status.config, i => !i);
-    delete def.config!.generated;
-    delete def.defaults;
-    delete status.config!.generated;
-    delete status.defaults;
-    delete status.type;
-    delete status.origin;
-    delete status.modified;
-    delete status.modifiedString;
-    delete status._cache;
-    return !isEqual(def, status);
+    return !isEqual(clear(def), clear(status));
+  }
+
+  logModReceipt$(mod: string, bundle: Mod, _: progress) {
+    const ref = {
+      url: `mod-receipt:${mod}`,
+      origin: this.store.account.origin,
+      title: mod,
+      tags: ['internal', 'plugin/mod/receipt'],
+      plugins: { 'plugin/mod': bundle },
+    };
+    return of(null).pipe(
+      tap(() => _('\u00A0'.repeat(4) + $localize`Logging ${mod || ref.url} receipt...`)),
+      switchMap(() => this.refs.delete(ref.url, ref.origin)),
+      switchMap(() => this.refs.create(ref)),
+      tap(() => this.status.receipts[mod] = ref),
+      tap(() => _('', 1)),
+    );
   }
 }
 

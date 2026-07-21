@@ -1,7 +1,9 @@
-import { HttpClientTestingModule } from '@angular/common/http/testing';
+/// <reference types="vitest/globals" />
+import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
-import { RouterTestingModule } from '@angular/router/testing';
+import { provideRouter } from '@angular/router';
 
 import { SubmitInvoicePage } from './invoice.component';
 
@@ -11,17 +13,17 @@ describe('SubmitInvoicePage', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ SubmitInvoicePage ],
       imports: [
         ReactiveFormsModule,
-        HttpClientTestingModule,
-        RouterTestingModule,
+        SubmitInvoicePage,
       ],
-    })
-    .compileComponents();
-  });
+      providers: [
+        provideHttpClient(withXhr(), withInterceptorsFromDi()),
+        provideHttpClientTesting(),
+        provideRouter([]),
+      ],
+    }).compileComponents();
 
-  beforeEach(() => {
     fixture = TestBed.createComponent(SubmitInvoicePage);
     component = fixture.componentInstance;
     fixture.detectChanges();

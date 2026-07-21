@@ -1,5 +1,6 @@
+import { Schema } from 'jtd';
 import { isEqual } from 'lodash-es';
-import * as moment from 'moment';
+import { DateTime } from 'luxon';
 import { hasPrefix, publicTag } from '../util/tag';
 import { Cursor } from './tag';
 
@@ -12,15 +13,45 @@ export interface Ref extends Cursor {
   alternateUrls?: string[];
   plugins?: Record<string, any>;
   metadata?: Metadata;
-  published?: moment.Moment;
-  created?: moment.Moment;
+  published?: DateTime;
+  created?: DateTime;
 }
+
+export const refSchema: Schema = {
+  optionalProperties: {
+    url: { type: 'string' },
+    tags: { elements: { type: 'string' } },
+    title: { type: 'string' },
+    comment: { type: 'string' },
+    sources: { elements: { type: 'string' } },
+    alternateUrls: { elements: { type: 'string' } },
+    plugins: {},
+    published: { type: 'string' },
+  }
+};
+
+export const refViewSchema: Schema = {
+  optionalProperties: {
+    url: { type: 'string' },
+    origin: { type: 'string' },
+    tags: { elements: { type: 'string' } },
+    title: { type: 'string' },
+    comment: { type: 'string' },
+    sources: { elements: { type: 'string' } },
+    alternateUrls: { elements: { type: 'string' } },
+    plugins: {},
+    metadata: {},
+    published: { type: 'string' },
+    modified: { type: 'string' },
+    modifiedString: { type: 'string' },
+    created: { type: 'string' },
+  }
+};
 
 /**
  * Sent in response to websocket subscription.
  *
- * Only includes non-private tags and plugins, and does not
- * include metadata.
+ * Only includes non-private tags, metadata, and plugins.
  */
 export interface RefUpdates extends Cursor {
   url: string;
@@ -30,8 +61,9 @@ export interface RefUpdates extends Cursor {
   sources?: string[];
   alternateUrls?: string[];
   plugins?: Record<string, any>;
-  published?: moment.Moment;
-  created?: moment.Moment;
+  metadata?: MetadataUpdates;
+  published?: DateTime;
+  created?: DateTime;
 }
 
 export interface RefNode extends Ref {
@@ -47,40 +79,52 @@ export interface Metadata {
   obsolete?: boolean;
 }
 
-export type Filter =
-  'untagged' |
-  'uncited' |
-  'unsourced' |
-  'obsolete';
+/**
+ * Sent in response to websocket subscription.
+ *
+ * Only includes non-private tags, metadata, and plugins.
+ */
+export interface MetadataUpdates {
+  modified?: string;
+  responses?: number;
+  internalResponses?: number;
+  plugins?: Record<string, number>;
+  obsolete?: boolean;
+}
+
+export type Filter = 'obsolete';
 
 type FilterObj = {
-  [name in Filter]?: boolean;
+  [name in Filter]?: boolean | null;
 };
 
 export type RefFilter = FilterObj & {
+  query?: string;
+  noDescendents?: string;
+  nesting?: number,
   scheme?: string;
   pluginResponse?: string[];
   noPluginResponse?: string[];
-};
-
-export type RefQueryArgs = RefFilter & {
-  query?: string;
+  userResponse?: string[];
+  noUserResponse?: string[];
   url?: string;
-  obsolete?: boolean;
+  obsolete?: boolean | null;
+  noResponses?: string;
   responses?: string;
   sources?: string;
+  noSources?: string;
   search?: string;
-  modifiedAfter?: string | moment.Moment;
-  modifiedBefore?: string | moment.Moment;
-  publishedAfter?: string | moment.Moment;
-  publishedBefore?: string | moment.Moment;
-  createdAfter?: string | moment.Moment;
-  createdBefore?: string | moment.Moment;
-  responseAfter?: string | moment.Moment;
-  responseBefore?: string | moment.Moment;
+  modifiedAfter?: string | DateTime;
+  modifiedBefore?: string | DateTime;
+  publishedAfter?: string | DateTime;
+  publishedBefore?: string | DateTime;
+  createdAfter?: string | DateTime;
+  createdBefore?: string | DateTime;
+  responseAfter?: string | DateTime;
+  responseBefore?: string | DateTime;
 };
 
-export type RefPageArgs = RefQueryArgs & {
+export type RefPageArgs = RefFilter & {
   page?: number,
   size?: number,
   sort?: RefSort[],
@@ -90,27 +134,24 @@ export type RefSort = '' | 'rank' | 'rank,DESC' |
   'created' | 'created,ASC' | 'created,DESC' |
   'modified' | 'modified,ASC' | 'modified,DESC' |
   'published' | 'published,ASC' | 'published,DESC' |
-  'metadataModified' | 'metadataModified,ASC' | 'metadataModified,DESC' |
   'url' | 'url,ASC' | 'url,DESC' |
   'obsolete' | 'obsolete,ASC' | 'obsolete,DESC' |
   'scheme' | 'scheme,ASC' | 'scheme,DESC' |
   'title' | 'title,ASC' | 'title,DESC' |
   'origin' | 'origin,ASC' | 'origin,DESC' |
+  'origin:len' | 'origin:len,ASC' | 'origin:len,DESC' |
   'comment' | 'comment,ASC' | 'comment,DESC' |
-  'tagCount' | 'tagCount,ASC' | 'tagCount,DESC' |
-  'sourceCount' | 'sourceCount,ASC' | 'sourceCount,DESC' |
-  'responseCount' | 'responseCount,ASC' | 'responseCount,DESC' |
-  'commentCount' | 'commentCount,ASC' | 'commentCount,DESC' |
-  'voteCount' | 'voteCount,ASC' | 'voteCount,DESC' |
-  'voteScore' | 'voteScore,ASC' | 'voteScore,DESC' |
-  'voteScoreDecay' | 'voteScoreDecay,ASC' | 'voteScoreDecay,DESC';
+  'tags:len' | 'tags:len,ASC' | 'tags:len,DESC' |
+  'sources:len' | 'sources:len,ASC' | 'sources:len,DESC' |
+  `metadata->${string}` | `metadata->${string},ASC` | `metadata->${string},DESC` |
+  `plugins->${string}` | `plugins->${string},ASC` | `plugins->${string},DESC`;
 
 export function mapRef(obj: any): Ref {
   obj.origin ||= '';
-  obj.published &&= moment(obj.published);
-  obj.created &&= moment(obj.created);
+  obj.published &&= DateTime.fromISO(obj.published);
+  obj.created &&= DateTime.fromISO(obj.created);
   obj.modifiedString = obj.modified;
-  obj.modified &&= moment(obj.modified);
+  obj.modified &&= DateTime.fromISO(obj.modified);
   return obj;
 }
 
@@ -121,7 +162,8 @@ export function mapRefOrNull(obj: any): Ref | null {
 
 export function writeRef(ref: Ref): Ref {
   const result = { ...ref } as any;
-  result.published = moment(result.published);
+  if (DateTime.isDateTime(ref.created)) result.created = ref.created.toUTC().toISO();
+  if (DateTime.isDateTime(ref.published)) result.published = ref.published.toUTC().toISO();
   result.modified = result.modifiedString as any;
   delete result.upload;
   delete result.exists;
@@ -140,19 +182,49 @@ export function writeRef(ref: Ref): Ref {
   return result;
 }
 
+export function writeEdit(ref: Ref): Ref {
+  const result = writeRef(ref);
+  delete result.origin;
+  delete result.modified;
+  return result;
+}
+
 /**
  * Find URL in alts with file extension.
  */
-export function findExtension(ending: string, ref?: Ref, repost?: Ref) {
+export function findExtension(ending: string, ref?: Ref, repost?: Ref): Ref | undefined {
   if (!ref) return undefined;
   ending = ending.toLowerCase();
-  if (ref.url.toLowerCase().endsWith(ending)) return ref.url;
-  const urls = [
-    ...(ref.alternateUrls || []),
-    ...(repost?.alternateUrls || [])];
-  for (const s of urls) {
+  if (repost?.url?.toLowerCase().endsWith(ending)) return repost;
+  if (ref.url?.toLowerCase().endsWith(ending)) return ref;
+  for (const s of ref.alternateUrls || []) {
     if (new URL(s).pathname.toLowerCase().endsWith(ending)) {
-      return s;
+      return { url: s, origin: ref.origin };
+    }
+  }
+  for (const s of repost?.alternateUrls || []) {
+    if (new URL(s).pathname.toLowerCase().endsWith(ending)) {
+      return { url: s, origin: repost!.origin };
+    }
+  }
+  return undefined;
+}
+
+/**
+ * Find URL in alts with file extension.
+ */
+export function findCache(ref?: Ref, repost?: Ref): Ref | undefined {
+  if (!ref) return undefined;
+  if (repost?.url?.startsWith('cache:')) return repost;
+  if (ref.url?.startsWith('cache:')) return ref;
+  for (const s of ref.alternateUrls || []) {
+    if (s.startsWith('cache:')) {
+      return { url: s, origin: ref.origin };
+    }
+  }
+  for (const s of repost?.alternateUrls || []) {
+    if (s.startsWith('cache:')) {
+      return { url: s, origin: repost!.origin };
     }
   }
   return undefined;
@@ -170,7 +242,8 @@ export function equalsRef(a?: Ref, b?: Ref) {
   return a.url === b.url &&
     a.title === b.title &&
     a.comment === b.comment &&
-    a.published?.isSame(b.published) &&
+    !!a.published === !!b.published &&
+    b.published && a.published && +a.published === +b.published &&
     isEqual(a.alternateUrls, b.alternateUrls) &&
     isEqual(a.sources, b.sources) &&
     isEqual(a.tags?.filter(compareTag), b.tags?.filter(compareTag)) &&

@@ -1,20 +1,31 @@
-import { Component, HostBinding, Input, OnInit } from '@angular/core';
+import { Component, Input, OnDestroy, QueryList, ViewChildren, ChangeDetectionStrategy } from '@angular/core';
 import { Router } from '@angular/router';
-import { catchError, forkJoin, of } from 'rxjs';
+import { catchError, forkJoin, of, Subject, takeUntil } from 'rxjs';
+import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ext } from '../../model/ext';
 import { Page } from '../../model/page';
 import { Ref } from '../../model/ref';
 import { RootConfig } from '../../mods/root';
 import { RefService } from '../../service/api/ref.service';
 import { Store } from '../../store/store';
+import { LoadingComponent } from '../loading/loading.component';
+import { PageControlsComponent } from '../page-controls/page-controls.component';
+import { BlogEntryComponent } from './blog-entry/blog-entry.component';
 
 @Component({
   selector: 'app-blog',
   templateUrl: './blog.component.html',
-  styleUrls: ['./blog.component.scss']
+  styleUrls: ['./blog.component.scss'],
+  host: { 'class': 'blog ext' },
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [
+    BlogEntryComponent,
+    PageControlsComponent,
+    LoadingComponent,
+  ],
 })
-export class BlogComponent implements OnInit {
-  @HostBinding('class') css = 'blog ext';
+export class BlogComponent implements HasChanges, OnDestroy {
+  private destroy$ = new Subject<void>();
 
   @Input()
   pageControls = true;
@@ -24,6 +35,9 @@ export class BlogComponent implements OnInit {
   pinned: Ref[] = [];
   colStyle = '';
   error: any;
+
+  @ViewChildren(BlogEntryComponent)
+  list?: QueryList<BlogEntryComponent>;
 
   private _page?: Page<Ref>;
   private _ext?: Ext;
@@ -35,8 +49,13 @@ export class BlogComponent implements OnInit {
     private refs: RefService,
   ) { }
 
-  trackByUrlOrigin(index: number, value: Ref) {
-    return value.origin + '@' + value.url;
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  saveChanges() {
+    return !this.list?.find(r => !r.saveChanges());
   }
 
   get page(): Page<Ref> | undefined {
@@ -74,7 +93,8 @@ export class BlogComponent implements OnInit {
     } else {
       forkJoin((value.config.pinned as string[])
         .map(pin => this.refs.getCurrent(pin).pipe(
-          catchError(err => of({url: pin}))
+          catchError(err => of({url: pin})),
+          takeUntil(this.destroy$),
         )))
         .subscribe(pinned => this.pinned = pinned);
     }
@@ -84,18 +104,15 @@ export class BlogComponent implements OnInit {
   set page(value: Page<Ref> | undefined) {
     this._page = value;
     if (this._page) {
-      if (this._page.number > 0 && this._page.number >= this._page.totalPages) {
+      if (this._page.page.number > 0 && this._page.page.number >= this._page.page.totalPages) {
         this.router.navigate([], {
           queryParams: {
-            pageNumber: this._page.totalPages - 1
+            pageNumber: this._page.page.totalPages - 1
           },
           queryParamsHandling: "merge",
         })
       }
     }
-  }
-
-  ngOnInit(): void {
   }
 
 }

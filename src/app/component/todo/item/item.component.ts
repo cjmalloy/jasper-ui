@@ -1,15 +1,32 @@
-import { Component, ElementRef, EventEmitter, HostBinding, HostListener, Input, NgZone, OnInit, Output } from '@angular/core';
-import { defer } from 'lodash-es';
+import {
+  Component,
+  ElementRef,
+  EventEmitter,
+  forwardRef,
+  HostBinding,
+  HostListener,
+  Input,
+  NgZone,
+  Output,
+  ChangeDetectionStrategy
+} from '@angular/core';
+import { AutofocusDirective } from '../../../directive/autofocus.directive';
 import { ConfigService } from '../../../service/config.service';
 import { Store } from '../../../store/store';
+import { MdComponent } from '../../md/md.component';
 
 @Component({
   selector: 'app-todo-item',
   templateUrl: './item.component.html',
-  styleUrls: ['./item.component.scss']
+  styleUrls: ['./item.component.scss'],
+  host: { 'class': 'todo-item' },
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [
+    AutofocusDirective,
+    forwardRef(() => MdComponent),
+  ]
 })
-export class TodoItemComponent implements OnInit {
-  @HostBinding('class') css = 'todo-item';
+export class TodoItemComponent {
 
   @HostBinding('class.unlocked')
   unlocked = false;
@@ -25,22 +42,21 @@ export class TodoItemComponent implements OnInit {
   update = new EventEmitter<{ text: string, checked: boolean }>();
 
   checked = false;
+  editing = false;
   text = '';
+  hovering = false;
 
   private _line = '';
 
   constructor(
     private store: Store,
-    private config: ConfigService,
+    public config: ConfigService,
     private el: ElementRef,
     private zone: NgZone,
   ) { }
 
   get local() {
     return this.origin === this.store.account.origin;
-  }
-
-  ngOnInit(): void {
   }
 
   @Input()
@@ -71,5 +87,10 @@ export class TodoItemComponent implements OnInit {
   toggle() {
     this.checked = !this.checked;
     this.update.next({ text: this.text, checked: this.checked });
+  }
+
+  edit() {
+    this.update.next({ text: this.text, checked: this.checked });
+    this.editing = false;
   }
 }

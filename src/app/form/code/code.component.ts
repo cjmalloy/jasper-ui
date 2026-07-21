@@ -1,14 +1,19 @@
-import { Component, Input, OnDestroy, OnInit } from '@angular/core';
-import { UntypedFormGroup } from '@angular/forms';
+import { Component, Input, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
+import { ReactiveFormsModule, UntypedFormGroup } from '@angular/forms';
 import { autorun, IReactionDisposer } from 'mobx';
+import { MonacoEditorModule } from 'ngx-monaco-editor';
+import { ResizeHandleDirective } from '../../directive/resize-handle.directive';
+import { ConfigService } from '../../service/config.service';
 import { Store } from '../../store/store';
 
 @Component({
   selector: 'app-code',
   templateUrl: './code.component.html',
-  styleUrls: ['./code.component.scss']
+  styleUrls: ['./code.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [ReactiveFormsModule, MonacoEditorModule, ResizeHandleDirective]
 })
-export class CodeComponent implements OnInit, OnDestroy {
+export class CodeComponent implements OnDestroy {
 
   private disposers: IReactionDisposer[] = [];
 
@@ -19,9 +24,11 @@ export class CodeComponent implements OnInit, OnDestroy {
 
   options: any = {
     language: 'css',
+    automaticLayout: true,
   };
 
   constructor(
+    public config: ConfigService,
     private store: Store,
   ) {
     this.disposers.push(autorun(() => {
@@ -38,9 +45,6 @@ export class CodeComponent implements OnInit, OnDestroy {
       ...this.options,
       language: value,
     }
-  }
-
-  ngOnInit(): void {
   }
 
   ngOnDestroy() {

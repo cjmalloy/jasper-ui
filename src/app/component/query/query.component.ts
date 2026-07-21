@@ -1,33 +1,37 @@
-import { Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
-import { Router } from '@angular/router';
+import { Component, ElementRef, Input, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { ReactiveFormsModule } from '@angular/forms';
+import { Router, RouterLink } from '@angular/router';
+import { defer } from 'lodash-es';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
 import { Store } from '../../store/store';
+import { getEl } from '../../util/html';
 import { access, fixClientQuery, getStrictPrefix, localTag, tagOrigin } from '../../util/tag';
 
-export type Crumb = { text: string, tag?: string };
+export type Crumb = { text: string, tag?: string, pos: number, len: number };
 
 @Component({
   selector: 'app-query',
   templateUrl: './query.component.html',
-  styleUrls: ['./query.component.scss']
+  styleUrls: ['./query.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [ReactiveFormsModule, RouterLink]
 })
-export class QueryComponent implements OnInit {
+export class QueryComponent {
 
   editing = false;
+  replaceOnClipboardPaste = false;
+  select: boolean | Crumb[] = false;
+  breadcrumbs: Crumb[] = [];
 
   private _query = '';
-  breadcrumbs: Crumb[] = [];
 
   constructor(
     private router: Router,
     private exts: ExtService,
     private admin: AdminService,
-    private store: Store,
+    public store: Store,
   ) { }
-
-  ngOnInit(): void {
-  }
 
   get query(): string {
     return this._query;
@@ -35,13 +39,66 @@ export class QueryComponent implements OnInit {
 
   @Input()
   set query(value: string) {
+    if (this._query === value) return;
+    this.editing = false;
     this._query = value;
     this.breadcrumbs = this.queryCrumbs(this._query);
   }
 
   @ViewChild("editor")
-  set editor(ref: ElementRef) {
-    if (this._query) ref?.nativeElement.focus();
+  set editor(ref: ElementRef<HTMLInputElement>) {
+    const el = ref?.nativeElement;
+    if (!el) return;
+    if (!this._query) return;
+    el.focus();
+    if (!this.select) return;
+    defer(() => {
+      if (this.select === true) {
+        el.select();
+      } else if (this.select) {
+        el.setSelectionRange(this.select[0].pos, this.select[1].pos + this.select[1].len);
+      }
+    });
+  }
+
+  click(event: MouseEvent, breadcrumb: Crumb): boolean {
+    if (!this.store.hotkey) return true;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    this.edit([breadcrumb, breadcrumb]);
+    return false;
+  }
+
+  edit(select: boolean | Crumb[]) {
+    if (!this.editing) this.replaceOnClipboardPaste = true;
+    this.editing = true;
+    if (select) {
+      this.select = select;
+    } else {
+      this.select = false;
+      const selection = document.getSelection();
+      if (selection && selection.rangeCount > 0 && selection.toString()) {
+        const range = selection.getRangeAt(0);
+        const startCrumb = this.findCrumbFromNode(getEl(range.startContainer));
+        const endCrumb = this.findCrumbFromNode(getEl(range.endContainer));
+        if (startCrumb && endCrumb) {
+          this.select = [startCrumb, endCrumb];
+        }
+      }
+    }
+  }
+
+  private findCrumbFromNode(el: Element | null): Crumb | undefined {
+    while (el) {
+      if (el.classList.contains('crumb')) {
+        const index = Array.from(el.parentElement?.children || []).indexOf(el);
+        if (index >= 0 && index < this.breadcrumbs.length) {
+          return this.breadcrumbs[index];
+        }
+      }
+      el = el.parentElement;
+    }
+    return undefined;
   }
 
   search(query: string) {
@@ -52,14 +109,22 @@ export class QueryComponent implements OnInit {
       .replace(/[\s|]*:[\s|]*/g, ':')
       .replace(/\s+/g, '+')
       .replace(/[^_+/a-z-0-9.:|!@*()]+/g, '');
-    this.router.navigate(['/tag', query], { queryParams: { pageNumber: null },  queryParamsHandling: 'merge'});
+    if (this.store.view.current === 'tags') {
+      this.router.navigate(['/tags', query], { queryParams: { pageNumber: null }, queryParamsHandling: 'merge' });
+    } else {
+      this.router.navigate(['/tag', query], { queryParams: { pageNumber: null }, queryParamsHandling: 'merge' });
+    }
   }
 
   private queryCrumbs(query: string): Crumb[] {
     if (!query) return [];
+    let read = 0;
     const result: Crumb[] = fixClientQuery(query).split(/([:|()])/g).filter(t => !!t).map(part => {
-      if (/[:|()]+/.test(part)) return { text: part };
-      return { text: '', tag: part };
+      const pos = read;
+      const len = part.length;
+      read += len;
+      if (/[:|()]+/.test(part)) return { text: part, pos, len };
+      return { text: '', tag: part, pos, len };
     });
     for (let i = 0; i < result.length - 2; i++) {
       const a = result[i];
@@ -92,14 +157,20 @@ export class QueryComponent implements OnInit {
       }
     }
     return result.flatMap(c => {
-      if (!c.tag) return [{ text: this.store.account.querySymbol(...c.text.split('') as any)}];
-      if (c.tag) return this.tagCrumbs(c.tag);
+      if (!c.tag) c.text = this.store.account.querySymbol(...c.text.split('') as any);
+      if (c.tag) return this.tagCrumbs(c.tag, c.pos, c.len);
       return c;
     });
   }
 
-  private tagCrumbs(tag: string) {
-    const crumbs: Crumb[] = localTag(tag).split(/([/{},])/g).filter(t => !!t).map(text => ({ text }));
+  private tagCrumbs(tag: string, pos: number, len: number) {
+    let read = pos;
+    const crumbs: Crumb[] = localTag(tag).split(/([/{},])/g).filter(t => !!t).map(text => {
+      const pos = read;
+      const len = text.length;
+      read += len;
+      return ({text, pos, len});
+    });
     let prefix = '';
     for (let i = 0; i < crumbs.length; i++) {
       const previous = i > 1 ? crumbs[i-2].tag + '/' : '';
@@ -117,14 +188,14 @@ export class QueryComponent implements OnInit {
       for (const t of crumbs) {
         if (t.tag) t.tag += origin;
       }
-      crumbs.push({text: ' ' });
-      crumbs.push({text: origin, tag: origin });
+      crumbs.push({text: ' ', pos, len: 0 });
+      crumbs.push({text: origin, tag: origin, pos: pos + len - origin.length, len: origin.length });
     }
     if (tag.startsWith('!')) {
       for (const t of crumbs) {
         if (t.text.startsWith('!')) t.text = t.text.substring(1);
       }
-      const notOp = { text: this.store.account.querySymbol('!') };
+      const notOp = { text: this.store.account.querySymbol('!'), pos, len: 0 };
       if (notOp.text.startsWith(' ')) {
         crumbs.unshift(notOp);
       } else {
@@ -136,14 +207,20 @@ export class QueryComponent implements OnInit {
       if (tag && !tag.startsWith('@')) {
         this.exts.getCachedExt(tag).subscribe(ext => {
           // TODO: possible delayed write
-          if (ext?.modifiedString && ext?.name) {
+          if (ext.modifiedString && ext.name) {
             t.text = ext.name;
+          } else if (ext.tag === 'plugin') {
+            t.text = '📦';
+          } else if (ext.tag === '+plugin') {
+            t.text = '+📦';
+          } else if (ext.tag === '_plugin') {
+            t.text = '_📦';
           } else {
-            const template = this.admin.getTemplate(localTag(tag));
+            const template = this.admin.getTemplate(ext.tag);
             if (template?.name) {
               t.text = template.name;
             } else {
-              const plugin = this.admin.getPlugin(localTag(tag));
+              const plugin = this.admin.getPlugin(ext.tag);
               if (plugin?.name) t.text = plugin.name;
             }
           }
@@ -152,5 +229,11 @@ export class QueryComponent implements OnInit {
     }
     return crumbs;
   }
-}
 
+  blur(value: string) {
+    this.replaceOnClipboardPaste = false;
+    if (value === this.query) {
+      this.editing = false;
+    }
+  }
+}

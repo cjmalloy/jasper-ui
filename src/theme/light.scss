@@ -2,36 +2,45 @@
 body.light-theme {
   --bg: white;
   --bg-accent: rgba(0, 0, 0, 0.05);
+  --bg-hover: rgba(0, 0, 0, 0.1);
+  --bg-active: rgba(0, 0, 0, 0.4);
   --text: black;
+  --visited: #551a8b;
   --blue: rgba(207, 221, 255, 0.7);
   --active: #da0000;
   --info: gray;
   --tag: #3d3dbb;
+  --toggle: #CCC;
+  --toggle-accent: #BBB;
+  --toggle-active: #AAA;
+  --toggle-border: grey;
   --tag-accent: #f3ebc7;
+  --form-bg: white;
   --border: black;
   --border-accent: rgba(0, 0, 0, 0.4);
   --border-light: rgba(0, 0, 0, 0.2);
   --unselected-tab: #b3b9c4;
   --error: #da0000;
   --error-bg: #ffa9a9;
-  --warning: #c1c500;
+  --warning: #883;
   --mod: #136500;
   --card: #f3ebc7;
+  --card-dragging: #ede7dc;
   --placeholder: #efebdf;
   --deleting: #ffa9a9;
+  --quote: #af5800;
 
   color-scheme: light;
   color: var(--text);
 
-  background-color: var(--bg);
-  background-image: url("~/assets/bg-light.png");
-  background-blend-mode: darken;
-  ::backdrop, .editor.fullscreen app-md {
+  &,
+  .embed::backdrop,
+  figure::backdrop,
+  .editor.fullscreen app-md {
     background-color: var(--bg);
-    background-image: url("~/assets/bg-light.png");
+    background-image: url("../assets/bg-light.png");
     background-blend-mode: darken;
   }
-
 
   .link-style {
     color: blue;
@@ -42,6 +51,10 @@ body.light-theme {
   }
   .debug footer p {
     filter: brightness(3);
+  }
+
+  .glass {
+    backdrop-filter: grayscale(1) contrast(0.3) brightness(1.5) blur(8px);
   }
 
   .toolbar {
@@ -84,7 +97,7 @@ body.light-theme {
     background-color: var(--blue);
 
     .logo {
-      background-image: url("~/assets/jasper-light.png");
+      background-image: url("../assets/jasper-light.png");
     }
 
     & > a {
@@ -93,7 +106,7 @@ body.light-theme {
       }
 
       &.current-tab {
-        background-image: url("~/assets/bg-light.png");
+        background-image: url("../assets/bg-light.png");
         background-blend-mode: darken;
       }
     }
@@ -107,7 +120,7 @@ body.light-theme {
     border-left: 1px dashed var(--border);
     border-bottom: 1px dashed var(--border);
     backdrop-filter: grayscale(1) contrast(0.2) brightness(1.5) blur(6px);
-    box-shadow: 0 0 2px 1px rgba(0, 0, 0, 0.1);
+    box-shadow: -2px 2px 2px 1px rgba(0, 0, 0, 0.1);
   }
 
   .editor:focus-within, .bubble, .plugins-form > *, blockquote, .full-page .todo-list {
@@ -118,8 +131,13 @@ body.light-theme {
     border-left: 1px dotted rgba(128, 128, 128, 0.3);
   }
 
-  .toggle {
-    background-color: lightgray;
+  .thread > .ref-list > .list-container > .ref,
+  .md .ref.plugin_thread:not(.ref-list-item),
+  .thread .ref.plugin_thread:not(.ref-list-item),
+  .thread.ref {
+    --thread-sent: rgba(32, 32, 255, 0.1);
+    --thread-recieved: rgba(243, 235, 199, 0.3);
+    box-shadow: 1px 1px 2.5px rgba(0, 0, 0, 0.8);
   }
 
   .summary-box {
@@ -132,25 +150,4 @@ body.light-theme {
                 0 4px 0.5px 0 white;
   }
 
-  .kanban {
-    .column-title, .swim-lane-title {
-      background-color: transparent;
-      backdrop-filter: blur(1px) sepia(5%);
-      border: 0.5px solid var(--border-light);
-      &:hover {
-        box-shadow: 0 0 4px rgba(0, 0, 0, 0.2);
-      }
-    }
-  }
-
-  .backgammon-board {
-    --bg: rgba(187, 147, 71, 0.5);
-    --black: #333;
-    --red: #A55;
-    --play: #DDD;
-    --brown: #862;
-    --brown-alt: #975;
-    --glow: rgba(0, 0, 0, 0.5);
-    --move: rgba(82, 136, 82, 0.5);
-  }
 }

@@ -1,21 +1,32 @@
-import { Component, HostBinding, Input, OnChanges, OnDestroy, OnInit, SimpleChanges } from '@angular/core';
+import { Component, forwardRef, Input, OnChanges, OnDestroy, OnInit, SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
+import { MobxAngularModule } from 'mobx-angular';
 import { Observable, Subject, takeUntil } from 'rxjs';
 import { Ref } from '../../../model/ref';
 import { RefService } from '../../../service/api/ref.service';
 import { Store } from '../../../store/store';
 import { getArgs } from '../../../util/query';
+import { RefComponent } from '../../ref/ref.component';
+import { CommentComponent } from '../comment.component';
 
 @Component({
   selector: 'app-thread-summary',
   templateUrl: './thread-summary.component.html',
   styleUrls: ['./thread-summary.component.scss'],
+  host: { 'class': 'thread-summary' },
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [
+    forwardRef(() => CommentComponent),
+    forwardRef(() => RefComponent),
+    MobxAngularModule,
+  ]
 })
 export class ThreadSummaryComponent implements OnInit, OnChanges, OnDestroy {
-  @HostBinding('class') css = 'thread-summary';
   private destroy$ = new Subject<void>();
 
   @Input()
-  source?: Ref;
+  source = '';
+  @Input()
+  commentView = false;
   @Input()
   query = '';
   @Input()
@@ -27,10 +38,10 @@ export class ThreadSummaryComponent implements OnInit, OnChanges, OnDestroy {
   @Input()
   showLoadMore = true;
   @Input()
-  newComments$!: Observable<Ref | null>;
+  newRefs$?: Observable<Ref | undefined>;
 
-  newComments: Ref[] = [];
-  comments: Ref[] = [];
+  newRefs: Ref[] = [];
+  list: Ref[] = [];
 
   constructor(
     private refs: RefService,
@@ -38,21 +49,24 @@ export class ThreadSummaryComponent implements OnInit, OnChanges, OnDestroy {
   ) { }
 
   ngOnInit(): void {
-    this.newComments$.pipe(
+    this.newRefs$?.pipe(
       takeUntil(this.destroy$),
-    ).subscribe(comment =>
-      comment && this.newComments.unshift(comment));
+    ).subscribe(comment => {
+      if (comment) this.newRefs = [comment, ...this.newRefs];
+    });
   }
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes.source) {
-      this.newComments = [];
+      this.newRefs = [];
       this.refs.page({
         ...getArgs(this.query, this.store.view.sort, this.store.view.filter),
-        responses: this.source?.url,
+        responses: this.source,
         size: this.pageSize,
-      }).subscribe(page => {
-        this.comments = page.content;
+      }).pipe(
+        takeUntil(this.destroy$)
+      ).subscribe(page => {
+        this.list = page.content;
       });
     }
   }

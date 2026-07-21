@@ -1,10 +1,16 @@
-<app-editor [control]="comment"
-            [tags]="ref.tags"
-            (syncTags)="plugins = $event"
+<app-editor #editor [control]="comment"
+            [createdTags]="ref.tags || []"
+            (syncTags)="editorTags = $event"
+            (addSource)="sources.push($event)"
+            (uploadCompleted)="completedUploads.push($event)"
             [autoFocus]="true"></app-editor>
-<ng-container *ngFor="let e of serverError">
+@for (e of serverError; track e) {
   <span><!-- Unexpected Error --></span>
   <div class="error">{{ e }}</div>
-</ng-container>
-<button type="button" (click)="save()" i18n>save</button>
-<button type="button" (click)="cancel()" i18n>cancel</button>
+}
+<button type="button" [disabled]="editing" (click)="save()" i18n>save</button>
+@if (editing) {
+  <app-loading [inline]="true"></app-loading>
+} @else {
+  <button type="button" (click)="cancel()" i18n>cancel</button>
+}

@@ -1,7 +1,8 @@
-import { HttpClientTestingModule } from '@angular/common/http/testing';
+/// <reference types="vitest/globals" />
+import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { RouterTestingModule } from '@angular/router/testing';
-import { OAuthService, OAuthStorage } from 'angular-oauth2-oidc';
+import { provideRouter } from '@angular/router';
 
 import { SettingsComponent } from './settings.component';
 
@@ -11,20 +12,14 @@ describe('SettingsComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ SettingsComponent ],
-      imports: [
-        HttpClientTestingModule,
-        RouterTestingModule,
-      ],
+      imports: [SettingsComponent],
       providers: [
-        { provide: OAuthService, useValue: {} },
-        { provide: OAuthStorage, useValue: {} },
+        provideHttpClient(withXhr(), withInterceptorsFromDi()),
+        provideHttpClientTesting(),
+        provideRouter([]),
       ],
-    })
-    .compileComponents();
-  });
+    }).compileComponents();
 
-  beforeEach(() => {
     fixture = TestBed.createComponent(SettingsComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();

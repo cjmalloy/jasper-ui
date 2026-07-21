@@ -1,10 +1,12 @@
 <div class="md"
      markdown
-     [appMdPost]="postProcessMarkdown"
+     [data]="value"
      [origin]="origin"
+     [disableSanitizer]="disableSanitizer"
+     [appMdPost]="postProcessMarkdown"
+     (ready)="postProcessMarkdown.next()"
      [katex]="!!plugins?.includes('plugin/latex')"
      [katexOptions]="katexOptions"
-     mermaid
-     [mermaidOptions]="$any({ theme: store.darkTheme ? 'dark' : 'default' })"
-     [data]="value"
-     (ready)="onReady()"></div>
+     [mermaid]="mermaid"
+     [mermaidOptions]="mermaidOptions"
+     [clipboard]="clipboard"></div>

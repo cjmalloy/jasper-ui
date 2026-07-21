@@ -6,14 +6,50 @@
 version: 2
 updates:
 - package-ecosystem: docker
-  directory: /
+  directories:
+    - "/"
+    - "/e2e"
   schedule:
-    interval: weekly
+    interval: daily
+    timezone: America/Halifax
 - package-ecosystem: npm
+  open-pull-requests-limit: 10
   directory: /
   schedule:
-    interval: weekly
+    interval: daily
+    timezone: America/Halifax
+  groups:
+    angular:
+      patterns:
+        - "@angular/*"
+        - "@angular-devkit/*"
+        - "rxjs"
+        - "zone.js"
+        - "typescript"
+        - "tslib"
+        - "ngx-markdown"
+        - "ngx-monaco-editor"
+    formly:
+      patterns:
+        - "@ngx-formly/*"
+    ag-grid:
+      patterns:
+        - "ag-grid-angular"
+        - "ag-grid-community"
+    maplibre-gl:
+      patterns:
+        - "@maplibre/*"
+        - "maplibre-gl"
+    tests:
+      patterns:
+        - "@vitest/*"
+        - "vitest"
+        - "jsdom"
+    playwright:
+      patterns:
+        - "@playwright/*"
 - package-ecosystem: github-actions
   directory: /
   schedule:
-    interval: weekly
+    interval: daily
+    timezone: America/Halifax

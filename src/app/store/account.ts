@@ -4,8 +4,8 @@ import { Ext } from '../model/ext';
 import { Roles, User } from '../model/user';
 import { getMailbox } from '../mods/mailbox';
 import { defaultSubs, UserConfig } from '../mods/user';
-import { config } from '../service/config.service';
-import { hasPrefix, localTag, prefix, tagOrigin } from '../util/tag';
+import { parseBookmarkParams, parseParams } from '../util/http';
+import { braces, defaultOrigin, hasPrefix, localTag, prefix, setPublic, tagOrigin } from '../util/tag';
 import { OriginStore } from './origin';
 
 export class AccountStore {
@@ -16,35 +16,31 @@ export class AccountStore {
   access?: User = {} as User;
   ext?: Ext = {} as Ext;
   defaultConfig: UserConfig = {};
+  ignoreNotifications: number[] = [];
 
-  /**
-   * Is Sysadmin.
-   * Only used in multi-tenant to own all origins.
-   * Equivalent to Admin in single tenant.
-   */
-  sa = false;
   /**
    * Is admin.
    * Owns everything.
-   * Limited to origin in multi-tenant.
+   * Limited to origin and sub origins.
    */
   admin = false;
   /**
    * Is mod.
    * Owns everything except plugins and templates.
-   * Limited to origin in multi-tenant.
+   * Limited to origin and sub origins.
    */
   mod = false;
   /**
    * Is editor.
    * Allowed to toggle any public tag (except public and locked) to any Ref in view.
-   * Limited to origin in multi-tenant.
+   * Limited to origin and sub origins.
    */
   editor = false;
   /**
    * Is user.
    * Allowed to post Refs.
    * May be given access to other tags.
+   * Limited to origin and sub origins.
    */
   user = false;
   /**
@@ -52,15 +48,31 @@ export class AccountStore {
    * Allowed to edit user ext.
    * May be given read access to other tags.
    * May not be given write access to other tags.
+   * Limited to origin and sub origins.
    */
   viewer = false;
   /**
    * Is banned.
    * No access, ban message shown instead.
+   * Limited to origin and sub origins.
    */
   banned = false;
+  /**
+   * Unread inbox and alarms total count.
+   */
   notifications = 0;
+  /**
+   * Unread alarms count.
+   */
+  alarmCount = 0;
+  /**
+   * Flag indicating the interceptor detected an unauthorized request.
+   */
   authError = false;
+  /**
+   * Flag indicating an unrecoverable error loading app from PWA cache.
+   */
+  unrecoverable = false;
 
   constructor(
     private origins: OriginStore,
@@ -72,22 +84,20 @@ export class AccountStore {
     this.defaultConfig = {};
   }
 
-  get sysAdmin() {
-    if (config().multiTenant) return this.sa;
-    return this.admin;
-  }
-
-  get sysMod() {
-    if (config().multiTenant) return this.sa;
-    return this.mod;
-  }
-
   get signedIn() {
     return !!this.tag;
   }
 
+  get root() {
+    return !this.origin;
+  }
+
   get localTag() {
     return localTag(this.tag);
+  }
+
+  get tagWithOrigin() {
+    return localTag(this.tag) + (this.origin || '@');
   }
 
   get userTag() {
@@ -109,7 +119,6 @@ export class AccountStore {
     return {
       debug: this.debug,
       tag: this.tag,
-      sysadmin: this.sa,
       admin: this.admin,
       mod: this.mod,
       editor: this.editor,
@@ -142,29 +151,37 @@ export class AccountStore {
     return this.config.bookmarks || [];
   }
 
+  get bookmarkQueries() {
+    return this.bookmarks.map(b => b.includes('?') ? b.substring(0, b.indexOf('?')) : b);
+  }
+
+  get bookmarkParams() {
+    return this.bookmarks.map(b => parseBookmarkParams(b.includes('?') ? b.substring(b.indexOf('?')) : b));
+  }
+
   get alarms(): string[] {
     return this.config.alarms || [];
   }
 
   get mailbox() {
     if (!this.signedIn) return undefined;
-    return getMailbox(this.tag);
+    return getMailbox(this.tag, this.origin) + (this.origin || '@');
   }
 
   get modmail() {
-    return this.access?.readAccess?.filter(t => hasPrefix(t, 'plugin/inbox')).map(t => t + (this.origin || '@*'));
+    return this.access?.readAccess?.filter(t => hasPrefix(t, 'plugin/inbox')).map(t => defaultOrigin(t, this.origin || '@'));
   }
 
   get outboxes() {
     return Array.from(this.origins.reverseLookup)
-      .map(([remote, localAlias]) => prefix('plugin/outbox', localAlias, this.localTag) + remote);
+      .map(([remote, localAlias]) => setPublic(prefix('plugin/outbox', localAlias, this.localTag)) + remote);
   }
 
   get inboxQuery() {
-    if (!this.signedIn) return undefined;
+    if (!this.signedIn) return '';
     let tags = [this.mailbox];
     if (this.origin) {
-      tags.push(prefix('plugin/outbox', this.origin, this.localTag));
+      tags.push(setPublic(prefix('plugin/outbox', this.origin, this.tagWithOrigin)) + this.origin);
     }
     if (this.modmail?.length) {
       tags.push(...this.modmail);
@@ -177,8 +194,14 @@ export class AccountStore {
 
   get notificationsQuery() {
     if (!this.signedIn) return undefined;
-    const alarms = this.config.alarms?.length ? '|' + this.config.alarms.join('|') : '';
-    return `!${this.tag}:!plugin/delete:(` + this.inboxQuery + ')' + alarms;
+    const alarms = this.alarmsQuery ? '|' + this.alarmsQuery : '';
+    return `!${this.tag}:!plugin/delete:` + braces(this.inboxQuery) + alarms;
+  }
+
+  get alarmsQuery() {
+    if (!this.signedIn) return undefined;
+    if (!this.config.alarms?.length) return '';
+    return this.config.alarms.join('|');
   }
 
   get subscriptionQuery() {
@@ -234,7 +257,7 @@ export class AccountStore {
         case '|': return $localize` | `;
         case '(': return $localize` (\u00A0`;
         case ')': return $localize`\u00A0) `;
-        case `!`: return $localize` !`;
+        case `!`: return $localize` ❗`;
         case `{`: return $localize` {\u00A0`;
         case `}`: return $localize`\u00A0} `;
         case `,`: return $localize`, `;
@@ -251,7 +274,6 @@ export class AccountStore {
       // Not logged in, only local origin is set
       this.tag = '';
     }
-    this.sa = roles.sysadmin;
     this.admin = roles.admin;
     this.mod = roles.mod;
     this.editor = roles.editor;
@@ -261,7 +283,7 @@ export class AccountStore {
   }
 
   defaultEditors(plugins: string[]) {
-    if (!this.config?.editors) return plugins;
+    if (!this.config?.editors) return [];
     return intersection(this.config.editors, plugins);
   }
 }

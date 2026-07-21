@@ -1,27 +1,54 @@
-<app-loading *ngIf="!page else loaded"></app-loading>
-<ng-template #loaded>
-  <app-kanban-card *ngFor="let ref of page!.content trackBy: trackByUrlOrigin"
-                   cdkDrag
-                   [hideSwimLanes]="hideSwimLanes"
-                   [cdkDragData]="ref"
-                   [cdkDragStartDelay]="pressToUnlock ? 251 : 0"
-                   [pressToUnlock]="pressToUnlock"
-                   [ref]="ref"
-                   [ext]="ext"
-                   (copied)="copy($event)"></app-kanban-card>
-  <app-kanban-card *ngFor="let text of adding"
-                   [ref]="{ url: '', title: text }"
-                   [ext]="ext"></app-kanban-card>
-</ng-template>
+@if (page) {
+  @for (ref of page.content; track ref.origin + '@' + ref.url) {
+    <app-kanban-card cdkDrag
+                     [hideSwimLanes]="hideSwimLanes"
+                     [cdkDragData]="ref"
+                     [cdkDragStartDelay]="pressToUnlock ? 251 : 0"
+                     [pressToUnlock]="pressToUnlock"
+                     [ref]="ref"
+                     [ext]="ext"
+                     (copied)="copy($event)"></app-kanban-card>
+  }
+  @for (upload of adding; track upload.id) {
+    <app-kanban-card [ref]="{ url: '', title: upload.name }"
+                     [ext]="ext"
+                     [progress]="upload.progress"></app-kanban-card>
+  }
+  @for (failedItem of failed; track failedItem.text) {
+    <div class="failed-item">
+      <div class="failed-content">
+        <div class="failed-text">{{ failedItem.text }}</div>
+        <div class="failed-error">{{ failedItem.error }}</div>
+      </div>
+      <div class="failed-actions">
+        <button type="button"
+                class="retry-btn"
+                (click)="retry(failedItem)"
+                i18n-title title="Retry creating this item"
+                i18n>↻</button>
+        <button type="button"
+                class="dismiss-btn"
+                (click)="dismissFailed(failedItem)"
+                i18n-title title="Dismiss this failed item"
+                i18n>&ndash;</button>
+      </div>
+    </div>
+  }
+} @else {
+  <app-loading></app-loading>
+}
 <div class="spacer"></div>
-<a *ngIf="hasMore"
-   class="fake-link no-select load-more"
-   (click)="loadMore()" i18n>load more <span *ngIf="more" class="more">({{ more }})</span></a>
+@if (hasMore) {
+  <a class="fake-link no-select load-more"
+     (click)="loadMore()" i18n>load more @if (more) {<span class="more">({{ more }})</span>}</a>
+}
 <input type="text"
        enterkeyhint="send"
        i18n-placeholder
        placeholder="Add..."
-       [(ngModel)]="addText"
+       [value]="addText"
+       (input)="addText = $any($event.target).value"
+       (paste)="handlePaste($event)"
        [style.display]="addText ? 'block' : 'none'"
        (keydown)="$event.key === 'Enter' && add() || true"
        (blur)="add()">

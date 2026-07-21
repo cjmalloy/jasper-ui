@@ -1,11 +1,13 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { defer } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
-import { catchError, throwError } from 'rxjs';
+import { catchError, switchMap, throwError } from 'rxjs';
+import { PluginListComponent } from '../../../component/plugin/plugin-list/plugin-list.component';
+import { HasChanges } from '../../../guard/pending-changes.guard';
 import { mapPlugin, Plugin } from '../../../model/plugin';
 import { PluginService } from '../../../service/api/plugin.service';
-import { ThemeService } from '../../../service/theme.service';
+import { ModService } from '../../../service/mod.service';
 import { PluginStore } from '../../../store/plugin';
 import { Store } from '../../../store/store';
 import { printError } from '../../../util/http';
@@ -16,22 +18,31 @@ import { getModels, getZipOrTextFile } from '../../../util/zip';
   selector: 'app-settings-plugin-page',
   templateUrl: './plugin.component.html',
   styleUrls: ['./plugin.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [PluginListComponent],
 })
-export class SettingsPluginPage implements OnInit, OnDestroy {
+export class SettingsPluginPage implements OnInit, OnDestroy, HasChanges {
 
   serverError: string[] = [];
+
+  @ViewChild('list')
+  list?: PluginListComponent;
 
   private disposers: IReactionDisposer[] = [];
 
   constructor(
-    private theme: ThemeService,
+    private mod: ModService,
     public store: Store,
     public query: PluginStore,
     private plugins: PluginService,
   ) {
-    theme.setTitle($localize`Settings: Plugins`);
-    store.view.clear('tag', 'tag');
+    mod.setTitle($localize`Settings: Plugins`);
+    store.view.clear(['tag:len', 'tag'], ['tag:len', 'tag']);
     query.clear();
+  }
+
+  saveChanges() {
+    return !this.list || this.list.saveChanges();
   }
 
   ngOnInit(): void {
@@ -49,6 +60,7 @@ export class SettingsPluginPage implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    this.query.close();
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
   }
@@ -64,14 +76,9 @@ export class SettingsPluginPage implements OnInit, OnDestroy {
   }
 
   uploadPlugin(plugin: Plugin) {
-    this.plugins.create({
-      ...plugin,
-      origin: this.store.account.origin,
-    }).pipe(
+    return this.plugins.delete(plugin.tag + this.store.account.origin).pipe(
+      switchMap(() => this.plugins.create({ ...plugin, origin: this.store.account.origin })),
       catchError((res: HttpErrorResponse) => {
-        if (res.status === 409) {
-          return this.plugins.update(plugin);
-        }
         this.serverError = printError(res);
         return throwError(() => res);
       }),

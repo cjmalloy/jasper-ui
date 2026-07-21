@@ -1,4 +1,6 @@
-import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, forwardRef, Input, OnChanges, QueryList, SimpleChanges, ViewChildren, ChangeDetectionStrategy } from '@angular/core';
+import { MobxAngularModule } from 'mobx-angular';
+import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ext } from '../../model/ext';
 import { Page } from '../../model/page';
 import { Ref, RefSort } from '../../model/ref';
@@ -7,13 +9,41 @@ import { AdminService } from '../../service/admin.service';
 import { QueryStore } from '../../store/query';
 import { UrlFilter } from '../../util/query';
 import { hasPrefix } from '../../util/tag';
+import { BlogComponent } from '../blog/blog.component';
+import { ChatComponent } from '../chat/chat.component';
+import { FolderComponent } from '../folder/folder.component';
+import { ForceDirectedComponent } from '../graph/force-directed/force-directed.component';
+import { GridComponent } from '../grid/grid.component';
+import { KanbanComponent } from '../kanban/kanban.component';
+import { LoadingComponent } from '../loading/loading.component';
+import { MapComponent } from '../map/map.component';
+import { NotebookComponent } from '../notebook/notebook.component';
+import { RefListComponent } from '../ref/ref-list/ref-list.component';
+import { RefComponent } from '../ref/ref.component';
+import { ViewerComponent } from '../viewer/viewer.component';
 
 @Component({
   selector: 'app-lens',
   templateUrl: './lens.component.html',
-  styleUrls: ['./lens.component.scss']
+  styleUrls: ['./lens.component.scss'],
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [
+    MobxAngularModule,
+    LoadingComponent,
+    forwardRef(() => RefComponent),
+    forwardRef(() => ForceDirectedComponent),
+    forwardRef(() => BlogComponent),
+    forwardRef(() => ChatComponent),
+    forwardRef(() => FolderComponent),
+    forwardRef(() => RefListComponent),
+    forwardRef(() => KanbanComponent),
+    forwardRef(() => NotebookComponent),
+    forwardRef(() => GridComponent),
+    forwardRef(() => MapComponent),
+    ViewerComponent,
+  ],
 })
-export class LensComponent implements OnChanges {
+export class LensComponent implements OnChanges, HasChanges {
 
   @Input()
   ext?: Ext;
@@ -41,6 +71,10 @@ export class LensComponent implements OnChanges {
   showVotes = false;
 
   plugins?: string[];
+  header?: string;
+
+  @ViewChildren('lens')
+  list?: QueryList<HasChanges>;
 
   constructor(
     public admin: AdminService,
@@ -48,7 +82,12 @@ export class LensComponent implements OnChanges {
     public query: QueryStore,
   ) { }
 
+  saveChanges() {
+    return !this.list?.find(t => !t.saveChanges());
+  }
+
   init() {
+    this.header = this.ext?.config?.header;
     if (hasPrefix(this.ext?.tag, 'plugin')) {
       this.plugins = [this.ext!.tag];
     } else {
@@ -63,12 +102,13 @@ export class LensComponent implements OnChanges {
   }
 
   isTemplate(template: string) {
-    return hasPrefix(this.ext?.tag, template);
+    return this.admin.getTemplate(template) && hasPrefix(this.ext?.tag, template);
   }
 
   cssClass(tag?: string) {
     if (!tag) return '';
-    return tag.replace(/\//g, '-')
+    return tag.replace(/\//g, '_')
+      .replace(/\./g, '-')
       .replace(/[^\w-]/g, '');
   }
 }

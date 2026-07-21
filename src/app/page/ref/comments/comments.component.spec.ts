@@ -1,6 +1,9 @@
-import { HttpClientTestingModule } from '@angular/common/http/testing';
+/// <reference types="vitest/globals" />
+import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { forwardRef } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { RouterTestingModule } from '@angular/router/testing';
+import { provideRouter } from '@angular/router';
 
 import { RefCommentsComponent } from './comments.component';
 
@@ -10,16 +13,16 @@ describe('RefCommentsComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ RefCommentsComponent ],
       imports: [
-        HttpClientTestingModule,
-        RouterTestingModule,
+        forwardRef(() => RefCommentsComponent),
       ],
-    })
-    .compileComponents();
-  });
+      providers: [
+        provideHttpClient(withXhr(), withInterceptorsFromDi()),
+        provideHttpClientTesting(),
+        provideRouter([]),
+      ]
+    }).compileComponents();
 
-  beforeEach(() => {
     fixture = TestBed.createComponent(RefCommentsComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();

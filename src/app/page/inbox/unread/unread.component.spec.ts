@@ -1,6 +1,9 @@
-import { HttpClientTestingModule } from '@angular/common/http/testing';
+/// <reference types="vitest/globals" />
+import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { forwardRef } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { RouterTestingModule } from '@angular/router/testing';
+import { provideRouter } from '@angular/router';
 import { BehaviorSubject } from 'rxjs';
 import { Ext } from '../../../model/ext';
 import { Page } from '../../../model/page';
@@ -16,31 +19,16 @@ describe('InboxUnreadPage', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ InboxUnreadPage ],
-      imports: [
-        HttpClientTestingModule,
-        RouterTestingModule,
-      ],
+      imports: [forwardRef(() => InboxUnreadPage)],
       providers: [
-        { provide: RefService, useValue: { page: () => new BehaviorSubject<Page<Ref>>({
-              content: [],
-              empty: false,
-              first: false,
-              last: false,
-              number: 0,
-              size: 0,
-              numberOfElements: 0,
-              totalElements: 0,
-              totalPages: 0
-            }) }
-          },
-        { provide: AccountService, useValue: { userExt$: new BehaviorSubject<Ext>({tag: 'user/test'}) } },
-      ]
-    })
-    .compileComponents();
-  });
+        { provide: RefService, useValue: { page: () => new BehaviorSubject<Page<Ref>>(Page.of([])) } },
+        { provide: AccountService, useValue: { userExt$: new BehaviorSubject<Ext>({ tag: 'user/test' }) } },
+        provideHttpClient(withXhr(), withInterceptorsFromDi()),
+        provideHttpClientTesting(),
+        provideRouter([]),
+      ],
+    }).compileComponents();
 
-  beforeEach(() => {
     fixture = TestBed.createComponent(InboxUnreadPage);
     component = fixture.componentInstance;
     fixture.detectChanges();

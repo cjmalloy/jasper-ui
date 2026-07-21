@@ -1,15 +1,18 @@
 <ng-container *mobxAutorun>
-  <app-ref-list [page]="query.page"
-                [newRefs$]="newComments$"
-                [expanded]="true"></app-ref-list>
-  <ng-container *ngIf="store.view.ref; else loading">
-    <app-comment-reply [to]="query.page?.content?.[(query.page?.content?.length || 0) - 1] || store.view.ref"
-                       [top]="top"
-                       quote=""
-                       [tags]="replyTags"
-                       [newComments$]="newComments$"></app-comment-reply>
-  </ng-container>
-  <ng-template #loading>
+  @if (query.page) {
+    <app-ref-list #list [page]="query.page"
+                  [newRefs$]="newRefs$"
+                  emptyMessage=""
+                  [showToggle]="false"
+                  [expanded]="true"
+                  [expandInline]="true"></app-ref-list>
+  } @else {
     <app-loading></app-loading>
-  </ng-template>
+  }
+  @if (store.view.ref) {
+    <app-comment-reply #reply
+                       [to]="to"
+                       [tags]="replyTags"
+                       (save)="newRefs$.next($event)"></app-comment-reply>
+  }
 </ng-container>

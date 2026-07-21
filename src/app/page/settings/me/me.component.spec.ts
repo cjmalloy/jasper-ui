@@ -1,26 +1,25 @@
+/// <reference types="vitest/globals" />
+import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { forwardRef } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 
 import { SettingsMePage } from './me.component';
-import { HttpClientTestingModule } from '@angular/common/http/testing';
-import { RouterTestingModule } from '@angular/router/testing';
-import { OAuthService, OAuthStorage } from 'angular-oauth2-oidc';
 
 describe('SettingsMePage', () => {
   let component: SettingsMePage;
   let fixture: ComponentFixture<SettingsMePage>;
 
-  beforeEach(() => {
-    TestBed.configureTestingModule({
-      declarations: [ SettingsMePage ],
-      imports: [
-        HttpClientTestingModule,
-        RouterTestingModule,
-      ],
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [forwardRef(() => SettingsMePage)],
       providers: [
-        { provide: OAuthService, useValue: {} },
-        { provide: OAuthStorage, useValue: {} },
+        provideHttpClient(withXhr(), withInterceptorsFromDi()),
+        provideHttpClientTesting(),
+        provideRouter([]),
       ],
-    });
+    }).compileComponents();
     fixture = TestBed.createComponent(SettingsMePage);
     component = fixture.componentInstance;
     fixture.detectChanges();

@@ -2,11 +2,9 @@
   display: contents;
   white-space: nowrap;
 }
-
 .sending {
   opacity: 0.5;
 }
-
 .loading-container {
   margin-top: -25px;
   height: 40px;
@@ -14,33 +12,33 @@
     padding: 0 4px;
   }
 }
-
 .gutter {
   text-align: right;
-
+  width: 100%;
   .timestamp {
-    display: none;
+    max-inline-size: 0;
+    overflow: hidden;
+    display: inline-block;
+    vertical-align: middle;
+    transition: max-inline-size 1s 2s ease-out;
   }
   &:focus-within, &:hover {
     .timestamp {
-      display: inline;
+      max-inline-size: 150px;
+      transition: max-inline-size 0s 0s ease-in;
     }
   }
 }
-
 .message {
   display: flex;
   height: 18.5px;
   overflow: hidden;
-
   :first-child {
     flex: 1;
   }
-
   .has-title {
     height: 18.5px;
     overflow: hidden;
-
     app-md {
       padding: 0 12px;
       display: inline-block;
@@ -49,18 +47,26 @@
   }
   .actions {
     display: none;
+    margin-left: 10px;
   }
   &:focus-within, &:hover, &.deleting, &.tagging, &.focused {
     white-space: normal !important;
     height: unset;
-    .actions {
-      display: inline;
-    }
     .has-title {
       height: unset;
       app-md {
         display: block;
       }
+    }
+  }
+  &:focus-within, &.deleting, &.tagging, &.focused {
+    .actions {
+      display: block;
+      position: absolute;
+      right: 4px;
+    }
+    .content {
+      margin-top: 24px;
     }
   }
 }

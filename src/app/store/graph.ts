@@ -1,4 +1,5 @@
 import { assign, difference, max, min, pull, pullAll, remove } from 'lodash-es';
+import { DateTime } from 'luxon';
 import { makeAutoObservable, observable } from 'mobx';
 import { RouterStore } from 'mobx-angular';
 import { Page } from '../model/page';
@@ -11,7 +12,7 @@ export class GraphStore {
   nodes: GraphNode[] = [];
   links: GraphLink[] = [];
   loading: string[] = [];
-  timeline = false;
+  timeline = true;
   arrows = false;
   showUnloaded = true;
 
@@ -41,16 +42,16 @@ export class GraphStore {
     return Page.of(this.selected.filter(s => !s.unloaded));
   }
 
-  get minPublished() {
-    return min(this.graphable.map(r => r.published).filter(p => !!p));
+  get minPublished(): DateTime {
+    return min(this.graphable.map(r => r.published).filter(p => !!p)) || DateTime.now().minus({ day: 1 });
   }
 
-  get maxPublished() {
-    return max(this.graphable.map(r => r.published).filter(p => !!p));
+  get maxPublished(): DateTime {
+    return max(this.graphable.map(r => r.published).filter(p => !!p)) || DateTime.now();
   }
 
   get publishedDiff() {
-    return this.maxPublished?.diff(this.minPublished) || 0;
+    return this.maxPublished?.diff(this.minPublished).milliseconds || 0;
   }
 
   set(refs: RefNode[]) {

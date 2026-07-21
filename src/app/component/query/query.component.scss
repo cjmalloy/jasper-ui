@@ -1,18 +1,19 @@
 :host {
   display: flex;
+  padding: 2px;
   & > :first-child {
+    text-align: center;
     flex-grow: 1;
     flex-shrink: 1;
+    margin-right: 4px;
   }
 }
-
-div {
+.breadcrumbs {
   align-self: center;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-.breadcrumbs {
+  white-space: nowrap;
+  cursor: text;
   .tag {
     white-space: nowrap;
     line-height: 147%;

@@ -1,46 +1,72 @@
 import { Overlay, OverlayRef } from '@angular/cdk/overlay';
 import { TemplatePortal } from '@angular/cdk/portal';
+import { AsyncPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
   AfterViewInit,
   Component,
   ElementRef,
   EventEmitter,
+  forwardRef,
   HostBinding,
   HostListener,
   Input,
   NgZone,
   OnChanges,
+  OnDestroy,
   Output,
   SimpleChanges,
   TemplateRef,
   ViewChild,
-  ViewContainerRef
+  ViewContainerRef,
+  ChangeDetectionStrategy
 } from '@angular/core';
-import { defer, difference, intersection, uniq, without } from 'lodash-es';
-import { catchError, Subscription, switchMap, throwError } from 'rxjs';
+import { RouterLink } from '@angular/router';
+import { defer, delay, difference, intersection, uniq } from 'lodash-es';
+import { DateTime } from 'luxon';
+import { catchError, of, Subject, Subscription, switchMap, takeUntil, throwError } from 'rxjs';
+import { tap } from 'rxjs/operators';
 import { Ext } from '../../../model/ext';
 import { equalsRef, Ref } from '../../../model/ref';
+import { CssUrlPipe } from '../../../pipe/css-url.pipe';
+import { ThumbnailPipe } from '../../../pipe/thumbnail.pipe';
+import { AccountService } from '../../../service/account.service';
 import { AdminService } from '../../../service/admin.service';
-import { ExtService } from '../../../service/api/ext.service';
 import { RefService } from '../../../service/api/ref.service';
 import { TaggingService } from '../../../service/api/tagging.service';
 import { AuthzService } from '../../../service/authz.service';
 import { BookmarkService } from '../../../service/bookmark.service';
 import { ConfigService } from '../../../service/config.service';
+import { EditorService } from '../../../service/editor.service';
 import { Store } from '../../../store/store';
-import { hasComment, trimCommentForTitle } from '../../../util/format';
+import { getTitle, hasComment } from '../../../util/format';
 import { printError } from '../../../util/http';
 import { memo, MemoCache } from '../../../util/memo';
-import { hasTag, includesTag } from '../../../util/tag';
+import { expandedTagsInclude, hasTag, repost } from '../../../util/tag';
+import { ChessComponent } from '../../chess/chess.component';
+import { LoadingComponent } from '../../loading/loading.component';
+import { MdComponent } from '../../md/md.component';
+import { TodoComponent } from '../../todo/todo.component';
 
 @Component({
   selector: 'app-kanban-card',
   templateUrl: './kanban-card.component.html',
-  styleUrls: ['./kanban-card.component.scss']
+  styleUrls: ['./kanban-card.component.scss'],
+  host: { 'class': 'kanban-card' },
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [
+    forwardRef(() => MdComponent),
+    LoadingComponent,
+    RouterLink,
+    ChessComponent,
+    TodoComponent,
+    AsyncPipe,
+    ThumbnailPipe,
+    CssUrlPipe,
+  ],
 })
-export class KanbanCardComponent implements OnChanges, AfterViewInit {
-  @HostBinding('class') css = 'kanban-card';
+export class KanbanCardComponent implements OnChanges, AfterViewInit, OnDestroy {
+  private destroy$ = new Subject<void>();
 
   @HostBinding('class.unlocked')
   unlocked = false;
@@ -53,6 +79,8 @@ export class KanbanCardComponent implements OnChanges, AfterViewInit {
   hideSwimLanes = true;
   @Input()
   ext?: Ext;
+  @Input()
+  progress?: number;
 
   @Output()
   copied = new EventEmitter<Ref>();
@@ -63,6 +91,7 @@ export class KanbanCardComponent implements OnChanges, AfterViewInit {
   chess = false;
   chessWhite = true;
   overlayRef?: OverlayRef;
+  autoClose = true;
 
   @ViewChild('cardMenu')
   cardMenu!: TemplateRef<any>;
@@ -70,14 +99,15 @@ export class KanbanCardComponent implements OnChanges, AfterViewInit {
   private overlayEvents?: Subscription;
 
   constructor(
-    private store: Store,
+    public store: Store,
     public bookmarks: BookmarkService,
     private admin: AdminService,
     private config: ConfigService,
     private auth: AuthzService,
     private refs: RefService,
     private tags: TaggingService,
-    private exts: ExtService,
+    private editor: EditorService,
+    private accounts: AccountService,
     private overlay: Overlay,
     private el: ElementRef,
     private viewContainerRef: ViewContainerRef,
@@ -89,9 +119,14 @@ export class KanbanCardComponent implements OnChanges, AfterViewInit {
     this.todo = !!this.admin.getPlugin('plugin/todo') && !!this.ref.tags?.includes('plugin/todo');
     this.chess = !!this.admin.getPlugin('plugin/chess') && !!this.ref.tags?.includes('plugin/chess');
     this.chessWhite = !!this.ref.tags?.includes(this.store.account.localTag);
-    if (this.repost && this.ref && (!this.repostRef || this.repostRef.url != this.ref.url && this.repostRef.origin === this.ref.origin)) {
-      this.refs.getCurrent(this.url)
-        .subscribe(ref => this.repostRef = ref);
+    if (this.repost && this.ref && this.repostRef?.url != repost(this.ref)) {
+      (this.store.view.top?.url === this.ref.sources![0]
+          ? of(this.store.view.top)
+          : this.refs.getCurrent(this.url)
+      ).pipe(
+        catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
+        takeUntil(this.destroy$),
+      ).subscribe(ref => this.repostRef = ref);
     }
   }
 
@@ -101,10 +136,17 @@ export class KanbanCardComponent implements OnChanges, AfterViewInit {
     }
   }
 
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   ngAfterViewInit(): void {
-    if (this.lastSelected) {
-      this.el.nativeElement.scrollIntoView({ behavior: 'smooth' });
-    }
+    delay(() => {
+      if (this.lastSelected) {
+        this.el.nativeElement.scrollIntoView({ behavior: 'smooth' });
+      }
+    }, 400);
   }
 
   @HostListener('click')
@@ -132,7 +174,7 @@ export class KanbanCardComponent implements OnChanges, AfterViewInit {
 
   @memo
   get repost() {
-    return this.ref?.sources?.length && hasTag('plugin/repost', this.ref);
+    return this.ref?.sources?.[0] && hasTag('plugin/repost', this.ref);
   }
 
   @memo
@@ -160,11 +202,6 @@ export class KanbanCardComponent implements OnChanges, AfterViewInit {
   }
 
   @memo
-  get thumbnailUrl() {
-    return this.thumbnail && !this.thumbnailColor;
-  }
-
-  @memo
   get thumbnailColor() {
     return this.thumbnail &&
       (this.ref?.plugins?.['plugin/thumbnail']?.color || this.repostRef?.plugins?.['plugin/thumbnail']?.color);
@@ -183,6 +220,41 @@ export class KanbanCardComponent implements OnChanges, AfterViewInit {
   }
 
   @memo
+  get dependents() {
+    return !hasTag('plugin/comment', this.ref) && !hasTag('plugin/thread', this.ref) && this.ref.sources?.length || 0;
+  }
+
+  @memo
+  get dependencies() {
+    return this.ref.metadata?.responses || 0;
+  }
+
+  @memo
+  get thread() {
+    if (!this.admin.getPlugin('plugin/thread')) return '';
+    if (!hasTag('plugin/thread', this.ref) && !this.threads) return '';
+    return this.ref.sources?.[1] || this.ref.sources?.[0] || this.ref.url;
+  }
+
+  @memo
+  get threads() {
+    if (!this.admin.getPlugin('plugin/thread')) return 0;
+    return this.ref.metadata?.plugins?.['plugin/thread'] || 0;
+  }
+
+  @memo
+  get comment() {
+    if (!this.admin.getPlugin('plugin/comment')) return 0;
+    return hasTag('plugin/comment', this.ref) || this.comments;
+  }
+
+  @memo
+  get comments() {
+    if (!this.admin.getPlugin('plugin/comment')) return 0;
+    return this.ref.metadata?.plugins?.['plugin/comment'] || 0;
+  }
+
+  @memo
   get badges() {
     const badges = intersection(this.ref.tags, this.ext?.config?.badges || []);
     if (this.hideSwimLanes) return badges;
@@ -191,12 +263,12 @@ export class KanbanCardComponent implements OnChanges, AfterViewInit {
 
   @memo
   get badgeExts$() {
-    return this.exts.getCachedExts(this.badges, this.ref.origin || '');
+    return this.editor.getTagsPreview(this.badges, this.ref.origin || '');
   }
 
   @memo
-  get allBadgeExts$() {
-    return this.exts.getCachedExts(this.ext?.config?.badges || [], this.ref.origin || '');
+  get allBadges$() {
+    return this.editor.getTagsPreview(this.ext?.config?.badges || [], this.ref.origin || '');
   }
 
   @HostBinding('class.last-selected')
@@ -219,12 +291,8 @@ export class KanbanCardComponent implements OnChanges, AfterViewInit {
 
   @memo
   get title() {
-    if (this.bareRepost) return this.repostRef?.title || $localize`Repost`;
-    const title = (this.ref.title || '').trim();
-    const comment = (this.ref.comment || '').trim();
-    if (title) return title;
-    if (!comment) return this.url;
-    return trimCommentForTitle(comment);
+    if (this.bareRepost) return getTitle(this.repostRef) || $localize`Repost`;
+    return getTitle(this.ref);
   }
 
   @HostListener('contextmenu', ['$event'])
@@ -262,27 +330,40 @@ export class KanbanCardComponent implements OnChanges, AfterViewInit {
     });
   }
 
+  saveRef() {
+    this.store.view.preloadRef(this.ref, this.repostRef);
+  }
+
   close() {
+    this.autoClose = true;
     this.overlayRef?.dispose();
     this.overlayEvents?.unsubscribe();
     this.overlayRef = undefined;
     this.overlayEvents = undefined;
   }
 
-  toggleBadge(tag: string) {
-    if (includesTag(tag, this.ref.tags)) {
-      this.tags.delete(tag, this.ref.url, this.ref.origin).subscribe(() => {
-        this.ref.tags = without(this.ref.tags, tag);
+  toggleBadge(tag: string, event?: MouseEvent) {
+    if (hasTag(tag, this.ref.tags)) {
+      this.tags.delete(tag, this.ref.url, this.ref.origin).pipe(
+        tap(cursor => this.accounts.clearNotificationsIfNone(DateTime.fromISO(cursor))),
+      ).subscribe(() => {
+        this.ref.tags = this.ref.tags!.filter(t => expandedTagsInclude(t, tag));
         this.init();
       });
     } else {
-      this.tags.create(tag, this.ref.url, this.ref.origin).subscribe(() => {
+      this.tags.create(tag, this.ref.url, this.ref.origin).pipe(
+        tap(cursor => this.accounts.clearNotificationsIfNone(DateTime.fromISO(cursor))),
+      ).subscribe(() => {
         this.ref.tags ||= [];
         this.ref.tags.push(tag);
         this.init();
       });
     }
-    this.close();
+    if (this.autoClose || !event?.button) {
+      this.close();
+    } else {
+      event.preventDefault();
+    }
   }
 
   copy() {
@@ -295,14 +376,14 @@ export class KanbanCardComponent implements OnChanges, AfterViewInit {
       origin: this.store.account.origin,
       tags,
     };
-    this.refs.create(copied, true).pipe(
+    this.refs.create(copied).pipe(
       catchError((err: HttpErrorResponse) => {
         if (err.status === 409) {
           return this.refs.get(this.ref.url, this.store.account.origin).pipe(
             switchMap(existing => {
-              if (equalsRef(existing, copied) || window.confirm('An old version already exists. Overwrite it?')) {
+              if (equalsRef(existing, copied) || confirm('An old version already exists. Overwrite it?')) {
                 // TODO: Show diff and merge or split
-                return this.refs.update({ ...copied, modifiedString: existing.modifiedString }, true);
+                return this.refs.update({ ...copied, modifiedString: existing.modifiedString });
               } else {
                 return throwError(() => 'Cancelled')
               }
@@ -313,11 +394,17 @@ export class KanbanCardComponent implements OnChanges, AfterViewInit {
         console.error(printError(err));
         return throwError(() => err);
       }),
-      switchMap(() => this.refs.get(copied.url, this.store.account.origin)),
+      tap(cursor => this.accounts.clearNotificationsIfNone(DateTime.fromISO(cursor))),
+      switchMap(() => this.refs.get(copied.url, this.store.account.origin).pipe(takeUntil(this.destroy$))),
     ).subscribe(ref => {
       this.ref = ref;
       this.init();
       this.copied.emit(ref);
     });
+  }
+
+  firstWord(name?: string) {
+    if (!name) return name;
+    return name.trim().split(' ')[0];
   }
 }

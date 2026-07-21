@@ -1,22 +1,28 @@
-import { Component, HostBinding, Input, OnInit } from '@angular/core';
+import { Component, HostBinding, Input, ChangeDetectionStrategy } from '@angular/core';
+import { RouterLink } from '@angular/router';
+import { Ext } from '../../../model/ext';
 import { Action, Icon } from '../../../model/tag';
 import { AdminService } from '../../../service/admin.service';
-import { ScrapeService } from '../../../service/api/scrape.service';
+import { QueryStore } from '../../../store/query';
 import { Store } from '../../../store/store';
 
 @Component({
   selector: 'app-subfolder',
   templateUrl: './subfolder.component.html',
-  styleUrls: ['./subfolder.component.scss']
+  styleUrls: ['./subfolder.component.scss'],
+  host: { 'class': 'subfolder' },
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [RouterLink]
 })
-export class SubfolderComponent implements OnInit {
-  @HostBinding('class') css = 'subfolder';
+export class SubfolderComponent {
   @HostBinding('attr.tabindex') tabIndex = 0;
 
   @Input()
-  tag?: string;
+  ext?: Ext;
   @Input()
   name?: string;
+  @Input()
+  dragging = false;
 
   submitted = false;
   icons: Icon[] = [];
@@ -24,16 +30,12 @@ export class SubfolderComponent implements OnInit {
 
   constructor(
     public admin: AdminService,
-    private scraper: ScrapeService,
     public store: Store,
+    private query: QueryStore,
   ) { }
-
-  ngOnInit(): void {
-  }
 
   get thumbnail() {
     // TODO: Thumbnail in config
     return '';
   }
-
 }

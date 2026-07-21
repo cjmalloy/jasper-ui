@@ -1,20 +1,23 @@
 <ng-container *mobxAutorun>
-  <ng-container *ngIf="store.view.ref; else loading">
-    <app-comment-reply [to]="store.view.ref"
-                       [top]="top"
-                       quote=""
+  @if (store.view.ref) {
+    <app-comment-reply #reply
+                       [to]="store.view.ref"
                        [tags]="replyTags"
-                       [newComments$]="newComments$"></app-comment-reply>
-    <app-comment-thread [source]="store.view.ref"
-                        [newComments$]="newComments$"
-                        [depth]="depth"></app-comment-thread>
-    <span class="fake-link load-more"
-          *ngIf="thread.hasMore"
-          (click)="thread.loadMore()" i18n>
-      load more comments
-    </span>
-  </ng-container>
-  <ng-template #loading>
+                       (save)="newComments$.next($event)"></app-comment-reply>
+    @if (thread.latest.length) {
+      <app-comment-thread [source]="store.view.url"
+                          [newComments$]="newComments$"
+                          [scrollToLatest]="true"
+                          [depth]="depth"></app-comment-thread>
+      @if (thread.hasMore) {
+        <span class="fake-link load-more" (click)="thread.loadMore()" i18n>
+        load more comments
+      </span>
+      }
+    } @else {
+      <app-loading></app-loading>
+    }
+  } @else {
     <app-loading></app-loading>
-  </ng-template>
+  }
 </ng-container>

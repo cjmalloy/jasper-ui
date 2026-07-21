@@ -2,10 +2,18 @@
 body.dark-theme {
   --bg: #343434;
   --bg-accent: rgba(90, 90, 90, 0.05);
+  --bg-hover: rgba(255, 255, 255, 0.1);
+  --bg-active: rgba(255, 255, 255, 0.4);
   --text: #c9c9c9;
+  --visited: #c66acb;
+  --link: #5769c2;
   --active: #dc5c5c;
   --info: #969696;
   --tag: #af5800;
+  --toggle: #525252;
+  --toggle-accent: #777;
+  --toggle-active: #888;
+  --form-bg: #3b3b3b;
   --border: lightgrey;
   --border-accent: rgba(255, 255, 255, 0.4);
   --unselected-tab: grey;
@@ -17,6 +25,7 @@ body.dark-theme {
   --card-dragging: #4d4d4d;
   --placeholder: #2c2c2c;
   --deleting: #dc5c5c;
+  --quote: #969696;
 
   @media not print {
     color-scheme: dark;
@@ -62,33 +71,34 @@ body.dark-theme {
     }
   }
 
-  background-color: var(--bg);
-  background-image: url("~/assets/bg-dark.png");
-  background-blend-mode: soft-light;
-  ::backdrop, .editor.fullscreen app-md {
+  &,
+  .embed::backdrop,
+  figure::backdrop,
+  .editor.fullscreen app-md {
     background-color: var(--bg);
-    background-image: url("~/assets/bg-dark.png");
+    background-image: url("../assets/bg-dark.png");
     background-blend-mode: soft-light;
   }
 
-  .resize-handle:after {
-    filter: drop-shadow(0.5px 0.5px 1px var(--border));
-  }
-
   app-root > .container {
-    background: radial-gradient(transparent 0, rgba(0, 0, 0, 0.3));
+    background: radial-gradient(circle at center, transparent 0, rgba(0, 0, 0, 0.3));
   }
 
   :link, .link-style {
-    color: #5769c2;
+    color: var(--link);
   }
 
   :not(.actions) :visited {
-    color: #c66acb;
+    color: var(--visited);
   }
 
   a:active {
     color: var(--text);
+  }
+
+  .glass {
+    backdrop-filter: grayscale(1) contrast(0.4) brightness(0.4) blur(8px);
+    border: 0.5px solid rgba(255, 255, 255, 0.2);
   }
 
   .toolbar {
@@ -124,7 +134,7 @@ body.dark-theme {
   .tabs {
     background-color: rgba(100, 100, 100, 0.3);
     .logo {
-      background-image: url("~/assets/jasper-dark.png");
+      background-image: url("../assets/jasper-dark.png");
     }
 
     h5 {
@@ -139,7 +149,7 @@ body.dark-theme {
       &.current-tab {
         color: var(--active);
         background-color: #252525;
-        background-image: url("~/assets/bg-dark.png");
+        background-image: url("../assets/bg-dark.png");
         background-blend-mode: soft-light;
         border-top: 1px solid var(--border);
         border-left: 1px solid var(--border);
@@ -183,18 +193,10 @@ body.dark-theme {
   .sidebar {
     background-color: var(--bg-accent);
     backdrop-filter: grayscale(1) contrast(0.2) brightness(0.4) blur(1px);
-    box-shadow: 0 0 2px 1px rgba(0, 0, 0, 0.1);
-
-    .submit-button:hover {
-      background-color: rgba(255, 255, 255, 0.2);
-    }
+    box-shadow: -2px 2px 2px 1px rgba(0, 0, 0, 0.1);
   }
 
   details.advanced summary > span {
-    &:hover {
-      background-color: rgba(255, 255, 255, 0.2);
-    }
-
     &:after {
       filter: drop-shadow(0 0 2px var(--bg));
     }
@@ -205,8 +207,12 @@ body.dark-theme {
     backdrop-filter: blur(1px);
   }
 
-  .thumbnail, .image-expand, video, .embed-expand, .qr-expand {
+  .thumbnail, .image-expand, video:not(:fullscreen), .embed-expand, .qr-expand {
     filter: drop-shadow(0px 0px 0.5px #ffffff);
+  }
+
+  video:fullscreen {
+    filter: none;
   }
 
   .twitter iframe {
@@ -221,8 +227,13 @@ body.dark-theme {
     border-left: 1px dotted rgba(211, 211, 211, 0.3);
   }
 
-  .toggle {
-    background-color: #525252;
+  .thread > .ref-list > .list-container > .ref,
+  .md .ref.plugin_thread:not(.ref-list-item),
+  .thread .ref.plugin_thread:not(.ref-list-item),
+  .thread.ref {
+    --thread-sent: rgba(32, 128, 255, 0.15);
+    --thread-recieved: rgba(255, 255, 255, 0.1);
+    box-shadow: 1px 1px 2.5px #000;
   }
 
   .summary-box {
@@ -233,41 +244,6 @@ body.dark-theme {
   footer hr {
     box-shadow: 0 2px 2px 1px rgba(0, 0, 0, 0.3),
                 0 6px 5px 1px rgba(0, 0, 0, 0.1);
-  }
-
-  .kanban {
-    .column-title, .swim-lane-title {
-      background-color: var(--bg-accent);
-      backdrop-filter: blur(1px);
-      box-shadow: 0 0 2px 1px rgba(0, 0, 0, 0.1);
-      &:hover {
-        box-shadow: 0 0 4px rgba(0, 0, 0, 0.2),
-                    0 0 1px rgba(255, 255, 255, 0.5);
-      }
-    }
-  }
-
-  .kanban-card {
-    &.cdk-drag-preview {
-      background-color: var(--card-dragging);
-    }
-  }
-
-  .todo-item {
-    &.cdk-drag-preview {
-      background-color: var(--card-dragging);
-    }
-  }
-
-  .backgammon-board {
-    --bg: rgba(178, 103, 41, 0.2);
-    --black: #111;
-    --red: #633;
-    --play: rgba(255, 255, 0, 0.3);
-    --brown: #431;
-    --brown-alt: #653;
-    --glow: rgba(200, 200, 200, 0.5);
-    --move: rgba(0, 128, 0, 0.5);
   }
 
 }

@@ -1,19 +1,15 @@
-<div class="folder-icon"
-     *ngIf="thumbnail else defaultThumbnail"
-     [style.background-image]="thumbnail"></div>
-<ng-template #defaultThumbnail>
-  <div class="folder-icon default-folder">
-    <span>📂️</span>
-  </div>
-</ng-template>
+@if (thumbnail) {
+  <div class="folder-icon thumbnail" [style.background-image]="thumbnail"></div>
+} @else {
+  <div class="folder-icon default-folder thumbnail"><span>📂️</span></div>
+}
 <div class="row">
-<!--  <div class="toggle"-->
-<!--       *ngIf="showToggle && (ref.comment || expandPlugins.length)"-->
-<!--       (click)="editing ? editing = false : viewSource ? viewSource = false : store.local.setRefToggled(ref.url, expanded = !expanded)">-->
-<!--    <span class="toggle-plus" *ngIf="!editing && !viewSource && !expanded">＋</span>-->
-<!--    <span class="toggle-x" *ngIf="editing || viewSource || expanded">✕</span>-->
-<!--  </div>-->
-  <a [routerLink]="['/tag', tag]">{{ name }}</a>
+  <!--  <div class="toggle"-->
+  <!--       *ngIf="showToggle && (ref.comment || expandPlugins.length)"-->
+  <!--       (click)="editing ? editing = false : viewSource ? viewSource = false : store.local.setRefToggled(ref.url, expanded = !expanded)">-->
+  <!--    <span class="toggle-plus" *ngIf="!editing && !viewSource && !expanded">＋</span>-->
+  <!--    <span class="toggle-x" *ngIf="editing || viewSource || expanded">✕</span>-->
+  <!--  </div>-->
+  <a [routerLink]="['/tag', ext?.tag + (ext?.origin || '@')]"
+     [style.pointer-events]="dragging ? 'none' : undefined">{{ name }}</a>
 </div>
-
-

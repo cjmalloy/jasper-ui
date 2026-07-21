@@ -1,7 +1,8 @@
-import { HttpClientTestingModule } from '@angular/common/http/testing';
+/// <reference types="vitest/globals" />
+import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { RouterTestingModule } from '@angular/router/testing';
-import { OAuthService, OAuthStorage } from 'angular-oauth2-oidc';
+import { provideRouter } from '@angular/router';
 
 import { ChessComponent } from './chess.component';
 
@@ -11,17 +12,13 @@ describe('ChessComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ ChessComponent ],
-      imports: [
-        HttpClientTestingModule,
-        RouterTestingModule,
-      ],
+      imports: [ChessComponent],
       providers: [
-        { provide: OAuthService, useValue: {} },
-        { provide: OAuthStorage, useValue: {} },
+        provideHttpClient(withXhr(), withInterceptorsFromDi()),
+        provideHttpClientTesting(),
+        provideRouter([]),
       ],
-    })
-    .compileComponents();
+    }).compileComponents();
 
     fixture = TestBed.createComponent(ChessComponent);
     component = fixture.componentInstance;

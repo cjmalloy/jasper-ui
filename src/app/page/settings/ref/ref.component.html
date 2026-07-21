@@ -1,20 +1,31 @@
 <ng-container *mobxAutorun>
-  <div *ngIf="plugin" class="row form">
-    <span><!-- Title --></span>
-    <h2 i18n>{{ plugin.name || plugin.tag }} Settings</h2>
-    <span><!-- Description --></span>
-    <p>{{ plugin.config?.description || '' }}</p>
+  @if (plugin) {
+    <div class="row form">
+      <span><!-- Title --></span>
+      @if (plugin.config?.mod) {
+        <h2>{{ plugin.config?.mod }}</h2>
+      } @else {
+        <h2 i18n>{{ plugin.name || plugin.tag }} Settings</h2>
+      }
+      <span><!-- Description --></span>
+      <p>{{ plugin.config?.description || '' }}</p>
 
-    <span><!-- Buttons --></span>
-    <span class="buttons form-array right">
-      <button type="button" *ngIf="plugin.config?.hasDefaults && writeAccess" (click)="loadDefaults()" i18n>🔁️ load defaults</button>
-      <button type="button" *ngIf="plugin.config?.hasDefaults && writeAccess" (click)="clearCache()" i18n>🆑️ clear cache</button>
+      <span><!-- Buttons --></span>
+      <span class="buttons right">
+        @if (writeAccess) {
+          @if (plugin.config?.hasDefaults) {
+            <button type="button" (click)="loadDefaults()" i18n>🔁️ load defaults</button>
+          }
+          @if (plugin.config?.hasClearCache) {
+            <button type="button" (click)="clearCache()">{{ plugin.config!.hasClearCache }}</button>
+          }
+        }
     </span>
-  </div>
-  <ng-container *ngIf="query.error?.status !== 403 else accessDenied">
-    <app-ref-list [page]="query.page"></app-ref-list>
-  </ng-container>
-  <ng-template #accessDenied>
+    </div>
+  }
+  @if (query.error?.status !== 403) {
+    <app-ref-list #list [page]="query.page"></app-ref-list>
+  } @else {
     <div class="error-403" i18n>Access Denied</div>
-  </ng-template>
+  }
 </ng-container>

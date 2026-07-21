@@ -1,58 +1,79 @@
-import { HttpErrorResponse } from '@angular/common/http';
-import { Component, HostBinding, OnDestroy } from '@angular/core';
-import { FormBuilder } from '@angular/forms';
-import { Router } from '@angular/router';
-import { defer, delay, pick, uniq } from 'lodash-es';
+import { AsyncPipe } from '@angular/common';
+import { HttpErrorResponse, HttpEventType } from '@angular/common/http';
+import { Component, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
+import { ReactiveFormsModule } from '@angular/forms';
+import { Router, RouterLink } from '@angular/router';
+import { uniq, without } from 'lodash-es';
+import { DateTime } from 'luxon';
 import { autorun, IReactionDisposer, runInAction, toJS } from 'mobx';
-import * as moment from 'moment';
-import { catchError, concat, lastValueFrom, of, switchMap, throwError } from 'rxjs';
+import { MobxAngularModule } from 'mobx-angular';
+import { catchError, concat, last, lastValueFrom, map, of, switchMap, throwError } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import * as XLSX from 'xlsx';
-import { Ext, mapTag } from '../../../model/ext';
+import { ExtComponent } from '../../../component/ext/ext.component';
+import { LoadingComponent } from '../../../component/loading/loading.component';
+import { RefComponent } from '../../../component/ref/ref.component';
+import { AutofocusDirective } from '../../../directive/autofocus.directive';
+import { Ext, mapExt } from '../../../model/ext';
 import { mapRef, Ref } from '../../../model/ref';
+import { TagPreviewPipe } from '../../../pipe/tag-preview.pipe';
 import { AdminService } from '../../../service/admin.service';
 import { ExtService } from '../../../service/api/ext.service';
+import { ProxyService } from '../../../service/api/proxy.service';
 import { RefService } from '../../../service/api/ref.service';
-import { ScrapeService } from '../../../service/api/scrape.service';
 import { AuthzService } from '../../../service/authz.service';
 import { BookmarkService } from '../../../service/bookmark.service';
-import { ThemeService } from '../../../service/theme.service';
+import { ModService } from '../../../service/mod.service';
 import { Store } from '../../../store/store';
 import { downloadSet } from '../../../util/download';
 import { TAGS_REGEX } from '../../../util/format';
 import { printError } from '../../../util/http';
+import { hasTag } from '../../../util/tag';
 import { FilteredModels, filterModels, getModels, getTextFile, unzip, zippedFile } from '../../../util/zip';
 
 @Component({
   selector: 'app-upload',
   templateUrl: './upload.component.html',
-  styleUrls: ['./upload.component.scss']
+  styleUrls: ['./upload.component.scss'],
+  host: { 'class': 'full-page-upload' },
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [
+    ExtComponent,
+    RefComponent,
+    MobxAngularModule,
+    RouterLink,
+    ReactiveFormsModule,
+    AutofocusDirective,
+    LoadingComponent,
+    AsyncPipe,
+    TagPreviewPipe,
+  ]
 })
 export class UploadPage implements OnDestroy {
-  @HostBinding('class') css = 'full-page-upload';
   private disposers: IReactionDisposer[] = [];
   tagRegex = TAGS_REGEX.source;
 
+  erroredExts: Ext[] = [];
+  erroredRefs: Ref[] = [];
   serverErrors: string[] = [];
   processing = false;
-  webCache = this.admin.getPlugin('plugin/file');
+  fileCache = this.admin.getPlugin('plugin/file');
 
   constructor(
     public store: Store,
     public bookmarks: BookmarkService,
-    private theme: ThemeService,
+    private mod: ModService,
     private admin: AdminService,
     private refs: RefService,
     private exts: ExtService,
-    private scraper: ScrapeService,
+    private proxy: ProxyService,
     private auth: AuthzService,
     private router: Router,
-    private fb: FormBuilder,
   ) {
-    theme.setTitle($localize`Submit: Upload`);
+    mod.setTitle($localize`Submit: Upload`);
     this.disposers.push(autorun(() => {
       this.readUploads(this.store.submit.files);
-      defer(() => this.store.submit.clearFiles());
+      runInAction(() => this.store.submit.clearFiles());
     }));
     this.store.submit.clearOverride();
   }
@@ -62,57 +83,67 @@ export class UploadPage implements OnDestroy {
     this.disposers.length = 0;
   }
 
-  readUploads(uploads?: File[]) {
+  readUploads(uploads?: File[], forceCache = false) {
     // TODO: process sequentially and show indicator
-    if (!uploads) return;
+    if (!uploads?.length) return;
+    // Refs and Exts
     const files: File[] = [];
+    const tables: File[] = [];
+    // File Cache
+    let cacheWarning = false;
     const audio: File[] = [];
     const video: File[] = [];
     const images: File[] = [];
+    const pdfs: File[] = [];
     const bookmarks: File[] = [];
     const sitemap: File[] = [];
     const texts: File[] = [];
-    const tables: File[] = [];
+    const cache: File[] = [];
     for (let i = 0; i < uploads.length; i++) {
       const file = uploads[i];
-      if (file.type === 'application/json' || file.type === 'application/zip') {
+      if (!forceCache && (file.type === 'application/json' || file.type === 'application/zip')) {
         files.push(file);
-      }
-      if (file.type.startsWith('audio/')) {
-        audio.push(file);
-      }
-      if (file.type.startsWith('video/')) {
-        video.push(file);
-      }
-      if (file.type.startsWith('image/')) {
-        images.push(file);
-      }
-      if (file.type.startsWith('text/html')) {
-        bookmarks.push(file);
-      }
-      if (file.type.startsWith('text/xml') || file.type.startsWith('application/xml')) {
-        sitemap.push(file);
-      }
-      if (file.type.startsWith('text/plain')) {
+      } else if (!forceCache && file.type.startsWith('text/plain')) {
         texts.push(file);
-      }
-      if ([
+      }  else if (!forceCache && [
         'text/csv',
         'application/vnd.ms-excel',
         'application/vnd.oasis.opendocument.spreadsheet',
         'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       ].includes(file.type)) {
         tables.push(file);
+      } else if (!forceCache && file.type.startsWith('text/html')) {
+        bookmarks.push(file);
+      } else if (!forceCache && file.type.startsWith('text/xml') || file.type.startsWith('application/xml')) {
+        sitemap.push(file);
+      } else {
+        if (!this.fileCache) cacheWarning = true;
+        if (file.type.startsWith('audio/')) {
+          audio.push(file);
+        } else if (file.type.startsWith('video/')) {
+          video.push(file);
+        } else if (file.type.startsWith('image/')) {
+          images.push(file);
+        } else if (file.type.startsWith('application/pdf')) {
+          pdfs.push(file);
+        } else {
+          cache.push(file);
+        }
       }
     }
+    // Refs and Exts
     this.read(files);
-    this.readScrape(audio, 'plugin/audio', this.store.account.localTag, ...this.store.submit.tags);
-    this.readScrape(video, 'plugin/video', 'plugin/thumbnail', this.store.account.localTag, ...this.store.submit.tags);
-    this.readScrape(images, 'plugin/image', 'plugin/thumbnail', this.store.account.localTag, ...this.store.submit.tags);
     this.readData(texts, this.store.account.localTag, ...this.store.submit.tags);
+    this.readSheet(tables, 'plugin/table', this.store.account.localTag, ...this.store.submit.tags);
     this.readBookmarks(bookmarks, this.store.account.localTag, ...this.store.submit.tags);
     this.readSitemap(sitemap, this.store.account.localTag, ...this.store.submit.tags);
-    this.readSheet(tables, 'plugin/table', this.store.account.localTag, ...this.store.submit.tags);
+
+    if (cacheWarning) alert('File Cache has not been enabled by the admin (plugin/file) so file uploads will likely fail.')
+    this.readCache(audio, 'plugin/audio', this.store.account.localTag, ...this.store.submit.tags);
+    this.readCache(video, 'plugin/video', 'plugin/thumbnail', this.store.account.localTag, ...this.store.submit.tags);
+    this.readCache(images, 'plugin/image', 'plugin/thumbnail', this.store.account.localTag, ...this.store.submit.tags);
+    this.readCache(pdfs, 'plugin/pdf', this.store.account.localTag, ...this.store.submit.tags);
+    this.readCache(cache, 'plugin/file', this.store.account.localTag, ...this.store.submit.tags);
   }
 
   read(files?: File[], ...extraTags: string[]) {
@@ -146,35 +177,48 @@ export class UploadPage implements OnDestroy {
           this.store.submit.addExts(...(models.ext || []));
           this.store.submit.addRefs(...(models.ref || []));
         })
-        .catch(() => null);
+        .catch(e => alert(e));
     }
   }
 
-  readScrape(files: File[], tag: string, ...extraTags: string[]) {
+  readCache(files: File[], tag: string, ...extraTags: string[]) {
     if (!files) return;
     for (let i = 0; i < files?.length; i++) {
       const file = files[i];
-      this.scraper.cache(file).subscribe(url => runInAction(() => this.store.submit.addRefs({
-        upload: true,
-        url,
-        title: file.name,
-        tags: uniq([tag, ...extraTags.filter(t => !!t)]),
-        published: moment(),
-      })));
-    }
-  }
-
-  cache(files: File[]) {
-    if (!files) return;
-    for (let i = 0; i < files?.length; i++) {
-      const file = files[i];
-      this.scraper.cache(file).subscribe(url => runInAction(() => this.store.submit.addRefs({
-        upload: true,
-        url,
-        title: file.name,
-        tags: uniq([this.store.account.localTag, ...this.store.submit.tags, 'plugin/file']),
-        published: moment(),
-      })));
+      runInAction(() => {
+        this.store.submit.caching.set(file, { name: file.name, progress: 0 });
+      });
+      this.proxy.save(file, this.store.account.origin).pipe(
+        map(event => {
+          switch (event.type) {
+            case HttpEventType.Response:
+              return event.body;
+            case HttpEventType.UploadProgress:
+              const percentDone = event.total ? Math.round(100 * event.loaded / event.total) : 0;
+              runInAction(() => {
+                this.store.submit.caching.set(file, { name: file.name, progress: percentDone });
+              });
+              return null;
+          }
+          return null;
+        }),
+        last(),
+        // TODO: Why is initial cursor wrong???
+        switchMap((ref: Ref | null) => this.refs.get(ref!.url, ref!.origin)),
+        map((ref: Ref | null) => {
+          ref!.title = file.name;
+          ref!.tags = uniq([...ref!.tags || [], tag, ...extraTags.filter(t => !!t)]);
+          return ref!;
+        }),
+        catchError((res: HttpErrorResponse) => {
+          this.store.submit.caching.delete(file);
+          this.serverErrors.push(...printError(res));
+          return throwError(() => res);
+        }),
+      ).subscribe(ref => runInAction(() => {
+        this.store.submit.caching.delete(file);
+        this.store.submit.addRefs({ ...ref, upload: true, exists: true });
+      }));
     }
   }
 
@@ -189,7 +233,7 @@ export class UploadPage implements OnDestroy {
         title: file.name,
         tags: uniq(['public', tag, ...extraTags.filter(t => !!t)]),
         plugins: { [tag]: { url: reader.result as string } },
-        published: moment(),
+        published: DateTime.now(),
       }));
       reader.readAsDataURL(file);
     }
@@ -206,7 +250,7 @@ export class UploadPage implements OnDestroy {
         title: file.name,
         tags: uniq(['public', ...extraTags.filter(t => !!t)]),
         comment: reader.result as string,
-        published: moment(),
+        published: DateTime.now(),
       }));
       reader.readAsText(file);
     }
@@ -227,7 +271,7 @@ export class UploadPage implements OnDestroy {
             url: a.href,
             title: a.innerText,
             tags: ['public', ...extraTags.filter(t => !!t)],
-            published: moment(),
+            published: DateTime.now(),
           });
         }
       });
@@ -250,7 +294,7 @@ export class UploadPage implements OnDestroy {
             upload: true,
             url: loc,
             tags: ['public', ...extraTags.filter(t => !!t)],
-            published: moment(),
+            published: DateTime.now(),
           });
         }
       });
@@ -274,7 +318,7 @@ export class UploadPage implements OnDestroy {
             title,
             tags: ['public', ...extraTags.filter(t => !!t)],
             comment,
-            published: moment(),
+            published: DateTime.now(),
           });
         }
       });
@@ -300,32 +344,52 @@ export class UploadPage implements OnDestroy {
       ...this.store.submit.refs.map(ref => this.uploadRef$(ref)),
     ];
     return lastValueFrom(concat(...uploads))
-      .then(() => delay(() => this.postNavigate(), 1000))
-      .catch(() => null)
       .then(() => {
-        this.store.submit.clearUpload();
+        if (!this.erroredExts.length && !this.erroredRefs.length) {
+          this.postNavigate();
+        }
+        this.store.submit.clearUpload(this.erroredRefs, this.erroredExts);
+        this.erroredRefs = [];
+        this.erroredExts = [];
         this.processing = false;
       });
   }
 
   uploadRef$(ref: Ref) {
     ref = toJS(ref);
+    ref.origin = this.store.account.origin;
+    ref.published ||= DateTime.now();
     ref.tags = ref.tags?.filter(t => this.auth.canAddTag(t));
-    ref.plugins = pick(ref.plugins, ref.tags || []);
-    return (this.store.submit.overwrite
-      ? this.refs.update({ ...ref, origin: this.store.account.origin }, true)
-      : this.refs.create({ ...ref, origin: this.store.account.origin })).pipe(
+    ref.plugins = Object.fromEntries(
+      Object.entries(ref.plugins || {}).filter(([tag]) => hasTag(tag, ref.tags)),
+    );
+    return (ref.exists
+        ? this.refs.update(ref).pipe(
+          catchError((err: HttpErrorResponse) => {
+            if (err.status === 404) {
+              return this.refs.create(ref);
+            }
+            return throwError(() => err);
+          }),
+        )
+        : this.refs.create(ref)
+    ).pipe(
       catchError((err: HttpErrorResponse) => {
-        if (err.status === 409 && this.store.submit.overwrite) {
-          return this.refs.get(ref.url, this.store.account.origin).pipe(
-            switchMap(existing => {
-              return this.refs.update({ ...ref, modifiedString: existing.modifiedString }, true);
-            })
-          );
+        if (err.status === 409) {
+          if (this.store.submit.overwrite) {
+            return this.refs.get(ref.url, this.store.account.origin).pipe(
+              switchMap(existing => {
+                return this.refs.update({ ...ref, modifiedString: existing.modifiedString });
+              }),
+            );
+          } else {
+            ref.outdated = true;
+          }
         }
         return throwError(() => err);
       }),
       catchError((res: HttpErrorResponse) => {
+        this.erroredRefs.push(ref);
         this.serverErrors.push(...printError(res));
         return of(null);
       }),
@@ -333,20 +397,27 @@ export class UploadPage implements OnDestroy {
   }
 
   uploadExt$(ext: Ext) {
-    return (this.store.submit.overwrite
-      ? this.exts.update({ ...ext, origin: this.store.account.origin }, true)
-      : this.exts.create({ ...ext, origin: this.store.account.origin })).pipe(
+    ext = toJS(ext);
+    ext.origin = this.store.account.origin;
+    return (ext.exists
+      ? this.exts.update(ext)
+      : this.exts.create(ext)).pipe(
       catchError((err: HttpErrorResponse) => {
-        if (err.status === 409 && this.store.submit.overwrite) {
-          return this.exts.get(ext.tag + this.store.account.origin).pipe(
-            switchMap(existing => {
-              return this.exts.update({ ...ext, modifiedString: existing.modifiedString }, true);
-            })
-          );
+        if (err.status === 409) {
+          if (this.store.submit.overwrite) {
+            return this.exts.get(ext.tag + this.store.account.origin).pipe(
+              switchMap(existing => {
+                return this.exts.update({ ...ext, modifiedString: existing.modifiedString });
+              })
+            );
+          } else {
+            ext.outdated = true;
+          }
         }
         return throwError(() => err);
       }),
       catchError((res: HttpErrorResponse) => {
+        this.erroredExts.push(ext);
         this.serverErrors.push(...printError(res));
         return of(null);
       }),
@@ -365,9 +436,17 @@ export class UploadPage implements OnDestroy {
       return;
     }
     if (field.value) {
+      this.bookmarks.tags = field.value.startsWith('-')
+        ? without(this.bookmarks.tags, field.value.substring(1))
+        : uniq([...this.bookmarks.tags, field.value]);
       this.store.submit.tagRefs(field.value.toLowerCase().trim().split(/\s+/));
+      this.store.eventBus.fire('refresh:uploads');
       field.value = '';
     }
+  }
+
+  set overwrite(value: boolean) {
+    runInAction(() => this.store.submit.overwrite = value);
   }
 
   private getModels(file: File): Promise<FilteredModels> {
@@ -375,7 +454,7 @@ export class UploadPage implements OnDestroy {
       return unzip(file).then(zip => Promise.all([
         zippedFile(zip, 'ext.json')
           .then(json => getModels<Ext>(json))
-          .then(exts => exts.map(mapTag)),
+          .then(exts => exts.map(mapExt)),
         zippedFile(zip, 'ref.json')
           .then(json => getModels<Ref>(json))
           .then(refs => refs.map(mapRef)),
@@ -396,10 +475,8 @@ export class UploadPage implements OnDestroy {
       return this.router.navigate(['/ref', this.store.submit.refs[0].url]);
     }
     if (this.store.submit.refs.length) {
-      return this.router.navigate(['/tag', '*'], { queryParams: { sort: 'modified,DESC' } });
+      return this.router.navigate(['/tag', this.store.account.tag], { queryParams: { filter: 'query/plugin/file' } });
     }
     return null;
   }
-
-  protected readonly console = console;
 }

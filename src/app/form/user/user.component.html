@@ -1,35 +1,26 @@
 <ng-container [formGroup]="group">
 
-  <label for="tag" i18n>Tag:</label>
+  <label [for]="id + '-tag'" i18n>Tag:</label>
   <div class="form-array">
     <input #tagInput
-           id="tag"
-           type="email"
+           [id]="id + '-tag'"
+           type="text"
+           inputmode="email"
            autocorrect="off"
            autocapitalize="none"
            formControlName="tag"
-           (keydown)="tag.errors || $event.key === 'Enter' && tagChanges.next(tagInput.value) || true"
-           (blur)="tag.errors || tagChanges.next(tagInput.value)">
-    <button type="button" *ngIf="showClear" (click)="clear.next()" i18n-title title="New User" i18n>🆑️</button>
-  </div>
-  <span><!-- Tag Errors --></span>
-  <div>
-    <div class="error" *ngIf="tag.touched && tag.errors?.['pattern']" i18n>
-      User tags must start with the "+user/" or "_user/" prefix.
-      Tags must be lower case letters and forward slashes. Must not start with a slash or contain two forward slashes in a row. Private
-      tags start with an underscore.<br>
-      (i.e. "+user/alice", "_user/bob", or "+user/department/charlie")
-    </div>
-    <div class="error" *ngIf="tag.touched && tag.errors?.['required']" i18n>
-      Tag must not be blank.
-    </div>
+           (keydown)="$event.key === 'Enter' && validate(tagInput) || true"
+           (blur)="blur(tagInput)">
+    @if (showClear) {
+      <button type="button" (click)="clear.next()" i18n-title title="New User" i18n>🆑️</button>
+    }
   </div>
 
-  <label for="name" i18n>Name:</label>
-  <input id="name" type="text" formControlName="name">
+  <label [for]="id + '-name'" i18n>Name:</label>
+  <input [id]="id + '-name'" type="text" formControlName="name">
 
-  <label for="role" i18n>Role:</label>
-  <select id="role" formControlName="role">
+  <label [for]="id + '-role'" i18n>Role:</label>
+  <select [id]="id + '-role'" formControlName="role">
     <option value="ROLE_ADMIN" i18n>admin</option>
     <option value="ROLE_MOD" i18n>mod</option>
     <option value="ROLE_EDITOR" i18n>editor</option>
@@ -65,11 +56,41 @@
             fieldName="tagWriteAccess"
             [group]="group"></app-tags>
 
-  <label for="pubKey" i18n>SSH Public Key:</label>
+  @if (showPubKey) {
+    <label [for]="id + '-pubKey'" i18n>SSH Public Key:</label>
+    <div>
+      <textarea [id]="id + '-pubKey'"
+                formControlName="pubKey"></textarea>
+    </div>
+  }
+
+  <label [for]="id + '-authorizedKeys'" i18n>Authorized Keys:</label>
   <div #fill>
-    <textarea id="pubKey"
-              formControlName="pubKey"
+    <textarea [id]="id + '-authorizedKeys'"
+              formControlName="authorizedKeys"
               [appFillWidth]="fill"></textarea>
   </div>
+
+  @if (store.account.mod || external) {
+    <label [for]="id + '-external'" i18n>External Config:</label>
+    @if (!editingExternal && !external) {
+      <div>
+        <button type="button" (click)="editingExternal = true" i18n>+ Add Config</button>
+      </div>
+    } @else {
+      <app-json [id]="id + '-external'"
+                fieldName="external"
+                [style.pointer-events]="store.account.mod ? 'auto' : 'none'"
+                [group]="group"></app-json>
+      @if (externalErrors.length) {
+        <span><!-- Errors --></span>
+        @for (e of externalErrors; track e) {
+          <div>
+            <span class="error">{{ e }}</span>
+          </div>
+        }
+      }
+    }
+  }
 
 </ng-container>
