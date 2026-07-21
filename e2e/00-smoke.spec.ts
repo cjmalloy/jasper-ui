@@ -7,6 +7,19 @@ test.describe.serial('Smoke Tests', () => {
     await expect(page.getByText('Powered by Jasper')).toBeVisible();
   });
 
+  test('electron back button returns to the previous page', async ({ page }) => {
+    await page.addInitScript(() => {
+      Object.defineProperty(navigator, 'userAgent', { value: `${navigator.userAgent} Electron` });
+    });
+    await page.goto('/?debug=USER', { waitUntil: 'networkidle' });
+    await page.waitForURL(url => url.pathname !== '/');
+    const initialUrl = page.url();
+    await page.locator('.subscription-bar a').first().click();
+    await expect(page).not.toHaveURL(initialUrl);
+    await page.locator('.back-button').click();
+    await expect(page).toHaveURL(initialUrl);
+  });
+
   test('@\u{ff20}main : clear mods', async ({ page }) => {
     await clearMods(page);
   });
