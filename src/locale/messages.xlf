@@ -8262,6 +8262,20 @@ Private tags start with an underscore.
           <context context-type="linenumber">41</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="7122235473851712542" datatype="html">
+        <source>⌨️ Monaco Editor</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/editor.ts</context>
+          <context context-type="linenumber">53</context>
+        </context-group>
+      </trans-unit>
+      <trans-unit id="5251780875410997791" datatype="html">
+        <source>Activates built-in monaco editor (like vscode).</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/mods/editor.ts</context>
+          <context context-type="linenumber">58</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="2312321129465416159" datatype="html">
         <source>🧪️ Experiments</source>
         <context-group purpose="location">
