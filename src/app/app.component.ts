@@ -102,6 +102,9 @@ export class AppComponent implements AfterViewInit {
       if (event === 'pip' && this.pipPlugin) {
         createPip(this.vc, ref!, this.pipPlugin.config?.windowConfig);
       }
+      if (event === 'browse' && ref?.url) {
+        open('/browse/' + ref.url, '_blank', 'toolbar=no,menubar=no');
+      }
     });
 
     window.visualViewport?.addEventListener('resize', event => {

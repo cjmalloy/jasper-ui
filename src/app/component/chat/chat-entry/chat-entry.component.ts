@@ -1,4 +1,3 @@
-import { AsyncPipe } from '@angular/common';
 import { FakeLinkDirective } from '../../../directive/fake-link.directive';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
@@ -17,11 +16,9 @@ import { RouterLink } from '@angular/router';
 import { defer, uniq } from 'lodash-es';
 import { catchError, map, of, Subject, switchMap, takeUntil, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
-import { TitleDirective } from '../../../directive/title.directive';
 import { Ref } from '../../../model/ref';
 import { deleteNotice } from '../../../mods/delete';
 import { AdminService } from '../../../service/admin.service';
-import { ExtService } from '../../../service/api/ext.service';
 import { RefService } from '../../../service/api/ref.service';
 import { TaggingService } from '../../../service/api/tagging.service';
 import { AuthzService } from '../../../service/authz.service';
@@ -50,12 +47,10 @@ import { ViewerComponent } from '../../viewer/viewer.component';
     forwardRef(() => ViewerComponent),
     forwardRef(() => MdComponent),
     RouterLink,
-    TitleDirective,
     LoadingComponent,
     NavComponent,
     ConfirmActionComponent,
     InlineTagComponent,
-    AsyncPipe,
   ],
 })
 export class ChatEntryComponent implements OnChanges, OnDestroy {
@@ -87,7 +82,6 @@ export class ChatEntryComponent implements OnChanges, OnDestroy {
     public admin: AdminService,
     public store: Store,
     private auth: AuthzService,
-    private exts: ExtService,
     private ts: TaggingService,
     private refs: RefService,
   ) { }
@@ -175,11 +169,6 @@ export class ChatEntryComponent implements OnChanges, OnDestroy {
       ...this.ref.tags?.filter(t => this.admin.getPlugin(t)?.config?.signature === t) || [],
       ...authors(this.ref).map(a => !tagOrigin(a) ? a : localTag(a) + (lookup?.get(tagOrigin(a)) ?? tagOrigin(a))),
     ]);
-  }
-
-  @memo
-  get authorExts$() {
-    return this.exts.getCachedExts(this.authors, this.ref.origin || '').pipe(this.admin.authorFallback);
   }
 
   @memo

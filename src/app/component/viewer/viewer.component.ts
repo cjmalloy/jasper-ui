@@ -166,7 +166,10 @@ export class ViewerComponent implements OnChanges, OnDestroy {
       ).subscribe(ref => this.repost = ref);
     }
     const queryUrl = this.ref?.plugins?.['plugin/lens']?.url || (hasTag('plugin/repost', this.ref) ? this.ref?.sources?.[0] : this.ref?.url);
-    if (queryUrl && hasTag('plugin/lens', this.ref)) {
+    this.lens = false;
+    this.lensPage = undefined;
+    this.ext = undefined;
+    if (queryUrl && hasTag('plugin/lens', this.currentTags)) {
       this.lens = true;
       this.embeds.loadQuery$(queryUrl)
         .pipe(takeUntil(this.destroy$))
@@ -176,8 +179,8 @@ export class ViewerComponent implements OnChanges, OnDestroy {
           this.lensQuery = this.editor.getQuery(queryUrl);
           this.lensSize = params.size;
           this.lensCols = params.cols;
-          this.lensSort = params.sort;
-          this.lensFilter = params.filter;
+          this.lensSort = params.sort || [];
+          this.lensFilter = params.filter || [];
           this.lensSearch = params.search;
         });
     }
@@ -193,8 +196,8 @@ export class ViewerComponent implements OnChanges, OnDestroy {
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    const changesRef = changes.ref && changes.ref.currentValue?.modifiedString !== changes.ref.previousValue?.modifiedString;
-    const changesTags = changes.tags && !isEqual(changes.tags.previousValue, changes.tags.currentValue);
+    const changesRef = changes.ref && (!changes.ref.previousValue || changes.ref.currentValue?.modifiedString !== changes.ref.previousValue?.modifiedString);
+    const changesTags = changes.tags && (!changes.tags.previousValue || !isEqual(changes.tags.previousValue, changes.tags.currentValue));
     if (changesRef || changesTags || changes.text) {
       this.init();
     }

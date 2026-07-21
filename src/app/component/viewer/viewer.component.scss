@@ -5,9 +5,6 @@
 video:focus, video:focus-visible {
   outline: none;
 }
-* {
-  display: block;
-}
 iframe {
   opacity: 0;
   transition: opacity 0.4s ease-in 0.4s;
@@ -26,6 +23,18 @@ iframe {
     iframe {
       margin-top: -10px;
       margin-bottom: -10px;
+    }
+  }
+}
+
+:host.browse {
+  & > * {
+    margin: auto !important;
+    &.embed-container {
+      display: contents;
+      & > * {
+        margin: auto;
+      }
     }
   }
 }

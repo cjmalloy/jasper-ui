@@ -7,6 +7,7 @@ import { TaggingService } from '../../service/api/tagging.service';
 import { ConfigService } from '../../service/config.service';
 import { EditorService } from '../../service/editor.service';
 import { VisibilityService } from '../../service/visibility.service';
+import { Store } from '../../store/store';
 import { getPath, parseBookmarkParams } from '../../util/http';
 import { hasPrefix } from '../../util/tag';
 
@@ -21,6 +22,8 @@ export class NavComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
 
   @Input()
+  origin: string = '';
+  @Input()
   url: string = '';
   @Input()
   title = '';
@@ -30,12 +33,15 @@ export class NavComponent implements OnInit, OnDestroy {
   css = '';
   @Input()
   external = false;
+  @Input()
+  shortUser = false;
 
   nav?: (string|number)[];
 
   constructor(
     private config: ConfigService,
     private admin: AdminService,
+    private store: Store,
     private refs: RefService,
     private ts: TaggingService,
     private editor: EditorService,
@@ -47,18 +53,23 @@ export class NavComponent implements OnInit, OnDestroy {
     if (this.localUrl) {
       this.nav = this.getNav();
       if (this.nav[0] === '/tag' && !this.external && !this.hasText) {
-        this.editor.getTagPreview(this.nav[1] as string)
+        const tag = this.nav[1] as string;
+        this.text = this.text || (tag && !tag.startsWith('@') ? '#' + tag : tag) || '';
+        this.title ||= tag ? '#' + tag : '';
+        this.editor.getTagPreview(tag, this.origin, true, !this.shortUser || !hasPrefix(tag, 'user'))
           .pipe(takeUntil(this.destroy$))
           .subscribe(x => {
-            this.text = x?.name || this.text || x?.tag || '';
-            this.title ||= x?.tag || '';
+            this.text = x?.name || this.text;
+            if (this.store.view.browser) {
+              this.nav = ['/browse/', 'tag:/' + this.nav![1]];
+            }
           });
       }
     } else if (!this.external) {
       this.vis.notifyVisible(this.el, () => {
         this.refs.exists(this.url).pipe(takeUntil(this.destroy$)).subscribe(exists => {
           if (exists) {
-            this.nav = ['/ref', this.url];
+            this.nav = [this.store.view.refPath, this.url];
           }
         });
       });

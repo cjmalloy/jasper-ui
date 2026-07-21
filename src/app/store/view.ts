@@ -29,7 +29,7 @@ function getQueryTags(tag: string, filters: UrlFilter[]) {
  */
 export type View =
   'home' | 'all' | 'local' |
-  'tag' | 'tags' | 'query' |
+  'tag' | 'tags' | 'query' | 'browse' |
   'inbox/all' | 'inbox/sent' | 'inbox/alarms' | 'inbox/dms' | 'inbox/modlist' | 'inbox/reports' | 'inbox/ref' |
   'ref/summary' | 'ref/comments' | 'ref/thread' | 'ref/responses' | 'ref/errors' | 'ref/sources' | 'ref/alts' | 'ref/versions' |
   'settings/user' | 'settings/plugin' | 'settings/template' | 'settings/ref';
@@ -224,6 +224,14 @@ export class ViewStore {
     return this.childTag;
   }
 
+  get browser() {
+    return this.current === 'browse';
+  }
+
+  get refPath() {
+    return this.browser ? '/browse' : '/ref';
+  }
+
   get current(): View | undefined {
     const s = this.route.routeSnapshot?.firstChild;
     switch (s?.url[0].path) {
@@ -234,6 +242,7 @@ export class ViewStore {
         if (this.tag === '*') return 'local';
         if (isQuery(this.tag)) return 'query';
         return 'tag';
+      case 'browse': return 'browse';
       case 'ref':
         switch (s.firstChild?.routeConfig?.path) {
           case '': return 'ref/summary';
