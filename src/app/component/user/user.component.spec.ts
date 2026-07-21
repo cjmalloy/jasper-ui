@@ -86,4 +86,28 @@ describe('UserComponent', () => {
       }),
     }));
   });
+
+  it('templates a connection from an existing origin Ref', () => {
+    component.config.api = 'https://jasper.example/api';
+    component.user = { tag: '+user/test', origin: '@example' };
+    component.store.origins.origins = [{
+      url: 'https://origin.example/custom-api',
+      origin: '',
+      title: 'Example origin',
+      plugins: {
+        '+plugin/origin': { local: '@example', remote: '@jasper' },
+      },
+    }];
+    component.ngOnChanges({ user: {} as any });
+
+    component.connect();
+
+    expect(downloadRef).toHaveBeenLastCalledWith(expect.objectContaining({
+      url: 'https://origin.example/custom-api',
+      title: 'Example origin',
+      plugins: expect.objectContaining({
+        '+plugin/origin': { remote: '@example', local: '@jasper' },
+      }),
+    }));
+  });
 });

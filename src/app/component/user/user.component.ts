@@ -168,13 +168,15 @@ export class UserComponent implements OnChanges, HasChanges {
 
   connect() {
     const local = this.origin || this.reccomendedAlias;
+    const template = this.store.origins.origins.find(ref => ref.plugins?.['+plugin/origin']?.local === local);
+    const preferredAlias = template?.plugins?.['+plugin/origin']?.remote || local;
     downloadRef({
-      url: this.config.api,
-      title: local,
+      url: template?.url || this.config.api,
+      title: template?.title || preferredAlias,
       tags: ['public', 'internal', '+plugin/cron', '+plugin/origin/pull', '+plugin/origin/tunnel'],
       plugins: {
         '+plugin/cron': { ...cronPlugin.defaults },
-        '+plugin/origin': { remote: this.origin, local },
+        '+plugin/origin': { remote: this.origin, local: preferredAlias },
         '+plugin/origin/tunnel': { remoteUser: this.qualifiedTag },
       },
     });

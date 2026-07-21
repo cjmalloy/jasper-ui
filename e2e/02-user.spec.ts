@@ -58,8 +58,10 @@ test.describe.serial('User Page', () => {
 
     expect(JSON.parse(Buffer.concat(chunks).toString())).toEqual({
       url: 'http://localhost:8081',
-      tags: ['+plugin/origin/pull', '+plugin/origin/tunnel'],
+      title: '@localhost',
+      tags: ['public', 'internal', '+plugin/cron', '+plugin/origin/pull', '+plugin/origin/tunnel'],
       plugins: {
+        '+plugin/cron': { interval: 'PT15M' },
         '+plugin/origin': { remote: '', local: '@localhost' },
         '+plugin/origin/tunnel': { remoteUser: 'user/alice' },
       },
