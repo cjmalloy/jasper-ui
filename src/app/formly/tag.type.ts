@@ -1,7 +1,7 @@
 import { AfterViewInit, ChangeDetectionStrategy, ChangeDetectorRef, Component, OnDestroy } from '@angular/core';
 import { ReactiveFormsModule } from '@angular/forms';
 import { FieldType, FieldTypeConfig, FormlyAttributes, FormlyConfig } from '@ngx-formly/core';
-import { debounce, defer, uniqBy } from 'lodash-es';
+import { debounce, defer, isArray, uniqBy } from 'lodash-es';
 import { forkJoin, map, Observable, of, Subscription, switchMap } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { Config } from '../model/tag';
@@ -11,6 +11,7 @@ import { ConfigService } from '../service/config.service';
 import { EditorService } from '../service/editor.service';
 import { Store } from '../store/store';
 import { getErrorMessage } from './errors';
+import { prefix } from '../util/tag';
 
 @Component({
   selector: 'formly-field-tag-input',
@@ -31,18 +32,19 @@ import { getErrorMessage } from './errors';
       <input #input
              class="grow"
              type="text"
+             [value]="noPrefix"
+             [disabled]="formControl.disabled"
              inputmode="email"
              enterkeyhint="enter"
              autocorrect="off"
              autocapitalize="none"
              [attr.list]="listId"
              [class.hidden-without-removing]="preview"
-             (input)="search(input.value)"
+             (input)="onInput(input.value)"
              (blur)="blur(input)"
              (focusin)="edit(input)"
              (focus)="edit(input)"
              (focusout)="getPreview(input.value)"
-             [formControl]="formControl"
              [formlyAttributes]="field"
              [class.is-invalid]="showError">
     </div>
@@ -95,6 +97,10 @@ export class FormlyFieldTagInput extends FieldType<FieldTypeConfig> implements A
     this.formChanges?.unsubscribe();
   }
 
+  get noPrefix() {
+    return this.formControl.value?.substring(this.props.prefix?.length || 0) || '';
+  }
+
   validate(input: HTMLInputElement) {
     if (this.showError) {
       input.setCustomValidity(getErrorMessage(this.field, this.config));
@@ -102,14 +108,22 @@ export class FormlyFieldTagInput extends FieldType<FieldTypeConfig> implements A
     }
   }
 
+  onInput(value: string) {
+    const full = prefix(this.props.prefix, value);
+    this.formControl.setValue(full);
+    this.search(full);
+  }
+
   blur(input: HTMLInputElement) {
+    const full = prefix(this.props.prefix, input.value);
+    this.formControl.setValue(full);
     this.editing = false;
     if (this.showError && !this.showedError) {
       this.showedError = true;
       defer(() => this.validate(input));
     } else {
       this.showedError = false;
-      this.getPreview(input.value);
+      this.getPreview(full);
     }
   }
 
@@ -140,14 +154,15 @@ export class FormlyFieldTagInput extends FieldType<FieldTypeConfig> implements A
 
   clickPreview(input: HTMLInputElement) {
     if (this.store.hotkey) {
-      window.open(this.configs.base + 'tag/' + input.value);
+      window.open(this.configs.base + 'tag/' + prefix(this.props.prefix, input.value));
     } else {
       this.edit(input);
     }
   }
 
   search = debounce((value: string) => {
-    const siblings = (this.formControl.parent?.value as string[] || []).filter(t => t && t !== this.formControl.value);
+    const list = isArray(this.formControl.parent?.value);
+    const siblings = !list ? [] : (this.formControl.parent?.value as string[] || []).filter(t => t && t !== this.formControl.value);
     const derank = (xs: { value: string, label: string }[]) =>
       [...xs.filter(x => !siblings.includes(x.value)), ...xs.filter(x => siblings.includes(x.value))];
     const toEntry = (p: Config) => ({ value: p.tag, label: p.name || p.tag });
