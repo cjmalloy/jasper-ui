@@ -70,14 +70,12 @@ export class SettingsRefPage implements OnInit, OnDestroy, HasChanges {
   loadDefaults() {
     if (!this.plugin?.config?.defaultsConfirm || confirm(this.plugin?.config?.defaultsConfirm)) {
       this.store.eventBus.fire(this.store.view.settingsTag + ':defaults');
-      this.store.eventBus.reset();
     }
   }
 
   clearCache() {
     if (!this.plugin?.config?.clearCacheConfirm || confirm(this.plugin?.config?.clearCacheConfirm)) {
       this.store.eventBus.fire(this.store.view.settingsTag + ':clear-cache');
-      this.store.eventBus.reset();
     }
   }
 }
