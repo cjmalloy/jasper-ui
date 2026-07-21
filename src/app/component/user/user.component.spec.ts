@@ -4,14 +4,8 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ReactiveFormsModule } from '@angular/forms';
 import { provideRouter } from '@angular/router';
-import { downloadRef } from '../../util/download';
 
 import { UserComponent } from './user.component';
-
-vi.mock('../../util/download', () => ({
-  downloadRef: vi.fn(),
-  downloadTag: vi.fn(),
-}));
 
 describe('UserComponent', () => {
   let component: UserComponent;
@@ -45,9 +39,7 @@ describe('UserComponent', () => {
     component.user = { tag: '+user/test', origin: '@example' };
     component.ngOnChanges({ user: {} as any });
 
-    component.connect();
-
-    expect(downloadRef).toHaveBeenCalledWith({
+    expect(component.connectionRef).toEqual({
       url: 'https://remote.example/api',
       title: '@example',
       tags: ['public', 'internal', '+plugin/cron', '+plugin/origin/pull', '+plugin/origin/tunnel'],
@@ -64,9 +56,7 @@ describe('UserComponent', () => {
     component.user = { tag: '+user/test', origin: '' };
     component.ngOnChanges({ user: {} as any });
 
-    component.connect();
-
-    expect(downloadRef).toHaveBeenLastCalledWith(expect.objectContaining({
+    expect(component.connectionRef).toEqual(expect.objectContaining({
       plugins: expect.objectContaining({
         '+plugin/origin': { remote: '', local: '@jasper.example' },
       }),
@@ -78,9 +68,7 @@ describe('UserComponent', () => {
     component.user = { tag: '+user/test', origin: '' };
     component.ngOnChanges({ user: {} as any });
 
-    component.connect();
-
-    expect(downloadRef).toHaveBeenLastCalledWith(expect.objectContaining({
+    expect(component.connectionRef).toEqual(expect.objectContaining({
       plugins: expect.objectContaining({
         '+plugin/origin': { remote: '', local: '@test' },
       }),
@@ -100,9 +88,7 @@ describe('UserComponent', () => {
     }];
     component.ngOnChanges({ user: {} as any });
 
-    component.connect();
-
-    expect(downloadRef).toHaveBeenLastCalledWith(expect.objectContaining({
+    expect(component.connectionRef).toEqual(expect.objectContaining({
       url: 'https://origin.example/custom-api',
       title: 'Example origin',
       plugins: expect.objectContaining({

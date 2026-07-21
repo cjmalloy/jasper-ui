@@ -21,6 +21,7 @@ import { userForm, UserFormComponent } from '../../form/user/user.component';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ext } from '../../model/ext';
 import { getRole, Profile } from '../../model/profile';
+import { Ref } from '../../model/ref';
 import { Role, User } from '../../model/user';
 import { isDeletorTag, tagDeleteNotice } from '../../mods/delete';
 import { cronPlugin } from '../../mods/system/script';
@@ -166,20 +167,24 @@ export class UserComponent implements OnChanges, HasChanges {
     downloadTag(user);
   }
 
-  connect() {
-    const local = this.origin || this.reccomendedAlias;
-    const template = this.store.origins.origins.find(ref => ref.plugins?.['+plugin/origin']?.local === local);
-    const preferredAlias = template?.plugins?.['+plugin/origin']?.remote || local;
-    downloadRef({
+  get connectionRef(): Ref {
+    const templateLocal = this.origin || this.reccomendedAlias;
+    const template = this.store.origins.origins.find(ref => ref.plugins?.['+plugin/origin']?.local === templateLocal);
+    const local = template?.plugins?.['+plugin/origin']?.remote || this.origin || this.reccomendedAlias;
+    return {
       url: template?.url || this.config.api,
-      title: template?.title || preferredAlias,
+      title: template?.title || local,
       tags: ['public', 'internal', '+plugin/cron', '+plugin/origin/pull', '+plugin/origin/tunnel'],
       plugins: {
         '+plugin/cron': { ...cronPlugin.defaults },
-        '+plugin/origin': { remote: this.origin, local: preferredAlias },
+        '+plugin/origin': { remote: this.origin, local },
         '+plugin/origin/tunnel': { remoteUser: this.qualifiedTag },
       },
-    });
+    };
+  }
+
+  connect() {
+    downloadRef(this.connectionRef);
   }
 
   setPassword$ = (password: string) => {
