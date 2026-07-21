@@ -13,6 +13,9 @@ export function decodeTorrentFile(file: File): Promise<{ hash: string, magnetUrl
 
         // Extract the info hash
         const info = decoded.info;
+        if (info?.['meta version'] === 2) {
+          throw new Error('BitTorrent v2 torrents are not supported');
+        }
         const infoBuffer = bencode.encode(info);
         const hash = sha1(infoBuffer).toUpperCase();
 

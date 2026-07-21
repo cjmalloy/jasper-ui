@@ -7,7 +7,7 @@ import { uniq, without } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { autorun, IReactionDisposer, runInAction, toJS } from 'mobx';
 import { MobxAngularModule } from 'mobx-angular';
-import { catchError, concat, last, lastValueFrom, map, of, switchMap, throwError } from 'rxjs';
+import { catchError, concat, EMPTY, finalize, last, lastValueFrom, map, of, switchMap, throwError } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import * as XLSX from 'xlsx';
 import { ExtComponent } from '../../../component/ext/ext.component';
@@ -116,7 +116,7 @@ export class UploadPage implements OnDestroy {
         tables.push(file);
       } else if (!forceCache && file.type.startsWith('text/html')) {
         bookmarks.push(file);
-      } else if (!forceCache && file.type === 'application/x-bittorrent') {
+      } else if (!forceCache && (file.type === 'application/x-bittorrent' || file.name.toLowerCase().endsWith('.torrent'))) {
         torrents.push(file);
       } else if (!forceCache && file.type.startsWith('text/xml') || file.type.startsWith('application/xml')) {
         sitemap.push(file);
@@ -287,11 +287,18 @@ export class UploadPage implements OnDestroy {
             tags: uniq(['plugin/torrent', ...extraTags.filter(t => !!t)]),
             plugins: { 'plugin/torrent': { url: ref!.url }}
           })),
+          catchError((res: HttpErrorResponse) => {
+            this.serverErrors.push(...printError(res));
+            return EMPTY;
+          }),
+          finalize(() => runInAction(() => this.store.submit.caching.delete(file))),
         ).subscribe(ref => runInAction(() => {
-          this.store.submit.caching.delete(file);
           this.store.submit.addRefs({ ...ref, upload: true });
         }));
-      });
+      }).catch(error => runInAction(() => {
+        this.store.submit.caching.delete(file);
+        this.serverErrors.push(error instanceof Error ? error.message : String(error));
+      }));
     }
   }
 
