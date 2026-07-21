@@ -1,4 +1,5 @@
 import { CdkDropListGroup } from '@angular/cdk/drag-drop';
+import { AsyncPipe } from '@angular/common';
 import {
   Component,
   ElementRef,
@@ -31,6 +32,8 @@ import { FillWidthDirective } from '../../directive/fill-width.directive';
 import { ResizeHandleDirective } from '../../directive/resize-handle.directive';
 import { Oembed } from '../../model/oembed';
 import { Ref } from '../../model/ref';
+import { CssUrlPipe } from '../../pipe/css-url.pipe';
+import { ThumbnailPipe } from '../../pipe/thumbnail.pipe';
 import { AdminService } from '../../service/admin.service';
 import { ScrapeService } from '../../service/api/scrape.service';
 import { ConfigService } from '../../service/config.service';
@@ -63,10 +66,15 @@ import { TagsFormComponent } from '../tags/tags.component';
     ResizeHandleDirective,
     FillWidthDirective,
     TagsFormComponent,
+    AsyncPipe,
+    ThumbnailPipe,
+    CssUrlPipe,
   ],
 })
 export class RefFormComponent implements OnChanges {
 
+  @Input()
+  creating = false;
   @Input()
   origin? = '';
   @Input()
@@ -140,6 +148,33 @@ export class RefFormComponent implements OnChanges {
 
   get sources() {
     return this.group.get('sources') as UntypedFormArray;
+  }
+
+  get thumbnail() {
+    if (!this.admin.getPlugin('plugin/thumbnail')) return false;
+    if (hasTag('plugin/thumbnail', this.group.value)) return true;
+    return !!this.admin.getPlugin('plugin/image') && hasTag('plugin/image', this.group.value);
+  }
+
+  get thumbnailRefs() {
+    return [{ ...this.group.getRawValue(), origin: this.creating ? this.store.account.origin : this.origin }];
+  }
+
+  get thumbnailPlugin() {
+    const plugin = this.group.value.plugins?.['plugin/thumbnail'];
+    return plugin && typeof plugin === 'object' && !Array.isArray(plugin) ? plugin : undefined;
+  }
+
+  get thumbnailColor() {
+    return this.thumbnailPlugin?.color || '';
+  }
+
+  get thumbnailEmoji() {
+    return this.thumbnailPlugin?.emoji || '';
+  }
+
+  get thumbnailRadius() {
+    return this.thumbnailPlugin?.radius || 0;
   }
 
   addSource(value = '') {

@@ -72,6 +72,7 @@
     } @else {
       <app-ref-form #advancedForm
                     [group]="textForm"
+                    [creating]="true"
                     (toggleTag)="bookmarks.toggleTag($event)"></app-ref-form>
     }
 

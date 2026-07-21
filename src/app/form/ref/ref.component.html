@@ -1,5 +1,16 @@
 <ng-container [formGroup]="group"
               cdkDropListGroup>
+  @if (creating && thumbnail) {
+    <span><!-- Thumbnail Preview --></span>
+    <div class="thumbnail-preview">
+      <div class="thumbnail"
+           [style.background-image]="thumbnailRefs | thumbnail: !thumbnailEmoji && !thumbnailColor | async | cssUrl"
+           [style.background-color]="thumbnailColor"
+           [style.background-size]="thumbnailRadius ? 'cover' : 'contain'"
+           [style.border-radius.px]="thumbnailRadius">{{ thumbnailEmoji }}</div>
+    </div>
+  }
+
   <label [for]="id + '-url'" i18n>URL:</label>
   <div class="form-array">
     <input [id]="id + '-url'" name="url" type="text" formControlName="url">
