@@ -52,6 +52,7 @@ test.describe.serial('User Page', () => {
     const downloadPromise = page.waitForEvent('download');
     await page.locator('.profile .connect-action').click();
     const download = await downloadPromise;
+    expect(download.suggestedFilename()).toBe('@localhost.json');
     const stream = await download.createReadStream();
     const chunks: Buffer[] = [];
     for await (const chunk of stream) chunks.push(chunk);
