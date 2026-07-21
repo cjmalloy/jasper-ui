@@ -1,5 +1,4 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { FakeLinkDirective } from '../../directive/fake-link.directive';
 import { Component, HostBinding, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormControl, UntypedFormGroup } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -27,7 +26,7 @@ import { prefix, setPublic } from '../../util/tag';
   templateUrl: './user.component.html',
   styleUrls: ['./user.component.scss'],
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [FakeLinkDirective, MobxAngularModule, RouterLink, SettingsComponent, ReactiveFormsModule, LimitWidthDirective, UserFormComponent]
+  imports: [MobxAngularModule, RouterLink, SettingsComponent, ReactiveFormsModule, LimitWidthDirective, UserFormComponent]
 })
 export class UserPage implements OnInit, OnDestroy, HasChanges {
   private disposers: IReactionDisposer[] = [];
