@@ -57,7 +57,7 @@ describe('RefFormComponent', () => {
     vi.spyOn(component.admin, 'getPlugin').mockImplementation(tag => {
       return tag === 'plugin/thumbnail' ? {} as any : undefined;
     });
-    component.tags.setValue(['plugin/thumbnail']);
+    component.tags.push(new UntypedFormControl('plugin/thumbnail'));
 
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('.thumbnail-preview')).toBeNull();
