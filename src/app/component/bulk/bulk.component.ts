@@ -110,7 +110,7 @@ export class BulkComponent implements AfterViewInit, OnChanges, OnDestroy {
   ngOnChanges(changes: SimpleChanges) {
     if (changes.type) {
       const details = this.el.nativeElement.querySelector('details') as HTMLDetailsElement | null;
-      this.query.setBulkToolsOpen(this.type === 'ref' && !!details?.open);
+      this.setBulkToolsState(!!details?.open);
     }
     if (changes.type || changes.activeExts) {
       MemoCache.clear(this);
@@ -119,6 +119,7 @@ export class BulkComponent implements AfterViewInit, OnChanges, OnDestroy {
 
   ngOnDestroy() {
     this.query.setBulkToolsOpen(false);
+    this.ext.setBulkToolsOpen(false);
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
   }
@@ -131,7 +132,7 @@ export class BulkComponent implements AfterViewInit, OnChanges, OnDestroy {
     if (this.batchRunning) return of(null);
     this.serverError = [];
     this.batchRunning = true;
-    const content = this.type === 'ref' ? this.query.bulkSelectedContent : this.queryStore.page!.content;
+    const content = this.bulkSelectedContent;
     if (!content.length) {
       this.batchRunning = false;
       return of(null);
@@ -189,7 +190,7 @@ export class BulkComponent implements AfterViewInit, OnChanges, OnDestroy {
   }
 
   get empty() {
-    return !(this.type === 'ref' ? this.query.bulkSelectedContent : this.queryStore.page?.content)?.length;
+    return !this.bulkSelectedContent.length;
   }
 
   get name() {
@@ -218,14 +219,25 @@ export class BulkComponent implements AfterViewInit, OnChanges, OnDestroy {
 
   get items() {
     let result = this.queryStore.page!;
-    if (this.type === 'ref') {
-      result = {...result, content: this.query.bulkSelectedContent as any};
+    if (this.type === 'ref' || this.type === 'ext') {
+      result = {...result, content: this.bulkSelectedContent as any};
     }
     return result;
   }
 
   setBulkToolsOpen(event: Event) {
-    this.query.setBulkToolsOpen(this.type === 'ref' && (event.target as HTMLDetailsElement).open);
+    this.setBulkToolsState((event.target as HTMLDetailsElement).open);
+  }
+
+  private get bulkSelectedContent(): Array<Ref | Ext | User | Plugin | Template> {
+    if (this.type === 'ref') return this.query.bulkSelectedContent;
+    if (this.type === 'ext') return this.ext.bulkSelectedContent;
+    return this.queryStore.page?.content || [];
+  }
+
+  private setBulkToolsState(open: boolean) {
+    this.query.setBulkToolsOpen(this.type === 'ref' && open);
+    this.ext.setBulkToolsOpen(this.type === 'ext' && open);
   }
 
   plugin$ = (value: any) => {

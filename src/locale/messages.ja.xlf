@@ -414,6 +414,10 @@ Please Reload.</source>
         <source>bob</source>
         <target>ボブ</target>
       </trans-unit>
+      <trans-unit id="6556444319421068034" datatype="html">
+        <source>Select <x id="INTERPOLATION" equiv-text="{{ ext.name || ext.tag }}"/></source>
+        <target><x id="INTERPOLATION" equiv-text="{{ ext.name || ext.tag }}"/>を選択</target>
+      </trans-unit>
       <trans-unit id="2236371857137398396" datatype="html">
         <source> No results found </source>
         <target> 結果が見つかりませんでした </target>

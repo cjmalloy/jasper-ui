@@ -4,6 +4,7 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { of } from 'rxjs';
+import { Ext } from '../../model/ext';
 import { Page } from '../../model/page';
 import { Ref } from '../../model/ref';
 
@@ -77,5 +78,34 @@ describe('BulkComponent', () => {
     fixture.detectChanges();
 
     expect(component.query.bulkToolsOpen).toBe(true);
+  });
+
+  it('runs Ext batch actions only on checked Exts', () => {
+    const checked = { tag: 'checked', origin: '' } as Ext;
+    const unchecked = { tag: 'unchecked', origin: '' } as Ext;
+    const tags: string[] = [];
+    fixture.componentRef.setInput('type', 'ext');
+    fixture.detectChanges();
+    component.ext.page = Page.of([checked, unchecked]);
+    component.ext.setBulkToolsOpen(true);
+    component.ext.setBulkSelected(unchecked, false);
+
+    component.batch$<Ext>(ext => {
+      tags.push(ext.tag);
+      return of(null);
+    }).subscribe();
+
+    expect(tags).toEqual(['checked']);
+  });
+
+  it('synchronizes open bulk tools when type changes to Ext', () => {
+    const details = fixture.nativeElement.querySelector('details') as HTMLDetailsElement;
+    details.open = true;
+
+    fixture.componentRef.setInput('type', 'ext');
+    fixture.detectChanges();
+
+    expect(component.ext.bulkToolsOpen).toBe(true);
+    expect(component.query.bulkToolsOpen).toBe(false);
   });
 });

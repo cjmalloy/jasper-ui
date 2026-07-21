@@ -1600,6 +1600,13 @@ Please Reload.</source>
           <context context-type="linenumber">9</context>
         </context-group>
       </trans-unit>
+      <trans-unit id="6556444319421068034" datatype="html">
+        <source>Select <x id="INTERPOLATION" equiv-text="{{ ext.name || ext.tag }}"/></source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/component/ext/ext-list/ext-list.component.html</context>
+          <context context-type="linenumber">8,9</context>
+        </context-group>
+      </trans-unit>
       <trans-unit id="2236371857137398396" datatype="html">
         <source> No results found </source>
         <context-group purpose="location">
