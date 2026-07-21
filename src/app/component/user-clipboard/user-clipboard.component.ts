@@ -95,16 +95,17 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     private editor: EditorService,
     private stomp: StompService,
     private router: Router,
-  ) {}
-
-  ngOnInit() {
-    this.loadLocal();
-    this.loadRemote();
+  ) {
     effect(() => {
       if (this.store.eventBus.event === 'clip' && this.store.eventBus.ref?.url) {
         this.addItem({ ref: this.store.eventBus.ref });
       }
     });
+  }
+
+  ngOnInit() {
+    this.loadLocal();
+    this.loadRemote();
     this.watch = this.stomp.watchResponse('tag:/plugin/user/clipboard').pipe(
       catchError(() => of(undefined)),
     ).subscribe(() => this.loadRemote());
