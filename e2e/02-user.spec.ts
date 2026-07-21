@@ -61,7 +61,7 @@ test.describe.serial('User Page', () => {
     for await (const chunk of stream) chunks.push(chunk);
 
     expect(JSON.parse(Buffer.concat(chunks).toString())).toEqual({
-      url: 'http://localhost:8081',
+      url: 'http://localhost:8081/',
       title: '@localhost',
       tags: ['public', 'internal', '+plugin/cron', '+plugin/origin/pull', '+plugin/origin/tunnel'],
       plugins: {
