@@ -38,6 +38,14 @@ describe('RefComponent', () => {
     expect(component).toBeTruthy();
   });
 
+  it('keeps the disabled Ref URL in thumbnail data while editing', () => {
+    component.ref = { url: 'cache:image-id', origin: '' };
+    component.editForm.get('url')!.setValue(component.ref.url);
+    (component as any)._editing = true;
+
+    expect(component.thumbnailRefs[0]?.url).toBe('cache:image-id');
+  });
+
   it('preserves protected and private plugin tags when copying', () => {
     component.ref = {
       url: 'https://example.com',
