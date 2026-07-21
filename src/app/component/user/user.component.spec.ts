@@ -70,4 +70,18 @@ describe('UserComponent', () => {
       }),
     }));
   });
+
+  it('recommends a tilde-prefixed first path as the local alias', () => {
+    component.config.api = 'https://jasper.example/~test/api';
+    component.user = { tag: '+user/test', origin: '' };
+    component.ngOnChanges({ user: {} as any });
+
+    component.connect();
+
+    expect(downloadRef).toHaveBeenLastCalledWith(expect.objectContaining({
+      plugins: expect.objectContaining({
+        '+plugin/origin': { remote: '', local: '@test' },
+      }),
+    }));
+  });
 });

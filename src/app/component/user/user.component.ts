@@ -134,7 +134,11 @@ export class UserComponent implements OnChanges, HasChanges {
 
   @memo
   get reccomendedAlias() {
-    return '@' + new URL(this.config.api, location.href).hostname;
+    const api = new URL(this.config.api, location.href);
+    const firstPath = api.pathname.split('/').filter(Boolean)[0];
+    return firstPath?.startsWith('~') && firstPath.length > 1
+      ? '@' + firstPath.substring(1)
+      : '@' + api.hostname;
   }
 
   @memo
