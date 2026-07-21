@@ -3,12 +3,12 @@
     <a class="logo" routerLink="/"></a>
     @if (!title || title === '@*') {
       @if (store.view.noTemplate) {
-        <h5 class="fake-link" routerLink="." i18n>🔖️ Simple Tags</h5>
+        <h5 routerLink="." i18n>🔖️ Simple Tags</h5>
       } @else {
-        <h5 class="fake-link" routerLink="." i18n>🏷️ All Tags</h5>
+        <h5 routerLink="." i18n>🏷️ All Tags</h5>
       }
     } @else {
-      <h5 class="fake-link" routerLink=".">{{ title }}</h5>
+      <h5 routerLink=".">{{ title }}</h5>
     }
     @if (admin.home) {
       <a routerLink="/tags"
