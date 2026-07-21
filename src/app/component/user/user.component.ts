@@ -133,6 +133,11 @@ export class UserComponent implements OnChanges, HasChanges {
   }
 
   @memo
+  get reccomendedAlias() {
+    return '@' + this.localTag.substring(this.localTag.lastIndexOf('/') + 1);
+  }
+
+  @memo
   get local() {
     return this.profile?.tag || (!this.user || this.user?.origin === this.store.account.origin);
   }
@@ -161,7 +166,7 @@ export class UserComponent implements OnChanges, HasChanges {
       url: this.config.api,
       tags: ['+plugin/origin/pull', '+plugin/origin/tunnel'],
       plugins: {
-        '+plugin/origin': { remote: this.origin },
+        '+plugin/origin': { remote: this.origin, local: this.origin || this.reccomendedAlias },
         '+plugin/origin/tunnel': { remoteUser: this.qualifiedTag },
       },
     });

@@ -10,6 +10,10 @@
         <source>download</source>
         <target>ダウンロード</target>
       </trans-unit>
+      <trans-unit id="2452584011865748061" datatype="html">
+        <source>connect</source>
+        <target>接続</target>
+      </trans-unit>
       <trans-unit id="1511627301298957956" datatype="html">
         <source>media</source>
         <target>メディア</target>

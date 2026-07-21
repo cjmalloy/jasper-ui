@@ -60,7 +60,7 @@ test.describe.serial('User Page', () => {
       url: 'http://localhost:8081',
       tags: ['+plugin/origin/pull', '+plugin/origin/tunnel'],
       plugins: {
-        '+plugin/origin': { remote: '' },
+        '+plugin/origin': { remote: '', local: '@alice' },
         '+plugin/origin/tunnel': { remoteUser: 'user/alice' },
       },
     });

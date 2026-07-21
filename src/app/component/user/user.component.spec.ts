@@ -51,9 +51,22 @@ describe('UserComponent', () => {
       url: 'https://remote.example/api',
       tags: ['+plugin/origin/pull', '+plugin/origin/tunnel'],
       plugins: {
-        '+plugin/origin': { remote: '@example' },
+        '+plugin/origin': { remote: '@example', local: '@example' },
         '+plugin/origin/tunnel': { remoteUser: '+user/test@example' },
       },
     });
+  });
+
+  it('recommends the user name as the local alias for the default origin', () => {
+    component.user = { tag: '+user/test', origin: '' };
+    component.ngOnChanges({ user: {} as any });
+
+    component.connect();
+
+    expect(downloadRef).toHaveBeenLastCalledWith(expect.objectContaining({
+      plugins: expect.objectContaining({
+        '+plugin/origin': { remote: '', local: '@test' },
+      }),
+    }));
   });
 });
