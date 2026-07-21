@@ -1,4 +1,5 @@
 import { Component, OnDestroy, OnInit, QueryList, ViewChild, ViewChildren, ChangeDetectionStrategy } from '@angular/core';
+import { FakeLinkDirective } from '../../../directive/fake-link.directive';
 import { RouterLink } from '@angular/router';
 import { defer, uniq } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
@@ -29,7 +30,7 @@ import { hasTag, removeTag, top, updateMetadata } from '../../../util/tag';
   templateUrl: './summary.component.html',
   styleUrls: ['./summary.component.scss'],
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [MobxAngularModule, CommentReplyComponent, RouterLink, ThreadSummaryComponent, RefListComponent, LoadingComponent]
+  imports: [FakeLinkDirective, MobxAngularModule, CommentReplyComponent, RouterLink, ThreadSummaryComponent, RefListComponent, LoadingComponent]
 })
 export class RefSummaryComponent implements OnInit, OnDestroy, HasChanges {
   private disposers: IReactionDisposer[] = [];

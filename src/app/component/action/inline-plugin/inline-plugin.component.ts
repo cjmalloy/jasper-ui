@@ -1,4 +1,5 @@
 import { Component, EventEmitter, Input, Output, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { FakeLinkDirective } from '../../../directive/fake-link.directive';
 import { FormBuilder, UntypedFormGroup } from '@angular/forms';
 import { defer } from 'lodash-es';
 import { catchError, Observable, of } from 'rxjs';
@@ -15,7 +16,7 @@ import { ActionComponent } from '../action.component';
   styleUrls: ['./inline-plugin.component.scss'],
   host: { 'class': 'action' },
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [GenFormComponent, LoadingComponent]
+  imports: [FakeLinkDirective, GenFormComponent, LoadingComponent]
 })
 export class InlinePluginComponent extends ActionComponent {
 

@@ -1,4 +1,5 @@
 import { Component, OnDestroy, OnInit, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { FakeLinkDirective } from '../../../directive/fake-link.directive';
 import { uniq } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { MobxAngularModule } from 'mobx-angular';
@@ -23,6 +24,7 @@ import { hasTag, removeTag, updateMetadata } from '../../../util/tag';
   styleUrls: ['./comments.component.scss'],
   changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
+    FakeLinkDirective,
     MobxAngularModule,
     CommentReplyComponent,
     CommentThreadComponent,

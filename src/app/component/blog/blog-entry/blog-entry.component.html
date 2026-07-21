@@ -140,7 +140,7 @@
   }
 }
 
-<h5 class="fake-link" [routerLink]="['/ref', ref.url, 'comments']" [queryParams]="{ origin: nonLocalOrigin }" i18n>Comments:</h5>
+<h5 [routerLink]="['/ref', ref.url, 'comments']" [queryParams]="{ origin: nonLocalOrigin }" i18n>Comments:</h5>
 <div class="summary-box" [class.hidden-without-removing]="!comments">
   <app-thread-summary query="plugin/comment:!plugin/delete"
                       [commentView]="true"

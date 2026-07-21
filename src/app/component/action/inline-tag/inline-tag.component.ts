@@ -1,4 +1,5 @@
 import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
+import { FakeLinkDirective } from '../../../directive/fake-link.directive';
 import { ReactiveFormsModule } from '@angular/forms';
 import { debounce } from 'lodash-es';
 import { catchError, forkJoin, map, Observable, of, Subscription, switchMap } from 'rxjs';
@@ -20,7 +21,7 @@ import { ActionComponent } from '../action.component';
   styleUrls: ['./inline-tag.component.scss'],
   host: { 'class': 'action' },
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [ReactiveFormsModule, AutofocusDirective, LoadingComponent]
+  imports: [FakeLinkDirective, ReactiveFormsModule, AutofocusDirective, LoadingComponent]
 })
 export class InlineTagComponent extends ActionComponent {
   tagsRegex = TAGS_REGEX.source;

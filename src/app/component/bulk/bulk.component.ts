@@ -1,4 +1,5 @@
 import { KeyValuePipe } from '@angular/common';
+import { FakeLinkDirective } from '../../directive/fake-link.directive';
 import { HttpErrorResponse } from '@angular/common/http';
 import { AfterViewInit, Component, ElementRef, Input, OnChanges, OnDestroy, SimpleChanges, ChangeDetectionStrategy } from '@angular/core';
 import { RouterLink } from '@angular/router';
@@ -48,7 +49,7 @@ import { LoadingComponent } from '../loading/loading.component';
   styleUrls: ['./bulk.component.scss'],
   host: { 'class': 'bulk actions' },
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [LoadingComponent, RouterLink, InlineTagComponent, ConfirmActionComponent, InlinePluginComponent, TitleDirective, InlineButtonComponent, KeyValuePipe]
+  imports: [FakeLinkDirective, LoadingComponent, RouterLink, InlineTagComponent, ConfirmActionComponent, InlinePluginComponent, TitleDirective, InlineButtonComponent, KeyValuePipe]
 })
 export class BulkComponent implements AfterViewInit, OnChanges, OnDestroy {
 
