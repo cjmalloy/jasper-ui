@@ -1,41 +1,26 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { signal } from '@angular/core';
-import { catchError, Observable, throwError } from 'rxjs';
+import { catchError, Observable, Subject, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Ref } from '../model/ref';
 import { printError } from '../util/http';
 
 export type progress = (msg?: string, p?: number) => void;
+export type BusEvent = {
+  event: string,
+  ref?: Ref,
+  repost?: Ref,
+  errors: string[],
+};
 
 export class EventBus {
 
-  private readonly state = signal({
-    event: '',
-    ref: undefined as Ref | undefined,
-    repost: undefined as Ref | undefined,
-    errors: [] as string[],
-  });
+  readonly events = new Subject<BusEvent>();
   private readonly progressState = signal({
     messages: [] as string[],
     num: 0,
     den: 0,
   });
-
-  get event() {
-    return this.state().event;
-  }
-
-  get ref() {
-    return this.state().ref;
-  }
-
-  get repost() {
-    return this.state().repost;
-  }
-
-  get errors() {
-    return this.state().errors;
-  }
 
   get progressMessages() {
     return this.progressState().messages;
@@ -50,7 +35,7 @@ export class EventBus {
   }
 
   private setState(event: string, ref?: Ref, repost?: Ref, errors: string[] = []) {
-    this.state.set({ event, ref, repost, errors });
+    this.events.next({ event, ref, repost, errors });
     console.log('🚌️ Event Bus:', event, event === 'error' ? errors : '', ref);
   }
 
@@ -59,7 +44,7 @@ export class EventBus {
   }
 
   fireError(errors: string[], ref?: Ref) {
-    this.setState('error', ref ?? this.ref, undefined, [...errors]);
+    this.setState('error', ref, undefined, [...errors]);
   }
 
   /**
@@ -67,14 +52,14 @@ export class EventBus {
    * 'refresh' event.
    */
   reload(ref?: Ref) {
-    this.setState('reload', ref ?? this.ref);
+    this.setState('reload', ref);
   }
 
   /**
    * Notify latest version of ref is not available.
    */
   refresh(ref?: Ref) {
-    this.setState('refresh', ref ?? this.ref);
+    this.setState('refresh', ref);
   }
 
   /**
@@ -109,8 +94,8 @@ export class EventBus {
     );
   }
 
-  isRef(r: Ref) {
-    return this.ref?.url === r.url && this.ref.origin === r.origin;
+  isRef(event: BusEvent, r: Ref) {
+    return event.ref?.url === r.url && event.ref.origin === r.origin;
   }
 
   clearProgress(steps = 0) {

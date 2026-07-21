@@ -1,7 +1,6 @@
 import { CdkDrag, CdkDragDrop, CdkDropList, CdkDropListGroup } from '@angular/cdk/drag-drop';
 import {
   Component,
-  effect,
   ElementRef,
   EventEmitter,
   HostBinding,
@@ -14,6 +13,7 @@ import {
   SimpleChanges,
   ChangeDetectionStrategy
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Chess, Square } from 'chess.js';
 import { defer, delay, flatten, without } from 'lodash-es';
 import { catchError, Observable, of, Subscription, throwError } from 'rxjs';
@@ -79,8 +79,8 @@ export class ChessComponent implements OnInit, OnChanges, OnDestroy {
     private store: Store,
     private el: ElementRef<HTMLDivElement>,
   ) {
-    effect(() => {
-      if (this.store.eventBus.event === 'flip' && this.store.eventBus.ref?.url === this.ref?.url) {
+    this.store.eventBus.events.pipe(takeUntilDestroyed()).subscribe(event => {
+      if (event.event === 'flip' && event.ref?.url === this.ref?.url) {
         this.flip = true;
         delay(() => {
           this.flip = false;

@@ -1,5 +1,6 @@
 import { AsyncPipe } from '@angular/common';
-import { Component, effect, HostListener, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, HostListener, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import DOMPurify from 'dompurify';
 import { catchError, finalize, of, Subscription } from 'rxjs';
@@ -96,9 +97,9 @@ export class UserClipboardComponent implements OnInit, OnDestroy {
     private stomp: StompService,
     private router: Router,
   ) {
-    effect(() => {
-      if (this.store.eventBus.event === 'clip' && this.store.eventBus.ref?.url) {
-        this.addItem({ ref: this.store.eventBus.ref });
+    this.store.eventBus.events.pipe(takeUntilDestroyed()).subscribe(event => {
+      if (event.event === 'clip' && event.ref?.url) {
+        this.addItem({ ref: event.ref });
       }
     });
   }

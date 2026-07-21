@@ -5,7 +5,6 @@ import {
   AfterViewInit,
   Component,
   ElementRef,
-  effect,
   EventEmitter,
   forwardRef,
   HostBinding,
@@ -178,8 +177,8 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
     this.router.events.pipe(
       filter(event => event instanceof NavigationEnd)
     ).subscribe(() => this.toggleFullscreen(false));
-    effect(() => {
-      this.loadingEvents[this.store.eventBus.event] = false;
+    this.store.eventBus.events.pipe(takeUntil(this.destroy$)).subscribe(event => {
+      this.loadingEvents[event.event] = false;
     });
   }
 

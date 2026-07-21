@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { effect, Injectable } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { delay } from 'lodash-es';
 import { catchError, concat, first, map, Observable, of } from 'rxjs';
 import { tap } from 'rxjs/operators';
@@ -26,9 +26,9 @@ export class RefService {
     private store: Store,
     private login: LoginService,
   ) {
-    effect(() => {
-      if (this.store.eventBus.event === 'reload') {
-        this.store.eventBus.catchError$(this.get(this.store.eventBus.ref!.url, this.store.eventBus.ref!.origin!))
+    this.store.eventBus.events.subscribe(event => {
+      if (event.event === 'reload') {
+        this.store.eventBus.catchError$(this.get(event.ref!.url, event.ref!.origin!))
           .subscribe(ref => this.store.eventBus.refresh(ref));
       }
     });

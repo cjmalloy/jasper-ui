@@ -2,7 +2,6 @@ import { CdkDrag, CdkDragDrop, CdkDropList, CdkDropListGroup } from '@angular/cd
 import {
   AfterViewInit,
   Component,
-  effect,
   ElementRef,
   EventEmitter,
   HostBinding,
@@ -15,6 +14,7 @@ import {
   SimpleChanges,
   ChangeDetectionStrategy
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { cloneDeep, defer, delay, filter, range, uniq } from 'lodash-es';
 import { catchError, Observable, of, Subscription } from 'rxjs';
 import { Ref } from '../../model/ref';
@@ -577,8 +577,8 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
     private actions: ActionService,
     private el: ElementRef<HTMLDivElement>,
   ) {
-    effect(() => {
-      if (this.store.eventBus.event === 'flip' && this.store.eventBus.ref?.url === this.ref?.url) {
+    this.store.eventBus.events.pipe(takeUntilDestroyed()).subscribe(event => {
+      if (event.event === 'flip' && event.ref?.url === this.ref?.url) {
         this.red = !this.red;
         defer(() => this.store.eventBus.fire('flip-done'));
       }

@@ -5,31 +5,46 @@ import { EventBus } from './bus';
 describe('EventBus', () => {
   const ref = { url: 'https://example.com', origin: '' } as Ref;
 
-  it('publishes and resets events', () => {
+  it('publishes events synchronously', () => {
     const bus = new EventBus();
+    const listener = vi.fn();
+    bus.events.subscribe(listener);
 
     bus.fire('test', ref);
 
-    expect(bus.event).toBe('test');
-    expect(bus.ref).toBe(ref);
-    expect(bus.repost).toBeUndefined();
-
-    bus.reset();
-
-    expect(bus.event).toBe('');
-    expect(bus.ref).toBeUndefined();
+    expect(listener).toHaveBeenCalledWith({
+      event: 'test',
+      ref,
+      repost: undefined,
+      errors: [],
+    });
   });
 
-  it('tracks errors without mutating the provided array', () => {
+  it('does not replay events to new subscribers', () => {
+    const bus = new EventBus();
+    const listener = vi.fn();
+
+    bus.fire('test', ref);
+    bus.events.subscribe(listener);
+
+    expect(listener).not.toHaveBeenCalled();
+  });
+
+  it('publishes errors without mutating the provided array', () => {
     const bus = new EventBus();
     const errors = ['Failed'];
+    let event;
+    bus.events.subscribe(value => event = value);
 
     bus.fireError(errors, ref);
     errors.push('Changed');
 
-    expect(bus.event).toBe('error');
-    expect(bus.errors).toEqual(['Failed']);
-    expect(bus.ref).toBe(ref);
+    expect(event).toEqual({
+      event: 'error',
+      ref,
+      repost: undefined,
+      errors: ['Failed'],
+    });
   });
 
   it('tracks progress with immutable signal updates', () => {

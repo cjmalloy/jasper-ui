@@ -4,7 +4,6 @@ import {
   AfterViewInit,
   ChangeDetectorRef,
   Component,
-  effect,
   ElementRef,
   EventEmitter,
   forwardRef,
@@ -274,15 +273,15 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
         cd.detectChanges();
       });
     }, 400, { leading: true, trailing: true }));
-    effect(() => {
-      if (this.store.eventBus.event === 'refresh') {
+    this.store.eventBus.events.pipe(takeUntil(this.destroy$)).subscribe(event => {
+      if (event.event === 'refresh') {
         if (this.editing || this.viewSource) {
           // TODO: show somewhere
           console.warn('Ignoring Ref edit.');
           return;
         }
-        if (this.ref?.url && this.store.eventBus.isRef(this.ref)) {
-          this.ref = this.store.eventBus.ref!;
+        if (this.ref?.url && this.store.eventBus.isRef(event, this.ref)) {
+          this.ref = event.ref!;
           this.init();
           if (this.refreshTap) {
             this.refreshTap();
@@ -290,7 +289,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
           }
         }
       }
-      if (this.ref?.upload && this.store.eventBus.event === 'refresh:uploads') {
+      if (this.ref?.upload && event.event === 'refresh:uploads') {
         if (this.editing || this.viewSource) {
           // TODO: show somewhere
           console.warn('Ignoring Ref edit.');
@@ -298,20 +297,20 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
         }
         this.init();
       }
-      if (this.store.eventBus.event === 'error') {
-        if (this.ref?.url && this.store.eventBus.isRef(this.ref)) {
-          this.serverError = this.store.eventBus.errors;
+      if (event.event === 'error') {
+        if (this.ref?.url && this.store.eventBus.isRef(event, this.ref)) {
+          this.serverError = event.errors;
         }
       }
-      if (this.store.eventBus.event === 'toggle') {
-        if (this.ref?.url && this.store.eventBus.isRef(this.ref)) {
+      if (event.event === 'toggle') {
+        if (this.ref?.url && this.store.eventBus.isRef(event, this.ref)) {
           this.expanded = !this.expanded;
         }
       }
-      if (this.store.eventBus.event === 'toggle-all-open') {
+      if (event.event === 'toggle-all-open') {
         this.expanded = true;
       }
-      if (this.store.eventBus.event === 'toggle-all-closed') {
+      if (event.event === 'toggle-all-closed') {
         this.expanded = false;
       }
     });

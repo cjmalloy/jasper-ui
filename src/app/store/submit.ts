@@ -1,5 +1,4 @@
 import { flatten, isArray, without } from 'lodash-es';
-import { effect } from '@angular/core';
 import { action, autorun, makeAutoObservable, observable } from 'mobx';
 import { RouterStore } from 'mobx-angular';
 import { Ext } from '../model/ext';
@@ -35,10 +34,10 @@ export class SubmitStore {
       setExt: action,
     });
 
-    effect(() => {
-      if (this.eventBus.event === 'refresh') {
-        if (this.eventBus.ref) {
-          this.setRef(this.eventBus.ref)
+    this.eventBus.events.subscribe(event => {
+      if (event.event === 'refresh') {
+        if (event.ref) {
+          this.setRef(event.ref)
         }
       }
     });
