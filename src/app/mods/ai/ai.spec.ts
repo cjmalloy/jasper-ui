@@ -180,7 +180,7 @@ describe('aiQueryPlugin', () => {
                     comment: '![Generated](ai:part1)',
                     sources: ['ai:part1'],
                     tags: ['plugin/image'],
-                    plugins: { 'plugin/image': { url: 'ai:part1', width: 512 } },
+                    plugins: { 'plugin/image': { width: 512 } },
                   }, {
                     url: 'add:pdf',
                     tags: ['plugin/image'],

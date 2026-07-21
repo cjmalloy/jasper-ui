@@ -916,6 +916,11 @@ export const aiQueryPlugin: Plugin = {
         delete r.metadata;
         for (const media of mediaTypes) {
           const oldMediaUrl = r.plugins?.[media.plugin]?.url;
+          if (oldMediaUrl === 'ai:part') {
+            delete r.plugins[media.plugin].url;
+            attachLog(r, 'AI response referenced unavailable media asset ' + oldMediaUrl);
+            continue;
+          }
           const mediaPart = oldMediaUrl?.match(/^ai:part(\\d+)$/);
           const mediaFile = mediaPart ? files?.[Number(mediaPart[1]) - 1] : undefined;
           if (!mediaFile) continue;
@@ -941,6 +946,9 @@ export const aiQueryPlugin: Plugin = {
             : file.type.startsWith('video/') ? 'plugin/video'
             : file.type === 'application/pdf' ? 'plugin/pdf'
             : 'plugin/file';
+          if (i === 0 && (hasTag(plugin, completionRef) || completionRef.plugins?.[plugin])) {
+            response.plugins[plugin] = {...completionRef.plugins?.[plugin], url: cache.url};
+          }
           if (!hasTag('_plugin/cache', generatedRef)) {
             generatedRef.tags.push('_plugin/cache');
           }
