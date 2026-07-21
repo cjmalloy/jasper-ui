@@ -18,8 +18,11 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { cloneDeep, defer, delay, filter, range, uniq } from 'lodash-es';
 import { catchError, Observable, of, Subscription } from 'rxjs';
 import { Ref } from '../../model/ref';
+import { seed } from '../../mods/root';
 import { ActionService } from '../../service/action.service';
+import { TaggingService } from '../../service/api/tagging.service';
 import { Store } from '../../store/store';
+import { rng } from '../../util/rng';
 import { hasTag } from '../../util/tag';
 
 export type Piece = 'r' | 'b';
@@ -570,11 +573,20 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   private reset$!: (value: string[]) => Observable<string>;
   private seeking = false;
   private animationHandler = 0;
+  private cursor?: string;
+  private remoteCursor?: string;
+  private seed?: string;
+  private remoteSeed?: string;
+  private lastRoll?: string;
+  private lastRemoteRoll?: string;
+  private incomingRemote = false;
+  private localPlay = false;
   errored = false;
 
   constructor(
     private store: Store,
     private actions: ActionService,
+    private tags: TaggingService,
     private el: ElementRef<HTMLDivElement>,
   ) {
     this.store.eventBus.events.pipe(takeUntilDestroyed()).subscribe(event => {
@@ -593,8 +605,18 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
   init() {
     this.el.nativeElement.style.setProperty('--red-name', '"🔴️ ' + (this.bgConf?.redName || $localize`Red`) + '"');
     this.el.nativeElement.style.setProperty('--black-name', '"⚫️ ' + (this.bgConf?.blackName || $localize`Black`) + '"');
+    if (this.local) {
+      this.cursor = this.ref?.modifiedString;
+      this.seed = seed(this.ref);
+    } else {
+      this.remoteCursor = this.ref?.modifiedString;
+      this.remoteSeed = seed(this.ref);
+    }
+    if (this.ref && this.rngOn && !hasTag('plugin/rng', this.ref)) {
+      this.tags.create('plugin/rng', this.ref.url, this.store.account.origin).subscribe();
+    }
     if (!this.watch) {
-      const watch = this.actions.append(this.ref!);
+      const watch = this.actions.append(this.ref!, update => this.onRefUpdate(update));
       this.append$ = watch.append$;
       this.reset$ = watch.reset$;
       this.watch = watch.updates$.pipe(
@@ -606,6 +628,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
           return of();
         }),
       ).subscribe(update => {
+        if (!this.validateRoll(update)) return;
         const state = getAnimation(this.lastState, update);
         if (state) {
           this.queueAnimation(state);
@@ -658,6 +681,36 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
 
   get local() {
     return !this.ref?.created || this.ref.upload || this.ref?.origin === this.store.account.origin;
+  }
+
+  get rngOn() {
+    return hasTag('plugin/backgammon/rng.dice', this.ref);
+  }
+
+  private onRefUpdate(ref: Ref) {
+    this.incomingRemote = ref.origin !== this.store.account.origin;
+    if (this.incomingRemote) {
+      this.remoteCursor = ref.modifiedString;
+      this.remoteSeed = seed(ref);
+    } else {
+      this.cursor = ref.modifiedString;
+      this.seed = seed(ref);
+    }
+  }
+
+  private validateRoll(update: string) {
+    if (!this.rngOn || !this.incomingRemote || !update.includes('-')) return true;
+    if (!this.remoteSeed && !window.confirm($localize`Dice are not random! Allow?`)) return false;
+    if (this.remoteSeed === this.lastRemoteRoll && !window.confirm($localize`They rolled again! Allow?`)) return false;
+    this.lastRemoteRoll = this.remoteSeed;
+    if (!this.remoteSeed) return true;
+    const parts = update.split(/[\s-]+/g);
+    const actual = [parseInt(parts[1]), parseInt(parts[2])];
+    const random = rng(this.remoteSeed);
+    if (!actual[1]) random.cycle(3);
+    const expected = [random.range(1, 6), actual[1] ? random.range(1, 6) : 0];
+    return actual[0] === expected[0] && actual[1] === expected[1] ||
+      window.confirm($localize`Dice were ${actual[0]}-${actual[1]} but should be ${expected[0]}-${expected[1]}! Allow?`);
   }
 
   @HostListener('window:resize')
@@ -944,7 +997,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
       || this.state.winner === 'b'  && this.redPips === 15 && (this.redBar.length || isInBlackHome(this.state));
   }
 
-  roll(p: Piece) {
+  roll(p: Piece, retry = 3): any {
     if (this.replayMode) return; // Don't allow rolling in replay mode
     let state = this.getLastState();
     if (state.winner) throw $localize`Game Over`;
@@ -952,9 +1005,23 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
     if (!isFirstRoll(state) && state.moves.length) throw $localize`Must move`;
     const ds = p === 'r' ? state.redDice : state.blackDice;
     if (!state.turn && ds[0]) throw $localize`Not your turn`;
+    const needsSeed = !this.seed || !!this.remoteCursor && (!this.cursor || this.cursor < this.remoteCursor);
+    if (this.rngOn && !this.localPlay && needsSeed) {
+      if (retry === 3) {
+        return this.reset$(state.board).subscribe(() => defer(() => this.roll(p, 2)));
+      }
+      if (retry > 0) return delay(() => this.roll(p, retry - 1), 1000);
+      if (!window.confirm($localize`Still waiting for seed... switch to local play?`)) return;
+      this.localPlay = true;
+    }
+    if (this.rngOn && !this.localPlay && this.seed === this.lastRoll &&
+      !window.confirm($localize`Not your turn. Really roll?`)) return;
     this.rolling = p;
     delay(() => this.rolling = undefined, 750);
-    state = applyRoll(this.lastState, p, this.r(), state.turn ? this.r() : 0);
+    this.lastRoll = this.seed;
+    const random = rng(this.seed || Math.random());
+    if (!state.turn) random.cycle(3);
+    state = applyRoll(this.lastState, p, random.range(1, 6), state.turn ? random.range(1, 6) : 0);
     if (this.errored) {
       this.errored = false;
       this.reset$(this.state.board).subscribe();
@@ -962,11 +1029,6 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
       this.append$(state.board[state.board.length - 1]).subscribe();
     }
     this.lastState = state;
-  }
-
-  r() {
-    // TODO: Hash cursor
-    return Math.floor(Math.random() * 6) + 1;
   }
 
   queueAnimation(state: AnimationState) {

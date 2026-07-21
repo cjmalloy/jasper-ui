@@ -216,13 +216,14 @@ export class ActionService {
     return inner;
   }
 
-  append(ref: Ref) {
+  append(ref: Ref, onUpdate?: (ref: Ref) => void) {
     let cursor = ref.origin === this.store.account.origin ? ref.modifiedString! : '';
     let comment = ref.comment || '';
     const inner = {
       updates$: merge(...this.store.origins.list.map(origin => this.stomp.watchRef(ref.url, origin).pipe(
         tap(u => {
           if (u.origin === this.store.account.origin) cursor = u.modifiedString!;
+          onUpdate?.(u);
         }),
         switchMap(u => {
           if (comment.startsWith(u?.comment || '')) return of()
