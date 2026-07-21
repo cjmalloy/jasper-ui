@@ -185,7 +185,7 @@ export class BulkComponent implements AfterViewInit, OnChanges, OnDestroy {
   }
 
   get empty() {
-    return !this.queryStore.page?.content?.length;
+    return !(this.type === 'ref' ? this.query.bulkSelectedContent : this.queryStore.page?.content)?.length;
   }
 
   get name() {

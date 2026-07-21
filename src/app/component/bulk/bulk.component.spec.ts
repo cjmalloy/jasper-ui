@@ -57,4 +57,13 @@ describe('BulkComponent', () => {
 
     expect(urls).toEqual(['checked']);
   });
+
+  it('is empty when all refs are unchecked', () => {
+    const ref = { url: 'unchecked', origin: 'origin' } as Ref;
+    component.query.page = Page.of([ref]);
+    component.query.setBulkToolsOpen(true);
+    component.query.setBulkSelected(ref, false);
+
+    expect(component.empty).toBe(true);
+  });
 });
