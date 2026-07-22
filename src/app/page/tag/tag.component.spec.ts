@@ -23,10 +23,21 @@ describe('TagPage', () => {
 
     fixture = TestBed.createComponent(TagPage);
     component = fixture.componentInstance;
-    fixture.detectChanges();
   });
 
   it('should create', () => {
+    fixture.detectChanges();
+
     expect(component).toBeTruthy();
+  });
+
+  it('should include internal refs for an origin-qualified plugin query', () => {
+    vi.spyOn(component.store.view, 'tag', 'get').mockReturnValue('plugin/test@remote');
+    const getPlugins = vi.spyOn(component.admin, 'getPlugins').mockReturnValue([{} as any]);
+
+    fixture.detectChanges();
+
+    expect(getPlugins).toHaveBeenCalledWith(['plugin/test']);
+    expect(component.query.args?.query).not.toContain('!internal');
   });
 });
