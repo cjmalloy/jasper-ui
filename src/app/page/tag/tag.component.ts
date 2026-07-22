@@ -16,7 +16,7 @@ import { ModService } from '../../service/mod.service';
 import { QueryStore } from '../../store/query';
 import { Store } from '../../store/store';
 import { getArgs, UrlFilter } from '../../util/query';
-import { hasPrefix } from '../../util/tag';
+import { hasPrefix, localTag } from '../../util/tag';
 
 @Component({
   selector: 'app-tag-page',
@@ -89,7 +89,7 @@ export class TagPage implements OnInit, OnDestroy, HasChanges {
       if (!this.store.view.filter.length && this.store.view.viewExtFilter?.length) {
         this.bookmarks.filters = this.store.view.viewExtFilter;
       }
-      const hideInternal = !this.admin.getPlugins(this.store.view.queryTags).length;
+      const hideInternal = !this.admin.getPlugins(this.store.view.queryTags.map(localTag)).length;
       const args = getArgs(
         this.store.view.tag,
         this.store.view.sort,
