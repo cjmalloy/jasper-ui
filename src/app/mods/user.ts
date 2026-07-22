@@ -226,8 +226,6 @@ export const userTemplate: Template = {
       queryStyle: { type: 'string' },
       liveSearch: { type: 'boolean' },
       email: { type: 'string' },
-      // Deprecated migration source for plugin/user/cursor settings Refs.
-      lastNotified: { type: 'string' },
       subscriptions: { elements: { type: 'string' } },
       bookmarks: { elements: { type: 'string' } },
       alarms: { elements: { type: 'string' } },
@@ -243,8 +241,6 @@ export interface UserConfig extends RootConfig {
   queryStyle?: string;
   liveSearch?: boolean;
   email?: string;
-  /** @deprecated Migrated to plugin/user/cursor settings Refs. */
-  lastNotified?: string;
   subscriptions?: string[];
   bookmarks?: string[];
   alarms?: string[];

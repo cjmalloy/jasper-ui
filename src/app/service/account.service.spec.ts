@@ -31,14 +31,14 @@ describe('AccountService', () => {
     expect(service).toBeTruthy();
   });
 
-  const setAccount = (lastNotified?: string) => {
+  const setAccount = () => {
     const store = (service as any).store;
     store.account.tag = '+user/dad';
     store.account.origin = '';
     store.account.ext = {
       tag: '+user/dad',
       origin: '',
-      config: { lastNotified },
+      config: {},
     };
   };
 
@@ -78,17 +78,6 @@ describe('AccountService', () => {
 
     expect(DateTime.fromISO(cursor) >= before).toBeTruthy();
     expect((service as any).store.account.notificationCursors.get('')).toEqual(cursor);
-  });
-
-  it('migrates lastNotified to a missing local cursor once', () => {
-    const migrated = '2025-01-02T03:04:05.000Z';
-    setAccount(migrated);
-    service.loadNotificationCursors$().subscribe();
-    expectCursorRequest(migrated);
-
-    service.loadNotificationCursors$().subscribe(streams =>
-      expect(streams).toHaveLength(1));
-    expect((service as any).store.account.notificationCursors.get('')).toEqual(migrated);
   });
 
   it('creates one stream per origin, not per alias', () => {

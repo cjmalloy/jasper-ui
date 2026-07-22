@@ -370,10 +370,7 @@ export class AccountService {
             runInAction(() => this.store.account.notificationCursors.set(stream.origin, existing));
             return of(undefined);
           }
-          const initial = stream.origin
-            ? DateTime.now().toISO()!
-            : this.store.account.config.lastNotified || DateTime.now().toISO()!;
-          return this.writeNotificationCursor$(stream, initial);
+          return this.writeNotificationCursor$(stream, DateTime.now().toISO()!);
         }),
       );
     })).pipe(
