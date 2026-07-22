@@ -1,0 +1,42 @@
+import * as bencode from 'bencode-js';
+import { Buffer } from 'buffer';
+import { sha1 } from 'js-sha1';
+
+export function hashTorrentInfo(info: unknown): string {
+  const encoded = bencode.encode(info) as unknown as string;
+  const bytes = Uint8Array.from(encoded, character => character.charCodeAt(0));
+  return sha1(bytes).toUpperCase();
+}
+
+export function decodeTorrentFile(file: File): Promise<{ hash: string, magnetUrl: string }> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const arrayBuffer = event.target?.result as ArrayBuffer;
+        const buffer = Buffer.from(arrayBuffer);
+        const decoded = bencode.decode(buffer);
+
+        // Extract the info hash
+        const info = decoded.info;
+        if (info?.['meta version'] === 2) {
+          throw new Error('BitTorrent v2 torrents are not supported');
+        }
+        const hash = hashTorrentInfo(info);
+
+        // Create magnet URL
+        let magnetUrl = `magnet:?xt=urn:btih:${hash}`;
+        if (decoded.announce) {
+          const tracker = encodeURIComponent(decoded.announce.toString('utf8'));
+          magnetUrl += `&tr=${tracker}`;
+        }
+
+        resolve({ hash, magnetUrl });
+      } catch (error) {
+        reject(error);
+      }
+    };
+    reader.onerror = (error) => reject(error);
+    reader.readAsArrayBuffer(file);
+  });
+}
