@@ -23,7 +23,7 @@ import { clipboardMod } from '../mods/clipboard';
 import { commentMod } from '../mods/comment';
 import { deleteMod, tagDeleteNotice } from '../mods/delete';
 import { draftMod } from '../mods/draft';
-import { htmlMod, latexMod } from '../mods/editor';
+import { htmlMod, latexMod, monacoMod } from '../mods/editor';
 import { experimentsMod } from '../mods/experiments';
 import { backgammonMod } from '../mods/games/backgammon';
 import { chessMod } from '../mods/games/chess';
@@ -183,6 +183,7 @@ export class AdminService {
     archiveMod,
     latexMod,
     codeMod,
+    monacoMod,
     htmlMod,
     personMod,
     repostMod,

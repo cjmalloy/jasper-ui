@@ -32,6 +32,7 @@ import { MdComponent } from '../../component/md/md.component';
 import { AutofocusDirective } from '../../directive/autofocus.directive';
 import { FillWidthDirective } from '../../directive/fill-width.directive';
 import { LimitWidthDirective } from '../../directive/limit-width.directive';
+import { CodeComponent } from '../code/code.component';
 import { Ref } from '../../model/ref';
 import { EditorButton, sortOrder } from '../../model/tag';
 import { mimeToCode } from '../../mods/media/code';
@@ -69,6 +70,7 @@ export interface EditorUpload {
     FillWidthDirective,
     AutofocusDirective,
     LimitWidthDirective,
+    CodeComponent,
   ],
 })
 export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
@@ -90,7 +92,9 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   @ViewChild('helpButton')
   helpButton?: ElementRef<HTMLButtonElement>;
   @ViewChild('editor')
-  editor?: ElementRef<HTMLTextAreaElement>;
+  textAreaEditor?: ElementRef<HTMLTextAreaElement>;
+  @ViewChild('monacoEditor', { read: ElementRef })
+  monacoEditor?: ElementRef<HTMLElement>;
   @ViewChild('md')
   md?: MdComponent;
   @ViewChild('hiddenMeasure')
@@ -234,6 +238,10 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
     this.el.nativeElement.style.setProperty('--viewport-height', this.store.viewportHeight + 'px');
   }
 
+  get editor(): ElementRef<HTMLElement> | undefined {
+    return this.textAreaEditor || this.monacoEditor;
+  }
+
   @Input()
   set scraping(value: boolean) {
     this.loadingEvents['scrape-done'] = value;
@@ -249,8 +257,8 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   onSelect(event?: MouseEvent) {
     if (event && !event.button) return;
     defer(() => {
-      this.selectionStart = this.editor?.nativeElement.selectionStart || 0;
-      this.selectionEnd = this.editor?.nativeElement.selectionEnd || 0;
+      this.selectionStart = this.textAreaEditor?.nativeElement.selectionStart || 0;
+      this.selectionEnd = this.textAreaEditor?.nativeElement.selectionEnd || 0;
       if (this.selectionEnd > this.selectionStart) {
         this.onSelectEditor();
       }
@@ -275,7 +283,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   }
 
   onSelectPreview() {
-    if (!this.preview || !this.fullscreen || !this.hiddenMeasure || !this.editor) return;
+    if (!this.preview || !this.fullscreen || !this.hiddenMeasure || !this.textAreaEditor) return;
     const sel = window.getSelection();
     if (!sel || sel.isCollapsed) return;
     if (!this.md?.el.nativeElement?.contains(sel.anchorNode)) return;
@@ -285,9 +293,10 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
     const sourceMap = anchorEl!.closest('[aria-posinset]');
     if (!sourceMap) return;
     const start = +sourceMap.getAttribute('aria-posinset')!;
-    this.hiddenMeasure.nativeElement.style.width = this.editor.nativeElement.clientWidth + 'px';
+    this.hiddenMeasure.nativeElement.style.width = this.textAreaEditor.nativeElement.clientWidth + 'px';
     this.hiddenMeasure.nativeElement.value = this.currentText.slice(0, start);
-    this.editor.nativeElement.scrollTop = this.hiddenMeasure.nativeElement.scrollHeight - this.editor.nativeElement.clientHeight / 2;
+    this.textAreaEditor.nativeElement.scrollTop =
+      this.hiddenMeasure.nativeElement.scrollHeight - this.textAreaEditor.nativeElement.clientHeight / 2;
   }
 
   @HostBinding('class.add-button')
@@ -526,7 +535,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
       this.overlayRef.keydownEvents().subscribe(event => event.key === 'Escape' && this.toggleFullscreen(false));
       this.editor.nativeElement.scrollIntoView({ block: 'end' });
       this.editor.nativeElement.focus();
-      this.editor.nativeElement.setSelectionRange(this.selectionStart, this.selectionEnd);
+      this.textAreaEditor?.nativeElement.setSelectionRange(this.selectionStart, this.selectionEnd);
       this.editor.nativeElement.scrollTop = this.scrollTopFullscreen;
     } else {
       document.documentElement.style.overflowY = 'scroll';
@@ -542,7 +551,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
       this.editor.nativeElement.scrollIntoView({ block: 'center', inline: 'center' });
       if (this.focused) {
         this.editor.nativeElement.focus();
-        this.editor.nativeElement.setSelectionRange(this.selectionStart, this.selectionEnd);
+        this.textAreaEditor?.nativeElement.setSelectionRange(this.selectionStart, this.selectionEnd);
         this.editor.nativeElement.scrollTop = this.scrollTop;
       }
     }
@@ -589,7 +598,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
         baseUri: this.url,
         inline: true,
       });
-      const md = this.europa.convert(this.editor!.nativeElement.value);
+      const md = this.europa.convert(this.control.value);
       this.syncText(md);
     } else if (event === 'scrape') {
       this.scrape.emit();

@@ -1,5 +1,5 @@
-import { Component, Input, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
-import { ReactiveFormsModule, UntypedFormGroup } from '@angular/forms';
+import { ChangeDetectionStrategy, Component, Input, OnDestroy } from '@angular/core';
+import { FormControl, ReactiveFormsModule, UntypedFormGroup } from '@angular/forms';
 import { autorun, IReactionDisposer } from 'mobx';
 import { MonacoEditorModule } from 'ngx-monaco-editor';
 import { ResizeHandleDirective } from '../../directive/resize-handle.directive';
@@ -17,6 +17,8 @@ export class CodeComponent implements OnDestroy {
 
   private disposers: IReactionDisposer[] = [];
 
+  @Input()
+  formControl?: FormControl;
   @Input()
   group!: UntypedFormGroup;
   @Input()
