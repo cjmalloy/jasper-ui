@@ -36,6 +36,13 @@ export const originPlugin: Plugin = {
       props: {
         label: $localize`Remote:`
       }
+    }, {
+      key: 'aliases',
+      type: 'tags',
+      props: {
+        label: $localize`Account Aliases:`,
+        addText: $localize`+ Add another account alias`,
+      },
     }],
     advancedForm: [{
       key: 'proxy',
@@ -50,6 +57,7 @@ export const originPlugin: Plugin = {
     optionalProperties: {
       local: { type: 'string' },
       remote: { type: 'string' },
+      aliases: { elements: { type: 'string' } },
       proxy: { type: 'string' },
     },
   },
