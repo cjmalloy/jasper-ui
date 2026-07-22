@@ -17,6 +17,7 @@ export class AccountStore {
   ext?: Ext = {} as Ext;
   defaultConfig: UserConfig = {};
   ignoreNotifications: number[] = [];
+  notificationCursors = new Map<string, string>();
 
   /**
    * Is admin.
@@ -196,6 +197,11 @@ export class AccountStore {
     if (!this.signedIn) return undefined;
     const alarms = this.alarmsQuery ? '|' + this.alarmsQuery : '';
     return `!${this.tag}:!plugin/delete:` + braces(this.inboxQuery) + alarms;
+  }
+
+  get notificationCursor() {
+    const cursors = Array.from(this.notificationCursors.values()).sort();
+    return cursors[0];
   }
 
   get alarmsQuery() {

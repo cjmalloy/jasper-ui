@@ -5,17 +5,29 @@ import { runInAction } from 'mobx';
 import { catchError, forkJoin, map, Observable, of, shareReplay, throwError } from 'rxjs';
 import { switchMap, tap } from 'rxjs/operators';
 import { Ext } from '../model/ext';
+import { Ref } from '../model/ref';
 import { User } from '../model/user';
+import { cursorSettingsUrl, getMailbox } from '../mods/mailbox';
 import { UserConfig } from '../mods/user';
 import { Store } from '../store/store';
-import { hasPrefix } from '../util/tag';
+import { escapePath } from '../util/json-patch';
+import { hasPrefix, localTag, tagOrigin } from '../util/tag';
 import { AdminService } from './admin.service';
 import { ExtService } from './api/ext.service';
 import { RefService } from './api/ref.service';
+import { TaggingService } from './api/tagging.service';
 import { UserService } from './api/user.service';
 import { ConfigService } from './config.service';
+import { OriginMapService } from './origin-map.service';
 
 export const CACHE_MS = 15 * 1000;
+const CURSOR_PLUGIN = 'plugin/user/cursor';
+
+export interface NotificationStream {
+  origin: string;
+  query: string;
+  settingsUrl: string;
+}
 
 @Injectable({
   providedIn: 'root',
@@ -24,6 +36,7 @@ export class AccountService {
 
   private _user$?: Observable<User | undefined>;
   private _userExt$?: Observable<Ext>;
+  private cursorRefs = new Map<string, Ref | undefined>();
 
   constructor(
     private store: Store,
@@ -32,6 +45,8 @@ export class AccountService {
     private users: UserService,
     private exts: ExtService,
     private refs: RefService,
+    private tags: TaggingService,
+    private origins: OriginMapService,
   ) { }
 
   get whoAmI$() {
@@ -218,45 +233,50 @@ export class AccountService {
   checkNotifications() {
     if (!this.store.account.signedIn) throw 'Not signed in';
     if (!this.admin.getTemplate('user')) throw 'User template not installed';
-    this.userExt$.pipe(
-      switchMap(() => this.refs.count({
-        query: this.store.account.notificationsQuery,
-        modifiedAfter: this.store.account.config.lastNotified || DateTime.now().minus({ year: 1 }),
-      })),
-    ).subscribe(count => runInAction(() => this.store.account.notifications = count));
-    this.checkAlarms();
+    this.loadNotificationCursors$().pipe(
+      switchMap(streams => forkJoin(streams.map(stream => this.refs.count({
+        query: stream.query,
+        modifiedAfter: this.store.account.notificationCursors.get(stream.origin),
+      })))),
+    ).subscribe(counts => {
+      runInAction(() =>
+        this.store.account.notifications = counts.reduce((sum, count) => sum + count, 0));
+      this.checkAlarms();
+    });
   }
 
   clearNotificationsIfNone(readDate?: DateTime) {
-    if (!readDate || this.store.account.config.lastNotified && readDate < DateTime.fromISO(this.store.account.config.lastNotified)) return;
+    if (!readDate) return;
     if (!this.store.account.signedIn) return;
     if (!this.admin.getTemplate('user')) return;
-    this.userExt$.pipe(
-      switchMap(() => this.refs.count({
-        query: this.store.account.notificationsQuery,
-        modifiedAfter: this.store.account.config.lastNotified || DateTime.now().minus({year: 1}),
+    this.loadNotificationCursors$().pipe(
+      switchMap(streams => forkJoin(streams.map(stream => this.refs.count({
+        query: stream.query,
+        modifiedAfter: this.store.account.notificationCursors.get(stream.origin),
         modifiedBefore: readDate,
-      })),
-    ).subscribe(count => {
-      if (count === 0) {
-        this.clearNotifications(readDate);
-      } else {
+      }).pipe(map(count => ({ stream, count })))))),
+    ).subscribe(results => {
+      const empty = results.filter(result => result.count === 0).map(result => result.stream.origin);
+      if (empty.length) this.clearNotifications(readDate, empty);
+      if (results.some(result => result.count !== 0)) {
         runInAction(() => this.store.account.ignoreNotifications.push(readDate.valueOf()));
       }
     });
   }
 
-  clearNotifications(readDate?: DateTime) {
-    if (readDate) {
-      if (this.store.account.config.lastNotified && readDate < DateTime.fromISO(this.store.account.config.lastNotified)) return;
-    } else {
-      readDate = DateTime.now();
-    }
+  clearNotifications(readDate = DateTime.now(), origins?: string[]) {
     if (!this.store.account.signedIn) throw 'Not signed in';
     if (!this.admin.getTemplate('user')) throw 'User template not installed';
-    const lastNotified = readDate.plus({ millisecond: 1 }).toISO();
-    this.updateConfig$('lastNotified', lastNotified).subscribe(() => {
-      this.clearCache();
+    const cursor = readDate.plus({ millisecond: 1 }).toISO()!;
+    this.loadNotificationCursors$().pipe(
+      switchMap(streams => forkJoin(streams
+        .filter(stream => !origins || origins.includes(stream.origin))
+        .filter(stream => {
+          const current = this.store.account.notificationCursors.get(stream.origin);
+          return !current || cursor > current;
+        })
+        .map(stream => this.writeNotificationCursor$(stream, cursor)))),
+    ).subscribe(() => {
       this.checkNotifications();
     });
   }
@@ -265,12 +285,86 @@ export class AccountService {
     if (!this.store.account.signedIn) throw 'Not signed in';
     if (!this.admin.getTemplate('user')) throw 'User template not installed';
     if (!this.store.account.alarms.length) return;
-    this.userExt$.pipe(
-      switchMap(() => this.refs.count({
-        query: this.store.account.alarmsQuery,
-        modifiedAfter: this.store.account.config.lastNotified || DateTime.now().minus({ year: 1 }),
-      })),
-    ).subscribe(count => runInAction(() => this.store.account.alarmCount = count));
+    this.loadNotificationCursors$().pipe(
+      switchMap(streams => forkJoin(streams.map(stream => this.refs.count({
+        query: `${stream.origin || '@'}:(${this.store.account.alarmsQuery})`,
+        modifiedAfter: this.store.account.notificationCursors.get(stream.origin),
+      })))),
+    ).subscribe(counts => runInAction(() =>
+      this.store.account.alarmCount = counts.reduce((sum, count) => sum + count, 0)));
+  }
+
+  get notificationStreams(): NotificationStream[] {
+    const mailboxes = [
+      this.store.account.mailbox,
+      ...(this.store.account.modmail || []),
+      ...(this.store.account.outboxes || []),
+      ...this.origins.aliasesFor(this.store.account.tag).map(alias => {
+        const origin = tagOrigin(alias);
+        return getMailbox(alias, origin) + origin;
+      }),
+    ].filter(mailbox => !!mailbox) as string[];
+    const grouped = new Map<string, string[]>();
+    for (const mailbox of uniq(mailboxes)) {
+      const origin = tagOrigin(mailbox);
+      grouped.set(origin, [...(grouped.get(origin) || []), mailbox]);
+    }
+    return Array.from(grouped).map(([origin, boxes]) => {
+      const selectors = origin
+        ? this.origins.aliasesFor(this.store.account.tag, origin)
+        : [this.store.account.tag];
+      const excludeAuthors = selectors.map(selector => `!${selector}`).join(':');
+      const alarms = this.store.account.alarmsQuery ? `|${this.store.account.alarmsQuery}` : '';
+      return {
+        origin,
+        query: `${origin || '@'}:${excludeAuthors ? excludeAuthors + ':' : ''}!plugin/delete:(${boxes.join('|')}${alarms})`,
+        settingsUrl: cursorSettingsUrl(origin, this.store.account.origin),
+      };
+    });
+  }
+
+  loadNotificationCursors$(): Observable<NotificationStream[]> {
+    const streams = this.notificationStreams;
+    if (!streams.length) return of(streams);
+    if (streams.every(stream => this.store.account.notificationCursors.has(stream.origin))) return of(streams);
+    return forkJoin(streams.map(stream => {
+      if (this.store.account.notificationCursors.has(stream.origin)) return of(undefined);
+      return this.tags.getResponse(stream.settingsUrl).pipe(
+        catchError(() => of(undefined)),
+        switchMap(ref => {
+          this.cursorRefs.set(stream.origin, ref);
+          const existing = ref?.plugins?.[CURSOR_PLUGIN]?.cursor;
+          if (existing) {
+            runInAction(() => this.store.account.notificationCursors.set(stream.origin, existing));
+            return of(undefined);
+          }
+          const initial = stream.origin
+            ? DateTime.now().toISO()!
+            : this.store.account.config.lastNotified || DateTime.now().toISO()!;
+          return this.writeNotificationCursor$(stream, initial);
+        }),
+      );
+    })).pipe(map(() => streams));
+  }
+
+  private writeNotificationCursor$(stream: NotificationStream, cursor: string): Observable<unknown> {
+    const ref = this.cursorRefs.get(stream.origin);
+    let write$: Observable<unknown>;
+    if (!ref) {
+      write$ = this.tags.mergeResponse([CURSOR_PLUGIN], stream.settingsUrl, {
+        [CURSOR_PLUGIN]: { cursor },
+      });
+    } else {
+      const plugin = ref.plugins?.[CURSOR_PLUGIN];
+      const path = '/plugins/' + escapePath(CURSOR_PLUGIN);
+      write$ = this.tags.patchResponse([CURSOR_PLUGIN], stream.settingsUrl, [{
+        op: 'add',
+        path: plugin ? path + '/cursor' : path,
+        value: plugin ? cursor : { cursor },
+      }]);
+    }
+    return write$.pipe(tap(() => runInAction(() =>
+      this.store.account.notificationCursors.set(stream.origin, cursor))));
   }
 
   checkConsent(consent?: [string, string][]) {

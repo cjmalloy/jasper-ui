@@ -6,7 +6,6 @@ import { autorun, IReactionDisposer } from 'mobx';
 import { MobxAngularModule } from 'mobx-angular';
 import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
 import { RefPageArgs } from '../../../model/ref';
-import { newest } from '../../../mods/mailbox';
 import { AccountService } from '../../../service/account.service';
 import { ModService } from '../../../service/mod.service';
 import { QueryStore } from '../../../store/query';
@@ -23,7 +22,7 @@ import { Store } from '../../../store/store';
 export class InboxUnreadPage implements OnInit, OnDestroy {
 
   private disposers: IReactionDisposer[] = [];
-  private lastNotified?: DateTime;
+  private lastNotified = new Map<string, DateTime>();
 
   constructor(
     private mod: ModService,
@@ -45,13 +44,11 @@ export class InboxUnreadPage implements OnInit, OnDestroy {
           queryParamsHandling: 'merge',
           replaceUrl: true
         });
-        if (this.lastNotified) {
-          this.account.clearNotifications(this.lastNotified);
-        }
+        this.clearNotifications();
       }
       const args: RefPageArgs = {
         query: this.store.account.notificationsQuery,
-        modifiedAfter: this.store.account.config.lastNotified,
+        modifiedAfter: this.store.account.notificationCursor,
         sort: ['modified,ASC'],
         size: this.store.view.pageSize,
       };
@@ -59,7 +56,11 @@ export class InboxUnreadPage implements OnInit, OnDestroy {
     }));
     this.disposers.push(autorun(() => {
       if (this.query.page && this.query.page!.content.length) {
-        this.lastNotified = newest(this.query.page!.content)!.modified!;
+        for (const ref of this.query.page.content) {
+          const origin = ref.origin || '';
+          if (!ref.modified || this.lastNotified.get(origin) && ref.modified <= this.lastNotified.get(origin)!) continue;
+          this.lastNotified.set(origin, ref.modified);
+        }
       }
     }));
   }
@@ -68,9 +69,13 @@ export class InboxUnreadPage implements OnInit, OnDestroy {
     this.query.close();
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
-    if (this.lastNotified) {
-      this.account.clearNotifications(this.lastNotified);
-    }
+    this.clearNotifications();
   }
 
+  private clearNotifications() {
+    for (const [origin, cursor] of this.lastNotified) {
+      this.account.clearNotifications(cursor, [origin]);
+    }
+    this.lastNotified.clear();
+  }
 }
