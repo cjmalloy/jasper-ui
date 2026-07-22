@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import JSZip from 'jszip';
 import { clearMods, deleteRef, openSidebar } from './setup';
 
 test.describe.serial('Smoke Tests', () => {
@@ -41,6 +42,62 @@ test.describe.serial('Smoke Tests', () => {
     await page.locator('button', { hasText: 'Submit' }).click();
     await submitPromise;
     await expect(page.locator('.full-page.ref .link a')).toHaveText('Title');
+  });
+
+  test('excludes unchecked refs from bulk downloads', async ({ page }) => {
+    test.setTimeout(60_000);
+    const selectedUrl = 'https://jasperkm.info/bulk-selected';
+    const deleteSelectedRef = async () => {
+      await page.goto(`/ref/e/${encodeURIComponent(selectedUrl)}?debug=ADMIN`);
+      const deleteLink = page.locator('.full-page.ref .actions .fake-link', { hasText: 'delete' }).first();
+      if (!(await deleteLink.isVisible({ timeout: 10_000 }).catch(() => false))) return;
+      const deletePromise = page.waitForResponse(resp => (
+        resp.url().includes('/api/v1/ref') && resp.request().method() === 'DELETE' && resp.ok()
+      ));
+      await deleteLink.focus();
+      await deleteLink.press('Enter');
+      const confirmLink = page.locator('.full-page.ref .actions .fake-link', { hasText: 'yes' }).first();
+      await confirmLink.focus();
+      await confirmLink.press('Space');
+      await deletePromise;
+    };
+    await deleteSelectedRef();
+    try {
+      await page.goto('/?debug=ADMIN');
+      await openSidebar(page);
+      await page.locator('.sidebar .submit-button', { hasText: 'Submit' }).first().click();
+      await page.locator('#url').fill(selectedUrl);
+      await page.getByText('Next').click();
+      await page.locator('[name=title]').fill('Bulk selected');
+      const submitPromise = page.waitForResponse(resp => resp.url().includes('/api/v1/ref'));
+      await page.locator('button', { hasText: 'Submit' }).click();
+      await submitPromise;
+
+      await page.goto('/tag/@*?debug=ADMIN', { waitUntil: 'networkidle' });
+      await openSidebar(page);
+      await page.locator('.bulk summary').click();
+
+      const checkboxes = page.locator('.bulk-select');
+      const unchecked = page.getByRole('checkbox', { name: 'Select Title' });
+      await expect(checkboxes).toHaveCount(2);
+      await expect(checkboxes.first()).toBeChecked();
+      await expect(checkboxes.last()).toBeChecked();
+      await expect(unchecked).toBeChecked();
+      await unchecked.uncheck();
+
+      const downloadPromise = page.waitForEvent('download');
+      await page.locator('.bulk .fake-link', { hasText: 'download' }).click();
+      const download = await downloadPromise;
+      const stream = await download.createReadStream();
+      const chunks: Buffer[] = [];
+      for await (const chunk of stream) chunks.push(chunk);
+      const archive = await JSZip.loadAsync(Buffer.concat(chunks));
+      const refs = JSON.parse(await archive.file('ref.json')!.async('string'));
+      expect(refs).toContainEqual(expect.objectContaining({ url: selectedUrl }));
+      expect(refs).not.toContainEqual(expect.objectContaining({ url: 'https://jasperkm.info/' }));
+    } finally {
+      await deleteSelectedRef();
+    }
   });
 
   test('deletes a ref', async ({ page }) => {
