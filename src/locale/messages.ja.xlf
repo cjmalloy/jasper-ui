@@ -7102,6 +7102,22 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>My voted Refs</source>
         <target>自分が投票したRef</target>
       </trans-unit>
+      <trans-unit id="4107084600334559322" datatype="html">
+        <source>Account Aliases:</source>
+        <target>アカウントエイリアス：</target>
+      </trans-unit>
+      <trans-unit id="6826184964642290919" datatype="html">
+        <source>+ Add another account alias</source>
+        <target>+ アカウントエイリアスを追加</target>
+      </trans-unit>
+      <trans-unit id="6845948372805707808" datatype="html">
+        <source>Notification Cursor</source>
+        <target>通知カーソル</target>
+      </trans-unit>
+      <trans-unit id="5285549800187267122" datatype="html">
+        <source>Stores a notification cursor on a user settings Ref.</source>
+        <target>ユーザー設定Refに通知カーソルを保存します。</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

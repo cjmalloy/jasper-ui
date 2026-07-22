@@ -199,11 +199,6 @@ export class AccountStore {
     return `!${this.tag}:!plugin/delete:` + braces(this.inboxQuery) + alarms;
   }
 
-  get notificationCursor() {
-    const cursors = Array.from(this.notificationCursors.values()).sort();
-    return cursors[0];
-  }
-
   get alarmsQuery() {
     if (!this.signedIn) return undefined;
     if (!this.config.alarms?.length) return '';

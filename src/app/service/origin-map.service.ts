@@ -173,7 +173,7 @@ export class OriginMapService {
       result.push({ origin, local: localTag(local), remote: localTag(remote) });
     };
     for (const ref of this.origins) {
-      const aliases = uniq(config(ref)?.aliases || []);
+      const aliases: string[] = uniq(config(ref)?.aliases || []);
       const authors = userAuthors(ref);
       if (ref.origin === this.store.account.origin) {
         const origin = subOrigin(ref.origin, config(ref)?.local);

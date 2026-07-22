@@ -102,4 +102,67 @@ describe('OriginMapService', () => {
     });
   });
 
+  describe('account aliases', () => {
+    const aliasRef = (origin: string, local: string, author: string, aliases: string[], url = 'spec:remote'): Ref => ({
+      url,
+      origin,
+      tags: ['+plugin/origin/pull', author],
+      plugins: { '+plugin/origin': { local, remote: '', aliases } },
+    });
+
+    it('matches exact and descendant selectors while preserving suffixes', () => {
+      setOrigins([aliasRef('', '@city', '+user/dad', ['+user/chris'])]);
+      setLocal('');
+
+      expect(service.aliasesFor('+user/dad')).toEqual(['+user/chris@city']);
+      expect(service.aliasesFor('+user/dad/phone')).toEqual(['+user/chris/phone@city']);
+    });
+
+    it('only matches selectors on a slash boundary', () => {
+      setOrigins([aliasRef('', '@city', '+user/qa', ['+user/tester'])]);
+      setLocal('');
+
+      expect(service.aliasesFor('+user/quality')).toEqual([]);
+    });
+
+    it('supports multiple aliases and deduplicates relationships', () => {
+      setOrigins([
+        aliasRef('', '@city', '+user/dad', ['+user/chris', '+user/cj', '+user/chris']),
+        aliasRef('', '@city', '+user/dad', ['+user/chris']),
+      ]);
+      setLocal('');
+
+      expect(service.aliasesFor('+user/dad')).toEqual([
+        '+user/chris@city',
+        '+user/cj@city',
+      ]);
+    });
+
+    it('interprets a replicated relationship from the opposite side', () => {
+      setOrigins([
+        aliasRef('@home', '@city', '+user/dad', ['+user/chris'], 'spec:test'),
+      ]);
+      setApi('spec:test');
+      setLocal('');
+
+      expect(service.aliasesFor('+user/chris')).toEqual(['+user/dad@home']);
+    });
+
+    it('checks authors using hierarchical aliases', () => {
+      setOrigins([aliasRef('', '@city', '+user/dad', ['+user/chris'])]);
+      setLocal('');
+
+      expect(service.isCurrentAccountRef({
+        url: 'spec:post',
+        origin: '@city',
+        tags: ['+user/chris/phone'],
+      }, '+user/dad')).toBeTruthy();
+      expect(service.isCurrentAccountRef({
+        url: 'spec:post',
+        origin: '@city',
+        tags: ['+user/christopher'],
+      }, '+user/dad')).toBeFalsy();
+    });
+  });
+
 });

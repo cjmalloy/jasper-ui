@@ -2,9 +2,10 @@ import { Injectable } from '@angular/core';
 import { delay, isArray, uniq, without } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { runInAction } from 'mobx';
-import { catchError, forkJoin, map, Observable, of, shareReplay, throwError } from 'rxjs';
+import { catchError, finalize, forkJoin, map, Observable, of, shareReplay, throwError } from 'rxjs';
 import { switchMap, tap } from 'rxjs/operators';
 import { Ext } from '../model/ext';
+import { Page } from '../model/page';
 import { Ref } from '../model/ref';
 import { User } from '../model/user';
 import { cursorSettingsUrl, getMailbox } from '../mods/mailbox';
@@ -36,6 +37,8 @@ export class AccountService {
 
   private _user$?: Observable<User | undefined>;
   private _userExt$?: Observable<Ext>;
+  private _notificationCursors$?: Observable<NotificationStream[]>;
+  private cursorAccount = '';
   private cursorRefs = new Map<string, Ref | undefined>();
 
   constructor(
@@ -245,6 +248,28 @@ export class AccountService {
     });
   }
 
+  notificationPage$(size: number): Observable<Page<Ref>> {
+    return this.loadNotificationCursors$().pipe(
+      switchMap(streams => forkJoin(streams.map(stream => this.refs.page({
+        query: stream.query,
+        modifiedAfter: this.store.account.notificationCursors.get(stream.origin),
+        sort: ['modified,ASC'],
+        size,
+      })))),
+      map(pages => {
+        const content = pages
+          .flatMap(page => page.content)
+          .sort((a, b) => a.modified!.valueOf() - b.modified!.valueOf())
+          .slice(0, size);
+        const page = Page.of(content);
+        page.page.totalElements = pages.reduce((sum, result) => sum + result.page.totalElements, 0);
+        page.page.totalPages = Math.ceil(page.page.totalElements / size);
+        page.page.size = size;
+        return page;
+      }),
+    );
+  }
+
   clearNotificationsIfNone(readDate?: DateTime) {
     if (!readDate) return;
     if (!this.store.account.signedIn) return;
@@ -264,7 +289,7 @@ export class AccountService {
     });
   }
 
-  clearNotifications(readDate = DateTime.now(), origins?: string[]) {
+  clearNotifications(readDate: DateTime = DateTime.now(), origins?: string[]) {
     if (!this.store.account.signedIn) throw 'Not signed in';
     if (!this.admin.getTemplate('user')) throw 'User template not installed';
     const cursor = readDate.plus({ millisecond: 1 }).toISO()!;
@@ -273,7 +298,7 @@ export class AccountService {
         .filter(stream => !origins || origins.includes(stream.origin))
         .filter(stream => {
           const current = this.store.account.notificationCursors.get(stream.origin);
-          return !current || cursor > current;
+          return !current || readDate.plus({ millisecond: 1 }) > DateTime.fromISO(current);
         })
         .map(stream => this.writeNotificationCursor$(stream, cursor)))),
     ).subscribe(() => {
@@ -324,10 +349,17 @@ export class AccountService {
   }
 
   loadNotificationCursors$(): Observable<NotificationStream[]> {
+    const account = this.store.account.tagWithOrigin;
+    if (this.cursorAccount !== account) {
+      this.cursorAccount = account;
+      this.cursorRefs.clear();
+      runInAction(() => this.store.account.notificationCursors.clear());
+    }
     const streams = this.notificationStreams;
     if (!streams.length) return of(streams);
     if (streams.every(stream => this.store.account.notificationCursors.has(stream.origin))) return of(streams);
-    return forkJoin(streams.map(stream => {
+    if (this._notificationCursors$) return this._notificationCursors$;
+    this._notificationCursors$ = forkJoin(streams.map(stream => {
       if (this.store.account.notificationCursors.has(stream.origin)) return of(undefined);
       return this.tags.getResponse(stream.settingsUrl).pipe(
         catchError(() => of(undefined)),
@@ -344,7 +376,12 @@ export class AccountService {
           return this.writeNotificationCursor$(stream, initial);
         }),
       );
-    })).pipe(map(() => streams));
+    })).pipe(
+      map(() => streams),
+      finalize(() => this._notificationCursors$ = undefined),
+      shareReplay(1),
+    );
+    return this._notificationCursors$;
   }
 
   private writeNotificationCursor$(stream: NotificationStream, cursor: string): Observable<unknown> {
@@ -353,15 +390,29 @@ export class AccountService {
     if (!ref) {
       write$ = this.tags.mergeResponse([CURSOR_PLUGIN], stream.settingsUrl, {
         [CURSOR_PLUGIN]: { cursor },
-      });
+      }).pipe(
+        switchMap(() => this.tags.getResponse(stream.settingsUrl)),
+        tap(created => this.cursorRefs.set(stream.origin, created)),
+      );
     } else {
       const plugin = ref.plugins?.[CURSOR_PLUGIN];
       const path = '/plugins/' + escapePath(CURSOR_PLUGIN);
-      write$ = this.tags.patchResponse([CURSOR_PLUGIN], stream.settingsUrl, [{
+      const patch = [{
         op: 'add',
         path: plugin ? path + '/cursor' : path,
         value: plugin ? cursor : { cursor },
-      }]);
+      }] as const;
+      if (plugin && ref.modifiedString) {
+        write$ = this.refs.patch(ref.url, ref.origin || this.store.account.origin, ref.modifiedString, [...patch]).pipe(
+          tap(modified => this.cursorRefs.set(stream.origin, {
+            ...ref,
+            modified: DateTime.fromISO(modified),
+            modifiedString: modified,
+          })),
+        );
+      } else {
+        write$ = this.tags.patchResponse([CURSOR_PLUGIN], stream.settingsUrl, [...patch]);
+      }
     }
     return write$.pipe(tap(() => runInAction(() =>
       this.store.account.notificationCursors.set(stream.origin, cursor))));
