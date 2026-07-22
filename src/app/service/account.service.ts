@@ -22,7 +22,6 @@ import { ConfigService } from './config.service';
 import { OriginMapService } from './origin-map.service';
 
 export const CACHE_MS = 15 * 1000;
-const CURSOR_PLUGIN = 'plugin/user/cursor';
 
 export interface NotificationStream {
   origin: string;
@@ -365,7 +364,7 @@ export class AccountService {
         catchError(() => of(undefined)),
         switchMap(ref => {
           this.cursorRefs.set(stream.origin, ref);
-          const existing = ref?.plugins?.[CURSOR_PLUGIN]?.cursor;
+          const existing = ref?.plugins?.['plugin/user/cursor']?.cursor;
           if (existing) {
             runInAction(() => this.store.account.notificationCursors.set(stream.origin, existing));
             return of(undefined);
@@ -385,15 +384,15 @@ export class AccountService {
     const ref = this.cursorRefs.get(stream.origin);
     let write$: Observable<unknown>;
     if (!ref) {
-      write$ = this.tags.mergeResponse([CURSOR_PLUGIN], stream.settingsUrl, {
-        [CURSOR_PLUGIN]: { cursor },
+      write$ = this.tags.mergeResponse(['plugin/user/cursor'], stream.settingsUrl, {
+        'plugin/user/cursor': { cursor },
       }).pipe(
         switchMap(() => this.tags.getResponse(stream.settingsUrl)),
         tap(created => this.cursorRefs.set(stream.origin, created)),
       );
     } else {
-      const plugin = ref.plugins?.[CURSOR_PLUGIN];
-      const path = '/plugins/' + escapePath(CURSOR_PLUGIN);
+      const plugin = ref.plugins?.['plugin/user/cursor'];
+      const path = '/plugins/' + escapePath('plugin/user/cursor');
       const patch = [{
         op: 'add',
         path: plugin ? path + '/cursor' : path,
@@ -408,7 +407,7 @@ export class AccountService {
           })),
         );
       } else {
-        write$ = this.tags.patchResponse([CURSOR_PLUGIN], stream.settingsUrl, [...patch]);
+        write$ = this.tags.patchResponse(['plugin/user/cursor'], stream.settingsUrl, [...patch]);
       }
     }
     return write$.pipe(tap(() => runInAction(() =>
