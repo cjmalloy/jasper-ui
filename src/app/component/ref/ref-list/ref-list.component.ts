@@ -9,6 +9,7 @@ import { Ref } from '../../../model/ref';
 import { score } from '../../../mods/vote';
 import { AccountService } from '../../../service/account.service';
 import { RefService } from '../../../service/api/ref.service';
+import { QueryStore } from '../../../store/query';
 import { Store } from '../../../store/store';
 import { LoadingComponent } from '../../loading/loading.component';
 import { PageControlsComponent } from '../../page-controls/page-controls.component';
@@ -71,6 +72,7 @@ export class RefListComponent implements OnInit, OnDestroy, HasChanges {
     private accounts: AccountService,
     private router: Router,
     private store: Store,
+    public query: QueryStore,
     private refs: RefService,
   ) { }
 
@@ -108,6 +110,13 @@ export class RefListComponent implements OnInit, OnDestroy, HasChanges {
     } else {
       return ' 1fr'.repeat(this.cols);
     }
+  }
+
+  get gridTemplateColumns() {
+    const bulkSelectable = this.query.bulkToolsOpen && this.page === this.query.page;
+    if (!bulkSelectable) return this.colStyle;
+    if (!this.cols) return 'min-content min-content auto';
+    return Array(this.cols).fill('min-content 1fr').join(' ');
   }
 
   get cols() {
