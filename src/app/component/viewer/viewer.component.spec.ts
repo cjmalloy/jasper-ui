@@ -54,7 +54,7 @@ describe('ViewerComponent', () => {
     component.ref = { url: 'https://example.com', modified: DateTime.now() };
 
     expect(Object.keys(component.uiActions).sort()).toEqual([
-      'append', 'comment', 'emit', 'event', 'plugin', 'respond', 'tag', 'watch',
+      'append', 'comment', 'emit', 'event', 'plugin', 'respond', 'tag', 'update', 'watch',
     ]);
   });
 

@@ -9,7 +9,7 @@ import { Ref } from '../model/ref';
 import { Action, EmitAction, emitModels } from '../model/tag';
 import { Store } from '../store/store';
 import { merge3 } from '../util/diff';
-import { escapePath } from '../util/json-patch';
+import { escapePath, OpPatch } from '../util/json-patch';
 import { hasTag } from '../util/tag';
 import { ExtService } from './api/ext.service';
 import { RefService } from './api/ref.service';
@@ -40,6 +40,10 @@ export class ActionService {
       plugin: (tag: string, value: unknown) => {
         if (!ref) throw 'Error: No ref to save';
         this.plugin(tag, value, ref);
+      },
+      update: (updates: Partial<Pick<Ref, 'comment' | 'plugins'>>) => {
+        if (!ref) throw 'Error: No ref to save';
+        this.update(updates, ref);
       },
       event: (event: string) => {
         this.event(event, ref);
@@ -169,6 +173,48 @@ export class ActionService {
       tap(cursor => runInAction(() => {
         ref.plugins ||= {};
         ref.plugins[tag] = value;
+        ref.modifiedString = cursor;
+        ref.modified = DateTime.fromISO(cursor);
+      })),
+    );
+  }
+
+  update(updates: Partial<Pick<Ref, 'comment' | 'plugins'>>, ref: Ref) {
+    this.store.eventBus.runAndRefresh(this.update$(updates, ref), ref);
+  }
+
+  update$(updates: Partial<Pick<Ref, 'comment' | 'plugins'>>, ref: Ref): Observable<string> {
+    const save = (target: Ref) => {
+      const patch: OpPatch[] = [];
+      if (updates.comment !== undefined) {
+        patch.push({ op: 'add', path: '/comment', value: updates.comment });
+      }
+      if (updates.plugins) {
+        if (target.plugins) {
+          for (const [tag, value] of Object.entries(updates.plugins)) {
+            patch.push({ op: 'add', path: '/plugins/' + escapePath(tag), value });
+          }
+        } else {
+          patch.push({ op: 'add', path: '/plugins', value: updates.plugins });
+        }
+      }
+      return this.refs.patch(
+        target.url,
+        this.store.account.origin,
+        target.modifiedString!,
+        patch,
+      );
+    };
+    return save(ref).pipe(
+      catchError(err => {
+        if (err.status === 409) {
+          return this.refs.get(ref.url, this.store.account.origin).pipe(switchMap(save));
+        }
+        return throwError(() => err);
+      }),
+      tap(cursor => runInAction(() => {
+        if (updates.comment !== undefined) ref.comment = updates.comment;
+        if (updates.plugins) ref.plugins = { ...ref.plugins, ...updates.plugins };
         ref.modifiedString = cursor;
         ref.modified = DateTime.fromISO(cursor);
       })),

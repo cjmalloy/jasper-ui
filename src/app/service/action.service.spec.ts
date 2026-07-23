@@ -43,4 +43,32 @@ describe('ActionService', () => {
     }]);
     expect((ref as any).plugins['plugin/score']).toBe(42);
   });
+
+  it('should update comments and plugins in one patch', async () => {
+    const ref = {
+      url: 'https://example.com',
+      origin: '',
+      modifiedString: '2026-01-01T00:00:00Z',
+      plugins: { existing: true },
+    };
+    const patch = vi.spyOn((service as any).refs, 'patch').mockReturnValue(of('2026-01-01T00:00:01Z'));
+
+    await firstValueFrom(service.update$({
+      comment: '{"level":2,"score":42,"final":false}',
+      plugins: { 'plugin/score': 42 },
+    }, ref));
+
+    expect(patch).toHaveBeenCalledWith(ref.url, '', '2026-01-01T00:00:00Z', [
+      {
+        op: 'add',
+        path: '/comment',
+        value: '{"level":2,"score":42,"final":false}',
+      },
+      {
+        op: 'add',
+        path: '/plugins/plugin~1score',
+        value: 42,
+      },
+    ]);
+  });
 });

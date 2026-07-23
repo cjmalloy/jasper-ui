@@ -172,17 +172,12 @@ test.describe.serial('JezzBall Plugin', () => {
     const resetSave = page.waitForResponse(resp => {
       if (!resp.url().includes('/api/v1/ref') || resp.request().method() !== 'PATCH' || !resp.ok()) return false;
       const body = resp.request().postDataJSON();
-      return Array.isArray(body) && body.some(op => op.path === '/comment');
-    });
-    const resetScoreSave = page.waitForResponse(resp => {
-      if (!resp.url().includes('/api/v1/ref') || resp.request().method() !== 'PATCH' || !resp.ok()) return false;
-      const body = resp.request().postDataJSON();
-      return Array.isArray(body) && body.some(op => (
-        op.path === '/plugins' && typeof op.value?.['plugin/score'] === 'number'
-      ));
+      return Array.isArray(body)
+        && body.some(op => op.path === '/comment')
+        && body.some(op => op.path === '/plugins/plugin~1score');
     });
     await game.locator('.jezzball-new-game').click();
-    await Promise.all([resetSave, resetScoreSave]);
+    await resetSave;
     await expect(game).toBeFocused();
     await expect(game.locator('.jezzball-level')).toHaveText('Level 1');
     await expect(game.locator('.jezzball-score')).toHaveText('Score 0');

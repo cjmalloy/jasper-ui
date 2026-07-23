@@ -715,10 +715,12 @@ export const jezzballPlugin: Plugin = {
           if (Number.isFinite(savedScore) && savedScore >= 0) initial.score = savedScore;
           jezzballApp(root, {
             initial: initial,
-            writable: !actions || (!!actions.comment && !!actions.plugin),
-            save: actions && actions.comment && actions.plugin ? function(state) {
-              actions.comment(JSON.stringify({ level: state.level, final: state.final }));
-              actions.plugin('plugin/score', state.score);
+            writable: !actions || !!actions.update,
+            save: actions && actions.update ? function(state) {
+              actions.update({
+                comment: JSON.stringify({ level: state.level, score: state.score, final: state.final }),
+                plugins: { 'plugin/score': state.score },
+              });
             } : undefined,
           });
         };
