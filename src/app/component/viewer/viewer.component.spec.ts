@@ -43,7 +43,7 @@ describe('ViewerComponent', () => {
     vi.spyOn(auth, 'hasRole').mockReturnValue(false);
     component.ref = { url: 'https://example.com', modified: DateTime.now() };
 
-    expect(Object.keys(component.uiActions)).toEqual(['event']);
+    expect(Object.keys(component.uiActions)).toEqual(['event', 'watch']);
   });
 
   it('should expose writable and user actions when authorized', () => {
@@ -54,7 +54,7 @@ describe('ViewerComponent', () => {
     component.ref = { url: 'https://example.com', modified: DateTime.now() };
 
     expect(Object.keys(component.uiActions).sort()).toEqual([
-      'append', 'comment', 'emit', 'event', 'respond', 'tag', 'watch',
+      'append', 'comment', 'emit', 'event', 'plugin', 'respond', 'tag', 'watch',
     ]);
   });
 
@@ -65,6 +65,6 @@ describe('ViewerComponent', () => {
     vi.spyOn(auth, 'hasRole').mockReturnValue(true);
     component.ref = { url: 'https://example.com', modified: DateTime.now() };
 
-    expect(Object.keys(component.uiActions).sort()).toEqual(['emit', 'event', 'respond']);
+    expect(Object.keys(component.uiActions).sort()).toEqual(['emit', 'event', 'respond', 'watch']);
   });
 });

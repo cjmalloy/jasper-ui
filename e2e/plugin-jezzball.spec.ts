@@ -55,11 +55,11 @@ test.describe.serial('JezzBall Plugin', () => {
   });
 
   test('turns on JezzBall', async () => {
-    await mod(page, '#mod-experiments', '#mod-jezzball');
+    await mod(page, '#mod-experiments', '#mod-score', '#mod-jezzball');
   });
 
   test('creates a saved game', async () => {
-    await mod(page, '#mod-experiments', '#mod-jezzball');
+    await mod(page, '#mod-experiments', '#mod-score', '#mod-jezzball');
     await page.goto('/tag/@*?search=' + encodeURIComponent(title) + '&debug=ADMIN');
     for (let i = 0; i < 5; i++) {
       const deleteAction = page.locator('.ref-list .ref').filter({ hasText: title })
@@ -112,6 +112,24 @@ test.describe.serial('JezzBall Plugin', () => {
     await expect(sound).toHaveText('Sound on');
     await sound.click();
     await expect(sound).toHaveText('Sound off');
+    await expect(game.locator('.jezzball-filled')).toHaveText('Filled 0%');
+    const hudPositions = await game.evaluate(element => {
+      const rect = (selector: string) => element.querySelector(selector)!.getBoundingClientRect();
+      const stage = rect('.jezzball-stage');
+      return {
+        center: stage.left + stage.width / 2,
+        middle: stage.top + stage.height / 2,
+        lives: rect('.jezzball-lives'),
+        score: rect('.jezzball-score'),
+        time: rect('.jezzball-time'),
+        filled: rect('.jezzball-filled'),
+      };
+    });
+    expect(hudPositions.lives.left).toBeLessThan(hudPositions.center);
+    expect(hudPositions.score.left).toBeLessThan(hudPositions.center);
+    expect(hudPositions.score.right).toBeGreaterThan(hudPositions.center);
+    expect(hudPositions.time.left).toBeGreaterThan(hudPositions.center);
+    expect(hudPositions.filled.top).toBeGreaterThan(hudPositions.middle);
 
     await page.evaluate(() => {
       document.body.classList.remove('dark-theme');
@@ -120,12 +138,27 @@ test.describe.serial('JezzBall Plugin', () => {
     await expect(game).toHaveCSS('color', 'rgb(0, 0, 0)');
   });
 
+  test('fits the whole stage in fullscreen and hides controls', async () => {
+    const game = page.locator('.full-page.ref .jezzball-game');
+    await game.evaluate(async element => {
+      await element.closest('app-viewer')!.requestFullscreen();
+    });
+    await expect(game.locator('.jezzball-toolbar')).toHaveCSS('display', 'none');
+    const stage = await game.locator('.jezzball-stage').boundingBox();
+    if (!stage) throw new Error('JezzBall stage has no bounding box');
+    expect(stage.x).toBeGreaterThanOrEqual(0);
+    expect(stage.y).toBeGreaterThanOrEqual(0);
+    expect(stage.x + stage.width).toBeLessThanOrEqual(1280);
+    expect(stage.y + stage.height).toBeLessThanOrEqual(720);
+    await page.evaluate(() => document.exitFullscreen());
+  });
+
   test('plays a read-only Ref as a saved example', async () => {
     await page.goto(gamePath + '?debug=ANON', { waitUntil: 'networkidle' });
     const game = page.locator('.full-page.ref .jezzball-game');
     await expect(game.locator('.jezzball-example')).toHaveText('Saved example');
     await expect(game.locator('.jezzball-overlay')).toContainText('Final score 450');
-    await game.locator('.jezzball-overlay button').click();
+    await game.locator('.jezzball-new-game').click();
     await expect(game.locator('.jezzball-level')).toHaveText('Level 1');
     await expect(game.locator('.jezzball-canvas')).toBeVisible();
   });
@@ -136,11 +169,20 @@ test.describe.serial('JezzBall Plugin', () => {
     await expect(game.locator('.jezzball-overlay')).toContainText('Final score 450');
     await installDeterministicGameClock(page);
 
-    const resetSave = page.waitForResponse(resp => (
-      resp.url().includes('/api/v1/ref') && resp.request().method() === 'PATCH' && resp.ok()
-    ));
-    await game.locator('.jezzball-overlay button').click();
-    await resetSave;
+    const resetSave = page.waitForResponse(resp => {
+      if (!resp.url().includes('/api/v1/ref') || resp.request().method() !== 'PATCH' || !resp.ok()) return false;
+      const body = resp.request().postDataJSON();
+      return Array.isArray(body) && body.some(op => op.path === '/comment');
+    });
+    const resetScoreSave = page.waitForResponse(resp => {
+      if (!resp.url().includes('/api/v1/ref') || resp.request().method() !== 'PATCH' || !resp.ok()) return false;
+      const body = resp.request().postDataJSON();
+      return Array.isArray(body) && body.some(op => (
+        op.path === '/plugins' && typeof op.value?.['plugin/score'] === 'number'
+      ));
+    });
+    await game.locator('.jezzball-new-game').click();
+    await Promise.all([resetSave, resetScoreSave]);
     await expect(game).toBeFocused();
     await expect(game.locator('.jezzball-level')).toHaveText('Level 1');
     await expect(game.locator('.jezzball-score')).toHaveText('Score 0');
@@ -169,7 +211,7 @@ test.describe.serial('JezzBall Plugin', () => {
     await expect(game.locator('.jezzball-level')).toHaveText('Level 2');
     await expect(game.locator('.jezzball-score')).not.toHaveText('Score 0');
 
-    await game.locator('.jezzball-overlay button').click();
+    await game.locator('.jezzball-new-game').click();
     await expect(game).toBeFocused();
     await game.press('Space');
     await moveCursor(game, 'ArrowLeft', 8);
@@ -189,7 +231,7 @@ test.describe.serial('JezzBall Plugin', () => {
   test('uses two-finger wall gestures with a diagonal dead zone', async () => {
     await page.goto(gamePath + '?debug=ANON', { waitUntil: 'networkidle' });
     const game = page.locator('.full-page.ref .jezzball-game');
-    await game.locator('.jezzball-overlay button').click();
+    await game.locator('.jezzball-new-game').click();
     await installDeterministicGameClock(page);
     const canvas = game.locator('.jezzball-canvas');
     const box = await canvas.boundingBox();
@@ -227,7 +269,7 @@ test.describe.serial('JezzBall Plugin', () => {
     });
     await page.goto(gamePath + '?debug=ANON', { waitUntil: 'networkidle' });
     const game = page.locator('.full-page.ref .jezzball-game');
-    await game.locator('.jezzball-overlay button').click();
+    await game.locator('.jezzball-new-game').click();
     await installDeterministicGameClock(page);
     await game.locator('.jezzball-sound').click();
     await game.locator('.jezzball-speed').click();
@@ -247,6 +289,6 @@ test.describe.serial('JezzBall Plugin', () => {
     const survivingPixel = await canvas.evaluate((element: HTMLCanvasElement) => (
       [...element.getContext('2d')!.getImageData(8 * 25 + 12, 14 * 25 + 12, 1, 1).data]
     ));
-    expect(survivingPixel.slice(0, 3)).toEqual([74, 74, 74]);
+    expect(survivingPixel.slice(0, 3)).toEqual([119, 119, 119]);
   });
 });

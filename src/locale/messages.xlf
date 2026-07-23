@@ -8776,8 +8776,8 @@ Private tags start with an underscore.
           <context context-type="linenumber">19</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="6002620609380634646" datatype="html">
-        <source>Filled {filled}% / {target}%</source>
+      <trans-unit id="6134450866822012379" datatype="html">
+        <source>Filled {filled}%</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/jezzball.ts</context>
           <context context-type="linenumber">20</context>
@@ -8832,8 +8832,8 @@ Private tags start with an underscore.
           <context context-type="linenumber">27</context>
         </context-group>
       </trans-unit>
-      <trans-unit id="8358043714340144824" datatype="html">
-        <source>Click or press Enter to build a wall. Use the arrow keys to move the keyboard cursor. Right-click, Space, or the direction button changes direction. Press P to pause.</source>
+      <trans-unit id="2671274276626285315" datatype="html">
+        <source>Click, press Enter, or tap with two fingers to build a wall. Two-finger alignment sets its direction. Use the arrow keys to move the keyboard cursor. Right-click, Space, or the direction button changes direction. Press P to pause.</source>
         <context-group purpose="location">
           <context context-type="sourcefile">src/app/mods/games/jezzball.ts</context>
           <context context-type="linenumber">28</context>
@@ -8868,6 +8868,18 @@ Private tags start with an underscore.
           <context context-type="sourcefile">src/app/mods/games/jezzball.ts</context>
           <context context-type="linenumber">46</context>
         </context-group>
+      </trans-unit>
+      <trans-unit id="4617000983840234050" datatype="html">
+        <source>🏆️ Score</source>
+      </trans-unit>
+      <trans-unit id="7369467455665573995" datatype="html">
+        <source>Store a numeric score on a Ref.</source>
+      </trans-unit>
+      <trans-unit id="4580907610151762865" datatype="html">
+        <source>🏆️ score</source>
+      </trans-unit>
+      <trans-unit id="7123653594948067002" datatype="html">
+        <source>Score</source>
       </trans-unit>
       <trans-unit id="550762586054059391" datatype="html">
         <source>🟣️</source>

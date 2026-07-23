@@ -9,6 +9,7 @@ import { Ref } from '../model/ref';
 import { Action, EmitAction, emitModels } from '../model/tag';
 import { Store } from '../store/store';
 import { merge3 } from '../util/diff';
+import { escapePath } from '../util/json-patch';
 import { hasTag } from '../util/tag';
 import { ExtService } from './api/ext.service';
 import { RefService } from './api/ref.service';
@@ -36,6 +37,10 @@ export class ActionService {
         o?.unsubscribe();
         o = this.comment$(comment, ref).subscribe();
       }, 500),
+      plugin: (tag: string, value: unknown) => {
+        if (!ref) throw 'Error: No ref to save';
+        this.plugin(tag, value, ref);
+      },
       event: (event: string) => {
         this.event(event, ref);
       },
@@ -124,10 +129,46 @@ export class ActionService {
             }])),
           );
         }
+
         return throwError(() => err);
       }),
       tap(cursor => runInAction(() => {
         ref.comment = comment;
+        ref.modifiedString = cursor;
+        ref.modified = DateTime.fromISO(cursor);
+      })),
+    );
+  }
+
+  plugin(tag: string, value: unknown, ref: Ref) {
+    this.store.eventBus.runAndRefresh(this.plugin$(tag, value, ref), ref);
+  }
+
+  plugin$(tag: string, value: unknown, ref: Ref): Observable<string> {
+    const save = (target: Ref) => this.refs.patch(
+      target.url,
+      this.store.account.origin,
+      target.modifiedString!,
+      target.plugins ? [{
+        op: 'add',
+        path: '/plugins/' + escapePath(tag),
+        value,
+      }] : [{
+        op: 'add',
+        path: '/plugins',
+        value: { [tag]: value },
+      }],
+    );
+    return save(ref).pipe(
+      catchError(err => {
+        if (err.status === 409) {
+          return this.refs.get(ref.url, this.store.account.origin).pipe(switchMap(save));
+        }
+        return throwError(() => err);
+      }),
+      tap(cursor => runInAction(() => {
+        ref.plugins ||= {};
+        ref.plugins[tag] = value;
         ref.modifiedString = cursor;
         ref.modified = DateTime.fromISO(cursor);
       })),

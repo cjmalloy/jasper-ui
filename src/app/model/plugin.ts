@@ -146,10 +146,11 @@ export const pluginSchema: Schema = {
 export interface PluginApi {
   event: (event: string) => void;
   comment?: (comment: string) => void;
+  plugin?: (tag: string, value: unknown) => void;
   emit?: (a: EmitAction) => void;
   tag?: (tag: string) => void;
   respond?: (response: string, clear?: string[]) => void;
-  watch?: (delimiter?: string) => { ref$: Observable<RefUpdates>, comment$: (comment: string) => Observable<string> },
+  watch: (delimiter?: string) => { ref$: Observable<RefUpdates>, comment$: (comment: string) => Observable<string> },
   append?: (delimiter?: string) => { updates$: Observable<string>, append$: (value: string) => Observable<string> },
 }
 

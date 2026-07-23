@@ -17,7 +17,7 @@ const jezzballLabels = {
   continue: $localize`Continue`,
   level: $localize`Level {level}`,
   lives: $localize`Lives {lives}`,
-  filled: $localize`Filled {filled}% / {target}%`,
+  filled: $localize`Filled {filled}%`,
   time: $localize`Time {time}`,
   score: $localize`Score {score}`,
   wallVertical: $localize`Wall ↕`,
@@ -25,7 +25,7 @@ const jezzballLabels = {
   levelComplete: $localize`Level {level} complete`,
   gameOver: $localize`Game over · score {score}`,
   finalScore: $localize`Final score {score}`,
-  help: $localize`Click or press Enter to build a wall. Use the arrow keys to move the keyboard cursor. Right-click, Space, or the direction button changes direction. Press P to pause.`,
+  help: $localize`Click, press Enter, or tap with two fingers to build a wall. Two-finger alignment sets its direction. Use the arrow keys to move the keyboard cursor. Right-click, Space, or the direction button changes direction. Press P to pause.`,
 };
 const jezzballLabelsSource = JSON.stringify(jezzballLabels).replace(/</g, '\\u003c');
 
@@ -93,32 +93,34 @@ export const jezzballPlugin: Plugin = {
           <style>
             .jezzball-game { display: block; width: min(100%, 850px); margin: 0 auto; color: var(--text, #ddd); font: 14px system-ui, sans-serif; outline: none; }
             .jezzball-game * { box-sizing: border-box; }
-            .jezzball-hud { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding: 8px 4px; }
-            .jezzball-stat { white-space: nowrap; }
+            .jezzball-toolbar { display: flex; align-items: center; min-height: 46px; padding: 8px 4px; }
+            .jezzball-stat { position: absolute; z-index: 1; color: #eee; white-space: nowrap; pointer-events: none; text-shadow: 0 1px 2px #000; }
+            .jezzball-lives { top: 8px; left: 10px; }
+            .jezzball-center { position: absolute; z-index: 1; top: 8px; left: 50%; display: flex; gap: 16px; transform: translateX(-50%); }
+            .jezzball-center .jezzball-stat { position: static; }
+            .jezzball-time { top: 8px; right: 10px; }
+            .jezzball-filled { bottom: 8px; left: 50%; transform: translateX(-50%); }
             .jezzball-example { color: #e7b85b; font-weight: 600; }
             .jezzball-controls { display: flex; gap: 8px; margin-left: auto; }
             .jezzball-controls button, .jezzball-overlay button { border: 1px solid var(--border, #777); border-radius: 4px; background: var(--card, #333); color: var(--text, #eee); padding: 5px 9px; cursor: pointer; }
             .jezzball-controls button:hover, .jezzball-overlay button:hover { background: var(--active, #4a4a4a); }
-            .jezzball-stage { position: relative; width: 100%; aspect-ratio: 4 / 3; overflow: hidden; border: 2px solid #777; background: #050505; touch-action: none; }
+            .jezzball-stage { position: relative; width: 100%; aspect-ratio: 4 / 3; overflow: hidden; border: 2px solid #777; background: #000; touch-action: none; }
             .jezzball-canvas { display: block; width: 100%; height: 100%; }
             .jezzball-canvas.vertical { cursor: ns-resize; }
             .jezzball-canvas.horizontal { cursor: ew-resize; }
             .jezzball-overlay { position: absolute; inset: 0; display: none; place-content: center; text-align: center; background: rgba(0, 0, 0, .72); color: white; }
             .jezzball-overlay.visible { display: grid; }
             .jezzball-overlay strong { display: block; margin-bottom: 12px; font-size: 24px; }
+            :fullscreen .jezzball-game { width: min(100vw, calc(100vh * 4 / 3)); max-width: none; }
+            :fullscreen .jezzball-toolbar { display: none; }
             @media (prefers-color-scheme: light) {
               .jezzball-game { color: var(--text, #333); }
               .jezzball-controls button, .jezzball-overlay button { background: var(--card, #eee); color: var(--text, #222); border-color: var(--border, #999); }
               .jezzball-controls button:hover, .jezzball-overlay button:hover { background: var(--active, #ddd); }
             }
           </style>
-          <div class="jezzball-hud">
-            <span class="jezzball-stat jezzball-level"></span>
-            <span class="jezzball-stat jezzball-lives"></span>
-            <span class="jezzball-stat jezzball-filled"></span>
-            <span class="jezzball-stat jezzball-time"></span>
-            <span class="jezzball-stat jezzball-score"></span>
-            <span class="jezzball-stat jezzball-example" title="\${labels.savedExampleTitle}">\${labels.savedExample}</span>
+          <div class="jezzball-toolbar">
+            <span class="jezzball-example" title="\${labels.savedExampleTitle}">\${labels.savedExample}</span>
             <span class="jezzball-controls">
               <button class="jezzball-direction" type="button"></button>
               <button class="jezzball-speed" type="button"></button>
@@ -128,7 +130,14 @@ export const jezzballPlugin: Plugin = {
           </div>
           <div class="jezzball-stage">
             <canvas class="jezzball-canvas" width="\${COLS * CELL}" height="\${ROWS * CELL}"></canvas>
-            <div class="jezzball-overlay"><div><strong></strong><button type="button">\${labels.newGame}</button></div></div>
+            <span class="jezzball-stat jezzball-lives"></span>
+            <span class="jezzball-center">
+              <span class="jezzball-stat jezzball-level"></span>
+              <span class="jezzball-stat jezzball-score"></span>
+            </span>
+            <span class="jezzball-stat jezzball-time"></span>
+            <span class="jezzball-stat jezzball-filled"></span>
+            <div class="jezzball-overlay"><div><strong></strong><button class="jezzball-new-game" type="button">\${labels.newGame}</button></div></div>
           </div>
         \`;
 
@@ -146,7 +155,7 @@ export const jezzballPlugin: Plugin = {
         const pauseButton = root.querySelector('.jezzball-pause');
         const overlay = root.querySelector('.jezzball-overlay');
         const overlayMessage = overlay.querySelector('strong');
-        const newGameButton = overlay.querySelector('button');
+        const newGameButton = overlay.querySelector('.jezzball-new-game');
         root.tabIndex = 0;
         root.setAttribute('aria-label', labels.help);
         exampleEl.hidden = writable;
@@ -221,7 +230,7 @@ export const jezzballPlugin: Plugin = {
         function updateHud() {
           levelEl.textContent = format(labels.level, { level: level });
           livesEl.textContent = format(labels.lives, { lives: Math.max(0, lives) });
-          filledEl.textContent = format(labels.filled, { filled: percentFilled(), target: TARGET });
+          filledEl.textContent = format(labels.filled, { filled: percentFilled() });
           timeEl.textContent = format(labels.time, { time: Math.max(0, Math.ceil(remaining)) });
           scoreEl.textContent = format(labels.score, { score: score });
           directionButton.textContent = orientation === 'vertical' ? labels.wallVertical : labels.wallHorizontal;
@@ -485,14 +494,14 @@ export const jezzballPlugin: Plugin = {
         }
 
         function draw() {
-          g.fillStyle = '#080808';
+          g.fillStyle = '#000';
           g.fillRect(0, 0, canvas.width, canvas.height);
 
           for (let y = 0; y < ROWS; y++) {
             for (let x = 0; x < COLS; x++) {
               const color = occupied[id(x, y)];
               if (color) {
-                g.fillStyle = '#4a4a4a';
+                g.fillStyle = '#777';
                 g.fillRect(x * CELL, y * CELL, CELL, CELL);
               }
             }
@@ -535,16 +544,19 @@ export const jezzballPlugin: Plugin = {
             const y = ball.y * CELL;
             const radius = BALL_RADIUS * CELL;
             const phase = ((ball.spin % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
-            const redIncoming = phase < Math.PI;
-            const sweep = (phase % Math.PI) / Math.PI;
+            const curve = Math.cos(phase) * radius * 4 / 3;
             g.save();
             g.beginPath();
             g.arc(x, y, radius, 0, 7);
             g.clip();
-            g.fillStyle = redIncoming ? '#f4f1e8' : '#d93643';
+            g.fillStyle = '#f4f1e8';
             g.fillRect(x - radius, y - radius, radius * 2, radius * 2);
-            g.fillStyle = redIncoming ? '#d93643' : '#f4f1e8';
-            g.fillRect(x - radius, y - radius, radius * 2 * sweep, radius * 2);
+            g.fillStyle = '#d93643';
+            g.beginPath();
+            g.moveTo(x, y - radius);
+            g.bezierCurveTo(x + curve, y - radius, x + curve, y + radius, x, y + radius);
+            g.arc(x, y, radius, Math.PI / 2, -Math.PI / 2, true);
+            g.fill();
             g.restore();
             g.strokeStyle = '#ddd';
             g.lineWidth = 1;
@@ -698,11 +710,14 @@ export const jezzballPlugin: Plugin = {
           } catch (error) {
             initial = {};
           }
+          const savedScore = ref && ref.plugins && ref.plugins['plugin/score'];
+          if (Number.isFinite(savedScore) && savedScore >= 0) initial.score = savedScore;
           jezzballApp(root, {
             initial: initial,
-            writable: !actions || !!actions.comment,
-            save: actions && actions.comment ? function(state) {
-              actions.comment(JSON.stringify(state));
+            writable: !actions || (!!actions.comment && !!actions.plugin),
+            save: actions && actions.comment && actions.plugin ? function(state) {
+              actions.comment(JSON.stringify({ level: state.level, final: state.final }));
+              actions.plugin('plugin/score', state.score);
             } : undefined,
           });
         };
@@ -758,7 +773,7 @@ export const jezzballTemplate: Template = {
   defaults: <RootConfig> {
     defaultExpanded: true,
     submitText: true,
-    defaultSort: ['modified,DESC'],
+    defaultSort: ['plugins->plugin/score:num,DESC', 'modified,DESC'],
     defaultCols: 1,
   },
 };

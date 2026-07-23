@@ -7176,9 +7176,9 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>Lives {lives}</source>
         <target>残機 {lives}</target>
       </trans-unit>
-      <trans-unit id="6002620609380634646" datatype="html">
-        <source>Filled {filled}% / {target}%</source>
-        <target>占有率 {filled}% / {target}%</target>
+      <trans-unit id="6134450866822012379" datatype="html">
+        <source>Filled {filled}%</source>
+        <target>占有率 {filled}%</target>
       </trans-unit>
       <trans-unit id="9024032865625543959" datatype="html">
         <source>Time {time}</source>
@@ -7208,13 +7208,29 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>Final score {score}</source>
         <target>最終スコア {score}</target>
       </trans-unit>
-      <trans-unit id="8358043714340144824" datatype="html">
-        <source>Click or press Enter to build a wall. Use the arrow keys to move the keyboard cursor. Right-click, Space, or the direction button changes direction. Press P to pause.</source>
-        <target>クリックまたはEnterキーで壁を作ります。矢印キーでキーボードカーソルを移動します。右クリック、Spaceキー、または方向ボタンで壁の方向を変更します。Pキーで一時停止します。</target>
+      <trans-unit id="2671274276626285315" datatype="html">
+        <source>Click, press Enter, or tap with two fingers to build a wall. Two-finger alignment sets its direction. Use the arrow keys to move the keyboard cursor. Right-click, Space, or the direction button changes direction. Press P to pause.</source>
+        <target>クリック、Enterキー、または2本指のタップで壁を作ります。2本指の並びで壁の方向が決まります。矢印キーでキーボードカーソルを移動します。右クリック、Spaceキー、または方向ボタンで壁の方向を変更します。Pキーで一時停止します。</target>
       </trans-unit>
       <trans-unit id="5885261957820095227" datatype="html">
         <source>Play a faithful remake of the classic JezzBall game.</source>
         <target>クラシックゲーム「JezzBall」を忠実に再現したリメイクをプレイします。</target>
+      </trans-unit>
+      <trans-unit id="4617000983840234050" datatype="html">
+        <source>🏆️ Score</source>
+        <target>🏆️ スコア</target>
+      </trans-unit>
+      <trans-unit id="7369467455665573995" datatype="html">
+        <source>Store a numeric score on a Ref.</source>
+        <target>Refに数値スコアを保存します。</target>
+      </trans-unit>
+      <trans-unit id="4580907610151762865" datatype="html">
+        <source>🏆️ score</source>
+        <target>🏆️ スコア</target>
+      </trans-unit>
+      <trans-unit id="7123653594948067002" datatype="html">
+        <source>Score</source>
+        <target>スコア</target>
       </trans-unit>
       <trans-unit id="619579233408959722" datatype="html">
         <source>2K</source>
