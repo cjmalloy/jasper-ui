@@ -1,12 +1,10 @@
-import { Component, Input, OnDestroy, QueryList, ViewChildren, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, QueryList, ViewChildren, ChangeDetectionStrategy } from '@angular/core';
 import { Router } from '@angular/router';
-import { catchError, forkJoin, of, Subject, takeUntil } from 'rxjs';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ext } from '../../model/ext';
 import { Page } from '../../model/page';
 import { Ref } from '../../model/ref';
 import { RootConfig } from '../../mods/root';
-import { RefService } from '../../service/api/ref.service';
 import { Store } from '../../store/store';
 import { LoadingComponent } from '../loading/loading.component';
 import { PageControlsComponent } from '../page-controls/page-controls.component';
@@ -24,15 +22,12 @@ import { BlogEntryComponent } from './blog-entry/blog-entry.component';
     LoadingComponent,
   ],
 })
-export class BlogComponent implements HasChanges, OnDestroy {
-  private destroy$ = new Subject<void>();
-
+export class BlogComponent implements HasChanges {
   @Input()
   pageControls = true;
   @Input()
   emptyMessage = $localize`No blog entries found`;
 
-  pinned: Ref[] = [];
   colStyle = '';
   error: any;
 
@@ -46,13 +41,7 @@ export class BlogComponent implements HasChanges, OnDestroy {
   constructor(
     private router: Router,
     private store: Store,
-    private refs: RefService,
   ) { }
-
-  ngOnDestroy() {
-    this.destroy$.next();
-    this.destroy$.complete();
-  }
 
   saveChanges() {
     return !this.list?.find(r => !r.saveChanges());
@@ -88,16 +77,6 @@ export class BlogComponent implements HasChanges, OnDestroy {
   @Input()
   set ext(value: Ext | undefined) {
     this._ext = value;
-    if (!value?.config?.pinned?.length) {
-      this.pinned = [];
-    } else {
-      forkJoin((value.config.pinned as string[])
-        .map(pin => this.refs.getCurrent(pin).pipe(
-          catchError(err => of({url: pin})),
-          takeUntil(this.destroy$),
-        )))
-        .subscribe(pinned => this.pinned = pinned);
-    }
   }
 
   @Input()

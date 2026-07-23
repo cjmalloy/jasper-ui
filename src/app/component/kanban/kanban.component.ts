@@ -19,7 +19,7 @@ import { uniq, without } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { runInAction } from 'mobx';
 import { MobxAngularModule } from 'mobx-angular';
-import { catchError, forkJoin, of, Subject, Subscription } from 'rxjs';
+import { catchError, Subject } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { TitleDirective } from '../../directive/title.directive';
 import { HasChanges } from '../../guard/pending-changes.guard';
@@ -28,7 +28,6 @@ import { Ref, RefSort } from '../../model/ref';
 import { KanbanConfig } from '../../mods/org/kanban';
 import { AccountService } from '../../service/account.service';
 import { ExtService } from '../../service/api/ext.service';
-import { RefService } from '../../service/api/ref.service';
 import { TaggingService } from '../../service/api/tagging.service';
 import { BookmarkService } from '../../service/bookmark.service';
 import { Store } from '../../store/store';
@@ -37,7 +36,6 @@ import { isQuery, isSelector, localTag, topAnds } from '../../util/tag';
 import { LoadingComponent } from '../loading/loading.component';
 import { PageControlsComponent } from '../page-controls/page-controls.component';
 import { KanbanColumnComponent } from './kanban-column/kanban-column.component';
-import { KanbanCardComponent } from './kanban-card/kanban-card.component';
 
 export interface KanbanDrag {
   from: string;
@@ -63,7 +61,6 @@ export interface KanbanDrag {
     TitleDirective,
     ReactiveFormsModule,
     PageControlsComponent,
-    KanbanCardComponent,
     AsyncPipe,
   ],
 })
@@ -90,11 +87,9 @@ export class KanbanComponent implements OnChanges, OnDestroy, HasChanges {
   search = '';
 
   error: any;
-  pinned: Ref[] = [];
   updates = new Subject<KanbanDrag>();
 
   private _disableSwimLanes?: boolean;
-  private pinnedRequest?: Subscription;
 
   private defaultConfig: KanbanConfig = {
     columns: []
@@ -105,7 +100,6 @@ export class KanbanComponent implements OnChanges, OnDestroy, HasChanges {
     public bookmarks: BookmarkService,
     public store: Store,
     public exts: ExtService,
-    private refs: RefService,
     private tags: TaggingService,
   ) { }
 
@@ -116,24 +110,12 @@ export class KanbanComponent implements OnChanges, OnDestroy, HasChanges {
   ngOnChanges(changes: SimpleChanges) {
     if (changes.ext) {
       this.preloadExts();
-      this.loadPinned();
     }
     this.onResize();
   }
 
   ngOnDestroy() {
-    this.pinnedRequest?.unsubscribe();
     this.updates.complete();
-  }
-
-  loadPinned() {
-    this.pinnedRequest?.unsubscribe();
-    this.pinned = [];
-    const pinned = this.ext?.config?.pinned as string[] | undefined;
-    if (!pinned?.length) return;
-    this.pinnedRequest = forkJoin(pinned.map(url =>
-      this.refs.getCurrent(url).pipe(catchError(() => of({ url })))
-    )).subscribe(refs => this.pinned = refs);
   }
 
   @HostListener('window:resize')

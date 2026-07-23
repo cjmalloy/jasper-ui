@@ -5,8 +5,9 @@ import { ComponentFixture, DeferBlockBehavior, TestBed } from '@angular/core/tes
 import { By } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
 import { runInAction } from 'mobx';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
 
+import { Page } from '../../model/page';
 import { RefService } from '../../service/api/ref.service';
 import { RefListComponent } from '../ref/ref-list/ref-list.component';
 import { LensComponent } from './lens.component';
@@ -49,20 +50,40 @@ describe('LensComponent', () => {
     expect(component.ext.config?.pinned).toEqual(['https://example.com/pinned']);
   });
 
-  it('shows active Ext pins with a global view', () => {
+  it('shows active Ext pins in the lens', () => {
     const refs = TestBed.inject(RefService);
-    vi.spyOn(refs, 'getCurrent').mockReturnValue(new Observable(() => {}));
+    vi.spyOn(refs, 'getCurrent').mockReturnValue(of({
+      url: 'https://example.com/pinned',
+      title: 'Pinned ref',
+    }));
     component.pinnedExt = {
       tag: 'kanban/test',
       origin: '',
       config: { pinned: ['https://example.com/pinned'] },
     };
-    component.globalView = true;
 
     fixture.detectChanges();
 
-    const pinned = fixture.debugElement.query(By.directive(RefListComponent)).componentInstance as RefListComponent;
+    const pinned = fixture.debugElement.query(By.css('.lens-pins')).componentInstance as RefListComponent;
     expect(pinned.ext?.config?.pinned).toEqual(['https://example.com/pinned']);
+    expect(pinned.page?.content).toEqual([{
+      url: 'https://example.com/pinned',
+      title: 'Pinned ref',
+    }]);
+  });
+
+  it('clears existing pins while a different Ext loads', () => {
+    const refs = TestBed.inject(RefService);
+    vi.spyOn(refs, 'getCurrent').mockReturnValue(new Observable(() => {}));
+    component.pinnedPage = Page.of([{ url: 'https://example.com/old' }]);
+
+    component.pinnedExt = {
+      tag: 'kanban/next',
+      origin: '',
+      config: { pinned: ['https://example.com/next'] },
+    };
+
+    expect(component.pinnedPage.content).toEqual([]);
   });
 
   it.each([

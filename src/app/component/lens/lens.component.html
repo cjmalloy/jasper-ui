@@ -1,11 +1,12 @@
 @if (header) {
   <app-viewer class="lens-header" [text]="header"></app-viewer>
 }
-@if (globalView && pinnedExt?.config?.pinned?.length) {
+@if (pinnedExt?.config?.pinned?.length) {
   <app-ref-list #lens
-                class="global-view-pins"
+                class="lens-pins"
                 [ext]="pinnedExt"
-                [page]="emptyPage"
+                [page]="pinnedPage"
+                [pinned]="true"
                 [pageControls]="false"
                 [emptyMessage]="''"></app-ref-list>
 }

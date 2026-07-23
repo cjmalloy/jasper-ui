@@ -1,11 +1,13 @@
-import { Component, forwardRef, Input, OnChanges, QueryList, SimpleChanges, ViewChildren, ChangeDetectionStrategy } from '@angular/core';
+import { Component, forwardRef, Input, OnChanges, OnDestroy, QueryList, SimpleChanges, ViewChildren, ChangeDetectionStrategy } from '@angular/core';
 import { MobxAngularModule } from 'mobx-angular';
+import { catchError, forkJoin, of, Subscription } from 'rxjs';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ext } from '../../model/ext';
 import { Page } from '../../model/page';
 import { Ref, RefSort } from '../../model/ref';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
+import { RefService } from '../../service/api/ref.service';
 import { QueryStore } from '../../store/query';
 import { UrlFilter } from '../../util/query';
 import { hasPrefix } from '../../util/tag';
@@ -43,14 +45,22 @@ import { ViewerComponent } from '../viewer/viewer.component';
     ViewerComponent,
   ],
 })
-export class LensComponent implements OnChanges, HasChanges {
+export class LensComponent implements OnChanges, OnDestroy, HasChanges {
 
   @Input()
   ext?: Ext;
+  private _pinnedExt?: Ext;
+  private pinnedRequest?: Subscription;
+
   @Input()
-  pinnedExt?: Ext;
-  @Input()
-  globalView = false;
+  set pinnedExt(value: Ext | undefined) {
+    this._pinnedExt = value;
+    this.loadPinned();
+  }
+
+  get pinnedExt() {
+    return this._pinnedExt;
+  }
   @Input()
   tag = '';
   @Input()
@@ -78,7 +88,7 @@ export class LensComponent implements OnChanges, HasChanges {
 
   plugins?: string[];
   header?: string;
-  emptyPage = Page.of<Ref>([]);
+  pinnedPage = Page.of<Ref>([]);
 
   @ViewChildren('lens')
   list?: QueryList<HasChanges>;
@@ -87,6 +97,7 @@ export class LensComponent implements OnChanges, HasChanges {
     public admin: AdminService,
     public account: AccountService,
     public query: QueryStore,
+    private refs: RefService,
   ) { }
 
   saveChanges() {
@@ -106,6 +117,20 @@ export class LensComponent implements OnChanges, HasChanges {
     if (changes.ext) {
       this.init();
     }
+  }
+
+  ngOnDestroy() {
+    this.pinnedRequest?.unsubscribe();
+  }
+
+  loadPinned() {
+    this.pinnedRequest?.unsubscribe();
+    this.pinnedPage = Page.of<Ref>([]);
+    const pinned = this.pinnedExt?.config?.pinned as string[] | undefined;
+    if (!pinned?.length) return;
+    this.pinnedRequest = forkJoin(pinned.map(url =>
+      this.refs.getCurrent(url).pipe(catchError(() => of({ url })))
+    )).subscribe(refs => this.pinnedPage = Page.of(refs));
   }
 
   isTemplate(template: string) {

@@ -2,9 +2,6 @@
   <div class="blog-container"
        [class.grid-layout]="colStyle"
        [style.grid-template-columns]="colStyle">
-    @for (ref of pinned; track ref.origin + '@' + ref.url) {
-      <app-blog-entry class="pinned" [ref]="ref"></app-blog-entry>
-    }
     @for (ref of page.content; track ref.origin + '@' + ref.url) {
       <app-blog-entry [ref]="ref" [blog]="ext"></app-blog-entry>
     } @empty {

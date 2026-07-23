@@ -1,14 +1,13 @@
 import { Component, forwardRef, Input, OnDestroy, OnInit, QueryList, ViewChildren, ChangeDetectionStrategy } from '@angular/core';
 import { Router } from '@angular/router';
 import { DateTime } from 'luxon';
-import { catchError, forkJoin, Observable, of, Subject, takeUntil } from 'rxjs';
+import { Observable, Subject, takeUntil } from 'rxjs';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Ext } from '../../../model/ext';
 import { Page } from '../../../model/page';
 import { Ref } from '../../../model/ref';
 import { score } from '../../../mods/vote';
 import { AccountService } from '../../../service/account.service';
-import { RefService } from '../../../service/api/ref.service';
 import { Store } from '../../../store/store';
 import { LoadingComponent } from '../../loading/loading.component';
 import { PageControlsComponent } from '../../page-controls/page-controls.component';
@@ -55,11 +54,12 @@ export class RefListComponent implements OnInit, OnDestroy, HasChanges {
   insertNewAtTop = false;
   @Input()
   showPrev = true;
+  @Input()
+  pinned = false;
 
   @ViewChildren(RefComponent)
   list?: QueryList<RefComponent>;
 
-  pinned: Ref[] = [];
   newRefs: Ref[] = [];
 
   private _page?: Page<Ref>;
@@ -71,7 +71,6 @@ export class RefListComponent implements OnInit, OnDestroy, HasChanges {
     private accounts: AccountService,
     private router: Router,
     private store: Store,
-    private refs: RefService,
   ) { }
 
   saveChanges() {
@@ -85,16 +84,6 @@ export class RefListComponent implements OnInit, OnDestroy, HasChanges {
   @Input()
   set ext(value: Ext | undefined) {
     this._ext = value;
-    if (!value?.config?.pinned?.length) {
-      this.pinned = [];
-    } else {
-      forkJoin((value.config.pinned as string[])
-        .map(pin => this.refs.getCurrent(pin).pipe(
-          catchError(err => of({ url: pin })),
-          takeUntil(this.destroy$),
-        )))
-        .subscribe(pinned => this.pinned = pinned);
-    }
   }
 
   @Input()

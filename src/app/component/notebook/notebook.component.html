@@ -1,10 +1,5 @@
 <div class="list-container"
      [style.grid-template-columns]="colStyle">
-  @for (ref of pinned; track ref.origin + '@' + ref.url) {
-    <app-note class="pinned ref-list-item"
-              [ref]="ref"
-              [ext]="ext"></app-note>
-  }
   @for (ref of newRefs; track ref.origin + '@' + ref.url) {
     <app-note class="ref-list-item"
               [ref]="ref"

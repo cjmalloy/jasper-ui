@@ -76,13 +76,13 @@ test.describe.serial('Kanban Template No Swimlanes', () => {
     await saveExt;
 
     await page.goto('/tag/kanban/test?debug=MOD', { waitUntil: 'networkidle' });
-    await expect(page.locator('.kanban-pinned .kanban-card')).toContainText('Pinned Kanban Ref');
+    await expect(page.locator('.lens-pins .pinned')).toContainText('Pinned Kanban Ref');
 
     await page.goto('/tag/kanban/test?debug=MOD&view=list', { waitUntil: 'networkidle' });
-    await expect(page.locator('.ref-list .pinned')).toContainText('Pinned Kanban Ref');
+    await expect(page.locator('.lens-pins .pinned')).toContainText('Pinned Kanban Ref');
 
     await page.goto('/tag/kanban/test?debug=MOD&view=graph', { waitUntil: 'networkidle' });
-    await expect(page.locator('.global-view-pins .pinned')).toContainText('Pinned Kanban Ref');
+    await expect(page.locator('.lens-pins .pinned')).toContainText('Pinned Kanban Ref');
   });
 
   test('add to board', async ({ page }) => {
