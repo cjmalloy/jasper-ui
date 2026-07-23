@@ -34,7 +34,7 @@ export const jezzballPlugin: Plugin = {
   name: $localize`🟣️ JezzBall`,
   config: {
     mod: $localize`🟣️ JezzBall`,
-    version: 2,
+    version: 3,
     type: 'plugin',
     editingViewer: true,
     experimental: true,
@@ -465,7 +465,7 @@ export const jezzballPlugin: Plugin = {
               nextY = ball.y + ball.vy * dt;
             }
             ball.y = Math.max(BALL_RADIUS, Math.min(ROWS - BALL_RADIUS, nextY));
-            ball.spin += dt * 7;
+            ball.spin -= dt * 7;
           }
         }
 
