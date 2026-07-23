@@ -7144,13 +7144,21 @@ Each response contains the converted Markdown from a specific source format.</so
         <source>Resume</source>
         <target>再開</target>
       </trans-unit>
-      <trans-unit id="3353779417951108061" datatype="html">
-        <source>Eject</source>
-        <target>書き出す</target>
+      <trans-unit id="6080928629553303128" datatype="html">
+        <source>Slow</source>
+        <target>低速</target>
       </trans-unit>
-      <trans-unit id="8977874514318795349" datatype="html">
-        <source>Download a portable game</source>
-        <target>ポータブルゲームをダウンロード</target>
+      <trans-unit id="4440784179849538382" datatype="html">
+        <source>Fast</source>
+        <target>高速</target>
+      </trans-unit>
+      <trans-unit id="8973244013586619309" datatype="html">
+        <source>Sound on</source>
+        <target>サウンドオン</target>
+      </trans-unit>
+      <trans-unit id="7835949021036102347" datatype="html">
+        <source>Sound off</source>
+        <target>サウンドオフ</target>
       </trans-unit>
       <trans-unit id="2128624502640961509" datatype="html">
         <source>New game</source>

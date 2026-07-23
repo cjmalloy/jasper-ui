@@ -97,9 +97,26 @@ test.describe.serial('JezzBall Plugin', () => {
     await expect(game.locator('.jezzball-level')).toHaveText('Level 3');
 
     const direction = game.locator('.jezzball-direction');
+    const canvas = game.locator('.jezzball-canvas');
     await expect(direction).toHaveText('Wall ↕');
+    await expect(canvas).toHaveCSS('cursor', 'ns-resize');
     await direction.click();
     await expect(direction).toHaveText('Wall ↔');
+    await expect(canvas).toHaveCSS('cursor', 'ew-resize');
+    const speed = game.locator('.jezzball-speed');
+    await expect(speed).toHaveText('Slow');
+    await speed.click();
+    await expect(speed).toHaveText('Fast');
+    const sound = game.locator('.jezzball-sound');
+    await expect(sound).toHaveText('Sound on');
+    await sound.click();
+    await expect(sound).toHaveText('Sound off');
+
+    await page.evaluate(() => {
+      document.body.classList.remove('dark-theme');
+      document.body.classList.add('light-theme');
+    });
+    await expect(game).toHaveCSS('color', 'rgb(0, 0, 0)');
   });
 
   test('plays a read-only Ref as a saved example', async () => {
@@ -166,24 +183,66 @@ test.describe.serial('JezzBall Plugin', () => {
     await expect(game.locator('.jezzball-overlay')).toContainText(/Game over · score \d+/);
   });
 
-  test('ejects a playable self-contained page', async () => {
-    const downloadPromise = page.waitForEvent('download');
-    await page.locator('.full-page.ref .jezzball-eject').click();
-    const download = await downloadPromise;
-    expect(download.suggestedFilename()).toBe('jezzball.html');
-    const stream = await download.createReadStream();
-    const chunks: Buffer[] = [];
-    for await (const chunk of stream) chunks.push(chunk);
-    const html = Buffer.concat(chunks).toString();
+  test('uses two-finger wall gestures with a diagonal dead zone', async () => {
+    await page.goto(gamePath + '?debug=ANON', { waitUntil: 'networkidle' });
+    const game = page.locator('.full-page.ref .jezzball-game');
+    await game.locator('.jezzball-overlay button').click();
+    await installDeterministicGameClock(page);
+    const canvas = game.locator('.jezzball-canvas');
+    const box = await canvas.boundingBox();
+    if (!box) throw new Error('JezzBall canvas has no bounding box');
+    const point = (x: number, y: number) => ({
+      clientX: box.x + box.width * x / 32,
+      clientY: box.y + box.height * y / 24,
+      pointerType: 'touch',
+      button: 0,
+    });
 
-    expect(html).toContain('<!DOCTYPE html>');
-    expect(html).toContain('jezzballApp');
-    expect(html).not.toContain('<script src=');
+    await canvas.dispatchEvent('pointerdown', { ...point(3, 7), pointerId: 1, isPrimary: true });
+    await canvas.dispatchEvent('pointerdown', { ...point(5, 9), pointerId: 2 });
+    await advanceGame(page, 1);
+    await canvas.dispatchEvent('pointerup', { ...point(3, 7), pointerId: 1, isPrimary: true });
+    await canvas.dispatchEvent('pointerup', { ...point(5, 9), pointerId: 2 });
+    const diagonalPixel = await canvas.evaluate((element: HTMLCanvasElement) => (
+      [...element.getContext('2d')!.getImageData(4 * 25 + 12, 8 * 25 + 12, 1, 1).data]
+    ));
+    expect(diagonalPixel.slice(0, 3)).not.toEqual([215, 215, 223]);
 
-    const portable = await page.context().newPage();
-    await portable.setContent(html);
-    await expect(portable.locator('.jezzball-canvas')).toBeVisible();
-    await expect(portable.locator('.jezzball-level')).toHaveText('Level 2');
-    await portable.close();
+    await canvas.dispatchEvent('pointerdown', { ...point(3, 7), pointerId: 3, isPrimary: true });
+    await canvas.dispatchEvent('pointerdown', { ...point(3, 9), pointerId: 4 });
+    await advanceGame(page, 1);
+    const wallPixel = await canvas.evaluate((element: HTMLCanvasElement) => (
+      [...element.getContext('2d')!.getImageData(3 * 25 + 12, 8 * 25 + 12, 1, 1).data]
+    ));
+    expect(wallPixel.slice(0, 3)).toEqual([227, 66, 79]);
+    await expect(canvas).toHaveCSS('cursor', 'ns-resize');
+  });
+
+  test('keeps the surviving half when an atom hits the other half', async () => {
+    await page.addInitScript(() => {
+      Math.random = () => 0.5;
+    });
+    await page.goto(gamePath + '?debug=ANON', { waitUntil: 'networkidle' });
+    const game = page.locator('.full-page.ref .jezzball-game');
+    await game.locator('.jezzball-overlay button').click();
+    await installDeterministicGameClock(page);
+    await game.locator('.jezzball-sound').click();
+    await game.locator('.jezzball-direction').click();
+    const canvas = game.locator('.jezzball-canvas');
+    const box = await canvas.boundingBox();
+    if (!box) throw new Error('JezzBall canvas has no bounding box');
+    await canvas.click({
+      position: {
+        x: box.width * 16.5 / 32,
+        y: box.height * 14.5 / 24,
+      },
+    });
+    await advanceGame(page, 30);
+
+    await expect(game.locator('.jezzball-lives')).toHaveText('Lives 2');
+    const survivingPixel = await canvas.evaluate((element: HTMLCanvasElement) => (
+      [...element.getContext('2d')!.getImageData(8 * 25 + 12, 14 * 25 + 12, 1, 1).data]
+    ));
+    expect(survivingPixel.slice(0, 3)).toEqual([40, 114, 184]);
   });
 });
