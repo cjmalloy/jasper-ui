@@ -140,6 +140,9 @@ test.describe.serial('JezzBall Plugin', () => {
 
   test('fits the whole stage in fullscreen and hides controls', async () => {
     const game = page.locator('.full-page.ref .jezzball-game');
+    const container = game.locator('xpath=ancestor::*[contains(@class, "md-container")]');
+    await expect(container).toHaveClass(/no-resize/);
+    await expect(container).not.toHaveClass(/zoom/);
     await game.evaluate(async element => {
       await element.closest('app-viewer')!.requestFullscreen();
     });

@@ -712,6 +712,11 @@ export const jezzballPlugin: Plugin = {
       Handlebars.registerHelper('jezzball', function(ref, actions, el) {
         return function() {
           const root = el && el.querySelector ? el.querySelector('.jezzball-game') : document.querySelector('.jezzball-game');
+          const container = root && root.closest('.md-container');
+          if (container) {
+            container.classList.add('no-resize');
+            container.classList.remove('zoom');
+          }
           let initial = {};
           try {
             initial = ref && ref.comment ? JSON.parse(ref.comment) : {};
