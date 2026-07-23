@@ -28,7 +28,8 @@ function getGrid(storyboard: Storyboard | null): StoryboardGrid | null {
   const cols = Math.trunc(Number(storyboard.cols));
   const rows = Math.trunc(Number(storyboard.rows));
   const totalFrames = cols * rows;
-  if (cols <= 0 || rows <= 0 || totalFrames > MAX_FRAMES) return null;
+  if (!Number.isFinite(cols) || !Number.isFinite(rows)
+    || cols <= 0 || rows <= 0 || totalFrames > MAX_FRAMES) return null;
   return { cols, rows, totalFrames };
 }
 
