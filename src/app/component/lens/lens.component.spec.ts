@@ -84,6 +84,31 @@ describe('LensComponent', () => {
     }]);
   });
 
+  it('loads pins from the rendered Ext without an override', () => {
+    const refs = TestBed.inject(RefService);
+    vi.spyOn(refs, 'getCurrent').mockReturnValue(of({
+      url: 'https://example.com/pinned',
+    }));
+    component.ext = {
+      tag: 'kanban/test',
+      origin: '',
+      config: { pinned: ['https://example.com/pinned'] },
+    };
+
+    component.ngOnChanges({
+      ext: {
+        previousValue: undefined,
+        currentValue: component.ext,
+        firstChange: true,
+        isFirstChange: () => true,
+      },
+    });
+
+    expect(component.pinnedPage.content).toEqual([{
+      url: 'https://example.com/pinned',
+    }]);
+  });
+
   it('clears existing pins while a different Ext loads', () => {
     const refs = TestBed.inject(RefService);
     vi.spyOn(refs, 'getCurrent').mockReturnValue(new Observable(() => {}));

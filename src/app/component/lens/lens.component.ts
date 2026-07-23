@@ -61,6 +61,10 @@ export class LensComponent implements OnChanges, OnDestroy, HasChanges {
   get pinnedExt() {
     return this._pinnedExt;
   }
+
+  get pinsExt() {
+    return this.pinnedExt || this.ext;
+  }
   @Input()
   tag = '';
   @Input()
@@ -116,6 +120,7 @@ export class LensComponent implements OnChanges, OnDestroy, HasChanges {
   ngOnChanges(changes: SimpleChanges) {
     if (changes.ext) {
       this.init();
+      if (!this.pinnedExt) this.loadPinned();
     }
   }
 
@@ -126,7 +131,7 @@ export class LensComponent implements OnChanges, OnDestroy, HasChanges {
   loadPinned() {
     this.pinnedRequest?.unsubscribe();
     this.pinnedPage = Page.of<Ref>([]);
-    const pinned = this.pinnedExt?.config?.pinned as string[] | undefined;
+    const pinned = this.pinsExt?.config?.pinned as string[] | undefined;
     if (!pinned?.length) return;
     this.pinnedRequest = forkJoin(pinned.map(url =>
       this.refs.getCurrent(url).pipe(catchError(() => of({ url })))
