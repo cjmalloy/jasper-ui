@@ -1,10 +1,11 @@
-import { Component, OnDestroy, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnDestroy, OnInit, ChangeDetectionStrategy, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { defer } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { MobxAngularModule } from 'mobx-angular';
-import { Subscription } from 'rxjs';
+import { from, Subscription } from 'rxjs';
 import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
 import { AccountService } from '../../../service/account.service';
 import { ModService } from '../../../service/mod.service';
@@ -31,6 +32,7 @@ export class InboxUnreadPage implements OnInit, OnDestroy {
     public query: QueryStore,
     private account: AccountService,
     private router: Router,
+    private destroyRef: DestroyRef,
   ) {
     mod.setTitle($localize`Inbox: Unread`);
     store.view.clear(['modified']);
@@ -49,7 +51,7 @@ export class InboxUnreadPage implements OnInit, OnDestroy {
         cleared = this.clearNotifications();
       }
       defer(() => {
-        cleared.then(() => {
+        from(cleared).pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
           this.load?.unsubscribe();
           this.load = this.account.notificationPage$(this.store.view.pageSize).subscribe(page =>
             runInAction(() => this.query.page = page));

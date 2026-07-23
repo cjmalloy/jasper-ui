@@ -89,4 +89,20 @@ describe('InboxUnreadPage', () => {
     await vi.runAllTimersAsync();
     expect(account.notificationPage$).toHaveBeenCalledTimes(2);
   });
+
+  it('does not reload notifications after destruction', async () => {
+    let resolve!: () => void;
+    account.clearNotifications.mockImplementation(() => new Promise<void>(done => resolve = done));
+    notifications.next(Page.of<Ref>([
+      { url: 'spec:city', origin: '@city', modified: DateTime.fromISO('2026-07-23T12:00:00Z') },
+    ]));
+
+    runInAction(() => component.store.view.defaultPageNumber = 1);
+    vi.runAllTimers();
+    fixture.destroy();
+    resolve();
+    await vi.runAllTimersAsync();
+
+    expect(account.notificationPage$).toHaveBeenCalledTimes(1);
+  });
 });
