@@ -334,9 +334,9 @@ export class AccountService {
       grouped.set(origin, [...(grouped.get(origin) || []), mailbox]);
     }
     return Array.from(grouped).map(([origin, boxes]) => {
-      const selectors = origin
-        ? this.origins.aliasesFor(this.store.account.tag, origin)
-        : [this.store.account.tag];
+      const selectors = origin === this.store.account.origin
+        ? [this.store.account.tag]
+        : this.origins.aliasesFor(this.store.account.tag, origin);
       const excludeAuthors = selectors.map(selector => `!${selector}`).join(':');
       const alarms = this.store.account.alarmsQuery ? `|${this.store.account.alarmsQuery}` : '';
       return {
