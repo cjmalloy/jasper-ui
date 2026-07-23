@@ -182,7 +182,7 @@ export const jezzballPlugin: Plugin = {
 
         function randomVelocity() {
           const speed = 4.3 + Math.min(level, 12) * 0.08;
-          const angle = Math.PI / 5 + Math.random() * Math.PI * 0.3;
+          const angle = Math.PI / 6 + Math.random() * Math.PI / 6;
           return {
             vx: speed * Math.cos(angle) * (Math.random() < 0.5 ? -1 : 1),
             vy: speed * Math.sin(angle) * (Math.random() < 0.5 ? -1 : 1),
