@@ -17,7 +17,7 @@ test.describe.serial('Kanban Template No Swimlanes', () => {
   });
 
   test('turn on kanban', async ({ page }) => {
-    await mod(page, '#mod-root', '#mod-kanban');
+    await mod(page, '#mod-root', '#mod-experiments', '#mod-kanban', '#mod-graph');
   });
 
   test('creates a board', async ({ page }) => {
@@ -80,6 +80,9 @@ test.describe.serial('Kanban Template No Swimlanes', () => {
 
     await page.goto('/tag/kanban/test?debug=MOD&view=list', { waitUntil: 'networkidle' });
     await expect(page.locator('.ref-list .pinned')).toContainText('Pinned Kanban Ref');
+
+    await page.goto('/tag/kanban/test?debug=MOD&view=graph', { waitUntil: 'networkidle' });
+    await expect(page.locator('.global-view-pins .pinned')).toContainText('Pinned Kanban Ref');
   });
 
   test('add to board', async ({ page }) => {

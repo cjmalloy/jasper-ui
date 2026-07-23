@@ -72,7 +72,7 @@ describe('ViewStore defaults', () => {
     expect(store.viewExt).toBe(store.exts[0]);
   });
 
-  it('does not use the default Ext for a selected global view', () => {
+  it('keeps the selected global view and the active Ext pins', () => {
     const store = createStore({ view: 'graph' }, 'tag', 'kanban/test');
     store.extTemplates = [{
       tag: 'kanban',
@@ -89,7 +89,9 @@ describe('ViewStore defaults', () => {
       config: { pinned: ['https://example.com'] },
     }];
 
+    expect(store.globalView).toBe(true);
     expect(store.viewExt?.tag).toBe('graph');
     expect(store.viewExt?.config?.pinned).toBeUndefined();
+    expect(store.ext?.config?.pinned).toEqual(['https://example.com']);
   });
 });

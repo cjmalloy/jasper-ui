@@ -191,6 +191,10 @@ export class ViewStore {
     return this.extTemplates.filter(t => t.config?.global);
   }
 
+  get globalView() {
+    return !!this.view && this.globalTemplates.some(t => hasPrefix(this.view, t.tag));
+  }
+
   isTemplate(template: string) {
     return hasPrefix(this.viewExt?.tag, template);
   }

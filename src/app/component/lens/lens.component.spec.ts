@@ -4,7 +4,9 @@ import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, DeferBlockBehavior, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { runInAction } from 'mobx';
+import { of } from 'rxjs';
 
+import { RefService } from '../../service/api/ref.service';
 import { LensComponent } from './lens.component';
 
 describe('LensComponent', () => {
@@ -43,6 +45,25 @@ describe('LensComponent', () => {
 
     expect(component.isTemplate('kanban')).toBe(false);
     expect(component.ext.config?.pinned).toEqual(['https://example.com/pinned']);
+  });
+
+  it('shows active Ext pins with a global view', () => {
+    const refs = TestBed.inject(RefService);
+    vi.spyOn(refs, 'getCurrent').mockReturnValue(of({
+      url: 'https://example.com/pinned',
+      title: 'Pinned global ref',
+    }));
+    component.pinnedExt = {
+      tag: 'kanban/test',
+      origin: '',
+      config: { pinned: ['https://example.com/pinned'] },
+    };
+    component.globalView = true;
+
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('.global-view-pins .pinned')?.textContent)
+      .toContain('Pinned global ref');
   });
 
   it.each([

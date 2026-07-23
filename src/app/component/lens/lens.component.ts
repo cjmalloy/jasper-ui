@@ -48,6 +48,10 @@ export class LensComponent implements OnChanges, HasChanges {
   @Input()
   ext?: Ext;
   @Input()
+  pinnedExt?: Ext;
+  @Input()
+  globalView = false;
+  @Input()
   tag = '';
   @Input()
   fullPage = false;
@@ -74,6 +78,7 @@ export class LensComponent implements OnChanges, HasChanges {
 
   plugins?: string[];
   header?: string;
+  emptyPage = Page.of<Ref>([]);
 
   @ViewChildren('lens')
   list?: QueryList<HasChanges>;

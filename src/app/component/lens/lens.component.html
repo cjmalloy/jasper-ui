@@ -1,6 +1,14 @@
 @if (header) {
   <app-viewer class="lens-header" [text]="header"></app-viewer>
 }
+@if (globalView && pinnedExt?.config?.pinned?.length) {
+  <app-ref-list #lens
+                class="global-view-pins"
+                [ext]="pinnedExt"
+                [page]="emptyPage"
+                [pageControls]="false"
+                [emptyMessage]="''"></app-ref-list>
+}
 <ng-container *mobxAutorun>
   @if (query.responseOf) {
     <div class="list-container responses-of">
