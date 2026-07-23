@@ -2,11 +2,13 @@
 import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, DeferBlockBehavior, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
 import { runInAction } from 'mobx';
-import { of } from 'rxjs';
+import { Observable } from 'rxjs';
 
 import { RefService } from '../../service/api/ref.service';
+import { RefListComponent } from '../ref/ref-list/ref-list.component';
 import { LensComponent } from './lens.component';
 
 describe('LensComponent', () => {
@@ -49,10 +51,7 @@ describe('LensComponent', () => {
 
   it('shows active Ext pins with a global view', () => {
     const refs = TestBed.inject(RefService);
-    vi.spyOn(refs, 'getCurrent').mockReturnValue(of({
-      url: 'https://example.com/pinned',
-      title: 'Pinned global ref',
-    }));
+    vi.spyOn(refs, 'getCurrent').mockReturnValue(new Observable(() => {}));
     component.pinnedExt = {
       tag: 'kanban/test',
       origin: '',
@@ -62,8 +61,8 @@ describe('LensComponent', () => {
 
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.querySelector('.global-view-pins .pinned')?.textContent)
-      .toContain('Pinned global ref');
+    const pinned = fixture.debugElement.query(By.directive(RefListComponent)).componentInstance as RefListComponent;
+    expect(pinned.ext?.config?.pinned).toEqual(['https://example.com/pinned']);
   });
 
   it.each([
