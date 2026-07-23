@@ -537,54 +537,64 @@ export class ViewerComponent implements OnChanges, OnDestroy {
   @memo
   get uiActions(): PluginApi {
     const actions = this.actions.wrap(this.ref);
-    return {
-      writable: !this.ref?.modified || (!!this.ref && this.auth.writeAccess(this.ref)),
-      comment: (comment: string) => {
-        if (this.ref) {
-          runInAction(() => this.ref!.comment = comment);
-        } else {
-          this.text = comment;
-        }
-        if (this.ref?.modified) actions.comment(comment);
-        this.comment.emit(comment);
-      },
+    const api: PluginApi = {
       event: (event: string) => {
-        actions.event(event);
-      },
-      emit: (a: EmitAction) => {
-        actions.emit(a);
-      },
-      tag: (tag: string) => {
-        if (this.ref?.modified) actions.tag(tag);
-      },
-      respond: (response: string, clear?: string[]) => {
-        if (this.ref?.modified) actions.respond(response, clear);
-      },
-      watch: () => {
-        if (this.ref?.modified) return actions.watch();
-        const subject$ = new BehaviorSubject<RefUpdates>({ comment: this.text } as RefUpdates);
-        return {
-          ref$: subject$,
-          comment$: (comment: string) => {
-            this.text = comment;
-            subject$.next({ comment: this.text } as RefUpdates)
-            return of();
-          },
-        };
-      },
-      append: () => {
-        if (this.ref?.modified) return actions.append();
-        const subject$ = new Subject<string>();
-        return {
-          updates$: subject$,
-          append$: (value: string) => {
-            this.text += value;
-            subject$.next(value);
-            return of();
-          },
-        };
+        actions.event!(event);
       },
     };
+    if (this.auth.hasRole('ROLE_USER')) {
+      api.emit = (a: EmitAction) => {
+        actions.emit!(a);
+      };
+      if (this.ref?.modified) {
+        api.respond = (response: string, clear?: string[]) => {
+          actions.respond!(response, clear);
+        };
+      }
+    }
+    if (this.ref?.modified && this.auth.taggingAccess(this.ref) && this.auth.hasRole('ROLE_USER')) {
+      api.tag = (tag: string) => {
+        actions.tag!(tag);
+      };
+    }
+    if (!this.ref?.modified || (!!this.ref && this.auth.writeAccess(this.ref))) {
+      Object.assign(api, {
+        comment: (comment: string) => {
+          if (this.ref) {
+            runInAction(() => this.ref!.comment = comment);
+          } else {
+            this.text = comment;
+          }
+          if (this.ref?.modified) actions.comment!(comment);
+          this.comment.emit(comment);
+        },
+        watch: () => {
+          if (this.ref?.modified) return actions.watch!();
+          const subject$ = new BehaviorSubject<RefUpdates>({ comment: this.text } as RefUpdates);
+          return {
+            ref$: subject$,
+            comment$: (comment: string) => {
+              this.text = comment;
+              subject$.next({ comment: this.text } as RefUpdates)
+              return of();
+            },
+          };
+        },
+        append: () => {
+          if (this.ref?.modified) return actions.append!();
+          const subject$ = new Subject<string>();
+          return {
+            updates$: subject$,
+            append$: (value: string) => {
+              this.text += value;
+              subject$.next(value);
+              return of();
+            },
+          };
+        },
+      });
+    }
+    return api;
   }
 
   @memo

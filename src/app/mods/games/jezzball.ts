@@ -32,7 +32,7 @@ export const jezzballPlugin: Plugin = {
   name: $localize`🟣️ JezzBall`,
   config: {
     mod: $localize`🟣️ JezzBall`,
-    version: 1,
+    version: 2,
     type: 'plugin',
     editingViewer: true,
     experimental: true,
@@ -584,8 +584,8 @@ export const jezzballPlugin: Plugin = {
           }
           jezzballApp(root, {
             initial: initial,
-            writable: !actions || actions.writable !== false,
-            save: actions && actions.writable !== false && actions.comment ? function(state) {
+            writable: !actions || !!actions.comment,
+            save: actions && actions.comment ? function(state) {
               actions.comment(JSON.stringify(state));
             } : undefined,
           });

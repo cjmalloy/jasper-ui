@@ -144,17 +144,13 @@ export const pluginSchema: Schema = {
 };
 
 export interface PluginApi {
-  /**
-   * Whether the current Ref can be updated.
-   */
-  writable?: boolean;
-  comment: (comment: string) => void;
-  event: (event: string) => void;
-  emit: (a: EmitAction) => void;
-  tag: (tag: string) => void;
-  respond: (response: string, clear?: string[]) => void;
-  watch: (delimiter?: string) => { ref$: Observable<RefUpdates>, comment$: (comment: string) => Observable<string> },
-  append: (delimiter?: string) => { updates$: Observable<string>, append$: (value: string) => Observable<string> },
+  comment?: (comment: string) => void;
+  event?: (event: string) => void;
+  emit?: (a: EmitAction) => void;
+  tag?: (tag: string) => void;
+  respond?: (response: string, clear?: string[]) => void;
+  watch?: (delimiter?: string) => { ref$: Observable<RefUpdates>, comment$: (comment: string) => Observable<string> },
+  append?: (delimiter?: string) => { updates$: Observable<string>, append$: (value: string) => Observable<string> },
 }
 
 export function mapPlugin(obj: any): Plugin {
