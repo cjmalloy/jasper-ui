@@ -1,6 +1,7 @@
-import { Component, Input, OnDestroy, OnInit, QueryList, ViewChildren, ChangeDetectionStrategy } from '@angular/core';
+import { DestroyRef, inject, Component, Input, OnInit, QueryList, ViewChildren, ChangeDetectionStrategy } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
-import { catchError, forkJoin, Observable, of, Subject, takeUntil } from 'rxjs';
+import { catchError, forkJoin, Observable, of } from 'rxjs';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ext } from '../../model/ext';
 import { Page } from '../../model/page';
@@ -25,8 +26,8 @@ import { NoteComponent } from './note/note.component';
     LoadingComponent,
   ],
 })
-export class NotebookComponent implements OnInit, OnDestroy, HasChanges {
-  private destroy$ = new Subject<void>();
+export class NotebookComponent implements OnInit, HasChanges {
+  private destroyRef = inject(DestroyRef);
 
   @Input()
   hide?: number[];
@@ -88,7 +89,7 @@ export class NotebookComponent implements OnInit, OnDestroy, HasChanges {
       forkJoin((value.config.pinned as string[])
         .map(pin => this.refs.getCurrent(pin).pipe(
           catchError(err => of({ url: pin })),
-          takeUntil(this.destroy$),
+          takeUntilDestroyed(this.destroyRef),
         )))
         .subscribe(pinned => this.pinned = pinned);
     }
@@ -143,14 +144,10 @@ export class NotebookComponent implements OnInit, OnDestroy, HasChanges {
 
   ngOnInit(): void {
     this.newRefs$?.pipe(
-      takeUntil(this.destroy$),
+      takeUntilDestroyed(this.destroyRef),
     ).subscribe(ref => ref && this.addNewRef(ref));
   }
 
-  ngOnDestroy() {
-    this.destroy$.next();
-    this.destroy$.complete();
-  }
 
   addNewRef(ref: Ref) {
     // TODO: verify read before clearing?

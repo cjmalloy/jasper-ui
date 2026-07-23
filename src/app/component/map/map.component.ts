@@ -1,4 +1,5 @@
-import { Component, Input, OnChanges, OnDestroy, SimpleChanges, ViewEncapsulation, ChangeDetectionStrategy } from '@angular/core';
+import { DestroyRef, inject, Component, Input, OnChanges, OnDestroy, SimpleChanges, ViewEncapsulation, ChangeDetectionStrategy } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import {
   ControlComponent,
@@ -9,7 +10,7 @@ import {
 import type { FeatureCollection } from 'geojson';
 import type { GeoJSONSource } from 'maplibre-gl';
 import { Map, Marker, setWorkerUrl } from 'maplibre-gl';
-import { catchError, forkJoin, map as rxMap, of, Subject, switchMap, takeUntil } from 'rxjs';
+import { catchError, forkJoin, map as rxMap, of, Subject, switchMap } from 'rxjs';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ext } from '../../model/ext';
 import { Page } from '../../model/page';
@@ -59,7 +60,7 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
   private _page?: Page<Ref>;
   private map?: Map;
   private markers: Marker[] = [];
-  private destroy$ = new Subject<void>();
+  private destroyRef = inject(DestroyRef);
   private mapDataUpdates$ = new Subject<Ref[]>();
   mapData: MapEntry[] = [];
 
@@ -76,7 +77,7 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
         if (!content.some(ref => this.isBareRepost(ref))) return of(content.map(ref => [ref] as MapEntry));
         return forkJoin(content.map(ref => this.getBareRepost(ref)));
       }),
-      takeUntil(this.destroy$),
+      takeUntilDestroyed(this.destroyRef),
     ).subscribe(mapData => {
       this.mapData = mapData;
       MemoCache.clear(this);
@@ -103,8 +104,6 @@ export class MapComponent implements OnChanges, OnDestroy, HasChanges {
   }
 
   ngOnDestroy() {
-    this.destroy$.next();
-    this.destroy$.complete();
     this.mapDataUpdates$.complete();
     this.clearMarkers();
     try {

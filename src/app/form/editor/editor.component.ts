@@ -1,7 +1,12 @@
-import { Overlay, OverlayRef } from '@angular/cdk/overlay';
+import {
+  Overlay,
+  OverlayRef
+} from '@angular/cdk/overlay';
 import { DomPortal, TemplatePortal } from '@angular/cdk/portal';
 import { HttpEventType } from '@angular/common/http';
 import {
+  DestroyRef,
+  inject,
   AfterViewInit,
   ChangeDetectorRef,
   Component,
@@ -20,12 +25,13 @@ import {
   ViewContainerRef,
   ChangeDetectionStrategy
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, UntypedFormArray, UntypedFormControl } from '@angular/forms';
 import { NavigationEnd, Router } from '@angular/router';
 import Europa from 'europa';
 import { debounce, defer, delay, intersection, sortedLastIndex, uniq, without } from 'lodash-es';
 import { autorun, IReactionDisposer } from 'mobx';
-import { catchError, filter, last, map, Observable, of, Subject, Subscription, switchMap, takeUntil, tap } from 'rxjs';
+import { catchError, filter, last, map, Observable, of, Subscription, switchMap, tap } from 'rxjs';
 import { v4 as uuid } from 'uuid';
 import { LoadingComponent } from '../../component/loading/loading.component';
 import { MdComponent } from '../../component/md/md.component';
@@ -72,7 +78,7 @@ export interface EditorUpload {
   ],
 })
 export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
-  private destroy$ = new Subject<void>();
+  private destroyRef = inject(DestroyRef);
   private disposers: IReactionDisposer[] = [];
 
   @Input()
@@ -179,7 +185,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
     this.router.events.pipe(
       filter(event => event instanceof NavigationEnd)
     ).subscribe(() => this.toggleFullscreen(false));
-    this.store.eventBus.events.pipe(takeUntil(this.destroy$)).subscribe(event => {
+    this.store.eventBus.events.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(event => {
       this.loadingEvents[event.event] = false;
     });
   }
@@ -208,7 +214,7 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
     }));
     if (this.tags) {
       this.tags.valueChanges.pipe(
-        takeUntil(this.destroy$),
+        takeUntilDestroyed(this.destroyRef),
       ).subscribe(() => {
         this.init();
       });
@@ -225,8 +231,6 @@ export class EditorComponent implements OnChanges, AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    this.destroy$.next();
-    this.destroy$.complete();
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
     document.body.style.height = '';

@@ -1,8 +1,9 @@
-import { Component, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { DestroyRef, inject, Component, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { defer } from 'lodash-es';
 import { autorun, IReactionDisposer, runInAction } from 'mobx';
 import { MobxAngularModule } from 'mobx-angular';
-import { catchError, filter, of, Subject, Subscription, switchMap, takeUntil } from 'rxjs';
+import { catchError, filter, of, Subject, Subscription, switchMap } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { RefListComponent } from '../../../component/ref/ref-list/ref-list.component';
 import { HasChanges } from '../../../guard/pending-changes.guard';
@@ -30,7 +31,7 @@ import { hasTag, updateMetadata } from '../../../util/tag';
 export class RefErrorsComponent implements HasChanges {
 
   private disposers: IReactionDisposer[] = [];
-  private destroy$ = new Subject<void>();
+  private destroyRef = inject(DestroyRef);
 
   @ViewChild('list')
   list?: RefListComponent;
@@ -81,7 +82,7 @@ export class RefErrorsComponent implements HasChanges {
           tap(ref => runInAction(() => updateMetadata(this.store.view.ref!, ref))),
           filter(ref => hasTag('+plugin/log', ref)),
           catchError(err => of(undefined)),
-          takeUntil(this.destroy$),
+          takeUntilDestroyed(this.destroyRef),
         ).subscribe(ref => this.newRefs$.next(ref));
       }
     }));
@@ -89,8 +90,6 @@ export class RefErrorsComponent implements HasChanges {
 
   ngOnDestroy() {
     this.query.close();
-    this.destroy$.next();
-    this.destroy$.complete();
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
   }

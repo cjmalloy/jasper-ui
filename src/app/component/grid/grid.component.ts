@@ -1,4 +1,6 @@
 import {
+  DestroyRef,
+  inject,
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
@@ -6,12 +8,13 @@ import {
   OnDestroy,
   ViewEncapsulation
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { AgGridModule } from 'ag-grid-angular';
 import { AllCommunityModule, ColDef, ModuleRegistry } from 'ag-grid-community';
 import { DateTime } from 'luxon';
 import { autorun, IReactionDisposer } from 'mobx';
-import { catchError, forkJoin, of, Subject, switchMap, takeUntil } from 'rxjs';
+import { catchError, forkJoin, of, Subject, switchMap } from 'rxjs';
 import { HasChanges } from '../../guard/pending-changes.guard';
 import { Ext } from '../../model/ext';
 import { Page } from '../../model/page';
@@ -42,7 +45,7 @@ export class GridComponent implements OnDestroy, HasChanges {
   private customTypes = new Set<string>(['url', 'tag', 'tags', 'sources', 'image', 'lens', 'markdown', 'embed']);
   private autoHeightTypes = new Set<string>(['tags', 'sources', 'image', 'lens', 'markdown', 'embed']);
   private disposers: IReactionDisposer[] = [];
-  private destroy$ = new Subject<void>();
+  private destroyRef = inject(DestroyRef);
   private rowDataUpdates$ = new Subject<Ref[]>();
 
   @Input()
@@ -78,7 +81,7 @@ export class GridComponent implements OnDestroy, HasChanges {
         if (!content.some(ref => this.isBareRepost(ref))) return of(content);
         return forkJoin(content.map(ref => this.getBareRepost(ref)));
       }),
-      takeUntil(this.destroy$),
+      takeUntilDestroyed(this.destroyRef),
     ).subscribe(rowData => {
       this.rowData = rowData;
       this.cd.markForCheck();
@@ -90,8 +93,6 @@ export class GridComponent implements OnDestroy, HasChanges {
   }
 
   ngOnDestroy() {
-    this.destroy$.next();
-    this.destroy$.complete();
     this.rowDataUpdates$.complete();
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;

@@ -1,7 +1,11 @@
-import { AsyncPipe } from '@angular/common';
+import {
+  AsyncPipe
+} from '@angular/common';
 import { FakeLinkDirective } from '../../directive/fake-link.directive';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
+  DestroyRef,
+  inject,
   AfterViewInit,
   ChangeDetectorRef,
   Component,
@@ -20,12 +24,13 @@ import {
   ViewChildren,
   ChangeDetectionStrategy
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { cloneDeep, defer, delay, groupBy, pick, throttle, uniq, without } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { runInAction } from 'mobx';
-import { catchError, map, of, Subject, Subscription, switchMap, takeUntil, throwError } from 'rxjs';
+import { catchError, map, of, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { TitleDirective } from '../../directive/title.directive';
 import { DiffComponent } from '../../form/diff/diff.component';
@@ -71,7 +76,7 @@ import {
   storyboardMargin,
   storyboardSize,
   storyboardUrl,
-  storyboardWidth,
+  storyboardWidth
 } from '../../util/storyboard';
 import {
   capturesAny,
@@ -161,7 +166,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
     const radius = Number(this.refThumbnailPlugin?.['radius']);
     return Number.isFinite(radius) ? `${radius}` : undefined;
   }
-  private destroy$ = new Subject<void>();
+  private destroyRef = inject(DestroyRef);
 
   @ViewChildren('action')
   actionComponents?: QueryList<ActionComponent>;
@@ -260,7 +265,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   ) {
     this.editForm = refForm(fb);
     this.editForm.valueChanges.pipe(
-      takeUntil(this.destroy$),
+      takeUntilDestroyed(this.destroyRef),
     ).subscribe(throttle(value => {
       if (!this.editing) return;
       if (!value?.title && !value?.comment || !value?.tags?.length) return;
@@ -282,7 +287,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
         cd.detectChanges();
       });
     }, 400, { leading: true, trailing: true }));
-    this.store.eventBus.events.pipe(takeUntil(this.destroy$)).subscribe(event => {
+    this.store.eventBus.events.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(event => {
       if (event.event === 'refresh') {
         if (this.editing || this.viewSource) {
           // TODO: show somewhere
@@ -358,7 +363,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
           : this.refs.getCurrent(this.url)
       ).pipe(
         catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
-        takeUntil(this.destroy$),
+        takeUntilDestroyed(this.destroyRef),
       ).subscribe(ref => {
         this.repostRef = ref;
         if (!ref) return;
@@ -415,8 +420,6 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
   }
 
   ngOnDestroy() {
-    this.destroy$.next();
-    this.destroy$.complete();
     if (this.lastSelected) {
       this.store.view.clearLastSelected();
     }
@@ -1401,7 +1404,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
       size: 1,
       sort: ['modified,DESC']
     }).pipe(
-      takeUntil(this.destroy$),
+      takeUntilDestroyed(this.destroyRef),
       map(page => {
         // Find the most recent remote version (not from local origin)
         const remoteVersion = page.content.find(r => r.origin !== this.store.account.origin);

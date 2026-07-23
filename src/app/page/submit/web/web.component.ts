@@ -1,5 +1,8 @@
-import { HttpErrorResponse } from '@angular/common/http';
-import { AfterViewInit, Component, forwardRef, OnDestroy, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import {
+  HttpErrorResponse
+} from '@angular/common/http';
+import { DestroyRef, inject, AfterViewInit, Component, forwardRef, OnDestroy, ViewChild, ChangeDetectionStrategy } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
 import { defer, uniq, without } from 'lodash-es';
@@ -13,10 +16,8 @@ import {
   interval,
   map,
   of,
-  Subject,
   Subscription,
   switchMap,
-  takeUntil,
   throwError
 } from 'rxjs';
 import { tap } from 'rxjs/operators';
@@ -62,7 +63,7 @@ import { getVisibilityTags } from '../../../util/tag';
 export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
 
   private disposers: IReactionDisposer[] = [];
-  private destroy$ = new Subject<void>();
+  private destroyRef = inject(DestroyRef);
 
   submitted = false;
   title = '';
@@ -97,7 +98,7 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
     this.webForm = refForm(fb);
     if (this.admin.editing) {
       interval(5_000).pipe(
-        takeUntil(this.destroy$),
+        takeUntilDestroyed(this.destroyRef),
       ).subscribe(() => {
         if (this.webForm.dirty) this.saveForLater();
       });
@@ -247,8 +248,6 @@ export class SubmitWebPage implements AfterViewInit, OnDestroy, HasChanges {
   ngOnDestroy() {
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
-    this.destroy$.next();
-    this.destroy$.complete();
   }
 
   get refForm(): RefFormComponent {

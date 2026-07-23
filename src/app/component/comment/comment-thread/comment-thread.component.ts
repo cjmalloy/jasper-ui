@@ -1,4 +1,6 @@
 import {
+  DestroyRef,
+  inject,
   Component,
   forwardRef,
   Input,
@@ -10,9 +12,10 @@ import {
   ViewChildren,
   ChangeDetectionStrategy
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { autorun, IReactionDisposer } from 'mobx';
 import { MobxAngularModule } from 'mobx-angular';
-import { Observable, Subject, takeUntil } from 'rxjs';
+import { Observable } from 'rxjs';
 import { HasChanges } from '../../../guard/pending-changes.guard';
 import { Ref } from '../../../model/ref';
 import { Store } from '../../../store/store';
@@ -31,7 +34,7 @@ import { CommentComponent } from '../comment.component';
   ],
 })
 export class CommentThreadComponent implements OnInit, OnChanges, OnDestroy, HasChanges {
-  private destroy$ = new Subject<void>();
+  private destroyRef = inject(DestroyRef);
   private disposers: IReactionDisposer[] = [];
 
   @Input()
@@ -78,7 +81,7 @@ export class CommentThreadComponent implements OnInit, OnChanges, OnDestroy, Has
 
   ngOnInit(): void {
     this.newComments$.pipe(
-      takeUntil(this.destroy$),
+      takeUntilDestroyed(this.destroyRef),
     ).subscribe(comment => comment && this.newComments.unshift(comment));
   }
 
@@ -94,8 +97,6 @@ export class CommentThreadComponent implements OnInit, OnChanges, OnDestroy, Has
   }
 
   ngOnDestroy() {
-    this.destroy$.next();
-    this.destroy$.complete();
     for (const dispose of this.disposers) dispose();
     this.disposers.length = 0;
   }

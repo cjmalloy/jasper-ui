@@ -1,21 +1,25 @@
-import { AsyncPipe } from '@angular/common';
+import {
+  AsyncPipe
+} from '@angular/common';
 import { FakeLinkDirective } from '../../../directive/fake-link.directive';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
+  DestroyRef,
+  inject,
   Component,
   forwardRef,
   HostBinding,
   Input,
   OnChanges,
-  OnDestroy,
   QueryList,
   SimpleChanges,
   ViewChildren,
   ChangeDetectionStrategy
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { defer, uniq } from 'lodash-es';
-import { catchError, map, of, Subject, switchMap, takeUntil, throwError } from 'rxjs';
+import { catchError, map, of, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { TitleDirective } from '../../../directive/title.directive';
 import { Ref } from '../../../model/ref';
@@ -58,9 +62,9 @@ import { ViewerComponent } from '../../viewer/viewer.component';
     AsyncPipe,
   ],
 })
-export class ChatEntryComponent implements OnChanges, OnDestroy {
+export class ChatEntryComponent implements OnChanges {
   @HostBinding('attr.tabindex') tabIndex = 0;
-  private destroy$ = new Subject<void>();
+  private destroyRef = inject(DestroyRef);
 
   @ViewChildren('action')
   actionComponents?: QueryList<ActionComponent>;
@@ -104,7 +108,7 @@ export class ChatEntryComponent implements OnChanges, OnDestroy {
           : this.refs.getCurrent(this.url)
       ).pipe(
         catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
-        takeUntil(this.destroy$),
+        takeUntilDestroyed(this.destroyRef),
       ).subscribe(ref => {
         this.repostRef = ref;
         if (!ref) return;
@@ -130,10 +134,6 @@ export class ChatEntryComponent implements OnChanges, OnDestroy {
     }
   }
 
-  ngOnDestroy() {
-    this.destroy$.next();
-    this.destroy$.complete();
-  }
 
   @memo
   get title() {
@@ -307,7 +307,7 @@ export class ChatEntryComponent implements OnChanges, OnDestroy {
       path: '/tags/-',
       value: '_moderated',
     }]).pipe(
-      switchMap(() => this.refs.get(this.ref.url, this.ref.origin!).pipe(takeUntil(this.destroy$))),
+      switchMap(() => this.refs.get(this.ref.url, this.ref.origin!).pipe(takeUntilDestroyed(this.destroyRef))),
       catchError((err: HttpErrorResponse) => {
         this.serverError = printError(err);
         return throwError(() => err);

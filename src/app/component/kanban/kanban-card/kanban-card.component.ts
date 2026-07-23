@@ -1,8 +1,13 @@
-import { Overlay, OverlayRef } from '@angular/cdk/overlay';
+import {
+  Overlay,
+  OverlayRef
+} from '@angular/cdk/overlay';
 import { TemplatePortal } from '@angular/cdk/portal';
 import { AsyncPipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import {
+  DestroyRef,
+  inject,
   AfterViewInit,
   Component,
   ElementRef,
@@ -13,7 +18,6 @@ import {
   Input,
   NgZone,
   OnChanges,
-  OnDestroy,
   Output,
   SimpleChanges,
   TemplateRef,
@@ -21,10 +25,11 @@ import {
   ViewContainerRef,
   ChangeDetectionStrategy
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { defer, delay, difference, intersection, uniq } from 'lodash-es';
 import { DateTime } from 'luxon';
-import { catchError, of, Subject, Subscription, switchMap, takeUntil, throwError } from 'rxjs';
+import { catchError, of, Subscription, switchMap, throwError } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Ext } from '../../../model/ext';
 import { equalsRef, Ref } from '../../../model/ref';
@@ -65,8 +70,8 @@ import { TodoComponent } from '../../todo/todo.component';
     CssUrlPipe,
   ],
 })
-export class KanbanCardComponent implements OnChanges, AfterViewInit, OnDestroy {
-  private destroy$ = new Subject<void>();
+export class KanbanCardComponent implements OnChanges, AfterViewInit {
+  private destroyRef = inject(DestroyRef);
 
   @HostBinding('class.unlocked')
   unlocked = false;
@@ -125,7 +130,7 @@ export class KanbanCardComponent implements OnChanges, AfterViewInit, OnDestroy 
           : this.refs.getCurrent(this.url)
       ).pipe(
         catchError(err => err.status === 404 ? of(undefined) : throwError(() => err)),
-        takeUntil(this.destroy$),
+        takeUntilDestroyed(this.destroyRef),
       ).subscribe(ref => this.repostRef = ref);
     }
   }
@@ -136,10 +141,6 @@ export class KanbanCardComponent implements OnChanges, AfterViewInit, OnDestroy 
     }
   }
 
-  ngOnDestroy() {
-    this.destroy$.next();
-    this.destroy$.complete();
-  }
 
   ngAfterViewInit(): void {
     delay(() => {
@@ -395,7 +396,7 @@ export class KanbanCardComponent implements OnChanges, AfterViewInit, OnDestroy 
         return throwError(() => err);
       }),
       tap(cursor => this.accounts.clearNotificationsIfNone(DateTime.fromISO(cursor))),
-      switchMap(() => this.refs.get(copied.url, this.store.account.origin).pipe(takeUntil(this.destroy$))),
+      switchMap(() => this.refs.get(copied.url, this.store.account.origin).pipe(takeUntilDestroyed(this.destroyRef))),
     ).subscribe(ref => {
       this.ref = ref;
       this.init();

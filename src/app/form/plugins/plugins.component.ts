@@ -1,4 +1,6 @@
 import {
+  DestroyRef,
+  inject,
   AfterViewInit,
   Component,
   EventEmitter,
@@ -10,10 +12,11 @@ import {
   ViewChildren,
   ChangeDetectionStrategy
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule, UntypedFormArray, UntypedFormBuilder, UntypedFormGroup } from '@angular/forms';
 import { defer } from 'lodash-es';
 import { toJS } from 'mobx';
-import { Subject, takeUntil } from 'rxjs';
+import {  } from 'rxjs';
 import { TitleDirective } from '../../directive/title.directive';
 import { Plugin } from '../../model/plugin';
 import { active, Icon, ResponseAction, sortOrder, TagAction, Visibility, visible } from '../../model/tag';
@@ -31,7 +34,7 @@ import { GenFormComponent } from './gen/gen.component';
   imports: [ReactiveFormsModule, TitleDirective, GenFormComponent]
 })
 export class PluginsFormComponent implements OnChanges, AfterViewInit {
-  private destroy$ = new Subject<void>();
+  private destroyRef = inject(DestroyRef);
 
   @ViewChildren('gen')
   gens?: QueryList<GenFormComponent>;
@@ -84,7 +87,7 @@ export class PluginsFormComponent implements OnChanges, AfterViewInit {
 
   ngAfterViewInit() {
     this.tags.valueChanges.pipe(
-      takeUntil(this.destroy$),
+      takeUntilDestroyed(this.destroyRef),
     ).subscribe(() => this.init());
   }
 
@@ -94,10 +97,6 @@ export class PluginsFormComponent implements OnChanges, AfterViewInit {
     }
   }
 
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
-  }
 
   get tags() {
     return this.group.get('tags') as UntypedFormArray;
