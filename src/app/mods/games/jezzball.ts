@@ -34,7 +34,7 @@ export const jezzballPlugin: Plugin = {
   name: $localize`🟣️ JezzBall`,
   config: {
     mod: $localize`🟣️ JezzBall`,
-    version: 1,
+    version: 2,
     type: 'plugin',
     editingViewer: true,
     experimental: true,
@@ -544,14 +544,15 @@ export const jezzballPlugin: Plugin = {
             const y = ball.y * CELL;
             const radius = BALL_RADIUS * CELL;
             const phase = ((ball.spin % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
-            const curve = Math.cos(phase) * radius * 4 / 3;
+            const swapped = phase >= Math.PI;
+            const curve = Math.cos(phase % Math.PI) * radius * 4 / 3;
             g.save();
             g.beginPath();
             g.arc(x, y, radius, 0, 7);
             g.clip();
-            g.fillStyle = '#f4f1e8';
+            g.fillStyle = swapped ? '#d93643' : '#f4f1e8';
             g.fillRect(x - radius, y - radius, radius * 2, radius * 2);
-            g.fillStyle = '#d93643';
+            g.fillStyle = swapped ? '#f4f1e8' : '#d93643';
             g.beginPath();
             g.moveTo(x, y - radius);
             g.bezierCurveTo(x + curve, y - radius, x + curve, y + radius, x, y + radius);

@@ -228,6 +228,40 @@ test.describe.serial('JezzBall Plugin', () => {
     await expect(game.locator('.jezzball-overlay')).toContainText(/Game over · score \d+/);
   });
 
+  test('repeats the atom sweep with swapped colors', async () => {
+    await page.goto(gamePath + '?debug=ANON', { waitUntil: 'networkidle' });
+    const game = page.locator('.full-page.ref .jezzball-game');
+    await game.locator('.jezzball-new-game').click();
+    await installDeterministicGameClock(page);
+    const canvas = game.locator('.jezzball-canvas');
+    await canvas.evaluate((element: HTMLCanvasElement) => {
+      const context = element.getContext('2d')!;
+      const fillRect = context.fillRect.bind(context);
+      const fill = context.fill.bind(context);
+      const colors = new Set(['#d93643', '#f4f1e8']);
+      let background = '';
+      const sweeps: string[] = [];
+      context.fillRect = (...args) => {
+        const color = String(context.fillStyle);
+        if (colors.has(color)) background = color;
+        fillRect(...args);
+      };
+      context.fill = (...args) => {
+        const color = String(context.fillStyle);
+        if (background && colors.has(color)) sweeps.push(`${background}/${color}`);
+        fill(...args);
+      };
+      (window as Window & { __jezzBallSweeps?: string[] }).__jezzBallSweeps = sweeps;
+    });
+
+    await advanceGame(page, 30);
+    const sweeps = await page.evaluate(() => (
+      (window as Window & { __jezzBallSweeps?: string[] }).__jezzBallSweeps
+    ));
+    expect(sweeps).toContain('#f4f1e8/#d93643');
+    expect(sweeps).toContain('#d93643/#f4f1e8');
+  });
+
   test('uses two-finger wall gestures with a diagonal dead zone', async () => {
     await page.goto(gamePath + '?debug=ANON', { waitUntil: 'networkidle' });
     const game = page.locator('.full-page.ref .jezzball-game');
