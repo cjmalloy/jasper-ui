@@ -1000,7 +1000,7 @@ export class BackgammonComponent implements OnInit, AfterViewInit, OnChanges, On
       toRow = toSpot.top ? 0 : 1;
     }
 
-    const stackOffset = (stackIndex: number | undefined, spot: Spot | null) => {
+    const stackOffset = (stackIndex: number | undefined, spot: Spot | null | undefined) => {
       let x = 0;
       let y = stackIndex || 0;
       if (stackIndex && stackIndex > 4) {
