@@ -292,6 +292,32 @@ test.describe.serial('JezzBall Plugin', () => {
     await expect(canvas).toHaveCSS('cursor', 'ns-resize');
   });
 
+  test('uses single touches as clicks before a multitouch gesture', async () => {
+    await page.goto(gamePath + '?debug=ANON', { waitUntil: 'networkidle' });
+    const game = page.locator('.full-page.ref .jezzball-game');
+    await game.locator('.jezzball-new-game').click();
+    await installDeterministicGameClock(page);
+    const canvas = game.locator('.jezzball-canvas');
+    const box = await canvas.boundingBox();
+    if (!box) throw new Error('JezzBall canvas has no bounding box');
+    const touch = {
+      clientX: box.x + box.width * 3 / 32,
+      clientY: box.y + box.height * 8 / 24,
+      pointerType: 'touch',
+      pointerId: 1,
+      isPrimary: true,
+      button: 0,
+    };
+
+    await canvas.dispatchEvent('pointerdown', touch);
+    await canvas.dispatchEvent('pointerup', touch);
+    await advanceGame(page, 1);
+    const wallPixel = await canvas.evaluate((element: HTMLCanvasElement) => (
+      [...element.getContext('2d')!.getImageData(3 * 25 + 12, 8 * 25 + 12, 1, 1).data]
+    ));
+    expect(wallPixel.slice(0, 3)).toEqual([227, 66, 79]);
+  });
+
   test('keeps the surviving half when an atom hits the other half', async () => {
     await page.addInitScript(() => {
       Math.random = () => 0.5;

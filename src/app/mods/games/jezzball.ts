@@ -34,7 +34,7 @@ export const jezzballPlugin: Plugin = {
   name: $localize`🟣️ JezzBall`,
   config: {
     mod: $localize`🟣️ JezzBall`,
-    version: 3,
+    version: 1,
     type: 'plugin',
     editingViewer: true,
     experimental: true,
@@ -598,6 +598,7 @@ export const jezzballPlugin: Plugin = {
         }
 
         const touchPoints = new Map();
+        let multitouchSeen = false;
 
         function onPointerDown(event) {
           root.focus();
@@ -606,6 +607,7 @@ export const jezzballPlugin: Plugin = {
             event.preventDefault();
             touchPoints.set(event.pointerId, canvasPoint(event));
             if (touchPoints.size !== 2) return;
+            multitouchSeen = true;
             const points = Array.from(touchPoints.values());
             const dx = Math.abs(points[1].x - points[0].x);
             const dy = Math.abs(points[1].y - points[0].y);
@@ -630,7 +632,12 @@ export const jezzballPlugin: Plugin = {
         }
 
         function onPointerUp(event) {
+          const point = touchPoints.get(event.pointerId);
+          const singleTouch = touchPoints.size === 1;
           touchPoints.delete(event.pointerId);
+          if (event.type === 'pointerup' && !multitouchSeen && singleTouch && point) {
+            startWall(point.x, point.y);
+          }
         }
 
         function onKeyDown(event) {
