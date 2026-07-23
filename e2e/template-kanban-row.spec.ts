@@ -52,6 +52,28 @@ test.describe.serial('Kanban Template No Swimlanes', () => {
     await expect(page.locator('h2')).toHaveText('Kanban Test');
   });
 
+  test('shows a pinned ref on the board and list views', async ({ page }) => {
+    const pinnedUrl = 'https://example.com/pinned-kanban';
+    await page.goto('/?debug=MOD');
+    await openSidebar(page);
+    await page.locator('.sidebar .submit-button', { hasText: 'Submit' }).first().click();
+    await page.locator('#url').fill(pinnedUrl);
+    await page.getByText('Next').click();
+    await page.locator('[name=title]').fill('Pinned Kanban Ref');
+    await page.locator('button', { hasText: 'Submit' }).click();
+
+    await page.goto('/ext/kanban/test?debug=MOD', { waitUntil: 'networkidle' });
+    await page.getByRole('button', { name: '+ Add another pinned link' }).click();
+    await page.getByText('Pinned:', { exact: true }).locator('..').locator('input').fill(pinnedUrl);
+    await page.locator('button', { hasText: 'Save' }).click();
+
+    await page.goto('/tag/kanban/test?debug=MOD', { waitUntil: 'networkidle' });
+    await expect(page.locator('.kanban-pinned .kanban-card')).toContainText('Pinned Kanban Ref');
+
+    await page.goto('/tag/kanban/test?debug=MOD&view=list', { waitUntil: 'networkidle' });
+    await expect(page.locator('.ref-list .pinned')).toContainText('Pinned Kanban Ref');
+  });
+
   test('add to board', async ({ page }) => {
     await page.goto('/tag/kanban/test?debug=MOD');
     await closeSidebar(page);
