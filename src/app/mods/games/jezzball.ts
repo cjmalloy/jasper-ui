@@ -76,7 +76,7 @@ export const jezzballPlugin: Plugin = {
         let balls = [];
         let wall = null;
         let orientation = 'vertical';
-        let wallSpeed = 'slow';
+        let wallSpeed = 'fast';
         let sound = true;
         let audioContext = null;
         let running = !checkpoint.final;
@@ -133,7 +133,7 @@ export const jezzballPlugin: Plugin = {
         \`;
 
         const canvas = root.querySelector('.jezzball-canvas');
-        const ctx = canvas.getContext('2d', { alpha: false });
+        const g = canvas.getContext('2d', { alpha: false });
         const levelEl = root.querySelector('.jezzball-level');
         const livesEl = root.querySelector('.jezzball-lives');
         const filledEl = root.querySelector('.jezzball-filled');
@@ -334,7 +334,7 @@ export const jezzballPlugin: Plugin = {
             return;
           }
           for (const half of completedHalves) {
-            for (const cellId of half.cells) occupied[cellId] = half.color;
+            for (const cellId of half.cells) occupied[cellId] = 3;
           }
           wall = null;
           playSound(480, 0.08);
@@ -485,47 +485,47 @@ export const jezzballPlugin: Plugin = {
         }
 
         function draw() {
-          ctx.fillStyle = '#08090c';
-          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          g.fillStyle = '#080808';
+          g.fillRect(0, 0, canvas.width, canvas.height);
 
           for (let y = 0; y < ROWS; y++) {
             for (let x = 0; x < COLS; x++) {
               const color = occupied[id(x, y)];
               if (color) {
-                ctx.fillStyle = color === 1 ? '#b9333f' : color === 2 ? '#2872b8' : '#24384f';
-                ctx.fillRect(x * CELL, y * CELL, CELL, CELL);
+                g.fillStyle = '#4a4a4a';
+                g.fillRect(x * CELL, y * CELL, CELL, CELL);
               }
             }
           }
 
-          ctx.strokeStyle = 'rgba(255,255,255,.08)';
-          ctx.lineWidth = 1;
+          g.strokeStyle = 'rgba(255,255,255,.08)';
+          g.lineWidth = 1;
           for (let x = 1; x < COLS; x++) {
-            ctx.beginPath();
-            ctx.moveTo(x * CELL, 0);
-            ctx.lineTo(x * CELL, canvas.height);
-            ctx.stroke();
+            g.beginPath();
+            g.moveTo(x * CELL, 0);
+            g.lineTo(x * CELL, canvas.height);
+            g.stroke();
           }
           for (let y = 1; y < ROWS; y++) {
-            ctx.beginPath();
-            ctx.moveTo(0, y * CELL);
-            ctx.lineTo(canvas.width, y * CELL);
-            ctx.stroke();
+            g.beginPath();
+            g.moveTo(0, y * CELL);
+            g.lineTo(canvas.width, y * CELL);
+            g.stroke();
           }
 
           if (wall) {
             for (const half of [wall.negative, wall.positive]) {
               if (half.destroyed) continue;
-              ctx.fillStyle = half.color === 1 ? '#e3424f' : '#2f8ee5';
+              g.fillStyle = half.color === 1 ? '#e3424f' : '#2f8ee5';
               for (const cellId of half.cells) {
                 const x = cellId % COLS;
                 const y = Math.floor(cellId / COLS);
-                ctx.fillRect(x * CELL + 3, y * CELL + 3, CELL - 6, CELL - 6);
+                g.fillRect(x * CELL + 3, y * CELL + 3, CELL - 6, CELL - 6);
               }
               if (!half.done) {
-                ctx.strokeStyle = '#ececf2';
-                ctx.lineWidth = 2;
-                ctx.strokeRect(half.x * CELL + 2, half.y * CELL + 2, CELL - 4, CELL - 4);
+                g.strokeStyle = '#ececf2';
+                g.lineWidth = 2;
+                g.strokeRect(half.x * CELL + 2, half.y * CELL + 2, CELL - 4, CELL - 4);
               }
             }
           }
@@ -534,32 +534,31 @@ export const jezzballPlugin: Plugin = {
             const x = ball.x * CELL;
             const y = ball.y * CELL;
             const radius = BALL_RADIUS * CELL;
-            ctx.save();
-            ctx.beginPath();
-            ctx.arc(x, y, radius, 0, Math.PI * 2);
-            ctx.clip();
-            ctx.fillStyle = '#f4f1e8';
-            ctx.fillRect(x - radius, y - radius, radius * 2, radius * 2);
-            const spin = Math.cos(ball.spin);
-            ctx.fillStyle = '#d93643';
-            ctx.fillRect(spin >= 0 ? x - radius : x, y - radius, radius, radius * 2);
-            ctx.beginPath();
-            ctx.ellipse(x, y, Math.max(0.5, Math.abs(spin) * radius), radius, 0, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.restore();
-            ctx.strokeStyle = '#ddd';
-            ctx.lineWidth = 1;
-            ctx.beginPath();
-            ctx.arc(x, y, radius, 0, Math.PI * 2);
-            ctx.stroke();
+            const phase = ((ball.spin % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+            const redIncoming = phase < Math.PI;
+            const sweep = (phase % Math.PI) / Math.PI;
+            g.save();
+            g.beginPath();
+            g.arc(x, y, radius, 0, 7);
+            g.clip();
+            g.fillStyle = redIncoming ? '#f4f1e8' : '#d93643';
+            g.fillRect(x - radius, y - radius, radius * 2, radius * 2);
+            g.fillStyle = redIncoming ? '#d93643' : '#f4f1e8';
+            g.fillRect(x - radius, y - radius, radius * 2 * sweep, radius * 2);
+            g.restore();
+            g.strokeStyle = '#ddd';
+            g.lineWidth = 1;
+            g.beginPath();
+            g.arc(x, y, radius, 0, 7);
+            g.stroke();
           }
 
           if (keyboardMode && root.matches(':focus-visible')) {
             const x = keyboardCursor.x * CELL;
             const y = keyboardCursor.y * CELL;
-            ctx.strokeStyle = '#ffd54f';
-            ctx.lineWidth = 3;
-            ctx.strokeRect(x + 2, y + 2, CELL - 4, CELL - 4);
+            g.strokeStyle = '#ffd54f';
+            g.lineWidth = 3;
+            g.strokeRect(x + 2, y + 2, CELL - 4, CELL - 4);
           }
         }
 

@@ -59,6 +59,7 @@ test.describe.serial('JezzBall Plugin', () => {
   });
 
   test('creates a saved game', async () => {
+    await mod(page, '#mod-experiments', '#mod-jezzball');
     await page.goto('/tag/@*?search=' + encodeURIComponent(title) + '&debug=ADMIN');
     for (let i = 0; i < 5; i++) {
       const deleteAction = page.locator('.ref-list .ref').filter({ hasText: title })
@@ -104,9 +105,9 @@ test.describe.serial('JezzBall Plugin', () => {
     await expect(direction).toHaveText('Wall ↔');
     await expect(canvas).toHaveCSS('cursor', 'ew-resize');
     const speed = game.locator('.jezzball-speed');
-    await expect(speed).toHaveText('Slow');
-    await speed.click();
     await expect(speed).toHaveText('Fast');
+    await speed.click();
+    await expect(speed).toHaveText('Slow');
     const sound = game.locator('.jezzball-sound');
     await expect(sound).toHaveText('Sound on');
     await sound.click();
@@ -144,6 +145,7 @@ test.describe.serial('JezzBall Plugin', () => {
     await expect(game.locator('.jezzball-level')).toHaveText('Level 1');
     await expect(game.locator('.jezzball-score')).toHaveText('Score 0');
     await expect(game.locator('.jezzball-overlay')).not.toHaveClass(/visible/);
+    await game.locator('.jezzball-speed').click();
 
     await moveCursor(game, 'ArrowLeft', 8);
     await game.press('Enter');
@@ -228,6 +230,7 @@ test.describe.serial('JezzBall Plugin', () => {
     await game.locator('.jezzball-overlay button').click();
     await installDeterministicGameClock(page);
     await game.locator('.jezzball-sound').click();
+    await game.locator('.jezzball-speed').click();
     await game.locator('.jezzball-direction').click();
     const canvas = game.locator('.jezzball-canvas');
     const box = await canvas.boundingBox();
@@ -244,6 +247,6 @@ test.describe.serial('JezzBall Plugin', () => {
     const survivingPixel = await canvas.evaluate((element: HTMLCanvasElement) => (
       [...element.getContext('2d')!.getImageData(8 * 25 + 12, 14 * 25 + 12, 1, 1).data]
     ));
-    expect(survivingPixel.slice(0, 3)).toEqual([40, 114, 184]);
+    expect(survivingPixel.slice(0, 3)).toEqual([74, 74, 74]);
   });
 });
