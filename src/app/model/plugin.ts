@@ -144,6 +144,10 @@ export const pluginSchema: Schema = {
 };
 
 export interface PluginApi {
+  /**
+   * Whether the current Ref can be updated.
+   */
+  writable?: boolean;
   comment: (comment: string) => void;
   event: (event: string) => void;
   emit: (a: EmitAction) => void;

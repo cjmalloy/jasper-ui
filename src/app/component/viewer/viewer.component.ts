@@ -33,6 +33,7 @@ import { ActionService } from '../../service/action.service';
 import { AdminService } from '../../service/admin.service';
 import { ProxyService } from '../../service/api/proxy.service';
 import { RefService } from '../../service/api/ref.service';
+import { AuthzService } from '../../service/authz.service';
 import { ConfigService } from '../../service/config.service';
 import { EditorService } from '../../service/editor.service';
 import { EmbedService } from '../../service/embed.service';
@@ -148,6 +149,7 @@ export class ViewerComponent implements OnChanges, OnDestroy {
     private editor: EditorService,
     private refs: RefService,
     private store: Store,
+    private auth: AuthzService,
     public el: ElementRef,
   ) { }
 
@@ -536,6 +538,7 @@ export class ViewerComponent implements OnChanges, OnDestroy {
   get uiActions(): PluginApi {
     const actions = this.actions.wrap(this.ref);
     return {
+      writable: !this.ref?.modified || (!!this.ref && this.auth.writeAccess(this.ref)),
       comment: (comment: string) => {
         if (this.ref) {
           runInAction(() => this.ref!.comment = comment);

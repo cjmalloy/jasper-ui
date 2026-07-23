@@ -4,6 +4,7 @@ import { mod, openSidebar } from './setup';
 test.describe.serial('JezzBall Plugin', () => {
   const title = 'JezzBall E2E Game';
   let page: Page;
+  let gamePath: string;
 
   test.beforeAll(async ({ browser }) => {
     page = await browser.newPage();
@@ -40,10 +41,13 @@ test.describe.serial('JezzBall Plugin', () => {
     await page.locator('[name=published]').fill('2026-01-01T00:00');
     await page.locator('[name=published]').blur();
     const submitPromise = page.waitForResponse(resp => (
-      resp.url().includes('/api/v1/ref') && resp.request().method() === 'POST'
+      resp.url().includes('/api/v1/ref') && resp.request().method() === 'POST' && resp.ok()
     ));
     await page.locator('button', { hasText: 'Submit' }).click({ force: true });
     await submitPromise;
+    await expect(page.locator('.full-page.ref .link a').first()).toHaveText(title);
+    await expect(page).toHaveURL(/\/ref\//);
+    gamePath = new URL(page.url()).pathname;
   });
 
   test('restores the final score and starts a new game', async () => {
@@ -51,14 +55,36 @@ test.describe.serial('JezzBall Plugin', () => {
     await expect(game.locator('.jezzball-canvas')).toBeVisible();
     await expect(game.locator('.jezzball-overlay')).toContainText('final score 450');
     await expect(game.locator('.jezzball-level')).toHaveText('level 3');
-    await game.locator('.jezzball-overlay button').click();
-    await expect(game.locator('.jezzball-level')).toHaveText('level 1');
-    await expect(game.locator('.jezzball-score')).toHaveText('score 0');
 
     const direction = game.locator('.jezzball-direction');
     await expect(direction).toHaveText('wall ↕');
     await direction.click();
     await expect(direction).toHaveText('wall ↔');
+  });
+
+  test('plays a read-only Ref as a saved example', async () => {
+    await page.goto(gamePath + '?debug=ANON', { waitUntil: 'networkidle' });
+    const game = page.locator('.full-page.ref .jezzball-game');
+    await expect(game.locator('.jezzball-example')).toHaveText('saved example');
+    await expect(game.locator('.jezzball-overlay')).toContainText('final score 450');
+    await game.locator('.jezzball-overlay button').click();
+    await expect(game.locator('.jezzball-level')).toHaveText('level 1');
+    await expect(game.locator('.jezzball-canvas')).toBeVisible();
+  });
+
+  test('persists a new writable game checkpoint', async () => {
+    await page.goto(gamePath + '?debug=USER', { waitUntil: 'networkidle' });
+    const game = page.locator('.full-page.ref .jezzball-game');
+    await expect(game.locator('.jezzball-overlay')).toContainText('final score 450');
+    const savePromise = page.waitForResponse(resp => (
+      resp.url().includes('/api/v1/ref') && resp.request().method() === 'PATCH' && resp.ok()
+    ));
+    await game.locator('.jezzball-overlay button').click();
+    await savePromise;
+    await page.reload({ waitUntil: 'networkidle' });
+    await expect(game.locator('.jezzball-level')).toHaveText('level 1');
+    await expect(game.locator('.jezzball-score')).toHaveText('score 0');
+    await expect(game.locator('.jezzball-overlay')).not.toHaveClass(/visible/);
   });
 
   test('ejects a playable self-contained page', async () => {

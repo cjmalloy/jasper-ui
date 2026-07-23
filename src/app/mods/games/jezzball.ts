@@ -34,11 +34,13 @@ export const jezzballPlugin: Plugin = {
         const ROWS = 24;
         const CELL = 25;
         const TARGET = 75;
+        const MAX_LEVEL = 100;
         const WALL_STEP = 0.035;
         const BALL_RADIUS = 0.34;
         const LEVEL_SECONDS = 120;
         const initial = api && api.initial && typeof api.initial === 'object' ? api.initial : {};
-        let level = Number.isInteger(initial.level) && initial.level > 0 ? initial.level : 1;
+        const writable = !api || api.writable !== false;
+        let level = Number.isInteger(initial.level) && initial.level > 0 ? Math.min(initial.level, MAX_LEVEL) : 1;
         let score = Number.isFinite(initial.score) && initial.score >= 0 ? Math.floor(initial.score) : 0;
         let checkpoint = { level: level, score: score, final: !!initial.final };
         let lives = 3;
@@ -57,10 +59,11 @@ export const jezzballPlugin: Plugin = {
         root.classList.add('jezzball-game');
         root.innerHTML = \`
           <style>
-            .jezzball-game { display: block; width: min(100%, 850px); margin: 0 auto; color: #ddd; font: 14px system-ui, sans-serif; }
+            .jezzball-game { display: block; width: min(100%, 850px); margin: 0 auto; color: #ddd; font: 14px system-ui, sans-serif; outline: none; }
             .jezzball-game * { box-sizing: border-box; }
             .jezzball-hud { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding: 8px 4px; }
             .jezzball-stat { white-space: nowrap; }
+            .jezzball-example { color: #e7b85b; font-weight: 600; }
             .jezzball-controls { display: flex; gap: 8px; margin-left: auto; }
             .jezzball-controls button, .jezzball-overlay button { border: 1px solid #777; border-radius: 4px; background: #333; color: #eee; padding: 5px 9px; cursor: pointer; }
             .jezzball-controls button:hover, .jezzball-overlay button:hover { background: #4a4a4a; }
@@ -82,6 +85,7 @@ export const jezzballPlugin: Plugin = {
             <span class="jezzball-stat jezzball-filled"></span>
             <span class="jezzball-stat jezzball-time"></span>
             <span class="jezzball-stat jezzball-score"></span>
+            <span class="jezzball-stat jezzball-example" title="This Ref is read-only; progress will not be saved.">saved example</span>
             <span class="jezzball-controls">
               <button class="jezzball-direction" type="button"></button>
               <button class="jezzball-pause" type="button">pause</button>
@@ -102,12 +106,15 @@ export const jezzballPlugin: Plugin = {
         const filledEl = root.querySelector('.jezzball-filled');
         const timeEl = root.querySelector('.jezzball-time');
         const scoreEl = root.querySelector('.jezzball-score');
+        const exampleEl = root.querySelector('.jezzball-example');
         const directionButton = root.querySelector('.jezzball-direction');
         const pauseButton = root.querySelector('.jezzball-pause');
         const ejectButton = root.querySelector('.jezzball-eject');
         const overlay = root.querySelector('.jezzball-overlay');
         const overlayMessage = overlay.querySelector('strong');
         const newGameButton = overlay.querySelector('button');
+        root.tabIndex = 0;
+        exampleEl.hidden = writable;
 
         function id(x, y) {
           return x + y * COLS;
@@ -254,7 +261,7 @@ export const jezzballPlugin: Plugin = {
           const filled = percentFilled();
           if (filled >= TARGET) {
             score += level * 100 + filled * 5 + Math.ceil(remaining) + lives * 25;
-            level++;
+            level = Math.min(level + 1, MAX_LEVEL);
             checkpoint = { level: level, score: score, final: false };
             if (api && typeof api.save === 'function') api.save(checkpoint);
             showMessage('level ' + (level - 1) + ' complete', 'continue', resetLevel);
@@ -282,6 +289,7 @@ export const jezzballPlugin: Plugin = {
             level = 1;
             score = 0;
             checkpoint = { level: 1, score: 0, final: false };
+            if (writable && api && typeof api.save === 'function') api.save(checkpoint);
             resetLevel();
           });
         }
@@ -433,6 +441,7 @@ export const jezzballPlugin: Plugin = {
         }
 
         function onPointerDown(event) {
+          root.focus();
           if (event.button === 2) {
             event.preventDefault();
             toggleOrientation();
@@ -443,7 +452,8 @@ export const jezzballPlugin: Plugin = {
         }
 
         function onKeyDown(event) {
-          if (event.code === 'Space' && document.activeElement !== ejectButton) {
+          if (event.target.closest('input, textarea, select, button, [contenteditable="true"]')) return;
+          if (event.code === 'Space') {
             event.preventDefault();
             toggleOrientation();
           } else if (event.key.toLowerCase() === 'p') {
@@ -475,7 +485,7 @@ export const jezzballPlugin: Plugin = {
         directionButton.addEventListener('click', toggleOrientation);
         pauseButton.addEventListener('click', togglePause);
         ejectButton.addEventListener('click', eject);
-        document.addEventListener('keydown', onKeyDown);
+        root.addEventListener('keydown', onKeyDown);
 
         root._jezzballDestroy = function() {
           cancelAnimationFrame(frame);
@@ -483,7 +493,7 @@ export const jezzballPlugin: Plugin = {
           directionButton.removeEventListener('click', toggleOrientation);
           pauseButton.removeEventListener('click', togglePause);
           ejectButton.removeEventListener('click', eject);
-          document.removeEventListener('keydown', onKeyDown);
+          root.removeEventListener('keydown', onKeyDown);
           root._jezzballDestroy = null;
         };
 
@@ -493,6 +503,7 @@ export const jezzballPlugin: Plugin = {
             level = 1;
             score = 0;
             checkpoint = { level: 1, score: 0, final: false };
+            if (writable && api && typeof api.save === 'function') api.save(checkpoint);
             resetLevel();
           });
         } else {
@@ -513,7 +524,8 @@ export const jezzballPlugin: Plugin = {
           }
           jezzballApp(root, {
             initial: initial,
-            save: actions && actions.comment ? function(state) {
+            writable: !actions || actions.writable !== false,
+            save: actions && actions.writable !== false && actions.comment ? function(state) {
               actions.comment(JSON.stringify(state));
             } : undefined,
           });
