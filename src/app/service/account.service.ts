@@ -311,7 +311,7 @@ export class AccountService {
     if (!this.store.account.alarms.length) return;
     this.loadNotificationCursors$().pipe(
       switchMap(streams => forkJoin(streams.map(stream => this.refs.count({
-        query: `${stream.origin || '@'}:(${this.store.account.alarmsQuery})`,
+        query: `${stream.query}:(${this.store.account.alarmsQuery})`,
         modifiedAfter: this.store.account.notificationCursors.get(stream.origin),
       })))),
     ).subscribe(counts => runInAction(() =>
