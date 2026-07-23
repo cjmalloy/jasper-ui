@@ -43,7 +43,7 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
 
   test('@\u{ff20}main : replicate \u{ff20}repl', async ({ page }) => {
     await deleteRef(page, replApi);
-    await page.goto('/?debug=ADMIN');
+    await page.goto('/?debug=ADMIN&tag=alice');
     await page.locator('.settings a', { hasText: 'settings' }).click();
     await page.locator('.tabs a', { hasText: 'origin' }).first().click();
     await openSidebar(page);
@@ -55,6 +55,12 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
     await page.locator('.floating-ribbons .plugin_origin_pull').click();
     await page.locator('[name=local]').fill('@repl');
     await page.locator('[name=remote]').fill('@repl');
+    const aliases = page.locator('.form-group').filter({
+      has: page.getByRole('button', { name: '+ Add another account alias' }),
+    });
+    await aliases.getByRole('button', { name: '+ Add another account alias' }).click();
+    await aliases.locator('.tag-field input.grow:not(.preview)').fill('+user/charlie');
+    await aliases.locator('.tag-field input.grow:not(.preview)').blur();
     await page.locator('.plugins-form details.plugin_origin.advanced summary').click();
     await page.locator('[name=proxy]').fill(replApiProxy);
     await page.locator('[name=proxy]').blur();
@@ -95,13 +101,18 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
     await page.locator('.full-page.ref .actions .fake-link', { hasText: 'enable' }).first().click();
   });
 
+  test('@\u{ff20}main : initialize Alice remote cursor', async ({ page }) => {
+    await page.goto('/?debug=USER&tag=alice', { waitUntil: 'networkidle' });
+    await expect(page.locator('.settings .notification')).toBeHidden();
+  });
+
   test('@\u{ff20}repl : creates ref', async ({ page }) => {
     await page.goto(replUrl + '/?debug=USER&tag=bob');
     await openSidebar(page);
     await page.locator('.sidebar .submit-button', { hasText: 'Submit' }).first().click();
     await page.locator('.tabs a', { hasText: 'text' }).first().click();
     await page.locator('[name=title]').fill(refFromOtherTitle);
-    await page.locator('.editor textarea').fill('Hi +user/alice@repl.main! How\'s it going? You should also see this +user/charlie.');
+    await page.locator('.editor textarea').fill('Hi +user/charlie! How\'s it going?');
     await page.locator('.editor textarea').blur();
     const submitPromise = page.waitForResponse(isRefPost);
     await page.locator('button', { hasText: 'Submit' }).click({ force: true });
@@ -120,9 +131,12 @@ test.describe.serial('Outbox Plugin: Remote Notifications', () => {
   test('@\u{ff20}main : check ref was pulled', async ({ page }) => {
     await pollNotifications(page, 'alice');
     await page.locator('.settings .notification').click();
+    const unreadRef = page.locator('.ref-list .link.remote', { hasText: refFromOtherTitle });
+    await expect(unreadRef).toBeVisible();
     await page.locator('.tabs a', { hasText: 'all' }).first().click();
     const ref = page.locator('.ref-list .link.remote', { hasText: refFromOtherTitle }).locator('..').locator('..').locator('..');
     await expect(ref.locator('.user.tag', { hasText: 'bob' }).first()).toBeVisible();
+    await expect(page.locator('.settings .notification')).toBeHidden();
   });
 
   test('@\u{ff20}main : local bob is different from remote bob', async ({ page }) => {
