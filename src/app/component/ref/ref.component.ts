@@ -38,7 +38,7 @@ import { Action, active, hydrate, Icon, sortOrder, uniqueConfigs, visible } from
 import { deleteNotice } from '../../mods/delete';
 import { addressedTo, getMailbox, mailboxes } from '../../mods/mailbox';
 import { CssUrlPipe } from '../../pipe/css-url.pipe';
-import { isInlineSvg, ThumbnailPipe } from '../../pipe/thumbnail.pipe';
+import { ThumbnailPipe } from '../../pipe/thumbnail.pipe';
 import { AccountService } from '../../service/account.service';
 import { AdminService } from '../../service/admin.service';
 import { ExtService } from '../../service/api/ext.service';
@@ -62,8 +62,20 @@ import {
   templates,
   urlSummary
 } from '../../util/format';
-import { getExtension, getScheme, printError } from '../../util/http';
+import { getScheme, printError } from '../../util/http';
 import { memo, MemoCache } from '../../util/memo';
+import {
+  hasThumbnail,
+  mediaAttachment,
+  mediaFilename,
+  mediaPluginUrl,
+  mediaUrl,
+  thumbnailPlugin,
+  thumbnailRefs,
+  thumbnailString,
+  thumbnailUrl,
+  thumbnailValue,
+} from '../../util/ref-media';
 import { markRead } from '../../util/response';
 import {
   storyboardAnimation,
@@ -737,55 +749,47 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
 
   @memo
   get thumbnail() {
-    if (!this.admin.getPlugin('plugin/thumbnail')) return false;
-    if (this.editing) {
-      if (hasTag('plugin/thumbnail', this.editForm.value)) return true;
-      if (!this.admin.getPlugin('plugin/image')) return false;
-      return hasTag('plugin/image', this.editForm.value);
-    }
-    if (hasTag('plugin/thumbnail', this.ref) || hasTag('plugin/thumbnail', this.repostRef)) return true;
-    if (!this.admin.getPlugin('plugin/image')) return false;
-    return hasTag('plugin/image', this.ref) || hasTag('plugin/image', this.repostRef);
+    return hasThumbnail(
+      !!this.admin.getPlugin('plugin/thumbnail'),
+      !!this.admin.getPlugin('plugin/image'),
+      this.editing,
+      this.editForm.value,
+      this.ref,
+      this.repostRef,
+    );
   }
 
   @memo
   get thumbnailRefs() {
-    return this.editing ? [{ ...this.editForm.getRawValue(), origin: this.ref.origin }] : [this.repostRef, this.ref];
+    return thumbnailRefs(this.editing, this.editForm.getRawValue(), this.ref, this.repostRef);
   }
 
   get refThumbnailPlugin() {
-    const plugin = this.ref?.plugins?.['plugin/thumbnail'] || this.repostRef?.plugins?.['plugin/thumbnail'];
-    return plugin && typeof plugin === 'object' && !Array.isArray(plugin) ? plugin : undefined;
+    return thumbnailPlugin(this.ref, this.repostRef);
   }
 
   refThumbnailString(key: 'url' | 'color' | 'emoji') {
-    const value = this.refThumbnailPlugin?.[key];
-    return typeof value === 'string' ? value : '';
+    return thumbnailString(this.ref, this.repostRef, key);
   }
 
   refThumbnailUrl() {
-    const url = this.refThumbnailString('url');
-    if (!this.admin.getPlugin('plugin/image')) return isInlineSvg(url) ? url : '';
-    return url || this.refThumbnailPluginUrl('plugin/image') || this.refThumbnailPluginUrl('plugin/video');
+    return thumbnailUrl(this.ref, this.repostRef, !!this.admin.getPlugin('plugin/image'));
   }
 
   refThumbnailPluginUrl(plugin: 'plugin/image' | 'plugin/video') {
-    const value = this.ref?.plugins?.[plugin]?.url || this.repostRef?.plugins?.[plugin]?.url;
-    return typeof value === 'string' ? value : '';
+    return mediaPluginUrl(this.ref, this.repostRef, plugin);
   }
 
   @memo
   get thumbnailColor() {
     if (!this.thumbnail) return '';
-    if (this.editing) return this.editForm.value.plugins?.['plugin/thumbnail']?.color || '';
-    return this.ref?.plugins?.['plugin/thumbnail']?.color || this.repostRef?.plugins?.['plugin/thumbnail']?.color || '';
+    return thumbnailValue('color', this.editing, this.editForm.value, this.ref, this.repostRef);
   }
 
   @memo
   get thumbnailEmoji() {
     if (!this.thumbnail) return '';
-    if (this.editing) return this.editForm.value.plugins?.['plugin/thumbnail']?.emoji || '';
-    return this.ref?.plugins?.['plugin/thumbnail']?.emoji || this.repostRef?.plugins?.['plugin/thumbnail']?.emoji || '';
+    return thumbnailValue('emoji', this.editing, this.editForm.value, this.ref, this.repostRef);
   }
 
   @memo
@@ -796,8 +800,7 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
 
   @memo
   get thumbnailRadius() {
-    if (this.editing) return this.editForm.value.plugins?.['plugin/thumbnail']?.radius || 0;
-    return this.ref?.plugins?.['plugin/thumbnail']?.radius || this.repostRef?.plugins?.['plugin/thumbnail']?.radius || 0;
+    return thumbnailValue('radius', this.editing, this.editForm.value, this.ref, this.repostRef);
   }
 
   @memo
@@ -808,47 +811,42 @@ export class RefComponent implements OnChanges, AfterViewInit, OnDestroy, HasCha
 
   @memo
   get audio() {
-    return this.admin.getPlugin('plugin/audio') &&
-      hasTag('plugin/audio', this.currentRef) &&
-      (this.ref?.plugins?.['plugin/audio']?.url || this.url);
+    return mediaUrl('plugin/audio', !!this.admin.getPlugin('plugin/audio'), this.currentRef, this.ref, this.url);
   }
 
   @memo
   get video() {
-    return this.admin.getPlugin('plugin/video') &&
-      hasTag('plugin/video', this.currentRef) &&
-      (this.ref?.plugins?.['plugin/video']?.url || this.url);
+    return mediaUrl('plugin/video', !!this.admin.getPlugin('plugin/video'), this.currentRef, this.ref, this.url);
   }
 
   @memo
   get image() {
-    return this.admin.getPlugin('plugin/image') &&
-      hasTag('plugin/image', this.currentRef) &&
-      (this.ref?.plugins?.['plugin/image']?.url || this.url);
+    return mediaUrl('plugin/image', !!this.admin.getPlugin('plugin/image'), this.currentRef, this.ref, this.url);
   }
 
   @memo
   getFilename(d = $localize`Untitled`) {
-    const ext = getExtension(this.url) || '';
-    const filename = this.ref?.title || d;
-    return filename + (ext && !filename.toLowerCase().endsWith(ext) ? ext : '');
+    return mediaFilename(this.url, this.ref.title, d);
   }
 
   @memo
   get mediaAttachment() {
-    if (this.file) {
-      return this.proxy.getFetch(this.url, this.origin, this.getFilename());
-    }
-    if (this.audio && (this.audio.startsWith('cache:') || this.admin.getPlugin('plugin/audio')?.config?.proxy)) {
-      return this.proxy.getFetch(this.audio, this.origin, this.getFilename($localize`Untitled Audio`));
-    }
-    if (this.video && (this.video.startsWith('cache:') || this.admin.getPlugin('plugin/video')?.config?.proxy)) {
-      return this.proxy.getFetch(this.video, this.origin, this.getFilename($localize`Untitled Video`));
-    }
-    if (this.image && (this.image.startsWith('cache:') || this.admin.getPlugin('plugin/image')?.config?.proxy)) {
-      return this.proxy.getFetch(this.image, this.origin, this.getFilename($localize`Untitled Image`));
-    }
-    return '';
+    return mediaAttachment({
+      file: !!this.file,
+      audio: this.audio,
+      video: this.video,
+      image: this.image,
+      proxyAudio: !!this.admin.getPlugin('plugin/audio')?.config?.proxy,
+      proxyVideo: !!this.admin.getPlugin('plugin/video')?.config?.proxy,
+      proxyImage: !!this.admin.getPlugin('plugin/image')?.config?.proxy,
+      url: this.url,
+      origin: this.origin,
+      filename: this.getFilename(),
+      audioFilename: this.getFilename($localize`Untitled Audio`),
+      videoFilename: this.getFilename($localize`Untitled Video`),
+      imageFilename: this.getFilename($localize`Untitled Image`),
+      fetch: (url, origin, filename) => this.proxy.getFetch(url, origin, filename),
+    });
   }
 
   @memo
