@@ -3,7 +3,9 @@ import { provideHttpClient, withInterceptorsFromDi, withXhr } from '@angular/com
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { of } from 'rxjs';
 
+import { RefService } from '../../service/api/ref.service';
 import { KanbanComponent } from './kanban.component';
 
 describe('KanbanComponent', () => {
@@ -27,6 +29,28 @@ describe('KanbanComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('shows refs pinned to the kanban Ext', () => {
+    const refs = TestBed.inject(RefService);
+    vi.spyOn(refs, 'getCurrent').mockReturnValue(of({
+      url: 'https://example.com/pinned',
+      title: 'Pinned card',
+    }));
+    component.ext = {
+      tag: 'kanban/test',
+      origin: '',
+      config: { pinned: ['https://example.com/pinned'] },
+    };
+
+    component.loadPinned();
+    fixture.detectChanges();
+
+    expect(component.pinned).toEqual([{
+      url: 'https://example.com/pinned',
+      title: 'Pinned card',
+    }]);
+    expect(fixture.nativeElement.querySelectorAll('.kanban-pinned .kanban-card')).toHaveLength(1);
   });
 
   describe('saveChanges navigation guard', () => {

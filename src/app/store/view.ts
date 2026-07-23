@@ -336,7 +336,6 @@ export class ViewStore {
    * The main Ext associated with this view.
    */
   get viewExt() {
-    if (this.list) return undefined;
     return this.viewTag && [...this.activeExts, ...this.globalExts].find(x => hasPrefix(x.tag, this.viewTag)) || this.exts[0];
   }
 

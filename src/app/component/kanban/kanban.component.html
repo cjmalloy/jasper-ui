@@ -4,6 +4,15 @@
   } @else if (error) {
     <div class="error-404" i18n>Not Found</div>
   } @else if (ext) {
+    @if (pinned.length) {
+      <div class="kanban-pinned">
+        @for (ref of pinned; track ref.origin + '@' + ref.url) {
+          <app-kanban-card class="pinned"
+                           [ref]="ref"
+                           [ext]="ext"></app-kanban-card>
+        }
+      </div>
+    }
     <div class="kanban"
          cdkDropListGroup
          cdkScrollable

@@ -55,4 +55,41 @@ describe('ViewStore defaults', () => {
     expect(store.urlQueryTags).toEqual(['science']);
     expect(store.queryTags).toEqual(['science', 'public']);
   });
+
+  it('keeps the default Ext in list view', () => {
+    const store = createStore({ view: 'list' }, 'tag', 'kanban/test');
+    store.extTemplates = [{
+      tag: 'kanban',
+      origin: '',
+      config: {},
+    }];
+    store.exts = [{
+      tag: 'kanban/test',
+      origin: '',
+      config: { pinned: ['https://example.com'] },
+    }];
+
+    expect(store.viewExt).toBe(store.exts[0]);
+  });
+
+  it('does not use the default Ext for a selected global view', () => {
+    const store = createStore({ view: 'graph' }, 'tag', 'kanban/test');
+    store.extTemplates = [{
+      tag: 'kanban',
+      origin: '',
+      config: {},
+    }, {
+      tag: 'graph',
+      origin: '',
+      config: { global: true },
+    }];
+    store.exts = [{
+      tag: 'kanban/test',
+      origin: '',
+      config: { pinned: ['https://example.com'] },
+    }];
+
+    expect(store.viewExt?.tag).toBe('graph');
+    expect(store.viewExt?.config?.pinned).toBeUndefined();
+  });
 });
