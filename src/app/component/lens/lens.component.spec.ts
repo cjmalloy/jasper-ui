@@ -52,10 +52,7 @@ describe('LensComponent', () => {
 
   it('shows active Ext pins in the lens', () => {
     const refs = TestBed.inject(RefService);
-    vi.spyOn(refs, 'getCurrent').mockReturnValue(of({
-      url: 'https://example.com/pinned',
-      title: 'Pinned ref',
-    }));
+    vi.spyOn(refs, 'getCurrent').mockReturnValue(new Observable(() => {}));
     component.pinnedExt = {
       tag: 'kanban/test',
       origin: '',
@@ -66,7 +63,22 @@ describe('LensComponent', () => {
 
     const pinned = fixture.debugElement.query(By.css('.lens-pins')).componentInstance as RefListComponent;
     expect(pinned.ext?.config?.pinned).toEqual(['https://example.com/pinned']);
-    expect(pinned.page?.content).toEqual([{
+  });
+
+  it('loads active Ext pins', () => {
+    const refs = TestBed.inject(RefService);
+    vi.spyOn(refs, 'getCurrent').mockReturnValue(of({
+      url: 'https://example.com/pinned',
+      title: 'Pinned ref',
+    }));
+
+    component.pinnedExt = {
+      tag: 'kanban/test',
+      origin: '',
+      config: { pinned: ['https://example.com/pinned'] },
+    };
+
+    expect(component.pinnedPage.content).toEqual([{
       url: 'https://example.com/pinned',
       title: 'Pinned ref',
     }]);
