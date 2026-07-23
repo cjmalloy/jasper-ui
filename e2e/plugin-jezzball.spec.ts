@@ -140,6 +140,7 @@ test.describe.serial('JezzBall Plugin', () => {
     ));
     await game.locator('.jezzball-overlay button').click();
     await resetSave;
+    await expect(game).toBeFocused();
     await expect(game.locator('.jezzball-level')).toHaveText('Level 1');
     await expect(game.locator('.jezzball-score')).toHaveText('Score 0');
     await expect(game.locator('.jezzball-overlay')).not.toHaveClass(/visible/);
@@ -167,7 +168,7 @@ test.describe.serial('JezzBall Plugin', () => {
     await expect(game.locator('.jezzball-score')).not.toHaveText('Score 0');
 
     await game.locator('.jezzball-overlay button').click();
-    await game.focus();
+    await expect(game).toBeFocused();
     await game.press('Space');
     await moveCursor(game, 'ArrowLeft', 8);
     await moveCursor(game, 'ArrowUp', 8);

@@ -391,6 +391,7 @@ export const jezzballPlugin: Plugin = {
           newGameButton.onclick = function() {
             overlay.classList.remove('visible');
             callback();
+            root.focus();
           };
         }
 
@@ -563,6 +564,10 @@ export const jezzballPlugin: Plugin = {
         }
 
         function loop(now) {
+          if (!root.isConnected) {
+            root._jezzballDestroy();
+            return;
+          }
           if (!last) last = now;
           const dt = Math.min((now - last) / 1000, 0.05);
           last = now;
