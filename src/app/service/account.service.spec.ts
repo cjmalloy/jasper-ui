@@ -178,7 +178,7 @@ describe('AccountService', () => {
     vi.spyOn((service as any).admin, 'getTemplate').mockReturnValue({});
     vi.spyOn(service, 'loadNotificationCursors$').mockReturnValue(of(streams));
     const count = vi.spyOn((service as any).refs, 'count').mockReturnValue(of(0));
-    const clear = vi.spyOn(service, 'clearNotifications').mockImplementation(() => undefined);
+    const clear = vi.spyOn(service, 'clearNotifications').mockImplementation(() => Promise.resolve());
     const readDate = DateTime.fromISO('2026-04-01T00:00:00.000Z');
 
     service.clearNotificationsIfNone(readDate, '@city');

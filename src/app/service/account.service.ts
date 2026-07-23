@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { delay, isArray, uniq, without } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { runInAction } from 'mobx';
-import { catchError, finalize, forkJoin, map, Observable, of, shareReplay, throwError } from 'rxjs';
+import { catchError, finalize, firstValueFrom, forkJoin, map, Observable, of, shareReplay, throwError } from 'rxjs';
 import { switchMap, tap } from 'rxjs/operators';
 import { Ext } from '../model/ext';
 import { Page } from '../model/page';
@@ -288,11 +288,11 @@ export class AccountService {
     });
   }
 
-  clearNotifications(readDate: DateTime = DateTime.now(), origins?: string[]) {
+  clearNotifications(readDate: DateTime = DateTime.now(), origins?: string[]): Promise<void> {
     if (!this.store.account.signedIn) throw 'Not signed in';
     if (!this.admin.getTemplate('user')) throw 'User template not installed';
     const cursor = readDate.plus({ millisecond: 1 }).toISO()!;
-    this.loadNotificationCursors$().pipe(
+    return firstValueFrom(this.loadNotificationCursors$().pipe(
       switchMap(streams => forkJoin(streams
         .filter(stream => !origins || origins.includes(stream.origin))
         .filter(stream => {
@@ -300,9 +300,9 @@ export class AccountService {
           return !current || readDate.plus({ millisecond: 1 }) > DateTime.fromISO(current);
         })
         .map(stream => this.writeNotificationCursor$(stream, cursor)))),
-    ).subscribe(() => {
-      this.checkNotifications();
-    });
+      tap(() => this.checkNotifications()),
+      map(() => undefined),
+    ), { defaultValue: undefined });
   }
 
   checkAlarms() {

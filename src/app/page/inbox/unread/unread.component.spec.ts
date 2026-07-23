@@ -5,6 +5,7 @@ import { forwardRef } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { DateTime } from 'luxon';
+import { runInAction } from 'mobx';
 import { BehaviorSubject } from 'rxjs';
 import { Page } from '../../../model/page';
 import { Ref } from '../../../model/ref';
@@ -27,7 +28,7 @@ describe('InboxUnreadPage', () => {
     notifications = new BehaviorSubject(Page.of<Ref>([]));
     account = {
       notificationPage$: vi.fn(() => notifications),
-      clearNotifications: vi.fn(),
+      clearNotifications: vi.fn(() => Promise.resolve()),
     };
     await TestBed.configureTestingModule({
       imports: [forwardRef(() => InboxUnreadPage)],
@@ -64,5 +65,28 @@ describe('InboxUnreadPage', () => {
     fixture.destroy();
 
     expect(account.clearNotifications).toHaveBeenCalledWith(modified, ['@remote']);
+  });
+
+  it('reloads notifications after clearing every read origin', async () => {
+    const resolvers: (() => void)[] = [];
+    account.clearNotifications.mockImplementation(() => new Promise<void>(resolve => resolvers.push(() => resolve())));
+    notifications.next(Page.of<Ref>([
+      { url: 'spec:city', origin: '@city', modified: DateTime.fromISO('2026-07-23T12:00:00Z') },
+      { url: 'spec:town', origin: '@town', modified: DateTime.fromISO('2026-07-23T12:01:00Z') },
+    ]));
+
+    runInAction(() => component.store.view.defaultPageNumber = 1);
+    vi.runAllTimers();
+
+    expect(account.clearNotifications).toHaveBeenCalledTimes(2);
+    expect(account.notificationPage$).toHaveBeenCalledTimes(1);
+
+    resolvers[0]();
+    await Promise.resolve();
+    expect(account.notificationPage$).toHaveBeenCalledTimes(1);
+
+    resolvers[1]();
+    await vi.runAllTimersAsync();
+    expect(account.notificationPage$).toHaveBeenCalledTimes(2);
   });
 });

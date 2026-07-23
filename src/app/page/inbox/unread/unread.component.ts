@@ -39,18 +39,21 @@ export class InboxUnreadPage implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.disposers.push(autorun(() => {
+      let cleared = Promise.resolve();
       if (this.store.view.pageNumber) {
         this.router.navigate([], {
           queryParams: { pageNumber: null },
           queryParamsHandling: 'merge',
           replaceUrl: true
         });
-        this.clearNotifications();
+        cleared = this.clearNotifications();
       }
       defer(() => {
-        this.load?.unsubscribe();
-        this.load = this.account.notificationPage$(this.store.view.pageSize).subscribe(page =>
-          runInAction(() => this.query.page = page));
+        cleared.then(() => {
+          this.load?.unsubscribe();
+          this.load = this.account.notificationPage$(this.store.view.pageSize).subscribe(page =>
+            runInAction(() => this.query.page = page));
+        });
       });
     }));
     this.disposers.push(autorun(() => {
@@ -72,10 +75,10 @@ export class InboxUnreadPage implements OnInit, OnDestroy {
     this.clearNotifications();
   }
 
-  private clearNotifications() {
-    for (const [origin, cursor] of this.readThrough) {
-      this.account.clearNotifications(cursor, [origin]);
-    }
+  private clearNotifications(): Promise<void> {
+    const cleared = Promise.all(Array.from(this.readThrough,
+      ([origin, cursor]) => this.account.clearNotifications(cursor, [origin])));
     this.readThrough.clear();
+    return cleared.then(() => undefined);
   }
 }
