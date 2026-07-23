@@ -361,7 +361,7 @@ export class AccountService {
     this._notificationCursors$ = forkJoin(streams.map(stream => {
       if (this.store.account.notificationCursors.has(stream.origin)) return of(undefined);
       return this.tags.getResponse(stream.settingsUrl).pipe(
-        catchError(() => of(undefined)),
+        catchError(err => err?.status === 404 ? of(undefined) : throwError(() => err)),
         switchMap(ref => {
           this.cursorRefs.set(stream.origin, ref);
           const existing = ref?.plugins?.['plugin/user/cursor']?.cursor;
