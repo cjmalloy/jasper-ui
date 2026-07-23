@@ -19,7 +19,7 @@ import { uniq, without } from 'lodash-es';
 import { DateTime } from 'luxon';
 import { runInAction } from 'mobx';
 import { MobxAngularModule } from 'mobx-angular';
-import { catchError, Subject } from 'rxjs';
+import { catchError, of, Subject } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { TitleDirective } from '../../directive/title.directive';
 import { HasChanges } from '../../guard/pending-changes.guard';
