@@ -2205,18 +2205,6 @@ Private tags start with an underscore.
         <source>Standard</source>
         <target>標準</target>
       </trans-unit>
-      <trans-unit id="8524281477208345092" datatype="html">
-        <source>Style:</source>
-        <target>スタイル:</target>
-      </trans-unit>
-      <trans-unit id="5017844948347016797" datatype="html">
-        <source>Vivid</source>
-        <target>ビビッド</target>
-      </trans-unit>
-      <trans-unit id="6470420478868981511" datatype="html">
-        <source>Natural</source>
-        <target>ナチュラル</target>
-      </trans-unit>
       <trans-unit id="1233489846656641397" datatype="html">
         <source>Use URL:</source>
         <target>URLを使用:</target>
@@ -7101,6 +7089,70 @@ Each response contains the converted Markdown from a specific source format.</so
       <trans-unit id="5718968085404318702" datatype="html">
         <source>My voted Refs</source>
         <target>自分が投票したRef</target>
+      </trans-unit>
+      <trans-unit id="1268962024828443790" datatype="html">
+        <source>🍌️ Neo Banana</source>
+      </trans-unit>
+      <trans-unit id="1668629014382094042" datatype="html">
+        <source>🍌️💭️ Ask Neo Banana</source>
+        <target>🍌️💭️ Neo Bananaに依頼</target>
+      </trans-unit>
+      <trans-unit id="2340307097463480010" datatype="html">
+        <source>ask neo banana</source>
+        <target>neo bananaに依頼</target>
+      </trans-unit>
+      <trans-unit id="2353981104749482146" datatype="html">
+        <source>🍌️</source>
+      </trans-unit>
+      <trans-unit id="2483701231205260409" datatype="html">
+        <source>🍌️💭️</source>
+      </trans-unit>
+      <trans-unit id="2713113269847483218" datatype="html">
+        <source>Image Size:</source>
+        <target>画像サイズ:</target>
+      </trans-unit>
+      <trans-unit id="3890038979196090805" datatype="html">
+        <source>Landscape 4:3</source>
+        <target>横向き 4:3</target>
+      </trans-unit>
+      <trans-unit id="3966782841358489935" datatype="html">
+        <source>Portrait 3:4</source>
+        <target>縦向き 3:4</target>
+      </trans-unit>
+      <trans-unit id="4112074096929505201" datatype="html">
+        <source>Aspect Ratio:</source>
+        <target>アスペクト比:</target>
+      </trans-unit>
+      <trans-unit id="4305285322518057719" datatype="html">
+        <source>1K</source>
+      </trans-unit>
+      <trans-unit id="5502088571567674916" datatype="html">
+        <source>4K</source>
+      </trans-unit>
+      <trans-unit id="550762586054059391" datatype="html">
+        <source>🟣️</source>
+      </trans-unit>
+      <trans-unit id="5885261957820095227" datatype="html">
+        <source>Play a faithful remake of the classic JezzBall game.</source>
+        <target>クラシックゲーム「JezzBall」を忠実に再現したリメイクをプレイします。</target>
+      </trans-unit>
+      <trans-unit id="619579233408959722" datatype="html">
+        <source>2K</source>
+      </trans-unit>
+      <trans-unit id="6291710928695103454" datatype="html">
+        <source>JezzBall games</source>
+        <target>JezzBallゲーム</target>
+      </trans-unit>
+      <trans-unit id="6543363048987109722" datatype="html">
+        <source>🟣️ JezzBall</source>
+      </trans-unit>
+      <trans-unit id="8411343513925653444" datatype="html">
+        <source>Generate an image with Neo Banana.</source>
+        <target>Neo Bananaで画像を生成します。</target>
+      </trans-unit>
+      <trans-unit id="8417449697830862117" datatype="html">
+        <source>Neo Banana image-generation signature tag.</source>
+        <target>Neo Banana画像生成シグネチャタグ。</target>
       </trans-unit>
     </body>
   </file>
