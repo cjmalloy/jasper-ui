@@ -128,6 +128,7 @@ test.describe.serial('Origin Pull Plugin', () => {
   });
 
   test('@\u{ff20}repl : creates ref and manually pulls', async ({ page }) => {
+    await clearReplicatedOrigin(page);
     await test.step('create remote source ref', async () => {
       await createRemoteTextRef(page, manualPullTestTitle);
     });
