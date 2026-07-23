@@ -60,8 +60,8 @@ export const jezzballPlugin: Plugin = {
         const CELL = 25;
         const TARGET = 75;
         const MAX_LEVEL = 100;
-        const WALL_STEP_SLOW = 0.05;
-        const WALL_STEP_FAST = 0.025;
+        const WALL_STEP_SLOW = 0.1;
+        const WALL_STEP_FAST = 0.05;
         const BALL_RADIUS = 0.34;
         const LEVEL_SECONDS = 120;
         const labels = ${jezzballLabelsSource};
@@ -93,10 +93,11 @@ export const jezzballPlugin: Plugin = {
           <style>
             .jezzball-game { display: block; width: min(100%, 850px); margin: 0 auto; color: var(--text, #ddd); font: 14px system-ui, sans-serif; outline: none; }
             .jezzball-game * { box-sizing: border-box; }
-            .jezzball-toolbar { display: flex; align-items: center; min-height: 46px; padding: 8px 4px; }
+            .jezzball-toolbar { display: flex; align-items: center; gap: 12px; min-height: 46px; padding: 8px 4px; }
+            .jezzball-toolbar .jezzball-level { font-weight: 600; white-space: nowrap; }
             .jezzball-stat { position: absolute; z-index: 1; color: #eee; white-space: nowrap; pointer-events: none; text-shadow: 0 1px 2px #000; }
             .jezzball-lives { top: 8px; left: 10px; }
-            .jezzball-center { position: absolute; z-index: 1; top: 8px; left: 50%; display: flex; gap: 16px; transform: translateX(-50%); }
+            .jezzball-center { position: absolute; z-index: 1; top: 8px; left: 50%; display: flex; transform: translateX(-50%); }
             .jezzball-center .jezzball-stat { position: static; }
             .jezzball-time { top: 8px; right: 10px; }
             .jezzball-filled { bottom: 8px; left: 50%; transform: translateX(-50%); }
@@ -104,15 +105,16 @@ export const jezzballPlugin: Plugin = {
             .jezzball-controls { display: flex; gap: 8px; margin-left: auto; }
             .jezzball-controls button, .jezzball-overlay button { border: 1px solid var(--border, #777); border-radius: 4px; background: var(--card, #333); color: var(--text, #eee); padding: 5px 9px; cursor: pointer; }
             .jezzball-controls button:hover, .jezzball-overlay button:hover { background: var(--active, #4a4a4a); }
-            .jezzball-stage { position: relative; width: 100%; aspect-ratio: 4 / 3; overflow: hidden; border: 2px solid #777; background: #000; touch-action: none; }
-            .jezzball-canvas { display: block; width: 100%; height: 100%; }
+            .jezzball-stage { position: relative; width: 100%; padding: 34px; overflow: hidden; border: 2px solid #777; background: #000; touch-action: none; }
+            .jezzball-canvas { display: block; width: 100%; height: auto; aspect-ratio: 4 / 3; }
             .jezzball-canvas.vertical { cursor: ns-resize; }
             .jezzball-canvas.horizontal { cursor: ew-resize; }
             .jezzball-overlay { position: absolute; inset: 0; display: none; place-content: center; text-align: center; background: rgba(0, 0, 0, .72); color: white; }
             .jezzball-overlay.visible { display: grid; }
             .jezzball-overlay strong { display: block; margin-bottom: 12px; font-size: 24px; }
-            :fullscreen .jezzball-game { width: min(100vw, calc(100vh * 4 / 3)); max-width: none; }
-            :fullscreen .jezzball-toolbar { display: none; }
+            .embed:fullscreen > .plugin_jezzball { zoom: 50%; margin: 0 auto; }
+            :fullscreen .jezzball-game { width: min(100vw, calc((100vh - 114px) * 4 / 3 + 68px)); max-width: none; }
+            :fullscreen .jezzball-controls { display: none; }
             @media (prefers-color-scheme: light) {
               .jezzball-game { color: var(--text, #333); }
               .jezzball-controls button, .jezzball-overlay button { background: var(--card, #eee); color: var(--text, #222); border-color: var(--border, #999); }
@@ -120,6 +122,7 @@ export const jezzballPlugin: Plugin = {
             }
           </style>
           <div class="jezzball-toolbar">
+            <span class="jezzball-level"></span>
             <span class="jezzball-example" title="\${labels.savedExampleTitle}">\${labels.savedExample}</span>
             <span class="jezzball-controls">
               <button class="jezzball-direction" type="button"></button>
@@ -132,7 +135,6 @@ export const jezzballPlugin: Plugin = {
             <canvas class="jezzball-canvas" width="\${COLS * CELL}" height="\${ROWS * CELL}"></canvas>
             <span class="jezzball-stat jezzball-lives"></span>
             <span class="jezzball-center">
-              <span class="jezzball-stat jezzball-level"></span>
               <span class="jezzball-stat jezzball-score"></span>
             </span>
             <span class="jezzball-stat jezzball-time"></span>
@@ -494,14 +496,14 @@ export const jezzballPlugin: Plugin = {
         }
 
         function draw() {
-          g.fillStyle = '#000';
+          g.fillStyle = '#777';
           g.fillRect(0, 0, canvas.width, canvas.height);
 
           for (let y = 0; y < ROWS; y++) {
             for (let x = 0; x < COLS; x++) {
               const color = occupied[id(x, y)];
               if (color) {
-                g.fillStyle = '#777';
+                g.fillStyle = '#000';
                 g.fillRect(x * CELL, y * CELL, CELL, CELL);
               }
             }
@@ -712,11 +714,6 @@ export const jezzballPlugin: Plugin = {
       Handlebars.registerHelper('jezzball', function(ref, actions, el) {
         return function() {
           const root = el && el.querySelector ? el.querySelector('.jezzball-game') : document.querySelector('.jezzball-game');
-          const container = root && root.closest('.md-container');
-          if (container) {
-            container.classList.add('no-resize');
-            container.classList.remove('zoom');
-          }
           let initial = {};
           try {
             initial = ref && ref.comment ? JSON.parse(ref.comment) : {};

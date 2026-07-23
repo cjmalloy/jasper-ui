@@ -113,12 +113,21 @@ test.describe.serial('JezzBall Plugin', () => {
     await sound.click();
     await expect(sound).toHaveText('Sound off');
     await expect(game.locator('.jezzball-filled')).toHaveText('Filled 0%');
+    const backgroundPixel = await canvas.evaluate((element: HTMLCanvasElement) => (
+      [...element.getContext('2d')!.getImageData(1 * 25 + 12, 1 * 25 + 12, 1, 1).data]
+    ));
+    expect(backgroundPixel.slice(0, 3)).toEqual([119, 119, 119]);
     const hudPositions = await game.evaluate(element => {
       const rect = (selector: string) => element.querySelector(selector)!.getBoundingClientRect();
       const stage = rect('.jezzball-stage');
+      const canvas = rect('.jezzball-canvas');
       return {
         center: stage.left + stage.width / 2,
         middle: stage.top + stage.height / 2,
+        stage,
+        canvas,
+        level: rect('.jezzball-level'),
+        controls: rect('.jezzball-controls'),
         lives: rect('.jezzball-lives'),
         score: rect('.jezzball-score'),
         time: rect('.jezzball-time'),
@@ -130,6 +139,9 @@ test.describe.serial('JezzBall Plugin', () => {
     expect(hudPositions.score.right).toBeGreaterThan(hudPositions.center);
     expect(hudPositions.time.left).toBeGreaterThan(hudPositions.center);
     expect(hudPositions.filled.top).toBeGreaterThan(hudPositions.middle);
+    expect(hudPositions.canvas.top).toBeGreaterThan(hudPositions.stage.top);
+    expect(hudPositions.canvas.left).toBeGreaterThan(hudPositions.stage.left);
+    expect(hudPositions.level.right).toBeLessThan(hudPositions.controls.left);
 
     await page.evaluate(() => {
       document.body.classList.remove('dark-theme');
@@ -141,18 +153,19 @@ test.describe.serial('JezzBall Plugin', () => {
   test('fits the whole stage in fullscreen and hides controls', async () => {
     const game = page.locator('.full-page.ref .jezzball-game');
     const container = game.locator('xpath=ancestor::*[contains(@class, "md-container")]');
-    await expect(container).toHaveClass(/no-resize/);
-    await expect(container).not.toHaveClass(/zoom/);
     await game.evaluate(async element => {
       await element.closest('app-viewer')!.requestFullscreen();
     });
-    await expect(game.locator('.jezzball-toolbar')).toHaveCSS('display', 'none');
+    await expect(container).toHaveCSS('zoom', '0.5');
+    await expect(game.locator('.jezzball-toolbar')).toBeVisible();
+    await expect(game.locator('.jezzball-controls')).toHaveCSS('display', 'none');
     const stage = await game.locator('.jezzball-stage').boundingBox();
     if (!stage) throw new Error('JezzBall stage has no bounding box');
     expect(stage.x).toBeGreaterThanOrEqual(0);
     expect(stage.y).toBeGreaterThanOrEqual(0);
     expect(stage.x + stage.width).toBeLessThanOrEqual(1280);
     expect(stage.y + stage.height).toBeLessThanOrEqual(720);
+    expect(Math.abs(stage.x + stage.width / 2 - 640)).toBeLessThanOrEqual(1);
     await page.evaluate(() => document.exitFullscreen());
   });
 
@@ -189,21 +202,21 @@ test.describe.serial('JezzBall Plugin', () => {
 
     await moveCursor(game, 'ArrowLeft', 8);
     await game.press('Enter');
-    await advanceGame(page, 15);
+    await advanceGame(page, 30);
     await moveCursor(game, 'ArrowRight', 16);
     await game.press('Enter');
-    await advanceGame(page, 15);
+    await advanceGame(page, 30);
     await game.press('Space');
     await moveCursor(game, 'ArrowUp', 4);
     await game.press('Enter');
-    await advanceGame(page, 26);
+    await advanceGame(page, 52);
 
     const levelSave = page.waitForResponse(resp => (
       resp.url().includes('/api/v1/ref') && resp.request().method() === 'PATCH' && resp.ok()
     ));
     await moveCursor(game, 'ArrowDown', 10);
     await game.press('Enter');
-    await advanceGame(page, 26);
+    await advanceGame(page, 52);
     await levelSave;
     await expect(game.locator('.jezzball-overlay')).toContainText('Level 1 complete');
     await expect(game.locator('.jezzball-level')).toHaveText('Level 2');
@@ -215,7 +228,7 @@ test.describe.serial('JezzBall Plugin', () => {
     await moveCursor(game, 'ArrowLeft', 8);
     await moveCursor(game, 'ArrowUp', 8);
     await game.press('Enter');
-    await advanceGame(page, 4);
+    await advanceGame(page, 8);
     await expect(game.locator('.jezzball-lives')).toHaveText('Lives 2');
 
     const finalSave = page.waitForResponse(resp => (
@@ -341,12 +354,12 @@ test.describe.serial('JezzBall Plugin', () => {
         y: box.height * 14.5 / 24,
       },
     });
-    await advanceGame(page, 30);
+    await advanceGame(page, 60);
 
     await expect(game.locator('.jezzball-lives')).toHaveText('Lives 2');
     const survivingPixel = await canvas.evaluate((element: HTMLCanvasElement) => (
       [...element.getContext('2d')!.getImageData(8 * 25 + 12, 14 * 25 + 12, 1, 1).data]
     ));
-    expect(survivingPixel.slice(0, 3)).toEqual([119, 119, 119]);
+    expect(survivingPixel.slice(0, 3)).toEqual([0, 0, 0]);
   });
 });
