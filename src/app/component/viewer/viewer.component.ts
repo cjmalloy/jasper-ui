@@ -541,6 +541,18 @@ export class ViewerComponent implements OnChanges, OnDestroy {
       event: (event: string) => {
         actions.event!(event);
       },
+      watch: () => {
+        if (this.ref?.modified) return actions.watch!();
+        const subject$ = new BehaviorSubject<RefUpdates>({ comment: this.text } as RefUpdates);
+        return {
+          ref$: subject$,
+          comment$: (comment: string) => {
+            this.text = comment;
+            subject$.next({ comment: this.text } as RefUpdates)
+            return of();
+          },
+        };
+      },
     };
     if (this.auth.hasRole('ROLE_USER')) {
       api.emit = (a: EmitAction) => {
@@ -567,18 +579,6 @@ export class ViewerComponent implements OnChanges, OnDestroy {
           }
           if (this.ref?.modified) actions.comment!(comment);
           this.comment.emit(comment);
-        },
-        watch: () => {
-          if (this.ref?.modified) return actions.watch!();
-          const subject$ = new BehaviorSubject<RefUpdates>({ comment: this.text } as RefUpdates);
-          return {
-            ref$: subject$,
-            comment$: (comment: string) => {
-              this.text = comment;
-              subject$.next({ comment: this.text } as RefUpdates)
-              return of();
-            },
-          };
         },
         append: () => {
           if (this.ref?.modified) return actions.append!();

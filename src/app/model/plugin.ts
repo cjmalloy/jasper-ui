@@ -144,8 +144,8 @@ export const pluginSchema: Schema = {
 };
 
 export interface PluginApi {
+  event: (event: string) => void;
   comment?: (comment: string) => void;
-  event?: (event: string) => void;
   emit?: (a: EmitAction) => void;
   tag?: (tag: string) => void;
   respond?: (response: string, clear?: string[]) => void;
