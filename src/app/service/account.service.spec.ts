@@ -4,6 +4,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { DateTime } from 'luxon';
+import { of } from 'rxjs';
 import { Ref } from '../model/ref';
 
 import { AccountService } from './account.service';
@@ -166,5 +167,24 @@ describe('AccountService', () => {
       ['@city', '2026-02-01T00:00:00.000Z'],
       ['@town', '2026-03-01T00:00:00.000Z'],
     ]);
+  });
+
+  it('only clears notifications for the read origin', () => {
+    setAccount();
+    const streams = [
+      { origin: '@city', query: '@city:inbox', settingsUrl: 'tag:/plugin/outbox/city' },
+      { origin: '@town', query: '@town:inbox', settingsUrl: 'tag:/plugin/outbox/town' },
+    ];
+    vi.spyOn((service as any).admin, 'getTemplate').mockReturnValue({});
+    vi.spyOn(service, 'loadNotificationCursors$').mockReturnValue(of(streams));
+    const count = vi.spyOn((service as any).refs, 'count').mockReturnValue(of(0));
+    const clear = vi.spyOn(service, 'clearNotifications').mockImplementation(() => undefined);
+    const readDate = DateTime.fromISO('2026-04-01T00:00:00.000Z');
+
+    service.clearNotificationsIfNone(readDate, '@city');
+
+    expect(count).toHaveBeenCalledOnce();
+    expect(count).toHaveBeenCalledWith(expect.objectContaining({ query: '@city:inbox' }));
+    expect(clear).toHaveBeenCalledWith(readDate, ['@city']);
   });
 });

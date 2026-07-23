@@ -218,7 +218,7 @@ export class ChatComponent implements OnDestroy, OnChanges, HasChanges {
       const last = page.content[page.content.length - 1];
       this.cursors.set(origin, last?.modifiedString);
       // TODO: verify read before clearing?
-      this.accounts.clearNotificationsIfNone(last.modified);
+      this.accounts.clearNotificationsIfNone(last.modified, last.origin!);
       pullAllWith(this.sending, page.content, (a, b) => a.url === b.url);
       defer(() => this.viewport.checkViewportSize());
       if (!this.scrollLock) this.scrollDown();

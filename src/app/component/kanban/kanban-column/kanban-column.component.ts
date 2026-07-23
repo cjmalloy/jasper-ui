@@ -323,7 +323,7 @@ export class KanbanColumnComponent implements AfterViewInit, OnChanges, OnDestro
         this.failed.push({ text, error: printError(err).join('\n') });
         return throwError(err);
       }),
-      tap(cursor => this.accounts.clearNotificationsIfNone(DateTime.fromISO(cursor))),
+      tap(cursor => this.accounts.clearNotificationsIfNone(DateTime.fromISO(cursor), ref.origin!)),
     ).subscribe(cursor => {
       this.mutated = true;
       const uploadIndex = this.adding.findIndex(u => u.id === uploadId);

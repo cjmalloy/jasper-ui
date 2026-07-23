@@ -345,14 +345,14 @@ export class KanbanCardComponent implements OnChanges, AfterViewInit, OnDestroy 
   toggleBadge(tag: string, event?: MouseEvent) {
     if (hasTag(tag, this.ref.tags)) {
       this.tags.delete(tag, this.ref.url, this.ref.origin).pipe(
-        tap(cursor => this.accounts.clearNotificationsIfNone(DateTime.fromISO(cursor))),
+        tap(cursor => this.accounts.clearNotificationsIfNone(DateTime.fromISO(cursor), this.ref.origin!)),
       ).subscribe(() => {
         this.ref.tags = this.ref.tags!.filter(t => expandedTagsInclude(t, tag));
         this.init();
       });
     } else {
       this.tags.create(tag, this.ref.url, this.ref.origin).pipe(
-        tap(cursor => this.accounts.clearNotificationsIfNone(DateTime.fromISO(cursor))),
+        tap(cursor => this.accounts.clearNotificationsIfNone(DateTime.fromISO(cursor), this.ref.origin!)),
       ).subscribe(() => {
         this.ref.tags ||= [];
         this.ref.tags.push(tag);
@@ -394,7 +394,7 @@ export class KanbanCardComponent implements OnChanges, AfterViewInit, OnDestroy 
         console.error(printError(err));
         return throwError(() => err);
       }),
-      tap(cursor => this.accounts.clearNotificationsIfNone(DateTime.fromISO(cursor))),
+      tap(cursor => this.accounts.clearNotificationsIfNone(DateTime.fromISO(cursor), copied.origin)),
       switchMap(() => this.refs.get(copied.url, this.store.account.origin).pipe(takeUntil(this.destroy$))),
     ).subscribe(ref => {
       this.ref = ref;

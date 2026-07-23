@@ -269,12 +269,12 @@ export class AccountService {
     );
   }
 
-  clearNotificationsIfNone(readDate?: DateTime) {
+  clearNotificationsIfNone(readDate: DateTime | undefined, origin: string) {
     if (!readDate) return;
     if (!this.store.account.signedIn) return;
     if (!this.admin.getTemplate('user')) return;
     this.loadNotificationCursors$().pipe(
-      switchMap(streams => forkJoin(streams.map(stream => this.refs.count({
+      switchMap(streams => forkJoin(streams.filter(stream => stream.origin === origin).map(stream => this.refs.count({
         query: stream.query,
         modifiedAfter: this.store.account.notificationCursors.get(stream.origin),
         modifiedBefore: readDate,
