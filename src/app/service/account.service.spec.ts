@@ -112,6 +112,18 @@ describe('AccountService', () => {
     expect(streams.find(stream => stream.origin === '@town')?.settingsUrl).toEqual('tag:/plugin/outbox/town');
   });
 
+  it('creates alarm streams for visible origins without account aliases', () => {
+    setAccount();
+    const store = (service as any).store;
+    store.account.ext.config.alarms = ['alarm'];
+    store.origins.list = ['', '@city'];
+
+    const streams = service.notificationStreams;
+
+    expect(streams.find(stream => stream.origin === '@city')?.query).toEqual('@city:!plugin/delete:(alarm)');
+    expect(streams.find(stream => stream.origin === '@city')?.settingsUrl).toEqual('tag:/plugin/outbox/city');
+  });
+
   it('loads independent cursors for multiple origins', () => {
     setAccount();
     const origins = (service as any).origins;

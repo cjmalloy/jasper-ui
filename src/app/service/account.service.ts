@@ -329,6 +329,9 @@ export class AccountService {
       }),
     ].filter(mailbox => !!mailbox) as string[];
     const grouped = new Map<string, string[]>();
+    if (this.store.account.alarmsQuery) {
+      for (const origin of this.store.origins.list) grouped.set(origin, []);
+    }
     for (const mailbox of uniq(mailboxes)) {
       const origin = tagOrigin(mailbox);
       grouped.set(origin, [...(grouped.get(origin) || []), mailbox]);
@@ -338,10 +341,10 @@ export class AccountService {
         ? [this.store.account.tag]
         : this.origins.aliasesFor(this.store.account.tag, origin);
       const excludeAuthors = selectors.map(selector => `!${selector}`).join(':');
-      const alarms = this.store.account.alarmsQuery ? `|${this.store.account.alarmsQuery}` : '';
+      const notifications = [...boxes, ...(this.store.account.alarmsQuery ? [this.store.account.alarmsQuery] : [])];
       return {
         origin,
-        query: `${origin || '@'}:${excludeAuthors ? excludeAuthors + ':' : ''}!plugin/delete:(${boxes.join('|')}${alarms})`,
+        query: `${origin || '@'}:${excludeAuthors ? excludeAuthors + ':' : ''}!plugin/delete:(${notifications.join('|')})`,
         settingsUrl: cursorSettingsUrl(origin, this.store.account.origin),
       };
     });
