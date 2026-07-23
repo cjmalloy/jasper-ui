@@ -7132,6 +7132,78 @@ Each response contains the converted Markdown from a specific source format.</so
       <trans-unit id="550762586054059391" datatype="html">
         <source>🟣️</source>
       </trans-unit>
+      <trans-unit id="5858455316969437091" datatype="html">
+        <source>Saved example</source>
+        <target>保存済みサンプル</target>
+      </trans-unit>
+      <trans-unit id="8350568145674123707" datatype="html">
+        <source>This Ref is read-only; progress will not be saved.</source>
+        <target>このRefは読み取り専用です。進行状況は保存されません。</target>
+      </trans-unit>
+      <trans-unit id="7182974689040833178" datatype="html">
+        <source>Resume</source>
+        <target>再開</target>
+      </trans-unit>
+      <trans-unit id="3353779417951108061" datatype="html">
+        <source>Eject</source>
+        <target>書き出す</target>
+      </trans-unit>
+      <trans-unit id="8977874514318795349" datatype="html">
+        <source>Download a portable game</source>
+        <target>ポータブルゲームをダウンロード</target>
+      </trans-unit>
+      <trans-unit id="2128624502640961509" datatype="html">
+        <source>New game</source>
+        <target>新しいゲーム</target>
+      </trans-unit>
+      <trans-unit id="6962699013778688473" datatype="html">
+        <source>Continue</source>
+        <target>続ける</target>
+      </trans-unit>
+      <trans-unit id="8755464126317616831" datatype="html">
+        <source>Level {level}</source>
+        <target>レベル {level}</target>
+      </trans-unit>
+      <trans-unit id="1663762044916325727" datatype="html">
+        <source>Lives {lives}</source>
+        <target>残機 {lives}</target>
+      </trans-unit>
+      <trans-unit id="6002620609380634646" datatype="html">
+        <source>Filled {filled}% / {target}%</source>
+        <target>占有率 {filled}% / {target}%</target>
+      </trans-unit>
+      <trans-unit id="9024032865625543959" datatype="html">
+        <source>Time {time}</source>
+        <target>残り時間 {time}</target>
+      </trans-unit>
+      <trans-unit id="2747457531544510288" datatype="html">
+        <source>Score {score}</source>
+        <target>スコア {score}</target>
+      </trans-unit>
+      <trans-unit id="8006598437672035003" datatype="html">
+        <source>Wall ↕</source>
+        <target>壁 ↕</target>
+      </trans-unit>
+      <trans-unit id="2676701399964654601" datatype="html">
+        <source>Wall ↔</source>
+        <target>壁 ↔</target>
+      </trans-unit>
+      <trans-unit id="1010824126943413606" datatype="html">
+        <source>Level {level} complete</source>
+        <target>レベル {level} クリア</target>
+      </trans-unit>
+      <trans-unit id="8135923080030537232" datatype="html">
+        <source>Game over · score {score}</source>
+        <target>ゲームオーバー · スコア {score}</target>
+      </trans-unit>
+      <trans-unit id="7935139414809961172" datatype="html">
+        <source>Final score {score}</source>
+        <target>最終スコア {score}</target>
+      </trans-unit>
+      <trans-unit id="8358043714340144824" datatype="html">
+        <source>Click or press Enter to build a wall. Use the arrow keys to move the keyboard cursor. Right-click, Space, or the direction button changes direction. Press P to pause.</source>
+        <target>クリックまたはEnterキーで壁を作ります。矢印キーでキーボードカーソルを移動します。右クリック、Spaceキー、または方向ボタンで壁の方向を変更します。Pキーで一時停止します。</target>
+      </trans-unit>
       <trans-unit id="5885261957820095227" datatype="html">
         <source>Play a faithful remake of the classic JezzBall game.</source>
         <target>クラシックゲーム「JezzBall」を忠実に再現したリメイクをプレイします。</target>
