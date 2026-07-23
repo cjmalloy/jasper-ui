@@ -60,12 +60,20 @@ test.describe.serial('Kanban Template No Swimlanes', () => {
     await page.locator('#url').fill(pinnedUrl);
     await page.getByText('Next').click();
     await page.locator('[name=title]').fill('Pinned Kanban Ref');
+    const createRef = page.waitForResponse(resp =>
+      resp.url().includes('/api/v1/ref') && resp.request().method() === 'POST' && resp.ok()
+    );
     await page.locator('button', { hasText: 'Submit' }).click();
+    await createRef;
 
     await page.goto('/ext/kanban/test?debug=MOD', { waitUntil: 'networkidle' });
     await page.getByRole('button', { name: '+ Add another pinned link' }).click();
     await page.getByText('Pinned:', { exact: true }).locator('..').locator('input').fill(pinnedUrl);
+    const saveExt = page.waitForResponse(resp =>
+      resp.url().includes('/api/v1/ext') && resp.request().method() === 'PUT' && resp.ok()
+    );
     await page.locator('button', { hasText: 'Save' }).click();
+    await saveExt;
 
     await page.goto('/tag/kanban/test?debug=MOD', { waitUntil: 'networkidle' });
     await expect(page.locator('.kanban-pinned .kanban-card')).toContainText('Pinned Kanban Ref');
